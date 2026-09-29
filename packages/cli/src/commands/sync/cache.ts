@@ -20,6 +20,9 @@ import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import * as path from "node:path";
 import { load as parseYAML } from "js-yaml";
+import entitySchema from "../../schemas/entity.schema.json" with {
+  type: "json",
+};
 
 interface SyncCacheDeps {
   createHash: typeof createHash;
@@ -54,6 +57,8 @@ export type SyncCache = {
   seenAt: Record<string, string>;
   semanticHashes: Record<string, string>;
   semanticContracts: Record<string, boolean>;
+  /** Compiler contract that produced the cached compilation; see below. */
+  compilerFingerprint?: string;
 };
 
 /**
@@ -64,6 +69,54 @@ export type SyncCache = {
  */
 export const SYNC_CACHE_VERSION = 2;
 export const SYNC_CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+
+/**
+ * Identity of the entity property contract this CLI compiles against. Sync
+ * skips unchanged sources by content hash, so a store compiled by a CLI with a
+ * different contract (an older build that drops properties it does not know)
+ * would otherwise keep that lossy compilation forever. A cache stamped with a
+ * different fingerprint is discarded, which re-imports every source once.
+ */
+// implements REQ-cli-canonical-runtime
+export const SYNC_COMPILER_FINGERPRINT = createHash("sha256")
+  .update(JSON.stringify(entitySchema))
+  .digest("hex");
+
+/**
+ * Stale reason for a branch store whose last compilation used a different
+ * compiler contract than the running CLI. Status reports it so a lossy store is
+ * visible before the next sync repairs it.
+ */
+// implements REQ-cli-canonical-runtime
+export function compilerFingerprintReason(
+  storePath: string,
+  deps?: Partial<SyncCacheDeps>,
+): Record<string, unknown> | null {
+  const resolved = resolveDeps(deps);
+  const cachePath = path.join(storePath, "sync-cache.json");
+  if (!resolved.existsSync(cachePath)) return null;
+  let recorded: unknown;
+  try {
+    recorded = (
+      JSON.parse(resolved.readFileSync(cachePath, "utf8")) as {
+        compilerFingerprint?: unknown;
+      }
+    ).compilerFingerprint;
+  } catch {
+    return null;
+  }
+  if (recorded === SYNC_COMPILER_FINGERPRINT) return null;
+  return {
+    code: "compiler_changed",
+    path: cachePath,
+    entityIds: [],
+    detail:
+      typeof recorded === "string"
+        ? "The branch KB was compiled by a Kibi CLI with a different entity property contract, so unchanged sources may lack properties this CLI keeps. The next kibi sync re-imports every source."
+        : "The branch KB was compiled by a Kibi CLI that did not record its entity property contract, so unchanged sources may lack properties this CLI keeps. The next kibi sync re-imports every source.",
+    remediation: { command_argv: ["kibi", "sync"], applyRequired: false },
+  };
+}
 
 export function toCacheKey(workspaceRoot: string, filePath: string): string {
   const root = path.resolve(workspaceRoot);
@@ -212,6 +265,10 @@ export function readSyncCache(
   // implements REQ-003
   cachePath: string,
   deps?: Partial<SyncCacheDeps>,
+  options: {
+    /** Discard a cache produced under a different compiler contract. */
+    readonly compilerFingerprint?: string;
+  } = {},
 ): SyncCache {
   const resolved = resolveDeps(deps);
   if (!resolved.existsSync(cachePath)) {
@@ -228,7 +285,11 @@ export function readSyncCache(
     const parsed = JSON.parse(
       resolved.readFileSync(cachePath, "utf8"),
     ) as Partial<SyncCache>;
-    if (parsed.version !== SYNC_CACHE_VERSION) {
+    if (
+      parsed.version !== SYNC_CACHE_VERSION ||
+      (options.compilerFingerprint !== undefined &&
+        parsed.compilerFingerprint !== options.compilerFingerprint)
+    ) {
       return {
         version: SYNC_CACHE_VERSION,
         hashes: {},
@@ -256,6 +317,9 @@ export function readSyncCache(
     }
     if (parsed.shardRelationships !== undefined) {
       cache.shardRelationships = parsed.shardRelationships;
+    }
+    if (parsed.compilerFingerprint !== undefined) {
+      cache.compilerFingerprint = parsed.compilerFingerprint;
     }
     return cache;
   } catch {

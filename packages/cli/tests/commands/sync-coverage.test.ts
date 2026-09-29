@@ -7,6 +7,7 @@ import { initCommand } from "../../src/commands/init.js";
 import { SyncError, syncCommand } from "../../src/commands/sync.js";
 import {
   SYNC_CACHE_VERSION,
+  SYNC_COMPILER_FINGERPRINT,
   writeSyncCache,
 } from "../../src/commands/sync/cache.js";
 import { engineSocketPath } from "../../src/engine.js";
@@ -218,6 +219,8 @@ describe("syncCommand write, cache, and pending-receipt paths", () => {
     mkdirSync(store, { recursive: true });
     writeSyncCache(path.join(store, "sync-cache.json"), {
       version: SYNC_CACHE_VERSION,
+      // Planted as if this CLI build compiled the store.
+      compilerFingerprint: SYNC_COMPILER_FINGERPRINT,
       hashes: { "gone.md": "a".repeat(64) },
       relationshipHashes: { ".kb/relationships/gone.yaml": "b".repeat(64) },
       entityHashes: {},
@@ -310,6 +313,8 @@ describe("syncCommand write, cache, and pending-receipt paths", () => {
     mkdirSync(store, { recursive: true });
     writeSyncCache(path.join(store, "sync-cache.json"), {
       version: SYNC_CACHE_VERSION,
+      // Planted as if this CLI build compiled the store.
+      compilerFingerprint: SYNC_COMPILER_FINGERPRINT,
       hashes: { ".kb/requirements/gone.md": "a".repeat(64) },
       relationshipHashes: {},
       entityHashes: { "REQ-GONE": "b".repeat(64) },
@@ -417,6 +422,8 @@ describe("syncCommand write, cache, and pending-receipt paths", () => {
     const reqHash = shaFile(path.join(cwd, req));
     writeSyncCache(path.join(store, "sync-cache.json"), {
       version: SYNC_CACHE_VERSION,
+      // Planted as if this CLI build compiled the store.
+      compilerFingerprint: SYNC_COMPILER_FINGERPRINT,
       hashes: { [req]: reqHash },
       relationshipHashes: {},
       seenAt: {

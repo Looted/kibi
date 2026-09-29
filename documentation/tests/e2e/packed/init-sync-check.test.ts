@@ -135,6 +135,28 @@ if (RUN_NODE_TEST_SUITE) {
         ),
         "RDF file should be created",
       );
+
+      // Sync stamps the compiler contract it compiled with, so status only
+      // reports compiler_changed for a store another CLI build compiled.
+      const cache = JSON.parse(
+        readFileSync(
+          join(
+            exactBranchStorePath(sandbox.repoDir, "develop"),
+            "sync-cache.json",
+          ),
+          "utf8",
+        ),
+      ) as { compilerFingerprint?: unknown };
+      assert.match(String(cache.compilerFingerprint), /^[0-9a-f]{64}$/);
+      const status = JSON.parse(
+        (await kibi(sandbox, ["status", "--format", "json"])).stdout,
+      ) as { staleReasons?: { code?: string }[] };
+      assert.ok(
+        !(status.staleReasons ?? []).some(
+          (reason) => reason.code === "compiler_changed",
+        ),
+        `status must not report compiler_changed after this CLI's sync: ${JSON.stringify(status.staleReasons)}`,
+      );
     });
 
     it(

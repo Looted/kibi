@@ -37,6 +37,7 @@ import {
   getCurrentBranch,
   installGitHooks,
   installHook,
+  outdatedManagedHooks,
   updateGitIgnore,
 } from "../../src/commands/init-helpers.js";
 import { branchStoreKey } from "../../src/utils/branch-store-locator.js";
@@ -492,5 +493,25 @@ describe("init-helpers", () => {
     );
     expect(postCheckout).toContain('"$KIBI_BIN" sync');
     expect(postCheckout).not.toContain("kibi branch ensure");
+  });
+
+  test("reports kibi-managed hook sections written by another CLI version", () => {
+    const hooksDir = path.join(tmpDir, "hooks");
+    installGitHooks(hooksDir);
+    expect(outdatedManagedHooks(hooksDir)).toEqual([]);
+
+    const preCommit = path.join(hooksDir, "pre-commit");
+    writeFileSync(
+      preCommit,
+      readFileSync(preCommit, "utf8").replace(
+        '"$KIBI_BIN" check-generated --staged --changed-only\n',
+        "",
+      ),
+    );
+    writeFileSync(
+      path.join(hooksDir, "post-merge"),
+      "#!/bin/sh\n# user-authored hook without kibi markers\n",
+    );
+    expect(outdatedManagedHooks(hooksDir)).toEqual(["pre-commit"]);
   });
 });

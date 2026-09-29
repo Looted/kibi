@@ -391,6 +391,51 @@ export interface GitHookInstallResult {
   result: InstallHookResult;
 }
 
+/** Kibi-managed hooks in install order, with the template each one installs. */
+const MANAGED_HOOK_TEMPLATES: readonly (readonly [
+  GitHookInstallResult["hook"],
+  string,
+])[] = [
+  ["post-checkout", POST_CHECKOUT_HOOK],
+  ["post-merge", POST_MERGE_HOOK],
+  ["post-rewrite", POST_REWRITE_HOOK],
+  ["pre-commit", PRE_COMMIT_HOOK],
+];
+
+function managedHookBody(template: string): string {
+  return template.replace("#!/bin/sh\n", "");
+}
+
+/**
+ * Installed kibi-managed hooks whose managed section differs from what this
+ * CLI installs, such as a pre-commit gate written before `check-generated`
+ * joined it. User-authored hooks without kibi markers are not reported.
+ */
+// implements REQ-cli-doctor
+export function outdatedManagedHooks(hooksDir: string): string[] {
+  const managed = new RegExp(
+    `${escapeRegex(KIBI_HOOK_BEGIN)}\\n([\\s\\S]*?)\\n${escapeRegex(KIBI_HOOK_END)}`,
+  );
+  return MANAGED_HOOK_TEMPLATES.filter(([hook, template]) => {
+    const hookPath = path.join(hooksDir, hook);
+    if (!existsSync(hookPath)) return false;
+    const section = managed.exec(readFileSync(hookPath, "utf8"));
+    return section !== null && section[1] !== managedHookBody(template);
+  }).map(([hook]) => hook);
+}
+
+/** Whether any hook in the directory carries a kibi-managed section. */
+// implements REQ-cli-doctor
+export function hasManagedHooks(hooksDir: string): boolean {
+  return MANAGED_HOOK_TEMPLATES.some(([hook]) => {
+    const hookPath = path.join(hooksDir, hook);
+    return (
+      existsSync(hookPath) &&
+      readFileSync(hookPath, "utf8").includes(KIBI_HOOK_BEGIN)
+    );
+  });
+}
+
 export function installGitHooks(
   hooksDir: string,
   options: { hooksPathOrigin?: string | null } = {},
@@ -398,37 +443,10 @@ export function installGitHooks(
   // implements REQ-git-hook-effective-install
   mkdirSync(hooksDir, { recursive: true });
 
-  const targets: Array<{
-    hook: GitHookInstallResult["hook"];
-    hookPath: string;
-    template: string;
-  }> = [
-    {
-      hook: "post-checkout",
-      hookPath: path.join(hooksDir, "post-checkout"),
-      template: POST_CHECKOUT_HOOK,
-    },
-    {
-      hook: "post-merge",
-      hookPath: path.join(hooksDir, "post-merge"),
-      template: POST_MERGE_HOOK,
-    },
-    {
-      hook: "post-rewrite",
-      hookPath: path.join(hooksDir, "post-rewrite"),
-      template: POST_REWRITE_HOOK,
-    },
-    {
-      hook: "pre-commit",
-      hookPath: path.join(hooksDir, "pre-commit"),
-      template: PRE_COMMIT_HOOK,
-    },
-  ];
-
-  const results: GitHookInstallResult[] = targets.map(
-    ({ hook, hookPath, template }) => ({
+  const results: GitHookInstallResult[] = MANAGED_HOOK_TEMPLATES.map(
+    ([hook, template]) => ({
       hook,
-      result: installHook(hookPath, template.replace("#!/bin/sh\n", "")),
+      result: installHook(path.join(hooksDir, hook), managedHookBody(template)),
     }),
   );
 
