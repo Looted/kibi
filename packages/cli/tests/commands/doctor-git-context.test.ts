@@ -1,8 +1,9 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 import { doctorCommand } from "../../src/commands/doctor.js";
+import { installGitHooks } from "../../src/commands/init-helpers.js";
 import {
   captureIo,
   createGitWorkspace,
@@ -194,5 +195,39 @@ describe("doctor effective hooks context", () => {
       expect(check.message).toContain("Installed and executable");
       expect(check.message).not.toContain("Not installed (optional)");
     }
+  });
+
+  test("compares kibi-managed hook sections at the effective hooks path", async () => {
+    const cwd = track(createGitWorkspace());
+    git(cwd, "config core.hooksPath .githooks");
+    const effective = path.join(cwd, ".githooks");
+    installGitHooks(effective);
+
+    const managedSections = (io: { logs: string[] }): DoctorCheck => {
+      const parsed = JSON.parse(io.logs[0] ?? "{}") as {
+        checks?: DoctorCheck[];
+      };
+      const check = (parsed.checks ?? []).find(
+        (entry) => entry.name === "Kibi-managed hook sections",
+      );
+      expect(check).toBeDefined();
+      return check as DoctorCheck;
+    };
+    expect(managedSections(await doctorAt(cwd)).passed).toBe(true);
+
+    // A pre-commit section written before the generated-manifest gate joined
+    // the template still runs, so only a template comparison reveals it.
+    const preCommit = path.join(effective, "pre-commit");
+    writeFileSync(
+      preCommit,
+      readFileSync(preCommit, "utf8").replace(
+        '"$KIBI_BIN" check-generated --staged --changed-only\n',
+        "",
+      ),
+    );
+    const outdated = managedSections(await doctorAt(cwd));
+    expect(outdated.passed).toBe(false);
+    expect(outdated.message).toContain("pre-commit");
+    expect(outdated.message).toContain("core.hooksPath=.githooks");
   });
 });

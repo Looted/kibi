@@ -139,3 +139,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2288476508ba
+  - type: implements
+    from: SYM-fingerprintRequirements
+    to: REQ-kibi-local-proof-parity
+    created_at: 2026-09-29T11:26:53.211Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-15c0ec435d0b
+  - type: covered_by
+    from: SYM-fingerprintRequirements
+    to: TEST-kibi-local-proof-parity
+    created_at: 2026-09-29T11:26:53.223Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c14857d9b193

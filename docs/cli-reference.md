@@ -57,7 +57,7 @@ not infer or write product knowledge.
 
 **Behavior:**
 - Creates `.kb/` directory structure with canonical knowledge lanes (`requirements/`, `scenarios/`, `tests/`, `facts/`, `adr/`, `flags/`, `events/`)
-- Installs git hooks (pre-commit, post-checkout, post-merge, post-rewrite) by default. Hooks resolve the `kibi` binary at run time (PATH first, then `node_modules/.bin` walking up from the repository root), so they work with both global and project-local installs even though git does not put `node_modules/.bin` on the hook's `PATH`.
+- Installs git hooks (pre-commit, post-checkout, post-merge, post-rewrite) by default, into the directory Git reads hooks from (`git rev-parse --git-path hooks`), so linked worktrees and `core.hooksPath` are honored. Re-running `kibi init` refreshes only the kibi-managed section of each hook. Hooks resolve the `kibi` binary at run time (PATH first, then `node_modules/.bin` walking up from the repository root), so they work with both global and project-local installs even though git does not put `node_modules/.bin` on the hook's `PATH`.
 - Ignores derived `.kb/` runtime state in `.gitignore` (`.kb/branches/`, `.kb/recovery/`, `.kb/proof/runs/`, `.kb/briefs/`, `.kb/migrations/`, `.kb/usage.log`). Authored knowledge under `.kb/` stays tracked. `kibi migrate` also removes the pre-canonical blanket `.kb/` ignore stanza so migrated knowledge files are not left Git-ignored.
 - Creates Kibi-owned `.kb/manifest.json` (lifecycle metadata only; not a user configuration file)
 - Creates `.kb/symbols.yaml` and `.kb/symbol-coordinates.yaml` when they do not already exist
@@ -330,6 +330,13 @@ Status also reports the exact `branchAttachment` (`gitBranch`, `kbBranch`,
 writes and sync are blocked until the sanctioned migration is applied. Dirty
 editor/config paths are reported rather than silently ignored.
 
+Sync stamps the compiler contract it used (a hash of the entity property
+schema) into the branch store. When the store was compiled by a CLI build with
+a different contract, for example an older build that dropped properties it
+did not know, status reports `syncState: "stale"` with a `compiler_changed`
+reason even though every source hash still matches. The next `kibi sync`
+re-imports every source once and clears it.
+
 Status does not initialise a missing branch store or repair a damaged one. It
 instead returns `branchStore` (`missing`, `incomplete`, or `unreadable`) with a
 recovery-oriented stale reason. Use the explicit branch commands below after
@@ -587,7 +594,8 @@ Verifies environment setup and diagnostics.
 - Validates `.kb/manifest.json` syntax
 - Recognizes leftover `.kb/config.json` and recommends `kibi migrate --yes`
 - Checks git repository presence
-- Verifies git hooks are installed and executable
+- Verifies git hooks are installed and executable, reading them from the directory Git uses (`git rev-parse --git-path hooks`)
+- Fails when an installed kibi-managed hook section differs from what the running CLI installs ("Kibi-managed hook sections"), for example a pre-commit hook written before the generated-manifest gate
 - Reports issues with remediation suggestions
 
 **Examples:**
@@ -605,6 +613,7 @@ artifacts are executing.
 - `.kb/` missing → Run `kibi init`
 - Git hooks missing → Run `kibi init`
 - Git hooks use the legacy template without kibi CLI resolution → Run `kibi init` to regenerate them
+- Kibi-managed hook sections outdated for this CLI → Run `kibi init` to refresh them (hooks are shared by every worktree of the repository)
 - Config invalid → Check `.kb/manifest.json` syntax; leftover `.kb/config.json` is retired with `kibi migrate --yes`
 
 ## Release package validation

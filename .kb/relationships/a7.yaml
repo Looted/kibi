@@ -241,3 +241,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1c9af5294ebf
+  - type: verified_by
+    from: SCEN-kibi-local-proof-parity
+    to: TEST-kibi-local-proof-parity
+    created_at: 2026-09-29T11:24:35.146Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-08cf314e71fd
+  - type: implements
+    from: SYM-replaySteps
+    to: REQ-kibi-local-proof-parity
+    created_at: 2026-09-29T11:26:10.753Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5f02eff31c6f
+  - type: covered_by
+    from: SYM-replaySteps
+    to: TEST-kibi-local-proof-parity
+    created_at: 2026-09-29T11:26:10.769Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e40588e770b2

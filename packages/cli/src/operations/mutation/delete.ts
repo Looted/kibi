@@ -13,7 +13,9 @@ import {
   type RelationshipSelector,
   listShards,
   readAllShards,
+  readShard,
   removeRelationshipsFromShards,
+  renderShardWithout,
 } from "../../relationships/shards.js";
 import { resolveBranchAttachment } from "../../utils/branch-resolver.js";
 import { buildEntityDeleteAuditGoal } from "./audit.js";
@@ -600,6 +602,37 @@ export async function executeDelete(
       goals.push(buildEntityDeleteAuditGoal(entity));
     }
     if (authoredIds.length > 0 && context.sourcePlanApplication !== true) {
+      if (context.fs) {
+        // A deleted entity's outgoing relationships live in canonical shards,
+        // not in its own document. Incoming edges already block deletion, so
+        // the plan removes the outgoing rows too; otherwise the compiled
+        // store drops them while the shards keep them.
+        const deleted = new Set(authoredIds);
+        for (const shardPath of listShards(
+          path.join(context.workspaceRoot, ".kb"),
+        )) {
+          const selectors = readShard(shardPath)
+            .filter((record) => deleted.has(record.from))
+            .map(({ type, from, to }) => ({ type, from, to }));
+          if (selectors.length === 0) continue;
+          const relativeShard = path
+            .relative(context.workspaceRoot, shardPath)
+            .replaceAll("\\", "/");
+          const original = readFileSync(shardPath, "utf8");
+          const body = renderShardWithout(original, selectors, shardPath);
+          const beforeHash = createHash("sha256")
+            .update(original)
+            .digest("hex");
+          sourceHashes[relativeShard] = beforeHash;
+          sourcePlansByPath.set(relativeShard, {
+            path: relativeShard,
+            mode: "write",
+            beforeHash,
+            afterHash: createHash("sha256").update(body).digest("hex"),
+            body,
+          });
+        }
+      }
       const supersessionRequired = authoredRequirementIds.length > 0;
       const sourcePlans = [...sourcePlansByPath.values()];
       const planBody = {

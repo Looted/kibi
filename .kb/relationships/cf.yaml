@@ -174,3 +174,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4dc7d16977f2
+  - type: implements
+    from: SYM-outdatedManagedHooks
+    to: REQ-cli-doctor
+    created_at: 2026-09-29T11:34:05.525Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-00d34101e3c3
+  - type: covered_by
+    from: SYM-outdatedManagedHooks
+    to: TEST-001
+    created_at: 2026-09-29T11:34:05.543Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fb06e5fcf4c2

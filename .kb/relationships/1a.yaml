@@ -251,3 +251,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b4bf9391752d
+  - type: implements
+    from: SYM-PROOF_BASELINE_VERSION
+    to: REQ-kibi-local-proof-parity
+    created_at: 2026-09-29T11:26:44.838Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0d4a5a1128c6
+  - type: covered_by
+    from: SYM-PROOF_BASELINE_VERSION
+    to: TEST-kibi-local-proof-parity
+    created_at: 2026-09-29T11:26:44.856Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6e8b71dcc9d2

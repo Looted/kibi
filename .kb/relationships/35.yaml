@@ -216,3 +216,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cf19dee4b28a
+  - type: implements
+    from: SYM-parseSpawnJson
+    to: REQ-kibi-local-proof-parity
+    created_at: 2026-09-29T11:27:25.367Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-30ca1b4e4f9a
+  - type: covered_by
+    from: SYM-parseSpawnJson
+    to: TEST-kibi-local-proof-parity
+    created_at: 2026-09-29T11:27:25.383Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-579a91c03e53

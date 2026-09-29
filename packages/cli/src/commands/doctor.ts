@@ -40,6 +40,7 @@ import {
   resolveGitRepository,
 } from "../utils/git-repository-context.js";
 import { readKbManifestStatus } from "../utils/kb-manifest.js";
+import { hasManagedHooks, outdatedManagedHooks } from "./init-helpers.js";
 import { planLegacyStorageMigration } from "./legacy-storage-migration.js";
 
 /**
@@ -107,6 +108,10 @@ export async function doctorCommand(
     {
       name: "post-rewrite hook",
       check: checkPostRewriteHook,
+    },
+    {
+      name: "Kibi-managed hook sections",
+      check: checkManagedHookSections,
     },
     {
       name: "Capability plugins",
@@ -744,6 +749,42 @@ function hooksPathSuffix(): string {
     ? ` from ${context.hooksPathOrigin}`
     : "";
   return ` (core.hooksPath=${context.hooksPathConfig}${origin})`;
+}
+
+/**
+ * Kibi-managed hook sections must match what this CLI installs. A section
+ * written by an older CLI keeps running while silently lacking newer gates
+ * (the pre-commit `check-generated` step, for example), and the other hook
+ * checks only confirm that kibi is invoked at all.
+ */
+// implements REQ-cli-doctor
+function checkManagedHookSections(): {
+  passed: boolean;
+  message: string;
+  remediation?: string;
+} {
+  const hooksDir = effectiveHooksDir();
+  let outdated: string[];
+  try {
+    if (!hasManagedHooks(hooksDir)) {
+      return { passed: true, message: "Not installed (optional)" };
+    }
+    outdated = outdatedManagedHooks(hooksDir);
+  } catch {
+    return {
+      passed: false,
+      message: "Unable to read hook content",
+      remediation: "Run: kibi init",
+    };
+  }
+  if (outdated.length > 0) {
+    return {
+      passed: false,
+      message: `Outdated for this Kibi CLI: ${outdated.join(", ")} (installed by a different version; newer gates may be missing)${hooksPathSuffix()}`,
+      remediation: "Run: kibi init to refresh the kibi-managed hook sections",
+    };
+  }
+  return { passed: true, message: "Current for this Kibi CLI" };
 }
 
 function checkGitHooks(): {

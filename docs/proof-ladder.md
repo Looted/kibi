@@ -151,6 +151,14 @@ maps to `proofStatus: unresolved`, not `proven`.
 - `kibi proof impact` — compare current proof state to `HEAD:proof/baseline.json`
   (diagnostic; exits 0 after a successful report). The ratchet remains
   `scripts/check-proof-baseline.mjs`.
+- `bun run proof:baseline:semantic` (this repository) — compare the committed
+  baseline without re-proving: gaps that only reflect stale evidence
+  (`stale_proof_receipt`, `proof_contract_mismatch`, and production coverage
+  whose symbols all keep a `covered_by` link) are set aside, so grounding,
+  contradiction, and link regressions surface in about a minute.
+- `bun run proof:replay` (this repository) — replay the CI proof job's gate
+  steps from `.github/workflows/proof.yml` in a clean clone of the committed
+  HEAD, outside the repository tree, and stop at the first failing step.
 - `kibi proof prune --keep 1` — drop superseded receipts (re-proving the same
   snapshot appends duplicates).
 - `kibi proof migrate-legacy` — remove legacy `verification_receipts` blocks
