@@ -43270,7 +43270,11 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-docs-readme-published-links
+      - type: covered_by
         target: TEST-docs-site-pages
+      - type: implements
+        target: REQ-docs-readme-published-links
       - type: implements
         target: REQ-docs-site-pages
   - id: SYM-docs-site-theme-prepareMark
@@ -43446,3 +43450,132 @@ symbols:
         target: TEST-001
       - type: implements
         target: REQ-cli-doctor
+  - id: SYM-docs-readme-published-links
+    title: Published documentation link verifier
+    status: active
+    sourceFile: packages/cli/tests/readme-published-docs.test.ts
+    granularity_reason: test-suite
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-docs-readme-published-links
+  - id: SYM-docs-site-catalog-publishedPageHref
+    title: publishedPageHref
+    status: active
+    sourceFile: docs-site/catalog.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-docs-readme-published-links
+      - type: implements
+        target: REQ-docs-readme-published-links
+  - id: SYM-docs-site-llms-renderLlmsTxt
+    title: renderLlmsTxt
+    status: active
+    sourceFile: docs-site/llms.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-docs-readme-published-links
+      - type: implements
+        target: REQ-docs-readme-published-links
+  - id: SYM-docs-site-readmePublishedDocProblems
+    title: readmePublishedDocProblems
+    status: active
+    sourceFile: docs-site/readme-links.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-docs-readme-published-links
+      - type: implements
+        target: REQ-docs-readme-published-links
+  - id: SYM-docs-site-catalog-DocSection
+    title: DocSection
+    status: active
+    sourceFile: docs-site/catalog.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-docs-readme-published-links
+      - type: implements
+        target: REQ-docs-readme-published-links
+  - id: SYM-docs-site-catalog-DocPage
+    title: DocPage
+    status: active
+    sourceFile: docs-site/catalog.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-docs-readme-published-links
+      - type: implements
+        target: REQ-docs-readme-published-links
+  - id: SYM-docs-site-catalog-PUBLISHED_DOCS_ORIGIN
+    title: PUBLISHED_DOCS_ORIGIN
+    status: active
+    sourceFile: docs-site/catalog.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-docs-readme-published-links
+      - type: implements
+        target: REQ-docs-readme-published-links
+  - id: SYM-docs-site-catalog-LLMS_INDEX_PATH
+    title: LLMS_INDEX_PATH
+    status: active
+    sourceFile: docs-site/catalog.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-docs-readme-published-links
+      - type: implements
+        target: REQ-docs-readme-published-links
+  - id: SYM-docs-site-catalog-DOCS
+    title: DOCS
+    status: active
+    sourceFile: docs-site/catalog.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-docs-readme-published-links
+      - type: implements
+        target: REQ-docs-readme-published-links
+  - id: SYM-docs-site-catalog-sitePagePath
+    title: sitePagePath
+    status: active
+    sourceFile: docs-site/catalog.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-docs-readme-published-links
+      - type: implements
+        target: REQ-docs-readme-published-links
+  - id: SYM-docs-site-catalog-publishedLlmsIndexHref
+    title: publishedLlmsIndexHref
+    status: active
+    sourceFile: docs-site/catalog.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-docs-readme-published-links
+      - type: implements
+        target: REQ-docs-readme-published-links
+  - id: SYM-docs-site-catalog-pageForSource
+    title: pageForSource
+    status: active
+    sourceFile: docs-site/catalog.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-docs-readme-published-links
+      - type: implements
+        target: REQ-docs-readme-published-links
+  - id: SYM-docs-site-catalog-pageForSitePath
+    title: pageForSitePath
+    status: active
+    sourceFile: docs-site/catalog.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-docs-readme-published-links
+      - type: implements
+        target: REQ-docs-readme-published-links

@@ -10,6 +10,8 @@
  * other hues; proven green stays reserved for complete proof.
  */
 
+import { publishedLlmsIndexHref } from "./catalog.js";
+
 // implements REQ-docs-site-pages
 export type Section = "guide" | "reference";
 
@@ -1087,6 +1089,8 @@ export function layout(page: PageShell): string {
 <title>${title}</title>
 <meta name="description" content="${description}">
 <meta name="theme-color" content="#111318">
+<link rel="alternate" type="text/plain" href="${root}llms.txt" title="Documentation index for language models">
+<meta name="llms-txt" content="${publishedLlmsIndexHref()}">
 <meta property="og:type" content="website">
 <meta property="og:title" content="${title}">
 <meta property="og:description" content="${description}">
