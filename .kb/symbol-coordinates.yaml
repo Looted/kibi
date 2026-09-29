@@ -10557,12 +10557,12 @@ coordinates:
     sourceLine: 1096
   SYM-e2e-multilingual-source-analysis:
     identityHash: c768de50d5f33af6f16317243e684afb5bf25fb25e232e4bee5198f038f9fef3
-    sourceHash: 5b3a817bc58fbb4e23ab8b349a7a30e0b2b534e1b6ca3673325ccafcb2ff2f81
+    sourceHash: fe1ddebb56cb6518174827991c9239db9c498e1b466d96a0f3b6f89782e282c2
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 654
+    sourceEndLine: 657
     sourceFile: documentation/tests/e2e/packed/multilingual-source-analysis.test.ts
-    sourceLine: 648
+    sourceLine: 651
   SYM-e2e-packed-cli-check:
     identityHash: 8d34331ffff99598250fb6d3e6d4559e616aecbb31ff53af9c516a1f7cf61416
     sourceHash: 5433d8be13129e535714cf7eb04267eddd7ffe085ce869b8d0f6f0e09bdb8137
@@ -26501,20 +26501,20 @@ coordinates:
     sourceLine: 160
   SYM-skillopt-process-control-tests:
     identityHash: f6ade9d1325cbcf886af8a5a749a64ea3a2666c8f8990676f847a0d6e3968c6a
-    sourceHash: 10648e899aa8fa038fa18efc7c146f1cd5ee3d35fc81e14aff7c7c128482041a
+    sourceHash: 73ee11eca45d53acec12b16ccc585a877aaffedadc3e61cfa084acb48fd082c5
     sourceColumn: 10
     sourceEndColumn: 32
-    sourceEndLine: 43
+    sourceEndLine: 56
     sourceFile: scripts/skillopt-eval/tests/process-control.test.ts
-    sourceLine: 43
+    sourceLine: 56
   SYM-skillopt-process-group-exists:
     identityHash: e1a9ab5a9fd86fb62d4824cced92b5a2c890e5462c96078eea3ccd900f21988e
-    sourceHash: 10648e899aa8fa038fa18efc7c146f1cd5ee3d35fc81e14aff7c7c128482041a
+    sourceHash: 73ee11eca45d53acec12b16ccc585a877aaffedadc3e61cfa084acb48fd082c5
     sourceColumn: 9
     sourceEndColumn: 1
-    sourceEndLine: 18
+    sourceEndLine: 19
     sourceFile: scripts/skillopt-eval/tests/process-control.test.ts
-    sourceLine: 8
+    sourceLine: 9
   SYM-skillopt-promise-assertion-hygiene-tests:
     identityHash: 719e9bfe6ffe2c55384036ba5d7857833937c950264911dfd9837df24f212629
     sourceHash: fc4fe2815f13eea4ec603fdd72e7ff411c4cedba32a6b1f217b6f4fd2fb93c9c
@@ -28453,12 +28453,12 @@ coordinates:
     sourceLine: 130
   SYM-skillopt-wait-process-group-reaping:
     identityHash: 55ddbf5596af6ea17151a58721d6f0406cc04c01e7e64d098d0b0fb9e3b49ff9
-    sourceHash: 10648e899aa8fa038fa18efc7c146f1cd5ee3d35fc81e14aff7c7c128482041a
+    sourceHash: 73ee11eca45d53acec12b16ccc585a877aaffedadc3e61cfa084acb48fd082c5
     sourceColumn: 15
     sourceEndColumn: 1
-    sourceEndLine: 41
+    sourceEndLine: 54
     sourceFile: scripts/skillopt-eval/tests/process-control.test.ts
-    sourceLine: 32
+    sourceLine: 45
   SYM-skillopt-with-exclusive-adoption-lock:
     identityHash: d5e31863397959485f3836832ba4b33cea7efd6ab648849fd661bd1e8ffccd59
     sourceHash: a55d1123eae12aacdfd314624b1d79c61bd6dfd7bb904be2b163d951abe9dc5c
