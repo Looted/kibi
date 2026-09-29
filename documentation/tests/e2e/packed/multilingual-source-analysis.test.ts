@@ -389,6 +389,9 @@ async function runLanguageWorkflow(
   const sandbox = createSandbox();
   try {
     await sandbox.install(tarballs);
+    // This fixture proves local-HEAD reviewed coordinate migration, which the
+    // CLI refuses under CI. Keep runner CI state out of the fixture.
+    sandbox.env.CI = undefined;
     await sandbox.initGitRepo();
 
     assertCommandExit(
