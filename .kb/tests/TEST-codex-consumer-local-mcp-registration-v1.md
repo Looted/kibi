@@ -24,42 +24,6 @@ proof_contract:
   success_policy: all_required_first_attempt
 proof_receipts:
   - version: kibi.proof-receipt.v1
-    receipt_id: PR-ed83c9d2a252738e398027e4
-    test_id: TEST-codex-consumer-local-mcp-registration-v1
-    scope: end_to_end
-    outcome: failed
-    code_snapshot: d00857167c57e585e0e777f8327ebab4598b8158ff6e0b72d2488ce7fed4cedb
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-09-09T00:13:05.070Z'
-    finished_at: '2026-09-09T01:03:10.098Z'
-    artifact_digest: bad89c9316ec0948292d39d63faffe1fdf072c400c78d70d8b9e1a69dcd2f4c0
-    contract_hash: 7b29e35547a59070b55bf4c40c2104f6669e91783ae4db028daf1e6469cd02d3
-    fingerprint: 1e95b07047d3e1d44d685c212e49b5f856f0a98f85af76d6f6aaab05bf056b0d
-    fingerprint_components:
-      contract: 7b29e35547a59070b55bf4c40c2104f6669e91783ae4db028daf1e6469cd02d3
-      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
-      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
-      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
-      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
-    integration_id: self-proof
-    producer:
-      name: kibi-command-producer
-    command_argv:
-      - node
-      - scripts/run-proof-producer.mjs
-    run_outcome: failed
-    proof_results:
-      - symbol_id: SYM-codex-packed-plugin-e2e
-        target: default
-        outcome: failed
-        binding: aggregate_run
-        attempts:
-          status: unavailable
-    gaps:
-      - symbol_id: SYM-codex-packed-plugin-e2e
-        target: default
-        reason: 'run did not pass (outcome: failed); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-e2e-test-001 (failed), SYM-e2e-test-003 (failed), SYM-e2e-packed-cli-check (failed), SYM-e2e-test-005 (failed), SYM-test-packed-default-branch-sync-hooks (failed) +83 more'
-  - version: kibi.proof-receipt.v1
     receipt_id: PR-26f283590ebc12e9c401fe65
     test_id: TEST-codex-consumer-local-mcp-registration-v1
     scope: end_to_end
@@ -1681,6 +1645,39 @@ proof_receipts:
     started_at: '2026-09-29T16:59:00.539Z'
     finished_at: '2026-09-29T17:20:23.357Z'
     artifact_digest: 0377648637a4a91448a458efbd8e2b41b4a87db69d5b5bb5b0e96f31624c281b
+    contract_hash: 7b29e35547a59070b55bf4c40c2104f6669e91783ae4db028daf1e6469cd02d3
+    binding_hash: 1be92aa23548d4bd9d42c15137e089f45ae1c413f45e19681b39b5097af333ca
+    fingerprint: 1e95b07047d3e1d44d685c212e49b5f856f0a98f85af76d6f6aaab05bf056b0d
+    fingerprint_components:
+      contract: 7b29e35547a59070b55bf4c40c2104f6669e91783ae4db028daf1e6469cd02d3
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-codex-packed-plugin-e2e
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-7cf1975b39c2748b568b62ed
+    test_id: TEST-codex-consumer-local-mcp-registration-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: b5ef7d5743fa7635b43d156a8d17f8a77b871bf6deee2810bd12888978abab72
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-09-29T19:41:51.152Z'
+    finished_at: '2026-09-29T20:16:15.415Z'
+    artifact_digest: 14a5c4954ed185e8c9d585ddae17a339ac17dbca1bff1c3bdb8ed7501770392d
     contract_hash: 7b29e35547a59070b55bf4c40c2104f6669e91783ae4db028daf1e6469cd02d3
     binding_hash: 1be92aa23548d4bd9d42c15137e089f45ae1c413f45e19681b39b5097af333ca
     fingerprint: 1e95b07047d3e1d44d685c212e49b5f856f0a98f85af76d6f6aaab05bf056b0d

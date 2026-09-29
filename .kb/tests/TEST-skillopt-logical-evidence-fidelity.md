@@ -26,38 +26,6 @@ proof_contract:
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v1
-    receipt_id: PR-b56a8c008f091636873c0bbd
-    test_id: TEST-skillopt-logical-evidence-fidelity
-    scope: end_to_end
-    outcome: passed
-    code_snapshot: 93f5f0dec46e04618b4c7514f75527317c006ff103eb250884af156e885de263
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-09-08T22:25:21.260Z'
-    finished_at: '2026-09-08T23:59:14.030Z'
-    artifact_digest: 5e672ca9a5db1ab9542e79720f36a07a82650e12bd2d2a4066af2d1f8bdeb09e
-    contract_hash: 7994d48277cfa366e83d86434ab21765d293174e4562127c2bd19a3d4008c200
-    fingerprint: ab9033ffc207ca6fd8ec0c33c637a3da41214ad3aeeb439b72690ebe1a2a016d
-    fingerprint_components:
-      contract: 7994d48277cfa366e83d86434ab21765d293174e4562127c2bd19a3d4008c200
-      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
-      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
-      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
-      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
-    integration_id: self-proof
-    producer:
-      name: kibi-command-producer
-    command_argv:
-      - node
-      - scripts/run-proof-producer.mjs
-    run_outcome: passed
-    proof_results:
-      - symbol_id: SYM-e2e-test-skillopt-logical-evidence-fidelity
-        target: default
-        outcome: passed
-        binding: aggregate_run
-        attempts:
-          status: unavailable
-  - version: kibi.proof-receipt.v1
     receipt_id: PR-5a62948937e2283f37cd9e38
     test_id: TEST-skillopt-logical-evidence-fidelity
     scope: end_to_end
@@ -1683,6 +1651,39 @@ proof_receipts:
     started_at: '2026-09-29T16:59:00.539Z'
     finished_at: '2026-09-29T17:20:23.357Z'
     artifact_digest: 0377648637a4a91448a458efbd8e2b41b4a87db69d5b5bb5b0e96f31624c281b
+    contract_hash: 7994d48277cfa366e83d86434ab21765d293174e4562127c2bd19a3d4008c200
+    binding_hash: 601029403aa3af75f0fd856be5ca3a3f9ad5d87c3376001982d9f6e4cea0469d
+    fingerprint: ab9033ffc207ca6fd8ec0c33c637a3da41214ad3aeeb439b72690ebe1a2a016d
+    fingerprint_components:
+      contract: 7994d48277cfa366e83d86434ab21765d293174e4562127c2bd19a3d4008c200
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-skillopt-logical-evidence-fidelity
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-eac864ce090ce73ca8892e76
+    test_id: TEST-skillopt-logical-evidence-fidelity
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: b5ef7d5743fa7635b43d156a8d17f8a77b871bf6deee2810bd12888978abab72
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-09-29T19:41:51.152Z'
+    finished_at: '2026-09-29T20:16:15.415Z'
+    artifact_digest: 14a5c4954ed185e8c9d585ddae17a339ac17dbca1bff1c3bdb8ed7501770392d
     contract_hash: 7994d48277cfa366e83d86434ab21765d293174e4562127c2bd19a3d4008c200
     binding_hash: 601029403aa3af75f0fd856be5ca3a3f9ad5d87c3376001982d9f6e4cea0469d
     fingerprint: ab9033ffc207ca6fd8ec0c33c637a3da41214ad3aeeb439b72690ebe1a2a016d

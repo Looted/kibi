@@ -22,38 +22,6 @@ proof_contract:
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v1
-    receipt_id: PR-7705fd4914dfde3ec11fc791
-    test_id: TEST-opencode-smart-enforcement-v1-coverage
-    scope: end_to_end
-    outcome: passed
-    code_snapshot: 93f5f0dec46e04618b4c7514f75527317c006ff103eb250884af156e885de263
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-09-08T22:25:21.260Z'
-    finished_at: '2026-09-08T23:59:14.030Z'
-    artifact_digest: 5e672ca9a5db1ab9542e79720f36a07a82650e12bd2d2a4066af2d1f8bdeb09e
-    contract_hash: 248bc2881607f2fc1794dc9a39001d6d508d7ff1a2b8bd45b5355f34dfe035d1
-    fingerprint: c30a4c2244aa47fda85e5b03d9ac16d2e3670d97fa98dca4e5902f5097ec2666
-    fingerprint_components:
-      contract: 248bc2881607f2fc1794dc9a39001d6d508d7ff1a2b8bd45b5355f34dfe035d1
-      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
-      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
-      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
-      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
-    integration_id: self-proof
-    producer:
-      name: kibi-command-producer
-    command_argv:
-      - node
-      - scripts/run-proof-producer.mjs
-    run_outcome: passed
-    proof_results:
-      - symbol_id: SYM-e2e-test-opencode-smart-enforcement-v1-coverage
-        target: default
-        outcome: passed
-        binding: aggregate_run
-        attempts:
-          status: unavailable
-  - version: kibi.proof-receipt.v1
     receipt_id: PR-f2a4e452da74b16e8c084c65
     test_id: TEST-opencode-smart-enforcement-v1-coverage
     scope: end_to_end
@@ -1679,6 +1647,39 @@ proof_receipts:
     started_at: '2026-09-29T16:59:00.539Z'
     finished_at: '2026-09-29T17:20:23.357Z'
     artifact_digest: 0377648637a4a91448a458efbd8e2b41b4a87db69d5b5bb5b0e96f31624c281b
+    contract_hash: 248bc2881607f2fc1794dc9a39001d6d508d7ff1a2b8bd45b5355f34dfe035d1
+    binding_hash: f2c919aa25a3be1a8141909ed9a84471de901c3e56e5f74e12c1eba31c005f1d
+    fingerprint: c30a4c2244aa47fda85e5b03d9ac16d2e3670d97fa98dca4e5902f5097ec2666
+    fingerprint_components:
+      contract: 248bc2881607f2fc1794dc9a39001d6d508d7ff1a2b8bd45b5355f34dfe035d1
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-opencode-smart-enforcement-v1-coverage
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-639abb22812d8e1c205f2e56
+    test_id: TEST-opencode-smart-enforcement-v1-coverage
+    scope: unit
+    outcome: passed
+    code_snapshot: b5ef7d5743fa7635b43d156a8d17f8a77b871bf6deee2810bd12888978abab72
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-09-29T19:41:51.152Z'
+    finished_at: '2026-09-29T20:16:15.415Z'
+    artifact_digest: 14a5c4954ed185e8c9d585ddae17a339ac17dbca1bff1c3bdb8ed7501770392d
     contract_hash: 248bc2881607f2fc1794dc9a39001d6d508d7ff1a2b8bd45b5355f34dfe035d1
     binding_hash: f2c919aa25a3be1a8141909ed9a84471de901c3e56e5f74e12c1eba31c005f1d
     fingerprint: c30a4c2244aa47fda85e5b03d9ac16d2e3670d97fa98dca4e5902f5097ec2666
