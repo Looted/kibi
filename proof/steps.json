@@ -1333,7 +1333,7 @@
         "--retry=0",
         "--timeout",
         "120000",
-        "./packages/cli/tests/readme-published-docs.test.ts"
+        "./scripts/tests/readme-published-docs.test.ts"
       ]
     ]
   }

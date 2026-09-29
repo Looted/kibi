@@ -29,7 +29,12 @@ import {
 } from "node:fs";
 import path from "node:path";
 import { Marked } from "marked";
-import { DOCS, type DocPage, sitePagePath } from "./catalog.js";
+import {
+  DOCS,
+  type DocPage,
+  type DocSection,
+  sitePagePath,
+} from "./catalog.js";
 import { renderLlmsTxt } from "./llms.js";
 import {
   type PageShell,
@@ -418,7 +423,7 @@ function buildNav(
   titles: Map<string, string>,
   active: RenderedPage | null,
 ): string {
-  const sections: Array<{ label: string; section: Section }> = [
+  const sections: Array<{ label: string; section: DocSection }> = [
     { label: "Guide", section: "guide" },
     { label: "Reference", section: "reference" },
   ];

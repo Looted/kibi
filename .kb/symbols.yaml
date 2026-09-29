@@ -43453,7 +43453,7 @@ symbols:
   - id: SYM-docs-readme-published-links
     title: Published documentation link verifier
     status: active
-    sourceFile: packages/cli/tests/readme-published-docs.test.ts
+    sourceFile: scripts/tests/readme-published-docs.test.ts
     granularity_reason: test-suite
     symbol_role: behavioral
     relationships:

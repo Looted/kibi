@@ -10372,12 +10372,12 @@ coordinates:
     sourceFile: packages/mcp/src/server/docs.ts
     sourceLine: 30
   SYM-docs-readme-published-links:
-    identityHash: d1c0eedb0bd0c6ab1cd89ba77f7763ad8d5ce4cd431f9b51c5c1f916915421ea
-    sourceHash: 6fe2d9ffc119b0ca79726e9e4c9bbd42a3cea38901d78fac327131b2142ab9ba
+    identityHash: 52dc80800072973bfae3f12b2b5ac5396d0c405ec2b9e7e849ff9d4b25855479
+    sourceHash: 79eaec57edeb4ba37eec6412a1bb55443ba41b1135de04bbf5f33c4a54a30c16
     sourceColumn: 0
     sourceEndColumn: 0
     sourceEndLine: 76
-    sourceFile: packages/cli/tests/readme-published-docs.test.ts
+    sourceFile: scripts/tests/readme-published-docs.test.ts
     sourceLine: 1
   SYM-docs-site-catalog-DocPage:
     identityHash: f89ef8d0a0f753c881ed405668c3ec42e7712fca68be2b4d876458b711cbf708

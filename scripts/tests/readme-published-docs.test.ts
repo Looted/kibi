@@ -8,15 +8,15 @@ import {
   PUBLISHED_DOCS_ORIGIN,
   publishedLlmsIndexHref,
   publishedPageHref,
-} from "../../../docs-site/catalog.ts";
-import { renderLlmsTxt } from "../../../docs-site/llms.ts";
-import { readmePublishedDocProblems } from "../../../docs-site/readme-links.ts";
+} from "../../docs-site/catalog.ts";
+import { renderLlmsTxt } from "../../docs-site/llms.ts";
+import { readmePublishedDocProblems } from "../../docs-site/readme-links.ts";
 
 // executable_for TEST-docs-readme-published-links
 // README documentation links and the published llms.txt index both come from
 // the documentation catalog, so a renamed page cannot leave a GitHub link behind.
 
-const repoRoot = path.resolve(import.meta.dir, "../../..");
+const repoRoot = path.resolve(import.meta.dir, "../..");
 
 function runDocsSite(out: string) {
   return spawnSync("bun", ["docs-site/build.ts", "--out", out], {
