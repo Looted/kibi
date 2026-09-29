@@ -136,6 +136,12 @@ function main(argv: readonly string[]): number {
     readFileSync(path.join(root, PROOF_WORKFLOW_PATH), "utf8"),
   );
   const branch = git(["rev-parse", "--abbrev-ref", "HEAD"]);
+  if (branch === "HEAD") {
+    console.error(
+      "Proof replay needs a checked-out branch: CI attaches the KB to the branch name, and a detached HEAD has none.",
+    );
+    return 1;
+  }
   const head = git(["rev-parse", "HEAD"]);
 
   console.log(`Replaying ${PROOF_WORKFLOW_PATH} for ${branch} @ ${head}`);
