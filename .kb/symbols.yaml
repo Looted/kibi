@@ -43641,6 +43641,8 @@ symbols:
     granularity_reason: test-suite
     relationships:
       - type: executable_for
+        target: TEST-tree-sitter-language-authoring-scaffold-cli-e2e
+      - type: executable_for
         target: TEST-tree-sitter-language-authoring-scaffold-draft-output
   - id: SYM-mcp-tools-list-base-contract
     title: Base MCP tools-list contract fixture
@@ -43837,6 +43839,8 @@ symbols:
     status: active
     sourceFile: packages/cli/src/public/operations/specs/impact-review-preparation.ts
     relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
       - type: covered_by
         target: TEST-impact-public-preparation-parity
       - type: implements
@@ -44776,3 +44780,21 @@ symbols:
         target: TEST-e2e-capability-plugins
       - type: implements
         target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-impact-stage-e-runinstalledimpactpolicye2e
+    title: runInstalledImpactPolicyE2E
+    status: active
+    sourceFile: documentation/tests/e2e/packed/impact-review-stage-e.test.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-impact-policy-stage-e-installed-e2e
+  - id: SYM-tree-sitter-language-scaffold-createscaffold
+    title: createScaffold
+    status: active
+    sourceFile: scripts/scaffold-tree-sitter-language.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-tree-sitter-language-authoring-scaffold-cli-e2e
+      - type: implements
+        target: REQ-tree-sitter-language-authoring-scaffold

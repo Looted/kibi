@@ -237,3 +237,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7149e8a6eb23
+  - type: constrains
+    from: REQ-mcp-suggest-predicates
+    to: FACT-SUBJ-PREDICATE-SUGGESTION-PLAN
+    created_at: 2026-09-29T13:01:42.755Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-61cb5ca96487

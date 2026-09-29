@@ -16,7 +16,7 @@ operator: eq
 value_type: string
 value_string: unqualified-disconnected
 claim_key: CLAIM-D79EE778B5393174
-claim_text: The Tree-sitter language authoring scaffold must create an unqualified disconnected draft without modifying live language support.
+claim_text: The Tree-sitter language authoring scaffold must create an unqualified disconnected draft without modifying live language support
 id: FACT-PROP-F7D9D2D00C1A1922
 type: fact
 ---

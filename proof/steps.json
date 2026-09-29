@@ -1471,5 +1471,15 @@
         "scripts/tests/scaffold-tree-sitter-language.test.mjs"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-tree-sitter-language-authoring-scaffold-cli-e2e",
+    "steps": [
+      [
+        "node",
+        "--test",
+        "scripts/tests/scaffold-tree-sitter-language.test.mjs"
+      ]
+    ]
   }
 ]

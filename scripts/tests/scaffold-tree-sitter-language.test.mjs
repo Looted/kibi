@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import {
   lstat,
   mkdir,
@@ -29,6 +30,24 @@ function runCli(args) {
   });
 }
 
+const liveLanguageSupport = [
+  "packages/plugin-treesitter/catalog.json",
+  "packages/plugin-treesitter/integrity.json",
+  "packages/plugin-treesitter/package.json",
+];
+
+async function snapshotLiveLanguageSupport() {
+  const entries = await Promise.all(
+    liveLanguageSupport.map(async (path) => [
+      path,
+      createHash("sha256")
+        .update(await readFile(resolve(path)))
+        .digest("hex"),
+    ]),
+  );
+  return Object.fromEntries(entries);
+}
+
 afterEach(async () => {
   if (temporaryDirectory !== undefined) {
     await rm(temporaryDirectory, { recursive: true, force: true });
@@ -38,6 +57,7 @@ afterEach(async () => {
 
 describe("Tree-sitter language author scaffold CLI", () => {
   it("writes observable draft files and preserves a Unicode display name", async () => {
+    const liveBefore = await snapshotLiveLanguageSupport();
     const root = await makeTempDirectory();
     const output = join(root, "drafts");
     const result = runCli([
@@ -78,6 +98,12 @@ describe("Tree-sitter language author scaffold CLI", () => {
     );
     assert.equal(operatorInputs.displayName, "Sample 🧩 language");
     assert.deepEqual(operatorInputs.extensions, [".smp"]);
+
+    assert.deepEqual(
+      await snapshotLiveLanguageSupport(),
+      liveBefore,
+      "scaffolding a draft must not modify live language support",
+    );
 
     const readme = await readFile(join(target, "README.md"), "utf8");
     assert.match(readme, /UNQUALIFIED/u);

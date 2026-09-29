@@ -25,38 +25,6 @@ proof_contract:
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v1
-    receipt_id: PR-c845e90d57ff944306371548
-    test_id: TEST-prolog-library-adoption-core
-    scope: end_to_end
-    outcome: passed
-    code_snapshot: 15d2df13c1aeebc7302d91ab2a445d19802b0196958c8f17233b6c8844125d1d
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-09-08T10:27:52.302Z'
-    finished_at: '2026-09-08T11:19:24.843Z'
-    artifact_digest: 3091125a96f8af53d17af9fc1a0360c82fd3fc05d382983186f3630f4ac591b9
-    contract_hash: 666e0b34432bbeb9d35018102a4d6a13533eba89806b065020b052ea7d60be3e
-    fingerprint: 7e4ba319e138faeb9a507bb0c7e8eae0ceeaedcf26147f6ef2ebee65a59f04b6
-    fingerprint_components:
-      contract: 666e0b34432bbeb9d35018102a4d6a13533eba89806b065020b052ea7d60be3e
-      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
-      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
-      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
-      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
-    integration_id: self-proof
-    producer:
-      name: kibi-command-producer
-    command_argv:
-      - node
-      - scripts/run-proof-producer.mjs
-    run_outcome: passed
-    proof_results:
-      - symbol_id: SYM-e2e-test-prolog-library-adoption-core
-        target: default
-        outcome: passed
-        binding: aggregate_run
-        attempts:
-          status: unavailable
-  - version: kibi.proof-receipt.v1
     receipt_id: PR-fa5f92d6864be3dcbc5eafa8
     test_id: TEST-prolog-library-adoption-core
     scope: end_to_end
@@ -1684,6 +1652,39 @@ proof_receipts:
     started_at: '2026-09-28T12:30:38.786Z'
     finished_at: '2026-09-28T12:55:46.304Z'
     artifact_digest: 87c736584ea4f2d40913bfa77b642fc0971411c80c0e8ea721be854488754514
+    contract_hash: 666e0b34432bbeb9d35018102a4d6a13533eba89806b065020b052ea7d60be3e
+    binding_hash: c532436551663addfe8a8f6361f7c4a66ba8585b2acbb7a8958655417b6747bc
+    fingerprint: 7e4ba319e138faeb9a507bb0c7e8eae0ceeaedcf26147f6ef2ebee65a59f04b6
+    fingerprint_components:
+      contract: 666e0b34432bbeb9d35018102a4d6a13533eba89806b065020b052ea7d60be3e
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-prolog-library-adoption-core
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-3d8df1a176cc9dc9f56ed4c5
+    test_id: TEST-prolog-library-adoption-core
+    scope: integration
+    outcome: passed
+    code_snapshot: e3488c0960b37fb79b310a44453b733f23228d13353dc1aa53c39ab31a0490d9
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-09-29T12:17:13.830Z'
+    finished_at: '2026-09-29T12:51:35.860Z'
+    artifact_digest: 78f5c2131825423042b2829117ab404607fdd85de8edc3d4042fa4b5f7c820a8
     contract_hash: 666e0b34432bbeb9d35018102a4d6a13533eba89806b065020b052ea7d60be3e
     binding_hash: c532436551663addfe8a8f6361f7c4a66ba8585b2acbb7a8958655417b6747bc
     fingerprint: 7e4ba319e138faeb9a507bb0c7e8eae0ceeaedcf26147f6ef2ebee65a59f04b6

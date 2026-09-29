@@ -28,42 +28,6 @@ proof_contract:
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v1
-    receipt_id: PR-b4ea17492dd95b8e3c04d2ec
-    test_id: TEST-cursor-agent-plugin-v1
-    scope: end_to_end
-    outcome: failed
-    code_snapshot: 93f5f0dec46e04618b4c7514f75527317c006ff103eb250884af156e885de263
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-09-08T11:33:22.904Z'
-    finished_at: '2026-09-08T12:49:16.395Z'
-    artifact_digest: 2530f959a42f3cfa57d657b0d37ca5b35e47c46afda172d202b7e47e98f2b4ce
-    contract_hash: 4705cdbd5bce2e24ad5a429b45fcb077d715f8d952984c383115583a49f1bf54
-    fingerprint: 2c6a3d7a42c67269eb2d6a99142c12b6429c5c1b3c7989786c165b18193f9ecd
-    fingerprint_components:
-      contract: 4705cdbd5bce2e24ad5a429b45fcb077d715f8d952984c383115583a49f1bf54
-      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
-      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
-      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
-      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
-    integration_id: self-proof
-    producer:
-      name: kibi-command-producer
-    command_argv:
-      - node
-      - scripts/run-proof-producer.mjs
-    run_outcome: failed
-    proof_results:
-      - symbol_id: SYM-e2e-test-cursor-agent-plugin-v1
-        target: default
-        outcome: failed
-        binding: aggregate_run
-        attempts:
-          status: unavailable
-    gaps:
-      - symbol_id: SYM-e2e-test-cursor-agent-plugin-v1
-        target: default
-        reason: 'run did not pass (outcome: failed); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-e2e-test-001 (failed), SYM-e2e-test-003 (failed), SYM-e2e-packed-cli-check (failed), SYM-e2e-test-005 (failed), SYM-test-packed-default-branch-sync-hooks (failed) +83 more'
-  - version: kibi.proof-receipt.v1
     receipt_id: PR-637b95757e696908c8198a8e
     test_id: TEST-cursor-agent-plugin-v1
     scope: end_to_end
@@ -1687,6 +1651,39 @@ proof_receipts:
     started_at: '2026-09-28T12:30:38.786Z'
     finished_at: '2026-09-28T12:55:46.304Z'
     artifact_digest: 87c736584ea4f2d40913bfa77b642fc0971411c80c0e8ea721be854488754514
+    contract_hash: 4705cdbd5bce2e24ad5a429b45fcb077d715f8d952984c383115583a49f1bf54
+    binding_hash: 3a70ebbf52f0513e8eb265e891c8fe254e98cd6ba3560e8b1cc725e4955bff16
+    fingerprint: 2c6a3d7a42c67269eb2d6a99142c12b6429c5c1b3c7989786c165b18193f9ecd
+    fingerprint_components:
+      contract: 4705cdbd5bce2e24ad5a429b45fcb077d715f8d952984c383115583a49f1bf54
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-cursor-agent-plugin-v1
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-5d819565be2a46d2bc635972
+    test_id: TEST-cursor-agent-plugin-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: e3488c0960b37fb79b310a44453b733f23228d13353dc1aa53c39ab31a0490d9
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-09-29T12:17:13.830Z'
+    finished_at: '2026-09-29T12:51:35.860Z'
+    artifact_digest: 78f5c2131825423042b2829117ab404607fdd85de8edc3d4042fa4b5f7c820a8
     contract_hash: 4705cdbd5bce2e24ad5a429b45fcb077d715f8d952984c383115583a49f1bf54
     binding_hash: 3a70ebbf52f0513e8eb265e891c8fe254e98cd6ba3560e8b1cc725e4955bff16
     fingerprint: 2c6a3d7a42c67269eb2d6a99142c12b6429c5c1b3c7989786c165b18193f9ecd
