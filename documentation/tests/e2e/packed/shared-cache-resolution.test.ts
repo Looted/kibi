@@ -131,6 +131,7 @@ if (fixtureChild) {
     const archive = (name: string) =>
       join(scratch, "tarballs", `kibi-${name}-0.0.0.tgz`);
     const tarballs: import("./helpers.js").Tarballs = {
+      "agent-core": archive("agent-core"),
       core: archive("core"),
       cli: archive("cli"),
       runtime: archive("runtime"),
