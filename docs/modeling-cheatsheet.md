@@ -20,6 +20,14 @@ Use this one-page guide when deciding how to model knowledge through peer MCP to
 9. **Code ownership or coverage?** Use `symbol`, linked with `implements`, `covered_by`, or `executable_for`.
 10. **Storing visual/UI layout expectations** (button placement, centered content, header items, alignment)? Use the UI modeling lane in `docs/ui-requirements.md`: prose `req` for the full screen description, strict `property_value` facts for checkable positions/alignment/order, and `visual_layout_rule` (or a project-local `predicate_schema`) for relational layout. Optional and per-project; non-UI projects skip it.
 
+## Names and subjects
+
+Name a new entity by the behavior it governs: `<TYPE>-<area>-<behavior>` in kebab-case (`REQ-cli-gc`, `SCEN-mcp-search-discovery`). The filename stem equals the `id`. Search that area first. Update the existing entity when it already covers the behavior. Link `supersedes` when one requirement replaces another, and `restates` (requirement to requirement) when two current requirements intentionally say the same thing. Existing numbered IDs stay valid.
+
+A subject key is dotted `component.aspect[.sub]`: at least two lowercase snake_case segments, such as `docs.site` or `kibi.cli.check.staged`. Never derive it from a requirement ID. `kb_model_requirement` returns `vocabularyAlignment` with ranked subjects and a `reuse_existing` or `declare_new` decision. Follow that decision. A requirement constrains one subject fact for a given key. Property facts for that subject share the key. A second subject fact with the same key grounds every claim twice.
+
+When a predicate schema declares `argument_constants`, new facts must use those values. `argument_aliases` names old spellings that map to a constant; writes reject both undeclared values and aliases. `kibi migrate` can apply the mechanical repairs (the only matching namespace, or an alias rewritten to its constant) after you approve the plan hash.
+
 ## Strict property example
 
 ```json

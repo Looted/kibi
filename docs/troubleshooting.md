@@ -2,21 +2,35 @@
 
 This document provides recovery procedures and common issue resolution for kibi.
 
-## Alpha Migration & Rebuild
+## Upgrading and branch recovery
 
-Since kibi is in alpha, automatic migrations are not yet implemented. If you encounter KB corruption or upgrade to a new version:
+Kibi is in beta. Package upgrades do not require deleting the knowledge base. `kibi migrate` previews a structured plan and applies approved schema and storage updates. `kibi status` reports when the current branch is waiting on that plan.
 
-1. **Delete the `.kb/branches` folder:**
+1. **Check the branch:**
    ```bash
-   rm -rf .kb/branches
+   kibi status
    ```
 
-2. **Rebuild from current docs:**
+2. **Preview the migration:**
    ```bash
-   kibi sync
+   kibi migrate --dry-run
    ```
 
-This rebuilds the entire KB from your documentation. No data is preserved from the old KB - it is regenerated from your Markdown files and YAML manifests.
+3. **Apply it.** `--yes` applies the plan without a prompt. `--apply-safe` applies only approved deterministic actions and requires the plan hash from the preview. See [kibi migrate](cli-reference.md#kibi-migrate).
+   ```bash
+   kibi migrate --yes
+   ```
+
+Migration upgrades entity schemas and the on-disk layout, including a leftover `documentation/` tree or `.kb/config.json`. It keeps authored knowledge. It does not wipe `.kb/`. When a predicate fact is in the wrong namespace or still uses an old argument spelling, the same plan can move it to the only matching schema and rewrite that spelling to the declared constant. Review the plan hash before applying. Repairs that need a judgment stay as review items.
+
+If the compiled store for this branch is incomplete or unreadable, preview a rebuild before applying it. Recovery recompiles that store from authored sources and moves the previous bytes under `.kb/recovery/`. See [kibi branch](cli-reference.md#kibi-branch).
+
+```bash
+kibi branch recover
+kibi branch recover --apply
+```
+
+`kibi sync` recompiles the branch store from the authored Markdown and manifests. Use it after you have fixed those sources. It is not the upgrade command, and deleting `.kb/branches` is not the upgrade path.
 
 ## Stale or Dirty Symbol Coordinates
 

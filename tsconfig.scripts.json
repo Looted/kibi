@@ -12,6 +12,7 @@
   },
   "include": [
     "scripts/*.ts",
+    "docs-site/*.ts",
     "scripts/skillopt-eval/**/*.ts",
     "types/js-yaml.d.ts"
   ]

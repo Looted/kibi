@@ -173,6 +173,10 @@ jobs:
           mkdir -p pages/kibi-report
           cp -R kibi-report/. pages/kibi-report/
 
+      - name: Build documentation site into Pages output
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' && !cancelled() && steps.integrity.outcome == 'success' }}
+        run: bun run docs:site -- --out pages/docs
+
       - name: Upload Kibi Pages artifact
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' && !cancelled() && steps.integrity.outcome == 'success' }}
         uses: actions/upload-pages-artifact@v5
@@ -180,7 +184,7 @@ jobs:
           path: pages
 
   deploy:
-    name: Deploy Kibi proof report
+    name: Deploy proof report and documentation
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' }}
     needs: proof
     runs-on: ubuntu-latest
@@ -191,6 +195,6 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Deploy proof report to GitHub Pages
+      - name: Deploy proof report and documentation to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5

@@ -83,3 +83,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2be30c01643b
+  - type: executable_for
+    from: SYM-docs-site-pages-build
+    to: TEST-docs-site-pages
+    created_at: 2026-09-29T08:29:26.212Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e55efc405a47
