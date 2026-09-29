@@ -27,6 +27,9 @@ import {
 
 const RUN_NODE_TEST_SUITE =
   typeof (globalThis as { Bun?: unknown }).Bun === "undefined";
+const REPOSITORY_ROOT = resolve(
+  process.env.KIBI_PROOF_REPO_ROOT?.trim() || process.cwd(),
+);
 const COMMAND_TIMEOUT_MS = 120_000;
 const REQUIREMENT_IDS = [
   "REQ-IMPACT-FIRST",
@@ -2327,12 +2330,8 @@ async function runInstalledImpactPolicyWorkflow(
 }
 
 function assertExplicitMigrationDocumentation(): void {
-  const repositoryRoot = resolve(
-    process.env.KIBI_PROOF_REPO_ROOT ??
-      resolve(dirname(new URL(import.meta.url).pathname), "../../../.."),
-  );
   const migration = readFileSync(
-    join(repositoryRoot, "documentation/impact-review-stage-e.md"),
+    join(REPOSITORY_ROOT, "documentation/impact-review-stage-e.md"),
     "utf8",
   );
   assert.match(migration, /initial migration is explicit/i);
@@ -2342,7 +2341,7 @@ function assertExplicitMigrationDocumentation(): void {
   );
 
   const example = join(
-    repositoryRoot,
+    REPOSITORY_ROOT,
     "documentation/examples/kibi-impact-gate.yml",
   );
   assert.equal(
@@ -2350,7 +2349,7 @@ function assertExplicitMigrationDocumentation(): void {
     true,
     "the documented workflow example should remain available",
   );
-  const workflows = join(repositoryRoot, ".github/workflows");
+  const workflows = join(REPOSITORY_ROOT, ".github/workflows");
   const activeWorkflowText = existsSync(workflows)
     ? readdirSync(workflows)
         .filter((name) => name.endsWith(".yml") || name.endsWith(".yaml"))

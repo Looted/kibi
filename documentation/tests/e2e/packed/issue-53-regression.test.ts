@@ -254,6 +254,7 @@ if (RUN_NODE_TEST_SUITE) {
                 "kb_job_status",
                 "kb_model_requirement",
                 "kb_plan_bootstrap",
+                "kb_prepare_impact_review",
                 "kb_query",
                 "kb_search",
                 "kb_semantic_advisor",

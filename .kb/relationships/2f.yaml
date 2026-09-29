@@ -230,3 +230,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-75b40abca308
+  - type: requires_property
+    from: REQ-mcp-suggest-predicates
+    to: FACT-PROP-MCP-SUGGEST-PREDICATES-POLARITY-BINDINGS
+    created_at: 2026-09-28T18:23:51.910Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7149e8a6eb23

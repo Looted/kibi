@@ -221,8 +221,8 @@
     },
     {
       "path": "dist/extractor.js",
-      "bytes": 12733,
-      "sha256": "925cc0a63dba55a8ce851f95704749a2e93b61d511a87920de150cfc14309be1"
+      "bytes": 12734,
+      "sha256": "bb7eb7520206e2720877a08bbd97cf0b5c6fae7aa2680dc62be44643c047a6ad"
     },
     {
       "path": "dist/index.d.ts",

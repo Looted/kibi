@@ -1,6 +1,8 @@
 import { describe, expect, test } from "bun:test";
-import { readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { writePackedInstallManifest } from "../../documentation/tests/e2e/packed/packed-install-manifest.ts";
 import { packagesForPack } from "../../documentation/tests/e2e/packed/packed-packages.ts";
 import {
   CI_PACK_DIRS,
@@ -92,17 +94,30 @@ describe("canonical package catalog", () => {
   });
 
   test("packed default-install manifest matches the catalog and excludes optional plugins", () => {
-    const manifest = readFileSync(
-      join(ROOT, "documentation/tests/e2e/packed/packed-install-manifest.ts"),
-      "utf8",
-    );
-    for (const dir of DEFAULT_INSTALL_DIRS) {
-      const entry = PACKAGE_CATALOG.find((item) => item.dir === dir);
-      expect(entry).toBeDefined();
-      expect(manifest).toContain(`"${entry?.npmName}"`);
+    const prefix = mkdtempSync(join(tmpdir(), "kibi-package-catalog-"));
+    const tarballs = Object.fromEntries(
+      PACK_ALL_DIRS.map((dir) => [dir, join(prefix, `${dir}.tgz`)]),
+    ) as unknown as Parameters<typeof writePackedInstallManifest>[1];
+
+    try {
+      writePackedInstallManifest(prefix, tarballs);
+      const manifest = JSON.parse(
+        readFileSync(join(prefix, "package.json"), "utf8"),
+      ) as { dependencies: Record<string, string> };
+      const expectedPackages = DEFAULT_INSTALL_DIRS.map((dir) => {
+        const entry = PACKAGE_CATALOG.find((item) => item.dir === dir);
+        expect(entry).toBeDefined();
+        return entry?.npmName;
+      }).sort();
+
+      expect(Object.keys(manifest.dependencies).sort()).toEqual(
+        expectedPackages,
+      );
+      expect(manifest.dependencies["kibi-plugin-jev"]).toBeUndefined();
+      expect(manifest.dependencies["kibi-plugin-treesitter"]).toBeUndefined();
+      expect(manifest.dependencies["kibi-zcode"]).toBeUndefined();
+    } finally {
+      rmSync(prefix, { recursive: true, force: true });
     }
-    expect(manifest).not.toContain("kibi-plugin-jev");
-    expect(manifest).not.toContain("kibi-plugin-treesitter");
-    expect(manifest).not.toContain("kibi-zcode");
   });
 });

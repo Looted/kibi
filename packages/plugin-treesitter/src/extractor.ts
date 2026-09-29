@@ -18,7 +18,7 @@ const EXTRACTOR_ID = "kibi-plugin-treesitter.tree-sitter.v2";
 const MAX_INPUT_CODE_UNITS = 1_048_576;
 const MAX_INPUT_BYTES = 2_097_152;
 const MAX_CONCURRENT_ANALYSES = 2;
-const ANALYSIS_TIMEOUT_MS = 3_000;
+const ANALYSIS_TIMEOUT_MS = 10_000;
 const emitPerformanceTiming = createBoundedSourceAnalysisTimingEmitter(
   (line) => {
     process.stderr.write(line);
