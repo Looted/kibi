@@ -55,3 +55,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-28adadd83474
+  - type: implements
+    from: SYM-explanationsForRequirement
+    to: REQ-kibi-local-proof-parity
+    created_at: 2026-09-29T09:14:44.977Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b647641d74df
+  - type: covered_by
+    from: SYM-explanationsForRequirement
+    to: TEST-kibi-local-proof-parity
+    created_at: 2026-09-29T09:14:44.993Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c4b243a18c0e

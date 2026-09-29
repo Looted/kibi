@@ -42065,3 +42065,155 @@ symbols:
         target: REQ-core-atomic-upsert-persistence
       - type: implements
         target: REQ-kibi-operation-interface-parity
+  - id: SYM-semanticGaps
+    title: semanticGaps
+    status: active
+    sourceFile: scripts/lib/proof-baseline-diff.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-local-proof-parity
+      - type: implements
+        target: REQ-kibi-local-proof-parity
+  - id: SYM-evaluateSemanticBaseline
+    title: evaluateSemanticBaseline
+    status: active
+    sourceFile: scripts/lib/proof-baseline-diff.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-local-proof-parity
+      - type: implements
+        target: REQ-kibi-local-proof-parity
+  - id: SYM-replaySteps
+    title: replaySteps
+    status: active
+    sourceFile: scripts/replay-proof-ci.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-local-proof-parity
+      - type: implements
+        target: REQ-kibi-local-proof-parity
+  - id: SYM-resolveGitHooksDir
+    title: resolveGitHooksDir
+    status: active
+    sourceFile: packages/cli/src/commands/init-helpers.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-006
+      - type: implements
+        target: REQ-git-hook-sync-v2
+  - id: SYM-installGitHooksAt
+    title: installGitHooksAt
+    status: active
+    sourceFile: packages/cli/src/commands/init-helpers.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-006
+      - type: implements
+        target: REQ-git-hook-sync-v2
+  - id: SYM-outdatedManagedHooks
+    title: outdatedManagedHooks
+    status: active
+    sourceFile: packages/cli/src/commands/init-helpers.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-001
+      - type: implements
+        target: REQ-cli-doctor
+  - id: SYM-hasManagedHooks
+    title: hasManagedHooks
+    status: active
+    sourceFile: packages/cli/src/commands/init-helpers.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-001
+      - type: implements
+        target: REQ-cli-doctor
+  - id: SYM-compilerFingerprintReason
+    title: compilerFingerprintReason
+    status: active
+    sourceFile: packages/cli/src/commands/sync/cache.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-canonical-runtime
+      - type: implements
+        target: REQ-cli-canonical-runtime
+  - id: SYM-SYNC_COMPILER_FINGERPRINT
+    title: SYNC_COMPILER_FINGERPRINT
+    status: active
+    sourceFile: packages/cli/src/commands/sync/cache.ts
+    symbol_role: unknown
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-cli-canonical-runtime
+      - type: implements
+        target: REQ-cli-canonical-runtime
+  - id: SYM-PROOF_BASELINE_VERSION
+    title: PROOF_BASELINE_VERSION
+    status: active
+    sourceFile: scripts/lib/proof-baseline-diff.mjs
+    symbol_role: unknown
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-local-proof-parity
+      - type: implements
+        target: REQ-kibi-local-proof-parity
+  - id: SYM-fingerprintRequirements
+    title: fingerprintRequirements
+    status: active
+    sourceFile: scripts/lib/proof-baseline-diff.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-local-proof-parity
+      - type: implements
+        target: REQ-kibi-local-proof-parity
+  - id: SYM-diffFingerprints
+    title: diffFingerprints
+    status: active
+    sourceFile: scripts/lib/proof-baseline-diff.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-local-proof-parity
+      - type: implements
+        target: REQ-kibi-local-proof-parity
+  - id: SYM-explanationsForRequirement
+    title: explanationsForRequirement
+    status: active
+    sourceFile: scripts/lib/proof-baseline-diff.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-local-proof-parity
+      - type: implements
+        target: REQ-kibi-local-proof-parity
+  - id: SYM-renderRequirementDiffs
+    title: renderRequirementDiffs
+    status: active
+    sourceFile: scripts/lib/proof-baseline-diff.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-local-proof-parity
+      - type: implements
+        target: REQ-kibi-local-proof-parity
+  - id: SYM-parseSpawnJson
+    title: parseSpawnJson
+    status: active
+    sourceFile: scripts/lib/proof-baseline-diff.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-local-proof-parity
+      - type: implements
+        target: REQ-kibi-local-proof-parity

@@ -16,6 +16,7 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { execFileSync } from "node:child_process";
 import {
   chmodSync,
   copyFileSync,
@@ -317,19 +318,86 @@ export function installHook(hookPath: string, content: string): void {
   chmodSync(hookPath, 0o755);
 }
 
+/** Kibi-managed hooks by file name, with the template each one installs. */
+const MANAGED_HOOKS: readonly (readonly [string, string])[] = [
+  ["post-checkout", POST_CHECKOUT_HOOK],
+  ["post-merge", POST_MERGE_HOOK],
+  ["post-rewrite", POST_REWRITE_HOOK],
+  ["pre-commit", PRE_COMMIT_HOOK],
+];
+
+function managedHookBody(template: string): string {
+  return template.replace("#!/bin/sh\n", "");
+}
+
+/**
+ * The directory Git reads hooks from. Linked worktrees share the common
+ * directory's hooks (their `.git` is a file) and `core.hooksPath` moves them,
+ * so only Git itself can answer; `.git/hooks` under the working tree is wrong
+ * in both cases.
+ */
+// implements REQ-git-hook-sync-v2
+export function resolveGitHooksDir(cwd: string): string | null {
+  try {
+    const hooksPath = execFileSync(
+      "git",
+      ["rev-parse", "--git-path", "hooks"],
+      {
+        cwd,
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"],
+      },
+    ).trim();
+    return hooksPath === "" ? null : path.resolve(cwd, hooksPath);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Installed kibi-managed hooks whose managed section differs from what this
+ * CLI installs, such as a pre-commit gate written before `check-generated`
+ * joined it. User-authored hooks without kibi markers are not reported.
+ */
+// implements REQ-cli-doctor
+export function outdatedManagedHooks(hooksDir: string): string[] {
+  const outdated: string[] = [];
+  const managed = new RegExp(
+    `${escapeRegex(KIBI_HOOK_BEGIN)}\\n([\\s\\S]*?)\\n${escapeRegex(KIBI_HOOK_END)}`,
+  );
+  for (const [name, template] of MANAGED_HOOKS) {
+    const hookPath = path.join(hooksDir, name);
+    if (!existsSync(hookPath)) continue;
+    const section = managed.exec(readFileSync(hookPath, "utf8"));
+    if (section && section[1] !== managedHookBody(template))
+      outdated.push(name);
+  }
+  return outdated;
+}
+
+/** Whether any hook in the directory carries a kibi-managed section. */
+// implements REQ-cli-doctor
+export function hasManagedHooks(hooksDir: string): boolean {
+  return MANAGED_HOOKS.some(([name]) => {
+    const hookPath = path.join(hooksDir, name);
+    return (
+      existsSync(hookPath) &&
+      readFileSync(hookPath, "utf8").includes(KIBI_HOOK_BEGIN)
+    );
+  });
+}
+
 export function installGitHooks(gitDir: string): void {
-  const hooksDir = path.join(gitDir, "hooks");
+  installGitHooksAt(path.join(gitDir, "hooks"));
+}
+
+// implements REQ-git-hook-sync-v2
+export function installGitHooksAt(hooksDir: string): void {
   mkdirSync(hooksDir, { recursive: true });
 
-  const postCheckoutPath = path.join(hooksDir, "post-checkout");
-  const postMergePath = path.join(hooksDir, "post-merge");
-  const postRewritePath = path.join(hooksDir, "post-rewrite");
-  const preCommitPath = path.join(hooksDir, "pre-commit");
-
-  installHook(postCheckoutPath, POST_CHECKOUT_HOOK.replace("#!/bin/sh\n", ""));
-  installHook(postMergePath, POST_MERGE_HOOK.replace("#!/bin/sh\n", ""));
-  installHook(postRewritePath, POST_REWRITE_HOOK.replace("#!/bin/sh\n", ""));
-  installHook(preCommitPath, PRE_COMMIT_HOOK.replace("#!/bin/sh\n", ""));
+  for (const [name, template] of MANAGED_HOOKS) {
+    installHook(path.join(hooksDir, name), managedHookBody(template));
+  }
 
   console.log(
     "✓ Installed git hooks (pre-commit, post-checkout, post-merge, post-rewrite)",

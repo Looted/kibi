@@ -36,6 +36,11 @@ import {
   migrationAction,
 } from "../public/operations/migration-plan.js";
 import { readKbManifestStatus } from "../utils/kb-manifest.js";
+import {
+  hasManagedHooks,
+  outdatedManagedHooks,
+  resolveGitHooksDir,
+} from "./init-helpers.js";
 import { planLegacyStorageMigration } from "./legacy-storage-migration.js";
 
 /**
@@ -99,6 +104,10 @@ export async function doctorCommand(
     {
       name: "post-rewrite hook",
       check: checkPostRewriteHook,
+    },
+    {
+      name: "Kibi-managed hook sections",
+      check: checkManagedHookSections,
     },
     {
       name: "Capability plugins",
@@ -693,13 +702,58 @@ function checkGitRepository(): {
   }
 }
 
+/** A hook path in the directory Git actually reads hooks from. */
+function hookPath(name: string): string {
+  return path.join(
+    resolveGitHooksDir(process.cwd()) ??
+      path.join(process.cwd(), ".git", "hooks"),
+    name,
+  );
+}
+
+/**
+ * Kibi-managed hook sections must match what this CLI installs. A section
+ * written by an older CLI keeps running while silently lacking newer gates
+ * (the pre-commit `check-generated` step, for example), and the other hook
+ * checks only confirm that kibi is invoked at all.
+ */
+// implements REQ-cli-doctor
+function checkManagedHookSections(): {
+  passed: boolean;
+  message: string;
+  remediation?: string;
+} {
+  const hooksDir = resolveGitHooksDir(process.cwd());
+  let outdated: string[];
+  try {
+    if (hooksDir === null || !hasManagedHooks(hooksDir)) {
+      return { passed: true, message: "Not installed (optional)" };
+    }
+    outdated = outdatedManagedHooks(hooksDir);
+  } catch {
+    return {
+      passed: false,
+      message: "Unable to read hook content",
+      remediation: "Run: kibi init",
+    };
+  }
+  if (outdated.length > 0) {
+    return {
+      passed: false,
+      message: `Outdated for this Kibi CLI: ${outdated.join(", ")} (installed by a different version; newer gates may be missing)`,
+      remediation: "Run: kibi init to refresh the kibi-managed hook sections",
+    };
+  }
+  return { passed: true, message: "Current for this Kibi CLI" };
+}
+
 function checkGitHooks(): {
   passed: boolean;
   message: string;
   remediation?: string;
 } {
-  const postCheckoutPath = path.join(process.cwd(), ".git/hooks/post-checkout");
-  const postMergePath = path.join(process.cwd(), ".git/hooks/post-merge");
+  const postCheckoutPath = hookPath("post-checkout");
+  const postMergePath = hookPath("post-merge");
 
   const postCheckoutExists = existsSync(postCheckoutPath);
   const postMergeExists = existsSync(postMergePath);
@@ -751,9 +805,9 @@ function checkPreCommitHook(): {
   message: string;
   remediation?: string;
 } {
-  const postCheckoutPath = path.join(process.cwd(), ".git/hooks/post-checkout");
-  const postMergePath = path.join(process.cwd(), ".git/hooks/post-merge");
-  const preCommitPath = path.join(process.cwd(), ".git/hooks/pre-commit");
+  const postCheckoutPath = hookPath("post-checkout");
+  const postMergePath = hookPath("post-merge");
+  const preCommitPath = hookPath("pre-commit");
 
   const postCheckoutExists = existsSync(postCheckoutPath);
   const postMergeExists = existsSync(postMergePath);
@@ -850,9 +904,9 @@ function checkPostRewriteHook(): {
   message: string;
   remediation?: string;
 } {
-  const postCheckoutPath = path.join(process.cwd(), ".git/hooks/post-checkout");
-  const postMergePath = path.join(process.cwd(), ".git/hooks/post-merge");
-  const postRewritePath = path.join(process.cwd(), ".git/hooks/post-rewrite");
+  const postCheckoutPath = hookPath("post-checkout");
+  const postMergePath = hookPath("post-merge");
+  const postRewritePath = hookPath("post-rewrite");
 
   const postCheckoutExists = existsSync(postCheckoutPath);
   const postMergeExists = existsSync(postMergePath);

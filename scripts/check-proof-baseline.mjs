@@ -5,6 +5,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import {
   diffFingerprints,
+  evaluateSemanticBaseline,
   fingerprintRequirements,
   parseSpawnJson,
   renderRequirementDiffs,
@@ -27,6 +28,11 @@ const INTEGRITY_RULES = [
   "semantic-completeness",
   "symbol-traceability",
 ];
+
+// --semantic-only compares the baseline without re-proving first: gaps that only
+// reflect stale evidence are set aside, so grounding, contradiction, and link
+// regressions surface locally before CI runs `kibi prove --all`.
+const semanticOnly = process.argv.includes("--semantic-only");
 
 const baseline = JSON.parse(
   await readFile(path.resolve("proof/baseline.json"), "utf8"),
@@ -67,6 +73,33 @@ const check = unwrapPayload(
   spawnJson(["check", "--format", "json", "--rules", INTEGRITY_RULES.join(",")])
     .json,
 );
+const violations =
+  check.structuredContent?.violations ?? check.violations ?? [];
+
+if (semanticOnly) {
+  const { failures, regressions } = evaluateSemanticBaseline(
+    baseline,
+    coverage.rows ?? [],
+  );
+  if (violations.length > 0)
+    failures.push(`kibi check reported ${violations.length} violation(s)`);
+  if (status.syncState !== "fresh" || status.dirty !== false) {
+    failures.push("semantic check requires a fresh Kibi status (dirty: false)");
+  }
+  const report = {
+    version: "kibi.proof-baseline-semantic-result.v1",
+    mode: "semantic-only",
+    currentRequirements: baseline.currentRequirements,
+    regressions,
+    violations: violations.length,
+    status: { syncState: status.syncState, dirty: status.dirty },
+    failures,
+  };
+  process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+  if (failures.length > 0) process.exitCode = 1;
+  process.exit();
+}
+
 const summary = coverage.summary;
 const currentRequirements = summary.total - summary.proofNotApplicable;
 const currentUnproven = summary.proofMissing + summary.proofUnresolved;
@@ -79,8 +112,6 @@ const gapCounts = Object.fromEntries(
       new Map(),
     ),
 );
-const violations =
-  check.structuredContent?.violations ?? check.violations ?? [];
 const currentFingerprints = fingerprintRequirements(coverage.rows ?? []);
 const fingerprintChanges = diffFingerprints(
   baseline.requirements,

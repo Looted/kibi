@@ -28,7 +28,8 @@ import {
   createKbDirectoryStructure,
   createManifestFile,
   ensureSymbolsManifestFile,
-  installGitHooks,
+  installGitHooksAt,
+  resolveGitHooksDir,
   updateGitIgnore,
 } from "./init-helpers.js";
 
@@ -152,11 +153,11 @@ export async function initCommand(
     ensureSymbolsManifestFile(process.cwd());
 
     if (options.hooks) {
-      const gitDir = path.join(process.cwd(), ".git");
-      if (!existsSync(gitDir)) {
+      const hooksDir = resolveGitHooksDir(process.cwd());
+      if (hooksDir === null) {
         console.error("Warning: No git repository found, skipping hooks");
       } else {
-        installGitHooks(gitDir);
+        installGitHooksAt(hooksDir);
       }
     }
 

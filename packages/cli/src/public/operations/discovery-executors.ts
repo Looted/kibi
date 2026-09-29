@@ -1,3 +1,4 @@
+import { compilerFingerprintReason } from "../../commands/sync/cache.js";
 import { EngineClient } from "../../engine.js";
 import {
   type IntentSearchAnalysis,
@@ -430,6 +431,7 @@ export async function executeStatus(
     const existingReasons = payload.staleReasons ?? [];
     const storeReason = branchStoreReason(store);
     const lockReason = storeLockJournalReason(store.path);
+    const compilerReason = compilerFingerprintReason(store.path);
     const engineReason = engineStatus
       ? {
           code: engineStatus.errorCode ?? "engine_status_unavailable",
@@ -448,12 +450,16 @@ export async function executeStatus(
       ...existingReasons,
       ...(storeReason ? [storeReason] : []),
       ...(lockReason ? [lockReason] : []),
+      ...(compilerReason ? [compilerReason] : []),
       ...(engineReason ? [engineReason] : []),
     ].sort((left, right) =>
       String(left.path ?? "").localeCompare(String(right.path ?? "")),
     );
     const enrichedPayload: StatusPayload = {
       ...payload,
+      // Source hashes can all match while the compilation itself is lossy, so
+      // a compiler contract change alone makes the store stale.
+      ...(compilerReason ? { syncState: "stale", dirty: true } : {}),
       branchAttachment: attachment,
       branchStore: store,
       ...(engineStatus ? { engineStatus } : {}),

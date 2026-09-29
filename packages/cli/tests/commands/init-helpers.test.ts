@@ -23,6 +23,7 @@ import {
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  realpathSync,
   rmSync,
   statSync,
   writeFileSync,
@@ -36,7 +37,10 @@ import {
   ensureSymbolsManifestFile,
   getCurrentBranch,
   installGitHooks,
+  installGitHooksAt,
   installHook,
+  outdatedManagedHooks,
+  resolveGitHooksDir,
   updateGitIgnore,
 } from "../../src/commands/init-helpers.js";
 import { branchStoreKey } from "../../src/utils/branch-store-locator.js";
@@ -496,5 +500,45 @@ describe("init-helpers", () => {
     );
     expect(postCheckout).toContain('"$KIBI_BIN" sync');
     expect(postCheckout).not.toContain("kibi branch ensure");
+  });
+
+  test("resolves the shared hooks directory from a linked worktree", () => {
+    const main = path.join(tmpDir, "main");
+    mkdirSync(main);
+    execSync("git init -b main", { cwd: main });
+    execSync("git config user.email 'test@test.com'", { cwd: main });
+    execSync("git config user.name 'Test User'", { cwd: main });
+    execSync("git commit --allow-empty -m init", { cwd: main });
+    const worktree = path.join(tmpDir, "wt");
+    execSync(`git worktree add -b feature ${worktree}`, { cwd: main });
+
+    const hooksDir = resolveGitHooksDir(worktree);
+    // A linked worktree's .git is a file, so .git/hooks under it cannot hold
+    // hooks; Git reads them from the common directory.
+    expect(hooksDir).toBe(path.join(realpathSync(main), ".git", "hooks"));
+    installGitHooksAt(hooksDir as string);
+    expect(existsSync(path.join(main, ".git", "hooks", "pre-commit"))).toBe(
+      true,
+    );
+  });
+
+  test("reports kibi-managed hook sections written by another CLI version", () => {
+    const hooksDir = path.join(tmpDir, "hooks");
+    installGitHooksAt(hooksDir);
+    expect(outdatedManagedHooks(hooksDir)).toEqual([]);
+
+    const preCommit = path.join(hooksDir, "pre-commit");
+    writeFileSync(
+      preCommit,
+      readFileSync(preCommit, "utf8").replace(
+        '"$KIBI_BIN" check-generated --staged --changed-only\n',
+        "",
+      ),
+    );
+    writeFileSync(
+      path.join(hooksDir, "post-merge"),
+      "#!/bin/sh\n# user-authored hook without kibi markers\n",
+    );
+    expect(outdatedManagedHooks(hooksDir)).toEqual(["pre-commit"]);
   });
 });

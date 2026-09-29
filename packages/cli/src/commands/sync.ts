@@ -75,6 +75,7 @@ import { loadEntityPaths } from "../utils/config.js";
 import {
   SYNC_CACHE_TTL_MS,
   SYNC_CACHE_VERSION,
+  SYNC_COMPILER_FINGERPRINT,
   hashFile,
   hashManifestWithCoordinates,
   hashNormalized,
@@ -600,7 +601,9 @@ export async function syncCommand(
 
     const sourceFiles = [...markdownFiles, ...manifestFiles].sort();
     const cachePath = path.join(livePathForEngine, "sync-cache.json");
-    const syncCache = readSyncCache(cachePath);
+    const syncCache = readSyncCache(cachePath, undefined, {
+      compilerFingerprint: SYNC_COMPILER_FINGERPRINT,
+    });
     const nowIso = new Date().toISOString();
     const nowMs = Date.now();
     const currentSourceKeys = new Set(
@@ -1056,6 +1059,7 @@ export async function syncCommand(
         seenAt: evictedSeenAt,
         semanticHashes: evictedSemanticHashes,
         semanticContracts: evictedSemanticContracts,
+        compilerFingerprint: SYNC_COMPILER_FINGERPRINT,
       });
 
       console.log("✓ Imported 0 entities, 0 relationships (no changes)");
@@ -1265,6 +1269,7 @@ export async function syncCommand(
           seenAt: evictedSeenAt,
           semanticHashes: evictedSemanticHashes,
           semanticContracts: evictedSemanticContracts,
+          compilerFingerprint: SYNC_COMPILER_FINGERPRINT,
         });
 
         published = true;
@@ -1531,6 +1536,7 @@ export async function syncCommand(
         seenAt: evictedSeenAt,
         semanticHashes: evictedSemanticHashes,
         semanticContracts: evictedSemanticContracts,
+        compilerFingerprint: SYNC_COMPILER_FINGERPRINT,
       });
 
       published = true;
