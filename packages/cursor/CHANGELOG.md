@@ -1,5 +1,66 @@
 # kibi-cursor
 
+## 2.1.0
+
+### Minor Changes
+
+- f01838e: The Cursor plugin now asks the agent to consult Kibi before it edits a file, not only after. Every nudge used to fire once the change was already written — the post-edit message opened with "After editing" twice — so the plugin could only ever prompt repair, never inform the change. Before an edit, the plugin now names only requirements the file explicitly implements and asks for them to be read first, which is the one point where retrieval can still change what gets written.
+
+  - Emit source-linked pre-edit guidance from `preToolUse` for edit-like tools, resolved synchronously from the symbol manifest so no KB round-trip is added to the edit path.
+  - Name up to three `implements` requirement targets for the file, or ask for discovery and ownership when no requirement ownership is known.
+  - Narrow the post-edit message to the impact review that only becomes possible once the change exists, and stop repeating the retrieval ask there.
+  - Track pre-edit guidance in its own hook-state bucket so it is emitted once per path without suppressing the post-edit review.
+
+### Patch Changes
+
+- 35cd120: The ZCode, Codex, and Cursor plugins now recognize Kibi tools when the host
+  reports them with a prefix, such as `mcp__kibi__kb_check`. Before this fix,
+  an agent that correctly ran an impact check through a prefixed tool name
+  still got a stop reminder to run it, because the plugin never saw the check.
+
+  - `kb-mcp-tools.ts` in each adapter gains `canonicalKbToolName`, which strips
+    `mcp__<server>__`, `MCP:`, and `kibi_` prefixes before matching `kb_*`
+    operations.
+  - The Codex hook bundle is regenerated.
+
+- 25f11b1: The badge that `kibi init --github` adds to your README now links to the published explanation of the `% proven` metric at https://looted.github.io/kibi/ instead of the GitHub rendering of the Markdown source. The Kibi documentation site moved to the root of that domain, with the requirement-health report still under `/kibi-report/`. The Cursor and OpenCode package READMEs also link to the published guides, so the links work when you read them on npm.
+
+  - cli: `KIBI_METRIC_DOCS_URL` points at `https://looted.github.io/kibi/guide/github-integration.html#what-the-badge-means`.
+  - cursor, opencode: README setup and troubleshooting links point at the published guide pages instead of repository-relative or GitHub blob URLs.
+  - repo tooling (not published): the docs site builds into the GitHub Pages root and renders `llms.txt` as one H2 link list per catalog group from the shared page metadata.
+
+- 5a06c03: Kibi's agent plugins now share one fast, consistent implementation for source-path classification, Kibi MCP tool recognition, and symbol-manifest indexing. Codex and ZCode now recognize production code outside `src/`, while Cursor reuses the same size-and-mtime-keyed scanner as Claude instead of parsing the full symbol manifest before an edit.
+
+  - Add `kibi-agent-core` as the common Node 18-compatible hook-helper package.
+  - Keep host adapters thin while preserving their host-specific event and state contracts.
+  - Replace Cursor's YAML parser dependency with the shared cached line scanner.
+
+- f01838e: Usage telemetry stays off by default for every client, and there is now a supported way to turn it on. Previously the only way to capture usage was to hand-write an MCP command line with `--diagnostic-mode`, which meant anyone using a shipped plugin recorded nothing at all and had no documented alternative. Operators can now opt in with an environment variable, and once they do, each row identifies the host, package version, and checkout that produced it, so behavior can be compared across editors, worktrees, and Kibi versions.
+
+  - Honor `KIBI_DIAGNOSTIC_MODE=1` alongside the existing `--diagnostic-mode` flag, for hosts where a plugin owns the MCP command line.
+  - Stamp `interface`, `host`, `package_version`, and `workspace_root` on every usage row.
+  - Set `KIBI_MCP_HOST` from the Cursor and Codex launchers for attribution only; it never enables logging, and installing or enabling a plugin never starts telemetry.
+  - Stop the bundled Cursor worktree resolver from hard-coding `--diagnostic-mode`, so a shipped launcher cannot enable capture on an operator's behalf.
+  - Document the opt-in, what a row contains, and how to opt out in `docs/mcp-reference.md`.
+
+- 0128b56: Kibi now helps agents keep one shared vocabulary instead of letting every requirement invent its own. `kibi check` warns when two unrelated requirements state the same obligation. Units are compared in canonical form, so "30 min" matches "1800 s", and each warning names the exact facts involved. It also flags subject keys copied from a requirement ID, subject keys that don't follow `component.aspect`, predicates whose arguments read like prose, and entity files whose name doesn't match their ID. All of these are non-blocking warnings or info notes, so existing knowledge bases keep passing.
+
+  When you model a new requirement, Kibi now ranks the subjects that already exist and either reuses one or explicitly declares a new one. It also flags claims that look like possible duplicates. An intentional restatement can be recorded with the new `restates` relationship. Skills and docs now recommend naming entities by the behavior they govern (`REQ-cli-gc`) instead of a sequence number (`REQ-042`). Existing numbered IDs stay valid.
+
+  Predicate schemas can now declare the allowed values for an argument, plus the old spellings that map onto them. New facts must use those values. `kibi check` reports predicate facts that don't match any schema, and `kibi migrate` can fix the mechanical cases after you approve the plan hash. It moves a fact to the only namespace whose schema matches, and rewrites old spellings to the declared value. Everything that needs judgment stays a review item.
+
+  - core: new `semantic_quality.pl` (`entity-id-style`, `domain-redundancy`, `domain-implication`, `subject-key-identity`, `subject-key-shape`, `ontology-quality`) and `units.pl`. Unit canonicalization is used for comparison only, and unknown or ambiguous units such as `KB` are never equated. Adds the `restates` req→req relationship and an optional `diagnosticSeverity` in the rule registry. Adds `:- encoding(utf8)` to modules that contain non-ASCII text.
+  - cli/mcp: `restates` is wired through the extractors, schemas, and mutation paths. `entity-id-style` warnings are reported on `kb_upsert` creates and on staged added or renamed entity files. `kb_model_requirement` returns `vocabularyAlignment` (subject decision, candidates, redundancy candidates, stamps, `fallbackUsed`). Ontology-quality thresholds can be set with `KIBI_ONTOLOGY_QUALITY_MAX_SINGLETON_RATIO` / `KIBI_ONTOLOGY_QUALITY_MIN_FACTS`. `kb_compile_intent` create mode now keeps a caller-supplied `requirementId`. `kibi check --staged` now also prints its pass line when metadata-only staged changes have only advisory findings, matching the staged-symbol path.
+  - cli/mcp: `predicate_schema` facts accept `argument_constants` and `argument_aliases`, stored like `rule_ir` as JSON. `kb_upsert` / `kb_validate_upsert` reject malformed vocabularies and predicate facts that use undeclared values or aliases. `kb_suggest_predicates` binds aliases to their constant and leaves undeclared values unbound. The new advisory TypeScript rule `predicate-schema-conformance` checks predicate facts against project schemas and the built-in catalog. Its mechanical repairs become automatic `predicate_schema_alignment` migration actions that carry the exact `kb_upsert` input and re-read the fact before writing.
+  - core: `ontology-quality` findings name the prose-like arguments.
+  - plugin-sdk: new `kibi.vocabulary-alignment.v1` capability (`rankSubjects`, `compareClaims`) with result validators.
+  - plugin-builtin: deterministic offline provider (IDF-weighted subject ranking and negation- and quantity-aware claim similarity).
+  - plugin-jev: Jev-backed provider. It runs in replace, augment, or shadow mode with builtin fallback, and makes network calls only when it is activated for `kb_model_requirement`. `kb_check` never calls a provider.
+  - runtime and agent adapters: regenerated skill mirrors with the naming guidance and `restates` direction docs.
+
+- Updated dependencies [5a06c03]
+  - kibi-agent-core@0.1.0
+
 ## 2.0.1
 
 ### Patch Changes
