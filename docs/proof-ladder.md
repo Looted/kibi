@@ -171,7 +171,8 @@ maps to `proofStatus: unresolved`, not `proven`.
 Before pushing, run `kibi sync --refresh-symbol-coordinates` with the project-local
 CLI, review and commit the generated changes, and run `bun run proof:prepush`.
 If committing leaves the KB stale, sync it again before the check. This checks the
-committed manifests and semantic baseline using the project-local CLI. When
+committed manifests, publish metadata (including exact GitHub owner casing),
+and semantic baseline using the project-local CLI. When
 proof contracts, coverage links, or proof tooling change, also run
 `bun run proof:replay` to reproduce the full CI gate on committed HEAD.
 

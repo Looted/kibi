@@ -10773,10 +10773,10 @@ coordinates:
     sourceLine: 1
   SYM-e2e-test-014:
     identityHash: 85775ab84a0b7543525ac0191ab34aac0cf3f2f02f64ef8cb2648a325178b1de
-    sourceHash: 6abfc2fab6cdf5024e7e9274f32f66eb6d4a11ba6651b809587abb5ef7053f32
+    sourceHash: ca2017395947f833aa284db2b10e17a1dc9eaf9fd7016962b5b6a4bf75396992
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 238
+    sourceEndLine: 246
     sourceFile: documentation/tests/e2e/packed/release-package-contract.test.ts
     sourceLine: 1
   SYM-e2e-test-agent-guided-migration-orchestration:
@@ -10853,10 +10853,10 @@ coordinates:
     sourceLine: 1
   SYM-e2e-test-cli-doctor-packed-provenance:
     identityHash: dfbda73c7d1c2309fa8ab57c4498d97f8f993bec67e1f8c267efae508b7dfd2c
-    sourceHash: 6abfc2fab6cdf5024e7e9274f32f66eb6d4a11ba6651b809587abb5ef7053f32
+    sourceHash: ca2017395947f833aa284db2b10e17a1dc9eaf9fd7016962b5b6a4bf75396992
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 238
+    sourceEndLine: 246
     sourceFile: documentation/tests/e2e/packed/release-package-contract.test.ts
     sourceLine: 1
   SYM-e2e-test-cli-migrate:
@@ -11741,7 +11741,7 @@ coordinates:
     sourceLine: 36
   SYM-expectedRepositoryUrl:
     identityHash: 5c312a844d6c9932086c90d951d6b6f1afd92cf672f4b9f205fb3ec66780f7d6
-    sourceHash: 4b6890c49fc4fa7b1552fa6bbfb818219426c0f137fa98713b4e20466aace480
+    sourceHash: 2e6d8b2be58b55b86d391be755f68b0646c6b4dafc25b9d727e086cee21d95a0
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 45
@@ -15291,6 +15291,22 @@ coordinates:
     sourceEndLine: 72
     sourceFile: packages/mcp/src/server/kb-freshness.ts
     sourceLine: 27
+  SYM-mcp-release-package-metadata:
+    identityHash: 240336405ff91215ab2edd07d6f820210720d29abbb8cb1622c6097a330b8fa9
+    sourceHash: a1f0b7528a3de9b4a33ec6bc5cea4d20f42d8218c68cfb3e674367ff0df2c380
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 53
+    sourceFile: packages/mcp/package.json
+    sourceLine: 1
+  SYM-mcp-release-registry-metadata:
+    identityHash: 243381a6fc622289060ae9fc50ab65b559c478b15c309c3e7e4cf730e442d06a
+    sourceHash: e0c22afc3d66dbd4f14cd397211acd4069c021ca37fb42cb91970c6914606654
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 21
+    sourceFile: packages/mcp/server.json
+    sourceLine: 1
   SYM-mcp-resolve-env-file-path:
     identityHash: 101cdc06ebb88054c3d811946942dbc3afc1aef43bdc11d19391e1c019ef583a
     sourceHash: 873b7f789f38f902a8e6dfdb3611b55bf84555db88fd1f9a50d12d59d180d761
@@ -16453,7 +16469,7 @@ coordinates:
     sourceLine: 128
   SYM-normalizeRepositoryUrl:
     identityHash: 6bd9021651ae94977c66a34e33bfbe230ba5a2f87693dae3349b958d1bbc40e7
-    sourceHash: 4b6890c49fc4fa7b1552fa6bbfb818219426c0f137fa98713b4e20466aace480
+    sourceHash: 2e6d8b2be58b55b86d391be755f68b0646c6b4dafc25b9d727e086cee21d95a0
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 62
@@ -18421,10 +18437,10 @@ coordinates:
     sourceLine: 77
   SYM-proof-prepush-check:
     identityHash: f7338aa7c1c23b6d869e1288166454ed9d927a6a9f62e2a77c9920b86a8f4093
-    sourceHash: e8b3c68f00936075f8705cd6f8fcef10d82d22efc3054f313fcad1c838c7e89a
+    sourceHash: 8d4164caff72025d47f03560aecd09732ac3f3a10507c62e0614d6ca038f2c09
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 11
+    sourceEndLine: 12
     sourceFile: scripts/proof-prepush.sh
     sourceLine: 1
   SYM-proof-receipt:
@@ -18901,28 +18917,28 @@ coordinates:
     sourceLine: 87
   SYM-quality-inventory-273ca1c87f24:
     identityHash: bf96870f625560f381de456384d83b964b0dec4e53343216cdb40a09a20d56e3
-    sourceHash: 4b6890c49fc4fa7b1552fa6bbfb818219426c0f137fa98713b4e20466aace480
+    sourceHash: 2e6d8b2be58b55b86d391be755f68b0646c6b4dafc25b9d727e086cee21d95a0
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 175
+    sourceEndLine: 207
     sourceFile: scripts/verify-publish-metadata.ts
-    sourceLine: 157
+    sourceLine: 189
   SYM-quality-inventory-2a1d9a98f094:
     identityHash: fb5127735ed43d9c5920ee3048684e8c8ad9f90023f189dd1b3a4de180e89ffc
-    sourceHash: 4b6890c49fc4fa7b1552fa6bbfb818219426c0f137fa98713b4e20466aace480
+    sourceHash: 2e6d8b2be58b55b86d391be755f68b0646c6b4dafc25b9d727e086cee21d95a0
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 179
+    sourceEndLine: 211
     sourceFile: scripts/verify-publish-metadata.ts
-    sourceLine: 177
+    sourceLine: 209
   SYM-quality-inventory-44a628f0ebf6:
     identityHash: c38bad987c24874e6db94b9adf42d93d3ee19d01598b2c076c38ee462092afe8
-    sourceHash: 4b6890c49fc4fa7b1552fa6bbfb818219426c0f137fa98713b4e20466aace480
+    sourceHash: 2e6d8b2be58b55b86d391be755f68b0646c6b4dafc25b9d727e086cee21d95a0
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 190
+    sourceEndLine: 222
     sourceFile: scripts/verify-publish-metadata.ts
-    sourceLine: 183
+    sourceLine: 215
   SYM-quality-inventory-462930c7e9c8:
     identityHash: 80b0efbf18af830495d7e7299dfc15f5ff050bb2c87f09aae2176be58dcf5f16
     sourceHash: 297e02124128a5fdaf834afd1dc08c303d5e9f1527206c1a0e1e2db466b3dbc9
@@ -19645,12 +19661,12 @@ coordinates:
     sourceLine: 257
   SYM-release-verify-published-metadata:
     identityHash: a2853dc37dda37cb92c73f7757c3cd4280101b22e39da24f38748a1b9681963d
-    sourceHash: 762b464859813103f336c5fb660408fe6951197fd55d71760126d2babe16560c
+    sourceHash: ed4f0b47ec2b9b578ca7c63bed68627f6a5921ab860ed90436d388eea6308901
     sourceColumn: 9
     sourceEndColumn: 1
-    sourceEndLine: 117
+    sourceEndLine: 119
     sourceFile: scripts/tests/release-workflow-contract.test.ts
-    sourceLine: 49
+    sourceLine: 51
   SYM-ReleaseAction:
     identityHash: 80efc2c1155e8b83672bab5cbf11d82ae8396dd35807ab978d1e49fc8c499831
     sourceHash: 4f66dda710f2ae080012f7413aaac12e545e12f1eb7c0b8ab5f1592ab337883b
@@ -19749,7 +19765,7 @@ coordinates:
     sourceLine: 284
   SYM-repositoryMatches:
     identityHash: 1ca86047193d6fcbff52d86820c0bafc0c041cf921aee4768336dff5937af8f4
-    sourceHash: 4b6890c49fc4fa7b1552fa6bbfb818219426c0f137fa98713b4e20466aace480
+    sourceHash: 2e6d8b2be58b55b86d391be755f68b0646c6b4dafc25b9d727e086cee21d95a0
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 67
@@ -29011,6 +29027,14 @@ coordinates:
     sourceEndLine: 427
     sourceFile: packages/cli/src/commands/sync.ts
     sourceLine: 417
+  SYM-sync-package-release-manifests:
+    identityHash: a01b1cb98e883abdc10a13b56e91b7e5b2e955007302c6022e83c4ae4fd80351
+    sourceHash: be21265c8a22c85feaf0034d66fd7b2b514ce8c08f7aac54c2aa4f8c6f4ca9bc
+    sourceColumn: 15
+    sourceEndColumn: 1
+    sourceEndLine: 168
+    sourceFile: scripts/sync-plugin-manifest-versions.ts
+    sourceLine: 108
   SYM-sync-remember-changed-source-or-warn:
     identityHash: f4443128cc6a105a44724bc36ad4d1811d5f3c7a60f7809f1e0d1ee2af54ea8b
     sourceHash: 011b04b8b47ec8f8b1a740ec8f58b67022a6b1bb9ac63e1934ef081670b3ceb7
@@ -29069,15 +29093,15 @@ coordinates:
     sourceLine: 221
   SYM-syncPluginManifestVersions:
     identityHash: dd95b5cb9a68104bfbe11faa3a3d53e725044c1392bdf3c7c34e25fee72e069b
-    sourceHash: 6aa6bee9df735ba5502cf57ab2d728e49eff098d521573c28b3f151356f8ded6
+    sourceHash: be21265c8a22c85feaf0034d66fd7b2b514ce8c08f7aac54c2aa4f8c6f4ca9bc
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 148
+    sourceEndLine: 182
     sourceFile: scripts/sync-plugin-manifest-versions.ts
-    sourceLine: 137
+    sourceLine: 171
   SYM-syncPluginManifestVersions-result:
     identityHash: 80ddec5f66b4c14c16ef753bce9b7de7b4558f6c95eb26b8ff96744b100efd87
-    sourceHash: 6aa6bee9df735ba5502cf57ab2d728e49eff098d521573c28b3f151356f8ded6
+    sourceHash: be21265c8a22c85feaf0034d66fd7b2b514ce8c08f7aac54c2aa4f8c6f4ca9bc
     sourceColumn: 17
     sourceEndColumn: 1
     sourceEndLine: 28
@@ -29573,10 +29597,10 @@ coordinates:
     sourceLine: 1
   SYM-test-publish-metadata-verifier:
     identityHash: 77e0bc68bd3fbdb65448bce75a071032dd16bb664c04bd4eb8d70bc5fddf7609
-    sourceHash: 19d35460e23b12efa254384697a663461beec58f990251cc4e292e8df9038e71
+    sourceHash: 317d151d56742e9daed7830fdf407a7ee462a37d79e3f03e8b36b4f528723239
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 196
+    sourceEndLine: 259
     sourceFile: scripts/tests/verify-publish-metadata.test.ts
     sourceLine: 1
   SYM-test-root-batch-concurrency:
@@ -30045,12 +30069,12 @@ coordinates:
     sourceLine: 22
   SYM-verifyPublishMetadata:
     identityHash: c43ca8048b3936db5a85f26fadf5a3c28f5772cb528ff06fd91f2397b7509324
-    sourceHash: 4b6890c49fc4fa7b1552fa6bbfb818219426c0f137fa98713b4e20466aace480
+    sourceHash: 2e6d8b2be58b55b86d391be755f68b0646c6b4dafc25b9d727e086cee21d95a0
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 155
+    sourceEndLine: 187
     sourceFile: scripts/verify-publish-metadata.ts
-    sourceLine: 84
+    sourceLine: 85
   SYM-vscode-code-action-provider-action-kind:
     identityHash: 26ea5d0bf250ae2f9fd602c608f925c54aa4bb2c13f0c5a11eb46e0ef00e7597
     sourceHash: 22995cbfce0eb5c25f6a17e19ecec40a2e8555cf039b139c304b14ad45e0c49d

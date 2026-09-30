@@ -1,6 +1,6 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.github.looted/kibi-mcp",
+  "name": "io.github.Looted/kibi-mcp",
   "description": "MCP server for Kibi's requirements, traceability, and proof workflows in coding agents.",
   "repository": {
     "url": "https://github.com/Looted/kibi",

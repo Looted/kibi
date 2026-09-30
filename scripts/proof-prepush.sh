@@ -6,5 +6,6 @@ if [ -n "$(git status --porcelain)" ]; then
   echo "Commit or isolate working-tree changes before the proof pre-push check." >&2
   exit 1
 fi
+bun scripts/verify-publish-metadata.ts
 bun packages/cli/bin/kibi check-generated --staged
 exec node scripts/check-proof-baseline.mjs --semantic-only
