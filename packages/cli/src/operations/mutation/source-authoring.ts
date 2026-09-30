@@ -6,6 +6,7 @@ import { dump as dumpYaml, load as loadYaml } from "js-yaml";
 import { parseDocument, stringify } from "yaml";
 import { OperationError } from "../../cli-errors.js";
 import type { OperationContext } from "../../public/operations/runtime-types.js";
+import { canonicalFilesystemPath } from "../../utils/canonical-path.js";
 import {
   CANONICAL_ENTITY_PATHS,
   isDerivedKbPath,
@@ -122,12 +123,9 @@ export function resolveContainedSourcePath(
     );
   }
   // A symlinked existing file or parent could otherwise escape the workspace.
-  let existing = fs.existsSync(absolute) ? absolute : path.dirname(absolute);
-  while (!fs.existsSync(existing) && path.dirname(existing) !== existing) {
-    existing = path.dirname(existing);
-  }
-  const real = fs.realpathSync.native(existing);
-  if (real !== root && !real.startsWith(`${root}${path.sep}`)) {
+  const realRoot = canonicalFilesystemPath(root);
+  const real = canonicalFilesystemPath(absolute);
+  if (real !== realRoot && !real.startsWith(`${realRoot}${path.sep}`)) {
     throw new OperationError(
       "SOURCE_PATH_INVALID",
       `document.path resolves outside the workspace: ${relative}`,
@@ -141,9 +139,18 @@ export function normalizeAuthoredSourcePath(
   source: string,
 ): string {
   const normalized = source.replaceAll("\\", "/");
-  const relative = path.isAbsolute(normalized)
-    ? path.relative(path.resolve(workspaceRoot), path.resolve(normalized))
-    : normalized;
+  const root = path.resolve(workspaceRoot);
+  let relative = normalized;
+  if (path.isAbsolute(normalized)) {
+    const absolute = path.resolve(normalized);
+    relative =
+      absolute === root || absolute.startsWith(`${root}${path.sep}`)
+        ? path.relative(root, absolute)
+        : path.relative(
+            canonicalFilesystemPath(root),
+            canonicalFilesystemPath(absolute),
+          );
+  }
   return path
     .relative(
       path.resolve(workspaceRoot),

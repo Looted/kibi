@@ -13,7 +13,11 @@ import shlex
 import shutil
 import subprocess
 import sys
+import threading
+import time
 import urllib.request
+from datetime import datetime, timezone
+from itertools import islice
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -50,6 +54,145 @@ def run(
     return result.stdout.strip() if result.stdout else ""
 
 
+def linux_process_metadata(pid: int) -> dict | None:
+    """Read process state only; never inspect argv, environment or payloads."""
+    proc = Path("/proc") / str(pid)
+    try:
+        stat = (proc / "stat").read_text()
+        end = stat.rfind(")")
+        fields = stat[end + 2:].split()
+        status = (proc / "status").read_text().splitlines()
+        rss = next((line.split()[1] for line in status if line.startswith("VmRSS:")), "0")
+        return {
+            "pid": pid, "ppid": int(fields[1]),
+            "comm": stat[stat.find("(") + 1:end], "state": fields[0],
+            "startTicks": int(fields[19]),
+            "userTicks": int(fields[11]), "systemTicks": int(fields[12]),
+            "rssKiB": int(rss), "threads": int(fields[17]),
+            "fdCount": sum(1 for _ in (proc / "fd").iterdir()),
+            "wchan": (proc / "wchan").read_text().strip(),
+        }
+    except (OSError, ValueError, IndexError):
+        # A process may exit between any of these reads.
+        return None
+
+
+def linux_process_children(pid: int) -> tuple[list[int], dict]:
+    """A child belongs to the spawning thread, which need not be the leader."""
+    children: set[int] = set()
+    errors: dict[str, int] = {}
+    task_limit = False
+    child_limit = False
+    tasks = []
+    try:
+        tasks = list(islice((Path("/proc") / str(pid) / "task").iterdir(), 257))
+        task_limit = len(tasks) > 256
+        for task in tasks[:256]:
+            try:
+                for child in (task / "children").read_text().split():
+                    if len(children) >= 256:
+                        child_limit = True
+                        break
+                    children.add(int(child))
+            except (OSError, ValueError) as error:
+                name = type(error).__name__
+                errors[name] = errors.get(name, 0) + 1
+    except OSError as error:
+        errors[type(error).__name__] = 1
+    return sorted(children), {
+        "tasksInspected": min(len(tasks), 256), "taskLimitReached": task_limit,
+        "childLimitReached": child_limit, "readErrors": errors,
+    }
+
+
+def sample_linux_cli(pid: int, destination: Path, stopped: threading.Event) -> None:
+    """Bounded, best-effort evidence; an exited parent never owns child cleanup."""
+    tracked: dict[int, int] = {}
+    started = time.monotonic()
+    peak = 0
+    byte_count = 0
+    try:
+        with destination.open("w") as output:
+            for index in range(7200):
+                pending = [pid, *tracked]
+                seen: set[int] = set()
+                processes = []
+                while pending and len(processes) < 256:
+                    current = pending.pop(0)
+                    if current in seen:
+                        continue
+                    seen.add(current)
+                    metadata = linux_process_metadata(current)
+                    if metadata is None:
+                        continue
+                    previous_start = tracked.get(current)
+                    if previous_start is not None and previous_start != metadata["startTicks"]:
+                        continue
+                    children, discovery = linux_process_children(current)
+                    metadata["childDiscovery"] = discovery
+                    processes.append(metadata)
+                    pending.extend(children)
+                # Keep observed children after daemon reparenting, only while
+                # that PID/start identity lives. This retains metadata, never
+                # a process, descriptor, signal or process-group attachment.
+                tracked = {item["pid"]: item["startTicks"] for item in processes}
+                peak = max(peak, len(processes))
+                sample = {
+                    "timestampUtc": datetime.now(timezone.utc).isoformat(),
+                    "elapsedSeconds": round(time.monotonic() - started, 3),
+                    "rootPid": pid, "processes": processes,
+                    "peakProcessCount": peak, "processLimitReached": bool(pending),
+                    "sampleLimitReached": index == 7199, "final": stopped.is_set(),
+                    "loadAverage": list(os.getloadavg()),
+                }
+                try:
+                    memory = Path("/proc/meminfo").read_text().splitlines()
+                    sample["memAvailableKiB"] = next(
+                        int(line.split()[1]) for line in memory if line.startswith("MemAvailable:")
+                    )
+                    sample["fileNr"] = [int(value) for value in Path("/proc/sys/fs/file-nr").read_text().split()]
+                except (OSError, ValueError, StopIteration) as error:
+                    sample["resourceReadError"] = type(error).__name__
+                encoded = json.dumps(sample) + "\n"
+                if byte_count + len(encoded.encode()) > 16 * 1024 * 1024:
+                    output.write(json.dumps({"diagnosticByteLimitReached": True}) + "\n")
+                    output.flush()
+                    break
+                output.write(encoded)
+                output.flush()
+                byte_count += len(encoded.encode())
+                if sample["final"]:
+                    break
+                stopped.wait(1)
+    except Exception as error:
+        # Diagnostics must never change the CLI exit result, even if the
+        # destination is unavailable or a platform metadata read fails.
+        print(f"CLI diagnostics unavailable ({type(error).__name__})", file=sys.stderr, flush=True)
+
+
+def run_monitored_cli(
+    *command: str, cwd: Path, env: dict[str, str], diagnostics: Path,
+) -> None:
+    print("+", shlex.join(str(part) for part in command), flush=True)
+    stopped = threading.Event()
+    with subprocess.Popen([str(part) for part in command], cwd=cwd, env=env) as child:
+        monitor = threading.Thread(
+            target=sample_linux_cli, args=(child.pid, diagnostics, stopped), daemon=True,
+        )
+        try:
+            monitor.start()
+        except RuntimeError as error:
+            print(f"CLI diagnostics unavailable ({type(error).__name__})", file=sys.stderr, flush=True)
+        try:
+            result = child.wait()
+        finally:
+            stopped.set()
+            if monitor.is_alive():
+                monitor.join(timeout=2)
+    if result:
+        raise subprocess.CalledProcessError(result, [str(part) for part in command])
+
+
 def pin(manifest: dict, name: str | None = None) -> dict:
     return manifest if name is None else manifest["dependencies"][name]
 
@@ -77,6 +220,32 @@ def validate(manifest_path: Path, target: str) -> dict:
             raise ValueError(f"Invalid SHA-256 pin for {name or 'swipl'}")
         if name and (not isinstance(url, str) or not url.startswith("https://")):
             raise ValueError(f"Invalid source URL for {name}")
+    patches = manifest.get("patches")
+    if not isinstance(patches, list) or not patches:
+        raise ValueError("SWI spike pin manifest must contain checked source patches")
+    for patch in patches:
+        if not isinstance(patch, dict):
+            raise ValueError("Invalid source patch entry")
+        patch_path = patch.get("path")
+        digest = patch.get("sha256")
+        files = patch.get("files")
+        if not isinstance(patch_path, str) or not (ROOT / patch_path).resolve().is_relative_to(ROOT / "scripts" / "patches"):
+            raise ValueError("Source patch path must remain in scripts/patches")
+        if not isinstance(digest, str) or not re.fullmatch(r"[0-9a-f]{64}", digest):
+            raise ValueError(f"Invalid source patch SHA-256: {patch_path}")
+        try:
+            actual = hashlib.sha256((ROOT / patch_path).read_bytes()).hexdigest()
+        except OSError as error:
+            raise ValueError(f"Cannot read source patch: {patch_path}") from error
+        if actual != digest:
+            raise ValueError(f"Source patch SHA-256 mismatch: {patch_path}")
+        if not isinstance(files, dict) or not files:
+            raise ValueError(f"Source patch must declare original and patched file hashes: {patch_path}")
+        for name, hashes in files.items():
+            if not isinstance(name, str) or Path(name).is_absolute() or ".." in Path(name).parts:
+                raise ValueError(f"Invalid source patch file: {name}")
+            if not isinstance(hashes, dict) or any(not isinstance(hashes.get(state), str) or not re.fullmatch(r"[0-9a-f]{64}", hashes[state]) for state in ("original", "patched")):
+                raise ValueError(f"Invalid source patch file hashes: {name}")
     return manifest
 
 
@@ -96,6 +265,38 @@ def source_archive(work: Path, name: str, version: str, digest: str, url: str) -
     if not source.is_dir():
         raise ValueError(f"Archive did not contain {source.name}")
     return source
+
+
+def apply_source_patches(source: Path, manifest: dict) -> None:
+    for patch in manifest["patches"]:
+        patch_path = ROOT / patch["path"]
+        if hashlib.sha256(patch_path.read_bytes()).hexdigest() != patch["sha256"]:
+            raise ValueError(f"Source patch SHA-256 mismatch: {patch['path']}")
+        states = []
+        for name, hashes in patch["files"].items():
+            file = source / name
+            try:
+                if file.is_symlink() or not file.resolve().is_relative_to(source.resolve()):
+                    raise ValueError(f"Source patch file escapes source tree: {name}")
+                actual = hashlib.sha256(file.read_bytes()).hexdigest()
+            except OSError as error:
+                raise ValueError(f"Cannot read source patch file: {name}") from error
+            states.append("original" if actual == hashes["original"] else "patched" if actual == hashes["patched"] else "unknown")
+        if all(state == "patched" for state in states):
+            print(f"Source patch already applied: {patch['path']} ({patch['sha256']})", flush=True)
+            continue
+        if any(state != "original" for state in states):
+            raise ValueError(f"Source patch refuses unknown or partially patched source: {patch['path']}")
+        listed = run("git", "apply", "--numstat", str(patch_path), cwd=source)
+        paths = {line.split("\t", 2)[2] for line in listed.splitlines()}
+        if paths != set(patch["files"]):
+            raise ValueError(f"Source patch file inventory differs from pin: {patch['path']}")
+        run("git", "apply", "--check", str(patch_path), cwd=source)
+        run("git", "apply", str(patch_path), cwd=source)
+        for name, hashes in patch["files"].items():
+            if hashlib.sha256((source / name).read_bytes()).hexdigest() != hashes["patched"]:
+                raise ValueError(f"Patched source SHA-256 mismatch: {name}")
+        print(f"Applied checked source patch: {patch['path']} ({patch['sha256']})", flush=True)
 
 
 def cmake_project(source: Path, build: Path, install: Path, target: str, *options: str) -> None:
@@ -162,6 +363,7 @@ def build(manifest: dict, target: str, work: Path) -> Path:
         work, "swipl", manifest["version"], manifest["sha256"],
         f"https://www.swi-prolog.org/download/stable/src/swipl-{manifest['version']}.tar.gz",
     )
+    apply_source_patches(swipl, manifest)
     zlib = library(deps, "z", target)
     pcre = library(deps, "pcre2-8", target)
     flags = [
@@ -339,6 +541,8 @@ def exercise(prefix: Path, manifest: dict, target: str, work: Path) -> None:
     unpacked_kib = int(run("du", "-sk", str(prefix)).split()[0])
     report = {
         "target": target, "swiplVersion": manifest["version"],
+        "sourceArchiveSha256": manifest["sha256"],
+        "sourcePatches": manifest["patches"],
         "requiredLibraries": list(REQUIRED_LIBRARIES),
         "unpackedKiB": unpacked_kib, "packedBytes": package.stat().st_size,
         "prefix": str(prefix),
@@ -347,7 +551,13 @@ def exercise(prefix: Path, manifest: dict, target: str, work: Path) -> None:
 
     def checked(label: str, *command: str, cwd: Path | None = None) -> None:
         try:
-            run(*command, cwd=cwd, env=env, capture=False)
+            if label == "cliSuite" and target == "linux-x64-gnu":
+                run_monitored_cli(
+                    *command, cwd=cwd or ROOT, env=env,
+                    diagnostics=work / "cli-process-samples.jsonl",
+                )
+            else:
+                run(*command, cwd=cwd, env=env, capture=False)
             report["checks"][label] = "passed"
         except subprocess.CalledProcessError:
             report["checks"][label] = "failed"
@@ -368,6 +578,19 @@ def exercise(prefix: Path, manifest: dict, target: str, work: Path) -> None:
         "current_prolog_flag(bounded,false), \\+ current_prolog_flag(gmp_version,_), "
         "X is 2^128, X > 100000000000000000000000000000000000000, halt(0)",
         "-t", "halt(1)",
+    )
+    timestamp_files = [work / "mtime-first", work / "mtime-second"]
+    for file, fractional_ns in zip(timestamp_files, (125_000_000, 875_000_000)):
+        file.write_text("relocated timestamp precision control\n")
+        timestamp_ns = 1_600_000_000_000_000_000 + fractional_ns
+        os.utime(file, ns=(timestamp_ns, timestamp_ns))
+    quoted = [str(file).replace("'", "''") for file in timestamp_files]
+    checked(
+        "file-mtime-subsecond", str(binary), "--on-error=halt", "-q", "-g",
+        f"time_file('{quoted[0]}',A), time_file('{quoted[1]}',B), "
+        "format('same-second file times: ~16f ~16f~n',[A,B]), "
+        "abs(A-1600000000.125)<0.000001, abs(B-1600000000.875)<0.000001, "
+        "D is B-A, D>0.749999, D<0.750001, halt(0)", "-t", "halt(1)",
     )
     for name in REQUIRED_LIBRARIES:
         checked(

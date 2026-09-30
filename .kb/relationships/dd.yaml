@@ -314,3 +314,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e0cdc0c10ec2
+  - type: executable_for
+    from: SYM-test-cli-engine-runtime-paths
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-09-30T14:45:52.290Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8fefa4d7cdb5
+  - type: executable_for
+    from: SYM-test-cli-engine-runtime-paths
+    to: TEST-core-journaled-engine-persistence
+    created_at: 2026-09-30T14:45:52.316Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f87b68d28ca9

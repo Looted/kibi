@@ -43527,3 +43527,125 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-skillopt-external-adoption-verdict
+  - id: SYM-cli-canonical-filesystem-path
+    title: canonicalFilesystemPath
+    status: active
+    sourceFile: packages/cli/src/utils/canonical-path.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-canonical-runtime
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-cli-canonical-runtime
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: implements
+        target: REQ-kibi-change-to-proof-plan-compiler
+  - id: SYM-test-cli-engine-runtime-paths
+    title: engine runtime paths tests
+    status: active
+    sourceFile: packages/cli/tests/engine-runtime-paths.test.ts
+    symbol_role: module
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-core-journaled-engine-lifecycle
+      - type: executable_for
+        target: TEST-core-journaled-engine-persistence
+  - id: SYM-test-cli-workspace-path-alias
+    title: workspace path alias tests
+    status: active
+    sourceFile: packages/cli/tests/operations/workspace-path-alias.test.ts
+    symbol_role: module
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-cli-canonical-runtime
+      - type: executable_for
+        target: TEST-kibi-change-to-proof-plan-compiler
+  - id: SYM-test-cli-parity-path-normalization
+    title: parity path normalization tests
+    status: active
+    sourceFile: packages/cli/tests/parity/helpers.test.ts
+    symbol_role: module
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-test-native-cli-suite-diagnostics
+    title: native Linux CLI diagnostics tests
+    status: active
+    sourceFile: scripts/tests/swipl-spike-diagnostics.test.ts
+    symbol_role: module
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-native-cli-suite-diagnostics
+  - id: SYM-prolog-spike-linux-process-metadata
+    title: linux_process_metadata
+    status: active
+    sourceFile: scripts/swipl-spike.py
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-native-cli-suite-diagnostics
+      - type: implements
+        target: REQ-native-cli-suite-diagnostics
+  - id: SYM-prolog-spike-linux-process-children
+    title: linux_process_children
+    status: active
+    sourceFile: scripts/swipl-spike.py
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-native-cli-suite-diagnostics
+      - type: implements
+        target: REQ-native-cli-suite-diagnostics
+  - id: SYM-prolog-spike-sample-linux-cli
+    title: sample_linux_cli
+    status: active
+    sourceFile: scripts/swipl-spike.py
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-native-cli-suite-diagnostics
+      - type: implements
+        target: REQ-native-cli-suite-diagnostics
+  - id: SYM-prolog-spike-run-monitored-cli
+    title: run_monitored_cli
+    status: active
+    sourceFile: scripts/swipl-spike.py
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-native-cli-suite-diagnostics
+      - type: implements
+        target: REQ-native-cli-suite-diagnostics
+  - id: SYM-prolog-spike-apply-source-patches
+    title: apply_source_patches
+    status: active
+    sourceFile: scripts/swipl-spike.py
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-spike-config-validation
+      - type: implements
+        target: REQ-prolog-spike-config-validation
+  - id: SYM-cli-github-skip-blank-lines
+    title: skipBlankLines
+    status: active
+    sourceFile: packages/cli/src/commands/github-init.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-e2e
+      - type: covered_by
+        target: TEST-kibi-github-report-integration
+      - type: implements
+        target: REQ-kibi-github-report-integration

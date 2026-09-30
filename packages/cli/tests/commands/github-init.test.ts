@@ -1,10 +1,12 @@
-import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, spyOn, test } from "bun:test";
+import * as fs from "node:fs";
 import {
   existsSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
   rmSync,
+  symlinkSync,
   writeFileSync,
 } from "node:fs";
 import * as os from "node:os";
@@ -539,6 +541,49 @@ describe("GitHub workflow and README scaffolding", () => {
     expect(result.readme).toBe("updated");
     expect(detectReadmePath(tmpDir)?.endsWith("readme.md")).toBe(true);
     expect(errors.join("\n")).toContain("already exists");
+  });
+
+  test("preserves actual README spelling when lookup aliases uppercase names", () => {
+    const readmePath = path.join(tmpDir, "readme.md");
+    writeFileSync(readmePath, "# Widgets\n");
+    const originalExists = fs.existsSync;
+    const exists = spyOn(fs, "existsSync").mockImplementation((candidate) => {
+      if (candidate === path.join(tmpDir, "README.md")) {
+        return originalExists(readmePath);
+      }
+      return originalExists(candidate);
+    });
+    try {
+      expect(detectReadmePath(tmpDir)).toBe(readmePath);
+    } finally {
+      exists.mockRestore();
+    }
+  });
+
+  test("keeps candidate priority when multiple README entries exist", () => {
+    for (const name of ["README.md", "readme.md", "Readme.md"]) {
+      writeFileSync(path.join(tmpDir, name), "# Widgets\n");
+    }
+    // Case-insensitive hosts may have one actual entry for these three writes.
+    const entries = new Set(fs.readdirSync(tmpDir));
+    const preferred = ["README.md", "readme.md", "Readme.md"].find((name) =>
+      entries.has(name),
+    );
+    expect(detectReadmePath(tmpDir)).toBe(
+      path.join(tmpDir, preferred as string),
+    );
+  });
+
+  test("skips broken README symlinks and accepts existing targets", () => {
+    symlinkSync(
+      path.join(tmpDir, "missing.md"),
+      path.join(tmpDir, "README.md"),
+    );
+    expect(detectReadmePath(tmpDir)).toBeUndefined();
+    rmSync(path.join(tmpDir, "README.md"));
+    writeFileSync(path.join(tmpDir, "target.md"), "# Target\n");
+    symlinkSync(path.join(tmpDir, "target.md"), path.join(tmpDir, "README.md"));
+    expect(detectReadmePath(tmpDir)).toBe(path.join(tmpDir, "README.md"));
   });
 
   test("prints placeholder badge Markdown when repo and README are both missing", () => {

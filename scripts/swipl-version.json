@@ -17,5 +17,25 @@
       "sha256": "bb329a0a2cd0274d05519d61c667c062e06990d72e125ee2dfa8de64f0119d16",
       "url": "https://zlib.net/zlib-1.3.2.tar.gz"
     }
-  }
+  },
+  "patches": [
+    {
+      "path": "scripts/patches/swipl-10.0.2-darwin-mtime.patch",
+      "sha256": "d3eb94b758e787e0a4ace7e6a22ea7de691ae6910e105359c68b28a73e017d38",
+      "files": {
+        "cmake/Config.cmake": {
+          "original": "3480a0fe9646e0acc516a453cd9705d8d8beff0413b7f862e8159dcf72afe920",
+          "patched": "5bfae0a532120982ff720815cc8b98ba19c71693183d41f483f46cc26ee2555f"
+        },
+        "src/config.h.cmake": {
+          "original": "13abde45cf3d09ec7ff3fcbaa31d970ac15deea551a9941d5e98123b8e067ecd",
+          "patched": "88062ce73483fffb8a7921432161847a6c60477e91b78a2504d0cfd9598e6485"
+        },
+        "src/os/pl-files.c": {
+          "original": "c7662100241b618c90b9f123cb643a42da1406f888005a2fd9acb1d73b920bda",
+          "patched": "04549adb10196a3b43bf605fa41f74dbb232afd90a3167016643308e9814f488"
+        }
+      }
+    }
+  ]
 }

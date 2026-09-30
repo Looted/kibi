@@ -259,6 +259,16 @@
         "--timeout",
         "120000",
         "./packages/cli/tests/engine.test.ts"
+      ],
+      [
+        "node",
+        "scripts/run-owned-engine-tests.mjs",
+        "--",
+        "bun",
+        "test",
+        "--timeout",
+        "15000",
+        "./packages/cli/tests/engine-runtime-paths.test.ts"
       ]
     ]
   },
@@ -274,6 +284,16 @@
         "--timeout",
         "120000",
         "./packages/cli/tests/engine.test.ts"
+      ],
+      [
+        "node",
+        "scripts/run-owned-engine-tests.mjs",
+        "--",
+        "bun",
+        "test",
+        "--timeout",
+        "15000",
+        "./packages/cli/tests/engine-runtime-paths.test.ts"
       ]
     ]
   },
@@ -316,6 +336,13 @@
         "./packages/cli/tests/operations/compile-intent-coverage.test.ts",
         "./packages/cli/tests/operations/compile-intent-remaining.coverage.test.ts",
         "./packages/cli/tests/operations/apply-plan-recovery-coverage.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "15000",
+        "./packages/cli/tests/operations/workspace-path-alias.test.ts"
       ]
     ]
   },
@@ -346,6 +373,16 @@
         "node",
         "scripts/run-proof-packed-e2e.mjs",
         "documentation/tests/e2e/packed/github-report-integration.test.ts"
+      ],
+      [
+        "node",
+        "scripts/run-owned-engine-tests.mjs",
+        "--",
+        "bun",
+        "test",
+        "--timeout",
+        "15000",
+        "./packages/cli/tests/commands/github-init.test.ts"
       ]
     ]
   },
@@ -579,6 +616,13 @@
         "node",
         "scripts/run-proof-packed-e2e.mjs",
         "documentation/tests/e2e/packed/init-sync-check.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "15000",
+        "./packages/cli/tests/operations/workspace-path-alias.test.ts"
       ]
     ]
   },
@@ -1045,6 +1089,13 @@
         "node",
         "scripts/run-proof-packed-e2e.mjs",
         "documentation/tests/e2e/packed/mcp-cli-operation-parity.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "15000",
+        "./packages/cli/tests/parity/helpers.test.ts"
       ]
     ]
   },
@@ -1363,6 +1414,23 @@
         "--timeout",
         "120000",
         "./packages/cli/tests/docs-site-pages.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-native-cli-suite-diagnostics",
+    "steps": [
+      [
+        "node",
+        "-e",
+        "if (process.platform !== 'linux') { console.error('Native CLI diagnostics proof requires Linux'); process.exit(1); }"
+      ],
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "15000",
+        "./scripts/tests/swipl-spike-diagnostics.test.ts"
       ]
     ]
   }

@@ -7,12 +7,13 @@
  */
 
 import { type ChildProcess, spawn } from "node:child_process";
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import {
   chmodSync,
   closeSync,
   existsSync,
   fsyncSync,
+  lstatSync,
   mkdirSync,
   openSync,
   readFileSync,
@@ -49,6 +50,7 @@ import {
   branchStorePath,
   ensureBranchStoreManifest,
 } from "./utils/branch-store-locator.js";
+import { canonicalFilesystemPath } from "./utils/canonical-path.js";
 
 export type {
   EngineAttachmentIdentity,
@@ -354,17 +356,76 @@ export function runtimeDirectory(): string {
     process.env.KIBI_RUNTIME_DIR ??
     process.env.XDG_RUNTIME_DIR ??
     path.join(os.tmpdir(), "kibi-runtime");
-  const candidates = [configured, path.join(os.tmpdir(), "kibi-runtime")];
+  // Windows named pipes have no Unix socket pathname budget. Preserve its
+  // filesystem location policy for the associated pid files.
+  if (process.platform === "win32") {
+    for (const candidate of [
+      configured,
+      path.join(os.tmpdir(), "kibi-runtime"),
+    ]) {
+      try {
+        mkdirSync(candidate, { recursive: true, mode: 0o700 });
+        const probe = path.join(candidate, `.kibi-write-${process.pid}`);
+        writeFileSync(probe, "", { mode: 0o600 });
+        unlinkSync(probe);
+        return candidate;
+      } catch {
+        // Try the existing system-temp fallback.
+      }
+    }
+    throw new Error(
+      "Unable to create a writable Kibi engine runtime directory",
+    );
+  }
+  const euid = process.geteuid?.();
+  if (euid === undefined)
+    throw new Error("Kibi engine runtime euid unavailable");
+  let configuredIdentity: string;
+  try {
+    configuredIdentity = canonicalFilesystemPath(configured);
+  } catch {
+    // An inaccessible or dangling configured path remains a distinct identity;
+    // it is never accepted as the socket directory below.
+    configuredIdentity = path.resolve(configured);
+  }
+  const configuredKey = createHash("sha256")
+    .update(configuredIdentity)
+    .digest("hex")
+    .slice(0, 32);
+  const candidates = [
+    configured,
+    path.join("/tmp", `kb-${euid}-${configuredKey}`),
+  ];
+  const maximumBytes = process.platform === "linux" ? 107 : 103;
+  const socketName = `kibi-${"0".repeat(32)}.sock`;
   for (const candidate of candidates) {
     try {
+      try {
+        if (lstatSync(candidate).isSymbolicLink()) continue;
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+      }
       mkdirSync(candidate, { recursive: true, mode: 0o700 });
+      const directory = lstatSync(candidate);
+      if (
+        !directory.isDirectory() ||
+        directory.uid !== euid ||
+        (directory.mode & 0o077) !== 0
+      )
+        continue;
+      const canonical = canonicalFilesystemPath(candidate);
+      if (
+        Buffer.byteLength(path.join(canonical, socketName), "utf8") >
+        maximumBytes
+      )
+        continue;
       // XDG_RUNTIME_DIR can exist but be mounted read-only (for example in a
       // constrained container). Probe the directory before using it for the
       // socket, start lock, and pid files so auto-start fails over cleanly.
-      const probe = path.join(candidate, `.kibi-write-${process.pid}`);
-      writeFileSync(probe, "", { mode: 0o600 });
+      const probe = path.join(canonical, `.kibi-write-${randomUUID()}`);
+      writeFileSync(probe, "", { mode: 0o600, flag: "wx" });
       unlinkSync(probe);
-      return candidate;
+      return canonical;
     } catch {
       // Try the private system-temp fallback below.
     }
@@ -420,17 +481,11 @@ export function engineSocketPath(
   workspaceRoot: string,
   branch: string,
 ): string {
-  const canonicalRoot = (() => {
-    try {
-      return realpathSync(workspaceRoot);
-    } catch {
-      return path.resolve(workspaceRoot);
-    }
-  })();
+  const canonicalRoot = canonicalFilesystemPath(workspaceRoot);
   const key = createHash("sha256")
     .update(`${canonicalRoot}\0${branch}`)
-    // 128 bits keeps collision risk negligible while staying below the
-    // roughly 108-byte sockaddr_un limit even in a nested XDG runtime path.
+    // Retain 128 bits of workspace/branch identity; runtimeDirectory budgets
+    // the complete pathname rather than shortening this identity.
     .digest("hex")
     .slice(0, 32);
   if (process.platform === "win32") {
@@ -811,12 +866,7 @@ export class EngineClient {
     if (!isValidBranchName(options.branch)) {
       throw new Error(`Invalid Kibi engine branch name: ${options.branch}`);
     }
-    const resolvedWorkspaceRoot = path.resolve(options.workspaceRoot);
-    try {
-      this.workspaceRoot = realpathSync(resolvedWorkspaceRoot);
-    } catch {
-      this.workspaceRoot = resolvedWorkspaceRoot;
-    }
+    this.workspaceRoot = canonicalFilesystemPath(options.workspaceRoot);
     this.branch = options.branch;
     this.timeout = options.timeout ?? 120_000;
     this.allowPublicationLock = options.allowPublicationLock ?? false;
@@ -1645,17 +1695,23 @@ export class EngineSession {
   }
 }
 
-// implements REQ-core-journaled-engine-lifecycle
-export async function runEngineDaemon(options: {
+// implements REQ-core-journaled-engine-persistence
+export async function runEngineDaemon(requestedOptions: {
   readonly workspaceRoot: string;
   readonly branch: string;
   readonly socketPath: string;
   /** Test seam: bounded Prolog output per query (defaults to 8 MiB). */
   readonly maxOutputBytes?: number;
 }): Promise<void> {
-  if (!isValidBranchName(options.branch)) {
-    throw new Error(`Invalid Kibi engine branch name: ${options.branch}`);
+  if (!isValidBranchName(requestedOptions.branch)) {
+    throw new Error(
+      `Invalid Kibi engine branch name: ${requestedOptions.branch}`,
+    );
   }
+  const options = {
+    ...requestedOptions,
+    workspaceRoot: canonicalFilesystemPath(requestedOptions.workspaceRoot),
+  };
   const branchPath = ensureBranchStoreManifest(
     options.workspaceRoot,
     options.branch,
@@ -1838,8 +1894,8 @@ export async function runEngineDaemon(options: {
       );
     }
     if (
-      path.resolve(request.workspaceRoot ?? "") !==
-        path.resolve(options.workspaceRoot) ||
+      canonicalFilesystemPath(request.workspaceRoot ?? "") !==
+        options.workspaceRoot ||
       request.branch !== options.branch
     ) {
       throw new Error("Kibi engine workspace identity mismatch");

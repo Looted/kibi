@@ -58,7 +58,7 @@ afterEach(async () => {
 
 function preparedWorkspace(): string {
   restores.push(isolateKibiEnv());
-  const cwd = createGitWorkspace();
+  const cwd = fs.realpathSync.native(createGitWorkspace());
   roots.push(cwd);
   return cwd;
 }

@@ -8,6 +8,10 @@ on:
       - scripts/swipl-spike.py
       - scripts/swipl-spike.sh
       - scripts/swipl-version.json
+      - scripts/patches/swipl-*.patch
+      - scripts/tests/swipl-spike-*.test.ts
+      - scripts/run-owned-engine-tests.mjs
+      - scripts/tests/run-owned-engine-tests.test.ts
       - scripts/skillopt-eval/adoption-lock.ts
       - scripts/skillopt-eval/adoption-durable.ts
       - scripts/skillopt-eval/tests/adoption-lock*.ts
@@ -107,6 +111,7 @@ jobs:
           path: |
             ${{ steps.paths.outputs.dir }}/report.json
             ${{ steps.paths.outputs.dir }}/swipl-relocated.tar.gz
+            ${{ steps.paths.outputs.dir }}/cli-process-samples.jsonl
           if-no-files-found: warn
           retention-days: 7
 
