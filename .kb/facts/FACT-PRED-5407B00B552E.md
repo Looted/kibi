@@ -20,4 +20,5 @@ claim_key: CLAIM-0FE6A514358FE47A
 claim_text: Shadow mode must leave canonical capability results unchanged
 id: FACT-PRED-5407B00B552E
 type: fact
+predicate_namespace: kibi.capability
 ---

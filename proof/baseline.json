@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 109,
-  "proofProven": 109,
+  "currentRequirements": 123,
+  "proofProven": 123,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -112,6 +112,11 @@
       "uncoveredSymbols": []
     },
     "REQ-capability-plugin-three-capabilities-v1": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-claude-code-kibi-plugin-v1": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []
@@ -231,7 +236,22 @@
       "gaps": [],
       "uncoveredSymbols": []
     },
+    "REQ-docs-readme-published-links": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-docs-site-pages": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
     "REQ-generated-coordinate-persistence": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-git-hook-effective-install": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []
@@ -276,6 +296,16 @@
       "gaps": [],
       "uncoveredSymbols": []
     },
+    "REQ-kibi-domain-redundancy": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-entity-id-style": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
     "REQ-kibi-env-bootstrap": {
       "proofStatus": "proven",
       "gaps": [],
@@ -311,12 +341,32 @@
       "gaps": [],
       "uncoveredSymbols": []
     },
+    "REQ-kibi-ontology-quality": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
     "REQ-kibi-operation-interface-parity": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []
     },
+    "REQ-kibi-predicate-argument-constants": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-predicate-schema-conformance": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
     "REQ-kibi-predicate-suggestion-relevance-v1": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-predicate-vocabulary-migration": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []
@@ -331,7 +381,17 @@
       "gaps": [],
       "uncoveredSymbols": []
     },
+    "REQ-kibi-restates-relationship": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
     "REQ-kibi-source-relationship-parity": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-subject-vocabulary": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []
@@ -346,7 +406,17 @@
       "gaps": [],
       "uncoveredSymbols": []
     },
+    "REQ-kibi-unit-canonicalization": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
     "REQ-kibi-verification-evidence-contract": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-vocabulary-alignment-capability": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []

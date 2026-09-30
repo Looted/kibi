@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: subject
-subject_key: req.req_generated_coordinate_persistence
+subject_key: kibi.symbols.coordinates
 canonical_key: req.req_generated_coordinate_persistence
 id: FACT-SUBJ-REQ-GENERATED-COORDINATE-PERSISTENCE
 type: fact

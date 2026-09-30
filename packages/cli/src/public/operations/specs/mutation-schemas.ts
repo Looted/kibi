@@ -46,7 +46,7 @@ export const ENTITY_PROPERTIES_SCHEMA = {
     source: {
       type: "string",
       description:
-        "Optional provenance string. Example: 'docs/requirements/REQ-123.md'. Defaults to 'mcp://kibi/upsert'.",
+        "Optional provenance string. Example: '.kb/requirements/REQ-cli-gc.md'. Defaults to 'mcp://kibi/upsert'.",
     },
     tags: {
       type: "array",
@@ -69,7 +69,7 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       type: "array",
       items: { type: "string" },
       description:
-        "Optional references. Example: ['REQ-010','https://example.com/spec'].",
+        "Optional references. Example: ['REQ-cli-gc','https://example.com/spec'].",
     },
     text_ref: {
       type: "string",
@@ -295,6 +295,25 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       items: { type: "string" },
       description: "Optional ordered argument explanations.",
     },
+    argument_constants: {
+      type: "object",
+      additionalProperties: {
+        type: "array",
+        items: { type: "string", minLength: 1 },
+        minItems: 1,
+      },
+      description:
+        'predicate_schema only: allowed constants keyed by argument name, e.g. {"severity": ["warning", "info"]}. Predicate facts must use a listed constant for those arguments; unlisted arguments stay open.',
+    },
+    argument_aliases: {
+      type: "object",
+      additionalProperties: {
+        type: "object",
+        additionalProperties: { type: "string", minLength: 1 },
+      },
+      description:
+        'predicate_schema only: legacy spellings keyed by argument name, each mapped to a declared constant, e.g. {"severity": {"warn": "warning"}}. kibi migrate rewrites facts that still use an alias.',
+    },
     aliases: {
       type: "array",
       items: { type: "string" },
@@ -371,6 +390,7 @@ export const RELATIONSHIPS_SCHEMA = {
           "publishes",
           "consumes",
           "supersedes",
+          "restates",
           "relates_to",
         ],
         description:
@@ -383,7 +403,7 @@ export const RELATIONSHIPS_SCHEMA = {
       },
       to: {
         type: "string",
-        description: "Target entity ID (must exist). Example: 'REQ-001'.",
+        description: "Target entity ID (must exist). Example: 'REQ-cli-gc'.",
       },
     },
   },

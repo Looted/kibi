@@ -1,3 +1,4 @@
+import { compilerFingerprintReason } from "../../commands/sync/cache.js";
 import { EngineClient } from "../../engine.js";
 import {
   type IntentSearchAnalysis,
@@ -21,6 +22,8 @@ import {
   loadEntities,
   loadSearchCandidates,
   paginateResults,
+  queryEntitiesViaQuery,
+  reloadFullEntities,
   validateEntityType,
 } from "./discovery-entities.js";
 import {
@@ -60,6 +63,7 @@ export type SearchInput = {
   readonly semanticFacets?: IntentSearchFacets;
   readonly sourceLocations?: readonly SourceLocation[];
   readonly minScore?: number;
+  readonly fields?: "summary" | "full";
 };
 
 export type SearchPayload = {
@@ -140,51 +144,29 @@ export async function executeQuery(
   // implements REQ-kibi-operation-interface-parity
   const { type, id, tags, sourceFile, limit = 100, offset = 0 } = input;
   try {
+    validateEntityType(type);
     const prolog = requireProlog(context);
     const signal = context.signal;
-    const indexedPage = prolog.queryEntities
-      ? await prolog.queryEntities(
-          {
-            ...(type !== undefined ? { type } : {}),
-            ...(id !== undefined ? { id } : {}),
-            ...(tags !== undefined ? { tags } : {}),
-            ...(sourceFile !== undefined ? { sourceFile } : {}),
-            limit,
-            offset,
-          },
-          signal,
-        )
-      : null;
-    if (indexedPage !== null) {
-      const paginated = indexedPage.entities;
-      const text =
-        indexedPage.count === 0
-          ? `No entities found${type ? ` of type '${type}'` : ""}.`
-          : `Found ${indexedPage.count} entities${type ? ` of type '${type}'` : ""}. Showing ${paginated.length} (offset ${offset}, limit ${limit}): ${paginated
-              .map((entity) => {
-                const entityId = String(entity.id ?? "").replace(
-                  /^file:\/\/.*\//,
-                  "",
-                );
-                return `${entityId} (${String(entity.title ?? "")}, status=${String(entity.status ?? "")})`;
-              })
-              .join(", ")}`;
-      return {
-        content: [{ type: "text", text }],
-        structuredContent: { entities: paginated, count: indexedPage.count },
-      };
-    }
-    const entities = await loadEntities(requireProlog(context), {
+    const pageInput = {
       ...(type !== undefined ? { type } : {}),
       ...(id !== undefined ? { id } : {}),
       ...(tags !== undefined ? { tags } : {}),
       ...(sourceFile !== undefined ? { sourceFile } : {}),
-    });
-    const paginated = paginateResults(entities, limit, offset);
+      limit,
+      offset,
+    };
+    // Both paths return one bounded page plus the total count. Ports without
+    // the engine method page kb_query_entities through `query` instead of
+    // materializing every matching entity (receipt histories make an
+    // all-tests answer exceed the bounded engine output).
+    const indexedPage = prolog.queryEntities
+      ? await prolog.queryEntities(pageInput, signal)
+      : await queryEntitiesViaQuery(prolog, pageInput, signal);
+    const paginated = indexedPage.entities;
     const text =
-      entities.length === 0
+      indexedPage.count === 0
         ? `No entities found${type ? ` of type '${type}'` : ""}.`
-        : `Found ${entities.length} entities${type ? ` of type '${type}'` : ""}. Showing ${paginated.length} (offset ${offset}, limit ${limit}): ${paginated
+        : `Found ${indexedPage.count} entities${type ? ` of type '${type}'` : ""}. Showing ${paginated.length} (offset ${offset}, limit ${limit}): ${paginated
             .map((entity) => {
               const entityId = String(entity.id ?? "").replace(
                 /^file:\/\/.*\//,
@@ -195,12 +177,61 @@ export async function executeQuery(
             .join(", ")}`;
     return {
       content: [{ type: "text", text }],
-      structuredContent: { entities: paginated, count: entities.length },
+      structuredContent: { entities: paginated, count: indexedPage.count },
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     throw new Error(`Query execution failed: ${message}`);
   }
+}
+
+/**
+ * Identifying metadata a caller needs to decide which hits to open.
+ *
+ * Search is a discovery step, so returning complete entity bodies for every
+ * hit spends a large share of an agent's context before it has chosen
+ * anything. Full bodies stay available through `fields: "full"` or a follow-up
+ * kb_query for the exact ids.
+ */
+const SUMMARY_ENTITY_FIELDS = [
+  "id",
+  "type",
+  "title",
+  "status",
+  "priority",
+  "tags",
+  "source",
+  "sourceFile",
+  "updated_at",
+] as const;
+
+function summarizeMatch<TMatch extends { readonly entity: unknown }>(
+  match: TMatch,
+): TMatch {
+  const entity = match.entity;
+  if (entity === null || typeof entity !== "object" || Array.isArray(entity)) {
+    return match;
+  }
+  const row = entity as Record<string, unknown>;
+  const summary: Record<string, unknown> = {};
+  for (const field of SUMMARY_ENTITY_FIELDS) {
+    if (row[field] !== undefined) summary[field] = row[field];
+  }
+  return { ...match, entity: summary };
+}
+
+// Candidates are projected rows, so `fields: "full"` reloads the final page's
+// complete entities by id (one bounded query each).
+async function projectMatches<
+  TMatch extends { readonly entity: Record<string, unknown> },
+>(
+  prolog: Pick<PrologPort, "query">,
+  matches: readonly TMatch[],
+  fields: SearchInput["fields"],
+): Promise<readonly TMatch[]> {
+  return fields === "full"
+    ? reloadFullEntities(prolog, matches)
+    : matches.map(summarizeMatch);
 }
 
 export async function executeSearch(
@@ -217,6 +248,7 @@ export async function executeSearch(
     semanticFacets,
     sourceLocations,
     minScore,
+    fields = "summary",
   } = input;
   const trimmedQuery = query.trim();
   if (!trimmedQuery) {
@@ -258,27 +290,23 @@ export async function executeSearch(
       return {
         content: [{ type: "text", text }],
         structuredContent: {
-          results: paginated,
+          results: await projectMatches(prolog, paginated, fields),
           count: intentResult.matches.length,
           queryAnalysis: intentResult.analysis,
         },
       };
     }
-    const indexedCandidates = prolog.searchEntities
-      ? await loadSearchCandidates(
-          prolog,
-          {
-            query: trimmedQuery,
-            ...(type !== undefined ? { type } : {}),
-          },
-          context.signal,
-        )
-      : null;
-    const entities = indexedCandidates
-      ? [...indexedCandidates]
-      : await loadEntities(prolog, {
-          ...(type !== undefined ? { type } : {}),
-        });
+    // Candidates are projected rows (no receipt histories or other large
+    // structured properties); ports without the engine method run the same
+    // bounded Prolog search through `query`.
+    const entities = await loadSearchCandidates(
+      prolog,
+      {
+        query: trimmedQuery,
+        ...(type !== undefined ? { type } : {}),
+      },
+      context.signal,
+    );
     const matches = await rankEntities(
       entities,
       trimmedQuery,
@@ -296,7 +324,10 @@ export async function executeSearch(
             .join(", ")}`;
     return {
       content: [{ type: "text", text }],
-      structuredContent: { results: paginated, count: matches.length },
+      structuredContent: {
+        results: await projectMatches(prolog, paginated, fields),
+        count: matches.length,
+      },
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -400,6 +431,7 @@ export async function executeStatus(
     const existingReasons = payload.staleReasons ?? [];
     const storeReason = branchStoreReason(store);
     const lockReason = storeLockJournalReason(store.path);
+    const compilerReason = compilerFingerprintReason(store.path);
     const engineReason = engineStatus
       ? {
           code: engineStatus.errorCode ?? "engine_status_unavailable",
@@ -418,12 +450,16 @@ export async function executeStatus(
       ...existingReasons,
       ...(storeReason ? [storeReason] : []),
       ...(lockReason ? [lockReason] : []),
+      ...(compilerReason ? [compilerReason] : []),
       ...(engineReason ? [engineReason] : []),
     ].sort((left, right) =>
       String(left.path ?? "").localeCompare(String(right.path ?? "")),
     );
     const enrichedPayload: StatusPayload = {
       ...payload,
+      // Source hashes can all match while the compilation itself is lossy, so
+      // a compiler contract change alone makes the store stale.
+      ...(compilerReason ? { syncState: "stale", dirty: true } : {}),
       branchAttachment: attachment,
       branchStore: store,
       ...(engineStatus ? { engineStatus } : {}),

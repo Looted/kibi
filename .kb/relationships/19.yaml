@@ -146,3 +146,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d78e175a66d8
+  - type: validates
+    from: TEST-kibi-domain-redundancy
+    to: SCEN-kibi-domain-redundancy
+    created_at: 2026-09-28T09:42:39.460Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-82c548490a28
+  - type: validates
+    from: TEST-kibi-domain-redundancy
+    to: SCEN-kibi-restates-relationship
+    created_at: 2026-09-28T09:42:39.492Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-95ac57db6c20
+  - type: validates
+    from: TEST-kibi-domain-redundancy
+    to: SCEN-kibi-unit-canonicalization
+    created_at: 2026-09-28T09:42:39.510Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c2c3fee6c773
+  - type: validates
+    from: TEST-kibi-domain-redundancy
+    to: SCEN-kibi-ontology-quality
+    created_at: 2026-09-28T09:42:39.520Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-45a3f758f273

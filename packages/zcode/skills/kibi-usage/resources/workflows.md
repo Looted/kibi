@@ -33,11 +33,62 @@ surfaces are a release defect: require a new package version and label any
 project override temporary. This skill never selects a package manager or
 edits dependency configuration.
 
+## Choosing a discovery mode
+
+`kb_search` is not one behavior. It selects deterministic intent ranking when
+you pass `rankingMode: "intent-v1"`, `semanticFacets`, or `sourceLocations`,
+and legacy lexical ranking otherwise. Naming the tool is not enough; the inputs
+decide the path.
+
+- **Exact identity** — you already know the ID. Use `kb_query`, not search.
+- **Literal token** — a symbol, file, or error string that appears verbatim.
+  Use lexical `kb_search` and keep the query close to the literal text.
+- **Conceptual or behavioral** — "how does checkout handle a declined card".
+  Use intent mode and ground it in what you actually know:
+
+```json
+{
+  "query": "declined card during checkout",
+  "rankingMode": "intent-v1",
+  "semanticFacets": {
+    "actors": ["shopper"],
+    "actions": ["pay"],
+    "objects": ["card"],
+    "constraints": ["declined"]
+  }
+}
+```
+
+- **Before changing code** — pass the file you are about to edit as a source
+  location, so results are matched against source-linked symbols and return
+  source evidence:
+
+```json
+{
+  "query": "checkout total rounding",
+  "rankingMode": "intent-v1",
+  "sourceLocations": [{ "path": "src/checkout.ts", "symbol": "computeTotal" }]
+}
+```
+
+Supply facets only from the request, the code, or prior results. Inventing
+facets fabricates evidence and biases ranking. Intent mode abstains below
+`minScore` instead of returning weak matches; an abstention is an explicit
+no-answer, so widen the query or drop to lexical search rather than treating it
+as "nothing exists". There is no target percentage of intent-mode calls — a
+literal identifier lookup is still best served lexically.
+
+Results are summaries by default: identifying metadata, score, reasons, and a
+snippet. Read them to pick candidates, then `kb_query` those IDs for full
+bodies, or pass `fields: "full"` when you genuinely need every body. Extract
+the relevant existing constraints and decisions from the response before
+planning a behavior change; a search receipt is not comprehension.
+
 ## Discovery to Validation Sequence
 
 The canonical workflow for any KB operation follows this pattern:
 
-1. **Discover**: `kb_search` with focused probes
+1. **Discover**: `kb_search` with focused probes; pick the mode above
 2. **Confirm**: `kb_query` for exact IDs and state
 3. **Inspect**: `kb_status` when freshness matters
 4. **Decompose**: `kb_semantic_advisor` on the complete normative prose; verify or supply every atomic clause

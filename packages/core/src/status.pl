@@ -19,7 +19,16 @@ status_meta_dict(StatusDict) :-
     snapshot_id(SnapshotId),
     synced_at(DataFile, SyncedAt),
     freshness_state(DataFile, Dirty, SyncState),
-    stale_reasons(StaleReasons, StaleReasonCount, StaleReasonsTruncated),
+    (   SyncState == fresh
+    ->  % fresh means no indexed source is newer or missing and no knowledge
+        % lane or documentation file is newer than the snapshot: exactly the
+        % conditions stale_reasons enumerates. Skip its full entity scan,
+        % which dominates status latency on large KBs.
+        StaleReasons = [],
+        StaleReasonCount = 0,
+        StaleReasonsTruncated = false
+    ;   stale_reasons(StaleReasons, StaleReasonCount, StaleReasonsTruncated)
+    ),
     StatusDict = _{
         branch: Branch,
         snapshotId: SnapshotId,
@@ -250,11 +259,7 @@ documentation_tree_changed(SnapshotTime) :-
     !.
 
 directory_tree_newer(Path, SnapshotTime) :-
-    exists_file(Path),
-    entity_documentation_file(Path),
-    \+ ignored_documentation_file(Path),
-    time_file(Path, EntryTime),
-    EntryTime > SnapshotTime,
+    newer_entity_documentation_file(Path, SnapshotTime),
     !.
 
 directory_tree_newer(Path, SnapshotTime) :-
@@ -268,11 +273,7 @@ directory_tree_newer(Path, SnapshotTime) :-
     !.
 
 directory_tree_newer_path(Path, SnapshotTime, Path) :-
-    exists_file(Path),
-    entity_documentation_file(Path),
-    \+ ignored_documentation_file(Path),
-    time_file(Path, EntryTime),
-    EntryTime > SnapshotTime.
+    newer_entity_documentation_file(Path, SnapshotTime).
 directory_tree_newer_path(Path, SnapshotTime, ChildPath) :-
     exists_directory(Path),
     directory_files(Path, Entries),
@@ -282,9 +283,22 @@ directory_tree_newer_path(Path, SnapshotTime, ChildPath) :-
     directory_file_path(Path, Entry, Candidate),
     directory_tree_newer_path(Candidate, SnapshotTime, ChildPath).
 
+:- dynamic workspace_root_memo/2.
+
+% Resolved once per attached KB path: status maps every entity source to a
+% workspace-relative path, and re-deriving the root per entity dominated it.
 attached_workspace_root(WorkspaceRoot) :-
     kb:kb_attached(KbPath),
-    branch_workspace_from_kb_path(KbPath, _Branch, WorkspaceRoot).
+    (   workspace_root_memo(KbPath, Memo)
+    ->  Memo = found(WorkspaceRoot)
+    ;   (   once(branch_workspace_from_kb_path(KbPath, _Branch, Root))
+        ->  Memo = found(Root)
+        ;   Memo = none
+        ),
+        retractall(workspace_root_memo(_, _)),
+        assertz(workspace_root_memo(KbPath, Memo)),
+        Memo = found(WorkspaceRoot)
+    ).
 
 branch_workspace_from_kb_path(KbPath, Branch, WorkspaceRoot) :-
     branch_path_segments(KbPath, BranchesDir, Segments),
@@ -366,12 +380,24 @@ ignored_documentation_file(Path) :-
 ignored_documentation_file(Path) :-
     sub_atom(Path, _, _, _, '/tests/benchmarks/').
 
+%% newer_entity_documentation_file(+Path, +SnapshotTime) is semidet.
+% Cheap path and mtime tests run before the file is read, and the content
+% test is deterministic. Previously each sub_string/5 left a choicepoint per
+% occurrence, so a failing mtime test backtracked through every combination
+% of id:/title:/status: positions (millions of redos on large trees).
+newer_entity_documentation_file(Path, SnapshotTime) :-
+    exists_file(Path),
+    \+ ignored_documentation_file(Path),
+    time_file(Path, EntryTime),
+    EntryTime > SnapshotTime,
+    entity_documentation_file(Path).
+
 entity_documentation_file(Path) :-
     read_file_to_string(Path, Content, []),
     sub_string(Content, 0, 3, _, "---"),
-    sub_string(Content, _, _, _, "id:"),
-    sub_string(Content, _, _, _, "title:"),
-    sub_string(Content, _, _, _, "status:").
+    once(sub_string(Content, _, _, _, "id:")),
+    once(sub_string(Content, _, _, _, "title:")),
+    once(sub_string(Content, _, _, _, "status:")).
 
 dict_json_string(Dict, JsonString) :-
     with_output_to(string(JsonString), json_write_dict(current_output, Dict, [])).

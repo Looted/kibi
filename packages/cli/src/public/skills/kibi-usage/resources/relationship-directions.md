@@ -12,6 +12,7 @@
 | `constrains` | req -> fact(subject) | Requirement constrains a strict-lane domain fact |
 | `requires_property` | req -> fact(property_value) | Requirement requires a specific property value fact |
 | `supersedes` | new-req -> old-req | New requirement formally replaces an old requirement |
+| `restates` | req -> req | Requirement intentionally restates another current requirement (for example a product requirement echoed in a platform requirement); suppresses `domain-redundancy` for that pair without retiring either side |
 | `covered_by` | symbol -> test | Production symbol has test coverage evidence |
 
 ## Valid Payload Examples
@@ -20,32 +21,32 @@
 ```yaml
 relationships:
   - type: implements
-    from: SYM-001
-    to: REQ-001
+    from: SYM-operation-execute-check
+    to: REQ-cli-check
 ```
 
 ### specified_by
 ```yaml
 relationships:
   - type: specified_by
-    from: REQ-001
-    to: SCEN-001
+    from: REQ-mcp-search-discovery
+    to: SCEN-mcp-search-discovery
 ```
 
 ### verified_by
 ```yaml
 relationships:
   - type: verified_by
-    from: REQ-001
-    to: TEST-001
+    from: REQ-mcp-search-discovery
+    to: TEST-mcp-search-discovery
 ```
 
 ### validates
 ```yaml
 relationships:
   - type: validates
-    from: TEST-001
-    to: SCEN-001
+    from: TEST-mcp-search-discovery
+    to: SCEN-mcp-search-discovery
 ```
 
 ### executable_for
@@ -53,39 +54,56 @@ relationships:
 relationships:
   - type: executable_for
     from: SYM-test-login
-    to: TEST-001
+    to: TEST-mcp-search-discovery
 ```
 
 ### constrains
 ```yaml
 relationships:
   - type: constrains
-    from: REQ-019
-    to: FACT-USER-ROLE
+    from: REQ-cli-check
+    to: FACT-SUBJECT-KIBI-CHECK
 ```
 
 ### requires_property
 ```yaml
 relationships:
   - type: requires_property
-    from: REQ-019
-    to: FACT-LIMIT-3
+    from: REQ-cli-check
+    to: FACT-PROP-CHECK-FAILURE-EXIT-CODE
 ```
 
 ### supersedes
 ```yaml
 relationships:
   - type: supersedes
-    from: REQ-001-v2
-    to: REQ-001
+    from: REQ-opencode-kibi-briefing-v2
+    to: REQ-opencode-kibi-briefing-v1
 ```
+
+A `-v2` suffix is acceptable only for a direct superseding replacement like
+this one; otherwise name the new requirement by the behavior it governs.
+
+### restates
+```yaml
+# Illustrative: a product requirement echoes a platform requirement verbatim.
+relationships:
+  - type: restates
+    from: REQ-billing-invoice-retention
+    to: REQ-platform-record-retention
+```
+
+Use `restates` only when two current requirements deliberately ground the same
+logical term (same predicate, property tuple, or rule semantic key). It keeps
+both requirements current and tells `domain-redundancy` the duplication is
+intentional. If one requirement replaces the other, use `supersedes` instead.
 
 ### covered_by
 ```yaml
 relationships:
   - type: covered_by
-    from: SYM-handler
-    to: TEST-005
+    from: SYM-operation-execute-check
+    to: TEST-mcp-search-discovery
 ```
 
 ## Invalid Test-Fact Shortcuts

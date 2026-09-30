@@ -201,7 +201,7 @@ export type OperationContext = {
   readonly sourceFirst?: boolean;
   /** Internal apply-plan capability: source bytes were already approved/published. */
   readonly sourcePlanApplication?: boolean;
-  /** Internal apply-plan capability: caller holds the cooperative source lock. */
+  /** Internal operation capability: a parent operation holds the source lock. */
   readonly sourceMutationLockHeld?: boolean;
   readonly git?: GitPort;
   readonly net?: NetworkPort;

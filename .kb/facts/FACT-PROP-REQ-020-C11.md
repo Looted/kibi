@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_020
+subject_key: kibi.release.versioning
 property_key: clause_11_manual_release_processes_are_error_prone_and_inc
 operator: eq
 value_type: bool

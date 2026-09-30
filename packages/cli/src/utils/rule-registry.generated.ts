@@ -146,4 +146,55 @@ export const GENERATED_RULES = [
     enforcementClass: "advisory",
     category: "integrity",
   },
+  {
+    name: "entity-id-style",
+    description:
+      "Entity IDs name the governed behavior and match their filename stem; new purely numeric IDs are reported at creation boundaries",
+    enforcementClass: "advisory",
+    category: "lifecycle",
+  },
+  {
+    name: "domain-redundancy",
+    description:
+      "Two current requirements must not ground the identical logical term or share a ground fact unless linked by supersedes or restates",
+    enforcementClass: "advisory",
+    category: "integrity",
+  },
+  {
+    name: "domain-implication",
+    description:
+      "Informational: one requirement's numeric bound strictly implies another requirement's bound on the same subject and property",
+    enforcementClass: "advisory",
+    category: "integrity",
+    diagnosticSeverity: "info",
+  },
+  {
+    name: "subject-key-identity",
+    description:
+      "Subject keys must name a shared component, not be derived from a requirement ID",
+    enforcementClass: "advisory",
+    category: "integrity",
+  },
+  {
+    name: "subject-key-shape",
+    description:
+      "Subject keys follow dotted component.aspect[.sub] with lowercase snake segments",
+    enforcementClass: "advisory",
+    category: "integrity",
+  },
+  {
+    name: "ontology-quality",
+    description:
+      "Informational: predicate schemas whose argument values mostly occur in only one fact are carrying prose instead of a shared vocabulary",
+    enforcementClass: "advisory",
+    category: "integrity",
+    diagnosticSeverity: "info",
+  },
+  {
+    name: "predicate-schema-conformance",
+    description:
+      "Predicate facts match a predicate_schema (project-local, or the built-in catalog in the default namespace) and use its declared argument constants",
+    enforcementClass: "advisory",
+    category: "integrity",
+  },
 ] as const;

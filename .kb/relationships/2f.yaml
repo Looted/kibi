@@ -181,3 +181,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f790f843b937
+  - type: specified_by
+    from: REQ-kibi-ontology-quality
+    to: SCEN-kibi-ontology-quality
+    created_at: 2026-09-28T09:43:26.002Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9d208b5f9e57
+  - type: requires_predicate
+    from: REQ-kibi-ontology-quality
+    to: FACT-ONTOLOGY-QUALITY-SINGLETON-ARGUMENTS
+    created_at: 2026-09-28T09:43:26.027Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f58ac25a43b1
+  - type: requires_predicate
+    from: REQ-kibi-ontology-quality
+    to: FACT-ONTOLOGY-QUALITY-MINIMUM-FACTS
+    created_at: 2026-09-28T09:43:26.047Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3439a41432b9
+  - type: implements
+    from: SYM-predicate-vocabulary-from-entity
+    to: REQ-kibi-predicate-argument-constants
+    created_at: 2026-09-28T12:33:43.267Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-77b8804ccb9c
+  - type: covered_by
+    from: SYM-predicate-vocabulary-from-entity
+    to: TEST-kibi-predicate-vocabulary-migration-e2e
+    created_at: 2026-09-28T12:33:43.290Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c24764ddcc2a
+  - type: executable_for
+    from: SYM-claude-case-shipped-bundle-runs
+    to: TEST-claude-code-kibi-plugin-v1
+    created_at: 2026-09-27T09:50:56.925Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-02feeb42b54f
+  - type: executable_for
+    from: SYM-git-hook-effective-install-init-context-verifier
+    to: TEST-git-hook-effective-install
+    created_at: 2026-09-28T18:22:15.237Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-75b40abca308

@@ -160,3 +160,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-57c22ecfdcef
+  - type: implements
+    from: SYM-cli-PruneReceiptsResult
+    to: REQ-kibi-verification-evidence-contract
+    created_at: 2026-09-26T23:18:53.905Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ba87e0a6985a
+  - type: covered_by
+    from: SYM-cli-PruneReceiptsResult
+    to: TEST-e2e-proof-maintenance-ops
+    created_at: 2026-09-26T23:18:53.920Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5f0f681bdde0
+  - type: implements
+    from: SYM-docs-site-catalog-sitePagePath
+    to: REQ-docs-readme-published-links
+    created_at: 2026-09-29T13:40:55.066Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e7cbe51f543
+  - type: covered_by
+    from: SYM-docs-site-catalog-sitePagePath
+    to: TEST-docs-readme-published-links
+    created_at: 2026-09-29T13:40:55.070Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-04f851c7f8c0

@@ -2,7 +2,9 @@ import path from "node:path";
 
 import { escapeAtom, normalizeEntityId, parseTriples } from "./prolog/codec.js";
 import {
+  SEARCH_CANDIDATE_PAGE_SIZE,
   type VALID_ENTITY_TYPES,
+  listSearchCandidates,
   loadEntities,
   loadSearchCandidates,
 } from "./public/operations/discovery-entities.js";
@@ -510,59 +512,90 @@ async function loadIntentCandidates(
     ...facetValues(options.semanticFacets).map((facet) => facet.value),
   ].filter((term, index, all) => term.trim() && all.indexOf(term) === index);
   const candidates = new Map<string, Record<string, unknown>>();
-  if (
-    prolog.searchEntities &&
-    (options.sourceLocations === undefined ||
-      options.sourceLocations.length === 0)
-  ) {
-    for (const term of terms) {
-      const page = await loadSearchCandidates(prolog, {
-        query: term,
+
+  const addCandidates = (entities: readonly Record<string, unknown>[]) => {
+    for (const entity of entities) {
+      const key = `${String(entity.type ?? "")}::${String(entity.id ?? "")}`;
+      if (!candidates.has(key) && candidates.size >= MAX_CANDIDATES) break;
+      candidates.set(key, { ...entity });
+    }
+  };
+
+  const sourceLocations = options.sourceLocations ?? [];
+  if (sourceLocations.length > 0 && prolog.queryEntities) {
+    for (const location of sourceLocations) {
+      if (candidates.size >= MAX_CANDIDATES) break;
+      let offset = 0;
+      let total = Number.POSITIVE_INFINITY;
+      while (offset < total && candidates.size < MAX_CANDIDATES) {
+        const limit = Math.min(
+          SEARCH_CANDIDATE_PAGE_SIZE,
+          MAX_CANDIDATES - candidates.size,
+        );
+        const page = await prolog.queryEntities({
+          ...(options.type !== undefined ? { type: options.type } : {}),
+          sourceFile: location.path,
+          limit,
+          offset,
+        });
+        if (page.entities.length === 0) break;
+        addCandidates(page.entities);
+        total = page.count;
+        offset += page.entities.length;
+      }
+    }
+  }
+
+  // Lexical candidates are projected rows (no receipt histories or other
+  // large structured properties); ports without the engine method run the
+  // same bounded Prolog search through `query`.
+  for (const term of terms) {
+    if (candidates.size >= MAX_CANDIDATES) break;
+    const page = await loadSearchCandidates(prolog, {
+      query: term,
+      ...(options.type !== undefined ? { type: options.type } : {}),
+      maxCandidates: MAX_CANDIDATES - candidates.size,
+    });
+    addCandidates(page);
+  }
+
+  if (!prolog.searchEntities && sourceLocations.length === 0) {
+    addCandidates(
+      await listSearchCandidates(prolog, {
         ...(options.type !== undefined ? { type: options.type } : {}),
         maxCandidates: MAX_CANDIDATES,
-      });
-      for (const entity of page) {
-        candidates.set(
-          `${String(entity.type ?? "")}::${String(entity.id ?? "")}`,
-          { ...entity },
-        );
-      }
-    }
-    // An unfamiliar host-agent alias may not exist in the lexical index at
-    // all. For small facet-bearing corpora, scan the bounded entity set so a
-    // zero lexical hit does not turn a valid semantic query into a false
-    // abstention. Large repositories remain index-bounded.
-    if (
-      facetValues(options.semanticFacets).length > 0 &&
-      candidates.size < 20
-    ) {
-      const all = await loadEntities(
-        prolog,
-        options.type ? { type: options.type } : {},
-      );
-      for (const entity of all.slice(0, MAX_CANDIDATES)) {
-        candidates.set(
-          `${String(entity.type ?? "")}::${String(entity.id ?? "")}`,
-          entity,
-        );
-      }
-    }
-  } else {
-    const all = await loadEntities(
-      prolog,
-      options.type ? { type: options.type } : {},
+      }),
     );
-    for (const entity of all) {
-      candidates.set(
-        `${String(entity.type ?? "")}::${String(entity.id ?? "")}`,
-        entity,
+  } else if (sourceLocations.length > 0 && !prolog.queryEntities) {
+    for (const location of sourceLocations) {
+      if (candidates.size >= MAX_CANDIDATES) break;
+      addCandidates(
+        await loadEntities(prolog, {
+          ...(options.type !== undefined ? { type: options.type } : {}),
+          sourceFile: location.path,
+        }),
       );
     }
   }
-  if (candidates.size > MAX_CANDIDATES) {
-    return Array.from(candidates.values()).slice(0, MAX_CANDIDATES);
+
+  // An unfamiliar host-agent alias may not exist in the lexical index at all.
+  // For small facet-bearing corpora, scan the bounded entity set so a zero
+  // lexical hit does not turn a valid semantic query into a false abstention.
+  // Source-located searches stay on their source-indexed candidate set.
+  if (
+    prolog.searchEntities &&
+    sourceLocations.length === 0 &&
+    facetValues(options.semanticFacets).length > 0 &&
+    candidates.size < 20
+  ) {
+    addCandidates(
+      await listSearchCandidates(prolog, {
+        ...(options.type !== undefined ? { type: options.type } : {}),
+        maxCandidates: MAX_CANDIDATES,
+      }),
+    );
   }
-  return Array.from(candidates.values());
+  return Array.from(candidates.values()).slice(0, MAX_CANDIDATES);
 }
 
 // implements REQ-kibi-intent-aware-source-discovery

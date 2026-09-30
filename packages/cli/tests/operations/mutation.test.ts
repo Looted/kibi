@@ -747,6 +747,93 @@ describe("shared mutation operation specs", () => {
     }
   });
 
+  test("an authored deletion plan also removes the entity's outgoing shard rows", async () => {
+    const workspaceRoot = mkdtempSync(
+      path.join(os.tmpdir(), "kibi-delete-shard-rows-"),
+    );
+    try {
+      mkdirSync(path.join(workspaceRoot, ".kb", "relationships"), {
+        recursive: true,
+      });
+      writeFileSync(
+        path.join(workspaceRoot, ".kb", "symbols.yaml"),
+        "symbols:\n  - id: SYM-A\n    title: A\n",
+      );
+      const shard = path.join(workspaceRoot, ".kb", "relationships", "ab.yaml");
+      writeFileSync(
+        shard,
+        [
+          "relationships:",
+          "  - id: rel-a",
+          "    type: implements",
+          "    from: SYM-A",
+          "    to: REQ-X",
+          "    created_at: '2026-01-01T00:00:00Z'",
+          "    created_by: test",
+          "    source: test",
+          "  - id: rel-b",
+          "    type: implements",
+          "    from: SYM-B",
+          "    to: REQ-X",
+          "    created_at: '2026-01-01T00:00:00Z'",
+          "    created_by: test",
+          "    source: test",
+          "",
+        ].join("\n"),
+      );
+      const { context } = createContext((goal): PrologQueryResult => {
+        if (goal.startsWith("once(kb_entity('SYM-"))
+          return { success: true, bindings: {} };
+        if (goal.includes("Dependents"))
+          return { success: true, bindings: { Dependents: "[]" } };
+        if (goal.includes("findall(['SYM-A'"))
+          return {
+            success: true,
+            bindings: {
+              Results:
+                "[['SYM-A',symbol,[id='SYM-A',title='A',source='.kb/symbols.yaml']]]",
+            },
+          };
+        throw new Error(`Unexpected goal: ${goal}`);
+      });
+      const result = await deleteSpec.execute(
+        { ids: ["SYM-A"] },
+        {
+          ...context,
+          workspaceRoot,
+          fs: nodeFilesystem,
+          branchAttachment: {
+            gitBranch: "test-branch",
+            kbBranch: "test-branch",
+            storePath: path.join(
+              workspaceRoot,
+              ".kb",
+              "branches",
+              "test-branch",
+            ),
+            kind: "exact",
+            migrationRequired: false,
+          },
+        },
+      );
+
+      const writes = result.structuredContent?.deletionPlan?.sourceWrites ?? [];
+      const shardWrite = writes.find(
+        (write) => write.path === ".kb/relationships/ab.yaml",
+      );
+      expect(shardWrite?.mode).toBe("write");
+      expect(shardWrite?.body).not.toContain("SYM-A");
+      expect(shardWrite?.body).toContain("SYM-B");
+      expect(
+        result.structuredContent?.deletionPlan?.sourceHashes[
+          ".kb/relationships/ab.yaml"
+        ],
+      ).toBeDefined();
+    } finally {
+      rmSync(workspaceRoot, { recursive: true, force: true });
+    }
+  });
+
   test("delete keeps mutation and save in one rollback-safe transaction", async () => {
     // Given
     const { context, query, save } = createContext(

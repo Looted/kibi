@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_root_suite_batch_diagnostics
+subject_key: kibi.testing.harness
 property_key: clause_01_the_curated_unit_test_suite_test_root_test_ts_ru
 operator: eq
 value_type: bool

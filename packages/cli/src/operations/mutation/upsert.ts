@@ -21,6 +21,7 @@ import {
   computeShardPath,
 } from "../../relationships/shards.js";
 import { resolveBranchAttachment } from "../../utils/branch-resolver.js";
+import { entityIdStyleWarnings } from "../../utils/entity-id-style.js";
 import { CANONICAL_ENTITY_PATHS } from "../../utils/kb-paths.js";
 import { analyzeSemanticAdvisorInput } from "../semantic-advisor/analyze-prose.js";
 import {
@@ -29,6 +30,7 @@ import {
 } from "../semantic-advisor/ingestion-boundary.js";
 import type { SemanticAdvisorReceipt } from "../semantic-advisor/types.js";
 import { buildUpsertCommitGoal, formatUpsertError } from "./contradictions.js";
+import { assertPredicateArgumentVocabulary } from "./predicate-vocabulary-guard.js";
 import {
   existingRelationships,
   validateLiveRelationshipTargets,
@@ -36,7 +38,7 @@ import {
   validateStrictLanePairing,
   validateSupersedesSourceHistory,
 } from "./relationships.js";
-import { MutationSaga } from "./saga.js";
+import { MutationRollbackFailureError, MutationSaga } from "./saga.js";
 import {
   writePendingSourceReceipt,
   writeSourceForUpsert,
@@ -248,6 +250,12 @@ export type UpsertExecutionOptions = Readonly<{
    * entries. Everything else keeps the append-only invariant fail-closed.
    */
   readonly allowReceiptsPrune?: boolean;
+  /**
+   * Prepare source and validation, then return the commit payload without
+   * talking to Prolog. Proof ingest batches those payloads into one
+   * transaction.
+   */
+  readonly deferCompiledCommit?: boolean;
 }>;
 
 export async function executeUpsert(
@@ -348,6 +356,7 @@ export async function executeUpsert(
       { ...input, relationships },
       relationships,
     );
+    await assertPredicateArgumentVocabulary(prolog, validated.entity);
     if (context.fs !== undefined && context.sourceFirst !== false) {
       const existingRows = await loadEntities(prolog, {
         id: input.id,
@@ -494,6 +503,67 @@ export async function executeUpsert(
       };
     }
 
+    if (options.deferCompiledCommit === true) {
+      let deferredState:
+        | "prepared"
+        | "rolling_back"
+        | "rolled_back"
+        | "committed" = "prepared";
+      let rollbackPromise:
+        | Promise<Awaited<ReturnType<typeof saga.rollback>>>
+        | undefined;
+      const deferredCommit: NonNullable<UpsertPayload["deferredCommit"]> = {
+        entity: commitEntity ?? validated.entity,
+        relationships: validated.relationships,
+        skipContradictionCheck: input._skipContradictionCheck === true,
+        get state() {
+          return deferredState;
+        },
+        finalize: () => {
+          if (deferredState !== "prepared") {
+            throw new Error(
+              `Cannot finalize deferred upsert ${input.id} from state ${deferredState}`,
+            );
+          }
+          saga.markCommitted();
+          deferredState = "committed";
+        },
+        rollback: () => {
+          if (deferredState === "committed") {
+            return Promise.reject(
+              new Error(
+                `Cannot roll back deferred upsert ${input.id} after its compiled commit`,
+              ),
+            );
+          }
+          if (deferredState === "rolled_back") return Promise.resolve([]);
+          if (rollbackPromise !== undefined) return rollbackPromise;
+          deferredState = "rolling_back";
+          rollbackPromise = saga.rollback().then((failures) => {
+            deferredState = "rolled_back";
+            return failures;
+          });
+          return rollbackPromise;
+        },
+      };
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Prepared ${input.id} for a batched proof commit.`,
+          },
+        ],
+        structuredContent: {
+          created: 0,
+          updated: 0,
+          relationships_created: validated.relationships.length,
+          warnings: semantic.warnings,
+          semanticAdvisor: semantic.receipt,
+          deferredCommit,
+          ...(sourceWrite ? { sourceWrites: [sourceWrite.receipt] } : {}),
+        },
+      };
+    }
     const transaction = buildUpsertCommitGoal({
       entity: commitEntity ?? validated.entity,
       relationships: validated.relationships,
@@ -523,6 +593,17 @@ export async function executeUpsert(
       input.id,
     );
     const created = changeKind === "created" ? 1 : 0;
+    const idStyleWarnings =
+      created === 1
+        ? entityIdStyleWarnings({
+            id: input.id,
+            sourcePath:
+              sourceWrite?.receipt.path ??
+              (typeof validated.entity.source === "string"
+                ? validated.entity.source
+                : undefined),
+          })
+        : [];
     const shardWarnings: string[] = [];
     const relationshipSourceWrites: Array<{
       path: string;
@@ -564,7 +645,12 @@ export async function executeUpsert(
       created,
       updated: changeKind === "updated" ? 1 : 0,
       relationships_created: validated.relationships.length,
-      warnings: [...semantic.warnings, ...coverage, ...shardWarnings],
+      warnings: [
+        ...semantic.warnings,
+        ...coverage,
+        ...idStyleWarnings,
+        ...shardWarnings,
+      ],
       semanticAdvisor: semantic.receipt,
       ...(shardWarnings.length > 0
         ? {
@@ -667,9 +753,10 @@ export async function executeUpsert(
       (failure) => failure.step === "symbol-coordinates",
     );
     if (coordinateFailure !== undefined) {
-      const failure = new AggregateError(
+      const failure = new MutationRollbackFailureError(
         [error, coordinateFailure.error],
         `Upsert failed and coordinate artifact rollback failed for ${input.id}`,
+        rollbackFailures,
       );
       operationFailure = { error: failure };
       throw failure;
@@ -682,9 +769,10 @@ export async function executeUpsert(
         sourceFailure.error instanceof Error
           ? sourceFailure.error.message
           : String(sourceFailure.error);
-      const failure = new AggregateError(
+      const failure = new MutationRollbackFailureError(
         [error, sourceFailure.error],
         `Upsert failed and authored source rollback failed for ${input.id}: ${rollbackMessage}`,
+        rollbackFailures,
       );
       operationFailure = { error: failure };
       throw failure;

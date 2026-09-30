@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_agent_guided_migration_orchestration
+subject_key: kibi.migration.orchestration
 property_key: clause_03_checks_and_status_must_remain_read_only_while_kb
 operator: eq
 value_type: bool

@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_skillopt_predicate_first_requirements
+subject_key: kibi.modeling.predicates
 property_key: clause_03_when_a_returned_built_in_or_project_local_predic
 operator: eq
 value_type: bool

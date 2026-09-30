@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_mcp_relationship_preflight
+subject_key: mcp.kb_upsert
 property_key: clause_01_mcp_relationship_validation_must_reject_malforme
 operator: eq
 value_type: bool

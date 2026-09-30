@@ -258,3 +258,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-38aaa27426fa
+  - type: specified_by
+    from: REQ-kibi-subject-vocabulary
+    to: SCEN-kibi-subject-vocabulary
+    created_at: 2026-09-28T09:43:23.694Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2112b3915cf1
+  - type: requires_predicate
+    from: REQ-kibi-subject-vocabulary
+    to: FACT-SUBJECT-KEY-IDENTITY-REQ-DERIVED
+    created_at: 2026-09-28T09:43:23.749Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-edb6479166bc
+  - type: requires_predicate
+    from: REQ-kibi-subject-vocabulary
+    to: FACT-SUBJECT-KEY-SHAPE-NONCONVENTIONAL
+    created_at: 2026-09-28T09:43:23.766Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a2fa4658190e
+  - type: requires_predicate
+    from: REQ-kibi-subject-vocabulary
+    to: FACT-MODELING-SUBJECT-REUSE
+    created_at: 2026-09-28T09:43:23.785Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-47ba98d645a8
+  - type: requires_predicate
+    from: REQ-kibi-subject-vocabulary
+    to: FACT-MODELING-SUBJECT-DECLARE-NEW
+    created_at: 2026-09-28T09:43:23.803Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a79ff6828411

@@ -57,7 +57,7 @@ not infer or write product knowledge.
 
 **Behavior:**
 - Creates `.kb/` directory structure with canonical knowledge lanes (`requirements/`, `scenarios/`, `tests/`, `facts/`, `adr/`, `flags/`, `events/`)
-- Installs git hooks (pre-commit, post-checkout, post-merge, post-rewrite) by default. Hooks resolve the `kibi` binary at run time (PATH first, then `node_modules/.bin` walking up from the repository root), so they work with both global and project-local installs even though git does not put `node_modules/.bin` on the hook's `PATH`.
+- Installs git hooks (pre-commit, post-checkout, post-merge, post-rewrite) by default, into the directory Git reads hooks from (`git rev-parse --git-path hooks`), so linked worktrees and `core.hooksPath` are honored. Re-running `kibi init` refreshes only the kibi-managed section of each hook. Hooks resolve the `kibi` binary at run time (PATH first, then `node_modules/.bin` walking up from the repository root), so they work with both global and project-local installs even though git does not put `node_modules/.bin` on the hook's `PATH`.
 - Ignores derived `.kb/` runtime state in `.gitignore` (`.kb/branches/`, `.kb/recovery/`, `.kb/proof/runs/`, `.kb/briefs/`, `.kb/migrations/`, `.kb/usage.log`). Authored knowledge under `.kb/` stays tracked. `kibi migrate` also removes the pre-canonical blanket `.kb/` ignore stanza so migrated knowledge files are not left Git-ignored.
 - Creates Kibi-owned `.kb/manifest.json` (lifecycle metadata only; not a user configuration file)
 - Creates `.kb/symbols.yaml` and `.kb/symbol-coordinates.yaml` when they do not already exist
@@ -265,7 +265,7 @@ kibi query [type] [--id ID] [--tag TAG] [--source PATH] [--relationships ID] [--
 kibi query req --format table
 
 # Find specific test
-kibi query test --id TEST-001
+kibi query test --id TEST-mcp-search-discovery
 
 # Find all entities with "security" tag
 kibi query req --tag security --format table
@@ -274,7 +274,7 @@ kibi query req --tag security --format table
 kibi query symbol --source src/auth/login.ts --format table
 
 # Show relationships for one entity
-kibi query --relationships REQ-001
+kibi query --relationships REQ-cli-gc
 
 # Get paginated results
 kibi query scenario --limit 10 --offset 0
@@ -329,6 +329,13 @@ Status also reports the exact `branchAttachment` (`gitBranch`, `kbBranch`,
 `proofSnapshotChanges`. A legacy attachment is read-compatible only;
 writes and sync are blocked until the sanctioned migration is applied. Dirty
 editor/config paths are reported rather than silently ignored.
+
+Sync stamps the compiler contract it used (a hash of the entity property
+schema) into the branch store. When the store was compiled by a CLI build with
+a different contract, for example an older build that dropped properties it
+did not know, status reports `syncState: "stale"` with a `compiler_changed`
+reason even though every source hash still matches. The next `kibi sync`
+re-imports every source once and clears it.
 
 Status does not initialise a missing branch store or repair a damaged one. It
 instead returns `branchStore` (`missing`, `incomplete`, or `unreadable`) with a
@@ -456,10 +463,10 @@ kibi graph --from IDS [--relationships RELS] [--direction outgoing|incoming|both
 **Examples:**
 ```bash
 # Follow requirement links outward
-kibi graph --from REQ-001 --direction outgoing --depth 2 --format table
+kibi graph --from REQ-cli-gc --direction outgoing --depth 2 --format table
 
 # Inspect both incoming and outgoing relationships
-kibi graph --from REQ-001,TEST-001 --direction both --depth 2 --format json
+kibi graph --from REQ-mcp-search-discovery,TEST-mcp-search-discovery --direction both --depth 2 --format json
 ```
 
 ## `kibi check`
@@ -472,6 +479,7 @@ Validates knowledge base integrity and runs inference rules.
 - Detects dangling references (entities that reference non-existent IDs)
 - Detects cycles in dependency graphs
 - Supports strict advisory modeling checks (`strict-fact-shape`, `strict-req-fact-pairing`, `predicate-verifiability`, `proof-contract-symbols`) that run by default as non-blocking `qualityDiagnostics`, and default-off migration diagnostics (`strict-readiness`, `semantic-completeness`) that run only when explicitly selected with `--rules`. Canonical rules always populate blocking `violations[]`. `--rules` is an invocation-time diagnostic filter only; leftover `.kb/config.json` cannot disable canonical checks. `proof-contract-symbols` reports unresolved `required_proofs.symbol_id` values, type-shape required proofs, and `proof_bindings.source_file` disagreement with the named symbol `sourceFile`. Kibi does not infer TEST names from filenames.
+- Runs vocabulary-convergence checks by default, all advisory and non-blocking (see [Vocabulary convergence checks](#vocabulary-convergence-checks)): `domain-redundancy`, `subject-key-identity`, `subject-key-shape`, `entity-id-style`, `predicate-schema-conformance` (warnings) and `domain-implication`, `ontology-quality` (info).
 - With `--staged`, inventories every index path before analysis. TypeScript and JavaScript keep their blocking symbol checks; Kibi metadata is validated through its typed lanes; every other readable UTF-8 text file receives advisory file-level ownership and impact-evidence checks.
 - Staged deletions and renames retain committed content and ownership for removal review. Binary blobs, unsupported encodings, symlinks, and submodules are reported with explicit skipped reasons and remain non-blocking.
 - Reports blocking `violations[]` with actionable suggestions and additive `qualityDiagnostics[]` audit signals for modeling quality, coverage depth, broad requirements, duplicate coordinates, symbol fanout, and strict-fact review
@@ -522,7 +530,53 @@ kibi check --rules query-plan-safety
 
 # Audit requirement status vocabulary (catches ADR statuses on reqs)
 kibi check --rules req-status-vocabulary
+
+# Audit vocabulary convergence (duplicates, subject keys, prose-in-atoms)
+kibi check --rules domain-redundancy,subject-key-identity,subject-key-shape,ontology-quality
 ```
+
+### Vocabulary convergence checks
+
+Deduplication and contradiction checks only work when equivalent prose lands on
+the same subject, predicate, and arguments. These rules measure and nudge that
+convergence. They are advisory: findings are non-blocking `qualityDiagnostics`
+and never change the exit code. All of them are deterministic over the
+compiled KB (Prolog, plus TypeScript for `predicate-schema-conformance`, which
+also needs the built-in predicate catalog); none calls a plugin or the network.
+
+| Rule | Severity | Reports |
+| --- | --- | --- |
+| `domain-redundancy` | warning | Two distinct current requirements ground the identical logical term (same predicate/property signature after unit canonicalization, same polarity) or link the same ground fact via `requires_property`, `requires_predicate`, or `requires_rule`. Pairs linked by `supersedes` or `restates` (either direction) are exempt. Evidence carries both requirement IDs, both fact IDs, and the signature. Links are grouped by signature once, so cost grows with the number of links, not with requirement pairs. |
+| `domain-implication` | info | Same subject and property, comparable numeric operators, and one bound strictly implies the other (`lte 30 min` implies `lte 3600 s`). Reported as "Implied by", never as a duplicate. |
+| `subject-key-identity` | warning | A subject key of the form `req.<segment>[.…]` where `<segment>` is a normalized existing requirement ID (`req.req_cli_gc` for `REQ-cli-gc`, or without the `req_` prefix). Every requirement becoming its own subject makes cross-requirement checks impossible. |
+| `subject-key-shape` | warning | Subject facts whose key is not dotted `component.aspect[.sub]` with lowercase snake segments (`kibi.cli.check.staged`). |
+| `ontology-quality` | info | A predicate (namespace, name, arity) with at least `KIBI_ONTOLOGY_QUALITY_MIN_FACTS` facts (default 8) where the share of argument slots holding a value that occurs in only one fact is at least `KIBI_ONTOLOGY_QUALITY_MAX_SINGLETON_RATIO` (default 0.6): prose is being compressed into atoms. The message names each argument whose own singleton share reaches the threshold. Both variables are read from the invoking `kibi`/MCP process. |
+| `predicate-schema-conformance` | warning | A predicate fact with no `predicate_schema` for its namespace, name, and arity (project-local, or the built-in catalog in the `default` namespace), a fact using a value outside a declared argument vocabulary, or a schema whose `argument_constants`/`argument_aliases` are malformed. When the repair is mechanical, the finding carries it and `kibi migrate` offers it as an automatic action (see below). |
+| `entity-id-style` | warning | Markdown entities whose filename stem differs from the frontmatter `id`. New purely numeric IDs (`REQ-123`) are reported where they are created: `kb_upsert`/`kb_validate_upsert` warnings and staged added or renamed entity files (`--staged`). Committed legacy numbered entities are never flagged. |
+
+Property values are compared after unit canonicalization: durations convert to
+seconds, data sizes to bytes (SI `kB`/`MB`, IEC `KiB`/`MiB`), and percentages
+to percent. The authored value is stored unchanged. Unknown or ambiguous units
+(`KB`, `Mb`, `month`) stay as written and are never equated with anything else.
+
+A `predicate_schema` can close an argument's vocabulary: `argument_constants`
+lists the allowed values per argument name, and `argument_aliases` maps legacy
+spellings to one of them. Arguments without an entry stay open.
+
+```yaml
+fact_kind: predicate_schema
+predicate_name: check_finding_policy
+argument_names: [rule, finding, severity]
+argument_constants:
+  severity: [warning, info]
+argument_aliases:
+  severity: { warn: warning }
+```
+
+`kb_upsert` rejects a predicate fact that uses an undeclared value or an alias
+(naming the constant to use), and `kb_suggest_predicates` binds aliases to their
+constant and leaves undeclared values unbound. Existing facts are converged by
+`kibi migrate` (below).
 
 While editing, agents can run impact diagnostics through MCP `kb_check({sourceFiles:[...], includeImpactDiagnostics:true, includeWorkingTreeDiff:true})` or the equivalent `kibi check --input <file|->` JSON route. `kibi check --staged` remains the commit-time git-hook gate once files are staged.
 
@@ -540,7 +594,8 @@ Verifies environment setup and diagnostics.
 - Validates `.kb/manifest.json` syntax
 - Recognizes leftover `.kb/config.json` and recommends `kibi migrate --yes`
 - Checks git repository presence
-- Verifies git hooks are installed and executable
+- Verifies git hooks are installed and executable, reading them from the directory Git uses (`git rev-parse --git-path hooks`)
+- Fails when an installed kibi-managed hook section differs from what the running CLI installs ("Kibi-managed hook sections"), for example a pre-commit hook written before the generated-manifest gate
 - Reports issues with remediation suggestions
 
 **Examples:**
@@ -558,6 +613,7 @@ artifacts are executing.
 - `.kb/` missing → Run `kibi init`
 - Git hooks missing → Run `kibi init`
 - Git hooks use the legacy template without kibi CLI resolution → Run `kibi init` to regenerate them
+- Kibi-managed hook sections outdated for this CLI → Run `kibi init` to refresh them (hooks are shared by every worktree of the repository)
 - Config invalid → Check `.kb/manifest.json` syntax; leftover `.kb/config.json` is retired with `kibi migrate --yes`
 
 ## Release package validation
@@ -641,6 +697,7 @@ flags, it is a read-only preview; `--format json` returns the complete
 - Replaces the pre-canonical blanket `.kb/` gitignore stanza with derived-runtime ignores so migrated `.kb/<lane>/` files are trackable
 - Treats malformed `.kb/config.json` as a blocker instead of guessing `documentation/` paths
 - Writes `.kb/manifest.json` with the latest `schemaVersion`
+- Offers `predicate_schema_alignment` actions for `predicate-schema-conformance` findings with a mechanical repair: moving a predicate fact to the only namespace whose schema matches its name and arity, and rewriting argument aliases to their declared constants (with the matching `canonical_key`). Each action is `automatic`, carries the exact `kb_upsert` input, and re-reads the fact before writing; a fact that changed since planning fails the action instead of being overwritten. Ambiguous namespaces and undeclared values stay review actions.
 - Idempotent: safe to run if already on the latest version
 
 **Flags:**
@@ -650,6 +707,12 @@ flags, it is a read-only preview; `--format json` returns the complete
 - `--apply-safe` - Apply only approved deterministic actions
 - `--approved-plan-hash SHA256` - Required exact plan hash for `--apply-safe`
 - `--approved-action ID` - Explicit automatic action ID (repeatable or comma-separated)
+
+**Example (predicate vocabulary):**
+```bash
+kibi migrate --format json > plan.json        # review predicate_schema_alignment actions
+kibi migrate --apply-safe --approved-plan-hash "$(jq -r .planHash plan.json)"
+```
 
 **Notes:**
 - Use `kibi status` to check if a migration is pending for your branch.
@@ -804,8 +867,8 @@ The `kibi check --staged` command inventories every staged path and enforces tra
 Every new or modified code symbol (function, class, method, accessor, behavioral class property, or module) must be explicitly linked to at least one requirement before it can be committed. This prevents "orphan" code from being merged and catches edits hidden behind broad class/module links when a narrower changed anchor exists.
 
 **Workflow Options:**
-1. **Relationship-based (Preferred for Test/e2e):** Model the code as a symbol in your manifest (e.g., `.kb/symbols.yaml`), link it to a `TEST-*` entity with `executable_for` to establish its identity. The canonical traceability chain is `REQ-xxx` → `SCEN-xxx` → `TEST-xxx`. Use `covered_by` to link symbols to the tests that exercise them. This satisfies the staged check without modifying source code. Note that physical symbol coordinates are maintained separately in `.kb/symbol-coordinates.yaml` and must be refreshed via `kibi sync --refresh-symbol-coordinates` when code changes.
-2. **Comment-based (Optional Shortcut):** Add an inline `// implements REQ-xxx` comment. This remains backward-compatible and useful for quick code-only changes.
+1. **Relationship-based (Preferred for Test/e2e):** Model the code as a symbol in your manifest (e.g., `.kb/symbols.yaml`), link it to a `TEST-*` entity with `executable_for` to establish its identity. The canonical traceability chain is `REQ-<area>-<behavior>` → `SCEN-<area>-<behavior>` → `TEST-<area>-<behavior>`. Use `covered_by` to link symbols to the tests that exercise them. This satisfies the staged check without modifying source code. Note that physical symbol coordinates are maintained separately in `.kb/symbol-coordinates.yaml` and must be refreshed via `kibi sync --refresh-symbol-coordinates` when code changes.
+2. **Comment-based (Optional Shortcut):** Add an inline `// implements REQ-<area>-<behavior>` comment. This remains backward-compatible and useful for quick code-only changes.
 
 **How to use:**
 ```bash
@@ -830,13 +893,13 @@ Quality diagnostics may also appear during full or staged checks. They are desig
 Link a code symbol to a requirement by adding a comment:
 
 ```typescript
-export function myFunc() { } // implements REQ-001
+export function myFunc() { } // implements REQ-cli-gc
 ```
 
 Link to multiple requirements:
 
 ```typescript
-export class MyClass { } // implements REQ-001, REQ-002
+export class MyClass { } // implements REQ-cli-gc, REQ-cli-check
 ```
 
 **Analysis depth:**

@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_opencode_file_context_guidance_v1
+subject_key: opencode.kibi_plugin
 property_key: clause_04_guidance_must_be_suppressed_after_the_first_occu
 operator: eq
 value_type: bool

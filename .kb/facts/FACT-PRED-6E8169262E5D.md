@@ -20,4 +20,5 @@ claim_key: CLAIM-559981D67DA156AE
 claim_text: KIBI_JEV_MODEL must optionally select the Jev model as a provider setting from the process environment source
 id: FACT-PRED-6E8169262E5D
 type: fact
+predicate_namespace: kibi.capability
 ---

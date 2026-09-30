@@ -269,11 +269,11 @@ describe("Cursor hook runner", () => {
       { pluginData },
     );
 
-    expect(result.additional_context).toContain("Kibi write guidance");
+    expect(result.additional_context).toContain("Kibi impact review");
     expect(result.additional_context).toContain("kb_check");
     expect(result.additional_context).toContain("includeImpactDiagnostics");
     expect(result.additional_context).toContain("includeWorkingTreeDiff");
-    expect(result.additional_context).toContain("semantic review");
+    expect(result.additional_context).toContain("symbol granularity");
   });
 
   test("postToolUse injects read guidance once for read-like tools", async () => {
@@ -311,7 +311,7 @@ describe("Cursor hook runner", () => {
     };
     expect(
       (await runHook(writePayload, { pluginData })).additional_context,
-    ).toContain("Kibi write guidance");
+    ).toContain("Kibi impact review");
     expect(await runHook(writePayload, { pluginData })).toEqual({});
     expect(
       await runHook(

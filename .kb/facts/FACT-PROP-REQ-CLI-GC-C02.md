@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_cli_gc
+subject_key: kibi.cli.gc
 property_key: clause_02_this_keeps_the_kb_branches_directory_clean_and_p
 operator: eq
 value_type: bool

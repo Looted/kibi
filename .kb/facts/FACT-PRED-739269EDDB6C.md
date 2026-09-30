@@ -20,4 +20,5 @@ claim_key: CLAIM-41D4D60BBBDBE779
 claim_text: A blank KIBI_JEV_MODEL provider setting from the environment source must remain unset
 id: FACT-PRED-739269EDDB6C
 type: fact
+predicate_namespace: kibi.capability
 ---

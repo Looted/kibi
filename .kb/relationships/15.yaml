@@ -118,3 +118,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e3ef7498c4d0
+  - type: implements
+    from: SYM-cli-listSearchCandidates
+    to: REQ-mcp-search-discovery
+    created_at: 2026-09-27T22:10:21.502Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8a03f8f7cda7
+  - type: covered_by
+    from: SYM-cli-listSearchCandidates
+    to: TEST-mcp-search-discovery
+    created_at: 2026-09-27T22:10:21.541Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-def9152fd5bc

@@ -8,9 +8,18 @@ import { handleKbCheck } from "../../src/tools/check.js";
 
 function emptyFullQualityResult(goal: string) {
   if (goal.includes("kb_entity")) {
+    // Bounded full-KB projection: id enumeration, then id-batched pages.
     return {
       success: true,
-      bindings: { Results: "[]" },
+      bindings: { Results: "[]", Ids: "[]" },
+    };
+  }
+
+  if (goal.includes("kb_query_entities")) {
+    // Paged entity reads, such as the predicate-schema conformance fact scan.
+    return {
+      success: true,
+      bindings: { Results: "[]", Count: "0" },
     };
   }
 
@@ -77,7 +86,7 @@ describe("MCP check aggregated defaults", () => {
             diagnostic.blocking === false,
         ),
       ).toBe(true);
-      expect(query).toHaveBeenCalledTimes(19);
+      expect(query).toHaveBeenCalledTimes(21);
     } finally {
       rmSync(workspaceRoot, { recursive: true, force: true });
     }
@@ -136,7 +145,7 @@ describe("MCP check aggregated defaults", () => {
             diagnostic.blocking === false,
         ),
       ).toBe(true);
-      expect(query).toHaveBeenCalledTimes(19);
+      expect(query).toHaveBeenCalledTimes(21);
     } finally {
       rmSync(workspaceRoot, { recursive: true, force: true });
     }

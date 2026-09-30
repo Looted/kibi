@@ -363,11 +363,30 @@ function advisorBeforeRequirementWriteMetric(
   };
 }
 
+function sourceLookupMessage(
+  zeroResults: number,
+  lookups: number,
+  unobservable: number,
+): string {
+  const unreadable =
+    unobservable > 0
+      ? `${unobservable} source-linked lookups recorded no readable result count.`
+      : "";
+  if (lookups === 0) {
+    return (
+      unreadable ||
+      "No source-linked query or search calls occurred in the evaluated window."
+    );
+  }
+  const observed = `${zeroResults}/${lookups} source-linked lookups returned zero results.`;
+  return unreadable ? `${observed} ${unreadable}` : observed;
+}
+
 function sourceLookupMetric(
   recent: readonly TimedEvent[],
   policy: TelemetryAcceptancePolicy,
 ): MutableMetric {
-  const lookups = recent.filter(({ event }) => {
+  const sourceLinked = recent.filter(({ event }) => {
     if (
       (event.tool !== "kb_query" && event.tool !== "kb_search") ||
       !eventSucceeded(event)
@@ -376,6 +395,14 @@ function sourceLookupMetric(
     }
     return typeof eventArgs(event).sourceFile === "string";
   });
+  // A row whose count could not be read is unobservable, not a hit.  Counting
+  // it as a non-zero result would let a broken logger report a healthy rate.
+  const lookups = sourceLinked.filter(
+    ({ event }) =>
+      typeof event.result_count === "number" ||
+      typeof event.zero_results === "boolean",
+  );
+  const unobservable = sourceLinked.length - lookups.length;
   const zeroResults = lookups.filter(
     ({ event }) => event.zero_results === true || event.result_count === 0,
   );
@@ -387,7 +414,10 @@ function sourceLookupMetric(
   }
   return {
     id: "source_lookup_zero_result_rate",
-    status: thresholdStatus(actual, "<=", policy.sourceLookupZeroResultMaximum),
+    status:
+      lookups.length === 0 && unobservable > 0
+        ? "insufficient_evidence"
+        : thresholdStatus(actual, "<=", policy.sourceLookupZeroResultMaximum),
     numerator: zeroResults.length,
     denominator: lookups.length,
     ...(actual !== undefined ? { rate: actual } : {}),
@@ -395,10 +425,11 @@ function sourceLookupMetric(
       operator: "<=",
       value: policy.sourceLookupZeroResultMaximum,
     },
-    message:
-      lookups.length === 0
-        ? "No source-linked query or search calls occurred in the evaluated window."
-        : `${zeroResults.length}/${lookups.length} source-linked lookups returned zero results.`,
+    message: sourceLookupMessage(
+      zeroResults.length,
+      lookups.length,
+      unobservable,
+    ),
     evidence: {
       zeroResultSourceFiles: [...sourceCounts.entries()]
         .sort(

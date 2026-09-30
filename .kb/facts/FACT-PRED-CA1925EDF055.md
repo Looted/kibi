@@ -20,4 +20,5 @@ claim_key: CLAIM-C2DD641ADEBB94B4
 claim_text: Effective provider model identity must be exposed in plugin provenance
 id: FACT-PRED-CA1925EDF055
 type: fact
+predicate_namespace: kibi.capability
 ---

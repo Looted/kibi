@@ -65,6 +65,9 @@ entity_property(fact, predicate_arity, integer).
 entity_property(fact, argument_names, list).
 entity_property(fact, argument_types, list).
 entity_property(fact, argument_descriptions, list).
+% Predicate-schema vocabularies are JSON objects serialized as strings.
+entity_property(fact, argument_constants, string).
+entity_property(fact, argument_aliases, string).
 entity_property(fact, aliases, list).
 entity_property(fact, examples, list).
 entity_property(fact, predicate_args, list).

@@ -30,9 +30,16 @@ export const SELECTABLE_RULE_NAMES: readonly string[] = [
   "strict-readiness",
   "semantic-completeness",
   "proof-contract-symbols",
+  "entity-id-style",
+  "domain-redundancy",
+  "domain-implication",
+  "subject-key-identity",
+  "subject-key-shape",
+  "ontology-quality",
+  "predicate-schema-conformance",
 ];
 
 // implements REQ-006
 /** Comma-separated "Allowed:" fragment for the kb_check rules description. */
 export const SELECTABLE_RULES_ALLOWED =
-  "must-priority-coverage, symbol-coverage, symbol-traceability, no-dangling-refs, source-relationship-parity, no-cycles, required-fields, deprecated-adr-no-successor, domain-contradictions, logic-coverage, rule-safety, rule-verifiability, query-plan-safety, req-status-vocabulary, strict-fact-shape, strict-req-fact-pairing, predicate-verifiability, strict-readiness, semantic-completeness, proof-contract-symbols";
+  "must-priority-coverage, symbol-coverage, symbol-traceability, no-dangling-refs, source-relationship-parity, no-cycles, required-fields, deprecated-adr-no-successor, domain-contradictions, logic-coverage, rule-safety, rule-verifiability, query-plan-safety, req-status-vocabulary, strict-fact-shape, strict-req-fact-pairing, predicate-verifiability, strict-readiness, semantic-completeness, proof-contract-symbols, entity-id-style, domain-redundancy, domain-implication, subject-key-identity, subject-key-shape, ontology-quality, predicate-schema-conformance";

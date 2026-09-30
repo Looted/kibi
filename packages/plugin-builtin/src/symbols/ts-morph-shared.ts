@@ -16,7 +16,8 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { Scope, ScriptKind, SyntaxKind } from "ts-morph";
+import type { Scope, ScriptKind, SyntaxKind } from "ts-morph";
+import { tsMorph } from "./ts-morph-runtime.js";
 
 // implements REQ-capability-plugin-builtin-parity-v1
 export const SUPPORTED_SOURCE_EXTENSIONS = new Set([
@@ -33,16 +34,16 @@ export const SUPPORTED_SOURCE_EXTENSIONS = new Set([
 // implements REQ-capability-plugin-builtin-parity-v1
 export function chooseScriptKind(filePath: string): ScriptKind {
   const lower = filePath.toLowerCase();
-  if (lower.endsWith(".tsx")) return ScriptKind.TSX;
+  if (lower.endsWith(".tsx")) return tsMorph().ScriptKind.TSX;
   if (
     lower.endsWith(".ts") ||
     lower.endsWith(".mts") ||
     lower.endsWith(".cts")
   ) {
-    return ScriptKind.TS;
+    return tsMorph().ScriptKind.TS;
   }
-  if (lower.endsWith(".jsx")) return ScriptKind.JSX;
-  return ScriptKind.JS;
+  if (lower.endsWith(".jsx")) return tsMorph().ScriptKind.JSX;
+  return tsMorph().ScriptKind.JS;
 }
 
 // implements REQ-capability-plugin-builtin-parity-v1
@@ -68,10 +69,10 @@ export function isPrivateClassMember(member: {
     return true;
   }
   if (typeof member.hasModifier === "function") {
-    return member.hasModifier(SyntaxKind.PrivateKeyword);
+    return member.hasModifier(tsMorph().SyntaxKind.PrivateKeyword);
   }
   if (typeof member.getScope === "function") {
-    return member.getScope() === Scope.Private;
+    return member.getScope() === tsMorph().Scope.Private;
   }
   return false;
 }

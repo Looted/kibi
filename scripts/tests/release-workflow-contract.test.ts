@@ -91,6 +91,7 @@ describe("publish.yml CI workflow contract", () => {
     expect(artifactOrder).toEqual([
       "core",
       "plugin-sdk",
+      "agent-core",
       "plugin-builtin",
       "plugin-jev",
       "runtime",
@@ -136,6 +137,18 @@ describe("publish.yml CI workflow contract", () => {
     expect(block).not.toContain("actions/checkout@v6");
     expect(block).toContain("Download package tarballs");
     expect(block).toContain("npm publish");
+  });
+
+  test("publishes MCP Registry metadata only for a successfully released MCP package", () => {
+    const block = extractJobBlock(workflowContent, "publish-mcp-registry");
+
+    expect(block).toContain("needs: [build-and-check, publish]");
+    expect(block).toContain(
+      "contains(needs.build-and-check.outputs.toPublish, 'mcp=kibi-mcp')",
+    );
+    expect(block).toContain("needs.publish.result == 'success'");
+    expect(block).toContain("grep -Fxq 'mcp=kibi-mcp'");
+    expect(block).toContain("id-token: write");
   });
 
   test("packed publish compile does not repeat the emitting E2E typecheck", () => {

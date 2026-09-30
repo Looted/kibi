@@ -16,12 +16,16 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { existsSync } from "node:fs";
+import { existsSync, lstatSync, realpathSync } from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import { classifyActivation } from "../operations/bootstrap/activation.js";
 import { nodeFilesystem } from "../public/operations/node-ports.js";
 import { resolveBranchAttachment } from "../utils/branch-resolver.js";
+import {
+  type GitRepositoryContext,
+  resolveGitRepository,
+} from "../utils/git-repository-context.js";
 import { scaffoldGitHubIntegration } from "./github-init.js";
 import {
   copySchemaFiles,
@@ -35,13 +39,71 @@ import {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+/**
+ * A hooks directory may be auto-managed only when Git resolves it inside this
+ * repository: under the common Git directory (the default hooks location) or
+ * under the current worktree root (repository-local relative core.hooksPath).
+ * Anything else — global configs, other repositories, external directories —
+ * must never receive auto-installed hooks.
+ * implements REQ-git-hook-effective-install
+ */
+function isRepositoryManagedHooksDir(context: GitRepositoryContext): boolean {
+  const realpathAllowMissingTail = (candidate: string): string | null => {
+    let current = path.resolve(candidate);
+    const missingSegments: string[] = [];
+
+    while (true) {
+      try {
+        return path.resolve(realpathSync.native(current), ...missingSegments);
+      } catch (error) {
+        const code = (error as NodeJS.ErrnoException).code;
+        if (code !== "ENOENT" && code !== "ENOTDIR") return null;
+
+        // A dangling symlink cannot be canonicalized. Do not treat it as an
+        // ordinary missing suffix: mkdir could follow it into an external
+        // directory when Git's hooks path is created.
+        try {
+          if (lstatSync(current).isSymbolicLink()) return null;
+        } catch (statError) {
+          const statCode = (statError as NodeJS.ErrnoException).code;
+          if (statCode !== "ENOENT" && statCode !== "ENOTDIR") return null;
+        }
+
+        const parent = path.dirname(current);
+        if (parent === current) return null;
+        missingSegments.unshift(path.basename(current));
+        current = parent;
+      }
+    }
+  };
+
+  const isWithin = (candidate: string, root: string) => {
+    const relative = path.relative(root, candidate);
+    return (
+      relative === "" ||
+      (relative !== ".." &&
+        !relative.startsWith(`..${path.sep}`) &&
+        !path.isAbsolute(relative))
+    );
+  };
+
+  const hooksDir = realpathAllowMissingTail(context.effectiveHooksDir);
+  const commonGitDir = realpathAllowMissingTail(context.commonGitDir);
+  const worktreeRoot = realpathAllowMissingTail(context.worktreeRoot);
+  if (!hooksDir || !commonGitDir || !worktreeRoot) return false;
+
+  // The default hooks dir in a linked worktree is shared under the common Git
+  // directory, which can sit outside the current worktree root.
+  return isWithin(hooksDir, commonGitDir) || isWithin(hooksDir, worktreeRoot);
+}
+
 interface InitOptions {
   hooks?: boolean;
   github?: boolean;
   badgeOnly?: boolean;
 }
 
-async function initNextAction(): Promise<{
+async function initNextAction(projectRoot: string): Promise<{
   readonly operation: string;
   readonly message: string;
 }> {
@@ -56,11 +118,11 @@ async function initNextAction(): Promise<{
       ".kb/events/**/*.md",
       ".kb/facts/**/*.md",
     ],
-    { cwd: process.cwd() },
+    { cwd: projectRoot },
   );
   const activation = await classifyActivation(
     {
-      workspaceRoot: process.cwd(),
+      workspaceRoot: projectRoot,
       signal: new AbortController().signal,
       clock: () => new Date(),
       fs: nodeFilesystem,
@@ -101,13 +163,40 @@ export async function initCommand(
     return { exitCode: 1 };
   }
 
-  const kbDir = path.join(process.cwd(), ".kb");
+  // Resolve the repository once and derive every project path from Git's own
+  // answer, so init works from linked worktrees (.git is a file there) and
+  // from subdirectories (cwd has no .kb or .git at all). Bare repositories,
+  // unreadable contexts, and operational Git refusals are rejected before any
+  // workspace write — even when KIBI_BRANCH makes a standalone fallback
+  // available for genuinely non-repository directories.
+  // implements REQ-git-hook-effective-install
+  const resolution = resolveGitRepository(process.cwd());
+  if (resolution.status === "git-refused") {
+    console.error(`Error: ${resolution.reason}`);
+    console.error(
+      "Kibi cannot verify this directory's Git context; refusing to create workspace state.",
+    );
+    return { exitCode: 1 };
+  }
+  if (resolution.status === "unsupported") {
+    console.error(`Error: ${resolution.reason}`);
+    console.error(
+      "Kibi requires a working-tree checkout; refusing to create workspace state.",
+    );
+    return { exitCode: 1 };
+  }
+  const repoContext = resolution.status === "ok" ? resolution.context : null;
+  const projectRoot = repoContext?.worktreeRoot ?? process.cwd();
+  const kbDir = path.join(projectRoot, ".kb");
   const kbExists = existsSync(kbDir);
 
-  // Resolve the exact active Git branch. Standalone use must be explicit via
-  // KIBI_BRANCH; there is no implicit default branch.
+  // Resolve the exact active Git branch against the project root (not cwd):
+  // recovery journals, legacy stores, and identity manifests are read from
+  // the same .kb tree init is about to write.
+  // Standalone use must be explicit via KIBI_BRANCH; there is no implicit
+  // default branch.
   let currentBranch: string;
-  const result = resolveBranchAttachment();
+  const result = resolveBranchAttachment(projectRoot);
 
   if ("error" in result) {
     const isNonGitError =
@@ -133,7 +222,7 @@ export async function initCommand(
     if (!kbExists) {
       createKbDirectoryStructure(kbDir, currentBranch);
       createManifestFile(kbDir);
-      updateGitIgnore(process.cwd());
+      updateGitIgnore(projectRoot);
 
       const schemaSourceDir = path.resolve(__dirname, "..", "..", "schema");
 
@@ -149,14 +238,32 @@ export async function initCommand(
       }
     }
 
-    ensureSymbolsManifestFile(process.cwd());
+    ensureSymbolsManifestFile(projectRoot);
 
     if (options.hooks) {
-      const gitDir = path.join(process.cwd(), ".git");
-      if (!existsSync(gitDir)) {
+      if (!repoContext) {
         console.error("Warning: No git repository found, skipping hooks");
+      } else if (!isRepositoryManagedHooksDir(repoContext)) {
+        // core.hooksPath is only the culprit when it is configured; the
+        // default hooks directory can also escape the repository through a
+        // symlink, and blaming a setting the operator never made misleads.
+        const cause = repoContext.hooksPathConfig
+          ? "core.hooksPath points outside this repository"
+          : "The Git hooks directory resolves outside this repository (for example through a symlink)";
+        console.error(
+          `Warning: ${cause} (${repoContext.effectiveHooksDir}); refusing to install hooks into unrelated directories. Kibi enforcement stays OFF for this repository until the hooks path is repository-managed.`,
+        );
       } else {
-        installGitHooks(gitDir);
+        installGitHooks(repoContext.effectiveHooksDir, {
+          hooksPathOrigin: repoContext.hooksPathOrigin,
+        });
+        if (repoContext.isLinkedWorktree && !repoContext.hooksPathConfig) {
+          // Only the default common hooks directory is shared by Git across
+          // worktrees; a configured hooksPath resolves per checkout.
+          console.log(
+            `✓ Repository-common hooks directory shared with all worktrees (${repoContext.effectiveHooksDir})`,
+          );
+        }
       }
     }
 
@@ -167,14 +274,14 @@ export async function initCommand(
     if (kbExists) {
       console.log("  Existing Kibi source knowledge was preserved.");
     }
-    console.log((await initNextAction()).message);
+    console.log((await initNextAction(projectRoot)).message);
     console.log(
       "  Optional diagnostic: run 'kibi doctor' if setup appears degraded.",
     );
 
     if (options.github === true) {
       scaffoldGitHubIntegration({
-        cwd: process.cwd(),
+        cwd: projectRoot,
         badgeOnly: options.badgeOnly === true,
       });
     }

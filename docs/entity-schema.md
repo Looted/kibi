@@ -106,40 +106,40 @@ This section provides guidance on selecting the appropriate entity type for your
 **Canonical Example: REQ + SCEN + TEST (Golden Path)**
 
 ```yaml
-# .kb/requirements/REQ-001.md
+# .kb/requirements/REQ-auth-login.md
 ---
-id: REQ-001
+id: REQ-auth-login
 title: User authentication
 status: open
 created_at: 2026-03-10T10:00:00Z
 updated_at: 2026-03-10T10:00:00Z
-source: .kb/requirements/REQ-001.md
+source: .kb/requirements/REQ-auth-login.md
 links:
   - type: specified_by
-    target: SCEN-001
+    target: SCEN-auth-login-success
 ---
 
-# .kb/scenarios/SCEN-001.md
+# .kb/scenarios/SCEN-auth-login-success.md
 ---
-id: SCEN-001
+id: SCEN-auth-login-success
 title: Login with valid credentials
 status: active
 created_at: 2026-03-10T10:01:00Z
 updated_at: 2026-03-10T10:01:00Z
-source: .kb/scenarios/SCEN-001.md
+source: .kb/scenarios/SCEN-auth-login-success.md
 ---
 
-# .kb/tests/TEST-001.md
+# .kb/tests/TEST-auth-login-success.md
 ---
-id: TEST-001
+id: TEST-auth-login-success
 title: Login test
 status: passing
 created_at: 2026-03-10T10:02:00Z
 updated_at: 2026-03-10T10:02:00Z
-source: .kb/tests/TEST-001.md
+source: .kb/tests/TEST-auth-login-success.md
 links:
   - type: validates
-    target: SCEN-001
+    target: SCEN-auth-login-success
 ---
 ```
 
@@ -147,8 +147,8 @@ links:
 
 ```yaml
 links:
-  - ADR-001
-  - FACT-001
+  - ADR-session-token-storage
+  - FACT-auth-session-ttl
 ```
 
 Plain string Markdown `links` entries are imported as generic `relates_to`
@@ -158,23 +158,23 @@ relationship matters.
 **Relationship Rows Example:**
 
 ```yaml
-# Relationship: REQ-001 specified_by SCEN-001
+# Relationship: REQ-auth-login specified_by SCEN-auth-login-success
 relationship:
   type: specified_by
-  source: REQ-001
-  target: SCEN-001
+  source: REQ-auth-login
+  target: SCEN-auth-login-success
   created_at: 2026-03-10T10:03:00Z
   created_by: analyst
-  source: .kb/requirements/REQ-001.md
+  source: .kb/requirements/REQ-auth-login.md
 ---
-# Relationship: REQ-001 verified_by TEST-001
+# Relationship: REQ-auth-login verified_by TEST-auth-login-success
 relationship:
   type: verified_by
-  source: REQ-001
-  target: TEST-001
+  source: REQ-auth-login
+  target: TEST-auth-login-success
   created_at: 2026-03-10T10:04:00Z
   created_by: qa
-  source: .kb/requirements/REQ-001.md
+  source: .kb/requirements/REQ-auth-login.md
 ```
 
 > **Rule:** Never embed scenarios or tests inside requirement records. Always create separate files for each entity and link them with explicit typed `links` entries or relationship rows (`specified_by`, `verified_by`). Plain string `links` are generic `relates_to` only.
@@ -225,21 +225,21 @@ value_type: int
 value_int: 3
 ---
 
-# .kb/requirements/REQ-019.md
+# .kb/requirements/REQ-user-role-limits.md
 ---
-id: REQ-019
+id: REQ-user-role-limits
 title: Users can now have 3 roles
 status: open
 created_at: 2026-02-20T13:06:00Z
 updated_at: 2026-03-24T00:00:00Z
-source: .kb/requirements/REQ-019.md
+source: .kb/requirements/REQ-user-role-limits.md
 links:
   - type: constrains
     target: FACT-USER-ROLE
   - type: requires_property
     target: FACT-LIMIT-3
   - type: supersedes
-    target: REQ-018
+    target: REQ-user-role-assignment
 ---
 ```
 ```
@@ -263,7 +263,7 @@ Schema version 2 introduces strict symbol granularity. During migration, existin
 ```yaml
 # WRONG - embedded scenario
 ---
-id: REQ-001
+id: REQ-auth-login
 title: User authentication
 scenarios:
   - given: user is on login page
@@ -292,12 +292,12 @@ scenarios:
 **Example:**
 ```yaml
 ---
-id: SCEN-001
-title: Sample scenario SCEN-001
+id: SCEN-auth-login-success
+title: Sample scenario SCEN-auth-login-success
 status: active
 created_at: 2026-02-17T13:00:00Z
 updated_at: 2026-02-17T13:00:00Z
-source: https://example.com/fixtures/scenarios/SCEN-001
+source: https://example.com/fixtures/scenarios/SCEN-auth-login-success
 tags:
   - sample
 ---
@@ -340,7 +340,7 @@ Coverage-depth reporting uses typed verification fields before legacy hints. A t
 
 Conservative requirement proof uses receipt history instead. Each `kibi.proof-receipt.v1` binds `receipt_id`, `test_id`, typed `scope`, `outcome`, `code_snapshot`, `environment_hash`, `started_at`, `finished_at`, `artifact_digest`, `contract_hash`, execution `fingerprint`, `integration_id`, `producer`, and `command_argv`. History is capped at 50 entries, receipt IDs are unique, finish times increase strictly, and existing entries cannot be removed, changed, or reordered through upsert or incremental sync. Proof accepts only the newest receipt for the deterministic current workspace snapshot when it passed, is not future-dated, and is at most seven days old. Missing, wrong-snapshot, stale, failed, malformed, or future-dated evidence produces explicit proof gaps.
 
-`kibi.workspace-snapshot.v2` hashes current versionable code plus requirement, scenario, fact, test-contract, and symbol-manifest inputs. It excludes `.kb/` derived runtime trees, release changesets, general `docs/`, and the `proof_receipts` frontmatter field inside every tracked Markdown file, preventing a receipt from invalidating its own code hash without hiding changes to the surrounding test contract. The v2 algorithm invalidates v1 snapshot-bound receipts once; they must be rerun.
+`kibi.workspace-snapshot.v2` hashes current versionable code plus requirement, scenario, fact, test-contract, and symbol-manifest inputs. It excludes `.kb/` derived runtime trees, release changesets, general `docs/`, and the `proof_receipts` frontmatter field inside every tracked Markdown file, preventing a receipt from invalidating its own code hash without hiding changes to the surrounding test contract. A receipt bound to an older snapshot hash is not proof of the current snapshot. Rerun `kibi prove` so the receipt matches the snapshot the branch is on now.
 
 #### Check output diagnostics
 
@@ -354,12 +354,12 @@ The public severity values are `error`, `warning`, `review`, and `info`. `review
 **Example:**
 ```yaml
 ---
-id: TEST-001
-title: Sample test TEST-001
+id: TEST-auth-login-success
+title: Sample test TEST-auth-login-success
 status: passing
 created_at: 2026-02-17T13:00:00Z
 updated_at: 2026-02-17T13:00:00Z
-source: https://example.com/fixtures/tests/TEST-001
+source: https://example.com/fixtures/tests/TEST-auth-login-success
 tags:
   - sample
 verification_scope: end_to_end
@@ -368,13 +368,13 @@ proof_contract:
   version: kibi.proof-contract.v1
   integration: self-proof
   required_proofs:
-    - symbol_id: SYM-TEST-001
+    - symbol_id: SYM-test-auth-login-success
       target: default
   success_policy: all_required_first_attempt
 proof_receipts:
   - version: kibi.proof-receipt.v1
-    receipt_id: PR-TEST-001-20260217T1305
-    test_id: TEST-001
+    receipt_id: PR-TEST-auth-login-success-20260217T1305
+    test_id: TEST-auth-login-success
     scope: end_to_end
     outcome: passed
     code_snapshot: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
@@ -396,7 +396,7 @@ proof_receipts:
     command_argv: [node, scripts/run-proof-producer.mjs]
     run_outcome: passed
     proof_results:
-      - symbol_id: SYM-TEST-001
+      - symbol_id: SYM-test-auth-login-success
         target: default
         outcome: passed
         binding: aggregate_run
@@ -427,12 +427,12 @@ See `docs/examples/test-verification-fields.md` for a complete example using bot
 **Example:**
 ```yaml
 ---
-id: ADR-001
-title: Sample ADR ADR-001
+id: ADR-session-token-storage
+title: Sample ADR ADR-session-token-storage
 status: accepted
 created_at: 2026-02-17T13:00:00Z
 updated_at: 2026-02-17T13:00:00Z
-source: https://example.com/fixtures/adrs/ADR-001
+source: https://example.com/fixtures/adrs/ADR-session-token-storage
 tags:
   - architecture
 ---
@@ -458,12 +458,12 @@ tags:
 **Example:**
 ```yaml
 ---
-id: FLAG-001
-title: Sample flag FLAG-001
+id: FLAG-login-rate-limit
+title: Sample flag FLAG-login-rate-limit
 status: active
 created_at: 2026-02-17T13:00:00Z
 updated_at: 2026-02-17T13:00:00Z
-source: https://example.com/fixtures/flags/FLAG-001
+source: https://example.com/fixtures/flags/FLAG-login-rate-limit
 tags:
   - rollout
 ---
@@ -489,12 +489,12 @@ tags:
 **Example:**
 ```yaml
 ---
-id: EVT-001
-title: Sample event EVT-001
+id: EVT-user-logged-in
+title: Sample event EVT-user-logged-in
 status: active
 created_at: 2026-02-17T13:00:00Z
 updated_at: 2026-02-17T13:00:00Z
-source: https://example.com/fixtures/events/EVT-001
+source: https://example.com/fixtures/events/EVT-user-logged-in
 tags:
   - domain
 ---
@@ -525,12 +525,12 @@ tags:
 **Example:**
 ```yaml
 ---
-id: SYM-001
-title: Sample symbol SYM-001
+id: SYM-login-handler
+title: Sample symbol SYM-login-handler
 status: active
 created_at: 2026-02-17T13:00:00Z
 updated_at: 2026-02-17T13:00:00Z
-source: https://example.com/fixtures/symbols/SYM-001
+source: https://example.com/fixtures/symbols/SYM-login-handler
 tags:
   - code
 ---
@@ -547,7 +547,7 @@ Facts support two authoring lanes:
   - `observation`
   - `meta`
 - **Ontology lane** for project-local predicate modeling
-  - `predicate_schema`: defines an allowed predicate signature; requires `predicate_name`, `predicate_arity`, `argument_names`, and `argument_types`
+  - `predicate_schema`: defines an allowed predicate signature; requires `predicate_name`, `predicate_arity`, `argument_names`, and `argument_types`. May close argument vocabularies with `argument_constants` (allowed values keyed by argument name) and `argument_aliases` (legacy spellings keyed by argument name, each mapped to a declared constant); unlisted arguments stay open
   - `predicate`: stores a ground predicate claim; requires `predicate_name`, non-empty `predicate_args`, and `canonical_key`; may use `polarity: assert` or `deny`; logical coverage also uses the paired `claim_key` and `claim_text` provenance fields
 - **Logic lane** for conditional and modal requirements
   - `rule_schema`: declares the stable `kibi.logic.v1` signature used by rule facts
@@ -630,6 +630,8 @@ Kibi supports relationship types listed below. Each relationship has metadata:
 | publishes           | symbol               | event                | Symbol publishes event                            |
 | consumes            | symbol               | event                | Symbol consumes event                             |
 | supersedes          | adr                  | adr                  | The source ADR formally replaces the target ADR. The target is expected to carry status: archived or deprecated |
+| supersedes          | req                  | req                  | The source requirement replaces the target requirement; the target stops being current |
+| restates            | req                  | req                  | The source requirement intentionally restates a current requirement (e.g. a product requirement echoed in a platform requirement). Both stay current; `domain-redundancy` is suppressed for the pair |
 | relates_to          | a                    | b                    | Generic relationship (escape hatch)               |
 
 ---
@@ -638,38 +640,38 @@ Kibi supports relationship types listed below. Each relationship has metadata:
 
 **depends_on**
 ```yaml
-# req REQ-002 depends_on req REQ-001
+# req REQ-auth-login-lockout depends_on req REQ-auth-login
 relationship:
   type: depends_on
-  source: REQ-002
-  target: REQ-001
+  source: REQ-auth-login-lockout
+  target: REQ-auth-login
   created_at: 2026-02-17T13:10:00Z
   created_by: analyst
-  source: https://example.com/fixtures/requirements/REQ-002
+  source: https://example.com/fixtures/requirements/REQ-auth-login-lockout
 ```
 
 **specified_by**
 ```yaml
-# req REQ-001 specified_by scenario SCEN-001
+# req REQ-auth-login specified_by scenario SCEN-auth-login-success
 relationship:
   type: specified_by
-  source: REQ-001
-  target: SCEN-001
+  source: REQ-auth-login
+  target: SCEN-auth-login-success
   created_at: 2026-02-17T13:15:00Z
   created_by: analyst
-  source: https://example.com/fixtures/requirements/REQ-001
+  source: https://example.com/fixtures/requirements/REQ-auth-login
 ```
 
 **verified_by**
 ```yaml
-# req REQ-001 verified_by test TEST-001
+# req REQ-auth-login verified_by test TEST-auth-login-success
 relationship:
   type: verified_by
-  source: REQ-001
-  target: TEST-001
+  source: REQ-auth-login
+  target: TEST-auth-login-success
   created_at: 2026-02-17T13:20:00Z
   created_by: qa
-  source: https://example.com/fixtures/tests/TEST-001
+  source: https://example.com/fixtures/tests/TEST-auth-login-success
 ```
 
 `verified_by` has one frozen meaning: a requirement or scenario is verified by a test. Direct `req -> test` is fallback only when no scenario exists. Prefer `req -> scenario -> test`.
@@ -678,56 +680,56 @@ Facts are not directly verified by tests. Model the behavior through a requireme
 
 **validates**
 ```yaml
-# test TEST-001 validates scenario SCEN-001
+# test TEST-auth-login-success validates scenario SCEN-auth-login-success
 relationship:
   type: validates
-  source: TEST-001
-  target: SCEN-001
+  source: TEST-auth-login-success
+  target: SCEN-auth-login-success
   created_at: 2026-02-17T13:22:00Z
   created_by: qa
-  source: https://example.com/fixtures/tests/TEST-001
+  source: https://example.com/fixtures/tests/TEST-auth-login-success
 ```
 
 `validates` is the inverse edge for req/scenario ↔ test links.
 
 **implements**
 ```yaml
-# symbol SYM-001 implements req REQ-001
+# symbol SYM-login-handler implements req REQ-auth-login
 relationship:
   type: implements
-  source: SYM-001
-  target: REQ-001
+  source: SYM-login-handler
+  target: REQ-auth-login
   created_at: 2026-02-17T13:25:00Z
   created_by: dev
-  source: https://example.com/fixtures/symbols/SYM-001
+  source: https://example.com/fixtures/symbols/SYM-login-handler
 ```
 
 `implements` is frozen to requirement ownership only (`symbol -> req`).
 
 **covered_by**
 ```yaml
-# symbol SYM-001 covered_by test TEST-001
+# symbol SYM-login-handler covered_by test TEST-auth-login-success
 relationship:
   type: covered_by
-  source: SYM-001
-  target: TEST-001
+  source: SYM-login-handler
+  target: TEST-auth-login-success
   created_at: 2026-02-17T13:30:00Z
   created_by: dev
-  source: https://example.com/fixtures/tests/TEST-001
+  source: https://example.com/fixtures/tests/TEST-auth-login-success
 ```
 
 `covered_by` is frozen to production coverage evidence only (`symbol -> test`).
 
 **executable_for**
 ```yaml
-# symbol SYM-TEST-001 executable_for test TEST-001
+# symbol SYM-test-auth-login-success executable_for test TEST-auth-login-success
 relationship:
   type: executable_for
-  source: SYM-TEST-001
-  target: TEST-001
+  source: SYM-test-auth-login-success
+  target: TEST-auth-login-success
   created_at: 2026-02-17T13:32:00Z
   created_by: dev
-  source: https://example.com/fixtures/symbols/SYM-TEST-001
+  source: https://example.com/fixtures/symbols/SYM-test-auth-login-success
 ```
 
 `executable_for` is frozen to executable test code identity only (`symbol -> test`).
@@ -736,75 +738,75 @@ For the canonical symbol taxonomy, integration/e2e N/A rubric, and anti-blanket 
 
 **constrained_by**
 ```yaml
-# symbol SYM-001 constrained_by adr ADR-001
+# symbol SYM-login-handler constrained_by adr ADR-session-token-storage
 relationship:
   type: constrained_by
-  source: SYM-001
-  target: ADR-001
+  source: SYM-login-handler
+  target: ADR-session-token-storage
   created_at: 2026-02-17T13:35:00Z
   created_by: architect
-  source: https://example.com/fixtures/adrs/ADR-001
+  source: https://example.com/fixtures/adrs/ADR-session-token-storage
 ```
 
 
 **guards**
 ```yaml
-# flag FLAG-001 guards req REQ-001
+# flag FLAG-login-rate-limit guards req REQ-auth-login
 relationship:
   type: guards
-  source: FLAG-001
-  target: REQ-001
+  source: FLAG-login-rate-limit
+  target: REQ-auth-login
   created_at: 2026-02-17T13:45:00Z
   created_by: devops
-  source: https://example.com/fixtures/flags/FLAG-001
+  source: https://example.com/fixtures/flags/FLAG-login-rate-limit
 ```
 
 **publishes**
 ```yaml
-# symbol SYM-001 publishes event EVT-001
+# symbol SYM-login-handler publishes event EVT-user-logged-in
 relationship:
   type: publishes
-  source: SYM-001
-  target: EVT-001
+  source: SYM-login-handler
+  target: EVT-user-logged-in
   created_at: 2026-02-17T13:50:00Z
   created_by: dev
-  source: https://example.com/fixtures/symbols/SYM-001
+  source: https://example.com/fixtures/symbols/SYM-login-handler
 ```
 
 **consumes**
 ```yaml
-# symbol SYM-001 consumes event EVT-001
+# symbol SYM-login-handler consumes event EVT-user-logged-in
 relationship:
   type: consumes
-  source: SYM-001
-  target: EVT-001
+  source: SYM-login-handler
+  target: EVT-user-logged-in
   created_at: 2026-02-17T13:55:00Z
   created_by: dev
-  source: https://example.com/fixtures/symbols/SYM-001
+  source: https://example.com/fixtures/symbols/SYM-login-handler
 ```
 
 **constrains**
 ```yaml
-# req REQ-018 constrains fact FACT-USER-ROLE
+# req REQ-user-role-assignment constrains fact FACT-USER-ROLE
 relationship:
   type: constrains
-  source: REQ-018
+  source: REQ-user-role-assignment
   target: FACT-USER-ROLE
   created_at: 2026-02-20T14:00:00Z
   created_by: analyst
-  source: .kb/requirements/REQ-018.md
+  source: .kb/requirements/REQ-user-role-assignment.md
 ```
 
 **requires_property**
 ```yaml
-# req REQ-018 requires_property fact FACT-LIMIT-2
+# req REQ-user-role-assignment requires_property fact FACT-LIMIT-2
 relationship:
   type: requires_property
-  source: REQ-018
+  source: REQ-user-role-assignment
   target: FACT-LIMIT-2
   created_at: 2026-02-20T14:01:00Z
   created_by: analyst
-  source: .kb/requirements/REQ-018.md
+  source: .kb/requirements/REQ-user-role-assignment.md
 ```
 
 **relates_to**
@@ -822,21 +824,33 @@ relationship:
 
 **supersedes**
 ```yaml
-# adr ADR-010 supersedes adr ADR-009
+# adr ADR-session-token-storage-v2 supersedes adr ADR-session-token-storage
 relationship:
   type: supersedes
-  source: ADR-010
-  target: ADR-009
+  source: ADR-session-token-storage-v2
+  target: ADR-session-token-storage
   created_at: 2026-02-20T10:00:00Z
   created_by: architect
-  source: https://example.com/fixtures/adrs/ADR-010
+  source: https://example.com/fixtures/adrs/ADR-session-token-storage-v2
+```
+
+**restates**
+```yaml
+# req REQ-billing-invoice-retention restates req REQ-platform-record-retention
+relationship:
+  type: restates
+  source: REQ-billing-invoice-retention
+  target: REQ-platform-record-retention
+  created_at: 2026-09-28T10:00:00Z
+  created_by: analyst
+  source: .kb/requirements/REQ-billing-invoice-retention.md
 ```
 
 ---
 
 ## Notes
-- All entity and relationship types are fixed in v0; extensibility is planned for future versions.
-- IDs must be stable and unique (content-based SHA256 or explicit frontmatter).
+- The schema is the eight entity types and the relationship catalog in this document.
+- IDs must be stable and unique. Set an explicit frontmatter `id` named by what the entity governs (`<TYPE>-<area>-<behavior>`, e.g. `REQ-cli-gc`) and keep the filename stem equal to it; never pick the next free number. A missing `id` falls back to a path-and-title hash that changes on rename. `entity-id-style` reports stem mismatches and newly created numeric IDs; legacy numbered entities are grandfathered.
 - Relationship metadata supports audit and conflict resolution.
 - Status values are entity-type specific (see above).
 

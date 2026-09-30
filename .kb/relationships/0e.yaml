@@ -251,5 +251,23 @@ relationships:
         created_by: kibi/upsert,
         source: mcp://kibi/upsert,
         id: rel-4357cc3cd3d9
+      },
+    {
+        type: implements,
+        from: SYM-SYNC_COMPILER_FINGERPRINT,
+        to: REQ-cli-canonical-runtime,
+        created_at: 2026-09-29T11:26:39.682Z,
+        created_by: kibi/upsert,
+        source: mcp://kibi/upsert,
+        id: rel-5aefa58a3a3d
+      },
+    {
+        type: covered_by,
+        from: SYM-SYNC_COMPILER_FINGERPRINT,
+        to: TEST-cli-canonical-runtime,
+        created_at: 2026-09-29T11:26:39.704Z,
+        created_by: kibi/upsert,
+        source: mcp://kibi/upsert,
+        id: rel-c7b6ca706b1b
       }
   ]

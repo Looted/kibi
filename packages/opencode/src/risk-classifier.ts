@@ -140,7 +140,7 @@ export function classifyRisk(params: ClassifyRiskParams): RiskClassification {
         const reasons: string[] = [];
         if (!hasTraceability) {
           reasons.push(
-            "Code file contains exports without // implements REQ-xxx annotation",
+            "Code file contains exports without // implements REQ-<area>-<behavior> annotation",
           );
         }
         if (hasDurableComment) {

@@ -69,6 +69,7 @@ export function emptyHookState(): HookState {
     mcpState: "unknown",
     dirtyPaths: [],
     guidedReadPaths: [],
+    guidedPreEditPaths: [],
     guidedWritePaths: [],
     kbMutationTools: [],
     kbCheckRun: false,
@@ -192,6 +193,7 @@ function coerceHookState(value: unknown): HookState {
       : [];
   const dirtyPaths = strings(value.dirtyPaths, normalizePath);
   const guidedReadPaths = strings(value.guidedReadPaths, normalizePath);
+  const guidedPreEditPaths = strings(value.guidedPreEditPaths, normalizePath);
   const guidedWritePaths = strings(value.guidedWritePaths, normalizePath);
   const kbMutationTools = strings(value.kbMutationTools, (entry) =>
     entry.trim(),
@@ -202,6 +204,7 @@ function coerceHookState(value: unknown): HookState {
     mcpState: value.mcpState === "observed" ? "observed" : "unknown",
     dirtyPaths: [...new Set(dirtyPaths)].slice(-maxDirtyPaths),
     guidedReadPaths: [...new Set(guidedReadPaths)].slice(-maxGuidedPaths),
+    guidedPreEditPaths: [...new Set(guidedPreEditPaths)].slice(-maxGuidedPaths),
     guidedWritePaths: [...new Set(guidedWritePaths)].slice(-maxGuidedPaths),
     kbMutationTools: [...new Set(kbMutationTools)].slice(-maxKbMutationTools),
     kbCheckRun: value.kbCheckRun === true,

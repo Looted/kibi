@@ -212,7 +212,62 @@ export function runProofStep(commandArgv, options = {}) {
   });
 }
 
-/** Execute all selected contracts sequentially with complete attempt history. */
+/** Positive pool size. Unset, zero, and junk stay sequential. */
+// implements REQ-kibi-verification-evidence-contract
+export function proofStepConcurrency(env = process.env) {
+  const parsed = Number(env.KIBI_PROOF_STEP_CONCURRENCY);
+  if (!Number.isFinite(parsed) || parsed < 1) return 1;
+  return Math.floor(parsed);
+}
+
+/**
+ * Identical argv is one execution. Contracts that declare it share that
+ * attempt; a different flag is a different command.
+ */
+// implements REQ-kibi-verification-evidence-contract
+export function groupProofSteps(selected) {
+  const pending = [];
+  const groups = [];
+  const byKey = new Map();
+  for (const entry of selected) {
+    for (const [index, argv] of entry.steps.entries()) {
+      const key = JSON.stringify(argv);
+      const slot = {
+        test_id: entry.test_id,
+        step_index: index + 1,
+        command: argv,
+      };
+      pending.push(slot);
+      let group = byKey.get(key);
+      if (!group) {
+        group = { key, command: argv, slots: [] };
+        byKey.set(key, group);
+        groups.push(group);
+      }
+      group.slots.push(slot);
+    }
+  }
+  return { pending, groups };
+}
+
+async function mapPool(items, limit, fn) {
+  const results = new Array(items.length);
+  let next = 0;
+  const workers = Array.from(
+    { length: Math.min(limit, items.length) },
+    async () => {
+      while (next < items.length) {
+        const index = next;
+        next += 1;
+        results[index] = await fn(items[index], index);
+      }
+    },
+  );
+  await Promise.all(workers);
+  return results;
+}
+
+/** Execute all selected contracts with complete attempt history. */
 export async function runProofProducer(options = {}) {
   const env = options.env ?? process.env;
   const workspaceRoot =
@@ -224,30 +279,44 @@ export async function runProofProducer(options = {}) {
     ? validateProofSteps(options.entries)
     : loadProofSteps(workspaceRoot);
   const selected = selectExactProofSteps(entries, requestedIds);
-  const attempts = [];
   const write = options.write ?? ((line) => console.log(line));
-  let failed = 0;
+  const { pending, groups } = groupProofSteps(selected);
+  const concurrency = Math.min(
+    proofStepConcurrency(env),
+    options.concurrency ?? Number.POSITIVE_INFINITY,
+  );
 
-  for (const entry of selected) {
-    for (const [index, argv] of entry.steps.entries()) {
-      const label = `${entry.test_id} step ${index + 1}: ${argv.join(" ")}`;
-      write(`[proof] ${label}`);
-      const result = await runProofStep(argv, {
-        ...options,
-        cwd: workspaceRoot,
-        env,
-      });
-      const attempt = {
-        test_id: entry.test_id,
-        step_index: index + 1,
-        attempt: 1,
-        command: argv,
-        ...result,
-      };
-      attempts.push(attempt);
-      write(`[proof] attempt ${JSON.stringify(attempt)}`);
-      if (result.outcome !== "passed") failed += 1;
-    }
+  const executed = await mapPool(groups, concurrency, async (group) => {
+    const shared =
+      group.slots.length > 1 ? ` (shared by ${group.slots.length} tests)` : "";
+    const first = group.slots[0];
+    write(
+      `[proof] ${first.test_id} step ${first.step_index}: ${group.command.join(" ")}${shared}`,
+    );
+    return runProofStep(group.command, {
+      ...options,
+      cwd: workspaceRoot,
+      env,
+    });
+  });
+
+  const resultByKey = new Map(
+    groups.map((group, index) => [group.key, executed[index]]),
+  );
+  const attempts = [];
+  let failed = 0;
+  for (const slot of pending) {
+    const result = resultByKey.get(JSON.stringify(slot.command));
+    const attempt = {
+      test_id: slot.test_id,
+      step_index: slot.step_index,
+      attempt: 1,
+      command: slot.command,
+      ...result,
+    };
+    attempts.push(attempt);
+    write(`[proof] attempt ${JSON.stringify(attempt)}`);
+    if (result.outcome !== "passed") failed += 1;
   }
 
   if (attempts.length === 0) {

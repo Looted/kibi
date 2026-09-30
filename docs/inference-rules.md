@@ -1,4 +1,4 @@
-# Inference Rules (Phase 1)
+# Inference Rules
 
 Kibi includes deterministic derived predicates for internal analysis and automation. These predicates are not exposed as a raw public inference surface.
 
@@ -44,13 +44,13 @@ Kibi includes deterministic derived predicates for internal analysis and automat
   - polarity conflicts like `require` vs `forbid` on the same normalized tuple
 - Scope and validity windows only conflict when they intersect.
 - **Readiness Levels:** Requirements must pass strict readiness checks (e.g., valid `subject_key`, matching `property_key`, valid operator) before participating in contradiction checks.
-- **V1 Limits:** Contradiction detection is bounded to exact-value, boolean/enum, numeric range, and polarity conflicts. Prose-only requirements without strict fact modeling are not checked for contradictions.
-- **Semantic advisor receipts:** MCP preflight/write responses may warn that prose looks machine-checkable but unmodeled and may include draft strict-property, predicate, ambiguity-observation, or ontology-gap suggestions. These suggestions are advisory in v1 and do not add contradiction semantics unless the requirement is linked to strict facts or predicate facts.
+- Contradiction detection covers exact-value, boolean/enum, numeric range, and polarity conflicts. Prose-only requirements without strict fact modeling are not checked for contradictions.
+- **Semantic advisor receipts:** MCP preflight and write responses may warn that prose looks machine-checkable but unmodeled, and may include draft strict-property, predicate, ambiguity-observation, or ontology-gap suggestions. These suggestions are advisory. They do not add contradiction semantics unless the requirement is linked to strict facts or predicate facts.
 - **Automation:** The modeling pipeline is fully automated and does not require human approval for high-confidence (>= 0.7) claims.
 
 ## Predicate ontology semantics
 
-The ontology lane is an alpha extension for project-local domain predicates:
+The ontology lane encodes project-local domain predicates:
 
 - `fact_kind=predicate_schema` defines an allowed predicate signature and its argument names/types.
 - `fact_kind=predicate` stores one ground predicate claim with `predicate_args` and optional `polarity` (`assert` or `deny`).
@@ -96,4 +96,4 @@ Bug records, incident notes, and workaround documentation should use `observatio
 
 Files and directories that match the repository ignore policy are excluded from Kibi's inference pipeline. Ignored files are not read for candidate synthesis and will not be inferred into KB entities by `kb_plan_bootstrap` or other discovery-oriented tools. See the MCP repository ignore policy in `docs/mcp-reference.md` for the full list of honored ignore sources and hard-denied directories.
 
-This behavior prevents editor state, tooling caches, and build outputs from polluting the knowledge base with transient or irrelevant artifacts. Note that v1 limits apply: global Git excludes (user-level `core.excludesFile`) are not read, and Kibi does not automatically remove or migrate any existing KB entities that may have been created previously from now-ignored files.
+This behavior prevents editor state, tooling caches, and build outputs from polluting the knowledge base with transient or irrelevant artifacts. Global Git excludes (user-level `core.excludesFile`) are not read. Kibi does not automatically remove entities that were created from files that are ignored now. Run `kibi migrate` when a stored layout or schema still needs the current shape; see [Troubleshooting](troubleshooting.md#upgrading-and-branch-recovery).

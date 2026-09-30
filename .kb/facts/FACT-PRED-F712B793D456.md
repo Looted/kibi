@@ -20,4 +20,5 @@ claim_key: CLAIM-5BAA13F7DBEB043C
 claim_text: Plugin permission metadata must not be an allowed provider operation for sandbox enforcement
 id: FACT-PRED-F712B793D456
 type: fact
+predicate_namespace: kibi.capability
 ---

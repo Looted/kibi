@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_cli_init_canonical
+subject_key: kibi.kb.canonical_layout
 property_key: clause_04_gitignore_must_track_authored_kb_knowledge_lanes
 operator: eq
 value_type: bool

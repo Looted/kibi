@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: subject
-subject_key: req.req_cli_schema_migration
+subject_key: kibi.migration.schema_version
 canonical_key: req.req_cli_schema_migration
 id: FACT-SUBJ-REQ-CLI-SCHEMA-MIGRATION
 type: fact

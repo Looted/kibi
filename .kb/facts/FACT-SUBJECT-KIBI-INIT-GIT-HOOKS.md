@@ -7,7 +7,7 @@ tags:
   - lane:strict
   - fact:subject
 fact_kind: subject
-subject_key: kibi_init_git_hooks
+subject_key: kibi.cli.init.git_hooks
 canonical_key: kibi_init_git_hooks
 id: FACT-SUBJECT-KIBI-INIT-GIT-HOOKS
 type: fact

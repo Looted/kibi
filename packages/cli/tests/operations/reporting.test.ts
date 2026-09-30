@@ -87,8 +87,10 @@ describe("shared reporting operation executors", () => {
     expect(result.content[0]?.text).toBe(
       "Coverage summary: 1 structurally covered and 0 proven out of 2.",
     );
+    // The default 100-row request is read in bounded pages; the first page
+    // carries every other argument unchanged.
     expect(queryContaining(query, "coverage_report_json")).toContain(
-      `coverage_report_json('req', [], false, true, 100, 0, '${"a".repeat(64)}', '1970-01-01T00:00:00.000Z', 604800, JsonString)`,
+      `coverage_report_json('req', [], false, true, 10, 0, '${"a".repeat(64)}', '1970-01-01T00:00:00.000Z', 604800, JsonString)`,
     );
     expect(result.structuredContent?.meta).toMatchObject({
       proofReceiptMaxAgeSeconds: 604800,
@@ -110,7 +112,7 @@ describe("shared reporting operation executors", () => {
     const result = await coverageSpec.execute({}, withoutSnapshot);
 
     expect(queryContaining(query, "coverage_report_json")).toContain(
-      "100, 0, 'unknown', '1970-01-01T00:00:00.000Z', 604800, JsonString)",
+      "10, 0, 'unknown', '1970-01-01T00:00:00.000Z', 604800, JsonString)",
     );
     expect(result.structuredContent?.meta).toMatchObject({
       proofSnapshot: "unknown",

@@ -46,7 +46,7 @@ observe its exit code, the project can prove requirements with Kibi.**
 
 ```bash
 kibi prove --all            # prove every proof-bearing test
-kibi prove --test TEST-004  # one test
+kibi prove --test TEST-mcp-search-discovery  # one test
 kibi prove --requirement REQ-cli-check
 kibi prove --integration self-proof
 ```
@@ -63,6 +63,31 @@ For each configured integration, `kibi prove`:
 
 One suite run can satisfy many TEST contracts; unrelated results are ignored
 per contract.
+
+### CI proof reuse for release PRs
+
+The canonical `kibi.workspace-snapshot.v2` verification snapshot, rather than a
+Git commit or branch name, identifies the source state proven by Kibi. On each
+successful `develop` push, the strict proof workflow uploads a
+`kibi-proof-attestation` artifact with the snapshot version and hash, source
+commit, outcome, and workflow run provenance. The artifact is emitted only
+after full proof, baseline enforcement, and report generation succeed.
+
+For a PR targeting `master`, the same workflow checks out GitHub's merge
+commit and computes its snapshot through Kibi's production snapshot code. It
+reuses proof only for a same-repository `develop` PR whose head still equals
+the current `develop` branch, whose checkout is the expected merge commit,
+and whose exact head has one successful `develop` push proof run with a matching
+attestation. If the canonical snapshots match, the workflow records a reused
+proof decision and skips the full proof steps. If lookup, provenance, version,
+or snapshot comparison is uncertain, it runs the full proof on the merge
+checkout using the `master` KB branch identity. Scheduled, manual, and
+`develop` PR proof runs remain full runs.
+
+Reuse is a CI gate decision only. It does not execute tests again, create new
+proof receipts, or attach `master` to the `develop` KB branch. The decision
+artifact and job summary say whether proof ran or was reused. Attestation
+artifacts expire after seven days; expiration simply causes a full proof run.
 
 ## Proof contracts
 
@@ -245,6 +270,25 @@ components (contract, integration, command, bindings, producer). Diagnostics
 can therefore name exactly which execution semantic drifted, e.g.
 `command_argv`.
 
+## Receipt freshness scope
+
+By default a receipt stays fresh until something *it depends on* changes, not
+until any file in the workspace changes. Each receipt records a
+`binding_hash` over:
+
+- the test's `proof_contract`,
+- the test document itself (excluding its `proof_receipts` history), and
+- the **code scope**: the current source-file content of every symbol in
+  - the contract's `required_proofs` (the test's own executable code),
+  - the test's `proof_bindings`, and
+  - every production symbol linked `covered_by` this test.
+
+Editing any of those files (or deleting one) changes the binding, so that
+test's receipts go stale until `kibi prove` runs again. Edits elsewhere leave
+them fresh. Keep `covered_by` links accurate: they decide which production
+code a receipt vouches for. Set `KIBI_PROOF_BINDING_MODE=strict-snapshot` to
+instead bind every receipt to the whole-workspace snapshot it was proven on.
+
 ## Trust boundary
 
 Local proof evidence is trusted as part of the local execution environment.
@@ -289,7 +333,7 @@ against the schema in CI.
 | `attempt history unavailable` | Source format carries no retry data | Accept aggregate provenance, or use a producer with complete history |
 | `missing proof result` | Producer never reported a required obligation | Ensure the obligation ran in the configured integration/target |
 | `proof_receipts is append-only` | History was rewritten by hand | Update via the engine, which appends; never edit history |
-| Receipts stale after code changes | Receipts bind to the snapshot at run time | Re-run `kibi prove` after the tree changes |
+| Receipts stale after code changes | The edit touched code in a test's [freshness scope](#receipt-freshness-scope) | Re-run `kibi prove` for the affected tests |
 
 ## For agent workflows
 

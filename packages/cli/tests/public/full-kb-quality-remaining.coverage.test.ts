@@ -22,6 +22,12 @@ function makeProlog() {
   return {
     query: async (goal: string | readonly string[]): Promise<QueryResult> => {
       const text = Array.isArray(goal) ? goal.join(",") : goal;
+      if (text === "findall(Id, kb_entity(Id, _, _), Ids)") {
+        return {
+          success: true,
+          bindings: { Ids: "['REQ-NORMATIVE','FACT-PRED']" },
+        };
+      }
       if (text.includes("kb_entity")) {
         return {
           success: true,

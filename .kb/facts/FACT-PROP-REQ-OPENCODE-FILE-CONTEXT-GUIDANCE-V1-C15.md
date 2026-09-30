@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_opencode_file_context_guidance_v1
+subject_key: opencode.kibi_plugin
 property_key: clause_15_single_block_policy_all_lifecycle_and_e2e_guidan
 operator: eq
 value_type: bool

@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_mcp_semantic_advisor_preflight
+subject_key: mcp.kb_upsert
 property_key: clause_01_the_mcp_server_must_analyze_raw_requirement_pros
 operator: eq
 value_type: bool

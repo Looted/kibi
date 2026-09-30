@@ -479,57 +479,101 @@ symbols:
     cleanup();
   });
 
-  test("resolves only requested bound symbols with propagated hashes in sorted order", () => {
-    const sourceHashA = "a".repeat(64);
-    const sourceHashZ = "b".repeat(64);
-    const manifestPath = setupTestFile(
-      "bound-symbol-scope.yaml",
+  test("hashes the current source file of each requested symbol, sorted by id", () => {
+    // Workspace layout: <root>/.kb/symbols.yaml with workspace-relative sources.
+    const root = join(TEST_DIR, "scope-root");
+    mkdirSync(join(root, ".kb"), { recursive: true });
+    mkdirSync(join(root, "src"), { recursive: true });
+    writeFileSync(join(root, "src", "a.ts"), "export const a = 1;\n");
+    writeFileSync(join(root, "src", "z.ts"), "export const z = 1;\n");
+    const manifestPath = join(root, ".kb", "symbols.yaml");
+    writeFileSync(
+      manifestPath,
       `symbols:
   - id: SYM-Z
     title: Zulu
-    sourceHash: ${sourceHashZ}
+    sourceFile: src/z.ts
   - id: SYM-UNREQUESTED
     title: Unrequested
-    sourceHash: ${"c".repeat(64)}
+    sourceFile: src/a.ts
   - id: SYM-A
     title: Alpha
-    sourceHash: ${sourceHashA}
+    sourceFile: src/a.ts
 `,
     );
+    const sha = (text: string) => coordinateSourceHash(text);
 
     expect(
       resolveBoundSymbolScope(manifestPath, ["SYM-Z", "SYM-A", "SYM-A"]),
     ).toEqual([
-      { symbolId: "SYM-A", sourceHash: sourceHashA },
-      { symbolId: "SYM-Z", sourceHash: sourceHashZ },
+      { symbolId: "SYM-A", sourceHash: sha("export const a = 1;\n") },
+      { symbolId: "SYM-Z", sourceHash: sha("export const z = 1;\n") },
     ]);
 
     cleanup();
   });
 
-  test("omits missing and unbound requested symbols", () => {
-    const manifestPath = setupTestFile(
-      "bound-symbol-scope-missing.yaml",
+  test("tracks source edits and deletions without a manifest or coordinate change", () => {
+    const root = join(TEST_DIR, "scope-edit-root");
+    mkdirSync(join(root, ".kb"), { recursive: true });
+    const source = join(root, "prod.ts");
+    writeFileSync(source, "export const behavior = 'v1';\n");
+    const manifestPath = join(root, ".kb", "symbols.yaml");
+    writeFileSync(
+      manifestPath,
+      `symbols:
+  - id: SYM-PROD
+    title: behavior
+    sourceFile: prod.ts
+`,
+    );
+    const [first] = resolveBoundSymbolScope(manifestPath, ["SYM-PROD"]);
+    // Different size, so the (mtime, size) file stamp changes even within
+    // one mtime tick.
+    writeFileSync(source, "export const behavior = 'v2-edited';\n");
+    const [edited] = resolveBoundSymbolScope(manifestPath, ["SYM-PROD"]);
+    rmSync(source);
+    const [deleted] = resolveBoundSymbolScope(manifestPath, ["SYM-PROD"]);
+
+    expect(first?.sourceHash).toBe(
+      coordinateSourceHash("export const behavior = 'v1';\n"),
+    );
+    expect(edited?.sourceHash).toBe(
+      coordinateSourceHash("export const behavior = 'v2-edited';\n"),
+    );
+    expect(deleted).toEqual({ symbolId: "SYM-PROD", sourceHash: "missing" });
+
+    cleanup();
+  });
+
+  test("omits requested symbols that are unknown or have no source file", () => {
+    const root = join(TEST_DIR, "scope-missing-root");
+    mkdirSync(join(root, ".kb"), { recursive: true });
+    writeFileSync(join(root, "bound.ts"), "export {};\n");
+    const manifestPath = join(root, ".kb", "symbols.yaml");
+    writeFileSync(
+      manifestPath,
       `symbols:
   - id: SYM-BOUND
     title: Bound
-    sourceHash: ${"b".repeat(64)}
-  - id: SYM-EMPTY-HASH
-    title: Empty hash
-    sourceHash: ""
-  - id: SYM-UNBOUND
-    title: Unbound
+    sourceFile: bound.ts
+  - id: SYM-NO-SOURCE
+    title: No source
 `,
     );
 
     expect(
       resolveBoundSymbolScope(manifestPath, [
         "SYM-BOUND",
-        "SYM-EMPTY-HASH",
-        "SYM-UNBOUND",
+        "SYM-NO-SOURCE",
         "SYM-MISSING",
       ]),
-    ).toEqual([{ symbolId: "SYM-BOUND", sourceHash: "b".repeat(64) }]);
+    ).toEqual([
+      {
+        symbolId: "SYM-BOUND",
+        sourceHash: coordinateSourceHash("export {};\n"),
+      },
+    ]);
 
     cleanup();
   });

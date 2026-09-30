@@ -195,3 +195,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-94ec8562233f
+  - type: implements
+    from: SYM-core-domain-implication-witnesses
+    to: REQ-kibi-domain-redundancy
+    created_at: 2026-09-28T09:48:47.060Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3bab07c9084e
+  - type: covered_by
+    from: SYM-core-domain-implication-witnesses
+    to: TEST-kibi-vocabulary-convergence-e2e
+    created_at: 2026-09-28T09:48:47.082Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ef6de2555a1d
+  - type: implements
+    from: SYM-core-canonical-quantity
+    to: REQ-kibi-unit-canonicalization
+    created_at: 2026-09-28T09:48:54.829Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6276b5672006
+  - type: covered_by
+    from: SYM-core-canonical-quantity
+    to: TEST-kibi-vocabulary-convergence-e2e
+    created_at: 2026-09-28T09:48:54.846Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a0f11b7978f5

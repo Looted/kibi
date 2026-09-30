@@ -1,10 +1,18 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  writeFileSync,
+} from "node:fs";
 import path from "node:path";
 
 import { engineStopCommand } from "../../src/commands/engine.js";
 import { initCommand } from "../../src/commands/init.js";
+import { discoverSourceFiles } from "../../src/commands/sync/discovery.js";
+import { writePendingSourceReceipt } from "../../src/operations/mutation/source-authoring.js";
 import { executeApplyPlan } from "../../src/operations/planning/apply-plan.js";
 import {
   type CompilePlanV1,
@@ -381,5 +389,43 @@ Must remain independently testable.
     expect(
       readFileSync(path.join(cwd, "docs", "REQ-receipt-journal.md"), "utf8"),
     ).toBe(body);
+  });
+
+  test("deleting an untracked authored source retires its pending receipt so sync still discovers sources", async () => {
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    const cwd = createGitWorkspace();
+    roots.push(cwd);
+    // An upsert that created this file left it untracked with a receipt; the
+    // operator then deletes it before staging it.
+    const relative = ".kb/facts/FACT-untracked-delete.md";
+    const body = "---\nid: FACT-untracked-delete\n---\n";
+    mkdirSync(path.join(cwd, ".kb", "facts"), { recursive: true });
+    writeFileSync(path.join(cwd, relative), body);
+    writePendingSourceReceipt(cwd, relative, sha(body));
+    const pendingRoot = path.join(cwd, ".kb", "recovery", "pending-sources");
+    expect(readdirSync(pendingRoot)).toHaveLength(1);
+
+    const plan = compilePlan({
+      sourceWrites: [
+        {
+          path: relative,
+          mode: "delete",
+          beforeHash: sha(body),
+          afterHash: null,
+        },
+      ],
+    });
+    const result = await executeApplyPlan(
+      { plan, approvedPlanHash: plan.planHash },
+      filesystemContext(cwd),
+    );
+
+    expect(result.structuredContent.outcome).toBe("applied");
+    expect(existsSync(path.join(cwd, relative))).toBe(false);
+    expect(readdirSync(pendingRoot)).toEqual([]);
+    await expect(
+      discoverSourceFiles(cwd, { trackedOnly: true }),
+    ).resolves.toBeDefined();
   });
 });

@@ -314,3 +314,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-852f831e1d94
+  - type: implements
+    from: SYM-claude-Coordinates
+    to: REQ-claude-code-kibi-plugin-v1
+    created_at: 2026-09-27T09:22:32.255Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-41775c961c2f
+  - type: covered_by
+    from: SYM-claude-Coordinates
+    to: TEST-claude-code-kibi-plugin-v1
+    created_at: 2026-09-27T09:22:32.292Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-29c8581745ee
+  - type: implements
+    from: SYM-renderShardWithout
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-09-29T11:43:16.009Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c3e558fe57e8
+  - type: covered_by
+    from: SYM-renderShardWithout
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-09-29T11:43:16.037Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0d65155c20a7

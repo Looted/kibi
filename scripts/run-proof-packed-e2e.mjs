@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 import { spawn } from "node:child_process";
-import { mkdtemp, rm } from "node:fs/promises";
-import os from "node:os";
+import { rm } from "node:fs/promises";
 import path from "node:path";
+import { preparePackedCompilation } from "./compile-e2e-packed.mjs";
 
 const [testInput] = process.argv.slice(2);
 if (testInput === undefined || process.argv.length !== 3) {
@@ -30,11 +30,7 @@ if (
 }
 
 const testName = path.basename(relativeTestSource).replace(/\.ts$/, ".js");
-const compiledDirectory = await mkdtemp(
-  path.join(os.tmpdir(), "kibi-proof-packed-compiled-"),
-);
 const node = process.execPath;
-const tsc = path.resolve(repoRoot, "node_modules/typescript/bin/tsc");
 
 function run(command, args) {
   return new Promise((resolve, reject) => {
@@ -57,29 +53,15 @@ function run(command, args) {
   });
 }
 
+const prepared = await preparePackedCompilation({ repoRoot });
 try {
-  const compileExitCode = await run(node, [
-    tsc,
-    "-p",
-    path.join(repoRoot, "documentation/tests/e2e/packed/tsconfig.e2e.json"),
-    "--outDir",
-    compiledDirectory,
+  process.exitCode = await run(node, [
+    path.join(repoRoot, "scripts/run-packed-e2e.mjs"),
+    prepared.directory,
+    path.join(prepared.directory, testName),
   ]);
-  if (compileExitCode !== 0) process.exitCode = compileExitCode;
-  else {
-    const stageExitCode = await run(node, [
-      path.join(repoRoot, "scripts/stage-packed-brand-assets.mjs"),
-      compiledDirectory,
-    ]);
-    if (stageExitCode !== 0) process.exitCode = stageExitCode;
-    else {
-      process.exitCode = await run(node, [
-        path.join(repoRoot, "scripts/run-packed-e2e.mjs"),
-        compiledDirectory,
-        path.join(compiledDirectory, testName),
-      ]);
-    }
-  }
 } finally {
-  await rm(compiledDirectory, { recursive: true, force: true });
+  if (prepared.ownsDirectory) {
+    await rm(prepared.directory, { recursive: true, force: true });
+  }
 }

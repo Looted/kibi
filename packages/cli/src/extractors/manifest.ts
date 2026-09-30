@@ -71,6 +71,7 @@ type RelationshipType =
   | "publishes"
   | "consumes"
   | "supersedes"
+  | "restates"
   | "relates_to";
 
 const VALID_RELATIONSHIP_TYPES = new Set<RelationshipType>([
@@ -89,6 +90,7 @@ const VALID_RELATIONSHIP_TYPES = new Set<RelationshipType>([
   "publishes",
   "consumes",
   "supersedes",
+  "restates",
   "relates_to",
 ]);
 
@@ -133,6 +135,7 @@ const VALID_RELATIONSHIP_DIRECTIONS: ReadonlyArray<{
   { type: "consumes", from: "symbol", to: "event" },
   { type: "supersedes", from: "adr", to: "adr" },
   { type: "supersedes", from: "req", to: "req" },
+  { type: "restates", from: "req", to: "req" },
 ];
 
 const RELATIONSHIP_TYPE_DISPLAY_LIST = Array.from(VALID_RELATIONSHIP_TYPES)
@@ -553,50 +556,90 @@ export interface ReceiptCodeScopeEntry {
 }
 
 /**
- * Resolve the code scope of a receipt binding: for each proof-bound symbol,
- * its coordinate-recorded source hash. A receipt's binding covers these, so
- * editing the production code behind a test stales only that test's receipts
- * (per-contract binding mode).
+ * Resolve the code scope of a receipt binding: for each scoped symbol, the
+ * content hash of its current source file. A receipt's binding covers these,
+ * so editing code a test depends on stales only that test's receipts
+ * (per-contract binding mode). Hashes come from the live file, not the
+ * coordinate artifact: an edit must stale the receipt whether or not
+ * coordinates were refreshed. A scoped symbol whose file is gone hashes as
+ * "missing", so deleting it stales the receipt too; symbols without a
+ * source file cannot be hashed and are left out.
  */
 // implements REQ-kibi-verification-evidence-contract
-// Receipt-binding scope reads run once per proof-bearing test; a campaign
-// touches dozens-to-hundreds of tests, so the parsed overlay is memoized per
-// manifest state (path + mtime + size) and invalidated when the file changes.
-const boundSymbolScopeCache = new Map<
+// Scope reads run once per proof-bearing test and a campaign touches
+// dozens-to-hundreds of tests, so the manifest's symbol -> source mapping is
+// memoized per manifest state and file hashes per file state (mtime + size).
+const scopeSourceFileCache = new Map<
   string,
-  { stamp: string; records: ManifestSymbolRecord[] }
+  { stamp: string; sourceFiles: ReadonlyMap<string, string> }
 >();
+const scopeFileHashCache = new Map<string, { stamp: string; hash: string }>();
 
-function boundSymbolScopeRecords(manifestPath: string): ManifestSymbolRecord[] {
-  let stamp = "";
+function fileStamp(filePath: string): string | null {
   try {
-    const stats = statSync(manifestPath);
-    stamp = `${stats.mtimeMs}:${stats.size}`;
+    const stats = statSync(filePath);
+    return `${stats.mtimeMs}:${stats.size}`;
   } catch {
-    stamp = "missing";
+    return null;
   }
-  const hit = boundSymbolScopeCache.get(manifestPath);
-  if (hit && hit.stamp === stamp) return hit.records;
-  const records = readManifestWithCoordinateOverlay(manifestPath);
-  boundSymbolScopeCache.set(manifestPath, { stamp, records });
-  return records;
+}
+
+function scopeSourceFiles(manifestPath: string): ReadonlyMap<string, string> {
+  const stamp = fileStamp(manifestPath) ?? "missing";
+  const hit = scopeSourceFileCache.get(manifestPath);
+  if (hit && hit.stamp === stamp) return hit.sourceFiles;
+  const sourceFiles = new Map<string, string>();
+  if (stamp !== "missing") {
+    const records = extractManifestSymbolRecordsString(
+      readFileSync(manifestPath, "utf8"),
+      manifestPath,
+    );
+    for (const record of records) {
+      const sourceFile =
+        typeof record.sourceFile === "string" && record.sourceFile !== ""
+          ? record.sourceFile
+          : typeof record.source === "string" && record.source !== ""
+            ? record.source
+            : undefined;
+      if (typeof record.id === "string" && sourceFile !== undefined) {
+        sourceFiles.set(record.id, sourceFile);
+      }
+    }
+  }
+  scopeSourceFileCache.set(manifestPath, { stamp, sourceFiles });
+  return sourceFiles;
+}
+
+function scopeFileHash(absolutePath: string): string {
+  const stamp = fileStamp(absolutePath);
+  if (stamp === null) return "missing";
+  const hit = scopeFileHashCache.get(absolutePath);
+  if (hit && hit.stamp === stamp) return hit.hash;
+  const hash = createHash("sha256")
+    .update(readFileSync(absolutePath))
+    .digest("hex");
+  scopeFileHashCache.set(absolutePath, { stamp, hash });
+  return hash;
 }
 
 export function resolveBoundSymbolScope(
   manifestPath: string,
   symbolIds: readonly string[],
 ): ReceiptCodeScopeEntry[] {
-  const wanted = new Set(symbolIds);
-  if (wanted.size === 0) return [];
-  const records = boundSymbolScopeRecords(manifestPath);
-  const scope: { symbolId: string; sourceHash: string }[] = [];
-  for (const record of records) {
-    const symbolId = typeof record.id === "string" ? record.id : undefined;
-    if (symbolId === undefined || !wanted.has(symbolId)) continue;
-    const sourceHash = (record as { sourceHash?: unknown }).sourceHash;
-    if (typeof sourceHash === "string" && sourceHash !== "") {
-      scope.push({ symbolId, sourceHash });
-    }
+  const wanted = [...new Set(symbolIds)];
+  if (wanted.length === 0) return [];
+  const sourceFiles = scopeSourceFiles(manifestPath);
+  // The manifest lives at <workspace>/.kb/symbols.yaml; source files are
+  // workspace-relative.
+  const workspaceRoot = path.dirname(path.dirname(path.resolve(manifestPath)));
+  const scope: ReceiptCodeScopeEntry[] = [];
+  for (const symbolId of wanted) {
+    const sourceFile = sourceFiles.get(symbolId);
+    if (sourceFile === undefined) continue;
+    const absolute = path.isAbsolute(sourceFile)
+      ? sourceFile
+      : path.resolve(workspaceRoot, sourceFile);
+    scope.push({ symbolId, sourceHash: scopeFileHash(absolute) });
   }
   scope.sort((left, right) => left.symbolId.localeCompare(right.symbolId));
   return scope;

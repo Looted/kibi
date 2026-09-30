@@ -132,3 +132,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a763e66ef937
+  - type: implements
+    from: SYM-cli-queryEntitiesViaQuery
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-09-27T22:11:01.987Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2a55dc607c21
+  - type: covered_by
+    from: SYM-cli-queryEntitiesViaQuery
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-09-27T22:11:02.030Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4baacc1a386f
+  - type: implements
+    from: SYM-agent-core-isKbPath
+    to: REQ-codex-kibi-plugin-v1
+    created_at: 2026-09-27T16:56:22.109Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b79c02f8ee90
+  - type: covered_by
+    from: SYM-agent-core-isKbPath
+    to: TEST-codex-kibi-plugin-v1
+    created_at: 2026-09-27T16:56:22.230Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-96624281680b

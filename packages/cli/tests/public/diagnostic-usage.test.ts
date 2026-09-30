@@ -57,13 +57,10 @@ describe("deriveDiagnosticUsageFields", () => {
       { is_autonomous: true, session_id: "s1", actor_id: "a1" },
       {
         kibiProtocol: 1,
-        data: {
-          kibiProtocol: 1,
-          resultVersion: "kibi.search.v1",
-          status: "ok",
-          count: 3,
-          effects: [{ status: "failed" }, "skip", { status: "ok" }],
-        },
+        resultVersion: "kibi.search.v1",
+        status: "ok",
+        effects: [{ status: "failed" }, "skip", { status: "ok" }],
+        data: { count: 3 },
       },
     );
     expect(cli).toMatchObject({
@@ -216,7 +213,9 @@ describe("appendCliDiagnosticUsage", () => {
       status: "error",
       error_message: "boom",
       duration_ms: 1000,
-      violation_count: 0,
+      // A failed call produced no payload, so the count stays unknown rather
+      // than claiming the check found no violations.
+      violation_count: null,
     });
   });
 });

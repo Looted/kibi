@@ -209,12 +209,26 @@ export async function perContractTestBindings(
   const { removeFrontmatterBlock } = await import(
     "../../../operations/proof/receipt-document.js"
   );
+  const { loadCoveredBySymbolsByTest, receiptCodeScopeSymbolIds } =
+    await import("../../../operations/proof/code-scope.js");
+  // Only the contract, scoped code, and authored source feed the binding
+  // hash. The paged projection never materializes receipt histories, which
+  // grow without bound and previously overflowed the bounded Prolog output
+  // on real stores. Engine failures must surface: silently dropping to strict
+  // snapshot semantics would hide an unhealthy engine behind stale receipts.
   let tests: Record<string, unknown>[];
   try {
-    tests = await loadEntities(context.prolog as never, { type: "test" });
-  } catch {
-    return null;
+    tests = await loadEntities(requireProlog(context), {
+      type: "test",
+      projection: "proof_contract",
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Per-contract receipt binding query failed: ${message}`);
   }
+  const coveredBy = tests.length
+    ? await loadCoveredBySymbolsByTest(requireProlog(context))
+    : new Map<string, readonly string[]>();
   const entries: string[] = [];
   const manifestPath = join(context.workspaceRoot, ".kb", "symbols.yaml");
   for (const test of tests) {
@@ -233,17 +247,14 @@ export async function perContractTestBindings(
       const absolute = join(context.workspaceRoot, source);
       const authored = await context.fs.readFile(absolute);
       const stripped = removeFrontmatterBlock(authored, "proof_receipts");
-      const rawBindings: ReadonlyArray<{ symbol_id?: unknown }> = Array.isArray(
-        test.proof_bindings,
-      )
-        ? (test.proof_bindings as ReadonlyArray<{ symbol_id?: unknown }>)
-        : [];
-      const boundIds = rawBindings
-        .map((binding) =>
-          typeof binding.symbol_id === "string" ? binding.symbol_id : "",
-        )
-        .filter((id) => id !== "");
-      const codeScope = resolveBoundSymbolScope(manifestPath, boundIds);
+      const codeScope = resolveBoundSymbolScope(
+        manifestPath,
+        receiptCodeScopeSymbolIds(
+          contract,
+          test.proof_bindings,
+          coveredBy.get(testId) ?? [],
+        ),
+      );
       const binding = receiptBindingHash(
         contract as never,
         stripped ?? authored,
@@ -256,6 +267,42 @@ export async function perContractTestBindings(
   }
   if (entries.length === 0) return null;
   return `_{${entries.join(", ")}}`;
+}
+
+/**
+ * Coverage rows can be large (full proof stages per requirement), so a
+ * whole-KB report in one answer approaches the engine's bounded output cap.
+ * Fetch it in small row pages instead; the engine memoizes the computed
+ * report per store generation, so later pages only paginate and encode.
+ */
+export const COVERAGE_ROW_PAGE_SIZE = 10;
+
+// implements REQ-kibi-verification-evidence-contract
+export async function readCoveragePages(
+  prolog: NonNullable<OperationContext["prolog"]>,
+  goalFor: (limit: number, offset: number) => string,
+  limit: number,
+  offset: number,
+): Promise<CoveragePayload> {
+  const read = (pageLimit: number, pageOffset: number) =>
+    runOperationJsonQuery<CoveragePayload>(
+      prolog,
+      "discovery.pl",
+      goalFor(pageLimit, pageOffset),
+      "Coverage execution",
+    );
+  if (limit <= COVERAGE_ROW_PAGE_SIZE) return read(limit, offset);
+  const first = await read(COVERAGE_ROW_PAGE_SIZE, offset);
+  const rows = [...first.rows];
+  let lastPageSize = first.rows.length;
+  let lastPageLimit = COVERAGE_ROW_PAGE_SIZE;
+  while (lastPageSize === lastPageLimit && rows.length < limit) {
+    lastPageLimit = Math.min(COVERAGE_ROW_PAGE_SIZE, limit - rows.length);
+    const page = await read(lastPageLimit, offset + rows.length);
+    rows.push(...page.rows);
+    lastPageSize = page.rows.length;
+  }
+  return { ...first, rows };
 }
 
 export async function executeCoverage(
@@ -275,17 +322,17 @@ export async function executeCoverage(
       statuses.length === 0 && (input.by ?? "req") === "req"
         ? await perContractTestBindings(context)
         : null;
-    const goal =
+    const goalFor = (limit: number, offset: number): string =>
       bindingsDict !== null
-        ? `discovery:coverage_report_json('${input.by ?? "req"}', ${toPrologList(input.tags)}, ${input.includePassing ?? false}, per_contract, ${bindingsDict}, ${input.includeTransitive ?? true}, ${input.limit ?? 100}, ${input.offset ?? 0}, ${toPrologAtom(codeSnapshot)}, ${toPrologAtom(checkedAt)}, ${PROOF_RECEIPT_MAX_AGE_SECONDS}, JsonString)`
+        ? `discovery:coverage_report_json('${input.by ?? "req"}', ${toPrologList(input.tags)}, ${input.includePassing ?? false}, per_contract, ${bindingsDict}, ${input.includeTransitive ?? true}, ${limit}, ${offset}, ${toPrologAtom(codeSnapshot)}, ${toPrologAtom(checkedAt)}, ${PROOF_RECEIPT_MAX_AGE_SECONDS}, JsonString)`
         : statuses.length > 0
-          ? `discovery:coverage_report_json('${input.by ?? "req"}', ${toPrologList(input.tags)}, ${input.includePassing ?? false}, ${toPrologList(statuses)}, ${input.includeTransitive ?? true}, ${input.limit ?? 100}, ${input.offset ?? 0}, ${toPrologAtom(codeSnapshot)}, ${toPrologAtom(checkedAt)}, ${PROOF_RECEIPT_MAX_AGE_SECONDS}, JsonString)`
-          : `discovery:coverage_report_json('${input.by ?? "req"}', ${toPrologList(input.tags)}, ${input.includePassing ?? false}, ${input.includeTransitive ?? true}, ${input.limit ?? 100}, ${input.offset ?? 0}, ${toPrologAtom(codeSnapshot)}, ${toPrologAtom(checkedAt)}, ${PROOF_RECEIPT_MAX_AGE_SECONDS}, JsonString)`;
-    const payload = await runOperationJsonQuery<CoveragePayload>(
+          ? `discovery:coverage_report_json('${input.by ?? "req"}', ${toPrologList(input.tags)}, ${input.includePassing ?? false}, ${toPrologList(statuses)}, ${input.includeTransitive ?? true}, ${limit}, ${offset}, ${toPrologAtom(codeSnapshot)}, ${toPrologAtom(checkedAt)}, ${PROOF_RECEIPT_MAX_AGE_SECONDS}, JsonString)`
+          : `discovery:coverage_report_json('${input.by ?? "req"}', ${toPrologList(input.tags)}, ${input.includePassing ?? false}, ${input.includeTransitive ?? true}, ${limit}, ${offset}, ${toPrologAtom(codeSnapshot)}, ${toPrologAtom(checkedAt)}, ${PROOF_RECEIPT_MAX_AGE_SECONDS}, JsonString)`;
+    const payload = await readCoveragePages(
       requireProlog(context),
-      "discovery.pl",
-      goal,
-      "Coverage execution",
+      goalFor,
+      input.limit ?? 100,
+      input.offset ?? 0,
     );
     const rows =
       (input.by ?? "req") === "req"

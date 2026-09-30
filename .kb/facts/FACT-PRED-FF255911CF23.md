@@ -21,4 +21,5 @@ claim_key: CLAIM-555607C28C9614A2
 claim_text: It must spawn the declared kibi-mcp bin with cwd and KIBI_WORKSPACE set to the consumer workspace, preserve stdio, and propagate child exit codes and termination signals
 id: FACT-PRED-FF255911CF23
 type: fact
+predicate_namespace: kibi.launcher
 ---

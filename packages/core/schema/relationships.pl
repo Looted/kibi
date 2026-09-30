@@ -17,6 +17,7 @@ relationship_type(publishes).
 relationship_type(consumes).
 relationship_type(relates_to).
 relationship_type(supersedes).
+relationship_type(restates).
 relationship_type(constrains).
 relationship_type(requires_property).
 relationship_type(requires_predicate).
@@ -49,6 +50,13 @@ valid_relationship(requires_rule, req, fact).
 %% OldAdrId's status should be archived or deprecated as a consequence.
 valid_relationship(supersedes, adr, adr).
 valid_relationship(supersedes, req, req).
+
+%% restates(+ReqId, +OtherReqId)
+%% ReqId intentionally restates OtherReqId (for example a product requirement
+%% echoed in a platform requirement). Both stay current; the pair is exempt
+%% from domain-redundancy. Use supersedes when one replaces the other.
+% implements REQ-kibi-restates-relationship
+valid_relationship(restates, req, req).
 % escape hatch - allow any to any
 valid_relationship(relates_to, _, _).
 

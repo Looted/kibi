@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import path from "node:path";
 
-import { loadEntities } from "../../public/operations/discovery-entities.js";
+import { loadEntityIds } from "../../public/operations/discovery-entities.js";
 import { executeStatus } from "../../public/operations/discovery-executors.js";
 import type { OperationContext } from "../../public/operations/runtime-types.js";
 import { readWorkspaceSnapshot } from "../../public/operations/workspace-snapshot.js";
@@ -113,10 +113,9 @@ async function existingEntityIds(
 ): Promise<ReadonlySet<string>> {
   if (!context.prolog) return new Set<string>();
   try {
-    const entities = await loadEntities(context.prolog, {});
-    return new Set(
-      entities.map((entity) => String(entity.id ?? "")).filter(Boolean),
-    );
+    // Ids only: materializing every entity (receipt histories included)
+    // just to build this set exceeds the bounded engine output.
+    return new Set((await loadEntityIds(context.prolog)).filter(Boolean));
   } catch {
     return new Set<string>();
   }

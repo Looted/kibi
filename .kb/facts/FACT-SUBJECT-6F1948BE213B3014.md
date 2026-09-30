@@ -8,7 +8,7 @@ tags:
   - fact:subject
 text_ref: .kb/requirements/REQ-zcode-kibi-plugin-v1.md#L1
 fact_kind: subject
-subject_key: kibi_zcode_adapter
+subject_key: zcode.kibi_adapter
 canonical_key: kibi_zcode_adapter
 claim_key: CLAIM-BE46AFC52D56D8C6
 claim_text: The kibi-zcode package must remain optional

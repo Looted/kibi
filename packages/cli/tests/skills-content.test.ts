@@ -63,7 +63,34 @@ describe("bundled Kibi skills", () => {
     );
 
     expect(directions).toContain("| `supersedes` | new-req -> old-req |");
-    expect(directions).toContain("from: REQ-001-v2\n    to: REQ-001");
+    expect(directions).toContain(
+      "from: REQ-opencode-kibi-briefing-v2\n    to: REQ-opencode-kibi-briefing-v1",
+    );
     expect(directions).not.toContain("| `supersedes` | old-req -> new-req |");
+  });
+
+  test("documents restates and uses slug IDs instead of sequence numbers", () => {
+    const directions = readBundledSkillResource(
+      "kibi-usage",
+      "resources/relationship-directions.md",
+    );
+    const authoring = readBundledSkillResource(
+      "kibi-usage",
+      "resources/source-authoring.md",
+    );
+
+    expect(directions).toContain("| `restates` | req -> req |");
+    expect(directions).toContain("type: restates");
+    expect(authoring).toContain("## Naming entities");
+    expect(authoring).toContain('Never choose "the next number"');
+    for (const text of [directions, authoring]) {
+      const numbered = text.match(
+        /\b(?:REQ|SCEN|TEST|ADR|FLAG|EVT|SYM)-\d+\b/g,
+      );
+      // Only the grandfathering note may cite a legacy numbered ID.
+      expect(
+        (numbered ?? []).filter((id) => !["REQ-123", "REQ-003"].includes(id)),
+      ).toEqual([]);
+    }
   });
 });

@@ -1,9 +1,11 @@
 import { describe, expect, test } from "bun:test";
 import {
   diffFingerprints,
+  evaluateSemanticBaseline,
   fingerprintRequirements,
   parseSpawnJson,
   renderRequirementDiffs,
+  semanticGaps,
 } from "../lib/proof-baseline-diff.mjs";
 
 describe("proof baseline fingerprints", () => {
@@ -89,5 +91,94 @@ describe("proof baseline fingerprints", () => {
       stderr: "integrity noise",
     });
     expect(parsed.structuredContent.violations).toHaveLength(1);
+  });
+});
+
+function staleRow(
+  id: string,
+  extraGaps: string[] = [],
+  candidates: unknown[] = [{ testId: "TEST-e2e" }],
+) {
+  return {
+    id,
+    proofStatus: "unresolved",
+    proofGaps: [
+      "stale_proof_receipt",
+      "missing_production_symbol_coverage",
+      ...extraGaps,
+    ],
+    proofStages: {
+      productionSymbols: {
+        uncoveredSymbols: ["SYM-a"],
+        explanations: [
+          {
+            symbolId: "SYM-a",
+            reason: "stage_blocked_no_passing_e2e",
+            coverageCandidates: candidates,
+          },
+        ],
+      },
+    },
+  };
+}
+
+const provenBaseline = (ids: string[]) => ({
+  currentRequirements: ids.length,
+  requirements: Object.fromEntries(
+    ids.map((id) => [
+      id,
+      { proofStatus: "proven", gaps: [], uncoveredSymbols: [] },
+    ]),
+  ),
+});
+
+describe("semantic-only proof baseline", () => {
+  test("stale receipts and the coverage gap they cause are set aside", () => {
+    expect(semanticGaps(staleRow("REQ-A"))).toEqual([]);
+    expect(
+      evaluateSemanticBaseline(provenBaseline(["REQ-A"]), [staleRow("REQ-A")])
+        .failures,
+    ).toEqual([]);
+  });
+
+  test("a symbol with no covered_by link stays a real coverage gap", () => {
+    expect(semanticGaps(staleRow("REQ-A", [], []))).toEqual([
+      "missing_production_symbol_coverage",
+    ]);
+  });
+
+  test("grounding and contradiction regressions fail even with stale evidence", () => {
+    const result = evaluateSemanticBaseline(provenBaseline(["REQ-A"]), [
+      staleRow("REQ-A", [
+        "ambiguous_logic_grounding",
+        "contradiction_check_incomplete",
+      ]),
+    ]);
+    expect(result.regressions).toEqual([
+      {
+        id: "REQ-A",
+        gaps: ["ambiguous_logic_grounding", "contradiction_check_incomplete"],
+      },
+    ]);
+    expect(result.failures).toHaveLength(1);
+  });
+
+  test("new current requirements must be added to the baseline", () => {
+    const result = evaluateSemanticBaseline(provenBaseline(["REQ-A"]), [
+      staleRow("REQ-A"),
+      staleRow("REQ-B"),
+    ]);
+    expect(result.failures).toContain(
+      "current requirement count changed from 1 to 2",
+    );
+    expect(result.regressions.map((item) => item.id)).toEqual(["REQ-B"]);
+  });
+
+  test("not_applicable rows are not current requirements", () => {
+    const result = evaluateSemanticBaseline(provenBaseline(["REQ-A"]), [
+      staleRow("REQ-A"),
+      { id: "REQ-OLD", proofStatus: "not_applicable", proofGaps: [] },
+    ]);
+    expect(result.failures).toEqual([]);
   });
 });

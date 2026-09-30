@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: subject
-subject_key: req.req_skillopt_paid_launch_accounting
+subject_key: kibi.skillopt.paid_launch
 canonical_key: req.req_skillopt_paid_launch_accounting
 id: FACT-SUBJ-REQ-SKILLOPT-PAID-LAUNCH-ACCOUNTING
 type: fact

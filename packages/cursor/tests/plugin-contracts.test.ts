@@ -73,6 +73,7 @@ const EMPTY_HOOK_STATE: import("../src/hook-state").HookState = {
   mcpState: "unknown",
   dirtyPaths: [],
   guidedReadPaths: [],
+  guidedPreEditPaths: [],
   guidedWritePaths: [],
   kbMutationTools: [],
   kbCheckRun: false,
@@ -787,7 +788,9 @@ describe("Cursor path policy", () => {
       ["src/a.md", false],
       ["src/ts", false],
       ["src/a.min.js", true],
-      ["lib/a.ts", false],
+      ["lib/a.ts", true],
+      ["app/main.go", true],
+      ["root.ts", true],
       ["src/asset.bin", false],
       ["tests/src/a.ts", false],
       ["test/src/a.ts", false],
@@ -875,17 +878,15 @@ describe("Cursor guidance and advisories", () => {
       'kb_check({sourceFiles:["src/a.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true})',
     );
     expect(codeGuidance).toContain(
-      'resolve freshness with kb_search/kb_query for sourceFile="src/a.ts"',
-    );
-    expect(codeGuidance).toContain(
-      "Prefer symbol manifest + executable_for or // implements REQ-xxx for traceability.",
+      "Prefer symbol manifest + executable_for or // implements REQ-<area>-<behavior> for traceability.",
     );
     expect(codeGuidance?.split("\n")[0]).toBe(
-      "Kibi write guidance: use the selected MCP or CLI JSON route to link production symbols to requirements.",
+      'Kibi impact review: run kb_check({sourceFiles:["src/a.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) while this edit is fresh.',
     );
-    expect(codeGuidance).toContain(
-      "Do not read or edit `.kb/` files directly. Query before mutate; run kb_upsert sequentially and kb_check before completion.",
-    );
+    // Retrieval is asked for before the edit, so the post-edit message must
+    // not repeat it here.
+    expect(codeGuidance).not.toContain("kb_search");
+    expect(codeGuidance).not.toContain("before changing");
   });
 
   test("guidance is withheld outside kibi workspaces or tracked paths", () => {
@@ -912,7 +913,7 @@ describe("Cursor guidance and advisories", () => {
     expect(docAdvisory?.split("\n")).toHaveLength(3);
 
     const codeAdvisory = writeGuidance("/repo/src/a.ts", trustedContext);
-    expect(codeAdvisory?.split("\n")).toHaveLength(6);
+    expect(codeAdvisory?.split("\n")).toHaveLength(4);
   });
 
   test("interface advisories match the selected interface", () => {
@@ -1207,7 +1208,7 @@ describe("Cursor hook runner decisions", () => {
       },
       { pluginData },
     );
-    expect(writeGuided.additional_context).toContain("Kibi write guidance:");
+    expect(writeGuided.additional_context).toContain("Kibi impact review:");
 
     const writeRepeat = await runHook(
       {

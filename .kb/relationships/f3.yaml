@@ -241,3 +241,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3b547362e786
+  - type: implements
+    from: SYM-cli-queryEntityChunks
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-09-27T22:10:48.749Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-25ecbf5c3af4
+  - type: covered_by
+    from: SYM-cli-queryEntityChunks
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-09-27T22:10:48.799Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ddf00ce8336d

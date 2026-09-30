@@ -112,7 +112,7 @@ describe("MCP tool handler error wrappers", () => {
         by: "req",
       }),
     ).rejects.toThrow(
-      "Coverage execution failed: Coverage execution query failed: coverage backend unavailable",
+      "Coverage execution failed: Per-contract receipt binding query failed: coverage backend unavailable",
     );
   });
 

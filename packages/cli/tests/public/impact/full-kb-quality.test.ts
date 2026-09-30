@@ -28,6 +28,8 @@ const entityRows = [
   ],
 ] as const;
 
+const ENTITY_IDS_GOAL = "findall(Id, kb_entity(Id, _, _), Ids)";
+
 function goalText(goal: string | readonly string[]): string {
   return typeof goal === "string" ? goal : goal.join(",");
 }
@@ -40,6 +42,12 @@ function makeProlog(
     goal: string | readonly string[],
   ): Promise<QueryResult> => {
     const text = Array.isArray(goal) ? goal.join(",") : goal;
+    if (text === ENTITY_IDS_GOAL) {
+      return {
+        success: true,
+        bindings: { Ids: `[${entityRows.map((row) => row[0]).join(",")}]` },
+      };
+    }
     if (text.includes("kb_entity")) {
       return {
         success: true,
@@ -99,6 +107,12 @@ describe("collectFullKbQualityDiagnostics", () => {
     const prolog: Pick<PrologProcess, "query"> = {
       query: async (goal): Promise<QueryResult> => {
         const text = Array.isArray(goal) ? goal.join(",") : goal;
+        if (text === ENTITY_IDS_GOAL) {
+          return {
+            success: true,
+            bindings: { Ids: "['REQ-NORMATIVE','RULE-SCHEMA']" },
+          };
+        }
         if (text.includes("kb_entity")) {
           return {
             success: true,
@@ -142,7 +156,7 @@ describe("collectFullKbQualityDiagnostics", () => {
     ]);
   });
 
-  it("falls back to complete bounded pages without dropping rich entity metadata", async () => {
+  it("loads complete bounded pages without an unbounded probe or dropping rich entity metadata", async () => {
     const ids = Array.from({ length: 33 }, (_, index) => `ENTITY-${index}`);
     const bulkGoal =
       "findall([Id,Type,Props], kb_entity(Id, Type, Props), Results)";
@@ -206,17 +220,13 @@ describe("collectFullKbQualityDiagnostics", () => {
     expect(results[0]?.relationships).toEqual([
       { from: "ENTITY-0", to: "ENTITY-1", type: "implements" },
     ]);
-    expect(calls.filter((goal) => goal === bulkGoal)).toHaveLength(1);
+    // An unbounded all-entities answer can overflow and terminate the
+    // interactive session, so the loader never issues it.
+    expect(calls.filter((goal) => goal === bulkGoal)).toHaveLength(0);
+    expect(calls[0]).toBe(ENTITY_IDS_GOAL);
     expect(calls.filter((goal) => goal.includes("member(Id, ["))).toHaveLength(
       2,
     );
-    expect(
-      calls.some(
-        (goal) =>
-          goal ===
-          "findall([Id,Type,Props], kb_entity(Id, Type, Props), Results)",
-      ),
-    ).toBe(true);
   });
 
   it("prefers the existing indexed paginated backend when available", async () => {
@@ -352,8 +362,9 @@ describe("collectFullKbQualityDiagnostics", () => {
     await expect(loadKbExtractionResults(prolog)).rejects.toThrow(
       "Full KB entity projection failed for TOO-LARGE",
     );
-    expect(calls).toHaveLength(3);
-    expect(calls.slice(2).every((goal) => goal.includes("member(Id, ["))).toBe(
+    expect(calls).toHaveLength(2);
+    expect(calls[0]).toBe(ENTITY_IDS_GOAL);
+    expect(calls.slice(1).every((goal) => goal.includes("member(Id, ["))).toBe(
       true,
     );
   });
@@ -373,11 +384,9 @@ describe("collectFullKbQualityDiagnostics", () => {
     };
 
     await expect(loadKbExtractionResults(prolog)).rejects.toThrow(
-      "Full KB entity projection query failed: permission denied",
+      "Full KB entity ID enumeration query failed: permission denied",
     );
-    expect(calls).toEqual([
-      "findall([Id,Type,Props], kb_entity(Id, Type, Props), Results)",
-    ]);
+    expect(calls).toEqual([ENTITY_IDS_GOAL]);
   });
 
   it("loads entities and relationships from Prolog and combines quality diagnostics", async () => {

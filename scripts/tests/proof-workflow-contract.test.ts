@@ -40,6 +40,10 @@ const proofPackedRunner = readFileSync(
   join(ROOT, "scripts", "run-proof-packed-e2e.mjs"),
   "utf8",
 );
+const packedCompile = readFileSync(
+  join(ROOT, "scripts", "compile-e2e-packed.mjs"),
+  "utf8",
+);
 
 describe("strict proof workflow contract", () => {
   test("integrations execute through kibi prove with declarative steps", () => {
@@ -93,6 +97,7 @@ describe("strict proof workflow contract", () => {
       "120000",
       "./packages/cli/tests/proof/receipt-binding.test.ts",
       "./packages/cli/tests/extractors/manifest.test.ts",
+      "./scripts/tests/ci-proof-reuse.test.ts",
     ]);
 
     expect(steps.length).toBeGreaterThan(0);
@@ -186,6 +191,61 @@ describe("strict proof workflow contract", () => {
     expect(ciWorkflow).not.toContain("Generate Kibi requirement health report");
   });
 
+  test("master PR proof gate reuses only an attested develop push", () => {
+    const workflow = Bun.YAML.parse(proofWorkflow) as {
+      on: {
+        push: { branches: string[] };
+        pull_request: { branches: string[] };
+      };
+      permissions: Record<string, string>;
+      jobs: { proof: { steps: Array<Record<string, unknown>> } };
+    };
+    expect(workflow.on.push.branches).toEqual(["develop"]);
+    expect(workflow.on.pull_request.branches).toEqual(["develop", "master"]);
+    expect(workflow.permissions).toMatchObject({
+      contents: "read",
+      actions: "read",
+    });
+    const proofSteps = workflow.jobs.proof.steps;
+    const names = proofSteps.map((step) => step.name);
+    expect(
+      proofSteps.find((step) => step.name === "Checkout")?.with,
+    ).toMatchObject({
+      ref: "${{ github.sha }}",
+      "fetch-depth": 1,
+    });
+    expect(
+      names.indexOf("Check whether master PR can reuse develop proof"),
+    ).toBeLessThan(names.indexOf("Bootstrap Ubuntu packages"));
+    expect(names.indexOf("Attest successful develop proof")).toBeGreaterThan(
+      names.indexOf("Generate requirement health report"),
+    );
+    for (const name of [
+      "Bootstrap Ubuntu packages",
+      "Install SWI-Prolog",
+      "Build packages used by packed proof contracts",
+      "Sync and validate integrity of the proof snapshot",
+      "Prove every contracted test through Kibi",
+      "Enforce proof baseline and clean snapshot",
+    ]) {
+      expect(proofSteps.find((step) => step.name === name)?.if).toContain(
+        "steps.reuse.outputs.reuse != 'true'",
+      );
+      expect(proofSteps.find((step) => step.name === name)?.if).toContain(
+        "steps.reuse.outcome != 'success'",
+      );
+    }
+    expect(proofWorkflow).toContain(
+      "KIBI_BRANCH: ${{ github.event_name == 'pull_request' && github.base_ref == 'master' && 'master'",
+    );
+    expect(names).toContain("Upload develop proof attestation");
+    expect(names).toContain("Upload proof reuse decision");
+    expect(
+      proofSteps.find((step) => step.name === "Attest successful develop proof")
+        ?.if,
+    ).toContain("github.event_name == 'push'");
+  });
+
   test("packed proof steps isolate compilation and cleanup", () => {
     const packedSteps = steps.flatMap((entry) =>
       entry.steps.filter(
@@ -201,12 +261,14 @@ describe("strict proof workflow contract", () => {
       );
       expect(step.join(" ")).not.toContain("/tmp/kibi-e2e-packed-compiled");
     }
-    expect(proofPackedRunner).toContain("mkdtemp(");
+    expect(proofPackedRunner).toContain("preparePackedCompilation");
     expect(proofPackedRunner).toContain("run-packed-e2e.mjs");
     expect(proofPackedRunner).toContain("KIBI_PROOF_PACKED");
+    expect(proofPackedRunner).toContain("prepared.ownsDirectory");
     expect(proofPackedRunner).toContain(
-      "rm(compiledDirectory, { recursive: true, force: true })",
+      "rm(prepared.directory, { recursive: true, force: true })",
     );
+    expect(packedCompile).toContain("mkdtemp(");
   });
 
   test("equality baseline locks full current-requirement proof", () => {
@@ -217,8 +279,8 @@ describe("strict proof workflow contract", () => {
     );
     // Equality floor: every current requirement is proven end to end. Bump
     // this floor in the same commit that deliberately raises the baseline.
-    expect(baseline.currentRequirements).toBe(109);
-    expect(baseline.proofProven).toBe(109);
+    expect(baseline.currentRequirements).toBe(123);
+    expect(baseline.proofProven).toBe(123);
     expect(baseline.currentUnproven).toBe(0);
     expect(Object.keys(baseline.trackedGaps ?? {})).toEqual([]);
     expect(Object.keys(baseline.requirements ?? {}).length).toBe(

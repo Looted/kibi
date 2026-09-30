@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_cli_gc
+subject_key: kibi.cli.gc
 property_key: clause_01_the_kibi_gc_command_removes_stale_kb_branch_stor
 operator: eq
 value_type: bool

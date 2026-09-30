@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: subject
-subject_key: req.req_cli_doctor_packed_provenance
+subject_key: kibi.cli.doctor
 canonical_key: req.req_cli_doctor_packed_provenance
 id: FACT-SUBJ-REQ-CLI-DOCTOR-PACKED-PROVENANCE
 type: fact

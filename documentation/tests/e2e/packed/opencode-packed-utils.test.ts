@@ -80,6 +80,7 @@ describe("opencode packed utility helpers", () => {
     const prefix = mkdtempSync(join(tmpdir(), "kibi-packed-manifest-test-"));
     const tarballs = {
       core: "/tmp/kibi/core.tgz",
+      "agent-core": "/tmp/kibi/agent-core.tgz",
       cli: "/tmp/kibi/cli.tgz",
       runtime: "/tmp/kibi/runtime.tgz",
       mcp: "/tmp/kibi/mcp.tgz",
@@ -92,6 +93,7 @@ describe("opencode packed utility helpers", () => {
     };
     const packageFiles = {
       "kibi-core": `file:${tarballs.core}`,
+      "kibi-agent-core": `file:${tarballs["agent-core"]}`,
       "kibi-cli": `file:${tarballs.cli}`,
       "kibi-runtime": `file:${tarballs.runtime}`,
       "kibi-mcp": `file:${tarballs.mcp}`,

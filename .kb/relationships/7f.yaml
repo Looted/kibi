@@ -174,3 +174,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b52f07d4e723
+  - type: implements
+    from: SYM-normalizeResultPayload
+    to: REQ-kibi-telemetry-remediation-evidence
+    created_at: 2026-09-25T16:14:36.717Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-224d2f3b7242
+  - type: covered_by
+    from: SYM-normalizeResultPayload
+    to: TEST-kibi-telemetry-remediation-evidence
+    created_at: 2026-09-25T16:21:31.234Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-77d080cc3542

@@ -20,4 +20,5 @@ claim_key: CLAIM-63FDA15E922B547A
 claim_text: An activated capability plugin must export validated protocol kibi.plugin.v1 from the named export kibiPlugin
 id: FACT-PRED-AA31211A7FD4
 type: fact
+predicate_namespace: kibi.capability
 ---

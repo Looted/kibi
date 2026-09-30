@@ -75,6 +75,7 @@ import { loadEntityPaths } from "../utils/config.js";
 import {
   SYNC_CACHE_TTL_MS,
   SYNC_CACHE_VERSION,
+  SYNC_COMPILER_FINGERPRINT,
   hashFile,
   hashManifestWithCoordinates,
   hashNormalized,
@@ -109,6 +110,11 @@ import {
   createUniqueStagingPath,
   prepareStagingEnvironment,
 } from "./sync/staging.js";
+
+// Manual deletion of a written-but-unstaged source leaves a recovery receipt
+// behind; sync refuses to guess, so the error must name the way out.
+const PENDING_SOURCE_RECOVERY_HINT =
+  " If the file was deleted on purpose, run 'kibi branch recover --apply' to rebuild the branch KB from the sources that remain.";
 
 export class SyncError extends Error {
   constructor(message: string) {
@@ -228,7 +234,9 @@ export function trackedRelationshipFiles(
           }
           continue;
         }
-        throw new SyncError(`Pending source is missing: ${relative}`);
+        throw new SyncError(
+          `Pending source is missing: ${relative}.${PENDING_SOURCE_RECOVERY_HINT}`,
+        );
       }
       const actual = createHash("sha256")
         .update(readFileSync(absolute))
@@ -600,7 +608,9 @@ export async function syncCommand(
 
     const sourceFiles = [...markdownFiles, ...manifestFiles].sort();
     const cachePath = path.join(livePathForEngine, "sync-cache.json");
-    const syncCache = readSyncCache(cachePath);
+    const syncCache = readSyncCache(cachePath, undefined, {
+      compilerFingerprint: SYNC_COMPILER_FINGERPRINT,
+    });
     const nowIso = new Date().toISOString();
     const nowMs = Date.now();
     const currentSourceKeys = new Set(
@@ -1056,6 +1066,7 @@ export async function syncCommand(
         seenAt: evictedSeenAt,
         semanticHashes: evictedSemanticHashes,
         semanticContracts: evictedSemanticContracts,
+        compilerFingerprint: SYNC_COMPILER_FINGERPRINT,
       });
 
       console.log("✓ Imported 0 entities, 0 relationships (no changes)");
@@ -1265,6 +1276,7 @@ export async function syncCommand(
           seenAt: evictedSeenAt,
           semanticHashes: evictedSemanticHashes,
           semanticContracts: evictedSemanticContracts,
+          compilerFingerprint: SYNC_COMPILER_FINGERPRINT,
         });
 
         published = true;
@@ -1531,6 +1543,7 @@ export async function syncCommand(
         seenAt: evictedSeenAt,
         semanticHashes: evictedSemanticHashes,
         semanticContracts: evictedSemanticContracts,
+        compilerFingerprint: SYNC_COMPILER_FINGERPRINT,
       });
 
       published = true;

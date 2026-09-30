@@ -132,3 +132,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7e4c8fe7c966
+  - type: implements
+    from: SYM-core-check-subject-key-shape
+    to: REQ-kibi-subject-vocabulary
+    created_at: 2026-09-28T09:49:02.420Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-27a5505914a3
+  - type: covered_by
+    from: SYM-core-check-subject-key-shape
+    to: TEST-kibi-vocabulary-convergence-e2e
+    created_at: 2026-09-28T09:49:02.430Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb12e18dd3ff
+  - type: implements
+    from: SYM-claude-packageName
+    to: REQ-claude-code-kibi-plugin-v1
+    created_at: 2026-09-27T09:36:07.355Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fd558d048b05
+  - type: covered_by
+    from: SYM-claude-packageName
+    to: TEST-claude-code-kibi-plugin-v1
+    created_at: 2026-09-27T09:36:07.371Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-da9947159086
+  - type: implements
+    from: SYM-docs-site-theme-layout
+    to: REQ-docs-site-pages
+    created_at: 2026-09-27T08:45:16.358Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-48e7bfae9c59
+  - type: covered_by
+    from: SYM-docs-site-theme-layout
+    to: TEST-docs-site-pages
+    created_at: 2026-09-29T08:30:28.835Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f1b16d500541
+  - type: implements
+    from: SYM-docs-site-theme-layout
+    to: REQ-docs-readme-published-links
+    created_at: 2026-09-29T13:35:55.341Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e980d990622c
+  - type: covered_by
+    from: SYM-docs-site-theme-layout
+    to: TEST-docs-readme-published-links
+    created_at: 2026-09-29T13:35:55.349Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b246740d58d6

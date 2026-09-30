@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_root_suite_batch_diagnostics
+subject_key: kibi.testing.harness
 property_key: clause_02_when_a_batch_nfails_getbatchfailuremessage_produ
 operator: eq
 value_type: bool

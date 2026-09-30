@@ -20,4 +20,5 @@ claim_key: CLAIM-C279637CDAEEACFF
 claim_text: An external capability provider must not run during a maintenance operation
 id: FACT-PRED-2F7304AB2972
 type: fact
+predicate_namespace: kibi.capability
 ---

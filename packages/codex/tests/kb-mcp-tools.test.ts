@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { extractKbMcpToolCall } from "../src/kb-mcp-tools";
+import { canonicalKbToolName, extractKbMcpToolCall } from "../src/kb-mcp-tools";
 
 describe("Codex kb MCP tool extraction", () => {
   test("Given direct tool names When extracting Then Kibi calls are returned", () => {
@@ -33,5 +33,33 @@ describe("Codex kb MCP tool extraction", () => {
     expect(
       extractKbMcpToolCall("CallMcpTool", { name: "browser_navigate" }),
     ).toBeUndefined();
+  });
+});
+
+describe("host-prefixed Kibi tool names", () => {
+  test("prefixed MCP names resolve to the canonical operation", () => {
+    for (const name of [
+      "mcp__kibi__kb_check",
+      "mcp__plugin_kibi-claude_kibi__kb_check",
+      "MCP:kb_check",
+      "kibi_kb_check",
+    ]) {
+      expect(canonicalKbToolName(name)).toBe("kb_check");
+    }
+    expect(canonicalKbToolName("mcp__other__search")).toBeUndefined();
+  });
+
+  test("a prefixed impact check carries its source files", () => {
+    expect(
+      extractKbMcpToolCall("mcp__kibi__kb_check", {
+        sourceFiles: ["src/a.ts"],
+        includeImpactDiagnostics: true,
+        includeWorkingTreeDiff: true,
+      }),
+    ).toEqual({
+      toolName: "kb_check",
+      impactCheckRun: true,
+      sourceFiles: ["src/a.ts"],
+    });
   });
 });

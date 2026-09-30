@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_cli_schema_migration
+subject_key: kibi.migration.schema_version
 property_key: clause_01_the_cli_must_provide_an_idempotent_migration_pat
 operator: eq
 value_type: bool

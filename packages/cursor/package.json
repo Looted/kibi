@@ -53,6 +53,9 @@
       "optional": true
     }
   },
+  "dependencies": {
+    "kibi-agent-core": "^0.0.0"
+  },
   "devDependencies": {
     "@types/node": "latest",
     "typescript": "^5.7.0"

@@ -28,7 +28,8 @@ export type KibiImpactDiagnosticId =
   | "requirement_status_review"
   | "strict_fact_modeling_review"
   | "logical_coverage_review"
-  | "kibi_impact_override_missing_rationale";
+  | "kibi_impact_override_missing_rationale"
+  | "entity_id_style_review";
 
 export interface KibiImpactDiagnostic extends QualityDiagnostic {
   /** Stable staged-enforcement diagnostic identifier. */

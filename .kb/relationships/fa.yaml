@@ -118,3 +118,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2fc6fa674b6d
+  - type: implements
+    from: SYM-cli-PrologProcess-needsRestart
+    to: REQ-core-journaled-engine-persistence
+    created_at: 2026-09-26T23:17:59.930Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-921b85ccda55
+  - type: covered_by
+    from: SYM-cli-PrologProcess-needsRestart
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-09-26T23:17:59.967Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0907277cd2b1
+  - type: implements
+    from: SYM-claude-PathKind
+    to: REQ-claude-code-kibi-plugin-v1
+    created_at: 2026-09-27T09:23:35.032Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-09306dab7dd0
+  - type: covered_by
+    from: SYM-claude-PathKind
+    to: TEST-claude-code-kibi-plugin-v1
+    created_at: 2026-09-27T09:23:35.083Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b7f46031b678

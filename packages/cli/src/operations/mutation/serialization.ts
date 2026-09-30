@@ -32,6 +32,8 @@ function serializeValue(key: string, value: unknown): string {
   }
   if (
     key === "rule_ir" ||
+    key === "argument_constants" ||
+    key === "argument_aliases" ||
     key === "semantic_inventory" ||
     key === "proof_contract" ||
     key === "proof_bindings" ||

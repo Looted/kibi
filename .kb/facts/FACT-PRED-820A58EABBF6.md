@@ -20,4 +20,5 @@ claim_key: CLAIM-527900920AE83BD4
 claim_text: An external semantic classifier must be allowed only for kb_compile_intent
 id: FACT-PRED-820A58EABBF6
 type: fact
+predicate_namespace: kibi.capability
 ---

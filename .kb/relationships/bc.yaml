@@ -62,3 +62,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7fa92a40ca2d
+  - type: implements
+    from: SYM-CI-PROOF-REUSE-TYPE
+    to: REQ-kibi-verification-evidence-contract
+    created_at: 2026-09-25T12:17:46.408Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e6da92b8fb4
+  - type: covered_by
+    from: SYM-CI-PROOF-REUSE-TYPE
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-25T12:27:53.379Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f49283d7f6f5
+  - type: implements
+    from: SYM-claude-fileKnowledgeSnippet
+    to: REQ-claude-code-kibi-plugin-v1
+    created_at: 2026-09-27T09:25:42.826Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-49d67bbf1d96
+  - type: covered_by
+    from: SYM-claude-fileKnowledgeSnippet
+    to: TEST-claude-code-kibi-plugin-v1
+    created_at: 2026-09-27T09:25:42.838Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6bc0145c2903

@@ -37,7 +37,7 @@ describe("Cursor guidance", () => {
     );
     const write = writeGuidance("src/a.ts", observedContext);
     expect(write).toContain('sourceFiles:["src/a.ts"]');
-    expect(write).toContain("MCP or CLI JSON route");
+    expect(write).toContain("symbol granularity");
   });
 
   test("routes only observed MCP and trusted unknown workspaces to usable interfaces", () => {

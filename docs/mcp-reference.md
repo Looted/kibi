@@ -111,12 +111,19 @@ A `writeSet` discriminated union:
 
 Also returns the stable `claimKey`, merged `logicClaims`, and `migrationWarning` when the workspace KB schema is outdated.
 
+For strict claims, `vocabularyAlignment` reports how the clause subject was resolved against the existing KB vocabulary:
+- `subject.decision` is `reuse_existing` or `declare_new`, with `subject.candidates` ranked deterministically (IDF-weighted token overlap over subject keys, subject titles, and titles of requirements already constraining each subject; requirement-derived subjects are never offered). When reusing, the plan links the existing subject fact through `constrains` instead of creating a duplicate subject fact. A heuristic subject converges onto the chosen existing subject; an explicitly provided `subjectKey` is kept, and a `subject_reuse_review` warning names the better existing subject when there is one. A declared new subject is tagged `vocabulary:new-subject`, and `subject_key_shape_review` fires when it is not dotted `component.aspect[.sub]`.
+- `redundancyCandidates` lists existing claims on the same subject whose wording may state the same obligation, and `reviewPlan` holds an optional `review:possible-duplicate` observation step to record that for review. These are candidates, never verdicts; exact duplicates are reported by the deterministic `domain-redundancy` check.
+- `stamps`, `fallbackUsed`, and `diagnostics` disclose the provider. The builtin provider is always available; an activated `kibi.vocabulary-alignment.v1` plugin (for example `kibi-plugin-jev`) may refine the decision in `replace`, `augment`, or `shadow` mode and falls back to builtin on any failure.
+
 The modeling call is read-only. Applying its plan is a separate mutation and must follow the caller's authorization boundary. The write-set is deterministic and idempotent—the same claim produces the same stable entity IDs. Apply authorized writes through sequential `kb_upsert` calls.
 
 
 ### `kb_suggest_predicates`
 
 Suggest ontology predicate candidates for a prose requirement before an agent writes freeform ontology notes. Agents should spell out the requirement claim, call this tool, then either apply a returned `fact_kind: predicate` plan linked with `requires_predicate`, supply exact `argumentBindings` when a fitting schema still has unbound arguments, or record the returned `review:ontology-gap` observation when no predicate fits. Gap observations include a `relates_to` review anchor so unresolved ontology work remains queryable without entering the contradiction lane.
+
+When a project-local schema declares `argument_constants`, bound values that are aliases are rewritten to their declared constant and any other undeclared value leaves that argument unbound, so the candidate lists the allowed constants instead of producing an applicable plan with a new atom. `kb_upsert` enforces the same vocabulary for predicate facts.
 
 The tool ranks project-local `fact_kind: predicate_schema` facts when available and falls back to Kibi's built-in predicate catalog covering state, transitions, guards, exceptions, mutual exclusion, dependencies, ownership, retry policies, escalation rules, availability SLAs, notification routing, idempotency, data residency, audit logging, consent, lifecycle actions, conflict resolution, fallback behavior, batch operations, consistency rules, build constraints, environment safety rules, schema invariants, coding standards, migration boundaries, absence/removal requirements, offline behavior, release gates, platform consistency, preservation rules, abstraction boundaries, security configuration, ordered strategies, refresh policies, scoped authorization, documentation standards, warmup policies, visual layout rules, enforcement-location rules, reconciliation rules, throttling policies, persistence/save/discard behavior, accessibility, retention, resource constraints, feature gates, events, permissions, defaults, uniqueness, state memberships, temporal ordering, conditional behavior, rate limits, acceptance outcomes, reusable launcher contracts (`dependency_resolution_policy`, `ordered_resolution_strategy`, `resolution_failure_policy`, `process_delegation_contract`, and `failure_behavior`), plus consumer-escalated families for fail-closed authorization, deployment preconditions, data-migration sequencing, diagnostic visibility, mutation authority, request deduplication, async boundaries, canonical identifiers, responsive breakpoints, and operational pauses. Built-in candidates include usage hints (`use_when` / `do_not_use_when`) so agents can choose precise predicates instead of matching keywords blindly.
 
@@ -211,9 +218,14 @@ Search entities by metadata and markdown body text for exploratory discovery. Se
 - `semanticFacets` (optional): Host-provided `actors`, `actions`, `objects`, `constraints`, or `aliases` arrays
 - `sourceLocations` (optional): Workspace-relative `{path, line?, column?, symbol?}` locations for changed code
 - `minScore` (optional): Intent acceptance threshold between `0` and `1`; defaults to `0.18`
+- `fields` (optional): `summary` (default) or `full`
 
 **Returns:**
 Ranked results with match reasons and optional snippets.
+
+By default each result carries identifying metadata only — `id`, `type`, `title`, `status`, `priority`, `tags`, `source`, and `updated_at` — alongside its `score`, `reasons`, and `snippet`. Search is a discovery step, so complete entity bodies are withheld until the caller has chosen what to open: request them with `fields: "full"`, or follow up with `kb_query` for the exact ids. Ranking, ordering, and `count` are identical in both modes.
+
+Candidate retrieval is paged internally, so a large KB no longer serializes its entire matching corpus into one Prolog response.
 
 Intent-mode results additionally carry `evidence` for matched facets, source locations, graph paths, and normalized score. The payload includes `queryAnalysis` with candidate/accepted counts, top score, top-two margin, ranking mode, and `abstained`. An abstention is an explicit no-answer signal, not a successful empty lexical search.
 
@@ -252,7 +264,7 @@ Compile complete post-change intent into a deterministic, snapshot-bound plan wi
 
 ### `kb_apply_plan`
 
-Apply an approved `kibi.compile-plan.v1` after revalidating its canonical hash, branch/KB/workspace snapshots, source before-hashes, and entity/relationship shapes. Entity steps are applied sequentially through the shared upsert boundary. This v1 boundary does not publish source files or claim crash recovery.
+Apply an approved `kibi.compile-plan.v1` after revalidating its canonical hash, branch/KB/workspace snapshots, source before-hashes, and entity/relationship shapes. Entity steps are applied sequentially through the shared upsert boundary. Applying a compile plan does not publish source files and does not claim crash recovery.
 
 **Parameters:**
 - `plan` (required): Complete plan returned by `kb_compile_intent`.
@@ -451,7 +463,7 @@ Nodes, edges, truncation flag, and status metadata.
 **Example:**
 ```json
 {
-  "seedIds": ["REQ-001"],
+  "seedIds": ["REQ-cli-gc"],
   "direction": "both",
   "depth": 2,
   "maxNodes": 100,
@@ -543,7 +555,7 @@ directly.
 Run KB validation rules after mutations. Agents can also opt into read-only changed-file impact diagnostics for source edits while the edit context is still fresh. The MCP tool and CLI JSON route are peer interactive gates; CLI staged checks and git hooks remain the commit-time enforcement gate.
 
 **Parameters:**
-- `rules` (optional): Validation rule subset. The allowed names are maintained in `packages/core/schema/rule-registry.json` (single source for the tool schema, the TS rule registry, and the Prolog check dispatch): `must-priority-coverage`, `symbol-coverage`, `symbol-traceability`, `no-dangling-refs`, `source-relationship-parity`, `no-cycles`, `required-fields`, `deprecated-adr-no-successor`, `domain-contradictions`, `strict-fact-shape`, `strict-req-fact-pairing`, `predicate-verifiability`, `logic-coverage`, `rule-safety`, `rule-verifiability`, `query-plan-safety`, `req-status-vocabulary`, `strict-readiness`, `semantic-completeness`, `proof-contract-symbols`. Canonical rules populate blocking `violations[]`. `req-status-vocabulary` rejects requirement statuses outside the canonical+legacy vocabulary (`open`, `in_progress`, `closed`; legacy `active`, `approved`) — e.g. ADR vocabulary such as `accepted` compiles but silently falls out of the proof ladder. `strict-fact-shape`, `strict-req-fact-pairing`, `predicate-verifiability`, and `proof-contract-symbols` are advisory modeling checks: they run by default and report as non-blocking `qualityDiagnostics`. `proof-contract-symbols` reports unresolved `required_proofs.symbol_id` values, type-shape required proofs, and `proof_bindings.source_file` disagreement with the named symbol `sourceFile`; Kibi does not infer TEST names from filenames. Migration diagnostics (`strict-readiness`, `semantic-completeness`) run only when explicitly selected. `logic-coverage` is enabled by default, validates explicitly declared requirement manifests against linked ground facts, and leaves requirements without a manifest as gradual-backfill debt reported by quality diagnostics. `domain-contradictions` compares strict property constraints and exact opposite predicate polarities over the same namespace, predicate name, and ordered arguments. It does not infer arbitrary equivalence between differently shaped predicates.
+- `rules` (optional): Validation rule subset. The allowed names are maintained in `packages/core/schema/rule-registry.json` (single source for the tool schema, the TS rule registry, and the Prolog check dispatch): `must-priority-coverage`, `symbol-coverage`, `symbol-traceability`, `no-dangling-refs`, `source-relationship-parity`, `no-cycles`, `required-fields`, `deprecated-adr-no-successor`, `domain-contradictions`, `strict-fact-shape`, `strict-req-fact-pairing`, `predicate-verifiability`, `logic-coverage`, `rule-safety`, `rule-verifiability`, `query-plan-safety`, `req-status-vocabulary`, `strict-readiness`, `semantic-completeness`, `proof-contract-symbols`, `entity-id-style`, `domain-redundancy`, `domain-implication`, `subject-key-identity`, `subject-key-shape`, `ontology-quality`, `predicate-schema-conformance`. Canonical rules populate blocking `violations[]`. The vocabulary-convergence rules (`entity-id-style`, `domain-redundancy`, `subject-key-identity`, `subject-key-shape`, `predicate-schema-conformance` as warnings; `domain-implication`, `ontology-quality` as info) are advisory, run by default, and report non-blocking `qualityDiagnostics` whose `evidence.witnesses` carry exact requirement IDs, fact IDs, and signatures; see `docs/cli-reference.md` for their precise definitions. `kb_check` never resolves capability plugins, so these results are deterministic and offline. `domain-redundancy` is suppressed for pairs linked by `supersedes` or `restates`. `req-status-vocabulary` rejects requirement statuses outside the canonical+legacy vocabulary (`open`, `in_progress`, `closed`; legacy `active`, `approved`) — e.g. ADR vocabulary such as `accepted` compiles but silently falls out of the proof ladder. `strict-fact-shape`, `strict-req-fact-pairing`, `predicate-verifiability`, and `proof-contract-symbols` are advisory modeling checks: they run by default and report as non-blocking `qualityDiagnostics`. `proof-contract-symbols` reports unresolved `required_proofs.symbol_id` values, type-shape required proofs, and `proof_bindings.source_file` disagreement with the named symbol `sourceFile`; Kibi does not infer TEST names from filenames. Migration diagnostics (`strict-readiness`, `semantic-completeness`) run only when explicitly selected. `logic-coverage` is enabled by default, validates explicitly declared requirement manifests against linked ground facts, and leaves requirements without a manifest as gradual-backfill debt reported by quality diagnostics. `domain-contradictions` compares strict property constraints and exact opposite predicate polarities over the same namespace, predicate name, and ordered arguments. It does not infer arbitrary equivalence between differently shaped predicates.
 - `sourceFiles` (optional): Repo-relative source paths to inspect for changed-file impact diagnostics.
 - `staged` (optional): Inspect staged source changes when building impact diagnostics.
 - `includeWorkingTreeDiff` (optional): Include unstaged working-tree content/diffs for the supplied `sourceFiles`.
@@ -596,6 +608,31 @@ envelope under `result`), `failed` (error message under `error`), or
 { "kb_check": { "async": true } }
 { "kb_job_status": { "jobId": "job-kb_check-1-9f2a" } }
 ```
+
+## Usage Telemetry (opt-in)
+
+Kibi records no usage telemetry by default. Installing a host plugin, enabling
+it, or running the MCP server never turns logging on. Until an operator opts in,
+`.kb/usage.log` is not created and no row is written.
+
+Opt in per workspace with either signal:
+
+- `--diagnostic-mode` on the MCP command line, when you own that command line.
+- `KIBI_DIAGNOSTIC_MODE=1` in the server environment, for hosts where a plugin
+  owns the command line. Set it in the host's MCP server `env` block.
+
+Opting out is removing the signal; no other state persists.
+
+While opted in, every row carries `interface`, `host`, `package_version`, and
+`workspace_root` so rows stay attributable across worktrees, hosts, and Kibi
+versions. Host plugins set `KIBI_MCP_HOST` for attribution only; it is not an
+opt-in signal and never enables logging on its own. Rows record business
+arguments and agent-supplied telemetry metadata, and the log stays local to the
+workspace under `.kb/usage.log`.
+
+Counts are only recorded when they can be read. A call whose payload cannot be
+parsed records `result_count: null` rather than zero, and acceptance metrics
+treat unreadable counts as insufficient evidence instead of a pass.
 
 ## Discoverability
 

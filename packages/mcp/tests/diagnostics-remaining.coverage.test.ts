@@ -79,8 +79,8 @@ describe("deriveDiagnosticFields remaining protocol and coverage branches", () =
     const notRecord = deriveDiagnosticFields("kb_query", {}, null, {
       structuredContent: ["not", "an", "object"],
     });
-    expect(notRecord.result_count).toBe(0);
-    expect(notRecord.zero_results).toBe(true);
+    expect(notRecord.result_count).toBeNull();
+    expect(notRecord).not.toHaveProperty("zero_results");
   });
 
   test("kb_coverage falls back when rows, summary, and receipt stages are missing", () => {

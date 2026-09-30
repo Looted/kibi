@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_skillopt_external_adoption_verdict
+subject_key: kibi.skillopt.adoption
 property_key: clause_03_this_requirement_does_not_assume_any_repository_
 operator: eq
 value_type: bool

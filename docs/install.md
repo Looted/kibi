@@ -493,6 +493,40 @@ Manual MCP fallback (no plugin install required):
 See `packages/zcode/README.md` for the ZCode declaration contract the plugin
 targets (hook events, output schema, skill frontmatter rules).
 
+### Optional: Claude Code plugin
+
+`kibi-claude` is an optional Claude Code adapter. It builds on `kibi-core`,
+`kibi-cli`, and `kibi-mcp` and does not replace them. It contributes:
+
+- the workspace-gated Kibi MCP server;
+- the four bundled Kibi skills, invoked as `/kibi-claude:kibi-usage`,
+  `/kibi-claude:kibi-bootstrap`, and so on;
+- advisory hooks that show the agent requirement and test context before it
+  reads or edits linked code, and remind it once to run an impact check
+  before finishing.
+
+The repository root is a Claude Code marketplace, and the hook runner is a
+committed self-contained bundle, so a GitHub install needs no build:
+
+```bash
+claude plugin marketplace add Looted/kibi
+```
+
+```bash
+claude plugin install kibi-claude@kibi
+```
+
+To try a local checkout without installing, run
+`claude --plugin-dir packages/claude` from a Kibi workspace.
+
+The plugin follows the same workspace opt-in rule as the Codex and ZCode
+adapters: hooks and the MCP launcher stay completely silent in workspaces
+whose project root does not own `.kb/manifest.json`. Hooks read a cached
+index of `.kb/symbols.yaml` instead of calling the CLI, so they add tens of
+milliseconds per tool call. The hard enforcement gate remains the
+`kibi check --staged` git hook installed by `kibi init`. See
+`packages/claude/README.md` for exactly what each hook emits and how often.
+
 ### Optional: Global install
 
 Global install is convenient for interactive use across projects, but local install is preferred for reproducibility.

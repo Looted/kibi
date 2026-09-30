@@ -91,21 +91,28 @@ export async function withCwd<T>(
   }
 }
 
+const isolatedEnvKeys = (key: string): boolean =>
+  key.startsWith("KIBI_") || key === "KB_PATH" || key === "XDG_CONFIG_HOME";
+
+// implements REQ-test-journaled-engine-harness
 export function isolateKibiEnv(): () => void {
   const previous = Object.fromEntries(
-    Object.entries(process.env).filter(
-      ([key]) => key.startsWith("KIBI_") || key === "KB_PATH",
-    ),
+    Object.entries(process.env).filter(([key]) => isolatedEnvKeys(key)),
   );
   for (const key of Object.keys(previous)) {
     Reflect.deleteProperty(process.env, key);
   }
+  // Env bootstrap falls back to $XDG_CONFIG_HOME/kibi/env, or ~/.config when
+  // it is unset. Without an empty override, a developer's own user-wide Kibi
+  // env leaks in and tests that assert a missing or project-scoped secret
+  // instead observe a `user_env` source.
+  const configHome = createTempDir("kibi-inproc-xdg-");
+  process.env.XDG_CONFIG_HOME = configHome;
+
   return () => {
+    removeTempDir(configHome);
     for (const key of Object.keys(process.env)) {
-      if (
-        (key.startsWith("KIBI_") || key === "KB_PATH") &&
-        !Object.hasOwn(previous, key)
-      ) {
+      if (isolatedEnvKeys(key) && !Object.hasOwn(previous, key)) {
         Reflect.deleteProperty(process.env, key);
       }
     }

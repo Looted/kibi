@@ -30,6 +30,105 @@ export function fingerprintRequirements(rows) {
   return requirements;
 }
 
+/**
+ * Gaps that only say the recorded evidence is older than the code. `kibi prove`
+ * clears them without any KB change, which is what CI does before it enforces
+ * the baseline.
+ */
+const EVIDENCE_FRESHNESS_GAPS = Object.freeze([
+  "stale_proof_receipt",
+  "proof_contract_mismatch",
+]);
+
+function explanationHasCoverageLink(explanation) {
+  return (
+    Array.isArray(explanation?.coverageCandidates) &&
+    explanation.coverageCandidates.length > 0
+  );
+}
+
+/**
+ * Production coverage is judged against tests with fresh passing receipts, so
+ * stale receipts leave every symbol "uncovered". That gap is freshness-only
+ * when each uncovered symbol still has a covered_by link; a symbol with no link
+ * is a real traceability gap that re-proving cannot fix.
+ */
+function productionCoverageIsFreshnessOnly(row) {
+  const stage = row?.proofStages?.productionSymbols;
+  const uncovered = asStringArray(stage?.uncoveredSymbols);
+  const explanations = Array.isArray(stage?.explanations)
+    ? stage.explanations
+    : [];
+  return uncovered.every((symbolId) =>
+    explanations.some(
+      (explanation) =>
+        explanation?.symbolId === symbolId &&
+        explanationHasCoverageLink(explanation),
+    ),
+  );
+}
+
+/** Proof gaps of a coverage row that remain after fresh evidence is recorded. */
+export function semanticGaps(row) {
+  const gaps = asStringArray(row?.proofGaps).filter(
+    (gap) => !EVIDENCE_FRESHNESS_GAPS.includes(gap),
+  );
+  const hasFreshnessGap = asStringArray(row?.proofGaps).some((gap) =>
+    EVIDENCE_FRESHNESS_GAPS.includes(gap),
+  );
+  if (hasFreshnessGap && productionCoverageIsFreshnessOnly(row)) {
+    return gaps.filter((gap) => gap !== "missing_production_symbol_coverage");
+  }
+  return gaps;
+}
+
+/**
+ * Compare coverage rows with the committed baseline while setting aside gaps
+ * that only reflect stale evidence. A local run can then catch semantic
+ * regressions (grounding, contradictions, missing links) without re-proving
+ * every test first.
+ */
+export function evaluateSemanticBaseline(baseline, rows) {
+  const current = (rows ?? []).filter(
+    (row) =>
+      typeof row?.id === "string" && row.proofStatus !== "not_applicable",
+  );
+  const failures = [];
+  const regressions = [];
+  if (current.length !== baseline.currentRequirements) {
+    failures.push(
+      `current requirement count changed from ${baseline.currentRequirements} to ${current.length}`,
+    );
+  }
+  const byId = new Map(current.map((row) => [row.id, row]));
+  for (const [id, expected] of Object.entries(baseline.requirements ?? {})) {
+    const row = byId.get(id);
+    if (row === undefined) {
+      regressions.push({ id, gaps: [], reason: "not a current requirement" });
+      continue;
+    }
+    const allowed = new Set(asStringArray(expected?.gaps));
+    const gaps = semanticGaps(row).filter((gap) => !allowed.has(gap));
+    if (gaps.length > 0) regressions.push({ id, gaps });
+  }
+  for (const row of current) {
+    if (!(row.id in (baseline.requirements ?? {}))) {
+      regressions.push({
+        id: row.id,
+        gaps: semanticGaps(row),
+        reason: "missing from proof/baseline.json",
+      });
+    }
+  }
+  for (const regression of regressions) {
+    const detail =
+      regression.reason ??
+      `semantic gaps ${regression.gaps.join(", ")} (stale evidence ignored)`;
+    failures.push(`${regression.id}: ${detail}`);
+  }
+  return { failures, regressions };
+}
+
 export function diffFingerprints(baseline, current) {
   const before = baseline ?? {};
   const ids = [
@@ -59,7 +158,7 @@ export function diffFingerprints(baseline, current) {
   return changes;
 }
 
-export function explanationsForRequirement(rows, requirementId) {
+function explanationsForRequirement(rows, requirementId) {
   const row = (rows ?? []).find((item) => item.id === requirementId);
   const explanations = row?.proofStages?.productionSymbols?.explanations;
   return Array.isArray(explanations) ? explanations : [];

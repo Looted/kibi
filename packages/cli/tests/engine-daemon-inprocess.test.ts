@@ -15,6 +15,8 @@ import {
   ensureJournaledBranchStoreAsync,
   runEngineDaemon,
 } from "../src/engine.js";
+import { runOperationJsonQuery } from "../src/public/operations/prolog-json.js";
+import type { PrologPort } from "../src/public/operations/runtime-types.js";
 import { ensureBranchStoreManifest } from "../src/utils/branch-store-locator.js";
 
 const roots: string[] = [];
@@ -349,6 +351,94 @@ describe("runEngineDaemon in-process", () => {
     ]);
     expect(exitSpy).toHaveBeenCalled();
   }, 20_000);
+
+  // Regression for Looted/kibi#285: an output overflow used to terminate the
+  // daemon's SWI child and leave the port silently falling back to isolated
+  // one-shot processes, so the split `use_module` + `discovery:*` requests
+  // ran in different processes and failed with an existence error.
+  test("recycles its Prolog session after an output overflow so module-qualified JSON operations keep working", async () => {
+    const previousIdle = process.env.KIBI_ENGINE_IDLE_TIMEOUT_MS;
+    const previousNodeEnv = process.env.NODE_ENV;
+    process.env.KIBI_ENGINE_IDLE_TIMEOUT_MS = "60000";
+    restores.push(() => {
+      if (previousIdle === undefined) {
+        Reflect.deleteProperty(process.env, "KIBI_ENGINE_IDLE_TIMEOUT_MS");
+      } else {
+        process.env.KIBI_ENGINE_IDLE_TIMEOUT_MS = previousIdle;
+      }
+    });
+    const errorSpy = spyOn(console, "error").mockImplementation(() => {});
+    restores.push(() => errorSpy.mockRestore());
+
+    const root = tempRoot();
+    ensureBranchStoreManifest(root, "main");
+    const socketPath = engineSocketPath(root, "main");
+    const daemon = runEngineDaemon({
+      workspaceRoot: root,
+      branch: "main",
+      socketPath,
+      maxOutputBytes: 64 * 1024,
+    });
+    await waitForSocket(socketPath);
+    const client = new EngineClient({
+      workspaceRoot: root,
+      branch: "main",
+      timeout: 60_000,
+    });
+    try {
+      await client.start(false);
+      const seeded = await client.query(
+        `kb_assert_entity(req, [id='REQ-RECYCLE', title="Recycle", status=active, created_at="2026-09-26T00:00:00Z", updated_at="2026-09-26T00:00:00Z", source="docs/recycle.md"])`,
+      );
+      expect(seeded.success).toBe(true);
+      // Distinct limits keep the second call out of any result cache.
+      const coverageGoal = (limit: number): string =>
+        `discovery:coverage_report_json('req', [], false, true, ${limit}, 0, unknown, '2026-09-26T00:00:00Z', 604800, JsonString)`;
+      // Exercise the production split path (no Bun one-shot heuristic).
+      process.env.NODE_ENV = "production";
+      restores.push(() => {
+        if (previousNodeEnv === undefined) {
+          Reflect.deleteProperty(process.env, "NODE_ENV");
+        } else {
+          process.env.NODE_ENV = previousNodeEnv;
+        }
+      });
+      const before = await runOperationJsonQuery<{ rows: unknown[] }>(
+        client as unknown as PrologPort,
+        "discovery.pl",
+        coverageGoal(10),
+        "Coverage execution",
+      );
+      expect(before.rows).toHaveLength(1);
+
+      const overflow = await client.query(
+        "findall(X, between(1, 200000, X), Numbers)",
+      );
+      expect(overflow.success).toBe(false);
+      expect(overflow.error).toContain("ENOBUFS");
+
+      const after = await runOperationJsonQuery<{ rows: unknown[] }>(
+        client as unknown as PrologPort,
+        "discovery.pl",
+        coverageGoal(11),
+        "Coverage execution",
+      );
+      // A degraded one-shot fallback would answer from an unattached store.
+      expect(after).toEqual(before);
+      // The recycled session is reattached to the branch store.
+      const status = await client.command({ version: 1, kind: "status" });
+      expect(status).toMatchObject({ success: true });
+      expect(
+        errorSpy.mock.calls.some((call) =>
+          String(call[0]).includes("engine Prolog session was lost"),
+        ),
+      ).toBe(true);
+      await client.stop(false);
+    } finally {
+      await client.terminate();
+    }
+    await daemon;
+  }, 90_000);
 
   test("getPid returns 0 when the pid file is absent", () => {
     const root = tempRoot();

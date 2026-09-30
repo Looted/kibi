@@ -125,7 +125,17 @@ describe.serial("diagnostic mode lifecycle", () => {
 
     expect(process.env.KIBI_MCP_DIAGNOSTIC_MODE).toBe("1");
     expect(existsSync(logPath)).toBe(true);
-    expect(readFileSync(logPath, "utf8")).toBe(`${JSON.stringify(entry)}\n`);
+    const row = JSON.parse(readFileSync(logPath, "utf8").trim()) as Record<
+      string,
+      unknown
+    >;
+    expect(row).toMatchObject({
+      ...entry,
+      // Rows are stamped with their origin so they stay attributable across
+      // hosts, worktrees, and Kibi versions.
+      interface: "mcp",
+      workspace_root: workspaceRoot,
+    });
   });
 
   test("appendUsageLogLine is a no-op when diagnostic mode is disabled", () => {

@@ -1173,6 +1173,28 @@
         "type": "string"
       }
     },
+    "argument_constants": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "minItems": 1,
+        "uniqueItems": true,
+        "items": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "argument_aliases": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
     "rule_ir": {
       "$ref": "#/$defs/logicRule"
     },
@@ -1371,6 +1393,16 @@
             {
               "required": [
                 "predicate_args"
+              ]
+            },
+            {
+              "required": [
+                "argument_constants"
+              ]
+            },
+            {
+              "required": [
+                "argument_aliases"
               ]
             },
             {

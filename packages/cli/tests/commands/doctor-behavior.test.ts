@@ -7,6 +7,7 @@ import * as nodeModule from "node:module";
 import path from "node:path";
 import { doctorCommand } from "../../src/commands/doctor.js";
 import { engineStopCommand } from "../../src/commands/engine.js";
+import { installGitHooks } from "../../src/commands/init-helpers.js";
 import { resetKibiEnvironmentBootstrapStateForTests } from "../../src/env/bootstrap.js";
 import {
   captureIo,
@@ -313,7 +314,7 @@ describe("doctorCommand companion git hooks check", () => {
     expect(check.passed).toBe(false);
     expect(check.message).toBe("Installed but not executable");
     expect(check.remediation).toBe(
-      "Run: chmod +x .git/hooks/post-checkout .git/hooks/post-merge",
+      `Run: chmod +x '${cwd}/.git/hooks/post-checkout' '${cwd}/.git/hooks/post-merge'`,
     );
   });
 
@@ -399,7 +400,9 @@ describe("doctorCommand pre-commit hook check", () => {
     const check = namedCheck(payload, "pre-commit hook");
     expect(check.passed).toBe(false);
     expect(check.message).toBe("Installed but not executable");
-    expect(check.remediation).toBe("Run: chmod +x .git/hooks/pre-commit");
+    expect(check.remediation).toBe(
+      `Run: chmod +x '${cwd}/.git/hooks/pre-commit'`,
+    );
   });
 
   test("fails a pre-commit hook that never invokes kibi", async () => {
@@ -513,7 +516,9 @@ describe("doctorCommand post-rewrite hook check", () => {
     const check = namedCheck(payload, "post-rewrite hook");
     expect(check.passed).toBe(false);
     expect(check.message).toBe("Installed but not executable");
-    expect(check.remediation).toBe("Run: chmod +x .git/hooks/post-rewrite");
+    expect(check.remediation).toBe(
+      `Run: chmod +x '${cwd}/.git/hooks/post-rewrite'`,
+    );
   });
 
   test("fails a post-rewrite hook that never invokes kibi", async () => {
@@ -996,5 +1001,35 @@ describe("doctorCommand capability plugins", () => {
       remediation:
         "Add the configured plugin package to dependencies, devDependencies, or optionalDependencies, or remove the kibi.plugins activation entry.",
     });
+  });
+});
+
+describe("doctorCommand kibi-managed hook sections", () => {
+  test("passes hooks installed by this CLI and fails an outdated pre-commit gate", async () => {
+    const cwd = preparedWorkspace();
+    writeOkManifest(cwd);
+    installGitHooks(path.join(cwd, ".git", "hooks"));
+    const current = namedCheck(
+      (await runDoctorJson(cwd)).payload,
+      "Kibi-managed hook sections",
+    );
+    expect(current.passed).toBe(true);
+    expect(current.message).toBe("Current for this Kibi CLI");
+
+    const preCommit = path.join(cwd, ".git", "hooks", "pre-commit");
+    writeFileSync(
+      preCommit,
+      fs
+        .readFileSync(preCommit, "utf8")
+        .replace('"$KIBI_BIN" check-generated --staged --changed-only\n', ""),
+    );
+    const { exitCode, payload } = await runDoctorJson(cwd);
+    expect(exitCode).toBe(1);
+    const outdated = namedCheck(payload, "Kibi-managed hook sections");
+    expect(outdated.passed).toBe(false);
+    expect(outdated.message).toContain("pre-commit");
+    expect(outdated.remediation).toBe(
+      "Run: kibi init to refresh the kibi-managed hook sections",
+    );
   });
 });

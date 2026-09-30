@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_020
+subject_key: kibi.release.versioning
 property_key: clause_10_fallback_if_kb_query_is_unstable_agents_must_con
 operator: eq
 value_type: bool

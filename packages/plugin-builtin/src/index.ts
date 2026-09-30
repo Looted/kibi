@@ -21,6 +21,7 @@ import { KIBI_PLUGIN_API_VERSION, defineKibiPlugin } from "kibi-plugin-sdk";
 import { createBuiltinOntologyPack } from "./ontology/builtin-ontology-pack.js";
 import { createBuiltinSemanticClassifier } from "./semantic/builtin-classifier.js";
 import { createBuiltinTsMorphSymbolExtractor } from "./symbols/ts-morph-extractor.js";
+import { createBuiltinVocabularyAlignment } from "./vocabulary/builtin-vocabulary-alignment.js";
 
 const packageJson = createRequire(import.meta.url)("../package.json") as {
   version: string;
@@ -89,6 +90,19 @@ export {
   onlyCandidate,
 } from "./symbols/ts-morph-shared.js";
 
+// implements REQ-kibi-vocabulary-alignment-capability
+export {
+  BUILTIN_CLAIM_SIMILARITY_THRESHOLD,
+  BUILTIN_SUBJECT_REUSE_THRESHOLD,
+  BuiltinVocabularyAlignment,
+  builtinSubjectDecision,
+  claimSimilarity,
+  createBuiltinVocabularyAlignment,
+  rankSubjectCandidates,
+  vocabularyTokens,
+  type SubjectVocabularyEntry,
+} from "./vocabulary/builtin-vocabulary-alignment.js";
+
 /**
  * Default Kibi capability plugin.
  */
@@ -106,6 +120,7 @@ export const kibiPlugin = defineKibiPlugin({
     semanticClassifier: createBuiltinSemanticClassifier(),
     ontologyPack: createBuiltinOntologyPack(),
     symbolExtractor: createBuiltinTsMorphSymbolExtractor(),
+    vocabularyAlignment: createBuiltinVocabularyAlignment(),
   },
 });
 

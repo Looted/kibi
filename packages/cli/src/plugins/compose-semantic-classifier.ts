@@ -85,7 +85,8 @@ export function publicCapabilityStamp(stamp: PluginProviderStamp): {
   };
 }
 
-function withFallback(
+// implements REQ-capability-plugin-activation-disclosure-v1
+export function withFallback(
   stamp: PluginProviderStamp,
   fallbackUsed: boolean,
 ): PluginProviderStamp {
@@ -101,15 +102,19 @@ function isUnresolved(
   return false;
 }
 
-function redactClassifierMessage(message: string): string {
+/** Bound and redact provider error text before it reaches diagnostics. */
+// implements REQ-capability-plugin-activation-disclosure-v1
+export function redactClassifierMessage(message: string): string {
   return message
     .replace(/sk-[A-Za-z0-9_-]+/g, "[redacted]")
     .replace(/(api[_-]?key\s*[:=]\s*)\S+/gi, "$1[redacted]")
     .slice(0, 300);
 }
 
-function diagnosticFromError(
-  binding: CapabilityProviderBinding<SemanticClassifierV1>,
+/** Typed, redacted diagnostic for a failed provider call of any capability. */
+// implements REQ-capability-plugin-activation-disclosure-v1
+export function diagnosticFromError(
+  binding: CapabilityProviderBinding<unknown>,
   error: unknown,
 ): SemanticClassifierDiagnostic {
   const message = redactClassifierMessage(

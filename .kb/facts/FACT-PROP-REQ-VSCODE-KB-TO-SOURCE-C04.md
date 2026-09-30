@@ -1,10 +1,10 @@
 ---
-title: The tree node must still be expandable to show linked KB entities (requirements,
+title: ^^("The tree node must still be expandable to show linked KB entities (requirements,",'http://www.w3.org/2001/XMLSchema#string')
 status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_vscode_kb_to_source
+subject_key: vscode.kibi_extension
 property_key: clause_04_the_tree_node_must_still_be_expandable_to_show_l
 operator: eq
 value_type: bool

@@ -279,3 +279,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2beae8e437ca
+  - type: specified_by
+    from: REQ-kibi-entity-id-style
+    to: SCEN-kibi-entity-id-style
+    created_at: 2026-09-28T09:43:13.990Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-31ab2d7ae201
+  - type: requires_predicate
+    from: REQ-kibi-entity-id-style
+    to: FACT-ENTITY-ID-STYLE-STEM-MISMATCH
+    created_at: 2026-09-28T09:43:14.023Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-69975f22bb50
+  - type: requires_predicate
+    from: REQ-kibi-entity-id-style
+    to: FACT-ENTITY-ID-STYLE-NEW-NUMERIC-ID
+    created_at: 2026-09-28T09:43:14.042Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-be1b46ff7b8b
+  - type: requires_predicate
+    from: REQ-kibi-entity-id-style
+    to: FACT-ENTITY-ID-STYLE-LEGACY-EXEMPT
+    created_at: 2026-09-28T09:43:14.061Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1462402d0f3b

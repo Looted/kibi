@@ -9,6 +9,7 @@ import type {
   PredicateUsageHints,
 } from "./predicate-types.js";
 import { hashId, normalizeOptionalString } from "./predicate-utils.js";
+import { predicateVocabularyFromEntity } from "./predicate-vocabulary.js";
 
 export function optionalPredicateName(value: unknown): string | undefined {
   return typeof value === "string" ? value : undefined;
@@ -30,6 +31,12 @@ export function schemaForCandidate(schema: PredicateSchemaCandidate): Omit<
     argument_types: schema.argument_types,
     ...(schema.argument_descriptions
       ? { argument_descriptions: schema.argument_descriptions }
+      : {}),
+    ...(schema.argument_constants
+      ? { argument_constants: schema.argument_constants }
+      : {}),
+    ...(schema.argument_aliases
+      ? { argument_aliases: schema.argument_aliases }
       : {}),
     ...(schema.aliases ? { aliases: schema.aliases } : {}),
     ...(schema.paraphrase_templates
@@ -86,6 +93,7 @@ export function predicateSchemaFromEntity(
   if (!predicateName) return [];
   const usageHints = usageHintsFromEntity(entity);
   const argumentDescriptions = stringArray(entity.argument_descriptions);
+  const vocabulary = predicateVocabularyFromEntity(entity);
 
   return [
     {
@@ -100,6 +108,26 @@ export function predicateSchemaFromEntity(
       argument_types: stringArray(entity.argument_types),
       ...(argumentDescriptions.length > 0
         ? { argument_descriptions: argumentDescriptions }
+        : {}),
+      ...(Object.keys(vocabulary.constants).length > 0
+        ? {
+            argument_constants: Object.fromEntries(
+              Object.entries(vocabulary.constants).map(([name, values]) => [
+                name,
+                [...values],
+              ]),
+            ),
+          }
+        : {}),
+      ...(Object.keys(vocabulary.aliases).length > 0
+        ? {
+            argument_aliases: Object.fromEntries(
+              Object.entries(vocabulary.aliases).map(([name, mapping]) => [
+                name,
+                { ...mapping },
+              ]),
+            ),
+          }
         : {}),
       keywords: [
         predicateName,

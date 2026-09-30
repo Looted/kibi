@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: subject
-subject_key: req.req_cli_staged_impact_enforcement
+subject_key: kibi.cli.check.staged
 canonical_key: req.req_cli_staged_impact_enforcement
 id: FACT-SUBJ-REQ-CLI-STAGED-IMPACT-ENFORCEMENT
 type: fact

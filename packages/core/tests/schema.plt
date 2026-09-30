@@ -17,8 +17,8 @@ test(entity_types_count) :-
 test(relationship_types_count) :-
     findall(R, relationship_type(R), Rs),
     sort(Rs, Sorted),
-    % relationship_type/1 includes 17 items; ensure length and membership
-    length(Sorted, 17),
+    % relationship_type/1 includes 18 items; ensure length and membership
+    length(Sorted, 18),
     memberchk(depends_on, Sorted),
     memberchk(executable_for, Sorted),
     memberchk(specified_by, Sorted),
@@ -26,7 +26,12 @@ test(relationship_types_count) :-
     memberchk(constrains, Sorted),
     memberchk(requires_property, Sorted),
     memberchk(requires_predicate, Sorted),
-    memberchk(requires_rule, Sorted).
+    memberchk(requires_rule, Sorted),
+    memberchk(restates, Sorted).
+
+test(restates_links_requirements_only) :-
+    validate_relationship(restates, req, req),
+    \+ validate_relationship(restates, req, scenario).
 
 test(valid_relationship_ok) :-
     validate_relationship(depends_on, req, req).

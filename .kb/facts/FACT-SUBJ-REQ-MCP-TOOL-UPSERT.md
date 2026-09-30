@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: subject
-subject_key: req.req_mcp_tool_upsert
+subject_key: mcp.kb_upsert
 canonical_key: req.req_mcp_tool_upsert
 id: FACT-SUBJ-REQ-MCP-TOOL-UPSERT
 type: fact

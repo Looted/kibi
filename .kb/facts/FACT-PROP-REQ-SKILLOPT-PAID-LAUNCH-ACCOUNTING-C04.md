@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_skillopt_paid_launch_accounting
+subject_key: kibi.skillopt.paid_launch
 property_key: clause_04_symbol_ownership_remains_limited_to_the_behavior
 operator: eq
 value_type: bool

@@ -33,7 +33,7 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json && bun run ../../scripts/sync-agent-skills.ts --write --target zcode && bun run scripts/copy-plugin-assets.ts",
+    "build": "tsc -p tsconfig.json && bun run scripts/build-hook-bundle.ts && bun run ../../scripts/sync-agent-skills.ts --write --target zcode && bun run scripts/copy-plugin-assets.ts",
     "dev": "tsc -p tsconfig.json --watch",
     "clean": "rm -rf dist",
     "prepack": "npm run build"
@@ -52,6 +52,7 @@
   },
   "devDependencies": {
     "@types/node": "latest",
+    "kibi-agent-core": "^0.0.0",
     "typescript": "^5.7.0"
   }
 }

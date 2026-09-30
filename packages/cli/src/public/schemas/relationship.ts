@@ -40,6 +40,7 @@ const relationshipSchema = {
         "publishes",
         "consumes",
         "supersedes",
+        "restates",
         "relates_to",
       ],
     },

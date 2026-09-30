@@ -221,6 +221,45 @@ export type RemovedRelationshipRecords = Readonly<{
  * Remove exact legacy-shard relationships using an atomic temp-file rename.
  * The caller is responsible for retracting the compiled RDF edge afterwards.
  */
+/**
+ * A shard's YAML without the selected relationships. The sequence is patched in
+ * place so comments, ordering, and unrelated records survive; callers that must
+ * approve the bytes before writing (deletion plans) render without writing.
+ */
+// implements REQ-kibi-operation-interface-parity
+export function renderShardWithout(
+  text: string,
+  selectors: readonly RelationshipSelector[],
+  shardPath: string,
+): string {
+  const wanted = new Set(
+    selectors.map(
+      (selector) => `${selector.type}\0${selector.from}\0${selector.to}`,
+    ),
+  );
+  const document = parseDocument(text);
+  const sequence = document.get("relationships", true);
+  if (!sequence || typeof sequence !== "object" || !("items" in sequence)) {
+    throw new Error(
+      `Invalid shard file: missing 'relationships' array at ${shardPath}`,
+    );
+  }
+  const items = (sequence as { items: unknown[] }).items;
+  for (let index = items.length - 1; index >= 0; index -= 1) {
+    const item = items[index];
+    if (!item || typeof item !== "object" || !("get" in item)) continue;
+    const get = (item as { get(name: string): unknown }).get.bind(item);
+    if (
+      wanted.has(
+        `${String(get("type"))}\0${String(get("from"))}\0${String(get("to"))}`,
+      )
+    ) {
+      document.deleteIn(["relationships", index]);
+    }
+  }
+  return document.toString();
+}
+
 export function removeRelationshipsFromShards(
   kbRoot: string,
   selectors: readonly RelationshipSelector[],
@@ -237,30 +276,14 @@ export function removeRelationshipsFromShards(
       wanted.has(`${record.type}\0${record.from}\0${record.to}`),
     );
     if (matching.length === 0) continue;
-    // Patch the YAML sequence in place so comments, ordering, and unrelated
-    // records survive a relationship deletion. The compiled store is never
-    // the mutation target; this shard remains the canonical source artifact.
-    const document = parseDocument(fs.readFileSync(shardPath, "utf8"));
-    const sequence = document.get("relationships", true);
-    if (!sequence || typeof sequence !== "object" || !("items" in sequence)) {
-      throw new Error(
-        `Invalid shard file: missing 'relationships' array at ${shardPath}`,
-      );
-    }
-    const items = (sequence as { items: unknown[] }).items;
-    for (let index = items.length - 1; index >= 0; index -= 1) {
-      const item = items[index];
-      if (!item || typeof item !== "object" || !("get" in item)) continue;
-      const get = (item as { get(name: string): unknown }).get.bind(item);
-      if (
-        wanted.has(
-          `${String(get("type"))}\0${String(get("from"))}\0${String(get("to"))}`,
-        )
-      ) {
-        document.deleteIn(["relationships", index]);
-      }
-    }
-    atomicWriteText(shardPath, document.toString());
+    atomicWriteText(
+      shardPath,
+      renderShardWithout(
+        fs.readFileSync(shardPath, "utf8"),
+        selectors,
+        shardPath,
+      ),
+    );
     for (const record of matching) {
       const key = `${record.type}\0${record.from}\0${record.to}`;
       const entry = removed.get(key) ?? { paths: [], sources: [] };

@@ -34,6 +34,13 @@ known_rule('predicate-verifiability').
 known_rule('strict-readiness').
 known_rule('semantic-completeness').
 known_rule('proof-contract-symbols').
+known_rule('entity-id-style').
+known_rule('domain-redundancy').
+known_rule('domain-implication').
+known_rule('subject-key-identity').
+known_rule('subject-key-shape').
+known_rule('ontology-quality').
+known_rule('predicate-schema-conformance').
 
 rule_enforcement_class('must-priority-coverage', canonical).
 rule_enforcement_class('symbol-coverage', canonical).
@@ -55,6 +62,13 @@ rule_enforcement_class('predicate-verifiability', advisory).
 rule_enforcement_class('strict-readiness', migration).
 rule_enforcement_class('semantic-completeness', migration).
 rule_enforcement_class('proof-contract-symbols', advisory).
+rule_enforcement_class('entity-id-style', advisory).
+rule_enforcement_class('domain-redundancy', advisory).
+rule_enforcement_class('domain-implication', advisory).
+rule_enforcement_class('subject-key-identity', advisory).
+rule_enforcement_class('subject-key-shape', advisory).
+rule_enforcement_class('ontology-quality', advisory).
+rule_enforcement_class('predicate-schema-conformance', advisory).
 
 rule_implementation('must-priority-coverage', prolog).
 rule_implementation('symbol-coverage', prolog).
@@ -76,6 +90,13 @@ rule_implementation('predicate-verifiability', prolog).
 rule_implementation('strict-readiness', prolog).
 rule_implementation('semantic-completeness', prolog).
 rule_implementation('proof-contract-symbols', prolog).
+rule_implementation('entity-id-style', prolog).
+rule_implementation('domain-redundancy', prolog).
+rule_implementation('domain-implication', prolog).
+rule_implementation('subject-key-identity', prolog).
+rule_implementation('subject-key-shape', prolog).
+rule_implementation('ontology-quality', prolog).
+rule_implementation('predicate-schema-conformance', typescript).
 
 rule_predicate('must-priority-coverage', check_must_priority_coverage).
 rule_predicate('symbol-coverage', check_symbol_coverage).
@@ -95,6 +116,12 @@ rule_predicate('predicate-verifiability', check_predicate_verifiability).
 rule_predicate('strict-readiness', check_strict_readiness).
 rule_predicate('semantic-completeness', check_semantic_completeness).
 rule_predicate('proof-contract-symbols', check_proof_contract_symbols).
+rule_predicate('entity-id-style', check_entity_id_style).
+rule_predicate('domain-redundancy', check_domain_redundancy).
+rule_predicate('domain-implication', check_domain_implication).
+rule_predicate('subject-key-identity', check_subject_key_identity).
+rule_predicate('subject-key-shape', check_subject_key_shape).
+rule_predicate('ontology-quality', check_ontology_quality).
 
 rule_predicate_arity('must-priority-coverage', 1).
 rule_predicate_arity('symbol-coverage', 1).
@@ -114,6 +141,12 @@ rule_predicate_arity('predicate-verifiability', 1).
 rule_predicate_arity('strict-readiness', 1).
 rule_predicate_arity('semantic-completeness', 1).
 rule_predicate_arity('proof-contract-symbols', 1).
+rule_predicate_arity('entity-id-style', 1).
+rule_predicate_arity('domain-redundancy', 1).
+rule_predicate_arity('domain-implication', 1).
+rule_predicate_arity('subject-key-identity', 1).
+rule_predicate_arity('subject-key-shape', 1).
+rule_predicate_arity('ontology-quality', 1).
 
 rule_description('must-priority-coverage', 'Every must-priority requirement must have a scenario and a test').
 rule_description('symbol-coverage', 'Production symbols need qualifying coverage via covered_by plus a canonical requirement/scenario test path').
@@ -135,3 +168,10 @@ rule_description('predicate-verifiability', 'Detect requires_predicate links tha
 rule_description('strict-readiness', 'Report strict contradiction-readiness levels for requirements that are still prose-only or otherwise not contradiction-ready').
 rule_description('semantic-completeness', 'Every inventoried assertive proposition is modeled or explicitly classified').
 rule_description('proof-contract-symbols', 'Detect unresolved required_proofs.symbol_id values, type-shape required proofs, and proof_bindings.source_file disagreement with the named symbol sourceFile').
+rule_description('entity-id-style', 'Entity IDs name the governed behavior and match their filename stem; new purely numeric IDs are reported at creation boundaries').
+rule_description('domain-redundancy', 'Two current requirements must not ground the identical logical term or share a ground fact unless linked by supersedes or restates').
+rule_description('domain-implication', 'Informational: one requirement\'s numeric bound strictly implies another requirement\'s bound on the same subject and property').
+rule_description('subject-key-identity', 'Subject keys must name a shared component, not be derived from a requirement ID').
+rule_description('subject-key-shape', 'Subject keys follow dotted component.aspect[.sub] with lowercase snake segments').
+rule_description('ontology-quality', 'Informational: predicate schemas whose argument values mostly occur in only one fact are carrying prose instead of a shared vocabulary').
+rule_description('predicate-schema-conformance', 'Predicate facts match a predicate_schema (project-local, or the built-in catalog in the default namespace) and use its declared argument constants').

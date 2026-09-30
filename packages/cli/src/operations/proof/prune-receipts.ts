@@ -16,7 +16,10 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { loadEntities } from "../../public/operations/discovery-entities.js";
+import {
+  loadEntities,
+  loadEntitiesPaged,
+} from "../../public/operations/discovery-entities.js";
 import type { OperationContext } from "../../public/operations/runtime-types.js";
 import {
   type ProofReceipt,
@@ -83,10 +86,13 @@ export async function executePruneReceipts(
       "Proof prune failed: this maintenance action rewrites authored test documents and requires a filesystem-capable runtime",
     );
   const keep = parseKeep(args.keep);
-  const tests = await loadEntities(context.prolog, {
-    type: "test",
-    ...(args.testId === undefined ? {} : { id: args.testId }),
-  });
+  // A bulk run pages full entities: receipt histories are exactly what this
+  // maintenance action reads, and loading all of them at once can exceed the
+  // bounded Prolog output capacity on long-lived stores.
+  const tests =
+    args.testId === undefined
+      ? await loadEntitiesPaged(context.prolog, "test")
+      : await loadEntities(context.prolog, { type: "test", id: args.testId });
   if (args.testId !== undefined && tests.length === 0) {
     throw new Error(`Proof prune failed: test ${args.testId} was not found`);
   }

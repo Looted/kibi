@@ -96,6 +96,15 @@ function serializeTypedFactFields(entity: ExtractedEntity): string[] {
     fields.push(`rule_ir=${toPrologString(JSON.stringify(ruleIr))}`);
   }
 
+  // Predicate-schema vocabularies are objects; like rule_ir they travel as
+  // JSON strings and are decoded again at the public boundary.
+  for (const field of ["argument_constants", "argument_aliases"]) {
+    const value = getEntityField(entity, field);
+    if (value !== undefined && value !== null) {
+      fields.push(`${field}=${toPrologString(JSON.stringify(value))}`);
+    }
+  }
+
   // Atom fields (possibly unquoted if simple)
   for (const field of ATOM_FIELDS) {
     const value = getEntityField(entity, field);

@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_vscode_kb_to_source
+subject_key: vscode.kibi_extension
 property_key: clause_01_the_vs_code_extension_must_support_navigation_fr
 operator: eq
 value_type: bool

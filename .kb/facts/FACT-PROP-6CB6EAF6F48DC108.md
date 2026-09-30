@@ -10,7 +10,7 @@ tags:
   - lane:strict
   - fact:property_value
 fact_kind: property_value
-subject_key: kibi_suggest_predicates
+subject_key: kibi.modeling.predicates
 property_key: applicability_threshold
 operator: eq
 value_type: number

@@ -17,11 +17,40 @@
         "kibi-cli": "workspace:*",
         "kibi-mcp": "workspace:*",
         "kibi-plugin-jev": "workspace:*",
+        "marked": "^17.0.1",
         "mitata": "^1.0.34",
         "semver": "^7.8.5",
         "typescript": "^5.9.3",
         "zod": "^4.6.5",
       },
+    },
+    "packages/agent-core": {
+      "name": "kibi-agent-core",
+      "version": "0.0.0",
+      "devDependencies": {
+        "@types/node": "^25.9.8",
+        "semver": "^7.8.5",
+        "typescript": "^5.7.0",
+        "yaml": "^2.9.0",
+      },
+    },
+    "packages/claude": {
+      "name": "kibi-claude",
+      "version": "0.1.0",
+      "devDependencies": {
+        "@types/node": "latest",
+        "kibi-agent-core": "^0.0.0",
+        "typescript": "^5.7.0",
+        "yaml": "^2.9.0",
+      },
+      "peerDependencies": {
+        "kibi-cli": ">=1.0.0",
+        "kibi-mcp": ">=1.0.0",
+      },
+      "optionalPeers": [
+        "kibi-cli",
+        "kibi-mcp",
+      ],
     },
     "packages/cli": {
       "name": "kibi-cli",
@@ -55,6 +84,7 @@
       "version": "2.0.1",
       "devDependencies": {
         "@types/node": "latest",
+        "kibi-agent-core": "^0.0.0",
         "typescript": "^5.7.0",
       },
       "peerDependencies": {
@@ -73,6 +103,9 @@
     "packages/cursor": {
       "name": "kibi-cursor",
       "version": "2.0.1",
+      "dependencies": {
+        "kibi-agent-core": "^0.0.0",
+      },
       "devDependencies": {
         "@types/node": "latest",
         "typescript": "^5.7.0",
@@ -88,7 +121,7 @@
     },
     "packages/mcp": {
       "name": "kibi-mcp",
-      "version": "2.1.0",
+      "version": "2.1.1",
       "bin": {
         "kibi-mcp": "bin/kibi-mcp",
       },
@@ -192,6 +225,7 @@
       "version": "0.2.0",
       "devDependencies": {
         "@types/node": "latest",
+        "kibi-agent-core": "^0.0.0",
         "typescript": "^5.7.0",
       },
       "peerDependencies": {
@@ -1133,6 +1167,10 @@
 
     "keytar": ["keytar@7.9.0", "", { "dependencies": { "node-addon-api": "^4.3.0", "prebuild-install": "^7.0.1" } }, "sha512-VPD8mtVtm5JNtA2AErl6Chp06JBfy7diFQ7TQQhdpWOl6MrCRB+eRbvAZUsbGQS9kiMq0coJsy0W0vHpDCkWsQ=="],
 
+    "kibi-agent-core": ["kibi-agent-core@workspace:packages/agent-core"],
+
+    "kibi-claude": ["kibi-claude@workspace:packages/claude"],
+
     "kibi-cli": ["kibi-cli@workspace:packages/cli"],
 
     "kibi-codex": ["kibi-codex@workspace:packages/codex"],
@@ -1827,8 +1865,6 @@
 
     "body-parser/qs": ["qs@6.15.0", "", { "dependencies": { "side-channel": "^1.1.0" } }, "sha512-mAZTtNCeetKMH+pSjrb76NAM8V9a05I9aBZOHztWy/UqcJdQYNsf59vrRKWnojAT9Y+GbIvoTBC++CPHqpDBhQ=="],
 
-    "bun-types/@types/node": ["@types/node@26.6.2", "", { "dependencies": { "undici-types": "~8.9.0" } }, "sha512-X1P21scMv4zGKLYqjdGjaKa7COa0RKVYYZZN/NfvLQ1JegxFhdhpZG/Lyn8AXx6CDUavKAd11v6BvfpkDByK8g=="],
-
     "cross-spawn/path-key": ["path-key@3.1.1", "", {}, "sha512-ojmeN0qd+y0jszEtoY48r0Peq5dwMEkIlCOu6Q5f41lfkswXuKtYrhgoTpLnyIcHm24Uhqx+5Tqm2InSwLhE6Q=="],
 
     "dir-glob/path-type": ["path-type@4.0.0", "", {}, "sha512-gDKb8aZMDeD/tZWs9P6+q0J9Mwkdl6xMV8TjnGP3qJVJ06bdMgkbBlLU8IdfOsIsFz2BW1rNVT3XuNEl8zPAvw=="],
@@ -1850,6 +1886,8 @@
     "image-q/@types/node": ["@types/node@16.9.1", "", {}, "sha512-QpLcX9ZSsq3YYUUnD3nFDY8H7wctAhQj/TFKL8Ya8v5fMm3CFXxo8zStsLAl780ltoYoo1WvKUVGBQK+1ifr7g=="],
 
     "is-core-module/hasown": ["hasown@2.0.3", "", { "dependencies": { "function-bind": "^1.1.2" } }, "sha512-ej4AhfhfL2Q2zpMmLo7U1Uv9+PyhIZpgQLGT1F9miIGmiCJIoCgSmczFdrc97mWT4kVY72KA+WnnhJ5pghSvSg=="],
+
+    "kibi-claude/@types/node": ["@types/node@26.6.3", "", { "dependencies": { "undici-types": "~8.9.0" } }, "sha512-dsqMQQoeTLqu9wynDD00q573mNzso3IdQOAfHRJqLCcmCFPoGo9A1bDpUcv/9tnKpErQWv9uKeGfl37EIS02Yg=="],
 
     "kibi-cli/@types/node": ["@types/node@26.6.2", "", { "dependencies": { "undici-types": "~8.9.0" } }, "sha512-X1P21scMv4zGKLYqjdGjaKa7COa0RKVYYZZN/NfvLQ1JegxFhdhpZG/Lyn8AXx6CDUavKAd11v6BvfpkDByK8g=="],
 
@@ -2129,8 +2167,6 @@
 
     "babel-plugin-module-resolver/glob/path-scurry": ["path-scurry@1.11.1", "", { "dependencies": { "lru-cache": "^10.2.0", "minipass": "^5.0.0 || ^6.0.2 || ^7.0.0" } }, "sha512-Xa4Nw17FS9ApQFJ9umLiJS4orGjm7ZzwUrwamcGQuHSzDyth9boKDaycYdDcZDuqYATXw4HFXgaqWTctW/v1HA=="],
 
-    "bun-types/@types/node/undici-types": ["undici-types@8.9.0", "", {}, "sha512-KTDyRTYX8sWmKXAikPHHSyc63CRPETMctyjKFupcC6OBLXT3xsN0e9aF7m+mIXutFWpUXuedtowG7iLOzp0kQg=="],
-
     "enquirer/strip-ansi/ansi-regex": ["ansi-regex@5.0.1", "", {}, "sha512-quJQXlTSUGL2LH9SUXo8VwsY4soanhgo6LNSm84E1LBcE8s3O0wpdiRzyR9z/ZZJMlMWv37qOOb9pdJlMUEKFQ=="],
 
     "form-data/mime-types/mime-db": ["mime-db@1.52.0", "", {}, "sha512-sPU4uV7dYlvtWJxwwxHD0PuihVNiE7TyAbQ5SWxDCB9mUYvOgroQOwYQQOKPJ8CIbE+1ETVlOoK1UC2nU3gYvg=="],
@@ -2138,6 +2174,8 @@
     "glob/minimatch/brace-expansion": ["brace-expansion@5.0.2", "", { "dependencies": { "balanced-match": "^4.0.2" } }, "sha512-Pdk8c9poy+YhOgVWw1JNN22/HcivgKWwpxKq04M/jTmHyCZn12WPJebZxdjSa5TmBqISrUSgNYU3eRORljfCCw=="],
 
     "gray-matter/js-yaml/argparse": ["argparse@1.0.10", "", { "dependencies": { "sprintf-js": "~1.0.2" } }, "sha512-o5Roy6tNG4SL/FOkCAN6RzjiakZS25RLYFrcMttJqbdd8BWrnA+fGz57iN5Pb06pvBGvl5gQ0B48dJlslXvoTg=="],
+
+    "kibi-claude/@types/node/undici-types": ["undici-types@8.9.0", "", {}, "sha512-KTDyRTYX8sWmKXAikPHHSyc63CRPETMctyjKFupcC6OBLXT3xsN0e9aF7m+mIXutFWpUXuedtowG7iLOzp0kQg=="],
 
     "kibi-cli/@types/node/undici-types": ["undici-types@8.9.0", "", {}, "sha512-KTDyRTYX8sWmKXAikPHHSyc63CRPETMctyjKFupcC6OBLXT3xsN0e9aF7m+mIXutFWpUXuedtowG7iLOzp0kQg=="],
 

@@ -18,15 +18,15 @@
 
 import { access, readFile } from "node:fs/promises";
 import * as path from "node:path";
-import {
-  type ClassDeclaration,
-  type ClassExpression,
-  type Node,
+import type {
+  ClassDeclaration,
+  ClassExpression,
+  Node,
   Project,
-  type SourceFile,
-  SyntaxKind,
-  type VariableDeclaration,
+  SourceFile,
+  VariableDeclaration,
 } from "ts-morph";
+import { tsMorph } from "./ts-morph-runtime.js";
 import {
   SUPPORTED_SOURCE_EXTENSIONS,
   onlyCandidate,
@@ -62,7 +62,7 @@ export async function enrichSymbolCoordinatesWithTsMorph(
   entries: ManifestSymbolEntry[],
   workspaceRoot: string,
 ): Promise<ManifestSymbolEntry[]> {
-  const project = new Project({
+  const project = new (tsMorph().Project)({
     skipAddingFilesFromTsConfig: true,
   });
   const sourceFileCache = new Map<string, SourceFile>();
@@ -220,7 +220,7 @@ function findNamedDeclaration(
       for (const declaration of statement.getDeclarations()) {
         if (declaration.getName() !== qualifiedMethod.className) continue;
         const classExpression = declaration.getInitializerIfKind(
-          SyntaxKind.ClassExpression,
+          tsMorph().SyntaxKind.ClassExpression,
         );
         const match = classExpression
           ? findClassMember(classExpression, qualifiedMethod.methodName)
@@ -324,7 +324,7 @@ function findNamedDeclaration(
       if (!statement.isExported()) continue;
       for (const declaration of statement.getDeclarations()) {
         const classExpression = declaration.getInitializerIfKind(
-          SyntaxKind.ClassExpression,
+          tsMorph().SyntaxKind.ClassExpression,
         );
         if (!classExpression) continue;
         for (const method of classExpression.getMethods()) {
@@ -371,7 +371,7 @@ function findNamedDeclaration(
       if (!statement.isExported()) continue;
       for (const declaration of statement.getDeclarations()) {
         const classExpression = declaration.getInitializerIfKind(
-          SyntaxKind.ClassExpression,
+          tsMorph().SyntaxKind.ClassExpression,
         );
         if (!classExpression) continue;
         for (const property of classExpression.getProperties()) {

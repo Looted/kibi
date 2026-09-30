@@ -20,4 +20,5 @@ claim_key: CLAIM-9E850C720B4CF5F9
 claim_text: kibi doctor must fail the provider diagnostic when a configured plugin package is not a declared dependency
 id: FACT-PRED-0D7C66BA043B
 type: fact
+predicate_namespace: kibi.capability
 ---

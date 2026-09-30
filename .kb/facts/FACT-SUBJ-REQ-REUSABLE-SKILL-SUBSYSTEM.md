@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: subject
-subject_key: req.req_reusable_skill_subsystem
+subject_key: kibi.skills.bundled
 canonical_key: req.req_reusable_skill_subsystem
 id: FACT-SUBJ-REQ-REUSABLE-SKILL-SUBSYSTEM
 type: fact

@@ -72,7 +72,11 @@ describe("kb_graph multi-relationship integration", () => {
   let testKbPath: string;
 
   beforeAll(async () => {
-    prolog = new RealPrologProcess();
+    // Keep one attached Prolog session for the multi-step graph fixture.
+    // The test-mode default starts a fresh process for each validation and
+    // persistence query, which can exceed the integration timeout under the
+    // full unit suite and leave an upsert running after the test is killed.
+    prolog = new RealPrologProcess({ oneShot: false });
     await prolog.start();
     await prolog.query(
       "set_prolog_flag(answer_write_options, [max_depth(0), spacing(next_argument)])",

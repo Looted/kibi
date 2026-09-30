@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_symbol_behavioral_anchors
+subject_key: kibi.symbols.traceability
 property_key: clause_02_type_shape_symbols_such_as_interfaces_type_alias
 operator: eq
 value_type: bool

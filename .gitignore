@@ -82,3 +82,7 @@ artifacts/skillopt/
 .omo
 .zcode/
 .slim/deepwork/
+
+# --- Claude Code (local state; .claude/settings.json is the committed dogfood config) ---
+.claude/worktrees/
+.claude/settings.local.json

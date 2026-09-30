@@ -4,6 +4,7 @@ import { createHash } from "node:crypto";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { parse } from "yaml";
 import {
   clearRecoveredPendingSourceReceipts,
   discoverSourceFiles,
@@ -164,6 +165,97 @@ describe("source-first authoring", () => {
     expect(
       renderSourceDeletion("symbols.yaml", "SYM-1", "symbol", updated).mode,
     ).toBe("write");
+  });
+
+  test("an upsert folds duplicate manifest records into one with their combined ownership", async () => {
+    const workspace = await mkdtemp(path.join(tmpdir(), "kibi-source-"));
+    workspaces.push(workspace);
+    const target = path.join(workspace, "symbols.yaml");
+    // A rebase that unions both sides can leave one id twice.
+    const original = [
+      "symbols:",
+      "  - id: SYM-DUP",
+      "    title: Duplicated",
+      "    sourceFile: src/dup.ts",
+      "    relationships:",
+      "      - type: implements",
+      "        target: REQ-FIRST",
+      "  - id: SYM-KEEP",
+      "    title: Keep",
+      "  - id: SYM-DUP",
+      "    title: Duplicated",
+      "    symbol_role: behavioral",
+      "    relationships:",
+      "      - type: covered_by",
+      "        target: TEST-SECOND",
+      "",
+    ].join("\n");
+    await writeFile(target, original);
+    await writeSourceForUpsert(
+      {
+        type: "symbol",
+        id: "SYM-DUP",
+        properties: { title: "Duplicated", status: "active" },
+        relationships: [
+          { type: "implements", from: "SYM-DUP", to: "REQ-THIRD" },
+        ],
+        document: { path: "symbols.yaml" },
+      },
+      {
+        id: "SYM-DUP",
+        type: "symbol",
+        title: "Duplicated",
+        status: "active",
+        source: "symbols.yaml",
+      },
+      { id: "SYM-DUP", source: "symbols.yaml" },
+      context(workspace),
+    );
+    const manifest = parse(await readFile(target, "utf8")) as {
+      symbols: Array<Record<string, unknown>>;
+    };
+    expect(manifest.symbols.map((symbol) => symbol.id)).toEqual([
+      "SYM-DUP",
+      "SYM-KEEP",
+    ]);
+    const merged = manifest.symbols[0] as {
+      sourceFile?: string;
+      symbol_role?: string;
+      relationships: Array<{ type: string; target: string }>;
+    };
+    expect(merged.sourceFile).toBe("src/dup.ts");
+    expect(merged.symbol_role).toBe("behavioral");
+    expect(
+      merged.relationships.map((r) => `${r.type}:${r.target}`).sort(),
+    ).toEqual([
+      "covered_by:TEST-SECOND",
+      "implements:REQ-FIRST",
+      "implements:REQ-THIRD",
+    ]);
+  });
+
+  test("deleting a symbol removes every duplicate manifest record", () => {
+    const manifest = [
+      "symbols:",
+      "  - id: SYM-DUP",
+      "    title: First copy",
+      "  - id: SYM-KEEP",
+      "    title: Keep",
+      "  - id: SYM-DUP",
+      "    title: Second copy",
+      "",
+    ].join("\n");
+    const result = renderSourceDeletion(
+      "symbols.yaml",
+      "SYM-DUP",
+      "symbol",
+      manifest,
+    );
+    expect(result.mode).toBe("write");
+    const remaining = parse(result.body ?? "") as {
+      symbols: Array<{ id: string }>;
+    };
+    expect(remaining.symbols.map((symbol) => symbol.id)).toEqual(["SYM-KEEP"]);
   });
 
   test("partial symbol upserts preserve authored provenance fields", async () => {
@@ -392,5 +484,29 @@ describe("source-first authoring", () => {
     );
     const after = await discoverSourceFiles(workspace, { trackedOnly: true });
     expect(after.markdownFiles).toEqual([]);
+  });
+
+  test("removing one manifest symbol keeps other long titles on one line", () => {
+    const longTitle =
+      "predicate guidance loads a canonical decision tree with immutable resource examples";
+    const manifest = [
+      "symbols:",
+      "  - id: SYM-keep",
+      `    title: ${longTitle}`,
+      "  - id: SYM-drop",
+      "    title: drop",
+      "",
+    ].join("\n");
+
+    const result = renderSourceDeletion(
+      ".kb/symbols.yaml",
+      "SYM-drop",
+      "symbol",
+      manifest,
+    );
+
+    expect(result.mode).toBe("write");
+    expect(result.body).toContain(`    title: ${longTitle}\n`);
+    expect(result.body).not.toContain("SYM-drop");
   });
 });

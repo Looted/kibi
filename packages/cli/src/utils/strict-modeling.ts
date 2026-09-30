@@ -111,6 +111,20 @@ export function normalizeSubjectKey(value: string): string {
   return normalized;
 }
 
+/**
+ * Subject-key convention checked by `subject-key-shape`: dotted
+ * component.aspect[.sub] with lowercase snake segments. Mirrors
+ * valid_subject_key/1 in packages/core/src/semantic_quality.pl.
+ */
+// implements REQ-kibi-subject-vocabulary
+export const SUBJECT_KEY_CONVENTION =
+  /^[a-z][a-z0-9]*(?:_[a-z0-9]+)*(?:\.[a-z][a-z0-9]*(?:_[a-z0-9]+)*)+$/;
+
+// implements REQ-kibi-subject-vocabulary
+export function isConventionalSubjectKey(value: string): boolean {
+  return SUBJECT_KEY_CONVENTION.test(value);
+}
+
 export function normalizePropertyKey(value: string): string {
   const normalized = value
     .trim()

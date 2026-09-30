@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: subject
-subject_key: req.req_codex_kibi_plugin_v1
+subject_key: codex.kibi_plugin
 canonical_key: req.req_codex_kibi_plugin_v1
 id: FACT-SUBJ-REQ-CODEX-KIBI-PLUGIN-V1
 type: fact

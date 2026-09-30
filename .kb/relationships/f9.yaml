@@ -185,3 +185,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9f14d99be250
+  - type: implements
+    from: SYM-claude-ContextEvent
+    to: REQ-claude-code-kibi-plugin-v1
+    created_at: 2026-09-27T09:19:10.811Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-35de8f20d297
+  - type: covered_by
+    from: SYM-claude-ContextEvent
+    to: TEST-claude-code-kibi-plugin-v1
+    created_at: 2026-09-27T09:19:10.850Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-09fba4ca3525
+  - type: implements
+    from: SYM-claude-classifyPath
+    to: REQ-claude-code-kibi-plugin-v1
+    created_at: 2026-09-27T09:23:17.180Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b770915fa2b2
+  - type: covered_by
+    from: SYM-claude-classifyPath
+    to: TEST-claude-code-kibi-plugin-v1
+    created_at: 2026-09-27T09:23:17.227Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-446ecbd55631

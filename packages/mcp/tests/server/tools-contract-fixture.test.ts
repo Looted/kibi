@@ -310,9 +310,7 @@ describe("mcp contract fixtures", () => {
           ) as JsonRecord,
           ...(jobStatus.annotations
             ? {
-                annotations: stableSchema(
-                  jobStatus.annotations,
-                ) as JsonRecord,
+                annotations: stableSchema(jobStatus.annotations) as JsonRecord,
               }
             : {}),
         }

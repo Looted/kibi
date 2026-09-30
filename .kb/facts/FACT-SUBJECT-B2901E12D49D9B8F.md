@@ -10,7 +10,7 @@ tags:
   - lane:strict
   - fact:subject
 fact_kind: subject
-subject_key: kibi_codex_plugin
+subject_key: codex.kibi_plugin
 canonical_key: kibi_codex_plugin
 claim_key: CLAIM-387DE160D72D606F
 claim_text: The kibi-codex plugin registers consumer-local MCP startup behavior for Codex

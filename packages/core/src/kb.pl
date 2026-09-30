@@ -14,6 +14,7 @@
     kb_assert_entity/2,
     kb_assert_entity_no_audit/2,
     kb_commit_upsert/5,
+    kb_commit_upsert_batch/2,
     kb_log_entity_upsert/3,
     kb_retract_entity/1,
     kb_retract_entity/3,
@@ -24,10 +25,13 @@
     kb_indexed_sources/1,
     kb_query_entities/8,
     kb_search_entities/6,
+    kb_list_search_candidates/5,
+    kb_entity_ids/1,
     kb_rebuild_indexes/0,
     kb_entity/3,
     kb_entities_by_source/2,
     kb_assert_relationship/4,
+    kb_query_proof_contracts/4,
     kb_assert_relationship_no_audit/4,
     kb_log_relationship_upsert/4,
     kb_relationship/3,
@@ -56,6 +60,7 @@
     symbol_no_req_coverage/2,
     predicate_schema/6,
     predicate_fact/5,
+    canonical_property_tuple/9,
     contradicting_reqs/3,
     req_conflict_witness/3,
     check_req_contradiction/1,
@@ -71,12 +76,15 @@
 :- use_module(library(thread)).
 :- use_module(library(filesex)).
 :- use_module(library(readutil)).
+:- use_module(library(sha), [sha_hash/3, hash_atom/2]).
 :- use_module(library(http/json)).
 :- use_module(library(aggregate), [aggregate_all/3]).
 :- use_module(library(lists), [sum_list/2]).
 :- use_module(library(ordsets)).
+:- use_module(library(solution_sequences), [distinct/1, limit/2, offset/2, order_by/2]).
 :- use_module('../schema/entities.pl', [entity_type/1, entity_property/3, required_property/2]).
 :- use_module('../schema/relationships.pl', [relationship_type/1, valid_relationship/3]).
+:- use_module('units.pl', [canonical_quantity/6]).
 :- use_module('../schema/validation.pl', [validate_entity/2, validate_relationship/3]).
 
 % Constants
@@ -117,6 +125,13 @@ kb_uri('urn-kibi:').
 :- dynamic kb_index_symbol_coordinate/5.
 :- dynamic kb_index_entity_count/1.
 :- dynamic kb_index_triple_count/1.
+% Read memo for per-entity property lists, valid only for the recorded
+% Graph-rdf_generation key. rdf_generation/1 changes on every RDF
+% modification (including inside transactions) and reverts on rollback, so
+% the memo never serves a property list the store no longer holds.
+:- dynamic kb_entity_props_memo/2.
+:- dynamic kb_entity_props_memo_key/1.
+:- dynamic kb_index_verified_key/1.
 :- dynamic entity/4.  % Support legacy .pl file format (Type, Id, Title, Props)
 
 %% kb_attach(+Directory)
@@ -187,8 +202,22 @@ kb_attach_journaled(Directory) :-
     load_kb_pl_files(Directory),
     kb_rebuild_indexes.
 
+% SWI-Prolog's rdf_db fails to write journals ("invalid term_t ... out of
+% range") for graphs whose URI is roughly 230 characters or longer.  Store
+% paths inside deep workspaces reach that length, so those stores use a short
+% digest-based graph URI; shorter paths keep the file:// URI they always had.
+journal_expected_graph_uri(Directory, Expected) :-
+    atom_concat('file://', Directory, FileURI),
+    atom_length(FileURI, Length),
+    (   Length =< 200
+    ->  Expected = FileURI
+    ;   sha_hash(Directory, Hash, [algorithm(sha1)]),
+        hash_atom(Hash, Digest),
+        atom_concat('urn:kibi:store:', Digest, Expected)
+    ).
+
 journal_graph_uri(Directory, GraphURI) :-
-    atom_concat('file://', Directory, Expected),
+    journal_expected_graph_uri(Directory, Expected),
     (   rdf_graph(Expected)
     ->  GraphURI = Expected
     ;   findall(G,
@@ -324,6 +353,9 @@ kb_detach :-
             retractall(kb_dirty),
             retractall(kb_index_ready),
             retractall(kb_index_dirty),
+            retractall(kb_index_verified_key(_)),
+            retractall(kb_entity_props_memo(_, _)),
+            retractall(kb_entity_props_memo_key(_)),
             retractall(kb_index_entity(_, _)),
             retractall(kb_index_type(_, _)),
             retractall(kb_index_tag(_, _)),
@@ -1089,6 +1121,62 @@ kb_maybe_check_req_contradiction(req, Id, false) :-
     check_req_contradiction(Id).
 kb_maybe_check_req_contradiction(_, _, _).
 
+% Stage one upsert inside an already-open transaction. The caller saves once.
+kb_stage_upsert(Type, Props, Relationships, SkipContradiction, ChangeKind) :-
+    memberchk(id=Id, Props),
+    memberchk(SkipContradiction, [true, false]),
+    upsert_change_kind(Id, ChangeKind),
+    kb_assert_entity_no_audit(Type, Props),
+    kb_commit_relationships_no_audit(Relationships),
+    kb_maybe_check_req_contradiction(Type, Id, SkipContradiction),
+    kb_log_entity_upsert(ChangeKind, Type, Props),
+    kb_commit_relationship_audits(Relationships).
+
+kb_stage_upserts([], []).
+kb_stage_upserts([
+    upsert(Type, Props, Relationships, SkipContradiction)|Rest
+], [ChangeKind|Kinds]) :-
+    kb_stage_upsert(Type, Props, Relationships, SkipContradiction, ChangeKind),
+    kb_stage_upserts(Rest, Kinds).
+
+%% kb_commit_upsert_batch(+Entries, -ChangeKinds)
+% implements REQ-core-atomic-upsert-persistence
+% Commit many upserts in one RDF transaction and one journal flush.
+% Entries are upsert(Type, Props, Relationships, SkipContradiction) terms.
+kb_commit_upsert_batch(Entries, ChangeKinds) :-
+    kb_storage_mode(journaled),
+    !,
+    with_kb_mutex((
+        (   kb_dirty -> WasDirty = true ; WasDirty = false ),
+        catch(
+            rdf_transaction((
+                kb_stage(rdf_mutation),
+                kb_stage_upserts(Entries, ChangeKinds)
+            )),
+            Error,
+            (   (WasDirty == false -> retractall(kb_dirty) ; true),
+                throw(Error)
+            )
+        ),
+        kb_mark_dirty,
+        kb_save_journaled
+    )).
+kb_commit_upsert_batch(Entries, ChangeKinds) :-
+    kb_attached(Directory),
+    atom_concat(Directory, '/kb.rdf', DataFile),
+    kb_stage(runtime),
+    kb_runtime_diagnostic,
+    kb_stage(lock),
+    with_kb_file_lock(Directory, (
+        audit_store_writable,
+        ensure_snapshot_current(DataFile),
+        rdf_transaction((
+            kb_stage(rdf_mutation),
+            kb_stage_upserts(Entries, ChangeKinds),
+            kb_save_locked(Directory)
+        ))
+    )).
+
 kb_commit_relationship_audits([]).
 kb_commit_relationship_audits([
     rel(RelType, FromId, ToId, _Metadata)|Rest
@@ -1324,6 +1412,42 @@ kb_entity(Id, Type, Props) :-
 % Raw RDF/entity facts are kept separate from the index wrapper.  Rebuilding
 % an index must never recurse through the indexed query path.
 kb_entity_raw(Id, Type, Props) :-
+    (   nonvar(Id)
+    ->  rdf_entity_solutions(Id, Solutions),
+        member(Type-Props, Solutions)
+    ;   kb_entity_raw_rdf(Id, Type, Props)
+    ).
+
+% Fallback: read from legacy entity/4 facts loaded from .pl files
+kb_entity_raw(Id, Type, Props) :-
+    entity(Type, Id, _Title, PropList),
+    convert_legacy_props(PropList, Props).
+
+%% rdf_entity_solutions(+Id, -Solutions)
+% Coverage, proof, and check predicates look up the same entities tens of
+% thousands of times, and every lookup materializes and decodes every
+% property (including receipt histories). Memoize the decoded Type-Props
+% solutions per entity for the current graph and RDF generation.
+rdf_entity_solutions(Id, Solutions) :-
+    (   kb_graph(Graph)
+    ->  rdf_generation(Generation),
+        Key = Graph-Generation,
+        (   kb_entity_props_memo_key(Current),
+            Current == Key
+        ->  true
+        ;   retractall(kb_entity_props_memo(_, _)),
+            retractall(kb_entity_props_memo_key(_)),
+            assertz(kb_entity_props_memo_key(Key))
+        ),
+        (   kb_entity_props_memo(Id, Cached)
+        ->  Solutions = Cached
+        ;   findall(Type-Props, kb_entity_raw_rdf(Id, Type, Props), Solutions),
+            assertz(kb_entity_props_memo(Id, Solutions))
+        )
+    ;   Solutions = []
+    ).
+
+kb_entity_raw_rdf(Id, Type, Props) :-
     kb_graph(Graph),
     % Find entity by pattern - use unquoted namespace term kb:type
     (   var(Id)
@@ -1344,18 +1468,35 @@ kb_entity_raw(Id, Type, Props) :-
         literal_to_value(Key, ValueLiteral, Value)
 ), Props).
 
-% Fallback: read from legacy entity/4 facts loaded from .pl files
-kb_entity_raw(Id, Type, Props) :-
-    entity(Type, Id, _Title, PropList),
-    convert_legacy_props(PropList, Props).
-
+% Verifying the index counts every type triple in the store. Remember the
+% inputs of the last successful check (graph, RDF generation, legacy fact
+% count, and the index's own entity count) and skip the recount while all of
+% them are unchanged: the recount would then return the same answer. The
+% index count must be part of the key because incremental index updates are
+% plain Prolog facts that an RDF rollback does not undo, while the RDF
+% generation does revert.
 kb_ensure_indexes :-
     (   kb_index_ready,
         \+ kb_index_dirty,
         kb_index_entity_count(Expected),
-        current_entity_index_count(Expected)
+        index_verification_key(Expected, Key),
+        (   kb_index_verified_key(Verified),
+            Verified == Key
+        ->  true
+        ;   current_entity_index_count(Expected),
+            retractall(kb_index_verified_key(_)),
+            assertz(kb_index_verified_key(Key))
+        )
     ->  true
     ;   kb_rebuild_indexes
+    ).
+
+index_verification_key(IndexCount, key(Graph, Generation, LegacyCount, IndexCount)) :-
+    (kb_graph(Graph) -> true ; Graph = none),
+    rdf_generation(Generation),
+    (   predicate_property(kb:entity(_, _, _, _), number_of_clauses(Count))
+    ->  LegacyCount = Count
+    ;   LegacyCount = 0
     ).
 
 % Rebuild all acceleration structures from RDF/entity facts.  This is
@@ -1380,6 +1521,7 @@ kb_rebuild_indexes :-
         assertz(kb_index_triple_count(TripleCount)),
         retractall(kb_index_dirty),
         retractall(kb_index_ready),
+        retractall(kb_index_verified_key(_)),
         assertz(kb_index_ready)
     )).
 
@@ -1515,6 +1657,97 @@ kb_query_entities(TypeFilter, IdFilter, Tags, SourceFilter, Limit, Offset, Rows,
               kb_entity(Id, Type, Props) ),
             Rows).
 
+%% kb_query_proof_contracts(+Id, +Limit, +Offset, -Rows)
+% Page proof-campaign candidates while reading only contract and binding RDF
+% properties. In particular, do not call kb_entity/3 here: that materializes
+% complete entity properties, including potentially large receipt histories.
+% implements REQ-kibi-verification-evidence-contract
+kb_query_proof_contracts(IdFilter, Limit, Offset, Rows) :-
+    integer(Limit),
+    integer(Offset),
+    Limit >= 0,
+    Offset >= 0,
+    findall([Id, test, Projected],
+            ( limit(Limit,
+                    offset(Offset,
+                           order_by([asc(Id)],
+                                    distinct(proof_contract_candidate(IdFilter, Id))))),
+              proof_contract_properties(Id, Contract, Bindings, Source),
+              optional_projected_property(proof_bindings, Bindings,
+                                          BindingProps),
+              optional_projected_property(source, Source, SourceProps),
+              append([[id=Id, proof_contract=Contract],
+                      BindingProps, SourceProps],
+                     Projected) ),
+            Rows).
+
+optional_projected_property(_Key, Value, []) :-
+    var(Value),
+    !.
+optional_projected_property(Key, Value, [Key=Value]).
+
+proof_contract_properties(Id, Contract, Bindings) :-
+    proof_contract_properties(Id, Contract, Bindings, _Source).
+
+% Source is projected alongside the contract so per-contract receipt binding
+% can hash the authored document without materializing receipt histories.
+proof_contract_properties(Id, Contract, Bindings, Source) :-
+    (   (   kb_graph(Graph),
+            entity_id_to_uri(Id, EntityURI),
+            rdf(EntityURI, kb:type, TypeLiteral, Graph),
+            literal_to_atom(TypeLiteral, test),
+            kb_property_uri(proof_contract, ContractURI),
+            rdf(EntityURI, ContractURI, ContractLiteral, Graph)
+        )
+    ->  literal_to_value(proof_contract, ContractLiteral, Contract),
+        (   kb_property_uri(proof_bindings, BindingsURI),
+            rdf(EntityURI, BindingsURI, BindingsLiteral, Graph)
+        ->  literal_to_value(proof_bindings, BindingsLiteral, Bindings)
+        ;   true
+        ),
+        (   kb_property_uri(source, SourceURI),
+            rdf(EntityURI, SourceURI, SourceLiteral, Graph)
+        ->  literal_to_value(source, SourceLiteral, Source)
+        ;   true
+        )
+    ;   entity(test, Id, _, Properties),
+        memberchk(proof_contract=Contract, Properties),
+        (   memberchk(proof_bindings=Bindings, Properties)
+        ->  true
+        ;   true
+        ),
+        (   memberchk(source=Source, Properties)
+        ->  true
+        ;   true
+        )
+    ).
+
+%% kb_property_uri(+Key, -URI)
+% Property predicates are asserted in-session as the prefixed atom 'kb:Key',
+% but a store reloaded from its snapshot carries the expanded 'urn-kibi:Key'
+% form. Direct RDF lookups must accept both (as uri_to_key/2 already does),
+% or projections silently miss every entity of a reloaded store.
+kb_property_uri(Key, URI) :-
+    kb_uri(BaseURI),
+    atom_concat(BaseURI, Key, URI).
+kb_property_uri(Key, URI) :-
+    atom_concat('kb:', Key, URI).
+
+% implements REQ-kibi-verification-evidence-contract
+proof_contract_candidate(none, Id) :-
+    kb_graph(Graph),
+    kb_property_uri(proof_contract, ContractURI),
+    rdf(EntityURI, ContractURI, _, Graph),
+    entity_uri_to_id(EntityURI, Id),
+    rdf(EntityURI, kb:type, TypeLiteral, Graph),
+    literal_to_atom(TypeLiteral, test).
+proof_contract_candidate(none, Id) :-
+    entity(test, Id, _, Properties),
+    memberchk(proof_contract=_, Properties).
+proof_contract_candidate(some(Id), Id) :-
+    atom(Id),
+    proof_contract_properties(Id, _, _).
+
 indexed_entity_match(TypeFilter, IdFilter, Tags, SourceFilter, Id) :-
     (   IdFilter == none
     ->  kb_index_entity(Id, _)
@@ -1573,9 +1806,73 @@ kb_search_entities(TypeFilter, Query, Limit, Offset, Rows, Count) :-
     length(Ids, Count),
     drop_index_ids(Offset, Ids, Remaining),
     take_index_ids(Limit, Remaining, PageIds),
-    findall([Id, Type, Props],
-            ( member(Id, PageIds), kb_entity(Id, Type, Props) ),
+    search_candidate_rows(PageIds, Rows).
+
+%% kb_list_search_candidates(+Type, +Limit, +Offset, -Rows, -Count)
+% Page every indexed entity (optionally of one type) as projected search
+% candidate rows, ordered by id. Semantic discovery uses it when no lexical
+% token can pre-filter the candidate set.
+kb_list_search_candidates(TypeFilter, Limit, Offset, Rows, Count) :-
+    integer(Limit),
+    integer(Offset),
+    Limit >= 0,
+    Offset >= 0,
+    kb_ensure_indexes,
+    findall(Id,
+            ( kb_index_entity(Id, _),
+              (TypeFilter == none -> true ; kb_index_type(TypeFilter, Id)) ),
+            RawIds),
+    sort(RawIds, Ids),
+    length(Ids, Count),
+    drop_index_ids(Offset, Ids, Remaining),
+    take_index_ids(Limit, Remaining, PageIds),
+    search_candidate_rows(PageIds, Rows).
+
+%% kb_entity_ids(-Ids)
+% Every entity id, without materializing any properties.
+kb_entity_ids(Ids) :-
+    kb_ensure_indexes,
+    findall(Id, kb_index_entity(Id, _), RawIds),
+    sort(RawIds, Ids).
+
+% Search candidates carry only the properties ranking, snippets, and summary
+% output read. Large structured properties (receipt histories, proof
+% contracts, semantic inventories, rule IR) stay in the store: a candidate
+% page of receipt-bearing tests otherwise exceeds the bounded engine output.
+% Callers that need complete entities reload the final page by id.
+search_candidate_rows(PageIds, Rows) :-
+    findall([Id, Type, Projected],
+            ( member(Id, PageIds),
+              kb_entity(Id, Type, Props),
+              include(search_candidate_property, Props, Projected) ),
             Rows).
+
+search_candidate_property(Key=_) :-
+    search_candidate_key(Key).
+
+search_candidate_key(id).
+search_candidate_key(title).
+search_candidate_key(status).
+search_candidate_key(priority).
+search_candidate_key(severity).
+search_candidate_key(owner).
+search_candidate_key(tags).
+search_candidate_key(source).
+search_candidate_key(sourceFile).
+search_candidate_key(sourceLine).
+search_candidate_key(sourceColumn).
+search_candidate_key(sourceEndLine).
+search_candidate_key(sourceEndColumn).
+search_candidate_key(source_line).
+search_candidate_key(source_end_line).
+search_candidate_key(updated_at).
+search_candidate_key(created_at).
+search_candidate_key(semantic_text).
+search_candidate_key(text_ref).
+search_candidate_key(body).
+search_candidate_key(content).
+search_candidate_key(markdownBody).
+search_candidate_key(markdown_body).
 
 indexed_token_match(QueryToken, Id) :-
     kb_index_token(IndexedToken, Id),
@@ -2269,10 +2566,14 @@ req_conflict_witness(ReqA, ReqB, Witness) :-
     FactA \= FactB,
     scope_intersects(ScopeA, ScopeB),
     intervals_overlap(ValidFromA, ValidToA, ValidFromB, ValidToB),
-    (   polarity_conflict(SubjectKey, PropertyKey, OpA, ValTypeA, ValA, UnitA, ScopeA, PolarityA,
-                          OpB, ValTypeB, ValB, UnitB, ScopeB, PolarityB, Reason)
-    ;   property_conflict(SubjectKey, PropertyKey, OpA, ValTypeA, ValA, UnitA, PolarityA,
-                          OpB, ValTypeB, ValB, UnitB, PolarityB, Reason)
+    % Compare canonical quantities (30 min == 1800 s); witnesses keep the
+    % authored values so evidence still points at the source text.
+    canonical_quantity(ValTypeA, ValA, UnitA, CanonTypeA, CanonValA, CanonUnitA),
+    canonical_quantity(ValTypeB, ValB, UnitB, CanonTypeB, CanonValB, CanonUnitB),
+    (   polarity_conflict(SubjectKey, PropertyKey, OpA, CanonTypeA, CanonValA, CanonUnitA, ScopeA, PolarityA,
+                          OpB, CanonTypeB, CanonValB, CanonUnitB, ScopeB, PolarityB, Reason)
+    ;   property_conflict(SubjectKey, PropertyKey, OpA, CanonTypeA, CanonValA, CanonUnitA, PolarityA,
+                          OpB, CanonTypeB, CanonValB, CanonUnitB, PolarityB, Reason)
     ),
     property_conflict_side(ReqA, FactA, SubjectKey, PropertyKey, OpA, ValTypeA, ValA, UnitA, ScopeA, PolarityA, ValidFromA, ValidToA, Left),
     property_conflict_side(ReqB, FactB, SubjectKey, PropertyKey, OpB, ValTypeB, ValB, UnitB, ScopeB, PolarityB, ValidFromB, ValidToB, Right),
@@ -2417,6 +2718,14 @@ fact_property_tuple(FactId, Subject, Property, Op, ValType, Value, Unit, Scope, 
     ( memberchk(unit=UnitRaw, Props) -> normalize_term_atom(UnitRaw, Unit) ; Unit = '' ),
     ( memberchk(scope=ScopeRaw, Props) -> normalize_term_atom(ScopeRaw, Scope) ; Scope = '' ),
     ( memberchk(polarity=PolarityRaw, Props) -> normalize_term_atom(PolarityRaw, Polarity) ; Polarity = require ).
+
+%% canonical_property_tuple(+FactId, -Subject, -Property, -Op, -ValType, -Value, -Unit, -Scope, -Polarity)
+% fact_property_tuple/9 with the quantity converted to its canonical base unit
+% (units.pl). Used only for comparison; the authored fact is never rewritten.
+% implements REQ-kibi-unit-canonicalization
+canonical_property_tuple(FactId, Subject, Property, Op, CanonType, CanonValue, CanonUnit, Scope, Polarity) :-
+    fact_property_tuple(FactId, Subject, Property, Op, ValType, Value, Unit, Scope, Polarity),
+    canonical_quantity(ValType, Value, Unit, CanonType, CanonValue, CanonUnit).
 
 %% predicate_schema(+FactId, -Namespace, -Name, -Arity, -ArgumentNames, -ArgumentTypes)
 % Read one project-local ontology predicate schema fact.

@@ -1,4 +1,4 @@
-import Ajv, { type ErrorObject } from "ajv";
+import Ajv, { type ErrorObject, type ValidateFunction } from "ajv";
 import { proofReceiptHistoryErrors } from "../../public/proof-receipt.js";
 import entitySchema from "../../public/schemas/entity.js";
 import relationshipSchema from "../../public/schemas/relationship.js";
@@ -21,7 +21,19 @@ const properties =
   schema.properties !== null && typeof schema.properties === "object"
     ? (schema.properties as Record<string, unknown>)
     : {};
-const validateEntity = ajv.compile({
+// Compiled on first mutation: every CLI command imports this module, and
+// most never validate an upsert.
+let entityValidator: ValidateFunction | undefined;
+let relationshipValidator: ValidateFunction | undefined;
+function entitySchemaValidator(): ValidateFunction {
+  entityValidator ??= ajv.compile(upsertEntitySchema);
+  return entityValidator;
+}
+function relationshipSchemaValidator(): ValidateFunction {
+  relationshipValidator ??= ajv.compile(relationshipSchema);
+  return relationshipValidator;
+}
+const upsertEntitySchema = {
   ...schema,
   properties: {
     ...properties,
@@ -37,8 +49,7 @@ const validateEntity = ajv.compile({
     },
     symbol_role: { type: "string", enum: [...SYMBOL_ROLES] },
   },
-});
-const validateRelationship = ajv.compile(relationshipSchema);
+};
 
 const ALIASES = new Map([
   ["subjectKey", "subject_key"],
@@ -110,6 +121,7 @@ export function validateUpsertInput(
   entity.created_at ??= now.toISOString();
   entity.updated_at ??= now.toISOString();
   entity.source ??= "mcp://kibi/upsert";
+  const validateEntity = entitySchemaValidator();
   if (!validateEntity(entity)) {
     throw new Error(
       `Entity validation failed: ${formatEntityErrors(entity, validateEntity.errors ?? [])}`,
@@ -145,6 +157,7 @@ export function validateUpsertInput(
     }
   }
   const relationships = input.relationships ?? [];
+  const validateRelationship = relationshipSchemaValidator();
   relationships.forEach((relationship, index) => {
     if (!validateRelationship(relationship)) {
       const details = (validateRelationship.errors ?? [])

@@ -5,7 +5,8 @@
  *
  * Reads the canonical skill source from `packages/runtime/src/skills/`,
  * generates committed mirrors under `packages/cursor/skills/`,
- * `packages/codex/skills/`, and `packages/zcode/skills/`, and emits a SHA-256
+ * `packages/codex/skills/`, `packages/zcode/skills/`, and
+ * `packages/claude/skills/`, and emits a SHA-256
  * hash manifest at `<target>/.canon-hash.json` so drift can be detected
  * deterministically.
  *
@@ -15,14 +16,16 @@
  * its recognized set (`name`, `description`, `when_to_use`, `license`,
  * `metadata`). Canonical kibi keys (`id`, `version`, `kibiCompatibility`,
  * `tags`, `resources`) are preserved verbatim, nested under `metadata:`.
+ * The claude mirror uses the same layout but sets `name` to the skill id,
+ * because Claude Code turns a plugin skill's `name` into its slash command.
  * Skill bodies and resource files stay byte-identical.
  *
  * Modes:
  *   --write (default)  Rewrite mirror directories and hash manifest.
  *   --check            Non-mutating: exit 0 if mirrors match canonical
  *                      source; exit 1 with a diff summary on drift.
- *   --target <name>    Limit to a single mirror ("cursor", "codex", or
- *                      "zcode"). When omitted, all mirrors are processed.
+ *   --target <name>    Limit to a single mirror ("cursor", "codex", "zcode",
+ *                      or "claude"). When omitted, all mirrors are processed.
  *
  * The generator must fail loudly when any expected canonical skill ID is
  * missing.
@@ -53,9 +56,9 @@ const EXPECTED_SKILL_IDS = [
 
 const HASH_MANIFEST_NAME = ".canon-hash.json";
 
-type Target = "cursor" | "codex" | "zcode";
+type Target = "cursor" | "codex" | "zcode" | "claude";
 
-const ALL_TARGETS: readonly Target[] = ["cursor", "codex", "zcode"];
+const ALL_TARGETS: readonly Target[] = ["cursor", "codex", "zcode", "claude"];
 
 const ZCODE_SKILL_LICENSE = "AGPL-3.0-or-later";
 
@@ -141,6 +144,24 @@ function parseSimpleFrontmatter(content: string): ParsedFrontmatter {
  * retained for human readers; the ZCode loader keys off the top level only).
  */
 export function transformZcodeSkillFrontmatter(content: Buffer): Buffer {
+  return rewriteSkillFrontmatter(content, "zcode");
+}
+
+/**
+ * Rewrite canonical skill frontmatter for Claude Code. Claude Code turns a
+ * plugin skill's `name` into its slash command (`/kibi-claude:<name>`), so the
+ * canonical display name ("Kibi Usage") would become an unusable command. The
+ * skill `id` becomes `name`, and the display name is kept as
+ * `metadata.displayName`; the remaining keys follow the ZCode layout.
+ */
+export function transformClaudeSkillFrontmatter(content: Buffer): Buffer {
+  return rewriteSkillFrontmatter(content, "claude");
+}
+
+function rewriteSkillFrontmatter(
+  content: Buffer,
+  target: "zcode" | "claude",
+): Buffer {
   const text = content.toString("utf8");
   const frontmatter = parseSimpleFrontmatter(text);
   const normalizedLines = text
@@ -154,13 +175,20 @@ export function transformZcodeSkillFrontmatter(content: Buffer): Buffer {
   const metadataKeys = frontmatter.order.filter(
     (key) => key !== "name" && key !== "description",
   );
+  const skillName =
+    target === "claude"
+      ? (frontmatter.values.id ?? frontmatter.values.name ?? "")
+      : (frontmatter.values.name ?? "");
 
-  const out: string[] = ["---", `name: ${frontmatter.values.name ?? ""}`];
+  const out: string[] = ["---", `name: ${skillName}`];
   if (frontmatter.values.description !== undefined) {
     out.push(`description: ${frontmatter.values.description}`);
   }
   out.push(`license: ${ZCODE_SKILL_LICENSE}`);
   out.push("metadata:");
+  if (target === "claude" && frontmatter.values.name !== undefined) {
+    out.push(`  displayName: ${frontmatter.values.name}`);
+  }
   for (const key of metadataKeys) {
     const list = frontmatter.lists[key] ?? [];
     if (list.length === 0) {
@@ -182,10 +210,12 @@ function transformMirrorFile(
   relPath: string,
   content: Buffer,
 ): Buffer {
-  if (target !== "zcode" || relPath !== "SKILL.md") {
+  if (relPath !== "SKILL.md") {
     return content;
   }
-  return transformZcodeSkillFrontmatter(content);
+  if (target === "zcode") return transformZcodeSkillFrontmatter(content);
+  if (target === "claude") return transformClaudeSkillFrontmatter(content);
+  return content;
 }
 
 interface SyncOptions {
@@ -213,9 +243,14 @@ function parseArgs(argv: string[]): ParsedArgs {
       mode = "check";
     } else if (arg === "--target") {
       const next = argv[i + 1];
-      if (next !== "cursor" && next !== "codex" && next !== "zcode") {
+      if (
+        next !== "cursor" &&
+        next !== "codex" &&
+        next !== "zcode" &&
+        next !== "claude"
+      ) {
         throw new UsageError(
-          `--target requires one of: cursor, codex, zcode (got: ${String(next)})`,
+          `--target requires one of: cursor, codex, zcode, claude (got: ${String(next)})`,
         );
       }
       limitTargets ??= [];
@@ -546,7 +581,7 @@ export async function main(argv: string[]): Promise<void> {
     const message = error instanceof Error ? error.message : String(error);
     process.stderr.write(`sync-agent-skills: ${message}\n`);
     process.stderr.write(
-      "Usage: sync-agent-skills.ts [--write|--check] [--target cursor|codex|zcode]\n",
+      "Usage: sync-agent-skills.ts [--write|--check] [--target cursor|codex|zcode|claude]\n",
     );
     process.exit(2);
   }

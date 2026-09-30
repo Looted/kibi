@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_agent_guided_migration_orchestration
+subject_key: kibi.migration.orchestration
 property_key: clause_02_every_migration_plan_must_bind_a_canonical_sha_2
 operator: eq
 value_type: bool

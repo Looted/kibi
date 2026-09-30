@@ -446,15 +446,39 @@ describe("deriveDiagnosticFields", () => {
     expect(result.result_summary).toBe("kb_upsert completed");
   });
 
-  test("handles non-object result", () => {
+  test("records an unreadable result as an unknown count, not zero", () => {
     const result = deriveDiagnosticFields("kb_query", {}, null, null);
-    expect(result.result_count).toBe(0);
-    expect(result.zero_results).toBe(true);
+    expect(result.result_count).toBeNull();
+    expect(result).not.toHaveProperty("zero_results");
+    expect(result.result_summary).toBe("results count unavailable");
   });
 
-  test("handles result without structuredContent", () => {
+  test("records a payload without a count as unknown, not zero", () => {
     const result = deriveDiagnosticFields("kb_query", {}, null, {
       other: "value",
+    });
+    expect(result.result_count).toBeNull();
+    expect(result).not.toHaveProperty("zero_results");
+  });
+
+  test("reads counts from a bare kibiProtocol envelope", () => {
+    const result = deriveDiagnosticFields("kb_search", {}, null, {
+      kibiProtocol: 1,
+      operation: "search",
+      resultVersion: "kibi.search.v1",
+      status: "success",
+      data: { count: 132 },
+      effects: [],
+    });
+    expect(result.result_count).toBe(132);
+    expect(result.zero_results).toBe(false);
+    expect(result.protocol_version).toBe(1);
+    expect(result.result_summary).toBe("132 results");
+  });
+
+  test("reports a genuinely empty result as zero", () => {
+    const result = deriveDiagnosticFields("kb_search", {}, null, {
+      structuredContent: { count: 0 },
     });
     expect(result.result_count).toBe(0);
     expect(result.zero_results).toBe(true);

@@ -21,4 +21,5 @@ claim_key: CLAIM-9428F7588206E78D
 claim_text: The published kibi-cursor plugin must resolve and execute the consumer project's project-local kibi-mcp package without downloading packages or using a global or plugin-local runtime
 id: FACT-PRED-BABC674A6E13
 type: fact
+predicate_namespace: kibi.launcher
 ---

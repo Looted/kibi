@@ -41,7 +41,7 @@ export const querySpec = {
       id: {
         type: "string",
         description:
-          "Optional exact entity ID. Example: 'REQ-001'. If omitted, returns matching entities by other filters.",
+          "Optional exact entity ID. Example: 'REQ-cli-gc'. If omitted, returns matching entities by other filters.",
       },
       tags: {
         type: "array",
@@ -160,6 +160,13 @@ export const searchSpec = {
         default: 0.18,
         description:
           "Intent-v1 acceptance threshold between 0 and 1. Low-confidence queries abstain instead of returning misleading matches.",
+      },
+      fields: {
+        type: "string",
+        enum: ["summary", "full"],
+        default: "summary",
+        description:
+          "Optional result detail. 'summary' returns identifying metadata plus the match snippet for discovery. Use 'full' to include complete entity bodies, or follow up with kb_query for the exact entities you need.",
       },
     },
   },

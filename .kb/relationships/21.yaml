@@ -104,3 +104,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0dc7e30c6922
+  - type: implements
+    from: SYM-CI-PROOF-REUSE-DECISION
+    to: REQ-kibi-verification-evidence-contract
+    created_at: 2026-09-25T12:16:39.282Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fd2a00c52f47
+  - type: covered_by
+    from: SYM-CI-PROOF-REUSE-DECISION
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-25T12:16:39.291Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f9e740f67c25
+  - type: specified_by
+    from: REQ-docs-site-pages
+    to: SCEN-docs-site-pages
+    created_at: 2026-09-27T08:25:27.135Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fad5202f177a
+  - type: requires_property
+    from: REQ-docs-site-pages
+    to: FACT-DOCS-SITE-PUBLISH-PATH
+    created_at: 2026-09-27T08:34:16.824Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-47f6805b7391
+  - type: requires_property
+    from: REQ-docs-site-pages
+    to: FACT-DOCS-SITE-SOURCE-MODE
+    created_at: 2026-09-27T08:34:16.841Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5026538fb1fb
+  - type: requires_property
+    from: REQ-docs-site-pages
+    to: FACT-DOCS-SITE-BROKEN-LINK-POLICY
+    created_at: 2026-09-27T08:34:16.860Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a7c84eea81ef
+  - type: constrains
+    from: REQ-docs-site-pages
+    to: FACT-docs-site-subject
+    created_at: 2026-09-29T08:28:23.684Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3928c1e19607

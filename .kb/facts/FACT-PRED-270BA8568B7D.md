@@ -21,4 +21,5 @@ claim_key: CLAIM-8B2BC645AFDF85B0
 claim_text: unresolved placeholders are invalid and ambiguous multiple usable roots fail clearly
 id: FACT-PRED-270BA8568B7D
 type: fact
+predicate_namespace: kibi.launcher
 ---

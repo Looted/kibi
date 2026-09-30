@@ -9,6 +9,7 @@ export function writePackedInstallManifest(
 ): void {
   const packageFiles = {
     "kibi-core": `file:${tarballs.core}`,
+    "kibi-agent-core": `file:${tarballs["agent-core"]}`,
     "kibi-cli": `file:${tarballs.cli}`,
     "kibi-runtime": `file:${tarballs.runtime}`,
     "kibi-mcp": `file:${tarballs.mcp}`,

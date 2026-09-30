@@ -273,7 +273,14 @@ function proxyKibiMcp(options = {}) {
     stdout = process.stdout,
     stderr = process.stderr,
   } = options;
-  const childEnv = { ...env, KIBI_WORKSPACE: workspaceRoot };
+  // KIBI_MCP_HOST only identifies the host on usage rows. It never enables
+  // telemetry; KIBI_DIAGNOSTIC_MODE stays the operator's explicit opt-in and
+  // is passed through untouched.
+  const childEnv = {
+    ...env,
+    KIBI_WORKSPACE: workspaceRoot,
+    KIBI_MCP_HOST: "codex",
+  };
   return new Promise((resolveExit) => {
     let child;
     try {

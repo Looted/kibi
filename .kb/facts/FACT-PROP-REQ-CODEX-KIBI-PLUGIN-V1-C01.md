@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_codex_kibi_plugin_v1
+subject_key: codex.kibi_plugin
 property_key: clause_01_the_kibi_codex_package_is_an_optional_codex_adap
 operator: eq
 value_type: bool

@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_opencode_comment_routing
+subject_key: opencode.kibi_plugin
 property_key: clause_02_ignore_arbitrary_triple_quoted_strings_not_in_do
 operator: eq
 value_type: bool

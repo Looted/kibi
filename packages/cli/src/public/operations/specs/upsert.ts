@@ -28,7 +28,7 @@ export const upsertSpec = {
       id: {
         type: "string",
         description:
-          "Unique entity ID (string). Example: 'REQ-123'. Existing ID updates the entity; new ID creates it.",
+          "Unique entity ID (string). Example: 'REQ-cli-gc'. Name entities by the behavior they govern (<TYPE>-<area>-<behavior>), never by the next free number. Existing ID updates the entity; new ID creates it.",
       },
       properties: ENTITY_PROPERTIES_SCHEMA,
       relationships: RELATIONSHIPS_SCHEMA,

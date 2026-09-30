@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_skillopt_predicate_first_requirements
+subject_key: kibi.modeling.predicates
 property_key: clause_04_the_agent_must_link_the_requirement_to_that_pred
 operator: eq
 value_type: bool

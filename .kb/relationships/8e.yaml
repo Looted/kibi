@@ -237,3 +237,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ab1e37fd2933
+  - type: implements
+    from: SYM-claude-readEntitySummary
+    to: REQ-claude-code-kibi-plugin-v1
+    created_at: 2026-09-27T09:21:57.290Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2b3206c30ef7
+  - type: covered_by
+    from: SYM-claude-readEntitySummary
+    to: TEST-claude-code-kibi-plugin-v1
+    created_at: 2026-09-27T09:21:57.306Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6893c80c1a70
+  - type: implements
+    from: SYM-claude-searchTip
+    to: REQ-claude-code-kibi-plugin-v1
+    created_at: 2026-09-27T09:26:14.424Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cf02c7fc0aaf
+  - type: covered_by
+    from: SYM-claude-searchTip
+    to: TEST-claude-code-kibi-plugin-v1
+    created_at: 2026-09-27T09:26:14.446Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0f97c5fa873f

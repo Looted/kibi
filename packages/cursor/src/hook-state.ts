@@ -17,10 +17,14 @@ export {
   updateHookState,
 } from "./hook-state-storage.js";
 
+// implements REQ-cursor-kibi-plugin-v1
+export type GuidedPathKind = "read" | "pre-edit" | "write";
+
 export type HookState = {
   mcpState: McpState;
   dirtyPaths: string[];
   guidedReadPaths: string[];
+  guidedPreEditPaths: string[];
   guidedWritePaths: string[];
   kbMutationTools: string[];
   kbCheckRun: boolean;
@@ -43,7 +47,7 @@ export function addDirtyPaths(
 
 export function rememberGuidedPath(
   stateDir: string | undefined,
-  kind: "read" | "write",
+  kind: GuidedPathKind,
   guidedPath: string,
 ): HookState {
   return updateHookState(stateDir, (state) => {
@@ -52,6 +56,15 @@ export function rememberGuidedPath(
       return {
         ...state,
         guidedReadPaths: mergeStringPaths(state.guidedReadPaths, [normalized]),
+      };
+    }
+
+    if (kind === "pre-edit") {
+      return {
+        ...state,
+        guidedPreEditPaths: mergeStringPaths(state.guidedPreEditPaths, [
+          normalized,
+        ]),
       };
     }
 
@@ -64,13 +77,16 @@ export function rememberGuidedPath(
 
 export function hasGuidedPath(
   state: HookState,
-  kind: "read" | "write",
+  kind: GuidedPathKind,
   guidedPath: string,
 ): boolean {
-  const normalized = normalizePath(guidedPath);
-  const bucket =
-    kind === "read" ? state.guidedReadPaths : state.guidedWritePaths;
-  return bucket.includes(normalized);
+  return guidedBucket(state, kind).includes(normalizePath(guidedPath));
+}
+
+function guidedBucket(state: HookState, kind: GuidedPathKind): string[] {
+  if (kind === "read") return state.guidedReadPaths;
+  if (kind === "pre-edit") return state.guidedPreEditPaths;
+  return state.guidedWritePaths;
 }
 
 export function recordPlanDelivered(stateDir: string | undefined): HookState {

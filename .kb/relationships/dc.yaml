@@ -48,3 +48,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f3342295d150
+  - type: implements
+    from: SYM-claude-HookEnvironment
+    to: REQ-claude-code-kibi-plugin-v1
+    created_at: 2026-09-27T09:19:49.599Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-19796f9ddfd5
+  - type: covered_by
+    from: SYM-claude-HookEnvironment
+    to: TEST-claude-code-kibi-plugin-v1
+    created_at: 2026-09-27T09:19:49.619Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9fa33aa38d03
+  - type: implements
+    from: SYM-agent-core-toWorkspacePath
+    to: REQ-claude-code-kibi-plugin-v1
+    created_at: 2026-09-27T16:53:06.357Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6bd6b67df9ab
+  - type: covered_by
+    from: SYM-agent-core-toWorkspacePath
+    to: TEST-claude-code-kibi-plugin-v1
+    created_at: 2026-09-27T16:53:06.421Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d4385b3fd609

@@ -18,7 +18,7 @@
 
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
-import Ajv from "ajv";
+import Ajv, { type ValidateFunction } from "ajv";
 import { load as yamlLoad } from "js-yaml";
 import { semanticClaimKey } from "../operations/semantic-advisor/clauses.js";
 import {
@@ -52,6 +52,8 @@ const FACT_STRING_FIELDS = [
   "predicate_name",
   "predicate_namespace",
   "rule_ir",
+  "argument_constants",
+  "argument_aliases",
   "rule_hash",
   "rule_schema_id",
   "rule_name",
@@ -90,7 +92,13 @@ const TEST_ENUM_FIELDS = [
 ] as const;
 
 const ajv = new Ajv({ strict: false, allErrors: true });
-const validateExtractedEntity = ajv.compile(entitySchema);
+// Compiled on first extraction: every CLI command imports this module, and
+// most never extract Markdown entities.
+let extractedEntityValidator: ValidateFunction | undefined;
+function validateExtractedEntity(): ValidateFunction {
+  extractedEntityValidator ??= ajv.compile(entitySchema);
+  return extractedEntityValidator;
+}
 
 export interface ExtractedEntity {
   id: string;
@@ -162,6 +170,8 @@ export interface ExtractedEntity {
   examples?: string[];
   predicate_args?: string[];
   rule_ir?: Record<string, unknown>;
+  argument_constants?: Record<string, string[]>;
+  argument_aliases?: Record<string, Record<string, string>>;
   rule_hash?: string;
   rule_schema_id?: string;
   rule_name?: string;
@@ -225,6 +235,7 @@ type RelationshipType =
   | "publishes"
   | "consumes"
   | "supersedes"
+  | "restates"
   | "relates_to";
 
 const VALID_RELATIONSHIP_TYPES = new Set<RelationshipType>([
@@ -244,6 +255,7 @@ const VALID_RELATIONSHIP_TYPES = new Set<RelationshipType>([
   "publishes",
   "consumes",
   "supersedes",
+  "restates",
   "relates_to",
 ]);
 
@@ -289,6 +301,7 @@ const VALID_RELATIONSHIP_DIRECTIONS: ReadonlyArray<{
   { type: "consumes", from: "symbol", to: "event" },
   { type: "supersedes", from: "adr", to: "adr" },
   { type: "supersedes", from: "req", to: "req" },
+  { type: "restates", from: "req", to: "req" },
 ];
 
 const RELATIONSHIP_TYPE_DISPLAY_LIST = Array.from(VALID_RELATIONSHIP_TYPES)
@@ -909,8 +922,9 @@ function extractFromMarkdownContent(
       );
     }
 
-    if (!validateExtractedEntity(entity)) {
-      const messages = (validateExtractedEntity.errors || [])
+    const validateEntity = validateExtractedEntity();
+    if (!validateEntity(entity)) {
+      const messages = (validateEntity.errors || [])
         .map((e) => `${e.instancePath || "root"}: ${e.message}`)
         .join("; ");
       throw new FrontmatterError(

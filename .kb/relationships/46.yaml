@@ -139,3 +139,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-795bd168ae5e
+  - type: covered_by
+    from: SYM-executeUpsert
+    to: TEST-core-atomic-upsert-persistence
+    created_at: 2026-09-26T09:56:34.526Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e5d326e1afd
+  - type: covered_by
+    from: SYM-executeUpsert
+    to: TEST-kibi-proof-ingest-batch-atomicity
+    created_at: 2026-09-26T09:56:34.532Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c412e0013d83

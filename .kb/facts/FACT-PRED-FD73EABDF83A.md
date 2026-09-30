@@ -21,4 +21,5 @@ claim_key: CLAIM-4B9D0CF854836E8C
 claim_text: 'It must resolve the consumer workspace in deterministic order: explicit workspace argument, WORKSPACE_FOLDER_PATHS, KIBI_WORKSPACE, CURSOR_WORKSPACE, then cwd only when cwd demonstrably contains project-local kibi-mcp'
 id: FACT-PRED-FD73EABDF83A
 type: fact
+predicate_namespace: kibi.launcher
 ---

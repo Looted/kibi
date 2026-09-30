@@ -1,9 +1,13 @@
 % PLUnit test suite for kb.pl
+:- encoding(utf8).
 :- use_module('../src/kb.pl').
 :- use_module('../src/checks.pl').
+:- use_module('../src/semantic_quality.pl').
+:- use_module('../src/units.pl').
 :- use_module('../src/discovery.pl').
 :- use_module('../src/derived_chr.pl').
 :- use_module('../src/sparql_client.pl').
+:- use_module('../src/status.pl', []).
 :- use_module(library(http/json)).
 :- use_module(library(plunit)).
 :- use_module(library(semweb/rdf11)).
@@ -292,7 +296,250 @@ test(journal_persistence, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
     assertion(TitleVal = ^^("Persistent Entity", _)),
     kb_detach.
 
+% A reloaded store carries expanded property URIs ('urn-kibi:Key') rather
+% than the in-session 'kb:Key' atoms; the bounded proof-contract projection
+% must still find every contracted test and project its source.
+test(proof_contract_projection_survives_reload, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    test_kb_dir(Dir),
+    kb_attach(Dir),
+    assert_fixture_entity(test, 'TEST-RELOADED', "Reloaded test", active, [
+        source=".kb/tests/TEST-RELOADED.md",
+        proof_contract="{\"version\":\"kibi.proof-contract.v1\"}",
+        proof_bindings="[{\"symbol_id\":\"SYM-RELOADED\"}]",
+        proof_receipts="[{\"history\":\"large\"}]"
+    ]),
+    kb_save,
+    kb_detach,
+    kb_attach(Dir),
+    kb_query_proof_contracts(none, 10, 0, Rows),
+    kb_detach,
+    assertion(Rows = [['TEST-RELOADED', test, _]]),
+    Rows = [[_, _, Projected]],
+    assertion(memberchk(proof_contract=_, Projected)),
+    assertion(memberchk(proof_bindings=_, Projected)),
+    assertion((memberchk(source=Source, Projected),
+               Source = ^^(".kb/tests/TEST-RELOADED.md", _))),
+    assertion(\+ memberchk(proof_receipts=_, Projected)).
+
+% SWI-Prolog's rdf_db cannot write a journal for a graph whose URI is ~230
+% characters or longer, which broke every write in a deeply nested workspace.
+% A journaled store at such a path must still commit and reload its data.
+test(journaled_store_survives_long_workspace_path, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    test_kb_dir(Base),
+    length(Filler, 60),
+    maplist(=(0'x), Filler),
+    atom_codes(Segment, Filler),
+    atomic_list_concat([Base, Segment, Segment, Segment, Segment], '/', Dir),
+    atom_length(Dir, Length),
+    assertion(Length > 250),
+    make_directory_path(Dir),
+    atom_concat(Dir, '/storage.json', Marker),
+    setup_call_cleanup(
+        open(Marker, write, Out),
+        format(Out, '{"format":"kibi.rdf-journal.v1","schemaVersion":1}~n', []),
+        close(Out)),
+    kb_attach(Dir),
+    kb_commit_upsert(req, [
+        id='long-path-req',
+        title="Long path entity",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt"
+    ], [], true, ChangeKind),
+    assertion(ChangeKind == created),
+    kb_detach,
+    kb_attach(Dir),
+    kb_entity('long-path-req', Type, _),
+    kb_detach,
+    assertion(Type == req).
+
 :- end_tests(kb_persistence).
+
+:- begin_tests(kb_entity_memo).
+
+% kb_entity/3 memoizes decoded property lists per RDF generation. Every
+% store change must be visible on the very next read.
+memo_title(Id, Title) :-
+    kb_entity(Id, _, Props),
+    memberchk(title=Raw, Props),
+    (Raw = ^^(Title0, _) -> true ; Title0 = Raw),
+    atom_string(Title0, Title).
+
+test(memo_sees_updates_rollbacks_and_deletes, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-MEMO', "Before", active, []),
+    memo_title('REQ-MEMO', Before),
+    assertion(Before == "Before"),
+    memo_title('REQ-MEMO', BeforeAgain),
+    assertion(BeforeAgain == "Before"),
+    assert_fixture_entity(req, 'REQ-MEMO', "After", active, []),
+    memo_title('REQ-MEMO', After),
+    assertion(After == "After"),
+    catch(rdf_transaction((
+              assert_fixture_entity(req, 'REQ-MEMO', "Rolled back", active, []),
+              memo_title('REQ-MEMO', Inside),
+              assertion(Inside == "Rolled back"),
+              throw(rollback_probe)
+          )),
+          rollback_probe,
+          true),
+    memo_title('REQ-MEMO', AfterRollback),
+    assertion(AfterRollback == "After"),
+    kb_retract_entity('REQ-MEMO'),
+    assertion(\+ kb_entity('REQ-MEMO', _, _)).
+
+test(memo_does_not_leak_across_stores, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    test_kb_root(Root),
+    directory_file_path(Root, memo_a, StoreA),
+    directory_file_path(Root, memo_b, StoreB),
+    kb_attach(StoreA),
+    assert_fixture_entity(req, 'REQ-MEMO-STORE', "Store A", active, []),
+    memo_title('REQ-MEMO-STORE', InA),
+    assertion(InA == "Store A"),
+    kb_save,
+    kb_detach,
+    kb_attach(StoreB),
+    assertion(\+ kb_entity('REQ-MEMO-STORE', _, _)),
+    kb_detach,
+    delete_directory_and_contents(StoreA),
+    delete_directory_and_contents(StoreB).
+
+% Incremental index rows are Prolog facts an RDF rollback does not undo,
+% while rdf_generation reverts. The index check must still notice.
+test(index_verification_survives_rollback, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-IDX-KEPT', "Kept", active, []),
+    kb_query_entities(req, none, [], none, 10, 0, _, Before),
+    assertion(Before == 1),
+    catch(rdf_transaction((
+              assert_fixture_entity(req, 'REQ-IDX-ROLLED', "Rolled", active, []),
+              throw(rollback_probe)
+          )),
+          rollback_probe,
+          true),
+    kb_query_entities(req, 'REQ-IDX-ROLLED', [], none, 10, 0, _, Rolled),
+    assertion(Rolled == 0),
+    kb_query_entities(req, none, [], none, 10, 0, _, After),
+    assertion(After == 1).
+
+coverage_row_ids(Ids) :-
+    discovery:coverage_report_json(req, [], true, true, 100, 0, unknown,
+                                   '2026-09-27T00:00:00Z', 604800, Json),
+    atom_json_dict(Json, Dict, []),
+    findall(Id, (member(Row, Dict.rows), atom_string(Id, Row.id)), Ids).
+
+test(coverage_memo_reflects_store_changes, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-COV-A', "Coverage A", active, []),
+    coverage_row_ids(First),
+    assertion(First == ['REQ-COV-A']),
+    coverage_row_ids(Repeat),
+    assertion(Repeat == First),
+    assert_fixture_entity(req, 'REQ-COV-B', "Coverage B", active, []),
+    coverage_row_ids(Second),
+    assertion(Second == ['REQ-COV-A', 'REQ-COV-B']).
+
+% Receipt-history validation is memoized by content. Both outcomes must be
+% cached (a helper that fails for one outcome silently recomputes forever)
+% and a cached answer must equal a fresh one.
+well_formed_history(TestId, Json, WellFormed) :-
+    requirement_proof:inventory_entries(Json, Receipts),
+    requirement_proof:pure_memo(receipt_history_well_formed, TestId-Receipts,
+                                receipt_history_well_formed, WellFormed).
+
+memoized(TestId, Json) :-
+    requirement_proof:inventory_entries(Json, Receipts),
+    variant_sha1(receipt_history_well_formed-(TestId-Receipts), Key),
+    requirement_proof:pure_memo(Key, receipt_history_well_formed, _).
+
+test(receipt_history_memo_caches_both_outcomes) :-
+    retractall(requirement_proof:pure_memo(_, _, _)),
+    proof_receipt_json('TEST-MEMO-RECEIPT',
+                       'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+                       passed, '2026-09-27T00:00:00Z', '2026-09-27T00:01:00Z', Valid),
+    % Production asks "is this history ill-formed?" with the output bound.
+    assertion(\+ well_formed_history('TEST-MEMO-RECEIPT', Valid, false)),
+    assertion(memoized('TEST-MEMO-RECEIPT', Valid)),
+    well_formed_history('TEST-MEMO-RECEIPT', Valid, First),
+    assertion(First == true),
+    well_formed_history('TEST-MEMO-RECEIPT', Valid, Second),
+    assertion(Second == true),
+    % The same receipt claims a different test: shape-invalid for this one.
+    well_formed_history('TEST-OTHER', Valid, Mismatch),
+    assertion(Mismatch == false),
+    assertion(memoized('TEST-OTHER', Valid)),
+    well_formed_history('TEST-OTHER', Valid, MismatchAgain),
+    assertion(MismatchAgain == false).
+
+:- end_tests(kb_entity_memo).
+
+:- begin_tests(search_candidates).
+
+% Search candidates are projected rows: ranking fields only, never receipt
+% histories or other large structured properties.
+test(search_candidates_are_projected, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(test, 'TEST-SEARCH-PROJ', "Projected search test", active, [
+        source="docs/search-proj.md",
+        tags=[proof],
+        proof_contract="{\"version\":\"kibi.proof-contract.v1\"}",
+        proof_receipts="[{\"history\":\"large\"}]"
+    ]),
+    kb_search_entities(test, "projected search", 10, 0, Rows, Count),
+    assertion(Count == 1),
+    assertion(Rows = [['TEST-SEARCH-PROJ', test, _]]),
+    Rows = [[_, _, Props]],
+    assertion(memberchk(title=_, Props)),
+    assertion(memberchk(source=_, Props)),
+    assertion(memberchk(tags=_, Props)),
+    assertion(\+ memberchk(proof_receipts=_, Props)),
+    assertion(\+ memberchk(proof_contract=_, Props)),
+    kb_entity('TEST-SEARCH-PROJ', test, Full),
+    assertion(memberchk(proof_receipts=_, Full)).
+
+test(list_search_candidates_pages_projected_rows_by_id, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    forall(member(Id, ['REQ-LIST-C', 'REQ-LIST-A', 'REQ-LIST-B']),
+           assert_fixture_entity(req, Id, "Listed", active, [])),
+    assert_fixture_entity(test, 'TEST-LIST', "Listed test", active, [
+        proof_receipts="[{\"history\":\"large\"}]"
+    ]),
+    kb_list_search_candidates(req, 2, 0, First, Count),
+    kb_list_search_candidates(req, 2, 2, Second, _),
+    assertion(Count == 3),
+    findall(Id, member([Id, _, _], First), FirstIds),
+    findall(Id, member([Id, _, _], Second), SecondIds),
+    assertion(FirstIds == ['REQ-LIST-A', 'REQ-LIST-B']),
+    assertion(SecondIds == ['REQ-LIST-C']),
+    kb_list_search_candidates(none, 10, 0, All, AllCount),
+    assertion(AllCount == 4),
+    forall(member([_, _, Props], All),
+           assertion(\+ memberchk(proof_receipts=_, Props))),
+    kb_entity_ids(Ids),
+    assertion(Ids == ['REQ-LIST-A', 'REQ-LIST-B', 'REQ-LIST-C', 'TEST-LIST']).
+
+:- end_tests(search_candidates).
+
+:- begin_tests(status_freshness).
+
+% Freshness scans every knowledge-lane and documentation file. The content
+% test must be deterministic and run after the cheap mtime test: repeated
+% id:/title:/status: keys previously produced a combinatorial number of
+% redos per unchanged file (minutes of status time on real workspaces).
+test(entity_documentation_check_is_deterministic_and_mtime_first) :-
+    tmp_file_stream(text, File, Stream),
+    format(Stream, "---~n", []),
+    forall(between(1, 200, N),
+           format(Stream, "id: X~d~ntitle: T~d~nstatus: active~n", [N, N])),
+    format(Stream, "---~n", []),
+    close(Stream),
+    time_file(File, Modified),
+    call_cleanup(status:newer_entity_documentation_file(File, 0), Det = true),
+    assertion(Det == true),
+    Future is Modified + 3600,
+    statistics(inferences, I0),
+    assertion(\+ status:newer_entity_documentation_file(File, Future)),
+    statistics(inferences, I1),
+    assertion(I1 - I0 < 1000),
+    delete_file(File).
+
+:- end_tests(status_freshness).
 
 :- begin_tests(kb_source_queries).
 
@@ -357,6 +604,60 @@ test(indexed_search_materializes_only_matching_page, [setup(setup_kb), cleanup(c
     kb_search_entities(req, "quasar auth", 10, 0, Rows, Count),
     assertion(Count == 1),
     Rows = [['REQ-SEARCH-UNIQUE', req, _]].
+
+test(proof_contract_projection_pages_without_receipt_histories, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    Contract = _{
+        version: 'kibi.proof-contract.v1',
+        integration: 'self-proof',
+        required_proofs: [_{symbol_id: 'SYM-PROJECTION', target: default}],
+        success_policy: all_required_first_attempt
+    },
+    atom_json_dict(ContractAtom, Contract, []),
+    atom_string(ContractAtom, ContractJson),
+    length(PaddingCodes, 8192),
+    maplist(=('x'), PaddingCodes),
+    string_chars(Padding, PaddingCodes),
+    format(string(ReceiptHistory), '[{"history":"~s"}]', [Padding]),
+    forall(
+        between(1, 123, Number),
+        ( format(atom(Id), 'TEST-PROJECTION-~d', [Number]),
+          format(atom(NativeId), 'native-~d', [Number]),
+          Bindings = [_{
+              symbol_id: 'SYM-PROJECTION',
+              target: default,
+              native_id: NativeId
+          }],
+          atom_json_dict(BindingsAtom, Bindings, []),
+          atom_string(BindingsAtom, BindingsJson),
+          assert_fixture_entity(test, Id, "Projected test", active, [
+              proof_contract=ContractJson,
+              proof_bindings=BindingsJson,
+              proof_receipts=ReceiptHistory
+          ])
+        )
+    ),
+    kb_query_proof_contracts(none, 37, 0, FirstPage),
+    kb_query_proof_contracts(none, 37, 37, SecondPage),
+    kb_query_proof_contracts(none, 37, 74, ThirdPage),
+    kb_query_proof_contracts(none, 37, 111, FourthPage),
+    kb_query_proof_contracts(some('TEST-PROJECTION-1'), 1, 0, ExactPage),
+    length(FirstPage, 37),
+    length(SecondPage, 37),
+    length(ThirdPage, 37),
+    length(FourthPage, 12),
+    ExactPage = [['TEST-PROJECTION-1', test, _]],
+    append([FirstPage, SecondPage, ThirdPage, FourthPage], Pages),
+    findall(Id, member([Id, test, _], Pages), PageIds),
+    sort(PageIds, SortedPageIds),
+    PageIds == SortedPageIds,
+    length(SortedPageIds, 123),
+    forall(
+        member([_, test, Projected], Pages),
+        ( memberchk(proof_contract=_, Projected),
+          memberchk(proof_bindings=_, Projected),
+          assertion(\+ memberchk(proof_receipts=_, Projected))
+        )
+    ).
 
 test(accepts_symbol_metadata_fields, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     kb_assert_entity(symbol, [
@@ -3960,9 +4261,8 @@ test(req_status_vocabulary_rejects_adr_statuses_on_requirements, [setup(setup_kb
 test(req_status_vocabulary_is_wired_into_check_all, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
     assert_fixture_entity(req, 'REQ-BAD-STATUS', "Bad status", accepted, []),
     checks:check_all(Dict),
-    member('REQ-BAD-STATUS'-_, Pairs),
-    dict_pairs(Dict, _, Pairs0),
-    assertion(member(req_status_vocabulary-_, Pairs0)),
+    % The aggregated result must carry the rule and flag the bad requirement.
+    assertion(member(violation('req-status-vocabulary', 'REQ-BAD-STATUS', _, _, _), Dict.req_status_vocabulary)),
     checks:check_req_status_vocabulary([_|_]).
 
 test(requirement_proof_reports_typed_reason_for_noncurrent_status, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
@@ -4037,7 +4337,7 @@ test(coverage_report_status_filter_can_enumerate_missing_rows, [setup(setup_kb),
 
 test(production_symbol_stage_reports_reason_with_status, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
     assert_fixture_entity(req, 'REQ-STAGE-REASON', "Stage reason", active, [priority=must]),
-    kb_entity('REQ-STAGE-REASON', req, Props),
+    kb_entity('REQ-STAGE-REASON', req, _Props),
     requirement_proof:production_symbol_stage('REQ-STAGE-REASON', [], Stage, _),
     Stage.status == missing,
     sub_atom(Stage.reason, _, _, _, "no production symbols implement").
@@ -4045,6 +4345,404 @@ test(production_symbol_stage_reports_reason_with_status, [setup(setup_kb), clean
 dict_has_key(Dict, Key) :- is_dict(Dict), get_dict(Key, Dict, _).
 
 :- end_tests(requirement_applicability).
+
+% ------------------------------------------------------------------
+% Vocabulary convergence, redundancy, and unit canonicalization
+% implements REQ-kibi-domain-redundancy, REQ-kibi-unit-canonicalization,
+% REQ-kibi-subject-vocabulary, REQ-kibi-ontology-quality,
+% REQ-kibi-entity-id-style, REQ-kibi-restates-relationship
+% ------------------------------------------------------------------
+
+:- begin_tests(semantic_quality_checks).
+
+test(unit_canonicalization_equates_known_duration_and_size_units) :-
+    canonical_quantity(int, 30, min, T1, V1, U1),
+    canonical_quantity(int, 1800, s, T2, V2, U2),
+    canonical_quantity(number, 0.5, hours, T3, V3, U3),
+    assertion([T1, V1, U1] == [int, 1800, s]),
+    assertion([T2, V2, U2] == [int, 1800, s]),
+    assertion([T3, V3, U3] == [int, 1800, s]),
+    canonical_quantity(int, 2, 'MB', _, BytesA, byte),
+    canonical_quantity(int, 2000000, bytes, _, BytesB, byte),
+    assertion(BytesA =:= BytesB),
+    canonical_quantity(number, 0.1, h, T4, V4, _),
+    assertion([T4, V4] == [int, 360]).
+
+test(unit_canonicalization_keeps_unknown_and_ambiguous_units_distinct) :-
+    canonical_quantity(int, 3, 'Mb', _, 3, 'Mb'),
+    canonical_quantity(int, 3, month, _, 3, month),
+    canonical_quantity(int, 7, exit_code, int, 7, exit_code),
+    canonical_quantity(string, abc, '', string, abc, ''),
+    canonical_quantity(int, 1, 'KB', _, 1, 'KB').
+
+test(unit_canonicalization_keeps_large_values_exact) :-
+    % Adjacent big integers must never collapse onto one canonical value.
+    canonical_quantity(int, 12345678901234567891, s, int, A, s),
+    canonical_quantity(int, 12345678901234567892, s, int, B, s),
+    assertion(A == 12345678901234567891),
+    assertion(A \== B),
+    canonical_quantity(int, 12345678901234567891, min, int, Minutes, s),
+    assertion(Minutes =:= 12345678901234567891 * 60),
+    % A float too large to round is kept rather than raising.
+    canonical_quantity(number, 1.0e305, s, number, Huge, s),
+    assertion(Huge =:= 1.0e305).
+
+test(every_listed_unit_alias_converts_to_its_family_base_unit) :-
+    findall(Unit-Base-Factor, unit_base(Unit, Base, Factor), Aliases),
+    assertion(Aliases \== []),
+    forall(member(Unit-Base-Factor, Aliases),
+           (   canonical_quantity(number, 1.0, Unit, _, Value, CanonUnit),
+               assertion(CanonUnit == Base),
+               assertion(abs(Value - Factor) =< 1.0e-9 * max(1, Factor))
+           )),
+    % Each family has exactly one base unit and the base converts to itself.
+    forall(member(_-Base-_, Aliases),
+           assertion(unit_base(Base, Base, 1))).
+
+test(equivalent_units_share_a_logical_ground_signature, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    sq_property_fact('FACT-SESSION-TTL-MIN', "session.lifetime", ttl, lte, int, 30, min),
+    sq_property_fact('FACT-SESSION-TTL-SEC', "session.lifetime", ttl, lte, int, 1800, seconds),
+    sq_property_fact('FACT-SESSION-TTL-UNKNOWN', "session.lifetime", ttl, lte, int, 1800, ticks),
+    logical_ground_signature('FACT-SESSION-TTL-MIN', SigA),
+    logical_ground_signature('FACT-SESSION-TTL-SEC', SigB),
+    logical_ground_signature('FACT-SESSION-TTL-UNKNOWN', SigC),
+    assertion(SigA == SigB),
+    assertion(SigA \== SigC).
+
+test(contradictions_compare_canonical_units, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    sq_subject_fact('FACT-SUBJ-SESSION', "session.lifetime"),
+    sq_property_fact('FACT-TTL-MAX-30M', "session.lifetime", ttl, lte, int, 30, min),
+    sq_property_fact('FACT-TTL-MIN-1H', "session.lifetime", ttl, gte, int, 3600, s),
+    sq_property_fact('FACT-TTL-MIN-1800S', "session.lifetime", ttl, gte, int, 1800, s),
+    sq_strict_req('REQ-session-ttl-max', 'FACT-SUBJ-SESSION', 'FACT-TTL-MAX-30M'),
+    sq_strict_req('REQ-session-ttl-min-hour', 'FACT-SUBJ-SESSION', 'FACT-TTL-MIN-1H'),
+    sq_strict_req('REQ-session-ttl-min-half-hour', 'FACT-SUBJ-SESSION', 'FACT-TTL-MIN-1800S'),
+    check_domain_contradiction_witnesses(Witnesses),
+    findall(Pair, (member(W, Witnesses), Pair = W.requirements), Pairs),
+    assertion(memberchk(['REQ-session-ttl-max', 'REQ-session-ttl-min-hour'], Pairs)),
+    assertion(\+ memberchk(['REQ-session-ttl-max', 'REQ-session-ttl-min-half-hour'], Pairs)),
+    member(Witness, Witnesses),
+    Witness.requirements == ['REQ-session-ttl-max', 'REQ-session-ttl-min-hour'],
+    % Evidence keeps the authored quantity, not the canonical one.
+    assertion(Witness.left.term.unit == min),
+    assertion(Witness.left.term.value == 30).
+
+test(domain_redundancy_reports_same_signature_across_requirements, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    sq_subject_fact('FACT-SUBJ-SESSION', "session.lifetime"),
+    sq_property_fact('FACT-TTL-30M', "session.lifetime", ttl, lte, int, 30, min),
+    sq_property_fact('FACT-TTL-1800S', "session.lifetime", ttl, lte, int, 1800, s),
+    sq_strict_req('REQ-billing-session-ttl', 'FACT-SUBJ-SESSION', 'FACT-TTL-30M'),
+    sq_strict_req('REQ-platform-session-ttl', 'FACT-SUBJ-SESSION', 'FACT-TTL-1800S'),
+    check_domain_redundancy_witnesses(Witnesses),
+    assertion(length(Witnesses, 1)),
+    Witnesses = [Witness],
+    assertion(Witness.requirements == ['REQ-billing-session-ttl', 'REQ-platform-session-ttl']),
+    assertion(Witness.facts == ['FACT-TTL-30M', 'FACT-TTL-1800S']),
+    assertion(Witness.match == same_signature),
+    assertion(sub_string(Witness.signature, _, _, _, "1800")),
+    check_domain_redundancy(Violations),
+    Violations = [violation('domain-redundancy', EntityId, _, _, _, Evidence)],
+    assertion(EntityId == "REQ-billing-session-ttl/REQ-platform-session-ttl"),
+    assertion(Evidence.witnesses =@= [Witness]).
+
+test(domain_redundancy_reports_a_shared_ground_fact, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    sq_subject_fact('FACT-SUBJ-EXPORT', "report.export"),
+    sq_property_fact('FACT-EXPORT-CSV', "report.export", format, eq, string, csv, ''),
+    sq_strict_req('REQ-report-export-csv', 'FACT-SUBJ-EXPORT', 'FACT-EXPORT-CSV'),
+    sq_strict_req('REQ-analytics-export-csv', 'FACT-SUBJ-EXPORT', 'FACT-EXPORT-CSV'),
+    check_domain_redundancy_witnesses([Witness]),
+    assertion(Witness.match == shared_fact),
+    assertion(Witness.facts == ['FACT-EXPORT-CSV', 'FACT-EXPORT-CSV']).
+
+test(domain_redundancy_is_suppressed_by_restates_and_supersedes, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    sq_subject_fact('FACT-SUBJ-EXPORT', "report.export"),
+    sq_property_fact('FACT-EXPORT-CSV', "report.export", format, eq, string, csv, ''),
+    sq_strict_req('REQ-report-export-csv', 'FACT-SUBJ-EXPORT', 'FACT-EXPORT-CSV'),
+    sq_strict_req('REQ-analytics-export-csv', 'FACT-SUBJ-EXPORT', 'FACT-EXPORT-CSV'),
+    sq_strict_req('REQ-legacy-export-csv', 'FACT-SUBJ-EXPORT', 'FACT-EXPORT-CSV'),
+    % restates in either direction exempts the pair; supersedes retires one side.
+    kb_assert_relationship(restates, 'REQ-report-export-csv', 'REQ-analytics-export-csv', []),
+    kb_assert_relationship(supersedes, 'REQ-analytics-export-csv', 'REQ-legacy-export-csv', []),
+    check_domain_redundancy_witnesses(Witnesses),
+    assertion(Witnesses == []).
+
+test(domain_redundancy_ignores_opposite_polarity, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    sq_predicate_fact('FACT-PRED-EXPORT-ALLOW', export_allowed, [report, csv], assert),
+    sq_predicate_fact('FACT-PRED-EXPORT-DENY', export_allowed, [report, csv], deny),
+    sq_predicate_fact('FACT-PRED-EXPORT-ALLOW-2', export_allowed, [report, csv], assert),
+    sq_req('REQ-export-allowed'),
+    sq_req('REQ-export-denied'),
+    sq_req('REQ-export-allowed-again'),
+    kb_assert_relationship(requires_predicate, 'REQ-export-allowed', 'FACT-PRED-EXPORT-ALLOW', []),
+    kb_assert_relationship(requires_predicate, 'REQ-export-denied', 'FACT-PRED-EXPORT-DENY', []),
+    kb_assert_relationship(requires_predicate, 'REQ-export-allowed-again', 'FACT-PRED-EXPORT-ALLOW-2', []),
+    check_domain_redundancy_witnesses(Witnesses),
+    findall(Pair, (member(W, Witnesses), Pair = W.requirements), Pairs),
+    assertion(Pairs == [['REQ-export-allowed', 'REQ-export-allowed-again']]).
+
+test(domain_redundancy_scales_by_grouping_not_pairwise_join, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    sq_synthetic_redundancy_kb(40, 0),
+    sq_redundancy_inferences(Small, SmallCount),
+    sq_synthetic_redundancy_kb(160, 40),
+    sq_redundancy_inferences(Large, LargeCount),
+    % Every fourth synthetic requirement duplicates its predecessor.
+    assertion(SmallCount =:= 10),
+    assertion(LargeCount =:= 40),
+    % 4x the requirements must cost well under the 16x of a pairwise join.
+    Ratio is Large / Small,
+    assertion(Ratio < 10).
+
+test(domain_implication_reports_stronger_numeric_bounds, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    sq_subject_fact('FACT-SUBJ-SESSION', "session.lifetime"),
+    sq_property_fact('FACT-TTL-LTE-30M', "session.lifetime", ttl, lte, int, 30, min),
+    sq_property_fact('FACT-TTL-LTE-1H', "session.lifetime", ttl, lte, int, 3600, s),
+    sq_property_fact('FACT-TTL-LTE-2H-TICKS', "session.lifetime", ttl, lte, int, 2, ticks),
+    sq_strict_req('REQ-session-ttl-strict', 'FACT-SUBJ-SESSION', 'FACT-TTL-LTE-30M'),
+    sq_strict_req('REQ-session-ttl-loose', 'FACT-SUBJ-SESSION', 'FACT-TTL-LTE-1H'),
+    sq_strict_req('REQ-session-ttl-ticks', 'FACT-SUBJ-SESSION', 'FACT-TTL-LTE-2H-TICKS'),
+    check_domain_implication_witnesses(Witnesses),
+    assertion(length(Witnesses, 1)),
+    Witnesses = [Witness],
+    assertion(Witness.requirements == ['REQ-session-ttl-strict', 'REQ-session-ttl-loose']),
+    assertion(Witness.status == implied_by),
+    check_domain_implication([violation('domain-implication', _, Description, _, _, _)]),
+    assertion(sub_string(Description, 0, _, _, "Implied by")),
+    % Identical bounds are redundancy, never implication.
+    assertion(\+ bound_implies_for_test(lte, 30, lte, 30)).
+
+test(subject_key_identity_flags_requirement_derived_subjects, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    sq_req('REQ-cli-gc'),
+    sq_req('REQ-opencode-kibi-plugin-v1'),
+    sq_subject_fact('FACT-SUBJ-REQ-CLI-GC', "req.req_cli_gc"),
+    sq_subject_fact('FACT-SUBJ-PLUGIN-DOC', "req.opencode_kibi_plugin_v1.document"),
+    sq_subject_fact('FACT-SUBJ-CLI-GC', "kibi.cli.gc"),
+    sq_subject_fact('FACT-SUBJ-REQ-UNKNOWN', "req.no_such_requirement"),
+    sq_property_fact('FACT-PROP-REQ-CLI-GC', "req.req_cli_gc", removes_stale_stores, eq, bool, true, ''),
+    sq_property_fact('FACT-PROP-ORPHAN', "req.cli_gc.orphan", removes_stale_stores, eq, bool, true, ''),
+    check_subject_key_identity(Violations),
+    findall(Id, member(violation(_, Id, _, _, _), Violations), Ids),
+    assertion(Ids == ['FACT-PROP-ORPHAN', 'FACT-SUBJ-PLUGIN-DOC', 'FACT-SUBJ-REQ-CLI-GC']).
+
+test(subject_key_shape_accepts_only_dotted_snake_segments, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assertion(valid_subject_key('kibi.cli.check.staged')),
+    assertion(valid_subject_key('opencode.kibi_plugin.v1')),
+    assertion(\+ valid_subject_key(kibi)),
+    assertion(\+ valid_subject_key('Kibi.cli')),
+    assertion(\+ valid_subject_key('kibi..cli')),
+    assertion(\+ valid_subject_key('kibi.cli_')),
+    assertion(\+ valid_subject_key('kibi.cli__gc')),
+    assertion(\+ valid_subject_key('kibi.2fa')),
+    sq_subject_fact('FACT-SUBJ-GOOD', "kibi.cli.gc"),
+    sq_subject_fact('FACT-SUBJ-FLAT', "kibi_codex_plugin"),
+    check_subject_key_shape([violation('subject-key-shape', 'FACT-SUBJ-FLAT', _, _, _)]).
+
+test(ontology_quality_flags_prose_atoms_and_respects_thresholds, [setup(setup_kb), cleanup(cleanup_kb), cleanup(set_ontology_quality_overrides(default, default))]) :-
+    set_ontology_quality_overrides(default, default),
+    sq_predicate_schema('FACT-SCHEMA-CATCH-ALL', catch_all_rule, [subject, obligation, outcome]),
+    sq_predicate_schema('FACT-SCHEMA-EXPORT', export_allowed, [report, format]),
+    forall(between(1, 10, N),
+           (   format(atom(Id), 'FACT-CATCH-ALL-~w', [N]),
+               format(atom(S), 'subject_~w', [N]),
+               format(atom(O), 'obligation_~w', [N]),
+               sq_predicate_fact(Id, catch_all_rule, [S, O, outcome_shared], assert)
+           )),
+    forall(between(1, 10, N),
+           (   format(atom(Id), 'FACT-EXPORT-~w', [N]),
+               Report is N mod 2,
+               format(atom(R), 'report_~w', [Report]),
+               sq_predicate_fact(Id, export_allowed, [R, csv], assert)
+           )),
+    check_ontology_quality(Violations),
+    assertion(length(Violations, 1)),
+    Violations = [violation('ontology-quality', 'FACT-SCHEMA-CATCH-ALL', Description, _, _, Evidence)],
+    % The message names the arguments that carry prose, not the shared one.
+    assertion(sub_string(Description, _, _, _, "prose-like arguments: subject (10/10), obligation (10/10)")),
+    assertion(\+ sub_string(Description, _, _, _, "outcome (")),
+    Evidence.witnesses = [Witness],
+    assertion(Witness.factCount == 10),
+    assertion(Witness.singletonRatio >= 0.66),
+    assertion(Witness.positions = [_{argument: subject, distinctValues: 10, singletonValues: 10}|_]),
+    % Raising the minimum fact count hides small schemas entirely.
+    set_ontology_quality_overrides(default, 11),
+    check_ontology_quality(NoViolations),
+    assertion(NoViolations == []),
+    % Out-of-range overrides fall back to the defaults.
+    set_ontology_quality_overrides(5, 0),
+    ontology_quality_settings(Ratio, MinFacts),
+    assertion(Ratio =:= 0.6),
+    assertion(MinFacts =:= 8).
+
+test(entity_id_style_flags_filename_stem_mismatches_only, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    sq_entity(req, 'REQ-cli-gc', ".kb/requirements/REQ-cli-gc.md"),
+    sq_entity(req, 'REQ-003', ".kb/requirements/REQ-003.md"),
+    sq_entity(scenario, 'SCEN-cli-gc', ".kb/scenarios/SCEN-gc-cleanup.md"),
+    sq_entity(test, 'TEST-runtime-only', "mcp://kibi/upsert"),
+    check_entity_id_style(Violations),
+    findall(Id, member(violation(_, Id, _, _, _), Violations), Ids),
+    % Grandfathered numbered IDs with matching stems are never flagged here.
+    assertion(Ids == ['SCEN-cli-gc']).
+
+test(restates_is_a_valid_req_to_req_relationship) :-
+    kibi_relationships:relationship_type(restates),
+    kibi_relationships:valid_relationship(restates, req, req),
+    assertion(\+ kibi_relationships:valid_relationship(restates, req, test)).
+
+test(check_selected_json_serializes_redundancy_witnesses, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    sq_subject_fact('FACT-SUBJ-EXPORT', "report.export"),
+    sq_property_fact('FACT-EXPORT-CSV', "report.export", format, eq, string, csv, ''),
+    sq_strict_req('REQ-report-export-csv', 'FACT-SUBJ-EXPORT', 'FACT-EXPORT-CSV'),
+    sq_strict_req('REQ-analytics-export-csv', 'FACT-SUBJ-EXPORT', 'FACT-EXPORT-CSV'),
+    check_selected_json(['domain-redundancy'], Json),
+    atom_json_dict(Json, Dict, []),
+    Dict.domain_redundancy = [Violation],
+    assertion(Violation.rule == "domain-redundancy"),
+    Violation.evidence.witnesses = [Witness],
+    assertion(Witness.match == "shared_fact").
+
+test(subject_vocabulary_json_lists_subjects_with_constraining_requirements, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    sq_subject_fact('FACT-SUBJ-EXPORT', "report.export"),
+    sq_property_fact('FACT-EXPORT-CSV', "report.export", format, eq, string, csv, ''),
+    sq_strict_req('REQ-report-export-csv', 'FACT-SUBJ-EXPORT', 'FACT-EXPORT-CSV'),
+    subject_vocabulary_json(Json),
+    atom_json_dict(Json, [Entry], []),
+    assertion(Entry.subjectKey == "report.export"),
+    assertion(Entry.reqDerived == false),
+    assertion(Entry.requirements = [_{id: "REQ-report-export-csv", title: _}]),
+    subject_claims_json(['report.export'], ClaimsJson),
+    atom_json_dict(ClaimsJson, [Claim], []),
+    assertion(Claim.factId == "FACT-EXPORT-CSV"),
+    assertion(Claim.requirements == ["REQ-report-export-csv"]).
+
+:- end_tests(semantic_quality_checks).
+
+bound_implies_for_test(OpA, ValA, OpB, ValB) :-
+    semantic_quality:bound_implies(OpA, ValA, OpB, ValB).
+
+sq_entity(Type, Id, Source) :-
+    kb_assert_entity(Type, [
+        id=Id,
+        title="Semantic quality fixture",
+        status=open,
+        created_at="2026-09-28T00:00:00Z",
+        updated_at="2026-09-28T00:00:00Z",
+        source=Source
+    ]).
+
+sq_req(Id) :-
+    kb_assert_entity(req, [
+        id=Id,
+        title="Semantic quality fixture requirement",
+        status=open,
+        created_at="2026-09-28T00:00:00Z",
+        updated_at="2026-09-28T00:00:00Z",
+        source="test://kb.plt"
+    ]).
+
+sq_strict_req(Id, SubjectFactId, PropertyFactId) :-
+    sq_req(Id),
+    kb_assert_relationship(constrains, Id, SubjectFactId, []),
+    kb_assert_relationship(requires_property, Id, PropertyFactId, []).
+
+sq_subject_fact(Id, SubjectKey) :-
+    kb_assert_entity(fact, [
+        id=Id,
+        title="Semantic quality subject",
+        status=active,
+        created_at="2026-09-28T00:00:00Z",
+        updated_at="2026-09-28T00:00:00Z",
+        source="test://kb.plt",
+        fact_kind=subject,
+        subject_key=SubjectKey
+    ]).
+
+sq_property_fact(Id, SubjectKey, PropertyKey0, Operator, ValueType, Value, Unit0) :-
+    atom_string(PropertyKey0, PropertyKey),
+    sq_value_field(ValueType, Value, ValueField),
+    (   Unit0 == ''
+    ->  UnitFields = []
+    ;   atom_string(Unit0, Unit),
+        UnitFields = [unit=Unit]
+    ),
+    append([
+        id=Id,
+        title="Semantic quality property",
+        status=active,
+        created_at="2026-09-28T00:00:00Z",
+        updated_at="2026-09-28T00:00:00Z",
+        source="test://kb.plt",
+        fact_kind=property_value,
+        subject_key=SubjectKey,
+        property_key=PropertyKey,
+        operator=Operator,
+        value_type=ValueType,
+        ValueField
+    ], UnitFields, Props),
+    kb_assert_entity(fact, Props).
+
+sq_value_field(int, Value, value_int=Value).
+sq_value_field(number, Value, value_number=Value).
+sq_value_field(string, Value0, value_string=Value) :- atom_string(Value0, Value).
+sq_value_field(bool, Value, value_bool=Value).
+
+sq_predicate_schema(Id, Name0, ArgumentNames) :-
+    atom_string(Name0, Name),
+    length(ArgumentNames, Arity),
+    maplist([_, atom]>>true, ArgumentNames, ArgumentTypes),
+    kb_assert_entity(fact, [
+        id=Id,
+        title="Semantic quality predicate schema",
+        status=active,
+        created_at="2026-09-28T00:00:00Z",
+        updated_at="2026-09-28T00:00:00Z",
+        source="test://kb.plt",
+        fact_kind=predicate_schema,
+        predicate_name=Name,
+        predicate_arity=Arity,
+        argument_names=ArgumentNames,
+        argument_types=ArgumentTypes
+    ]).
+
+sq_predicate_fact(Id, Name0, Args, Polarity) :-
+    atom_string(Name0, Name),
+    atomic_list_concat(Args, ',', ArgText),
+    format(string(CanonicalKey), '~w(~w)', [Name, ArgText]),
+    kb_assert_entity(fact, [
+        id=Id,
+        title="Semantic quality predicate",
+        status=active,
+        created_at="2026-09-28T00:00:00Z",
+        updated_at="2026-09-28T00:00:00Z",
+        source="test://kb.plt",
+        fact_kind=predicate,
+        predicate_name=Name,
+        predicate_args=Args,
+        canonical_key=CanonicalKey,
+        polarity=Polarity
+    ]).
+
+% Adds requirements From+1..To, each grounding its own predicate term; every
+% fourth requirement grounds the same term as its predecessor.
+sq_synthetic_redundancy_kb(To, From) :-
+    Start is From + 1,
+    forall(between(Start, To, N),
+           (   (   N mod 4 =:= 0
+               ->  Term is N - 1
+               ;   Term = N
+               ),
+               format(atom(ReqId), 'REQ-synthetic-~|~`0t~d~6+', [N]),
+               format(atom(FactId), 'FACT-SYNTHETIC-~|~`0t~d~6+', [N]),
+               format(atom(Arg), 'term_~w', [Term]),
+               sq_predicate_fact(FactId, synthetic_rule, [Arg], assert),
+               sq_req(ReqId),
+               kb_assert_relationship(requires_predicate, ReqId, FactId, [])
+           )).
+
+sq_redundancy_inferences(Inferences, WitnessCount) :-
+    statistics(inferences, Before),
+    check_domain_redundancy_witnesses(Witnesses),
+    statistics(inferences, After),
+    Inferences is After - Before,
+    length(Witnesses, WitnessCount).
 
 % Test setup/cleanup helpers
 assert_fixture_entity(Type, Id, Title, Status, ExtraProps) :-

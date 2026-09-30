@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: subject
-subject_key: req.req_skillopt_predicate_first_requirements
+subject_key: kibi.modeling.predicates
 canonical_key: req.req_skillopt_predicate_first_requirements
 id: FACT-SUBJ-REQ-SKILLOPT-PREDICATE-FIRST-REQUIREMENTS
 type: fact
