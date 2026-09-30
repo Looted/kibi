@@ -43589,16 +43589,6 @@ symbols:
         target: TEST-docs-site-pages
       - type: implements
         target: REQ-docs-site-root-pages
-  - id: SYM-docs-site-catalog-LEGACY_DOCS_PATH
-    title: LEGACY_DOCS_PATH
-    status: active
-    sourceFile: docs-site/catalog.ts
-    symbol_role: config
-    relationships:
-      - type: covered_by
-        target: TEST-docs-site-pages
-      - type: implements
-        target: REQ-docs-site-root-pages
   - id: SYM-docs-site-catalog-SITE_TAGLINE
     title: SITE_TAGLINE
     status: active

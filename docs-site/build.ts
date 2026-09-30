@@ -2,8 +2,7 @@
 /**
  * Builds the Kibi documentation site (landing page, Guide, Reference) as a
  * fully self-contained static bundle for the project Pages root. The
- * requirement-health report is published beside it under kibi-report/, and
- * every page's former docs/ URL is kept as a redirect.
+ * requirement-health report is published beside it under kibi-report/.
  *
  * Sources of truth stay in the repository: mirrored pages render the
  * canonical `docs/*.md` files at build time, so the site can never drift
@@ -35,7 +34,6 @@ import {
   DOCS,
   type DocPage,
   type DocSection,
-  LEGACY_DOCS_PATH,
   REPORT_PATH,
   SITE_TAGLINE,
   sitePagePath,
@@ -483,30 +481,6 @@ function readSource(spec: DocSpec): string {
   return readFileSync(file, "utf8");
 }
 
-/** Former docs/ URLs mapped to their pages at the site root. */
-function legacyRedirects(): Array<[string, string]> {
-  return [
-    [`${LEGACY_DOCS_PATH}index.html`, "index.html"],
-    ...DOCS.map((spec): [string, string] => [
-      `${LEGACY_DOCS_PATH}${sitePagePath(spec)}`,
-      sitePagePath(spec),
-    ]),
-  ];
-}
-
-function redirectPage(href: string): string {
-  const target = escapeHtml(href);
-  return `<!doctype html>
-<meta charset="utf-8">
-<title>Moved · Kibi Docs</title>
-<meta name="robots" content="noindex">
-<link rel="canonical" href="${target}">
-<meta http-equiv="refresh" content="0; url=${target}">
-<script>location.replace(${JSON.stringify(href)} + location.hash);</script>
-<p>This page moved to <a href="${target}">${target}</a>.</p>
-`;
-}
-
 function main(): void {
   for (const spec of DOCS) readSource(spec);
 
@@ -605,13 +579,6 @@ function main(): void {
 
   writeFileSync(path.join(outDir, "llms.txt"), renderLlmsTxt(REPO_ROOT));
   written.push("llms.txt");
-
-  for (const [legacyPath, target] of legacyRedirects()) {
-    const file = path.join(outDir, legacyPath);
-    mkdirSync(path.dirname(file), { recursive: true });
-    writeFileSync(file, redirectPage(relativeHref(legacyPath, target)));
-    written.push(legacyPath);
-  }
 
   const totalBytes = written.reduce(
     (sum, file) => sum + readFileSync(path.join(outDir, file)).length,

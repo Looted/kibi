@@ -5,7 +5,6 @@
  */
 
 import {
-  LEGACY_DOCS_PATH,
   LLMS_INDEX_PATH,
   PUBLISHED_SITE_ORIGIN,
   REPORT_PATH,
@@ -56,9 +55,6 @@ function problemsForHref(href: string): string[] {
     sitePath.startsWith(REPORT_PATH)
   ) {
     return [];
-  }
-  if (sitePath.startsWith(LEGACY_DOCS_PATH)) {
-    return [`${href} is a legacy redirect. Link the page at the site root.`];
   }
   if (!pageForSitePath(sitePath)) {
     return [`${href} is not a page in the documentation catalog.`];

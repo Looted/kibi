@@ -35,12 +35,6 @@ describe("documentation site pages", () => {
         workflow.indexOf("mkdir -p pages/kibi-report"),
       );
       expect(index).toContain('href="kibi-report/"');
-      // Former /docs/ URLs keep resolving to the same page at the root.
-      const legacy = readFileSync(
-        path.join(out, "docs/guide/install.html"),
-        "utf8",
-      );
-      expect(legacy).toContain('url=../../guide/install.html"');
     } finally {
       rmSync(out, { recursive: true, force: true });
     }

@@ -211,13 +211,6 @@ relationships:
     id: rel-071e6c90038f
   - type: requires_property
     from: REQ-docs-site-root-pages
-    to: FACT-docs-site-legacy-redirects
-    created_at: 2026-09-29T21:42:08.203Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4423bd56357c
-  - type: requires_property
-    from: REQ-docs-site-root-pages
     to: FACT-DOCS-SITE-SOURCE-MODE
     created_at: 2026-09-29T21:42:08.211Z
     created_by: kibi/upsert

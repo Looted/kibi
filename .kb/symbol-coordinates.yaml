@@ -10381,7 +10381,7 @@ coordinates:
     sourceLine: 30
   SYM-docs-readme-published-links:
     identityHash: 52dc80800072973bfae3f12b2b5ac5396d0c405ec2b9e7e849ff9d4b25855479
-    sourceHash: ab944242d27f325b7372ffbdfd68160239c29451ebf5bc189e86547d8a7d3783
+    sourceHash: 78f2ec20d955a7c946b38dcd1f5e305b0ca17345f2e6c5ec858889033028a7d4
     sourceColumn: 0
     sourceEndColumn: 0
     sourceEndLine: 102
@@ -10389,7 +10389,7 @@ coordinates:
     sourceLine: 1
   SYM-docs-site-catalog-DocPage:
     identityHash: f89ef8d0a0f753c881ed405668c3ec42e7712fca68be2b4d876458b711cbf708
-    sourceHash: 4b4ba3a4ddc1d1ca86cf790dd2e51bbb46369975265da2973e6e2edf596aa9d3
+    sourceHash: ba897056086d8ffdca7c8eea74ad88472c6d74a70fe31251a86fc85dbae456bc
     sourceColumn: 12
     sourceEndColumn: 2
     sourceEndLine: 20
@@ -10397,55 +10397,47 @@ coordinates:
     sourceLine: 11
   SYM-docs-site-catalog-DOCS:
     identityHash: 04ff793ee24caba771ab4d9baed88a96479d43093296f735ed65e0e53f41c945
-    sourceHash: 4b4ba3a4ddc1d1ca86cf790dd2e51bbb46369975265da2973e6e2edf596aa9d3
+    sourceHash: ba897056086d8ffdca7c8eea74ad88472c6d74a70fe31251a86fc85dbae456bc
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 219
+    sourceEndLine: 211
     sourceFile: docs-site/catalog.ts
-    sourceLine: 54
+    sourceLine: 46
   SYM-docs-site-catalog-DocSection:
     identityHash: 772801297a93492a94456507bd15fc4199fbfdb164346ebfe405229e8703cf17
-    sourceHash: 4b4ba3a4ddc1d1ca86cf790dd2e51bbb46369975265da2973e6e2edf596aa9d3
+    sourceHash: ba897056086d8ffdca7c8eea74ad88472c6d74a70fe31251a86fc85dbae456bc
     sourceColumn: 12
     sourceEndColumn: 47
     sourceEndLine: 9
     sourceFile: docs-site/catalog.ts
     sourceLine: 9
-  SYM-docs-site-catalog-LEGACY_DOCS_PATH:
-    identityHash: 89e4b13be1fc3b178a8d48f094242e8b210916e19177fe4f4d90f4dacef1c023
-    sourceHash: 4b4ba3a4ddc1d1ca86cf790dd2e51bbb46369975265da2973e6e2edf596aa9d3
-    sourceColumn: 13
-    sourceEndColumn: 39
-    sourceEndLine: 48
-    sourceFile: docs-site/catalog.ts
-    sourceLine: 48
   SYM-docs-site-catalog-LLMS_INDEX_PATH:
     identityHash: 2a1bc07ac09f12f1f176eaa0d0b646679279fd7b98260d0038c96aa5fc589470
-    sourceHash: 4b4ba3a4ddc1d1ca86cf790dd2e51bbb46369975265da2973e6e2edf596aa9d3
+    sourceHash: ba897056086d8ffdca7c8eea74ad88472c6d74a70fe31251a86fc85dbae456bc
     sourceColumn: 13
     sourceEndColumn: 41
-    sourceEndLine: 51
+    sourceEndLine: 43
     sourceFile: docs-site/catalog.ts
-    sourceLine: 51
+    sourceLine: 43
   SYM-docs-site-catalog-pageForSitePath:
     identityHash: dcae9d173a76e8f20d7a2c639cc4aeced202d23aed435b748bdf86c3f77a0ce5
-    sourceHash: 4b4ba3a4ddc1d1ca86cf790dd2e51bbb46369975265da2973e6e2edf596aa9d3
+    sourceHash: ba897056086d8ffdca7c8eea74ad88472c6d74a70fe31251a86fc85dbae456bc
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 246
+    sourceEndLine: 238
     sourceFile: docs-site/catalog.ts
-    sourceLine: 244
+    sourceLine: 236
   SYM-docs-site-catalog-pageForSource:
     identityHash: c79428de52f8caf1ab58cf0b436af2bb6f0e478b79ab81c85a79d617752c7499
-    sourceHash: 4b4ba3a4ddc1d1ca86cf790dd2e51bbb46369975265da2973e6e2edf596aa9d3
+    sourceHash: ba897056086d8ffdca7c8eea74ad88472c6d74a70fe31251a86fc85dbae456bc
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 241
+    sourceEndLine: 233
     sourceFile: docs-site/catalog.ts
-    sourceLine: 239
+    sourceLine: 231
   SYM-docs-site-catalog-PUBLISHED_SITE_ORIGIN:
     identityHash: e7dbef030bed9ed31be04e5948dc0c6209e4d5e507adb0d9433a768278a7a4f2
-    sourceHash: 4b4ba3a4ddc1d1ca86cf790dd2e51bbb46369975265da2973e6e2edf596aa9d3
+    sourceHash: ba897056086d8ffdca7c8eea74ad88472c6d74a70fe31251a86fc85dbae456bc
     sourceColumn: 13
     sourceEndColumn: 68
     sourceEndLine: 28
@@ -10453,23 +10445,23 @@ coordinates:
     sourceLine: 28
   SYM-docs-site-catalog-publishedLlmsIndexHref:
     identityHash: 2b125c7135f29245caa9df51d04a44b73f522a3daa74585a15f21c946e670a5a
-    sourceHash: 4b4ba3a4ddc1d1ca86cf790dd2e51bbb46369975265da2973e6e2edf596aa9d3
+    sourceHash: ba897056086d8ffdca7c8eea74ad88472c6d74a70fe31251a86fc85dbae456bc
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 236
+    sourceEndLine: 228
     sourceFile: docs-site/catalog.ts
-    sourceLine: 234
+    sourceLine: 226
   SYM-docs-site-catalog-publishedPageHref:
     identityHash: 0c1d037b1ecbc31bee798a8c13ff9cf4ed1ff338c870655099e5e54ee0b0cc47
-    sourceHash: 4b4ba3a4ddc1d1ca86cf790dd2e51bbb46369975265da2973e6e2edf596aa9d3
+    sourceHash: ba897056086d8ffdca7c8eea74ad88472c6d74a70fe31251a86fc85dbae456bc
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 231
+    sourceEndLine: 223
     sourceFile: docs-site/catalog.ts
-    sourceLine: 227
+    sourceLine: 219
   SYM-docs-site-catalog-REPORT_PATH:
     identityHash: 481bba597ec7ba67acf1d53536adf830bb4ccde88b98184d6614669f245a5187
-    sourceHash: 4b4ba3a4ddc1d1ca86cf790dd2e51bbb46369975265da2973e6e2edf596aa9d3
+    sourceHash: ba897056086d8ffdca7c8eea74ad88472c6d74a70fe31251a86fc85dbae456bc
     sourceColumn: 13
     sourceEndColumn: 41
     sourceEndLine: 40
@@ -10477,7 +10469,7 @@ coordinates:
     sourceLine: 40
   SYM-docs-site-catalog-SITE_TAGLINE:
     identityHash: 61b6c7d96982ae9d301e7810a0638ac8b778a626d68978e3349896060e1369d6
-    sourceHash: 4b4ba3a4ddc1d1ca86cf790dd2e51bbb46369975265da2973e6e2edf596aa9d3
+    sourceHash: ba897056086d8ffdca7c8eea74ad88472c6d74a70fe31251a86fc85dbae456bc
     sourceColumn: 13
     sourceEndColumn: 85
     sourceEndLine: 36
@@ -10485,12 +10477,12 @@ coordinates:
     sourceLine: 35
   SYM-docs-site-catalog-sitePagePath:
     identityHash: 40a87a1f28cd9cbf92bc75c3ca14739ec12bc15f5cf4d250788999f2114f046b
-    sourceHash: 4b4ba3a4ddc1d1ca86cf790dd2e51bbb46369975265da2973e6e2edf596aa9d3
+    sourceHash: ba897056086d8ffdca7c8eea74ad88472c6d74a70fe31251a86fc85dbae456bc
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 224
+    sourceEndLine: 216
     sourceFile: docs-site/catalog.ts
-    sourceLine: 222
+    sourceLine: 214
   SYM-docs-site-llms-renderLlmsTxt:
     identityHash: 64265e97141d112d25a00825f46f31f9671a86bb2c491c359141d893341c2f28
     sourceHash: 2cc3f1abdf9596a31ceaa29ffae73c5c394c3e51b17cf8544d135b1771cb9714
@@ -10533,20 +10525,20 @@ coordinates:
     sourceLine: 18
   SYM-docs-site-pages-build:
     identityHash: 5db60e46bde4607bb3b3f7c45ea3b41dd0be936f5573db9513a1071fc44d36ed
-    sourceHash: 633052ba76d07e411fea2df08ef0f2fc57f4abcbc8e4e58cd4a5111ea0a2edbd
+    sourceHash: 4471d9ab4a8cf767981f0a18c35d5e546b58fa96b684faeca407993853164b4e
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 66
+    sourceEndLine: 60
     sourceFile: packages/cli/tests/docs-site-pages.test.ts
     sourceLine: 1
   SYM-docs-site-readmePublishedDocProblems:
     identityHash: 16baed46cb0902964e49441f56d074dc5a0854af1db581a2414ea0504587d022
-    sourceHash: aededb9ad76f97b88ba36e8a4d72bafd55af818283100ccb570dc631a25481c4
+    sourceHash: 3f333628ef5bf1f2da5cbe1c2f63e04f572dda54da7c6308fb006c03afa25ab5
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 34
+    sourceEndLine: 33
     sourceFile: docs-site/readme-links.ts
-    sourceLine: 21
+    sourceLine: 20
   SYM-docs-site-theme-clientScript:
     identityHash: 9acb31c4882a74eebacdedcdfb99a244027ce506609e7120e80eadac0f712254
     sourceHash: 27c05e51096e636638524d29785480d1af3c19bee8527dd3c2de996cfd9f4f5e

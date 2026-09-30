@@ -26,7 +26,7 @@ function runDocsSite(out: string) {
 }
 
 describe("published documentation links", () => {
-  test("the link check accepts site-root pages and the report, and rejects GitHub copies and legacy paths", () => {
+  test("the link check accepts site-root pages and the report, and rejects GitHub copies and old /docs/ paths", () => {
     const llms = `[index](${publishedLlmsIndexHref()})`;
     const accepted = [
       `${PUBLISHED_SITE_ORIGIN}/`,

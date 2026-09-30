@@ -39,14 +39,6 @@ export const SITE_TAGLINE =
 // implements REQ-docs-site-root-pages
 export const REPORT_PATH = "kibi-report/";
 
-/**
- * Where the documentation site was published before it moved to the Pages
- * root. The build writes a redirect for every catalog page under it so old
- * links keep working.
- */
-// implements REQ-docs-site-root-pages
-export const LEGACY_DOCS_PATH = "docs/";
-
 // implements REQ-docs-readme-published-links
 export const LLMS_INDEX_PATH = "llms.txt";
 
