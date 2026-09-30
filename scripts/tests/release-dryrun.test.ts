@@ -228,7 +228,7 @@ describe("release dry-run: no-commit master publish model", () => {
       expect(decision.action).toBe("PUBLISH_ONLY_RERUN");
       expect(decision.reason).toContain("already published");
 
-      expect(decision.packages).toHaveLength(9);
+      expect(decision.packages).toHaveLength(10);
       const dirs = decision.packages.map((p) => p.dir).sort();
       expect(dirs).toEqual([
         "agent-core",
@@ -240,6 +240,7 @@ describe("release dry-run: no-commit master publish model", () => {
         "plugin-jev",
         "plugin-sdk",
         "runtime",
+        "swipl",
       ]);
 
       for (const pkg of decision.packages) {
@@ -275,6 +276,7 @@ describe("release dry-run: no-commit master publish model", () => {
         "plugin-jev",
         "plugin-sdk",
         "runtime",
+        "swipl",
       ]);
     });
 
@@ -290,6 +292,7 @@ describe("release dry-run: no-commit master publish model", () => {
         `${ALL_PACKAGES["agent-core"].name}@${ALL_PACKAGES["agent-core"].version}`,
         `${ALL_PACKAGES["plugin-builtin"].name}@${ALL_PACKAGES["plugin-builtin"].version}`,
         `${ALL_PACKAGES["plugin-jev"].name}@${ALL_PACKAGES["plugin-jev"].version}`,
+        `${ALL_PACKAGES.swipl.name}@${ALL_PACKAGES.swipl.version}`,
       ]);
       const ctx = makeContext({
         changesetFiles: NO_CHANGESETS,
@@ -482,11 +485,12 @@ Expected action: NOOP
         "plugin-jev",
         "plugin-sdk",
         "runtime",
+        "swipl",
       ]);
 
       // --- PUBLISH_ONLY_RERUN only includes unpublished packages ---
       // The runner omits already-published packages from decision.packages.
-      expect(decision.packages).toHaveLength(9);
+      expect(decision.packages).toHaveLength(10);
       const pkgDirs = decision.packages
         .map((p: { dir: string }) => p.dir)
         .sort();
@@ -500,6 +504,7 @@ Expected action: NOOP
         "plugin-jev",
         "plugin-sdk",
         "runtime",
+        "swipl",
       ]);
 
       // --- None of the returned packages are already published ---
@@ -539,6 +544,7 @@ Summary:
         "agent-core",
         "plugin-builtin",
         "plugin-jev",
+        "swipl",
         "runtime",
         "cli",
         "mcp",
@@ -558,6 +564,7 @@ Summary:
         "plugin-jev",
         "plugin-sdk",
         "runtime",
+        "swipl",
       ]);
     });
   });

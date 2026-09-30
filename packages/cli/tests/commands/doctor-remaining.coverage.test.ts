@@ -14,6 +14,7 @@ import {
 } from "../../src/commands/doctor.js";
 import { engineStopCommand } from "../../src/commands/engine.js";
 import { initCommand } from "../../src/commands/init.js";
+import { installFakeSwipl } from "../helpers/fake-swipl.js";
 import {
   captureIo,
   createGitWorkspace,
@@ -45,6 +46,7 @@ afterEach(async () => {
 function preparedWorkspace(): string {
   const restoreEnv = isolateKibiEnv();
   restores.push(restoreEnv);
+  restores.push(installFakeSwipl("SWI-Prolog version 9.2 (threaded)\n"));
   const cwd = createGitWorkspace();
   roots.push(cwd);
   return cwd;
@@ -468,27 +470,6 @@ status: open
     expect(payload.runtime.coreVersion).toBe("unknown");
   });
 
-  test("still reports a passing SWI-Prolog check when execSync returns a 9.x banner", async () => {
-    const cwd = preparedWorkspace();
-    await withCwd(cwd, () => initCommand({}));
-    const originalExec = childProcess.execSync;
-    const exec = spyOn(childProcess, "execSync").mockImplementation(((
-      command: string,
-      options?: unknown,
-    ) => {
-      if (String(command).includes("swipl")) {
-        return "SWI-Prolog version 9.2 (threaded)\n";
-      }
-      return originalExec(command, options as never);
-    }) as typeof childProcess.execSync);
-    restores.push(() => exec.mockRestore());
-    const io = captureIo();
-    restores.push(io.restore);
-    const result = await withCwd(cwd, () => doctorCommand({ format: "json" }));
-    expect(result.exitCode).toBe(0);
-    expect(io.logText()).toContain("version 9.2");
-  });
-
   test("reports json failure when only one of post-checkout or post-merge exists", async () => {
     const cwd = preparedWorkspace();
     writeOkManifest(cwd);
@@ -515,48 +496,6 @@ status: open
     const result = await withCwd(cwd, () => doctorCommand({ format: "json" }));
     expect(result.exitCode).toBe(1);
     expect(io.logText()).toContain("does not invoke kibi");
-  });
-
-  test("fails SWI-Prolog when execSync returns an 8.x banner", async () => {
-    const cwd = preparedWorkspace();
-    writeOkManifest(cwd);
-    const originalExec = childProcess.execSync;
-    const exec = spyOn(childProcess, "execSync").mockImplementation(((
-      command: string,
-      options?: unknown,
-    ) => {
-      if (String(command).includes("swipl")) {
-        return "SWI-Prolog version 8.4 (threaded)\n";
-      }
-      return originalExec(command, options as never);
-    }) as typeof childProcess.execSync);
-    restores.push(() => exec.mockRestore());
-    const io = captureIo();
-    restores.push(io.restore);
-    const result = await withCwd(cwd, () => doctorCommand({ format: "json" }));
-    expect(result.exitCode).toBe(1);
-    expect(io.logText()).toContain("Version 8.x found");
-  });
-
-  test("fails SWI-Prolog when the version banner cannot be parsed", async () => {
-    const cwd = preparedWorkspace();
-    writeOkManifest(cwd);
-    const originalExec = childProcess.execSync;
-    const exec = spyOn(childProcess, "execSync").mockImplementation(((
-      command: string,
-      options?: unknown,
-    ) => {
-      if (String(command).includes("swipl")) {
-        return "SWI-Prolog (threaded, 64 bits, version unknown)\n";
-      }
-      return originalExec(command, options as never);
-    }) as typeof childProcess.execSync);
-    restores.push(() => exec.mockRestore());
-    const io = captureIo();
-    restores.push(io.restore);
-    const result = await withCwd(cwd, () => doctorCommand({ format: "json" }));
-    expect(result.exitCode).toBe(1);
-    expect(io.logText()).toContain("Unable to parse version");
   });
 
   test("treats an unreadable package.json during provenance walk as absent", async () => {
@@ -639,51 +578,6 @@ status: open
     const result = await withCwd(cwd, () => doctorCommand({ format: "json" }));
     expect([0, 1]).toContain(result.exitCode);
     expect(io.logText().length).toBeGreaterThan(0);
-  });
-
-  test("fails SWI-Prolog when the version match has an empty major capture", async () => {
-    const cwd = preparedWorkspace();
-    writeOkManifest(cwd);
-    const originalExec = childProcess.execSync;
-    const exec = spyOn(childProcess, "execSync").mockImplementation(((
-      command: string,
-      options?: unknown,
-    ) => {
-      if (String(command).includes("swipl")) {
-        return "SWI-Prolog version 9.2 (threaded)\n";
-      }
-      return originalExec(command, options as never);
-    }) as typeof childProcess.execSync);
-    const originalMatch = String.prototype.match;
-    const match = spyOn(String.prototype, "match").mockImplementation(function (
-      this: string,
-      regexp: string | RegExp,
-    ) {
-      const result = originalMatch.call(this, regexp as never);
-      if (
-        typeof this === "string" &&
-        this.includes("SWI-Prolog version") &&
-        result
-      ) {
-        const copy = [...result] as unknown as RegExpMatchArray;
-        copy.index = result.index;
-        copy.input = result.input;
-        copy.groups = result.groups;
-        copy[1] = "";
-        copy[2] = result[2];
-        return copy;
-      }
-      return result;
-    } as typeof String.prototype.match);
-    restores.push(() => {
-      exec.mockRestore();
-      match.mockRestore();
-    });
-    const io = captureIo();
-    restores.push(io.restore);
-    const result = await withCwd(cwd, () => doctorCommand({ format: "json" }));
-    expect(result.exitCode).toBe(1);
-    expect(io.logText()).toContain("Unable to parse major version");
   });
 
   test("emits export-surface drift when executeApplyPlan is missing", async () => {

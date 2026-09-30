@@ -139,6 +139,7 @@ describe("unit coverage runner contract", () => {
       "./packages/cli/tests/commands/doctor-behavior.test.ts",
       "./packages/cli/tests/commands/doctor-git-context.test.ts",
       "./packages/cli/tests/commands/doctor-remaining.coverage.test.ts",
+      "./packages/cli/tests/commands/doctor-swipl-runtime.test.ts",
       "./packages/cli/tests/commands/doctor.in-process.test.ts",
       "./packages/cli/tests/commands/doctor.test.ts",
     ]);

@@ -1,0 +1,26 @@
+{
+  "name": "kibi-swipl-darwin-arm64",
+  "version": "1.0.0",
+  "description": "Relocatable SWI-Prolog 10.0.2 runtime for Kibi on macOS on Apple silicon (macOS 12 or newer)",
+  "os": ["darwin"],
+  "cpu": ["arm64"],
+  "preferUnplugged": true,
+  "files": ["bin/", "lib/", "licenses/", "build-manifest.json"],
+  "scripts": {
+    "prepack": "node ../../scripts/verify-swipl-payload.mjs"
+  },
+  "license": "BSD-2-Clause AND Apache-2.0 AND BSD-3-Clause AND Zlib",
+  "author": "Piotr Franczyk",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Looted/kibi.git",
+    "directory": "packages/swipl-darwin-arm64"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "kibi": {
+    "swiplVersion": "10.0.2",
+    "target": "darwin-arm64"
+  }
+}

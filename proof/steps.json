@@ -1478,5 +1478,49 @@
         "./scripts/tests/readme-published-docs.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-prolog-bundled-runtime",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "15000",
+        "--isolate",
+        "--max-concurrency=1",
+        "./packages/cli/tests/prolog/swipl-resolver.test.ts",
+        "./packages/cli/tests/prolog/swipl-package.test.ts",
+        "./packages/cli/tests/prolog/swipl-launch-env.test.ts",
+        "./scripts/tests/swipl-packages.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-prolog-daemon-runtime-identity",
+    "steps": [
+      [
+        "node",
+        "scripts/run-owned-engine-tests.mjs",
+        "--",
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/engine-runtime-identity.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-prolog-doctor-runtime-report",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "60000",
+        "./packages/cli/tests/commands/doctor-swipl-runtime.test.ts"
+      ]
+    ]
   }
 ]

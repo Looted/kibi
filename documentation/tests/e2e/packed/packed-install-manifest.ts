@@ -19,6 +19,9 @@ export function writePackedInstallManifest(
     // Capability-plugin defaults required by kibi-cli; Jev stays optional/out.
     "kibi-plugin-sdk": `file:${tarballs["plugin-sdk"]}`,
     "kibi-plugin-builtin": `file:${tarballs["plugin-builtin"]}`,
+    // kibi-cli and kibi-runtime depend on the resolver; its platform packages
+    // are optional and absent from these local installs.
+    "kibi-swipl": `file:${tarballs.swipl}`,
   };
   const workspaceOverrides = [
     "overrides:",

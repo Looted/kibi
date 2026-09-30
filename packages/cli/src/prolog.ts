@@ -26,6 +26,11 @@ import {
   type PrologErrorRecord,
   extractPrologErrorRecord,
 } from "./prolog/error-terms.js";
+import {
+  type ResolvedSwipl,
+  resolveSwipl,
+  swiplChildEnv,
+} from "./prolog/swipl-resolver.js";
 
 const importMetaDir = path.dirname(fileURLToPath(import.meta.url));
 const DEFAULT_PROLOG_OUTPUT_MAX_BUFFER_BYTES = 8 * 1024 * 1024;
@@ -92,7 +97,13 @@ export function resolveKbPlPath(): string {
   );
 }
 export interface PrologOptions {
+  /**
+   * Explicit SWI-Prolog executable. When omitted, the executable comes from
+   * the resolver (KIBI_SWIPL, the bundled platform package, then PATH).
+   */
   swiplPath?: string;
+  /** Resolver seam for tests; defaults to the per-process SWI-Prolog resolver. */
+  swiplResolver?: () => ResolvedSwipl;
   timeout?: number;
   /**
    * Force one-shot SWI execution. Production callers are Node-only and keep
@@ -164,7 +175,8 @@ export function bindProcessExitHandler(
 
 export class PrologProcess {
   private process: ChildProcess | null = null;
-  private swiplPath: string;
+  private explicitSwiplPath: string | undefined;
+  private readonly swiplResolver: () => ResolvedSwipl;
   private timeout: number;
   private outputBuffer = "";
   private outputBufferBytes = 0;
@@ -188,7 +200,8 @@ export class PrologProcess {
   private terminationReason: string | null = null;
 
   constructor(options: PrologOptions = {}) {
-    this.swiplPath = options.swiplPath || "swipl";
+    this.explicitSwiplPath = options.swiplPath || undefined;
+    this.swiplResolver = options.swiplResolver ?? (() => resolveSwipl());
     this.timeout = options.timeout || 30000;
     this.maxOutputBytes =
       options.maxOutputBytes !== undefined &&
@@ -230,19 +243,37 @@ export class PrologProcess {
     return this.interactiveStarted && !this.isProcessUsable();
   }
 
+  /**
+   * The executable and SWI home to launch. An explicit `swiplPath` is used
+   * verbatim; otherwise the per-process resolver decides, so a missing or
+   * damaged runtime fails with its complete remediation text.
+   */
+  private launchTarget(): { bin: string; env: Record<string, string> } {
+    const explicit = this.explicitSwiplPath;
+    if (explicit !== undefined) return { bin: explicit, env: {} };
+    const resolved = this.swiplResolver();
+    return { bin: resolved.bin, env: swiplChildEnv(resolved) };
+  }
+
   async start(): Promise<void> {
-    if (!existsSync(this.swiplPath) && this.swiplPath !== "swipl") {
+    const explicit = this.explicitSwiplPath;
+    if (
+      explicit !== undefined &&
+      !existsSync(explicit) &&
+      explicit !== "swipl"
+    ) {
       throw new Error(
-        `SWI-Prolog not found at ${this.swiplPath}. Please install SWI-Prolog or check your PATH.`,
+        `SWI-Prolog not found at ${explicit}. Please install SWI-Prolog or check your PATH.`,
       );
     }
+    const launch = this.launchTarget();
 
     const kbPath = resolveKbPlPath();
     this.interactiveStarted = true;
     this.terminationReason = null;
     this.invalidateCache();
     this.process = spawn(
-      this.swiplPath,
+      launch.bin,
       [
         "-g",
         `use_module('${kbPath}'), use_module(library(semweb/rdf_db)), set_prolog_flag(answer_write_options, [max_depth(0), quoted(true)])`,
@@ -252,6 +283,7 @@ export class PrologProcess {
         detached: process.platform !== "win32",
         env: {
           ...process.env,
+          ...launch.env,
           KIBI_RUNTIME_NAME:
             process.versions.bun !== undefined ? "bun" : "node",
           KIBI_RUNTIME_VERSION:
@@ -700,10 +732,12 @@ export class PrologProcess {
 
     let child: ChildProcess;
     try {
-      child = spawn(this.swiplPath, ["-q", "-g", prologGoal, "-t", "halt"], {
+      const launch = this.launchTarget();
+      child = spawn(launch.bin, ["-q", "-g", prologGoal, "-t", "halt"], {
         detached: process.platform !== "win32",
         env: {
           ...process.env,
+          ...launch.env,
           KIBI_GOAL: combinedGoal,
           KIBI_RUNTIME_NAME: runtimeName,
           KIBI_RUNTIME_VERSION: runtimeVersion,

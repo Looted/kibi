@@ -21,6 +21,7 @@ const packageNames = [
   "plugin-sdk",
   "agent-core",
   "plugin-builtin",
+  "swipl",
   "cli",
   "runtime",
   "mcp",

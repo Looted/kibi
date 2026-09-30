@@ -90,6 +90,7 @@ describe("opencode packed utility helpers", () => {
       "plugin-sdk": "/tmp/kibi/plugin-sdk.tgz",
       "plugin-builtin": "/tmp/kibi/plugin-builtin.tgz",
       "plugin-jev": "/tmp/kibi/plugin-jev.tgz",
+      swipl: "/tmp/kibi/swipl.tgz",
     };
     const packageFiles = {
       "kibi-core": `file:${tarballs.core}`,
@@ -102,6 +103,7 @@ describe("opencode packed utility helpers", () => {
       "kibi-cursor": `file:${tarballs.cursor}`,
       "kibi-plugin-sdk": `file:${tarballs["plugin-sdk"]}`,
       "kibi-plugin-builtin": `file:${tarballs["plugin-builtin"]}`,
+      "kibi-swipl": `file:${tarballs.swipl}`,
     };
 
     try {

@@ -37,6 +37,7 @@ import type {
 import { PrologProcess, resolveKbPlPath } from "./prolog.js";
 import { parseEntityFromList, parseListOfLists } from "./prolog/codec.js";
 import { retryAttachAfterBreakingStaleLock } from "./prolog/store-lock.js";
+import { resolveSwipl, swiplIdentity } from "./prolog/swipl-resolver.js";
 import { queryEntityChunks } from "./public/operations/discovery-entities.js";
 import type { PrologQueryResult } from "./public/operations/runtime-types.js";
 import type {
@@ -62,6 +63,17 @@ export const ENGINE_PROTOCOL_VERSION = 1;
 export const ENGINE_IDLE_TIMEOUT_MS = 10 * 60 * 1000;
 export const ENGINE_PACKAGE_VERSIONS =
   process.env.KIBI_PACKAGE_VERSIONS ?? "unknown";
+
+/**
+ * Identity of the SWI-Prolog this process would launch (`<bin>@<version>`).
+ * The daemon and every client compare it; a daemon running a different
+ * resolved Prolog is replaced, never reused.
+ */
+// implements REQ-prolog-daemon-runtime-identity
+export function engineSwiplIdentity(): string {
+  return swiplIdentity(resolveSwipl());
+}
+
 const ENGINE_QUERY_CACHE_MAX_ENTRIES = 128;
 const ENGINE_QUERY_CACHE_MAX_RESULT_BYTES = 8 * 1024 * 1024;
 const ENGINE_FRESHNESS_CACHE_MS = 100;
@@ -876,6 +888,7 @@ export class EngineClient {
     const wasConnected = this.socket !== null && !this.socket.destroyed;
     await this.connect(allowSpawn);
     if (!wasConnected && this.socket !== null) {
+      await this.reconcileRuntime();
       await this.reconcileAttachment();
     }
   }
@@ -1064,6 +1077,7 @@ export class EngineClient {
               id,
               protocolVersion: ENGINE_PROTOCOL_VERSION,
               packageVersions: ENGINE_PACKAGE_VERSIONS,
+              prologIdentity: engineSwiplIdentity(),
               workspaceRoot: this.workspaceRoot,
               branch: this.branch,
             } satisfies EngineRequest),
@@ -1205,6 +1219,7 @@ export class EngineClient {
         cancelOf: requestId,
         protocolVersion: ENGINE_PROTOCOL_VERSION,
         packageVersions: ENGINE_PACKAGE_VERSIONS,
+        prologIdentity: engineSwiplIdentity(),
         workspaceRoot: this.workspaceRoot,
         branch: this.branch,
       } satisfies EngineRequest),
@@ -1260,6 +1275,37 @@ export class EngineClient {
     const status = await this.queryStatusJson();
     if (!status.success) return null;
     return parseEngineAttachmentIdentity(status.bindings.JsonString);
+  }
+
+  private async daemonRuntimeMatches(): Promise<boolean> {
+    const reply = await this.request<{ prologIdentity?: string } | undefined>({
+      method: "handshake",
+    });
+    return reply?.prologIdentity === engineSwiplIdentity();
+  }
+
+  /**
+   * A live daemon keeps the SWI-Prolog it was started with. When this client
+   * resolves a different executable or version (KIBI_SWIPL changed, the
+   * bundled package was upgraded, a pre-handshake daemon), the daemon is
+   * stopped and replaced; it is never reused.
+   */
+  // implements REQ-prolog-daemon-runtime-identity
+  private async reconcileRuntime(): Promise<void> {
+    if (this.replacingStaleDaemon || this.socket === null) return;
+    if (await this.daemonRuntimeMatches()) return;
+    this.replacingStaleDaemon = true;
+    try {
+      await this.shutdownConnectedDaemon();
+      await this.connect(true);
+      if (!(await this.daemonRuntimeMatches())) {
+        throw new Error(
+          `Kibi engine is running a different SWI-Prolog than this client resolved (${engineSwiplIdentity()}); run 'kibi engine stop' and retry`,
+        );
+      }
+    } finally {
+      this.replacingStaleDaemon = false;
+    }
   }
 
   private async reconcileAttachment(): Promise<void> {
@@ -1591,7 +1637,12 @@ function recoverInterruptedGeneration(branchPath: string): void {
 }
 
 function isEngineLifecycleRequest(request: EngineRequest): boolean {
-  if (request.method === "stop" || request.method === "cancel") return true;
+  if (
+    request.method === "stop" ||
+    request.method === "cancel" ||
+    request.method === "handshake"
+  )
+    return true;
   const kind = request.command?.kind;
   return (
     request.method === "command" &&
@@ -1727,6 +1778,7 @@ export async function runEngineDaemon(requestedOptions: {
   const session = new EngineSession(prolog, branchPath);
   await session.boot();
   let attachedIdentity = readEngineAttachmentIdentity(branchPath);
+  const serverPrologIdentity = engineSwiplIdentity();
 
   mkdirSync(path.dirname(options.socketPath), { recursive: true, mode: 0o700 });
   if (existsSync(options.socketPath)) {
@@ -1899,6 +1951,18 @@ export async function runEngineDaemon(requestedOptions: {
       request.branch !== options.branch
     ) {
       throw new Error("Kibi engine workspace identity mismatch");
+    }
+    // A client that resolved a different Prolog must not be served by this
+    // daemon. Handshake reports the identity and stop must still work so the
+    // client can replace the daemon.
+    if (
+      request.method !== "handshake" &&
+      request.method !== "stop" &&
+      request.prologIdentity !== serverPrologIdentity
+    ) {
+      throw new Error(
+        `Kibi engine SWI-Prolog mismatch: client=${request.prologIdentity ?? "missing"}, server=${serverPrologIdentity}`,
+      );
     }
     if (!isEngineLifecycleRequest(request) && (await session.ensureLive())) {
       // A recycled session re-read the store; nothing cached from the lost
@@ -2201,6 +2265,8 @@ export async function runEngineDaemon(requestedOptions: {
         return prolog.query(
           `kb_storage_export('${quoteProlog(request.targetDirectory)}')`,
         );
+      case "handshake":
+        return { prologIdentity: serverPrologIdentity };
       case "stop":
         setImmediate(() => void shutdown());
         return { stopped: true };

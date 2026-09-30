@@ -170,6 +170,7 @@ describe("release invariants: develop-to-master model", () => {
         "plugin-jev",
         "plugin-sdk",
         "runtime",
+        "swipl",
       ]);
     });
 
@@ -241,6 +242,7 @@ describe("release invariants: develop-to-master model", () => {
         "plugin-jev",
         "plugin-sdk",
         "runtime",
+        "swipl",
       ]);
     });
 
@@ -309,6 +311,7 @@ describe("release invariants: develop-to-master model", () => {
         "plugin-jev",
         "plugin-sdk",
         "runtime",
+        "swipl",
       ]);
     });
 
@@ -353,6 +356,7 @@ describe("release invariants: develop-to-master model", () => {
         "plugin-jev",
         "plugin-sdk",
         "runtime",
+        "swipl",
       ]);
     });
   });
@@ -385,6 +389,7 @@ describe("release invariants: develop-to-master model", () => {
         "plugin-jev",
         "plugin-sdk",
         "runtime",
+        "swipl",
       ]);
     });
 

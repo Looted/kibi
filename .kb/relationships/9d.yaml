@@ -206,3 +206,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-894dce213eab
+  - type: implements
+    from: SYM-prolog-swipl-bundlestatus-src
+    to: REQ-prolog-bundled-runtime
+    created_at: 2026-09-30T23:35:45.362Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cfb2d2fdfb03
+  - type: covered_by
+    from: SYM-prolog-swipl-bundlestatus-src
+    to: TEST-prolog-bundled-runtime
+    created_at: 2026-09-30T23:35:45.381Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-207a4b80dcb9

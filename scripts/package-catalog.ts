@@ -81,6 +81,57 @@ export const PACKAGE_CATALOG = [
     optional: true,
     packAll: true,
   },
+  // Platform packages carry the SWI-Prolog binaries, which are populated from
+  // the swipl-build pipeline artifacts at release time and never committed.
+  // Until release wiring downloads and verifies that payload before packing,
+  // every slice excludes them so pack and publish cannot ship an empty runtime.
+  // They precede kibi-swipl, which precedes its dependents, so a publish run in
+  // catalog order never releases a package before what it depends on.
+  {
+    dir: "swipl-linux-x64-gnu",
+    npmName: "kibi-swipl-linux-x64-gnu",
+    publishable: false,
+    packInCi: false,
+    includedInDefaultInstall: false,
+    optional: true,
+    packAll: false,
+  },
+  {
+    dir: "swipl-linux-arm64-gnu",
+    npmName: "kibi-swipl-linux-arm64-gnu",
+    publishable: false,
+    packInCi: false,
+    includedInDefaultInstall: false,
+    optional: true,
+    packAll: false,
+  },
+  {
+    dir: "swipl-darwin-arm64",
+    npmName: "kibi-swipl-darwin-arm64",
+    publishable: false,
+    packInCi: false,
+    includedInDefaultInstall: false,
+    optional: true,
+    packAll: false,
+  },
+  {
+    dir: "swipl-darwin-x64",
+    npmName: "kibi-swipl-darwin-x64",
+    publishable: false,
+    packInCi: false,
+    includedInDefaultInstall: false,
+    optional: true,
+    packAll: false,
+  },
+  {
+    dir: "swipl",
+    npmName: "kibi-swipl",
+    publishable: true,
+    packInCi: true,
+    includedInDefaultInstall: true,
+    optional: false,
+    packAll: true,
+  },
   {
     dir: "runtime",
     npmName: "kibi-runtime",

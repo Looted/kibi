@@ -69,6 +69,7 @@
         "kibi-core": "^0.14.0",
         "kibi-plugin-builtin": "^0.3.0",
         "kibi-plugin-sdk": "^0.3.0",
+        "kibi-swipl": "^1.0.0",
         "saxes": "^6.0.0",
         "yaml": "^2.9.0",
       },
@@ -199,10 +200,37 @@
         "gray-matter": "^4.0.3",
         "kibi-core": "^0.14.0",
         "kibi-plugin-builtin": "^0.3.0",
+        "kibi-swipl": "^1.0.0",
       },
       "devDependencies": {
         "kibi-cli": "workspace:*",
       },
+    },
+    "packages/swipl": {
+      "name": "kibi-swipl",
+      "version": "1.0.0",
+      "optionalDependencies": {
+        "kibi-swipl-darwin-arm64": "1.0.0",
+        "kibi-swipl-darwin-x64": "1.0.0",
+        "kibi-swipl-linux-arm64-gnu": "1.0.0",
+        "kibi-swipl-linux-x64-gnu": "1.0.0",
+      },
+    },
+    "packages/swipl-darwin-arm64": {
+      "name": "kibi-swipl-darwin-arm64",
+      "version": "1.0.0",
+    },
+    "packages/swipl-darwin-x64": {
+      "name": "kibi-swipl-darwin-x64",
+      "version": "1.0.0",
+    },
+    "packages/swipl-linux-arm64-gnu": {
+      "name": "kibi-swipl-linux-arm64-gnu",
+      "version": "1.0.0",
+    },
+    "packages/swipl-linux-x64-gnu": {
+      "name": "kibi-swipl-linux-x64-gnu",
+      "version": "1.0.0",
     },
     "packages/vscode": {
       "name": "kibi-vscode",
@@ -1190,6 +1218,16 @@
     "kibi-plugin-sdk": ["kibi-plugin-sdk@workspace:packages/plugin-sdk"],
 
     "kibi-runtime": ["kibi-runtime@workspace:packages/runtime"],
+
+    "kibi-swipl": ["kibi-swipl@workspace:packages/swipl"],
+
+    "kibi-swipl-darwin-arm64": ["kibi-swipl-darwin-arm64@workspace:packages/swipl-darwin-arm64"],
+
+    "kibi-swipl-darwin-x64": ["kibi-swipl-darwin-x64@workspace:packages/swipl-darwin-x64"],
+
+    "kibi-swipl-linux-arm64-gnu": ["kibi-swipl-linux-arm64-gnu@workspace:packages/swipl-linux-arm64-gnu"],
+
+    "kibi-swipl-linux-x64-gnu": ["kibi-swipl-linux-x64-gnu@workspace:packages/swipl-linux-x64-gnu"],
 
     "kibi-vscode": ["kibi-vscode@workspace:packages/vscode"],
 

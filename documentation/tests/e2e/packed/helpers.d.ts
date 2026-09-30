@@ -10,6 +10,7 @@ export interface Tarballs {
   "plugin-sdk": string;
   "plugin-builtin": string;
   "plugin-jev": string;
+  swipl: string;
 }
 
 export interface SharedPackedEnvironment {

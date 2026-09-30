@@ -155,9 +155,14 @@ describe("publish.yml CI workflow contract", () => {
           },
         }),
       );
-      cpSync(
-        join(repositoryRoot, ".changeset/config.json"),
+      // The fixture workspace holds only MCP and Codex; fixed groups naming
+      // packages it lacks (the kibi-swipl family) would fail validation.
+      const changesetConfig = JSON.parse(
+        readFileSync(join(repositoryRoot, ".changeset/config.json"), "utf8"),
+      );
+      writeFileSync(
         join(root, ".changeset/config.json"),
+        JSON.stringify({ ...changesetConfig, fixed: [] }),
       );
       cpSync(
         join(repositoryRoot, "scripts/sync-plugin-manifest-versions.ts"),
@@ -325,6 +330,7 @@ describe("publish.yml CI workflow contract", () => {
       "agent-core",
       "plugin-builtin",
       "plugin-jev",
+      "swipl",
       "runtime",
       "cli",
       "mcp",
@@ -334,7 +340,15 @@ describe("publish.yml CI workflow contract", () => {
     ]);
 
     const smokeBlock = extractJobBlock(workflowContent, "release-gate");
-    const installOrder = ["core", "runtime", "cli", "mcp", "opencode", "codex"];
+    const installOrder = [
+      "core",
+      "swipl",
+      "runtime",
+      "cli",
+      "mcp",
+      "opencode",
+      "codex",
+    ];
     const installIndexes = installOrder.map((directory) =>
       smokeBlock.indexOf(`packages/${directory}/kibi-`),
     );

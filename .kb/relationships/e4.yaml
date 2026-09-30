@@ -132,3 +132,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0132c61c8fc5
+  - type: verified_by
+    from: SCEN-prolog-daemon-runtime-identity
+    to: TEST-prolog-daemon-runtime-identity
+    created_at: 2026-09-30T22:48:25.679Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0ed21ebfc52d

@@ -28,6 +28,39 @@ fi
 
 rejectionReason=
 
+# Kibi resolves SWI-Prolog as KIBI_SWIPL, then a bundled platform package, then
+# swipl on PATH. This launcher only needs to know that one of them can exist;
+# the runtime verifies the bundle's manifest and checksum itself.
+has_bundled_swipl() {
+  for bundled in \
+    "$1"/node_modules/kibi-swipl-*/bin/swipl \
+    "$1"/node_modules/.pnpm/kibi-swipl-*/node_modules/kibi-swipl-*/bin/swipl \
+    "$1"/packages/swipl-*/bin/swipl; do
+    if [ -x "$bundled" ] && [ ! -d "$bundled" ]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+prolog_available_for() {
+  case "${KIBI_SWIPL:-}" in
+    "") ;;
+    system)
+      [ "$prologAvailable" = true ]
+      return
+      ;;
+    *)
+      [ -x "$KIBI_SWIPL" ] && [ ! -d "$KIBI_SWIPL" ]
+      return
+      ;;
+  esac
+  if has_bundled_swipl "$1" || has_bundled_swipl "$workspaceRoot"; then
+    return 0
+  fi
+  [ "$prologAvailable" = true ]
+}
+
 package_version() {
   sed -n 's/^[[:space:]]*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$1"
 }
@@ -50,8 +83,8 @@ validate_candidate() {
     rejectionReason="$candidateLabel rejected: neither bun nor node is available"
     return 1
   fi
-  if [ "$prologAvailable" != true ]; then
-    rejectionReason="$candidateLabel rejected: SWI-Prolog executable swipl is unavailable"
+  if ! prolog_available_for "$candidateRoot"; then
+    rejectionReason="$candidateLabel rejected: SWI-Prolog executable swipl is unavailable (no KIBI_SWIPL, bundled kibi-swipl package, or swipl on PATH)"
     return 1
   fi
 

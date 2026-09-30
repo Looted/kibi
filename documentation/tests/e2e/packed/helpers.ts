@@ -657,6 +657,7 @@ export interface Tarballs {
   "plugin-sdk": string;
   "plugin-builtin": string;
   "plugin-jev": string;
+  swipl: string;
 }
 
 /** Options for running commands */

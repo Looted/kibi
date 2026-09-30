@@ -530,6 +530,10 @@ exit 1
     (
       client as unknown as { reconcileAttachment: () => Promise<void> }
     ).reconcileAttachment = async () => undefined;
+    // The scripted peer is not a daemon; it has no SWI-Prolog identity.
+    (
+      client as unknown as { reconcileRuntime: () => Promise<void> }
+    ).reconcileRuntime = async () => undefined;
     try {
       await client.start(false);
       expect(client.isRunning()).toBe(true);

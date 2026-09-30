@@ -110,6 +110,7 @@ jobs:
             packages/agent-core/*.tgz
             packages/plugin-builtin/*.tgz
             packages/plugin-jev/*.tgz
+            packages/swipl/*.tgz
             packages/runtime/*.tgz
             packages/cli/*.tgz
             packages/mcp/*.tgz
@@ -191,6 +192,7 @@ jobs:
           npm install ${{ github.workspace }}/packages/plugin-sdk/kibi-plugin-sdk-*.tgz
           npm install ${{ github.workspace }}/packages/agent-core/kibi-agent-core-*.tgz
           npm install ${{ github.workspace }}/packages/plugin-builtin/kibi-plugin-builtin-*.tgz
+          npm install ${{ github.workspace }}/packages/swipl/kibi-swipl-*.tgz
           npm install ${{ github.workspace }}/packages/runtime/kibi-runtime-*.tgz
           npm install ${{ github.workspace }}/packages/cli/kibi-cli-*.tgz
           npm install ${{ github.workspace }}/packages/mcp/kibi-mcp-*.tgz

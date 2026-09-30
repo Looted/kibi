@@ -1,0 +1,16 @@
+{
+  "schema": "kibi.swipl-build.v1",
+  "target": "linux-x64-gnu",
+  "swiplVersion": "10.0.2",
+  "sourceArchiveSha256": "<sha256 of the upstream SWI-Prolog source archive>",
+  "dependencies": "<pinned openssl, pcre2, zlib versions from scripts/swipl-version.json>",
+  "sourcePatches": "<pinned source patches from scripts/swipl-version.json>",
+  "sourceCommit": "<GITHUB_SHA of the producing workflow run>",
+  "workflowRunId": "<GITHUB_RUN_ID of the producing workflow run>",
+  "binary": {
+    "path": "bin/swipl",
+    "sha256": "<sha256 of bin/swipl, 64 lowercase hex digits>"
+  },
+  "home": "lib/swipl",
+  "requiredLibraries": ["<the library names the pipeline smoke-tested>"]
+}

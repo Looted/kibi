@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 128,
-  "proofProven": 128,
+  "currentRequirements": 131,
+  "proofProven": 131,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -642,6 +642,21 @@
       "uncoveredSymbols": []
     },
     "REQ-zcode-manual-mcp-configuration-v1": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-prolog-bundled-runtime": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-prolog-daemon-runtime-identity": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-prolog-doctor-runtime-report": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []
