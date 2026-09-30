@@ -43717,3 +43717,14 @@ symbols:
         target: TEST-014
       - type: implements
         target: REQ-020
+  - id: SYM-sync-package-release-manifests
+    title: syncPackagePluginManifests
+    status: active
+    sourceFile: scripts/sync-plugin-manifest-versions.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: covered_by
+        target: TEST-014
+      - type: implements
+        target: REQ-020
