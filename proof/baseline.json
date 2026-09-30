@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 124,
-  "proofProven": 124,
+  "currentRequirements": 125,
+  "proofProven": 125,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -552,6 +552,11 @@
       "uncoveredSymbols": []
     },
     "REQ-runtime-packed-engine-daemon": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-scripts-coverage-shard-isolation": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []
