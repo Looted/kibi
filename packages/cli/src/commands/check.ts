@@ -748,16 +748,18 @@ export async function checkCommand(
         }
         const impactPolicyEnabled =
           stagedInventory.length > 0 && hasValidBaseImpactPolicy(snapshot);
+        // Only the staged (after) version can be corrected by the author; the
+        // committed (before) side is historical, so a broken baseline must not
+        // block the change that fixes it.
         for (const analysis of sourceAnalysis.values()) {
-          for (const side of [analysis.before, analysis.after]) {
-            if (
-              side?.status === "failed" ||
-              (side?.status === "partial" && !impactPolicyEnabled)
-            )
-              throw new Error(
-                `Source analysis ${side.status} for ${analysis.path}: ${side.diagnostics.map((d) => d.message).join("; ")}`,
-              );
-          }
+          const side = analysis.after;
+          if (
+            side?.status === "failed" ||
+            (side?.status === "partial" && !impactPolicyEnabled)
+          )
+            throw new Error(
+              `Source analysis ${side.status} for ${analysis.path}: ${side.diagnostics.map((d) => d.message).join("; ")}`,
+            );
         }
         if (impactPolicyEnabled) {
           const impactEvaluation = evaluateImpactReview(snapshot, {

@@ -1,6 +1,6 @@
 # Multilingual source analysis
 
-Status: implementation in progress. This document distinguishes implemented interfaces from delivery requirements that still need verification.
+Status: implemented for the qualified catalog; later stages in the sequence below remain delivery requirements.
 
 ## Decision
 
@@ -26,9 +26,3 @@ Maintenance may only use builtin providers and explicitly activated, host-approv
 6. Bounded LSP comparison on two servers; an opt-in adapter only if the measured benefit warrants it. Distribution, isolation and performance qualification.
 
 The first delivery does not silently change every advisory file-level warning to a blocking error. Technical freshness, impact review and executable proof are separate checks. File-level review never substitutes for executable-symbol proof. No release publication, merge or branch-protection change is part of this work.
-
-## Runtime evidence
-
-Session metadata records the initial orchestrator as `gpt-6-astra` with effort `high`. After the host resumed the session, its active model changed to `gpt-6-sol` with effort `xhigh`; the owner explicitly approved completing the PR in that session. The active orchestrator settings were verified again on 2026-09-26. The SDK/builtin, Git snapshot and parser qualification workers each record `gpt-6-luna` with effort `xhigh`. These values were read from actual session `turn_context` records, not inferred from task prompts. Both independent critical reviewers record `gpt-6-sol` with effort `xhigh`. Their reviews reproduced and drove fixes for missing staged requirement endpoints, working-tree granularity leakage, TypeScript accessor identity and staged analyzer activation precedence.
-
-The clean initial worktree used `origin/develop` at `f1f437188bd9c4abc5dd0aaacbd92fac1cd142d3`. PRs #279 and #280 were checked for overlap before implementation. After they merged independently, this feature branch incorporated `develop` at `750d8c5ce4ddbd95f49b3dc0094545a55f7fec97`. Canonical queries reconciled the symbol manifests and retained all 3701 distinct IDs and all ownership edges from both parents. PR #281 remains separate; its Git-hook installation changes do not overlap the owned production files in this delivery.

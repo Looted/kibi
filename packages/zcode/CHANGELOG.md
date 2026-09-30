@@ -1,13 +1,5 @@
 # kibi-zcode
 
-## 0.3.0
-
-### Minor Changes
-
-- Kibi's bundled agent guidance now lists the read-only impact-review preparation route across the supported agent integrations. Agents can generate a complete current-scope review template before authoring the decisions and review evidence checked by `kibi check-diff`.
-
-  - Regenerate the bundled operation-access catalog from the canonical operation registry for Codex, Cursor, and Zcode.
-
 ## 0.2.0
 
 ### Minor Changes

@@ -523,6 +523,70 @@ Body.
     );
   });
 
+  // implements REQ-impact-policy-stage-e-content-bound-review
+  test("does not block a staged fix because the committed side analyzes as partial", async () => {
+    const cwd = prepareWorkspace();
+    const entry = stagedPath({
+      path: "src/fixed.py",
+      content: "def handler():\n    return True\n",
+      analysisDepth: "file",
+    });
+    stageInventory(cwd, [entry]);
+    const side = (status: "ok" | "partial"): HostSourceAnalysisResultV2 => ({
+      sourceFile: entry.path,
+      language: "python",
+      module: {
+        title: "fixed module",
+        language: "python",
+        analysisMode: "parser",
+      },
+      contractVersion: "kibi.symbol-extractor.v2",
+      status,
+      symbols: [],
+      diagnostics:
+        status === "partial"
+          ? [{ code: "syntax_error", message: "broken baseline" }]
+          : [],
+      uncoveredRanges: [],
+      providerId: "fixture.python.partial",
+      stamp: null,
+      inputFingerprint: "a".repeat(64),
+      providerFingerprint: "b".repeat(64),
+      shadowComparisons: [],
+    });
+    const sourceAnalysisResult = spyOn(
+      sourceChangeAnalysis,
+      "analyzeSourceChanges",
+    ).mockResolvedValue(
+      new Map([
+        [
+          entry.path,
+          { path: entry.path, before: side("partial"), after: side("ok") },
+        ],
+      ]),
+    );
+    const analyzeCoverage = spyOn(
+      stagedCoverageModule,
+      "analyzeStagedFileCoverage",
+    ).mockReturnValue(emptyCoverage([entry]) as never);
+    restores.push(() => {
+      sourceAnalysisResult.mockRestore();
+      analyzeCoverage.mockRestore();
+    });
+    const io = captureIo();
+    restores.push(io.restore);
+
+    await withCwd(cwd, () =>
+      checkCommand({
+        staged: true,
+        format: "json",
+        kbPath: path.join(cwd, "kb-store"),
+      }),
+    );
+
+    expect(io.logText()).not.toContain("Source analysis partial");
+  });
+
   test("records the first audited no-impact override declared in entity-lane markdown", async () => {
     const cwd = prepareWorkspace();
     const entries = [
