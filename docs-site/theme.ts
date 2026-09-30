@@ -10,10 +10,12 @@
  * other hues; proven green stays reserved for complete proof.
  */
 
-// implements REQ-docs-site-pages
+import { SITE_TAGLINE, publishedLlmsIndexHref } from "./catalog.js";
+
+// implements REQ-docs-site-root-pages
 export type Section = "guide" | "reference";
 
-// implements REQ-docs-site-pages
+// implements REQ-docs-site-root-pages
 export type PageShell = {
   /** Relative prefix from this page to the site root: "" or "../". */
   root: string;
@@ -34,7 +36,7 @@ export type PageShell = {
   branch: string;
 };
 
-// implements REQ-docs-site-pages
+// implements REQ-docs-site-root-pages
 export function escapeHtml(value: string): string {
   return value
     .replace(/&/g, "&amp;")
@@ -45,7 +47,7 @@ export function escapeHtml(value: string): string {
 }
 
 /** Strip fixed dimensions from a canonical mark so CSS controls its size. */
-// implements REQ-docs-site-pages
+// implements REQ-docs-site-root-pages
 export function prepareMark(svg: string, variant: "logo" | "wordmark"): string {
   return svg
     .replace(/\swidth="[^"]*"/, "")
@@ -77,7 +79,7 @@ const RAIL_SVG = `<svg class="rail-svg" viewBox="0 0 760 96" role="img" aria-lab
   </g>
 </svg>`;
 
-// implements REQ-docs-site-pages
+// implements REQ-docs-site-root-pages
 export const styles = String.raw`
 :root {
   --deep: #111318;
@@ -604,7 +606,7 @@ figure.code:hover .code-copy, .code-copy:focus-visible, .code-copy.copied { opac
 }
 `;
 
-// implements REQ-docs-site-pages
+// implements REQ-docs-site-root-pages
 export const clientScript = String.raw`
 (function () {
   "use strict";
@@ -863,7 +865,7 @@ export const clientScript = String.raw`
 })();
 `;
 
-// implements REQ-docs-site-pages
+// implements REQ-docs-site-root-pages
 export function landingContent(args: {
   root: string;
   reportUrl: string | null;
@@ -929,7 +931,7 @@ export function landingContent(args: {
         <a class="btn btn-primary" href="${root}guide/quick-start.html">Install Kibi</a>
         <a class="btn btn-ghost" href="${root}guide/reading-the-report.html">Read a health report</a>
       </div>
-      <p class="hero-canon">Prompt the intent. Kibi makes the agent remember it&mdash;and prove the implementation.</p>
+      <p class="hero-canon">${escapeHtml(SITE_TAGLINE)}</p>
     </div>
     <aside class="ledger" aria-label="Example requirement-health ledger">
       <div class="ledger-kicker"><span>Example ledger</span>${liveReport}</div>
@@ -1006,7 +1008,7 @@ export function landingContent(args: {
     <div class="pm-tablist" role="tablist" aria-label="Package manager">${installTabs}</div>
     ${installPanels}
   </div>
-  <p class="fineprint">Requires <code>swipl</code> (SWI-Prolog 9.0+) on your <code>PATH</code>. Bun commands and per-platform setup are in the <a href="${root}guide/install.html">installation guide</a>.</p>
+  <p class="fineprint">Requires Node.js 22+ and <code>swipl</code> (SWI-Prolog 9.0+) on your <code>PATH</code>. Bun commands and per-platform setup are in the <a href="${root}guide/install.html">installation guide</a>.</p>
 </section>
 <section>
   <h2>Questions people ask first</h2>
@@ -1033,7 +1035,7 @@ ${reportStrip}
 </div>`;
 }
 
-// implements REQ-docs-site-pages
+// implements REQ-docs-site-root-pages
 export function layout(page: PageShell): string {
   const {
     root,
@@ -1053,7 +1055,7 @@ export function layout(page: PageShell): string {
     branch,
   } = page;
   const favicon = svgFavicon(logoSvg);
-  // The report URL is relative to the site root (e.g. "../kibi-report/"):
+  // The report URL is relative to the site root (e.g. "kibi-report/"):
   // every page prepends its own root prefix; absolute URLs pass through.
   const reportHref = reportUrl
     ? reportUrl.startsWith("http")
@@ -1087,6 +1089,8 @@ export function layout(page: PageShell): string {
 <title>${title}</title>
 <meta name="description" content="${description}">
 <meta name="theme-color" content="#111318">
+<link rel="alternate" type="text/plain" href="${root}llms.txt" title="Documentation index for language models">
+<meta name="llms-txt" content="${publishedLlmsIndexHref()}">
 <meta property="og:type" content="website">
 <meta property="og:title" content="${title}">
 <meta property="og:description" content="${description}">

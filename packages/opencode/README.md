@@ -303,7 +303,7 @@ Disable specific features while keeping others:
 
 ## Troubleshooting
 
-If you see a false "workspace needs Kibi bootstrap" warning even though `.kb/manifest.json` and the canonical knowledge lanes exist, this usually means a stale plugin cache. Leftover `.kb/config.json` custom paths are ignored. See [the main troubleshooting docs](../../docs/troubleshooting.md#opencode-shows-workspace-needs-kibi-bootstrap-before-the-tui) for recovery steps.
+If you see a false "workspace needs Kibi bootstrap" warning even though `.kb/manifest.json` and the canonical knowledge lanes exist, this usually means a stale plugin cache. Leftover `.kb/config.json` custom paths are ignored. See [the troubleshooting guide](https://looted.github.io/kibi/guide/troubleshooting.html#opencode-shows-workspace-needs-kibi-bootstrap-before-the-tui) for recovery steps.
 
 ## Architecture
 

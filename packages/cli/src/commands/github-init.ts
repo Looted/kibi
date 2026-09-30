@@ -36,7 +36,7 @@ export const GITHUB_BADGE_WORKFLOW_RELPATH = ".github/workflows/kibi-badge.yml";
 export const GITHUB_PAGES_NAMESPACE = "kibi-report";
 export const KIBI_BADGE_ALT = "Kibi requirement health";
 export const KIBI_METRIC_DOCS_URL =
-  "https://github.com/Looted/kibi/blob/develop/docs/github-integration.md#what-the-badge-means";
+  "https://looted.github.io/kibi/guide/github-integration.html#what-the-badge-means";
 export const PLACEHOLDER_OWNER = "OWNER";
 export const PLACEHOLDER_REPO = "REPOSITORY";
 

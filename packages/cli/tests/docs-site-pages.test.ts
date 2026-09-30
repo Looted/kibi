@@ -29,8 +29,12 @@ describe("documentation site pages", () => {
         path.join(repoRoot, ".github/workflows/proof.yml"),
         "utf8",
       );
-      expect(workflow).toContain("pages/kibi-report");
-      expect(workflow).toContain("bun run docs:site -- --out pages/docs");
+      // The site owns the Pages root; the report is namespaced beside it.
+      expect(workflow).toContain("bun run docs:site -- --out pages\n");
+      expect(workflow.indexOf("--out pages\n")).toBeLessThan(
+        workflow.indexOf("mkdir -p pages/kibi-report"),
+      );
+      expect(index).toContain('href="kibi-report/"');
     } finally {
       rmSync(out, { recursive: true, force: true });
     }

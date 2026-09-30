@@ -74,6 +74,7 @@ function readPackageJson(
   version?: unknown;
   private?: unknown;
   repository?: unknown;
+  mcpName?: unknown;
 } {
   return JSON.parse(
     readFileSync(join(packagesRoot, dir, "package.json"), "utf8"),
@@ -121,6 +122,37 @@ export function verifyPublishMetadata(
         pkg: dir,
         problem: "package is marked private; npm publish would refuse it",
       });
+    }
+
+    if (dir === "mcp") {
+      // Registry permissions preserve the repository_owner OIDC claim's case.
+      // Matching the manifest to npm alone cannot detect a wrong namespace.
+      const owner =
+        env.GITHUB_REPOSITORY_OWNER ||
+        (env.GITHUB_REPOSITORY || "Looted/kibi").split("/")[0];
+      const expectedName = `io.github.${owner}/kibi-mcp`;
+      if (manifest.mcpName !== expectedName) {
+        issues.push({
+          pkg: dir,
+          problem: `npm mcpName '${String(manifest.mcpName)}' must match the case-sensitive GitHub namespace '${expectedName}'`,
+        });
+      }
+      try {
+        const registryManifest = JSON.parse(
+          readFileSync(join(packagesRoot, dir, "server.json"), "utf8"),
+        ) as { name?: unknown };
+        if (registryManifest.name !== expectedName) {
+          issues.push({
+            pkg: dir,
+            problem: `MCP Registry name '${String(registryManifest.name)}' must match the case-sensitive GitHub namespace '${expectedName}'`,
+          });
+        }
+      } catch (error) {
+        issues.push({
+          pkg: dir,
+          problem: `server.json is missing or unreadable: ${error instanceof Error ? error.message : String(error)}`,
+        });
+      }
     }
 
     const repository = manifest.repository;

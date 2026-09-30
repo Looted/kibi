@@ -131,6 +131,10 @@ jobs:
           fi
           bun packages/cli/bin/kibi check --format json --rules no-dangling-refs,source-relationship-parity,no-cycles,required-fields,deprecated-adr-no-successor,domain-contradictions,query-plan-safety,logic-coverage,strict-fact-shape,strict-req-fact-pairing,predicate-verifiability,rule-safety,rule-verifiability,semantic-completeness,symbol-traceability
 
+      - name: Reject semantic proof regressions before executing contracts
+        if: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}
+        run: node scripts/check-proof-baseline.mjs --semantic-only
+
       - name: Prove every contracted test through Kibi
         if: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}
         run: bun packages/cli/bin/kibi prove --all
@@ -167,15 +171,15 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-      - name: Namespace Pages output under /kibi-report/
+      - name: Build documentation site at the Pages root
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' && !cancelled() && steps.integrity.outcome == 'success' }}
+        run: bun run docs:site -- --out pages
+
+      - name: Namespace the proof report under /kibi-report/
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' && !cancelled() && steps.integrity.outcome == 'success' }}
         run: |
           mkdir -p pages/kibi-report
           cp -R kibi-report/. pages/kibi-report/
-
-      - name: Build documentation site into Pages output
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' && !cancelled() && steps.integrity.outcome == 'success' }}
-        run: bun run docs:site -- --out pages/docs
 
       - name: Upload Kibi Pages artifact
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' && !cancelled() && steps.integrity.outcome == 'success' }}

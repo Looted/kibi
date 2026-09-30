@@ -29,7 +29,10 @@ export async function verifyGitHubReportIntegration(
     ["remote", "add", "origin", "https://github.com/Acme/Widgets.git"],
     { cwd: sandbox.repoDir, env: sandbox.env },
   );
-  writeFileSync(join(sandbox.repoDir, "README.md"), "# Widgets\n");
+  writeFileSync(
+    join(sandbox.repoDir, "README.md"),
+    "# Widgets\n\n[![Build](https://example.test/build.svg)](https://example.test/build)\n\n  \n[![Coverage](https://example.test/coverage.svg)](https://example.test/coverage)\n\nWidget documentation.\n",
+  );
 
   const rejected = await kibi(sandbox, ["init", "--badge-only", "--no-hooks"]);
   assert.notStrictEqual(
@@ -100,6 +103,12 @@ export async function verifyGitHubReportIntegration(
     "README must gain a badge that links to the namespaced report",
   );
   assert.ok(readme.includes("# Widgets"), "existing README title must be kept");
+  assert.ok(
+    readme.indexOf("Coverage](") < readme.indexOf("Kibi requirement health") &&
+      readme.indexOf("Kibi requirement health") <
+        readme.indexOf("Widget documentation."),
+    "README badge must follow the complete existing badge cluster across blank lines",
+  );
   assert.ok(
     readFileSync(join(sandbox.repoDir, ".gitignore"), "utf8").includes(
       "kibi-report/",

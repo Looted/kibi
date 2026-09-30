@@ -8,3 +8,10 @@ repos:
         pass_filenames: false
         always_run: true
         stages: [pre-commit]
+      - id: kibi-proof-prepush
+        name: Kibi Semantic Proof Gate
+        entry: sh scripts/proof-prepush.sh
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]

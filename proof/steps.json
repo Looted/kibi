@@ -601,6 +601,16 @@
         "node",
         "scripts/run-proof-packed-e2e.mjs",
         "documentation/tests/e2e/packed/release-package-contract.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "./scripts/tests/release-workflow-contract.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "./scripts/tests/verify-publish-metadata.test.ts"
       ]
     ]
   },
@@ -1453,6 +1463,19 @@
         "--timeout",
         "15000",
         "./scripts/tests/swipl-spike-diagnostics.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-docs-readme-published-links",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--retry=0",
+        "--timeout",
+        "120000",
+        "./scripts/tests/readme-published-docs.test.ts"
       ]
     ]
   }

@@ -1,10 +1,8 @@
 # Installation Guide
 
-This document provides detailed installation instructions for kibi.
-
 ## Prerequisites
 
-Kibi depends on **SWI-Prolog 9.0+**. You must have `swipl` installed and available in your `PATH` before installing kibi.
+Kibi needs **Node.js 22+** for the CLI, MCP server, and engine, and **SWI-Prolog 9.0+** with `swipl` on your `PATH`.
 
 ### Installing SWI-Prolog on Linux
 
@@ -27,7 +25,17 @@ Official Linux distribution packages are often outdated. For other Linux distrib
 - [Stable downloads page](https://www.swi-prolog.org/download/stable) - Source archives and binaries
 - [Flatpak](https://flathub.org/apps/org.swi_prolog.swipl) - Available for most Linux distributions
 
-#### Verify SWI-Prolog Installation
+### Installing SWI-Prolog on macOS
+
+```bash
+brew install swi-prolog
+```
+
+### Installing SWI-Prolog on Windows
+
+Use the installer from the [stable downloads page](https://www.swi-prolog.org/download/stable) and let it add `swipl` to your `PATH`, or run Kibi inside WSL and follow the Ubuntu steps.
+
+### Verify SWI-Prolog installation
 
 After installation, verify that `swipl` is available:
 
@@ -81,72 +89,6 @@ Common environment check: `npm exec -- kibi doctor` (optional troubleshooting af
 Validation command: `npm exec -- kibi check`.
 
 The CLI and MCP server are peer agent-operation surfaces. MCP-capable hosts can call the public `kb_*` contracts directly; agents in trusted project-local shells can invoke the equivalent CLI JSON routes with `kibi <route> --input <file|->`. Neither path requires direct access to `.kb/**` files.
-
-### Optional capability plugins
-
-Builtin classification, ontology matching, and symbol extraction need no plugin configuration. Installing an optional package does not activate it.
-
-```text
-install package → explicitly activate in package.json → provide required secret/environment → restart long-lived Kibi MCP/client runtime
-```
-
-`kibi-plugin-jev` is the optional TypeSafe semantic classifier. It is not part of the default Kibi install.
-
-```bash
-npm install --save-dev kibi-plugin-jev
-```
-
-```json
-{
-  "kibi": {
-    "plugins": [
-      {
-        "package": "kibi-plugin-jev",
-        "capabilities": {
-          "kibi.semantic-classifier.v1": {
-            "mode": "augment"
-          }
-        }
-      }
-    ]
-  }
-}
-```
-
-Set provider secrets through Kibi-owned env files (same resolution for every
-harness that starts `kibi` / `kibi-mcp` — no Cursor/OpenCode/Codex/ZCode-specific
-secret config is required):
-
-```bash
-mkdir -p ~/.config/kibi
-printf '%s\n' 'TYPESAFE_API_KEY=...' >> ~/.config/kibi/env
-```
-
-Optional project override: `<workspace>/.env.kibi`. Existing process environment
-variables always win. `KIBI_ENV_FILE` replaces the project file path. A legacy
-`<workspace>/.env` is still loaded for compatibility to fill remaining gaps, but
-is not preferred (it can pull unrelated app secrets into Kibi). Restart
-long-running MCP or host processes after changing env files. Do not put secrets
-in `package.json`.
-
-Optional settings:
-
-| Variable | Role |
-| --- | --- |
-| `KIBI_JEV_MODEL` | Model id. Empty is unset. Default `jev-latest`. |
-| `KIBI_JEV_TIMEOUT_MS` | Positive integer timeout in milliseconds, at most 120000. A malformed value fails activation with a provider diagnostic. |
-
-Modes:
-
-```text
-augment — builtin handles normal cases; external provider helps unresolved/ambiguous cases
-replace — configured provider owns the capability; builtin is only failure fallback
-shadow — provider runs for comparison but cannot affect canonical output
-```
-
-Removing the `kibi.plugins` entry disables the plugin. Restart long-running MCP or host processes after plugin configuration changes. Activating a third-party package grants that package code-execution trust. `permissions` metadata is disclosure, not sandbox enforcement.
-
-`kibi doctor` lists configured packages, capabilities, modes, and dependency declaration without importing plugin packages. For first-party Jev it also reports secret source labels (`process` / `project_env` / `user_env` / `legacy_env` / `missing`) without values, plus effective model and timeout from env. It fails when a known first-party plugin secret is missing. Legacy `.env` sources get a migration hint. Deeper authoring rules live in [plugin-development.md](./plugin-development.md).
 
 ### First-run lifecycle
 
@@ -527,6 +469,72 @@ milliseconds per tool call. The hard enforcement gate remains the
 `kibi check --staged` git hook installed by `kibi init`. See
 `packages/claude/README.md` for exactly what each hook emits and how often.
 
+### Optional capability plugins
+
+Builtin classification, ontology matching, and symbol extraction need no plugin configuration. Installing an optional package does not activate it.
+
+```text
+install package → explicitly activate in package.json → provide required secret/environment → restart long-lived Kibi MCP/client runtime
+```
+
+`kibi-plugin-jev` is the optional TypeSafe semantic classifier. It is not part of the default Kibi install.
+
+```bash
+npm install --save-dev kibi-plugin-jev
+```
+
+```json
+{
+  "kibi": {
+    "plugins": [
+      {
+        "package": "kibi-plugin-jev",
+        "capabilities": {
+          "kibi.semantic-classifier.v1": {
+            "mode": "augment"
+          }
+        }
+      }
+    ]
+  }
+}
+```
+
+Set provider secrets through Kibi-owned env files (same resolution for every
+harness that starts `kibi` / `kibi-mcp` — no Cursor/OpenCode/Codex/ZCode-specific
+secret config is required):
+
+```bash
+mkdir -p ~/.config/kibi
+printf '%s\n' 'TYPESAFE_API_KEY=...' >> ~/.config/kibi/env
+```
+
+Optional project override: `<workspace>/.env.kibi`. Existing process environment
+variables always win. `KIBI_ENV_FILE` replaces the project file path. A legacy
+`<workspace>/.env` is still loaded for compatibility to fill remaining gaps, but
+is not preferred (it can pull unrelated app secrets into Kibi). Restart
+long-running MCP or host processes after changing env files. Do not put secrets
+in `package.json`.
+
+Optional settings:
+
+| Variable | Role |
+| --- | --- |
+| `KIBI_JEV_MODEL` | Model id. Empty is unset. Default `jev-latest`. |
+| `KIBI_JEV_TIMEOUT_MS` | Positive integer timeout in milliseconds, at most 120000. A malformed value fails activation with a provider diagnostic. |
+
+Modes:
+
+```text
+augment — builtin handles normal cases; external provider helps unresolved/ambiguous cases
+replace — configured provider owns the capability; builtin is only failure fallback
+shadow — provider runs for comparison but cannot affect canonical output
+```
+
+Removing the `kibi.plugins` entry disables the plugin. Restart long-running MCP or host processes after plugin configuration changes. Activating a third-party package grants that package code-execution trust. `permissions` metadata is disclosure, not sandbox enforcement.
+
+`kibi doctor` lists configured packages, capabilities, modes, and dependency declaration without importing plugin packages. For first-party Jev it also reports secret source labels (`process` / `project_env` / `user_env` / `legacy_env` / `missing`) without values, plus effective model and timeout from env. It fails when a known first-party plugin secret is missing. Legacy `.env` sources get a migration hint. Deeper authoring rules live in [plugin-development.md](./plugin-development.md).
+
 ### Optional: Global install
 
 Global install is convenient for interactive use across projects, but local install is preferred for reproducibility.
@@ -541,29 +549,7 @@ Optional Bun alternative:
 bun add -g kibi-cli kibi-mcp kibi-core
 ```
 
-#### Command Not Found
-
-If you see "command not found" after installing kibi globally, you may need to adjust your `PATH`:
-
-1. **Check global npm/bin location:**
-   ```bash
-   npm config get prefix
-   ```
-   The output shows where npm installs global packages.
-
-2. **Add to PATH (if needed):**
-   Add the global bin directory to your shell configuration:
-   ```bash
-   # For bash (in ~/.bashrc or ~/.bash_profile):
-   export PATH="$PATH:/usr/local/bin"
-   # For zsh (in ~/.zshrc):
-   export PATH="$PATH:/home/$USER/.npm-global/bin"
-   ```
-
-3. **Reload your shell configuration:**
-   ```bash
-   source ~/.bashrc  # or source ~/.zshrc
-   ```
+If `kibi` is not found afterwards, add the directory printed by `npm config get prefix` (plus `/bin` on macOS and Linux) to your `PATH`.
 
 ## Local checkout workflow
 
@@ -590,28 +576,9 @@ If you encounter problems with SWI-Prolog:
 
 ## Next Steps
 
-After installing kibi and verifying SWI-Prolog:
+1. Check the environment: `npm exec -- kibi doctor`
+2. Initialize the repository: `npm exec -- kibi init`
+3. [Connect your coding agent](../docs-site/content/connect-an-agent.md) and ask it to "Bootstrap Kibi for this repository."
+4. Open the health report: `npm exec -- kibi report --open`
 
-1. Verify your environment: `npm exec -- kibi doctor`
-2. Initialize your project: `npm exec -- kibi init` (installs hooks by default and adds `.kb/` to `.gitignore`)
-3. Import documentation: `npm exec -- kibi sync`
-4. Explore the KB: `npm exec -- kibi search <query>`
-5. Inspect branch freshness: `npm exec -- kibi status`
-6. Validate integrity: `npm exec -- kibi check`
-
-See [Entity Schema](entity-schema.md) for details on entity types and when to use each.
-Example:
-
-```bash
-npm exec -- kibi doctor
-npm exec -- kibi init
-npm exec -- kibi sync
-npm exec -- kibi search auth
-npm exec -- kibi status
-npm exec -- kibi check
-```
-
-For more details, see:
-- [Quick Start](../README.md#quick-start) - Brief getting started guide
-- [CLI Reference](cli-reference.md) - Complete command documentation
-- [Troubleshooting](troubleshooting.md) - Recovery procedures
+The [CLI reference](cli-reference.md) documents every command, and [Troubleshooting](troubleshooting.md) covers recovery.
