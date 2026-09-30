@@ -43679,6 +43679,19 @@ symbols:
     granularity_reason: config-artifact
     relationships:
       - type: covered_by
+        target: TEST-014
+      - type: covered_by
         target: TEST-release-mcp-registry-visibility
       - type: implements
         target: REQ-020
+  - id: SYM-proof-prepush-check
+    title: proof-prepush.sh
+    status: active
+    sourceFile: scripts/proof-prepush.sh
+    symbol_role: config
+    granularity_reason: config-artifact
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-local-proof-parity
+      - type: implements
+        target: REQ-kibi-local-proof-parity
