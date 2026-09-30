@@ -27,38 +27,6 @@ proof_contract:
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v1
-    receipt_id: PR-427b21ac8d7d7bcf6643680f
-    test_id: TEST-skillopt-predicate-first-requirements
-    scope: end_to_end
-    outcome: passed
-    code_snapshot: 7a4310b9bccfd5ad2dc5dee7081fe78f9a64ccd5e179422b91542bb71e857382
-    environment_hash: 75a5663e12b090d190cceb0443c194b5382c42227c663ee5fee9994dbda6ea62
-    started_at: '2026-09-06T09:14:02.169Z'
-    finished_at: '2026-09-06T09:59:05.533Z'
-    artifact_digest: 9700ae4ded2511c37e52dea96afb2ea71ea74ee07cd3bfef21fcf341d6714563
-    contract_hash: 88459ea5226ddb300e8ead2458177c17b7fdf2fce5fcf5ef35fcc38003f9ab62
-    fingerprint: d5b532c7c6af26475615dadc206c38e4dda2ddac85668f1b2d036a5376223413
-    fingerprint_components:
-      contract: 88459ea5226ddb300e8ead2458177c17b7fdf2fce5fcf5ef35fcc38003f9ab62
-      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
-      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
-      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
-      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
-    integration_id: self-proof
-    producer:
-      name: kibi-command-producer
-    command_argv:
-      - node
-      - scripts/run-proof-producer.mjs
-    run_outcome: passed
-    proof_results:
-      - symbol_id: SYM-e2e-test-skillopt-predicate-first-requirements
-        target: default
-        outcome: passed
-        binding: aggregate_run
-        attempts:
-          status: unavailable
-  - version: kibi.proof-receipt.v1
     receipt_id: PR-e343ee3f4205bbb952b78366
     test_id: TEST-skillopt-predicate-first-requirements
     scope: end_to_end
@@ -1682,6 +1650,39 @@ proof_receipts:
     artifact_digest: 63668ccae6cd3a610be243d571de8e94f160e26926e4fd9f926a702b3a19dd3e
     contract_hash: 88459ea5226ddb300e8ead2458177c17b7fdf2fce5fcf5ef35fcc38003f9ab62
     binding_hash: 05077924bb35cffdc37bf1d3ebe49ec7e5ce7e57d4ea9102466ca50b935f8bc1
+    fingerprint: d5b532c7c6af26475615dadc206c38e4dda2ddac85668f1b2d036a5376223413
+    fingerprint_components:
+      contract: 88459ea5226ddb300e8ead2458177c17b7fdf2fce5fcf5ef35fcc38003f9ab62
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-skillopt-predicate-first-requirements
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-09fd659a0387cc526b10cc6a
+    test_id: TEST-skillopt-predicate-first-requirements
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 929a2bffbc0505e38bf19d595788f7d828560a5dcbc0657e4f5b5e9cbbc6d807
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-09-30T09:34:29.510Z'
+    finished_at: '2026-09-30T09:53:47.264Z'
+    artifact_digest: bf1056b84a11011e16a37703ce5da52de1172c40ecacc8002976e09efa49291d
+    contract_hash: 88459ea5226ddb300e8ead2458177c17b7fdf2fce5fcf5ef35fcc38003f9ab62
+    binding_hash: 49ae3e0b066c81c561df513df249bef18de70e8adcc90f275eaae2700655a18b
     fingerprint: d5b532c7c6af26475615dadc206c38e4dda2ddac85668f1b2d036a5376223413
     fingerprint_components:
       contract: 88459ea5226ddb300e8ead2458177c17b7fdf2fce5fcf5ef35fcc38003f9ab62

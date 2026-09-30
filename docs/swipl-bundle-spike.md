@@ -12,7 +12,11 @@ Preparing the three-file run exposed a defect in the existing coverage runner: r
 
 | Platform | Relocated Prolog suite | Relocated CLI suite | Unpacked size | Packed size |
 | --- | --- | --- | ---: | ---: |
-| Linux x64, glibc 2.28 | Pending Actions run | Pending Actions run | Pending | Pending |
-| macOS arm64, macOS 12 target | Pending Actions run | Pending Actions run | Pending | Pending |
+| Linux x64, glibc 2.28 | Passed: 256/256 tests, 50% coverage floor met | Failed: 3,495 passed, 1 skipped, 10 failed | 22,152 KiB | 6,606,319 bytes |
+| macOS arm64, macOS 12 target | Not run: SWI build failed | Not run | Not produced | Not produced |
 
 Phase 2 can start only after both rows pass. Its build workflow and package pipeline will use the measured, reviewed build recipe. macOS Intel and Linux arm64 belong to that subsequent platform matrix; this phase measures the two prescribed initial targets.
+
+The first [Actions spike run](https://github.com/Looted/kibi/actions/runs/36696670860) stopped on macOS arm64 at 64% of the SWI build. The recipe forced `HAVE_CRYPT=0` and `HAVE_LIBCRYPT=0`, which selected SWI's `bsd-crypt.c` fallback. That source includes `crypt.h` on non-Windows hosts, while the macOS runner's SDK has no `crypt.h`. Compilation failed before relocation, smoke checks, suites, or size measurements. The phase 1 exit criterion is therefore unmet; this is a diagnosis of the failed recipe, not a verified portable build.
+
+Linux built and relocated SWI-Prolog 10.0.2 successfully. The ELF dependency audit, LibBF integer check, all required-library loads, and all 256 Prolog tests passed. Its full CLI batch had 10 failures: eight permission-refusal tests use `chmod 000`, which did not deny access to the container's root user; one init test encountered Git's dubious-ownership refusal in the checkout instead of its mocked branch error; and one generated-manifest hook test hardcodes `/usr/bin/git`, while this container uses `/usr/local/bin/git`. These are observed test-environment mismatches; the full CLI suite has not passed under the relocated build. The workflow recorded both sizes in `report.json`, but the uploaded artifact retained only that report, not the tarball. The upload step used a host `runner.temp` path while the container built under `/__w/_temp`; that path mismatch is the likely cause and remains unverified.

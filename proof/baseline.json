@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 122,
-  "proofProven": 122,
+  "currentRequirements": 124,
+  "proofProven": 124,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -526,7 +526,17 @@
       "gaps": [],
       "uncoveredSymbols": []
     },
+    "REQ-prolog-coverage-test-selection": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
     "REQ-prolog-library-adoption": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-prolog-spike-config-validation": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []

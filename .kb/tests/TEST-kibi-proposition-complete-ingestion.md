@@ -27,38 +27,6 @@ proof_contract:
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v1
-    receipt_id: PR-da97098965c1bc5a92917f9a
-    test_id: TEST-kibi-proposition-complete-ingestion
-    scope: end_to_end
-    outcome: passed
-    code_snapshot: 7a4310b9bccfd5ad2dc5dee7081fe78f9a64ccd5e179422b91542bb71e857382
-    environment_hash: 75a5663e12b090d190cceb0443c194b5382c42227c663ee5fee9994dbda6ea62
-    started_at: '2026-09-06T09:14:02.169Z'
-    finished_at: '2026-09-06T09:59:05.533Z'
-    artifact_digest: 9700ae4ded2511c37e52dea96afb2ea71ea74ee07cd3bfef21fcf341d6714563
-    contract_hash: 9af855d0408ce68d177dc419ea3f3dfa20cd094c30f9baadb45afd5e036d1720
-    fingerprint: 9f1af02b9475ca34b90fdcb9a0b15563a97c943f65517b7b5e0b8ee9ce5731aa
-    fingerprint_components:
-      contract: 9af855d0408ce68d177dc419ea3f3dfa20cd094c30f9baadb45afd5e036d1720
-      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
-      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
-      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
-      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
-    integration_id: self-proof
-    producer:
-      name: kibi-command-producer
-    command_argv:
-      - node
-      - scripts/run-proof-producer.mjs
-    run_outcome: passed
-    proof_results:
-      - symbol_id: SYM-test-packed-proposition-ingestion
-        target: default
-        outcome: passed
-        binding: aggregate_run
-        attempts:
-          status: unavailable
-  - version: kibi.proof-receipt.v1
     receipt_id: PR-28302ffe54612de502968c51
     test_id: TEST-kibi-proposition-complete-ingestion
     scope: end_to_end
@@ -1682,6 +1650,39 @@ proof_receipts:
     artifact_digest: 63668ccae6cd3a610be243d571de8e94f160e26926e4fd9f926a702b3a19dd3e
     contract_hash: 9af855d0408ce68d177dc419ea3f3dfa20cd094c30f9baadb45afd5e036d1720
     binding_hash: 3610068073a45b3e516f7322dbb206bdc35f0e7b7b0d2af93fa3a839e3de98bd
+    fingerprint: 9f1af02b9475ca34b90fdcb9a0b15563a97c943f65517b7b5e0b8ee9ce5731aa
+    fingerprint_components:
+      contract: 9af855d0408ce68d177dc419ea3f3dfa20cd094c30f9baadb45afd5e036d1720
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-test-packed-proposition-ingestion
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-2e4e3784e8a8d2e0aee9a7a5
+    test_id: TEST-kibi-proposition-complete-ingestion
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 929a2bffbc0505e38bf19d595788f7d828560a5dcbc0657e4f5b5e9cbbc6d807
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-09-30T09:34:29.510Z'
+    finished_at: '2026-09-30T09:53:47.264Z'
+    artifact_digest: bf1056b84a11011e16a37703ce5da52de1172c40ecacc8002976e09efa49291d
+    contract_hash: 9af855d0408ce68d177dc419ea3f3dfa20cd094c30f9baadb45afd5e036d1720
+    binding_hash: 6612f3da89b368d337b8e8be2b4c4b06956781a8b20fc46a753561d0f4c57605
     fingerprint: 9f1af02b9475ca34b90fdcb9a0b15563a97c943f65517b7b5e0b8ee9ce5731aa
     fingerprint_components:
       contract: 9af855d0408ce68d177dc419ea3f3dfa20cd094c30f9baadb45afd5e036d1720
