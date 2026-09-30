@@ -209,3 +209,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4d3f6e6a29a1
+  - type: constrains
+    from: REQ-scripts-coverage-shard-isolation
+    to: FACT-scripts-coverage-shard-subject
+    created_at: 2026-09-30T10:49:03.869Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5022e0c1be8a
+  - type: requires_property
+    from: REQ-scripts-coverage-shard-isolation
+    to: FACT-scripts-coverage-shard-enumerates-tests
+    created_at: 2026-09-30T10:49:03.893Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3ce12ec51c04
+  - type: requires_property
+    from: REQ-scripts-coverage-shard-isolation
+    to: FACT-scripts-coverage-shard-includes-summary
+    created_at: 2026-09-30T10:49:03.903Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-85beec4c938a
+  - type: requires_property
+    from: REQ-scripts-coverage-shard-isolation
+    to: FACT-scripts-coverage-shard-process-isolation
+    created_at: 2026-09-30T10:49:03.913Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6ee8d964ee04
+  - type: specified_by
+    from: REQ-scripts-coverage-shard-isolation
+    to: SCEN-scripts-coverage-shard-isolation
+    created_at: 2026-09-30T10:50:57.861Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0a6dc941f5b3

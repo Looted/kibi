@@ -27,6 +27,8 @@ afterEach(() => {
 describe("init remaining next-action and non-git error copy", () => {
   test("prints the raw attachment error when git is present but unusable", async () => {
     restores.push(isolateKibiEnv());
+    const root = createGitWorkspace();
+    roots.push(root);
     const spy = spyOn(
       branchResolver,
       "resolveBranchAttachment",
@@ -37,7 +39,7 @@ describe("init remaining next-action and non-git error copy", () => {
     spies.push(spy);
     const io = captureIo();
     restores.push(io.restore);
-    const result = await initCommand({});
+    const result = await withCwd(root, () => initCommand({}));
     expect(result.exitCode).toBe(1);
     expect(io.errorText()).toContain("Detached HEAD blocks init.");
   });

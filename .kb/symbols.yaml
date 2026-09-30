@@ -33086,11 +33086,15 @@ symbols:
       - type: covered_by
         target: TEST-root-suite-batch-diagnostics
       - type: covered_by
+        target: TEST-scripts-coverage-shard-isolation
+      - type: covered_by
         target: TEST-scripts-unit-coverage-runner
       - type: implements
         target: REQ-014
       - type: implements
         target: REQ-root-suite-batch-diagnostics
+      - type: implements
+        target: REQ-scripts-coverage-shard-isolation
   - id: SYM-skillopt-fixture-assert-coordinates-present
     title: assertSymbolCoordinatesPresent
     sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
@@ -43494,3 +43498,23 @@ symbols:
         target: TEST-prolog-coverage-test-selection
       - type: implements
         target: REQ-prolog-coverage-test-selection
+  - id: SYM-SCRIPT_TESTS
+    title: SCRIPT_TESTS
+    status: active
+    sourceFile: scripts/run-unit-coverage.ts
+    symbol_role: config
+    granularity_reason: config-artifact
+    relationships:
+      - type: covered_by
+        target: TEST-scripts-coverage-shard-isolation
+      - type: implements
+        target: REQ-scripts-coverage-shard-isolation
+  - id: SYM-test-scripts-coverage-shard-isolation
+    title: unit coverage runner contract
+    status: active
+    sourceFile: scripts/tests/unit-coverage-runner.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-scripts-coverage-shard-isolation

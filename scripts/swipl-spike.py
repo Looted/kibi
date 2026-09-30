@@ -174,7 +174,6 @@ def build(manifest: dict, target: str, work: Path) -> Path:
         "-DSWIPL_INSTALL_AS_LINK=OFF", f"-DSWIPL_PACKAGE_LIST={PACKAGE_LIST}",
         "-DCMAKE_DISABLE_FIND_PACKAGE_Curses=TRUE",
         "-DCMAKE_DISABLE_FIND_PACKAGE_LibUUID=TRUE",
-        "-DHAVE_CRYPT=0", "-DHAVE_LIBCRYPT=0",
         f"-DCMAKE_PREFIX_PATH={deps}", f"-DZLIB_INCLUDE_DIR={deps / 'include'}",
         f"-DZLIB_LIBRARY={zlib}", f"-DOPENSSL_ROOT_DIR={deps}",
         f"-DOPENSSL_CRYPTO_LIBRARY={library(deps, 'crypto', target)}",
@@ -187,6 +186,9 @@ def build(manifest: dict, target: str, work: Path) -> Path:
         # glibc 2.28 provides clock_gettime in libc; librt is outside the
         # launch package's permitted external dependency set.
         flags.append("-DHAVE_LIBRT=OFF")
+        # Keep Linux independent of libcrypt. macOS must use its SDK crypt
+        # probe: SWI's BSD fallback includes crypt.h, absent from that SDK.
+        flags.extend(("-DHAVE_CRYPT=0", "-DHAVE_LIBCRYPT=0"))
     cmake_project(swipl, build_dir / "swipl", install, target, *flags)
     shutil.copytree(install, relocated, symlinks=True)
     licenses = relocated / "licenses"

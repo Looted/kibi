@@ -160,3 +160,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-dbdcac78def3
+  - type: validates
+    from: TEST-scripts-coverage-shard-isolation
+    to: SCEN-scripts-coverage-shard-isolation
+    created_at: 2026-09-30T10:51:07.285Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-edebc831a5ea

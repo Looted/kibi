@@ -1,5 +1,15 @@
 [
   {
+    "test_id": "TEST-scripts-coverage-shard-isolation",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./scripts/tests/unit-coverage-runner.test.ts"
+      ]
+    ]
+  },
+  {
     "test_id": "TEST-prolog-spike-config-validation",
     "steps": [
       [

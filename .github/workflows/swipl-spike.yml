@@ -24,9 +24,12 @@ jobs:
     timeout-minutes: 120
     steps:
       - uses: actions/checkout@v6
+      - name: Locate container work directory
+        id: paths
+        run: echo "dir=$RUNNER_TEMP/swipl-spike" >> "$GITHUB_OUTPUT"
       - name: Install native build and audit tools
         run: |
-          dnf install -y perl-core make gcc gcc-c++ binutils file
+          dnf install -y perl-core make gcc gcc-c++ binutils file shadow-utils util-linux
           /opt/python/cp311-cp311/bin/python -m pip install --no-cache-dir cmake==3.31.10 ninja==1.13.0 patchelf==0.17.2.4
           echo /opt/python/cp311-cp311/bin >> "$GITHUB_PATH"
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
@@ -43,22 +46,57 @@ jobs:
           fi
           bun install --frozen-lockfile
       - name: Build, relocate, audit, and run Prolog and CLI suites
+        shell: bash
+        env:
+          SPIKE_DIR: ${{ steps.paths.outputs.dir }}
         run: |
-          export PATH="/opt/python/cp311-cp311/bin:$PATH"
-          bash scripts/swipl-spike.sh build-and-test --target linux-x64-gnu --workdir "$RUNNER_TEMP/swipl-spike"
+          set -euo pipefail
+          useradd --user-group --create-home --shell /bin/bash kibi-spike
+          test "$(id -u kibi-spike)" -ne 0
+          install -d -m 755 "$SPIKE_DIR/tools/bin"
+          install -m 755 "$(command -v bun)" "$SPIKE_DIR/tools/bin/bun"
+          chown -R kibi-spike:kibi-spike "$GITHUB_WORKSPACE" "$SPIKE_DIR"
+          spike_path="$SPIKE_DIR/tools/bin:/opt/python/cp311-cp311/bin:$PATH"
+          runuser -u kibi-spike -- env \
+            HOME=/home/kibi-spike \
+            BUN_INSTALL=/home/kibi-spike/.bun \
+            PATH="$spike_path" \
+            GITHUB_WORKSPACE="$GITHUB_WORKSPACE" \
+            RUNNER_TEMP="$RUNNER_TEMP" \
+            SPIKE_DIR="$SPIKE_DIR" \
+            GITHUB_ACTIONS=true \
+            bash -c '
+              set -euo pipefail
+              test "$(id -u)" -ne 0
+              test "$(command -v bun)" = "$SPIKE_DIR/tools/bin/bun"
+              for tool in node python3 cmake git; do command -v "$tool"; done
+              test -w "$GITHUB_WORKSPACE" && test -w "$SPIKE_DIR"
+              cd "$GITHUB_WORKSPACE"
+              git rev-parse --is-inside-work-tree
+              bash scripts/swipl-spike.sh build-and-test --target linux-x64-gnu --workdir "$SPIKE_DIR"
+            '
+      - name: Verify Linux deliverables
+        if: success()
+        env:
+          SPIKE_DIR: ${{ steps.paths.outputs.dir }}
+        run: |
+          test -s "$SPIKE_DIR/report.json"
+          test -s "$SPIKE_DIR/swipl-relocated.tar.gz"
       - name: Show measurements and test results
         if: always()
+        env:
+          SPIKE_DIR: ${{ steps.paths.outputs.dir }}
         run: |
-          if [ -f "$RUNNER_TEMP/swipl-spike/report.json" ]; then
-            cat "$RUNNER_TEMP/swipl-spike/report.json"
+          if [ -f "$SPIKE_DIR/report.json" ]; then
+            cat "$SPIKE_DIR/report.json"
           fi
       - uses: actions/upload-artifact@v5
         if: always()
         with:
           name: swipl-spike-linux-x64
           path: |
-            ${{ runner.temp }}/swipl-spike/report.json
-            ${{ runner.temp }}/swipl-spike/swipl-relocated.tar.gz
+            ${{ steps.paths.outputs.dir }}/report.json
+            ${{ steps.paths.outputs.dir }}/swipl-relocated.tar.gz
           if-no-files-found: warn
           retention-days: 7
 
@@ -67,6 +105,9 @@ jobs:
     timeout-minutes: 120
     steps:
       - uses: actions/checkout@v6
+      - name: Locate runner work directory
+        id: paths
+        run: echo "dir=$RUNNER_TEMP/swipl-spike" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
@@ -89,19 +130,30 @@ jobs:
           fi
           bun install --frozen-lockfile
       - name: Build, relocate, audit, sign, and run Prolog and CLI suites
-        run: bash scripts/swipl-spike.sh build-and-test --target darwin-arm64 --workdir "$RUNNER_TEMP/swipl-spike"
+        env:
+          SPIKE_DIR: ${{ steps.paths.outputs.dir }}
+        run: bash scripts/swipl-spike.sh build-and-test --target darwin-arm64 --workdir "$SPIKE_DIR"
+      - name: Verify macOS deliverables
+        if: success()
+        env:
+          SPIKE_DIR: ${{ steps.paths.outputs.dir }}
+        run: |
+          test -s "$SPIKE_DIR/report.json"
+          test -s "$SPIKE_DIR/swipl-relocated.tar.gz"
       - name: Show measurements and test results
         if: always()
+        env:
+          SPIKE_DIR: ${{ steps.paths.outputs.dir }}
         run: |
-          if [ -f "$RUNNER_TEMP/swipl-spike/report.json" ]; then
-            cat "$RUNNER_TEMP/swipl-spike/report.json"
+          if [ -f "$SPIKE_DIR/report.json" ]; then
+            cat "$SPIKE_DIR/report.json"
           fi
       - uses: actions/upload-artifact@v5
         if: always()
         with:
           name: swipl-spike-darwin-arm64
           path: |
-            ${{ runner.temp }}/swipl-spike/report.json
-            ${{ runner.temp }}/swipl-spike/swipl-relocated.tar.gz
+            ${{ steps.paths.outputs.dir }}/report.json
+            ${{ steps.paths.outputs.dir }}/swipl-relocated.tar.gz
           if-no-files-found: warn
           retention-days: 7

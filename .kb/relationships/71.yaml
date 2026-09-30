@@ -104,3 +104,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4fe3177ec26d
+  - type: executable_for
+    from: SYM-test-scripts-coverage-shard-isolation
+    to: TEST-scripts-coverage-shard-isolation
+    created_at: 2026-09-30T10:53:05.682Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bfff35dae8e4
