@@ -230,3 +230,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d08c784fb625
+  - type: executable_for
+    from: SYM-test-cli-workspace-path-alias
+    to: TEST-e2e-plan-compiler-hash
+    created_at: 2026-09-30T15:30:24.263Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-791c2556b5c7

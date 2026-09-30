@@ -43540,6 +43540,8 @@ symbols:
       - type: covered_by
         target: TEST-core-journaled-engine-persistence
       - type: covered_by
+        target: TEST-e2e-plan-compiler-hash
+      - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
         target: REQ-cli-canonical-runtime
@@ -43567,6 +43569,8 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-cli-canonical-runtime
+      - type: executable_for
+        target: TEST-e2e-plan-compiler-hash
       - type: executable_for
         target: TEST-kibi-change-to-proof-plan-compiler
   - id: SYM-test-cli-parity-path-normalization

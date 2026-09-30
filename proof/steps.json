@@ -1225,6 +1225,13 @@
         "node",
         "scripts/run-proof-packed-e2e.mjs",
         "documentation/tests/e2e/packed/cli-plan-compiler-hash.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "15000",
+        "./packages/cli/tests/operations/workspace-path-alias.test.ts"
       ]
     ]
   },

@@ -24,42 +24,6 @@ proof_contract:
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v1
-    receipt_id: PR-f6d5c0d9a1551b9f6876594b
-    test_id: TEST-001
-    scope: end_to_end
-    outcome: failed
-    code_snapshot: d00857167c57e585e0e777f8327ebab4598b8158ff6e0b72d2488ce7fed4cedb
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-09-09T00:13:05.070Z'
-    finished_at: '2026-09-09T01:03:10.098Z'
-    artifact_digest: bad89c9316ec0948292d39d63faffe1fdf072c400c78d70d8b9e1a69dcd2f4c0
-    contract_hash: 25a00db44d3d545b7886627f030d586594e5d3768b0e2b7fdd7c106b8c96f2fd
-    fingerprint: 627f1614ccbcffc3582167fec7315748bed0430fa56a7b9bf3c959d9757778fe
-    fingerprint_components:
-      contract: 25a00db44d3d545b7886627f030d586594e5d3768b0e2b7fdd7c106b8c96f2fd
-      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
-      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
-      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
-      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
-    integration_id: self-proof
-    producer:
-      name: kibi-command-producer
-    command_argv:
-      - node
-      - scripts/run-proof-producer.mjs
-    run_outcome: failed
-    proof_results:
-      - symbol_id: SYM-e2e-test-001
-        target: default
-        outcome: failed
-        binding: aggregate_run
-        attempts:
-          status: unavailable
-    gaps:
-      - symbol_id: SYM-e2e-test-001
-        target: default
-        reason: 'run did not pass (outcome: failed); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-e2e-test-003 (failed), SYM-e2e-packed-cli-check (failed), SYM-e2e-test-005 (failed), SYM-test-packed-default-branch-sync-hooks (failed), SYM-test-packed-post-merge-sync (failed) +83 more'
-  - version: kibi.proof-receipt.v1
     receipt_id: PR-b2d69d4e208b01ca7b68bc69
     test_id: TEST-001
     scope: end_to_end
@@ -1676,6 +1640,39 @@ proof_receipts:
     artifact_digest: bf1056b84a11011e16a37703ce5da52de1172c40ecacc8002976e09efa49291d
     contract_hash: 25a00db44d3d545b7886627f030d586594e5d3768b0e2b7fdd7c106b8c96f2fd
     binding_hash: ae4873df27266c87862c905a339fc5e312d072fae17d5c9905eced75785d7316
+    fingerprint: 627f1614ccbcffc3582167fec7315748bed0430fa56a7b9bf3c959d9757778fe
+    fingerprint_components:
+      contract: 25a00db44d3d545b7886627f030d586594e5d3768b0e2b7fdd7c106b8c96f2fd
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-001
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-9ba2443f44fd2d224827a419
+    test_id: TEST-001
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 9d8c969a1036b5252bf5402afb67f30d32751cc3899cb5fcbb9ac8bcf1f314c9
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-09-30T15:20:11.535Z'
+    finished_at: '2026-09-30T15:20:20.663Z'
+    artifact_digest: 662190ac48b2e6cb24254218d8f129e0e6886f38900d1bc59568ca0fb9177e26
+    contract_hash: 25a00db44d3d545b7886627f030d586594e5d3768b0e2b7fdd7c106b8c96f2fd
+    binding_hash: 50a7454b002776515931637bd07ae7a6a5ab28a46e218f7904c4910b3c5f83f7
     fingerprint: 627f1614ccbcffc3582167fec7315748bed0430fa56a7b9bf3c959d9757778fe
     fingerprint_components:
       contract: 25a00db44d3d545b7886627f030d586594e5d3768b0e2b7fdd7c106b8c96f2fd

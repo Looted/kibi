@@ -26,42 +26,6 @@ proof_contract:
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v1
-    receipt_id: PR-d024b7d1395ca2f96327e293
-    test_id: TEST-core-journaled-engine-delta-sync
-    scope: end_to_end
-    outcome: failed
-    code_snapshot: 93f5f0dec46e04618b4c7514f75527317c006ff103eb250884af156e885de263
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-09-08T11:33:22.904Z'
-    finished_at: '2026-09-08T12:49:16.395Z'
-    artifact_digest: 2530f959a42f3cfa57d657b0d37ca5b35e47c46afda172d202b7e47e98f2b4ce
-    contract_hash: 66c9200dfdadf6f95d660f8bcab4f33d698a8eaf03d072b534b6a71ceede76c4
-    fingerprint: 901c9ba28eb1874c674ec62aeb0f780a93fbab7abee54d6972557c476bdbf21d
-    fingerprint_components:
-      contract: 66c9200dfdadf6f95d660f8bcab4f33d698a8eaf03d072b534b6a71ceede76c4
-      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
-      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
-      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
-      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
-    integration_id: self-proof
-    producer:
-      name: kibi-command-producer
-    command_argv:
-      - node
-      - scripts/run-proof-producer.mjs
-    run_outcome: failed
-    proof_results:
-      - symbol_id: SYM-test-core-journaled-engine-delta-sync
-        target: default
-        outcome: failed
-        binding: aggregate_run
-        attempts:
-          status: unavailable
-    gaps:
-      - symbol_id: SYM-test-core-journaled-engine-delta-sync
-        target: default
-        reason: 'run did not pass (outcome: failed); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-e2e-test-001 (failed), SYM-e2e-test-003 (failed), SYM-e2e-packed-cli-check (failed), SYM-e2e-test-005 (failed), SYM-test-packed-default-branch-sync-hooks (failed) +83 more'
-  - version: kibi.proof-receipt.v1
     receipt_id: PR-513fc7c4d5ecb6ab17a3d1c2
     test_id: TEST-core-journaled-engine-delta-sync
     scope: end_to_end
@@ -1682,6 +1646,39 @@ proof_receipts:
     artifact_digest: bf1056b84a11011e16a37703ce5da52de1172c40ecacc8002976e09efa49291d
     contract_hash: 66c9200dfdadf6f95d660f8bcab4f33d698a8eaf03d072b534b6a71ceede76c4
     binding_hash: c2a402216ac1554ce0eb6c79a31905b8cfa0e402afb043ec9abd4bd945a63085
+    fingerprint: 901c9ba28eb1874c674ec62aeb0f780a93fbab7abee54d6972557c476bdbf21d
+    fingerprint_components:
+      contract: 66c9200dfdadf6f95d660f8bcab4f33d698a8eaf03d072b534b6a71ceede76c4
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-test-core-journaled-engine-delta-sync
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-24969a62fdcfea985d77e8a1
+    test_id: TEST-core-journaled-engine-delta-sync
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 9d8c969a1036b5252bf5402afb67f30d32751cc3899cb5fcbb9ac8bcf1f314c9
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-09-30T15:21:40.281Z'
+    finished_at: '2026-09-30T15:22:45.237Z'
+    artifact_digest: 401919292128dc2c7063aa72b4335b803bf1a2e8698dbf8e72a20a733184c050
+    contract_hash: 66c9200dfdadf6f95d660f8bcab4f33d698a8eaf03d072b534b6a71ceede76c4
+    binding_hash: ce9eb35e75f474bfd1c46f53ce6ee5a08af60733e7f294c82a27d2ed58d67a4d
     fingerprint: 901c9ba28eb1874c674ec62aeb0f780a93fbab7abee54d6972557c476bdbf21d
     fingerprint_components:
       contract: 66c9200dfdadf6f95d660f8bcab4f33d698a8eaf03d072b534b6a71ceede76c4

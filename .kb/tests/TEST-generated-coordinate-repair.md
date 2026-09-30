@@ -14,38 +14,6 @@ proof_contract:
   success_policy: all_required_first_attempt
 proof_receipts:
   - version: kibi.proof-receipt.v1
-    receipt_id: PR-f238cbe258c772aa39c86610
-    test_id: TEST-generated-coordinate-repair
-    scope: end_to_end
-    outcome: passed
-    code_snapshot: 15d2df13c1aeebc7302d91ab2a445d19802b0196958c8f17233b6c8844125d1d
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-09-08T10:27:52.302Z'
-    finished_at: '2026-09-08T11:19:24.843Z'
-    artifact_digest: 3091125a96f8af53d17af9fc1a0360c82fd3fc05d382983186f3630f4ac591b9
-    contract_hash: abd02f8d5742c4080d1251cd0065576fa7c5e4fe98a8083465dc491cf22eccc2
-    fingerprint: a9aa7489e5a5bd3b6d157848393c3d60eec3d80584f0d585ea7b8050d0b73c6e
-    fingerprint_components:
-      contract: abd02f8d5742c4080d1251cd0065576fa7c5e4fe98a8083465dc491cf22eccc2
-      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
-      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
-      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
-      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
-    integration_id: self-proof
-    producer:
-      name: kibi-command-producer
-    command_argv:
-      - node
-      - scripts/run-proof-producer.mjs
-    run_outcome: passed
-    proof_results:
-      - symbol_id: SYM-e2e-test-generated-coordinate-repair
-        target: default
-        outcome: passed
-        binding: aggregate_run
-        attempts:
-          status: unavailable
-  - version: kibi.proof-receipt.v1
     receipt_id: PR-af3a8531a3413184aab12fce
     test_id: TEST-generated-coordinate-repair
     scope: end_to_end
@@ -1670,6 +1638,39 @@ proof_receipts:
     artifact_digest: bf1056b84a11011e16a37703ce5da52de1172c40ecacc8002976e09efa49291d
     contract_hash: abd02f8d5742c4080d1251cd0065576fa7c5e4fe98a8083465dc491cf22eccc2
     binding_hash: 9a1041987cca3863c0e18c4b123730902f76d5fb1e55cd33529bf564dada0da6
+    fingerprint: a9aa7489e5a5bd3b6d157848393c3d60eec3d80584f0d585ea7b8050d0b73c6e
+    fingerprint_components:
+      contract: abd02f8d5742c4080d1251cd0065576fa7c5e4fe98a8083465dc491cf22eccc2
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-generated-coordinate-repair
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-f42702e607369265b164d1e1
+    test_id: TEST-generated-coordinate-repair
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 9d8c969a1036b5252bf5402afb67f30d32751cc3899cb5fcbb9ac8bcf1f314c9
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-09-30T15:24:02.615Z'
+    finished_at: '2026-09-30T15:24:10.289Z'
+    artifact_digest: f71e94f2084a79bfbeb361fe18f8a4389ddbda37721059d50cd2cdaf5b29c0fa
+    contract_hash: abd02f8d5742c4080d1251cd0065576fa7c5e4fe98a8083465dc491cf22eccc2
+    binding_hash: 23a054a9600c838db72f51334084c61533a4db566dcc5d3fd95164ec4557ff14
     fingerprint: a9aa7489e5a5bd3b6d157848393c3d60eec3d80584f0d585ea7b8050d0b73c6e
     fingerprint_components:
       contract: abd02f8d5742c4080d1251cd0065576fa7c5e4fe98a8083465dc491cf22eccc2
