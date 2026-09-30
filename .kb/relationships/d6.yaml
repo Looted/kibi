@@ -213,3 +213,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-038df86c53fe
+  - type: implements
+    from: SYM-mcp-release-package-metadata
+    to: REQ-020
+    created_at: 2026-09-30T14:20:18.121Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb161f29f9a3
+  - type: covered_by
+    from: SYM-mcp-release-package-metadata
+    to: TEST-014
+    created_at: 2026-09-30T14:20:18.147Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1de18779242d

@@ -16,9 +16,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { describe, expect, test } from "bun:test";
-import { readFileSync, writeFileSync } from "node:fs";
+import { afterEach, describe, expect, test } from "bun:test";
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { PUBLISHABLE_DIRS } from "../release-state";
 import {
   expectedRepositoryUrl,
   main,
@@ -193,3 +201,58 @@ function verifyWithTempManifest(dir: string, original: string, broken: string) {
     writeFileSync(manifestPath, original);
   }
 }
+
+const metadataFixtures: string[] = [];
+afterEach(() => {
+  for (const fixture of metadataFixtures.splice(0)) {
+    rmSync(fixture, { recursive: true, force: true });
+  }
+});
+
+describe("MCP Registry GitHub namespace", () => {
+  test.each([
+    ["io.github.Looted/kibi-mcp", "io.github.Looted/kibi-mcp", "Looted", true],
+    ["io.github.looted/kibi-mcp", "io.github.looted/kibi-mcp", "Looted", false],
+    ["io.github.Looted/kibi-mcp", "io.github.looted/kibi-mcp", "Looted", false],
+    ["io.github.looted/kibi-mcp", "io.github.Looted/kibi-mcp", "Looted", false],
+    ["io.github.Other/kibi-mcp", "io.github.Other/kibi-mcp", "Other", true],
+  ])(
+    "checks npm %s and Registry %s against owner %s",
+    (npmName, registryName, owner, valid) => {
+      const root = mkdtempSync(join(tmpdir(), "kibi-registry-namespace-"));
+      metadataFixtures.push(root);
+      for (const dir of PUBLISHABLE_DIRS) {
+        mkdirSync(join(root, dir));
+        const source = JSON.parse(
+          readFileSync(join(packagesRoot, dir, "package.json"), "utf8"),
+        );
+        writeFileSync(
+          join(root, dir, "package.json"),
+          JSON.stringify({
+            ...source,
+            repository: {
+              type: "git",
+              url: `https://github.com/${owner}/kibi.git`,
+            },
+          }),
+        );
+      }
+      const packagePath = join(root, "mcp", "package.json");
+      const manifest = JSON.parse(readFileSync(packagePath, "utf8"));
+      writeFileSync(
+        packagePath,
+        JSON.stringify({ ...manifest, mcpName: npmName }),
+      );
+      writeFileSync(
+        join(root, "mcp", "server.json"),
+        JSON.stringify({ name: registryName }),
+      );
+      const issues = verifyPublishMetadata(root, {
+        GITHUB_REPOSITORY: `${owner}/kibi`,
+        GITHUB_REPOSITORY_OWNER: String(owner),
+      });
+      expect(issues.length === 0).toBe(valid);
+      if (!valid) expect(issues[0]?.problem).toContain("case-sensitive");
+    },
+  );
+});

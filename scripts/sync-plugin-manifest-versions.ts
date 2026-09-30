@@ -130,6 +130,40 @@ async function syncPackagePluginManifests(
     });
   }
 
+  const registryPath = join(packageDir, "server.json");
+  if (packageManifest.name === "kibi-mcp" && existsSync(registryPath)) {
+    const registry = await readJsonObject(registryPath);
+    const npmEntries = Array.isArray(registry.packages)
+      ? registry.packages.filter(
+          (entry) =>
+            isRecord(entry) &&
+            entry.registryType === "npm" &&
+            entry.identifier === packageManifest.name,
+        )
+      : [];
+    if (npmEntries.length !== 1) {
+      throw new PluginManifestSyncError(
+        `Expected exactly one Registry npm entry for ${packageManifest.name}`,
+        registryPath,
+      );
+    }
+    const previousVersion =
+      typeof registry.version === "string" ? registry.version : "";
+    registry.version = packageManifest.version;
+    npmEntries[0].version = packageManifest.version;
+    await writeFile(
+      registryPath,
+      `${JSON.stringify(registry, null, 2)}\n`,
+      "utf8",
+    );
+    results.push({
+      packageName: packageManifest.name,
+      packageVersion: packageManifest.version,
+      manifestPath: registryPath,
+      previousVersion,
+    });
+  }
+
   return results;
 }
 

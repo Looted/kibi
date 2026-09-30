@@ -1,10 +1,12 @@
 import { describe, expect, test } from "bun:test";
 import { spawnSync } from "node:child_process";
 import {
+  cpSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
   rmSync,
+  symlinkSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
@@ -61,7 +63,7 @@ function verifyPublishedMetadata(workflowContent: string, responses: string[]) {
       join(root, "packages/mcp/package.json"),
       JSON.stringify({
         version: "2.1.1",
-        mcpName: "io.github.looted/kibi-mcp",
+        mcpName: "io.github.Looted/kibi-mcp",
       }),
     );
     writeFileSync(join(root, "responses"), responses.join("\n"));
@@ -128,6 +130,155 @@ describe("publish.yml CI workflow contract", () => {
   test("does not set KIBI_RELEASE_MOCK_NPM", () => {
     expect(workflowContent).not.toContain("KIBI_RELEASE_MOCK_NPM");
   });
+
+  test("version-packages combines pending MCP patches into one aligned release", () => {
+    const repositoryRoot = join(import.meta.dir, "../..");
+    const root = mkdtempSync(join(tmpdir(), "kibi-changesets-release-"));
+    try {
+      mkdirSync(join(root, ".changeset"));
+      mkdirSync(join(root, "scripts"));
+      mkdirSync(join(root, "packages/mcp"), { recursive: true });
+      mkdirSync(join(root, "packages/codex/.codex-plugin"), {
+        recursive: true,
+      });
+      const repositoryPackage = JSON.parse(
+        readFileSync(join(repositoryRoot, "package.json"), "utf8"),
+      );
+      writeFileSync(
+        join(root, "package.json"),
+        JSON.stringify({
+          name: "kibi-release-fixture",
+          private: true,
+          workspaces: ["packages/*"],
+          scripts: {
+            "version-packages": repositoryPackage.scripts["version-packages"],
+          },
+        }),
+      );
+      cpSync(
+        join(repositoryRoot, ".changeset/config.json"),
+        join(root, ".changeset/config.json"),
+      );
+      cpSync(
+        join(repositoryRoot, "scripts/sync-plugin-manifest-versions.ts"),
+        join(root, "scripts/sync-plugin-manifest-versions.ts"),
+      );
+      symlinkSync(
+        join(repositoryRoot, "node_modules"),
+        join(root, "node_modules"),
+        "dir",
+      );
+      writeFileSync(
+        join(root, "packages/mcp/package.json"),
+        JSON.stringify({
+          name: "kibi-mcp",
+          version: "2.1.1",
+          mcpName: "io.github.Looted/kibi-mcp",
+        }),
+      );
+      writeFileSync(
+        join(root, "packages/mcp/server.json"),
+        JSON.stringify({
+          name: "io.github.Looted/kibi-mcp",
+          version: "2.1.1",
+          packages: [
+            { registryType: "npm", identifier: "kibi-mcp", version: "2.1.1" },
+          ],
+        }),
+      );
+      writeFileSync(
+        join(root, "packages/codex/package.json"),
+        JSON.stringify({
+          name: "kibi-codex",
+          version: "2.0.1",
+          dependencies: { "kibi-mcp": "^2.1.1" },
+        }),
+      );
+      writeFileSync(
+        join(root, "packages/codex/.codex-plugin/plugin.json"),
+        JSON.stringify({
+          name: "kibi-codex",
+          version: "2.0.1",
+        }),
+      );
+      writeFileSync(
+        join(root, ".changeset/existing-mcp-fix.md"),
+        '---\n"kibi-mcp": patch\n"kibi-codex": patch\n---\n\nExisting MCP fix.\n',
+      );
+      writeFileSync(
+        join(root, ".changeset/registry-namespace-fix.md"),
+        '---\n"kibi-mcp": patch\n---\n\nRegistry namespace fix.\n',
+      );
+      const prepared = spawnSync(
+        process.execPath,
+        ["run", "version-packages"],
+        {
+          cwd: root,
+          env: process.env,
+          encoding: "utf8",
+          timeout: 30000,
+        },
+      );
+      expect(prepared.status, prepared.stdout + prepared.stderr).toBe(0);
+      const mcp = JSON.parse(
+        readFileSync(join(root, "packages/mcp/package.json"), "utf8"),
+      );
+      const registry = JSON.parse(
+        readFileSync(join(root, "packages/mcp/server.json"), "utf8"),
+      );
+      const codex = JSON.parse(
+        readFileSync(join(root, "packages/codex/package.json"), "utf8"),
+      );
+      expect(mcp.version).toBe("2.1.2");
+      expect(mcp.mcpName).toBe("io.github.Looted/kibi-mcp");
+      expect(registry.name).toBe(mcp.mcpName);
+      expect(registry.version).toBe(mcp.version);
+      expect(registry.packages[0].version).toBe(mcp.version);
+      expect(codex.version).toBe("2.0.2");
+      expect(codex.dependencies["kibi-mcp"]).toBe("^2.1.2");
+      expect(
+        JSON.parse(
+          readFileSync(
+            join(root, "packages/codex/.codex-plugin/plugin.json"),
+            "utf8",
+          ),
+        ).version,
+      ).toBe(codex.version);
+      const changelog = readFileSync(
+        join(root, "packages/mcp/CHANGELOG.md"),
+        "utf8",
+      );
+      expect(changelog.match(/^## /gm)).toHaveLength(1);
+      expect(changelog).toContain("## 2.1.2");
+      expect(changelog).toContain("Existing MCP fix.");
+      expect(changelog).toContain("Registry namespace fix.");
+      expect(
+        readFileSync(join(root, "packages/codex/CHANGELOG.md"), "utf8"),
+      ).toContain(`## ${codex.version}`);
+      // Re-running the normal command after consuming both Changesets is idempotent.
+      const repeated = spawnSync(
+        process.execPath,
+        ["run", "version-packages"],
+        {
+          cwd: root,
+          env: process.env,
+          encoding: "utf8",
+          timeout: 30000,
+        },
+      );
+      expect(repeated.status, repeated.stdout + repeated.stderr).toBe(0);
+      expect(
+        JSON.parse(
+          readFileSync(join(root, "packages/mcp/package.json"), "utf8"),
+        ).version,
+      ).toBe(mcp.version);
+      expect(
+        readFileSync(join(root, "packages/mcp/CHANGELOG.md"), "utf8"),
+      ).toBe(changelog);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  }, 60000);
 
   // ── check-release ───────────────────────────────────────────────────
   test("check-release: shallow checkout, no full history", () => {
@@ -234,7 +385,7 @@ describe("publish.yml CI workflow contract", () => {
   describe("published MCP npm metadata verification", () => {
     test("accepts immediately visible metadata without waiting", () => {
       const result = verifyPublishedMetadata(workflowContent, [
-        "io.github.looted/kibi-mcp",
+        "io.github.Looted/kibi-mcp",
       ]);
       expect(result.status).toBe(0);
       expect(result.attempts).toBe(1);
@@ -245,7 +396,7 @@ describe("publish.yml CI workflow contract", () => {
       const result = verifyPublishedMetadata(workflowContent, [
         "unavailable",
         "unavailable",
-        "io.github.looted/kibi-mcp",
+        "io.github.Looted/kibi-mcp",
       ]);
       expect(result.status).toBe(0);
       expect(result.attempts).toBe(3);
@@ -266,17 +417,21 @@ describe("publish.yml CI workflow contract", () => {
       expect(result.output).toContain("not available after 12 attempts");
     });
 
-    test.each(["io.github.someone-else/kibi-mcp", "missing"])(
+    test.each([
+      "io.github.someone-else/kibi-mcp",
+      "io.github.looted/kibi-mcp",
+      "missing",
+    ])(
       "fails immediately for visible but incorrect metadata: %s",
       (response) => {
         const result = verifyPublishedMetadata(workflowContent, [
           response,
-          "io.github.looted/kibi-mcp",
+          "io.github.Looted/kibi-mcp",
         ]);
         expect(result.status).toBe(1);
         expect(result.attempts).toBe(1);
         expect(result.sleeps).toEqual([]);
-        expect(result.output).toContain("expected 'io.github.looted/kibi-mcp'");
+        expect(result.output).toContain("expected 'io.github.Looted/kibi-mcp'");
       },
     );
   });
