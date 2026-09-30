@@ -43695,3 +43695,25 @@ symbols:
         target: TEST-kibi-local-proof-parity
       - type: implements
         target: REQ-kibi-local-proof-parity
+  - id: SYM-mcp-release-package-metadata
+    title: package.json
+    status: active
+    sourceFile: packages/mcp/package.json
+    symbol_role: config
+    granularity_reason: config-artifact
+    relationships:
+      - type: covered_by
+        target: TEST-014
+      - type: implements
+        target: REQ-020
+  - id: SYM-mcp-release-registry-metadata
+    title: server.json
+    status: active
+    sourceFile: packages/mcp/server.json
+    symbol_role: config
+    granularity_reason: config-artifact
+    relationships:
+      - type: covered_by
+        target: TEST-014
+      - type: implements
+        target: REQ-020

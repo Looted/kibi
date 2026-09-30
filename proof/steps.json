@@ -524,6 +524,11 @@
         "bun",
         "test",
         "./scripts/tests/release-workflow-contract.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "./scripts/tests/verify-publish-metadata.test.ts"
       ]
     ]
   },

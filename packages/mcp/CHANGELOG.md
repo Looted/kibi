@@ -1,5 +1,14 @@
 # kibi-mcp
 
+## 2.1.2
+
+### Patch Changes
+
+- Kibi's MCP server can now be published under the GitHub owner's authorized Registry namespace. The npm ownership metadata and Registry manifest preserve the capital L in Looted, correcting the permission error that prevented the first Registry publication.
+
+  - Match npm mcpName and server.json to io.github.Looted/kibi-mcp.
+  - Validate exact owner casing before packing or publishing release artifacts.
+
 ## 2.1.1
 
 ### Patch Changes

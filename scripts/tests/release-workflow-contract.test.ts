@@ -61,7 +61,7 @@ function verifyPublishedMetadata(workflowContent: string, responses: string[]) {
       join(root, "packages/mcp/package.json"),
       JSON.stringify({
         version: "2.1.1",
-        mcpName: "io.github.looted/kibi-mcp",
+        mcpName: "io.github.Looted/kibi-mcp",
       }),
     );
     writeFileSync(join(root, "responses"), responses.join("\n"));
@@ -234,7 +234,7 @@ describe("publish.yml CI workflow contract", () => {
   describe("published MCP npm metadata verification", () => {
     test("accepts immediately visible metadata without waiting", () => {
       const result = verifyPublishedMetadata(workflowContent, [
-        "io.github.looted/kibi-mcp",
+        "io.github.Looted/kibi-mcp",
       ]);
       expect(result.status).toBe(0);
       expect(result.attempts).toBe(1);
@@ -245,7 +245,7 @@ describe("publish.yml CI workflow contract", () => {
       const result = verifyPublishedMetadata(workflowContent, [
         "unavailable",
         "unavailable",
-        "io.github.looted/kibi-mcp",
+        "io.github.Looted/kibi-mcp",
       ]);
       expect(result.status).toBe(0);
       expect(result.attempts).toBe(3);
@@ -266,17 +266,21 @@ describe("publish.yml CI workflow contract", () => {
       expect(result.output).toContain("not available after 12 attempts");
     });
 
-    test.each(["io.github.someone-else/kibi-mcp", "missing"])(
+    test.each([
+      "io.github.someone-else/kibi-mcp",
+      "io.github.looted/kibi-mcp",
+      "missing",
+    ])(
       "fails immediately for visible but incorrect metadata: %s",
       (response) => {
         const result = verifyPublishedMetadata(workflowContent, [
           response,
-          "io.github.looted/kibi-mcp",
+          "io.github.Looted/kibi-mcp",
         ]);
         expect(result.status).toBe(1);
         expect(result.attempts).toBe(1);
         expect(result.sleeps).toEqual([]);
-        expect(result.output).toContain("expected 'io.github.looted/kibi-mcp'");
+        expect(result.output).toContain("expected 'io.github.Looted/kibi-mcp'");
       },
     );
   });

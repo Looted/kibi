@@ -181,8 +181,16 @@ function verifyDoctorProvenance(dir: string, env: NodeJS.ProcessEnv): void {
     );
     const manifest = JSON.parse(readFileSync(reportedPath, "utf8")) as {
       name?: unknown;
+      mcpName?: unknown;
     };
     assert.equal(manifest.name, packageName);
+    if (packageName === "kibi-mcp") {
+      assert.equal(
+        manifest.mcpName,
+        "io.github.Looted/kibi-mcp",
+        "packed npm metadata must use the case-sensitive GitHub namespace",
+      );
+    }
   }
 
   const actions = report.migrationPlan?.actions ?? [];
