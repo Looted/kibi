@@ -167,15 +167,15 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-      - name: Namespace Pages output under /kibi-report/
+      - name: Build documentation site at the Pages root
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' && !cancelled() && steps.integrity.outcome == 'success' }}
+        run: bun run docs:site -- --out pages
+
+      - name: Namespace the proof report under /kibi-report/
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' && !cancelled() && steps.integrity.outcome == 'success' }}
         run: |
           mkdir -p pages/kibi-report
           cp -R kibi-report/. pages/kibi-report/
-
-      - name: Build documentation site into Pages output
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' && !cancelled() && steps.integrity.outcome == 'success' }}
-        run: bun run docs:site -- --out pages/docs
 
       - name: Upload Kibi Pages artifact
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' && !cancelled() && steps.integrity.outcome == 'success' }}

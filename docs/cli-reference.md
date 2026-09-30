@@ -117,12 +117,17 @@ files are skipped, changed/deleted source entities are retracted and reasserted
 in the journal, and relationship shards are refreshed only when their content
 hash changes. `--rebuild` is the explicit generation-replacement path.
 
-## `kibi engine status|stop`
+## `kibi engine status|stop|janitor`
 
 The engine is automatically started for CLI and MCP operations. `engine status`
 prints the workspace/branch daemon PID and journal status; `engine stop` asks it
 to flush and exit. A daemon is shared by all clients for the same canonical
 workspace path and branch and exits after ten minutes without clients.
+
+`engine janitor` classifies stale engine daemons and branch-store locks left by
+crashed engines or removed worktrees. It only reports by default; `--apply`
+performs the cleanup, `--all` also sweeps daemon sockets from other workspaces,
+and `--format json|table` selects the output.
 
 ## `kibi storage status|compact|export`
 

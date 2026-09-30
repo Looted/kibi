@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import {
   DOCS,
-  PUBLISHED_DOCS_ORIGIN,
+  PUBLISHED_SITE_ORIGIN,
   publishedLlmsIndexHref,
   publishedPageHref,
 } from "../../docs-site/catalog.ts";
@@ -26,6 +26,32 @@ function runDocsSite(out: string) {
 }
 
 describe("published documentation links", () => {
+  test("the link check accepts site-root pages and the report, and rejects GitHub copies and old /docs/ paths", () => {
+    const llms = `[index](${publishedLlmsIndexHref()})`;
+    const accepted = [
+      `${PUBLISHED_SITE_ORIGIN}/`,
+      `${PUBLISHED_SITE_ORIGIN}/#install`,
+      `${PUBLISHED_SITE_ORIGIN}/guide/install.html#optional-cursor-plugin`,
+      `${PUBLISHED_SITE_ORIGIN}/kibi-report`,
+      `${PUBLISHED_SITE_ORIGIN}/kibi-report/badge.svg`,
+      "docs/examples/github/kibi-report.yml",
+    ];
+    for (const href of accepted) {
+      expect(readmePublishedDocProblems(`${llms} [x](${href})`)).toEqual([]);
+    }
+    const rejected = [
+      "docs/install.md",
+      `${PUBLISHED_SITE_ORIGIN}/docs/guide/install.html`,
+      `${PUBLISHED_SITE_ORIGIN}/guide/not-a-page.html`,
+    ];
+    for (const href of rejected) {
+      expect(readmePublishedDocProblems(`${llms} [x](${href})`)).toHaveLength(
+        1,
+      );
+    }
+    expect(readmePublishedDocProblems("no index link")).toHaveLength(1);
+  });
+
   test("README and the language-model index follow the documentation catalog", () => {
     const readme = readFileSync(path.join(repoRoot, "README.md"), "utf8");
     expect(readmePublishedDocProblems(readme)).toEqual([]);
@@ -51,13 +77,13 @@ describe("published documentation links", () => {
       const published = [
         ...readme.matchAll(
           new RegExp(
-            `${PUBLISHED_DOCS_ORIGIN.replaceAll(".", "\\.")}/[^)\\s]+`,
+            `${PUBLISHED_SITE_ORIGIN.replaceAll(".", "\\.")}/[^)\\s]+`,
             "g",
           ),
         ),
       ].map((match) => match[0]);
       for (const href of published) {
-        const rest = href.slice(PUBLISHED_DOCS_ORIGIN.length + 1);
+        const rest = href.slice(PUBLISHED_SITE_ORIGIN.length + 1);
         const hashAt = rest.indexOf("#");
         if (hashAt === -1) continue;
         const sitePath = rest.slice(0, hashAt);

@@ -1,7 +1,5 @@
 # Troubleshooting
 
-This document provides recovery procedures and common issue resolution for kibi.
-
 ## Upgrading and branch recovery
 
 Kibi is in beta. Package upgrades do not require deleting the knowledge base. `kibi migrate` previews a structured plan and applies approved schema and storage updates. `kibi status` reports when the current branch is waiting on that plan.
@@ -184,29 +182,23 @@ If you have existing git hooks that conflict with kibi:
 
 If `kibi sync` or `kibi query` produce errors:
 
-1. **Check SWI-Prolog:**
+1. **Check the environment:**
    ```bash
    kibi doctor
    ```
-   Ensure SWI-Prolog is installed and at correct version (9.0+).
+   It confirms SWI-Prolog 9.0+, the `.kb/manifest.json` shape, and any leftover `.kb/config.json` that `kibi migrate --yes` should retire.
 
-2. **Validate the lifecycle manifest:**
+2. **Clear stale engines and locks.** A crashed engine or a removed worktree can leave a daemon or branch-store lock behind. Preview first, then apply:
    ```bash
-   cat .kb/manifest.json
-   ```
-   Check for syntax errors (valid JSON). Leftover `.kb/config.json` is not read for paths or checks; run `kibi migrate --yes` to retire it.
-
-3. **Rebuild KB:**
-   ```bash
-   rm -rf .kb/branches
-   kibi sync
+   kibi engine janitor
+   kibi engine janitor --apply
    ```
 
-4. **Check for locked files:**
+3. **Recover the branch store.** Recovery recompiles the store from authored sources and keeps the previous bytes under `.kb/recovery/`:
    ```bash
-   ls -la .kb/branches/
+   kibi branch recover
+   kibi branch recover --apply
    ```
-   If files appear locked or have unusual permissions, check running processes and file system issues.
 
 ## Configuration Issues
 
@@ -289,11 +281,11 @@ npm view kibi-opencode versions
 
 If you're on an old version, upgrade when a patch is available. Do not repeatedly clear the cache on the same broken version.
 
-## MCP startup resolves stale kibi-mcp@0.13.x pnpm path
+## MCP startup resolves a stale kibi-mcp path
 
 ### Symptom
 
-MCP startup fails with a path resolution error pointing to an old `kibi-mcp` version, such as `node_modules/.pnpm/kibi-mcp@0.13.0`. This happens after upgrading `kibi-mcp` in a project that previously used pnpm or `npx -y`.
+MCP startup fails with a path resolution error pointing to an old `kibi-mcp` version, such as an older `node_modules/.pnpm/kibi-mcp@<version>` directory. This happens after upgrading `kibi-mcp` in a project that previously used pnpm or `npx -y`.
 
 ### Root Cause
 
@@ -309,7 +301,7 @@ Do NOT delete all caches or `node_modules` as a first step. Capture evidence, in
    ```bash
    npx kibi-mcp --print-resolution
    ```
-   This prints the resolved binary path and version. If it points to `node_modules/.pnpm/kibi-mcp@0.13.0` (or any version older than what your `package.json` declares), the cache or config is stale.
+   This prints the resolved binary path and version. If it points to a version older than what your `package.json` declares, the cache or config is stale.
 
 2. **Inspect project lockfile and MCP config:**
    ```bash
@@ -334,10 +326,6 @@ npx kibi-mcp --print-resolution
 ```
 The path should now match the version in `pnpm-lock.yaml` or `package-lock.json`.
 
-### Historical Context
-
-The forbidden path pattern `node_modules/.pnpm/kibi-mcp@0.13.0` was a known failure mode during the 0.13.x to 0.14.x transition. It appeared when pnpm's store or an MCP config cached an old `.pnpm` path while the project had already moved to a newer version. Always verify with `--print-resolution` before assuming a cache issue.
-
 ---
 
 ### Interpreting Sync Failures in OpenCode
@@ -358,13 +346,13 @@ opencode 2> opencode-debug.log
 Look for entries prefixed with `[kibi-opencode]` and check for the `scheduler_sync_failed` cause in the runtime overlay metadata.
 
 ## Recovery Steps Summary
-For installation issues, see [install guide](install.md).
 
-## Recovery Steps Summary
+For installation issues, see the [install guide](install.md).
 
 | Issue | First Try | If That Fails |
 |--------|-----------|----------------|
-| KB corruption on upgrade | `kibi doctor` | Delete `.kb/branches` and `kibi sync` |
+| Errors after an upgrade | `kibi migrate --dry-run`, then `kibi migrate --yes` | `kibi branch recover --apply` |
+| Stale engine or lock | `kibi engine janitor` | `kibi engine janitor --apply` |
 | Dangling references | Update source files with correct IDs | Verify and `kibi sync` |
 | Hooks not working | `kibi doctor` | `kibi init` |
 | Sync finds no docs | Confirm knowledge lives under `.kb/<lane>/` | Run `kibi migrate --yes` if leftover `documentation/` still holds knowledge |
@@ -373,4 +361,3 @@ For installation issues, see [install guide](install.md).
 ---
 
 *For CLI command syntax and options, see [CLI Reference](cli-reference.md)*
-*For agent-specific workflows, see [AGENTS.md](../AGENTS.md)*
