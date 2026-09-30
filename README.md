@@ -45,7 +45,7 @@ npm exec -- kibi init
 
 After bootstrap, work normally with your agent. For manual inspection or troubleshooting, use `kibi status`, `kibi check`, `kibi search`, and `kibi sync` as needed.
 
-Use your project's local binary runner with pnpm, Yarn, or Bun. See the [installation guide](docs/install.md) for package-manager equivalents, SWI-Prolog setup, global installation, and troubleshooting.
+Use your project's local binary runner with pnpm, Yarn, or Bun. See the [installation guide](https://looted.github.io/kibi/docs/guide/install.html) for package-manager equivalents, SWI-Prolog setup, global installation, and troubleshooting.
 
 ### Explore gaps and coverage
 
@@ -107,7 +107,7 @@ never replaces the canonical public report or badge. Copy
 [docs/examples/github/kibi-report.yml](docs/examples/github/kibi-report.yml)
 rather than maintaining a second workflow. Adapt `cache: npm` and `npm ci` if
 the project does not use npm; see
-[GitHub integration](docs/github-integration.md).
+[GitHub integration](https://looted.github.io/kibi/docs/guide/github-integration.html).
 
 To scaffold those same files automatically:
 
@@ -131,7 +131,7 @@ npm exec -- kibi init --github --badge-only
 That still generates the report from the same snapshot, but publishes only
 `badge.svg`. The README link then points at the metric explanation rather than
 a report that was never published. See
-[docs/github-integration.md](docs/github-integration.md) for package-manager
+[the GitHub integration guide](https://looted.github.io/kibi/docs/guide/github-integration.html) for package-manager
 adaptations, owner-site URLs, and troubleshooting.
 
 ## How it works
@@ -222,7 +222,7 @@ Kibi intentionally supports eight core entity types:
 | `event` | Domain or system events published and consumed by components |
 | `symbol` | Functions, classes, modules, and other code-level ownership anchors |
 
-Use `flag` only for real runtime or configuration gates. Bugs and workarounds belong in `fact` entities with `fact_kind: observation` or `meta`; contradiction-sensitive invariants use the strict fact or predicate lanes. See the [entity schema](docs/entity-schema.md) for the complete model.
+Use `flag` only for real runtime or configuration gates. Bugs and workarounds belong in `fact` entities with `fact_kind: observation` or `meta`; contradiction-sensitive invariants use the strict fact or predicate lanes. See the [entity schema](https://looted.github.io/kibi/docs/reference/entity-schema.html) for the complete model.
 
 ## Connect an AI client
 
@@ -335,7 +335,7 @@ The optional `kibi-cursor` plugin adds rules, bundled skills, commands, and advi
 
 Kibi's **skill subsystem** is the agent-guidance mechanism. It ships four reusable, bundled skills for operation safety, bootstrap, freshness, and traceability. Normal users can simply ask their agent to bootstrap; hosts use the bundled skills as infrastructure. MCP-capable agents can inspect them with `kb_skills_list` and `kb_skills_load`, and the same read-only operations are available through the trusted project-local CLI. Do not copy a long system prompt into the agent.
 
-See [generic-agent onboarding](docs/generic-agent-onboarding.md) for the copy-paste discovery snippet, and [MCP reference](docs/mcp-reference.md#generic-agent-onboarding) for the progressive-disclosure and safety contract.
+See [generic-agent onboarding](https://looted.github.io/kibi/docs/reference/agent-onboarding.html) for the copy-paste discovery snippet, and [MCP reference](https://looted.github.io/kibi/docs/reference/mcp.html#generic-agent-onboarding) for the progressive-disclosure and safety contract.
 
 ## Packages
 
@@ -360,24 +360,26 @@ Capability plugins extend semantic classification, ontology matching, and symbol
 extraction behind a versioned `kibi.plugin.v1` protocol. The builtin package is
 always registered; additional providers activate only through explicit
 `package.json` `kibi.plugins` entries. Third parties need only
-`kibi-plugin-sdk`. See [plugin development](docs/plugin-development.md) for
+`kibi-plugin-sdk`. See [plugin development](https://looted.github.io/kibi/docs/reference/plugins.html) for
 modes, the trust boundary, disclosure-only permissions, and optional Jev usage.
 
 ## Documentation
 
-The browsable documentation site — a human-oriented Guide and a technical Reference built from these sources — lives at **<https://looted.github.io/kibi/docs/>**, published on Pages next to the [requirement-health report](https://looted.github.io/kibi/kibi-report/).
+The guide and reference are published at **<https://looted.github.io/kibi/docs/>**, next to the [requirement-health report](https://looted.github.io/kibi/kibi-report/).
 
-- [Installation guide](docs/install.md) — Prerequisites, package managers, client setup, and verification
-- [Proving requirements](docs/proving-requirements.md) — Proof contracts, `kibi prove`, producer artifacts, and receipts
-- [GitHub badge + report](docs/github-integration.md) — Publish requirement health on GitHub Pages
-- [CLI reference](docs/cli-reference.md) — Commands, flags, and structured JSON routes
-- [MCP reference](docs/mcp-reference.md) — Tools, schemas, examples, and agent onboarding
-- [Entity schema](docs/entity-schema.md) — Entity types, relationships, and semantic fact lanes
-- [Inference rules](docs/inference-rules.md) — Validation and contradiction checks
-- [Architecture](docs/architecture.md) — Storage, branch isolation, data flow, and components
-- [Capability plugins](docs/plugin-development.md) — Developing and activating `kibi.plugin.v1` providers
-- [Troubleshooting](docs/troubleshooting.md) — Common setup and recovery procedures
-- [Generic-agent onboarding](docs/generic-agent-onboarding.md) — Copy-paste skill discovery for generic MCP/CLI agents
+Language models should follow the [documentation index](https://looted.github.io/kibi/docs/llms.txt) into the deeper pages. That index is generated from the same catalog as the site, and the landing page links to it. These links are the published pages, not the GitHub rendering of the source files.
+
+- [Installation guide](https://looted.github.io/kibi/docs/guide/install.html) — Prerequisites, package managers, client setup, and verification
+- [Proving requirements](https://looted.github.io/kibi/docs/reference/proving.html) — Proof contracts, `kibi prove`, producer artifacts, and receipts
+- [GitHub badge + report](https://looted.github.io/kibi/docs/guide/github-integration.html) — Publish requirement health on GitHub Pages
+- [CLI reference](https://looted.github.io/kibi/docs/reference/cli.html) — Commands, flags, and structured JSON routes
+- [MCP reference](https://looted.github.io/kibi/docs/reference/mcp.html) — Tools, schemas, examples, and agent onboarding
+- [Entity schema](https://looted.github.io/kibi/docs/reference/entity-schema.html) — Entity types, relationships, and semantic fact lanes
+- [Inference rules](https://looted.github.io/kibi/docs/reference/inference-rules.html) — Validation and contradiction checks
+- [Architecture](https://looted.github.io/kibi/docs/reference/architecture.html) — Storage, branch isolation, data flow, and components
+- [Capability plugins](https://looted.github.io/kibi/docs/reference/plugins.html) — Developing and activating `kibi.plugin.v1` providers
+- [Troubleshooting](https://looted.github.io/kibi/docs/guide/troubleshooting.html) — Common setup and recovery procedures
+- [Generic-agent onboarding](https://looted.github.io/kibi/docs/reference/agent-onboarding.html) — Copy-paste skill discovery for generic MCP/CLI agents
 
 ## Beta status
 
