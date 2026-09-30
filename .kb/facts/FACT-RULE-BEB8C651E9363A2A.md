@@ -34,8 +34,8 @@ rule_ir:
         type: policy_scope
   ruleSchemaId: FACT-RULE-SCHEMA-LOGIC-V1
 fact_kind: rule
-claim_span_start: 845
-claim_span_end: 939
+claim_span_start: 897
+claim_span_end: 991
 id: FACT-RULE-BEB8C651E9363A2A
 type: fact
 ---

@@ -31,8 +31,8 @@ rule_ir:
         type: policy_scope
   ruleSchemaId: FACT-RULE-SCHEMA-LOGIC-V1
 fact_kind: rule
-claim_span_start: 1507
-claim_span_end: 1584
+claim_span_start: 1559
+claim_span_end: 1636
 id: FACT-RULE-83B1D3F8A6AA0F82
 type: fact
 ---
