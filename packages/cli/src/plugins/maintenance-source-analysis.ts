@@ -1,8 +1,7 @@
 import { createHash } from "node:crypto";
-import { lstatSync, readFileSync, readdirSync, realpathSync } from "node:fs";
+import { readFileSync, realpathSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, isAbsolute, join, relative, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
 import {
   type ProjectPluginEntry,
   validateProjectKibiConfig,
@@ -67,85 +66,26 @@ function dependencyRoot(importer: string, packageName: string): string {
   }
 }
 
-export function runtimePackageFingerprint(
-  importer: string,
-  packageName: string,
-  cache = new Map<string, string>(),
-  active = new Set<string>(),
-): string {
-  const packageRoot = realpathSync(dependencyRoot(importer, packageName));
-  const cached = cache.get(packageRoot);
-  if (cached) return cached;
-  if (active.has(packageRoot))
-    return fingerprint({ dependencyCycleAt: packageName });
-  active.add(packageRoot);
-  const manifest = JSON.parse(
-    readFileSync(join(packageRoot, "package.json"), "utf8"),
-  ) as {
-    name?: unknown;
-    version?: unknown;
-    dependencies?: Record<string, string>;
-    optionalDependencies?: Record<string, string>;
-    peerDependencies?: Record<string, string>;
-  };
-  if (manifest.name !== packageName || typeof manifest.version !== "string")
-    throw new Error(`Runtime dependency identity is invalid: ${packageName}`);
-  const files: { path: string; sha256: string }[] = [];
-  let totalBytes = 0;
-  const visit = (directory: string): void => {
-    for (const entry of readdirSync(directory, { withFileTypes: true }).sort(
-      (a, b) => a.name.localeCompare(b.name),
-    )) {
-      if (entry.name === "node_modules" || entry.name === ".git") continue;
-      const absolute = join(directory, entry.name);
-      const stat = lstatSync(absolute);
-      if (stat.isSymbolicLink())
-        throw new Error(
-          `Runtime dependency contains a symbolic link: ${absolute}`,
-        );
-      if (stat.isDirectory()) {
-        visit(absolute);
-        continue;
-      }
-      if (!stat.isFile())
-        throw new Error(
-          `Runtime dependency contains a special file: ${absolute}`,
-        );
-      totalBytes += stat.size;
-      if (files.length >= 20_000 || totalBytes > 512 * 1024 * 1024)
-        throw new Error(
-          `Runtime dependency closure is too large: ${packageName}`,
-        );
-      files.push({
-        path: relative(packageRoot, absolute).replaceAll("\\", "/"),
-        sha256: createHash("sha256")
-          .update(readFileSync(absolute))
-          .digest("hex"),
-      });
-    }
-  };
-  visit(packageRoot);
-  const dependencyNames = [
-    ...Object.keys(manifest.dependencies ?? {}),
-    ...Object.keys(manifest.optionalDependencies ?? {}),
-    ...Object.keys(manifest.peerDependencies ?? {}),
-  ].sort();
-  const dependencies = [...new Set(dependencyNames)].map((name) => ({
-    name,
-    fingerprint: runtimePackageFingerprint(packageRoot, name, cache, active),
-  }));
-  const result = fingerprint({
-    name: packageName,
-    version: manifest.version,
-    files,
-    dependencies,
-  });
-  active.delete(packageRoot);
-  cache.set(packageRoot, result);
-  return result;
+/**
+ * Identify the host's first-party builtin analyzer by its published package
+ * identity. Content integrity of an installed release is the package
+ * manager's job; hashing the installed tree made the fingerprint differ
+ * between a workspace checkout, an npm install and a bundled runtime.
+ */
+function builtinRuntimeIdentity(): { name: string; version: string } {
+  const manifest = createRequire(import.meta.url)(
+    "kibi-plugin-builtin/package.json",
+  ) as { name?: unknown; version?: unknown };
+  if (
+    manifest.name !== "kibi-plugin-builtin" ||
+    typeof manifest.version !== "string"
+  )
+    throw new Error("Builtin source analyzer identity is invalid");
+  return { name: manifest.name, version: manifest.version };
 }
 
 /** Hash the exact trusted source-extractor activation and its host-pinned closure. */
+// implements REQ-impact-policy-stage-e-content-bound-review
 export function fingerprintMaintenanceSourceSet(
   workspaceRoot: string,
   projectConfig: ProjectKibiConfig,
@@ -183,22 +123,10 @@ export function fingerprintMaintenanceSourceSet(
       ),
     };
   });
-  const runtimeCache = new Map<string, string>();
-  const cliPackageRoot = dirname(
-    dirname(dirname(fileURLToPath(import.meta.url))),
-  );
   return fingerprint({
-    contractVersion: "kibi.maintenance-source-set.v1",
-    builtinRuntime: runtimePackageFingerprint(
-      cliPackageRoot,
-      "kibi-plugin-builtin",
-      runtimeCache,
-    ),
-    sdkRuntime: runtimePackageFingerprint(
-      cliPackageRoot,
-      "kibi-plugin-sdk",
-      runtimeCache,
-    ),
+    contractVersion: "kibi.maintenance-source-set.v2",
+    builtinRuntime: builtinRuntimeIdentity(),
+    sdkContract: SYMBOL_EXTRACTOR_V2_CAPABILITY_ID,
     bindings,
   });
 }

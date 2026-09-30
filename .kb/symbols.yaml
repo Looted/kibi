@@ -43983,20 +43983,6 @@ symbols:
         target: TEST-impact-policy-stage-e-installed-e2e
       - type: implements
         target: REQ-impact-policy-stage-e-content-bound-review
-  - id: SYM-impact-stage-e-fingerprintimpactschemafiles
-    title: fingerprintImpactSchemaFiles
-    tags:
-      - multilingual
-      - impact-policy
-      - stage-e
-    symbol_role: behavioral
-    status: active
-    sourceFile: packages/cli/src/traceability/impact-evaluator.ts
-    relationships:
-      - type: covered_by
-        target: TEST-impact-policy-stage-e-installed-e2e
-      - type: implements
-        target: REQ-impact-policy-stage-e-content-bound-review
   - id: SYM-impact-stage-e-hasvalidbaseimpactpolicy
     title: hasValidBaseImpactPolicy
     tags:
@@ -44004,7 +43990,7 @@ symbols:
       - impact-policy
       - stage-e
     symbol_role: behavioral
-    sourceFile: packages/cli/src/traceability/impact-evaluator.ts
+    sourceFile: packages/cli/src/traceability/impact-policy.ts
     status: active
     relationships:
       - type: covered_by
@@ -44093,7 +44079,7 @@ symbols:
       - stage-e
     title: impactPolicyFingerprint
     status: active
-    sourceFile: packages/cli/src/traceability/impact-evaluator.ts
+    sourceFile: packages/cli/src/traceability/impact-policy.ts
     relationships:
       - type: covered_by
         target: TEST-impact-policy-stage-e-installed-e2e
@@ -44121,7 +44107,7 @@ symbols:
       - multilingual
       - impact-policy
       - stage-e
-    sourceFile: packages/cli/src/traceability/impact-evaluator.ts
+    sourceFile: packages/cli/src/traceability/impact-policy.ts
     symbol_role: behavioral
     title: loadBaseImpactPolicy
     relationships:
@@ -44179,20 +44165,6 @@ symbols:
       - stage-e
     sourceFile: packages/cli/src/traceability/trusted-pr-event.ts
     title: resolveTrustedPullRequestSnapshot
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-impact-policy-stage-e-installed-e2e
-      - type: implements
-        target: REQ-impact-policy-stage-e-content-bound-review
-  - id: SYM-impact-stage-e-runtimepackagefingerprint
-    title: runtimePackageFingerprint
-    status: active
-    tags:
-      - multilingual
-      - impact-policy
-      - stage-e
-    sourceFile: packages/cli/src/plugins/maintenance-source-analysis.ts
     symbol_role: behavioral
     relationships:
       - type: covered_by
@@ -44798,3 +44770,393 @@ symbols:
         target: TEST-tree-sitter-language-authoring-scaffold-cli-e2e
       - type: implements
         target: REQ-tree-sitter-language-authoring-scaffold
+  - id: SYM-impact-stage-e-createmaintenancesourceanalysisservice
+    title: createMaintenanceSourceAnalysisService
+    status: active
+    sourceFile: packages/cli/src/plugins/maintenance-source-analysis.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-fingerprintmaintenancesourceset
+    title: fingerprintMaintenanceSourceSet
+    status: active
+    sourceFile: packages/cli/src/plugins/maintenance-source-analysis.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-verifyapprovedsourceanalyzer
+    title: verifyApprovedSourceAnalyzer
+    status: active
+    sourceFile: packages/cli/src/plugins/maintenance-source-analysis.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-source-analysis-v2-providerbudgetms
+    title: providerBudgetMs
+    status: active
+    sourceFile: packages/cli/src/plugins/source-analysis-service.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-assertsourceanalysisgate
+    title: assertSourceAnalysisGate
+    status: active
+    sourceFile: packages/cli/src/plugins/source-change-analysis.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-gateanalysis
+    title: gateAnalysis
+    status: active
+    sourceFile: packages/cli/src/plugins/source-change-analysis.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-classifiedextensions
+    title: classifiedExtensions
+    status: active
+    sourceFile: packages/cli/src/plugins/source-classification.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-extensionlanguage
+    title: extensionLanguage
+    status: active
+    sourceFile: packages/cli/src/plugins/source-classification.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-isqualifiedsourcepath
+    title: isQualifiedSourcePath
+    status: active
+    sourceFile: packages/cli/src/plugins/source-classification.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-istsjssourcepath
+    title: isTsJsSourcePath
+    status: active
+    sourceFile: packages/cli/src/plugins/source-classification.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-analysisobligation
+    title: analysisObligation
+    status: active
+    sourceFile: packages/cli/src/traceability/analysis-gate.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-impact-stage-e-fingerprintimpactevaluator
+    title: fingerprintImpactEvaluator
+    status: active
+    sourceFile: packages/cli/src/traceability/impact-evaluator.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-impactpreparationoptions
+    title: ImpactPreparationOptions
+    status: active
+    sourceFile: packages/cli/src/traceability/impact-evaluator.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-preparedimpactreview
+    title: PreparedImpactReview
+    status: active
+    sourceFile: packages/cli/src/traceability/impact-evaluator.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-blobbytes
+    title: blobBytes
+    status: active
+    sourceFile: packages/cli/src/traceability/impact-git-tree.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-entriesfortree
+    title: entriesForTree
+    status: active
+    sourceFile: packages/cli/src/traceability/impact-git-tree.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-treeentry
+    title: treeEntry
+    status: active
+    sourceFile: packages/cli/src/traceability/impact-git-tree.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-entityrows
+    title: entityRows
+    status: active
+    sourceFile: packages/cli/src/traceability/impact-knowledge.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-entityrowswithrelationships
+    title: entityRowsWithRelationships
+    status: active
+    sourceFile: packages/cli/src/traceability/impact-knowledge.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-rawknowledgefingerprint
+    title: rawKnowledgeFingerprint
+    status: active
+    sourceFile: packages/cli/src/traceability/impact-knowledge.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-requirementscope
+    title: requirementScope
+    status: active
+    sourceFile: packages/cli/src/traceability/impact-knowledge.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-semanticknowledgefingerprint
+    title: semanticKnowledgeFingerprint
+    status: active
+    sourceFile: packages/cli/src/traceability/impact-knowledge.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-entityrow
+    title: EntityRow
+    status: active
+    sourceFile: packages/cli/src/traceability/impact-knowledge.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-approvedpartialclass
+    title: approvedPartialClass
+    status: active
+    sourceFile: packages/cli/src/traceability/impact-policy.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-recordfromcapturedtree
+    title: recordFromCapturedTree
+    status: active
+    sourceFile: packages/cli/src/traceability/impact-record-validation.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-same
+    title: same
+    status: active
+    sourceFile: packages/cli/src/traceability/impact-record-validation.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-validateanalysisreviews
+    title: validateAnalysisReviews
+    status: active
+    sourceFile: packages/cli/src/traceability/impact-record-validation.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-validatedecisionagainstsnapshot
+    title: validateDecisionAgainstSnapshot
+    status: active
+    sourceFile: packages/cli/src/traceability/impact-record-validation.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-assertanalysisinput
+    title: assertAnalysisInput
+    status: active
+    sourceFile: packages/cli/src/traceability/impact-side-evidence.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-exactpathprojection
+    title: exactPathProjection
+    status: active
+    sourceFile: packages/cli/src/traceability/impact-side-evidence.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-isknowledgemarkdown
+    title: isKnowledgeMarkdown
+    status: active
+    sourceFile: packages/cli/src/traceability/impact-side-evidence.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-isreceiptonlychange
+    title: isReceiptOnlyChange
+    status: active
+    sourceFile: packages/cli/src/traceability/impact-side-evidence.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-projectedpathevidence
+    title: projectedPathEvidence
+    status: active
+    sourceFile: packages/cli/src/traceability/impact-side-evidence.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-sideevidence
+    title: sideEvidence
+    status: active
+    sourceFile: packages/cli/src/traceability/impact-side-evidence.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-cap-plugin-sourceanalysisdiagnosticv2
+    title: SourceAnalysisDiagnosticV2
+    status: active
+    sourceFile: packages/plugin-sdk/src/capabilities/symbol-extractor.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-protocol-v1
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-sourceanalysisresultv2
+    title: SourceAnalysisResultV2
+    status: active
+    sourceFile: packages/plugin-sdk/src/capabilities/symbol-extractor.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-protocol-v1
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-source-analysis-v2-createtreesittersymbolextractor
+    title: createTreeSitterSymbolExtractor
+    status: active
+    sourceFile: packages/plugin-treesitter/src/extractor.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-type-gateanalysis
+    title: GateAnalysis
+    status: active
+    sourceFile: packages/cli/src/traceability/analysis-gate.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-impact-stage-e-type-treeentry
+    title: TreeEntry
+    status: active
+    sourceFile: packages/cli/src/traceability/impact-git-tree.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review

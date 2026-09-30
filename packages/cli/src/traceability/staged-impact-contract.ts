@@ -1,15 +1,5 @@
+import { isTsJsSourcePath } from "../plugins/source-classification.js";
 import { isEntityLanePath, isSymbolsManifestPath } from "../utils/kb-paths.js";
-
-const SUPPORTED_BEHAVIOR_SOURCE_EXTENSIONS = new Set([
-  ".ts",
-  ".tsx",
-  ".js",
-  ".jsx",
-  ".mts",
-  ".cts",
-  ".mjs",
-  ".cjs",
-]);
 
 export const KIBI_IMPACT_DIAGNOSTIC_IDS = [
   "kibi_impact_evidence_missing",
@@ -192,13 +182,7 @@ export function isBehaviorSourceEdit(input: BehaviorSourceEditInput): boolean {
 }
 
 export function isSupportedBehaviorSourcePath(filePath: string): boolean {
-  for (const extension of SUPPORTED_BEHAVIOR_SOURCE_EXTENSIONS) {
-    if (filePath.endsWith(extension)) {
-      return true;
-    }
-  }
-
-  return false;
+  return isTsJsSourcePath(filePath);
 }
 
 function isEntityEvidenceMarkdown(filePath: string): boolean {

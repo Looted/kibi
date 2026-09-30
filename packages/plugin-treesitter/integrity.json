@@ -21,8 +21,8 @@
     },
     {
       "path": "README.md",
-      "bytes": 3698,
-      "sha256": "708a38860b1049c2578e16063ef81b70c2c78be2aa4a1858caa5f81f0a99b734"
+      "bytes": 3993,
+      "sha256": "458d85c560da1737a7a68fd2dfb7bb08da06b7b59929f4a5abaf17778dc02e15"
     },
     {
       "path": "SBOM.spdx.json",
@@ -191,8 +191,8 @@
     },
     {
       "path": "dist/analysis-worker.js",
-      "bytes": 50887,
-      "sha256": "1fb05ad348c470fa1c0fc15e70117bd9dc4936069704354f393672652598ceee"
+      "bytes": 51535,
+      "sha256": "75a1e646f636c1d1ace9ae22a9141a51e94bddc70203bed08de7bd13dae1764e"
     },
     {
       "path": "dist/catalog.d.ts",
@@ -217,12 +217,12 @@
     {
       "path": "dist/extractor.d.ts.map",
       "bytes": 255,
-      "sha256": "1c57be91e339cbe71eb97b73f5159c8ed01976e23aca46bf8acdfbda9a29dada"
+      "sha256": "a0e8926a9cbbab23ad1812ec52e6808a6c6917a61f89385483e988e2ace08f8f"
     },
     {
       "path": "dist/extractor.js",
-      "bytes": 12734,
-      "sha256": "bb7eb7520206e2720877a08bbd97cf0b5c6fae7aa2680dc62be44643c047a6ad"
+      "bytes": 15559,
+      "sha256": "1d8cd819e7ec8fcc291a44e5ffe4ccfe77099301677913fcfe0d92e7ce971f33"
     },
     {
       "path": "dist/index.d.ts",

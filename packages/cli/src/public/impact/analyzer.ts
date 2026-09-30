@@ -3,7 +3,10 @@ import {
   createMaintenanceSourceAnalysisService,
   readSnapshotSourceConfig,
 } from "../../plugins/maintenance-source-analysis.js";
-import { analyzeSourceChanges } from "../../plugins/source-change-analysis.js";
+import {
+  analyzeSourceChanges,
+  assertSourceAnalysisGate,
+} from "../../plugins/source-change-analysis.js";
 import { captureStagedSnapshot } from "../../traceability/git-change-snapshot.js";
 import { readSnapshotKnowledge } from "../../traceability/snapshot-knowledge.js";
 import type { ExtractedSymbol } from "../../traceability/symbol-extract.js";
@@ -70,13 +73,8 @@ export async function analyzeChangedFileImpact(
   const analyses = snapshot
     ? await analyzeSourceChanges(snapshotAnalysisInventory ?? [], service)
     : undefined;
-  for (const change of analyses?.values() ?? [])
-    for (const side of [change.before, change.after]) {
-      if (side?.status === "partial" || side?.status === "failed")
-        throw new Error(
-          `Incomplete source analysis for ${change.path}: ${side.diagnostics.map((item) => item.message).join("; ")}`,
-        );
-    }
+  if (analyses)
+    assertSourceAnalysisGate(snapshotAnalysisInventory ?? [], analyses);
   const sourceFiles = uniqueSorted(
     snapshot
       ? snapshot.inventory

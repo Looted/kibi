@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { performance } from "node:perf_hooks";
 import { fileURLToPath } from "node:url";
-import { parentPort, workerData } from "node:worker_threads";
+import { parentPort } from "node:worker_threads";
 import type {
   SourceAnalysisDiagnosticV2,
   SourceAnalysisRangeV2,
@@ -18,6 +18,7 @@ const QUERY_MATCH_LIMIT = 16_384;
 const MAX_DIAGNOSTICS = 64;
 
 interface AnalysisWorkerInput {
+  readonly id: number;
   readonly language: TreeSitterLanguage;
   readonly content: string;
   readonly performanceTimingEnabled?: boolean;
@@ -1518,49 +1519,73 @@ const SUPPLEMENTAL_QUERIES: Readonly<
   cpp: "cpp-extra.scm",
 };
 
-async function run(): Promise<AnalysisWorkerResult> {
-  const input = workerData as AnalysisWorkerInput;
+interface LoadedGrammar {
+  readonly parser: Parser;
+  readonly query: Query;
+}
+
+// The worker is persistent: the WASM runtime initializes once and each
+// grammar and its query compile once, then serve every later request.
+let runtimeReady: Promise<void> | undefined;
+const grammars = new Map<TreeSitterLanguage, Promise<LoadedGrammar>>();
+
+async function loadGrammar(
+  languageName: TreeSitterLanguage,
+): Promise<LoadedGrammar> {
+  runtimeReady ??= Parser.init();
+  await runtimeReady;
+  const grammarPath = fileURLToPath(
+    new URL(`../assets/${GRAMMAR_ASSETS[languageName]}`, import.meta.url),
+  );
+  const queryPath = new URL(
+    `../assets/queries/${languageName}.scm`,
+    import.meta.url,
+  );
+  const [language, upstreamQuery] = await Promise.all([
+    Language.load(grammarPath),
+    readFile(queryPath, "utf8"),
+  ]);
+  const supplementalName = SUPPLEMENTAL_QUERIES[languageName];
+  const queryExtension =
+    supplementalName === undefined
+      ? ""
+      : await readFile(
+          new URL(`../assets/queries/${supplementalName}`, import.meta.url),
+          "utf8",
+        );
+  const parser = new Parser();
+  parser.setLanguage(language);
+  return {
+    parser,
+    query: new Query(language, `${upstreamQuery}\n${queryExtension}`),
+  };
+}
+
+function grammarFor(language: TreeSitterLanguage): Promise<LoadedGrammar> {
+  let loaded = grammars.get(language);
+  if (loaded === undefined) {
+    loaded = loadGrammar(language);
+    // A failed load must not poison later requests for the same grammar.
+    loaded.catch(() => grammars.delete(language));
+    grammars.set(language, loaded);
+  }
+  return loaded;
+}
+
+async function run(input: AnalysisWorkerInput): Promise<AnalysisWorkerResult> {
   const timingEnabled = input.performanceTimingEnabled === true;
   const totalAnalysisStartedAt = timingEnabled ? performance.now() : 0;
   try {
-    globalThis.fetch = async () => {
-      throw new Error(
-        "Network access is disabled in Tree-sitter analysis workers.",
-      );
-    };
     const parserInitializationStartedAt = timingEnabled ? performance.now() : 0;
-    await Parser.init();
-    const grammarPath = fileURLToPath(
-      new URL(`../assets/${GRAMMAR_ASSETS[input.language]}`, import.meta.url),
-    );
-    const queryPath = new URL(
-      `../assets/queries/${input.language}.scm`,
-      import.meta.url,
-    );
-    const [language, upstreamQuery] = await Promise.all([
-      Language.load(grammarPath),
-      readFile(queryPath, "utf8"),
-    ]);
-    const supplementalName = SUPPLEMENTAL_QUERIES[input.language];
-    const queryExtension =
-      supplementalName === undefined
-        ? ""
-        : await readFile(
-            new URL(`../assets/queries/${supplementalName}`, import.meta.url),
-            "utf8",
-          );
-    const parser = new Parser();
-    parser.setLanguage(language);
-    const query = new Query(language, `${upstreamQuery}\n${queryExtension}`);
+    const { parser, query } = await grammarFor(input.language);
     const parserInitializationWallMs = timingEnabled
       ? performance.now() - parserInitializationStartedAt
       : 0;
     const parseStartedAt = timingEnabled ? performance.now() : 0;
+    parser.reset();
     const tree = parser.parse(input.content);
     const parseWallMs = timingEnabled ? performance.now() - parseStartedAt : 0;
     if (tree === null) {
-      query.delete();
-      parser.delete();
       return {
         ok: false,
         code: "TREESITTER_PARSE_FAILED",
@@ -1587,8 +1612,6 @@ async function run(): Promise<AnalysisWorkerResult> {
       };
     } finally {
       tree.delete();
-      query.delete();
-      parser.delete();
     }
   } catch (error) {
     return {
@@ -1604,4 +1627,13 @@ async function run(): Promise<AnalysisWorkerResult> {
 
 if (parentPort === null)
   throw new Error("Tree-sitter worker requires a parent port.");
-void run().then((result) => parentPort?.postMessage(result));
+globalThis.fetch = async () => {
+  throw new Error(
+    "Network access is disabled in Tree-sitter analysis workers.",
+  );
+};
+const port = parentPort;
+// The host sends one request at a time and waits for its reply.
+port.on("message", (input: AnalysisWorkerInput) => {
+  void run(input).then((result) => port.postMessage({ id: input.id, result }));
+});

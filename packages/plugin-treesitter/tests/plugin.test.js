@@ -340,4 +340,53 @@ describe("offline Tree-sitter symbol extractor", () => {
     assert.equal(oversized.diagnostics[0].code, "TREESITTER_INPUT_LIMIT");
     assertValidV2(oversized, { path: "large.py", content });
   });
+  it("serves many files concurrently from persistent workers without mixing results", async () => {
+    const pooled = createTreeSitterSymbolExtractor();
+    const inputs = Array.from({ length: 24 }, (_, index) =>
+      index % 3 === 0
+        ? {
+            path: `pool/m${index}.py`,
+            content: `def f${index}():\n    return ${index}\n`,
+          }
+        : index % 3 === 1
+          ? {
+              path: `pool/m${index}.go`,
+              content: `package p\n\nfunc F${index}() {}\n`,
+            }
+          : { path: `pool/m${index}.rs`, content: `pub fn f${index}() {}\n` },
+    );
+    const results = await Promise.all(
+      inputs.map((input) => pooled.analyze(input)),
+    );
+    results.forEach((result, index) => {
+      const input = inputs[index];
+      assert.equal(result.status, "ok", JSON.stringify(result.diagnostics));
+      assertValidV2(result, input);
+      assert.equal(result.sourceFile, input.path);
+      assert.deepEqual(
+        result.symbols.map((symbol) => symbol.name.toLowerCase()),
+        [`f${index}`],
+      );
+    });
+  });
+
+  it("reports its own timeout within a host-granted budget and recovers afterwards", async () => {
+    const pooled = createTreeSitterSymbolExtractor();
+    const content = Array.from(
+      { length: 20_000 },
+      (_, index) => `def f${index}(a, b):\n    return a + b\n`,
+    ).join("");
+    const input = { path: "budget.py", content, timeoutMs: 1 };
+    const startedAt = Date.now();
+    const timedOut = await pooled.analyze(input);
+    assert(Date.now() - startedAt < 5_000);
+    assert.equal(timedOut.status, "failed");
+    assert.equal(timedOut.diagnostics[0].code, "TREESITTER_ANALYSIS_TIMEOUT");
+    assertValidV2(timedOut, input);
+
+    const next = { path: "after-timeout.py", content: "def ok():\n    pass\n" };
+    const recovered = await pooled.analyze(next);
+    assert.equal(recovered.status, "ok");
+    assert(findSymbol(recovered, "ok"));
+  });
 });

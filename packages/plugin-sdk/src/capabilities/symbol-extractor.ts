@@ -117,6 +117,12 @@ export interface SymbolExtractorV2SupportsInput {
 export interface SymbolExtractorV2AnalyzeInput
   extends SymbolExtractorV2SupportsInput {
   readonly content: string;
+  /**
+   * Wall-clock budget, in milliseconds, the host grants this call. The host
+   * owns the deadline: a provider should return its own failed result before
+   * the budget elapses, and the host abandons the call when its deadline passes.
+   */
+  readonly timeoutMs?: number;
 }
 
 /**

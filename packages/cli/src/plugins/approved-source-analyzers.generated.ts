@@ -69,17 +69,17 @@ export const qualifiedSourceAnalyzers = [
       "catalog.json":
         "05f3616458f282e214c33ec449be56d805157e748113cd73280bfeec2cb7d006",
       "dist/analysis-worker.js":
-        "1fb05ad348c470fa1c0fc15e70117bd9dc4936069704354f393672652598ceee",
+        "75a1e646f636c1d1ace9ae22a9141a51e94bddc70203bed08de7bd13dae1764e",
       "dist/catalog.js":
         "460243c48cb6a03b8c7971273729d8a1134955186978b6c0d04182c71960ebff",
       "dist/extractor.js":
-        "bb7eb7520206e2720877a08bbd97cf0b5c6fae7aa2680dc62be44643c047a6ad",
+        "1d8cd819e7ec8fcc291a44e5ffe4ccfe77099301677913fcfe0d92e7ce971f33",
       "dist/index.js":
         "adc03d77d94c0133b3188950b35f79db19e447cf7bfa1f7e1cf1f5c97a582a44",
       "dist/performance-timing.js":
         "56cce530f627c8fd079e8ec070322f84378ae50c40a6765d88b418850692940b",
       "integrity.json":
-        "c5e66a5974638a1fda19f83a6e281d0dc2133eb902b1ea4b264eeb1b86b2f93a",
+        "5bc0050c065d573b27953424682497197c915fd894f3cbd43062b3e42c1bae91",
       "licenses/tree-sitter-bash-MIT.txt":
         "49bf33cf78ef5897e4e161ce1517df7de1ae5042a65b6bcfd44401e0fc606559",
       "licenses/tree-sitter-c-MIT.txt":

@@ -10,6 +10,7 @@ import * as maintenance from "../../src/plugins/maintenance-source-analysis.js";
 import { CapabilityRegistry } from "../../src/plugins/registry.js";
 import { SourceAnalysisService } from "../../src/plugins/source-analysis-service.js";
 import { analyzeSourceChanges } from "../../src/plugins/source-change-analysis.js";
+import { analysisObligation } from "../../src/traceability/analysis-gate.js";
 import { captureStagedSnapshot } from "../../src/traceability/git-change-snapshot.js";
 import * as evaluatorModule from "../../src/traceability/impact-evaluator.js";
 import {
@@ -192,20 +193,27 @@ async function stageReceipt(
                   rationale:
                     "This generated metadata preserves the authored symbol identities and bindings.",
                 },
-          analysisReviews: (["before", "after"] as const).flatMap((side) =>
-            file[side]?.analysis?.status === "partial"
+          // Review exactly what the shared gate asks for: after-side gaps
+          // that overlap the changed lines.
+          analysisReviews: (["before", "after"] as const).flatMap((side) => {
+            const obligation = analysisObligation(
+              side,
+              file[side]?.analysis,
+              file.newHunkRanges,
+            );
+            return obligation.kind === "partial_review"
               ? [
                   {
                     kind: "partial_review" as const,
                     side,
                     limitationClass: "python-decorator-expansion",
-                    ranges: file[side]?.analysis?.uncoveredRanges ?? [],
+                    ranges: obligation.ranges,
                     rationale:
                       "The exact decorator omission is reviewed; completeness is not claimed.",
                   },
                 ]
-              : [],
-          ),
+              : [];
+          }),
         },
       ]),
     ),

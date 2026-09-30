@@ -216,3 +216,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-42186daaea71
+  - type: implements
+    from: SYM-source-analysis-v2-createtreesittersymbolextractor
+    to: REQ-source-analysis-v2
+    created_at: 2026-09-30T15:24:11.464Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e1eeb5fe3ddd
+  - type: covered_by
+    from: SYM-source-analysis-v2-createtreesittersymbolextractor
+    to: TEST-source-analysis-v2-contract
+    created_at: 2026-09-30T15:24:11.476Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-192c376872d6

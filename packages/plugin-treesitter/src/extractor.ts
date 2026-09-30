@@ -1,3 +1,4 @@
+import { availableParallelism } from "node:os";
 import { basename, extname } from "node:path";
 import { Worker } from "node:worker_threads";
 import type {
@@ -17,7 +18,9 @@ import { createBoundedSourceAnalysisTimingEmitter } from "./performance-timing.j
 const EXTRACTOR_ID = "kibi-plugin-treesitter.tree-sitter.v2";
 const MAX_INPUT_CODE_UNITS = 1_048_576;
 const MAX_INPUT_BYTES = 2_097_152;
-const MAX_CONCURRENT_ANALYSES = 2;
+const MAX_POOL_SIZE = 4;
+const MAX_ANALYSES_PER_WORKER = 256;
+/** Provider ceiling; the host-granted budget (input.timeoutMs) is used when smaller. */
 const ANALYSIS_TIMEOUT_MS = 10_000;
 const emitPerformanceTiming = createBoundedSourceAnalysisTimingEmitter(
   (line) => {
@@ -229,72 +232,79 @@ function resolveLanguage(
   return treeSitterLanguageForPath(input.path);
 }
 
-function withinWorker(
-  language: TreeSitterLanguage,
-  content: string,
-): Promise<WorkerResult> {
-  return new Promise((resolve) => {
-    let worker: Worker;
-    try {
-      worker = new Worker(new URL("./analysis-worker.js", import.meta.url), {
-        execArgv: [],
-        workerData: {
-          language,
-          content,
-          performanceTimingEnabled: process.env.KIBI_PERF_TIMINGS === "1",
-        },
-        resourceLimits: {
-          maxOldGenerationSizeMb: 64,
-          maxYoungGenerationSizeMb: 16,
-          stackSizeMb: 4,
-        },
-      });
-    } catch (error) {
-      resolve({
+interface PooledWorker {
+  readonly worker: Worker;
+  uses: number;
+}
+
+type WorkerReply = Readonly<{ id: number; result: WorkerResult }>;
+
+function workerPoolSize(): number {
+  return Math.max(1, Math.min(MAX_POOL_SIZE, availableParallelism() - 1));
+}
+
+/**
+ * Persistent, bounded Tree-sitter workers. Each worker keeps its WASM runtime
+ * and compiled grammars between files and serves one request at a time. A
+ * worker that times out, errors or exits is discarded and replaced on demand;
+ * workers are also recycled after a fixed number of analyses so WASM memory
+ * cannot accumulate in a long-running host. Idle workers are unreferenced and
+ * never keep the host process alive.
+ */
+class TreeSitterWorkerPool {
+  private readonly idle: PooledWorker[] = [];
+  private readonly waiters: Array<(worker: PooledWorker | undefined) => void> =
+    [];
+  private live = 0;
+  private nextId = 1;
+
+  constructor(private readonly size: number) {}
+
+  async analyze(
+    language: TreeSitterLanguage,
+    content: string,
+    deadline: number,
+  ): Promise<WorkerResult> {
+    const pooled = await this.acquire();
+    if (pooled === undefined) {
+      return {
         ok: false,
         code: "TREESITTER_WORKER_ERROR",
-        message:
-          error instanceof Error
-            ? error.message
-            : "Could not start Tree-sitter worker.",
-      });
-      return;
+        message: "Could not start Tree-sitter worker.",
+      };
     }
-    let settled = false;
-    const finish = (result: WorkerResult, terminate: boolean): void => {
-      if (settled) return;
-      settled = true;
-      clearTimeout(timeout);
-      worker.removeAllListeners();
-      if (terminate) {
-        void worker.terminate().finally(() => resolve(result));
-        return;
-      }
-      resolve(result);
-    };
-    const timeout = setTimeout(() => {
-      finish(
-        {
-          ok: false,
-          code: "TREESITTER_ANALYSIS_TIMEOUT",
-          message: `Tree-sitter analysis exceeded ${ANALYSIS_TIMEOUT_MS} ms.`,
-        },
-        true,
-      );
-    }, ANALYSIS_TIMEOUT_MS);
-    worker.once("message", (result: WorkerResult) => finish(result, true));
-    worker.once("error", (error: Error) =>
-      finish(
-        {
-          ok: false,
-          code: "TREESITTER_WORKER_ERROR",
-          message: error.message,
-        },
-        true,
-      ),
-    );
-    worker.once("exit", (code: number) => {
-      if (!settled) {
+    const remaining = deadline - Date.now();
+    if (remaining <= 0) {
+      this.release(pooled, true);
+      return timeoutResult();
+    }
+    return new Promise((resolve) => {
+      const { worker } = pooled;
+      const id = this.nextId++;
+      let settled = false;
+      const finish = (result: WorkerResult, healthy: boolean): void => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        worker.off("message", onMessage);
+        worker.off("error", onError);
+        worker.off("exit", onExit);
+        this.release(pooled, healthy);
+        resolve(result);
+      };
+      const onMessage = (reply: WorkerReply): void => {
+        if (reply?.id === id) finish(reply.result, true);
+      };
+      const onError = (error: Error): void =>
+        finish(
+          {
+            ok: false,
+            code: "TREESITTER_WORKER_ERROR",
+            message: error.message,
+          },
+          false,
+        );
+      const onExit = (code: number): void =>
         finish(
           {
             ok: false,
@@ -303,28 +313,90 @@ function withinWorker(
           },
           false,
         );
-      }
+      const timer = setTimeout(() => finish(timeoutResult(), false), remaining);
+      worker.on("message", onMessage);
+      worker.on("error", onError);
+      worker.on("exit", onExit);
+      worker.ref();
+      worker.postMessage({
+        id,
+        language,
+        content,
+        performanceTimingEnabled: process.env.KIBI_PERF_TIMINGS === "1",
+      });
     });
-  });
+  }
+
+  private async acquire(): Promise<PooledWorker | undefined> {
+    const idle = this.idle.pop();
+    if (idle !== undefined) return idle;
+    if (this.live < this.size) return this.spawn();
+    return new Promise((resolve) => this.waiters.push(resolve));
+  }
+
+  private spawn(): PooledWorker | undefined {
+    try {
+      const worker = new Worker(
+        new URL("./analysis-worker.js", import.meta.url),
+        {
+          execArgv: [],
+          resourceLimits: {
+            maxOldGenerationSizeMb: 64,
+            maxYoungGenerationSizeMb: 16,
+            stackSizeMb: 4,
+          },
+        },
+      );
+      const pooled: PooledWorker = { worker, uses: 0 };
+      // Swallow late errors from a worker that is being discarded.
+      worker.on("error", () => {});
+      // A worker that dies while idle must not be handed out again. Busy
+      // workers are discarded by the request that observes their exit.
+      worker.once("exit", () => {
+        const index = this.idle.indexOf(pooled);
+        if (index < 0) return;
+        this.idle.splice(index, 1);
+        this.live -= 1;
+      });
+      this.live += 1;
+      return pooled;
+    } catch {
+      return undefined;
+    }
+  }
+
+  private release(pooled: PooledWorker, healthy: boolean): void {
+    pooled.uses += 1;
+    if (!healthy || pooled.uses >= MAX_ANALYSES_PER_WORKER) {
+      this.live -= 1;
+      void pooled.worker.terminate().catch(() => {});
+      const waiter = this.waiters.shift();
+      if (waiter !== undefined) waiter(this.spawn());
+      return;
+    }
+    const waiter = this.waiters.shift();
+    if (waiter !== undefined) {
+      waiter(pooled);
+      return;
+    }
+    pooled.worker.unref();
+    this.idle.push(pooled);
+  }
 }
 
-function createConcurrencyLimiter(
-  limit: number,
-): <T>(task: () => Promise<T>) => Promise<T> {
-  let active = 0;
-  const waiters: Array<() => void> = [];
-  return async <T>(task: () => Promise<T>): Promise<T> => {
-    while (active >= limit) {
-      await new Promise<void>((resolve) => waiters.push(resolve));
-    }
-    active += 1;
-    try {
-      return await task();
-    } finally {
-      active -= 1;
-      waiters.shift()?.();
-    }
+function timeoutResult(): WorkerFailure {
+  return {
+    ok: false,
+    code: "TREESITTER_ANALYSIS_TIMEOUT",
+    message: "Tree-sitter analysis exceeded its analysis budget.",
   };
+}
+
+/** Clamp a host-granted budget to the provider's own ceiling. */
+function analysisBudgetMs(requested: number | undefined): number {
+  return requested !== undefined && Number.isFinite(requested) && requested > 0
+    ? Math.min(requested, ANALYSIS_TIMEOUT_MS)
+    : ANALYSIS_TIMEOUT_MS;
 }
 
 /**
@@ -333,9 +405,7 @@ function createConcurrencyLimiter(
  */
 // implements REQ-source-analysis-v2
 export function createTreeSitterSymbolExtractor(): SymbolExtractorV2 {
-  const withConcurrencyLimit = createConcurrencyLimiter(
-    MAX_CONCURRENT_ANALYSES,
-  );
+  const pool = new TreeSitterWorkerPool(workerPoolSize());
   return {
     id: EXTRACTOR_ID,
     supports(input: SymbolExtractorV2SupportsInput): boolean {
@@ -344,6 +414,9 @@ export function createTreeSitterSymbolExtractor(): SymbolExtractorV2 {
     async analyze(
       input: SymbolExtractorV2AnalyzeInput,
     ): Promise<SourceAnalysisResultV2> {
+      // The budget starts when the host calls, so time spent waiting for a
+      // pooled worker counts against it.
+      const deadline = Date.now() + analysisBudgetMs(input.timeoutMs);
       const explicitLanguage = input.language?.trim();
       const language = resolveLanguage(input);
       if (language === undefined) {
@@ -390,9 +463,7 @@ export function createTreeSitterSymbolExtractor(): SymbolExtractorV2 {
         );
       }
 
-      const result = await withConcurrencyLimit(() =>
-        withinWorker(language, input.content),
-      );
+      const result = await pool.analyze(language, input.content, deadline);
       if (!result.ok) {
         return fallbackResult(
           input,

@@ -111,16 +111,22 @@ export function createBuiltinTsMorphSymbolExtractor(): SymbolExtractorV1 {
         },
       );
 
-      return {
-        sourceFile: input.path,
-        language: inferSourceLanguage(input.path),
-        module: {
-          title: inferModuleTitle(input.path),
+      try {
+        return {
+          sourceFile: input.path,
           language: inferSourceLanguage(input.path),
-          analysisMode: "parser",
-        },
-        symbols: collectSourceSymbols(sourceFile),
-      };
+          module: {
+            title: inferModuleTitle(input.path),
+            language: inferSourceLanguage(input.path),
+            analysisMode: "parser",
+          },
+          symbols: collectSourceSymbols(sourceFile),
+        };
+      } finally {
+        // Analysis is per file and purely syntactic; keeping files would grow
+        // the project without bound in a long-running daemon.
+        getProject().removeSourceFile(sourceFile);
+      }
     },
   };
 }
@@ -173,24 +179,25 @@ export function createBuiltinTsMorphSymbolExtractorV2(): SymbolExtractorV2 {
         };
       }
 
+      let sourceFile: SourceFile | undefined;
       try {
-        const sourceFile = getProject().createSourceFile(
-          input.path,
-          input.content,
-          { overwrite: true, scriptKind },
-        );
-        const diagnostics = sourceFile
+        sourceFile = getProject().createSourceFile(input.path, input.content, {
+          overwrite: true,
+          scriptKind,
+        });
+        const analyzed = sourceFile;
+        const diagnostics = analyzed
           .getProject()
           .getProgram()
-          .getSyntacticDiagnostics(sourceFile)
+          .getSyntacticDiagnostics(analyzed)
           .map((diagnostic) => {
             const start = diagnostic.getStart();
             const length = diagnostic.getLength();
             const range =
               start === undefined
-                ? wholeSourceRange(sourceFile, input.content)
+                ? wholeSourceRange(analyzed, input.content)
                 : sourceRangeAtOffsets(
-                    sourceFile,
+                    analyzed,
                     input.content,
                     start,
                     start + (length ?? 0),
@@ -211,7 +218,7 @@ export function createBuiltinTsMorphSymbolExtractorV2(): SymbolExtractorV2 {
           sourceFile: input.path,
           language,
           module,
-          symbols: collectSourceSymbols(sourceFile, true),
+          symbols: collectSourceSymbols(analyzed, true),
           diagnostics,
           uncoveredRanges: diagnostics.map(({ range, code }) => ({
             ...range,
@@ -238,6 +245,8 @@ export function createBuiltinTsMorphSymbolExtractorV2(): SymbolExtractorV2 {
           ],
           uncoveredRanges: [],
         };
+      } finally {
+        if (sourceFile) getProject().removeSourceFile(sourceFile);
       }
     },
   };

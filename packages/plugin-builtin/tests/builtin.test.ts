@@ -4,7 +4,7 @@ import {
   validateSourceAnalysisResult,
   validateSourceAnalysisResultV2,
 } from "kibi-plugin-sdk";
-import { FunctionDeclaration } from "ts-morph";
+import { FunctionDeclaration, Project } from "ts-morph";
 import {
   collectGranularityCandidates,
   createBuiltinTsMorphSymbolExtractor,
@@ -22,6 +22,43 @@ afterEach(() => {
 
 // executable_for TEST-capability-plugin-builtin-parity-v1
 describe("kibi-plugin-builtin", () => {
+  test("v1 and v2 extractors do not retain analyzed files between calls", async () => {
+    const projects = new Set<Project>();
+    const createSourceFile = Project.prototype.createSourceFile;
+    const spy = spyOn(Project.prototype, "createSourceFile").mockImplementation(
+      function (
+        this: Project,
+        ...args: Parameters<Project["createSourceFile"]>
+      ) {
+        projects.add(this);
+        return createSourceFile.apply(this, args);
+      },
+    );
+    spies.push(spy);
+    const v1 = createBuiltinTsMorphSymbolExtractor();
+    const v2 = createBuiltinTsMorphSymbolExtractorV2();
+    for (let index = 0; index < 8; index += 1) {
+      const input = {
+        path: `src/file-${index}.ts`,
+        content: `export function f${index}() {}\n`,
+      };
+      expect(v1.analyze(input).symbols.map((s) => s.name)).toEqual([
+        `f${index}`,
+      ]);
+      const result = await v2.analyze(input);
+      expect(result.status).toBe("ok");
+      expect(result.symbols.map((s) => s.name)).toEqual([`f${index}`]);
+    }
+    const broken = await v2.analyze({
+      path: "src/broken.ts",
+      content: "export function (",
+    });
+    expect(broken.status).toBe("partial");
+    expect(projects.size).toBe(2);
+    for (const project of projects)
+      expect(project.getSourceFiles()).toEqual([]);
+  }, 30_000);
+
   // executable_for TEST-capability-plugin-builtin-parity-v1
   test("plugin validates against kibi-plugin-sdk", () => {
     const validated = validateKibiPlugin(kibiPlugin);

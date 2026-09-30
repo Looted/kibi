@@ -6,6 +6,7 @@ import {
 } from "../../plugins/maintenance-source-analysis.js";
 import { analyzeSourceChanges } from "../../plugins/source-change-analysis.js";
 import type { SourceChangeAnalysis } from "../../plugins/source-change-analysis.js";
+import { analysisObligation } from "../../traceability/analysis-gate.js";
 import {
   captureDiffSnapshot,
   captureStagedSnapshot,
@@ -268,7 +269,8 @@ function residualReviewObligations(
     for (const side of ["before", "after"] as const) {
       const analysis = file[side]?.analysis;
       if (!analysis) continue;
-      if (analysis.status === "unsupported") {
+      const obligation = analysisObligation(side, analysis, file.newHunkRanges);
+      if (obligation.kind === "unsupported_review") {
         obligations.push({
           path: file.path,
           side,
@@ -280,7 +282,7 @@ function residualReviewObligations(
         });
         continue;
       }
-      if (analysis.status !== "partial") continue;
+      if (obligation.kind !== "partial_review") continue;
       const limitationClasses = new Set<string>();
       for (const code of analysis.diagnosticCodes) {
         const allowed = prepared.policy.allowedPartial.find(
@@ -303,7 +305,7 @@ function residualReviewObligations(
         diagnosticCodes: [...analysis.diagnosticCodes].sort(),
         kind: "partial_review",
         limitationClass,
-        ranges: analysis.uncoveredRanges.map((range) => ({ ...range })),
+        ranges: obligation.ranges.map((range) => ({ ...range })),
         pending: true,
       });
     }

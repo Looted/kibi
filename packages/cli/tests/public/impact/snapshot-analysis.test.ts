@@ -82,9 +82,12 @@ test("public staged impact scopes deleted source analysis to selected paths", as
     "selected",
   ]);
 
-  await expect(
-    analyzeChangedFileImpact({ workspaceRoot: f.root, staged: true }),
-  ).rejects.toThrow("Incomplete source analysis for bad.ts");
+  // Deleting a malformed file cannot be blocked by its committed side.
+  const all = await analyzeChangedFileImpact({
+    workspaceRoot: f.root,
+    staged: true,
+  });
+  expect(all.sourceFiles).toEqual(["bad.ts", "good.ts"]);
 });
 
 test("public staged impact scopes malformed added source analysis to selected paths", async () => {
@@ -105,7 +108,7 @@ test("public staged impact scopes malformed added source analysis to selected pa
 
   await expect(
     analyzeChangedFileImpact({ workspaceRoot: f.root, staged: true }),
-  ).rejects.toThrow("Incomplete source analysis for bad.ts");
+  ).rejects.toThrow("Source analysis partial for bad.ts");
 });
 
 test("public staged impact analyzes the previous side of a selected deletion", async () => {
@@ -117,13 +120,15 @@ test("public staged impact analyzes the previous side of a selected deletion", a
   f.git("commit", "-m", "malformed source baseline");
   f.git("rm", "bad.ts");
 
-  await expect(
-    analyzeChangedFileImpact({
-      workspaceRoot: f.root,
-      staged: true,
-      sourceFiles: ["bad.ts"],
-    }),
-  ).rejects.toThrow("Incomplete source analysis for bad.ts");
+  // The previous side is analyzed and reported, but as historical evidence it
+  // never blocks the deletion that removes it.
+  const result = await analyzeChangedFileImpact({
+    workspaceRoot: f.root,
+    staged: true,
+    sourceFiles: ["bad.ts"],
+  });
+  expect(result.sourceFiles).toEqual(["bad.ts"]);
+  expect(result.extractedSymbols).toEqual([]);
 });
 
 test("Python indentation changes remain source changes and shell syntax in filenames stays literal", () => {

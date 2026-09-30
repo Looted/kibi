@@ -33,6 +33,7 @@ import {
 import {
   type SourceChangeAnalysis,
   analyzeSourceChanges,
+  assertSourceAnalysisGate,
 } from "../plugins/source-change-analysis.js";
 import { PrologProcess } from "../prolog.js";
 import {
@@ -748,19 +749,12 @@ export async function checkCommand(
         }
         const impactPolicyEnabled =
           stagedInventory.length > 0 && hasValidBaseImpactPolicy(snapshot);
-        // Only the staged (after) version can be corrected by the author; the
-        // committed (before) side is historical, so a broken baseline must not
-        // block the change that fixes it.
-        for (const analysis of sourceAnalysis.values()) {
-          const side = analysis.after;
-          if (
-            side?.status === "failed" ||
-            (side?.status === "partial" && !impactPolicyEnabled)
-          )
-            throw new Error(
-              `Source analysis ${side.status} for ${analysis.path}: ${side.diagnostics.map((d) => d.message).join("; ")}`,
-            );
-        }
+        // One rule decides which analysis gaps block (see analysis-gate): the
+        // committed side never blocks, and an after-side local gap blocks only
+        // where it overlaps the staged lines. With a policy, the impact review
+        // evaluates the same obligations and accepts reviewed partial gaps.
+        if (!impactPolicyEnabled)
+          assertSourceAnalysisGate(stagedInventory, sourceAnalysis);
         if (impactPolicyEnabled) {
           const impactEvaluation = evaluateImpactReview(snapshot, {
             providerSetFingerprint: fingerprintMaintenanceSourceSet(

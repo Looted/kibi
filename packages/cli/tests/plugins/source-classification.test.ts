@@ -1,5 +1,7 @@
 // executable_for TEST-source-analysis-v2-contract
 import { describe, expect, test } from "bun:test";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import {
   createBuiltinTsMorphSymbolExtractor,
   createBuiltinTsMorphSymbolExtractorV2,
@@ -16,7 +18,13 @@ import type {
 } from "../../src/plugins/registry.js";
 import { CapabilityRegistry } from "../../src/plugins/registry.js";
 import { SourceAnalysisService } from "../../src/plugins/source-analysis-service.js";
-import { classifySource } from "../../src/plugins/source-classification.js";
+import {
+  classifiedExtensions,
+  classifySource,
+  extensionLanguage,
+  isQualifiedSourcePath,
+  isTsJsSourcePath,
+} from "../../src/plugins/source-classification.js";
 
 function result(input: SymbolExtractorV2AnalyzeInput): SourceAnalysisResultV2 {
   const language = input.language ?? "unknown";
@@ -233,10 +241,12 @@ describe("deterministic source classification", () => {
       path: "scripts/run",
       language: "python",
     });
+    // The host grants a budget just under its default 10 s deadline.
     expect(analyzeInputs[0]).toEqual({
       path: "scripts/run",
       content: pythonContent,
       language: "python",
+      timeoutMs: 9000,
     });
 
     const header = await service.analyzeTextV2(
@@ -298,7 +308,7 @@ describe("deterministic source classification", () => {
     expect(custom.providerId).toBe("generic-custom-file-extractor");
     expect(unknownSupports).toEqual([{ path: "data/sample.custom" }]);
     expect(unknownAnalyzes).toEqual([
-      { path: "data/sample.custom", content: "opaque" },
+      { path: "data/sample.custom", content: "opaque", timeoutMs: 9000 },
     ]);
   });
 
@@ -340,5 +350,69 @@ describe("deterministic source classification", () => {
       true,
     );
     expect(analysis.providerId).toBe(v2.id);
+  });
+});
+
+// The published catalog is the provider's claim of which extensions it parses.
+const TREE_SITTER_LANGUAGES = Object.fromEntries(
+  (
+    JSON.parse(
+      readFileSync(
+        resolve(import.meta.dir, "../../../plugin-treesitter/catalog.json"),
+        "utf8",
+      ),
+    ) as { languages: { id: string; extensions: string[] }[] }
+  ).languages.map((entry) => [entry.id, { extensions: entry.extensions }]),
+);
+
+describe("single extension table", () => {
+  test("every Tree-sitter catalog extension classifies to the catalog language or is withheld as file-level", () => {
+    for (const [language, entry] of Object.entries(TREE_SITTER_LANGUAGES)) {
+      for (const extension of entry.extensions) {
+        const classification = classifySource(`file${extension}`, "");
+        if (classification.kind === "file-level") continue;
+        expect({ extension, language: classification.language }).toEqual({
+          extension,
+          language,
+        });
+      }
+    }
+  });
+
+  test("every host language with a Tree-sitter grammar lists its extension in the catalog", () => {
+    const catalog: Readonly<
+      Record<string, { extensions: readonly string[] } | undefined>
+    > = TREE_SITTER_LANGUAGES;
+    for (const extension of classifiedExtensions()) {
+      const classification = classifySource(`file${extension}`, "");
+      if (classification.kind !== "language") continue;
+      const entry = catalog[classification.language];
+      if (!entry) continue;
+      expect(entry.extensions).toContain(extension);
+    }
+  });
+
+  test("the builtin ts-morph extractor supports exactly the TypeScript and JavaScript extensions", () => {
+    const extractor = createBuiltinTsMorphSymbolExtractor();
+    for (const extension of classifiedExtensions()) {
+      const path = `file${extension}`;
+      expect({ extension, supported: extractor.supports({ path }) }).toEqual({
+        extension,
+        supported: isTsJsSourcePath(path),
+      });
+    }
+  });
+
+  test("labels, TS/JS routing and qualified-source routing derive from the same table", () => {
+    expect(extensionLanguage("a/b.PYI")).toBe("python");
+    expect(extensionLanguage("main.tf")).toBe("terraform");
+    expect(extensionLanguage("x.h")).toBe("c-or-cpp");
+    expect(extensionLanguage("README")).toBe("unknown");
+    expect(isTsJsSourcePath("src/a.mts")).toBe(true);
+    expect(isTsJsSourcePath("src/a.py")).toBe(false);
+    expect(isQualifiedSourcePath("src/a.pyi")).toBe(true);
+    expect(isQualifiedSourcePath("src/a.rs")).toBe(true);
+    expect(isQualifiedSourcePath("src/a.java")).toBe(false);
+    expect(isQualifiedSourcePath("src/a.json")).toBe(false);
   });
 });

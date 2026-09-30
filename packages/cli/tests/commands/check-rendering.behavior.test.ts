@@ -457,71 +457,90 @@ Body.
   });
 
   // implements REQ-impact-policy-stage-e-content-bound-review
-  test("keeps partial source analysis blocking until a base impact policy enables review", async () => {
-    const cwd = prepareWorkspace();
-    const entry = stagedPath({
-      path: "src/partial.py",
-      content: "def handler():\n    return True\n",
-      analysisDepth: "file",
-    });
-    stageInventory(cwd, [entry]);
-    const partialResult: HostSourceAnalysisResultV2 = {
-      sourceFile: entry.path,
-      language: "python",
-      module: {
-        title: "partial module",
+  test.each([
+    { label: "overlaps", startLine: 2, endLine: 2, blocks: true },
+    { label: "does not overlap", startLine: 9, endLine: 12, blocks: false },
+  ])(
+    "without an impact policy, a local after-side gap blocks only when it $label the staged lines",
+    async ({ startLine, endLine, blocks }) => {
+      const cwd = prepareWorkspace();
+      const entry = stagedPath({
+        path: "src/partial.py",
+        content: "def handler():\n    return True\n",
+        analysisDepth: "file",
+      });
+      stageInventory(cwd, [entry]);
+      const partialResult: HostSourceAnalysisResultV2 = {
+        sourceFile: entry.path,
         language: "python",
-        analysisMode: "parser",
-      },
-      contractVersion: "kibi.symbol-extractor.v2",
-      status: "partial",
-      symbols: [],
-      diagnostics: [
-        {
-          code: "known_partial",
-          message: "The provider reported a known structural limitation.",
+        module: {
+          title: "partial module",
+          language: "python",
+          analysisMode: "parser",
         },
-      ],
-      uncoveredRanges: [],
-      providerId: "fixture.python.partial",
-      stamp: null,
-      inputFingerprint: "a".repeat(64),
-      providerFingerprint: "b".repeat(64),
-      shadowComparisons: [],
-    };
-    const sourceAnalysisResult = spyOn(
-      sourceChangeAnalysis,
-      "analyzeSourceChanges",
-    ).mockResolvedValue(
-      new Map([
-        [entry.path, { path: entry.path, before: null, after: partialResult }],
-      ]),
-    );
-    const analyzeCoverage = spyOn(
-      stagedCoverageModule,
-      "analyzeStagedFileCoverage",
-    ).mockReturnValue(emptyCoverage([entry]) as never);
-    restores.push(() => {
-      sourceAnalysisResult.mockRestore();
-      analyzeCoverage.mockRestore();
-    });
-    const io = captureIo();
-    restores.push(io.restore);
+        contractVersion: "kibi.symbol-extractor.v2",
+        status: "partial",
+        symbols: [],
+        diagnostics: [
+          {
+            code: "known_partial",
+            message: "The provider reported a known structural limitation.",
+          },
+        ],
+        uncoveredRanges: [
+          {
+            startLine,
+            startColumn: 0,
+            endLine,
+            endColumn: 1,
+            reason: "decorator-expansion-unavailable",
+          },
+        ],
+        providerId: "fixture.python.partial",
+        stamp: null,
+        inputFingerprint: "a".repeat(64),
+        providerFingerprint: "b".repeat(64),
+        shadowComparisons: [],
+      };
+      const sourceAnalysisResult = spyOn(
+        sourceChangeAnalysis,
+        "analyzeSourceChanges",
+      ).mockResolvedValue(
+        new Map([
+          [
+            entry.path,
+            { path: entry.path, before: null, after: partialResult },
+          ],
+        ]),
+      );
+      const analyzeCoverage = spyOn(
+        stagedCoverageModule,
+        "analyzeStagedFileCoverage",
+      ).mockReturnValue(emptyCoverage([entry]) as never);
+      restores.push(() => {
+        sourceAnalysisResult.mockRestore();
+        analyzeCoverage.mockRestore();
+      });
+      const io = captureIo();
+      restores.push(io.restore);
 
-    const result = await withCwd(cwd, () =>
-      checkCommand({
-        staged: true,
-        format: "json",
-        kbPath: path.join(cwd, "kb-store"),
-      }),
-    );
+      await withCwd(cwd, () =>
+        checkCommand({
+          staged: true,
+          format: "json",
+          kbPath: path.join(cwd, "kb-store"),
+        }),
+      );
 
-    expect(result.exitCode).toBe(1);
-    const output = JSON.parse(io.logText());
-    expect(output.structuredContent.operationalError).toContain(
-      "Source analysis partial for src/partial.py",
-    );
-  });
+      if (blocks)
+        expect(
+          JSON.parse(io.logText()).structuredContent.operationalError,
+        ).toContain(
+          "Source analysis partial for src/partial.py where the staged change touches uncovered lines (2-2)",
+        );
+      else expect(io.logText()).not.toContain("Source analysis partial");
+    },
+  );
 
   // implements REQ-impact-policy-stage-e-content-bound-review
   test("does not block a staged fix because the committed side analyzes as partial", async () => {

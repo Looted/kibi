@@ -2319,7 +2319,7 @@ async function runInstalledImpactPolicyWorkflow(
     );
     assert.match(
       outputOf(malformedPreparation),
-      /Non-waivable parser, provider, timeout, integrity, or syntax diagnostic/i,
+      /a parser, syntax, timeout or integrity diagnostic affects the whole file/i,
       "syntax-derived partial output must remain non-waivable under the explicit unsupported-review policy",
     );
 

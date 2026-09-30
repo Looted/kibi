@@ -129,8 +129,12 @@ package files still have to match the host approval.
 ## Source analysis v2
 
 An extractor exports `symbolExtractorV2` with `supports({ path, language })` and
-an asynchronous `analyze({ path, content })`. The input is supplied snapshot text;
-providers must not substitute working-tree contents. Results carry
+an asynchronous `analyze({ path, content, timeoutMs })`. The input is supplied
+snapshot text; providers must not substitute working-tree contents. The host owns
+the analysis deadline: `timeoutMs` is the budget it grants, set slightly below its
+own deadline, so a provider should return a `failed` result with its own timeout
+diagnostic before the budget elapses. The host abandons calls that outlive its
+deadline. Results carry
 `contractVersion: "kibi.symbol-extractor.v2"` and one status:
 
 | Status | Meaning |
@@ -139,6 +143,12 @@ providers must not substitute working-tree contents. Results carry
 | `partial` | Some declarations were recovered; diagnostics and uncovered ranges explain uncertainty. |
 | `unsupported` | The provider cannot analyze this input; no symbol evidence is returned. |
 | `failed` | Operational or validation failure; no successful symbol evidence is returned. |
+
+Only after-side gaps the author can act on block a change. The committed (before)
+side is informational. On the staged side, `failed` and non-local diagnostics
+(syntax, parse, timeout, integrity) always block, because a removed brace can
+surface far from the edited lines. A local limitation, such as a Rust macro or a
+Python decorator, matters only when its uncovered range overlaps a changed line.
 
 Positions are one-based lines and zero-based UTF-16 columns, with exclusive ends.
 The host validates bounds against original content, including CRLF and non-BMP
@@ -162,7 +172,9 @@ Go and Rust. Declare the exact qualified release as a project dependency and add
 
 The package contains grammar WASM, queries, notices and integrity metadata. Analysis
 does not download parsers, start language servers or execute consumer build tools.
-Its worker deadline and resource limits contain parser failures; they are not a
+It keeps a small pool of persistent workers that load each grammar once; a
+worker that times out or fails is discarded and replaced. Its deadline and
+resource limits contain parser failures; they are not a
 sandbox for arbitrary plugin JavaScript. After a reviewed package rebuild,
 `node scripts/qualify-source-analyzers.mjs --write` records its exact runtime
 closure; the command without `--write` verifies it. CI and packing must pass

@@ -132,3 +132,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e4d195a1e679
+  - type: implements
+    from: SYM-source-analysis-v2-providerbudgetms
+    to: REQ-source-analysis-v2
+    created_at: 2026-09-30T15:21:41.951Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-24284160cee3
+  - type: covered_by
+    from: SYM-source-analysis-v2-providerbudgetms
+    to: TEST-source-analysis-v2-contract
+    created_at: 2026-09-30T15:21:41.963Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fdd08d6aaa6c

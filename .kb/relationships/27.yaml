@@ -104,3 +104,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-73892f77b266
+  - type: implements
+    from: SYM-impact-stage-e-blobbytes
+    to: REQ-impact-policy-stage-e-content-bound-review
+    created_at: 2026-09-30T15:22:40.342Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-44d184f08076
+  - type: covered_by
+    from: SYM-impact-stage-e-blobbytes
+    to: TEST-impact-policy-stage-e-installed-e2e
+    created_at: 2026-09-30T15:22:40.351Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1f286232adf2
+  - type: implements
+    from: SYM-impact-stage-e-exactpathprojection
+    to: REQ-impact-policy-stage-e-content-bound-review
+    created_at: 2026-09-30T15:23:44.128Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9f4f35c81007
+  - type: covered_by
+    from: SYM-impact-stage-e-exactpathprojection
+    to: TEST-impact-policy-stage-e-installed-e2e
+    created_at: 2026-09-30T15:23:44.139Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b00af090d0b8

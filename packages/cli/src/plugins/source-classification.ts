@@ -121,6 +121,48 @@ const EXTENSIONS: Readonly<Record<string, ExtensionSignal>> = {
   },
 };
 
+/** Languages whose declarations the host analyzes with a qualified parser. */
+const QUALIFIED_SOURCE_LANGUAGES = new Set([
+  "typescript",
+  "javascript",
+  "python",
+  "go",
+  "rust",
+]);
+
+/**
+ * Extension-only language label for a path, or "unknown". This is the single
+ * extension table; callers that need content-aware classification (shebangs,
+ * explicit hints, ambiguity) must use classifySource instead.
+ */
+// implements REQ-source-analysis-v2
+export function extensionLanguage(filePath: string): string {
+  return EXTENSIONS[extensionOf(filePath)]?.language ?? "unknown";
+}
+
+/** True for TypeScript/JavaScript paths handled by the ts-morph analyzer. */
+// implements REQ-source-analysis-v2
+export function isTsJsSourcePath(filePath: string): boolean {
+  const language = extensionLanguage(filePath);
+  return language === "typescript" || language === "javascript";
+}
+
+/** True for paths whose language has qualified declaration analysis. */
+// implements REQ-source-analysis-v2
+export function isQualifiedSourcePath(filePath: string): boolean {
+  const signal = EXTENSIONS[extensionOf(filePath)];
+  return (
+    signal?.kind === "language" &&
+    QUALIFIED_SOURCE_LANGUAGES.has(signal.language)
+  );
+}
+
+/** Every classified extension, for parity checks against provider catalogs. */
+// implements REQ-source-analysis-v2
+export function classifiedExtensions(): readonly string[] {
+  return Object.keys(EXTENSIONS).sort();
+}
+
 const FILE_LEVEL_LANGUAGES = new Set([
   "css",
   "html",

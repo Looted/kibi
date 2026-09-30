@@ -265,3 +265,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5654cd1edd6d
+  - type: implements
+    from: SYM-impact-stage-e-entriesfortree
+    to: REQ-impact-policy-stage-e-content-bound-review
+    created_at: 2026-09-30T15:22:45.276Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0cbeed1f68b4
+  - type: covered_by
+    from: SYM-impact-stage-e-entriesfortree
+    to: TEST-impact-policy-stage-e-installed-e2e
+    created_at: 2026-09-30T15:22:45.292Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-28248b46b573

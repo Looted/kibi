@@ -1,6 +1,7 @@
 import { execFileSync, execSync } from "node:child_process";
 import { existsSync, lstatSync, readFileSync, realpathSync } from "node:fs";
 import * as path from "node:path";
+import { isQualifiedSourcePath } from "../../plugins/source-classification.js";
 import type { HunkRange } from "../../traceability/git-staged.js";
 import {
   getStagedFiles,
@@ -9,23 +10,8 @@ import {
 import { hasMeaningfulSourceDiff } from "./diff-meaning.js";
 import type { ChangedFileImpactOptions, SourceChange } from "./types.js";
 
-const SOURCE_EXTENSIONS = new Set([
-  ".ts",
-  ".tsx",
-  ".js",
-  ".jsx",
-  ".mts",
-  ".cts",
-  ".mjs",
-  ".cjs",
-  ".py",
-  ".pyi",
-  ".go",
-  ".rs",
-]);
-
 function isSupportedSourcePath(filePath: string): boolean {
-  return SOURCE_EXTENSIONS.has(path.extname(filePath));
+  return isQualifiedSourcePath(filePath);
 }
 
 export function normalizeSourceFile(

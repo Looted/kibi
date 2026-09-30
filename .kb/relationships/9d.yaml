@@ -220,3 +220,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a76f32b53bd1
+  - type: implements
+    from: SYM-impact-stage-e-treeentry
+    to: REQ-impact-policy-stage-e-content-bound-review
+    created_at: 2026-09-30T15:22:50.383Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-84f91fc86eaa
+  - type: covered_by
+    from: SYM-impact-stage-e-treeentry
+    to: TEST-impact-policy-stage-e-installed-e2e
+    created_at: 2026-09-30T15:22:50.396Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-95a7240af9e3

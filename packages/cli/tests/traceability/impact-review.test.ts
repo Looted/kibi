@@ -21,7 +21,6 @@ import {
   createImpactReviewRecord,
   evaluateImpactReview,
   fingerprintImpactEvaluator,
-  fingerprintImpactSchemaFiles,
   hasValidBaseImpactPolicy,
   loadBaseImpactPolicy,
   prepareImpactReview,
@@ -357,61 +356,17 @@ describe("content-bound file impact review", () => {
     ).toBe(true);
   });
 
-  test("evaluator closure binds the entity normalization schema", () => {
-    const root = mkdtempSync(join(tmpdir(), "kibi-impact-schema-closure-"));
-    roots.push(root);
-    const srcTraceability = join(root, "src/traceability");
-    const srcSchemas = join(root, "src/schemas");
-    const distSchemas = join(root, "dist/schemas");
-    for (const directory of [srcTraceability, srcSchemas, distSchemas])
-      mkdirSync(directory, { recursive: true });
-    writeFileSync(
-      join(srcTraceability, "impact-policy.v1.schema.json"),
-      "{}\n",
-    );
-    writeFileSync(join(srcTraceability, "impact-review.schema.json"), "{}\n");
-    writeFileSync(
-      join(srcSchemas, "entity.schema.json"),
-      '{"title":"before"}\n',
-    );
-    writeFileSync(
-      join(distSchemas, "entity.schema.json"),
-      '{"title":"before"}\n',
-    );
-    const before = fingerprintImpactSchemaFiles([
-      {
-        label: "src",
-        traceabilityDirectory: srcTraceability,
-        schemaDirectory: srcSchemas,
-      },
-      {
-        label: "dist",
-        schemaDirectory: distSchemas,
-      },
-    ]);
-    writeFileSync(
-      join(distSchemas, "entity.schema.json"),
-      '{"title":"after"}\n',
-    );
-    const after = fingerprintImpactSchemaFiles([
-      {
-        label: "src",
-        traceabilityDirectory: srcTraceability,
-        schemaDirectory: srcSchemas,
-      },
-      {
-        label: "dist",
-        schemaDirectory: distSchemas,
-      },
-    ]);
-    expect(
-      after.find((row) => row.path === "dist/schemas/entity.schema.json")
-        ?.sha256,
-    ).not.toBe(
-      before.find((row) => row.path === "dist/schemas/entity.schema.json")
-        ?.sha256,
-    );
-    expect(fingerprintImpactEvaluator()).toMatch(/^sha256:[0-9a-f]{64}$/);
+  test("evaluator identity is a stable contract value, independent of install layout and Node version", () => {
+    const first = fingerprintImpactEvaluator();
+    expect(first).toMatch(/^sha256:[0-9a-f]{64}$/);
+    expect(fingerprintImpactEvaluator()).toBe(first);
+    const nodeVersion = Object.getOwnPropertyDescriptor(process, "version");
+    try {
+      Object.defineProperty(process, "version", { value: "v0.0.0-other" });
+      expect(fingerprintImpactEvaluator()).toBe(first);
+    } finally {
+      if (nodeVersion) Object.defineProperty(process, "version", nodeVersion);
+    }
   });
 
   test("baseline -> missing review blocks -> still_current review passes without cosmetic knowledge edits", () => {
@@ -1248,7 +1203,9 @@ describe("content-bound file impact review", () => {
           providerSetFingerprint: providerSet,
           evaluatorFingerprint: evaluator,
         }),
-      ).toThrow("Non-waivable parser, provider, timeout, integrity, or syntax");
+      ).toThrow(
+        "a parser, syntax, timeout or integrity diagnostic affects the whole file",
+      );
     }
   });
 

@@ -67,9 +67,9 @@
         "gray-matter": "^4.0.3",
         "ignore": "^5.3.0",
         "js-yaml": "^4.1.0",
-        "kibi-core": "^0.13.5",
-        "kibi-plugin-builtin": "^0.3.1",
-        "kibi-plugin-sdk": "^0.3.1",
+        "kibi-core": "^0.13.0",
+        "kibi-plugin-builtin": "^0.2.0",
+        "kibi-plugin-sdk": "^0.2.0",
         "saxes": "^6.0.0",
         "yaml": "^2.9.0",
       },
@@ -165,7 +165,7 @@
       "name": "kibi-plugin-builtin",
       "version": "0.2.0",
       "dependencies": {
-        "kibi-plugin-sdk": "^0.3.0",
+        "kibi-plugin-sdk": "^0.2.0",
         "ts-morph": "^23.0.0",
       },
       "devDependencies": {
@@ -178,7 +178,7 @@
       "version": "0.2.0",
       "dependencies": {
         "@typesafe-ai/sdk": "^0.6.0",
-        "kibi-plugin-sdk": "^0.3.0",
+        "kibi-plugin-sdk": "^0.2.0",
       },
       "devDependencies": {
         "@types/node": "latest",
@@ -201,11 +201,11 @@
       },
       "devDependencies": {
         "@types/node": "25.9.8",
-        "kibi-plugin-sdk": "^0.3.0",
+        "kibi-plugin-sdk": "^0.2.0",
         "typescript": "^5.7.0",
       },
       "peerDependencies": {
-        "kibi-plugin-sdk": "^0.3.0",
+        "kibi-plugin-sdk": "^0.2.0 || ^0.3.0",
       },
     },
     "packages/runtime": {
@@ -213,9 +213,11 @@
       "version": "2.0.1",
       "dependencies": {
         "gray-matter": "^4.0.3",
-        "kibi-cli": "^2.5.0",
-        "kibi-core": "^0.13.5",
-        "kibi-plugin-builtin": "^0.3.1",
+        "kibi-core": "^0.13.0",
+        "kibi-plugin-builtin": "^0.2.0",
+      },
+      "devDependencies": {
+        "kibi-cli": "workspace:*",
       },
     },
     "packages/vscode": {

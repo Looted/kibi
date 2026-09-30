@@ -26,21 +26,14 @@ import {
   createSourceAnalysisService,
 } from "../plugins/source-analysis-service.js";
 import {
+  extensionLanguage,
+  isTsJsSourcePath,
+} from "../plugins/source-classification.js";
+import {
   type ManifestSymbolEntry,
   createTsMorphSourceAnalysisProvider,
   enrichSymbolCoordinatesWithTsMorph,
 } from "./symbols-ts.js";
-
-const TS_JS_EXTENSIONS = new Set([
-  ".ts",
-  ".tsx",
-  ".js",
-  ".jsx",
-  ".mts",
-  ".cts",
-  ".mjs",
-  ".cjs",
-]);
 
 export type { ManifestSymbolEntry };
 
@@ -107,31 +100,6 @@ interface EnrichSymbolCoordinatesDeps {
     analysis: Awaited<ReturnType<SourceAnalysisService["analyzeTextV2"]>>,
   ) => Promise<void>;
 }
-
-const SOURCE_LANGUAGE_EXTENSIONS: Record<string, string> = {
-  ".c": "c",
-  ".cc": "cpp",
-  ".cjs": "javascript",
-  ".cpp": "cpp",
-  ".cs": "csharp",
-  ".cts": "typescript",
-  ".go": "go",
-  ".h": "c",
-  ".hpp": "cpp",
-  ".java": "java",
-  ".js": "javascript",
-  ".jsx": "javascript",
-  ".kt": "kotlin",
-  ".mjs": "javascript",
-  ".mts": "typescript",
-  ".php": "php",
-  ".py": "python",
-  ".rb": "ruby",
-  ".rs": "rust",
-  ".swift": "swift",
-  ".ts": "typescript",
-  ".tsx": "typescript",
-};
 
 const DEFAULT_SOURCE_ANALYSIS_PROVIDERS: SourceAnalysisProvider[] = [
   createTsMorphSourceAnalysisProvider(),
@@ -299,7 +267,7 @@ export async function enrichSymbolCoordinates(
     if (!resolved || !fs.statSync(resolved.absolutePath).isFile()) continue;
 
     const ext = path.extname(resolved.absolutePath).toLowerCase();
-    if (TS_JS_EXTENSIONS.has(ext)) {
+    if (isTsJsSourcePath(resolved.absolutePath)) {
       tsIndices.push(index);
       tsEntries.push(entry);
       continue;
@@ -462,10 +430,7 @@ function createFallbackAnalysis(
 }
 
 function detectSourceLanguage(filePath: string): string {
-  return (
-    SOURCE_LANGUAGE_EXTENSIONS[path.extname(filePath).toLowerCase()] ??
-    "unknown"
-  );
+  return extensionLanguage(filePath);
 }
 
 function inferModuleTitle(filePath: string): string {
