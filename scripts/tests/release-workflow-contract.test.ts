@@ -1,5 +1,13 @@
 import { describe, expect, test } from "bun:test";
-import { readFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 const WORKFLOW_PATH = join(
@@ -34,6 +42,78 @@ function extractJobBlock(content: string, jobName: string): string {
   const match = nextJobRe.exec(content);
   const endIdx = match ? match.index : content.length;
   return content.slice(startIdx, endIdx);
+}
+
+// Execute the actual workflow step with npm and sleep isolated in a temp
+// workspace. The remaining Node metadata reads use the real executable.
+function verifyPublishedMetadata(workflowContent: string, responses: string[]) {
+  const block = extractJobBlock(workflowContent, "publish-mcp-registry");
+  const step = block.match(
+    /- name: Verify the published npm package has the registry name\n(?: {8}[^\n]*\n)*? {8}run: \|\n((?: {10}[^\n]*\n|\n)+)/,
+  );
+  if (!step?.[1]) throw new Error("npm verification step was not found");
+  const script = step[1].replace(/^ {10}/gm, "");
+  const root = mkdtempSync(join(tmpdir(), "kibi-registry-visibility-"));
+  try {
+    mkdirSync(join(root, "packages/mcp"), { recursive: true });
+    mkdirSync(join(root, "bin"));
+    writeFileSync(
+      join(root, "packages/mcp/package.json"),
+      JSON.stringify({
+        version: "2.1.1",
+        mcpName: "io.github.looted/kibi-mcp",
+      }),
+    );
+    writeFileSync(join(root, "responses"), responses.join("\n"));
+    writeFileSync(join(root, "attempts"), "0");
+    writeFileSync(join(root, "sleeps"), "");
+    writeFileSync(join(root, "arguments"), "");
+    writeFileSync(
+      join(root, "bin/npm"),
+      `#!/bin/bash
+set -eu
+attempt=$(cat attempts)
+attempt=$((attempt + 1))
+echo "$attempt" > attempts
+echo "$*" >> arguments
+response=$(sed -n "\${attempt}p" responses)
+case "$response" in
+  unavailable|"") echo 'npm error E404 No match found for version 2.1.1' >&2; exit 1 ;;
+  missing) exit 0 ;;
+  *) echo "$response" ;;
+esac
+`,
+      { mode: 0o755 },
+    );
+    writeFileSync(
+      join(root, "bin/sleep"),
+      '#!/bin/bash\necho "$*" >> sleeps\n',
+      {
+        mode: 0o755,
+      },
+    );
+    const result = spawnSync("bash", ["-e", "-c", script], {
+      cwd: root,
+      env: {
+        ...process.env,
+        PATH: `${join(root, "bin")}:${process.env.PATH}`,
+      },
+      encoding: "utf8",
+      timeout: 5000,
+    });
+    return {
+      status: result.status,
+      output: result.stdout + result.stderr,
+      attempts: Number(readFileSync(join(root, "attempts"), "utf8")),
+      sleeps: readFileSync(join(root, "sleeps"), "utf8")
+        .trim()
+        .split("\n")
+        .filter(Boolean),
+      arguments: readFileSync(join(root, "arguments"), "utf8"),
+    };
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
 }
 
 describe("publish.yml CI workflow contract", () => {
@@ -149,6 +229,56 @@ describe("publish.yml CI workflow contract", () => {
     expect(block).toContain("needs.publish.result == 'success'");
     expect(block).toContain("grep -Fxq 'mcp=kibi-mcp'");
     expect(block).toContain("id-token: write");
+  });
+
+  describe("published MCP npm metadata verification", () => {
+    test("accepts immediately visible metadata without waiting", () => {
+      const result = verifyPublishedMetadata(workflowContent, [
+        "io.github.looted/kibi-mcp",
+      ]);
+      expect(result.status).toBe(0);
+      expect(result.attempts).toBe(1);
+      expect(result.sleeps).toEqual([]);
+    });
+
+    test("waits for npm visibility after publication before accepting metadata", () => {
+      const result = verifyPublishedMetadata(workflowContent, [
+        "unavailable",
+        "unavailable",
+        "io.github.looted/kibi-mcp",
+      ]);
+      expect(result.status).toBe(0);
+      expect(result.attempts).toBe(3);
+      expect(result.sleeps).toEqual(["10", "10"]);
+      expect(result.arguments).toContain(
+        "--registry=https://registry.npmjs.org",
+      );
+      expect(result.arguments).toContain("--fetch-retries=0");
+      expect(result.arguments).toContain("--fetch-timeout=10000");
+    });
+
+    test("fails after a bounded wait with the final npm error", () => {
+      const result = verifyPublishedMetadata(workflowContent, ["unavailable"]);
+      expect(result.status).toBe(1);
+      expect(result.attempts).toBe(12);
+      expect(result.sleeps).toEqual(Array(11).fill("10"));
+      expect(result.output).toContain("npm error E404");
+      expect(result.output).toContain("not available after 12 attempts");
+    });
+
+    test.each(["io.github.someone-else/kibi-mcp", "missing"])(
+      "fails immediately for visible but incorrect metadata: %s",
+      (response) => {
+        const result = verifyPublishedMetadata(workflowContent, [
+          response,
+          "io.github.looted/kibi-mcp",
+        ]);
+        expect(result.status).toBe(1);
+        expect(result.attempts).toBe(1);
+        expect(result.sleeps).toEqual([]);
+        expect(result.output).toContain("expected 'io.github.looted/kibi-mcp'");
+      },
+    );
   });
 
   test("packed publish compile does not repeat the emitting E2E typecheck", () => {

@@ -11,7 +11,24 @@ Once Kibi is installed in the repository, your agent needs a way to call it. Two
 Use whichever surface your client can see. You do not configure both unless you want to.
 
 > [!TIP]
-> Cursor, Codex, OpenCode, Claude Code, and VS Code also have optional plugins that wire this up for you. The JSON below is the manual fallback when you are not using a plugin. Details and plugin install steps are in the [installation guide](install.md).
+> Claude Code, Cursor, Codex, OpenCode, and ZCode also have optional plugins that wire this up for you. The JSON below is the manual fallback when you are not using a plugin. Details and plugin install steps are in the [installation guide](install.md).
+
+## Claude Code
+
+The `kibi-claude` plugin brings the server, the bundled skills, and hooks that show the agent the linked requirements and tests before it reads or edits code:
+
+```bash
+claude plugin marketplace add Looted/kibi
+claude plugin install kibi-claude@kibi
+```
+
+Without the plugin, register the server for the project. This writes `.mcp.json`, so the whole team gets it:
+
+```bash
+claude mcp add --scope project kibi -- npx --no-install kibi-mcp
+```
+
+See [Claude Code plugin](install.md#optional-claude-code-plugin).
 
 ## Cursor, Codex, and most other clients
 
@@ -34,7 +51,7 @@ Plugin pages in the installation guide:
 
 - [Cursor plugin](install.md#optional-cursor-plugin)
 - [Codex plugin](install.md#optional-codex-plugin)
-- [Claude Code plugin](install.md#optional-claude-code-plugin)
+- [ZCode plugin](install.md#optional-zcode-plugin)
 
 ## OpenCode
 

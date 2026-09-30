@@ -97,7 +97,15 @@ describe("proof baseline fingerprints", () => {
 function staleRow(
   id: string,
   extraGaps: string[] = [],
-  candidates: unknown[] = [{ testId: "TEST-e2e" }],
+  candidates: unknown[] = [
+    {
+      testId: "TEST-e2e",
+      scope: "end_to_end",
+      qualifies: false,
+      reason: "receipt_snapshot_mismatch",
+      secondaryReasons: [],
+    },
+  ],
 ) {
   return {
     id,
@@ -145,6 +153,59 @@ describe("semantic-only proof baseline", () => {
     expect(semanticGaps(staleRow("REQ-A", [], []))).toEqual([
       "missing_production_symbol_coverage",
     ]);
+  });
+
+  test.each([
+    ["unit", "test_scope_is_unit", []],
+    ["integration", "test_scope_is_non_e2e", []],
+    [
+      "end_to_end",
+      "test_not_in_requirement_scenario_chain",
+      ["receipt_snapshot_mismatch"],
+    ],
+    ["end_to_end", "missing_proof_receipt", []],
+    ["end_to_end", "failed_proof_receipt", []],
+    ["end_to_end", "receipt_snapshot_mismatch", ["invalid_proof_receipt"]],
+    ["end_to_end", undefined, []],
+  ])(
+    "keeps a real gap for %s / %s despite stale receipts",
+    (scope, reason, secondaryReasons) => {
+      const row = staleRow(
+        "REQ-A",
+        [],
+        [{ testId: "TEST-candidate", scope, reason, secondaryReasons }],
+      );
+      expect(
+        evaluateSemanticBaseline(provenBaseline(["REQ-A"]), [row]).regressions,
+      ).toEqual([
+        { id: "REQ-A", gaps: ["missing_production_symbol_coverage"] },
+      ]);
+    },
+  );
+
+  test.each([
+    "stale_proof_receipt",
+    "receipt_snapshot_mismatch",
+    "receipt_contract_mismatch",
+  ])("sets aside coverage rejected solely for %s", (reason) => {
+    expect(
+      semanticGaps(staleRow("REQ-A", [], [{ scope: "end_to_end", reason }])),
+    ).toEqual([]);
+  });
+
+  test("one eligible candidate suffices even when another has unit scope", () => {
+    expect(
+      semanticGaps(
+        staleRow(
+          "REQ-A",
+          [],
+          [
+            { scope: "unit", reason: "test_scope_is_unit" },
+            { scope: "end_to_end", qualifies: true, reason: "covered" },
+          ],
+        ),
+      ),
+    ).toEqual([]);
   });
 
   test("grounding and contradiction regressions fail even with stale evidence", () => {

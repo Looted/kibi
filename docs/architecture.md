@@ -13,8 +13,7 @@ graph TD
     MCP[MCP Server] --> OPS
     OPS -->|Framed local RPC| ENG[Node kibi-engine\n(single writer per workspace/branch)]
     ENG -->|One interactive process| KB[SWI-Prolog KB (per branch)]
-    CC[kibi-codex (optional plugin)] -->|calls| MCP
-    CU[kibi-cursor (optional plugin)] -->|calls| MCP
+    AD[Optional host plugins:\nkibi-claude, kibi-cursor, kibi-codex,\nkibi-opencode, kibi-zcode] -->|calls| MCP
     MCP -->|Tooling| VSCode[VS Code Extension]
     CLI -->|Git Hooks| GH[Git Hooks]
     GH -->|post-checkout/post-merge| KB
@@ -77,6 +76,11 @@ graph TD
 - Uses Cursor-specific hooks (`sessionStart`, `preToolUse`, `postToolUse`, `beforeReadFile`, `stop`) for read/write guidance and freshness follow-ups
 - Provides optional reminders and advisories only; it does not replace `kibi-core`, `kibi-cli`, or `kibi-mcp`
 
+### Other host adapters
+- `packages/claude/` (Claude Code) and `packages/zcode/` (ZCode) follow the Codex pattern: bundled skills, local `kibi-mcp` wiring, and advisory hooks that stay silent in workspaces whose project root has no `.kb/manifest.json`
+- `packages/opencode/` (OpenCode) adds prompt guidance and background sync alongside the configured `kibi-mcp` server
+- Each package README lists exactly what its hooks emit
+
 > **Entity Modeling:** `flag` entities represent runtime/config gates. Bug and workaround notes belong in `fact` entities with `fact_kind: observation` or `meta`. **Strict facts** drive contradiction checks; observation/meta are non-blocking notes. See [Entity Schema](entity-schema.md). `domain-contradictions` applies to strict lane; `strict-fact-shape` is an advisory default-on quality diagnostic.
 ### VS Code Extension
 - Located at `packages/vscode/`
@@ -88,7 +92,7 @@ graph TD
 - Installed in `$GIT_DIR/hooks` or via `core.hooksPath`
 - `post-checkout`: ensures branch KB exists, runs sync
 - `post-merge`: runs sync
-- `kb gc`: quarantines stale branch KBs and purges them only explicitly after retention
+- `kibi gc`: quarantines stale branch KBs and purges them only explicitly after retention
 
 ## Data Flow Diagrams
 
@@ -183,8 +187,5 @@ repeating the original mutation.
 
 ## Directory Structure
 
-- See README.md for `.kb/` directory layout and file details
-
----
-
-This document covers the technical architecture, component interactions, data flow, per-branch KB isolation, RDF persistence, MCP transport, and git hook automation for Kibi. For directory structure details, refer to README.md.
+- Authored knowledge lives in canonical `.kb/` lanes: `requirements/`, `scenarios/`, `tests/`, `facts/`, `adr/`, `flags/`, `events/`, plus `symbols.yaml` and `symbol-coordinates.yaml`. See [Entity Schema](entity-schema.md).
+- Derived, Git-ignored runtime state lives under `.kb/branches/`, `.kb/recovery/`, `.kb/proof/runs/`, `.kb/briefs/`, `.kb/migrations/`, and `.kb/usage.log`.

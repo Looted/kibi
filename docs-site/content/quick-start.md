@@ -3,11 +3,11 @@ title: Quick start
 description: Install Kibi, initialize it in your repository, and let your coding agent bootstrap the project model in one guided step.
 ---
 
-This page takes you from an empty repository to a bootstrapped, validated project model. It assumes you have a coding agent you can prompt (OpenCode, Codex, Cursor, and other MCP clients all work) and commit access to the repository.
+This page takes you from an empty repository to a bootstrapped, validated project model. It assumes you have a coding agent you can prompt (Claude Code, Cursor, Codex, OpenCode, VS Code, and other MCP clients all work) and commit access to the repository.
 
-## 1. Install the prerequisite
+## 1. Install the prerequisites
 
-Kibi's deterministic checks run on SWI-Prolog. Install **SWI-Prolog 9.0+** and make sure `swipl` is on your `PATH`:
+Kibi runs on **Node.js 22+**, and its deterministic checks run on SWI-Prolog. Install **SWI-Prolog 9.0+** and make sure `swipl` is on your `PATH`:
 
 ```bash
 swipl --version

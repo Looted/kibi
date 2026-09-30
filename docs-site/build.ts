@@ -1,7 +1,8 @@
 #!/usr/bin/env bun
 /**
- * Builds the Kibi documentation site (Guide + Reference) as a fully
- * self-contained static bundle for project Pages.
+ * Builds the Kibi documentation site (landing page, Guide, Reference) as a
+ * fully self-contained static bundle for the project Pages root. The
+ * requirement-health report is published beside it under kibi-report/.
  *
  * Sources of truth stay in the repository: mirrored pages render the
  * canonical `docs/*.md` files at build time, so the site can never drift
@@ -10,8 +11,8 @@
  * Flags:
  *   --out <dir>         Output directory (default: docs-site/dist)
  *   --report-url <url>  Requirement-report link. A URL is used verbatim;
- *                       "none" hides the link. Default: ../kibi-report/
- *                       (sibling of the docs directory on project Pages).
+ *                       "none" hides the link. Default: kibi-report/
+ *                       (beside the site on project Pages).
  *   --branch <name>     Git branch used for source links (default: develop)
  *   --github <url>      Repository base URL (default: parsed from origin)
  *
@@ -33,9 +34,12 @@ import {
   DOCS,
   type DocPage,
   type DocSection,
+  REPORT_PATH,
+  SITE_TAGLINE,
   sitePagePath,
 } from "./catalog.js";
 import { renderLlmsTxt } from "./llms.js";
+import { isAuthoredPage, pageMeta } from "./page-meta.js";
 import {
   type PageShell,
   escapeHtml,
@@ -58,7 +62,7 @@ type RenderedPage = {
 };
 
 const REPO_ROOT = path.resolve(import.meta.dir, "..");
-const DEFAULT_REPORT_URL = "../kibi-report/";
+const DEFAULT_REPORT_URL = REPORT_PATH;
 const GITHUB_FALLBACK = "https://github.com/Looted/kibi";
 
 // ---------------------------------------------------------------------------
@@ -228,24 +232,6 @@ function createMarked(): { marked: Marked; resetSlugs: () => void } {
   return { marked, resetSlugs };
 }
 
-type FrontMatter = { title?: string; description?: string; body: string };
-
-function parseFrontMatter(raw: string): FrontMatter {
-  const match = raw.match(/^---\n([\s\S]*?)\n---\n/);
-  if (!match) return { body: raw };
-  const fields: Record<string, string> = {};
-  for (const line of match[1].split("\n")) {
-    const at = line.indexOf(":");
-    if (at <= 0) continue;
-    fields[line.slice(0, at).trim()] = line.slice(at + 1).trim();
-  }
-  return {
-    title: fields.title,
-    description: fields.description,
-    body: raw.slice(match[0].length),
-  };
-}
-
 // ---------------------------------------------------------------------------
 // Page assembly
 // ---------------------------------------------------------------------------
@@ -264,17 +250,12 @@ function renderMarkdown(
   spec: DocSpec,
   raw: string,
 ): Omit<RenderedPage, "url" | "spec"> {
-  const isAuthored = spec.source.startsWith("docs-site/content/");
-  const front = isAuthored ? parseFrontMatter(raw) : { body: raw };
-  let body = front.body;
-  if (!isAuthored) {
-    // The page header carries the title; drop the mirrored document's own h1.
-    body = body.replace(/^#\s+[^\n]*\n+/, "");
-  }
-  const title =
-    (isAuthored ? front.title : undefined) ?? spec.title ?? spec.slug;
-  const description =
-    (isAuthored ? front.description : undefined) ?? spec.description ?? "";
+  const meta = pageMeta(spec, raw);
+  const { title, description } = meta;
+  // The page header carries the title; drop a mirrored document's own h1.
+  const body = isAuthoredPage(spec)
+    ? meta.body
+    : meta.body.replace(/^#\s+[^\n]*\n+/, "");
 
   let html: string;
   resetSlugs();
@@ -532,8 +513,7 @@ function main(): void {
   const landing: PageShell = {
     root: "",
     title: "Kibi",
-    description:
-      "Say what the software should do. Kibi makes your agent follow it, and prove it did.",
+    description: SITE_TAGLINE,
     section: null,
     navHtml: buildNav(titles, null),
     tocHtml: "",
