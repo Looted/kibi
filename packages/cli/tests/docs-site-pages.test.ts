@@ -29,8 +29,18 @@ describe("documentation site pages", () => {
         path.join(repoRoot, ".github/workflows/proof.yml"),
         "utf8",
       );
-      expect(workflow).toContain("pages/kibi-report");
-      expect(workflow).toContain("bun run docs:site -- --out pages/docs");
+      // The site owns the Pages root; the report is namespaced beside it.
+      expect(workflow).toContain("bun run docs:site -- --out pages\n");
+      expect(workflow.indexOf("--out pages\n")).toBeLessThan(
+        workflow.indexOf("mkdir -p pages/kibi-report"),
+      );
+      expect(index).toContain('href="kibi-report/"');
+      // Former /docs/ URLs keep resolving to the same page at the root.
+      const legacy = readFileSync(
+        path.join(out, "docs/guide/install.html"),
+        "utf8",
+      );
+      expect(legacy).toContain('url=../../guide/install.html"');
     } finally {
       rmSync(out, { recursive: true, force: true });
     }

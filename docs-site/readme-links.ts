@@ -5,8 +5,10 @@
  */
 
 import {
+  LEGACY_DOCS_PATH,
   LLMS_INDEX_PATH,
-  PUBLISHED_DOCS_ORIGIN,
+  PUBLISHED_SITE_ORIGIN,
+  REPORT_PATH,
   pageForSitePath,
   pageForSource,
   publishedLlmsIndexHref,
@@ -41,25 +43,25 @@ function problemsForHref(href: string): string[] {
       ];
     }
   }
-  if (href === PUBLISHED_DOCS_ORIGIN || href === `${PUBLISHED_DOCS_ORIGIN}/`) {
+  if (href === PUBLISHED_SITE_ORIGIN || href === `${PUBLISHED_SITE_ORIGIN}/`) {
     return [];
   }
-  if (!href.startsWith(`${PUBLISHED_DOCS_ORIGIN}/`)) return [];
-  const rest = href.slice(PUBLISHED_DOCS_ORIGIN.length + 1);
-  const [sitePath, fragment] = splitHash(rest);
+  if (!href.startsWith(`${PUBLISHED_SITE_ORIGIN}/`)) return [];
+  const [sitePath] = splitHash(href.slice(PUBLISHED_SITE_ORIGIN.length + 1));
   if (
     sitePath === "" ||
     sitePath === "index.html" ||
-    sitePath === LLMS_INDEX_PATH
+    sitePath === LLMS_INDEX_PATH ||
+    `${sitePath}/` === REPORT_PATH ||
+    sitePath.startsWith(REPORT_PATH)
   ) {
     return [];
   }
-  const page = pageForSitePath(sitePath);
-  if (!page) {
-    return [`${href} is not a page in the documentation catalog.`];
+  if (sitePath.startsWith(LEGACY_DOCS_PATH)) {
+    return [`${href} is a legacy redirect. Link the page at the site root.`];
   }
-  if (fragment !== "" && !sitePath.endsWith(".html")) {
-    return [`${href} is not a published documentation page.`];
+  if (!pageForSitePath(sitePath)) {
+    return [`${href} is not a page in the documentation catalog.`];
   }
   return [];
 }

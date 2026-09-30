@@ -8,9 +8,6 @@ the report to see what that percentage represents and which requirements are
 missing proof. Kibi does not host badges or reports; GitHub Pages is the
 expected publisher. Knowledge stays in the repository's `.kb/` directory.
 
-The root [README](../README.md) is the discoverable entry point. This document
-covers the same integration in more detail.
-
 ## What the badge means
 
 A badge such as `kibi | 87% proven` is the share of **applicable current**
@@ -201,7 +198,7 @@ do not deploy Pages. Default-branch and `workflow_dispatch` publishes only
 rather than pretending a report exists:
 
 ```markdown
-[![Kibi requirement health](https://OWNER.github.io/REPOSITORY/kibi-report/badge.svg)](https://github.com/Looted/kibi/blob/develop/docs/github-integration.md#what-the-badge-means)
+[![Kibi requirement health](https://OWNER.github.io/REPOSITORY/kibi-report/badge.svg)](https://looted.github.io/kibi/guide/github-integration.html#what-the-badge-means)
 ```
 
 `--badge-only` without `--github` is rejected. `--github` by itself always
@@ -231,7 +228,7 @@ workflow does not install Kibi globally.
 **`swipl: command not found`.**
 The workflow installs `swi-prolog` with `apt-get` on `ubuntu-latest`. Kibi
 requires SWI-Prolog 9.0+. If the runner image is older, install from the
-[SWI-Prolog PPA](https://github.com/Looted/kibi/blob/develop/docs/install.md)
+[SWI-Prolog PPA](install.md#ubuntu-recommended)
 instead.
 
 **Pages published the wrong site / two Kibi workflows.**

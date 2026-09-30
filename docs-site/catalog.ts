@@ -19,9 +19,33 @@ export type DocPage = {
   source: string;
 };
 
-/** Published site origin, without a trailing slash. */
+/**
+ * Published site origin, without a trailing slash. The documentation site is
+ * the project Pages root; the requirement-health report lives beside it under
+ * REPORT_PATH.
+ */
 // implements REQ-docs-readme-published-links
-export const PUBLISHED_DOCS_ORIGIN = "https://looted.github.io/kibi/docs";
+export const PUBLISHED_SITE_ORIGIN = "https://looted.github.io/kibi";
+
+/**
+ * The one public tagline. The landing page, page metadata, and llms.txt all
+ * read it, so the site cannot publish competing variants.
+ */
+// implements REQ-docs-readme-published-links
+export const SITE_TAGLINE =
+  "Prompt the intent. Kibi makes the agent remember it—and prove the implementation.";
+
+/** Site-root-relative directory of the requirement-health report. */
+// implements REQ-docs-site-root-pages
+export const REPORT_PATH = "kibi-report/";
+
+/**
+ * Where the documentation site was published before it moved to the Pages
+ * root. The build writes a redirect for every catalog page under it so old
+ * links keep working.
+ */
+// implements REQ-docs-site-root-pages
+export const LEGACY_DOCS_PATH = "docs/";
 
 // implements REQ-docs-readme-published-links
 export const LLMS_INDEX_PATH = "llms.txt";
@@ -203,12 +227,12 @@ export function sitePagePath(page: DocPage): string {
 export function publishedPageHref(page: DocPage, fragment = ""): string {
   const hash =
     fragment === "" ? "" : fragment.startsWith("#") ? fragment : `#${fragment}`;
-  return `${PUBLISHED_DOCS_ORIGIN}/${sitePagePath(page)}${hash}`;
+  return `${PUBLISHED_SITE_ORIGIN}/${sitePagePath(page)}${hash}`;
 }
 
 // implements REQ-docs-readme-published-links
 export function publishedLlmsIndexHref(): string {
-  return `${PUBLISHED_DOCS_ORIGIN}/${LLMS_INDEX_PATH}`;
+  return `${PUBLISHED_SITE_ORIGIN}/${LLMS_INDEX_PATH}`;
 }
 
 // implements REQ-docs-readme-published-links
