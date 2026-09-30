@@ -43579,3 +43579,22 @@ symbols:
         target: TEST-docs-readme-published-links
       - type: implements
         target: REQ-docs-readme-published-links
+  - id: SYM-release-verify-published-metadata
+    title: verifyPublishedMetadata
+    status: active
+    sourceFile: scripts/tests/release-workflow-contract.test.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-release-mcp-registry-visibility
+  - id: SYM-release-mcp-registry-verification
+    title: publish-mcp-registry
+    status: active
+    sourceFile: .github/workflows/publish.yml
+    symbol_role: config
+    granularity_reason: config-artifact
+    relationships:
+      - type: covered_by
+        target: TEST-release-mcp-registry-visibility
+      - type: implements
+        target: REQ-020

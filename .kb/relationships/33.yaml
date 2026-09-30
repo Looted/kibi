@@ -118,3 +118,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7fd2d25cbf29
+  - type: implements
+    from: SYM-release-mcp-registry-verification
+    to: REQ-020
+    created_at: 2026-09-30T11:41:46.855Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-04fd4130f9a1
+  - type: covered_by
+    from: SYM-release-mcp-registry-verification
+    to: TEST-release-mcp-registry-visibility
+    created_at: 2026-09-30T11:41:46.878Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-53dc979efcbb

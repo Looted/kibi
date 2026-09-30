@@ -19571,6 +19571,22 @@ coordinates:
     sourceEndLine: 131
     sourceFile: packages/cli/tests/traceability/release-scope.ts
     sourceLine: 13
+  SYM-release-mcp-registry-verification:
+    identityHash: 8a2700a7582cf0012d995ea02b781f3b667e58eca9cb64561aee447e033914d2
+    sourceHash: 43d78280f72906b1b14aa70cd1cffcd22ef0e3838c04cf29bce4203b854944ce
+    sourceColumn: 2
+    sourceEndColumn: 22
+    sourceEndLine: 257
+    sourceFile: .github/workflows/publish.yml
+    sourceLine: 257
+  SYM-release-verify-published-metadata:
+    identityHash: a2853dc37dda37cb92c73f7757c3cd4280101b22e39da24f38748a1b9681963d
+    sourceHash: 762b464859813103f336c5fb660408fe6951197fd55d71760126d2babe16560c
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 117
+    sourceFile: scripts/tests/release-workflow-contract.test.ts
+    sourceLine: 49
   SYM-ReleaseAction:
     identityHash: 80efc2c1155e8b83672bab5cbf11d82ae8396dd35807ab978d1e49fc8c499831
     sourceHash: 4f66dda710f2ae080012f7413aaac12e545e12f1eb7c0b8ab5f1592ab337883b
