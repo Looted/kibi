@@ -21,7 +21,7 @@ swipl --version
 npm exec -- kibi doctor
 ```
 
-Full setup: [docs/install.md](https://github.com/Looted/kibi/blob/develop/docs/install.md).
+Full setup: [installation guide](https://looted.github.io/kibi/guide/install.html#optional-cursor-plugin).
 
 Add this plugin only after the base packages work in your project.
 
