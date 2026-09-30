@@ -22,38 +22,6 @@ proof_contract:
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v1
-    receipt_id: PR-c67c167b5ac0893d15fc27b3
-    test_id: TEST-vscode-traceability-coverage
-    scope: end_to_end
-    outcome: passed
-    code_snapshot: 1955583b07a497b4ba3947edc2325838963105f1b93eebb7989c35f9d9976ca5
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-09-09T02:29:08.409Z'
-    finished_at: '2026-09-09T03:17:04.010Z'
-    artifact_digest: 0d941f4678ef7cf87c2ac37adb34ade41184a92a42472615745fe05781aa7151
-    contract_hash: f31db0e901bcb6d3a953baf1fb32330aaa41cc3d774a8899400cc14fa4457f4f
-    fingerprint: 49830231f9d4e51d7325784379088c215ee78f18d5c5df51f4bbf42696823efc
-    fingerprint_components:
-      contract: f31db0e901bcb6d3a953baf1fb32330aaa41cc3d774a8899400cc14fa4457f4f
-      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
-      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
-      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
-      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
-    integration_id: self-proof
-    producer:
-      name: kibi-command-producer
-    command_argv:
-      - node
-      - scripts/run-proof-producer.mjs
-    run_outcome: passed
-    proof_results:
-      - symbol_id: SYM-e2e-test-vscode-traceability-coverage
-        target: default
-        outcome: passed
-        binding: aggregate_run
-        attempts:
-          status: unavailable
-  - version: kibi.proof-receipt.v1
     receipt_id: PR-0fd77627254609a44a0073c2
     test_id: TEST-vscode-traceability-coverage
     scope: end_to_end
@@ -1682,6 +1650,39 @@ proof_receipts:
     started_at: '2026-09-30T08:44:35.132Z'
     finished_at: '2026-09-30T09:14:07.509Z'
     artifact_digest: 8e767a8048bc0337afb4a16cb7c6e110f417e9b6181130df0b402240760ca7fe
+    contract_hash: f31db0e901bcb6d3a953baf1fb32330aaa41cc3d774a8899400cc14fa4457f4f
+    binding_hash: 0c8f50cb4868bcbd129477e0931d09ea63c070c4e288a9fe478e525857e39adf
+    fingerprint: 49830231f9d4e51d7325784379088c215ee78f18d5c5df51f4bbf42696823efc
+    fingerprint_components:
+      contract: f31db0e901bcb6d3a953baf1fb32330aaa41cc3d774a8899400cc14fa4457f4f
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-vscode-traceability-coverage
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-d59bb69ec7680940436730fb
+    test_id: TEST-vscode-traceability-coverage
+    scope: integration
+    outcome: passed
+    code_snapshot: c3c9302244ec6e144d390e104379a6e3429b9a4b9213aef16ed2eaa1d918afde
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-09-30T19:02:28.214Z'
+    finished_at: '2026-09-30T19:38:21.534Z'
+    artifact_digest: 3dc2234689cf3a5cdb82deb224ed2f23cad0fdf7d9deeace00bc19308244c4ba
     contract_hash: f31db0e901bcb6d3a953baf1fb32330aaa41cc3d774a8899400cc14fa4457f4f
     binding_hash: 0c8f50cb4868bcbd129477e0931d09ea63c070c4e288a9fe478e525857e39adf
     fingerprint: 49830231f9d4e51d7325784379088c215ee78f18d5c5df51f4bbf42696823efc
