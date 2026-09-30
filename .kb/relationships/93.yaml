@@ -139,3 +139,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-74a51b1d16ef
+  - type: implements
+    from: SYM-docs-site-page-meta-FrontMatter
+    to: REQ-docs-site-root-pages
+    created_at: 2026-09-29T21:45:31.893Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-23a3c346c16e
+  - type: covered_by
+    from: SYM-docs-site-page-meta-FrontMatter
+    to: TEST-docs-site-pages
+    created_at: 2026-09-29T21:45:31.896Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ba3b4cb4f544

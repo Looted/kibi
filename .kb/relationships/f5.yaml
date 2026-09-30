@@ -188,3 +188,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-04f851c7f8c0
+  - type: implements
+    from: SYM-docs-site-catalog-REPORT_PATH
+    to: REQ-docs-site-root-pages
+    created_at: 2026-09-29T21:45:04.733Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6110342e6ce7
+  - type: covered_by
+    from: SYM-docs-site-catalog-REPORT_PATH
+    to: TEST-docs-site-pages
+    created_at: 2026-09-29T21:45:04.737Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f8b64ceab452
