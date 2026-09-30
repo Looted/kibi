@@ -43466,7 +43466,11 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-prolog-build-pipeline-validation
+      - type: covered_by
         target: TEST-prolog-spike-config-validation
+      - type: implements
+        target: REQ-prolog-build-pipeline-validation
       - type: implements
         target: REQ-prolog-spike-config-validation
   - id: SYM-test-prolog-coverage-test-selection
@@ -43653,3 +43657,192 @@ symbols:
         target: TEST-kibi-github-report-integration
       - type: implements
         target: REQ-kibi-github-report-integration
+  - id: SYM-test-prolog-build-pipeline-validation
+    title: SWI-Prolog artifact validation contract
+    status: active
+    sourceFile: scripts/tests/swipl-build-pipeline.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-prolog-build-pipeline-validation
+  - id: SYM-prolog-build-cmake-project
+    title: cmake_project
+    status: active
+    sourceFile: scripts/swipl-spike.py
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-build-pipeline-validation
+      - type: implements
+        target: REQ-prolog-build-pipeline-validation
+  - id: SYM-prolog-build-require-clean-runner
+    title: require_clean_runner
+    status: active
+    sourceFile: scripts/swipl-spike.py
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-build-pipeline-validation
+      - type: implements
+        target: REQ-prolog-build-pipeline-validation
+  - id: SYM-prolog-build-build
+    title: build
+    status: active
+    sourceFile: scripts/swipl-spike.py
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-build-pipeline-validation
+      - type: implements
+        target: REQ-prolog-build-pipeline-validation
+  - id: SYM-prolog-build-native-files
+    title: native_files
+    status: active
+    sourceFile: scripts/swipl-spike.py
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-build-pipeline-validation
+      - type: implements
+        target: REQ-prolog-build-pipeline-validation
+  - id: SYM-prolog-build-relocate
+    title: relocate
+    status: active
+    sourceFile: scripts/swipl-spike.py
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-build-pipeline-validation
+      - type: implements
+        target: REQ-prolog-build-pipeline-validation
+  - id: SYM-prolog-build-check-native-architecture
+    title: check_native_architecture
+    status: active
+    sourceFile: scripts/swipl-spike.py
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-build-pipeline-validation
+      - type: implements
+        target: REQ-prolog-build-pipeline-validation
+  - id: SYM-prolog-build-loader-environment
+    title: loader_environment
+    status: active
+    sourceFile: scripts/swipl-spike.py
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-build-pipeline-validation
+      - type: implements
+        target: REQ-prolog-build-pipeline-validation
+  - id: SYM-prolog-build-audit-linux
+    title: audit_linux
+    status: active
+    sourceFile: scripts/swipl-spike.py
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-build-pipeline-validation
+      - type: implements
+        target: REQ-prolog-build-pipeline-validation
+  - id: SYM-prolog-build-audit-macos
+    title: audit_macos
+    status: active
+    sourceFile: scripts/swipl-spike.py
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-build-pipeline-validation
+      - type: implements
+        target: REQ-prolog-build-pipeline-validation
+  - id: SYM-prolog-build-checked
+    title: checked
+    status: active
+    sourceFile: scripts/swipl-spike.py
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-build-pipeline-validation
+      - type: implements
+        target: REQ-prolog-build-pipeline-validation
+  - id: SYM-prolog-build-smoke
+    title: smoke
+    status: active
+    sourceFile: scripts/swipl-spike.py
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-build-pipeline-validation
+      - type: implements
+        target: REQ-prolog-build-pipeline-validation
+  - id: SYM-prolog-build-exercise
+    title: exercise
+    status: active
+    sourceFile: scripts/swipl-spike.py
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-build-pipeline-validation
+      - type: implements
+        target: REQ-prolog-build-pipeline-validation
+  - id: SYM-prolog-build-build-manifest
+    title: build_manifest
+    status: active
+    sourceFile: scripts/swipl-spike.py
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-build-pipeline-validation
+      - type: implements
+        target: REQ-prolog-build-pipeline-validation
+  - id: SYM-prolog-build-write-archive
+    title: write_archive
+    status: active
+    sourceFile: scripts/swipl-spike.py
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-build-pipeline-validation
+      - type: implements
+        target: REQ-prolog-build-pipeline-validation
+  - id: SYM-prolog-build-verify-archive
+    title: verify_archive
+    status: active
+    sourceFile: scripts/swipl-spike.py
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-build-pipeline-validation
+      - type: implements
+        target: REQ-prolog-build-pipeline-validation
+  - id: SYM-prolog-build-build-manifest-values
+    title: build_manifest_values
+    status: active
+    sourceFile: scripts/swipl-spike.py
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-build-pipeline-validation
+      - type: implements
+        target: REQ-prolog-build-pipeline-validation
+  - id: SYM-prolog-build-archive-pipeline
+    title: archive_pipeline
+    status: active
+    sourceFile: scripts/swipl-spike.py
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-build-pipeline-validation
+      - type: implements
+        target: REQ-prolog-build-pipeline-validation
+  - id: SYM-prolog-build-main
+    title: main
+    status: active
+    sourceFile: scripts/swipl-spike.py
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-build-pipeline-validation
+      - type: implements
+        target: REQ-prolog-build-pipeline-validation

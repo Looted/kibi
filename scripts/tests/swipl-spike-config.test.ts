@@ -55,7 +55,7 @@ function verify(manifest: string, target: string, workdir: string) {
 }
 
 describe("SWI-Prolog spike configuration", () => {
-  test.each(["linux-x64-gnu", "darwin-arm64"])(
+  test.each(["linux-x64-gnu", "linux-arm64-gnu", "darwin-arm64", "darwin-x64"])(
     "accepts the pinned source set for %s without starting a native build",
     (target) => {
       const { manifest, workdir } = fixture(PIN);

@@ -188,3 +188,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b1deafda0bee
+  - type: implements
+    from: SYM-prolog-build-loader-environment
+    to: REQ-prolog-build-pipeline-validation
+    created_at: 2026-09-30T17:52:06.469Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f35fb97e8be3
+  - type: covered_by
+    from: SYM-prolog-build-loader-environment
+    to: TEST-prolog-build-pipeline-validation
+    created_at: 2026-09-30T17:52:06.504Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8a762550f25b
+  - type: implements
+    from: SYM-prolog-build-build-manifest-values
+    to: REQ-prolog-build-pipeline-validation
+    created_at: 2026-09-30T17:53:29.647Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eae44df77df6
+  - type: covered_by
+    from: SYM-prolog-build-build-manifest-values
+    to: TEST-prolog-build-pipeline-validation
+    created_at: 2026-09-30T17:53:29.676Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-537b0da6268b

@@ -314,3 +314,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b5f48d28304c
+  - type: validates
+    from: TEST-prolog-build-pipeline-validation
+    to: SCEN-prolog-build-pipeline-validation
+    created_at: 2026-09-30T17:47:48.363Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-32dc245aaba7

@@ -18027,6 +18027,150 @@ coordinates:
     sourceEndLine: 163
     sourceFile: packages/cli/src/prolog.ts
     sourceLine: 150
+  SYM-prolog-build-archive-pipeline:
+    identityHash: d9b0d3f24b1894e3dbdec429697618bb5244d7365729c29273217288ea71cdd4
+    sourceHash: 6c9847bf50d5a87bccf41d82d590e63eedb7635adec952b5a1efdc1a5cef7f11
+    sourceColumn: 4
+    sourceEndColumn: 20
+    sourceEndLine: 837
+    sourceFile: scripts/swipl-spike.py
+    sourceLine: 837
+  SYM-prolog-build-audit-linux:
+    identityHash: f1eae25cdbef48d53f33a8f670c5fde9db5f4116b739f88623a51a23e4cc7797
+    sourceHash: 6c9847bf50d5a87bccf41d82d590e63eedb7635adec952b5a1efdc1a5cef7f11
+    sourceColumn: 8
+    sourceEndColumn: 19
+    sourceEndLine: 493
+    sourceFile: scripts/swipl-spike.py
+    sourceLine: 493
+  SYM-prolog-build-audit-macos:
+    identityHash: ee82753bf6c295dfcdebdc00f913faca79ff2e159a43a2b01bd676383fbe21c6
+    sourceHash: 6c9847bf50d5a87bccf41d82d590e63eedb7635adec952b5a1efdc1a5cef7f11
+    sourceColumn: 8
+    sourceEndColumn: 19
+    sourceEndLine: 517
+    sourceFile: scripts/swipl-spike.py
+    sourceLine: 517
+  SYM-prolog-build-build:
+    identityHash: 83b65854eb06561543baac4228afefd06fb9e9a977abbc83c8814332986705f6
+    sourceHash: 6c9847bf50d5a87bccf41d82d590e63eedb7635adec952b5a1efdc1a5cef7f11
+    sourceColumn: 32
+    sourceEndColumn: 37
+    sourceEndLine: 335
+    sourceFile: scripts/swipl-spike.py
+    sourceLine: 335
+  SYM-prolog-build-build-manifest:
+    identityHash: 2b0b45576d486c6e445c5baaf7d4fc5516d32df92dd42118193043ebfc1b03d7
+    sourceHash: 6c9847bf50d5a87bccf41d82d590e63eedb7635adec952b5a1efdc1a5cef7f11
+    sourceColumn: 4
+    sourceEndColumn: 18
+    sourceEndLine: 716
+    sourceFile: scripts/swipl-spike.py
+    sourceLine: 716
+  SYM-prolog-build-build-manifest-values:
+    identityHash: f392f4183898898362c8fd676baee6c0dc5747866e79155837b45fb31276add7
+    sourceHash: 6c9847bf50d5a87bccf41d82d590e63eedb7635adec952b5a1efdc1a5cef7f11
+    sourceColumn: 19
+    sourceEndColumn: 40
+    sourceEndLine: 794
+    sourceFile: scripts/swipl-spike.py
+    sourceLine: 794
+  SYM-prolog-build-check-native-architecture:
+    identityHash: 7bd409ad1fe885c1d34cfa795515ad0c205ddadc6468625bfd64b50a35c8fdcf
+    sourceHash: 6c9847bf50d5a87bccf41d82d590e63eedb7635adec952b5a1efdc1a5cef7f11
+    sourceColumn: 4
+    sourceEndColumn: 29
+    sourceEndLine: 520
+    sourceFile: scripts/swipl-spike.py
+    sourceLine: 520
+  SYM-prolog-build-checked:
+    identityHash: 7cd6fdfd10fecb31e37992f370eb6bf29380f9cde9de954b61962289d2574724
+    sourceHash: 6c9847bf50d5a87bccf41d82d590e63eedb7635adec952b5a1efdc1a5cef7f11
+    sourceColumn: 62
+    sourceEndColumn: 69
+    sourceEndLine: 258
+    sourceFile: scripts/swipl-spike.py
+    sourceLine: 258
+  SYM-prolog-build-cmake-project:
+    identityHash: 01af1b7a2f22c4e6ca35f3fadd995a59982bd5b6215d0ae4815c81b53bdbc14a
+    sourceHash: 6c9847bf50d5a87bccf41d82d590e63eedb7635adec952b5a1efdc1a5cef7f11
+    sourceColumn: 4
+    sourceEndColumn: 17
+    sourceEndLine: 335
+    sourceFile: scripts/swipl-spike.py
+    sourceLine: 335
+  SYM-prolog-build-exercise:
+    identityHash: e1e20c861b018f491d9fc4b5b8f737b8e5a5c0358617da760d3bace554869fba
+    sourceHash: 6c9847bf50d5a87bccf41d82d590e63eedb7635adec952b5a1efdc1a5cef7f11
+    sourceColumn: 4
+    sourceEndColumn: 12
+    sourceEndLine: 681
+    sourceFile: scripts/swipl-spike.py
+    sourceLine: 681
+  SYM-prolog-build-loader-environment:
+    identityHash: bbe7a789ad2bcb0a541f0da5e5e6e4d7e3e71b94ef577315c0aab2cc5ea277ad
+    sourceHash: 6c9847bf50d5a87bccf41d82d590e63eedb7635adec952b5a1efdc1a5cef7f11
+    sourceColumn: 4
+    sourceEndColumn: 22
+    sourceEndLine: 533
+    sourceFile: scripts/swipl-spike.py
+    sourceLine: 533
+  SYM-prolog-build-main:
+    identityHash: ad3f43c8b32e8c137ffa09164e9ce63fd6541ab7ed0012c8c79b1570193ace47
+    sourceHash: 6c9847bf50d5a87bccf41d82d590e63eedb7635adec952b5a1efdc1a5cef7f11
+    sourceColumn: 4
+    sourceEndColumn: 8
+    sourceEndLine: 882
+    sourceFile: scripts/swipl-spike.py
+    sourceLine: 882
+  SYM-prolog-build-native-files:
+    identityHash: a89e28533c1d3ca33dff32b13d605bcf8dc98cf34ac61c487247f70bec64c88e
+    sourceHash: 6c9847bf50d5a87bccf41d82d590e63eedb7635adec952b5a1efdc1a5cef7f11
+    sourceColumn: 4
+    sourceEndColumn: 16
+    sourceEndLine: 461
+    sourceFile: scripts/swipl-spike.py
+    sourceLine: 461
+  SYM-prolog-build-relocate:
+    identityHash: a532d38ce03aeee583d6bb97a098d04e9c9b5bcd574bcc119d4b0c0bf1d07b8e
+    sourceHash: 6c9847bf50d5a87bccf41d82d590e63eedb7635adec952b5a1efdc1a5cef7f11
+    sourceColumn: 4
+    sourceEndColumn: 12
+    sourceEndLine: 455
+    sourceFile: scripts/swipl-spike.py
+    sourceLine: 455
+  SYM-prolog-build-require-clean-runner:
+    identityHash: 20d58be90ffc79829feb1d5597848e942417ad7d2100643b42f3a218825b947f
+    sourceHash: 6c9847bf50d5a87bccf41d82d590e63eedb7635adec952b5a1efdc1a5cef7f11
+    sourceColumn: 4
+    sourceEndColumn: 24
+    sourceEndLine: 356
+    sourceFile: scripts/swipl-spike.py
+    sourceLine: 356
+  SYM-prolog-build-smoke:
+    identityHash: a14808ea529bf6a55a155396adebf7a5c0b012ec66124d575d88624819d62ef2
+    sourceHash: 6c9847bf50d5a87bccf41d82d590e63eedb7635adec952b5a1efdc1a5cef7f11
+    sourceColumn: 4
+    sourceEndColumn: 9
+    sourceEndLine: 631
+    sourceFile: scripts/swipl-spike.py
+    sourceLine: 631
+  SYM-prolog-build-verify-archive:
+    identityHash: d928fb526b1f53cdfd82dab078c8fb8a76469ba3e1106624d48179e95b90ba19
+    sourceHash: 6c9847bf50d5a87bccf41d82d590e63eedb7635adec952b5a1efdc1a5cef7f11
+    sourceColumn: 4
+    sourceEndColumn: 18
+    sourceEndLine: 741
+    sourceFile: scripts/swipl-spike.py
+    sourceLine: 741
+  SYM-prolog-build-write-archive:
+    identityHash: 6c9fe6417cd6f2b060198f341c152fa171372f254f0980587fad9809128e8fe8
+    sourceHash: 6c9847bf50d5a87bccf41d82d590e63eedb7635adec952b5a1efdc1a5cef7f11
+    sourceColumn: 4
+    sourceEndColumn: 17
+    sourceEndLine: 731
+    sourceFile: scripts/swipl-spike.py
+    sourceLine: 731
   SYM-prolog-codec-tests:
     identityHash: ae30ae20b9acb211a9aaaef44888d3d8247cadfa426480743cb9094d70aed7c8
     sourceHash: 1fd81a6576f2b9f1c9c42619a70023fb6e8f1b8b6b0b4a52e123e3e2ebbcac39
@@ -18061,52 +18205,52 @@ coordinates:
     sourceLine: 138
   SYM-prolog-spike-apply-source-patches:
     identityHash: fe3423e05936179344db5213cf544578638fcba2ac6861594fb7cffcf39c0546
-    sourceHash: 07aed5c0d967c10ea1100ecc17de89c1791a853842ce18f2244a4814b31144fa
+    sourceHash: 6c9847bf50d5a87bccf41d82d590e63eedb7635adec952b5a1efdc1a5cef7f11
     sourceColumn: 4
     sourceEndColumn: 24
-    sourceEndLine: 270
+    sourceEndLine: 303
     sourceFile: scripts/swipl-spike.py
-    sourceLine: 270
+    sourceLine: 303
   SYM-prolog-spike-config-validate:
     identityHash: b3769fa8e255b9e517cb71bcfbefa2a6ac234d597e933572c6299df1215d9ddf
-    sourceHash: 07aed5c0d967c10ea1100ecc17de89c1791a853842ce18f2244a4814b31144fa
+    sourceHash: 6c9847bf50d5a87bccf41d82d590e63eedb7635adec952b5a1efdc1a5cef7f11
     sourceColumn: 4
     sourceEndColumn: 12
-    sourceEndLine: 200
+    sourceEndLine: 233
     sourceFile: scripts/swipl-spike.py
-    sourceLine: 200
+    sourceLine: 233
   SYM-prolog-spike-linux-process-children:
     identityHash: 6a029a206c35f27b8504dd1f1f10c3c478b617a6b2379f47da4f388eb4fdc7e9
-    sourceHash: 07aed5c0d967c10ea1100ecc17de89c1791a853842ce18f2244a4814b31144fa
+    sourceHash: 6c9847bf50d5a87bccf41d82d590e63eedb7635adec952b5a1efdc1a5cef7f11
     sourceColumn: 4
     sourceEndColumn: 26
-    sourceEndLine: 80
+    sourceEndLine: 113
     sourceFile: scripts/swipl-spike.py
-    sourceLine: 80
+    sourceLine: 113
   SYM-prolog-spike-linux-process-metadata:
     identityHash: 3557420dadd77f836922cbe971da109eb62502fdecb5c2360f14d01f0000d5d3
-    sourceHash: 07aed5c0d967c10ea1100ecc17de89c1791a853842ce18f2244a4814b31144fa
+    sourceHash: 6c9847bf50d5a87bccf41d82d590e63eedb7635adec952b5a1efdc1a5cef7f11
     sourceColumn: 4
     sourceEndColumn: 26
-    sourceEndLine: 57
+    sourceEndLine: 90
     sourceFile: scripts/swipl-spike.py
-    sourceLine: 57
+    sourceLine: 90
   SYM-prolog-spike-run-monitored-cli:
     identityHash: 1be421355e3806c15ce1965b9e4dec00c45179b3b8289cb3ee1a73baec10cab4
-    sourceHash: 07aed5c0d967c10ea1100ecc17de89c1791a853842ce18f2244a4814b31144fa
+    sourceHash: 6c9847bf50d5a87bccf41d82d590e63eedb7635adec952b5a1efdc1a5cef7f11
     sourceColumn: 4
     sourceEndColumn: 21
-    sourceEndLine: 173
+    sourceEndLine: 206
     sourceFile: scripts/swipl-spike.py
-    sourceLine: 173
+    sourceLine: 206
   SYM-prolog-spike-sample-linux-cli:
     identityHash: 94eeed66d7f129d621573d58eb85679f8e35dc5c662ccb656fe98a3a6ec57636
-    sourceHash: 07aed5c0d967c10ea1100ecc17de89c1791a853842ce18f2244a4814b31144fa
+    sourceHash: 6c9847bf50d5a87bccf41d82d590e63eedb7635adec952b5a1efdc1a5cef7f11
     sourceColumn: 4
     sourceEndColumn: 20
-    sourceEndLine: 108
+    sourceEndLine: 141
     sourceFile: scripts/swipl-spike.py
-    sourceLine: 108
+    sourceLine: 141
   SYM-PrologOptions:
     identityHash: 4af33dbd8730362f13e3356d045bac779b6ea446e044cd1c289f1b4e1cd281e7
     sourceHash: 012a5e78e32d5dc25885f34b9b3c0184aabd408a6afcf334ad8b6fb88e4ccd71
@@ -29499,6 +29643,14 @@ coordinates:
     sourceEndLine: 257
     sourceFile: packages/cli/tests/traceability/predicate-first.test.ts
     sourceLine: 1
+  SYM-test-prolog-build-pipeline-validation:
+    identityHash: 3abe6bd57d9a0b4216c8c4b67eccc3002f558d001990782caf672dd35d0408be
+    sourceHash: fb8775100aa53b3ffe2b078f7daf7bd82e667f4578ab1306e978e1ce410a9a77
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 628
+    sourceFile: scripts/tests/swipl-build-pipeline.test.ts
+    sourceLine: 1
   SYM-test-prolog-coverage-test-selection:
     identityHash: 4f04743d5e9b700c2a0b5ffcf7f4f57968c01c3b6616dc53f8af5939fb862b87
     sourceHash: 2bc05db1ec96d6ac842229195ebd9096471cd3d1cda952a44abba178f3a55a04
@@ -29509,7 +29661,7 @@ coordinates:
     sourceLine: 1
   SYM-test-prolog-spike-config-validation:
     identityHash: 6b0894cd28d48f761a5b4739d7567003ae521e3e91299bc829922d2f57efd2c1
-    sourceHash: 23d758488f408c57c8a182c780e8b32e0cd65b5ad704ae34bb66e2f28e317052
+    sourceHash: 2b6eaa053abccbd0cde9d16da925c4fdfaf01c76c4875c301914b08cde6c0ef9
     sourceColumn: 0
     sourceEndColumn: 0
     sourceEndLine: 199

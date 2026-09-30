@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Phase-1 SWI-Prolog relocation experiment. Native builds run only in Actions."""
+"""Pinned SWI-Prolog builds and relocation checks. Native builds run only in Actions."""
 
 from __future__ import annotations
 
@@ -12,7 +12,9 @@ import re
 import shlex
 import shutil
 import subprocess
+import struct
 import sys
+import tarfile
 import threading
 import time
 import urllib.request
@@ -24,7 +26,19 @@ ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_MANIFEST = Path(__file__).with_name("swipl-version.json")
 TARGETS = {
     "linux-x64-gnu": ("linux", "x86_64"),
+    "linux-arm64-gnu": ("linux", "aarch64"),
     "darwin-arm64": ("darwin", "arm64"),
+    "darwin-x64": ("darwin", "x86_64"),
+}
+OPENSSL_TARGETS = {
+    "linux-x64-gnu": "linux-x86_64",
+    "linux-arm64-gnu": "linux-aarch64",
+    "darwin-arm64": "darwin64-arm64-cc",
+    "darwin-x64": "darwin64-x86_64-cc",
+}
+LINUX_LOADERS = {
+    "linux-x64-gnu": "ld-linux-x86-64.so.2",
+    "linux-arm64-gnu": "ld-linux-aarch64.so.1",
 }
 REQUIRED_LIBRARIES = (
     "semweb/rdf_db", "semweb/rdf_persistency", "semweb/sparql_client",
@@ -32,11 +46,30 @@ REQUIRED_LIBRARIES = (
     "chr", "clpfd", "thread", "persistency", "filesex", "readutil",
     "date", "aggregate", "solution_sequences", "prolog_coverage",
 )
+REQUIRED_LIBRARY_PATHS = {
+    "semweb/rdf_db": "ext/semweb/semweb/rdf_db.pl",
+    "semweb/rdf_persistency": "ext/semweb/semweb/rdf_persistency.pl",
+    "semweb/sparql_client": "ext/semweb/semweb/sparql_client.pl",
+    "pcre": "ext/pcre/pcre.pl",
+    "crypto": "ext/ssl/crypto.pl",
+    "sha": "ext/clib/sha.pl",
+    "http/json": "ext/json/http/json.pl",
+    "http/json_convert": "ext/json/http/json_convert.pl",
+    "chr": "ext/chr/chr.pl",
+    "clpfd": "clp/clpfd.pl",
+    "thread": "thread.pl",
+    "persistency": "persistency.pl",
+    "filesex": "ext/clib/filesex.pl",
+    "readutil": "readutil.pl",
+    "date": "date.pl",
+    "aggregate": "aggregate.pl",
+    "solution_sequences": "solution_sequences.pl",
+    "prolog_coverage": "prolog_coverage.pl",
+}
 PACKAGE_LIST = "chr;clib;http;plunit;semweb;pcre;ssl"
 BUILD_JOBS = min(4, os.cpu_count() or 2)
 LINUX_SYSTEM_LIBRARIES = {
     "libc.so.6", "libm.so.6", "libpthread.so.0", "libdl.so.2",
-    "ld-linux-x86-64.so.2",
 }
 VENDORED_LIBRARY_PREFIXES = ("libssl.", "libcrypto.", "libpcre2-8.", "libz.")
 
@@ -306,6 +339,7 @@ def cmake_project(source: Path, build: Path, install: Path, target: str, *option
     ]
     if target.startswith("darwin"):
         flags.append("-DCMAKE_OSX_DEPLOYMENT_TARGET=12.0")
+        flags.append(f"-DCMAKE_OSX_ARCHITECTURES={TARGETS[target][1]}")
     run("cmake", "-S", str(source), "-B", str(build), *flags, *options, capture=False)
     run("cmake", "--build", str(build), "--parallel", str(BUILD_JOBS), capture=False)
     run("cmake", "--install", str(build), capture=False)
@@ -319,15 +353,22 @@ def library(deps: Path, stem: str, target: str) -> Path:
     return candidate
 
 
-def build(manifest: dict, target: str, work: Path) -> Path:
-    if os.getenv("GITHUB_ACTIONS") != "true":
+def require_clean_runner(target: str, *, native_build: bool = False) -> None:
+    if native_build and os.getenv("GITHUB_ACTIONS") != "true":
         raise ValueError("SWI native spike builds are allowed only in GitHub Actions")
-    expected_os, expected_cpu = TARGETS[target]
-    actual_os = "darwin" if sys.platform == "darwin" else "linux" if sys.platform == "linux" else sys.platform
-    if (actual_os, platform.machine()) != (expected_os, expected_cpu):
-        raise ValueError(f"Runner is {actual_os}/{platform.machine()}, expected {expected_os}/{expected_cpu}")
+    if target not in TARGETS:
+        raise ValueError(f"Unsupported SWI spike target: {target}")
+    actual_os = "darwin" if sys.platform == "darwin" else sys.platform
+    expected = TARGETS[target]
+    actual = (actual_os, platform.machine())
+    if actual != expected:
+        raise ValueError(f"Runner is {actual[0]}/{actual[1]}, expected {expected[0]}/{expected[1]}")
     if shutil.which("swipl"):
-        raise ValueError("A system swipl is already on PATH; the spike requires a clean runner")
+        raise ValueError("A system swipl is already on PATH; a clean runner is required")
+
+
+def build(manifest: dict, target: str, work: Path) -> Path:
+    require_clean_runner(target, native_build=True)
     work = work.resolve()
     if (work / "relocated").exists():
         raise ValueError(f"Work directory already has a relocated build: {work}")
@@ -350,7 +391,7 @@ def build(manifest: dict, target: str, work: Path) -> Path:
     openssl_env = os.environ.copy()
     if target.startswith("darwin"):
         openssl_env["MACOSX_DEPLOYMENT_TARGET"] = "12.0"
-    openssl_target = "darwin64-arm64-cc" if target.startswith("darwin") else "linux-x86_64"
+    openssl_target = OPENSSL_TARGETS[target]
     run(
         "./Configure", openssl_target, f"--prefix={deps}", f"--openssldir={deps / 'ssl'}",
         "--libdir=lib", "shared", "no-tests", "no-docs", "no-engine", "no-module", "no-zlib",
@@ -422,12 +463,9 @@ def native_files(prefix: Path, target: str) -> list[Path]:
     for path in prefix.rglob("*"):
         if not path.is_file() or path.is_symlink():
             continue
-        magic = path.open("rb").read(4)
-        if target.startswith("linux") and magic == b"\x7fELF":
-            result.append(path)
-        if target.startswith("darwin") and magic in (
-            b"\xcf\xfa\xed\xfe", b"\xfe\xed\xfa\xcf", b"\xca\xfe\xba\xbe",
-        ):
+        with path.open("rb") as file:
+            magic = file.read(4)
+        if magic in (b"\x7fELF", b"\xcf\xfa\xed\xfe", b"\xfe\xed\xfa\xcf", b"\xca\xfe\xba\xbe", b"\xce\xfa\xed\xfe", b"\xfe\xed\xfa\xce"):
             result.append(path)
     return result
 
@@ -452,7 +490,7 @@ def relocate(prefix: Path, target: str) -> None:
             ]
             run("patchelf", "--set-rpath", ":".join(paths), str(path), capture=False)
             run("strip", "--strip-unneeded", str(path))
-        audit_linux(files, prefix)
+        audit_linux(files, prefix, target)
     else:
         native = set(files)
         by_name = {}
@@ -476,39 +514,92 @@ def relocate(prefix: Path, target: str) -> None:
             if path.suffix == ".dylib":
                 run("install_name_tool", "-id", "@loader_path/" + path.name, str(path))
             run("codesign", "--force", "-s", "-", str(path))
-        audit_macos(files)
+        audit_macos(files, prefix, target)
 
 
-def audit_linux(files: list[Path], prefix: Path) -> None:
+def check_native_architecture(path: Path, target: str) -> None:
+    with path.open("rb") as file:
+        header = file.read(20)
+    if target.startswith("linux"):
+        machine = 62 if target == "linux-x64-gnu" else 183
+        valid = len(header) >= 20 and header[:6] == b"\x7fELF\x02\x01" and struct.unpack_from("<H", header, 18)[0] == machine
+    else:
+        cpu = 0x0100000c if target == "darwin-arm64" else 0x01000007
+        valid = len(header) >= 8 and header[:4] == b"\xcf\xfa\xed\xfe" and struct.unpack_from("<I", header, 4)[0] == cpu
+    if not valid:
+        raise ValueError(f"Wrong native architecture for {target}: {path}")
+
+
+def loader_environment() -> dict[str, str]:
+    env = os.environ.copy()
+    for key in [name for name in env if name.startswith(("LD_", "DYLD_"))]:
+        env.pop(key, None)
+    return env
+
+
+def audit_linux(files: list[Path], prefix: Path, target: str = "linux-x64-gnu") -> None:
     vendor = prefix / "lib" / "vendor"
+    permitted = LINUX_SYSTEM_LIBRARIES | {LINUX_LOADERS[target]}
     for path in files:
+        check_native_architecture(path, target)
         dynamic = run("readelf", "-d", str(path))
         needed = re.findall(r"\(NEEDED\).*?\[(.*?)\]", dynamic)
         for name in needed:
-            if name not in LINUX_SYSTEM_LIBRARIES and not name.startswith(VENDORED_LIBRARY_PREFIXES) and not name.startswith("libswipl.so"):
+            if name not in permitted and not name.startswith(VENDORED_LIBRARY_PREFIXES) and not name.startswith("libswipl.so"):
                 raise ValueError(f"Forbidden ELF dependency in {path}: {name}")
-        linked = run("ldd", str(path))
+        runpaths = re.findall(r"\((?:RUNPATH|RPATH)\).*?\[(.*?)\]", dynamic)
+        if not runpaths:
+            raise ValueError(f"Missing relative ELF runpath: {path}")
+        for entry in runpaths:
+            for value in entry.split(":"):
+                if not value.startswith("$ORIGIN/"):
+                    raise ValueError(f"Nonrelative ELF runpath: {path}: {value}")
+                resolved = (path.parent / value.removeprefix("$ORIGIN/")).resolve()
+                if not resolved.is_dir() or not resolved.is_relative_to(prefix.resolve()):
+                    raise ValueError(f"Escaping or missing ELF runpath: {path}: {value}")
+        versions = run("readelf", "--version-info", str(path))
+        for version in re.findall(r"\bGLIBC_(\d+(?:\.\d+)+)\b", versions):
+            if tuple(int(part) for part in version.split(".")) > (2, 28):
+                raise ValueError(f"ELF requires glibc newer than 2.28: {path}: {version}")
+        linked = run("ldd", str(path), env=loader_environment())
         if "not found" in linked:
             raise ValueError(f"Unresolved ELF dependency in {path}:\n{linked}")
         for line in linked.splitlines():
-            match = re.search(r"^\s*(\S+)\s+=>\s+(\S+)", line)
-            if match and match.group(1).startswith(VENDORED_LIBRARY_PREFIXES):
-                resolved = Path(match.group(2)).resolve()
-                if not resolved.is_relative_to(vendor):
+            line = line.strip()
+            if not line or re.fullmatch(r"linux-vdso\.so\.1\s+\(0x[0-9a-f]+\)", line):
+                continue
+            match = re.fullmatch(r"(\S+)\s+=>\s+(/\S+)\s+\(0x[0-9a-f]+\)", line)
+            if match:
+                name, destination = match.groups()
+            else:
+                loader = re.fullmatch(r"(/\S+)\s+\(0x[0-9a-f]+\)", line)
+                if not loader:
+                    raise ValueError(f"Unrecognized ELF dependency result: {path}: {line}")
+                destination = loader.group(1)
+                name = Path(destination).name
+            if name not in permitted and not name.startswith(VENDORED_LIBRARY_PREFIXES) and not name.startswith("libswipl.so"):
+                raise ValueError(f"Forbidden transitive ELF dependency: {path}: {name}")
+            resolved = Path(destination).resolve()
+            if name.startswith(VENDORED_LIBRARY_PREFIXES):
+                if not resolved.is_file() or not resolved.is_relative_to(vendor.resolve()):
                     raise ValueError(f"Dependency escaped vendor directory: {path}: {line}")
-            if match and match.group(1).startswith("libswipl.so"):
-                resolved = Path(match.group(2)).resolve()
-                if not resolved.is_relative_to(prefix):
+            if name.startswith("libswipl.so"):
+                if not resolved.is_file() or not resolved.is_relative_to(prefix.resolve()):
                     raise ValueError(f"libswipl escaped relocated prefix: {path}: {line}")
 
 
-def audit_macos(files: list[Path]) -> None:
+def audit_macos(files: list[Path], prefix: Path, target: str = "darwin-arm64") -> None:
     for path in files:
+        check_native_architecture(path, target)
         output = run("otool", "-L", str(path))
         for line in output.splitlines()[1:]:
             dependency = line.strip().split(" (", 1)[0]
             if dependency and not dependency.startswith(("@loader_path/", "/usr/lib/", "/System/Library/")):
                 raise ValueError(f"Unrelocated Mach-O dependency in {path}: {dependency}")
+            if dependency.startswith("@loader_path/"):
+                resolved = (path.parent / dependency.removeprefix("@loader_path/")).resolve()
+                if not resolved.is_file() or not resolved.is_relative_to(prefix.resolve()):
+                    raise ValueError(f"Unresolved or escaping Mach-O dependency: {path}: {dependency}")
         commands = run("otool", "-l", str(path))
         versions = []
         for block in re.split(r"(?=\bcmd LC_)", commands):
@@ -516,16 +607,33 @@ def audit_macos(files: list[Path]) -> None:
                 versions.extend(re.findall(r"\bminos\s+(\d+)\.(\d+)", block))
             elif "cmd LC_VERSION_MIN_MACOSX" in block:
                 versions.extend(re.findall(r"\bversion\s+(\d+)\.(\d+)", block))
-        if versions and any((int(major), int(minor)) > (12, 0) for major, minor in versions):
+        if not versions:
+            raise ValueError(f"Mach-O deployment target is missing: {path}")
+        if any((int(major), int(minor)) > (12, 0) for major, minor in versions):
             raise ValueError(f"Mach-O deployment target exceeds macOS 12: {path}: {versions}")
+        run("codesign", "--verify", "--strict", str(path))
 
 
-def exercise(prefix: Path, manifest: dict, target: str, work: Path) -> None:
+def checked(report: dict, work: Path, env: dict[str, str], label: str, *command: str, cwd: Path | None = None) -> None:
+    try:
+        if label == "cliSuite" and report["target"] == "linux-x64-gnu":
+            run_monitored_cli(*command, cwd=cwd or ROOT, env=env, diagnostics=work / "cli-process-samples.jsonl")
+        else:
+            run(*command, cwd=cwd, env=env, capture=False)
+        report["checks"][label] = "passed"
+    except subprocess.CalledProcessError:
+        report["checks"][label] = "failed"
+        raise
+    finally:
+        (work / "report.json").write_text(json.dumps(report, indent=2) + "\n")
+
+
+def smoke(prefix: Path, manifest: dict, target: str, work: Path, report: dict) -> dict[str, str]:
     binary = prefix / "bin" / "swipl"
     home = prefix / "lib" / "swipl"
     if not binary.is_file() or not home.is_dir():
         raise ValueError(f"Incomplete relocated prefix: {binary} / {home}")
-    env = os.environ.copy()
+    env = loader_environment()
     env["PATH"] = f"{prefix / 'bin'}{os.pathsep}{env['PATH']}"
     env["SWI_HOME_DIR"] = str(home)
     env["NODE_ENV"] = "test"
@@ -536,6 +644,42 @@ def exercise(prefix: Path, manifest: dict, target: str, work: Path) -> None:
     resolved = shutil.which("swipl", path=env["PATH"])
     if resolved is None or not Path(resolved).resolve().is_relative_to(prefix):
         raise ValueError(f"Tests would not use relocated swipl: {resolved}")
+    version_output = run(str(binary), "--version", env=env)
+    print(version_output, flush=True)
+    version = re.match(r"SWI-Prolog version (\d+\.\d+\.\d+)(?:\s|$)", version_output)
+    report["checks"]["version"] = "passed" if version and version.group(1) == manifest["version"] else "failed"
+    (work / "report.json").write_text(json.dumps(report, indent=2) + "\n")
+    if report["checks"]["version"] != "passed":
+        raise ValueError(f"Relocated binary version differs from pin {manifest['version']}: {version_output}")
+    checked(report, work, env,
+        "libbf-bigint", str(binary), "--on-error=halt", "-q", "-g",
+        "current_prolog_flag(bounded,false), \\+ current_prolog_flag(gmp_version,_), "
+        "X is 2^128, X > 100000000000000000000000000000000000000, halt(0)",
+        "-t", "halt(1)",
+    )
+    timestamp_files = [work / "mtime-first", work / "mtime-second"]
+    for file, fractional_ns in zip(timestamp_files, (125_000_000, 875_000_000)):
+        file.write_text("relocated timestamp precision control\n")
+        timestamp_ns = 1_600_000_000_000_000_000 + fractional_ns
+        os.utime(file, ns=(timestamp_ns, timestamp_ns))
+    quoted = [str(file).replace("'", "''") for file in timestamp_files]
+    checked(report, work, env,
+        "file-mtime-subsecond", str(binary), "--on-error=halt", "-q", "-g",
+        f"time_file('{quoted[0]}',A), time_file('{quoted[1]}',B), "
+        "format('same-second file times: ~16f ~16f~n',[A,B]), "
+        "abs(A-1600000000.125)<0.000001, abs(B-1600000000.875)<0.000001, "
+        "D is B-A, D>0.749999, D<0.750001, halt(0)", "-t", "halt(1)",
+    )
+    for name in REQUIRED_LIBRARIES:
+        checked(report, work, env,
+            f"library:{name}", str(binary), "--on-error=halt", "-q", "-g",
+            f"use_module(library('{name}')), halt(0)", "-t", "halt(1)",
+        )
+    return env
+
+
+def exercise(prefix: Path, manifest: dict, target: str, work: Path) -> None:
+    binary = prefix / "bin" / "swipl"
     package = work / "swipl-relocated.tar.gz"
     run("tar", "-czf", str(package), "-C", str(prefix), ".", capture=False)
     unpacked_kib = int(run("du", "-sk", str(prefix)).split()[0])
@@ -549,56 +693,11 @@ def exercise(prefix: Path, manifest: dict, target: str, work: Path) -> None:
         "checks": {},
     }
 
-    def checked(label: str, *command: str, cwd: Path | None = None) -> None:
-        try:
-            if label == "cliSuite" and target == "linux-x64-gnu":
-                run_monitored_cli(
-                    *command, cwd=cwd or ROOT, env=env,
-                    diagnostics=work / "cli-process-samples.jsonl",
-                )
-            else:
-                run(*command, cwd=cwd, env=env, capture=False)
-            report["checks"][label] = "passed"
-        except subprocess.CalledProcessError:
-            report["checks"][label] = "failed"
-            raise
-        finally:
-            (work / "report.json").write_text(json.dumps(report, indent=2) + "\n")
-
     (work / "report.json").write_text(json.dumps(report, indent=2) + "\n")
     print(json.dumps(report, indent=2), flush=True)
-    version_output = run(str(binary), "--version", env=env)
-    print(version_output, flush=True)
-    report["checks"]["version"] = "passed" if manifest["version"] in version_output else "failed"
-    (work / "report.json").write_text(json.dumps(report, indent=2) + "\n")
-    if report["checks"]["version"] != "passed":
-        raise ValueError(f"Relocated binary version differs from pin {manifest['version']}: {version_output}")
-    checked(
-        "libbf-bigint", str(binary), "--on-error=halt", "-q", "-g",
-        "current_prolog_flag(bounded,false), \\+ current_prolog_flag(gmp_version,_), "
-        "X is 2^128, X > 100000000000000000000000000000000000000, halt(0)",
-        "-t", "halt(1)",
-    )
-    timestamp_files = [work / "mtime-first", work / "mtime-second"]
-    for file, fractional_ns in zip(timestamp_files, (125_000_000, 875_000_000)):
-        file.write_text("relocated timestamp precision control\n")
-        timestamp_ns = 1_600_000_000_000_000_000 + fractional_ns
-        os.utime(file, ns=(timestamp_ns, timestamp_ns))
-    quoted = [str(file).replace("'", "''") for file in timestamp_files]
-    checked(
-        "file-mtime-subsecond", str(binary), "--on-error=halt", "-q", "-g",
-        f"time_file('{quoted[0]}',A), time_file('{quoted[1]}',B), "
-        "format('same-second file times: ~16f ~16f~n',[A,B]), "
-        "abs(A-1600000000.125)<0.000001, abs(B-1600000000.875)<0.000001, "
-        "D is B-A, D>0.749999, D<0.750001, halt(0)", "-t", "halt(1)",
-    )
-    for name in REQUIRED_LIBRARIES:
-        checked(
-            f"library:{name}", str(binary), "--on-error=halt", "-q", "-g",
-            f"use_module(library('{name}')), halt(0)", "-t", "halt(1)",
-        )
-    checked("build", "bun", "run", "build", cwd=ROOT)
-    checked(
+    env = smoke(prefix, manifest, target, work, report)
+    checked(report, work, env, "build", "bun", "run", "build", cwd=ROOT)
+    checked(report, work, env,
         "prologSuite", str(binary), "-q", "-s", "scripts/run-prolog-coverage.pl",
         "--", "--source-root", "packages/core/src",
         "--test", "packages/core/tests/kb.plt",
@@ -608,18 +707,186 @@ def exercise(prefix: Path, manifest: dict, target: str, work: Path) -> None:
         "--summary-text", "coverage/prolog/summary.txt", "--fail-under", "50",
         cwd=ROOT,
     )
-    checked(
+    checked(report, work, env,
         "cliSuite", "bun", "test", "--timeout", "120000", "--isolate",
         "--max-concurrency=1", "./packages/cli", cwd=ROOT,
     )
 
 
+def build_manifest(prefix: Path, manifest: dict, target: str) -> dict:
+    binary = prefix / "bin" / "swipl"
+    if not binary.is_file() or binary.is_symlink():
+        raise ValueError("Build prefix must contain a regular bin/swipl")
+    return {
+        "schema": "kibi.swipl-build.v1", "target": target,
+        "swiplVersion": manifest["version"],
+        "sourceArchiveSha256": manifest["sha256"],
+        "dependencies": manifest["dependencies"], "sourcePatches": manifest["patches"],
+        "sourceCommit": os.getenv("GITHUB_SHA"), "workflowRunId": os.getenv("GITHUB_RUN_ID"),
+        "binary": {"path": "bin/swipl", "sha256": hashlib.sha256(binary.read_bytes()).hexdigest()},
+        "home": "lib/swipl", "requiredLibraries": list(REQUIRED_LIBRARIES),
+    }
+
+
+def write_archive(prefix: Path, manifest: dict, target: str, work: Path) -> Path:
+    metadata = build_manifest(prefix, manifest, target)
+    (prefix / "build-manifest.json").write_text(json.dumps(metadata, indent=2) + "\n")
+    archive = work / f"swipl-{manifest['version']}-{target}.tar.gz"
+    run("tar", "-czf", str(archive), "-C", str(prefix), ".", capture=False)
+    digest = hashlib.sha256(archive.read_bytes()).hexdigest()
+    archive.with_name(archive.name + ".sha256").write_text(f"{digest}  {archive.name}\n")
+    return archive
+
+
+def verify_archive(archive: Path, checksum: Path, manifest: dict, target: str, work: Path) -> Path:
+    expected_name = f"swipl-{manifest['version']}-{target}.tar.gz"
+    if archive.name != expected_name:
+        raise ValueError(f"Archive name does not match target/version: {archive.name}")
+    declared = checksum.read_text(encoding="ascii")
+    if not re.fullmatch(r"[0-9a-f]{64}  " + re.escape(expected_name) + r"\n?", declared):
+        raise ValueError("Invalid archive SHA-256 sidecar")
+    if hashlib.sha256(archive.read_bytes()).hexdigest() != declared[:64]:
+        raise ValueError("Archive SHA-256 mismatch")
+    destination = work / "extracted"
+    if destination.exists() or destination.is_symlink():
+        raise ValueError(f"Archive destination must be new: {destination}")
+    with tarfile.open(archive, "r:gz") as tar:
+        entries = {}
+        for member in tar.getmembers():
+            parts = member.name.split("/")
+            if member.name.startswith("/") or ".." in parts:
+                raise ValueError(f"Archive path escapes prefix: {member.name}")
+            name = os.path.normpath(member.name)
+            if name in entries:
+                raise ValueError(f"Duplicate archive member: {name}")
+            if name == ".":
+                if not member.isdir() or member.mode & 0o7000:
+                    raise ValueError("Archive root must be an unprivileged directory")
+                entries[name] = member
+                continue
+            if name.split("/", 1)[0] not in ("bin", "lib", "licenses", "share", "build-manifest.json"):
+                raise ValueError(f"Unexpected archive entry: {name}")
+            if not (member.isfile() or member.isdir() or member.issym()) or member.mode & 0o7000:
+                raise ValueError(f"Unsafe archive entry type or mode: {name}")
+            entries[name] = member
+        for name, member in entries.items():
+            for parent in Path(name).parents:
+                if str(parent) in entries and not entries[str(parent)].isdir():
+                    raise ValueError(f"Archive parent is not a directory: {name}")
+            if member.issym():
+                current = name
+                seen = set()
+                while current in entries and entries[current].issym():
+                    if current in seen:
+                        raise ValueError(f"Archive symlink cycle: {name}")
+                    seen.add(current)
+                    link = entries[current].linkname
+                    if Path(link).is_absolute():
+                        raise ValueError(f"Archive symlink escapes prefix: {name}")
+                    current = os.path.normpath(str(Path(current).parent / link))
+                    if current == ".." or current.startswith("../"):
+                        raise ValueError(f"Archive symlink escapes prefix: {name}")
+                if current not in entries:
+                    raise ValueError(f"Archive symlink is dangling: {name}")
+        for name in ("build-manifest.json", "bin/swipl"):
+            if name not in entries or not entries[name].isfile():
+                raise ValueError(f"Archive is missing a regular {name}")
+        expected = build_manifest_values(manifest, target)
+        metadata = json.loads(tar.extractfile(entries["build-manifest.json"]).read())
+        if not isinstance(metadata, dict):
+            raise ValueError("Invalid build manifest")
+        if set(metadata) != set(expected) | {"binary", "sourceCommit", "workflowRunId"}:
+            raise ValueError("Unexpected build manifest keys")
+        for key, value in expected.items():
+            if metadata.get(key) != value:
+                raise ValueError(f"Build manifest differs from trusted pin: {key}")
+        binary = metadata.get("binary")
+        if not isinstance(binary, dict) or set(binary) != {"path", "sha256"} or binary.get("path") != "bin/swipl":
+            raise ValueError("Invalid build manifest binary path")
+        if hashlib.sha256(tar.extractfile(entries["bin/swipl"]).read()).hexdigest() != binary.get("sha256"):
+            raise ValueError("Binary SHA-256 mismatch")
+        for key, variable in (("sourceCommit", "GITHUB_SHA"), ("workflowRunId", "GITHUB_RUN_ID")):
+            if os.getenv(variable) and metadata.get(key) != os.getenv(variable):
+                raise ValueError(f"Build provenance differs from this Actions run: {key}")
+        for license in ("SWI-Prolog-LICENSE", "OpenSSL-LICENSE.txt", "PCRE2-COPYING", "zlib-LICENSE"):
+            member = entries.get("licenses/" + license)
+            if member is None or not member.isfile() or member.size == 0:
+                raise ValueError(f"Archive is missing license: {license}")
+        if not any(name.startswith("lib/swipl/") and member.isdir() for name, member in entries.items()):
+            raise ValueError("Archive is missing SWI home")
+        for library in REQUIRED_LIBRARIES:
+            member = entries.get("lib/swipl/library/" + REQUIRED_LIBRARY_PATHS[library])
+            if member is None or not member.isfile():
+                raise ValueError(f"Archive is missing required library: {library}")
+        # Every path/link and its parent was checked before creating anything.
+        # A fresh destination prevents an existing symlink from changing extraction.
+        destination.mkdir(parents=True)
+        tar.extractall(destination)
+    return destination
+
+
+def build_manifest_values(manifest: dict, target: str) -> dict:
+    return {
+        "schema": "kibi.swipl-build.v1", "target": target,
+        "swiplVersion": manifest["version"], "sourceArchiveSha256": manifest["sha256"],
+        "dependencies": manifest["dependencies"], "sourcePatches": manifest["patches"],
+        "home": "lib/swipl", "requiredLibraries": list(REQUIRED_LIBRARIES),
+    }
+
+
+def archive_pipeline(manifest: dict, target: str, work: Path, archive: Path | None = None, checksum: Path | None = None) -> None:
+    require_clean_runner(target, native_build=archive is None)
+    work = work.resolve()
+    work.mkdir(parents=True, exist_ok=True)
+    report = {**build_manifest_values(manifest, target), "sourceCommit": os.getenv("GITHUB_SHA"), "workflowRunId": os.getenv("GITHUB_RUN_ID"), "role": "consumer" if archive else "builder", "checks": {}, "status": "running"}
+    (work / "report.json").write_text(json.dumps(report, indent=2) + "\n")
+    stage = "build" if archive is None else "artifact-validation"
+    try:
+        if archive is None:
+            prefix = build(manifest, target, work)
+            metadata = build_manifest(prefix, manifest, target)
+        else:
+            if checksum is None:
+                raise ValueError("--checksum is required for smoke-archive")
+            prefix = verify_archive(archive, checksum, manifest, target, work)
+            metadata = json.loads((prefix / "build-manifest.json").read_text())
+        report.update(metadata)
+        report["checks"][stage] = "passed"
+        stage = "native-audit"
+        files = native_files(prefix, target)
+        if not files:
+            raise ValueError("Archive prefix contains no native files")
+        if target.startswith("linux"):
+            audit_linux(files, prefix, target)
+        else:
+            audit_macos(files, prefix, target)
+        report["checks"][stage] = "passed"
+        stage = "smoke"
+        smoke(prefix, manifest, target, work, report)
+        stage = "archive"
+        if archive is None:
+            archive = write_archive(prefix, manifest, target, work)
+            report.update(json.loads((prefix / "build-manifest.json").read_text()))
+        report.update({"archive": archive.name, "archiveSha256": hashlib.sha256(archive.read_bytes()).hexdigest(), "packedBytes": archive.stat().st_size, "unpackedKiB": int(run("du", "-sk", str(prefix)).split()[0]), "status": "passed"})
+        report["checks"].update({"artifact-sha256": "passed", "binary-sha256": "passed"})
+    except (ValueError, OSError, tarfile.TarError, subprocess.CalledProcessError) as error:
+        report["checks"][stage] = "failed"
+        report["status"] = "failed"
+        report["error"] = str(error)
+        raise
+    finally:
+        (work / "report.json").write_text(json.dumps(report, indent=2) + "\n")
+    print(json.dumps(report, indent=2), flush=True)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=("verify-config", "build-and-test"))
+    parser.add_argument("command", choices=("verify-config", "build-and-test", "build-archive", "smoke-archive"))
     parser.add_argument("--manifest", type=Path, default=Path(os.getenv("KIBI_SWIPL_SPIKE_MANIFEST", DEFAULT_MANIFEST)))
     parser.add_argument("--target", default=os.getenv("KIBI_SWIPL_SPIKE_TARGET", "linux-x64-gnu"))
     parser.add_argument("--workdir", type=Path)
+    parser.add_argument("--archive", type=Path)
+    parser.add_argument("--checksum", type=Path)
     args = parser.parse_args()
     manifest = validate(args.manifest, args.target)
     if args.command == "verify-config":
@@ -630,15 +897,22 @@ def main() -> None:
         }))
         return
     if args.workdir is None:
-        raise ValueError("--workdir is required for build-and-test")
-    prefix = build(manifest, args.target, args.workdir)
-    exercise(prefix, manifest, args.target, args.workdir.resolve())
+        raise ValueError(f"--workdir is required for {args.command}")
+    if args.command == "build-and-test":
+        prefix = build(manifest, args.target, args.workdir)
+        exercise(prefix, manifest, args.target, args.workdir.resolve())
+    elif args.command == "build-archive":
+        archive_pipeline(manifest, args.target, args.workdir)
+    else:
+        if args.archive is None or args.checksum is None:
+            raise ValueError("--archive and --checksum are required for smoke-archive")
+        archive_pipeline(manifest, args.target, args.workdir, args.archive.resolve(), args.checksum.resolve())
 
 
 if __name__ == "__main__":
     try:
         main()
-    except (ValueError, subprocess.CalledProcessError) as error:
+    except (ValueError, OSError, tarfile.TarError, subprocess.CalledProcessError) as error:
         print(f"SWI spike failed: {error}", file=sys.stderr)
         if isinstance(error, subprocess.CalledProcessError) and error.output:
             print(error.output, file=sys.stderr)
