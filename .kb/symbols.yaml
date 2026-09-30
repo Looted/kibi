@@ -43658,6 +43658,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-kibi-github-report-e2e
+      - type: covered_by
         target: TEST-kibi-github-report-integration
       - type: implements
         target: REQ-kibi-github-report-integration
