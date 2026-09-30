@@ -175,6 +175,9 @@ describe("ci.yml CI workflow contract", () => {
 
   test("SWI install avoids Launchpad GPG API and can build from source", () => {
     const installScript = readFileSync(SWI_INSTALL_PATH, "utf8");
+    const sourcePin = JSON.parse(
+      readFileSync(join(import.meta.dir, "..", "swipl-version.json"), "utf8"),
+    );
     expect(installScript).toContain("library(prolog_coverage)");
     expect(installScript).toContain("Failed to fetch .*${SWI_PPA_FETCH_RE}");
     expect(installScript).toContain(
@@ -184,11 +187,10 @@ describe("ci.yml CI workflow contract", () => {
     expect(installScript).not.toContain("apt-add-repository -y");
     expect(installScript).toContain("add_swi_ppa_without_launchpad_api");
     expect(installScript).toContain("install_swi_from_official_source");
-    expect(installScript).toContain("SWIPL_SRC_VERSION:-10.0.2");
+    expect(installScript).toContain('"${SCRIPT_DIR}/swipl-version.json"');
     expect(installScript).toContain("swipl-${SWIPL_SRC_VERSION}.tar.gz");
-    expect(installScript).toContain(
-      "e42cc098f7b8a6051c4f79a99b55162d467098aba60f69649bdc7583f0734b57",
-    );
+    expect(sourcePin.version).toMatch(/^\d+\.\d+\.\d+$/);
+    expect(sourcePin.sha256).toMatch(/^[0-9a-f]{64}$/);
     expect(installScript).toContain("E8B739E3753FF4A12360BA6A4AB3A5F60EA9AEB3");
     expect(installScript).toContain("refresh_ubuntu_indexes");
     expect(installScript).not.toContain('apt-get install -y "$@"');

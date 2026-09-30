@@ -1,5 +1,25 @@
 [
   {
+    "test_id": "TEST-prolog-spike-config-validation",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./scripts/tests/swipl-spike-config.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-prolog-coverage-test-selection",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/core/tests/prolog-coverage-runner.test.ts"
+      ]
+    ]
+  },
+  {
     "test_id": "TEST-kibi-source-relationship-parity",
     "steps": [
       [

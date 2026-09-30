@@ -167,3 +167,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2b69cff5da8b
+  - type: constrains
+    from: REQ-prolog-spike-config-validation
+    to: FACT-prolog-spike-config-subject
+    created_at: 2026-09-30T08:50:38.372Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-63fd2932894d
+  - type: requires_property
+    from: REQ-prolog-spike-config-validation
+    to: FACT-prolog-spike-config-accepts-pinned-source
+    created_at: 2026-09-30T08:50:38.403Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2f1996613ef3
+  - type: requires_property
+    from: REQ-prolog-spike-config-validation
+    to: FACT-prolog-spike-config-rejects-malformed-metadata
+    created_at: 2026-09-30T08:50:38.416Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4069dbf3585b
+  - type: requires_property
+    from: REQ-prolog-spike-config-validation
+    to: FACT-prolog-spike-config-rejects-unsupported-target
+    created_at: 2026-09-30T08:50:38.432Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0fdd67b0147d
+  - type: requires_property
+    from: REQ-prolog-spike-config-validation
+    to: FACT-prolog-spike-config-reports-pinned-configuration
+    created_at: 2026-09-30T08:50:38.442Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ecf42bb0c06d
+  - type: requires_property
+    from: REQ-prolog-spike-config-validation
+    to: FACT-prolog-spike-config-avoids-native-build
+    created_at: 2026-09-30T08:50:38.452Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-83a46b0f0e8e
+  - type: specified_by
+    from: REQ-prolog-spike-config-validation
+    to: SCEN-prolog-spike-config-validation
+    created_at: 2026-09-30T08:52:22.344Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-88912aef72d5
+  - type: verified_by
+    from: SCEN-prolog-coverage-test-selection
+    to: TEST-prolog-coverage-test-selection
+    created_at: 2026-09-30T09:08:27.291Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d2fcbae46cf5

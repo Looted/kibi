@@ -43446,3 +43446,51 @@ symbols:
         target: TEST-001
       - type: implements
         target: REQ-cli-doctor
+  - id: SYM-test-prolog-spike-config-validation
+    title: SWI-Prolog spike configuration contract
+    status: active
+    sourceFile: scripts/tests/swipl-spike-config.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-prolog-spike-config-validation
+  - id: SYM-prolog-spike-config-validate
+    title: validate
+    status: active
+    sourceFile: scripts/swipl-spike.py
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-spike-config-validation
+      - type: implements
+        target: REQ-prolog-spike-config-validation
+  - id: SYM-test-prolog-coverage-test-selection
+    title: Prolog coverage runner test selection suite
+    status: active
+    sourceFile: packages/core/tests/prolog-coverage-runner.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-prolog-coverage-test-selection
+  - id: SYM-prolog-coverage-load-tests
+    title: load_tests
+    status: active
+    sourceFile: scripts/run-prolog-coverage.pl
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-coverage-test-selection
+      - type: implements
+        target: REQ-prolog-coverage-test-selection
+  - id: SYM-prolog-coverage-roots
+    title: coverage_roots
+    status: active
+    sourceFile: scripts/run-prolog-coverage.pl
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-coverage-test-selection
+      - type: implements
+        target: REQ-prolog-coverage-test-selection

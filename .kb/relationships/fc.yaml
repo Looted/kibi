@@ -314,3 +314,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ea781af5e10a
+  - type: verified_by
+    from: SCEN-prolog-spike-config-validation
+    to: TEST-prolog-spike-config-validation
+    created_at: 2026-09-30T08:55:45.539Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d8bd6b78ca04

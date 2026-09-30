@@ -18019,6 +18019,22 @@ coordinates:
     sourceEndLine: 497
     sourceFile: packages/cli/tests/prolog/codec.test.ts
     sourceLine: 1
+  SYM-prolog-coverage-load-tests:
+    identityHash: 19e70d0a076cacad8ea0f69530bb6c00fea2502864d56b28c4d2dd755a974e84
+    sourceHash: 96af8a898785aa7a8572d2e280bfb856595f6b5ddddb7053d4dff0f20c82cd5c
+    sourceColumn: 4
+    sourceEndColumn: 14
+    sourceEndLine: 38
+    sourceFile: scripts/run-prolog-coverage.pl
+    sourceLine: 38
+  SYM-prolog-coverage-roots:
+    identityHash: d63050e8985fd1d060ad9b45c6c52487259910e051dc6e78fb7f1e3991902811
+    sourceHash: 96af8a898785aa7a8572d2e280bfb856595f6b5ddddb7053d4dff0f20c82cd5c
+    sourceColumn: 4
+    sourceEndColumn: 18
+    sourceEndLine: 40
+    sourceFile: scripts/run-prolog-coverage.pl
+    sourceLine: 40
   SYM-prolog-register-process-exit-once:
     identityHash: c3857b4a4da71b847b81f949f1fc9415fcf9c3930706d4fcaee1f38a97658f4a
     sourceHash: 012a5e78e32d5dc25885f34b9b3c0184aabd408a6afcf334ad8b6fb88e4ccd71
@@ -18027,6 +18043,14 @@ coordinates:
     sourceEndLine: 147
     sourceFile: packages/cli/src/prolog.ts
     sourceLine: 138
+  SYM-prolog-spike-config-validate:
+    identityHash: b3769fa8e255b9e517cb71bcfbefa2a6ac234d597e933572c6299df1215d9ddf
+    sourceHash: ce6a1340fbf68f7942ee05c4f575774b36e8134ccc7226dac2af8b6cde6ba5de
+    sourceColumn: 4
+    sourceEndColumn: 12
+    sourceEndLine: 57
+    sourceFile: scripts/swipl-spike.py
+    sourceLine: 57
   SYM-PrologOptions:
     identityHash: 4af33dbd8730362f13e3356d045bac779b6ea446e044cd1c289f1b4e1cd281e7
     sourceHash: 012a5e78e32d5dc25885f34b9b3c0184aabd408a6afcf334ad8b6fb88e4ccd71
@@ -29378,6 +29402,22 @@ coordinates:
     sourceEndColumn: 0
     sourceEndLine: 257
     sourceFile: packages/cli/tests/traceability/predicate-first.test.ts
+    sourceLine: 1
+  SYM-test-prolog-coverage-test-selection:
+    identityHash: 4f04743d5e9b700c2a0b5ffcf7f4f57968c01c3b6616dc53f8af5939fb862b87
+    sourceHash: 2bc05db1ec96d6ac842229195ebd9096471cd3d1cda952a44abba178f3a55a04
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 253
+    sourceFile: packages/core/tests/prolog-coverage-runner.test.ts
+    sourceLine: 1
+  SYM-test-prolog-spike-config-validation:
+    identityHash: 6b0894cd28d48f761a5b4739d7567003ae521e3e91299bc829922d2f57efd2c1
+    sourceHash: 00ed7740fd1d4ac5d67c20a51e63a62fbdde9db282a336a8670bbb274cf901ff
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 112
+    sourceFile: scripts/tests/swipl-spike-config.test.ts
     sourceLine: 1
   SYM-test-proof-protocol:
     identityHash: 1c8ef63590374de37cc33074d7d9aaada02273a1261585e6579a0e63327a2ecc
