@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 126,
-  "proofProven": 126,
+  "currentRequirements": 127,
+  "proofProven": 127,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -527,6 +527,11 @@
       "uncoveredSymbols": []
     },
     "REQ-opencode-sync-feedback": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-prolog-build-pipeline-validation": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []
