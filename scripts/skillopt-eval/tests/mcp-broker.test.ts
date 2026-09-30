@@ -288,7 +288,14 @@ describe("independent final-state client", () => {
         launch: {
           ...staged.downstream,
           args: [...staged.downstream.args],
-          env: { ...process.env, KIBI_BRANCH: "skillopt-eval" },
+          env: {
+            ...Object.fromEntries(
+              Object.entries(process.env).filter(
+                ([, value]) => typeof value === "string",
+              ),
+            ),
+            KIBI_BRANCH: "skillopt-eval",
+          },
         },
         receiptPath: join(workspace.privateEvidence, "final-state.json"),
         requests: [

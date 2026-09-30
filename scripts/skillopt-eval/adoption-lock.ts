@@ -17,14 +17,20 @@ type AdoptionLockOptions = Readonly<{
   ) => Promise<void>;
 }>;
 
-// Linux/WSL is the supported skill-adoption environment. Keep the module
-// importable by native Windows consumers that only use packaged runtime code.
-const FLOCK =
+// Canonical skill-mirror generation uses native descriptor locks on Linux and
+// Darwin. Other platforms can import this module, but cannot run unlocked work.
+const FLOCK_LIBRARY =
   process.platform === "linux"
-    ? dlopen("libc.so.6", {
+    ? "libc.so.6"
+    : process.platform === "darwin"
+      ? "/usr/lib/libSystem.B.dylib"
+      : undefined;
+const FLOCK =
+  FLOCK_LIBRARY === undefined
+    ? undefined
+    : dlopen(FLOCK_LIBRARY, {
         flock: { args: ["i32", "i32"], returns: "i32" },
-      }).symbols.flock
-    : undefined;
+      }).symbols.flock;
 
 const LOCK_FLAGS = {
   shared: 1,
@@ -59,7 +65,8 @@ async function secureLockHandle(
 ): Promise<
   Readonly<{ path: string; handle: Awaited<ReturnType<typeof open>> }>
 > {
-  if (FLOCK === undefined) throw new Error("Linux adoption locks unavailable");
+  if (FLOCK === undefined)
+    throw new Error(`Native adoption locks unavailable on ${process.platform}`);
 
   const stateRoot = join(repoRoot, ".kibi");
   await ensureSecureDirectory(stateRoot);
@@ -109,7 +116,8 @@ async function flockDescriptor(
   descriptor: number,
   mode: LockMode,
 ): Promise<void> {
-  if (FLOCK === undefined) throw new Error("Linux adoption locks unavailable");
+  if (FLOCK === undefined)
+    throw new Error(`Native adoption locks unavailable on ${process.platform}`);
   while (FLOCK(descriptor, lockFlag(mode) | LOCK_FLAGS.nonBlocking) !== 0) {
     await Bun.sleep(5);
   }

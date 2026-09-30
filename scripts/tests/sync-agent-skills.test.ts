@@ -189,6 +189,37 @@ describe("sync-agent-skills planning and drift", () => {
     expect(drifted.driftedTargets).toEqual(["cursor"]);
   });
 
+  test("locked Codex mirror write preserves canonical bytes and check reports no drift", async () => {
+    const root = tempRoot();
+    writeCanonical(root, {
+      skill: "kibi-usage",
+      rel: "resources/guide.md",
+      body: "canonical guide\n",
+    });
+
+    const wrote = await syncAgentSkills(root, {
+      mode: "write",
+      targets: ["codex"],
+    });
+    expect(wrote.driftedTargets).toEqual([]);
+    for (const id of EXPECTED_SKILL_IDS) {
+      expect(
+        readFileSync(join(mirrorSkillsDir(root, "codex"), id, "SKILL.md")),
+      ).toEqual(readFileSync(join(canonicalSkillsDir(root), id, "SKILL.md")));
+    }
+    expect(
+      readFileSync(
+        join(mirrorSkillsDir(root, "codex"), "kibi-usage/resources/guide.md"),
+        "utf8",
+      ),
+    ).toBe("canonical guide\n");
+    const checked = await syncAgentSkills(root, {
+      mode: "check",
+      targets: ["codex"],
+    });
+    expect(checked.driftedTargets).toEqual([]);
+  });
+
   test("diffMirror reports missing and drifted hash manifests", () => {
     const root = tempRoot();
     writeCanonical(root);

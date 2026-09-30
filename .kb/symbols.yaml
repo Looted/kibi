@@ -43518,3 +43518,12 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-scripts-coverage-shard-isolation
+  - id: SYM-test-sync-agent-skills
+    title: sync agent skills tests
+    status: active
+    sourceFile: scripts/tests/sync-agent-skills.test.ts
+    symbol_role: behavioral
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-external-adoption-verdict

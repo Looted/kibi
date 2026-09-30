@@ -21565,10 +21565,10 @@ coordinates:
     sourceLine: 101
   SYM-skillopt-adoption-lock-tests:
     identityHash: cfcb25cf069648368655bcee9d3c0b01b016ea1b69f7a3ce38b58108dedcc34c
-    sourceHash: 4fe04faf82110d489c7445fb26aa952247027485697cdd299fe22c07c5f3664f
+    sourceHash: 014068d740065571c2d4391f8f0d5f68f93fb534cd877a658fc65cd7da62d068
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 233
+    sourceEndLine: 284
     sourceFile: scripts/skillopt-eval/tests/adoption-lock.test.ts
     sourceLine: 1
   SYM-skillopt-adoption-once-fixture-adoption-id-of:
@@ -24829,12 +24829,12 @@ coordinates:
     sourceLine: 192
   SYM-skillopt-lock-dispatch-throw-if-directory-inode-drift:
     identityHash: dfd081472ed825120ebc1902347b41ebabde6701bbf46cb1afc7f8cc0b4e1a91
-    sourceHash: a55d1123eae12aacdfd314624b1d79c61bd6dfd7bb904be2b163d951abe9dc5c
+    sourceHash: 8ce11dc1bfc338ce7230261c073cf5a75984483452748bdec7e2bb1b2cffbef6
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 48
+    sourceEndLine: 54
     sourceFile: scripts/skillopt-eval/adoption-lock.ts
-    sourceLine: 41
+    sourceLine: 47
   SYM-skillopt-login-run-for-source:
     identityHash: 21203ced4b17a9334cbba44365ba97bf9c514e2a64aaeec7e3126d9bea659175
     sourceHash: fa124b7d286f80bacb3728e57d7d3e677059b9c3454faa0a0da86341877d7fc3
@@ -24869,10 +24869,10 @@ coordinates:
     sourceLine: 81
   SYM-skillopt-mcp-broker-tests:
     identityHash: 6b2ed137912c1241f61f99ac440b434e1bd9ed41077b7eecd21eab9494d8429c
-    sourceHash: 5037ee67787b5893b8caf4cb17b0e0e8cbcebbf57eb84a298f365a51bb038e7c
+    sourceHash: 7219c3ab7e14e63cfe45d8151eb653ece38a151a76953f9d1acd82bf537d556f
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 372
+    sourceEndLine: 379
     sourceFile: scripts/skillopt-eval/tests/mcp-broker.test.ts
     sourceLine: 1
   SYM-skillopt-mcp-startup-probe-tests:
@@ -27997,20 +27997,20 @@ coordinates:
     sourceLine: 32
   SYM-skillopt-with-exclusive-adoption-lock:
     identityHash: d5e31863397959485f3836832ba4b33cea7efd6ab648849fd661bd1e8ffccd59
-    sourceHash: a55d1123eae12aacdfd314624b1d79c61bd6dfd7bb904be2b163d951abe9dc5c
+    sourceHash: 8ce11dc1bfc338ce7230261c073cf5a75984483452748bdec7e2bb1b2cffbef6
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 150
+    sourceEndLine: 158
     sourceFile: scripts/skillopt-eval/adoption-lock.ts
-    sourceLine: 139
+    sourceLine: 147
   SYM-skillopt-with-shared-adoption-lock:
     identityHash: 7c0b1a0a5ce07e97ab0506020a6b9b38c86dae1497a216b0e008e495235b6a1b
-    sourceHash: a55d1123eae12aacdfd314624b1d79c61bd6dfd7bb904be2b163d951abe9dc5c
+    sourceHash: 8ce11dc1bfc338ce7230261c073cf5a75984483452748bdec7e2bb1b2cffbef6
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 164
+    sourceEndLine: 172
     sourceFile: scripts/skillopt-eval/adoption-lock.ts
-    sourceLine: 153
+    sourceLine: 161
   SYM-skillopt-workflow-options:
     identityHash: de9c10db0921a80d72000295aa14ecc8b25e06577b92de06f98afba4f553e5db
     sourceHash: a643d1231d3465ddccd67a880744cc67e5348cb5675c336b302766560f26741b
@@ -29579,6 +29579,14 @@ coordinates:
     sourceEndLine: 4
     sourceFile: packages/cli/tests/fixtures/sparql-http-server.ts
     sourceLine: 2
+  SYM-test-sync-agent-skills:
+    identityHash: 2c8e6e8b963ad16b90da23ebca5e979638245e2e59769631024a33f9585545c5
+    sourceHash: a48214547bf261ed96a6186484175fd01d2ae5c84bae8ed07134b1ed88f3db61
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 362
+    sourceFile: scripts/tests/sync-agent-skills.test.ts
+    sourceLine: 1
   SYM-test-sync-semantic-boundary-shards:
     identityHash: f61eb4f7f15961a0ed28dc0a89384163ecd34a671a91f27a42408b6e9354d4a2
     sourceHash: 47e2a81a50c0c5b62405363430d93999de09659eebc44cf82ecb27985f29f94f
@@ -30005,12 +30013,12 @@ coordinates:
     sourceLine: 192
   SYM-withExclusiveMirrorWriterLock:
     identityHash: 80cf614c055c25d077370d523de6504faee52734cabe211614ad0877a132b1f2
-    sourceHash: a55d1123eae12aacdfd314624b1d79c61bd6dfd7bb904be2b163d951abe9dc5c
+    sourceHash: 8ce11dc1bfc338ce7230261c073cf5a75984483452748bdec7e2bb1b2cffbef6
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 178
+    sourceEndLine: 186
     sourceFile: scripts/skillopt-eval/adoption-lock.ts
-    sourceLine: 167
+    sourceLine: 175
   SYM-withHeldOutExecutionLease:
     identityHash: c505214a76029b45e044769fb7cd24b2fb5921bc2113d583d7259721976f5c32
     sourceHash: 81ab42fa46a78686018331518a2dc92b649725b08a4c20383fce6b35c1b889bf

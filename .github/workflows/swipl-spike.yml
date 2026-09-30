@@ -8,6 +8,11 @@ on:
       - scripts/swipl-spike.py
       - scripts/swipl-spike.sh
       - scripts/swipl-version.json
+      - scripts/skillopt-eval/adoption-lock.ts
+      - scripts/skillopt-eval/adoption-durable.ts
+      - scripts/skillopt-eval/tests/adoption-lock*.ts
+      - scripts/sync-agent-skills.ts
+      - scripts/tests/sync-agent-skills.test.ts
       - packages/core/src/**
       - packages/core/tests/**
       - packages/cli/src/**
@@ -73,6 +78,11 @@ jobs:
               test -w "$GITHUB_WORKSPACE" && test -w "$SPIKE_DIR"
               cd "$GITHUB_WORKSPACE"
               git rev-parse --is-inside-work-tree
+              bun test --timeout 15000 --isolate --max-concurrency=1 \
+                ./scripts/skillopt-eval/tests/adoption-lock.test.ts \
+                ./scripts/skillopt-eval/tests/adoption-lock.contention.test.ts \
+                ./scripts/skillopt-eval/tests/adoption-lock.remaining.coverage.test.ts \
+                ./scripts/tests/sync-agent-skills.test.ts
               bash scripts/swipl-spike.sh build-and-test --target linux-x64-gnu --workdir "$SPIKE_DIR"
             '
       - name: Verify Linux deliverables
@@ -129,6 +139,13 @@ jobs:
             exit 1
           fi
           bun install --frozen-lockfile
+      - name: Verify native skill mirror locks before building
+        run: |
+          bun test --timeout 15000 --isolate --max-concurrency=1 \
+            ./scripts/skillopt-eval/tests/adoption-lock.test.ts \
+            ./scripts/skillopt-eval/tests/adoption-lock.contention.test.ts \
+            ./scripts/skillopt-eval/tests/adoption-lock.remaining.coverage.test.ts \
+            ./scripts/tests/sync-agent-skills.test.ts
       - name: Build, relocate, audit, sign, and run Prolog and CLI suites
         env:
           SPIKE_DIR: ${{ steps.paths.outputs.dir }}

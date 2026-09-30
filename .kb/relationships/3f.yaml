@@ -307,3 +307,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fa2ac547e223
+  - type: executable_for
+    from: SYM-test-sync-agent-skills
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-30T12:30:41.548Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bc39cd33c32c

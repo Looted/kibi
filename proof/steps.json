@@ -1059,6 +1059,18 @@
         "./scripts/skillopt-eval/tests/adoption-recovery.test.ts"
       ],
       [
+        "bun",
+        "test",
+        "--timeout",
+        "15000",
+        "--isolate",
+        "--max-concurrency=1",
+        "./scripts/skillopt-eval/tests/adoption-lock.test.ts",
+        "./scripts/skillopt-eval/tests/adoption-lock.contention.test.ts",
+        "./scripts/skillopt-eval/tests/adoption-lock.remaining.coverage.test.ts",
+        "./scripts/tests/sync-agent-skills.test.ts"
+      ],
+      [
         "node",
         "scripts/run-proof-packed-e2e.mjs",
         "documentation/tests/e2e/packed/ontology-convergence-witnesses.test.ts"
