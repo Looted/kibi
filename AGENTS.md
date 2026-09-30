@@ -186,6 +186,14 @@ The suite carries historical coverage-chasing inflation (dozens of `*.coverage.t
 - Do not refactor production code solely to make it easier to cover. If code is hard to test, prefer extracting a behavior-focused seam over a coverage-cast (`as never`) workaround.
 - Coverage is a floor check in CI, not a target to maximize.
 
+## Proof checks before push
+
+- Run `bun run proof:prepush` on the clean, committed branch after refreshing Kibi.
+- For changes to proof contracts, production coverage links, or proof tooling,
+  also run `bun run proof:replay` before push; semantic-only checks do not prove
+  execution or receipt freshness.
+- Integrity checks and passing tests alone do not establish the proof baseline.
+
 ## Session Artifact Cleanup
 
 Before staging, committing, or handing off:

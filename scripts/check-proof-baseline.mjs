@@ -37,7 +37,7 @@ const semanticOnly = process.argv.includes("--semantic-only");
 const baseline = JSON.parse(
   await readFile(path.resolve("proof/baseline.json"), "utf8"),
 );
-const kibi = process.env.KIBI_CLI ?? "kibi";
+const kibi = process.env.KIBI_CLI ?? path.resolve("packages/cli/bin/kibi");
 
 function spawnJson(argv) {
   const result = spawnSync(kibi, argv, {

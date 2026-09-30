@@ -43,15 +43,36 @@ const EVIDENCE_FRESHNESS_GAPS = Object.freeze([
 function explanationHasCoverageLink(explanation) {
   return (
     Array.isArray(explanation?.coverageCandidates) &&
-    explanation.coverageCandidates.length > 0
+    explanation.coverageCandidates.some((candidate) => {
+      // A link can exist while its scope or scenario chain is invalid. Only
+      // a qualifying candidate, or one rejected solely for stale evidence,
+      // can become production coverage after re-proving.
+      if (candidate?.qualifies === true) return true;
+      const reasons = [
+        candidate?.reason,
+        ...(Array.isArray(candidate?.secondaryReasons)
+          ? candidate.secondaryReasons
+          : []),
+      ];
+      return (
+        candidate?.scope === "end_to_end" &&
+        reasons.every((reason) =>
+          [
+            "stale_proof_receipt",
+            "receipt_snapshot_mismatch",
+            "receipt_contract_mismatch",
+          ].includes(reason),
+        )
+      );
+    })
   );
 }
 
 /**
  * Production coverage is judged against tests with fresh passing receipts, so
  * stale receipts leave every symbol "uncovered". That gap is freshness-only
- * when each uncovered symbol still has a covered_by link; a symbol with no link
- * is a real traceability gap that re-proving cannot fix.
+ * when each uncovered symbol has a candidate that qualifies or is rejected only
+ * for stale evidence. Scope and scenario-chain failures remain real gaps.
  */
 function productionCoverageIsFreshnessOnly(row) {
   const stage = row?.proofStages?.productionSymbols;
