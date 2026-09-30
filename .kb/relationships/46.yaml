@@ -195,3 +195,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e05785b4fedc
+  - type: implements
+    from: SYM-docs-site-page-meta-pageMeta
+    to: REQ-docs-readme-published-links
+    created_at: 2026-09-29T21:45:15.316Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a8b4d3dcbcf9
+  - type: implements
+    from: SYM-docs-site-page-meta-pageMeta
+    to: REQ-docs-site-root-pages
+    created_at: 2026-09-29T21:45:15.320Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4627c32e3077
+  - type: covered_by
+    from: SYM-docs-site-page-meta-pageMeta
+    to: TEST-docs-readme-published-links
+    created_at: 2026-09-29T21:45:15.324Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9c00cbb0239e
+  - type: covered_by
+    from: SYM-docs-site-page-meta-pageMeta
+    to: TEST-docs-site-pages
+    created_at: 2026-09-29T21:45:15.327Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-51be2656642e

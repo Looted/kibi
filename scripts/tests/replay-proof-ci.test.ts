@@ -27,6 +27,7 @@ describe("local proof CI replay", () => {
       "Reject generated manifest drift in committed snapshot",
       "Compile packed proof tests",
       "Sync and validate integrity of the proof snapshot",
+      "Reject semantic proof regressions before executing contracts",
       "Prove every contracted test through Kibi",
       FINAL_GATE_STEP,
     ].map((name) => names.indexOf(name));

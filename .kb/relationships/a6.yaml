@@ -160,3 +160,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-17ef572b7b02
+  - type: validates
+    from: TEST-release-mcp-registry-visibility
+    to: REQ-020
+    created_at: 2026-09-30T11:40:07.388Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c4d6e664dea1
+  - type: validates
+    from: TEST-release-mcp-registry-visibility
+    to: SCEN-release-automation
+    created_at: 2026-09-30T11:40:07.439Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cdb158aa2fee

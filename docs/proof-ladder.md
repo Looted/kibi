@@ -154,8 +154,10 @@ maps to `proofStatus: unresolved`, not `proven`.
 - `bun run proof:baseline:semantic` (this repository) — compare the committed
   baseline without re-proving: gaps that only reflect stale evidence
   (`stale_proof_receipt`, `proof_contract_mismatch`, and production coverage
-  whose symbols all keep a `covered_by` link) are set aside, so grounding,
-  contradiction, and link regressions surface in about a minute.
+  whose symbols all have a qualifying candidate or a scenario-backed E2E
+  candidate rejected solely for stale evidence) are set aside. Unit/integration
+  scope, missing receipts, invalid evidence, and scenario-chain failures remain
+  blocking gaps.
 - `bun run proof:replay` (this repository) — replay the CI proof job's gate
   steps from `.github/workflows/proof.yml` in a clean clone of the committed
   HEAD, outside the repository tree, and stop at the first failing step.
@@ -165,3 +167,17 @@ maps to `proofStatus: unresolved`, not `proven`.
   from tests that already carry a `proof_contract`.
 - `docs/proving-requirements.md` — the runner-neutral proof pipeline:
   contracts, integrations, artifacts, and how `kibi prove` produces receipts.
+
+Before pushing, run `kibi sync --refresh-symbol-coordinates` with the project-local
+CLI, review and commit the generated changes, and run `bun run proof:prepush`.
+If committing leaves the KB stale, sync it again before the check. This checks the
+committed manifests, publish metadata (including exact GitHub owner casing),
+and semantic baseline using the project-local CLI. When
+proof contracts, coverage links, or proof tooling change, also run
+`bun run proof:replay` to reproduce the full CI gate on committed HEAD.
+
+The repository's pre-commit framework configuration includes a `pre-push` stage
+for the fast gate. Maintainers using that framework enable it with
+`pre-commit install --hook-type pre-push`; tracking the configuration alone does
+not install the hook. The fast gate checks the current clean checkout; use the
+corresponding checkout when pushing another branch or an explicit ref.

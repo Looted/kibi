@@ -312,10 +312,25 @@ jobs:
       - name: Validate MCP Registry manifest
         run: mcp-publisher validate /tmp/kibi-mcp-server.json
       - name: Verify the published npm package has the registry name
+        timeout-minutes: 5
         run: |
           version=$(node -p "require('./packages/mcp/package.json').version")
           expected_name=$(node -p "require('./packages/mcp/package.json').mcpName")
-          published_name=$(npm view "kibi-mcp@${version}" mcpName)
+          # npm publish may succeed before the version is available to readers.
+          # Bound both npm's request time and the total number of attempts.
+          for attempt in $(seq 1 12); do
+            if published_name=$(npm view "kibi-mcp@${version}" mcpName \
+              --registry=https://registry.npmjs.org \
+              --fetch-retries=0 --fetch-timeout=10000); then
+              break
+            fi
+            if [ "$attempt" -eq 12 ]; then
+              echo "Published kibi-mcp@${version} is not available after 12 attempts"
+              exit 1
+            fi
+            echo "Waiting for kibi-mcp@${version} to become available (attempt ${attempt}/12)..."
+            sleep 10
+          done
           if [ "$published_name" != "$expected_name" ]; then
             echo "Published kibi-mcp@${version} has mcpName '${published_name}', expected '${expected_name}'"
             exit 1

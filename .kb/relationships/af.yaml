@@ -125,13 +125,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d3a8ef53624d
-  - type: implements
-    from: SYM-docs-site-theme-PageShell
-    to: REQ-docs-site-pages
-    created_at: 2026-09-27T08:40:26.864Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1441933b5b15
   - type: covered_by
     from: SYM-docs-site-theme-PageShell
     to: TEST-docs-site-pages
@@ -139,3 +132,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-aeb88b4e6323
+  - type: implements
+    from: SYM-docs-site-theme-PageShell
+    to: REQ-docs-site-root-pages
+    created_at: 2026-09-30T07:33:23.397Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-70492484639e

@@ -43237,7 +43237,7 @@ symbols:
       - type: covered_by
         target: TEST-docs-site-pages
       - type: implements
-        target: REQ-docs-site-pages
+        target: REQ-docs-site-root-pages
   - id: SYM-docs-site-theme-PageShell
     title: PageShell
     status: active
@@ -43247,7 +43247,7 @@ symbols:
       - type: covered_by
         target: TEST-docs-site-pages
       - type: implements
-        target: REQ-docs-site-pages
+        target: REQ-docs-site-root-pages
   - id: SYM-docs-site-theme-escapeHtml
     title: escapeHtml
     status: active
@@ -43257,7 +43257,7 @@ symbols:
       - type: covered_by
         target: TEST-docs-site-pages
       - type: implements
-        target: REQ-docs-site-pages
+        target: REQ-docs-site-root-pages
   - id: SYM-docs-site-theme-landingContent
     title: landingContent
     status: active
@@ -43267,7 +43267,7 @@ symbols:
       - type: covered_by
         target: TEST-docs-site-pages
       - type: implements
-        target: REQ-docs-site-pages
+        target: REQ-docs-site-root-pages
   - id: SYM-docs-site-theme-layout
     title: layout
     status: active
@@ -43275,9 +43275,13 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-docs-readme-published-links
+      - type: covered_by
         target: TEST-docs-site-pages
       - type: implements
-        target: REQ-docs-site-pages
+        target: REQ-docs-readme-published-links
+      - type: implements
+        target: REQ-docs-site-root-pages
   - id: SYM-docs-site-theme-prepareMark
     title: prepareMark
     status: active
@@ -43287,7 +43291,7 @@ symbols:
       - type: covered_by
         target: TEST-docs-site-pages
       - type: implements
-        target: REQ-docs-site-pages
+        target: REQ-docs-site-root-pages
   - id: SYM-docs-site-theme-clientScript
     title: clientScript
     status: active
@@ -43298,7 +43302,7 @@ symbols:
       - type: covered_by
         target: TEST-docs-site-pages
       - type: implements
-        target: REQ-docs-site-pages
+        target: REQ-docs-site-root-pages
   - id: SYM-docs-site-theme-styles
     title: styles
     status: active
@@ -43309,7 +43313,7 @@ symbols:
       - type: covered_by
         target: TEST-docs-site-pages
       - type: implements
-        target: REQ-docs-site-pages
+        target: REQ-docs-site-root-pages
   - id: SYM-docs-site-pages-build
     title: Documentation site pages verifier
     status: active
@@ -45160,3 +45164,281 @@ symbols:
         target: TEST-impact-policy-stage-e-installed-e2e
       - type: implements
         target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-docs-readme-published-links
+    title: Published documentation link verifier
+    status: active
+    sourceFile: scripts/tests/readme-published-docs.test.ts
+    granularity_reason: test-suite
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-docs-readme-published-links
+  - id: SYM-docs-site-catalog-publishedPageHref
+    title: publishedPageHref
+    status: active
+    sourceFile: docs-site/catalog.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-docs-readme-published-links
+      - type: implements
+        target: REQ-docs-readme-published-links
+  - id: SYM-docs-site-llms-renderLlmsTxt
+    title: renderLlmsTxt
+    status: active
+    sourceFile: docs-site/llms.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-docs-readme-published-links
+      - type: implements
+        target: REQ-docs-readme-published-links
+  - id: SYM-docs-site-readmePublishedDocProblems
+    title: readmePublishedDocProblems
+    status: active
+    sourceFile: docs-site/readme-links.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-docs-readme-published-links
+      - type: implements
+        target: REQ-docs-readme-published-links
+  - id: SYM-docs-site-catalog-DocSection
+    title: DocSection
+    status: active
+    sourceFile: docs-site/catalog.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-docs-readme-published-links
+      - type: implements
+        target: REQ-docs-readme-published-links
+  - id: SYM-docs-site-catalog-DocPage
+    title: DocPage
+    status: active
+    sourceFile: docs-site/catalog.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-docs-readme-published-links
+      - type: implements
+        target: REQ-docs-readme-published-links
+  - id: SYM-docs-site-catalog-LLMS_INDEX_PATH
+    title: LLMS_INDEX_PATH
+    status: active
+    sourceFile: docs-site/catalog.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-docs-readme-published-links
+      - type: implements
+        target: REQ-docs-readme-published-links
+  - id: SYM-docs-site-catalog-DOCS
+    title: DOCS
+    status: active
+    sourceFile: docs-site/catalog.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-docs-readme-published-links
+      - type: implements
+        target: REQ-docs-readme-published-links
+  - id: SYM-docs-site-catalog-sitePagePath
+    title: sitePagePath
+    status: active
+    sourceFile: docs-site/catalog.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-docs-readme-published-links
+      - type: implements
+        target: REQ-docs-readme-published-links
+  - id: SYM-docs-site-catalog-publishedLlmsIndexHref
+    title: publishedLlmsIndexHref
+    status: active
+    sourceFile: docs-site/catalog.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-docs-readme-published-links
+      - type: implements
+        target: REQ-docs-readme-published-links
+  - id: SYM-docs-site-catalog-pageForSource
+    title: pageForSource
+    status: active
+    sourceFile: docs-site/catalog.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-docs-readme-published-links
+      - type: implements
+        target: REQ-docs-readme-published-links
+  - id: SYM-docs-site-catalog-pageForSitePath
+    title: pageForSitePath
+    status: active
+    sourceFile: docs-site/catalog.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-docs-readme-published-links
+      - type: implements
+        target: REQ-docs-readme-published-links
+  - id: SYM-docs-site-catalog-PUBLISHED_SITE_ORIGIN
+    title: PUBLISHED_SITE_ORIGIN
+    status: active
+    sourceFile: docs-site/catalog.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-docs-readme-published-links
+      - type: implements
+        target: REQ-docs-readme-published-links
+  - id: SYM-docs-site-catalog-REPORT_PATH
+    title: REPORT_PATH
+    status: active
+    sourceFile: docs-site/catalog.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-docs-site-pages
+      - type: implements
+        target: REQ-docs-site-root-pages
+  - id: SYM-docs-site-catalog-SITE_TAGLINE
+    title: SITE_TAGLINE
+    status: active
+    sourceFile: docs-site/catalog.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-docs-readme-published-links
+      - type: implements
+        target: REQ-docs-readme-published-links
+  - id: SYM-docs-site-page-meta-pageMeta
+    title: pageMeta
+    status: active
+    sourceFile: docs-site/page-meta.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-docs-readme-published-links
+      - type: covered_by
+        target: TEST-docs-site-pages
+      - type: implements
+        target: REQ-docs-readme-published-links
+      - type: implements
+        target: REQ-docs-site-root-pages
+  - id: SYM-docs-site-page-meta-parseFrontMatter
+    title: parseFrontMatter
+    status: active
+    sourceFile: docs-site/page-meta.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-docs-readme-published-links
+      - type: covered_by
+        target: TEST-docs-site-pages
+      - type: implements
+        target: REQ-docs-readme-published-links
+      - type: implements
+        target: REQ-docs-site-root-pages
+  - id: SYM-docs-site-page-meta-isAuthoredPage
+    title: isAuthoredPage
+    status: active
+    sourceFile: docs-site/page-meta.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-docs-readme-published-links
+      - type: covered_by
+        target: TEST-docs-site-pages
+      - type: implements
+        target: REQ-docs-readme-published-links
+      - type: implements
+        target: REQ-docs-site-root-pages
+  - id: SYM-docs-site-page-meta-FrontMatter
+    title: FrontMatter
+    status: active
+    sourceFile: docs-site/page-meta.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-docs-site-pages
+      - type: implements
+        target: REQ-docs-site-root-pages
+  - id: SYM-cli-github-skip-blank-lines
+    title: skipBlankLines
+    status: active
+    sourceFile: packages/cli/src/commands/github-init.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-e2e
+      - type: covered_by
+        target: TEST-kibi-github-report-integration
+      - type: implements
+        target: REQ-kibi-github-report-integration
+  - id: SYM-release-verify-published-metadata
+    title: verifyPublishedMetadata
+    status: active
+    sourceFile: scripts/tests/release-workflow-contract.test.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-release-mcp-registry-visibility
+  - id: SYM-release-mcp-registry-verification
+    title: publish-mcp-registry
+    status: active
+    sourceFile: .github/workflows/publish.yml
+    symbol_role: config
+    granularity_reason: config-artifact
+    relationships:
+      - type: covered_by
+        target: TEST-014
+      - type: covered_by
+        target: TEST-release-mcp-registry-visibility
+      - type: implements
+        target: REQ-020
+  - id: SYM-proof-prepush-check
+    title: proof-prepush.sh
+    status: active
+    sourceFile: scripts/proof-prepush.sh
+    symbol_role: config
+    granularity_reason: config-artifact
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-local-proof-parity
+      - type: implements
+        target: REQ-kibi-local-proof-parity
+  - id: SYM-mcp-release-package-metadata
+    title: package.json
+    status: active
+    sourceFile: packages/mcp/package.json
+    symbol_role: config
+    granularity_reason: config-artifact
+    relationships:
+      - type: covered_by
+        target: TEST-014
+      - type: implements
+        target: REQ-020
+  - id: SYM-mcp-release-registry-metadata
+    title: server.json
+    status: active
+    sourceFile: packages/mcp/server.json
+    symbol_role: config
+    granularity_reason: config-artifact
+    relationships:
+      - type: covered_by
+        target: TEST-014
+      - type: implements
+        target: REQ-020
+  - id: SYM-sync-package-release-manifests
+    title: syncPackagePluginManifests
+    status: active
+    sourceFile: scripts/sync-plugin-manifest-versions.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: covered_by
+        target: TEST-014
+      - type: implements
+        target: REQ-020

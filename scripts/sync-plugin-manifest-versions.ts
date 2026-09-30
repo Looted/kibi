@@ -550,6 +550,37 @@ async function preparePackageSync(
     });
   }
 
+  const registryPath = join(packageDir, "server.json");
+  if (packageManifest.name === "kibi-mcp" && existsSync(registryPath)) {
+    const registry = await readJsonObject(registryPath);
+    const npmEntries = Array.isArray(registry.packages)
+      ? registry.packages.filter(
+          (entry) =>
+            isRecord(entry) &&
+            entry.registryType === "npm" &&
+            entry.identifier === packageManifest.name,
+        )
+      : [];
+    if (npmEntries.length !== 1) {
+      throw new PluginManifestSyncError(
+        `Expected exactly one Registry npm entry for ${packageManifest.name}`,
+        registryPath,
+      );
+    }
+    const previousVersion =
+      typeof registry.version === "string" ? registry.version : "";
+    registry.version = packageManifest.version;
+    npmEntries[0].version = packageManifest.version;
+    // Written with the plugin manifests, after every package validates.
+    pluginManifests.push({
+      packageName: packageManifest.name,
+      packageVersion: packageManifest.version,
+      manifestPath: registryPath,
+      previousVersion,
+      updatedRaw: `${JSON.stringify(registry, null, 2)}\n`,
+    });
+  }
+
   return {
     packageDir,
     packageManifest,

@@ -1,5 +1,5 @@
 ---
-title: A developer browses the published documentation site at /docs/
+title: A developer browses the published documentation site at the project Pages root
 status: open
 tags:
   - docs

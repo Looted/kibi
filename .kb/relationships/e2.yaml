@@ -153,3 +153,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b12790896eb4
+  - type: implements
+    from: SYM-docs-site-catalog-DOCS
+    to: REQ-docs-readme-published-links
+    created_at: 2026-09-29T13:40:48.502Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-482f4e38299c
+  - type: covered_by
+    from: SYM-docs-site-catalog-DOCS
+    to: TEST-docs-readme-published-links
+    created_at: 2026-09-29T13:40:48.506Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-38711a647d3e
+  - type: executable_for
+    from: SYM-release-verify-published-metadata
+    to: TEST-release-mcp-registry-visibility
+    created_at: 2026-09-30T11:41:29.697Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e1486cf300f8

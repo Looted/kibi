@@ -7,11 +7,13 @@
 [![License: AGPL-3.0-or-later](https://img.shields.io/badge/license-AGPL--3.0--or--later-6f42c1.svg)](LICENSE.md)
 [![X @kibi_dev](https://img.shields.io/badge/%40kibi__dev-000000.svg?logo=x&logoColor=white)](https://x.com/kibi_dev)
 
-**Say what the software should do. Kibi makes agents follow it—and prove they did.**
+**Prompt the intent. Kibi makes the agent remember it—and prove the implementation.**
 
 Kibi is an agent-native requirements compiler and enforcement layer. You describe product intent in natural language; the agent creates and maintains the structured requirements, scenarios, tests, semantic facts, and code links. Kibi then checks that the implementation remains coherent with that intent.
 
 Unlike passive memory or retrieval systems, Kibi is designed to place itself in the agent's workflow. The agent does not have to remember to consult a ticket, board, or requirements folder: Kibi's hooks, tools, and validation gates continuously bring the relevant product context back into the work.
+
+**[Documentation](https://looted.github.io/kibi/)** · **[Quick start](https://looted.github.io/kibi/guide/quick-start.html)** · **[Kibi's own health report](https://looted.github.io/kibi/kibi-report/)**
 
 ## Why Kibi
 
@@ -26,113 +28,142 @@ Most project knowledge is scattered across prompts, tickets, code, and conversat
 
 ## Quick start
 
-Kibi requires **SWI-Prolog 9.0+** with `swipl` available on your `PATH`.
-
-Install the core runtime, CLI, and MCP server in your project:
+Kibi requires **Node.js 22+** and **SWI-Prolog 9.0+** with `swipl` on your `PATH` ([per-platform setup](https://looted.github.io/kibi/guide/install.html)). Then, in your repository:
 
 ```bash
 npm install --save-dev kibi-core kibi-cli kibi-mcp
-```
-
-Then initialize Kibi and ask your coding agent to bootstrap the existing codebase:
-
-```bash
-# Initialize Kibi infrastructure and install Git hooks
 npm exec -- kibi init
 ```
 
-`kibi init` installs Git hooks by default and adds the required `.kb/` entries to `.gitignore`. It initializes Kibi infrastructure only; it does not infer product knowledge. Next, ask your coding agent: **“Bootstrap Kibi for this repository.”** The agent runs the read-only `kibi-bootstrap` plan, shows the exact plan hash for approval, applies it through `kb_apply_plan`, and validates the result.
+`kibi init` creates the `.kb/` layout and installs the Git hooks that keep it in sync. It does not infer product knowledge. [Connect your coding agent](#connect-your-coding-agent), then ask it:
 
-After bootstrap, work normally with your agent. For manual inspection or troubleshooting, use `kibi status`, `kibi check`, `kibi search`, and `kibi sync` as needed.
+> **Bootstrap Kibi for this repository.**
 
-Use your project's local binary runner with pnpm, Yarn, or Bun. See the [installation guide](docs/install.md) for package-manager equivalents, SWI-Prolog setup, global installation, and troubleshooting.
+The agent produces a read-only plan, shows you its hash, and writes nothing until you approve. After that, work normally: prompt for features, fixes, and refactors, and the agent keeps requirements, scenarios, tests, and code links in step with the code.
 
-### Explore gaps and coverage
+pnpm, Yarn, and Bun work the same way through their local runners; the [installation guide](https://looted.github.io/kibi/guide/install.html) has the equivalents.
+
+## Connect your coding agent
+
+Every client starts the same project-local `kibi-mcp` server (`npx --no-install kibi-mcp`, stdio, working directory = your repository). Optional plugins add bundled skills and hooks on top.
+
+<details>
+<summary>Claude Code</summary>
+
+Install the optional `kibi-claude` plugin from this repository's marketplace. It brings the MCP server, the bundled skills, and advisory hooks that show the agent the linked requirements and tests before it reads or edits code:
 
 ```bash
-# Start broad, then narrow to a source file
-npm exec -- kibi search login
-npm exec -- kibi query req --source src/auth/login.ts --format table
+claude plugin marketplace add Looted/kibi
+```
 
-# Find under-specified or under-tested requirements
-npm exec -- kibi gaps req --missing-rel specified_by,verified_by --format table
-npm exec -- kibi coverage --by req --format table
+```bash
+claude plugin install kibi-claude@kibi
+```
 
-# Generate a visual requirement-health report and open it locally
+Without the plugin, register the server for the project:
+
+```bash
+claude mcp add --scope project kibi -- npx --no-install kibi-mcp
+```
+
+</details>
+
+<details>
+<summary>Cursor</summary>
+
+Add Kibi to `.cursor/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "kibi": {
+      "command": "npx",
+      "args": ["--no-install", "kibi-mcp"]
+    }
+  }
+}
+```
+
+The optional `kibi-cursor` plugin adds rules, bundled skills, commands, and advisory hooks. See the [Cursor plugin guide](https://looted.github.io/kibi/guide/install.html#optional-cursor-plugin).
+
+</details>
+
+<details>
+<summary>Codex</summary>
+
+```bash
+codex mcp add kibi -- npx --no-install kibi-mcp
+```
+
+The optional `kibi-codex` plugin bundles Kibi skills, MCP configuration, and warning-only lifecycle hooks. Add the Kibi repository marketplace, open Codex, then run `/plugins`, choose **Kibi Plugins**, and install `kibi-codex`:
+
+```bash
+codex plugin marketplace add Looted/kibi
+```
+
+The repository marketplace is not the official OpenAI Plugin Directory; self-serve plugin publishing is not available there yet. Manual MCP configuration remains fully supported.
+
+</details>
+
+<details>
+<summary>OpenCode</summary>
+
+Add Kibi to `opencode.json`. The optional `kibi-opencode` plugin adds prompt guidance and background maintenance:
+
+```json
+{
+  "mcp": {
+    "kibi": {
+      "type": "local",
+      "enabled": true,
+      "command": ["npx", "--no-install", "kibi-mcp"]
+    }
+  },
+  "plugin": ["kibi-opencode"]
+}
+```
+
+</details>
+
+<details>
+<summary>VS Code</summary>
+
+Add Kibi to `.vscode/mcp.json`:
+
+```json
+{
+  "servers": {
+    "kibi": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["--no-install", "kibi-mcp"]
+    }
+  }
+}
+```
+
+</details>
+
+<details>
+<summary>ZCode and other MCP clients</summary>
+
+Any stdio MCP client works with `command: npx`, `args: --no-install kibi-mcp`. ZCode also has an optional plugin, installed from a local checkout; see the [ZCode plugin guide](https://looted.github.io/kibi/guide/install.html#optional-zcode-plugin). Agents without MCP can use the same operations through the CLI's JSON routes.
+
+</details>
+
+Kibi's **skill subsystem** is the agent-guidance mechanism: four bundled skills cover operation safety, bootstrap, freshness, and traceability. Agents load them with `kb_skills_list` and `kb_skills_load` (or the equivalent read-only CLI routes), so you do not paste a long system prompt. See [agent onboarding](https://looted.github.io/kibi/reference/agent-onboarding.html) for the copy-paste discovery snippet for generic agents.
+
+## See what is proven
+
+```bash
 npm exec -- kibi report --open
 ```
 
-The same `kibi report` command writes both files from **one** coverage snapshot:
+`kibi report` writes a self-contained `kibi-report/index.html` and `kibi-report/badge.svg` from one coverage snapshot. `% proven` is the share of current requirements with fresh end-to-end proof on the current code; the report lists what is proven, what is missing proof, what contradicts, and what has gone stale. See [reading the report](https://looted.github.io/kibi/guide/reading-the-report.html).
 
-```text
-kibi-report/index.html
-kibi-report/badge.svg
-```
+To publish the report and a clickable badge on GitHub Pages, run `npm exec -- kibi init --github`, then enable **Settings → Pages → Source → GitHub Actions**. The [GitHub integration guide](https://looted.github.io/kibi/guide/github-integration.html) covers the workflow ([docs/examples/github/kibi-report.yml](docs/examples/github/kibi-report.yml)), badge-only publishing, and other package managers.
 
-They are meant to be published together. `% proven` is the share of applicable
-current Kibi requirements that have current proof. The HTML report is where to
-inspect which requirements are proven, which are missing proof, contradictions,
-and stale verification. No server, CDN, or external assets are required. On
-pushes to `develop`, this repository publishes that pair at
-`https://looted.github.io/kibi/kibi-report/`.
-
-### Publish requirement health on GitHub
-
-The recommended integration is a continuously updated report on GitHub Pages
-with a clickable `% proven` badge in the README. Kibi does not host badges or
-reports; GitHub Pages is the expected publisher, and the only GitHub UI step is
-enabling Actions as the Pages source.
-
-1. In GitHub: **Settings → Pages → Source → GitHub Actions**.
-2. Copy the canonical workflow to `.github/workflows/kibi-report.yml`. The
-   complete file lives at
-   [docs/examples/github/kibi-report.yml](docs/examples/github/kibi-report.yml)
-   (same content as the `kibi-cli` template).
-3. Add the clickable badge, replacing the lowercase Pages owner and repository
-   path. Files are published under `/kibi-report/` so they do not occupy the
-   Pages site root. For an owner-site repo named `OWNER.github.io`, omit the
-   repository segment (`https://OWNER.github.io/kibi-report/` and
-   `https://OWNER.github.io/kibi-report/badge.svg`).
-
-```markdown
-[![Kibi requirement health](https://OWNER.github.io/REPOSITORY/kibi-report/badge.svg)](https://OWNER.github.io/REPOSITORY/kibi-report/)
-```
-
-The workflow generates the report on pull requests, on the repository default
-branch (it does not assume `main`), and on `workflow_dispatch`. Pull requests
-fail if `kibi report` fails and upload the candidate `kibi-report/` directory
-as the `kibi-pr-report` artifact. Only the default branch and
-`workflow_dispatch` deploy GitHub Pages under `/kibi-report/`. A pull request
-never replaces the canonical public report or badge. Copy
-[docs/examples/github/kibi-report.yml](docs/examples/github/kibi-report.yml)
-rather than maintaining a second workflow. Adapt `cache: npm` and `npm ci` if
-the project does not use npm; see
-[GitHub integration](docs/github-integration.md).
-
-To scaffold those same files automatically:
-
-```bash
-npm exec -- kibi init --github
-```
-
-`kibi init --github` writes the documented workflow, adds the clickable badge
-when a README exists, and prints the Pages enable step. It is safe to re-run:
-it will not duplicate the badge or overwrite a customized workflow.
-
-Do not commit generated `kibi-report/` files. The image URL must be anonymously
-reachable for GitHub to render it in a public README.
-
-Badge-only publishing is an explicit opt-out, not the recommended flow:
-
-```bash
-npm exec -- kibi init --github --badge-only
-```
-
-That still generates the report from the same snapshot, but publishes only
-`badge.svg`. The README link then points at the metric explanation rather than
-a report that was never published. See
-[docs/github-integration.md](docs/github-integration.md) for package-manager
-adaptations, owner-site URLs, and troubleshooting.
+For day-to-day inspection, `kibi status`, `kibi search`, `kibi gaps`, `kibi coverage`, and `kibi check` are in the [CLI reference](https://looted.github.io/kibi/reference/cli.html).
 
 ## How it works
 
@@ -176,28 +207,17 @@ For a requirement to be proven rather than merely documented:
 - Proof-bearing production symbols must be covered by qualifying tests.
 - End-to-end evidence must be fresh and bound to the current code snapshot.
 
-This makes questions answerable in both directions:
-
-- Why does this symbol exist, and which requirement owns it?
-- What requirement and scenario does this E2E test actually verify?
-- Which requirements have no scenario, semantic grounding, or passing behavioral evidence?
-- What changes when a feature flag is toggled?
-- Do two current requirements impose contradictory constraints?
-- Is the knowledge snapshot for this branch fresh?
-
-Code coverage alone cannot provide this proof. It can show that an E2E run touched a line, but not which product behavior was exercised or whether the test still represents the intended scenario.
+That makes questions answerable in both directions: which requirement owns this symbol, what this E2E test actually verifies, which requirements lack a scenario or current evidence, and whether two current requirements contradict each other. Code coverage alone cannot answer them: it shows that a test touched a line, not which product behavior was exercised.
 
 ### Prolog as the safety layer
 
 Suppose the product defines exactly three user roles. Once that constraint is encoded as a strict property or predicate, an agent cannot quietly invent a fourth role and treat it as established intent: Kibi can surface the contradiction or missing authorization deterministically.
 
-Prolog does not decide whether the original human intent was correct. It verifies the knowledge that was encoded, while Kibi keeps ambiguity, missing ontology, incomplete grounding, and stale evidence explicit instead of calling them proof. This gives agents guardrails against hallucination and context drift without pretending probabilistic interpretation is infallible.
+Prolog does not decide whether the original human intent was correct. It verifies the knowledge that was encoded, while Kibi keeps ambiguity, missing ontology, incomplete grounding, and stale evidence explicit instead of calling them proof.
 
 ### Why this is possible now
 
-Traditional knowledge bases required specialists to design ontologies, interpret semantics, write formal logic, and maintain every mapping by hand. That cost made them a poor fit for fast-moving software requirements.
-
-LLMs change the economics of the authoring step. They can interpret natural-language intent, navigate a codebase, and propose structured semantic representations. Kibi and Prolog supply the complementary discipline:
+Traditional knowledge bases required specialists to design ontologies, write formal logic, and maintain every mapping by hand. LLMs change the economics of that authoring step, and Kibi and Prolog supply the discipline:
 
 | Participant | Strength and responsibility |
 | --- | --- |
@@ -209,175 +229,40 @@ The result uses LLM strengths to address LLM weaknesses: limited memory, halluci
 
 ### What Kibi models
 
-Kibi intentionally supports eight core entity types:
+Eight entity types: `req`, `scenario`, `test`, `fact`, `adr`, `flag`, `event`, and `symbol`. The [entity schema](https://looted.github.io/kibi/reference/entity-schema.html) has the complete model.
 
-| Entity | Purpose |
-| --- | --- |
-| `req` | Functionality, behavior, or constraints the system must satisfy |
-| `scenario` | User or system behavior expressed as concrete flows |
-| `test` | Unit, integration, or end-to-end verification evidence |
-| `fact` | Domain facts and invariants, plus contextual observations and notes |
-| `adr` | Architecture decisions and their rationale |
-| `flag` | Runtime or configuration gates such as feature flags and kill switches |
-| `event` | Domain or system events published and consumed by components |
-| `symbol` | Functions, classes, modules, and other code-level ownership anchors |
-
-Use `flag` only for real runtime or configuration gates. Bugs and workarounds belong in `fact` entities with `fact_kind: observation` or `meta`; contradiction-sensitive invariants use the strict fact or predicate lanes. See the [entity schema](docs/entity-schema.md) for the complete model.
-
-## Connect an AI client
-
-Every MCP client starts the same project-local `kibi-mcp` binary. Most stdio clients need this configuration:
-
-```text
-command: npx
-args: --no-install kibi-mcp
-transport: stdio
-```
-
-If the client supports a working-directory setting, point it at the project where Kibi is installed.
-
-<details>
-<summary>OpenCode</summary>
-
-Add Kibi to `opencode.json`:
-
-```json
-{
-  "mcp": {
-    "kibi": {
-      "type": "local",
-      "enabled": true,
-      "command": ["npx", "--no-install", "kibi-mcp"]
-    }
-  }
-}
-```
-
-The optional `kibi-opencode` plugin adds prompt guidance and background maintenance:
-
-```json
-{
-  "plugin": ["kibi-opencode"]
-}
-```
-
-</details>
-
-<details>
-<summary>VS Code</summary>
-
-Add Kibi to `.vscode/mcp.json`:
-
-```json
-{
-  "servers": {
-    "kibi": {
-      "type": "stdio",
-      "command": "npx",
-      "args": ["--no-install", "kibi-mcp"]
-    }
-  }
-}
-```
-
-</details>
-
-<details>
-<summary>Codex</summary>
-
-Add Kibi with the Codex CLI:
-
-```bash
-codex mcp add kibi -- npx --no-install kibi-mcp
-```
-
-Or configure it in `~/.codex/config.toml` or `$CODEX_HOME/config.toml`:
-
-```toml
-[mcp_servers.kibi]
-command = "npx"
-args = ["--no-install", "kibi-mcp"]
-enabled = true
-```
-
-The optional `kibi-codex` plugin bundles Kibi skills, MCP configuration, and warning-only lifecycle hooks. Add the Kibi repository marketplace, open Codex, then run `/plugins`, choose **Kibi Plugins**, and install `kibi-codex`:
-
-```bash
-codex plugin marketplace add Looted/kibi
-codex
-```
-
-The repository marketplace is not the official OpenAI Plugin Directory; self-serve plugin publishing is not available there yet. Manual MCP configuration remains fully supported.
-
-</details>
-
-<details>
-<summary>Cursor</summary>
-
-Add Kibi to `.cursor/mcp.json`:
-
-```json
-{
-  "mcpServers": {
-    "kibi": {
-      "command": "npx",
-      "args": ["--no-install", "kibi-mcp"]
-    }
-  }
-}
-```
-
-The optional `kibi-cursor` plugin adds rules, bundled skills, commands, and advisory hooks. See the [Cursor package guide](packages/cursor/README.md) for supported installation and behavior.
-
-</details>
-
-### Bundled agent guidance
-
-Kibi's **skill subsystem** is the agent-guidance mechanism. It ships four reusable, bundled skills for operation safety, bootstrap, freshness, and traceability. Normal users can simply ask their agent to bootstrap; hosts use the bundled skills as infrastructure. MCP-capable agents can inspect them with `kb_skills_list` and `kb_skills_load`, and the same read-only operations are available through the trusted project-local CLI. Do not copy a long system prompt into the agent.
-
-See [generic-agent onboarding](docs/generic-agent-onboarding.md) for the copy-paste discovery snippet, and [MCP reference](docs/mcp-reference.md#generic-agent-onboarding) for the progressive-disclosure and safety contract.
+Use `flag` only for real runtime or configuration gates. Bug and workaround notes are `fact` records with `fact_kind: observation` or `meta`.
 
 ## Packages
+
+Install `kibi-core`, `kibi-cli`, and `kibi-mcp` in the project. Everything else is optional.
 
 | Package | Role |
 | --- | --- |
 | `kibi-core` | Prolog-backed knowledge graph, inference, and validation |
 | `kibi-cli` | Human, agent, automation, and Git-hook interface |
 | `kibi-mcp` | MCP surface exposing the public Kibi operation contracts |
-| `kibi-opencode` | Optional OpenCode guidance and maintenance adapter |
-| `kibi-codex` | Optional Codex skills, MCP, and lifecycle adapter |
-| `kibi-cursor` | Optional Cursor rules, skills, MCP, and advisory hooks |
-| `kibi-zcode` | Optional ZCode skills, command, MCP, and advisory hooks |
-| `kibi-claude` | Optional Claude Code skills, MCP, knowledge snippets before reads/edits, and advisory freshness hooks |
-| `kibi-vscode` | VS Code knowledge explorer and traceability integration |
-| `kibi-plugin-sdk` | Public protocol types and validators for capability plugins |
+| `kibi-claude` | Claude Code skills, MCP, requirement context before reads/edits, and advisory hooks (plugin marketplace) |
+| `kibi-cursor` | Cursor rules, skills, MCP, and advisory hooks |
+| `kibi-codex` | Codex skills, MCP, and lifecycle hooks |
+| `kibi-opencode` | OpenCode guidance and background maintenance |
+| `kibi-zcode` | ZCode skills, command, MCP, and advisory hooks (local checkout) |
+| `kibi-vscode` | VS Code knowledge explorer and traceability view |
+| `kibi-plugin-sdk` | Protocol types and validators for [capability plugins](https://looted.github.io/kibi/reference/plugins.html) |
 | `kibi-plugin-builtin` | Default semantic, ontology, and TypeScript symbol capabilities |
-| `kibi-plugin-jev` | Optional TypeSafe Jev semantic classifier (not installed by default) |
-
-## Developing Kibi capability plugins
-
-Capability plugins extend semantic classification, ontology matching, and symbol
-extraction behind a versioned `kibi.plugin.v1` protocol. The builtin package is
-always registered; additional providers activate only through explicit
-`package.json` `kibi.plugins` entries. Third parties need only
-`kibi-plugin-sdk`. See [plugin development](docs/plugin-development.md) for
-modes, the trust boundary, disclosure-only permissions, and optional Jev usage.
+| `kibi-plugin-jev` | Optional TypeSafe Jev semantic classifier |
 
 ## Documentation
 
-The browsable documentation site — a human-oriented Guide and a technical Reference built from these sources — lives at **<https://looted.github.io/kibi/docs/>**, published on Pages next to the [requirement-health report](https://looted.github.io/kibi/kibi-report/).
+The guide and reference are published at **<https://looted.github.io/kibi/>**. Language models can start from the [documentation index](https://looted.github.io/kibi/llms.txt).
 
-- [Installation guide](docs/install.md) — Prerequisites, package managers, client setup, and verification
-- [Proving requirements](docs/proving-requirements.md) — Proof contracts, `kibi prove`, producer artifacts, and receipts
-- [GitHub badge + report](docs/github-integration.md) — Publish requirement health on GitHub Pages
-- [CLI reference](docs/cli-reference.md) — Commands, flags, and structured JSON routes
-- [MCP reference](docs/mcp-reference.md) — Tools, schemas, examples, and agent onboarding
-- [Entity schema](docs/entity-schema.md) — Entity types, relationships, and semantic fact lanes
-- [Inference rules](docs/inference-rules.md) — Validation and contradiction checks
-- [Architecture](docs/architecture.md) — Storage, branch isolation, data flow, and components
-- [Capability plugins](docs/plugin-development.md) — Developing and activating `kibi.plugin.v1` providers
-- [Troubleshooting](docs/troubleshooting.md) — Common setup and recovery procedures
-- [Generic-agent onboarding](docs/generic-agent-onboarding.md) — Copy-paste skill discovery for generic MCP/CLI agents
+- [Installation](https://looted.github.io/kibi/guide/install.html) — SWI-Prolog, package managers, plugins, and verification
+- [How Kibi works](https://looted.github.io/kibi/guide/how-it-works.html) and [the proof ladder](https://looted.github.io/kibi/guide/proof-ladder.html)
+- [Proving requirements](https://looted.github.io/kibi/reference/proving.html) — proof contracts, `kibi prove`, and receipts
+- [CLI reference](https://looted.github.io/kibi/reference/cli.html) and [MCP reference](https://looted.github.io/kibi/reference/mcp.html)
+- [Entity schema](https://looted.github.io/kibi/reference/entity-schema.html) and [inference rules](https://looted.github.io/kibi/reference/inference-rules.html)
+- [Architecture](https://looted.github.io/kibi/reference/architecture.html) — storage, branch isolation, and data flow
+- [Troubleshooting](https://looted.github.io/kibi/guide/troubleshooting.html)
 
 ## Beta status
 
