@@ -71,7 +71,9 @@ export async function inspectCoordinateRepairs(
         : {}),
     };
   });
-  const enriched = await enrichSymbolCoordinates(entries, workspaceRoot);
+  const enriched = await enrichSymbolCoordinates(entries, workspaceRoot, {
+    allowPythonDecoratorCoordinates: true,
+  });
   return new Map(
     entries.map((entry, index) => {
       const sourceFile = entry.sourceFile ?? null;
