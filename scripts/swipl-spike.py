@@ -17,6 +17,7 @@ import sys
 import tarfile
 import threading
 import time
+import urllib.error
 import urllib.request
 from datetime import datetime, timezone
 from itertools import islice
@@ -282,12 +283,43 @@ def validate(manifest_path: Path, target: str) -> dict:
     return manifest
 
 
+DOWNLOAD_ATTEMPTS = 4
+DOWNLOAD_BACKOFF_SECONDS = 2.0
+
+
+def download_archive(url: str, archive: Path, attempts: int = DOWNLOAD_ATTEMPTS, backoff: float = DOWNLOAD_BACKOFF_SECONDS) -> None:
+    """Fetch a pinned source archive, retrying transient server and network failures.
+
+    The pinned SHA-256 is checked by the caller, so a retry can never change what
+    is built; it only keeps one upstream 5xx from failing a release build.
+    """
+    partial = archive.with_name(f"{archive.name}.part")
+    for attempt in range(1, attempts + 1):
+        print(f"Downloading {url}" + (f" (attempt {attempt}/{attempts})" if attempt > 1 else ""), flush=True)
+        try:
+            urllib.request.urlretrieve(url, partial)
+            partial.replace(archive)
+            return
+        except urllib.error.HTTPError as error:
+            partial.unlink(missing_ok=True)
+            if error.code < 500 and error.code != 429 or attempt == attempts:
+                raise
+            reason = f"HTTP {error.code}"
+        except (urllib.error.URLError, TimeoutError, ConnectionError) as error:
+            partial.unlink(missing_ok=True)
+            if attempt == attempts:
+                raise
+            reason = str(getattr(error, "reason", error))
+        delay = backoff * (2 ** (attempt - 1))
+        print(f"Download failed ({reason}); retrying in {delay:g}s", flush=True)
+        time.sleep(delay)
+
+
 def source_archive(work: Path, name: str, version: str, digest: str, url: str) -> Path:
     archive = work / "downloads" / f"{name}-{version}.tar.gz"
     archive.parent.mkdir(parents=True, exist_ok=True)
     if not archive.exists():
-        print(f"Downloading {url}", flush=True)
-        urllib.request.urlretrieve(url, archive)
+        download_archive(url, archive)
     actual = hashlib.sha256(archive.read_bytes()).hexdigest()
     if actual != digest:
         raise ValueError(f"{name} SHA-256 mismatch: expected {digest}, got {actual}")
