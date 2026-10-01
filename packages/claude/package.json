@@ -1,6 +1,6 @@
 {
   "name": "kibi-claude",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Kibi Claude Code plugin - progressive-disclosure knowledge snippets, advisory freshness hooks, bundled skills, and the workspace-gated Kibi MCP server",
   "type": "module",
   "main": "dist/index.js",
