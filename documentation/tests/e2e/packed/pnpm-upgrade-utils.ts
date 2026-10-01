@@ -154,6 +154,7 @@ export function createIsolatedPnpmEnvironment(
       USERPROFILE: homeDir,
       COREPACK_HOME: corepackHome,
       COREPACK_ENABLE_DOWNLOAD_PROMPT: "0",
+      COREPACK_DEFAULT_TO_LATEST: "0",
       PNPM_HOME: pnpmHome,
       XDG_CACHE_HOME: cacheDir,
       XDG_DATA_HOME: dataDir,
@@ -196,8 +197,19 @@ function seedPnpmMetadataCache(cacheDir: string): void {
   cpSync(hostCache, join(cacheDir, "pnpm"), { recursive: true });
 }
 
+// Corepack records the activated pnpm (`corepack prepare --activate`) in its
+// home. A sandbox without it resolves whatever pnpm is newest on npm, so seed
+// the host home, including corepack's default location when COREPACK_HOME is
+// unset, as CI's `corepack prepare` leaves it.
 function seedCorepackHome(corepackHome: string): void {
-  const source = process.env.COREPACK_HOME;
+  const home = process.env.HOME;
+  const source =
+    process.env.COREPACK_HOME ??
+    (process.env.XDG_CACHE_HOME
+      ? join(process.env.XDG_CACHE_HOME, "node", "corepack")
+      : home
+        ? join(home, ".cache", "node", "corepack")
+        : undefined);
   if (!source || !existsSync(source) || source === corepackHome) return;
   cpSync(source, corepackHome, { recursive: true });
 }

@@ -17709,10 +17709,10 @@ coordinates:
     sourceLine: 182
   SYM-packed-create-isolated-pnpm-environment:
     identityHash: 93fbc61728e55504a665d73df0690714337f0e78e2abce86b4d3e3326817dd57
-    sourceHash: eabee5b475b5c4639e9af1277d1afc78ee70e0bff3fc49bba0d179ce8bbd833e
+    sourceHash: 172c0be9c5a408eb620acada10e5c7d72094ed12598f6423093c5b8f84abc7a2
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 167
+    sourceEndLine: 168
     sourceFile: documentation/tests/e2e/packed/pnpm-upgrade-utils.ts
     sourceLine: 119
   SYM-packed-create-owned-temp-directory:
@@ -17773,7 +17773,7 @@ coordinates:
     sourceLine: 42
   SYM-packed-isolated-pnpm-environment:
     identityHash: 7a88bc331040387d0dc291cb471f4f2dfc9a104191eef2e018952fd77a2f30e7
-    sourceHash: eabee5b475b5c4639e9af1277d1afc78ee70e0bff3fc49bba0d179ce8bbd833e
+    sourceHash: 172c0be9c5a408eb620acada10e5c7d72094ed12598f6423093c5b8f84abc7a2
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 47
@@ -17821,12 +17821,12 @@ coordinates:
     sourceLine: 779
   SYM-packed-pack-all-for-pnpm-upgrade:
     identityHash: b7c968eb17a9aa18a36c55b3eef4fe56ea610a5d83a072188ea05f8618f1129e
-    sourceHash: eabee5b475b5c4639e9af1277d1afc78ee70e0bff3fc49bba0d179ce8bbd833e
+    sourceHash: 172c0be9c5a408eb620acada10e5c7d72094ed12598f6423093c5b8f84abc7a2
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 322
+    sourceEndLine: 334
     sourceFile: documentation/tests/e2e/packed/pnpm-upgrade-utils.ts
-    sourceLine: 311
+    sourceLine: 323
   SYM-packed-packedCompilationReady:
     identityHash: b98a0ed897e03904f2d1bfef28a20900ca12c598e0333701e0a2b0ce326f14bc
     sourceHash: 679ee95bf7d605760243b44dce762aad2d9ef298fb31c7f5c8832fd8fd65ac55
@@ -17949,7 +17949,7 @@ coordinates:
     sourceLine: 69
   SYM-packed-pnpm-upgrade-create-sandbox:
     identityHash: 3397dc7ca5145709a6149d821baa7a73a3055f44b8a1473437e56b55f029efcf
-    sourceHash: eabee5b475b5c4639e9af1277d1afc78ee70e0bff3fc49bba0d179ce8bbd833e
+    sourceHash: 172c0be9c5a408eb620acada10e5c7d72094ed12598f6423093c5b8f84abc7a2
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 116
