@@ -237,3 +237,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f8e50d3fb122
+  - type: covered_by
+    from: SYM-checkCommand
+    to: TEST-impact-policy-stage-e-installed-e2e
+    created_at: 2026-09-27T17:32:07.702Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8e33788508e8
+  - type: implements
+    from: SYM-checkCommand
+    to: REQ-cli-check
+    created_at: 2026-09-27T17:32:07.803Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0dcc67498205
+  - type: implements
+    from: SYM-checkCommand
+    to: REQ-impact-policy-stage-e-content-bound-review
+    created_at: 2026-09-27T17:32:07.852Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8902db109484

@@ -188,6 +188,48 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b1deafda0bee
+  - type: covered_by
+    from: SYM-source-analysis-v2-validatesourceanalysisresultv2-213d878d
+    to: TEST-source-analysis-v2-contract
+    created_at: 2026-09-26T16:59:09.424Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-25adadff85a0
+  - type: implements
+    from: SYM-source-analysis-v2-validatesourceanalysisresultv2-213d878d
+    to: REQ-source-analysis-v2
+    created_at: 2026-09-26T16:59:09.446Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0b0a73b2d09a
+  - type: covered_by
+    from: SYM-impact-stage-e-impact-policy-version
+    to: TEST-impact-policy-stage-e-installed-e2e
+    created_at: 2026-09-27T17:41:22.547Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4bbcdf580b58
+  - type: implements
+    from: SYM-impact-stage-e-impact-policy-version
+    to: REQ-impact-policy-stage-e-content-bound-review
+    created_at: 2026-09-27T17:41:22.571Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d52a0394a804
+  - type: implements
+    from: SYM-impact-stage-e-approvedpartialclass
+    to: REQ-impact-policy-stage-e-content-bound-review
+    created_at: 2026-09-30T15:23:26.076Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-683f1f8781d3
+  - type: covered_by
+    from: SYM-impact-stage-e-approvedpartialclass
+    to: TEST-impact-policy-stage-e-installed-e2e
+    created_at: 2026-09-30T15:23:26.086Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7c551a6e5c1c
   - type: implements
     from: SYM-prolog-build-loader-environment
     to: REQ-prolog-build-pipeline-validation

@@ -8,7 +8,7 @@ import {
 // implements REQ-mcp-suggest-predicates
 export function inferPermissionRuleArgs(text: string): string[] {
   const prohibition = text.match(
-    /^(?<actor>[a-z][a-z\s_-]*?)\s+(?:must\s+not|cannot|can't|is\s+forbidden\s+to)\s+(?<action>[a-z][a-z_-]*)\s+(?<resource>.+?)\.?$/i,
+    /^(?<actor>[a-z][a-z\s_-]*?)\s+(?:must\s+not|must\s+never|never|cannot|can't|is\s+forbidden\s+to)\s+(?<action>[a-z][a-z_-]*)\s+(?<resource>.+?)\.?$/i,
   );
   if (prohibition?.groups) {
     return [

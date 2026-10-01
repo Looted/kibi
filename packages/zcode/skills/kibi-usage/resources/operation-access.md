@@ -23,6 +23,7 @@ per operation. Effects are authoritative for mutability and adapter annotations.
 | `kb_upsert` | `upsert` | --input JSON | write | yes | kb-write, workspace-write | peer; capability-selected | kibi.kb_upsert.v1 | yes | unsafe | no | yes |
 | `kb_delete` | `delete` | --input JSON | write | yes | kb-write, workspace-write | peer; capability-selected | kibi.kb_delete.v1 | yes | unsafe | no | yes |
 | `kb_check` | `check` | --input JSON or flags | read | yes | kb-read, workspace-read | peer; capability-selected | kibi.kb_check.v1 | no | safe | no | yes |
+| `kb_prepare_impact_review` | `prepare-impact-review` | --input JSON | read | no | workspace-read, kb-read | peer; capability-selected | kibi.kb_prepare_impact_review.v1 | no | safe | no | yes |
 | `kb_sparql_remote` | `sparql-remote` | --input JSON | read | no | network-read | peer; capability-selected | kibi.kb_sparql_remote.v1 | no | safe | yes | yes |
 | `kb_compile_intent` | `compile-intent` | --input JSON | read | yes | kb-read, workspace-read | peer; capability-selected | kibi.kb_compile_intent.v1 | no | safe | no | yes |
 | `kb_apply_plan` | `apply-plan` | --input JSON | write | yes | kb-read, kb-write, workspace-read, workspace-write | peer; capability-selected | kibi.kb_apply_plan.v1 | yes | unsafe | no | yes |

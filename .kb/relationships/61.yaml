@@ -132,3 +132,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-09ce3c87ca91
+  - type: implements
+    from: SYM-source-analysis-timing-max-events
+    to: REQ-installed-staged-impact-timing-integrity
+    created_at: 2026-09-28T09:40:11.375Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9549e828fa55
+  - type: covered_by
+    from: SYM-source-analysis-timing-max-events
+    to: TEST-installed-staged-impact-timing-integrity
+    created_at: 2026-09-28T09:40:11.397Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5969447704e9

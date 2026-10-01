@@ -23,13 +23,13 @@ semantic_inventory:
     reason: No accepted typed interpretation grounds this assertive proposition.
   - claim_key: CLAIM-9711EF1B29ADAC33
     claim_text: Repository proof runs execute these paths only through fixture-level integration contracts with deterministic-test-fixture signatures (signatureProvenance deterministic-test-fixture and externallySigned false), because the full paths require paid model launches, root-installed verifier infrastructure, and supervisor parent processes
-    role: rationale
-    status: nonlogical
+    role: normative
+    status: ontology_gap
     span:
       start: 219
       end: 553
-    payload_hash: 66aede6c175e1c8b3d3e98c0242b4de594cb60a7a9412dcc50bd316bb036afeb
-    reason: Prose is retained for human context but does not assert a verifiable domain proposition.
+    payload_hash: 574ae094d4a8bf4d83e4b07501ec5f54ac48d0d1987f2d3025a79d34f06ab299
+    reason: This normative clause has no deterministic strict-property or declared predicate grounding. Define its domain terms and predicate signature explicitly before grounding it; keep it unresolved instead of treating prose as logic-complete.
   - claim_key: CLAIM-20BD89FCEC241DEC
     claim_text: The repository-provable fail-closed boundaries are owned by REQ-skillopt-external-adoption-verdict and REQ-skillopt-paid-launch-accounting
     role: descriptive
@@ -41,6 +41,7 @@ semantic_inventory:
     reason: No accepted typed interpretation grounds this assertive proposition.
 logic_claims:
   - CLAIM-D74430F76F1C3BB9
+  - CLAIM-9711EF1B29ADAC33
   - CLAIM-20BD89FCEC241DEC
 proof_exempt: true
 proof_exempt_reason: Executing the held-out matrix and paid-launch ledger requires paid model launches plus root-installed external trust infrastructure that repository proof runs cannot provide; verification is limited to the fixture-level integration contracts (TEST-skillopt-external-adoption-verdict, TEST-skillopt-paid-launch-accounting) and the fail-closed boundaries proven by TEST-e2e-skillopt-trust-boundaries.

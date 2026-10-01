@@ -160,3 +160,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cde48d4850a9
+  - type: covered_by
+    from: SYM-source-language-classification-type
+    to: TEST-multilingual-language-catalog
+    created_at: 2026-09-27T12:05:09.993Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-92caad58be4d
+  - type: implements
+    from: SYM-source-language-classification-type
+    to: REQ-multilingual-language-catalog
+    created_at: 2026-09-27T12:05:10.008Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6d84ffd6601b
+  - type: covered_by
+    from: SYM-impact-public-preparation-impactreviewpreparationscope
+    to: TEST-impact-public-preparation-parity
+    created_at: 2026-09-27T17:33:20.099Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aeb8f4b61c01
+  - type: implements
+    from: SYM-impact-public-preparation-impactreviewpreparationscope
+    to: REQ-impact-review-public-preparation
+    created_at: 2026-09-27T17:33:20.125Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-54a45047d6c5

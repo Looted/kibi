@@ -223,6 +223,34 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0396e2430989
+  - type: implements
+    from: SYM-source-analysis-v2-extensionlanguage
+    to: REQ-source-analysis-v2
+    created_at: 2026-09-30T15:22:02.001Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-910c1d4c3174
+  - type: covered_by
+    from: SYM-source-analysis-v2-extensionlanguage
+    to: TEST-source-analysis-v2-contract
+    created_at: 2026-09-30T15:22:02.019Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-10630b4938df
+  - type: implements
+    from: SYM-source-analysis-v2-type-gateanalysis
+    to: REQ-source-analysis-v2
+    created_at: 2026-09-30T15:24:32.005Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b03a84ae1da4
+  - type: covered_by
+    from: SYM-source-analysis-v2-type-gateanalysis
+    to: TEST-source-analysis-v2-contract
+    created_at: 2026-09-30T15:24:32.016Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-39a70d862db2
   - type: constrains
     from: REQ-prolog-bundled-release
     to: FACT-prolog-bundled-release-subject

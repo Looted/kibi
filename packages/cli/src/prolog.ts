@@ -20,8 +20,10 @@ import { type ChildProcess, spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
+import { performance } from "node:perf_hooks";
 import { fileURLToPath } from "node:url";
 import { getKbPlPathOverride, isPrologDebugEnabled } from "./env.js";
+import { writePerformanceTraceEvent } from "./performance-trace.js";
 import {
   type PrologErrorRecord,
   extractPrologErrorRecord,
@@ -374,13 +376,26 @@ export class PrologProcess {
 
   // implements REQ-core-prolog-process-management
   async query(goal: string | string[]): Promise<QueryResult> {
+    // A lost interactive session must fail before any cached answer is served.
+    if (!this.useOneShotMode && this.needsRestart()) {
+      throw this.lostProcessError();
+    }
+
     const isSingleGoal = typeof goal === "string";
     const goalKey = isSingleGoal ? goal : null;
     const cacheable = goalKey !== null && this.isCacheableGoal(goalKey);
 
     if (cacheable) {
+      const cacheLookupStartedAt =
+        process.env.KIBI_PERF_TIMINGS === "1" ? performance.now() : null;
       const cachedResult = this.cache.get(goalKey);
       if (cachedResult) {
+        if (cacheLookupStartedAt !== null) {
+          writePerformanceTraceEvent({
+            kind: "prolog-process-cache-hit",
+            durationMs: performance.now() - cacheLookupStartedAt,
+          });
+        }
         return cachedResult;
       }
     }
@@ -580,12 +595,21 @@ export class PrologProcess {
     });
 
     await previousQuery;
+    const tracingEnabled = process.env.KIBI_PERF_TIMINGS === "1";
+    let roundTripStartedAt: number | null = null;
     try {
       if (!this.isProcessUsable()) {
         throw this.lostProcessError();
       }
+      if (tracingEnabled) roundTripStartedAt = performance.now();
       return await runInteractiveQuery();
     } finally {
+      if (roundTripStartedAt !== null) {
+        writePerformanceTraceEvent({
+          kind: "prolog-round-trip",
+          durationMs: performance.now() - roundTripStartedAt,
+        });
+      }
       releaseQuery();
     }
   }
@@ -1067,6 +1091,26 @@ export class PrologProcess {
     // Diagnostic markers intentionally contain words such as `lock` and the
     // audit path. Remove them before classifying the actual Prolog error so a
     // contradiction at the check stage is not mistaken for an audit lock.
+    // Preserve only bounded identifiers from the formal existence error. Its
+    // context can contain authored dictionaries or query data and is never shown.
+    const existence = errorText.match(
+      /^__KIBI_ERROR__:error\(existence_error\((key|procedure),([^,()\r\n]+)(?:,|\),)/m,
+    );
+    const identifier = existence?.[2]?.trim().replace(/^'([^']+)'$/, "$1");
+    if (existence?.[1] === "key" && identifier !== undefined) {
+      if (/^[A-Za-z][A-Za-z0-9_-]{0,95}$/.test(identifier)) {
+        return `Predicate or file not found (missing dictionary key: ${identifier})`;
+      }
+    }
+    if (existence?.[1] === "procedure" && identifier !== undefined) {
+      if (
+        /^(?:[A-Za-z][A-Za-z0-9_]{0,95}:)?[A-Za-z][A-Za-z0-9_]{0,95}\/[0-9]{1,3}$/.test(
+          identifier,
+        )
+      ) {
+        return `Predicate or file not found (missing procedure: ${identifier})`;
+      }
+    }
     const cleanError = errorText.replace(
       /^__KIBI_(?:STAGE|RUNTIME|ERROR)__:[^\r\n]*\r?\n?/gm,
       "",
@@ -1120,6 +1164,7 @@ export class PrologProcess {
     ) {
       return "Predicate or file not found";
     }
+    if (existence !== null) return "Predicate or file not found";
     if (cleanError.includes("permission_error")) {
       return "Access denied or KB locked";
     }

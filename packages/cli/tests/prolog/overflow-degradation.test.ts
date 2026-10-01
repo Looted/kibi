@@ -128,6 +128,12 @@ describe("runOperationJsonQuery against isolated one-shot ports", () => {
     expect(prolog.oneShotMode).toBe(true);
     const attached = await prolog.query(`kb_attach('${tempKb()}')`);
     expect(attached.success).toBe(true);
+    const goals: string[] = [];
+    const query = prolog.query.bind(prolog);
+    prolog.query = async (goal) => {
+      goals.push(Array.isArray(goal) ? goal.join(", ") : goal);
+      return query(goal);
+    };
     const payload = await runOperationJsonQuery<{ rows: unknown[] }>(
       prolog as unknown as PrologPort,
       "discovery.pl",
@@ -135,7 +141,60 @@ describe("runOperationJsonQuery against isolated one-shot ports", () => {
       "Coverage execution",
     );
     expect(Array.isArray(payload.rows)).toBe(true);
+    expect(goals).toHaveLength(1);
+    expect(goals[0]).toContain("use_module(");
   }, 60_000);
+
+  test("preserves an explicit interactive mode under the Bun test environment", async () => {
+    setEnv("NODE_ENV", "test");
+    const prolog = new PrologProcess({ oneShot: false, timeout: 30_000 });
+    processes.push(prolog);
+    await prolog.start();
+    const attached = await prolog.query(`kb_attach('${tempKb()}')`);
+    expect(attached.success).toBe(true);
+
+    const goals: string[] = [];
+    const query = prolog.query.bind(prolog);
+    prolog.query = async (goal) => {
+      goals.push(Array.isArray(goal) ? goal.join(", ") : goal);
+      return query(goal);
+    };
+    const payload = await runOperationJsonQuery<{ rows: unknown[] }>(
+      prolog as unknown as PrologPort,
+      "discovery.pl",
+      COVERAGE_GOAL,
+      "Coverage execution",
+    );
+
+    expect(Array.isArray(payload.rows)).toBe(true);
+    expect(goals).toHaveLength(2);
+    expect(goals[0]).toContain("use_module(");
+    expect(goals[1]).toContain("discovery:coverage_report_json");
+    expect(goals[1]).not.toContain("use_module(");
+  }, 60_000);
+
+  test("retains the Bun test heuristic when one-shot mode is unspecified", async () => {
+    setEnv("NODE_ENV", "test");
+    const goals: string[] = [];
+    const payload = await runOperationJsonQuery<{ rows: unknown[] }>(
+      {
+        query: async (goal: string) => {
+          goals.push(goal);
+          return {
+            success: true,
+            bindings: { JsonString: JSON.stringify({ rows: [] }) },
+          };
+        },
+      } as unknown as PrologPort,
+      "discovery.pl",
+      COVERAGE_GOAL,
+      "Coverage execution",
+    );
+
+    expect(payload.rows).toEqual([]);
+    expect(goals).toHaveLength(1);
+    expect(goals[0]).toContain("use_module(");
+  });
 
   test("an unstarted non-engine port is treated as one-shot", async () => {
     setEnv("NODE_ENV", "production");

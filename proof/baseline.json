@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 134,
-  "proofProven": 134,
+  "currentRequirements": 140,
+  "proofProven": 140,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -261,6 +261,21 @@
       "gaps": [],
       "uncoveredSymbols": []
     },
+    "REQ-impact-policy-stage-e-content-bound-review": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-impact-review-public-preparation": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-installed-staged-impact-timing-integrity": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
     "REQ-kibi-branded-health-report": {
       "proofStatus": "proven",
       "gaps": [],
@@ -476,6 +491,11 @@
       "gaps": [],
       "uncoveredSymbols": []
     },
+    "REQ-multilingual-language-catalog": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
     "REQ-native-cli-suite-diagnostics": {
       "proofStatus": "proven",
       "gaps": [],
@@ -601,12 +621,22 @@
       "gaps": [],
       "uncoveredSymbols": []
     },
+    "REQ-source-analysis-v2": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
     "REQ-symbol-behavioral-anchors": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-test-journaled-engine-harness": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-tree-sitter-language-authoring-scaffold": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []

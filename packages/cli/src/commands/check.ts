@@ -16,18 +16,25 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { existsSync } from "node:fs";
 import * as path from "node:path";
+import type { SourceAnalysisResult } from "kibi-plugin-sdk";
 import { EngineClient } from "../engine.js";
 import { isCliTraceOrDebugEnabled } from "../env.js";
-import {
-  extractFromManifest,
-  extractFromManifestString,
-} from "../extractors/manifest.js";
+import { extractFromManifestString } from "../extractors/manifest.js";
 import {
   type ExtractionResult,
   extractFromMarkdownString,
 } from "../extractors/markdown.js";
+import {
+  createMaintenanceSourceAnalysisService,
+  fingerprintMaintenanceSourceSet,
+  readSnapshotSourceConfig,
+} from "../plugins/maintenance-source-analysis.js";
+import {
+  type SourceChangeAnalysis,
+  analyzeSourceChanges,
+  assertSourceAnalysisGate,
+} from "../plugins/source-change-analysis.js";
 import { PrologProcess } from "../prolog.js";
 import {
   escapeAtom,
@@ -50,12 +57,19 @@ import {
   type KibiEntityType,
   type KibiImpactEvidence,
 } from "../traceability/evidence-model.js";
+import { captureStagedSnapshot } from "../traceability/git-change-snapshot.js";
 import {
   type StagedFile,
-  getStagedInventory,
   supportedStagedFiles,
 } from "../traceability/git-staged.js";
+import {
+  evaluateImpactReview,
+  fingerprintImpactEvaluator,
+  hasValidBaseImpactPolicy,
+} from "../traceability/impact-evaluator.js";
+import { IMPACT_REVIEW_PATH } from "../traceability/impact-review.js";
 import { validateStagedMarkdown } from "../traceability/markdown-validate.js";
+import { readSnapshotKnowledge } from "../traceability/snapshot-knowledge.js";
 import {
   type KibiImpactDiagnostic,
   collectStagedKibiDiagnostics,
@@ -115,7 +129,10 @@ function getMatchGroup(
   return typeof value === "string" ? value : null;
 }
 
-function buildManifestLookup(stagedFiles: StagedFile[]): {
+function buildManifestLookup(
+  stagedFiles: StagedFile[],
+  snapshotEntities: readonly ExtractionResult[],
+): {
   manifestLookup: ManifestLookup;
   manifestResults: ExtractionResult[];
   authoredSymbolResults: ExtractionResult[];
@@ -155,45 +172,34 @@ function buildManifestLookup(stagedFiles: StagedFile[]): {
     }
   };
 
-  // Pre-populate lookup from working-tree manifests so that code-only changes
-  // (where symbols.yaml is not staged) still resolve to the correct symbol IDs
-  // and relationships already defined on disk.
-  const symbolsRelPath = CANONICAL_ENTITY_PATHS.symbols;
-  {
-    const absSymbolsPath = path.resolve(process.cwd(), symbolsRelPath);
-    if (existsSync(absSymbolsPath)) {
-      try {
-        const entries = extractFromManifest(absSymbolsPath);
-        for (const entry of entries) {
-          upsertResult(authoredSymbolResults, authoredSymbolIndexByKey, entry);
-          const sourceFile =
-            entry.sourceFile || entry.entity.source || absSymbolsPath;
-          const key = `${sourceFile}:${entry.entity.title}`;
-          manifestLookup.set(key, {
-            id: entry.entity.id,
-            relationships: entry.relationships
-              .filter(
-                (relationship) =>
-                  relationship.type === "implements" ||
-                  relationship.type === "covered_by" ||
-                  relationship.type === "executable_for",
-              )
-              .map((relationship) => ({
-                type: relationship.type,
-                to: relationship.to,
-              })),
-          });
-        }
-      } catch (e) {
-        // Ignore working-tree manifest parsing errors; staged-only fallback still applies
-        if (isCliTraceOrDebugEnabled()) {
-          const msg = e instanceof Error ? e.message : String(e);
-          console.debug(
-            `[kibi] skipping working-tree manifest ${absSymbolsPath}: ${msg}`,
-          );
-        }
-      }
+  // Authored ownership comes exclusively from the captured index tree.
+  // A sentinel prevents symbol extraction from consulting working-tree manifests.
+  manifestLookup.set(
+    createManifestLookupSentinelKey(CANONICAL_ENTITY_PATHS.symbols),
+    { id: CANONICAL_ENTITY_PATHS.symbols },
+  );
+  const ambiguousLocators = new Set<string>();
+  for (const entry of snapshotEntities.filter(
+    (entry) => entry.entity.type === "symbol",
+  )) {
+    upsertResult(authoredSymbolResults, authoredSymbolIndexByKey, entry);
+    const sourceFile = entry.sourceFile || entry.entity.source;
+    if (!sourceFile) continue;
+    const key = `${sourceFile}:${entry.entity.title}`;
+    if (ambiguousLocators.has(key)) continue;
+    if (manifestLookup.has(key)) {
+      manifestLookup.delete(key);
+      ambiguousLocators.add(key);
+      continue;
     }
+    manifestLookup.set(key, {
+      id: entry.entity.id,
+      relationships: entry.relationships
+        .filter((r) =>
+          ["implements", "covered_by", "executable_for"].includes(r.type),
+        )
+        .map((r) => ({ type: r.type, to: r.to })),
+    });
   }
 
   const stagedManifestFiles = stagedFiles.filter(
@@ -247,24 +253,6 @@ function buildManifestLookup(stagedFiles: StagedFile[]): {
           stagedAuthoredSymbolIndexByKey,
           authoredSymbolResult,
         );
-
-        const sourceFile =
-          entry.sourceFile || entry.entity.source || manifestFile.path;
-        const key = `${sourceFile}:${entry.entity.title}`;
-        manifestLookup.set(key, {
-          id: entry.entity.id,
-          relationships: entry.relationships
-            .filter(
-              (relationship) =>
-                relationship.type === "implements" ||
-                relationship.type === "covered_by" ||
-                relationship.type === "executable_for",
-            )
-            .map((relationship) => ({
-              type: relationship.type,
-              to: relationship.to,
-            })),
-        });
       }
     } catch {
       // Ignore manifest parsing errors
@@ -458,6 +446,56 @@ function printStagedResult(input: {
   if (input.operationalError) console.error(input.operationalError);
 }
 
+function clearResolvedImpactReviewAdvisories(
+  coverage: StagedFileCoverageResult,
+): void {
+  const transport = coverage.files.find(
+    (file) => file.path === IMPACT_REVIEW_PATH,
+  );
+  const plainTransportChange =
+    transport !== undefined &&
+    (transport.status === "A" || transport.status === "M") &&
+    transport.oldPath === undefined;
+  const reviewedPaths = new Set(
+    coverage.files
+      .filter((file) => file.path !== IMPACT_REVIEW_PATH)
+      .map((file) => file.path),
+  );
+
+  coverage.diagnostics = coverage.diagnostics.filter((diagnostic) => {
+    if (
+      diagnostic.id === "staged_file_impact_review_needed" &&
+      reviewedPaths.has(diagnostic.path)
+    ) {
+      return false;
+    }
+    return !(
+      diagnostic.id === "staged_file_ownership_missing" &&
+      diagnostic.path === IMPACT_REVIEW_PATH &&
+      plainTransportChange
+    );
+  });
+}
+
+function noValidatedSymbolsMessage(
+  sourceAnalysis: ReadonlyMap<string, SourceChangeAnalysis>,
+): string {
+  const partialFiles = [...sourceAnalysis.values()].flatMap((analysis) => {
+    const partialSide = [analysis.before, analysis.after].find(
+      (side) => side?.status === "partial",
+    );
+    if (!partialSide) return [];
+    const provider = partialSide.providerId
+      ? ` via ${partialSide.providerId}`
+      : "";
+    return [`${analysis.path}${provider}`];
+  });
+  if (partialFiles.length > 0) {
+    return `Partial source analysis was reviewed for ${partialFiles.join(", ")}; no fully analyzed exported symbols or staged entities were available for symbol validation.`;
+  }
+  return "No exported symbols or staged entities found in staged files.";
+}
+
 function uniqueSorted(values: Iterable<string>): string[] {
   return Array.from(new Set(values)).sort();
 }
@@ -477,6 +515,8 @@ function buildStagedKibiImpactEvidence(options: {
     Awaited<ReturnType<typeof extractSymbolsFromStagedFileAsync>>
   >;
   symbolsManifestPath: string;
+  readBaseFile?: (filePath: string) => string | null;
+  analyzeSource?: (filePath: string, content: string) => SourceAnalysisResult;
 }): KibiImpactEvidence {
   const {
     stagedFiles,
@@ -513,12 +553,15 @@ function buildStagedKibiImpactEvidence(options: {
     behaviorSourcePaths.includes(file.path),
   );
   const stagedSymbolsManifest = assessStagedSymbolsManifest({
+    ...(options.analyzeSource ? { analyzeSource: options.analyzeSource } : {}),
+    ...(options.readBaseFile ? { readBaseFile: options.readBaseFile } : {}),
     symbolsManifestPath,
     stagedFiles,
     sourceFiles: behaviorSourceFiles,
   });
   const stagedAuthoredSymbolsEvidence =
     collectStagedAuthoredSymbolsManifestEvidence({
+      ...(options.readBaseFile ? { readBaseFile: options.readBaseFile } : {}),
       stagedFiles,
       sourceFiles: behaviorSourceFiles,
     });
@@ -647,25 +690,97 @@ export async function checkCommand(
         prolog: PrologProcess;
       } | null = null;
       try {
-        const stagedInventory = getStagedInventory();
-        stagedCoverage = analyzeStagedFileCoverage(stagedInventory);
+        const snapshot = captureStagedSnapshot(process.cwd());
+        const stagedInventory = snapshot.inventory;
+        const trustedSourceConfig = readSnapshotSourceConfig(
+          snapshot,
+          snapshot.baseTree,
+        );
+        const sourceService = createMaintenanceSourceAnalysisService(
+          process.cwd(),
+          trustedSourceConfig,
+        );
+        const sourceAnalysis = await analyzeSourceChanges(
+          stagedInventory,
+          sourceService,
+        );
+        for (const file of stagedInventory) {
+          const analysis = sourceAnalysis.get(file.path);
+          if (analysis?.after?.status === "ok") {
+            file.analysisDepth = "symbol";
+            file.disposition = "checked";
+          }
+        }
+        const printSnapshotResult = (
+          input: Parameters<typeof printStagedResult>[0],
+        ): void => {
+          snapshot.assertUnchanged();
+          printStagedResult(input);
+        };
+        stagedCoverage = analyzeStagedFileCoverage(
+          stagedInventory,
+          snapshot.readGit,
+        );
+        stagedCoverage.snapshot = {
+          baseTree: snapshot.baseTree,
+          headTree: snapshot.headTree,
+          headCommit: snapshot.headCommit,
+        };
+        for (const record of stagedCoverage.files) {
+          const analysis = sourceAnalysis.get(record.path);
+          if (!analysis) continue;
+          const describe = (side: typeof analysis.before) =>
+            side
+              ? {
+                  status: side.status,
+                  language: side.language,
+                  symbolCount: side.symbols.length,
+                  providerId: side.providerId,
+                  inputFingerprint: side.inputFingerprint,
+                  providerFingerprint: side.providerFingerprint,
+                }
+              : null;
+          record.sourceAnalysis = {
+            before: describe(analysis.before),
+            after: describe(analysis.after),
+          };
+          record.providerId =
+            analysis.after?.providerId ?? analysis.before?.providerId ?? null;
+        }
+        const impactPolicyEnabled =
+          stagedInventory.length > 0 && hasValidBaseImpactPolicy(snapshot);
+        // One rule decides which analysis gaps block (see analysis-gate): the
+        // committed side never blocks, and an after-side local gap blocks only
+        // where it overlaps the staged lines. With a policy, the impact review
+        // evaluates the same obligations and accepts reviewed partial gaps.
+        if (!impactPolicyEnabled)
+          assertSourceAnalysisGate(stagedInventory, sourceAnalysis);
+        if (impactPolicyEnabled) {
+          const impactEvaluation = evaluateImpactReview(snapshot, {
+            providerSetFingerprint: fingerprintMaintenanceSourceSet(
+              process.cwd(),
+              trustedSourceConfig,
+            ),
+            evaluatorFingerprint: fingerprintImpactEvaluator(),
+            analyses: sourceAnalysis,
+          });
+          if (!impactEvaluation.passed)
+            throw new Error(
+              `Staged impact review failed:\n${impactEvaluation.diagnostics.map((item) => `${item.code}: ${item.message}`).join("\n")}`,
+            );
+          if (stagedCoverage) {
+            clearResolvedImpactReviewAdvisories(stagedCoverage);
+          }
+        }
         const stagedFiles = supportedStagedFiles(stagedInventory);
         if (stagedInventory.length === 0) {
-          printStagedResult({
+          printSnapshotResult({
             format: options.format,
             coverage: stagedCoverage,
             messages: ["No staged files found."],
           });
           return { exitCode: 0 };
         }
-
-        const {
-          manifestLookup,
-          manifestResults,
-          authoredSymbolResults,
-          stagedAuthoredSymbolResults,
-        } = buildManifestLookup(stagedFiles);
-        const symbolsManifestPath = KIBI_SYMBOLS_MANIFEST_PATH;
 
         const symbolPaths = new Set(
           stagedInventory
@@ -688,7 +803,7 @@ export async function checkCommand(
         }
 
         if (markdownErrors.length > 0) {
-          printStagedResult({
+          printSnapshotResult({
             format: options.format,
             coverage: stagedCoverage,
             violations: markdownErrors.map((message) => ({
@@ -705,6 +820,24 @@ export async function checkCommand(
           }
           return { exitCode: 1 };
         }
+        const snapshotEntities = readSnapshotKnowledge(
+          snapshot.readGit,
+          snapshot.headTree,
+          snapshot.readBlobs,
+        );
+        const snapshotRequirementIds = new Set(
+          snapshotEntities
+            .filter((row) => row.entity.type === "req")
+            .map((row) => row.entity.id),
+        );
+        const {
+          manifestLookup,
+          manifestResults,
+          authoredSymbolResults,
+          stagedAuthoredSymbolResults,
+        } = buildManifestLookup(stagedFiles, snapshotEntities);
+        const symbolsManifestPath = KIBI_SYMBOLS_MANIFEST_PATH;
+
         const allSymbols: Awaited<
           ReturnType<typeof extractSymbolsFromStagedFileAsync>
         > = [];
@@ -718,19 +851,30 @@ export async function checkCommand(
             if (f.content !== undefined) {
               sourceContentByFile.set(f.path, f.content);
             }
-            // Maintenance path: builtin-only (no CapabilityRegistry / workspaceRoot).
+            // Maintenance uses only host-approved source analyzers over captured bytes.
             const symbols = await extractSymbolsFromStagedFileAsync(
               f,
               manifestLookup,
-              {},
+              {
+                analyzeText: async () =>
+                  sourceAnalysis.get(f.path)?.after ?? null,
+              },
             );
+            for (const symbol of symbols) {
+              for (const requirement of symbol.reqLinks) {
+                if (!snapshotRequirementIds.has(requirement))
+                  throw new Error(
+                    `Symbol ${symbol.name} references a requirement absent from the captured knowledge snapshot: ${requirement}`,
+                  );
+              }
+            }
             symbolsByFile.set(f.path, symbols);
             if (symbols?.length) {
               allSymbols.push(...symbols);
             }
           } catch (e) {
             const message = `Error extracting symbols from staged file ${f.path}: ${e instanceof Error ? e.message : String(e)}`;
-            if (options.format !== "json") console.error(message);
+            throw new Error(message);
           }
         }
 
@@ -759,6 +903,21 @@ export async function checkCommand(
         ];
 
         const stagedKibiEvidence = buildStagedKibiImpactEvidence({
+          analyzeSource: (filePath) => {
+            const result = sourceAnalysis.get(filePath)?.after;
+            if (!result)
+              throw new Error(`Missing captured source analysis: ${filePath}`);
+            return result;
+          },
+          readBaseFile: (filePath) => {
+            try {
+              return snapshot
+                .readGit(["show", `${snapshot.baseTree}:${filePath}`])
+                .toString("utf8");
+            } catch {
+              return null;
+            }
+          },
           stagedFiles,
           sourceFiles,
           markdownFiles,
@@ -784,8 +943,65 @@ export async function checkCommand(
             (result.sourceFile !== undefined &&
               stagedSourcePaths.has(result.sourceFile)),
         );
+        const snapshotSymbolsByFile = new Map<
+          string,
+          Awaited<ReturnType<typeof extractSymbolsFromStagedFileAsync>>
+        >();
+        for (const result of activeGranularityResults) {
+          const file = result.sourceFile;
+          if (!file || snapshotSymbolsByFile.has(file)) continue;
+          const existing = sourceAnalysis.get(file)?.after;
+          if (existing) {
+            snapshotSymbolsByFile.set(
+              file,
+              await extractSymbolsFromStagedFileAsync(
+                {
+                  path: file,
+                  status: "M",
+                  content: "",
+                  hunkRanges: [{ start: 1, end: Number.MAX_SAFE_INTEGER }],
+                },
+                manifestLookup,
+                { analyzeText: async () => existing },
+              ),
+            );
+            continue;
+          }
+          const entry = snapshot
+            .readGit(["ls-tree", snapshot.headTree, "--", `:(literal)${file}`])
+            .toString("utf8");
+          if (!entry) {
+            snapshotSymbolsByFile.set(file, []);
+            continue;
+          }
+          if (!/^100(?:644|755) blob /.test(entry))
+            throw new Error(
+              `Snapshot symbol source is not a regular file: ${file}`,
+            );
+          const content = snapshot
+            .readGit(["show", `${snapshot.headTree}:${file}`])
+            .toString("utf8");
+          sourceContentByFile.set(file, content);
+          snapshotSymbolsByFile.set(
+            file,
+            await extractSymbolsFromStagedFileAsync(
+              {
+                path: file,
+                status: "M",
+                content,
+                hunkRanges: [{ start: 1, end: Number.MAX_SAFE_INTEGER }],
+              },
+              manifestLookup,
+              {
+                analyzeText: (name, text) =>
+                  sourceService.analyzeTextV2(name, text),
+              },
+            ),
+          );
+        }
         stagedKibiDiagnostics.push(
           ...createSymbolGranularityDiagnostics({
+            sourceSymbolsByFile: snapshotSymbolsByFile,
             manifestResults: activeGranularityResults,
             ...(activeStagedSymbolEntityIds.size > 0
               ? { activeEntityIds: activeStagedSymbolEntityIds }
@@ -827,12 +1043,10 @@ export async function checkCommand(
             return { exitCode: blocking ? 1 : 0 };
           }
 
-          printStagedResult({
+          printSnapshotResult({
             format: options.format,
             coverage: stagedCoverage,
-            messages: [
-              "No exported symbols or staged entities found in staged files.",
-            ],
+            messages: [noValidatedSymbolsMessage(sourceAnalysis)],
           });
           return { exitCode: 0 };
         }
@@ -859,7 +1073,7 @@ export async function checkCommand(
             }
             return { exitCode: blocking ? 1 : 0 };
           }
-          printStagedResult({
+          printSnapshotResult({
             format: options.format,
             coverage: stagedCoverage,
             messages: ["✓ No violations found in staged files."],
@@ -868,11 +1082,8 @@ export async function checkCommand(
         }
 
         // Create temp KB
-        tempCtx = await createTempKb(resolvedKbPath);
-
-        if (stagedEntityResults.length > 0) {
-          await projectStagedEntities(tempCtx.prolog, stagedEntityResults);
-        }
+        tempCtx = await createTempKb();
+        await projectStagedEntities(tempCtx.prolog, snapshotEntities);
 
         const overlayFacts = createOverlayFacts(allSymbols);
         const fs = await import("node:fs/promises");
@@ -890,7 +1101,7 @@ export async function checkCommand(
         const violationsFormatted = formatStagedViolations(violationsRaw);
 
         if (violationsRaw && violationsRaw.length > 0) {
-          printStagedResult({
+          printSnapshotResult({
             format: options.format,
             coverage: stagedCoverage,
             violations: violationsRaw,
@@ -912,7 +1123,7 @@ export async function checkCommand(
         if (stagedKibiDiagnostics.length > 0) {
           await cleanupTempKb(tempCtx.tempDir);
           const blocking = hasBlockingImpactDiagnostics(stagedKibiDiagnostics);
-          printStagedResult({
+          printSnapshotResult({
             format: options.format,
             coverage: stagedCoverage,
             qualityDiagnostics: stagedKibiDiagnostics,
@@ -934,7 +1145,7 @@ export async function checkCommand(
           };
         }
 
-        printStagedResult({
+        printSnapshotResult({
           format: options.format,
           coverage: stagedCoverage,
           messages: ["✓ No violations found in staged symbols."],

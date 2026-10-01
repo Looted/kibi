@@ -178,6 +178,27 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-61b89049bb6e
+  - type: constrains
+    from: REQ-tree-sitter-language-authoring-scaffold
+    to: FACT-SUBJECT-B70EF05FF5A05CB4
+    created_at: 2026-09-28T09:24:25.908Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-151d967c0761
+  - type: requires_property
+    from: REQ-tree-sitter-language-authoring-scaffold
+    to: FACT-PROP-F7D9D2D00C1A1922
+    created_at: 2026-09-28T09:24:25.963Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8c023cf9a16c
+  - type: specified_by
+    from: REQ-tree-sitter-language-authoring-scaffold
+    to: SCEN-tree-sitter-language-authoring-scaffold
+    created_at: 2026-09-28T09:25:31.706Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f7f842cb8ee5
   - type: implements
     from: SYM-docs-site-catalog-PUBLISHED_SITE_ORIGIN
     to: REQ-docs-readme-published-links

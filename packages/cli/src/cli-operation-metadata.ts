@@ -113,6 +113,12 @@ export const CLI_OPERATION_METADATA = [
       "Run KB validation rules and return violations, quality diagnostics, and typed kibi.migration-plan.v2 actions. Use before or after mutations and after source edits; checks remain read-only and never infer or apply actions from prose suggestions.",
   },
   {
+    name: "kb_prepare_impact_review",
+    cliName: "prepare-impact-review",
+    description:
+      "Prepare complete content-bound impact-review authoring inputs from the current staged snapshot or explicitly selected immutable Git commits. Returns strict reviewer schemas and an unauthored template; it does not decide, approve, sign, stage, or prove the review.",
+  },
+  {
     name: "kb_sparql_remote",
     cliName: "sparql-remote",
     description:

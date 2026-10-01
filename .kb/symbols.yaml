@@ -32554,18 +32554,23 @@ symbols:
       - type: executable_for
         target: TEST-test-journaled-engine-harness
   - id: SYM-runtime-packed-daemon-build
-    title: kibi-runtime packed daemon bundle build step
+    title: kibi-runtime package-boundary and daemon build step
     status: active
     tags:
       - runtime
       - engine
       - packed
+      - portability
     sourceFile: packages/runtime/package.json
     symbol_role: config
     granularity_reason: config-artifact
     relationships:
       - type: covered_by
+        target: TEST-e2e-runtime-symbol-portability
+      - type: covered_by
         target: TEST-runtime-packed-engine-daemon
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
       - type: implements
         target: REQ-runtime-packed-engine-daemon
   - id: SYM-shared-npm-cache-resolution
@@ -43454,402 +43459,1715 @@ symbols:
         target: TEST-001
       - type: implements
         target: REQ-cli-doctor
-  - id: SYM-test-prolog-spike-config-validation
-    title: SWI-Prolog spike configuration contract
+  - id: SYM-installed-impact-PackedInstallOptions
+    title: PackedInstallOptions
     status: active
-    sourceFile: scripts/tests/swipl-spike-config.test.ts
+    sourceFile: documentation/tests/e2e/packed/helpers.ts
+    symbol_role: type-shape
+    tags:
+      - installed-impact
+      - performance-timing
+    relationships:
+      - type: executable_for
+        target: TEST-installed-staged-impact-timing-integrity
+  - id: SYM-installed-impact-SandboxOptions
+    title: SandboxOptions
+    status: active
+    sourceFile: documentation/tests/e2e/packed/helpers.ts
+    symbol_role: type-shape
+    tags:
+      - installed-impact
+      - performance-timing
+    relationships:
+      - type: executable_for
+        target: TEST-installed-staged-impact-timing-integrity
+  - id: SYM-installed-impact-runWorkflow
+    title: runInstalledStagedImpactBenchmarkWorkflow
+    status: active
+    sourceFile: documentation/tests/e2e/packed/installed-staged-impact-benchmark.test.ts
+    symbol_role: behavioral
+    tags:
+      - installed-impact
+      - performance-timing
+    relationships:
+      - type: executable_for
+        target: TEST-installed-staged-impact-timing-integrity
+  - id: SYM-performance-trace-write-event
+    title: writePerformanceTraceEvent
+    status: active
+    sourceFile: packages/cli/src/performance-trace.ts
+    symbol_role: behavioral
+    tags:
+      - installed-impact
+      - performance-timing
+    relationships:
+      - type: covered_by
+        target: TEST-installed-staged-impact-timing-integrity
+      - type: implements
+        target: REQ-installed-staged-impact-timing-integrity
+  - id: SYM-performance-trace-event-kind
+    title: PerformanceTraceEventKind
+    status: active
+    sourceFile: packages/cli/src/performance-trace.ts
+    symbol_role: type-shape
+    tags:
+      - installed-impact
+      - performance-timing
+    relationships:
+      - type: covered_by
+        target: TEST-installed-staged-impact-timing-integrity
+      - type: implements
+        target: REQ-installed-staged-impact-timing-integrity
+  - id: SYM-performance-trace-dir-env
+    title: KIBI_PERF_TRACE_DIR_ENV
+    status: active
+    sourceFile: packages/cli/src/performance-trace.ts
+    symbol_role: config
+    tags:
+      - installed-impact
+      - performance-timing
+    granularity_reason: config-artifact
+    relationships:
+      - type: covered_by
+        target: TEST-installed-staged-impact-timing-integrity
+      - type: implements
+        target: REQ-installed-staged-impact-timing-integrity
+  - id: SYM-performance-timings-env
+    title: KIBI_PERF_TIMINGS_ENV
+    status: active
+    sourceFile: packages/cli/src/performance-trace.ts
+    symbol_role: config
+    tags:
+      - installed-impact
+      - performance-timing
+    granularity_reason: config-artifact
+    relationships:
+      - type: covered_by
+        target: TEST-installed-staged-impact-timing-integrity
+      - type: implements
+        target: REQ-installed-staged-impact-timing-integrity
+  - id: SYM-performance-trace-max-events
+    title: KIBI_PERF_TRACE_MAX_EVENTS
+    status: active
+    sourceFile: packages/cli/src/performance-trace.ts
+    symbol_role: config
+    tags:
+      - installed-impact
+      - performance-timing
+    granularity_reason: config-artifact
+    relationships:
+      - type: covered_by
+        target: TEST-installed-staged-impact-timing-integrity
+      - type: implements
+        target: REQ-installed-staged-impact-timing-integrity
+  - id: SYM-performance-trace-max-bytes
+    title: KIBI_PERF_TRACE_MAX_BYTES
+    status: active
+    sourceFile: packages/cli/src/performance-trace.ts
+    symbol_role: config
+    tags:
+      - installed-impact
+      - performance-timing
+    granularity_reason: config-artifact
+    relationships:
+      - type: covered_by
+        target: TEST-installed-staged-impact-timing-integrity
+      - type: implements
+        target: REQ-installed-staged-impact-timing-integrity
+  - id: SYM-source-analysis-timing-emitter
+    title: createBoundedSourceAnalysisTimingEmitter
+    status: active
+    sourceFile: packages/plugin-treesitter/src/performance-timing.ts
+    symbol_role: behavioral
+    tags:
+      - installed-impact
+      - performance-timing
+    relationships:
+      - type: covered_by
+        target: TEST-installed-staged-impact-timing-integrity
+      - type: implements
+        target: REQ-installed-staged-impact-timing-integrity
+  - id: SYM-source-analysis-timing-event
+    title: SourceAnalysisTimingEvent
+    status: active
+    sourceFile: packages/plugin-treesitter/src/performance-timing.ts
+    symbol_role: type-shape
+    tags:
+      - installed-impact
+      - performance-timing
+    relationships:
+      - type: covered_by
+        target: TEST-installed-staged-impact-timing-integrity
+      - type: implements
+        target: REQ-installed-staged-impact-timing-integrity
+  - id: SYM-source-analysis-timing-limits
+    title: SourceAnalysisTimingLimits
+    status: active
+    sourceFile: packages/plugin-treesitter/src/performance-timing.ts
+    symbol_role: type-shape
+    tags:
+      - installed-impact
+      - performance-timing
+    relationships:
+      - type: covered_by
+        target: TEST-installed-staged-impact-timing-integrity
+      - type: implements
+        target: REQ-installed-staged-impact-timing-integrity
+  - id: SYM-source-analysis-timing-max-events
+    title: MAX_SOURCE_ANALYSIS_TIMING_EVENTS
+    status: active
+    sourceFile: packages/plugin-treesitter/src/performance-timing.ts
+    symbol_role: config
+    tags:
+      - installed-impact
+      - performance-timing
+    granularity_reason: config-artifact
+    relationships:
+      - type: covered_by
+        target: TEST-installed-staged-impact-timing-integrity
+      - type: implements
+        target: REQ-installed-staged-impact-timing-integrity
+  - id: SYM-source-analysis-timing-max-bytes
+    title: MAX_SOURCE_ANALYSIS_TIMING_BYTES
+    status: active
+    sourceFile: packages/plugin-treesitter/src/performance-timing.ts
+    symbol_role: config
+    tags:
+      - installed-impact
+      - performance-timing
+    granularity_reason: config-artifact
+    relationships:
+      - type: covered_by
+        target: TEST-installed-staged-impact-timing-integrity
+      - type: implements
+        target: REQ-installed-staged-impact-timing-integrity
+  - id: SYM-test-tree-sitter-language-scaffold-draft-output
+    title: Tree-sitter language author scaffold CLI
+    status: active
+    sourceFile: scripts/tests/scaffold-tree-sitter-language.test.mjs
     symbol_role: behavioral
     granularity_reason: test-suite
     relationships:
       - type: executable_for
-        target: TEST-prolog-spike-config-validation
-  - id: SYM-prolog-spike-config-validate
-    title: validate
+        target: TEST-tree-sitter-language-authoring-scaffold-cli-e2e
+      - type: executable_for
+        target: TEST-tree-sitter-language-authoring-scaffold-draft-output
+  - id: SYM-mcp-tools-list-base-contract
+    title: Base MCP tools-list contract fixture
     status: active
-    sourceFile: scripts/swipl-spike.py
+    sourceFile: packages/mcp/tests/fixtures/contracts/tools-list.base.json
+    symbol_role: config
+    granularity_reason: config-artifact
+    tags:
+      - mcp
+      - cli
+      - parity
+      - contract
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-mcp-tools-list-diagnostic-contract
+    title: Diagnostic MCP tools-list contract fixture
+    status: active
+    sourceFile: packages/mcp/tests/fixtures/contracts/tools-list.diagnostic.json
+    symbol_role: config
+    granularity_reason: config-artifact
+    tags:
+      - mcp
+      - cli
+      - parity
+      - contract
+      - diagnostics
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-classify-source-language
+    title: classifySource
+    tags:
+      - multilingual
+      - catalog
+    symbol_role: behavioral
+    status: active
+    sourceFile: packages/cli/src/plugins/source-classification.ts
+    relationships:
+      - type: covered_by
+        target: TEST-multilingual-language-catalog
+      - type: implements
+        target: REQ-multilingual-language-catalog
+  - id: SYM-cli-require-operation-metadata
+    title: requireCliOperationMetadata
+    status: active
+    sourceFile: packages/cli/src/cli-operation-metadata.ts
     symbol_role: behavioral
     relationships:
       - type: covered_by
-        target: TEST-prolog-build-pipeline-validation
-      - type: covered_by
-        target: TEST-prolog-spike-config-validation
+        target: TEST-kibi-operation-interface-parity
       - type: implements
-        target: REQ-prolog-build-pipeline-validation
-      - type: implements
-        target: REQ-prolog-spike-config-validation
-  - id: SYM-test-prolog-coverage-test-selection
-    title: Prolog coverage runner test selection suite
-    status: active
-    sourceFile: packages/core/tests/prolog-coverage-runner.test.ts
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-core-kb-write-lock-owner
     symbol_role: behavioral
-    granularity_reason: test-suite
+    granularity_reason: extractor-miss
+    tags:
+      - core
+      - utc
+      - lock-owner
+    title: kb_write_lock_owner
+    status: active
+    sourceFile: packages/core/src/kb.pl
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-core-status-synced-at
+    title: synced_at
+    status: active
+    tags:
+      - core
+      - utc
+      - lock-owner
+    sourceFile: packages/core/src/status.pl
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-e2e-installed-sdk-source-analysis-input-limits
+    title: runInstalledSdkSourceAnalysisInputLimitsWorkflow
+    status: active
+    tags:
+      - e2e
+      - consumer
+      - source-analysis
+    sourceFile: documentation/tests/e2e/packed/installed-sdk-source-analysis-input-limits.test.ts
+    symbol_role: behavioral
     relationships:
       - type: executable_for
-        target: TEST-prolog-coverage-test-selection
-  - id: SYM-prolog-coverage-load-tests
-    title: load_tests
+        target: TEST-installed-sdk-source-analysis-input-limits
+  - id: SYM-e2e-multilingual-language-catalog
+    title: runMultilingualLanguageCatalogWorkflow
+    tags:
+      - multilingual
+      - e2e
+      - consumer
+    symbol_role: behavioral
+    sourceFile: documentation/tests/e2e/packed/multilingual-language-catalog.test.ts
     status: active
-    sourceFile: scripts/run-prolog-coverage.pl
+    relationships:
+      - type: executable_for
+        target: TEST-multilingual-language-catalog
+  - id: SYM-e2e-multilingual-source-analysis
+    tags:
+      - multilingual
+      - e2e
+      - consumer
+    title: runMultilingualSourceAnalysisWorkflow
+    status: active
+    sourceFile: documentation/tests/e2e/packed/multilingual-source-analysis.test.ts
+    relationships:
+      - type: executable_for
+        target: TEST-source-analysis-v2-contract
+  - id: SYM-e2e-proof-all-bounded-projection
+    title: runProofAllBoundedProjectionWorkflow
+    status: active
+    sourceFile: documentation/tests/e2e/packed/proof-all-bounded-projection.test.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-e2e-proof-all-bounded-projection
+  - id: SYM-hasNormativeAssertion
+    tags:
+      - requirements
+      - semantic-advisor
+    title: hasNormativeAssertion
+    status: active
+    sourceFile: packages/cli/src/operations/semantic-advisor/clauses.ts
     symbol_role: behavioral
     relationships:
       - type: covered_by
-        target: TEST-prolog-coverage-test-selection
+        target: TEST-kibi-logical-requirement-coverage
       - type: implements
-        target: REQ-prolog-coverage-test-selection
-  - id: SYM-prolog-coverage-roots
-    title: coverage_roots
+        target: REQ-kibi-logical-requirement-coverage
+  - id: SYM-impact-public-preparation-executeprepareimpactreview
+    title: executePrepareImpactReview
     status: active
-    sourceFile: scripts/run-prolog-coverage.pl
+    tags:
+      - multilingual
+      - impact-policy
+      - public-preparation
+    sourceFile: packages/cli/src/public/operations/impact-review-preparation.ts
     symbol_role: behavioral
     relationships:
       - type: covered_by
-        target: TEST-prolog-coverage-test-selection
+        target: TEST-impact-policy-stage-e-installed-e2e
       - type: implements
-        target: REQ-prolog-coverage-test-selection
-  - id: SYM-SCRIPT_TESTS
-    title: SCRIPT_TESTS
+        target: REQ-impact-review-public-preparation
+  - id: SYM-impact-public-preparation-impactreviewpreparationscope
+    tags:
+      - multilingual
+      - impact-policy
+      - public-preparation
+    symbol_role: type-shape
+    title: ImpactReviewPreparationScope
     status: active
-    sourceFile: scripts/run-unit-coverage.ts
+    sourceFile: packages/cli/src/public/operations/impact-review-preparation.ts
+    relationships:
+      - type: covered_by
+        target: TEST-impact-public-preparation-parity
+      - type: implements
+        target: REQ-impact-review-public-preparation
+  - id: SYM-impact-public-preparation-prepareimpactreviewinput
+    title: PrepareImpactReviewInput
+    tags:
+      - multilingual
+      - impact-policy
+      - public-preparation
+    symbol_role: type-shape
+    sourceFile: packages/cli/src/public/operations/impact-review-preparation.ts
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-impact-public-preparation-parity
+      - type: implements
+        target: REQ-impact-review-public-preparation
+  - id: SYM-impact-public-preparation-spec
+    title: prepareImpactReviewSpec
+    tags:
+      - multilingual
+      - impact-policy
+      - public-preparation
+    symbol_role: config
+    granularity_reason: config-artifact
+    status: active
+    sourceFile: packages/cli/src/public/operations/specs/impact-review-preparation.ts
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: covered_by
+        target: TEST-impact-public-preparation-parity
+      - type: implements
+        target: REQ-impact-review-public-preparation
+  - id: SYM-impact-stage-e-assertsha256
+    title: assertSha256
+    status: active
+    tags:
+      - multilingual
+      - impact-policy
+      - stage-e
+    sourceFile: packages/cli/src/traceability/impact-review.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-asserttrustedpullrequestbaseline
+    title: assertTrustedPullRequestBaseline
+    tags:
+      - multilingual
+      - impact-policy
+      - stage-e
+    symbol_role: behavioral
+    sourceFile: packages/cli/src/traceability/impact-pr-diff.ts
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-canonicaljson
+    tags:
+      - multilingual
+      - impact-policy
+      - stage-e
+    title: canonicalJson
+    status: active
+    sourceFile: packages/cli/src/traceability/impact-review.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-checkdiffcommand
+    title: checkDiffCommand
+    status: active
+    tags:
+      - multilingual
+      - impact-policy
+      - stage-e
+    sourceFile: packages/cli/src/commands/check-diff.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-createimpactreviewpreparationworkspace
+    title: createImpactReviewPreparationWorkspace
+    tags:
+      - multilingual
+      - impact-policy
+      - stage-e
+    symbol_role: behavioral
+    sourceFile: packages/cli/tests/parity/helpers.ts
+    status: active
+    relationships:
+      - type: executable_for
+        target: TEST-impact-public-preparation-parity
+  - id: SYM-impact-stage-e-createimpactreviewrecord
+    title: createImpactReviewRecord
+    tags:
+      - multilingual
+      - impact-policy
+      - stage-e
+    symbol_role: behavioral
+    sourceFile: packages/cli/src/traceability/impact-evaluator.ts
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-createrevieweddecoratorcoordinateverifier
+    status: active
+    tags:
+      - multilingual
+      - impact-policy
+      - stage-e
+    sourceFile: packages/cli/src/traceability/reviewed-coordinate-refresh.ts
+    title: createReviewedDecoratorCoordinateVerifier
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-evaluateimpactreview
+    title: evaluateImpactReview
+    status: active
+    tags:
+      - multilingual
+      - impact-policy
+      - stage-e
+    sourceFile: packages/cli/src/traceability/impact-evaluator.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-fingerprint
+    title: fingerprint
+    tags:
+      - multilingual
+      - impact-policy
+      - stage-e
+    symbol_role: behavioral
+    sourceFile: packages/cli/src/traceability/impact-review.ts
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-fingerprintbytes
+    tags:
+      - multilingual
+      - impact-policy
+      - stage-e
+    symbol_role: behavioral
+    title: fingerprintBytes
+    status: active
+    sourceFile: packages/cli/src/traceability/impact-review.ts
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-hasvalidbaseimpactpolicy
+    title: hasValidBaseImpactPolicy
+    tags:
+      - multilingual
+      - impact-policy
+      - stage-e
+    symbol_role: behavioral
+    sourceFile: packages/cli/src/traceability/impact-policy.ts
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-impact-evaluator-version
+    tags:
+      - multilingual
+      - impact-policy
+      - stage-e
+    title: IMPACT_EVALUATOR_VERSION
+    status: active
+    sourceFile: packages/cli/src/traceability/impact-review.ts
     symbol_role: config
     granularity_reason: config-artifact
     relationships:
       - type: covered_by
-        target: TEST-scripts-coverage-shard-isolation
+        target: TEST-impact-policy-stage-e-installed-e2e
       - type: implements
-        target: REQ-scripts-coverage-shard-isolation
-  - id: SYM-test-scripts-coverage-shard-isolation
-    title: unit coverage runner contract
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-impact-policy-path
+    granularity_reason: config-artifact
+    symbol_role: config
+    tags:
+      - multilingual
+      - impact-policy
+      - stage-e
+    title: IMPACT_POLICY_PATH
     status: active
-    sourceFile: scripts/tests/unit-coverage-runner.test.ts
+    sourceFile: packages/cli/src/traceability/impact-review.ts
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-impact-policy-version
+    title: IMPACT_POLICY_VERSION
+    tags:
+      - multilingual
+      - impact-policy
+      - stage-e
+    symbol_role: config
+    granularity_reason: config-artifact
+    sourceFile: packages/cli/src/traceability/impact-review.ts
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-impact-review-version
+    status: active
+    tags:
+      - multilingual
+      - impact-policy
+      - stage-e
+    sourceFile: packages/cli/src/traceability/impact-review.ts
+    symbol_role: config
+    granularity_reason: config-artifact
+    title: IMPACT_REVIEW_VERSION
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-impactevaluation
+    title: ImpactEvaluation
+    status: active
+    tags:
+      - multilingual
+      - impact-policy
+      - stage-e
+    sourceFile: packages/cli/src/traceability/impact-evaluator.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-impactpolicyfingerprint
     symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
-      - type: executable_for
-        target: TEST-scripts-coverage-shard-isolation
-  - id: SYM-test-sync-agent-skills
-    title: sync agent skills tests
+    tags:
+      - multilingual
+      - impact-policy
+      - stage-e
+    title: impactPolicyFingerprint
     status: active
-    sourceFile: scripts/tests/sync-agent-skills.test.ts
+    sourceFile: packages/cli/src/traceability/impact-policy.ts
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-impactreviewinventory
+    title: impactReviewInventory
+    status: active
+    tags:
+      - multilingual
+      - impact-policy
+      - stage-e
+    sourceFile: packages/cli/src/traceability/impact-evaluator.ts
     symbol_role: behavioral
-    granularity_reason: module-level-behavior
     relationships:
-      - type: executable_for
-        target: TEST-skillopt-external-adoption-verdict
-  - id: SYM-cli-canonical-filesystem-path
-    title: canonicalFilesystemPath
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+      - type: implements
+        target: REQ-impact-review-public-preparation
+  - id: SYM-impact-stage-e-loadbaseimpactpolicy
     status: active
-    sourceFile: packages/cli/src/utils/canonical-path.ts
+    tags:
+      - multilingual
+      - impact-policy
+      - stage-e
+    sourceFile: packages/cli/src/traceability/impact-policy.ts
+    symbol_role: behavioral
+    title: loadBaseImpactPolicy
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-parseimpactpolicy
+    title: parseImpactPolicy
+    tags:
+      - multilingual
+      - impact-policy
+      - stage-e
+    symbol_role: behavioral
+    status: active
+    sourceFile: packages/cli/src/traceability/impact-review.ts
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-prepareimpactreview
+    title: prepareImpactReview
+    status: active
+    tags:
+      - multilingual
+      - impact-policy
+      - stage-e
+    sourceFile: packages/cli/src/traceability/impact-evaluator.ts
     symbol_role: behavioral
     relationships:
       - type: covered_by
-        target: TEST-cli-canonical-runtime
-      - type: covered_by
-        target: TEST-core-journaled-engine-lifecycle
-      - type: covered_by
-        target: TEST-core-journaled-engine-persistence
-      - type: covered_by
-        target: TEST-e2e-plan-compiler-hash
-      - type: covered_by
-        target: TEST-kibi-change-to-proof-plan-compiler
+        target: TEST-impact-policy-stage-e-installed-e2e
       - type: implements
-        target: REQ-cli-canonical-runtime
+        target: REQ-impact-policy-stage-e-content-bound-review
       - type: implements
-        target: REQ-core-journaled-engine-persistence
-      - type: implements
-        target: REQ-kibi-change-to-proof-plan-compiler
-  - id: SYM-test-cli-engine-runtime-paths
-    title: engine runtime paths tests
+        target: REQ-impact-review-public-preparation
+  - id: SYM-impact-stage-e-relocatepackedinstallmetadata
+    title: relocatePackedInstallMetadata
     status: active
-    sourceFile: packages/cli/tests/engine-runtime-paths.test.ts
-    symbol_role: module
-    granularity_reason: test-suite
+    tags:
+      - multilingual
+      - impact-policy
+      - stage-e
+    sourceFile: documentation/tests/e2e/packed/packed-install-manifest.ts
+    symbol_role: behavioral
     relationships:
       - type: executable_for
-        target: TEST-core-journaled-engine-lifecycle
-      - type: executable_for
-        target: TEST-core-journaled-engine-persistence
-  - id: SYM-test-cli-workspace-path-alias
-    title: workspace path alias tests
+        target: TEST-test-journaled-engine-harness
+  - id: SYM-impact-stage-e-resolvetrustedpullrequestsnapshot
     status: active
-    sourceFile: packages/cli/tests/operations/workspace-path-alias.test.ts
-    symbol_role: module
-    granularity_reason: test-suite
+    tags:
+      - multilingual
+      - impact-policy
+      - stage-e
+    sourceFile: packages/cli/src/traceability/trusted-pr-event.ts
+    title: resolveTrustedPullRequestSnapshot
+    symbol_role: behavioral
     relationships:
-      - type: executable_for
-        target: TEST-cli-canonical-runtime
-      - type: executable_for
-        target: TEST-e2e-plan-compiler-hash
-      - type: executable_for
-        target: TEST-kibi-change-to-proof-plan-compiler
-  - id: SYM-test-cli-parity-path-normalization
-    title: parity path normalization tests
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-snapshotfilecontent
+    title: snapshotFileContent
+    tags:
+      - multilingual
+      - impact-policy
+      - stage-e
+    symbol_role: behavioral
+    sourceFile: packages/cli/src/public/operations/proof-receipt-projection.ts
     status: active
-    sourceFile: packages/cli/tests/parity/helpers.test.ts
-    symbol_role: module
-    granularity_reason: test-suite
     relationships:
-      - type: executable_for
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-type-fingerprint
+    title: Fingerprint
+    status: active
+    tags:
+      - multilingual
+      - impact-policy
+      - stage-e
+    sourceFile: packages/cli/src/traceability/impact-review.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-type-impactdecision
+    title: ImpactDecision
+    status: active
+    tags:
+      - multilingual
+      - impact-policy
+      - stage-e
+    sourceFile: packages/cli/src/traceability/impact-review.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-type-impactpolicy
+    title: ImpactPolicy
+    tags:
+      - multilingual
+      - impact-policy
+      - stage-e
+    symbol_role: type-shape
+    sourceFile: packages/cli/src/traceability/impact-review.ts
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-type-impactreviewdiagnostic
+    title: ImpactReviewDiagnostic
+    tags:
+      - multilingual
+      - impact-policy
+      - stage-e
+    symbol_role: type-shape
+    status: active
+    sourceFile: packages/cli/src/traceability/impact-review.ts
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-type-impactreviewrecord
+    title: ImpactReviewRecord
+    tags:
+      - multilingual
+      - impact-policy
+      - stage-e
+    symbol_role: type-shape
+    status: active
+    sourceFile: packages/cli/src/traceability/impact-review.ts
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-type-trustedpullrequestsnapshot
+    status: active
+    tags:
+      - multilingual
+      - impact-policy
+      - stage-e
+    sourceFile: packages/cli/src/traceability/trusted-pr-event.ts
+    title: TrustedPullRequestSnapshot
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-withoutproofreceiptfrontmatter
+    title: withoutProofReceiptFrontmatter
+    tags:
+      - multilingual
+      - impact-policy
+      - stage-e
+    symbol_role: behavioral
+    sourceFile: packages/cli/src/public/operations/proof-receipt-projection.ts
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-operation-require-known-spec
+    title: requireKnownSpec
+    symbol_role: behavioral
+    sourceFile: packages/cli/src/public/operations/catalog.ts
+    status: active
+    relationships:
+      - type: covered_by
         target: TEST-kibi-operation-interface-parity
-  - id: SYM-test-native-cli-suite-diagnostics
-    title: native Linux CLI diagnostics tests
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-parser-unit-worker-coverage
+    title: runParserUnitCoverage
     status: active
-    sourceFile: scripts/tests/swipl-spike-diagnostics.test.ts
-    symbol_role: module
-    granularity_reason: test-suite
+    tags:
+      - coverage
+      - parser
+      - worker
+    sourceFile: scripts/parser-unit-coverage.mjs
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-coverage-pipeline
+      - type: implements
+        target: REQ-014
+  - id: SYM-perContractTestBindings
+    title: perContractTestBindings
+    status: active
+    tags:
+      - verification
+      - proof
+      - reporting
+    sourceFile: packages/cli/src/public/operations/specs/reporting.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+  - id: SYM-source-analysis-v2-analyzesourcechanges-94b9974e
+    title: analyzeSourceChanges
+    status: active
+    sourceFile: packages/cli/src/plugins/source-change-analysis.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-approved-source-analyzers-02ce81c4
+    title: APPROVED_SOURCE_ANALYZERS
+    status: active
+    sourceFile: packages/cli/src/plugins/approved-source-analyzers.ts
+    symbol_role: config
+    granularity_reason: config-artifact
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-approvedsourceanalyzer-628b809f
+    status: active
+    sourceFile: packages/cli/src/plugins/approved-source-analyzers.ts
+    symbol_role: type-shape
+    title: ApprovedSourceAnalyzer
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-capabilityregistry-resolvesymbolextractorsv2-ed6a09db
+    title: CapabilityRegistry.resolveSymbolExtractorsV2
+    symbol_role: behavioral
+    sourceFile: packages/cli/src/plugins/registry.ts
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-capturediffsnapshot-171fbd16
+    title: captureDiffSnapshot
+    symbol_role: behavioral
+    status: active
+    sourceFile: packages/cli/src/traceability/git-change-snapshot.ts
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-createsymbolextractorv2adapter-b56c8cdd
+    title: createSymbolExtractorV2Adapter
+    status: active
+    sourceFile: packages/plugin-sdk/src/capabilities/symbol-extractor.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-gitchangesnapshot-c5e637cb
+    title: GitChangeSnapshot
+    symbol_role: type-shape
+    status: active
+    sourceFile: packages/cli/src/traceability/git-change-snapshot.ts
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-hostsourceanalysisresultv2-1bcf8177
+    symbol_role: type-shape
+    title: HostSourceAnalysisResultV2
+    status: active
+    sourceFile: packages/cli/src/plugins/source-analysis-service.ts
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-max-input-code-units
+    title: SOURCE_ANALYSIS_V2_MAX_INPUT_CODE_UNITS
+    tags:
+      - source-analysis
+      - resource-limits
+    symbol_role: config
+    sourceFile: packages/plugin-sdk/src/capabilities/symbol-extractor.ts
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-protocol-v1
+      - type: covered_by
+        target: TEST-installed-sdk-source-analysis-input-limits
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-source-analysis-v2-qualifiedsourceanalyzers
+    title: qualifiedSourceAnalyzers
+    tags:
+      - source-analysis
+      - approved-artifact-closure
+    symbol_role: config
+    status: active
+    sourceFile: packages/cli/src/plugins/approved-source-analyzers.generated.ts
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-readsnapshotsourceconfig-2fef553a
+    title: readSnapshotSourceConfig
+    symbol_role: behavioral
+    sourceFile: packages/cli/src/plugins/maintenance-source-analysis.ts
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-snapshotgitreader-83ceb338
+    status: active
+    sourceFile: packages/cli/src/traceability/git-change-snapshot.ts
+    symbol_role: type-shape
+    title: SnapshotGitReader
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-sourceanalysisrangev2-66780153
+    status: active
+    sourceFile: packages/plugin-sdk/src/capabilities/symbol-extractor.ts
+    symbol_role: type-shape
+    title: SourceAnalysisRangeV2
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-sourceanalysisservice-analyzetextv2-12afca51
+    title: SourceAnalysisService.analyzeTextV2
+    status: active
+    tags:
+      - multilingual
+      - catalog
+    sourceFile: packages/cli/src/plugins/source-analysis-service.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-multilingual-language-catalog
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-multilingual-language-catalog
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-sourceanalysisstatusv2-cd22533e
+    title: SourceAnalysisStatusV2
+    status: active
+    sourceFile: packages/plugin-sdk/src/capabilities/symbol-extractor.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-sourceanalysisuncoveredrangev2
+    title: SourceAnalysisUncoveredRangeV2
+    status: active
+    tags:
+      - source-analysis
+      - sdk-contract
+    sourceFile: packages/plugin-sdk/src/capabilities/symbol-extractor.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-protocol-v1
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-sourcechangeanalysis-89f0dd10
+    title: SourceChangeAnalysis
+    status: active
+    sourceFile: packages/cli/src/plugins/source-change-analysis.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-sourcesymbolanalysisv2-6bf5bdbd
+    title: SourceSymbolAnalysisV2
+    status: active
+    sourceFile: packages/plugin-sdk/src/capabilities/symbol-extractor.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-symbol-extractor-v2-capability-id-43e5dbce
+    title: SYMBOL_EXTRACTOR_V2_CAPABILITY_ID
+    symbol_role: config
+    granularity_reason: config-artifact
+    sourceFile: packages/plugin-sdk/src/protocol.ts
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-symbolextractorv2-0c4764f1
+    status: active
+    sourceFile: packages/plugin-sdk/src/capabilities/symbol-extractor.ts
+    title: SymbolExtractorV2
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-symbolextractorv2analyzeinput-5753074c
+    status: active
+    sourceFile: packages/plugin-sdk/src/capabilities/symbol-extractor.ts
+    symbol_role: type-shape
+    title: SymbolExtractorV2AnalyzeInput
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-symbolextractorv2supportsinput-ab271ea7
+    title: SymbolExtractorV2SupportsInput
+    symbol_role: type-shape
+    sourceFile: packages/plugin-sdk/src/capabilities/symbol-extractor.ts
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-tree-sitter-languages-dae6879e
+    symbol_role: config
+    granularity_reason: config-artifact
+    tags:
+      - multilingual
+      - catalog
+    title: TREE_SITTER_LANGUAGES
+    status: active
+    sourceFile: packages/plugin-treesitter/src/catalog.ts
+    relationships:
+      - type: covered_by
+        target: TEST-multilingual-language-catalog
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-multilingual-language-catalog
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-validatesourceanalysisresultv2-213d878d
+    title: validateSourceAnalysisResultV2
+    symbol_role: behavioral
+    sourceFile: packages/plugin-sdk/src/validate.ts
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-validatesourceanalysisresultv2options-882eaa93
+    title: ValidateSourceAnalysisResultV2Options
+    status: active
+    sourceFile: packages/plugin-sdk/src/capabilities/symbol-extractor.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-language-classification-type
+    status: active
+    tags:
+      - multilingual
+      - catalog
+    sourceFile: packages/cli/src/plugins/source-classification.ts
+    symbol_role: type-shape
+    title: SourceClassification
+    relationships:
+      - type: covered_by
+        target: TEST-multilingual-language-catalog
+      - type: implements
+        target: REQ-multilingual-language-catalog
+  - id: SYM-test-core-fixed-timestamp-file
+    tags:
+      - core
+      - utc
+      - lock-owner
+    title: create_fixed_timestamp_file
+    status: active
+    sourceFile: packages/core/tests/kb.plt
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
     relationships:
       - type: executable_for
-        target: TEST-native-cli-suite-diagnostics
-  - id: SYM-prolog-spike-linux-process-metadata
-    title: linux_process_metadata
-    status: active
-    sourceFile: scripts/swipl-spike.py
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-test-core-lock-owner-timezone-child
+    title: lock_owner_json_child
+    tags:
+      - core
+      - utc
+      - lock-owner
     symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-native-cli-suite-diagnostics
-      - type: implements
-        target: REQ-native-cli-suite-diagnostics
-  - id: SYM-prolog-spike-linux-process-children
-    title: linux_process_children
+    granularity_reason: extractor-miss
     status: active
-    sourceFile: scripts/swipl-spike.py
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-native-cli-suite-diagnostics
-      - type: implements
-        target: REQ-native-cli-suite-diagnostics
-  - id: SYM-prolog-spike-sample-linux-cli
-    title: sample_linux_cli
-    status: active
-    sourceFile: scripts/swipl-spike.py
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-native-cli-suite-diagnostics
-      - type: implements
-        target: REQ-native-cli-suite-diagnostics
-  - id: SYM-prolog-spike-run-monitored-cli
-    title: run_monitored_cli
-    status: active
-    sourceFile: scripts/swipl-spike.py
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-native-cli-suite-diagnostics
-      - type: implements
-        target: REQ-native-cli-suite-diagnostics
-  - id: SYM-prolog-spike-apply-source-patches
-    title: apply_source_patches
-    status: active
-    sourceFile: scripts/swipl-spike.py
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-prolog-spike-config-validation
-      - type: implements
-        target: REQ-prolog-spike-config-validation
-  - id: SYM-cli-github-skip-blank-lines
-    title: skipBlankLines
-    status: active
-    sourceFile: packages/cli/src/commands/github-init.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-github-report-e2e
-      - type: covered_by
-        target: TEST-kibi-github-report-integration
-      - type: implements
-        target: REQ-kibi-github-report-integration
-  - id: SYM-test-prolog-build-pipeline-validation
-    title: SWI-Prolog artifact validation contract
-    status: active
-    sourceFile: scripts/tests/swipl-build-pipeline.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
+    sourceFile: packages/core/tests/kb.plt
     relationships:
       - type: executable_for
-        target: TEST-prolog-build-pipeline-validation
-  - id: SYM-prolog-build-cmake-project
-    title: cmake_project
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-test-core-lock-owner-utc
+    title: lock_owner_started_at_is_current_utc_in_non_utc_child
     status: active
-    sourceFile: scripts/swipl-spike.py
+    tags:
+      - core
+      - utc
+      - lock-owner
+    sourceFile: packages/core/tests/kb.plt
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: executable_for
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-test-core-status-timezone-child
+    status: active
+    tags:
+      - core
+      - utc
+      - lock-owner
+    sourceFile: packages/core/tests/kb.plt
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    title: status_synced_at_child
+    relationships:
+      - type: executable_for
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-test-root-cli-unit-batches
+    title: CLI_UNIT_BATCHES
+    symbol_role: config
+    granularity_reason: config-artifact
+    status: active
+    sourceFile: test/root.test.ts
+    relationships:
+      - type: covered_by
+        target: TEST-root-suite-batch-diagnostics
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
+      - type: implements
+        target: REQ-test-journaled-engine-harness
+  - id: SYM-test-root-parseSuiteSummaries
+    title: parseSuiteSummaries
+    status: active
+    sourceFile: test/root.test.ts
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-root-batch-diagnostics
+      - type: covered_by
+        target: TEST-root-suite-batch-diagnostics
+      - type: implements
+        target: REQ-root-suite-batch-diagnostics
+  - id: SYM-treesitter-language-for-path
+    title: treeSitterLanguageForPath
+    tags:
+      - multilingual
+      - catalog
+    symbol_role: behavioral
+    status: active
+    sourceFile: packages/plugin-treesitter/src/catalog.ts
+    relationships:
+      - type: covered_by
+        target: TEST-multilingual-language-catalog
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-multilingual-language-catalog
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-treesitter-language-type
+    status: active
+    tags:
+      - multilingual
+      - catalog
+    sourceFile: packages/plugin-treesitter/src/catalog.ts
+    symbol_role: type-shape
+    title: TreeSitterLanguage
+    relationships:
+      - type: covered_by
+        target: TEST-multilingual-language-catalog
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-multilingual-language-catalog
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-treesitter-normalize-language
+    symbol_role: behavioral
+    tags:
+      - multilingual
+      - catalog
+    title: normalizeTreeSitterLanguage
+    status: active
+    sourceFile: packages/plugin-treesitter/src/catalog.ts
+    relationships:
+      - type: covered_by
+        target: TEST-multilingual-language-catalog
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-multilingual-language-catalog
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-cap-plugin-createbuiltintsmorphsymbolextractorv2
+    title: createBuiltinTsMorphSymbolExtractorV2
+    status: active
+    sourceFile: packages/plugin-builtin/src/symbols/ts-morph-extractor.ts
     symbol_role: behavioral
     relationships:
       - type: covered_by
-        target: TEST-prolog-build-pipeline-validation
+        target: TEST-e2e-capability-plugins
       - type: implements
-        target: REQ-prolog-build-pipeline-validation
-  - id: SYM-prolog-build-require-clean-runner
-    title: require_clean_runner
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-impact-stage-e-runinstalledimpactpolicye2e
+    title: runInstalledImpactPolicyE2E
     status: active
-    sourceFile: scripts/swipl-spike.py
+    sourceFile: documentation/tests/e2e/packed/impact-review-stage-e.test.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-impact-policy-stage-e-installed-e2e
+  - id: SYM-tree-sitter-language-scaffold-createscaffold
+    title: createScaffold
+    status: active
+    sourceFile: scripts/scaffold-tree-sitter-language.mjs
     symbol_role: behavioral
     relationships:
       - type: covered_by
-        target: TEST-prolog-build-pipeline-validation
+        target: TEST-tree-sitter-language-authoring-scaffold-cli-e2e
       - type: implements
-        target: REQ-prolog-build-pipeline-validation
-  - id: SYM-prolog-build-build
-    title: build
+        target: REQ-tree-sitter-language-authoring-scaffold
+  - id: SYM-impact-stage-e-createmaintenancesourceanalysisservice
+    title: createMaintenanceSourceAnalysisService
     status: active
-    sourceFile: scripts/swipl-spike.py
+    sourceFile: packages/cli/src/plugins/maintenance-source-analysis.ts
     symbol_role: behavioral
     relationships:
       - type: covered_by
-        target: TEST-prolog-build-pipeline-validation
+        target: TEST-impact-policy-stage-e-installed-e2e
       - type: implements
-        target: REQ-prolog-build-pipeline-validation
-  - id: SYM-prolog-build-native-files
-    title: native_files
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-fingerprintmaintenancesourceset
+    title: fingerprintMaintenanceSourceSet
     status: active
-    sourceFile: scripts/swipl-spike.py
+    sourceFile: packages/cli/src/plugins/maintenance-source-analysis.ts
     symbol_role: behavioral
     relationships:
       - type: covered_by
-        target: TEST-prolog-build-pipeline-validation
+        target: TEST-impact-policy-stage-e-installed-e2e
       - type: implements
-        target: REQ-prolog-build-pipeline-validation
-  - id: SYM-prolog-build-relocate
-    title: relocate
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-verifyapprovedsourceanalyzer
+    title: verifyApprovedSourceAnalyzer
     status: active
-    sourceFile: scripts/swipl-spike.py
+    sourceFile: packages/cli/src/plugins/maintenance-source-analysis.ts
     symbol_role: behavioral
     relationships:
       - type: covered_by
-        target: TEST-prolog-build-pipeline-validation
+        target: TEST-impact-policy-stage-e-installed-e2e
       - type: implements
-        target: REQ-prolog-build-pipeline-validation
-  - id: SYM-prolog-build-check-native-architecture
-    title: check_native_architecture
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-source-analysis-v2-providerbudgetms
+    title: providerBudgetMs
     status: active
-    sourceFile: scripts/swipl-spike.py
+    sourceFile: packages/cli/src/plugins/source-analysis-service.ts
     symbol_role: behavioral
     relationships:
       - type: covered_by
-        target: TEST-prolog-build-pipeline-validation
+        target: TEST-source-analysis-v2-contract
       - type: implements
-        target: REQ-prolog-build-pipeline-validation
-  - id: SYM-prolog-build-loader-environment
-    title: loader_environment
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-assertsourceanalysisgate
+    title: assertSourceAnalysisGate
     status: active
-    sourceFile: scripts/swipl-spike.py
+    sourceFile: packages/cli/src/plugins/source-change-analysis.ts
     symbol_role: behavioral
     relationships:
       - type: covered_by
-        target: TEST-prolog-build-pipeline-validation
+        target: TEST-source-analysis-v2-contract
       - type: implements
-        target: REQ-prolog-build-pipeline-validation
-  - id: SYM-prolog-build-audit-linux
-    title: audit_linux
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-gateanalysis
+    title: gateAnalysis
     status: active
-    sourceFile: scripts/swipl-spike.py
+    sourceFile: packages/cli/src/plugins/source-change-analysis.ts
     symbol_role: behavioral
     relationships:
       - type: covered_by
-        target: TEST-prolog-build-pipeline-validation
+        target: TEST-source-analysis-v2-contract
       - type: implements
-        target: REQ-prolog-build-pipeline-validation
-  - id: SYM-prolog-build-audit-macos
-    title: audit_macos
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-classifiedextensions
+    title: classifiedExtensions
     status: active
-    sourceFile: scripts/swipl-spike.py
+    sourceFile: packages/cli/src/plugins/source-classification.ts
     symbol_role: behavioral
     relationships:
       - type: covered_by
-        target: TEST-prolog-build-pipeline-validation
+        target: TEST-source-analysis-v2-contract
       - type: implements
-        target: REQ-prolog-build-pipeline-validation
-  - id: SYM-prolog-build-checked
-    title: checked
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-extensionlanguage
+    title: extensionLanguage
     status: active
-    sourceFile: scripts/swipl-spike.py
+    sourceFile: packages/cli/src/plugins/source-classification.ts
     symbol_role: behavioral
     relationships:
       - type: covered_by
-        target: TEST-prolog-build-pipeline-validation
+        target: TEST-source-analysis-v2-contract
       - type: implements
-        target: REQ-prolog-build-pipeline-validation
-  - id: SYM-prolog-build-smoke
-    title: smoke
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-isqualifiedsourcepath
+    title: isQualifiedSourcePath
     status: active
-    sourceFile: scripts/swipl-spike.py
+    sourceFile: packages/cli/src/plugins/source-classification.ts
     symbol_role: behavioral
     relationships:
       - type: covered_by
-        target: TEST-prolog-build-pipeline-validation
+        target: TEST-source-analysis-v2-contract
       - type: implements
-        target: REQ-prolog-build-pipeline-validation
-  - id: SYM-prolog-build-exercise
-    title: exercise
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-istsjssourcepath
+    title: isTsJsSourcePath
     status: active
-    sourceFile: scripts/swipl-spike.py
+    sourceFile: packages/cli/src/plugins/source-classification.ts
     symbol_role: behavioral
     relationships:
       - type: covered_by
-        target: TEST-prolog-build-pipeline-validation
+        target: TEST-source-analysis-v2-contract
       - type: implements
-        target: REQ-prolog-build-pipeline-validation
-  - id: SYM-prolog-build-build-manifest
-    title: build_manifest
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-analysisobligation
+    title: analysisObligation
     status: active
-    sourceFile: scripts/swipl-spike.py
+    sourceFile: packages/cli/src/traceability/analysis-gate.ts
     symbol_role: behavioral
     relationships:
       - type: covered_by
-        target: TEST-prolog-build-pipeline-validation
+        target: TEST-source-analysis-v2-contract
       - type: implements
-        target: REQ-prolog-build-pipeline-validation
-  - id: SYM-prolog-build-write-archive
-    title: write_archive
+        target: REQ-source-analysis-v2
+  - id: SYM-impact-stage-e-fingerprintimpactevaluator
+    title: fingerprintImpactEvaluator
     status: active
-    sourceFile: scripts/swipl-spike.py
+    sourceFile: packages/cli/src/traceability/impact-evaluator.ts
     symbol_role: behavioral
     relationships:
       - type: covered_by
-        target: TEST-prolog-build-pipeline-validation
+        target: TEST-impact-policy-stage-e-installed-e2e
       - type: implements
-        target: REQ-prolog-build-pipeline-validation
-  - id: SYM-prolog-build-verify-archive
-    title: verify_archive
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-impactpreparationoptions
+    title: ImpactPreparationOptions
     status: active
-    sourceFile: scripts/swipl-spike.py
+    sourceFile: packages/cli/src/traceability/impact-evaluator.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-preparedimpactreview
+    title: PreparedImpactReview
+    status: active
+    sourceFile: packages/cli/src/traceability/impact-evaluator.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-blobbytes
+    title: blobBytes
+    status: active
+    sourceFile: packages/cli/src/traceability/impact-git-tree.ts
     symbol_role: behavioral
     relationships:
       - type: covered_by
-        target: TEST-prolog-build-pipeline-validation
+        target: TEST-impact-policy-stage-e-installed-e2e
       - type: implements
-        target: REQ-prolog-build-pipeline-validation
-  - id: SYM-prolog-build-build-manifest-values
-    title: build_manifest_values
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-entriesfortree
+    title: entriesForTree
     status: active
-    sourceFile: scripts/swipl-spike.py
+    sourceFile: packages/cli/src/traceability/impact-git-tree.ts
     symbol_role: behavioral
     relationships:
       - type: covered_by
-        target: TEST-prolog-build-pipeline-validation
+        target: TEST-impact-policy-stage-e-installed-e2e
       - type: implements
-        target: REQ-prolog-build-pipeline-validation
-  - id: SYM-prolog-build-archive-pipeline
-    title: archive_pipeline
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-treeentry
+    title: treeEntry
     status: active
-    sourceFile: scripts/swipl-spike.py
+    sourceFile: packages/cli/src/traceability/impact-git-tree.ts
     symbol_role: behavioral
     relationships:
       - type: covered_by
-        target: TEST-prolog-build-pipeline-validation
+        target: TEST-impact-policy-stage-e-installed-e2e
       - type: implements
-        target: REQ-prolog-build-pipeline-validation
-  - id: SYM-prolog-build-main
-    title: main
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-entityrows
+    title: entityRows
     status: active
-    sourceFile: scripts/swipl-spike.py
+    sourceFile: packages/cli/src/traceability/impact-knowledge.ts
     symbol_role: behavioral
     relationships:
       - type: covered_by
-        target: TEST-prolog-build-pipeline-validation
+        target: TEST-impact-policy-stage-e-installed-e2e
       - type: implements
-        target: REQ-prolog-build-pipeline-validation
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-entityrowswithrelationships
+    title: entityRowsWithRelationships
+    status: active
+    sourceFile: packages/cli/src/traceability/impact-knowledge.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-rawknowledgefingerprint
+    title: rawKnowledgeFingerprint
+    status: active
+    sourceFile: packages/cli/src/traceability/impact-knowledge.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-requirementscope
+    title: requirementScope
+    status: active
+    sourceFile: packages/cli/src/traceability/impact-knowledge.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-semanticknowledgefingerprint
+    title: semanticKnowledgeFingerprint
+    status: active
+    sourceFile: packages/cli/src/traceability/impact-knowledge.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-entityrow
+    title: EntityRow
+    status: active
+    sourceFile: packages/cli/src/traceability/impact-knowledge.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-approvedpartialclass
+    title: approvedPartialClass
+    status: active
+    sourceFile: packages/cli/src/traceability/impact-policy.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-recordfromcapturedtree
+    title: recordFromCapturedTree
+    status: active
+    sourceFile: packages/cli/src/traceability/impact-record-validation.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-same
+    title: same
+    status: active
+    sourceFile: packages/cli/src/traceability/impact-record-validation.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-validateanalysisreviews
+    title: validateAnalysisReviews
+    status: active
+    sourceFile: packages/cli/src/traceability/impact-record-validation.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-validatedecisionagainstsnapshot
+    title: validateDecisionAgainstSnapshot
+    status: active
+    sourceFile: packages/cli/src/traceability/impact-record-validation.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-assertanalysisinput
+    title: assertAnalysisInput
+    status: active
+    sourceFile: packages/cli/src/traceability/impact-side-evidence.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-exactpathprojection
+    title: exactPathProjection
+    status: active
+    sourceFile: packages/cli/src/traceability/impact-side-evidence.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-isknowledgemarkdown
+    title: isKnowledgeMarkdown
+    status: active
+    sourceFile: packages/cli/src/traceability/impact-side-evidence.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-isreceiptonlychange
+    title: isReceiptOnlyChange
+    status: active
+    sourceFile: packages/cli/src/traceability/impact-side-evidence.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-projectedpathevidence
+    title: projectedPathEvidence
+    status: active
+    sourceFile: packages/cli/src/traceability/impact-side-evidence.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-impact-stage-e-sideevidence
+    title: sideEvidence
+    status: active
+    sourceFile: packages/cli/src/traceability/impact-side-evidence.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
+  - id: SYM-cap-plugin-sourceanalysisdiagnosticv2
+    title: SourceAnalysisDiagnosticV2
+    status: active
+    sourceFile: packages/plugin-sdk/src/capabilities/symbol-extractor.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-protocol-v1
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-sourceanalysisresultv2
+    title: SourceAnalysisResultV2
+    status: active
+    sourceFile: packages/plugin-sdk/src/capabilities/symbol-extractor.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-protocol-v1
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-source-analysis-v2-createtreesittersymbolextractor
+    title: createTreeSitterSymbolExtractor
+    status: active
+    sourceFile: packages/plugin-treesitter/src/extractor.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-type-gateanalysis
+    title: GateAnalysis
+    status: active
+    sourceFile: packages/cli/src/traceability/analysis-gate.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-impact-stage-e-type-treeentry
+    title: TreeEntry
+    status: active
+    sourceFile: packages/cli/src/traceability/impact-git-tree.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-impact-policy-stage-e-installed-e2e
+      - type: implements
+        target: REQ-impact-policy-stage-e-content-bound-review
   - id: SYM-docs-readme-published-links
     title: Published documentation link verifier
     status: active
@@ -44051,6 +45369,18 @@ symbols:
         target: TEST-docs-site-pages
       - type: implements
         target: REQ-docs-site-root-pages
+  - id: SYM-cli-github-skip-blank-lines
+    title: skipBlankLines
+    status: active
+    sourceFile: packages/cli/src/commands/github-init.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-e2e
+      - type: covered_by
+        target: TEST-kibi-github-report-integration
+      - type: implements
+        target: REQ-kibi-github-report-integration
   - id: SYM-release-verify-published-metadata
     title: verifyPublishedMetadata
     status: active
@@ -44116,6 +45446,390 @@ symbols:
         target: TEST-014
       - type: implements
         target: REQ-020
+  - id: SYM-test-prolog-spike-config-validation
+    title: SWI-Prolog spike configuration contract
+    status: active
+    sourceFile: scripts/tests/swipl-spike-config.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-prolog-spike-config-validation
+  - id: SYM-prolog-spike-config-validate
+    title: validate
+    status: active
+    sourceFile: scripts/swipl-spike.py
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-build-pipeline-validation
+      - type: covered_by
+        target: TEST-prolog-spike-config-validation
+      - type: implements
+        target: REQ-prolog-build-pipeline-validation
+      - type: implements
+        target: REQ-prolog-spike-config-validation
+  - id: SYM-test-prolog-coverage-test-selection
+    title: Prolog coverage runner test selection suite
+    status: active
+    sourceFile: packages/core/tests/prolog-coverage-runner.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-prolog-coverage-test-selection
+  - id: SYM-prolog-coverage-load-tests
+    title: load_tests
+    status: active
+    sourceFile: scripts/run-prolog-coverage.pl
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-coverage-test-selection
+      - type: implements
+        target: REQ-prolog-coverage-test-selection
+  - id: SYM-prolog-coverage-roots
+    title: coverage_roots
+    status: active
+    sourceFile: scripts/run-prolog-coverage.pl
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-coverage-test-selection
+      - type: implements
+        target: REQ-prolog-coverage-test-selection
+  - id: SYM-SCRIPT_TESTS
+    title: SCRIPT_TESTS
+    status: active
+    sourceFile: scripts/run-unit-coverage.ts
+    symbol_role: config
+    granularity_reason: config-artifact
+    relationships:
+      - type: covered_by
+        target: TEST-scripts-coverage-shard-isolation
+      - type: implements
+        target: REQ-scripts-coverage-shard-isolation
+  - id: SYM-test-scripts-coverage-shard-isolation
+    title: unit coverage runner contract
+    status: active
+    sourceFile: scripts/tests/unit-coverage-runner.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-scripts-coverage-shard-isolation
+  - id: SYM-test-sync-agent-skills
+    title: sync agent skills tests
+    status: active
+    sourceFile: scripts/tests/sync-agent-skills.test.ts
+    symbol_role: behavioral
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-external-adoption-verdict
+  - id: SYM-cli-canonical-filesystem-path
+    title: canonicalFilesystemPath
+    status: active
+    sourceFile: packages/cli/src/utils/canonical-path.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-canonical-runtime
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-e2e-plan-compiler-hash
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-cli-canonical-runtime
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: implements
+        target: REQ-kibi-change-to-proof-plan-compiler
+  - id: SYM-test-cli-engine-runtime-paths
+    title: engine runtime paths tests
+    status: active
+    sourceFile: packages/cli/tests/engine-runtime-paths.test.ts
+    symbol_role: module
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-core-journaled-engine-lifecycle
+      - type: executable_for
+        target: TEST-core-journaled-engine-persistence
+  - id: SYM-test-cli-workspace-path-alias
+    title: workspace path alias tests
+    status: active
+    sourceFile: packages/cli/tests/operations/workspace-path-alias.test.ts
+    symbol_role: module
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-cli-canonical-runtime
+      - type: executable_for
+        target: TEST-e2e-plan-compiler-hash
+      - type: executable_for
+        target: TEST-kibi-change-to-proof-plan-compiler
+  - id: SYM-test-cli-parity-path-normalization
+    title: parity path normalization tests
+    status: active
+    sourceFile: packages/cli/tests/parity/helpers.test.ts
+    symbol_role: module
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-test-native-cli-suite-diagnostics
+    title: native Linux CLI diagnostics tests
+    status: active
+    sourceFile: scripts/tests/swipl-spike-diagnostics.test.ts
+    symbol_role: module
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-native-cli-suite-diagnostics
+  - id: SYM-prolog-spike-linux-process-metadata
+    title: linux_process_metadata
+    status: active
+    sourceFile: scripts/swipl-spike.py
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-native-cli-suite-diagnostics
+      - type: implements
+        target: REQ-native-cli-suite-diagnostics
+  - id: SYM-prolog-spike-linux-process-children
+    title: linux_process_children
+    status: active
+    sourceFile: scripts/swipl-spike.py
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-native-cli-suite-diagnostics
+      - type: implements
+        target: REQ-native-cli-suite-diagnostics
+  - id: SYM-prolog-spike-sample-linux-cli
+    title: sample_linux_cli
+    status: active
+    sourceFile: scripts/swipl-spike.py
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-native-cli-suite-diagnostics
+      - type: implements
+        target: REQ-native-cli-suite-diagnostics
+  - id: SYM-prolog-spike-run-monitored-cli
+    title: run_monitored_cli
+    status: active
+    sourceFile: scripts/swipl-spike.py
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-native-cli-suite-diagnostics
+      - type: implements
+        target: REQ-native-cli-suite-diagnostics
+  - id: SYM-prolog-spike-apply-source-patches
+    title: apply_source_patches
+    status: active
+    sourceFile: scripts/swipl-spike.py
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-spike-config-validation
+      - type: implements
+        target: REQ-prolog-spike-config-validation
+  - id: SYM-test-prolog-build-pipeline-validation
+    title: SWI-Prolog artifact validation contract
+    status: active
+    sourceFile: scripts/tests/swipl-build-pipeline.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-prolog-build-pipeline-validation
+  - id: SYM-prolog-build-cmake-project
+    title: cmake_project
+    status: active
+    sourceFile: scripts/swipl-spike.py
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-build-pipeline-validation
+      - type: implements
+        target: REQ-prolog-build-pipeline-validation
+  - id: SYM-prolog-build-require-clean-runner
+    title: require_clean_runner
+    status: active
+    sourceFile: scripts/swipl-spike.py
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-build-pipeline-validation
+      - type: implements
+        target: REQ-prolog-build-pipeline-validation
+  - id: SYM-prolog-build-build
+    title: build
+    status: active
+    sourceFile: scripts/swipl-spike.py
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-build-pipeline-validation
+      - type: implements
+        target: REQ-prolog-build-pipeline-validation
+  - id: SYM-prolog-build-native-files
+    title: native_files
+    status: active
+    sourceFile: scripts/swipl-spike.py
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-build-pipeline-validation
+      - type: implements
+        target: REQ-prolog-build-pipeline-validation
+  - id: SYM-prolog-build-relocate
+    title: relocate
+    status: active
+    sourceFile: scripts/swipl-spike.py
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-build-pipeline-validation
+      - type: implements
+        target: REQ-prolog-build-pipeline-validation
+  - id: SYM-prolog-build-check-native-architecture
+    title: check_native_architecture
+    status: active
+    sourceFile: scripts/swipl-spike.py
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-build-pipeline-validation
+      - type: implements
+        target: REQ-prolog-build-pipeline-validation
+  - id: SYM-prolog-build-loader-environment
+    title: loader_environment
+    status: active
+    sourceFile: scripts/swipl-spike.py
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-build-pipeline-validation
+      - type: implements
+        target: REQ-prolog-build-pipeline-validation
+  - id: SYM-prolog-build-audit-linux
+    title: audit_linux
+    status: active
+    sourceFile: scripts/swipl-spike.py
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-build-pipeline-validation
+      - type: implements
+        target: REQ-prolog-build-pipeline-validation
+  - id: SYM-prolog-build-audit-macos
+    title: audit_macos
+    status: active
+    sourceFile: scripts/swipl-spike.py
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-build-pipeline-validation
+      - type: implements
+        target: REQ-prolog-build-pipeline-validation
+  - id: SYM-prolog-build-checked
+    title: checked
+    status: active
+    sourceFile: scripts/swipl-spike.py
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-build-pipeline-validation
+      - type: implements
+        target: REQ-prolog-build-pipeline-validation
+  - id: SYM-prolog-build-smoke
+    title: smoke
+    status: active
+    sourceFile: scripts/swipl-spike.py
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-build-pipeline-validation
+      - type: implements
+        target: REQ-prolog-build-pipeline-validation
+  - id: SYM-prolog-build-exercise
+    title: exercise
+    status: active
+    sourceFile: scripts/swipl-spike.py
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-build-pipeline-validation
+      - type: implements
+        target: REQ-prolog-build-pipeline-validation
+  - id: SYM-prolog-build-build-manifest
+    title: build_manifest
+    status: active
+    sourceFile: scripts/swipl-spike.py
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-build-pipeline-validation
+      - type: implements
+        target: REQ-prolog-build-pipeline-validation
+  - id: SYM-prolog-build-write-archive
+    title: write_archive
+    status: active
+    sourceFile: scripts/swipl-spike.py
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-build-pipeline-validation
+      - type: implements
+        target: REQ-prolog-build-pipeline-validation
+  - id: SYM-prolog-build-verify-archive
+    title: verify_archive
+    status: active
+    sourceFile: scripts/swipl-spike.py
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-build-pipeline-validation
+      - type: implements
+        target: REQ-prolog-build-pipeline-validation
+  - id: SYM-prolog-build-build-manifest-values
+    title: build_manifest_values
+    status: active
+    sourceFile: scripts/swipl-spike.py
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-build-pipeline-validation
+      - type: implements
+        target: REQ-prolog-build-pipeline-validation
+  - id: SYM-prolog-build-archive-pipeline
+    title: archive_pipeline
+    status: active
+    sourceFile: scripts/swipl-spike.py
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-build-pipeline-validation
+      - type: implements
+        target: REQ-prolog-build-pipeline-validation
+  - id: SYM-prolog-build-main
+    title: main
+    status: active
+    sourceFile: scripts/swipl-spike.py
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-build-pipeline-validation
+      - type: implements
+        target: REQ-prolog-build-pipeline-validation
   - id: SYM-test-prolog-bundled-runtime
     title: Resolver lookup-order and error-text suite
     status: active
@@ -44867,3 +46581,11 @@ symbols:
         target: TEST-prolog-bundled-quickstart
       - type: implements
         target: REQ-prolog-bundled-quickstart
+  - id: SYM-packed-pack-all-for-pnpm-upgrade
+    title: packAllForPnpmUpgrade
+    status: active
+    sourceFile: documentation/tests/e2e/packed/pnpm-upgrade-utils.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-mcp-kb-freshness

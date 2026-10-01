@@ -182,6 +182,20 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-7e07b1e15c42
   - type: implements
+    from: SYM-tree-sitter-language-scaffold-createscaffold
+    to: REQ-tree-sitter-language-authoring-scaffold
+    created_at: 2026-09-29T13:03:51.965Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e125776abc37
+  - type: covered_by
+    from: SYM-tree-sitter-language-scaffold-createscaffold
+    to: TEST-tree-sitter-language-authoring-scaffold-cli-e2e
+    created_at: 2026-09-29T13:03:51.982Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c9af111c63b8
+  - type: implements
     from: SYM-docs-site-readmePublishedDocProblems
     to: REQ-docs-readme-published-links
     created_at: 2026-09-29T13:35:46.923Z

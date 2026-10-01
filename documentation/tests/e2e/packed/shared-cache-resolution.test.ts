@@ -1,13 +1,15 @@
+import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import {
   existsSync,
   mkdirSync,
   mkdtempSync,
+  readFileSync,
   rmSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { basename, dirname, join, resolve } from "node:path";
+import { basename, dirname, join, resolve, sep } from "node:path";
 import { after, test } from "node:test";
 import { fileURLToPath } from "node:url";
 
@@ -54,6 +56,9 @@ if (fixtureChild) {
   process.env.HOME = fakeHome;
 
   const helpers = await import("./helpers.js");
+  const { writePackedInstallManifest } = await import(
+    "./packed-install-manifest.js"
+  );
 
   after(() => {
     try {
@@ -115,11 +120,136 @@ if (fixtureChild) {
     for (const packageName of packageNames) {
       writeFileSync(
         join(scratch, "tarballs", `kibi-${packageName}-0.0.0.tgz`),
-        "",
+        `Opaque immutable ${packageName} archive fixture.\n`,
         "utf8",
       );
     }
   }
+
+  function stageInstallMetadata(scratch: string): Map<string, Buffer> {
+    const prefix = join(scratch, "prefix");
+    const archive = (name: string) =>
+      join(scratch, "tarballs", `kibi-${name}-0.0.0.tgz`);
+    const tarballs: import("./helpers.js").Tarballs = {
+      "agent-core": archive("agent-core"),
+      core: archive("core"),
+      cli: archive("cli"),
+      runtime: archive("runtime"),
+      mcp: archive("mcp"),
+      opencode: archive("opencode"),
+      codex: archive("codex"),
+      cursor: archive("cursor"),
+      "plugin-sdk": archive("plugin-sdk"),
+      "plugin-builtin": archive("plugin-builtin"),
+      "plugin-jev": archive("plugin-jev"),
+      "plugin-treesitter": archive("plugin-treesitter"),
+      swipl: archive("swipl"),
+    };
+    writePackedInstallManifest(prefix, tarballs);
+    const manifest = JSON.parse(
+      readFileSync(join(prefix, "package.json"), "utf8"),
+    ) as { dependencies: Record<string, string> };
+    const lock = {
+      lockfileVersion: 3,
+      packages: {
+        "": { dependencies: manifest.dependencies },
+        "node_modules/kibi-core": {
+          resolved: manifest.dependencies["kibi-core"],
+        },
+        "node_modules/foreign": {
+          resolved: `file:${join(tempRoot, "foreign.tgz")}`,
+        },
+      },
+      similarPath: `file:${join(scratch, "tarballs-other", "foreign.tgz")}`,
+    };
+    mkdirSync(join(prefix, "node_modules"), { recursive: true });
+    writeFileSync(join(prefix, "package-lock.json"), JSON.stringify(lock));
+    writeFileSync(
+      join(prefix, "node_modules", ".package-lock.json"),
+      JSON.stringify(lock),
+    );
+    return new Map(
+      [
+        "package.json",
+        "pnpm-workspace.yaml",
+        "package-lock.json",
+        "node_modules/.package-lock.json",
+      ].map((name) => [name, readFileSync(join(prefix, name))]),
+    );
+  }
+
+  test("published install provenance identifies the final immutable tarballs", () => {
+    process.env.KIBI_E2E_PACK_CACHE_KEY = "published-provenance";
+    process.env.KIBI_E2E_PACK_CACHE_ROOT = join(cacheRoot, 'quoted "path"');
+    const claim = helpers.claimSharedPackCache();
+    assert.notEqual(claim.scratch, null);
+    if (claim.scratch === null) throw new Error("Expected staging claim");
+    const scratch = claim.scratch;
+    stageFakeScratch(scratch);
+    const before = stageInstallMetadata(scratch);
+    const originalTarballs = packageNames.map((name) =>
+      readFileSync(join(scratch, "tarballs", `kibi-${name}-0.0.0.tgz`)),
+    );
+    const published = helpers.publishSharedPackCache(claim);
+    assert.notEqual(published, null);
+    if (published === null) throw new Error("Expected successful publication");
+    assert.equal(existsSync(claim.scratch), false);
+    const manifest = JSON.parse(
+      readFileSync(join(published.prefix, "package.json"), "utf8"),
+    ) as { dependencies: Record<string, string> };
+    for (const [name, path] of Object.entries(manifest.dependencies)) {
+      const expected: string = `file:${join(published.tarballsRoot, `${name}-0.0.0.tgz`)}`;
+      assert.equal(path, expected);
+      assert.equal(existsSync(path.slice("file:".length)), true);
+    }
+    for (const [name, bytes] of before) {
+      assert.equal(
+        readFileSync(join(published.prefix, name), "utf8"),
+        bytes
+          .toString()
+          .replaceAll(
+            JSON.stringify(`file:${join(scratch, "tarballs")}${sep}`).slice(
+              1,
+              -1,
+            ),
+            JSON.stringify(`file:${published.tarballsRoot}${sep}`).slice(1, -1),
+          ),
+      );
+    }
+    for (const [index, name] of packageNames.entries())
+      assert.deepEqual(
+        readFileSync(join(published.tarballsRoot, `kibi-${name}-0.0.0.tgz`)),
+        originalTarballs[index],
+      );
+    const next = helpers.claimSharedPackCache();
+    assert.equal(next.reusable, true);
+    assert.equal(next.area, claim.area);
+  });
+
+  test("a losing publisher preserves the exact original staging provenance", () => {
+    process.env.KIBI_E2E_PACK_CACHE_KEY = "provenance-race";
+    process.env.KIBI_E2E_PACK_CACHE_ROOT = cacheRoot;
+    const first = helpers.claimSharedPackCache();
+    const second = helpers.claimSharedPackCache();
+    if (first.scratch === null || second.scratch === null)
+      throw new Error("Expected two staging claims");
+    stageFakeScratch(first.scratch);
+    stageInstallMetadata(first.scratch);
+    stageFakeScratch(second.scratch);
+    const before = stageInstallMetadata(second.scratch);
+    assert.notEqual(helpers.publishSharedPackCache(first), null);
+    assert.equal(helpers.publishSharedPackCache(second), null);
+    for (const [name, bytes] of before)
+      assert.deepEqual(
+        readFileSync(join(second.scratch, "prefix", name)),
+        bytes,
+      );
+    const manifest = JSON.parse(
+      readFileSync(join(second.scratch, "prefix", "package.json"), "utf8"),
+    ) as { dependencies: Record<string, string> };
+    for (const path of Object.values(manifest.dependencies))
+      assert.equal(existsSync(path.slice("file:".length)), true);
+  });
 
   test("shared pack cache is disabled without a key", () => {
     unset("KIBI_E2E_PACK_CACHE_KEY");

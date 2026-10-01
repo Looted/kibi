@@ -149,6 +149,93 @@ export async function createParityWorkspace(): Promise<ParityWorkspace> {
   };
 }
 
+/** A tiny source-only repository for the read-only impact-preparation route. */
+export async function createImpactReviewPreparationWorkspace(
+  options: Readonly<{
+    policy?: "valid" | "missing" | "malformed";
+    sourceProvider?: "unapproved";
+  }> = {},
+): Promise<ParityWorkspace> {
+  const root = await mkdtemp(path.join(os.tmpdir(), "kibi-impact-prepare-"));
+  try {
+    await runWorkspaceCommand(root, ["git", "init", "-b", "main"]);
+    await mkdir(path.join(root, ".kibi"), { recursive: true });
+    await mkdir(path.join(root, "notes"), { recursive: true });
+    if (options.policy !== "missing") {
+      await writeFile(
+        path.join(root, ".kibi/impact-policy.json"),
+        options.policy === "malformed"
+          ? "{ malformed\n"
+          : `${JSON.stringify(
+              {
+                contractVersion: "kibi.impact-policy.v1",
+                id: "review-policy",
+                version: "1",
+                allowUnsupportedReview: true,
+                allowedPartial: [],
+                notApplicablePaths: [],
+              },
+              null,
+              2,
+            )}\n`,
+        "utf8",
+      );
+    }
+    if (options.sourceProvider === "unapproved") {
+      await writeFile(
+        path.join(root, "package.json"),
+        `${JSON.stringify(
+          {
+            kibi: {
+              plugins: [
+                {
+                  package: "kibi-plugin-unapproved",
+                  capabilities: {
+                    "kibi.symbol-extractor.v2": { mode: "augment" },
+                  },
+                },
+              ],
+            },
+          },
+          null,
+          2,
+        )}\n`,
+        "utf8",
+      );
+    }
+    await writeFile(
+      path.join(root, "notes/review.txt"),
+      "Original text.\n",
+      "utf8",
+    );
+    await runWorkspaceCommand(root, ["git", "add", "."]);
+    await runWorkspaceCommand(root, [
+      "git",
+      "-c",
+      "user.name=Parity Fixture",
+      "-c",
+      "user.email=parity@example.invalid",
+      "commit",
+      "-m",
+      "Create source-only review fixture",
+    ]);
+    await writeFile(
+      path.join(root, "notes/review.txt"),
+      "Revised text.\n",
+      "utf8",
+    );
+    await runWorkspaceCommand(root, ["git", "add", "--", "notes/review.txt"]);
+  } catch (error) {
+    await rm(root, { recursive: true, force: true });
+    throw error;
+  }
+
+  return {
+    root,
+    cleanup: async () => rm(root, { recursive: true, force: true }),
+  };
+}
+
 function normalizeString(
   value: string,
   workspaceRoots: readonly string[],

@@ -132,6 +132,34 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d3762825df9a
+  - type: covered_by
+    from: SYM-cli-check-generated-manifests
+    to: TEST-impact-policy-stage-e-installed-e2e
+    created_at: 2026-09-27T17:32:35.373Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-521baa1208f5
+  - type: implements
+    from: SYM-cli-check-generated-manifests
+    to: REQ-impact-policy-stage-e-content-bound-review
+    created_at: 2026-09-27T17:32:35.397Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5fe7183d385e
+  - type: covered_by
+    from: SYM-impact-stage-e-type-impactpolicy
+    to: TEST-impact-policy-stage-e-installed-e2e
+    created_at: 2026-09-27T17:50:45.926Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8e0e5cf31bd7
+  - type: implements
+    from: SYM-impact-stage-e-type-impactpolicy
+    to: REQ-impact-policy-stage-e-content-bound-review
+    created_at: 2026-09-27T17:50:45.949Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-574561f5c01d
   - type: implements
     from: SYM-prolog-swipl-swiplgoalrunner-src
     to: REQ-prolog-bundled-runtime

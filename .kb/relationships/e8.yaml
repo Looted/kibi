@@ -265,3 +265,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3eceaa1a5c7a
+  - type: validates
+    from: TEST-multilingual-language-catalog
+    to: REQ-multilingual-language-catalog
+    created_at: 2026-09-28T18:56:44.257Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3b05431192c0
+  - type: validates
+    from: TEST-multilingual-language-catalog
+    to: SCEN-multilingual-language-catalog
+    created_at: 2026-09-28T18:56:44.305Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e1f95fd94226

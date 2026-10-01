@@ -1,46 +1,25 @@
 [
   {
-    "test_id": "TEST-scripts-coverage-shard-isolation",
-    "steps": [
-      [
-        "bun",
-        "test",
-        "./scripts/tests/unit-coverage-runner.test.ts"
-      ]
-    ]
-  },
-  {
-    "test_id": "TEST-prolog-build-pipeline-validation",
+    "test_id": "TEST-source-analysis-v2-contract",
     "steps": [
       [
         "bun",
         "test",
         "--timeout",
         "15000",
-        "--isolate",
-        "--max-concurrency=1",
-        "./scripts/tests/swipl-build-pipeline.test.ts",
-        "./scripts/tests/swipl-spike-config.test.ts"
-      ]
-    ]
-  },
-  {
-    "test_id": "TEST-prolog-spike-config-validation",
-    "steps": [
+        "./packages/plugin-sdk/tests",
+        "./packages/plugin-builtin/tests",
+        "./packages/cli/tests/plugins/source-analysis-v2.test.ts"
+      ],
       [
-        "bun",
-        "test",
-        "./scripts/tests/swipl-spike-config.test.ts"
-      ]
-    ]
-  },
-  {
-    "test_id": "TEST-prolog-coverage-test-selection",
-    "steps": [
+        "node",
+        "--test",
+        "packages/plugin-treesitter/tests/plugin.test.js"
+      ],
       [
-        "bun",
-        "test",
-        "./packages/core/tests/prolog-coverage-runner.test.ts"
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/multilingual-source-analysis.test.ts"
       ]
     ]
   },
@@ -259,6 +238,13 @@
         "node",
         "scripts/run-proof-packed-e2e.mjs",
         "documentation/tests/e2e/packed/cli-workflows.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./test/root-summary.test.ts"
       ]
     ]
   },
@@ -299,6 +285,16 @@
         "--timeout",
         "120000",
         "./packages/cli/tests/engine.test.ts"
+      ],
+      [
+        "swipl",
+        "-q",
+        "-s",
+        "packages/core/tests/kb.plt",
+        "-g",
+        "run_tests(kb_timestamp_formats)",
+        "-t",
+        "halt"
       ],
       [
         "node",
@@ -838,6 +834,13 @@
         "node",
         "scripts/run-proof-packed-e2e.mjs",
         "documentation/tests/e2e/packed/discovery-bundle.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/public/operations/discovery-search-paging.test.ts"
       ]
     ]
   },
@@ -1119,6 +1122,13 @@
         "bun",
         "test",
         "--timeout",
+        "120000",
+        "./packages/cli/tests/public/operations/discovery-search-paging.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "--timeout",
         "15000",
         "./packages/cli/tests/parity/helpers.test.ts"
       ]
@@ -1330,6 +1340,13 @@
         "bun",
         "run",
         "documentation/tests/e2e/coverage-pipeline.e2e.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./scripts/tests/parser-unit-coverage.test.ts"
       ]
     ]
   },
@@ -1450,19 +1467,98 @@
     ]
   },
   {
-    "test_id": "TEST-native-cli-suite-diagnostics",
+    "test_id": "TEST-installed-sdk-source-analysis-input-limits",
     "steps": [
       [
         "node",
-        "-e",
-        "if (process.platform !== 'linux') { console.error('Native CLI diagnostics proof requires Linux'); process.exit(1); }"
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/installed-sdk-source-analysis-input-limits.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-e2e-proof-all-bounded-projection",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/proof-all-bounded-projection.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-multilingual-language-catalog",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/multilingual-language-catalog.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-impact-policy-stage-e-installed-e2e",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/impact-review-stage-e.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-installed-staged-impact-timing-integrity",
+    "steps": [
+      [
+        "node",
+        "--test",
+        "scripts/benchmark-installed-staged-impact.test.mjs"
       ],
       [
         "bun",
         "test",
-        "--timeout",
-        "15000",
-        "./scripts/tests/swipl-spike-diagnostics.test.ts"
+        "--test-name-pattern",
+        "opt-in timing trace separates query round trips from cache hits without masking failures",
+        "./packages/cli/tests/prolog.node.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "--test-name-pattern",
+        "records engine cache hits separately from Prolog query round trips",
+        "./packages/cli/tests/engine-daemon-inprocess.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "--test-name-pattern",
+        "marks bounded parser timing output as truncated instead of dropping it silently|keeps opt-in parser timings off the result and out of source metadata",
+        "./packages/plugin-treesitter/tests/plugin.test.js"
+      ],
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/installed-staged-impact-benchmark.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-tree-sitter-language-authoring-scaffold-draft-output",
+    "steps": [
+      [
+        "node",
+        "--test",
+        "scripts/tests/scaffold-tree-sitter-language.test.mjs"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-tree-sitter-language-authoring-scaffold-cli-e2e",
+    "steps": [
+      [
+        "node",
+        "--test",
+        "scripts/tests/scaffold-tree-sitter-language.test.mjs"
       ]
     ]
   },
@@ -1476,6 +1572,68 @@
         "--timeout",
         "120000",
         "./scripts/tests/readme-published-docs.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-scripts-coverage-shard-isolation",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./scripts/tests/unit-coverage-runner.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-prolog-build-pipeline-validation",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "15000",
+        "--isolate",
+        "--max-concurrency=1",
+        "./scripts/tests/swipl-build-pipeline.test.ts",
+        "./scripts/tests/swipl-spike-config.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-prolog-spike-config-validation",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./scripts/tests/swipl-spike-config.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-prolog-coverage-test-selection",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/core/tests/prolog-coverage-runner.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-native-cli-suite-diagnostics",
+    "steps": [
+      [
+        "node",
+        "-e",
+        "if (process.platform !== 'linux') { console.error('Native CLI diagnostics proof requires Linux'); process.exit(1); }"
+      ],
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "15000",
+        "./scripts/tests/swipl-spike-diagnostics.test.ts"
       ]
     ]
   },

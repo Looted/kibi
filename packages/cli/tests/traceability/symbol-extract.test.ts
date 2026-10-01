@@ -454,6 +454,9 @@ describe("symbol-extract (cache and failure branches)", () => {
   it("reuses cache until TTL expires and preserves manifest lookup precedence", async () => {
     const originalDateNow = Date.now;
     const originalCreateSourceFile = Project.prototype.createSourceFile;
+    const originalRemoveSourceFile = Project.prototype.removeSourceFile;
+    // The fake source files below are never added to a real project.
+    Project.prototype.removeSourceFile = () => true;
     let now = 1_000;
     Date.now = () => now;
 
@@ -536,12 +539,16 @@ describe("symbol-extract (cache and failure branches)", () => {
     } finally {
       Date.now = originalDateNow;
       Project.prototype.createSourceFile = originalCreateSourceFile;
+      Project.prototype.removeSourceFile = originalRemoveSourceFile;
     }
   });
 
   it("returns an empty list when parsing fails and caches null source files", async () => {
     const originalDateNow = Date.now;
     const originalCreateSourceFile = Project.prototype.createSourceFile;
+    const originalRemoveSourceFile = Project.prototype.removeSourceFile;
+    // The fake source files below are never added to a real project.
+    Project.prototype.removeSourceFile = () => true;
     let now = 5_000;
     Date.now = () => now;
 
@@ -567,11 +574,15 @@ describe("symbol-extract (cache and failure branches)", () => {
     } finally {
       Date.now = originalDateNow;
       Project.prototype.createSourceFile = originalCreateSourceFile;
+      Project.prototype.removeSourceFile = originalRemoveSourceFile;
     }
   });
 
   it("skips malformed declarations, filters hunks, and falls back through manifest and hash branches", async () => {
     const originalCreateSourceFile = Project.prototype.createSourceFile;
+    const originalRemoveSourceFile = Project.prototype.removeSourceFile;
+    // The fake source files below are never added to a real project.
+    Project.prototype.removeSourceFile = () => true;
     const manifestDir = makeTempDir("symbol-extract-mock-manifest-");
     const srcDir = join(manifestDir, "src");
     mkdirSync(srcDir, { recursive: true });
@@ -762,6 +773,7 @@ describe("symbol-extract (cache and failure branches)", () => {
       ).toHaveLength(16);
     } finally {
       Project.prototype.createSourceFile = originalCreateSourceFile;
+      Project.prototype.removeSourceFile = originalRemoveSourceFile;
     }
   });
 });

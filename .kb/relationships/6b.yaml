@@ -244,6 +244,13 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ec6b7e31df2b
+  - type: covered_by
+    from: SYM-zcode-HookEvent
+    to: TEST-zcode-kibi-plugin-v1
+    created_at: 2026-09-28T07:55:29.482Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f488be868b5c
   - type: verified_by
     from: SCEN-prolog-doctor-runtime-report
     to: TEST-prolog-doctor-runtime-report

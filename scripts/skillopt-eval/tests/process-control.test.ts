@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { readFileSync } from "node:fs";
 import {
   ProcessControlError,
   parseJsonLines,
@@ -17,10 +18,22 @@ function processGroupExists(groupId: number): boolean {
   }
 }
 
+/** A killed process stays a zombie until its parent or init reaps it; it is dead. */
+function isZombie(pid: number): boolean {
+  try {
+    const stat = readFileSync(`/proc/${pid}/stat`, "utf8");
+    return (
+      stat.slice(stat.lastIndexOf(")") + 2, stat.lastIndexOf(")") + 3) === "Z"
+    );
+  } catch {
+    return false;
+  }
+}
+
 function descendantAlive(pid: number): boolean {
   try {
     process.kill(pid, 0);
-    return true;
+    return !isZombie(pid);
   } catch (error) {
     if (error instanceof Error && "code" in error && error.code === "ESRCH") {
       return false;

@@ -307,3 +307,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-dfb5b1182116
+  - type: validates
+    from: TEST-impact-public-preparation-parity
+    to: REQ-impact-review-public-preparation
+    created_at: 2026-09-28T08:57:44.792Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-258d0a2d8266
+  - type: validates
+    from: TEST-impact-public-preparation-parity
+    to: SCEN-impact-review-public-preparation
+    created_at: 2026-09-28T08:57:44.871Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-48e76b05c265

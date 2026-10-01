@@ -105,6 +105,8 @@ jobs:
 
       - name: Build packages
         run: bun run build
+      - name: Verify approved source analyzer closure
+        run: node scripts/qualify-source-analyzers.mjs
       - name: Build and package VS Code extension
         run: bun run --cwd packages/vscode package
       - name: Download SWI-Prolog pipeline archives
@@ -152,6 +154,7 @@ jobs:
             packages/swipl-darwin-arm64/*.tgz
             packages/swipl-darwin-x64/*.tgz
             packages/swipl/*.tgz
+            packages/plugin-treesitter/*.tgz
             packages/runtime/*.tgz
             packages/cli/*.tgz
             packages/mcp/*.tgz

@@ -1,5 +1,9 @@
 import { execFileSync } from "node:child_process";
 import * as path from "node:path";
+import type {
+  SourceAnalysisResult,
+  SourceSymbolAnalysisV2,
+} from "kibi-plugin-sdk";
 import {
   type ManifestSymbolRecord,
   extractManifestSymbolRecordsString,
@@ -350,12 +354,28 @@ function getChangedAuthoredEntityIds(
 
 function normalizeExpectedSymbolsForStagedFile(
   stagedFile: StagedFile,
+  analyze?: (filePath: string, content: string) => SourceAnalysisResult,
+  authoredTitles: ReadonlySet<string> = new Set(),
 ): NormalizedManifestSymbol[] {
-  const analysis = analyzeSourceText(stagedFile.path, stagedFile.content ?? "");
+  const analysis = (analyze ?? analyzeSourceText)(
+    stagedFile.path,
+    stagedFile.content ?? "",
+  );
 
   return analysis.symbols
     .map((symbol) => ({
-      title: symbol.name,
+      title: (() => {
+        const qualified = (symbol as SourceSymbolAnalysisV2).qualifiedName;
+        if (
+          !qualified ||
+          (authoredTitles.has(symbol.name) &&
+            analysis.symbols.filter(
+              (candidate) => candidate.name === symbol.name,
+            ).length === 1)
+        )
+          return symbol.name;
+        return qualified;
+      })(),
       sourceFile: stagedFile.path,
       sourceLine: symbol.startLine,
       sourceColumn: symbol.startColumn,
@@ -465,6 +485,8 @@ export function assessStagedSymbolsManifest(options: {
   symbolsManifestPath: string;
   sourceFiles: StagedFile[];
   stagedFiles: StagedFile[];
+  readBaseFile?: (filePath: string) => string | null;
+  analyzeSource?: (filePath: string, content: string) => SourceAnalysisResult;
 }): StagedSymbolsManifestAssessment {
   const { sourceFiles, stagedFiles, symbolsManifestPath } = options;
   const paths = resolveRelativeManifestPaths(symbolsManifestPath);
@@ -473,7 +495,9 @@ export function assessStagedSymbolsManifest(options: {
   // otherwise reuse content from the previous HEAD.
   const headFileContentCache = new Map<string, string | null>();
   const readAssessmentHeadFileContent = (filePath: string): string | null =>
-    readHeadFileContent(filePath, headFileContentCache);
+    options.readBaseFile
+      ? options.readBaseFile(filePath)
+      : readHeadFileContent(filePath, headFileContentCache);
   const headManifestRecords = parseManifestRecords(
     readAssessmentHeadFileContent(paths.symbolsPath),
     paths.symbolsPath,
@@ -557,6 +581,8 @@ export function assessStagedSymbolsManifest(options: {
     );
     const expectedSymbols = normalizeExpectedSymbolsForStagedFile(
       sourceFile,
+      options.analyzeSource,
+      new Set(recordsByTitle.keys()),
     ).filter((symbol) => !coarseTitles.has(symbol.title));
     const baselineSymbols = normalizeManifestSymbolsForSourceFile(
       baselineMergedRecords,
@@ -646,6 +672,7 @@ export function assessStagedSymbolsManifest(options: {
 export function collectStagedAuthoredSymbolsManifestEvidence(options: {
   sourceFiles: StagedFile[];
   stagedFiles: StagedFile[];
+  readBaseFile?: (filePath: string) => string | null;
 }): StagedAuthoredSymbolsManifestEvidence {
   const { sourceFiles, stagedFiles } = options;
   const paths = resolveRelativeManifestPaths();
@@ -659,7 +686,9 @@ export function collectStagedAuthoredSymbolsManifestEvidence(options: {
 
   const headManifestRecords =
     parseManifestRecords(
-      readHeadFileContent(paths.symbolsPath),
+      options.readBaseFile
+        ? options.readBaseFile(paths.symbolsPath)
+        : readHeadFileContent(paths.symbolsPath),
       paths.symbolsPath,
     ) ?? [];
   const stagedManifestRecords = parseManifestRecords(

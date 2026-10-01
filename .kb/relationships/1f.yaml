@@ -195,3 +195,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-118a8f2422a8
+  - type: covered_by
+    from: SYM-source-analysis-v2-capabilityregistry-resolvesymbolextractorsv2-ed6a09db
+    to: TEST-source-analysis-v2-contract
+    created_at: 2026-09-26T16:55:22.728Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-37ebcfffe2da
+  - type: implements
+    from: SYM-source-analysis-v2-capabilityregistry-resolvesymbolextractorsv2-ed6a09db
+    to: REQ-source-analysis-v2
+    created_at: 2026-09-26T16:55:22.753Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7393c3e49c7d
+  - type: covered_by
+    from: SYM-impact-stage-e-type-impactreviewrecord
+    to: TEST-impact-policy-stage-e-installed-e2e
+    created_at: 2026-09-27T17:51:36.882Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f9ff981f9982
+  - type: implements
+    from: SYM-impact-stage-e-type-impactreviewrecord
+    to: REQ-impact-policy-stage-e-content-bound-review
+    created_at: 2026-09-27T17:51:36.948Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fca1e43b0f9e

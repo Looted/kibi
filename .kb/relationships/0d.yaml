@@ -111,3 +111,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9b965af9f5a7
+  - type: covered_by
+    from: SYM-impact-stage-e-fingerprint
+    to: TEST-impact-policy-stage-e-installed-e2e
+    created_at: 2026-09-27T17:38:12.283Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e6bb41b9274f
+  - type: implements
+    from: SYM-impact-stage-e-fingerprint
+    to: REQ-impact-policy-stage-e-content-bound-review
+    created_at: 2026-09-27T17:38:12.303Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c353baf6919d
+  - type: implements
+    from: SYM-mcp-tools-list-diagnostic-contract
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-09-28T12:22:51.687Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b4c4a491b1b7
+  - type: covered_by
+    from: SYM-mcp-tools-list-diagnostic-contract
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-09-28T12:22:51.695Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9add701bd0b3

@@ -6,6 +6,7 @@ export const packagesForPack = [
   "agent-core",
   "plugin-builtin",
   "plugin-jev",
+  "plugin-treesitter",
   "swipl",
   "runtime",
   "cli",

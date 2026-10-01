@@ -123,6 +123,7 @@ const SEED_INPUTS = {
       ],
     },
   },
+  kb_prepare_impact_review: { scope: { kind: "staged" } },
 } as const satisfies Record<OperationName, JsonInput>;
 
 // implements REQ-kibi-operation-interface-parity

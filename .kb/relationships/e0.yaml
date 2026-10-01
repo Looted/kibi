@@ -311,6 +311,20 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9bd7e66fe385
+  - type: verified_by
+    from: SCEN-installed-staged-impact-timing-integrity
+    to: TEST-installed-staged-impact-timing-integrity
+    created_at: 2026-09-28T09:25:22.659Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-df84ac6abfde
+  - type: executable_for
+    from: SYM-impact-stage-e-runinstalledimpactpolicye2e
+    to: TEST-impact-policy-stage-e-installed-e2e
+    created_at: 2026-09-29T13:02:20.614Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-651453082a72
   - type: implements
     from: SYM-COVERAGE_SHARDS
     to: REQ-scripts-coverage-shard-isolation

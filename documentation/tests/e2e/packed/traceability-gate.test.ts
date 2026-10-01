@@ -1,20 +1,12 @@
-import assert from "node:assert";
-import { createHash } from "node:crypto";
-import {
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  readdirSync,
-  statSync,
-  writeFileSync,
-} from "node:fs";
-import { join, relative } from "node:path";
+import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
+import { mkdirSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 import { afterEach, before, beforeEach, describe, it } from "node:test";
 import {
   type Tarballs,
   type TestSandbox,
   checkPrologAvailable,
-  createMarkdownFile,
   createSandbox,
   kibi,
   packAll,
@@ -23,495 +15,1026 @@ import {
 
 const RUN_NODE_TEST_SUITE =
   typeof (globalThis as { Bun?: unknown }).Bun === "undefined";
+const CHECK_TIMEOUT_MS = 30_000;
+const SETUP_TIMEOUT_MS = 120_000;
+const FIXTURE_TIME = "2026-09-26T00:00:00Z";
 
-function sha256Hex(contents: string | Buffer): string {
-  const buf = Buffer.isBuffer(contents)
-    ? contents
-    : Buffer.from(String(contents));
-  return createHash("sha256").update(buf).digest("hex");
+type CommandResult = Readonly<{
+  stdout: string;
+  stderr: string;
+  exitCode: number;
+}>;
+
+type OwnershipViolation = Readonly<{
+  symbolId: string;
+  name: string;
+  file: string;
+  line: number;
+  column: number;
+  currentLinks: number;
+  requiredLinks: number;
+}>;
+
+type SourceSide = Readonly<{
+  status: string;
+  language: string;
+  symbolCount: number;
+  providerId: string | null;
+  inputFingerprint: string;
+  providerFingerprint: string | null;
+}>;
+
+type StagedFile = Readonly<{
+  path: string;
+  status: string;
+  analysisDepth: string;
+  disposition: string;
+  requirementIds: string[];
+  evidencePaths: string[];
+  providerId: string | null;
+  sourceAnalysis?: Readonly<{
+    before: SourceSide | null;
+    after: SourceSide | null;
+  }>;
+}>;
+
+type StagedCheck = Readonly<{
+  structuredContent: Readonly<{
+    violations: OwnershipViolation[];
+    count: number;
+    diagnostics: Array<{
+      id: string;
+      severity: string;
+      blocking: boolean;
+      path: string;
+      message: string;
+      suggestion: string;
+      requirementIds: string[];
+      evidencePaths: string[];
+    }>;
+    staged: Readonly<{
+      files: StagedFile[];
+      diagnostics: Array<{
+        id: string;
+        severity: string;
+        blocking: boolean;
+        path: string;
+        requirementIds: string[];
+        evidencePaths: string[];
+      }>;
+    }> | null;
+    messages: string[];
+  }>;
+}>;
+
+type SymbolFixture = Readonly<{
+  id: string;
+  title: string;
+  sourceFile: string;
+  relation?: Readonly<{ type: string; target: string }>;
+}>;
+
+function commandText(result: CommandResult): string {
+  return result.stdout + result.stderr;
 }
 
-function repoSymbolsHash(repoRoot: string): string | null {
-  const p = join(repoRoot, "symbols.yaml");
-  if (!existsSync(p)) return null;
-  return sha256Hex(readFileSync(p));
+function assertCommandExit(
+  result: CommandResult,
+  expected: number,
+  label: string,
+): void {
+  assert.equal(
+    result.exitCode,
+    expected,
+    `${label} exited ${result.exitCode}; expected ${expected}.\n${commandText(result)}`,
+  );
 }
 
-function kbBranchesSnapshot(repoRoot: string): string[] {
-  const dir = join(repoRoot, ".kb/branches");
-  if (!existsSync(dir)) return [];
+function runHostGit(args: string[], cwd = process.cwd()): Buffer {
+  return execFileSync("git", args, {
+    cwd,
+    env: process.env,
+    encoding: "buffer",
+    maxBuffer: 32 * 1024 * 1024,
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+}
 
-  const walk = (d: string, base: string): string[] => {
-    const out: string[] = [];
-    for (const name of readdirSync(d)) {
-      const full = join(d, name);
-      const rel = relative(base, full);
-      const stat = statSync(full);
-      if (stat.isDirectory()) {
-        out.push(...walk(full, base));
-      } else {
-        const contents = readFileSync(full);
-        out.push(`${rel}:${sha256Hex(contents)}`);
-      }
-    }
-    return out;
+function hostGitSnapshot(): string {
+  const cwd = process.cwd();
+  const stableCommands = [
+    ["rev-parse", "--verify", "HEAD"],
+    ["rev-parse", "--abbrev-ref", "HEAD"],
+    ["status", "--porcelain=v2", "--untracked-files=all", "-z"],
+    ["ls-files", "--stage", "-z"],
+    ["diff", "--raw", "HEAD"],
+    ["diff", "--cached", "--raw"],
+  ];
+  const state = stableCommands.map((args) => [
+    args.join(" "),
+    runHostGit(args, cwd).toString("hex"),
+  ]);
+  return JSON.stringify(state);
+}
+
+function assertHostGitUnchanged(before: string): void {
+  assert.equal(
+    hostGitSnapshot(),
+    before,
+    "Packed fixture changed host Git names, index, or worktree",
+  );
+}
+
+function gitOptions(sandbox: TestSandbox) {
+  return {
+    cwd: sandbox.repoDir,
+    env: sandbox.env,
+    timeoutMs: SETUP_TIMEOUT_MS,
   };
-  return walk(dir, dir).sort();
+}
+
+function parseNulPaths(output: string): string[] {
+  return output.split("\0").filter(Boolean);
+}
+
+function parsePorcelainPaths(output: string): string[] {
+  const records = parseNulPaths(output);
+  const paths: string[] = [];
+  for (let index = 0; index < records.length; index += 1) {
+    const record = records[index];
+    assert.ok(
+      record && record.length >= 4,
+      "invalid NUL-delimited Git status record",
+    );
+    const status = record.slice(0, 2);
+    paths.push(record.slice(3));
+    if (status.includes("R") || status.includes("C")) {
+      const originalPath = records[index + 1];
+      assert.ok(
+        originalPath,
+        "renamed Git status record omitted its source path",
+      );
+      paths.push(originalPath);
+      index += 1;
+    }
+  }
+  return [...new Set(paths)].sort();
+}
+
+async function stageWorkingChanges(sandbox: TestSandbox): Promise<string[]> {
+  const status = await run(
+    "git",
+    ["status", "--porcelain=v1", "-z", "--untracked-files=all"],
+    gitOptions(sandbox),
+  );
+  assertCommandExit(status, 0, "Git worktree inventory before staging");
+  const changedPaths = parsePorcelainPaths(status.stdout);
+  assert.ok(changedPaths.length > 0, "expected fixture changes to stage");
+  const add = await run(
+    "git",
+    ["add", "--", ...changedPaths],
+    gitOptions(sandbox),
+  );
+  assertCommandExit(add, 0, "staging exact fixture and generated paths");
+  const staged = await run(
+    "git",
+    ["diff", "--cached", "--name-only", "-z"],
+    gitOptions(sandbox),
+  );
+  assertCommandExit(staged, 0, "reading exact staged path inventory");
+  const stagedPaths = parseNulPaths(staged.stdout).sort();
+  assert.deepEqual(
+    stagedPaths,
+    changedPaths,
+    "staged paths differ from the reviewed worktree inventory",
+  );
+  const unstaged = await run(
+    "git",
+    ["diff", "--name-only", "-z"],
+    gitOptions(sandbox),
+  );
+  assertCommandExit(unstaged, 0, "checking for unstaged tracked changes");
+  assert.deepEqual(
+    parseNulPaths(unstaged.stdout),
+    [],
+    "fixture still has unstaged tracked changes after exact staging",
+  );
+  const untracked = await run(
+    "git",
+    ["ls-files", "--others", "--exclude-standard", "-z"],
+    gitOptions(sandbox),
+  );
+  assertCommandExit(untracked, 0, "checking for untracked fixture changes");
+  assert.deepEqual(
+    parseNulPaths(untracked.stdout),
+    [],
+    "fixture still has untracked files after exact staging",
+  );
+  return stagedPaths;
+}
+
+function parseStagedCheck(result: CommandResult): StagedCheck {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(result.stdout);
+  } catch (error) {
+    assert.fail(
+      `staged check did not return JSON: ${String(error)}\n${commandText(result)}`,
+    );
+  }
+  assert.ok(
+    parsed && typeof parsed === "object",
+    "staged check returned no JSON object",
+  );
+  const structuredContent = (parsed as { structuredContent?: unknown })
+    .structuredContent;
+  assert.ok(
+    structuredContent && typeof structuredContent === "object",
+    "staged check returned no structured content",
+  );
+  return {
+    structuredContent: structuredContent as StagedCheck["structuredContent"],
+  };
+}
+
+function assertIndexMatchesCheck(
+  stagedPaths: string[],
+  check: StagedCheck,
+): StagedFile[] {
+  const files = check.structuredContent.staged?.files;
+  assert.ok(
+    Array.isArray(files),
+    "staged JSON omitted the coverage file inventory",
+  );
+  assert.deepEqual(
+    files.map((file) => file.path).sort(),
+    stagedPaths,
+    "staged JSON paths differ from exact Git index paths",
+  );
+  assert.equal(
+    check.structuredContent.count,
+    check.structuredContent.violations.length,
+  );
+  return files;
+}
+
+function assertOwnershipViolation(
+  check: StagedCheck,
+  expected: Readonly<{ symbolId: string; name: string; file: string }>,
+): void {
+  const violations = check.structuredContent.violations;
+  assert.equal(
+    violations.length,
+    1,
+    "expected exactly one ownership violation",
+  );
+  assert.deepEqual(
+    {
+      symbolId: violations[0]?.symbolId,
+      name: violations[0]?.name,
+      file: violations[0]?.file,
+      currentLinks: violations[0]?.currentLinks,
+      requiredLinks: violations[0]?.requiredLinks,
+    },
+    {
+      ...expected,
+      currentLinks: 0,
+      requiredLinks: 1,
+    },
+    "staged check failed for something other than the intended unowned declaration",
+  );
+}
+
+function symbolsManifest(entries: readonly SymbolFixture[]): string {
+  const lines = ["symbols:"];
+  for (const entry of entries) {
+    lines.push(
+      `  - id: ${entry.id}`,
+      `    title: ${entry.title}`,
+      `    sourceFile: ${entry.sourceFile}`,
+    );
+    if (entry.relation) {
+      lines.push(
+        "    links:",
+        `      - type: ${entry.relation.type}`,
+        `        target: ${entry.relation.target}`,
+      );
+    }
+    lines.push("    status: active");
+  }
+  return `${lines.join("\n")}\n`;
+}
+
+function requirementMarkdown(): string {
+  return [
+    "---",
+    "id: REQ-001",
+    "title: Traceability baseline requirement",
+    "status: active",
+    `created_at: ${FIXTURE_TIME}`,
+    `updated_at: ${FIXTURE_TIME}`,
+    "source: .kb/requirements/REQ-001.md",
+    "---",
+    "",
+    "Staged source declarations have explicit requirement ownership.",
+    "",
+  ].join("\n");
+}
+
+function testMarkdown(id: string, title: string): string {
+  return [
+    "---",
+    `id: ${id}`,
+    `title: ${title}`,
+    "status: passing",
+    `created_at: ${FIXTURE_TIME}`,
+    `updated_at: ${FIXTURE_TIME}`,
+    `source: .kb/tests/${id}.md`,
+    "links:",
+    "  - type: validates",
+    "    target: REQ-001",
+    "---",
+    "",
+    "Test fixture for staged symbol relationships.",
+    "",
+  ].join("\n");
+}
+
+function writeSandboxFile(
+  sandbox: TestSandbox,
+  path: string,
+  contents: string,
+): void {
+  const fullPath = join(sandbox.repoDir, path);
+  mkdirSync(join(fullPath, ".."), { recursive: true });
+  writeFileSync(fullPath, contents, "utf8");
+}
+
+async function assertGeneratedCurrent(
+  sandbox: TestSandbox,
+  label: string,
+): Promise<void> {
+  const result = await kibi(sandbox, ["check-generated", "--staged"], {
+    timeoutMs: CHECK_TIMEOUT_MS,
+  });
+  assertCommandExit(result, 0, label);
+  assert.match(commandText(result), /staged generated manifests are current/i);
+}
+
+async function checkStaged(
+  sandbox: TestSandbox,
+  expectedExit: number,
+  label: string,
+): Promise<StagedCheck> {
+  const result = await kibi(
+    sandbox,
+    ["check", "--staged", "--format", "json"],
+    {
+      timeoutMs: CHECK_TIMEOUT_MS,
+    },
+  );
+  assertCommandExit(result, expectedExit, label);
+  return parseStagedCheck(result);
+}
+
+async function commitThroughHook(
+  sandbox: TestSandbox,
+  message: string,
+): Promise<void> {
+  const result = await run(
+    "git",
+    ["commit", "-m", message],
+    gitOptions(sandbox),
+  );
+  assertCommandExit(result, 0, `normal hook-enabled Git commit: ${message}`);
+  const status = await run(
+    "git",
+    ["status", "--porcelain=v1", "-z", "--untracked-files=all"],
+    gitOptions(sandbox),
+  );
+  assertCommandExit(status, 0, "post-commit worktree status");
+  assert.equal(
+    status.stdout,
+    "",
+    "normal hook-enabled commit left fixture changes behind",
+  );
 }
 
 if (RUN_NODE_TEST_SUITE) {
-  describe("E2E: Staged Symbol Traceability Gate", () => {
-    const TEST_TIMEOUT_MS = 30000;
+  describe("E2E: staged symbol traceability gate", () => {
     let tarballs: Tarballs;
     let sandbox: TestSandbox;
     let hasProlog = false;
+    let hostStateBeforeTest = "";
+    let baselinePaths: string[] = [];
+    let baselineCheck: StagedCheck | null = null;
 
     before(
       async () => {
         hasProlog = checkPrologAvailable();
         if (!hasProlog) {
           console.warn(
-            "⚠️  SWI-Prolog not available, skipping traceability tests",
+            "SWI-Prolog is unavailable; traceability tests will be skipped.",
           );
           return;
         }
-
         tarballs = await packAll();
       },
-      { timeout: 120000 },
+      { timeout: SETUP_TIMEOUT_MS },
     );
 
     beforeEach(
       async () => {
         if (!hasProlog) return;
-
+        hostStateBeforeTest = hostGitSnapshot();
         sandbox = createSandbox();
         await sandbox.install(tarballs);
-        await sandbox.initGitRepo();
 
-        // Initialize kibi KB and create an explicit HEAD commit so staged-file
-        // checks run deterministically across git environments.
-        await kibi(sandbox, ["init"]);
-        await run("git", ["commit", "--allow-empty", "-m", "initial"], {
-          cwd: sandbox.repoDir,
-          env: sandbox.env,
-        });
-
-        createMarkdownFile(
+        for (const [args, label] of [
+          [["init", "-b", "develop"], "Git repository initialization"],
+          [
+            ["config", "user.email", "test@example.com"],
+            "Git fixture author email",
+          ],
+          [["config", "user.name", "Test User"], "Git fixture author name"],
+        ] as const) {
+          assertCommandExit(
+            await run("git", [...args], gitOptions(sandbox)),
+            0,
+            label,
+          );
+        }
+        assertCommandExit(
+          await run(
+            "git",
+            ["commit", "--allow-empty", "-m", "initial"],
+            gitOptions(sandbox),
+          ),
+          0,
+          "empty initial Git commit before Kibi installs hooks",
+        );
+        assertCommandExit(await kibi(sandbox, ["init"]), 0, "kibi init");
+        const initializedPaths = await stageWorkingChanges(sandbox);
+        for (const required of [
+          ".gitignore",
+          ".kb/manifest.json",
+          ".kb/schema/entities.pl",
+          ".kb/schema/relationships.pl",
+          ".kb/schema/validation.pl",
+        ]) {
+          assert.ok(
+            initializedPaths.includes(required),
+            `Kibi initialization omitted staged path ${required}`,
+          );
+        }
+        const initializedCheck = await checkStaged(
           sandbox,
-          ".kb/requirements/REQ-001.md",
-          {
-            id: "REQ-001",
-            title: "Traceability baseline requirement",
-            status: "open",
-            created_at: "2026-03-20T17:30:00Z",
-            updated_at: "2026-03-20T17:30:00Z",
-            source: ".kb/requirements/REQ-001.md",
-          },
-          "Requirement seeded so staged traceability checks can resolve REQ-001.",
+          0,
+          "initialized KB staged check",
+        );
+        assertIndexMatchesCheck(initializedPaths, initializedCheck);
+        assert.equal(initializedCheck.structuredContent.count, 0);
+        assert.deepEqual(
+          initializedCheck.structuredContent.violations,
+          [],
+          "Kibi initialization must have no blocking ownership violations",
+        );
+        assert.deepEqual(
+          initializedCheck.structuredContent.staged?.diagnostics
+            .map(({ id, path, severity, blocking }) => ({
+              id,
+              path,
+              severity,
+              blocking,
+            }))
+            .sort((left, right) => left.path.localeCompare(right.path)),
+          [
+            {
+              id: "staged_file_ownership_missing",
+              path: ".gitignore",
+              severity: "warning",
+              blocking: false,
+            },
+            {
+              id: "staged_file_ownership_missing",
+              path: ".kb/schema/entities.pl",
+              severity: "warning",
+              blocking: false,
+            },
+            {
+              id: "staged_file_ownership_missing",
+              path: ".kb/schema/relationships.pl",
+              severity: "warning",
+              blocking: false,
+            },
+            {
+              id: "staged_file_ownership_missing",
+              path: ".kb/schema/validation.pl",
+              severity: "warning",
+              blocking: false,
+            },
+          ],
+          "initialization may have only its known nonblocking file-level advisories",
+        );
+        await commitThroughHook(
+          sandbox,
+          "chore: initialize disposable Kibi fixture",
         );
 
-        await kibi(sandbox, ["sync"], { timeoutMs: TEST_TIMEOUT_MS });
+        writeSandboxFile(
+          sandbox,
+          ".kb/requirements/REQ-001.md",
+          requirementMarkdown(),
+        );
+        writeSandboxFile(
+          sandbox,
+          "src/sample.js",
+          "export function hello() { return 'ok'; }\n",
+        );
+        writeSandboxFile(
+          sandbox,
+          ".kb/symbols.yaml",
+          symbolsManifest([
+            {
+              id: "SYM-HELLO-001",
+              title: "hello",
+              sourceFile: "src/sample.js",
+              relation: { type: "implements", target: "REQ-001" },
+            },
+          ]),
+        );
+        const authoredAdd = await run(
+          "git",
+          [
+            "add",
+            "--",
+            ".kb/requirements/REQ-001.md",
+            ".kb/symbols.yaml",
+            "src/sample.js",
+          ],
+          gitOptions(sandbox),
+        );
+        assertCommandExit(
+          authoredAdd,
+          0,
+          "staging requirement endpoint and authored baseline source",
+        );
+        assertCommandExit(
+          await kibi(sandbox, ["sync", "--refresh-symbol-coordinates"], {
+            timeoutMs: CHECK_TIMEOUT_MS,
+          }),
+          0,
+          "baseline source sync and symbol-coordinate refresh",
+        );
+        baselinePaths = await stageWorkingChanges(sandbox);
+        for (const required of [
+          ".kb/requirements/REQ-001.md",
+          ".kb/symbols.yaml",
+          ".kb/symbol-coordinates.yaml",
+          "src/sample.js",
+        ]) {
+          assert.ok(
+            baselinePaths.includes(required),
+            `baseline omitted staged path ${required}`,
+          );
+        }
+        await assertGeneratedCurrent(
+          sandbox,
+          "baseline staged generated-manifest check",
+        );
+        baselineCheck = await checkStaged(
+          sandbox,
+          0,
+          "owned baseline staged check",
+        );
+        const baselineFiles = assertIndexMatchesCheck(
+          baselinePaths,
+          baselineCheck,
+        );
+        assert.equal(baselineCheck.structuredContent.violations.length, 0);
+        assert.deepEqual(
+          baselineCheck.structuredContent.staged?.diagnostics,
+          [],
+        );
+        const sourceRecord = baselineFiles.find(
+          (file) => file.path === "src/sample.js",
+        );
+        assert.ok(
+          sourceRecord,
+          "baseline JSON omitted its changed source file",
+        );
+        assert.equal(sourceRecord.analysisDepth, "symbol");
+        assert.equal(sourceRecord.disposition, "checked");
+        assert.equal(sourceRecord.sourceAnalysis?.after?.status, "ok");
+        assert.equal(sourceRecord.sourceAnalysis?.after?.symbolCount, 1);
+        assert.match(
+          sourceRecord.sourceAnalysis?.after?.inputFingerprint ?? "",
+          /^[a-f0-9]{64}$/,
+        );
+        await commitThroughHook(sandbox, "baseline: add owned staged symbol");
       },
-      { timeout: 120000 },
+      { timeout: SETUP_TIMEOUT_MS },
     );
 
     afterEach(
       async () => {
-        if (sandbox) {
-          await sandbox.cleanup();
-        }
+        if (sandbox) await sandbox.cleanup();
+        if (hostStateBeforeTest) assertHostGitUnchanged(hostStateBeforeTest);
+        baselineCheck = null;
+        baselinePaths = [];
       },
-      { timeout: 120000 },
+      { timeout: 120_000 },
     );
 
-    it("should pass with authored symbol ownership metadata", async (testContext) => {
+    it("passes the authored baseline with its exact staged inventory", (testContext) => {
       if (!hasProlog) {
         testContext.skip("SWI-Prolog is unavailable");
         return;
       }
-
-      // snapshot host repo artifacts
-      const hostRepo = process.cwd();
-      const beforeSymbols = repoSymbolsHash(hostRepo);
-      const beforeBranches = kbBranchesSnapshot(hostRepo);
-
-      // Create a source file plus authored symbol metadata that links ownership
-      // to REQ-001. Inline implements comments alone are legacy-compatible for
-      // parsing, but staged checks require durable symbol evidence.
-      const src = "export function hello() { return 'ok'; }\n";
-
-      const fs = await import("node:fs");
-      const filePath = join(sandbox.repoDir, "file.js");
-      fs.writeFileSync(filePath, src, "utf8");
-
-      const symbolsYaml = `symbols:
-  - id: SYM-HELLO-001
-    title: hello
-    sourceFile: file.js
-    links:
-      - type: implements
-        target: REQ-001
-    status: active
-`;
-      fs.writeFileSync(
-        join(sandbox.repoDir, ".kb", "symbols.yaml"),
-        symbolsYaml,
-        "utf8",
+      assert.ok(baselineCheck, "baseline staged check was not captured");
+      assert.equal(baselineCheck.structuredContent.count, 0);
+      assert.equal(
+        baselineCheck.structuredContent.staged?.files.length,
+        baselinePaths.length,
       );
+      assert.deepEqual(
+        baselineCheck.structuredContent.staged?.files
+          .map((file) => file.path)
+          .sort(),
+        baselinePaths,
+      );
+    });
 
-      await kibi(sandbox, ["sync", "--refresh-symbol-coordinates"], {
-        timeoutMs: TEST_TIMEOUT_MS,
-      });
-
-      await run(
+    it("rejects one unowned declaration and accepts the same source after authored ownership", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
+      writeSandboxFile(
+        sandbox,
+        "src/sample.js",
+        "export function hello() { return 'ok'; }\nexport function missingLink() { return 1; }\n",
+      );
+      writeSandboxFile(
+        sandbox,
+        ".kb/symbols.yaml",
+        symbolsManifest([
+          {
+            id: "SYM-HELLO-001",
+            title: "hello",
+            sourceFile: "src/sample.js",
+            relation: { type: "implements", target: "REQ-001" },
+          },
+          {
+            id: "SYM-MISSING-LINK-001",
+            title: "missingLink",
+            sourceFile: "src/sample.js",
+          },
+        ]),
+      );
+      const authoredAdd = await run(
         "git",
-        ["add", "file.js", ".kb/symbols.yaml", ".kb/symbol-coordinates.yaml"],
-        {
-          cwd: sandbox.repoDir,
-          env: sandbox.env,
-        },
+        ["add", "--", "src/sample.js", ".kb/symbols.yaml"],
+        gitOptions(sandbox),
       );
-
-      let out = "";
-      try {
-        const result = await kibi(sandbox, ["check", "--staged"], {
-          timeoutMs: TEST_TIMEOUT_MS,
-        });
-        out = result.stdout + result.stderr;
-      } catch (e) {
-        const err = e as Error;
-        out = err.message;
-      }
-
-      // "No staged files found" is NOT a passing outcome — it means git staging
-      // silently failed and the traceability check never ran. Only accept a
-      // genuine clean-check result.
-      const passed = out.includes("No violations found") || out.includes("✓");
-      assert.ok(passed, `Expected passing output, got: ${out}`);
-
-      // non-mutation assertions
-      const afterSymbols = repoSymbolsHash(hostRepo);
-      const afterBranches = kbBranchesSnapshot(hostRepo);
-      assert.strictEqual(
-        afterSymbols,
-        beforeSymbols,
-        "Host repo symbols.yaml should not be mutated",
+      assertCommandExit(
+        authoredAdd,
+        0,
+        "staging deliberately unowned source and declaration",
       );
-      assert.deepStrictEqual(
-        afterBranches,
-        beforeBranches,
-        "Host repo KB should not be mutated",
+      assertCommandExit(
+        await kibi(sandbox, ["sync", "--refresh-symbol-coordinates"], {
+          timeoutMs: CHECK_TIMEOUT_MS,
+        }),
+        0,
+        "syncing unowned declaration and refreshing coordinates",
+      );
+      const negativePaths = await stageWorkingChanges(sandbox);
+      assert.ok(negativePaths.includes("src/sample.js"));
+      assert.ok(negativePaths.includes(".kb/symbols.yaml"));
+      assert.ok(negativePaths.includes(".kb/symbol-coordinates.yaml"));
+      await assertGeneratedCurrent(
+        sandbox,
+        "unowned declaration generated-manifest check",
+      );
+      const negative = await checkStaged(
+        sandbox,
+        1,
+        "staged check for unowned declaration",
+      );
+      const negativeFiles = assertIndexMatchesCheck(negativePaths, negative);
+      assertOwnershipViolation(negative, {
+        symbolId: "SYM-MISSING-LINK-001",
+        name: "missingLink",
+        file: "src/sample.js",
+      });
+      const unownedSource = negativeFiles.find(
+        (file) => file.path === "src/sample.js",
+      );
+      assert.equal(unownedSource?.sourceAnalysis?.after?.status, "ok");
+      assert.equal(unownedSource?.sourceAnalysis?.after?.symbolCount, 2);
+      const unownedInputFingerprint =
+        unownedSource?.sourceAnalysis?.after?.inputFingerprint;
+      assert.match(unownedInputFingerprint ?? "", /^[a-f0-9]{64}$/);
+
+      writeSandboxFile(
+        sandbox,
+        ".kb/symbols.yaml",
+        symbolsManifest([
+          {
+            id: "SYM-HELLO-001",
+            title: "hello",
+            sourceFile: "src/sample.js",
+            relation: { type: "implements", target: "REQ-001" },
+          },
+          {
+            id: "SYM-MISSING-LINK-001",
+            title: "missingLink",
+            sourceFile: "src/sample.js",
+            relation: { type: "implements", target: "REQ-001" },
+          },
+        ]),
+      );
+      const repairAdd = await run(
+        "git",
+        ["add", "--", ".kb/symbols.yaml"],
+        gitOptions(sandbox),
+      );
+      assertCommandExit(repairAdd, 0, "staging authored ownership repair");
+      assertCommandExit(
+        await kibi(sandbox, ["sync", "--refresh-symbol-coordinates"], {
+          timeoutMs: CHECK_TIMEOUT_MS,
+        }),
+        0,
+        "syncing repaired ownership and refreshing coordinates",
+      );
+      const repairedPaths = await stageWorkingChanges(sandbox);
+      await assertGeneratedCurrent(
+        sandbox,
+        "repaired generated-manifest check",
+      );
+      const repaired = await checkStaged(sandbox, 0, "repaired staged check");
+      const repairedFiles = assertIndexMatchesCheck(repairedPaths, repaired);
+      assert.deepEqual(repaired.structuredContent.violations, []);
+      const repairedSource = repairedFiles.find(
+        (file) => file.path === "src/sample.js",
+      );
+      assert.equal(repairedSource?.sourceAnalysis?.after?.status, "ok");
+      assert.equal(repairedSource?.sourceAnalysis?.after?.symbolCount, 2);
+      assert.equal(
+        repairedSource?.sourceAnalysis?.after?.inputFingerprint,
+        unownedInputFingerprint,
+        "changing only authored ownership must preserve the source input fingerprint",
+      );
+      await commitThroughHook(
+        sandbox,
+        "fix: author requirement ownership for new declaration",
       );
     });
 
-    it("should fail without requirement link", async (testContext) => {
+    it("reports an exact empty staged snapshot", async (testContext) => {
       if (!hasProlog) {
         testContext.skip("SWI-Prolog is unavailable");
         return;
       }
-
-      const hostRepo = process.cwd();
-      const beforeSymbols = repoSymbolsHash(hostRepo);
-      const beforeBranches = kbBranchesSnapshot(hostRepo);
-
-      const src = "export function missingLink() { return 1; }\n";
-
-      const fs = await import("node:fs");
-      const filePath = join(sandbox.repoDir, "noimpl.js");
-      fs.writeFileSync(filePath, src, "utf8");
-
-      await run("git", ["add", "noimpl.js"], {
-        cwd: sandbox.repoDir,
-        env: sandbox.env,
-      });
-
-      let code = 0;
-      let stdout = "";
-      try {
-        const result = await kibi(sandbox, ["check", "--staged"], {
-          timeoutMs: TEST_TIMEOUT_MS,
-        });
-        stdout = result.stdout;
-        code = result.exitCode;
-      } catch (e) {
-        code = 1;
-        const err = e as Error;
-        stdout = err.message;
-      }
-
-      const okFailure =
-        code === 1 &&
-        /noimpl\.js:\d+/.test(stdout) &&
-        stdout.includes("missingLink");
-      assert.ok(
-        okFailure,
-        `Expected failure with violation info, got code=${code}, stdout=${stdout}`,
-      );
-
-      const afterSymbols = repoSymbolsHash(hostRepo);
-      const afterBranches = kbBranchesSnapshot(hostRepo);
-      assert.strictEqual(afterSymbols, beforeSymbols);
-      assert.deepStrictEqual(afterBranches, beforeBranches);
+      const empty = await checkStaged(sandbox, 0, "empty staged check");
+      assert.deepEqual(empty.structuredContent.violations, []);
+      assert.equal(empty.structuredContent.count, 0);
+      assert.deepEqual(empty.structuredContent.staged?.files, []);
+      assert.deepEqual(empty.structuredContent.staged?.diagnostics, []);
+      assert.deepEqual(empty.structuredContent.messages, [
+        "No staged files found.",
+      ]);
     });
 
-    it("should handle nothing staged", async (testContext) => {
+    it("reports file-level YAML ownership as advisory coverage with source analysis", async (testContext) => {
       if (!hasProlog) {
         testContext.skip("SWI-Prolog is unavailable");
         return;
       }
-
-      const hostRepo = process.cwd();
-      const beforeSymbols = repoSymbolsHash(hostRepo);
-      const beforeBranches = kbBranchesSnapshot(hostRepo);
-
-      // ensure no staged files - reset any previous test state
-      await run("git", ["reset"], { cwd: sandbox.repoDir, env: sandbox.env });
-
-      const result = await kibi(sandbox, ["check", "--staged"], {
-        timeoutMs: TEST_TIMEOUT_MS,
-      });
-      const out = result.stdout + result.stderr;
-
-      assert.ok(
-        out.includes("No staged files found"),
-        `Expected 'No staged files found', got: ${out}`,
-      );
-
-      const afterSymbols = repoSymbolsHash(hostRepo);
-      const afterBranches = kbBranchesSnapshot(hostRepo);
-      assert.strictEqual(afterSymbols, beforeSymbols);
-      assert.deepStrictEqual(afterBranches, beforeBranches);
-    });
-
-    it("should report advisory coverage instead of an empty index for staged YAML", async () => {
-      if (!hasProlog) return;
-
-      mkdirSync(join(sandbox.repoDir, "deploy"), { recursive: true });
-      writeFileSync(
-        join(sandbox.repoDir, "deploy", "compose.yaml"),
+      writeSandboxFile(
+        sandbox,
+        "deploy/compose.yaml",
         "services:\n  web:\n    image: example/web:latest\n",
       );
-      await run("git", ["add", "deploy/compose.yaml"], {
-        cwd: sandbox.repoDir,
-        env: sandbox.env,
-      });
-
-      const result = await kibi(
-        sandbox,
-        ["check", "--staged", "--format", "json"],
-        { timeoutMs: TEST_TIMEOUT_MS },
+      const add = await run(
+        "git",
+        ["add", "--", "deploy/compose.yaml"],
+        gitOptions(sandbox),
       );
-      const output = JSON.parse(result.stdout) as {
-        structuredContent: {
-          diagnostics: Array<{ id: string; path: string }>;
-          staged: {
-            files: Array<{
-              path: string;
-              analysisDepth: string;
-              disposition: string;
-            }>;
-          };
-          messages: string[];
-        };
-      };
-
-      assert.strictEqual(result.exitCode, 0);
-      assert.deepStrictEqual(
-        output.structuredContent.staged.files.find(
-          (file) => file.path === "deploy/compose.yaml",
-        ),
+      assertCommandExit(add, 0, "staging YAML advisory fixture");
+      const stagedPaths = await run(
+        "git",
+        ["diff", "--cached", "--name-only", "-z"],
+        gitOptions(sandbox),
+      );
+      assertCommandExit(stagedPaths, 0, "reading YAML staged path inventory");
+      const exactPaths = parseNulPaths(stagedPaths.stdout).sort();
+      assert.deepEqual(exactPaths, ["deploy/compose.yaml"]);
+      const check = await checkStaged(sandbox, 0, "staged YAML advisory check");
+      const files = assertIndexMatchesCheck(exactPaths, check);
+      assert.deepEqual(check.structuredContent.violations, []);
+      assert.equal(files.length, 1);
+      const yaml = files[0];
+      assert.ok(yaml);
+      assert.equal(yaml.path, "deploy/compose.yaml");
+      assert.equal(yaml.analysisDepth, "file");
+      assert.equal(yaml.disposition, "advisory");
+      assert.deepEqual(yaml.requirementIds, []);
+      assert.deepEqual(yaml.evidencePaths, []);
+      assert.equal(yaml.providerId, null);
+      assert.deepEqual(yaml.sourceAnalysis?.before, null);
+      assert.equal(yaml.sourceAnalysis?.after?.status, "unsupported");
+      assert.equal(yaml.sourceAnalysis?.after?.language, "yaml");
+      assert.equal(yaml.sourceAnalysis?.after?.symbolCount, 0);
+      assert.equal(yaml.sourceAnalysis?.after?.providerId, null);
+      assert.match(
+        yaml.sourceAnalysis?.after?.inputFingerprint ?? "",
+        /^[a-f0-9]{64}$/,
+      );
+      assert.equal(yaml.sourceAnalysis?.after?.providerFingerprint, null);
+      assert.deepEqual(check.structuredContent.diagnostics, [
         {
+          id: "staged_file_ownership_missing",
+          severity: "warning",
+          blocking: false,
           path: "deploy/compose.yaml",
-          status: "A",
-          analysisDepth: "file",
-          disposition: "advisory",
+          message: check.structuredContent.diagnostics[0]?.message,
+          suggestion: check.structuredContent.diagnostics[0]?.suggestion,
           requirementIds: [],
           evidencePaths: [],
-          providerId: null,
         },
+      ]);
+      assert.ok(check.structuredContent.diagnostics[0]?.message);
+      assert.ok(check.structuredContent.diagnostics[0]?.suggestion);
+      assert.deepEqual(
+        check.structuredContent.staged?.diagnostics,
+        check.structuredContent.diagnostics,
       );
-      assert.ok(
-        output.structuredContent.diagnostics.some(
-          (diagnostic) =>
-            diagnostic.id === "staged_file_ownership_missing" &&
-            diagnostic.path === "deploy/compose.yaml",
-        ),
-      );
-      assert.ok(
-        !output.structuredContent.messages.includes("No staged files found."),
-      );
+      assert.deepEqual(check.structuredContent.messages, [
+        "No exported symbols or staged entities found in staged files.",
+      ]);
     });
 
-    it("should pass with executable_for test symbol", async (testContext) => {
+    it("accepts an executable_for test symbol with a generated and staged baseline", async (testContext) => {
       if (!hasProlog) {
         testContext.skip("SWI-Prolog is unavailable");
         return;
       }
-
-      const hostRepo = process.cwd();
-      const beforeSymbols = repoSymbolsHash(hostRepo);
-      const beforeBranches = kbBranchesSnapshot(hostRepo);
-
-      // Create test entity and symbol manifest with executable_for
-      createMarkdownFile(
+      writeSandboxFile(
         sandbox,
         ".kb/tests/TEST-EXE-001.md",
-        {
-          id: "TEST-EXE-001",
-          title: "Executable test",
-          status: "passing",
-          created_at: "2026-03-20T17:30:00Z",
-          updated_at: "2026-03-20T17:30:00Z",
-          source: ".kb/tests/TEST-EXE-001.md",
-        },
-        "Test for executable_for check.",
+        testMarkdown("TEST-EXE-001", "Executable test"),
       );
-
-      const fs = await import("node:fs");
-      const symbolsYaml = `symbols:
-  - id: SYM-EXE-001
-    title: testHelper
-    sourceFile: tests/helper.js
-    links:
-      - type: executable_for
-        target: TEST-EXE-001
-    status: active
-`;
-      fs.writeFileSync(
-        join(sandbox.repoDir, ".kb", "symbols.yaml"),
-        symbolsYaml,
-        "utf8",
+      writeSandboxFile(
+        sandbox,
+        "tests/helper.js",
+        "export function testHelper() { return 'ok'; }\n",
       );
-
-      fs.mkdirSync(join(sandbox.repoDir, "tests"), { recursive: true });
-      const src = "export function testHelper() { return 'ok'; }\n";
-      fs.writeFileSync(
-        join(sandbox.repoDir, "tests", "helper.js"),
-        src,
-        "utf8",
+      writeSandboxFile(
+        sandbox,
+        ".kb/symbols.yaml",
+        symbolsManifest([
+          {
+            id: "SYM-HELLO-001",
+            title: "hello",
+            sourceFile: "src/sample.js",
+            relation: { type: "implements", target: "REQ-001" },
+          },
+          {
+            id: "SYM-EXE-001",
+            title: "testHelper",
+            sourceFile: "tests/helper.js",
+            relation: { type: "executable_for", target: "TEST-EXE-001" },
+          },
+        ]),
       );
-      fs.writeFileSync(
-        join(sandbox.repoDir, "tests", "helper.js"),
-        src,
-        "utf8",
+      const authoredAdd = await run(
+        "git",
+        [
+          "add",
+          "--",
+          ".kb/tests/TEST-EXE-001.md",
+          ".kb/symbols.yaml",
+          "tests/helper.js",
+        ],
+        gitOptions(sandbox),
       );
-
-      await run("git", ["add", "."], {
-        cwd: sandbox.repoDir,
-        env: sandbox.env,
-      });
-
-      let out = "";
-      try {
-        const result = await kibi(sandbox, ["check", "--staged"], {
-          timeoutMs: TEST_TIMEOUT_MS,
-        });
-        out = result.stdout + result.stderr;
-      } catch (e) {
-        const err = e as Error;
-        out = err.message;
+      assertCommandExit(
+        authoredAdd,
+        0,
+        "staging executable test and authored source metadata",
+      );
+      assertCommandExit(
+        await kibi(sandbox, ["sync", "--refresh-symbol-coordinates"], {
+          timeoutMs: CHECK_TIMEOUT_MS,
+        }),
+        0,
+        "syncing executable_for relationship and refreshing coordinates",
+      );
+      const stagedPaths = await stageWorkingChanges(sandbox);
+      for (const required of [
+        ".kb/tests/TEST-EXE-001.md",
+        ".kb/symbols.yaml",
+        ".kb/symbol-coordinates.yaml",
+        "tests/helper.js",
+      ]) {
+        assert.ok(
+          stagedPaths.includes(required),
+          `executable_for fixture omitted staged path ${required}`,
+        );
       }
-
-      const passed =
-        out.includes("No violations found") || out.includes("\u2713");
-      assert.ok(
-        passed,
-        `Expected passing output for executable_for symbol, got: ${out}`,
+      await assertGeneratedCurrent(
+        sandbox,
+        "executable_for generated-manifest check",
       );
-
-      const afterSymbols = repoSymbolsHash(hostRepo);
-      const afterBranches = kbBranchesSnapshot(hostRepo);
-      assert.strictEqual(afterSymbols, beforeSymbols);
-      assert.deepStrictEqual(afterBranches, beforeBranches);
+      const check = await checkStaged(
+        sandbox,
+        0,
+        "executable_for staged check",
+      );
+      const files = assertIndexMatchesCheck(stagedPaths, check);
+      assert.deepEqual(check.structuredContent.violations, []);
+      const helper = files.find((file) => file.path === "tests/helper.js");
+      assert.equal(helper?.sourceAnalysis?.after?.status, "ok");
+      assert.equal(helper?.sourceAnalysis?.after?.symbolCount, 1);
+      await commitThroughHook(
+        sandbox,
+        "test: cover executable_for staged symbol ownership",
+      );
     });
 
-    it("should fail when only covered_by is present (no implements ownership)", async (testContext) => {
+    it("rejects a symbol with covered_by but no implements ownership", async (testContext) => {
       if (!hasProlog) {
         testContext.skip("SWI-Prolog is unavailable");
         return;
       }
-
-      const hostRepo = process.cwd();
-      const beforeSymbols = repoSymbolsHash(hostRepo);
-      const beforeBranches = kbBranchesSnapshot(hostRepo);
-
-      // Create test that validates REQ-001 (direct write for typed links)
-      const fs = await import("node:fs");
-      const testContent = `---
-id: TEST-COV-001
-title: Coverage test
-status: passing
-created_at: 2026-03-20T17:30:00Z
-updated_at: 2026-03-20T17:30:00Z
-source: .kb/tests/TEST-COV-001.md
-links:
-  - type: validates
-    target: REQ-001
----
-
-Coverage test for split semantics.
-`;
-      fs.mkdirSync(join(sandbox.repoDir, ".kb", "tests"), {
-        recursive: true,
+      writeSandboxFile(
+        sandbox,
+        ".kb/tests/TEST-COV-001.md",
+        testMarkdown("TEST-COV-001", "Coverage test"),
+      );
+      writeSandboxFile(
+        sandbox,
+        "src/cov.js",
+        "export function covFunc() { return 'cov'; }\n",
+      );
+      writeSandboxFile(
+        sandbox,
+        ".kb/symbols.yaml",
+        symbolsManifest([
+          {
+            id: "SYM-HELLO-001",
+            title: "hello",
+            sourceFile: "src/sample.js",
+            relation: { type: "implements", target: "REQ-001" },
+          },
+          {
+            id: "SYM-COV-001",
+            title: "covFunc",
+            sourceFile: "src/cov.js",
+            relation: { type: "covered_by", target: "TEST-COV-001" },
+          },
+        ]),
+      );
+      const authoredAdd = await run(
+        "git",
+        [
+          "add",
+          "--",
+          ".kb/tests/TEST-COV-001.md",
+          ".kb/symbols.yaml",
+          "src/cov.js",
+        ],
+        gitOptions(sandbox),
+      );
+      assertCommandExit(authoredAdd, 0, "staging covered_by-only test fixture");
+      assertCommandExit(
+        await kibi(sandbox, ["sync", "--refresh-symbol-coordinates"], {
+          timeoutMs: CHECK_TIMEOUT_MS,
+        }),
+        0,
+        "syncing covered_by-only source and refreshing coordinates",
+      );
+      const stagedPaths = await stageWorkingChanges(sandbox);
+      await assertGeneratedCurrent(
+        sandbox,
+        "covered_by-only generated-manifest check",
+      );
+      const check = await checkStaged(
+        sandbox,
+        1,
+        "covered_by-only staged ownership check",
+      );
+      const files = assertIndexMatchesCheck(stagedPaths, check);
+      assertOwnershipViolation(check, {
+        symbolId: "SYM-COV-001",
+        name: "covFunc",
+        file: "src/cov.js",
       });
-      fs.writeFileSync(
-        join(sandbox.repoDir, ".kb", "tests", "TEST-COV-001.md"),
-        testContent,
-        "utf8",
-      );
-
-      const symbolsYaml = `symbols:
-  - id: SYM-COV-001
-    title: covFunc
-    sourceFile: src/cov.js
-    links:
-      - type: covered_by
-        target: TEST-COV-001
-    status: active
-`;
-      fs.writeFileSync(
-        join(sandbox.repoDir, ".kb", "symbols.yaml"),
-        symbolsYaml,
-        "utf8",
-      );
-
-      const src = "export function covFunc() { return 'cov'; }\n";
-      fs.mkdirSync(join(sandbox.repoDir, "src"), { recursive: true });
-      fs.writeFileSync(join(sandbox.repoDir, "src", "cov.js"), src, "utf8");
-      fs.writeFileSync(join(sandbox.repoDir, "src", "cov.js"), src, "utf8");
-
-      await run("git", ["add", "."], {
-        cwd: sandbox.repoDir,
-        env: sandbox.env,
-      });
-
-      let code = 0;
-      let stdout = "";
-      try {
-        const result = await kibi(sandbox, ["check", "--staged"], {
-          timeoutMs: TEST_TIMEOUT_MS,
-        });
-        stdout = result.stdout;
-        code = result.exitCode;
-      } catch (e) {
-        code = 1;
-        const err = e as Error;
-        stdout = err.message;
-      }
-
-      // covered_by alone must fail the ownership gate
-      const okFailure =
-        code === 1 && /cov\.js:\d+/.test(stdout) && stdout.includes("covFunc");
-      assert.ok(
-        okFailure,
-        `Expected failure with violation info, got code=${code}, stdout=${stdout}`,
-      );
-
-      const afterSymbols = repoSymbolsHash(hostRepo);
-      const afterBranches = kbBranchesSnapshot(hostRepo);
-      assert.strictEqual(afterSymbols, beforeSymbols);
-      assert.deepStrictEqual(afterBranches, beforeBranches);
+      const source = files.find((file) => file.path === "src/cov.js");
+      assert.equal(source?.sourceAnalysis?.after?.status, "ok");
+      assert.equal(source?.sourceAnalysis?.after?.symbolCount, 1);
     });
   });
 }

@@ -252,6 +252,34 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-9b37476359db
   - type: implements
+    from: SYM-performance-trace-max-bytes
+    to: REQ-installed-staged-impact-timing-integrity
+    created_at: 2026-09-28T09:39:51.588Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-60364989a1e3
+  - type: covered_by
+    from: SYM-performance-trace-max-bytes
+    to: TEST-installed-staged-impact-timing-integrity
+    created_at: 2026-09-28T09:39:51.619Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-660fc1bef7b5
+  - type: implements
+    from: SYM-source-analysis-v2-gateanalysis
+    to: REQ-source-analysis-v2
+    created_at: 2026-09-30T15:21:53.135Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9d8441292c54
+  - type: covered_by
+    from: SYM-source-analysis-v2-gateanalysis
+    to: TEST-source-analysis-v2-contract
+    created_at: 2026-09-30T15:21:53.151Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a716ef3bafb2
+  - type: implements
     from: SYM-prolog-swipl-probe-libraries
     to: REQ-prolog-doctor-runtime-report
     created_at: 2026-09-30T22:55:38.093Z

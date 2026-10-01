@@ -146,6 +146,41 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7ac14855c0bf
+  - type: covered_by
+    from: SYM-impact-public-preparation-spec
+    to: TEST-impact-public-preparation-parity
+    created_at: 2026-09-27T17:34:08.228Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-98bfd50f5eb5
+  - type: implements
+    from: SYM-impact-public-preparation-spec
+    to: REQ-impact-review-public-preparation
+    created_at: 2026-09-27T17:34:08.347Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-52a50060a615
+  - type: covered_by
+    from: SYM-impact-public-preparation-spec
+    to: TEST-impact-policy-stage-e-installed-e2e
+    created_at: 2026-09-29T13:02:30.247Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7e6ceefd207f
+  - type: implements
+    from: SYM-source-analysis-v2-classifiedextensions
+    to: REQ-source-analysis-v2
+    created_at: 2026-09-30T15:21:57.569Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-86cb6d727f30
+  - type: covered_by
+    from: SYM-source-analysis-v2-classifiedextensions
+    to: TEST-source-analysis-v2-contract
+    created_at: 2026-09-30T15:21:57.580Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-172c557c1d31
   - type: executable_for
     from: SYM-test-cli-parity-path-normalization
     to: TEST-kibi-operation-interface-parity

@@ -1,0 +1,9 @@
+# Third-party notices
+
+The package includes `web-tree-sitter` 0.27.0 (MIT) and pinned Tree-sitter parser artifacts. Runtime code loads the vendored WebAssembly and query files offline; it does not download grammars or use generated native bindings. Exact registry package integrity, source commits, parser ABI, query provenance, and SHA-256 digests are recorded in `catalog.json`; package-file digests are recorded in `integrity.json`.
+
+The shipped grammars are Python 0.25.0 (MIT), Go 0.25.0 (MIT), Rust 0.24.0 (MIT), Java 0.23.5 (MIT), C# 0.23.5 (MIT), PHP 0.24.2 (MIT), C 0.24.1 (MIT), C++ 0.23.4 (MIT), Bash 0.25.1 (MIT), Ruby 0.23.1 (MIT), and `@tree-sitter-grammars/tree-sitter-hcl` 1.2.0 (Apache-2.0). The HCL/Terraform WebAssembly files are the official v1.2.0 release assets and use their published SHA-256 values; they are distinct from ABI-14 HCL/Terraform files inside the same NPM tarball. The scoped HCL package is the upstream grammar. The unscoped `tree-sitter-hcl` package is a security placeholder and is not used.
+
+For grammars with external scanners, the scanner source is part of the exact pinned upstream commit and covered by the package's license: Python, Rust, C#, PHP, C++, Bash, Ruby, and HCL. The corresponding scanner paths are inventoried in `catalog.json`. No source, compiler, shell program, Terraform provider, or generated program is executed during symbol analysis.
+
+Upstream `queries/tags.scm` files are copied from the source commits named in `catalog.json` for Python, Go, Rust, Java, C#, PHP, C, C++, and Ruby. Bash, Terraform, and generic HCL have Kibi-authored queries because those upstream packages publish no tags query suitable for the structural records emitted here. The Rust trait overlay, Java/C#/C++ supplemental queries, and all locally authored queries are separately hashed in the catalog and package integrity manifest.

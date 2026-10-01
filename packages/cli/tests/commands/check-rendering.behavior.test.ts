@@ -2,6 +2,7 @@
 // branches: staged coverage rendering (text/json), staged impact-evidence
 // classification, manifest duplicate handling, and full-KB violation output.
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
+import { execFileSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -16,16 +17,18 @@ import {
   checkStrictFactShape,
   getAllEntityIds,
 } from "../../src/commands/check.js";
-import * as manifestExtractor from "../../src/extractors/manifest.js";
-import type { ExtractionResult } from "../../src/extractors/markdown.js";
+import type { HostSourceAnalysisResultV2 } from "../../src/plugins/source-analysis-service.js";
+import * as sourceChangeAnalysis from "../../src/plugins/source-change-analysis.js";
 import { PrologProcess } from "../../src/prolog.js";
 import type { PrologProcess as PrologProcessType } from "../../src/prolog.js";
 import * as impact from "../../src/public/impact-diagnostics.js";
 import * as checkExecutor from "../../src/public/operations/check-executor.js";
 import type { StagedPath } from "../../src/traceability/git-staged.js";
-import * as gitStaged from "../../src/traceability/git-staged.js";
+import * as impactReviewEvaluator from "../../src/traceability/impact-evaluator.js";
+import { IMPACT_REVIEW_PATH } from "../../src/traceability/impact-review.js";
 import * as stagedDiagnostics from "../../src/traceability/staged-diagnostics.js";
 import * as stagedCoverageModule from "../../src/traceability/staged-file-coverage.js";
+import type { StagedFileCoverageResult } from "../../src/traceability/staged-file-coverage.js";
 import * as symbolExtract from "../../src/traceability/symbol-extract.js";
 import * as tempKb from "../../src/traceability/temp-kb.js";
 import * as stagedValidate from "../../src/traceability/validate.js";
@@ -103,11 +106,13 @@ function emptyCoverage(files: StagedPath[]): {
   };
 }
 
-function mockStagedInventory(entries: StagedPath[]): void {
-  const inventory = spyOn(gitStaged, "getStagedInventory").mockReturnValue(
-    entries,
-  );
-  restores.push(() => inventory.mockRestore());
+function stageInventory(cwd: string, entries: StagedPath[]): void {
+  for (const entry of entries) {
+    const file = path.join(cwd, entry.path);
+    mkdirSync(path.dirname(file), { recursive: true });
+    writeFileSync(file, entry.content ?? "");
+    execFileSync("git", ["add", "--", entry.path], { cwd, stdio: "pipe" });
+  }
 }
 
 function mockImpactDiagnostics(): {
@@ -131,6 +136,18 @@ function mockImpactDiagnostics(): {
     review.mockRestore();
   });
   return { granularity };
+}
+
+function mockPassingImpactReview(): void {
+  const review = spyOn(
+    impactReviewEvaluator,
+    "evaluateImpactReview",
+  ).mockReturnValue({
+    passed: true,
+    diagnostics: [],
+    reviewerAuthority: "self-claimed-local",
+  });
+  restores.push(() => review.mockRestore());
 }
 
 function mockTempKb(): {
@@ -197,7 +214,7 @@ function respondTo(
 describe("checkCommand staged rendering", () => {
   test("renders coverage counts, per-file details, and advisory diagnostics in text mode", async () => {
     const cwd = prepareWorkspace();
-    mockStagedInventory([]);
+    stageInventory(cwd, []);
     const analyze = spyOn(
       stagedCoverageModule,
       "analyzeStagedFileCoverage",
@@ -264,7 +281,7 @@ describe("checkCommand staged rendering", () => {
 
   test("emits the crafted staged coverage as one structured JSON document", async () => {
     const cwd = prepareWorkspace();
-    mockStagedInventory([]);
+    stageInventory(cwd, []);
     const analyze = spyOn(
       stagedCoverageModule,
       "analyzeStagedFileCoverage",
@@ -348,6 +365,7 @@ Body.
 `,
     );
     git(cwd, "add .kb/requirements/REQ-1.md");
+    mockPassingImpactReview();
     const io = captureIo();
     restores.push(io.restore);
 
@@ -391,13 +409,13 @@ Body.
     expect(dry.exitCode).toBe(0);
   });
 
-  test("keeps staged symbol-extraction failures silent in JSON mode", async () => {
+  test("reports staged extraction failure as one JSON operational error", async () => {
     const cwd = prepareWorkspace();
     const entry = stagedPath({
       path: "src/broken.ts",
       content: "export function broken() { return true; }\n",
     });
-    mockStagedInventory([entry]);
+    stageInventory(cwd, [entry]);
     const analyze = spyOn(
       stagedCoverageModule,
       "analyzeStagedFileCoverage",
@@ -417,6 +435,7 @@ Body.
       extract.mockRestore();
       collect.mockRestore();
     });
+    mockPassingImpactReview();
     mockImpactDiagnostics();
     const io = captureIo();
     restores.push(io.restore);
@@ -429,14 +448,162 @@ Body.
       }),
     );
 
-    expect(result.exitCode).toBe(0);
+    expect(result.exitCode).toBe(1);
     expect(io.errorText()).toBe("");
-    const output = JSON.parse(io.logText()) as {
-      structuredContent: { messages: string[] };
-    };
-    expect(output.structuredContent.messages).toContain(
-      "No exported symbols or staged entities found in staged files.",
+    const output = JSON.parse(io.logText());
+    expect(output.structuredContent.operationalError).toContain(
+      "parse exploded",
     );
+  });
+
+  // implements REQ-impact-policy-stage-e-content-bound-review
+  test.each([
+    { label: "overlaps", startLine: 2, endLine: 2, blocks: true },
+    { label: "does not overlap", startLine: 9, endLine: 12, blocks: false },
+  ])(
+    "without an impact policy, a local after-side gap blocks only when it $label the staged lines",
+    async ({ startLine, endLine, blocks }) => {
+      const cwd = prepareWorkspace();
+      const entry = stagedPath({
+        path: "src/partial.py",
+        content: "def handler():\n    return True\n",
+        analysisDepth: "file",
+      });
+      stageInventory(cwd, [entry]);
+      const partialResult: HostSourceAnalysisResultV2 = {
+        sourceFile: entry.path,
+        language: "python",
+        module: {
+          title: "partial module",
+          language: "python",
+          analysisMode: "parser",
+        },
+        contractVersion: "kibi.symbol-extractor.v2",
+        status: "partial",
+        symbols: [],
+        diagnostics: [
+          {
+            code: "known_partial",
+            message: "The provider reported a known structural limitation.",
+          },
+        ],
+        uncoveredRanges: [
+          {
+            startLine,
+            startColumn: 0,
+            endLine,
+            endColumn: 1,
+            reason: "decorator-expansion-unavailable",
+          },
+        ],
+        providerId: "fixture.python.partial",
+        stamp: null,
+        inputFingerprint: "a".repeat(64),
+        providerFingerprint: "b".repeat(64),
+        shadowComparisons: [],
+      };
+      const sourceAnalysisResult = spyOn(
+        sourceChangeAnalysis,
+        "analyzeSourceChanges",
+      ).mockResolvedValue(
+        new Map([
+          [
+            entry.path,
+            { path: entry.path, before: null, after: partialResult },
+          ],
+        ]),
+      );
+      const analyzeCoverage = spyOn(
+        stagedCoverageModule,
+        "analyzeStagedFileCoverage",
+      ).mockReturnValue(emptyCoverage([entry]) as never);
+      restores.push(() => {
+        sourceAnalysisResult.mockRestore();
+        analyzeCoverage.mockRestore();
+      });
+      const io = captureIo();
+      restores.push(io.restore);
+
+      await withCwd(cwd, () =>
+        checkCommand({
+          staged: true,
+          format: "json",
+          kbPath: path.join(cwd, "kb-store"),
+        }),
+      );
+
+      if (blocks)
+        expect(
+          JSON.parse(io.logText()).structuredContent.operationalError,
+        ).toContain(
+          "Source analysis partial for src/partial.py where the staged change touches uncovered lines (2-2)",
+        );
+      else expect(io.logText()).not.toContain("Source analysis partial");
+    },
+  );
+
+  // implements REQ-impact-policy-stage-e-content-bound-review
+  test("does not block a staged fix because the committed side analyzes as partial", async () => {
+    const cwd = prepareWorkspace();
+    const entry = stagedPath({
+      path: "src/fixed.py",
+      content: "def handler():\n    return True\n",
+      analysisDepth: "file",
+    });
+    stageInventory(cwd, [entry]);
+    const side = (status: "ok" | "partial"): HostSourceAnalysisResultV2 => ({
+      sourceFile: entry.path,
+      language: "python",
+      module: {
+        title: "fixed module",
+        language: "python",
+        analysisMode: "parser",
+      },
+      contractVersion: "kibi.symbol-extractor.v2",
+      status,
+      symbols: [],
+      diagnostics:
+        status === "partial"
+          ? [{ code: "syntax_error", message: "broken baseline" }]
+          : [],
+      uncoveredRanges: [],
+      providerId: "fixture.python.partial",
+      stamp: null,
+      inputFingerprint: "a".repeat(64),
+      providerFingerprint: "b".repeat(64),
+      shadowComparisons: [],
+    });
+    const sourceAnalysisResult = spyOn(
+      sourceChangeAnalysis,
+      "analyzeSourceChanges",
+    ).mockResolvedValue(
+      new Map([
+        [
+          entry.path,
+          { path: entry.path, before: side("partial"), after: side("ok") },
+        ],
+      ]),
+    );
+    const analyzeCoverage = spyOn(
+      stagedCoverageModule,
+      "analyzeStagedFileCoverage",
+    ).mockReturnValue(emptyCoverage([entry]) as never);
+    restores.push(() => {
+      sourceAnalysisResult.mockRestore();
+      analyzeCoverage.mockRestore();
+    });
+    const io = captureIo();
+    restores.push(io.restore);
+
+    await withCwd(cwd, () =>
+      checkCommand({
+        staged: true,
+        format: "json",
+        kbPath: path.join(cwd, "kb-store"),
+      }),
+    );
+
+    expect(io.logText()).not.toContain("Source analysis partial");
   });
 
   test("records the first audited no-impact override declared in entity-lane markdown", async () => {
@@ -448,7 +615,7 @@ Body.
         content: "Kibi-Impact: none\nRationale: config-only tweak\n",
       }),
       stagedPath({
-        path: ".kb/facts/impact-note-2.md",
+        path: ".kb/facts/impact-z-note.md",
         analysisDepth: "metadata",
         content:
           "Kibi-Impact: none\nRationale: second declaration is ignored\n",
@@ -459,7 +626,7 @@ Body.
         diffText: "@@ -1 +1 @@\n-const x = 0;\n+const x = 1;\n",
       }),
     ];
-    mockStagedInventory(entries);
+    stageInventory(cwd, entries);
     const analyze = spyOn(
       stagedCoverageModule,
       "analyzeStagedFileCoverage",
@@ -470,6 +637,7 @@ Body.
       "collectStagedKibiDiagnostics",
     ).mockReturnValue([]);
     restores.push(() => collect.mockRestore());
+    mockPassingImpactReview();
     mockImpactDiagnostics();
     const io = captureIo();
     restores.push(io.restore);
@@ -495,6 +663,260 @@ Body.
     );
   });
 
+  test("clears only resolved coverage advisories after a successful partial-file review", async () => {
+    const cwd = prepareWorkspace();
+    const policyPath = path.join(cwd, ".kibi", "impact-policy.json");
+    mkdirSync(path.dirname(policyPath), { recursive: true });
+    writeFileSync(
+      policyPath,
+      JSON.stringify({
+        contractVersion: "kibi.impact-policy.v1",
+        id: "rendering-fixture-policy",
+        version: "1",
+        allowUnsupportedReview: false,
+        allowedPartial: [],
+        notApplicablePaths: [],
+      }),
+    );
+    git(cwd, "add -- .kibi/impact-policy.json");
+    git(cwd, "commit -m 'Enable impact review in the fixture base'");
+    const entries = [
+      stagedPath({
+        path: "src/partial.py",
+        content: "@route('/x')\ndef handler():\n    return True\n",
+        analysisDepth: "file",
+      }),
+      stagedPath({
+        path: IMPACT_REVIEW_PATH,
+        content: "{}\n",
+        analysisDepth: "file",
+      }),
+      stagedPath({
+        path: "docs/unowned.txt",
+        content: "A genuinely unowned file-level artifact.\n",
+        analysisDepth: "file",
+      }),
+    ];
+    stageInventory(cwd, entries);
+
+    const partialResult: HostSourceAnalysisResultV2 = {
+      sourceFile: "src/partial.py",
+      language: "python",
+      module: {
+        title: "partial module",
+        language: "python",
+        analysisMode: "parser",
+      },
+      contractVersion: "kibi.symbol-extractor.v2",
+      status: "partial",
+      symbols: [
+        {
+          name: "handler",
+          kind: "function",
+          startLine: 2,
+          startColumn: 0,
+          endLine: 3,
+          endColumn: 16,
+        },
+      ],
+      diagnostics: [
+        {
+          code: "decorator_expansion_partial",
+          message: "The route decorator's generated wrapper was not expanded.",
+        },
+      ],
+      uncoveredRanges: [],
+      providerId: "fixture.python.partial",
+      stamp: null,
+      inputFingerprint: "a".repeat(64),
+      providerFingerprint: "b".repeat(64),
+      shadowComparisons: [],
+    };
+    const sourceAnalysisResult = spyOn(
+      sourceChangeAnalysis,
+      "analyzeSourceChanges",
+    ).mockResolvedValue(
+      new Map([
+        [
+          "src/partial.py",
+          { path: "src/partial.py", before: null, after: partialResult },
+        ],
+      ]),
+    );
+    const impactEvaluation = spyOn(
+      impactReviewEvaluator,
+      "evaluateImpactReview",
+    ).mockReturnValue({
+      passed: true,
+      diagnostics: [],
+      reviewerAuthority: "self-claimed-local",
+    });
+    const coverageFactory = (): StagedFileCoverageResult => ({
+      version: "kibi.staged-file-coverage.v1",
+      files: [
+        {
+          path: "src/partial.py",
+          status: "A",
+          analysisDepth: "file",
+          disposition: "advisory",
+          requirementIds: ["REQ-PARTIAL"],
+          evidencePaths: [],
+          providerId: "fixture.python.partial",
+        },
+        {
+          path: IMPACT_REVIEW_PATH,
+          status: "A",
+          analysisDepth: "file",
+          disposition: "advisory",
+          requirementIds: [],
+          evidencePaths: [],
+          providerId: null,
+        },
+        {
+          path: "docs/unowned.txt",
+          status: "A",
+          analysisDepth: "file",
+          disposition: "advisory",
+          requirementIds: [],
+          evidencePaths: [],
+          providerId: null,
+        },
+      ],
+      diagnostics: [
+        {
+          id: "staged_file_impact_review_needed",
+          severity: "warning",
+          blocking: false,
+          path: "src/partial.py",
+          message: "Review staged impact for src/partial.py.",
+          suggestion: "Review the changed source.",
+          requirementIds: ["REQ-PARTIAL"],
+          evidencePaths: [],
+        },
+        {
+          id: "staged_file_ownership_missing",
+          severity: "warning",
+          blocking: false,
+          path: IMPACT_REVIEW_PATH,
+          message: "The transport record has no source owner.",
+          suggestion: "The exact transport record is reviewed separately.",
+          requirementIds: [],
+          evidencePaths: [],
+        },
+        {
+          id: "staged_file_ownership_missing",
+          severity: "warning",
+          blocking: false,
+          path: "docs/unowned.txt",
+          message:
+            "Staged text file has no source-linked requirement ownership.",
+          suggestion: "Add an owner if this affects product behavior.",
+          requirementIds: [],
+          evidencePaths: [],
+        },
+      ],
+    });
+    const analyzeCoverage = spyOn(
+      stagedCoverageModule,
+      "analyzeStagedFileCoverage",
+    ).mockImplementation(coverageFactory);
+    const collect = spyOn(
+      stagedDiagnostics,
+      "collectStagedKibiDiagnostics",
+    ).mockReturnValue([]);
+    restores.push(() => {
+      sourceAnalysisResult.mockRestore();
+      impactEvaluation.mockRestore();
+      analyzeCoverage.mockRestore();
+      collect.mockRestore();
+    });
+    mockImpactDiagnostics();
+    const io = captureIo();
+    restores.push(io.restore);
+
+    const result = await withCwd(cwd, () =>
+      checkCommand({
+        staged: true,
+        format: "json",
+        kbPath: path.join(cwd, "kb-store"),
+      }),
+    );
+
+    expect(result.exitCode).toBe(0);
+    const output = JSON.parse(io.logText()) as {
+      structuredContent: {
+        diagnostics: Array<{ id: string; path: string }>;
+        staged: {
+          files: Array<{
+            path: string;
+            providerId: string | null;
+            sourceAnalysis?: { after: { status: string } | null };
+          }>;
+        };
+        messages: string[];
+      };
+    };
+    expect(output.structuredContent.diagnostics).toEqual([
+      expect.objectContaining({
+        id: "staged_file_ownership_missing",
+        path: "docs/unowned.txt",
+      }),
+    ]);
+    expect(
+      output.structuredContent.staged.files.find(
+        (file) => file.path === "src/partial.py",
+      ),
+    ).toMatchObject({
+      providerId: "fixture.python.partial",
+      sourceAnalysis: { after: { status: "partial" } },
+    });
+    expect(output.structuredContent.messages.join("\n")).toContain(
+      "Partial source analysis was reviewed for src/partial.py via fixture.python.partial",
+    );
+    expect(output.structuredContent.messages.join("\n")).not.toContain(
+      "No exported symbols or staged entities found",
+    );
+
+    impactEvaluation.mockReturnValue({
+      passed: false,
+      diagnostics: [
+        { code: "impact_review_invalid", message: "The record is incomplete." },
+      ],
+      reviewerAuthority: "none",
+    });
+    const failedIo = captureIo();
+    restores.push(failedIo.restore);
+    const failed = await withCwd(cwd, () =>
+      checkCommand({
+        staged: true,
+        format: "json",
+        kbPath: path.join(cwd, "kb-store"),
+      }),
+    );
+    expect(failed.exitCode).toBe(1);
+    const failedOutput = JSON.parse(failedIo.logText()) as {
+      structuredContent: {
+        diagnostics: Array<{ id: string; path: string }>;
+        operationalError?: string;
+      };
+    };
+    expect(failedOutput.structuredContent.operationalError).toContain(
+      "impact_review_invalid: The record is incomplete.",
+    );
+    expect(failedOutput.structuredContent.diagnostics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "staged_file_impact_review_needed",
+          path: "src/partial.py",
+        }),
+        expect.objectContaining({
+          id: "staged_file_ownership_missing",
+          path: IMPACT_REVIEW_PATH,
+        }),
+      ]),
+    );
+  });
+
   test("does not count entity markdown of unknown types as KB impact evidence", async () => {
     const cwd = prepareWorkspace();
     const entries = [
@@ -516,7 +938,7 @@ Body.
         content: "export function greet() { return 1; }\n",
       }),
     ];
-    mockStagedInventory(entries);
+    stageInventory(cwd, entries);
     const analyze = spyOn(
       stagedCoverageModule,
       "analyzeStagedFileCoverage",
@@ -527,6 +949,7 @@ Body.
       "collectStagedKibiDiagnostics",
     ).mockReturnValue([]);
     restores.push(() => collect.mockRestore());
+    mockPassingImpactReview();
     mockImpactDiagnostics();
     const { project } = mockTempKb();
     const io = captureIo();
@@ -543,92 +966,33 @@ Body.
     expect(io.logText()).not.toContain("No violations found");
   });
 
-  test("keeps the newest definition when a staged manifest repeats a symbol id", async () => {
+  test("rejects duplicate authored symbol IDs instead of transferring ownership", async () => {
     const cwd = prepareWorkspace();
-    const entries = [
-      stagedPath({
-        path: "src/greet.ts",
-        content: "export function greet() { return 1; }\n",
-      }),
+    stageInventory(cwd, [
       stagedPath({
         path: ".kb/symbols.yaml",
         analysisDepth: "metadata",
-        content: "symbols: []\n",
+        content:
+          "symbols:\n  - id: SYM-DUP\n    title: first\n    sourceFile: src/one.ts\n  - id: SYM-DUP\n    title: second\n    sourceFile: src/two.ts\n",
       }),
-    ];
-    mockStagedInventory(entries);
-    const analyze = spyOn(
-      stagedCoverageModule,
-      "analyzeStagedFileCoverage",
-    ).mockReturnValue(emptyCoverage(entries) as never);
-    restores.push(() => analyze.mockRestore());
-    const baseEntity = {
-      id: "SYM-DUP",
-      title: "greet",
-      type: "symbol",
-      status: "active",
-      created_at: "2026-01-01T00:00:00Z",
-      updated_at: "2026-01-01T00:00:00Z",
-      source: ".kb/symbols.yaml",
-    };
-    const olderDefinition = {
-      entity: { ...baseEntity },
-      relationships: [{ type: "implements", from: "SYM-DUP", to: "REQ-OLD" }],
-      sourceFile: "src/greet.ts",
-    };
-    const newerDefinition = {
-      entity: { ...baseEntity },
-      relationships: [{ type: "implements", from: "SYM-DUP", to: "REQ-NEW" }],
-      sourceFile: "src/greet.ts",
-    };
-    const fromString = spyOn(
-      manifestExtractor,
-      "extractFromManifestString",
-    ).mockReturnValue([olderDefinition, newerDefinition] as never);
-    restores.push(() => fromString.mockRestore());
-    const advisoryDiagnostic = {
-      id: "kibi_impact_override_missing_rationale",
-      severity: "warning",
-      blocking: false,
-      category: "traceability",
-      files: ["src/greet.ts"],
-      docs: ["docs/modeling-cheatsheet.md"],
-      message: "advisory review",
-      suggestion: "refresh the manifest",
-    };
-    const collect = spyOn(
-      stagedDiagnostics,
-      "collectStagedKibiDiagnostics",
-    ).mockReturnValue([advisoryDiagnostic] as never);
-    restores.push(() => collect.mockRestore());
-    const { granularity } = mockImpactDiagnostics();
-    const { project } = mockTempKb();
+    ]);
+    mockPassingImpactReview();
     const io = captureIo();
     restores.push(io.restore);
-
     const result = await withCwd(cwd, () =>
-      checkCommand({ staged: true, kbPath: path.join(cwd, "kb-store") }),
+      checkCommand({
+        staged: true,
+        format: "json",
+        kbPath: path.join(cwd, "kb-store"),
+      }),
     );
-
-    expect(result.exitCode).toBe(0);
-    const projected = project.mock.calls[0]?.[1] as ExtractionResult[];
-    expect(projected).toHaveLength(1);
-    expect(projected[0]?.relationships[0]?.to).toBe("REQ-NEW");
-    const granularityInput = granularity.mock.calls[0]?.[0] as {
-      manifestResults: ExtractionResult[];
-    };
-    expect(granularityInput.manifestResults).toHaveLength(1);
-    expect(granularityInput.manifestResults[0]?.relationships[0]?.to).toBe(
-      "REQ-NEW",
-    );
-    const text = io.logText();
-    expect(text).toContain(
-      "[WARNING kibi_impact_override_missing_rationale] advisory review",
-    );
-    expect(text).toContain("Files: src/greet.ts");
-    expect(text).toContain("Docs: docs/modeling-cheatsheet.md");
-    expect(text).toContain("Suggestion: refresh the manifest");
-    expect(text).toContain("No violations found in staged symbols");
+    expect(result.exitCode).toBe(1);
+    const operationalError = JSON.parse(io.logText()).structuredContent
+      .operationalError as string;
+    expect(operationalError).toContain("Duplicate snapshot entities:");
+    expect(operationalError).toContain("SYM-DUP");
+    expect(operationalError).toContain("src/one.ts");
+    expect(operationalError).toContain("src/two.ts");
   });
 });
 

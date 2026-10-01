@@ -167,6 +167,20 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2b69cff5da8b
+  - type: implements
+    from: SYM-source-analysis-timing-max-bytes
+    to: REQ-installed-staged-impact-timing-integrity
+    created_at: 2026-09-28T09:40:19.271Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0f950714354b
+  - type: covered_by
+    from: SYM-source-analysis-timing-max-bytes
+    to: TEST-installed-staged-impact-timing-integrity
+    created_at: 2026-09-28T09:40:19.286Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9b336efe32dc
   - type: constrains
     from: REQ-prolog-spike-config-validation
     to: FACT-prolog-spike-config-subject

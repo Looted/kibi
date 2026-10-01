@@ -80,6 +80,14 @@ jobs:
       - name: Build packages
         run: bun run build
 
+      - name: Verify approved source analyzer closure
+        run: node scripts/qualify-source-analyzers.mjs
+
+      - name: Test source analysis contracts and offline parsers
+        run: |
+          bun test ./packages/plugin-sdk/tests ./packages/plugin-builtin/tests
+          bun run --cwd packages/plugin-treesitter test
+
   # Builds (or restores from cache) the linux-x64-gnu SWI-Prolog archive that
   # ships in kibi-swipl-linux-x64-gnu; every Prolog job except ci-integration
   # runs it. See .github/workflows/swipl-ci-bundle.yml.

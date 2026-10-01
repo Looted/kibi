@@ -154,6 +154,20 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-0a0de48905b1
   - type: implements
+    from: SYM-impact-stage-e-rawknowledgefingerprint
+    to: REQ-impact-policy-stage-e-content-bound-review
+    created_at: 2026-09-30T15:23:09.431Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fb10ceeadcb7
+  - type: covered_by
+    from: SYM-impact-stage-e-rawknowledgefingerprint
+    to: TEST-impact-policy-stage-e-installed-e2e
+    created_at: 2026-09-30T15:23:09.443Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cbf03b6a2146
+  - type: implements
     from: SYM-prolog-swipl-pkg-platform-key
     to: REQ-prolog-bundled-runtime
     created_at: 2026-09-30T22:56:16.367Z
