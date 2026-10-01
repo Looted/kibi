@@ -969,6 +969,39 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-ebdb13f8ccc07168453e17f4
+    test_id: TEST-e2e-snapshot-relevance
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: f8c80dd7ef127c802baaac4d13480e36f0354458dbf12278f4c05ecd963af3a8
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-10-01T11:36:24.203Z'
+    finished_at: '2026-10-01T12:02:27.097Z'
+    artifact_digest: 3237662bfbe570c6aeb81885227c29d37b6585082c209f53d5c35a5c36ece74d
+    contract_hash: 22bcb0de945e3c3c136d816dcbdb4efa9c544318af340adb7fadfa6c8af8ea5c
+    binding_hash: f2520cc7c0de8e899145ed8a695ec76a2145dba041e29d2511b7250af2adbd1a
+    fingerprint: 94ebe6fbfcb49295503cceff9ce8cb0294af4b86ad6bab9cd430062f96581012
+    fingerprint_components:
+      contract: 22bcb0de945e3c3c136d816dcbdb4efa9c544318af340adb7fadfa6c8af8ea5c
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-snapshot-relevance
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
 ---
 
 Packed end-to-end regression for operational artifacts and receipt-only edits keep the verification snapshot clean.
