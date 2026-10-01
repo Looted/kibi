@@ -1,5 +1,5 @@
 // implements REQ-kibi-operation-interface-parity
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join, sep } from "node:path";
 import type { Tarballs } from "./helpers.js";
 import { hostSwiplPlatformPackage } from "./packed-packages.js";
@@ -100,4 +100,22 @@ export function writePackedInstallManifest(
     workspaceOverrides,
     "utf8",
   );
+}
+
+/**
+ * Keep the host's SWI-Prolog bundle out of a packed install whose tarball set
+ * does not carry it. kibi-swipl lists the platform packages as optional
+ * dependencies, so once they are published npm installs the registry build
+ * instead of skipping them. Such installs must exercise the candidate tarballs
+ * and the pipeline/system swipl, never unqualified registry bytes.
+ */
+export function dropUnpackedSwiplPlatform(
+  prefix: string,
+  tarballs: Tarballs,
+): void {
+  if (tarballs.swiplPlatform) return;
+  rmSync(join(prefix, "node_modules", hostSwiplPlatformPackage()), {
+    recursive: true,
+    force: true,
+  });
 }

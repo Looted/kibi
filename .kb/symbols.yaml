@@ -46589,3 +46589,11 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-mcp-kb-freshness
+  - id: SYM-packed-drop-unpacked-swipl-platform
+    title: dropUnpackedSwiplPlatform
+    status: active
+    sourceFile: documentation/tests/e2e/packed/packed-install-manifest.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-test-journaled-engine-harness

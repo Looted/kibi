@@ -19,6 +19,7 @@ import {
   resolveNpmPackFilename,
 } from "./npm-pack-json.js";
 import {
+  dropUnpackedSwiplPlatform,
   relocatePackedInstallMetadata,
   writePackedInstallManifest,
 } from "./packed-install-manifest.js";
@@ -622,6 +623,7 @@ async function bootstrapSharedInstall(
         `Shared packed installation failed with exit code ${installResult.exitCode}.\nstdout:\n${installResult.stdout}\nstderr:\n${installResult.stderr}`,
       );
     }
+    dropUnpackedSwiplPlatform(npmPrefix, tarballs);
     await verifyKibiCliResolutionImpl(npmPrefix, env);
   })();
 
@@ -1089,6 +1091,7 @@ export function createSandbox(options: SandboxOptions = {}): TestSandbox {
             `Packed sandbox installation failed with exit code ${installResult.exitCode}.\nstdout:\n${installResult.stdout}\nstderr:\n${installResult.stderr}`,
           );
         }
+        dropUnpackedSwiplPlatform(npmPrefix, tarballs);
         await verifyKibiCliResolutionImpl(npmPrefix, env);
         console.log("  ✓ Packages installed");
       })();
