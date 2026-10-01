@@ -18381,7 +18381,7 @@ coordinates:
     sourceLine: 149
   SYM-prolog-release-archive-name:
     identityHash: b771fdfdfc5537bc139116260bd853c916776538678e4ece86a12f60cadc5202
-    sourceHash: c35460fbd30e460f3781efeabf2e4ad3caf137364e2f705eb1757e5efe84b1fc
+    sourceHash: 69b057bd27836cb067c25ae80922aabb7c3d3671a6efb7cd2b8024d8e88aae14
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 56
@@ -18389,7 +18389,7 @@ coordinates:
     sourceLine: 54
   SYM-prolog-release-extract-with-pipeline-verifier:
     identityHash: d8ed92b6a69067e34d058bee03e69e68fcf2cfc0c9dd71a35fa31f5ba8407bf4
-    sourceHash: c35460fbd30e460f3781efeabf2e4ad3caf137364e2f705eb1757e5efe84b1fc
+    sourceHash: 69b057bd27836cb067c25ae80922aabb7c3d3671a6efb7cd2b8024d8e88aae14
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 125
@@ -18405,47 +18405,47 @@ coordinates:
     sourceLine: 24
   SYM-prolog-release-main:
     identityHash: 5b1e99cee0f34c791130acfd55dfde6af993e6915aa2323a65e231ec49c6274a
-    sourceHash: c35460fbd30e460f3781efeabf2e4ad3caf137364e2f705eb1757e5efe84b1fc
+    sourceHash: 69b057bd27836cb067c25ae80922aabb7c3d3671a6efb7cd2b8024d8e88aae14
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 411
+    sourceEndLine: 412
     sourceFile: scripts/populate-swipl-platform-packages.mjs
-    sourceLine: 395
+    sourceLine: 396
   SYM-prolog-release-materialize-symlinks:
     identityHash: 66ecb82b6dd6efc0226ebfaa7d3fbb05e0763a2433fc3ea0be1796211b7c7863
-    sourceHash: c35460fbd30e460f3781efeabf2e4ad3caf137364e2f705eb1757e5efe84b1fc
+    sourceHash: 69b057bd27836cb067c25ae80922aabb7c3d3671a6efb7cd2b8024d8e88aae14
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 255
+    sourceEndLine: 254
     sourceFile: scripts/populate-swipl-platform-packages.mjs
     sourceLine: 190
   SYM-prolog-release-parse-args:
     identityHash: fb3fe87c65afe03b9b80ab4f975a68e9a41aca72cc7a1592f5b6eeb5ccd0d8a6
-    sourceHash: c35460fbd30e460f3781efeabf2e4ad3caf137364e2f705eb1757e5efe84b1fc
+    sourceHash: 69b057bd27836cb067c25ae80922aabb7c3d3671a6efb7cd2b8024d8e88aae14
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 392
+    sourceEndLine: 393
     sourceFile: scripts/populate-swipl-platform-packages.mjs
-    sourceLine: 378
+    sourceLine: 379
   SYM-prolog-release-platform-targets:
     identityHash: 44cd859a67a6381c4c26615d67890d059610ed8b33d5485774a5b332ad1e99cd
-    sourceHash: c35460fbd30e460f3781efeabf2e4ad3caf137364e2f705eb1757e5efe84b1fc
+    sourceHash: 69b057bd27836cb067c25ae80922aabb7c3d3671a6efb7cd2b8024d8e88aae14
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 375
+    sourceEndLine: 376
     sourceFile: scripts/populate-swipl-platform-packages.mjs
-    sourceLine: 368
+    sourceLine: 369
   SYM-prolog-release-populate-platform-package:
     identityHash: 68173a1f08c375f28b6313dfb3739c26811bdb78fc644ad70e30d563a05090e4
-    sourceHash: c35460fbd30e460f3781efeabf2e4ad3caf137364e2f705eb1757e5efe84b1fc
+    sourceHash: 69b057bd27836cb067c25ae80922aabb7c3d3671a6efb7cd2b8024d8e88aae14
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 365
+    sourceEndLine: 366
     sourceFile: scripts/populate-swipl-platform-packages.mjs
-    sourceLine: 289
+    sourceLine: 288
   SYM-prolog-release-read-pins:
     identityHash: c98803963c38dfa1f54363e8dc128a922f4aaea27f3c76431acfd3d9bd84486a
-    sourceHash: c35460fbd30e460f3781efeabf2e4ad3caf137364e2f705eb1757e5efe84b1fc
+    sourceHash: 69b057bd27836cb067c25ae80922aabb7c3d3671a6efb7cd2b8024d8e88aae14
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 51
@@ -18453,7 +18453,7 @@ coordinates:
     sourceLine: 43
   SYM-prolog-release-sha256-of:
     identityHash: 3df2c9e6eae84aa20b20ef27c152fbdeb6eccadce3f7035f3e4e9dab3615d92b
-    sourceHash: c35460fbd30e460f3781efeabf2e4ad3caf137364e2f705eb1757e5efe84b1fc
+    sourceHash: 69b057bd27836cb067c25ae80922aabb7c3d3671a6efb7cd2b8024d8e88aae14
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 40
@@ -18461,7 +18461,7 @@ coordinates:
     sourceLine: 38
   SYM-prolog-release-verify-archive-sidecar:
     identityHash: 7e87f3fd5ab1f59ea9914d491295e9b2ed7965035c23e620fda39c350c3644ed
-    sourceHash: c35460fbd30e460f3781efeabf2e4ad3caf137364e2f705eb1757e5efe84b1fc
+    sourceHash: 69b057bd27836cb067c25ae80922aabb7c3d3671a6efb7cd2b8024d8e88aae14
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 90
@@ -30293,10 +30293,10 @@ coordinates:
     sourceLine: 1
   SYM-test-populate-swipl-platform-packages:
     identityHash: 14fa5eb4e8426ae8b4d034da26e57da7920ca9b346b11e324fd42335afd36f3c
-    sourceHash: 122d90286faddda96fda2b58e299a40f71df45be12be748f3d5f507132c42729
+    sourceHash: c34af748a2aa6f4475ebb00af953d6db39d5eb85c3c80012ddc986268edd801f
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 525
+    sourceEndLine: 572
     sourceFile: scripts/tests/populate-swipl-platform-packages.test.ts
     sourceLine: 1
   SYM-test-predicate-first-graph:

@@ -97,7 +97,8 @@ export function extractWithPipelineVerifier({
   target,
   workdir,
   repoRoot = REPO_ROOT,
-  python = process.env.PYTHON ?? "python3",
+  env = process.env,
+  python = env.PYTHON ?? "python3",
 }) {
   const result = spawnSync(
     python,
@@ -113,15 +114,14 @@ export function extractWithPipelineVerifier({
       "--workdir",
       workdir,
     ],
-    { encoding: "utf8", env: { ...process.env, PYTHONDONTWRITEBYTECODE: "1" } },
+    { encoding: "utf8", env: { ...env, PYTHONDONTWRITEBYTECODE: "1" } },
   );
   if (result.status !== 0) {
     throw new Error(
       `archive verification failed for ${target}: ${(result.stderr || result.stdout || "").trim()}`,
     );
   }
-  const prefix = JSON.parse(result.stdout.trim().split("\n").pop()).prefix;
-  return prefix;
+  return JSON.parse(result.stdout.trim().split("\n").pop()).prefix;
 }
 
 function walkFiles(root) {
@@ -192,11 +192,10 @@ export function materializeSymlinks(payloadRoot) {
   const entries = walkFiles(root);
   const links = entries.filter((entry) => entry.link).map((e) => e.full);
   const regular = entries.filter((entry) => !entry.link).map((e) => e.full);
-  const realRoot = root;
   const finalTarget = new Map();
   for (const link of links) {
     const target = realpathSync(link);
-    if (!target.startsWith(`${realRoot}${path.sep}`)) {
+    if (!target.startsWith(`${root}${path.sep}`)) {
       throw new Error(`symlink escapes the payload: ${link}`);
     }
     if (!statSync(target).isFile()) {
@@ -218,7 +217,7 @@ export function materializeSymlinks(payloadRoot) {
     byTarget.set(target, [...(byTarget.get(target) ?? []), link]);
   }
   const summary = { materialized: [], dropped: [], renamed: [] };
-  const rel = (file) => path.relative(realRoot, file);
+  const rel = (file) => path.relative(root, file);
   for (const [target, group] of byTarget) {
     const kept = group
       .filter((link) => referencedBy(path.basename(link), target))
@@ -294,6 +293,7 @@ export function populatePlatformPackage({
   version = readPins(repoRoot).version,
   extract = extractWithPipelineVerifier,
   scratchRoot = tmpdir(),
+  env = process.env,
 }) {
   const packageDir = path.join(packagesRoot, `swipl-${target}`);
   if (!existsSync(path.join(packageDir, "package.json"))) {
@@ -324,6 +324,7 @@ export function populatePlatformPackage({
       target,
       workdir: path.join(work, "verify"),
       repoRoot,
+      env,
     });
     // Only the four shipped entries leave the verified prefix (share/ holds
     // man pages and pkg-config metadata that the runtime never reads).

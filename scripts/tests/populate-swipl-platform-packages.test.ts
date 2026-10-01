@@ -285,7 +285,10 @@ describe("materializeSymlinks", () => {
 });
 
 /** Build a real pipeline archive (the pipeline's own writer) for TARGET. */
-function pipelineArchive(): { artifacts: string; archive: string } {
+function pipelineArchive(provenance: Record<string, string> = {}): {
+  artifacts: string;
+  archive: string;
+} {
   const base = tempDir("kibi-archive-");
   const script = String.raw`
 import importlib.util, json, sys
@@ -318,7 +321,11 @@ print(spike.write_archive(prefix, manifest, target, out))
 `;
   const result = spawnSync("python3", ["-c", script, ROOT, base, TARGET], {
     encoding: "utf8",
-    env: { PATH: process.env.PATH ?? "", PYTHONDONTWRITEBYTECODE: "1" },
+    env: {
+      PATH: process.env.PATH ?? "",
+      PYTHONDONTWRITEBYTECODE: "1",
+      ...provenance,
+    },
   });
   expect(result.status, result.stderr).toBe(0);
   return {
@@ -326,6 +333,16 @@ print(spike.write_archive(prefix, manifest, target, out))
     archive: result.stdout.trim().split("\n").pop() ?? "",
   };
 }
+
+/**
+ * The environment the verifier sees. Never inherit GITHUB_SHA/GITHUB_RUN_ID
+ * from the machine running the tests: on Actions they would be compared with
+ * the synthetic archive's embedded provenance.
+ */
+const cleanEnv = (extra: Record<string, string> = {}) => ({
+  PATH: process.env.PATH ?? "",
+  ...extra,
+});
 
 /** A packages root holding the real platform package manifest and its README placeholder. */
 function packagesRootFor(target = TARGET): string {
@@ -349,6 +366,7 @@ describe("populatePlatformPackage", () => {
       artifactsDir: artifacts,
       packagesRoot: packages,
       scratchRoot: tempDir("kibi-scratch-"),
+      env: cleanEnv(),
     });
     const dir = path.join(packages, `swipl-${TARGET}`);
     const files = listing(dir);
@@ -385,6 +403,7 @@ describe("populatePlatformPackage", () => {
       artifactsDir: artifacts,
       packagesRoot: packages,
       scratchRoot: tempDir("kibi-scratch-"),
+      env: cleanEnv(),
     });
     expect(existsSync(path.join(dir, "lib/stale.so"))).toBe(false);
     expect(existsSync(path.join(dir, "licenses/OLD-LICENSE"))).toBe(false);
@@ -445,8 +464,36 @@ archive.with_name(archive.name + '.sha256').write_text(hashlib.sha256(archive.re
         artifactsDir: artifacts,
         packagesRoot: packagesRootFor(),
         scratchRoot: tempDir("kibi-scratch-"),
+        env: cleanEnv(),
       }),
     ).toThrow("differs from trusted pin");
+  });
+
+  test("accepts an archive built by this run and refuses one built by another commit or run", () => {
+    const sha = "a".repeat(40);
+    const { artifacts } = pipelineArchive({
+      GITHUB_SHA: sha,
+      GITHUB_RUN_ID: "4242",
+    });
+    const populate = (env: Record<string, string>) =>
+      populatePlatformPackage({
+        target: TARGET,
+        artifactsDir: artifacts,
+        packagesRoot: packagesRootFor(),
+        scratchRoot: tempDir("kibi-scratch-"),
+        env,
+      });
+    const report = populate(
+      cleanEnv({ GITHUB_SHA: sha, GITHUB_RUN_ID: "4242" }),
+    );
+    expect(report.sourceCommit).toBe(sha);
+    expect(report.workflowRunId).toBe("4242");
+    expect(() =>
+      populate(cleanEnv({ GITHUB_SHA: "b".repeat(40), GITHUB_RUN_ID: "4242" })),
+    ).toThrow("Build provenance differs from this Actions run: sourceCommit");
+    expect(() =>
+      populate(cleanEnv({ GITHUB_SHA: sha, GITHUB_RUN_ID: "9999" })),
+    ).toThrow("Build provenance differs from this Actions run: workflowRunId");
   });
 
   test("refuses a package that declares a different SWI-Prolog version than the pin", () => {
