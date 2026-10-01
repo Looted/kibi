@@ -759,6 +759,35 @@ kibi gc --purge --retention-days 30
 - Stale = an exact or legacy store whose branch is not a local Git head or
   worktree branch; remote-only refs do not keep stores live
 
+## `kibi merge-driver <base> <current> <other>`
+
+Git merge driver for `.kb/symbols.yaml` and `.kb/relationships/*.yaml`. Git
+passes the ancestor (`%O`), current (`%A`), and other (`%B`) versions; the
+driver merges the record lists by `id` and writes the result to `<current>`.
+
+**Behavior:**
+- Keeps records added on either side, applies one-sided edits and deletions,
+  and unions relationships and links both sides added to one symbol
+- Reproduces the current file byte for byte when nothing changed
+- On a real conflict (both sides changed the same field differently, an edit
+  against a deletion, duplicate ids, or invalid YAML) prints each conflict,
+  leaves ordinary conflict markers, and exits 1
+
+**Setup:**
+```text
+# .gitattributes
+.kb/symbols.yaml merge=kibi
+.kb/relationships/*.yaml merge=kibi
+```
+```bash
+git config merge.kibi.driver "npm exec --no -- kibi merge-driver %O %A %B"
+```
+
+Regenerate `.kb/symbol-coordinates.yaml` after the merge with
+`kibi sync --refresh-symbol-coordinates`. For a CI job that applies this to
+open pull requests, see
+[GitHub badge + report](github-integration.md#merge-conflicts-in-kibi-manifests).
+
 ## `kibi branch`
 
 Lists and manages branch knowledge bases.

@@ -1,0 +1,146 @@
+# Kibi KB merge: keep pull requests mergeable when only Kibi manifests conflict.
+#
+# Copy this file to .github/workflows/kibi-kb-merge.yml.
+#
+# When the default branch moves, open pull requests often stop merging only
+# because both sides appended records to .kb/symbols.yaml (or to a
+# .kb/relationships shard). On every push to the default branch this workflow
+# test-merges each open same-repository pull request. When the only conflicts
+# are Kibi manifests, it merges the default branch into the PR branch with
+# `kibi merge-driver` (a three-way merge keyed by record id), regenerates
+# .kb/symbol-coordinates.yaml from the merged tree, and pushes the merge
+# commit. Any other conflict, or two sides changing the same field of one
+# record, is left for a person. Fork PRs are skipped: the workflow cannot push
+# to them.
+#
+# Token: pushes made with the default GITHUB_TOKEN do not start other
+# workflows, so the PR's checks would not re-run on the merge commit. Add a
+# repository secret KIBI_MERGE_TOKEN (a fine-grained personal access token or
+# GitHub App token limited to this repository, with Contents and Workflows
+# read/write) so they do. Workflows access is needed because a merge that
+# brings in changes under .github/workflows/ is rejected without it;
+# GITHUB_TOKEN can never push those merges. An expired secret fails the job;
+# it does not fall back to GITHUB_TOKEN.
+#
+# Package manager: this example uses npm (`cache: npm` and `npm ci`).
+# For pnpm, Yarn, or Bun, change those values; see
+# https://github.com/Looted/kibi/blob/develop/docs/github-integration.md
+
+name: Kibi KB merge
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kibi-kb-merge
+  cancel-in-progress: false
+
+jobs:
+  find-conflicts:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      branches: ${{ steps.find.outputs.branches }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+      - name: List PR branches whose only conflicts are Kibi manifests
+        id: find
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASE: ${{ github.event.repository.default_branch }}
+        run: |
+          set -euo pipefail
+          resolvable='^\.kb/(symbols\.yaml|symbol-coordinates\.yaml|relationships/[^/]+\.yaml)$'
+          branches='[]'
+          for head in $(gh pr list --base "$BASE" --state open --limit 200 \
+              --json headRefName,isCrossRepository \
+              --jq '.[] | select(.isCrossRepository | not) | .headRefName'); do
+            git fetch --quiet origin "+refs/heads/$head:refs/remotes/origin/$head"
+            status=0
+            out=$(git merge-tree --write-tree --name-only --no-messages \
+              "origin/$BASE" "origin/$head") || status=$?
+            if [ "$status" -eq 0 ]; then continue; fi
+            if [ "$status" -ne 1 ]; then
+              echo "::warning::Could not test-merge $head (git merge-tree exit $status)"
+              continue
+            fi
+            conflicts=$(printf '%s\n' "$out" | tail -n +2 | sed '/^$/d')
+            if printf '%s\n' "$conflicts" | grep -Evq "$resolvable"; then
+              echo "$head: needs a person ($(echo $conflicts))"
+              continue
+            fi
+            echo "$head: Kibi manifest conflicts only ($(echo $conflicts))"
+            branches=$(jq -c --arg b "$head" '. + [$b]' <<<"$branches")
+          done
+          echo "branches=$branches" >> "$GITHUB_OUTPUT"
+
+  resolve:
+    needs: find-conflicts
+    if: ${{ needs.find-conflicts.outputs.branches != '[]' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        branch: ${{ fromJSON(needs.find-conflicts.outputs.branches) }}
+    # GitHub Actions checkouts need an exact branch identity for kibi sync.
+    env:
+      KIBI_BRANCH: ${{ matrix.branch }}
+      BASE: ${{ github.event.repository.default_branch }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ matrix.branch }}
+          fetch-depth: 0
+          token: ${{ secrets.KIBI_MERGE_TOKEN || github.token }}
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Merge the default branch with the Kibi merge driver
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config merge.kibi.driver "npm exec --no -- kibi merge-driver %O %A %B"
+          printf '%s\n' '.kb/symbols.yaml merge=kibi' '.kb/relationships/*.yaml merge=kibi' \
+            >> .git/info/attributes
+          git merge --no-ff --no-commit "origin/$BASE" || true
+          if ! git rev-parse -q --verify MERGE_HEAD >/dev/null; then
+            echo "::error::Nothing to merge; the branch already contains $BASE or the merge could not start."
+            exit 1
+          fi
+          # Generated: take this side's copy, then regenerate from the merged tree.
+          if git diff --name-only --diff-filter=U | grep -qx '.kb/symbol-coordinates.yaml'; then
+            git checkout --ours -- .kb/symbol-coordinates.yaml
+            git add .kb/symbol-coordinates.yaml
+          fi
+          unmerged=$(git diff --name-only --diff-filter=U)
+          if [ -n "$unmerged" ]; then
+            echo "::error::Conflicts need a person: $(echo $unmerged)"
+            git merge --abort
+            exit 1
+          fi
+      - run: npm ci
+      - name: Regenerate symbol coordinates
+        run: |
+          npm exec -- kibi sync --refresh-symbol-coordinates
+          git add .kb/symbol-coordinates.yaml
+      - name: Commit and push the merge
+        run: |
+          set -euo pipefail
+          git commit -m "Merge $BASE into $KIBI_BRANCH" \
+            -m "Kibi merge driver resolved the .kb manifest conflicts; symbol coordinates regenerated."
+          git push origin "HEAD:refs/heads/$KIBI_BRANCH"

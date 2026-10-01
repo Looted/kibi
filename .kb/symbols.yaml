@@ -46589,3 +46589,32 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-mcp-kb-freshness
+  - id: SYM-test-cli-kb-merge-driver
+    title: KB manifest merge driver suite
+    status: active
+    sourceFile: packages/cli/tests/commands/merge-driver.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-cli-kb-merge-driver
+  - id: SYM-cli-kb-merge-manifests
+    title: mergeKbManifests
+    status: active
+    sourceFile: packages/cli/src/commands/merge-driver.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-kb-merge-driver
+      - type: implements
+        target: REQ-cli-kb-merge-driver
+  - id: SYM-cli-kb-merge-driver-command
+    title: mergeDriverCommand
+    status: active
+    sourceFile: packages/cli/src/commands/merge-driver.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-kb-merge-driver
+      - type: implements
+        target: REQ-cli-kb-merge-driver

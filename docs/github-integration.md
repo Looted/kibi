@@ -205,6 +205,68 @@ rather than pretending a report exists:
 `--badge-only` without `--github` is rejected. `--github` by itself always
 means badge + full report.
 
+## Merge conflicts in Kibi manifests
+
+Two branches that each add symbols both append to the end of
+`.kb/symbols.yaml` (and sometimes to the same `.kb/relationships/*.yaml`
+shard), so Git reports a conflict even though the additions are independent.
+`kibi merge-driver` is a Git merge driver that merges these manifests by
+record id instead of by line:
+
+- records added on either side are kept (ours first, then theirs)
+- an edit made on only one side wins over the unchanged other side
+- a deletion on one side is kept when the other side left the record unchanged
+- relationships and links that both sides added to one symbol are unioned
+- anything else both sides changed differently (for example two different
+  `status` values) is a real conflict: the driver names it, leaves ordinary
+  conflict markers, and exits non-zero so the file stays unmerged
+
+`.kb/symbol-coordinates.yaml` is generated, so it is never merged by hand:
+take either side and run `kibi sync --refresh-symbol-coordinates` on the
+merged tree.
+
+### Locally
+
+Declare the driver in the repository's `.gitattributes`:
+
+```text
+.kb/symbols.yaml merge=kibi
+.kb/relationships/*.yaml merge=kibi
+```
+
+Then each clone opts in once (Git never runs a driver from repository
+content alone):
+
+```bash
+git config merge.kibi.driver "npm exec --no -- kibi merge-driver %O %A %B"
+```
+
+Without that setting Git ignores the attribute and falls back to its normal
+line merge, so declaring it is safe for contributors who do not use Kibi.
+
+### In CI
+
+Copy [docs/examples/github/kibi-kb-merge.yml](examples/github/kibi-kb-merge.yml)
+to `.github/workflows/kibi-kb-merge.yml`. On every push to the default branch
+it test-merges each open same-repository pull request with
+`git merge-tree`. When the only conflicts are Kibi manifests, it merges the
+default branch into the PR branch with `kibi merge-driver`, regenerates
+`.kb/symbol-coordinates.yaml` from the merged tree, and pushes the merge
+commit. Pull requests with any other conflict, or a real conflict inside a
+manifest, are left untouched for a person. Fork pull requests are skipped
+because the workflow cannot push to them.
+
+Pushes made with the default `GITHUB_TOKEN` do not start other workflows, so
+the pull request's checks would not re-run on the merge commit. Add a
+repository secret named `KIBI_MERGE_TOKEN` and the workflow pushes with it
+instead. Use a fine-grained personal access token or GitHub App token limited
+to the repository, with **Contents** and **Workflows** set to read and write.
+Workflows access is needed because a merge that brings in changes under
+`.github/workflows/` is rejected without it; the default `GITHUB_TOKEN` can
+never push those merges. An expired secret fails the job rather than falling
+back to `GITHUB_TOKEN`, so renew it or delete the secret. The same
+package-manager adaptations as the report workflow apply.
+
 ## Troubleshooting
 
 **The workflow succeeds but `https://OWNER.github.io/REPOSITORY/kibi-report/` is 404.**

@@ -93,14 +93,19 @@ jobs:
         env:
           UV_VERSION: "0.9.26"
           CODEX_CLI_VERSION: "0.144.6"
+          # Same pnpm as ci.yml's packed MCP job; the newest pnpm fails the
+          # offline upgrade in mcp-pnpm-upgrade-stale-path.test.ts.
+          PNPM_VERSION: "10.24.0"
         run: |
           curl --fail --silent --show-error --location \
             "https://astral.sh/uv/${UV_VERSION}/install.sh" | sh
           export PATH="$HOME/.local/bin:$PATH"
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
           npm install --global "@openai/codex@${CODEX_CLI_VERSION}"
+          npm install --global "pnpm@${PNPM_VERSION}"
           uv --version
           codex --version
+          test "$(pnpm --version)" = "$PNPM_VERSION"
           bwrap --version
           uv sync --project tools/skillopt --frozen
           uv run --project tools/skillopt python tools/skillopt/verify_pin.py
