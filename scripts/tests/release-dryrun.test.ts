@@ -53,6 +53,10 @@ function loadPackageManifest(dir: string): { name: string; version: string } {
 // Derived from the canonical constant to avoid drift when packages are added/removed.
 const PUBLISHABLE_DIRS_LIST = PUBLISHABLE_DIRS;
 
+const PLATFORM_PACKAGE_DIRS = PUBLISHABLE_DIRS_LIST.filter((dir) =>
+  dir.startsWith("swipl-"),
+);
+
 const ALL_PACKAGES: Record<string, { name: string; version: string }> = {};
 for (const dir of PUBLISHABLE_DIRS_LIST) {
   ALL_PACKAGES[dir] = loadPackageManifest(dir);
@@ -228,7 +232,7 @@ describe("release dry-run: no-commit master publish model", () => {
       expect(decision.action).toBe("PUBLISH_ONLY_RERUN");
       expect(decision.reason).toContain("already published");
 
-      expect(decision.packages).toHaveLength(9);
+      expect(decision.packages).toHaveLength(10 + PLATFORM_PACKAGE_DIRS.length);
       const dirs = decision.packages.map((p) => p.dir).sort();
       expect(dirs).toEqual([
         "agent-core",
@@ -240,6 +244,11 @@ describe("release dry-run: no-commit master publish model", () => {
         "plugin-jev",
         "plugin-sdk",
         "runtime",
+        "swipl",
+        "swipl-darwin-arm64",
+        "swipl-darwin-x64",
+        "swipl-linux-arm64-gnu",
+        "swipl-linux-x64-gnu",
       ]);
 
       for (const pkg of decision.packages) {
@@ -275,6 +284,11 @@ describe("release dry-run: no-commit master publish model", () => {
         "plugin-jev",
         "plugin-sdk",
         "runtime",
+        "swipl",
+        "swipl-darwin-arm64",
+        "swipl-darwin-x64",
+        "swipl-linux-arm64-gnu",
+        "swipl-linux-x64-gnu",
       ]);
     });
 
@@ -290,6 +304,10 @@ describe("release dry-run: no-commit master publish model", () => {
         `${ALL_PACKAGES["agent-core"].name}@${ALL_PACKAGES["agent-core"].version}`,
         `${ALL_PACKAGES["plugin-builtin"].name}@${ALL_PACKAGES["plugin-builtin"].version}`,
         `${ALL_PACKAGES["plugin-jev"].name}@${ALL_PACKAGES["plugin-jev"].version}`,
+        `${ALL_PACKAGES.swipl.name}@${ALL_PACKAGES.swipl.version}`,
+        ...PLATFORM_PACKAGE_DIRS.map(
+          (dir) => `${ALL_PACKAGES[dir].name}@${ALL_PACKAGES[dir].version}`,
+        ),
       ]);
       const ctx = makeContext({
         changesetFiles: NO_CHANGESETS,
@@ -482,11 +500,16 @@ Expected action: NOOP
         "plugin-jev",
         "plugin-sdk",
         "runtime",
+        "swipl",
+        "swipl-darwin-arm64",
+        "swipl-darwin-x64",
+        "swipl-linux-arm64-gnu",
+        "swipl-linux-x64-gnu",
       ]);
 
       // --- PUBLISH_ONLY_RERUN only includes unpublished packages ---
       // The runner omits already-published packages from decision.packages.
-      expect(decision.packages).toHaveLength(9);
+      expect(decision.packages).toHaveLength(10 + PLATFORM_PACKAGE_DIRS.length);
       const pkgDirs = decision.packages
         .map((p: { dir: string }) => p.dir)
         .sort();
@@ -500,6 +523,11 @@ Expected action: NOOP
         "plugin-jev",
         "plugin-sdk",
         "runtime",
+        "swipl",
+        "swipl-darwin-arm64",
+        "swipl-darwin-x64",
+        "swipl-linux-arm64-gnu",
+        "swipl-linux-x64-gnu",
       ]);
 
       // --- None of the returned packages are already published ---
@@ -539,6 +567,11 @@ Summary:
         "agent-core",
         "plugin-builtin",
         "plugin-jev",
+        "swipl-linux-x64-gnu",
+        "swipl-linux-arm64-gnu",
+        "swipl-darwin-arm64",
+        "swipl-darwin-x64",
+        "swipl",
         "runtime",
         "cli",
         "mcp",
@@ -558,6 +591,11 @@ Summary:
         "plugin-jev",
         "plugin-sdk",
         "runtime",
+        "swipl",
+        "swipl-darwin-arm64",
+        "swipl-darwin-x64",
+        "swipl-linux-arm64-gnu",
+        "swipl-linux-x64-gnu",
       ]);
     });
   });

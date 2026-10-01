@@ -195,3 +195,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e2f9421ed688
+  - type: implements
+    from: SYM-prolog-build-build
+    to: REQ-prolog-build-pipeline-validation
+    created_at: 2026-09-30T17:51:26.828Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c13b3eaa1fff
+  - type: covered_by
+    from: SYM-prolog-build-build
+    to: TEST-prolog-build-pipeline-validation
+    created_at: 2026-09-30T17:51:26.867Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dd082980b20b

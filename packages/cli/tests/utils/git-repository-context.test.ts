@@ -7,6 +7,7 @@ import {
   existsSync,
   mkdirSync,
   mkdtempSync,
+  realpathSync,
   rmSync,
   writeFileSync,
 } from "node:fs";
@@ -31,7 +32,9 @@ describe("resolveGitRepository", () => {
   let globalConfigPath: string;
 
   beforeEach(() => {
-    tmpRoot = mkdtempSync(path.join(os.tmpdir(), "kibi-git-context-"));
+    tmpRoot = realpathSync.native(
+      mkdtempSync(path.join(os.tmpdir(), "kibi-git-context-")),
+    );
     envRestores = [];
     globalConfigPath = path.join(
       os.tmpdir(),

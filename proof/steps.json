@@ -1,5 +1,50 @@
 [
   {
+    "test_id": "TEST-scripts-coverage-shard-isolation",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./scripts/tests/unit-coverage-runner.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-prolog-build-pipeline-validation",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "15000",
+        "--isolate",
+        "--max-concurrency=1",
+        "./scripts/tests/swipl-build-pipeline.test.ts",
+        "./scripts/tests/swipl-spike-config.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-prolog-spike-config-validation",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./scripts/tests/swipl-spike-config.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-prolog-coverage-test-selection",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/core/tests/prolog-coverage-runner.test.ts"
+      ]
+    ]
+  },
+  {
     "test_id": "TEST-kibi-source-relationship-parity",
     "steps": [
       [
@@ -229,6 +274,16 @@
         "--timeout",
         "120000",
         "./packages/cli/tests/engine.test.ts"
+      ],
+      [
+        "node",
+        "scripts/run-owned-engine-tests.mjs",
+        "--",
+        "bun",
+        "test",
+        "--timeout",
+        "15000",
+        "./packages/cli/tests/engine-runtime-paths.test.ts"
       ]
     ]
   },
@@ -244,6 +299,16 @@
         "--timeout",
         "120000",
         "./packages/cli/tests/engine.test.ts"
+      ],
+      [
+        "node",
+        "scripts/run-owned-engine-tests.mjs",
+        "--",
+        "bun",
+        "test",
+        "--timeout",
+        "15000",
+        "./packages/cli/tests/engine-runtime-paths.test.ts"
       ]
     ]
   },
@@ -286,6 +351,13 @@
         "./packages/cli/tests/operations/compile-intent-coverage.test.ts",
         "./packages/cli/tests/operations/compile-intent-remaining.coverage.test.ts",
         "./packages/cli/tests/operations/apply-plan-recovery-coverage.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "15000",
+        "./packages/cli/tests/operations/workspace-path-alias.test.ts"
       ]
     ]
   },
@@ -316,6 +388,16 @@
         "node",
         "scripts/run-proof-packed-e2e.mjs",
         "documentation/tests/e2e/packed/github-report-integration.test.ts"
+      ],
+      [
+        "node",
+        "scripts/run-owned-engine-tests.mjs",
+        "--",
+        "bun",
+        "test",
+        "--timeout",
+        "15000",
+        "./packages/cli/tests/commands/github-init.test.ts"
       ]
     ]
   },
@@ -559,6 +641,13 @@
         "node",
         "scripts/run-proof-packed-e2e.mjs",
         "documentation/tests/e2e/packed/init-sync-check.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "15000",
+        "./packages/cli/tests/operations/workspace-path-alias.test.ts"
       ]
     ]
   },
@@ -1025,6 +1114,13 @@
         "node",
         "scripts/run-proof-packed-e2e.mjs",
         "documentation/tests/e2e/packed/mcp-cli-operation-parity.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "15000",
+        "./packages/cli/tests/parity/helpers.test.ts"
       ]
     ]
   },
@@ -1037,6 +1133,18 @@
         "./scripts/skillopt-eval/tests/adoption.test.ts",
         "./scripts/skillopt-eval/tests/adoption-exactly-once.test.ts",
         "./scripts/skillopt-eval/tests/adoption-recovery.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "15000",
+        "--isolate",
+        "--max-concurrency=1",
+        "./scripts/skillopt-eval/tests/adoption-lock.test.ts",
+        "./scripts/skillopt-eval/tests/adoption-lock.contention.test.ts",
+        "./scripts/skillopt-eval/tests/adoption-lock.remaining.coverage.test.ts",
+        "./scripts/tests/sync-agent-skills.test.ts"
       ],
       [
         "node",
@@ -1142,6 +1250,13 @@
         "node",
         "scripts/run-proof-packed-e2e.mjs",
         "documentation/tests/e2e/packed/cli-plan-compiler-hash.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "15000",
+        "./packages/cli/tests/operations/workspace-path-alias.test.ts"
       ]
     ]
   },
@@ -1335,6 +1450,23 @@
     ]
   },
   {
+    "test_id": "TEST-native-cli-suite-diagnostics",
+    "steps": [
+      [
+        "node",
+        "-e",
+        "if (process.platform !== 'linux') { console.error('Native CLI diagnostics proof requires Linux'); process.exit(1); }"
+      ],
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "15000",
+        "./scripts/tests/swipl-spike-diagnostics.test.ts"
+      ]
+    ]
+  },
+  {
     "test_id": "TEST-docs-readme-published-links",
     "steps": [
       [
@@ -1344,6 +1476,100 @@
         "--timeout",
         "120000",
         "./scripts/tests/readme-published-docs.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-prolog-bundled-runtime",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "15000",
+        "--isolate",
+        "--max-concurrency=1",
+        "./packages/cli/tests/prolog/swipl-resolver.test.ts",
+        "./packages/cli/tests/prolog/swipl-package.test.ts",
+        "./packages/cli/tests/prolog/swipl-launch-env.test.ts",
+        "./scripts/tests/swipl-packages.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-prolog-daemon-runtime-identity",
+    "steps": [
+      [
+        "node",
+        "scripts/run-owned-engine-tests.mjs",
+        "--",
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/engine-runtime-identity.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-prolog-doctor-runtime-report",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "60000",
+        "./packages/cli/tests/commands/doctor-swipl-runtime.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-prolog-bundled-release",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "60000",
+        "--isolate",
+        "--max-concurrency=1",
+        "./scripts/tests/populate-swipl-platform-packages.test.ts",
+        "./scripts/tests/release-pack-workflow-contract.test.ts",
+        "./scripts/tests/verify-publish-metadata.test.ts",
+        "./scripts/tests/package-catalog.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-prolog-bundled-ci",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "60000",
+        "--isolate",
+        "--max-concurrency=1",
+        "./scripts/tests/ci-workflow-contract.test.ts",
+        "./scripts/tests/proof-workflow-contract.test.ts",
+        "./scripts/tests/replay-proof-ci.test.ts",
+        "./scripts/tests/populate-swipl-platform-packages.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-prolog-bundled-quickstart",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "60000",
+        "--isolate",
+        "--max-concurrency=1",
+        "./scripts/tests/bundled-swipl-docs.test.ts",
+        "./scripts/tests/simulate-readme-quickstart.test.ts",
+        "./scripts/tests/release-pack-workflow-contract.test.ts"
       ]
     ]
   }

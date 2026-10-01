@@ -1,5 +1,4 @@
 import { createHash, randomUUID } from "node:crypto";
-import { existsSync, realpathSync } from "node:fs";
 import path from "node:path";
 
 import { OperationError } from "../../cli-errors.js";
@@ -21,6 +20,7 @@ import {
 import { readMigrationConfigStatus } from "../../public/operations/migration-plan.js";
 import type { OperationContext } from "../../public/operations/runtime-types.js";
 import { readWorkspaceSnapshot } from "../../public/operations/workspace-snapshot.js";
+import { canonicalFilesystemPath } from "../../utils/canonical-path.js";
 import { isDerivedKbPath } from "../../utils/kb-paths.js";
 import {
   type BootstrapAction,
@@ -678,17 +678,11 @@ async function applySourceWrites(
           "Apply plan failed: sourceWrites.path cannot target Kibi's derived .kb runtime trees",
         );
       }
-      let existingPath = absolute;
-      while (
-        !existsSync(existingPath) &&
-        path.dirname(existingPath) !== existingPath
-      ) {
-        existingPath = path.dirname(existingPath);
-      }
-      const realExisting = realpathSync.native(existingPath);
+      const realRoot = canonicalFilesystemPath(root);
+      const realExisting = canonicalFilesystemPath(absolute);
       if (
-        realExisting !== root &&
-        !realExisting.startsWith(`${root}${path.sep}`)
+        realExisting !== realRoot &&
+        !realExisting.startsWith(`${realRoot}${path.sep}`)
       ) {
         throw new Error(
           `Apply plan failed: sourceWrites.path follows a symlink outside the workspace: ${write.path}`,

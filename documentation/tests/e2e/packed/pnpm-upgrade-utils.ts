@@ -28,6 +28,7 @@ export interface Tarballs {
   mcp: string;
   "plugin-sdk": string;
   "plugin-builtin": string;
+  swipl: string;
 }
 
 // executable_for TEST-test-journaled-engine-harness
@@ -317,5 +318,6 @@ export async function packAllForPnpmUpgrade(): Promise<Tarballs> {
     mcp: tarballs.mcp,
     "plugin-sdk": tarballs["plugin-sdk"],
     "plugin-builtin": tarballs["plugin-builtin"],
+    swipl: tarballs.swipl,
   };
 }

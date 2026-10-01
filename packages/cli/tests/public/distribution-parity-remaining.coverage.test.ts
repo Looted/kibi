@@ -1,6 +1,6 @@
 // implements REQ-kibi-distribution-parity-matrix
 import { afterEach, describe, expect, test } from "bun:test";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, realpathSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import {
   type DistributionRuntime,
@@ -52,7 +52,7 @@ describe("distribution-parity leftover provenance, normalize, and issue branches
   test("resolves import entrypoints, missing versions, and invalid manifests", () => {
     const restoreEnv = isolateKibiEnv();
     restores.push(restoreEnv);
-    const root = createTempDir("kibi-parity-rem-");
+    const root = realpathSync.native(createTempDir("kibi-parity-rem-"));
     roots.push(root);
     const nested = path.join(root, "pkg", "dist");
     mkdirSync(nested, { recursive: true });
@@ -91,7 +91,9 @@ describe("distribution-parity leftover provenance, normalize, and issue branches
     const unreadable = resolveDistributionRuntimeProvenance(root);
     expect(unreadable.status).toBe("unresolved");
 
-    const importOnly = createTempDir("kibi-parity-import-");
+    const importOnly = realpathSync.native(
+      createTempDir("kibi-parity-import-"),
+    );
     roots.push(importOnly);
     const imported = path.join(importOnly, "imported.js");
     writeFileSync(imported, "export {};\n");

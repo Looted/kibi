@@ -160,6 +160,13 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-800ee562f876
+  - type: validates
+    from: TEST-prolog-coverage-test-selection
+    to: SCEN-prolog-coverage-test-selection
+    created_at: 2026-09-30T09:07:53.339Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-27f4d1f798dc
   - type: implements
     from: SYM-docs-site-theme-escapeHtml
     to: REQ-docs-site-root-pages

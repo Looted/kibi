@@ -17,7 +17,13 @@
 */
 
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  writeFileSync,
+} from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -176,9 +182,15 @@ export function hasKibiBadge(content: string): boolean {
 }
 
 export function detectReadmePath(cwd: string): string | undefined {
+  let entries: Set<string>;
+  try {
+    entries = new Set(readdirSync(cwd));
+  } catch {
+    return undefined;
+  }
   for (const name of README_CANDIDATES) {
     const candidate = path.join(cwd, name);
-    if (existsSync(candidate)) {
+    if (entries.has(name) && existsSync(candidate)) {
       return candidate;
     }
   }

@@ -314,3 +314,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-41a5b8bd2f74
+  - type: executable_for
+    from: SYM-test-helper-install-fake-swipl
+    to: TEST-prolog-doctor-runtime-report
+    created_at: 2026-09-30T22:57:05.400Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7c6216af96bb

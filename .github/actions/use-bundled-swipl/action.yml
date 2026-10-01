@@ -1,0 +1,52 @@
+name: Use the pipeline-built SWI-Prolog
+description: >-
+  Populate the kibi-swipl-linux-x64-gnu workspace package from the archive that
+  .github/workflows/swipl-ci-bundle.yml produced in this run, re-verifying it,
+  and put its swipl on PATH. Requires Bun and a checkout.
+
+inputs:
+  verify-resolver:
+    description: >-
+      Also assert that Kibi's resolveSwipl() picks the bundled build. Needs the
+      workspace dependencies to be installed.
+    default: "false"
+
+runs:
+  using: composite
+  steps:
+    - name: Download the archive
+      uses: actions/download-artifact@v5
+      with:
+        name: kibi-ci-swipl
+        path: ${{ runner.temp }}/swipl-ci-artifacts
+    - name: Verify the archive and populate the platform package
+      shell: bash
+      run: >-
+        bun scripts/populate-swipl-platform-packages.mjs
+        --artifacts "$RUNNER_TEMP/swipl-ci-artifacts"
+        --targets linux-x64-gnu --cached-build
+    - name: Put the bundled swipl on PATH
+      shell: bash
+      run: echo "$GITHUB_WORKSPACE/packages/swipl-linux-x64-gnu/bin" >> "$GITHUB_PATH"
+    - name: Confirm version and library(prolog_coverage)
+      shell: bash
+      run: |
+        set -euo pipefail
+        export PATH="$GITHUB_WORKSPACE/packages/swipl-linux-x64-gnu/bin:$PATH"
+        test "$(command -v swipl)" = "$GITHUB_WORKSPACE/packages/swipl-linux-x64-gnu/bin/swipl"
+        swipl --version
+        swipl -q -g "use_module(library(prolog_coverage)), halt" -t "halt(1)"
+    - name: Confirm Kibi resolves the bundled build
+      if: ${{ inputs.verify-resolver == 'true' }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        bun -e '
+          import { resolveSwipl } from "./packages/cli/src/prolog/swipl-resolver.ts";
+          const resolved = resolveSwipl({ ...process.env, KIBI_SWIPL: "" });
+          console.log(JSON.stringify(resolved));
+          if (resolved.source !== "bundled") {
+            console.error(`expected the bundled build, resolved ${resolved.source}`);
+            process.exit(1);
+          }
+        '

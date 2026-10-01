@@ -213,3 +213,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-38afd554d3ba
+  - type: executable_for
+    from: SYM-test-prolog-bundled-runtime
+    to: TEST-prolog-bundled-runtime
+    created_at: 2026-09-30T22:49:39.664Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-44e75e69a369
+  - type: implements
+    from: SYM-prolog-release-materialize-symlinks
+    to: REQ-prolog-bundled-release
+    created_at: 2026-10-01T00:21:56.268Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bec49f4631cb
+  - type: covered_by
+    from: SYM-prolog-release-materialize-symlinks
+    to: TEST-prolog-bundled-release
+    created_at: 2026-10-01T00:21:56.284Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fe2b49dc2626

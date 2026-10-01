@@ -139,3 +139,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f16775bd1ba0
+  - type: implements
+    from: SYM-prolog-build-smoke
+    to: REQ-prolog-build-pipeline-validation
+    created_at: 2026-09-30T17:52:42.817Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-78642b4e0553
+  - type: covered_by
+    from: SYM-prolog-build-smoke
+    to: TEST-prolog-build-pipeline-validation
+    created_at: 2026-09-30T17:52:42.842Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0ceadd2e9bc2
+  - type: implements
+    from: SYM-prolog-swipl-resolution-error
+    to: REQ-prolog-bundled-runtime
+    created_at: 2026-09-30T22:55:44.980Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c05350242a3c
+  - type: covered_by
+    from: SYM-prolog-swipl-resolution-error
+    to: TEST-prolog-bundled-runtime
+    created_at: 2026-09-30T22:55:45.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cf147fe25f99
+  - type: covered_by
+    from: SYM-prolog-quickstart-parse-args
+    to: TEST-prolog-bundled-quickstart
+    created_at: 2026-10-01T03:49:21.925Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-74d54ec3ff4e
+  - type: implements
+    from: SYM-prolog-quickstart-parse-args
+    to: REQ-prolog-bundled-quickstart
+    created_at: 2026-10-01T03:49:21.946Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce3e996f4646

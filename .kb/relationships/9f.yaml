@@ -123,6 +123,20 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-eaf6d8690b1a
   - type: implements
+    from: SYM-prolog-build-main
+    to: REQ-prolog-build-pipeline-validation
+    created_at: 2026-09-30T17:53:48.748Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-26697c31941a
+  - type: covered_by
+    from: SYM-prolog-build-main
+    to: TEST-prolog-build-pipeline-validation
+    created_at: 2026-09-30T17:53:48.811Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4f00a0191f01
+  - type: implements
     from: SYM-docs-site-catalog-publishedPageHref
     to: REQ-docs-readme-published-links
     created_at: 2026-09-29T13:35:31.535Z
@@ -136,3 +150,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9b1014aea491
+  - type: implements
+    from: SYM-prolog-swipl-swiplsource-src
+    to: REQ-prolog-bundled-runtime
+    created_at: 2026-09-30T23:35:26.370Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-12d5d034b44c
+  - type: covered_by
+    from: SYM-prolog-swipl-swiplsource-src
+    to: TEST-prolog-bundled-runtime
+    created_at: 2026-09-30T23:35:26.386Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-83aaabef7645
+  - type: implements
+    from: SYM-prolog-swipl-manifest-file-js
+    to: REQ-prolog-bundled-runtime
+    created_at: 2026-09-30T23:36:27.618Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-955d62a9258f
+  - type: covered_by
+    from: SYM-prolog-swipl-manifest-file-js
+    to: TEST-prolog-bundled-runtime
+    created_at: 2026-09-30T23:36:27.645Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-02ad38ed8275

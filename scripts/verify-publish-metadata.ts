@@ -29,7 +29,10 @@
 
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { PLATFORM_PACKAGES } from "../packages/swipl/index.js";
 import { PUBLISHABLE_DIRS } from "./release-state";
+import swiplPins from "./swipl-version.json";
+import { verifySwiplPayload } from "./verify-swipl-payload.mjs";
 
 type PublishMetadataIssue = {
   pkg: string;
@@ -81,10 +84,130 @@ function readPackageJson(
   );
 }
 
+const PAYLOAD_FILES = ["bin/", "lib/", "licenses/", "build-manifest.json"];
+const INSTALL_HOOKS = ["preinstall", "install", "postinstall"];
+
+type SwiplManifest = {
+  name?: string;
+  version?: string;
+  os?: string[];
+  cpu?: string[];
+  libc?: string[];
+  files?: string[];
+  scripts?: Record<string, string>;
+  optionalDependencies?: Record<string, string>;
+  kibi?: { swiplVersion?: string; target?: string };
+};
+
+/**
+ * Release invariants of the kibi-swipl package family: the resolver lists every
+ * platform package at the version that will be published beside it, each
+ * platform package restricts os/cpu/libc, ships only the payload, has no
+ * install scripts, pins the SWI-Prolog version of scripts/swipl-version.json,
+ * and (when the payload is required, i.e. after release population) carries a
+ * runtime whose binary matches its manifest.
+ */
+// implements REQ-prolog-bundled-release
+export function verifySwiplFamilyMetadata(
+  packagesRoot: string,
+  options: { requirePayload?: boolean } = {},
+): PublishMetadataIssue[] {
+  const issues: PublishMetadataIssue[] = [];
+  const read = (dir: string): SwiplManifest | undefined => {
+    try {
+      return readPackageJson(packagesRoot, dir) as SwiplManifest;
+    } catch {
+      return undefined;
+    }
+  };
+  const resolver = read("swipl");
+  if (resolver === undefined) {
+    return [{ pkg: "swipl", problem: "package.json is missing or unreadable" }];
+  }
+  const pinned = swiplPins.version;
+  if (resolver.kibi?.swiplVersion !== pinned) {
+    issues.push({
+      pkg: "swipl",
+      problem: `kibi.swiplVersion '${String(resolver.kibi?.swiplVersion)}' does not match the pinned SWI-Prolog ${pinned}`,
+    });
+  }
+  const listed = Object.keys(resolver.optionalDependencies ?? {}).sort();
+  const platformNames = Object.values(PLATFORM_PACKAGES)
+    .map((entry) => entry.package)
+    .sort();
+  if (JSON.stringify(listed) !== JSON.stringify(platformNames)) {
+    issues.push({
+      pkg: "swipl",
+      problem: `optionalDependencies must list exactly ${platformNames.join(", ")}`,
+    });
+  }
+  for (const [target, entry] of Object.entries(PLATFORM_PACKAGES)) {
+    const dir = `swipl-${target}`;
+    const manifest = read(dir);
+    if (manifest === undefined) {
+      issues.push({
+        pkg: dir,
+        problem: "package.json is missing or unreadable",
+      });
+      continue;
+    }
+    const problem = (text: string) => issues.push({ pkg: dir, problem: text });
+    if (manifest.name !== entry.package) {
+      problem(`name '${String(manifest.name)}' must be '${entry.package}'`);
+    }
+    if (manifest.version !== resolver.version) {
+      problem(
+        `version '${String(manifest.version)}' must match kibi-swipl ${String(resolver.version)} (fixed group)`,
+      );
+    }
+    if (resolver.optionalDependencies?.[entry.package] !== manifest.version) {
+      problem(
+        `kibi-swipl must depend on ${entry.package} at exactly ${String(manifest.version)}`,
+      );
+    }
+    if (manifest.kibi?.target !== target) {
+      problem(`kibi.target must be '${target}'`);
+    }
+    if (manifest.kibi?.swiplVersion !== pinned) {
+      problem(
+        `kibi.swiplVersion '${String(manifest.kibi?.swiplVersion)}' does not match the pinned SWI-Prolog ${pinned}`,
+      );
+    }
+    if (JSON.stringify(manifest.os) !== JSON.stringify([entry.os])) {
+      problem(`os must be ["${entry.os}"]`);
+    }
+    if (JSON.stringify(manifest.cpu) !== JSON.stringify([entry.cpu])) {
+      problem(`cpu must be ["${entry.cpu}"]`);
+    }
+    const libc = "libc" in entry ? [entry.libc] : undefined;
+    if (JSON.stringify(manifest.libc) !== JSON.stringify(libc)) {
+      problem(`libc must be ${JSON.stringify(libc)}`);
+    }
+    if (JSON.stringify(manifest.files) !== JSON.stringify(PAYLOAD_FILES)) {
+      problem(`files must be exactly ${JSON.stringify(PAYLOAD_FILES)}`);
+    }
+    for (const hook of INSTALL_HOOKS) {
+      if (manifest.scripts?.[hook] !== undefined) {
+        problem(`install script '${hook}' is not allowed`);
+      }
+    }
+    if (!manifest.scripts?.prepack?.includes("verify-swipl-payload")) {
+      problem("prepack must run scripts/verify-swipl-payload.mjs");
+    }
+    if (options.requirePayload === true) {
+      for (const reason of verifySwiplPayload(join(packagesRoot, dir))) {
+        problem(`bundled runtime payload: ${reason}`);
+      }
+    }
+  }
+  return issues;
+}
+
 // implements REQ-020
 export function verifyPublishMetadata(
   packagesRoot: string,
   env: NodeJS.ProcessEnv = process.env,
+  options: { requireSwiplPayload?: boolean } = {},
 ): PublishMetadataIssue[] {
   const expected = expectedRepositoryUrl(env);
   const issues: PublishMetadataIssue[] = [];
@@ -183,12 +306,19 @@ export function verifyPublishMetadata(
     }
   }
 
+  issues.push(
+    ...verifySwiplFamilyMetadata(packagesRoot, {
+      requirePayload: options.requireSwiplPayload === true,
+    }),
+  );
   return issues;
 }
 
-export function main(): number {
+export function main(argv: readonly string[] = process.argv.slice(2)): number {
   const packagesRoot = join(process.cwd(), "packages");
-  const issues = verifyPublishMetadata(packagesRoot);
+  const issues = verifyPublishMetadata(packagesRoot, process.env, {
+    requireSwiplPayload: argv.includes("--require-swipl-payload"),
+  });
 
   if (issues.length > 0) {
     console.error(

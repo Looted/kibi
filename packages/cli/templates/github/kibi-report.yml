@@ -42,10 +42,6 @@ jobs:
         with:
           node-version: 24
           cache: npm
-      - name: Install SWI-Prolog
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y swi-prolog
       - run: npm ci
       - run: npm exec -- kibi sync
       - run: npm exec -- kibi report --output kibi-report

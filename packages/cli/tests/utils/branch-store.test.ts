@@ -2,6 +2,7 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
+import { currentBootId } from "../../src/prolog/store-lock.js";
 import {
   branchStorePath,
   ensureBranchStoreManifest,
@@ -76,14 +77,28 @@ describe("storeLockJournalReason", () => {
     });
   });
 
-  test("treats a live pid recorded under a different boot id as stale", () => {
-    const store = makeStoreWithJournal({
-      pid: 1,
-      bootId: "boot-other-universe",
-    });
-    // pid 1 is alive on every unix-like system; the mismatched boot id —
-    // not pid liveness — is what proves the holder is stale.
-    expect(storeLockJournalReason(store)?.code).toBe("store_lock_stale");
+  test("uses a mismatched boot id as stale evidence only when the host exposes one", async () => {
+    const holder = Bun.spawn(
+      [process.execPath, "-e", "setInterval(() => {}, 1000)"],
+      {
+        stdout: "ignore",
+        stderr: "ignore",
+      },
+    );
+    try {
+      const store = makeStoreWithJournal({
+        pid: holder.pid,
+        bootId: "boot-other-universe",
+      });
+      // A live holder can be proven stale from a foreign boot only on a host
+      // that provides boot identity. Without it, conservatively retain the lock.
+      if (currentBootId() === null)
+        expect(storeLockJournalReason(store)).toBeNull();
+      else expect(storeLockJournalReason(store)?.code).toBe("store_lock_stale");
+    } finally {
+      holder.kill();
+      await holder.exited;
+    }
   });
 
   test("stays quiet while a live same-host holder is recorded", () => {

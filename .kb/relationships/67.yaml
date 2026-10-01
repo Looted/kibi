@@ -195,3 +195,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c67fd997dbb1
+  - type: implements
+    from: SYM-prolog-swipl-platformpackage-dts
+    to: REQ-prolog-bundled-runtime
+    created_at: 2026-09-30T23:36:10.366Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9607104c07df
+  - type: covered_by
+    from: SYM-prolog-swipl-platformpackage-dts
+    to: TEST-prolog-bundled-runtime
+    created_at: 2026-09-30T23:36:10.376Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-632fe278d6de
+  - type: covered_by
+    from: SYM-prolog-quickstart-packed-tarballs
+    to: TEST-prolog-bundled-quickstart
+    created_at: 2026-10-01T03:49:05.060Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e0536770e0d4
+  - type: implements
+    from: SYM-prolog-quickstart-packed-tarballs
+    to: REQ-prolog-bundled-quickstart
+    created_at: 2026-10-01T03:49:05.079Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b8770c24a730

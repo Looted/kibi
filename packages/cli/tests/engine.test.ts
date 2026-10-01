@@ -476,8 +476,26 @@ describe("journaled engine", () => {
     // the daemon queue stays busy until the goal returns. The client still
     // rejects locally and must not tear down the socket (no "Kibi engine
     // connection closed"). Cancel marks are per-connection so a sibling
-    // EngineClient reusing id=1 is not poisoned by this cancelOf.
+    // EngineClient reusing the same first query ID is not poisoned by cancelOf.
     const root = tempRoot();
+    const startedPath = path.join(root, "goal-started");
+    const releasePath = path.join(root, "goal-release");
+    const modulePath = path.join(root, "abort-fixture.pl");
+    writeFileSync(
+      modulePath,
+      `:- module(kb_abort_fixture, [wait_for_release/2]).
+wait_for_release(Started, Release) :-
+    setup_call_cleanup(open(Started, write, Stream),
+                       write(Stream, started), close(Stream)),
+    repeat,
+    ( exists_file(Release) -> ! ; sleep(0.01), fail ).
+`,
+    );
+    const [moduleAtom, startedAtom, releaseAtom] = [
+      modulePath,
+      startedPath,
+      releasePath,
+    ].map((file) => file.replaceAll("\\", "/").replaceAll("'", "''"));
     const client = new EngineClient({
       workspaceRoot: root,
       branch: "main",
@@ -485,12 +503,15 @@ describe("journaled engine", () => {
     });
     try {
       await client.start();
+      const originalPid = client.getPid();
+      const socketPath = engineSocketPath(root, "main");
+      const originalSocket = statSync(socketPath);
       const controller = new AbortController();
       const slow = client
-        // aggregate_all(between) is not optimized away like once((between,_));
-        // abort at ~200ms must land while SWI is still counting.
+        // call/1 resolves the fixture predicate after use_module has loaded it,
+        // keeping load and execution in the same first query on this client.
         .query(
-          "aggregate_all(count, between(1, 80000000, _), C)",
+          `use_module('${moduleAtom}'), call(kb_abort_fixture:wait_for_release('${startedAtom}', '${releaseAtom}'))`,
           controller.signal,
         )
         .then(() => ({ ok: true as const }))
@@ -498,7 +519,8 @@ describe("journaled engine", () => {
           ok: false as const,
           err: error instanceof Error ? error.message : String(error),
         }));
-      await new Promise((resolve) => setTimeout(resolve, 200));
+      await waitFor(() => existsSync(startedPath));
+      expect(existsSync(startedPath)).toBe(true);
       controller.abort();
       const aborted = await slow;
       expect(aborted.ok).toBe(false);
@@ -506,8 +528,11 @@ describe("journaled engine", () => {
       expect(String((aborted as { err?: string }).err)).not.toMatch(
         /connection closed/i,
       );
+      writeFileSync(releasePath, "release\n");
       const after = await client.query("true");
       expect(after.success).toBe(true);
+      expect(client.getPid()).toBe(originalPid);
+      expect(statSync(socketPath).ino).toBe(originalSocket.ino);
       const sibling = new EngineClient({
         workspaceRoot: root,
         branch: "main",
@@ -515,12 +540,15 @@ describe("journaled engine", () => {
       });
       try {
         await sibling.start();
+        expect(sibling.getPid()).toBe(originalPid);
         const ok = await sibling.query("true");
         expect(ok.success).toBe(true);
       } finally {
         await sibling.terminate().catch(() => undefined);
       }
     } finally {
+      // Release the running Prolog goal even if a cancellation assertion fails.
+      writeFileSync(releasePath, "release\n");
       await client.stop().catch(() => undefined);
     }
   }, 20_000);

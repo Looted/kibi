@@ -28,7 +28,7 @@ Most project knowledge is scattered across prompts, tickets, code, and conversat
 
 ## Quick start
 
-Kibi requires **Node.js 22+** and **SWI-Prolog 9.0+** with `swipl` on your `PATH` ([per-platform setup](https://looted.github.io/kibi/guide/install.html)). Then, in your repository:
+Kibi requires **Node.js 22+**. SWI-Prolog is bundled: on Linux (x64 or arm64, glibc 2.28+) and macOS (Apple silicon or Intel) there is nothing else to install. On other platforms, such as Alpine/musl or native Windows (use WSL), install SWI-Prolog 9.0+ and put `swipl` on your `PATH` ([details](https://looted.github.io/kibi/guide/install.html)). Then, in your repository:
 
 ```bash
 npm install --save-dev kibi-core kibi-cli kibi-mcp
@@ -41,7 +41,7 @@ npm exec -- kibi init
 
 The agent produces a read-only plan, shows you its hash, and writes nothing until you approve. After that, work normally: prompt for features, fixes, and refactors, and the agent keeps requirements, scenarios, tests, and code links in step with the code.
 
-pnpm, Yarn, and Bun work the same way through their local runners; the [installation guide](https://looted.github.io/kibi/guide/install.html) has the equivalents.
+pnpm, Yarn, and Bun work the same way through their local runners; the [installation guide](https://looted.github.io/kibi/guide/install.html) has the equivalents, and `npm exec -- kibi doctor` reports which SWI-Prolog Kibi is using. Do not install with `--omit=optional` (or pnpm `supportedArchitectures` that exclude your platform): the bundled runtime is an optional dependency.
 
 ## Connect your coding agent
 
@@ -256,7 +256,7 @@ Install `kibi-core`, `kibi-cli`, and `kibi-mcp` in the project. Everything else 
 
 The guide and reference are published at **<https://looted.github.io/kibi/>**. Language models can start from the [documentation index](https://looted.github.io/kibi/llms.txt).
 
-- [Installation](https://looted.github.io/kibi/guide/install.html) — SWI-Prolog, package managers, plugins, and verification
+- [Installation](https://looted.github.io/kibi/guide/install.html) — the bundled SWI-Prolog runtime, package managers, plugins, and verification
 - [How Kibi works](https://looted.github.io/kibi/guide/how-it-works.html) and [the proof ladder](https://looted.github.io/kibi/guide/proof-ladder.html)
 - [Proving requirements](https://looted.github.io/kibi/reference/proving.html) — proof contracts, `kibi prove`, and receipts
 - [CLI reference](https://looted.github.io/kibi/reference/cli.html) and [MCP reference](https://looted.github.io/kibi/reference/mcp.html)

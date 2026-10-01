@@ -67,7 +67,9 @@ describe("kibi init repository-context fixes", () => {
   function commitReadme(repo: string): void {
     writeFileSync(path.join(repo, "README.md"), "# t\n");
     git(repo, "add README.md");
-    git(repo, "commit -qm init");
+    // Detached auto-maintenance can change .git after commit returns, while
+    // these fixtures need a stable full-directory snapshot of init's effects.
+    git(repo, "-c maintenance.auto=false commit -qm init");
   }
 
   function snapshotDirectory(root: string): string[] {
@@ -533,7 +535,7 @@ describe("kibi init hook-path coverage messaging", () => {
   function commitReadme(repo: string): void {
     writeFileSync(path.join(repo, "README.md"), "# t\n");
     git(repo, "add README.md");
-    git(repo, "commit -qm init");
+    git(repo, "-c maintenance.auto=false commit -qm init");
   }
 
   test("linked worktree with default hooks reports the shared common dir", () => {

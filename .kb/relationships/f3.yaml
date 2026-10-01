@@ -255,3 +255,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ddf00ce8336d
+  - type: verified_by
+    from: SCEN-prolog-build-pipeline-validation
+    to: TEST-prolog-build-pipeline-validation
+    created_at: 2026-09-30T17:54:09.074Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-836ea78dc7ca

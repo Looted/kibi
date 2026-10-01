@@ -66,13 +66,14 @@ The generate job:
 1. checks out the candidate GitHub Actions ref (the PR merge commit on pull
    requests, otherwise the pushed or dispatched commit)
 2. sets up Node.js
-3. installs SWI-Prolog
-4. installs project dependencies with npm
-5. runs `kibi sync`
-6. runs `kibi report --output kibi-report` (the job fails if this fails)
-7. on `pull_request`, uploads the `kibi-report/` directory as the
+3. installs project dependencies with npm (SWI-Prolog arrives with them as the
+   bundled `kibi-swipl-linux-x64-gnu` package, so there is no separate install
+   step)
+4. runs `kibi sync`
+5. runs `kibi report --output kibi-report` (the job fails if this fails)
+6. on `pull_request`, uploads the `kibi-report/` directory as the
    `kibi-pr-report` artifact (HTML report plus badge)
-8. on the default branch or `workflow_dispatch`, copies that output under
+7. on the default branch or `workflow_dispatch`, copies that output under
    `pages/kibi-report/` so the public path is `/kibi-report/` and uploads it as
    a GitHub Pages artifact
 
@@ -225,11 +226,17 @@ GitHub Pages still deploys only from the default branch or `workflow_dispatch`.
 Install `kibi-cli` as a project dependency and commit the lockfile. The
 workflow does not install Kibi globally.
 
-**`swipl: command not found`.**
-The workflow installs `swi-prolog` with `apt-get` on `ubuntu-latest`. Kibi
-requires SWI-Prolog 9.0+. If the runner image is older, install from the
-[SWI-Prolog PPA](install.md#ubuntu-recommended)
-instead.
+**`Kibi could not find a usable SWI-Prolog`.**
+The workflow relies on the bundled runtime that `npm ci` installs on
+`ubuntu-latest` (Linux x64, glibc). It is missing when the install skipped
+optional dependencies (`--omit=optional`, `--no-optional`, pnpm
+`supportedArchitectures` that excludes the runner's platform) or the lockfile
+lacks the platform package. Install with the package manager's defaults, or add
+`kibi-swipl-linux-x64-gnu` explicitly. On a runner without a bundled build
+(Alpine/musl containers, self-hosted Windows), install SWI-Prolog 9.0+ from the
+[SWI-Prolog PPA](install.md#ubuntu-recommended) or your platform package
+manager and put `swipl` on `PATH`; see
+[Installation](install.md#which-swi-prolog-kibi-uses).
 
 **Pages published the wrong site / two Kibi workflows.**
 A repository can host one Pages site. Keep either `kibi-report.yml` or

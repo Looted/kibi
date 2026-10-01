@@ -90,3 +90,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1aabe4255bc3
+  - type: implements
+    from: SYM-prolog-swipl-resolvedswipl-src
+    to: REQ-prolog-bundled-runtime
+    created_at: 2026-09-30T23:35:30.935Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3dd84615dcf8
+  - type: covered_by
+    from: SYM-prolog-swipl-resolvedswipl-src
+    to: TEST-prolog-bundled-runtime
+    created_at: 2026-09-30T23:35:30.952Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-77578e7dc39c

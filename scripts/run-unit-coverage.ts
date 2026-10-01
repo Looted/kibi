@@ -89,6 +89,14 @@ const ZCODE_UNIT_TESTS = readdirSync("./packages/zcode/tests")
   )
   .map((entry) => `./packages/zcode/tests/${entry}`);
 
+const SCRIPT_TESTS = readdirSync("./scripts/tests", {
+  recursive: true,
+  encoding: "utf8",
+})
+  .filter((entry) => /\.(?:test|spec)\.[cm]?[jt]sx?$/.test(entry))
+  .map((entry) => `./scripts/tests/${entry}`)
+  .sort();
+
 function spawnErrorCode(error: Error | undefined): string | undefined {
   return (error as NodeJS.ErrnoException | undefined)?.code;
 }
@@ -382,7 +390,11 @@ export const COVERAGE_SHARDS: readonly {
   },
   {
     label: "scripts",
-    paths: ["./scripts/tests", "./test/root-summary.test.ts"],
+    // CI saw unrelated shell and Node subprocess tests hit the same 15s Bun
+    // timeout with empty output after earlier files ran in this coverage VM.
+    // A process per file keeps each child-process test's Bun state private.
+    paths: [...SCRIPT_TESTS, "./test/root-summary.test.ts"],
+    isolation: "process-per-file",
   },
   {
     label: "vscode.activation",

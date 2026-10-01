@@ -5,7 +5,7 @@
 ## Development Setup
 
 **Prerequisites**
-- SWI-Prolog >= 9.0
+- SWI-Prolog >= 9.0 on `PATH` (or `KIBI_SWIPL` pointing at it). A source checkout does not carry the bundled runtime that published packages ship, so install it yourself (see `docs/install.md`)
 - Bun (latest)
 - Git
 
@@ -72,7 +72,7 @@ bun run tests/benchmarks/mcp-latency.bench.ts
 ## Running CI Locally
 
 To simulate CI steps:
-1. Install SWI-Prolog (via apt-get or package manager)
+1. Install SWI-Prolog (via apt-get or package manager). CI itself runs the pipeline-built bundle for most jobs and a system install for `ci-integration`; see `docs/swipl-build.md`
 2. Install Bun
 3. Run `bun install`
 4. Run `bun run test`

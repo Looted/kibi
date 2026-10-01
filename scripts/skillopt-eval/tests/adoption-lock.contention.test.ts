@@ -9,7 +9,9 @@ import {
 } from "../adoption-lock";
 
 const roots: string[] = [];
-const linuxTest = test.skipIf(process.platform !== "linux");
+const nativeTest = test.skipIf(
+  process.platform !== "linux" && process.platform !== "darwin",
+);
 
 afterEach(async () => {
   for (const root of roots.splice(0))
@@ -30,7 +32,7 @@ async function waitForFile(path: string): Promise<void> {
   }
 }
 
-linuxTest("shared adoption locks coexist", async () => {
+nativeTest("shared adoption locks coexist", async () => {
   const repoRoot = await mkdtemp(join(tmpdir(), "skillopt-adoption-shared-"));
   roots.push(repoRoot);
   let releaseFirst: (() => void) | undefined;
@@ -57,7 +59,7 @@ linuxTest("shared adoption locks coexist", async () => {
   await first;
 });
 
-linuxTest.each([
+nativeTest.each([
   ["exclusive adoption blocks shared", "exclusive", "shared"],
   ["shared adoption blocks exclusive", "shared", "exclusive"],
 ] as const)("%s", async (_name, firstMode, secondMode) => {
@@ -103,7 +105,7 @@ linuxTest.each([
   expect(secondEntered).toBe(true);
 });
 
-linuxTest("an operation exception releases the adoption lock", async () => {
+nativeTest("an operation exception releases the adoption lock", async () => {
   const repoRoot = await mkdtemp(
     join(tmpdir(), "skillopt-adoption-exception-"),
   );
@@ -119,7 +121,7 @@ linuxTest("an operation exception releases the adoption lock", async () => {
   ).resolves.toBe("released");
 });
 
-linuxTest(
+nativeTest(
   "an exclusive adoption lock blocks the writer lock sequence",
   async () => {
     const repoRoot = await mkdtemp(join(tmpdir(), "skillopt-adoption-writer-"));
@@ -152,7 +154,7 @@ linuxTest(
   },
 );
 
-linuxTest(
+nativeTest(
   "a terminated process releases an exclusive adoption lock",
   async () => {
     const repoRoot = await mkdtemp(
@@ -194,7 +196,7 @@ linuxTest(
   },
 );
 
-linuxTest("mirror writers serialize independently", async () => {
+nativeTest("mirror writers serialize independently", async () => {
   const repoRoot = await mkdtemp(join(tmpdir(), "skillopt-mirror-contention-"));
   roots.push(repoRoot);
   let releaseFirst: (() => void) | undefined;

@@ -1,11 +1,5 @@
 import { createHash } from "node:crypto";
-import {
-  existsSync,
-  readFileSync,
-  realpathSync,
-  unlinkSync,
-  writeFileSync,
-} from "node:fs";
+import { existsSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { OperationError } from "../../cli-errors.js";
 import { readManifestWithCoordinateOverlay } from "../../extractors/manifest.js";
@@ -21,6 +15,7 @@ import {
   computeShardPath,
 } from "../../relationships/shards.js";
 import { resolveBranchAttachment } from "../../utils/branch-resolver.js";
+import { canonicalFilesystemPath } from "../../utils/canonical-path.js";
 import { entityIdStyleWarnings } from "../../utils/entity-id-style.js";
 import { CANONICAL_ENTITY_PATHS } from "../../utils/kb-paths.js";
 import { analyzeSemanticAdvisorInput } from "../semantic-advisor/analyze-prose.js";
@@ -107,12 +102,9 @@ function assertRelationshipShardContained(
       `Relationship shard escapes the canonical workspace lane: ${shardPath}`,
     );
   }
-  let existing = absolute;
-  while (!existsSync(existing) && path.dirname(existing) !== existing) {
-    existing = path.dirname(existing);
-  }
-  const real = realpathSync.native(existing);
-  if (real !== root && !real.startsWith(`${root}${path.sep}`)) {
+  const realRoot = canonicalFilesystemPath(root);
+  const real = canonicalFilesystemPath(absolute);
+  if (real !== realRoot && !real.startsWith(`${realRoot}${path.sep}`)) {
     throw new OperationError(
       "SOURCE_PATH_INVALID",
       `Relationship shard follows a symlink outside the workspace: ${shardPath}`,

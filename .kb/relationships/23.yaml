@@ -94,3 +94,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a165871300ba
+  - type: implements
+    from: SYM-cli-canonical-filesystem-path
+    to: REQ-cli-canonical-runtime
+    created_at: 2026-09-30T14:45:45.844Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0ef22db85a1c
+  - type: implements
+    from: SYM-cli-canonical-filesystem-path
+    to: REQ-kibi-change-to-proof-plan-compiler
+    created_at: 2026-09-30T14:45:45.867Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7948551acb0d
+  - type: implements
+    from: SYM-cli-canonical-filesystem-path
+    to: REQ-core-journaled-engine-persistence
+    created_at: 2026-09-30T14:45:45.874Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-704a5d85c6f8
+  - type: covered_by
+    from: SYM-cli-canonical-filesystem-path
+    to: TEST-cli-canonical-runtime
+    created_at: 2026-09-30T14:45:45.882Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-793d7211ff48
+  - type: covered_by
+    from: SYM-cli-canonical-filesystem-path
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-09-30T14:45:45.887Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3dbf9b403a73
+  - type: covered_by
+    from: SYM-cli-canonical-filesystem-path
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-09-30T14:45:45.892Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-949d96640b51
+  - type: covered_by
+    from: SYM-cli-canonical-filesystem-path
+    to: TEST-core-journaled-engine-persistence
+    created_at: 2026-09-30T14:45:45.898Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3070300885e0
+  - type: covered_by
+    from: SYM-cli-canonical-filesystem-path
+    to: TEST-e2e-plan-compiler-hash
+    created_at: 2026-09-30T15:30:18.607Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6deb57e140f0

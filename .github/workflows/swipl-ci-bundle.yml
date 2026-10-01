@@ -1,0 +1,77 @@
+name: SWI-Prolog bundle for Kibi CI
+
+# Kibi's own CI runs on the same SWI-Prolog bytes that ship in the
+# kibi-swipl-linux-x64-gnu package: the archive is built by the swipl-build
+# pipeline's own script (scripts/swipl-spike.sh build-archive: relocate, native
+# audit, smoke) from the pins in scripts/swipl-version.json.
+#
+# Building takes several minutes, so the archive is cached under a key that
+# hashes everything that determines its bytes (pins, source patches, build
+# scripts, this workflow and swipl-build.yml). A hit costs seconds. A miss
+# builds once and the next run, on any branch that can read the cache, hits.
+# Consumers download the `kibi-ci-swipl` artifact and populate the platform
+# package with .github/actions/use-bundled-swipl, which re-verifies the
+# checksum, pins, binary hash and required libraries before anything runs.
+#
+# Release workflows never use this cache: they build in their own run through
+# swipl-build.yml so the shipped archive carries that run's commit and id.
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  bundle:
+    name: linux-x64-gnu archive (cached)
+    runs-on: ubuntu-24.04
+    container: quay.io/pypa/manylinux_2_28_x86_64
+    timeout-minutes: 120
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v6
+      - name: Restore the cached archive
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/swipl-ci-cache
+          key: swipl-ci-bundle-linux-x64-gnu-${{ hashFiles('scripts/swipl-version.json', 'scripts/swipl-spike.py', 'scripts/swipl-spike.sh', 'scripts/patches/swipl-*.patch', '.github/workflows/swipl-build.yml', '.github/workflows/swipl-ci-bundle.yml') }}
+      - name: Require no preinstalled SWI-Prolog
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          if command -v swipl; then exit 1; fi
+      - name: Install native build and audit tools
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          dnf install -y perl-core make gcc gcc-c++ binutils file
+          /opt/python/cp311-cp311/bin/python -m pip install --no-cache-dir cmake==3.31.10 ninja==1.13.0 patchelf==0.17.2.4
+          echo /opt/python/cp311-cp311/bin >> "$GITHUB_PATH"
+      - name: Build, relocate, audit, and smoke
+        if: steps.cache.outputs.cache-hit != 'true'
+        env:
+          BUILD_DIR: ${{ runner.temp }}/swipl-build/linux-x64-gnu
+          CACHE_DIR: ${{ runner.temp }}/swipl-ci-cache
+        run: |
+          set -euo pipefail
+          bash scripts/swipl-spike.sh build-archive --target linux-x64-gnu --workdir "$BUILD_DIR"
+          mkdir -p "$CACHE_DIR/swipl-linux-x64-gnu"
+          cp "$BUILD_DIR"/swipl-*.tar.gz "$BUILD_DIR"/swipl-*.tar.gz.sha256 "$CACHE_DIR/swipl-linux-x64-gnu/"
+      - name: Require exactly one archive with its checksum
+        env:
+          CACHE_DIR: ${{ runner.temp }}/swipl-ci-cache
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          archives=("$CACHE_DIR"/swipl-linux-x64-gnu/swipl-*-linux-x64-gnu.tar.gz)
+          test "${#archives[@]}" -eq 1
+          test -s "${archives[0]}.sha256"
+          echo "archive: $(basename "${archives[0]}") (cache hit: ${{ steps.cache.outputs.cache-hit == 'true' }})" | tee -a "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v5
+        with:
+          name: kibi-ci-swipl
+          path: ${{ runner.temp }}/swipl-ci-cache
+          if-no-files-found: error
+          retention-days: 1

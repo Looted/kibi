@@ -2,6 +2,7 @@
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 import type { Tarballs } from "./helpers.js";
+import { hostSwiplPlatformPackage } from "./packed-packages.js";
 
 export function writePackedInstallManifest(
   prefix: string,
@@ -19,6 +20,14 @@ export function writePackedInstallManifest(
     // Capability-plugin defaults required by kibi-cli; Jev stays optional/out.
     "kibi-plugin-sdk": `file:${tarballs["plugin-sdk"]}`,
     "kibi-plugin-builtin": `file:${tarballs["plugin-builtin"]}`,
+    // kibi-cli and kibi-runtime depend on the resolver; its platform packages
+    // are optional and absent from these local installs.
+    "kibi-swipl": `file:${tarballs.swipl}`,
+    // The host's bundled SWI-Prolog, when the tarball set carries one. Absent
+    // for ci-pack sets, which use the system swipl.
+    ...(tarballs.swiplPlatform
+      ? { [hostSwiplPlatformPackage()]: `file:${tarballs.swiplPlatform}` }
+      : {}),
   };
   const workspaceOverrides = [
     "overrides:",

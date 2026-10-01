@@ -13,13 +13,14 @@
   },
   "files": ["dist"],
   "scripts": {
-    "build": "tsc -p tsconfig.json && bun build src/index.ts --outfile dist/index.js --target node --format esm --packages bundle --external kibi-core --external kibi-plugin-builtin && bun build ../cli/src/engine-daemon.ts --outfile dist/engine-daemon.js --target node --format esm --packages bundle --external kibi-core && rm -rf dist/skills && mkdir -p dist/skills && cp -r src/skills/. dist/skills/",
+    "build": "tsc -p tsconfig.json && bun build src/index.ts --outfile dist/index.js --target node --format esm --packages bundle --external kibi-core --external kibi-plugin-builtin --external kibi-swipl --external 'kibi-swipl-*' && bun build ../cli/src/engine-daemon.ts --outfile dist/engine-daemon.js --target node --format esm --packages bundle --external kibi-core --external kibi-swipl --external 'kibi-swipl-*' && rm -rf dist/skills && mkdir -p dist/skills && cp -r src/skills/. dist/skills/",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "gray-matter": "^4.0.3",
     "kibi-core": "^0.14.0",
-    "kibi-plugin-builtin": "^0.3.0"
+    "kibi-plugin-builtin": "^0.3.0",
+    "kibi-swipl": "^1.0.0"
   },
   "devDependencies": {
     "kibi-cli": "workspace:*"

@@ -160,3 +160,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1a6dc67187ca
+  - type: validates
+    from: TEST-prolog-spike-config-validation
+    to: SCEN-prolog-spike-config-validation
+    created_at: 2026-09-30T08:53:52.780Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b85289589671

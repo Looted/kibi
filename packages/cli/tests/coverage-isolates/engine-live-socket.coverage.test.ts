@@ -19,6 +19,7 @@ import {
   ENGINE_PROTOCOL_VERSION,
   enginePidPath,
   engineSocketPath,
+  engineSwiplIdentity,
   ensureJournaledBranchStoreAsync,
   runEngineDaemon,
 } from "../../src/engine.js";
@@ -372,6 +373,7 @@ describe("engine remaining: in-process daemon error and signal paths", () => {
       id: 1,
       protocolVersion: ENGINE_PROTOCOL_VERSION,
       packageVersions: "server-packages",
+      prologIdentity: engineSwiplIdentity(),
       workspaceRoot: root,
       branch: "main",
     };

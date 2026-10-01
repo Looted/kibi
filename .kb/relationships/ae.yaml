@@ -216,3 +216,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9dd423f246d9
+  - type: constrains
+    from: REQ-prolog-coverage-test-selection
+    to: FACT-prolog-coverage-selection-subject
+    created_at: 2026-09-30T09:05:55.601Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6a1ac22c49bf
+  - type: requires_property
+    from: REQ-prolog-coverage-test-selection
+    to: FACT-prolog-coverage-loads-all-tests
+    created_at: 2026-09-30T09:05:55.639Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-04eb50701dd6
+  - type: requires_property
+    from: REQ-prolog-coverage-test-selection
+    to: FACT-prolog-coverage-propagates-test-failure
+    created_at: 2026-09-30T09:05:55.656Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0ded47135025
+  - type: requires_property
+    from: REQ-prolog-coverage-test-selection
+    to: FACT-prolog-coverage-annotates-all-tests
+    created_at: 2026-09-30T09:05:55.671Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1d2fd9623d0a
+  - type: specified_by
+    from: REQ-prolog-coverage-test-selection
+    to: SCEN-prolog-coverage-test-selection
+    created_at: 2026-09-30T09:06:57.329Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-58b7dc01dc16
+  - type: implements
+    from: SYM-prolog-build-audit-linux
+    to: REQ-prolog-build-pipeline-validation
+    created_at: 2026-09-30T17:52:15.433Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4463a7bfb5b3
+  - type: covered_by
+    from: SYM-prolog-build-audit-linux
+    to: TEST-prolog-build-pipeline-validation
+    created_at: 2026-09-30T17:52:15.480Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-31946ba81816
+  - type: implements
+    from: SYM-prolog-swipl-required-swipl-libraries-src
+    to: REQ-prolog-bundled-runtime
+    created_at: 2026-09-30T23:36:02.971Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2fa9c5b07bcd
+  - type: covered_by
+    from: SYM-prolog-swipl-required-swipl-libraries-src
+    to: TEST-prolog-bundled-runtime
+    created_at: 2026-09-30T23:36:02.998Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-be4d86b340c1

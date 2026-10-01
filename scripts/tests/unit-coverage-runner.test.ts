@@ -32,10 +32,19 @@ describe("unit coverage runner contract", () => {
       paths: ["./scripts/skillopt-eval/tests"],
       timeoutMs: 120_000,
     });
-    expect(COVERAGE_SHARDS).toContainEqual({
-      label: "scripts",
-      paths: ["./scripts/tests", "./test/root-summary.test.ts"],
-    });
+    const scripts = COVERAGE_SHARDS.find((shard) => shard.label === "scripts");
+    expect(scripts?.isolation).toBe("process-per-file");
+    const scriptTests = readdirSync("./scripts/tests", {
+      recursive: true,
+      encoding: "utf8",
+    })
+      .filter((entry) => /\.(?:test|spec)\.[cm]?[jt]sx?$/.test(entry))
+      .map((entry) => `./scripts/tests/${entry}`)
+      .sort();
+    expect(scripts?.paths).toEqual([
+      ...scriptTests,
+      "./test/root-summary.test.ts",
+    ]);
     expect(COVERAGE_SHARDS).toContainEqual({
       label: "runtime",
       paths: ["./packages/runtime"],
@@ -130,6 +139,7 @@ describe("unit coverage runner contract", () => {
       "./packages/cli/tests/commands/doctor-behavior.test.ts",
       "./packages/cli/tests/commands/doctor-git-context.test.ts",
       "./packages/cli/tests/commands/doctor-remaining.coverage.test.ts",
+      "./packages/cli/tests/commands/doctor-swipl-runtime.test.ts",
       "./packages/cli/tests/commands/doctor.in-process.test.ts",
       "./packages/cli/tests/commands/doctor.test.ts",
     ]);

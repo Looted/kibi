@@ -83,7 +83,7 @@ bun run format     # Biome format --write
 ## Important Constraints & Gotchas
 
 1. **Dual Installation**: Always run `bun install` in both root AND `.opencode/` directories
-2. **SWI-Prolog Required**: Must be installed before running any `kibi` commands
+2. **SWI-Prolog Required in a source checkout**: Must be installed (or `KIBI_SWIPL` set) before running any `kibi` commands from this repository; published packages bundle it on Linux and macOS
 3. **CI Environments**: Use `--frozen-lockfile` flag for `bun install`
 4. **Staged Symbol Traceability**: Add `// implements REQ-xxx` comments to new functions/classes to maintain traceability
 5. **Conventional Commits**: Follow `feat(scope):`, `fix(scope):`, `docs(scope):`, `test(scope):`, `chore(scope):` format

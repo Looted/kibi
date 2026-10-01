@@ -7,12 +7,13 @@
  */
 
 import { type ChildProcess, spawn } from "node:child_process";
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import {
   chmodSync,
   closeSync,
   existsSync,
   fsyncSync,
+  lstatSync,
   mkdirSync,
   openSync,
   readFileSync,
@@ -36,6 +37,7 @@ import type {
 import { PrologProcess, resolveKbPlPath } from "./prolog.js";
 import { parseEntityFromList, parseListOfLists } from "./prolog/codec.js";
 import { retryAttachAfterBreakingStaleLock } from "./prolog/store-lock.js";
+import { resolveSwipl, swiplIdentity } from "./prolog/swipl-resolver.js";
 import { queryEntityChunks } from "./public/operations/discovery-entities.js";
 import type { PrologQueryResult } from "./public/operations/runtime-types.js";
 import type {
@@ -49,6 +51,7 @@ import {
   branchStorePath,
   ensureBranchStoreManifest,
 } from "./utils/branch-store-locator.js";
+import { canonicalFilesystemPath } from "./utils/canonical-path.js";
 
 export type {
   EngineAttachmentIdentity,
@@ -60,6 +63,17 @@ export const ENGINE_PROTOCOL_VERSION = 1;
 export const ENGINE_IDLE_TIMEOUT_MS = 10 * 60 * 1000;
 export const ENGINE_PACKAGE_VERSIONS =
   process.env.KIBI_PACKAGE_VERSIONS ?? "unknown";
+
+/**
+ * Identity of the SWI-Prolog this process would launch (`<bin>@<version>`).
+ * The daemon and every client compare it; a daemon running a different
+ * resolved Prolog is replaced, never reused.
+ */
+// implements REQ-prolog-daemon-runtime-identity
+export function engineSwiplIdentity(): string {
+  return swiplIdentity(resolveSwipl());
+}
+
 const ENGINE_QUERY_CACHE_MAX_ENTRIES = 128;
 const ENGINE_QUERY_CACHE_MAX_RESULT_BYTES = 8 * 1024 * 1024;
 const ENGINE_FRESHNESS_CACHE_MS = 100;
@@ -354,17 +368,76 @@ export function runtimeDirectory(): string {
     process.env.KIBI_RUNTIME_DIR ??
     process.env.XDG_RUNTIME_DIR ??
     path.join(os.tmpdir(), "kibi-runtime");
-  const candidates = [configured, path.join(os.tmpdir(), "kibi-runtime")];
+  // Windows named pipes have no Unix socket pathname budget. Preserve its
+  // filesystem location policy for the associated pid files.
+  if (process.platform === "win32") {
+    for (const candidate of [
+      configured,
+      path.join(os.tmpdir(), "kibi-runtime"),
+    ]) {
+      try {
+        mkdirSync(candidate, { recursive: true, mode: 0o700 });
+        const probe = path.join(candidate, `.kibi-write-${process.pid}`);
+        writeFileSync(probe, "", { mode: 0o600 });
+        unlinkSync(probe);
+        return candidate;
+      } catch {
+        // Try the existing system-temp fallback.
+      }
+    }
+    throw new Error(
+      "Unable to create a writable Kibi engine runtime directory",
+    );
+  }
+  const euid = process.geteuid?.();
+  if (euid === undefined)
+    throw new Error("Kibi engine runtime euid unavailable");
+  let configuredIdentity: string;
+  try {
+    configuredIdentity = canonicalFilesystemPath(configured);
+  } catch {
+    // An inaccessible or dangling configured path remains a distinct identity;
+    // it is never accepted as the socket directory below.
+    configuredIdentity = path.resolve(configured);
+  }
+  const configuredKey = createHash("sha256")
+    .update(configuredIdentity)
+    .digest("hex")
+    .slice(0, 32);
+  const candidates = [
+    configured,
+    path.join("/tmp", `kb-${euid}-${configuredKey}`),
+  ];
+  const maximumBytes = process.platform === "linux" ? 107 : 103;
+  const socketName = `kibi-${"0".repeat(32)}.sock`;
   for (const candidate of candidates) {
     try {
+      try {
+        if (lstatSync(candidate).isSymbolicLink()) continue;
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+      }
       mkdirSync(candidate, { recursive: true, mode: 0o700 });
+      const directory = lstatSync(candidate);
+      if (
+        !directory.isDirectory() ||
+        directory.uid !== euid ||
+        (directory.mode & 0o077) !== 0
+      )
+        continue;
+      const canonical = canonicalFilesystemPath(candidate);
+      if (
+        Buffer.byteLength(path.join(canonical, socketName), "utf8") >
+        maximumBytes
+      )
+        continue;
       // XDG_RUNTIME_DIR can exist but be mounted read-only (for example in a
       // constrained container). Probe the directory before using it for the
       // socket, start lock, and pid files so auto-start fails over cleanly.
-      const probe = path.join(candidate, `.kibi-write-${process.pid}`);
-      writeFileSync(probe, "", { mode: 0o600 });
+      const probe = path.join(canonical, `.kibi-write-${randomUUID()}`);
+      writeFileSync(probe, "", { mode: 0o600, flag: "wx" });
       unlinkSync(probe);
-      return candidate;
+      return canonical;
     } catch {
       // Try the private system-temp fallback below.
     }
@@ -420,17 +493,11 @@ export function engineSocketPath(
   workspaceRoot: string,
   branch: string,
 ): string {
-  const canonicalRoot = (() => {
-    try {
-      return realpathSync(workspaceRoot);
-    } catch {
-      return path.resolve(workspaceRoot);
-    }
-  })();
+  const canonicalRoot = canonicalFilesystemPath(workspaceRoot);
   const key = createHash("sha256")
     .update(`${canonicalRoot}\0${branch}`)
-    // 128 bits keeps collision risk negligible while staying below the
-    // roughly 108-byte sockaddr_un limit even in a nested XDG runtime path.
+    // Retain 128 bits of workspace/branch identity; runtimeDirectory budgets
+    // the complete pathname rather than shortening this identity.
     .digest("hex")
     .slice(0, 32);
   if (process.platform === "win32") {
@@ -811,12 +878,7 @@ export class EngineClient {
     if (!isValidBranchName(options.branch)) {
       throw new Error(`Invalid Kibi engine branch name: ${options.branch}`);
     }
-    const resolvedWorkspaceRoot = path.resolve(options.workspaceRoot);
-    try {
-      this.workspaceRoot = realpathSync(resolvedWorkspaceRoot);
-    } catch {
-      this.workspaceRoot = resolvedWorkspaceRoot;
-    }
+    this.workspaceRoot = canonicalFilesystemPath(options.workspaceRoot);
     this.branch = options.branch;
     this.timeout = options.timeout ?? 120_000;
     this.allowPublicationLock = options.allowPublicationLock ?? false;
@@ -826,6 +888,7 @@ export class EngineClient {
     const wasConnected = this.socket !== null && !this.socket.destroyed;
     await this.connect(allowSpawn);
     if (!wasConnected && this.socket !== null) {
+      await this.reconcileRuntime();
       await this.reconcileAttachment();
     }
   }
@@ -1014,6 +1077,7 @@ export class EngineClient {
               id,
               protocolVersion: ENGINE_PROTOCOL_VERSION,
               packageVersions: ENGINE_PACKAGE_VERSIONS,
+              prologIdentity: engineSwiplIdentity(),
               workspaceRoot: this.workspaceRoot,
               branch: this.branch,
             } satisfies EngineRequest),
@@ -1155,6 +1219,7 @@ export class EngineClient {
         cancelOf: requestId,
         protocolVersion: ENGINE_PROTOCOL_VERSION,
         packageVersions: ENGINE_PACKAGE_VERSIONS,
+        prologIdentity: engineSwiplIdentity(),
         workspaceRoot: this.workspaceRoot,
         branch: this.branch,
       } satisfies EngineRequest),
@@ -1210,6 +1275,37 @@ export class EngineClient {
     const status = await this.queryStatusJson();
     if (!status.success) return null;
     return parseEngineAttachmentIdentity(status.bindings.JsonString);
+  }
+
+  private async daemonRuntimeMatches(): Promise<boolean> {
+    const reply = await this.request<{ prologIdentity?: string } | undefined>({
+      method: "handshake",
+    });
+    return reply?.prologIdentity === engineSwiplIdentity();
+  }
+
+  /**
+   * A live daemon keeps the SWI-Prolog it was started with. When this client
+   * resolves a different executable or version (KIBI_SWIPL changed, the
+   * bundled package was upgraded, a pre-handshake daemon), the daemon is
+   * stopped and replaced; it is never reused.
+   */
+  // implements REQ-prolog-daemon-runtime-identity
+  private async reconcileRuntime(): Promise<void> {
+    if (this.replacingStaleDaemon || this.socket === null) return;
+    if (await this.daemonRuntimeMatches()) return;
+    this.replacingStaleDaemon = true;
+    try {
+      await this.shutdownConnectedDaemon();
+      await this.connect(true);
+      if (!(await this.daemonRuntimeMatches())) {
+        throw new Error(
+          `Kibi engine is running a different SWI-Prolog than this client resolved (${engineSwiplIdentity()}); run 'kibi engine stop' and retry`,
+        );
+      }
+    } finally {
+      this.replacingStaleDaemon = false;
+    }
   }
 
   private async reconcileAttachment(): Promise<void> {
@@ -1541,7 +1637,12 @@ function recoverInterruptedGeneration(branchPath: string): void {
 }
 
 function isEngineLifecycleRequest(request: EngineRequest): boolean {
-  if (request.method === "stop" || request.method === "cancel") return true;
+  if (
+    request.method === "stop" ||
+    request.method === "cancel" ||
+    request.method === "handshake"
+  )
+    return true;
   const kind = request.command?.kind;
   return (
     request.method === "command" &&
@@ -1645,17 +1746,23 @@ export class EngineSession {
   }
 }
 
-// implements REQ-core-journaled-engine-lifecycle
-export async function runEngineDaemon(options: {
+// implements REQ-core-journaled-engine-persistence
+export async function runEngineDaemon(requestedOptions: {
   readonly workspaceRoot: string;
   readonly branch: string;
   readonly socketPath: string;
   /** Test seam: bounded Prolog output per query (defaults to 8 MiB). */
   readonly maxOutputBytes?: number;
 }): Promise<void> {
-  if (!isValidBranchName(options.branch)) {
-    throw new Error(`Invalid Kibi engine branch name: ${options.branch}`);
+  if (!isValidBranchName(requestedOptions.branch)) {
+    throw new Error(
+      `Invalid Kibi engine branch name: ${requestedOptions.branch}`,
+    );
   }
+  const options = {
+    ...requestedOptions,
+    workspaceRoot: canonicalFilesystemPath(requestedOptions.workspaceRoot),
+  };
   const branchPath = ensureBranchStoreManifest(
     options.workspaceRoot,
     options.branch,
@@ -1671,6 +1778,7 @@ export async function runEngineDaemon(options: {
   const session = new EngineSession(prolog, branchPath);
   await session.boot();
   let attachedIdentity = readEngineAttachmentIdentity(branchPath);
+  const serverPrologIdentity = engineSwiplIdentity();
 
   mkdirSync(path.dirname(options.socketPath), { recursive: true, mode: 0o700 });
   if (existsSync(options.socketPath)) {
@@ -1838,11 +1946,23 @@ export async function runEngineDaemon(options: {
       );
     }
     if (
-      path.resolve(request.workspaceRoot ?? "") !==
-        path.resolve(options.workspaceRoot) ||
+      canonicalFilesystemPath(request.workspaceRoot ?? "") !==
+        options.workspaceRoot ||
       request.branch !== options.branch
     ) {
       throw new Error("Kibi engine workspace identity mismatch");
+    }
+    // A client that resolved a different Prolog must not be served by this
+    // daemon. Handshake reports the identity and stop must still work so the
+    // client can replace the daemon.
+    if (
+      request.method !== "handshake" &&
+      request.method !== "stop" &&
+      request.prologIdentity !== serverPrologIdentity
+    ) {
+      throw new Error(
+        `Kibi engine SWI-Prolog mismatch: client=${request.prologIdentity ?? "missing"}, server=${serverPrologIdentity}`,
+      );
     }
     if (!isEngineLifecycleRequest(request) && (await session.ensureLive())) {
       // A recycled session re-read the store; nothing cached from the lost
@@ -2145,6 +2265,8 @@ export async function runEngineDaemon(options: {
         return prolog.query(
           `kb_storage_export('${quoteProlog(request.targetDirectory)}')`,
         );
+      case "handshake":
+        return { prologIdentity: serverPrologIdentity };
       case "stop":
         setImmediate(() => void shutdown());
         return { stopped: true };

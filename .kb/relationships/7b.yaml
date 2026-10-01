@@ -125,3 +125,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-167e68db84ef
+  - type: constrains
+    from: REQ-prolog-doctor-runtime-report
+    to: FACT-prolog-doctor-runtime-subject
+    created_at: 2026-09-30T22:49:25.363Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-72677f56f81a
+  - type: requires_property
+    from: REQ-prolog-doctor-runtime-report
+    to: FACT-prolog-doctor-runtime-reports-source-path-and-version
+    created_at: 2026-09-30T22:49:25.397Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bfe8aead2d70
+  - type: requires_property
+    from: REQ-prolog-doctor-runtime-report
+    to: FACT-prolog-doctor-runtime-fails-on-missing-required-library
+    created_at: 2026-09-30T22:49:25.415Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-42b1a11b59c7
+  - type: requires_property
+    from: REQ-prolog-doctor-runtime-report
+    to: FACT-prolog-doctor-runtime-names-platform-package-when-runtime-missing
+    created_at: 2026-09-30T22:49:25.431Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3160df60a0db
+  - type: specified_by
+    from: REQ-prolog-doctor-runtime-report
+    to: SCEN-prolog-doctor-runtime-report
+    created_at: 2026-09-30T22:49:25.443Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-520010a1afdf

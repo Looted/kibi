@@ -15,13 +15,18 @@ import {
 const ROOT = join(import.meta.dir, "..", "..");
 
 describe("canonical package catalog", () => {
-  test("publishable dirs include the three plugin packages and exclude zcode", () => {
+  test("publishable dirs include the resolver and platform packages, in dependency order, and exclude zcode", () => {
     expect([...PUBLISHABLE_DIRS]).toEqual([
       "core",
       "plugin-sdk",
       "agent-core",
       "plugin-builtin",
       "plugin-jev",
+      "swipl-linux-x64-gnu",
+      "swipl-linux-arm64-gnu",
+      "swipl-darwin-arm64",
+      "swipl-darwin-x64",
+      "swipl",
       "runtime",
       "cli",
       "mcp",
@@ -31,7 +36,36 @@ describe("canonical package catalog", () => {
     ]);
     expect(PUBLISHABLE_DIRS).not.toContain("zcode");
     expect(PACK_ALL_DIRS).toContain("zcode");
-    expect(CI_PACK_DIRS).toEqual(PUBLISHABLE_DIRS);
+  });
+
+  test("platform packages are published but never packed without their verified payload", () => {
+    const platform = PACKAGE_CATALOG.filter((entry) =>
+      entry.dir.startsWith("swipl-"),
+    );
+    expect(platform.map((entry) => entry.npmName)).toEqual([
+      "kibi-swipl-linux-x64-gnu",
+      "kibi-swipl-linux-arm64-gnu",
+      "kibi-swipl-darwin-arm64",
+      "kibi-swipl-darwin-x64",
+    ]);
+    for (const { dir } of platform) {
+      // Release packing (publishable) and cleanup include them; every slice
+      // that packs straight from a checkout, where the payload is absent,
+      // does not.
+      expect(dirsForSlice("publishable")).toContain(dir);
+      expect(dirsForSlice("tarball-clean")).toContain(dir);
+      for (const slice of [
+        "pack-all",
+        "packed-e2e",
+        "ci-pack",
+        "default-install",
+      ] as const) {
+        expect(dirsForSlice(slice)).not.toContain(dir);
+      }
+    }
+    expect(CI_PACK_DIRS).toEqual(
+      PUBLISHABLE_DIRS.filter((dir) => !dir.startsWith("swipl-")),
+    );
   });
 
   test("default install excludes optional Jev", () => {

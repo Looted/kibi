@@ -146,3 +146,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0d6e746896f8
+  - type: implements
+    from: SYM-prolog-spike-apply-source-patches
+    to: REQ-prolog-spike-config-validation
+    created_at: 2026-09-30T14:58:01.072Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-da759c9a590d
+  - type: covered_by
+    from: SYM-prolog-spike-apply-source-patches
+    to: TEST-prolog-spike-config-validation
+    created_at: 2026-09-30T14:58:01.096Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-60db7a75d4ed
