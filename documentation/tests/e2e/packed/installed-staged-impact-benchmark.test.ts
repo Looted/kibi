@@ -107,7 +107,13 @@ export async function runInstalledStagedImpactBenchmarkWorkflow(
     /^The MIT License \(MIT\)/,
   );
 
-  await sandbox.install(tarballs, { ignoreScripts: true });
+  // Only the packed archives are source-qualified. Without omitOptional, npm
+  // would pull the published kibi-swipl platform package from the registry,
+  // and the benchmark rejects it as an unqualified first-party dependency.
+  await sandbox.install(tarballs, {
+    ignoreScripts: true,
+    omitOptional: !tarballs.swiplPlatform,
+  });
   const runtimeArchivePath = join(
     sandbox.baseDir,
     "web-tree-sitter-0.27.0.tgz",
