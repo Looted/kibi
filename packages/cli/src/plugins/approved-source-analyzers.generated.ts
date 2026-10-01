@@ -79,7 +79,7 @@ export const qualifiedSourceAnalyzers = [
       "dist/performance-timing.js":
         "56cce530f627c8fd079e8ec070322f84378ae50c40a6765d88b418850692940b",
       "integrity.json":
-        "5bc0050c065d573b27953424682497197c915fd894f3cbd43062b3e42c1bae91",
+        "4f1530009fdf5f087ab0b7adcae062ca141f76aa6e5acdb20c695fee963dec38",
       "licenses/tree-sitter-bash-MIT.txt":
         "49bf33cf78ef5897e4e161ce1517df7de1ae5042a65b6bcfd44401e0fc606559",
       "licenses/tree-sitter-c-MIT.txt":
