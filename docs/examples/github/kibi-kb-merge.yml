@@ -16,7 +16,11 @@
 # Token: pushes made with the default GITHUB_TOKEN do not start other
 # workflows, so the PR's checks would not re-run on the merge commit. Add a
 # repository secret KIBI_MERGE_TOKEN (a fine-grained personal access token or
-# GitHub App token with contents: write on this repository) so they do.
+# GitHub App token limited to this repository, with Contents and Workflows
+# read/write) so they do. Workflows access is needed because a merge that
+# brings in changes under .github/workflows/ is rejected without it;
+# GITHUB_TOKEN can never push those merges. An expired secret fails the job;
+# it does not fall back to GITHUB_TOKEN.
 #
 # Package manager: this example uses npm (`cache: npm` and `npm ci`).
 # For pnpm, Yarn, or Bun, change those values; see

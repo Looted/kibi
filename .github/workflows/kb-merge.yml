@@ -9,8 +9,12 @@ name: Kibi KB merge
 #
 # Pushes made with the default GITHUB_TOKEN do not start other workflows, so
 # the PR's checks would not re-run on the merge commit. Add a repository
-# secret KIBI_MERGE_TOKEN (a fine-grained token or GitHub App token with
-# contents: write on this repository) to have the push trigger CI.
+# secret KIBI_MERGE_TOKEN (a fine-grained token or GitHub App token limited
+# to this repository, with Contents and Workflows read/write) to have the push
+# trigger CI. Workflows access is needed because a merge that brings in
+# changes under .github/workflows/ is rejected without it; GITHUB_TOKEN can
+# never push those merges. An expired secret fails the job; it does not fall
+# back to GITHUB_TOKEN.
 #
 # The reusable version for other repositories is
 # docs/examples/github/kibi-kb-merge.yml; see docs/github-integration.md.
