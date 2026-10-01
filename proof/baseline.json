@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 131,
-  "proofProven": 131,
+  "currentRequirements": 132,
+  "proofProven": 132,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -657,6 +657,11 @@
       "uncoveredSymbols": []
     },
     "REQ-prolog-doctor-runtime-report": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-prolog-bundled-release": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []
