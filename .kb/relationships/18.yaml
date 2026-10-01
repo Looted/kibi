@@ -293,3 +293,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a04025abf16f
+  - type: executable_for
+    from: SYM-test-swipl-packages
+    to: TEST-prolog-bundled-runtime
+    created_at: 2026-09-30T22:49:57.847Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f99b0a196bf7

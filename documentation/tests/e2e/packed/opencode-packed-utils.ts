@@ -43,12 +43,14 @@ type KibiPackage =
   | "mcp"
   | "opencode"
   | "plugin-sdk"
-  | "plugin-builtin";
+  | "plugin-builtin"
+  | "swipl";
 
 const REQUIRED_DEP_PACKAGES: ReadonlyArray<KibiPackage> = [
   "core",
   "plugin-sdk",
   "plugin-builtin",
+  "swipl",
   "cli",
   "runtime",
 ];
@@ -276,6 +278,7 @@ export function installOpencodeTarball(
     "core",
     "plugin-sdk",
     "plugin-builtin",
+    "swipl",
     "cli",
     "runtime",
   ] as const) {

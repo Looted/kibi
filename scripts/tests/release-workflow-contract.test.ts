@@ -11,6 +11,7 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { PUBLISHABLE_DIRS } from "../package-catalog.ts";
 
 const WORKFLOW_PATH = join(
   import.meta.dir,
@@ -155,9 +156,14 @@ describe("publish.yml CI workflow contract", () => {
           },
         }),
       );
-      cpSync(
-        join(repositoryRoot, ".changeset/config.json"),
+      // The fixture workspace holds only MCP and Codex; fixed groups naming
+      // packages it lacks (the kibi-swipl family) would fail validation.
+      const changesetConfig = JSON.parse(
+        readFileSync(join(repositoryRoot, ".changeset/config.json"), "utf8"),
+      );
+      writeFileSync(
         join(root, ".changeset/config.json"),
+        JSON.stringify({ ...changesetConfig, fixed: [] }),
       );
       cpSync(
         join(repositoryRoot, "scripts/sync-plugin-manifest-versions.ts"),
@@ -319,23 +325,20 @@ describe("publish.yml CI workflow contract", () => {
     const artifactOrder = [
       ...block.matchAll(/packages\/([^/]+)\/\*\.tgz/g),
     ].map(([, directory]) => directory);
-    expect(artifactOrder).toEqual([
+    // Every publishable package, in catalog (dependency) order: the platform
+    // packages precede kibi-swipl, which precedes its dependents.
+    expect(artifactOrder).toEqual([...PUBLISHABLE_DIRS]);
+
+    const smokeBlock = extractJobBlock(workflowContent, "release-gate");
+    const installOrder = [
       "core",
-      "plugin-sdk",
-      "agent-core",
-      "plugin-builtin",
-      "plugin-jev",
-      "plugin-treesitter",
+      "swipl",
       "runtime",
       "cli",
       "mcp",
       "opencode",
       "codex",
-      "cursor",
-    ]);
-
-    const smokeBlock = extractJobBlock(workflowContent, "release-gate");
-    const installOrder = ["core", "runtime", "cli", "mcp", "opencode", "codex"];
+    ];
     const installIndexes = installOrder.map((directory) =>
       smokeBlock.indexOf(`packages/${directory}/kibi-`),
     );

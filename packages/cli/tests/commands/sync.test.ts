@@ -8,6 +8,7 @@ import {
   openSync,
   readFileSync,
   readdirSync,
+  realpathSync,
   renameSync,
   rmSync,
   statSync,
@@ -178,7 +179,9 @@ describe("kibi sync", () => {
   const kibiBin = path.resolve(__dirname, "../../bin/kibi");
 
   beforeEach(() => {
-    tmpDir = mkdtempSync(path.join(os.tmpdir(), "kibi-test-sync-"));
+    tmpDir = realpathSync.native(
+      mkdtempSync(path.join(os.tmpdir(), "kibi-test-sync-")),
+    );
 
     // Initialize git repo and create initial commit (required per ADR-012)
     execSync("git init -b main", { cwd: tmpDir, stdio: "pipe" });

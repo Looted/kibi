@@ -1,0 +1,6 @@
+# Populated from the swipl-build pipeline archive at release time; never committed.
+/bin/
+/lib/
+/build-manifest.json
+/licenses/*
+!/licenses/README.md

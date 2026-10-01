@@ -209,3 +209,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5fe04a68b1d3
+  - type: validates
+    from: TEST-prolog-bundled-ci
+    to: SCEN-prolog-bundled-ci
+    created_at: 2026-10-01T03:48:25.650Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-535adfe3b63e

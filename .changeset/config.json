@@ -2,7 +2,15 @@
   "$schema": "https://unpkg.com/@changesets/config@3.0.0/schema.json",
   "changelog": "@changesets/cli/changelog",
   "commit": false,
-  "fixed": [],
+  "fixed": [
+    [
+      "kibi-swipl",
+      "kibi-swipl-linux-x64-gnu",
+      "kibi-swipl-linux-arm64-gnu",
+      "kibi-swipl-darwin-arm64",
+      "kibi-swipl-darwin-x64"
+    ]
+  ],
   "linked": [],
   "access": "public",
   "baseBranch": "develop",

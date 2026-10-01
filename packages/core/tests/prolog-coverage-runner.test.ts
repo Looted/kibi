@@ -94,6 +94,49 @@ function readSummary(summaryPath: string): CoverageSummary {
 }
 
 describe("run-prolog-coverage.pl", () => {
+  test("runs every supplied test file, including a later failing suite", () => {
+    const fixture = createFixture(
+      "sample_multiple",
+      ":- module(sample_multiple, [ready/0]).\nready.\n",
+      ":- use_module('../src/sample_multiple.pl').\n:- use_module(library(plunit)).\n:- begin_tests(first).\ntest(ready) :- ready.\n:- end_tests(first).\n",
+    );
+    const laterDir = path.join(fixture.rootDir, "later-tests");
+    mkdirSync(laterDir);
+    const laterFile = path.join(laterDir, "failure.plt");
+    writeFileSync(
+      laterFile,
+      ":- use_module(library(plunit)).\n:- begin_tests(later).\ntest(fails) :- fail.\n:- end_tests(later).\n",
+    );
+    const outputDir = path.join(fixture.rootDir, "coverage");
+    const summaryJson = path.join(outputDir, "summary.json");
+    const result = runCoverage([
+      "--source-root",
+      fixture.srcDir,
+      "--test",
+      fixture.testFile,
+      "--test",
+      laterFile,
+      "--output-dir",
+      outputDir,
+      "--summary-json",
+      summaryJson,
+      "--summary-text",
+      path.join(outputDir, "summary.txt"),
+      "--fail-under",
+      "0",
+    ]);
+
+    expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(2);
+    const summary = readSummary(summaryJson);
+    expect(summary.tests.passed).toBe(false);
+    expect(
+      summary.artifacts.annotatedFiles.some((file) =>
+        file.includes("failure.plt"),
+      ),
+    ).toBe(true);
+    expect(`${result.stdout}${result.stderr}`).toContain("later:fails");
+  });
+
   test("fails below the clause threshold and writes artifacts", () => {
     const fixture = createFixture(
       "sample_partial",

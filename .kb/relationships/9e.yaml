@@ -321,3 +321,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2e79a36ee232
+  - type: implements
+    from: SYM-prolog-swipl-pkg-validate-manifest
+    to: REQ-prolog-bundled-runtime
+    created_at: 2026-09-30T22:56:29.328Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5b870199eb9d
+  - type: covered_by
+    from: SYM-prolog-swipl-pkg-validate-manifest
+    to: TEST-prolog-bundled-runtime
+    created_at: 2026-09-30T22:56:29.347Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-042fe866a5d1

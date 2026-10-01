@@ -67,7 +67,14 @@ export async function stopOwnedEngines(runtimeDirectory) {
 // implements REQ-test-journaled-engine-harness
 export async function runOwnedEngineTests(command, args) {
   const runtimeDirectory = mkdtempSync(
-    join(tmpdir(), "kibi-test-engine-runtime-"),
+    // Keep the owned socket/PID location below the Unix pathname budget so
+    // engine fallback cannot move it outside this runner's cleanup directory.
+    join(
+      process.platform === "win32" ? tmpdir() : "/tmp",
+      process.platform === "win32"
+        ? "kibi-test-engine-runtime-"
+        : "kibi-test-engine-",
+    ),
   );
   let child;
   try {

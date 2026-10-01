@@ -5,6 +5,7 @@ import path from "node:path";
 import { doctorCommand } from "../../src/commands/doctor.js";
 import { engineStopCommand } from "../../src/commands/engine.js";
 import { initCommand } from "../../src/commands/init.js";
+import { installFakeSwipl } from "../helpers/fake-swipl.js";
 import {
   captureIo,
   createGitWorkspace,
@@ -204,34 +205,21 @@ describe("doctorCommand", () => {
     expect(malformed.exitCode).toBe(1);
     expect(io.logText()).toContain("malformed");
 
-    const originalExec = childProcess.execSync;
-    const exec = spyOn(childProcess, "execSync").mockImplementation(((
-      command: string,
-      options?: unknown,
-    ) => {
-      if (String(command).includes("swipl")) {
-        return "SWI-Prolog threaded\n";
-      }
-      return originalExec(command, options as never);
-    }) as typeof childProcess.execSync);
-    restores.push(() => exec.mockRestore());
+    const fake = installFakeSwipl("SWI-Prolog threaded\n");
+    restores.push(fake);
     await withCwd(cwd, () => doctorCommand({ format: "json" }));
-    expect(io.logText()).toContain("Unable to parse version");
+    expect(io.logText()).toContain("could not report its version");
+    fake();
 
-    exec.mockImplementation(((command: string, options?: unknown) => {
-      if (String(command).includes("swipl")) {
-        return "SWI-Prolog version 8.2\n";
-      }
-      return originalExec(command, options as never);
-    }) as typeof childProcess.execSync);
+    restores.push(installFakeSwipl("SWI-Prolog version 8.2\n"));
     await withCwd(cwd, () => doctorCommand({ format: "json" }));
-    expect(io.logText()).toContain("requires ≥9.0");
+    expect(io.logText()).toContain(
+      "is SWI-Prolog 8.2, but 9.0 or newer is required",
+    );
 
-    exec.mockImplementation((() => {
-      throw new Error("not found");
-    }) as typeof childProcess.execSync);
+    restores.push(installFakeSwipl(new Error("not found")));
     await withCwd(cwd, () => doctorCommand({ format: "json" }));
-    expect(io.logText()).toContain("Not installed or not in PATH");
+    expect(io.logText()).toContain("Kibi could not find a usable SWI-Prolog");
     expect(io.logText()).toContain("Not a git repository");
   });
 

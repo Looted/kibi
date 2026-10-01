@@ -143,6 +143,7 @@ if (fixtureChild) {
       "plugin-builtin": archive("plugin-builtin"),
       "plugin-jev": archive("plugin-jev"),
       "plugin-treesitter": archive("plugin-treesitter"),
+      swipl: archive("swipl"),
     };
     writePackedInstallManifest(prefix, tarballs);
     const manifest = JSON.parse(

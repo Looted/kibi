@@ -132,3 +132,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-def9152fd5bc
+  - type: constrains
+    from: REQ-prolog-bundled-ci
+    to: FACT-prolog-bundled-ci-subject
+    created_at: 2026-10-01T03:48:24.036Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-56e4a93be864
+  - type: requires_property
+    from: REQ-prolog-bundled-ci
+    to: FACT-prolog-bundled-ci-runs-verified-bundle
+    created_at: 2026-10-01T03:48:24.087Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ba77d067a1fc
+  - type: requires_property
+    from: REQ-prolog-bundled-ci
+    to: FACT-prolog-bundled-ci-keeps-system-swipl-job
+    created_at: 2026-10-01T03:48:24.096Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5a5ae6e6431b
+  - type: requires_property
+    from: REQ-prolog-bundled-ci
+    to: FACT-prolog-bundled-ci-cached-archive-skips-binding-only-with-flag
+    created_at: 2026-10-01T03:48:24.106Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2828b1c656b
+  - type: requires_property
+    from: REQ-prolog-bundled-ci
+    to: FACT-prolog-bundled-ci-release-uses-cached-build
+    created_at: 2026-10-01T03:48:24.132Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2d20c80615ab
+  - type: specified_by
+    from: REQ-prolog-bundled-ci
+    to: SCEN-prolog-bundled-ci
+    created_at: 2026-10-01T03:48:24.137Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d370a8efcdbb

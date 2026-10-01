@@ -1,7 +1,7 @@
 // implements REQ-014
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { execFileSync } from "node:child_process";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, realpathSync, writeFileSync } from "node:fs";
 import * as fs from "node:fs/promises";
 import path from "node:path";
 import {
@@ -67,7 +67,7 @@ describe("node-ports remaining snapshot and git helpers", () => {
     const toplevel = await withCwd(root, () =>
       (nodeGit.showToplevel as never as () => Promise<string>)(),
     );
-    expect(path.resolve(toplevel)).toBe(path.resolve(root));
+    expect(path.resolve(toplevel)).toBe(realpathSync.native(root));
     const ignored = await nodeGit.ignoredPaths(root, [
       "src/main.ts",
       "node_modules/pkg/index.js",

@@ -1,3 +1,4 @@
+import { realpathSync } from "node:fs";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -240,7 +241,15 @@ function normalizeString(
   workspaceRoots: readonly string[],
 ): string {
   let normalized = value;
-  for (const root of [...workspaceRoots].sort(
+  const roots = new Set(workspaceRoots);
+  for (const root of workspaceRoots) {
+    try {
+      roots.add(realpathSync.native(root));
+    } catch {
+      // Synthetic or removed fixture roots still retain lexical normalization.
+    }
+  }
+  for (const root of [...roots].sort(
     (left, right) => right.length - left.length,
   )) {
     normalized = normalized.replaceAll(root, "<workspace>");

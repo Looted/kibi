@@ -125,3 +125,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0e2eebf720ce
+  - type: implements
+    from: SYM-prolog-swipl-platform-packages-dts
+    to: REQ-prolog-bundled-runtime
+    created_at: 2026-09-30T23:36:24.985Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f4414f84d4ed
+  - type: covered_by
+    from: SYM-prolog-swipl-platform-packages-dts
+    to: TEST-prolog-bundled-runtime
+    created_at: 2026-09-30T23:36:24.998Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4c44bce5963c
+  - type: implements
+    from: SYM-prolog-swipl-bundled-binary-path-js
+    to: REQ-prolog-bundled-runtime
+    created_at: 2026-09-30T23:36:35.976Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-66a1c4b54778
+  - type: covered_by
+    from: SYM-prolog-swipl-bundled-binary-path-js
+    to: TEST-prolog-bundled-runtime
+    created_at: 2026-09-30T23:36:35.987Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3859c6940cb0

@@ -129,3 +129,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2cb98abdd817
+  - type: validates
+    from: TEST-prolog-bundled-runtime
+    to: SCEN-prolog-bundled-runtime
+    created_at: 2026-09-30T22:48:41.738Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-78b24622755c
+  - type: implements
+    from: SYM-prolog-swipl-resolution-error-code
+    to: REQ-prolog-bundled-runtime
+    created_at: 2026-09-30T22:55:52.055Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7531eabcb375
+  - type: covered_by
+    from: SYM-prolog-swipl-resolution-error-code
+    to: TEST-prolog-bundled-runtime
+    created_at: 2026-09-30T22:55:52.078Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-815ea3641337

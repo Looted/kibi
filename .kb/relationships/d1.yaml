@@ -251,3 +251,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-39a70d862db2
+  - type: constrains
+    from: REQ-prolog-bundled-release
+    to: FACT-prolog-bundled-release-subject
+    created_at: 2026-10-01T00:20:55.152Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f7b9bb812275
+  - type: requires_property
+    from: REQ-prolog-bundled-release
+    to: FACT-prolog-bundled-release-populates-only-from-verified-archive
+    created_at: 2026-10-01T00:20:55.213Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1c7170f16a6e
+  - type: requires_property
+    from: REQ-prolog-bundled-release
+    to: FACT-prolog-bundled-release-ships-regular-files-only
+    created_at: 2026-10-01T00:20:55.238Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0c0a232bc5c4
+  - type: requires_property
+    from: REQ-prolog-bundled-release
+    to: FACT-prolog-bundled-release-dry-run-can-publish
+    created_at: 2026-10-01T00:20:55.260Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d90933c6508d
+  - type: specified_by
+    from: REQ-prolog-bundled-release
+    to: SCEN-prolog-bundled-release
+    created_at: 2026-10-01T00:20:55.288Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fcfdfecf9268

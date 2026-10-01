@@ -9,6 +9,7 @@ import { doctorCommand } from "../../src/commands/doctor.js";
 import { engineStopCommand } from "../../src/commands/engine.js";
 import { installGitHooks } from "../../src/commands/init-helpers.js";
 import { resetKibiEnvironmentBootstrapStateForTests } from "../../src/env/bootstrap.js";
+import { type FakeSwiplSpec, installFakeSwipl } from "../helpers/fake-swipl.js";
 import {
   captureIo,
   createGitWorkspace,
@@ -26,6 +27,7 @@ interface DoctorCheckResult {
   passed: boolean;
   message: string;
   remediation?: string;
+  details?: Record<string, unknown>;
 }
 
 interface DoctorPayload {
@@ -58,7 +60,8 @@ afterEach(async () => {
 
 function preparedWorkspace(): string {
   restores.push(isolateKibiEnv());
-  const cwd = createGitWorkspace();
+  mockSwipl("SWI-Prolog version 9.2 (threaded, 64 bits)\n");
+  const cwd = fs.realpathSync.native(createGitWorkspace());
   roots.push(cwd);
   return cwd;
 }
@@ -76,23 +79,11 @@ function writeOkManifest(cwd: string): void {
 }
 
 /**
- * Make the SWI-Prolog probe deterministic: return a fixed banner, or throw to
- * simulate swipl missing from PATH. Every other command (notably
- * `git status`) still runs for real.
+ * Make the SWI-Prolog probe deterministic through KIBI_SWIPL: a fixed banner,
+ * or an Error for "SWI-Prolog is nowhere to be found". The real resolver runs.
  */
-function mockSwipl(output: string | Error): void {
-  const originalExec = childProcess.execSync;
-  const exec = spyOn(childProcess, "execSync").mockImplementation(((
-    command: string,
-    options?: unknown,
-  ) => {
-    if (String(command).includes("swipl")) {
-      if (output instanceof Error) throw output;
-      return output;
-    }
-    return originalExec(command, options as never);
-  }) as typeof childProcess.execSync);
-  restores.push(() => exec.mockRestore());
+function mockSwipl(spec: FakeSwiplSpec): void {
+  restores.push(installFakeSwipl(spec));
 }
 
 function currentPreCommitBody(): string {
@@ -144,13 +135,20 @@ function unresolvedVersionsOf(
 describe("doctorCommand rendered report", () => {
   test("renders failing table rows with remediation hints and exits 1 in an uninitialized workspace", async () => {
     const cwd = preparedWorkspace();
-    mockSwipl(new Error("spawn swipl ENOENT"));
+    mockSwipl(new Error("swipl is absent"));
     const { exitCode, text } = await runDoctorTable(cwd);
     expect(exitCode).toBe(1);
     expect(text).toContain("Kibi Environment Diagnostics");
-    expect(text).toContain("✗ SWI-Prolog: Not installed or not in PATH");
     expect(text).toContain(
-      "→ Install SWI-Prolog from https://www.swi-prolog.org/ and add to PATH",
+      "✗ SWI-Prolog: Kibi could not find a usable SWI-Prolog (9.0 or newer is required).",
+    );
+    expect(text).toContain(
+      "Bundled SWI-Prolog: skipped because KIBI_SWIPL=system.",
+    );
+    expect(text).toContain("swipl was not found on PATH.");
+    expect(text).toContain("Install it with:");
+    expect(text).toContain(
+      "Or set KIBI_SWIPL to the absolute path of a SWI-Prolog 9.0+ executable.",
     );
     expect(text).toContain("✗ .kb/ directory: Not found");
     expect(text).toContain("→ Run: kibi init");
@@ -168,7 +166,8 @@ describe("doctorCommand rendered report", () => {
     const { exitCode, text } = await runDoctorTable(cwd);
     expect(exitCode).toBe(0);
     expect(text).toContain("All checks passed! Your environment is ready.");
-    expect(text).toContain("✓ SWI-Prolog: Version version 9.2 installed");
+    expect(text).toContain("✓ SWI-Prolog: Version 9.2 from KIBI_SWIPL at ");
+    expect(text).toContain("required libraries load");
     expect(text).toContain("✓ .kb/ directory: Found");
     expect(text).toContain("✓ .kb/ manifest: schemaVersion 5");
     expect(text).toContain("✓ Canonical storage: Canonical .kb/ layout");
@@ -178,36 +177,6 @@ describe("doctorCommand rendered report", () => {
     expect(text).toContain("✓ post-rewrite hook: Not installed (optional)");
     expect(text).not.toContain("✗");
     expect(text).not.toContain("Some checks failed");
-  });
-});
-
-describe("doctorCommand SWI-Prolog check", () => {
-  test("fails with upgrade guidance for an 8.x banner", async () => {
-    const cwd = preparedWorkspace();
-    writeOkManifest(cwd);
-    mockSwipl("SWI-Prolog version 8.4 (threaded)\n");
-    const { exitCode, payload } = await runDoctorJson(cwd);
-    expect(exitCode).toBe(1);
-    const check = namedCheck(payload, "SWI-Prolog");
-    expect(check.passed).toBe(false);
-    expect(check.message).toBe("Version 8.x found (requires ≥9.0)");
-    expect(check.remediation).toBe(
-      "Upgrade SWI-Prolog to version 9.0 or higher from https://www.swi-prolog.org/",
-    );
-  });
-
-  test("fails when the banner has no parsable version", async () => {
-    const cwd = preparedWorkspace();
-    writeOkManifest(cwd);
-    mockSwipl("SWI-Prolog (threaded, 64 bits, version unknown)\n");
-    const { exitCode, payload } = await runDoctorJson(cwd);
-    expect(exitCode).toBe(1);
-    const check = namedCheck(payload, "SWI-Prolog");
-    expect(check.passed).toBe(false);
-    expect(check.message).toBe("Unable to parse version");
-    expect(check.remediation).toBe(
-      "Reinstall SWI-Prolog from https://www.swi-prolog.org/",
-    );
   });
 });
 

@@ -33,6 +33,7 @@ import {
   normalizeRepositoryUrl,
   repositoryMatches,
   verifyPublishMetadata,
+  verifySwiplFamilyMetadata,
 } from "../verify-publish-metadata";
 
 const repoRoot = join(import.meta.dir, "..", "..");
@@ -255,4 +256,123 @@ describe("MCP Registry GitHub namespace", () => {
       if (!valid) expect(issues[0]?.problem).toContain("case-sensitive");
     },
   );
+});
+
+describe("kibi-swipl family release invariants", () => {
+  function familyRoot(
+    mutate?: (manifests: Record<string, Record<string, unknown>>) => void,
+  ): string {
+    const root = mkdtempSync(join(tmpdir(), "kibi-swipl-family-"));
+    metadataFixtures.push(root);
+    const manifests: Record<string, Record<string, unknown>> = {};
+    for (const dir of PUBLISHABLE_DIRS) {
+      manifests[dir] = JSON.parse(
+        readFileSync(join(packagesRoot, dir, "package.json"), "utf8"),
+      );
+    }
+    mutate?.(manifests);
+    for (const [dir, manifest] of Object.entries(manifests)) {
+      mkdirSync(join(root, dir));
+      writeFileSync(join(root, dir, "package.json"), JSON.stringify(manifest));
+    }
+    return root;
+  }
+
+  const problemsOf = (root: string, requirePayload = false) =>
+    verifySwiplFamilyMetadata(root, { requirePayload }).map(
+      (issue) => `${issue.pkg}: ${issue.problem}`,
+    );
+
+  test("the committed family is consistent", () => {
+    expect(problemsOf(familyRoot())).toEqual([]);
+  });
+
+  test("a platform package that drifts from the fixed group version is refused", () => {
+    const problems = problemsOf(
+      familyRoot((manifests) => {
+        manifests["swipl-darwin-arm64"].version = "1.0.1";
+      }),
+    );
+    expect(problems).toContain(
+      "swipl-darwin-arm64: version '1.0.1' must match kibi-swipl 1.0.0 (fixed group)",
+    );
+    expect(problems).toContain(
+      "swipl-darwin-arm64: kibi-swipl must depend on kibi-swipl-darwin-arm64 at exactly 1.0.1",
+    );
+  });
+
+  test("a resolver that omits or adds a platform package is refused", () => {
+    const missing = problemsOf(
+      familyRoot((manifests) => {
+        const deps = manifests.swipl.optionalDependencies as Record<
+          string,
+          string
+        >;
+        deps["kibi-swipl-linux-arm64-gnu"] = undefined as unknown as string;
+      }),
+    );
+    expect(missing[0]).toContain("optionalDependencies must list exactly");
+    const extra = problemsOf(
+      familyRoot((manifests) => {
+        (manifests.swipl.optionalDependencies as Record<string, string>)[
+          "kibi-swipl-win32-x64"
+        ] = "1.0.0";
+      }),
+    );
+    expect(extra[0]).toContain("optionalDependencies must list exactly");
+  });
+
+  test("an unpinned SWI-Prolog version is refused on the resolver and each platform package", () => {
+    const problems = problemsOf(
+      familyRoot((manifests) => {
+        (manifests.swipl.kibi as Record<string, string>).swiplVersion = "9.0.0";
+        (
+          manifests["swipl-linux-x64-gnu"].kibi as Record<string, string>
+        ).swiplVersion = "9.0.0";
+      }),
+    );
+    expect(
+      problems.filter((p) => p.includes("pinned SWI-Prolog")),
+    ).toHaveLength(2);
+  });
+
+  test("install scripts, a wrong file list, and a missing prepack guard are refused", () => {
+    const problems = problemsOf(
+      familyRoot((manifests) => {
+        const pkg = manifests["swipl-linux-x64-gnu"];
+        pkg.scripts = { postinstall: "node x.js" };
+        pkg.files = ["bin/", "lib/", "share/"];
+      }),
+    );
+    expect(problems).toContain(
+      "swipl-linux-x64-gnu: install script 'postinstall' is not allowed",
+    );
+    expect(problems).toContain(
+      "swipl-linux-x64-gnu: prepack must run scripts/verify-swipl-payload.mjs",
+    );
+    expect(problems.some((p) => p.includes("files must be exactly"))).toBe(
+      true,
+    );
+  });
+
+  test("a wrong os, cpu, or libc restriction is refused", () => {
+    const problems = problemsOf(
+      familyRoot((manifests) => {
+        manifests["swipl-linux-x64-gnu"].cpu = ["arm64"];
+        manifests["swipl-linux-arm64-gnu"].libc = ["musl"];
+        manifests["swipl-darwin-x64"].os = ["linux"];
+      }),
+    );
+    expect(problems.filter((p) => /must be/.test(p))).toHaveLength(3);
+  });
+
+  test("requiring the payload refuses unpopulated platform packages and accepts none of them", () => {
+    // Fixture roots carry package.json only, so no payload exists anywhere.
+    const problems = problemsOf(familyRoot(), true);
+    expect(problems).toHaveLength(4);
+    for (const problem of problems) {
+      expect(problem).toContain("bundled runtime payload");
+      expect(problem).toContain("build-manifest.json is missing");
+    }
+  });
 });

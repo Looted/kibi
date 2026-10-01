@@ -97,3 +97,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a99aafc44579
+  - type: implements
+    from: SYM-prolog-release-verify-swipl-family-metadata
+    to: REQ-prolog-bundled-release
+    created_at: 2026-10-01T00:22:29.275Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ace270cd6010
+  - type: covered_by
+    from: SYM-prolog-release-verify-swipl-family-metadata
+    to: TEST-prolog-bundled-release
+    created_at: 2026-10-01T00:22:29.289Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d3e5a1d9b2d8

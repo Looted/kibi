@@ -11,7 +11,7 @@
     {
       "name": "kibi-claude",
       "source": "./packages/claude",
-      "description": "Kibi for Claude Code: requirement and test snippets before reads and edits, advisory KB freshness reminders, bundled Kibi skills, and the workspace-gated Kibi MCP server. Prerequisite: SWI-Prolog 9+ and project-local kibi-cli, kibi-mcp, kibi-core.",
+      "description": "Kibi for Claude Code: requirement and test snippets before reads and edits, advisory KB freshness reminders, bundled Kibi skills, and the workspace-gated Kibi MCP server. Prerequisite: project-local kibi-cli, kibi-mcp, kibi-core; SWI-Prolog is bundled on Linux and macOS.",
       "homepage": "https://github.com/Looted/kibi/blob/develop/packages/claude/README.md",
       "category": "Productivity"
     },

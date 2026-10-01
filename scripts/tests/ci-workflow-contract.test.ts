@@ -1,3 +1,4 @@
+// executable_for TEST-prolog-bundled-ci
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -175,6 +176,9 @@ describe("ci.yml CI workflow contract", () => {
 
   test("SWI install avoids Launchpad GPG API and can build from source", () => {
     const installScript = readFileSync(SWI_INSTALL_PATH, "utf8");
+    const sourcePin = JSON.parse(
+      readFileSync(join(import.meta.dir, "..", "swipl-version.json"), "utf8"),
+    );
     expect(installScript).toContain("library(prolog_coverage)");
     expect(installScript).toContain("Failed to fetch .*${SWI_PPA_FETCH_RE}");
     expect(installScript).toContain(
@@ -184,11 +188,10 @@ describe("ci.yml CI workflow contract", () => {
     expect(installScript).not.toContain("apt-add-repository -y");
     expect(installScript).toContain("add_swi_ppa_without_launchpad_api");
     expect(installScript).toContain("install_swi_from_official_source");
-    expect(installScript).toContain("SWIPL_SRC_VERSION:-10.0.2");
+    expect(installScript).toContain('"${SCRIPT_DIR}/swipl-version.json"');
     expect(installScript).toContain("swipl-${SWIPL_SRC_VERSION}.tar.gz");
-    expect(installScript).toContain(
-      "e42cc098f7b8a6051c4f79a99b55162d467098aba60f69649bdc7583f0734b57",
-    );
+    expect(sourcePin.version).toMatch(/^\d+\.\d+\.\d+$/);
+    expect(sourcePin.sha256).toMatch(/^[0-9a-f]{64}$/);
     expect(installScript).toContain("E8B739E3753FF4A12360BA6A4AB3A5F60EA9AEB3");
     expect(installScript).toContain("refresh_ubuntu_indexes");
     expect(installScript).not.toContain('apt-get install -y "$@"');
@@ -207,8 +210,8 @@ describe("ci.yml CI workflow contract", () => {
     expect(workflowContent).toContain("ci-typecheck-build:");
     expect(workflowContent).toContain("ci-unit-coverage:");
     expect(workflowContent).toContain("ci-integration:");
-    expect(extractJobBlock(workflowContent, "ci-unit-coverage")).not.toContain(
-      "needs:",
+    expect(extractJobBlock(workflowContent, "ci-unit-coverage")).toContain(
+      "needs: [swipl-bundle]",
     );
     expect(
       extractJobBlock(workflowContent, "ci-package-contract"),
@@ -277,5 +280,145 @@ describe("ci.yml CI workflow contract", () => {
       expect(mutated).toContain("needs: ci-package-contract");
       expect(mutated).not.toContain("prolog-unit-coverage");
     });
+  });
+});
+
+describe("Kibi's own CI runs the Prolog that ships", () => {
+  const root = join(import.meta.dir, "..", "..");
+  const read = (...parts: string[]) =>
+    readFileSync(join(root, ...parts), "utf8");
+  const ci = read(".github", "workflows", "ci.yml");
+  const proof = read(".github", "workflows", "proof.yml");
+  const bundleWorkflow = read(".github", "workflows", "swipl-ci-bundle.yml");
+  const action = read(".github", "actions", "use-bundled-swipl", "action.yml");
+  const ACTION_REF = "./.github/actions/use-bundled-swipl";
+  const bundledJobs = [
+    "ci-unit-coverage",
+    "prolog-unit-coverage",
+    "packed-e2e-cli-regression",
+    "packed-e2e-mcp-regression",
+    "packed-e2e-branch-workflow",
+  ] as const;
+
+  test("every Prolog job but one runs the pipeline-built bundle", () => {
+    for (const job of bundledJobs) {
+      const block = extractJobBlock(ci, job);
+      expect(block, job).toContain(ACTION_REF);
+      expect(block, job).not.toContain("ci-install-swi-prolog");
+      expect(block, job).not.toContain("kibi-swipl-prefix");
+    }
+    expect(extractJobBlock(ci, "ci-unit-coverage")).toContain(
+      "verify-resolver: 'true'",
+    );
+  });
+
+  test("the bundle is built once per run, ahead of the jobs that use it", () => {
+    const workflow = Bun.YAML.parse(ci) as {
+      jobs: Record<string, { uses?: string; needs?: string | string[] }>;
+    };
+    expect(workflow.jobs["swipl-bundle"]?.uses).toBe(
+      "./.github/workflows/swipl-ci-bundle.yml",
+    );
+    for (const job of ["ci-unit-coverage", "prolog-unit-coverage"]) {
+      expect(workflow.jobs[job]?.needs).toEqual(["swipl-bundle"]);
+    }
+    // The packed jobs wait for prolog-unit-coverage, so the artifact exists.
+    for (const job of [
+      "packed-e2e-cli-regression",
+      "packed-e2e-mcp-regression",
+      "packed-e2e-branch-workflow",
+    ]) {
+      expect(workflow.jobs[job]?.needs).toContain("prolog-unit-coverage");
+    }
+  });
+
+  test("ci-integration keeps a system SWI-Prolog on PATH and refuses the bundle", () => {
+    const block = extractJobBlock(ci, "ci-integration");
+    expect(block).toContain("bash scripts/ci-install-swi-prolog.sh");
+    expect(block).toContain("KIBI_SWIPL: system");
+    expect(block).not.toContain(ACTION_REF);
+    expect(
+      ci.split("run: bash scripts/ci-install-swi-prolog.sh").length - 1,
+    ).toBe(1);
+  });
+
+  test("the proof run uses the same bundle", () => {
+    const workflow = Bun.YAML.parse(proof) as {
+      jobs: {
+        proof: { needs: string[]; steps: Array<Record<string, unknown>> };
+        "swipl-bundle": { uses: string };
+      };
+    };
+    expect(workflow.jobs["swipl-bundle"].uses).toBe(
+      "./.github/workflows/swipl-ci-bundle.yml",
+    );
+    expect(workflow.jobs.proof.needs).toEqual(["swipl-bundle"]);
+    const install = workflow.jobs.proof.steps.find(
+      (step) => step.name === "Install SWI-Prolog",
+    );
+    expect(install?.uses).toBe(ACTION_REF);
+    expect(proof).not.toContain("ci-install-swi-prolog");
+  });
+
+  test("the archive is cached on everything that determines its bytes", () => {
+    const workflow = Bun.YAML.parse(bundleWorkflow) as {
+      on: Record<string, unknown>;
+      jobs: {
+        bundle: {
+          container: string;
+          steps: Array<{
+            uses?: string;
+            run?: string;
+            with?: Record<string, string>;
+          }>;
+        };
+      };
+    };
+    expect(Object.keys(workflow.on)).toEqual(["workflow_call"]);
+    const job = workflow.jobs.bundle;
+    expect(job.container).toBe("quay.io/pypa/manylinux_2_28_x86_64");
+    const cache = job.steps.find((step) =>
+      step.uses?.startsWith("actions/cache@"),
+    );
+    const key = cache?.with?.key ?? "";
+    for (const input of [
+      "scripts/swipl-version.json",
+      "scripts/swipl-spike.py",
+      "scripts/swipl-spike.sh",
+      "scripts/patches/swipl-*.patch",
+      ".github/workflows/swipl-build.yml",
+      ".github/workflows/swipl-ci-bundle.yml",
+    ]) {
+      expect(key, input).toContain(`'${input}'`);
+    }
+    expect(bundleWorkflow).toContain(
+      "scripts/swipl-spike.sh build-archive --target linux-x64-gnu",
+    );
+    const upload = job.steps.find((step) =>
+      step.uses?.startsWith("actions/upload-artifact@"),
+    );
+    expect(upload?.with?.name).toBe("kibi-ci-swipl");
+    expect(String(upload?.with?.["retention-days"])).toBe("1");
+  });
+
+  test("consumers re-verify the archive and prove library(prolog_coverage)", () => {
+    expect(action).toContain("scripts/populate-swipl-platform-packages.mjs");
+    expect(action).toContain("--targets linux-x64-gnu --cached-build");
+    expect(action).toContain("library(prolog_coverage)");
+    expect(action).toContain('resolved.source !== "bundled"');
+  });
+
+  test("a release never trusts the CI cache or drops its commit binding", () => {
+    for (const name of [
+      "publish.yml",
+      "release-pack.yml",
+      "release-smoke.yml",
+      "swipl-build.yml",
+    ]) {
+      const content = read(".github", "workflows", name);
+      expect(content, name).not.toContain("--cached-build");
+      expect(content, name).not.toContain("swipl-ci-bundle");
+      expect(content, name).not.toContain("use-bundled-swipl");
+    }
   });
 });

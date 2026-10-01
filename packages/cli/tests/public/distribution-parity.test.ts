@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
   mkdirSync,
   mkdtempSync,
+  realpathSync,
   rmSync,
   symlinkSync,
   writeFileSync,
@@ -69,7 +70,9 @@ function currentRuntimes() {
 
 describe("distribution parity matrix", () => {
   test("resolves symlinked dogfood and pnpm shim entrypoints from execution evidence", () => {
-    const root = mkdtempSync(join(tmpdir(), "kibi-parity-resolution-"));
+    const root = realpathSync.native(
+      mkdtempSync(join(tmpdir(), "kibi-parity-resolution-")),
+    );
     try {
       const packageRoot = join(root, "node_modules", "kibi-cli");
       const bin = join(packageRoot, "bin", "kibi");

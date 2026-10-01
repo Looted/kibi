@@ -321,3 +321,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-845265499598
+  - type: implements
+    from: SYM-prolog-build-check-native-architecture
+    to: REQ-prolog-build-pipeline-validation
+    created_at: 2026-09-30T17:51:56.554Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bbbf44530271
+  - type: covered_by
+    from: SYM-prolog-build-check-native-architecture
+    to: TEST-prolog-build-pipeline-validation
+    created_at: 2026-09-30T17:51:56.594Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-29bbf028dda0
+  - type: verified_by
+    from: SCEN-prolog-bundled-runtime
+    to: TEST-prolog-bundled-runtime
+    created_at: 2026-09-30T22:48:47.904Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-56ea2818e0de

@@ -6,6 +6,7 @@ import {
   mkdtempSync,
   readFileSync,
   readdirSync,
+  realpathSync,
   renameSync,
   rmSync,
   writeFileSync,
@@ -21,7 +22,10 @@ import {
   relocatePackedInstallMetadata,
   writePackedInstallManifest,
 } from "./packed-install-manifest.js";
-import { packagesForPack } from "./packed-packages.js";
+import {
+  hostSwiplPlatformPackage,
+  packagesForPack,
+} from "./packed-packages.js";
 
 // executable_for TEST-test-journaled-engine-harness
 export { packagesForPack } from "./packed-packages.js";
@@ -440,6 +444,22 @@ function hasInstalledKibi(prefix: string | undefined): prefix is string {
   );
 }
 
+function findHostSwiplPlatformTarball(root: string): string | null {
+  const name = hostSwiplPlatformPackage();
+  const dirName = name.slice("kibi-".length);
+  for (const dir of [root, join(root, dirName)]) {
+    if (!existsSync(dir)) continue;
+    const match = readdirSync(dir).find(
+      (file) =>
+        file.startsWith(`${name}-`) &&
+        /^\d/.test(file.slice(name.length + 1)) &&
+        file.endsWith(".tgz"),
+    );
+    if (match) return join(dir, match);
+  }
+  return null;
+}
+
 function findPrePackedTarball(
   prePackedDir: string,
   pkg: (typeof packagesForPack)[number],
@@ -461,8 +481,13 @@ function findPrePackedTarball(
       continue;
     }
 
+    // `kibi-swipl-` is also the prefix of every kibi-swipl-<platform> tarball,
+    // so require a version right after the package name.
     const files = readdirSync(dir).filter(
-      (f: string) => f.startsWith(`kibi-${pkg}-`) && f.endsWith(".tgz"),
+      (f: string) =>
+        f.startsWith(`kibi-${pkg}-`) &&
+        /^\d/.test(f.slice(`kibi-${pkg}-`.length)) &&
+        f.endsWith(".tgz"),
     );
 
     if (files.length === 0) continue;
@@ -550,6 +575,7 @@ async function bootstrapSharedInstall(
     tarballs["plugin-sdk"],
     tarballs["agent-core"],
     tarballs["plugin-builtin"],
+    tarballs.swiplPlatform ?? "",
   ].join("|");
   const existing = sharedInstallations.get(installKey);
   if (existing) {
@@ -671,6 +697,12 @@ export interface Tarballs {
   "plugin-builtin": string;
   "plugin-jev": string;
   "plugin-treesitter": string;
+  swipl: string;
+  /**
+   * The kibi-swipl-<platform> tarball for this host, present only when the
+   * tarball set carries one (a populated release pack).
+   */
+  swiplPlatform?: string;
 }
 
 /** Options for running commands */
@@ -774,6 +806,16 @@ export async function packAll(): Promise<Tarballs> {
         } else {
           throw new Error(`Pre-packed tarball not found for package: ${pkg}`);
         }
+      }
+
+      const platformTarball = findHostSwiplPlatformTarball(source.externalRoot);
+      if (platformTarball) {
+        tarballs.swiplPlatform = platformTarball;
+        console.log(`    ✓ swipl platform: ${basename(platformTarball)}`);
+      } else if (process.env.KIBI_PACKED_REQUIRE_BUNDLED_SWIPL === "1") {
+        throw new Error(
+          `KIBI_PACKED_REQUIRE_BUNDLED_SWIPL=1 but no ${hostSwiplPlatformPackage()} tarball exists under ${source.externalRoot}`,
+        );
       }
 
       tarballRoots.set(source.key, source.externalRoot);
@@ -994,6 +1036,8 @@ export function createSandbox(options: SandboxOptions = {}): TestSandbox {
         tarballs["plugin-builtin"],
         tarballs["plugin-jev"],
         tarballs["plugin-treesitter"],
+        tarballs.swipl,
+        tarballs.swiplPlatform ?? "",
       ]
         .concat(`ignore-scripts=${installOptions.ignoreScripts === true}`)
         .concat(
@@ -1393,7 +1437,9 @@ async function verifyKibiCliResolutionImpl(
     );
   }
 
-  const normalizedPrefix = prefix.replace(/\\/g, "/");
+  // Node reports the real path; a temp prefix under a symlinked directory
+  // (macOS /var -> /private/var) must compare by its real path too.
+  const normalizedPrefix = realpathSync(prefix).replace(/\\/g, "/");
   const normalizedResolved = resolved.replace(/\\/g, "/");
 
   if (!normalizedResolved.startsWith(normalizedPrefix)) {

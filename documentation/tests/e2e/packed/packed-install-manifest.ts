@@ -2,6 +2,7 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join, sep } from "node:path";
 import type { Tarballs } from "./helpers.js";
+import { hostSwiplPlatformPackage } from "./packed-packages.js";
 
 /** Prepare owned install metadata for an atomic staging-to-cache rename.
  * Return an exact rollback for a publisher that loses the rename race. */
@@ -61,6 +62,14 @@ export function writePackedInstallManifest(
           "kibi-plugin-jev": `file:${tarballs["plugin-jev"]}`,
           "kibi-plugin-treesitter": `file:${tarballs["plugin-treesitter"]}`,
         }
+      : {}),
+    // kibi-cli and kibi-runtime depend on the resolver; its platform packages
+    // are optional and absent from these local installs.
+    "kibi-swipl": `file:${tarballs.swipl}`,
+    // The host's bundled SWI-Prolog, when the tarball set carries one. Absent
+    // for ci-pack sets, which use the system swipl.
+    ...(tarballs.swiplPlatform
+      ? { [hostSwiplPlatformPackage()]: `file:${tarballs.swiplPlatform}` }
       : {}),
   };
   const workspaceOverrides = [

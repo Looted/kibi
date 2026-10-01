@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 129,
-  "proofProven": 129,
+  "currentRequirements": 140,
+  "proofProven": 140,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -496,6 +496,11 @@
       "gaps": [],
       "uncoveredSymbols": []
     },
+    "REQ-native-cli-suite-diagnostics": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
     "REQ-opencode-background-sync": {
       "proofStatus": "proven",
       "gaps": [],
@@ -551,7 +556,22 @@
       "gaps": [],
       "uncoveredSymbols": []
     },
+    "REQ-prolog-build-pipeline-validation": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-prolog-coverage-test-selection": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
     "REQ-prolog-library-adoption": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-prolog-spike-config-validation": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []
@@ -567,6 +587,11 @@
       "uncoveredSymbols": []
     },
     "REQ-runtime-packed-engine-daemon": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-scripts-coverage-shard-isolation": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []
@@ -647,6 +672,36 @@
       "uncoveredSymbols": []
     },
     "REQ-zcode-manual-mcp-configuration-v1": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-prolog-bundled-runtime": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-prolog-daemon-runtime-identity": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-prolog-doctor-runtime-report": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-prolog-bundled-release": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-prolog-bundled-ci": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-prolog-bundled-quickstart": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []

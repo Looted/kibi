@@ -16,7 +16,6 @@ import { installGitHooks } from "../../src/commands/init-helpers.js";
 import { refreshManifestCoordinates } from "../../src/commands/sync/manifest.js";
 
 const cli = fileURLToPath(new URL("../../bin/kibi", import.meta.url));
-const systemGit = "/usr/bin/git";
 const dirs: string[] = [];
 
 afterEach(() => {
@@ -232,6 +231,8 @@ describe("installed pre-commit generated-manifest gate", () => {
 
   test("blocks when the index changes during analysis", async () => {
     const { cwd, env, binDir } = await fixture();
+    const systemGit = Bun.which("git");
+    if (!systemGit) throw new Error("Git executable required for hook fixture");
     write(
       cwd,
       "src/sample.ts",
@@ -242,12 +243,12 @@ describe("installed pre-commit generated-manifest gate", () => {
     const wrapper = path.join(binDir, "git");
     writeFileSync(
       wrapper,
-      `#!/bin/sh\nif [ "$1" = "write-tree" ]; then\n  n=0\n  if [ -f "${counter}" ]; then n=$(cat "${counter}"); fi\n  n=$((n + 1))\n  printf '%s' "$n" > "${counter}"\n  if [ "$n" -eq 2 ]; then\n    printf 'changed\\n' > index-change.txt\n    "${systemGit}" add index-change.txt\n  fi\nfi\nexec "${systemGit}" "$@"\n`,
+      `#!/bin/sh\nif [ "$1" = "write-tree" ]; then\n  n=0\n  if [ -f "${counter}" ]; then n=$(cat "${counter}"); fi\n  n=$((n + 1))\n  printf '%s' "$n" > "${counter}"\n  if [ "$n" -eq 2 ]; then\n    printf 'changed\\n' > index-change.txt\n    "$KIBI_TEST_REAL_GIT" add index-change.txt\n  fi\nfi\nexec "$KIBI_TEST_REAL_GIT" "$@"\n`,
     );
     chmodSync(wrapper, 0o755);
     const hook = spawnSync("sh", [".git/hooks/pre-commit"], {
       cwd,
-      env,
+      env: { ...env, KIBI_TEST_REAL_GIT: systemGit },
       encoding: "utf8",
     });
     expect(hook.status).not.toBe(0);

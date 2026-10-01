@@ -216,3 +216,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-871adbee299c
+  - type: constrains
+    from: REQ-prolog-bundled-runtime
+    to: FACT-prolog-bundled-subject
+    created_at: 2026-09-30T22:48:44.227Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9bf26bf59ba8
+  - type: requires_property
+    from: REQ-prolog-bundled-runtime
+    to: FACT-prolog-bundled-resolves-env-then-bundled-then-path
+    created_at: 2026-09-30T22:48:44.298Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9901ee56cdd6
+  - type: requires_property
+    from: REQ-prolog-bundled-runtime
+    to: FACT-prolog-bundled-skips-bundle-when-env-is-system
+    created_at: 2026-09-30T22:48:44.317Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5e3d4d1eba63
+  - type: requires_property
+    from: REQ-prolog-bundled-runtime
+    to: FACT-prolog-bundled-refuses-corrupt-bundle
+    created_at: 2026-09-30T22:48:44.341Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3441859a6daf
+  - type: requires_property
+    from: REQ-prolog-bundled-runtime
+    to: FACT-prolog-bundled-rejects-path-swipl-older-than-9
+    created_at: 2026-09-30T22:48:44.356Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ec61c328c56b
+  - type: requires_property
+    from: REQ-prolog-bundled-runtime
+    to: FACT-prolog-bundled-names-platform-package-and-install-command-when-missing
+    created_at: 2026-09-30T22:48:44.382Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3bfdbb094936
+  - type: requires_property
+    from: REQ-prolog-bundled-runtime
+    to: FACT-prolog-bundled-sets-swi-home-dir-for-bundled-child
+    created_at: 2026-09-30T22:48:44.392Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-73c572303d19
+  - type: specified_by
+    from: REQ-prolog-bundled-runtime
+    to: SCEN-prolog-bundled-runtime
+    created_at: 2026-09-30T22:48:44.403Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fde0d318b0d6

@@ -160,3 +160,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c79664a8afd7
+  - type: implements
+    from: SYM-prolog-swipl-pkg-locate-dts
+    to: REQ-prolog-bundled-runtime
+    created_at: 2026-09-30T22:56:44.703Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8afda5ce6a05
+  - type: covered_by
+    from: SYM-prolog-swipl-pkg-locate-dts
+    to: TEST-prolog-bundled-runtime
+    created_at: 2026-09-30T22:56:44.728Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-43931af2cf4d

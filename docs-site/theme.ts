@@ -1008,7 +1008,7 @@ export function landingContent(args: {
     <div class="pm-tablist" role="tablist" aria-label="Package manager">${installTabs}</div>
     ${installPanels}
   </div>
-  <p class="fineprint">Requires Node.js 22+ and <code>swipl</code> (SWI-Prolog 9.0+) on your <code>PATH</code>. Bun commands and per-platform setup are in the <a href="${root}guide/install.html">installation guide</a>.</p>
+  <p class="fineprint">Requires Node.js 22+. SWI-Prolog is bundled on Linux (x64, arm64) and macOS; other platforms need <code>swipl</code> (SWI-Prolog 9.0+) on your <code>PATH</code>. Bun commands and per-platform setup are in the <a href="${root}guide/install.html">installation guide</a>.</p>
 </section>
 <section>
   <h2>Questions people ask first</h2>

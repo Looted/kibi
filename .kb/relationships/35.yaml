@@ -230,3 +230,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-579a91c03e53
+  - type: executable_for
+    from: SYM-test-ci-workflow-contract
+    to: TEST-prolog-bundled-ci
+    created_at: 2026-10-01T03:48:39.759Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4cd92c461256

@@ -148,14 +148,14 @@ coverage_roots(Config, Roots) :-
     option(source_root(SourceRoot), Config),
     findall(TestDir,
         (
-            option(test(TestFile), Config),
+            member(test(TestFile), Config),
             file_directory_name(TestFile, TestDir)
         ),
         TestDirs0),
     sort([SourceRoot|TestDirs0], Roots).
 
 load_tests(Config) :-
-    findall(TestFile, option(test(TestFile), Config), TestFiles),
+    findall(TestFile, member(test(TestFile), Config), TestFiles),
     maplist(load_test_file, TestFiles).
 
 load_test_file(TestFile) :-

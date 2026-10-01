@@ -25,8 +25,13 @@ env:
   KIBI_BRANCH: ${{ github.event_name == 'pull_request' && github.base_ref == 'master' && 'master' || github.head_ref || github.ref_name }}
 
 jobs:
+  swipl-bundle:
+    name: Bundled SWI-Prolog
+    uses: ./.github/workflows/swipl-ci-bundle.yml
+
   proof:
     name: Contracted proof and health report
+    needs: [swipl-bundle]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -74,18 +79,14 @@ jobs:
         if: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}
         run: bash scripts/ci-apt-bootstrap.sh bubblewrap
 
-      - name: Cache SWI-Prolog source prefix
-        if: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}
-        uses: actions/cache@v4
-        with:
-          path: ${{ runner.temp }}/kibi-swipl-prefix
-          key: swipl-src-10.0.2-${{ runner.os }}-e42cc098f7b8
-
+      # The pipeline-built bundle (kibi-swipl-linux-x64-gnu's archive), so the
+      # proof runs on the same Prolog bytes that ship. Kept under this name for
+      # scripts/replay-proof-ci.ts, which lists it as host provisioning.
       - name: Install SWI-Prolog
         if: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}
-        env:
-          KIBI_SWIPL_CACHE_DIR: ${{ runner.temp }}/kibi-swipl-prefix
-        run: bash scripts/ci-install-swi-prolog.sh
+        uses: ./.github/actions/use-bundled-swipl
+        with:
+          verify-resolver: 'true'
 
       - name: Provision strict-proof host prerequisites
         if: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}

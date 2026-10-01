@@ -174,3 +174,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-680029655fe5
+  - type: implements
+    from: SYM-prolog-release-read-pins
+    to: REQ-prolog-bundled-release
+    created_at: 2026-10-01T00:21:31.466Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1f93f4cb7df3
+  - type: covered_by
+    from: SYM-prolog-release-read-pins
+    to: TEST-prolog-bundled-release
+    created_at: 2026-10-01T00:21:31.479Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-afee09725353

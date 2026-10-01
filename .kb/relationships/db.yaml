@@ -258,3 +258,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c69a6e56a08c
+  - type: implements
+    from: SYM-prolog-spike-sample-linux-cli
+    to: REQ-native-cli-suite-diagnostics
+    created_at: 2026-09-30T14:57:44.328Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d1cc80d783e6
+  - type: covered_by
+    from: SYM-prolog-spike-sample-linux-cli
+    to: TEST-native-cli-suite-diagnostics
+    created_at: 2026-09-30T14:57:44.363Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-87d1e4342b4d

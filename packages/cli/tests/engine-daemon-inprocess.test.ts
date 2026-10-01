@@ -16,6 +16,7 @@ import {
   EngineClient,
   enginePidPath,
   engineSocketPath,
+  engineSwiplIdentity,
   ensureJournaledBranchStoreAsync,
   readEngineAttachmentIdentity,
   runEngineDaemon,
@@ -863,7 +864,12 @@ describe("runEngineDaemon in-process", () => {
             JSON.stringify({
               id: request.id,
               ok: true,
-              result: { success: true, bindings: statusBindings },
+              // A live daemon reports the SWI-Prolog it runs on before the
+              // attachment status handshake.
+              result:
+                request.method === "handshake"
+                  ? { prologIdentity: engineSwiplIdentity() }
+                  : { success: true, bindings: statusBindings },
             }),
           );
           const header = Buffer.alloc(4);
