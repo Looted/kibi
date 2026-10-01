@@ -19621,7 +19621,7 @@ coordinates:
     sourceLine: 359
   SYM-quality-inventory-522c5b9aeb69:
     identityHash: 6529c16ed47a56026cd6659bc79a00c8644deaac8c378279cb6c3d969f45fa4e
-    sourceHash: 124c6b51dba6f3870f4561434e7066f7b53ce45394db882375058b4d0fc6753f
+    sourceHash: 5a874103d3efabd7692aa93d77eeec116fbb5c13640d5fb455e0a4535baee287
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 30
@@ -28149,12 +28149,12 @@ coordinates:
     sourceLine: 52
   SYM-skillopt-runtime-stage-kibi-mcp:
     identityHash: 6555a76f4b91494d40ac1b2d39d26193a7008ec4489539685552ea469aed7846
-    sourceHash: 124c6b51dba6f3870f4561434e7066f7b53ce45394db882375058b4d0fc6753f
+    sourceHash: 5a874103d3efabd7692aa93d77eeec116fbb5c13640d5fb455e0a4535baee287
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 158
+    sourceEndLine: 169
     sourceFile: scripts/skillopt-eval/runtime/staged-mcp.ts
-    sourceLine: 109
+    sourceLine: 120
   SYM-skillopt-runtime-staged-canary:
     identityHash: a9607c3e4ee06a7b40d9d8d41cb98ebb063aa5cffc9d73f3fa90f080653e0fca
     sourceHash: 9aa3bbc7a70a3361b7e1fdcfb2d479687587ad7bfeacfb9010a8bf504a99d7d7
@@ -28165,7 +28165,7 @@ coordinates:
     sourceLine: 40
   SYM-skillopt-runtime-staged-mcp-launch:
     identityHash: 0b80fc5dd4b40c9c6de861d48a3a1e386c27cf6ca3f4093d57b62e6d268de01b
-    sourceHash: 124c6b51dba6f3870f4561434e7066f7b53ce45394db882375058b4d0fc6753f
+    sourceHash: 5a874103d3efabd7692aa93d77eeec116fbb5c13640d5fb455e0a4535baee287
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 19
@@ -28581,7 +28581,7 @@ coordinates:
     sourceLine: 14
   SYM-skillopt-staged-mcp-options:
     identityHash: 29e024efbab88f7a7533a206e7a1a2193b787f9af83e19a440de2e55e3043db7
-    sourceHash: 124c6b51dba6f3870f4561434e7066f7b53ce45394db882375058b4d0fc6753f
+    sourceHash: 5a874103d3efabd7692aa93d77eeec116fbb5c13640d5fb455e0a4535baee287
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 24
