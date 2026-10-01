@@ -211,6 +211,15 @@ export const COVERAGE_SHARDS: readonly {
     isolation: "process-per-file",
   },
   {
+    // Impact-review and coordinate-refresh tests build many Git fixtures. In a
+    // shared Bun 1.4 coverage process an exited Git child can hang the file
+    // indefinitely, so every traceability test runs in its own process.
+    label: "cli.support.traceability",
+    paths: CLI_SUPPORT_TRACEABILITY_TESTS,
+    timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
+    isolation: "process-per-file",
+  },
+  {
     label: "cli.support",
     paths: [
       "./packages/cli/tests/extractors",
@@ -218,7 +227,6 @@ export const COVERAGE_SHARDS: readonly {
       "./packages/cli/tests/logic",
       "./packages/cli/tests/proof",
       "./packages/cli/tests/relationships",
-      ...CLI_SUPPORT_TRACEABILITY_TESTS,
       "./packages/cli/tests/prolog",
       "./packages/cli/tests/helpers",
     ],
