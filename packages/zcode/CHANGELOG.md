@@ -1,5 +1,14 @@
 # kibi-zcode
 
+## 0.2.2
+
+### Patch Changes
+
+- db5376c: Projects can now opt into impact reviews that bind a change to its exact source, knowledge decisions and trusted analysis policy. Kibi validates both staged changes and a complete pull-request diff, rejects stale review evidence, and lets agents prepare an unauthored review template through the CLI or MCP instead of hand-assembling one. Every decision and reviewer field stays for an agent to write; preparation never approves or proves anything.
+  - Add versioned impact policy and review schemas, immutable review fingerprints, reviewed Python decorator coordinate migration and the trusted aggregate `check-diff` command.
+  - Add the read-only `prepare-impact-review --input` CLI route and `kb_prepare_impact_review` MCP operation; regenerate the bundled operation-access catalog for the agent integrations.
+  - Keep the sample CI workflow inactive until it is adopted on a protected target.
+
 ## 0.2.1
 
 ### Patch Changes
@@ -8,14 +17,12 @@
   reports them with a prefix, such as `mcp__kibi__kb_check`. Before this fix,
   an agent that correctly ran an impact check through a prefixed tool name
   still got a stop reminder to run it, because the plugin never saw the check.
-
   - `kb-mcp-tools.ts` in each adapter gains `canonicalKbToolName`, which strips
     `mcp__<server>__`, `MCP:`, and `kibi_` prefixes before matching `kb_*`
     operations.
   - The Codex hook bundle is regenerated.
 
 - 5a06c03: Kibi's agent plugins now share one fast, consistent implementation for source-path classification, Kibi MCP tool recognition, and symbol-manifest indexing. Codex and ZCode now recognize production code outside `src/`, while Cursor reuses the same size-and-mtime-keyed scanner as Claude instead of parsing the full symbol manifest before an edit.
-
   - Add `kibi-agent-core` as the common Node 18-compatible hook-helper package.
   - Keep host adapters thin while preserving their host-specific event and state contracts.
   - Replace Cursor's YAML parser dependency with the shared cached line scanner.
@@ -25,7 +32,6 @@
   When you model a new requirement, Kibi now ranks the subjects that already exist and either reuses one or explicitly declares a new one. It also flags claims that look like possible duplicates. An intentional restatement can be recorded with the new `restates` relationship. Skills and docs now recommend naming entities by the behavior they govern (`REQ-cli-gc`) instead of a sequence number (`REQ-042`). Existing numbered IDs stay valid.
 
   Predicate schemas can now declare the allowed values for an argument, plus the old spellings that map onto them. New facts must use those values. `kibi check` reports predicate facts that don't match any schema, and `kibi migrate` can fix the mechanical cases after you approve the plan hash. It moves a fact to the only namespace whose schema matches, and rewrites old spellings to the declared value. Everything that needs judgment stays a review item.
-
   - core: new `semantic_quality.pl` (`entity-id-style`, `domain-redundancy`, `domain-implication`, `subject-key-identity`, `subject-key-shape`, `ontology-quality`) and `units.pl`. Unit canonicalization is used for comparison only, and unknown or ambiguous units such as `KB` are never equated. Adds the `restates` req→req relationship and an optional `diagnosticSeverity` in the rule registry. Adds `:- encoding(utf8)` to modules that contain non-ASCII text.
   - cli/mcp: `restates` is wired through the extractors, schemas, and mutation paths. `entity-id-style` warnings are reported on `kb_upsert` creates and on staged added or renamed entity files. `kb_model_requirement` returns `vocabularyAlignment` (subject decision, candidates, redundancy candidates, stamps, `fallbackUsed`). Ontology-quality thresholds can be set with `KIBI_ONTOLOGY_QUALITY_MAX_SINGLETON_RATIO` / `KIBI_ONTOLOGY_QUALITY_MIN_FACTS`. `kb_compile_intent` create mode now keeps a caller-supplied `requirementId`. `kibi check --staged` now also prints its pass line when metadata-only staged changes have only advisory findings, matching the staged-symbol path.
   - cli/mcp: `predicate_schema` facts accept `argument_constants` and `argument_aliases`, stored like `rule_ir` as JSON. `kb_upsert` / `kb_validate_upsert` reject malformed vocabularies and predicate facts that use undeclared values or aliases. `kb_suggest_predicates` binds aliases to their constant and leaves undeclared values unbound. The new advisory TypeScript rule `predicate-schema-conformance` checks predicate facts against project schemas and the built-in catalog. Its mechanical repairs become automatic `predicate_schema_alignment` migration actions that carry the exact `kb_upsert` input and re-read the fact before writing.
@@ -45,7 +51,6 @@
   configuration — and without the plugin making a sound in workspaces that never
   adopted Kibi. Local ZCode development, package builds, and tests use Linux/WSL
   in this release.
-
   - Install via the repo marketplace from a locally built checkout: run
     `bun run build:zcode`, then in ZCode open Settings → Plugin Management →
     Discover, add the repository directory with the `+` button (marketplace
@@ -95,12 +100,10 @@
 ### Patch Changes
 
 - 96db9d8: The bundled kibi-usage skill now documents how to debug proof-ratchet regressions: when `kibi prove` or the proof baseline check fails, follow the new "Debugging proof regressions" section in `resources/proof.md`. It explains how to read the failure with `kibi proof explain`, compare current proof state against the committed `proof/baseline.json` ratchet with `kibi proof impact`, and resolve regressions by restoring real coverage (tests, symbol ownership, fresh receipts) instead of lowering the baseline. Agent sessions get a canonical recovery path instead of improvising around proof failures.
-
   - Add "Debugging proof regressions" guidance to `kibi-usage/resources/proof.md`
   - Point `kibi-usage/SKILL.md` at the new section and bump the skill version to 2.1.3
 
 - c77b371: Proof coverage reaches every requirement that has honest end-to-end evidence: fourteen new packed end-to-end tests wire previously unproven scenarios (status freshness, conservative proof reporting, snapshot relevance, MCP model-requirement and freshness, schema version, strict modeling, plan-hash enforcement, OpenCode enforcement, briefing removal, Prolog/SPARQL adoption, check-gate enforcement, evaluator gold runs, batch diagnostics) into the proof ladder, and requirements that are historically retired can now actually opt out of E2E proof.
-
   - `kb_check` with `async: true` returns a `kibi.job.v1` receipt whose shape is declared in the tool's output contract, so hosts no longer reject the response schema mismatch on large KBs.
   - Authored `proof_exempt` / `proof_exempt_reason` frontmatter on requirement documents is now extracted and persisted; previously the exemption was silently dropped on sync.
   - The MCP JSON-Schema-to-Zod bridge converts `anyOf` unions faithfully for declared output contracts (input `oneOf` guards keep their intentional lenient behavior).

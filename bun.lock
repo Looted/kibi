@@ -37,7 +37,7 @@
     },
     "packages/claude": {
       "name": "kibi-claude",
-      "version": "0.2.0",
+      "version": "0.2.1",
       "devDependencies": {
         "@types/node": "latest",
         "kibi-agent-core": "^0.1.0",
@@ -55,7 +55,7 @@
     },
     "packages/cli": {
       "name": "kibi-cli",
-      "version": "2.2.0",
+      "version": "2.3.0",
       "bin": {
         "kibi": "bin/kibi",
       },
@@ -83,7 +83,7 @@
     },
     "packages/codex": {
       "name": "kibi-codex",
-      "version": "2.0.2",
+      "version": "2.0.3",
       "devDependencies": {
         "@types/node": "latest",
         "kibi-agent-core": "^0.1.0",
@@ -100,11 +100,11 @@
     },
     "packages/core": {
       "name": "kibi-core",
-      "version": "0.14.0",
+      "version": "0.14.1",
     },
     "packages/cursor": {
       "name": "kibi-cursor",
-      "version": "2.1.0",
+      "version": "2.1.1",
       "dependencies": {
         "kibi-agent-core": "^0.1.0",
       },
@@ -123,7 +123,7 @@
     },
     "packages/mcp": {
       "name": "kibi-mcp",
-      "version": "2.2.0",
+      "version": "2.3.0",
       "bin": {
         "kibi-mcp": "bin/kibi-mcp",
       },
@@ -164,7 +164,7 @@
     },
     "packages/plugin-builtin": {
       "name": "kibi-plugin-builtin",
-      "version": "0.3.0",
+      "version": "0.4.0",
       "dependencies": {
         "kibi-plugin-sdk": "^0.3.0",
         "ts-morph": "^23.0.0",
@@ -176,7 +176,7 @@
     },
     "packages/plugin-jev": {
       "name": "kibi-plugin-jev",
-      "version": "0.3.0",
+      "version": "0.3.1",
       "dependencies": {
         "@typesafe-ai/sdk": "^0.6.0",
         "kibi-plugin-sdk": "^0.3.0",
@@ -188,7 +188,7 @@
     },
     "packages/plugin-sdk": {
       "name": "kibi-plugin-sdk",
-      "version": "0.3.0",
+      "version": "0.4.0",
       "devDependencies": {
         "@types/node": "latest",
         "typescript": "^5.7.0",
@@ -196,22 +196,22 @@
     },
     "packages/plugin-treesitter": {
       "name": "kibi-plugin-treesitter",
-      "version": "0.2.1",
+      "version": "1.0.0",
       "dependencies": {
         "web-tree-sitter": "0.27.0",
       },
       "devDependencies": {
         "@types/node": "25.9.8",
-        "kibi-plugin-sdk": "^0.2.0",
+        "kibi-plugin-sdk": "^0.4.0",
         "typescript": "^5.7.0",
       },
       "peerDependencies": {
-        "kibi-plugin-sdk": "^0.2.0 || ^0.3.0",
+        "kibi-plugin-sdk": "^0.4.0",
       },
     },
     "packages/runtime": {
       "name": "kibi-runtime",
-      "version": "2.0.2",
+      "version": "2.1.0",
       "dependencies": {
         "gray-matter": "^4.0.3",
         "kibi-core": "^0.14.0",
@@ -266,7 +266,7 @@
     },
     "packages/zcode": {
       "name": "kibi-zcode",
-      "version": "0.2.1",
+      "version": "0.2.2",
       "devDependencies": {
         "@types/node": "latest",
         "kibi-agent-core": "^0.1.0",

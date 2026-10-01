@@ -1,7 +1,7 @@
 {
   "schemaVersion": "kibi.treesitter-language-catalog.v1",
   "plugin": "kibi-plugin-treesitter",
-  "pluginVersion": "0.2.1",
+  "pluginVersion": "1.0.0",
   "runtime": {
     "package": "web-tree-sitter",
     "version": "0.27.0",
