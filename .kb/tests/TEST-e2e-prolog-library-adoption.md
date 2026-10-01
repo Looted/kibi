@@ -866,6 +866,76 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-0d77a5e36ed8f46986aab501
+    test_id: TEST-e2e-prolog-library-adoption
+    scope: end_to_end
+    outcome: failed
+    code_snapshot: 8fb074352a17be05561541067c14da2d9e6e89e777386919772553e67b77500b
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-10-01T09:11:59.335Z'
+    finished_at: '2026-10-01T09:38:24.320Z'
+    artifact_digest: a675541cbee50c14cb84530ccb77adec70545b1e68ab237e85e2431e83d99ad8
+    contract_hash: 1907394f271b961d238412efab3edf446e805cc77227d728ff5b157e40b14edc
+    binding_hash: 9fd2ac33d27980b3f2107d81aa2b03b1a74af6197b2aa6b90e433810f88636af
+    fingerprint: 9142d6dfcc2e65a03d5cee0e697ae9dda0ec9e06ffc7502ead7ca3a2760d1338
+    fingerprint_components:
+      contract: 1907394f271b961d238412efab3edf446e805cc77227d728ff5b157e40b14edc
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: failed
+    proof_results:
+      - symbol_id: SYM-e2e-test-prolog-library-adoption
+        target: default
+        outcome: failed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+    gaps:
+      - symbol_id: SYM-e2e-test-prolog-library-adoption
+        target: default
+        reason: 'run did not pass (outcome: failed); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-e2e-test-001 (failed), SYM-e2e-test-003 (failed), SYM-e2e-packed-cli-check (failed), SYM-e2e-test-005 (failed), SYM-test-packed-default-branch-sync-hooks (failed) +143 more'
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-95c0b67a1732ad6d8fa2e75a
+    test_id: TEST-e2e-prolog-library-adoption
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: b0a0bf2dc3bd1d4cf56aa9042728bfe8b43f10e7e26ae224cf684951c5473113
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-10-01T09:51:24.198Z'
+    finished_at: '2026-10-01T10:20:28.398Z'
+    artifact_digest: 67c88df13fd1cb31df3ae51c70db3030b178296242c3bae5b349197ffadcb1d3
+    contract_hash: 1907394f271b961d238412efab3edf446e805cc77227d728ff5b157e40b14edc
+    binding_hash: 9fd2ac33d27980b3f2107d81aa2b03b1a74af6197b2aa6b90e433810f88636af
+    fingerprint: 9142d6dfcc2e65a03d5cee0e697ae9dda0ec9e06ffc7502ead7ca3a2760d1338
+    fingerprint_components:
+      contract: 1907394f271b961d238412efab3edf446e805cc77227d728ff5b157e40b14edc
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-prolog-library-adoption
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
 ---
 
 Packed end-to-end regression for prolog library adoption keeps local behavior with bounded remote sparql.
