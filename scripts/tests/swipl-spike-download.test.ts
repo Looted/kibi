@@ -16,11 +16,14 @@ afterEach(() => {
 
 // Serves `statuses` in order (then 200) from a local server and reports what
 // download_archive did: the request count, the outcome, and leftover files.
-function download(statuses: number[]) {
+function download(
+  statuses: number[],
+  options: { badBodies?: number; digest?: boolean } = {},
+) {
   const root = mkdtempSync(join(tmpdir(), "kibi-spike-download-"));
   fixtures.push(root);
   const program = `
-import http.server, importlib.util, json, pathlib, sys, threading
+import hashlib, http.server, importlib.util, json, pathlib, sys, threading
 sys.dont_write_bytecode = True
 spec = importlib.util.spec_from_file_location('spike', sys.argv[1])
 spike = importlib.util.module_from_spec(spec)
@@ -31,7 +34,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
         status = statuses[len(requests)] if len(requests) < len(statuses) else 200
         requests.append(status)
-        body = b'archive-bytes' if status == 200 else b'error'
+        good = status == 200 and len([s for s in requests if s == 200]) > int(sys.argv[4])
+        body = b'archive-bytes' if good else b'<html>error page</html>'
         self.send_response(status)
         self.send_header('Content-Length', str(len(body)))
         self.end_headers()
@@ -43,7 +47,8 @@ threading.Thread(target=server.serve_forever, daemon=True).start()
 archive = pathlib.Path(sys.argv[2]) / 'pkg-1.0.tar.gz'
 outcome = 'ok'
 try:
-    spike.download_archive(f'http://127.0.0.1:{server.server_port}/pkg.tar.gz', archive, backoff=0)
+    digest = hashlib.sha256(b'archive-bytes').hexdigest() if sys.argv[5] else None
+    spike.download_archive(f'http://127.0.0.1:{server.server_port}/pkg.tar.gz', archive, digest, backoff=0)
 except Exception as error:
     outcome = f'{type(error).__name__}:{getattr(error, "code", "")}'
 server.shutdown()
@@ -56,7 +61,15 @@ print(json.dumps({
 `;
   const result = spawnSync(
     "python3",
-    ["-c", program, SPIKE, root, JSON.stringify(statuses)],
+    [
+      "-c",
+      program,
+      SPIKE,
+      root,
+      JSON.stringify(statuses),
+      String(options.badBodies ?? 0),
+      options.digest ? "digest" : "",
+    ],
     { encoding: "utf8" },
   );
   expect(result.status).toBe(0);
@@ -83,6 +96,21 @@ describe("swipl-spike source archive download", () => {
     const result = download([500, 500, 500, 500, 500]);
     expect(result.outcome).toBe("HTTPError:500");
     expect(result.requests).toEqual([500, 500, 500, 500]);
+    expect(result.files).toEqual([]);
+  });
+
+  test("discards and retries a 200 response whose bytes miss the pinned digest", () => {
+    const result = download([], { badBodies: 1, digest: true });
+    expect(result.outcome).toBe("ok");
+    expect(result.requests).toEqual([200, 200]);
+    expect(result.content).toBe("archive-bytes");
+    expect(result.files).toEqual(["pkg-1.0.tar.gz"]);
+  });
+
+  test("never keeps bytes that keep missing the pinned digest", () => {
+    const result = download([], { badBodies: 9, digest: true });
+    expect(result.outcome).toBe("DownloadDigestMismatch:");
+    expect(result.requests).toEqual([200, 200, 200, 200]);
     expect(result.files).toEqual([]);
   });
 });
