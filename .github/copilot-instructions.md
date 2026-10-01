@@ -1,123 +1,29 @@
 # GitHub Copilot Instructions
 
-This repository uses **Kibi** - a repo-local, per-branch, queryable long-term memory for software projects. Kibi stores requirements, BDD scenarios, tests, architecture decisions (ADRs), feature flags, events, code symbols, and facts with typed relationships between them. Agents use visible Kibi MCP tools when available, or the trusted project-local CLI's dedicated JSON routes (`--input`) when MCP is unavailable; both surfaces expose the shared operation contracts.
+This repository is **Kibi**, an agent-native requirements compiler: a repo-local, per-branch knowledge base of requirements, scenarios, tests, ADRs, flags, events, symbols and facts, checked by Prolog.
 
-Please follow the comprehensive guidelines and rules defined in [AGENTS.md](../AGENTS.md).
+All agent policy lives in [AGENTS.md](../AGENTS.md); follow it. Development setup is in [CONTRIBUTING.md](../CONTRIBUTING.md).
 
----
+## Stack
 
-## Tech Stack
+- Bun 1.4 (package manager and runtime), Node.js 24 for npm publishing
+- SWI-Prolog 9.0+ on `PATH` (or `KIBI_SWIPL`) in a source checkout; published packages bundle it
+- Bun workspaces under `packages/*`; the core engine is `packages/core`, the CLI `packages/cli`, the MCP server `packages/mcp`, and agent-host integrations `packages/{claude,codex,cursor,opencode,zcode,vscode}`
 
-- **Primary Runtime**: Bun v1.3.10 (package manager and runtime)
-- **Compatibility**: Node.js v24 (required for npm publishing)
-- **Backend Engine**: SWI-Prolog 9.0+ (Prolog KB engine)
-- **Monorepo**: Bun workspaces in `packages/*`
-
----
-
-## Quick Start
+## Commands
 
 ```bash
-# Install dependencies (must run in both locations)
-bun install
-cd .opencode && bun install && cd ..
-
-# Build all packages
-bun run build
-
-# Run full test suite
-bun run test
-```
-
----
-
-## Package Structure
-
-```
-packages/
-├── core/          # Prolog KB core (kb.pl, schema/*.pl)
-├── cli/           # Node.js CLI (commands, extractors, Prolog wrapper)
-├── mcp/           # MCP server (stdio, JSON-RPC)
-├── opencode/      # OpenCode plugin
-└── vscode/        # VS Code extension
-```
-
----
-
-## Common Commands
-
-### Installation
-```bash
-bun install                    # Root dependencies
-cd .opencode && bun install    # OpenCode dependencies
-```
-
-### Building
-```bash
-bun run build:cli             # Build CLI only
-bun run build:mcp             # Build MCP server only
-bun run build:opencode        # Build OpenCode plugin only
-bun run build                 # Build all packages
-```
-
-### Testing
-```bash
-bun run test:unit                      # Unit tests only
-bun run test                           # Full test suite (unit + e2e)
-bash ./scripts/run-integration-tests.sh # Integration tests
-```
-
-### Prolog Tests
-```bash
+bun install            # use --frozen-lockfile in CI
+bun run build          # build all packages
+bun run test:unit      # unit tests
+bun run test           # unit + local e2e
+bun run check          # Biome lint
+bun run format         # Biome format --write
 swipl -g "load_test_files([]),run_tests" -t halt packages/core/tests/kb.plt
 ```
 
-### Linting & Formatting
-```bash
-bun run check      # Biome lint
-bun run format     # Biome format --write
-```
+## Reminders
 
----
-
-## Important Constraints & Gotchas
-
-1. **Dual Installation**: Always run `bun install` in both root AND `.opencode/` directories
-2. **SWI-Prolog Required in a source checkout**: Must be installed (or `KIBI_SWIPL` set) before running any `kibi` commands from this repository; published packages bundle it on Linux and macOS
-3. **CI Environments**: Use `--frozen-lockfile` flag for `bun install`
-4. **Staged Symbol Traceability**: Add `// implements REQ-xxx` comments to new functions/classes to maintain traceability
-5. **Conventional Commits**: Follow `feat(scope):`, `fix(scope):`, `docs(scope):`, `test(scope):`, `chore(scope):` format
-6. **Release Metadata**: Changes to npm packages must include changesets (do not publish directly)
-
----
-
-## Key Files
-
-- **[AGENTS.md](../AGENTS.md)** - Main contributor guidelines and agent workflows
-- **[CONTRIBUTING.md](../CONTRIBUTING.md)** - Development setup instructions
-- **[package.json](../package.json)** - Root scripts and workspace configuration
-- **[.github/workflows/ci.yml](./workflows/ci.yml)** - CI pipeline configuration
-- **[.github/workflows/publish.yml](./workflows/publish.yml)** - Publishing pipeline configuration
-
----
-
-## Kibi-First Workflow
-
-When working on this codebase:
-
-1. **Query Kibi first** - Use `kb_search`, then `kb_query`, through the selected Kibi interface before grepping the project
-2. **Document intent** - Route explanations to KB entities via `kb_upsert`, not inline comments
-3. **Link during work** - Create relationships: `implements` (symbol→req ownership), `covered_by` (symbol→test coverage), `executable_for` (test symbol→test identity), `specified_by` (req→scenario)
-4. **Validate** - Run `kb_check` after KB mutations to catch violations
-5. **Use `/kibi-bootstrap`** - For initial repository setup, use the `/kibi-bootstrap` slash command in OpenCode
-6. **Escalate setup issues** - If the KB needs setup or repair beyond `/kibi-bootstrap`, ask the user/operator to handle it
-
-### OpenCode Smart-Enforcement Notes
-
-- Prompt guidance is posture-aware and intentionally low-noise: safe docs/test edits may not trigger any Kibi-specific prompt block.
-- `vendored_only` repos should not be treated as operational Kibi roots just because they contain nested `kibi/` source trees.
-- OpenCode guidance is advisory; hook/check failures remain the real hard gate.
-- Select Kibi by capability: if MCP tools are visible, use MCP; if MCP availability is unknown and the trusted project-local CLI is available, use its dedicated JSON routes with `--input`; if neither interface is available, stop and tell the operator. Do not infer MCP availability from config file existence.
-- Do not read or edit `.kb/` files directly. Query before mutate. Run `kb_upsert` sequentially. Run `kb_check` before completion.
-
-For detailed guidelines on entity types, relationships, and best practices, see [AGENTS.md](../AGENTS.md).
+- Query Kibi (`kb_search`, then `kb_query`) before grepping, never edit `.kb/` directly, and run `kb_check` after KB mutations.
+- Conventional Commits; changes to npm packages need a changeset.
+- Meaningful user-facing changes update `README.md` and the docs-site landing page in the same PR.
