@@ -6,6 +6,7 @@ import {
   mkdtempSync,
   readFileSync,
   readdirSync,
+  realpathSync,
   renameSync,
   rmSync,
   writeFileSync,
@@ -1366,7 +1367,9 @@ async function verifyKibiCliResolutionImpl(
     );
   }
 
-  const normalizedPrefix = prefix.replace(/\\/g, "/");
+  // Node reports the real path; a temp prefix under a symlinked directory
+  // (macOS /var -> /private/var) must compare by its real path too.
+  const normalizedPrefix = realpathSync(prefix).replace(/\\/g, "/");
   const normalizedResolved = resolved.replace(/\\/g, "/");
 
   if (!normalizedResolved.startsWith(normalizedPrefix)) {

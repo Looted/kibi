@@ -6,6 +6,7 @@ import {
   mkdtempSync,
   readFileSync,
   readdirSync,
+  realpathSync,
   rmSync,
   writeFileSync,
 } from "node:fs";
@@ -154,7 +155,11 @@ if (RUN_NODE_TEST_SUITE && REQUIRED) {
       assert.strictEqual(check.details?.source, "bundled");
       assert.ok(
         check.details?.path?.startsWith(
-          join(sandbox.npmPrefix, "node_modules", platformPackage),
+          join(
+            realpathSync(sandbox.npmPrefix),
+            "node_modules",
+            platformPackage,
+          ),
         ),
         `bundled path must be inside the installed platform package: ${check.details?.path}`,
       );
