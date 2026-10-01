@@ -6571,6 +6571,22 @@ coordinates:
     sourceEndLine: 27
     sourceFile: packages/cli/src/cli-json-command.ts
     sourceLine: 19
+  SYM-cli-kb-merge-driver-command:
+    identityHash: be45d8677cac89da1175aea8a8350ee9f95e7904ab2957ff84c5e31970dcde30
+    sourceHash: 4a9159fc3622585cfcdaa5093701886a3371c98d715eb1af17ce317bc3096b9a
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 315
+    sourceFile: packages/cli/src/commands/merge-driver.ts
+    sourceLine: 281
+  SYM-cli-kb-merge-manifests:
+    identityHash: cee82d19dea938fbe6813148005d5ab1b53d117eccb5cd63699b6d4fc4058ae0
+    sourceHash: 4a9159fc3622585cfcdaa5093701886a3371c98d715eb1af17ce317bc3096b9a
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 261
+    sourceFile: packages/cli/src/commands/merge-driver.ts
+    sourceLine: 168
   SYM-cli-listSearchCandidates:
     identityHash: ad8af48770859acd3599536b204ffb67a52ffd3e00852149dab397cdf64649fb
     sourceHash: 428a1f0a8b3dfe3d646fe3f337b4556acb5e517022a31fa869a5624a2507d8b6
@@ -7469,10 +7485,10 @@ coordinates:
     sourceLine: 17
   SYM-cli-register-maintenance-commands:
     identityHash: ba06d4d72a088c4ce8e3e1a4f3f6d88e19b41417c54fb0a221cdbfbbb0457b94
-    sourceHash: 496357e9d0746d2bebdb0bd04f87d119050ddd8c3ea345c4864adfa463fad219
+    sourceHash: 542763746a7a8cd34e67073340a16eee7dafe4b898a5430dbc091f764bdb0de3
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 162
+    sourceEndLine: 180
     sourceFile: packages/cli/src/cli-register-maintenance.ts
     sourceLine: 7
   SYM-cli-register-reporting-commands:
@@ -31098,6 +31114,14 @@ coordinates:
     sourceEndColumn: 0
     sourceEndLine: 460
     sourceFile: packages/cli/tests/commands/init.test.ts
+    sourceLine: 1
+  SYM-test-cli-kb-merge-driver:
+    identityHash: 8a6292081aca3af5fd2504ba2c0d3e95b4a5321f0601da89667fbc38fe06d16a
+    sourceHash: e1b4c11b6b5e4ef37b465741fe7d6190b2d0f168fd631cfacac7bbb2de665168
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 206
+    sourceFile: packages/cli/tests/commands/merge-driver.test.ts
     sourceLine: 1
   SYM-test-cli-parity-path-normalization:
     identityHash: 22db45b207c4b75122873dee6841f691bfeae8a49948b5d37d2e162280a835e3

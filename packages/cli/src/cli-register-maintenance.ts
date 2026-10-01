@@ -120,6 +120,24 @@ export function registerMaintenanceCommands(program: Command): void {
     );
 
   program
+    .command("merge-driver")
+    .description(
+      "Git merge driver: three-way merge .kb/symbols.yaml or a relationship shard by record id",
+    )
+    .argument("<base>", "Common ancestor version (%O)")
+    .argument("<current>", "Current version, overwritten with the result (%A)")
+    .argument("<other>", "Other branch's version (%B)")
+    .action(
+      withExitCode(async (base: string, current: string, other: string) =>
+        (await import("./commands/merge-driver.js")).mergeDriverCommand(
+          base,
+          current,
+          other,
+        ),
+      ),
+    );
+
+  program
     .command("branch")
     .description("Manage branch KBs")
     .argument("<action>", "Action: ensure|migrate|recover|restore")

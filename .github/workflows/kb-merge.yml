@@ -1,0 +1,164 @@
+name: Kibi KB merge
+
+# When develop moves, open pull requests often stop merging only because both
+# sides appended records to .kb/symbols.yaml (or a .kb/relationships shard).
+# This workflow merges develop into each such same-repository PR branch with
+# `kibi merge-driver`, regenerates .kb/symbol-coordinates.yaml from the merged
+# tree, and pushes the merge commit. PRs with any other conflict, or a real
+# conflict inside a manifest, are left for a person.
+#
+# Pushes made with the default GITHUB_TOKEN do not start other workflows, so
+# the PR's checks would not re-run on the merge commit. Add a repository
+# secret KIBI_MERGE_TOKEN (a fine-grained token or GitHub App token with
+# contents: write on this repository) to have the push trigger CI.
+#
+# The reusable version for other repositories is
+# docs/examples/github/kibi-kb-merge.yml; see docs/github-integration.md.
+
+concurrency:
+  group: kibi-kb-merge
+  cancel-in-progress: false
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  KIBI_CLI: ./packages/cli/bin/kibi
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches: [develop]
+  workflow_dispatch:
+
+jobs:
+  find-conflicts:
+    name: Find PRs blocked only by KB manifests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      branches: ${{ steps.find.outputs.branches }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: develop
+          fetch-depth: 0
+
+      - name: List PR branches whose only conflicts are KB manifests
+        id: find
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASE: develop
+        run: |
+          set -euo pipefail
+          resolvable='^\.kb/(symbols\.yaml|symbol-coordinates\.yaml|relationships/[^/]+\.yaml)$'
+          branches='[]'
+          for head in $(gh pr list --base "$BASE" --state open --limit 200 \
+              --json headRefName,isCrossRepository \
+              --jq '.[] | select(.isCrossRepository | not) | .headRefName'); do
+            git fetch --quiet origin "+refs/heads/$head:refs/remotes/origin/$head"
+            status=0
+            out=$(git merge-tree --write-tree --name-only --no-messages \
+              "origin/$BASE" "origin/$head") || status=$?
+            if [ "$status" -eq 0 ]; then continue; fi
+            if [ "$status" -ne 1 ]; then
+              echo "::warning::Could not test-merge $head (git merge-tree exit $status)"
+              continue
+            fi
+            conflicts=$(printf '%s\n' "$out" | tail -n +2 | sed '/^$/d')
+            if printf '%s\n' "$conflicts" | grep -Evq "$resolvable"; then
+              echo "$head: needs a person ($(echo $conflicts))"
+              continue
+            fi
+            echo "$head: KB manifest conflicts only ($(echo $conflicts))"
+            branches=$(jq -c --arg b "$head" '. + [$b]' <<<"$branches")
+          done
+          echo "branches=$branches" >> "$GITHUB_OUTPUT"
+
+  swipl-bundle:
+    name: Bundled SWI-Prolog
+    needs: [find-conflicts]
+    if: ${{ needs.find-conflicts.outputs.branches != '[]' }}
+    uses: ./.github/workflows/swipl-ci-bundle.yml
+
+  resolve:
+    name: Merge develop into ${{ matrix.branch }}
+    needs: [find-conflicts, swipl-bundle]
+    if: ${{ needs.find-conflicts.outputs.branches != '[]' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        branch: ${{ fromJSON(needs.find-conflicts.outputs.branches) }}
+    env:
+      KIBI_BRANCH: ${{ matrix.branch }}
+      BASE: develop
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ matrix.branch }}
+          fetch-depth: 0
+          token: ${{ secrets.KIBI_MERGE_TOKEN || github.token }}
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.4.2"
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+
+      - name: Build the merge driver from the PR branch
+        run: |
+          bun install --frozen-lockfile
+          bun run build:cli-stack
+
+      - name: Merge develop with the Kibi merge driver
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config merge.kibi.driver "node $PWD/packages/cli/bin/kibi merge-driver %O %A %B"
+          printf '%s\n' '.kb/symbols.yaml merge=kibi' '.kb/relationships/*.yaml merge=kibi' \
+            >> .git/info/attributes
+          git merge --no-ff --no-commit "origin/$BASE" || true
+          if ! git rev-parse -q --verify MERGE_HEAD >/dev/null; then
+            echo "::error::Nothing to merge; the branch already contains $BASE or the merge could not start."
+            exit 1
+          fi
+          # Generated: take this side's copy, then regenerate from the merged tree.
+          if git diff --name-only --diff-filter=U | grep -qx '.kb/symbol-coordinates.yaml'; then
+            git checkout --ours -- .kb/symbol-coordinates.yaml
+            git add .kb/symbol-coordinates.yaml
+          fi
+          unmerged=$(git diff --name-only --diff-filter=U)
+          if [ -n "$unmerged" ]; then
+            echo "::error::Conflicts need a person: $(echo $unmerged)"
+            git merge --abort
+            exit 1
+          fi
+
+      - name: Rebuild the merged tree
+        run: |
+          bun install --frozen-lockfile
+          bun run build
+
+      - name: Install SWI-Prolog
+        uses: ./.github/actions/use-bundled-swipl
+
+      - name: Regenerate symbol coordinates
+        run: |
+          bun "$KIBI_CLI" sync --refresh-symbol-coordinates
+          git add .kb/symbol-coordinates.yaml
+
+      - name: Commit and push the merge
+        run: |
+          set -euo pipefail
+          git commit -m "Merge $BASE into $KIBI_BRANCH" \
+            -m "Kibi merge driver resolved the .kb manifest conflicts; symbol coordinates regenerated."
+          git push origin "HEAD:refs/heads/$KIBI_BRANCH"
