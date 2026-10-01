@@ -283,21 +283,30 @@ def validate(manifest_path: Path, target: str) -> dict:
     return manifest
 
 
+class DownloadDigestMismatch(ValueError):
+    pass
+
+
 DOWNLOAD_ATTEMPTS = 4
 DOWNLOAD_BACKOFF_SECONDS = 2.0
 
 
-def download_archive(url: str, archive: Path, attempts: int = DOWNLOAD_ATTEMPTS, backoff: float = DOWNLOAD_BACKOFF_SECONDS) -> None:
+def download_archive(url: str, archive: Path, digest: str | None = None, attempts: int = DOWNLOAD_ATTEMPTS, backoff: float = DOWNLOAD_BACKOFF_SECONDS) -> None:
     """Fetch a pinned source archive, retrying transient server and network failures.
 
-    The pinned SHA-256 is checked by the caller, so a retry can never change what
-    is built; it only keeps one upstream 5xx from failing a release build.
+    With a digest, a download whose SHA-256 differs is discarded and retried too:
+    a mirror can answer 200 with an error page. Only bytes matching the pin are
+    ever kept, so a retry can never change what is built.
     """
     partial = archive.with_name(f"{archive.name}.part")
     for attempt in range(1, attempts + 1):
         print(f"Downloading {url}" + (f" (attempt {attempt}/{attempts})" if attempt > 1 else ""), flush=True)
         try:
             urllib.request.urlretrieve(url, partial)
+            if digest is not None:
+                actual = hashlib.sha256(partial.read_bytes()).hexdigest()
+                if actual != digest:
+                    raise DownloadDigestMismatch(f"{archive.name} SHA-256 mismatch: expected {digest}, got {actual}")
             partial.replace(archive)
             return
         except urllib.error.HTTPError as error:
@@ -305,7 +314,7 @@ def download_archive(url: str, archive: Path, attempts: int = DOWNLOAD_ATTEMPTS,
             if error.code < 500 and error.code != 429 or attempt == attempts:
                 raise
             reason = f"HTTP {error.code}"
-        except (urllib.error.URLError, TimeoutError, ConnectionError) as error:
+        except (urllib.error.URLError, TimeoutError, ConnectionError, DownloadDigestMismatch) as error:
             partial.unlink(missing_ok=True)
             if attempt == attempts:
                 raise
@@ -319,7 +328,7 @@ def source_archive(work: Path, name: str, version: str, digest: str, url: str) -
     archive = work / "downloads" / f"{name}-{version}.tar.gz"
     archive.parent.mkdir(parents=True, exist_ok=True)
     if not archive.exists():
-        download_archive(url, archive)
+        download_archive(url, archive, digest)
     actual = hashlib.sha256(archive.read_bytes()).hexdigest()
     if actual != digest:
         raise ValueError(f"{name} SHA-256 mismatch: expected {digest}, got {actual}")
