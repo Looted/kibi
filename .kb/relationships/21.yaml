@@ -167,3 +167,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-136aa01fd28f
+  - type: implements
+    from: SYM-telemetry-diagnostic-cli-host
+    to: REQ-kibi-telemetry-remediation-evidence
+    created_at: 2026-10-01T20:22:04.760Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f88dc73803df
+  - type: covered_by
+    from: SYM-telemetry-diagnostic-cli-host
+    to: TEST-kibi-telemetry-remediation-evidence
+    created_at: 2026-10-01T20:22:04.961Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4f0971499783

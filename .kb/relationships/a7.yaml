@@ -283,3 +283,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-44dbbf2292e1
+  - type: implements
+    from: SYM-telemetry-acceptance-parse-log
+    to: REQ-kibi-telemetry-acceptance-gate
+    created_at: 2026-10-01T20:22:47.048Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3d287958bc84
+  - type: implements
+    from: SYM-telemetry-acceptance-parse-log
+    to: REQ-claude-hook-usage-telemetry
+    created_at: 2026-10-01T20:22:47.188Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1f0ae5dd2d76

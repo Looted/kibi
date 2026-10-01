@@ -5,7 +5,10 @@ import { loadInput } from "./cli-input.js";
 import { loadOperationSpec } from "./cli-operation-loader.js";
 import { executeOperation as executeProtocolOperation } from "./cli-protocol.js";
 import { prepareOperationInput } from "./cli-validate.js";
-import { appendCliDiagnosticUsage } from "./public/diagnostic-usage.js";
+import {
+  appendCliDiagnosticUsage,
+  diagnosticEnvOptIn,
+} from "./public/diagnostic-usage.js";
 import type { OperationName } from "./public/operations/types.js";
 import { createCliRuntime } from "./runtime/cli-runtime.js";
 
@@ -50,7 +53,7 @@ function findInputConflicts(invocation: JsonInvocation): string[] {
 
 function diagnosticModeEnabled(command: Command): boolean {
   return (
-    process.env.KIBI_CLI_DIAGNOSTIC_MODE === "1" ||
+    diagnosticEnvOptIn() ||
     process.argv.includes("--diagnostic-mode") ||
     command.optsWithGlobals().diagnosticMode === true
   );

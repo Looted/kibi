@@ -979,4 +979,16 @@ describe("telemetry acceptance edge gates", () => {
       "Failed to parse .kb/usage.log line 2: expected object",
     );
   });
+
+  test("drops host hook rows so they cannot crowd operations out of the window", () => {
+    const operation = JSON.stringify({ tool: "kb_search", result_count: 3 });
+    const hook = JSON.stringify({
+      tool: "hook_PreToolUse",
+      interface: "hook",
+      hook_action: "read_snippet",
+    });
+    expect(parseTelemetryUsageLog(`${hook}\n${operation}\n${hook}\n`)).toEqual([
+      { tool: "kb_search", result_count: 3 },
+    ]);
+  });
 });

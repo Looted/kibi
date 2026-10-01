@@ -621,14 +621,31 @@ Opt in per workspace with either signal:
 - `KIBI_DIAGNOSTIC_MODE=1` in the server environment, for hosts where a plugin
   owns the command line. Set it in the host's MCP server `env` block.
 
+`KIBI_DIAGNOSTIC_MODE` is shared by every surface: the MCP server, the CLI JSON
+routes (`kibi <route> --input`), and the Claude Code plugin hooks all honor it,
+so exporting it once in the environment your agent host inherits covers all of
+them. The older CLI-only `KIBI_CLI_DIAGNOSTIC_MODE=1` still works.
+
 Opting out is removing the signal; no other state persists.
 
 While opted in, every row carries `interface`, `host`, `package_version`, and
 `workspace_root` so rows stay attributable across worktrees, hosts, and Kibi
 versions. Host plugins set `KIBI_MCP_HOST` for attribution only; it is not an
-opt-in signal and never enables logging on its own. Rows record business
-arguments and agent-supplied telemetry metadata, and the log stays local to the
-workspace under `.kb/usage.log`.
+opt-in signal and never enables logging on its own. CLI rows take `host` from
+`KIBI_HOST` (or `KIBI_MCP_HOST`) and recognize Claude Code shells; otherwise
+they record `unknown`. Rows record business arguments and agent-supplied
+telemetry metadata, and the log stays local to the workspace under
+`.kb/usage.log`.
+
+The Claude Code plugin hooks add rows with `interface: "hook"`. They record the
+agent activity around Kibi calls rather than Kibi operations: which source,
+test, or `.kb/` file was read or edited, whether a requirement snippet was
+shown or suppressed (`hook_action`), which requirements own the file, and
+whether the session had used Kibi yet (`kb_used_before`). Rows carry the host
+`session_id`, so one session's lookups and edits can be put in order.
+Acceptance metrics, `kibi usage-metrics`, and `kibi usage-remediation` ignore
+hook rows, so a busy editing session never pushes operations out of their
+bounded window.
 
 Counts are only recorded when they can be read. A call whose payload cannot be
 parsed records `result_count: null` rather than zero, and acceptance metrics

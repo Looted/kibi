@@ -111,6 +111,72 @@ describe("runJsonInvocation", () => {
     });
   });
 
+  test("honors the shared KIBI_DIAGNOSTIC_MODE opt-in and attributes the row", async () => {
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    const previousClaude = process.env.CLAUDECODE;
+    restores.push(() => {
+      if (previousClaude === undefined)
+        Reflect.deleteProperty(process.env, "CLAUDECODE");
+      else process.env.CLAUDECODE = previousClaude;
+    });
+    process.env.KIBI_DIAGNOSTIC_MODE = "true";
+    process.env.CLAUDECODE = "1";
+    const cwd = tempDir();
+    const io = captureIo({ stdio: true });
+    restores.push(io.restore);
+    const command = parseSkillsListCommand([
+      "skills-list",
+      "--input",
+      "-",
+      "--format",
+      "table",
+    ]);
+
+    await withCwd(cwd, () =>
+      runJsonInvocation({
+        operationName: "kb_skills_list",
+        inputPath: "-",
+        command,
+      }),
+    );
+
+    const rows = readUsageLog(path.join(cwd, ".kb", "usage.log"));
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({
+      tool: "kb_skills_list",
+      interface: "cli_json",
+      host: "claude-code",
+      workspace_root: cwd,
+    });
+    expect(typeof rows[0]?.package_version).toBe("string");
+  });
+
+  test("writes no usage log without an opt-in", async () => {
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    const cwd = tempDir();
+    const io = captureIo({ stdio: true });
+    restores.push(io.restore);
+    const command = parseSkillsListCommand([
+      "skills-list",
+      "--input",
+      "-",
+      "--format",
+      "table",
+    ]);
+
+    await withCwd(cwd, () =>
+      runJsonInvocation({
+        operationName: "kb_skills_list",
+        inputPath: "-",
+        command,
+      }),
+    );
+
+    expect(existsSync(path.join(cwd, ".kb", "usage.log"))).toBe(false);
+  });
+
   test("rejects unreadable input files and writes an InputError", async () => {
     const io = captureIo({ stdio: true });
     restores.push(io.restore);

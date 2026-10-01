@@ -146,3 +146,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-05d06f4c552a
+  - type: verified_by
+    from: SCEN-claude-hook-usage-telemetry
+    to: TEST-claude-code-kibi-plugin-v1
+    created_at: 2026-10-01T20:18:34.811Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b457564b8ee0
