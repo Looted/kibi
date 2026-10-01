@@ -44780,3 +44780,90 @@ symbols:
         target: TEST-prolog-bundled-release
       - type: implements
         target: REQ-prolog-bundled-release
+  - id: SYM-test-ci-workflow-contract
+    title: CI and proof workflow SWI-Prolog provisioning contract suite
+    status: active
+    sourceFile: scripts/tests/ci-workflow-contract.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-prolog-bundled-ci
+  - id: SYM-test-bundled-swipl-docs
+    title: Bundled SWI-Prolog installation guidance contract suite
+    status: active
+    sourceFile: scripts/tests/bundled-swipl-docs.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-prolog-bundled-quickstart
+  - id: SYM-test-simulate-readme-quickstart
+    title: README quick-start simulation helper suite
+    status: active
+    sourceFile: scripts/tests/simulate-readme-quickstart.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-prolog-bundled-quickstart
+  - id: SYM-prolog-ci-without-run-binding
+    title: withoutRunBinding
+    status: active
+    sourceFile: scripts/populate-swipl-platform-packages.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-bundled-ci
+      - type: implements
+        target: REQ-prolog-bundled-ci
+  - id: SYM-prolog-quickstart-quick-start-commands
+    title: quickStartCommands
+    status: active
+    sourceFile: scripts/simulate-readme-quickstart.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-bundled-quickstart
+      - type: implements
+        target: REQ-prolog-bundled-quickstart
+  - id: SYM-prolog-quickstart-packed-tarballs
+    title: packedTarballs
+    status: active
+    sourceFile: scripts/simulate-readme-quickstart.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-bundled-quickstart
+      - type: implements
+        target: REQ-prolog-bundled-quickstart
+  - id: SYM-prolog-quickstart-substitute-tarballs
+    title: substituteTarballs
+    status: active
+    sourceFile: scripts/simulate-readme-quickstart.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-bundled-quickstart
+      - type: implements
+        target: REQ-prolog-bundled-quickstart
+  - id: SYM-prolog-quickstart-simulate
+    title: simulate
+    status: active
+    sourceFile: scripts/simulate-readme-quickstart.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-bundled-quickstart
+      - type: implements
+        target: REQ-prolog-bundled-quickstart
+  - id: SYM-prolog-quickstart-parse-args
+    title: parseArgs
+    status: active
+    sourceFile: scripts/simulate-readme-quickstart.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-bundled-quickstart
+      - type: implements
+        target: REQ-prolog-bundled-quickstart

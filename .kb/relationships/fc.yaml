@@ -321,3 +321,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d8bd6b78ca04
+  - type: executable_for
+    from: SYM-test-simulate-readme-quickstart
+    to: TEST-prolog-bundled-quickstart
+    created_at: 2026-10-01T03:48:48.300Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-79c527dc2d7b

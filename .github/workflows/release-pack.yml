@@ -3,7 +3,8 @@ name: Release pack (dry run)
 # Rehearses the publish workflow's packaging without publishing: builds the
 # SWI-Prolog archives, verifies and extracts them into the platform packages,
 # packs every publishable package, and installs the tarballs with npm on
-# runners that have no SWI-Prolog. This workflow has no secrets, no
+# runners that have no SWI-Prolog, including a literal run of the README quick
+# start. This workflow has no secrets, no
 # id-token permission, and no publish step; the contract test in
 # scripts/tests/release-pack-workflow-contract.test.ts keeps it that way.
 
@@ -39,6 +40,8 @@ on:
       - scripts/pack-packages.ts
       - scripts/package-catalog.ts
       - scripts/run-packed-e2e.mjs
+      - scripts/simulate-readme-quickstart.mjs
+      - README.md
       - documentation/tests/e2e/packed/**
   pull_request:
     branches: [develop]
@@ -61,6 +64,8 @@ on:
       - scripts/pack-packages.ts
       - scripts/package-catalog.ts
       - scripts/run-packed-e2e.mjs
+      - scripts/simulate-readme-quickstart.mjs
+      - README.md
       - documentation/tests/e2e/packed/**
   workflow_dispatch:
 

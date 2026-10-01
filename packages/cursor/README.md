@@ -10,14 +10,13 @@ Install these **before** enabling the plugin MCP server:
 
 | Requirement | Why |
 | --- | --- |
-| **SWI-Prolog 9+** (`swipl` on `PATH`) | Powers Kibi inference and validation |
+| **SWI-Prolog 9+** | Powers Kibi inference and validation. Bundled with `kibi-cli` on Linux (x64, arm64) and macOS; install it with `swipl` on `PATH` only on other platforms |
 | **`kibi-cli`** | Project CLI (`kibi` command) |
 | **`kibi-mcp`** | MCP server installed in the opened project; the plugin launcher resolves this package without downloading it |
 | **`kibi-core`** | Shared graph/runtime dependency |
 
 ```bash
 npm install --save-dev kibi-cli kibi-mcp kibi-core
-swipl --version
 npm exec -- kibi doctor
 ```
 
@@ -105,7 +104,7 @@ agent-plugin/
 
 - Cursor loads the portable build directly; Cursor-only components (rules, commands, hooks) remain in the `.cursor-plugin` Cursor Plugin build.
 - Both formats are listed in the same marketplace; pick the format your client needs.
-- The portable build still requires the project-local `kibi-cli`, `kibi-mcp`, and `kibi-core` packages plus SWI-Prolog 9+ (see Prerequisites above).
+- The portable build still requires the project-local `kibi-cli`, `kibi-mcp`, and `kibi-core` packages plus SWI-Prolog 9+ (bundled on supported platforms; see Prerequisites above).
 
 ## Features
 

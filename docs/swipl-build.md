@@ -83,3 +83,19 @@ Dry run [36798584645](https://github.com/Looted/kibi/actions/runs/36798584645) (
 | `kibi-swipl-linux-arm64-gnu` | 7,032,268 | 29,292,779 |
 | `kibi-swipl-darwin-arm64` | 6,193,267 | 19,494,407 |
 | `kibi-swipl-darwin-x64` | 6,045,820 | 19,284,760 |
+
+## Kibi's own CI and the README walkthrough (phase 5)
+
+**CI runs the bytes that ship.** Every Prolog job in `ci.yml` and `proof.yml` except one runs the linux-x64-gnu archive built by this pipeline's own script (`scripts/swipl-spike.sh build-archive`, in the same manylinux_2_28 container as the release build). `.github/workflows/swipl-ci-bundle.yml` produces it once per run, `.github/actions/use-bundled-swipl` verifies and installs it in each consumer, and `resolveSwipl()` then picks it through the real `kibi-swipl-linux-x64-gnu` workspace package (the action asserts `source: bundled`; `swipl` is also put on `PATH` for scripts that call it by name, such as `test:coverage:prolog`). The archive carries `library(prolog_coverage)`: the action loads it, and the Prolog coverage job runs on it.
+
+| Job | SWI-Prolog |
+| --- | --- |
+| `ci-unit-coverage`, `prolog-unit-coverage`, `packed-e2e-cli-regression`, `packed-e2e-mcp-regression`, `packed-e2e-branch-workflow`, proof | bundled build |
+| `ci-integration` | system install through `scripts/ci-install-swi-prolog.sh`, with `KIBI_SWIPL=system`, so the `PATH` route and the override stay tested |
+| `release-smoke.yml` (dry run and publish gate) | bundled platform tarball, no SWI-Prolog anywhere |
+
+**Cost.** Building takes several minutes per target, so a build on every CI run would sit on the critical path. The archive is cached under a key that hashes everything that determines its bytes: `scripts/swipl-version.json`, `scripts/swipl-spike.py` and `.sh`, the source patches, `swipl-build.yml` and the CI bundle workflow itself. A hit costs seconds and replaces the old system install (apt, PPA or a source build), which also took minutes on a miss. A miss builds once; the next run on any branch that can read that cache hits. GitHub evicts caches unused for seven days, so an idle repository pays one build again. The archive is handed to the other jobs as the one-day artifact `kibi-ci-swipl` (about 6.6 MB), not through the cache, so a job never races an eviction.
+
+**Why a cache is safe here.** A release binds an archive to its own run: the verifier requires the embedded commit and run id to equal `GITHUB_SHA` and `GITHUB_RUN_ID`. A cached archive is by construction from another commit, so CI populates with `--cached-build`, which drops only that binding. The sidecar checksum, the manifest against the pins in `scripts/swipl-version.json`, the binary SHA-256, the required libraries, the licenses and safe extraction still run on every consumer. The release workflows never use the flag or the cache; `scripts/tests/ci-workflow-contract.test.ts` enforces that.
+
+**README walkthrough.** The release-smoke workflow also runs `readme-quickstart` on `ubuntu-24.04`, `ubuntu-24.04-arm`, `macos-15` and `macos-15-intel` with no SWI-Prolog on the machine. `scripts/simulate-readme-quickstart.mjs` reads the commands out of the README's Quick start code block, runs them in a fresh Git repository with the packed tarballs substituted for the registry (the names are not published yet), then does what the agent's "Bootstrap Kibi for this repository" does (`plan-bootstrap`, the approved `apply-plan`), followed by `doctor` (which must report `bundled`), `check`, `sync` and `status` (fresh, clean). It proves the documented steps from these tarballs; it does not prove installation from the npm registry, which has to wait for the first publish.

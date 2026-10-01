@@ -132,3 +132,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e65c17cbc700
+  - type: covered_by
+    from: SYM-prolog-ci-without-run-binding
+    to: TEST-prolog-bundled-ci
+    created_at: 2026-10-01T03:48:54.530Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ec7cb4b5364a
+  - type: implements
+    from: SYM-prolog-ci-without-run-binding
+    to: REQ-prolog-bundled-ci
+    created_at: 2026-10-01T03:48:54.549Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-158c03e3ca50

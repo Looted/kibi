@@ -10397,7 +10397,7 @@ coordinates:
     sourceLine: 1
   SYM-docs-site-catalog-DocPage:
     identityHash: f89ef8d0a0f753c881ed405668c3ec42e7712fca68be2b4d876458b711cbf708
-    sourceHash: ba897056086d8ffdca7c8eea74ad88472c6d74a70fe31251a86fc85dbae456bc
+    sourceHash: 0c2ec43bc86295d7066b1d386a28e348bdfa3081f8d496a346ade33ee1648100
     sourceColumn: 12
     sourceEndColumn: 2
     sourceEndLine: 20
@@ -10405,7 +10405,7 @@ coordinates:
     sourceLine: 11
   SYM-docs-site-catalog-DOCS:
     identityHash: 04ff793ee24caba771ab4d9baed88a96479d43093296f735ed65e0e53f41c945
-    sourceHash: ba897056086d8ffdca7c8eea74ad88472c6d74a70fe31251a86fc85dbae456bc
+    sourceHash: 0c2ec43bc86295d7066b1d386a28e348bdfa3081f8d496a346ade33ee1648100
     sourceColumn: 13
     sourceEndColumn: 1
     sourceEndLine: 211
@@ -10413,7 +10413,7 @@ coordinates:
     sourceLine: 46
   SYM-docs-site-catalog-DocSection:
     identityHash: 772801297a93492a94456507bd15fc4199fbfdb164346ebfe405229e8703cf17
-    sourceHash: ba897056086d8ffdca7c8eea74ad88472c6d74a70fe31251a86fc85dbae456bc
+    sourceHash: 0c2ec43bc86295d7066b1d386a28e348bdfa3081f8d496a346ade33ee1648100
     sourceColumn: 12
     sourceEndColumn: 47
     sourceEndLine: 9
@@ -10421,7 +10421,7 @@ coordinates:
     sourceLine: 9
   SYM-docs-site-catalog-LLMS_INDEX_PATH:
     identityHash: 2a1bc07ac09f12f1f176eaa0d0b646679279fd7b98260d0038c96aa5fc589470
-    sourceHash: ba897056086d8ffdca7c8eea74ad88472c6d74a70fe31251a86fc85dbae456bc
+    sourceHash: 0c2ec43bc86295d7066b1d386a28e348bdfa3081f8d496a346ade33ee1648100
     sourceColumn: 13
     sourceEndColumn: 41
     sourceEndLine: 43
@@ -10429,7 +10429,7 @@ coordinates:
     sourceLine: 43
   SYM-docs-site-catalog-pageForSitePath:
     identityHash: dcae9d173a76e8f20d7a2c639cc4aeced202d23aed435b748bdf86c3f77a0ce5
-    sourceHash: ba897056086d8ffdca7c8eea74ad88472c6d74a70fe31251a86fc85dbae456bc
+    sourceHash: 0c2ec43bc86295d7066b1d386a28e348bdfa3081f8d496a346ade33ee1648100
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 238
@@ -10437,7 +10437,7 @@ coordinates:
     sourceLine: 236
   SYM-docs-site-catalog-pageForSource:
     identityHash: c79428de52f8caf1ab58cf0b436af2bb6f0e478b79ab81c85a79d617752c7499
-    sourceHash: ba897056086d8ffdca7c8eea74ad88472c6d74a70fe31251a86fc85dbae456bc
+    sourceHash: 0c2ec43bc86295d7066b1d386a28e348bdfa3081f8d496a346ade33ee1648100
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 233
@@ -10445,7 +10445,7 @@ coordinates:
     sourceLine: 231
   SYM-docs-site-catalog-PUBLISHED_SITE_ORIGIN:
     identityHash: e7dbef030bed9ed31be04e5948dc0c6209e4d5e507adb0d9433a768278a7a4f2
-    sourceHash: ba897056086d8ffdca7c8eea74ad88472c6d74a70fe31251a86fc85dbae456bc
+    sourceHash: 0c2ec43bc86295d7066b1d386a28e348bdfa3081f8d496a346ade33ee1648100
     sourceColumn: 13
     sourceEndColumn: 68
     sourceEndLine: 28
@@ -10453,7 +10453,7 @@ coordinates:
     sourceLine: 28
   SYM-docs-site-catalog-publishedLlmsIndexHref:
     identityHash: 2b125c7135f29245caa9df51d04a44b73f522a3daa74585a15f21c946e670a5a
-    sourceHash: ba897056086d8ffdca7c8eea74ad88472c6d74a70fe31251a86fc85dbae456bc
+    sourceHash: 0c2ec43bc86295d7066b1d386a28e348bdfa3081f8d496a346ade33ee1648100
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 228
@@ -10461,7 +10461,7 @@ coordinates:
     sourceLine: 226
   SYM-docs-site-catalog-publishedPageHref:
     identityHash: 0c1d037b1ecbc31bee798a8c13ff9cf4ed1ff338c870655099e5e54ee0b0cc47
-    sourceHash: ba897056086d8ffdca7c8eea74ad88472c6d74a70fe31251a86fc85dbae456bc
+    sourceHash: 0c2ec43bc86295d7066b1d386a28e348bdfa3081f8d496a346ade33ee1648100
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 223
@@ -10469,7 +10469,7 @@ coordinates:
     sourceLine: 219
   SYM-docs-site-catalog-REPORT_PATH:
     identityHash: 481bba597ec7ba67acf1d53536adf830bb4ccde88b98184d6614669f245a5187
-    sourceHash: ba897056086d8ffdca7c8eea74ad88472c6d74a70fe31251a86fc85dbae456bc
+    sourceHash: 0c2ec43bc86295d7066b1d386a28e348bdfa3081f8d496a346ade33ee1648100
     sourceColumn: 13
     sourceEndColumn: 41
     sourceEndLine: 40
@@ -10477,7 +10477,7 @@ coordinates:
     sourceLine: 40
   SYM-docs-site-catalog-SITE_TAGLINE:
     identityHash: 61b6c7d96982ae9d301e7810a0638ac8b778a626d68978e3349896060e1369d6
-    sourceHash: ba897056086d8ffdca7c8eea74ad88472c6d74a70fe31251a86fc85dbae456bc
+    sourceHash: 0c2ec43bc86295d7066b1d386a28e348bdfa3081f8d496a346ade33ee1648100
     sourceColumn: 13
     sourceEndColumn: 85
     sourceEndLine: 36
@@ -10485,7 +10485,7 @@ coordinates:
     sourceLine: 35
   SYM-docs-site-catalog-sitePagePath:
     identityHash: 40a87a1f28cd9cbf92bc75c3ca14739ec12bc15f5cf4d250788999f2114f046b
-    sourceHash: ba897056086d8ffdca7c8eea74ad88472c6d74a70fe31251a86fc85dbae456bc
+    sourceHash: 0c2ec43bc86295d7066b1d386a28e348bdfa3081f8d496a346ade33ee1648100
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 216
@@ -10549,7 +10549,7 @@ coordinates:
     sourceLine: 20
   SYM-docs-site-theme-clientScript:
     identityHash: 9acb31c4882a74eebacdedcdfb99a244027ce506609e7120e80eadac0f712254
-    sourceHash: 27c05e51096e636638524d29785480d1af3c19bee8527dd3c2de996cfd9f4f5e
+    sourceHash: 335d78a3f4fcc57732e0a20aa868c701d631533777f65f5ab2c523e73f6719d2
     sourceColumn: 13
     sourceEndColumn: 1
     sourceEndLine: 866
@@ -10557,7 +10557,7 @@ coordinates:
     sourceLine: 610
   SYM-docs-site-theme-escapeHtml:
     identityHash: fe4622310b1a494331981c56d10258475cb947b7660510e07058ef0e11eb7e73
-    sourceHash: 27c05e51096e636638524d29785480d1af3c19bee8527dd3c2de996cfd9f4f5e
+    sourceHash: 335d78a3f4fcc57732e0a20aa868c701d631533777f65f5ab2c523e73f6719d2
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 47
@@ -10565,7 +10565,7 @@ coordinates:
     sourceLine: 40
   SYM-docs-site-theme-landingContent:
     identityHash: adf8ffc4f6b9b108709ed71aad0f34409685b053bb0ab2445c63b41ff1680f09
-    sourceHash: 27c05e51096e636638524d29785480d1af3c19bee8527dd3c2de996cfd9f4f5e
+    sourceHash: 335d78a3f4fcc57732e0a20aa868c701d631533777f65f5ab2c523e73f6719d2
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 1036
@@ -10573,7 +10573,7 @@ coordinates:
     sourceLine: 869
   SYM-docs-site-theme-layout:
     identityHash: 8f7eb6acde5c1a0e7ac594bae9fa218221b88622c0cb1d3bb2127d8709f234c5
-    sourceHash: 27c05e51096e636638524d29785480d1af3c19bee8527dd3c2de996cfd9f4f5e
+    sourceHash: 335d78a3f4fcc57732e0a20aa868c701d631533777f65f5ab2c523e73f6719d2
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 1148
@@ -10581,7 +10581,7 @@ coordinates:
     sourceLine: 1039
   SYM-docs-site-theme-PageShell:
     identityHash: 3cefed9b17f02db1f6fe7c1db6dafa60647efd2ca63b9cd39b4f06cb8ab06fff
-    sourceHash: 27c05e51096e636638524d29785480d1af3c19bee8527dd3c2de996cfd9f4f5e
+    sourceHash: 335d78a3f4fcc57732e0a20aa868c701d631533777f65f5ab2c523e73f6719d2
     sourceColumn: 12
     sourceEndColumn: 2
     sourceEndLine: 37
@@ -10589,7 +10589,7 @@ coordinates:
     sourceLine: 19
   SYM-docs-site-theme-prepareMark:
     identityHash: cafe5d90179472d5b9daf522f003cd4bbebad7d4ae07d5b9f406343c31997e29
-    sourceHash: 27c05e51096e636638524d29785480d1af3c19bee8527dd3c2de996cfd9f4f5e
+    sourceHash: 335d78a3f4fcc57732e0a20aa868c701d631533777f65f5ab2c523e73f6719d2
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 59
@@ -10597,7 +10597,7 @@ coordinates:
     sourceLine: 51
   SYM-docs-site-theme-Section:
     identityHash: c867c4a996aa91c8751252c1d2b8581d852416758a52001e58ccea035425f7f0
-    sourceHash: 27c05e51096e636638524d29785480d1af3c19bee8527dd3c2de996cfd9f4f5e
+    sourceHash: 335d78a3f4fcc57732e0a20aa868c701d631533777f65f5ab2c523e73f6719d2
     sourceColumn: 12
     sourceEndColumn: 44
     sourceEndLine: 16
@@ -10605,7 +10605,7 @@ coordinates:
     sourceLine: 16
   SYM-docs-site-theme-styles:
     identityHash: dfde36e536915eaefe0a7bb28016beb69109cd7951088a468d01ee730af2d8a3
-    sourceHash: 27c05e51096e636638524d29785480d1af3c19bee8527dd3c2de996cfd9f4f5e
+    sourceHash: 335d78a3f4fcc57732e0a20aa868c701d631533777f65f5ab2c523e73f6719d2
     sourceColumn: 13
     sourceEndColumn: 1
     sourceEndLine: 607
@@ -18339,6 +18339,14 @@ coordinates:
     sourceEndLine: 731
     sourceFile: scripts/swipl-spike.py
     sourceLine: 731
+  SYM-prolog-ci-without-run-binding:
+    identityHash: f7cf644862b2d20f432fec81b631ba8c4f6b1895f4bc89f7979a70393061db82
+    sourceHash: df968b424db3d3ab157be4bf3a01598e92a9615b83571875fbdb1cb4c7f5b6c7
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 301
+    sourceFile: scripts/populate-swipl-platform-packages.mjs
+    sourceLine: 298
   SYM-prolog-codec-tests:
     identityHash: ae30ae20b9acb211a9aaaef44888d3d8247cadfa426480743cb9094d70aed7c8
     sourceHash: 1fd81a6576f2b9f1c9c42619a70023fb6e8f1b8b6b0b4a52e123e3e2ebbcac39
@@ -18371,6 +18379,46 @@ coordinates:
     sourceEndLine: 75
     sourceFile: packages/cli/src/engine.ts
     sourceLine: 73
+  SYM-prolog-quickstart-packed-tarballs:
+    identityHash: 325d15c6718422b50e1331fb2a582a1b264461b3dba4ba8b5d0dcfbad2cb72ef
+    sourceHash: 548d1b2cef48991d58b61d17ae6c7e16fa40002cdfc15be3e7ccbcdd5df2cd51
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 74
+    sourceFile: scripts/simulate-readme-quickstart.mjs
+    sourceLine: 58
+  SYM-prolog-quickstart-parse-args:
+    identityHash: b0263be9128df8e6b4bccad6042253c3866ba35fc9dca0badb8f635cae0546d0
+    sourceHash: 548d1b2cef48991d58b61d17ae6c7e16fa40002cdfc15be3e7ccbcdd5df2cd51
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 308
+    sourceFile: scripts/simulate-readme-quickstart.mjs
+    sourceLine: 294
+  SYM-prolog-quickstart-quick-start-commands:
+    identityHash: 34a4ed75866e546b4750b7189b5b1da789e347e5ad6e72baad971c35d080d4f2
+    sourceHash: 548d1b2cef48991d58b61d17ae6c7e16fa40002cdfc15be3e7ccbcdd5df2cd51
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 54
+    sourceFile: scripts/simulate-readme-quickstart.mjs
+    sourceLine: 38
+  SYM-prolog-quickstart-simulate:
+    identityHash: 135f0b1721a8ceeb6b7f00fc3a3c99da5d628ea6b255364aff0b13e9dfae1df5
+    sourceHash: 548d1b2cef48991d58b61d17ae6c7e16fa40002cdfc15be3e7ccbcdd5df2cd51
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 291
+    sourceFile: scripts/simulate-readme-quickstart.mjs
+    sourceLine: 148
+  SYM-prolog-quickstart-substitute-tarballs:
+    identityHash: 42a84e0255cf4bf7229e8c4a5a7d331f5f6fd426003b773bf6e4eaa914fb3b34
+    sourceHash: 548d1b2cef48991d58b61d17ae6c7e16fa40002cdfc15be3e7ccbcdd5df2cd51
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 97
+    sourceFile: scripts/simulate-readme-quickstart.mjs
+    sourceLine: 81
   SYM-prolog-register-process-exit-once:
     identityHash: c3857b4a4da71b847b81f949f1fc9415fcf9c3930706d4fcaee1f38a97658f4a
     sourceHash: 73c95372ae81426f2800bed7825c9e60a5e50d00bad90258c351575a67569ce6
@@ -18381,20 +18429,20 @@ coordinates:
     sourceLine: 149
   SYM-prolog-release-archive-name:
     identityHash: b771fdfdfc5537bc139116260bd853c916776538678e4ece86a12f60cadc5202
-    sourceHash: 69b057bd27836cb067c25ae80922aabb7c3d3671a6efb7cd2b8024d8e88aae14
+    sourceHash: df968b424db3d3ab157be4bf3a01598e92a9615b83571875fbdb1cb4c7f5b6c7
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 56
+    sourceEndLine: 66
     sourceFile: scripts/populate-swipl-platform-packages.mjs
-    sourceLine: 54
+    sourceLine: 64
   SYM-prolog-release-extract-with-pipeline-verifier:
     identityHash: d8ed92b6a69067e34d058bee03e69e68fcf2cfc0c9dd71a35fa31f5ba8407bf4
-    sourceHash: 69b057bd27836cb067c25ae80922aabb7c3d3671a6efb7cd2b8024d8e88aae14
+    sourceHash: df968b424db3d3ab157be4bf3a01598e92a9615b83571875fbdb1cb4c7f5b6c7
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 125
+    sourceEndLine: 135
     sourceFile: scripts/populate-swipl-platform-packages.mjs
-    sourceLine: 94
+    sourceLine: 104
   SYM-prolog-release-host-swipl-platform-package:
     identityHash: 731140d38688d781095aa1fd70db43f82fc2adec85e9925100cbc84403b97a43
     sourceHash: c171522cb570dc7b41b2d6a96ed8dd3aa0f5632fdd5df4a6dc6e8466e0eb7834
@@ -18405,68 +18453,68 @@ coordinates:
     sourceLine: 24
   SYM-prolog-release-main:
     identityHash: 5b1e99cee0f34c791130acfd55dfde6af993e6915aa2323a65e231ec49c6274a
-    sourceHash: 69b057bd27836cb067c25ae80922aabb7c3d3671a6efb7cd2b8024d8e88aae14
+    sourceHash: df968b424db3d3ab157be4bf3a01598e92a9615b83571875fbdb1cb4c7f5b6c7
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 412
+    sourceEndLine: 436
     sourceFile: scripts/populate-swipl-platform-packages.mjs
-    sourceLine: 396
+    sourceLine: 419
   SYM-prolog-release-materialize-symlinks:
     identityHash: 66ecb82b6dd6efc0226ebfaa7d3fbb05e0763a2433fc3ea0be1796211b7c7863
-    sourceHash: 69b057bd27836cb067c25ae80922aabb7c3d3671a6efb7cd2b8024d8e88aae14
+    sourceHash: df968b424db3d3ab157be4bf3a01598e92a9615b83571875fbdb1cb4c7f5b6c7
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 254
+    sourceEndLine: 264
     sourceFile: scripts/populate-swipl-platform-packages.mjs
-    sourceLine: 190
+    sourceLine: 200
   SYM-prolog-release-parse-args:
     identityHash: fb3fe87c65afe03b9b80ab4f975a68e9a41aca72cc7a1592f5b6eeb5ccd0d8a6
-    sourceHash: 69b057bd27836cb067c25ae80922aabb7c3d3671a6efb7cd2b8024d8e88aae14
+    sourceHash: df968b424db3d3ab157be4bf3a01598e92a9615b83571875fbdb1cb4c7f5b6c7
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 393
+    sourceEndLine: 416
     sourceFile: scripts/populate-swipl-platform-packages.mjs
-    sourceLine: 379
+    sourceLine: 397
   SYM-prolog-release-platform-targets:
     identityHash: 44cd859a67a6381c4c26615d67890d059610ed8b33d5485774a5b332ad1e99cd
-    sourceHash: 69b057bd27836cb067c25ae80922aabb7c3d3671a6efb7cd2b8024d8e88aae14
+    sourceHash: df968b424db3d3ab157be4bf3a01598e92a9615b83571875fbdb1cb4c7f5b6c7
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 376
+    sourceEndLine: 394
     sourceFile: scripts/populate-swipl-platform-packages.mjs
-    sourceLine: 369
+    sourceLine: 387
   SYM-prolog-release-populate-platform-package:
     identityHash: 68173a1f08c375f28b6313dfb3739c26811bdb78fc644ad70e30d563a05090e4
-    sourceHash: 69b057bd27836cb067c25ae80922aabb7c3d3671a6efb7cd2b8024d8e88aae14
+    sourceHash: df968b424db3d3ab157be4bf3a01598e92a9615b83571875fbdb1cb4c7f5b6c7
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 366
+    sourceEndLine: 384
     sourceFile: scripts/populate-swipl-platform-packages.mjs
-    sourceLine: 288
+    sourceLine: 305
   SYM-prolog-release-read-pins:
     identityHash: c98803963c38dfa1f54363e8dc128a922f4aaea27f3c76431acfd3d9bd84486a
-    sourceHash: 69b057bd27836cb067c25ae80922aabb7c3d3671a6efb7cd2b8024d8e88aae14
+    sourceHash: df968b424db3d3ab157be4bf3a01598e92a9615b83571875fbdb1cb4c7f5b6c7
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 51
+    sourceEndLine: 61
     sourceFile: scripts/populate-swipl-platform-packages.mjs
-    sourceLine: 43
+    sourceLine: 53
   SYM-prolog-release-sha256-of:
     identityHash: 3df2c9e6eae84aa20b20ef27c152fbdeb6eccadce3f7035f3e4e9dab3615d92b
-    sourceHash: 69b057bd27836cb067c25ae80922aabb7c3d3671a6efb7cd2b8024d8e88aae14
+    sourceHash: df968b424db3d3ab157be4bf3a01598e92a9615b83571875fbdb1cb4c7f5b6c7
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 40
+    sourceEndLine: 50
     sourceFile: scripts/populate-swipl-platform-packages.mjs
-    sourceLine: 38
+    sourceLine: 48
   SYM-prolog-release-verify-archive-sidecar:
     identityHash: 7e87f3fd5ab1f59ea9914d491295e9b2ed7965035c23e620fda39c350c3644ed
-    sourceHash: 69b057bd27836cb067c25ae80922aabb7c3d3671a6efb7cd2b8024d8e88aae14
+    sourceHash: df968b424db3d3ab157be4bf3a01598e92a9615b83571875fbdb1cb4c7f5b6c7
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 90
+    sourceEndLine: 100
     sourceFile: scripts/populate-swipl-platform-packages.mjs
-    sourceLine: 64
+    sourceLine: 74
   SYM-prolog-release-verify-swipl-family-metadata:
     identityHash: 984768aec9e81af9913e6cb1a9ddbe06b206466d4d8e964f926a166aa9391fdb
     sourceHash: 3f0bd912cd9b8aa52a9a59c161a2ae05a77a9cc42dc69591143708b709fd2b3c
@@ -29939,6 +29987,14 @@ coordinates:
     sourceEndLine: 48
     sourceFile: packages/mcp/src/tools/upsert.ts
     sourceLine: 25
+  SYM-test-bundled-swipl-docs:
+    identityHash: a6b27d69e3bfe8b87e159b958b6c13ba620a2cd54a9a10104688f125ecaa9a11
+    sourceHash: 15d9da25929663f0d8466b452ffa486d80479192be560ea5767dbfeae05c0413
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 127
+    sourceFile: scripts/tests/bundled-swipl-docs.test.ts
+    sourceLine: 1
   SYM-test-capability-plugin-host-resolution-v1:
     identityHash: 771cf6e0e25686f15933dc40ce82cc3eef3259237e20d2750688684bb85bc181
     sourceHash: 048c70f561a68a9843c76003f74bbcc877e93c6d22b1c07a9a5bb2929752d075
@@ -29962,6 +30018,14 @@ coordinates:
     sourceEndColumn: 0
     sourceEndLine: 218
     sourceFile: packages/plugin-sdk/tests/sdk.test.ts
+    sourceLine: 1
+  SYM-test-ci-workflow-contract:
+    identityHash: 24ddec7bd018212a0057b64fe6d3b0cb18833fa95abd538f92919f506ab366de
+    sourceHash: 968da45823b5ae6efef5d4823315c788848856e59cd979a48cd6db500557df00
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 425
+    sourceFile: scripts/tests/ci-workflow-contract.test.ts
     sourceLine: 1
   SYM-test-cli-engine-runtime-paths:
     identityHash: 30636d3a187403e96b2f4d9568b0d115808bc2d351a6a303be11781765dd6946
@@ -30293,10 +30357,10 @@ coordinates:
     sourceLine: 1
   SYM-test-populate-swipl-platform-packages:
     identityHash: 14fa5eb4e8426ae8b4d034da26e57da7920ca9b346b11e324fd42335afd36f3c
-    sourceHash: c34af748a2aa6f4475ebb00af953d6db39d5eb85c3c80012ddc986268edd801f
+    sourceHash: b4cab1d0715901ea431aca7efaef185f53f1b49a0a0820d25358ea2f3a25fa7c
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 572
+    sourceEndLine: 632
     sourceFile: scripts/tests/populate-swipl-platform-packages.test.ts
     sourceLine: 1
   SYM-test-predicate-first-graph:
@@ -30397,10 +30461,10 @@ coordinates:
     sourceLine: 1
   SYM-test-release-pack-workflow-contract:
     identityHash: b4ed858a5320d0153e27e8a91d7eefdd42c26a2f2d9df4242faa5ebda0fc2d42
-    sourceHash: 5096ac28259aad25350d5ac69590f5d3c561fe704f968222b360e8b4edaddbbd
+    sourceHash: 93e383ace226263422c59def7a761518edb5cff0b8b6472d95d135f5642028b7
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 299
+    sourceEndLine: 344
     sourceFile: scripts/tests/release-pack-workflow-contract.test.ts
     sourceLine: 1
   SYM-test-root-batch-concurrency:
@@ -30515,6 +30579,14 @@ coordinates:
     sourceEndLine: 16
     sourceFile: scripts/tests/unit-coverage-runner.test.ts
     sourceLine: 16
+  SYM-test-simulate-readme-quickstart:
+    identityHash: 91a4cc70799c76cad69cd0061de705aa63b614abf30386c6a1e22b435b85b32f
+    sourceHash: abe9a4e2e8918b0fa295e906e915ad378f51ae4089681227e608926982389737
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 124
+    sourceFile: scripts/tests/simulate-readme-quickstart.test.ts
+    sourceLine: 1
   SYM-test-skillopt-bundle-workflow:
     identityHash: f86c12a16ffc7c5bd13f332fb0dbae3736ebf3d23f607b7e0f58657722d2fd96
     sourceHash: 089a9d2c3673ae264060db9e1f80c00db9b59f746f6795cef9481d4a192e06e1

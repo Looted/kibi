@@ -3,6 +3,8 @@
 // build-manifest.json) that `npm pack` can ship.
 //
 //   node scripts/populate-swipl-platform-packages.mjs --artifacts <dir>
+//   node scripts/populate-swipl-platform-packages.mjs --artifacts <dir> \
+//     --targets linux-x64-gnu --cached-build
 //
 // <dir> holds one `swipl-<target>/` directory per target, exactly as
 // actions/download-artifact writes them, each with the archive and its
@@ -10,6 +12,14 @@
 // the pinned dependency/patch/provenance checks and safe extraction of the
 // pipeline's own verifier (swipl-spike.py extract-archive), then the manifest's
 // binary SHA-256 against the installed binary.
+//
+// A release binds the archive to its own run: the embedded commit and run id
+// must equal GITHUB_SHA and GITHUB_RUN_ID. Kibi's own CI instead reuses one
+// archive across commits while the build inputs are unchanged (the workflow
+// cache key is a hash of the pins, patches and build scripts), so it passes
+// --cached-build, which drops only that commit/run binding. Every other check
+// (sidecar, pins, binary checksum, libraries, licences, safe extraction) still
+// applies, and a release never uses the flag.
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
@@ -283,6 +293,13 @@ function directorySize(root) {
   return total;
 }
 
+/** The environment without the Actions run identity the verifier binds to. */
+// implements REQ-prolog-bundled-ci
+export function withoutRunBinding(env) {
+  const { GITHUB_SHA: _sha, GITHUB_RUN_ID: _run, ...rest } = env;
+  return rest;
+}
+
 /** Populate one platform package from its pipeline archive; returns a report. */
 // implements REQ-prolog-bundled-release
 export function populatePlatformPackage({
@@ -294,6 +311,7 @@ export function populatePlatformPackage({
   extract = extractWithPipelineVerifier,
   scratchRoot = tmpdir(),
   env = process.env,
+  cachedBuild = false,
 }) {
   const packageDir = path.join(packagesRoot, `swipl-${target}`);
   if (!existsSync(path.join(packageDir, "package.json"))) {
@@ -324,7 +342,7 @@ export function populatePlatformPackage({
       target,
       workdir: path.join(work, "verify"),
       repoRoot,
-      env,
+      env: cachedBuild ? withoutRunBinding(env) : env,
     });
     // Only the four shipped entries leave the verified prefix (share/ holds
     // man pages and pkg-config metadata that the runtime never reads).
@@ -377,16 +395,21 @@ export function platformTargets(
 
 // implements REQ-prolog-bundled-release
 export function parseArgs(argv) {
-  const options = { targets: undefined, artifacts: undefined };
+  const options = {
+    targets: undefined,
+    artifacts: undefined,
+    cachedBuild: false,
+  };
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
     if (arg === "--artifacts") options.artifacts = argv[++index];
     else if (arg === "--targets") options.targets = argv[++index]?.split(",");
+    else if (arg === "--cached-build") options.cachedBuild = true;
     else throw new Error(`unknown argument: ${arg}`);
   }
   if (!options.artifacts) {
     throw new Error(
-      "usage: populate-swipl-platform-packages.mjs --artifacts <dir> [--targets a,b]",
+      "usage: populate-swipl-platform-packages.mjs --artifacts <dir> [--targets a,b] [--cached-build]",
     );
   }
   return options;
@@ -402,6 +425,7 @@ export function main(argv = process.argv.slice(2)) {
       populatePlatformPackage({
         target,
         artifactsDir: path.resolve(options.artifacts),
+        cachedBuild: options.cachedBuild,
       }),
     );
   }

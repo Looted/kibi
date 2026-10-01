@@ -19,6 +19,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import {
   materializeSymlinks,
+  parseArgs,
   platformTargets,
   populatePlatformPackage,
   verifyArchiveSidecar,
@@ -496,6 +497,52 @@ archive.with_name(archive.name + '.sha256').write_text(hashlib.sha256(archive.re
     ).toThrow("Build provenance differs from this Actions run: workflowRunId");
   });
 
+  test("a cached build is accepted across commits, but only when asked for and never past another check", () => {
+    const { artifacts } = pipelineArchive({
+      GITHUB_SHA: "a".repeat(40),
+      GITHUB_RUN_ID: "4242",
+    });
+    const laterRun = cleanEnv({
+      GITHUB_SHA: "b".repeat(40),
+      GITHUB_RUN_ID: "9999",
+    });
+    const populate = (cachedBuild: boolean) =>
+      populatePlatformPackage({
+        target: TARGET,
+        artifactsDir: artifacts,
+        packagesRoot: packagesRootFor(),
+        scratchRoot: tempDir("kibi-scratch-"),
+        env: laterRun,
+        cachedBuild,
+      });
+    expect(() => populate(false)).toThrow("Build provenance differs");
+    const report = populate(true);
+    expect(report.sourceCommit).toBe("a".repeat(40));
+    expect(report.binarySha256).toMatch(/^[0-9a-f]{64}$/);
+  });
+
+  test("a cached build still refuses an archive that fails any other check", () => {
+    const { artifacts, archive } = pipelineArchive({
+      GITHUB_SHA: "a".repeat(40),
+      GITHUB_RUN_ID: "4242",
+    });
+    writeFileSync(
+      archive,
+      `${readFileSync(archive).toString("latin1")}x`,
+      "latin1",
+    );
+    expect(() =>
+      populatePlatformPackage({
+        target: TARGET,
+        artifactsDir: artifacts,
+        packagesRoot: packagesRootFor(),
+        scratchRoot: tempDir("kibi-scratch-"),
+        env: cleanEnv({ GITHUB_SHA: "b".repeat(40), GITHUB_RUN_ID: "9999" }),
+        cachedBuild: true,
+      }),
+    ).toThrow("SHA-256 mismatch");
+  });
+
   test("refuses a package that declares a different SWI-Prolog version than the pin", () => {
     const packages = packagesRootFor();
     const manifestPath = path.join(packages, `swipl-${TARGET}`, "package.json");
@@ -541,6 +588,19 @@ describe("platformTargets", () => {
 });
 
 describe("command line", () => {
+  test("--cached-build is opt-in and --targets narrows the packages", () => {
+    expect(parseArgs(["--artifacts", "a"])).toMatchObject({
+      cachedBuild: false,
+      targets: undefined,
+    });
+    expect(
+      parseArgs(["--artifacts", "a", "--targets", "x,y", "--cached-build"]),
+    ).toMatchObject({ cachedBuild: true, targets: ["x", "y"] });
+    expect(() => parseArgs(["--artifacts", "a", "--bogus"])).toThrow(
+      "unknown argument",
+    );
+  });
+
   test("refuses to run without an artifacts directory", () => {
     const result = spawnSync(
       process.execPath,

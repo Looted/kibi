@@ -296,3 +296,48 @@ describe("the bundled-runtime smoke proves the run with no SWI-Prolog", () => {
     expect(code("release-smoke.yml")).not.toMatch(/secrets\.|id-token/);
   });
 });
+
+describe("the README quick start is followed literally on every launch platform", () => {
+  const smoke = workflow("release-smoke.yml");
+  const job = smoke.jobs["readme-quickstart"];
+
+  test("runs on the same four runners as the bundled-runtime smoke", () => {
+    const rows = (job?.strategy?.matrix.include ?? []).map((row) => [
+      row.target,
+      row.runner,
+    ]);
+    const smokeRows = (smoke.jobs.smoke.strategy?.matrix.include ?? []).map(
+      (row) => [row.target, row.runner],
+    );
+    expect(rows.length).toBe(4);
+    expect(rows.sort()).toEqual(smokeRows.sort());
+  });
+
+  test("substitutes only the packed tarballs for the registry", () => {
+    const steps = job?.steps ?? [];
+    const run = steps.find((s) =>
+      s.run?.includes("scripts/simulate-readme-quickstart.mjs"),
+    );
+    expect(run?.run).toContain("--tarballs packages");
+    const download = steps.findIndex((s) =>
+      s.uses?.startsWith("actions/download-artifact@"),
+    );
+    const before = steps.findIndex((s) => s.run?.includes("command -v swipl"));
+    expect(before).toBeGreaterThan(-1);
+    expect(before).toBeLessThan(download);
+    const last = steps[steps.length - 1];
+    expect(last?.run).toContain("command -v swipl");
+    expect(last?.if).toBe("always()");
+    expect(commands(job as never).join("\n")).not.toMatch(
+      /\b(brew|apt|apt-get|dnf|yum|pip)\b|ci-install-swi-prolog/,
+    );
+  });
+
+  test("the dry run reruns when the README or the simulation changes", () => {
+    const dry = code("release-pack.yml");
+    expect(dry.match(/^ {6}- README\.md$/gm)?.length).toBe(2);
+    expect(
+      dry.match(/^ {6}- scripts\/simulate-readme-quickstart\.mjs$/gm)?.length,
+    ).toBe(2);
+  });
+});

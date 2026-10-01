@@ -279,3 +279,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8309b65b7e03
+  - type: covered_by
+    from: SYM-prolog-quickstart-substitute-tarballs
+    to: TEST-prolog-bundled-quickstart
+    created_at: 2026-10-01T03:49:11.051Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f6d8bf83f83d
+  - type: implements
+    from: SYM-prolog-quickstart-substitute-tarballs
+    to: REQ-prolog-bundled-quickstart
+    created_at: 2026-10-01T03:49:11.078Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f34e787147b0

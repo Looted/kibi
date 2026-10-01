@@ -160,3 +160,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a3a82e236145
+  - type: executable_for
+    from: SYM-test-bundled-swipl-docs
+    to: TEST-prolog-bundled-quickstart
+    created_at: 2026-10-01T03:48:44.061Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-69a066616499

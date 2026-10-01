@@ -23,8 +23,9 @@ claude plugin install kibi-claude@kibi
 ```
 
 Or use `/plugin` inside Claude Code. The hooks need Node.js 18+ on `PATH`.
-The KB tools need Node.js 22+, SWI-Prolog 9+, and project-local `kibi-cli`,
-`kibi-mcp`, and `kibi-core` (see the
+The KB tools need Node.js 22+ and project-local `kibi-cli`, `kibi-mcp`, and
+`kibi-core`. SWI-Prolog comes bundled with them on Linux (x64, arm64) and
+macOS; only other platforms need SWI-Prolog 9+ on `PATH` (see the
 [installation guide](https://looted.github.io/kibi/guide/install.html)).
 
 The hook runner is committed as a single self-contained file

@@ -2,13 +2,63 @@
 
 ## Prerequisites
 
-Kibi needs **Node.js 22+** for the CLI, MCP server, and engine, and **SWI-Prolog 9.0+** with `swipl` on your `PATH`.
+Kibi needs **Node.js 22+** for the CLI, MCP server, and engine. It also needs **SWI-Prolog 9.0+**, and on supported platforms that comes with Kibi: you install nothing extra.
 
-### Installing SWI-Prolog on Linux
+### Bundled SWI-Prolog
+
+`kibi-cli` (and `kibi-runtime`, which `kibi-mcp` uses) depend on `kibi-swipl`, which lists one platform package per target as an optional dependency. Your package manager installs only the one that matches your machine:
+
+| Platform | Package | Requirement |
+| --- | --- | --- |
+| Linux x64 | `kibi-swipl-linux-x64-gnu` | glibc 2.28 or newer (for example Debian 10+, Ubuntu 20.04+, RHEL 8+) |
+| Linux arm64 | `kibi-swipl-linux-arm64-gnu` | glibc 2.28 or newer |
+| macOS arm64 (Apple silicon) | `kibi-swipl-darwin-arm64` | macOS 12 or newer |
+| macOS x64 (Intel) | `kibi-swipl-darwin-x64` | macOS 12 or newer |
+
+On these platforms `npm install --save-dev kibi-cli kibi-mcp kibi-core` followed by `kibi init` works on a machine with no SWI-Prolog at all. The build is relocatable, ships its own libraries and licenses, and is tested with the same Prolog suites Kibi's own CI runs.
+
+Not covered by a bundled build: Alpine and other musl-based Linux, and native Windows. On Windows, run Kibi inside WSL (a glibc distribution uses the bundled build); otherwise install SWI-Prolog yourself as described below.
+
+### Which SWI-Prolog Kibi uses
+
+Kibi picks a SWI-Prolog in this order and uses the first that works:
+
+1. `KIBI_SWIPL=<absolute path>`: that executable, which must be SWI-Prolog 9.0 or newer. An invalid value is an error, never a silent fallback.
+2. The bundled platform package, after Kibi verifies its manifest and the binary's SHA-256.
+3. `swipl` on your `PATH`, which must be 9.0 or newer.
+4. Otherwise Kibi stops with an error that names your platform, the platform package that would have covered it, and the install command for your OS.
+
+When both a bundled build and a system `swipl` exist, the bundled build wins, so a project behaves the same on every machine that installs the same packages. To use the system install instead, set `KIBI_SWIPL=system`, which skips the bundle and uses `swipl` from `PATH`:
+
+```bash
+KIBI_SWIPL=system npm exec -- kibi doctor
+KIBI_SWIPL=/opt/swipl/bin/swipl npm exec -- kibi doctor
+```
+
+`kibi doctor` shows what was chosen: the `SWI-Prolog` check reports the source (`bundled`, `KIBI_SWIPL`, or `PATH`), the executable's path and version, and loads every library Kibi needs, so a SWI-Prolog build that lacks one (for example a minimal `swi-prolog-nox` package) fails there rather than in the middle of a command. With `--format json` the same facts appear as `details.source`, `details.path`, and `details.version`.
+
+#### If the bundled runtime is missing
+
+The platform packages are optional dependencies, so an install can leave them out without failing. `kibi doctor` and the first command that needs Prolog then name the package to add:
+
+```bash
+npm install --save-dev kibi-swipl-linux-x64-gnu   # the package for your platform
+```
+
+The usual causes:
+
+- Installing with `--omit=optional` or `--no-optional` (or `npm_config_omit=optional`, `optional=false`). Install without it.
+- pnpm `supportedArchitectures` (in `pnpm-workspace.yaml` or `package.json`) that does not include your platform, for example a Docker build that fixes `os`/`cpu` to another machine. Add your platform to it, or build the image for the platform it runs on.
+- Installing on one platform and running on another (copying `node_modules` from macOS into a Linux container, or the reverse). Install on the machine, or in the image, that runs Kibi.
+- An Alpine/musl or Windows host, which has no bundled build; see below.
+
+### Installing SWI-Prolog yourself
+
+Do this on platforms with no bundled build, or when you want Kibi to use a system install through `KIBI_SWIPL=system` or `KIBI_SWIPL=<path>`. Kibi needs SWI-Prolog **9.0 or newer** with its standard libraries (`semweb`, `pcre`, `crypto`, `http/json`, `chr`, and others, all in a normal full install).
 
 #### Ubuntu (Recommended)
 
-The official SWI-Prolog project provides a Personal Package Archive (PPA) for Ubuntu that stays current with every release. This is the recommended installation method for Ubuntu users.
+The official SWI-Prolog project provides a Personal Package Archive (PPA) for Ubuntu that stays current with every release.
 
 ```bash
 sudo apt-get install software-properties-common
@@ -19,25 +69,23 @@ sudo apt-get install swi-prolog
 
 #### Other Linux Distributions
 
-Official Linux distribution packages are often outdated. For other Linux distributions, please refer to the official SWI-Prolog documentation:
+Official Linux distribution packages are often outdated. For other Linux distributions, including Alpine, please refer to the official SWI-Prolog documentation:
 
 - [Unix/Linux installation guide](https://www.swi-prolog.org/build/unix.html) - Comprehensive instructions for building from source or using other methods
 - [Stable downloads page](https://www.swi-prolog.org/download/stable) - Source archives and binaries
 - [Flatpak](https://flathub.org/apps/org.swi_prolog.swipl) - Available for most Linux distributions
 
-### Installing SWI-Prolog on macOS
+#### macOS
 
 ```bash
 brew install swi-prolog
 ```
 
-### Installing SWI-Prolog on Windows
+#### Windows
 
-Use the installer from the [stable downloads page](https://www.swi-prolog.org/download/stable) and let it add `swipl` to your `PATH`, or run Kibi inside WSL and follow the Ubuntu steps.
+Use the installer from the [stable downloads page](https://www.swi-prolog.org/download/stable) and let it add `swipl` to your `PATH`, or set `KIBI_SWIPL` to the full path of `swipl.exe`. Alternatively run Kibi inside WSL, which uses the bundled build and needs no SWI-Prolog install.
 
-### Verify SWI-Prolog installation
-
-After installation, verify that `swipl` is available:
+#### Verify a system install
 
 ```bash
 swipl --version
@@ -568,7 +616,14 @@ bun run build
 
 ### SWI-Prolog Issues
 
-If you encounter problems with SWI-Prolog:
+Start with `npm exec -- kibi doctor`: it reports which SWI-Prolog Kibi chose, from where, and whether every required library loads.
+
+- `could not find a usable SWI-Prolog`: the message names your platform and the platform package that should have supplied it. Add that package (see [If the bundled runtime is missing](#if-the-bundled-runtime-is-missing)), or install SWI-Prolog 9.0+ and put `swipl` on `PATH`, or set `KIBI_SWIPL`.
+- `The bundled SWI-Prolog package ... is damaged`: reinstall the platform package, or set `KIBI_SWIPL=system` to use `swipl` from `PATH` meanwhile.
+- `KIBI_SWIPL=... is not an executable file` (or is too old): `KIBI_SWIPL` must be the absolute path of a SWI-Prolog 9.0+ executable, or `system`. Unset it to use the bundled build.
+- A system SWI-Prolog is installed but ignored: that is the default when the bundled package is present. Set `KIBI_SWIPL=system` to prefer `swipl` from `PATH`.
+
+If you need help with SWI-Prolog itself:
 
 - Refer to the [SWI-Prolog build documentation](https://www.swi-prolog.org/build/) for platform-specific guidance
 - Check the [SWI-Prolog FAQ](https://www.swi-prolog.org/FAQ/)
