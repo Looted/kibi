@@ -698,6 +698,43 @@ test("requires every first-party Kibi package dependency to be archive qualified
   );
 });
 
+test("requires optional first-party Kibi dependencies only when they are installed", () => {
+  const manifestBytes = Buffer.from(
+    JSON.stringify({
+      name: "kibi-swipl",
+      optionalDependencies: {
+        "kibi-swipl-linux-x64-gnu": "1.0.0",
+        "kibi-swipl-darwin-arm64": "1.0.0",
+      },
+    }),
+    "utf8",
+  );
+  const packageSources = [
+    {
+      archiveEntries: new Map([
+        ["package.json", { kind: "file", bytes: manifestBytes }],
+      ]),
+    },
+  ];
+  const installed = (name) => name === "kibi-swipl-linux-x64-gnu";
+  assert.deepEqual(
+    verifyQualifiedKibiDependencies(
+      packageSources,
+      new Set(["kibi-swipl-linux-x64-gnu"]),
+      installed,
+    ),
+    ["kibi-swipl-linux-x64-gnu"],
+  );
+  assert.deepEqual(
+    verifyQualifiedKibiDependencies(packageSources, new Set(), () => false),
+    [],
+  );
+  assert.throws(
+    () => verifyQualifiedKibiDependencies(packageSources, new Set(), installed),
+    /Qualification omits first-party Kibi dependency kibi-swipl-linux-x64-gnu/,
+  );
+});
+
 test("compares installed parser runtime files to a catalog-pinned archive", () => {
   const root = mkdtempSync(
     path.join(os.tmpdir(), "kibi-runtime-archive-test-"),

@@ -1395,22 +1395,32 @@ function normalizeQualificationReport(qualification) {
   };
 }
 
-function verifyQualifiedKibiDependencies(packageSources, qualifiedNames) {
+/**
+ * Every first-party Kibi dependency of a qualified package must itself be
+ * archive-qualified. Optional dependencies (the per-platform kibi-swipl
+ * bundles) are only installed on their platform, so they are required only
+ * when they are actually installed.
+ */
+function verifyQualifiedKibiDependencies(
+  packageSources,
+  qualifiedNames,
+  isInstalled = () => true,
+) {
   const firstPartyDependencies = new Set();
   for (const source of packageSources) {
     const manifestBytes = source.archiveEntries.get("package.json")?.bytes;
     if (!manifestBytes) continue;
     const manifest = JSON.parse(manifestBytes.toString("utf8"));
-    for (const group of [
-      manifest.dependencies,
-      manifest.optionalDependencies,
-      manifest.peerDependencies,
+    for (const [group, optional] of [
+      [manifest.dependencies, false],
+      [manifest.optionalDependencies, true],
+      [manifest.peerDependencies, false],
     ]) {
       if (!isRecord(group)) continue;
       for (const dependencyName of Object.keys(group)) {
-        if (dependencyName.startsWith("kibi-")) {
-          firstPartyDependencies.add(dependencyName);
-        }
+        if (!dependencyName.startsWith("kibi-")) continue;
+        if (optional && !isInstalled(dependencyName)) continue;
+        firstPartyDependencies.add(dependencyName);
       }
     }
   }
@@ -1567,6 +1577,10 @@ function verifyQualification(options) {
   const firstPartyDependencyNames = verifyQualifiedKibiDependencies(
     packageSources,
     seen,
+    (name) =>
+      existsSync(
+        path.join(packageDirectory(nodeModules, name), "package.json"),
+      ),
   );
   if (
     Number.isInteger(normalized.declaredFileCount) &&
