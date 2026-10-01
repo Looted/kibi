@@ -22,38 +22,6 @@ proof_contract:
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v1
-    receipt_id: PR-4795cb02e689cb2327749573
-    test_id: TEST-mcp-tool-check-coverage
-    scope: end_to_end
-    outcome: passed
-    code_snapshot: 73304a19a83bfbaca3e3d0e52a7b97d454de2c753b8405c2eda73ca29bbef16c
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-09-09T04:59:46.377Z'
-    finished_at: '2026-09-09T05:44:19.775Z'
-    artifact_digest: 50031ad292386cf2c587290d2bf043370abe66901e46814bcbe103fa994f6f7e
-    contract_hash: ac0fba616e4b48eb9674ad213fda4ee4da410842d1249b56f08aa2c1b7765e9b
-    fingerprint: db30787a733bf8f9f267d32e746cd09976d37a3f5abd270c9194635079010318
-    fingerprint_components:
-      contract: ac0fba616e4b48eb9674ad213fda4ee4da410842d1249b56f08aa2c1b7765e9b
-      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
-      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
-      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
-      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
-    integration_id: self-proof
-    producer:
-      name: kibi-command-producer
-    command_argv:
-      - node
-      - scripts/run-proof-producer.mjs
-    run_outcome: passed
-    proof_results:
-      - symbol_id: SYM-e2e-test-mcp-tool-check-coverage
-        target: default
-        outcome: passed
-        binding: aggregate_run
-        attempts:
-          status: unavailable
-  - version: kibi.proof-receipt.v1
     receipt_id: PR-6f93f030ff975af876a4828f
     test_id: TEST-mcp-tool-check-coverage
     scope: end_to_end
@@ -1683,6 +1651,39 @@ proof_receipts:
     started_at: '2026-09-30T19:02:28.214Z'
     finished_at: '2026-09-30T19:38:21.534Z'
     artifact_digest: 3dc2234689cf3a5cdb82deb224ed2f23cad0fdf7d9deeace00bc19308244c4ba
+    contract_hash: ac0fba616e4b48eb9674ad213fda4ee4da410842d1249b56f08aa2c1b7765e9b
+    binding_hash: 51b5f36bd106276e1ae6c0a7bcf2b97d947d62a3ec030e6ae88b63980a0f729b
+    fingerprint: db30787a733bf8f9f267d32e746cd09976d37a3f5abd270c9194635079010318
+    fingerprint_components:
+      contract: ac0fba616e4b48eb9674ad213fda4ee4da410842d1249b56f08aa2c1b7765e9b
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-mcp-tool-check-coverage
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-680c89c54b3cd5ce4a47a402
+    test_id: TEST-mcp-tool-check-coverage
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 08c571a1159e02fceab7228e3e5602a4a4b3640c8cd9b07b52695408433f3d2c
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-09-30T20:55:45.152Z'
+    finished_at: '2026-09-30T21:39:09.186Z'
+    artifact_digest: 1231ed5f54da37e9f82308adb82a0e2dffcd3ea781f5ccd044c5307ff8b49f96
     contract_hash: ac0fba616e4b48eb9674ad213fda4ee4da410842d1249b56f08aa2c1b7765e9b
     binding_hash: 51b5f36bd106276e1ae6c0a7bcf2b97d947d62a3ec030e6ae88b63980a0f729b
     fingerprint: db30787a733bf8f9f267d32e746cd09976d37a3f5abd270c9194635079010318
