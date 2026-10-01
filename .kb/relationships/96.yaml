@@ -286,3 +286,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a372df82d63b
+  - type: implements
+    from: SYM-prolog-release-sha256-of
+    to: REQ-prolog-bundled-release
+    created_at: 2026-10-01T00:21:25.210Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8a7ddfcb640f
+  - type: covered_by
+    from: SYM-prolog-release-sha256-of
+    to: TEST-prolog-bundled-release
+    created_at: 2026-10-01T00:21:25.255Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7ecd39d6ad54

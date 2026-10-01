@@ -1522,5 +1522,22 @@
         "./packages/cli/tests/commands/doctor-swipl-runtime.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-prolog-bundled-release",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "60000",
+        "--isolate",
+        "--max-concurrency=1",
+        "./scripts/tests/populate-swipl-platform-packages.test.ts",
+        "./scripts/tests/release-pack-workflow-contract.test.ts",
+        "./scripts/tests/verify-publish-metadata.test.ts",
+        "./scripts/tests/package-catalog.test.ts"
+      ]
+    ]
   }
 ]

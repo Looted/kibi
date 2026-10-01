@@ -1,0 +1,98 @@
+name: Bundled runtime smoke
+
+# Installs the packed release tarballs with npm on runners that have no
+# SWI-Prolog anywhere, then runs kibi init, sync, check, doctor, and an MCP
+# round trip against the bundled runtime. Called by the release dry run and by
+# the publish workflow's gate; it never publishes and holds no secrets.
+
+on:
+  workflow_call:
+    inputs:
+      tarballs-artifact:
+        description: Artifact holding packages/<dir>/*.tgz, including every kibi-swipl-<platform> tarball
+        type: string
+        required: true
+      e2e-artifact:
+        description: Artifact holding the compiled packed e2e tests
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    name: smoke (${{ matrix.target }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: linux-x64-gnu
+            runner: ubuntu-24.04
+          - target: darwin-arm64
+            runner: macos-15
+          - target: linux-arm64-gnu
+            runner: ubuntu-24.04-arm
+          - target: darwin-x64
+            runner: macos-15-intel
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+      - name: Require no SWI-Prolog before the run
+        shell: bash
+        run: |
+          if command -v swipl; then
+            echo "swipl is on PATH; this job proves nothing with a system SWI-Prolog"
+            exit 1
+          fi
+          for candidate in /usr/bin/swipl /usr/local/bin/swipl /opt/homebrew/bin/swipl /usr/lib/swi-prolog /usr/lib/swipl; do
+            if [ -e "$candidate" ]; then
+              echo "found SWI-Prolog at $candidate"
+              exit 1
+            fi
+          done
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.4.2'
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+      - name: Download tarballs
+        uses: actions/download-artifact@v6
+        with:
+          name: ${{ inputs.tarballs-artifact }}
+          path: packages
+      - name: Download compiled e2e tests
+        uses: actions/download-artifact@v6
+        with:
+          name: ${{ inputs.e2e-artifact }}
+          path: ${{ runner.temp }}/kibi-e2e-packed-compiled
+      - name: Require the platform tarball for this runner
+        shell: bash
+        run: |
+          ls -l packages/swipl-${{ matrix.target }}/kibi-swipl-${{ matrix.target }}-*.tgz
+      - name: Run the bundled runtime e2e
+        shell: bash
+        run: |
+          NODE_OPTIONS='--enable-source-maps' node scripts/run-packed-e2e.mjs \
+            "$RUNNER_TEMP/kibi-e2e-packed-compiled" \
+            "$RUNNER_TEMP/kibi-e2e-packed-compiled/bundled-swipl-runtime.test.js"
+        env:
+          KIBI_E2E_ALLOW_PATCHED_INSTALL: "0"
+          KIBI_PACKED_REQUIRE_BUNDLED_SWIPL: "1"
+          KIBI_TEST_TARBALLS: ${{ github.workspace }}/packages
+        timeout-minutes: 20
+      - name: Require no SWI-Prolog after the run
+        if: always()
+        shell: bash
+        run: |
+          if command -v swipl; then
+            echo "swipl appeared on PATH during the run"
+            exit 1
+          fi

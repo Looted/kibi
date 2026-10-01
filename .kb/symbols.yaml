@@ -44623,3 +44623,160 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-prolog-doctor-runtime-report
+  - id: SYM-test-populate-swipl-platform-packages
+    title: Platform package population and symlink materialization suite
+    status: active
+    sourceFile: scripts/tests/populate-swipl-platform-packages.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-prolog-bundled-release
+  - id: SYM-test-release-pack-workflow-contract
+    title: Release pack, publish, and bundled smoke workflow contract suite
+    status: active
+    sourceFile: scripts/tests/release-pack-workflow-contract.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-prolog-bundled-release
+  - id: SYM-test-prolog-bundled-bundled-runtime-e2e
+    title: Packed bundled-runtime e2e without a system SWI-Prolog
+    status: active
+    sourceFile: documentation/tests/e2e/packed/bundled-swipl-runtime.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-prolog-bundled-release
+  - id: SYM-prolog-release-sha256-of
+    title: sha256Of
+    status: active
+    sourceFile: scripts/populate-swipl-platform-packages.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-bundled-release
+      - type: implements
+        target: REQ-prolog-bundled-release
+  - id: SYM-prolog-release-read-pins
+    title: readPins
+    status: active
+    sourceFile: scripts/populate-swipl-platform-packages.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-bundled-release
+      - type: implements
+        target: REQ-prolog-bundled-release
+  - id: SYM-prolog-release-archive-name
+    title: archiveName
+    status: active
+    sourceFile: scripts/populate-swipl-platform-packages.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-bundled-release
+      - type: implements
+        target: REQ-prolog-bundled-release
+  - id: SYM-prolog-release-verify-archive-sidecar
+    title: verifyArchiveSidecar
+    status: active
+    sourceFile: scripts/populate-swipl-platform-packages.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-bundled-release
+      - type: implements
+        target: REQ-prolog-bundled-release
+  - id: SYM-prolog-release-extract-with-pipeline-verifier
+    title: extractWithPipelineVerifier
+    status: active
+    sourceFile: scripts/populate-swipl-platform-packages.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-bundled-release
+      - type: implements
+        target: REQ-prolog-bundled-release
+  - id: SYM-prolog-release-materialize-symlinks
+    title: materializeSymlinks
+    status: active
+    sourceFile: scripts/populate-swipl-platform-packages.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-bundled-release
+      - type: implements
+        target: REQ-prolog-bundled-release
+  - id: SYM-prolog-release-populate-platform-package
+    title: populatePlatformPackage
+    status: active
+    sourceFile: scripts/populate-swipl-platform-packages.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-bundled-release
+      - type: implements
+        target: REQ-prolog-bundled-release
+  - id: SYM-prolog-release-platform-targets
+    title: platformTargets
+    status: active
+    sourceFile: scripts/populate-swipl-platform-packages.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-bundled-release
+      - type: implements
+        target: REQ-prolog-bundled-release
+  - id: SYM-prolog-release-parse-args
+    title: parseArgs
+    status: active
+    sourceFile: scripts/populate-swipl-platform-packages.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-bundled-release
+      - type: implements
+        target: REQ-prolog-bundled-release
+  - id: SYM-prolog-release-main
+    title: main
+    status: active
+    sourceFile: scripts/populate-swipl-platform-packages.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-bundled-release
+      - type: implements
+        target: REQ-prolog-bundled-release
+  - id: SYM-prolog-release-verify-swipl-family-metadata
+    title: verifySwiplFamilyMetadata
+    status: active
+    sourceFile: scripts/verify-publish-metadata.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-bundled-release
+      - type: implements
+        target: REQ-prolog-bundled-release
+  - id: SYM-prolog-release-host-swipl-platform-package
+    title: hostSwiplPlatformPackage
+    status: active
+    sourceFile: documentation/tests/e2e/packed/packed-packages.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-bundled-release
+      - type: implements
+        target: REQ-prolog-bundled-release
+  - id: SYM-prolog-release-verify-swipl-payload-types
+    title: verifySwiplPayload
+    status: active
+    sourceFile: scripts/verify-swipl-payload.d.mts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-bundled-release
+      - type: implements
+        target: REQ-prolog-bundled-release

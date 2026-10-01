@@ -12,6 +12,10 @@ on:
       - scripts/tests/swipl-spike-config.test.ts
       - scripts/tests/swipl-build-*.test.ts
   workflow_dispatch:
+  # Release workflows build the archives themselves, in their own run and from
+  # their own commit, so the artifacts they package were produced by this exact
+  # source and pins and never come from an earlier or foreign run.
+  workflow_call:
 
 permissions:
   contents: read

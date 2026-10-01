@@ -209,3 +209,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-18ebc43c8394
+  - type: implements
+    from: SYM-prolog-release-verify-swipl-payload-types
+    to: REQ-prolog-bundled-release
+    created_at: 2026-10-01T00:27:11.005Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-66ab9ed3b867
+  - type: covered_by
+    from: SYM-prolog-release-verify-swipl-payload-types
+    to: TEST-prolog-bundled-release
+    created_at: 2026-10-01T00:27:11.021Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a322cbf60f89

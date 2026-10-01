@@ -881,7 +881,7 @@ def archive_pipeline(manifest: dict, target: str, work: Path, archive: Path | No
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=("verify-config", "build-and-test", "build-archive", "smoke-archive"))
+    parser.add_argument("command", choices=("verify-config", "build-and-test", "build-archive", "smoke-archive", "extract-archive"))
     parser.add_argument("--manifest", type=Path, default=Path(os.getenv("KIBI_SWIPL_SPIKE_MANIFEST", DEFAULT_MANIFEST)))
     parser.add_argument("--target", default=os.getenv("KIBI_SWIPL_SPIKE_TARGET", "linux-x64-gnu"))
     parser.add_argument("--workdir", type=Path)
@@ -903,6 +903,14 @@ def main() -> None:
         exercise(prefix, manifest, args.target, args.workdir.resolve())
     elif args.command == "build-archive":
         archive_pipeline(manifest, args.target, args.workdir)
+    elif args.command == "extract-archive":
+        # Release packaging: the same verification and safe extraction the
+        # consumer smoke uses, without the native audit (which needs the
+        # target's own architecture). Prints the extracted prefix.
+        if args.archive is None or args.checksum is None:
+            raise ValueError("--archive and --checksum are required for extract-archive")
+        prefix = verify_archive(args.archive.resolve(), args.checksum.resolve(), manifest, args.target, args.workdir.resolve())
+        print(json.dumps({"prefix": str(prefix)}))
     else:
         if args.archive is None or args.checksum is None:
             raise ValueError("--archive and --checksum are required for smoke-archive")

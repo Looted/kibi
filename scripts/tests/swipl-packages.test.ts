@@ -161,11 +161,19 @@ describe("verifySwiplPayload", () => {
   });
 
   test("refuses the committed placeholder packages (no payload)", () => {
+    // Only what git tracks: a populated working copy must not change this.
     for (const [key] of PLATFORMS) {
-      const problems = verifySwiplPayload(
-        path.join(ROOT, "packages", `swipl-${key}`),
+      const root = mkdtempSync(path.join(tmpdir(), "kibi-swipl-placeholder-"));
+      roots.push(root);
+      writeFileSync(
+        path.join(root, "package.json"),
+        readFileSync(
+          path.join(ROOT, "packages", `swipl-${key}`, "package.json"),
+        ),
       );
-      expect(problems[0]).toContain("build-manifest.json is missing");
+      expect(verifySwiplPayload(root)[0]).toContain(
+        "build-manifest.json is missing",
+      );
     }
   });
 

@@ -1,0 +1,136 @@
+name: Release pack (dry run)
+
+# Rehearses the publish workflow's packaging without publishing: builds the
+# SWI-Prolog archives, verifies and extracts them into the platform packages,
+# packs every publishable package, and installs the tarballs with npm on
+# runners that have no SWI-Prolog. This workflow has no secrets, no
+# id-token permission, and no publish step; the contract test in
+# scripts/tests/release-pack-workflow-contract.test.ts keeps it that way.
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches: [develop, codex/swipl-bundle-spike]
+    paths:
+      - .github/workflows/release-pack.yml
+      - .github/workflows/release-smoke.yml
+      - .github/workflows/swipl-build.yml
+      - packages/swipl/**
+      - packages/swipl-*/**
+      - packages/runtime/package.json
+      - packages/cli/package.json
+      - packages/cli/src/prolog/**
+      - scripts/swipl-version.json
+      - scripts/swipl-spike.py
+      - scripts/swipl-spike.sh
+      - scripts/patches/swipl-*.patch
+      - scripts/populate-swipl-platform-packages.mjs
+      - scripts/verify-swipl-payload.mjs
+      - scripts/verify-publish-metadata.ts
+      - scripts/pack-packages.ts
+      - scripts/package-catalog.ts
+      - scripts/run-packed-e2e.mjs
+      - documentation/tests/e2e/packed/**
+  pull_request:
+    branches: [develop]
+    paths:
+      - .github/workflows/release-pack.yml
+      - .github/workflows/release-smoke.yml
+      - .github/workflows/swipl-build.yml
+      - packages/swipl/**
+      - packages/swipl-*/**
+      - packages/runtime/package.json
+      - packages/cli/package.json
+      - packages/cli/src/prolog/**
+      - scripts/swipl-version.json
+      - scripts/swipl-spike.py
+      - scripts/swipl-spike.sh
+      - scripts/patches/swipl-*.patch
+      - scripts/populate-swipl-platform-packages.mjs
+      - scripts/verify-swipl-payload.mjs
+      - scripts/verify-publish-metadata.ts
+      - scripts/pack-packages.ts
+      - scripts/package-catalog.ts
+      - scripts/run-packed-e2e.mjs
+      - documentation/tests/e2e/packed/**
+  workflow_dispatch:
+
+jobs:
+  swipl-build:
+    uses: ./.github/workflows/swipl-build.yml
+
+  pack:
+    needs: swipl-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.4.2'
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Build packages
+        run: bun run build
+      - name: Download SWI-Prolog pipeline archives
+        uses: actions/download-artifact@v6
+        with:
+          pattern: swipl-*
+          path: ${{ runner.temp }}/swipl-artifacts
+      - name: Verify archives and populate the platform packages
+        run: node scripts/populate-swipl-platform-packages.mjs --artifacts "$RUNNER_TEMP/swipl-artifacts"
+      - name: Verify publish metadata for npm provenance
+        run: bun run scripts/verify-publish-metadata.ts --require-swipl-payload
+      - name: Clean stale tarballs
+        run: bun run clean:tarballs
+      - name: Pack packages
+        run: bun run scripts/pack-packages.ts --slice publishable
+      - name: Report platform package sizes
+        run: |
+          for tarball in packages/swipl-*/*.tgz; do
+            packed=$(stat -c%s "$tarball")
+            unpacked=$(gzip -dc "$tarball" | tar -x -O | wc -c)
+            echo "$(basename "$tarball") packed=${packed} unpacked=${unpacked}" | tee -a "$GITHUB_STEP_SUMMARY"
+          done
+      - name: Upload package tarballs
+        uses: actions/upload-artifact@v5
+        with:
+          name: release-pack-tarballs
+          path: packages/*/*.tgz
+          if-no-files-found: error
+          retention-days: 7
+      - name: Typecheck and compile e2e tests
+        run: bun run compile:e2e:packed
+        env:
+          KIBI_E2E_COMPILED_DIR: ${{ runner.temp }}/kibi-e2e-packed-compiled
+      - name: Upload compiled e2e tests
+        uses: actions/upload-artifact@v5
+        with:
+          name: release-pack-e2e-compiled
+          path: ${{ runner.temp }}/kibi-e2e-packed-compiled
+          if-no-files-found: error
+          retention-days: 7
+
+  smoke:
+    needs: pack
+    uses: ./.github/workflows/release-smoke.yml
+    with:
+      tarballs-artifact: release-pack-tarballs
+      e2e-artifact: release-pack-e2e-compiled

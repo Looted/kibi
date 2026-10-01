@@ -11,6 +11,7 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { PUBLISHABLE_DIRS } from "../package-catalog.ts";
 
 const WORKFLOW_PATH = join(
   import.meta.dir,
@@ -324,20 +325,9 @@ describe("publish.yml CI workflow contract", () => {
     const artifactOrder = [
       ...block.matchAll(/packages\/([^/]+)\/\*\.tgz/g),
     ].map(([, directory]) => directory);
-    expect(artifactOrder).toEqual([
-      "core",
-      "plugin-sdk",
-      "agent-core",
-      "plugin-builtin",
-      "plugin-jev",
-      "swipl",
-      "runtime",
-      "cli",
-      "mcp",
-      "opencode",
-      "codex",
-      "cursor",
-    ]);
+    // Every publishable package, in catalog (dependency) order: the platform
+    // packages precede kibi-swipl, which precedes its dependents.
+    expect(artifactOrder).toEqual([...PUBLISHABLE_DIRS]);
 
     const smokeBlock = extractJobBlock(workflowContent, "release-gate");
     const installOrder = [

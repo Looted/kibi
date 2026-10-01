@@ -171,6 +171,10 @@ describe("release invariants: develop-to-master model", () => {
         "plugin-sdk",
         "runtime",
         "swipl",
+        "swipl-darwin-arm64",
+        "swipl-darwin-x64",
+        "swipl-linux-arm64-gnu",
+        "swipl-linux-x64-gnu",
       ]);
     });
 
@@ -243,6 +247,10 @@ describe("release invariants: develop-to-master model", () => {
         "plugin-sdk",
         "runtime",
         "swipl",
+        "swipl-darwin-arm64",
+        "swipl-darwin-x64",
+        "swipl-linux-arm64-gnu",
+        "swipl-linux-x64-gnu",
       ]);
     });
 
@@ -312,6 +320,10 @@ describe("release invariants: develop-to-master model", () => {
         "plugin-sdk",
         "runtime",
         "swipl",
+        "swipl-darwin-arm64",
+        "swipl-darwin-x64",
+        "swipl-linux-arm64-gnu",
+        "swipl-linux-x64-gnu",
       ]);
     });
 
@@ -357,6 +369,10 @@ describe("release invariants: develop-to-master model", () => {
         "plugin-sdk",
         "runtime",
         "swipl",
+        "swipl-darwin-arm64",
+        "swipl-darwin-x64",
+        "swipl-linux-arm64-gnu",
+        "swipl-linux-x64-gnu",
       ]);
     });
   });
@@ -390,6 +406,10 @@ describe("release invariants: develop-to-master model", () => {
         "plugin-sdk",
         "runtime",
         "swipl",
+        "swipl-darwin-arm64",
+        "swipl-darwin-x64",
+        "swipl-linux-arm64-gnu",
+        "swipl-linux-x64-gnu",
       ]);
     });
 

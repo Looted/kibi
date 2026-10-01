@@ -82,15 +82,17 @@ export const PACKAGE_CATALOG = [
     packAll: true,
   },
   // Platform packages carry the SWI-Prolog binaries, which are populated from
-  // the swipl-build pipeline artifacts at release time and never committed.
-  // Until release wiring downloads and verifies that payload before packing,
-  // every slice excludes them so pack and publish cannot ship an empty runtime.
+  // the verified swipl-build pipeline archives at release time
+  // (scripts/populate-swipl-platform-packages.mjs) and never committed. They
+  // are publishable but excluded from every slice that packs without that
+  // step (ci-pack, packed-e2e, pack-all); their prepack guard refuses an
+  // unpopulated package, so the publishable slice cannot ship an empty runtime.
   // They precede kibi-swipl, which precedes its dependents, so a publish run in
   // catalog order never releases a package before what it depends on.
   {
     dir: "swipl-linux-x64-gnu",
     npmName: "kibi-swipl-linux-x64-gnu",
-    publishable: false,
+    publishable: true,
     packInCi: false,
     includedInDefaultInstall: false,
     optional: true,
@@ -99,7 +101,7 @@ export const PACKAGE_CATALOG = [
   {
     dir: "swipl-linux-arm64-gnu",
     npmName: "kibi-swipl-linux-arm64-gnu",
-    publishable: false,
+    publishable: true,
     packInCi: false,
     includedInDefaultInstall: false,
     optional: true,
@@ -108,7 +110,7 @@ export const PACKAGE_CATALOG = [
   {
     dir: "swipl-darwin-arm64",
     npmName: "kibi-swipl-darwin-arm64",
-    publishable: false,
+    publishable: true,
     packInCi: false,
     includedInDefaultInstall: false,
     optional: true,
@@ -117,7 +119,7 @@ export const PACKAGE_CATALOG = [
   {
     dir: "swipl-darwin-x64",
     npmName: "kibi-swipl-darwin-x64",
-    publishable: false,
+    publishable: true,
     packInCi: false,
     includedInDefaultInstall: false,
     optional: true,
@@ -234,7 +236,9 @@ export const DEFAULT_INSTALL_DIRS = dirsWhere(
 );
 
 // implements REQ-020
-export const TARBALL_CLEAN_DIRS = PACK_ALL_DIRS;
+export const TARBALL_CLEAN_DIRS = dirsWhere(
+  (entry) => entry.packAll || entry.publishable,
+);
 
 // implements REQ-020
 export function catalogEntriesForSlice(
@@ -251,7 +255,9 @@ export function catalogEntriesForSlice(
     case "default-install":
       return PACKAGE_CATALOG.filter((entry) => entry.includedInDefaultInstall);
     case "tarball-clean":
-      return PACKAGE_CATALOG.filter((entry) => entry.packAll);
+      return PACKAGE_CATALOG.filter(
+        (entry) => entry.packAll || entry.publishable,
+      );
     default: {
       const exhaustive: never = slice;
       throw new Error(`Unknown package catalog slice: ${String(exhaustive)}`);
