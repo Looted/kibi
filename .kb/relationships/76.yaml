@@ -230,3 +230,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-14db8e1baf3f
+  - type: validates
+    from: TEST-native-cli-suite-diagnostics
+    to: SCEN-native-cli-suite-diagnostics
+    created_at: 2026-09-30T14:57:03.053Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c7dca4a36a7d

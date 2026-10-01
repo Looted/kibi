@@ -49,6 +49,7 @@ const MCP_TOOL_ORDER = [
   "kb_validate_upsert",
   "kb_delete",
   "kb_check",
+  "kb_prepare_impact_review",
   "kb_model_requirement",
   "kb_suggest_predicates",
   "kb_plan_bootstrap",
@@ -130,6 +131,13 @@ const TOOL_ANNOTATIONS: Partial<Record<OperationName, ToolAnnotations>> = {
   },
   kb_check: {
     title: "Validate Kibi knowledge base",
+  },
+  kb_prepare_impact_review: {
+    title: "Prepare an impact review",
+    readOnlyHint: true,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
   },
   kb_model_requirement: {
     title: "Model a Kibi requirement",

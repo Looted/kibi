@@ -4558,6 +4558,598 @@ proof_receipts:
           entries:
             - outcome: passed
               duration_ms: 11595
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-42fa56890ad937aa8eff0a89
+    test_id: TEST-zcode-kibi-plugin-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 929a2bffbc0505e38bf19d595788f7d828560a5dcbc0657e4f5b5e9cbbc6d807
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-09-30T09:58:02.327Z'
+    finished_at: '2026-09-30T09:58:39.235Z'
+    artifact_digest: ded123bc5c01304d09ce67cbf7cc47e256c4435ed9290220d40cc4c2627c7ffe
+    contract_hash: 9cc4f9103ae1d25b24b84dc6c9d6fbfce1819c05fc201499f432c356053b053b
+    binding_hash: a3a05cd8baa6b6576dfb4e7e9192ad9ca30f94239a5ff40df8efb0e947ff381d
+    fingerprint: 83e53832044bbb9c339cc41e250c538334aac11e2b130aa4f1c1073f4441730e
+    fingerprint_components:
+      contract: 9cc4f9103ae1d25b24b84dc6c9d6fbfce1819c05fc201499f432c356053b053b
+      integration: f76bb08ae079ddd3c7f0f61e3f0c6483de0971067b9dcca735c1a465a4383561
+      command: 75249c45ddaab551990b3c97122926f5139c8b9b6de1c6326ddcf90acab518fc
+      bindings: 49caa8a2a841c021e899e40b7fef5962d203d6d0cd1153f30bdc6fbc93379881
+      producer: 0a46f16b4bb4a89955a224cedc6f8aa4d2e9a365e096a61d8c7f6b43df0f0dc2
+    integration_id: zcode-native
+    producer:
+      name: kibi-zcode-proof-producer
+      version: 1.0.0
+    command_argv:
+      - node
+      - scripts/run-zcode-proof.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-zcode-case-mutated-workspace-paths
+        target: default
+        outcome: passed
+        binding: native_case
+        native_id: packages/zcode/tests/hook-runner.test.ts::ZCode hook runner workspace opt-in::each supported mutating payload records its affected paths
+        attempts:
+          status: complete
+          entries:
+            - outcome: passed
+              duration_ms: 4
+      - symbol_id: SYM-zcode-case-canonicalize-check-source-files
+        target: default
+        outcome: passed
+        binding: native_case
+        native_id: packages/zcode/tests/hook-runner.test.ts::ZCode hook runner workspace opt-in::absolute edit paths canonicalize against relative check paths
+        attempts:
+          status: complete
+          entries:
+            - outcome: passed
+              duration_ms: 4
+      - symbol_id: SYM-zcode-case-unconfigured-workspace-silent
+        target: default
+        outcome: passed
+        binding: native_case
+        native_id: packages/zcode/tests/hook-runner.test.ts::ZCode hook runner workspace opt-in::every hook event stays silent in an unconfigured workspace
+        attempts:
+          status: complete
+          entries:
+            - outcome: passed
+              duration_ms: 2
+      - symbol_id: SYM-zcode-case-session-state-isolation
+        target: default
+        outcome: passed
+        binding: native_case
+        native_id: packages/zcode/tests/hook-runner.test.ts::ZCode hook runner session isolation::separate hook processes recover the same session state
+        attempts:
+          status: complete
+          entries:
+            - outcome: passed
+              duration_ms: 169
+      - symbol_id: SYM-zcode-case-canonicalize-workspace-path
+        target: default
+        outcome: passed
+        binding: native_case
+        native_id: packages/zcode/tests/hook-runner.test.ts::ZCode hook runner workspace opt-in::PreToolUse canonicalizes absolute and ./-prefixed .kb targets
+        attempts:
+          status: complete
+          entries:
+            - outcome: passed
+              duration_ms: 2
+      - symbol_id: SYM-zcode-case-packed-consumer-install-launch
+        target: default
+        outcome: passed
+        binding: native_case
+        native_id: packages/zcode/tests/packed-consumer-smoke.test.ts::packed kibi-mcp consumer resolution::installs the local MCP tarball and launches it through the shipped Node launcher
+        attempts:
+          status: complete
+          entries:
+            - outcome: passed
+              duration_ms: 30750
+      - symbol_id: SYM-zcode-case-optional-package-contract
+        target: default
+        outcome: passed
+        binding: native_case
+        native_id: packages/zcode/tests/package-contract.test.ts::kibi-zcode package contract::optional package contract has no install lifecycle or core runtime mutation
+        attempts:
+          status: complete
+          entries:
+            - outcome: passed
+              duration_ms: 1
+      - symbol_id: SYM-zcode-case-readme-optional-adapter
+        target: default
+        outcome: passed
+        binding: native_case
+        native_id: packages/zcode/tests/package-contract.test.ts::kibi-zcode package contract::README declares the ZCode adapter optional
+        attempts:
+          status: complete
+          entries:
+            - outcome: passed
+              duration_ms: 5
+      - symbol_id: SYM-zcode-case-manual-mcp-fallback
+        target: default
+        outcome: passed
+        binding: native_case
+        native_id: packages/zcode/tests/package-contract.test.ts::kibi-zcode package contract::manual MCP fallback is only for unused marketplace installs and invokes kibi-mcp
+        attempts:
+          status: complete
+          entries:
+            - outcome: passed
+              duration_ms: 0
+      - symbol_id: SYM-zcode-case-advisory-hooks
+        target: default
+        outcome: passed
+        binding: native_case
+        native_id: packages/zcode/tests/hook-runner.test.ts::ZCode hook runner workspace opt-in::hook outputs are advisory and never hard deny
+        attempts:
+          status: complete
+          entries:
+            - outcome: passed
+              duration_ms: 4
+      - symbol_id: SYM-zcode-case-hooks-no-kb-mutation
+        target: default
+        outcome: passed
+        binding: native_case
+        native_id: packages/zcode/tests/hook-runner.test.ts::ZCode hook runner workspace opt-in::hook events never mutate .kb contents
+        attempts:
+          status: complete
+          entries:
+            - outcome: passed
+              duration_ms: 7
+      - symbol_id: SYM-zcode-case-shipped-plugin-payload
+        target: default
+        outcome: passed
+        binding: native_case
+        native_id: packages/zcode/tests/install-artifact.test.ts::kibi-zcode distribution artifacts::an npm pack artifact ships the plugin manifest, hooks, launcher, skills, and command
+        attempts:
+          status: complete
+          entries:
+            - outcome: passed
+              duration_ms: 3564
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-2f47e84b9e104a46d3a93cb2
+    test_id: TEST-zcode-kibi-plugin-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 8fb074352a17be05561541067c14da2d9e6e89e777386919772553e67b77500b
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-10-01T09:43:17.923Z'
+    finished_at: '2026-10-01T09:43:53.227Z'
+    artifact_digest: 67d1c753592c8a2ad36a36f45eb18f6db56812fd66a9d8f0fbbb9b55c36f98d6
+    contract_hash: 9cc4f9103ae1d25b24b84dc6c9d6fbfce1819c05fc201499f432c356053b053b
+    binding_hash: 1dcc0657a2176b327aba76149fae22d951bd115bfe0e502787f6b1ef59ee32d0
+    fingerprint: 83e53832044bbb9c339cc41e250c538334aac11e2b130aa4f1c1073f4441730e
+    fingerprint_components:
+      contract: 9cc4f9103ae1d25b24b84dc6c9d6fbfce1819c05fc201499f432c356053b053b
+      integration: f76bb08ae079ddd3c7f0f61e3f0c6483de0971067b9dcca735c1a465a4383561
+      command: 75249c45ddaab551990b3c97122926f5139c8b9b6de1c6326ddcf90acab518fc
+      bindings: 49caa8a2a841c021e899e40b7fef5962d203d6d0cd1153f30bdc6fbc93379881
+      producer: 0a46f16b4bb4a89955a224cedc6f8aa4d2e9a365e096a61d8c7f6b43df0f0dc2
+    integration_id: zcode-native
+    producer:
+      name: kibi-zcode-proof-producer
+      version: 1.0.0
+    command_argv:
+      - node
+      - scripts/run-zcode-proof.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-zcode-case-mutated-workspace-paths
+        target: default
+        outcome: passed
+        binding: native_case
+        native_id: packages/zcode/tests/hook-runner.test.ts::ZCode hook runner workspace opt-in::each supported mutating payload records its affected paths
+        attempts:
+          status: complete
+          entries:
+            - outcome: passed
+              duration_ms: 3
+      - symbol_id: SYM-zcode-case-canonicalize-check-source-files
+        target: default
+        outcome: passed
+        binding: native_case
+        native_id: packages/zcode/tests/hook-runner.test.ts::ZCode hook runner workspace opt-in::absolute edit paths canonicalize against relative check paths
+        attempts:
+          status: complete
+          entries:
+            - outcome: passed
+              duration_ms: 2
+      - symbol_id: SYM-zcode-case-unconfigured-workspace-silent
+        target: default
+        outcome: passed
+        binding: native_case
+        native_id: packages/zcode/tests/hook-runner.test.ts::ZCode hook runner workspace opt-in::every hook event stays silent in an unconfigured workspace
+        attempts:
+          status: complete
+          entries:
+            - outcome: passed
+              duration_ms: 1
+      - symbol_id: SYM-zcode-case-session-state-isolation
+        target: default
+        outcome: passed
+        binding: native_case
+        native_id: packages/zcode/tests/hook-runner.test.ts::ZCode hook runner session isolation::separate hook processes recover the same session state
+        attempts:
+          status: complete
+          entries:
+            - outcome: passed
+              duration_ms: 112
+      - symbol_id: SYM-zcode-case-canonicalize-workspace-path
+        target: default
+        outcome: passed
+        binding: native_case
+        native_id: packages/zcode/tests/hook-runner.test.ts::ZCode hook runner workspace opt-in::PreToolUse canonicalizes absolute and ./-prefixed .kb targets
+        attempts:
+          status: complete
+          entries:
+            - outcome: passed
+              duration_ms: 1
+      - symbol_id: SYM-zcode-case-packed-consumer-install-launch
+        target: default
+        outcome: passed
+        binding: native_case
+        native_id: packages/zcode/tests/packed-consumer-smoke.test.ts::packed kibi-mcp consumer resolution::installs the local MCP tarball and launches it through the shipped Node launcher
+        attempts:
+          status: complete
+          entries:
+            - outcome: passed
+              duration_ms: 30565
+      - symbol_id: SYM-zcode-case-optional-package-contract
+        target: default
+        outcome: passed
+        binding: native_case
+        native_id: packages/zcode/tests/package-contract.test.ts::kibi-zcode package contract::optional package contract has no install lifecycle or core runtime mutation
+        attempts:
+          status: complete
+          entries:
+            - outcome: passed
+              duration_ms: 0
+      - symbol_id: SYM-zcode-case-readme-optional-adapter
+        target: default
+        outcome: passed
+        binding: native_case
+        native_id: packages/zcode/tests/package-contract.test.ts::kibi-zcode package contract::README declares the ZCode adapter optional
+        attempts:
+          status: complete
+          entries:
+            - outcome: passed
+              duration_ms: 0
+      - symbol_id: SYM-zcode-case-manual-mcp-fallback
+        target: default
+        outcome: passed
+        binding: native_case
+        native_id: packages/zcode/tests/package-contract.test.ts::kibi-zcode package contract::manual MCP fallback is only for unused marketplace installs and invokes kibi-mcp
+        attempts:
+          status: complete
+          entries:
+            - outcome: passed
+              duration_ms: 0
+      - symbol_id: SYM-zcode-case-advisory-hooks
+        target: default
+        outcome: passed
+        binding: native_case
+        native_id: packages/zcode/tests/hook-runner.test.ts::ZCode hook runner workspace opt-in::hook outputs are advisory and never hard deny
+        attempts:
+          status: complete
+          entries:
+            - outcome: passed
+              duration_ms: 1
+      - symbol_id: SYM-zcode-case-hooks-no-kb-mutation
+        target: default
+        outcome: passed
+        binding: native_case
+        native_id: packages/zcode/tests/hook-runner.test.ts::ZCode hook runner workspace opt-in::hook events never mutate .kb contents
+        attempts:
+          status: complete
+          entries:
+            - outcome: passed
+              duration_ms: 5
+      - symbol_id: SYM-zcode-case-shipped-plugin-payload
+        target: default
+        outcome: passed
+        binding: native_case
+        native_id: packages/zcode/tests/install-artifact.test.ts::kibi-zcode distribution artifacts::an npm pack artifact ships the plugin manifest, hooks, launcher, skills, and command
+        attempts:
+          status: complete
+          entries:
+            - outcome: passed
+              duration_ms: 2661
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-a2f2aba999ddc8a17e3b576d
+    test_id: TEST-zcode-kibi-plugin-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: b0a0bf2dc3bd1d4cf56aa9042728bfe8b43f10e7e26ae224cf684951c5473113
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-10-01T10:25:49.045Z'
+    finished_at: '2026-10-01T10:27:24.363Z'
+    artifact_digest: e1b9a5191277d43bd5d77da7cb0c740c29c7df35f012a2019a695283d51f9c5e
+    contract_hash: 9cc4f9103ae1d25b24b84dc6c9d6fbfce1819c05fc201499f432c356053b053b
+    binding_hash: 1dcc0657a2176b327aba76149fae22d951bd115bfe0e502787f6b1ef59ee32d0
+    fingerprint: 83e53832044bbb9c339cc41e250c538334aac11e2b130aa4f1c1073f4441730e
+    fingerprint_components:
+      contract: 9cc4f9103ae1d25b24b84dc6c9d6fbfce1819c05fc201499f432c356053b053b
+      integration: f76bb08ae079ddd3c7f0f61e3f0c6483de0971067b9dcca735c1a465a4383561
+      command: 75249c45ddaab551990b3c97122926f5139c8b9b6de1c6326ddcf90acab518fc
+      bindings: 49caa8a2a841c021e899e40b7fef5962d203d6d0cd1153f30bdc6fbc93379881
+      producer: 0a46f16b4bb4a89955a224cedc6f8aa4d2e9a365e096a61d8c7f6b43df0f0dc2
+    integration_id: zcode-native
+    producer:
+      name: kibi-zcode-proof-producer
+      version: 1.0.0
+    command_argv:
+      - node
+      - scripts/run-zcode-proof.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-zcode-case-mutated-workspace-paths
+        target: default
+        outcome: passed
+        binding: native_case
+        native_id: packages/zcode/tests/hook-runner.test.ts::ZCode hook runner workspace opt-in::each supported mutating payload records its affected paths
+        attempts:
+          status: complete
+          entries:
+            - outcome: passed
+              duration_ms: 5
+      - symbol_id: SYM-zcode-case-canonicalize-check-source-files
+        target: default
+        outcome: passed
+        binding: native_case
+        native_id: packages/zcode/tests/hook-runner.test.ts::ZCode hook runner workspace opt-in::absolute edit paths canonicalize against relative check paths
+        attempts:
+          status: complete
+          entries:
+            - outcome: passed
+              duration_ms: 5
+      - symbol_id: SYM-zcode-case-unconfigured-workspace-silent
+        target: default
+        outcome: passed
+        binding: native_case
+        native_id: packages/zcode/tests/hook-runner.test.ts::ZCode hook runner workspace opt-in::every hook event stays silent in an unconfigured workspace
+        attempts:
+          status: complete
+          entries:
+            - outcome: passed
+              duration_ms: 2
+      - symbol_id: SYM-zcode-case-session-state-isolation
+        target: default
+        outcome: passed
+        binding: native_case
+        native_id: packages/zcode/tests/hook-runner.test.ts::ZCode hook runner session isolation::separate hook processes recover the same session state
+        attempts:
+          status: complete
+          entries:
+            - outcome: passed
+              duration_ms: 223
+      - symbol_id: SYM-zcode-case-canonicalize-workspace-path
+        target: default
+        outcome: passed
+        binding: native_case
+        native_id: packages/zcode/tests/hook-runner.test.ts::ZCode hook runner workspace opt-in::PreToolUse canonicalizes absolute and ./-prefixed .kb targets
+        attempts:
+          status: complete
+          entries:
+            - outcome: passed
+              duration_ms: 2
+      - symbol_id: SYM-zcode-case-packed-consumer-install-launch
+        target: default
+        outcome: passed
+        binding: native_case
+        native_id: packages/zcode/tests/packed-consumer-smoke.test.ts::packed kibi-mcp consumer resolution::installs the local MCP tarball and launches it through the shipped Node launcher
+        attempts:
+          status: complete
+          entries:
+            - outcome: passed
+              duration_ms: 80631
+      - symbol_id: SYM-zcode-case-optional-package-contract
+        target: default
+        outcome: passed
+        binding: native_case
+        native_id: packages/zcode/tests/package-contract.test.ts::kibi-zcode package contract::optional package contract has no install lifecycle or core runtime mutation
+        attempts:
+          status: complete
+          entries:
+            - outcome: passed
+              duration_ms: 0
+      - symbol_id: SYM-zcode-case-readme-optional-adapter
+        target: default
+        outcome: passed
+        binding: native_case
+        native_id: packages/zcode/tests/package-contract.test.ts::kibi-zcode package contract::README declares the ZCode adapter optional
+        attempts:
+          status: complete
+          entries:
+            - outcome: passed
+              duration_ms: 0
+      - symbol_id: SYM-zcode-case-manual-mcp-fallback
+        target: default
+        outcome: passed
+        binding: native_case
+        native_id: packages/zcode/tests/package-contract.test.ts::kibi-zcode package contract::manual MCP fallback is only for unused marketplace installs and invokes kibi-mcp
+        attempts:
+          status: complete
+          entries:
+            - outcome: passed
+              duration_ms: 0
+      - symbol_id: SYM-zcode-case-advisory-hooks
+        target: default
+        outcome: passed
+        binding: native_case
+        native_id: packages/zcode/tests/hook-runner.test.ts::ZCode hook runner workspace opt-in::hook outputs are advisory and never hard deny
+        attempts:
+          status: complete
+          entries:
+            - outcome: passed
+              duration_ms: 3
+      - symbol_id: SYM-zcode-case-hooks-no-kb-mutation
+        target: default
+        outcome: passed
+        binding: native_case
+        native_id: packages/zcode/tests/hook-runner.test.ts::ZCode hook runner workspace opt-in::hook events never mutate .kb contents
+        attempts:
+          status: complete
+          entries:
+            - outcome: passed
+              duration_ms: 10
+      - symbol_id: SYM-zcode-case-shipped-plugin-payload
+        target: default
+        outcome: passed
+        binding: native_case
+        native_id: packages/zcode/tests/install-artifact.test.ts::kibi-zcode distribution artifacts::an npm pack artifact ships the plugin manifest, hooks, launcher, skills, and command
+        attempts:
+          status: complete
+          entries:
+            - outcome: passed
+              duration_ms: 7624
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-699fcbc533282708ae6241f9
+    test_id: TEST-zcode-kibi-plugin-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: f8c80dd7ef127c802baaac4d13480e36f0354458dbf12278f4c05ecd963af3a8
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-10-01T12:07:30.637Z'
+    finished_at: '2026-10-01T12:08:44.058Z'
+    artifact_digest: 282c3c6b70e0a7701b92be630cbb5df41186f884080dfa0a1dbf36c5c49b489d
+    contract_hash: 9cc4f9103ae1d25b24b84dc6c9d6fbfce1819c05fc201499f432c356053b053b
+    binding_hash: 1dcc0657a2176b327aba76149fae22d951bd115bfe0e502787f6b1ef59ee32d0
+    fingerprint: 83e53832044bbb9c339cc41e250c538334aac11e2b130aa4f1c1073f4441730e
+    fingerprint_components:
+      contract: 9cc4f9103ae1d25b24b84dc6c9d6fbfce1819c05fc201499f432c356053b053b
+      integration: f76bb08ae079ddd3c7f0f61e3f0c6483de0971067b9dcca735c1a465a4383561
+      command: 75249c45ddaab551990b3c97122926f5139c8b9b6de1c6326ddcf90acab518fc
+      bindings: 49caa8a2a841c021e899e40b7fef5962d203d6d0cd1153f30bdc6fbc93379881
+      producer: 0a46f16b4bb4a89955a224cedc6f8aa4d2e9a365e096a61d8c7f6b43df0f0dc2
+    integration_id: zcode-native
+    producer:
+      name: kibi-zcode-proof-producer
+      version: 1.0.0
+    command_argv:
+      - node
+      - scripts/run-zcode-proof.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-zcode-case-mutated-workspace-paths
+        target: default
+        outcome: passed
+        binding: native_case
+        native_id: packages/zcode/tests/hook-runner.test.ts::ZCode hook runner workspace opt-in::each supported mutating payload records its affected paths
+        attempts:
+          status: complete
+          entries:
+            - outcome: passed
+              duration_ms: 4
+      - symbol_id: SYM-zcode-case-canonicalize-check-source-files
+        target: default
+        outcome: passed
+        binding: native_case
+        native_id: packages/zcode/tests/hook-runner.test.ts::ZCode hook runner workspace opt-in::absolute edit paths canonicalize against relative check paths
+        attempts:
+          status: complete
+          entries:
+            - outcome: passed
+              duration_ms: 3
+      - symbol_id: SYM-zcode-case-unconfigured-workspace-silent
+        target: default
+        outcome: passed
+        binding: native_case
+        native_id: packages/zcode/tests/hook-runner.test.ts::ZCode hook runner workspace opt-in::every hook event stays silent in an unconfigured workspace
+        attempts:
+          status: complete
+          entries:
+            - outcome: passed
+              duration_ms: 1
+      - symbol_id: SYM-zcode-case-session-state-isolation
+        target: default
+        outcome: passed
+        binding: native_case
+        native_id: packages/zcode/tests/hook-runner.test.ts::ZCode hook runner session isolation::separate hook processes recover the same session state
+        attempts:
+          status: complete
+          entries:
+            - outcome: passed
+              duration_ms: 253
+      - symbol_id: SYM-zcode-case-canonicalize-workspace-path
+        target: default
+        outcome: passed
+        binding: native_case
+        native_id: packages/zcode/tests/hook-runner.test.ts::ZCode hook runner workspace opt-in::PreToolUse canonicalizes absolute and ./-prefixed .kb targets
+        attempts:
+          status: complete
+          entries:
+            - outcome: passed
+              duration_ms: 2
+      - symbol_id: SYM-zcode-case-packed-consumer-install-launch
+        target: default
+        outcome: passed
+        binding: native_case
+        native_id: packages/zcode/tests/packed-consumer-smoke.test.ts::packed kibi-mcp consumer resolution::installs the local MCP tarball and launches it through the shipped Node launcher
+        attempts:
+          status: complete
+          entries:
+            - outcome: passed
+              duration_ms: 61047
+      - symbol_id: SYM-zcode-case-optional-package-contract
+        target: default
+        outcome: passed
+        binding: native_case
+        native_id: packages/zcode/tests/package-contract.test.ts::kibi-zcode package contract::optional package contract has no install lifecycle or core runtime mutation
+        attempts:
+          status: complete
+          entries:
+            - outcome: passed
+              duration_ms: 0
+      - symbol_id: SYM-zcode-case-readme-optional-adapter
+        target: default
+        outcome: passed
+        binding: native_case
+        native_id: packages/zcode/tests/package-contract.test.ts::kibi-zcode package contract::README declares the ZCode adapter optional
+        attempts:
+          status: complete
+          entries:
+            - outcome: passed
+              duration_ms: 0
+      - symbol_id: SYM-zcode-case-manual-mcp-fallback
+        target: default
+        outcome: passed
+        binding: native_case
+        native_id: packages/zcode/tests/package-contract.test.ts::kibi-zcode package contract::manual MCP fallback is only for unused marketplace installs and invokes kibi-mcp
+        attempts:
+          status: complete
+          entries:
+            - outcome: passed
+              duration_ms: 0
+      - symbol_id: SYM-zcode-case-advisory-hooks
+        target: default
+        outcome: passed
+        binding: native_case
+        native_id: packages/zcode/tests/hook-runner.test.ts::ZCode hook runner workspace opt-in::hook outputs are advisory and never hard deny
+        attempts:
+          status: complete
+          entries:
+            - outcome: passed
+              duration_ms: 4
+      - symbol_id: SYM-zcode-case-hooks-no-kb-mutation
+        target: default
+        outcome: passed
+        binding: native_case
+        native_id: packages/zcode/tests/hook-runner.test.ts::ZCode hook runner workspace opt-in::hook events never mutate .kb contents
+        attempts:
+          status: complete
+          entries:
+            - outcome: passed
+              duration_ms: 7
+      - symbol_id: SYM-zcode-case-shipped-plugin-payload
+        target: default
+        outcome: passed
+        binding: native_case
+        native_id: packages/zcode/tests/install-artifact.test.ts::kibi-zcode distribution artifacts::an npm pack artifact ships the plugin manifest, hooks, launcher, skills, and command
+        attempts:
+          status: complete
+          entries:
+            - outcome: passed
+              duration_ms: 8064
 proof_bindings:
   - symbol_id: SYM-zcode-case-mutated-workspace-paths
     target: default

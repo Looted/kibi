@@ -251,3 +251,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d9db6ae993d6
+  - type: implements
+    from: SYM-prolog-build-build-manifest
+    to: REQ-prolog-build-pipeline-validation
+    created_at: 2026-09-30T17:53:02.755Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e27852415785
+  - type: covered_by
+    from: SYM-prolog-build-build-manifest
+    to: TEST-prolog-build-pipeline-validation
+    created_at: 2026-09-30T17:53:02.823Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-53acaf8421a8
+  - type: implements
+    from: SYM-prolog-swipl-reset-cache
+    to: REQ-prolog-bundled-runtime
+    created_at: 2026-09-30T22:54:25.452Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6cdf231e7832
+  - type: covered_by
+    from: SYM-prolog-swipl-reset-cache
+    to: TEST-prolog-bundled-runtime
+    created_at: 2026-09-30T22:54:25.480Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-80329fc55c64

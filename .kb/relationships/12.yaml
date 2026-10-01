@@ -195,3 +195,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8b711172a870
+  - type: verified_by
+    from: SCEN-tree-sitter-language-authoring-scaffold
+    to: TEST-tree-sitter-language-authoring-scaffold-draft-output
+    created_at: 2026-09-28T09:25:41.847Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-25aa0699ecfd
+  - type: executable_for
+    from: SYM-test-prolog-swipl-launch-env
+    to: TEST-prolog-bundled-runtime
+    created_at: 2026-09-30T22:49:51.958Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1f65a0cea90b

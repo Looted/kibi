@@ -230,3 +230,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e46500e6142f
+  - type: implements
+    from: SYM-prolog-release-main
+    to: REQ-prolog-bundled-release
+    created_at: 2026-10-01T00:22:22.813Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-923011c367cc
+  - type: covered_by
+    from: SYM-prolog-release-main
+    to: TEST-prolog-bundled-release
+    created_at: 2026-10-01T00:22:22.847Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dfdc57a6098a

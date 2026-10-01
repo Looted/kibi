@@ -146,3 +146,115 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7ac14855c0bf
+  - type: covered_by
+    from: SYM-impact-public-preparation-spec
+    to: TEST-impact-public-preparation-parity
+    created_at: 2026-09-27T17:34:08.228Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-98bfd50f5eb5
+  - type: implements
+    from: SYM-impact-public-preparation-spec
+    to: REQ-impact-review-public-preparation
+    created_at: 2026-09-27T17:34:08.347Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-52a50060a615
+  - type: covered_by
+    from: SYM-impact-public-preparation-spec
+    to: TEST-impact-policy-stage-e-installed-e2e
+    created_at: 2026-09-29T13:02:30.247Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7e6ceefd207f
+  - type: implements
+    from: SYM-source-analysis-v2-classifiedextensions
+    to: REQ-source-analysis-v2
+    created_at: 2026-09-30T15:21:57.569Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-86cb6d727f30
+  - type: covered_by
+    from: SYM-source-analysis-v2-classifiedextensions
+    to: TEST-source-analysis-v2-contract
+    created_at: 2026-09-30T15:21:57.580Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-172c557c1d31
+  - type: executable_for
+    from: SYM-test-cli-parity-path-normalization
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-09-30T14:46:10.519Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9f323b64751d
+  - type: constrains
+    from: REQ-native-cli-suite-diagnostics
+    to: FACT-native-cli-diagnostics-subject
+    created_at: 2026-09-30T14:57:08.601Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1482815f1d41
+  - type: requires_property
+    from: REQ-native-cli-suite-diagnostics
+    to: FACT-native-cli-diagnostics-result-output
+    created_at: 2026-09-30T14:57:08.641Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a5cd0a780efe
+  - type: requires_property
+    from: REQ-native-cli-suite-diagnostics
+    to: FACT-native-cli-diagnostics-bounded-descendants
+    created_at: 2026-09-30T14:57:08.658Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-83ded1d2c3d1
+  - type: requires_property
+    from: REQ-native-cli-suite-diagnostics
+    to: FACT-native-cli-diagnostics-private-metadata
+    created_at: 2026-09-30T14:57:08.681Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-85442180f232
+  - type: requires_property
+    from: REQ-native-cli-suite-diagnostics
+    to: FACT-native-cli-diagnostics-output-failure
+    created_at: 2026-09-30T14:57:08.693Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d233f62c2043
+  - type: specified_by
+    from: REQ-native-cli-suite-diagnostics
+    to: SCEN-native-cli-suite-diagnostics
+    created_at: 2026-09-30T14:57:08.700Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-58dda92158d2
+  - type: implements
+    from: SYM-prolog-swipl-resolution-error-platform
+    to: REQ-prolog-bundled-runtime
+    created_at: 2026-09-30T22:55:58.062Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6990f987b3b0
+  - type: covered_by
+    from: SYM-prolog-swipl-resolution-error-platform
+    to: TEST-prolog-bundled-runtime
+    created_at: 2026-09-30T22:55:58.087Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-18ebc43c8394
+  - type: implements
+    from: SYM-prolog-release-verify-swipl-payload-types
+    to: REQ-prolog-bundled-release
+    created_at: 2026-10-01T00:27:11.005Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-66ab9ed3b867
+  - type: covered_by
+    from: SYM-prolog-release-verify-swipl-payload-types
+    to: TEST-prolog-bundled-release
+    created_at: 2026-10-01T00:27:11.021Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a322cbf60f89

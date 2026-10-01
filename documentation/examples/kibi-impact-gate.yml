@@ -1,0 +1,60 @@
+# Example only. This file is not an active required check or repository policy.
+name: Kibi protected impact gate
+
+on:
+  pull_request_target:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kibi-impact-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  impact:
+    # This label must select a fresh, isolated runner with pinned Node 24 and
+    # Bun 1.4.2, no write credentials, and no workspace reused across jobs.
+    runs-on: [self-hosted, ephemeral, kibi-trusted-node24-bun142]
+    timeout-minutes: 20
+    env:
+      KIBI_IMPACT_TRUSTED_TARGET_REF: refs/heads/main
+      KIBI_PR_NUMBER: ${{ github.event.pull_request.number }}
+    steps:
+      - name: Check out protected target only
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+          submodules: false
+
+      - name: Fetch PR head as Git objects without checking it out
+        env:
+          KIBI_EVENT_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          case "$KIBI_PR_NUMBER" in
+            ''|*[!0-9]*) echo "Invalid pull request number" >&2; exit 1 ;;
+          esac
+          case "$KIBI_EVENT_HEAD_SHA" in
+            *[!0-9a-f]*|'') echo "Invalid PR head object ID" >&2; exit 1 ;;
+          esac
+          git fetch --no-tags --no-recurse-submodules origin \
+            "refs/pull/${KIBI_PR_NUMBER}/head:refs/remotes/origin/kibi-impact-pr-head"
+          test "$(git rev-parse refs/remotes/origin/kibi-impact-pr-head^{commit})" = "$KIBI_EVENT_HEAD_SHA"
+
+      - name: Install trusted base dependencies and build CLI
+        shell: bash
+        run: |
+          set -euo pipefail
+          bun --version | grep -Fx '1.4.2'
+          node --version | grep -E '^v24\.'
+          bun install --frozen-lockfile
+          bun run build:cli-stack
+
+      - name: Evaluate the verified aggregate diff
+        run: bun packages/cli/bin/kibi check-diff

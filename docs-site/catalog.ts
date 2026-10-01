@@ -62,7 +62,7 @@ export const DOCS: readonly DocPage[] = [
     group: "Start",
     title: "Installation",
     description:
-      "Install the Kibi packages with your package manager and set up the SWI-Prolog prerequisite.",
+      "Install the Kibi packages with your package manager; SWI-Prolog is bundled on Linux and macOS, with manual setup for other platforms.",
     source: "docs/install.md",
   },
   {

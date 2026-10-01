@@ -314,3 +314,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-41a5b8bd2f74
+  - type: covered_by
+    from: SYM-impact-stage-e-prepareimpactreview
+    to: TEST-impact-policy-stage-e-installed-e2e
+    created_at: 2026-09-27T17:46:49.262Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-543995be2a63
+  - type: implements
+    from: SYM-impact-stage-e-prepareimpactreview
+    to: REQ-impact-policy-stage-e-content-bound-review
+    created_at: 2026-09-27T17:46:49.346Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ac180405ef29
+  - type: implements
+    from: SYM-impact-stage-e-prepareimpactreview
+    to: REQ-impact-review-public-preparation
+    created_at: 2026-09-27T17:46:49.407Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fd5346977073
+  - type: executable_for
+    from: SYM-test-helper-install-fake-swipl
+    to: TEST-prolog-doctor-runtime-report
+    created_at: 2026-09-30T22:57:05.400Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7c6216af96bb

@@ -43,9 +43,22 @@ jobs:
           echo "Release action: $ACTION"
           echo "$DECISION"
 
+  # The platform packages' SWI-Prolog binaries are built by this very run, from
+  # this commit's pinned sources (scripts/swipl-version.json), and consumed by
+  # build-and-check through same-run artifacts. Nothing is fetched from an
+  # earlier run, so no retention window, run selection, or foreign artifact can
+  # decide what ships; the populate step also refuses any archive whose
+  # embedded commit and run id differ from this run's.
+  swipl-build:
+    needs: check-release
+    if: ${{ needs.check-release.outputs.release_action != 'NOOP' && needs.check-release.outputs.release_action != 'ALREADY_PUBLISHED_NOOP' }}
+    permissions:
+      contents: read
+    uses: ./.github/workflows/swipl-build.yml
+
   build-and-check:
     runs-on: ubuntu-latest
-    needs: check-release
+    needs: [check-release, swipl-build]
     if: ${{ needs.check-release.outputs.release_action != 'NOOP' && needs.check-release.outputs.release_action != 'ALREADY_PUBLISHED_NOOP' }}
     outputs:
       toPublish: ${{ steps.check-packages.outputs.toPublish }}
@@ -92,24 +105,56 @@ jobs:
 
       - name: Build packages
         run: bun run build
+      - name: Verify approved source analyzer closure
+        run: node scripts/qualify-source-analyzers.mjs
       - name: Build and package VS Code extension
         run: bun run --cwd packages/vscode package
+      - name: Download SWI-Prolog pipeline archives
+        uses: actions/download-artifact@v6
+        with:
+          pattern: swipl-*
+          path: ${{ runner.temp }}/swipl-artifacts
+      - name: Verify archives and populate the platform packages
+        run: node scripts/populate-swipl-platform-packages.mjs --artifacts "$RUNNER_TEMP/swipl-artifacts"
       - name: Verify publish metadata for npm provenance
-        run: bun run scripts/verify-publish-metadata.ts
+        run: bun run scripts/verify-publish-metadata.ts --require-swipl-payload
       - name: Clean stale tarballs
         run: bun run clean:tarballs
       - name: Pack packages
         run: bun run scripts/pack-packages.ts --slice publishable
+      - name: Record tarball digests
+        run: |
+          cd packages
+          sha256sum */*.tgz > SHA256SUMS
+          cat SHA256SUMS
+      - name: Typecheck and compile e2e tests
+        run: bun run compile:e2e:packed
+        env:
+          KIBI_E2E_COMPILED_DIR: ${{ runner.temp }}/kibi-e2e-packed-compiled
+      - name: Upload compiled e2e tests
+        uses: actions/upload-artifact@v6
+        with:
+          name: release-e2e-compiled
+          path: ${{ runner.temp }}/kibi-e2e-packed-compiled
+          if-no-files-found: error
+          retention-days: 1
       - name: Upload package tarballs
         uses: actions/upload-artifact@v6
         with:
           name: package-tarballs
           path: |
+            packages/SHA256SUMS
             packages/core/*.tgz
             packages/plugin-sdk/*.tgz
             packages/agent-core/*.tgz
             packages/plugin-builtin/*.tgz
             packages/plugin-jev/*.tgz
+            packages/swipl-linux-x64-gnu/*.tgz
+            packages/swipl-linux-arm64-gnu/*.tgz
+            packages/swipl-darwin-arm64/*.tgz
+            packages/swipl-darwin-x64/*.tgz
+            packages/swipl/*.tgz
+            packages/plugin-treesitter/*.tgz
             packages/runtime/*.tgz
             packages/cli/*.tgz
             packages/mcp/*.tgz
@@ -191,6 +236,7 @@ jobs:
           npm install ${{ github.workspace }}/packages/plugin-sdk/kibi-plugin-sdk-*.tgz
           npm install ${{ github.workspace }}/packages/agent-core/kibi-agent-core-*.tgz
           npm install ${{ github.workspace }}/packages/plugin-builtin/kibi-plugin-builtin-*.tgz
+          npm install ${{ github.workspace }}/packages/swipl/kibi-swipl-*.tgz
           npm install ${{ github.workspace }}/packages/runtime/kibi-runtime-*.tgz
           npm install ${{ github.workspace }}/packages/cli/kibi-cli-*.tgz
           npm install ${{ github.workspace }}/packages/mcp/kibi-mcp-*.tgz
@@ -214,9 +260,21 @@ jobs:
           timeout 10s ./node_modules/.bin/kibi-mcp < /dev/null || true
         timeout-minutes: 2
 
+  # The packed tarballs, installed with npm on runners with no SWI-Prolog,
+  # must run kibi init/sync/check, doctor, and an MCP round trip on the bundle.
+  bundled-runtime-smoke:
+    needs: [build-and-check, check-release]
+    if: ${{ always() && needs.build-and-check.result == 'success' && needs.build-and-check.outputs.toPublish != '' }}
+    permissions:
+      contents: read
+    uses: ./.github/workflows/release-smoke.yml
+    with:
+      tarballs-artifact: package-tarballs
+      e2e-artifact: release-e2e-compiled
+
   publish:
     runs-on: ubuntu-latest
-    needs: [build-and-check, release-gate, check-release]
+    needs: [build-and-check, release-gate, bundled-runtime-smoke, check-release]
     if: ${{ needs.build-and-check.outputs.toPublish != '' }}
     permissions:
       contents: read
@@ -236,6 +294,22 @@ jobs:
         with:
           name: package-tarballs
           path: packages
+      - name: Verify tarball digests and bundled binaries
+        run: |
+          set -euo pipefail
+          (cd packages && sha256sum -c SHA256SUMS)
+          for tarball in packages/swipl-*/*.tgz; do
+            expected=$(tar -xzOf "$tarball" package/build-manifest.json | node -e '
+              const m = JSON.parse(require("node:fs").readFileSync(0, "utf8"));
+              if (m.binary?.path !== "bin/swipl" || !/^[0-9a-f]{64}$/.test(m.binary.sha256)) process.exit(1);
+              process.stdout.write(m.binary.sha256);')
+            actual=$(tar -xzOf "$tarball" package/bin/swipl | sha256sum | cut -d' ' -f1)
+            if [ "$expected" != "$actual" ]; then
+              echo "bin/swipl in $tarball does not match its manifest SHA-256"
+              exit 1
+            fi
+            echo "verified $(basename "$tarball") binary $actual"
+          done
       - name: Publish packages
         run: |
           to_publish="${{ needs.build-and-check.outputs.toPublish }}"

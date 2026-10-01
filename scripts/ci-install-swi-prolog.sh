@@ -15,8 +15,8 @@ SWI_PPA_FETCH_RE="ppa.launchpadcontent.net/swi-prolog/stable"
 # Full fingerprint of the Launchpad ~swi-prolog/stable signing key.
 SWI_PPA_KEY_FINGERPRINT="E8B739E3753FF4A12360BA6A4AB3A5F60EA9AEB3"
 SWI_PPA_KEYRING="$(ci_apt_path /usr/share/keyrings/swi-prolog-stable.gpg)"
-SWIPL_SRC_VERSION="${KIBI_SWIPL_SRC_VERSION:-10.0.2}"
-SWIPL_SRC_SHA256="${KIBI_SWIPL_SRC_SHA256:-e42cc098f7b8a6051c4f79a99b55162d467098aba60f69649bdc7583f0734b57}"
+SWIPL_SRC_VERSION="${KIBI_SWIPL_SRC_VERSION:-$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["version"])' "${SCRIPT_DIR}/swipl-version.json")}"
+SWIPL_SRC_SHA256="${KIBI_SWIPL_SRC_SHA256:-$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["sha256"])' "${SCRIPT_DIR}/swipl-version.json")}"
 SWIPL_SRC_URL="${KIBI_SWIPL_SRC_URL:-https://www.swi-prolog.org/download/stable/src/swipl-${SWIPL_SRC_VERSION}.tar.gz}"
 SWIPL_CACHE_DIR="${KIBI_SWIPL_CACHE_DIR:-}"
 

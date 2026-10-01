@@ -12,7 +12,7 @@ afterEach(async () => {
   if (process.exitCode === 1) process.exitCode = 0;
 });
 
-test.skipIf(process.platform !== "linux")(
+test.skipIf(process.platform !== "linux" && process.platform !== "darwin")(
   "Given a hardlinked adoption lock When exclusive locking starts Then it rejects inode drift",
   async () => {
     const repoRoot = await mkdtemp(join(tmpdir(), "skillopt-adoption-nlink-"));

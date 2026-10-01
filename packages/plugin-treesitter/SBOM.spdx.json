@@ -1,0 +1,313 @@
+{
+  "spdxVersion": "SPDX-2.3",
+  "dataLicense": "CC0-1.0",
+  "SPDXID": "SPDXRef-DOCUMENT",
+  "name": "kibi-plugin-treesitter-1.0.0",
+  "documentNamespace": "https://github.com/Looted/kibi/spdx/plugin-treesitter/1.0.0",
+  "creationInfo": {
+    "creators": ["Tool: Kibi qualification record"],
+    "created": "2026-09-25T00:00:00Z"
+  },
+  "packages": [
+    {
+      "name": "kibi-plugin-treesitter",
+      "SPDXID": "SPDXRef-KibiPluginTreeSitter",
+      "versionInfo": "1.0.0",
+      "downloadLocation": "https://github.com/Looted/kibi/tree/develop/packages/plugin-treesitter",
+      "filesAnalyzed": false,
+      "licenseConcluded": "AGPL-3.0-or-later",
+      "licenseDeclared": "AGPL-3.0-or-later",
+      "copyrightText": "Copyright (C) 2026 Piotr Franczyk",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/kibi-plugin-treesitter@1.0.0"
+        }
+      ]
+    },
+    {
+      "name": "web-tree-sitter",
+      "SPDXID": "SPDXRef-WebTreeSitter",
+      "versionInfo": "0.27.0",
+      "downloadLocation": "https://registry.npmjs.org/web-tree-sitter/-/web-tree-sitter-0.27.0.tgz",
+      "filesAnalyzed": false,
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION",
+      "comment": "Exact registry integrity is recorded in catalog.json; this dependency's resolved JS and runtime WASM are covered by the host approval digest.",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/web-tree-sitter@0.27.0"
+        }
+      ]
+    },
+    {
+      "name": "tree-sitter-python",
+      "SPDXID": "SPDXRef-TreeSitterPython",
+      "versionInfo": "0.25.0",
+      "downloadLocation": "https://registry.npmjs.org/tree-sitter-python/-/tree-sitter-python-0.25.0.tgz",
+      "filesAnalyzed": false,
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION",
+      "comment": "Only the parser WASM, upstream tags query, and MIT text are vendored. The package SRI and source commit are in catalog.json.",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/tree-sitter-python@0.25.0"
+        }
+      ]
+    },
+    {
+      "name": "tree-sitter-go",
+      "SPDXID": "SPDXRef-TreeSitterGo",
+      "versionInfo": "0.25.0",
+      "downloadLocation": "https://registry.npmjs.org/tree-sitter-go/-/tree-sitter-go-0.25.0.tgz",
+      "filesAnalyzed": false,
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION",
+      "comment": "Only the parser WASM, upstream tags query, and MIT text are vendored. The package SRI and source commit are in catalog.json.",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/tree-sitter-go@0.25.0"
+        }
+      ]
+    },
+    {
+      "name": "tree-sitter-rust",
+      "SPDXID": "SPDXRef-TreeSitterRust",
+      "versionInfo": "0.24.0",
+      "downloadLocation": "https://registry.npmjs.org/tree-sitter-rust/-/tree-sitter-rust-0.24.0.tgz",
+      "filesAnalyzed": false,
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION",
+      "comment": "Only the parser WASM, upstream tags query, and MIT text are vendored. The package SRI and source commit are in catalog.json.",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/tree-sitter-rust@0.24.0"
+        }
+      ]
+    },
+    {
+      "name": "tree-sitter-java",
+      "SPDXID": "SPDXRef-treesitterjava-0235",
+      "versionInfo": "0.23.5",
+      "downloadLocation": "https://registry.npmjs.org/tree-sitter-java/-/tree-sitter-java-0.23.5.tgz",
+      "filesAnalyzed": false,
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION",
+      "comment": "Only the pinned Java WASM and upstream tags query are vendored.",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/tree-sitter-java@0.23.5"
+        }
+      ]
+    },
+    {
+      "name": "tree-sitter-c-sharp",
+      "SPDXID": "SPDXRef-treesittercsharp-0235",
+      "versionInfo": "0.23.5",
+      "downloadLocation": "https://registry.npmjs.org/tree-sitter-c-sharp/-/tree-sitter-c-sharp-0.23.5.tgz",
+      "filesAnalyzed": false,
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION",
+      "comment": "Only the pinned C# WASM and upstream tags query are vendored.",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/tree-sitter-c-sharp@0.23.5"
+        }
+      ]
+    },
+    {
+      "name": "tree-sitter-php",
+      "SPDXID": "SPDXRef-treesitterphp-0242",
+      "versionInfo": "0.24.2",
+      "downloadLocation": "https://registry.npmjs.org/tree-sitter-php/-/tree-sitter-php-0.24.2.tgz",
+      "filesAnalyzed": false,
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION",
+      "comment": "The mixed HTML/PHP WASM and upstream tags query are vendored.",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/tree-sitter-php@0.24.2"
+        }
+      ]
+    },
+    {
+      "name": "tree-sitter-c",
+      "SPDXID": "SPDXRef-treesitterc-0241",
+      "versionInfo": "0.24.1",
+      "downloadLocation": "https://registry.npmjs.org/tree-sitter-c/-/tree-sitter-c-0.24.1.tgz",
+      "filesAnalyzed": false,
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION",
+      "comment": "Only the pinned C WASM and upstream tags query are vendored.",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/tree-sitter-c@0.24.1"
+        }
+      ]
+    },
+    {
+      "name": "tree-sitter-cpp",
+      "SPDXID": "SPDXRef-treesittercpp-0234",
+      "versionInfo": "0.23.4",
+      "downloadLocation": "https://registry.npmjs.org/tree-sitter-cpp/-/tree-sitter-cpp-0.23.4.tgz",
+      "filesAnalyzed": false,
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION",
+      "comment": "Only the pinned C++ WASM and upstream tags query are vendored.",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/tree-sitter-cpp@0.23.4"
+        }
+      ]
+    },
+    {
+      "name": "tree-sitter-bash",
+      "SPDXID": "SPDXRef-treesitterbash-0251",
+      "versionInfo": "0.25.1",
+      "downloadLocation": "https://registry.npmjs.org/tree-sitter-bash/-/tree-sitter-bash-0.25.1.tgz",
+      "filesAnalyzed": false,
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION",
+      "comment": "The pinned Bash WASM is vendored; its declaration query is Kibi-authored because upstream ships no tags query.",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/tree-sitter-bash@0.25.1"
+        }
+      ]
+    },
+    {
+      "name": "tree-sitter-ruby",
+      "SPDXID": "SPDXRef-treesitterruby-0231",
+      "versionInfo": "0.23.1",
+      "downloadLocation": "https://registry.npmjs.org/tree-sitter-ruby/-/tree-sitter-ruby-0.23.1.tgz",
+      "filesAnalyzed": false,
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION",
+      "comment": "Only the pinned Ruby WASM and upstream tags query are vendored.",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/tree-sitter-ruby@0.23.1"
+        }
+      ]
+    },
+    {
+      "name": "@tree-sitter-grammars/tree-sitter-hcl",
+      "SPDXID": "SPDXRef-treesitterhcl-120",
+      "versionInfo": "1.2.0",
+      "downloadLocation": "https://registry.npmjs.org/@tree-sitter-grammars/tree-sitter-hcl/-/tree-sitter-hcl-1.2.0.tgz",
+      "filesAnalyzed": false,
+      "licenseConcluded": "Apache-2.0",
+      "licenseDeclared": "Apache-2.0",
+      "copyrightText": "NOASSERTION",
+      "comment": "The HCL and Terraform WASM files are pinned official v1.2.0 release assets, not the ABI-14 copies embedded in the NPM tarball; Kibi-authored queries provide structural extraction.",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/@tree-sitter-grammars/tree-sitter-hcl@1.2.0"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-KibiPluginTreeSitter"
+    },
+    {
+      "spdxElementId": "SPDXRef-KibiPluginTreeSitter",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-WebTreeSitter"
+    },
+    {
+      "spdxElementId": "SPDXRef-KibiPluginTreeSitter",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-TreeSitterPython"
+    },
+    {
+      "spdxElementId": "SPDXRef-KibiPluginTreeSitter",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-TreeSitterGo"
+    },
+    {
+      "spdxElementId": "SPDXRef-KibiPluginTreeSitter",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-TreeSitterRust"
+    },
+    {
+      "spdxElementId": "SPDXRef-KibiPluginTreeSitter",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-treesitterjava-0235"
+    },
+    {
+      "spdxElementId": "SPDXRef-KibiPluginTreeSitter",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-treesittercsharp-0235"
+    },
+    {
+      "spdxElementId": "SPDXRef-KibiPluginTreeSitter",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-treesitterphp-0242"
+    },
+    {
+      "spdxElementId": "SPDXRef-KibiPluginTreeSitter",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-treesitterc-0241"
+    },
+    {
+      "spdxElementId": "SPDXRef-KibiPluginTreeSitter",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-treesittercpp-0234"
+    },
+    {
+      "spdxElementId": "SPDXRef-KibiPluginTreeSitter",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-treesitterbash-0251"
+    },
+    {
+      "spdxElementId": "SPDXRef-KibiPluginTreeSitter",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-treesitterruby-0231"
+    },
+    {
+      "spdxElementId": "SPDXRef-KibiPluginTreeSitter",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-treesitterhcl-120"
+    }
+  ]
+}

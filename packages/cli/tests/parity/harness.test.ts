@@ -2,10 +2,15 @@ import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import Ajv from "ajv";
+import Ajv2020 from "ajv/dist/2020.js";
 
 import { listSpecs } from "../../src/public/operations/index.js";
 import { PARITY_CASES } from "./cases.js";
-import { createParityWorkspace, normalizeParityValue } from "./helpers.js";
+import {
+  createImpactReviewPreparationWorkspace,
+  createParityWorkspace,
+  normalizeParityValue,
+} from "./helpers.js";
 import { compareResults, runCliJsonRoute, runMCPAdapter } from "./runner.js";
 
 const REPOSITORY_ROOT = path.resolve(import.meta.dir, "../../../..");
@@ -82,11 +87,262 @@ describe("semantic MCP/CLI operation parity", () => {
   }, 30_000);
 
   afterAll(() => {
-    expect(PARITY_CASES).toHaveLength(21);
+    expect(PARITY_CASES).toHaveLength(22);
   });
 
   for (const parityCase of PARITY_CASES) {
     test(`parity:${parityCase.operation}`, async () => {
+      if (parityCase.operation === "kb_prepare_impact_review") {
+        const workspace = await createImpactReviewPreparationWorkspace();
+        try {
+          const headBefore = await Bun.file(
+            path.join(workspace.root, ".git/HEAD"),
+          ).text();
+          const commitBeforeProcess = Bun.spawn(["git", "rev-parse", "HEAD"], {
+            cwd: workspace.root,
+            stdout: "pipe",
+            stderr: "pipe",
+          });
+          const baseCommit = (
+            await new Response(commitBeforeProcess.stdout).text()
+          ).trim();
+          expect(await commitBeforeProcess.exited).toBe(0);
+          const child = Bun.spawn(["git", "write-tree"], {
+            cwd: workspace.root,
+            stdout: "pipe",
+            stderr: "pipe",
+          });
+          const indexTreeBefore = (
+            await new Response(child.stdout).text()
+          ).trim();
+          expect(await child.exited).toBe(0);
+          const sourceBefore = await Bun.file(
+            path.join(workspace.root, "notes/review.txt"),
+          ).text();
+          const spec = listSpecs().find(
+            ({ name }) => name === parityCase.operation,
+          );
+          if (spec === undefined)
+            throw new Error("Missing prepare operation spec");
+          const validate = new Ajv({ allErrors: true, strict: false }).compile(
+            spec.businessInputSchema,
+          );
+          expect(
+            validate(parityCase.input),
+            JSON.stringify(validate.errors),
+          ).toBe(true);
+          const validateOutput = new Ajv2020({
+            allErrors: true,
+            strict: false,
+          }).compile(spec.outputSchema);
+
+          const [cli, mcp] = await Promise.all([
+            runCliJsonRoute(workspace.root, spec.cliName, parityCase.input),
+            runMCPAdapter(
+              workspace.root,
+              parityCase.operation,
+              parityCase.input,
+            ),
+          ]);
+          const comparison = compareResults(cli, mcp, (value) =>
+            normalizeParityValue(value, [workspace.root]),
+          );
+          expect(comparison.parity, comparison.diff).toBe(true);
+          expect(cli.exitCode).toBe(0);
+
+          const output = JSON.parse(cli.stdout) as {
+            data?: {
+              preparationVersion?: string;
+              files?: readonly { path: string }[];
+              residualReviewObligations?: readonly { pending?: boolean }[];
+              authorship?: {
+                recordTemplate?: {
+                  record?: {
+                    reviewer?: { id?: unknown };
+                    reviewedAt?: unknown;
+                    files?: readonly {
+                      decision?: unknown;
+                      analysisReviews?: unknown;
+                    }[];
+                  };
+                };
+              };
+            };
+          };
+          expect(output.data?.preparationVersion).toBe(
+            "kibi.impact-review-preparation.v1",
+          );
+          expect(
+            validateOutput(JSON.parse(cli.stdout)),
+            JSON.stringify(validateOutput.errors),
+          ).toBe(true);
+          expect(output.data?.files?.map(({ path: file }) => file)).toEqual([
+            "notes/review.txt",
+          ]);
+          expect(
+            output.data?.residualReviewObligations?.every(
+              ({ pending }) => pending,
+            ),
+          ).toBe(true);
+          const template = output.data?.authorship?.recordTemplate?.record;
+          expect(template?.reviewer?.id).toBeNull();
+          expect(template?.reviewedAt).toBeNull();
+          expect(
+            template?.files?.every(
+              ({ decision, analysisReviews }) =>
+                decision === null && analysisReviews === null,
+            ),
+          ).toBe(true);
+          const authorshipData = output.data?.authorship as
+            | {
+                recordSchema?: object;
+                templateSchema?: object;
+                recordTemplate?: { record?: unknown };
+              }
+            | undefined;
+          const templateValidator = new Ajv2020({
+            allErrors: true,
+            strict: false,
+          }).compile(authorshipData?.templateSchema ?? {});
+          expect(
+            templateValidator(authorshipData?.recordTemplate),
+            JSON.stringify(templateValidator.errors),
+          ).toBe(true);
+          const recordValidator = new Ajv2020({
+            allErrors: true,
+            strict: false,
+          }).compile(authorshipData?.recordSchema ?? {});
+          expect(recordValidator(authorshipData?.recordTemplate?.record)).toBe(
+            false,
+          );
+
+          const afterTreeProcess = Bun.spawn(["git", "write-tree"], {
+            cwd: workspace.root,
+            stdout: "pipe",
+            stderr: "pipe",
+          });
+          const indexTreeAfter = (
+            await new Response(afterTreeProcess.stdout).text()
+          ).trim();
+          expect(await afterTreeProcess.exited).toBe(0);
+          expect(indexTreeAfter).toBe(indexTreeBefore);
+          expect(
+            await Bun.file(path.join(workspace.root, ".git/HEAD")).text(),
+          ).toBe(headBefore);
+          expect(
+            await Bun.file(
+              path.join(workspace.root, "notes/review.txt"),
+            ).text(),
+          ).toBe(sourceBefore);
+
+          const commitCandidate = Bun.spawn(
+            [
+              "git",
+              "-c",
+              "user.name=Parity Fixture",
+              "-c",
+              "user.email=parity@example.invalid",
+              "commit",
+              "-m",
+              "Capture candidate review scope",
+            ],
+            { cwd: workspace.root, stdout: "pipe", stderr: "pipe" },
+          );
+          const [commitExit, commitError] = await Promise.all([
+            commitCandidate.exited,
+            new Response(commitCandidate.stderr).text(),
+          ]);
+          expect(commitExit, commitError).toBe(0);
+          const headCommitProcess = Bun.spawn(["git", "rev-parse", "HEAD"], {
+            cwd: workspace.root,
+            stdout: "pipe",
+            stderr: "pipe",
+          });
+          const headCommit = (
+            await new Response(headCommitProcess.stdout).text()
+          ).trim();
+          expect(await headCommitProcess.exited).toBe(0);
+          const diffInput = {
+            scope: { kind: "diff", baseCommit, headCommit },
+          };
+          const [diffCli, diffMcp] = await Promise.all([
+            runCliJsonRoute(workspace.root, spec.cliName, diffInput),
+            runMCPAdapter(workspace.root, parityCase.operation, diffInput),
+          ]);
+          const diffComparison = compareResults(diffCli, diffMcp, (value) =>
+            normalizeParityValue(value, [workspace.root]),
+          );
+          expect(diffComparison.parity, diffComparison.diff).toBe(true);
+          expect(diffCli.exitCode).toBe(0);
+          const diffOutput = JSON.parse(diffCli.stdout) as {
+            data?: {
+              snapshot?: {
+                kind?: string;
+                baseCommit?: string;
+                headCommit?: string;
+              };
+              files?: readonly { path: string }[];
+            };
+          };
+          expect(diffOutput.data?.snapshot).toMatchObject({
+            kind: "diff",
+            baseCommit,
+            headCommit,
+          });
+          expect(diffOutput.data?.files?.map(({ path: file }) => file)).toEqual(
+            ["notes/review.txt"],
+          );
+          const headAfterDiff = Bun.spawn(["git", "rev-parse", "HEAD"], {
+            cwd: workspace.root,
+            stdout: "pipe",
+            stderr: "pipe",
+          });
+          expect((await new Response(headAfterDiff.stdout).text()).trim()).toBe(
+            headCommit,
+          );
+          expect(await headAfterDiff.exited).toBe(0);
+
+          for (const [label, options, expected] of [
+            [
+              "missing base policy",
+              { policy: "missing" as const },
+              /policy missing/i,
+            ],
+            [
+              "malformed base policy",
+              { policy: "malformed" as const },
+              /policy|json/i,
+            ],
+            [
+              "unapproved provider",
+              { sourceProvider: "unapproved" as const },
+              /not approved/i,
+            ],
+          ] as const) {
+            const failingWorkspace =
+              await createImpactReviewPreparationWorkspace(options);
+            try {
+              const failed = await runCliJsonRoute(
+                failingWorkspace.root,
+                spec.cliName,
+                parityCase.input,
+              );
+              expect(
+                failed.exitCode,
+                `${label}: ${failed.stdout}\n${failed.stderr}`,
+              ).toBe(1);
+              expect(`${failed.stdout}\n${failed.stderr}`, label).toMatch(
+                expected,
+              );
+            } finally {
+              await failingWorkspace.cleanup();
+            }
+          }
+        } finally {
+          await workspace.cleanup();
+        }
+        return;
+      }
       // Given: equivalent isolated seeded workspaces and schema-valid business input.
       const [cliWorkspace, mcpWorkspace] = await Promise.all([
         createParityWorkspace(),

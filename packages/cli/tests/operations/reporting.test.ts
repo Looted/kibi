@@ -1,4 +1,9 @@
 import { describe, expect, mock, test } from "bun:test";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { PrologProcess, resolveKbPlPath } from "../../src/prolog.js";
+import { nodeFilesystem } from "../../src/public/operations/node-ports.js";
 
 import type {
   OperationContext,
@@ -11,7 +16,7 @@ import {
 } from "../../src/public/operations/specs/reporting.js";
 
 function contextWithPayload(payload: Readonly<Record<string, unknown>>): {
-  readonly context: OperationContext;
+  readonly context: OperationContext & { readonly prolog: PrologPort };
   readonly query: ReturnType<typeof mock>;
 } {
   const query = mock(async () => ({
@@ -210,5 +215,113 @@ describe("shared reporting operation executors", () => {
     await expect(
       graphSpec.execute({ seedIds: ["REQ-001"], depth: 6 }, context),
     ).rejects.toThrow("Graph depth must be between 1 and 5");
+  });
+});
+
+describe("coverage binding discovery after receipt accumulation", () => {
+  test("keeps per-contract coverage and the interactive engine alive above its output limit", async () => {
+    const root = mkdtempSync(join(tmpdir(), "kibi-coverage-receipt-history-"));
+    const store = join(root, "store");
+    const modulePath = join(root, "fixture.pl");
+    const prolog = new PrologProcess({ oneShot: false, timeout: 30000 });
+    const previousBindingMode = process.env.KIBI_PROOF_BINDING_MODE;
+    const goals: string[] = [];
+    const quote = (value: string) => value.replaceAll("'", "''");
+    writeFileSync(join(root, "contract.md"), "# Synthetic contracted test\n");
+    writeFileSync(
+      modulePath,
+      `
+:- module(coverage_history_fixture, [seed/0]).
+:- use_module('${quote(resolveKbPlPath())}').
+:- use_module(library(http/json)).
+seed :-
+    format(string(Padding), '~*c', [9437184, 120]),
+    format(string(History), '[{"history":"~s"}]', [Padding]),
+    atom_json_dict(ContractAtom, _{version:'kibi.proof-contract.v1', integration:'synthetic', required_proofs:[_{symbol_id:'SYM-SYNTHETIC',target:default}], success_policy:all_required_first_attempt}, []),
+    atom_string(ContractAtom, Contract),
+    kb_assert_entity(test, [id='TEST-SYNTHETIC-HISTORY', title="Synthetic history", status=active, created_at="2026-08-10T00:00:00Z", updated_at="2026-08-10T00:00:00Z", source="contract.md", proof_contract=Contract, proof_bindings="[]", proof_receipts=History]).
+`,
+    );
+    try {
+      process.env.KIBI_PROOF_BINDING_MODE = "per-contract";
+      await prolog.start();
+      const attached = await prolog.query(`kb_attach('${quote(store)}')`);
+      expect(attached.success).toBe(true);
+      const loaded = await prolog.query(`use_module('${quote(modulePath)}')`);
+      expect(loaded.success).toBe(true);
+      const seeded = await prolog.query("coverage_history_fixture:seed");
+      expect(seeded.success).toBe(true);
+      const { context } = contextWithPayload({});
+      const port = {
+        ...context.prolog,
+        query: async (goal: string) => {
+          goals.push(goal);
+          return prolog.query(goal);
+        },
+        // Match the concrete engine's module-loading path in this owned fixture.
+        storageStatus: async () => ({ success: true, bindings: {} }),
+      };
+      const result = await coverageSpec.execute(
+        { limit: 1 },
+        {
+          ...context,
+          workspaceRoot: root,
+          prolog: port,
+          fs: nodeFilesystem,
+        },
+      );
+      expect(result.structuredContent?.summary.total).toBe(0);
+      expect(
+        goals.some(
+          (goal) =>
+            goal.includes("per_contract") &&
+            goal.includes("TEST-SYNTHETIC-HISTORY"),
+        ),
+      ).toBe(true);
+      expect(prolog.isRunning()).toBe(true);
+      expect((await prolog.query("X=42")).bindings.X).toBe("42");
+    } finally {
+      if (previousBindingMode === undefined) {
+        Reflect.deleteProperty(process.env, "KIBI_PROOF_BINDING_MODE");
+      } else {
+        process.env.KIBI_PROOF_BINDING_MODE = previousBindingMode;
+      }
+      await prolog.terminate();
+      rmSync(root, { recursive: true, force: true });
+    }
+  }, 60000);
+
+  test("reports an operational binding-query failure before issuing coverage", async () => {
+    const { context } = contextWithPayload({});
+    const goals: string[] = [];
+    const failingContext = {
+      ...context,
+      prolog: {
+        ...context.prolog,
+        query: async (goal: string) => {
+          goals.push(goal);
+          return {
+            success: false,
+            bindings: {},
+            error: "Query exceeded bounded Prolog output capacity (ENOBUFS)",
+          };
+        },
+      },
+    };
+    const previousBindingMode = process.env.KIBI_PROOF_BINDING_MODE;
+    try {
+      process.env.KIBI_PROOF_BINDING_MODE = "per-contract";
+      await expect(coverageSpec.execute({}, failingContext)).rejects.toThrow(
+        "Per-contract receipt binding query failed: Query exceeded bounded Prolog output capacity (ENOBUFS)",
+      );
+      expect(goals).toHaveLength(1);
+      expect(goals[0]).toContain("kb_query_proof_contracts");
+    } finally {
+      if (previousBindingMode === undefined) {
+        Reflect.deleteProperty(process.env, "KIBI_PROOF_BINDING_MODE");
+      } else {
+        process.env.KIBI_PROOF_BINDING_MODE = previousBindingMode;
+      }
+    }
   });
 });

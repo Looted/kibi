@@ -1,0 +1,41 @@
+{
+  "name": "kibi-swipl",
+  "version": "1.0.0",
+  "description": "Locates the bundled SWI-Prolog runtime that Kibi uses on this platform",
+  "type": "module",
+  "main": "./index.js",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": ["index.js", "index.d.ts", "README.md"],
+  "scripts": {
+    "test": "bun test --timeout 15000 ."
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "AGPL-3.0-or-later",
+  "author": "Piotr Franczyk",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Looted/kibi.git",
+    "directory": "packages/swipl"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "kibi": {
+    "swiplVersion": "10.0.2"
+  },
+  "optionalDependencies": {
+    "kibi-swipl-linux-x64-gnu": "1.0.0",
+    "kibi-swipl-linux-arm64-gnu": "1.0.0",
+    "kibi-swipl-darwin-arm64": "1.0.0",
+    "kibi-swipl-darwin-x64": "1.0.0"
+  }
+}

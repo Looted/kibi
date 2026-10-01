@@ -342,3 +342,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0d65155c20a7
+  - type: executable_for
+    from: SYM-e2e-multilingual-source-analysis
+    to: TEST-source-analysis-v2-contract
+    created_at: 2026-09-26T16:51:46.296Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-256d4c2daea2
+  - type: implements
+    from: SYM-prolog-build-checked
+    to: REQ-prolog-build-pipeline-validation
+    created_at: 2026-09-30T17:52:33.756Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-96006ee0df62
+  - type: covered_by
+    from: SYM-prolog-build-checked
+    to: TEST-prolog-build-pipeline-validation
+    created_at: 2026-09-30T17:52:33.831Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ee6c0f6ed6be
+  - type: validates
+    from: TEST-prolog-bundled-quickstart
+    to: SCEN-prolog-bundled-quickstart
+    created_at: 2026-10-01T03:48:37.513Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e78585d47113

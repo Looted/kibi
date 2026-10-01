@@ -32,6 +32,13 @@ import {
   readProjectKibiConfig,
 } from "../plugins/project-config.js";
 import {
+  type ResolvedSwipl,
+  SwiplResolutionError,
+  inspectSwiplBundle,
+  probeRequiredLibraries,
+  resolveSwipl,
+} from "../prolog/swipl-resolver.js";
+import {
   buildMigrationPlan,
   migrationAction,
 } from "../public/operations/migration-plan.js";
@@ -57,11 +64,17 @@ const FIRST_PARTY_PLUGIN_SECRETS: Readonly<Record<string, readonly string[]>> =
 const JEV_DEFAULT_MODEL = "jev-latest";
 const JEV_MAX_TIMEOUT_MS = 120_000;
 
+interface DoctorCheckResult {
+  passed: boolean;
+  message: string;
+  remediation?: string;
+  /** Structured facts for JSON consumers (for example SWI-Prolog source/path/version). */
+  details?: Record<string, unknown>;
+}
+
 interface DoctorCheck {
   name: string;
-  check: () =>
-    | { passed: boolean; message: string; remediation?: string }
-    | Promise<{ passed: boolean; message: string; remediation?: string }>;
+  check: () => DoctorCheckResult | Promise<DoctorCheckResult>;
 }
 
 export interface DoctorOptions {
@@ -424,55 +437,79 @@ function resolveInstalledPackageInfo(name: string): InstalledPackageInfo {
   };
 }
 
-function checkSWIProlog(): {
-  passed: boolean;
-  message: string;
-  remediation?: string;
-} {
+const SWIPL_SOURCE_LABELS = {
+  env: "KIBI_SWIPL",
+  bundled: "the bundled build",
+  path: "PATH",
+} as const;
+
+// implements REQ-prolog-doctor-runtime-report
+function checkSWIProlog(): DoctorCheckResult {
+  let resolved: ResolvedSwipl;
   try {
-    const output = execSync("swipl --version", { encoding: "utf-8" });
-    const versionMatch = output.match(/version\s+(\d+)\.(\d+)/i);
-
-    if (!versionMatch) {
-      return {
-        passed: false,
-        message: "Unable to parse version",
-        remediation: "Reinstall SWI-Prolog from https://www.swi-prolog.org/",
-      };
-    }
-
-    const majorText = versionMatch[1];
-    if (!majorText) {
-      return {
-        passed: false,
-        message: "Unable to parse major version",
-        remediation: "Reinstall SWI-Prolog from https://www.swi-prolog.org/",
-      };
-    }
-
-    const major = Number.parseInt(majorText, 10);
-
-    if (major < 9) {
-      return {
-        passed: false,
-        message: `Version ${major}.x found (requires ≥9.0)`,
-        remediation:
-          "Upgrade SWI-Prolog to version 9.0 or higher from https://www.swi-prolog.org/",
-      };
-    }
-
-    return {
-      passed: true,
-      message: `Version ${versionMatch[0]} installed`,
-    };
+    resolved = resolveSwipl();
   } catch (error) {
+    if (!(error instanceof SwiplResolutionError)) throw error;
+    const [headline = error.message, ...guidance] = error.message.split("\n");
     return {
       passed: false,
-      message: "Not installed or not in PATH",
-      remediation:
-        "Install SWI-Prolog from https://www.swi-prolog.org/ and add to PATH",
+      message: headline,
+      ...(guidance.length === 0 ? {} : { remediation: guidance.join("\n   ") }),
+      details: {
+        code: error.code,
+        platform: error.platform,
+        ...(error.packageName === undefined
+          ? {}
+          : { bundledPackage: error.packageName }),
+      },
     };
   }
+
+  const details: Record<string, unknown> = {
+    source: resolved.source,
+    path: resolved.bin,
+    version: resolved.version,
+    ...(resolved.home === undefined ? {} : { home: resolved.home }),
+  };
+  const summary = `Version ${resolved.version} from ${SWIPL_SOURCE_LABELS[resolved.source]} at ${resolved.bin}`;
+  const probe = probeRequiredLibraries(resolved);
+  if (probe.kind !== "ok") {
+    const remediation =
+      resolved.source === "bundled"
+        ? "Reinstall the bundled SWI-Prolog package, or set KIBI_SWIPL=system to use swipl from PATH."
+        : "Install a full SWI-Prolog 9.0+ distribution that provides these libraries (for example swi-prolog rather than swi-prolog-nox or a minimal build), or point KIBI_SWIPL at one.";
+    if (probe.kind === "missing") {
+      return {
+        passed: false,
+        message: `${summary}; cannot load required libraries: ${probe.libraries.join(", ")}`,
+        remediation,
+        details: { ...details, missingLibraries: probe.libraries },
+      };
+    }
+    return {
+      passed: false,
+      message: `${summary}; the required-library load check could not run (${probe.detail})`,
+      remediation,
+      details,
+    };
+  }
+
+  let bundleNote = "";
+  if (resolved.source === "path") {
+    try {
+      const bundle = inspectSwiplBundle();
+      if (bundle.state === "missing") {
+        bundleNote = `; bundled ${bundle.packageName} is not installed (npm install --save-dev ${bundle.packageName})`;
+      }
+    } catch {
+      // The bundle note is advisory; never let it fail the check.
+    }
+  }
+  return {
+    passed: true,
+    message: `${summary}; required libraries load${bundleNote}`,
+    details,
+  };
 }
 
 /**

@@ -12,6 +12,14 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 const ROOT = join(import.meta.dir, "..", "..");
+const SWIPL_VERSION = (
+  JSON.parse(
+    readFileSync(join(ROOT, "scripts/swipl-version.json"), "utf8"),
+  ) as { version: string }
+).version;
+if (!/^\d+\.\d+\.\d+$/.test(SWIPL_VERSION)) {
+  throw new Error("Invalid SWI-Prolog source version fixture");
+}
 
 function writeStub(binDir: string, name: string, body: string): void {
   const path = join(binDir, name);
@@ -191,13 +199,13 @@ exit 0`,
         bin,
         "tar",
         `echo "tar $*" >> ${JSON.stringify(log)}
-mkdir -p "\$3/swipl-10.0.2"
+mkdir -p "\$3/swipl-${SWIPL_VERSION}"
 exit 0`,
       );
       writeStub(
         bin,
         "swipl",
-        `if [ "\$1" = "--version" ]; then echo "SWI-Prolog 10.0.2"; exit 0; fi
+        `if [ "\$1" = "--version" ]; then echo "SWI-Prolog ${SWIPL_VERSION}"; exit 0; fi
 if [[ "$*" == *prolog_coverage* ]]; then
   if [ -f ${JSON.stringify(join(state, "coverage-ok"))} ]; then exit 0; fi
   exit 1

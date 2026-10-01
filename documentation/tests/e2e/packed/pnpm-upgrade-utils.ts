@@ -28,6 +28,7 @@ export interface Tarballs {
   mcp: string;
   "plugin-sdk": string;
   "plugin-builtin": string;
+  swipl: string;
 }
 
 // executable_for TEST-test-journaled-engine-harness
@@ -272,7 +273,6 @@ export async function installTarballsWithPnpm(
   tarballs: string[],
   options: { offline?: boolean } = {},
 ): Promise<CommandResult> {
-  // implements REQ-mcp-pnpm-upgrade-stale-path
   const installArgs = ["add"];
   if (options.offline !== false) {
     installArgs.push("--offline");
@@ -307,7 +307,7 @@ export function pnpmLabel(pnpm: PnpmCommand): string {
   return [basename(pnpm.command), ...pnpm.argsPrefix].join(" ");
 }
 
-// implements REQ-mcp-pnpm-upgrade-stale-path
+// executable_for TEST-mcp-kb-freshness
 export async function packAllForPnpmUpgrade(): Promise<Tarballs> {
   const tarballs = await packAllPackages();
   return {
@@ -317,5 +317,6 @@ export async function packAllForPnpmUpgrade(): Promise<Tarballs> {
     mcp: tarballs.mcp,
     "plugin-sdk": tarballs["plugin-sdk"],
     "plugin-builtin": tarballs["plugin-builtin"],
+    swipl: tarballs.swipl,
   };
 }

@@ -32,10 +32,19 @@ describe("unit coverage runner contract", () => {
       paths: ["./scripts/skillopt-eval/tests"],
       timeoutMs: 120_000,
     });
-    expect(COVERAGE_SHARDS).toContainEqual({
-      label: "scripts",
-      paths: ["./scripts/tests", "./test/root-summary.test.ts"],
-    });
+    const scripts = COVERAGE_SHARDS.find((shard) => shard.label === "scripts");
+    expect(scripts?.isolation).toBe("process-per-file");
+    const scriptTests = readdirSync("./scripts/tests", {
+      recursive: true,
+      encoding: "utf8",
+    })
+      .filter((entry) => /\.(?:test|spec)\.[cm]?[jt]sx?$/.test(entry))
+      .map((entry) => `./scripts/tests/${entry}`)
+      .sort();
+    expect(scripts?.paths).toEqual([
+      ...scriptTests,
+      "./test/root-summary.test.ts",
+    ]);
     expect(COVERAGE_SHARDS).toContainEqual({
       label: "runtime",
       paths: ["./packages/runtime"],
@@ -67,6 +76,7 @@ describe("unit coverage runner contract", () => {
       "cli.operations",
       "cli.public",
       "cli.support.staged-symbols-manifest",
+      "cli.support.traceability",
       "cli.support",
       "cli.engine-remaining",
       "cli.engine-live-socket",
@@ -130,6 +140,7 @@ describe("unit coverage runner contract", () => {
       "./packages/cli/tests/commands/doctor-behavior.test.ts",
       "./packages/cli/tests/commands/doctor-git-context.test.ts",
       "./packages/cli/tests/commands/doctor-remaining.coverage.test.ts",
+      "./packages/cli/tests/commands/doctor-swipl-runtime.test.ts",
       "./packages/cli/tests/commands/doctor.in-process.test.ts",
       "./packages/cli/tests/commands/doctor.test.ts",
     ]);
@@ -212,6 +223,7 @@ describe("unit coverage runner contract", () => {
       "cli.sync-coverage",
       "cli.doctor",
       "cli.support.staged-symbols-manifest",
+      "cli.support.traceability",
       "cli.engine-live-socket",
       "cli.report-remaining",
       "cli.sync-tracked-relationships",
@@ -235,6 +247,9 @@ describe("unit coverage runner contract", () => {
     const supportShard = COVERAGE_SHARDS.find(
       (shard) => shard.label === "cli.support",
     );
+    const traceabilityShard = COVERAGE_SHARDS.find(
+      (shard) => shard.label === "cli.support.traceability",
+    );
     const traceabilityTests = readdirSync(traceabilityDirectory, {
       withFileTypes: true,
     });
@@ -253,10 +268,14 @@ describe("unit coverage runner contract", () => {
     expect(isolatedShard?.paths).toEqual([isolatedTest]);
     expect(isolatedShard?.isolation).toBe("process-per-file");
     expect(supportShard?.paths).not.toContain(traceabilityDirectory);
-    const assignedTraceabilityTests = [
-      ...(supportShard?.paths.filter((path) =>
+    expect(
+      supportShard?.paths.filter((path) =>
         path.startsWith(`${traceabilityDirectory}/`),
-      ) ?? []),
+      ),
+    ).toEqual([]);
+    expect(traceabilityShard?.isolation).toBe("process-per-file");
+    const assignedTraceabilityTests = [
+      ...(traceabilityShard?.paths ?? []),
       ...(isolatedShard?.paths ?? []),
     ].sort();
     expect(assignedTraceabilityTests).toEqual(traceabilityTestPaths);

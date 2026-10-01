@@ -90,6 +90,8 @@ describe("opencode packed utility helpers", () => {
       "plugin-sdk": "/tmp/kibi/plugin-sdk.tgz",
       "plugin-builtin": "/tmp/kibi/plugin-builtin.tgz",
       "plugin-jev": "/tmp/kibi/plugin-jev.tgz",
+      "plugin-treesitter": "/tmp/kibi/plugin-treesitter.tgz",
+      swipl: "/tmp/kibi/swipl.tgz",
     };
     const packageFiles = {
       "kibi-core": `file:${tarballs.core}`,
@@ -102,6 +104,7 @@ describe("opencode packed utility helpers", () => {
       "kibi-cursor": `file:${tarballs.cursor}`,
       "kibi-plugin-sdk": `file:${tarballs["plugin-sdk"]}`,
       "kibi-plugin-builtin": `file:${tarballs["plugin-builtin"]}`,
+      "kibi-swipl": `file:${tarballs.swipl}`,
     };
 
     try {
@@ -130,6 +133,19 @@ describe("opencode packed utility helpers", () => {
         "package.json",
         "pnpm-workspace.yaml",
       ]);
+
+      writePackedInstallManifest(prefix, tarballs, {
+        includeCompleteInventory: true,
+      });
+      const completePackageJson = JSON.parse(
+        readFileSync(join(prefix, "package.json"), "utf8"),
+      ) as { dependencies: Record<string, string> };
+      assert.deepStrictEqual(completePackageJson.dependencies, {
+        ...packageFiles,
+        "kibi-plugin-jev": `file:${tarballs["plugin-jev"]}`,
+        "kibi-plugin-treesitter": `file:${tarballs["plugin-treesitter"]}`,
+      });
+      assert.equal(Object.keys(completePackageJson.dependencies).length, 12);
     } finally {
       rmSync(prefix, { recursive: true, force: true });
     }

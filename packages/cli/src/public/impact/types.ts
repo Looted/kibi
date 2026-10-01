@@ -39,6 +39,11 @@ export type SymbolGranularityDiagnosticsOptions = {
   readonly activeEntityIds?: ReadonlySet<string>;
   readonly symbolsByFile: SymbolsByFile;
   readonly sourceContentByFile?: ReadonlyMap<string, string>;
+  /** Complete snapshot analysis; when supplied, filesystem fallback is forbidden. */
+  readonly sourceSymbolsByFile?: ReadonlyMap<
+    string,
+    readonly ExtractedSymbol[]
+  >;
   readonly workspaceRoot?: string;
 };
 

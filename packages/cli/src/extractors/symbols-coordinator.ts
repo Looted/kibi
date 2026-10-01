@@ -18,27 +18,22 @@
 
 import * as fs from "node:fs";
 import * as path from "node:path";
+import { createMaintenanceSourceAnalysisService } from "../plugins/maintenance-source-analysis.js";
 import type { CapabilityRegistry } from "../plugins/registry.js";
+import type { SourceAnalysisService } from "../plugins/source-analysis-service.js";
 import {
   type HostSourceAnalysisResult,
   createSourceAnalysisService,
 } from "../plugins/source-analysis-service.js";
 import {
+  extensionLanguage,
+  isTsJsSourcePath,
+} from "../plugins/source-classification.js";
+import {
   type ManifestSymbolEntry,
   createTsMorphSourceAnalysisProvider,
   enrichSymbolCoordinatesWithTsMorph,
 } from "./symbols-ts.js";
-
-const TS_JS_EXTENSIONS = new Set([
-  ".ts",
-  ".tsx",
-  ".js",
-  ".jsx",
-  ".mts",
-  ".cts",
-  ".mjs",
-  ".cjs",
-]);
 
 export type { ManifestSymbolEntry };
 
@@ -94,33 +89,17 @@ export interface AnalyzeSourceTextOptions {
 }
 
 interface EnrichSymbolCoordinatesDeps {
+  sourceAnalysisService: SourceAnalysisService;
   enrichTsCoordinates: typeof enrichSymbolCoordinatesWithTsMorph;
+  /** Coordinate-only sync may locate explicit declarations in decorated Python.
+   * Completeness-sensitive callers must also verify the captured policy/review. */
+  allowPythonDecoratorCoordinates?: boolean;
+  /** Additional snapshot/policy authorization for completeness-sensitive gates. */
+  verifyPythonDecoratorCoordinates?: (
+    logicalPath: string,
+    analysis: Awaited<ReturnType<SourceAnalysisService["analyzeTextV2"]>>,
+  ) => Promise<void>;
 }
-
-const SOURCE_LANGUAGE_EXTENSIONS: Record<string, string> = {
-  ".c": "c",
-  ".cc": "cpp",
-  ".cjs": "javascript",
-  ".cpp": "cpp",
-  ".cs": "csharp",
-  ".cts": "typescript",
-  ".go": "go",
-  ".h": "c",
-  ".hpp": "cpp",
-  ".java": "java",
-  ".js": "javascript",
-  ".jsx": "javascript",
-  ".kt": "kotlin",
-  ".mjs": "javascript",
-  ".mts": "typescript",
-  ".php": "php",
-  ".py": "python",
-  ".rb": "ruby",
-  ".rs": "rust",
-  ".swift": "swift",
-  ".ts": "typescript",
-  ".tsx": "typescript",
-};
 
 const DEFAULT_SOURCE_ANALYSIS_PROVIDERS: SourceAnalysisProvider[] = [
   createTsMorphSourceAnalysisProvider(),
@@ -215,6 +194,51 @@ export async function analyzeSourceTextWithRegistry(
   }
 }
 
+function isCoordinateOnlyDecoratorPartial(
+  analysis: Awaited<ReturnType<SourceAnalysisService["analyzeTextV2"]>>,
+): boolean {
+  if (
+    analysis.status !== "partial" ||
+    analysis.language !== "python" ||
+    analysis.module.analysisMode !== "parser" ||
+    analysis.providerId !== "kibi-plugin-treesitter.tree-sitter.v2" ||
+    analysis.stamp?.pluginId !== "kibi-plugin-treesitter" ||
+    analysis.diagnostics.length === 0 ||
+    analysis.uncoveredRanges.length !== analysis.diagnostics.length
+  )
+    return false;
+  return (
+    analysis.diagnostics.every((diagnostic) => {
+      if (
+        diagnostic.code !== "TREESITTER_DECORATOR_EXPANSION_UNAVAILABLE" ||
+        diagnostic.range === undefined
+      )
+        return false;
+      const range = diagnostic.range;
+      return analysis.uncoveredRanges.some(
+        (uncovered) =>
+          uncovered.reason === "decorator-may-alter-or-create-declarations" &&
+          uncovered.startLine === range.startLine &&
+          uncovered.startColumn === range.startColumn &&
+          uncovered.endLine === range.endLine &&
+          uncovered.endColumn === range.endColumn,
+      );
+    }) &&
+    analysis.uncoveredRanges.every(
+      (uncovered) =>
+        uncovered.reason === "decorator-may-alter-or-create-declarations" &&
+        analysis.diagnostics.some(
+          ({ range }) =>
+            range !== undefined &&
+            uncovered.startLine === range.startLine &&
+            uncovered.startColumn === range.startColumn &&
+            uncovered.endLine === range.endLine &&
+            uncovered.endColumn === range.endColumn,
+        ),
+    )
+  );
+}
+
 export async function enrichSymbolCoordinates(
   entries: ManifestSymbolEntry[],
   workspaceRoot: string,
@@ -224,6 +248,13 @@ export async function enrichSymbolCoordinates(
   const enrichTsCoordinates =
     deps?.enrichTsCoordinates ?? enrichSymbolCoordinatesWithTsMorph;
   const output = entries.map((entry) => withoutGeneratedCoordinates(entry));
+  const service =
+    deps?.sourceAnalysisService ??
+    createMaintenanceSourceAnalysisService(workspaceRoot);
+  const analyses = new Map<
+    string,
+    Awaited<ReturnType<SourceAnalysisService["analyzeTextV2"]>>
+  >();
 
   const tsIndices: number[] = [];
   const tsEntries: ManifestSymbolEntry[] = [];
@@ -233,16 +264,65 @@ export async function enrichSymbolCoordinates(
     if (!entry) continue;
 
     const resolved = resolveSourcePath(entry.sourceFile, workspaceRoot);
-    if (!resolved) continue;
+    if (!resolved || !fs.statSync(resolved.absolutePath).isFile()) continue;
 
     const ext = path.extname(resolved.absolutePath).toLowerCase();
-    if (TS_JS_EXTENSIONS.has(ext)) {
+    if (isTsJsSourcePath(resolved.absolutePath)) {
       tsIndices.push(index);
       tsEntries.push(entry);
       continue;
     }
 
-    output[index] = enrichWithRegexHeuristic(entry, resolved.absolutePath);
+    const logicalPath = path
+      .relative(workspaceRoot, resolved.absolutePath)
+      .replaceAll("\\", "/");
+    let analysis = analyses.get(logicalPath);
+    const firstAnalysis = analysis === undefined;
+    if (!analysis) {
+      analysis = await service.analyzeTextV2(
+        logicalPath,
+        fs.readFileSync(resolved.absolutePath, "utf8"),
+      );
+      analyses.set(logicalPath, analysis);
+    }
+    const coordinateOnlyPartial =
+      deps?.allowPythonDecoratorCoordinates === true &&
+      isCoordinateOnlyDecoratorPartial(analysis);
+    if (
+      analysis.status === "failed" ||
+      (analysis.status === "partial" && !coordinateOnlyPartial)
+    )
+      throw new Error(
+        `Cannot refresh incomplete source analysis for ${logicalPath}: ${analysis.diagnostics.map((d) => d.message).join("; ")}`,
+      );
+    if (coordinateOnlyPartial && firstAnalysis) {
+      await deps?.verifyPythonDecoratorCoordinates?.(logicalPath, analysis);
+      console.warn(
+        `[kibi] Coordinate-only refresh for ${logicalPath}; source analysis remains partial: ${analysis.diagnostics.map((diagnostic) => diagnostic.message).join("; ")}`,
+      );
+    }
+    if (analysis.status === "unsupported") {
+      // Preserve the legacy coarse heuristic until the file-level migration;
+      // it is never exposed as parser-backed symbol evidence.
+      output[index] = enrichWithRegexHeuristic(entry, resolved.absolutePath);
+      continue;
+    }
+    const exact = analysis.symbols.filter(
+      (symbol) => (symbol.qualifiedName ?? symbol.name) === entry.title,
+    );
+    const candidates = exact.length
+      ? exact
+      : analysis.symbols.filter((symbol) => symbol.name === entry.title);
+    if (candidates.length !== 1) continue;
+    const symbol = candidates[0];
+    if (!symbol) continue;
+    output[index] = {
+      ...entry,
+      sourceLine: symbol.startLine,
+      sourceColumn: symbol.startColumn,
+      sourceEndLine: symbol.endLine,
+      sourceEndColumn: symbol.endColumn,
+    };
   }
 
   if (tsEntries.length > 0) {
@@ -350,10 +430,7 @@ function createFallbackAnalysis(
 }
 
 function detectSourceLanguage(filePath: string): string {
-  return (
-    SOURCE_LANGUAGE_EXTENSIONS[path.extname(filePath).toLowerCase()] ??
-    "unknown"
-  );
+  return extensionLanguage(filePath);
 }
 
 function inferModuleTitle(filePath: string): string {

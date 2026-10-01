@@ -498,6 +498,193 @@ describe("temp-kb", () => {
   });
 
   describe("projectStagedEntities", () => {
+    it("bounds persistence calls and inserts every endpoint before edges", async () => {
+      const prolog = new StubPrologProcess();
+      const results = Array.from({ length: 257 }, (_, index) =>
+        makeExtractionResult({
+          id: `REQ-BATCH-${index}`,
+          type: "req",
+          title: `Batch requirement ${index}`,
+          status: "open",
+          source: `.kb/requirements/REQ-BATCH-${index}.md`,
+          relationships: [
+            {
+              type: "relates_to",
+              from: `REQ-BATCH-${index}`,
+              to: "REQ-BATCH-256",
+            },
+          ],
+        }),
+      );
+
+      await projectStagedEntities(prolog, results);
+
+      // The previous row-at-a-time projection needed 771 saving queries.
+      expect(prolog.queries).toHaveLength(6);
+      for (const query of prolog.queries)
+        expect(Array.isArray(query)).toBe(true);
+      const entityBatches = prolog.queries.slice(0, 3) as string[][];
+      const edgeBatches = prolog.queries.slice(3) as string[][];
+      expect(entityBatches.map((batch) => batch.length)).toEqual([256, 256, 2]);
+      expect(edgeBatches.map((batch) => batch.length)).toEqual([128, 128, 1]);
+      expect(
+        entityBatches
+          .flat()
+          .filter((goal) => goal.includes("kb_assert_entity_no_audit(")),
+      ).toHaveLength(257);
+      expect(
+        entityBatches
+          .flat()
+          .some((goal) => goal.includes("kb_assert_relationship_no_audit(")),
+      ).toBe(false);
+      expect(
+        edgeBatches
+          .flat()
+          .every((goal) => goal.includes("kb_assert_relationship_no_audit(")),
+      ).toBe(true);
+      expect(entityBatches[2].join(" ")).toContain("REQ-BATCH-256");
+    });
+
+    it("escapes entity IDs in relationship retractions", async () => {
+      const prolog = new StubPrologProcess();
+      const id = "REQ-'quoted\\path";
+      await projectStagedEntities(prolog, [
+        makeExtractionResult({
+          id,
+          type: "req",
+          title: "Escaped ID",
+          status: "open",
+          source: "entity.md",
+        }),
+      ]);
+      expect(prolog.queries.flat()[0]).toContain(
+        `kb_retract_entity_relationships(${toPrologAtom(id)})`,
+      );
+    });
+
+    it("stops before later batches and edges when relationship retraction fails", async () => {
+      const prolog = new StubPrologProcess({
+        onQuery: () => ({
+          success: false,
+          bindings: {},
+          error: "cannot retract relationships",
+        }),
+      });
+      const results = Array.from({ length: 129 }, (_, index) =>
+        makeExtractionResult({
+          id: `REQ-STOP-${index}`,
+          type: "req",
+          title: "Requirement",
+          status: "open",
+          source: "entity.md",
+          relationships: [
+            { type: "relates_to", from: `REQ-STOP-${index}`, to: "REQ-STOP-0" },
+          ],
+        }),
+      );
+      await expect(projectStagedEntities(prolog, results)).rejects.toThrow(
+        "cannot retract relationships",
+      );
+      expect(prolog.queries).toHaveLength(1);
+    });
+
+    it("rolls back an entity batch and reports the specific invalid entity", async () => {
+      const ctx = await createTempKb(baseKbDir);
+      try {
+        await expect(
+          projectStagedEntities(ctx.prolog, [
+            makeExtractionResult({
+              id: "REQ-BATCH-VALID",
+              type: "req",
+              title: "Valid",
+              status: "open",
+              source: "valid.md",
+            }),
+            makeExtractionResult({
+              id: "REQ-BATCH-INVALID",
+              type: "invalid",
+              title: "Invalid",
+              status: "open",
+              source: "invalid.md",
+            }),
+            makeExtractionResult({
+              id: "REQ-BATCH-LAST",
+              type: "req",
+              title: "Last",
+              status: "open",
+              source: "last.md",
+            }),
+          ]),
+        ).rejects.toThrow("assert staged entity REQ-BATCH-INVALID");
+        expect(
+          await querySucceeds(
+            ctx.prolog,
+            "kb_entity('REQ-BATCH-VALID', req, _)",
+          ),
+        ).toBe(false);
+        expect(
+          await querySucceeds(
+            ctx.prolog,
+            "kb_entity('REQ-BATCH-LAST', req, _)",
+          ),
+        ).toBe(false);
+      } finally {
+        await cleanupTempKb(ctx.tempDir);
+      }
+    });
+
+    it("rolls back an edge batch and preserves the missing endpoint context", async () => {
+      const ctx = await createTempKb(baseKbDir);
+      try {
+        await expect(
+          projectStagedEntities(ctx.prolog, [
+            makeExtractionResult({
+              id: "REQ-EDGE-VALID",
+              type: "req",
+              title: "Valid",
+              status: "open",
+              source: "valid.md",
+              relationships: [
+                {
+                  type: "relates_to",
+                  from: "REQ-EDGE-VALID",
+                  to: "REQ-EDGE-TARGET",
+                },
+                {
+                  type: "relates_to",
+                  from: "REQ-EDGE-VALID",
+                  to: "REQ-EDGE-MISSING",
+                },
+              ],
+            }),
+            makeExtractionResult({
+              id: "REQ-EDGE-TARGET",
+              type: "req",
+              title: "Target",
+              status: "open",
+              source: "target.md",
+            }),
+          ]),
+        ).rejects.toThrow(
+          "assert staged relationship relates_to REQ-EDGE-VALID -> REQ-EDGE-MISSING",
+        );
+        expect(
+          await querySucceeds(
+            ctx.prolog,
+            "kb_entity('REQ-EDGE-VALID', req, _)",
+          ),
+        ).toBe(true);
+        expect(
+          await querySucceeds(
+            ctx.prolog,
+            "kb_relationship(relates_to, 'REQ-EDGE-VALID', 'REQ-EDGE-TARGET')",
+          ),
+        ).toBe(false);
+      } finally {
+        await cleanupTempKb(ctx.tempDir);
+      }
+    });
+
     it("preserves source coordinates for staged proof-bearing symbols", async () => {
       const prolog = new StubPrologProcess();
       await projectStagedEntities(prolog, [
@@ -520,7 +707,7 @@ describe("temp-kb", () => {
         },
       ]);
 
-      const assertGoal = String(prolog.queries[1]);
+      const assertGoal = prolog.queries.flat()[1];
       expect(assertGoal).toContain('sourceFile="src/proof-staged.ts"');
       expect(assertGoal).toContain("sourceLine=4");
       expect(assertGoal).toContain("sourceColumn=2");
@@ -577,7 +764,7 @@ describe("temp-kb", () => {
 
       await projectStagedEntities(prolog, [result]);
 
-      const assertGoal = prolog.queries[1];
+      const assertGoal = prolog.queries.flat()[1];
       expect(typeof assertGoal).toBe("string");
       if (typeof assertGoal !== "string") {
         throw new Error("Expected string assertion goal");
@@ -664,24 +851,30 @@ describe("temp-kb", () => {
         },
       ]);
 
-      expect(prolog.queries[1]).toContain(
+      expect(prolog.queries.flat()[1]).toContain(
         "logic_claims=['CLAIM-0000000000000000']",
       );
-      expect(prolog.queries[1]).toContain('semantic_text="Atomic claim text"');
-      expect(prolog.queries[1]).toContain(
+      expect(prolog.queries.flat()[1]).toContain(
+        'semantic_text="Atomic claim text"',
+      );
+      expect(prolog.queries.flat()[1]).toContain(
         'semantic_clauses=["Atomic claim text"]',
       );
-      expect(prolog.queries[1]).toContain(
+      expect(prolog.queries.flat()[1]).toContain(
         'semantic_inventory_version="kibi.semantic-inventory.v1"',
       );
-      expect(prolog.queries[1]).toContain(
+      expect(prolog.queries.flat()[1]).toContain(
         'semantic_source_field="semantic_text"',
       );
-      expect(prolog.queries[1]).toContain(
+      expect(prolog.queries.flat()[1]).toContain(
         'semantic_source_hash="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"',
       );
-      expect(prolog.queries[3]).toContain("verification_scope=end_to_end");
-      expect(prolog.queries[3]).toContain("verification_perspective=consumer");
+      expect(prolog.queries.flat()[3]).toContain(
+        "verification_scope=end_to_end",
+      );
+      expect(prolog.queries.flat()[3]).toContain(
+        "verification_perspective=consumer",
+      );
     });
 
     it("asserts staged entities and relationships into the temp KB", async () => {
@@ -779,11 +972,9 @@ describe("temp-kb", () => {
 
       expect(prolog.queries).not.toContain("kb_retract_entity('REQ-NO-AUDIT')");
       expect(
-        prolog.queries.some(
-          (query) =>
-            typeof query === "string" &&
-            query.startsWith("kb_assert_entity_no_audit(req"),
-        ),
+        prolog.queries
+          .flat()
+          .some((query) => query.includes("kb_assert_entity_no_audit(req")),
       ).toBe(true);
     });
 
@@ -791,8 +982,9 @@ describe("temp-kb", () => {
       const prolog = new StubPrologProcess({
         onQuery: async (goal) => {
           if (
-            typeof goal === "string" &&
-            goal.startsWith("kb_assert_entity_no_audit(")
+            [goal]
+              .flat()
+              .some((query) => query.includes("kb_assert_entity_no_audit("))
           ) {
             return {
               success: false,
@@ -831,8 +1023,11 @@ describe("temp-kb", () => {
       const prolog = new StubPrologProcess({
         onQuery: async (goal) => {
           if (
-            typeof goal === "string" &&
-            goal.startsWith("kb_assert_relationship_no_audit(")
+            [goal]
+              .flat()
+              .some((query) =>
+                query.includes("kb_assert_relationship_no_audit("),
+              )
           ) {
             return {
               success: false,

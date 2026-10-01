@@ -293,3 +293,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a79ff6828411
+  - type: implements
+    from: SYM-cap-plugin-sourceanalysisresultv2
+    to: REQ-capability-plugin-protocol-v1
+    created_at: 2026-09-30T15:24:08.036Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-edda494ed946
+  - type: covered_by
+    from: SYM-cap-plugin-sourceanalysisresultv2
+    to: TEST-capability-plugin-protocol-v1
+    created_at: 2026-09-30T15:24:08.048Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-37dd10925737

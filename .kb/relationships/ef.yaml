@@ -104,3 +104,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-419c50f32d66
+  - type: implements
+    from: SYM-prolog-release-extract-with-pipeline-verifier
+    to: REQ-prolog-bundled-release
+    created_at: 2026-10-01T00:21:49.470Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0aeae364c7b8
+  - type: covered_by
+    from: SYM-prolog-release-extract-with-pipeline-verifier
+    to: TEST-prolog-bundled-release
+    created_at: 2026-10-01T00:21:49.482Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d2ba59857afe

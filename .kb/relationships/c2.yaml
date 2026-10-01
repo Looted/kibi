@@ -318,3 +318,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a59a2a0e1828
+  - type: implements
+    from: SYM-impact-stage-e-semanticknowledgefingerprint
+    to: REQ-impact-policy-stage-e-content-bound-review
+    created_at: 2026-09-30T15:23:18.556Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d0c9d774931b
+  - type: covered_by
+    from: SYM-impact-stage-e-semanticknowledgefingerprint
+    to: TEST-impact-policy-stage-e-installed-e2e
+    created_at: 2026-09-30T15:23:18.570Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7cb7ee42aa05

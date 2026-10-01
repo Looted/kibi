@@ -391,3 +391,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-507d26e16dc9
+  - type: implements
+    from: SYM-prolog-release-archive-name
+    to: REQ-prolog-bundled-release
+    created_at: 2026-10-01T00:21:37.913Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-77cc7e235ef0
+  - type: covered_by
+    from: SYM-prolog-release-archive-name
+    to: TEST-prolog-bundled-release
+    created_at: 2026-10-01T00:21:37.934Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb7eec33336b

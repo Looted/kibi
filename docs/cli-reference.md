@@ -594,7 +594,7 @@ Structured JSON output preserves the same two-lane model used by MCP: hard corre
 Verifies environment setup and diagnostics.
 
 **Behavior:**
-- Checks SWI-Prolog installation and version
+- Resolves the SWI-Prolog Kibi runs (`KIBI_SWIPL`, then the bundled `kibi-swipl-<platform>` package, then `swipl` on `PATH`), reports its source, path, and version, and loads every library Kibi requires; when the bundle is missing on a supported platform it names the package to add
 - Verifies `.kb/` directory exists
 - Validates `.kb/manifest.json` syntax
 - Recognizes leftover `.kb/config.json` and recommends `kibi migrate --yes`
@@ -614,7 +614,7 @@ their entrypoint/package locations so release validation can prove which
 artifacts are executing.
 
 **Common Issues Found:**
-- SWI-Prolog not found → See [install guide](install.md)
+- SWI-Prolog not found → Add the platform package it names, or see the [install guide](install.md#which-swi-prolog-kibi-uses)
 - `.kb/` missing → Run `kibi init`
 - Git hooks missing → Run `kibi init`
 - Git hooks use the legacy template without kibi CLI resolution → Run `kibi init` to regenerate them

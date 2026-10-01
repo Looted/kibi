@@ -1,273 +1,239 @@
 relationships:
-  [
-    {
-        type: covered_by,
-        from: SYM-operation-coverage-spec,
-        to: TEST-kibi-conservative-requirement-proof,
-        created_at: 2026-08-16T18:51:34.256Z,
-        created_by: kibi/upsert,
-        source: mcp://kibi/upsert,
-        id: rel-861b74302558
-      },
-    {
-        type: covered_by,
-        from: SYM-operation-coverage-spec,
-        to: TEST-kibi-dependency-ordered-repair-plan,
-        created_at: 2026-08-16T18:51:39.472Z,
-        created_by: kibi/upsert,
-        source: mcp://kibi/upsert,
-        id: rel-469ce3c7df84
-      },
-    {
-        type: covered_by,
-        from: SYM-reqcompiler-repair-plan-version,
-        to: TEST-kibi-dependency-ordered-repair-plan,
-        created_at: 2026-08-16T18:51:39.493Z,
-        created_by: kibi/upsert,
-        source: mcp://kibi/upsert,
-        id: rel-39ec42eedcaa
-      },
-    {
-        type: covered_by,
-        from: SYM-cli-is-operation-name,
-        to: TEST-test-journaled-engine-harness,
-        created_at: 2026-08-16T18:52:30.395Z,
-        created_by: kibi/upsert,
-        source: mcp://kibi/upsert,
-        id: rel-7748f9203591
-      },
-    {
-        type: implements,
-        from: SYM-operation-coverage-spec,
-        to: REQ-kibi-operation-interface-parity,
-        created_at: 2026-08-22T21:00:29.295Z,
-        created_by: kibi/upsert,
-        source: mcp://kibi/upsert,
-        id: rel-397d0404b241
-      },
-    {
-        type: implements,
-        from: SYM-operation-coverage-spec,
-        to: REQ-kibi-conservative-requirement-proof,
-        created_at: 2026-08-22T21:00:29.312Z,
-        created_by: kibi/upsert,
-        source: mcp://kibi/upsert,
-        id: rel-bad09cb9a0b2
-      },
-    {
-        type: implements,
-        from: SYM-operation-coverage-spec,
-        to: REQ-kibi-dependency-ordered-repair-plan,
-        created_at: 2026-08-22T21:00:29.316Z,
-        created_by: kibi/upsert,
-        source: mcp://kibi/upsert,
-        id: rel-7a9eb7407252
-      },
-    {
-        type: covered_by,
-        from: SYM-operation-coverage-spec,
-        to: TEST-kibi-operation-interface-parity,
-        created_at: 2026-08-22T21:00:29.322Z,
-        created_by: kibi/upsert,
-        source: mcp://kibi/upsert,
-        id: rel-94c0c1ea9d2c
-      },
-    {
-        type: covered_by,
-        from: SYM-operation-coverage-spec,
-        to: TEST-kibi-change-to-proof-plan-compiler,
-        created_at: 2026-08-22T21:00:29.330Z,
-        created_by: kibi/upsert,
-        source: mcp://kibi/upsert,
-        id: rel-d628cd1f6c2c
-      },
-    {
-        type: implements,
-        from: SYM-skillopt-cursor-cell-receipt,
-        to: REQ-skillopt-codex-optimization,
-        created_at: 2026-08-24T17:22:33.006Z,
-        created_by: kibi/upsert,
-        source: mcp://kibi/upsert,
-        id: rel-41f1e91bdcdc
-      },
-    {
-        type: covered_by,
-        from: SYM-skillopt-cursor-cell-receipt,
-        to: TEST-skillopt-cursor-compat,
-        created_at: 2026-08-25T19:51:02.344Z,
-        created_by: kibi/upsert,
-        source: mcp://kibi/upsert,
-        id: rel-8b06d0947991
-      },
-    {
-        type: covered_by,
-        from: SYM-cli-PrologProcess-terminateProcessTree,
-        to: TEST-kibi-change-to-proof-plan-compiler,
-        created_at: 2026-08-26T07:17:02.273Z,
-        created_by: kibi/upsert,
-        source: mcp://kibi/upsert,
-        id: rel-fae01ea4d260
-      },
-    {
-        type: covered_by,
-        from: SYM-cli-PrologProcess-terminateProcessTree,
-        to: TEST-001,
-        created_at: 2026-09-05T15:34:31.961Z,
-        created_by: kibi/upsert,
-        source: mcp://kibi/upsert,
-        id: rel-de690e716470
-      },
-    {
-        type: covered_by,
-        from: SYM-modeling-predicate-inference-2-inferAbsenceRequirementArgs,
-        to: TEST-mcp-suggest-predicates,
-        created_at: 2026-09-05T17:42:28.472Z,
-        created_by: kibi/upsert,
-        source: mcp://kibi/upsert,
-        id: rel-dcc2936233df
-      },
-    {
-        type: covered_by,
-        from: SYM-predicate-score-schema,
-        to: TEST-mcp-suggest-predicates,
-        created_at: 2026-09-05T17:48:06.219Z,
-        created_by: kibi/upsert,
-        source: mcp://kibi/upsert,
-        id: rel-b330e923cf24
-      },
-    {
-        type: covered_by,
-        from: SYM-HeldOutGateOutcomes,
-        to: TEST-skillopt-external-adoption-verdict,
-        created_at: 2026-09-05T18:08:25.727Z,
-        created_by: kibi/upsert,
-        source: mcp://kibi/upsert,
-        id: rel-a826ca2f2536
-      },
-    {
-        type: covered_by,
-        from: SYM-resolveSymbolsManifestPath-2,
-        to: TEST-vscode-traceability,
-        created_at: 2026-09-05T18:25:09.732Z,
-        created_by: kibi/upsert,
-        source: mcp://kibi/upsert,
-        id: rel-2e1ab57c00e2
-      },
-    {
-        type: implements,
-        from: SYM-skillopt-runtime-code-mode-host-path,
-        to: REQ-skillopt-codex-optimization,
-        created_at: 2026-09-08T00:33:55.688Z,
-        created_by: kibi/upsert,
-        source: mcp://kibi/upsert,
-        id: rel-2358d24fe6c0
-      },
-    {
-        type: covered_by,
-        from: SYM-skillopt-runtime-code-mode-host-path,
-        to: TEST-skillopt-codex-optimization,
-        created_at: 2026-09-08T00:33:55.701Z,
-        created_by: kibi/upsert,
-        source: mcp://kibi/upsert,
-        id: rel-7c63c52ab68b
-      },
-    {
-        type: implements,
-        from: SYM-zcode-proof-ZCODE_PROOF_COMMAND,
-        to: REQ-kibi-verification-receipts-v2,
-        created_at: 2026-09-17T08:54:40.675Z,
-        created_by: kibi/upsert,
-        source: mcp://kibi/upsert,
-        id: rel-a59d68542740
-      },
-    {
-        type: covered_by,
-        from: SYM-zcode-proof-ZCODE_PROOF_COMMAND,
-        to: TEST-zcode-kibi-plugin-v1,
-        created_at: 2026-09-17T08:54:40.688Z,
-        created_by: kibi/upsert,
-        source: mcp://kibi/upsert,
-        id: rel-bc22577b6564
-      },
-    {
-        type: covered_by,
-        from: SYM-operation-coverage-spec,
-        to: TEST-e2e-coverage-proof-status,
-        created_at: 2026-09-18T07:27:57.796Z,
-        created_by: kibi/upsert,
-        source: mcp://kibi/upsert,
-        id: rel-3a927ecd196f
-      },
-    {
-        type: covered_by,
-        from: SYM-resolveSymbolsManifestPath-2,
-        to: TEST-e2e-vscode-extension-lifecycle,
-        created_at: 2026-09-19T19:28:29.076Z,
-        created_by: kibi/upsert,
-        source: mcp://kibi/upsert,
-        id: rel-29cfec2cfaf4
-      },
-    {
-        type: implements,
-        from: SYM-HeldOutGateOutcomes,
-        to: REQ-skillopt-paid-matrix-infrastructure,
-        created_at: 2026-09-19T19:36:01.989Z,
-        created_by: kibi/upsert,
-        source: mcp://kibi/upsert,
-        id: rel-aa08cdd67f53
-      },
-    {
-        type: covered_by,
-        from: SYM-cap-plugin-semanticclassifierresult-45488800,
-        to: TEST-capability-plugin-protocol-v1,
-        created_at: 2026-09-22T19:45:39.387Z,
-        created_by: kibi/upsert,
-        source: mcp://kibi/upsert,
-        id: rel-faa2b247b499
-      },
-    {
-        type: implements,
-        from: SYM-mcp-resolve-env-file-path,
-        to: REQ-kibi-env-bootstrap,
-        created_at: 2026-09-23T11:20:20.530Z,
-        created_by: kibi/upsert,
-        source: mcp://kibi/upsert,
-        id: rel-a0d46d13662d
-      },
-    {
-        type: covered_by,
-        from: SYM-mcp-resolve-env-file-path,
-        to: TEST-cli-env-bootstrap,
-        created_at: 2026-09-23T11:20:20.551Z,
-        created_by: kibi/upsert,
-        source: mcp://kibi/upsert,
-        id: rel-d0a790d76862
-      },
-    {
-        type: covered_by,
-        from: SYM-mcp-resolve-env-file-path,
-        to: TEST-e2e-kibi-env-bootstrap,
-        created_at: 2026-09-23T15:05:00.089Z,
-        created_by: kibi/upsert,
-        source: mcp://kibi/upsert,
-        id: rel-4357cc3cd3d9
-      },
-    {
-        type: implements,
-        from: SYM-SYNC_COMPILER_FINGERPRINT,
-        to: REQ-cli-canonical-runtime,
-        created_at: 2026-09-29T11:26:39.682Z,
-        created_by: kibi/upsert,
-        source: mcp://kibi/upsert,
-        id: rel-5aefa58a3a3d
-      },
-    {
-        type: covered_by,
-        from: SYM-SYNC_COMPILER_FINGERPRINT,
-        to: TEST-cli-canonical-runtime,
-        created_at: 2026-09-29T11:26:39.704Z,
-        created_by: kibi/upsert,
-        source: mcp://kibi/upsert,
-        id: rel-c7b6ca706b1b
-      }
-  ]
+  - type: covered_by
+    from: SYM-operation-coverage-spec
+    to: TEST-kibi-conservative-requirement-proof
+    created_at: 2026-08-16T18:51:34.256Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-861b74302558
+  - type: covered_by
+    from: SYM-operation-coverage-spec
+    to: TEST-kibi-dependency-ordered-repair-plan
+    created_at: 2026-08-16T18:51:39.472Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-469ce3c7df84
+  - type: covered_by
+    from: SYM-reqcompiler-repair-plan-version
+    to: TEST-kibi-dependency-ordered-repair-plan
+    created_at: 2026-08-16T18:51:39.493Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-39ec42eedcaa
+  - type: covered_by
+    from: SYM-cli-is-operation-name
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-16T18:52:30.395Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7748f9203591
+  - type: implements
+    from: SYM-operation-coverage-spec
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T21:00:29.295Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-397d0404b241
+  - type: implements
+    from: SYM-operation-coverage-spec
+    to: REQ-kibi-conservative-requirement-proof
+    created_at: 2026-08-22T21:00:29.312Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bad09cb9a0b2
+  - type: implements
+    from: SYM-operation-coverage-spec
+    to: REQ-kibi-dependency-ordered-repair-plan
+    created_at: 2026-08-22T21:00:29.316Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7a9eb7407252
+  - type: covered_by
+    from: SYM-operation-coverage-spec
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T21:00:29.322Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-94c0c1ea9d2c
+  - type: covered_by
+    from: SYM-operation-coverage-spec
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T21:00:29.330Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d628cd1f6c2c
+  - type: implements
+    from: SYM-skillopt-cursor-cell-receipt
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-24T17:22:33.006Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-41f1e91bdcdc
+  - type: covered_by
+    from: SYM-skillopt-cursor-cell-receipt
+    to: TEST-skillopt-cursor-compat
+    created_at: 2026-08-25T19:51:02.344Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8b06d0947991
+  - type: covered_by
+    from: SYM-cli-PrologProcess-terminateProcessTree
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-26T07:17:02.273Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fae01ea4d260
+  - type: covered_by
+    from: SYM-cli-PrologProcess-terminateProcessTree
+    to: TEST-001
+    created_at: 2026-09-05T15:34:31.961Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-de690e716470
+  - type: covered_by
+    from: SYM-modeling-predicate-inference-2-inferAbsenceRequirementArgs
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:42:28.472Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dcc2936233df
+  - type: covered_by
+    from: SYM-predicate-score-schema
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:48:06.219Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b330e923cf24
+  - type: covered_by
+    from: SYM-HeldOutGateOutcomes
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:08:25.727Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a826ca2f2536
+  - type: covered_by
+    from: SYM-resolveSymbolsManifestPath-2
+    to: TEST-vscode-traceability
+    created_at: 2026-09-05T18:25:09.732Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2e1ab57c00e2
+  - type: implements
+    from: SYM-skillopt-runtime-code-mode-host-path
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-09-08T00:33:55.688Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2358d24fe6c0
+  - type: covered_by
+    from: SYM-skillopt-runtime-code-mode-host-path
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-09-08T00:33:55.701Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7c63c52ab68b
+  - type: implements
+    from: SYM-zcode-proof-ZCODE_PROOF_COMMAND
+    to: REQ-kibi-verification-receipts-v2
+    created_at: 2026-09-17T08:54:40.675Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a59d68542740
+  - type: covered_by
+    from: SYM-zcode-proof-ZCODE_PROOF_COMMAND
+    to: TEST-zcode-kibi-plugin-v1
+    created_at: 2026-09-17T08:54:40.688Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bc22577b6564
+  - type: covered_by
+    from: SYM-operation-coverage-spec
+    to: TEST-e2e-coverage-proof-status
+    created_at: 2026-09-18T07:27:57.796Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3a927ecd196f
+  - type: covered_by
+    from: SYM-resolveSymbolsManifestPath-2
+    to: TEST-e2e-vscode-extension-lifecycle
+    created_at: 2026-09-19T19:28:29.076Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-29cfec2cfaf4
+  - type: implements
+    from: SYM-HeldOutGateOutcomes
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:36:01.989Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aa08cdd67f53
+  - type: covered_by
+    from: SYM-cap-plugin-semanticclassifierresult-45488800
+    to: TEST-capability-plugin-protocol-v1
+    created_at: 2026-09-22T19:45:39.387Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-faa2b247b499
+  - type: implements
+    from: SYM-mcp-resolve-env-file-path
+    to: REQ-kibi-env-bootstrap
+    created_at: 2026-09-23T11:20:20.530Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a0d46d13662d
+  - type: covered_by
+    from: SYM-mcp-resolve-env-file-path
+    to: TEST-cli-env-bootstrap
+    created_at: 2026-09-23T11:20:20.551Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d0a790d76862
+  - type: covered_by
+    from: SYM-mcp-resolve-env-file-path
+    to: TEST-e2e-kibi-env-bootstrap
+    created_at: 2026-09-23T15:05:00.089Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4357cc3cd3d9
+  - type: implements
+    from: SYM-SYNC_COMPILER_FINGERPRINT
+    to: REQ-cli-canonical-runtime
+    created_at: 2026-09-29T11:26:39.682Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5aefa58a3a3d
+  - type: covered_by
+    from: SYM-SYNC_COMPILER_FINGERPRINT
+    to: TEST-cli-canonical-runtime
+    created_at: 2026-09-29T11:26:39.704Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c7b6ca706b1b
+  - type: covered_by
+    from: SYM-impact-stage-e-type-impactreviewdiagnostic
+    to: TEST-impact-policy-stage-e-installed-e2e
+    created_at: 2026-09-27T17:51:10.796Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8600668f615b
+  - type: implements
+    from: SYM-impact-stage-e-type-impactreviewdiagnostic
+    to: REQ-impact-policy-stage-e-content-bound-review
+    created_at: 2026-09-27T17:51:10.872Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-46d3e8b6542c
+  - type: implements
+    from: SYM-performance-trace-dir-env
+    to: REQ-installed-staged-impact-timing-integrity
+    created_at: 2026-09-28T09:39:34.718Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8cb560bec878
+  - type: covered_by
+    from: SYM-performance-trace-dir-env
+    to: TEST-installed-staged-impact-timing-integrity
+    created_at: 2026-09-28T09:39:34.748Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a68ea876b220

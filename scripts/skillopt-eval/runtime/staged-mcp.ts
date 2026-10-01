@@ -97,6 +97,17 @@ async function copyRuntimeResources(
       resolve(stagedRoot, "node_modules/kibi-core/schema"),
       { recursive: true },
     ),
+    // The staged CLI imports the resolver package by name; without it the
+    // engine daemon cannot start. Platform packages are not staged, so the
+    // evaluation runtime resolves swipl from PATH.
+    cp(
+      resolve(sourceWorktree, "packages/swipl/package.json"),
+      resolve(stagedRoot, "node_modules/kibi-swipl/package.json"),
+    ),
+    cp(
+      resolve(sourceWorktree, "packages/swipl/index.js"),
+      resolve(stagedRoot, "node_modules/kibi-swipl/index.js"),
+    ),
     cp(
       resolve(sourceWorktree, "packages/cli/dist/public/skills"),
       resolve(stagedRoot, "dist/skills"),

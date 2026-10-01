@@ -160,6 +160,41 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-800ee562f876
+  - type: validates
+    from: TEST-prolog-coverage-test-selection
+    to: SCEN-prolog-coverage-test-selection
+    created_at: 2026-09-30T09:07:53.339Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-27f4d1f798dc
+  - type: implements
+    from: SYM-impact-stage-e-createmaintenancesourceanalysisservice
+    to: REQ-impact-policy-stage-e-content-bound-review
+    created_at: 2026-09-30T15:21:27.621Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c724f16b0aa9
+  - type: covered_by
+    from: SYM-impact-stage-e-createmaintenancesourceanalysisservice
+    to: TEST-impact-policy-stage-e-installed-e2e
+    created_at: 2026-09-30T15:21:27.632Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e7cc4e0c37ea
+  - type: implements
+    from: SYM-impact-stage-e-entityrowswithrelationships
+    to: REQ-impact-policy-stage-e-content-bound-review
+    created_at: 2026-09-30T15:23:05.070Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-758f5ab1667a
+  - type: covered_by
+    from: SYM-impact-stage-e-entityrowswithrelationships
+    to: TEST-impact-policy-stage-e-installed-e2e
+    created_at: 2026-09-30T15:23:05.081Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ae02a6773eb3
   - type: implements
     from: SYM-docs-site-theme-escapeHtml
     to: REQ-docs-site-root-pages

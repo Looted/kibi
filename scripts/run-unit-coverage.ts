@@ -89,6 +89,14 @@ const ZCODE_UNIT_TESTS = readdirSync("./packages/zcode/tests")
   )
   .map((entry) => `./packages/zcode/tests/${entry}`);
 
+const SCRIPT_TESTS = readdirSync("./scripts/tests", {
+  recursive: true,
+  encoding: "utf8",
+})
+  .filter((entry) => /\.(?:test|spec)\.[cm]?[jt]sx?$/.test(entry))
+  .map((entry) => `./scripts/tests/${entry}`)
+  .sort();
+
 function spawnErrorCode(error: Error | undefined): string | undefined {
   return (error as NodeJS.ErrnoException | undefined)?.code;
 }
@@ -127,6 +135,8 @@ const CLI_COMMAND_TESTS = readdirSync(CLI_COMMANDS_DIR)
 export const COVERAGE_SHARDS: readonly {
   readonly label: string;
   readonly paths: readonly string[];
+  /** Node V8 coverage maps parser conformance and worker execution to TS. */
+  readonly runtime?: "node-parser";
   readonly timeoutMs?: number;
   /** Override the Bun process wall-clock bound for oversized serial shards. */
   readonly processTimeoutMs?: number;
@@ -201,6 +211,15 @@ export const COVERAGE_SHARDS: readonly {
     isolation: "process-per-file",
   },
   {
+    // Impact-review and coordinate-refresh tests build many Git fixtures. In a
+    // shared Bun 1.4 coverage process an exited Git child can hang the file
+    // indefinitely, so every traceability test runs in its own process.
+    label: "cli.support.traceability",
+    paths: CLI_SUPPORT_TRACEABILITY_TESTS,
+    timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
+    isolation: "process-per-file",
+  },
+  {
     label: "cli.support",
     paths: [
       "./packages/cli/tests/extractors",
@@ -208,11 +227,15 @@ export const COVERAGE_SHARDS: readonly {
       "./packages/cli/tests/logic",
       "./packages/cli/tests/proof",
       "./packages/cli/tests/relationships",
-      ...CLI_SUPPORT_TRACEABILITY_TESTS,
       "./packages/cli/tests/prolog",
       "./packages/cli/tests/helpers",
     ],
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
+  },
+  {
+    label: "parser.node",
+    paths: ["./packages/plugin-treesitter/tests"],
+    runtime: "node-parser",
   },
   {
     label: "capability-plugins",
@@ -382,7 +405,11 @@ export const COVERAGE_SHARDS: readonly {
   },
   {
     label: "scripts",
-    paths: ["./scripts/tests", "./test/root-summary.test.ts"],
+    // CI saw unrelated shell and Node subprocess tests hit the same 15s Bun
+    // timeout with empty output after earlier files ran in this coverage VM.
+    // A process per file keeps each child-process test's Bun state private.
+    paths: [...SCRIPT_TESTS, "./test/root-summary.test.ts"],
+    isolation: "process-per-file",
   },
   {
     label: "vscode.activation",
@@ -755,6 +782,48 @@ export async function runUnitCoverage(
         shard.label.replace(/[^a-zA-Z0-9._-]/g, "_"),
       );
       mkdirSync(shardCoverageDir, { recursive: true });
+      if (shard.runtime === "node-parser") {
+        const started = Date.now();
+        const result = childProcess.spawnSync(
+          "node",
+          [
+            join(import.meta.dir, "parser-unit-coverage.mjs"),
+            process.cwd(),
+            shardCoverageDir,
+          ],
+          {
+            stdio: "pipe",
+            encoding: "utf8",
+            timeout: FILE_PROCESS_TIMEOUT_MS,
+            killSignal: "SIGKILL",
+          },
+        );
+        const lastOutput = `${result.stdout ?? ""}${result.stderr ?? ""}`;
+        if (result.status !== 0 || result.error) {
+          failedShards.push(
+            formatCoverageFailure({
+              label: shard.label,
+              exitCode: result.status ?? 1,
+              durationMs: Date.now() - started,
+              timeoutMs: FILE_PROCESS_TIMEOUT_MS,
+              timedOut: spawnErrorCode(result.error) === "ETIMEDOUT",
+              lastOutput,
+            }),
+          );
+          continue;
+        }
+        const parserLcov = join(shardCoverageDir, "lcov.info");
+        if (!existsSync(parserLcov)) {
+          failedShards.push(`${shard.label} coverage artifact missing`);
+          continue;
+        }
+        shardFiles.push(parserLcov);
+        shardArtifacts.push({ label: shard.label, path: parserLcov });
+        console.info(
+          `Finished unit coverage ${shard.label} (exit 0, ${Date.now() - started}ms).`,
+        );
+        continue;
+      }
       const isolation = shard.isolation ?? "batch";
       const units =
         isolation === "process-per-file"

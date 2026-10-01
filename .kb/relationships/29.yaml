@@ -153,3 +153,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c14857d9b193
+  - type: covered_by
+    from: SYM-impact-stage-e-fingerprintbytes
+    to: TEST-impact-policy-stage-e-installed-e2e
+    created_at: 2026-09-27T17:38:45.084Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5abcbc517c42
+  - type: implements
+    from: SYM-impact-stage-e-fingerprintbytes
+    to: REQ-impact-policy-stage-e-content-bound-review
+    created_at: 2026-09-27T17:38:45.128Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a8b5fcc1d377

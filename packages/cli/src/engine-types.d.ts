@@ -62,6 +62,7 @@ export type EngineRequest = {
     | "search"
     | "kbStatus"
     | "status"
+    | "handshake"
     | "checkpoint"
     | "compact"
     | "export"
@@ -69,6 +70,8 @@ export type EngineRequest = {
     | "cancel";
   readonly protocolVersion?: number;
   readonly packageVersions?: string;
+  /** Resolved SWI-Prolog (`<bin>@<version>`) the client expects the daemon to run. */
+  readonly prologIdentity?: string;
   readonly workspaceRoot?: string;
   readonly branch?: string;
   readonly goal?: string;

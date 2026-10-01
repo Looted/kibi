@@ -230,3 +230,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-75b40abca308
+  - type: requires_property
+    from: REQ-mcp-suggest-predicates
+    to: FACT-PROP-MCP-SUGGEST-PREDICATES-POLARITY-BINDINGS
+    created_at: 2026-09-28T18:23:51.910Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7149e8a6eb23
+  - type: constrains
+    from: REQ-mcp-suggest-predicates
+    to: FACT-SUBJ-PREDICATE-SUGGESTION-PLAN
+    created_at: 2026-09-29T13:01:42.755Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-61cb5ca96487
+  - type: implements
+    from: SYM-impact-stage-e-fingerprintmaintenancesourceset
+    to: REQ-impact-policy-stage-e-content-bound-review
+    created_at: 2026-09-30T15:21:32.511Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a4696af68dae
+  - type: covered_by
+    from: SYM-impact-stage-e-fingerprintmaintenancesourceset
+    to: TEST-impact-policy-stage-e-installed-e2e
+    created_at: 2026-09-30T15:21:32.526Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-48f456a68e42
+  - type: implements
+    from: SYM-prolog-spike-config-validate
+    to: REQ-prolog-spike-config-validation
+    created_at: 2026-09-30T08:57:07.990Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-22e852f63eaf
+  - type: covered_by
+    from: SYM-prolog-spike-config-validate
+    to: TEST-prolog-spike-config-validation
+    created_at: 2026-09-30T08:57:08.010Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-63a96c4e75a0
+  - type: executable_for
+    from: SYM-test-prolog-coverage-test-selection
+    to: TEST-prolog-coverage-test-selection
+    created_at: 2026-09-30T09:08:35.457Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2e8f3c6a9eb
+  - type: implements
+    from: SYM-prolog-spike-config-validate
+    to: REQ-prolog-build-pipeline-validation
+    created_at: 2026-09-30T17:54:00.448Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3408f410df42
+  - type: covered_by
+    from: SYM-prolog-spike-config-validate
+    to: TEST-prolog-build-pipeline-validation
+    created_at: 2026-09-30T17:54:00.498Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bd05491c1371

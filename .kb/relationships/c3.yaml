@@ -258,3 +258,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7b243ba8db47
+  - type: implements
+    from: SYM-prolog-swipl-platformkey-dts
+    to: REQ-prolog-bundled-runtime
+    created_at: 2026-09-30T23:36:07.517Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-53b482570a31
+  - type: covered_by
+    from: SYM-prolog-swipl-platformkey-dts
+    to: TEST-prolog-bundled-runtime
+    created_at: 2026-09-30T23:36:07.533Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aa8e85ad411b

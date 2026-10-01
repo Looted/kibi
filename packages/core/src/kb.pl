@@ -288,15 +288,16 @@ kb_write_lock_owner(Directory) :-
     ;   BootId = ""
     ),
     get_time(Now),
-    format_time(atom(StartedAt), '%FT%TZ', Now),
+    stamp_date_time(Now, NowUTC, 'UTC'),
+    format_time(atom(StartedAt), '%FT%TZ', NowUTC),
     atom_concat(Path, '.tmp', TmpPath),
     setup_call_cleanup(
         open(TmpPath, write, Stream),
         json_write_dict(Stream,
-                        json([pid:Pid,
-                              workspaceRoot:Directory,
-                              bootId:BootId,
-                              startedAt:StartedAt]),
+                        _{pid:Pid,
+                          workspaceRoot:Directory,
+                          bootId:BootId,
+                          startedAt:StartedAt},
                         []),
         (close(Stream), rename_file(TmpPath, Path))).
 

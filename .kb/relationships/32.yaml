@@ -258,3 +258,136 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-21946c88b8d3
+  - type: covered_by
+    from: SYM-impact-stage-e-parseimpactpolicy
+    to: TEST-impact-policy-stage-e-installed-e2e
+    created_at: 2026-09-27T17:45:09.872Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-91afed51221a
+  - type: implements
+    from: SYM-impact-stage-e-parseimpactpolicy
+    to: REQ-impact-policy-stage-e-content-bound-review
+    created_at: 2026-09-27T17:45:09.922Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-125fc771a79b
+  - type: constrains
+    from: REQ-prolog-build-pipeline-validation
+    to: FACT-prolog-build-pipeline-subject
+    created_at: 2026-09-30T17:47:38.229Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5c989d3bfb9e
+  - type: requires_property
+    from: REQ-prolog-build-pipeline-validation
+    to: FACT-prolog-build-accepts-four-launch-targets
+    created_at: 2026-09-30T17:47:38.319Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-03d881f2b711
+  - type: requires_property
+    from: REQ-prolog-build-pipeline-validation
+    to: FACT-prolog-build-declares-separate-build-and-smoke-jobs
+    created_at: 2026-09-30T17:47:38.363Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ffa32386ecd8
+  - type: requires_property
+    from: REQ-prolog-build-pipeline-validation
+    to: FACT-prolog-build-triggers-pinned-build-updates-and-dispatch
+    created_at: 2026-09-30T17:47:38.386Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c126a626af5a
+  - type: requires_property
+    from: REQ-prolog-build-pipeline-validation
+    to: FACT-prolog-build-publishes-checksum-and-pinned-manifest
+    created_at: 2026-09-30T17:47:38.413Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9f9aa3e7f7ed
+  - type: requires_property
+    from: REQ-prolog-build-pipeline-validation
+    to: FACT-prolog-build-refuses-system-swipl-on-clean-runner
+    created_at: 2026-09-30T17:47:38.448Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1a5d6e30b6a4
+  - type: requires_property
+    from: REQ-prolog-build-pipeline-validation
+    to: FACT-prolog-build-rejects-archive-checksum-mismatch
+    created_at: 2026-09-30T17:47:38.471Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cd06782f3213
+  - type: requires_property
+    from: REQ-prolog-build-pipeline-validation
+    to: FACT-prolog-build-rejects-executable-checksum-mismatch
+    created_at: 2026-09-30T17:47:38.515Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a7be60a182c7
+  - type: requires_property
+    from: REQ-prolog-build-pipeline-validation
+    to: FACT-prolog-build-rejects-manifest-provenance-mismatch
+    created_at: 2026-09-30T17:47:38.581Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-548157a7c4ce
+  - type: requires_property
+    from: REQ-prolog-build-pipeline-validation
+    to: FACT-prolog-build-rejects-unsafe-archive-entries
+    created_at: 2026-09-30T17:47:38.603Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb664fbc723c
+  - type: requires_property
+    from: REQ-prolog-build-pipeline-validation
+    to: FACT-prolog-build-rejects-incomplete-runtime-prefix
+    created_at: 2026-09-30T17:47:38.621Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-84593d7bf47b
+  - type: requires_property
+    from: REQ-prolog-build-pipeline-validation
+    to: FACT-prolog-build-rejects-native-audit-failure
+    created_at: 2026-09-30T17:47:38.646Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bc90de9cfcf8
+  - type: requires_property
+    from: REQ-prolog-build-pipeline-validation
+    to: FACT-prolog-build-sets-home-and-clears-loader-overrides
+    created_at: 2026-09-30T17:47:38.669Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0213dea87c80
+  - type: requires_property
+    from: REQ-prolog-build-pipeline-validation
+    to: FACT-prolog-build-requests-full-library-and-arithmetic-and-mtime-smoke
+    created_at: 2026-09-30T17:47:38.696Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bbe82280621f
+  - type: requires_property
+    from: REQ-prolog-build-pipeline-validation
+    to: FACT-prolog-build-propagates-smoke-command-failure
+    created_at: 2026-09-30T17:47:38.707Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4cba12834c52
+  - type: requires_property
+    from: REQ-prolog-build-pipeline-validation
+    to: FACT-prolog-build-refuses-native-build-outside-actions
+    created_at: 2026-09-30T17:47:38.733Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-006e2b909029
+  - type: specified_by
+    from: REQ-prolog-build-pipeline-validation
+    to: SCEN-prolog-build-pipeline-validation
+    created_at: 2026-09-30T17:57:58.629Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cc484735db5c

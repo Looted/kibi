@@ -20,12 +20,19 @@ import { type ChildProcess, spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
+import { performance } from "node:perf_hooks";
 import { fileURLToPath } from "node:url";
 import { getKbPlPathOverride, isPrologDebugEnabled } from "./env.js";
+import { writePerformanceTraceEvent } from "./performance-trace.js";
 import {
   type PrologErrorRecord,
   extractPrologErrorRecord,
 } from "./prolog/error-terms.js";
+import {
+  type ResolvedSwipl,
+  resolveSwipl,
+  swiplChildEnv,
+} from "./prolog/swipl-resolver.js";
 
 const importMetaDir = path.dirname(fileURLToPath(import.meta.url));
 const DEFAULT_PROLOG_OUTPUT_MAX_BUFFER_BYTES = 8 * 1024 * 1024;
@@ -92,7 +99,13 @@ export function resolveKbPlPath(): string {
   );
 }
 export interface PrologOptions {
+  /**
+   * Explicit SWI-Prolog executable. When omitted, the executable comes from
+   * the resolver (KIBI_SWIPL, the bundled platform package, then PATH).
+   */
   swiplPath?: string;
+  /** Resolver seam for tests; defaults to the per-process SWI-Prolog resolver. */
+  swiplResolver?: () => ResolvedSwipl;
   timeout?: number;
   /**
    * Force one-shot SWI execution. Production callers are Node-only and keep
@@ -164,7 +177,8 @@ export function bindProcessExitHandler(
 
 export class PrologProcess {
   private process: ChildProcess | null = null;
-  private swiplPath: string;
+  private explicitSwiplPath: string | undefined;
+  private readonly swiplResolver: () => ResolvedSwipl;
   private timeout: number;
   private outputBuffer = "";
   private outputBufferBytes = 0;
@@ -188,7 +202,8 @@ export class PrologProcess {
   private terminationReason: string | null = null;
 
   constructor(options: PrologOptions = {}) {
-    this.swiplPath = options.swiplPath || "swipl";
+    this.explicitSwiplPath = options.swiplPath || undefined;
+    this.swiplResolver = options.swiplResolver ?? (() => resolveSwipl());
     this.timeout = options.timeout || 30000;
     this.maxOutputBytes =
       options.maxOutputBytes !== undefined &&
@@ -230,19 +245,37 @@ export class PrologProcess {
     return this.interactiveStarted && !this.isProcessUsable();
   }
 
+  /**
+   * The executable and SWI home to launch. An explicit `swiplPath` is used
+   * verbatim; otherwise the per-process resolver decides, so a missing or
+   * damaged runtime fails with its complete remediation text.
+   */
+  private launchTarget(): { bin: string; env: Record<string, string> } {
+    const explicit = this.explicitSwiplPath;
+    if (explicit !== undefined) return { bin: explicit, env: {} };
+    const resolved = this.swiplResolver();
+    return { bin: resolved.bin, env: swiplChildEnv(resolved) };
+  }
+
   async start(): Promise<void> {
-    if (!existsSync(this.swiplPath) && this.swiplPath !== "swipl") {
+    const explicit = this.explicitSwiplPath;
+    if (
+      explicit !== undefined &&
+      !existsSync(explicit) &&
+      explicit !== "swipl"
+    ) {
       throw new Error(
-        `SWI-Prolog not found at ${this.swiplPath}. Please install SWI-Prolog or check your PATH.`,
+        `SWI-Prolog not found at ${explicit}. Please install SWI-Prolog or check your PATH.`,
       );
     }
+    const launch = this.launchTarget();
 
     const kbPath = resolveKbPlPath();
     this.interactiveStarted = true;
     this.terminationReason = null;
     this.invalidateCache();
     this.process = spawn(
-      this.swiplPath,
+      launch.bin,
       [
         "-g",
         `use_module('${kbPath}'), use_module(library(semweb/rdf_db)), set_prolog_flag(answer_write_options, [max_depth(0), quoted(true)])`,
@@ -252,6 +285,7 @@ export class PrologProcess {
         detached: process.platform !== "win32",
         env: {
           ...process.env,
+          ...launch.env,
           KIBI_RUNTIME_NAME:
             process.versions.bun !== undefined ? "bun" : "node",
           KIBI_RUNTIME_VERSION:
@@ -342,13 +376,26 @@ export class PrologProcess {
 
   // implements REQ-core-prolog-process-management
   async query(goal: string | string[]): Promise<QueryResult> {
+    // A lost interactive session must fail before any cached answer is served.
+    if (!this.useOneShotMode && this.needsRestart()) {
+      throw this.lostProcessError();
+    }
+
     const isSingleGoal = typeof goal === "string";
     const goalKey = isSingleGoal ? goal : null;
     const cacheable = goalKey !== null && this.isCacheableGoal(goalKey);
 
     if (cacheable) {
+      const cacheLookupStartedAt =
+        process.env.KIBI_PERF_TIMINGS === "1" ? performance.now() : null;
       const cachedResult = this.cache.get(goalKey);
       if (cachedResult) {
+        if (cacheLookupStartedAt !== null) {
+          writePerformanceTraceEvent({
+            kind: "prolog-process-cache-hit",
+            durationMs: performance.now() - cacheLookupStartedAt,
+          });
+        }
         return cachedResult;
       }
     }
@@ -548,12 +595,21 @@ export class PrologProcess {
     });
 
     await previousQuery;
+    const tracingEnabled = process.env.KIBI_PERF_TIMINGS === "1";
+    let roundTripStartedAt: number | null = null;
     try {
       if (!this.isProcessUsable()) {
         throw this.lostProcessError();
       }
+      if (tracingEnabled) roundTripStartedAt = performance.now();
       return await runInteractiveQuery();
     } finally {
+      if (roundTripStartedAt !== null) {
+        writePerformanceTraceEvent({
+          kind: "prolog-round-trip",
+          durationMs: performance.now() - roundTripStartedAt,
+        });
+      }
       releaseQuery();
     }
   }
@@ -700,10 +756,12 @@ export class PrologProcess {
 
     let child: ChildProcess;
     try {
-      child = spawn(this.swiplPath, ["-q", "-g", prologGoal, "-t", "halt"], {
+      const launch = this.launchTarget();
+      child = spawn(launch.bin, ["-q", "-g", prologGoal, "-t", "halt"], {
         detached: process.platform !== "win32",
         env: {
           ...process.env,
+          ...launch.env,
           KIBI_GOAL: combinedGoal,
           KIBI_RUNTIME_NAME: runtimeName,
           KIBI_RUNTIME_VERSION: runtimeVersion,
@@ -1033,6 +1091,26 @@ export class PrologProcess {
     // Diagnostic markers intentionally contain words such as `lock` and the
     // audit path. Remove them before classifying the actual Prolog error so a
     // contradiction at the check stage is not mistaken for an audit lock.
+    // Preserve only bounded identifiers from the formal existence error. Its
+    // context can contain authored dictionaries or query data and is never shown.
+    const existence = errorText.match(
+      /^__KIBI_ERROR__:error\(existence_error\((key|procedure),([^,()\r\n]+)(?:,|\),)/m,
+    );
+    const identifier = existence?.[2]?.trim().replace(/^'([^']+)'$/, "$1");
+    if (existence?.[1] === "key" && identifier !== undefined) {
+      if (/^[A-Za-z][A-Za-z0-9_-]{0,95}$/.test(identifier)) {
+        return `Predicate or file not found (missing dictionary key: ${identifier})`;
+      }
+    }
+    if (existence?.[1] === "procedure" && identifier !== undefined) {
+      if (
+        /^(?:[A-Za-z][A-Za-z0-9_]{0,95}:)?[A-Za-z][A-Za-z0-9_]{0,95}\/[0-9]{1,3}$/.test(
+          identifier,
+        )
+      ) {
+        return `Predicate or file not found (missing procedure: ${identifier})`;
+      }
+    }
     const cleanError = errorText.replace(
       /^__KIBI_(?:STAGE|RUNTIME|ERROR)__:[^\r\n]*\r?\n?/gm,
       "",
@@ -1086,6 +1164,7 @@ export class PrologProcess {
     ) {
       return "Predicate or file not found";
     }
+    if (existence !== null) return "Predicate or file not found";
     if (cleanError.includes("permission_error")) {
       return "Access denied or KB locked";
     }

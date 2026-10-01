@@ -13,7 +13,10 @@ import {
   type SymbolCoordinatesRecord,
   coordinateSourceHash,
 } from "../../../src/extractors/symbol-coordinates.js";
-import type { ManifestSymbolEntry } from "../../../src/extractors/symbols-coordinator.js";
+import type {
+  ManifestSymbolEntry,
+  enrichSymbolCoordinates,
+} from "../../../src/extractors/symbols-coordinator.js";
 
 // --- Mocks ---
 
@@ -44,9 +47,7 @@ const mockEnrichSymbolCoordinates = mock(
   async (
     entries: ManifestSymbolEntry[],
     _workspaceRoot: string,
-    _deps?: Partial<
-      typeof import("../../../src/extractors/symbols-coordinator.js")
-    >,
+    _deps?: Parameters<typeof enrichSymbolCoordinates>[2],
   ) => entries,
 );
 
@@ -1182,6 +1183,25 @@ describe("refreshManifestCoordinates", () => {
     expect(messages[0]).toContain("unchanged=1");
 
     restore();
+  });
+  test("opts into decorator coordinates only for explicit coordinate refresh", async () => {
+    mockParseYAML.mockImplementation(() => ({ symbols: [] }));
+    mockExistsSync.mockImplementation(() => false);
+    mockEnrichSymbolCoordinates.mockClear();
+    await refreshManifestCoordinates("/workspace/symbols.yaml", "/workspace", {
+      ...manifestDeps(),
+      refreshSymbolCoordinates: true,
+      quiet: true,
+    });
+    expect(mockEnrichSymbolCoordinates.mock.calls[0]?.[2]).toEqual({
+      allowPythonDecoratorCoordinates: true,
+    });
+    mockEnrichSymbolCoordinates.mockClear();
+    await refreshManifestCoordinates("/workspace/symbols.yaml", "/workspace", {
+      ...manifestDeps(),
+      quiet: true,
+    });
+    expect(mockEnrichSymbolCoordinates.mock.calls[0]?.[2]).toBeUndefined();
   });
 });
 

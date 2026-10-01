@@ -15,7 +15,9 @@ const repoRoot = path.resolve(packageRoot, "../..");
 const coreRoot = path.join(repoRoot, "packages", "core");
 const pluginSdkRoot = path.join(repoRoot, "packages", "plugin-sdk");
 const pluginBuiltinRoot = path.join(repoRoot, "packages", "plugin-builtin");
+const cliRoot = path.join(repoRoot, "packages", "cli");
 const runtimeRoot = path.join(repoRoot, "packages", "runtime");
+const swiplRoot = path.join(repoRoot, "packages", "swipl");
 const mcpRoot = path.join(repoRoot, "packages", "mcp");
 const buildLockPath = path.join(repoRoot, ".zcode-proof-build.lock");
 let inProcessBuildLock = Promise.resolve();
@@ -175,6 +177,9 @@ describe("packed kibi-mcp consumer resolution", () => {
         pluginBuiltinRoot,
         "kibi-plugin-builtin",
       );
+      const cliTarball = makeTarball(cliRoot, "kibi-cli");
+      // kibi-runtime depends on the unpublished-until-release resolver package.
+      const swiplTarball = makeTarball(swiplRoot, "kibi-swipl");
       const runtimeTarball = makeTarball(runtimeRoot, "kibi-runtime");
       const mcpTarball = makeMcpTarball();
       const zcodeTarball = makeZcodeTarball();
@@ -202,6 +207,8 @@ describe("packed kibi-mcp consumer resolution", () => {
           zcodeTarball,
           mcpTarball,
           runtimeTarball,
+          cliTarball,
+          swiplTarball,
           coreTarball,
           pluginBuiltinTarball,
           pluginSdkTarball,

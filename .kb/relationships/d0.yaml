@@ -90,3 +90,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-932de5a830d9
+  - type: implements
+    from: SYM-prolog-swipl-verify-payload
+    to: REQ-prolog-bundled-runtime
+    created_at: 2026-09-30T22:56:58.758Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-96d5c8239f6f
+  - type: covered_by
+    from: SYM-prolog-swipl-verify-payload
+    to: TEST-prolog-bundled-runtime
+    created_at: 2026-09-30T22:56:58.771Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1dc043312f20
+  - type: implements
+    from: SYM-prolog-release-verify-archive-sidecar
+    to: REQ-prolog-bundled-release
+    created_at: 2026-10-01T00:21:43.562Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-36ab2c5c5ab6
+  - type: covered_by
+    from: SYM-prolog-release-verify-archive-sidecar
+    to: TEST-prolog-bundled-release
+    created_at: 2026-10-01T00:21:43.573Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a2a2d2ba842d

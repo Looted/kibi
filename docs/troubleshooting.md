@@ -186,7 +186,7 @@ If `kibi sync` or `kibi query` produce errors:
    ```bash
    kibi doctor
    ```
-   It confirms SWI-Prolog 9.0+, the `.kb/manifest.json` shape, and any leftover `.kb/config.json` that `kibi migrate --yes` should retire.
+   It confirms a usable SWI-Prolog 9.0+ (and whether it is the bundled build, `KIBI_SWIPL`, or `swipl` on `PATH`), the `.kb/manifest.json` shape, and any leftover `.kb/config.json` that `kibi migrate --yes` should retire.
 
 2. **Clear stale engines and locks.** A crashed engine or a removed worktree can leave a daemon or branch-store lock behind. Preview first, then apply:
    ```bash
@@ -219,7 +219,7 @@ kibi doctor
 ```
 
 This checks:
-- SWI-Prolog installation
+- SWI-Prolog runtime: its source (bundled, `KIBI_SWIPL`, or `PATH`), path, version, and that every required library loads
 - `.kb/` directory existence
 - `.kb/manifest.json` validity
 - leftover `.kb/config.json` that still needs migration
@@ -356,7 +356,7 @@ For installation issues, see the [install guide](install.md).
 | Dangling references | Update source files with correct IDs | Verify and `kibi sync` |
 | Hooks not working | `kibi doctor` | `kibi init` |
 | Sync finds no docs | Confirm knowledge lives under `.kb/<lane>/` | Run `kibi migrate --yes` if leftover `documentation/` still holds knowledge |
-| SWI-Prolog errors | Check version | Reinstall SWI-Prolog per [install guide](install.md) |
+| SWI-Prolog errors | `kibi doctor` | Add the missing `kibi-swipl-<platform>` package, set `KIBI_SWIPL`, or install SWI-Prolog 9.0+ per the [install guide](install.md) |
 
 ---
 

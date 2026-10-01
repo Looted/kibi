@@ -307,6 +307,104 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fa0011c5a9f9
+  - type: covered_by
+    from: SYM-source-analysis-v2-approvedsourceanalyzer-628b809f
+    to: TEST-source-analysis-v2-contract
+    created_at: 2026-09-26T16:55:14.912Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a8b678b14865
+  - type: implements
+    from: SYM-source-analysis-v2-approvedsourceanalyzer-628b809f
+    to: REQ-source-analysis-v2
+    created_at: 2026-09-26T16:55:14.934Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b756ab119d1d
+  - type: specified_by
+    from: REQ-impact-review-public-preparation
+    to: SCEN-impact-review-public-preparation
+    created_at: 2026-09-27T17:30:30.357Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-094c98a9bc10
+  - type: requires_rule
+    from: REQ-impact-review-public-preparation
+    to: FACT-RULE-0C1F437C6BA88128
+    created_at: 2026-09-27T17:30:30.447Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-169513a11365
+  - type: requires_rule
+    from: REQ-impact-review-public-preparation
+    to: FACT-RULE-1971D21439829865
+    created_at: 2026-09-27T17:30:30.510Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b2ec722b1776
+  - type: requires_rule
+    from: REQ-impact-review-public-preparation
+    to: FACT-RULE-2B0317D883334885
+    created_at: 2026-09-27T17:30:30.546Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4f144e8ef4c0
+  - type: requires_rule
+    from: REQ-impact-review-public-preparation
+    to: FACT-RULE-4EE49E9273D9DEFE
+    created_at: 2026-09-27T17:30:30.574Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3443f3133e93
+  - type: requires_rule
+    from: REQ-impact-review-public-preparation
+    to: FACT-RULE-6396B235B06A72C7
+    created_at: 2026-09-27T17:30:30.612Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-709698c46e7f
+  - type: requires_rule
+    from: REQ-impact-review-public-preparation
+    to: FACT-RULE-946698B37C85C4D6
+    created_at: 2026-09-27T17:30:30.629Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ffaf66a26a67
+  - type: requires_rule
+    from: REQ-impact-review-public-preparation
+    to: FACT-RULE-B8A85CEBDE16F44C
+    created_at: 2026-09-27T17:30:30.667Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e38b6a2298cd
+  - type: requires_rule
+    from: REQ-impact-review-public-preparation
+    to: FACT-RULE-DD8C0E7936EB3849
+    created_at: 2026-09-27T17:30:30.687Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-684483c63d61
+  - type: requires_rule
+    from: REQ-impact-review-public-preparation
+    to: FACT-RULE-DFD15DB6A2E0E50B
+    created_at: 2026-09-27T17:30:30.730Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8e56fe72f308
+  - type: covered_by
+    from: SYM-impact-stage-e-type-impactdecision
+    to: TEST-impact-policy-stage-e-installed-e2e
+    created_at: 2026-09-27T17:49:55.394Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1dee9c9f4402
+  - type: implements
+    from: SYM-impact-stage-e-type-impactdecision
+    to: REQ-impact-policy-stage-e-content-bound-review
+    created_at: 2026-09-27T17:49:55.453Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a1aa540edfbb
   - type: implements
     from: SYM-docs-site-theme-styles
     to: REQ-docs-site-root-pages

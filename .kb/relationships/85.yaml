@@ -223,3 +223,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b28d503a2d94
+  - type: covered_by
+    from: SYM-prolog-quickstart-simulate
+    to: TEST-prolog-bundled-quickstart
+    created_at: 2026-10-01T03:49:16.673Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0ba75b45bcd7
+  - type: implements
+    from: SYM-prolog-quickstart-simulate
+    to: REQ-prolog-bundled-quickstart
+    created_at: 2026-10-01T03:49:16.701Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-27cbb689f280

@@ -63,9 +63,18 @@ export function buildAdvisorResult(
       : suggestions.some(({ kind }) => kind === "predicate")
         ? "predicate"
         : null;
+  const signalLane = chooseLane(signals);
+  const unresolvedNormative = propositions.some(
+    ({ role, status }) =>
+      role === "normative" &&
+      ["missing", "ambiguous", "ontology_gap"].includes(status),
+  );
   const candidateLane = modeled
     ? "none"
-    : (suggestionLane ?? chooseLane(signals));
+    : (suggestionLane ??
+      (signalLane === "none" && unresolvedNormative
+        ? "observation_review"
+        : signalLane));
   const readiness: SemanticAdvisorReadiness = modeled
     ? "modeled"
     : candidateLane === "none"

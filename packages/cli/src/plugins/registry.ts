@@ -29,8 +29,10 @@ import {
   type ProjectPluginEntry,
   SEMANTIC_CLASSIFIER_CAPABILITY_ID,
   SYMBOL_EXTRACTOR_CAPABILITY_ID,
+  SYMBOL_EXTRACTOR_V2_CAPABILITY_ID,
   type SemanticClassifierV1,
   type SymbolExtractorV1,
+  type SymbolExtractorV2,
   VOCABULARY_ALIGNMENT_CAPABILITY_ID,
   type VocabularyAlignmentV1,
   defineKibiPlugin,
@@ -89,12 +91,14 @@ type CapabilitySlot =
   | "semanticClassifier"
   | "ontologyPack"
   | "symbolExtractor"
+  | "symbolExtractorV2"
   | "vocabularyAlignment";
 
 const CAPABILITY_SLOT: Record<CapabilityId, CapabilitySlot> = {
   [SEMANTIC_CLASSIFIER_CAPABILITY_ID]: "semanticClassifier",
   [ONTOLOGY_PACK_CAPABILITY_ID]: "ontologyPack",
   [SYMBOL_EXTRACTOR_CAPABILITY_ID]: "symbolExtractor",
+  [SYMBOL_EXTRACTOR_V2_CAPABILITY_ID]: "symbolExtractorV2",
   [VOCABULARY_ALIGNMENT_CAPABILITY_ID]: "vocabularyAlignment",
 };
 
@@ -259,6 +263,7 @@ function capabilityFromPlugin(
   | SemanticClassifierV1
   | OntologyPackV1
   | SymbolExtractorV1
+  | SymbolExtractorV2
   | VocabularyAlignmentV1
   | undefined {
   const slot = CAPABILITY_SLOT[capabilityId];
@@ -337,6 +342,15 @@ export class CapabilityRegistry {
   > {
     return this.resolveCapability(SYMBOL_EXTRACTOR_CAPABILITY_ID) as Promise<
       CapabilityModeResolution<SymbolExtractorV1>
+    >;
+  }
+
+  // implements REQ-capability-plugin-activation-disclosure-v1
+  async resolveSymbolExtractorsV2(): Promise<
+    CapabilityModeResolution<SymbolExtractorV2>
+  > {
+    return this.resolveCapability(SYMBOL_EXTRACTOR_V2_CAPABILITY_ID) as Promise<
+      CapabilityModeResolution<SymbolExtractorV2>
     >;
   }
 

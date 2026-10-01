@@ -86,14 +86,44 @@ function createRuntime(root: string): void {
   );
 }
 
-function runResolver(fixture: RepositoryFixture, cwd: string): ResolverResult {
-  const result = spawnSync("sh", [resolverPath], {
+type ResolverEnv = {
+  readonly withoutSwipl?: boolean;
+  readonly kibiSwipl?: string;
+};
+
+/** A PATH holding only the tools the resolver needs, never swipl. */
+function toolsWithoutSwipl(fixture: RepositoryFixture): string {
+  const tools = path.join(path.dirname(fixture.binRoot), "tools");
+  fs.mkdirSync(tools, { recursive: true });
+  for (const tool of ["git", "sed", "dirname"]) {
+    const found = spawnSync("sh", ["-c", `command -v ${tool}`], {
+      encoding: "utf8",
+    }).stdout.trim();
+    if (found && !fs.existsSync(path.join(tools, tool))) {
+      fs.symlinkSync(found, path.join(tools, tool));
+    }
+  }
+  fs.rmSync(path.join(fixture.binRoot, "swipl"), { force: true });
+  return `${fixture.binRoot}${path.delimiter}${tools}`;
+}
+
+function runResolver(
+  fixture: RepositoryFixture,
+  cwd: string,
+  options: ResolverEnv = {},
+): ResolverResult {
+  const env: NodeJS.ProcessEnv = {
+    ...process.env,
+    PATH: options.withoutSwipl
+      ? toolsWithoutSwipl(fixture)
+      : `${fixture.binRoot}${path.delimiter}${process.env.PATH ?? ""}`,
+  };
+  Reflect.deleteProperty(env, "KIBI_SWIPL");
+  if (options.kibiSwipl !== undefined) env.KIBI_SWIPL = options.kibiSwipl;
+  const result = spawnSync("/bin/sh", [resolverPath], {
     cwd,
     encoding: "utf8",
-    env: {
-      ...process.env,
-      PATH: `${fixture.binRoot}${path.delimiter}${process.env.PATH ?? ""}`,
-    },
+    env,
   });
   return {
     status: result.status,
@@ -125,6 +155,100 @@ afterEach(() => {
   for (const root of tempRoots.splice(0)) {
     fs.rmSync(root, { recursive: true, force: true });
   }
+});
+
+describe("Cursor worktree MCP resolver SWI-Prolog availability", () => {
+  function writeBundled(root: string): void {
+    const bin = path.join(
+      root,
+      "node_modules",
+      "kibi-swipl-linux-x64-gnu",
+      "bin",
+    );
+    fs.mkdirSync(bin, { recursive: true });
+    fs.writeFileSync(path.join(bin, "swipl"), "#!/bin/sh\nexit 0\n");
+    fs.chmodSync(path.join(bin, "swipl"), 0o755);
+  }
+
+  test("rejects a candidate with no swipl on PATH and no bundled or configured runtime", () => {
+    const fixture = createFixture();
+    createRuntime(fixture.worktreeRoot);
+    createRuntime(fixture.primaryRoot);
+
+    const result = runResolver(fixture, fixture.worktreeRoot, {
+      withoutSwipl: true,
+    });
+
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toContain(
+      "local rejected: SWI-Prolog executable swipl is unavailable (no KIBI_SWIPL, bundled kibi-swipl package, or swipl on PATH)",
+    );
+  });
+
+  test("accepts a candidate whose installed packages include a bundled swipl", () => {
+    const fixture = createFixture();
+    createRuntime(fixture.worktreeRoot);
+    writeBundled(fixture.worktreeRoot);
+
+    const result = runResolver(fixture, fixture.worktreeRoot, {
+      withoutSwipl: true,
+    });
+
+    expectLaunch(result, fixture.worktreeRoot, fixture.worktreeRoot);
+  });
+
+  test("accepts the primary checkout's bundled swipl when the worktree has none", () => {
+    const fixture = createFixture();
+    createRuntime(fixture.primaryRoot);
+    writeBundled(fixture.primaryRoot);
+
+    const result = runResolver(fixture, fixture.worktreeRoot, {
+      withoutSwipl: true,
+    });
+
+    expectLaunch(result, fixture.primaryRoot, fixture.worktreeRoot);
+  });
+
+  test("accepts an executable KIBI_SWIPL and rejects a missing one", () => {
+    const fixture = createFixture();
+    createRuntime(fixture.worktreeRoot);
+    const configured = path.join(fixture.binRoot, "custom-swipl");
+    fs.writeFileSync(configured, "#!/bin/sh\nexit 0\n");
+    fs.chmodSync(configured, 0o755);
+
+    expectLaunch(
+      runResolver(fixture, fixture.worktreeRoot, {
+        withoutSwipl: true,
+        kibiSwipl: configured,
+      }),
+      fixture.worktreeRoot,
+      fixture.worktreeRoot,
+    );
+    const missing = runResolver(fixture, fixture.worktreeRoot, {
+      withoutSwipl: true,
+      kibiSwipl: path.join(fixture.binRoot, "absent"),
+    });
+    expect(missing.status).not.toBe(0);
+    expect(missing.stderr).toContain(
+      "SWI-Prolog executable swipl is unavailable",
+    );
+  });
+
+  test("KIBI_SWIPL=system ignores a bundled swipl and needs swipl on PATH", () => {
+    const fixture = createFixture();
+    createRuntime(fixture.worktreeRoot);
+    writeBundled(fixture.worktreeRoot);
+
+    const result = runResolver(fixture, fixture.worktreeRoot, {
+      withoutSwipl: true,
+      kibiSwipl: "system",
+    });
+
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toContain(
+      "SWI-Prolog executable swipl is unavailable",
+    );
+  });
 });
 
 describe("Cursor worktree MCP resolver", () => {

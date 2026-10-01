@@ -314,3 +314,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-182a43a8c6f1
+  - type: covered_by
+    from: SYM-source-analysis-v2-validatesourceanalysisresultv2options-882eaa93
+    to: TEST-source-analysis-v2-contract
+    created_at: 2026-09-26T16:59:16.750Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-017c9adf1740
+  - type: implements
+    from: SYM-source-analysis-v2-validatesourceanalysisresultv2options-882eaa93
+    to: REQ-source-analysis-v2
+    created_at: 2026-09-26T16:59:16.768Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-46a853215098
+  - type: verified_by
+    from: SCEN-scripts-coverage-shard-isolation
+    to: TEST-scripts-coverage-shard-isolation
+    created_at: 2026-09-30T10:51:03.381Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b03181cc8e63
+  - type: implements
+    from: SYM-prolog-build-audit-macos
+    to: REQ-prolog-build-pipeline-validation
+    created_at: 2026-09-30T17:52:24.703Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8fe3ab533820
+  - type: covered_by
+    from: SYM-prolog-build-audit-macos
+    to: TEST-prolog-build-pipeline-validation
+    created_at: 2026-09-30T17:52:24.755Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dfc9174ec85e

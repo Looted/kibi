@@ -6,6 +6,7 @@ import {
   mkdtempSync,
   readFileSync,
   readdirSync,
+  realpathSync,
   renameSync,
   rmSync,
   writeFileSync,
@@ -17,8 +18,14 @@ import {
   parseNpmPackJsonOutput,
   resolveNpmPackFilename,
 } from "./npm-pack-json.js";
-import { writePackedInstallManifest } from "./packed-install-manifest.js";
-import { packagesForPack } from "./packed-packages.js";
+import {
+  relocatePackedInstallMetadata,
+  writePackedInstallManifest,
+} from "./packed-install-manifest.js";
+import {
+  hostSwiplPlatformPackage,
+  packagesForPack,
+} from "./packed-packages.js";
 
 // executable_for TEST-test-journaled-engine-harness
 export { packagesForPack } from "./packed-packages.js";
@@ -273,11 +280,17 @@ export function publishSharedPackCache(plan: SharedPackCachePlan): {
   tarballsRoot: string;
 } | null {
   if (plan.reusable || plan.scratch === null) return null;
+  const restoreMetadata = relocatePackedInstallMetadata(
+    join(plan.scratch, "prefix"),
+    join(plan.scratch, "tarballs"),
+    join(plan.area, "tarballs"),
+  );
   try {
     renameSync(plan.scratch, plan.area);
   } catch {
     // A sibling published first (or the rename raced); keep using the staging
     // tree, which remains complete and is reclaimed at process exit.
+    restoreMetadata();
     return null;
   }
   ownedSharedPaths.delete(plan.scratch);
@@ -351,10 +364,14 @@ function npmPackCommand(npmBinary: string): {
   return { command: npmBinary, args: [] };
 }
 
-function packageInstallArgs(packageManagerBinary: string): string[] {
+function packageInstallArgs(
+  packageManagerBinary: string,
+  options: PackedInstallOptions = {},
+): string[] {
+  const ignoreScripts = options.ignoreScripts === true;
   return basename(packageManagerBinary).toLowerCase().includes("pnpm")
-    ? ["install"]
-    : ["install", "--no-audit"];
+    ? ["install", ...(ignoreScripts ? ["--ignore-scripts"] : [])]
+    : ["install", "--no-audit", ...(ignoreScripts ? ["--ignore-scripts"] : [])];
 }
 
 function resolveGitBinary(): string {
@@ -427,6 +444,22 @@ function hasInstalledKibi(prefix: string | undefined): prefix is string {
   );
 }
 
+function findHostSwiplPlatformTarball(root: string): string | null {
+  const name = hostSwiplPlatformPackage();
+  const dirName = name.slice("kibi-".length);
+  for (const dir of [root, join(root, dirName)]) {
+    if (!existsSync(dir)) continue;
+    const match = readdirSync(dir).find(
+      (file) =>
+        file.startsWith(`${name}-`) &&
+        /^\d/.test(file.slice(name.length + 1)) &&
+        file.endsWith(".tgz"),
+    );
+    if (match) return join(dir, match);
+  }
+  return null;
+}
+
 function findPrePackedTarball(
   prePackedDir: string,
   pkg: (typeof packagesForPack)[number],
@@ -448,8 +481,13 @@ function findPrePackedTarball(
       continue;
     }
 
+    // `kibi-swipl-` is also the prefix of every kibi-swipl-<platform> tarball,
+    // so require a version right after the package name.
     const files = readdirSync(dir).filter(
-      (f: string) => f.startsWith(`kibi-${pkg}-`) && f.endsWith(".tgz"),
+      (f: string) =>
+        f.startsWith(`kibi-${pkg}-`) &&
+        /^\d/.test(f.slice(`kibi-${pkg}-`.length)) &&
+        f.endsWith(".tgz"),
     );
 
     if (files.length === 0) continue;
@@ -537,6 +575,7 @@ async function bootstrapSharedInstall(
     tarballs["plugin-sdk"],
     tarballs["agent-core"],
     tarballs["plugin-builtin"],
+    tarballs.swiplPlatform ?? "",
   ].join("|");
   const existing = sharedInstallations.get(installKey);
   if (existing) {
@@ -657,6 +696,13 @@ export interface Tarballs {
   "plugin-sdk": string;
   "plugin-builtin": string;
   "plugin-jev": string;
+  "plugin-treesitter": string;
+  swipl: string;
+  /**
+   * The kibi-swipl-<platform> tarball for this host, present only when the
+   * tarball set carries one (a populated release pack).
+   */
+  swiplPlatform?: string;
 }
 
 /** Options for running commands */
@@ -684,6 +730,18 @@ export interface KibiOptions {
 }
 
 /** Test sandbox with isolated environment */
+export interface PackedInstallOptions {
+  /** Prevent package lifecycle scripts from running during this install. */
+  ignoreScripts?: boolean;
+}
+
+export interface SandboxOptions {
+  /** Use an owned prefix under the sandbox and skip all shared/baked installs. */
+  forceIsolatedInstall?: boolean;
+  /** Install the complete supplied packed-test inventory. */
+  includeCompleteInventory?: boolean;
+}
+
 export interface TestSandbox {
   /** Base temp directory */
   baseDir: string;
@@ -705,7 +763,7 @@ export interface TestSandbox {
   env: NodeJS.ProcessEnv;
 
   /** Install packages from tarballs */
-  install(tarballs: Tarballs): Promise<void>;
+  install(tarballs: Tarballs, options?: PackedInstallOptions): Promise<void>;
   /** Initialize git repository */
   initGitRepo(): Promise<void>;
   /** Cleanup sandbox */
@@ -748,6 +806,16 @@ export async function packAll(): Promise<Tarballs> {
         } else {
           throw new Error(`Pre-packed tarball not found for package: ${pkg}`);
         }
+      }
+
+      const platformTarball = findHostSwiplPlatformTarball(source.externalRoot);
+      if (platformTarball) {
+        tarballs.swiplPlatform = platformTarball;
+        console.log(`    ✓ swipl platform: ${basename(platformTarball)}`);
+      } else if (process.env.KIBI_PACKED_REQUIRE_BUNDLED_SWIPL === "1") {
+        throw new Error(
+          `KIBI_PACKED_REQUIRE_BUNDLED_SWIPL=1 but no ${hostSwiplPlatformPackage()} tarball exists under ${source.externalRoot}`,
+        );
       }
 
       tarballRoots.set(source.key, source.externalRoot);
@@ -832,25 +900,44 @@ export async function packAll(): Promise<Tarballs> {
  * Create a completely isolated test sandbox
  * Uses baked kibi installation if KIBI_E2E_PREFIX is set, otherwise installs from tarballs
  */
-export function createSandbox(): TestSandbox {
+export function createSandbox(options: SandboxOptions = {}): TestSandbox {
   const baseDir = mkdtempSync(join(tmpdir(), "kibi-e2e-"));
+  const forceIsolatedInstall = options.forceIsolatedInstall === true;
 
-  // Check if we're using a baked installation (CI image)
-  const bakedPrefix = process.env.KIBI_E2E_PREFIX;
+  // Check if we're using a baked installation (CI image) unless this test
+  // explicitly needs a fresh prefix populated from the supplied tarballs.
+  const bakedPrefix = forceIsolatedInstall
+    ? undefined
+    : process.env.KIBI_E2E_PREFIX;
   const useBakedPrefix = hasInstalledKibi(bakedPrefix);
   const gitBinary = resolveGitBinary();
   const gitDir = dirname(gitBinary);
 
   // Create isolated directories
   const repoDir = join(baseDir, "repo");
-  let npmPrefix = useBakedPrefix
-    ? (bakedPrefix as string)
-    : getSharedPrefixPath();
+  let npmPrefix = getSharedPrefixPath();
+  if (useBakedPrefix) {
+    npmPrefix = bakedPrefix as string;
+  } else if (forceIsolatedInstall) {
+    npmPrefix = join(baseDir, "npm-prefix");
+  }
   const npmCache = resolveNpmCache(join(baseDir, "npm-cache")).path;
   const homeDir = join(baseDir, "home");
   const runtimeDir = join(baseDir, "runtime");
 
   mkdirSync(repoDir, { recursive: true });
+  mkdirSync(npmPrefix, { recursive: true });
+  if (forceIsolatedInstall) {
+    writeFileSync(
+      join(npmPrefix, "package.json"),
+      JSON.stringify(
+        { name: "kibi-packed-e2e-isolated", private: true },
+        null,
+        2,
+      ),
+      "utf8",
+    );
+  }
   mkdirSync(homeDir, { recursive: true });
   mkdirSync(runtimeDir, { recursive: true });
 
@@ -926,7 +1013,10 @@ export function createSandbox(): TestSandbox {
       return env;
     },
 
-    async install(tarballs: Tarballs): Promise<void> {
+    async install(
+      tarballs: Tarballs,
+      installOptions: PackedInstallOptions = {},
+    ): Promise<void> {
       if (useBakedPrefix) {
         console.log("📦 Using baked kibi installation (skipping npm install)");
         await verifyKibiCliResolutionImpl(npmPrefix, env);
@@ -944,9 +1034,20 @@ export function createSandbox(): TestSandbox {
         tarballs["plugin-sdk"],
         tarballs["agent-core"],
         tarballs["plugin-builtin"],
-      ].join("|");
+        tarballs["plugin-jev"],
+        tarballs["plugin-treesitter"],
+        tarballs.swipl,
+        tarballs.swiplPlatform ?? "",
+      ]
+        .concat(`ignore-scripts=${installOptions.ignoreScripts === true}`)
+        .concat(
+          `include-complete-inventory=${options.includeCompleteInventory === true}`,
+        )
+        .join("|");
 
-      const existing = sharedInstallations.get(installKey);
+      const existing = forceIsolatedInstall
+        ? undefined
+        : sharedInstallations.get(installKey);
       if (existing) {
         useInstallation(existing.prefix);
         sharedPrefixPath = existing.prefix;
@@ -954,19 +1055,29 @@ export function createSandbox(): TestSandbox {
         return;
       }
 
-      const current = [...sharedInstallations.entries()].find(
-        ([, installation]) => installation.prefix === npmPrefix,
-      );
+      const current = forceIsolatedInstall
+        ? undefined
+        : [...sharedInstallations.entries()].find(
+            ([, installation]) => installation.prefix === npmPrefix,
+          );
       if (current && current[0] !== installKey) {
         useInstallation(allocateSharedPrefixPath());
       }
 
       const installPromise = (async () => {
-        console.log("📥 Installing packages into shared sandbox...");
-        writePackedInstallManifest(npmPrefix, tarballs);
+        console.log(
+          forceIsolatedInstall
+            ? "📥 Installing packages into isolated sandbox..."
+            : "📥 Installing packages into shared sandbox...",
+        );
+        writePackedInstallManifest(npmPrefix, tarballs, {
+          ...(options.includeCompleteInventory === undefined
+            ? {}
+            : { includeCompleteInventory: options.includeCompleteInventory }),
+        });
         const installResult = await run(
           npmBinary,
-          packageInstallArgs(npmBinary),
+          packageInstallArgs(npmBinary, installOptions),
           {
             cwd: npmPrefix,
             env,
@@ -982,16 +1093,18 @@ export function createSandbox(): TestSandbox {
         console.log("  ✓ Packages installed");
       })();
 
-      sharedInstallations.set(installKey, {
-        prefix: npmPrefix,
-        promise: installPromise,
-      });
+      if (!forceIsolatedInstall) {
+        sharedInstallations.set(installKey, {
+          prefix: npmPrefix,
+          promise: installPromise,
+        });
+      }
 
       try {
         await installPromise;
-        sharedPrefixPath = npmPrefix;
+        if (!forceIsolatedInstall) sharedPrefixPath = npmPrefix;
       } catch (error) {
-        sharedInstallations.delete(installKey);
+        if (!forceIsolatedInstall) sharedInstallations.delete(installKey);
         throw error;
       }
     },
@@ -1324,7 +1437,9 @@ async function verifyKibiCliResolutionImpl(
     );
   }
 
-  const normalizedPrefix = prefix.replace(/\\/g, "/");
+  // Node reports the real path; a temp prefix under a symlinked directory
+  // (macOS /var -> /private/var) must compare by its real path too.
+  const normalizedPrefix = realpathSync(prefix).replace(/\\/g, "/");
   const normalizedResolved = resolved.replace(/\\/g, "/");
 
   if (!normalizedResolved.startsWith(normalizedPrefix)) {

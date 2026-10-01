@@ -1,5 +1,6 @@
 export * from "./catalog.js";
 export * from "./check-executor.js";
+export * from "./impact-review-preparation.js";
 export * from "./discovery-entities.js";
 export * from "./discovery-executors.js";
 export * from "./runtime-types.js";
@@ -10,6 +11,7 @@ export * from "./migration-plan.js";
 export * from "./symbol-repair-plan.js";
 export * from "./specs/bootstrap.js";
 export * from "./specs/check.js";
+export * from "./specs/impact-review-preparation.js";
 export * from "./specs/discovery.js";
 export * from "./specs/modeling.js";
 export * from "./specs/planning.js";
