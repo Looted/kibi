@@ -19,7 +19,7 @@ permissions:
 
 on:
   push:
-    branches: [develop, codex/swipl-bundle-spike]
+    branches: [develop]
     paths:
       - .github/workflows/release-pack.yml
       - .github/workflows/release-smoke.yml
