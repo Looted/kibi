@@ -369,9 +369,19 @@ function packageInstallArgs(
   options: PackedInstallOptions = {},
 ): string[] {
   const ignoreScripts = options.ignoreScripts === true;
+  const omitOptional = options.omitOptional === true;
   return basename(packageManagerBinary).toLowerCase().includes("pnpm")
-    ? ["install", ...(ignoreScripts ? ["--ignore-scripts"] : [])]
-    : ["install", "--no-audit", ...(ignoreScripts ? ["--ignore-scripts"] : [])];
+    ? [
+        "install",
+        ...(ignoreScripts ? ["--ignore-scripts"] : []),
+        ...(omitOptional ? ["--no-optional"] : []),
+      ]
+    : [
+        "install",
+        "--no-audit",
+        ...(ignoreScripts ? ["--ignore-scripts"] : []),
+        ...(omitOptional ? ["--omit=optional"] : []),
+      ];
 }
 
 function resolveGitBinary(): string {
@@ -733,6 +743,8 @@ export interface KibiOptions {
 export interface PackedInstallOptions {
   /** Prevent package lifecycle scripts from running during this install. */
   ignoreScripts?: boolean;
+  /** Skip optional dependencies, including the published kibi-swipl platform packages. */
+  omitOptional?: boolean;
 }
 
 export interface SandboxOptions {
