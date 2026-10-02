@@ -30828,12 +30828,16 @@ symbols:
         target: TEST-cursor-kibi-plugin-v1
       - type: covered_by
         target: TEST-kibi-consumer-local-plugin-launcher-ontology-v1
+      - type: covered_by
+        target: TEST-mcp-launchers-follow-session-workspace
       - type: implements
         target: REQ-cursor-consumer-local-mcp-launcher-v1
       - type: implements
         target: REQ-cursor-kibi-plugin-v1
       - type: implements
         target: REQ-kibi-consumer-local-plugin-launcher-ontology-v1
+      - type: implements
+        target: REQ-mcp-launchers-follow-session-workspace
   - id: SYM-codex-packed-plugin-e2e
     title: packed Codex plugin consumer-local MCP registration
     status: active
@@ -38218,7 +38222,11 @@ symbols:
     symbol_role: config
     relationships:
       - type: covered_by
+        target: TEST-mcp-launchers-follow-session-workspace
+      - type: covered_by
         target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-mcp-launchers-follow-session-workspace
       - type: implements
         target: REQ-zcode-manual-mcp-configuration-v1
   - id: SYM-zcode-proof-parseJUnitCases
@@ -46752,3 +46760,344 @@ symbols:
         target: REQ-claude-code-kibi-plugin-v1
       - type: implements
         target: REQ-claude-mcp-follows-session-workspace
+  - id: SYM-test-mcp-launchers-follow-session-workspace
+    title: Host MCP launchers follow the session workspace suite
+    status: active
+    sourceFile: scripts/tests/session-proxy-hosts.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-mcp-launchers-follow-session-workspace
+  - id: SYM-cursor-workspaceForDirectory
+    title: workspaceForDirectory
+    status: active
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-launchers-follow-session-workspace
+      - type: implements
+        target: REQ-mcp-launchers-follow-session-workspace
+  - id: SYM-cursor-workspaceFromRoots
+    title: workspaceFromRoots
+    status: active
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-launchers-follow-session-workspace
+      - type: implements
+        target: REQ-mcp-launchers-follow-session-workspace
+  - id: SYM-codex-mcp-launcher
+    title: Codex MCP launcher (workspace-gated, roots-following kibi-mcp proxy)
+    status: active
+    sourceFile: packages/codex/bin/mcp-launcher.cjs
+    symbol_role: module
+    granularity_reason: extractor-miss
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-launchers-follow-session-workspace
+      - type: implements
+        target: REQ-mcp-launchers-follow-session-workspace
+  - id: SYM-kibi-session-proxy-source
+    title: Canonical kibi-session-proxy block shared by every host launcher
+    status: active
+    sourceFile: scripts/launcher-shared/kibi-session-proxy.js
+    symbol_role: module
+    granularity_reason: extractor-miss
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-launchers-follow-session-workspace
+      - type: implements
+        target: REQ-mcp-launchers-follow-session-workspace
+  - id: SYM-sync-session-proxy-block
+    title: sessionProxyBlock
+    status: active
+    sourceFile: scripts/sync-session-proxy.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-launchers-follow-session-workspace
+      - type: implements
+        target: REQ-mcp-launchers-follow-session-workspace
+  - id: SYM-sync-session-proxy-embed
+    title: embedSessionProxy
+    status: active
+    sourceFile: scripts/sync-session-proxy.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-launchers-follow-session-workspace
+      - type: implements
+        target: REQ-mcp-launchers-follow-session-workspace
+  - id: SYM-sync-session-proxy-launchers
+    title: SESSION_PROXY_LAUNCHERS
+    status: active
+    sourceFile: scripts/sync-session-proxy.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-launchers-follow-session-workspace
+      - type: implements
+        target: REQ-mcp-launchers-follow-session-workspace
+  - id: SYM-sync-session-proxy-begin-marker
+    title: BEGIN_MARKER
+    status: active
+    sourceFile: scripts/sync-session-proxy.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-launchers-follow-session-workspace
+      - type: implements
+        target: REQ-mcp-launchers-follow-session-workspace
+  - id: SYM-sync-session-proxy-end-marker
+    title: END_MARKER
+    status: active
+    sourceFile: scripts/sync-session-proxy.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-launchers-follow-session-workspace
+      - type: implements
+        target: REQ-mcp-launchers-follow-session-workspace
+  - id: SYM-cursor-nextAncestorDirectory
+    title: nextAncestorDirectory
+    status: active
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cursor-consumer-local-mcp-launcher-v1
+      - type: implements
+        target: REQ-cursor-consumer-local-mcp-launcher-v1
+  - id: SYM-cursor-packageJsonForResolvedFile
+    title: packageJsonForResolvedFile
+    status: active
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cursor-consumer-local-mcp-launcher-v1
+      - type: implements
+        target: REQ-cursor-consumer-local-mcp-launcher-v1
+  - id: SYM-cursor-hasConsumerNodeModulesLink
+    title: hasConsumerNodeModulesLink
+    status: active
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cursor-consumer-local-mcp-launcher-v1
+      - type: implements
+        target: REQ-cursor-consumer-local-mcp-launcher-v1
+  - id: SYM-cursor-isProjectScopedPackage
+    title: isProjectScopedPackage
+    status: active
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cursor-consumer-local-mcp-launcher-v1
+      - type: implements
+        target: REQ-cursor-consumer-local-mcp-launcher-v1
+  - id: SYM-cursor-hasDeclaredProjectDependency
+    title: hasDeclaredProjectDependency
+    status: active
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cursor-consumer-local-mcp-launcher-v1
+      - type: implements
+        target: REQ-cursor-consumer-local-mcp-launcher-v1
+  - id: SYM-cursor-signalExitCode
+    title: signalExitCode
+    status: active
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cursor-consumer-local-mcp-launcher-v1
+      - type: implements
+        target: REQ-cursor-consumer-local-mcp-launcher-v1
+  - id: SYM-cursor-isLaunchEntrypoint
+    title: isLaunchEntrypoint
+    status: active
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cursor-consumer-local-mcp-launcher-v1
+      - type: implements
+        target: REQ-cursor-consumer-local-mcp-launcher-v1
+  - id: SYM-cursor-runLaunchEntrypoint
+    title: runLaunchEntrypoint
+    status: active
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cursor-consumer-local-mcp-launcher-v1
+      - type: implements
+        target: REQ-cursor-consumer-local-mcp-launcher-v1
+  - id: SYM-cursor-runLaunchIfEntrypoint
+    title: runLaunchIfEntrypoint
+    status: active
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cursor-consumer-local-mcp-launcher-v1
+      - type: implements
+        target: REQ-cursor-consumer-local-mcp-launcher-v1
+  - id: SYM-cursor-dts-parseWorkspaceFolderPaths
+    title: parseWorkspaceFolderPaths
+    status: active
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.d.mts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cursor-consumer-local-mcp-launcher-v1
+      - type: implements
+        target: REQ-cursor-consumer-local-mcp-launcher-v1
+  - id: SYM-cursor-dts-nextAncestorDirectory
+    title: nextAncestorDirectory
+    status: active
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.d.mts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cursor-consumer-local-mcp-launcher-v1
+      - type: implements
+        target: REQ-cursor-consumer-local-mcp-launcher-v1
+  - id: SYM-cursor-dts-packageJsonForResolvedFile
+    title: packageJsonForResolvedFile
+    status: active
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.d.mts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cursor-consumer-local-mcp-launcher-v1
+      - type: implements
+        target: REQ-cursor-consumer-local-mcp-launcher-v1
+  - id: SYM-cursor-dts-hasConsumerNodeModulesLink
+    title: hasConsumerNodeModulesLink
+    status: active
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.d.mts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cursor-consumer-local-mcp-launcher-v1
+      - type: implements
+        target: REQ-cursor-consumer-local-mcp-launcher-v1
+  - id: SYM-cursor-dts-isProjectScopedPackage
+    title: isProjectScopedPackage
+    status: active
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.d.mts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cursor-consumer-local-mcp-launcher-v1
+      - type: implements
+        target: REQ-cursor-consumer-local-mcp-launcher-v1
+  - id: SYM-cursor-dts-resolveProjectLocalMcp
+    title: resolveProjectLocalMcp
+    status: active
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.d.mts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cursor-consumer-local-mcp-launcher-v1
+      - type: implements
+        target: REQ-cursor-consumer-local-mcp-launcher-v1
+  - id: SYM-cursor-dts-hasDeclaredProjectDependency
+    title: hasDeclaredProjectDependency
+    status: active
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.d.mts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cursor-consumer-local-mcp-launcher-v1
+      - type: implements
+        target: REQ-cursor-consumer-local-mcp-launcher-v1
+  - id: SYM-cursor-dts-resolveWorkspaceRoot
+    title: resolveWorkspaceRoot
+    status: active
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.d.mts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cursor-consumer-local-mcp-launcher-v1
+      - type: implements
+        target: REQ-cursor-consumer-local-mcp-launcher-v1
+  - id: SYM-cursor-dts-signalExitCode
+    title: signalExitCode
+    status: active
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.d.mts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cursor-consumer-local-mcp-launcher-v1
+      - type: implements
+        target: REQ-cursor-consumer-local-mcp-launcher-v1
+  - id: SYM-cursor-dts-isLaunchEntrypoint
+    title: isLaunchEntrypoint
+    status: active
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.d.mts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cursor-consumer-local-mcp-launcher-v1
+      - type: implements
+        target: REQ-cursor-consumer-local-mcp-launcher-v1
+  - id: SYM-cursor-dts-runLaunchEntrypoint
+    title: runLaunchEntrypoint
+    status: active
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.d.mts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cursor-consumer-local-mcp-launcher-v1
+      - type: implements
+        target: REQ-cursor-consumer-local-mcp-launcher-v1
+  - id: SYM-cursor-dts-workspaceForDirectory
+    title: workspaceForDirectory
+    status: active
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.d.mts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-launchers-follow-session-workspace
+      - type: implements
+        target: REQ-mcp-launchers-follow-session-workspace
+  - id: SYM-cursor-dts-workspaceFromRoots
+    title: workspaceFromRoots
+    status: active
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.d.mts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-launchers-follow-session-workspace
+      - type: implements
+        target: REQ-mcp-launchers-follow-session-workspace
+  - id: SYM-cursor-dts-launchKibiMcp
+    title: launchKibiMcp
+    status: active
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.d.mts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cursor-consumer-local-mcp-launcher-v1
+      - type: implements
+        target: REQ-cursor-consumer-local-mcp-launcher-v1
+  - id: SYM-cursor-dts-runLaunchIfEntrypoint
+    title: runLaunchIfEntrypoint
+    status: active
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.d.mts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cursor-consumer-local-mcp-launcher-v1
+      - type: implements
+        target: REQ-cursor-consumer-local-mcp-launcher-v1

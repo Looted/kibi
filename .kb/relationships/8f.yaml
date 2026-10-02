@@ -139,3 +139,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0b8877bff274
+  - type: implements
+    from: SYM-cursor-dts-runLaunchEntrypoint
+    to: REQ-cursor-consumer-local-mcp-launcher-v1
+    created_at: 2026-10-02T12:21:37.694Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cf31873f9fcb
+  - type: covered_by
+    from: SYM-cursor-dts-runLaunchEntrypoint
+    to: TEST-cursor-consumer-local-mcp-launcher-v1
+    created_at: 2026-10-02T12:21:37.709Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-698a7692571a

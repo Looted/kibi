@@ -258,3 +258,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-71ba8461b6d0
+  - type: requires_predicate
+    from: REQ-mcp-launchers-follow-session-workspace
+    to: FACT-PRED-mcp-launchers-follow-roots
+    created_at: 2026-10-02T12:07:55.373Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0edf6972699e
+  - type: requires_predicate
+    from: REQ-mcp-launchers-follow-session-workspace
+    to: FACT-PRED-mcp-launchers-pinned-workspace
+    created_at: 2026-10-02T12:07:55.396Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b33ea193c408
+  - type: requires_predicate
+    from: REQ-mcp-launchers-follow-session-workspace
+    to: FACT-PRED-mcp-launchers-canonical-proxy
+    created_at: 2026-10-02T12:07:55.407Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9d4eb81593af
+  - type: requires_predicate
+    from: REQ-mcp-launchers-follow-session-workspace
+    to: FACT-PRED-mcp-launchers-host-identity
+    created_at: 2026-10-02T12:07:55.415Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9c191a0a5ff7
+  - type: specified_by
+    from: REQ-mcp-launchers-follow-session-workspace
+    to: SCEN-mcp-launchers-follow-session-workspace
+    created_at: 2026-10-02T12:07:55.421Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-62972e27d342
+  - type: depends_on
+    from: REQ-mcp-launchers-follow-session-workspace
+    to: REQ-claude-mcp-follows-session-workspace
+    created_at: 2026-10-02T12:07:55.427Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2c9ae4e52155
+  - type: implements
+    from: SYM-cursor-dts-isProjectScopedPackage
+    to: REQ-cursor-consumer-local-mcp-launcher-v1
+    created_at: 2026-10-02T12:21:15.741Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e8feff76867c
+  - type: covered_by
+    from: SYM-cursor-dts-isProjectScopedPackage
+    to: TEST-cursor-consumer-local-mcp-launcher-v1
+    created_at: 2026-10-02T12:21:15.756Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-115f1a07a451

@@ -46,6 +46,8 @@
     "check": "biome check .",
     "format": "biome format --write .",
     "pack:drive": "./scripts/pack-to-drive.sh",
+    "sync:session-proxy": "bun run scripts/sync-session-proxy.ts --write",
+    "check:session-proxy": "bun run scripts/sync-session-proxy.ts --check",
     "build:plugin-sdk": "bun --filter ./packages/plugin-sdk build",
     "build:agent-core": "bun --filter ./packages/agent-core build",
     "build:plugin-builtin": "bun --filter ./packages/plugin-builtin build",

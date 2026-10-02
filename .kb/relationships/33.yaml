@@ -139,3 +139,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2c2448656fca
+  - type: implements
+    from: SYM-cursor-hasConsumerNodeModulesLink
+    to: REQ-cursor-consumer-local-mcp-launcher-v1
+    created_at: 2026-10-02T12:20:22.073Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3c69db2c735d
+  - type: covered_by
+    from: SYM-cursor-hasConsumerNodeModulesLink
+    to: TEST-cursor-consumer-local-mcp-launcher-v1
+    created_at: 2026-10-02T12:20:22.085Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-89c78636c9c5

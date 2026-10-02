@@ -300,3 +300,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-11c37b480c87
+  - type: implements
+    from: SYM-cursor-workspaceForDirectory
+    to: REQ-mcp-launchers-follow-session-workspace
+    created_at: 2026-10-02T12:08:03.406Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3cd6d1ec4541
+  - type: covered_by
+    from: SYM-cursor-workspaceForDirectory
+    to: TEST-mcp-launchers-follow-session-workspace
+    created_at: 2026-10-02T12:08:03.422Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-26a46030d003

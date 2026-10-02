@@ -4765,10 +4765,10 @@ coordinates:
     sourceLine: 18
   SYM-claude-mcp-launcher:
     identityHash: 300ecf01fb46956506d4c339515e0b1ff2a38570db1f4edbcf36f1ed8791dad3
-    sourceHash: 1ff14da46129e701b12fc40ae3b97ff3413596949cb7c8154b813640768a5e53
+    sourceHash: 37a1d28c39bb96367515fd86136ce9ed238b931862cb6320d5d201b383dd817c
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 956
+    sourceEndLine: 1067
     sourceFile: packages/claude/bin/mcp-launcher.cjs
     sourceLine: 1
   SYM-claude-packageName:
@@ -8627,9 +8627,17 @@ coordinates:
     sourceEndLine: 151
     sourceFile: packages/codex/src/hook-runner.ts
     sourceLine: 148
+  SYM-codex-mcp-launcher:
+    identityHash: 91d484144f490eee8cd49a753b375422f42a552535515cc2f2c73fa09422d6f1
+    sourceHash: 43667e5d42eed0c13472bb97b202df44f6f0dbb42eb04c7d8206aba6c7ef876a
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 828
+    sourceFile: packages/codex/bin/mcp-launcher.cjs
+    sourceLine: 1
   SYM-codex-mcp-registration-config:
     identityHash: 7d1d977adbf04927d11083ec5febc8e1175057f3810c176b9782a474193f45f7
-    sourceHash: f743884d9581154c15413aa6d413eaab0b7f1e83d2973e9b93a431efd5f1d5ae
+    sourceHash: 0ee03892f5affbc1a44a433549c4c53b47167ca37fa10a935e0fed78f8de4fcb
     sourceColumn: 0
     sourceEndColumn: 0
     sourceEndLine: 16
@@ -9683,6 +9691,126 @@ coordinates:
     sourceEndLine: 13
     sourceFile: packages/cursor/src/messages.ts
     sourceLine: 12
+  SYM-cursor-dts-hasConsumerNodeModulesLink:
+    identityHash: 7ea2aca80e976deb667c16713d1ee5e327e22d2195c34a174d6683ebccb79024
+    sourceHash: 97b740ac20bf24c7a0f03b2b5fc3861e7e0a4b2da2460137c3bbd42ad16f8273
+    sourceColumn: 16
+    sourceEndColumn: 11
+    sourceEndLine: 14
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.d.mts
+    sourceLine: 11
+  SYM-cursor-dts-hasDeclaredProjectDependency:
+    identityHash: 092b27fb56c30e4c858a4d87427b55c5b34d77fbe667dbd6cd0488b225e42d03
+    sourceHash: 97b740ac20bf24c7a0f03b2b5fc3861e7e0a4b2da2460137c3bbd42ad16f8273
+    sourceColumn: 16
+    sourceEndColumn: 77
+    sourceEndLine: 28
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.d.mts
+    sourceLine: 28
+  SYM-cursor-dts-isLaunchEntrypoint:
+    identityHash: 49dac9b21ef5764b1ac2a88915f6db88fb51bd6404322b8a0ffa9d3acd874e3f
+    sourceHash: 97b740ac20bf24c7a0f03b2b5fc3861e7e0a4b2da2460137c3bbd42ad16f8273
+    sourceColumn: 16
+    sourceEndColumn: 11
+    sourceEndLine: 40
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.d.mts
+    sourceLine: 37
+  SYM-cursor-dts-isProjectScopedPackage:
+    identityHash: d7949d02f86f22d8fe7b8b96f9295c737893572f74ca52b8dbd5231034e6a872
+    sourceHash: 97b740ac20bf24c7a0f03b2b5fc3861e7e0a4b2da2460137c3bbd42ad16f8273
+    sourceColumn: 16
+    sourceEndColumn: 11
+    sourceEndLine: 19
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.d.mts
+    sourceLine: 16
+  SYM-cursor-dts-launchKibiMcp:
+    identityHash: e8a6a1311fd9c36e5fcf9dd29cb63ec18d47e4916f376a36239bd10e388e65fe
+    sourceHash: 97b740ac20bf24c7a0f03b2b5fc3861e7e0a4b2da2460137c3bbd42ad16f8273
+    sourceColumn: 16
+    sourceEndColumn: 19
+    sourceEndLine: 51
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.d.mts
+    sourceLine: 47
+  SYM-cursor-dts-nextAncestorDirectory:
+    identityHash: 3da7d0258fb2257d07324810633fb7b7219d5f781e9780965ca2510347314770
+    sourceHash: 97b740ac20bf24c7a0f03b2b5fc3861e7e0a4b2da2460137c3bbd42ad16f8273
+    sourceColumn: 16
+    sourceEndColumn: 75
+    sourceEndLine: 3
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.d.mts
+    sourceLine: 3
+  SYM-cursor-dts-packageJsonForResolvedFile:
+    identityHash: abfb0993a14d974c24d6b6da6714e16fd17fd93a9ed3165015edde3877279284
+    sourceHash: 97b740ac20bf24c7a0f03b2b5fc3861e7e0a4b2da2460137c3bbd42ad16f8273
+    sourceColumn: 16
+    sourceEndColumn: 9
+    sourceEndLine: 9
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.d.mts
+    sourceLine: 5
+  SYM-cursor-dts-parseWorkspaceFolderPaths:
+    identityHash: 56a83a4dd6b78c09aded4ea74939008222760b4215005d61af2d006e54dd700b
+    sourceHash: 97b740ac20bf24c7a0f03b2b5fc3861e7e0a4b2da2460137c3bbd42ad16f8273
+    sourceColumn: 16
+    sourceEndColumn: 68
+    sourceEndLine: 1
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.d.mts
+    sourceLine: 1
+  SYM-cursor-dts-resolveProjectLocalMcp:
+    identityHash: 6bf64c5004eb0e152ea8b05303e8fde3c2eedc2a2632eb879ff916bb37cb740d
+    sourceHash: 97b740ac20bf24c7a0f03b2b5fc3861e7e0a4b2da2460137c3bbd42ad16f8273
+    sourceColumn: 16
+    sourceEndColumn: 2
+    sourceEndLine: 26
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.d.mts
+    sourceLine: 21
+  SYM-cursor-dts-resolveWorkspaceRoot:
+    identityHash: 456fbc93baaf07f9b804569c4b5e0e2c13690392338f730cf342da8a4fa3f61d
+    sourceHash: 97b740ac20bf24c7a0f03b2b5fc3861e7e0a4b2da2460137c3bbd42ad16f8273
+    sourceColumn: 16
+    sourceEndColumn: 10
+    sourceEndLine: 33
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.d.mts
+    sourceLine: 30
+  SYM-cursor-dts-runLaunchEntrypoint:
+    identityHash: 80388e3849138adf07c65f685b6a9c4518185563d75a34cd15b5b453772e6211
+    sourceHash: 97b740ac20bf24c7a0f03b2b5fc3861e7e0a4b2da2460137c3bbd42ad16f8273
+    sourceColumn: 16
+    sourceEndColumn: 19
+    sourceEndLine: 45
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.d.mts
+    sourceLine: 42
+  SYM-cursor-dts-runLaunchIfEntrypoint:
+    identityHash: a7d6b2d5dae852a64b033c60ffb15bb1d42ab4b33dd5c451775a5211482f41f5
+    sourceHash: 97b740ac20bf24c7a0f03b2b5fc3861e7e0a4b2da2460137c3bbd42ad16f8273
+    sourceColumn: 16
+    sourceEndColumn: 17
+    sourceEndLine: 56
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.d.mts
+    sourceLine: 53
+  SYM-cursor-dts-signalExitCode:
+    identityHash: 6d7262e9eb8b91d4b85af6d814688b765156febec6c2c65ce70895b1e282829e
+    sourceHash: 97b740ac20bf24c7a0f03b2b5fc3861e7e0a4b2da2460137c3bbd42ad16f8273
+    sourceColumn: 16
+    sourceEndColumn: 72
+    sourceEndLine: 35
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.d.mts
+    sourceLine: 35
+  SYM-cursor-dts-workspaceForDirectory:
+    identityHash: c9f409690cbc38e13b3f0a585e3549bfe403c3d0cccf975496bbbfce2961b505
+    sourceHash: 97b740ac20bf24c7a0f03b2b5fc3861e7e0a4b2da2460137c3bbd42ad16f8273
+    sourceColumn: 16
+    sourceEndColumn: 72
+    sourceEndLine: 58
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.d.mts
+    sourceLine: 58
+  SYM-cursor-dts-workspaceFromRoots:
+    identityHash: 9224100f70d7a7fff88f4dfea07c6747ead2dc23ac2908e1859cd68bf20f7f5b
+    sourceHash: 97b740ac20bf24c7a0f03b2b5fc3861e7e0a4b2da2460137c3bbd42ad16f8273
+    sourceColumn: 16
+    sourceEndColumn: 66
+    sourceEndLine: 60
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.d.mts
+    sourceLine: 60
   SYM-cursor-emptyHookState:
     identityHash: 5da49fe84a6d1c362e34790036bae20b9eee2be259e72292537a860affa37b12
     sourceHash: a2b2cee717a046c65c1cb49a7e1ddcfad962522a9179eee0d9a1f945a04c244d
@@ -9747,6 +9875,22 @@ coordinates:
     sourceEndLine: 21
     sourceFile: packages/cursor/src/hook-state.ts
     sourceLine: 21
+  SYM-cursor-hasConsumerNodeModulesLink:
+    identityHash: 0feab4676195749f1eacaa0862fe6b3a2fe7d3f531f875b6e62b95efd68ca2eb
+    sourceHash: 0c487f3658067d745c3b7ed97f9385300a73f12d76598efe266897bffc99e5f5
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 141
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.mjs
+    sourceLine: 130
+  SYM-cursor-hasDeclaredProjectDependency:
+    identityHash: 53f9ea50174442861096a40b57a87f66bd4a78b1c070f8fea674dcaa58156370
+    sourceHash: 0c487f3658067d745c3b7ed97f9385300a73f12d76598efe266897bffc99e5f5
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 241
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.mjs
+    sourceLine: 221
   SYM-cursor-hasGuidedPath:
     identityHash: 4a618c5a8489841e5a1b7f613cb7d7ab0f462d47e608e79bc6e572d17b8a1629
     sourceHash: 86649d0d103afd2dc089927835dc57a69f3b3297de029daa8e31bfc060f1acb4
@@ -9859,6 +10003,14 @@ coordinates:
     sourceEndLine: 47
     sourceFile: packages/cursor/src/path-policy.ts
     sourceLine: 38
+  SYM-cursor-isLaunchEntrypoint:
+    identityHash: 0bcc7c2df5c7e02816644b04aaee01c73d507c45750e8af020648a24b74de6bd
+    sourceHash: 0c487f3658067d745c3b7ed97f9385300a73f12d76598efe266897bffc99e5f5
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 328
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.mjs
+    sourceLine: 325
   SYM-cursor-isMeaningfulTrackedPath:
     identityHash: 1fa2761510d6b1e7d77b547b4fe82dce7fc49f93b88a7c2f22c518bb94cfda56
     sourceHash: 9555fcdec8d30885d7adcfa325d9ba3106ca6f2615366dee78cffe7612d244f7
@@ -9867,6 +10019,14 @@ coordinates:
     sourceEndLine: 35
     sourceFile: packages/cursor/src/path-policy.ts
     sourceLine: 33
+  SYM-cursor-isProjectScopedPackage:
+    identityHash: 2e390e535c8340d768b12b44760a4dd64913a14cba81887c6bb13a0c231f285f
+    sourceHash: 0c487f3658067d745c3b7ed97f9385300a73f12d76598efe266897bffc99e5f5
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 155
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.mjs
+    sourceLine: 143
   SYM-cursor-isSourceImpactRelevantPath:
     identityHash: c15b5c39f8c65d41b8f47cb4ad7b9d58ee4b2aae6fe9f18d0b36ea5ab8955df5
     sourceHash: 9555fcdec8d30885d7adcfa325d9ba3106ca6f2615366dee78cffe7612d244f7
@@ -9893,12 +10053,12 @@ coordinates:
     sourceLine: 16
   SYM-cursor-launchKibiMcp:
     identityHash: 850d13fded503e17df54078e49ebfbcf306f37ce46f630747d5640f57b9ba8fd
-    sourceHash: dd8f44a031feecd33c74c70a9d84b7a549f2439a06556c237c047cd2a9041bc7
+    sourceHash: 0c487f3658067d745c3b7ed97f9385300a73f12d76598efe266897bffc99e5f5
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 408
+    sourceEndLine: 859
     sourceFile: packages/cursor/bin/launch-kibi-mcp.mjs
-    sourceLine: 340
+    sourceLine: 809
   SYM-cursor-loadHookState:
     identityHash: 917e96aa1ebfa28415cf5de8404e7313621e1c39b9d99ef6c1398969932cba4f
     sourceHash: a2b2cee717a046c65c1cb49a7e1ddcfad962522a9179eee0d9a1f945a04c244d
@@ -9947,6 +10107,14 @@ coordinates:
     sourceEndLine: 65
     sourceFile: packages/cursor/src/hook-state-storage.ts
     sourceLine: 56
+  SYM-cursor-nextAncestorDirectory:
+    identityHash: a072cc6c3c662ab1a7ef2da69eb33ce09b818a2e212188fb7581454b60d2e0d7
+    sourceHash: 0c487f3658067d745c3b7ed97f9385300a73f12d76598efe266897bffc99e5f5
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 95
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.mjs
+    sourceLine: 92
   SYM-cursor-normalizePath:
     identityHash: 7c2dd99d9b505ff6e1aeef0c35e8f99dd295e5e71b0c9cf7ad89b70ad36cd09b
     sourceHash: a2b2cee717a046c65c1cb49a7e1ddcfad962522a9179eee0d9a1f945a04c244d
@@ -9955,6 +10123,14 @@ coordinates:
     sourceEndLine: 36
     sourceFile: packages/cursor/src/hook-state-storage.ts
     sourceLine: 34
+  SYM-cursor-packageJsonForResolvedFile:
+    identityHash: 42aa1892c4392747603c64984a447b7493c1346c10ea9e3a8ebc1507c3db9a72
+    sourceHash: 0c487f3658067d745c3b7ed97f9385300a73f12d76598efe266897bffc99e5f5
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 120
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.mjs
+    sourceLine: 97
   SYM-cursor-packageName:
     identityHash: 1f8a29bf27c8620fee721076ef922640d6b7d535af1354d1f1fac483add04dac
     sourceHash: e42274e9b62da7f404eb39076cee969075177cc0cee5214a4a08ca99f8697e96
@@ -9997,7 +10173,7 @@ coordinates:
     sourceLine: 57
   SYM-cursor-parseWorkspaceFolderPaths:
     identityHash: 0b34700caa022e443ea23a53d315937e816b0bc90e43e253bd4e0ae5dc910b13
-    sourceHash: dd8f44a031feecd33c74c70a9d84b7a549f2439a06556c237c047cd2a9041bc7
+    sourceHash: 0c487f3658067d745c3b7ed97f9385300a73f12d76598efe266897bffc99e5f5
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 90
@@ -10061,7 +10237,7 @@ coordinates:
     sourceLine: 24
   SYM-cursor-resolveProjectLocalMcp:
     identityHash: 6f1ce349f3e14bafb3579986e233a0e097bc6208fc368e1fa3a8879339c00a58
-    sourceHash: dd8f44a031feecd33c74c70a9d84b7a549f2439a06556c237c047cd2a9041bc7
+    sourceHash: 0c487f3658067d745c3b7ed97f9385300a73f12d76598efe266897bffc99e5f5
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 219
@@ -10077,7 +10253,7 @@ coordinates:
     sourceLine: 217
   SYM-cursor-resolveWorkspaceRoot:
     identityHash: 5eab34e80061dbdd27010e0ee6d9ddb47ce24dc2fc6100155dc94fe1929fab8e
-    sourceHash: dd8f44a031feecd33c74c70a9d84b7a549f2439a06556c237c047cd2a9041bc7
+    sourceHash: 0c487f3658067d745c3b7ed97f9385300a73f12d76598efe266897bffc99e5f5
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 319
@@ -10091,6 +10267,22 @@ coordinates:
     sourceEndLine: 326
     sourceFile: packages/cursor/src/hook-runner.ts
     sourceLine: 110
+  SYM-cursor-runLaunchEntrypoint:
+    identityHash: 4944fd5a9ccc3a560b3af78fc236b40803ae4daccc112dbd632d775e2a66ba82
+    sourceHash: 0c487f3658067d745c3b7ed97f9385300a73f12d76598efe266897bffc99e5f5
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 337
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.mjs
+    sourceLine: 330
+  SYM-cursor-runLaunchIfEntrypoint:
+    identityHash: 3e1df7d23eff8f75e7654d51df7e4c27426e8f4daa776327ebf3a87d6bdd71cc
+    sourceHash: 0c487f3658067d745c3b7ed97f9385300a73f12d76598efe266897bffc99e5f5
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 867
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.mjs
+    sourceLine: 861
   SYM-cursor-saveHookState:
     identityHash: dd6386ffdbd62d0ff6d2ac8078c2f47d19f5fec8aef817d3232e7bc0684704b4
     sourceHash: a2b2cee717a046c65c1cb49a7e1ddcfad962522a9179eee0d9a1f945a04c244d
@@ -10099,6 +10291,14 @@ coordinates:
     sourceEndLine: 264
     sourceFile: packages/cursor/src/hook-state-storage.ts
     sourceLine: 252
+  SYM-cursor-signalExitCode:
+    identityHash: 49b96e2d1ca58df1c7b5d8f9b9af2616d8492b4d6646a189fc55db04ce18c0a9
+    sourceHash: 0c487f3658067d745c3b7ed97f9385300a73f12d76598efe266897bffc99e5f5
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 323
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.mjs
+    sourceLine: 321
   SYM-cursor-stopFollowupMessage:
     identityHash: c2fadf15b208af1484bdfa3460e28196449844cb2507d0137dffbafff84cfa66
     sourceHash: d424bc524a7baee92d756745dfcfbf37af9025b988b9190494b7d829887e3b9d
@@ -10123,6 +10323,22 @@ coordinates:
     sourceEndLine: 289
     sourceFile: packages/cursor/src/hook-state-storage.ts
     sourceLine: 266
+  SYM-cursor-workspaceForDirectory:
+    identityHash: 90abf9aacab82d1d7ef38adea5bd13db5495c240ce62caec0ec0552444333d42
+    sourceHash: 0c487f3658067d745c3b7ed97f9385300a73f12d76598efe266897bffc99e5f5
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 797
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.mjs
+    sourceLine: 788
+  SYM-cursor-workspaceFromRoots:
+    identityHash: 47b781d2ba3101c34210fa0b3198407aa9c4e90cce367b92984bcfd11013586b
+    sourceHash: 0c487f3658067d745c3b7ed97f9385300a73f12d76598efe266897bffc99e5f5
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 802
+    sourceFile: packages/cursor/bin/launch-kibi-mcp.mjs
+    sourceLine: 800
   SYM-cursor-worktree-package-version:
     identityHash: 7a95f0e441c1c0a9f91e33cb230cfdcbf76d8ff8aaae7d4c2f6f60094e61b0a9
     sourceHash: aeaf7612f4e3d424fa1a8607518e60c39863c05735146c5ae4b4809fa17f9cd7
@@ -15043,6 +15259,14 @@ coordinates:
     sourceEndLine: 30
     sourceFile: scripts/change-to-proof-eval.ts
     sourceLine: 19
+  SYM-kibi-session-proxy-source:
+    identityHash: 59d6d4efa360c38420f5cd53185a2c43acfd38e3ace9129dfb078cab6d7b142f
+    sourceHash: ab27c410b3389cfe570dd8f92229195abd706db8f5930531cda77469dcd781b8
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 441
+    sourceFile: scripts/launcher-shared/kibi-session-proxy.js
+    sourceLine: 1
   SYM-KIBI-STAGED-IMPACT-EVIDENCE-DOC:
     identityHash: 952d3dd3c13ddb9e9f4934a0e5955e971b41ba3cd6e4d284d7989badf1976ccd
     sourceHash: 92a8b0c5600b8e42864034a8b9bb5a10cd2a17e544bf98199ca228e8e8a4d522
@@ -30899,6 +31123,46 @@ coordinates:
     sourceEndLine: 62
     sourceFile: packages/cli/src/commands/sync/cache.ts
     sourceLine: 46
+  SYM-sync-session-proxy-begin-marker:
+    identityHash: 4d7c8bbfff63d0589e0ead240427c39f3b76381db2c9c9781d380a06d2ee61b1
+    sourceHash: a9321065b01e4dc202a020e504cf970ebf50c682d326554fc59b712af790270b
+    sourceColumn: 13
+    sourceEndColumn: 125
+    sourceEndLine: 31
+    sourceFile: scripts/sync-session-proxy.ts
+    sourceLine: 30
+  SYM-sync-session-proxy-block:
+    identityHash: 2328d123a04f3f515ced69de85e3e97952d395e01c27c4391e5528927b04c70f
+    sourceHash: a9321065b01e4dc202a020e504cf970ebf50c682d326554fc59b712af790270b
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 37
+    sourceFile: scripts/sync-session-proxy.ts
+    sourceLine: 34
+  SYM-sync-session-proxy-embed:
+    identityHash: aa1d7ad0094529cc5dc824768b7f0d2b3b3678080ec506ea88ff582f3f2ef38a
+    sourceHash: a9321065b01e4dc202a020e504cf970ebf50c682d326554fc59b712af790270b
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 47
+    sourceFile: scripts/sync-session-proxy.ts
+    sourceLine: 40
+  SYM-sync-session-proxy-end-marker:
+    identityHash: b13ebcbca22ba058da206f3fbbe7c7c034122feaa80c19beec1989fa4e4734f3
+    sourceHash: a9321065b01e4dc202a020e504cf970ebf50c682d326554fc59b712af790270b
+    sourceColumn: 13
+    sourceEndColumn: 53
+    sourceEndLine: 32
+    sourceFile: scripts/sync-session-proxy.ts
+    sourceLine: 32
+  SYM-sync-session-proxy-launchers:
+    identityHash: 265668c9798ec26270d2ddecf8032ea53a4dc87f2c06f2791aee6cdcfb713fd1
+    sourceHash: a9321065b01e4dc202a020e504cf970ebf50c682d326554fc59b712af790270b
+    sourceColumn: 13
+    sourceEndColumn: 10
+    sourceEndLine: 28
+    sourceFile: scripts/sync-session-proxy.ts
+    sourceLine: 23
   SYM-sync-tracked-relationship-files:
     identityHash: 6d1c0bd67814507349d89a9b888bb2eb7b58c6772bfd258ae1609c70c2ec6c3f
     sourceHash: 011b04b8b47ec8f8b1a740ec8f58b67022a6b1bb9ac63e1934ef081670b3ceb7
@@ -31379,6 +31643,14 @@ coordinates:
     sourceEndLine: 23
     sourceFile: packages/cli/tests/intent-search.test.ts
     sourceLine: 10
+  SYM-test-mcp-launchers-follow-session-workspace:
+    identityHash: 35d87573e27e81f1be112a71003263e59fa10440c80a69841eeafc846b3f71f6
+    sourceHash: d317450cbe4cb573168ee95f7334d1a144bb1366201554105087be1a90f49c1e
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 263
+    sourceFile: scripts/tests/session-proxy-hosts.test.ts
+    sourceLine: 1
   SYM-test-native-cli-suite-diagnostics:
     identityHash: 7447e6f9da5c439b5db64770e6407f2b2010fc1f8131e439984eaefdc9d0cd1c
     sourceHash: 93e59292ce1610a651c76743a95e80e65ca4946d58797b87f286fe73d3843090
@@ -32869,10 +33141,10 @@ coordinates:
     sourceLine: 249
   SYM-zcode-mcp-launcher:
     identityHash: 8aad7bf61e908eac82512a14bc38cf9420a813e7686cd3623068874b868ef648
-    sourceHash: 4ded80e920136869dc22f9dcb9c67ca23775120c8ac692428ccd391903c0ceff
+    sourceHash: f597c4e918322699d16a629b83d53864d19fa2b0e8a26293beac88677a7a1fc0
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 657
+    sourceEndLine: 1063
     sourceFile: packages/zcode/bin/mcp-launcher.cjs
     sourceLine: 1
   SYM-zcode-mcp-registration-config:

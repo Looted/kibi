@@ -182,3 +182,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b47640dcebf8
+  - type: executable_for
+    from: SYM-test-mcp-launchers-follow-session-workspace
+    to: TEST-mcp-launchers-follow-session-workspace
+    created_at: 2026-10-02T12:07:51.035Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-32dbe0b2f831

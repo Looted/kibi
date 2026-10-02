@@ -279,3 +279,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-80329fc55c64
+  - type: validates
+    from: TEST-mcp-launchers-follow-session-workspace
+    to: SCEN-mcp-launchers-follow-session-workspace
+    created_at: 2026-10-02T12:07:46.433Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a6b1f3ae712f

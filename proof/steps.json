@@ -1756,5 +1756,17 @@
         "./scripts/tests/kb-merge-resolution.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-mcp-launchers-follow-session-workspace",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "60000",
+        "./scripts/tests/session-proxy-hosts.test.ts"
+      ]
+    ]
   }
 ]

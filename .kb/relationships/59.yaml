@@ -160,3 +160,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a831e4b259db
+  - type: implements
+    from: SYM-zcode-mcp-launcher
+    to: REQ-mcp-launchers-follow-session-workspace
+    created_at: 2026-10-02T12:09:01.225Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bba5ba67f1fc
+  - type: covered_by
+    from: SYM-zcode-mcp-launcher
+    to: TEST-mcp-launchers-follow-session-workspace
+    created_at: 2026-10-02T12:09:01.236Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-14910155493e
