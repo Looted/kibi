@@ -490,6 +490,7 @@ const LAUNCHER_ID_PREFIX = "kibi-launcher:";
 const ROOTS_TIMEOUT_MS = 2000;
 const SWITCH_TIMEOUT_MS = 30000;
 const RETIRE_GRACE_MS = 5000;
+const RETIRE_DRAIN_MAX_MS = 60000;
 
 /** True when the operator pinned the workspace through the environment. */
 function isWorkspacePinned(env = process.env) {
@@ -627,7 +628,9 @@ function proxyKibiMcp(options = {}) {
       });
 
     const startServer = (root, serverTarget) => {
-      const server = { root, proc: null };
+      // `inFlight` holds client request ids this server has not answered, so
+      // a retired server can finish them before it is shut down.
+      const server = { root, proc: null, inFlight: new Set(), onDrained: null };
       const childEnv = {
         ...env,
         KIBI_WORKSPACE: root,
@@ -667,6 +670,18 @@ function proxyKibiMcp(options = {}) {
             pendingLauncher.get(message.id)?.(message);
             return;
           }
+          const isResponse =
+            isRecord(message) &&
+            !message.method &&
+            message.id !== undefined &&
+            message.id !== null;
+          if (isResponse) {
+            // Answers to client requests are delivered even after a switch.
+            server.inFlight.delete(message.id);
+            writeClient(message);
+            if (server.inFlight.size === 0) server.onDrained?.();
+            return;
+          }
           if (server === current) writeClient(message);
         }),
       );
@@ -674,17 +689,30 @@ function proxyKibiMcp(options = {}) {
       return server;
     };
 
+    /** Shut a server down once it has answered every request sent to it. */
     const retire = (server) => {
-      try {
-        server.proc.stdin.end();
-      } catch {
-        // Already closed.
-      }
-      setTimeout(() => {
-        if (server.proc.exitCode === null && !server.proc.killed) {
-          server.proc.kill("SIGTERM");
+      let closed = false;
+      const close = () => {
+        if (closed) return;
+        closed = true;
+        server.onDrained = null;
+        try {
+          server.proc.stdin.end();
+        } catch {
+          // Already closed.
         }
-      }, RETIRE_GRACE_MS).unref?.();
+        setTimeout(() => {
+          if (server.proc.exitCode === null && !server.proc.killed) {
+            server.proc.kill("SIGTERM");
+          }
+        }, RETIRE_GRACE_MS).unref?.();
+      };
+      if (server.inFlight.size === 0) {
+        close();
+        return;
+      }
+      server.onDrained = close;
+      setTimeout(close, RETIRE_DRAIN_MAX_MS).unref?.();
     };
 
     /** Move to the workspace named by the client's roots, if it changed. */
@@ -747,6 +775,14 @@ function proxyKibiMcp(options = {}) {
       }
       if (isRecord(message) && message.method === "notifications/initialized") {
         clientInitialized = true;
+      }
+      if (
+        isRecord(message) &&
+        typeof message.method === "string" &&
+        message.id !== undefined &&
+        message.id !== null
+      ) {
+        current.inFlight.add(message.id);
       }
       current.send(message);
     };

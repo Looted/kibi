@@ -4461,10 +4461,10 @@ coordinates:
     sourceLine: 1
   SYM-claude-case-mcp-follows-session-workspace:
     identityHash: 4c560fbb27590a90a72fb71c6469b752df3f17b7518a8bb382525c3af1caf684
-    sourceHash: 39f2db4481bbcf939dc1fbb7dcfad3c1314ab6631eb4f0bbd67fe3fd98bdd59d
+    sourceHash: 2114fcd947bf62c461d5cc5221537ed4dcf336d844f104ed6c4ab137a731f6a1
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 268
+    sourceEndLine: 295
     sourceFile: packages/claude/tests/mcp-launcher-roots.test.ts
     sourceLine: 1
   SYM-claude-case-mcp-silent-outside-kibi:
@@ -4765,10 +4765,10 @@ coordinates:
     sourceLine: 18
   SYM-claude-mcp-launcher:
     identityHash: 300ecf01fb46956506d4c339515e0b1ff2a38570db1f4edbcf36f1ed8791dad3
-    sourceHash: bc74d6fec48942158566d76c23c2e4332b4138fad0258174a41a67d12df4998b
+    sourceHash: 1ff14da46129e701b12fc40ae3b97ff3413596949cb7c8154b813640768a5e53
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 920
+    sourceEndLine: 956
     sourceFile: packages/claude/bin/mcp-launcher.cjs
     sourceLine: 1
   SYM-claude-packageName:

@@ -24,7 +24,9 @@ readline.createInterface({ input: process.stdin }).on("line", (line) => {
   } else if (m.method === "tools/list") {
     send({ jsonrpc: "2.0", id: m.id, result: { tools: [{ name: "kb_status", inputSchema: { type: "object" } }] } });
   } else if (m.method === "tools/call") {
-    send({ jsonrpc: "2.0", id: m.id, result: { content: [{ type: "text", text: process.env.KIBI_WORKSPACE }] } });
+    const answer = () => send({ jsonrpc: "2.0", id: m.id, result: { content: [{ type: "text", text: process.env.KIBI_WORKSPACE }] } });
+    if (m.params && m.params.name === "slow") setTimeout(answer, 1500);
+    else answer();
   } else {
     send({ jsonrpc: "2.0", id: m.id, result: {} });
   }
@@ -202,6 +204,31 @@ describe("kibi-claude MCP launcher follows the session workspace", () => {
       );
       expect(session.received.indexOf(third)).toBeLessThan(
         session.received.indexOf(fourth),
+      );
+    } finally {
+      await session.close();
+    }
+  });
+
+  test("a call still running on the old server is answered after a switch", async () => {
+    const main = kibiWorkspace("kibi-claude-main-");
+    const worktree = kibiWorkspace("kibi-claude-worktree-");
+    let roots = [main];
+    const session = client({ projectDir: main, roots: () => roots });
+    try {
+      await session.start();
+      session.send({
+        id: 2,
+        method: "tools/call",
+        params: { name: "slow", arguments: {} },
+      });
+      // Let the slow call reach the main server before the session moves.
+      await new Promise((wake) => setTimeout(wake, 300));
+      roots = [worktree];
+      expect(await session.callTool(3)).toBe(worktree);
+      const slow = await session.response(2);
+      expect((slow.result?.content as Array<{ text: string }>)[0]?.text).toBe(
+        main,
       );
     } finally {
       await session.close();
