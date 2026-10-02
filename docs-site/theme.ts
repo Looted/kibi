@@ -10,7 +10,11 @@
  * other hues; proven green stays reserved for complete proof.
  */
 
-import { SITE_TAGLINE, publishedLlmsIndexHref } from "./catalog.js";
+import {
+  AGENT_SETUP_PROMPT,
+  SITE_TAGLINE,
+  publishedLlmsIndexHref,
+} from "./catalog.js";
 
 // implements REQ-docs-site-root-pages
 export type Section = "guide" | "reference";
@@ -300,6 +304,7 @@ figure.code pre {
   margin: 0; padding: 38px 18px 16px; overflow-x: auto;
   scrollbar-width: thin; scrollbar-color: var(--rail) transparent;
 }
+figure.code.prompt pre { white-space: pre-wrap; overflow-wrap: anywhere; }
 figure.code code { font-family: var(--mono); font-size: 13.2px; line-height: 1.6; background: none; color: var(--snow); padding: 0; border-radius: 0; }
 .code-lang {
   position: absolute; left: 14px; top: 9px;
@@ -481,13 +486,17 @@ figure.code:hover .code-copy, .code-copy:focus-visible, .code-copy.copied { opac
 .steps h3 { margin: 0 0 6px; font-size: 16px; color: var(--snow); }
 .steps p { margin: 0; color: var(--mist); font-size: 14.5px; }
 
+.prose > details { margin: 16px 0 22px; padding: 10px 16px; border: 1px solid var(--rail); border-radius: 10px; }
+.prose > details > summary { cursor: pointer; font-weight: 600; color: var(--snow); }
+.prose > details[open] > summary { margin-bottom: 8px; }
+
 .faq { max-width: 760px; }
 .faq details { padding: 8px 0 14px; }
 .faq summary { cursor: pointer; font-weight: 600; color: var(--snow); list-style: none; }
 .faq summary::-webkit-details-marker { display: none; }
 .faq details p { margin: 8px 0 0; color: var(--mist); }
 
-.pm-tablist { display: flex; gap: 4px; }
+.pm-tablist { display: flex; flex-wrap: wrap; gap: 4px; }
 .pm-tab {
   font: inherit; font-size: 13px; font-weight: 600; color: var(--mist);
   background: transparent; border: 1px solid transparent; border-bottom: none;
@@ -872,37 +881,60 @@ export function landingContent(args: {
   wordmarkSvg: string;
 }): string {
   const { root, reportUrl, wordmarkSvg } = args;
-  const managers: Array<{ id: string; label: string; command: string }> = [
+  const methods: Array<{
+    id: string;
+    label: string;
+    lang: string;
+    copyLabel: string;
+    command: string;
+  }> = [
+    {
+      id: "agent",
+      label: "Agent prompt (recommended)",
+      lang: "prompt",
+      copyLabel: "Copy the agent setup prompt",
+      command: AGENT_SETUP_PROMPT,
+    },
     {
       id: "npm",
       label: "npm",
+      lang: "bash",
+      copyLabel: "Copy npm install commands",
       command:
         "npm install --save-dev kibi-core kibi-cli kibi-mcp\nnpm exec -- kibi init",
     },
     {
       id: "pnpm",
       label: "pnpm",
+      lang: "bash",
+      copyLabel: "Copy pnpm install commands",
       command: "pnpm add -D kibi-core kibi-cli kibi-mcp\npnpm exec kibi init",
     },
     {
       id: "yarn",
       label: "Yarn",
+      lang: "bash",
+      copyLabel: "Copy Yarn install commands",
       command: "yarn add -D kibi-core kibi-cli kibi-mcp\nyarn exec kibi init",
     },
   ];
-  const installTabs = managers
-    .map((manager, index) => {
+  const installTabs = methods
+    .map((method, index) => {
       const selected = index === 0;
-      return `<button type="button" class="pm-tab" role="tab" id="pm-tab-${manager.id}" aria-controls="pm-panel-${manager.id}" aria-selected="${selected ? "true" : "false"}"${selected ? "" : ' tabindex="-1"'} data-pm="${manager.id}">${manager.label}</button>`;
+      return `<button type="button" class="pm-tab" role="tab" id="pm-tab-${method.id}" aria-controls="pm-panel-${method.id}" aria-selected="${selected ? "true" : "false"}"${selected ? "" : ' tabindex="-1"'} data-pm="${method.id}">${method.label}</button>`;
     })
     .join("");
-  const installPanels = managers
-    .map((manager, index) => {
+  const installPanels = methods
+    .map((method, index) => {
       const selected = index === 0;
-      return `<figure class="code install-cmd" id="pm-panel-${manager.id}" role="tabpanel" aria-labelledby="pm-tab-${manager.id}" data-pm-panel="${manager.id}"${selected ? "" : " hidden"}>
-  <span class="code-lang">bash</span>
-  <button type="button" class="code-copy" aria-label="Copy ${manager.label} install commands">Copy</button>
-  <pre><code>${escapeHtml(manager.command)}</code></pre>
+      const figureClass =
+        method.lang === "prompt"
+          ? "code prompt install-cmd"
+          : "code install-cmd";
+      return `<figure class="${figureClass}" id="pm-panel-${method.id}" role="tabpanel" aria-labelledby="pm-tab-${method.id}" data-pm-panel="${method.id}"${selected ? "" : " hidden"}>
+  <span class="code-lang">${method.lang}</span>
+  <button type="button" class="code-copy" aria-label="${method.copyLabel}">Copy</button>
+  <pre><code>${escapeHtml(method.command)}</code></pre>
 </figure>`;
     })
     .join("\n");
@@ -1003,9 +1035,9 @@ export function landingContent(args: {
 </section>
 <section class="install" id="install">
   <h2>Add Kibi to the repository</h2>
-  <p>Install the three packages the project will run, then create the local <code>.kb/</code> directory. That command does not invent what the product does.</p>
+  <p>Kibi is driven by your coding agent, so the recommended setup is a prompt. Your agent installs the packages, runs <code>kibi init</code>, connects itself to Kibi, and bootstraps the knowledge base behind a plan you approve. The package-manager tabs are the manual route; <code>kibi init</code> alone does not invent what the product does.</p>
   <div class="pm-tabs" data-pm-tabs>
-    <div class="pm-tablist" role="tablist" aria-label="Package manager">${installTabs}</div>
+    <div class="pm-tablist" role="tablist" aria-label="Setup method">${installTabs}</div>
     ${installPanels}
   </div>
   <p class="fineprint">Requires Node.js 22+. SWI-Prolog is bundled on Linux (x64, arm64) and macOS; other platforms need <code>swipl</code> (SWI-Prolog 9.0+) on your <code>PATH</code>. A system <code>swipl</code> is only a fallback; set <code>KIBI_SWIPL=system</code> to prefer it. Bun commands and per-platform setup are in the <a href="${root}guide/install.html">installation guide</a>.</p>

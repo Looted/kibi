@@ -225,7 +225,9 @@ function createMarked(): { marked: Marked; resetSlugs: () => void } {
         const label = language
           ? `<span class="code-lang">${escapeHtml(language)}</span>`
           : "";
-        return `<figure class="code">${label}<button type="button" class="code-copy" aria-label="Copy code">Copy</button><pre><code>${highlightCode(text, canonical)}</code></pre></figure>\n`;
+        // A `prompt` block is prose for an agent, so it wraps instead of scrolling.
+        const figureClass = language === "prompt" ? "code prompt" : "code";
+        return `<figure class="${figureClass}">${label}<button type="button" class="code-copy" aria-label="Copy code">Copy</button><pre><code>${highlightCode(text, canonical)}</code></pre></figure>\n`;
       },
     },
   });

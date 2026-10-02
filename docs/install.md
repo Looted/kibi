@@ -95,7 +95,26 @@ You should see output like `SWI-Prolog version 10.x.x`.
 
 ## Installing kibi
 
-### Recommended: Project-local install
+### Recommended: Agent-led setup
+
+Kibi is operated by your coding agent, so the recommended install is a prompt. Paste this into Claude Code, Cursor, Codex, OpenCode, or any coding agent that can run commands in your repository:
+
+```prompt
+Set up Kibi (https://github.com/Looted/kibi) in this repository, then bootstrap its knowledge base.
+
+1. Install: confirm Node.js 22+ is available. With the package manager this repository already uses, add kibi-core, kibi-cli and kibi-mcp as dev dependencies. Do not skip optional dependencies; the bundled SWI-Prolog runtime is one.
+2. Initialize: run every `kibi` command through the package manager's local runner (npm: `npm exec -- kibi <command>`). Run `kibi init`; if it reports a problem, run `kibi doctor` and fix what it names. If this platform has no bundled SWI-Prolog, tell me what to install and stop.
+3. Connect: register the project-local `kibi-mcp` server for the agent host you are running in, following https://looted.github.io/kibi/guide/connect-an-agent.html. Prefer project-scoped configuration, and ask me before installing a plugin or changing global settings. Until the kb_* tools are visible to you, use Kibi's CLI JSON routes instead.
+4. Bootstrap: run `kibi skills load kibi-bootstrap --format markdown` and follow that skill exactly. Ask me any questions the planner returns, show me the complete plan and its hash, and write nothing until I approve it.
+5. Verify: run `kibi check` and `kibi status`, fix anything they report, and summarize what was added. Do not commit; I will review the changes.
+```
+
+The agent picks your package manager, installs the three packages project-locally, runs `kibi init`, registers the `kibi-mcp` server for its own host, and runs the [bootstrap workflow](#first-run-lifecycle). It writes no product knowledge until you approve the plan, and it leaves the changes uncommitted for your review. The rest of this section is the manual route, and the reference for what the agent does.
+
+<details>
+<summary>Manual installation</summary>
+
+### Manual: Project-local install
 
 For a reproducible, CI-friendly workflow, install kibi as project-level dev
 dependencies. Use your project's package manager; npm is shown as the Node
@@ -135,6 +154,8 @@ For other package managers, use the same local-runner pattern:
 Common environment check: `npm exec -- kibi doctor` (optional troubleshooting after initialization).
 
 Validation command: `npm exec -- kibi check`.
+
+</details>
 
 The CLI and MCP server are peer agent-operation surfaces. MCP-capable hosts can call the public `kb_*` contracts directly; agents in trusted project-local shells can invoke the equivalent CLI JSON routes with `kibi <route> --input <file|->`. Neither path requires direct access to `.kb/**` files.
 
@@ -631,9 +652,10 @@ If you need help with SWI-Prolog itself:
 
 ## Next Steps
 
-1. Check the environment: `npm exec -- kibi doctor`
-2. Initialize the repository: `npm exec -- kibi init`
-3. [Connect your coding agent](../docs-site/content/connect-an-agent.md) and ask it to "Bootstrap Kibi for this repository."
-4. Open the health report: `npm exec -- kibi report --open`
+1. Paste the [agent setup prompt](#recommended-agent-led-setup) into your coding agent. It covers steps 2 to 4.
+2. Check the environment: `npm exec -- kibi doctor`
+3. Initialize the repository: `npm exec -- kibi init`
+4. [Connect your coding agent](../docs-site/content/connect-an-agent.md) and ask it to "Bootstrap Kibi for this repository."
+5. Open the health report: `npm exec -- kibi report --open`
 
 The [CLI reference](cli-reference.md) documents every command, and [Troubleshooting](troubleshooting.md) covers recovery.
