@@ -10613,10 +10613,10 @@ coordinates:
     sourceLine: 18
   SYM-docs-site-pages-build:
     identityHash: 5db60e46bde4607bb3b3f7c45ea3b41dd0be936f5573db9513a1071fc44d36ed
-    sourceHash: a20f37228f1c83de4d4cf7d309b0b9b609a0faac46c3a83d3261dbf897249f61
+    sourceHash: c791cc968e3a1668b4a76dbfd55ea9846d17997aaacdb807107252ea082e63f2
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 90
+    sourceEndLine: 93
     sourceFile: packages/cli/tests/docs-site-pages.test.ts
     sourceLine: 1
   SYM-docs-site-readmePublishedDocProblems:
