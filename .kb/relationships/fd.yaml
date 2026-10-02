@@ -90,3 +90,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-76afb856bf09
+  - type: requires_predicate
+    from: REQ-ci-kb-merge-resolution
+    to: FACT-PRED-ci-kb-merge-driver-from-base
+    created_at: 2026-10-02T08:22:30.161Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-debd38512545
+  - type: requires_predicate
+    from: REQ-ci-kb-merge-resolution
+    to: FACT-PRED-ci-kb-merge-lockfile-refresh
+    created_at: 2026-10-02T08:22:30.210Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-575751a2a296
+  - type: requires_predicate
+    from: REQ-ci-kb-merge-resolution
+    to: FACT-PRED-ci-kb-merge-baseline-derived-counts
+    created_at: 2026-10-02T08:22:30.218Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-30f0fff0f650
+  - type: requires_predicate
+    from: REQ-ci-kb-merge-resolution
+    to: FACT-PRED-ci-kb-merge-reconcile-before-commit
+    created_at: 2026-10-02T08:22:30.232Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-45b02af0cec6
+  - type: requires_predicate
+    from: REQ-ci-kb-merge-resolution
+    to: FACT-PRED-ci-kb-merge-gate-before-push
+    created_at: 2026-10-02T08:22:30.245Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cece306a6a09
+  - type: requires_predicate
+    from: REQ-ci-kb-merge-resolution
+    to: FACT-PRED-ci-kb-merge-no-push-on-gate-failure
+    created_at: 2026-10-02T08:22:30.251Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5a86ebeb78f3
+  - type: specified_by
+    from: REQ-ci-kb-merge-resolution
+    to: SCEN-ci-kb-merge-resolution
+    created_at: 2026-10-02T08:22:30.259Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-148c7e4d27bd
+  - type: depends_on
+    from: REQ-ci-kb-merge-resolution
+    to: REQ-cli-kb-merge-driver
+    created_at: 2026-10-02T08:22:30.265Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b3f4204d630f

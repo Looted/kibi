@@ -1744,5 +1744,17 @@
         "./packages/cli/tests/commands/merge-driver.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-ci-kb-merge-resolution",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "15000",
+        "./scripts/tests/kb-merge-resolution.test.ts"
+      ]
+    ]
   }
 ]

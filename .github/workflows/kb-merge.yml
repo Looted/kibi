@@ -4,8 +4,11 @@ name: Kibi KB merge
 # sides appended records to .kb/symbols.yaml (or a .kb/relationships shard).
 # This workflow merges develop into each such same-repository PR branch with
 # `kibi merge-driver`, regenerates .kb/symbol-coordinates.yaml from the merged
-# tree, and pushes the merge commit. PRs with any other conflict, or a real
-# conflict inside a manifest, are left for a person.
+# tree, reconciles proof/baseline.json counts, runs the pre-push proof gate,
+# and pushes the merge commit. The driver is built from develop, so PRs opened
+# before it existed are handled too. PRs with any other conflict, a real
+# conflict inside a manifest, or a merge that fails the gate are left for a
+# person.
 #
 # Pushes made with the default GITHUB_TOKEN do not start other workflows, so
 # the PR's checks would not re-run on the merge commit. Add a repository
@@ -92,7 +95,7 @@ jobs:
     needs: [find-conflicts, swipl-bundle]
     if: ${{ needs.find-conflicts.outputs.branches != '[]' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     permissions:
       contents: write
     strategy:
@@ -117,17 +120,26 @@ jobs:
         with:
           node-version: "24"
 
-      - name: Build the merge driver from the PR branch
+      # The driver comes from develop, not the PR branch: a branch opened
+      # before the driver existed has no `kibi merge-driver`, a branch with a
+      # stale bun.lock cannot install, and the merge token should not run code
+      # that has not been reviewed into develop yet.
+      - name: Build the merge driver from ${{ env.BASE }}
         run: |
+          set -euo pipefail
+          driver_root="$RUNNER_TEMP/kibi-merge-base"
+          git worktree add --detach "$driver_root" "origin/$BASE"
+          cd "$driver_root"
           bun install --frozen-lockfile
           bun run build:cli-stack
+          echo "KIBI_MERGE_DRIVER=node $driver_root/packages/cli/bin/kibi merge-driver" >> "$GITHUB_ENV"
 
       - name: Merge develop with the Kibi merge driver
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config merge.kibi.driver "node $PWD/packages/cli/bin/kibi merge-driver %O %A %B"
+          git config merge.kibi.driver "$KIBI_MERGE_DRIVER %O %A %B"
           printf '%s\n' '.kb/symbols.yaml merge=kibi' '.kb/relationships/*.yaml merge=kibi' \
             >> .git/info/attributes
           git merge --no-ff --no-commit "origin/$BASE" || true
@@ -149,7 +161,14 @@ jobs:
 
       - name: Rebuild the merged tree
         run: |
-          bun install --frozen-lockfile
+          set -euo pipefail
+          # A lockfile that no longer matches the merged manifests is part of
+          # the merge result: refresh it rather than give up.
+          if ! bun install --frozen-lockfile; then
+            echo "::warning::bun.lock did not match the merged package manifests; refreshing it in the merge commit."
+            bun install
+            git add bun.lock
+          fi
           bun run build
 
       - name: Install SWI-Prolog
@@ -160,9 +179,26 @@ jobs:
           bun "$KIBI_CLI" sync --refresh-symbol-coordinates
           git add .kb/symbol-coordinates.yaml
 
-      - name: Commit and push the merge
+      # Both sides may have added proof/baseline.json entries. Git merges the
+      # entries but can keep one side's stale summary count.
+      - name: Reconcile the proof baseline counts
+        run: |
+          set -euo pipefail
+          if [ -f scripts/reconcile-proof-baseline.mjs ]; then
+            node scripts/reconcile-proof-baseline.mjs
+            git add proof/baseline.json
+          fi
+
+      - name: Commit the merge
         run: |
           set -euo pipefail
           git commit -m "Merge $BASE into $KIBI_BRANCH" \
             -m "Kibi merge driver resolved the .kb manifest conflicts; symbol coordinates regenerated."
-          git push origin "HEAD:refs/heads/$KIBI_BRANCH"
+
+      # The same gate a person runs before pushing. A failure leaves the PR
+      # untouched for a person instead of pushing a merge that breaks it.
+      - name: Check the merge before pushing
+        run: sh scripts/proof-prepush.sh
+
+      - name: Push the merge
+        run: git push origin "HEAD:refs/heads/$KIBI_BRANCH"

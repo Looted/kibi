@@ -108,13 +108,22 @@ jobs:
         with:
           node-version: 24
           cache: npm
-      - run: npm ci
+      # Install the driver from the default branch, not the PR branch: a PR
+      # opened before your kibi-cli had `merge-driver`, or one whose lockfile
+      # is out of date, could not install or run it otherwise.
+      - name: Install the merge driver from the default branch
+        run: |
+          set -euo pipefail
+          driver_root="$RUNNER_TEMP/kibi-merge-base"
+          git worktree add --detach "$driver_root" "origin/$BASE"
+          (cd "$driver_root" && npm ci)
+          echo "KIBI_MERGE_DRIVER=$driver_root/node_modules/.bin/kibi merge-driver" >> "$GITHUB_ENV"
       - name: Merge the default branch with the Kibi merge driver
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config merge.kibi.driver "npm exec --no -- kibi merge-driver %O %A %B"
+          git config merge.kibi.driver "$KIBI_MERGE_DRIVER %O %A %B"
           printf '%s\n' '.kb/symbols.yaml merge=kibi' '.kb/relationships/*.yaml merge=kibi' \
             >> .git/info/attributes
           git merge --no-ff --no-commit "origin/$BASE" || true
@@ -133,7 +142,16 @@ jobs:
             git merge --abort
             exit 1
           fi
-      - run: npm ci
+      # A lockfile that no longer matches the merged package.json is part of
+      # the merge result: refresh it rather than give up.
+      - name: Install the merged tree
+        run: |
+          set -euo pipefail
+          if ! npm ci; then
+            echo "::warning::package-lock.json did not match the merged package.json; refreshing it in the merge commit."
+            npm install
+            git add package-lock.json
+          fi
       - name: Regenerate symbol coordinates
         run: |
           npm exec -- kibi sync --refresh-symbol-coordinates

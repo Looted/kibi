@@ -256,6 +256,12 @@ commit. Pull requests with any other conflict, or a real conflict inside a
 manifest, are left untouched for a person. Fork pull requests are skipped
 because the workflow cannot push to them.
 
+The driver is installed from the default branch, not from the pull request.
+A pull request opened before your `kibi-cli` gained `merge-driver`, or one
+whose lockfile has fallen behind, is still resolved. If the merged
+`package.json` no longer matches the lockfile, the workflow refreshes the
+lockfile and includes it in the merge commit.
+
 Pushes made with the default `GITHUB_TOKEN` do not start other workflows, so
 the pull request's checks would not re-run on the merge commit. Add a
 repository secret named `KIBI_MERGE_TOKEN` and the workflow pushes with it

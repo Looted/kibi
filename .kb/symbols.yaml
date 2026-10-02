@@ -46618,3 +46618,22 @@ symbols:
         target: TEST-cli-kb-merge-driver
       - type: implements
         target: REQ-cli-kb-merge-driver
+  - id: SYM-test-ci-kb-merge-resolution
+    title: KB merge resolution suite
+    status: active
+    sourceFile: scripts/tests/kb-merge-resolution.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-ci-kb-merge-resolution
+  - id: SYM-derive-baseline-summary
+    title: deriveBaselineSummary
+    status: active
+    sourceFile: scripts/lib/proof-baseline-diff.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-ci-kb-merge-resolution
+      - type: implements
+        target: REQ-ci-kb-merge-resolution
