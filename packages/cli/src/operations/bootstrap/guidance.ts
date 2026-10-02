@@ -9,6 +9,8 @@ import type {
 } from "./types.js";
 
 function relative(root: string, target: string): string {
+  // Intent claims cite tickets and URLs, which are not workspace paths.
+  if (!path.isAbsolute(target)) return target;
   const value = path.relative(root, target);
   return value.startsWith("..") || path.isAbsolute(value)
     ? target.split(path.sep).join("/")
@@ -49,6 +51,10 @@ function prompt(
     bullets.push(`- Summary: ${declared.projectSummary}`);
   if (declared.sourceOfTruthPaths.length > 0)
     bullets.push(`- Source of truth: ${summary(declared.sourceOfTruthPaths)}.`);
+  if (declared.knowledgeSources)
+    bullets.push(
+      `- Knowledge sources: ${summary(declared.knowledgeSources.map((source) => `${source.title} (${source.authority})`))}; ${declared.intentClaims?.length ?? 0} cited intent claim(s).`,
+    );
   if (candidates.length > 0) {
     const formatted = Object.entries(counts(candidates))
       .sort(([left], [right]) => left.localeCompare(right))
@@ -120,7 +126,8 @@ export function confidence(
     declared.sourceOfTruthPaths.length +
       declared.sourceOfTruthNotes.length +
       declared.priorityRoots.length +
-      declared.verificationAnchors.length >
+      declared.verificationAnchors.length +
+      (declared.knowledgeSources?.length ?? 0) >
       0
   ) {
     score += 0.08;

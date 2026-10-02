@@ -1756,5 +1756,19 @@
         "./scripts/tests/kb-merge-resolution.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-kibi-bootstrap-knowledge-sources",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "30000",
+        "--isolate",
+        "--max-concurrency=1",
+        "./packages/cli/tests/operations/bootstrap-intent-claims.test.ts"
+      ]
+    ]
   }
 ]

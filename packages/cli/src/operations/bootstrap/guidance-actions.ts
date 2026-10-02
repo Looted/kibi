@@ -8,6 +8,8 @@ import type {
 } from "./types.js";
 
 function relative(root: string, target: string): string {
+  // Intent claims cite tickets and URLs, which are not workspace paths.
+  if (!path.isAbsolute(target)) return target;
   const value = path.relative(root, target);
   return value.startsWith("..") || path.isAbsolute(value)
     ? target.split(path.sep).join("/")

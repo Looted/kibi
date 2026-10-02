@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 143,
-  "proofProven": 143,
+  "currentRequirements": 144,
+  "proofProven": 144,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -287,6 +287,11 @@
       "uncoveredSymbols": []
     },
     "REQ-installed-staged-impact-timing-integrity": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-bootstrap-knowledge-sources": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []
