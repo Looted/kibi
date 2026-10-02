@@ -46618,3 +46618,13 @@ symbols:
         target: TEST-cli-kb-merge-driver
       - type: implements
         target: REQ-cli-kb-merge-driver
+  - id: SYM-docs-site-catalog-AGENT_SETUP_PROMPT
+    title: AGENT_SETUP_PROMPT
+    status: active
+    sourceFile: docs-site/catalog.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-docs-site-pages
+      - type: implements
+        target: REQ-docs-site-root-pages

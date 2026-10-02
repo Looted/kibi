@@ -223,3 +223,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a563eab5de82
+  - type: implements
+    from: SYM-docs-site-catalog-AGENT_SETUP_PROMPT
+    to: REQ-docs-site-root-pages
+    created_at: 2026-10-02T07:17:37.158Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-246d0e7e835e
+  - type: covered_by
+    from: SYM-docs-site-catalog-AGENT_SETUP_PROMPT
+    to: TEST-docs-site-pages
+    created_at: 2026-10-02T07:17:37.180Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d799c991879f
