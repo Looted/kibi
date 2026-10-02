@@ -1,20 +1,25 @@
-import { afterEach, describe, expect, test } from "bun:test";
+import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import {
+  copyFileSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
   rmSync,
+  symlinkSync,
   writeFileSync,
 } from "node:fs";
+import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import {
   coordinateSourceHash,
   mergeCoordinatesWithManifest,
   parseCoordinateArtifact,
 } from "../../src/extractors/symbol-coordinates.js";
 import { refreshSymbolCoordinatesForManifest } from "../../src/operations/mutation/symbol-refresh.js";
+import { APPROVED_SOURCE_ANALYZERS } from "../../src/plugins/approved-source-analyzers.js";
 import type { OperationContext } from "../../src/public/operations/runtime-types.js";
+import { inspectCoordinateRepairs } from "../../src/public/operations/symbol-repair-plan.js";
 
 const workspaces: string[] = [];
 
@@ -45,7 +50,95 @@ function context(workspaceRoot: string): OperationContext {
   };
 }
 
+/** Workspace that consumes the qualified Tree-sitter package, as a user project does. */
+function treeSitterWorkspace(prefix: string): string {
+  const workspace = mkdtempSync(join(tmpdir(), prefix));
+  workspaces.push(workspace);
+  const packageRoot = resolve(import.meta.dir, "../../../plugin-treesitter");
+  const approval = APPROVED_SOURCE_ANALYZERS.find(
+    (entry) => entry.packageName === "kibi-plugin-treesitter",
+  );
+  if (!approval) throw new Error("Missing qualified Tree-sitter approval");
+  const installed = join(workspace, "node_modules/kibi-plugin-treesitter");
+  for (const file of Object.keys(approval.files)) {
+    mkdirSync(dirname(join(installed, file)), { recursive: true });
+    copyFileSync(join(packageRoot, file), join(installed, file));
+  }
+  const runtime = dirname(
+    createRequire(join(packageRoot, "package.json")).resolve("web-tree-sitter"),
+  );
+  symlinkSync(runtime, join(workspace, "node_modules/web-tree-sitter"), "dir");
+  writeFileSync(
+    join(workspace, "package.json"),
+    JSON.stringify({
+      name: "decorated-python-consumer",
+      private: true,
+      dependencies: { "kibi-plugin-treesitter": approval.version },
+      kibi: {
+        plugins: [
+          {
+            package: "kibi-plugin-treesitter",
+            capabilities: { "kibi.symbol-extractor.v2": { mode: "augment" } },
+          },
+        ],
+      },
+    }),
+  );
+  return workspace;
+}
+
 describe("targeted symbol coordinate refresh", () => {
+  test("binds a declaration in decorated Python like sync's coordinate refresh", async () => {
+    const workspace = treeSitterWorkspace("kibi-targeted-decorated-python-");
+    mkdirSync(join(workspace, ".kb"), { recursive: true });
+    mkdirSync(join(workspace, "src"), { recursive: true });
+    writeFileSync(
+      join(workspace, "src", "fund.py"),
+      "def identity(f):\n    return f\n\n@identity\ndef run():\n    pass\n",
+      "utf8",
+    );
+    const manifestPath = join(workspace, ".kb", "symbols.yaml");
+    writeFileSync(
+      manifestPath,
+      "symbols:\n  - id: SYM-RUN\n    title: run\n    sourceFile: src/fund.py\n",
+      "utf8",
+    );
+    const warn = spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      const result = await refreshSymbolCoordinatesForManifest(
+        "SYM-RUN",
+        manifestPath,
+        context(workspace),
+      );
+      expect(result).toMatchObject({
+        refreshed: true,
+        found: true,
+        outcome: "updated",
+      });
+      const artifact = parseCoordinateArtifact(
+        readFileSync(join(workspace, ".kb", "symbol-coordinates.yaml"), "utf8"),
+      );
+      if (artifact.status !== "parsed") throw new Error(artifact.status);
+      expect(artifact.coordinates["SYM-RUN"]).toMatchObject({
+        sourceFile: "src/fund.py",
+        sourceLine: 5,
+        sourceEndLine: 6,
+      });
+
+      const repairs = await inspectCoordinateRepairs(
+        [{ id: "SYM-RUN", title: "run", sourceFile: "src/fund.py" }],
+        workspace,
+      );
+      expect(repairs.get("SYM-RUN")).toMatchObject({
+        refreshable: true,
+        reason: "extractable",
+      });
+      expect(warn.mock.calls[0]?.[0]).toContain("remains partial");
+    } finally {
+      warn.mockRestore();
+    }
+  });
+
   test("updates one record in a legacy artifact without migrating the unrelated record", async () => {
     const workspace = mkdtempSync(
       join(tmpdir(), "kibi-targeted-legacy-update-"),
