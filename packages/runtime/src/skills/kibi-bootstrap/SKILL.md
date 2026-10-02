@@ -26,10 +26,15 @@ evidence. Agents own reading and translation; humans name the sources,
 judge their authority, and resolve genuine ambiguity. A seeded repository
 hands off to the normal Kibi workflow.
 
-## Interview first
+## Interface and preview
 
 Use the visible approved MCP surface or the trusted project-local CLI as equal
-peer interfaces. If neither is available, stop. Before planning:
+peer interfaces. If neither is available, stop. Interview first, then plan,
+then preview the exact plan for approval.
+
+## Interview first
+
+Before planning:
 
 1. Inventory what you can already read: your own MCP connectors and tools
    (issue trackers such as Jira, YouTrack, Linear, or GitHub Issues; wikis such
@@ -50,7 +55,7 @@ Declare the result in `bootstrapContext`: `projectSummary`,
 and `intentClaims` (statement, sourceId, reference, optional excerpt). Kibi
 never contacts those sources; it binds what you declare into the plan hash.
 
-## Plan and preview
+## Plan and approval
 
 Run `kb_plan_bootstrap` (or `plan-bootstrap --input`) read-only with that
 context. Grounded authoritative or supporting claims become cited `req`
