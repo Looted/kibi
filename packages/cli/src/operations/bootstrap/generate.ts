@@ -216,7 +216,7 @@ async function expectedSnapshots(
   }
 }
 
-// implements REQ-mcp-kibi-bootstrap-bootstrap-v1, REQ-kibi-operation-interface-parity
+// implements REQ-KIBI-BOOTSTRAP-PLAN, REQ-kibi-operation-interface-parity
 // implements REQ-KIBI-BOOTSTRAP-PLAN
 export async function executePlanBootstrap(
   args: PlanBootstrapArgs,

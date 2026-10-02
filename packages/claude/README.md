@@ -97,7 +97,12 @@ afterwards. Remove the variable to stop recording.
 - `.claude-plugin/plugin.json`: plugin manifest.
 - `.mcp.json`: the `kibi` MCP server, started through `bin/mcp-launcher.cjs`.
   The launcher resolves the workspace from `CLAUDE_PROJECT_DIR`, is silent
-  outside Kibi workspaces, and proxies the project-local `kibi-mcp`.
+  outside Kibi workspaces, and proxies the project-local `kibi-mcp`. The
+  `PreToolUse` hook adds `workspaceRoot` (the session's current workspace) to
+  every Kibi MCP call, so a session that moves into a git worktree, as Claude
+  Code desktop sessions do, is answered from that worktree's branch rather
+  than the checkout the server started in. Set `KIBI_WORKSPACE` to pin one
+  workspace instead.
 - `hooks/hooks.json`: `SessionStart`, `PreToolUse` (read, edit, and search
   tools), `PostToolUse` (edit tools, Bash, and `kb_*` MCP tools), and `Stop`.
 - `bin/hook-runner.mjs`: generated bundle of `src/hook-runner.ts`

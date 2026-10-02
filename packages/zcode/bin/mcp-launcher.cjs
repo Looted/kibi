@@ -503,7 +503,13 @@ function proxyKibiMcp(options = {}) {
     );
     return Promise.resolve(1);
   }
-  const childEnv = { ...env, KIBI_WORKSPACE: workspaceRoot };
+  // KIBI_MCP_HOST only identifies the host on usage rows; it never enables
+  // telemetry, which stays the operator's explicit opt-in.
+  const childEnv = {
+    ...env,
+    KIBI_WORKSPACE: workspaceRoot,
+    KIBI_MCP_HOST: "zcode",
+  };
   return new Promise((resolveExit) => {
     let child;
     try {

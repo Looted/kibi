@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 144,
-  "proofProven": 144,
+  "currentRequirements": 145,
+  "proofProven": 145,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -122,6 +122,11 @@
       "uncoveredSymbols": []
     },
     "REQ-claude-hook-usage-telemetry": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-mcp-workspace-routing": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []

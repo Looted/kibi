@@ -124,7 +124,7 @@ function providerCandidate(
   ];
 }
 
-// implements REQ-mcp-kibi-bootstrap-bootstrap-v1, REQ-kibi-operation-interface-parity
+// implements REQ-KIBI-BOOTSTRAP-PLAN, REQ-kibi-operation-interface-parity
 // implements REQ-KIBI-BOOTSTRAP-PLAN
 export function buildBootstrapCandidates(
   evidence: readonly BootstrapEvidence[],

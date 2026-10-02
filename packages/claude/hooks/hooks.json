@@ -15,7 +15,7 @@
     ],
     "PreToolUse": [
       {
-        "matcher": "Read|Edit|MultiEdit|Write|NotebookEdit|Grep|Glob",
+        "matcher": "Read|Edit|MultiEdit|Write|NotebookEdit|Grep|Glob|mcp__.*__kb_.*",
         "hooks": [
           {
             "type": "command",

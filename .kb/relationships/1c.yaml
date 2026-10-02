@@ -181,3 +181,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1832dca132bc
+  - type: implements
+    from: SYM-mcp-WorkspaceRouterOptions
+    to: REQ-mcp-workspace-routing
+    created_at: 2026-10-02T14:47:05.118Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8db1ace2f396
+  - type: covered_by
+    from: SYM-mcp-WorkspaceRouterOptions
+    to: TEST-mcp-workspace-routing
+    created_at: 2026-10-02T14:47:05.143Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cdabf25cf1e0

@@ -272,3 +272,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-aa8e85ad411b
+  - type: implements
+    from: SYM-cursor-dts-packageJsonForResolvedFile
+    to: REQ-cursor-consumer-local-mcp-launcher-v1
+    created_at: 2026-10-02T12:21:08.245Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b0bc62bfb2c1
+  - type: covered_by
+    from: SYM-cursor-dts-packageJsonForResolvedFile
+    to: TEST-cursor-consumer-local-mcp-launcher-v1
+    created_at: 2026-10-02T12:21:08.261Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-501379085972

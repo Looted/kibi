@@ -58,6 +58,20 @@ printf '%s\n' '{"query":"checkout","limit":10}' | npx --no-install kibi search -
 Read `resources/operation-access.md` for the route, result version, effects,
 mutability, and Prolog requirements of each operation.
 
+## Working in a git worktree or another directory
+
+Kibi MCP servers start in one project and answer from its knowledge base.
+Every Kibi MCP tool accepts `workspaceRoot`: when your working directory is not
+the project the server started in (a git worktree, a sibling checkout), pass
+your working directory as `workspaceRoot` on every call. Host plugins with
+pre-tool hooks add it for you. The server answers from that workspace when it
+is a worktree of the same repository or lies under the client's MCP roots.
+
+If a result carries a `workspace_mismatch` diagnostic, the answer came from a
+different workspace than the one you asked for; its `detail.reason` says why.
+Use the CLI from your working directory instead: `npx --no-install kibi ...`
+runs where you are and needs no `workspaceRoot`.
+
 ## Safe workflow
 
 1. Always discover before you mutate: start with `kb_search`, then exact-filter with `kb_query`. Use

@@ -41,3 +41,7 @@ printf '%s\n' '{"query":"authentication","limit":10}' | npx --no-install kibi se
 `_diagnostic_telemetry` is adapter metadata, not business input. Never copy it
 into entity properties. On `committed_with_repairs`, follow typed required
 `nextActions` and do not retry the original mutation.
+
+`workspaceRoot` is an MCP-only routing argument naming the directory a call is
+about (see the kibi-usage skill). The CLI JSON routes do not accept it; they
+always run in the current directory.

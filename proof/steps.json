@@ -1770,5 +1770,17 @@
         "./packages/cli/tests/operations/bootstrap-intent-claims.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-mcp-workspace-routing",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "60000",
+        "./packages/mcp/tests/server/workspace-router.test.ts"
+      ]
+    ]
   }
 ]

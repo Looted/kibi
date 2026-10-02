@@ -174,3 +174,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d370a8efcdbb
+  - type: implements
+    from: SYM-mcp-gitCommonDirectory
+    to: REQ-mcp-workspace-routing
+    created_at: 2026-10-02T14:43:35.667Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dd1f245d1203
+  - type: covered_by
+    from: SYM-mcp-gitCommonDirectory
+    to: TEST-mcp-workspace-routing
+    created_at: 2026-10-02T14:43:35.699Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8bc8497e8244

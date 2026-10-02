@@ -90,3 +90,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-75bae2e72ce8
+  - type: implements
+    from: SYM-cursor-signalExitCode
+    to: REQ-cursor-consumer-local-mcp-launcher-v1
+    created_at: 2026-10-02T12:20:39.431Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7c13b419e992
+  - type: covered_by
+    from: SYM-cursor-signalExitCode
+    to: TEST-cursor-consumer-local-mcp-launcher-v1
+    created_at: 2026-10-02T12:20:39.440Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c00a84897947

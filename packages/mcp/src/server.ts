@@ -28,6 +28,11 @@ import {
   connectTransport,
   setupTransportHandlers,
 } from "./server/transport.js";
+import {
+  WorkspaceRouter,
+  setWorkspaceRouter,
+} from "./server/workspace-router.js";
+import { resolveWorkspaceRoot } from "./workspace.js";
 
 // Read version from package.json to prevent drift
 const packageJson = JSON.parse(
@@ -62,6 +67,11 @@ export async function startServer(): Promise<void> {
       icons: KIBI_ICONS,
     },
     { instructions: SERVER_INSTRUCTIONS },
+  );
+
+  // Answer each call from the caller's workspace (worktrees, parallel agents).
+  setWorkspaceRouter(
+    new WorkspaceRouter({ server, workspaceRoot: resolveWorkspaceRoot() }),
   );
 
   // Setup documentation resources and prompts

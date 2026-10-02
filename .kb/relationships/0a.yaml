@@ -300,3 +300,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-11c37b480c87
+  - type: executable_for
+    from: SYM-test-mcp-workspace-routing
+    to: TEST-mcp-workspace-routing
+    created_at: 2026-10-02T14:41:56.820Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f1149345933a
+  - type: implements
+    from: SYM-mcp-setWorkspaceRouter
+    to: REQ-mcp-workspace-routing
+    created_at: 2026-10-02T14:44:36.716Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-28faf82d099d
+  - type: covered_by
+    from: SYM-mcp-setWorkspaceRouter
+    to: TEST-mcp-workspace-routing
+    created_at: 2026-10-02T14:44:36.776Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b1a0f753233f

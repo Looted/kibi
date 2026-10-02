@@ -1351,3 +1351,46 @@ function loadHookStateFromPluginData(pluginData: string) {
   expect(sessionDirs.length).toBeGreaterThan(0);
   return loadHookState(path.join(sessionsRoot, sessionDirs[0] as string));
 }
+
+describe("ZCode hook runner workspace stamp", () => {
+  test("PreToolUse names the session workspace on every Kibi MCP call", async () => {
+    const { cwd, pluginData } = workspaceFixture("kibi-zcode-stamp");
+    fs.mkdirSync(path.join(cwd, "src"));
+    const result = expectStrictZcodeOutput(
+      await runHook(
+        {
+          hook_event_name: "PreToolUse",
+          session_id: "s1",
+          cwd: path.join(cwd, "src"),
+          tool_name: "mcp__kibi__kb_query",
+          tool_input: { id: "REQ-1" },
+        },
+        { pluginData },
+      ),
+    );
+    // No permission decision: ZCode's own permission flow still runs.
+    expect(result).toEqual({
+      continue: true,
+      hookSpecificOutput: {
+        hookEventName: "PreToolUse",
+        updatedInput: { id: "REQ-1", workspaceRoot: cwd },
+      },
+    });
+  });
+
+  test("other tools are left alone", async () => {
+    const { cwd, pluginData } = workspaceFixture("kibi-zcode-stamp");
+    expectQuiet(
+      await runHook(
+        {
+          hook_event_name: "PreToolUse",
+          session_id: "s1",
+          cwd,
+          tool_name: "Read",
+          tool_input: { file_path: "src/a.ts" },
+        },
+        { pluginData },
+      ),
+    );
+  });
+});

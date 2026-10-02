@@ -30,10 +30,11 @@ function contextOf(output: HookOutput, event: string): string | undefined {
     expect(ALLOWED_SPECIFIC.has(key), `unexpected key ${key}`).toBe(true);
   }
   expect(specific.hookEventName).toBe(event as never);
-  expect(specific.additionalContext.length).toBeLessThanOrEqual(
-    MAX_SNIPPET_CHARS,
-  );
-  return specific.additionalContext;
+  // Context events always carry text; only the workspace stamp omits it.
+  const text = specific.additionalContext ?? "";
+  expect(text.length).toBeGreaterThan(0);
+  expect(text.length).toBeLessThanOrEqual(MAX_SNIPPET_CHARS);
+  return text;
 }
 
 function session(
@@ -520,5 +521,45 @@ describe("usage telemetry", () => {
     const { pre } = session(fixture, "s-other", optedIn);
     await pre("Read", { file_path: path.join(fixture.root, "README.md") });
     expect(usageRows(fixture)).toEqual([]);
+  });
+});
+
+describe("workspace stamp", () => {
+  test("PreToolUse names the session workspace on every Kibi MCP call", async () => {
+    const fixture = createKibiWorkspace();
+    const result = await runHook(
+      {
+        session_id: "s-stamp",
+        cwd: path.join(fixture.root, "src"),
+        hook_event_name: "PreToolUse",
+        tool_name: "mcp__plugin_kibi-claude_kibi__kb_search",
+        tool_input: { query: "rounding" },
+      },
+      { pluginData: fixture.pluginData, env: {} },
+    );
+    // No permission decision: Claude Code's permission flow still applies.
+    expect(result).toEqual({
+      hookSpecificOutput: {
+        hookEventName: "PreToolUse",
+        updatedInput: { query: "rounding", workspaceRoot: fixture.root },
+      },
+    });
+  });
+
+  test("a Kibi call outside any Kibi workspace is left alone", async () => {
+    const root = tempDir("kibi-claude-plain-");
+    const pluginData = tempDir("kibi-claude-plain-data-");
+    write(root, ".git/HEAD", "ref: refs/heads/main\n");
+    const result = await runHook(
+      {
+        session_id: "s-stamp",
+        cwd: root,
+        hook_event_name: "PreToolUse",
+        tool_name: "mcp__plugin_kibi-claude_kibi__kb_search",
+        tool_input: { query: "rounding" },
+      },
+      { pluginData, env: {} },
+    );
+    expect(result).toEqual({});
   });
 });
