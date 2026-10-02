@@ -46730,3 +46730,25 @@ symbols:
         target: TEST-ci-kb-merge-resolution
       - type: implements
         target: REQ-ci-kb-merge-resolution
+  - id: SYM-claude-case-mcp-follows-session-workspace
+    title: The MCP launcher follows the session into its current Kibi workspace
+    status: active
+    sourceFile: packages/claude/tests/mcp-launcher-roots.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-claude-code-kibi-plugin-v1
+  - id: SYM-claude-mcp-launcher
+    title: Claude Code MCP launcher (workspace-gated, roots-following kibi-mcp proxy)
+    status: active
+    sourceFile: packages/claude/bin/mcp-launcher.cjs
+    symbol_role: module
+    granularity_reason: extractor-miss
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-mcp-follows-session-workspace

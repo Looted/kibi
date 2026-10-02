@@ -234,3 +234,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3ca93ec58583
+  - type: validates
+    from: TEST-claude-code-kibi-plugin-v1
+    to: SCEN-claude-mcp-follows-session-workspace
+    created_at: 2026-10-02T11:35:28.037Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6398de23422e

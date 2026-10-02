@@ -27,6 +27,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { spawn } = require("node:child_process");
 const { createRequire } = require("node:module");
+const { fileURLToPath } = require("node:url");
 
 const KIBI_WORKSPACE_ENV_KEYS = [
   "KIBI_WORKSPACE",
@@ -485,12 +486,68 @@ function probeKibiMcp(options = {}) {
   });
 }
 
+const LAUNCHER_ID_PREFIX = "kibi-launcher:";
+const ROOTS_TIMEOUT_MS = 2000;
+const SWITCH_TIMEOUT_MS = 30000;
+const RETIRE_GRACE_MS = 5000;
+
+/** True when the operator pinned the workspace through the environment. */
+function isWorkspacePinned(env = process.env) {
+  return KIBI_WORKSPACE_ENV_KEYS.some(
+    (key) => typeof env[key] === "string" && env[key].trim().length > 0,
+  );
+}
+
+function withoutWorkspaceKeys(env) {
+  const copy = { ...env };
+  for (const key of KIBI_WORKSPACE_ENV_KEYS) delete copy[key];
+  return copy;
+}
+
 /**
- * Proxy the real kibi-mcp: stdio passes through untouched and the launcher
- * mirrors the child's exit state. Host shutdown signals are forwarded so the
- * child terminates even when a launcher detaches it from the process group.
- * The launch target is resolved shell-free (see resolveLaunchTarget), so the
- * same strategy works on Windows without a command interpreter.
+ * The Kibi workspace named by the client's MCP roots: the first `file://`
+ * root that resolves to an opted-in workspace, or null when none does.
+ */
+function workspaceFromRoots(roots, env = process.env) {
+  if (!Array.isArray(roots)) return null;
+  const searchEnv = withoutWorkspaceKeys(env);
+  for (const root of roots) {
+    if (!isRecord(root) || typeof root.uri !== "string") continue;
+    let directory;
+    try {
+      directory = fileURLToPath(root.uri);
+    } catch {
+      continue;
+    }
+    const workspace = resolveKibiWorkspace(directory, searchEnv);
+    if (workspace.optedIn) return workspace.root;
+  }
+  return null;
+}
+
+function isLauncherId(id) {
+  return typeof id === "string" && id.startsWith(LAUNCHER_ID_PREFIX);
+}
+
+/**
+ * Proxy the real kibi-mcp and keep it attached to the session's workspace.
+ *
+ * Claude Code starts plugin MCP servers in the project the session opened,
+ * then may move the session into a git worktree. Every request would then be
+ * answered from the original checkout's branch store. The launcher therefore
+ * reads the session's MCP roots (Claude Code answers `roots/list` with its
+ * current working directory) before each tool call. When the roots name a
+ * different Kibi workspace, it starts kibi-mcp for that workspace, replays the
+ * client's initialize handshake, retires the previous server, and announces
+ * `notifications/tools/list_changed`. Client messages are queued while that
+ * happens so ordering is preserved.
+ *
+ * Following is skipped when the operator pinned the workspace with
+ * KIBI_WORKSPACE (or an alias), when the client does not support roots, and
+ * whenever the roots query or the new server's handshake fails: the current
+ * server then keeps answering. Messages are proxied line by line; anything
+ * that is not JSON passes through unchanged. Host shutdown signals are
+ * forwarded to the active server.
  */
 function proxyKibiMcp(options = {}) {
   const {
@@ -500,6 +557,8 @@ function proxyKibiMcp(options = {}) {
     stdin = process.stdin,
     stdout = process.stdout,
     stderr = process.stderr,
+    rootsTimeoutMs = ROOTS_TIMEOUT_MS,
+    switchTimeoutMs = SWITCH_TIMEOUT_MS,
   } = options;
   const target = resolveLaunchTarget(workspaceRoot, env);
   if (!target) {
@@ -508,28 +567,31 @@ function proxyKibiMcp(options = {}) {
     );
     return Promise.resolve(1);
   }
-  const childEnv = {
-    ...env,
-    KIBI_WORKSPACE: workspaceRoot,
-    KIBI_MCP_HOST: "claude-code",
-  };
-  return new Promise((resolveExit) => {
-    let child;
-    try {
-      child = spawnImpl(target.command, [...target.args], {
-        cwd: workspaceRoot,
-        env: childEnv,
-        stdio: ["pipe", "pipe", "pipe"],
-      });
-    } catch (error) {
-      stderr.write(
-        `[kibi-claude] Failed to start kibi-mcp: ${error?.message ?? String(error)}\n`,
-      );
-      resolveExit(1);
-      return;
-    }
+  const followRoots = options.followRoots ?? !isWorkspacePinned(env);
 
+  return new Promise((resolveExit) => {
     let exited = false;
+    let current = null;
+    let initializeRequest = null;
+    let clientInitialized = false;
+    let clientSupportsRoots = false;
+    let nextLauncherId = 1;
+    const pendingLauncher = new Map();
+    const queue = [];
+    let busy = false;
+
+    const writeClient = (payload) => {
+      try {
+        stdout.write(
+          typeof payload === "string"
+            ? `${payload}\n`
+            : `${JSON.stringify(payload)}\n`,
+        );
+      } catch {
+        // The client went away; the session is over either way.
+      }
+    };
+
     const finish = (code, signal) => {
       if (exited) return;
       exited = true;
@@ -546,37 +608,227 @@ function proxyKibiMcp(options = {}) {
     };
 
     const forwardSignal = (signal) => {
-      if (!child.killed) child.kill(signal);
+      if (current && !current.proc.killed) current.proc.kill(signal);
       finish(undefined, signal);
     };
+
+    /** Wait for the response to a request the launcher itself issued. */
+    const awaitLauncherResponse = (id, timeoutMs) =>
+      new Promise((resolveResponse) => {
+        const timer = setTimeout(() => {
+          pendingLauncher.delete(id);
+          resolveResponse(null);
+        }, timeoutMs);
+        pendingLauncher.set(id, (message) => {
+          clearTimeout(timer);
+          pendingLauncher.delete(id);
+          resolveResponse(message);
+        });
+      });
+
+    const startServer = (root, serverTarget) => {
+      const server = { root, proc: null };
+      const childEnv = {
+        ...env,
+        KIBI_WORKSPACE: root,
+        KIBI_MCP_HOST: "claude-code",
+      };
+      server.proc = spawnImpl(serverTarget.command, [...serverTarget.args], {
+        cwd: root,
+        env: childEnv,
+        stdio: ["pipe", "pipe", "pipe"],
+      });
+      server.send = (message) => {
+        try {
+          server.proc.stdin.write(
+            typeof message === "string"
+              ? `${message}\n`
+              : `${JSON.stringify(message)}\n`,
+          );
+        } catch {
+          // Its close handler reports the exit.
+        }
+      };
+      server.proc.stdout.on(
+        "data",
+        createLineReader((line) => {
+          let message;
+          try {
+            message = JSON.parse(line);
+          } catch {
+            if (server === current) writeClient(line);
+            return;
+          }
+          if (
+            isRecord(message) &&
+            isLauncherId(message.id) &&
+            !message.method
+          ) {
+            pendingLauncher.get(message.id)?.(message);
+            return;
+          }
+          if (server === current) writeClient(message);
+        }),
+      );
+      server.proc.stderr.on("data", (chunk) => stderr.write(chunk));
+      return server;
+    };
+
+    const retire = (server) => {
+      try {
+        server.proc.stdin.end();
+      } catch {
+        // Already closed.
+      }
+      setTimeout(() => {
+        if (server.proc.exitCode === null && !server.proc.killed) {
+          server.proc.kill("SIGTERM");
+        }
+      }, RETIRE_GRACE_MS).unref?.();
+    };
+
+    /** Move to the workspace named by the client's roots, if it changed. */
+    const followSessionWorkspace = async () => {
+      const rootsId = `${LAUNCHER_ID_PREFIX}roots-${nextLauncherId++}`;
+      writeClient({ jsonrpc: "2.0", id: rootsId, method: "roots/list" });
+      const rootsResponse = await awaitLauncherResponse(
+        rootsId,
+        rootsTimeoutMs,
+      );
+      const desired = workspaceFromRoots(rootsResponse?.result?.roots, env);
+      if (!desired || desired === current.root) return;
+
+      const nextTarget = resolveLaunchTarget(desired, env);
+      if (!nextTarget) {
+        stderr.write(
+          `[kibi-claude] Session moved to ${desired}, but no kibi-mcp resolves there; staying on ${current.root}\n`,
+        );
+        return;
+      }
+      let next;
+      try {
+        next = startServer(desired, nextTarget);
+      } catch (error) {
+        stderr.write(
+          `[kibi-claude] Failed to start kibi-mcp for ${desired}: ${error?.message ?? String(error)}; staying on ${current.root}\n`,
+        );
+        return;
+      }
+      next.proc.once("error", () => {});
+      const initId = `${LAUNCHER_ID_PREFIX}init-${nextLauncherId++}`;
+      next.send({ ...initializeRequest, id: initId });
+      const initResponse = await awaitLauncherResponse(initId, switchTimeoutMs);
+      if (!initResponse || initResponse.error) {
+        stderr.write(
+          `[kibi-claude] kibi-mcp for ${desired} did not complete initialize; staying on ${current.root}\n`,
+        );
+        retire(next);
+        return;
+      }
+      if (clientInitialized) {
+        next.send({ jsonrpc: "2.0", method: "notifications/initialized" });
+      }
+      const previous = current;
+      attach(next);
+      retire(previous);
+      stderr.write(
+        `[kibi-claude] Following the session into ${desired} (was ${previous.root})\n`,
+      );
+      writeClient({
+        jsonrpc: "2.0",
+        method: "notifications/tools/list_changed",
+      });
+    };
+
+    const forward = (message) => {
+      if (isRecord(message) && message.method === "initialize") {
+        initializeRequest = message;
+        clientSupportsRoots = isRecord(message.params?.capabilities?.roots);
+      }
+      if (isRecord(message) && message.method === "notifications/initialized") {
+        clientInitialized = true;
+      }
+      current.send(message);
+    };
+
+    const pump = async () => {
+      if (busy) return;
+      busy = true;
+      while (queue.length > 0 && !exited) {
+        const message = queue.shift();
+        if (
+          followRoots &&
+          clientSupportsRoots &&
+          initializeRequest &&
+          isRecord(message) &&
+          message.method === "tools/call"
+        ) {
+          try {
+            await followSessionWorkspace();
+          } catch (error) {
+            stderr.write(
+              `[kibi-claude] Could not follow the session workspace: ${error?.message ?? String(error)}\n`,
+            );
+          }
+        }
+        forward(message);
+      }
+      busy = false;
+    };
+
+    function attach(server) {
+      current = server;
+      server.proc.once("error", (error) => {
+        if (server !== current) return;
+        stderr.write(
+          `[kibi-claude] Failed to start kibi-mcp: ${error?.message ?? String(error)}\n`,
+        );
+        finish(1);
+      });
+      server.proc.once("close", (code, signal) => {
+        if (server === current) finish(code, signal);
+      });
+    }
+
+    try {
+      attach(startServer(workspaceRoot, target));
+    } catch (error) {
+      stderr.write(
+        `[kibi-claude] Failed to start kibi-mcp: ${error?.message ?? String(error)}\n`,
+      );
+      resolveExit(1);
+      return;
+    }
     for (const signalName of ["SIGINT", "SIGTERM", "SIGHUP"]) {
       process.once(signalName, forwardSignal);
     }
 
-    child.once("error", (error) => {
-      stderr.write(
-        `[kibi-claude] Failed to start kibi-mcp: ${error?.message ?? String(error)}\n`,
-      );
-      finish(1);
-    });
-    child.once("close", (code, signal) => finish(code, signal));
-
-    stdin.on("data", (chunk) => {
-      try {
-        child.stdin.write(chunk);
-      } catch {
-        // Child stdin closed early; its close handler finishes the run.
-      }
-    });
+    stdin.on(
+      "data",
+      createLineReader((line) => {
+        let message;
+        try {
+          message = JSON.parse(line);
+        } catch {
+          queue.push(line);
+          void pump();
+          return;
+        }
+        if (isRecord(message) && isLauncherId(message.id) && !message.method) {
+          pendingLauncher.get(message.id)?.(message);
+          return;
+        }
+        queue.push(message);
+        void pump();
+      }),
+    );
     stdin.on("end", () => {
       try {
-        child.stdin.end();
+        current.proc.stdin.end();
       } catch {
         // Already closed.
       }
     });
-    child.stdout.on("data", (chunk) => stdout.write(chunk));
-    child.stderr.on("data", (chunk) => stderr.write(chunk));
   });
 }
 
@@ -651,6 +903,7 @@ module.exports = {
   UNCONFIGURED_WORKSPACE_TOOL_MESSAGE,
   createLineReader,
   findGlobalKibiMcpCommand,
+  isWorkspacePinned,
   main,
   probeKibiMcp,
   proxyKibiMcp,
@@ -662,4 +915,5 @@ module.exports = {
   serveSilent,
   signalExitCode,
   silentServerResponse,
+  workspaceFromRoots,
 };

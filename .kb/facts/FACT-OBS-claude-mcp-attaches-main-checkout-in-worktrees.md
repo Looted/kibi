@@ -1,6 +1,6 @@
 ---
 title: Claude desktop worktree sessions attach the Kibi MCP server to the main checkout
-status: active
+status: closed
 fact_kind: observation
 tags:
   - claude
