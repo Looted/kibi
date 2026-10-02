@@ -30,10 +30,11 @@ function contextOf(output: HookOutput, event: string): string | undefined {
     expect(ALLOWED_SPECIFIC.has(key), `unexpected key ${key}`).toBe(true);
   }
   expect(specific.hookEventName).toBe(event as never);
-  expect(specific.additionalContext.length).toBeLessThanOrEqual(
-    MAX_SNIPPET_CHARS,
-  );
-  return specific.additionalContext;
+  // Context events always carry text; only the workspace stamp omits it.
+  const text = specific.additionalContext ?? "";
+  expect(text.length).toBeGreaterThan(0);
+  expect(text.length).toBeLessThanOrEqual(MAX_SNIPPET_CHARS);
+  return text;
 }
 
 function session(
