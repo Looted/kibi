@@ -24,11 +24,12 @@ Most project knowledge is scattered across prompts, tickets, code, and conversat
 - **Prolog guards against drift** — Typed properties, predicates, and safe rules let deterministic checks expose contradictions, unsupported invention, and incomplete semantics before they become accepted project knowledge.
 - **E2E behavior is traceable** — Kibi records what an end-to-end test proves, not merely which lines it happened to execute. You can navigate from a symbol to its requirement or from a test to the scenario and intent it verifies.
 - **Intent survives branch changes** — Each Git branch has its own KB snapshot, keeping feature context isolated and available when you return.
+- **Works across languages** — TypeScript and JavaScript symbols are built in. The optional [`kibi-plugin-treesitter`](https://looted.github.io/kibi/reference/plugins.html) adds offline symbol extraction for Python, Go, Rust, Java, C#, PHP, C, C++, Bash, Ruby, and Terraform/HCL using pinned WASM grammars.
 - **Keep knowledge local** — KB state lives in your repository's `.kb/` directory; Kibi does not send external telemetry or analytics.
 
 ## Quick start
 
-Kibi requires **Node.js 22+**. SWI-Prolog is bundled: on Linux (x64 or arm64, glibc 2.28+) and macOS (Apple silicon or Intel) there is nothing else to install. On other platforms, such as Alpine/musl or native Windows (use WSL), install SWI-Prolog 9.0+ and put `swipl` on your `PATH` ([details](https://looted.github.io/kibi/guide/install.html)). Then, in your repository:
+Kibi requires **Node.js 22+**. SWI-Prolog is bundled: on Linux (x64 or arm64, glibc 2.28+) and macOS (Apple silicon or Intel) there is nothing else to install. On other platforms, such as Alpine/musl or native Windows (use WSL), install SWI-Prolog 9.0+ and put `swipl` on your `PATH` ([details](https://looted.github.io/kibi/guide/install.html)). A system SWI-Prolog is only a fallback: Kibi uses `KIBI_SWIPL` if set, then the bundled runtime, then `swipl` on `PATH`. Set `KIBI_SWIPL=system` to prefer your own install. Then, in your repository:
 
 ```bash
 npm install --save-dev kibi-core kibi-cli kibi-mcp
@@ -161,7 +162,7 @@ npm exec -- kibi report --open
 
 `kibi report` writes a self-contained `kibi-report/index.html` and `kibi-report/badge.svg` from one coverage snapshot. `% proven` is the share of current requirements with fresh end-to-end proof on the current code; the report lists what is proven, what is missing proof, what contradicts, and what has gone stale. See [reading the report](https://looted.github.io/kibi/guide/reading-the-report.html).
 
-To publish the report and a clickable badge on GitHub Pages, run `npm exec -- kibi init --github`, then enable **Settings → Pages → Source → GitHub Actions**. The [GitHub integration guide](https://looted.github.io/kibi/guide/github-integration.html) covers the workflow ([docs/examples/github/kibi-report.yml](docs/examples/github/kibi-report.yml)), badge-only publishing, and other package managers.
+To publish the report and a clickable badge on GitHub Pages, run `npm exec -- kibi init --github`, then enable **Settings → Pages → Source → GitHub Actions**. The [GitHub integration guide](https://looted.github.io/kibi/guide/github-integration.html) covers the workflow ([docs/examples/github/kibi-report.yml](docs/examples/github/kibi-report.yml)), badge-only publishing, and other package managers. The same guide has a CI step that keeps pull requests mergeable when only `.kb/symbols.yaml` or a relationship shard conflicts ([docs/examples/github/kibi-kb-merge.yml](docs/examples/github/kibi-kb-merge.yml)).
 
 For day-to-day inspection, `kibi status`, `kibi search`, `kibi gaps`, `kibi coverage`, and `kibi check` are in the [CLI reference](https://looted.github.io/kibi/reference/cli.html).
 
@@ -251,6 +252,8 @@ Install `kibi-core`, `kibi-cli`, and `kibi-mcp` in the project. Everything else 
 | `kibi-plugin-sdk` | Protocol types and validators for [capability plugins](https://looted.github.io/kibi/reference/plugins.html) |
 | `kibi-plugin-builtin` | Default semantic, ontology, and TypeScript symbol capabilities |
 | `kibi-plugin-jev` | Optional TypeSafe Jev semantic classifier |
+| `kibi-plugin-treesitter` | Optional offline multi-language symbol extraction (tree-sitter WASM grammars) |
+| `kibi-swipl` | Bundled SWI-Prolog runtime; the matching platform build installs automatically |
 
 ## Documentation
 

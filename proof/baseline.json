@@ -156,6 +156,11 @@
       "gaps": [],
       "uncoveredSymbols": []
     },
+    "REQ-cli-kb-merge-driver": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
     "REQ-cli-query": {
       "proofStatus": "proven",
       "gaps": [],

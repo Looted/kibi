@@ -125,3 +125,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f0357a9eff2c
+  - type: validates
+    from: TEST-cli-kb-merge-driver
+    to: SCEN-cli-kb-merge-driver
+    created_at: 2026-10-01T16:35:55.926Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f0b5559f2652

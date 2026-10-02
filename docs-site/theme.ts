@@ -1008,7 +1008,7 @@ export function landingContent(args: {
     <div class="pm-tablist" role="tablist" aria-label="Package manager">${installTabs}</div>
     ${installPanels}
   </div>
-  <p class="fineprint">Requires Node.js 22+. SWI-Prolog is bundled on Linux (x64, arm64) and macOS; other platforms need <code>swipl</code> (SWI-Prolog 9.0+) on your <code>PATH</code>. Bun commands and per-platform setup are in the <a href="${root}guide/install.html">installation guide</a>.</p>
+  <p class="fineprint">Requires Node.js 22+. SWI-Prolog is bundled on Linux (x64, arm64) and macOS; other platforms need <code>swipl</code> (SWI-Prolog 9.0+) on your <code>PATH</code>. A system <code>swipl</code> is only a fallback; set <code>KIBI_SWIPL=system</code> to prefer it. Bun commands and per-platform setup are in the <a href="${root}guide/install.html">installation guide</a>.</p>
 </section>
 <section>
   <h2>Questions people ask first</h2>
@@ -1020,6 +1020,10 @@ export function landingContent(args: {
     <details>
       <summary>Does this replace my issue tracker?</summary>
       <p>No. Keep the tracker you have. Kibi connects a decision to the code that implements it, and to evidence that the code still does it.</p>
+    </details>
+    <details>
+      <summary>Which languages does Kibi understand?</summary>
+      <p>TypeScript and JavaScript work out of the box. Add the optional <code>kibi-plugin-treesitter</code> package for Python, Go, Rust, Java, C#, PHP, C, C++, Bash, Ruby, and Terraform/HCL. It runs offline with pinned grammars. Setup is in the <a href="${root}reference/plugins.html">plugin reference</a>.</p>
     </details>
     <details>
       <summary>What counts as proven?</summary>
