@@ -4485,18 +4485,18 @@ coordinates:
     sourceLine: 39
   SYM-claude-case-advisory-boundary:
     identityHash: 1fd6c87fb16ada2c09f37ad8badab8458ea236e83980f61741346e162be626f0
-    sourceHash: 48ef99c92ff8f6d86aada39ae50bb2c1cfd61aa842ebb83a54c99a45c08b143f
+    sourceHash: 270c1b00caac72ebe0eb44b5da324ac102ae47adaa91a830713b7483b7589bac
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 565
+    sourceEndLine: 566
     sourceFile: packages/claude/tests/hook-runner.test.ts
     sourceLine: 1
   SYM-claude-case-edit-focus:
     identityHash: 49a191db60be92021bc4f7b4cb645844ca75f6884b2d55b60a23b6e89e0688e0
-    sourceHash: 48ef99c92ff8f6d86aada39ae50bb2c1cfd61aa842ebb83a54c99a45c08b143f
+    sourceHash: 270c1b00caac72ebe0eb44b5da324ac102ae47adaa91a830713b7483b7589bac
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 565
+    sourceEndLine: 566
     sourceFile: packages/claude/tests/hook-runner.test.ts
     sourceLine: 1
   SYM-claude-case-mcp-silent-outside-kibi:
@@ -4517,18 +4517,18 @@ coordinates:
     sourceLine: 1
   SYM-claude-case-prefixed-check-acknowledges:
     identityHash: 41803b4ecb9552866f1653d462d257b79c12008afd833c035e47b3d4216a0251
-    sourceHash: 48ef99c92ff8f6d86aada39ae50bb2c1cfd61aa842ebb83a54c99a45c08b143f
+    sourceHash: 270c1b00caac72ebe0eb44b5da324ac102ae47adaa91a830713b7483b7589bac
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 565
+    sourceEndLine: 566
     sourceFile: packages/claude/tests/hook-runner.test.ts
     sourceLine: 1
   SYM-claude-case-read-snippet-once:
     identityHash: 2b5e0d9389527f1e45207fa4c242bce30c181c9cd605c973b03173726b53ec41
-    sourceHash: 48ef99c92ff8f6d86aada39ae50bb2c1cfd61aa842ebb83a54c99a45c08b143f
+    sourceHash: 270c1b00caac72ebe0eb44b5da324ac102ae47adaa91a830713b7483b7589bac
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 565
+    sourceEndLine: 566
     sourceFile: packages/claude/tests/hook-runner.test.ts
     sourceLine: 1
   SYM-claude-case-scanner-equivalence:
@@ -4549,26 +4549,26 @@ coordinates:
     sourceLine: 1
   SYM-claude-case-stop-reminder-once:
     identityHash: e51745cfab7acf8e758c55559a539c503f60a694cbe33e1f6ad5f0d7b6a82b3d
-    sourceHash: 48ef99c92ff8f6d86aada39ae50bb2c1cfd61aa842ebb83a54c99a45c08b143f
+    sourceHash: 270c1b00caac72ebe0eb44b5da324ac102ae47adaa91a830713b7483b7589bac
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 565
+    sourceEndLine: 566
     sourceFile: packages/claude/tests/hook-runner.test.ts
     sourceLine: 1
   SYM-claude-case-unconfigured-workspace-silent:
     identityHash: ba1ced94499869dd6c120feab2470ce752051fe3dc021b9226739bdbe8b6c967
-    sourceHash: 48ef99c92ff8f6d86aada39ae50bb2c1cfd61aa842ebb83a54c99a45c08b143f
+    sourceHash: 270c1b00caac72ebe0eb44b5da324ac102ae47adaa91a830713b7483b7589bac
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 565
+    sourceEndLine: 566
     sourceFile: packages/claude/tests/hook-runner.test.ts
     sourceLine: 1
   SYM-claude-case-usage-telemetry:
     identityHash: 6f0268480f1c1d82827f015e3e65c2d303757acf298a1b4d5c9a3a216347bf3a
-    sourceHash: 48ef99c92ff8f6d86aada39ae50bb2c1cfd61aa842ebb83a54c99a45c08b143f
+    sourceHash: 270c1b00caac72ebe0eb44b5da324ac102ae47adaa91a830713b7483b7589bac
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 565
+    sourceEndLine: 566
     sourceFile: packages/claude/tests/hook-runner.test.ts
     sourceLine: 1
   SYM-claude-classifyPath:
