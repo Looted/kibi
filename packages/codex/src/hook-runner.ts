@@ -3,6 +3,7 @@
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
+import { stampKibiWorkspace } from "kibi-agent-core/kb-mcp-tools";
 import { parseHookInput, parseStdinJson, readStdin } from "./hook-input.js";
 import {
   addDirtyPaths,
@@ -11,7 +12,6 @@ import {
   recordKbMcpTool,
   resolveWorkspaceStateDir,
 } from "./hook-state.js";
-import { stampKibiWorkspace } from "kibi-agent-core/kb-mcp-tools";
 import { extractKbMcpToolCall } from "./kb-mcp-tools.js";
 import {
   DIRECT_KB_EDIT_WARNING,

@@ -18,6 +18,25 @@ function runDocsSite(out: string) {
 }
 
 describe("documentation site pages", () => {
+  test("every install entry point quotes the same agent setup prompt", async () => {
+    // Loaded at runtime: docs-site/ sits outside this package's tsconfig rootDir.
+    const { AGENT_SETUP_PROMPT } = (await import(
+      path.join(repoRoot, "docs-site/catalog.ts")
+    )) as { AGENT_SETUP_PROMPT: string };
+    for (const file of [
+      "README.md",
+      "docs/install.md",
+      "docs-site/content/quick-start.md",
+    ]) {
+      const text = readFileSync(path.join(repoRoot, file), "utf8");
+      expect(text, file).toContain(
+        `\`\`\`prompt\n${AGENT_SETUP_PROMPT}\n\`\`\``,
+      );
+      // Manual installation stays available, but behind a toggle.
+      expect(text, file).toContain("<summary>Manual installation</summary>");
+    }
+  });
+
   test("renders repository docs beside the health report and fails on a broken internal link", () => {
     const out = mkdtempSync(path.join(tmpdir(), "kibi-docs-site-"));
     try {
@@ -35,6 +54,20 @@ describe("documentation site pages", () => {
         workflow.indexOf("mkdir -p pages/kibi-report"),
       );
       expect(index).toContain('href="kibi-report/"');
+      // The agent setup prompt is the selected tab; manual installs follow it.
+      const tabs = [
+        ...index.matchAll(/class="pm-tab"[^>]*data-pm="([a-z]+)"/g),
+      ];
+      expect(tabs.map((match) => match[1])).toEqual([
+        "agent",
+        "npm",
+        "pnpm",
+        "yarn",
+      ]);
+      expect(index).toMatch(/id="pm-tab-agent"[^>]*aria-selected="true"/);
+      const agentPanel =
+        /id="pm-panel-agent"[^>]*>[\s\S]*?<code>([\s\S]*?)<\/code>/.exec(index);
+      expect(agentPanel?.[1]).toContain("kibi skills load kibi-bootstrap");
     } finally {
       rmSync(out, { recursive: true, force: true });
     }

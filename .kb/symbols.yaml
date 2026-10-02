@@ -46593,6 +46593,114 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-mcp-kb-freshness
+  - id: SYM-test-cli-kb-merge-driver
+    title: KB manifest merge driver suite
+    status: active
+    sourceFile: packages/cli/tests/commands/merge-driver.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-cli-kb-merge-driver
+  - id: SYM-cli-kb-merge-manifests
+    title: mergeKbManifests
+    status: active
+    sourceFile: packages/cli/src/commands/merge-driver.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-kb-merge-driver
+      - type: implements
+        target: REQ-cli-kb-merge-driver
+  - id: SYM-cli-kb-merge-driver-command
+    title: mergeDriverCommand
+    status: active
+    sourceFile: packages/cli/src/commands/merge-driver.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-kb-merge-driver
+      - type: implements
+        target: REQ-cli-kb-merge-driver
+  - id: SYM-docs-site-catalog-AGENT_SETUP_PROMPT
+    title: AGENT_SETUP_PROMPT
+    status: active
+    sourceFile: docs-site/catalog.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-docs-site-pages
+      - type: implements
+        target: REQ-docs-site-root-pages
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-knowledge-source-kinds
+    title: KNOWLEDGE_SOURCE_KINDS
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-bootstrap-knowledge-sources
+      - type: implements
+        target: REQ-kibi-bootstrap-knowledge-sources
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-knowledge-source-authorities
+    title: KNOWLEDGE_SOURCE_AUTHORITIES
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-bootstrap-knowledge-sources
+      - type: implements
+        target: REQ-kibi-bootstrap-knowledge-sources
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapknowledgesource
+    title: BootstrapKnowledgeSource
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-bootstrap-knowledge-sources
+      - type: implements
+        target: REQ-kibi-bootstrap-knowledge-sources
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapintentclaim
+    title: BootstrapIntentClaim
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-bootstrap-knowledge-sources
+      - type: implements
+        target: REQ-kibi-bootstrap-knowledge-sources
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-intent-claims-intentclaimbuildresult
+    title: IntentClaimBuildResult
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/intent-claims.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-bootstrap-knowledge-sources
+      - type: implements
+        target: REQ-kibi-bootstrap-knowledge-sources
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-intent-claims-buildintentclaimcandidates
+    title: buildIntentClaimCandidates
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/intent-claims.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-bootstrap-knowledge-sources
+      - type: implements
+        target: REQ-kibi-bootstrap-knowledge-sources
+  - id: SYM-test-kibi-bootstrap-knowledge-sources
+    title: Bootstrap knowledge sources suite
+    status: active
+    sourceFile: packages/cli/tests/operations/bootstrap-intent-claims.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-bootstrap-knowledge-sources
   - id: SYM-claude-appendHookUsage
     title: appendHookUsage
     status: active
@@ -46672,35 +46780,6 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-claude-code-kibi-plugin-v1
-  - id: SYM-test-cli-kb-merge-driver
-    title: KB manifest merge driver suite
-    status: active
-    sourceFile: packages/cli/tests/commands/merge-driver.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
-      - type: executable_for
-        target: TEST-cli-kb-merge-driver
-  - id: SYM-cli-kb-merge-manifests
-    title: mergeKbManifests
-    status: active
-    sourceFile: packages/cli/src/commands/merge-driver.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-cli-kb-merge-driver
-      - type: implements
-        target: REQ-cli-kb-merge-driver
-  - id: SYM-cli-kb-merge-driver-command
-    title: mergeDriverCommand
-    status: active
-    sourceFile: packages/cli/src/commands/merge-driver.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-cli-kb-merge-driver
-      - type: implements
-        target: REQ-cli-kb-merge-driver
   - id: SYM-cli-kb-merge-result
     title: KbManifestMergeResult
     status: active
@@ -47192,3 +47271,23 @@ symbols:
         target: TEST-mcp-workspace-routing
       - type: implements
         target: REQ-mcp-workspace-routing
+  - id: SYM-bootstrap-filterSourceOnlySignals
+    title: filterSourceOnlySignals
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/generate.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-bootstrap-knowledge-sources
+      - type: implements
+        target: REQ-kibi-bootstrap-knowledge-sources
+  - id: SYM-bootstrap-guidance-confidence
+    title: confidence
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/guidance.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-bootstrap-knowledge-sources
+      - type: implements
+        target: REQ-kibi-bootstrap-knowledge-sources

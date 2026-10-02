@@ -9,6 +9,7 @@ import { spawnSync } from "node:child_process";
 import { parseHookInput, parseStdinJson, readStdin } from "./hook-input.js";
 import type { HookInput } from "./hook-input.js";
 
+import { stampKibiWorkspace } from "kibi-agent-core/kb-mcp-tools";
 import {
   type KbUsage,
   extractCliKbUsage,
@@ -47,7 +48,6 @@ import {
   appendHookUsage,
   hookTelemetryEnabled,
 } from "./usage-log.js";
-import { stampKibiWorkspace } from "kibi-agent-core/kb-mcp-tools";
 import { resolveKibiWorkspace } from "./workspace-optin.js";
 
 export type ContextEvent = "SessionStart" | "PreToolUse" | "Stop";
@@ -177,7 +177,10 @@ function preToolUse(
   const stamped = stampKibiWorkspace(toolName, input.toolInput, workspace.root);
   if (stamped) {
     return {
-      hookSpecificOutput: { hookEventName: "PreToolUse", updatedInput: stamped },
+      hookSpecificOutput: {
+        hookEventName: "PreToolUse",
+        updatedInput: stamped,
+      },
     };
   }
   const state = loadSessionState(workspace.stateDir);

@@ -27,12 +27,55 @@ export function bootstrapEmptyKbSnapshotId(input: {
     .digest("hex")}`;
 }
 
+export const KNOWLEDGE_SOURCE_KINDS = [
+  "issue_tracker",
+  "wiki",
+  "specification",
+  "design",
+  "decision_log",
+  "support",
+  "chat",
+  "repository_docs",
+  "other",
+] as const;
+export const KNOWLEDGE_SOURCE_AUTHORITIES = [
+  "authoritative",
+  "supporting",
+  "stale",
+] as const;
+
+/**
+ * A knowledge source the agent and human agreed on during the bootstrap
+ * interview: an issue tracker, wiki, spec, or other place where product intent
+ * lives outside the code. Kibi never reads it; the agent does, through the
+ * connectors it has, and cites it from intent claims.
+ */
+export type BootstrapKnowledgeSource = {
+  readonly id: string;
+  readonly kind: (typeof KNOWLEDGE_SOURCE_KINDS)[number];
+  readonly title: string;
+  readonly locator: string;
+  readonly authority: (typeof KNOWLEDGE_SOURCE_AUTHORITIES)[number];
+  readonly connector?: string;
+  readonly notes?: string;
+};
+
+/** One statement of intent the agent harvested from a declared source. */
+export type BootstrapIntentClaim = {
+  readonly statement: string;
+  readonly sourceId: string;
+  readonly reference: string;
+  readonly excerpt?: string;
+};
+
 export type BootstrapContext = {
   readonly projectSummary?: string;
   readonly sourceOfTruthPaths?: readonly string[];
   readonly sourceOfTruthNotes?: readonly string[];
   readonly priorityRoots?: readonly string[];
   readonly verificationAnchors?: readonly string[];
+  readonly knowledgeSources?: readonly BootstrapKnowledgeSource[];
+  readonly intentClaims?: readonly BootstrapIntentClaim[];
 };
 
 export type PlanBootstrapArgs = {
@@ -70,6 +113,10 @@ export type BootstrapDeclaredContext = {
   readonly sourceOfTruthNotes: readonly string[];
   readonly priorityRoots: readonly string[];
   readonly verificationAnchors: readonly string[];
+  // Present only when declared, so plans without external sources keep
+  // their established shape and hash.
+  readonly knowledgeSources?: readonly BootstrapKnowledgeSource[];
+  readonly intentClaims?: readonly BootstrapIntentClaim[];
 };
 
 export type ActivationState =

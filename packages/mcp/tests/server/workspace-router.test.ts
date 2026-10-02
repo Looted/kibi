@@ -149,7 +149,7 @@ function router(
 }
 
 function remoteData(decision: RoutingDecision): Record<string, unknown> {
-  if (decision.kind !== "remote") throw new Error(`expected remote, got local`);
+  if (decision.kind !== "remote") throw new Error("expected remote, got local");
   const structured = (decision.result as { structuredContent?: unknown })
     .structuredContent as { data: Record<string, unknown> };
   return structured.data;

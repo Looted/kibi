@@ -29,7 +29,26 @@ Most project knowledge is scattered across prompts, tickets, code, and conversat
 
 ## Quick start
 
-Kibi requires **Node.js 22+**. SWI-Prolog is bundled: on Linux (x64 or arm64, glibc 2.28+) and macOS (Apple silicon or Intel) there is nothing else to install. On other platforms, such as Alpine/musl or native Windows (use WSL), install SWI-Prolog 9.0+ and put `swipl` on your `PATH` ([details](https://looted.github.io/kibi/guide/install.html)). A system SWI-Prolog is only a fallback: Kibi uses `KIBI_SWIPL` if set, then the bundled runtime, then `swipl` on `PATH`. Set `KIBI_SWIPL=system` to prefer your own install. Then, in your repository:
+Kibi is meant to be set up and driven by your coding agent, so the recommended install is a prompt rather than a list of commands. Kibi requires **Node.js 22+**. SWI-Prolog is bundled: on Linux (x64 or arm64, glibc 2.28+) and macOS (Apple silicon or Intel) there is nothing else to install. On other platforms, such as Alpine/musl or native Windows (use WSL), install SWI-Prolog 9.0+ and put `swipl` on your `PATH` ([details](https://looted.github.io/kibi/guide/install.html)).
+
+**Recommended: let your agent set it up.** Paste this into Claude Code, Cursor, Codex, OpenCode, or any coding agent that can run commands in your repository:
+
+```prompt
+Set up Kibi (https://github.com/Looted/kibi) in this repository, then bootstrap its knowledge base.
+
+1. Install: confirm Node.js 22+ is available. With the package manager this repository already uses, add kibi-core, kibi-cli and kibi-mcp as dev dependencies. Do not skip optional dependencies; the bundled SWI-Prolog runtime is one.
+2. Initialize: run every `kibi` command through the package manager's local runner (npm: `npm exec -- kibi <command>`). Run `kibi init`; if it reports a problem, run `kibi doctor` and fix what it names. If this platform has no bundled SWI-Prolog, tell me what to install and stop.
+3. Connect: register the project-local `kibi-mcp` server for the agent host you are running in, following https://looted.github.io/kibi/guide/connect-an-agent.html. Prefer project-scoped configuration, and ask me before installing a plugin or changing global settings. Until the kb_* tools are visible to you, use Kibi's CLI JSON routes instead.
+4. Bootstrap: run `kibi skills load kibi-bootstrap --format markdown` and follow that skill exactly. It starts by asking me where product intent lives outside the code (issue trackers, wikis, specs) and which sources to trust; read them through the connectors you have and cite them. Show me the complete plan and its hash, and write nothing until I approve it.
+5. Verify: run `kibi check` and `kibi status`, fix anything they report, and summarize what was added. Do not commit; I will review the changes.
+```
+
+The agent installs the packages, runs `kibi init`, and connects itself to Kibi. Then it asks where your product intent already lives (issue trackers such as Jira or YouTrack, wikis, specs) and which of those sources to trust, reads them through the connectors it has, and produces a read-only bootstrap plan in which each requirement cites the ticket or page it came from. It shows you the plan and its hash and writes nothing until you approve. After that, work normally: prompt for features, fixes, and refactors, and the agent keeps requirements, scenarios, tests, and code links in step with the code.
+
+<details>
+<summary>Manual installation</summary>
+
+In your repository:
 
 ```bash
 npm install --save-dev kibi-core kibi-cli kibi-mcp
@@ -40,13 +59,13 @@ npm exec -- kibi init
 
 > **Bootstrap Kibi for this repository.**
 
-The agent produces a read-only plan, shows you its hash, and writes nothing until you approve. After that, work normally: prompt for features, fixes, and refactors, and the agent keeps requirements, scenarios, tests, and code links in step with the code.
+pnpm, Yarn, and Bun work the same way through their local runners; the [installation guide](https://looted.github.io/kibi/guide/install.html) has the equivalents, and `npm exec -- kibi doctor` reports which SWI-Prolog Kibi is using. A system SWI-Prolog is only a fallback: Kibi uses `KIBI_SWIPL` if set, then the bundled runtime, then `swipl` on `PATH`. Set `KIBI_SWIPL=system` to prefer your own install. Do not install with `--omit=optional` (or pnpm `supportedArchitectures` that exclude your platform): the bundled runtime is an optional dependency.
 
-pnpm, Yarn, and Bun work the same way through their local runners; the [installation guide](https://looted.github.io/kibi/guide/install.html) has the equivalents, and `npm exec -- kibi doctor` reports which SWI-Prolog Kibi is using. Do not install with `--omit=optional` (or pnpm `supportedArchitectures` that exclude your platform): the bundled runtime is an optional dependency.
+</details>
 
 ## Connect your coding agent
 
-Every client starts the same project-local `kibi-mcp` server (`npx --no-install kibi-mcp`, stdio, working directory = your repository). Optional plugins add bundled skills and hooks on top.
+The setup prompt above does this step for you. To do it by hand: every client starts the same project-local `kibi-mcp` server (`npx --no-install kibi-mcp`, stdio, working directory = your repository). Optional plugins add bundled skills and hooks on top.
 
 <details>
 <summary>Claude Code</summary>

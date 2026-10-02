@@ -118,3 +118,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a23a85194cbb
+  - type: executable_for
+    from: SYM-test-kibi-bootstrap-knowledge-sources
+    to: TEST-kibi-bootstrap-knowledge-sources
+    created_at: 2026-10-02T07:52:30.492Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7ce1085d7881

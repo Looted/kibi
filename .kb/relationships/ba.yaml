@@ -223,3 +223,87 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a0f11b7978f5
+  - type: constrains
+    from: REQ-kibi-bootstrap-knowledge-sources
+    to: FACT-SUBJECT-KIBI-BOOTSTRAP-KNOWLEDGE-SOURCES
+    created_at: 2026-10-02T07:36:36.105Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ff1455862515
+  - type: requires_property
+    from: REQ-kibi-bootstrap-knowledge-sources
+    to: FACT-PROP-BOOTSTRAP-SOURCES-PLAN-BINDING
+    created_at: 2026-10-02T07:36:36.160Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-73e1f451fb96
+  - type: requires_property
+    from: REQ-kibi-bootstrap-knowledge-sources
+    to: FACT-PROP-BOOTSTRAP-SOURCES-ACCESS
+    created_at: 2026-10-02T07:36:36.180Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7f07621f118d
+  - type: requires_property
+    from: REQ-kibi-bootstrap-knowledge-sources
+    to: FACT-PROP-BOOTSTRAP-SOURCES-GROUNDED
+    created_at: 2026-10-02T07:36:36.197Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9a02da3f9d9f
+  - type: requires_property
+    from: REQ-kibi-bootstrap-knowledge-sources
+    to: FACT-PROP-BOOTSTRAP-SOURCES-UNGROUNDED
+    created_at: 2026-10-02T07:36:36.206Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a1aa7eb8a586
+  - type: requires_property
+    from: REQ-kibi-bootstrap-knowledge-sources
+    to: FACT-PROP-BOOTSTRAP-SOURCES-STALE
+    created_at: 2026-10-02T07:36:36.216Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6e4d1dea56a8
+  - type: requires_property
+    from: REQ-kibi-bootstrap-knowledge-sources
+    to: FACT-PROP-BOOTSTRAP-SOURCES-UNDECLARED
+    created_at: 2026-10-02T07:36:36.231Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a4582d6c68e8
+  - type: requires_property
+    from: REQ-kibi-bootstrap-knowledge-sources
+    to: FACT-PROP-BOOTSTRAP-SOURCES-QUESTION
+    created_at: 2026-10-02T07:36:36.242Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bcbbabe3168a
+  - type: requires_property
+    from: REQ-kibi-bootstrap-knowledge-sources
+    to: FACT-PROP-BOOTSTRAP-SOURCES-INTERVIEW
+    created_at: 2026-10-02T07:36:36.254Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7ccd1f25351f
+  - type: relates_to
+    from: REQ-kibi-bootstrap-knowledge-sources
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-10-02T07:36:36.269Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7304a14da722
+  - type: specified_by
+    from: REQ-kibi-bootstrap-knowledge-sources
+    to: SCEN-kibi-bootstrap-knowledge-sources
+    created_at: 2026-10-02T07:37:15.602Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-836f10a07e80
+  - type: verified_by
+    from: REQ-kibi-bootstrap-knowledge-sources
+    to: TEST-kibi-bootstrap-knowledge-sources
+    created_at: 2026-10-02T07:37:15.642Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-05306a754fba

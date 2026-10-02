@@ -3,6 +3,8 @@ title: Connect your coding agent
 description: Give your coding agent the same Kibi operations you can run yourself, through an MCP server or the kibi CLI.
 ---
 
+If you used the [agent setup prompt](quick-start.md#2-paste-the-setup-prompt-into-your-agent-recommended), your agent has already done this for its own host; this page is the manual route and the reference for other clients.
+
 Once Kibi is installed in the repository, your agent needs a way to call it. Two surfaces expose the same operations:
 
 - **MCP server** (`kibi-mcp`) — tools such as `kb_search`, `kb_check`, and `kb_upsert` show up in the client's tool list.
@@ -92,7 +94,7 @@ See [VS Code MCP](install.md#vs-code-mcp).
 
 ## pnpm or Yarn
 
-Keep the same shape and swap in that package manager's local runner. For pnpm, the command is `pnpm` with args `["exec", "kibi-mcp"]`. For Yarn, `yarn` with args `["exec", "kibi-mcp"]`. The [installation guide](install.md#recommended-project-local-install) has the full table.
+Keep the same shape and swap in that package manager's local runner. For pnpm, the command is `pnpm` with args `["exec", "kibi-mcp"]`. For Yarn, `yarn` with args `["exec", "kibi-mcp"]`. The [installation guide](install.md#manual-project-local-install) has the full table.
 
 ## No MCP? Use the CLI
 
@@ -110,7 +112,7 @@ After the tools are visible, ask:
 
 > Bootstrap Kibi for this repository.
 
-The agent shows a read-only plan and a hash, and it waits for your approval before writing. After that, ordinary prompts — features, fixes, refactors — keep the model in step with the code.
+The agent first asks where product intent already lives outside the code, such as your issue tracker or wiki, and reads those sources through its other connectors. Connect those tools to the agent too if you want them used. It then shows a read-only plan and a hash, and it waits for your approval before writing. After that, ordinary prompts — features, fixes, refactors — keep the model in step with the code.
 
 ## What stays in your hands
 

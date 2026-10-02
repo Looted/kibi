@@ -3,6 +3,7 @@
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
+import { stampKibiWorkspace } from "kibi-agent-core/kb-mcp-tools";
 import { parseHookInput, parseStdinJson, readStdin } from "./hook-input.js";
 import {
   addDirtyPaths,
@@ -25,7 +26,6 @@ import {
   isMeaningfulTrackedPath,
   isSourceImpactRelevantPath,
 } from "./path-policy.js";
-import { stampKibiWorkspace } from "kibi-agent-core/kb-mcp-tools";
 import { resolveKibiWorkspace } from "./workspace-optin.js";
 
 export type ZcodeHookEvent =

@@ -4,6 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
+import { stampKibiWorkspace } from "kibi-agent-core/kb-mcp-tools";
 import { preEditGuidance, readGuidance, writeGuidance } from "./guidance.js";
 import { parseHookInput, parseStdinJson, readStdin } from "./hook-input.js";
 import {
@@ -16,7 +17,6 @@ import {
   rememberGuidedPath,
   resolveStateDir,
 } from "./hook-state.js";
-import { stampKibiWorkspace } from "kibi-agent-core/kb-mcp-tools";
 import { extractKbMcpToolCall } from "./kb-mcp-tools.js";
 import {
   BOOTSTRAP_REMINDER,
