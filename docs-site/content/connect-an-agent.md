@@ -112,7 +112,7 @@ After the tools are visible, ask:
 
 > Bootstrap Kibi for this repository.
 
-The agent shows a read-only plan and a hash, and it waits for your approval before writing. After that, ordinary prompts — features, fixes, refactors — keep the model in step with the code.
+The agent first asks where product intent already lives outside the code, such as your issue tracker or wiki, and reads those sources through its other connectors. Connect those tools to the agent too if you want them used. It then shows a read-only plan and a hash, and it waits for your approval before writing. After that, ordinary prompts — features, fixes, refactors — keep the model in step with the code.
 
 ## What stays in your hands
 

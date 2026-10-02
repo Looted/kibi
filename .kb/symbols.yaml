@@ -46628,3 +46628,63 @@ symbols:
         target: TEST-docs-site-pages
       - type: implements
         target: REQ-docs-site-root-pages
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-knowledge-source-kinds
+    title: KNOWLEDGE_SOURCE_KINDS
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-bootstrap-knowledge-sources
+      - type: implements
+        target: REQ-kibi-bootstrap-knowledge-sources
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-knowledge-source-authorities
+    title: KNOWLEDGE_SOURCE_AUTHORITIES
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-bootstrap-knowledge-sources
+      - type: implements
+        target: REQ-kibi-bootstrap-knowledge-sources
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapknowledgesource
+    title: BootstrapKnowledgeSource
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-bootstrap-knowledge-sources
+      - type: implements
+        target: REQ-kibi-bootstrap-knowledge-sources
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapintentclaim
+    title: BootstrapIntentClaim
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-bootstrap-knowledge-sources
+      - type: implements
+        target: REQ-kibi-bootstrap-knowledge-sources
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-intent-claims-intentclaimbuildresult
+    title: IntentClaimBuildResult
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/intent-claims.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-bootstrap-knowledge-sources
+      - type: implements
+        target: REQ-kibi-bootstrap-knowledge-sources
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-intent-claims-buildintentclaimcandidates
+    title: buildIntentClaimCandidates
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/intent-claims.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-bootstrap-knowledge-sources
+      - type: implements
+        target: REQ-kibi-bootstrap-knowledge-sources

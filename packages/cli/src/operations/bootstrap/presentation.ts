@@ -4,6 +4,8 @@ import type {
   BootstrapAction,
   BootstrapContext,
   BootstrapDeclaredContext,
+  BootstrapIntentClaim,
+  BootstrapKnowledgeSource,
   BootstrapPlanV1,
   Candidate,
   DiscoverySummary,
@@ -11,7 +13,11 @@ import type {
   SourceOnlySignal,
 } from "./types.js";
 
-import { bootstrapPlanHash } from "./types.js";
+import {
+  KNOWLEDGE_SOURCE_AUTHORITIES,
+  KNOWLEDGE_SOURCE_KINDS,
+  bootstrapPlanHash,
+} from "./types.js";
 
 function strings(values?: readonly string[]): readonly string[] {
   return [
@@ -19,16 +25,78 @@ function strings(values?: readonly string[]): readonly string[] {
   ];
 }
 
+function knowledgeSources(
+  values?: readonly BootstrapKnowledgeSource[],
+): readonly BootstrapKnowledgeSource[] {
+  const seen = new Set<string>();
+  const result: BootstrapKnowledgeSource[] = [];
+  for (const value of values ?? []) {
+    const id = value.id?.trim();
+    const title = value.title?.trim();
+    const locator = value.locator?.trim();
+    if (
+      !id ||
+      !title ||
+      !locator ||
+      seen.has(id) ||
+      !KNOWLEDGE_SOURCE_KINDS.includes(value.kind) ||
+      !KNOWLEDGE_SOURCE_AUTHORITIES.includes(value.authority)
+    )
+      continue;
+    seen.add(id);
+    const connector = value.connector?.trim();
+    const notes = value.notes?.trim();
+    result.push({
+      id,
+      kind: value.kind,
+      title,
+      locator,
+      authority: value.authority,
+      ...(connector ? { connector } : {}),
+      ...(notes ? { notes } : {}),
+    });
+  }
+  return result;
+}
+
+function intentClaims(
+  values?: readonly BootstrapIntentClaim[],
+): readonly BootstrapIntentClaim[] {
+  const seen = new Set<string>();
+  const result: BootstrapIntentClaim[] = [];
+  for (const value of values ?? []) {
+    const statement = value.statement?.trim().replace(/\s+/g, " ");
+    const sourceId = value.sourceId?.trim();
+    const reference = value.reference?.trim();
+    if (!statement || !sourceId || !reference) continue;
+    const key = `${sourceId}\u0000${reference}\u0000${statement}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    const excerpt = value.excerpt?.trim();
+    result.push({
+      statement,
+      sourceId,
+      reference,
+      ...(excerpt ? { excerpt } : {}),
+    });
+  }
+  return result;
+}
+
 export function normalizeBootstrapContext(
   input?: BootstrapContext,
 ): BootstrapDeclaredContext {
   const projectSummary = input?.projectSummary?.trim();
+  const sources = knowledgeSources(input?.knowledgeSources);
+  const claims = intentClaims(input?.intentClaims);
   return {
     ...(projectSummary ? { projectSummary } : {}),
     sourceOfTruthPaths: strings(input?.sourceOfTruthPaths),
     sourceOfTruthNotes: strings(input?.sourceOfTruthNotes),
     priorityRoots: strings(input?.priorityRoots),
     verificationAnchors: strings(input?.verificationAnchors),
+    ...(sources.length > 0 ? { knowledgeSources: sources } : {}),
+    ...(claims.length > 0 ? { intentClaims: claims } : {}),
   };
 }
 
@@ -58,6 +126,8 @@ export function presentBootstrap(input: {
   readonly suppressedCandidates: readonly Readonly<Record<string, unknown>>[];
   readonly expected: BootstrapPlanV1["expected"];
   readonly bindingDiagnostics?: readonly string[];
+  /** Advisory findings about declared context; they never block apply. */
+  readonly contextDiagnostics?: readonly string[];
 }): PlanBootstrapResult {
   const declaredContext = normalizeBootstrapContext(input.bootstrapContext);
   const guidance = buildGuidance({
@@ -144,6 +214,10 @@ export function presentBootstrap(input: {
       contextQuestions.push(
         "What is the one-sentence purpose of this repository?",
       );
+    if (!declaredContext.knowledgeSources)
+      contextQuestions.push(
+        "Which knowledge sources outside the code (issue trackers, wikis, specs, decision logs) describe product intent, and which of them are authoritative?",
+      );
     if (declaredContext.sourceOfTruthPaths.length === 0)
       contextQuestions.push(
         "Which repository paths are authoritative for product intent?",
@@ -165,6 +239,7 @@ export function presentBootstrap(input: {
     ...(input.migrationWarning ? [input.migrationWarning] : []),
     ...input.discoverySummary.scanWarnings,
     ...bindingDiagnostics,
+    ...strings(input.contextDiagnostics),
   ];
   const planBody = {
     version: "kibi.bootstrap-plan.v1" as const,

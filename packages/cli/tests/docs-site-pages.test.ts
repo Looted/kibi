@@ -3,7 +3,6 @@ import { spawnSync } from "node:child_process";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { AGENT_SETUP_PROMPT } from "../../../docs-site/catalog.js";
 
 // executable_for TEST-docs-site-pages
 // The published site is rendered from this repository's docs and fails closed
@@ -19,7 +18,11 @@ function runDocsSite(out: string) {
 }
 
 describe("documentation site pages", () => {
-  test("every install entry point quotes the same agent setup prompt", () => {
+  test("every install entry point quotes the same agent setup prompt", async () => {
+    // Loaded at runtime: docs-site/ sits outside this package's tsconfig rootDir.
+    const { AGENT_SETUP_PROMPT } = (await import(
+      path.join(repoRoot, "docs-site/catalog.ts")
+    )) as { AGENT_SETUP_PROMPT: string };
     for (const file of [
       "README.md",
       "docs/install.md",

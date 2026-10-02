@@ -1,6 +1,11 @@
 # Bootstrap resource
 
-`kb_plan_bootstrap` is read-only and returns `kibi.bootstrap-plan.v1`. Review
+`kb_plan_bootstrap` is read-only and returns `kibi.bootstrap-plan.v1`. Declared
+`knowledgeSources` and cited `intentClaims` are part of `declaredContext` and
+therefore of the plan hash; a candidate built from a claim has `sourceKind:
+intent_claim` and evidence rows `intent_claim:<sourceId>:<reference>`,
+`knowledge_source:<kind>:<locator>`, and `source_authority:<authority>`. Its
+requirement keeps the citation as `text_ref: <sourceId>:<reference>`. Review
 candidate evidence, exact actions, dependencies, expected snapshots, source
 hashes, bounded questions, diagnostics, and the canonical `planHash` before
 approving. A preview does not authorize source edits. After approval, pass the

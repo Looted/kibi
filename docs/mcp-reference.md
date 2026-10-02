@@ -32,7 +32,7 @@ printf '%s\n' '{"id":"kibi-usage","resource":"resources/workflows.md"}' | kibi s
 
 If neither a visible Kibi MCP surface nor a trusted local CLI is available, the agent must stop and ask the operator to enable one; it must not infer availability from configuration files or read `.kb/` directly.
 
-Day-0 bootstrap uses the `kibi-bootstrap` bundled skill and `kb_plan_bootstrap`: inspect `kb_status.bootstrap`, follow its typed next action, review the deterministic `kibi.bootstrap-plan.v1`, ask only questions returned by a `needs_context` result, get explicit approval for its hash, then pass the unchanged plan to `kb_apply_plan`. Hosts that support it also expose `/kibi-bootstrap`.
+Day-0 bootstrap uses the `kibi-bootstrap` bundled skill and `kb_plan_bootstrap`: inspect `kb_status.bootstrap`, follow its typed next action, interview the human about knowledge sources outside the code and pass them with cited `intentClaims` in `bootstrapContext`, review the deterministic `kibi.bootstrap-plan.v1`, ask only further questions returned by a `needs_context` result, get explicit approval for its hash, then pass the unchanged plan to `kb_apply_plan`. Hosts that support it also expose `/kibi-bootstrap`.
 
 ### `kb_plan_bootstrap`
 
@@ -45,7 +45,11 @@ Discover existing repository evidence and return a deterministic, snapshot-bound
 - `minConfidence` (optional): Minimum confidence threshold for generated candidates.
 - `maxCandidates` (optional): Maximum number of candidates to return.
 - `entityTypes` (optional): Limit generation to selected entity types.
-- `bootstrapContext` (optional): Declared project summary, source-of-truth paths/notes, priority roots, and verification anchors.
+- `bootstrapContext` (optional): Declared project summary, source-of-truth paths/notes, priority roots, verification anchors, and the outcome of the source interview:
+  - `knowledgeSources`: sources outside the code the human confirmed, each with `id`, `kind` (`issue_tracker`, `wiki`, `specification`, `design`, `decision_log`, `support`, `chat`, `repository_docs`, `other`), `title`, `locator`, `authority` (`authoritative`, `supporting`, `stale`), and an optional `connector`.
+  - `intentClaims`: normative statements the agent read in those sources, each with `statement`, `sourceId`, an exact `reference` (ticket key, page URL, section), and an optional `excerpt`.
+
+  Kibi never contacts the declared sources. Both lists are part of `declaredContext` and so of `planHash`. A grounded claim from an authoritative or supporting source becomes a `req` candidate with `sourceKind: intent_claim`, citation evidence, and `text_ref: <sourceId>:<reference>`. A claim the strict modeler cannot ground becomes an authoring follow-up. Stale sources produce no candidates, and claims citing an undeclared source are reported in `diagnostics`. When no sources were declared, a `needs_context` plan asks for them.
 
 **Returns:**
 Evidence, bounded context questions, dependency-ordered actions, expected
@@ -645,7 +649,7 @@ treat unreadable counts as insufficient evidence instead of a pass.
 
 ### `/kibi-bootstrap`
 
-Interactive onboarding workflow for day-0 KB activation. It guides agents to ask at most four bounded questions when requested by the planner, call `kb_plan_bootstrap` for read-only synthesis, present the complete hash-bound plan for approval, call `kb_apply_plan` once, and finish with `kb_check`/`kb_status`.
+Interactive onboarding workflow for day-0 KB activation. It guides agents to interview the human about knowledge sources outside the code, call `kb_plan_bootstrap` with the declared sources and cited intent claims, ask at most four further bounded questions when requested by the planner, present the complete hash-bound plan for approval, call `kb_apply_plan` once, and finish with `kb_check`/`kb_status`.
 
 ## Branch Behavior
 

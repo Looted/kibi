@@ -1051,7 +1051,7 @@ export function landingContent(args: {
     </details>
     <details>
       <summary>Does this replace my issue tracker?</summary>
-      <p>No. Keep the tracker you have. Kibi connects a decision to the code that implements it, and to evidence that the code still does it.</p>
+      <p>No. Keep the tracker you have. During bootstrap the agent asks which trackers, wikis, and specs hold your product intent, reads them through its own connectors, and cites the ticket or page behind each requirement. Kibi then connects that decision to the code that implements it, and to evidence that the code still does it.</p>
     </details>
     <details>
       <summary>Which languages does Kibi understand?</summary>

@@ -86,7 +86,7 @@ export const CLI_OPERATION_METADATA = [
     name: "kb_plan_bootstrap",
     cliName: "plan-bootstrap",
     description:
-      "Generate a deterministic, snapshot-bound kibi.bootstrap-plan.v1 for repository onboarding. Read-only analysis returns evidence, bounded context questions, exact dependency-ordered actions, a canonical plan hash, and no mutation side effects.",
+      "Generate a deterministic, snapshot-bound kibi.bootstrap-plan.v1 for repository onboarding. Read-only analysis of the repository plus any declared knowledge sources and cited intent claims returns evidence, bounded context questions, exact dependency-ordered actions, a canonical plan hash, and no mutation side effects.",
   },
   {
     name: "kb_validate_upsert",

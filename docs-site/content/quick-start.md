@@ -23,13 +23,13 @@ Set up Kibi (https://github.com/Looted/kibi) in this repository, then bootstrap 
 1. Install: confirm Node.js 22+ is available. With the package manager this repository already uses, add kibi-core, kibi-cli and kibi-mcp as dev dependencies. Do not skip optional dependencies; the bundled SWI-Prolog runtime is one.
 2. Initialize: run every `kibi` command through the package manager's local runner (npm: `npm exec -- kibi <command>`). Run `kibi init`; if it reports a problem, run `kibi doctor` and fix what it names. If this platform has no bundled SWI-Prolog, tell me what to install and stop.
 3. Connect: register the project-local `kibi-mcp` server for the agent host you are running in, following https://looted.github.io/kibi/guide/connect-an-agent.html. Prefer project-scoped configuration, and ask me before installing a plugin or changing global settings. Until the kb_* tools are visible to you, use Kibi's CLI JSON routes instead.
-4. Bootstrap: run `kibi skills load kibi-bootstrap --format markdown` and follow that skill exactly. Ask me any questions the planner returns, show me the complete plan and its hash, and write nothing until I approve it.
+4. Bootstrap: run `kibi skills load kibi-bootstrap --format markdown` and follow that skill exactly. It starts by asking me where product intent lives outside the code (issue trackers, wikis, specs) and which sources to trust; read them through the connectors you have and cite them. Show me the complete plan and its hash, and write nothing until I approve it.
 5. Verify: run `kibi check` and `kibi status`, fix anything they report, and summarize what was added. Do not commit; I will review the changes.
 ```
 
 The agent installs `kibi-core`, `kibi-cli`, and `kibi-mcp` with your package manager, runs `kibi init` to create the `.kb/` layout and the Git hooks that keep it synchronized, and registers Kibi's MCP server for itself. Some agents only see new MCP tools after a restart; until then they use the same operations through the CLI.
 
-It then analyzes the codebase and produces a read-only bootstrap plan. Nothing is written until you approve it: the agent shows you the complete plan and its hash, you approve, and it applies the plan in one audited step, then validates the result.
+Next it interviews you. Code shows what the software does but rarely why, so the agent asks where product intent already lives (issue trackers such as Jira or YouTrack, wikis, specs, decision logs), which of those sources are authoritative and which are stale, and what it cannot reach yet. It reads the sources through the connectors it has, then combines what they say with what it finds in the codebase into a read-only bootstrap plan. Each requirement taken from a source cites the ticket or page it came from. Nothing is written until you approve it: the agent shows you the complete plan and its hash, you approve, and it applies the plan in one audited step, then validates the result.
 
 > [!NOTE]
 > Initialization does not invent product knowledge. Behavior enters when you approve the plan.
@@ -54,7 +54,7 @@ Then [connect your coding agent](connect-an-agent.md) and ask it:
 
 ## 3. Approve the bootstrap plan
 
-Read the plan the agent shows you. The agent asks questions only when the repository does not say enough on its own; answer them, and correct any product call it got wrong before you approve.
+Read the plan the agent shows you. Check that requirements cite the sources you trust, answer any remaining questions the planner raises, and correct any product call it got wrong before you approve. Kibi never contacts your tracker or wiki itself; it records what the agent read and binds it into the plan's hash.
 
 ## 4. Look at the proof state
 

@@ -105,7 +105,7 @@ Set up Kibi (https://github.com/Looted/kibi) in this repository, then bootstrap 
 1. Install: confirm Node.js 22+ is available. With the package manager this repository already uses, add kibi-core, kibi-cli and kibi-mcp as dev dependencies. Do not skip optional dependencies; the bundled SWI-Prolog runtime is one.
 2. Initialize: run every `kibi` command through the package manager's local runner (npm: `npm exec -- kibi <command>`). Run `kibi init`; if it reports a problem, run `kibi doctor` and fix what it names. If this platform has no bundled SWI-Prolog, tell me what to install and stop.
 3. Connect: register the project-local `kibi-mcp` server for the agent host you are running in, following https://looted.github.io/kibi/guide/connect-an-agent.html. Prefer project-scoped configuration, and ask me before installing a plugin or changing global settings. Until the kb_* tools are visible to you, use Kibi's CLI JSON routes instead.
-4. Bootstrap: run `kibi skills load kibi-bootstrap --format markdown` and follow that skill exactly. Ask me any questions the planner returns, show me the complete plan and its hash, and write nothing until I approve it.
+4. Bootstrap: run `kibi skills load kibi-bootstrap --format markdown` and follow that skill exactly. It starts by asking me where product intent lives outside the code (issue trackers, wikis, specs) and which sources to trust; read them through the connectors you have and cite them. Show me the complete plan and its hash, and write nothing until I approve it.
 5. Verify: run `kibi check` and `kibi status`, fix anything they report, and summarize what was added. Do not commit; I will review the changes.
 ```
 
@@ -164,7 +164,7 @@ The CLI and MCP server are peer agent-operation surfaces. MCP-capable hosts can 
 After installing the packages, use this short path:
 
 1. Run `kibi init` to create repository infrastructure and Git hooks.
-2. Ask your coding agent to “Bootstrap Kibi for this repository.” The agent calls the read-only `kb_plan_bootstrap` planner, asks only questions returned by a `needs_context` result, and shows the exact plan for approval.
+2. Ask your coding agent to “Bootstrap Kibi for this repository.” The agent first asks where product intent lives outside the code (issue trackers, wikis, specs) and which of those sources are authoritative, reads them through its own connectors, and passes cited intent claims to the read-only `kb_plan_bootstrap` planner. After that it asks only questions returned by a `needs_context` result, and shows the exact plan for approval.
 3. After approval, the agent passes the unchanged returned plan to `kb_apply_plan`, then runs `kb_check` and `kb_status`.
 4. Continue normal work with the seeded Kibi context. Use `kibi doctor` only when typed status says infrastructure is degraded.
 
