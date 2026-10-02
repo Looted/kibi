@@ -269,9 +269,13 @@ async function refreshUnlocked(
   const sourceFile =
     typeof entry.sourceFile === "string" ? entry.sourceFile : "";
   const title = typeof entry.title === "string" ? entry.title : "";
+  // Targeted refresh publishes coordinates only, like
+  // `kibi sync --refresh-symbol-coordinates`, so decorated Python may bind
+  // explicit declarations while the analysis itself stays partial.
   const [enriched] = await enrichSymbolCoordinates(
     [{ ...entry, id: symbolId, title, sourceFile }],
     context.workspaceRoot,
+    { allowPythonDecoratorCoordinates: true },
   );
   let next = coordinate(enriched);
   let sourceText =

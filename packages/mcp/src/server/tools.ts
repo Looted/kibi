@@ -166,6 +166,21 @@ async function withToolTimeout<T>(
   }
 }
 
+/**
+ * A module that vanished after startup means the package was upgraded or
+ * reinstalled under a running server; only a restart loads the new install.
+ */
+function staleInstallHint(error: Error): string {
+  const code = (error as Error & { code?: unknown }).code;
+  const missingModule =
+    code === "ERR_MODULE_NOT_FOUND" ||
+    code === "MODULE_NOT_FOUND" ||
+    /Cannot find (module|package)/.test(error.message);
+  return missingModule
+    ? " — this Kibi MCP server is running from files that are no longer installed (Kibi was likely upgraded or reinstalled after it started). Restart the Kibi MCP server; the project-local kibi CLI works in the meantime."
+    : "";
+}
+
 // implements REQ-002
 export function addTool<TProlog>(
   server: McpServer,
@@ -394,7 +409,10 @@ export function addTool<TProlog>(
       if (err.stack) {
         debugLog(`[KIBI-MCP] Tool ${name} stack:`, err.stack);
       }
-      throw new Error(`Tool ${name} failed: ${err.message}`, { cause: err });
+      throw new Error(
+        `Tool ${name} failed: ${err.message}${staleInstallHint(err)}`,
+        { cause: err },
+      );
     }
   };
 
