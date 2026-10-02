@@ -1746,6 +1746,18 @@
     ]
   },
   {
+    "test_id": "TEST-ci-kb-merge-resolution",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "15000",
+        "./scripts/tests/kb-merge-resolution.test.ts"
+      ]
+    ]
+  },
+  {
     "test_id": "TEST-kibi-bootstrap-knowledge-sources",
     "steps": [
       [

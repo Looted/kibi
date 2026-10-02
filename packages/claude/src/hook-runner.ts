@@ -42,6 +42,11 @@ import {
   stopReminder,
   unownedSourceNote,
 } from "./snippets.js";
+import {
+  type HookTrace,
+  appendHookUsage,
+  hookTelemetryEnabled,
+} from "./usage-log.js";
 import { resolveKibiWorkspace } from "./workspace-optin.js";
 
 export type ContextEvent = "SessionStart" | "PreToolUse" | "Stop";
@@ -57,6 +62,8 @@ export type HookOutput = {
 export type HookEnvironment = {
   pluginData?: string | undefined;
   projectDir?: string | undefined;
+  /** Process environment for the telemetry opt-in; defaults to process.env. */
+  env?: NodeJS.ProcessEnv | undefined;
 };
 
 const readTools = new Set(["Read"]);
@@ -149,23 +156,32 @@ type Workspace = {
   stateDir: string | undefined;
   index: () => KnowledgeIndex;
   summarize: (entityId: string) => EntitySummary;
+  /** Usage telemetry opt-in; gates work done only to describe the call. */
+  telemetry: boolean;
 };
 
-function preToolUse(input: HookInput, workspace: Workspace): HookOutput {
+function preToolUse(
+  input: HookInput,
+  workspace: Workspace,
+  trace: HookTrace = {},
+): HookOutput {
   const toolName = input.toolName ?? "";
   const state = loadSessionState(workspace.stateDir);
+  trace.kbUsedBefore = state.kbUsed;
   const events: SessionEvent[] = [];
-  const emit = (text: string): HookOutput => {
+  const emit = (text: string, action: string): HookOutput => {
+    trace.action = action;
     appendSessionEvents(workspace.stateDir, events);
     return context("PreToolUse", text);
   };
 
   if (searchTools.has(toolName)) {
+    trace.action = "search_silent";
     if (state.kbUsed || state.notices.has("search-tip")) return {};
     const linked = linkedFileCount(workspace.index());
     if (linked === 0) return {};
     events.push({ kind: "notice", name: "search-tip" });
-    return emit(searchTip(linked));
+    return emit(searchTip(linked), "search_tip");
   }
 
   const isRead = readTools.has(toolName);
@@ -178,18 +194,23 @@ function preToolUse(input: HookInput, workspace: Workspace): HookOutput {
     : undefined;
   if (!target) return {};
   const kind = classifyPath(target.relative);
+  trace.path = target.relative;
+  trace.pathKind = kind;
 
   if (kind === "kb") {
+    trace.action = "kb_direct_silent";
     if (state.notices.has("kb-direct")) return {};
     events.push({ kind: "notice", name: "kb-direct" });
-    return emit(DIRECT_KB_ACCESS_NOTE);
+    return emit(DIRECT_KB_ACCESS_NOTE, "kb_direct_note");
   }
   if (kind === "other") return {};
 
   const relativePath = target.relative;
   const symbols = workspace.index().files[relativePath] ?? [];
+  trace.requirementIds = requirementIds(symbols);
 
   if (isRead) {
+    trace.action = "read_silent";
     if (
       state.shownRead.has(relativePath) ||
       state.shownEdit.has(relativePath) ||
@@ -210,8 +231,10 @@ function preToolUse(input: HookInput, workspace: Workspace): HookOutput {
     });
     if (!snippet) return {};
     events.push({ kind: "shown", surface: "read", path: relativePath });
-    return emit(snippet);
+    return emit(snippet, "read_snippet");
   }
+
+  trace.action = "edit_silent";
 
   // Edit-like tools.
   const focus =
@@ -228,7 +251,7 @@ function preToolUse(input: HookInput, workspace: Workspace): HookOutput {
     const update = focusUpdate(relativePath, symbols, focus);
     if (!update) return {};
     events.push({ kind: "shown", surface: "edit", path: key });
-    return emit(update);
+    return emit(update, "edit_focus_update");
   }
 
   const alreadyKnown =
@@ -245,7 +268,7 @@ function preToolUse(input: HookInput, workspace: Workspace): HookOutput {
 
   if (alreadyKnown) {
     const update = focusUpdate(relativePath, symbols, focus);
-    if (update) return emit(update);
+    if (update) return emit(update, "edit_focus_update");
     appendSessionEvents(workspace.stateDir, events);
     return {};
   }
@@ -257,9 +280,11 @@ function preToolUse(input: HookInput, workspace: Workspace): HookOutput {
     focus,
     summarize: workspace.summarize,
   });
-  if (snippet) return emit(snippet);
+  if (snippet) return emit(snippet, "edit_snippet");
 
-  if (kind === "source") return emit(unownedSourceNote(relativePath));
+  if (kind === "source") {
+    return emit(unownedSourceNote(relativePath), "edit_unowned_note");
+  }
   appendSessionEvents(workspace.stateDir, events);
   return {};
 }
@@ -305,9 +330,24 @@ function hasKibiPreCommitGate(workspaceRoot: string): boolean {
   }
 }
 
-function postToolUse(input: HookInput, workspace: Workspace): HookOutput {
+function postToolUse(
+  input: HookInput,
+  workspace: Workspace,
+  trace: HookTrace = {},
+): HookOutput {
   const toolName = input.toolName ?? "";
   const events: SessionEvent[] = [];
+  // Replaying the journal is only needed to describe the call for telemetry.
+  const kbUsedBefore = (): boolean | undefined =>
+    workspace.telemetry
+      ? loadSessionState(workspace.stateDir).kbUsed
+      : undefined;
+  const recordUsage = (usage: KbUsage): void => {
+    trace.kbUsedBefore = kbUsedBefore();
+    trace.action = "kb_usage";
+    trace.kbOperation = usage.operation;
+    recordKbUsage(usage, workspace, events);
+  };
 
   if (editTools.has(toolName)) {
     const rawPath = toolPath(input.toolInput);
@@ -315,31 +355,38 @@ function postToolUse(input: HookInput, workspace: Workspace): HookOutput {
       ? toWorkspacePath(workspace.root, rawPath, input.cwd)
       : undefined;
     if (target) {
-      events.push({
-        kind: "edited",
-        path: target.relative,
-        pathKind: classifyPath(target.relative),
-      });
+      const pathKind = classifyPath(target.relative);
+      events.push({ kind: "edited", path: target.relative, pathKind });
+      if (pathKind !== "other") {
+        trace.kbUsedBefore = kbUsedBefore();
+        trace.action = "edited";
+        trace.path = target.relative;
+        trace.pathKind = pathKind;
+      }
     }
   } else if (toolName === "Bash") {
     const command = isRecord(input.toolInput)
       ? input.toolInput.command
       : undefined;
     const usage = extractCliKbUsage(command);
-    if (usage) recordKbUsage(usage, workspace, events);
+    if (usage) recordUsage(usage);
     if (isVerifiedGitCommit(command) && hasKibiPreCommitGate(workspace.root)) {
       events.push({ kind: "checked", paths: [], all: true });
     }
   } else {
     const usage = extractMcpKbUsage(toolName, input.toolInput);
-    if (usage) recordKbUsage(usage, workspace, events);
+    if (usage) recordUsage(usage);
   }
 
   appendSessionEvents(workspace.stateDir, events);
   return {};
 }
 
-function stop(input: HookInput, workspace: Workspace): HookOutput {
+function stop(
+  input: HookInput,
+  workspace: Workspace,
+  trace: HookTrace = {},
+): HookOutput {
   // One continuation per stop: never re-prompt while a Stop hook already did.
   if (input.stopHookActive) return {};
   const state = loadSessionState(workspace.stateDir);
@@ -350,6 +397,8 @@ function stop(input: HookInput, workspace: Workspace): HookOutput {
   appendSessionEvents(workspace.stateDir, [
     { kind: "reminded", paths: unreminded },
   ]);
+  trace.action = "stop_reminder";
+  trace.kbUsedBefore = state.kbUsed;
   return context("Stop", stopReminder(unreminded));
 }
 
@@ -357,6 +406,7 @@ export async function runHook(
   rawInput: unknown,
   environment: HookEnvironment = {},
 ): Promise<HookOutput> {
+  const startedAt = new Date();
   const input = parseHookInput(rawInput);
   // Without session memory every read would repeat its snippet, so hosts that
   // predate CLAUDE_PLUGIN_DATA fall back to a per-user temp directory.
@@ -382,6 +432,7 @@ export async function runHook(
       index ??= loadKnowledgeIndex(resolved.root, dataDir);
       return index;
     },
+    telemetry: hookTelemetryEnabled(environment.env),
     summarize: (entityId) => {
       let summary = summaries.get(entityId);
       if (!summary) {
@@ -392,18 +443,40 @@ export async function runHook(
     },
   };
 
+  const trace: HookTrace = {};
+  const output = dispatchHook(input, workspace, trace);
+  appendHookUsage(
+    {
+      workspaceRoot: resolved.root,
+      event: input.event,
+      sessionId: input.sessionId,
+      hostTool: input.toolName,
+      trace,
+      startedAt,
+    },
+    environment.env,
+  );
+  return output;
+}
+
+function dispatchHook(
+  input: HookInput,
+  workspace: Workspace,
+  trace: HookTrace,
+): HookOutput {
   switch (input.event) {
     case "SessionStart":
+      trace.action = "session_start";
       return context(
         "SessionStart",
         sessionStartContext(linkedFileCount(workspace.index())),
       );
     case "PreToolUse":
-      return preToolUse(input, workspace);
+      return preToolUse(input, workspace, trace);
     case "PostToolUse":
-      return postToolUse(input, workspace);
+      return postToolUse(input, workspace, trace);
     case "Stop":
-      return stop(input, workspace);
+      return stop(input, workspace, trace);
     default:
       return {};
   }

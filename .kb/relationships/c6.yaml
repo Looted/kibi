@@ -83,3 +83,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ef431c893c27
+  - type: implements
+    from: SYM-cli-kb-merge-result
+    to: REQ-cli-kb-merge-driver
+    created_at: 2026-10-02T07:34:31.655Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-04ab3e7a5727
+  - type: covered_by
+    from: SYM-cli-kb-merge-result
+    to: TEST-cli-kb-merge-driver
+    created_at: 2026-10-02T07:34:31.671Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-915804848b80

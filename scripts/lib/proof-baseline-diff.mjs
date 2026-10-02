@@ -31,6 +31,37 @@ export function fingerprintRequirements(rows) {
 }
 
 /**
+ * Summary counts implied by a baseline's per-requirement fingerprints.
+ *
+ * The header counts are redundant with `requirements`, and Git merges them
+ * line by line: when two branches each add one requirement, both raise the
+ * count by one and the merge keeps a single increment. Recomputing the header
+ * from the merged entries restores the totals both sides approved.
+ */
+export function deriveBaselineSummary(requirements) {
+  const entries = Object.values(requirements ?? {});
+  const trackedGaps = {};
+  for (const entry of entries) {
+    for (const gap of asStringArray(entry?.gaps)) {
+      trackedGaps[gap] = (trackedGaps[gap] ?? 0) + 1;
+    }
+  }
+  return {
+    currentRequirements: entries.length,
+    proofProven: entries.filter((entry) => entry?.proofStatus === "proven")
+      .length,
+    currentUnproven: entries.filter((entry) =>
+      ["missing", "unresolved"].includes(entry?.proofStatus),
+    ).length,
+    trackedGaps: Object.fromEntries(
+      Object.entries(trackedGaps).sort(([left], [right]) =>
+        left.localeCompare(right),
+      ),
+    ),
+  };
+}
+
+/**
  * Gaps that only say the recorded evidence is older than the code. `kibi prove`
  * clears them without any KB change, which is what CI does before it enforces
  * the baseline.

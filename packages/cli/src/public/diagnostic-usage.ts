@@ -1,6 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
-import { appendFileSync, mkdirSync } from "node:fs";
+import { appendFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import {
   appendPayloadCountField,
@@ -241,6 +242,60 @@ export function deriveDiagnosticUsageFields(
   return fields;
 }
 
+/**
+ * Whether the operator opted into usage telemetry through the environment.
+ *
+ * `KIBI_DIAGNOSTIC_MODE` is the one opt-in shared with the MCP server, so a
+ * single setting covers both peer surfaces. `KIBI_CLI_DIAGNOSTIC_MODE` is the
+ * older CLI-only spelling and keeps working.
+ */
+export function diagnosticEnvOptIn(
+  env: NodeJS.ProcessEnv = process.env,
+): boolean {
+  return ["KIBI_DIAGNOSTIC_MODE", "KIBI_CLI_DIAGNOSTIC_MODE"].some((key) => {
+    const value = env[key]?.trim().toLowerCase();
+    return value === "1" || value === "true";
+  });
+}
+
+/**
+ * The host that ran this CLI call. Hosts that launch Kibi set `KIBI_HOST`;
+ * Claude Code marks every shell it runs with `CLAUDECODE=1`, which is the
+ * only ambient signal trusted here. Anything else stays `unknown`.
+ */
+export function diagnosticCliHost(
+  env: NodeJS.ProcessEnv = process.env,
+): string {
+  const explicit = env.KIBI_HOST?.trim() || env.KIBI_MCP_HOST?.trim();
+  if (explicit) return explicit;
+  return env.CLAUDECODE === "1" ? "claude-code" : "unknown";
+}
+
+let cachedCliPackageVersion: string | null | undefined;
+
+function cliPackageVersion(): string | null {
+  if (cachedCliPackageVersion !== undefined) return cachedCliPackageVersion;
+  cachedCliPackageVersion = null;
+  let current = path.dirname(fileURLToPath(import.meta.url));
+  while (true) {
+    const candidate = path.join(current, "package.json");
+    if (existsSync(candidate)) {
+      try {
+        const parsed: unknown = JSON.parse(readFileSync(candidate, "utf8"));
+        if (isRecord(parsed) && typeof parsed.version === "string") {
+          cachedCliPackageVersion = parsed.version;
+        }
+      } catch {
+        // An unreadable manifest leaves the version unknown.
+      }
+      return cachedCliPackageVersion;
+    }
+    const parent = path.dirname(current);
+    if (parent === current) return null;
+    current = parent;
+  }
+}
+
 export function appendCliDiagnosticUsage(input: DiagnosticUsageInput): void {
   const finishedAt = input.finishedAt ?? new Date();
   const requestId = input.requestId ?? `cli-${randomUUID()}`;
@@ -256,6 +311,9 @@ export function appendCliDiagnosticUsage(input: DiagnosticUsageInput): void {
       request_id: requestId,
       tool: input.tool,
       interface: "cli_json",
+      host: diagnosticCliHost(),
+      package_version: cliPackageVersion(),
+      workspace_root: input.workspaceRoot,
       telemetry: input.telemetry,
       business_args: input.businessArgs,
       status: input.status,
