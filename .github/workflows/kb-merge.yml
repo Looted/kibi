@@ -4,7 +4,8 @@ name: Kibi KB merge
 # sides appended records to .kb/symbols.yaml (or a .kb/relationships shard).
 # This workflow merges develop into each such same-repository PR branch with
 # `kibi merge-driver`, regenerates .kb/symbol-coordinates.yaml from the merged
-# tree, and pushes the merge commit. PRs with any other conflict, or a real
+# tree, reconciles proof/baseline.json counts, checks the proof baseline, and
+# pushes the merge commit. PRs with any other conflict, or a real
 # conflict inside a manifest, are left for a person.
 #
 # Pushes made with the default GITHUB_TOKEN do not start other workflows, so
@@ -91,7 +92,7 @@ jobs:
     needs: [find-conflicts, swipl-bundle]
     if: ${{ needs.find-conflicts.outputs.branches != '[]' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     permissions:
       contents: write
     strategy:
@@ -164,10 +165,33 @@ jobs:
           bun "$GITHUB_WORKSPACE/packages/cli/bin/kibi" sync --refresh-symbol-coordinates
           git add .kb/symbol-coordinates.yaml
 
-      - name: Commit and push the merge
+      # Both sides may have added proof/baseline.json entries. Git merges the
+      # entries but can keep one side's stale summary count.
+      - name: Reconcile the proof baseline counts
+        working-directory: pr
+        run: |
+          set -euo pipefail
+          if [ -f scripts/reconcile-proof-baseline.mjs ]; then
+            node scripts/reconcile-proof-baseline.mjs
+            git add proof/baseline.json
+          fi
+
+      - name: Commit the merge
         working-directory: pr
         run: |
           set -euo pipefail
           git commit -m "Merge $BASE into $KIBI_BRANCH" \
             -m "Kibi merge driver resolved the .kb manifest conflicts; symbol coordinates regenerated."
-          git push origin "HEAD:refs/heads/$KIBI_BRANCH"
+
+      # The proof baseline gate a person runs before pushing, evaluated with
+      # develop's Kibi build. A failure leaves the PR untouched for a person
+      # instead of pushing a merge that breaks it.
+      - name: Check the proof baseline before pushing
+        working-directory: pr
+        env:
+          KIBI_CLI: ${{ github.workspace }}/packages/cli/bin/kibi
+        run: node scripts/check-proof-baseline.mjs --semantic-only
+
+      - name: Push the merge
+        working-directory: pr
+        run: git push origin "HEAD:refs/heads/$KIBI_BRANCH"

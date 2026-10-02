@@ -10195,6 +10195,14 @@ coordinates:
     sourceEndLine: 8
     sourceFile: packages/mcp/src/tools/delete.ts
     sourceLine: 8
+  SYM-derive-baseline-summary:
+    identityHash: e9973c4a6d07c3c92db1adbe16f5e2d992c1bf3706519249cdc13835c163412a
+    sourceHash: 86d63111be3675ef93a4a9afb8e24518aee61ae13e4c00fd5d194e0f34276a6d
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 62
+    sourceFile: scripts/lib/proof-baseline-diff.mjs
+    sourceLine: 41
   SYM-deriveDiagnosticFields:
     identityHash: e44aeefd8ee8e078dedc760166134c67a38eb3e386f80bb2c16a4d35be928a12
     sourceHash: e2bf7b9ed3de03ba67ec7e75a0bd05f5a2749425a619743d0ae1d8eec7087d09
@@ -10317,12 +10325,12 @@ coordinates:
     sourceLine: 179
   SYM-diffFingerprints:
     identityHash: dc2cda4454c039b86200dfd5b31908b7fc9086f20cf4299cc20f3ee437f42966
-    sourceHash: e74201c3143cb382842ea2ed9bcaf48134bbdd3274500ac1fbd45e5a1a59eb2f
+    sourceHash: 86d63111be3675ef93a4a9afb8e24518aee61ae13e4c00fd5d194e0f34276a6d
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 180
+    sourceEndLine: 211
     sourceFile: scripts/lib/proof-baseline-diff.mjs
-    sourceLine: 153
+    sourceLine: 184
   SYM-diffMirror:
     identityHash: e17a394f453a3a05385defd1a43083b2db23edc19ce1355d2e20bc945b39cc96
     sourceHash: 93877ea4ea69deb89df43b2d75025ffd9fc021ec6d15408ad87ae5e057763ea3
@@ -11741,12 +11749,12 @@ coordinates:
     sourceLine: 103
   SYM-evaluateSemanticBaseline:
     identityHash: 678e75770a20e7d00762864a7ac8e18780e1caf2dad3390d184e805ea197fde1
-    sourceHash: e74201c3143cb382842ea2ed9bcaf48134bbdd3274500ac1fbd45e5a1a59eb2f
+    sourceHash: 86d63111be3675ef93a4a9afb8e24518aee61ae13e4c00fd5d194e0f34276a6d
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 151
+    sourceEndLine: 182
     sourceFile: scripts/lib/proof-baseline-diff.mjs
-    sourceLine: 112
+    sourceLine: 143
   SYM-evaluation:
     identityHash: 74172f03228778db0db67e42c28b9d8b39250b624c78802c257143c36423b41f
     sourceHash: ebea90ac4f601a730db79a2bc39b495cc9c8da47754e1dc83936d3982ace661a
@@ -12085,7 +12093,7 @@ coordinates:
     sourceLine: 209
   SYM-fingerprintRequirements:
     identityHash: 9aca9457f2c46a26b723d459976fe7d6b7e94c5f6991a791ea4b309c3fe5ac3c
-    sourceHash: e74201c3143cb382842ea2ed9bcaf48134bbdd3274500ac1fbd45e5a1a59eb2f
+    sourceHash: 86d63111be3675ef93a4a9afb8e24518aee61ae13e4c00fd5d194e0f34276a6d
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 31
@@ -18285,12 +18293,12 @@ coordinates:
     sourceLine: 19
   SYM-parseSpawnJson:
     identityHash: 0c493fcb4846d7df7d06ac504513c4c4b9b2848f937177f5669c390870e41029
-    sourceHash: e74201c3143cb382842ea2ed9bcaf48134bbdd3274500ac1fbd45e5a1a59eb2f
+    sourceHash: 86d63111be3675ef93a4a9afb8e24518aee61ae13e4c00fd5d194e0f34276a6d
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 268
+    sourceEndLine: 299
     sourceFile: scripts/lib/proof-baseline-diff.mjs
-    sourceLine: 256
+    sourceLine: 287
   SYM-parseSymbolsYaml:
     identityHash: a11053be02c7b54dafdcb23ac4e47dc9330513911cab1cd72b66ab028ef609e0
     sourceHash: 7ac6d7983596514c56eb7263ba5821220048e1f867a4756a9d1a64df21972909
@@ -19669,7 +19677,7 @@ coordinates:
     sourceLine: 70
   SYM-PROOF_BASELINE_VERSION:
     identityHash: 2dac4c6d9820cd53a923b8990e7f8efe9efa959791fa90e77a44c876d64c48b7
-    sourceHash: e74201c3143cb382842ea2ed9bcaf48134bbdd3274500ac1fbd45e5a1a59eb2f
+    sourceHash: 86d63111be3675ef93a4a9afb8e24518aee61ae13e4c00fd5d194e0f34276a6d
     sourceColumn: 13
     sourceEndColumn: 62
     sourceEndLine: 6
@@ -21165,12 +21173,12 @@ coordinates:
     sourceLine: 29
   SYM-renderRequirementDiffs:
     identityHash: 56166b5092549d1f05df5f87bb0b5a53728dc7739121752cf37be7a71a687db5
-    sourceHash: e74201c3143cb382842ea2ed9bcaf48134bbdd3274500ac1fbd45e5a1a59eb2f
+    sourceHash: 86d63111be3675ef93a4a9afb8e24518aee61ae13e4c00fd5d194e0f34276a6d
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 254
+    sourceEndLine: 285
     sourceFile: scripts/lib/proof-baseline-diff.mjs
-    sourceLine: 199
+    sourceLine: 230
   SYM-renderShardWithout:
     identityHash: d8436700145af58e64832c66ac5e2ebb37ef9bdfbfc13211730dad52caab6912
     sourceHash: 7f9bf428f9c267b2e72a19ab219382748be46cede91c11c70b52c0d802d16155
@@ -22773,12 +22781,12 @@ coordinates:
     sourceLine: 3
   SYM-semanticGaps:
     identityHash: 2414a4ade5c4f7474bce5296a92915bbb1da4dd3c94a23743c42150eac3f671f
-    sourceHash: e74201c3143cb382842ea2ed9bcaf48134bbdd3274500ac1fbd45e5a1a59eb2f
+    sourceHash: 86d63111be3675ef93a4a9afb8e24518aee61ae13e4c00fd5d194e0f34276a6d
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 104
+    sourceEndLine: 135
     sourceFile: scripts/lib/proof-baseline-diff.mjs
-    sourceLine: 93
+    sourceLine: 124
   SYM-SemanticLogicCoverageStatus:
     identityHash: 589d965fbfb7d191ac351929ae579112536c1136b7d8bbb760dd27154284d216
     sourceHash: be38ddb0e1dba4139a7111753fc7285ee9dc1626d8b5a1eeefb6c5150bf350b7
@@ -31082,6 +31090,14 @@ coordinates:
     sourceEndColumn: 0
     sourceEndLine: 593
     sourceFile: packages/plugin-sdk/tests/sdk.test.ts
+    sourceLine: 1
+  SYM-test-ci-kb-merge-resolution:
+    identityHash: 0ccd15c98c6eb42eb80cc847c51ba25e537fb367edde2ab10ab0fa0c2129a0ac
+    sourceHash: 1a369b29e852e2cc3a52cf8078198387fc1b36cf3aca7b9f40faa0c95a2c9b6f
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 150
+    sourceFile: scripts/tests/kb-merge-resolution.test.ts
     sourceLine: 1
   SYM-test-ci-workflow-contract:
     identityHash: 24ddec7bd018212a0057b64fe6d3b0cb18833fa95abd538f92919f506ab366de
