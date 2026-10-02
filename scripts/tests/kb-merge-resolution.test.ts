@@ -4,7 +4,6 @@ import { spawnSync } from "node:child_process";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { parse } from "yaml";
 import { deriveBaselineSummary } from "../lib/proof-baseline-diff.mjs";
 
 const ROOT = path.join(import.meta.dir, "..", "..");
@@ -19,7 +18,9 @@ type Step = {
 };
 
 function resolveSteps(file: string): Step[] {
-  const workflow = parse(readFileSync(path.join(ROOT, file), "utf8")) as {
+  const workflow = Bun.YAML.parse(
+    readFileSync(path.join(ROOT, file), "utf8"),
+  ) as {
     jobs: { resolve: { steps: Step[] } };
   };
   return workflow.jobs.resolve.steps;

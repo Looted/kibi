@@ -31093,10 +31093,10 @@ coordinates:
     sourceLine: 1
   SYM-test-ci-kb-merge-resolution:
     identityHash: 0ccd15c98c6eb42eb80cc847c51ba25e537fb367edde2ab10ab0fa0c2129a0ac
-    sourceHash: a4c208c53d7e81988e3fc2613d200c22f576453aa4f7dc8d45ea2c51958dda54
+    sourceHash: 1a369b29e852e2cc3a52cf8078198387fc1b36cf3aca7b9f40faa0c95a2c9b6f
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 149
+    sourceEndLine: 150
     sourceFile: scripts/tests/kb-merge-resolution.test.ts
     sourceLine: 1
   SYM-test-ci-workflow-contract:
