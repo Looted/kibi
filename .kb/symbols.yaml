@@ -46663,3 +46663,12 @@ symbols:
         target: TEST-kibi-telemetry-acceptance-gate
       - type: implements
         target: REQ-kibi-telemetry-acceptance-gate
+  - id: SYM-claude-case-usage-telemetry
+    title: Opted-in hooks record session-ordered reads, edits, and Kibi calls
+    status: active
+    sourceFile: packages/claude/tests/hook-runner.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-claude-code-kibi-plugin-v1

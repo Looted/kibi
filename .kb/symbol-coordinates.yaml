@@ -4523,6 +4523,14 @@ coordinates:
     sourceEndLine: 525
     sourceFile: packages/claude/tests/hook-runner.test.ts
     sourceLine: 1
+  SYM-claude-case-usage-telemetry:
+    identityHash: 6f0268480f1c1d82827f015e3e65c2d303757acf298a1b4d5c9a3a216347bf3a
+    sourceHash: 7c22fd3da0d9c79be72934661f388abecff0264e95dbbb4ff9e092a52075285d
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 525
+    sourceFile: packages/claude/tests/hook-runner.test.ts
+    sourceLine: 1
   SYM-claude-classifyPath:
     identityHash: 666210089cda86cd1f9f494e2565272a4c30da60988c4fd6d4232fe99b1d454c
     sourceHash: 918d32e2ec4449049413d56a8108217364f6a589ebea794ebd86e323bcd44504
@@ -12501,12 +12509,12 @@ coordinates:
     sourceLine: 50
   SYM-groupProofSteps:
     identityHash: fe8e536de3977920c5edafb92c2e7325ebafde3fa58b318eb77e9fd7dab3f639
-    sourceHash: 384f20e5c3909869a915991709adfc75d3de981122782c63dc639c839f8d5436
+    sourceHash: 34f312870ca69c4a78e1604be5ce494c8d4cd94c448ebece869214483dc83bd0
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 251
+    sourceEndLine: 269
     sourceFile: scripts/run-proof-producer.mjs
-    sourceLine: 228
+    sourceLine: 246
   SYM-GuidanceCache:
     identityHash: 81e15e2dc7204e5bf2e682c2634c8ca7521631e7aa5e92d50a70593627ffa110
     sourceHash: 55060cfeb22f2e7cc23b47cc8faf744d789ace405714630f3df4ba163db5f18e
@@ -20069,12 +20077,12 @@ coordinates:
     sourceLine: 11
   SYM-proofStepConcurrency:
     identityHash: 47e4873718f8db4fa729b3d36a250290fa2a392ed1a33eab30044ce4df2d0fba
-    sourceHash: 384f20e5c3909869a915991709adfc75d3de981122782c63dc639c839f8d5436
+    sourceHash: 34f312870ca69c4a78e1604be5ce494c8d4cd94c448ebece869214483dc83bd0
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 221
+    sourceEndLine: 239
     sourceFile: scripts/run-proof-producer.mjs
-    sourceLine: 217
+    sourceLine: 235
   SYM-PROSE_COVERAGE_CORPUS:
     identityHash: ae7e6b89854bb7711c0f57803bae3a304c811bf23a13b4b6f26c72ba9ccab67c
     sourceHash: c64a8579b1c494714d3dff4ff07a1f9dcf733bf3ca6629c8a4e894e524c5ac10
@@ -20685,7 +20693,7 @@ coordinates:
     sourceLine: 26
   SYM-quality-producer-loadProofSteps:
     identityHash: a915bf0facff74f27bc991fe59c28cdbbd7c7f7e0c93ff687efec3d46d2c2b5b
-    sourceHash: 384f20e5c3909869a915991709adfc75d3de981122782c63dc639c839f8d5436
+    sourceHash: 34f312870ca69c4a78e1604be5ce494c8d4cd94c448ebece869214483dc83bd0
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 78
@@ -20693,39 +20701,39 @@ coordinates:
     sourceLine: 67
   SYM-quality-producer-main:
     identityHash: bcdce59d2ddcf6d5e48edd5e047232aac3201c400a0f8b99fc36420fc05875be
-    sourceHash: 384f20e5c3909869a915991709adfc75d3de981122782c63dc639c839f8d5436
-    sourceColumn: 22
-    sourceEndColumn: 1
-    sourceEndLine: 333
-    sourceFile: scripts/run-proof-producer.mjs
-    sourceLine: 331
-  SYM-quality-producer-runProofProducer:
-    identityHash: beeae7c16c3e6fc6e4157f0dbcd3375c9e319bf024197a184a6af3756395819d
-    sourceHash: 384f20e5c3909869a915991709adfc75d3de981122782c63dc639c839f8d5436
-    sourceColumn: 22
-    sourceEndColumn: 1
-    sourceEndLine: 328
-    sourceFile: scripts/run-proof-producer.mjs
-    sourceLine: 271
-  SYM-quality-producer-runProofProducerIfEntrypoint:
-    identityHash: 301287f5c72e7281c99f083923bc57b254eb3704435942c6542f113912eb33df
-    sourceHash: 384f20e5c3909869a915991709adfc75d3de981122782c63dc639c839f8d5436
+    sourceHash: 34f312870ca69c4a78e1604be5ce494c8d4cd94c448ebece869214483dc83bd0
     sourceColumn: 22
     sourceEndColumn: 1
     sourceEndLine: 351
     sourceFile: scripts/run-proof-producer.mjs
-    sourceLine: 335
+    sourceLine: 349
+  SYM-quality-producer-runProofProducer:
+    identityHash: beeae7c16c3e6fc6e4157f0dbcd3375c9e319bf024197a184a6af3756395819d
+    sourceHash: 34f312870ca69c4a78e1604be5ce494c8d4cd94c448ebece869214483dc83bd0
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 346
+    sourceFile: scripts/run-proof-producer.mjs
+    sourceLine: 289
+  SYM-quality-producer-runProofProducerIfEntrypoint:
+    identityHash: 301287f5c72e7281c99f083923bc57b254eb3704435942c6542f113912eb33df
+    sourceHash: 34f312870ca69c4a78e1604be5ce494c8d4cd94c448ebece869214483dc83bd0
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 369
+    sourceFile: scripts/run-proof-producer.mjs
+    sourceLine: 353
   SYM-quality-producer-runProofStep:
     identityHash: 25c205845584249e5f1f16d9c432cfc9d6098ce062c8ec05bf3115876f1d518c
-    sourceHash: 384f20e5c3909869a915991709adfc75d3de981122782c63dc639c839f8d5436
+    sourceHash: 34f312870ca69c4a78e1604be5ce494c8d4cd94c448ebece869214483dc83bd0
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 213
+    sourceEndLine: 231
     sourceFile: scripts/run-proof-producer.mjs
-    sourceLine: 147
+    sourceLine: 165
   SYM-quality-producer-selectExactProofSteps:
     identityHash: 26c121f98fd6762c18cafb545b751c5d7a9ffeeeda3cfcea1d4f580009a4f7e4
-    sourceHash: 384f20e5c3909869a915991709adfc75d3de981122782c63dc639c839f8d5436
+    sourceHash: 34f312870ca69c4a78e1604be5ce494c8d4cd94c448ebece869214483dc83bd0
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 114
@@ -20733,7 +20741,7 @@ coordinates:
     sourceLine: 105
   SYM-quality-producer-terminateStepProcess:
     identityHash: 62c4cd897a388dfa6994443cda160ee6197e2c1a9835f1fd5a60433e43069b98
-    sourceHash: 384f20e5c3909869a915991709adfc75d3de981122782c63dc639c839f8d5436
+    sourceHash: 34f312870ca69c4a78e1604be5ce494c8d4cd94c448ebece869214483dc83bd0
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 144
@@ -20741,7 +20749,7 @@ coordinates:
     sourceLine: 124
   SYM-quality-producer-validateProofSteps:
     identityHash: 0f2436bafe147c76bc6b83e42ca20029e4682297b95dc8eddd724ed7e935f0bf
-    sourceHash: 384f20e5c3909869a915991709adfc75d3de981122782c63dc639c839f8d5436
+    sourceHash: 34f312870ca69c4a78e1604be5ce494c8d4cd94c448ebece869214483dc83bd0
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 65
@@ -20749,7 +20757,7 @@ coordinates:
     sourceLine: 18
   SYM-quality-producer-validateRequestedTestIds:
     identityHash: 7ed951aaae5e83dec2c3430b6219a554cee41a1784b600283ff6d1d545179134
-    sourceHash: 384f20e5c3909869a915991709adfc75d3de981122782c63dc639c839f8d5436
+    sourceHash: 34f312870ca69c4a78e1604be5ce494c8d4cd94c448ebece869214483dc83bd0
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 102
@@ -20757,10 +20765,10 @@ coordinates:
     sourceLine: 81
   SYM-quality-proof-runner-tests:
     identityHash: 2ba1fb883542fef37010d20e61fa939753ab9f35a44a0f8afe541099aeb70106
-    sourceHash: fcf8948dac7ac00a522c0f7712d4db2598bc9ba2fcd742deef2a8cafd5a9d480
+    sourceHash: 5bfc7bd02c46032cb016cd8ae0e72040937db55f6796ebd3d988c919362a29c3
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 309
+    sourceEndLine: 334
     sourceFile: scripts/tests/run-proof-producer.test.mjs
     sourceLine: 1
   SYM-quality-staged-manifestRecordSourcePath:
@@ -22093,7 +22101,7 @@ coordinates:
     sourceLine: 202
   SYM-run-proof-producer:
     identityHash: 99eb248923307414781fcaf9035b6ee43b00a9ec55844af27aa1157c9298503e
-    sourceHash: 384f20e5c3909869a915991709adfc75d3de981122782c63dc639c839f8d5436
+    sourceHash: 34f312870ca69c4a78e1604be5ce494c8d4cd94c448ebece869214483dc83bd0
     sourceColumn: 7
     sourceEndColumn: 25
     sourceEndLine: 21
