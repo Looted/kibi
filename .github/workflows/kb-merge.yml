@@ -4,11 +4,9 @@ name: Kibi KB merge
 # sides appended records to .kb/symbols.yaml (or a .kb/relationships shard).
 # This workflow merges develop into each such same-repository PR branch with
 # `kibi merge-driver`, regenerates .kb/symbol-coordinates.yaml from the merged
-# tree, reconciles proof/baseline.json counts, runs the pre-push proof gate,
-# and pushes the merge commit. The driver is built from develop, so PRs opened
-# before it existed are handled too. PRs with any other conflict, a real
-# conflict inside a manifest, or a merge that fails the gate are left for a
-# person.
+# tree, reconciles proof/baseline.json counts, checks the proof baseline, and
+# pushes the merge commit. PRs with any other conflict, or a real
+# conflict inside a manifest, are left for a person.
 #
 # Pushes made with the default GITHUB_TOKEN do not start other workflows, so
 # the PR's checks would not re-run on the merge commit. Add a repository
@@ -28,7 +26,6 @@ concurrency:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-  KIBI_CLI: ./packages/cli/bin/kibi
 
 permissions:
   contents: read
@@ -106,11 +103,12 @@ jobs:
       KIBI_BRANCH: ${{ matrix.branch }}
       BASE: develop
     steps:
+      # The merge driver and the coordinate refresh come from develop, not the
+      # PR branch: a branch that predates them has no `kibi merge-driver`, and
+      # its own lockfile or build may be stale until develop is merged in.
       - uses: actions/checkout@v6
         with:
-          ref: ${{ matrix.branch }}
-          fetch-depth: 0
-          token: ${{ secrets.KIBI_MERGE_TOKEN || github.token }}
+          ref: ${{ github.sha }}
 
       - uses: oven-sh/setup-bun@v2
         with:
@@ -120,26 +118,28 @@ jobs:
         with:
           node-version: "24"
 
-      # The driver comes from develop, not the PR branch: a branch opened
-      # before the driver existed has no `kibi merge-driver`, a branch with a
-      # stale bun.lock cannot install, and the merge token should not run code
-      # that has not been reviewed into develop yet.
-      - name: Build the merge driver from ${{ env.BASE }}
+      - name: Build Kibi from develop
         run: |
-          set -euo pipefail
-          driver_root="$RUNNER_TEMP/kibi-merge-base"
-          git worktree add --detach "$driver_root" "origin/$BASE"
-          cd "$driver_root"
           bun install --frozen-lockfile
           bun run build:cli-stack
-          echo "KIBI_MERGE_DRIVER=node $driver_root/packages/cli/bin/kibi merge-driver" >> "$GITHUB_ENV"
+
+      - name: Install SWI-Prolog
+        uses: ./.github/actions/use-bundled-swipl
+
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ matrix.branch }}
+          path: pr
+          fetch-depth: 0
+          token: ${{ secrets.KIBI_MERGE_TOKEN || github.token }}
 
       - name: Merge develop with the Kibi merge driver
+        working-directory: pr
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config merge.kibi.driver "$KIBI_MERGE_DRIVER %O %A %B"
+          git config merge.kibi.driver "node $GITHUB_WORKSPACE/packages/cli/bin/kibi merge-driver %O %A %B"
           printf '%s\n' '.kb/symbols.yaml merge=kibi' '.kb/relationships/*.yaml merge=kibi' \
             >> .git/info/attributes
           git merge --no-ff --no-commit "origin/$BASE" || true
@@ -159,29 +159,16 @@ jobs:
             exit 1
           fi
 
-      - name: Rebuild the merged tree
-        run: |
-          set -euo pipefail
-          # A lockfile that no longer matches the merged manifests is part of
-          # the merge result: refresh it rather than give up.
-          if ! bun install --frozen-lockfile; then
-            echo "::warning::bun.lock did not match the merged package manifests; refreshing it in the merge commit."
-            bun install
-            git add bun.lock
-          fi
-          bun run build
-
-      - name: Install SWI-Prolog
-        uses: ./.github/actions/use-bundled-swipl
-
       - name: Regenerate symbol coordinates
+        working-directory: pr
         run: |
-          bun "$KIBI_CLI" sync --refresh-symbol-coordinates
+          bun "$GITHUB_WORKSPACE/packages/cli/bin/kibi" sync --refresh-symbol-coordinates
           git add .kb/symbol-coordinates.yaml
 
       # Both sides may have added proof/baseline.json entries. Git merges the
       # entries but can keep one side's stale summary count.
       - name: Reconcile the proof baseline counts
+        working-directory: pr
         run: |
           set -euo pipefail
           if [ -f scripts/reconcile-proof-baseline.mjs ]; then
@@ -190,15 +177,21 @@ jobs:
           fi
 
       - name: Commit the merge
+        working-directory: pr
         run: |
           set -euo pipefail
           git commit -m "Merge $BASE into $KIBI_BRANCH" \
             -m "Kibi merge driver resolved the .kb manifest conflicts; symbol coordinates regenerated."
 
-      # The same gate a person runs before pushing. A failure leaves the PR
-      # untouched for a person instead of pushing a merge that breaks it.
-      - name: Check the merge before pushing
-        run: sh scripts/proof-prepush.sh
+      # The proof baseline gate a person runs before pushing, evaluated with
+      # develop's Kibi build. A failure leaves the PR untouched for a person
+      # instead of pushing a merge that breaks it.
+      - name: Check the proof baseline before pushing
+        working-directory: pr
+        env:
+          KIBI_CLI: ${{ github.workspace }}/packages/cli/bin/kibi
+        run: node scripts/check-proof-baseline.mjs --semantic-only
 
       - name: Push the merge
+        working-directory: pr
         run: git push origin "HEAD:refs/heads/$KIBI_BRANCH"

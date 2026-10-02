@@ -99,13 +99,6 @@ relationships:
     id: rel-debd38512545
   - type: requires_predicate
     from: REQ-ci-kb-merge-resolution
-    to: FACT-PRED-ci-kb-merge-lockfile-refresh
-    created_at: 2026-10-02T08:22:30.210Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-575751a2a296
-  - type: requires_predicate
-    from: REQ-ci-kb-merge-resolution
     to: FACT-PRED-ci-kb-merge-baseline-derived-counts
     created_at: 2026-10-02T08:22:30.218Z
     created_by: kibi/upsert
@@ -146,3 +139,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b3f4204d630f
+  - type: requires_predicate
+    from: REQ-ci-kb-merge-resolution
+    to: FACT-PRED-ci-kb-merge-no-pr-install
+    created_at: 2026-10-02T08:52:24.250Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2812a58c1e7

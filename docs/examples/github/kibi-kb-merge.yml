@@ -99,31 +99,30 @@ jobs:
       KIBI_BRANCH: ${{ matrix.branch }}
       BASE: ${{ github.event.repository.default_branch }}
     steps:
+      # Kibi comes from the default branch, not the PR branch: a branch that
+      # predates the merge driver has no `kibi merge-driver`, and its own
+      # lockfile may be stale until the default branch is merged in.
       - uses: actions/checkout@v6
         with:
-          ref: ${{ matrix.branch }}
-          fetch-depth: 0
-          token: ${{ secrets.KIBI_MERGE_TOKEN || github.token }}
+          ref: ${{ github.sha }}
       - uses: actions/setup-node@v5
         with:
           node-version: 24
           cache: npm
-      # Install the driver from the default branch, not the PR branch: a PR
-      # opened before your kibi-cli had `merge-driver`, or one whose lockfile
-      # is out of date, could not install or run it otherwise.
-      - name: Install the merge driver from the default branch
-        run: |
-          set -euo pipefail
-          driver_root="$RUNNER_TEMP/kibi-merge-base"
-          git worktree add --detach "$driver_root" "origin/$BASE"
-          (cd "$driver_root" && npm ci)
-          echo "KIBI_MERGE_DRIVER=$driver_root/node_modules/.bin/kibi merge-driver" >> "$GITHUB_ENV"
+      - run: npm ci
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ matrix.branch }}
+          path: pr
+          fetch-depth: 0
+          token: ${{ secrets.KIBI_MERGE_TOKEN || github.token }}
       - name: Merge the default branch with the Kibi merge driver
+        working-directory: pr
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config merge.kibi.driver "$KIBI_MERGE_DRIVER %O %A %B"
+          git config merge.kibi.driver "$GITHUB_WORKSPACE/node_modules/.bin/kibi merge-driver %O %A %B"
           printf '%s\n' '.kb/symbols.yaml merge=kibi' '.kb/relationships/*.yaml merge=kibi' \
             >> .git/info/attributes
           git merge --no-ff --no-commit "origin/$BASE" || true
@@ -142,21 +141,13 @@ jobs:
             git merge --abort
             exit 1
           fi
-      # A lockfile that no longer matches the merged package.json is part of
-      # the merge result: refresh it rather than give up.
-      - name: Install the merged tree
-        run: |
-          set -euo pipefail
-          if ! npm ci; then
-            echo "::warning::package-lock.json did not match the merged package.json; refreshing it in the merge commit."
-            npm install
-            git add package-lock.json
-          fi
       - name: Regenerate symbol coordinates
+        working-directory: pr
         run: |
-          npm exec -- kibi sync --refresh-symbol-coordinates
+          "$GITHUB_WORKSPACE/node_modules/.bin/kibi" sync --refresh-symbol-coordinates
           git add .kb/symbol-coordinates.yaml
       - name: Commit and push the merge
+        working-directory: pr
         run: |
           set -euo pipefail
           git commit -m "Merge $BASE into $KIBI_BRANCH" \

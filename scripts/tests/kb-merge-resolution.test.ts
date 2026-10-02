@@ -10,7 +10,13 @@ import { deriveBaselineSummary } from "../lib/proof-baseline-diff.mjs";
 const ROOT = path.join(import.meta.dir, "..", "..");
 const RECONCILE = path.join(ROOT, "scripts", "reconcile-proof-baseline.mjs");
 
-type Step = { name?: string; uses?: string; run?: string };
+type Step = {
+  name?: string;
+  uses?: string;
+  run?: string;
+  with?: Record<string, unknown>;
+  "working-directory"?: string;
+};
 
 function resolveSteps(file: string): Step[] {
   const workflow = parse(readFileSync(path.join(ROOT, file), "utf8")) as {
@@ -105,52 +111,38 @@ describe("proof baseline summary reconciliation", () => {
 
 describe("KB merge workflow", () => {
   const steps = resolveSteps(".github/workflows/kb-merge.yml");
+  const prCheckout = steps.findIndex((step) => step.with?.path === "pr");
 
-  test("builds the merge driver from the base branch before merging", () => {
-    const build = indexOf(steps, /Build the merge driver/);
-    expect(steps[build]?.run).toContain(
-      'git worktree add --detach "$driver_root" "origin/$BASE"',
-    );
-    expect(steps[build]?.run).toContain("KIBI_MERGE_DRIVER=");
+  test("builds Kibi from develop and only then checks out the PR branch", () => {
+    expect(steps[0]?.with?.ref).toBe("${{ github.sha }}");
+    expect(steps[0]?.with?.path).toBeUndefined();
+    const build = indexOf(steps, /Build Kibi from develop/);
+    expect(build).toBeLessThan(prCheckout);
     const merge = indexOf(steps, /git merge --no-ff/);
-    expect(build).toBeLessThan(merge);
+    expect(prCheckout).toBeLessThan(merge);
     expect(steps[merge]?.run).toContain(
-      'merge.kibi.driver "$KIBI_MERGE_DRIVER',
+      'merge.kibi.driver "node $GITHUB_WORKSPACE/packages/cli/bin/kibi merge-driver',
     );
-    // No PR-branch install or build may run before the merge.
-    for (const step of steps.slice(0, merge)) {
-      if (step === steps[build]) continue;
+    // The PR tree is never installed or built: develop's build does the work.
+    for (const step of steps.filter(
+      (candidate) => candidate["working-directory"] === "pr",
+    )) {
       expect(step.run ?? "").not.toMatch(/bun (install|run build)/);
     }
   });
 
-  test("refreshes a stale lockfile as part of the merge", () => {
-    const rebuild = indexOf(steps, /Rebuild the merged tree/);
-    expect(steps[rebuild]?.run).toContain("if ! bun install --frozen-lockfile");
-    expect(steps[rebuild]?.run).toContain("git add bun.lock");
-  });
-
-  test("reconciles the baseline and passes the pre-push gate before pushing", () => {
+  test("reconciles the baseline and checks it before pushing", () => {
     const reconcile = indexOf(steps, /reconcile-proof-baseline\.mjs/);
     const commit = indexOf(steps, /git commit/);
-    const gate = indexOf(steps, /scripts\/proof-prepush\.sh/);
+    const gate = indexOf(steps, /check-proof-baseline\.mjs --semantic-only/);
     const push = indexOf(steps, /git push/);
     expect(reconcile).toBeLessThan(commit);
     expect(commit).toBeLessThan(gate);
     expect(gate).toBeLessThan(push);
     expect(push).toBe(steps.length - 1);
-  });
-
-  test("the reusable example installs the driver from the default branch", () => {
-    const example = resolveSteps("docs/examples/github/kibi-kb-merge.yml");
-    const install = indexOf(example, /Install the merge driver/);
-    const merge = indexOf(example, /git merge --no-ff/);
-    expect(install).toBeLessThan(merge);
-    expect(example[merge]?.run).toContain(
-      'merge.kibi.driver "$KIBI_MERGE_DRIVER',
-    );
-    expect(example[indexOf(example, /Install the merged tree/)]?.run).toContain(
-      "git add package-lock.json",
-    );
+    expect(steps[push]?.run).not.toContain("git commit");
+    for (const index of [reconcile, commit, gate, push]) {
+      expect(steps[index]?.["working-directory"]).toBe("pr");
+    }
   });
 });
