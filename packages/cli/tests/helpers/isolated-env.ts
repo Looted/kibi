@@ -36,6 +36,11 @@ export function isolatedCliSandboxEnv(
       Reflect.deleteProperty(env, key);
     }
   }
+  // A developer's own telemetry opt-in must not make sandbox CLIs write
+  // usage logs; tests that exercise telemetry opt in through overrides.
+  for (const key of ["KIBI_DIAGNOSTIC_MODE", "KIBI_CLI_DIAGNOSTIC_MODE"]) {
+    if (overrides[key] === undefined) Reflect.deleteProperty(env, key);
+  }
   // Proof producer env must not leak into sandbox CLIs (workspace identity,
   // snapshot, or the selected test list).
   for (const key of Object.keys(env)) {

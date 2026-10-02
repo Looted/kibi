@@ -307,6 +307,13 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-94099ebefafe
+  - type: implements
+    from: SYM-claude-runHook
+    to: REQ-claude-hook-usage-telemetry
+    created_at: 2026-10-01T20:21:01.539Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fe9b0db3b1ea
   - type: validates
     from: TEST-ci-kb-merge-resolution
     to: SCEN-ci-kb-merge-resolution

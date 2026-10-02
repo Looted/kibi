@@ -306,3 +306,28 @@ test("proof producer overlaps distinct commands when concurrency is set", async 
   assert.equal(maxInFlight, 2);
   assert.equal(result.attempts.length, 2);
 });
+
+test("proof steps run without the operator's usage-telemetry opt-in", async () => {
+  const seen = [];
+  await runProofProducer({
+    workspaceRoot: tempDir(),
+    testIds: ["TEST-ENV"],
+    entries: [{ test_id: "TEST-ENV", steps: [[process.execPath, "-e", ""]] }],
+    env: {
+      ...process.env,
+      KIBI_DIAGNOSTIC_MODE: "1",
+      KIBI_CLI_DIAGNOSTIC_MODE: "1",
+      KIBI_PROOF_KEEP: "yes",
+    },
+    spawnProcess: (command, args, options) => {
+      seen.push(options.env);
+      return spawn(command, args, options);
+    },
+    write: () => undefined,
+  });
+
+  assert.equal(seen.length, 1);
+  assert.equal("KIBI_DIAGNOSTIC_MODE" in seen[0], false);
+  assert.equal("KIBI_CLI_DIAGNOSTIC_MODE" in seen[0], false);
+  assert.equal(seen[0].KIBI_PROOF_KEEP, "yes");
+});

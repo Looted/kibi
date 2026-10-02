@@ -181,3 +181,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f0d335e8c314
+  - type: requires_predicate
+    from: REQ-claude-hook-usage-telemetry
+    to: FACT-PRED-claude-hook-telemetry-opt-in
+    created_at: 2026-10-01T20:18:21.469Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1358f5b28166
+  - type: requires_predicate
+    from: REQ-claude-hook-usage-telemetry
+    to: FACT-PRED-claude-hook-telemetry-interface
+    created_at: 2026-10-01T20:18:21.595Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b7e16a920c56
+  - type: requires_predicate
+    from: REQ-claude-hook-usage-telemetry
+    to: FACT-PRED-claude-hook-telemetry-session
+    created_at: 2026-10-01T20:18:21.667Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6916c9baf04e
+  - type: requires_predicate
+    from: REQ-claude-hook-usage-telemetry
+    to: FACT-PRED-claude-hook-telemetry-kb-used-before
+    created_at: 2026-10-01T20:18:21.752Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-09067993cda8
+  - type: requires_predicate
+    from: REQ-claude-hook-usage-telemetry
+    to: FACT-PRED-claude-hook-telemetry-context-shown
+    created_at: 2026-10-01T20:18:21.774Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f7cbc0b6f366
+  - type: requires_predicate
+    from: REQ-claude-hook-usage-telemetry
+    to: FACT-PRED-claude-hook-telemetry-acceptance-exclusion
+    created_at: 2026-10-01T20:18:21.797Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ffda4590c9df
+  - type: requires_predicate
+    from: REQ-claude-hook-usage-telemetry
+    to: FACT-PRED-claude-hook-telemetry-write-failure
+    created_at: 2026-10-01T20:18:21.823Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6bda72e446d3
+  - type: specified_by
+    from: REQ-claude-hook-usage-telemetry
+    to: SCEN-claude-hook-usage-telemetry
+    created_at: 2026-10-01T20:18:21.838Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-181ad805017c
+  - type: verified_by
+    from: REQ-claude-hook-usage-telemetry
+    to: TEST-claude-code-kibi-plugin-v1
+    created_at: 2026-10-01T20:18:21.855Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9bc49f4e1863
+  - type: depends_on
+    from: REQ-claude-hook-usage-telemetry
+    to: REQ-claude-code-kibi-plugin-v1
+    created_at: 2026-10-01T20:18:21.882Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-40c3e9276dcc

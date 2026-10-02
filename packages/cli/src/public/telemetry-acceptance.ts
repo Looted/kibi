@@ -50,6 +50,14 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
+/**
+ * Parse Kibi operation events from `.kb/usage.log`.
+ *
+ * Host plugin hooks share the log and tag their rows `interface: "hook"`.
+ * Those rows describe agent activity around Kibi calls, not Kibi operations,
+ * so they are dropped here: otherwise a busy editing session would push every
+ * operation out of the bounded acceptance window.
+ */
 export function parseTelemetryUsageLog(
   contents: string,
 ): TelemetryUsageEvent[] {
@@ -71,6 +79,7 @@ export function parseTelemetryUsageLog(
         `Failed to parse .kb/usage.log line ${index + 1}: expected object`,
       );
     }
+    if (parsed.interface === "hook") continue;
     events.push(parsed as TelemetryUsageEvent);
   }
   return events;

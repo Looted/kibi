@@ -49,6 +49,22 @@ describe("getBatchFailureMessage", () => {
     }
   });
 
+  it("strips the host usage-telemetry opt-in from unit-batch child env", () => {
+    const keys = ["KIBI_DIAGNOSTIC_MODE", "KIBI_CLI_DIAGNOSTIC_MODE"];
+    const originals = keys.map((key) => process.env[key]);
+    try {
+      for (const key of keys) process.env[key] = "1";
+      const env = isolatedUnitBatchEnv("/tmp/kibi-unit-runtime");
+      for (const key of keys) expect(key in env).toBe(false);
+    } finally {
+      keys.forEach((key, index) => {
+        const original = originals[index];
+        if (original === undefined) Reflect.deleteProperty(process.env, key);
+        else process.env[key] = original;
+      });
+    }
+  });
+
   it("pins curated unit children to test-mode Prolog semantics", () => {
     const original = process.env.NODE_ENV;
     try {

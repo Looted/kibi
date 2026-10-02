@@ -78,6 +78,20 @@ including Node startup.
 Session memory is an append-only journal per workspace and session, so hooks
 for parallel tool calls never lose each other's events.
 
+## Usage telemetry (opt-in)
+
+The plugin records nothing by default. To capture usage for diagnosis, set
+`KIBI_DIAGNOSTIC_MODE=1` in the environment Claude Code inherits — for example
+in the `env` block of `~/.claude/settings.json`. The MCP server, the CLI JSON
+routes, and these hooks all honor that one variable.
+
+When opted in, the hooks append rows tagged `interface: "hook"` to the
+workspace's `.kb/usage.log`. A row notes which source, test, or `.kb/` file the
+agent read or edited, whether a requirement snippet was shown or suppressed,
+and whether the session had used Kibi yet, keyed by the Claude Code session
+id. That is what shows whether agents look things up before they edit or only
+afterwards. Remove the variable to stop recording.
+
 ## Layout
 
 - `.claude-plugin/plugin.json`: plugin manifest.
