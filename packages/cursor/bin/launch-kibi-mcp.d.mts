@@ -54,7 +54,3 @@ export function runLaunchIfEntrypoint(
   isEntrypoint?: boolean,
   start?: () => Promise<number> | Promise<void>,
 ): Promise<void>;
-
-export function workspaceForDirectory(directory: string): string | null;
-
-export function workspaceFromRoots(roots: unknown): string | null;

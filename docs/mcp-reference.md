@@ -4,7 +4,7 @@ The Kibi Model Context Protocol (MCP) server is a peer public interface alongsid
 
 ## Public Tools
 
-The public MCP surface is intentionally curated. Agents can call exact lookup, discovery/reporting, mutation, and validation tools through MCP, with equivalent operation access through `kibi <route> --input <file|->`.
+The public MCP surface is intentionally curated. Agents can call exact lookup, discovery/reporting, mutation, and validation tools through MCP, with equivalent operation access through `kibi <route> --input <file|->`. Every MCP tool also accepts `workspaceRoot`, the directory the call is about; see [Workspace Routing](#workspace-routing).
 
 ### Host-visible tool names
 
@@ -694,6 +694,65 @@ When MCP detects a KB replacement for the same branch, it triggers a controlled 
 - If recovery fails, MCP returns a `KbRefreshError` and the operation fails closed.
 
 This behavior is important after external branch operations such as `kibi sync --rebuild`, where the branch KB snapshot can be replaced while the MCP process stays running.
+
+## Workspace Routing
+
+Hosts start an MCP server once per project and then let the agent work
+elsewhere, most often in a git worktree. A server that stayed attached to the
+checkout it started in would answer from another branch, and nothing in the
+result would say so. Every Kibi tool call is therefore answered from the
+workspace the caller is working in, decided per call:
+
+1. An explicit `workspaceRoot` argument (every tool accepts it): the absolute
+   path of the directory the call is about. Host plugins with pre-tool hooks
+   (Claude Code, Codex, Cursor, ZCode) fill it in from the agent's current
+   directory; any agent in any harness can pass its working directory.
+2. Otherwise the client's MCP roots, when the client declares the `roots`
+   capability: the first root that lies in a Kibi workspace. Roots are cached
+   while the client reports `notifications/roots/list_changed` and asked for
+   per call otherwise.
+3. Otherwise the workspace the server is attached to.
+
+A different workspace is served by a child `kibi-mcp` started there: the
+workspace's own project-local install when it has one, so the child matches
+that branch's code, else this server's entry. Children are pooled (at most
+four), reused across calls, and retired after ten idle minutes; the first call
+into a workspace pays its start (one to two seconds) and, for a branch store
+that was never compiled, the compile that any attach pays. An async `kb_check`
+started in a child is polled by `kb_job_status` in the same child. A routed call
+is logged, in diagnostic mode, by the child in that workspace's `.kb/usage.log`.
+
+Routing is limited to worktrees of the attached repository (same git common
+directory), directories under the client's declared roots, and the
+`KIBI_MCP_ROUTABLE_ROOTS` allowlist (path-delimited). Anything else, a directory
+no Kibi workspace owns, or a child that fails to start is answered from the
+attached workspace with a `workspace_mismatch` diagnostic:
+
+```json
+{
+  "code": "workspace_mismatch",
+  "severity": "warning",
+  "message": "Answered from /repo, not from the requested workspace /other: ...",
+  "detail": {
+    "requested": "/other",
+    "resolved": "/other",
+    "answeredFrom": "/repo",
+    "reason": "not_routable"
+  }
+}
+```
+
+`reason` is one of `pinned`, `not_a_kibi_workspace`, `not_routable`, or
+`unavailable`. A successful route adds nothing to the result; the tool list is
+always the attached server's.
+
+`KIBI_WORKSPACE` (or `KIBI_PROJECT_ROOT`, `KIBI_ROOT`) pins the server to one
+workspace and disables routing; `KIBI_MCP_ROUTING=0` disables it without
+pinning. Routed children run with `KIBI_MCP_ROUTED=1` and never route further.
+For `kb_check`, a `workspaceRoot` that no Kibi workspace owns keeps its older
+meaning: the tree to inspect for impact diagnostics. The CLI JSON routes do not
+take `workspaceRoot`; they run in the current directory, which makes them the
+fallback when a result reports a mismatch.
 
 ## Recommended Agent Workflow
 

@@ -21,7 +21,13 @@ function parseHookInput(input) {
   if (!isRecord(input)) {
     return { event: "" };
   }
-  const event = readString(input, ["event", "hook_event", "hookEvent", "name"]) ?? "";
+  const event = readString(input, [
+    "hook_event_name",
+    "event",
+    "hook_event",
+    "hookEvent",
+    "name"
+  ]) ?? "";
   const cwd = readString(input, [
     "cwd",
     "current_working_directory",
@@ -306,6 +312,23 @@ function canonicalKbToolName(toolName) {
   const lastSegment = trimmed.includes("__") ? trimmed.split("__").at(-1) ?? "" : trimmed.replace(/^MCP:/i, "");
   const operation = lastSegment.replace(/^kibi_/, "");
   return operation.startsWith("kb_") ? operation : undefined;
+}
+var KIBI_WORKSPACE_ARGUMENT = "workspaceRoot";
+function isKibiMcpToolName(toolName) {
+  const name = toolName?.trim() ?? "";
+  if (/^MCP:kb_[a-z_]+$/i.test(name))
+    return true;
+  const segments = name.split("__");
+  if (segments.length < 3 || segments[0] !== "mcp")
+    return false;
+  const server = segments.slice(1, -1).join("__");
+  return /kibi/i.test(server) && /^kb_[a-z_]+$/.test(segments.at(-1) ?? "");
+}
+function stampKibiWorkspace(toolName, toolInput, workspaceRoot) {
+  if (!workspaceRoot || !isKibiMcpToolName(toolName))
+    return;
+  const base = isRecord3(toolInput) ? toolInput : {};
+  return { ...base, [KIBI_WORKSPACE_ARGUMENT]: workspaceRoot };
 }
 function extractKbMcpToolCall(toolName, toolInput) {
   let normalizedToolName = canonicalKbToolName(toolName);
@@ -643,6 +666,17 @@ async function runHook(rawInput, environment = {}) {
     case "SessionStart":
       return defaultResult();
     case "PreToolUse": {
+      const stamped = stampKibiWorkspace(input.toolName, input.toolInput, workspace.root);
+      if (stamped) {
+        return {
+          continue: true,
+          hookSpecificOutput: {
+            hookEventName: "PreToolUse",
+            permissionDecision: "allow",
+            updatedInput: stamped
+          }
+        };
+      }
       const explicitPaths = extractExplicitPathFields2(input.toolInput);
       const hasDirectKbEdit = isEditLikeTool(input.toolName) && explicitPaths.some(isDirectKbPath);
       if (hasDirectKbEdit) {

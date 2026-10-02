@@ -174,3 +174,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-43931af2cf4d
+  - type: requires_predicate
+    from: REQ-mcp-workspace-routing
+    to: FACT-PRED-mcp-routing-explicit-argument
+    created_at: 2026-10-02T14:42:08.208Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4abe8dd0ce6c
+  - type: requires_predicate
+    from: REQ-mcp-workspace-routing
+    to: FACT-PRED-mcp-routing-client-roots
+    created_at: 2026-10-02T14:42:08.258Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ae5ffc5b8d26
+  - type: requires_predicate
+    from: REQ-mcp-workspace-routing
+    to: FACT-PRED-mcp-routing-routing-boundary
+    created_at: 2026-10-02T14:42:08.278Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-db7757bd4a93
+  - type: requires_predicate
+    from: REQ-mcp-workspace-routing
+    to: FACT-PRED-mcp-routing-mismatch-diagnostic
+    created_at: 2026-10-02T14:42:08.305Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b1d402c4e0a8
+  - type: requires_predicate
+    from: REQ-mcp-workspace-routing
+    to: FACT-PRED-mcp-routing-pinned-workspace
+    created_at: 2026-10-02T14:42:08.344Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eee412e7cd61
+  - type: requires_predicate
+    from: REQ-mcp-workspace-routing
+    to: FACT-PRED-mcp-routing-no-chained-routing
+    created_at: 2026-10-02T14:42:08.370Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a5229bf64d7d
+  - type: requires_predicate
+    from: REQ-mcp-workspace-routing
+    to: FACT-PRED-mcp-routing-strip-argument
+    created_at: 2026-10-02T14:42:08.383Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-70435f553cec
+  - type: specified_by
+    from: REQ-mcp-workspace-routing
+    to: SCEN-mcp-workspace-routing
+    created_at: 2026-10-02T14:42:08.399Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2d2727dfa743
+  - type: supersedes
+    from: REQ-mcp-workspace-routing
+    to: REQ-claude-mcp-follows-session-workspace
+    created_at: 2026-10-02T14:42:08.412Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-547775b2c131
+  - type: supersedes
+    from: REQ-mcp-workspace-routing
+    to: REQ-mcp-launchers-follow-session-workspace
+    created_at: 2026-10-02T14:42:08.425Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-92fd7f2e59d3
+  - type: depends_on
+    from: REQ-mcp-workspace-routing
+    to: REQ-002
+    created_at: 2026-10-02T14:42:08.441Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8ce91f91a109

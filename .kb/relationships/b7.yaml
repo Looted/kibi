@@ -167,10 +167,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-69a066616499
-  - type: executable_for
-    from: SYM-claude-case-mcp-follows-session-workspace
-    to: TEST-claude-code-kibi-plugin-v1
-    created_at: 2026-10-02T11:35:19.147Z
+  - type: implements
+    from: SYM-mcp-WORKSPACE_ROOT_ARGUMENT
+    to: REQ-mcp-workspace-routing
+    created_at: 2026-10-02T14:45:34.531Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-2e0cf51a172a
+    id: rel-230f08f2b741
+  - type: covered_by
+    from: SYM-mcp-WORKSPACE_ROOT_ARGUMENT
+    to: TEST-mcp-workspace-routing
+    created_at: 2026-10-02T14:45:34.562Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d3cac326c3ec

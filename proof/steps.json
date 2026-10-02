@@ -1758,14 +1758,14 @@
     ]
   },
   {
-    "test_id": "TEST-mcp-launchers-follow-session-workspace",
+    "test_id": "TEST-mcp-workspace-routing",
     "steps": [
       [
         "bun",
         "test",
         "--timeout",
         "60000",
-        "./scripts/tests/session-proxy-hosts.test.ts"
+        "./packages/mcp/tests/server/workspace-router.test.ts"
       ]
     ]
   }

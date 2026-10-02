@@ -1,12 +1,13 @@
 ---
 title: Claude MCP launcher follows the session into its current workspace
-status: open
-priority: must
+status: closed
+priority: should
 tags:
   - claude
   - mcp
   - worktree
   - search
+  - historical-status:superseded
 semantic_text: |-
   When the MCP client supports roots, the kibi-claude MCP launcher must read the client roots before each tool call.
 

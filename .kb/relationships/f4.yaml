@@ -384,3 +384,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-83723980a895
+  - type: implements
+    from: SYM-agent-core-isKibiMcpToolName
+    to: REQ-mcp-workspace-routing
+    created_at: 2026-10-02T14:47:42.024Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-056352867e8b
+  - type: covered_by
+    from: SYM-agent-core-isKibiMcpToolName
+    to: TEST-mcp-workspace-routing
+    created_at: 2026-10-02T14:47:42.096Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5e8b6cdd3c0b

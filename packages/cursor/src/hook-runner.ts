@@ -16,6 +16,7 @@ import {
   rememberGuidedPath,
   resolveStateDir,
 } from "./hook-state.js";
+import { stampKibiWorkspace } from "kibi-agent-core/kb-mcp-tools";
 import { extractKbMcpToolCall } from "./kb-mcp-tools.js";
 import {
   BOOTSTRAP_REMINDER,
@@ -38,6 +39,11 @@ export type CursorHookResult = {
   user_message?: string;
   agent_message?: string;
   followup_message?: string;
+  /**
+   * preToolUse only: replacement tool input. Used without `permission`, so
+   * Cursor's own approval flow is unchanged.
+   */
+  updated_input?: Record<string, unknown>;
 };
 
 export type HookEnvironment = {
@@ -67,6 +73,26 @@ function hasKibiConfig(cwd: string | undefined): boolean {
   }
 
   return fs.existsSync(path.join(cwd, ".kb", "manifest.json"));
+}
+
+/**
+ * The Kibi workspace that owns `directory`: the nearest ancestor with
+ * `.kb/manifest.json`, without crossing a `.git` boundary.
+ */
+export function kibiWorkspaceFor(
+  directory: string | undefined,
+): string | undefined {
+  if (!directory) return undefined;
+  let current = path.resolve(directory);
+  for (;;) {
+    if (fs.existsSync(path.join(current, ".kb", "manifest.json"))) {
+      return current;
+    }
+    if (fs.existsSync(path.join(current, ".git"))) return undefined;
+    const parent = path.dirname(current);
+    if (parent === current) return undefined;
+    current = parent;
+  }
 }
 
 function isEditLikeTool(toolName: string | undefined): boolean {
@@ -141,6 +167,18 @@ export async function runHook(
       }
 
     case "preToolUse": {
+      // Name the agent's workspace on every Kibi MCP call so the launcher
+      // answers from it, also for agents working in a git worktree. The
+      // per-call cwd wins over workspace_roots, which can be the window's
+      // folders rather than the agent's checkout.
+      const stamped = stampKibiWorkspace(
+        input.toolName,
+        input.toolInput,
+        kibiWorkspaceFor(input.cwd ?? input.workspaceRoots?.[0]),
+      );
+      if (stamped) {
+        return { updated_input: stamped };
+      }
       const explicitPaths = extractExplicitPathFields(input.toolInput);
       const hasDirectKbEdit =
         isEditLikeTool(input.toolName) && explicitPaths.some(isDirectKbPath);

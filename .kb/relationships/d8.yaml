@@ -370,13 +370,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e491e6f50719
-  - type: specified_by
-    from: REQ-claude-mcp-follows-session-workspace
-    to: SCEN-claude-mcp-follows-session-workspace
-    created_at: 2026-10-02T11:35:31.729Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-409897b0016a
   - type: depends_on
     from: REQ-claude-mcp-follows-session-workspace
     to: REQ-claude-code-kibi-plugin-v1

@@ -890,6 +890,28 @@ function appendHookUsage(row, env = process.env) {
   } catch {}
 }
 
+// ../agent-core/dist/kb-mcp-tools.js
+function isRecord3(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+var KIBI_WORKSPACE_ARGUMENT = "workspaceRoot";
+function isKibiMcpToolName(toolName) {
+  const name = toolName?.trim() ?? "";
+  if (/^MCP:kb_[a-z_]+$/i.test(name))
+    return true;
+  const segments = name.split("__");
+  if (segments.length < 3 || segments[0] !== "mcp")
+    return false;
+  const server = segments.slice(1, -1).join("__");
+  return /kibi/i.test(server) && /^kb_[a-z_]+$/.test(segments.at(-1) ?? "");
+}
+function stampKibiWorkspace(toolName, toolInput, workspaceRoot) {
+  if (!workspaceRoot || !isKibiMcpToolName(toolName))
+    return;
+  const base = isRecord3(toolInput) ? toolInput : {};
+  return { ...base, [KIBI_WORKSPACE_ARGUMENT]: workspaceRoot };
+}
+
 // src/workspace-optin.ts
 import fs4 from "node:fs";
 import path5 from "node:path";
@@ -941,11 +963,11 @@ function context(event, text) {
     hookSpecificOutput: { hookEventName: event, additionalContext: text }
   };
 }
-function isRecord3(value) {
+function isRecord4(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function toolPath(toolInput) {
-  if (!isRecord3(toolInput))
+  if (!isRecord4(toolInput))
     return;
   const candidate = toolInput.file_path ?? toolInput.notebook_path;
   return typeof candidate === "string" ? candidate : undefined;
@@ -954,7 +976,7 @@ function linkedFileCount(index) {
   return Object.values(index.files).filter((symbols) => symbols.some((symbol) => symbol.implements.length > 0)).length;
 }
 function readFocus(toolInput) {
-  if (!isRecord3(toolInput))
+  if (!isRecord4(toolInput))
     return;
   const offset = typeof toolInput.offset === "number" ? toolInput.offset : undefined;
   const limit = typeof toolInput.limit === "number" ? toolInput.limit : undefined;
@@ -964,14 +986,14 @@ function readFocus(toolInput) {
   return [{ start, end: limit !== undefined ? start + limit - 1 : start }];
 }
 function editFocus(absolutePath, toolInput) {
-  if (!isRecord3(toolInput))
+  if (!isRecord4(toolInput))
     return;
   const needles = [];
   if (typeof toolInput.old_string === "string")
     needles.push(toolInput.old_string);
   if (Array.isArray(toolInput.edits)) {
     for (const edit of toolInput.edits) {
-      if (isRecord3(edit) && typeof edit.old_string === "string") {
+      if (isRecord4(edit) && typeof edit.old_string === "string") {
         needles.push(edit.old_string);
       }
     }
@@ -1007,6 +1029,12 @@ function requirementIds(symbols) {
 }
 function preToolUse(input, workspace, trace = {}) {
   const toolName = input.toolName ?? "";
+  const stamped = stampKibiWorkspace(toolName, input.toolInput, workspace.root);
+  if (stamped) {
+    return {
+      hookSpecificOutput: { hookEventName: "PreToolUse", updatedInput: stamped }
+    };
+  }
   const state = loadSessionState(workspace.stateDir);
   trace.kbUsedBefore = state.kbUsed;
   const events = [];
@@ -1161,7 +1189,7 @@ function postToolUse(input, workspace, trace = {}) {
       }
     }
   } else if (toolName === "Bash") {
-    const command = isRecord3(input.toolInput) ? input.toolInput.command : undefined;
+    const command = isRecord4(input.toolInput) ? input.toolInput.command : undefined;
     const usage = extractCliKbUsage(command);
     if (usage)
       recordUsage(usage);

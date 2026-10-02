@@ -13,7 +13,7 @@
     ],
     "PreToolUse": [
       {
-        "matcher": "Edit|MultiEdit|Write|apply_patch",
+        "matcher": "Edit|MultiEdit|Write|apply_patch|mcp__.*__kb_.*",
         "hooks": [
           {
             "type": "command",

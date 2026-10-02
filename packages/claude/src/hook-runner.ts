@@ -47,6 +47,7 @@ import {
   appendHookUsage,
   hookTelemetryEnabled,
 } from "./usage-log.js";
+import { stampKibiWorkspace } from "kibi-agent-core/kb-mcp-tools";
 import { resolveKibiWorkspace } from "./workspace-optin.js";
 
 export type ContextEvent = "SessionStart" | "PreToolUse" | "Stop";
@@ -55,7 +56,12 @@ export type ContextEvent = "SessionStart" | "PreToolUse" | "Stop";
 export type HookOutput = {
   hookSpecificOutput?: {
     hookEventName: ContextEvent;
-    additionalContext: string;
+    additionalContext?: string;
+    /**
+     * PreToolUse only: replacement tool input. Sent without a permission
+     * decision, so Claude Code's normal permission flow still applies.
+     */
+    updatedInput?: Record<string, unknown>;
   };
 };
 
@@ -166,6 +172,14 @@ function preToolUse(
   trace: HookTrace = {},
 ): HookOutput {
   const toolName = input.toolName ?? "";
+  // Name the session's workspace on every Kibi MCP call so the MCP launcher
+  // answers from it, even after the session moves into a git worktree.
+  const stamped = stampKibiWorkspace(toolName, input.toolInput, workspace.root);
+  if (stamped) {
+    return {
+      hookSpecificOutput: { hookEventName: "PreToolUse", updatedInput: stamped },
+    };
+  }
   const state = loadSessionState(workspace.stateDir);
   trace.kbUsedBefore = state.kbUsed;
   const events: SessionEvent[] = [];

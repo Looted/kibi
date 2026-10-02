@@ -1,12 +1,13 @@
 ---
 title: Every host MCP launcher follows the session into its current workspace
-status: open
-priority: must
+status: closed
+priority: should
 tags:
   - mcp
   - worktree
   - launcher
   - search
+  - historical-status:superseded
 semantic_text: |-
   When the MCP client supports roots, each non-Claude host MCP launcher must answer each tool call from the Kibi workspace that the client roots name.
 

@@ -25,6 +25,7 @@ import {
   isMeaningfulTrackedPath,
   isSourceImpactRelevantPath,
 } from "./path-policy.js";
+import { stampKibiWorkspace } from "kibi-agent-core/kb-mcp-tools";
 import { resolveKibiWorkspace } from "./workspace-optin.js";
 
 export type ZcodeHookEvent =
@@ -43,7 +44,12 @@ export type HookResult = {
    */
   hookSpecificOutput?: {
     hookEventName: ZcodeHookEvent;
-    additionalContext: string;
+    additionalContext?: string;
+    /**
+     * PreToolUse only: replacement tool input. ZCode applies it before its
+     * normal permission flow, so no permission decision is sent.
+     */
+    updatedInput?: Record<string, unknown>;
   };
   systemMessage?: string;
 };
@@ -159,6 +165,22 @@ export async function runHook(
       return contextResult(input.event, SESSION_START_CONTEXT);
 
     case "PreToolUse": {
+      // Name the session's workspace on every Kibi MCP call so the launcher
+      // answers from it, also after the session moves into a git worktree.
+      const stamped = stampKibiWorkspace(
+        input.toolName,
+        input.toolInput,
+        workspace.root,
+      );
+      if (stamped) {
+        return {
+          continue: true,
+          hookSpecificOutput: {
+            hookEventName: "PreToolUse",
+            updatedInput: stamped,
+          },
+        };
+      }
       const explicitPaths = extractExplicitPathFields(input.toolInput);
       const hasDirectKbEdit =
         isEditLikeTool(input.toolName) &&

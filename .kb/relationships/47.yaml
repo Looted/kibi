@@ -230,17 +230,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b56d1e48f590
-  - type: implements
-    from: SYM-sync-session-proxy-block
-    to: REQ-mcp-launchers-follow-session-workspace
-    created_at: 2026-10-02T12:08:24.294Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a9a7430e00a0
-  - type: covered_by
-    from: SYM-sync-session-proxy-block
-    to: TEST-mcp-launchers-follow-session-workspace
-    created_at: 2026-10-02T12:08:24.307Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a49f57836004

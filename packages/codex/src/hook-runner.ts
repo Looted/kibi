@@ -11,6 +11,7 @@ import {
   recordKbMcpTool,
   resolveWorkspaceStateDir,
 } from "./hook-state.js";
+import { stampKibiWorkspace } from "kibi-agent-core/kb-mcp-tools";
 import { extractKbMcpToolCall } from "./kb-mcp-tools.js";
 import {
   DIRECT_KB_EDIT_WARNING,
@@ -30,6 +31,16 @@ export type HookResult = {
   stopReason?: string;
   systemMessage?: string;
   suppressOutput?: boolean;
+  /**
+   * PreToolUse only: route a Kibi MCP call to the session's workspace.
+   * Codex applies `updatedInput` only with `permissionDecision: "allow"`,
+   * and that decision does not override the server's tool approval mode.
+   */
+  hookSpecificOutput?: {
+    hookEventName: "PreToolUse";
+    permissionDecision: "allow";
+    updatedInput: Record<string, unknown>;
+  };
 };
 
 export type HookEnvironment = {
@@ -73,6 +84,23 @@ export async function runHook(
       return defaultResult();
 
     case "PreToolUse": {
+      // Name the session's workspace on every Kibi MCP call so the launcher
+      // answers from it, even after the thread moves into a git worktree.
+      const stamped = stampKibiWorkspace(
+        input.toolName,
+        input.toolInput,
+        workspace.root,
+      );
+      if (stamped) {
+        return {
+          continue: true,
+          hookSpecificOutput: {
+            hookEventName: "PreToolUse",
+            permissionDecision: "allow",
+            updatedInput: stamped,
+          },
+        };
+      }
       const explicitPaths = extractExplicitPathFields(input.toolInput);
       const hasDirectKbEdit =
         isEditLikeTool(input.toolName) && explicitPaths.some(isDirectKbPath);

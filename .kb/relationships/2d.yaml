@@ -132,31 +132,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8b6677ec8ecb
-  - type: implements
-    from: SYM-cursor-workspaceFromRoots
-    to: REQ-mcp-launchers-follow-session-workspace
-    created_at: 2026-10-02T12:08:09.440Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7ac0015a6edf
-  - type: covered_by
-    from: SYM-cursor-workspaceFromRoots
-    to: TEST-mcp-launchers-follow-session-workspace
-    created_at: 2026-10-02T12:08:09.453Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6f12907c4348
-  - type: implements
-    from: SYM-sync-session-proxy-embed
-    to: REQ-mcp-launchers-follow-session-workspace
-    created_at: 2026-10-02T12:08:30.052Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-78853013ca30
-  - type: covered_by
-    from: SYM-sync-session-proxy-embed
-    to: TEST-mcp-launchers-follow-session-workspace
-    created_at: 2026-10-02T12:08:30.065Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ccbf214d734c
