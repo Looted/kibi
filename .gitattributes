@@ -1,1 +1,3 @@
 packages/plugin-treesitter/tests/fixtures/go/crlf.go whitespace=cr-at-eol
+.kb/symbols.yaml merge=kibi
+.kb/relationships/*.yaml merge=kibi

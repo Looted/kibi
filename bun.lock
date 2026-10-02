@@ -67,9 +67,9 @@
         "gray-matter": "^4.0.3",
         "ignore": "^5.3.0",
         "js-yaml": "^4.1.0",
-        "kibi-core": "^0.14.0",
-        "kibi-plugin-builtin": "^0.3.0",
-        "kibi-plugin-sdk": "^0.3.0",
+        "kibi-core": "^0.14.1",
+        "kibi-plugin-builtin": "^0.4.0",
+        "kibi-plugin-sdk": "^0.4.0",
         "kibi-swipl": "^1.0.0",
         "saxes": "^6.0.0",
         "yaml": "^2.9.0",
@@ -166,7 +166,7 @@
       "name": "kibi-plugin-builtin",
       "version": "0.4.0",
       "dependencies": {
-        "kibi-plugin-sdk": "^0.3.0",
+        "kibi-plugin-sdk": "^0.4.0",
         "ts-morph": "^23.0.0",
       },
       "devDependencies": {
@@ -179,7 +179,7 @@
       "version": "0.3.1",
       "dependencies": {
         "@typesafe-ai/sdk": "^0.6.0",
-        "kibi-plugin-sdk": "^0.3.0",
+        "kibi-plugin-sdk": "^0.4.0",
       },
       "devDependencies": {
         "@types/node": "latest",
@@ -214,8 +214,8 @@
       "version": "2.1.0",
       "dependencies": {
         "gray-matter": "^4.0.3",
-        "kibi-core": "^0.14.0",
-        "kibi-plugin-builtin": "^0.3.0",
+        "kibi-core": "^0.14.1",
+        "kibi-plugin-builtin": "^0.4.0",
         "kibi-swipl": "^1.0.0",
       },
       "devDependencies": {
@@ -1999,7 +1999,7 @@
 
     "kibi-claude/@types/node": ["@types/node@26.6.3", "", { "dependencies": { "undici-types": "~8.9.0" } }, "sha512-dsqMQQoeTLqu9wynDD00q573mNzso3IdQOAfHRJqLCcmCFPoGo9A1bDpUcv/9tnKpErQWv9uKeGfl37EIS02Yg=="],
 
-    "kibi-cli/@types/node": ["@types/node@26.6.3", "", { "dependencies": { "undici-types": "~8.9.0" } }, "sha512-dsqMQQoeTLqu9wynDD00q573mNzso3IdQOAfHRJqLCcmCFPoGo9A1bDpUcv/9tnKpErQWv9uKeGfl37EIS02Yg=="],
+    "kibi-cli/@types/node": ["@types/node@26.6.4", "", { "dependencies": { "undici-types": "~8.9.0" } }, "sha512-ldVPDCzj7fsaGZrLB0NuHuTvJcsNasysBAqMolr/cgxrLd1xbqxIr3XJiPnHHJUCxj5sNF1vnRj9aWnrVh5Jcg=="],
 
     "kibi-codex/@types/node": ["@types/node@26.6.3", "", { "dependencies": { "undici-types": "~8.9.0" } }, "sha512-dsqMQQoeTLqu9wynDD00q573mNzso3IdQOAfHRJqLCcmCFPoGo9A1bDpUcv/9tnKpErQWv9uKeGfl37EIS02Yg=="],
 
@@ -2009,11 +2009,11 @@
 
     "kibi-opencode/@types/node": ["@types/node@26.6.2", "", { "dependencies": { "undici-types": "~8.9.0" } }, "sha512-X1P21scMv4zGKLYqjdGjaKa7COa0RKVYYZZN/NfvLQ1JegxFhdhpZG/Lyn8AXx6CDUavKAd11v6BvfpkDByK8g=="],
 
-    "kibi-plugin-builtin/@types/node": ["@types/node@26.6.3", "", { "dependencies": { "undici-types": "~8.9.0" } }, "sha512-dsqMQQoeTLqu9wynDD00q573mNzso3IdQOAfHRJqLCcmCFPoGo9A1bDpUcv/9tnKpErQWv9uKeGfl37EIS02Yg=="],
+    "kibi-plugin-builtin/@types/node": ["@types/node@26.6.4", "", { "dependencies": { "undici-types": "~8.9.0" } }, "sha512-ldVPDCzj7fsaGZrLB0NuHuTvJcsNasysBAqMolr/cgxrLd1xbqxIr3XJiPnHHJUCxj5sNF1vnRj9aWnrVh5Jcg=="],
 
-    "kibi-plugin-jev/@types/node": ["@types/node@26.6.3", "", { "dependencies": { "undici-types": "~8.9.0" } }, "sha512-dsqMQQoeTLqu9wynDD00q573mNzso3IdQOAfHRJqLCcmCFPoGo9A1bDpUcv/9tnKpErQWv9uKeGfl37EIS02Yg=="],
+    "kibi-plugin-jev/@types/node": ["@types/node@26.6.4", "", { "dependencies": { "undici-types": "~8.9.0" } }, "sha512-ldVPDCzj7fsaGZrLB0NuHuTvJcsNasysBAqMolr/cgxrLd1xbqxIr3XJiPnHHJUCxj5sNF1vnRj9aWnrVh5Jcg=="],
 
-    "kibi-plugin-sdk/@types/node": ["@types/node@26.6.3", "", { "dependencies": { "undici-types": "~8.9.0" } }, "sha512-dsqMQQoeTLqu9wynDD00q573mNzso3IdQOAfHRJqLCcmCFPoGo9A1bDpUcv/9tnKpErQWv9uKeGfl37EIS02Yg=="],
+    "kibi-plugin-sdk/@types/node": ["@types/node@26.6.4", "", { "dependencies": { "undici-types": "~8.9.0" } }, "sha512-ldVPDCzj7fsaGZrLB0NuHuTvJcsNasysBAqMolr/cgxrLd1xbqxIr3XJiPnHHJUCxj5sNF1vnRj9aWnrVh5Jcg=="],
 
     "kibi-vscode/@types/node": ["@types/node@20.19.33", "", { "dependencies": { "undici-types": "~6.21.0" } }, "sha512-Rs1bVAIdBs5gbTIKza/tgpMuG1k3U/UMJLWecIMxNdJFDMzcM5LOiLVRYh3PilWEYDIeUDv7bpiHPLPsbydGcw=="],
 

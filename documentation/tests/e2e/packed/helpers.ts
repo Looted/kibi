@@ -19,7 +19,6 @@ import {
   resolveNpmPackFilename,
 } from "./npm-pack-json.js";
 import {
-  dropUnpackedSwiplPlatform,
   relocatePackedInstallMetadata,
   writePackedInstallManifest,
 } from "./packed-install-manifest.js";
@@ -370,9 +369,19 @@ function packageInstallArgs(
   options: PackedInstallOptions = {},
 ): string[] {
   const ignoreScripts = options.ignoreScripts === true;
+  const omitOptional = options.omitOptional === true;
   return basename(packageManagerBinary).toLowerCase().includes("pnpm")
-    ? ["install", ...(ignoreScripts ? ["--ignore-scripts"] : [])]
-    : ["install", "--no-audit", ...(ignoreScripts ? ["--ignore-scripts"] : [])];
+    ? [
+        "install",
+        ...(ignoreScripts ? ["--ignore-scripts"] : []),
+        ...(omitOptional ? ["--no-optional"] : []),
+      ]
+    : [
+        "install",
+        "--no-audit",
+        ...(ignoreScripts ? ["--ignore-scripts"] : []),
+        ...(omitOptional ? ["--omit=optional"] : []),
+      ];
 }
 
 function resolveGitBinary(): string {
@@ -623,7 +632,6 @@ async function bootstrapSharedInstall(
         `Shared packed installation failed with exit code ${installResult.exitCode}.\nstdout:\n${installResult.stdout}\nstderr:\n${installResult.stderr}`,
       );
     }
-    dropUnpackedSwiplPlatform(npmPrefix, tarballs);
     await verifyKibiCliResolutionImpl(npmPrefix, env);
   })();
 
@@ -735,6 +743,8 @@ export interface KibiOptions {
 export interface PackedInstallOptions {
   /** Prevent package lifecycle scripts from running during this install. */
   ignoreScripts?: boolean;
+  /** Skip optional dependencies, including the published kibi-swipl platform packages. */
+  omitOptional?: boolean;
 }
 
 export interface SandboxOptions {
@@ -1091,7 +1101,6 @@ export function createSandbox(options: SandboxOptions = {}): TestSandbox {
             `Packed sandbox installation failed with exit code ${installResult.exitCode}.\nstdout:\n${installResult.stdout}\nstderr:\n${installResult.stderr}`,
           );
         }
-        dropUnpackedSwiplPlatform(npmPrefix, tarballs);
         await verifyKibiCliResolutionImpl(npmPrefix, env);
         console.log("  ✓ Packages installed");
       })();
