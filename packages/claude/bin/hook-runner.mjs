@@ -52,8 +52,30 @@ function parseStdinJson(rawInput) {
   return trimmed.length === 0 ? {} : JSON.parse(trimmed);
 }
 
-// src/kb-tools.ts
+// ../agent-core/dist/kb-mcp-tools.js
 function isRecord2(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+var KIBI_WORKSPACE_ARGUMENT = "workspaceRoot";
+function isKibiMcpToolName(toolName) {
+  const name = toolName?.trim() ?? "";
+  if (/^MCP:kb_[a-z_]+$/i.test(name))
+    return true;
+  const segments = name.split("__");
+  if (segments.length < 3 || segments[0] !== "mcp")
+    return false;
+  const server = segments.slice(1, -1).join("__");
+  return /kibi/i.test(server) && /^kb_[a-z_]+$/.test(segments.at(-1) ?? "");
+}
+function stampKibiWorkspace(toolName, toolInput, workspaceRoot) {
+  if (!workspaceRoot || !isKibiMcpToolName(toolName))
+    return;
+  const base = isRecord2(toolInput) ? toolInput : {};
+  return { ...base, [KIBI_WORKSPACE_ARGUMENT]: workspaceRoot };
+}
+
+// src/kb-tools.ts
+function isRecord3(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function strings(value) {
@@ -68,10 +90,10 @@ function canonicalKbOperation(toolName) {
   return /^kb_[a-z_]+$/.test(operation) ? operation : undefined;
 }
 function payloadOf(toolInput) {
-  if (!isRecord2(toolInput))
+  if (!isRecord3(toolInput))
     return {};
   const nested = toolInput.arguments ?? toolInput.args;
-  return isRecord2(nested) ? nested : toolInput;
+  return isRecord3(nested) ? nested : toolInput;
 }
 function usageFromPayload(operation, payload) {
   const paths = [
@@ -80,7 +102,7 @@ function usageFromPayload(operation, payload) {
   ];
   if (Array.isArray(payload.sourceLocations)) {
     for (const location of payload.sourceLocations) {
-      if (isRecord2(location))
+      if (isRecord3(location))
         paths.push(...strings(location.path));
     }
   }
@@ -132,7 +154,7 @@ function extractCliKbUsage(command) {
   if (inline?.[1]) {
     try {
       const parsed = JSON.parse(inline[1]);
-      if (isRecord2(parsed))
+      if (isRecord3(parsed))
         payload = parsed;
     } catch {}
   }
@@ -890,28 +912,6 @@ function appendHookUsage(row, env = process.env) {
   } catch {}
 }
 
-// ../agent-core/dist/kb-mcp-tools.js
-function isRecord3(value) {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-var KIBI_WORKSPACE_ARGUMENT = "workspaceRoot";
-function isKibiMcpToolName(toolName) {
-  const name = toolName?.trim() ?? "";
-  if (/^MCP:kb_[a-z_]+$/i.test(name))
-    return true;
-  const segments = name.split("__");
-  if (segments.length < 3 || segments[0] !== "mcp")
-    return false;
-  const server = segments.slice(1, -1).join("__");
-  return /kibi/i.test(server) && /^kb_[a-z_]+$/.test(segments.at(-1) ?? "");
-}
-function stampKibiWorkspace(toolName, toolInput, workspaceRoot) {
-  if (!workspaceRoot || !isKibiMcpToolName(toolName))
-    return;
-  const base = isRecord3(toolInput) ? toolInput : {};
-  return { ...base, [KIBI_WORKSPACE_ARGUMENT]: workspaceRoot };
-}
-
 // src/workspace-optin.ts
 import fs4 from "node:fs";
 import path5 from "node:path";
@@ -1032,7 +1032,10 @@ function preToolUse(input, workspace, trace = {}) {
   const stamped = stampKibiWorkspace(toolName, input.toolInput, workspace.root);
   if (stamped) {
     return {
-      hookSpecificOutput: { hookEventName: "PreToolUse", updatedInput: stamped }
+      hookSpecificOutput: {
+        hookEventName: "PreToolUse",
+        updatedInput: stamped
+      }
     };
   }
   const state = loadSessionState(workspace.stateDir);
