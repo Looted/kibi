@@ -46688,3 +46688,12 @@ symbols:
         target: TEST-kibi-bootstrap-knowledge-sources
       - type: implements
         target: REQ-kibi-bootstrap-knowledge-sources
+  - id: SYM-test-kibi-bootstrap-knowledge-sources
+    title: Bootstrap knowledge sources suite
+    status: active
+    sourceFile: packages/cli/tests/operations/bootstrap-intent-claims.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-bootstrap-knowledge-sources

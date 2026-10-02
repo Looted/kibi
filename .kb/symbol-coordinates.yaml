@@ -31307,6 +31307,14 @@ coordinates:
     sourceEndLine: 119
     sourceFile: documentation/tests/benchmarks/journaled-engine.bench.mjs
     sourceLine: 57
+  SYM-test-kibi-bootstrap-knowledge-sources:
+    identityHash: 98b8eacd93562c93a36b49942df040bd7ae66567f314301c8d28046de5b065c7
+    sourceHash: dc5bd80ea872942e651aa2e03bc48626df7eafceb2a7147bc8e11e6b32cdb013
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 214
+    sourceFile: packages/cli/tests/operations/bootstrap-intent-claims.test.ts
+    sourceLine: 1
   SYM-test-kibi-change-to-proof-evaluation:
     identityHash: fbeb1ae7eb058e413d2526e9adbe518d84560f637455e837dffb55fff54b06e9
     sourceHash: 901ea689b1911817d3192dab80b27650adda65da65877281059d021cb9c58995
