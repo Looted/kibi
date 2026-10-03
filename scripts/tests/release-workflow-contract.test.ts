@@ -415,10 +415,10 @@ describe("publish.yml CI workflow contract", () => {
     test("fails after a bounded wait with the final npm error", () => {
       const result = verifyPublishedMetadata(workflowContent, ["unavailable"]);
       expect(result.status).toBe(1);
-      expect(result.attempts).toBe(12);
-      expect(result.sleeps).toEqual(Array(11).fill("10"));
+      expect(result.attempts).toBe(60);
+      expect(result.sleeps).toEqual(Array(59).fill("10"));
       expect(result.output).toContain("npm error E404");
-      expect(result.output).toContain("not available after 12 attempts");
+      expect(result.output).toContain("not available after 60 attempts");
     });
 
     test.each([

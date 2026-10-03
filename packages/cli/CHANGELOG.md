@@ -1,5 +1,32 @@
 # kibi-cli
 
+## 2.4.0
+
+### Minor Changes
+
+- f93dcdd: Bootstrap no longer learns only from the code. The agent now starts with a short interview: it asks where product intent already lives (issue trackers such as Jira or YouTrack, wikis, specs, decision logs), which sources are authoritative or stale, and reads them through its own connectors. The bootstrap plan records those sources and the intent claims harvested from them, so each requirement taken from a ticket or page cites it and the citation is part of the approved plan hash. Kibi still never contacts those sources itself.
+  - feat(cli): `kb_plan_bootstrap` / `plan-bootstrap` accept `bootstrapContext.knowledgeSources` (id, kind, title, locator, authority, optional connector) and `bootstrapContext.intentClaims` (statement, sourceId, reference, optional excerpt). Both are normalized into `declaredContext` and bound into `planHash`. Grounded claims from authoritative or supporting sources become `req` candidates with `sourceKind: intent_claim`, citation evidence, and `text_ref: <sourceId>:<reference>`. Ungroundable claims become authoring follow-ups, stale sources are suppressed with `stale_knowledge_source`, and claims citing undeclared sources are reported as non-blocking diagnostics. A `needs_context` plan without declared sources asks for them.
+  - feat(skills): `kibi-bootstrap` 3.1.0 leads with the source interview before planning; the MCP `/kibi-bootstrap` prompt and the Cursor and ZCode commands follow it.
+  - docs: README, landing page, quick start, and install guide lead with a copy-paste agent setup prompt; manual installation moves behind a toggle.
+
+- cf2dba8: Branches that each add symbols no longer have to hand-resolve `.kb/symbols.yaml`. The new `kibi merge-driver` command plugs into Git as a merge driver and merges Kibi's symbol manifest and relationship shards by record id, so concurrent additions merge cleanly while genuine disagreements still stop with conflict markers. A copyable GitHub Actions workflow applies the same merge to open pull requests whenever the default branch moves.
+  - feat(cli): add `kibi merge-driver <base> <current> <other>` (Git `%O %A %B`), a three-way id-keyed merge for `.kb/symbols.yaml` and `.kb/relationships/*.yaml` that keeps both sides' additions, applies one-sided edits and deletions, unions concurrent relationship/link additions, and falls back to `git merge-file` markers with exit 1 on a real conflict.
+  - docs: add `docs/examples/github/kibi-kb-merge.yml` and the "Merge conflicts in Kibi manifests" section of the GitHub integration guide.
+
+### Patch Changes
+
+- 22857bf: Adding or editing a symbol that lives in a decorated Python file no longer fails. With the Tree-sitter plugin active, `kb_upsert` aborted with "Cannot refresh incomplete source analysis … Python decorators are not evaluated" and rolled the write back, even though `kibi sync --refresh-symbol-coordinates` handled the same file. Upserts now bind the declaration the same way sync does, and coverage repair plans report those symbols as refreshable instead of failing.
+
+  When the Kibi MCP server keeps running after Kibi is upgraded or reinstalled, its tools used to fail with a bare "Cannot find module …" error. The error now says the server is running from files that are no longer installed and must be restarted, and that the project CLI works meanwhile.
+  - kibi-cli: targeted symbol coordinate refresh (`kb_upsert`) and `inspectCoordinateRepairs` pass `allowPythonDecoratorCoordinates`, matching `sync --refresh-symbol-coordinates`.
+  - kibi-mcp: legacy `kb_symbols_refresh` helpers pass the same flag; tool failures caused by missing modules carry a restart hint.
+
+- 5a217be: One switch now turns on usage telemetry everywhere. Until now, the CLI ignored `KIBI_DIAGNOSTIC_MODE` and only listened to its own `KIBI_CLI_DIAGNOSTIC_MODE`. An operator who opted in for the MCP server therefore still recorded nothing from agents that call Kibi through the CLI. CLI rows also lacked the host, version, and checkout fields that MCP rows carry, so the two surfaces could not be compared.
+  - Honor `KIBI_DIAGNOSTIC_MODE` (`1` or `true`) in the CLI JSON routes; keep `KIBI_CLI_DIAGNOSTIC_MODE` as the older spelling.
+  - Stamp `host`, `package_version`, and `workspace_root` on CLI usage rows; `host` comes from `KIBI_HOST`/`KIBI_MCP_HOST` or a Claude Code shell, else `unknown`.
+  - Skip `interface: "hook"` rows in `parseTelemetryUsageLog`, so acceptance, `usage-metrics`, and `usage-remediation` only see Kibi operations.
+  - Strip the telemetry opt-in from sandboxed test CLIs unless a test sets it explicitly.
+
 ## 2.3.0
 
 ### Minor Changes
