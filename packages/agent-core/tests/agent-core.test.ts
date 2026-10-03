@@ -152,6 +152,20 @@ describe("agent-core Kibi tool recognition", () => {
     expect(extractKbMcpToolCall("Edit", { file_path: "a.ts" })).toBeUndefined();
   });
 
+  test("a dry-run upsert is reported as validation, not a KB write", () => {
+    expect(
+      extractKbMcpToolCall("mcp__kibi__kb_upsert", {
+        type: "req",
+        id: "REQ-x",
+        dryRun: true,
+      })?.toolName,
+    ).toBe("kb_validate_upsert");
+    expect(
+      extractKbMcpToolCall("mcp__kibi__kb_upsert", { type: "req", id: "REQ-x" })
+        ?.toolName,
+    ).toBe("kb_upsert");
+  });
+
   test("the Kibi interface falls back to the CLI only in a trusted workspace", () => {
     expect(resolveKibiInterface("observed", false)).toBe("mcp");
     expect(resolveKibiInterface("unknown", true)).toBe("cli");

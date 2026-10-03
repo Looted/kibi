@@ -162,6 +162,15 @@ export function extractKbMcpToolCall(
       "source_files",
     ]);
 
+    // A dry-run upsert only validates; report it as the read-only operation
+    // it routes to so hooks do not treat it as a KB write.
+    if (
+      normalizedToolName === "kb_upsert" &&
+      readBoolean(payload, ["dryRun", "dry_run"]) === true
+    ) {
+      normalizedToolName = "kb_validate_upsert";
+    }
+
     if (normalizedToolName?.startsWith("kb_")) {
       return {
         toolName: normalizedToolName,
