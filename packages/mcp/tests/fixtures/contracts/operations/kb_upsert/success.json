@@ -820,6 +820,8 @@
                   "consumes",
                   "supersedes",
                   "restates",
+                  "assumes",
+                  "exempts",
                   "relates_to"
                 ],
                 "type": "string"

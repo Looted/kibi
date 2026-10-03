@@ -71,21 +71,15 @@ const TOOL_NAMES = [
   "kb_query",
   "kb_search",
   "kb_status",
-  "kb_skills_list",
-  "kb_skills_load",
-  "kb_skills_read",
+  "kb_skills",
   "kb_find_gaps",
   "kb_coverage",
   "kb_graph",
-  "kb_sparql_remote",
-  "kb_semantic_advisor",
+  "kb_model",
   "kb_upsert",
-  "kb_validate_upsert",
   "kb_delete",
   "kb_check",
   "kb_prepare_impact_review",
-  "kb_model_requirement",
-  "kb_suggest_predicates",
   "kb_plan_bootstrap",
   "kb_compile_intent",
   "kb_apply_plan",
@@ -145,17 +139,34 @@ test("kb_upsert schema advertises requirement semantic source separation", () =>
   });
 });
 
-test("kb_semantic_advisor schema accepts prose without mutation fields", () => {
-  const advisor = TOOLS.find((tool) => tool.name === "kb_semantic_advisor");
-  expect(advisor).toBeDefined();
-  const inputSchema = objectRecord(advisor?.inputSchema);
+test("kb_model schema accepts prose without mutation fields", () => {
+  const model = TOOLS.find((tool) => tool.name === "kb_model");
+  expect(model).toBeDefined();
+  const inputSchema = objectRecord(model?.inputSchema);
   const rootProperties = objectRecord(inputSchema.properties);
 
-  expect(inputSchema.required).toEqual(["text"]);
+  expect(inputSchema.required).toEqual(["mode", "text"]);
+  expect(objectRecord(rootProperties.mode).enum).toEqual([
+    "analyze",
+    "requirement",
+    "predicates",
+  ]);
   expect(rootProperties.text).toBeDefined();
   expect(rootProperties.type).toBeDefined();
   expect(rootProperties.id).toBeDefined();
   expect(rootProperties.source).toBeDefined();
+  expect(rootProperties.subjectKey).toBeDefined();
+  expect(rootProperties.schemaId).toBeDefined();
+});
+
+test("kb_upsert schema offers a dry run in place of kb_validate_upsert", () => {
+  const names = TOOLS.map((tool) => tool.name);
+  expect(names).not.toContain("kb_validate_upsert");
+  const upsert = TOOLS.find((tool) => tool.name === "kb_upsert");
+  const rootProperties = objectRecord(
+    objectRecord(upsert?.inputSchema).properties,
+  );
+  expect(rootProperties.dryRun).toMatchObject({ type: "boolean" });
 });
 
 test("kb_coverage schema advertises bounded legacy migration preview controls", () => {
@@ -851,14 +862,7 @@ describe.serial("server tools coverage", () => {
 
     registerAllTools(server, runtime);
 
-    for (const name of [
-      "kb_status",
-      "kb_skills_list",
-      "kb_skills_load",
-      "kb_skills_read",
-      "kb_semantic_advisor",
-      "kb_suggest_predicates",
-    ]) {
+    for (const name of ["kb_status", "kb_skills", "kb_model"]) {
       expect(getRegisteredTool(registered, name).config.annotations).toEqual({
         title: expect.any(String),
         readOnlyHint: true,
@@ -1361,12 +1365,10 @@ describe.serial("server tools coverage", () => {
 
     registerAllTools(server, runtime);
 
-    // TOOL_NAMES covers the canonical catalog; kb_job_status is the extra
-    // MCP-server-native job-poll tool registered by registerAllTools.
-    expect(registered.map((tool) => tool.name)).toEqual([
-      ...TOOL_NAMES,
-      "kb_job_status",
-    ]);
+    // TOOL_NAMES is the agent-facing list; kb_sparql_remote and the
+    // MCP-server-native kb_job_status register only when
+    // KIBI_MCP_OPTIONAL_TOOLS names them.
+    expect(registered.map((tool) => tool.name)).toEqual([...TOOL_NAMES]);
     expect(registered.some((tool) => tool.name === "kb_plan_bootstrap")).toBe(
       true,
     );

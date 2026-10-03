@@ -56,16 +56,21 @@ export async function dispatchComposite(
       throw new Error(`${field} is required when ${selector} is ${choice}`);
     }
   }
-  const result = (await route.execute(
-    rest as never,
-    context,
-  )) as OperationResult<unknown>;
-  const payload =
-    result.structuredContent && typeof result.structuredContent === "object"
-      ? (result.structuredContent as Record<string, unknown>)
-      : {};
+  const result = await route.execute(rest as never, context);
+  // Routed executors return an OperationResult; host adapters may hand back
+  // the bare payload, which is used as-is.
+  const isRecord = (value: unknown): value is Record<string, unknown> =>
+    value !== null && typeof value === "object" && !Array.isArray(value);
+  const wrapped =
+    isRecord(result) && ("structuredContent" in result || "content" in result);
+  const structured = wrapped ? result.structuredContent : result;
+  const payload = isRecord(structured) ? structured : {};
+  const content =
+    wrapped && Array.isArray(result.content)
+      ? (result.content as OperationResult["content"])
+      : [{ type: "text", text: `${selector} ${String(choice)} completed` }];
   return {
-    content: result.content,
+    content,
     structuredContent: { [selector]: choice, ...payload },
   };
 }

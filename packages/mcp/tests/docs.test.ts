@@ -126,7 +126,7 @@ describe("MCP runtime docs: canonical modeling wording", () => {
   describe("kibi_workflow prompt", () => {
     test("must require predicate suggestions before ontology prose fallback", () => {
       const prompt = findPrompt("kibi_workflow");
-      expect(prompt.text).toContain("kb_suggest_predicates");
+      expect(prompt.text).toContain("`kb_model` (mode `predicates`)");
       expect(prompt.text).toMatch(/review:ontology-gap/);
       expect(prompt.text).toMatch(/requires_predicate/);
     });

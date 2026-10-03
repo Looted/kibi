@@ -163,7 +163,11 @@ describe("diagnostic usage telemetry through the registration path", () => {
       },
     }));
 
-    await callTool(handlers, "kb_semantic_advisor", { text: "must retain" });
+    // kb_model routes to the advisor and logs under the routed operation.
+    await callTool(handlers, "kb_model", {
+      mode: "analyze",
+      text: "must retain",
+    });
 
     expect(rows[0]).toMatchObject({
       tool: "kb_semantic_advisor",

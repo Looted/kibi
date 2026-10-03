@@ -238,9 +238,9 @@ describe("server docs coverage", () => {
     expect(result.contents.length).toBeGreaterThan(0);
 
     const text = String((result.contents[0] as { text: string }).text);
-    expect(text).toContain("kb_skills_list");
-    expect(text).toContain("kb_skills_load");
-    expect(text).toContain("kb_skills_read");
+    expect(text).toContain("`kb_skills`");
+    expect(text).toContain("action:load");
+    expect(text).not.toContain("kb_skills_list");
   });
 
   test("setupDocsAndPrompts registers prompts before resources", () => {

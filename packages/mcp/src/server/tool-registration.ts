@@ -13,7 +13,7 @@ import {
 } from "kibi-runtime";
 import type { OperationContext, RuntimeOperationSpec } from "kibi-runtime";
 
-import { enabledOptionalTools } from "../tools-config.js";
+import { OPTIONAL_TOOL_NAMES, enabledOptionalTools } from "../tools-config.js";
 import type { CheckArgs } from "../tools/check.js";
 import type { CoverageArgs } from "../tools/coverage.js";
 import type { DeleteArgs } from "../tools/delete.js";
@@ -84,8 +84,14 @@ export function registerConfiguredTools<TProlog>(
     >,
   });
   const register = ({ name, execute }: ToolRegistration): void => {
-    // Optional tools (kb_sparql_remote) are registered only when enabled.
-    if (!runtime.tools.some((tool) => tool.name === name)) return;
+    // Optional tools (kb_sparql_remote) are registered only when enabled;
+    // every other configured tool must have a definition.
+    if (
+      (OPTIONAL_TOOL_NAMES as readonly string[]).includes(name) &&
+      !runtime.tools.some((tool) => tool.name === name)
+    ) {
+      return;
+    }
     const definition = toolDef(name);
     const publicSpec = getSpec(name);
     const spec: RuntimeOperationSpec<Record<string, unknown>, unknown> = {

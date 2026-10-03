@@ -18,6 +18,8 @@ function serializedBroadSearchEntities(count: number): string {
 
 // These ports have no engine `searchEntities`, so search runs the bounded
 // kb_search_entities candidate query through `query` (Rows + Count).
+// These cases pin the legacy lexical ranking; the default intent-v1 ranking is
+// covered in packages/cli/tests/intent-search.test.ts.
 describe("MCP search tool handler", () => {
   let workspaceRoot: string;
   const originalWorkspace = process.env.KIBI_WORKSPACE;
@@ -61,7 +63,11 @@ describe("MCP search tool handler", () => {
     }));
 
     const prolog = { query } as unknown as PrologProcess;
-    const result = await handleKbSearch(prolog, { query: "OAuth login flow" });
+    const result = await handleKbSearch(prolog, {
+      rankingMode: "legacy",
+      query: "OAuth login flow",
+      rankingMode: "legacy",
+    });
 
     expect(result.structuredContent?.count).toBe(2);
     expect(result.structuredContent?.results[0]?.entity.id).toBe("REQ-001");
@@ -92,6 +98,7 @@ describe("MCP search tool handler", () => {
 
     const prolog = { query } as unknown as PrologProcess;
     const result = await handleKbSearch(prolog, {
+      rankingMode: "legacy",
       query: "latent discovery token",
     });
 
@@ -110,6 +117,7 @@ describe("MCP search tool handler", () => {
 
     const prolog = { query } as unknown as PrologProcess;
     const result = await handleKbSearch(prolog, {
+      rankingMode: "legacy",
       query: "Missing source fallback",
     });
 
@@ -157,6 +165,7 @@ describe("MCP search tool handler", () => {
 
     const prolog = { query } as unknown as PrologProcess;
     const result = await handleKbSearch(prolog, {
+      rankingMode: "legacy",
       query:
         "Apple Sign-In authentication premium recovery RevenueCat entitlement logged out unable to log in",
       limit: 10,
@@ -190,6 +199,7 @@ describe("MCP search tool handler", () => {
 
     // When
     const result = await handleKbSearch(prolog, {
+      rankingMode: "legacy",
       query: "skillopt",
       limit: 20,
       offset: 0,
@@ -219,6 +229,7 @@ describe("MCP search tool handler", () => {
     let errorMessage = "";
     try {
       await handleKbSearch(prolog, {
+        rankingMode: "legacy",
         query: "skillopt",
         limit: 20,
         offset: 0,
@@ -241,6 +252,7 @@ describe("MCP search tool handler", () => {
 
     const prolog = { query } as unknown as PrologProcess;
     const result = await handleKbSearch(prolog, {
+      rankingMode: "legacy",
       query: "to in out log logged unable",
     });
 
