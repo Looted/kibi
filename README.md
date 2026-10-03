@@ -70,7 +70,7 @@ The setup prompt above does this step for you. To do it by hand: every client st
 <details>
 <summary>Claude Code</summary>
 
-Install the optional `kibi-claude` plugin from this repository's marketplace. It brings the MCP server, the bundled skills, and advisory hooks that show the agent the linked requirements and tests before it reads or edits code:
+Install the optional `kibi-claude` plugin from this repository's marketplace. It brings the MCP server, the bundled skills, and advisory hooks that show the agent the linked requirements and tests before it reads or edits code, and before an edit, what the lead requirement must keep true and the decision behind it:
 
 ```bash
 claude plugin marketplace add Looted/kibi
@@ -104,7 +104,7 @@ Add Kibi to `.cursor/mcp.json`:
 }
 ```
 
-The optional `kibi-cursor` plugin adds rules, bundled skills, commands, and advisory hooks. See the [Cursor plugin guide](https://looted.github.io/kibi/guide/install.html#optional-cursor-plugin).
+The optional `kibi-cursor` plugin adds rules, bundled skills, commands, and advisory hooks that show the same requirement context as the Claude Code plugin before reads and edits of linked code. See the [Cursor plugin guide](https://looted.github.io/kibi/guide/install.html#optional-cursor-plugin).
 
 </details>
 
@@ -115,7 +115,7 @@ The optional `kibi-cursor` plugin adds rules, bundled skills, commands, and advi
 codex mcp add kibi -- npx --no-install kibi-mcp
 ```
 
-The optional `kibi-codex` plugin bundles Kibi skills, MCP configuration, and warning-only lifecycle hooks. Add the Kibi repository marketplace, open Codex, then run `/plugins`, choose **Kibi Plugins**, and install `kibi-codex`:
+The optional `kibi-codex` plugin bundles Kibi skills, MCP configuration, and warning-only lifecycle hooks; before `apply_patch` changes linked code, the hook adds the requirement, what it must keep true, and its decision to the agent's context. Add the Kibi repository marketplace, open Codex, then run `/plugins`, choose **Kibi Plugins**, and install `kibi-codex`:
 
 ```bash
 codex plugin marketplace add Looted/kibi
@@ -128,7 +128,7 @@ The repository marketplace is not the official OpenAI Plugin Directory; self-ser
 <details>
 <summary>OpenCode</summary>
 
-Add Kibi to `opencode.json`. The optional `kibi-opencode` plugin adds prompt guidance and background maintenance:
+Add Kibi to `opencode.json`. The optional `kibi-opencode` plugin adds prompt guidance (including what a requirement linked to the file being edited must keep true) and background maintenance:
 
 ```json
 {
@@ -167,7 +167,7 @@ Add Kibi to `.vscode/mcp.json`:
 <details>
 <summary>ZCode and other MCP clients</summary>
 
-Any stdio MCP client works with `command: npx`, `args: --no-install kibi-mcp`. ZCode also has an optional plugin, installed from a local checkout; see the [ZCode plugin guide](https://looted.github.io/kibi/guide/install.html#optional-zcode-plugin). Agents without MCP can use the same operations through the CLI's JSON routes.
+Any stdio MCP client works with `command: npx`, `args: --no-install kibi-mcp`. ZCode also has an optional plugin, installed from a local checkout, whose edit hook shows the same requirement context as the Claude Code plugin; see the [ZCode plugin guide](https://looted.github.io/kibi/guide/install.html#optional-zcode-plugin). Agents without MCP can use the same operations through the CLI's JSON routes.
 
 </details>
 
@@ -267,10 +267,10 @@ Install `kibi-core`, `kibi-cli`, and `kibi-mcp` in the project. Everything else 
 | `kibi-cli` | Human, agent, automation, and Git-hook interface |
 | `kibi-mcp` | MCP surface exposing the public Kibi operation contracts |
 | `kibi-claude` | Claude Code skills, MCP, requirement context before reads/edits, and advisory hooks (plugin marketplace) |
-| `kibi-cursor` | Cursor rules, skills, MCP, and advisory hooks |
-| `kibi-codex` | Codex skills, MCP, and lifecycle hooks |
-| `kibi-opencode` | OpenCode guidance and background maintenance |
-| `kibi-zcode` | ZCode skills, command, MCP, and advisory hooks (local checkout) |
+| `kibi-cursor` | Cursor rules, skills, MCP, requirement context before reads/edits, and advisory hooks |
+| `kibi-codex` | Codex skills, MCP, requirement context before edits, and lifecycle hooks |
+| `kibi-opencode` | OpenCode guidance (including requirement context for edits) and background maintenance |
+| `kibi-zcode` | ZCode skills, command, MCP, requirement context before edits, and advisory hooks (local checkout) |
 | `kibi-vscode` | VS Code knowledge explorer and traceability view |
 | `kibi-plugin-sdk` | Protocol types and validators for [capability plugins](https://looted.github.io/kibi/reference/plugins.html) |
 | `kibi-plugin-builtin` | Default semantic, ontology, and TypeScript symbol capabilities |

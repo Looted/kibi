@@ -631,7 +631,7 @@ Validation report with any hard violations found and suggested fixes. `structure
 
 Rule filtering affects the audit-quality lane. When `rules` is omitted, MCP runs the normal full validation profile and also performs the full-KB audit-quality scan that populates `qualityDiagnostics[]`. When `rules` is supplied, MCP preserves the requested scoped validation and skips that full-KB advisory scan so iteration stays fast and predictable. Source impact diagnostics are independent: pass `includeImpactDiagnostics: true` with `sourceFiles` or `staged: true` when you need changed-file review during a filtered check.
 
-When diagnostic mode has produced `.kb/usage.log`, the unfiltered scan evaluates `kibi.telemetry-acceptance.v1` over its latest 200 events. It ranks advisor/preflight bypasses, source lookup misses, stalled proof-gap recovery, receipt gaps, and repeated mutation failures as `category: telemetry` recommendations. Diagnostic callers may supply opaque `session_id` and `actor_id` metadata; when both evidence records expose an identifier, advisor/preflight correlation requires equality and never borrows evidence across an explicit boundary. Stale or incomplete evidence stays `insufficient_evidence`; absence of observable fields is never interpreted as a pass. A missing log is skipped because MCP diagnostic logging is opt-in. Use the CLI-only `kibi usage-metrics --format json --require-acceptance` route when a hard completion gate is required, and `kibi usage-remediation --format json` for exact read-only repair evidence.
+When diagnostic mode has produced `.kb/usage.log`, the unfiltered scan evaluates `kibi.telemetry-acceptance.v1` over its latest 200 events. It ranks advisor/preflight bypasses, edits of requirement-linked files that no lookup preceded (from host hook rows), source lookup misses, stalled proof-gap recovery, receipt gaps, and repeated mutation failures as `category: telemetry` recommendations. Diagnostic callers may supply opaque `session_id` and `actor_id` metadata; when both evidence records expose an identifier, advisor/preflight correlation requires equality and never borrows evidence across an explicit boundary. Stale or incomplete evidence stays `insufficient_evidence`; absence of observable fields is never interpreted as a pass. A missing log is skipped because MCP diagnostic logging is opt-in. Use the CLI-only `kibi usage-metrics --format json --require-acceptance` route when a hard completion gate is required, and `kibi usage-remediation --format json` for exact read-only repair evidence.
 
 Quality diagnostics use explicit `severity` and `blocking` fields. `severity: "review"` and `severity: "info"` are advisory and do not fail checks by default; `severity: "warning"` is still non-blocking unless `blocking: true`; `severity: "error"` or `blocking: true` is a hard failure signal. Existing hard violations remain in `violations[]` rather than being downgraded into the advisory lane.
 
@@ -701,15 +701,27 @@ they record `unknown`. Rows record business arguments and agent-supplied
 telemetry metadata, and the log stays local to the workspace under
 `.kb/usage.log`.
 
-The Claude Code plugin hooks add rows with `interface: "hook"`. They record the
-agent activity around Kibi calls rather than Kibi operations: which source,
-test, or `.kb/` file was read or edited, whether a requirement snippet was
-shown or suppressed (`hook_action`), which requirements own the file, and
-whether the session had used Kibi yet (`kb_used_before`). Rows carry the host
-`session_id`, so one session's lookups and edits can be put in order.
-Acceptance metrics, `kibi usage-metrics`, and `kibi usage-remediation` ignore
-hook rows, so a busy editing session never pushes operations out of their
-bounded window.
+The host plugin hooks (Claude Code, Cursor, Codex, ZCode, and OpenCode) add
+rows with `interface: "hook"` under the same opt-in. They record the agent
+activity around Kibi calls rather than Kibi operations, and every row names its
+`host` and the host `session_id`, so one session's lookups and edits can be put
+in order. All hosts write two kinds of row:
+
+- `hook_action: "kb_usage"` when a tool call ran a Kibi operation, through MCP
+  or a `kibi <route>` shell command, with the canonical name in `kb_operation`
+  (`kb_search`, `kb_query`, …);
+- `hook_action: "edited"` for each source, test, or `.kb/` file an edit tool
+  changed (`path`, `path_kind`), with the requirements the file's symbols
+  implement in `requirement_ids`. Docs, config, and generated paths are not
+  recorded.
+
+The Claude Code plugin also records whether a requirement snippet was shown or
+suppressed and whether the session had used Kibi yet (`kb_used_before`).
+Hook rows never enter the bounded window of operation events, so a busy
+editing session never pushes operations out of it. The only metric that reads
+them is `lookup_before_first_edit`: per host session, did a `kb_search` or
+`kb_query` run before the first edit of a file with non-empty
+`requirement_ids`? It is `not_applicable` when no hook recorded such an edit.
 
 Counts are only recorded when they can be read. A call whose payload cannot be
 parsed records `result_count: null` rather than zero, and acceptance metrics

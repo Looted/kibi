@@ -407,3 +407,231 @@ describe("Codex hook runner workspace stamp", () => {
     ).toEqual({ continue: true });
   });
 });
+
+function writeFile(root: string, relativePath: string, content: string): void {
+  const target = path.join(root, relativePath);
+  fs.mkdirSync(path.dirname(target), { recursive: true });
+  fs.writeFileSync(target, content);
+}
+
+/** Opted-in workspace whose checkout code implements a grounded requirement. */
+function linkedWorkspace(requirementStatus = "open"): string {
+  const root = createTempRoot("kibi-codex-linked-");
+  tempRoots.push(root);
+  optInWorkspace(root);
+  writeFile(
+    root,
+    ".kb/symbols.yaml",
+    [
+      "symbols:",
+      "  - id: SYM-computeTotal",
+      "    title: computeTotal",
+      "    sourceFile: src/checkout.ts",
+      "    relationships:",
+      "      - type: implements",
+      "        target: REQ-checkout-rounding",
+      "      - type: covered_by",
+      "        target: TEST-checkout-rounding",
+      "",
+    ].join("\n"),
+  );
+  writeFile(
+    root,
+    ".kb/requirements/REQ-checkout-rounding.md",
+    `---\nid: REQ-checkout-rounding\ntitle: Checkout totals round to cents\nstatus: ${requirementStatus}\nlinks:\n  - type: constrains\n    target: FACT-checkout-total\n  - type: requires_property\n    target: FACT-total-rounding-cents\n  - ADR-money-as-decimal\n---\n`,
+  );
+  writeFile(
+    root,
+    ".kb/facts/FACT-total-rounding-cents.md",
+    "---\nid: FACT-total-rounding-cents\ntitle: Totals round half up to two decimals\nstatus: active\n---\n",
+  );
+  writeFile(
+    root,
+    ".kb/adr/ADR-money-as-decimal.md",
+    "---\nid: ADR-money-as-decimal\ntitle: Money is computed as decimal cents\nstatus: accepted\n---\n",
+  );
+  writeFile(root, "src/checkout.ts", "export const computeTotal = 1;\n");
+  return root;
+}
+
+const CHECKOUT_PATCH = [
+  "*** Begin Patch",
+  "*** Update File: src/checkout.ts",
+  "@@",
+  "-export const computeTotal = 1;",
+  "+export const computeTotal = 2;",
+  "*** End Patch",
+].join("\n");
+
+describe("Codex pre-edit knowledge", () => {
+  async function preEdit(
+    cwd: string,
+    pluginData: string,
+    sessionId = "codex-session-1",
+  ) {
+    return runHook(
+      {
+        hook_event_name: "PreToolUse",
+        session_id: sessionId,
+        cwd,
+        tool_name: "apply_patch",
+        tool_input: { command: CHECKOUT_PATCH },
+      },
+      { pluginData },
+    );
+  }
+
+  test("an apply_patch to linked code names what its requirement must keep true and why", async () => {
+    const cwd = linkedWorkspace();
+    const pluginData = createTempRoot("kibi-codex-data-");
+    tempRoots.push(pluginData);
+
+    const result = await preEdit(cwd, pluginData);
+    const context =
+      result.hookSpecificOutput &&
+      "additionalContext" in result.hookSpecificOutput
+        ? result.hookSpecificOutput.additionalContext
+        : "";
+    expect(result.hookSpecificOutput?.hookEventName).toBe("PreToolUse");
+    expect(result.systemMessage).toBeUndefined();
+    expect(context).toContain(
+      "Kibi knowledge for src/checkout.ts (symbol manifest):\n- REQ-checkout-rounding: Checkout totals round to cents — computeTotal",
+    );
+    expect(context).toContain(
+      "REQ-checkout-rounding must keep true: FACT-checkout-total; FACT-total-rounding-cents: Totals round half up to two decimals.",
+    );
+    expect(context).toContain(
+      "Decision: ADR-money-as-decimal: Money is computed as decimal cents.",
+    );
+    expect(context).toContain("Covered by: TEST-checkout-rounding.");
+  });
+
+  test("the snippet is shown once per file per session", async () => {
+    const cwd = linkedWorkspace();
+    const pluginData = createTempRoot("kibi-codex-data-");
+    tempRoots.push(pluginData);
+
+    expect((await preEdit(cwd, pluginData)).hookSpecificOutput).toBeDefined();
+    expect(await preEdit(cwd, pluginData)).toEqual({ continue: true });
+    expect(
+      (await preEdit(cwd, pluginData, "codex-session-2")).hookSpecificOutput,
+    ).toBeDefined();
+  });
+
+  test("a superseded lead requirement is not presented as something to keep true", async () => {
+    const cwd = linkedWorkspace("superseded");
+    const pluginData = createTempRoot("kibi-codex-data-");
+    tempRoots.push(pluginData);
+
+    const result = await preEdit(cwd, pluginData);
+    const context =
+      result.hookSpecificOutput &&
+      "additionalContext" in result.hookSpecificOutput
+        ? result.hookSpecificOutput.additionalContext
+        : "";
+    expect(context).toContain(
+      "- REQ-checkout-rounding (superseded): Checkout totals round to cents",
+    );
+    expect(context).not.toContain("must keep true");
+    expect(context).not.toContain("Decision:");
+  });
+
+  test("unlinked files stay silent", async () => {
+    const cwd = linkedWorkspace();
+    const pluginData = createTempRoot("kibi-codex-data-");
+    tempRoots.push(pluginData);
+    expect(
+      await runHook(
+        {
+          hook_event_name: "PreToolUse",
+          cwd,
+          tool_name: "Write",
+          tool_input: { file_path: "src/other.ts" },
+        },
+        { pluginData },
+      ),
+    ).toEqual({ continue: true });
+  });
+});
+
+describe("Codex opt-in hook telemetry", () => {
+  function usageRows(root: string): Record<string, unknown>[] {
+    const logPath = path.join(root, ".kb", "usage.log");
+    if (!fs.existsSync(logPath)) return [];
+    return fs
+      .readFileSync(logPath, "utf8")
+      .trim()
+      .split("\n")
+      .map((line) => JSON.parse(line) as Record<string, unknown>);
+  }
+
+  async function post(
+    cwd: string,
+    pluginData: string,
+    toolName: string,
+    toolInput: Record<string, unknown>,
+    env: NodeJS.ProcessEnv,
+  ) {
+    return runHook(
+      {
+        hook_event_name: "PostToolUse",
+        session_id: "codex-session-1",
+        cwd,
+        tool_name: toolName,
+        tool_input: toolInput,
+      },
+      { pluginData, env },
+    );
+  }
+
+  test("records CLI and MCP lookups and the requirements a patch touched", async () => {
+    const cwd = linkedWorkspace();
+    const pluginData = createTempRoot("kibi-codex-data-");
+    tempRoots.push(pluginData);
+    const optedIn = { KIBI_DIAGNOSTIC_MODE: "1" };
+
+    await post(
+      cwd,
+      pluginData,
+      "Bash",
+      { command: "npx --no-install kibi search --input -" },
+      optedIn,
+    );
+    await post(cwd, pluginData, "mcp__kibi__kb_query", { id: "X" }, optedIn);
+    await post(
+      cwd,
+      pluginData,
+      "apply_patch",
+      { command: CHECKOUT_PATCH },
+      optedIn,
+    );
+
+    const rows = usageRows(cwd);
+    expect(
+      rows.map((row) => [
+        row.hook_action,
+        row.kb_operation,
+        row.path,
+        row.requirement_ids,
+      ]),
+    ).toEqual([
+      ["kb_usage", "kb_search", null, []],
+      ["kb_usage", "kb_query", null, []],
+      ["edited", null, "src/checkout.ts", ["REQ-checkout-rounding"]],
+    ]);
+    expect(rows[2]).toMatchObject({
+      interface: "hook",
+      host: "codex",
+      session_id: "codex-session-1",
+      host_tool: "apply_patch",
+    });
+  });
+
+  test("writes nothing unless the operator opted in", async () => {
+    const cwd = linkedWorkspace();
+    const pluginData = createTempRoot("kibi-codex-data-");
+    tempRoots.push(pluginData);
+    await post(cwd, pluginData, "apply_patch", { command: CHECKOUT_PATCH }, {});
+    expect(usageRows(cwd)).toEqual([]);
+  });
+});

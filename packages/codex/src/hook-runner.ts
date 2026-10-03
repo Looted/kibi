@@ -3,7 +3,25 @@
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
+import {
+  appendHookUsageRows,
+  editTraces,
+  hookTelemetryEnabled,
+  kbUsageTrace,
+  readPackageVersion,
+} from "kibi-agent-core/hook-usage-log";
 import { stampKibiWorkspace } from "kibi-agent-core/kb-mcp-tools";
+import { loadKnowledgeIndex } from "kibi-agent-core/knowledge-index";
+import {
+  canonicalizeWorkspacePath,
+  extractEditedPaths,
+} from "kibi-agent-core/path-policy";
+import {
+  createEntitySummarizer,
+  editFocus,
+  editKnowledgeContext,
+  implementedRequirementIds,
+} from "kibi-agent-core/snippets";
 import { parseHookInput, parseStdinJson, readStdin } from "./hook-input.js";
 import {
   addDirtyPaths,
@@ -36,15 +54,26 @@ export type HookResult = {
    * Codex applies `updatedInput` only with `permissionDecision: "allow"`,
    * and that decision does not override the server's tool approval mode.
    */
-  hookSpecificOutput?: {
-    hookEventName: "PreToolUse";
-    permissionDecision: "allow";
-    updatedInput: Record<string, unknown>;
-  };
+  hookSpecificOutput?:
+    | {
+        hookEventName: "PreToolUse";
+        permissionDecision: "allow";
+        updatedInput: Record<string, unknown>;
+      }
+    | {
+        /**
+         * PreToolUse only: model-visible context that does not block or
+         * rewrite the edit (Codex caps it at roughly 2,500 tokens).
+         */
+        hookEventName: "PreToolUse";
+        additionalContext: string;
+      };
 };
 
 export type HookEnvironment = {
   pluginData?: string;
+  /** Process environment for the telemetry opt-in; defaults to process.env. */
+  env?: NodeJS.ProcessEnv;
 };
 
 const editableTools = new Set(["Edit", "MultiEdit", "Write", "apply_patch"]);
@@ -57,10 +86,118 @@ function isEditLikeTool(toolName: string | undefined): boolean {
   return toolName === undefined || editableTools.has(toolName);
 }
 
+function isKnownEditTool(toolName: string | undefined): boolean {
+  return toolName !== undefined && editableTools.has(toolName);
+}
+
+type EditTarget = { relative: string; absolute: string };
+
+/** Workspace files an edit call targets, including `apply_patch` headers. */
+function editTargets(
+  workspaceRoot: string,
+  input: ReturnType<typeof parseHookInput>,
+): EditTarget[] {
+  return extractEditedPaths(input.toolInput)
+    .map((rawPath) =>
+      canonicalizeWorkspacePath(workspaceRoot, {
+        eventCwd: input.cwd,
+        rawPath,
+      }),
+    )
+    .filter((target) => target !== undefined)
+    .map((target) => ({
+      relative: target.workspaceRelative,
+      absolute: target.absolute,
+    }));
+}
+
+/**
+ * The shared kibi-agent-core edit snippet for each requirement-linked file
+ * the edit targets, shown once per file per Codex session.
+ */
+// implements REQ-codex-kibi-plugin-v1
+function preEditContext(
+  workspaceRoot: string,
+  stateDir: string | undefined,
+  input: ReturnType<typeof parseHookInput>,
+): string | undefined {
+  const targets = editTargets(workspaceRoot, input);
+  if (targets.length === 0) return undefined;
+  const files = loadKnowledgeIndex(workspaceRoot, stateDir).files;
+  return editKnowledgeContext({
+    relativePaths: targets.map((target) => target.relative),
+    symbolsFor: (relativePath) => files[relativePath] ?? [],
+    summarize: createEntitySummarizer(workspaceRoot),
+    stateDir,
+    sessionId: input.sessionId,
+    focusFor: (relativePath) => {
+      const target = targets.find(
+        (candidate) => candidate.relative === relativePath,
+      );
+      return target ? editFocus(target.absolute, input.toolInput) : undefined;
+    },
+  });
+}
+
+let cachedPackageVersion: string | null | undefined;
+
+function packageVersion(): string | null {
+  // bin/hook-runner.mjs and dist/hook-runner.js sit one level below the
+  // plugin root that holds package.json.
+  if (cachedPackageVersion !== undefined) return cachedPackageVersion;
+  cachedPackageVersion = readPackageVersion(
+    path.join(
+      path.dirname(fileURLToPath(import.meta.url)),
+      "..",
+      "package.json",
+    ),
+  );
+  return cachedPackageVersion;
+}
+
+/**
+ * Opt-in (`KIBI_DIAGNOSTIC_MODE`) hook rows for the lookup-before-first-edit
+ * telemetry metric: Kibi lookups through MCP or the CLI, and edits with the
+ * requirements the edited files implement.
+ */
+// implements REQ-codex-kibi-plugin-v1
+function recordToolTelemetry(
+  workspaceRoot: string,
+  stateDir: string | undefined,
+  input: ReturnType<typeof parseHookInput>,
+  startedAt: Date,
+  env: NodeJS.ProcessEnv | undefined,
+): void {
+  if (!hookTelemetryEnabled(env)) return;
+  const kbUsage = kbUsageTrace(input.toolName, input.toolInput);
+  let traces = kbUsage ? [kbUsage] : [];
+  if (!kbUsage && isKnownEditTool(input.toolName)) {
+    const files = loadKnowledgeIndex(workspaceRoot, stateDir).files;
+    traces = editTraces(
+      editTargets(workspaceRoot, input).map((target) => target.relative),
+      (relativePath) => implementedRequirementIds(files[relativePath] ?? []),
+    );
+  }
+  appendHookUsageRows(
+    {
+      host: "codex",
+      packageVersion: packageVersion(),
+      workspaceRoot,
+      event: "PostToolUse",
+      sessionId: input.sessionId,
+      hostTool: input.toolName,
+      startedAt,
+    },
+    traces,
+    env,
+  );
+}
+
 export async function runHook(
   rawInput: unknown,
   environment: HookEnvironment = {},
 ): Promise<HookResult> {
+  const startedAt = new Date();
   const input = parseHookInput(rawInput);
   const pluginData = environment.pluginData ?? process.env.PLUGIN_DATA;
 
@@ -109,10 +246,41 @@ export async function runHook(
         return { continue: true, systemMessage: DIRECT_KB_EDIT_WARNING };
       }
 
+      let context: string | undefined;
+      try {
+        context = isKnownEditTool(input.toolName)
+          ? preEditContext(workspace.root, stateDir, input)
+          : undefined;
+      } catch {
+        // Requirement context is advisory; an unreadable manifest or file
+        // leaves the edit without it rather than reporting a hook error.
+        context = undefined;
+      }
+      if (context) {
+        return {
+          continue: true,
+          hookSpecificOutput: {
+            hookEventName: "PreToolUse",
+            additionalContext: context,
+          },
+        };
+      }
+
       return defaultResult();
     }
 
     case "PostToolUse": {
+      try {
+        recordToolTelemetry(
+          workspace.root,
+          stateDir,
+          input,
+          startedAt,
+          environment.env,
+        );
+      } catch {
+        // Telemetry is best effort and must never change the hook's output.
+      }
       const kbToolCall = extractKbMcpToolCall(input.toolName, input.toolInput);
       if (kbToolCall) {
         recordKbMcpTool(stateDir, kbToolCall.toolName, {

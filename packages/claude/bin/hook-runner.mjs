@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 // src/hook-runner.ts
-import fs5 from "node:fs";
+import fs6 from "node:fs";
 import os from "node:os";
-import path6 from "node:path";
+import path7 from "node:path";
 import { pathToFileURL } from "node:url";
 import { spawnSync } from "node:child_process";
 
@@ -73,54 +73,7 @@ function stampKibiWorkspace(toolName, toolInput, workspaceRoot) {
   const base = isRecord2(toolInput) ? toolInput : {};
   return { ...base, [KIBI_WORKSPACE_ARGUMENT]: workspaceRoot };
 }
-
-// src/kb-tools.ts
-function isRecord3(value) {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-function strings(value) {
-  if (typeof value === "string")
-    return value.length > 0 ? [value] : [];
-  return Array.isArray(value) ? value.filter((item) => typeof item === "string" && item.length > 0) : [];
-}
-function canonicalKbOperation(toolName) {
-  const name = toolName?.trim() ?? "";
-  const lastSegment = name.includes("__") ? name.split("__").at(-1) ?? "" : name;
-  const operation = lastSegment.replace(/^kibi_/, "");
-  return /^kb_[a-z_]+$/.test(operation) ? operation : undefined;
-}
-function payloadOf(toolInput) {
-  if (!isRecord3(toolInput))
-    return {};
-  const nested = toolInput.arguments ?? toolInput.args;
-  return isRecord3(nested) ? nested : toolInput;
-}
-function usageFromPayload(operation, payload) {
-  const paths = [
-    ...strings(payload.sourceFile),
-    ...strings(payload.sourceFiles)
-  ];
-  if (Array.isArray(payload.sourceLocations)) {
-    for (const location of payload.sourceLocations) {
-      if (isRecord3(location))
-        paths.push(...strings(location.path));
-    }
-  }
-  const ids = [...strings(payload.id), ...strings(payload.ids)];
-  const check = operation === "kb_check";
-  return {
-    operation,
-    paths,
-    ids,
-    check,
-    checkAll: check && paths.length === 0 && payload.includeWorkingTreeDiff === true
-  };
-}
-function extractMcpKbUsage(toolName, toolInput) {
-  const operation = canonicalKbOperation(toolName);
-  return operation ? usageFromPayload(operation, payloadOf(toolInput)) : undefined;
-}
-var CLI_ROUTES = {
+var KIBI_CLI_ROUTES = {
   check: "kb_check",
   query: "kb_query",
   "kb-query": "kb_query",
@@ -133,37 +86,16 @@ var CLI_ROUTES = {
   upsert: "kb_upsert",
   sync: "kb_sync"
 };
-function isVerifiedGitCommit(command) {
-  if (typeof command !== "string")
-    return false;
-  const gitCommit = /(?:^|[\s;&|(])git(?:\s+-[Cc]\s+\S+|\s+--?[\w-]+(?:=\S+)?)*\s+commit(?=\s|$|[;&|)])/;
-  if (!gitCommit.test(command))
-    return false;
-  return !/\s(?:--no-verify|-n)(?=\s|$)/.test(command);
-}
-function extractCliKbUsage(command) {
+function kibiCliOperation(command) {
   if (typeof command !== "string")
     return;
-  const match = /(?:^|[\s;&|(/])kibi\s+([a-z-]+)/.exec(command);
-  const route = match?.[1];
-  const operation = route ? CLI_ROUTES[route] : undefined;
-  if (!operation)
-    return;
-  let payload = {};
-  const inline = /'(\{.*\})'/s.exec(command) ?? /"(\{.*\})"/s.exec(command);
-  if (inline?.[1]) {
-    try {
-      const parsed = JSON.parse(inline[1]);
-      if (isRecord3(parsed))
-        payload = parsed;
-    } catch {}
-  }
-  const usage = usageFromPayload(operation, payload);
-  if (operation === "kb_check" && usage.paths.length === 0) {
-    usage.checkAll = true;
-  }
-  return usage;
+  const route = /(?:^|[\s;&|(/])kibi\s+([a-z-]+)/.exec(command)?.[1];
+  return route ? KIBI_CLI_ROUTES[route] : undefined;
 }
+var SHELL_TOOL_NAMES = new Set(["Bash", "bash", "Shell", "shell"]);
+
+// ../agent-core/dist/snippets.js
+import fs2 from "node:fs";
 
 // ../agent-core/dist/knowledge-index.js
 import { createHash, randomUUID } from "node:crypto";
@@ -568,12 +500,285 @@ function readEntitySummary(workspaceRoot, entityId) {
   return summary;
 }
 
+// ../agent-core/dist/snippets.js
+var MAX_REQUIREMENTS = 4;
+var MAX_SYMBOLS_PER_REQUIREMENT = 3;
+var MAX_TESTS = 3;
+var MAX_TITLE = 80;
+var MAX_GROUNDING = 2;
+var MAX_FOCUS_SCAN_BYTES = 2 * 1024 * 1024;
+var MAX_SNIPPET_CHARS = 1200;
+function truncate(text, limit) {
+  return text.length <= limit ? text : `${text.slice(0, limit - 1)}…`;
+}
+function overlaps(symbol, range) {
+  if (symbol.line === undefined)
+    return false;
+  const end = symbol.endLine ?? symbol.line;
+  return symbol.line <= range.end && end >= range.start;
+}
+function focusedSymbols(symbols, focus) {
+  if (!focus || focus.length === 0)
+    return [];
+  return symbols.filter((symbol) => focus.some((range) => overlaps(symbol, range))).sort((left, right) => (left.endLine ?? left.line ?? 0) - (left.line ?? 0) - ((right.endLine ?? right.line ?? 0) - (right.line ?? 0)));
+}
+function isRecord3(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function editFocus(absolutePath, toolInput) {
+  if (!isRecord3(toolInput))
+    return;
+  const needles = [];
+  const collect = (record) => {
+    for (const key of ["old_string", "oldString"]) {
+      const value = record[key];
+      if (typeof value === "string")
+        needles.push(value);
+    }
+  };
+  collect(toolInput);
+  if (Array.isArray(toolInput.edits)) {
+    for (const edit of toolInput.edits) {
+      if (isRecord3(edit))
+        collect(edit);
+    }
+  }
+  const usable = needles.filter((needle) => needle.length > 0);
+  if (usable.length === 0)
+    return;
+  let content;
+  try {
+    if (fs2.statSync(absolutePath).size > MAX_FOCUS_SCAN_BYTES)
+      return;
+    content = fs2.readFileSync(absolutePath, "utf8");
+  } catch {
+    return;
+  }
+  const ranges = [];
+  for (const needle of usable) {
+    const offset = content.indexOf(needle);
+    if (offset < 0)
+      continue;
+    const start = content.slice(0, offset).split(`
+`).length;
+    ranges.push({ start, end: start + needle.split(`
+`).length - 1 });
+  }
+  return ranges.length > 0 ? ranges : undefined;
+}
+function formatList(items, limit) {
+  const shown = items.slice(0, limit).join(", ");
+  return items.length > limit ? `${shown} +${items.length - limit}` : shown;
+}
+var RETIRED_STATUS = /supersed|deprecat|reject|obsolete|retired/i;
+function isRetiredStatus(status) {
+  return status !== undefined && RETIRED_STATUS.test(status);
+}
+function describeEntity(summary) {
+  const notable = isRetiredStatus(summary.status) ? ` (${summary.status})` : "";
+  return summary.title ? `${summary.id}${notable}: ${truncate(summary.title, MAX_TITLE)}` : `${summary.id}${notable}`;
+}
+function jsonString(value) {
+  return JSON.stringify(value);
+}
+var GROUNDING_LINK_TYPES = [
+  "constrains",
+  "requires_property",
+  "requires_predicate",
+  "requires_rule"
+];
+function requirementGroundingLines(requirementId, summarize, options = {}) {
+  const maxFacts = options.maxFacts ?? MAX_GROUNDING;
+  const requirement = summarize(requirementId);
+  if (isRetiredStatus(requirement.status))
+    return [];
+  const links = requirement.links ?? [];
+  const facts = [
+    ...new Set(links.filter((link) => GROUNDING_LINK_TYPES.includes(link.type)).map((link) => link.target))
+  ];
+  const adrs = [
+    ...new Set(links.filter((link) => link.target.startsWith("ADR-")).map((link) => link.target))
+  ];
+  const lines = [];
+  if (facts.length > 0) {
+    const shown = facts.slice(0, maxFacts).map((id) => describeEntity(summarize(id)));
+    const more = facts.length > maxFacts ? ` +${facts.length - maxFacts}` : "";
+    lines.push(`${requirementId} must keep true: ${shown.join("; ")}${more}.`);
+  }
+  const adr = adrs[0];
+  if (adr)
+    lines.push(`Decision: ${describeEntity(summarize(adr))}.`);
+  return lines;
+}
+function implementedRequirementIds(symbols) {
+  return [...new Set(symbols.flatMap((symbol) => symbol.implements))];
+}
+function createEntitySummarizer(workspaceRoot) {
+  const summaries = new Map;
+  return (entityId) => {
+    let summary = summaries.get(entityId);
+    if (!summary) {
+      summary = readEntitySummary(workspaceRoot, entityId);
+      summaries.set(entityId, summary);
+    }
+    return summary;
+  };
+}
+function fileKnowledgeSnippet(input) {
+  const { relativePath, symbols, surface, summarize } = input;
+  const focus = focusedSymbols(symbols, input.focus);
+  const owners = new Map;
+  const ordered = [
+    ...focus,
+    ...symbols.filter((symbol) => !focus.includes(symbol))
+  ];
+  for (const symbol of ordered) {
+    for (const requirement of symbol.implements) {
+      const titles = owners.get(requirement) ?? [];
+      if (!titles.includes(symbol.title))
+        titles.push(symbol.title);
+      owners.set(requirement, titles);
+    }
+  }
+  const tests = [
+    ...new Set(symbols.flatMap((symbol) => symbol.coveredBy))
+  ].sort();
+  const executes = [
+    ...new Set(symbols.flatMap((symbol) => symbol.executableFor))
+  ].sort();
+  if (owners.size === 0 && tests.length === 0 && executes.length === 0) {
+    return;
+  }
+  const focusOwners = new Set(focus.flatMap((symbol) => symbol.implements));
+  const requirementIds = [...owners.keys()].sort((left, right) => {
+    const focusOrder = Number(focusOwners.has(right)) - Number(focusOwners.has(left));
+    return focusOrder !== 0 ? focusOrder : (owners.get(right)?.length ?? 0) - (owners.get(left)?.length ?? 0);
+  });
+  const lines = [
+    `Kibi knowledge for ${relativePath} (symbol manifest):`
+  ];
+  for (const requirementId of requirementIds.slice(0, MAX_REQUIREMENTS)) {
+    const symbolTitles = owners.get(requirementId) ?? [];
+    lines.push(`- ${describeEntity(summarize(requirementId))} — ${formatList(symbolTitles, MAX_SYMBOLS_PER_REQUIREMENT)}`);
+  }
+  if (requirementIds.length > MAX_REQUIREMENTS) {
+    lines.push(`- +${requirementIds.length - MAX_REQUIREMENTS} more requirements: kb_query({sourceFile:${jsonString(relativePath)}})`);
+  }
+  const leadId = requirementIds[0];
+  if (surface === "edit" && leadId) {
+    lines.push(...requirementGroundingLines(leadId, summarize));
+  }
+  if (tests.length > 0) {
+    lines.push(`Covered by: ${formatList(tests, MAX_TESTS)}.`);
+  }
+  if (executes.length > 0) {
+    lines.push(`Test code for: ${formatList(executes, MAX_TESTS)}.`);
+  }
+  const primaryFocus = focus[0];
+  if (primaryFocus) {
+    const owner = primaryFocus.implements[0];
+    const verb = surface === "edit" ? "The edit is inside" : "These lines are inside";
+    lines.push(owner ? `${verb} ${primaryFocus.title}, which implements ${owner}.` : `${verb} ${primaryFocus.title}.`);
+  }
+  const location = primaryFocus ? `{path:${jsonString(relativePath)}, symbol:${jsonString(primaryFocus.title)}}` : `{path:${jsonString(relativePath)}}`;
+  const next = [
+    leadId ? `kb_query({id:${jsonString(leadId)}}) returns full requirement text` : undefined,
+    `kb_search({query:"<topic>", sourceLocations:[${location}]}) answers with governing requirements, facts, decisions, and tests`
+  ].filter((part) => part !== undefined);
+  lines.push(`Next layer: ${next.join("; ")}.`);
+  if (surface === "edit") {
+    lines.push(`Behavior changes here are traced to these requirements; kb_check({sourceFiles:[${jsonString(relativePath)}], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) reports ownership drift after the edit.`);
+  }
+  return truncate(lines.join(`
+`), input.maxChars ?? MAX_SNIPPET_CHARS);
+}
+function focusUpdate(relativePath, symbols, focus) {
+  const symbol = focusedSymbols(symbols, focus)[0];
+  if (!symbol)
+    return;
+  const owners = symbol.implements.length > 0 ? `, which implements ${formatList(symbol.implements, 2)}` : "";
+  return `Kibi: this edit to ${relativePath} is inside ${symbol.title}${owners}.`;
+}
+
+// src/kb-tools.ts
+function isRecord4(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function strings(value) {
+  if (typeof value === "string")
+    return value.length > 0 ? [value] : [];
+  return Array.isArray(value) ? value.filter((item) => typeof item === "string" && item.length > 0) : [];
+}
+function canonicalKbOperation(toolName) {
+  const name = toolName?.trim() ?? "";
+  const lastSegment = name.includes("__") ? name.split("__").at(-1) ?? "" : name;
+  const operation = lastSegment.replace(/^kibi_/, "");
+  return /^kb_[a-z_]+$/.test(operation) ? operation : undefined;
+}
+function payloadOf(toolInput) {
+  if (!isRecord4(toolInput))
+    return {};
+  const nested = toolInput.arguments ?? toolInput.args;
+  return isRecord4(nested) ? nested : toolInput;
+}
+function usageFromPayload(operation, payload) {
+  const paths = [
+    ...strings(payload.sourceFile),
+    ...strings(payload.sourceFiles)
+  ];
+  if (Array.isArray(payload.sourceLocations)) {
+    for (const location of payload.sourceLocations) {
+      if (isRecord4(location))
+        paths.push(...strings(location.path));
+    }
+  }
+  const ids = [...strings(payload.id), ...strings(payload.ids)];
+  const check = operation === "kb_check";
+  return {
+    operation,
+    paths,
+    ids,
+    check,
+    checkAll: check && paths.length === 0 && payload.includeWorkingTreeDiff === true
+  };
+}
+function extractMcpKbUsage(toolName, toolInput) {
+  const operation = canonicalKbOperation(toolName);
+  return operation ? usageFromPayload(operation, payloadOf(toolInput)) : undefined;
+}
+function isVerifiedGitCommit(command) {
+  if (typeof command !== "string")
+    return false;
+  const gitCommit = /(?:^|[\s;&|(])git(?:\s+-[Cc]\s+\S+|\s+--?[\w-]+(?:=\S+)?)*\s+commit(?=\s|$|[;&|)])/;
+  if (!gitCommit.test(command))
+    return false;
+  return !/\s(?:--no-verify|-n)(?=\s|$)/.test(command);
+}
+function extractCliKbUsage(command) {
+  if (typeof command !== "string")
+    return;
+  const operation = kibiCliOperation(command);
+  if (!operation)
+    return;
+  let payload = {};
+  const inline = /'(\{.*\})'/s.exec(command) ?? /"(\{.*\})"/s.exec(command);
+  if (inline?.[1]) {
+    try {
+      const parsed = JSON.parse(inline[1]);
+      if (isRecord4(parsed))
+        payload = parsed;
+    } catch {}
+  }
+  const usage = usageFromPayload(operation, payload);
+  if (operation === "kb_check" && usage.paths.length === 0) {
+    usage.checkAll = true;
+  }
+  return usage;
+}
+
 // src/knowledge-index.ts
 function loadKnowledgeIndex2(workspaceRoot, cacheDir) {
   return loadKnowledgeIndex(workspaceRoot, cacheDir);
-}
-function readEntitySummary2(workspaceRoot, entityId) {
-  return readEntitySummary(workspaceRoot, entityId);
 }
 
 // ../agent-core/dist/path-policy.js
@@ -716,7 +921,7 @@ function classifyPath2(relativePath) {
 
 // src/session-state.ts
 import { createHash as createHash2 } from "node:crypto";
-import fs2 from "node:fs";
+import fs3 from "node:fs";
 import path3 from "node:path";
 var JOURNAL = "session.jsonl";
 function workspaceDataDir(pluginData, workspaceRoot) {
@@ -783,7 +988,7 @@ function loadSessionState(dir) {
     return state;
   let journal;
   try {
-    journal = fs2.readFileSync(path3.join(dir, JOURNAL), "utf8");
+    journal = fs3.readFileSync(path3.join(dir, JOURNAL), "utf8");
   } catch {
     return state;
   }
@@ -801,156 +1006,20 @@ function appendSessionEvents(dir, events) {
   if (!dir || events.length === 0)
     return;
   try {
-    fs2.mkdirSync(dir, { recursive: true });
-    fs2.appendFileSync(path3.join(dir, JOURNAL), events.map((event) => `${JSON.stringify(event)}
+    fs3.mkdirSync(dir, { recursive: true });
+    fs3.appendFileSync(path3.join(dir, JOURNAL), events.map((event) => `${JSON.stringify(event)}
 `).join(""));
   } catch {}
 }
 
 // src/snippets.ts
-var MAX_REQUIREMENTS = 4;
-var MAX_SYMBOLS_PER_REQUIREMENT = 3;
-var MAX_TESTS = 3;
-var MAX_TITLE = 80;
-var MAX_SNIPPET_CHARS = 1200;
-function truncate(text, limit) {
-  return text.length <= limit ? text : `${text.slice(0, limit - 1)}…`;
-}
-function overlaps(symbol, range) {
-  if (symbol.line === undefined)
-    return false;
-  const end = symbol.endLine ?? symbol.line;
-  return symbol.line <= range.end && end >= range.start;
-}
-function focusedSymbols(symbols, focus) {
-  if (!focus || focus.length === 0)
-    return [];
-  return symbols.filter((symbol) => focus.some((range) => overlaps(symbol, range))).sort((left, right) => (left.endLine ?? left.line ?? 0) - (left.line ?? 0) - ((right.endLine ?? right.line ?? 0) - (right.line ?? 0)));
-}
-function formatList(items, limit) {
-  const shown = items.slice(0, limit).join(", ");
-  return items.length > limit ? `${shown} +${items.length - limit}` : shown;
-}
-var RETIRED_STATUS = /supersed|deprecat|reject|obsolete|retired/i;
-function isRetired(summary) {
-  return summary.status !== undefined && RETIRED_STATUS.test(summary.status);
-}
-function describeEntity(summary) {
-  const notable = isRetired(summary) ? ` (${summary.status})` : "";
-  return summary.title ? `${summary.id}${notable}: ${truncate(summary.title, MAX_TITLE)}` : `${summary.id}${notable}`;
-}
-function jsonString(value) {
+function jsonString2(value) {
   return JSON.stringify(value);
-}
-var FACT_LINK_TYPES = new Set([
-  "constrains",
-  "requires_property",
-  "requires_predicate",
-  "requires_rule"
-]);
-var MAX_GROUNDING = 2;
-function groundingLines(requirementId, summarize) {
-  const requirement = summarize(requirementId);
-  if (isRetired(requirement))
-    return [];
-  const links = requirement.links ?? [];
-  const facts = [
-    ...new Set(links.filter((link) => FACT_LINK_TYPES.has(link.type)).map((link) => link.target))
-  ];
-  const adrs = [
-    ...new Set(links.filter((link) => link.target.startsWith("ADR-")).map((link) => link.target))
-  ];
-  const lines = [];
-  if (facts.length > 0) {
-    const shown = facts.slice(0, MAX_GROUNDING).map((id) => describeEntity(summarize(id)));
-    const more = facts.length > MAX_GROUNDING ? ` +${facts.length - MAX_GROUNDING}` : "";
-    lines.push(`${requirementId} must keep true: ${shown.join("; ")}${more}.`);
-  }
-  const adr = adrs[0];
-  if (adr)
-    lines.push(`Decision: ${describeEntity(summarize(adr))}.`);
-  return lines;
-}
-function fileKnowledgeSnippet(input) {
-  const { relativePath, symbols, surface, summarize } = input;
-  const focus = focusedSymbols(symbols, input.focus);
-  const owners = new Map;
-  const ordered = [
-    ...focus,
-    ...symbols.filter((symbol) => !focus.includes(symbol))
-  ];
-  for (const symbol of ordered) {
-    for (const requirement of symbol.implements) {
-      const titles = owners.get(requirement) ?? [];
-      if (!titles.includes(symbol.title))
-        titles.push(symbol.title);
-      owners.set(requirement, titles);
-    }
-  }
-  const tests = [
-    ...new Set(symbols.flatMap((symbol) => symbol.coveredBy))
-  ].sort();
-  const executes = [
-    ...new Set(symbols.flatMap((symbol) => symbol.executableFor))
-  ].sort();
-  if (owners.size === 0 && tests.length === 0 && executes.length === 0) {
-    return;
-  }
-  const focusOwners = new Set(focus.flatMap((symbol) => symbol.implements));
-  const requirementIds = [...owners.keys()].sort((left, right) => {
-    const focusOrder = Number(focusOwners.has(right)) - Number(focusOwners.has(left));
-    return focusOrder !== 0 ? focusOrder : (owners.get(right)?.length ?? 0) - (owners.get(left)?.length ?? 0);
-  });
-  const lines = [
-    `Kibi knowledge for ${relativePath} (symbol manifest):`
-  ];
-  for (const requirementId of requirementIds.slice(0, MAX_REQUIREMENTS)) {
-    const symbolTitles = owners.get(requirementId) ?? [];
-    lines.push(`- ${describeEntity(summarize(requirementId))} — ${formatList(symbolTitles, MAX_SYMBOLS_PER_REQUIREMENT)}`);
-  }
-  if (requirementIds.length > MAX_REQUIREMENTS) {
-    lines.push(`- +${requirementIds.length - MAX_REQUIREMENTS} more requirements: kb_query({sourceFile:${jsonString(relativePath)}})`);
-  }
-  const leadId = requirementIds[0];
-  if (surface === "edit" && leadId) {
-    lines.push(...groundingLines(leadId, summarize));
-  }
-  if (tests.length > 0) {
-    lines.push(`Covered by: ${formatList(tests, MAX_TESTS)}.`);
-  }
-  if (executes.length > 0) {
-    lines.push(`Test code for: ${formatList(executes, MAX_TESTS)}.`);
-  }
-  const primaryFocus = focus[0];
-  if (primaryFocus) {
-    const owner = primaryFocus.implements[0];
-    const verb = surface === "edit" ? "The edit is inside" : "These lines are inside";
-    lines.push(owner ? `${verb} ${primaryFocus.title}, which implements ${owner}.` : `${verb} ${primaryFocus.title}.`);
-  }
-  const location = primaryFocus ? `{path:${jsonString(relativePath)}, symbol:${jsonString(primaryFocus.title)}}` : `{path:${jsonString(relativePath)}}`;
-  const leadRequirement = requirementIds[0];
-  const next = [
-    leadRequirement ? `kb_query({id:${jsonString(leadRequirement)}}) returns full requirement text` : undefined,
-    `kb_search({query:"<topic>", sourceLocations:[${location}]}) answers with governing requirements, facts, decisions, and tests`
-  ].filter((part) => part !== undefined);
-  lines.push(`Next layer: ${next.join("; ")}.`);
-  if (surface === "edit") {
-    lines.push(`Behavior changes here are traced to these requirements; kb_check({sourceFiles:[${jsonString(relativePath)}], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) reports ownership drift after the edit.`);
-  }
-  return truncate(lines.join(`
-`), MAX_SNIPPET_CHARS);
-}
-function focusUpdate(relativePath, symbols, focus) {
-  const symbol = focusedSymbols(symbols, focus)[0];
-  if (!symbol)
-    return;
-  const owners = symbol.implements.length > 0 ? `, which implements ${formatList(symbol.implements, 2)}` : "";
-  return `Kibi: this edit to ${relativePath} is inside ${symbol.title}${owners}.`;
 }
 function unownedSourceNote(relativePath) {
   return [
     `Kibi: no symbol in ${relativePath} is linked to a requirement yet.`,
-    `kb_search({query:"<behavior being changed>", sourceLocations:[{path:${jsonString(relativePath)}}]}) surfaces requirements that may already describe it; new behavior is recorded with kb_upsert (requirement + symbol implements link).`
+    `kb_search({query:"<behavior being changed>", sourceLocations:[{path:${jsonString2(relativePath)}}]}) surfaces requirements that may already describe it; new behavior is recorded with kb_upsert (requirement + symbol implements link).`
   ].join(`
 `);
 }
@@ -978,27 +1047,16 @@ function stopReminder(paths) {
 }
 
 // src/usage-log.ts
-import { randomUUID as randomUUID2 } from "node:crypto";
-import fs3 from "node:fs";
-import path4 from "node:path";
+import path5 from "node:path";
 import { fileURLToPath } from "node:url";
+
+// ../agent-core/dist/hook-usage-log.js
+import { randomUUID as randomUUID2 } from "node:crypto";
+import fs4 from "node:fs";
+import path4 from "node:path";
 function hookTelemetryEnabled(env = process.env) {
   const value = env.KIBI_DIAGNOSTIC_MODE?.trim().toLowerCase();
   return value === "1" || value === "true";
-}
-var cachedPluginVersion;
-function pluginVersion() {
-  if (cachedPluginVersion !== undefined)
-    return cachedPluginVersion;
-  cachedPluginVersion = null;
-  const candidate = path4.join(path4.dirname(fileURLToPath(import.meta.url)), "..", "package.json");
-  try {
-    const parsed = JSON.parse(fs3.readFileSync(candidate, "utf8"));
-    if (typeof parsed === "object" && parsed !== null && "version" in parsed && typeof parsed.version === "string") {
-      cachedPluginVersion = parsed.version;
-    }
-  } catch {}
-  return cachedPluginVersion;
 }
 function appendHookUsage(row, env = process.env) {
   if (!hookTelemetryEnabled(env) || row.trace.action === undefined)
@@ -1010,8 +1068,8 @@ function appendHookUsage(row, env = process.env) {
     request_id: `hook-${randomUUID2()}`,
     tool: `hook_${row.event}`,
     interface: "hook",
-    host: "claude-code",
-    package_version: pluginVersion(),
+    host: row.host,
+    package_version: row.packageVersion ?? null,
     workspace_root: row.workspaceRoot,
     session_id: row.sessionId ?? null,
     hook_event: row.event,
@@ -1027,29 +1085,52 @@ function appendHookUsage(row, env = process.env) {
   };
   try {
     const logPath = path4.join(row.workspaceRoot, ".kb", "usage.log");
-    fs3.mkdirSync(path4.dirname(logPath), { recursive: true });
-    fs3.appendFileSync(logPath, `${JSON.stringify(record)}
+    fs4.mkdirSync(path4.dirname(logPath), { recursive: true });
+    fs4.appendFileSync(logPath, `${JSON.stringify(record)}
 `, "utf8");
   } catch {}
 }
+function readPackageVersion(packageJsonPath) {
+  try {
+    const parsed = JSON.parse(fs4.readFileSync(packageJsonPath, "utf8"));
+    if (typeof parsed === "object" && parsed !== null && "version" in parsed && typeof parsed.version === "string") {
+      return parsed.version;
+    }
+  } catch {}
+  return null;
+}
+
+// src/usage-log.ts
+var cachedPluginVersion;
+function pluginVersion() {
+  if (cachedPluginVersion !== undefined)
+    return cachedPluginVersion;
+  cachedPluginVersion = readPackageVersion(path5.join(path5.dirname(fileURLToPath(import.meta.url)), "..", "package.json"));
+  return cachedPluginVersion;
+}
+function appendHookUsage2(row, env = process.env) {
+  if (!hookTelemetryEnabled(env) || row.trace.action === undefined)
+    return;
+  appendHookUsage({ ...row, host: "claude-code", packageVersion: pluginVersion() }, env);
+}
 
 // src/workspace-optin.ts
-import fs4 from "node:fs";
-import path5 from "node:path";
+import fs5 from "node:fs";
+import path6 from "node:path";
 var KIBI_WORKSPACE_ENV_KEYS = [
   "KIBI_WORKSPACE",
   "KIBI_PROJECT_ROOT",
   "KIBI_ROOT"
 ];
 function nextAncestorDirectory(current) {
-  const parent = path5.dirname(current);
+  const parent = path6.dirname(current);
   return parent === current ? undefined : parent;
 }
 function hasKibiManifest(directory) {
-  return fs4.existsSync(path5.join(directory, ".kb", "manifest.json"));
+  return fs5.existsSync(path6.join(directory, ".kb", "manifest.json"));
 }
 function hasGitBoundary(directory) {
-  return fs4.existsSync(path5.join(directory, ".git"));
+  return fs5.existsSync(path6.join(directory, ".git"));
 }
 function resolutionFor(root) {
   return { root, optedIn: hasKibiManifest(root) };
@@ -1058,10 +1139,10 @@ function resolveKibiWorkspace(startDir, env = process.env) {
   for (const key of KIBI_WORKSPACE_ENV_KEYS) {
     const value = env[key]?.trim();
     if (value) {
-      return resolutionFor(path5.resolve(value));
+      return resolutionFor(path6.resolve(value));
     }
   }
-  let current = path5.resolve(startDir && startDir.trim().length > 0 ? startDir : process.cwd());
+  let current = path6.resolve(startDir && startDir.trim().length > 0 ? startDir : process.cwd());
   while (current !== undefined) {
     if (hasKibiManifest(current)) {
       return { root: current, optedIn: true };
@@ -1071,24 +1152,23 @@ function resolveKibiWorkspace(startDir, env = process.env) {
     }
     current = nextAncestorDirectory(current);
   }
-  return resolutionFor(path5.resolve(startDir ?? process.cwd()));
+  return resolutionFor(path6.resolve(startDir ?? process.cwd()));
 }
 
 // src/hook-runner.ts
 var readTools = new Set(["Read"]);
 var editTools = new Set(["Edit", "MultiEdit", "Write", "NotebookEdit"]);
 var searchTools = new Set(["Grep", "Glob"]);
-var MAX_FOCUS_SCAN_BYTES = 2 * 1024 * 1024;
 function context(event, text) {
   return {
     hookSpecificOutput: { hookEventName: event, additionalContext: text }
   };
 }
-function isRecord4(value) {
+function isRecord5(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function toolPath(toolInput) {
-  if (!isRecord4(toolInput))
+  if (!isRecord5(toolInput))
     return;
   const candidate = toolInput.file_path ?? toolInput.notebook_path;
   return typeof candidate === "string" ? candidate : undefined;
@@ -1097,7 +1177,7 @@ function linkedFileCount(index) {
   return Object.values(index.files).filter((symbols) => symbols.some((symbol) => symbol.implements.length > 0)).length;
 }
 function readFocus(toolInput) {
-  if (!isRecord4(toolInput))
+  if (!isRecord5(toolInput))
     return;
   const offset = typeof toolInput.offset === "number" ? toolInput.offset : undefined;
   const limit = typeof toolInput.limit === "number" ? toolInput.limit : undefined;
@@ -1106,47 +1186,14 @@ function readFocus(toolInput) {
   const start = Math.max(1, offset ?? 1);
   return [{ start, end: limit !== undefined ? start + limit - 1 : start }];
 }
-function editFocus(absolutePath, toolInput) {
-  if (!isRecord4(toolInput))
-    return;
-  const needles = [];
-  if (typeof toolInput.old_string === "string")
-    needles.push(toolInput.old_string);
-  if (Array.isArray(toolInput.edits)) {
-    for (const edit of toolInput.edits) {
-      if (isRecord4(edit) && typeof edit.old_string === "string") {
-        needles.push(edit.old_string);
-      }
-    }
-  }
-  const usable = needles.filter((needle) => needle.length > 0);
-  if (usable.length === 0)
-    return;
-  let content;
-  try {
-    if (fs5.statSync(absolutePath).size > MAX_FOCUS_SCAN_BYTES)
-      return;
-    content = fs5.readFileSync(absolutePath, "utf8");
-  } catch {
-    return;
-  }
-  const ranges = [];
-  for (const needle of usable) {
-    const offset = content.indexOf(needle);
-    if (offset < 0)
-      continue;
-    const start = content.slice(0, offset).split(`
-`).length;
-    ranges.push({ start, end: start + needle.split(`
-`).length - 1 });
-  }
-  return ranges.length > 0 ? ranges : undefined;
+function editFocus2(absolutePath, toolInput) {
+  return editFocus(absolutePath, toolInput);
 }
 function isExplored(state, relativePath) {
   return state.exploredPaths.has(relativePath);
 }
 function requirementIds(symbols) {
-  return [...new Set(symbols.flatMap((symbol) => symbol.implements))];
+  return implementedRequirementIds(symbols);
 }
 function preToolUse(input, workspace, trace = {}) {
   const toolName = input.toolName ?? "";
@@ -1222,7 +1269,7 @@ function preToolUse(input, workspace, trace = {}) {
     return emit(snippet, "read_snippet");
   }
   trace.action = "edit_silent";
-  const focus = toolName === "Edit" || toolName === "MultiEdit" ? editFocus(target.absolute, input.toolInput) : undefined;
+  const focus = toolName === "Edit" || toolName === "MultiEdit" ? editFocus2(target.absolute, input.toolInput) : undefined;
   if (state.shownEdit.has(relativePath)) {
     const symbol = focusedSymbols(symbols, focus)[0];
     if (!symbol || symbol.implements.length === 0)
@@ -1282,9 +1329,9 @@ function recordKbUsage(usage, workspace, events) {
 }
 function hasKibiPreCommitGate(workspaceRoot) {
   const resolved = spawnSync("git", ["rev-parse", "--git-path", "hooks/pre-commit"], { cwd: workspaceRoot, encoding: "utf8", timeout: 2000 });
-  const hookPath = resolved.status === 0 && resolved.stdout.trim().length > 0 ? path6.resolve(workspaceRoot, resolved.stdout.trim()) : path6.join(workspaceRoot, ".git", "hooks", "pre-commit");
+  const hookPath = resolved.status === 0 && resolved.stdout.trim().length > 0 ? path7.resolve(workspaceRoot, resolved.stdout.trim()) : path7.join(workspaceRoot, ".git", "hooks", "pre-commit");
   try {
-    return /kibi[^\n]*\bcheck\b/.test(fs5.readFileSync(hookPath, "utf8"));
+    return /kibi[^\n]*\bcheck\b/.test(fs6.readFileSync(hookPath, "utf8"));
   } catch {
     return false;
   }
@@ -1310,10 +1357,13 @@ function postToolUse(input, workspace, trace = {}) {
         trace.action = "edited";
         trace.path = target.relative;
         trace.pathKind = pathKind;
+        if (workspace.telemetry && pathKind !== "kb") {
+          trace.requirementIds = requirementIds(workspace.index().files[target.relative] ?? []);
+        }
       }
     }
   } else if (toolName === "Bash") {
-    const command = isRecord4(input.toolInput) ? input.toolInput.command : undefined;
+    const command = isRecord5(input.toolInput) ? input.toolInput.command : undefined;
     const usage = extractCliKbUsage(command);
     if (usage)
       recordUsage(usage);
@@ -1345,14 +1395,13 @@ function stop(input, workspace, trace = {}) {
 async function runHook(rawInput, environment = {}) {
   const startedAt = new Date;
   const input = parseHookInput(rawInput);
-  const pluginData = environment.pluginData ?? process.env.CLAUDE_PLUGIN_DATA ?? path6.join(os.tmpdir(), `kibi-claude-${process.getuid?.() ?? "user"}`);
+  const pluginData = environment.pluginData ?? process.env.CLAUDE_PLUGIN_DATA ?? path7.join(os.tmpdir(), `kibi-claude-${process.getuid?.() ?? "user"}`);
   const projectDir = environment.projectDir ?? process.env.CLAUDE_PROJECT_DIR;
   const resolved = resolveKibiWorkspace(input.cwd ?? projectDir ?? process.cwd());
   if (!resolved.optedIn)
     return {};
   const dataDir = workspaceDataDir(pluginData, resolved.root);
   let index;
-  const summaries = new Map;
   const workspace = {
     root: resolved.root,
     stateDir: sessionDir(dataDir, input.sessionId),
@@ -1361,18 +1410,11 @@ async function runHook(rawInput, environment = {}) {
       return index;
     },
     telemetry: hookTelemetryEnabled(environment.env),
-    summarize: (entityId) => {
-      let summary = summaries.get(entityId);
-      if (!summary) {
-        summary = readEntitySummary2(resolved.root, entityId);
-        summaries.set(entityId, summary);
-      }
-      return summary;
-    }
+    summarize: createEntitySummarizer(resolved.root)
   };
   const trace = {};
   const output = dispatchHook(input, workspace, trace);
-  appendHookUsage({
+  appendHookUsage2({
     workspaceRoot: resolved.root,
     event: input.event,
     sessionId: input.sessionId,
@@ -1403,7 +1445,7 @@ async function main() {
 `);
 }
 function isInvokedAsCli(argv1, moduleUrl) {
-  const invokedPath = argv1 ? pathToFileURL(path6.resolve(argv1)).href : "";
+  const invokedPath = argv1 ? pathToFileURL(path7.resolve(argv1)).href : "";
   return moduleUrl === invokedPath;
 }
 async function runHookCli() {
@@ -1421,7 +1463,7 @@ if (isInvokedAsCli(process.argv[1], import.meta.url)) {
   runHookCli();
 }
 export {
-  editFocus,
+  editFocus2 as editFocus,
   readFocus,
   runHook
 };

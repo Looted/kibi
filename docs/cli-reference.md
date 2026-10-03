@@ -672,7 +672,7 @@ kibi usage-metrics [--format json|table] [--limit N] [--require-acceptance]
 - Reports telemetry completeness and zero-result rates
 - Shows `kb_check` violation trend entries and grouped `kb_upsert` error categories
 - Limits the zero-result source-file leaderboard with `--limit`
-- Adds a versioned `kibi.telemetry-acceptance.v1` report over the latest 200 events. It measures telemetry completeness, advisor-before-requirement-write use, exact validation-before-upsert use, source-linked zero-result rate, proof-gap recovery, receipt freshness, and repeated mutation failures.
+- Adds a versioned `kibi.telemetry-acceptance.v1` report over the latest 200 events. It measures telemetry completeness, advisor-before-requirement-write use, exact validation-before-upsert use, lookup-before-first-edit (per host session, whether `kb_search` or `kb_query` ran before the first edit of a requirement-linked file, read from host plugin hook rows), source-linked zero-result rate, proof-gap recovery, receipt freshness, and repeated mutation failures.
 - Separates `failed` from `insufficient_evidence`: an empty, stale (older than seven days), future-dated, partial-coverage, or pre-field-upgrade log cannot pass merely because no failure was observable
 
 **Flags:**
@@ -698,7 +698,7 @@ kibi usage-metrics --format json --require-acceptance
 **Notes:**
 - Returns an error if `.kb/usage.log` does not exist in the current repository
 - `--limit` must be a positive integer
-- Default thresholds are conservative and inspectable in `acceptance.policy`: at least 95% telemetry completeness, 100% advisor/preflight sequencing when applicable, no more than 20% zero-result source lookups, no receipt-specific gaps, and fewer than three consecutive failures for any mutation target
+- Default thresholds are conservative and inspectable in `acceptance.policy`: at least 95% telemetry completeness, 100% advisor/preflight sequencing when applicable, 100% of host sessions looking requirements up before their first linked edit when hook rows record one, no more than 20% zero-result source lookups, no receipt-specific gaps, and fewer than three consecutive failures for any mutation target
 
 ## `kibi usage-remediation`
 
@@ -708,7 +708,7 @@ Builds a read-only `kibi.telemetry-remediation.v1` report from `.kb/usage.log`.
 kibi usage-remediation [--format json|table] [--limit N]
 ```
 
-- Enumerates the exact log line, request, timestamp, tool, target, reason, and repair action for events behind failed or insufficient acceptance metrics
+- Enumerates the exact log line, request, timestamp, tool, target, reason, and repair action for events behind failed or insufficient acceptance metrics. Log lines count every line of `.kb/usage.log`, including host hook rows; a session whose first requirement-linked edit had no earlier lookup points at that hook row
 - Preserves session and actor identifiers when available; advisor and preflight evidence cannot match a write when both records expose different correlation identifiers
 - Keeps missing complete coverage evidence as an explicit report-level item
 - Sorts deterministically by repair rank, log line, and stable item identity

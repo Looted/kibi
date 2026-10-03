@@ -14,6 +14,7 @@ export type TelemetryMetricId =
   | "telemetry_completeness"
   | "advisor_before_requirement_write"
   | "validation_before_upsert"
+  | "lookup_before_first_edit"
   | "source_lookup_zero_result_rate"
   | "proof_gap_recovery"
   | "e2e_receipt_freshness"
@@ -59,6 +60,8 @@ export interface TelemetryAcceptancePolicy {
   readonly telemetryCompletenessMinimum: number;
   readonly validationBeforeUpsertMinimum: number;
   readonly advisorBeforeRequirementWriteMinimum: number;
+  /** Share of host sessions that ran kb_search or kb_query before their first requirement-linked edit. */
+  readonly lookupBeforeFirstEditMinimum: number;
   readonly sourceLookupZeroResultMaximum: number;
   readonly preflightMaxAgeSeconds: number;
   readonly advisorMaxAgeSeconds: number;

@@ -6,6 +6,8 @@ export type HookInput = {
   cwd?: string;
   toolName?: string;
   toolInput?: unknown;
+  /** Codex session identity (`session_id`); may be absent. */
+  sessionId?: string;
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -51,6 +53,7 @@ export function parseHookInput(input: unknown): HookInput {
   ]);
   const toolName = readString(input, ["toolName", "tool_name", "tool"]);
   const toolInput = input.toolInput ?? input.tool_input ?? input.input;
+  const sessionId = readString(input, ["session_id", "sessionId"]);
   const parsed: HookInput = { event };
 
   if (cwd !== undefined) {
@@ -63,6 +66,10 @@ export function parseHookInput(input: unknown): HookInput {
 
   if (toolInput !== undefined) {
     parsed.toolInput = toolInput;
+  }
+
+  if (sessionId !== undefined) {
+    parsed.sessionId = sessionId;
   }
 
   return parsed;

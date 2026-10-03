@@ -577,6 +577,33 @@ describe("usage telemetry", () => {
       requirement_ids: ["REQ-checkout-rounding", "REQ-currency-display"],
     });
     expect(rows[3]).toMatchObject({ kb_operation: "kb_search" });
+    // Edit rows name the requirements the edited file implements, which is
+    // what lets the acceptance report judge lookup-before-first-edit.
+    expect(rows[2]).toMatchObject({
+      host_tool: "Edit",
+      path: "src/checkout.ts",
+      requirement_ids: ["REQ-checkout-rounding", "REQ-currency-display"],
+    });
+  });
+
+  test("records CLI lookups and unlinked edits for the lookup-before-edit metric", async () => {
+    const fixture = createKibiWorkspace();
+    const { post } = session(fixture, "s-cli", optedIn);
+    await post("Bash", {
+      command: `printf '%s\\n' '{"query":"rounding"}' | npx --no-install kibi search --input -`,
+    });
+    await post("Edit", { file_path: path.join(fixture.root, "src/helper.ts") });
+
+    expect(
+      usageRows(fixture).map((row) => [
+        row.hook_action,
+        row.kb_operation,
+        row.requirement_ids,
+      ]),
+    ).toEqual([
+      ["kb_usage", "kb_search", []],
+      ["edited", null, []],
+    ]);
   });
 
   test("records suppressed context as silent instead of dropping the call", async () => {

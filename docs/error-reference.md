@@ -114,6 +114,7 @@ Telemetry diagnostics are also advisory in `kb_check`, but `kibi usage-metrics -
 - `repeated_mutation_failures`: stop retrying, query endpoints, validate a reduced exact payload, repair runtime health, and retry once.
 - `mutation_validation_bypassed`: run `kb_upsert` with `dryRun: true` (catalog operation `kb_validate_upsert`) for the exact payload within one hour before sequential `kb_upsert`.
 - `semantic_advisor_bypassed`: rerun `kb_model` with `mode: "analyze"` (catalog operation `kb_semantic_advisor`) for the same requirement and current source hash before writing it.
+- `lookup_before_first_edit_bypassed`: a host session edited a requirement-linked file before any `kb_search` or `kb_query`. Before the first edit of such a file, ask `kb_search` about the change (or `kb_query` with `sourceFile`) and read the requirements it names. The evidence comes from host plugin hook rows, which are written only in diagnostic mode.
 - `e2e_receipt_freshness_low`: query the affected requirements/tests, run `kibi prove` for the covering integrations, let receipts append idempotently with preserved history, and rerun complete coverage.
 - `proof_gap_recovery_stalled`: apply reviewed ready repair batches and demonstrate a lower complete-scope gap count.
 - `source_lookup_zero_result_rate_high`: inspect and refresh the cited source links before repeating focused lookups.

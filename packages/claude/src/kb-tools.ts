@@ -1,4 +1,6 @@
 // implements REQ-claude-code-kibi-plugin-v1
+import { kibiCliOperation } from "kibi-agent-core/kb-mcp-tools";
+
 /**
  * Recognize Kibi usage in tool calls so hooks can stay quiet once the agent is
  * already using the knowledge base.
@@ -89,20 +91,6 @@ export function extractMcpKbUsage(
     : undefined;
 }
 
-const CLI_ROUTES: Record<string, string> = {
-  check: "kb_check",
-  query: "kb_query",
-  "kb-query": "kb_query",
-  search: "kb_search",
-  status: "kb_status",
-  graph: "kb_graph",
-  coverage: "kb_coverage",
-  "find-gaps": "kb_find_gaps",
-  gaps: "kb_find_gaps",
-  upsert: "kb_upsert",
-  sync: "kb_sync",
-};
-
 /**
  * A `git commit` that ran its hooks. With Kibi's pre-commit gate installed,
  * a commit that reached PostToolUse (failures go to PostToolUseFailure)
@@ -123,9 +111,7 @@ export function isVerifiedGitCommit(command: unknown): boolean {
  */
 export function extractCliKbUsage(command: unknown): KbUsage | undefined {
   if (typeof command !== "string") return undefined;
-  const match = /(?:^|[\s;&|(/])kibi\s+([a-z-]+)/.exec(command);
-  const route = match?.[1];
-  const operation = route ? CLI_ROUTES[route] : undefined;
+  const operation = kibiCliOperation(command);
   if (!operation) return undefined;
 
   let payload: Record<string, unknown> = {};

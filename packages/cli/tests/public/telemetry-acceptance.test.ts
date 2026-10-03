@@ -99,6 +99,8 @@ describe("telemetry acceptance", () => {
       ["telemetry_completeness", "passed"],
       ["advisor_before_requirement_write", "passed"],
       ["validation_before_upsert", "passed"],
+      // No host hook rows: nothing says whether lookups preceded edits.
+      ["lookup_before_first_edit", "not_applicable"],
       ["source_lookup_zero_result_rate", "passed"],
       ["proof_gap_recovery", "passed"],
       ["e2e_receipt_freshness", "passed"],
@@ -775,5 +777,224 @@ describe("telemetry acceptance", () => {
     const diagnostics = createTelemetryAcceptanceDiagnostics(report);
     expect(diagnostics[0]?.id).toBe("telemetry_evidence_stale");
     expect(diagnostics[0]?.message).toContain("no valid timestamped evidence");
+  });
+});
+
+// implements REQ-kibi-telemetry-acceptance-gate, REQ-claude-hook-usage-telemetry
+describe("lookup before first edit", () => {
+  let hookSequence = 0;
+
+  /** A row as a host plugin hook writes it to `.kb/usage.log`. */
+  function hookRow(
+    session: string,
+    fields: Record<string, unknown>,
+    host = "claude-code",
+  ) {
+    hookSequence += 1;
+    return {
+      timestamp: timestamp(10),
+      request_id: `hook-${hookSequence}`,
+      tool: "hook_PostToolUse",
+      interface: "hook",
+      host,
+      session_id: session,
+      hook_event: "PostToolUse",
+      status: "success",
+      ...fields,
+    };
+  }
+
+  function lookup(session: string, operation: string, host?: string) {
+    return hookRow(
+      session,
+      { hook_action: "kb_usage", kb_operation: operation },
+      host,
+    );
+  }
+
+  function edit(
+    session: string,
+    path: string,
+    requirementIds: string[],
+    host?: string,
+  ) {
+    return hookRow(
+      session,
+      { hook_action: "edited", path, requirement_ids: requirementIds },
+      host,
+    );
+  }
+
+  function usageLog(rows: readonly object[]): string {
+    return `${rows.map((row) => JSON.stringify(row)).join("\n")}\n`;
+  }
+
+  function lookupMetric(report: ReturnType<typeof analyzeTelemetryAcceptance>) {
+    return report.metrics.find(
+      (metric) => metric.id === "lookup_before_first_edit",
+    );
+  }
+
+  test("passes when every session looked requirements up before its first linked edit", () => {
+    const operations = passingEvents();
+    const events = parseTelemetryUsageLog(
+      usageLog([
+        lookup("session-a", "kb_search"),
+        ...operations.slice(0, 10),
+        edit("session-a", "src/checkout.ts", ["REQ-checkout-rounding"]),
+        lookup("session-b", "kb_query", "cursor"),
+        // Docs and unlinked files are not requirement-linked edits.
+        edit("session-c", "README.md", []),
+        ...operations.slice(10),
+        edit("session-b", "src/cart.ts", ["REQ-cart-limit"], "cursor"),
+        edit("session-b", "src/cart.ts", ["REQ-cart-limit"], "cursor"),
+      ]),
+    );
+    // The parsed array still holds only Kibi operations.
+    expect(events).toEqual(operations);
+
+    const report = analyzeTelemetryAcceptance(events, NOW);
+
+    expect(lookupMetric(report)).toEqual({
+      id: "lookup_before_first_edit",
+      status: "passed",
+      numerator: 2,
+      denominator: 2,
+      rate: 1,
+      threshold: { operator: ">=", value: 1 },
+      message:
+        "2/2 sessions ran kb_search or kb_query before their first edit of a requirement-linked file.",
+      evidence: {
+        unguidedEditPaths: [],
+        lookupOperations: ["kb_query", "kb_search"],
+      },
+    });
+    expect(report.status).toBe("passed");
+    expect(report.scope.totalEvents).toBe(operations.length);
+    expect(createTelemetryAcceptanceDiagnostics(report)).toEqual([]);
+  });
+
+  test("fails when a session edits a requirement-linked file before any lookup", () => {
+    const events = parseTelemetryUsageLog(
+      usageLog([
+        ...passingEvents(),
+        // Edited first; the later lookup does not rescue the first edit.
+        edit("session-a", "src/checkout.ts", ["REQ-checkout-rounding"]),
+        lookup("session-a", "kb_search"),
+        edit("session-a", "src/tax.ts", ["REQ-tax"]),
+        // A check is not a lookup.
+        lookup("session-b", "kb_check"),
+        edit("session-b", "src/cart.ts", ["REQ-cart-limit"]),
+        // Another host's session with the same id is a different session.
+        lookup("session-c", "kb_query", "codex"),
+        edit("session-c", "src/auth.ts", ["REQ-auth"]),
+        lookup("session-d", "kb_query"),
+        edit("session-d", "src/ledger.ts", ["REQ-ledger"]),
+      ]),
+    );
+
+    const report = analyzeTelemetryAcceptance(events, NOW);
+    const diagnostics = createTelemetryAcceptanceDiagnostics(report);
+
+    expect(lookupMetric(report)).toEqual({
+      id: "lookup_before_first_edit",
+      status: "failed",
+      numerator: 1,
+      denominator: 4,
+      rate: 0.25,
+      threshold: { operator: ">=", value: 1 },
+      message:
+        "1/4 sessions ran kb_search or kb_query before their first edit of a requirement-linked file.",
+      evidence: {
+        unguidedEditPaths: ["src/auth.ts", "src/cart.ts", "src/checkout.ts"],
+        lookupOperations: ["kb_query", "kb_search"],
+      },
+    });
+    expect(report.status).toBe("failed");
+    expect(diagnostics.map((diagnostic) => diagnostic.id)).toEqual([
+      "lookup_before_first_edit_bypassed",
+    ]);
+    expect(diagnostics[0]).toMatchObject({
+      severity: "warning",
+      blocking: false,
+      category: "telemetry",
+      evidence: { rank: 35 },
+    });
+    expect(diagnostics[0]?.suggestion).toContain("kb_search");
+  });
+
+  test("is not applicable when no session edited a requirement-linked file", () => {
+    const events = parseTelemetryUsageLog(
+      usageLog([
+        ...passingEvents(),
+        lookup("session-a", "kb_search"),
+        edit("session-a", "docs/guide.md", []),
+        edit("session-b", ".kb/requirements/REQ-a.md", []),
+        // Without a session id an edit cannot be ordered against lookups.
+        edit("", "src/checkout.ts", ["REQ-checkout-rounding"]),
+      ]),
+    );
+
+    const report = analyzeTelemetryAcceptance(events, NOW);
+
+    expect(lookupMetric(report)).toEqual({
+      id: "lookup_before_first_edit",
+      status: "not_applicable",
+      numerator: 0,
+      denominator: 0,
+      threshold: { operator: ">=", value: 1 },
+      message:
+        "No host hook recorded an edit of a requirement-linked file in the evaluated window.",
+      evidence: {
+        unguidedEditPaths: [],
+        lookupOperations: ["kb_query", "kb_search"],
+      },
+    });
+    expect(report.status).toBe("passed");
+  });
+
+  test("judges first edits inside the operation window against the whole session", () => {
+    const operations = passingEvents();
+    const events = parseTelemetryUsageLog(
+      usageLog([
+        // Before the window: an unguided first edit, and a lookup.
+        edit("session-old", "src/old.ts", ["REQ-old"]),
+        lookup("session-a", "kb_search"),
+        ...operations,
+        // Inside the window: session-a's first edit follows its early lookup;
+        // session-old's later edit is not its first.
+        edit("session-a", "src/checkout.ts", ["REQ-checkout-rounding"]),
+        edit("session-old", "src/old.ts", ["REQ-old"]),
+      ]),
+    );
+
+    const report = analyzeTelemetryAcceptance(events, NOW, {
+      ...DEFAULT_TELEMETRY_ACCEPTANCE_POLICY,
+      eventLimit: operations.length - 1,
+    });
+
+    expect(lookupMetric(report)).toMatchObject({
+      status: "passed",
+      numerator: 1,
+      denominator: 1,
+    });
+  });
+
+  test("reads hook rows from in-memory event arrays too", () => {
+    const report = analyzeTelemetryAcceptance(
+      [
+        ...passingEvents(),
+        edit("session-a", "src/checkout.ts", ["REQ-checkout-rounding"]),
+      ] as TelemetryUsageEvent[],
+      NOW,
+    );
+
+    expect(lookupMetric(report)).toMatchObject({
+      status: "failed",
+      numerator: 0,
+      denominator: 1,
+    });
+    // Hook rows are not Kibi operations and do not enter the window.
+    expect(report.scope.totalEvents).toBe(passingEvents().length);
   });
 });

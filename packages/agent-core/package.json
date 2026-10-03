@@ -10,6 +10,10 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
+    "./hook-usage-log": {
+      "types": "./dist/hook-usage-log.d.ts",
+      "default": "./dist/hook-usage-log.js"
+    },
     "./kb-mcp-tools": {
       "types": "./dist/kb-mcp-tools.d.ts",
       "default": "./dist/kb-mcp-tools.js"
@@ -21,6 +25,10 @@
     "./path-policy": {
       "types": "./dist/path-policy.d.ts",
       "default": "./dist/path-policy.js"
+    },
+    "./snippets": {
+      "types": "./dist/snippets.d.ts",
+      "default": "./dist/snippets.js"
     }
   },
   "files": ["dist", "CHANGELOG.md"],

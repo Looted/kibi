@@ -6,6 +6,8 @@ import {
   type TelemetryMetricId,
   type TelemetryUsageEvent,
   analyzeTelemetryAcceptance,
+  firstLinkedEdits,
+  partitionTelemetryUsage,
 } from "./telemetry-acceptance.js";
 
 export const TELEMETRY_REMEDIATION_VERSION =
@@ -46,6 +48,8 @@ export interface TelemetryRemediationReport {
 type IndexedEvent = {
   readonly event: TelemetryUsageEvent;
   readonly index: number;
+  /** 1-based `.kb/usage.log` line, counting host hook rows and blank lines. */
+  readonly logLine: number;
   readonly time: number | null;
 };
 
@@ -55,6 +59,7 @@ const RANKS: Readonly<
   repeated_mutation_failures: 10,
   validation_before_upsert: 20,
   advisor_before_requirement_write: 30,
+  lookup_before_first_edit: 35,
   e2e_receipt_freshness: 40,
   proof_gap_recovery: 50,
   source_lookup_zero_result_rate: 60,
@@ -138,7 +143,7 @@ function target(event: TelemetryUsageEvent): string {
 
 function reference(entry: IndexedEvent): TelemetryRemediationEventReference {
   return {
-    logLine: entry.index + 1,
+    logLine: entry.logLine,
     requestId: entry.event.request_id ?? null,
     timestamp: entry.event.timestamp ?? null,
     tool: entry.event.tool ?? null,
@@ -155,7 +160,7 @@ function eventItem(
   action: string,
 ): TelemetryRemediationItem {
   return {
-    id: `${metric}:line-${entry.index + 1}:${itemTarget}`,
+    id: `${metric}:line-${entry.logLine}:${itemTarget}`,
     rank: RANKS[metric],
     metric,
     scope: "event",
@@ -200,14 +205,18 @@ export function buildTelemetryRemediationReport(
   policy: TelemetryAcceptancePolicy = DEFAULT_TELEMETRY_ACCEPTANCE_POLICY,
 ): TelemetryRemediationReport {
   const acceptance = analyzeTelemetryAcceptance(events, now, policy);
-  const all: IndexedEvent[] = events.map((event, index) => ({
+  const { operations, operationLines, hookRows } =
+    partitionTelemetryUsage(events);
+  const timeOf = (event: TelemetryUsageEvent): number | null =>
+    event.timestamp === undefined ||
+    !Number.isFinite(Date.parse(event.timestamp))
+      ? null
+      : Date.parse(event.timestamp);
+  const all: IndexedEvent[] = operations.map((event, index) => ({
     event,
     index,
-    time:
-      event.timestamp === undefined ||
-      !Number.isFinite(Date.parse(event.timestamp))
-        ? null
-        : Date.parse(event.timestamp),
+    logLine: operationLines[index] ?? index + 1,
+    time: timeOf(event),
   }));
   const recentStart = Math.max(0, all.length - policy.eventLimit);
   const recent = all.slice(recentStart);
@@ -332,6 +341,26 @@ export function buildTelemetryRemediationReport(
           ),
         );
       }
+    }
+  }
+
+  if (isActionable(acceptance, "lookup_before_first_edit")) {
+    for (const { edit, lookedUp } of firstLinkedEdits(hookRows, recentStart)) {
+      if (lookedUp) continue;
+      items.push(
+        eventItem(
+          "lookup_before_first_edit",
+          {
+            event: edit.event,
+            index: edit.operationsBefore,
+            logLine: edit.logLine,
+            time: timeOf(edit.event),
+          },
+          edit.event.path ?? "unknown path",
+          "This session edited a requirement-linked file before any kb_search or kb_query.",
+          "Before the next edit of this file, run kb_search for the change or kb_query with this sourceFile, and read the requirements it names.",
+        ),
+      );
     }
   }
 

@@ -157,6 +157,42 @@ export function extractExplicitPathFields(input: unknown): string[] {
   return [...new Set(paths)];
 }
 
+const patchFileHeader = /^\*\*\* (?:Update|Add|Delete) File: (.+)$/;
+const patchTextKeys = ["command", "patch", "input", "patchText"] as const;
+
+/**
+ * Files named by an `apply_patch` envelope (`*** Update File: <path>`,
+ * `*** Add File:`, `*** Delete File:`), in patch order.
+ */
+// implements REQ-codex-kibi-plugin-v1
+export function extractPatchFilePaths(patch: string): string[] {
+  const paths: string[] = [];
+  for (const line of patch.split(/\r?\n/)) {
+    const match = patchFileHeader.exec(line.trim());
+    const candidate = match?.[1] ? normalizeWorkspacePath(match[1]) : "";
+    if (candidate.length > 0) paths.push(candidate);
+  }
+  return [...new Set(paths)];
+}
+
+/**
+ * Paths an edit tool call targets: explicit path fields plus the files named
+ * in patch text (Codex sends `apply_patch` with the patch in `command`).
+ */
+// implements REQ-codex-kibi-plugin-v1, REQ-zcode-kibi-plugin-v1
+export function extractEditedPaths(toolInput: unknown): string[] {
+  const paths = extractExplicitPathFields(toolInput);
+  if (isRecord(toolInput)) {
+    for (const key of patchTextKeys) {
+      const value = toolInput[key];
+      if (typeof value === "string" && value.includes("*** ")) {
+        paths.push(...extractPatchFilePaths(value));
+      }
+    }
+  }
+  return [...new Set(paths)];
+}
+
 export function canonicalizeWorkspacePath(
   workspaceRoot: string,
   options: {

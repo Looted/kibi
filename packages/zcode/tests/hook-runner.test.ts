@@ -1394,3 +1394,180 @@ describe("ZCode hook runner workspace stamp", () => {
     );
   });
 });
+
+function writeFile(root: string, relativePath: string, content: string): void {
+  const target = path.join(root, relativePath);
+  fs.mkdirSync(path.dirname(target), { recursive: true });
+  fs.writeFileSync(target, content);
+}
+
+/** Opted-in workspace whose checkout code implements a grounded requirement. */
+function linkedWorkspace(requirementStatus = "open") {
+  const fixture = workspaceFixture("kibi-zcode-linked");
+  writeFile(
+    fixture.cwd,
+    ".kb/symbols.yaml",
+    [
+      "symbols:",
+      "  - id: SYM-computeTotal",
+      "    title: computeTotal",
+      "    sourceFile: src/checkout.ts",
+      "    relationships:",
+      "      - type: implements",
+      "        target: REQ-checkout-rounding",
+      "",
+    ].join("\n"),
+  );
+  writeFile(
+    fixture.cwd,
+    ".kb/symbol-coordinates.yaml",
+    "coordinates:\n  SYM-computeTotal:\n    sourceLine: 1\n    sourceEndLine: 3\n",
+  );
+  writeFile(
+    fixture.cwd,
+    ".kb/requirements/REQ-checkout-rounding.md",
+    `---\nid: REQ-checkout-rounding\ntitle: Checkout totals round to cents\nstatus: ${requirementStatus}\nlinks:\n  - type: requires_predicate\n    target: FACT-total-rounding-cents\n  - type: relates_to\n    target: ADR-money-as-decimal\n---\n`,
+  );
+  writeFile(
+    fixture.cwd,
+    ".kb/facts/FACT-total-rounding-cents.md",
+    "---\nid: FACT-total-rounding-cents\ntitle: Totals round half up to two decimals\nstatus: active\n---\n",
+  );
+  writeFile(
+    fixture.cwd,
+    ".kb/adr/ADR-money-as-decimal.md",
+    "---\nid: ADR-money-as-decimal\ntitle: Money is computed as decimal cents\nstatus: accepted\n---\n",
+  );
+  writeFile(
+    fixture.cwd,
+    "src/checkout.ts",
+    "export function computeTotal() {\n  return 1;\n}\n",
+  );
+  return fixture;
+}
+
+describe("ZCode pre-edit knowledge", () => {
+  function preEdit(
+    fixture: { cwd: string; pluginData: string },
+    sessionId = "s1",
+  ) {
+    return runHook(
+      {
+        hook_event_name: "PreToolUse",
+        session_id: sessionId,
+        cwd: fixture.cwd,
+        tool_name: "Edit",
+        tool_input: {
+          file_path: path.join(fixture.cwd, "src/checkout.ts"),
+          old_string: "  return 1;",
+          new_string: "  return 2;",
+        },
+      },
+      { pluginData: fixture.pluginData },
+    );
+  }
+
+  test("an edit of linked code names what its requirement must keep true and why", async () => {
+    const fixture = linkedWorkspace();
+    const context = expectAdditionalContext(
+      await preEdit(fixture),
+      "PreToolUse",
+    );
+    expect(context).toContain(
+      "Kibi knowledge for src/checkout.ts (symbol manifest):\n- REQ-checkout-rounding: Checkout totals round to cents — computeTotal",
+    );
+    expect(context).toContain(
+      "REQ-checkout-rounding must keep true: FACT-total-rounding-cents: Totals round half up to two decimals.",
+    );
+    expect(context).toContain(
+      "Decision: ADR-money-as-decimal: Money is computed as decimal cents.",
+    );
+    expect(context).toContain(
+      "The edit is inside computeTotal, which implements REQ-checkout-rounding.",
+    );
+  });
+
+  test("the snippet is shown once per file per session", async () => {
+    const fixture = linkedWorkspace();
+    expectAdditionalContext(await preEdit(fixture), "PreToolUse");
+    expectQuiet(await preEdit(fixture));
+    expectAdditionalContext(await preEdit(fixture, "s2"), "PreToolUse");
+  });
+
+  test("a superseded lead requirement is not presented as something to keep true", async () => {
+    const fixture = linkedWorkspace("superseded");
+    const context = expectAdditionalContext(
+      await preEdit(fixture),
+      "PreToolUse",
+    );
+    expect(context).toContain(
+      "- REQ-checkout-rounding (superseded): Checkout totals round to cents",
+    );
+    expect(context).not.toContain("must keep true");
+    expect(context).not.toContain("Decision:");
+  });
+});
+
+describe("ZCode opt-in hook telemetry", () => {
+  function usageRows(root: string): Record<string, unknown>[] {
+    const logPath = path.join(root, ".kb", "usage.log");
+    if (!fs.existsSync(logPath)) return [];
+    return fs
+      .readFileSync(logPath, "utf8")
+      .trim()
+      .split("\n")
+      .map((line) => JSON.parse(line) as Record<string, unknown>);
+  }
+
+  function post(
+    fixture: { cwd: string; pluginData: string },
+    toolName: string,
+    toolInput: Record<string, unknown>,
+    env: NodeJS.ProcessEnv,
+  ) {
+    return runHook(
+      {
+        hook_event_name: "PostToolUse",
+        session_id: "s-telemetry",
+        cwd: fixture.cwd,
+        tool_name: toolName,
+        tool_input: toolInput,
+      },
+      { pluginData: fixture.pluginData, env },
+    );
+  }
+
+  test("records lookups and the requirements an edited file implements", async () => {
+    const fixture = linkedWorkspace();
+    const optedIn = { KIBI_DIAGNOSTIC_MODE: "true" };
+    await post(fixture, "mcp__kibi__kb_search", { query: "rounding" }, optedIn);
+    await post(fixture, "Bash", { command: "kibi query --input -" }, optedIn);
+    await post(fixture, "Write", { file_path: "src/checkout.ts" }, optedIn);
+    await post(fixture, "Read", { file_path: "src/checkout.ts" }, optedIn);
+
+    const rows = usageRows(fixture.cwd);
+    expect(
+      rows.map((row) => [
+        row.hook_action,
+        row.kb_operation,
+        row.path,
+        row.requirement_ids,
+      ]),
+    ).toEqual([
+      ["kb_usage", "kb_search", null, []],
+      ["kb_usage", "kb_query", null, []],
+      ["edited", null, "src/checkout.ts", ["REQ-checkout-rounding"]],
+    ]);
+    expect(rows[2]).toMatchObject({
+      interface: "hook",
+      host: "zcode",
+      session_id: "s-telemetry",
+    });
+  });
+
+  test("writes nothing unless the operator opted in", async () => {
+    const fixture = linkedWorkspace();
+    await post(fixture, "Write", { file_path: "src/checkout.ts" }, {});
+    expect(usageRows(fixture.cwd)).toEqual([]);
+  });
+});

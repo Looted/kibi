@@ -13,11 +13,11 @@ Once Kibi is installed in the repository, your agent needs a way to call it. Two
 Use whichever surface your client can see. You do not configure both unless you want to.
 
 > [!TIP]
-> Claude Code, Cursor, Codex, OpenCode, and ZCode also have optional plugins that wire this up for you. The JSON below is the manual fallback when you are not using a plugin. Details and plugin install steps are in the [installation guide](install.md).
+> Claude Code, Cursor, Codex, OpenCode, and ZCode also have optional plugins that wire this up for you. Each plugin shows the agent the requirement a file implements before it edits that file, with what the requirement must keep true and the decision behind it. The JSON below is the manual fallback when you are not using a plugin. Details and plugin install steps are in the [installation guide](install.md).
 
 ## Claude Code
 
-The `kibi-claude` plugin brings the server, the bundled skills, and hooks that show the agent the linked requirements and tests before it reads or edits code:
+The `kibi-claude` plugin brings the server, the bundled skills, and hooks that show the agent the linked requirements and tests before it reads or edits code, and before an edit, what those requirements must keep true and the decision behind them:
 
 ```bash
 claude plugin marketplace add Looted/kibi

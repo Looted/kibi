@@ -42518,7 +42518,7 @@ symbols:
   - id: SYM-claude-focusedSymbols
     title: focusedSymbols
     status: active
-    sourceFile: packages/claude/src/snippets.ts
+    sourceFile: packages/agent-core/src/snippets.ts
     symbol_role: behavioral
     relationships:
       - type: covered_by
@@ -42528,7 +42528,7 @@ symbols:
   - id: SYM-claude-fileKnowledgeSnippet
     title: fileKnowledgeSnippet
     status: active
-    sourceFile: packages/claude/src/snippets.ts
+    sourceFile: packages/agent-core/src/snippets.ts
     symbol_role: behavioral
     relationships:
       - type: covered_by
@@ -42538,7 +42538,7 @@ symbols:
   - id: SYM-claude-focusUpdate
     title: focusUpdate
     status: active
-    sourceFile: packages/claude/src/snippets.ts
+    sourceFile: packages/agent-core/src/snippets.ts
     symbol_role: behavioral
     relationships:
       - type: covered_by
@@ -42588,7 +42588,7 @@ symbols:
   - id: SYM-claude-LineRange
     title: LineRange
     status: active
-    sourceFile: packages/claude/src/snippets.ts
+    sourceFile: packages/agent-core/src/snippets.ts
     symbol_role: type-shape
     relationships:
       - type: covered_by
@@ -42598,7 +42598,7 @@ symbols:
   - id: SYM-claude-SnippetInput
     title: SnippetInput
     status: active
-    sourceFile: packages/claude/src/snippets.ts
+    sourceFile: packages/agent-core/src/snippets.ts
     symbol_role: type-shape
     relationships:
       - type: covered_by
@@ -42608,7 +42608,7 @@ symbols:
   - id: SYM-claude-MAX_SNIPPET_CHARS
     title: MAX_SNIPPET_CHARS
     status: active
-    sourceFile: packages/claude/src/snippets.ts
+    sourceFile: packages/agent-core/src/snippets.ts
     symbol_role: config
     relationships:
       - type: covered_by
@@ -46734,7 +46734,7 @@ symbols:
   - id: SYM-claude-hookTelemetryEnabled
     title: hookTelemetryEnabled
     status: active
-    sourceFile: packages/claude/src/usage-log.ts
+    sourceFile: packages/agent-core/src/hook-usage-log.ts
     symbol_role: behavioral
     relationships:
       - type: covered_by
@@ -46744,7 +46744,7 @@ symbols:
   - id: SYM-claude-HookTrace
     title: HookTrace
     status: active
-    sourceFile: packages/claude/src/usage-log.ts
+    sourceFile: packages/agent-core/src/hook-usage-log.ts
     symbol_role: type-shape
     relationships:
       - type: covered_by

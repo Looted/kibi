@@ -239,7 +239,9 @@ If you use pnpm, replace `"command": "npx"` and `"args"` with:
 
 `kibi-opencode` is an optional OpenCode plugin. It injects Kibi guidance,
 provides the `/kibi-bootstrap` convenience command when the host supports it, and runs
-background sync/check maintenance. Canonical bootstrap behavior lives in the
+background sync/check maintenance. When the file being edited implements a
+requirement, the guidance names it, what it must keep true, and the decision
+behind it. Canonical bootstrap behavior lives in the
 bundled `kibi-bootstrap` skill (`kb_plan_bootstrap`, preview, apply via the approved plan).
 Generic MCP agents should start from
 [generic-agent onboarding](generic-agent-onboarding.md). The plugin does **not**
@@ -322,6 +324,12 @@ workspaces that opted into Kibi:
   `.kb` edits, track changed paths, and surface freshness/impact reminders at
   session stop, scoped to the workspace they were generated in, so activity in
   one project cannot generate reminders in another.
+- Before `apply_patch` (or another edit tool) changes a file whose symbols are
+  linked to a requirement, `PreToolUse` adds a short snippet to the agent's
+  context: the requirement, what it must keep true (its linked facts), the
+  decision behind it (its ADR), and the tests that cover it. It covers up to
+  three changed files per call, once per file per session, and a superseded or
+  retired requirement is never presented as current.
 
 #### Codex host limitations and the MCP launcher
 
@@ -406,7 +414,10 @@ The installed plugin package contributes:
 
 - `.cursor-plugin/plugin.json` manifest
 - `mcp.json` MCP config with a launcher that resolves and starts the `kibi-mcp` installed in the opened project
-- `hooks/hooks.json` advisory lifecycle hooks
+- `hooks/hooks.json` advisory lifecycle hooks; before Cursor reads or edits a
+  file whose symbols implement a requirement, they show that requirement and
+  its tests, and before an edit, what it must keep true and the decision
+  behind it
 - `rules/*.mdc` workflow and traceability guidance
 - `skills/*/SKILL.md` Kibi workflow skills
 - `commands/kibi-bootstrap.md` bootstrap command guidance
@@ -484,9 +495,11 @@ proxies the resolved `kibi-mcp` with `KIBI_WORKSPACE` set, and hooks are
 advisory only — they warn about direct `.kb` edits, track file mutations per
 host session (read-only tool calls never count as changes, and a later edit
 invalidates an earlier impact check for that path), and surface
-freshness/impact reminders at session stop with workspace-relative paths. The
-hard enforcement gate remains the `kibi check --staged` git hook installed by
-`kibi init`.
+freshness/impact reminders at session stop with workspace-relative paths.
+Before an edit of a file linked to a requirement, `PreToolUse` adds the
+requirement, what it must keep true, the decision behind it, and its tests to
+the agent's context, once per file per session. The hard enforcement gate
+remains the `kibi check --staged` git hook installed by `kibi init`.
 
 Manual MCP fallback (no plugin install required):
 
@@ -513,8 +526,9 @@ targets (hook events, output schema, skill frontmatter rules).
 - the four bundled Kibi skills, invoked as `/kibi-claude:kibi-usage`,
   `/kibi-claude:kibi-bootstrap`, and so on;
 - advisory hooks that show the agent requirement and test context before it
-  reads or edits linked code, and remind it once to run an impact check
-  before finishing.
+  reads or edits linked code (before an edit, also what the requirement must
+  keep true and the decision behind it), and remind it once to run an impact
+  check before finishing.
 
 The repository root is a Claude Code marketplace, and the hook runner is a
 committed self-contained bundle, so a GitHub install needs no build:
