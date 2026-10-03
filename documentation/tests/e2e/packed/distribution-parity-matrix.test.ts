@@ -438,9 +438,11 @@ function capabilityInput(capability: RequirementCompilerCapability): {
   switch (capability) {
     case "semantic_inventory":
       return {
-        tool: "kb_validate_upsert",
-        route: "validate-upsert",
+        // The validation preflight: MCP kb_upsert and CLI upsert with dryRun.
+        tool: "kb_upsert",
+        route: "upsert",
         input: {
+          dryRun: true,
           type: "req",
           id: "REQ-MATRIX-OMITTED",
           properties: {

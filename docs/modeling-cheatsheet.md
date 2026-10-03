@@ -4,15 +4,15 @@ Use this one-page guide when deciding how to model knowledge through peer MCP to
 
 ## Decision Tree
 
-1. **Starting from raw normative prose?** Call `kb_semantic_advisor` with the complete body. Audit its clause split and supply `clauses` when needed so every atomic obligation, prohibition, exception, condition, and threshold has a stable claim key.
-2. **About to write/update a normative requirement?** Run `kb_validate_upsert` first and inspect `semanticAdvisor`. If it reports `needs_modeling`, repair the payload before treating the requirement as Prolog-checkable.
+1. **Starting from raw normative prose?** Call `kb_model` with `mode: "analyze"` and the complete body. Audit its clause split and supply `clauses` when needed so every atomic obligation, prohibition, exception, condition, and threshold has a stable claim key.
+2. **About to write/update a normative requirement?** Run `kb_upsert` with `dryRun: true` first and inspect `semanticAdvisor`. If it reports `needs_modeling`, repair the payload before treating the requirement as Prolog-checkable.
 3. **Runtime/config gate?** Use `flag`, then link with `guards`.
 4. **Bug, incident, workaround, audit note, or migration evidence?** Use `fact` with `fact_kind: observation` or `fact_kind: meta`.
 5. **For each normative property/value/limit clause?** Use a requirement plus strict facts:
    - `fact_kind: subject` with `subject_key`, linked from the requirement by `constrains`.
    - `fact_kind: property_value` with `subject_key`, `property_key`, `operator`, `value_type`, and exactly one `value_*`, linked by `requires_property`.
-   - Prefer `kb_model_requirement` when starting from prose.
-6. **For each relational domain clause?** Call `kb_suggest_predicates`, then write `fact_kind: predicate` with `predicate_name`, `predicate_args`, and `canonical_key`, linked by `requires_predicate`. For conditions, exceptions, modalities, quantifiers, cardinality, or bounded temporal clauses, submit typed `kibi.logic.v1` to `kb_model_requirement`, persist `rule_schema` + `rule`, and link with `requires_rule`.
+   - Prefer `kb_model` with `mode: "requirement"` when starting from prose.
+6. **For each relational domain clause?** Call `kb_model` with `mode: "predicates"`, then write `fact_kind: predicate` with `predicate_name`, `predicate_args`, and `canonical_key`, linked by `requires_predicate`. For conditions, exceptions, modalities, quantifiers, cardinality, or bounded temporal clauses, submit typed `kibi.logic.v1` to `kb_model` with `mode: "requirement"`, persist `rule_schema` + `rule`, and link with `requires_rule`.
 7. **BDD behavior?** Use `scenario`, linked with `specified_by`.
 8. **Executable evidence?** Use `test`, linked with `verified_by` or `validates`.
    - When the requirement has a `scenario`, this link must target the scenario: use `verified_by(Scenario, Test)` or `validates(Test, Scenario)`. Directly linking `verified_by(Req, Test)` and `validates(Test, Req)` does not satisfy scenario-aware symbol-coverage.
@@ -24,7 +24,7 @@ Use this one-page guide when deciding how to model knowledge through peer MCP to
 
 Name a new entity by the behavior it governs: `<TYPE>-<area>-<behavior>` in kebab-case (`REQ-cli-gc`, `SCEN-mcp-search-discovery`). The filename stem equals the `id`. Search that area first. Update the existing entity when it already covers the behavior. Link `supersedes` when one requirement replaces another, and `restates` (requirement to requirement) when two current requirements intentionally say the same thing. Existing numbered IDs stay valid.
 
-A subject key is dotted `component.aspect[.sub]`: at least two lowercase snake_case segments, such as `docs.site` or `kibi.cli.check.staged`. Never derive it from a requirement ID. `kb_model_requirement` returns `vocabularyAlignment` with ranked subjects and a `reuse_existing` or `declare_new` decision. Follow that decision. A requirement constrains one subject fact for a given key. Property facts for that subject share the key. A second subject fact with the same key grounds every claim twice.
+A subject key is dotted `component.aspect[.sub]`: at least two lowercase snake_case segments, such as `docs.site` or `kibi.cli.check.staged`. Never derive it from a requirement ID. `kb_model` with `mode: "requirement"` returns `vocabularyAlignment` with ranked subjects and a `reuse_existing` or `declare_new` decision. Follow that decision. A requirement constrains one subject fact for a given key. Property facts for that subject share the key. A second subject fact with the same key grounds every claim twice.
 
 When a predicate schema declares `argument_constants`, new facts must use those values. `argument_aliases` names old spellings that map to a constant; writes reject both undeclared values and aliases. `kibi migrate` can apply the mechanical repairs (the only matching namespace, or an alias rewritten to its constant) after you approve the plan hash.
 
@@ -110,11 +110,11 @@ This lane is optional; a non-UI project simply never models UI subjects. See
 
 The claim keys above are illustrative. Always use the stable key returned for the exact clause text. Store every returned normative key in the requirement-only `logic_claims` array, merge rather than replace existing keys, and preserve `claim_key` plus `claim_text` together on every ground `property_value`, `predicate`, or `rule` fact. Preserve the full `semantic_inventory` proposition ledger; an observation does not ground a claim.
 
-`kb_model_requirement` accepts semantic claim inputs such as `subjectKey`, `propertyKey`, and `existingLogicClaims`. `kb_suggest_predicates` also accepts `existingLogicClaims`. `kb_upsert.properties` does not accept camelCase modeling inputs. For `kb_upsert`, use snake_case only: `logic_claims`, `claim_key`, `claim_text`, `subject_key`, `property_key`, `predicate_name`, `predicate_args`, `canonical_key`, `closed_world`, `value_type`, and one typed `value_*` field.
+`kb_model` accepts semantic claim inputs such as `subjectKey`, `propertyKey`, and `existingLogicClaims` in `mode: "requirement"`; `mode: "predicates"` also accepts `existingLogicClaims`. `kb_upsert.properties` does not accept camelCase modeling inputs. For `kb_upsert`, use snake_case only: `logic_claims`, `claim_key`, `claim_text`, `subject_key`, `property_key`, `predicate_name`, `predicate_args`, `canonical_key`, `closed_world`, `value_type`, and one typed `value_*` field.
 
 ## Semantic advisor receipts
 
-`kb_validate_upsert` and successful `kb_upsert` responses may include semantic advisor receipts for requirements. The receipt contains `clauses` and `logic_coverage`, including expected, declared, missing, and unresolved claim keys. A receipt with `logic_readiness: needs_modeling` means at least one clause still needs work. Inspect `suggestions` for one of four reviewable paths:
+`kb_upsert` with `dryRun: true` and successful `kb_upsert` responses may include semantic advisor receipts for requirements. The receipt contains `clauses` and `logic_coverage`, including expected, declared, missing, and unresolved claim keys. A receipt with `logic_readiness: needs_modeling` means at least one clause still needs work. Inspect `suggestions` for one of four reviewable paths:
 
 - `strict_property` — draft subject/property facts plus requirement relationships.
 - `predicate` — draft ontology predicate fact and relationship guidance.
@@ -127,11 +127,11 @@ Suggestions are non-blocking and must be reviewed before applying; they are not 
 - **Ontology predicate suggestions:** permissions and prohibitions, defaults, uniqueness constraints, state memberships, state transitions, conditional behavior, temporal ordering, rate limits, exception rules, mutual exclusion, dependency rules, ownership, retry policies, escalation rules, availability SLAs, notification routing, idempotency, data residency, audit logging, consent prerequisites, lifecycle archive/delete/expiry rules, conflict-resolution strategies, fallback/degradation behavior, batch operations, cross-entity consistency/reference requirements, build constraints, environment-safety rules, schema invariants, coding standards, migration boundaries, absence/removal requirements, offline behavior, release gates, platform consistency, preservation rules, abstraction boundaries, security configuration, ordered strategies, refresh policies, scoped authorization, documentation standards, warmup policies, visual layout rules, enforcement-location rules, reconciliation rules, and throttling policies.
 - **Review artifacts:** ambiguity observations and ontology-gap observations when a claim is logical but not safely grounded by the current deterministic catalog.
 
-When an exact predicate suggestion exists, prefer its `applyPlan` and `requires_predicate` relationship guidance over generic prose notes. The receipt-level `candidate_lane` and `suggested_next_tools` are aligned to exact suggestions, so numeric-looking predicate claims such as lifecycle or batching rules can still correctly route to `kb_suggest_predicates`.
+When an exact predicate suggestion exists, prefer its `applyPlan` and `requires_predicate` relationship guidance over generic prose notes. The receipt-level `candidate_lane` and `suggested_next_tools` are aligned to exact suggestions, so numeric-looking predicate claims such as lifecycle or batching rules can still correctly route to `kb_suggest_predicates` (call it as `kb_model` with `mode: "predicates"`; these receipt fields name catalog operations).
 
 After writes, run `kb_check` with `logic-coverage`, `predicate-verifiability`, and `domain-contradictions`. `logic-coverage` verifies that every declared claim key has a matching linked ground fact and that linked ground facts appear in the manifest. It does not prove that an automatic clause split exhausts arbitrary natural language; that boundary remains an explicit review obligation. Exact `assert`/`deny` facts over the same predicate namespace, name, and ordered arguments do participate in `domain-contradictions`.
 
-Do not invent or copy a claim key between clauses. Kibi mutation and Markdown sync surfaces recompute the stable key from `claim_text` and reject mismatches; preserve the exact key returned by `kb_semantic_advisor` for that atomic clause.
+Do not invent or copy a claim key between clauses. Kibi mutation and Markdown sync surfaces recompute the stable key from `claim_text` and reject mismatches; preserve the exact key returned by `kb_model` with `mode: "analyze"` for that atomic clause.
 
 ## Quality diagnostics lane
 
@@ -140,6 +140,6 @@ Do not invent or copy a claim key between clauses. Kibi mutation and Markdown sy
 Common review diagnostics map to modeling actions:
 
 - Broad requirement or multi-requirement symbol: split the requirement/symbol into one observable behavior per anchor, or document a valid umbrella/module rationale.
-- Logical coverage review: decompose the complete requirement, use `kb_model_requirement` or `kb_suggest_predicates` per clause, and validate the claim manifest.
+- Logical coverage review: decompose the complete requirement, use `kb_model` (`mode: "requirement"` or `"predicates"`) per clause, and validate the claim manifest.
 - Coverage-depth review: add typed `verification_scope` / `verification_perspective` fields to test entities and prefer direct/scenario e2e evidence when the behavior crosses an external boundary.
 - Duplicate coordinate review: refresh symbol coordinates through the CLI sync workflow and keep modeled symbol IDs distinct enough to identify the behavioral anchor.

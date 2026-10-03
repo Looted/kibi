@@ -40,7 +40,7 @@ describe("kb_validate_upsert", () => {
     expect(structured.errors.join("\n")).toContain(
       "Proposition-complete ingestion failed",
     );
-    expect(structured.errors.join("\n")).toContain("kb_semantic_advisor");
+    expect(structured.errors.join("\n")).toContain("kb_model mode analyze");
     expect(structured.warnings).toEqual([]);
     expect(structured.semanticAdvisor).toBeNull();
   });

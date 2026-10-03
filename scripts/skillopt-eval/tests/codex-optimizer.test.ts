@@ -18,9 +18,11 @@ const REQUIRED_GUIDANCE = [
   "kb_query",
   "kb_upsert",
   "kb_check",
-  "kb_semantic_advisor",
-  "kb_suggest_predicates",
-  "kb_model_requirement",
+  "kb_model",
+  'mode: "analyze"',
+  'mode: "predicates"',
+  'mode: "requirement"',
+  "dryRun: true",
   "fact_kind: predicate",
   "predicate_name",
   "predicate_args",
@@ -89,7 +91,7 @@ describe("Codex optimizer output", () => {
 
   test("rejects incomplete output instead of stitching required phrases", () => {
     const incomplete = `# Kibi Usage\n\n${"Operational guidance. ".repeat(80)}`;
-    expect(incomplete.includes("kb_semantic_advisor")).toBe(false);
+    expect(incomplete.includes("kb_model")).toBe(false);
     expect(() =>
       parseCodexOptimizerBody(JSON.stringify({ body: incomplete })),
     ).toThrow(
@@ -98,7 +100,7 @@ describe("Codex optimizer output", () => {
     expect(() =>
       parseCodexOptimizerBody(
         JSON.stringify({
-          body: `${incomplete.trim()}\n\n## Required Kibi logic contract\n\nkb_semantic_advisor · polarity: deny\n`,
+          body: `${incomplete.trim()}\n\n## Required Kibi logic contract\n\nkb_model · polarity: deny\n`,
         }),
       ),
     ).toThrow(
@@ -170,9 +172,7 @@ describe("Codex optimizer output", () => {
   });
 
   test("records missing required phrases for an incomplete body", () => {
-    expect(missingRequiredGuidance("short body")).toContain(
-      "kb_semantic_advisor",
-    );
+    expect(missingRequiredGuidance("short body")).toContain("kb_model");
     expect(
       missingRequiredGuidance(`# Kibi Usage\n\n${REQUIRED_GUIDANCE}`),
     ).toEqual([]);
@@ -215,7 +215,7 @@ describe("Codex optimizer output", () => {
       attempt: 1,
       exitCode: 0,
     });
-    expect(report.missingGuidance).toContain("kb_semantic_advisor");
+    expect(report.missingGuidance).toContain("kb_model");
     expect(report.missingGuidance).not.toContain(
       "## Required Kibi logic contract",
     );

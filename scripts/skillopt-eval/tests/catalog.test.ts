@@ -22,6 +22,7 @@ import {
 } from "../fixtures/predicate-corpus";
 import { publicSkillDescriptors } from "../real-workflow-setup";
 import { REQUIRED_KIBI_TOOLS } from "../runtime/mcp-broker";
+import { mcpToolForOperation } from "../runtime/mcp-tool-names";
 import { temporaryRoot } from "./fixture-test-helpers";
 
 const predicateRoots: string[] = [];
@@ -317,7 +318,10 @@ describe("SkillOpt corpus executability invariants", () => {
       for (const side of ["required", "forbidden"] as const) {
         const unavailable = manifest.orderedMcpPredicates[side]
           .map(({ tool }) => tool)
-          .filter((tool) => !REQUIRED_KIBI_TOOLS.includes(tool as never));
+          .filter(
+            (tool) =>
+              !REQUIRED_KIBI_TOOLS.includes(mcpToolForOperation(tool) as never),
+          );
         expect(unavailable).toEqual([]);
       }
     }

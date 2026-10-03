@@ -79,9 +79,11 @@ const REQUIRED_GUIDANCE = [
   "kb_query",
   "kb_upsert",
   "kb_check",
-  "kb_semantic_advisor",
-  "kb_suggest_predicates",
-  "kb_model_requirement",
+  "kb_model",
+  'mode: "analyze"',
+  'mode: "predicates"',
+  'mode: "requirement"',
+  "dryRun: true",
   "fact_kind: predicate",
   "predicate_name",
   "predicate_args",
@@ -433,7 +435,7 @@ describe("runCodexSkillOptStep", () => {
     );
     expect(firstFailure.error).toBe("optimizer_output_incomplete_body");
     expect(retryFailure.error).toBe("optimizer_output_incomplete_body");
-    expect(firstFailure.missingGuidance).toContain("kb_semantic_advisor");
+    expect(firstFailure.missingGuidance).toContain("kb_model");
   });
 
   test("repairs an incomplete body on the second attempt without stitching", async () => {

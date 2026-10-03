@@ -19,6 +19,7 @@ import {
 } from "./final-state";
 import { parseTraceReceipts, verifyTraceChain } from "./jsonrpc";
 import { stageKibiMcpBroker } from "./mcp-broker-stage";
+import { routedOperationName, toolCallArguments } from "./mcp-tool-names";
 import type { CanaryRunner } from "./permissions";
 import { runBoundedProcess } from "./process";
 
@@ -780,7 +781,13 @@ function sealedBroker(brokerTrace: string) {
     )
     .map((receipt, index) => ({
       correlationId: receipt.correlationId,
-      tool: receipt.toolName ?? "",
+      mcpTool: receipt.toolName ?? "",
+      // Rubrics and usage receipts name catalog operations; kb_model and
+      // kb_upsert dryRun calls are routed to them like the MCP server does.
+      tool: routedOperationName(
+        receipt.toolName ?? "",
+        toolCallArguments(receipt.payload),
+      ),
       predicate: `sequence=${index + 1}`,
     }));
   const successfulTools = requestCalls.flatMap((call) => {
@@ -790,7 +797,7 @@ function sealedBroker(brokerTrace: string) {
         receipt.direction !== "server_to_target" ||
         receipt.kind !== "response" ||
         receipt.method !== "tools/call" ||
-        receipt.toolName !== call.tool ||
+        receipt.toolName !== call.mcpTool ||
         !isRecord(receipt.payload) ||
         !Object.hasOwn(receipt.payload, "result")
       ) {
@@ -827,12 +834,11 @@ function sealedBroker(brokerTrace: string) {
         response !== undefined && isRecord(response.payload)
           ? response.payload.result
           : undefined;
+      const args =
+        isRecord(params) && isRecord(params.arguments) ? params.arguments : {};
       return {
-        tool: receipt.toolName ?? "",
-        args:
-          isRecord(params) && isRecord(params.arguments)
-            ? params.arguments
-            : {},
+        tool: routedOperationName(receipt.toolName ?? "", args),
+        args,
         resultOk: !isRecord(result) || result.isError !== true,
         ...(isRecord(result) ? { result } : {}),
       };

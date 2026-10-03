@@ -171,7 +171,9 @@ Any stdio MCP client works with `command: npx`, `args: --no-install kibi-mcp`. Z
 
 </details>
 
-Kibi's **skill subsystem** is the agent-guidance mechanism: four bundled skills cover operation safety, bootstrap, freshness, and traceability. Agents load them with `kb_skills_list` and `kb_skills_load` (or the equivalent read-only CLI routes), so you do not paste a long system prompt. See [agent onboarding](https://looted.github.io/kibi/reference/agent-onboarding.html) for the copy-paste discovery snippet for generic agents.
+Kibi's **skill subsystem** is the agent-guidance mechanism: four bundled skills cover operation safety, bootstrap, freshness, and traceability. Agents load them with the `kb_skills` MCP tool (`action: "list"`, then `"load"`) or the equivalent read-only CLI routes, so you do not paste a long system prompt. See [agent onboarding](https://looted.github.io/kibi/reference/agent-onboarding.html) for the copy-paste discovery snippet for generic agents.
+
+The MCP server keeps its tool list to 16 tools. `kb_search` answers plain questions such as "what governs checkout rounding?": besides ranked matches it returns the current requirements that govern the topic, with their linked facts, scenarios, tests, and ADRs, and lists superseded requirements separately. That answer is discovery over the graph, not proof. Prose modeling goes through `kb_model`, and `kb_upsert` with `dryRun: true` validates a write without making it. The [MCP reference](https://looted.github.io/kibi/reference/mcp.html) lists every tool and maps older operation names to them.
 
 ## See what is proven
 

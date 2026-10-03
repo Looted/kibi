@@ -4,7 +4,7 @@ Requirement prose remains the human-readable source. Facts add queryable semanti
 
 ## Atomic Claim Coverage
 
-Logical coverage is clause-based, not entity-based. Give `kb_semantic_advisor` the complete requirement body and verify that its `clauses` list contains every atomic obligation. Supply the `clauses` input yourself when automatic splitting would combine or omit obligations. For every normative clause:
+Logical coverage is clause-based, not entity-based. Give `kb_model` (`mode: "analyze"`) the complete requirement body and verify that its `clauses` list contains every atomic obligation. Supply the `clauses` input yourself when automatic splitting would combine or omit obligations. For every normative clause:
 
 - preserve the returned stable key as `claim_key` and the exact clause as `claim_text` on its ground fact;
 - add the key to the exact current `logic_claims` set, removing only stale keys whose propositions no longer exist in the source;
@@ -17,7 +17,7 @@ Example compound prose: “Checkout requires payment authorization before order 
 
 ## Predicate Lane (Relational Claims)
 
-Call `kb_semantic_advisor`, then `kb_suggest_predicates`. Apply a candidate only when its schema meaning and ordered arguments fit the claim. Use the returned `applyPlan` rather than hand-writing unsupported predicate names, and link the requirement to the predicate fact with `requires_predicate`.
+Call `kb_model` with `mode: "analyze"`, then with `mode: "predicates"`. Apply a candidate only when its schema meaning and ordered arguments fit the claim. Use the returned `applyPlan` rather than hand-writing unsupported predicate names, and link the requirement to the predicate fact with `requires_predicate`.
 
 Treat the result as a Prolog-shaped ground term, not executable source: `predicate_name(arg1,...,argN)`. The selected `predicate_schema` fixes the name, arity, argument roles, and order. Store that model through `predicate_name`, `predicate_args`, `canonical_key`, and `polarity`; never interpolate prose into raw Prolog, introduce variables, or use a graph relationship such as `verified_by` as the predicate name.
 
@@ -84,15 +84,15 @@ The full logical representation of a requirement is the conjunction of all of it
 
 Treat the advisor's proposition status as a hard routing decision. `nonlogical`/`subjective` prose is not a logical claim: keep it as one observation when needed and do not add its key to `logic_claims`. `ambiguous` prose stays an ambiguity observation. `ontology_gap` prose stays unresolved unless an approved schema or validated Logic IR is available. Never split a subjective or commentary sentence into synthetic clauses just because it contains conditional words or domain vocabulary.
 
-If authorized input supplies `projectLocalSchemas`, use those signatures as the authority. Create the minimal `predicate_schema` endpoint before lookup, then rerun `kb_suggest_predicates` on the complete relation if the first lookup had no candidate. Apply exactly one ground predicate and one claim key for that relation. For `must not`, `never`, `cannot`, or `forbidden` wording, preserve the positive schema and set `polarity: deny`; do not turn the result into an asserted predicate or invent a negative name. An empty lookup before the declared schema exists is a retry condition, not proof of an ontology gap.
+If authorized input supplies `projectLocalSchemas`, use those signatures as the authority. Create the minimal `predicate_schema` endpoint before lookup, then rerun `kb_model` with `mode: "predicates"` on the complete relation if the first lookup had no candidate. Apply exactly one ground predicate and one claim key for that relation. For `must not`, `never`, `cannot`, or `forbidden` wording, preserve the positive schema and set `polarity: deny`; do not turn the result into an asserted predicate or invent a negative name. An empty lookup before the declared schema exists is a retry condition, not proof of an ontology gap.
 
 ## Typed rule lane
 
-Use a validated `kibi.logic.v1` object for a proposition whose meaning includes a condition, exception, obligation, prohibition, permission, quantifier, cardinality bound, or bounded temporal relation. `kb_model_requirement` returns the `rule_schema` and `rule` facts plus a `requires_rule` edge. The rule stores canonical JSON and a deterministic hash; any rendered Prolog is an audit view and is never executed. Reject raw goals, function symbols, cuts, meta-calls, dynamic predicates, I/O, unsafe variables, unstratified negation, and unbounded aggregation. Keep the exact proposition in `claim_text`, its advisor key in `claim_key`, and its byte span in the semantic ledger. Run `rule-safety` and `rule-verifiability` before treating the rule as modeled.
+Use a validated `kibi.logic.v1` object for a proposition whose meaning includes a condition, exception, obligation, prohibition, permission, quantifier, cardinality bound, or bounded temporal relation. `kb_model` with `mode: "requirement"` returns the `rule_schema` and `rule` facts plus a `requires_rule` edge. The rule stores canonical JSON and a deterministic hash; any rendered Prolog is an audit view and is never executed. Reject raw goals, function symbols, cuts, meta-calls, dynamic predicates, I/O, unsafe variables, unstratified negation, and unbounded aggregation. Keep the exact proposition in `claim_text`, its advisor key in `claim_key`, and its byte span in the semantic ledger. Run `rule-safety` and `rule-verifiability` before treating the rule as modeled.
 
 ### Strict scalar
 
-Claim: “Sessions expire after at most 30 minutes.” This is a scalar limit, not a predicate. Route it through `kb_model_requirement` to a subject plus `property_value` with `operator: lte`, `value_type: int`, and `value_int: 30`, linked by `constrains` and `requires_property`.
+Claim: “Sessions expire after at most 30 minutes.” This is a scalar limit, not a predicate. Route it through `kb_model` with `mode: "requirement"` to a subject plus `property_value` with `operator: lte`, `value_type: int`, and `value_int: 30`, linked by `constrains` and `requires_property`.
 
 ### Ambiguous claim
 

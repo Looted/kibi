@@ -338,31 +338,24 @@ describe("MCP Server", () => {
     const result = response.result as Record<string, unknown>;
     expect(result.tools).toBeDefined();
     const tools = result.tools as Array<Record<string, unknown>>;
-    expect(tools.length).toBe(23);
+    expect(tools.length).toBe(16);
     expect(tools.map((tool) => tool.name)).toEqual([
       "kb_query",
       "kb_search",
       "kb_status",
-      "kb_skills_list",
-      "kb_skills_load",
-      "kb_skills_read",
+      "kb_skills",
       "kb_find_gaps",
       "kb_coverage",
       "kb_graph",
-      "kb_sparql_remote",
-      "kb_semantic_advisor",
+      "kb_model",
       "kb_upsert",
-      "kb_validate_upsert",
       "kb_delete",
       "kb_check",
       "kb_prepare_impact_review",
-      "kb_model_requirement",
-      "kb_suggest_predicates",
       "kb_plan_bootstrap",
       "kb_compile_intent",
       "kb_apply_plan",
       "kb_ingest_proof",
-      "kb_job_status",
     ]);
     expect(tools.map((tool) => tool.name)).not.toContain(
       "kb_briefing_generate",
@@ -638,7 +631,7 @@ describe("MCP Server", () => {
 
   // executable_for TEST-test-journaled-engine-harness
   test(
-    "should handle tools/call for kb_model_requirement",
+    "should handle tools/call for kb_model mode requirement",
     async () => {
       const tempRoot = fs.mkdtempSync(
         path.join(os.tmpdir(), "kibi-mcp-model-"),
@@ -673,8 +666,9 @@ describe("MCP Server", () => {
             id: 2,
             method: "tools/call",
             params: {
-              name: "kb_model_requirement",
+              name: "kb_model",
               arguments: {
+                mode: "requirement",
                 text: "Customer data must be retained for 7 years.",
                 source: ".kb/requirements/customer-retention.md",
                 confidence: 0.92,

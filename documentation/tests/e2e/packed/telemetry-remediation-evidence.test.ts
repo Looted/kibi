@@ -130,8 +130,9 @@ if (RUN_NODE_TEST_SUITE) {
               })}\n`,
             );
             const response = await sendMcpRequest(mcp, 2, "tools/call", {
-              name: "kb_skills_list",
+              name: "kb_skills",
               arguments: {
+                action: "list",
                 _diagnostic_telemetry: diagnosticTelemetry(
                   "session-packed",
                   "actor-packed",
@@ -160,12 +161,12 @@ if (RUN_NODE_TEST_SUITE) {
                 business_args: row.business_args,
               },
               {
-                tool: "kb_skills_list",
+                tool: "kb_skills",
                 status: "success",
                 telemetry_status: "provided",
                 session_id: "session-packed",
                 actor_id: "actor-packed",
-                business_args: {},
+                business_args: { action: "list" },
               },
             );
           }

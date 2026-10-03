@@ -454,7 +454,7 @@ describe("Cursor guided path state", () => {
   test("kb tool records observe mcp and distinguish check semantics", () => {
     const stateDir = tempDir("kibi-cursor-guided-");
 
-    const observed = recordKbMcpTool(stateDir, " kb_skills_list ");
+    const observed = recordKbMcpTool(stateDir, " kb_skills ");
     expect(observed.mcpState).toBe("observed");
     expect(observed.kbCheckRun).toBe(false);
 
@@ -567,7 +567,7 @@ describe("Cursor kb mcp tool call extraction", () => {
     ).toBe(true);
     expect(
       extractKbMcpToolCall(
-        "kb_skills_list",
+        "kb_skills",
         toolInput({
           includeImpactDiagnostics: true,
           includeWorkingTreeDiff: true,
@@ -1055,7 +1055,7 @@ describe("Cursor hook runner decisions", () => {
     const cwd = tempDir("kibi-cursor-cwd-");
     const pluginData = tempDir("kibi-cursor-data-");
     optIn(cwd);
-    recordKbMcpTool(resolveStateDir(pluginData, undefined), "kb_skills_list");
+    recordKbMcpTool(resolveStateDir(pluginData, undefined), "kb_skills");
 
     const result = await runHook(
       { event: "sessionStart", cwd },

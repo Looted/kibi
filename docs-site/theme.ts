@@ -1058,6 +1058,10 @@ export function landingContent(args: {
       <p>TypeScript and JavaScript work out of the box. Add the optional <code>kibi-plugin-treesitter</code> package for Python, Go, Rust, Java, C#, PHP, C, C++, Bash, Ruby, and Terraform/HCL. It runs offline with pinned grammars. Setup is in the <a href="${root}reference/plugins.html">plugin reference</a>.</p>
     </details>
     <details>
+      <summary>Can my agent ask Kibi what governs a change?</summary>
+      <p>Yes. <code>kb_search</code> accepts a plain question and, alongside ranked matches, returns the current requirements that govern the topic with their linked facts, scenarios, tests, and ADRs. Superseded requirements are listed separately so they are not read as current policy. These links help the agent find context; consistency and proof still come from the checks.</p>
+    </details>
+    <details>
       <summary>What counts as proven?</summary>
       <p>A requirement is proven only when a test that claims to verify it has fresh end-to-end evidence for the current code. A passing unit test, a coverage percentage, or an old receipt does not count.</p>
     </details>
