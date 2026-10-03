@@ -93,7 +93,7 @@ describe("packed MCP and CLI operation parity", { concurrency: false }, () => {
         testContext.skip("SWI-Prolog is unavailable");
         return;
       }
-      assert.strictEqual(OPERATIONS.length, 18);
+      assert.strictEqual(OPERATIONS.length, 21);
       for (const [index, operation] of OPERATIONS.entries()) {
         const input =
           operation.tool === "kb_sparql_remote"
@@ -159,7 +159,8 @@ describe("packed MCP and CLI operation parity", { concurrency: false }, () => {
         const tools = response.result?.tools as
           | readonly Record<string, unknown>[]
           | undefined;
-        assert.strictEqual(tools?.length, 23);
+        // 16 default tools; kb_sparql_remote and kb_job_status are opt-in.
+        assert.strictEqual(tools?.length, 16);
         assert.ok(!tools?.some((tool) => tool.name === "kb_briefing_generate"));
       } finally {
         process.kill();

@@ -21,6 +21,7 @@ The input root must be a JSON object that matches the corresponding operation sc
 | `kb_skills_list` | `kibi skills-list --input <file|->` |
 | `kb_skills_load` | `kibi skills-load --input <file|->` |
 | `kb_skills_read` | `kibi skills-read --input <file|->` |
+| `kb_skills` | `kibi skill --input <file|->` |
 | `kb_query` | `kibi query --input <file|->` |
 | `kb_search` | `kibi search --input <file|->` |
 | `kb_status` | `kibi status --input <file|->` |
@@ -30,6 +31,7 @@ The input root must be a JSON object that matches the corresponding operation sc
 | `kb_semantic_advisor` | `kibi semantic-advisor --input <file|->` |
 | `kb_model_requirement` | `kibi model-requirement --input <file|->` |
 | `kb_suggest_predicates` | `kibi suggest-predicates --input <file|->` |
+| `kb_model` | `kibi model --input <file|->` |
 | `kb_plan_bootstrap` | `kibi plan-bootstrap --input <file|->` |
 | `kb_compile_intent` | `kibi compile-intent --input <file|->` |
 | `kb_apply_plan` | `kibi apply-plan --input <file|->` |
@@ -39,6 +41,29 @@ The input root must be a JSON object that matches the corresponding operation sc
 | `kb_delete` | `kibi delete --input <file|->` |
 | `kb_check` | `kibi check --input <file|->` |
 | `kb_sparql_remote` | `kibi sparql-remote --input <file|->` |
+
+The MCP server registers 16 tools rather than one per operation. The
+consolidated routes `kibi skill` and `kibi model` match the MCP tools
+`kb_skills` and `kb_model`, and the narrower routes stay available:
+
+- `kibi skill` takes `action: "list" | "load" | "read"` plus `id` and
+  `resource`, and returns the routed operation's payload with `action`.
+- `kibi model` takes `mode: "analyze" | "requirement" | "predicates"` plus the
+  inputs of `semantic-advisor`, `model-requirement`, or `suggest-predicates`
+  (`text` is always required), and returns that operation's payload with
+  `mode`.
+- `kibi upsert` accepts `"dryRun": true`: it runs the `validate-upsert`
+  checks, writes nothing, and returns the validation payload plus
+  `dryRun: true` and `skippedEffects`.
+
+```bash
+printf '%s\n' '{"action":"load","id":"kibi-usage"}' | kibi skill --input -
+printf '%s\n' '{"mode":"predicates","text":"Admins may export audit logs."}' | kibi model --input -
+printf '%s\n' '{"type":"req","id":"REQ-auth-session-timeout","properties":{"title":"Session timeout","status":"open"},"dryRun":true}' | kibi upsert --input -
+```
+
+See the [MCP reference](mcp-reference.md#catalog-operations-mcp-calls-and-cli-routes)
+for the full catalog operation to MCP call to CLI route table.
 
 ### JSON-route exit codes
 
@@ -293,7 +318,7 @@ kibi query scenario --limit 10 --offset 10
 
 ## `kibi search <query>`
 
-Searches entity metadata and markdown body text for exploratory discovery. The JSON route also supports deterministic intent-v1 ranking for host-agent facets and changed source locations.
+Searches entity metadata and markdown body text for exploratory discovery. The JSON route defaults to deterministic intent-v1 ranking, which accepts natural-language questions, host-agent facets, and changed source locations, and adds an answer layer; pass `"rankingMode": "legacy"` for lexical ranking.
 
 **Syntax:**
 ```bash
@@ -305,18 +330,19 @@ kibi search <query> [--type TYPE] [--format json|table] [--limit N] [--offset N]
 - Does not search raw code file bodies
 - Use `kibi query` for exact follow-up lookups
 
-Intent mode is available through `kibi search --input -`:
+Intent mode is the default for `kibi search --input -`:
 
 ```bash
 printf '%s\n' '{
-  "query": "download a report",
-  "rankingMode": "intent-v1",
+  "query": "what governs downloading a report?",
   "semanticFacets": {"actions": ["export"], "objects": ["CSV file"]},
   "sourceLocations": [{"path": "src/reports/export.ts", "line": 42}]
 }' | kibi search --input -
 ```
 
-Intent results include `queryAnalysis`, matched semantic facets, source-location evidence, bounded traceability graph paths, and `abstained: true` when no result reaches `minScore` (default `0.18`). Source paths must be workspace-relative. The host agent supplies facets; Kibi does not call a model.
+Intent results include `queryAnalysis`, matched semantic facets, source-location evidence, bounded traceability graph paths, `truncated`, and `abstained: true` when no result reaches `minScore` (default `0.18`). Superseded and deprecated entities are demoted. Source paths must be workspace-relative. The host agent supplies facets; Kibi does not call a model.
+
+On the first page, `data.answer` (`kibi.search-answer.v1`, on by default; `"answer": false` turns it off) lists the current `governing` requirements with `via` and their linked `facts`, `scenarios`, `tests`, and `adrs`; `rationale` ADRs; `notGoverning` superseded or deprecated requirements with `supersededBy`; `observations` (notes, not rules); `truncated`; and a `note`. The layer follows graph links: it is discovery, not proof. See the [MCP reference](mcp-reference.md#kb_search) for details.
 
 ## `kibi status`
 
@@ -557,7 +583,7 @@ also needs the built-in predicate catalog); none calls a plugin or the network.
 | `subject-key-shape` | warning | Subject facts whose key is not dotted `component.aspect[.sub]` with lowercase snake segments (`kibi.cli.check.staged`). |
 | `ontology-quality` | info | A predicate (namespace, name, arity) with at least `KIBI_ONTOLOGY_QUALITY_MIN_FACTS` facts (default 8) where the share of argument slots holding a value that occurs in only one fact is at least `KIBI_ONTOLOGY_QUALITY_MAX_SINGLETON_RATIO` (default 0.6): prose is being compressed into atoms. The message names each argument whose own singleton share reaches the threshold. Both variables are read from the invoking `kibi`/MCP process. |
 | `predicate-schema-conformance` | warning | A predicate fact with no `predicate_schema` for its namespace, name, and arity (project-local, or the built-in catalog in the `default` namespace), a fact using a value outside a declared argument vocabulary, or a schema whose `argument_constants`/`argument_aliases` are malformed. When the repair is mechanical, the finding carries it and `kibi migrate` offers it as an automatic action (see below). |
-| `entity-id-style` | warning | Markdown entities whose filename stem differs from the frontmatter `id`. New purely numeric IDs (`REQ-123`) are reported where they are created: `kb_upsert`/`kb_validate_upsert` warnings and staged added or renamed entity files (`--staged`). Committed legacy numbered entities are never flagged. |
+| `entity-id-style` | warning | Markdown entities whose filename stem differs from the frontmatter `id`. New purely numeric IDs (`REQ-123`) are reported where they are created: `kb_upsert` warnings (including `dryRun: true` and `kibi validate-upsert`) and staged added or renamed entity files (`--staged`). Committed legacy numbered entities are never flagged. |
 
 Property values are compared after unit canonicalization: durations convert to
 seconds, data sizes to bytes (SI `kB`/`MB`, IEC `KiB`/`MiB`), and percentages
@@ -579,7 +605,8 @@ argument_aliases:
 ```
 
 `kb_upsert` rejects a predicate fact that uses an undeclared value or an alias
-(naming the constant to use), and `kb_suggest_predicates` binds aliases to their
+(naming the constant to use), and predicate suggestion (`kb_model` mode
+`predicates`, CLI `suggest-predicates`) binds aliases to their
 constant and leaves undeclared values unbound. Existing facts are converged by
 `kibi migrate` (below).
 
@@ -819,6 +846,12 @@ kibi branch restore --branch <branch> [--apply]
   The old and new identities may be equal when moving a literal store for the current branch into its hashed path.
 - `recover` publishes only after a clean rebuild has succeeded, moves the prior store to `.kb/recovery/<branch>/...`, and writes an audit record. It never renames a Git branch.
 
+**Detached HEAD:** when HEAD is detached but its commit is the tip of exactly
+one local branch (for example `git checkout <sha>` of a branch tip, or a tool
+that detaches before running), Kibi attaches that branch's KB. With zero or
+several candidate branches it reports a `DETACHED_HEAD` diagnostic and guesses
+nothing. `KIBI_BRANCH` still overrides the Git identity verbatim.
+
 **Examples:**
 ```bash
 # Ensure the current branch has a KB
@@ -879,7 +912,22 @@ kibi skills read kibi-usage resources/fact-lanes.md --format text
 - Skills are bundled with Kibi. Remote installation, marketplace, and script execution are not supported in v1.
 - OpenCode is an adapter for skill discovery, not the source of truth. The bundled skill set is authoritative.
 - Generic MCP/CLI agents should start with [generic-agent onboarding](generic-agent-onboarding.md) and load `kibi-usage`. Do not copy a long prompt as a substitute for skill discovery.
-XB
+- The JSON routes `skills-list`, `skills-load`, `skills-read`, and the consolidated `skill` route (`{"action":"list"|"load"|"read", ...}`) back the MCP `kb_skills` tool.
+
+## Workspace selection
+
+The CLI runs in the current directory. The MCP server answers from the
+workspace it started in and can route single calls elsewhere through
+`workspaceRoot` (see the [MCP reference](mcp-reference.md#workspace-routing)).
+These environment variables decide which workspace that is:
+
+| Variable | Effect |
+| --- | --- |
+| `KIBI_WORKSPACE`, `KIBI_PROJECT_ROOT`, `KIBI_ROOT` | Pin the workspace. The CLI and MCP server use it instead of the working directory, and a pinned MCP server does not route calls to other workspaces. |
+| `KIBI_MCP_ATTACH_ROOT` | Set by host launchers (Claude Code, Codex, Cursor, ZCode plugins) to the session's workspace; the launcher starts the MCP server there. It does not pin: per-call `workspaceRoot` routing to worktrees stays enabled. An operator-set `KIBI_WORKSPACE` still passes through and pins. |
+
+A detached HEAD whose commit is the tip of exactly one local branch attaches
+that branch's KB; see [`kibi branch`](#kibi-branch).
 
 ## Staged Symbol Traceability
 

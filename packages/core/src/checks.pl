@@ -15,9 +15,13 @@
     check_no_cycles/1,              % Returns list of cycle violations
     check_required_fields/1,        % Returns list of missing required field violations
     check_deprecated_adrs/1,        % Returns list of deprecated ADR violations
+    check_scenario_feasibility/1,
+    infeasible_scenario/5,
     check_domain_contradictions/1,  % Returns list of contradiction violations
     check_domain_contradictions_and_witnesses/2,
     check_domain_contradiction_witnesses/1,
+    what_if_contradiction_witnesses/2,
+    what_if_contradiction_witnesses_json/2,
     check_strict_fact_shape/1,      % Returns list of malformed strict fact violations
     check_strict_req_fact_pairing/1,% Returns list of malformed strict req/fact pairing violations
     check_strict_readiness/1,       % Returns list of strict readiness audit violations
@@ -64,7 +68,8 @@ required_fields([id, title, status, created_at, updated_at, source]).
 % Relationship types to check for dangling references
 all_relationship_types([
     depends_on, verified_by, validates, specified_by,
-    constrains, requires_property, requires_predicate, requires_rule, supersedes, restates, relates_to
+    constrains, requires_property, requires_predicate, requires_rule, supersedes, restates, relates_to,
+    assumes, exempts
 ]).
 
 %% check_all(-ViolationsDict)
@@ -79,6 +84,7 @@ check_all(ViolationsDict) :-
     check_no_cycles(Cycles),
     check_required_fields(RequiredFields),
     check_deprecated_adrs(DeprecatedADRs),
+    check_scenario_feasibility(ScenarioFeasibility),
     check_domain_contradictions(Contradictions),
     check_strict_fact_shape(StrictFactShape),
     check_strict_req_fact_pairing(StrictReqFactPairing),
@@ -104,6 +110,7 @@ check_all(ViolationsDict) :-
         no_cycles: Cycles,
         required_fields: RequiredFields,
         deprecated_adr_no_successor: DeprecatedADRs,
+        scenario_feasibility: ScenarioFeasibility,
         domain_contradictions: Contradictions,
         strict_fact_shape: StrictFactShape,
         strict_req_fact_pairing: StrictReqFactPairing,
@@ -524,6 +531,81 @@ deprecated_adr_violation(violation(
     ;   Source = ""
     ).
 
+%% check_scenario_feasibility(-Violations)
+% implements REQ-kibi-scenario-feasibility
+% A scenario that expects success and assumes a property value a current
+% requirement forbids can never pass. Each witness names the scenario, the
+% requirement, the assumed fact and the requirement's fact. An approved
+% exception (a current requirement that `exempts` the base requirement and is
+% `specified_by` the scenario) makes the pair feasible without editing the
+% base requirement. Scenarios that expect rejection or error, or that assume
+% nothing the requirement constrains, are not checked: absence of a witness
+% is not proof that the scenario is feasible.
+check_scenario_feasibility(Violations) :-
+    findall(
+        Violation,
+        scenario_feasibility_violation(Violation),
+        Unsorted
+    ),
+    sort(Unsorted, Violations).
+
+scenario_feasibility_violation(violation(
+    'scenario-feasibility',
+    ScenarioId,
+    Description,
+    Suggestion,
+    Source
+)) :-
+    infeasible_scenario(ScenarioId, ReqId, AssumedFact, ReqFact, Reason),
+    format(string(Description),
+        "Scenario expects success but assumes ~w, which current requirement ~w forbids via ~w: ~w",
+        [AssumedFact, ReqId, ReqFact, Reason]),
+    format(string(Suggestion),
+        "Set expects: rejection on ~w, correct the assumption, or record a human-approved exception requirement that exempts ~w and is specified_by ~w",
+        [ScenarioId, ReqId, ScenarioId]),
+    (   kb_entity(ScenarioId, scenario, Props),
+        memberchk(source=Source, Props)
+    ->  true
+    ;   Source = ""
+    ).
+
+%% infeasible_scenario(?ScenarioId, ?ReqId, ?AssumedFact, ?ReqFact, -Reason)
+infeasible_scenario(ScenarioId, ReqId, AssumedFact, ReqFact, Reason) :-
+    scenario_expects(ScenarioId, success),
+    kb_relationship(assumes, ScenarioId, AssumedFact),
+    kb:fact_property_tuple(AssumedFact, Subject, Property, AOp, AType, AValue, AUnit, AScope, APolarity),
+    kb:current_req(ReqId),
+    kb:effective_req_property_fact(ReqId, Subject, ReqFact, Property, ROp, RType, RValue, RUnit, RScope, RPolarity, _From, _To),
+    kb:scope_intersects(RScope, AScope),
+    assumption_conflict(Subject, Property,
+                        ROp, RType, RValue, RUnit, RScope, RPolarity,
+                        AOp, AType, AValue, AUnit, AScope, APolarity, Reason),
+    \+ scenario_exempt(ScenarioId, ReqId).
+
+assumption_conflict(Subject, Property, ROp, RType, RValue, RUnit, _RScope, Polarity,
+                    AOp, AType, AValue, AUnit, _AScope, Polarity, Reason) :-
+    kb:property_conflict(Subject, Property, ROp, RType, RValue, RUnit, Polarity,
+                         AOp, AType, AValue, AUnit, Polarity, Reason),
+    !.
+assumption_conflict(Subject, Property, ROp, RType, RValue, RUnit, RScope, RPolarity,
+                    AOp, AType, AValue, AUnit, AScope, APolarity, Reason) :-
+    RPolarity \== APolarity,
+    kb:polarity_conflict(Subject, Property, ROp, RType, RValue, RUnit, RScope, RPolarity,
+                         AOp, AType, AValue, AUnit, AScope, APolarity, Reason).
+
+scenario_expects(ScenarioId, Outcome) :-
+    kb_entity(ScenarioId, scenario, Props),
+    memberchk(expects=Raw, Props),
+    kb:normalize_term_atom(Raw, Outcome).
+
+%% scenario_exempt(+ScenarioId, +ReqId)
+% A current exception requirement exempts ReqId and specifies the scenario.
+scenario_exempt(ScenarioId, ReqId) :-
+    kb_relationship(exempts, ExceptionId, ReqId),
+    kb:current_req(ExceptionId),
+    kb_relationship(specified_by, ExceptionId, ScenarioId),
+    !.
+
 %% check_req_status_vocabulary(-Violations)
 % Rejects requirement statuses outside the canonical+legacy vocabulary.
 % Requirement documents carrying ADR vocabulary (e.g. `status: accepted`)
@@ -805,6 +887,63 @@ check_domain_contradiction_witnesses(Witnesses) :-
     findall(Witness, rule_contradiction_witness(Witness), RuleWitnesses),
     append(GroundWitnesses, RuleWitnesses, Witnesses0),
     sort(Witnesses0, Witnesses).
+
+%% what_if_contradiction_witnesses(+Entries, -Witnesses)
+% implements REQ-kibi-truthful-consistency
+% Contradiction witnesses for the KB as it would be after staging Entries,
+% computed inside an RDF transaction that is always rolled back.  Entries are
+% upsert(Type, Props, Relationships) or relate(Relationships) terms, with
+% relationships as rel(Type, From, To, Metadata).  Staging validates entities
+% and relationships exactly as a commit would, so an invalid plan raises the
+% same error here before anything is written.  The entity index is not
+% transactional, so every staged id is re-indexed from the restored store.
+what_if_contradiction_witnesses(Entries, Witnesses) :-
+    findall(Id, (member(Entry, Entries), what_if_entry_id(Entry, Id)), Ids0),
+    sort(Ids0, Ids),
+    with_kb_mutex(
+        call_cleanup(
+            catch(
+                rdf_transaction((
+                    checks:what_if_stage(Entries),
+                    checks:check_domain_contradiction_witnesses(Staged),
+                    throw(kibi_what_if_result(Staged))
+                )),
+                kibi_what_if_result(Witnesses),
+                true
+            ),
+            forall(member(Id, Ids), kb:kb_refresh_entity_index(Id))
+        )
+    ).
+
+what_if_contradiction_witnesses_json(Entries, JsonString) :-
+    what_if_contradiction_witnesses(Entries, Witnesses),
+    with_output_to_string(
+        json_write_dict(current_output, Witnesses, [width(0)]),
+        JsonString
+    ).
+
+what_if_entry_id(upsert(_, Props, _), Id) :- memberchk(id=Id, Props).
+what_if_entry_id(upsert(_, _, Rels), Id) :- what_if_relationship_id(Rels, Id).
+what_if_entry_id(relate(Rels), Id) :- what_if_relationship_id(Rels, Id).
+
+what_if_relationship_id(Rels, Id) :-
+    member(rel(_, From, To, _), Rels),
+    member(Id, [From, To]).
+
+% Entities first, then every relationship, so a step may relate to an entity
+% that a later step of the same plan creates.
+what_if_stage(Entries) :-
+    forall(member(upsert(Type, Props, _), Entries),
+        kb_assert_entity_no_audit(Type, Props)),
+    forall(
+        (   member(Entry, Entries),
+            (Entry = upsert(_, _, Rels) ; Entry = relate(Rels))
+        ),
+        what_if_stage_relationships(Rels)).
+
+what_if_stage_relationships(Rels) :-
+    forall(member(rel(Type, From, To, Metadata), Rels),
+        kb_assert_relationship_no_audit(Type, From, To, Metadata)).
 
 contradiction_witness_violation(Witness, violation(
     'domain-contradictions',
@@ -1599,6 +1738,7 @@ check_selected_dispatch(Rules, _{
     no_cycles: Cycles,
     required_fields: RequiredFields,
     deprecated_adr_no_successor: DeprecatedADRs,
+    scenario_feasibility: ScenarioFeasibility,
     domain_contradictions: Contradictions,
     strict_fact_shape: StrictFactShape,
     strict_req_fact_pairing: StrictReqFactPairing,
@@ -1624,6 +1764,7 @@ check_selected_dispatch(Rules, _{
     selected_rule(Rules, 'no-cycles', check_no_cycles, Cycles),
     selected_rule(Rules, 'required-fields', check_required_fields, RequiredFields),
     selected_rule(Rules, 'deprecated-adr-no-successor', check_deprecated_adrs, DeprecatedADRs),
+    selected_rule(Rules, 'scenario-feasibility', check_scenario_feasibility, ScenarioFeasibility),
     selected_rule(Rules, 'domain-contradictions', check_domain_contradictions, Contradictions),
     selected_rule(Rules, 'strict-fact-shape', check_strict_fact_shape, StrictFactShape),
     selected_rule(Rules, 'strict-req-fact-pairing', check_strict_req_fact_pairing, StrictReqFactPairing),
@@ -1686,6 +1827,7 @@ check_all_with_options(ViolationsDict, RequireAdr) :-
     check_no_cycles(Cycles),
     check_required_fields(RequiredFields),
     check_deprecated_adrs(DeprecatedADRs),
+    check_scenario_feasibility(ScenarioFeasibility),
     check_domain_contradictions(Contradictions),
     check_strict_fact_shape(StrictFactShape),
     check_strict_req_fact_pairing(StrictReqFactPairing),
@@ -1711,6 +1853,7 @@ check_all_with_options(ViolationsDict, RequireAdr) :-
         no_cycles: Cycles,
         required_fields: RequiredFields,
         deprecated_adr_no_successor: DeprecatedADRs,
+        scenario_feasibility: ScenarioFeasibility,
         domain_contradictions: Contradictions,
         strict_fact_shape: StrictFactShape,
         strict_req_fact_pairing: StrictReqFactPairing,

@@ -277,7 +277,7 @@ export function buildTelemetryRemediationReport(
             entry,
             target(entry.event),
             "No recent successful preflight matches this exact payload and correlation context.",
-            "Run kb_validate_upsert for this exact payload in the same session/actor context before retrying once.",
+            "Run kb_upsert with dryRun true (CLI: validate-upsert) for this exact payload in the same session/actor context before retrying once.",
           ),
         );
       }
@@ -328,7 +328,7 @@ export function buildTelemetryRemediationReport(
             entry,
             requirementId,
             "No recent semantic-advisor event matches this requirement, source hash, and correlation context.",
-            "Run kb_semantic_advisor on the complete prose in the same session/actor context before the next upsert.",
+            "Run kb_model with mode analyze (CLI: semantic-advisor) on the complete prose in the same session/actor context before the next upsert.",
           ),
         );
       }

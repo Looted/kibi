@@ -50,6 +50,18 @@ Use whichever capability is visible and approved. The surfaces are equal peers:
 Hosts may expose prefixed identifiers such as `kibi_kb_search`,
 `kibi_kb_query`, and `kibi_kb_upsert`; map them to the canonical MCP names.
 
+The MCP server keeps its tool list short. Load skills with `kb_skills`
+(`action: "list" | "load" | "read"`; CLI `kibi skill` or `kibi skills
+list|load|read`). Model prose with `kb_model` (`mode: "analyze"` for the
+semantic advisor, `"requirement"` for strict claims, `"predicates"` for
+ontology predicates; CLI `kibi model` or `semantic-advisor`,
+`model-requirement`, `suggest-predicates`). Preflight a write with
+`kb_upsert` plus `dryRun: true` (CLI `upsert` with `"dryRun": true` or
+`validate-upsert`); it validates and writes nothing. Result payloads still name
+catalog operations such as `kb_model_requirement` or `kb_validate_upsert` in
+`recommended_tools` and repair steps; translate them with the list in
+`resources/operation-access.md`.
+
 The CLI JSON route accepts the same business object as MCP:
 
 ```bash
@@ -76,13 +88,16 @@ runs where you are and needs no `workspaceRoot`.
 ## Safe workflow
 
 1. Always discover before you mutate: start with `kb_search`, then exact-filter with `kb_query`. Use
-   `kb_status` when branch or freshness confidence matters. `kb_search` ranks
-   lexically unless you pass `rankingMode: "intent-v1"`, `semanticFacets`, or
-   `sourceLocations`; use intent mode with grounded facets for conceptual
-   questions and before changing a source file, and keep lexical search for
-   literal identifiers. See `resources/workflows.md` for the mode recipe.
-2. Resolve genuine ambiguity with the human; use semantic advisor/modeling
-   operations for deterministic interpretation and typed facts.
+   `kb_status` when branch or freshness confidence matters. `kb_search`
+   defaults to intent ranking, so you can ask it a question ("what governs
+   checkout rounding?"); its `data.answer` layer lists the current governing
+   requirements with linked facts, scenarios, tests, and ADRs, separates
+   superseded requirements, and labels observations as notes. Those links are
+   discovery, not proof. Pass `sourceLocations` before changing a source file,
+   and `rankingMode: "legacy"` for literal identifier lookups. See
+   `resources/workflows.md` for the mode recipe.
+2. Resolve genuine ambiguity with the human; use `kb_model` for deterministic
+   interpretation and typed facts.
 3. Create endpoints before relationships and upsert small batches sequentially.
    Keep the canonical `REQ-* -> SCEN-* -> TEST-*` chain.
 4. Author tracked Markdown/YAML/manifests and relationship shards through Kibi;
@@ -94,9 +109,9 @@ runs where you are and needs no `workspaceRoot`.
 Run `kb_check` with specific rules during iteration and the unfiltered final
 check. Never fire `kb_upsert` calls in parallel; create or confirm endpoint
 entities before linking them. The canonical MCP names are `kb_search`,
-`kb_query`, `kb_upsert`, and `kb_check`.
+`kb_query`, `kb_model`, `kb_upsert`, and `kb_check`.
 
-For a task that explicitly supplies a malformed concrete mutation payload, locate and read that public request artifact before choosing an entity, preserving its exact entity ID, type, requested changes, and every intended relationship and endpoint. Do not substitute a seeded or convenient entity for the requested target. Start with kb_search, then exact-filter those targets with kb_query, and run kb_validate_upsert on that same payload; validation is not completion. Correct only diagnosed pre-commit errors and revalidate the corrected payload. Once authorized, apply the identical corrected and authorized payload with kb_upsert. If it returns committed_with_repairs, treat the mutation as committed, follow only the required repair actions, and neither retry it nor trigger unrelated semantic backfill for a schema-only repair. Exact-read every changed entity and relationship endpoint with kb_query, then finish with an unfiltered kb_check followed by a final kb_status.
+For a task that explicitly supplies a malformed concrete mutation payload, locate and read that public request artifact before choosing an entity, preserving its exact entity ID, type, requested changes, and every intended relationship and endpoint. Do not substitute a seeded or convenient entity for the requested target. Start with kb_search, then exact-filter those targets with kb_query, and run kb_upsert with dryRun: true on that same payload (CLI: validate-upsert); validation is not completion. Correct only diagnosed pre-commit errors and revalidate the corrected payload. Once authorized, apply the identical corrected and authorized payload with kb_upsert. If it returns committed_with_repairs, treat the mutation as committed, follow only the required repair actions, and neither retry it nor trigger unrelated semantic backfill for a schema-only repair. Exact-read every changed entity and relationship endpoint with kb_query, then finish with an unfiltered kb_check followed by a final kb_status.
 
 ## Closeout fields
 
@@ -160,20 +175,20 @@ to committed `proof/baseline.json` with `kibi proof impact`.
 
 ## Predicate Ontology Decision Tree
 
-Call `kb_semantic_advisor` on the complete prose before encoding a clause.
+Call `kb_model` with `mode: "analyze"` on the complete prose before encoding a clause.
 Set requirement `logic_claims` to exactly the assertive `claim_key` values.
-For each relational clause, call `kb_suggest_predicates` with that clause and
+For each relational clause, call `kb_model` with `mode: "predicates"`, that clause, and
 `existingLogicClaims`. If lexical rank is a false positive, retry with the
 reviewed `schemaId`. If `binding_status` is `incomplete`, supply
 `argumentBindings` and retry. Persist `fact_kind: predicate` with the same
 `claim_key` / `claim_text`, then link `REQ -> fact` with `requires_predicate`.
-Use `kb_model_requirement` for strict scalar clauses. Use
+Use `kb_model` with `mode: "requirement"` for strict scalar clauses. Use
 `fact_kind: observation` only for a true ontology gap. The manifest is not
 grounding: run `logic-coverage` so each key binds to one ground fact.
 Relationship direction is fixed, and every `from` in a relationship batch
 must equal the upserted entity ID.
 
-For conditional relational claims, after the initial `kb_suggest_predicates` and before any `kb_upsert`—including one needed for a missing schema—call read-only `kb_model_requirement` to preview suitable scalar or typed-rule modeling. Treat the preview as advisory: do not apply an irrelevant result or create unrequested facts, and retain an approved ground-predicate plan when it captures the whole claim. Preserve supplied arity, ordered argument roles, polarity, bound values, and one claim key per actual assertion; never split arguments across clauses or schemas or alter values to force uniqueness.
+For conditional relational claims, after the initial `kb_model` predicates call and before any `kb_upsert`—including one needed for a missing schema—call read-only `kb_model` with `mode: "requirement"` to preview suitable scalar or typed-rule modeling. Treat the preview as advisory: do not apply an irrelevant result or create unrequested facts, and retain an approved ground-predicate plan when it captures the whole claim. Preserve supplied arity, ordered argument roles, polarity, bound values, and one claim key per actual assertion; never split arguments across clauses or schemas or alter values to force uniqueness.
 
 ## Symbol-First Traceability
 

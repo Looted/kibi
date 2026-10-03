@@ -338,5 +338,5 @@ against the schema in CI.
 ## For agent workflows
 
 Bundled skill guidance is in `kibi-usage` → `resources/proof.md`
-(`kb_skills_load` with `id: "kibi-usage"`, then `kb_skills_read`).
+(`kb_skills` with `action: "load"` and `id: "kibi-usage"`, then `action: "read"`).
 Deterministic discovery: `kibi proof inspect --json`.

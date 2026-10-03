@@ -451,6 +451,7 @@ var ENTITY_LANES = [
   ["EVT-", "events"]
 ];
 var SAFE_ENTITY_ID = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
+var MAX_SUMMARY_LINKS = 24;
 function readEntitySummary(workspaceRoot, entityId) {
   const lane = ENTITY_LANES.find(([prefix]) => entityId.startsWith(prefix));
   if (!lane || !SAFE_ENTITY_ID.test(entityId))
@@ -459,7 +460,7 @@ function readEntitySummary(workspaceRoot, entityId) {
   try {
     const descriptor = fs.openSync(path.join(workspaceRoot, ".kb", lane[1], `${entityId}.md`), "r");
     try {
-      const buffer = Buffer.alloc(4096);
+      const buffer = Buffer.alloc(8192);
       const bytes = fs.readSync(descriptor, buffer, 0, buffer.length, 0);
       head = buffer.subarray(0, bytes).toString("utf8");
     } finally {
@@ -472,6 +473,9 @@ function readEntitySummary(workspaceRoot, entityId) {
   if (lines[0]?.trim() !== "---")
     return { id: entityId };
   const summary = { id: entityId };
+  const links = [];
+  let inLinks = false;
+  let pendingType;
   for (const line of lines.slice(1)) {
     if (line.trim() === "---")
       break;
@@ -480,7 +484,32 @@ function readEntitySummary(workspaceRoot, entityId) {
       summary.title = unquote(match[2]);
     if (match?.[1] === "status" && match[2])
       summary.status = unquote(match[2]);
+    if (/^\S/.test(line)) {
+      inLinks = /^links:\s*$/.test(line);
+      pendingType = undefined;
+      continue;
+    }
+    if (!inLinks || links.length >= MAX_SUMMARY_LINKS)
+      continue;
+    const entry = /^\s*-\s*(.*)$/.exec(line);
+    const body = (entry ? entry[1] ?? "" : line).trim();
+    if (entry)
+      pendingType = undefined;
+    const field = /^(type|target):\s*(.+)$/.exec(body);
+    if (field?.[1] === "type") {
+      pendingType = unquote(field[2] ?? "");
+    } else if (field?.[1] === "target") {
+      links.push({
+        type: pendingType ?? "relates_to",
+        target: unquote(field[2] ?? "")
+      });
+      pendingType = undefined;
+    } else if (entry && SAFE_ENTITY_ID.test(unquote(body))) {
+      links.push({ type: "relates_to", target: unquote(body) });
+    }
   }
+  if (links.length > 0)
+    summary.links = links;
   return summary;
 }
 
@@ -754,6 +783,32 @@ function describeEntity(summary) {
 function jsonString(value) {
   return JSON.stringify(value);
 }
+var FACT_LINK_TYPES = new Set([
+  "constrains",
+  "requires_property",
+  "requires_predicate",
+  "requires_rule"
+]);
+var MAX_GROUNDING = 2;
+function groundingLines(requirementId, summarize) {
+  const links = summarize(requirementId).links ?? [];
+  const facts = [
+    ...new Set(links.filter((link) => FACT_LINK_TYPES.has(link.type)).map((link) => link.target))
+  ];
+  const adrs = [
+    ...new Set(links.filter((link) => link.target.startsWith("ADR-")).map((link) => link.target))
+  ];
+  const lines = [];
+  if (facts.length > 0) {
+    const shown = facts.slice(0, MAX_GROUNDING).map((id) => describeEntity(summarize(id)));
+    const more = facts.length > MAX_GROUNDING ? ` +${facts.length - MAX_GROUNDING}` : "";
+    lines.push(`${requirementId} must keep true: ${shown.join("; ")}${more}.`);
+  }
+  const adr = adrs[0];
+  if (adr)
+    lines.push(`Decision: ${describeEntity(summarize(adr))}.`);
+  return lines;
+}
 function fileKnowledgeSnippet(input) {
   const { relativePath, symbols, surface, summarize } = input;
   const focus = focusedSymbols(symbols, input.focus);
@@ -794,6 +849,10 @@ function fileKnowledgeSnippet(input) {
   if (requirementIds.length > MAX_REQUIREMENTS) {
     lines.push(`- +${requirementIds.length - MAX_REQUIREMENTS} more requirements: kb_query({sourceFile:${jsonString(relativePath)}})`);
   }
+  const leadId = requirementIds[0];
+  if (surface === "edit" && leadId) {
+    lines.push(...groundingLines(leadId, summarize));
+  }
   if (tests.length > 0) {
     lines.push(`Covered by: ${formatList(tests, MAX_TESTS)}.`);
   }
@@ -810,7 +869,7 @@ function fileKnowledgeSnippet(input) {
   const leadRequirement = requirementIds[0];
   const next = [
     leadRequirement ? `kb_query({id:${jsonString(leadRequirement)}}) returns full requirement text` : undefined,
-    `kb_search({query:"<topic>", rankingMode:"intent-v1", sourceLocations:[${location}]}) finds related scenarios, decisions, and facts`
+    `kb_search({query:"<topic>", sourceLocations:[${location}]}) answers with governing requirements, facts, decisions, and tests`
   ].filter((part) => part !== undefined);
   lines.push(`Next layer: ${next.join("; ")}.`);
   if (surface === "edit") {
@@ -829,20 +888,20 @@ function focusUpdate(relativePath, symbols, focus) {
 function unownedSourceNote(relativePath) {
   return [
     `Kibi: no symbol in ${relativePath} is linked to a requirement yet.`,
-    `kb_search({query:"<behavior being changed>", rankingMode:"intent-v1", sourceLocations:[{path:${jsonString(relativePath)}}]}) surfaces requirements that may already describe it; new behavior is recorded with kb_upsert (requirement + symbol implements link).`
+    `kb_search({query:"<behavior being changed>", sourceLocations:[{path:${jsonString(relativePath)}}]}) surfaces requirements that may already describe it; new behavior is recorded with kb_upsert (requirement + symbol implements link).`
   ].join(`
 `);
 }
 function searchTip(linkedFileCount) {
-  return `Kibi tip: this repository records requirements, scenarios, decisions, and code ownership in a Kibi knowledge base (${linkedFileCount} source files have requirement-linked symbols). For intent questions — why code exists, what it must do — kb_search with rankingMode:"intent-v1" answers from that knowledge; kb_query({sourceFile:"<path>"}) lists what a file implements.`;
+  return `Kibi tip: this repository records requirements, scenarios, decisions, and code ownership in a Kibi knowledge base (${linkedFileCount} source files have requirement-linked symbols). For intent questions — why code exists, what it must do — kb_search answers from that knowledge, naming the governing requirements, facts, decisions and tests; kb_query({sourceFile:"<path>"}) lists what a file implements.`;
 }
 var DIRECT_KB_ACCESS_NOTE = "Kibi: .kb/ holds Kibi-managed knowledge. kb_query/kb_search read it and kb_upsert writes it while keeping the branch store, relationships, and validation consistent; direct file reads miss relationships and direct edits bypass validation.";
 function sessionStartContext(linkedFileCount) {
   return [
     `Kibi knowledge base is active in this workspace (${linkedFileCount} source files have requirement-linked symbols).`,
     "Kibi hooks add short requirement/test snippets before reads and edits of linked files, derived from the symbol manifest; kb_query returns the authoritative detail.",
-    'Operations: kb_search (discovery; rankingMode:"intent-v1" for intent questions), kb_query (exact id or sourceFile), kb_check (validation and edit impact), kb_upsert (writes). MCP tool names are host-prefixed (e.g. mcp__plugin_kibi-claude_kibi__kb_query); the project-local CLI (`npx --no-install kibi <route> --input -`) is the peer route.',
-    "Workflow guidance lives in the kibi-claude:kibi-usage skill (also served by kb_skills_load)."
+    "Operations: kb_search (ask it a question; the answer layer names governing requirements, must-stay-true facts, ADRs and tests), kb_query (exact id or sourceFile), kb_check (validation and edit impact), kb_upsert (writes). MCP tool names are host-prefixed (e.g. mcp__plugin_kibi-claude_kibi__kb_query); the project-local CLI (`npx --no-install kibi <route> --input -`) is the peer route.",
+    "Workflow guidance lives in the kibi-claude:kibi-usage skill (also served by kb_skills with action load)."
   ].join(`
 `);
 }

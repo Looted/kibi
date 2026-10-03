@@ -3553,6 +3553,225 @@ test(reserved_fields_do_not_change_conflict_detection, [setup(setup_kb), cleanup
 
 :- end_tests(kb_semantic_contradictions).
 
+% implements REQ-kibi-truthful-consistency
+:- begin_tests(kb_truthful_consistency).
+
+test(strict_numeric_pairs_conflict_exactly_when_no_value_satisfies_both) :-
+    assertion(kb:values_conflict(lte, 0, gt, 0, int)),
+    assertion(kb:values_conflict(gt, 0, lte, 0, int)),
+    assertion(kb:values_conflict(eq, 0, gt, 0, int)),
+    assertion(kb:values_conflict(eq, 0, gte, 1, int)),
+    assertion(kb:values_conflict(lt, 5, gte, 5, int)),
+    assertion(kb:values_conflict(eq, 1.5, lt, 1.5, number)),
+    assertion(\+ kb:values_conflict(gte, 0, gt, 0, int)),
+    assertion(\+ kb:values_conflict(lte, 5, gte, 5, int)),
+    assertion(\+ kb:values_conflict(neq, 0, neq, 0, int)),
+    assertion(\+ kb:values_conflict(gt, 0.1, lt, 0.2, number)).
+
+test(interval_entailment_handles_strict_bounds_and_exclusions) :-
+    assertion(intervals:numeric_constraint_entailed([c(eq, X, 0)], c(lte, X, 0))),
+    assertion(\+ intervals:numeric_constraint_entailed([c(gte, X, 0)], c(gt, X, 0))),
+    assertion(\+ intervals:numeric_constraints_satisfiable([c(gte, X, 3), c(lte, X, 3), c(neq, X, 3)])),
+    assertion(intervals:numeric_constraints_satisfiable([c(gte, X, 3), c(lte, X, 4), c(neq, X, 3)])).
+
+test(precondition_rule_conflicts_with_intended_success_rule) :-
+    consistency_rule(forbid, initiate_checkout, [v('C', cart)], positive_total_precondition, Forbid),
+    consistency_rule(permit, initiate_checkout, [v('C', cart)], free_order_success, Permit),
+    logic_ir:logic_rule_conflict(Forbid, Permit, Status),
+    assertion(Status == contradiction).
+
+test(precondition_rule_conflicts_with_ground_instance_and_renamed_variables) :-
+    consistency_rule(forbid, initiate_checkout, [v('C', cart)], positive_total_precondition, Forbid),
+    consistency_rule(permit, initiate_checkout, [c(cart_s089, cart)], ground_free_order, Ground),
+    consistency_rule(permit, initiate_checkout, [v('D', cart)], renamed_zero_total, Renamed),
+    logic_ir:logic_rule_conflict(Forbid, Ground, GroundStatus),
+    logic_ir:logic_rule_conflict(Forbid, Renamed, RenamedStatus),
+    assertion(GroundStatus == contradiction),
+    assertion(RenamedStatus == contradiction).
+
+test(complementary_bodies_different_heads_and_disjoint_scopes_stay_disjoint) :-
+    consistency_rule(forbid, initiate_checkout, [v('C', cart)], positive_total_precondition, Forbid),
+    consistency_rule(permit, initiate_checkout, [v('C', cart)], positive_total_success, Positive),
+    consistency_rule(permit, issue_refund, [v('C', cart)], free_order_success, Refund),
+    logic_ir:logic_rule_conflict(Forbid, Positive, PositiveStatus),
+    logic_ir:logic_rule_conflict(Forbid, Refund, RefundStatus),
+    assertion(PositiveStatus == disjoint),
+    assertion(RefundStatus == disjoint),
+    consistency_rule_dict(forbid, initiate_checkout, [v('C', cart)], positive_total_precondition, ForbidDict),
+    consistency_rule_dict(permit, initiate_checkout, [v('C', cart)], free_order_success, PermitDict),
+    consistency_rule_from_dict(ForbidDict.put(scope, _{name:eu}), EuForbid),
+    consistency_rule_from_dict(PermitDict.put(scope, _{name:us}), UsPermit),
+    logic_ir:logic_rule_conflict(EuForbid, UsPermit, ScopeStatus),
+    assertion(ScopeStatus == disjoint).
+
+test(exception_entailed_by_other_body_removes_the_conflict) :-
+    consistency_rule_dict(forbid, initiate_checkout, [v('C', cart)], positive_total_precondition, ForbidDict),
+    Exception = _{kind:atom, name:valid_full_discount, args:[_{kind:var, name:'C', type:cart}]},
+    consistency_rule_from_dict(ForbidDict.put(exceptions, [Exception]), ForbidWithException),
+    consistency_rule(permit, initiate_checkout, [v('C', cart)], promoted_free_order, Promoted),
+    consistency_rule(permit, initiate_checkout, [v('C', cart)], free_order_success, Unpromoted),
+    logic_ir:logic_rule_conflict(ForbidWithException, Promoted, PromotedStatus),
+    logic_ir:logic_rule_conflict(ForbidWithException, Unpromoted, UnpromotedStatus),
+    assertion(PromotedStatus == disjoint),
+    assertion(UnpromotedStatus == unresolved).
+
+test(untranslatable_bodies_stay_unresolved) :-
+    consistency_rule(forbid, initiate_checkout, [v('C', cart)], positive_total_precondition, Forbid),
+    consistency_rule(permit, initiate_checkout, [v('C', cart)], disjunctive_success, Disjunctive),
+    logic_ir:logic_rule_conflict(Forbid, Disjunctive, Status),
+    assertion(Status == unresolved).
+
+test(stored_requirement_rule_pair_reports_contradiction_and_blocks_proof, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    consistency_rule_dict(forbid, initiate_checkout, [v('C', cart)], positive_total_precondition, ForbidDict),
+    consistency_rule_dict(permit, initiate_checkout, [v('C', cart)], free_order_success, PermitDict),
+    assert_rule_requirement(ForbidDict, 'FACT-RULE-POSITIVE-TOTAL', 'REQ-CHECKOUT-POSITIVE-TOTAL', "CLAIM-EEEEEEEEEEEEEEEE"),
+    assert_rule_requirement(PermitDict, 'FACT-RULE-FREE-ORDER', 'REQ-CHECKOUT-FREE-ORDER', "CLAIM-FFFFFFFFFFFFFFFF"),
+    check_domain_contradiction_witnesses([Witness]),
+    assertion(Witness.kind == rule),
+    assertion(Witness.status == contradiction),
+    Context = _{contradictionWitnesses:[Witness], contradictions:[]},
+    requirement_proof:contradiction_stage('REQ-CHECKOUT-POSITIVE-TOTAL', passed, Context, Stage),
+    assertion(Stage.status == blocked),
+    assertion(Stage.outcome == conflict_found).
+
+test(unresolved_propositions_make_conflict_analysis_incomplete, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    Modeled = 'CLAIM-AAAAAAAABBBBBBBB',
+    OntologyGap = 'CLAIM-CCCCCCCCDDDDDDDD',
+    Inventory = [
+        _{claim_key: Modeled, claim_text: "A modeled claim", role: normative, status: modeled, span: _{start: 0, end: 15}},
+        _{claim_key: OntologyGap, claim_text: "An unsupported domain claim", role: normative, status: ontology_gap, span: _{start: 16, end: 43}}
+    ],
+    assert_fixture_entity(req, 'REQ-CONSISTENCY-PARTIAL', "Modeled and unresolved", open, [
+        logic_claims=[Modeled, OntologyGap],
+        semantic_inventory=Inventory
+    ]),
+    assert_fixture_entity(fact, 'FACT-CONSISTENCY-MODELED', "Ground modeled claim", active, [
+        fact_kind=property_value,
+        subject_key="checkout",
+        property_key="modeled_claim",
+        operator=eq,
+        value_type=string,
+        value_string="true",
+        claim_key="CLAIM-AAAAAAAABBBBBBBB",
+        claim_text="A modeled claim"
+    ]),
+    assert_fixture_entity(fact, 'FACT-CONSISTENCY-SUBJECT', "Checkout subject", active, [
+        fact_kind=subject,
+        subject_key="checkout"
+    ]),
+    kb_assert_relationship(constrains, 'REQ-CONSISTENCY-PARTIAL', 'FACT-CONSISTENCY-SUBJECT', []),
+    kb_assert_relationship(requires_property, 'REQ-CONSISTENCY-PARTIAL', 'FACT-CONSISTENCY-MODELED', []),
+    coverage_report_json(req, [], true, true, 100, 0, JsonString),
+    json_string_dict(JsonString, Report),
+    coverage_row(Report.rows, 'REQ-CONSISTENCY-PARTIAL', Row),
+    assertion(Row.proofStages.logicGrounding.status == passed),
+    Stage = Row.proofStages.contradictions,
+    assertion(Stage.status == unresolved),
+    assertion(Stage.outcome == analysis_incomplete),
+    assertion(memberchk(contradiction_check_incomplete, Row.proofGaps)),
+    Context = _{contradictionWitnesses:[], contradictions:[]},
+    requirement_proof:contradiction_stage('REQ-CONSISTENCY-PARTIAL', passed, passed, Context, FullyModeled),
+    assertion(FullyModeled.outcome == no_conflict_found).
+
+test(what_if_reports_staged_conflicts_and_rolls_back, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    consistency_rule_dict(forbid, initiate_checkout, [v('C', cart)], positive_total_precondition, ForbidDict),
+    consistency_rule_dict(permit, initiate_checkout, [v('C', cart)], free_order_success, PermitDict),
+    assert_rule_requirement(ForbidDict, 'FACT-RULE-POSITIVE-TOTAL', 'REQ-CHECKOUT-POSITIVE-TOTAL', "CLAIM-EEEEEEEEEEEEEEEE"),
+    atom_json_dict(PermitAtom, PermitDict, []),
+    atom_string(PermitAtom, PermitJson),
+    FactProps = [
+        id='FACT-RULE-FREE-ORDER', title="Checkout rule", status=active,
+        created_at="2026-05-01T00:00:00Z", updated_at="2026-05-01T00:00:00Z",
+        source="test://kb.plt",
+        fact_kind=rule, rule_ir=PermitJson,
+        rule_hash="cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        rule_schema_id="FACT-RULE-SCHEMA-TEST", rule_name="checkout_rule",
+        semantic_key="FACT-RULE-FREE-ORDER", claim_key="CLAIM-FFFFFFFFFFFFFFFF",
+        claim_text="Checkout rule clause", claim_span_start=0, claim_span_end=20
+    ],
+    ReqProps = [
+        id='REQ-CHECKOUT-FREE-ORDER', title="Checkout requirement", status=open,
+        created_at="2026-05-01T00:00:00Z", updated_at="2026-05-01T00:00:00Z",
+        source="test://kb.plt"
+    ],
+    Entries = [
+        upsert(fact, FactProps, []),
+        upsert(req, ReqProps, [rel(requires_rule, 'REQ-CHECKOUT-FREE-ORDER', 'FACT-RULE-FREE-ORDER', [])])
+    ],
+    checks:what_if_contradiction_witnesses(Entries, [Witness]),
+    assertion(Witness.status == contradiction),
+    assertion(\+ kb_entity('REQ-CHECKOUT-FREE-ORDER', _, _)),
+    assertion(\+ kb_entity('FACT-RULE-FREE-ORDER', _, _)),
+    check_domain_contradiction_witnesses(After),
+    assertion(After == []),
+    checks:what_if_contradiction_witnesses_json([], Json),
+    assertion(Json == "[]").
+
+:- end_tests(kb_truthful_consistency).
+
+:- begin_tests(kb_scenario_feasibility).
+
+% implements REQ-kibi-scenario-feasibility
+feasibility_fixture(Expects) :-
+    assert_fixture_entity(fact, 'FACT-QUOTA-SUBJECT', "Client call quota", active,
+        [fact_kind=subject, subject_key="client.call_quota"]),
+    assert_fixture_entity(fact, 'FACT-QUOTA-POSITIVE', "Remaining quota above zero", active,
+        [fact_kind=property_value, subject_key="client.call_quota", property_key="remaining",
+         operator=gt, value_type=int, value_int=0]),
+    assert_fixture_entity(fact, 'FACT-QUOTA-ZERO', "Remaining quota is zero", active,
+        [fact_kind=property_value, subject_key="client.call_quota", property_key="remaining",
+         operator=eq, value_type=int, value_int=0]),
+    assert_fixture_entity(req, 'REQ-QUOTA-CALL', "A client may call only with remaining quota", open, []),
+    kb_assert_relationship(constrains, 'REQ-QUOTA-CALL', 'FACT-QUOTA-SUBJECT', []),
+    kb_assert_relationship(requires_property, 'REQ-QUOTA-CALL', 'FACT-QUOTA-POSITIVE', []),
+    assert_fixture_entity(scenario, 'SCEN-ZERO-QUOTA-CALL', "A zero-quota promo call succeeds", active,
+        [expects=Expects]),
+    kb_assert_relationship(assumes, 'SCEN-ZERO-QUOTA-CALL', 'FACT-QUOTA-ZERO', []).
+
+test(success_scenario_assuming_a_forbidden_value_is_infeasible, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    feasibility_fixture(success),
+    check_scenario_feasibility([violation('scenario-feasibility', 'SCEN-ZERO-QUOTA-CALL', Description, _, _)]),
+    assertion(sub_string(Description, _, _, _, "REQ-QUOTA-CALL")),
+    assertion(sub_string(Description, _, _, _, "FACT-QUOTA-ZERO")).
+
+test(rejection_scenario_is_not_checked, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    feasibility_fixture(rejection),
+    check_scenario_feasibility([]).
+
+test(approved_exception_makes_the_scenario_feasible_without_editing_the_rule, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    feasibility_fixture(success),
+    assert_fixture_entity(req, 'REQ-QUOTA-PROMO-EXCEPTION', "Promo calls are exempt from the quota", open, []),
+    kb_assert_relationship(exempts, 'REQ-QUOTA-PROMO-EXCEPTION', 'REQ-QUOTA-CALL', []),
+    kb_assert_relationship(specified_by, 'REQ-QUOTA-PROMO-EXCEPTION', 'SCEN-ZERO-QUOTA-CALL', []),
+    check_scenario_feasibility([]),
+    % The exception covers only the scenario it specifies.
+    assert_fixture_entity(scenario, 'SCEN-OTHER-ZERO-QUOTA', "Another zero-quota call succeeds", active,
+        [expects=success]),
+    kb_assert_relationship(assumes, 'SCEN-OTHER-ZERO-QUOTA', 'FACT-QUOTA-ZERO', []),
+    check_scenario_feasibility([violation('scenario-feasibility', 'SCEN-OTHER-ZERO-QUOTA', _, _, _)]),
+    assertion(kb:current_req('REQ-QUOTA-CALL')).
+
+test(compatible_assumption_is_feasible, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    feasibility_fixture(success),
+    assert_fixture_entity(fact, 'FACT-QUOTA-FIVE', "Remaining quota is five", active,
+        [fact_kind=property_value, subject_key="client.call_quota", property_key="remaining",
+         operator=eq, value_type=int, value_int=5]),
+    assert_fixture_entity(scenario, 'SCEN-FIVE-QUOTA-CALL', "A call with quota succeeds", active,
+        [expects=success]),
+    kb_assert_relationship(assumes, 'SCEN-FIVE-QUOTA-CALL', 'FACT-QUOTA-FIVE', []),
+    check_scenario_feasibility(Violations),
+    assertion(\+ memberchk(violation(_, 'SCEN-FIVE-QUOTA-CALL', _, _, _), Violations)).
+
+test(proof_ladder_blocks_a_requirement_whose_scenario_is_infeasible, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    feasibility_fixture(success),
+    kb_assert_relationship(specified_by, 'REQ-QUOTA-CALL', 'SCEN-ZERO-QUOTA-CALL', []),
+    requirement_proof:scenario_stage('REQ-QUOTA-CALL', Stage, _),
+    assertion(Stage.status == blocked),
+    assertion(Stage.infeasibleScenarios == ['SCEN-ZERO-QUOTA-CALL']),
+    assertion(requirement_proof:proof_gap_present(infeasible_scenario, _{scenarios: Stage})).
+
+:- end_tests(kb_scenario_feasibility).
+
 % Strict-lane pairing validation tests (REQ-011)
 :- begin_tests(kb_strict_lane_pairing).
 
@@ -5259,3 +5478,77 @@ lock_owner_json_child(LockDirectory) :-
     ),
     json_write_dict(current_output, Owner, []),
     nl.
+
+% kibi.logic.v1 fixtures for the truthful-consistency unit.
+consistency_rule(Modality, HeadName, HeadArgs, Body, Rule) :-
+    consistency_rule_dict(Modality, HeadName, HeadArgs, Body, Dict),
+    consistency_rule_from_dict(Dict, Rule).
+
+consistency_rule_from_dict(Dict, Rule) :-
+    atom_json_dict(Json, Dict, []),
+    logic_ir:logic_rule_from_props([rule_ir=Json], Rule).
+
+consistency_rule_dict(Modality, HeadName, HeadArgs, BodyName, Dict) :-
+    maplist(consistency_term, HeadArgs, HeadTerms),
+    consistency_body(BodyName, HeadArgs, Body),
+    findall(_{name:Name, type:Type},
+            ( (member(v(Name, Type), HeadArgs) ; consistency_body_variable(BodyName, Name, Type)) ),
+            Variables0),
+    sort(Variables0, Variables),
+    Dict = _{version:'kibi.logic.v1', kind:rule, modality:Modality,
+             head:_{kind:atom, name:HeadName, args:HeadTerms},
+             body:Body, variables:Variables}.
+
+consistency_term(v(Name, Type), _{kind:var, name:Name, type:Type}).
+consistency_term(c(Value, Type), _{kind:const, value:Value, type:Type}).
+consistency_term(n(Value), _{kind:number, value:Value}).
+
+consistency_atom(Name, Args, _{kind:atom, name:Name, args:Terms}) :- maplist(consistency_term, Args, Terms).
+
+consistency_body_variable(positive_total_precondition, 'T', money).
+consistency_body_variable(positive_total_success, 'T', money).
+consistency_body_variable(renamed_zero_total, 'U', money).
+
+consistency_body(positive_total_precondition, [Cart], _{kind:all, items:[Total, Compare]}) :-
+    consistency_atom(final_payable_total, [Cart, v('T', money)], Total),
+    consistency_term(v('T', money), T), consistency_term(n(0), Zero),
+    Compare = _{kind:compare, operator:lte, left:T, right:Zero}.
+consistency_body(positive_total_success, [Cart], _{kind:all, items:[Total, Compare]}) :-
+    consistency_atom(final_payable_total, [Cart, v('T', money)], Total),
+    consistency_term(v('T', money), T), consistency_term(n(0), Zero),
+    Compare = _{kind:compare, operator:gt, left:T, right:Zero}.
+consistency_body(free_order_success, [Cart], _{kind:all, items:[Total, Discount, Charges]}) :-
+    consistency_atom(final_payable_total, [Cart, n(0)], Total),
+    consistency_atom(discount_percent, [Cart, n(100)], Discount),
+    consistency_atom(additional_charges, [Cart, n(0)], Charges).
+consistency_body(promoted_free_order, [Cart], _{kind:all, items:[Total, Promo]}) :-
+    consistency_atom(final_payable_total, [Cart, n(0)], Total),
+    consistency_atom(valid_full_discount, [Cart], Promo).
+consistency_body(ground_free_order, [Cart], Total) :-
+    consistency_atom(final_payable_total, [Cart, n(0)], Total).
+consistency_body(renamed_zero_total, [Cart], _{kind:all, items:[Total, Compare]}) :-
+    consistency_atom(final_payable_total, [Cart, v('U', money)], Total),
+    consistency_term(v('U', money), U), consistency_term(n(0), Zero),
+    Compare = _{kind:compare, operator:lte, left:U, right:Zero}.
+consistency_body(disjunctive_success, [Cart], _{kind:any, items:[Total, Gift]}) :-
+    consistency_atom(final_payable_total, [Cart, n(0)], Total),
+    consistency_atom(gift_card_order, [Cart], Gift).
+
+assert_rule_requirement(Dict, FactId, ReqId, ClaimKey) :-
+    atom_json_dict(JsonAtom, Dict, []),
+    atom_string(JsonAtom, Json),
+    atom_string(FactId, SemanticKey),
+    assert_fixture_entity(fact, FactId, "Checkout rule", active, [
+        fact_kind=rule,
+        rule_ir=Json,
+        rule_hash="cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        rule_schema_id="FACT-RULE-SCHEMA-TEST",
+        rule_name="checkout_rule",
+        semantic_key=SemanticKey,
+        claim_key=ClaimKey,
+        claim_text="Checkout rule clause",
+        claim_span_start=0,
+        claim_span_end=20
+    ]),
+    assert_fixture_entity(req, ReqId, "Checkout requirement", open, []),
+    kb_assert_relationship(requires_rule, ReqId, FactId, []).

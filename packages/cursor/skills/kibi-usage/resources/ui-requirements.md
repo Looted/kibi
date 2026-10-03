@@ -82,14 +82,14 @@ diagnostics (`symbol_semantic_review_needed`).
 
 ## Workflow
 
-1. `kb_semantic_advisor` on the full description; audit or supply `clauses`.
-2. Relational clauses: `kb_suggest_predicates`, apply the predicate plan and
+1. `kb_model` (`mode: "analyze"`) on the full description; audit or supply `clauses`.
+2. Relational clauses: `kb_model` (`mode: "predicates"`), apply the predicate plan and
    `requires_predicate`.
-3. Scalar placement/alignment/order clauses: `kb_model_requirement`, apply the strict
+3. Scalar placement/alignment/order clauses: `kb_model` (`mode: "requirement"`), apply the strict
    subject/property plan and `constrains` / `requires_property`.
 4. Preserve `claim_key` / `claim_text`; merge every key into the requirement
    `logic_claims` manifest.
-5. `kb_validate_upsert`, create endpoints first, then sequential `kb_upsert`.
+5. `kb_upsert` with `dryRun: true`, create endpoints first, then sequential `kb_upsert`.
 6. `kb_check` with `logic-coverage`, `predicate-verifiability`, `domain-contradictions`,
    then a final unfiltered `kb_check`.
 

@@ -73,6 +73,51 @@ function jsonString(value: string): string {
   return JSON.stringify(value);
 }
 
+const FACT_LINK_TYPES = new Set([
+  "constrains",
+  "requires_property",
+  "requires_predicate",
+  "requires_rule",
+]);
+const MAX_GROUNDING = 2;
+
+/**
+ * What the lead requirement says must stay true (its linked facts) and the
+ * decision behind it (a linked ADR), read from authored frontmatter links.
+ */
+function groundingLines(
+  requirementId: string,
+  summarize: (entityId: string) => EntitySummary,
+): string[] {
+  const links = summarize(requirementId).links ?? [];
+  const facts = [
+    ...new Set(
+      links
+        .filter((link) => FACT_LINK_TYPES.has(link.type))
+        .map((link) => link.target),
+    ),
+  ];
+  const adrs = [
+    ...new Set(
+      links
+        .filter((link) => link.target.startsWith("ADR-"))
+        .map((link) => link.target),
+    ),
+  ];
+  const lines: string[] = [];
+  if (facts.length > 0) {
+    const shown = facts
+      .slice(0, MAX_GROUNDING)
+      .map((id) => describeEntity(summarize(id)));
+    const more =
+      facts.length > MAX_GROUNDING ? ` +${facts.length - MAX_GROUNDING}` : "";
+    lines.push(`${requirementId} must keep true: ${shown.join("; ")}${more}.`);
+  }
+  const adr = adrs[0];
+  if (adr) lines.push(`Decision: ${describeEntity(summarize(adr))}.`);
+  return lines;
+}
+
 /**
  * Knowledge snippet for a file with requirement-linked symbols, or undefined
  * when the manifest links nothing to it.
@@ -127,6 +172,10 @@ export function fileKnowledgeSnippet(input: SnippetInput): string | undefined {
       `- +${requirementIds.length - MAX_REQUIREMENTS} more requirements: kb_query({sourceFile:${jsonString(relativePath)}})`,
     );
   }
+  const leadId = requirementIds[0];
+  if (surface === "edit" && leadId) {
+    lines.push(...groundingLines(leadId, summarize));
+  }
   if (tests.length > 0) {
     lines.push(`Covered by: ${formatList(tests, MAX_TESTS)}.`);
   }
@@ -154,7 +203,7 @@ export function fileKnowledgeSnippet(input: SnippetInput): string | undefined {
     leadRequirement
       ? `kb_query({id:${jsonString(leadRequirement)}}) returns full requirement text`
       : undefined,
-    `kb_search({query:"<topic>", rankingMode:"intent-v1", sourceLocations:[${location}]}) finds related scenarios, decisions, and facts`,
+    `kb_search({query:"<topic>", sourceLocations:[${location}]}) answers with governing requirements, facts, decisions, and tests`,
   ].filter((part): part is string => part !== undefined);
   lines.push(`Next layer: ${next.join("; ")}.`);
 
@@ -188,12 +237,12 @@ export function focusUpdate(
 export function unownedSourceNote(relativePath: string): string {
   return [
     `Kibi: no symbol in ${relativePath} is linked to a requirement yet.`,
-    `kb_search({query:"<behavior being changed>", rankingMode:"intent-v1", sourceLocations:[{path:${jsonString(relativePath)}}]}) surfaces requirements that may already describe it; new behavior is recorded with kb_upsert (requirement + symbol implements link).`,
+    `kb_search({query:"<behavior being changed>", sourceLocations:[{path:${jsonString(relativePath)}}]}) surfaces requirements that may already describe it; new behavior is recorded with kb_upsert (requirement + symbol implements link).`,
   ].join("\n");
 }
 
 export function searchTip(linkedFileCount: number): string {
-  return `Kibi tip: this repository records requirements, scenarios, decisions, and code ownership in a Kibi knowledge base (${linkedFileCount} source files have requirement-linked symbols). For intent questions — why code exists, what it must do — kb_search with rankingMode:"intent-v1" answers from that knowledge; kb_query({sourceFile:"<path>"}) lists what a file implements.`;
+  return `Kibi tip: this repository records requirements, scenarios, decisions, and code ownership in a Kibi knowledge base (${linkedFileCount} source files have requirement-linked symbols). For intent questions — why code exists, what it must do — kb_search answers from that knowledge, naming the governing requirements, facts, decisions and tests; kb_query({sourceFile:"<path>"}) lists what a file implements.`;
 }
 
 export const DIRECT_KB_ACCESS_NOTE =
@@ -203,8 +252,8 @@ export function sessionStartContext(linkedFileCount: number): string {
   return [
     `Kibi knowledge base is active in this workspace (${linkedFileCount} source files have requirement-linked symbols).`,
     "Kibi hooks add short requirement/test snippets before reads and edits of linked files, derived from the symbol manifest; kb_query returns the authoritative detail.",
-    'Operations: kb_search (discovery; rankingMode:"intent-v1" for intent questions), kb_query (exact id or sourceFile), kb_check (validation and edit impact), kb_upsert (writes). MCP tool names are host-prefixed (e.g. mcp__plugin_kibi-claude_kibi__kb_query); the project-local CLI (`npx --no-install kibi <route> --input -`) is the peer route.',
-    "Workflow guidance lives in the kibi-claude:kibi-usage skill (also served by kb_skills_load).",
+    "Operations: kb_search (ask it a question; the answer layer names governing requirements, must-stay-true facts, ADRs and tests), kb_query (exact id or sourceFile), kb_check (validation and edit impact), kb_upsert (writes). MCP tool names are host-prefixed (e.g. mcp__plugin_kibi-claude_kibi__kb_query); the project-local CLI (`npx --no-install kibi <route> --input -`) is the peer route.",
+    "Workflow guidance lives in the kibi-claude:kibi-usage skill (also served by kb_skills with action load).",
   ].join("\n");
 }
 

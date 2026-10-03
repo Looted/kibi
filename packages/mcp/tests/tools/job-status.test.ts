@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -11,9 +11,43 @@ import { registerAllTools } from "../../src/server/tools.js";
  * object must land in the annotations slot, not the outputSchema slot, or the
  * SDK's output validation crashes the call with a `_zod` read of undefined),
  * and polling an unknown job returns a typed kibi.job.v1 receipt instead of
- * an error result.
+ * an error result. The tool is optional: it registers only when
+ * KIBI_MCP_OPTIONAL_TOOLS names it.
  */
 describe("kb_job_status tool", () => {
+  let previous: string | undefined;
+  beforeEach(() => {
+    previous = process.env.KIBI_MCP_OPTIONAL_TOOLS;
+    process.env.KIBI_MCP_OPTIONAL_TOOLS = "kb_job_status";
+  });
+  afterEach(() => {
+    if (previous === undefined) {
+      Reflect.deleteProperty(process.env, "KIBI_MCP_OPTIONAL_TOOLS");
+    } else {
+      process.env.KIBI_MCP_OPTIONAL_TOOLS = previous;
+    }
+  });
+
+  test("is not registered unless KIBI_MCP_OPTIONAL_TOOLS names it", async () => {
+    Reflect.deleteProperty(process.env, "KIBI_MCP_OPTIONAL_TOOLS");
+    const server = new McpServer({ name: "kibi-test", version: "0.0.0" });
+    registerAllTools(server);
+    const client = new Client({ name: "kibi-test-client", version: "0.0.0" });
+    const [serverTransport, clientTransport] =
+      InMemoryTransport.createLinkedPair();
+    await Promise.all([
+      server.connect(serverTransport),
+      client.connect(clientTransport),
+    ]);
+    try {
+      const { tools } = await client.listTools();
+      expect(tools.map((tool) => tool.name)).not.toContain("kb_job_status");
+      expect(tools).toHaveLength(16);
+    } finally {
+      await Promise.all([client.close(), server.close()]);
+    }
+  });
+
   test("polling an unknown job returns a typed receipt, not an error", async () => {
     const server = new McpServer({ name: "kibi-test", version: "0.0.0" });
     registerAllTools(server);

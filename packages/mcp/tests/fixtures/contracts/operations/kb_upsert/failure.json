@@ -21,7 +21,7 @@
     "type": "req"
   },
   "tool": {
-    "description": "Create or update one entity and optional relationships. Use for KB mutations after validating intent; prefer kb_validate_upsert first because it returns semantic advisor receipts for prose-heavy requirements. Use kb_model_requirement before hand-writing strict property facts from prose, and kb_suggest_predicates before hand-writing ontology predicate facts. Use the `relationships` array for batch creation of multiple links in a single call (e.g., linking a requirement to multiple tests or facts). Prefer modeling requirements as reusable fact links (`constrains`, `requires_property`, or `requires_predicate`) so consistency and contradiction checks remain queryable. Relationship endpoints must already exist in KB. For requirements, the write will be rejected if it contradicts existing current requirements that constrain the same subject with incompatible properties. To replace a conflicting requirement, include a `supersedes` relationship from the new requirement to the old one in the same request. Successful writes may return non-blocking semantic advisor warnings; inspect and repair those warnings before treating prose as contradiction-checkable. Do not use for read-only inspection. Side effects: writes KB, may refresh symbol coordinates.",
+    "description": "Create or update one entity and optional relationships. Use for KB mutations after validating intent; prefer a dryRun:true call first because it validates without writing and returns semantic advisor receipts for prose-heavy requirements. Use kb_model (mode requirement) before hand-writing strict property facts from prose, and kb_model (mode predicates) before hand-writing ontology predicate facts. Use the `relationships` array for batch creation of multiple links in a single call (e.g., linking a requirement to multiple tests or facts). Prefer modeling requirements as reusable fact links (`constrains`, `requires_property`, or `requires_predicate`) so consistency and contradiction checks remain queryable. Relationship endpoints must already exist in KB. For requirements, the write will be rejected if it contradicts existing current requirements that constrain the same subject with incompatible properties. To replace a conflicting requirement, include a `supersedes` relationship from the new requirement to the old one in the same request. Successful writes may return non-blocking semantic advisor warnings; inspect and repair those warnings before treating prose as contradiction-checkable. Do not use for read-only inspection. Side effects: writes KB, may refresh symbol coordinates; dryRun:true writes nothing.",
     "inputSchema": {
       "properties": {
         "document": {
@@ -37,6 +37,11 @@
             }
           },
           "type": "object"
+        },
+        "dryRun": {
+          "default": false,
+          "description": "Validate the payload and return schema/modeling errors, a normalized preview and the semantic advisor receipt without writing the KB or workspace. Use it as the preflight before the real write.",
+          "type": "boolean"
         },
         "id": {
           "description": "Unique entity ID (string). Example: 'REQ-cli-gc'. Name entities by the behavior they govern (<TYPE>-<area>-<behavior>), never by the next free number. Existing ID updates the entity; new ID creates it.",
@@ -154,7 +159,7 @@
               "type": "array"
             },
             "fact_kind": {
-              "description": "Optional fact lane kind for fact entities. Strict lane uses 'subject' and 'property_value'; context lane uses 'observation' or 'meta'; ontology lane uses 'predicate_schema' or 'predicate'. Use kb_model_requirement or kb_suggest_predicates when starting from prose.",
+              "description": "Optional fact lane kind for fact entities. Strict lane uses 'subject' and 'property_value'; context lane uses 'observation' or 'meta'; ontology lane uses 'predicate_schema' or 'predicate'. Use kb_model (mode requirement or predicates) when starting from prose.",
               "enum": [
                 "subject",
                 "property_value",
@@ -186,7 +191,7 @@
               "type": "array"
             },
             "logic_claims": {
-              "description": "Requirement-only manifest of every atomic normative claim key returned by kb_semantic_advisor. A requirement is logic-complete only when every key is grounded by a linked property_value or predicate fact with the same claim_key.",
+              "description": "Requirement-only manifest of every atomic normative claim key returned by kb_model mode analyze (CLI: semantic-advisor). A requirement is logic-complete only when every key is grounded by a linked property_value or predicate fact with the same claim_key.",
               "items": {
                 "pattern": "^CLAIM-[A-F0-9]{16}$",
                 "type": "string"
@@ -210,7 +215,7 @@
               "type": "string"
             },
             "predicate_args": {
-              "description": "Optional ordered predicate arguments for ontology predicate facts. Prefer kb_suggest_predicates before hand-writing predicate_args.",
+              "description": "Optional ordered predicate arguments for ontology predicate facts. Prefer kb_model mode predicates before hand-writing predicate_args.",
               "items": {
                 "type": "string"
               },
@@ -222,7 +227,7 @@
               "type": "integer"
             },
             "predicate_name": {
-              "description": "Optional predicate name for ontology predicate facts. Prefer kb_suggest_predicates before hand-writing predicate_name.",
+              "description": "Optional predicate name for ontology predicate facts. Prefer kb_model mode predicates before hand-writing predicate_name.",
               "type": "string"
             },
             "predicate_namespace": {
@@ -624,7 +629,7 @@
               "type": "string"
             },
             "semantic_clauses": {
-              "description": "Optional complete atomic decomposition used by kb_semantic_advisor and proposition-complete ingestion. Preserve it when automatic sentence splitting needs a reviewed override.",
+              "description": "Optional complete atomic decomposition used by kb_model mode analyze and proposition-complete ingestion. Preserve it when automatic sentence splitting needs a reviewed override.",
               "items": {
                 "minLength": 1,
                 "type": "string"
@@ -633,7 +638,7 @@
               "type": "array"
             },
             "semantic_inventory": {
-              "description": "Requirement proposition ledger returned by kb_semantic_advisor; preserve entries while modeling each assertive span.",
+              "description": "Requirement proposition ledger returned by kb_model mode analyze (CLI: semantic-advisor); preserve entries while modeling each assertive span.",
               "items": {
                 "type": "object"
               },
@@ -641,7 +646,7 @@
             },
             "semantic_inventory_version": {
               "const": "kibi.semantic-inventory.v1",
-              "description": "Requirement-only proposition ledger contract version returned by kb_semantic_advisor.",
+              "description": "Requirement-only proposition ledger contract version returned by kb_model mode analyze (CLI: semantic-advisor).",
               "type": "string"
             },
             "semantic_key": {
@@ -780,6 +785,8 @@
                   "consumes",
                   "supersedes",
                   "restates",
+                  "assumes",
+                  "exempts",
                   "relates_to"
                 ],
                 "type": "string"

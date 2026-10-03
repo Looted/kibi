@@ -81,7 +81,8 @@ converging models. To run that later:
    through `kb_upsert`, and sync.
 3. **Agent.** For each paraphrase, give a real model the Kibi skills
    (`kibi-usage`) and only the prose. Ask it to model the requirement with
-   `kb_model_requirement` → `kb_upsert`, sequentially. Record every tool call
+   `kb_model` (`mode: "requirement"`, the `kb_model_requirement` operation)
+   → `kb_upsert`, sequentially. Record every tool call
    and the resulting facts.
 4. **Configurations.** Run at least:
    builtin only; `kibi-plugin-jev` activated for

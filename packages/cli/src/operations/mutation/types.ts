@@ -16,6 +16,8 @@ export type UpsertInput = {
     /** Complete document bytes. Omit to preserve the existing body bytes. */
     readonly body?: string;
   };
+  /** Validate and preview the write without mutating the KB. */
+  readonly dryRun?: boolean;
   readonly _skipContradictionCheck?: boolean;
   readonly _requestId?: string;
 };

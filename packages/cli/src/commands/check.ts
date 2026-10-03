@@ -1388,6 +1388,8 @@ export async function checkNoDanglingRefs(
     "requires_property",
     "supersedes",
     "restates",
+    "assumes",
+    "exempts",
     "relates_to",
   ];
 

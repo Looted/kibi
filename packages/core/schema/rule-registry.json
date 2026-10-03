@@ -74,6 +74,15 @@
       "prologPredicateArity": 1
     },
     {
+      "name": "scenario-feasibility",
+      "description": "A scenario that expects success must not assume a property value a current requirement forbids, unless an approved exception requirement exempts it",
+      "enforcementClass": "canonical",
+      "category": "integrity",
+      "implementation": "prolog",
+      "prologPredicate": "check_scenario_feasibility",
+      "prologPredicateArity": 1
+    },
+    {
       "name": "domain-contradictions",
       "description": "Detect contradictions between requirements constraining the same fact",
       "enforcementClass": "canonical",

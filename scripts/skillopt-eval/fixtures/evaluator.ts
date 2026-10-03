@@ -149,6 +149,11 @@ function adversarialAssessments(task: FixtureTaskSpec) {
   ];
 }
 
+// Rubric tool names are catalog operations. Broker evidence routes MCP
+// `kb_model` calls by `mode` (analyze -> kb_semantic_advisor, predicates ->
+// kb_suggest_predicates, requirement -> kb_model_requirement) and a
+// `kb_upsert` with `dryRun: true` to kb_validate_upsert, matching the MCP
+// server's usage log (see runtime/mcp-tool-names.ts).
 const ADVISOR_READ_TOOLS = [
   "kb_search",
   "kb_query",

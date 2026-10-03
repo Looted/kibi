@@ -72,6 +72,8 @@ type RelationshipType =
   | "consumes"
   | "supersedes"
   | "restates"
+  | "assumes"
+  | "exempts"
   | "relates_to";
 
 const VALID_RELATIONSHIP_TYPES = new Set<RelationshipType>([
@@ -91,6 +93,8 @@ const VALID_RELATIONSHIP_TYPES = new Set<RelationshipType>([
   "consumes",
   "supersedes",
   "restates",
+  "assumes",
+  "exempts",
   "relates_to",
 ]);
 
@@ -136,6 +140,8 @@ const VALID_RELATIONSHIP_DIRECTIONS: ReadonlyArray<{
   { type: "supersedes", from: "adr", to: "adr" },
   { type: "supersedes", from: "req", to: "req" },
   { type: "restates", from: "req", to: "req" },
+  { type: "assumes", from: "scenario", to: "fact" },
+  { type: "exempts", from: "req", to: "req" },
 ];
 
 const RELATIONSHIP_TYPE_DISPLAY_LIST = Array.from(VALID_RELATIONSHIP_TYPES)

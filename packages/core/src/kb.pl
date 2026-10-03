@@ -85,6 +85,7 @@
 :- use_module('../schema/entities.pl', [entity_type/1, entity_property/3, required_property/2]).
 :- use_module('../schema/relationships.pl', [relationship_type/1, valid_relationship/3]).
 :- use_module('units.pl', [canonical_quantity/6]).
+:- use_module('intervals.pl', [numeric_constraints_satisfiable/1]).
 :- use_module('../schema/validation.pl', [validate_entity/2, validate_relationship/3]).
 
 % Constants
@@ -2898,33 +2899,21 @@ values_conflict(eq, ValA, neq, ValB, Type) :-
 values_conflict(neq, ValA, eq, ValB, Type) :-
     same_value(Type, ValA, Type, ValB).
 
-% Numeric gap conflict: lte X vs gte Y where X < Y
-values_conflict(lte, ValA, gte, ValB, Type) :-
+% Numeric conflict: the two comparisons admit no common real value.  This
+% covers every operator pair (eq/gt, lte/gt at the same bound, gte/gt, ...)
+% instead of a hand-written table.  neq/neq never conflicts and eq/neq is
+% handled above.
+values_conflict(OpA, ValA, OpB, ValB, Type) :-
     is_numeric_type(Type),
-    ValA < ValB.
-values_conflict(gte, ValB, lte, ValA, Type) :-
-    is_numeric_type(Type),
-    ValA < ValB.
+    numeric_operator(OpA),
+    numeric_operator(OpB),
+    \+ ( OpA == eq, OpB == eq ),
+    \+ ( OpA == eq, OpB == neq ),
+    \+ ( OpA == neq, OpB == eq ),
+    number(ValA), number(ValB),
+    \+ numeric_constraints_satisfiable([c(OpA, X, ValA), c(OpB, X, ValB)]).
 
-% Also catch lt/gt variants
-values_conflict(lt, ValA, gt, ValB, Type) :-
-    is_numeric_type(Type),
-    ValA =< ValB.
-values_conflict(gt, ValB, lt, ValA, Type) :-
-    is_numeric_type(Type),
-    ValA =< ValB.
-values_conflict(lt, ValA, gte, ValB, Type) :-
-    is_numeric_type(Type),
-    ValA =< ValB.
-values_conflict(gte, ValB, lt, ValA, Type) :-
-    is_numeric_type(Type),
-    ValA =< ValB.
-values_conflict(lte, ValA, gt, ValB, Type) :-
-    is_numeric_type(Type),
-    ValA < ValB.
-values_conflict(gt, ValB, lte, ValA, Type) :-
-    is_numeric_type(Type),
-    ValA < ValB.
+numeric_operator(Op) :- memberchk(Op, [eq, neq, lt, lte, gt, gte]).
 
 %% is_numeric_type(+Type)
 % True for numeric value types.

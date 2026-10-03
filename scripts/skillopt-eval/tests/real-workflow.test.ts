@@ -23,7 +23,7 @@ const COMPLETE_SAFE_SEED_BODY = `# Kibi Usage
 npx --no-install kibi
 bunx --no-install kibi
 Do not read or edit files inside \`.kb\` directly
-kb_search kb_query kb_upsert kb_check kb_semantic_advisor kb_suggest_predicates kb_model_requirement
+kb_search kb_query kb_upsert kb_check kb_model mode: "analyze" mode: "predicates" mode: "requirement" dryRun: true
 fact_kind: predicate predicate_name predicate_args canonical_key polarity predicate_schema requires_predicate
 logic_claims semantic_inventory claim_key claim_text propositions interpretations projectLocalSchemas nonlogical
 review:ambiguity review:ontology-gap polarity: deny kibi.logic.v1

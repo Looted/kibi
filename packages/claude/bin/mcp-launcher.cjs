@@ -510,7 +510,10 @@ function proxyKibiMcp(options = {}) {
   }
   const childEnv = {
     ...env,
-    KIBI_WORKSPACE: workspaceRoot,
+    // Attach without pinning: a pinned server (KIBI_WORKSPACE) disables
+    // per-call workspace routing, so worktree calls would be answered from
+    // this checkout. An operator-set KIBI_WORKSPACE still passes through.
+    KIBI_MCP_ATTACH_ROOT: workspaceRoot,
     KIBI_MCP_HOST: "claude-code",
   };
   return new Promise((resolveExit) => {

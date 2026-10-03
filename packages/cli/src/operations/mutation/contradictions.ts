@@ -35,6 +35,36 @@ function upsertBatchEntry(input: TransactionInput): string {
   return `upsert(${type}, ${buildPropertyList(input.entity)}, [${relationships.join(", ")}], ${input.skipContradictionCheck ? "true" : "false"})`;
 }
 
+// Engines that only loaded kb.pl (one-shot processes, embedders) have not
+// loaded checks.pl yet; load it from kb.pl's directory on first use. The
+// call/1 defers resolving the checks procedure until after the load.
+const ENSURE_CHECKS_LOADED =
+  "(current_predicate(checks:what_if_contradiction_witnesses_json/2) -> true ; module_property(kb, file(KbFile)), file_directory_name(KbFile, KbDir), directory_file_path(KbDir, 'checks.pl', ChecksFile), use_module(ChecksFile))";
+
+// implements REQ-kibi-truthful-consistency
+/**
+ * Goal that stages inputs in a rolled-back transaction and returns the
+ * contradiction witnesses the KB would then contain, as JSON in JsonString.
+ * Inputs without entity properties stage only their relationships, so a
+ * relationship-only step never erases an existing entity's properties.
+ */
+export function buildWhatIfContradictionGoal(
+  inputs: readonly (TransactionInput & {
+    readonly relationshipsOnly?: boolean;
+  })[],
+): string {
+  const entries = inputs.map((input) => {
+    const relationships = input.relationships.map(
+      (relationship) =>
+        `rel(${String(relationship.type)}, '${escapeAtom(String(relationship.from))}', '${escapeAtom(String(relationship.to))}', ${buildRelationshipMetadata(relationship)})`,
+    );
+    if (input.relationshipsOnly === true)
+      return `relate([${relationships.join(", ")}])`;
+    return `upsert(${String(input.entity.type)}, ${buildPropertyList(input.entity)}, [${relationships.join(", ")}])`;
+  });
+  return `(${ENSURE_CHECKS_LOADED}, call(checks:what_if_contradiction_witnesses_json([${entries.join(", ")}], JsonString)))`;
+}
+
 /** One transaction and one journal flush for a receipt campaign. */
 // implements REQ-core-atomic-upsert-persistence
 export function buildUpsertBatchCommitGoal(

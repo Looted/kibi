@@ -541,7 +541,7 @@ describe("Codex hook state journal", () => {
   });
 
   test("non-check tools never flip the kb check flag", () => {
-    expect(recordKbMcpTool(undefined, "kb_skills_list").kbCheckRun).toBe(false);
+    expect(recordKbMcpTool(undefined, "kb_skills").kbCheckRun).toBe(false);
     expect(recordKbMcpTool(undefined, "kb_check", {}).kbCheckRun).toBe(true);
     expect(recordKbMcpTool(undefined, "kb_check").impactCheckRun).toBe(false);
     expect(
@@ -679,7 +679,7 @@ describe("Codex kb mcp tool call extraction", () => {
     ).toBe(true);
     expect(
       extractKbMcpToolCall(
-        "kb_skills_list",
+        "kb_skills",
         toolInput({
           includeImpactDiagnostics: true,
           includeWorkingTreeDiff: true,
@@ -1179,7 +1179,7 @@ describe("Codex hook runner decisions", () => {
     optInWorkspace(cwd);
     const stateDir = resolveWorkspaceStateDir(pluginData, cwd);
 
-    recordKbMcpTool(stateDir, "kb_skills_list");
+    recordKbMcpTool(stateDir, "kb_skills");
     const journalPath = journalFile(stateDir as string);
     const journalWithOnlyNoise = `${JSON.stringify({ kind: "mystery" })}\n`;
     fs.mkdirSync(path.dirname(journalPath), { recursive: true });

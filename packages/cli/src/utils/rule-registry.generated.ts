@@ -63,6 +63,13 @@ export const GENERATED_RULES = [
     category: "lifecycle",
   },
   {
+    name: "scenario-feasibility",
+    description:
+      "A scenario that expects success must not assume a property value a current requirement forbids, unless an approved exception requirement exempts it",
+    enforcementClass: "canonical",
+    category: "integrity",
+  },
+  {
     name: "domain-contradictions",
     description:
       "Detect contradictions between requirements constraining the same fact",

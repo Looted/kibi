@@ -419,3 +419,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9fdecfe58a4e
+  - type: implements
+    from: SYM-cli-dry-run-upsert
+    to: REQ-kibi-mcp-tool-consolidation
+    created_at: 2026-10-03T09:26:37.889Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cfb42a14abff
+  - type: covered_by
+    from: SYM-cli-dry-run-upsert
+    to: TEST-kibi-mcp-tool-consolidation
+    created_at: 2026-10-03T09:26:37.921Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-921d216bb9ea

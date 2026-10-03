@@ -40,13 +40,39 @@ Kibi includes deterministic derived predicates for internal analysis and automat
 - **Non-blocking lane:** `observation` and `meta` facts are explicitly excluded from contradiction inference. They serve as non-blocking notes for bugs, workarounds, and historical context.
 - Conflict classes currently covered:
   - exact-value conflicts like `eq pending` vs `eq granted`
-  - numeric range gaps like `lte 2` vs `gte 3`
+  - numeric conflicts decided exactly: two comparisons conflict when no real value satisfies both. Strict bounds count, so `gt 0` vs `eq 0` and `lte 0` vs `gt 0` conflict while `gte 0` vs `eq 0` does not (`packages/core/src/intervals.pl`)
   - polarity conflicts like `require` vs `forbid` on the same normalized tuple
 - Scope and validity windows only conflict when they intersect.
 - **Readiness Levels:** Requirements must pass strict readiness checks (e.g., valid `subject_key`, matching `property_key`, valid operator) before participating in contradiction checks.
 - Contradiction detection covers exact-value, boolean/enum, numeric range, and polarity conflicts. Prose-only requirements without strict fact modeling are not checked for contradictions.
 - **Semantic advisor receipts:** MCP preflight and write responses may warn that prose looks machine-checkable but unmodeled, and may include draft strict-property, predicate, ambiguity-observation, or ontology-gap suggestions. These suggestions are advisory. They do not add contradiction semantics unless the requirement is linked to strict facts or predicate facts.
 - **Automation:** The modeling pipeline is fully automated and does not require human approval for high-confidence (>= 0.7) claims.
+
+### Rule (logic IR) conflicts
+
+Typed `kibi.logic.v1` rules with opposing modalities (oblige or permit vs forbid) are compared three-valued:
+
+- `contradiction`: one rule's conditions always imply the other's, the conditions can hold together and neither rule has an exception, so the rules must collide.
+- `disjoint`: the actions differ, the scopes or validity windows do not intersect, the conditions cannot hold together, or one rule's exception is implied by the other rule's conditions.
+- `unresolved`: the rules may overlap but the fragment cannot decide it.
+
+**Same-fact assumption.** When testing whether two rules' conditions can hold together, condition atoms with the same predicate name whose arguments unify are read as the same fact. Two rules that mention `order_total(T)` are assumed to talk about the same order total. Model distinct quantities with distinct predicate names or subject keys.
+
+### Unmodeled clauses are not "no conflict"
+
+The proof ladder's contradiction stage reports `status: unresolved` with `outcome: analysis_incomplete` (reason `unresolved_propositions`) when a requirement has semantic-inventory propositions that are not modeled, even if no conflict was found among the modeled ones. Absence of a conflict only means something once every clause is grounded.
+
+## Scenario feasibility
+
+A scenario may declare `expects: success | rejection | error` and link the values its outcome depends on with `assumes` (scenario → `property_value` fact). The canonical `scenario-feasibility` check reports a scenario when:
+
+- it expects `success`,
+- it assumes a `property_value` fact on the same `subject_key` and `property_key` as a property a current requirement requires, with intersecting scope and compatible type and unit, and
+- the two constraints conflict under the requirement contradiction rules above (value, numeric or polarity conflict).
+
+The scenario is exempt when a current exception requirement `exempts` the forbidding requirement and is `specified_by` the scenario. The base requirement is not edited and stays current.
+
+Every requirement that specifies an infeasible scenario has its scenario stage set to `blocked` and gets the `infeasible_scenario` proof gap, so it cannot be proven through that scenario. The check is one-directional evidence: scenarios with no `assumes`, or whose assumption names a different property, are not compared, and the lack of a violation is not proof of feasibility.
 
 ## Predicate ontology semantics
 

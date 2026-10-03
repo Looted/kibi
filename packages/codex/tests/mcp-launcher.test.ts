@@ -289,9 +289,9 @@ describe("codex MCP launcher workspace gate", () => {
     ]);
     expect(spawnCalls[1]?.args).toEqual(["--no-install", "kibi-mcp"]);
     expect(spawnCalls[1]?.opts.cwd).toBe(workspace);
-    expect((spawnCalls[1]?.opts.env as NodeJS.ProcessEnv).KIBI_WORKSPACE).toBe(
-      workspace,
-    );
+    expect(
+      (spawnCalls[1]?.opts.env as NodeJS.ProcessEnv).KIBI_MCP_ATTACH_ROOT,
+    ).toBe(workspace);
     expect(run.stdout).toContain('"kibi-mcp"');
     expect(run.stdout).not.toContain('"kibi-codex-launcher"');
     expect(children[1]?.stdin.writable).toBe(true);

@@ -195,3 +195,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-61b76990d577
+  - type: implements
+    from: SYM-kibi-cli-src-intent-search-ts-rankintententities
+    to: REQ-kibi-search-answer-layer
+    created_at: 2026-10-03T09:25:20.653Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ab2580b467e9
+  - type: covered_by
+    from: SYM-kibi-cli-src-intent-search-ts-rankintententities
+    to: TEST-kibi-search-answer-layer
+    created_at: 2026-10-03T09:25:20.672Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-68a7a7fccf7d

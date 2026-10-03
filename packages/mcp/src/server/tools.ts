@@ -21,7 +21,9 @@ import type { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { type RuntimeOperationSpec, executeOperation } from "kibi-runtime";
 import { operationData, toKibiResult } from "kibi-runtime";
 import type { z } from "zod";
+import { routedBusinessArgs, routedOperationName } from "../diagnostics.js";
 import { isMcpDebugEnabled } from "../env.js";
+import { enabledOptionalTools } from "../tools-config.js";
 import {
   appendDiagnosticErrorUsage,
   appendDiagnosticSuccessUsage,
@@ -350,10 +352,13 @@ export function addTool<TProlog>(
         if (diagnosticModeEnabled) {
           await appendDiagnosticSuccessUsage({
             runtime,
-            toolName: name,
+            // Usage evidence records the routed operation (kb_model mode
+            // predicates logs as kb_suggest_predicates) so telemetry
+            // acceptance keeps reading one operation per entry.
+            toolName: routedOperationName(name, businessArgs),
             requestId,
             args,
-            businessArgs,
+            businessArgs: routedBusinessArgs(name, businessArgs),
             telemetry,
             startedAt,
             result: envelope,
@@ -392,10 +397,13 @@ export function addTool<TProlog>(
         if (diagnosticModeEnabled) {
           await appendDiagnosticErrorUsage({
             runtime,
-            toolName: name,
+            // Usage evidence records the routed operation (kb_model mode
+            // predicates logs as kb_suggest_predicates) so telemetry
+            // acceptance keeps reading one operation per entry.
+            toolName: routedOperationName(name, businessArgs),
             requestId,
             args,
-            businessArgs,
+            businessArgs: routedBusinessArgs(name, businessArgs),
             telemetry,
             startedAt,
             error,
@@ -404,7 +412,9 @@ export function addTool<TProlog>(
         }
         if (
           isToolTimeoutError(error) &&
-          isMutationEffect(operationSpec.effects)
+          isMutationEffect(operationSpec.effects) &&
+          // A kb_upsert dry run writes nothing, so its outcome is known.
+          !(name === "kb_upsert" && businessArgs.dryRun === true)
         ) {
           const recoveryActions = [
             {
@@ -499,7 +509,9 @@ export function registerAllTools<TProlog>(
   runtime: ToolsRuntime<TProlog> = DEFAULT_TOOLS_RUNTIME as unknown as ToolsRuntime<TProlog>,
 ): void {
   registerConfiguredTools(server, runtime, addTool);
-  registerJobStatusTool(server);
+  if (enabledOptionalTools().has("kb_job_status")) {
+    registerJobStatusTool(server);
+  }
 }
 
 /**

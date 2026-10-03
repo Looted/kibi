@@ -251,3 +251,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8ce91f91a109
+  - type: relates_to
+    from: FACT-OBS-search-absence-not-evidence
+    to: REQ-kibi-search-answer-layer
+    created_at: 2026-10-03T09:16:08.567Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-75c3339b1317

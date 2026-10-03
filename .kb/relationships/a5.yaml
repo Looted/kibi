@@ -104,3 +104,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-16d0f0f7de74
+  - type: implements
+    from: SYM-core-proof-scenario-stage
+    to: REQ-kibi-scenario-feasibility
+    created_at: 2026-10-03T09:26:53.252Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ed3dcd028364
+  - type: covered_by
+    from: SYM-core-proof-scenario-stage
+    to: TEST-kibi-scenario-feasibility
+    created_at: 2026-10-03T09:26:53.266Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6bd3763275f3

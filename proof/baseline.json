@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 145,
-  "proofProven": 145,
+  "currentRequirements": 149,
+  "proofProven": 149,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -727,6 +727,26 @@
       "uncoveredSymbols": []
     },
     "REQ-prolog-bundled-quickstart": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-mcp-tool-consolidation": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-scenario-feasibility": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-search-answer-layer": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-truthful-consistency": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []

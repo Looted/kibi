@@ -281,7 +281,17 @@ Diagnostic reconciliation is the multiset of successful model-originated Kibi ca
 
 `$OPERATOR_BASE` prefers `~/.cache/kibi-skillopt/operator` (or `$XDG_CACHE_HOME`) so paid optimizer last-messages survive logout; `$XDG_RUNTIME_DIR/kibi-skillopt/operator` remains a writable fallback, then a private temp directory. Each optimizer attempt copies `--output-last-message` and parse errors to `failed-output/` before the ephemeral workspace is removed.
 
-The smoke gate requires the shell isolation probe exactly once and one model-originated read-only `kb_semantic_advisor` call. It verifies the matching successful `tools/call` broker trace, valid hash chain, and successful `.kb/usage.log` diagnostic receipt before optimization starts. The probe suppresses the expected read-only-write denial so exact-output evidence contains only its pass token. If a real cell reports infrastructure failure, the command stops immediately and emits a structured `cell_infrastructure_failure` no-go result; this is distinct from `HELD_OUT_MATRIX_INELIGIBLE`, which is reserved for a complete matrix with behavioral gate failures.
+The smoke gate requires the shell isolation probe exactly once and one model-originated read-only `kb_model` call with `mode: "analyze"`. It verifies the matching successful `tools/call` broker trace, valid hash chain, and successful `.kb/usage.log` diagnostic receipt before optimization starts; the usage log records that call under its routed catalog operation, `kb_semantic_advisor`. The probe suppresses the expected read-only-write denial so exact-output evidence contains only its pass token. If a real cell reports infrastructure failure, the command stops immediately and emits a structured `cell_infrastructure_failure` no-go result; this is distinct from `HELD_OUT_MATRIX_INELIGIBLE`, which is reserved for a complete matrix with behavioral gate failures.
+
+The evaluator broker advertises and forwards only the default MCP tools the
+harness needs (`kb_search`, `kb_query`, `kb_status`, `kb_skills`, `kb_model`,
+`kb_upsert`, `kb_delete`, `kb_check`, `kb_graph`, `kb_coverage`,
+`kb_plan_bootstrap`, `kb_apply_plan`, `kb_ingest_proof`). Protocol rubrics name
+catalog operations: broker evidence routes `kb_model` by `mode` to
+`kb_semantic_advisor`, `kb_model_requirement`, or `kb_suggest_predicates`, and
+a `kb_upsert` with `dryRun: true` to `kb_validate_upsert`, exactly as the MCP
+server's usage log does. A dry run therefore satisfies a validation step and is
+never counted as a write.
 
 Real cell final-state scoring uses the independent verifier's all-entity `kb_query`, `kb_check`, and `kb_status` receipts. Valid evidence that shows a wrong fact or predicate lane is a behavioral failure and the optimizer may continue; `evidence-conflict` is reserved for malformed, unbound, hash-invalid, or contradictory evidence.
 

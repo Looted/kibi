@@ -106,8 +106,9 @@ describe("Docs Consistency: Fact Model & Contradictions", () => {
       expect(content).toMatch(/skills validate/);
     });
 
-    test("mcp-reference.md documents kb_skills tools", () => {
+    test("mcp-reference.md documents the kb_skills tool and its catalog operations", () => {
       const content = getFileContent("docs/mcp-reference.md");
+      expect(content).toMatch(/### `kb_skills`/);
       expect(content).toMatch(/`kb_skills_list`/);
       expect(content).toMatch(/`kb_skills_load`/);
       expect(content).toMatch(/`kb_skills_read`/);
@@ -115,8 +116,9 @@ describe("Docs Consistency: Fact Model & Contradictions", () => {
 
     test("generic-agent-onboarding.md teaches skill discovery", () => {
       const content = getFileContent("docs/generic-agent-onboarding.md");
-      expect(content).toMatch(/kb_skills_list/);
-      expect(content).toMatch(/kb_skills_load/);
+      expect(content).toMatch(/kb_skills/);
+      expect(content).toMatch(/action: "list"/);
+      expect(content).toMatch(/action: "load"/);
       expect(content).toMatch(/kibi-usage/);
     });
 

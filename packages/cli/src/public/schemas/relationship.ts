@@ -41,6 +41,8 @@ const relationshipSchema = {
         "consumes",
         "supersedes",
         "restates",
+        "assumes",
+        "exempts",
         "relates_to",
       ],
     },

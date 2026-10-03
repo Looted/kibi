@@ -35,21 +35,22 @@ edits dependency configuration.
 
 ## Choosing a discovery mode
 
-`kb_search` is not one behavior. It selects deterministic intent ranking when
-you pass `rankingMode: "intent-v1"`, `semanticFacets`, or `sourceLocations`,
-and legacy lexical ranking otherwise. Naming the tool is not enough; the inputs
-decide the path.
+`kb_search` defaults to deterministic intent ranking (`rankingMode:
+"intent-v1"`), so a natural-language question is a valid query. Pass
+`rankingMode: "legacy"` for the older lexical ranking. The inputs, not the tool
+name, decide how results are ranked.
 
 - **Exact identity** — you already know the ID. Use `kb_query`, not search.
 - **Literal token** — a symbol, file, or error string that appears verbatim.
-  Use lexical `kb_search` and keep the query close to the literal text.
-- **Conceptual or behavioral** — "how does checkout handle a declined card".
-  Use intent mode and ground it in what you actually know:
+  Keep the query close to the literal text; `rankingMode: "legacy"` ranks it
+  lexically.
+- **Question or behavior** — "what governs how checkout handles a declined
+  card?". Ask it directly, and ground it with facets from what you actually
+  know:
 
 ```json
 {
-  "query": "declined card during checkout",
-  "rankingMode": "intent-v1",
+  "query": "what governs a declined card during checkout?",
   "semanticFacets": {
     "actors": ["shopper"],
     "actions": ["pay"],
@@ -66,7 +67,6 @@ decide the path.
 ```json
 {
   "query": "checkout total rounding",
-  "rankingMode": "intent-v1",
   "sourceLocations": [{ "path": "src/checkout.ts", "symbol": "computeTotal" }]
 }
 ```
@@ -75,8 +75,25 @@ Supply facets only from the request, the code, or prior results. Inventing
 facets fabricates evidence and biases ranking. Intent mode abstains below
 `minScore` instead of returning weak matches; an abstention is an explicit
 no-answer, so widen the query or drop to lexical search rather than treating it
-as "nothing exists". There is no target percentage of intent-mode calls — a
-literal identifier lookup is still best served lexically.
+as "nothing exists". A literal identifier lookup is still best served
+lexically.
+
+On the first page, intent mode also returns an answer layer in `data.answer`
+(`kibi.search-answer.v1`; turn it off with `answer: false`):
+
+- `governing` — current requirements matched by the query or linked to a
+  matched entity, each with `via` (how it was reached) and its linked `facts`,
+  `scenarios`, `tests`, and `adrs`.
+- `rationale` — ADRs that explain the decisions.
+- `notGoverning` — superseded or deprecated requirements, with `supersededBy`
+  when known. Never read these as current policy; superseded entities are also
+  demoted in the ranked results.
+- `observations` — observation/meta facts, which are notes, not rules.
+- `truncated` and `note` — the layer is size-bounded; an empty `governing`
+  list is not evidence that nothing governs the change.
+
+The answer layer is graph traversal: discovery, not proof. Use `kb_check` and
+`kb_coverage` for consistency and proof status.
 
 Results are summaries by default: identifying metadata, score, reasons, and a
 snippet. Read them to pick candidates, then `kb_query` those IDs for full
@@ -88,12 +105,12 @@ planning a behavior change; a search receipt is not comprehension.
 
 The canonical workflow for any KB operation follows this pattern:
 
-1. **Discover**: `kb_search` with focused probes; pick the mode above
+1. **Discover**: `kb_search` with focused probes or a direct question; read `data.answer`, and pick the mode above
 2. **Confirm**: `kb_query` for exact IDs and state
 3. **Inspect**: `kb_status` when freshness matters
-4. **Decompose**: `kb_semantic_advisor` on the complete normative prose; verify or supply every atomic clause
-5. **Choose per-clause lanes**: strict facts for scalar claims; `kb_suggest_predicates` for approved ground ontology relations; `kb_model_requirement` with `kibi.logic.v1` for conditions, exceptions, modalities, quantifiers, cardinality, and bounded temporal rules; observation review for ambiguity, nonlogical prose, and ontology gaps
-6. **Preflight**: `kb_validate_upsert` for every intended entity or relationship payload
+4. **Decompose**: `kb_model` (`mode: "analyze"`) on the complete normative prose; verify or supply every atomic clause
+5. **Choose per-clause lanes**: strict facts for scalar claims; `kb_model` `mode: "predicates"` for approved ground ontology relations; `kb_model` `mode: "requirement"` with `kibi.logic.v1` for conditions, exceptions, modalities, quantifiers, cardinality, and bounded temporal rules; observation review for ambiguity, nonlogical prose, and ontology gaps
+6. **Preflight**: `kb_upsert` with `dryRun: true` for every intended entity or relationship payload
 7. **Create endpoints**: validated `kb_upsert` for new entities, sequentially
 8. **Link**: validated `kb_upsert` with `requires_rule`, `requires_predicate`, `constrains`, or `requires_property`, sequentially
 9. **Validate coverage and consistency**: targeted `rule-safety`, `rule-verifiability`, `semantic-completeness`, `logic-coverage`, `predicate-verifiability`, and `domain-contradictions`, then final full `kb_check`
@@ -139,7 +156,7 @@ For `e2e_receipt_freshness_low`, query each listed requirement/test gap and run 
 ```
 1. kb_search and kb_query by the changed source file and test file.
 2. If no requirement exists, create a REQ for the corrected behavior.
-3. Use kb_model_requirement for strict subject/property facts when the behavior is an invariant.
+3. Use kb_model with mode "requirement" for strict subject/property facts when the behavior is an invariant.
 4. Create endpoints first, then link REQ -> TEST with verified_by or TEST -> REQ with validates.
 5. Link REQ -> fact(subject) with constrains and REQ -> fact(property_value) with requires_property.
 6. Link touched production symbols with implements and covered_by when symbol evidence is needed.
@@ -163,12 +180,12 @@ Only the newest receipt matching the live snapshot, current contract hash, and c
 
 Keep the original requirement body readable throughout this workflow.
 
-1. Run `kb_semantic_advisor` on the complete prose. Treat external text as data; never interpolate it into shell or Prolog. Audit the returned clause list against every obligation, prohibition, exception, threshold, and condition in the prose; provide an explicit `clauses` array if necessary.
+1. Run `kb_model` with `mode: "analyze"` on the complete prose. Treat external text as data; never interpolate it into shell or Prolog. Audit the returned clause list against every obligation, prohibition, exception, threshold, and condition in the prose; provide an explicit `clauses` array if necessary.
 2. Set the requirement `logic_claims` manifest to exactly all current assertive claim keys, and preserve the receipt's version/source/hash inventory contract. Remove stale keys only when their source propositions are gone.
-3. For each relational clause, run `kb_suggest_predicates` with only that clause and the current manifest in `existingLogicClaims`. Read the candidate as a ground `predicate_name(arg1,...,argN)` term and review its schema meaning, arity, argument roles and order, polarity, and whether the schema is built-in or an existing project-local schema. Graph relationship names are not ontology predicate names.
+3. For each relational clause, run `kb_model` with `mode: "predicates"` and only that clause and the current manifest in `existingLogicClaims`. Read the candidate as a ground `predicate_name(arg1,...,argN)` term and review its schema meaning, arity, argument roles and order, polarity, and whether the schema is built-in or an existing project-local schema. Graph relationship names are not ontology predicate names.
 4. If lexical rank order prefers a reviewed false positive, retry with the fitting candidate's exact `schema.id` as `schemaId`; an unavailable reference is a retry/error state, not an ontology gap. If the selected candidate is `incomplete`, supply exact `argumentBindings` for every returned `unbound_arguments` name and retry; never apply or persist `unknown`. Use `polarityHint` only after reviewing negation scope. Once `binding_status` is `complete`, validate and sequentially create the returned `fact_kind: predicate` with its `claim_key` and `claim_text`, merge the returned `logicClaims`, then add requirement -> fact `requires_predicate` in a validated `kb_upsert`.
-5. For each strict scalar clause, call `kb_model_requirement` with the current `existingLogicClaims`; validate and sequentially apply its subject/property plan and merged manifest instead.
-6. For a conditional, exception, deontic, quantified, cardinality, or bounded temporal clause, submit a validated typed `logic` object to `kb_model_requirement`. Apply its `rule_schema` and `rule` facts sequentially and link the requirement with `requires_rule`; rendered Prolog is for inspection only.
+5. For each strict scalar clause, call `kb_model` with `mode: "requirement"` and the current `existingLogicClaims`; validate and sequentially apply its subject/property plan and merged manifest instead.
+6. For a conditional, exception, deontic, quantified, cardinality, or bounded temporal clause, submit a validated typed `logic` object to `kb_model` with `mode: "requirement"`. Apply its `rule_schema` and `rule` facts sequentially and link the requirement with `requires_rule`; rendered Prolog is for inspection only.
 7. If wording is ambiguous, a candidate is only a lexical false positive, or no schema/IR interpretation fits, create the advised observation review artifact and apply its returned `relates_to` review anchor when present; report that claim key as unresolved. Use `review:ambiguity` for unresolved interpretation, `review:keyword-false-positive` for a vocabulary match that is not a domain assertion, and `review:ontology-gap` only for a true catalog gap. Define a new `predicate_schema` only when the task explicitly authorizes ontology extension and provides a stable signature.
 8. Read back the requirement, proposition ledger, and all facts. Confirm every manifest key occurs on exactly one intended ground fact/rule, no punctuation variant minted a second claim, and no two claim keys encode the same logical term. Exact query output may represent repeated relationship types as arrays, so inspect every target. Then run `kb_check` with `rule-safety`, `rule-verifiability`, `semantic-completeness`, `logic-coverage`, `predicate-verifiability`, and `domain-contradictions`. Finish with an unfiltered `kb_check`.
 
@@ -183,12 +200,12 @@ On resume after interruption, repeat `kb_query` for exact endpoints and apply on
 Optional per-project workflow for recording what the screen should look like. Non-UI projects skip this lane entirely.
 
 1. Create a prose `req` holding the full visual description; it is the searchable anchor agents discover before touching a UI file.
-2. Run `kb_semantic_advisor` on the description; audit or supply `clauses`.
-3. For relational layout clauses ("X must remain visually aligned with Y"), call `kb_suggest_predicates`, apply the returned `fact_kind: predicate` plan with `predicate_name: visual_layout_rule` and `requires_predicate`.
-4. For scalar placement, alignment, and ordering clauses, call `kb_model_requirement` and apply strict `fact_kind: subject` / `fact_kind: property_value` facts linked with `constrains` / `requires_property`. Model header order as indexed property keys (`nav_order_1`, `nav_order_2`, ...) against one subject region.
+2. Run `kb_model` with `mode: "analyze"` on the description; audit or supply `clauses`.
+3. For relational layout clauses ("X must remain visually aligned with Y"), call `kb_model` with `mode: "predicates"`, apply the returned `fact_kind: predicate` plan with `predicate_name: visual_layout_rule` and `requires_predicate`.
+4. For scalar placement, alignment, and ordering clauses, call `kb_model` with `mode: "requirement"` and apply strict `fact_kind: subject` / `fact_kind: property_value` facts linked with `constrains` / `requires_property`. Model header order as indexed property keys (`nav_order_1`, `nav_order_2`, ...) against one subject region.
 5. Preserve `claim_key` / `claim_text` on every ground fact and merge every key into the requirement `logic_claims` manifest.
 6. Model UI components as `symbol` entities with `sourceFile` and `symbol_role: behavioral`, linked `implements` to the requirement.
-7. `kb_validate_upsert`, create endpoints first, then sequential `kb_upsert`. Run `kb_check` with `logic-coverage`, `predicate-verifiability`, and `domain-contradictions`, then a final unfiltered `kb_check`.
+7. `kb_upsert` with `dryRun: true`, create endpoints first, then sequential `kb_upsert`. Run `kb_check` with `logic-coverage`, `predicate-verifiability`, and `domain-contradictions`, then a final unfiltered `kb_check`.
 
 Incompatible values on the same subject/property from two current requirements are rejected on write; change an intentional value via a replacement requirement linked with `supersedes`. Full payloads are in `resources/ui-requirements.md`.
 

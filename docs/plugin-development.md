@@ -98,11 +98,11 @@ comparison metadata only.
 
 | Capability | Builtin position | Notes |
 | --- | --- | --- |
-| Semantic classifier | First for `augment`; fallback for `replace` failure | External classifiers run only from `kb_semantic_advisor` and `kb_compile_intent`. Valid empty `decisions[]` under `replace` is abstention (conservative `none`), not builtin fill. |
+| Semantic classifier | First for `augment`; fallback for `replace` failure | External classifiers run only from the semantic advisor (`kb_model` mode `analyze`, CLI `semantic-advisor`) and `kb_compile_intent`. Valid empty `decisions[]` under `replace` is abstention (conservative `none`), not builtin fill. |
 | Ontology pack | Catalog starts with builtin for `augment` | `replace` excludes the builtin provider catalog. Valid empty `match()` is abstention (no builtin consult). Allowed wherever Kibi already matches ontology |
 | Symbol extractor v1 | Builtin first for supported files under `augment` | Legacy replacement and fallback behavior |
 | Symbol extractor v2 | Builtin first for supported files under `augment` | First claiming provider owns the result; partial, failed, or unsupported output never becomes a successful fallback |
-| Vocabulary alignment | Builtin always runs first; fallback for `replace` failure | External providers run only from `kb_model_requirement`. `augment` refines only clauses the builtin left as `new_subject` and pairs it did not judge duplicates (it can add candidates, never remove them). A provider may only choose among the builtin-ranked candidates or `new_subject`; any other answer is rejected and falls back to builtin with `fallbackUsed`. Results are advice in the modeling plan, never check outcomes |
+| Vocabulary alignment | Builtin always runs first; fallback for `replace` failure | External providers run only from requirement modeling (`kb_model` mode `requirement`, CLI `model-requirement`). `augment` refines only clauses the builtin left as `new_subject` and pairs it did not judge duplicates (it can add candidates, never remove them). A provider may only choose among the builtin-ranked candidates or `new_subject`; any other answer is rejected and falls back to builtin with `fallbackUsed`. Results are advice in the modeling plan, never check outcomes |
 
 Sync maintenance paths (`sync`, `check`, `kb_upsert`, `status`, proof, and
 related) keep deterministic builtin analysis for every capability and must
@@ -249,8 +249,8 @@ printf '%s\n' 'TYPESAFE_API_KEY=...' >> ~/.config/kibi/env
 - Explicit `JevSemanticClassifierOptions.model` and `timeoutMs` override those environment defaults. They are a programmatic constructor API, not fields in `package.json`
 - Importing the package, or leaving it installed but inactive, performs no TypeSafe client or network call
 - On failure Kibi falls back to the builtin classifier with an advisory warning
-- `kb_model_requirement` does not invoke the classifier. External semantic classifiers run only from `kb_semantic_advisor` and `kb_compile_intent`
-- Vocabulary alignment (`rankSubjects` as a `choice` over the builtin top 5 plus `new_subject`; `compareClaims` as a `noul` per pair) runs only from `kb_model_requirement`, and only when `kibi.vocabulary-alignment.v1` is activated
+- Requirement modeling (`kb_model` mode `requirement`) does not invoke the classifier. External semantic classifiers run only from the semantic advisor (`kb_model` mode `analyze`) and `kb_compile_intent`
+- Vocabulary alignment (`rankSubjects` as a `choice` over the builtin top 5 plus `new_subject`; `compareClaims` as a `noul` per pair) runs only from requirement modeling (`kb_model` mode `requirement`), and only when `kibi.vocabulary-alignment.v1` is activated
 - Live tests require both `KIBI_JEV_LIVE_TEST=1` and `TYPESAFE_API_KEY`
 - `kibi doctor` reports first-party Jev secret source labels and model/timeout without importing the plugin or leaking values
 

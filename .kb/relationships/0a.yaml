@@ -321,3 +321,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b1a0f753233f
+  - type: validates
+    from: TEST-kibi-scenario-feasibility
+    to: SCEN-kibi-scenario-feasibility
+    created_at: 2026-10-03T09:15:16.992Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7e859ce04c49
+  - type: implements
+    from: SYM-registerConfiguredTools
+    to: REQ-kibi-mcp-tool-consolidation
+    created_at: 2026-10-03T09:25:40.451Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-37e8a2029345
+  - type: covered_by
+    from: SYM-registerConfiguredTools
+    to: TEST-kibi-mcp-tool-consolidation
+    created_at: 2026-10-03T09:25:40.482Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-53b52443e66c
+  - type: guards
+    from: FLAG-mcp-optional-tools
+    to: REQ-kibi-mcp-tool-consolidation
+    created_at: 2026-10-03T09:33:10.018Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e380ed04361b

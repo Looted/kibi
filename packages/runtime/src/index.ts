@@ -33,6 +33,11 @@ export type {
 export {
   VALID_ENTITY_TYPES,
   OPERATION_CATALOG,
+  MODEL_ROUTES,
+  SKILL_ROUTES,
+  dispatchComposite,
+  modelSpec,
+  skillsSpec,
   applyPlanSpec,
   planBootstrapSpec,
   checkSpec,

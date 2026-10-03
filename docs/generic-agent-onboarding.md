@@ -15,8 +15,9 @@ approval, passes the unchanged plan to `kb_apply_plan`, and finishes with
 The stable onboarding contract is typed status plus the named workflow skill.
 Skill manifests and resources are host plumbing for advanced integrations;
 they are not a prerequisite for ordinary bootstrap requests.
-Advanced hosts may use `kb_skills_list` and `kb_skills_load` to discover that
-plumbing; ordinary onboarding follows typed status and the named skill.
+Advanced hosts may call `kb_skills` with `action: "list"` and `action: "load"`
+(CLI: `kibi skill`) to discover that plumbing; ordinary onboarding follows
+typed status and the named skill.
 For general Kibi work, load the bundled `kibi-usage` skill as the shared
 source-first guidance.
 

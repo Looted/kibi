@@ -7,7 +7,7 @@ If you used the [agent setup prompt](quick-start.md#2-paste-the-setup-prompt-int
 
 Once Kibi is installed in the repository, your agent needs a way to call it. Two surfaces expose the same operations:
 
-- **MCP server** (`kibi-mcp`) — tools such as `kb_search`, `kb_check`, and `kb_upsert` show up in the client's tool list.
+- **MCP server** (`kibi-mcp`) — 16 tools such as `kb_search`, `kb_check`, and `kb_upsert` show up in the client's tool list. `kb_search` also answers plain questions, such as "what governs checkout rounding?", with the requirements that apply. The [MCP reference](../reference/mcp.md) lists every tool.
 - **CLI** (`kibi`) — the same operations as JSON on stdin, plus commands you run yourself, such as `kibi report`.
 
 Use whichever surface your client can see. You do not configure both unless you want to.

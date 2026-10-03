@@ -40,6 +40,27 @@ const CUSTOMER_RETENTION_CLAIM: SemanticClaim = {
 };
 
 describe("strict-modeling", () => {
+  test("stores a strict bound as a typed number", () => {
+    const writeSet = buildStrictWriteSet({
+      claim: {
+        ...CUSTOMER_RETENTION_CLAIM,
+        subjectKey: "checkout.cart",
+        propertyKey: "final payable total",
+        operator: "gt",
+        value: "0",
+      },
+      statement:
+        "Checkout may be initiated only when the cart's final payable total is greater than zero.",
+    });
+    if (!writeSet.isStrict) throw new Error("Expected strict write set");
+    expect(writeSet.propertyFact.properties).toMatchObject({
+      operator: "gt",
+      value_type: "int",
+      value_int: 0,
+    });
+    expect(writeSet.propertyFact.properties.title).toContain("> 0");
+  });
+
   test("normalizes subject and property keys into deterministic canonical forms", () => {
     expect(normalizeSubjectKey(" Customer.Data Retention ")).toBe(
       "customer.data_retention",

@@ -22,6 +22,8 @@ export const RELATIONSHIP_TYPES = [
   "consumes",
   "supersedes",
   "restates",
+  "assumes",
+  "exempts",
   "relates_to",
 ] as const;
 export type RelationshipType = (typeof RELATIONSHIP_TYPES)[number];

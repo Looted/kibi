@@ -49,6 +49,7 @@ import {
   type PlanStep,
   type SourceWritePlan,
   compilePlanHash,
+  planWhatIfGoal,
 } from "./compile-intent.js";
 
 import type {
@@ -1598,6 +1599,17 @@ async function executeApplyPlanUnlocked(
     args.plan.expected.sourceHashes,
   );
   const steps = args.plan.steps.map((step) => asUpsert(step));
+  // implements REQ-kibi-truthful-consistency
+  // Stage every step together in a rolled-back transaction before the first
+  // write. A step the store would reject then fails the whole plan up front
+  // instead of after earlier steps have committed.
+  const preflight = await prolog.query(
+    planWhatIfGoal(args.plan.steps, context.clock()),
+  );
+  if (!preflight.success)
+    throw new Error(
+      `Apply plan failed before any write: the store rejected the staged plan: ${preflight.error ?? "unknown error"}`,
+    );
   const sourceWrites = await applySourceWrites(
     operationContext,
     args.plan.sourceWrites,
@@ -1606,7 +1618,7 @@ async function executeApplyPlanUnlocked(
     onCommitted,
   );
   const notes: string[] = [
-    "Plan steps and tracked source writes are validated before sequential application; source writes are journaled for replay.",
+    "Plan steps are staged together and validated before sequential application; source writes are journaled for replay.",
   ];
   let changedEntities = 0;
   let changedRelationships = 0;

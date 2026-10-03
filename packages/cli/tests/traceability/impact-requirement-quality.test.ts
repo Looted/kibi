@@ -268,7 +268,7 @@ describe("requirement quality impact diagnostics", () => {
         blocking: false,
         category: "fact",
         entityId: "REQ-NORMATIVE",
-        suggestion: expect.stringContaining("kb_model_requirement"),
+        suggestion: expect.stringContaining("kb_model (mode requirement"),
         evidence: expect.objectContaining({ strictRelationshipTypes: [] }),
       }),
     ]);

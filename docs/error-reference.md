@@ -18,7 +18,7 @@ Use this reference when an MCP mutation fails. Fix the payload instead of fallin
 | `closedWorld` | `closed_world` |
 | `value: true` | `value_type: "bool"` and `value_bool: true` |
 
-If starting from prose, call `kb_model_requirement` and apply its sequential `applyPlan` instead of guessing field names.
+If starting from prose, call `kb_model` with `mode: "requirement"` and apply its sequential `applyPlan` instead of guessing field names.
 
 ## Invalid `status`, `fact_kind`, `operator`, or `value_type`
 
@@ -42,11 +42,11 @@ Use the enum values shown in the MCP `inputSchema`. For property facts, common v
 - non-empty `predicate_args`
 - `canonical_key`
 
-Call `kb_suggest_predicates` before hand-writing ontology predicates.
+Call `kb_model` with `mode: "predicates"` before hand-writing ontology predicates.
 
 ## Incomplete logical claim provenance
 
-`claim_key` and `claim_text` are an auditable pair. If either is present on a fact, supply both. Use the stable key returned by `kb_semantic_advisor` for that exact atomic clause; do not invent or reuse a key for different prose.
+`claim_key` and `claim_text` are an auditable pair. If either is present on a fact, supply both. Use the stable key returned by `kb_model` with `mode: "analyze"` for that exact atomic clause; do not invent or reuse a key for different prose.
 
 If `kb_check` reports `logic-coverage`, compare the requirement `logic_claims` manifest with its linked `property_value` and `predicate` facts. Ground every missing key, add any omitted linked key to the manifest, and keep ambiguity or ontology gaps explicitly unresolved rather than satisfying the check with an observation.
 
@@ -54,9 +54,9 @@ If `kb_coverage.repairPlan.status` is `partial`, do not execute it as a complete
 
 ## Unsafe or unverifiable rule fact
 
-`fact_kind: rule` requires a `kibi.logic.v1` `rule_ir`, a deterministic full `rule_hash`, a `semantic_key`, a `rule_schema_id`, and `rule_name`. Submit the typed object through `kb_model_requirement`; do not provide Prolog source. `rule-safety` rejects function symbols, raw goals, cuts, meta-calls, dynamic predicates, I/O, unsafe/unbound variables, existential rule heads, unstratified negation, incompatible units, and unbounded aggregation. `rule-verifiability` requires `requires_rule` to target a real `rule_schema` and a safe rule fact. Analysis that is timed out or resource-limited is `unresolved`, not proof of consistency.
+`fact_kind: rule` requires a `kibi.logic.v1` `rule_ir`, a deterministic full `rule_hash`, a `semantic_key`, a `rule_schema_id`, and `rule_name`. Submit the typed object through `kb_model` with `mode: "requirement"`; do not provide Prolog source. `rule-safety` rejects function symbols, raw goals, cuts, meta-calls, dynamic predicates, I/O, unsafe/unbound variables, existential rule heads, unstratified negation, incompatible units, and unbounded aggregation. `rule-verifiability` requires `requires_rule` to target a real `rule_schema` and a safe rule fact. Analysis that is timed out or resource-limited is `unresolved`, not proof of consistency.
 
-If validation reports `Logical Claim Provenance Mismatch`, the fact's `claim_key` was copied, invented, or derived from different text. Re-run `kb_semantic_advisor` for the exact atomic clause and preserve its returned `claim_key` and canonicalized `claim_text` together.
+If validation reports `Logical Claim Provenance Mismatch`, the fact's `claim_key` was copied, invented, or derived from different text. Re-run `kb_model` with `mode: "analyze"` for the exact atomic clause and preserve its returned `claim_key` and canonicalized `claim_text` together.
 
 ## Relationship source mismatch
 
@@ -64,7 +64,7 @@ Same-call relationship rows must start from the entity being upserted. To link `
 
 ## Invalid relationship tuple
 
-`kb_validate_upsert` and `kb_upsert` reject relationship source/target type pairs that are not part of the relationship schema. For example, facts are not directly verified by tests: do not write `verified_by fact -> test` or `validates test -> fact`. Create or update a requirement, link the requirement to the fact with `constrains`, `requires_property`, or `requires_predicate`, and link the requirement or its scenario to the test with `verified_by` / `validates`.
+`kb_upsert` (dry run or real) rejects relationship source/target type pairs that are not part of the relationship schema. For example, facts are not directly verified by tests: do not write `verified_by fact -> test` or `validates test -> fact`. Create or update a requirement, link the requirement to the fact with `constrains`, `requires_property`, or `requires_predicate`, and link the requirement or its scenario to the test with `verified_by` / `validates`.
 
 ## Strict-lane mismatch
 
@@ -87,11 +87,11 @@ Create an append-only replacement requirement and add `supersedes`, or deprecate
 
 Timeout diagnostics include `stage=<name>` and the child PID. The stage is one of the bounded commit markers (`runtime`, `lock`, `rdf_mutation`, `contradiction_check`, `entity_audit`, `relationship_audit`, `snapshot_save`, or `audit_sync`); use it to distinguish a stale lock from a filesystem or Prolog failure without relying on entity payload logging.
 
-## Low-confidence `kb_model_requirement` downgrade
+## Low-confidence requirement modeling downgrade (`kb_model` mode `requirement`)
 
 When confidence is below `0.70`, Kibi emits a non-blocking `fact_kind: observation`. If the prose is normative, retry with explicit `subjectKey`, `propertyKey`, `operator`, and `value` so the tool can produce strict facts.
 
-## `kb_suggest_predicates` ontology gap
+## Predicate suggestion ontology gap (`kb_model` mode `predicates`)
 
 If no candidate meets `minScore`, Kibi emits a `review:ontology-gap` observation. Keep it as review evidence, or add a project-local `fact_kind: predicate_schema` when the language is recurring domain ontology.
 
@@ -112,8 +112,8 @@ Fix the underlying modeling issue when the diagnostic points to real drift, but 
 Telemetry diagnostics are also advisory in `kb_check`, but `kibi usage-metrics --require-acceptance` converts their versioned report into an explicit process gate. Common IDs and repairs are:
 
 - `repeated_mutation_failures`: stop retrying, query endpoints, validate a reduced exact payload, repair runtime health, and retry once.
-- `mutation_validation_bypassed`: run `kb_validate_upsert` for the exact payload within one hour before sequential `kb_upsert`.
-- `semantic_advisor_bypassed`: rerun `kb_semantic_advisor` for the same requirement and current source hash before writing it.
+- `mutation_validation_bypassed`: run `kb_upsert` with `dryRun: true` (catalog operation `kb_validate_upsert`) for the exact payload within one hour before sequential `kb_upsert`.
+- `semantic_advisor_bypassed`: rerun `kb_model` with `mode: "analyze"` (catalog operation `kb_semantic_advisor`) for the same requirement and current source hash before writing it.
 - `e2e_receipt_freshness_low`: query the affected requirements/tests, run `kibi prove` for the covering integrations, let receipts append idempotently with preserved history, and rerun complete coverage.
 - `proof_gap_recovery_stalled`: apply reviewed ready repair batches and demonstrate a lower complete-scope gap count.
 - `source_lookup_zero_result_rate_high`: inspect and refresh the cited source links before repeating focused lookups.

@@ -17,7 +17,7 @@ const RUN_NODE_TEST_SUITE =
   typeof (globalThis as { Bun?: unknown }).Bun === "undefined";
 
 /**
- * E2E: MCP kb_model_requirement returns strict or observation write plans.
+ * E2E: MCP kb_model (mode "requirement") returns strict or observation write plans.
  *
  * SCEN-mcp-model-requirement-v1 — high-confidence normative prose yields a
  * strict-lane requirement write set through the real MCP surface, while
@@ -80,7 +80,8 @@ Baseline fixture.
       async () => {
         if (!server) return;
         const result = mcpToolPayload(
-          await server.call("kb_model_requirement", {
+          await server.call("kb_model", {
+            mode: "requirement",
             text: "Customer data must be retained for 7 years.",
             confidence: 0.9,
           }),
@@ -103,7 +104,8 @@ Baseline fixture.
       async () => {
         if (!server) return;
         const result = mcpToolPayload(
-          await server.call("kb_model_requirement", {
+          await server.call("kb_model", {
+            mode: "requirement",
             text: "Customer data must be retained for 7 years.",
             confidence: 0.3,
           }),

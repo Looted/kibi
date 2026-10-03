@@ -19,6 +19,30 @@ const inputMode = (name: string): string =>
     ? "--input JSON or flags"
     : "--input JSON";
 
+/**
+ * Catalog operations that the MCP server reaches through a consolidated tool
+ * instead of registering them under their own name. Everything else is
+ * registered by its catalog name, except the opt-in tools below.
+ */
+const MCP_CALL: Readonly<Record<string, string>> = {
+  kb_skills_list: '`kb_skills` with `action: "list"`',
+  kb_skills_load: '`kb_skills` with `action: "load"`',
+  kb_skills_read: '`kb_skills` with `action: "read"`',
+  kb_semantic_advisor: '`kb_model` with `mode: "analyze"`',
+  kb_model_requirement: '`kb_model` with `mode: "requirement"`',
+  kb_suggest_predicates: '`kb_model` with `mode: "predicates"`',
+  kb_validate_upsert: "`kb_upsert` with `dryRun: true`",
+  kb_sparql_remote:
+    "`kb_sparql_remote`, registered only when `KIBI_MCP_OPTIONAL_TOOLS` names it",
+};
+
+const mappingRows = listSpecs()
+  .filter((spec) => MCP_CALL[spec.name] !== undefined)
+  .map(
+    (spec) =>
+      `- \`${spec.name}\`: MCP ${MCP_CALL[spec.name]}; CLI \`kibi ${spec.cliName}\` (\`${spec.cliName.replaceAll(" ", "-")}\`)`,
+  );
+
 const rows = listSpecs().map((spec) => {
   const resultVersion = spec.resultVersion ?? `kibi.${spec.name}.v1`;
   const effects = spec.effects.join(", ");
@@ -32,9 +56,24 @@ Generated from the public \`OperationSpec\` catalog. CLI JSON and MCP structured
 content use the same \`KibiResult\` envelope (protocol 1); result data is versioned
 per operation. Effects are authoritative for mutability and adapter annotations.
 
-| MCP tool name | CLI route | Input mode | Mutability | Requires Prolog | Effects | Interface | Result version | Destructive | Retry safety | Open-world | Output schema |
+| Operation | CLI route | Input mode | Mutability | Requires Prolog | Effects | Interface | Result version | Destructive | Retry safety | Open-world | Output schema |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 ${rows.join("\n")}
+
+## MCP tools versus catalog operations
+
+The MCP server registers 16 tools. Most carry their catalog operation name; the
+operations below are reached through a consolidated MCP call instead, while the
+CLI keeps their dedicated routes. Result payloads (for example
+\`recommended_tools\`, \`suggested_next_tool\`, or repair-plan steps) still name
+catalog operations, so translate them with this list.
+
+${mappingRows.join("\n")}
+
+The consolidated tools also have their own CLI routes: \`kibi skill\` for
+\`kb_skills\` and \`kibi model\` for \`kb_model\`. \`kb_job_status\` is likewise
+opt-in through \`KIBI_MCP_OPTIONAL_TOOLS\`; without it, \`kb_check\` with
+\`async: true\` runs synchronously.
 
 ## JSON execution recipe
 
@@ -48,6 +87,10 @@ printf '%s\\n' '{"query":"authentication","limit":10}' | npx --no-install kibi s
 \`_diagnostic_telemetry\` is adapter metadata, not business input. Never copy it
 into entity properties. On \`committed_with_repairs\`, follow typed required
 \`nextActions\` and do not retry the original mutation.
+
+\`workspaceRoot\` is an MCP-only routing argument naming the directory a call is
+about (see the kibi-usage skill). The CLI JSON routes do not accept it; they
+always run in the current directory.
 `;
 
 for (const target of [

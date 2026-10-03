@@ -90,6 +90,9 @@ function extractKbMcpToolCall(toolName, toolInput) {
       "sourceFiles",
       "source_files"
     ]);
+    if (normalizedToolName === "kb_upsert" && readBoolean(payload, ["dryRun"]) === true) {
+      normalizedToolName = "kb_validate_upsert";
+    }
     if (normalizedToolName?.startsWith("kb_")) {
       return {
         toolName: normalizedToolName,

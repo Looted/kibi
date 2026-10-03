@@ -75,8 +75,8 @@ describe("kb_compile_intent", () => {
   });
   test("emits a deterministic strict-property plan for a new requirement", async () => {
     const query = mock(async (goal: string): Promise<PrologQueryResult> => {
-      if (goal.includes("findall([A,B,Reason]"))
-        return { success: true, bindings: { Rows: "[]" } };
+      if (goal.includes("checks:what_if_contradiction_witnesses_json("))
+        return { success: true, bindings: { JsonString: "[]" } };
       if (goal.includes("kb_relationship"))
         return { success: true, bindings: { Edges: "[]" } };
       if (goal.includes("kb_entity('REQ-"))
@@ -142,8 +142,8 @@ describe("kb_compile_intent", () => {
 
   test("fails closed when an update target is ambiguous", async () => {
     const query = mock(async (goal: string): Promise<PrologQueryResult> => {
-      if (goal.includes("findall([A,B,Reason]"))
-        return { success: true, bindings: { Rows: "[]" } };
+      if (goal.includes("checks:what_if_contradiction_witnesses_json("))
+        return { success: true, bindings: { JsonString: "[]" } };
       if (goal.includes("kb_relationship"))
         return { success: true, bindings: { Edges: "[]" } };
       return {
@@ -168,12 +168,91 @@ describe("kb_compile_intent", () => {
     ).toBe(true);
   });
 
-  test("reports current contradiction witnesses for an explicit update", async () => {
+  test("blocks on a what-if contradiction returned as a quoted Prolog string", async () => {
+    // Engines bind JsonString to a quoted Prolog string, so the witness list
+    // arrives JSON-encoded twice.
+    const witnesses = JSON.stringify([
+      {
+        requirements: ["REQ-RETAIN", "REQ-OTHER"],
+        reason:
+          "Value conflict on customer_data.retention_days: eq 1 vs eq 365",
+        status: "contradiction",
+      },
+    ]);
     const query = mock(async (goal: string): Promise<PrologQueryResult> => {
-      if (goal.includes("findall([A,B,Reason]"))
+      if (goal.includes("checks:what_if_contradiction_witnesses_json("))
         return {
           success: true,
-          bindings: { Rows: '[[REQ-A,REQ-B,"retention conflict"]]' },
+          bindings: { JsonString: JSON.stringify(witnesses) },
+        };
+      if (goal.includes("kb_relationship"))
+        return { success: true, bindings: { Edges: "[]" } };
+      return { success: true, bindings: { Results: "[]" } };
+    });
+    const plan = (
+      await compileIntentSpec.execute(
+        {
+          intent: "Customer data must be retained for 1 day.",
+          mode: "create",
+          requirementId: "REQ-RETAIN",
+        },
+        contextFor(query),
+      )
+    ).structuredContent;
+    expect(plan.contradictionAnalysis.outcome).toBe("conflict");
+    expect(plan.status).toBe("blocked");
+  });
+
+  test("writes one inventory covering every proposition onto the requirement step", async () => {
+    const query = mock(async (goal: string): Promise<PrologQueryResult> => {
+      if (goal.includes("checks:what_if_contradiction_witnesses_json("))
+        return { success: true, bindings: { JsonString: "[]" } };
+      if (goal.includes("kb_relationship"))
+        return { success: true, bindings: { Edges: "[]" } };
+      return { success: true, bindings: { Results: "[]" } };
+    });
+    const plan = (
+      await compileIntentSpec.execute(
+        {
+          intent:
+            "Customer data must be retained for 7 years. Audit logs must be retained for 2 years.",
+          mode: "create",
+        },
+        contextFor(query),
+      )
+    ).structuredContent;
+    const req = plan.steps.find(
+      (step) => step.type === "req" && step.id === plan.target.requirementId,
+    );
+    const inventory = (req?.properties as Record<string, unknown>)
+      .semantic_inventory as Array<Record<string, unknown>>;
+    expect(inventory.map((entry) => entry.claim_key)).toEqual(
+      plan.propositions.map((proposition) => proposition.claimKey),
+    );
+    expect(inventory.map((entry) => entry.status)).toEqual(
+      plan.propositions.map((proposition) => proposition.status),
+    );
+    expect((req?.properties as Record<string, unknown>).logic_claims).toEqual(
+      plan.propositions
+        .filter((proposition) => proposition.status !== "nonlogical")
+        .map((proposition) => proposition.claimKey),
+    );
+  });
+
+  test("reports current contradiction witnesses for an explicit update", async () => {
+    const query = mock(async (goal: string): Promise<PrologQueryResult> => {
+      if (goal.includes("checks:what_if_contradiction_witnesses_json("))
+        return {
+          success: true,
+          bindings: {
+            JsonString: JSON.stringify([
+              {
+                kind: "strict",
+                requirements: ["REQ-A", "REQ-B"],
+                reason: "retention conflict",
+              },
+            ]),
+          },
         };
       if (goal.includes("kb_entity('REQ-A'"))
         return {
@@ -198,6 +277,52 @@ describe("kb_compile_intent", () => {
     expect(plan.contradictionAnalysis.witnesses[0]?.reason).toBe(
       "retention conflict",
     );
+    const staged = query.mock.calls
+      .map(([goal]) => goal)
+      .find((goal) =>
+        goal.includes("checks:what_if_contradiction_witnesses_json("),
+      );
+    expect(staged).toContain("upsert(req, ");
+    expect(staged).toContain("'REQ-A'");
+  });
+
+  test("keeps unresolved rule overlap out of no_conflict", async () => {
+    const query = mock(async (goal: string): Promise<PrologQueryResult> => {
+      if (goal.includes("checks:what_if_contradiction_witnesses_json("))
+        return {
+          success: true,
+          bindings: {
+            JsonString: JSON.stringify([
+              {
+                kind: "rule",
+                status: "unresolved",
+                requirements: ["REQ-A", "REQ-B"],
+                reason: "Rule conflict (unresolved) between REQ-A and REQ-B",
+              },
+            ]),
+          },
+        };
+      if (goal.includes("kb_entity('REQ-A'"))
+        return {
+          success: true,
+          bindings: { Results: '[[REQ-A,req,[title="Existing",status=open]]]' },
+        };
+      if (goal.includes("kb_relationship"))
+        return { success: true, bindings: { Edges: "[]" } };
+      return { success: true, bindings: { Results: "[]" } };
+    });
+    const plan = (
+      await compileIntentSpec.execute(
+        {
+          intent: "Customer data must be retained for 7 years.",
+          mode: "update",
+          requirementId: "REQ-A",
+        },
+        contextFor(query),
+      )
+    ).structuredContent;
+    expect(plan.contradictionAnalysis.outcome).toBe("unresolved");
+    expect(plan.status).not.toBe("ready");
   });
 
   test("exposes bounded plugin provenance without raw provider payloads", async () => {

@@ -18,6 +18,7 @@
 :- use_module(library(http/json)).
 :- use_module(library(aggregate)).
 :- use_module(library(clpfd)).
+:- use_module('intervals.pl', [numeric_constraints_satisfiable/1, numeric_constraint_entailed/2, numeric_constraint_holds/3]).
 :- use_module('kb.pl', [kb_entity/3, predicate_fact/5]).
 
 %% logic_rule_from_props(+Props, -Rule)
@@ -487,17 +488,195 @@ temporal_end(timestamp(Value), Value).
 temporal_end(interval(_, End), End).
 
 %% logic_rule_conflict(+RuleA, +RuleB, -Status)
-% Conservative symbolic conflict result.  Identical opposing heads are a
-% proven conflict; different bodies remain unresolved unless their explicit
-% numeric/temporal constraints are disjoint.
-logic_rule_conflict(RuleA, RuleB, contradiction) :-
-    opposing_rule_heads(RuleA, RuleB),
-    compatible_rule_context(RuleA, RuleB),
-    same_rule_body(RuleA, RuleB), !.
-logic_rule_conflict(RuleA, RuleB, unresolved) :-
-    opposing_rule_heads(RuleA, RuleB),
-    compatible_rule_context(RuleA, RuleB), !.
-logic_rule_conflict(_, _, disjoint).
+% Three-valued comparison of two opposing rules.
+%
+%   contradiction  every instance of one rule's body is an instance of the
+%                  other's, the bodies are jointly satisfiable, and neither
+%                  rule carries an exception, so the opposing modalities are
+%                  certain to collide.
+%   disjoint       the heads cannot denote the same action, the scopes or
+%                  validity windows do not intersect, the bodies cannot hold
+%                  together, or an exception of one rule is entailed by the
+%                  other rule's body.
+%   unresolved     the rules may overlap but the fragment cannot decide it.
+%
+% Rules are materialized before comparison: IR variables are data terms such
+% as var('T', money) and must never be treated as ground values.  Same-name
+% body atoms whose arguments unify are read as the same fact when testing
+% joint satisfiability; this assumption is documented in
+% docs/inference-rules.md.
+logic_rule_conflict(RuleA, RuleB, Status) :-
+    (   catch(rule_pair_status(RuleA, RuleB, Status0), _, Status0 = unresolved)
+    ->  Status = Status0
+    ;   Status = disjoint
+    ).
+
+rule_pair_status(RuleA0, RuleB0, Status) :-
+    RuleA0 = rule(_, ModalityA, _, _, _, ScopeA, FromA, ToA, _, _),
+    RuleB0 = rule(_, ModalityB, _, _, _, ScopeB, FromB, ToB, _, _),
+    conflicting_modality(ModalityA, ModalityB),
+    rule_context_compatible(ScopeA, FromA, ToA, ScopeB, FromB, ToB),
+    materialize_rule(RuleA0, RuleA),
+    materialize_rule(RuleB0, RuleB),
+    RuleA = rule(_, _, HeadA, BodyA, ExceptionsA, _, _, _, _, _),
+    RuleB = rule(_, _, HeadB, BodyB, ExceptionsB, _, _, _, _, _),
+    HeadA = HeadB,
+    expression_parts(BodyA, PartsA),
+    expression_parts(BodyB, PartsB),
+    (   \+ \+ parts_jointly_satisfiable(PartsA, PartsB)
+    ->  (   exception_entailed(ExceptionsA, PartsB)
+        ->  Status = disjoint
+        ;   exception_entailed(ExceptionsB, PartsA)
+        ->  Status = disjoint
+        ;   ExceptionsA == [], ExceptionsB == [],
+            PartsA = parts(_, _, []), PartsB = parts(_, _, []),
+            (   \+ \+ parts_subsume(PartsA, PartsB)
+            ;   \+ \+ parts_subsume(PartsB, PartsA)
+            )
+        ->  Status = contradiction
+        ;   Status = unresolved
+        )
+    ;   Status = disjoint
+    ).
+
+rule_context_compatible(scope(AuthA, ScopeA, _), FromA, ToA, scope(AuthB, ScopeB, _), FromB, ToB) :-
+    (AuthA == '' ; AuthB == '' ; AuthA == AuthB),
+    (ScopeA == '' ; ScopeB == '' ; ScopeA == ScopeB),
+    (FromA == '' ; ToB == '' ; FromA @=< ToB),
+    (FromB == '' ; ToA == '' ; FromB @=< ToA).
+
+conflicting_modality(assert, deny).
+conflicting_modality(deny, assert).
+conflicting_modality(oblige, forbid).
+conflicting_modality(forbid, oblige).
+conflicting_modality(permit, forbid).
+conflicting_modality(forbid, permit).
+
+%% expression_parts(+Expression, -parts(Atoms, Comparisons, Other))
+% Flatten a conjunctive body.  Disjunctions, negations, counts and temporal
+% relations are kept in Other: they can only make an analysis unresolved.
+expression_parts(none, parts([], [], [])) :- !.
+expression_parts(Expression, parts(Atoms, Comparisons, Other)) :-
+    flatten_conjunction(Expression, Items),
+    partition_items(Items, Atoms, Comparisons, Other).
+
+flatten_conjunction(all(Items), Flat) :- !,
+    maplist(flatten_conjunction, Items, Nested),
+    append(Nested, Flat).
+flatten_conjunction(Item, [Item]).
+
+partition_items([], [], [], []).
+partition_items([Item|Rest], [Item|Atoms], Comparisons, Other) :-
+    Item = atom(_, _, _, positive, _), !,
+    partition_items(Rest, Atoms, Comparisons, Other).
+partition_items([Item|Rest], Atoms, [Item|Comparisons], Other) :-
+    Item = compare(_, _, _), !,
+    partition_items(Rest, Atoms, Comparisons, Other).
+partition_items([Item|Rest], Atoms, Comparisons, [Item|Other]) :-
+    partition_items(Rest, Atoms, Comparisons, Other).
+
+%% parts_jointly_satisfiable(+PartsA, +PartsB)
+% Fails only when the two bodies provably cannot hold for the same instance.
+% Same-name atoms are unified where they can be; comparisons that cannot be
+% translated never make the pair disjoint.
+parts_jointly_satisfiable(parts(AtomsA, ComparisonsA, _), parts(AtomsB, ComparisonsB, _)) :-
+    unify_matching_atoms(AtomsA, AtomsB),
+    append(ComparisonsA, ComparisonsB, Comparisons),
+    translate_comparisons(Comparisons, Constraints, Status),
+    Status \== false,
+    numeric_constraints_satisfiable(Constraints).
+
+unify_matching_atoms([], _).
+unify_matching_atoms([Atom|Rest], Others) :-
+    (   member(Other, Others), Atom = Other
+    ->  true
+    ;   true
+    ),
+    unify_matching_atoms(Rest, Others).
+
+%% parts_subsume(+General, +Specific)
+% Every instance of Specific's body is an instance of General's body: each
+% General atom matches a Specific atom without binding Specific's variables,
+% and each General comparison is entailed by Specific's comparisons.
+parts_subsume(parts(GeneralAtoms, GeneralComparisons, []), parts(SpecificAtoms, SpecificComparisons, _)) :-
+    match_atoms(GeneralAtoms, SpecificAtoms),
+    translate_comparisons(SpecificComparisons, Premises, PremiseStatus),
+    PremiseStatus \== false,
+    forall(member(Comparison, GeneralComparisons), comparison_entailed(Premises, Comparison)).
+
+match_atoms([], _).
+match_atoms([Atom|Rest], Specific) :-
+    member(Candidate, Specific),
+    subsumes_term(Atom, Candidate),
+    Atom = Candidate,
+    match_atoms(Rest, Specific).
+
+comparison_entailed(Premises, compare(Op, Left, Right)) :-
+    translate_comparison(compare(Op, Left, Right), Result),
+    (   Result == true
+    ->  true
+    ;   Result = constraint(Constraint)
+    ->  numeric_constraint_entailed(Premises, Constraint)
+    ;   fail
+    ).
+
+%% exception_entailed(+Exceptions, +OtherParts)
+% An exception that holds whenever the other rule's body holds removes every
+% shared instance, so the rules cannot collide.
+exception_entailed(Exceptions, OtherParts) :-
+    member(Exception, Exceptions),
+    expression_parts(Exception, ExceptionParts),
+    ExceptionParts = parts(_, _, []),
+    \+ \+ parts_subsume(ExceptionParts, OtherParts), !.
+
+%% translate_comparisons(+Comparisons, -Constraints, -Status)
+% Status is false when a ground comparison is false, unknown when some
+% comparison could not be translated, and complete otherwise.
+translate_comparisons(Comparisons, Constraints, Status) :-
+    foldl(translate_into, Comparisons, acc([], complete), acc(Reversed, Status)),
+    reverse(Reversed, Constraints).
+
+translate_into(_, acc(Constraints, false), acc(Constraints, false)) :- !.
+translate_into(Comparison, acc(Constraints, Status), acc(Constraints1, Status1)) :-
+    translate_comparison(Comparison, Result),
+    (   Result == true -> Constraints1 = Constraints, Status1 = Status
+    ;   Result == false -> Constraints1 = Constraints, Status1 = false
+    ;   Result = constraint(Constraint) -> Constraints1 = [Constraint|Constraints], Status1 = Status
+    ;   Constraints1 = Constraints, Status1 = unknown
+    ).
+
+translate_comparison(compare(Op, Left, Right), Result) :-
+    comparison_operand(Left, L),
+    comparison_operand(Right, R),
+    translate_operands(Op, L, R, Result).
+
+translate_operands(Op, num(L), num(R), Result) :- !,
+    ( numeric_constraint_holds(Op, L, R) -> Result = true ; Result = false ).
+translate_operands(Op, var(V), num(N), constraint(c(Op, V, N))) :- !.
+translate_operands(Op, num(N), var(V), constraint(c(Flipped, V, N))) :- !,
+    flipped_operator(Op, Flipped).
+translate_operands(Op, ground(L), ground(R), Result) :- !,
+    ( catch(compare_terms(Op, L, R), _, fail) -> Result = true ; Result = false ).
+translate_operands(_, _, _, unknown).
+
+comparison_operand(Term, var(Term)) :- var(Term), !.
+comparison_operand(Term, num(Value)) :-
+    ir_ground(Term),
+    catch(term_value(Term, Value), _, fail),
+    number(Value), !.
+comparison_operand(Term, ground(Term)) :- ir_ground(Term), !.
+comparison_operand(Term, other(Term)).
+
+% IR terms keep variables as var(Name, Type) data until materialized.
+ir_ground(Term) :- ground(Term), \+ sub_term(var(_, _), Term).
+
+flipped_operator(eq, eq).
+flipped_operator(neq, neq).
+flipped_operator(lt, gt).
+flipped_operator(gt, lt).
+flipped_operator(lte, gte).
+flipped_operator(gte, lte).
+
 
 %% logic_rules_stratified(+Rules)
 % Check the finite dependency graph for a negated edge on a cycle.  A single
@@ -574,56 +753,6 @@ logic_rule_conflict_witness(RuleA, RuleB, Witness) :-
         rule_schema_b: SchemaB
     }.
 
-opposing_rule_heads(rule(_, ModalityA, HeadA, _, _, _, _, _, _, _), rule(_, ModalityB, HeadB, _, _, _, _, _, _, _)) :-
-    conflicting_modality(ModalityA, ModalityB),
-    copy_term((HeadA, HeadB), (CopyA, CopyB)),
-    CopyA = CopyB.
-
-conflicting_modality(assert, deny).
-conflicting_modality(deny, assert).
-conflicting_modality(oblige, forbid).
-conflicting_modality(forbid, oblige).
-conflicting_modality(permit, forbid).
-conflicting_modality(forbid, permit).
-
-compatible_rule_context(rule(_, _, _, BodyA, _, scope(AuthA, ScopeA, _), FromA, ToA, _, _), rule(_, _, _, BodyB, _, scope(AuthB, ScopeB, _), FromB, ToB, _, _)) :-
-    (AuthA == '' ; AuthB == '' ; AuthA == AuthB),
-    (ScopeA == '' ; ScopeB == '' ; ScopeA == ScopeB),
-    (FromA == '' ; ToB == '' ; FromA @=< ToB),
-    (FromB == '' ; ToA == '' ; FromB @=< ToA),
-    bodies_may_overlap(BodyA, BodyB).
-
-bodies_may_overlap(none, _).
-bodies_may_overlap(_, none).
-bodies_may_overlap(BodyA, BodyB) :-
-    BodyA \= none,
-    BodyB \= none,
-    \+ bodies_definitely_disjoint(BodyA, BodyB).
-
-bodies_definitely_disjoint(BodyA, _BodyB) :- expression_definitely_false(BodyA), !.
-bodies_definitely_disjoint(_BodyA, BodyB) :- expression_definitely_false(BodyB), !.
-
-% Only classify a body as impossible when its finite, ground comparison or
-% temporal constraint can be evaluated to false.  Unknown atoms, variables,
-% and unsupported combinations remain unresolved rather than being treated as
-% disjoint by guesswork.
-expression_definitely_false(compare(Op, Left, Right)) :-
-    ground(compare(Op, Left, Right)),
-    \+ catch(compare_terms(Op, Left, Right), _, fail).
-expression_definitely_false(temporal(Relation, Left, Right)) :-
-    ground(temporal(Relation, Left, Right)),
-    \+ catch(temporal_holds(Relation, Left, Right), _, fail).
-expression_definitely_false(all(Items)) :-
-    member(Item, Items),
-    expression_definitely_false(Item), !.
-expression_definitely_false(any(Items)) :-
-    Items \= [],
-    maplist(expression_definitely_false, Items).
-
-same_rule_body(RuleA, RuleB) :-
-    RuleA = rule(_, _, _, BodyA, ExceptionsA, ScopeA, FromA, ToA, _, _),
-    RuleB = rule(_, _, _, BodyB, ExceptionsB, ScopeB, FromB, ToB, _, _),
-    BodyA == BodyB, ExceptionsA == ExceptionsB, ScopeA == ScopeB, FromA == FromB, ToA == ToB.
 
 normalize_atom(Value, Atom) :- atom(Value), !, Atom = Value.
 normalize_atom(Value, Atom) :- string(Value), atom_string(Atom, Value).

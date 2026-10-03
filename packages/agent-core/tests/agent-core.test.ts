@@ -152,6 +152,20 @@ describe("agent-core Kibi tool recognition", () => {
     expect(extractKbMcpToolCall("Edit", { file_path: "a.ts" })).toBeUndefined();
   });
 
+  test("a dry-run upsert is reported as validation, not a KB write", () => {
+    expect(
+      extractKbMcpToolCall("mcp__kibi__kb_upsert", {
+        type: "req",
+        id: "REQ-x",
+        dryRun: true,
+      })?.toolName,
+    ).toBe("kb_validate_upsert");
+    expect(
+      extractKbMcpToolCall("mcp__kibi__kb_upsert", { type: "req", id: "REQ-x" })
+        ?.toolName,
+    ).toBe("kb_upsert");
+  });
+
   test("the Kibi interface falls back to the CLI only in a trusted workspace", () => {
     expect(resolveKibiInterface("observed", false)).toBe("mcp");
     expect(resolveKibiInterface("unknown", true)).toBe("cli");
@@ -275,6 +289,24 @@ describe("agent-core knowledge index", () => {
       id: "REQ-../../secret",
     });
     expect(readEntitySummary(root, "UNKNOWN-id")).toEqual({ id: "UNKNOWN-id" });
+  });
+
+  test("entity summaries carry typed and plain frontmatter links", () => {
+    const root = tempDir("kibi-agent-core-links-");
+    write(
+      root,
+      ".kb/requirements/REQ-checkout-rounding.md",
+      "---\nid: REQ-checkout-rounding\ntitle: Totals round to cents\nlinks:\n  - type: constrains\n    target: FACT-checkout-total\n  - ADR-money\nstatus: open\n---\n",
+    );
+    expect(readEntitySummary(root, "REQ-checkout-rounding")).toEqual({
+      id: "REQ-checkout-rounding",
+      title: "Totals round to cents",
+      status: "open",
+      links: [
+        { type: "constrains", target: "FACT-checkout-total" },
+        { type: "relates_to", target: "ADR-money" },
+      ],
+    });
   });
 
   test("the package entry re-exports the shared adapter surface", () => {

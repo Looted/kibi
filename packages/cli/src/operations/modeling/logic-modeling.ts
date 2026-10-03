@@ -6,6 +6,7 @@ import {
   validateLogicIr,
 } from "../../logic/ir.js";
 import {
+  modeledClaimRole,
   normalizeSemanticClause,
   semanticClaimKey,
 } from "../semantic-advisor/clauses.js";
@@ -142,11 +143,7 @@ export function buildLogicApplyPlan(
             {
               claim_key: claimKey,
               claim_text: claimText,
-              role: /\b(?:must|shall|should|required|requires?)\b/i.test(
-                claimText,
-              )
-                ? "normative"
-                : "descriptive",
+              role: modeledClaimRole(claimText, validation.normalized.modality),
               status: "modeled",
               span,
               semantic_key: semanticKey,

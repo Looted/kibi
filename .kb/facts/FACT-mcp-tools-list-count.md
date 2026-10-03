@@ -1,5 +1,5 @@
 ---
-title: tools/list exposes 22 tools including MCP-only kb_job_status; the frozen 21-tool expectation in server.test.ts was stale
+title: tools/list exposes 16 tools by default; kb_sparql_remote and kb_job_status register only when KIBI_MCP_OPTIONAL_TOOLS names them
 status: active
 fact_kind: observation
 tags:
