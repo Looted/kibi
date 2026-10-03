@@ -9,7 +9,7 @@ export type SemanticClause = Readonly<{
 }>;
 
 const NORMATIVE_ASSERTION_PATTERN =
-  /\b(?:must|shall|should|required|requires?|may\s+only|may\s+(?:have\s+)?(?:at\s+most|at\s+least|exactly|no\s+more\s+than|up\s+to)|only\s+.+?\s+(?:may|can)|must\s+not|shall\s+not|cannot|can't|denied|forbidden|prohibited|(?:is|are|be|become|becomes|remain|remains)\s+(?:invalid|rejected|prohibited|forbidden)|(?:reject|rejects|rejected|rejection)\s+(?:invalid|unresolved|ambiguous)|fail(?:s|ed)?\s+(?:clearly|explicitly|with)|expires?\s+(?:after|within|in)|failure\s+(?:behavior|policy|outcome)|error\s+(?:handling|behavior|policy|outcome)|required\s+outcome|defaults?\s+to)\b/i;
+  /\b(?:must|shall|should|required|requires?|may\s+only|may\s+(?:not\s+)?(?:be\s+)?\w+\s+only\b|may\s+(?:have\s+)?(?:at\s+most|at\s+least|exactly|no\s+more\s+than|up\s+to)|only\s+.+?\s+(?:may|can)|must\s+not|shall\s+not|cannot|can't|denied|forbidden|prohibited|(?:is|are|be|become|becomes|remain|remains)\s+(?:invalid|rejected|prohibited|forbidden)|(?:reject|rejects|rejected|rejection)\s+(?:invalid|unresolved|ambiguous)|fail(?:s|ed)?\s+(?:clearly|explicitly|with)|expires?\s+(?:after|within|in)|failure\s+(?:behavior|policy|outcome)|error\s+(?:handling|behavior|policy|outcome)|required\s+outcome|defaults?\s+to)\b/i;
 
 // Conditional/temporal cues help discover clauses but do not by themselves
 // turn explanatory or subjective context into an asserted obligation.
@@ -20,6 +20,20 @@ const NORMATIVE_PATTERN = new RegExp(
 
 export function hasNormativeAssertion(text: string): boolean {
   return NORMATIVE_ASSERTION_PATTERN.test(text);
+}
+
+const NORMATIVE_MODALITIES = new Set(["oblige", "forbid", "permit"]);
+
+// implements REQ-kibi-truthful-consistency
+// Role for a clause that was just modeled. A deontic rule modality is decisive;
+// otherwise the same assertion pattern the semantic advisor uses decides, so a
+// modeled inventory entry never disagrees with the advisor's own analysis.
+export function modeledClaimRole(
+  text: string,
+  modality?: string,
+): "normative" | "descriptive" {
+  if (modality && NORMATIVE_MODALITIES.has(modality)) return "normative";
+  return hasNormativeAssertion(text) ? "normative" : "descriptive";
 }
 
 export function normalizeSemanticClause(value: string): string {

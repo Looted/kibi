@@ -74,8 +74,8 @@ function contextFor(
 
 function quietQuery(): (goal: string) => Promise<PrologQueryResult> {
   return mock(async (goal: string): Promise<PrologQueryResult> => {
-    if (goal.includes("findall([A,B,Reason]"))
-      return { success: true, bindings: { Rows: "[]" } };
+    if (goal.startsWith("checks:what_if_contradiction_witnesses_json("))
+      return { success: true, bindings: { JsonString: "[]" } };
     if (goal.includes("kb_relationship"))
       return { success: true, bindings: { Edges: "[]" } };
     return { success: true, bindings: { Results: "[]" } };
@@ -171,7 +171,7 @@ describe("compile-intent validation and source planning", () => {
     const root = await mkdtemp(path.join(tmpdir(), "kibi-compile-update-"));
     workspaces.push(root);
     const query = mock(async (goal: string): Promise<PrologQueryResult> => {
-      if (goal.includes("findall([A,B,Reason]"))
+      if (goal.startsWith("checks:what_if_contradiction_witnesses_json("))
         return { success: false, bindings: {} };
       if (goal.includes("kb_entity('REQ-TOP'"))
         return {
@@ -228,8 +228,8 @@ describe("compile-intent validation and source planning", () => {
     const root = await mkdtemp(path.join(tmpdir(), "kibi-compile-dup-"));
     workspaces.push(root);
     const query = mock(async (goal: string): Promise<PrologQueryResult> => {
-      if (goal.includes("findall([A,B,Reason]"))
-        return { success: true, bindings: { Rows: "[]" } };
+      if (goal.startsWith("checks:what_if_contradiction_witnesses_json("))
+        return { success: true, bindings: { JsonString: "[]" } };
       if (goal.includes("kb_relationship"))
         return { success: true, bindings: { Edges: "[]" } };
       if (goal.includes("kb_entity("))
@@ -248,8 +248,8 @@ describe("compile-intent validation and source planning", () => {
     );
     const id = first.structuredContent.target.requirementId;
     const dup = mock(async (goal: string): Promise<PrologQueryResult> => {
-      if (goal.includes("findall([A,B,Reason]"))
-        return { success: true, bindings: { Rows: "[]" } };
+      if (goal.startsWith("checks:what_if_contradiction_witnesses_json("))
+        return { success: true, bindings: { JsonString: "[]" } };
       if (goal.includes(`kb_entity('${id}'`))
         return {
           success: true,
@@ -279,11 +279,13 @@ describe("compile-intent validation and source planning", () => {
     const root = await mkdtemp(path.join(tmpdir(), "kibi-compile-explicit-"));
     workspaces.push(root);
     const query = mock(async (goal: string): Promise<PrologQueryResult> => {
-      if (goal.includes("findall([A,B,Reason]"))
+      if (goal.startsWith("checks:what_if_contradiction_witnesses_json("))
         return {
           success: true,
           bindings: {
-            Rows: "[[FACT-A,FACT-B,conflict]]",
+            JsonString: JSON.stringify([
+              { requirements: ["FACT-A", "FACT-B"], reason: "conflict" },
+            ]),
           },
         };
       if (goal.includes("kb_entity('REQ-KEEP'"))
@@ -318,7 +320,7 @@ describe("compile-intent validation and source planning", () => {
     const root = await mkdtemp(path.join(tmpdir(), "kibi-compile-extra-"));
     workspaces.push(root);
     const query = mock(async (goal: string): Promise<PrologQueryResult> => {
-      if (goal.includes("findall([A,B,Reason]"))
+      if (goal.startsWith("checks:what_if_contradiction_witnesses_json("))
         return { success: false, bindings: {} };
       if (goal.includes("kb_relationship"))
         return { success: true, bindings: { Edges: "[]" } };
@@ -493,8 +495,8 @@ describe("compile-intent validation and source planning", () => {
     const root = await mkdtemp(path.join(tmpdir(), "kibi-compile-prop-"));
     workspaces.push(root);
     const query = mock(async (goal: string): Promise<PrologQueryResult> => {
-      if (goal.includes("findall([A,B,Reason]"))
-        return { success: true, bindings: { Rows: "[]" } };
+      if (goal.startsWith("checks:what_if_contradiction_witnesses_json("))
+        return { success: true, bindings: { JsonString: "[]" } };
       if (goal.includes("kb_entity('REQ-KEEP'"))
         return {
           success: true,

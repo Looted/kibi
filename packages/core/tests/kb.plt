@@ -3673,6 +3673,40 @@ test(unresolved_propositions_make_conflict_analysis_incomplete, [setup(setup_kb)
     requirement_proof:contradiction_stage('REQ-CONSISTENCY-PARTIAL', passed, passed, Context, FullyModeled),
     assertion(FullyModeled.outcome == no_conflict_found).
 
+test(what_if_reports_staged_conflicts_and_rolls_back, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    consistency_rule_dict(forbid, initiate_checkout, [v('C', cart)], positive_total_precondition, ForbidDict),
+    consistency_rule_dict(permit, initiate_checkout, [v('C', cart)], free_order_success, PermitDict),
+    assert_rule_requirement(ForbidDict, 'FACT-RULE-POSITIVE-TOTAL', 'REQ-CHECKOUT-POSITIVE-TOTAL', "CLAIM-EEEEEEEEEEEEEEEE"),
+    atom_json_dict(PermitAtom, PermitDict, []),
+    atom_string(PermitAtom, PermitJson),
+    FactProps = [
+        id='FACT-RULE-FREE-ORDER', title="Checkout rule", status=active,
+        created_at="2026-05-01T00:00:00Z", updated_at="2026-05-01T00:00:00Z",
+        source="test://kb.plt",
+        fact_kind=rule, rule_ir=PermitJson,
+        rule_hash="cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        rule_schema_id="FACT-RULE-SCHEMA-TEST", rule_name="checkout_rule",
+        semantic_key="FACT-RULE-FREE-ORDER", claim_key="CLAIM-FFFFFFFFFFFFFFFF",
+        claim_text="Checkout rule clause", claim_span_start=0, claim_span_end=20
+    ],
+    ReqProps = [
+        id='REQ-CHECKOUT-FREE-ORDER', title="Checkout requirement", status=open,
+        created_at="2026-05-01T00:00:00Z", updated_at="2026-05-01T00:00:00Z",
+        source="test://kb.plt"
+    ],
+    Entries = [
+        upsert(fact, FactProps, []),
+        upsert(req, ReqProps, [rel(requires_rule, 'REQ-CHECKOUT-FREE-ORDER', 'FACT-RULE-FREE-ORDER', [])])
+    ],
+    checks:what_if_contradiction_witnesses(Entries, [Witness]),
+    assertion(Witness.status == contradiction),
+    assertion(\+ kb_entity('REQ-CHECKOUT-FREE-ORDER', _, _)),
+    assertion(\+ kb_entity('FACT-RULE-FREE-ORDER', _, _)),
+    check_domain_contradiction_witnesses(After),
+    assertion(After == []),
+    checks:what_if_contradiction_witnesses_json([], Json),
+    assertion(Json == "[]").
+
 :- end_tests(kb_truthful_consistency).
 
 % Strict-lane pairing validation tests (REQ-011)

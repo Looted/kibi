@@ -18,6 +18,8 @@
     check_domain_contradictions/1,  % Returns list of contradiction violations
     check_domain_contradictions_and_witnesses/2,
     check_domain_contradiction_witnesses/1,
+    what_if_contradiction_witnesses/2,
+    what_if_contradiction_witnesses_json/2,
     check_strict_fact_shape/1,      % Returns list of malformed strict fact violations
     check_strict_req_fact_pairing/1,% Returns list of malformed strict req/fact pairing violations
     check_strict_readiness/1,       % Returns list of strict readiness audit violations
@@ -805,6 +807,63 @@ check_domain_contradiction_witnesses(Witnesses) :-
     findall(Witness, rule_contradiction_witness(Witness), RuleWitnesses),
     append(GroundWitnesses, RuleWitnesses, Witnesses0),
     sort(Witnesses0, Witnesses).
+
+%% what_if_contradiction_witnesses(+Entries, -Witnesses)
+% implements REQ-kibi-truthful-consistency
+% Contradiction witnesses for the KB as it would be after staging Entries,
+% computed inside an RDF transaction that is always rolled back.  Entries are
+% upsert(Type, Props, Relationships) or relate(Relationships) terms, with
+% relationships as rel(Type, From, To, Metadata).  Staging validates entities
+% and relationships exactly as a commit would, so an invalid plan raises the
+% same error here before anything is written.  The entity index is not
+% transactional, so every staged id is re-indexed from the restored store.
+what_if_contradiction_witnesses(Entries, Witnesses) :-
+    findall(Id, (member(Entry, Entries), what_if_entry_id(Entry, Id)), Ids0),
+    sort(Ids0, Ids),
+    with_kb_mutex(
+        call_cleanup(
+            catch(
+                rdf_transaction((
+                    checks:what_if_stage(Entries),
+                    checks:check_domain_contradiction_witnesses(Staged),
+                    throw(kibi_what_if_result(Staged))
+                )),
+                kibi_what_if_result(Witnesses),
+                true
+            ),
+            forall(member(Id, Ids), kb:kb_refresh_entity_index(Id))
+        )
+    ).
+
+what_if_contradiction_witnesses_json(Entries, JsonString) :-
+    what_if_contradiction_witnesses(Entries, Witnesses),
+    with_output_to_string(
+        json_write_dict(current_output, Witnesses, [width(0)]),
+        JsonString
+    ).
+
+what_if_entry_id(upsert(_, Props, _), Id) :- memberchk(id=Id, Props).
+what_if_entry_id(upsert(_, _, Rels), Id) :- what_if_relationship_id(Rels, Id).
+what_if_entry_id(relate(Rels), Id) :- what_if_relationship_id(Rels, Id).
+
+what_if_relationship_id(Rels, Id) :-
+    member(rel(_, From, To, _), Rels),
+    member(Id, [From, To]).
+
+% Entities first, then every relationship, so a step may relate to an entity
+% that a later step of the same plan creates.
+what_if_stage(Entries) :-
+    forall(member(upsert(Type, Props, _), Entries),
+        kb_assert_entity_no_audit(Type, Props)),
+    forall(
+        (   member(Entry, Entries),
+            (Entry = upsert(_, _, Rels) ; Entry = relate(Rels))
+        ),
+        what_if_stage_relationships(Rels)).
+
+what_if_stage_relationships(Rels) :-
+    forall(member(rel(Type, From, To, Metadata), Rels),
+        kb_assert_relationship_no_audit(Type, From, To, Metadata)).
 
 contradiction_witness_violation(Witness, violation(
     'domain-contradictions',

@@ -16,7 +16,10 @@ import type {
   OperationContext,
   WorkspaceSnapshot,
 } from "../../public/operations/runtime-types.js";
+import { buildWhatIfContradictionGoal } from "../mutation/contradictions.js";
 import { configuredSourceTarget } from "../mutation/source-authoring.js";
+import type { RelationshipInput } from "../mutation/types.js";
+import { validateUpsertInput } from "../mutation/validation.js";
 import { analyzeSemanticAdvisorInputWithPlugins } from "../semantic-advisor/plugin-orchestration.js";
 import { canonicalize } from "../semantic-advisor/shared.js";
 import type {
@@ -71,6 +74,7 @@ export type ProposalDecision = Readonly<{
 export type ContradictionWitness = Readonly<{
   requirements: readonly string[];
   reason: string;
+  status?: string;
 }>;
 
 // implements REQ-kibi-change-to-proof-plan-compiler
@@ -310,6 +314,54 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
+// implements REQ-kibi-truthful-consistency
+// Each advisor suggestion carries an inventory in which only its own clause is
+// modeled, so merging suggestion steps left the requirement with whichever
+// inventory came last (or none). The compiled plan already knows every
+// proposition's final status: write that one inventory, and a logic_claims
+// manifest covering every assertive proposition, onto the requirement step.
+function withRequirementInventory(
+  steps: readonly PlanStep[],
+  requirementId: string,
+  receipt: SemanticAdvisorReceipt,
+  propositions: CompilePlanV1["propositions"],
+): PlanStep[] {
+  if (propositions.length === 0) return [...steps];
+  const roles = new Map(
+    receipt.propositions.map((proposition) => [
+      proposition.claim_key,
+      proposition.role,
+    ]),
+  );
+  const inventory = propositions.map((proposition) => ({
+    claim_key: proposition.claimKey,
+    claim_text: proposition.text,
+    role: roles.get(proposition.claimKey) ?? "descriptive",
+    status: proposition.status,
+    span: proposition.span,
+  }));
+  const logicClaims = propositions
+    .filter((proposition) => proposition.status !== "nonlogical")
+    .map((proposition) => proposition.claimKey);
+  return steps.map((step) => {
+    if (text(step.type) !== "req" || text(step.id) !== requirementId)
+      return step;
+    const properties = isRecord(step.properties) ? step.properties : {};
+    return {
+      ...step,
+      properties: {
+        ...properties,
+        logic_claims: logicClaims,
+        semantic_clauses: propositions.map((proposition) => proposition.text),
+        semantic_inventory_version: receipt.inventory_contract.version,
+        semantic_source_field: receipt.inventory_contract.source_field,
+        semantic_source_hash: receipt.inventory_contract.source_hash,
+        semantic_inventory: inventory,
+      },
+    };
+  });
+}
+
 function propositionStatus(
   proposition: SemanticAdvisorReceipt["propositions"][number],
   suggestion: SemanticModelingSuggestion | undefined,
@@ -462,35 +514,91 @@ function generatedRequirementId(intent: string): string {
   return `REQ-${slug(intent)}-${shortHash(intent).toUpperCase()}`;
 }
 
+// implements REQ-kibi-truthful-consistency
+/** Rolled-back staging goal for a plan's steps (see what_if_contradiction_witnesses/2). */
+export function planWhatIfGoal(steps: readonly PlanStep[], now: Date): string {
+  return buildWhatIfContradictionGoal(
+    steps.map((step) => {
+      const relationships = (
+        Array.isArray(step.relationships)
+          ? step.relationships.filter(isRecord)
+          : []
+      ).map((relationship) => ({
+        type: text(relationship.type),
+        from: text(relationship.from),
+        to: text(relationship.to),
+      })) as RelationshipInput[];
+      const properties = isRecord(step.properties) ? step.properties : {};
+      if (Object.keys(properties).length === 0) {
+        return {
+          entity: { id: text(step.id), type: text(step.type) },
+          relationships,
+          skipContradictionCheck: true,
+          relationshipsOnly: true,
+        };
+      }
+      const validated = validateUpsertInput(
+        {
+          type: text(step.type),
+          id: text(step.id),
+          properties,
+          relationships,
+        },
+        now,
+      );
+      return {
+        entity: validated.entity,
+        relationships: validated.relationships,
+        skipContradictionCheck: true,
+      };
+    }),
+  );
+}
+
+// implements REQ-kibi-truthful-consistency
+// Check the KB as it would be after this plan, not the KB as it is: stage every
+// planned step in a rolled-back transaction and read the contradiction
+// witnesses that touch the target requirement. Rule overlap the checker can
+// neither prove nor exclude stays unresolved rather than becoming consistency.
 async function contradictionAnalysis(
   prolog: NonNullable<OperationContext["prolog"]>,
   requirementId: string,
+  steps: readonly PlanStep[],
+  now: Date,
 ): Promise<{
   outcome: "no_conflict" | "conflict" | "unresolved";
   witnesses: ContradictionWitness[];
 }> {
-  const result = await prolog.query(
-    "findall([A,B,Reason], contradicting_reqs(A, B, Reason), Rows)",
-  );
-  if (!result.success) return { outcome: "unresolved", witnesses: [] };
-  const rows = parseTriples(result.bindings.Rows ?? "[]");
-  const witnesses = rows
-    .map(([left, right, reason]) => ({
-      left: normalizeEntityId(left),
-      right: normalizeEntityId(right),
-      reason,
+  let goal: string;
+  try {
+    goal = planWhatIfGoal(steps, now);
+  } catch {
+    return { outcome: "unresolved", witnesses: [] };
+  }
+  const result = await prolog.query(goal);
+  if (!result.success || typeof result.bindings.JsonString !== "string")
+    return { outcome: "unresolved", witnesses: [] };
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(result.bindings.JsonString);
+  } catch {
+    return { outcome: "unresolved", witnesses: [] };
+  }
+  const witnesses = (Array.isArray(parsed) ? parsed.filter(isRecord) : [])
+    .map((witness) => ({
+      requirements: Array.isArray(witness.requirements)
+        ? witness.requirements.map((id) => normalizeEntityId(String(id)))
+        : [],
+      reason: text(witness.reason),
+      status: text(witness.status) || "contradiction",
     }))
-    .filter(
-      ({ left, right }) => left === requirementId || right === requirementId,
-    )
-    .map(({ left, right, reason }) => ({
-      requirements: [left, right],
-      reason,
-    }));
-  return {
-    outcome: witnesses.length > 0 ? "conflict" : "no_conflict",
-    witnesses,
-  };
+    .filter(({ requirements }) => requirements.includes(requirementId));
+  const outcome = witnesses.some(({ status }) => status === "contradiction")
+    ? "conflict"
+    : witnesses.length > 0
+      ? "unresolved"
+      : "no_conflict";
+  return { outcome, witnesses };
 }
 
 function proposalFor(
@@ -933,6 +1041,12 @@ export async function executeCompileIntent(
         : []),
     ]),
   ]);
+  const stepsWithInventory = withRequirementInventory(
+    steps,
+    requirementId,
+    advisor.receipt,
+    propositions,
+  );
   const drafts = draftSteps(
     requirementId,
     args.scenarioDrafts ?? [],
@@ -962,17 +1076,24 @@ export async function executeCompileIntent(
       ];
     });
   const stepsWithAcceptedProposals = applyAcceptedProposals(
-    [...steps, ...drafts.steps],
+    [...stepsWithInventory, ...drafts.steps],
     proposals,
   );
-  const contradictions = await contradictionAnalysis(prolog, requirementId);
+  const contradictions = await contradictionAnalysis(
+    prolog,
+    requirementId,
+    stepsWithAcceptedProposals,
+    context.clock(),
+  );
   if (contradictions.outcome === "conflict")
     diagnostics.push(
       "Current requirement conflicts must be resolved with an explicit supersedes relationship before applying this plan.",
     );
   if (contradictions.outcome === "unresolved")
     diagnostics.push(
-      "Contradiction analysis could not run against the attached KB snapshot.",
+      contradictions.witnesses.length > 0
+        ? "Contradiction analysis is unresolved: the planned rules may overlap with current requirements and the checker can neither prove nor exclude a conflict."
+        : "Contradiction analysis could not run against the attached KB snapshot with this plan staged.",
     );
   if (
     args.mode === "create" &&

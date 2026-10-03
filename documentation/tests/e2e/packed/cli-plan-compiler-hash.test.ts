@@ -65,6 +65,73 @@ if (RUN_NODE_TEST_SUITE) {
     );
 
     it(
+      "applies a compiled plan with one complete semantic inventory",
+      { timeout: 240000 },
+      async () => {
+        if (!hasProlog) return;
+
+        const compileInput = writeInput(sandbox, "compile-apply-input.json", {
+          intent:
+            "Audit logs must be retained for 2 years. Invoices must be retained for 10 years.",
+          mode: "create",
+        });
+        const compile = await kibi(sandbox, [
+          "compile-intent",
+          "--input",
+          compileInput,
+        ]);
+        assert.strictEqual(
+          compile.exitCode,
+          0,
+          `${compile.stdout}${compile.stderr}`,
+        );
+        const plan = (
+          JSON.parse(compile.stdout) as {
+            data?: CompilePlanPayload & {
+              target?: { requirementId?: string };
+              propositions?: Array<{ claimKey: string; status: string }>;
+              contradictionAnalysis?: { outcome?: string };
+            };
+          }
+        ).data;
+        assert.ok(plan?.planHash && plan.target?.requirementId);
+        assert.strictEqual(plan.status, "ready", JSON.stringify(plan));
+        assert.strictEqual(plan.contradictionAnalysis?.outcome, "no_conflict");
+
+        const applyInput = writeInput(sandbox, "apply-ready-input.json", {
+          plan,
+          approvedPlanHash: plan.planHash,
+        });
+        const apply = await kibi(sandbox, [
+          "apply-plan",
+          "--input",
+          applyInput,
+        ]);
+        assert.strictEqual(apply.exitCode, 0, `${apply.stdout}${apply.stderr}`);
+
+        const queryInput = writeInput(sandbox, "query-input.json", {
+          id: plan.target.requirementId,
+        });
+        const query = await kibi(sandbox, ["query", "--input", queryInput]);
+        assert.strictEqual(query.exitCode, 0, `${query.stdout}${query.stderr}`);
+        const claimKeys = (plan.propositions ?? []).map(
+          (proposition) => proposition.claimKey,
+        );
+        assert.ok(claimKeys.length >= 2, JSON.stringify(plan.propositions));
+        for (const claimKey of claimKeys) {
+          assert.ok(
+            query.stdout.includes(claimKey),
+            `stored requirement must list ${claimKey} in its inventory: ${query.stdout}`,
+          );
+        }
+        assert.ok(
+          !query.stdout.includes('"status":"missing"'),
+          `no proposition may be stored as missing: ${query.stdout}`,
+        );
+      },
+    );
+
+    it(
       "compiles a hash-bound plan and rejects a mismatched apply request",
       { timeout: 240000 },
       async () => {

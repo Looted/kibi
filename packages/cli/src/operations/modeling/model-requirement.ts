@@ -9,6 +9,7 @@ import {
   normalizeSubjectKey,
 } from "../../utils/strict-modeling.js";
 import {
+  modeledClaimRole,
   normalizeSemanticClause,
   semanticClaimKey,
 } from "../semantic-advisor/clauses.js";
@@ -296,11 +297,7 @@ export function annotateModelRequirementStep(
           {
             claim_key: context.claimKey,
             claim_text: normalizedClaimText,
-            role: /\b(?:must|shall|should|required|requires?)\b/i.test(
-              claimText,
-            )
-              ? "normative"
-              : "descriptive",
+            role: modeledClaimRole(claimText),
             status: "modeled",
             span: {
               start: 0,

@@ -28,7 +28,7 @@ export interface SemanticClaim {
   source: string;
   subjectKey: string;
   propertyKey: string;
-  operator: "eq" | "gte" | "lte" | "neq" | "bool" | "polarity";
+  operator: "eq" | "gt" | "gte" | "lt" | "lte" | "neq" | "bool" | "polarity";
   value: string | number | boolean;
   confidence: number;
   provenance?: string;
@@ -422,7 +422,11 @@ function buildPropertyFactTitle(
           ? "!="
           : claim.operator === "gte"
             ? ">="
-            : "<=";
+            : claim.operator === "gt"
+              ? ">"
+              : claim.operator === "lt"
+                ? "<"
+                : "<=";
 
   return `${label} ${operatorLabel} ${String(claim.value)}`;
 }
@@ -444,8 +448,25 @@ function buildPropertyFactFields(claim: SemanticClaim): Partial<FactFields> {
 
   return {
     operator: claim.operator,
-    ...buildTypedValueFields(claim.value),
+    ...buildTypedValueFields(numericClaimValue(claim)),
   };
+}
+
+const ORDERING_OPERATORS = new Set(["gt", "gte", "lt", "lte"]);
+
+// implements REQ-kibi-truthful-consistency
+// An ordering comparison is numeric by definition, so a numeric string value
+// ("0", "2.5") is stored as int/number. Stored as a string it would be
+// invisible to numeric contradiction checks.
+function numericClaimValue(claim: SemanticClaim): string | number | boolean {
+  if (
+    typeof claim.value === "string" &&
+    ORDERING_OPERATORS.has(claim.operator) &&
+    /^\s*-?\d+(?:\.\d+)?\s*$/.test(claim.value)
+  ) {
+    return Number(claim.value);
+  }
+  return claim.value;
 }
 
 function buildTypedValueFields(
