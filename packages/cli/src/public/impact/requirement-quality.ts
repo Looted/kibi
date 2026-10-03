@@ -242,7 +242,7 @@ function createLogicalCoverageDiagnostics(
         docs: ["docs/modeling-cheatsheet.md", "docs/error-reference.md"],
         message: `Current requirement ${result.entity.id} has no atomic logic_claims manifest, so prose and existing fact links cannot prove complete logical coverage.`,
         suggestion:
-          "Call kb_semantic_advisor with the complete requirement prose and atomic clauses, ground each returned claim key through kb_model (mode requirement or predicates), and persist all keys in logic_claims.",
+          "Call kb_model with mode analyze on the complete requirement prose and atomic clauses, ground each returned claim key through kb_model (mode requirement or predicates), and persist all keys in logic_claims.",
         evidence: {
           strictRelationshipTypes: relationshipTypes,
         },
