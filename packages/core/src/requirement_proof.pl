@@ -78,7 +78,7 @@ requirement_proof(ReqId, _ReqProps, _Context, Proof) :-
 requirement_proof(ReqId, ReqProps, Context, Proof) :-
     semantic_inventory_stage(ReqProps, SemanticStage, Inventory),
     logic_grounding_stage(ReqId, ReqProps, Inventory, Context, LogicStage),
-    contradiction_stage(ReqId, LogicStage.status, Context, ContradictionStage),
+    contradiction_stage(ReqId, LogicStage.status, SemanticStage.status, Context, ContradictionStage),
     scenario_stage(ReqId, ScenarioStage, ScenarioIds),
     scenario_test_stage(ScenarioIds, ScenarioTestStage, ScenarioTests),
     passing_e2e_stage(ScenarioTestStage, Context, PassingE2eStage, PassingE2eTests),
@@ -511,6 +511,21 @@ contradiction_stage(_ReqId, LogicStatus, _Context, Stage) :-
     !,
     Stage = _{status: unresolved, outcome: incomplete_grounding, conflicts: []}.
 contradiction_stage(_ReqId, passed, _Context, _{status: passed, outcome: no_conflict_found, conflicts: []}).
+
+%% contradiction_stage(+ReqId, +LogicStatus, +InventoryStatus, +Context, -Stage)
+% implements REQ-kibi-truthful-consistency
+% Absence of a conflict is evidence only when every normative proposition was
+% modeled.  Propositions still marked ambiguous or ontology_gap were never
+% encoded, so the checker cannot have looked at them: report the analysis as
+% incomplete instead of no_conflict_found.  Found conflicts still win.
+contradiction_stage(ReqId, LogicStatus, InventoryStatus, Context, Stage) :-
+    contradiction_stage(ReqId, LogicStatus, Context, Stage0),
+    (   Stage0.outcome == no_conflict_found,
+        InventoryStatus == unresolved
+    ->  Stage = _{status: unresolved, outcome: analysis_incomplete, conflicts: [],
+                  reason: "unresolved_propositions"}
+    ;   Stage = Stage0
+    ).
 
 requirement_contradictions(ReqId, Violations, Conflicts) :-
     include(violation_mentions_requirement(ReqId), Violations, Conflicts0),
