@@ -10,11 +10,52 @@ import type {
   RuntimeOptions,
 } from "kibi-runtime";
 import {
+  type BranchAttachment,
+  type BranchResolutionError,
   type CapabilityRegistry,
   CapabilityRegistryCache,
+  declaresWriteEffect,
+  detachedHeadWriteRefusal,
   ensureCapabilityRegistry,
   resolveBranchAttachment,
+  resolveOperationAttachment,
 } from "kibi-runtime";
+
+/**
+ * Branch attachment for one MCP operation. A detached HEAD keeps the exact
+ * contract for writes (refused with the way out) while KB reads attach the
+ * read-only snapshot compiled from the checkout, which the shared session
+ * engine then serves.
+ */
+// implements REQ-branch-store-recovery-v3
+function resolveMcpAttachment(
+  workspaceRoot: string,
+  spec: Parameters<typeof resolveOperationAttachment>[1] & {
+    readonly requiresProlog: boolean;
+  },
+):
+  | BranchAttachment
+  | BranchResolutionError
+  | Promise<BranchAttachment | BranchResolutionError> {
+  // Synchronous unless HEAD is detached: an attached checkout opens its
+  // operation context without extra event-loop turns.
+  const attachment = resolveBranchAttachment(workspaceRoot);
+  if (!("error" in attachment) || attachment.code !== "DETACHED_HEAD") {
+    return attachment;
+  }
+  if (declaresWriteEffect(spec.effects)) {
+    throw new Error(detachedHeadWriteRefusal(spec.name, workspaceRoot));
+  }
+  if (!spec.effects.includes("kb-read")) return attachment;
+  return resolveOperationAttachment(workspaceRoot, spec).catch((error) => {
+    // Status diagnoses a snapshot that failed to compile instead of failing.
+    if (spec.requiresProlog) throw error;
+    console.warn(
+      `[KIBI-MCP] ${error instanceof Error ? error.message : String(error)}`,
+    );
+    return attachment;
+  });
+}
 
 // implements REQ-kibi-operation-interface-parity
 export interface McpSession<TProlog = PrologPort> {
@@ -87,7 +128,9 @@ export function createMcpRuntime<TProlog = PrologPort>(
         ...(git ? { git } : {}),
         ...(net ? { net } : {}),
       };
-      const attachment = resolveBranchAttachment(context.workspaceRoot);
+      const resolved = resolveMcpAttachment(context.workspaceRoot, spec);
+      const attachment =
+        resolved instanceof Promise ? await resolved : resolved;
       if (!("error" in attachment) && attachment.migrationRequired) {
         console.warn(
           `[KIBI-MCP] Legacy branch attachment: Git '${attachment.gitBranch}' is reading KB '${attachment.kbBranch}'. Run 'kibi branch migrate --from ${attachment.kbBranch} --to ${attachment.gitBranch} --apply'; writes are blocked until then.`,

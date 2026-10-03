@@ -879,8 +879,23 @@ kibi branch restore --branch <branch> [--apply]
 **Detached HEAD:** when HEAD is detached but its commit is the tip of exactly
 one local branch (for example `git checkout <sha>` of a branch tip, or a tool
 that detaches before running), Kibi attaches that branch's KB. With zero or
-several candidate branches it reports a `DETACHED_HEAD` diagnostic and guesses
-nothing. `KIBI_BRANCH` still overrides the Git identity verbatim.
+several candidate branches (a CI checkout of a bare SHA, a bisect, a commit two
+branches share) Kibi guesses no branch identity:
+
+- Read-only operations (`search`, `query`, `status`, `check`, `coverage`,
+  `graph`, and their CLI JSON routes and MCP tools) answer from a read-only
+  snapshot compiled from the checkout's tracked sources into
+  `.kb/branches/<sha256("kibi-internal/detached-head-snapshot")>`. The snapshot
+  is refreshed incrementally before each read, never touches a branch KB, and
+  every answer carries a `detached_head_read_only` warning diagnostic naming
+  the commit, the branches at HEAD, the store path, and `writes: "refused"`.
+- Writes (`upsert`, `delete`, `apply-plan`, `sync`, and other `kb-write` or
+  `workspace-write` operations) are refused with the way out: check out a
+  branch (`git switch <branch>` or `git switch -c <branch>`) or set
+  `KIBI_BRANCH`.
+
+`KIBI_BRANCH` still overrides the Git identity verbatim. `kibi gc` keeps the
+snapshot store while HEAD is detached on it and collects it afterwards.
 
 **Examples:**
 ```bash
@@ -957,7 +972,26 @@ These environment variables decide which workspace that is:
 | `KIBI_MCP_ATTACH_ROOT` | Set by host launchers (Claude Code, Codex, Cursor, ZCode plugins) to the session's workspace; the launcher starts the MCP server there. It does not pin: per-call `workspaceRoot` routing to worktrees stays enabled. An operator-set `KIBI_WORKSPACE` still passes through and pins. |
 
 A detached HEAD whose commit is the tip of exactly one local branch attaches
-that branch's KB; see [`kibi branch`](#kibi-branch).
+that branch's KB. Any other detached HEAD serves reads from a read-only
+snapshot of the checkout and refuses writes; see [`kibi branch`](#kibi-branch).
+
+## Engine read limits
+
+All CLI and MCP clients of a workspace branch share one engine process with a
+single Prolog queue. A read can be bounded so a runaway query cannot hold that
+queue:
+
+| Variable | Effect |
+| --- | --- |
+| `KIBI_ENGINE_READ_TIME_LIMIT_MS` | Wall-clock budget, in milliseconds, for each read-only engine request (capped at 115000, below the engine's hard 120 s query timeout). |
+| `KIBI_ENGINE_READ_INFERENCE_LIMIT` | Logical-inference budget for each read-only engine request. |
+
+Both are unset by default (reads are unbounded, as before). Writes, module
+loads, and `kibi sync` compilation are never bounded. A read that reaches its
+limit is stopped inside Prolog and fails with error code
+`QUERY_LIMIT_EXCEEDED`; the envelope's `error.details.limitExceeded` is
+`{ "kind": "time" | "inferences", "limit": <n> }`. It is never reported as an
+empty or partial answer.
 
 ## Staged Symbol Traceability
 

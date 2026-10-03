@@ -23,9 +23,15 @@ import type {
   RuntimeOptions,
 } from "../public/operations/runtime-types.js";
 import {
+  type BranchAttachment,
   type BranchResolutionError,
-  resolveBranchAttachment,
+  resolveReadBranchAttachment,
 } from "../utils/branch-resolver.js";
+import {
+  declaresWriteEffect,
+  refreshDetachedSnapshot,
+  resolveOperationAttachment,
+} from "./detached-snapshot.js";
 
 export function attachmentFailureMessage(
   attachment: BranchResolutionError,
@@ -117,6 +123,31 @@ function resolvePluginsOption(
   return async () => plugins;
 }
 
+/**
+ * The detached-HEAD snapshot attachment for a KB read that may run without
+ * Prolog (status), or undefined when the checkout resolves normally (that
+ * path keeps its lazy, non-mutating behavior). A failed snapshot compile is
+ * reported but not fatal, so status can still diagnose the snapshot store.
+ */
+// implements REQ-branch-store-recovery-v3
+async function resolveDetachedReadAttachment(
+  root: string,
+): Promise<BranchAttachment | undefined> {
+  const attachment = resolveReadBranchAttachment(root);
+  if ("error" in attachment || attachment.readOnly === undefined) {
+    return undefined;
+  }
+  console.warn(`[KIBI] ${attachment.readOnly.notice}`);
+  try {
+    await refreshDetachedSnapshot(root, attachment);
+  } catch (error) {
+    console.warn(
+      `[KIBI] ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+  return attachment;
+}
+
 // implements REQ-kibi-operation-interface-parity
 export function createCliRuntime(
   options: RuntimeOptions = {},
@@ -158,9 +189,17 @@ export function createCliRuntime(
           | ManagedPrologPort
           | undefined;
         const lazyContext: { current?: OperationContext } = {};
+        // A KB read on a detached HEAD answers from the checkout's snapshot;
+        // resolve it up front so the operation reports which store it read.
+        const detachedAttachment =
+          !declaresWriteEffect(spec.effects) && spec.effects.includes("kb-read")
+            ? await resolveDetachedReadAttachment(root)
+            : undefined;
         const ensureProlog = async (): Promise<PrologPort> => {
           if (lazyProlog !== undefined) return bindSignal(lazyProlog, signal);
-          const attachment = resolveBranchAttachment(root);
+          const attachment =
+            detachedAttachment ??
+            (await resolveOperationAttachment(root, spec));
           if ("error" in attachment) {
             throw new Error(
               `Failed to resolve active branch: ${attachment.error}`,
@@ -182,16 +221,28 @@ export function createCliRuntime(
             ? { prolog: bindSignal(merged.prolog as ManagedPrologPort, signal) }
             : {}),
           ...(lazyEngine ? { engine: lazyEngine } : {}),
+          ...(detachedAttachment
+            ? { branchAttachment: detachedAttachment }
+            : {}),
           ensureProlog,
         };
         lazyContext.current = context;
         return context;
       }
 
-      const attachment = resolveBranchAttachment(root);
+      let attachment: BranchAttachment | BranchResolutionError;
+      try {
+        attachment = await resolveOperationAttachment(root, spec);
+      } catch (error) {
+        await (merged.prolog as ManagedPrologPort | undefined)?.terminate?.();
+        throw error;
+      }
       if ("error" in attachment) {
         await (merged.prolog as ManagedPrologPort | undefined)?.terminate?.();
         throw new Error(attachmentFailureMessage(attachment));
+      }
+      if (attachment.readOnly !== undefined) {
+        console.warn(`[KIBI] ${attachment.readOnly.notice}`);
       }
       if (attachment.migrationRequired) {
         console.warn(

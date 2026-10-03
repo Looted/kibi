@@ -5,6 +5,7 @@ import {
 } from "kibi-plugin-sdk";
 import { executeOperation } from "../src/cli-protocol.js";
 import type { CliContext } from "../src/cli-protocol.js";
+import { EngineQueryLimitError } from "../src/engine-limits.js";
 import {
   createCapabilityRegistry,
   createStubBuiltinPlugin,
@@ -222,6 +223,67 @@ describe("executeOperation", () => {
         errorCode: "OPERATION_FAILED",
       },
     ]);
+  });
+
+  test("reports a read stopped at its engine limit as QUERY_LIMIT_EXCEEDED, not as a failed lookup", async () => {
+    const context = createContext({
+      prolog: {
+        query: async () => {
+          throw new EngineQueryLimitError({ kind: "time", limit: 250 });
+        },
+        nextSolution: async () => null,
+        save: async () => ({ success: true, bindings: {} }),
+      },
+    });
+
+    const result = await executeOperation("kb_query", { type: "req" }, context);
+
+    expect(result.exitCode).toBe(1);
+    const envelope = JSON.parse(result.stdout ?? "");
+    expect(envelope.status).toBe("error");
+    expect(envelope.error).toMatchObject({
+      code: "QUERY_LIMIT_EXCEEDED",
+      retryable: false,
+      details: { limitExceeded: { kind: "time", limit: 250 } },
+    });
+    expect(envelope.error.message).toContain("KIBI_ENGINE_READ_TIME_LIMIT_MS");
+    expect(result.stderr).toContain("QUERY_LIMIT_EXCEEDED");
+  });
+
+  test("names the read-only snapshot store when a detached HEAD answered", async () => {
+    const storePath = "/repo/.kb/branches/snapshot";
+    const context = createContext({
+      branchAttachment: {
+        gitBranch: "HEAD",
+        kbBranch: "kibi-internal/detached-head-snapshot",
+        storePath,
+        kind: "detached_snapshot",
+        migrationRequired: false,
+        readOnly: {
+          head: "c".repeat(40),
+          branchesAtHead: [],
+          notice: `Detached HEAD at cccccccccccc: no local branch points at it. Read-only answers come from a snapshot (store ${storePath}); writes are refused until a branch is checked out.`,
+        },
+      },
+    });
+
+    const result = await executeOperation("kb_status", {}, context);
+
+    expect(result.exitCode).toBe(0);
+    const envelope = JSON.parse(result.stdout ?? "");
+    expect(envelope.status).toBe("success");
+    expect(envelope.diagnostics).toContainEqual({
+      code: "detached_head_read_only",
+      severity: "warning",
+      message: expect.stringContaining(storePath),
+      detail: {
+        head: "c".repeat(40),
+        branchesAtHead: [],
+        kbBranch: "kibi-internal/detached-head-snapshot",
+        storePath,
+        writes: "refused",
+      },
+    });
   });
 
   // executable_for TEST-capability-plugin-host-resolution-v1

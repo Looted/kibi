@@ -419,6 +419,22 @@ returns (up to the engine/Prolog timeout). Read-tool timeouts still must
 **not** call `resetProlog` / `terminate()`, so siblings no longer fail with
 `Kibi engine connection closed`; they may wait behind the in-flight goal.
 
+To keep one read from holding the queue, set `KIBI_ENGINE_READ_TIME_LIMIT_MS`
+and/or `KIBI_ENGINE_READ_INFERENCE_LIMIT` in the MCP server's environment (see
+[engine read limits](cli-reference.md#engine-read-limits)). A bounded read runs
+under SWI-Prolog `call_with_time_limit/2` and `call_with_inference_limit/3`, so
+the engine stops it itself and serves the next queued request. A tool whose
+read hit its limit returns an error envelope with `error.code`
+`QUERY_LIMIT_EXCEEDED` and `error.details.limitExceeded`
+(`{ "kind": "time" | "inferences", "limit": <n> }`); it never returns a partial
+answer. Writes are never bounded.
+
+On a detached HEAD that no single local branch points at, read tools answer
+from a read-only snapshot of the checkout and add a `detached_head_read_only`
+warning diagnostic (commit, branches at HEAD, store path, `writes:
+"refused"`); write tools fail with instructions to check out a branch or set
+`KIBI_BRANCH`. See [`kibi branch`](cli-reference.md#kibi-branch).
+
 Discovery tools (`kb_query`, `kb_search`, `kb_status`) may opt into
 `agentVisibleStructuredData` so envelope `data` is also embedded in `content`
 text for hosts that hide `structuredContent`.

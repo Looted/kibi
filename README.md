@@ -23,7 +23,7 @@ Most project knowledge is scattered across prompts, tickets, code, and conversat
 - **Memory is enforceable** — Symbols need requirement ownership, requirements need complete semantics and scenarios, scenarios need tests, and proof-bearing tests need fresh execution evidence.
 - **Prolog guards against drift** — Typed properties, predicates, and safe rules let deterministic checks expose contradictions, unsupported invention, and incomplete semantics before they become accepted project knowledge.
 - **E2E behavior is traceable** — Kibi records what an end-to-end test proves, not merely which lines it happened to execute. You can navigate from a symbol to its requirement or from a test to the scenario and intent it verifies.
-- **Intent survives branch changes** — Each Git branch has its own KB snapshot, keeping feature context isolated and available when you return.
+- **Intent survives branch changes** — Each Git branch has its own KB snapshot, keeping feature context isolated and available when you return. A detached checkout of a commit no single branch points at (a CI checkout of a SHA, a bisect) still answers reads from a read-only snapshot of that checkout and says so; writes wait until a branch is checked out.
 - **Works across languages** — TypeScript and JavaScript symbols are built in. The optional [`kibi-plugin-treesitter`](https://looted.github.io/kibi/reference/plugins.html) adds offline symbol extraction for Python, Go, Rust, Java, C#, PHP, C, C++, Bash, Ruby, and Terraform/HCL using pinned WASM grammars.
 - **Keep knowledge local** — KB state lives in your repository's `.kb/` directory; Kibi does not send external telemetry or analytics.
 
@@ -185,7 +185,7 @@ npm exec -- kibi report --open
 
 To publish the report and a clickable badge on GitHub Pages, run `npm exec -- kibi init --github`, then enable **Settings → Pages → Source → GitHub Actions**. The [GitHub integration guide](https://looted.github.io/kibi/guide/github-integration.html) covers the workflow ([docs/examples/github/kibi-report.yml](docs/examples/github/kibi-report.yml)), badge-only publishing, and other package managers. The same guide has a CI step that keeps pull requests mergeable when only `.kb/symbols.yaml` or a relationship shard conflicts ([docs/examples/github/kibi-kb-merge.yml](docs/examples/github/kibi-kb-merge.yml)).
 
-For day-to-day inspection, `kibi status`, `kibi search`, `kibi gaps`, `kibi coverage`, and `kibi check` are in the [CLI reference](https://looted.github.io/kibi/reference/cli.html).
+For day-to-day inspection, `kibi status`, `kibi search`, `kibi gaps`, `kibi coverage`, and `kibi check` are in the [CLI reference](https://looted.github.io/kibi/reference/cli.html). When many agents share one repository's engine, `KIBI_ENGINE_READ_TIME_LIMIT_MS` and `KIBI_ENGINE_READ_INFERENCE_LIMIT` bound each read; a read that hits its limit fails with `QUERY_LIMIT_EXCEEDED` instead of returning a partial answer ([engine read limits](https://looted.github.io/kibi/reference/cli.html#engine-read-limits)).
 
 ## How it works
 

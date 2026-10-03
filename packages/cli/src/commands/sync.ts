@@ -64,7 +64,11 @@ import {
 import { analyzeSemanticAdvisorInput } from "../operations/semantic-advisor/analyze-prose.js";
 import { validateSemanticInventoryBoundary } from "../operations/semantic-advisor/ingestion-boundary.js";
 import { PrologProcess } from "../prolog.js";
-import { resolveBranchAttachment } from "../utils/branch-resolver.js";
+import {
+  type BranchAttachment,
+  detachedHeadWriteRefusal,
+  resolveBranchAttachment,
+} from "../utils/branch-resolver.js";
 import {
   branchStoreManifestPath,
   branchStorePath,
@@ -464,10 +468,20 @@ export async function syncCommand(
     recoveryBackupPath?: string;
     /** Workspace to operate on when invoked through MCP or another host. */
     workspaceRoot?: string;
+    /**
+     * Internal: compile the read-only snapshot of a detached checkout into
+     * the attachment from resolveReadBranchAttachment instead of a branch KB.
+     */
+    detachedSnapshot?: BranchAttachment;
+    /** Keep stdout clean for a host's own output; stderr still reports. */
+    quiet?: boolean;
   } = {},
   runtime: SyncCommandRuntime = {},
 ): Promise<SyncResult> {
   const validateOnly = options.validateOnly ?? false;
+  const info: (...args: unknown[]) => void = options.quiet
+    ? () => undefined
+    : (...args) => console.log(...args);
   const rebuild = options.rebuild ?? false;
   const recoveryBackupPath = options.recoveryBackupPath;
   const workspaceRoot = path.resolve(options.workspaceRoot ?? process.cwd());
@@ -508,18 +522,28 @@ export async function syncCommand(
     }
     assertNoUnresolvedGitConflicts(workspaceRoot);
     // Branch resolution
-    const branchResult = resolveBranchAttachment(workspaceRoot);
+    if (
+      options.detachedSnapshot !== undefined &&
+      options.detachedSnapshot.kind !== "detached_snapshot"
+    ) {
+      throw new SyncError(
+        "Only a detached HEAD snapshot attachment can be compiled explicitly",
+      );
+    }
+    const branchResult =
+      options.detachedSnapshot ?? resolveBranchAttachment(workspaceRoot);
 
     if ("error" in branchResult) {
-      const diagnostic = branchErrorToDiagnostic(
-        branchResult.code,
-        branchResult.error,
-      );
+      // A detached HEAD has no branch KB to compile; name the way out and
+      // that reads keep working from the checkout's read-only snapshot.
+      const reason =
+        branchResult.code === "DETACHED_HEAD"
+          ? detachedHeadWriteRefusal("kibi sync", workspaceRoot)
+          : branchResult.error;
+      const diagnostic = branchErrorToDiagnostic(branchResult.code, reason);
       diagnostics.push(diagnostic);
-      console.error(`Failed to resolve active branch: ${branchResult.error}`);
-      throw new SyncError(
-        `Failed to resolve active branch: ${branchResult.error}`,
-      );
+      console.error(`Failed to resolve active branch: ${reason}`);
+      throw new SyncError(`Failed to resolve active branch: ${reason}`);
     }
 
     if (branchResult.migrationRequired && !validateOnly) {
@@ -654,7 +678,7 @@ export async function syncCommand(
       )
     ) {
       await checkpointNoopSync(workspaceRoot, currentBranch);
-      console.log("✓ Imported 0 entities, 0 relationships (no changes)");
+      info("✓ Imported 0 entities, 0 relationships (no changes)");
       return withOptionalCommit(
         {
           branch: currentBranch,
@@ -1069,7 +1093,7 @@ export async function syncCommand(
         compilerFingerprint: SYNC_COMPILER_FINGERPRINT,
       });
 
-      console.log("✓ Imported 0 entities, 0 relationships (no changes)");
+      info("✓ Imported 0 entities, 0 relationships (no changes)");
       return withOptionalCommit(
         {
           branch: currentBranch,
@@ -1107,6 +1131,9 @@ export async function syncCommand(
         workspaceRoot,
         branch: currentBranch,
         timeout: 120_000,
+        // Compilation reads (source lookups before retracts) must finish;
+        // operator read limits are for interactive queries.
+        readLimits: null,
       });
       const engineProlog = engine as unknown as PrologProcess;
       try {
@@ -1289,7 +1316,7 @@ export async function syncCommand(
             createDocsNotIndexedDiagnostic(markdownFiles.length, entityCount),
           );
         }
-        console.log(
+        info(
           `✓ Imported ${entityCount} entities, ${relationshipCount} relationships (removed ${removedCount} entities)`,
         );
         const commit = getCurrentCommit();
@@ -1306,7 +1333,7 @@ export async function syncCommand(
           },
           commit,
         );
-        console.log(formatSyncSummary(summary));
+        info(formatSyncSummary(summary));
         return { ...summary, exitCode: 0 };
       } finally {
         await engine.terminate();
@@ -1437,7 +1464,7 @@ export async function syncCommand(
           );
         }
 
-        console.log(`OK: Validation passed (${entityCount} entities)`);
+        info(`OK: Validation passed (${entityCount} entities)`);
         return withOptionalCommit(
           {
             branch: currentBranch,
@@ -1555,7 +1582,7 @@ export async function syncCommand(
         entityCount,
       );
 
-      console.log(
+      info(
         `✓ Imported ${entityCount} entities, ${relationshipCount} relationships`,
       );
 
@@ -1574,7 +1601,7 @@ export async function syncCommand(
         commit,
       );
 
-      console.log(formatSyncSummary(summary));
+      info(formatSyncSummary(summary));
       return { ...summary, exitCode: 0 };
     } catch (error) {
       cleanupStaging(stagingPath);
@@ -1604,9 +1631,9 @@ export async function syncCommand(
     );
 
     if (diagnostics.length > 0) {
-      console.log("\nDiagnostics:");
+      info("\nDiagnostics:");
       for (const d of diagnostics) {
-        console.log(`  [${d.category}] ${d.severity}: ${d.message}`);
+        info(`  [${d.category}] ${d.severity}: ${d.message}`);
       }
     }
 

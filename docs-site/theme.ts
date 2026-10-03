@@ -1066,6 +1066,10 @@ export function landingContent(args: {
       <p>With the Claude Code, Cursor, Codex, ZCode, or OpenCode plugin, the pre-edit hook (OpenCode: the edit prompt) names the requirement the file implements, what it must keep true (from its linked facts), and the decision behind it (its ADR), before the change is made. A superseded or retired requirement is not shown as current. Afterwards <code>kb_check</code> reports conflicts it can decide and says when an analysis is incomplete instead of calling it clean. A scenario that assumes something a current requirement forbids, on its own or only in combination with its other assumptions, is flagged and blocks proof.</p>
     </details>
     <details>
+      <summary>Does Kibi work on a CI checkout or a detached commit?</summary>
+      <p>For reading, yes. On a commit no single branch points at, such as a CI checkout of a SHA or a bisect, search, query, status, check, coverage, and graph answer from a read-only snapshot compiled from that checkout, and every answer says so. Writes are refused until you check out a branch or set <code>KIBI_BRANCH</code>. Details are in the <a href="${root}reference/cli.html#kibi-branch">CLI reference</a>.</p>
+    </details>
+    <details>
       <summary>What counts as proven?</summary>
       <p>A requirement is proven only when a test that claims to verify it has fresh end-to-end evidence for the current code. A passing unit test, a coverage percentage, or an old receipt does not count. Freshness is computed from repository-relative paths and file contents, so CI and your own checkout of the same commit agree on what is proven.</p>
     </details>

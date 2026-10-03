@@ -200,6 +200,9 @@ export class PrologProcess {
    */
   private interactiveStarted = false;
   private terminationReason: string | null = null;
+  /** Wake hook of the in-flight interactive query, run when output arrives. */
+  private outputWaiter: (() => void) | null = null;
+  private outputWakeScheduled = false;
 
   constructor(options: PrologOptions = {}) {
     this.explicitSwiplPath = options.swiplPath || undefined;
@@ -469,6 +472,13 @@ export class PrologProcess {
 
       return new Promise((resolve, reject) => {
         let settled = false;
+        let pollTimer: NodeJS.Timeout | null = null;
+        const settle = (): void => {
+          settled = true;
+          clearTimeout(timeoutId);
+          if (pollTimer !== null) clearTimeout(pollTimer);
+          if (this.outputWaiter === wake) this.outputWaiter = null;
+        };
         const timeoutId = setTimeout(() => {
           const stage = this.lastDiagnosticStage(this.errorBuffer) ?? "unknown";
           const msg = `Query timeout after ${this.timeout / 1000}s (stage=${stage}, pid=${this.process?.pid ?? 0}, killed=${this.process?.killed ? "yes" : "no"}, exitCode=${this.process?.exitCode ?? "null"}, signal=${this.process?.signalCode ?? "null"}, goal=${goalLabel}). If several fresh Kibi commands hang or crawl the same way, the engine state is likely wedged: run 'kibi engine stop' (then 'kibi sync --rebuild' if needed) and retry.`;
@@ -481,7 +491,7 @@ export class PrologProcess {
               `[prolog debug] runtime=${runtime ?? "unknown"} packages=${process.env.KIBI_PACKAGE_VERSIONS ?? KIBI_PACKAGE_VERSIONS}`,
             );
           }
-          settled = true;
+          settle();
           this.terminationReason = `query timeout: ${goalLabel}`;
           void this.terminate().finally(() => {
             reject(new Error(msg));
@@ -493,8 +503,7 @@ export class PrologProcess {
             return;
           }
           if (this.outputOverflowed) {
-            clearTimeout(timeoutId);
-            settled = true;
+            settle();
             this.terminationReason = `output overflow (ENOBUFS): ${goalLabel}`;
             void this.terminate().finally(() => {
               resolve({
@@ -506,8 +515,7 @@ export class PrologProcess {
             return;
           }
           if (!this.isProcessUsable()) {
-            clearTimeout(timeoutId);
-            settled = true;
+            settle();
             this.terminationReason ??= `process exited during query: ${goalLabel}`;
             resolve({
               success: false,
@@ -520,8 +528,7 @@ export class PrologProcess {
             this.errorBuffer.length > 0 &&
             this.errorBuffer.includes("ERROR")
           ) {
-            clearTimeout(timeoutId);
-            settled = true;
+            settle();
             if (debug) {
               console.error(
                 `[prolog debug] query error: ${goalLabel} error=${this.errorBuffer.split("\n")[0]}`,
@@ -545,8 +552,7 @@ export class PrologProcess {
             INTERACTIVE_QUERY_FRAME_END,
           );
           if (frameEnd >= 0) {
-            clearTimeout(timeoutId);
-            settled = true;
+            settle();
             const framedOutput = this.outputBuffer.slice(0, frameEnd).trimEnd();
             if (/(?:^|\n)(?:false|fail)\.\s*$/.test(framedOutput)) {
               resolve({
@@ -581,9 +587,36 @@ export class PrologProcess {
             return;
           }
 
-          setTimeout(checkResult, 50);
+          // The poll still owns every state an output wake does not decide:
+          // a diagnostic without its answer frame, or a process that died.
+          if (pollTimer === null) {
+            pollTimer = setTimeout(() => {
+              pollTimer = null;
+              checkResult();
+            }, 50);
+          }
         };
 
+        // Output wakes act only once the answer frame (or an overflow) has
+        // arrived. SWI writes a query's stderr report before its stdout
+        // frame, so the frame proves both buffers are complete; anything
+        // earlier is left to the poll, keeping classification unchanged
+        // while a finished query no longer waits out a 50 ms poll interval.
+        let frameScanFrom = 0;
+        const wake = (): void => {
+          if (settled) return;
+          const found =
+            this.outputBuffer.indexOf(
+              INTERACTIVE_QUERY_FRAME_END,
+              frameScanFrom,
+            ) >= 0;
+          frameScanFrom = Math.max(
+            0,
+            this.outputBuffer.length - INTERACTIVE_QUERY_FRAME_END.length,
+          );
+          if (found || this.outputOverflowed) checkResult();
+        };
+        this.outputWaiter = wake;
         checkResult();
       });
     };
@@ -950,6 +983,7 @@ export class PrologProcess {
     }
     this.outputBuffer += chunk.toString();
     this.outputBufferBytes += chunk.byteLength;
+    this.wakeOutputWaiter();
   }
 
   private appendErrorChunk(chunk: Buffer): void {
@@ -963,6 +997,21 @@ export class PrologProcess {
     }
     this.errorBuffer += chunk.toString();
     this.errorBufferBytes += chunk.byteLength;
+    this.wakeOutputWaiter();
+  }
+
+  /**
+   * Notify the in-flight query that output arrived. Deferred to the event
+   * loop's check phase so every pipe that became readable in this turn
+   * (stderr diagnostics precede the stdout answer frame) is drained first.
+   */
+  private wakeOutputWaiter(): void {
+    if (this.outputWaiter === null || this.outputWakeScheduled) return;
+    this.outputWakeScheduled = true;
+    setImmediate(() => {
+      this.outputWakeScheduled = false;
+      this.outputWaiter?.();
+    });
   }
 
   private goalLabel(goal: string): string {

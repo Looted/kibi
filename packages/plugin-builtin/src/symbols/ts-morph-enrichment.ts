@@ -67,13 +67,37 @@ export async function enrichSymbolCoordinatesWithTsMorph(
   });
   const sourceFileCache = new Map<string, SourceFile>();
 
-  const enriched: ManifestSymbolEntry[] = [];
+  // Add every source file before the first declaration lookup. Export checks
+  // consult the type checker, and adding a file discards the program, so
+  // interleaving adds with lookups rebuilt the whole program (and its module
+  // resolution) once per newly seen file. A declaration's own symbol does
+  // not depend on which other root files are present, so the coordinates are
+  // unchanged; only the repeated program construction disappears.
+  const resolvedPaths: Array<
+    | { readonly ok: true; readonly absolutePath: string | null }
+    | { readonly ok: false; readonly error: unknown }
+  > = [];
   for (const entry of entries) {
     try {
       const absolutePath = await resolveSourcePath(
         entry.sourceFile,
         workspaceRoot,
       );
+      if (absolutePath) {
+        getOrAddSourceFile(project, sourceFileCache, absolutePath);
+      }
+      resolvedPaths.push({ ok: true, absolutePath });
+    } catch (error) {
+      resolvedPaths.push({ ok: false, error });
+    }
+  }
+
+  const enriched: ManifestSymbolEntry[] = [];
+  for (const [index, entry] of entries.entries()) {
+    try {
+      const resolved = resolvedPaths[index];
+      if (resolved !== undefined && !resolved.ok) throw resolved.error;
+      const absolutePath = resolved?.absolutePath ?? null;
       if (!absolutePath) {
         enriched.push(entry);
         continue;

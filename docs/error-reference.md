@@ -87,6 +87,14 @@ Create an append-only replacement requirement and add `supersedes`, or deprecate
 
 Timeout diagnostics include `stage=<name>` and the child PID. The stage is one of the bounded commit markers (`runtime`, `lock`, `rdf_mutation`, `contradiction_check`, `entity_audit`, `relationship_audit`, `snapshot_save`, or `audit_sync`); use it to distinguish a stale lock from a filesystem or Prolog failure without relying on entity payload logging.
 
+## Read stopped at its engine limit (`QUERY_LIMIT_EXCEEDED`)
+
+The read ran under `KIBI_ENGINE_READ_TIME_LIMIT_MS` or `KIBI_ENGINE_READ_INFERENCE_LIMIT` and was stopped before it computed an answer; `error.details.limitExceeded` names the `kind` (`time` or `inferences`) and the `limit`. Nothing was read partially and nothing was written. Narrow the request (a type, id, tag, or smaller page), or raise or unset the limit in the CLI or MCP server environment, then retry.
+
+## Write refused on a detached HEAD
+
+`<operation> writes the branch KB, but HEAD is detached at <sha> ...` means the checkout has no single branch identity (zero or several local branches point at HEAD). Reads still work from the read-only snapshot and carry a `detached_head_read_only` diagnostic. To write, check out a branch (`git switch <branch>` or `git switch -c <branch>`) or set `KIBI_BRANCH` to name the branch explicitly, then retry.
+
 ## Low-confidence requirement modeling downgrade (`kb_model` mode `requirement`)
 
 When confidence is below `0.70`, Kibi emits a non-blocking `fact_kind: observation`. If the prose is normative, retry with explicit `subjectKey`, `propertyKey`, `operator`, and `value` so the tool can produce strict facts.

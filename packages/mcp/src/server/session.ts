@@ -27,7 +27,8 @@ import {
   getBranchDiagnostic,
   isValidBranchName,
   resolveActiveBranch,
-  resolveBranchAttachment,
+  type resolveBranchAttachment,
+  resolveReadBranchAttachment,
 } from "kibi-runtime";
 import { getBranchOverride, isMcpDebugEnabled } from "../env.js";
 import { resolveKbPath, resolveWorkspaceRoot } from "../workspace.js";
@@ -62,7 +63,9 @@ const defaultSessionDeps: SessionDeps = {
   getBranchDiagnostic,
   isValidBranchName,
   resolveActiveBranch,
-  resolveBranchAttachment,
+  // The session engine serves reads; on a detached HEAD it attaches the
+  // checkout's read-only snapshot, and writes are refused before reaching it.
+  resolveBranchAttachment: resolveReadBranchAttachment,
   resolveKbPath,
   resolveWorkspaceRoot,
 };

@@ -18,7 +18,15 @@
 import process from "node:process";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
-import { type RuntimeOperationSpec, executeOperation } from "kibi-runtime";
+import {
+  type DetachedReadOnlyDiagnostic,
+  type OperationRuntime,
+  QUERY_LIMIT_EXCEEDED_CODE,
+  type RuntimeOperationSpec,
+  detachedReadOnlyDiagnostic,
+  executeOperation,
+  queryLimitExceededOf,
+} from "kibi-runtime";
 import { operationData, toKibiResult } from "kibi-runtime";
 import type { z } from "zod";
 import { routedBusinessArgs, routedOperationName } from "../diagnostics.js";
@@ -206,13 +214,38 @@ function localDecision(
   return { kind: "local", args: rest };
 }
 
-/** A result's diagnostics name the workspace mismatch when routing fell back. */
+/** A result's diagnostics carry a routing or detached-HEAD notice when one applies. */
 function withWorkspaceNotice<T extends { diagnostics: readonly unknown[] }>(
   envelope: T,
-  notice: WorkspaceMismatchDiagnostic | undefined,
+  notice: WorkspaceMismatchDiagnostic | DetachedReadOnlyDiagnostic | undefined,
 ): T {
   if (!notice) return envelope;
   return { ...envelope, diagnostics: [...envelope.diagnostics, notice] };
+}
+
+/**
+ * Observe the context an operation opens so its envelope can say when a
+ * detached HEAD answered from the read-only snapshot, and which store.
+ */
+// implements REQ-branch-store-recovery-v3
+function observeDetachedReads(base: OperationRuntime): {
+  readonly runtime: OperationRuntime;
+  readonly notice: () => DetachedReadOnlyDiagnostic | undefined;
+} {
+  let notice: DetachedReadOnlyDiagnostic | undefined;
+  return {
+    runtime: {
+      // Read the attachment at close (success or error) so opening the
+      // context costs no extra event-loop turn.
+      open: (spec, options) => base.open(spec, options),
+      afterSuccess: (spec, context) => base.afterSuccess(spec, context),
+      close: (context, outcome) => {
+        notice = detachedReadOnlyDiagnostic(context.branchAttachment);
+        return base.close(context, outcome);
+      },
+    },
+    notice: () => notice,
+  };
 }
 
 // implements REQ-002
@@ -293,8 +326,9 @@ export function addTool<TProlog>(
         requiresProlog: false,
         execute: async (input, _context) => handler(input),
       };
+      const observed = observeDetachedReads(runtime.operationRuntime);
       const handlerPromise = executeOperation(
-        runtime.operationRuntime,
+        observed.runtime,
         operationSpec,
         businessArgs,
         { signal: controller.signal },
@@ -344,8 +378,11 @@ export function addTool<TProlog>(
 
         const data = operationData(result);
         const envelope = withWorkspaceNotice(
-          toKibiResult(operationSpec, data),
-          workspaceNotice,
+          withWorkspaceNotice(
+            toKibiResult(operationSpec, data),
+            workspaceNotice,
+          ),
+          observed.notice(),
         );
 
         // Log usage in diagnostic mode
@@ -457,6 +494,31 @@ export function addTool<TProlog>(
           return {
             content: [{ type: "text", text: JSON.stringify(envelope) }],
             structuredContent: envelope,
+          };
+        }
+        const limitExceeded = queryLimitExceededOf(error);
+        if (error instanceof Error && limitExceeded !== null) {
+          // A read stopped at its engine limit has no answer: say which
+          // limit stopped it rather than failing like a broken tool.
+          const envelope = withWorkspaceNotice(
+            withWorkspaceNotice(
+              toKibiResult(operationSpec, null, {
+                status: "error",
+                error: {
+                  code: QUERY_LIMIT_EXCEEDED_CODE,
+                  message: error.message,
+                  retryable: false,
+                  details: { limitExceeded },
+                },
+              }),
+              workspaceNotice,
+            ),
+            observed.notice(),
+          );
+          return {
+            content: [{ type: "text", text: JSON.stringify(envelope) }],
+            structuredContent: envelope,
+            isError: true,
           };
         }
         throw error;

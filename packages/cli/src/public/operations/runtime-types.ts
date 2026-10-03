@@ -1,3 +1,4 @@
+import type { EngineLimitExceeded } from "../../engine-limits.js";
 import type { CapabilityRegistry } from "../../plugins/registry.js";
 import type { PrologErrorRecord } from "../../prolog/error-terms.js";
 import type { BranchAttachment } from "../../utils/branch-resolver.js";
@@ -19,6 +20,8 @@ export type PrologQueryResult = {
   readonly error?: string;
   /** Structured error term when the failure crossed a kb.pl throw site. */
   readonly errorRecord?: PrologErrorRecord;
+  /** Set when the engine stopped a bounded read at its limit. */
+  readonly limitExceeded?: EngineLimitExceeded;
 };
 
 export type PrologEntityQueryInput = Readonly<{

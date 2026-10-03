@@ -240,4 +240,81 @@ describe("kibi-plugin-builtin", () => {
       rmSync(root, { recursive: true, force: true });
     }
   });
+
+  // executable_for TEST-capability-plugin-builtin-parity-v1
+  test("coordinate enrichment over many files builds the type checker once and matches per-file results", async () => {
+    const { mkdtempSync, mkdirSync, writeFileSync, rmSync } = await import(
+      "node:fs"
+    );
+    const { tmpdir } = await import("node:os");
+    const { join } = await import("node:path");
+    const root = mkdtempSync(join(tmpdir(), "kibi-builtin-enrich-many-"));
+    try {
+      mkdirSync(join(root, "src"), { recursive: true });
+      const entries = Array.from({ length: 6 }, (_, index) => {
+        writeFileSync(
+          join(root, "src", `widget-${index}.ts`),
+          `import { helper } from "./shared";\n\nexport function widget${index}() {\n  return helper();\n}\n`,
+        );
+        return {
+          id: `SYM-${index}`,
+          title: `widget${index}`,
+          sourceFile: `src/widget-${index}.ts`,
+        };
+      });
+      writeFileSync(
+        join(root, "src", "shared.ts"),
+        "export function helper() {\n  return 1;\n}\n",
+      );
+      entries.push({ id: "SYM-missing", title: "gone", sourceFile: "nope.ts" });
+      const strip = (
+        items: readonly Record<string, unknown>[],
+      ): Record<string, unknown>[] =>
+        items.map(({ coordinatesGeneratedAt: _at, ...rest }) => rest);
+
+      // Export checks build the type checker's program, and adding a file
+      // discards it. Every file must be added before the first check, so the
+      // program is built once rather than once per newly seen file.
+      const events: string[] = [];
+      const addSourceFileAtPath = Project.prototype.addSourceFileAtPath;
+      const addSpy = spyOn(
+        Project.prototype,
+        "addSourceFileAtPath",
+      ).mockImplementation(function (
+        this: Project,
+        ...args: Parameters<Project["addSourceFileAtPath"]>
+      ) {
+        events.push("add");
+        return addSourceFileAtPath.apply(this, args);
+      });
+      const isExported = FunctionDeclaration.prototype.isExported;
+      const exportSpy = spyOn(
+        FunctionDeclaration.prototype,
+        "isExported",
+      ).mockImplementation(function (this: FunctionDeclaration) {
+        events.push("export-check");
+        return isExported.call(this);
+      });
+      spies.push(addSpy, exportSpy);
+      const together = await enrichSymbolCoordinatesWithTsMorph(entries, root);
+      addSpy.mockRestore();
+      exportSpy.mockRestore();
+      expect(events.filter((event) => event === "add")).toHaveLength(6);
+      expect(events.lastIndexOf("add")).toBeLessThan(
+        events.indexOf("export-check"),
+      );
+
+      const separately = [];
+      for (const entry of entries) {
+        separately.push(
+          ...(await enrichSymbolCoordinatesWithTsMorph([entry], root)),
+        );
+      }
+      expect(strip(together)).toEqual(strip(separately));
+      expect(together[2]).toMatchObject({ sourceLine: 3, sourceEndLine: 5 });
+      expect(together[6]).toEqual(entries[6]);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
 });

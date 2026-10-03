@@ -99,7 +99,11 @@ export type StatusPayload = {
   readonly branchAttachment?: {
     readonly gitBranch: string;
     readonly kbBranch: string;
-    readonly kind: "exact" | "explicit_override" | "legacy_compat";
+    readonly kind:
+      | "exact"
+      | "explicit_override"
+      | "legacy_compat"
+      | "detached_snapshot";
     readonly migrationRequired: boolean;
   };
   readonly proofSnapshotChanges?: readonly Record<string, unknown>[];
