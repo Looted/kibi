@@ -44,6 +44,8 @@ Every production symbol traces to the requirement it implements. Every requireme
 
 A coverage number can tell you a test executed a line. It cannot tell you *which product behavior* the test exercised, whether that behavior still matches the intent, or whether the evidence is fresh. Kibi records proof differently: a proof-bearing test declares what it verifies, and its evidence is bound to the current code snapshot. Change the code, and the stale evidence stops counting as proof.
 
+That binding uses repository-relative paths and file contents only, so a CI runner and your own checkout of the same commit agree on what is fresh. Each test is judged by its own evidence: when the proof command reports results per test, one failing step fails only the tests that own it, and the run summary names the step. Receipt history keeps only the receipts that can still decide proof, so it does not grow with every run.
+
 That is why the health report distinguishes "proven" from "passing". Green is reserved for requirements whose evidence is current; everything else is shown honestly as waiting, stale, or broken.
 
 ## What the checks catch

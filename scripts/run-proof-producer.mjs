@@ -6,7 +6,7 @@
 // declared step runs once; a passing retry must never hide a failed attempt.
 
 import { spawn } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
@@ -154,10 +154,16 @@ const TELEMETRY_OPT_IN_KEYS = [
   "KIBI_CLI_DIAGNOSTIC_MODE",
 ];
 
-/** The environment a proof step runs with: the caller's, minus telemetry opt-ins. */
+/**
+ * The environment a proof step runs with: the caller's, minus telemetry
+ * opt-ins and the outer run's per-test report path (a step that runs a nested
+ * producer must never write the report kibi prove reads for this run).
+ */
 function proofStepEnv(env = process.env) {
   const stepEnv = { ...env };
-  for (const key of TELEMETRY_OPT_IN_KEYS) delete stepEnv[key];
+  for (const key of [...TELEMETRY_OPT_IN_KEYS, "KIBI_PROOF_TEST_REPORT"]) {
+    delete stepEnv[key];
+  }
   return stepEnv;
 }
 
@@ -340,9 +346,59 @@ export async function runProofProducer(options = {}) {
   if (attempts.length === 0) {
     throw new Error("run-proof-producer: selected contracts produced no steps");
   }
-  if (failed > 0) write(`[proof] ${failed} step(s) failed`);
-  else write(`[proof] all steps passed for ${selected.length} test(s)`);
-  return { exitCode: failed > 0 ? 1 : 0, selected, attempts };
+  const report = buildProofTestReport(selected, attempts);
+  const reportPath = options.testReportPath ?? env.KIBI_PROOF_TEST_REPORT;
+  if (typeof reportPath === "string" && reportPath.trim() !== "") {
+    writeProofTestReport(reportPath, report);
+  }
+  if (failed > 0) {
+    const failing = report.tests.filter((entry) => entry.outcome !== "passed");
+    write(
+      `[proof] ${failed} step(s) failed in ${failing.length} of ${selected.length} test(s): ${failing.map((entry) => entry.test_id).join(", ")}`,
+    );
+  } else write(`[proof] all steps passed for ${selected.length} test(s)`);
+  return { exitCode: failed > 0 ? 1 : 0, selected, attempts, report };
+}
+
+/**
+ * Per-test attribution for kibi prove (kibi.proof-test-report.v1): each
+ * selected test with the outcome of its own declared steps. kibi prove then
+ * fails only the tests whose steps failed instead of every test in the run.
+ */
+// implements REQ-kibi-fresh-verification-receipts
+export function buildProofTestReport(selected, attempts) {
+  return {
+    version: "kibi.proof-test-report.v1",
+    tests: selected.map((entry) => {
+      const steps = attempts
+        .filter((attempt) => attempt.test_id === entry.test_id)
+        .map((attempt) => ({
+          step_index: attempt.step_index,
+          command: attempt.command,
+          outcome: attempt.outcome,
+          exit_code: attempt.exit_code,
+        }));
+      const firstFailure = steps.find((step) => step.outcome !== "passed");
+      return {
+        test_id: entry.test_id,
+        outcome:
+          firstFailure === undefined
+            ? "passed"
+            : firstFailure.outcome === "timed_out"
+              ? "timed_out"
+              : "failed",
+        steps,
+      };
+    }),
+  };
+}
+
+/** Write the report atomically so kibi prove never reads a partial file. */
+export function writeProofTestReport(reportPath, report) {
+  mkdirSync(path.dirname(reportPath), { recursive: true });
+  const temporary = `${reportPath}.${process.pid}.tmp`;
+  writeFileSync(temporary, `${JSON.stringify(report, null, 2)}\n`, "utf8");
+  renameSync(temporary, reportPath);
 }
 
 /** Reusable entry point for tests and the CLI wrapper. */

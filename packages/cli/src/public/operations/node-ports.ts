@@ -101,19 +101,26 @@ async function workspaceSnapshot(workspaceRoot: string) {
     ],
     { encoding: "buffer", maxBuffer: 64 * 1024 * 1024 },
   );
+  // The snapshot names each file by its repo-relative path in Unicode NFC, so
+  // a checkout whose filesystem reports decomposed names (macOS) hashes the
+  // same commit to the same snapshot as a Linux CI runner. The raw name is
+  // kept only to read the file.
   const paths = listed
     .toString("utf8")
     .split("\0")
     .filter(Boolean)
     .filter(includedSnapshotPath)
-    .sort();
+    .map((raw) => ({ raw, key: raw.normalize("NFC") }))
+    .sort((left, right) =>
+      left.key < right.key ? -1 : left.key > right.key ? 1 : 0,
+    );
   const digest = createHash("sha256");
   digest.update("kibi.workspace-snapshot.v2\0");
-  for (const relativePath of paths) {
+  for (const { raw, key: relativePath } of paths) {
     digest.update(relativePath);
     digest.update("\0");
     try {
-      const content = await fs.readFile(path.join(workspaceRoot, relativePath));
+      const content = await fs.readFile(path.join(workspaceRoot, raw));
       digest.update(snapshotFileContent(relativePath, content));
     } catch (error) {
       const code =

@@ -145,6 +145,31 @@ export function registerProofCommand(program: Command): void {
       }),
     );
   proof
+    .command("compact")
+    .description(
+      "Drop superseded proof receipts while keeping every receipt that decides current proof (newest per scope and contract for the live snapshot and current binding, plus the newest and newest passing receipt); coverage results are unchanged",
+    )
+    .option("--test <id>", "Compact a single test entity")
+    .option("--dry-run", "Report what would be removed without writing", false)
+    .option("--json", "Emit structured JSON", false)
+    .action(
+      withExitCode(
+        async (options: {
+          test?: string;
+          dryRun?: boolean;
+          json?: boolean;
+        }) => {
+          return await (
+            await import("./commands/proof-compact.js")
+          ).proofCompactCommand({
+            ...(options.test === undefined ? {} : { test: options.test }),
+            dryRun: options.dryRun === true,
+            json: options.json === true,
+          });
+        },
+      ),
+    );
+  proof
     .command("migrate-legacy")
     .description(
       "Remove legacy verification_receipts blocks from test documents that already carry a proof_contract",

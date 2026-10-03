@@ -171,7 +171,10 @@ Runs the configured proof producers and ingests valid
 once (`shell: false`), the workspace snapshot is revalidated before and after,
 and the artifact is evaluated independently against every selected test's
 `kibi.proof-contract.v1` obligations. Derived `kibi.proof-receipt.v1`
-receipts append idempotently; history is never rewritten.
+receipts append idempotently, and each append compacts that test's history to
+the receipts that can still decide proof (`kibi.proof-receipt-compaction.v1`):
+kept receipts are never edited or reordered, so coverage decisions do not
+change.
 
 ```bash
 kibi prove --all
@@ -194,6 +197,15 @@ Producer child processes run with `KIBI_PROOF_RUN=1` (plus
 variables). Runner configurations that need proof-run-aware behavior —
 disabling retries, for example — should branch on `KIBI_PROOF_RUN` instead of
 inferring a proof run from output-path variables.
+
+A `command` producer also receives `KIBI_PROOF_TEST_REPORT`. When it writes a
+`kibi.proof-test-report.v1` there, each test is evaluated against its own
+steps, so one failing step fails only the tests that own it. Each entry of
+the summary's `runs` then carries `attribution: "per_test"` and `failedSteps`
+(`testId`, `stepIndex`, `command`, `outcome`, `exitCode`). Without a usable
+report the run is evaluated as one unit (`attribution: "aggregate"`, with an
+`attributionReason`). See
+[per-test attribution](proving-requirements.md#per-test-attribution-for-command-integrations).
 
 ## `kibi proof inspect`
 
@@ -242,14 +254,31 @@ producer (`kibi-cli/playwright-reporter`); Kibi itself is runner-neutral.
 See [the proof ladder](proof-ladder.md) for what each proof stage and status
 means.
 
+### `kibi proof compact`
+
+One-off migration for stores written before ingest compacted receipt
+histories. Applies the ingest policy (`kibi.proof-receipt-compaction.v1`) to
+every test against the live workspace snapshot and each test's current
+binding: it keeps the newest receipt, the newest passing receipt, and the
+newest receipt per scope and contract for the current binding and snapshot,
+so every coverage decision is unchanged. Only the `proof_receipts` block of
+each test document is rewritten. Histories that are not structurally valid
+are reported as skipped and left untouched.
+
+```bash
+kibi proof compact --dry-run   # report what would be removed
+kibi proof compact
+kibi proof compact --test TEST-E2E-EDITOR-001 --json
+```
+
 ### `kibi proof prune`
 
-Shrinks each test's `proof_receipts` history to its newest entries.
-Re-proving the same snapshot appends a receipt per run, so duplicate passed
-blocks accumulate; prune keeps the newest `--keep <n>` (default 1) per test
-and reports the before/after counts. This is the one sanctioned
-history-shrinking mutation — pruned histories remain ordered, structurally
-valid evidence, and current-binding rules still apply to the newest receipt.
+Shrinks each test's `proof_receipts` history to its newest entries, keeping
+the newest `--keep <n>` (default 1) per test and reporting the before/after
+counts. Unlike `kibi proof compact`, prune counts receipts rather than asking
+which ones decide proof, so it can drop a receipt that coverage still
+selects. Pruned histories remain ordered, structurally valid evidence, and
+current-binding rules still apply to the newest receipt.
 
 ```bash
 kibi proof prune              # keep the newest receipt per test

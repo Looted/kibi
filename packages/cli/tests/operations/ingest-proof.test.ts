@@ -469,7 +469,7 @@ describe("kb_ingest_proof", () => {
     });
   });
 
-  test("rotates the oldest receipts at the schema cap while appending", async () => {
+  test("compacts a full history to the receipts that still decide proof", async () => {
     await withTempWorkspace(async (dir) => {
       const cap = 50;
       const historical = Array.from({ length: cap }, (_, index) => ({
@@ -497,7 +497,12 @@ describe("kb_ingest_proof", () => {
         { snapshot: SNAPSHOT, artifact: baseArtifact(), testIds: ["TEST-001"] },
         context(dir, query),
       );
-      expect(result.structuredContent.results[0]?.receiptCount).toBe(cap);
+      // Every historical receipt shares the live snapshot under an older
+      // contract: only the newest of them can still be observed (it keeps
+      // the contract-mismatch evidence for that contract); the rest are
+      // superseded. The new receipt is kept as the current decision.
+      expect(result.structuredContent.results[0]?.receiptCount).toBe(2);
+      expect(result.structuredContent.results[0]?.compacted).toBe(cap - 1);
       const commitGoal = query.mock.calls
         .map(([goal]) => String(goal))
         .find((goal) => goal.includes("kb_commit_upsert"));
@@ -505,6 +510,10 @@ describe("kb_ingest_proof", () => {
       const newestHistorical = historical[historical.length - 1];
       expect(commitGoal).toContain(newestHistorical.receipt_id);
       expect(commitGoal).not.toContain(historical[0].receipt_id);
+      expect(commitGoal).not.toContain(historical[cap - 2].receipt_id);
+      expect(commitGoal).toContain(
+        result.structuredContent.results[0]?.receiptId ?? "missing",
+      );
     });
   });
 

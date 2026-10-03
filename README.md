@@ -227,7 +227,7 @@ For a requirement to be proven rather than merely documented:
 - Requirements must be specified by scenarios, and tests must verify those scenarios. A scenario that expects success while assuming values a current requirement forbids, alone or only in combination, is reported and blocks proof; an intended exception is recorded as an exception requirement (`exempts`) that a human approved (`approved_by`), not by editing the rule. A success scenario whose feasibility cannot be decided is flagged as unknown, never counted as feasible.
 - Executable test symbols must identify the code that actually performs the verification.
 - Proof-bearing production symbols must be covered by qualifying tests.
-- End-to-end evidence must be fresh and bound to the current code snapshot.
+- End-to-end evidence must be fresh and bound to the current code snapshot. Freshness uses repository-relative paths and file contents, so CI and a local checkout of the same commit agree. When the proof command reports results per test, a failing step fails only the tests that own it. Receipt history keeps only the receipts that can still decide proof; `kibi proof compact` trims stores written before that.
 
 That makes questions answerable in both directions: which requirement owns this symbol, what this E2E test actually verifies, which requirements lack a scenario or current evidence, and whether two current requirements contradict each other. Code coverage alone cannot answer them: it shows that a test touched a line, not which product behavior was exercised.
 

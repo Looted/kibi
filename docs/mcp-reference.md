@@ -367,7 +367,7 @@ Apply an approved `kibi.compile-plan.v1` after revalidating its canonical hash, 
 
 ### `kb_ingest_proof`
 
-Ingest a producer-emitted `kibi.proof-run.v1` artifact and evaluate it against each selected test's `kibi.proof-contract.v1` proof obligations. Kibi rechecks the live workspace snapshot, integration command binding, run-level outcome, attempt history, success policy, and append-only proof history, then derives and appends idempotent `kibi.proof-receipt.v1` receipts. Producers report what happened; Kibi evaluates proof. Caller-authored receipts and trusted outcomes are rejected.
+Ingest a producer-emitted `kibi.proof-run.v1` artifact and evaluate it against each selected test's `kibi.proof-contract.v1` proof obligations. Kibi rechecks the live workspace snapshot, integration command binding, run-level outcome, attempt history, success policy, and proof history ordering, then derives and appends idempotent `kibi.proof-receipt.v1` receipts and compacts each history to the receipts that can still decide proof (`kibi.proof-receipt-compaction.v1`; kept receipts are never edited or reordered). Producers report what happened; Kibi evaluates proof. Caller-authored receipts and trusted outcomes are rejected.
 
 **Parameters:**
 - `snapshot` (required): Workspace snapshot captured immediately before execution.
@@ -375,7 +375,7 @@ Ingest a producer-emitted `kibi.proof-run.v1` artifact and evaluate it against e
 - `testIds` (optional): Existing test entities with `kibi.proof-contract.v1`. Omit to evaluate every test contracted to the artifact's integration.
 
 **Returns:**
-Per-test outcomes, receipt ids, applied/duplicate flags, receipt counts, expected-versus-received gap reports, plus the artifact digest and Kibi-derived environment hash. A changed snapshot, unknown integration, command drift, run-level failure, failed success policy, or append-only violation fails before mutation.
+Per-test outcomes, receipt ids, applied/duplicate flags, receipt counts, the number of superseded receipts compacted away (`compacted`), expected-versus-received gap reports, plus the artifact digest and Kibi-derived environment hash. A changed snapshot, unknown integration, command drift, run-level failure, failed success policy, or append-only violation fails before mutation.
 
 ### `kb_status`
 

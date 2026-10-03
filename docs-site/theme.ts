@@ -1067,7 +1067,7 @@ export function landingContent(args: {
     </details>
     <details>
       <summary>What counts as proven?</summary>
-      <p>A requirement is proven only when a test that claims to verify it has fresh end-to-end evidence for the current code. A passing unit test, a coverage percentage, or an old receipt does not count.</p>
+      <p>A requirement is proven only when a test that claims to verify it has fresh end-to-end evidence for the current code. A passing unit test, a coverage percentage, or an old receipt does not count. Freshness is computed from repository-relative paths and file contents, so CI and your own checkout of the same commit agree on what is proven.</p>
     </details>
     <details>
       <summary>Will Kibi decide the product for me?</summary>

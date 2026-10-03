@@ -3,6 +3,7 @@ import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import {
   ManifestError,
+  OUTSIDE_WORKSPACE_SCOPE_HASH,
   extractFromManifest,
   extractFromManifestString,
   extractManifestSymbolRecordsString,
@@ -573,6 +574,60 @@ symbols:
         symbolId: "SYM-BOUND",
         sourceHash: coordinateSourceHash("export {};\n"),
       },
+    ]);
+
+    cleanup();
+  });
+
+  test("hashes in-repo paths by content whatever their spelling, and never reads outside the repository", () => {
+    const root = join(TEST_DIR, "scope-spelling-root");
+    mkdirSync(join(root, ".kb"), { recursive: true });
+    mkdirSync(join(root, "src"), { recursive: true });
+    writeFileSync(join(root, "src", "a.ts"), "export const a = 1;\n");
+    // Readable from this machine only: it must not enter the scope hash.
+    writeFileSync(join(TEST_DIR, "outside.ts"), "export const local = 1;\n");
+    const manifestPath = join(root, ".kb", "symbols.yaml");
+    writeFileSync(
+      manifestPath,
+      `symbols:
+  - id: SYM-PLAIN
+    title: Plain
+    sourceFile: src/a.ts
+  - id: SYM-DOT
+    title: Dot
+    sourceFile: ./src/a.ts
+  - id: SYM-BACKSLASH
+    title: Backslash
+    sourceFile: 'src\\a.ts'
+  - id: SYM-ABSOLUTE
+    title: Absolute inside this checkout
+    sourceFile: '${join(root, "src", "a.ts")}'
+  - id: SYM-ESCAPE
+    title: Escapes the repository
+    sourceFile: ../outside.ts
+  - id: SYM-FOREIGN
+    title: Another machine's checkout
+    sourceFile: /home/someone-else/kibi/src/a.ts
+`,
+    );
+    const content = coordinateSourceHash("export const a = 1;\n");
+
+    expect(
+      resolveBoundSymbolScope(manifestPath, [
+        "SYM-PLAIN",
+        "SYM-DOT",
+        "SYM-BACKSLASH",
+        "SYM-ABSOLUTE",
+        "SYM-ESCAPE",
+        "SYM-FOREIGN",
+      ]),
+    ).toEqual([
+      { symbolId: "SYM-ABSOLUTE", sourceHash: content },
+      { symbolId: "SYM-BACKSLASH", sourceHash: content },
+      { symbolId: "SYM-DOT", sourceHash: content },
+      { symbolId: "SYM-ESCAPE", sourceHash: OUTSIDE_WORKSPACE_SCOPE_HASH },
+      { symbolId: "SYM-FOREIGN", sourceHash: OUTSIDE_WORKSPACE_SCOPE_HASH },
+      { symbolId: "SYM-PLAIN", sourceHash: content },
     ]);
 
     cleanup();

@@ -1,5 +1,12 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -232,7 +239,216 @@ describe("proveCommand", () => {
         ),
       );
       expect(value.exitCode).toBe(1);
-      expect(JSON.parse(output).failed).toBe(1);
+      const summary = JSON.parse(output);
+      expect(summary.failed).toBe(1);
+      expect(summary.runs[0]).toMatchObject({
+        attribution: "aggregate",
+        attributionReason: expect.stringContaining(
+          "exited 1 without a kibi.proof-test-report.v1",
+        ),
+      });
+    });
+  });
+
+  test("fails only the tests whose own steps failed when the command reports per test", async () => {
+    await withTempWorkspace(async (dir) => {
+      const testReport = {
+        version: "kibi.proof-test-report.v1",
+        tests: [
+          {
+            test_id: "TEST-001",
+            outcome: "passed",
+            steps: [
+              {
+                step_index: 1,
+                command: ["bun", "test", "a"],
+                outcome: "passed",
+                exit_code: 0,
+              },
+            ],
+          },
+          {
+            test_id: "TEST-002",
+            outcome: "failed",
+            steps: [
+              {
+                step_index: 1,
+                command: ["bun", "test", "b"],
+                outcome: "passed",
+                exit_code: 0,
+              },
+              {
+                step_index: 2,
+                command: ["bun", "test", "c"],
+                outcome: "failed",
+                exit_code: 3,
+              },
+            ],
+          },
+        ],
+      };
+      writeIntegrations(dir, [
+        {
+          id: "self-proof",
+          producer: "command",
+          command: [
+            "node",
+            "-e",
+            `require("fs").writeFileSync(process.env.KIBI_PROOF_TEST_REPORT, ${JSON.stringify(JSON.stringify(testReport))}); process.exit(1)`,
+          ],
+          description: "Self proof",
+        },
+      ]);
+      const secondContract = {
+        ...contract,
+        required_proofs: [{ symbol_id: "SYM-CASE-2", target: "default" }],
+      };
+      const calls: Array<{
+        testIds: readonly string[];
+        artifact: Record<string, unknown>;
+      }> = [];
+      const { value, output } = await captureStdout(() =>
+        proveCommand(
+          { all: true, workspaceRoot: dir },
+          {
+            runtime: fakeRuntime(dir, async () =>
+              resultsFor([
+                entityRow(
+                  "TEST-001",
+                  `,proof_contract=${JSON.stringify(JSON.stringify(contract))}`,
+                ),
+                entityRow(
+                  "TEST-002",
+                  `,proof_contract=${JSON.stringify(JSON.stringify(secondContract))}`,
+                  "Second flow",
+                ),
+              ]),
+            ),
+            ingestProof: async (args) => {
+              calls.push({
+                testIds: args.testIds ?? [],
+                artifact: args.artifact as Record<string, unknown>,
+              });
+              const passedRun =
+                (args.artifact as { run: { outcome: string } }).run.outcome ===
+                "passed";
+              return ingestResult({
+                passed: passedRun ? 1 : 0,
+                failed: passedRun ? 0 : 1,
+              });
+            },
+          },
+        ),
+      );
+
+      expect(value.exitCode).toBe(1);
+      expect(calls.map((call) => call.testIds)).toEqual([
+        ["TEST-001"],
+        ["TEST-002"],
+      ]);
+      const [passing, failing] = calls.map(
+        (call) =>
+          call.artifact as {
+            run: { outcome: string; exit_code: number; failure_phase?: string };
+            proof_results: Array<{ symbol_id: string; outcome: string }>;
+          },
+      );
+      expect(passing?.run).toMatchObject({ outcome: "passed", exit_code: 0 });
+      expect(passing?.proof_results).toEqual([
+        expect.objectContaining({ symbol_id: "SYM-CASE-1", outcome: "passed" }),
+      ]);
+      expect(failing?.run).toMatchObject({
+        outcome: "failed",
+        exit_code: 3,
+        failure_phase: "execution",
+      });
+      expect(failing?.proof_results).toEqual([
+        expect.objectContaining({ symbol_id: "SYM-CASE-2", outcome: "failed" }),
+      ]);
+
+      const summary = JSON.parse(output);
+      expect(summary).toMatchObject({ proved: 1, failed: 1 });
+      expect(summary.runs).toHaveLength(1);
+      expect(summary.runs[0]).toMatchObject({
+        integration: "self-proof",
+        attribution: "per_test",
+        failedSteps: [
+          {
+            testId: "TEST-002",
+            stepIndex: 2,
+            command: ["bun", "test", "c"],
+            outcome: "failed",
+            exitCode: 3,
+          },
+        ],
+      });
+
+      // The whole process run is kept for audit next to each evaluated slice.
+      const runs = path.join(dir, ".kb", "proof", "runs");
+      const whole = JSON.parse(
+        readFileSync(path.join(runs, "self-proof.json"), "utf8"),
+      );
+      expect(whole.run).toMatchObject({ outcome: "failed", exit_code: 1 });
+      expect(whole.diagnostics).toContain(
+        "TEST-002 step 2 failed (exit 3): bun test c",
+      );
+      expect(existsSync(path.join(runs, "self-proof.passed.json"))).toBe(true);
+      expect(existsSync(path.join(runs, "self-proof.failed.json"))).toBe(true);
+    });
+  });
+
+  test("never reads a test report left behind by an earlier run", async () => {
+    await withTempWorkspace(async (dir) => {
+      const runs = path.join(dir, ".kb", "proof", "runs");
+      mkdirSync(runs, { recursive: true });
+      writeFileSync(
+        path.join(runs, "self-proof.tests.json"),
+        JSON.stringify({
+          version: "kibi.proof-test-report.v1",
+          tests: [
+            {
+              test_id: "TEST-001",
+              outcome: "failed",
+              steps: [
+                {
+                  step_index: 1,
+                  command: ["stale"],
+                  outcome: "failed",
+                  exit_code: 1,
+                },
+              ],
+            },
+          ],
+        }),
+      );
+      writeIntegrations(dir, [
+        {
+          id: "self-proof",
+          producer: "command",
+          command: failingCommand,
+          description: "Self proof",
+        },
+      ]);
+      const extra = `,proof_contract=${JSON.stringify(JSON.stringify(contract))}`;
+      const calls: Array<readonly string[]> = [];
+      const { output } = await captureStdout(() =>
+        proveCommand(
+          { all: true, workspaceRoot: dir },
+          {
+            runtime: fakeRuntime(dir, async () =>
+              resultsFor([entityRow("TEST-001", extra)]),
+            ),
+            ingestProof: async (args) => {
+              calls.push(args.testIds ?? []);
+              return ingestResult({ passed: 0, failed: 1 });
+            },
+          },
+        ),
+      );
+      expect(calls).toEqual([["TEST-001"]]);
+      const run = JSON.parse(output).runs[0];
+      expect(run.attribution).toBe("aggregate");
+      expect(run.failedSteps).toBeUndefined();
     });
   });
 

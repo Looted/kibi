@@ -334,7 +334,7 @@ tags:
 | proof_bindings | No | array[object] | Optional native-runner bindings (`native_id`, aliases, source coordinates) for proof obligations; provenance metadata, never a contract replacement |
 | proof_receipts | No | array[object] | Append-only proof-receipt execution history; evidence is `kibi.proof-receipt.v1`; requires `verification_scope` |
 
-`proof_receipts` is append-only: never remove or rewrite existing entries, and include the full history when authoring a test file directly. Receipts are engine-derived from `kibi.proof-run.v1` producer artifacts — see [proving requirements](proving-requirements.md) for contracts, the `kibi prove` workflow, and the artifact reference.
+`proof_receipts` is append-only for authors: never remove or rewrite existing entries, and include the full history when authoring a test file directly. Only the engine shortens a history: `kibi prove` compacts it on ingest to the receipts that can still decide proof, and `kibi proof compact` and `kibi proof prune` are the maintenance commands. Receipts are engine-derived from `kibi.proof-run.v1` producer artifacts — see [proving requirements](proving-requirements.md) for contracts, the `kibi prove` workflow, and the artifact reference.
 
 `tags` remain metadata only. They do not alias or replace typed verification fields.
 
