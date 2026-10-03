@@ -1,5 +1,6 @@
 import assert from "node:assert";
-import { writeFileSync } from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, before, describe, it } from "node:test";
 import {
@@ -21,12 +22,17 @@ interface CompilePlanPayload {
   steps?: unknown[];
 }
 
+// Inputs live outside the repository: a file written into the workspace
+// changes its snapshot, which apply-plan rightly treats as drift since
+// compilation.
+const inputDir = mkdtempSync(join(tmpdir(), "kibi-plan-hash-inputs-"));
+
 function writeInput(
-  sandbox: TestSandbox,
+  _sandbox: TestSandbox,
   name: string,
   value: Record<string, unknown>,
 ): string {
-  const inputPath = join(sandbox.repoDir, name);
+  const inputPath = join(inputDir, name);
   writeFileSync(inputPath, `${JSON.stringify(value)}\n`, "utf8");
   return inputPath;
 }
@@ -60,6 +66,7 @@ if (RUN_NODE_TEST_SUITE) {
     after(
       async () => {
         if (sandbox) await sandbox.cleanup();
+        rmSync(inputDir, { recursive: true, force: true });
       },
       { timeout: 60000 },
     );

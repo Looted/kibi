@@ -21,7 +21,7 @@ import type { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { type RuntimeOperationSpec, executeOperation } from "kibi-runtime";
 import { operationData, toKibiResult } from "kibi-runtime";
 import type { z } from "zod";
-import { routedOperationName } from "../diagnostics.js";
+import { routedBusinessArgs, routedOperationName } from "../diagnostics.js";
 import { isMcpDebugEnabled } from "../env.js";
 import { enabledOptionalTools } from "../tools-config.js";
 import {
@@ -358,7 +358,7 @@ export function addTool<TProlog>(
             toolName: routedOperationName(name, businessArgs),
             requestId,
             args,
-            businessArgs,
+            businessArgs: routedBusinessArgs(name, businessArgs),
             telemetry,
             startedAt,
             result: envelope,
@@ -403,7 +403,7 @@ export function addTool<TProlog>(
             toolName: routedOperationName(name, businessArgs),
             requestId,
             args,
-            businessArgs,
+            businessArgs: routedBusinessArgs(name, businessArgs),
             telemetry,
             startedAt,
             error,

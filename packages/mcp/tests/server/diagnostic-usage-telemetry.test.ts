@@ -178,6 +178,17 @@ describe("diagnostic usage telemetry through the registration path", () => {
     });
   });
 
+  test("logs a kb_skills call like the CLI skills-list route", async () => {
+    const { handlers, rows } = createHarness(() => ({ skills: [] }));
+
+    await callTool(handlers, "kb_skills", { action: "list" });
+
+    expect(rows[0]).toMatchObject({
+      tool: "kb_skills_list",
+      business_args: {},
+    });
+  });
+
   test("preserves supplied session and actor identifiers", async () => {
     const { handlers, rows } = createHarness(() => ({ results: [], count: 0 }));
 

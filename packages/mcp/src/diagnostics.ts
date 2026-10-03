@@ -415,6 +415,12 @@ const MODEL_MODE_OPERATIONS: Readonly<Record<string, string>> = {
   predicates: "kb_suggest_predicates",
 };
 
+const SKILL_ACTION_OPERATIONS: Readonly<Record<string, string>> = {
+  list: "kb_skills_list",
+  load: "kb_skills_load",
+  read: "kb_skills_read",
+};
+
 /** Composite tools report diagnostics under the operation they routed to. */
 export function routedOperationName(
   toolName: string,
@@ -422,9 +428,30 @@ export function routedOperationName(
 ): string {
   if (toolName === "kb_model" && typeof args.mode === "string")
     return MODEL_MODE_OPERATIONS[args.mode] ?? toolName;
+  if (toolName === "kb_skills" && typeof args.action === "string")
+    return SKILL_ACTION_OPERATIONS[args.action] ?? toolName;
   if (toolName === "kb_upsert" && args.dryRun === true)
     return "kb_validate_upsert";
   return toolName;
+}
+
+/**
+ * The business arguments the routed operation received: the composite's
+ * selector is dropped, so a usage entry matches the narrow CLI route's entry.
+ */
+export function routedBusinessArgs(
+  toolName: string,
+  args: Record<string, unknown>,
+): Record<string, unknown> {
+  if (routedOperationName(toolName, args) === toolName) return args;
+  const selector =
+    toolName === "kb_model"
+      ? "mode"
+      : toolName === "kb_skills"
+        ? "action"
+        : "dryRun";
+  const { [selector]: _selector, ...rest } = args;
+  return rest;
 }
 
 export function deriveDiagnosticFields(
