@@ -57,7 +57,10 @@ cp -r "$(npm root)/kibi-cursor" ~/.cursor/plugins/local/kibi-cursor
 The plugin bundles `mcp.json` with a thin launcher that locates and starts the
 `kibi-mcp` package installed in the opened project. The launcher starts the
 resolved child from the consumer workspace and sets `KIBI_WORKSPACE` to that
-root; it never downloads, bundles, or falls back to a global Kibi runtime:
+root; it never downloads, bundles, or falls back to a global Kibi runtime.
+The `preToolUse` hook adds `workspaceRoot` (the agent's current workspace) to
+every Kibi MCP call, so an agent working in a git worktree is answered from
+that worktree's branch. Setting `KIBI_WORKSPACE` pins one workspace instead:
 
 ```json
 {

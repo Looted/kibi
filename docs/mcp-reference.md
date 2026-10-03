@@ -4,7 +4,7 @@ The Kibi Model Context Protocol (MCP) server is a peer public interface alongsid
 
 ## Public Tools
 
-The public MCP surface is intentionally curated. Agents can call exact lookup, discovery/reporting, mutation, and validation tools through MCP, with equivalent operation access through `kibi <route> --input <file|->`.
+The public MCP surface is intentionally curated. Agents can call exact lookup, discovery/reporting, mutation, and validation tools through MCP, with equivalent operation access through `kibi <route> --input <file|->`. Every MCP tool also accepts `workspaceRoot`, the directory the call is about; see [Workspace Routing](#workspace-routing).
 
 ### Host-visible tool names
 
@@ -32,7 +32,7 @@ printf '%s\n' '{"id":"kibi-usage","resource":"resources/workflows.md"}' | kibi s
 
 If neither a visible Kibi MCP surface nor a trusted local CLI is available, the agent must stop and ask the operator to enable one; it must not infer availability from configuration files or read `.kb/` directly.
 
-Day-0 bootstrap uses the `kibi-bootstrap` bundled skill and `kb_plan_bootstrap`: inspect `kb_status.bootstrap`, follow its typed next action, review the deterministic `kibi.bootstrap-plan.v1`, ask only questions returned by a `needs_context` result, get explicit approval for its hash, then pass the unchanged plan to `kb_apply_plan`. Hosts that support it also expose `/kibi-bootstrap`.
+Day-0 bootstrap uses the `kibi-bootstrap` bundled skill and `kb_plan_bootstrap`: inspect `kb_status.bootstrap`, follow its typed next action, interview the human about knowledge sources outside the code and pass them with cited `intentClaims` in `bootstrapContext`, review the deterministic `kibi.bootstrap-plan.v1`, ask only further questions returned by a `needs_context` result, get explicit approval for its hash, then pass the unchanged plan to `kb_apply_plan`. Hosts that support it also expose `/kibi-bootstrap`.
 
 ### `kb_plan_bootstrap`
 
@@ -45,7 +45,11 @@ Discover existing repository evidence and return a deterministic, snapshot-bound
 - `minConfidence` (optional): Minimum confidence threshold for generated candidates.
 - `maxCandidates` (optional): Maximum number of candidates to return.
 - `entityTypes` (optional): Limit generation to selected entity types.
-- `bootstrapContext` (optional): Declared project summary, source-of-truth paths/notes, priority roots, and verification anchors.
+- `bootstrapContext` (optional): Declared project summary, source-of-truth paths/notes, priority roots, verification anchors, and the outcome of the source interview:
+  - `knowledgeSources`: sources outside the code the human confirmed, each with `id`, `kind` (`issue_tracker`, `wiki`, `specification`, `design`, `decision_log`, `support`, `chat`, `repository_docs`, `other`), `title`, `locator`, `authority` (`authoritative`, `supporting`, `stale`), and an optional `connector`.
+  - `intentClaims`: normative statements the agent read in those sources, each with `statement`, `sourceId`, an exact `reference` (ticket key, page URL, section), and an optional `excerpt`.
+
+  Kibi never contacts the declared sources. Both lists are part of `declaredContext` and so of `planHash`. A grounded claim from an authoritative or supporting source becomes a `req` candidate with `sourceKind: intent_claim`, citation evidence, and `text_ref: <sourceId>:<reference>`. A claim the strict modeler cannot ground becomes an authoring follow-up. Stale sources produce no candidates, and claims citing an undeclared source are reported in `diagnostics`. When no sources were declared, a `needs_context` plan asks for them.
 
 **Returns:**
 Evidence, bounded context questions, dependency-ordered actions, expected
@@ -621,14 +625,31 @@ Opt in per workspace with either signal:
 - `KIBI_DIAGNOSTIC_MODE=1` in the server environment, for hosts where a plugin
   owns the command line. Set it in the host's MCP server `env` block.
 
+`KIBI_DIAGNOSTIC_MODE` is shared by every surface: the MCP server, the CLI JSON
+routes (`kibi <route> --input`), and the Claude Code plugin hooks all honor it,
+so exporting it once in the environment your agent host inherits covers all of
+them. The older CLI-only `KIBI_CLI_DIAGNOSTIC_MODE=1` still works.
+
 Opting out is removing the signal; no other state persists.
 
 While opted in, every row carries `interface`, `host`, `package_version`, and
 `workspace_root` so rows stay attributable across worktrees, hosts, and Kibi
 versions. Host plugins set `KIBI_MCP_HOST` for attribution only; it is not an
-opt-in signal and never enables logging on its own. Rows record business
-arguments and agent-supplied telemetry metadata, and the log stays local to the
-workspace under `.kb/usage.log`.
+opt-in signal and never enables logging on its own. CLI rows take `host` from
+`KIBI_HOST` (or `KIBI_MCP_HOST`) and recognize Claude Code shells; otherwise
+they record `unknown`. Rows record business arguments and agent-supplied
+telemetry metadata, and the log stays local to the workspace under
+`.kb/usage.log`.
+
+The Claude Code plugin hooks add rows with `interface: "hook"`. They record the
+agent activity around Kibi calls rather than Kibi operations: which source,
+test, or `.kb/` file was read or edited, whether a requirement snippet was
+shown or suppressed (`hook_action`), which requirements own the file, and
+whether the session had used Kibi yet (`kb_used_before`). Rows carry the host
+`session_id`, so one session's lookups and edits can be put in order.
+Acceptance metrics, `kibi usage-metrics`, and `kibi usage-remediation` ignore
+hook rows, so a busy editing session never pushes operations out of their
+bounded window.
 
 Counts are only recorded when they can be read. A call whose payload cannot be
 parsed records `result_count: null` rather than zero, and acceptance metrics
@@ -645,7 +666,7 @@ treat unreadable counts as insufficient evidence instead of a pass.
 
 ### `/kibi-bootstrap`
 
-Interactive onboarding workflow for day-0 KB activation. It guides agents to ask at most four bounded questions when requested by the planner, call `kb_plan_bootstrap` for read-only synthesis, present the complete hash-bound plan for approval, call `kb_apply_plan` once, and finish with `kb_check`/`kb_status`.
+Interactive onboarding workflow for day-0 KB activation. It guides agents to interview the human about knowledge sources outside the code, call `kb_plan_bootstrap` with the declared sources and cited intent claims, ask at most four further bounded questions when requested by the planner, present the complete hash-bound plan for approval, call `kb_apply_plan` once, and finish with `kb_check`/`kb_status`.
 
 ## Branch Behavior
 
@@ -677,6 +698,65 @@ When MCP detects a KB replacement for the same branch, it triggers a controlled 
 - If recovery fails, MCP returns a `KbRefreshError` and the operation fails closed.
 
 This behavior is important after external branch operations such as `kibi sync --rebuild`, where the branch KB snapshot can be replaced while the MCP process stays running.
+
+## Workspace Routing
+
+Hosts start an MCP server once per project and then let the agent work
+elsewhere, most often in a git worktree. A server that stayed attached to the
+checkout it started in would answer from another branch, and nothing in the
+result would say so. Every Kibi tool call is therefore answered from the
+workspace the caller is working in, decided per call:
+
+1. An explicit `workspaceRoot` argument (every tool accepts it): the absolute
+   path of the directory the call is about. Host plugins with pre-tool hooks
+   (Claude Code, Codex, Cursor, ZCode) fill it in from the agent's current
+   directory; any agent in any harness can pass its working directory.
+2. Otherwise the client's MCP roots, when the client declares the `roots`
+   capability: the first root that lies in a Kibi workspace. Roots are cached
+   while the client reports `notifications/roots/list_changed` and asked for
+   per call otherwise.
+3. Otherwise the workspace the server is attached to.
+
+A different workspace is served by a child `kibi-mcp` started there: the
+workspace's own project-local install when it has one, so the child matches
+that branch's code, else this server's entry. Children are pooled (at most
+four), reused across calls, and retired after ten idle minutes; the first call
+into a workspace pays its start (one to two seconds) and, for a branch store
+that was never compiled, the compile that any attach pays. An async `kb_check`
+started in a child is polled by `kb_job_status` in the same child. A routed call
+is logged, in diagnostic mode, by the child in that workspace's `.kb/usage.log`.
+
+Routing is limited to worktrees of the attached repository (same git common
+directory), directories under the client's declared roots, and the
+`KIBI_MCP_ROUTABLE_ROOTS` allowlist (path-delimited). Anything else, a directory
+no Kibi workspace owns, or a child that fails to start is answered from the
+attached workspace with a `workspace_mismatch` diagnostic:
+
+```json
+{
+  "code": "workspace_mismatch",
+  "severity": "warning",
+  "message": "Answered from /repo, not from the requested workspace /other: ...",
+  "detail": {
+    "requested": "/other",
+    "resolved": "/other",
+    "answeredFrom": "/repo",
+    "reason": "not_routable"
+  }
+}
+```
+
+`reason` is one of `pinned`, `not_a_kibi_workspace`, `not_routable`, or
+`unavailable`. A successful route adds nothing to the result; the tool list is
+always the attached server's.
+
+`KIBI_WORKSPACE` (or `KIBI_PROJECT_ROOT`, `KIBI_ROOT`) pins the server to one
+workspace and disables routing; `KIBI_MCP_ROUTING=0` disables it without
+pinning. Routed children run with `KIBI_MCP_ROUTED=1` and never route further.
+For `kb_check`, a `workspaceRoot` that no Kibi workspace owns keeps its older
+meaning: the tree to inspect for impact diagnostics. The CLI JSON routes do not
+take `workspaceRoot`; they run in the current directory, which makes them the
+fallback when a result reports a mismatch.
 
 ## Recommended Agent Workflow
 

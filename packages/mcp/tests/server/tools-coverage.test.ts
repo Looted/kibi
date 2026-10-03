@@ -733,6 +733,32 @@ describe.serial("server tools coverage", () => {
     expect(handler).not.toHaveBeenCalled();
   });
 
+  test("addTool tells the agent to restart when installed modules vanished under the server", async () => {
+    const { runtime } = createRuntime();
+    const { server, registered } = createCapturingServer();
+    const missing = Object.assign(
+      new Error(
+        "Cannot find module '/repo/node_modules/.pnpm/kibi-mcp@1.0.0/node_modules/kibi-mcp/dist/server/session.js'",
+      ),
+      { code: "ERR_MODULE_NOT_FOUND" },
+    );
+    const handler = mock(async (): Promise<unknown> => {
+      throw missing;
+    });
+
+    addTool(server, "stale_tool", "stale tool", {}, handler, runtime);
+
+    const error = await getRejectedError(
+      invokeTool(getRegisteredTool(registered, "stale_tool"), {}),
+    );
+
+    expect(error.message).toStartWith(
+      `Tool stale_tool failed: ${missing.message} — `,
+    );
+    expect(error.message).toContain("Restart the Kibi MCP server");
+    expect(error.cause).toBe(missing);
+  });
+
   test("addTool rejects requests while the server is shutting down", async () => {
     const { runtime, spies, trackedRequests } = createRuntime();
     const { server, registered } = createCapturingServer();

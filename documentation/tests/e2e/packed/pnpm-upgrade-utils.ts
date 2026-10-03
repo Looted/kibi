@@ -196,8 +196,19 @@ function seedPnpmMetadataCache(cacheDir: string): void {
   cpSync(hostCache, join(cacheDir, "pnpm"), { recursive: true });
 }
 
+// Corepack keeps the version activated by `corepack prepare --activate` in its
+// home directory. Without that seed the sandbox's corepack shim falls back to
+// the newest pnpm on npm instead of the version CI pinned.
+function hostCorepackHome(): string | null {
+  if (process.env.COREPACK_HOME) return process.env.COREPACK_HOME;
+  const cacheRoot =
+    process.env.XDG_CACHE_HOME ??
+    (process.env.HOME ? join(process.env.HOME, ".cache") : null);
+  return cacheRoot ? join(cacheRoot, "node", "corepack") : null;
+}
+
 function seedCorepackHome(corepackHome: string): void {
-  const source = process.env.COREPACK_HOME;
+  const source = hostCorepackHome();
   if (!source || !existsSync(source) || source === corepackHome) return;
   cpSync(source, corepackHome, { recursive: true });
 }

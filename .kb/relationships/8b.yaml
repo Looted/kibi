@@ -314,3 +314,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-192edc8d38d4
+  - type: implements
+    from: SYM-telemetry-acceptance-threshold-status
+    to: REQ-kibi-telemetry-acceptance-gate
+    created_at: 2026-10-01T21:09:05.745Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-00be5878b9ea
+  - type: covered_by
+    from: SYM-telemetry-acceptance-threshold-status
+    to: TEST-kibi-telemetry-acceptance-gate
+    created_at: 2026-10-01T21:09:05.773Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d33d94edd52b
+  - type: implements
+    from: SYM-cursor-nextAncestorDirectory
+    to: REQ-cursor-consumer-local-mcp-launcher-v1
+    created_at: 2026-10-02T12:20:10.886Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-281dece55e1c
+  - type: covered_by
+    from: SYM-cursor-nextAncestorDirectory
+    to: TEST-cursor-consumer-local-mcp-launcher-v1
+    created_at: 2026-10-02T12:20:10.903Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d4bbb450daad

@@ -237,3 +237,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c7dca4a36a7d
+  - type: implements
+    from: SYM-cursor-dts-nextAncestorDirectory
+    to: REQ-cursor-consumer-local-mcp-launcher-v1
+    created_at: 2026-10-02T12:21:04.328Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6ea1f5ca2b93
+  - type: covered_by
+    from: SYM-cursor-dts-nextAncestorDirectory
+    to: TEST-cursor-consumer-local-mcp-launcher-v1
+    created_at: 2026-10-02T12:21:04.345Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4093f013c8ca

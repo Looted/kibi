@@ -23,7 +23,7 @@ function isOperationContext(value: unknown): value is OperationContext {
   );
 }
 
-// implements REQ-mcp-kibi-bootstrap-bootstrap-v1, REQ-kibi-operation-interface-parity
+// implements REQ-KIBI-BOOTSTRAP-PLAN, REQ-kibi-operation-interface-parity
 // implements REQ-KIBI-BOOTSTRAP-PLAN
 export async function handleKbPlanBootstrap(
   input: PlanBootstrapArgs,

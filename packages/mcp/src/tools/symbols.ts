@@ -153,6 +153,7 @@ async function handleKbSymbolsRefreshUnlocked(
   const enriched = await enrichSymbolCoordinates(
     entriesForEnrichment,
     workspaceRoot,
+    { allowPythonDecoratorCoordinates: true },
   );
   const finalized = await Promise.all(
     enriched.map((entry, index) =>
@@ -269,6 +270,7 @@ async function refreshCoordinatesForSymbolIdUnlocked(
   const [enriched] = await enrichSymbolCoordinates(
     [singleEntry],
     workspaceRoot,
+    { allowPythonDecoratorCoordinates: true },
   );
   const finalized = await fillMissingCoordinates(
     original as ManifestSymbolEntry,

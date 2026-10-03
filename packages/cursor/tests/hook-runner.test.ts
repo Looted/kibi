@@ -616,3 +616,74 @@ describe("Cursor hook runner", () => {
     ).toEqual({});
   });
 });
+
+describe("Cursor hook runner workspace stamp", () => {
+  test("preToolUse names the agent's workspace on every Kibi MCP call without a permission", async () => {
+    const window = createTempRoot("kibi-cursor-window-");
+    const worktree = createTempRoot("kibi-cursor-worktree-");
+    const pluginData = createTempRoot("kibi-cursor-data-");
+    tempRoots.push(window, worktree, pluginData);
+    for (const root of [window, worktree]) {
+      fs.mkdirSync(path.join(root, ".kb"));
+      fs.writeFileSync(path.join(root, ".kb", "manifest.json"), "{}");
+    }
+    // The per-call cwd (the agent's checkout) wins over the window's folders.
+    const result = await runHook(
+      {
+        hook_event_name: "preToolUse",
+        cwd: path.join(worktree, "src"),
+        workspace_roots: [window],
+        tool_name: "MCP:kb_query",
+        tool_input: { id: "REQ-1" },
+      },
+      { pluginData },
+    );
+    expect(result).toEqual({
+      updated_input: { id: "REQ-1", workspaceRoot: worktree },
+    });
+    // Without a cwd the window folder is the best available answer.
+    const fromRoots = await runHook(
+      {
+        hook_event_name: "preToolUse",
+        workspace_roots: [window],
+        tool_name: "MCP:kb_query",
+        tool_input: {},
+      },
+      { pluginData },
+    );
+    expect(fromRoots).toEqual({ updated_input: { workspaceRoot: window } });
+  });
+
+  test("a non-Kibi tool and a directory outside any Kibi workspace are left alone", async () => {
+    const cwd = createTempRoot("kibi-cursor-cwd-");
+    const pluginData = createTempRoot("kibi-cursor-data-");
+    tempRoots.push(cwd, pluginData);
+    fs.mkdirSync(path.join(cwd, ".kb"));
+    fs.writeFileSync(path.join(cwd, ".kb", "manifest.json"), "{}");
+    expect(
+      await runHook(
+        {
+          hook_event_name: "preToolUse",
+          cwd,
+          tool_name: "Shell",
+          tool_input: { command: "ls" },
+        },
+        { pluginData },
+      ),
+    ).toEqual({});
+    const plain = createTempRoot("kibi-cursor-plain-");
+    tempRoots.push(plain);
+    fs.mkdirSync(path.join(plain, ".git"));
+    expect(
+      await runHook(
+        {
+          hook_event_name: "preToolUse",
+          cwd: plain,
+          tool_name: "MCP:kb_query",
+          tool_input: {},
+        },
+        { pluginData },
+      ),
+    ).toEqual({});
+  });
+});

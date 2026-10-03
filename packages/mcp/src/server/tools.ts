@@ -39,6 +39,12 @@ import {
   _resetSessionModulePromise,
   _setToolsServerDepsForTests,
 } from "./tools-runtime.js";
+import {
+  type RoutingDecision,
+  WORKSPACE_ROOT_ARGUMENT,
+  type WorkspaceMismatchDiagnostic,
+  getWorkspaceRouter,
+} from "./workspace-router.js";
 
 export type { ToolConfig, ToolHandler, ToolsRuntime } from "./tool-types.js";
 export { jsonSchemaToZod } from "./json-schema-to-zod.js";
@@ -166,6 +172,47 @@ async function withToolTimeout<T>(
   }
 }
 
+/**
+ * A module that vanished after startup means the package was upgraded or
+ * reinstalled under a running server; only a restart loads the new install.
+ */
+function staleInstallHint(error: Error): string {
+  const code = (error as Error & { code?: unknown }).code;
+  const missingModule =
+    code === "ERR_MODULE_NOT_FOUND" ||
+    code === "MODULE_NOT_FOUND" ||
+    /Cannot find (module|package)/.test(error.message);
+  return missingModule
+    ? " — this Kibi MCP server is running from files that are no longer installed (Kibi was likely upgraded or reinstalled after it started). Restart the Kibi MCP server; the project-local kibi CLI works in the meantime."
+    : "";
+}
+
+/**
+ * The decision when no workspace router is installed (unit tests, embedded
+ * use): every call is local, and `workspaceRoot` is dropped so handlers never
+ * see a routing-only argument. kb_check keeps it: there it also names the
+ * tree to inspect for impact diagnostics.
+ */
+function localDecision(
+  name: string,
+  args: Record<string, unknown>,
+): RoutingDecision {
+  if (!(WORKSPACE_ROOT_ARGUMENT in args) || name === "kb_check") {
+    return { kind: "local", args };
+  }
+  const { [WORKSPACE_ROOT_ARGUMENT]: _ignored, ...rest } = args;
+  return { kind: "local", args: rest };
+}
+
+/** A result's diagnostics name the workspace mismatch when routing fell back. */
+function withWorkspaceNotice<T extends { diagnostics: readonly unknown[] }>(
+  envelope: T,
+  notice: WorkspaceMismatchDiagnostic | undefined,
+): T {
+  if (!notice) return envelope;
+  return { ...envelope, diagnostics: [...envelope.diagnostics, notice] };
+}
+
 // implements REQ-002
 export function addTool<TProlog>(
   server: McpServer,
@@ -181,12 +228,13 @@ export function addTool<TProlog>(
   annotations?: ToolAnnotations,
   outputSchema?: object,
 ): void {
-  const wrappedHandler: ToolHandler = async (args) => {
+  const wrappedHandler: ToolHandler = async (rawArgs) => {
     const startedAt = new Date();
     const diagnosticModeEnabled = runtime.diagnosticModeEnabled();
-    const { businessArgs, telemetry } = diagnosticModeEnabled
-      ? runtime.extractToolCallPayload(args)
-      : { businessArgs: args, telemetry: null };
+    let args = rawArgs;
+    let workspaceNotice: WorkspaceMismatchDiagnostic | undefined;
+    let businessArgs: Record<string, unknown> = rawArgs;
+    let telemetry: Record<string, unknown> | null = null;
 
     try {
       // Validate that args is a valid object
@@ -196,6 +244,21 @@ export function addTool<TProlog>(
         );
       }
 
+      // Answer from the workspace the caller is working in. A call routed to
+      // another workspace's kibi-mcp returns that server's result as is; the
+      // child logs its own usage and the parent records nothing for it.
+      // Without a router the decision is synchronous, so a plain call reaches
+      // its handler without an extra microtask.
+      const router = getWorkspaceRouter();
+      const routing = router
+        ? await router.route(name, args)
+        : localDecision(name, args);
+      if (routing.kind === "remote") return routing.result;
+      args = routing.args;
+      workspaceNotice = routing.notice;
+      ({ businessArgs, telemetry } = diagnosticModeEnabled
+        ? runtime.extractToolCallPayload(args)
+        : { businessArgs: args, telemetry: null });
       // Check if shutting down before processing
       if (await runtime.isShuttingDown()) {
         throw new Error(`Tool ${name} rejected: server is shutting down`);
@@ -278,7 +341,10 @@ export function addTool<TProlog>(
         );
 
         const data = operationData(result);
-        const envelope = toKibiResult(operationSpec, data);
+        const envelope = withWorkspaceNotice(
+          toKibiResult(operationSpec, data),
+          workspaceNotice,
+        );
 
         // Log usage in diagnostic mode
         if (diagnosticModeEnabled) {
@@ -394,7 +460,10 @@ export function addTool<TProlog>(
       if (err.stack) {
         debugLog(`[KIBI-MCP] Tool ${name} stack:`, err.stack);
       }
-      throw new Error(`Tool ${name} failed: ${err.message}`, { cause: err });
+      throw new Error(
+        `Tool ${name} failed: ${err.message}${staleInstallHint(err)}`,
+        { cause: err },
+      );
     }
   };
 

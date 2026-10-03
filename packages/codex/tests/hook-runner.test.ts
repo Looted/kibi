@@ -348,3 +348,62 @@ function loadHookStateFromPluginData(pluginData: string) {
     path.join(pluginData, "workspaces", workspaceDirs[0] as string),
   );
 }
+
+describe("Codex hook runner workspace stamp", () => {
+  test("PreToolUse names the session workspace on every Kibi MCP call", async () => {
+    const cwd = createTempRoot("kibi-codex-cwd-");
+    const pluginData = createTempRoot("kibi-codex-data-");
+    tempRoots.push(cwd, pluginData);
+    optInWorkspace(cwd);
+    fs.mkdirSync(path.join(cwd, "src"));
+    const result = await runHook(
+      {
+        hook_event_name: "PreToolUse",
+        cwd: path.join(cwd, "src"),
+        tool_name: "mcp__kibi__kb_search",
+        tool_input: { query: "checkout", limit: 5 },
+      },
+      { pluginData },
+    );
+    // Codex applies updatedInput only with an allow decision; that decision
+    // does not override the server's own tool approval mode.
+    expect(result).toEqual({
+      continue: true,
+      hookSpecificOutput: {
+        hookEventName: "PreToolUse",
+        permissionDecision: "allow",
+        updatedInput: { query: "checkout", limit: 5, workspaceRoot: cwd },
+      },
+    });
+  });
+
+  test("other tools and unconfigured workspaces are left alone", async () => {
+    const cwd = createTempRoot("kibi-codex-cwd-");
+    const plain = createTempRoot("kibi-codex-plain-");
+    const pluginData = createTempRoot("kibi-codex-data-");
+    tempRoots.push(cwd, plain, pluginData);
+    optInWorkspace(cwd);
+    expect(
+      await runHook(
+        {
+          hook_event_name: "PreToolUse",
+          cwd,
+          tool_name: "mcp__other__kb_search",
+          tool_input: {},
+        },
+        { pluginData },
+      ),
+    ).toEqual({ continue: true });
+    expect(
+      await runHook(
+        {
+          hook_event_name: "PreToolUse",
+          cwd: plain,
+          tool_name: "mcp__kibi__kb_search",
+          tool_input: {},
+        },
+        { pluginData },
+      ),
+    ).toEqual({ continue: true });
+  });
+});

@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { deriveBaselineSummary } from "../lib/proof-baseline-diff.mjs";
 
 const ROOT = join(import.meta.dir, "..", "..");
 const integrations = JSON.parse(
@@ -277,10 +278,15 @@ describe("strict proof workflow contract", () => {
     expect(baseline.proofProven + baseline.currentUnproven).toBe(
       baseline.currentRequirements,
     );
-    // Equality floor: every current requirement is proven end to end. Bump
-    // this floor in the same commit that deliberately raises the baseline.
-    expect(baseline.currentRequirements).toBe(140);
-    expect(baseline.proofProven).toBe(140);
+    // Equality: every current requirement is proven end to end. The counts
+    // must match the entries rather than a pinned number: two branches that
+    // each add a requirement would both bump a pinned literal, and the merge
+    // would keep one bump. check-proof-baseline compares these counts with
+    // the live KB, so a dropped requirement still fails the proof gate.
+    expect(baseline).toMatchObject(
+      deriveBaselineSummary(baseline.requirements),
+    );
+    expect(baseline.proofProven).toBe(baseline.currentRequirements);
     expect(baseline.currentUnproven).toBe(0);
     expect(Object.keys(baseline.trackedGaps ?? {})).toEqual([]);
     expect(Object.keys(baseline.requirements ?? {}).length).toBe(

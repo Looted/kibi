@@ -174,3 +174,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-63fec4f98a15
+  - type: implements
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-intent-claims-buildintentclaimcandidates
+    to: REQ-kibi-bootstrap-knowledge-sources
+    created_at: 2026-10-02T07:40:32.303Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-85faff57bdb0
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-intent-claims-buildintentclaimcandidates
+    to: TEST-kibi-bootstrap-knowledge-sources
+    created_at: 2026-10-02T07:40:32.317Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-141ad9c84d7c

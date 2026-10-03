@@ -251,3 +251,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-280b4c5b42a0
+  - type: implements
+    from: SYM-cli-kb-merge-driver-command
+    to: REQ-cli-kb-merge-driver
+    created_at: 2026-10-01T16:35:51.257Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-912a30408b8c
+  - type: covered_by
+    from: SYM-cli-kb-merge-driver-command
+    to: TEST-cli-kb-merge-driver
+    created_at: 2026-10-01T16:35:51.270Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0240743be205

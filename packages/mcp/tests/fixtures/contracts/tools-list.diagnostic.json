@@ -109,6 +109,10 @@
               }
             ],
             "description": "Optional entity type filter. Allowed: req, scenario, test, adr, flag, event, symbol, fact. Example: 'req'."
+          },
+          "workspaceRoot": {
+            "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+            "type": "string"
           }
         },
         "type": "object"
@@ -502,6 +506,10 @@
               }
             ],
             "description": "Optional entity type filter to narrow discovery. Example: 'req'."
+          },
+          "workspaceRoot": {
+            "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+            "type": "string"
           }
         },
         "required": ["query"],
@@ -737,6 +745,10 @@
               }
             },
             "type": "object"
+          },
+          "workspaceRoot": {
+            "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+            "type": "string"
           }
         },
         "type": "object"
@@ -1075,6 +1087,10 @@
               }
             },
             "type": "object"
+          },
+          "workspaceRoot": {
+            "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+            "type": "string"
           }
         },
         "type": "object"
@@ -1302,6 +1318,10 @@
           },
           "id": {
             "description": "Bundled skill ID to load. Example: 'kibi-usage'.",
+            "type": "string"
+          },
+          "workspaceRoot": {
+            "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
             "type": "string"
           }
         },
@@ -1548,6 +1568,10 @@
           },
           "resource": {
             "description": "Manifest-declared resource path to read. Example: 'resources/workflows.md'.",
+            "type": "string"
+          },
+          "workspaceRoot": {
+            "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
             "type": "string"
           }
         },
@@ -1840,6 +1864,10 @@
                 "type": "string"
               }
             ]
+          },
+          "workspaceRoot": {
+            "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+            "type": "string"
           }
         },
         "type": "object"
@@ -2167,6 +2195,10 @@
               "type": "string"
             },
             "type": "array"
+          },
+          "workspaceRoot": {
+            "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+            "type": "string"
           }
         },
         "type": "object"
@@ -2473,6 +2505,10 @@
               "type": "string"
             },
             "type": "array"
+          },
+          "workspaceRoot": {
+            "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+            "type": "string"
           }
         },
         "required": ["seedIds"],
@@ -2729,6 +2765,10 @@
           "timeoutMs": {
             "description": "Optional positive timeout in milliseconds for the remote query.",
             "type": "number"
+          },
+          "workspaceRoot": {
+            "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+            "type": "string"
           }
         },
         "required": ["endpoint", "query"],
@@ -3051,6 +3091,10 @@
               }
             ],
             "description": "Entity type context for analysis. Requirement, domain-fact, and supporting prose all receive a proposition ledger; only requirements receive deterministic modeling suggestions."
+          },
+          "workspaceRoot": {
+            "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+            "type": "string"
           }
         },
         "required": ["text"],
@@ -4312,6 +4356,10 @@
               }
             ],
             "description": "Entity type to create/update. Allowed: req, scenario, test, adr, flag, event, symbol, fact. Example: 'req'."
+          },
+          "workspaceRoot": {
+            "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+            "type": "string"
           }
         },
         "required": ["type", "id", "properties"],
@@ -4641,6 +4689,10 @@
                 "type": "string"
               }
             ]
+          },
+          "workspaceRoot": {
+            "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+            "type": "string"
           }
         },
         "required": ["type", "id", "properties"],
@@ -4933,6 +4985,10 @@
             },
             "minItems": 1,
             "type": "array"
+          },
+          "workspaceRoot": {
+            "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+            "type": "string"
           }
         },
         "type": "object"
@@ -5376,7 +5432,7 @@
             "type": "boolean"
           },
           "workspaceRoot": {
-            "description": "Optional workspace root for impact diagnostics. Defaults to the MCP server workspace.",
+            "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
             "type": "string"
           }
         },
@@ -5702,7 +5758,11 @@
             },
             "type": "object"
           },
-          "scope": {}
+          "scope": {},
+          "workspaceRoot": {
+            "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+            "type": "string"
+          }
         },
         "required": ["scope"],
         "type": "object"
@@ -6353,6 +6413,10 @@
           },
           "value": {
             "description": "Optional extracted semantic claim value. Accepts string, number, or boolean."
+          },
+          "workspaceRoot": {
+            "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+            "type": "string"
           }
         },
         "required": ["text"],
@@ -6762,6 +6826,10 @@
           "text": {
             "description": "Required prose requirement or claim to classify into ontology predicates. Example: 'When users navigate away, draft edits must auto-save.'.",
             "type": "string"
+          },
+          "workspaceRoot": {
+            "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+            "type": "string"
           }
         },
         "required": ["text"],
@@ -7028,7 +7096,7 @@
         "readOnlyHint": true,
         "title": "Plan Kibi bootstrap"
       },
-      "description": "Generate a deterministic, snapshot-bound kibi.bootstrap-plan.v1 for repository onboarding. Read-only analysis returns evidence, bounded context questions, exact dependency-ordered actions, a canonical plan hash, and no mutation side effects.",
+      "description": "Generate a deterministic, snapshot-bound kibi.bootstrap-plan.v1 for repository onboarding. Read-only analysis of the repository plus any declared knowledge sources and cited intent claims returns evidence, bounded context questions, exact dependency-ordered actions, a canonical plan hash, and no mutation side effects.",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "additionalProperties": {},
@@ -7074,6 +7142,126 @@
             "additionalProperties": {},
             "description": "Optional declared bootstrap context supplied by the agent to ground the read-only synthesis output.",
             "properties": {
+              "intentClaims": {
+                "description": "Statements of product intent the agent harvested from knowledgeSources, each citing its source. Normative claims the strict modeler can ground become cited req candidates; the rest become explicit authoring follow-ups. Bound into the plan hash.",
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "excerpt": {
+                      "description": "Optional short quote supporting the claim.",
+                      "type": "string"
+                    },
+                    "reference": {
+                      "description": "Exact citation inside the source: a ticket key, page URL, or section anchor.",
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "sourceId": {
+                      "description": "The id of a declared knowledge source.",
+                      "type": "string"
+                    },
+                    "statement": {
+                      "description": "One normative statement in the source's meaning, for example 'Refunds must not exceed the original charge.'",
+                      "minLength": 1,
+                      "type": "string"
+                    }
+                  },
+                  "required": ["statement", "sourceId", "reference"],
+                  "type": "object"
+                },
+                "maxItems": 200,
+                "type": "array"
+              },
+              "knowledgeSources": {
+                "description": "Knowledge sources outside the code that the human confirmed during the bootstrap interview (issue trackers, wikis, specs, decision logs). Kibi never contacts them; the agent reads them through its own connectors and cites them from intentClaims. Bound into the plan hash.",
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "authority": {
+                      "anyOf": [
+                        {
+                          "const": "authoritative",
+                          "type": "string"
+                        },
+                        {
+                          "const": "supporting",
+                          "type": "string"
+                        },
+                        {
+                          "const": "stale",
+                          "type": "string"
+                        }
+                      ],
+                      "description": "The human's call: authoritative claims become higher-confidence candidates, supporting claims lower ones, and stale sources are cited but never produce candidates."
+                    },
+                    "connector": {
+                      "description": "Optional name of the MCP server or tool the agent used to read the source.",
+                      "type": "string"
+                    },
+                    "id": {
+                      "description": "Stable kebab-case handle that intentClaims cite, for example jira-payments.",
+                      "pattern": "^[a-z0-9][a-z0-9-]*$",
+                      "type": "string"
+                    },
+                    "kind": {
+                      "anyOf": [
+                        {
+                          "const": "issue_tracker",
+                          "type": "string"
+                        },
+                        {
+                          "const": "wiki",
+                          "type": "string"
+                        },
+                        {
+                          "const": "specification",
+                          "type": "string"
+                        },
+                        {
+                          "const": "design",
+                          "type": "string"
+                        },
+                        {
+                          "const": "decision_log",
+                          "type": "string"
+                        },
+                        {
+                          "const": "support",
+                          "type": "string"
+                        },
+                        {
+                          "const": "chat",
+                          "type": "string"
+                        },
+                        {
+                          "const": "repository_docs",
+                          "type": "string"
+                        },
+                        {
+                          "const": "other",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "locator": {
+                      "description": "Where the source lives: a URL, project key, space name, or repo-relative path.",
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "notes": {
+                      "type": "string"
+                    },
+                    "title": {
+                      "minLength": 1,
+                      "type": "string"
+                    }
+                  },
+                  "required": ["id", "kind", "title", "locator", "authority"],
+                  "type": "object"
+                },
+                "maxItems": 50,
+                "type": "array"
+              },
               "priorityRoots": {
                 "description": "Optional repo roots the bootstrap flow should prioritize when authoring entities.",
                 "items": {
@@ -7156,6 +7344,10 @@
             "maximum": 0.95,
             "minimum": 0.6,
             "type": "number"
+          },
+          "workspaceRoot": {
+            "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+            "type": "string"
           }
         },
         "type": "object"
@@ -7751,6 +7943,10 @@
           "title": {
             "description": "Optional requirement title; existing title is preserved for updates when omitted.",
             "type": "string"
+          },
+          "workspaceRoot": {
+            "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+            "type": "string"
           }
         },
         "required": ["intent", "mode"],
@@ -8054,6 +8250,10 @@
           "recoveryJournalId": {
             "description": "Typed recovery journal identifier returned by a committed_with_repairs result. Recovery replays only the immutable journal and never the original plan request.",
             "pattern": "^[A-Za-z0-9._-]+$",
+            "type": "string"
+          },
+          "workspaceRoot": {
+            "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
             "type": "string"
           }
         },
@@ -8620,6 +8820,10 @@
             },
             "minItems": 1,
             "type": "array"
+          },
+          "workspaceRoot": {
+            "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+            "type": "string"
           }
         },
         "required": ["snapshot", "artifact"],

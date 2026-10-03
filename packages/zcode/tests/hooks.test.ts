@@ -97,15 +97,23 @@ describe("kibi-zcode hooks.json", () => {
     }
   });
 
-  test("PreToolUse targets only edit-like tools", () => {
+  test("PreToolUse targets edit-like tools and Kibi MCP tools only", () => {
     const preToolUse = config.hooks?.PreToolUse ?? [];
     expect(preToolUse).toHaveLength(1);
     const matcher = preToolUse[0]?.matcher;
-    expect(matcher).toBe("Edit|MultiEdit|Write|apply_patch");
-    for (const tool of ["Edit", "MultiEdit", "Write", "apply_patch"]) {
+    expect(matcher).toBe("Edit|MultiEdit|Write|apply_patch|mcp__.*__kb_.*");
+    for (const tool of [
+      "Edit",
+      "MultiEdit",
+      "Write",
+      "apply_patch",
+      // Kibi MCP calls get the session workspace stamped on them.
+      "mcp__kibi__kb_search",
+      "mcp__plugin_kibi__kb_check",
+    ]) {
       expect(new RegExp(matcher as string).test(tool)).toBe(true);
     }
-    for (const tool of ["Read", "Bash", "Agent", "edit"]) {
+    for (const tool of ["Read", "Bash", "Agent", "edit", "mcp__other__tool"]) {
       expect(new RegExp(matcher as string).test(tool)).toBe(false);
     }
   });

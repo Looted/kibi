@@ -5,8 +5,10 @@ This repository uses Kibi.
 Initialize repository infrastructure with `kibi init`. Then ask the agent to
 “Bootstrap Kibi for this repository.” The agent first inspects
 `kb_status.bootstrap` and follows its typed `nextAction`, then routes the
-request to `kibi-bootstrap`. That skill calls `kb_plan_bootstrap`; questions
-come only from a `needs_context` result. It shows the hash-bound plan, obtains
+request to `kibi-bootstrap`. That skill first interviews the human about
+knowledge sources outside the code, then calls `kb_plan_bootstrap` with the
+declared sources and cited intent claims; further questions come only from a
+`needs_context` result. It shows the hash-bound plan, obtains
 approval, passes the unchanged plan to `kb_apply_plan`, and finishes with
 `kb_check` and `kb_status`.
 

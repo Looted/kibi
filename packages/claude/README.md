@@ -78,12 +78,31 @@ including Node startup.
 Session memory is an append-only journal per workspace and session, so hooks
 for parallel tool calls never lose each other's events.
 
+## Usage telemetry (opt-in)
+
+The plugin records nothing by default. To capture usage for diagnosis, set
+`KIBI_DIAGNOSTIC_MODE=1` in the environment Claude Code inherits — for example
+in the `env` block of `~/.claude/settings.json`. The MCP server, the CLI JSON
+routes, and these hooks all honor that one variable.
+
+When opted in, the hooks append rows tagged `interface: "hook"` to the
+workspace's `.kb/usage.log`. A row notes which source, test, or `.kb/` file the
+agent read or edited, whether a requirement snippet was shown or suppressed,
+and whether the session had used Kibi yet, keyed by the Claude Code session
+id. That is what shows whether agents look things up before they edit or only
+afterwards. Remove the variable to stop recording.
+
 ## Layout
 
 - `.claude-plugin/plugin.json`: plugin manifest.
 - `.mcp.json`: the `kibi` MCP server, started through `bin/mcp-launcher.cjs`.
   The launcher resolves the workspace from `CLAUDE_PROJECT_DIR`, is silent
-  outside Kibi workspaces, and proxies the project-local `kibi-mcp`.
+  outside Kibi workspaces, and proxies the project-local `kibi-mcp`. The
+  `PreToolUse` hook adds `workspaceRoot` (the session's current workspace) to
+  every Kibi MCP call, so a session that moves into a git worktree, as Claude
+  Code desktop sessions do, is answered from that worktree's branch rather
+  than the checkout the server started in. Set `KIBI_WORKSPACE` to pin one
+  workspace instead.
 - `hooks/hooks.json`: `SessionStart`, `PreToolUse` (read, edit, and search
   tools), `PostToolUse` (edit tools, Bash, and `kb_*` MCP tools), and `Stop`.
 - `bin/hook-runner.mjs`: generated bundle of `src/hook-runner.ts`

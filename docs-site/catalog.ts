@@ -35,6 +35,20 @@ export const PUBLISHED_SITE_ORIGIN = "https://looted.github.io/kibi";
 export const SITE_TAGLINE =
   "Prompt the intent. Kibi makes the agent remember it—and prove the implementation.";
 
+/**
+ * The recommended install: a prompt the user pastes into their coding agent.
+ * The landing page renders it, and the README and quick-start page must quote
+ * it verbatim, so every entry point asks the agent for the same setup.
+ */
+// implements REQ-docs-site-root-pages
+export const AGENT_SETUP_PROMPT = `Set up Kibi (https://github.com/Looted/kibi) in this repository, then bootstrap its knowledge base.
+
+1. Install: confirm Node.js 22+ is available. With the package manager this repository already uses, add kibi-core, kibi-cli and kibi-mcp as dev dependencies. Do not skip optional dependencies; the bundled SWI-Prolog runtime is one.
+2. Initialize: run every \`kibi\` command through the package manager's local runner (npm: \`npm exec -- kibi <command>\`). Run \`kibi init\`; if it reports a problem, run \`kibi doctor\` and fix what it names. If this platform has no bundled SWI-Prolog, tell me what to install and stop.
+3. Connect: register the project-local \`kibi-mcp\` server for the agent host you are running in, following https://looted.github.io/kibi/guide/connect-an-agent.html. Prefer project-scoped configuration, and ask me before installing a plugin or changing global settings. Until the kb_* tools are visible to you, use Kibi's CLI JSON routes instead.
+4. Bootstrap: run \`kibi skills load kibi-bootstrap --format markdown\` and follow that skill exactly. It starts by asking me where product intent lives outside the code (issue trackers, wikis, specs) and which sources to trust; read them through the connectors you have and cite them. Show me the complete plan and its hash, and write nothing until I approve it.
+5. Verify: run \`kibi check\` and \`kibi status\`, fix anything they report, and summarize what was added. Do not commit; I will review the changes.`;
+
 /** Site-root-relative directory of the requirement-health report. */
 // implements REQ-docs-site-root-pages
 export const REPORT_PATH = "kibi-report/";

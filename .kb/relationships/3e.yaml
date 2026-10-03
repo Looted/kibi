@@ -195,3 +195,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8c80c9b6a1e1
+  - type: constrains
+    from: REQ-cli-kb-merge-driver
+    to: FACT-cli-kb-merge-driver-subject
+    created_at: 2026-10-01T16:35:32.110Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f2855d39c0be
+  - type: requires_property
+    from: REQ-cli-kb-merge-driver
+    to: FACT-cli-kb-merge-driver-keeps-added-records
+    created_at: 2026-10-01T16:35:32.139Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-225566f8b437
+  - type: requires_property
+    from: REQ-cli-kb-merge-driver
+    to: FACT-cli-kb-merge-driver-applies-single-side-changes
+    created_at: 2026-10-01T16:35:32.150Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-35feb61e93df
+  - type: requires_property
+    from: REQ-cli-kb-merge-driver
+    to: FACT-cli-kb-merge-driver-unions-concurrent-links
+    created_at: 2026-10-01T16:35:32.164Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b95fd64a3d18
+  - type: requires_property
+    from: REQ-cli-kb-merge-driver
+    to: FACT-cli-kb-merge-driver-reports-real-conflicts
+    created_at: 2026-10-01T16:35:32.174Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4ac2b2731f47
+  - type: requires_property
+    from: REQ-cli-kb-merge-driver
+    to: FACT-cli-kb-merge-driver-reproduces-unchanged-bytes
+    created_at: 2026-10-01T16:35:32.183Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c8e9a8a92c7b
+  - type: specified_by
+    from: REQ-cli-kb-merge-driver
+    to: SCEN-cli-kb-merge-driver
+    created_at: 2026-10-01T16:35:32.196Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-632cb138301e
+  - type: implements
+    from: SYM-cursor-dts-hasConsumerNodeModulesLink
+    to: REQ-cursor-consumer-local-mcp-launcher-v1
+    created_at: 2026-10-02T12:21:11.922Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c560df7d90bb
+  - type: covered_by
+    from: SYM-cursor-dts-hasConsumerNodeModulesLink
+    to: TEST-cursor-consumer-local-mcp-launcher-v1
+    created_at: 2026-10-02T12:21:11.941Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-61f03b3275cc

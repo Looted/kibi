@@ -24,6 +24,7 @@ import {
   DIAGNOSTIC_MODE_ENABLED,
   DIAGNOSTIC_TELEMETRY_SCHEMA,
 } from "./diagnostics.js";
+import { withWorkspaceRootSchema } from "./server/workspace-router.js";
 
 interface ToolConfig {
   name: string;
@@ -223,6 +224,8 @@ export function withDiagnosticTelemetrySchema(
  * Active tools list.
  * In diagnostic mode, all tools include the _diagnostic_telemetry parameter.
  */
-export const TOOLS: ToolConfig[] = DIAGNOSTIC_MODE_ENABLED
-  ? withDiagnosticTelemetrySchema(BASE_TOOLS)
-  : [...BASE_TOOLS];
+export const TOOLS: ToolConfig[] = withWorkspaceRootSchema(
+  DIAGNOSTIC_MODE_ENABLED
+    ? withDiagnosticTelemetrySchema(BASE_TOOLS)
+    : [...BASE_TOOLS],
+);

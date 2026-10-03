@@ -1,5 +1,6 @@
 // implements REQ-claude-code-kibi-plugin-v1
 import { afterEach, describe, expect, test } from "bun:test";
+import fs from "node:fs";
 import path from "node:path";
 
 import { type HookOutput, runHook } from "../src/hook-runner";
@@ -29,17 +30,23 @@ function contextOf(output: HookOutput, event: string): string | undefined {
     expect(ALLOWED_SPECIFIC.has(key), `unexpected key ${key}`).toBe(true);
   }
   expect(specific.hookEventName).toBe(event as never);
-  expect(specific.additionalContext.length).toBeLessThanOrEqual(
-    MAX_SNIPPET_CHARS,
-  );
-  return specific.additionalContext;
+  // Context events always carry text; only the workspace stamp omits it.
+  const text = specific.additionalContext ?? "";
+  expect(text.length).toBeGreaterThan(0);
+  expect(text.length).toBeLessThanOrEqual(MAX_SNIPPET_CHARS);
+  return text;
 }
 
-function session(fixture: Fixture, sessionId = "s1") {
+function session(
+  fixture: Fixture,
+  sessionId = "s1",
+  env: NodeJS.ProcessEnv = {},
+) {
+  // An explicit env keeps a developer's own telemetry opt-in out of the run.
   const call = (payload: Record<string, unknown>) =>
     runHook(
       { session_id: sessionId, cwd: fixture.root, ...payload },
-      { pluginData: fixture.pluginData },
+      { pluginData: fixture.pluginData, env },
     );
   const pre = async (toolName: string, toolInput: Record<string, unknown>) =>
     contextOf(
@@ -435,5 +442,124 @@ describe("advisory boundary", () => {
     await post("Edit", { file_path: "src/checkout.ts" });
     await stop();
     expect(snapshotTree(fixture.root)).toEqual(before);
+  });
+});
+
+describe("usage telemetry", () => {
+  const optedIn = { KIBI_DIAGNOSTIC_MODE: "1" };
+
+  function usageRows(fixture: Fixture): Record<string, unknown>[] {
+    const logPath = path.join(fixture.root, ".kb", "usage.log");
+    if (!fs.existsSync(logPath)) return [];
+    return fs
+      .readFileSync(logPath, "utf8")
+      .trim()
+      .split("\n")
+      .map((line) => JSON.parse(line) as Record<string, unknown>);
+  }
+
+  test("writes no rows unless the operator opted in", async () => {
+    const fixture = createKibiWorkspace();
+    const { pre, post } = session(fixture);
+    await pre("Read", {
+      file_path: path.join(fixture.root, "src/checkout.ts"),
+    });
+    await post("Edit", {
+      file_path: path.join(fixture.root, "src/checkout.ts"),
+    });
+    expect(usageRows(fixture)).toEqual([]);
+  });
+
+  test("records whether the agent consulted Kibi before reading and editing", async () => {
+    const fixture = createKibiWorkspace();
+    const { pre, post } = session(fixture, "s-telemetry", optedIn);
+    const source = path.join(fixture.root, "src/checkout.ts");
+
+    await pre("Grep", { pattern: "total" });
+    await pre("Read", { file_path: source });
+    await post("Edit", { file_path: source });
+    await post("mcp__plugin_kibi-claude_kibi__kb_search", {
+      query: "rounding",
+    });
+    await post("Edit", { file_path: source });
+
+    const rows = usageRows(fixture);
+    expect(rows.map((row) => [row.hook_action, row.kb_used_before])).toEqual([
+      ["search_tip", false],
+      ["read_snippet", false],
+      ["edited", false],
+      ["kb_usage", false],
+      ["edited", true],
+    ]);
+    expect(rows[1]).toMatchObject({
+      interface: "hook",
+      host: "claude-code",
+      session_id: "s-telemetry",
+      workspace_root: fixture.root,
+      host_tool: "Read",
+      path: "src/checkout.ts",
+      path_kind: "source",
+      requirement_ids: ["REQ-checkout-rounding", "REQ-currency-display"],
+    });
+    expect(rows[3]).toMatchObject({ kb_operation: "kb_search" });
+  });
+
+  test("records suppressed context as silent instead of dropping the call", async () => {
+    const fixture = createKibiWorkspace();
+    const { pre } = session(fixture, "s-silent", optedIn);
+    const source = path.join(fixture.root, "src/checkout.ts");
+    await pre("Read", { file_path: source });
+    await pre("Read", { file_path: source });
+    expect(usageRows(fixture).map((row) => row.hook_action)).toEqual([
+      "read_snippet",
+      "read_silent",
+    ]);
+  });
+
+  test("ignores tool calls on files outside the knowledge surface", async () => {
+    const fixture = createKibiWorkspace();
+    const { pre } = session(fixture, "s-other", optedIn);
+    await pre("Read", { file_path: path.join(fixture.root, "README.md") });
+    expect(usageRows(fixture)).toEqual([]);
+  });
+});
+
+describe("workspace stamp", () => {
+  test("PreToolUse names the session workspace on every Kibi MCP call", async () => {
+    const fixture = createKibiWorkspace();
+    const result = await runHook(
+      {
+        session_id: "s-stamp",
+        cwd: path.join(fixture.root, "src"),
+        hook_event_name: "PreToolUse",
+        tool_name: "mcp__plugin_kibi-claude_kibi__kb_search",
+        tool_input: { query: "rounding" },
+      },
+      { pluginData: fixture.pluginData, env: {} },
+    );
+    // No permission decision: Claude Code's permission flow still applies.
+    expect(result).toEqual({
+      hookSpecificOutput: {
+        hookEventName: "PreToolUse",
+        updatedInput: { query: "rounding", workspaceRoot: fixture.root },
+      },
+    });
+  });
+
+  test("a Kibi call outside any Kibi workspace is left alone", async () => {
+    const root = tempDir("kibi-claude-plain-");
+    const pluginData = tempDir("kibi-claude-plain-data-");
+    write(root, ".git/HEAD", "ref: refs/heads/main\n");
+    const result = await runHook(
+      {
+        session_id: "s-stamp",
+        cwd: root,
+        hook_event_name: "PreToolUse",
+        tool_name: "mcp__plugin_kibi-claude_kibi__kb_search",
+        tool_input: { query: "rounding" },
+      },
+      { pluginData, env: {} },
+    );
+    expect(result).toEqual({});
   });
 });

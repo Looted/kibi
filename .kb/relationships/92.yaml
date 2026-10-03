@@ -157,3 +157,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d1f1241b65bd
+  - type: implements
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapknowledgesource
+    to: REQ-kibi-bootstrap-knowledge-sources
+    created_at: 2026-10-02T07:40:19.614Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2c1773f8c872
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapknowledgesource
+    to: TEST-kibi-bootstrap-knowledge-sources
+    created_at: 2026-10-02T07:40:19.630Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-171eaa58d0dc

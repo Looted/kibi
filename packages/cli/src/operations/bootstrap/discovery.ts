@@ -85,7 +85,7 @@ function frameworks(evidence: readonly BootstrapEvidence[]): string[] {
   ].sort();
 }
 
-// implements REQ-mcp-kibi-bootstrap-bootstrap-v1, REQ-kibi-operation-interface-parity
+// implements REQ-KIBI-BOOTSTRAP-PLAN, REQ-kibi-operation-interface-parity
 // implements REQ-KIBI-BOOTSTRAP-PLAN
 export async function discoverBootstrap(
   context: OperationContext,

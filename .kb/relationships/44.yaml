@@ -167,3 +167,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a734f0b19ed6
+  - type: validates
+    from: TEST-kibi-bootstrap-knowledge-sources
+    to: REQ-kibi-bootstrap-knowledge-sources
+    created_at: 2026-10-02T07:37:01.655Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f672cbe2e005
+  - type: validates
+    from: TEST-kibi-bootstrap-knowledge-sources
+    to: SCEN-kibi-bootstrap-knowledge-sources
+    created_at: 2026-10-02T07:52:37.309Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-44b666375179

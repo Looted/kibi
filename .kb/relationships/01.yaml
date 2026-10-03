@@ -202,3 +202,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-30ea5cf8f249
+  - type: relates_to
+    from: FACT-OBS-claude-mcp-attaches-main-checkout-in-worktrees
+    to: REQ-claude-mcp-follows-session-workspace
+    created_at: 2026-10-02T11:35:39.958Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eef2de763492

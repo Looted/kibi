@@ -143,6 +143,24 @@ export function terminateStepProcess(child, signal = "SIGTERM") {
   return signalled;
 }
 
+/**
+ * Usage-telemetry opt-ins an operator may export globally. Proof steps are
+ * hermetic: with telemetry on, the MCP server advertises extra
+ * `_diagnostic_telemetry` schema fields and writes usage logs, so steps that
+ * compare frozen contracts would fail for reasons unrelated to the code.
+ */
+const TELEMETRY_OPT_IN_KEYS = [
+  "KIBI_DIAGNOSTIC_MODE",
+  "KIBI_CLI_DIAGNOSTIC_MODE",
+];
+
+/** The environment a proof step runs with: the caller's, minus telemetry opt-ins. */
+function proofStepEnv(env = process.env) {
+  const stepEnv = { ...env };
+  for (const key of TELEMETRY_OPT_IN_KEYS) delete stepEnv[key];
+  return stepEnv;
+}
+
 /** Run one step once and return an explicit attempt result. */
 export function runProofStep(commandArgv, options = {}) {
   const [command, ...args] = commandArgv;
@@ -187,7 +205,7 @@ export function runProofStep(commandArgv, options = {}) {
     try {
       child = spawnProcess(command, args, {
         cwd,
-        env,
+        env: proofStepEnv(env),
         shell: false,
         stdio: "inherit",
         detached: process.platform !== "win32",

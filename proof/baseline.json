@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 140,
-  "proofProven": 140,
+  "currentRequirements": 145,
+  "proofProven": 145,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -121,6 +121,16 @@
       "gaps": [],
       "uncoveredSymbols": []
     },
+    "REQ-claude-hook-usage-telemetry": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-mcp-workspace-routing": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
     "REQ-cli-canonical-runtime": {
       "proofStatus": "proven",
       "gaps": [],
@@ -147,6 +157,16 @@
       "uncoveredSymbols": []
     },
     "REQ-cli-init-canonical": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-cli-kb-merge-driver": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-ci-kb-merge-resolution": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []
@@ -272,6 +292,11 @@
       "uncoveredSymbols": []
     },
     "REQ-installed-staged-impact-timing-integrity": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-bootstrap-knowledge-sources": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []

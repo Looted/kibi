@@ -7,7 +7,8 @@ import type { OperationContext } from "../../public/operations/runtime-types.js"
 import { readWorkspaceSnapshot } from "../../public/operations/workspace-snapshot.js";
 import { buildBootstrapCandidates } from "./candidates.js";
 import { discoverBootstrap } from "./discovery.js";
-import { presentBootstrap } from "./presentation.js";
+import { buildIntentClaimCandidates } from "./intent-claims.js";
+import { normalizeBootstrapContext, presentBootstrap } from "./presentation.js";
 import type {
   Candidate,
   PlanBootstrapArgs,
@@ -215,7 +216,7 @@ async function expectedSnapshots(
   }
 }
 
-// implements REQ-mcp-kibi-bootstrap-bootstrap-v1, REQ-kibi-operation-interface-parity
+// implements REQ-KIBI-BOOTSTRAP-PLAN, REQ-kibi-operation-interface-parity
 // implements REQ-KIBI-BOOTSTRAP-PLAN
 export async function executePlanBootstrap(
   args: PlanBootstrapArgs,
@@ -244,12 +245,26 @@ export async function executePlanBootstrap(
         includeGenericMarkdown,
       )
     : { candidates: [], sourceOnlySignals: [] };
+  // Intent harvested from declared knowledge sources joins the repository
+  // evidence under the same activation policy, filters, and selection.
+  const claimed = discovery.activation.allowCandidateGeneration
+    ? buildIntentClaimCandidates(
+        normalizeBootstrapContext(args.bootstrapContext),
+        existingIds,
+        minConfidence,
+      )
+    : {
+        candidates: [],
+        sourceOnlySignals: [],
+        suppressed: [],
+        diagnostics: [],
+      };
   const filteredSignals = filterSourceOnlySignals(
-    built.sourceOnlySignals,
+    [...built.sourceOnlySignals, ...claimed.sourceOnlySignals],
     args.entityTypes,
   );
   const selected = selectBootstrapCandidates(
-    built.candidates.filter(
+    [...built.candidates, ...claimed.candidates].filter(
       (candidate) => candidate.confidence >= minConfidence,
     ),
     existingIds,
@@ -273,8 +288,13 @@ export async function executePlanBootstrap(
       : {}),
     candidates: selected.candidates,
     sourceOnlySignals: filteredSignals,
-    suppressedCandidates: [...selected.suppressed, ...ignored],
+    suppressedCandidates: [
+      ...selected.suppressed,
+      ...claimed.suppressed,
+      ...ignored,
+    ],
     expected,
     bindingDiagnostics,
+    contextDiagnostics: claimed.diagnostics,
   });
 }

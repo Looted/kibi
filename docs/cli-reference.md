@@ -759,6 +759,35 @@ kibi gc --purge --retention-days 30
 - Stale = an exact or legacy store whose branch is not a local Git head or
   worktree branch; remote-only refs do not keep stores live
 
+## `kibi merge-driver <base> <current> <other>`
+
+Git merge driver for `.kb/symbols.yaml` and `.kb/relationships/*.yaml`. Git
+passes the ancestor (`%O`), current (`%A`), and other (`%B`) versions; the
+driver merges the record lists by `id` and writes the result to `<current>`.
+
+**Behavior:**
+- Keeps records added on either side, applies one-sided edits and deletions,
+  and unions relationships and links both sides added to one symbol
+- Reproduces the current file byte for byte when nothing changed
+- On a real conflict (both sides changed the same field differently, an edit
+  against a deletion, duplicate ids, or invalid YAML) prints each conflict,
+  leaves ordinary conflict markers, and exits 1
+
+**Setup:**
+```text
+# .gitattributes
+.kb/symbols.yaml merge=kibi
+.kb/relationships/*.yaml merge=kibi
+```
+```bash
+git config merge.kibi.driver "npm exec --no -- kibi merge-driver %O %A %B"
+```
+
+Regenerate `.kb/symbol-coordinates.yaml` after the merge with
+`kibi sync --refresh-symbol-coordinates`. For a CI job that applies this to
+open pull requests, see
+[GitHub badge + report](github-integration.md#merge-conflicts-in-kibi-manifests).
+
 ## `kibi branch`
 
 Lists and manages branch knowledge bases.
@@ -804,51 +833,51 @@ kibi branch recover
 kibi branch recover --apply
 ```
 
-HT|## `kibi skills`
-QN|
-MV|Manage and inspect bundled agent skills. Skills are reusable Markdown guidance packages shipped with Kibi.
-QN|
-XW|**Behavior:**
-TY|- Lists available bundled skills
-TZ|- Loads a skill's manifest and body
-BH|- Reads individual resources declared by a skill
-JM|- Validates a local skill bundle directory
-QN|
-XQ|**Subcommands:**
-PJ|
-BV|```bash
-QN|kibi skills list [--format json|table]
-SV|kibi skills load <id> [--format json|markdown]
-HY|kibi skills read <id> <resource> [--format text|json]
-QB|kibi skills validate <path> [--format json|table]
-BP|```
-ZS|
-JK|**Arguments:**
-JB|- `list` - Show all bundled skills with ID, name, version, and description
-XY|- `load <id>` - Load a skill by its bundled ID. Returns the skill body and manifest.
-BJ|- `read <id> <resource>` - Read a specific resource file declared in the skill manifest
-PX|- `validate <path>` - Validate a local skill bundle directory against the skill schema
-PS|
-XQ|**Flags:**
-PX|- `--format json|table` - Output format for `list` and `validate` (default: table)
-YR|- `--format json|markdown` - Output format for `load` (default: markdown)
-SP|- `--format text|json` - Output format for `read` (default: text)
-PT|
-MT|**Examples:**
-BV|```bash
-QQ|# List all bundled skills
-NZ|kibi skills list
-TM|
-MS|# Load the canonical usage skill as markdown
-NB|kibi skills load kibi-usage --format markdown
-NZ|
-VW|# Read a specific resource from a skill
-MB|kibi skills read kibi-usage resources/fact-lanes.md --format text
-QJ|```
-PY|
-HX|**Notes:**
-YS|- Skills are bundled with Kibi. Remote installation, marketplace, and script execution are not supported in v1.
-QT|- OpenCode is an adapter for skill discovery, not the source of truth. The bundled skill set is authoritative.
+## `kibi skills`
+
+Manage and inspect bundled agent skills. Skills are reusable Markdown guidance packages shipped with Kibi.
+
+**Behavior:**
+- Lists available bundled skills
+- Loads a skill's manifest and body
+- Reads individual resources declared by a skill
+- Validates a local skill bundle directory
+
+**Subcommands:**
+
+```bash
+kibi skills list [--format json|table]
+kibi skills load <id> [--format json|markdown]
+kibi skills read <id> <resource> [--format text|json]
+kibi skills validate <path> [--format json|table]
+```
+
+**Arguments:**
+- `list` - Show all bundled skills with ID, name, version, and description
+- `load <id>` - Load a skill by its bundled ID. Returns the skill body and manifest.
+- `read <id> <resource>` - Read a specific resource file declared in the skill manifest
+- `validate <path>` - Validate a local skill bundle directory against the skill schema
+
+**Flags:**
+- `--format json|table` - Output format for `list` and `validate` (default: table)
+- `--format json|markdown` - Output format for `load` (default: markdown)
+- `--format text|json` - Output format for `read` (default: text)
+
+**Examples:**
+```bash
+# List all bundled skills
+kibi skills list
+
+# Load the canonical usage skill as markdown
+kibi skills load kibi-usage --format markdown
+
+# Read a specific resource from a skill
+kibi skills read kibi-usage resources/fact-lanes.md --format text
+```
+
+**Notes:**
+- Skills are bundled with Kibi. Remote installation, marketplace, and script execution are not supported in v1.
+- OpenCode is an adapter for skill discovery, not the source of truth. The bundled skill set is authoritative.
 - Generic MCP/CLI agents should start with [generic-agent onboarding](generic-agent-onboarding.md) and load `kibi-usage`. Do not copy a long prompt as a substitute for skill discovery.
 XB
 

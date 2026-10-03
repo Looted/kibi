@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 // src/hook-runner.ts
-import fs4 from "node:fs";
+import fs5 from "node:fs";
 import os from "node:os";
-import path5 from "node:path";
+import path6 from "node:path";
 import { pathToFileURL } from "node:url";
 import { spawnSync } from "node:child_process";
 
@@ -52,8 +52,30 @@ function parseStdinJson(rawInput) {
   return trimmed.length === 0 ? {} : JSON.parse(trimmed);
 }
 
-// src/kb-tools.ts
+// ../agent-core/dist/kb-mcp-tools.js
 function isRecord2(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+var KIBI_WORKSPACE_ARGUMENT = "workspaceRoot";
+function isKibiMcpToolName(toolName) {
+  const name = toolName?.trim() ?? "";
+  if (/^MCP:kb_[a-z_]+$/i.test(name))
+    return true;
+  const segments = name.split("__");
+  if (segments.length < 3 || segments[0] !== "mcp")
+    return false;
+  const server = segments.slice(1, -1).join("__");
+  return /kibi/i.test(server) && /^kb_[a-z_]+$/.test(segments.at(-1) ?? "");
+}
+function stampKibiWorkspace(toolName, toolInput, workspaceRoot) {
+  if (!workspaceRoot || !isKibiMcpToolName(toolName))
+    return;
+  const base = isRecord2(toolInput) ? toolInput : {};
+  return { ...base, [KIBI_WORKSPACE_ARGUMENT]: workspaceRoot };
+}
+
+// src/kb-tools.ts
+function isRecord3(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function strings(value) {
@@ -68,10 +90,10 @@ function canonicalKbOperation(toolName) {
   return /^kb_[a-z_]+$/.test(operation) ? operation : undefined;
 }
 function payloadOf(toolInput) {
-  if (!isRecord2(toolInput))
+  if (!isRecord3(toolInput))
     return {};
   const nested = toolInput.arguments ?? toolInput.args;
-  return isRecord2(nested) ? nested : toolInput;
+  return isRecord3(nested) ? nested : toolInput;
 }
 function usageFromPayload(operation, payload) {
   const paths = [
@@ -80,7 +102,7 @@ function usageFromPayload(operation, payload) {
   ];
   if (Array.isArray(payload.sourceLocations)) {
     for (const location of payload.sourceLocations) {
-      if (isRecord2(location))
+      if (isRecord3(location))
         paths.push(...strings(location.path));
     }
   }
@@ -132,7 +154,7 @@ function extractCliKbUsage(command) {
   if (inline?.[1]) {
     try {
       const parsed = JSON.parse(inline[1]);
-      if (isRecord2(parsed))
+      if (isRecord3(parsed))
         payload = parsed;
     } catch {}
   }
@@ -834,23 +856,79 @@ function stopReminder(paths) {
 `);
 }
 
-// src/workspace-optin.ts
+// src/usage-log.ts
+import { randomUUID as randomUUID2 } from "node:crypto";
 import fs3 from "node:fs";
 import path4 from "node:path";
+import { fileURLToPath } from "node:url";
+function hookTelemetryEnabled(env = process.env) {
+  const value = env.KIBI_DIAGNOSTIC_MODE?.trim().toLowerCase();
+  return value === "1" || value === "true";
+}
+var cachedPluginVersion;
+function pluginVersion() {
+  if (cachedPluginVersion !== undefined)
+    return cachedPluginVersion;
+  cachedPluginVersion = null;
+  const candidate = path4.join(path4.dirname(fileURLToPath(import.meta.url)), "..", "package.json");
+  try {
+    const parsed = JSON.parse(fs3.readFileSync(candidate, "utf8"));
+    if (typeof parsed === "object" && parsed !== null && "version" in parsed && typeof parsed.version === "string") {
+      cachedPluginVersion = parsed.version;
+    }
+  } catch {}
+  return cachedPluginVersion;
+}
+function appendHookUsage(row, env = process.env) {
+  if (!hookTelemetryEnabled(env) || row.trace.action === undefined)
+    return;
+  const finishedAt = new Date;
+  const { trace } = row;
+  const record = {
+    timestamp: finishedAt.toISOString(),
+    request_id: `hook-${randomUUID2()}`,
+    tool: `hook_${row.event}`,
+    interface: "hook",
+    host: "claude-code",
+    package_version: pluginVersion(),
+    workspace_root: row.workspaceRoot,
+    session_id: row.sessionId ?? null,
+    hook_event: row.event,
+    host_tool: row.hostTool ?? null,
+    hook_action: trace.action,
+    path: trace.path ?? null,
+    path_kind: trace.pathKind ?? null,
+    requirement_ids: trace.requirementIds ?? [],
+    kb_operation: trace.kbOperation ?? null,
+    kb_used_before: trace.kbUsedBefore ?? null,
+    status: "success",
+    duration_ms: finishedAt.getTime() - row.startedAt.getTime()
+  };
+  try {
+    const logPath = path4.join(row.workspaceRoot, ".kb", "usage.log");
+    fs3.mkdirSync(path4.dirname(logPath), { recursive: true });
+    fs3.appendFileSync(logPath, `${JSON.stringify(record)}
+`, "utf8");
+  } catch {}
+}
+
+// src/workspace-optin.ts
+import fs4 from "node:fs";
+import path5 from "node:path";
 var KIBI_WORKSPACE_ENV_KEYS = [
   "KIBI_WORKSPACE",
   "KIBI_PROJECT_ROOT",
   "KIBI_ROOT"
 ];
 function nextAncestorDirectory(current) {
-  const parent = path4.dirname(current);
+  const parent = path5.dirname(current);
   return parent === current ? undefined : parent;
 }
 function hasKibiManifest(directory) {
-  return fs3.existsSync(path4.join(directory, ".kb", "manifest.json"));
+  return fs4.existsSync(path5.join(directory, ".kb", "manifest.json"));
 }
 function hasGitBoundary(directory) {
-  return fs3.existsSync(path4.join(directory, ".git"));
+  return fs4.existsSync(path5.join(directory, ".git"));
 }
 function resolutionFor(root) {
   return { root, optedIn: hasKibiManifest(root) };
@@ -859,10 +937,10 @@ function resolveKibiWorkspace(startDir, env = process.env) {
   for (const key of KIBI_WORKSPACE_ENV_KEYS) {
     const value = env[key]?.trim();
     if (value) {
-      return resolutionFor(path4.resolve(value));
+      return resolutionFor(path5.resolve(value));
     }
   }
-  let current = path4.resolve(startDir && startDir.trim().length > 0 ? startDir : process.cwd());
+  let current = path5.resolve(startDir && startDir.trim().length > 0 ? startDir : process.cwd());
   while (current !== undefined) {
     if (hasKibiManifest(current)) {
       return { root: current, optedIn: true };
@@ -872,7 +950,7 @@ function resolveKibiWorkspace(startDir, env = process.env) {
     }
     current = nextAncestorDirectory(current);
   }
-  return resolutionFor(path4.resolve(startDir ?? process.cwd()));
+  return resolutionFor(path5.resolve(startDir ?? process.cwd()));
 }
 
 // src/hook-runner.ts
@@ -885,11 +963,11 @@ function context(event, text) {
     hookSpecificOutput: { hookEventName: event, additionalContext: text }
   };
 }
-function isRecord3(value) {
+function isRecord4(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function toolPath(toolInput) {
-  if (!isRecord3(toolInput))
+  if (!isRecord4(toolInput))
     return;
   const candidate = toolInput.file_path ?? toolInput.notebook_path;
   return typeof candidate === "string" ? candidate : undefined;
@@ -898,7 +976,7 @@ function linkedFileCount(index) {
   return Object.values(index.files).filter((symbols) => symbols.some((symbol) => symbol.implements.length > 0)).length;
 }
 function readFocus(toolInput) {
-  if (!isRecord3(toolInput))
+  if (!isRecord4(toolInput))
     return;
   const offset = typeof toolInput.offset === "number" ? toolInput.offset : undefined;
   const limit = typeof toolInput.limit === "number" ? toolInput.limit : undefined;
@@ -908,14 +986,14 @@ function readFocus(toolInput) {
   return [{ start, end: limit !== undefined ? start + limit - 1 : start }];
 }
 function editFocus(absolutePath, toolInput) {
-  if (!isRecord3(toolInput))
+  if (!isRecord4(toolInput))
     return;
   const needles = [];
   if (typeof toolInput.old_string === "string")
     needles.push(toolInput.old_string);
   if (Array.isArray(toolInput.edits)) {
     for (const edit of toolInput.edits) {
-      if (isRecord3(edit) && typeof edit.old_string === "string") {
+      if (isRecord4(edit) && typeof edit.old_string === "string") {
         needles.push(edit.old_string);
       }
     }
@@ -925,9 +1003,9 @@ function editFocus(absolutePath, toolInput) {
     return;
   let content;
   try {
-    if (fs4.statSync(absolutePath).size > MAX_FOCUS_SCAN_BYTES)
+    if (fs5.statSync(absolutePath).size > MAX_FOCUS_SCAN_BYTES)
       return;
-    content = fs4.readFileSync(absolutePath, "utf8");
+    content = fs5.readFileSync(absolutePath, "utf8");
   } catch {
     return;
   }
@@ -949,22 +1027,34 @@ function isExplored(state, relativePath) {
 function requirementIds(symbols) {
   return [...new Set(symbols.flatMap((symbol) => symbol.implements))];
 }
-function preToolUse(input, workspace) {
+function preToolUse(input, workspace, trace = {}) {
   const toolName = input.toolName ?? "";
+  const stamped = stampKibiWorkspace(toolName, input.toolInput, workspace.root);
+  if (stamped) {
+    return {
+      hookSpecificOutput: {
+        hookEventName: "PreToolUse",
+        updatedInput: stamped
+      }
+    };
+  }
   const state = loadSessionState(workspace.stateDir);
+  trace.kbUsedBefore = state.kbUsed;
   const events = [];
-  const emit = (text) => {
+  const emit = (text, action) => {
+    trace.action = action;
     appendSessionEvents(workspace.stateDir, events);
     return context("PreToolUse", text);
   };
   if (searchTools.has(toolName)) {
+    trace.action = "search_silent";
     if (state.kbUsed || state.notices.has("search-tip"))
       return {};
     const linked = linkedFileCount(workspace.index());
     if (linked === 0)
       return {};
     events.push({ kind: "notice", name: "search-tip" });
-    return emit(searchTip(linked));
+    return emit(searchTip(linked), "search_tip");
   }
   const isRead = readTools.has(toolName);
   const isEdit = editTools.has(toolName);
@@ -975,17 +1065,22 @@ function preToolUse(input, workspace) {
   if (!target)
     return {};
   const kind = classifyPath2(target.relative);
+  trace.path = target.relative;
+  trace.pathKind = kind;
   if (kind === "kb") {
+    trace.action = "kb_direct_silent";
     if (state.notices.has("kb-direct"))
       return {};
     events.push({ kind: "notice", name: "kb-direct" });
-    return emit(DIRECT_KB_ACCESS_NOTE);
+    return emit(DIRECT_KB_ACCESS_NOTE, "kb_direct_note");
   }
   if (kind === "other")
     return {};
   const relativePath = target.relative;
   const symbols = workspace.index().files[relativePath] ?? [];
+  trace.requirementIds = requirementIds(symbols);
   if (isRead) {
+    trace.action = "read_silent";
     if (state.shownRead.has(relativePath) || state.shownEdit.has(relativePath) || isExplored(state, relativePath)) {
       return {};
     }
@@ -1003,8 +1098,9 @@ function preToolUse(input, workspace) {
     if (!snippet)
       return {};
     events.push({ kind: "shown", surface: "read", path: relativePath });
-    return emit(snippet);
+    return emit(snippet, "read_snippet");
   }
+  trace.action = "edit_silent";
   const focus = toolName === "Edit" || toolName === "MultiEdit" ? editFocus(target.absolute, input.toolInput) : undefined;
   if (state.shownEdit.has(relativePath)) {
     const symbol = focusedSymbols(symbols, focus)[0];
@@ -1017,7 +1113,7 @@ function preToolUse(input, workspace) {
     if (!update)
       return {};
     events.push({ kind: "shown", surface: "edit", path: key });
-    return emit(update);
+    return emit(update, "edit_focus_update");
   }
   const alreadyKnown = state.shownRead.has(relativePath) || isExplored(state, relativePath);
   const focusSymbol = focusedSymbols(symbols, focus)[0];
@@ -1032,7 +1128,7 @@ function preToolUse(input, workspace) {
   if (alreadyKnown) {
     const update = focusUpdate(relativePath, symbols, focus);
     if (update)
-      return emit(update);
+      return emit(update, "edit_focus_update");
     appendSessionEvents(workspace.stateDir, events);
     return {};
   }
@@ -1044,9 +1140,10 @@ function preToolUse(input, workspace) {
     summarize: workspace.summarize
   });
   if (snippet)
-    return emit(snippet);
-  if (kind === "source")
-    return emit(unownedSourceNote(relativePath));
+    return emit(snippet, "edit_snippet");
+  if (kind === "source") {
+    return emit(unownedSourceNote(relativePath), "edit_unowned_note");
+  }
   appendSessionEvents(workspace.stateDir, events);
   return {};
 }
@@ -1064,43 +1161,53 @@ function recordKbUsage(usage, workspace, events) {
 }
 function hasKibiPreCommitGate(workspaceRoot) {
   const resolved = spawnSync("git", ["rev-parse", "--git-path", "hooks/pre-commit"], { cwd: workspaceRoot, encoding: "utf8", timeout: 2000 });
-  const hookPath = resolved.status === 0 && resolved.stdout.trim().length > 0 ? path5.resolve(workspaceRoot, resolved.stdout.trim()) : path5.join(workspaceRoot, ".git", "hooks", "pre-commit");
+  const hookPath = resolved.status === 0 && resolved.stdout.trim().length > 0 ? path6.resolve(workspaceRoot, resolved.stdout.trim()) : path6.join(workspaceRoot, ".git", "hooks", "pre-commit");
   try {
-    return /kibi[^\n]*\bcheck\b/.test(fs4.readFileSync(hookPath, "utf8"));
+    return /kibi[^\n]*\bcheck\b/.test(fs5.readFileSync(hookPath, "utf8"));
   } catch {
     return false;
   }
 }
-function postToolUse(input, workspace) {
+function postToolUse(input, workspace, trace = {}) {
   const toolName = input.toolName ?? "";
   const events = [];
+  const kbUsedBefore = () => workspace.telemetry ? loadSessionState(workspace.stateDir).kbUsed : undefined;
+  const recordUsage = (usage) => {
+    trace.kbUsedBefore = kbUsedBefore();
+    trace.action = "kb_usage";
+    trace.kbOperation = usage.operation;
+    recordKbUsage(usage, workspace, events);
+  };
   if (editTools.has(toolName)) {
     const rawPath = toolPath(input.toolInput);
     const target = rawPath ? toWorkspacePath2(workspace.root, rawPath, input.cwd) : undefined;
     if (target) {
-      events.push({
-        kind: "edited",
-        path: target.relative,
-        pathKind: classifyPath2(target.relative)
-      });
+      const pathKind = classifyPath2(target.relative);
+      events.push({ kind: "edited", path: target.relative, pathKind });
+      if (pathKind !== "other") {
+        trace.kbUsedBefore = kbUsedBefore();
+        trace.action = "edited";
+        trace.path = target.relative;
+        trace.pathKind = pathKind;
+      }
     }
   } else if (toolName === "Bash") {
-    const command = isRecord3(input.toolInput) ? input.toolInput.command : undefined;
+    const command = isRecord4(input.toolInput) ? input.toolInput.command : undefined;
     const usage = extractCliKbUsage(command);
     if (usage)
-      recordKbUsage(usage, workspace, events);
+      recordUsage(usage);
     if (isVerifiedGitCommit(command) && hasKibiPreCommitGate(workspace.root)) {
       events.push({ kind: "checked", paths: [], all: true });
     }
   } else {
     const usage = extractMcpKbUsage(toolName, input.toolInput);
     if (usage)
-      recordKbUsage(usage, workspace, events);
+      recordUsage(usage);
   }
   appendSessionEvents(workspace.stateDir, events);
   return {};
 }
-function stop(input, workspace) {
+function stop(input, workspace, trace = {}) {
   if (input.stopHookActive)
     return {};
   const state = loadSessionState(workspace.stateDir);
@@ -1110,11 +1217,14 @@ function stop(input, workspace) {
   appendSessionEvents(workspace.stateDir, [
     { kind: "reminded", paths: unreminded }
   ]);
+  trace.action = "stop_reminder";
+  trace.kbUsedBefore = state.kbUsed;
   return context("Stop", stopReminder(unreminded));
 }
 async function runHook(rawInput, environment = {}) {
+  const startedAt = new Date;
   const input = parseHookInput(rawInput);
-  const pluginData = environment.pluginData ?? process.env.CLAUDE_PLUGIN_DATA ?? path5.join(os.tmpdir(), `kibi-claude-${process.getuid?.() ?? "user"}`);
+  const pluginData = environment.pluginData ?? process.env.CLAUDE_PLUGIN_DATA ?? path6.join(os.tmpdir(), `kibi-claude-${process.getuid?.() ?? "user"}`);
   const projectDir = environment.projectDir ?? process.env.CLAUDE_PROJECT_DIR;
   const resolved = resolveKibiWorkspace(input.cwd ?? projectDir ?? process.cwd());
   if (!resolved.optedIn)
@@ -1129,6 +1239,7 @@ async function runHook(rawInput, environment = {}) {
       index ??= loadKnowledgeIndex2(resolved.root, dataDir);
       return index;
     },
+    telemetry: hookTelemetryEnabled(environment.env),
     summarize: (entityId) => {
       let summary = summaries.get(entityId);
       if (!summary) {
@@ -1138,15 +1249,29 @@ async function runHook(rawInput, environment = {}) {
       return summary;
     }
   };
+  const trace = {};
+  const output = dispatchHook(input, workspace, trace);
+  appendHookUsage({
+    workspaceRoot: resolved.root,
+    event: input.event,
+    sessionId: input.sessionId,
+    hostTool: input.toolName,
+    trace,
+    startedAt
+  }, environment.env);
+  return output;
+}
+function dispatchHook(input, workspace, trace) {
   switch (input.event) {
     case "SessionStart":
+      trace.action = "session_start";
       return context("SessionStart", sessionStartContext(linkedFileCount(workspace.index())));
     case "PreToolUse":
-      return preToolUse(input, workspace);
+      return preToolUse(input, workspace, trace);
     case "PostToolUse":
-      return postToolUse(input, workspace);
+      return postToolUse(input, workspace, trace);
     case "Stop":
-      return stop(input, workspace);
+      return stop(input, workspace, trace);
     default:
       return {};
   }
@@ -1157,7 +1282,7 @@ async function main() {
 `);
 }
 function isInvokedAsCli(argv1, moduleUrl) {
-  const invokedPath = argv1 ? pathToFileURL(path5.resolve(argv1)).href : "";
+  const invokedPath = argv1 ? pathToFileURL(path6.resolve(argv1)).href : "";
   return moduleUrl === invokedPath;
 }
 async function runHookCli() {

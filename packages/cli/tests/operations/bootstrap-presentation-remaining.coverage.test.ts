@@ -124,6 +124,15 @@ describe("presentBootstrap remaining action-id and context-question branches", (
         projectSummary: "A compiler",
         sourceOfTruthPaths: ["docs"],
         verificationAnchors: ["bun test"],
+        knowledgeSources: [
+          {
+            id: "wiki",
+            kind: "wiki",
+            title: "Team wiki",
+            locator: "https://wiki.example/compiler",
+            authority: "authoritative",
+          },
+        ],
       },
       candidates: [],
       sourceOnlySignals: [
@@ -154,6 +163,15 @@ describe("presentBootstrap remaining action-id and context-question branches", (
         projectSummary: "A compiler",
         sourceOfTruthPaths: ["docs"],
         verificationAnchors: ["bun test"],
+        knowledgeSources: [
+          {
+            id: "wiki",
+            kind: "wiki",
+            title: "Team wiki",
+            locator: "https://wiki.example/compiler",
+            authority: "authoritative",
+          },
+        ],
       },
       candidates: [],
       sourceOnlySignals: [],

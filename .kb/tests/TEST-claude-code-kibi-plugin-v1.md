@@ -34,6 +34,8 @@ proof_contract:
       target: default
     - symbol_id: SYM-claude-case-optional-package-contract
       target: default
+    - symbol_id: SYM-claude-case-usage-telemetry
+      target: default
   success_policy: all_required_first_attempt
 proof_bindings:
   - symbol_id: SYM-claude-case-unconfigured-workspace-silent
@@ -86,6 +88,11 @@ proof_bindings:
     native_id: packages/claude/tests/distribution.test.ts::kibi-claude package contract::optional package contract has no install lifecycle or runtime dependencies
     source_file: packages/claude/tests/distribution.test.ts
     line: 222
+  - symbol_id: SYM-claude-case-usage-telemetry
+    target: default
+    native_id: packages/claude/tests/hook-runner.test.ts::usage telemetry::records whether the agent consulted Kibi before reading and editing
+    source_file: packages/claude/tests/hook-runner.test.ts
+    line: 472
 proof_receipts:
   - version: kibi.proof-receipt.v1
     receipt_id: PR-bd5f243da510c33089b51b58
@@ -722,6 +729,808 @@ proof_receipts:
         attempts:
           status: unavailable
       - symbol_id: SYM-claude-case-optional-package-contract
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-412ae2061af27615074ba951
+    test_id: TEST-claude-code-kibi-plugin-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: b9cb051e6e2093db3698fdfafc5e3fc09557479b83ed82783e3845c32b945cc9
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-10-01T21:24:12.610Z'
+    finished_at: '2026-10-01T21:24:13.682Z'
+    artifact_digest: e97626570c74e24d24e09bf8c74a51dac8e548085c116b8f9ffc69e29ed00116
+    contract_hash: 252c4871c7b4f76dc0f90349ab4541e69844fe3ff8881fd17a1a9f502599a2a6
+    binding_hash: 7f0c1963fba9ab46bb0498f07872bfde5333b952c824b318a79cd305e4f99bd8
+    fingerprint: ed0726a57196b5a8adbc0e4f435e2abc69c56759ce0846e90905f6f9679cab6d
+    fingerprint_components:
+      contract: 252c4871c7b4f76dc0f90349ab4541e69844fe3ff8881fd17a1a9f502599a2a6
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: ba6dc1da8fcf102e684965991676f5f03673de3b43157c2aea9a98dae3d99528
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-claude-case-unconfigured-workspace-silent
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-read-snippet-once
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-edit-focus
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-stop-reminder-once
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-prefixed-check-acknowledges
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-advisory-boundary
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-scanner-equivalence
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-shipped-bundle-runs
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-mcp-silent-outside-kibi
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-optional-package-contract
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-usage-telemetry
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-c25d484ceb7e749f76d07c92
+    test_id: TEST-claude-code-kibi-plugin-v1
+    scope: end_to_end
+    outcome: failed
+    code_snapshot: b9cb051e6e2093db3698fdfafc5e3fc09557479b83ed82783e3845c32b945cc9
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-10-01T21:27:13.357Z'
+    finished_at: '2026-10-01T21:47:13.546Z'
+    artifact_digest: 76225bb827e6a294dc164a1202107a3e4aba2ea58f76d7241ae7698bba9fda86
+    contract_hash: 252c4871c7b4f76dc0f90349ab4541e69844fe3ff8881fd17a1a9f502599a2a6
+    binding_hash: 7f0c1963fba9ab46bb0498f07872bfde5333b952c824b318a79cd305e4f99bd8
+    fingerprint: ed0726a57196b5a8adbc0e4f435e2abc69c56759ce0846e90905f6f9679cab6d
+    fingerprint_components:
+      contract: 252c4871c7b4f76dc0f90349ab4541e69844fe3ff8881fd17a1a9f502599a2a6
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: ba6dc1da8fcf102e684965991676f5f03673de3b43157c2aea9a98dae3d99528
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: failed
+    proof_results:
+      - symbol_id: SYM-claude-case-unconfigured-workspace-silent
+        target: default
+        outcome: failed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-read-snippet-once
+        target: default
+        outcome: failed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-edit-focus
+        target: default
+        outcome: failed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-stop-reminder-once
+        target: default
+        outcome: failed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-prefixed-check-acknowledges
+        target: default
+        outcome: failed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-advisory-boundary
+        target: default
+        outcome: failed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-scanner-equivalence
+        target: default
+        outcome: failed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-shipped-bundle-runs
+        target: default
+        outcome: failed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-mcp-silent-outside-kibi
+        target: default
+        outcome: failed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-optional-package-contract
+        target: default
+        outcome: failed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-usage-telemetry
+        target: default
+        outcome: failed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+    gaps:
+      - symbol_id: SYM-claude-case-unconfigured-workspace-silent
+        target: default
+        reason: 'run did not pass (outcome: failed); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-e2e-test-001 (failed), SYM-e2e-test-003 (failed), SYM-e2e-packed-cli-check (failed), SYM-e2e-test-005 (failed), SYM-test-packed-default-branch-sync-hooks (failed) +144 more'
+      - symbol_id: SYM-claude-case-read-snippet-once
+        target: default
+        reason: 'run did not pass (outcome: failed); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-e2e-test-001 (failed), SYM-e2e-test-003 (failed), SYM-e2e-packed-cli-check (failed), SYM-e2e-test-005 (failed), SYM-test-packed-default-branch-sync-hooks (failed) +144 more'
+      - symbol_id: SYM-claude-case-edit-focus
+        target: default
+        reason: 'run did not pass (outcome: failed); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-e2e-test-001 (failed), SYM-e2e-test-003 (failed), SYM-e2e-packed-cli-check (failed), SYM-e2e-test-005 (failed), SYM-test-packed-default-branch-sync-hooks (failed) +144 more'
+      - symbol_id: SYM-claude-case-stop-reminder-once
+        target: default
+        reason: 'run did not pass (outcome: failed); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-e2e-test-001 (failed), SYM-e2e-test-003 (failed), SYM-e2e-packed-cli-check (failed), SYM-e2e-test-005 (failed), SYM-test-packed-default-branch-sync-hooks (failed) +144 more'
+      - symbol_id: SYM-claude-case-prefixed-check-acknowledges
+        target: default
+        reason: 'run did not pass (outcome: failed); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-e2e-test-001 (failed), SYM-e2e-test-003 (failed), SYM-e2e-packed-cli-check (failed), SYM-e2e-test-005 (failed), SYM-test-packed-default-branch-sync-hooks (failed) +144 more'
+      - symbol_id: SYM-claude-case-advisory-boundary
+        target: default
+        reason: 'run did not pass (outcome: failed); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-e2e-test-001 (failed), SYM-e2e-test-003 (failed), SYM-e2e-packed-cli-check (failed), SYM-e2e-test-005 (failed), SYM-test-packed-default-branch-sync-hooks (failed) +144 more'
+      - symbol_id: SYM-claude-case-scanner-equivalence
+        target: default
+        reason: 'run did not pass (outcome: failed); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-e2e-test-001 (failed), SYM-e2e-test-003 (failed), SYM-e2e-packed-cli-check (failed), SYM-e2e-test-005 (failed), SYM-test-packed-default-branch-sync-hooks (failed) +144 more'
+      - symbol_id: SYM-claude-case-shipped-bundle-runs
+        target: default
+        reason: 'run did not pass (outcome: failed); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-e2e-test-001 (failed), SYM-e2e-test-003 (failed), SYM-e2e-packed-cli-check (failed), SYM-e2e-test-005 (failed), SYM-test-packed-default-branch-sync-hooks (failed) +144 more'
+      - symbol_id: SYM-claude-case-mcp-silent-outside-kibi
+        target: default
+        reason: 'run did not pass (outcome: failed); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-e2e-test-001 (failed), SYM-e2e-test-003 (failed), SYM-e2e-packed-cli-check (failed), SYM-e2e-test-005 (failed), SYM-test-packed-default-branch-sync-hooks (failed) +144 more'
+      - symbol_id: SYM-claude-case-optional-package-contract
+        target: default
+        reason: 'run did not pass (outcome: failed); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-e2e-test-001 (failed), SYM-e2e-test-003 (failed), SYM-e2e-packed-cli-check (failed), SYM-e2e-test-005 (failed), SYM-test-packed-default-branch-sync-hooks (failed) +144 more'
+      - symbol_id: SYM-claude-case-usage-telemetry
+        target: default
+        reason: 'run did not pass (outcome: failed); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-e2e-test-001 (failed), SYM-e2e-test-003 (failed), SYM-e2e-packed-cli-check (failed), SYM-e2e-test-005 (failed), SYM-test-packed-default-branch-sync-hooks (failed) +144 more'
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-978e9ae3f383e9e9fd4dc2e1
+    test_id: TEST-claude-code-kibi-plugin-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: dcaadce4b493f233c03147bea2606f08698f648fb8b604c17716fe31630b8aa4
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-10-02T07:03:06.343Z'
+    finished_at: '2026-10-02T07:03:07.561Z'
+    artifact_digest: 8d77aeb6c59cb6c7dbd46802b569499527a12531c22cee6dfb24f48ec7b420a6
+    contract_hash: 252c4871c7b4f76dc0f90349ab4541e69844fe3ff8881fd17a1a9f502599a2a6
+    binding_hash: 7f0c1963fba9ab46bb0498f07872bfde5333b952c824b318a79cd305e4f99bd8
+    fingerprint: ed0726a57196b5a8adbc0e4f435e2abc69c56759ce0846e90905f6f9679cab6d
+    fingerprint_components:
+      contract: 252c4871c7b4f76dc0f90349ab4541e69844fe3ff8881fd17a1a9f502599a2a6
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: ba6dc1da8fcf102e684965991676f5f03673de3b43157c2aea9a98dae3d99528
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-claude-case-unconfigured-workspace-silent
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-read-snippet-once
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-edit-focus
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-stop-reminder-once
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-prefixed-check-acknowledges
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-advisory-boundary
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-scanner-equivalence
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-shipped-bundle-runs
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-mcp-silent-outside-kibi
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-optional-package-contract
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-usage-telemetry
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-98a229bbfbf7a10f6ac4aa7f
+    test_id: TEST-claude-code-kibi-plugin-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: d4a9aa895a5bbb076a23a1df32c0e5f44f918957ffb78eadfea719f9740d8745
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-10-02T11:37:51.409Z'
+    finished_at: '2026-10-02T11:37:54.860Z'
+    artifact_digest: d77afe1e414b82dbe3823d2430d5a3165086af26ef6792b1713c439d7119ed93
+    contract_hash: 1e1bbed463a02f0f6b8bc833aedbdbbcd64f5e4b9b1c7440e7445ac4ef169b72
+    binding_hash: a869a12665a752d593eb988a2662a6534f804280b8680ae489067402ec034682
+    fingerprint: c4508b6905617adff8fdbdec88bc3eae9a69beae00eb6c45ed5ab72b9acaaa16
+    fingerprint_components:
+      contract: 1e1bbed463a02f0f6b8bc833aedbdbbcd64f5e4b9b1c7440e7445ac4ef169b72
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 29156618b47d4122d0ae9b2629fead667798cafe79f1848c98a3af9e6f678228
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-claude-case-unconfigured-workspace-silent
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-read-snippet-once
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-edit-focus
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-stop-reminder-once
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-prefixed-check-acknowledges
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-advisory-boundary
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-scanner-equivalence
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-shipped-bundle-runs
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-mcp-silent-outside-kibi
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-optional-package-contract
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-usage-telemetry
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-mcp-follows-session-workspace
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-55a040ee7c3ce6f1a30c44d2
+    test_id: TEST-claude-code-kibi-plugin-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: da26525d079dd86fb73afde2fccf06d01dfd78dffb446a5edd51cbf495156214
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-10-02T11:40:14.389Z'
+    finished_at: '2026-10-02T11:40:17.256Z'
+    artifact_digest: b5cbcee5b977e1a81da21410bafce0846f74ade202119a59244203bd091f7f71
+    contract_hash: 1e1bbed463a02f0f6b8bc833aedbdbbcd64f5e4b9b1c7440e7445ac4ef169b72
+    binding_hash: c0003fed9f6157f8b06fd649f996e50326ad407f80d7f5f8d38c2b2baa4eeb71
+    fingerprint: c4508b6905617adff8fdbdec88bc3eae9a69beae00eb6c45ed5ab72b9acaaa16
+    fingerprint_components:
+      contract: 1e1bbed463a02f0f6b8bc833aedbdbbcd64f5e4b9b1c7440e7445ac4ef169b72
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 29156618b47d4122d0ae9b2629fead667798cafe79f1848c98a3af9e6f678228
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-claude-case-unconfigured-workspace-silent
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-read-snippet-once
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-edit-focus
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-stop-reminder-once
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-prefixed-check-acknowledges
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-advisory-boundary
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-scanner-equivalence
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-shipped-bundle-runs
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-mcp-silent-outside-kibi
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-optional-package-contract
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-usage-telemetry
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-mcp-follows-session-workspace
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-569eb2a85a132e4d3460b7c9
+    test_id: TEST-claude-code-kibi-plugin-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 8f6fd7e91a7fff83398a2012a87aa1986842af02a441957a5b40fa37223e350a
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-10-02T11:56:06.203Z'
+    finished_at: '2026-10-02T11:56:10.653Z'
+    artifact_digest: ab123ca7e7263aeb883032ba5f8273d2f2a1872288b936e38069ac19639b15fc
+    contract_hash: 1e1bbed463a02f0f6b8bc833aedbdbbcd64f5e4b9b1c7440e7445ac4ef169b72
+    binding_hash: a82e3b8cd58114423c43d21f3bcfdbbbc36bcd04f24bbd3bbab958d34c8a9365
+    fingerprint: c4508b6905617adff8fdbdec88bc3eae9a69beae00eb6c45ed5ab72b9acaaa16
+    fingerprint_components:
+      contract: 1e1bbed463a02f0f6b8bc833aedbdbbcd64f5e4b9b1c7440e7445ac4ef169b72
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 29156618b47d4122d0ae9b2629fead667798cafe79f1848c98a3af9e6f678228
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-claude-case-unconfigured-workspace-silent
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-read-snippet-once
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-edit-focus
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-stop-reminder-once
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-prefixed-check-acknowledges
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-advisory-boundary
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-scanner-equivalence
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-shipped-bundle-runs
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-mcp-silent-outside-kibi
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-optional-package-contract
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-usage-telemetry
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-mcp-follows-session-workspace
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-b25d7039f95f9c15189e3c53
+    test_id: TEST-claude-code-kibi-plugin-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 378af9c44994d2053b3895430f528fb957e979c883f509ef28572f47881ccc9a
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-10-02T12:11:12.093Z'
+    finished_at: '2026-10-02T12:11:16.549Z'
+    artifact_digest: f0338677b6458a4563c04516210505838c6026d8f1bc9696593edf544d70df5a
+    contract_hash: 1e1bbed463a02f0f6b8bc833aedbdbbcd64f5e4b9b1c7440e7445ac4ef169b72
+    binding_hash: 0efa4fa9317abd47f078cce33887c0f671dc59a7477d9f70e85c190f35feee61
+    fingerprint: c4508b6905617adff8fdbdec88bc3eae9a69beae00eb6c45ed5ab72b9acaaa16
+    fingerprint_components:
+      contract: 1e1bbed463a02f0f6b8bc833aedbdbbcd64f5e4b9b1c7440e7445ac4ef169b72
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 29156618b47d4122d0ae9b2629fead667798cafe79f1848c98a3af9e6f678228
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-claude-case-unconfigured-workspace-silent
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-read-snippet-once
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-edit-focus
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-stop-reminder-once
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-prefixed-check-acknowledges
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-advisory-boundary
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-scanner-equivalence
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-shipped-bundle-runs
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-mcp-silent-outside-kibi
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-optional-package-contract
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-usage-telemetry
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-mcp-follows-session-workspace
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-4680d870217d542664bb9adc
+    test_id: TEST-claude-code-kibi-plugin-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 10d6d7f8bb787adbc41b1b751be60ffb8a696a9c8f7ab50d6f575f007ee35c23
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-10-02T15:22:58.647Z'
+    finished_at: '2026-10-02T15:22:59.626Z'
+    artifact_digest: c3a76de0d72f8c24b7e8a066ceca9479522c7748c56edbbbe014cc2511d5f9b2
+    contract_hash: 252c4871c7b4f76dc0f90349ab4541e69844fe3ff8881fd17a1a9f502599a2a6
+    binding_hash: e239464a971c511a2551b50ffd4b8165233f44891575b70c75802cbf9fac3b88
+    fingerprint: ed0726a57196b5a8adbc0e4f435e2abc69c56759ce0846e90905f6f9679cab6d
+    fingerprint_components:
+      contract: 252c4871c7b4f76dc0f90349ab4541e69844fe3ff8881fd17a1a9f502599a2a6
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: ba6dc1da8fcf102e684965991676f5f03673de3b43157c2aea9a98dae3d99528
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-claude-case-unconfigured-workspace-silent
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-read-snippet-once
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-edit-focus
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-stop-reminder-once
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-prefixed-check-acknowledges
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-advisory-boundary
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-scanner-equivalence
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-shipped-bundle-runs
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-mcp-silent-outside-kibi
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-optional-package-contract
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-usage-telemetry
         target: default
         outcome: passed
         binding: aggregate_run

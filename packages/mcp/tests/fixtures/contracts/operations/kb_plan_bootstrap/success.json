@@ -104,12 +104,94 @@
     "tldr": "Seeded contract workspace is ready for parity extraction."
   },
   "tool": {
-    "description": "Generate a deterministic, snapshot-bound kibi.bootstrap-plan.v1 for repository onboarding. Read-only analysis returns evidence, bounded context questions, exact dependency-ordered actions, a canonical plan hash, and no mutation side effects.",
+    "description": "Generate a deterministic, snapshot-bound kibi.bootstrap-plan.v1 for repository onboarding. Read-only analysis of the repository plus any declared knowledge sources and cited intent claims returns evidence, bounded context questions, exact dependency-ordered actions, a canonical plan hash, and no mutation side effects.",
     "inputSchema": {
       "properties": {
         "bootstrapContext": {
           "description": "Optional declared bootstrap context supplied by the agent to ground the read-only synthesis output.",
           "properties": {
+            "intentClaims": {
+              "description": "Statements of product intent the agent harvested from knowledgeSources, each citing its source. Normative claims the strict modeler can ground become cited req candidates; the rest become explicit authoring follow-ups. Bound into the plan hash.",
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "excerpt": {
+                    "description": "Optional short quote supporting the claim.",
+                    "type": "string"
+                  },
+                  "reference": {
+                    "description": "Exact citation inside the source: a ticket key, page URL, or section anchor.",
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "sourceId": {
+                    "description": "The id of a declared knowledge source.",
+                    "type": "string"
+                  },
+                  "statement": {
+                    "description": "One normative statement in the source's meaning, for example 'Refunds must not exceed the original charge.'",
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": ["statement", "sourceId", "reference"],
+                "type": "object"
+              },
+              "maxItems": 200,
+              "type": "array"
+            },
+            "knowledgeSources": {
+              "description": "Knowledge sources outside the code that the human confirmed during the bootstrap interview (issue trackers, wikis, specs, decision logs). Kibi never contacts them; the agent reads them through its own connectors and cites them from intentClaims. Bound into the plan hash.",
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "authority": {
+                    "description": "The human's call: authoritative claims become higher-confidence candidates, supporting claims lower ones, and stale sources are cited but never produce candidates.",
+                    "enum": ["authoritative", "supporting", "stale"],
+                    "type": "string"
+                  },
+                  "connector": {
+                    "description": "Optional name of the MCP server or tool the agent used to read the source.",
+                    "type": "string"
+                  },
+                  "id": {
+                    "description": "Stable kebab-case handle that intentClaims cite, for example jira-payments.",
+                    "pattern": "^[a-z0-9][a-z0-9-]*$",
+                    "type": "string"
+                  },
+                  "kind": {
+                    "enum": [
+                      "issue_tracker",
+                      "wiki",
+                      "specification",
+                      "design",
+                      "decision_log",
+                      "support",
+                      "chat",
+                      "repository_docs",
+                      "other"
+                    ],
+                    "type": "string"
+                  },
+                  "locator": {
+                    "description": "Where the source lives: a URL, project key, space name, or repo-relative path.",
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "notes": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": ["id", "kind", "title", "locator", "authority"],
+                "type": "object"
+              },
+              "maxItems": 50,
+              "type": "array"
+            },
             "priorityRoots": {
               "description": "Optional repo roots the bootstrap flow should prioritize when authoring entities.",
               "items": {
@@ -171,6 +253,10 @@
           "maximum": 0.95,
           "minimum": 0.6,
           "type": "number"
+        },
+        "workspaceRoot": {
+          "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+          "type": "string"
         }
       },
       "type": "object"

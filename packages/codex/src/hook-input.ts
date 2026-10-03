@@ -35,7 +35,15 @@ export function parseHookInput(input: unknown): HookInput {
   }
 
   const event =
-    readString(input, ["event", "hook_event", "hookEvent", "name"]) ?? "";
+    // Codex sends `hook_event_name`; the other spellings are kept for older
+    // and test payloads.
+    readString(input, [
+      "hook_event_name",
+      "event",
+      "hook_event",
+      "hookEvent",
+      "name",
+    ]) ?? "";
   const cwd = readString(input, [
     "cwd",
     "current_working_directory",
