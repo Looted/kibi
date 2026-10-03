@@ -9,6 +9,7 @@ import {
   validateIntentSearchInput,
 } from "../../intent-search.js";
 import { classifyActivation } from "../../operations/bootstrap/activation.js";
+import { SwiplResolutionError } from "../../prolog/swipl-resolver.js";
 import { rankEntities } from "../../search-ranking.js";
 import type { SearchMatch } from "../../search-ranking.js";
 import { resolveBranchAttachment } from "../../utils/branch-resolver.js";
@@ -408,7 +409,9 @@ export async function executeStatus(
           errorCode:
             error instanceof OperationJsonDecodeError
               ? error.code
-              : "engine_status_unavailable",
+              : error instanceof SwiplResolutionError
+                ? error.code
+                : "engine_status_unavailable",
           detail: message,
           recoveryRequired: false,
         };
@@ -440,8 +443,13 @@ export async function executeStatus(
           detail:
             engineStatus.detail ??
             "The branch store is structurally readable but the engine status response is unavailable.",
+          // implements REQ-kibi-truthful-consistency
+          // A missing or unusable SWI-Prolog is not fixed by restarting the
+          // engine; point at the diagnostic that reports the resolution.
           remediation: {
-            command_argv: ["kibi", "engine", "stop"],
+            command_argv: engineStatus.errorCode?.startsWith("swipl_")
+              ? ["kibi", "doctor"]
+              : ["kibi", "engine", "stop"],
             applyRequired: false,
           },
         }

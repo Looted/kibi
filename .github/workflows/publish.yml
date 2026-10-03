@@ -94,6 +94,9 @@ jobs:
       - name: Check Codex hook bundle drift
         run: bun run --filter kibi-codex check:hook-bundle
 
+      - name: Check Claude hook bundle drift
+        run: bun run --filter kibi-claude check:hook-bundle
+
       - name: Typecheck matrix
         run: bun run typecheck
       - name: Verify generated schema parity

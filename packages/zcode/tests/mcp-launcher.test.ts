@@ -489,9 +489,9 @@ describe("zcode MCP launcher workspace gate", () => {
     expect(spawnCalls[0]?.args).toEqual([entryPath, "--print-resolution"]);
     expect(spawnCalls[1]?.args).toEqual([entryPath]);
     expect(spawnCalls[1]?.opts.cwd).toBe(fixture.workspaceRoot);
-    expect((spawnCalls[1]?.opts.env as NodeJS.ProcessEnv).KIBI_WORKSPACE).toBe(
-      fixture.workspaceRoot,
-    );
+    expect(
+      (spawnCalls[1]?.opts.env as NodeJS.ProcessEnv).KIBI_MCP_ATTACH_ROOT,
+    ).toBe(fixture.workspaceRoot);
     expect(run.stdout).toContain('"kibi-mcp"');
     expect(run.stdout).not.toContain('"kibi-zcode-launcher"');
     expect(children[1]?.stdin.writable).toBe(true);

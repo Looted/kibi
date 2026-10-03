@@ -99,13 +99,34 @@ if (args.includes("-h") || args.includes("--help")) {
 
   if (args.includes("--diagnostic-mode")) {
     globalThis.__KIBI_MCP_DIAGNOSTIC_MODE = true;
-    process.env.KIBI_WORKSPACE ??= process.cwd();
+    process.env.KIBI_WORKSPACE ??=
+      process.env.KIBI_MCP_ATTACH_ROOT?.trim() || process.cwd();
     process.env.KIBI_MCP_DIAGNOSTIC_MODE = "1";
   }
 
   const { result, json } = await buildResolution();
   if (process.env.KIBI_MCP_DEBUG === "1" || args.includes("--diagnostic-mode")) {
     process.stderr.write(json);
+  }
+
+  // implements REQ-kibi-truthful-consistency
+  // Host launchers name the workspace with KIBI_MCP_ATTACH_ROOT rather than
+  // KIBI_WORKSPACE: a pin disables per-call workspace routing. Attach after
+  // runtime resolution (which reads the launch directory) and only when no
+  // operator pin is set.
+  const attachRoot = process.env.KIBI_MCP_ATTACH_ROOT?.trim();
+  const pinned = ["KIBI_WORKSPACE", "KIBI_PROJECT_ROOT", "KIBI_ROOT"].some(
+    (key) => (process.env[key] ?? "").trim().length > 0,
+  );
+  if (attachRoot && !pinned) {
+    try {
+      process.chdir(attachRoot);
+    } catch (error) {
+      process.stderr.write(
+        `[KIBI-MCP] Cannot attach to ${attachRoot}: ${error?.message ?? String(error)}\n`,
+      );
+      process.exit(1);
+    }
   }
 
   if (result.stale) {

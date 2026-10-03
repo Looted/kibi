@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { validateAgainstSchema } from "../../src/cli-validate.js";
 import { PrologProcess } from "../../src/prolog.js";
+import { SwiplResolutionError } from "../../src/prolog/swipl-resolver.js";
 import { SEARCH_CANDIDATE_PAGE_SIZE } from "../../src/public/operations/discovery-entities.js";
 import type {
   OperationContext,
@@ -537,6 +538,45 @@ describe("shared discovery operation executors", () => {
           (action) => action.code === "damaged_exact_branch_store",
         ),
       ).toBe(false);
+    } finally {
+      rmSync(workspaceRoot, { recursive: true, force: true });
+    }
+  });
+
+  test("kb_status points a missing SWI-Prolog at kibi doctor, not an engine restart", async () => {
+    const query = mock(async (_goal: string): Promise<PrologQueryResult> => {
+      throw new SwiplResolutionError(
+        "swipl_not_found",
+        "Kibi could not find a usable SWI-Prolog (9.0 or newer is required).",
+        "linux-x64 (glibc)",
+        "kibi-swipl-linux-x64-gnu",
+      );
+    });
+    const workspaceRoot = mkdtempSync(
+      path.join(tmpdir(), "kibi-status-no-swipl-test-"),
+    );
+    const storePath = branchStorePath(workspaceRoot, "main");
+    ensureBranchStoreManifest(workspaceRoot, "main");
+    mkdirSync(path.join(storePath, "rdf"), { recursive: true });
+    writeFileSync(path.join(storePath, "storage.json"), "{}\n");
+    writeFileSync(path.join(storePath, "CURRENT"), "generation-1:1\n");
+    try {
+      const result = await statusSpec.execute(
+        {},
+        createContext(query, workspaceRoot),
+      );
+      const structured = result.structuredContent as {
+        staleReasons?: readonly {
+          code?: string;
+          detail?: string;
+          remediation?: { command_argv?: readonly string[] };
+        }[];
+      };
+      const reason = structured.staleReasons?.find(
+        (entry) => entry.code === "swipl_not_found",
+      );
+      expect(reason?.detail).toContain("could not find a usable SWI-Prolog");
+      expect(reason?.remediation?.command_argv).toEqual(["kibi", "doctor"]);
     } finally {
       rmSync(workspaceRoot, { recursive: true, force: true });
     }

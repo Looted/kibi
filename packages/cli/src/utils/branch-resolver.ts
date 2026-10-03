@@ -155,6 +155,8 @@ export function resolveActiveBranch(
 
     if (!branch) {
       // Empty result means detached HEAD
+      const atHead = uniqueBranchAtHead(workspaceRoot);
+      if (atHead) return { branch: atHead };
       return {
         error: getBranchDiagnostic(undefined, "Git is in detached HEAD state"),
         code: "DETACHED_HEAD",
@@ -185,6 +187,8 @@ export function resolveActiveBranch(
         .trim();
 
       if (branch === "HEAD") {
+        const atHead = uniqueBranchAtHead(workspaceRoot);
+        if (atHead) return { branch: atHead };
         return {
           error: getBranchDiagnostic(
             undefined,
@@ -242,6 +246,39 @@ export function resolveActiveBranch(
         code: "UNKNOWN_ERROR",
       };
     }
+  }
+}
+
+// implements REQ-kibi-truthful-consistency
+/**
+ * A detached HEAD that exactly one local branch points at is that branch's
+ * commit, so its knowledge base is the exact one for this checkout (a
+ * `git checkout <sha>` of a branch tip, or a tool that detaches before
+ * running). Zero or several candidates stay a DETACHED_HEAD diagnostic: no
+ * branch is guessed.
+ */
+function uniqueBranchAtHead(workspaceRoot: string): string | null {
+  try {
+    const names = defaultDeps
+      .execFileSync(
+        "git",
+        ["branch", "--points-at", "HEAD", "--format=%(refname:short)"],
+        {
+          cwd: workspaceRoot,
+          encoding: "utf8",
+          timeout: 5000,
+          stdio: ["pipe", "pipe", "pipe"],
+        },
+      )
+      .toString()
+      .split("\n")
+      .map((name) => name.trim())
+      .filter((name) => name.length > 0 && !name.startsWith("("));
+    if (names.length !== 1) return null;
+    const [name] = names;
+    return name !== undefined && isValidBranchName(name) ? name : null;
+  } catch {
+    return null;
   }
 }
 

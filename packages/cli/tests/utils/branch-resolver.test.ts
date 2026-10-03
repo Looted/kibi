@@ -141,17 +141,29 @@ describe("branch-resolver", () => {
       expect((result as { branch: string }).branch).toBe("test-branch");
     });
 
-    test("returns DETACHED_HEAD error in detached HEAD state", () => {
+    test("attaches the one branch a detached HEAD points at", () => {
       execSync("git init -b main", { cwd: tmpDir });
       execSync("git config user.email 'test@test.com'", { cwd: tmpDir });
       execSync("git config user.name 'Test User'", { cwd: tmpDir });
       execSync("git commit --allow-empty -m 'init'", { cwd: tmpDir });
-      // Create a commit and checkout it directly (detached HEAD)
       const commitHash = execSync("git rev-parse HEAD", {
         cwd: tmpDir,
         encoding: "utf8",
       }).trim();
       execSync(`git checkout ${commitHash}`, { cwd: tmpDir });
+
+      expect(resolveActiveBranch(tmpDir)).toEqual({ branch: "main" });
+    });
+
+    test("returns DETACHED_HEAD error in detached HEAD state", () => {
+      execSync("git init -b main", { cwd: tmpDir });
+      execSync("git config user.email 'test@test.com'", { cwd: tmpDir });
+      execSync("git config user.name 'Test User'", { cwd: tmpDir });
+      execSync("git commit --allow-empty -m 'init'", { cwd: tmpDir });
+      // Detach at a commit no branch points at
+      execSync("git commit --allow-empty -m 'second'", { cwd: tmpDir });
+      execSync("git checkout HEAD~1", { cwd: tmpDir });
+      execSync("git commit --allow-empty -m 'detached only'", { cwd: tmpDir });
 
       const result = resolveActiveBranch(tmpDir);
 
