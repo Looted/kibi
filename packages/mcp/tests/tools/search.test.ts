@@ -64,7 +64,6 @@ describe("MCP search tool handler", () => {
 
     const prolog = { query } as unknown as PrologProcess;
     const result = await handleKbSearch(prolog, {
-      rankingMode: "legacy",
       query: "OAuth login flow",
       rankingMode: "legacy",
     });
