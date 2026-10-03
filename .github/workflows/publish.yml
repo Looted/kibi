@@ -330,7 +330,7 @@ jobs:
 
   publish-mcp-registry:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     needs: [build-and-check, publish]
     if: ${{ needs.publish.result == 'success' && contains(needs.build-and-check.outputs.toPublish, 'mcp=kibi-mcp') }}
     permissions:
@@ -383,23 +383,25 @@ jobs:
       - name: Validate MCP Registry manifest
         run: mcp-publisher validate /tmp/kibi-mcp-server.json
       - name: Verify the published npm package has the registry name
-        timeout-minutes: 5
+        timeout-minutes: 12
         run: |
           version=$(node -p "require('./packages/mcp/package.json').version")
           expected_name=$(node -p "require('./packages/mcp/package.json').mcpName")
           # npm publish may succeed before the version is available to readers.
           # Bound both npm's request time and the total number of attempts.
-          for attempt in $(seq 1 12); do
+          # The 2026-10-03 release took over two minutes to become readable,
+          # so allow up to ten minutes.
+          for attempt in $(seq 1 60); do
             if published_name=$(npm view "kibi-mcp@${version}" mcpName \
               --registry=https://registry.npmjs.org \
               --fetch-retries=0 --fetch-timeout=10000); then
               break
             fi
-            if [ "$attempt" -eq 12 ]; then
-              echo "Published kibi-mcp@${version} is not available after 12 attempts"
+            if [ "$attempt" -eq 60 ]; then
+              echo "Published kibi-mcp@${version} is not available after 60 attempts"
               exit 1
             fi
-            echo "Waiting for kibi-mcp@${version} to become available (attempt ${attempt}/12)..."
+            echo "Waiting for kibi-mcp@${version} to become available (attempt ${attempt}/60)..."
             sleep 10
           done
           if [ "$published_name" != "$expected_name" ]; then

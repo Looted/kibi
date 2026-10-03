@@ -21581,7 +21581,7 @@ coordinates:
     sourceLine: 13
   SYM-release-mcp-registry-verification:
     identityHash: 8a2700a7582cf0012d995ea02b781f3b667e58eca9cb64561aee447e033914d2
-    sourceHash: 7ab300cb0906e4f2021c192a986df6f04c8cbea4cc1b5bcc5690efe511d8cf9a
+    sourceHash: db34e9580d3a7efb5efee4141c35d75daa4c77e50838d03db0a18b8a4e490d47
     sourceColumn: 2
     sourceEndColumn: 22
     sourceEndLine: 331
@@ -21589,7 +21589,7 @@ coordinates:
     sourceLine: 331
   SYM-release-verify-published-metadata:
     identityHash: a2853dc37dda37cb92c73f7757c3cd4280101b22e39da24f38748a1b9681963d
-    sourceHash: 764b604ab928f08753634d3a9ce7097cceabf1b02e7b3d2b342adb2d98c0e517
+    sourceHash: a6a2b3a47ff6a5c5d31d680075d23a982b31cfcd7d98b1ef4595465e829e3208
     sourceColumn: 9
     sourceEndColumn: 1
     sourceEndLine: 120
