@@ -412,7 +412,9 @@ export function addTool<TProlog>(
         }
         if (
           isToolTimeoutError(error) &&
-          isMutationEffect(operationSpec.effects)
+          isMutationEffect(operationSpec.effects) &&
+          // A kb_upsert dry run writes nothing, so its outcome is known.
+          !(name === "kb_upsert" && businessArgs.dryRun === true)
         ) {
           const recoveryActions = [
             {

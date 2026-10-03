@@ -166,7 +166,7 @@ export function extractKbMcpToolCall(
     // it routes to so hooks do not treat it as a KB write.
     if (
       normalizedToolName === "kb_upsert" &&
-      readBoolean(payload, ["dryRun", "dry_run"]) === true
+      readBoolean(payload, ["dryRun"]) === true
     ) {
       normalizedToolName = "kb_validate_upsert";
     }

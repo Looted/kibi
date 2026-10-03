@@ -713,14 +713,14 @@ const METRIC_DIAGNOSTICS: Readonly<
     severity: "warning",
     rank: 30,
     suggestion:
-      "Run kb_semantic_advisor on the complete current requirement prose before its next upsert, preserve the returned source hash, and recheck telemetry.",
+      "Run kb_model with mode analyze (CLI: semantic-advisor) on the complete current requirement prose before its next upsert, preserve the returned source hash, and recheck telemetry.",
   },
   validation_before_upsert: {
     id: "mutation_validation_bypassed",
     severity: "warning",
     rank: 20,
     suggestion:
-      "Run kb_validate_upsert for the exact payload no more than one hour before each sequential kb_upsert attempt.",
+      "Run kb_upsert with dryRun true (CLI: validate-upsert) for the exact payload no more than one hour before each sequential kb_upsert attempt.",
   },
   source_lookup_zero_result_rate: {
     id: "source_lookup_zero_result_rate_high",

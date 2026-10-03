@@ -245,8 +245,11 @@ function canonicalDiagnosticValue(value: unknown): unknown {
 }
 
 function mutationFingerprint(args: Record<string, unknown>): string {
+  // A kb_upsert dry run must fingerprint like the write it previews, so
+  // validation-before-upsert pairs the two.
+  const { dryRun: _dryRun, ...payload } = args;
   return createHash("sha256")
-    .update(JSON.stringify(canonicalDiagnosticValue(args)))
+    .update(JSON.stringify(canonicalDiagnosticValue(payload)))
     .digest("hex");
 }
 
