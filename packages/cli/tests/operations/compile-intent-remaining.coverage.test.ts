@@ -80,7 +80,7 @@ function contextFor(
 
 function quietQuery(): (goal: string) => Promise<PrologQueryResult> {
   return mock(async (goal: string): Promise<PrologQueryResult> => {
-    if (goal.startsWith("checks:what_if_contradiction_witnesses_json("))
+    if (goal.includes("checks:what_if_contradiction_witnesses_json("))
       return { success: true, bindings: { JsonString: "[]" } };
     if (goal.includes("kb_relationship"))
       return { success: true, bindings: { Edges: "[]" } };
@@ -114,7 +114,7 @@ describe("executeCompileIntent leftover planning branches", () => {
     const root = await mkdtemp(path.join(tmpdir(), "kibi-compile-mcp-"));
     workspaces.push(root);
     const query = mock(async (goal: string): Promise<PrologQueryResult> => {
-      if (goal.startsWith("checks:what_if_contradiction_witnesses_json("))
+      if (goal.includes("checks:what_if_contradiction_witnesses_json("))
         return { success: true, bindings: { JsonString: "[]" } };
       if (goal.includes("kb_entity('REQ-KEEP'"))
         return {
@@ -149,7 +149,7 @@ describe("executeCompileIntent leftover planning branches", () => {
     const intent = "Customer data must be retained for 7 years.";
     const claimKey = semanticClaimKey(intent);
     const query = mock(async (goal: string): Promise<PrologQueryResult> => {
-      if (goal.startsWith("checks:what_if_contradiction_witnesses_json("))
+      if (goal.includes("checks:what_if_contradiction_witnesses_json("))
         return {
           success: true,
           bindings: {
@@ -253,7 +253,7 @@ describe("executeCompileIntent leftover planning branches", () => {
     await mkdir(path.join(root, "docs"), { recursive: true });
     await writeFile(path.join(root, "docs", "REQ.md"), "old\n");
     const query = mock(async (goal: string): Promise<PrologQueryResult> => {
-      if (goal.startsWith("checks:what_if_contradiction_witnesses_json("))
+      if (goal.includes("checks:what_if_contradiction_witnesses_json("))
         return { success: true, bindings: { JsonString: "[]" } };
       if (goal.includes("kb_entity('REQ-KEEP'"))
         return {
@@ -316,7 +316,7 @@ describe("executeCompileIntent leftover planning branches", () => {
     const root = await mkdtemp(path.join(tmpdir(), "kibi-compile-dotdot-"));
     workspaces.push(root);
     const query = mock(async (goal: string): Promise<PrologQueryResult> => {
-      if (goal.startsWith("checks:what_if_contradiction_witnesses_json("))
+      if (goal.includes("checks:what_if_contradiction_witnesses_json("))
         return { success: true, bindings: { JsonString: "[]" } };
       if (goal.includes("kb_entity('REQ-KEEP'"))
         return {

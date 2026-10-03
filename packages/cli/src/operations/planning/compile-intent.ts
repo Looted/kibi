@@ -581,6 +581,9 @@ async function contradictionAnalysis(
   let parsed: unknown;
   try {
     parsed = JSON.parse(result.bindings.JsonString);
+    // The binding is a quoted Prolog string, so the JSON arrives encoded once
+    // more as a JSON string.
+    if (typeof parsed === "string") parsed = JSON.parse(parsed);
   } catch {
     return { outcome: "unresolved", witnesses: [] };
   }

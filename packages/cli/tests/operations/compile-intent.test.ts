@@ -75,7 +75,7 @@ describe("kb_compile_intent", () => {
   });
   test("emits a deterministic strict-property plan for a new requirement", async () => {
     const query = mock(async (goal: string): Promise<PrologQueryResult> => {
-      if (goal.startsWith("checks:what_if_contradiction_witnesses_json("))
+      if (goal.includes("checks:what_if_contradiction_witnesses_json("))
         return { success: true, bindings: { JsonString: "[]" } };
       if (goal.includes("kb_relationship"))
         return { success: true, bindings: { Edges: "[]" } };
@@ -142,7 +142,7 @@ describe("kb_compile_intent", () => {
 
   test("fails closed when an update target is ambiguous", async () => {
     const query = mock(async (goal: string): Promise<PrologQueryResult> => {
-      if (goal.startsWith("checks:what_if_contradiction_witnesses_json("))
+      if (goal.includes("checks:what_if_contradiction_witnesses_json("))
         return { success: true, bindings: { JsonString: "[]" } };
       if (goal.includes("kb_relationship"))
         return { success: true, bindings: { Edges: "[]" } };
@@ -168,9 +168,44 @@ describe("kb_compile_intent", () => {
     ).toBe(true);
   });
 
+  test("blocks on a what-if contradiction returned as a quoted Prolog string", async () => {
+    // Engines bind JsonString to a quoted Prolog string, so the witness list
+    // arrives JSON-encoded twice.
+    const witnesses = JSON.stringify([
+      {
+        requirements: ["REQ-RETAIN", "REQ-OTHER"],
+        reason:
+          "Value conflict on customer_data.retention_days: eq 1 vs eq 365",
+        status: "contradiction",
+      },
+    ]);
+    const query = mock(async (goal: string): Promise<PrologQueryResult> => {
+      if (goal.includes("checks:what_if_contradiction_witnesses_json("))
+        return {
+          success: true,
+          bindings: { JsonString: JSON.stringify(witnesses) },
+        };
+      if (goal.includes("kb_relationship"))
+        return { success: true, bindings: { Edges: "[]" } };
+      return { success: true, bindings: { Results: "[]" } };
+    });
+    const plan = (
+      await compileIntentSpec.execute(
+        {
+          intent: "Customer data must be retained for 1 day.",
+          mode: "create",
+          requirementId: "REQ-RETAIN",
+        },
+        contextFor(query),
+      )
+    ).structuredContent;
+    expect(plan.contradictionAnalysis.outcome).toBe("conflict");
+    expect(plan.status).toBe("blocked");
+  });
+
   test("writes one inventory covering every proposition onto the requirement step", async () => {
     const query = mock(async (goal: string): Promise<PrologQueryResult> => {
-      if (goal.startsWith("checks:what_if_contradiction_witnesses_json("))
+      if (goal.includes("checks:what_if_contradiction_witnesses_json("))
         return { success: true, bindings: { JsonString: "[]" } };
       if (goal.includes("kb_relationship"))
         return { success: true, bindings: { Edges: "[]" } };
@@ -206,7 +241,7 @@ describe("kb_compile_intent", () => {
 
   test("reports current contradiction witnesses for an explicit update", async () => {
     const query = mock(async (goal: string): Promise<PrologQueryResult> => {
-      if (goal.startsWith("checks:what_if_contradiction_witnesses_json("))
+      if (goal.includes("checks:what_if_contradiction_witnesses_json("))
         return {
           success: true,
           bindings: {
@@ -245,7 +280,7 @@ describe("kb_compile_intent", () => {
     const staged = query.mock.calls
       .map(([goal]) => goal)
       .find((goal) =>
-        goal.startsWith("checks:what_if_contradiction_witnesses_json("),
+        goal.includes("checks:what_if_contradiction_witnesses_json("),
       );
     expect(staged).toContain("upsert(req, ");
     expect(staged).toContain("'REQ-A'");
@@ -253,7 +288,7 @@ describe("kb_compile_intent", () => {
 
   test("keeps unresolved rule overlap out of no_conflict", async () => {
     const query = mock(async (goal: string): Promise<PrologQueryResult> => {
-      if (goal.startsWith("checks:what_if_contradiction_witnesses_json("))
+      if (goal.includes("checks:what_if_contradiction_witnesses_json("))
         return {
           success: true,
           bindings: {

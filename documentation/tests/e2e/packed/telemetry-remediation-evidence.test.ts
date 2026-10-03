@@ -161,12 +161,14 @@ if (RUN_NODE_TEST_SUITE) {
                 business_args: row.business_args,
               },
               {
-                tool: "kb_skills",
+                // Usage evidence records the routed operation, so the MCP
+                // kb_skills call matches the CLI skills-list entry.
+                tool: "kb_skills_list",
                 status: "success",
                 telemetry_status: "provided",
                 session_id: "session-packed",
                 actor_id: "actor-packed",
-                business_args: { action: "list" },
+                business_args: {},
               },
             );
           }
