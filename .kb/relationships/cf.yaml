@@ -209,3 +209,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7655759d3196
+  - type: implements
+    from: SYM-core-proof-contradiction-stage
+    to: REQ-kibi-truthful-consistency
+    created_at: 2026-10-03T09:24:51.314Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d7488ab2316a
+  - type: covered_by
+    from: SYM-core-proof-contradiction-stage
+    to: TEST-kibi-truthful-consistency
+    created_at: 2026-10-03T09:24:51.333Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-34329d3d69ff

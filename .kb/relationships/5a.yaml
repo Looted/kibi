@@ -279,3 +279,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-983b43c2ed2c
+  - type: specified_by
+    from: REQ-kibi-search-answer-layer
+    to: SCEN-kibi-search-answer-layer
+    created_at: 2026-10-03T09:15:44.378Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-763f0816e4ea
+  - type: verified_by
+    from: REQ-kibi-search-answer-layer
+    to: TEST-kibi-search-answer-layer
+    created_at: 2026-10-03T09:15:44.434Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-155e150b628a
+  - type: implements
+    from: SYM-TOOLS
+    to: REQ-kibi-mcp-tool-consolidation
+    created_at: 2026-10-03T09:25:30.506Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-675d6d596b79
+  - type: covered_by
+    from: SYM-TOOLS
+    to: TEST-kibi-mcp-tool-consolidation
+    created_at: 2026-10-03T09:25:30.571Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3969fe3a1998

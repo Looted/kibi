@@ -249,7 +249,7 @@ export function resolveActiveBranch(
   }
 }
 
-// implements REQ-kibi-truthful-consistency
+// implements REQ-branch-store-recovery-v3
 /**
  * A detached HEAD that exactly one local branch points at is that branch's
  * commit, so its knowledge base is the exact one for this checkout (a

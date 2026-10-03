@@ -199,3 +199,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-50a85424f391
+  - type: implements
+    from: SYM-cli-dispatch-composite
+    to: REQ-kibi-mcp-tool-consolidation
+    created_at: 2026-10-03T09:26:16.369Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d370ee732b3a
+  - type: covered_by
+    from: SYM-cli-dispatch-composite
+    to: TEST-kibi-mcp-tool-consolidation
+    created_at: 2026-10-03T09:26:16.402Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f6755d09107c

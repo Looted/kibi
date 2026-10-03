@@ -459,7 +459,7 @@ export async function executeStatus(
           detail:
             engineStatus.detail ??
             "The branch store is structurally readable but the engine status response is unavailable.",
-          // implements REQ-kibi-truthful-consistency
+          // implements REQ-prolog-doctor-runtime-report
           // A missing or unusable SWI-Prolog is not fixed by restarting the
           // engine; point at the diagnostic that reports the resolution.
           remediation: {

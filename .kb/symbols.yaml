@@ -735,8 +735,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-intent-aware-source-discovery
+      - type: covered_by
+        target: TEST-kibi-search-answer-layer
       - type: implements
         target: REQ-kibi-intent-aware-source-discovery
+      - type: implements
+        target: REQ-kibi-search-answer-layer
   - id: SYM-kibi-cli-src-intent-search-ts-executeintentsearch
     title: executeIntentSearch
     sourceFile: packages/cli/src/intent-search.ts
@@ -7195,11 +7199,15 @@ symbols:
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
       - type: covered_by
+        target: TEST-kibi-search-answer-layer
+      - type: covered_by
         target: TEST-mcp-search-discovery
       - type: implements
         target: REQ-kibi-fresh-verification-receipts
       - type: implements
         target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-search-answer-layer
       - type: implements
         target: REQ-mcp-search-discovery
   - id: SYM-discovery-execute-status
@@ -14021,6 +14029,8 @@ symbols:
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
+        target: TEST-kibi-mcp-tool-consolidation
+      - type: covered_by
         target: TEST-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-mcp-relationship-preflight
@@ -14028,6 +14038,8 @@ symbols:
         target: TEST-mcp-semantic-advisor-preflight
       - type: implements
         target: REQ-002
+      - type: implements
+        target: REQ-kibi-mcp-tool-consolidation
       - type: implements
         target: REQ-kibi-operation-interface-parity
       - type: implements
@@ -24021,11 +24033,15 @@ symbols:
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
+        target: TEST-kibi-mcp-tool-consolidation
+      - type: covered_by
         target: TEST-mcp-suggest-predicates
       - type: implements
         target: REQ-002
       - type: implements
         target: REQ-013
+      - type: implements
+        target: REQ-kibi-mcp-tool-consolidation
       - type: implements
         target: REQ-mcp-suggest-predicates
   - id: SYM-ToolsRuntime
@@ -26142,8 +26158,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-ontology-convergence-witnesses
+      - type: covered_by
+        target: TEST-kibi-truthful-consistency
       - type: implements
         target: REQ-kibi-ontology-convergence-witnesses
+      - type: implements
+        target: REQ-kibi-truthful-consistency
   - id: SYM-test-rule-contradiction-witness-proof
     title: rule_contradiction_witness_is_source_bound_and_blocks_proof
     sourceFile: packages/core/tests/kb.plt
@@ -47291,3 +47311,74 @@ symbols:
         target: TEST-kibi-bootstrap-knowledge-sources
       - type: implements
         target: REQ-kibi-bootstrap-knowledge-sources
+  - id: SYM-core-intervals-numeric-satisfiable
+    title: numeric_constraints_satisfiable
+    status: active
+    sourceFile: packages/core/src/intervals.pl
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-truthful-consistency
+      - type: implements
+        target: REQ-kibi-truthful-consistency
+  - id: SYM-core-values-conflict
+    title: values_conflict
+    status: active
+    sourceFile: packages/core/src/kb.pl
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-truthful-consistency
+      - type: implements
+        target: REQ-kibi-truthful-consistency
+  - id: SYM-cli-build-search-answer
+    title: buildSearchAnswer
+    status: active
+    sourceFile: packages/cli/src/search-answer.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-search-answer-layer
+      - type: implements
+        target: REQ-kibi-search-answer-layer
+  - id: SYM-cli-dispatch-composite
+    title: dispatchComposite
+    status: active
+    sourceFile: packages/cli/src/public/operations/specs/composite.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-mcp-tool-consolidation
+      - type: implements
+        target: REQ-kibi-mcp-tool-consolidation
+  - id: SYM-cli-dry-run-upsert
+    title: dryRunUpsert
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/upsert.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-mcp-tool-consolidation
+      - type: implements
+        target: REQ-kibi-mcp-tool-consolidation
+  - id: SYM-core-check-scenario-feasibility
+    title: check_scenario_feasibility
+    status: active
+    sourceFile: packages/core/src/checks.pl
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-scenario-feasibility
+      - type: implements
+        target: REQ-kibi-scenario-feasibility
+  - id: SYM-core-proof-scenario-stage
+    title: scenario_stage
+    status: active
+    sourceFile: packages/core/src/requirement_proof.pl
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-scenario-feasibility
+      - type: implements
+        target: REQ-kibi-scenario-feasibility

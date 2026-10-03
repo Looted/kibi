@@ -307,3 +307,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2439d4279201
+  - type: requires_predicate
+    from: REQ-kibi-truthful-consistency
+    to: FACT-CONSISTENCY-NUMERIC-EXACT
+    created_at: 2026-10-03T09:15:41.330Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5330ebf448ce
+  - type: requires_predicate
+    from: REQ-kibi-truthful-consistency
+    to: FACT-CONSISTENCY-RULE-CONFLICT-THREE-VALUED
+    created_at: 2026-10-03T09:15:41.375Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ea6c8927c25a
+  - type: requires_predicate
+    from: REQ-kibi-truthful-consistency
+    to: FACT-CONSISTENCY-UNMODELED-ANALYSIS-INCOMPLETE
+    created_at: 2026-10-03T09:15:41.417Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a6abcd86061b
+  - type: specified_by
+    from: REQ-kibi-truthful-consistency
+    to: SCEN-kibi-truthful-consistency
+    created_at: 2026-10-03T09:15:41.452Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8dfae597dd31
+  - type: verified_by
+    from: REQ-kibi-truthful-consistency
+    to: TEST-kibi-truthful-consistency
+    created_at: 2026-10-03T09:15:41.472Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5e8dd0a54b45

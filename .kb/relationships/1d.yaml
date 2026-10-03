@@ -314,3 +314,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-15bb45800f08
+  - type: implements
+    from: SYM-discovery-execute-search
+    to: REQ-kibi-search-answer-layer
+    created_at: 2026-10-03T09:25:10.521Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a0fdf60e026b
+  - type: covered_by
+    from: SYM-discovery-execute-search
+    to: TEST-kibi-search-answer-layer
+    created_at: 2026-10-03T09:25:10.547Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-862dc4db4a0d
