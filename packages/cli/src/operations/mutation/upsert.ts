@@ -45,7 +45,13 @@ import {
 } from "./symbol-compiler-lock.js";
 import { validateSymbolGranularity } from "./symbol-granularity.js";
 import { refreshSymbolCoordinatesForManifest } from "./symbol-refresh.js";
-import type { RelationshipInput, UpsertInput, UpsertPayload } from "./types.js";
+import type {
+  RelationshipInput,
+  StagedUpsertState,
+  UpsertInput,
+  UpsertPayload,
+  ValidatedUpsert,
+} from "./types.js";
 import { validateUpsertInput } from "./validation.js";
 import { scenarioCoverageWarnings } from "./warnings.js";
 import {
@@ -148,12 +154,21 @@ function restoreRelationshipShard(
 export async function validateAppendOnlyProofReceipts(
   entity: Readonly<Record<string, unknown>>,
   context: OperationContext,
+  staged?: StagedUpsertState,
 ): Promise<void> {
   if (entity.type !== "test") return;
-  const existing = await loadEntities(requireProlog(context), {
-    id: String(entity.id),
-    type: "test",
-  });
+  // An earlier plan step that writes the same test is the history this
+  // write must extend.
+  const planned = staged?.entities.get(String(entity.id));
+  const existing =
+    planned !== undefined
+      ? planned.type === "test"
+        ? [planned]
+        : []
+      : await loadEntities(requireProlog(context), {
+          id: String(entity.id),
+          type: "test",
+        });
   const previous = receiptRecords(existing[0]?.proof_receipts);
   if (!previous || previous.length === 0) return;
   const next = receiptRecords(entity.proof_receipts);
@@ -168,20 +183,28 @@ export async function effectiveRelationships(
   entity: Readonly<Record<string, unknown>>,
   relationships: readonly RelationshipInput[],
   context: OperationContext,
+  staged?: StagedUpsertState,
 ): Promise<readonly RelationshipInput[]> {
   const prolog = requireProlog(context);
+  // Relationships an earlier plan step adds from this entity will exist when
+  // this upsert runs.
+  const plannedOwn = (staged?.relationships ?? []).filter(
+    (relationship) => relationship.from === input.id,
+  );
   const exists = await prolog.query(
     `once(kb_entity('${escapeAtom(input.id)}', _, _))`,
   );
-  if (!exists.success) return relationships;
+  if (!exists.success && plannedOwn.length === 0) return relationships;
   try {
-    const current = (await existingRelationships(prolog, String(entity.id)))
-      // An upsert owns only relationships whose source is the upserted entity.
-      // Incoming relationships must not be copied into its validation or
-      // canonical source projection.
-      .filter((relationship) => relationship.from === input.id);
+    const current = exists.success
+      ? (await existingRelationships(prolog, String(entity.id)))
+          // An upsert owns only relationships whose source is the upserted
+          // entity. Incoming relationships must not be copied into its
+          // validation or canonical source projection.
+          .filter((relationship) => relationship.from === input.id)
+      : [];
     const merged = new Map<string, RelationshipInput>();
-    for (const relationship of [...current, ...relationships]) {
+    for (const relationship of [...current, ...plannedOwn, ...relationships]) {
       const key = `${String(relationship.type)}\u0000${String(relationship.from)}\u0000${String(relationship.to)}`;
       // The explicit input wins so any supplied metadata is retained.
       merged.set(key, relationship);
@@ -223,6 +246,92 @@ function reextractCanonicalSymbolEntity(
       ? {}
       : { sourceFile: result.sourceFile }),
   };
+}
+
+// implements REQ-kibi-truthful-consistency
+export type UpsertValidationOptions = Readonly<{
+  /** Skip the append-only receipt check (kibi proof prune only). */
+  readonly allowReceiptsPrune?: boolean;
+  /**
+   * What earlier steps of the same plan will have written when this upsert
+   * runs. Entities and relationships they create count as present.
+   */
+  readonly staged?: StagedUpsertState;
+}>;
+
+// implements REQ-kibi-truthful-consistency
+export type UpsertValidation = Readonly<{
+  readonly validated: ValidatedUpsert;
+  /** The upsert's relationships merged with the entity's existing ones. */
+  readonly relationships: readonly RelationshipInput[];
+  readonly semantic: ReturnType<typeof analyzeSemanticAdvisorInput>;
+}>;
+
+// implements REQ-kibi-truthful-consistency
+/**
+ * The complete validation an upsert passes before its first write: schema,
+ * append-only proof receipts, relationship sources, symbol granularity,
+ * strict-lane pairing, live relationship targets, supersedes direction,
+ * proposition-complete ingestion, logical grounding claim keys and predicate
+ * argument vocabulary. executeUpsert runs it for every write, and
+ * kb_apply_plan runs it for every plan step before the plan's first write,
+ * passing the earlier steps' writes as `staged`.
+ */
+export async function validateUpsertForCommit(
+  input: UpsertInput,
+  context: OperationContext,
+  options: UpsertValidationOptions = {},
+): Promise<UpsertValidation> {
+  const prolog = requireProlog(context);
+  const staged = options.staged;
+  const validated = validateUpsertInput(input, context.clock());
+  if (options.allowReceiptsPrune !== true) {
+    await validateAppendOnlyProofReceipts(validated.entity, context, staged);
+  }
+  validateRelationshipSources(input.id, validated.relationships);
+  await validateSymbolGranularity(
+    validated.entity,
+    validated.relationships,
+    context,
+  );
+  const relationships = await effectiveRelationships(
+    input,
+    validated.entity,
+    validated.relationships,
+    context,
+    staged,
+  );
+  await validateStrictLanePairing(prolog, validated.relationships, staged);
+  await validateLiveRelationshipTargets(
+    prolog,
+    validated.entity,
+    validated.relationships,
+    staged,
+  );
+  await validateSupersedesSourceHistory(
+    prolog,
+    validated.entity,
+    validated.relationships,
+    context.workspaceRoot,
+    undefined,
+    staged,
+  );
+  const semantic = analyzeSemanticAdvisorInput({
+    payload: { ...input, relationships },
+  });
+  assertSemanticInventoryBoundary(
+    { ...input, relationships },
+    relationships,
+    semantic.receipt,
+  );
+  await assertLogicalGroundingClaimKeys(
+    prolog,
+    { ...input, relationships },
+    relationships,
+    staged,
+  );
+  await assertPredicateArgumentVocabulary(prolog, validated.entity, staged);
+  return { validated, relationships, semantic };
 }
 
 // implements REQ-kibi-operation-interface-parity
@@ -329,50 +438,12 @@ export async function executeUpsert(
       // upserts cannot lose updates.
       compilerLock = await acquireSymbolCompilerLock(context.workspaceRoot);
     }
-    const validated = validateUpsertInput(input, context.clock());
-    if (options.allowReceiptsPrune !== true) {
-      await validateAppendOnlyProofReceipts(validated.entity, context);
-    }
-    validateRelationshipSources(input.id, validated.relationships);
-    await validateSymbolGranularity(
-      validated.entity,
-      validated.relationships,
-      context,
-    );
-    const relationships = await effectiveRelationships(
-      input,
-      validated.entity,
-      validated.relationships,
-      context,
-    );
+    const { validated, relationships, semantic } =
+      await validateUpsertForCommit(input, context, {
+        allowReceiptsPrune: options.allowReceiptsPrune === true,
+      });
     relationshipCount = validated.relationships.length;
-    await validateStrictLanePairing(prolog, validated.relationships);
-    await validateLiveRelationshipTargets(
-      prolog,
-      validated.entity,
-      validated.relationships,
-    );
-    await validateSupersedesSourceHistory(
-      prolog,
-      validated.entity,
-      validated.relationships,
-      context.workspaceRoot,
-    );
-    const semantic = analyzeSemanticAdvisorInput({
-      payload: { ...input, relationships },
-    });
     semanticAdvisor = semantic.receipt;
-    assertSemanticInventoryBoundary(
-      { ...input, relationships },
-      relationships,
-      semantic.receipt,
-    );
-    await assertLogicalGroundingClaimKeys(
-      prolog,
-      { ...input, relationships },
-      relationships,
-    );
-    await assertPredicateArgumentVocabulary(prolog, validated.entity);
     if (context.fs !== undefined && context.sourceFirst !== false) {
       const existingRows = await loadEntities(prolog, {
         id: input.id,

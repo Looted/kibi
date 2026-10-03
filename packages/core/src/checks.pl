@@ -17,6 +17,7 @@
     check_deprecated_adrs/1,        % Returns list of deprecated ADR violations
     check_scenario_feasibility/1,
     check_scenario_feasibility_unknown/1,
+    check_rule_key_arguments_missing/1,
     infeasible_scenario/5,
     scenario_feasibility_outcome/2,
     check_domain_contradictions/1,  % Returns list of contradiction violations
@@ -51,6 +52,7 @@
 :- use_module(library(http/json)).
 :- use_module(library(http/json_convert)).
 :- use_module('kb.pl').
+:- use_module('intervals.pl', [numeric_constraints_satisfiable/2]).
 :- use_module('../schema/entities.pl', [entity_type/1, required_property/2]).
 :- use_module('../schema/relationships.pl', [relationship_type/1]).
 :- use_module('semantic_quality.pl', [
@@ -62,7 +64,7 @@
     check_subject_key_shape/1,
     check_ontology_quality/1
 ]).
-:- use_module('logic_ir.pl', [logic_rule_safety/2, logic_rule_from_props/2, logic_rule_conflict/3, logic_rule_conflict_witness/3, logic_rules_stratified/1]).
+:- use_module('logic_ir.pl', [logic_rule_safety/2, logic_rule_from_props/2, logic_rule_conflict/3, logic_rule_conflict_witness/3, logic_rules_stratified/1, logic_rule_missing_keys/4, functional_predicate_declarations/1]).
 % GENERATED registry facts; single source is schema/rule-registry.json.
 :- use_module('rule_registry.pl', [known_rule/1]).
 
@@ -91,6 +93,7 @@ check_all(ViolationsDict) :-
     check_scenario_feasibility(ScenarioFeasibility),
     check_scenario_feasibility_unknown(ScenarioFeasibilityUnknown),
     check_domain_contradictions(Contradictions),
+    check_rule_key_arguments_missing(RuleKeyArgumentsMissing),
     check_strict_fact_shape(StrictFactShape),
     check_strict_req_fact_pairing(StrictReqFactPairing),
     check_strict_readiness(StrictReadiness),
@@ -118,6 +121,7 @@ check_all(ViolationsDict) :-
         scenario_feasibility: ScenarioFeasibility,
         scenario_feasibility_unknown: ScenarioFeasibilityUnknown,
         domain_contradictions: Contradictions,
+        rule_key_arguments_missing: RuleKeyArgumentsMissing,
         strict_fact_shape: StrictFactShape,
         strict_req_fact_pairing: StrictReqFactPairing,
         strict_readiness: StrictReadiness,
@@ -539,16 +543,20 @@ deprecated_adr_violation(violation(
 
 %% check_scenario_feasibility(-Violations)
 % implements REQ-kibi-scenario-feasibility
-% A scenario that expects success and assumes a property value a current
-% requirement forbids can never pass. Each witness names the scenario, the
-% requirement, the assumed fact and the requirement's fact. An approved
-% exception (a current requirement that `exempts` the base requirement, is
-% `specified_by` the scenario and carries a non-empty `approved_by`) makes the
-% pair feasible without editing the base requirement. An exception without
-% approval does not exempt; the violation says so. Scenarios that expect
-% rejection or error are not checked. A success scenario whose feasibility
-% cannot be decided is reported by scenario-feasibility-unknown instead:
-% absence of a witness is not proof that the scenario is feasible.
+% A scenario that expects success and whose assumptions cannot hold together
+% with what current requirements require can never pass.  Each witness names
+% the scenario, the requirements, the assumed facts and the requirement facts
+% of one irreducible conflict: one assumption against one requirement fact
+% (pairwise), or several assumptions that are compatible on their own but
+% leave no admissible value once the requirement constraints are added
+% (joint, e.g. q >= 5 and q != 5 against q =< 5).  An approved exception (a
+% current requirement that `exempts` the base requirement, is `specified_by`
+% the scenario and carries a non-empty `approved_by`) removes the base
+% requirement from the scenario's analysis without editing it.  An exception
+% without approval does not exempt; the violation says so.  Scenarios that
+% expect rejection or error are not checked.  A success scenario whose
+% feasibility cannot be decided is reported by scenario-feasibility-unknown
+% instead: absence of a witness is not proof that the scenario is feasible.
 check_scenario_feasibility(Violations) :-
     findall(
         Violation,
@@ -564,21 +572,28 @@ scenario_feasibility_violation(violation(
     Suggestion,
     Source
 )) :-
-    infeasible_scenario(ScenarioId, ReqId, AssumedFact, ReqFact, Reason),
+    infeasible_scenario(ScenarioId, ReqIds, AssumedFacts, ReqFacts, Reason),
+    atomic_list_concat(AssumedFacts, ', ', AssumedText),
+    atomic_list_concat(ReqIds, ', ', ReqText),
+    atomic_list_concat(ReqFacts, ', ', ReqFactText),
     format(string(Description0),
         "Scenario expects success but assumes ~w, which current requirement ~w forbids via ~w: ~w",
-        [AssumedFact, ReqId, ReqFact, Reason]),
-    findall(ExceptionId, unapproved_scenario_exception(ScenarioId, ReqId, ExceptionId), Unapproved0),
+        [AssumedText, ReqText, ReqFactText, Reason]),
+    findall(ExceptionId,
+        (   member(ReqId, ReqIds),
+            unapproved_scenario_exception(ScenarioId, ReqId, ExceptionId)
+        ),
+        Unapproved0),
     sort(Unapproved0, Unapproved),
     (   Unapproved == []
     ->  Description = Description0,
         format(string(Suggestion),
             "Set expects: rejection on ~w, correct the assumption, or record a human-approved exception requirement (approved_by set) that exempts ~w and is specified_by ~w",
-            [ScenarioId, ReqId, ScenarioId])
+            [ScenarioId, ReqText, ScenarioId])
     ;   atomic_list_concat(Unapproved, ', ', UnapprovedText),
         format(string(Description),
             "~w. An exception exists (~w exempts ~w) but is not approved",
-            [Description0, UnapprovedText, ReqId]),
+            [Description0, UnapprovedText, ReqText]),
         format(string(Suggestion),
             "Have a human approve ~w by setting approved_by (and optionally approval_ref), or set expects: rejection on ~w, or correct the assumption",
             [UnapprovedText, ScenarioId])
@@ -589,34 +604,26 @@ scenario_feasibility_violation(violation(
     ;   Source = ""
     ).
 
-%% infeasible_scenario(?ScenarioId, ?ReqId, ?AssumedFact, ?ReqFact, -Reason)
-infeasible_scenario(ScenarioId, ReqId, AssumedFact, ReqFact, Reason) :-
-    assumption_conflict_witness(ScenarioId, ReqId, AssumedFact, ReqFact, Reason),
-    \+ scenario_exempt(ScenarioId, ReqId).
+%% infeasible_scenario(?ScenarioId, -ReqIds, -AssumedFacts, -ReqFacts, -Reason)
+% implements REQ-kibi-scenario-feasibility
+% One blocking witness for a success scenario: sorted lists of current,
+% non-exempted requirements, the scenario's assumed facts and the requirement
+% facts whose constraints admit no common value.  The witness is
+% irreducible: dropping any listed fact leaves a satisfiable set.  The
+% blocking rule, the proof ladder and what-if analysis all read this
+% predicate, so pairwise and joint infeasibility block alike.
+infeasible_scenario(ScenarioId, ReqIds, AssumedFacts, ReqFacts, Reason) :-
+    success_scenario(ScenarioId),
+    scenario_feasibility_analysis(ScenarioId, analysis(Witnesses, _, _)),
+    member(infeasibility(ReqIds, AssumedFacts, ReqFacts, Reason), Witnesses).
 
-% A success scenario's assumption that a current requirement forbids,
-% ignoring exceptions.
-assumption_conflict_witness(ScenarioId, ReqId, AssumedFact, ReqFact, Reason) :-
-    scenario_expects(ScenarioId, success),
-    kb_relationship(assumes, ScenarioId, AssumedFact),
-    kb:fact_property_tuple(AssumedFact, Subject, Property, AOp, AType, AValue, AUnit, AScope, APolarity),
-    kb:current_req(ReqId),
-    kb:effective_req_property_fact(ReqId, Subject, ReqFact, Property, ROp, RType, RValue, RUnit, RScope, RPolarity, _From, _To),
-    kb:scope_intersects(RScope, AScope),
-    assumption_conflict(Subject, Property,
-                        ROp, RType, RValue, RUnit, RScope, RPolarity,
-                        AOp, AType, AValue, AUnit, AScope, APolarity, Reason).
-
-assumption_conflict(Subject, Property, ROp, RType, RValue, RUnit, _RScope, Polarity,
-                    AOp, AType, AValue, AUnit, _AScope, Polarity, Reason) :-
-    kb:property_conflict(Subject, Property, ROp, RType, RValue, RUnit, Polarity,
-                         AOp, AType, AValue, AUnit, Polarity, Reason),
-    !.
-assumption_conflict(Subject, Property, ROp, RType, RValue, RUnit, RScope, RPolarity,
-                    AOp, AType, AValue, AUnit, AScope, APolarity, Reason) :-
-    RPolarity \== APolarity,
-    kb:polarity_conflict(Subject, Property, ROp, RType, RValue, RUnit, RScope, RPolarity,
-                         AOp, AType, AValue, AUnit, AScope, APolarity, Reason).
+success_scenario(ScenarioId) :-
+    (   var(ScenarioId)
+    ->  findall(Id, scenario_expects(Id, success), Ids0),
+        sort(Ids0, Ids),
+        member(ScenarioId, Ids)
+    ;   scenario_expects(ScenarioId, success)
+    ).
 
 scenario_expects(ScenarioId, Outcome) :-
     kb_entity(ScenarioId, scenario, Props),
@@ -659,55 +666,405 @@ evidence_text(Raw, Text) :-
 %% scenario_feasibility_outcome(?ScenarioId, -Outcome)
 % implements REQ-kibi-scenario-feasibility
 % The analysis result for a scenario that expects success:
-%   infeasible(Witness)      an assumption conflicts with a current requirement
-%                            and no approved exception covers it (blocking)
+%   infeasible(witness(ReqIds, AssumedFacts, ReqFacts, Reason))
+%                            the assumptions cannot hold with the constraints
+%                            of current, non-exempted requirements (blocking)
 %   unknown(no_assumptions)  the scenario assumes nothing, so nothing can be
 %                            checked
+%   unknown(contradictory_assumptions(FactIds))
+%                            the assumptions cannot hold together on their
+%                            own, whatever the requirements say
 %   unknown(unmatched_assumption(FactIds))
 %                            some assumption is not a property value whose
 %                            subject and property a current requirement
-%                            constrains
-%   feasible_by_exception    every conflicting assumption is covered by an
-%                            approved exception
-%   feasible                 every assumption is constrained and compatible
+%                            constrains in an intersecting scope
+%   unknown(incomparable_assumption(FactIds))
+%                            some assumption is constrained, but its type,
+%                            unit or operator cannot be compared with the
+%                            other constraints on that property
+%   unknown(conflicting_requirements(ReqIds))
+%                            the governing requirements cannot hold together
+%                            on that property, so the scenario's own
+%                            feasibility cannot be judged (the requirement
+%                            contradiction checks report the conflict)
+%   feasible_by_exception    the assumptions conflict only with requirements
+%                            an approved exception exempts
+%   feasible                 every assumption was compared with every
+%                            governing constraint and the conjunction of all
+%                            of them is satisfiable
 % Only infeasible blocks; unknown is a non-blocking quality diagnostic.
 scenario_feasibility_outcome(ScenarioId, Outcome) :-
-    (   var(ScenarioId)
-    ->  findall(Id, scenario_expects(Id, success), Ids0),
-        sort(Ids0, Ids),
-        member(ScenarioId, Ids)
-    ;   scenario_expects(ScenarioId, success)
-    ),
+    success_scenario(ScenarioId),
+    scenario_feasibility_analysis(ScenarioId, Analysis),
     % Decide the outcome before matching it, so asking for unknown(_) never
     % skips past an infeasible verdict.
-    scenario_feasibility_outcome_(ScenarioId, Outcome0),
+    analysis_outcome(Analysis, Outcome0),
     Outcome = Outcome0.
 
-scenario_feasibility_outcome_(ScenarioId, infeasible(Witness)) :-
-    infeasible_scenario(ScenarioId, ReqId, AssumedFact, ReqFact, Reason),
-    !,
-    Witness = witness(ReqId, AssumedFact, ReqFact, Reason).
-scenario_feasibility_outcome_(ScenarioId, Outcome) :-
+analysis_outcome(analysis([infeasibility(ReqIds, AssumedFacts, ReqFacts, Reason)|_], _, _),
+                 infeasible(witness(ReqIds, AssumedFacts, ReqFacts, Reason))) :- !.
+analysis_outcome(analysis([], [Reason|_], _), unknown(Reason)) :- !.
+analysis_outcome(analysis([], [], true), feasible_by_exception) :- !.
+analysis_outcome(analysis([], [], false), feasible).
+
+%% scenario_feasibility_analysis(+ScenarioId, -analysis(Witnesses, Unknowns, ByException))
+% implements REQ-kibi-scenario-feasibility
+% Every assumed property value and every property value a current
+% requirement requires becomes a member constraint on its subject and
+% property (unit-canonicalized; a forbid fact contributes the negated
+% operator).  Members are grouped by subject and property, and each group is
+% split into scope contexts: an unscoped member belongs to every context, a
+% scoped member only to its own.  In each context:
+%
+%   * every comparable (assumption, requirement fact) pair whose constraints
+%     admit no common value is a pairwise witness;
+%   * assumptions that admit no value on their own are contradictory
+%     (advisory);
+%   * otherwise, when the assumptions, the governing (non-exempted)
+%     requirement constraints and no pairwise witness exist and the
+%     conjunction admits no value, an irreducible core of it is a joint
+%     witness, unless the requirement constraints alone admit no value;
+%   * a context with an incomparable member stays undecided.
+%
+% Numeric constraints are decided with intervals.pl, with integer semantics
+% only when every member of the set is declared int; other value types
+% support eq and neq only.  Witnesses are sorted; Unknowns lists the advisory
+% reasons in reporting order; ByException is true when some context is
+% satisfiable only because an approved exception removed a requirement.
+scenario_feasibility_analysis(ScenarioId, analysis(Witnesses, Unknowns, ByException)) :-
     findall(FactId, kb_relationship(assumes, ScenarioId, FactId), Assumed0),
     sort(Assumed0, Assumed),
     (   Assumed == []
-    ->  Outcome = unknown(no_assumptions)
-    ;   exclude(constrained_assumption, Assumed, Unmatched),
-        Unmatched \== []
-    ->  Outcome = unknown(unmatched_assumption(Unmatched))
-    ;   assumption_conflict_witness(ScenarioId, _, _, _, _)
-    ->  Outcome = feasible_by_exception
-    ;   Outcome = feasible
+    ->  Witnesses = [],
+        Unknowns = [no_assumptions],
+        ByException = false
+    ;   convlist(assumption_member, Assumed, Assumptions),
+        requirement_members(Assumptions, Requirements),
+        unmatched_assumptions(Assumed, Assumptions, Requirements, Unmatched),
+        findall(Context, scenario_context(ScenarioId, Assumptions, Requirements, Context), Contexts),
+        foldl(context_results, Contexts, [], Results),
+        findall(Witness, member(witness(Witness), Results), Witnesses0),
+        sort(Witnesses0, Witnesses),
+        result_ids(contradictory, Results, Contradictory),
+        result_ids(incomparable, Results, Incomparable),
+        result_ids(conflicting_requirements, Results, Conflicting),
+        include(nonempty_reason,
+            [ contradictory_assumptions(Contradictory),
+              unmatched_assumption(Unmatched),
+              incomparable_assumption(Incomparable),
+              conflicting_requirements(Conflicting)
+            ],
+            Unknowns),
+        (   memberchk(by_exception, Results)
+        ->  ByException = true
+        ;   ByException = false
+        )
     ).
 
-% An assumed property value some current requirement constrains for the same
-% subject, property and an intersecting scope.
-constrained_assumption(FactId) :-
-    kb:fact_property_tuple(FactId, Subject, Property, _, _, _, _, AScope, _),
-    kb:current_req(ReqId),
-    kb:effective_req_property_fact(ReqId, Subject, _, Property, _, _, _, _, RScope, _, _, _),
-    kb:scope_intersects(RScope, AScope),
+% Assumed facts that are not property values, and property values no current
+% requirement constrains on the same subject and property in an intersecting
+% scope.
+unmatched_assumptions(Assumed, Assumptions, Requirements, Unmatched) :-
+    maplist(member_fact, Assumptions, PropertyValueFacts),
+    subtract(Assumed, PropertyValueFacts, NotPropertyValues),
+    exclude(assumption_matched_by(Requirements), Assumptions, UnmatchedMembers),
+    maplist(member_fact, UnmatchedMembers, UnmatchedValues),
+    append(NotPropertyValues, UnmatchedValues, Unmatched0),
+    sort(Unmatched0, Unmatched).
+
+assumption_matched_by(Requirements, Assumption) :-
+    assumption_matched(Assumption, Requirements).
+
+nonempty_reason(Reason) :-
+    arg(1, Reason, Ids),
+    Ids \== [].
+
+result_ids(Kind, Results, Ids) :-
+    findall(Id,
+        (   member(Result, Results),
+            Result =.. [Kind, ResultIds],
+            member(Id, ResultIds)
+        ),
+        Ids0),
+    sort(Ids0, Ids).
+
+% m(Role, Owner, FactId, Subject-Property, Scope, Type, Unit, Op, Value, Text)
+% Owner is the fact itself for an assumption and the requirement for a
+% requirement fact.  Type, Unit and Value are canonical; Op already carries
+% the fact's polarity; Text is the authored constraint for witnesses.
+assumption_member(FactId, Member) :-
+    property_member(assumption, FactId, FactId, Member).
+
+requirement_members(Assumptions, Requirements) :-
+    findall(Key, member(m(_, _, _, Key, _, _, _, _, _, _), Assumptions), Keys0),
+    sort(Keys0, Keys),
+    findall(Member,
+        (   member(Subject-Property, Keys),
+            kb:current_req(ReqId),
+            kb:effective_req_property_fact(ReqId, Subject, FactId, Property, _, _, _, _, _, _, _, _),
+            property_member(requirement, ReqId, FactId, Member)
+        ),
+        Requirements0),
+    sort(Requirements0, Requirements).
+
+property_member(Role, Owner, FactId,
+                m(Role, Owner, FactId, Subject-Property, Scope, Type, Unit, Op, Value, Text)) :-
+    kb:fact_property_tuple(FactId, Subject, Property, AuthoredOp, ValueType, AuthoredValue, AuthoredUnit, Scope, Polarity),
+    !,
+    kb:comparison_quantity(ValueType, AuthoredValue, AuthoredUnit, Type, Value, Unit),
+    (   polarity_operator(Polarity, AuthoredOp, Op0)
+    ->  Op = Op0
+    ;   Op = unsupported
+    ),
+    (   AuthoredUnit == ''
+    ->  format(atom(Constraint), '~w ~w', [AuthoredOp, AuthoredValue])
+    ;   format(atom(Constraint), '~w ~w ~w', [AuthoredOp, AuthoredValue, AuthoredUnit])
+    ),
+    (   Polarity == forbid
+    ->  format(atom(Text), 'forbid ~w', [Constraint])
+    ;   Text = Constraint
+    ).
+
+polarity_operator(require, Op, Op).
+polarity_operator(forbid, Op, Negated) :- negated_operator(Op, Negated).
+
+negated_operator(eq, neq).
+negated_operator(neq, eq).
+negated_operator(lt, gte).
+negated_operator(gte, lt).
+negated_operator(gt, lte).
+negated_operator(lte, gt).
+
+member_fact(m(_, _, FactId, _, _, _, _, _, _, _), FactId).
+member_owner(m(_, Owner, _, _, _, _, _, _, _, _), Owner).
+member_key(Key, m(_, _, _, Key, _, _, _, _, _, _)).
+member_scope(m(_, _, _, _, Scope, _, _, _, _, _), Scope).
+member_role(Role, m(Role, _, _, _, _, _, _, _, _, _)).
+
+assumption_matched(Assumption, Requirements) :-
+    Assumption = m(_, _, _, Key, AssumedScope, _, _, _, _, _),
+    member(m(_, _, _, Key, RequiredScope, _, _, _, _, _), Requirements),
+    kb:scope_intersects(RequiredScope, AssumedScope),
     !.
+
+% ctx(Key, Assumptions, Governing, Exempt) for one subject/property and one
+% scope context.
+scenario_context(ScenarioId, Assumptions, Requirements, ctx(Key, As, Governing, Exempt)) :-
+    findall(Key0, member(m(_, _, _, Key0, _, _, _, _, _, _), Assumptions), Keys0),
+    sort(Keys0, Keys),
+    member(Key, Keys),
+    include(member_key(Key), Assumptions, KeyAssumptions),
+    include(member_key(Key), Requirements, KeyRequirements),
+    append(KeyAssumptions, KeyRequirements, KeyMembers),
+    findall(Scope,
+        (   member(Member, KeyMembers),
+            member_scope(Member, Scope),
+            Scope \== ''
+        ),
+        Scopes0),
+    sort(Scopes0, Scopes1),
+    (   Scopes1 == []
+    ->  Scopes = ['']
+    ;   Scopes = Scopes1
+    ),
+    member(Scope, Scopes),
+    include(in_scope_context(Scope), KeyAssumptions, As),
+    As \== [],
+    include(in_scope_context(Scope), KeyRequirements, Required),
+    partition(requirement_governs(ScenarioId), Required, Governing, Exempt).
+
+in_scope_context(Context, Member) :-
+    member_scope(Member, Scope),
+    (   Scope == ''
+    ->  true
+    ;   Scope == Context
+    ).
+
+requirement_governs(ScenarioId, Member) :-
+    member_owner(Member, ReqId),
+    \+ scenario_exempt(ScenarioId, ReqId).
+
+context_results(ctx(Key, As, Governing, Exempt), Results0, Results) :-
+    findall(witness(Witness), pairwise_witness(Key, As, Governing, Witness), Pairwise),
+    append(As, Governing, Constrained),
+    (   \+ members_comparable(As)
+    ->  incomparable_facts(As, [], Ids),
+        Joint = [incomparable(Ids)]
+    ;   \+ members_satisfiable(As)
+    ->  unsat_core(As, Core),
+        maplist(member_fact, Core, Ids0),
+        sort(Ids0, Ids),
+        Joint = [contradictory(Ids)]
+    ;   \+ members_comparable(Constrained)
+    ->  incomparable_facts(As, Governing, Ids),
+        Joint = [incomparable(Ids)]
+    ;   members_satisfiable(Constrained)
+    ->  (   Exempt \== [],
+            append(Constrained, Exempt, WithExempt),
+            members_comparable(WithExempt),
+            \+ members_satisfiable(WithExempt)
+        ->  Joint = [by_exception]
+        ;   Joint = []
+        )
+    ;   Pairwise \== []
+    ->  Joint = []
+    ;   members_satisfiable(Governing)
+    ->  % Drop requirement facts first, so the core names as few
+        % requirements as possible.
+        append(Governing, As, Ordered),
+        unsat_core(Ordered, Core),
+        joint_witness(Key, Core, Witness),
+        Joint = [witness(Witness)]
+    ;   unsat_core(Governing, Core),
+        maplist(member_owner, Core, ReqIds0),
+        sort(ReqIds0, ReqIds),
+        Joint = [conflicting_requirements(ReqIds)]
+    ),
+    append([Results0, Pairwise, Joint], Results).
+
+pairwise_witness(Key, As, Governing, infeasibility([ReqId], [AssumedFact], [ReqFact], Reason)) :-
+    member(Assumption, As),
+    member(Required, Governing),
+    members_comparable([Assumption, Required]),
+    members_satisfiable([Assumption]),
+    members_satisfiable([Required]),
+    \+ members_satisfiable([Assumption, Required]),
+    member_fact(Assumption, AssumedFact),
+    member_fact(Required, ReqFact),
+    member_owner(Required, ReqId),
+    witness_reason(Key, [Assumption], [Required], Reason).
+
+joint_witness(Key, Core, infeasibility(ReqIds, AssumedFacts, ReqFacts, Reason)) :-
+    include(member_role(assumption), Core, CoreAssumptions),
+    include(member_role(requirement), Core, CoreRequirements),
+    maplist(member_fact, CoreAssumptions, AssumedFacts0),
+    sort(AssumedFacts0, AssumedFacts),
+    maplist(member_fact, CoreRequirements, ReqFacts0),
+    sort(ReqFacts0, ReqFacts),
+    maplist(member_owner, CoreRequirements, ReqIds0),
+    sort(ReqIds0, ReqIds),
+    witness_reason(Key, CoreAssumptions, CoreRequirements, Reason).
+
+witness_reason(Subject-Property, Assumptions, Requirements, Reason) :-
+    maplist(member_label, Assumptions, AssumedLabels),
+    maplist(member_label, Requirements, RequiredLabels),
+    atomic_list_concat(AssumedLabels, ', ', AssumedText),
+    atomic_list_concat(RequiredLabels, ', ', RequiredText),
+    format(atom(Reason),
+        'No value of ~w.~w satisfies assumed ~w together with required ~w',
+        [Subject, Property, AssumedText, RequiredText]).
+
+member_label(m(_, _, FactId, _, _, _, _, _, _, Text), Label) :-
+    format(atom(Label), '~w (~w)', [FactId, Text]).
+
+%% unsat_core(+Members, -Core)
+% Members admit no common value.  Drop each member in turn while the rest
+% still admits none; what remains is irreducible.
+unsat_core(Members, Core) :-
+    unsat_core_(Members, [], Core).
+
+unsat_core_([], Kept, Kept).
+unsat_core_([Member|Rest], Kept, Core) :-
+    append(Kept, Rest, Others),
+    (   \+ members_satisfiable(Others)
+    ->  unsat_core_(Rest, Kept, Core)
+    ;   append(Kept, [Member], Kept1),
+        unsat_core_(Rest, Kept1, Core)
+    ).
+
+%% members_comparable(+Members)
+% Every member can be translated, and every two members have compatible
+% types (equal, or int and number) and compatible canonical units (equal,
+% or one unspecified).
+members_comparable(Members) :-
+    forall(member(Member, Members), member_translatable(Member)),
+    forall(
+        (   select(Left, Members, Others),
+            member(Right, Others)
+        ),
+        members_compatible(Left, Right)
+    ).
+
+member_translatable(m(_, _, _, _, _, Type, _, Op, Value, _)) :-
+    (   kb:is_numeric_type(Type)
+    ->  number(Value),
+        memberchk(Op, [eq, neq, lt, lte, gt, gte])
+    ;   memberchk(Op, [eq, neq])
+    ).
+
+members_compatible(m(_, _, _, _, _, TypeA, UnitA, _, _, _), m(_, _, _, _, _, TypeB, UnitB, _, _, _)) :-
+    kb:compatible_types(TypeA, TypeB),
+    kb:unit_compatible(UnitA, UnitB).
+
+% Assumptions that cannot be translated or are incompatible with another
+% member; when the incompatibility lies elsewhere, every assumption of the
+% context is undecided.
+incomparable_facts(As, Others, Ids) :-
+    append(As, Others, Members),
+    include(assumption_incomparable(Members), As, Incomparable),
+    (   Incomparable == []
+    ->  maplist(member_fact, As, Ids0)
+    ;   maplist(member_fact, Incomparable, Ids0)
+    ),
+    sort(Ids0, Ids).
+
+assumption_incomparable(Members, Assumption) :-
+    member(Other, Members),
+    Other \== Assumption,
+    \+ members_compatible(Assumption, Other),
+    !.
+assumption_incomparable(_, Assumption) :-
+    \+ member_translatable(Assumption).
+
+%% members_satisfiable(+Members)
+% Some value satisfies every member.  Members must be comparable.  Numeric
+% members are decided by intervals.pl over the integers only when every
+% member is declared int; other types support eq and neq.
+members_satisfiable([]) :- !.
+members_satisfiable(Members) :-
+    Members = [m(_, _, _, _, _, Type, _, _, _, _)|_],
+    (   kb:is_numeric_type(Type)
+    ->  maplist(member_constraint(Variable), Members, Constraints),
+        (   forall(member(m(_, _, _, _, _, MemberType, _, _, _, _), Members), MemberType == int)
+        ->  Integers = [Variable]
+        ;   Integers = []
+        ),
+        numeric_constraints_satisfiable(Constraints, Integers)
+    ;   symbolic_members_satisfiable(Type, Members)
+    ).
+
+member_constraint(Variable, m(_, _, _, _, _, _, _, Op, Value, _), c(Op, Variable, Value)).
+
+symbolic_members_satisfiable(Type, Members) :-
+    findall(Value, member(m(_, _, _, _, _, _, _, eq, Value, _), Members), Equal0),
+    sort(Equal0, Equal),
+    findall(Value, member(m(_, _, _, _, _, _, _, neq, Value, _), Members), Different0),
+    sort(Different0, Different),
+    symbolic_values_satisfiable(Type, Equal, Different).
+
+% At most one required value, not excluded; with none required, a bool
+% property still needs one of true and false left.  Two different required
+% values never hold together.
+symbolic_values_satisfiable(_, [Value], Different) :-
+    \+ value_excluded(Value, Different).
+symbolic_values_satisfiable(Type, [], Different) :-
+    \+ bool_domain_exhausted(Type, Different).
+
+value_excluded(Value, Different) :-
+    member(Excluded, Different),
+    Excluded == Value,
+    !.
+
+bool_domain_exhausted(bool, Different) :-
+    maplist(bool_atom, Different, Atoms),
+    memberchk(true, Atoms),
+    memberchk(false, Atoms).
+
+bool_atom(Value, Atom) :-
+    (   atom(Value) -> Atom = Value
+    ;   string(Value) -> atom_string(Atom, Value)
+    ;   Atom = Value
+    ).
 
 %% check_scenario_feasibility_unknown(-Violations)
 % implements REQ-kibi-scenario-feasibility
@@ -734,12 +1091,30 @@ scenario_feasibility_unknown_violation(violation(
 unknown_feasibility_text(no_assumptions,
     "Scenario expects success but assumes nothing, so its feasibility against current requirements is unknown",
     "Link the property values the scenario relies on with assumes facts so feasibility can be checked").
+unknown_feasibility_text(contradictory_assumptions(FactIds), Description,
+    "Correct the assumed facts so they can hold together; a scenario whose assumptions contradict each other describes no situation") :-
+    atomic_list_concat(FactIds, ', ', FactText),
+    format(string(Description),
+        "Scenario expects success but its feasibility is unknown: assumptions ~w cannot hold together",
+        [FactText]).
 unknown_feasibility_text(unmatched_assumption(FactIds), Description,
     "Constrain the assumed subject and property with a current requirement, or correct the assumed fact's subject_key/property_key") :-
     atomic_list_concat(FactIds, ', ', FactText),
     format(string(Description),
         "Scenario expects success but its feasibility is unknown: assumption ~w is not constrained by any current requirement",
         [FactText]).
+unknown_feasibility_text(incomparable_assumption(FactIds), Description,
+    "Align the value_type and unit of the assumed fact with the requirement facts on that property (int and number compare; units must match or be convertible), and use eq or neq for non-numeric values") :-
+    atomic_list_concat(FactIds, ', ', FactText),
+    format(string(Description),
+        "Scenario expects success but its feasibility is unknown: assumption ~w cannot be compared with the requirement constraints on its property (type, unit or operator mismatch)",
+        [FactText]).
+unknown_feasibility_text(conflicting_requirements(ReqIds), Description,
+    "Resolve the conflict between these requirements (see the contradiction checks) before judging the scenario") :-
+    atomic_list_concat(ReqIds, ', ', ReqText),
+    format(string(Description),
+        "Scenario expects success but its feasibility is unknown: requirements ~w admit no common value for an assumed property",
+        [ReqText]).
 
 %% check_req_status_vocabulary(-Violations)
 % Rejects requirement statuses outside the canonical+legacy vocabulary.
@@ -1108,16 +1483,19 @@ what_if_witnesses(Contradictions, Infeasible) :-
 scenario_infeasibility_witness(_{
     kind: scenario_feasibility,
     status: infeasible,
-    requirements: [ReqId],
+    requirements: ReqIds,
     scenario: ScenarioId,
-    assumedFact: AssumedFact,
-    requirementFact: ReqFact,
+    assumedFacts: AssumedFacts,
+    requirementFacts: ReqFacts,
     reason: ReasonText
 }) :-
-    infeasible_scenario(ScenarioId, ReqId, AssumedFact, ReqFact, Reason),
+    infeasible_scenario(ScenarioId, ReqIds, AssumedFacts, ReqFacts, Reason),
+    atomic_list_concat(AssumedFacts, ', ', AssumedText),
+    atomic_list_concat(ReqIds, ', ', ReqText),
+    atomic_list_concat(ReqFacts, ', ', ReqFactText),
     format(string(ReasonText),
         "Scenario ~w expects success but assumes ~w, which ~w forbids via ~w: ~w",
-        [ScenarioId, AssumedFact, ReqId, ReqFact, Reason]).
+        [ScenarioId, AssumedText, ReqText, ReqFactText, Reason]).
 
 what_if_witness_absent(Witnesses, Witness) :-
     what_if_witness_key(Witness, Key),
@@ -1133,10 +1511,12 @@ what_if_witness_key(Witness, key(Kind, Status, Requirements, Facts, Scenario)) :
             get_dict(Side, Witness, SideDict),
             is_dict(SideDict),
             get_dict(factId, SideDict, FactId)
-        ;   member(Field, [assumedFact, requirementFact]),
-            get_dict(Field, Witness, FactId)
+        ;   member(Field, [assumedFacts, requirementFacts]),
+            get_dict(Field, Witness, FieldFacts),
+            member(FactId, FieldFacts)
         ),
-        Facts).
+        Facts0),
+    sort(Facts0, Facts).
 
 witness_field(Witness, Field, Value) :-
     (   get_dict(Field, Witness, Value0) -> Value = Value0 ; Value = none ).
@@ -1220,6 +1600,51 @@ rule_contradiction_witness(Witness) :-
         right: Right,
         comparison: Comparison
     }.
+
+%% check_rule_key_arguments_missing(-Violations)
+% implements REQ-kibi-truthful-consistency
+% Advisory: an opposing rule pair that stays unresolved only because a body
+% predicate declares no key_arguments.  Without the declaration the
+% predicate is multivalued, so atoms of the two bodies are never read as the
+% same fact; declaring the listed key positions would decide the pair.  The
+% finding names the requirements, the rule facts, the predicate
+% (namespace:name/arity) and the deciding key positions (with argument names
+% when a predicate_schema exists).  It never claims the predicate is
+% functional: a genuinely multivalued predicate should stay undeclared.
+check_rule_key_arguments_missing(Violations) :-
+    functional_predicate_declarations(Functional),
+    findall(Violation, rule_key_arguments_missing_violation(Functional, Violation), Unsorted),
+    sort(Unsorted, Violations).
+
+rule_key_arguments_missing_violation(Functional, violation(
+    'rule-key-arguments-missing',
+    EntityId,
+    Description,
+    Suggestion,
+    ""
+)) :-
+    opposing_rule_requirement_facts(ReqA, ReqB, FactA, FactB, RuleA, RuleB),
+    logic_rule_missing_keys(RuleA, RuleB, Functional, Missing),
+    member(missing_keys(Namespace, Name, Arity, KeySets), Missing),
+    format(string(EntityId), "~w/~w", [ReqA, ReqB]),
+    maplist(key_set_text(Namespace, Name, Arity), KeySets, KeyTexts),
+    atomic_list_concat(KeyTexts, ' or ', KeyText),
+    format(string(Description),
+        "Opposing rules ~w (~w) and ~w (~w) stay unresolved because predicate ~w:~w/~w declares no key_arguments; declaring key_arguments ~w would decide the pair",
+        [FactA, ReqA, FactB, ReqB, Namespace, Name, Arity, KeyText]),
+    format(string(Suggestion),
+        "If the remaining arguments of ~w:~w/~w are determined by ~w, add key_arguments to its predicate_schema fact; if the predicate is genuinely multivalued, leave it undeclared and accept the unresolved result",
+        [Namespace, Name, Arity, KeyText]).
+
+key_set_text(Namespace, Name, Arity, Keys, Text) :-
+    (   kb:predicate_schema(_, Namespace, Name, Arity, ArgumentNames, _),
+        length(ArgumentNames, Arity)
+    ->  findall(ArgumentName, (member(Position, Keys), nth1(Position, ArgumentNames, ArgumentName)), Names),
+        atomic_list_concat(Names, ', ', NameText),
+        format(atom(Text), '[~w]', [NameText])
+    ;   atomic_list_concat(Keys, ', ', PositionText),
+        format(atom(Text), '[positions ~w]', [PositionText])
+    ).
 
 rule_conflict_side(ReqId, FactId, Side) :-
     evidence_entity_source(ReqId, req, RequirementSource),
@@ -1964,6 +2389,7 @@ check_selected_dispatch(Rules, _{
     scenario_feasibility: ScenarioFeasibility,
     scenario_feasibility_unknown: ScenarioFeasibilityUnknown,
     domain_contradictions: Contradictions,
+    rule_key_arguments_missing: RuleKeyArgumentsMissing,
     strict_fact_shape: StrictFactShape,
     strict_req_fact_pairing: StrictReqFactPairing,
     strict_readiness: StrictReadiness,
@@ -1991,6 +2417,7 @@ check_selected_dispatch(Rules, _{
     selected_rule(Rules, 'scenario-feasibility', check_scenario_feasibility, ScenarioFeasibility),
     selected_rule(Rules, 'scenario-feasibility-unknown', check_scenario_feasibility_unknown, ScenarioFeasibilityUnknown),
     selected_rule(Rules, 'domain-contradictions', check_domain_contradictions, Contradictions),
+    selected_rule(Rules, 'rule-key-arguments-missing', check_rule_key_arguments_missing, RuleKeyArgumentsMissing),
     selected_rule(Rules, 'strict-fact-shape', check_strict_fact_shape, StrictFactShape),
     selected_rule(Rules, 'strict-req-fact-pairing', check_strict_req_fact_pairing, StrictReqFactPairing),
     selected_rule(Rules, 'strict-readiness', check_strict_readiness, StrictReadiness),
@@ -2055,6 +2482,7 @@ check_all_with_options(ViolationsDict, RequireAdr) :-
     check_scenario_feasibility(ScenarioFeasibility),
     check_scenario_feasibility_unknown(ScenarioFeasibilityUnknown),
     check_domain_contradictions(Contradictions),
+    check_rule_key_arguments_missing(RuleKeyArgumentsMissing),
     check_strict_fact_shape(StrictFactShape),
     check_strict_req_fact_pairing(StrictReqFactPairing),
     check_strict_readiness(StrictReadiness),
@@ -2082,6 +2510,7 @@ check_all_with_options(ViolationsDict, RequireAdr) :-
         scenario_feasibility: ScenarioFeasibility,
         scenario_feasibility_unknown: ScenarioFeasibilityUnknown,
         domain_contradictions: Contradictions,
+        rule_key_arguments_missing: RuleKeyArgumentsMissing,
         strict_fact_shape: StrictFactShape,
         strict_req_fact_pairing: StrictReqFactPairing,
         strict_readiness: StrictReadiness,

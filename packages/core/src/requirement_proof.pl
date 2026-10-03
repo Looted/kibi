@@ -560,9 +560,9 @@ scenario_stage(ReqId, Stage, ScenarioIds) :-
         (member(ScenarioId, ScenarioTargets), \+ existing_scenario(ScenarioId)),
         InvalidScenarioTargets),
     % implements REQ-kibi-scenario-feasibility
-    % A scenario that expects success but assumes a value a current
-    % requirement forbids can never pass, so the requirement cannot be proven
-    % through it.
+    % A scenario that expects success but whose assumptions cannot hold with
+    % what current requirements require (pairwise or jointly) can never pass,
+    % so the requirement cannot be proven through it.
     findall(ScenarioId,
         (member(ScenarioId, ScenarioIds), once(infeasible_scenario(ScenarioId, _, _, _, _))),
         InfeasibleScenarios),
@@ -592,7 +592,10 @@ scenario_stage(ReqId, Stage, ScenarioIds) :-
     }.
 
 unknown_feasibility_reason(no_assumptions, no_assumptions).
+unknown_feasibility_reason(contradictory_assumptions(_), contradictory_assumptions).
 unknown_feasibility_reason(unmatched_assumption(_), unmatched_assumption).
+unknown_feasibility_reason(incomparable_assumption(_), incomparable_assumption).
+unknown_feasibility_reason(conflicting_requirements(_), conflicting_requirements).
 
 existing_scenario(ScenarioId) :-
     kb_entity(ScenarioId, scenario, _).

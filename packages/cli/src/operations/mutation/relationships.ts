@@ -2,7 +2,7 @@ import { spawnSync } from "node:child_process";
 import { escapeAtom, toPrologAtom } from "../../prolog/codec.js";
 import type { PrologPort } from "../../public/operations/runtime-types.js";
 import { parsePrologList } from "./serialization.js";
-import type { RelationshipInput } from "./types.js";
+import type { RelationshipInput, StagedUpsertState } from "./types.js";
 
 export const RELATIONSHIP_TYPES = [
   "depends_on",
@@ -199,6 +199,7 @@ export async function validateSupersedesSourceHistory(
   relationships: readonly RelationshipInput[],
   workspaceRoot: string,
   deps: SupersedesHistoryDeps = DEFAULT_SUPERSEDES_HISTORY_DEPS,
+  staged?: StagedUpsertState,
 ): Promise<void> {
   const sourceId = typeof entity.id === "string" ? entity.id : "";
   const source = typeof entity.source === "string" ? entity.source : "";
@@ -207,7 +208,10 @@ export async function validateSupersedesSourceHistory(
     if (relationship.type !== "supersedes") continue;
     const targetId = stringField(relationship, "to");
     let targetSource = "";
-    if (prolog.queryEntities) {
+    const planned = staged?.entities.get(targetId);
+    if (planned !== undefined) {
+      targetSource = typeof planned.source === "string" ? planned.source : "";
+    } else if (prolog.queryEntities) {
       const targetPage = await prolog.queryEntities({
         id: targetId,
         limit: 1,
@@ -255,9 +259,13 @@ async function endpointType(
   prolog: PrologPort,
   entity: Readonly<Record<string, unknown>>,
   endpointId: string,
+  staged?: StagedUpsertState,
 ): Promise<string | null> {
   if (endpointId === entity.id && typeof entity.type === "string")
     return entity.type;
+  const planned = staged?.entities.get(endpointId);
+  if (planned !== undefined && typeof planned.type === "string")
+    return planned.type;
   let result: Awaited<ReturnType<PrologPort["query"]>>;
   try {
     result = await prolog.query(
@@ -276,17 +284,20 @@ export async function validateLiveRelationshipTargets(
   prolog: PrologPort,
   entity: Readonly<Record<string, unknown>>,
   relationships: readonly RelationshipInput[],
+  staged?: StagedUpsertState,
 ): Promise<void> {
   for (const relationship of relationships) {
     const fromType = await endpointType(
       prolog,
       entity,
       stringField(relationship, "from"),
+      staged,
     );
     const toType = await endpointType(
       prolog,
       entity,
       stringField(relationship, "to"),
+      staged,
     );
     if (fromType === null || toType === null) continue;
     const tuple = {
@@ -301,17 +312,33 @@ export async function validateLiveRelationshipTargets(
   }
 }
 
+function plannedFactKind(
+  planned: Readonly<Record<string, unknown>>,
+): string | undefined {
+  return planned.type === "fact" && typeof planned.fact_kind === "string"
+    ? planned.fact_kind
+    : undefined;
+}
+
 export async function validateStrictLanePairing(
   prolog: PrologPort,
   relationships: readonly RelationshipInput[],
+  staged?: StagedUpsertState,
 ): Promise<void> {
   for (const relationship of relationships) {
     const target = stringField(relationship, "to");
+    // A target an earlier plan step writes is judged by that write.
+    const planned = staged?.entities.get(target);
     if (relationship.type === "requires_rule") {
-      const result = await prolog.query(
-        `once((kb_entity('${escapeAtom(target)}', fact, _RuleProps), memberchk(fact_kind=_RuleKind, _RuleProps), normalize_term_atom(_RuleKind, rule)))`,
-      );
-      if (!result.success) {
+      const isRule =
+        planned !== undefined
+          ? plannedFactKind(planned) === "rule"
+          : (
+              await prolog.query(
+                `once((kb_entity('${escapeAtom(target)}', fact, _RuleProps), memberchk(fact_kind=_RuleKind, _RuleProps), normalize_term_atom(_RuleKind, rule)))`,
+              )
+            ).success;
+      if (!isRule) {
         throw new Error(
           `Relationship 'requires_rule' requires target '${target}' to be a fact_kind=rule fact.`,
         );
@@ -325,10 +352,15 @@ export async function validateStrictLanePairing(
           ? "subject"
           : null;
     if (wrongKind === null) continue;
-    const result = await prolog.query(
-      `once((kb_entity('${escapeAtom(target)}', fact, _SlpProps), memberchk(fact_kind=_SlpFK, _SlpProps), normalize_term_atom(_SlpFK, ${wrongKind})))`,
-    );
-    if (result.success)
+    const isWrongKind =
+      planned !== undefined
+        ? plannedFactKind(planned) === wrongKind
+        : (
+            await prolog.query(
+              `once((kb_entity('${escapeAtom(target)}', fact, _SlpProps), memberchk(fact_kind=_SlpFK, _SlpProps), normalize_term_atom(_SlpFK, ${wrongKind})))`,
+            )
+          ).success;
+    if (isWrongKind)
       throw wrongKindRelationshipError(
         String(relationship.type),
         target,

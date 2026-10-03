@@ -1057,12 +1057,36 @@ describe("compile plan remaining commit and readback paths", () => {
   test("forwards upsert effectFailures and rethrows compiled failures without a journal", async () => {
     // implements REQ-014
     const root = makeTempDir();
-    const plan = compilePlan({
+    // A step whose properties are not a record has no title, so the
+    // preflight refuses it before executeUpsert is ever reached.
+    const malformed = compilePlan({
       steps: [
         {
           type: "req",
           id: "REQ-apply",
           properties: "not-a-record" as unknown as Record<string, unknown>,
+          relationships: [],
+        },
+      ],
+    });
+    const neverCalled = spyOn(upsertModule, "executeUpsert");
+    track(neverCalled);
+    await expect(
+      executeApplyPlan(
+        { plan: malformed, approvedPlanHash: malformed.planHash },
+        filesystemContext(root),
+      ),
+    ).rejects.toThrow(
+      /failed before any write: step REQ-apply is invalid: .*title/,
+    );
+    expect(neverCalled).not.toHaveBeenCalled();
+    restoreLastSpy();
+    const plan = compilePlan({
+      steps: [
+        {
+          type: "req",
+          id: "REQ-apply",
+          properties: { title: "Apply", status: "open" },
           relationships: [
             "skip-me" as unknown as { type: string; from: string; to: string },
             {

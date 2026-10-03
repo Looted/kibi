@@ -300,8 +300,8 @@ describe("kb_compile_intent", () => {
       status: "infeasible",
       requirements: ["REQ-QUOTA"],
       scenario: "SCEN-ZERO",
-      assumedFact: "FACT-ZERO",
-      requirementFact: "FACT-POSITIVE",
+      assumedFacts: ["FACT-ZERO"],
+      requirementFacts: ["FACT-POSITIVE"],
       reason: "Scenario SCEN-ZERO expects success but assumes FACT-ZERO",
     };
     const preExisting = {
@@ -347,8 +347,8 @@ describe("kb_compile_intent", () => {
     ]);
     expect(analysisOut.witnesses[1]).toMatchObject({
       scenario: "SCEN-ZERO",
-      assumedFact: "FACT-ZERO",
-      requirementFact: "FACT-POSITIVE",
+      assumedFacts: ["FACT-ZERO"],
+      requirementFacts: ["FACT-POSITIVE"],
     });
     expect(analysisOut.witnesses[0]?.left).toEqual({ factId: "FACT-X" });
     expect(analysisOut.introduced).toHaveLength(2);

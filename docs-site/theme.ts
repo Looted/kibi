@@ -1063,7 +1063,7 @@ export function landingContent(args: {
     </details>
     <details>
       <summary>What happens when an agent edits code a requirement owns?</summary>
-      <p>In Claude Code, the edit hook names the requirement the file implements, what it must keep true (from its linked facts), and the decision behind it (its ADR), before the change is made. Afterwards <code>kb_check</code> reports conflicts it can decide and says when an analysis is incomplete instead of calling it clean. A scenario that assumes something a current requirement forbids is flagged and blocks proof.</p>
+      <p>In Claude Code, the edit hook names the requirement the file implements, what it must keep true (from its linked facts), and the decision behind it (its ADR), before the change is made. Afterwards <code>kb_check</code> reports conflicts it can decide and says when an analysis is incomplete instead of calling it clean. A scenario that assumes something a current requirement forbids, on its own or only in combination with its other assumptions, is flagged and blocks proof.</p>
     </details>
     <details>
       <summary>What counts as proven?</summary>

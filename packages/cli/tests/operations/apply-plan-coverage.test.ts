@@ -10,6 +10,7 @@ import {
 import os from "node:os";
 import path from "node:path";
 
+import { LOGIC_IR_VERSION, validateLogicIr } from "../../src/logic/ir.js";
 import {
   executeApplyPlan,
   orderBootstrapActions,
@@ -487,6 +488,183 @@ describe("compile plan application", () => {
     await expect(
       executeApplyPlan({ plan, approvedPlanHash: plan.planHash }, context),
     ).rejects.toThrow(/failed before any write: step SCEN-apply is invalid/);
+    expect(commits()).toBe(0);
+  });
+
+  // implements REQ-kibi-truthful-consistency
+  // A store that holds only what the plan's committed steps wrote, so a
+  // lookup of an entity no step has committed yet fails.
+  function stagedStoreContext(
+    root: string,
+    ids: readonly string[],
+  ): { context: OperationContext; commits: () => number } {
+    const stored = new Set<string>();
+    let commits = 0;
+    const context = filesystemContext(root, {
+      query: {
+        query: async (goal): Promise<PrologQueryResult> => {
+          if (isWhatIfGoal(goal)) return whatIfResult();
+          if (goal.includes("kb_commit_upsert")) {
+            commits += 1;
+            for (const id of ids) if (goal.includes(id)) stored.add(id);
+            return { success: true, bindings: { ChangeKind: "created" } };
+          }
+          const lookup = /kb_entity\('([^']+)'/.exec(goal);
+          if (lookup?.[1] !== undefined)
+            return {
+              success: stored.has(lookup[1]),
+              bindings: { Results: "[]", Type: "fact" },
+            };
+          return { success: true, bindings: { Results: "[]" } };
+        },
+        queryStatusJson: async () => ({ success: true, bindings: {} }),
+        nextSolution: async () => null,
+        save: async () => ({ success: true, bindings: {} }),
+      },
+    });
+    return { context, commits: () => commits };
+  }
+
+  const retainRule = {
+    version: LOGIC_IR_VERSION,
+    kind: "rule",
+    modality: "oblige",
+    variables: [{ name: "X", type: "entity" }],
+    head: {
+      kind: "atom",
+      name: "retain",
+      args: [{ kind: "var", name: "X", type: "entity" }],
+    },
+    body: {
+      kind: "atom",
+      name: "customer",
+      args: [{ kind: "var", name: "X", type: "entity" }],
+    },
+  } as const;
+
+  function ruleFactStep(id: string): CompilePlanV1["steps"][number] {
+    const validation = validateLogicIr(retainRule);
+    return {
+      type: "fact",
+      id,
+      properties: {
+        title: "Retain customers rule",
+        status: "active",
+        fact_kind: "rule",
+        rule_ir: retainRule,
+        rule_hash: validation.ruleHash,
+        rule_schema_id: "FACT-RULE-SCHEMA-LOGIC-V1",
+        rule_name: "kibi.logic.v1",
+        semantic_key: validation.semanticKey,
+      },
+      relationships: [],
+    };
+  }
+
+  function ruledRequirementStep(
+    target: string,
+    type = "requires_rule",
+  ): CompilePlanV1["steps"][number] {
+    return {
+      type: "req",
+      id: "REQ-ruled",
+      properties: { title: "Retain customers", status: "open" },
+      relationships: [{ type, from: "REQ-ruled", to: target }],
+    };
+  }
+
+  test("refuses a plan whose later step fails the upsert validation chain with zero writes", async () => {
+    const root = makeTempDir();
+    const valid = sourceWritingPlan();
+    const plan = compilePlan({
+      steps: [
+        ...valid.steps,
+        {
+          type: "req",
+          id: "REQ-normative",
+          properties: {
+            title: "Token expiry",
+            status: "open",
+            // Current normative prose without its proposition inventory.
+            semantic_text: "The service must reject expired tokens.",
+          },
+          relationships: [],
+        },
+      ],
+      sourceWrites: valid.sourceWrites,
+    });
+    const { context, commits } = preflightContext(root, {});
+    await expect(
+      executeApplyPlan({ plan, approvedPlanHash: plan.planHash }, context),
+    ).rejects.toThrow(
+      /failed before any write: step REQ-normative is invalid: Proposition-complete ingestion failed/,
+    );
+    expect(commits()).toBe(0);
+    expect(existsSync(path.join(root, "requirements", "REQ-apply.md"))).toBe(
+      false,
+    );
+  });
+
+  test("lets a step target an entity an earlier step of the plan creates", async () => {
+    const root = makeTempDir();
+    const ids = ["FACT-RULE-NEW", "REQ-ruled"];
+    const plan = compilePlan({
+      steps: [
+        ruleFactStep("FACT-RULE-NEW"),
+        ruledRequirementStep("FACT-RULE-NEW"),
+      ],
+    });
+    const { context, commits } = stagedStoreContext(root, ids);
+    const result = await executeApplyPlan(
+      { plan, approvedPlanHash: plan.planHash },
+      context,
+    );
+    expect(result.structuredContent).toMatchObject({ outcome: "applied" });
+    expect(commits()).toBe(2);
+
+    // Without the creating step the target is missing and nothing is written.
+    const orphan = compilePlan({
+      steps: [ruledRequirementStep("FACT-RULE-NEW")],
+    });
+    const fresh = stagedStoreContext(makeTempDir(), ids);
+    await expect(
+      executeApplyPlan(
+        { plan: orphan, approvedPlanHash: orphan.planHash },
+        fresh.context,
+      ),
+    ).rejects.toThrow(
+      /failed before any write: step REQ-ruled is invalid: .*FACT-RULE-NEW.*fact_kind=rule/,
+    );
+    expect(fresh.commits()).toBe(0);
+  });
+
+  test("judges a plan-created target by the kind the plan gives it", async () => {
+    const root = makeTempDir();
+    const plan = compilePlan({
+      steps: [
+        {
+          type: "fact",
+          id: "FACT-SUBJECT-NEW",
+          properties: {
+            title: "Client quota",
+            status: "active",
+            fact_kind: "subject",
+            subject_key: "client.quota",
+          },
+          relationships: [],
+        },
+        ruledRequirementStep("FACT-SUBJECT-NEW", "requires_property"),
+      ],
+    });
+    const { context, commits } = stagedStoreContext(root, [
+      "FACT-SUBJECT-NEW",
+      "REQ-ruled",
+    ]);
+    await expect(
+      executeApplyPlan({ plan, approvedPlanHash: plan.planHash }, context),
+    ).rejects.toThrow(
+      /failed before any write: step REQ-ruled is invalid: Relationship 'requires_property' requires target 'FACT-SUBJECT-NEW'/,
+    );
     expect(commits()).toBe(0);
   });
 

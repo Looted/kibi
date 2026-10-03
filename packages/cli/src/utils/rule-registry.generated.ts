@@ -65,14 +65,21 @@ export const GENERATED_RULES = [
   {
     name: "scenario-feasibility",
     description:
-      "A scenario that expects success must not assume a property value a current requirement forbids, unless an approved exception requirement exempts it",
+      "A scenario that expects success must not assume property values that cannot hold, alone or together, with what current requirements require, unless an approved exception requirement exempts the requirement",
     enforcementClass: "canonical",
     category: "integrity",
   },
   {
     name: "scenario-feasibility-unknown",
     description:
-      "Advisory: a scenario that expects success assumes nothing, or assumes a property value no current requirement constrains, so its feasibility cannot be decided",
+      "Advisory: a scenario that expects success assumes nothing, assumes values that contradict each other, or assumes a property value no current requirement constrains comparably (type, unit or operator mismatch, or conflicting requirements), so its feasibility cannot be decided",
+    enforcementClass: "advisory",
+    category: "integrity",
+  },
+  {
+    name: "rule-key-arguments-missing",
+    description:
+      "Advisory: an opposing rule pair stays unresolved only because a body predicate declares no key_arguments; the finding names the predicate and the key positions that would decide the pair",
     enforcementClass: "advisory",
     category: "integrity",
   },

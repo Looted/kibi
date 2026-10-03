@@ -29,7 +29,6 @@ import {
   bootstrapPlanHash,
 } from "../bootstrap/types.js";
 import { executeDelete } from "../mutation/delete.js";
-import { validateRelationshipSources } from "../mutation/relationships.js";
 import {
   retirePendingSourceReceipt,
   writePendingSourceReceipt,
@@ -39,8 +38,7 @@ import type {
   RelationshipInput,
   UpsertInput,
 } from "../mutation/types.js";
-import { executeUpsert } from "../mutation/upsert.js";
-import { validateUpsertInput } from "../mutation/validation.js";
+import { executeUpsert, validateUpsertForCommit } from "../mutation/upsert.js";
 import {
   type WorkspaceMutationLockHandle,
   acquireWorkspaceMutationLock,
@@ -1604,22 +1602,46 @@ async function executeApplyPlanUnlocked(
   );
   const steps = args.plan.steps.map((step) => asUpsert(step));
   // implements REQ-kibi-truthful-consistency
-  // Validate every step, then stage all of them together in a rolled-back
-  // transaction before the first write. A step the store would reject, or a
-  // final state that introduces a contradiction or an infeasible success
-  // scenario, fails the whole plan up front instead of after earlier steps
-  // have committed.
+  // Run every step through the same validation chain executeUpsert runs,
+  // then stage all of them together in a rolled-back transaction, before the
+  // first write. A step executeUpsert would reject, or a final state that
+  // introduces a contradiction or an infeasible success scenario, fails the
+  // whole plan up front instead of after earlier steps have committed.
+  //
+  // Each step is validated against the live store plus what the earlier steps
+  // will have written by then (`staged`): entities they create count as
+  // relationship targets, their kinds and claim keys are read from the plan,
+  // their relationships merge into a later upsert of the same entity, and
+  // their predicate schemas govern later predicate facts. Limits of this
+  // emulation, where execution re-validates each step anyway:
+  // - symbol granularity reads source code from the workspace as it is now;
+  //   the plan's sourceWrites (applied after this preflight) are not
+  //   overlaid, so a step whose sourceFile the plan itself rewrites is judged
+  //   against the current bytes;
+  // - staged entities are the validated plan payloads; fields executeUpsert
+  //   derives while committing (canonical symbol re-extraction, source paths
+  //   chosen by source-first authoring) are not reproduced, and this runtime
+  //   applies compile plans with sourceFirst disabled, so neither arises here;
+  // - state written concurrently by another writer between this preflight
+  //   and a step's execution is not seen; in a filesystem-capable runtime
+  //   the workspace mutation lock kb_apply_plan holds keeps such writers out.
   const now = context.clock();
+  const stagedEntities = new Map<string, Readonly<Record<string, unknown>>>();
+  const stagedRelationships: RelationshipInput[] = [];
   for (const step of steps) {
     try {
-      const validated =
-        Object.keys(step.properties ?? {}).length > 0
-          ? validateUpsertInput(step, now)
-          : undefined;
-      validateRelationshipSources(
-        step.id,
-        validated?.relationships ?? step.relationships ?? [],
+      const { validated } = await validateUpsertForCommit(
+        step,
+        operationContext,
+        {
+          staged: {
+            entities: stagedEntities,
+            relationships: [...stagedRelationships],
+          },
+        },
       );
+      stagedEntities.set(step.id, validated.entity);
+      stagedRelationships.push(...validated.relationships);
     } catch (error) {
       throw new Error(
         `Apply plan failed before any write: step ${step.id} is invalid: ${error instanceof Error ? error.message : String(error)}`,

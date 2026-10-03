@@ -2571,8 +2571,8 @@ req_conflict_witness(ReqA, ReqB, Witness) :-
     intervals_overlap(ValidFromA, ValidToA, ValidFromB, ValidToB),
     % Compare canonical quantities (30 min == 1800 s); witnesses keep the
     % authored values so evidence still points at the source text.
-    canonical_quantity(ValTypeA, ValA, UnitA, CanonTypeA, CanonValA, CanonUnitA),
-    canonical_quantity(ValTypeB, ValB, UnitB, CanonTypeB, CanonValB, CanonUnitB),
+    comparison_quantity(ValTypeA, ValA, UnitA, CanonTypeA, CanonValA, CanonUnitA),
+    comparison_quantity(ValTypeB, ValB, UnitB, CanonTypeB, CanonValB, CanonUnitB),
     (   polarity_conflict(SubjectKey, PropertyKey, OpA, CanonTypeA, CanonValA, CanonUnitA, ScopeA, PolarityA,
                           OpB, CanonTypeB, CanonValB, CanonUnitB, ScopeB, PolarityB, Reason)
     ;   property_conflict(SubjectKey, PropertyKey, OpA, CanonTypeA, CanonValA, CanonUnitA, PolarityA,
@@ -2729,6 +2729,21 @@ fact_property_tuple(FactId, Subject, Property, Op, ValType, Value, Unit, Scope, 
 canonical_property_tuple(FactId, Subject, Property, Op, CanonType, CanonValue, CanonUnit, Scope, Polarity) :-
     fact_property_tuple(FactId, Subject, Property, Op, ValType, Value, Unit, Scope, Polarity),
     canonical_quantity(ValType, Value, Unit, CanonType, CanonValue, CanonUnit).
+
+%% comparison_quantity(+ValType, +Value, +Unit, -Type, -CanonValue, -CanonUnit)
+% implements REQ-kibi-truthful-consistency
+% canonical_quantity/6 for comparisons that depend on the value domain.
+% Canonicalization reports any integral value as int, but a value declared
+% `number` keeps real semantics: number gt 0 and number lt 1 do not conflict
+% even though 0 and 1 are integral.  An int that scales to a fraction
+% (int 1 ms is 0.001 s) is compared as a number, which only admits more
+% values.
+comparison_quantity(ValType, Value, Unit, Type, CanonValue, CanonUnit) :-
+    canonical_quantity(ValType, Value, Unit, CanonType, CanonValue, CanonUnit),
+    (   ValType == number, CanonType == int
+    ->  Type = number
+    ;   Type = CanonType
+    ).
 
 %% predicate_schema(+FactId, -Namespace, -Name, -Arity, -ArgumentNames, -ArgumentTypes)
 % Read one project-local ontology predicate schema fact.

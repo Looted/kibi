@@ -3590,6 +3590,15 @@ test(integer_properties_conflict_when_no_integer_satisfies_both) :-
     assertion(kb:conflict_value_type(int, number, number)),
     assertion(kb:conflict_value_type(int, int, int)).
 
+test(number_requirements_keep_real_semantics_after_unit_canonicalization, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    % Canonicalization turns an integral number into an int; the declared
+    % number domain must survive it, so gt 0 and lt 1 do not conflict.
+    numeric_requirement_pair(number, value_number, NumberWitnesses),
+    assertion(NumberWitnesses == []),
+    cleanup_kb, setup_kb,
+    numeric_requirement_pair(int, value_int, IntWitnesses),
+    assertion(IntWitnesses = [_]).
+
 test(integer_ranges_with_exclusions) :-
     assertion(\+ intervals:numeric_constraints_satisfiable([c(gte, X, 1), c(lte, X, 1), c(neq, X, 1)], all)),
     assertion(\+ intervals:numeric_constraints_satisfiable([c(gte, X, 1), c(lte, X, 2), c(neq, X, 1), c(neq, X, 2)], all)),
@@ -3727,7 +3736,49 @@ test(same_variable_comparisons_are_decided_exactly) :-
             assertion(Op-Status == Op-Expected)
         )).
 
-test(variant_bodies_contradict_regardless_of_comparisons) :-
+test(variant_bodies_contradict_only_when_the_body_can_hold) :-
+    % Identical (and alpha-renamed) satisfiable bodies share every instance.
+    ir_reading_rule(permit, gt, 'X', Permit),
+    ir_reading_rule(forbid, gt, 'X', Forbid),
+    ir_reading_rule(forbid, gt, 'Y', RenamedForbid),
+    logic_ir:logic_rule_conflict(Permit, Forbid, [], Status),
+    logic_ir:logic_rule_conflict(Permit, RenamedForbid, [], RenamedStatus),
+    assertion(Status == contradiction),
+    assertion(RenamedStatus == contradiction).
+
+test(variant_bodies_with_impossible_bounds_are_disjoint) :-
+    forall(member(Name, ['X', 'Y']),
+        (   ir_bounded_rule(permit, 'X', money, gt-0, lt-0, Permit),
+            ir_bounded_rule(forbid, Name, money, gt-0, lt-0, Forbid),
+            logic_ir:logic_rule_conflict(Permit, Forbid, [], Status),
+            assertion(Name-Status == Name-disjoint)
+        )),
+    % X < X never holds, so a body containing it has no instance.
+    ir_var('C', cart, C), ir_var('X', money, X),
+    ir_atom(act, [C], Head), ir_atom(reading, [C, X], ReadX), ir_cmp(lt, X, X, Self),
+    Body = _{kind:all, items:[ReadX, Self]},
+    ir_rule(permit, ['C'-cart, 'X'-money], Head, Body, SelfPermit),
+    ir_rule(forbid, ['C'-cart, 'X'-money], Head, Body, SelfForbid),
+    logic_ir:logic_rule_conflict(SelfPermit, SelfForbid, [], SelfStatus),
+    assertion(SelfStatus == disjoint).
+
+test(variant_bodies_with_contradictory_functional_values_are_disjoint) :-
+    ir_var('C', cart, C), ir_num(1, One), ir_num(2, Two),
+    ir_atom(act, [C], Head),
+    ir_atom(reading, [C, One], ReadOne), ir_atom(reading, [C, Two], ReadTwo),
+    Body = _{kind:all, items:[ReadOne, ReadTwo]},
+    ir_rule(permit, ['C'-cart], Head, Body, Permit),
+    ir_rule(forbid, ['C'-cart], Head, Body, Forbid),
+    % A cart has one reading when reading/2 is keyed on it ...
+    logic_ir:logic_rule_conflict(Permit, Forbid, [functional(default, reading, 2, [1])], KeyedStatus),
+    assertion(KeyedStatus == disjoint),
+    % ... and may have both readings when it is not.
+    logic_ir:logic_rule_conflict(Permit, Forbid, [], MultiStatus),
+    assertion(MultiStatus == contradiction).
+
+test(variant_bodies_with_untranslatable_comparisons_stay_unresolved) :-
+    % X < Z relates two variables; the fragment cannot tell whether the body
+    % has an instance, so even identical rules are not a contradiction.
     ir_var('C', cart, C), ir_var('X', money, X), ir_var('Z', money, Z),
     ir_atom(act, [C], Head),
     ir_atom(reading, [C, X], ReadX), ir_atom(limit, [C, Z], LimitZ),
@@ -3737,7 +3788,20 @@ test(variant_bodies_contradict_regardless_of_comparisons) :-
     ir_rule(permit, Variables, Head, Body, Permit),
     ir_rule(forbid, Variables, Head, Body, Forbid),
     logic_ir:logic_rule_conflict(Permit, Forbid, [], Status),
-    assertion(Status == contradiction).
+    assertion(Status == unresolved).
+
+test(variant_bodies_with_mixed_integer_declarations_stay_unresolved) :-
+    % 0 < N < 1 is empty for an int N but not for a number N: one rule never
+    % applies, the other may, so neither verdict is certain.
+    ir_bounded_rule(permit, 'N', int, gt-0, lt-1, PermitInt),
+    ir_bounded_rule(forbid, 'N', number, gt-0, lt-1, ForbidNumber),
+    ir_bounded_rule(forbid, 'N', int, gt-0, lt-1, ForbidInt),
+    logic_ir:logic_rule_conflict(PermitInt, ForbidNumber, [], MixedStatus),
+    logic_ir:logic_rule_conflict(ForbidNumber, PermitInt, [], SwappedStatus),
+    logic_ir:logic_rule_conflict(PermitInt, ForbidInt, [], IntStatus),
+    assertion(MixedStatus == unresolved),
+    assertion(SwappedStatus == unresolved),
+    assertion(IntStatus == disjoint).
 
 test(integer_typed_rule_variables_use_integer_bounds) :-
     Functional = [functional(default, reading, 2, [1])],
@@ -3749,6 +3813,73 @@ test(integer_typed_rule_variables_use_integer_bounds) :-
     ir_typed_reading_rule(forbid, lt, 1, 'M', money, ForbidReal),
     logic_ir:logic_rule_conflict(PermitReal, ForbidReal, Functional, RealStatus),
     assertion(RealStatus == unresolved).
+
+test(shared_variables_are_integral_only_when_every_declaration_is_int) :-
+    % The functional reading identifies N (int, N > 0) with N (number, N < 1):
+    % 0.5 satisfies the number declaration, so the pair is not disjoint
+    % whichever rule is compared first.
+    Functional = [functional(default, reading, 2, [1])],
+    ir_typed_reading_rule(permit, gt, 0, 'N', int, PermitInt),
+    ir_typed_reading_rule(forbid, lt, 1, 'N', number, ForbidNumber),
+    ir_typed_reading_rule(permit, gt, 0, 'N', number, PermitNumber),
+    ir_typed_reading_rule(forbid, lt, 1, 'N', int, ForbidInt),
+    forall(member(A-B, [PermitInt-ForbidNumber, ForbidNumber-PermitInt,
+                        PermitNumber-ForbidInt, ForbidInt-PermitNumber]),
+        (   logic_ir:logic_rule_conflict(A, B, Functional, MixedStatus),
+            assertion(MixedStatus \== disjoint)
+        )),
+    logic_ir:logic_rule_conflict(PermitInt, ForbidInt, Functional, IntStatus),
+    logic_ir:logic_rule_conflict(ForbidInt, PermitInt, Functional, SwappedIntStatus),
+    assertion(IntStatus == disjoint),
+    assertion(SwappedIntStatus == disjoint).
+
+test(missing_key_arguments_are_named_only_when_they_would_decide_the_pair) :-
+    consistency_rule(forbid, initiate_checkout, [v('C', cart)], positive_total_precondition, Forbid),
+    consistency_rule(permit, initiate_checkout, [v('C', cart)], positive_total_success, Positive),
+    logic_ir:logic_rule_missing_keys(Forbid, Positive, [], Missing),
+    assertion(Missing == [missing_keys(default, final_payable_total, 2, [[1]])]),
+    % Once declared, the pair is decided and nothing is missing.
+    logic_ir:logic_rule_missing_keys(Forbid, Positive, [functional(default, final_payable_total, 2, [1])], Declared),
+    assertion(Declared == []),
+    % X < Z keeps the pair unresolved whatever is declared.
+    ir_var('C', cart, C), ir_var('X', money, X), ir_var('Y', money, Y), ir_var('Z', money, Z),
+    ir_atom(act, [C], Head),
+    ir_atom(reading, [C, X], ReadX), ir_atom(limit, [C, Z], LimitZ), ir_atom(reading, [C, Y], ReadY),
+    ir_cmp(lt, X, Z, XltZ),
+    ir_rule(permit, ['C'-cart, 'X'-money, 'Z'-money], Head, _{kind:all, items:[ReadX, LimitZ, XltZ]}, Permit),
+    ir_rule(forbid, ['C'-cart, 'Y'-money], Head, ReadY, ForbidReading),
+    logic_ir:logic_rule_missing_keys(Permit, ForbidReading, [], Undecidable),
+    assertion(Undecidable == []).
+
+test(rule_key_arguments_missing_is_an_advisory_check, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    consistency_rule_dict(forbid, initiate_checkout, [v('C', cart)], positive_total_precondition, ForbidDict),
+    consistency_rule_dict(permit, initiate_checkout, [v('C', cart)], positive_total_success, PermitDict),
+    assert_rule_requirement(ForbidDict, 'FACT-FORBID-RULE', 'REQ-FORBID-RULE', "CLAIM-AAAAAAAAAAAAAAAA"),
+    assert_rule_requirement(PermitDict, 'FACT-PERMIT-RULE', 'REQ-PERMIT-RULE', "CLAIM-BBBBBBBBBBBBBBBB"),
+    check_rule_key_arguments_missing([violation('rule-key-arguments-missing', EntityId, Description, Suggestion, _)]),
+    assertion(EntityId == "REQ-FORBID-RULE/REQ-PERMIT-RULE"),
+    assertion(sub_string(Description, _, _, _, "default:final_payable_total/2")),
+    assertion(sub_string(Description, _, _, _, "[positions 1]")),
+    assertion(sub_string(Suggestion, _, _, _, "key_arguments")),
+    % With a schema the key is named by argument.
+    assert_fixture_entity(fact, 'FACT-SCHEMA-TOTAL', "Predicate schema: final_payable_total/2", active, [
+        fact_kind=predicate_schema, predicate_name="final_payable_total", predicate_arity=2,
+        argument_names=["cart", "total"], argument_types=["cart", "money"]
+    ]),
+    check_rule_key_arguments_missing([violation(_, _, NamedDescription, _, _)]),
+    assertion(sub_string(NamedDescription, _, _, _, "[cart]")),
+    % Declaring the key decides the pair and clears the advisory.
+    kb_retract_entity('FACT-SCHEMA-TOTAL'),
+    assert_fixture_entity(fact, 'FACT-SCHEMA-TOTAL', "Predicate schema: final_payable_total/2", active, [
+        fact_kind=predicate_schema, predicate_name="final_payable_total", predicate_arity=2,
+        argument_names=["cart", "total"], argument_types=["cart", "money"], key_arguments=["cart"]
+    ]),
+    check_rule_key_arguments_missing(After),
+    assertion(After == []),
+    % The rule is advisory: registered, selectable and not canonical.
+    assertion(rule_registry:rule_enforcement_class('rule-key-arguments-missing', advisory)),
+    checks:check_selected(['rule-key-arguments-missing'], Selected),
+    assertion(Selected.rule_key_arguments_missing == []).
 
 test(opposing_rule_pairs_are_compared_across_permuted_ids, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     % REQ-A links FACT-Z and REQ-Z links FACT-A: requirement order and fact
@@ -3927,7 +4058,7 @@ test(blank_approval_does_not_exempt, [setup(setup_kb), cleanup(cleanup_kb)]) :-
 
 test(feasibility_outcomes_distinguish_unknown_from_feasible, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     feasibility_fixture(success),
-    assertion(checks:scenario_feasibility_outcome('SCEN-ZERO-QUOTA-CALL', infeasible(witness('REQ-QUOTA-CALL', 'FACT-QUOTA-ZERO', 'FACT-QUOTA-POSITIVE', _)))),
+    assertion(checks:scenario_feasibility_outcome('SCEN-ZERO-QUOTA-CALL', infeasible(witness(['REQ-QUOTA-CALL'], ['FACT-QUOTA-ZERO'], ['FACT-QUOTA-POSITIVE'], _)))),
     % An infeasible scenario with an extra unmatched assumption stays infeasible.
     assert_fixture_entity(fact, 'FACT-QUOTA-TIER', "Tier is gold", active,
         [fact_kind=property_value, subject_key="client.call_quota", property_key="tier",
@@ -4024,6 +4155,149 @@ test(what_if_reports_introduced_removed_and_unchanged_infeasibility, [setup(setu
     Flipped.removed = [Removed],
     assertion(Removed.scenario == 'SCEN-ZERO-QUOTA-CALL'),
     assertion(scenario_expects_now('SCEN-ZERO-QUOTA-CALL', success)).
+
+% A property_value fact on client.call_quota.remaining.
+quota_fact(Id, Op, Type, Value) :-
+    quota_fact(Id, Op, Type, Value, []).
+
+quota_fact(Id, Op, Type, Value, Extra) :-
+    value_key(Type, ValueKey),
+    append([fact_kind=property_value, subject_key="client.call_quota", property_key="remaining",
+            operator=Op, value_type=Type, ValueKey=Value], Extra, Props),
+    assert_fixture_entity(fact, Id, "Quota constraint", active, Props).
+
+value_key(int, value_int).
+value_key(number, value_number).
+value_key(string, value_string).
+
+% A current requirement constraining client.call_quota through FactIds.
+quota_requirement(ReqId, FactIds) :-
+    (   kb_entity('FACT-QUOTA-SUBJECT', fact, _)
+    ->  true
+    ;   assert_fixture_entity(fact, 'FACT-QUOTA-SUBJECT', "Client call quota", active,
+            [fact_kind=subject, subject_key="client.call_quota"])
+    ),
+    assert_fixture_entity(req, ReqId, "Quota requirement", open, []),
+    kb_assert_relationship(constrains, ReqId, 'FACT-QUOTA-SUBJECT', []),
+    forall(member(FactId, FactIds), kb_assert_relationship(requires_property, ReqId, FactId, [])).
+
+success_scenario_assuming(ScenarioId, FactIds) :-
+    assert_fixture_entity(scenario, ScenarioId, "A quota call succeeds", active, [expects=success]),
+    forall(member(FactId, FactIds), kb_assert_relationship(assumes, ScenarioId, FactId, [])).
+
+test(assumptions_that_are_compatible_alone_can_be_jointly_infeasible, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    % q =< 5 is required; q >= 5 and q != 5 each fit it, but together they
+    % leave no value.
+    quota_fact('FACT-Q-AT-MOST-5', lte, int, 5),
+    quota_requirement('REQ-Q-AT-MOST-5', ['FACT-Q-AT-MOST-5']),
+    quota_fact('FACT-Q-AT-LEAST-5', gte, int, 5),
+    quota_fact('FACT-Q-NOT-5', neq, int, 5),
+    success_scenario_assuming('SCEN-Q-JOINT', ['FACT-Q-AT-LEAST-5', 'FACT-Q-NOT-5']),
+    assertion(checks:scenario_feasibility_outcome('SCEN-Q-JOINT',
+        infeasible(witness(['REQ-Q-AT-MOST-5'], ['FACT-Q-AT-LEAST-5', 'FACT-Q-NOT-5'], ['FACT-Q-AT-MOST-5'], _)))),
+    check_scenario_feasibility([violation('scenario-feasibility', 'SCEN-Q-JOINT', Description, _, _)]),
+    assertion(sub_string(Description, _, _, _, "FACT-Q-AT-LEAST-5, FACT-Q-NOT-5")),
+    assertion(sub_string(Description, _, _, _, "REQ-Q-AT-MOST-5")),
+    check_scenario_feasibility_unknown(Unknown),
+    assertion(Unknown == []),
+    % The proof ladder and what-if analysis read the same witness.
+    kb_assert_relationship(specified_by, 'REQ-Q-AT-MOST-5', 'SCEN-Q-JOINT', []),
+    requirement_proof:scenario_stage('REQ-Q-AT-MOST-5', Stage, _),
+    assertion(Stage.status == blocked),
+    assertion(Stage.infeasibleScenarios == ['SCEN-Q-JOINT']),
+    checks:what_if_analysis([], Analysis),
+    Analysis.unchanged = [Witness],
+    assertion(Witness.assumedFacts == ['FACT-Q-AT-LEAST-5', 'FACT-Q-NOT-5']),
+    assertion(Witness.requirements == ['REQ-Q-AT-MOST-5']).
+
+test(joint_infeasibility_uses_integer_semantics_only_when_every_side_is_int, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    % Only 5 lies in (4, 5] for an int, and it is excluded; 4.5 fits a number.
+    quota_fact('FACT-Q-AT-MOST-5', lte, int, 5),
+    quota_requirement('REQ-Q-AT-MOST-5', ['FACT-Q-AT-MOST-5']),
+    quota_fact('FACT-Q-ABOVE-4', gt, int, 4),
+    quota_fact('FACT-Q-NOT-5', neq, int, 5),
+    success_scenario_assuming('SCEN-Q-INT', ['FACT-Q-ABOVE-4', 'FACT-Q-NOT-5']),
+    assertion(checks:scenario_feasibility_outcome('SCEN-Q-INT', infeasible(_))),
+    quota_fact('FACT-Q-ABOVE-4-REAL', gt, number, 4),
+    success_scenario_assuming('SCEN-Q-REAL', ['FACT-Q-ABOVE-4-REAL', 'FACT-Q-NOT-5']),
+    assertion(checks:scenario_feasibility_outcome('SCEN-Q-REAL', feasible)).
+
+test(an_approved_exception_also_lifts_a_joint_conflict, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    quota_fact('FACT-Q-AT-MOST-5', lte, int, 5),
+    quota_requirement('REQ-Q-AT-MOST-5', ['FACT-Q-AT-MOST-5']),
+    quota_fact('FACT-Q-AT-LEAST-5', gte, int, 5),
+    quota_fact('FACT-Q-NOT-5', neq, int, 5),
+    success_scenario_assuming('SCEN-Q-JOINT', ['FACT-Q-AT-LEAST-5', 'FACT-Q-NOT-5']),
+    assert_fixture_entity(req, 'REQ-Q-EXCEPTION', "Bulk calls may exceed five", open,
+        [approved_by="Product owner"]),
+    kb_assert_relationship(exempts, 'REQ-Q-EXCEPTION', 'REQ-Q-AT-MOST-5', []),
+    kb_assert_relationship(specified_by, 'REQ-Q-EXCEPTION', 'SCEN-Q-JOINT', []),
+    check_scenario_feasibility([]),
+    assertion(checks:scenario_feasibility_outcome('SCEN-Q-JOINT', feasible_by_exception)).
+
+test(contradictory_assumptions_are_an_advisory_unknown, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    quota_fact('FACT-Q-POSITIVE', gt, int, 0),
+    quota_requirement('REQ-Q-POSITIVE', ['FACT-Q-POSITIVE']),
+    quota_fact('FACT-Q-ONE', eq, int, 1),
+    quota_fact('FACT-Q-TWO', eq, int, 2),
+    success_scenario_assuming('SCEN-Q-BOTH', ['FACT-Q-ONE', 'FACT-Q-TWO']),
+    assertion(checks:scenario_feasibility_outcome('SCEN-Q-BOTH',
+        unknown(contradictory_assumptions(['FACT-Q-ONE', 'FACT-Q-TWO'])))),
+    check_scenario_feasibility([]),
+    check_scenario_feasibility_unknown([violation('scenario-feasibility-unknown', 'SCEN-Q-BOTH', Description, _, _)]),
+    assertion(sub_string(Description, _, _, _, "cannot hold together")),
+    kb_assert_relationship(specified_by, 'REQ-Q-POSITIVE', 'SCEN-Q-BOTH', []),
+    requirement_proof:scenario_stage('REQ-Q-POSITIVE', Stage, _),
+    assertion(Stage.status == passed),
+    Stage.unknownFeasibility = [Unknown],
+    assertion(Unknown.scenario == 'SCEN-Q-BOTH'),
+    assertion(Unknown.reason == contradictory_assumptions).
+
+test(incomparable_assumptions_are_unknown_not_feasible, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    quota_fact('FACT-Q-POSITIVE', gt, int, 0),
+    quota_requirement('REQ-Q-POSITIVE', ['FACT-Q-POSITIVE']),
+    % A string value cannot be compared with an int constraint.
+    quota_fact('FACT-Q-TEXT', eq, string, "plenty"),
+    success_scenario_assuming('SCEN-Q-TEXT', ['FACT-Q-TEXT']),
+    assertion(checks:scenario_feasibility_outcome('SCEN-Q-TEXT', unknown(incomparable_assumption(['FACT-Q-TEXT'])))),
+    % Neither can a quantity in an unrelated unit.
+    quota_fact('FACT-Q-BYTES', eq, int, 3, [unit="B"]),
+    quota_fact('FACT-Q-SECONDS', gt, int, 0, [unit="s"]),
+    quota_requirement('REQ-Q-SECONDS', ['FACT-Q-SECONDS']),
+    success_scenario_assuming('SCEN-Q-BYTES', ['FACT-Q-BYTES']),
+    assertion(checks:scenario_feasibility_outcome('SCEN-Q-BYTES', unknown(incomparable_assumption(['FACT-Q-BYTES'])))),
+    check_scenario_feasibility_unknown(Unknown),
+    findall(Id, member(violation(_, Id, _, _, _), Unknown), Ids),
+    assertion(Ids == ['SCEN-Q-BYTES', 'SCEN-Q-TEXT']),
+    member(violation(_, 'SCEN-Q-TEXT', Description, _, _), Unknown),
+    assertion(sub_string(Description, _, _, _, "cannot be compared")).
+
+test(convertible_units_are_compared_canonically, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    quota_fact('FACT-Q-WITHIN-5S', lte, int, 5, [unit="s"]),
+    quota_requirement('REQ-Q-WITHIN-5S', ['FACT-Q-WITHIN-5S']),
+    quota_fact('FACT-Q-6000MS', eq, int, 6000, [unit="ms"]),
+    quota_fact('FACT-Q-4000MS', eq, int, 4000, [unit="ms"]),
+    success_scenario_assuming('SCEN-Q-SLOW', ['FACT-Q-6000MS']),
+    success_scenario_assuming('SCEN-Q-FAST', ['FACT-Q-4000MS']),
+    assertion(checks:scenario_feasibility_outcome('SCEN-Q-SLOW',
+        infeasible(witness(['REQ-Q-WITHIN-5S'], ['FACT-Q-6000MS'], ['FACT-Q-WITHIN-5S'], _)))),
+    assertion(checks:scenario_feasibility_outcome('SCEN-Q-FAST', feasible)).
+
+test(feasible_requires_the_whole_conjunction_to_be_satisfiable, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    quota_fact('FACT-Q-AT-MOST-5', lte, int, 5),
+    quota_requirement('REQ-Q-AT-MOST-5', ['FACT-Q-AT-MOST-5']),
+    quota_fact('FACT-Q-AT-LEAST-1', gte, int, 1),
+    quota_fact('FACT-Q-AT-MOST-3', lte, int, 3),
+    success_scenario_assuming('SCEN-Q-RANGE', ['FACT-Q-AT-LEAST-1', 'FACT-Q-AT-MOST-3']),
+    assertion(checks:scenario_feasibility_outcome('SCEN-Q-RANGE', feasible)),
+    % Requirements that admit no common value leave the scenario undecided
+    % rather than blaming it (the contradiction checks report them).
+    quota_fact('FACT-Q-ABOVE-9', gt, int, 9),
+    quota_requirement('REQ-Q-ABOVE-9', ['FACT-Q-ABOVE-9']),
+    quota_fact('FACT-Q-NOT-0', neq, int, 0),
+    success_scenario_assuming('SCEN-Q-NOT-0', ['FACT-Q-NOT-0']),
+    assertion(checks:scenario_feasibility_outcome('SCEN-Q-NOT-0',
+        unknown(conflicting_requirements(['REQ-Q-ABOVE-9', 'REQ-Q-AT-MOST-5'])))).
 
 :- end_tests(kb_scenario_feasibility).
 
@@ -5754,6 +6028,33 @@ ir_typed_reading_rule(Modality, Op, Bound, VarName, Type, Rule) :-
     ir_atom(reading, [C, V], Reading),
     ir_cmp(Op, V, N, Compare),
     ir_rule(Modality, ['C'-cart, VarName-Type], Head, _{kind:all, items:[Reading, Compare]}, Rule).
+
+% Two current requirements on meter.reading: gt 0 and lt 1 of ValueType.
+numeric_requirement_pair(ValueType, ValueKey, Witnesses) :-
+    assert_fixture_entity(fact, 'FACT-METER-SUBJECT', "Meter", active,
+        [fact_kind=subject, subject_key="meter"]),
+    LowProps = [fact_kind=property_value, subject_key="meter", property_key="reading",
+                operator=gt, value_type=ValueType, ValueKey=0],
+    HighProps = [fact_kind=property_value, subject_key="meter", property_key="reading",
+                 operator=lt, value_type=ValueType, ValueKey=1],
+    assert_fixture_entity(fact, 'FACT-METER-LOW', "Reading above zero", active, LowProps),
+    assert_fixture_entity(fact, 'FACT-METER-HIGH', "Reading below one", active, HighProps),
+    assert_fixture_entity(req, 'REQ-METER-LOW', "Reading above zero", open, []),
+    assert_fixture_entity(req, 'REQ-METER-HIGH', "Reading below one", open, []),
+    forall(member(Req-Fact, ['REQ-METER-LOW'-'FACT-METER-LOW', 'REQ-METER-HIGH'-'FACT-METER-HIGH']),
+        (   kb_assert_relationship(constrains, Req, 'FACT-METER-SUBJECT', []),
+            kb_assert_relationship(requires_property, Req, Fact, [])
+        )),
+    findall(W, kb:req_conflict_witness(_, _, W), Witnesses).
+
+% Modality act(C) :- reading(C, V), V Op1 B1, V Op2 B2.
+ir_bounded_rule(Modality, VarName, Type, Op1-B1, Op2-B2, Rule) :-
+    ir_var('C', cart, C), ir_var(VarName, Type, V), ir_num(B1, N1), ir_num(B2, N2),
+    ir_atom(act, [C], Head),
+    ir_atom(reading, [C, V], Reading),
+    ir_cmp(Op1, V, N1, Compare1),
+    ir_cmp(Op2, V, N2, Compare2),
+    ir_rule(Modality, ['C'-cart, VarName-Type], Head, _{kind:all, items:[Reading, Compare1, Compare2]}, Rule).
 
 scenario_expects_now(ScenarioId, Expected) :-
     kb_entity(ScenarioId, scenario, Props),

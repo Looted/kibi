@@ -24,6 +24,7 @@ known_rule('required-fields').
 known_rule('deprecated-adr-no-successor').
 known_rule('scenario-feasibility').
 known_rule('scenario-feasibility-unknown').
+known_rule('rule-key-arguments-missing').
 known_rule('domain-contradictions').
 known_rule('logic-coverage').
 known_rule('rule-safety').
@@ -54,6 +55,7 @@ rule_enforcement_class('required-fields', canonical).
 rule_enforcement_class('deprecated-adr-no-successor', canonical).
 rule_enforcement_class('scenario-feasibility', canonical).
 rule_enforcement_class('scenario-feasibility-unknown', advisory).
+rule_enforcement_class('rule-key-arguments-missing', advisory).
 rule_enforcement_class('domain-contradictions', canonical).
 rule_enforcement_class('logic-coverage', canonical).
 rule_enforcement_class('rule-safety', canonical).
@@ -84,6 +86,7 @@ rule_implementation('required-fields', prolog).
 rule_implementation('deprecated-adr-no-successor', prolog).
 rule_implementation('scenario-feasibility', prolog).
 rule_implementation('scenario-feasibility-unknown', prolog).
+rule_implementation('rule-key-arguments-missing', prolog).
 rule_implementation('domain-contradictions', prolog).
 rule_implementation('logic-coverage', prolog).
 rule_implementation('rule-safety', prolog).
@@ -113,6 +116,7 @@ rule_predicate('required-fields', check_required_fields).
 rule_predicate('deprecated-adr-no-successor', check_deprecated_adrs).
 rule_predicate('scenario-feasibility', check_scenario_feasibility).
 rule_predicate('scenario-feasibility-unknown', check_scenario_feasibility_unknown).
+rule_predicate('rule-key-arguments-missing', check_rule_key_arguments_missing).
 rule_predicate('domain-contradictions', check_domain_contradictions).
 rule_predicate('logic-coverage', check_logic_coverage).
 rule_predicate('rule-safety', check_rule_safety).
@@ -140,6 +144,7 @@ rule_predicate_arity('required-fields', 1).
 rule_predicate_arity('deprecated-adr-no-successor', 1).
 rule_predicate_arity('scenario-feasibility', 1).
 rule_predicate_arity('scenario-feasibility-unknown', 1).
+rule_predicate_arity('rule-key-arguments-missing', 1).
 rule_predicate_arity('domain-contradictions', 1).
 rule_predicate_arity('logic-coverage', 1).
 rule_predicate_arity('rule-safety', 1).
@@ -166,8 +171,9 @@ rule_description('source-relationship-parity', 'Authored Markdown and relationsh
 rule_description('no-cycles', 'No circular dependency chains in requirements').
 rule_description('required-fields', 'All entities must have required fields').
 rule_description('deprecated-adr-no-successor', 'Deprecated ADRs must have a successor ADR that supersedes them').
-rule_description('scenario-feasibility', 'A scenario that expects success must not assume a property value a current requirement forbids, unless an approved exception requirement exempts it').
-rule_description('scenario-feasibility-unknown', 'Advisory: a scenario that expects success assumes nothing, or assumes a property value no current requirement constrains, so its feasibility cannot be decided').
+rule_description('scenario-feasibility', 'A scenario that expects success must not assume property values that cannot hold, alone or together, with what current requirements require, unless an approved exception requirement exempts the requirement').
+rule_description('scenario-feasibility-unknown', 'Advisory: a scenario that expects success assumes nothing, assumes values that contradict each other, or assumes a property value no current requirement constrains comparably (type, unit or operator mismatch, or conflicting requirements), so its feasibility cannot be decided').
+rule_description('rule-key-arguments-missing', 'Advisory: an opposing rule pair stays unresolved only because a body predicate declares no key_arguments; the finding names the predicate and the key positions that would decide the pair').
 rule_description('domain-contradictions', 'Detect contradictions between requirements constraining the same fact').
 rule_description('logic-coverage', 'Require every explicitly declared atomic requirement claim to be grounded by a linked strict-property or predicate fact').
 rule_description('rule-safety', 'Stored Logic IR rules use only the typed, bounded, stratified vocabulary').
