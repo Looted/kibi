@@ -1062,6 +1062,10 @@ export function landingContent(args: {
       <p>Yes. <code>kb_search</code> accepts a plain question and, alongside ranked matches, returns the current requirements that govern the topic with their linked facts, scenarios, tests, and ADRs. Superseded requirements are listed separately so they are not read as current policy. These links help the agent find context; consistency and proof still come from the checks.</p>
     </details>
     <details>
+      <summary>What happens when an agent edits code a requirement owns?</summary>
+      <p>In Claude Code, the edit hook names the requirement the file implements, what it must keep true (from its linked facts), and the decision behind it (its ADR), before the change is made. Afterwards <code>kb_check</code> reports conflicts it can decide and says when an analysis is incomplete instead of calling it clean. A scenario that assumes something a current requirement forbids is flagged and blocks proof.</p>
+    </details>
+    <details>
       <summary>What counts as proven?</summary>
       <p>A requirement is proven only when a test that claims to verify it has fresh end-to-end evidence for the current code. A passing unit test, a coverage percentage, or an old receipt does not count.</p>
     </details>

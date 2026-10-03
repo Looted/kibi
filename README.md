@@ -224,7 +224,7 @@ For a requirement to be proven rather than merely documented:
 
 - Every production symbol must trace to the requirement it implements.
 - Every normative requirement clause must have one complete semantic grounding or remain explicitly unresolved.
-- Requirements must be specified by scenarios, and tests must verify those scenarios.
+- Requirements must be specified by scenarios, and tests must verify those scenarios. A scenario that expects success while assuming a value a current requirement forbids is reported and blocks proof; an intended exception is recorded as an approved exception requirement (`exempts`), not by editing the rule.
 - Executable test symbols must identify the code that actually performs the verification.
 - Proof-bearing production symbols must be covered by qualifying tests.
 - End-to-end evidence must be fresh and bound to the current code snapshot.
@@ -234,6 +234,8 @@ That makes questions answerable in both directions: which requirement owns this 
 ### Prolog as the safety layer
 
 Suppose the product defines exactly three user roles. Once that constraint is encoded as a strict property or predicate, an agent cannot quietly invent a fourth role and treat it as established intent: Kibi can surface the contradiction or missing authorization deterministically.
+
+Kibi does not report "no conflict" when it could not tell. Numeric constraints are compared exactly ("greater than 0" conflicts with "equals 0"), and a requirement with clauses that are not yet modeled is reported as an incomplete analysis rather than a clean pass.
 
 Prolog does not decide whether the original human intent was correct. It verifies the knowledge that was encoded, while Kibi keeps ambiguity, missing ontology, incomplete grounding, and stale evidence explicit instead of calling them proof.
 
