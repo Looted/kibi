@@ -6,7 +6,7 @@ export const DIRECT_KB_EDIT_WARNING =
   "Avoid direct edits to .kb/. Use Kibi MCP tools for KB discovery and mutations so project memory stays valid.";
 
 export const SESSION_START_CONTEXT =
-  "Kibi is active for this workspace. Discover project memory with kb_search/kb_query, keep .kb/ out of direct file edits, and load the kibi-usage skill (kb_skills_load) for workflow guidance. Check kb_status whenever freshness matters.";
+  "Kibi is active for this workspace. Discover project memory with kb_search/kb_query, keep .kb/ out of direct file edits, and load the kibi-usage skill (kb_skills action load) for workflow guidance. Check kb_status whenever freshness matters.";
 
 export function freshnessReminder(dirtyPaths: readonly string[]): string {
   const preview = dirtyPaths.slice(0, 10).map((dirtyPath) => `- ${dirtyPath}`);

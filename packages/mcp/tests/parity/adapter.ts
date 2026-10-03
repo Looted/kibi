@@ -21,7 +21,52 @@ import {
 import { createMcpRuntime } from "../../src/runtime/mcp-runtime.js";
 import type { ToolsRuntime } from "../../src/server/tool-types.js";
 import { registerAllTools } from "../../src/server/tools.js";
-import { TOOLS } from "../../src/tools-config.js";
+import { withWorkspaceRootSchema } from "../../src/server/workspace-router.js";
+import { buildBaseTools } from "../../src/tools-config.js";
+
+/**
+ * Narrow catalog operations that MCP reaches through a composite tool. The
+ * adapter calls the composite and projects its result back onto the narrow
+ * operation so CLI routes and MCP stay comparable one operation at a time.
+ */
+const ROUTED_OPERATIONS: Readonly<
+  Record<string, { tool: string; selector: Record<string, unknown> }>
+> = {
+  kb_skills_list: { tool: "kb_skills", selector: { action: "list" } },
+  kb_skills_load: { tool: "kb_skills", selector: { action: "load" } },
+  kb_skills_read: { tool: "kb_skills", selector: { action: "read" } },
+  kb_semantic_advisor: { tool: "kb_model", selector: { mode: "analyze" } },
+  kb_model_requirement: { tool: "kb_model", selector: { mode: "requirement" } },
+  kb_suggest_predicates: { tool: "kb_model", selector: { mode: "predicates" } },
+  kb_validate_upsert: { tool: "kb_upsert", selector: { dryRun: true } },
+};
+
+function record(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function projectRoutedResult(
+  opName: string,
+  selector: Record<string, unknown>,
+  structured: unknown,
+): unknown {
+  if (!record(structured) || !record(structured.data)) return structured;
+  const dropped = new Set([...Object.keys(selector), "skippedEffects"]);
+  const data = Object.fromEntries(
+    Object.entries(structured.data).filter(([key]) => !dropped.has(key)),
+  );
+  const spec = getSpec(opName as OperationName);
+  return {
+    ...structured,
+    operation: opName,
+    resultVersion: spec.resultVersion,
+    data,
+    effects: spec.effects.map((kind) => ({
+      kind,
+      status: structured.status === "error" ? "failed" : "completed",
+    })),
+  };
+}
 
 type McpOperationResult = {
   readonly structuredContent: unknown;
@@ -98,7 +143,9 @@ export async function runMcpOperation(
     classifyDiagnosticError,
     deriveDiagnosticFields,
     extractToolCallPayload,
-    tools: [...TOOLS],
+    tools: withWorkspaceRootSchema(
+      buildBaseTools(new Set(["kb_sparql_remote"])),
+    ),
     activeBranchName: async () => "contracts-seed",
     ensureProlog,
     resetProlog: async () => undefined,
@@ -145,14 +192,21 @@ export async function runMcpOperation(
       input !== null && typeof input === "object" && !Array.isArray(input)
         ? Object.fromEntries(Object.entries(input))
         : undefined;
+    const routed = ROUTED_OPERATIONS[opName];
     const result = await client.callTool({
-      name: opName,
-      arguments: toolArguments,
+      name: routed?.tool ?? opName,
+      arguments: routed
+        ? { ...routed.selector, ...toolArguments }
+        : toolArguments,
     });
     if (result.isError) {
       return { structuredContent: undefined, error: result.content };
     }
-    return { structuredContent: result.structuredContent };
+    return {
+      structuredContent: routed
+        ? projectRoutedResult(opName, routed.selector, result.structuredContent)
+        : result.structuredContent,
+    };
   } catch (error) {
     if (error instanceof Error) {
       return { structuredContent: undefined, error };

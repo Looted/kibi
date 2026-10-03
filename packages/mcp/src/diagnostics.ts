@@ -406,12 +406,31 @@ function appendContradictionCheckFields(
   }
 }
 
-export function deriveDiagnosticFields(
+const MODEL_MODE_OPERATIONS: Readonly<Record<string, string>> = {
+  analyze: "kb_semantic_advisor",
+  requirement: "kb_model_requirement",
+  predicates: "kb_suggest_predicates",
+};
+
+/** Composite tools report diagnostics under the operation they routed to. */
+export function routedOperationName(
   toolName: string,
+  args: Record<string, unknown>,
+): string {
+  if (toolName === "kb_model" && typeof args.mode === "string")
+    return MODEL_MODE_OPERATIONS[args.mode] ?? toolName;
+  if (toolName === "kb_upsert" && args.dryRun === true)
+    return "kb_validate_upsert";
+  return toolName;
+}
+
+export function deriveDiagnosticFields(
+  invokedToolName: string,
   args: Record<string, unknown>,
   telemetry: Record<string, unknown> | null,
   result: unknown,
 ): Record<string, unknown> {
+  const toolName = routedOperationName(invokedToolName, args);
   const fields: Record<string, unknown> = {
     telemetry_status: telemetry ? "provided" : "missing",
   };

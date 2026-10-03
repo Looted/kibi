@@ -403,7 +403,17 @@ const ENTITY_LANES: readonly [prefix: string, lane: string][] = [
 
 const SAFE_ENTITY_ID = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
 
-export type EntitySummary = { id: string; title?: string; status?: string };
+export type EntityLink = { type: string; target: string };
+
+export type EntitySummary = {
+  id: string;
+  title?: string;
+  status?: string;
+  /** Frontmatter `links` (plain string entries read as `relates_to`). */
+  links?: EntityLink[];
+};
+
+const MAX_SUMMARY_LINKS = 24;
 
 /**
  * Read an entity's title and status from its canonical authored document
@@ -423,7 +433,7 @@ export function readEntitySummary(
       "r",
     );
     try {
-      const buffer = Buffer.alloc(4096);
+      const buffer = Buffer.alloc(8192);
       const bytes = fs.readSync(descriptor, buffer, 0, buffer.length, 0);
       head = buffer.subarray(0, bytes).toString("utf8");
     } finally {
@@ -436,11 +446,38 @@ export function readEntitySummary(
   const lines = head.split(/\r?\n/);
   if (lines[0]?.trim() !== "---") return { id: entityId };
   const summary: EntitySummary = { id: entityId };
+  const links: EntityLink[] = [];
+  let inLinks = false;
+  let pendingType: string | undefined;
   for (const line of lines.slice(1)) {
     if (line.trim() === "---") break;
     const match = /^(title|status):\s*(.*)$/.exec(line);
     if (match?.[1] === "title" && match[2]) summary.title = unquote(match[2]);
     if (match?.[1] === "status" && match[2]) summary.status = unquote(match[2]);
+    if (/^\S/.test(line)) {
+      inLinks = /^links:\s*$/.test(line);
+      pendingType = undefined;
+      continue;
+    }
+    if (!inLinks || links.length >= MAX_SUMMARY_LINKS) continue;
+    // Typed entries are `- type: X` followed by `target: Y` (either order);
+    // a bare `- ID` entry is a generic relates_to link.
+    const entry = /^\s*-\s*(.*)$/.exec(line);
+    const body = (entry ? (entry[1] ?? "") : line).trim();
+    if (entry) pendingType = undefined;
+    const field = /^(type|target):\s*(.+)$/.exec(body);
+    if (field?.[1] === "type") {
+      pendingType = unquote(field[2] ?? "");
+    } else if (field?.[1] === "target") {
+      links.push({
+        type: pendingType ?? "relates_to",
+        target: unquote(field[2] ?? ""),
+      });
+      pendingType = undefined;
+    } else if (entry && SAFE_ENTITY_ID.test(unquote(body))) {
+      links.push({ type: "relates_to", target: unquote(body) });
+    }
   }
+  if (links.length > 0) summary.links = links;
   return summary;
 }

@@ -39,6 +39,8 @@ entity_property(req, semantic_source_hash, string).
 entity_property(req, semantic_inventory, list_or_json).
 entity_property(req, proof_exempt, boolean).
 entity_property(req, proof_exempt_reason, string).
+% Intended outcome of a scenario: success, rejection or error.
+entity_property(scenario, expects, atom).
 
 % Typed fact fields - only valid for fact entities
 entity_property(fact, fact_kind, atom).

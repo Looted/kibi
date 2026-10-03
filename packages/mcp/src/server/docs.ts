@@ -62,7 +62,7 @@ function renderToolsDoc(): string {
     "Only strict domain facts (`fact_kind: subject` + `property_value`) participate in contradiction inference; use `flag` for runtime/config gates and `fact_kind: observation` or `meta` for bug/workaround notes.",
   );
   lines.push(
-    "Predicate flow: before writing ontology prose, call `kb_suggest_predicates`; apply a suggested `fact_kind: predicate` via `requires_predicate`, or record the returned `review:ontology-gap` observation when no predicate fits.",
+    "Predicate flow: before writing ontology prose, call `kb_model` (mode `predicates`); apply a suggested `fact_kind: predicate` via `requires_predicate`, or record the returned `review:ontology-gap` observation when no predicate fits.",
   );
   return lines.join("\n");
 }
@@ -108,7 +108,7 @@ export const PROMPTS = [
       "Treat this server as a branch-aware knowledge graph interface for software traceability.",
       "",
       "The server exposes a curated public tool surface for KB operations:",
-      "- `kb_search`: Discovery across metadata and markdown body text",
+      "- `kb_search`: Ask a question or search; returns ranked matches plus an answer layer (governing requirements, linked facts, ADRs, scenarios and tests)",
       "- `kb_query`: Exact lookup of entities by type, ID, tags, or source file",
       "- `kb_status`: Branch, snapshot, and freshness inspection",
       "- `kb_find_gaps`: Bulk missing/present relationship analysis",
@@ -121,7 +121,7 @@ export const PROMPTS = [
       "Core modeling principles:",
       "- Kibi has eight entity types: common authoring (req, scenario, test, fact) and supporting/system (adr, flag, event, symbol).",
       "- Encode requirements as linked facts: `req --constrains--> fact` plus `req --requires_property--> fact`.",
-      "- High-confidence `kb_model_requirement` output is deterministic; `/kibi-bootstrap` bootstrap writes still require preview and explicit approval.",
+      "- High-confidence `kb_model` (mode `requirement`) output is deterministic; `/kibi-bootstrap` bootstrap writes still require preview and explicit approval.",
       "- Low-confidence claims (< 0.7) are downgraded to `observation` facts to prevent false-positive contradictions.",
       "- Only strict domain facts participate in contradiction inference; observation and meta facts are non-blocking notes.",
       "- v1 contradictions are limited to exact-value, boolean/enum, numeric range, and polarity conflicts.",
@@ -146,8 +146,8 @@ export const PROMPTS = [
       "2. **Check schema status**: Call `kb_status` to see if a schema migration is required for the branch KB.",
       "3. **Create-before-link**: Create endpoint entities with `kb_upsert` before linking them.",
       "4. **Validate intent**: If creating links, call `kb_query` for both endpoint IDs first to ensure they exist.",
-      "5. **Model requirements as facts**: For new/updated reqs, create/reuse fact entities first, then express req semantics with `constrains` + `requires_property` (automated via `kb_model_requirement`).",
-      "6. **Suggest predicates before prose**: For ontology-lane requirements, spell out the prose claim and call `kb_suggest_predicates` before writing `fact_kind: observation`. Apply the selected `fact_kind: predicate` applyPlan, then attach the returned `relationshipPlan` as `requires_predicate` while preserving existing req metadata; use the returned `review:ontology-gap` observation when no predicate fits.",
+      "5. **Model requirements as facts**: For new/updated reqs, create/reuse fact entities first, then express req semantics with `constrains` + `requires_property` (automated via `kb_model` (mode `requirement`)).",
+      "6. **Suggest predicates before prose**: For ontology-lane requirements, spell out the prose claim and call `kb_model` (mode `predicates`) before writing `fact_kind: observation`. Apply the selected `fact_kind: predicate` applyPlan, then attach the returned `relationshipPlan` as `requires_predicate` while preserving existing req metadata; use the returned `review:ontology-gap` observation when no predicate fits.",
       "7. **Plan repairs**: Requirement `kb_coverage` returns `repairPlan`; require `repairPlan.scope.complete`, apply only a batch whose state is `ready`, and treat every batch as non-auto-applicable guidance.",
       "8. **Mutate sequentially**: Query current endpoints, validate each payload, then call `kb_upsert` one at a time or `kb_delete` for explicit removals. Re-run `kb_coverage` after each batch rather than continuing from a stale plan.",
       "9. **Targeted checks**: Run `kb_check` after meaningful mutations; specify only the rules you need so scoped validation stays fast and skips the full-KB advisory scan.",
@@ -224,7 +224,7 @@ function registerDocResources(): DocResource[] {
     '5. `kb_check` with `{ "rules": ["required-fields","no-dangling-refs"] }` for targeted validation; supplying `rules` skips the full-KB advisory scan',
     "",
     "## Model requirements as ontology predicates",
-    '1. Spell out the requirement prose and call `kb_suggest_predicates` with `{ "text": "...", "requirementId": "REQ-..." }`',
+    '1. Spell out the requirement prose and call `kb_model` with `{ "mode": "predicates", "text": "...", "requirementId": "REQ-..." }`',
     "2. If candidates are returned, apply the top or user-selected `structuredContent.applyPlan` to create `fact_kind: predicate`, then attach `structuredContent.relationshipPlan` with `requires_predicate` while preserving existing req metadata",
     "3. If no candidate fits, apply or review the returned `review:ontology-gap` observation instead of silently writing prose",
     "",

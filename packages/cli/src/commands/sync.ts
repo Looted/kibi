@@ -971,7 +971,7 @@ export async function syncCommand(
         advertisedContract;
       if (enforceBoundary && boundary.errors.length > 0) {
         throw new SyncError(
-          `${key}: proposition-complete ingestion failed: ${boundary.errors.join("; ")}. Run kb_semantic_advisor with the complete requirement prose and preserve its inventory contract.`,
+          `${key}: proposition-complete ingestion failed: ${boundary.errors.join("; ")}. Run kb_model mode analyze (CLI: semantic-advisor) with the complete requirement prose and preserve its inventory contract.`,
         );
       }
       nextSemanticHashes[key] = boundary.sourceHash;

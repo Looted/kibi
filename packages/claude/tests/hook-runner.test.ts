@@ -213,6 +213,21 @@ describe("pre-edit snippets", () => {
     );
   });
 
+  test("a first edit names what the owning requirement must keep true and why", async () => {
+    const fixture = createKibiWorkspace();
+    const text = await session(fixture).pre("Edit", {
+      file_path: path.join(fixture.root, "src/checkout.ts"),
+      old_string: "  return Math.round(total * 100) / 100;",
+      new_string: "  return total;",
+    });
+    expect(text).toContain(
+      "REQ-checkout-rounding must keep true: FACT-checkout-total; FACT-total-rounding-cents: Totals round half up to two decimals.",
+    );
+    expect(text).toContain(
+      "Decision: ADR-money-as-decimal: Money is computed as decimal cents.",
+    );
+  });
+
   test("after a read, edits add only new focus facts", async () => {
     const fixture = createKibiWorkspace();
     const { pre } = session(fixture);
@@ -251,7 +266,7 @@ describe("pre-edit snippets", () => {
       content: "export {}",
     });
     expect(text).toContain("no symbol in src/new-feature.ts is linked");
-    expect(text).toContain('rankingMode:"intent-v1"');
+    expect(text).toContain('kb_search({query:"<behavior being changed>"');
     expect(
       await pre("Write", { file_path: "src/new-feature.ts", content: "" }),
     ).toBeUndefined();

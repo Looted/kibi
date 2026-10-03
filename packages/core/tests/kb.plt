@@ -3709,6 +3709,69 @@ test(what_if_reports_staged_conflicts_and_rolls_back, [setup(setup_kb), cleanup(
 
 :- end_tests(kb_truthful_consistency).
 
+:- begin_tests(kb_scenario_feasibility).
+
+% implements REQ-kibi-scenario-feasibility
+feasibility_fixture(Expects) :-
+    assert_fixture_entity(fact, 'FACT-QUOTA-SUBJECT', "Client call quota", active,
+        [fact_kind=subject, subject_key="client.call_quota"]),
+    assert_fixture_entity(fact, 'FACT-QUOTA-POSITIVE', "Remaining quota above zero", active,
+        [fact_kind=property_value, subject_key="client.call_quota", property_key="remaining",
+         operator=gt, value_type=int, value_int=0]),
+    assert_fixture_entity(fact, 'FACT-QUOTA-ZERO', "Remaining quota is zero", active,
+        [fact_kind=property_value, subject_key="client.call_quota", property_key="remaining",
+         operator=eq, value_type=int, value_int=0]),
+    assert_fixture_entity(req, 'REQ-QUOTA-CALL', "A client may call only with remaining quota", open, []),
+    kb_assert_relationship(constrains, 'REQ-QUOTA-CALL', 'FACT-QUOTA-SUBJECT', []),
+    kb_assert_relationship(requires_property, 'REQ-QUOTA-CALL', 'FACT-QUOTA-POSITIVE', []),
+    assert_fixture_entity(scenario, 'SCEN-ZERO-QUOTA-CALL', "A zero-quota promo call succeeds", active,
+        [expects=Expects]),
+    kb_assert_relationship(assumes, 'SCEN-ZERO-QUOTA-CALL', 'FACT-QUOTA-ZERO', []).
+
+test(success_scenario_assuming_a_forbidden_value_is_infeasible, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    feasibility_fixture(success),
+    check_scenario_feasibility([violation('scenario-feasibility', 'SCEN-ZERO-QUOTA-CALL', Description, _, _)]),
+    assertion(sub_string(Description, _, _, _, "REQ-QUOTA-CALL")),
+    assertion(sub_string(Description, _, _, _, "FACT-QUOTA-ZERO")).
+
+test(rejection_scenario_is_not_checked, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    feasibility_fixture(rejection),
+    check_scenario_feasibility([]).
+
+test(approved_exception_makes_the_scenario_feasible_without_editing_the_rule, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    feasibility_fixture(success),
+    assert_fixture_entity(req, 'REQ-QUOTA-PROMO-EXCEPTION', "Promo calls are exempt from the quota", open, []),
+    kb_assert_relationship(exempts, 'REQ-QUOTA-PROMO-EXCEPTION', 'REQ-QUOTA-CALL', []),
+    kb_assert_relationship(specified_by, 'REQ-QUOTA-PROMO-EXCEPTION', 'SCEN-ZERO-QUOTA-CALL', []),
+    check_scenario_feasibility([]),
+    % The exception covers only the scenario it specifies.
+    assert_fixture_entity(scenario, 'SCEN-OTHER-ZERO-QUOTA', "Another zero-quota call succeeds", active,
+        [expects=success]),
+    kb_assert_relationship(assumes, 'SCEN-OTHER-ZERO-QUOTA', 'FACT-QUOTA-ZERO', []),
+    check_scenario_feasibility([violation('scenario-feasibility', 'SCEN-OTHER-ZERO-QUOTA', _, _, _)]),
+    assertion(kb:current_req('REQ-QUOTA-CALL')).
+
+test(compatible_assumption_is_feasible, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    feasibility_fixture(success),
+    assert_fixture_entity(fact, 'FACT-QUOTA-FIVE', "Remaining quota is five", active,
+        [fact_kind=property_value, subject_key="client.call_quota", property_key="remaining",
+         operator=eq, value_type=int, value_int=5]),
+    assert_fixture_entity(scenario, 'SCEN-FIVE-QUOTA-CALL', "A call with quota succeeds", active,
+        [expects=success]),
+    kb_assert_relationship(assumes, 'SCEN-FIVE-QUOTA-CALL', 'FACT-QUOTA-FIVE', []),
+    check_scenario_feasibility(Violations),
+    assertion(\+ memberchk(violation(_, 'SCEN-FIVE-QUOTA-CALL', _, _, _), Violations)).
+
+test(proof_ladder_blocks_a_requirement_whose_scenario_is_infeasible, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    feasibility_fixture(success),
+    kb_assert_relationship(specified_by, 'REQ-QUOTA-CALL', 'SCEN-ZERO-QUOTA-CALL', []),
+    requirement_proof:scenario_stage('REQ-QUOTA-CALL', Stage, _),
+    assertion(Stage.status == blocked),
+    assertion(Stage.infeasibleScenarios == ['SCEN-ZERO-QUOTA-CALL']),
+    assertion(requirement_proof:proof_gap_present(infeasible_scenario, _{scenarios: Stage})).
+
+:- end_tests(kb_scenario_feasibility).
+
 % Strict-lane pairing validation tests (REQ-011)
 :- begin_tests(kb_strict_lane_pairing).
 

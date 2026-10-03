@@ -18,6 +18,7 @@
 :- use_module('kb.pl').
 :- use_module('checks.pl', [
     check_domain_contradictions_and_witnesses/2,
+    infeasible_scenario/5,
     check_rule_safety/1,
     check_rule_verifiability/1
 ]).
@@ -557,13 +558,26 @@ scenario_stage(ReqId, Stage, ScenarioIds) :-
     findall(ScenarioId,
         (member(ScenarioId, ScenarioTargets), \+ existing_scenario(ScenarioId)),
         InvalidScenarioTargets),
-    ((ScenarioIds = [] ; InvalidScenarioTargets \= []) -> Status = missing ; Status = passed),
+    % implements REQ-kibi-scenario-feasibility
+    % A scenario that expects success but assumes a value a current
+    % requirement forbids can never pass, so the requirement cannot be proven
+    % through it.
+    findall(ScenarioId,
+        (member(ScenarioId, ScenarioIds), once(infeasible_scenario(ScenarioId, _, _, _, _))),
+        InfeasibleScenarios),
+    (   (ScenarioIds = [] ; InvalidScenarioTargets \= [])
+    ->  Status = missing
+    ;   InfeasibleScenarios \= []
+    ->  Status = blocked
+    ;   Status = passed
+    ),
     maplist(entity_source_ref, ScenarioIds, Sources),
     Stage = _{
         status: Status,
         scenarios: ScenarioIds,
         scenarioTargets: ScenarioTargets,
         invalidScenarioTargets: InvalidScenarioTargets,
+        infeasibleScenarios: InfeasibleScenarios,
         sources: Sources
     }.
 
@@ -1641,7 +1655,8 @@ proof_gap_present(ambiguous_logic_grounding, Stages) :-
 proof_gap_present(blocking_contradiction, Stages) :- Stages.contradictions.status == blocked.
 proof_gap_present(contradiction_check_incomplete, Stages) :- Stages.contradictions.status == unresolved.
 proof_gap_present(missing_scenario, Stages) :- Stages.scenarios.status == missing.
-proof_gap_present(missing_scenario_test, Stages) :- Stages.scenarios.status == passed, Stages.scenarioTests.status == missing.
+proof_gap_present(infeasible_scenario, Stages) :- Stages.scenarios.infeasibleScenarios \= [].
+proof_gap_present(missing_scenario_test, Stages) :- memberchk(Stages.scenarios.status, [passed, blocked]), Stages.scenarioTests.status == missing.
 proof_gap_present(missing_passing_e2e, Stages) :- Stages.passingE2e.status == missing.
 proof_gap_present(missing_proof_receipt, Stages) :- Stages.passingE2e.missingReceiptTests \= [].
 proof_gap_present(stale_proof_receipt, Stages) :- Stages.passingE2e.staleReceiptTests \= [].
@@ -1668,6 +1683,7 @@ gap_definition(ambiguous_logic_grounding, 33, logic_grounding, "Remove duplicate
 gap_definition(blocking_contradiction, 40, contradictions, "Supersede or reconcile the conflicting normative requirement.").
 gap_definition(contradiction_check_incomplete, 41, contradictions, "Complete logical grounding before interpreting absence of a conflict as evidence.").
 gap_definition(missing_scenario, 50, scenarios, "Add a specified_by scenario for the requirement.").
+gap_definition(infeasible_scenario, 49, scenarios, "Set expects: rejection on the scenario, correct its assumes fact, or record a human-approved exception requirement that exempts the forbidding requirement.").
 gap_definition(missing_scenario_test, 51, scenario_tests, "Link the scenario to a test with verified_by or validates.").
 gap_definition(missing_passing_e2e, 52, passing_e2e, "Record fresh passing end-to-end evidence on a scenario-backed test.").
 gap_definition(missing_proof_receipt, 53, passing_e2e, "Run the configured proof integration through kibi prove and append its kibi.proof-receipt.v1 result for the scenario-backed proof-bearing test.").

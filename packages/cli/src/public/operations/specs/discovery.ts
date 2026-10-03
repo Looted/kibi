@@ -78,7 +78,7 @@ export const searchSpec = {
   name: "kb_search",
   cliName: "search",
   description:
-    "Search KB entities for discovery using legacy lexical ranking or deterministic intent-v1 ranking. Intent mode accepts host-agent semantic facets and source locations, returns evidence and abstains below its confidence threshold. Use for exploratory lookup before exact follow-up with kb_query. No mutation side effects.",
+    "Ask the KB a question or search it. Default intent-v1 ranking accepts questions, host-agent semantic facets and changed-code source locations, returns evidence, abstains below its confidence threshold and adds an answer layer: the current requirements that govern the topic, what must stay true (linked facts), why (ADRs) and what verifies it (scenarios, tests). Use before changing behavior, then kb_query for exact follow-up. No mutation side effects.",
   businessInputSchema: {
     type: "object",
     required: ["query"],
@@ -111,9 +111,15 @@ export const searchSpec = {
       rankingMode: {
         type: "string",
         enum: ["legacy", "intent-v1"],
-        default: "legacy",
+        default: "intent-v1",
         description:
-          "Optional deterministic ranking mode. Omit for backward-compatible lexical search; use intent-v1 for semantic facets, source-aware evidence, graph boosts, and abstention.",
+          "Optional deterministic ranking mode. Default intent-v1: question-aware ranking with semantic facets, source-aware evidence, graph boosts, superseded demotion and abstention. Use legacy for the older lexical ranking.",
+      },
+      answer: {
+        type: "boolean",
+        default: true,
+        description:
+          "Intent-v1 only, first page only. When true (default) the result includes an answer layer: current governing requirements with their linked facts, scenarios, tests and ADRs, superseded requirements listed separately, and observation facts labelled as notes. Bounded in size; discovery, not proof.",
       },
       semanticFacets: {
         type: "object",

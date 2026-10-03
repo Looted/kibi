@@ -288,6 +288,11 @@ scenarios:
 | severity     | No       | string         | Severity level                                   |
 | links[]      | No       | array[string]  | URLs                                             |
 | text_ref     | No       | string         | Markdown/doc pointer                             |
+| expects      | No       | enum           | Intended outcome: `success`, `rejection` or `error` |
+
+A scenario that sets `expects: success` and links the values its outcome depends on with `assumes` (scenario → `property_value` fact) is checked against current requirements by the canonical `scenario-feasibility` rule. When a current requirement forbids an assumed value (for example it requires `client.call_quota.remaining > 0` and the scenario assumes `= 0`), `kb_check` reports the scenario, the requirement and both facts, and every requirement the scenario specifies gets the `infeasible_scenario` proof gap. Reuse the requirement's `subject_key` and `property_key` in the assumption fact: a differently named property is not compared, and no violation is not proof the scenario is feasible. Scenarios that expect `rejection` or `error` are not checked.
+
+To allow an intended exception without weakening the rule, record a human-approved exception requirement that `exempts` the base requirement and is `specified_by` the scenario. The base requirement stays current and unchanged, and the exception covers only the scenarios it specifies.
 
 **Example:**
 ```yaml
@@ -632,6 +637,8 @@ Kibi supports relationship types listed below. Each relationship has metadata:
 | supersedes          | adr                  | adr                  | The source ADR formally replaces the target ADR. The target is expected to carry status: archived or deprecated |
 | supersedes          | req                  | req                  | The source requirement replaces the target requirement; the target stops being current |
 | restates            | req                  | req                  | The source requirement intentionally restates a current requirement (e.g. a product requirement echoed in a platform requirement). Both stay current; `domain-redundancy` is suppressed for the pair |
+| assumes             | scenario             | fact                 | The scenario's outcome depends on this `property_value` fact holding; checked by `scenario-feasibility` when the scenario expects success |
+| exempts             | req                  | req                  | An approved exception requirement exempts the scenarios it specifies from the target requirement's property constraints; the target stays current |
 | relates_to          | a                    | b                    | Generic relationship (escape hatch)               |
 
 ---
@@ -844,6 +851,20 @@ relationship:
   created_at: 2026-09-28T10:00:00Z
   created_by: analyst
   source: .kb/requirements/REQ-billing-invoice-retention.md
+```
+
+**assumes** and **exempts**
+```yaml
+# scenario SCEN-promo-zero-quota-call expects success and assumes zero quota
+links:
+  - type: assumes
+    target: FACT-quota-remaining-zero
+# exception req REQ-quota-promo-exception exempts REQ-quota-call and specifies the scenario
+links:
+  - type: exempts
+    target: REQ-quota-call
+  - type: specified_by
+    target: SCEN-promo-zero-quota-call
 ```
 
 ---

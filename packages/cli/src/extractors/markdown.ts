@@ -130,6 +130,7 @@ export interface ExtractedEntity {
   verification_perspective?: "internal" | "consumer";
   proof_exempt?: boolean;
   proof_exempt_reason?: string;
+  expects?: "success" | "rejection" | "error";
   proof_contract?: ProofContract;
   proof_bindings?: readonly ProofBinding[];
   proof_receipts?: readonly ProofReceipt[];
@@ -236,6 +237,8 @@ type RelationshipType =
   | "consumes"
   | "supersedes"
   | "restates"
+  | "assumes"
+  | "exempts"
   | "relates_to";
 
 const VALID_RELATIONSHIP_TYPES = new Set<RelationshipType>([
@@ -256,6 +259,8 @@ const VALID_RELATIONSHIP_TYPES = new Set<RelationshipType>([
   "consumes",
   "supersedes",
   "restates",
+  "assumes",
+  "exempts",
   "relates_to",
 ]);
 
@@ -302,6 +307,8 @@ const VALID_RELATIONSHIP_DIRECTIONS: ReadonlyArray<{
   { type: "supersedes", from: "adr", to: "adr" },
   { type: "supersedes", from: "req", to: "req" },
   { type: "restates", from: "req", to: "req" },
+  { type: "assumes", from: "scenario", to: "fact" },
+  { type: "exempts", from: "req", to: "req" },
 ];
 
 const RELATIONSHIP_TYPE_DISPLAY_LIST = Array.from(VALID_RELATIONSHIP_TYPES)
@@ -680,6 +687,24 @@ function extractFromMarkdownContent(
     }
     if (type === "req" && data.semantic_source_hash !== undefined) {
       entity.semantic_source_hash = data.semantic_source_hash;
+    }
+    // implements REQ-kibi-scenario-feasibility
+    if (type === "scenario" && data.expects !== undefined) {
+      if (
+        data.expects !== "success" &&
+        data.expects !== "rejection" &&
+        data.expects !== "error"
+      ) {
+        throw new FrontmatterError(
+          "Invalid expects; expected success, rejection or error",
+          filePath,
+          {
+            classification: "Invalid Scenario Outcome",
+            hint: "Set expects: success, expects: rejection or expects: error on the scenario.",
+          },
+        );
+      }
+      entity.expects = data.expects;
     }
     if (type === "req" && data.proof_exempt !== undefined) {
       if (typeof data.proof_exempt !== "boolean") {

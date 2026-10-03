@@ -48,8 +48,8 @@
           "type": "object"
         },
         "operator": {
-          "description": "Optional extracted semantic claim operator. Example: 'eq'.",
-          "enum": ["eq", "gte", "lte", "neq", "bool", "polarity"],
+          "description": "Optional extracted semantic claim operator. Use gt/lt for strict bounds ('greater than zero' is gt 0, not gte 0). Example: 'eq'.",
+          "enum": ["eq", "gt", "gte", "lt", "lte", "neq", "bool", "polarity"],
           "type": "string"
         },
         "propertyKey": {

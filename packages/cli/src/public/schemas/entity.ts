@@ -360,6 +360,12 @@ const entitySchema: Record<string, unknown> = {
     severity: { type: "string" },
     links: { type: "array", items: { type: "string" } },
     text_ref: { type: "string" },
+    expects: {
+      type: "string",
+      enum: ["success", "rejection", "error"],
+      description:
+        "Scenario-only. The scenario's intended outcome. A scenario that expects success and assumes (via `assumes` facts) a value a current requirement forbids fails the scenario-feasibility check.",
+    },
     proof_exempt: {
       type: "boolean",
       description:
@@ -666,6 +672,12 @@ const entitySchema: Record<string, unknown> = {
           ],
         },
       },
+    },
+    {
+      if: {
+        properties: { type: { const: "scenario" } },
+      },
+      else: { not: { required: ["expects"] } },
     },
     ...factConditionals,
   ],

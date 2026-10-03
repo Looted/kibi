@@ -2,15 +2,18 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { type OperationName, getSpec, statusSpec } from "kibi-runtime";
 import {
+  MODEL_ROUTES,
+  SKILL_ROUTES,
+  dispatchComposite,
   executeApplyPlan,
   executeCompileIntent,
   executeDelete,
   executeIngestProof,
   executeUpsert,
-  validateUpsertSpec,
 } from "kibi-runtime";
 import type { OperationContext, RuntimeOperationSpec } from "kibi-runtime";
 
+import { enabledOptionalTools } from "../tools-config.js";
 import type { CheckArgs } from "../tools/check.js";
 import type { CoverageArgs } from "../tools/coverage.js";
 import type { DeleteArgs } from "../tools/delete.js";
@@ -81,6 +84,8 @@ export function registerConfiguredTools<TProlog>(
     >,
   });
   const register = ({ name, execute }: ToolRegistration): void => {
+    // Optional tools (kb_sparql_remote) are registered only when enabled.
+    if (!runtime.tools.some((tool) => tool.name === name)) return;
     const definition = toolDef(name);
     const publicSpec = getSpec(name);
     const spec: RuntimeOperationSpec<Record<string, unknown>, unknown> = {
@@ -128,19 +133,30 @@ export function registerConfiguredTools<TProlog>(
       statusSpec.execute(args as StatusArgs, context),
   });
   register({
-    name: "kb_skills_list",
-    execute: async (_context, args) =>
-      runtime.handleKbSkillsList(args as SkillsListArgs),
-  });
-  register({
-    name: "kb_skills_load",
-    execute: async (_context, args) =>
-      runtime.handleKbSkillsLoad(args as unknown as SkillsLoadArgs),
-  });
-  register({
-    name: "kb_skills_read",
-    execute: async (_context, args) =>
-      runtime.handleKbSkillsRead(args as unknown as SkillsReadArgs),
+    name: "kb_skills",
+    execute: async (context, args) =>
+      dispatchComposite(
+        "action",
+        {
+          list: {
+            ...SKILL_ROUTES.list,
+            execute: async (input) =>
+              runtime.handleKbSkillsList(input as SkillsListArgs),
+          },
+          load: {
+            ...SKILL_ROUTES.load,
+            execute: async (input) =>
+              runtime.handleKbSkillsLoad(input as unknown as SkillsLoadArgs),
+          },
+          read: {
+            ...SKILL_ROUTES.read,
+            execute: async (input) =>
+              runtime.handleKbSkillsRead(input as unknown as SkillsReadArgs),
+          },
+        },
+        args,
+        context,
+      ),
   });
   register({
     name: "kb_find_gaps",
@@ -167,10 +183,39 @@ export function registerConfiguredTools<TProlog>(
       runtime.handleSparql(args as SparqlArgs, context),
   });
   register({
-    name: "kb_semantic_advisor",
+    name: "kb_model",
     execute: async (context, args) =>
-      runtime.handleKbSemanticAdvisor(
-        args as unknown as SemanticAdvisorArgs,
+      dispatchComposite(
+        "mode",
+        {
+          analyze: {
+            ...MODEL_ROUTES.analyze,
+            execute: async (input) =>
+              runtime.handleKbSemanticAdvisor(
+                input as unknown as SemanticAdvisorArgs,
+                context,
+              ),
+          },
+          requirement: {
+            ...MODEL_ROUTES.requirement,
+            execute: async (input) =>
+              runtime.handleKbModelRequirement(
+                prologFor(context),
+                input as unknown as ModelRequirementArgs,
+                withSessionProlog(context),
+              ),
+          },
+          predicates: {
+            ...MODEL_ROUTES.predicates,
+            execute: async (input) =>
+              runtime.handleKbSuggestPredicates(
+                prologFor(context),
+                input as unknown as SuggestPredicatesArgs,
+                withSessionProlog(context),
+              ),
+          },
+        },
+        args,
         context,
       ),
   });
@@ -178,14 +223,6 @@ export function registerConfiguredTools<TProlog>(
     name: "kb_upsert",
     execute: async (context, args) =>
       executeUpsert(args as unknown as UpsertArgs, withSessionProlog(context)),
-  });
-  register({
-    name: "kb_validate_upsert",
-    execute: async (context, args) =>
-      validateUpsertSpec.execute(
-        args as unknown as UpsertArgs,
-        withSessionProlog(context),
-      ),
   });
   register({
     name: "kb_delete",
@@ -199,7 +236,9 @@ export function registerConfiguredTools<TProlog>(
         string,
         unknown
       > & { async?: boolean };
-      if (asyncMode !== true) {
+      // Without a registered kb_job_status nothing could poll the receipt,
+      // so async falls back to a synchronous check.
+      if (asyncMode !== true || !enabledOptionalTools().has("kb_job_status")) {
         return runtime.handleKbCheck(
           prologFor(context),
           args as unknown as CheckArgs,
@@ -220,24 +259,6 @@ export function registerConfiguredTools<TProlog>(
     name: "kb_prepare_impact_review",
     execute: async (context, args) =>
       getSpec("kb_prepare_impact_review").execute(args, context),
-  });
-  register({
-    name: "kb_model_requirement",
-    execute: async (context, args) =>
-      runtime.handleKbModelRequirement(
-        prologFor(context),
-        args as unknown as ModelRequirementArgs,
-        withSessionProlog(context),
-      ),
-  });
-  register({
-    name: "kb_suggest_predicates",
-    execute: async (context, args) =>
-      runtime.handleKbSuggestPredicates(
-        prologFor(context),
-        args as unknown as SuggestPredicatesArgs,
-        withSessionProlog(context),
-      ),
   });
   register({
     name: "kb_plan_bootstrap",

@@ -14,6 +14,7 @@ const ATOM_FIELDS = [
   "operator",
   "value_type",
   "polarity",
+  "expects",
 ] as const;
 
 const STRING_FIELDS = [

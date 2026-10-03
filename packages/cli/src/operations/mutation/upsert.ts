@@ -250,11 +250,35 @@ export type UpsertExecutionOptions = Readonly<{
   readonly deferCompiledCommit?: boolean;
 }>;
 
+// implements REQ-kibi-operation-interface-parity
+/**
+ * A dry run is the former kb_validate_upsert preflight on the kb_upsert
+ * surface: the same validation and semantic advisor receipt, no KB or
+ * workspace write, and both write effects reported as skipped.
+ */
+async function dryRunUpsert(
+  input: UpsertInput,
+  context: OperationContext,
+): Promise<OperationResult<UpsertPayload>> {
+  const { dryRun: _dryRun, ...payload } = input;
+  const { executeValidateUpsert } = await import("./validate-upsert.js");
+  const result = await executeValidateUpsert(payload, context);
+  return {
+    content: result.content,
+    structuredContent: {
+      ...result.structuredContent,
+      dryRun: true,
+      skippedEffects: ["kb-write", "workspace-write"],
+    } as unknown as UpsertPayload,
+  };
+}
+
 export async function executeUpsert(
   input: UpsertInput,
   context: OperationContext,
   options: UpsertExecutionOptions = {},
 ): Promise<OperationResult<UpsertPayload>> {
+  if (input.dryRun === true) return dryRunUpsert(input, context);
   const branchAttachment =
     context.branchAttachment ?? resolveBranchAttachment(context.workspaceRoot);
   if ("error" in branchAttachment) {

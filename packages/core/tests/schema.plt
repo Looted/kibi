@@ -17,8 +17,10 @@ test(entity_types_count) :-
 test(relationship_types_count) :-
     findall(R, relationship_type(R), Rs),
     sort(Rs, Sorted),
-    % relationship_type/1 includes 18 items; ensure length and membership
-    length(Sorted, 18),
+    % relationship_type/1 includes 20 items; ensure length and membership
+    length(Sorted, 20),
+    memberchk(assumes, Sorted),
+    memberchk(exempts, Sorted),
     memberchk(depends_on, Sorted),
     memberchk(executable_for, Sorted),
     memberchk(specified_by, Sorted),

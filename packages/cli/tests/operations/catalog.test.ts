@@ -10,12 +10,14 @@ const EXPECTED_CLI_NAMES = {
   kb_skills_list: "skills list",
   kb_skills_load: "skills load",
   kb_skills_read: "skills read",
+  kb_skills: "skill",
   kb_find_gaps: "find-gaps",
   kb_coverage: "coverage",
   kb_graph: "graph",
   kb_semantic_advisor: "semantic-advisor",
   kb_model_requirement: "model-requirement",
   kb_suggest_predicates: "suggest-predicates",
+  kb_model: "model",
   kb_plan_bootstrap: "plan-bootstrap",
   kb_validate_upsert: "validate-upsert",
   kb_upsert: "upsert",
@@ -32,6 +34,7 @@ const PROLOG_FREE_OPERATIONS = new Set([
   "kb_skills_list",
   "kb_skills_load",
   "kb_skills_read",
+  "kb_skills",
   "kb_status",
   "kb_semantic_advisor",
   "kb_plan_bootstrap",
@@ -49,9 +52,9 @@ const VALID_EFFECTS = new Set([
 ]);
 
 describe("public operation catalog", () => {
-  test("contains exactly the 22 unique operations and CLI routes", () => {
-    expect(OPERATION_CATALOG).toHaveLength(22);
-    expect(new Set(OPERATION_CATALOG.map(({ name }) => name)).size).toBe(22);
+  test("contains exactly the 24 unique operations and CLI routes", () => {
+    expect(OPERATION_CATALOG).toHaveLength(24);
+    expect(new Set(OPERATION_CATALOG.map(({ name }) => name)).size).toBe(24);
     expect(
       Object.fromEntries(
         OPERATION_CATALOG.map(({ name, cliName }) => [name, cliName]),

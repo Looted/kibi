@@ -22,6 +22,7 @@ known_rule('source-relationship-parity').
 known_rule('no-cycles').
 known_rule('required-fields').
 known_rule('deprecated-adr-no-successor').
+known_rule('scenario-feasibility').
 known_rule('domain-contradictions').
 known_rule('logic-coverage').
 known_rule('rule-safety').
@@ -50,6 +51,7 @@ rule_enforcement_class('source-relationship-parity', canonical).
 rule_enforcement_class('no-cycles', canonical).
 rule_enforcement_class('required-fields', canonical).
 rule_enforcement_class('deprecated-adr-no-successor', canonical).
+rule_enforcement_class('scenario-feasibility', canonical).
 rule_enforcement_class('domain-contradictions', canonical).
 rule_enforcement_class('logic-coverage', canonical).
 rule_enforcement_class('rule-safety', canonical).
@@ -78,6 +80,7 @@ rule_implementation('source-relationship-parity', typescript).
 rule_implementation('no-cycles', prolog).
 rule_implementation('required-fields', prolog).
 rule_implementation('deprecated-adr-no-successor', prolog).
+rule_implementation('scenario-feasibility', prolog).
 rule_implementation('domain-contradictions', prolog).
 rule_implementation('logic-coverage', prolog).
 rule_implementation('rule-safety', prolog).
@@ -105,6 +108,7 @@ rule_predicate('no-dangling-refs', check_no_dangling_refs).
 rule_predicate('no-cycles', check_no_cycles).
 rule_predicate('required-fields', check_required_fields).
 rule_predicate('deprecated-adr-no-successor', check_deprecated_adrs).
+rule_predicate('scenario-feasibility', check_scenario_feasibility).
 rule_predicate('domain-contradictions', check_domain_contradictions).
 rule_predicate('logic-coverage', check_logic_coverage).
 rule_predicate('rule-safety', check_rule_safety).
@@ -130,6 +134,7 @@ rule_predicate_arity('no-dangling-refs', 1).
 rule_predicate_arity('no-cycles', 1).
 rule_predicate_arity('required-fields', 1).
 rule_predicate_arity('deprecated-adr-no-successor', 1).
+rule_predicate_arity('scenario-feasibility', 1).
 rule_predicate_arity('domain-contradictions', 1).
 rule_predicate_arity('logic-coverage', 1).
 rule_predicate_arity('rule-safety', 1).
@@ -156,6 +161,7 @@ rule_description('source-relationship-parity', 'Authored Markdown and relationsh
 rule_description('no-cycles', 'No circular dependency chains in requirements').
 rule_description('required-fields', 'All entities must have required fields').
 rule_description('deprecated-adr-no-successor', 'Deprecated ADRs must have a successor ADR that supersedes them').
+rule_description('scenario-feasibility', 'A scenario that expects success must not assume a property value a current requirement forbids, unless an approved exception requirement exempts it').
 rule_description('domain-contradictions', 'Detect contradictions between requirements constraining the same fact').
 rule_description('logic-coverage', 'Require every explicitly declared atomic requirement claim to be grounded by a linked strict-property or predicate fact').
 rule_description('rule-safety', 'Stored Logic IR rules use only the typed, bounded, stratified vocabulary').

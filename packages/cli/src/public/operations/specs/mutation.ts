@@ -15,7 +15,7 @@ export const validateUpsertSpec = {
   name: "kb_validate_upsert",
   cliName: "validate-upsert",
   description:
-    "Validate a kb_upsert payload without mutating the KB. Use this read-only preflight before kb_upsert, especially for requirements, because it returns schema/modeling errors plus semantic advisor receipts that identify prose likely needing kb_model_requirement, kb_suggest_predicates, ambiguity review, or an ontology-gap observation.",
+    "Validate a kb_upsert payload without mutating the KB. Use this read-only preflight before kb_upsert, especially for requirements, because it returns schema/modeling errors plus semantic advisor receipts that identify prose likely needing kb_model mode requirement or predicates, ambiguity review, or an ontology-gap observation.",
   businessInputSchema: {
     type: "object",
     required: ["type", "id", "properties"],

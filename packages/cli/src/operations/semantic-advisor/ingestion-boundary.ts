@@ -224,7 +224,7 @@ export function assertSemanticInventoryBoundary(
   );
   if (result.errors.length > 0) {
     throw new Error(
-      `Proposition-complete ingestion failed: ${result.errors.join("; ")}. Run kb_semantic_advisor with the complete prose and preserve its inventory contract before retrying.`,
+      `Proposition-complete ingestion failed: ${result.errors.join("; ")}. Run kb_model mode analyze (CLI: semantic-advisor) with the complete prose and preserve its inventory contract before retrying.`,
     );
   }
 }

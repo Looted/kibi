@@ -330,7 +330,7 @@ describe("shared discovery operation executors", () => {
 
     // When
     const result = await searchSpec.execute(
-      { query: "skillopt", limit: 20, offset: 0 },
+      { query: "skillopt", limit: 20, offset: 0, rankingMode: "legacy" },
       createContext(query),
     );
 

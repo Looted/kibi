@@ -94,6 +94,13 @@ export async function loadOperationSpec(
       spec = (await import("./public/operations/specs/planning.js"))
         .applyPlanSpec;
       break;
+    case "kb_skills":
+      spec = (await import("./public/operations/specs/composite.js"))
+        .skillsSpec;
+      break;
+    case "kb_model":
+      spec = (await import("./public/operations/specs/composite.js")).modelSpec;
+      break;
     case "kb_ingest_proof":
       spec = (await import("./public/operations/specs/proof.js"))
         .ingestProofSpec;

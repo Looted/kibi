@@ -78,6 +78,7 @@ export type IntentSearchAnalysis = Readonly<{
   topScore: number | null;
   topTwoMargin: number | null;
   abstained: boolean;
+  ambiguous: boolean;
 }>;
 
 // implements REQ-kibi-intent-aware-source-discovery
@@ -103,6 +104,7 @@ const GRAPH_RELATIONSHIPS = [
   "requires_property",
   "requires_predicate",
   "requires_rule",
+  "supersedes",
 ] as const;
 
 const FACET_NAMES: readonly IntentSearchFacetName[] = [
@@ -113,23 +115,86 @@ const FACET_NAMES: readonly IntentSearchFacetName[] = [
   "aliases",
 ];
 
+// Function words and question scaffolding carry no domain signal. Without
+// them, "how should kibi handle a detached HEAD?" scores on "detached" and
+// "head" rather than on how many entities mention "should".
 const STOP_WORDS = new Set([
   "a",
+  "about",
   "an",
   "and",
+  "any",
   "are",
+  "as",
+  "at",
   "be",
   "by",
+  "can",
+  "could",
+  "did",
+  "do",
+  "does",
   "for",
+  "from",
+  "happen",
+  "happens",
+  "how",
+  "i",
+  "if",
   "in",
+  "into",
   "is",
+  "it",
+  "its",
+  "me",
+  "my",
   "of",
   "on",
   "or",
+  "our",
+  "should",
+  "so",
+  "tell",
+  "than",
+  "that",
   "the",
+  "their",
+  "them",
+  "then",
+  "there",
+  "these",
+  "they",
+  "this",
+  "those",
   "to",
+  "us",
+  "was",
+  "we",
+  "what",
+  "when",
+  "where",
+  "which",
+  "who",
+  "why",
+  "will",
   "with",
+  "would",
+  "you",
+  "your",
 ]);
+
+// Statuses whose entities no longer govern. They stay findable but rank
+// below current entities and are labelled in the match reasons.
+const NON_GOVERNING_STATUSES = new Set([
+  "superseded",
+  "deprecated",
+  "rejected",
+  "retired",
+  "obsolete",
+  "archived",
+]);
+const NON_GOVERNING_FACTOR = 0.5;
+const AMBIGUOUS_MARGIN = 0.05;
 
 const MAX_CANDIDATES = 10_000;
 const MAX_GRAPH_SEEDS = 5;
@@ -148,7 +213,26 @@ function normalize(value: string): string {
         ? token.slice(0, -1)
         : token,
     )
+    .map(stem)
     .join(" ");
+}
+
+// A deliberately small suffix stripper so a question's verb meets the
+// entity's noun ("contradict" / "contradiction" / "contradictory",
+// "detached" / "detach"). Short tokens are left alone.
+const STEM_SUFFIXES = ["ation", "ion", "ing", "ory", "ed"] as const;
+function stem(token: string): string {
+  if (token.length < 6 || /\d/.test(token)) return token;
+  let stemmed = token;
+  for (const suffix of STEM_SUFFIXES) {
+    if (stemmed.endsWith(suffix) && stemmed.length - suffix.length >= 4) {
+      stemmed = stemmed.slice(0, -suffix.length);
+      break;
+    }
+  }
+  return stemmed.length > 4 && stemmed.endsWith("e")
+    ? stemmed.slice(0, -1)
+    : stemmed;
 }
 
 function tokens(value: string): readonly string[] {
@@ -286,6 +370,7 @@ function scoreEntity(
   documentFrequency: ReadonlyMap<string, number>,
   documentCount: number,
   body: string | null,
+  superseded = false,
 ): { score: number; reasons: string[]; matchedFacets: string[] } {
   const title = normalize(String(entity.title ?? ""));
   const metadata = normalize(
@@ -306,20 +391,36 @@ function scoreEntity(
   const metadataTokens = new Set(tokens(metadata));
   const bodyTokens = new Set(tokens(bodyText));
   const allSignalTokens = Array.from(new Set(queryTokens));
-  const lexical = allSignalTokens.reduce((sum, token) => {
+  // BM25-style inverse document frequency over title, metadata and body:
+  // a token most entities contain (a project name, "requirement") adds
+  // almost nothing, and the score is the share of the query's total
+  // discriminating weight this entity matches.
+  // Half of the lexical score is where the matched weight sits (title over
+  // metadata over body); the other half is how much of the query's
+  // discriminating weight the entity covers at all, so an entity matching
+  // the rare terms in its body outranks one matching a common term in its
+  // title.
+  let placed = 0;
+  let covered = 0;
+  let total = 0;
+  for (const token of allSignalTokens) {
     const frequency = documentFrequency.get(token) ?? 0;
-    const idf = Math.log(1 + (documentCount + 1) / (frequency + 1));
+    const idf = Math.log(
+      1 + (documentCount - frequency + 0.5) / (frequency + 0.5),
+    );
     const fieldWeight = titleTokens.has(token)
-      ? 3
+      ? 1
       : metadataTokens.has(token)
-        ? 1.5
+        ? 0.65
         : bodyTokens.has(token)
-          ? 0.75
+          ? 0.5
           : 0;
-    return sum + idf * fieldWeight;
-  }, 0);
-  const lexicalMax = Math.max(1, allSignalTokens.length * 4);
-  const lexicalScore = Math.min(1, lexical / lexicalMax);
+    placed += idf * fieldWeight;
+    if (fieldWeight > 0) covered += idf;
+    total += idf;
+  }
+  const lexicalScore =
+    total > 0 ? Math.min(1, (placed / total + covered / total) / 2) : 0;
 
   const matchedFacets: string[] = [];
   let facetScore = 0;
@@ -342,14 +443,21 @@ function scoreEntity(
   const sourceScore = sourceEvidence.length > 0 ? 1 : 0;
   const graphScore =
     graphEvidence.length > 0 ? Math.min(1, graphEvidence.length / 2) : 0;
-  const score = Math.min(
-    1,
-    lexicalScore * 0.58 +
-      facetScore * 0.17 +
-      sourceScore * 0.2 +
-      graphScore * 0.05,
-  );
+  const status = String(entity.status ?? "")
+    .trim()
+    .toLowerCase();
+  const nonGoverning = NON_GOVERNING_STATUSES.has(status) || superseded;
+  const score =
+    Math.min(
+      1,
+      lexicalScore * 0.58 +
+        facetScore * 0.17 +
+        sourceScore * 0.2 +
+        graphScore * 0.05,
+    ) * (nonGoverning ? NON_GOVERNING_FACTOR : 1);
   const reasons: string[] = [];
+  if (nonGoverning)
+    reasons.push(superseded ? "demoted: superseded" : `demoted: ${status}`);
   if (lexicalScore > 0) reasons.push("intent token match");
   if (matchedFacets.length > 0) reasons.push("semantic facet match");
   if (sourceEvidence.length > 0) reasons.push("source location match");
@@ -366,10 +474,13 @@ function scoreEntity(
 
 function buildDocumentFrequency(
   entities: readonly Record<string, unknown>[],
+  bodies: ReadonlyMap<Record<string, unknown>, string | null>,
 ): Map<string, number> {
   const frequency = new Map<string, number>();
   for (const entity of entities) {
-    const seen = new Set(tokens(entityText(entity)));
+    const seen = new Set(
+      tokens(`${entityText(entity)} ${bodies.get(entity) ?? ""}`),
+    );
     for (const token of seen)
       frequency.set(token, (frequency.get(token) ?? 0) + 1);
   }
@@ -391,7 +502,19 @@ export async function rankIntentEntities(
       ...facets.flatMap((facet) => tokens(facet.value)),
     ]),
   );
-  const documentFrequency = buildDocumentFrequency(entities);
+  const bodies = new Map<Record<string, unknown>, string | null>();
+  for (const entity of entities) {
+    bodies.set(
+      entity,
+      await loadMarkdownBody(String(entity.source ?? ""), workspaceRoot),
+    );
+  }
+  const documentFrequency = buildDocumentFrequency(entities, bodies);
+  const supersededIds = new Set(
+    graphEdges
+      .filter((edge) => edge.relationship === "supersedes")
+      .map((edge) => edge.to),
+  );
   const ranked: IntentSearchMatch[] = [];
   const minScore = options.minScore ?? 0.18;
   const graphByEntity = new Map<string, IntentGraphPath[]>();
@@ -415,10 +538,7 @@ export async function rankIntentEntities(
     // Keep evidence useful for agents and bounded for transport. The score is
     // already capped; unbounded parallel paths only add noise to receipts.
     const graphEvidence = (graphByEntity.get(entityId) ?? []).slice(0, 8);
-    const body = await loadMarkdownBody(
-      String(entity.source ?? ""),
-      workspaceRoot,
-    );
+    const body = bodies.get(entity) ?? null;
     const scored = scoreEntity(
       entity,
       allTokens,
@@ -428,6 +548,7 @@ export async function rankIntentEntities(
       documentFrequency,
       entities.length,
       body,
+      supersededIds.has(entityId),
     );
     if (scored.score < minScore) continue;
     const snippet = body
@@ -444,7 +565,9 @@ export async function rankIntentEntities(
         matchedFacets: scored.matchedFacets,
         sourceMatches: sourceEvidence,
         graphPaths: graphEvidence,
-        abstentionEligible: scored.score < minScore,
+        // Accepted, but within 0.05 of the threshold: a weak match the
+        // caller should confirm before relying on it.
+        abstentionEligible: scored.score < minScore + AMBIGUOUS_MARGIN,
       },
     });
   }
@@ -474,6 +597,8 @@ export async function rankIntentEntities(
       topScore,
       topTwoMargin,
       abstained: ranked.length === 0,
+      // Two leading matches this close are not a confident single answer.
+      ambiguous: topTwoMargin !== null && topTwoMargin < AMBIGUOUS_MARGIN,
     },
   };
 }

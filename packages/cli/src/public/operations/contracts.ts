@@ -429,8 +429,8 @@ export function nullableJsonSchema(
  * implementations.  Every catalog entry therefore has a concrete payload
  * shape, while nested domain records can still evolve independently.
  */
-export const OPERATION_DATA_SCHEMAS: Readonly<
-  Record<OperationName, OperationJsonSchema>
+const BASE_DATA_SCHEMAS: Readonly<
+  Record<Exclude<OperationName, "kb_skills" | "kb_model">, OperationJsonSchema>
 > = {
   kb_skills_list: objectData({ skills: valueArray }, ["skills"]),
   kb_skills_load: objectData({
@@ -446,7 +446,13 @@ export const OPERATION_DATA_SCHEMAS: Readonly<
     "count",
   ]),
   kb_search: objectData(
-    { results: valueArray, count: integerValue, queryAnalysis: recordValue },
+    {
+      results: valueArray,
+      count: integerValue,
+      truncated: booleanValue,
+      queryAnalysis: recordValue,
+      answer: recordValue,
+    },
     ["results", "count"],
   ),
   kb_status: objectData({
@@ -601,18 +607,36 @@ export const OPERATION_DATA_SCHEMAS: Readonly<
     semanticAdvisor: nullableJsonSchema(recordValue),
     normalizedPreview: nullableJsonSchema(recordValue),
   }),
-  kb_upsert: objectData({
-    created: integerValue,
-    updated: integerValue,
-    relationships_created: integerValue,
-    warnings: valueArray,
-    semanticAdvisor: recordValue,
-    status: stringValue,
-    effectFailures: recordArray,
-    nextActions: recordArray,
-    sourceWrites: recordArray,
-    contradictionCheck: recordValue,
-  }),
+  kb_upsert: {
+    description:
+      "Committed upsert payload, or the validation preview when dryRun:true wrote nothing.",
+    anyOf: [
+      objectData({
+        created: integerValue,
+        updated: integerValue,
+        relationships_created: integerValue,
+        warnings: valueArray,
+        semanticAdvisor: recordValue,
+        status: stringValue,
+        effectFailures: recordArray,
+        nextActions: recordArray,
+        sourceWrites: recordArray,
+        contradictionCheck: recordValue,
+      }),
+      objectData(
+        {
+          valid: booleanValue,
+          errors: valueArray,
+          warnings: valueArray,
+          semanticAdvisor: nullableJsonSchema(recordValue),
+          normalizedPreview: nullableJsonSchema(recordValue),
+          dryRun: { const: true },
+          skippedEffects: stringArray,
+        },
+        ["valid", "dryRun", "skippedEffects"],
+      ),
+    ],
+  },
   kb_delete: objectData({
     deleted: integerValue,
     relationships_deleted: integerValue,
@@ -722,6 +746,40 @@ export const OPERATION_DATA_SCHEMAS: Readonly<
   }),
 };
 
+/** A composite operation returns the routed operation's payload plus the
+ * selector that chose it. */
+function compositeData(
+  selector: "action" | "mode",
+  routes: Readonly<Record<string, OperationJsonSchema>>,
+): OperationJsonSchema {
+  return {
+    anyOf: Object.entries(routes).map(([choice, schema]) => ({
+      ...schema,
+      required: [selector, ...((schema.required as string[]) ?? [])],
+      properties: {
+        [selector]: { const: choice },
+        ...(schema.properties as Record<string, OperationJsonSchema>),
+      },
+    })),
+  };
+}
+
+export const OPERATION_DATA_SCHEMAS: Readonly<
+  Record<OperationName, OperationJsonSchema>
+> = {
+  ...BASE_DATA_SCHEMAS,
+  kb_skills: compositeData("action", {
+    list: BASE_DATA_SCHEMAS.kb_skills_list,
+    load: BASE_DATA_SCHEMAS.kb_skills_load,
+    read: BASE_DATA_SCHEMAS.kb_skills_read,
+  }),
+  kb_model: compositeData("mode", {
+    analyze: BASE_DATA_SCHEMAS.kb_semantic_advisor,
+    requirement: BASE_DATA_SCHEMAS.kb_model_requirement,
+    predicates: BASE_DATA_SCHEMAS.kb_suggest_predicates,
+  }),
+};
+
 type EffectOverrides = Readonly<{
   destructive?: boolean;
   retrySafety?: "safe" | "unsafe";
@@ -737,6 +795,7 @@ const EFFECT_OVERRIDES: Readonly<
   kb_skills_list: {},
   kb_skills_load: {},
   kb_skills_read: {},
+  kb_skills: {},
   kb_query: {},
   kb_search: {},
   kb_status: {},
@@ -747,6 +806,7 @@ const EFFECT_OVERRIDES: Readonly<
   kb_semantic_advisor: {},
   kb_model_requirement: {},
   kb_suggest_predicates: {},
+  kb_model: {},
   kb_plan_bootstrap: {},
   kb_validate_upsert: {},
   kb_upsert: {

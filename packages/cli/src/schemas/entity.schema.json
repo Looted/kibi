@@ -478,6 +478,15 @@
     "text_ref": {
       "type": "string"
     },
+    "expects": {
+      "type": "string",
+      "enum": [
+        "success",
+        "rejection",
+        "error"
+      ],
+      "description": "Scenario-only. The scenario's intended outcome. A scenario that expects success and assumes (via `assumes` facts) a value a current requirement forbids fails the scenario-feasibility check."
+    },
     "proof_exempt": {
       "type": "boolean",
       "description": "Requirement-only. Marks a current requirement as intentionally outside E2E-proof scope; requires proof_exempt_reason."
@@ -1547,6 +1556,22 @@
                 "proof_exempt_reason"
               ]
             }
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "scenario"
+          }
+        }
+      },
+      "else": {
+        "not": {
+          "required": [
+            "expects"
           ]
         }
       }

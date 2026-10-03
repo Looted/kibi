@@ -34,30 +34,59 @@ interface ToolConfig {
   annotations?: ToolAnnotations;
 }
 
+// implements REQ-kibi-mcp-tool-consolidation
+/**
+ * The agent-facing tool list. Narrower operations (kb_skills_list,
+ * kb_semantic_advisor, kb_model_requirement, kb_suggest_predicates,
+ * kb_validate_upsert) stay in the operation catalog and on the CLI; MCP
+ * reaches them through kb_skills, kb_model and kb_upsert dryRun so hosts
+ * load fewer tool definitions.
+ */
 const MCP_TOOL_ORDER = [
   "kb_query",
   "kb_search",
   "kb_status",
-  "kb_skills_list",
-  "kb_skills_load",
-  "kb_skills_read",
+  "kb_skills",
   "kb_find_gaps",
   "kb_coverage",
   "kb_graph",
-  "kb_sparql_remote",
-  "kb_semantic_advisor",
+  "kb_model",
   "kb_upsert",
-  "kb_validate_upsert",
   "kb_delete",
   "kb_check",
   "kb_prepare_impact_review",
-  "kb_model_requirement",
-  "kb_suggest_predicates",
   "kb_plan_bootstrap",
   "kb_compile_intent",
   "kb_apply_plan",
   "kb_ingest_proof",
 ] as const satisfies readonly OperationName[];
+
+/** Tools registered only when named in KIBI_MCP_OPTIONAL_TOOLS. */
+export const OPTIONAL_TOOL_NAMES = [
+  "kb_sparql_remote",
+  "kb_job_status",
+] as const;
+export type OptionalToolName = (typeof OPTIONAL_TOOL_NAMES)[number];
+
+/**
+ * Parse KIBI_MCP_OPTIONAL_TOOLS: a comma-separated list of optional tool
+ * names, or "all".
+ */
+export function enabledOptionalTools(
+  value: string | undefined = process.env.KIBI_MCP_OPTIONAL_TOOLS,
+): ReadonlySet<OptionalToolName> {
+  const requested = new Set(
+    (value ?? "")
+      .split(",")
+      .map((entry) => entry.trim())
+      .filter(Boolean),
+  );
+  return new Set(
+    OPTIONAL_TOOL_NAMES.filter(
+      (name) => requested.has("all") || requested.has(name),
+    ),
+  );
+}
 
 // implements REQ-002
 const TOOL_ANNOTATIONS: Partial<Record<OperationName, ToolAnnotations>> = {
@@ -69,6 +98,20 @@ const TOOL_ANNOTATIONS: Partial<Record<OperationName, ToolAnnotations>> = {
   },
   kb_status: {
     title: "Inspect Kibi branch status",
+    readOnlyHint: true,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
+  kb_skills: {
+    title: "Read bundled Kibi skills",
+    readOnlyHint: true,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
+  kb_model: {
+    title: "Model Kibi requirement prose",
     readOnlyHint: true,
     destructiveHint: false,
     idempotentHint: true,
@@ -169,7 +212,18 @@ const TOOL_ANNOTATIONS: Partial<Record<OperationName, ToolAnnotations>> = {
   },
 };
 
-const BASE_TOOLS: readonly ToolConfig[] = MCP_TOOL_ORDER.map((name) => {
+function exposedToolNames(
+  optional: ReadonlySet<OptionalToolName>,
+): readonly OperationName[] {
+  return [
+    ...MCP_TOOL_ORDER,
+    ...(optional.has("kb_sparql_remote")
+      ? (["kb_sparql_remote"] as const)
+      : []),
+  ];
+}
+
+function toolConfig(name: OperationName): ToolConfig {
   const spec = getSpec(name);
   const effects = spec.declaredEffects;
   const derived: ToolAnnotations = {
@@ -191,7 +245,16 @@ const BASE_TOOLS: readonly ToolConfig[] = MCP_TOOL_ORDER.map((name) => {
       ...derived,
     },
   };
-});
+}
+
+/** Catalog tool configs for the base list plus the given optional tools. */
+export function buildBaseTools(
+  optional: ReadonlySet<OptionalToolName> = enabledOptionalTools(),
+): ToolConfig[] {
+  return exposedToolNames(optional).map(toolConfig);
+}
+
+const BASE_TOOLS: readonly ToolConfig[] = buildBaseTools();
 
 /**
  * Inject _diagnostic_telemetry schema into tool inputs when diagnostic mode is enabled.

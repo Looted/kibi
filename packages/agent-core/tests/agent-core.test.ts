@@ -277,6 +277,24 @@ describe("agent-core knowledge index", () => {
     expect(readEntitySummary(root, "UNKNOWN-id")).toEqual({ id: "UNKNOWN-id" });
   });
 
+  test("entity summaries carry typed and plain frontmatter links", () => {
+    const root = tempDir("kibi-agent-core-links-");
+    write(
+      root,
+      ".kb/requirements/REQ-checkout-rounding.md",
+      "---\nid: REQ-checkout-rounding\ntitle: Totals round to cents\nlinks:\n  - type: constrains\n    target: FACT-checkout-total\n  - ADR-money\nstatus: open\n---\n",
+    );
+    expect(readEntitySummary(root, "REQ-checkout-rounding")).toEqual({
+      id: "REQ-checkout-rounding",
+      title: "Totals round to cents",
+      status: "open",
+      links: [
+        { type: "constrains", target: "FACT-checkout-total" },
+        { type: "relates_to", target: "ADR-money" },
+      ],
+    });
+  });
+
   test("the package entry re-exports the shared adapter surface", () => {
     expect(agentCore.classifyPath).toBe(classifyPath);
     expect(agentCore.canonicalKbToolName).toBe(canonicalKbToolName);

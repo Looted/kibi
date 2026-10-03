@@ -11,9 +11,14 @@
     "type": "req"
   },
   "tool": {
-    "description": "Search KB entities for discovery using legacy lexical ranking or deterministic intent-v1 ranking. Intent mode accepts host-agent semantic facets and source locations, returns evidence and abstains below its confidence threshold. Use for exploratory lookup before exact follow-up with kb_query. No mutation side effects.",
+    "description": "Ask the KB a question or search it. Default intent-v1 ranking accepts questions, host-agent semantic facets and changed-code source locations, returns evidence, abstains below its confidence threshold and adds an answer layer: the current requirements that govern the topic, what must stay true (linked facts), why (ADRs) and what verifies it (scenarios, tests). Use before changing behavior, then kb_query for exact follow-up. No mutation side effects.",
     "inputSchema": {
       "properties": {
+        "answer": {
+          "default": true,
+          "description": "Intent-v1 only, first page only. When true (default) the result includes an answer layer: current governing requirements with their linked facts, scenarios, tests and ADRs, superseded requirements listed separately, and observation facts labelled as notes. Bounded in size; discovery, not proof.",
+          "type": "boolean"
+        },
         "fields": {
           "default": "summary",
           "description": "Optional result detail. 'summary' returns identifying metadata plus the match snippet for discovery. Use 'full' to include complete entity bodies, or follow up with kb_query for the exact entities you need.",
@@ -46,8 +51,8 @@
           "type": "string"
         },
         "rankingMode": {
-          "default": "legacy",
-          "description": "Optional deterministic ranking mode. Omit for backward-compatible lexical search; use intent-v1 for semantic facets, source-aware evidence, graph boosts, and abstention.",
+          "default": "intent-v1",
+          "description": "Optional deterministic ranking mode. Default intent-v1: question-aware ranking with semantic facets, source-aware evidence, graph boosts, superseded demotion and abstention. Use legacy for the older lexical ranking.",
           "enum": ["legacy", "intent-v1"],
           "type": "string"
         },
