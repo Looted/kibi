@@ -39,6 +39,7 @@ argument_constants:
     - kibi.cli.startup
     - kibi.coverage.repair_plan
     - kibi.coverage.requirement
+    - kibi.discovery.search
     - kibi.distribution.parity
     - kibi.engine.journal
     - kibi.engine.prolog_process

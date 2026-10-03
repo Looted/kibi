@@ -307,3 +307,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3969fe3a1998
+  - type: requires_predicate
+    from: REQ-kibi-search-answer-layer
+    to: FACT-SEARCH-DEFAULT-INTENT-RANKING
+    created_at: 2026-10-03T09:58:42.084Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f9a6f9c80dfd
+  - type: requires_predicate
+    from: REQ-kibi-search-answer-layer
+    to: FACT-SEARCH-ANSWER-LAYER-CONTENTS
+    created_at: 2026-10-03T09:58:42.130Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ff0035aaa29d
+  - type: requires_predicate
+    from: REQ-kibi-search-answer-layer
+    to: FACT-SEARCH-ABSENCE-NOT-EVIDENCE
+    created_at: 2026-10-03T09:58:42.160Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-00768dff9bec

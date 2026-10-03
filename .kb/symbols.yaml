@@ -47382,3 +47382,39 @@ symbols:
         target: TEST-kibi-scenario-feasibility
       - type: implements
         target: REQ-kibi-scenario-feasibility
+  - id: SYM-test-kibi-truthful-consistency
+    title: Truthful consistency consumer suite
+    status: active
+    sourceFile: packages/cli/tests/consumer/truthful-consistency.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-truthful-consistency
+  - id: SYM-test-kibi-scenario-feasibility
+    title: Scenario feasibility consumer suite
+    status: active
+    sourceFile: packages/cli/tests/consumer/scenario-feasibility.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-scenario-feasibility
+  - id: SYM-test-kibi-search-answer-layer
+    title: Search answer layer consumer suite
+    status: active
+    sourceFile: packages/cli/tests/consumer/search-answer-layer.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-search-answer-layer
+  - id: SYM-test-kibi-mcp-tool-consolidation
+    title: Consolidated MCP tool surface consumer suite
+    status: active
+    sourceFile: packages/mcp/tests/server/tool-surface-consumer.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-mcp-tool-consolidation

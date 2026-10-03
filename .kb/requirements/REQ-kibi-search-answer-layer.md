@@ -22,24 +22,24 @@ semantic_inventory:
     span:
       start: 0
       end: 100
-    status: ontology_gap
-    reason: No reviewed predicate schema declares a kb_search subject; recorded as a review:ontology-gap observation instead of minting atoms.
+    status: modeled
+    reason: Grounded by a logical_requirement_rule predicate fact over the reviewed project-local logical_requirement_rule schema (subject kibi.discovery.search).
   - claim_key: CLAIM-6CC80BDBD9B7AAC2
     claim_text: By default kb_search must return a kibi.search-answer.v1 answer layer listing the current governing requirements, their linked facts, rationale ADRs, verifying scenarios and tests, superseded non-governing entries, and observation notes within a byte ceiling
     role: normative
     span:
       start: 102
       end: 360
-    status: ontology_gap
-    reason: No reviewed predicate schema declares a kb_search subject; recorded as a review:ontology-gap observation instead of minting atoms.
+    status: modeled
+    reason: Grounded by a logical_requirement_rule predicate fact over the reviewed project-local logical_requirement_rule schema (subject kibi.discovery.search).
   - claim_key: CLAIM-DED63830C86F15B5
     claim_text: The search answer layer must state that absence of a match is not evidence
     role: normative
     span:
       start: 362
       end: 436
-    status: ontology_gap
-    reason: No reviewed predicate schema declares a kb_search subject; recorded as a review:ontology-gap observation instead of minting atoms.
+    status: modeled
+    reason: Grounded by a logical_requirement_rule predicate fact over the reviewed project-local logical_requirement_rule schema (subject kibi.discovery.search).
 logic_claims:
   - CLAIM-8470F42B22C072FA
   - CLAIM-6CC80BDBD9B7AAC2

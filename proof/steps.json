@@ -1782,5 +1782,53 @@
         "./packages/mcp/tests/server/workspace-router.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-kibi-truthful-consistency",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "300000",
+        "./packages/cli/tests/consumer/truthful-consistency.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-scenario-feasibility",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "300000",
+        "./packages/cli/tests/consumer/scenario-feasibility.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-search-answer-layer",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "300000",
+        "./packages/cli/tests/consumer/search-answer-layer.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-mcp-tool-consolidation",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "300000",
+        "./packages/mcp/tests/server/tool-surface-consumer.test.ts"
+      ]
+    ]
   }
 ]
