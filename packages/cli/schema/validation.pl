@@ -105,6 +105,7 @@ is_fact_only_field(predicate_arity).
 is_fact_only_field(argument_names).
 is_fact_only_field(argument_types).
 is_fact_only_field(argument_descriptions).
+is_fact_only_field(key_arguments).
 is_fact_only_field(argument_constants).
 is_fact_only_field(argument_aliases).
 is_fact_only_field(aliases).
@@ -156,6 +157,7 @@ validate_fact_shape(predicate_schema, Props) :-
     memberchk(argument_types=ArgumentTypes, Props),
     same_length(ArgumentNames, ArgumentTypes),
     length(ArgumentNames, Arity),
+    valid_key_arguments(Props, ArgumentNames),
     valid_optional_fact_enums(Props),
     valid_polarity_in_props(Props), !.
 validate_fact_shape(predicate, Props) :-
@@ -184,6 +186,24 @@ validate_fact_shape(Kind, _Props) :-
     % Unknown fact_kind values fail validation
     \+ memberchk(Kind, [subject, property_value, observation, meta, predicate_schema, predicate, rule_schema, rule]),
     fail.
+
+% valid_key_arguments(+Props, +ArgumentNames)
+% Optional key_arguments must be a non-empty list of distinct declared
+% argument names.
+valid_key_arguments(Props, ArgumentNames) :-
+    (   memberchk(key_arguments=Keys, Props)
+    ->  is_list(Keys),
+        Keys \= [],
+        maplist(text_atom, ArgumentNames, NameAtoms),
+        maplist(text_atom, Keys, KeyAtoms),
+        sort(KeyAtoms, UniqueKeys),
+        same_length(KeyAtoms, UniqueKeys),
+        forall(member(Key, KeyAtoms), memberchk(Key, NameAtoms))
+    ;   true
+    ).
+
+text_atom(Value, Atom) :- atom(Value), !, Atom = Value.
+text_atom(Value, Atom) :- string(Value), atom_string(Atom, Value).
 
 % valid_operator(+Op)
 valid_operator(Op) :- memberchk(Op, [eq, neq, lt, lte, gt, gte]), !.

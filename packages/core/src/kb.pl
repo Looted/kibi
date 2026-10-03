@@ -59,6 +59,7 @@
     deprecated_no_successor/1,
     symbol_no_req_coverage/2,
     predicate_schema/6,
+    predicate_schema_keys/4,
     predicate_fact/5,
     canonical_property_tuple/9,
     contradicting_reqs/3,
@@ -85,7 +86,7 @@
 :- use_module('../schema/entities.pl', [entity_type/1, entity_property/3, required_property/2]).
 :- use_module('../schema/relationships.pl', [relationship_type/1, valid_relationship/3]).
 :- use_module('units.pl', [canonical_quantity/6]).
-:- use_module('intervals.pl', [numeric_constraints_satisfiable/1]).
+:- use_module('intervals.pl', [numeric_constraints_satisfiable/2]).
 :- use_module('../schema/validation.pl', [validate_entity/2, validate_relationship/3]).
 
 % Constants
@@ -2745,6 +2746,27 @@ predicate_schema(FactId, Namespace, Name, Arity, ArgumentNames, ArgumentTypes) :
     memberchk(argument_types=ArgumentTypesRaw, Props),
     normalize_term_atom_list(ArgumentTypesRaw, ArgumentTypes).
 
+%% predicate_schema_keys(?Namespace, ?Name, ?Arity, -KeyPositions)
+% implements REQ-kibi-truthful-consistency
+% A predicate_schema that declares key_arguments states a functional
+% dependency: the remaining arguments are determined by the key arguments.
+% KeyPositions are the 1-based positions of the named key arguments.  A
+% predicate without this declaration is treated as multivalued, so two atoms
+% of it are never assumed to describe the same fact.
+predicate_schema_keys(Namespace, Name, Arity, KeyPositions) :-
+    predicate_schema(FactId, Namespace, Name, Arity, ArgumentNames, _ArgumentTypes),
+    kb_entity(FactId, fact, Props),
+    memberchk(key_arguments=KeysRaw, Props),
+    normalize_term_atom_list(KeysRaw, KeyNames),
+    KeyNames \= [],
+    length(ArgumentNames, Arity),
+    maplist(argument_name_position(ArgumentNames), KeyNames, Positions0),
+    sort(Positions0, KeyPositions).
+
+argument_name_position(ArgumentNames, KeyName, Position) :-
+    nth1(Position, ArgumentNames, KeyName),
+    !.
+
 %% predicate_fact(+FactId, -Namespace, -Name, -Args, -Polarity)
 % Read one ground ontology predicate fact.
 predicate_fact(FactId, Namespace, Name, Args, Polarity) :-
@@ -2843,8 +2865,22 @@ property_conflict(Subject, Property, OpA, TypeA, ValA, UnitA, Polarity,
                   OpB, TypeB, ValB, UnitB, Polarity, Reason) :-
     unit_compatible(UnitA, UnitB),
     compatible_types(TypeA, TypeB),
-    values_conflict(OpA, ValA, OpB, ValB, TypeA),
+    conflict_value_type(TypeA, TypeB, Type),
+    values_conflict(OpA, ValA, OpB, ValB, Type),
     format(atom(Reason), 'Value conflict on ~w.~w: ~w ~w vs ~w ~w', [Subject, Property, OpA, ValA, OpB, ValB]).
+
+%% conflict_value_type(+TypeA, +TypeB, -Type)
+% The value domain both constraints are compared in.  A property is treated as
+% integer-valued only when both sides declare int; a mixed int/number pair is
+% compared over the reals so a conflict is never claimed from one side's
+% narrower declaration.
+% implements REQ-kibi-truthful-consistency
+conflict_value_type(int, int, int) :- !.
+conflict_value_type(TypeA, TypeB, number) :-
+    is_numeric_type(TypeA),
+    is_numeric_type(TypeB),
+    !.
+conflict_value_type(Type, _, Type).
 
 %% compatible_types(+TypeA, +TypeB)
 % Types are compatible if they are the same or both numeric.
@@ -2899,10 +2935,13 @@ values_conflict(eq, ValA, neq, ValB, Type) :-
 values_conflict(neq, ValA, eq, ValB, Type) :-
     same_value(Type, ValA, Type, ValB).
 
-% Numeric conflict: the two comparisons admit no common real value.  This
-% covers every operator pair (eq/gt, lte/gt at the same bound, gte/gt, ...)
-% instead of a hand-written table.  neq/neq never conflicts and eq/neq is
-% handled above.
+% Numeric conflict: the two comparisons admit no common value of the type's
+% domain.  `number` ranges over the reals; `int` ranges over the integers, so
+% gt 0 and lt 1 conflict for int (no integer lies strictly between them) but
+% not for number.  This covers every operator pair (eq/gt, lte/gt at the same
+% bound, gte/gt, ...) instead of a hand-written table.  neq/neq never
+% conflicts and eq/neq is handled above.
+% implements REQ-kibi-truthful-consistency
 values_conflict(OpA, ValA, OpB, ValB, Type) :-
     is_numeric_type(Type),
     numeric_operator(OpA),
@@ -2911,7 +2950,11 @@ values_conflict(OpA, ValA, OpB, ValB, Type) :-
     \+ ( OpA == eq, OpB == neq ),
     \+ ( OpA == neq, OpB == eq ),
     number(ValA), number(ValB),
-    \+ numeric_constraints_satisfiable([c(OpA, X, ValA), c(OpB, X, ValB)]).
+    numeric_type_integer_variables(Type, IntegerVariables),
+    \+ numeric_constraints_satisfiable([c(OpA, X, ValA), c(OpB, X, ValB)], IntegerVariables).
+
+numeric_type_integer_variables(int, all) :- !.
+numeric_type_integer_variables(_, []).
 
 numeric_operator(Op) :- memberchk(Op, [eq, neq, lt, lte, gt, gte]).
 

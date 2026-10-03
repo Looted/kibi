@@ -16,7 +16,7 @@ import type {
   OperationContext,
   WorkspaceSnapshot,
 } from "../../public/operations/runtime-types.js";
-import { buildWhatIfContradictionGoal } from "../mutation/contradictions.js";
+import { buildWhatIfAnalysisGoal } from "../mutation/contradictions.js";
 import { configuredSourceTarget } from "../mutation/source-authoring.js";
 import type { RelationshipInput } from "../mutation/types.js";
 import { validateUpsertInput } from "../mutation/validation.js";
@@ -71,11 +71,20 @@ export type ProposalDecision = Readonly<{
 }>;
 
 // implements REQ-kibi-change-to-proof-plan-compiler
-export type ContradictionWitness = Readonly<{
-  requirements: readonly string[];
-  reason: string;
-  status?: string;
-}>;
+/**
+ * One witness from the staged what-if analysis. The engine's full evidence
+ * (sides, facts, scenario, comparison) is kept alongside these normalized
+ * fields so callers can act on more than requirement ids.
+ */
+export type ContradictionWitness = Readonly<
+  {
+    requirements: readonly string[];
+    reason: string;
+    status?: string;
+    /** property | predicate | rule | scenario_feasibility */
+    kind?: string;
+  } & Record<string, unknown>
+>;
 
 // implements REQ-kibi-change-to-proof-plan-compiler
 export type TraceabilityProposal = Readonly<{
@@ -134,7 +143,14 @@ export type CompilePlanV1 = Readonly<{
   }[];
   contradictionAnalysis: {
     outcome: "no_conflict" | "conflict" | "unresolved";
+    /** Witnesses that decided the outcome: introduced ones, plus staged ones naming the target requirement. */
     witnesses: readonly ContradictionWitness[];
+    /** Staged witnesses the current KB does not have. */
+    introduced?: readonly ContradictionWitness[];
+    /** Current witnesses the plan resolves. */
+    removed?: readonly ContradictionWitness[];
+    /** Staged witnesses that already exist in the current KB. */
+    unchanged?: readonly ContradictionWitness[];
   };
   proposals: readonly TraceabilityProposal[];
   steps: readonly PlanStep[];
@@ -515,9 +531,9 @@ function generatedRequirementId(intent: string): string {
 }
 
 // implements REQ-kibi-truthful-consistency
-/** Rolled-back staging goal for a plan's steps (see what_if_contradiction_witnesses/2). */
+/** Rolled-back staging goal for a plan's steps (see what_if_analysis/2). */
 export function planWhatIfGoal(steps: readonly PlanStep[], now: Date): string {
-  return buildWhatIfContradictionGoal(
+  return buildWhatIfAnalysisGoal(
     steps.map((step) => {
       const relationships = (
         Array.isArray(step.relationships)
@@ -556,52 +572,116 @@ export function planWhatIfGoal(steps: readonly PlanStep[], now: Date): string {
 }
 
 // implements REQ-kibi-truthful-consistency
+export type WhatIfAnalysis = Readonly<{
+  after: readonly ContradictionWitness[];
+  introduced: readonly ContradictionWitness[];
+  removed: readonly ContradictionWitness[];
+  unchanged: readonly ContradictionWitness[];
+}>;
+
+function whatIfWitness(witness: Record<string, unknown>): ContradictionWitness {
+  return {
+    ...witness,
+    requirements: Array.isArray(witness.requirements)
+      ? witness.requirements.map((id) => normalizeEntityId(String(id)))
+      : [],
+    reason: text(witness.reason),
+    status: text(witness.status) || "contradiction",
+    ...(typeof witness.kind === "string" ? { kind: witness.kind } : {}),
+  };
+}
+
+function whatIfWitnesses(value: unknown): ContradictionWitness[] {
+  return (Array.isArray(value) ? value.filter(isRecord) : []).map(
+    whatIfWitness,
+  );
+}
+
+// implements REQ-kibi-truthful-consistency
+/**
+ * Parse checks:what_if_analysis_json/2 output. The binding is a quoted Prolog
+ * string, so the JSON may arrive encoded once more as a JSON string. A bare
+ * witness array (the what_if_contradiction_witnesses_json/2 shape) carries no
+ * current-KB baseline, so every witness in it is treated as introduced.
+ * Returns null when the output cannot be read.
+ */
+export function parseWhatIfAnalysis(raw: unknown): WhatIfAnalysis | null {
+  if (typeof raw !== "string") return null;
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+    if (typeof parsed === "string") parsed = JSON.parse(parsed);
+  } catch {
+    return null;
+  }
+  if (Array.isArray(parsed)) {
+    const after = whatIfWitnesses(parsed);
+    return { after, introduced: after, removed: [], unchanged: [] };
+  }
+  if (!isRecord(parsed)) return null;
+  return {
+    after: whatIfWitnesses(parsed.after),
+    introduced: whatIfWitnesses(parsed.introduced),
+    removed: whatIfWitnesses(parsed.removed),
+    unchanged: whatIfWitnesses(parsed.unchanged),
+  };
+}
+
+// implements REQ-kibi-truthful-consistency
+/** Blocking: a proven contradiction or an infeasible success scenario. */
+export function isBlockingWitness(witness: ContradictionWitness): boolean {
+  return witness.status === "contradiction" || witness.status === "infeasible";
+}
+
+// implements REQ-kibi-truthful-consistency
 // Check the KB as it would be after this plan, not the KB as it is: stage every
-// planned step in a rolled-back transaction and read the contradiction
-// witnesses that touch the target requirement. Rule overlap the checker can
-// neither prove nor exclude stays unresolved rather than becoming consistency.
+// planned step in a rolled-back transaction and compare its contradiction and
+// scenario-feasibility witnesses with the current KB's. Any witness the plan
+// introduces counts, whichever requirements it names; a staged witness that
+// already existed counts only when it names the target requirement. Rule
+// overlap the checker can neither prove nor exclude stays unresolved rather
+// than becoming consistency.
 async function contradictionAnalysis(
   prolog: NonNullable<OperationContext["prolog"]>,
   requirementId: string,
   steps: readonly PlanStep[],
   now: Date,
-): Promise<{
-  outcome: "no_conflict" | "conflict" | "unresolved";
-  witnesses: ContradictionWitness[];
-}> {
+): Promise<CompilePlanV1["contradictionAnalysis"]> {
+  const unavailable = {
+    outcome: "unresolved" as const,
+    witnesses: [],
+    introduced: [],
+    removed: [],
+    unchanged: [],
+  };
   let goal: string;
   try {
     goal = planWhatIfGoal(steps, now);
   } catch {
-    return { outcome: "unresolved", witnesses: [] };
+    return unavailable;
   }
   const result = await prolog.query(goal);
-  if (!result.success || typeof result.bindings.JsonString !== "string")
-    return { outcome: "unresolved", witnesses: [] };
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(result.bindings.JsonString);
-    // The binding is a quoted Prolog string, so the JSON arrives encoded once
-    // more as a JSON string.
-    if (typeof parsed === "string") parsed = JSON.parse(parsed);
-  } catch {
-    return { outcome: "unresolved", witnesses: [] };
-  }
-  const witnesses = (Array.isArray(parsed) ? parsed.filter(isRecord) : [])
-    .map((witness) => ({
-      requirements: Array.isArray(witness.requirements)
-        ? witness.requirements.map((id) => normalizeEntityId(String(id)))
-        : [],
-      reason: text(witness.reason),
-      status: text(witness.status) || "contradiction",
-    }))
-    .filter(({ requirements }) => requirements.includes(requirementId));
-  const outcome = witnesses.some(({ status }) => status === "contradiction")
+  if (!result.success) return unavailable;
+  const analysis = parseWhatIfAnalysis(result.bindings.JsonString);
+  if (analysis === null) return unavailable;
+  const witnesses = [
+    ...analysis.introduced,
+    ...analysis.unchanged.filter((witness) =>
+      witness.requirements.includes(requirementId),
+    ),
+  ];
+  const outcome = witnesses.some(isBlockingWitness)
     ? "conflict"
     : witnesses.length > 0
       ? "unresolved"
       : "no_conflict";
-  return { outcome, witnesses };
+  return {
+    outcome,
+    witnesses,
+    introduced: analysis.introduced,
+    removed: analysis.removed,
+    unchanged: analysis.unchanged,
+  };
 }
 
 function proposalFor(
@@ -1090,7 +1170,11 @@ export async function executeCompileIntent(
   );
   if (contradictions.outcome === "conflict")
     diagnostics.push(
-      "Current requirement conflicts must be resolved with an explicit supersedes relationship before applying this plan.",
+      contradictions.witnesses.some(
+        (witness) => witness.kind === "scenario_feasibility",
+      )
+        ? "The plan leaves a success scenario infeasible or conflicts with a current requirement: set expects: rejection, correct the assumption, record an approved exception, or supersede the conflicting requirement before applying this plan."
+        : "Current requirement conflicts must be resolved with an explicit supersedes relationship before applying this plan.",
     );
   if (contradictions.outcome === "unresolved")
     diagnostics.push(

@@ -1,5 +1,6 @@
 // implements REQ-claude-code-kibi-plugin-v1
 import { afterEach, describe, expect, test } from "bun:test";
+import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -15,6 +16,11 @@ import {
 } from "./fixture";
 
 afterEach(cleanupTempDirs);
+
+/** Relationship shard holding a `from` id's records, as the Kibi writer names it. */
+function shardOf(entityId: string): string {
+  return createHash("sha256").update(entityId).digest("hex").slice(0, 2);
+}
 
 /** Keys Claude Code accepts on these events' hook output. */
 const ALLOWED_TOP_LEVEL = new Set(["hookSpecificOutput"]);
@@ -226,6 +232,60 @@ describe("pre-edit snippets", () => {
     expect(text).toContain(
       "Decision: ADR-money-as-decimal: Money is computed as decimal cents.",
     );
+  });
+
+  test("grounding stored only in relationship shards reaches the edit snippet", async () => {
+    const fixture = createKibiWorkspace();
+    write(
+      fixture.root,
+      ".kb/requirements/REQ-checkout-rounding.md",
+      "---\nid: REQ-checkout-rounding\ntitle: Checkout totals round to cents\nstatus: open\n---\n",
+    );
+    write(
+      fixture.root,
+      `.kb/relationships/${shardOf("REQ-checkout-rounding")}.yaml`,
+      [
+        "relationships:",
+        "  - id: rel-a",
+        "    type: requires_property",
+        "    from: REQ-checkout-rounding",
+        "    to: FACT-total-rounding-cents",
+        "  - to: ADR-money-as-decimal",
+        "    from: REQ-checkout-rounding",
+        "    type: relates_to",
+        "",
+      ].join("\n"),
+    );
+    const text = await session(fixture).pre("Edit", {
+      file_path: path.join(fixture.root, "src/checkout.ts"),
+      old_string: "  return Math.round(total * 100) / 100;",
+      new_string: "  return total;",
+    });
+    expect(text).toContain(
+      "REQ-checkout-rounding must keep true: FACT-total-rounding-cents: Totals round half up to two decimals.",
+    );
+    expect(text).toContain(
+      "Decision: ADR-money-as-decimal: Money is computed as decimal cents.",
+    );
+  });
+
+  test("a superseded lead requirement is not presented as something to keep true", async () => {
+    const fixture = createKibiWorkspace();
+    write(
+      fixture.root,
+      `.kb/relationships/${shardOf("REQ-currency-display")}.yaml`,
+      "relationships:\n  - type: constrains\n    from: REQ-currency-display\n    to: FACT-total-rounding-cents\n",
+    );
+    const text = await session(fixture).pre("Edit", {
+      file_path: "src/checkout.ts",
+      old_string: "  return `$${total.toFixed(2)}`;",
+      new_string: "  return `${total}`;",
+    });
+    expect(text?.split("\n")[1]).toContain(
+      "REQ-currency-display (superseded): Totals display with a currency symbol",
+    );
+    expect(text).not.toContain("must keep true");
+    expect(text).not.toContain("Decision:");
   });
 
   test("after a read, edits add only new focus facts", async () => {

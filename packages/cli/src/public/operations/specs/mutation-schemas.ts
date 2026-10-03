@@ -108,6 +108,18 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       description:
         "Requirement field whose exact UTF-8 bytes anchor semantic_inventory spans.",
     },
+    approved_by: {
+      type: "string",
+      minLength: 1,
+      description:
+        "Requirement-only. The human who approved this exception requirement. An exception that exempts a requirement and is specified_by a success scenario makes that scenario feasible only when approved_by is set.",
+    },
+    approval_ref: {
+      type: "string",
+      minLength: 1,
+      description:
+        "Requirement-only. Optional reference to the exception's approval decision record.",
+    },
     semantic_source_hash: {
       type: "string",
       pattern: "^[a-f0-9]{64}$",
@@ -294,6 +306,14 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       type: "array",
       items: { type: "string" },
       description: "Optional ordered argument explanations.",
+    },
+    key_arguments: {
+      type: "array",
+      items: { type: "string", minLength: 1 },
+      minItems: 1,
+      uniqueItems: true,
+      description:
+        'predicate_schema only: argument names that determine the remaining arguments (a functional dependency), e.g. ["sensor"] for reading(sensor, value). Rule contradiction analysis treats two atoms with identical keys as the same fact; without it the predicate is multivalued and opposing rules stay unresolved instead of disjoint.',
     },
     argument_constants: {
       type: "object",

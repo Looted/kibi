@@ -44,6 +44,7 @@ import type {
 import * as reporting from "../../src/public/operations/specs/reporting.js";
 import { asApply } from "../helpers/coverage-casts.js";
 import { isolateKibiEnv } from "../helpers/in-process-workspace.js";
+import { isWhatIfGoal, whatIfResult } from "../helpers/what-if.js";
 
 function sha(value: string): string {
   return createHash("sha256").update(value).digest("hex");
@@ -138,9 +139,11 @@ function compilePlan(overrides: Partial<CompilePlanV1> = {}): CompilePlanV1 {
 function stubProlog(): OperationContext["prolog"] {
   return {
     query: async (goal): Promise<PrologQueryResult> =>
-      goal.includes("kb_commit_upsert")
-        ? { success: true, bindings: { ChangeKind: "created" } }
-        : { success: true, bindings: { Results: "[]" } },
+      isWhatIfGoal(goal)
+        ? whatIfResult()
+        : goal.includes("kb_commit_upsert")
+          ? { success: true, bindings: { ChangeKind: "created" } }
+          : { success: true, bindings: { Results: "[]" } },
     queryStatusJson: async () => ({ success: true, bindings: {} }),
     nextSolution: async () => null,
     save: async () => ({ success: true, bindings: {} }),

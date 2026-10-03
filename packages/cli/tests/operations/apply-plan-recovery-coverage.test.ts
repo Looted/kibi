@@ -19,6 +19,7 @@ import type {
   PrologQueryResult,
 } from "../../src/public/operations/runtime-types.js";
 import { asApply } from "../helpers/coverage-casts.js";
+import { isWhatIfGoal, whatIfResult } from "../helpers/what-if.js";
 
 function sha(value: string): string {
   return createHash("sha256").update(value).digest("hex");
@@ -42,10 +43,13 @@ afterEach(() => {
 
 function filesystemContext(workspaceRoot: string): OperationContext {
   const query: OperationContext["prolog"] = {
-    query: async (): Promise<PrologQueryResult> => ({
-      success: true,
-      bindings: { Results: "[]" },
-    }),
+    query: async (goal: string): Promise<PrologQueryResult> =>
+      isWhatIfGoal(goal)
+        ? whatIfResult()
+        : {
+            success: true,
+            bindings: { Results: "[]" },
+          },
     queryStatusJson: async () => ({ success: true, bindings: {} }),
     nextSolution: async () => null,
     save: async () => ({ success: true, bindings: {} }),
@@ -609,6 +613,7 @@ describe("bootstrap recovery journals", () => {
       ...filesystemContext(root),
       prolog: {
         query: async (goal: string): Promise<PrologQueryResult> => {
+          if (isWhatIfGoal(goal)) return whatIfResult();
           if (goal.includes("REQ-bootstrap-recover-2")) {
             return { success: false, bindings: {}, error: "upsert failed" };
           }
@@ -719,6 +724,7 @@ describe("compile plan snapshot and derived-commit failures", () => {
       ...filesystemContext(root),
       prolog: {
         query: async (goal: string): Promise<PrologQueryResult> => {
+          if (isWhatIfGoal(goal)) return whatIfResult();
           if (goal.includes("kb_commit_upsert")) {
             return { success: false, bindings: {}, error: "compiled failed" };
           }

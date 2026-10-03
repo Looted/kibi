@@ -19,6 +19,7 @@
 :- use_module('checks.pl', [
     check_domain_contradictions_and_witnesses/2,
     infeasible_scenario/5,
+    scenario_feasibility_outcome/2,
     check_rule_safety/1,
     check_rule_verifiability/1
 ]).
@@ -565,6 +566,14 @@ scenario_stage(ReqId, Stage, ScenarioIds) :-
     findall(ScenarioId,
         (member(ScenarioId, ScenarioIds), once(infeasible_scenario(ScenarioId, _, _, _, _))),
         InfeasibleScenarios),
+    % A success scenario whose feasibility cannot be decided is reported as a
+    % distinct, non-blocking note instead of being counted as feasible.
+    findall(_{scenario: ScenarioId, reason: ReasonText},
+        (   member(ScenarioId, ScenarioIds),
+            once(scenario_feasibility_outcome(ScenarioId, unknown(Reason))),
+            unknown_feasibility_reason(Reason, ReasonText)
+        ),
+        UnknownFeasibility),
     (   (ScenarioIds = [] ; InvalidScenarioTargets \= [])
     ->  Status = missing
     ;   InfeasibleScenarios \= []
@@ -578,8 +587,12 @@ scenario_stage(ReqId, Stage, ScenarioIds) :-
         scenarioTargets: ScenarioTargets,
         invalidScenarioTargets: InvalidScenarioTargets,
         infeasibleScenarios: InfeasibleScenarios,
+        unknownFeasibility: UnknownFeasibility,
         sources: Sources
     }.
+
+unknown_feasibility_reason(no_assumptions, no_assumptions).
+unknown_feasibility_reason(unmatched_assumption(_), unmatched_assumption).
 
 existing_scenario(ScenarioId) :-
     kb_entity(ScenarioId, scenario, _).
@@ -1639,8 +1652,9 @@ receipt_completeness_issue(failed_proof_receipt).
 receipt_completeness_issue(invalid_proof_receipt).
 receipt_completeness_issue(proof_contract_mismatch).
 
-proof_issue_advisory(_Gap, _Stages) :-
-    fail.
+% Unknown scenario feasibility never blocks proof: it is surfaced as an
+% advisory so it is not mistaken for a passed feasibility check.
+proof_issue_advisory(unknown_scenario_feasibility, _Stages).
 
 proof_gap_present(missing_semantic_inventory, Stages) :- Stages.semanticInventory.propositionCount =:= 0.
 proof_gap_present(incomplete_semantic_inventory, Stages) :- Stages.semanticInventory.missingCount > 0.
@@ -1656,6 +1670,9 @@ proof_gap_present(blocking_contradiction, Stages) :- Stages.contradictions.statu
 proof_gap_present(contradiction_check_incomplete, Stages) :- Stages.contradictions.status == unresolved.
 proof_gap_present(missing_scenario, Stages) :- Stages.scenarios.status == missing.
 proof_gap_present(infeasible_scenario, Stages) :- Stages.scenarios.infeasibleScenarios \= [].
+proof_gap_present(unknown_scenario_feasibility, Stages) :-
+    get_dict(unknownFeasibility, Stages.scenarios, Unknown),
+    Unknown \= [].
 proof_gap_present(missing_scenario_test, Stages) :- memberchk(Stages.scenarios.status, [passed, blocked]), Stages.scenarioTests.status == missing.
 proof_gap_present(missing_passing_e2e, Stages) :- Stages.passingE2e.status == missing.
 proof_gap_present(missing_proof_receipt, Stages) :- Stages.passingE2e.missingReceiptTests \= [].
@@ -1682,6 +1699,7 @@ gap_definition(missing_logic_grounding, 32, logic_grounding, "Ground every model
 gap_definition(ambiguous_logic_grounding, 33, logic_grounding, "Remove duplicate or invalid ground representations and validate linked rules.").
 gap_definition(blocking_contradiction, 40, contradictions, "Supersede or reconcile the conflicting normative requirement.").
 gap_definition(contradiction_check_incomplete, 41, contradictions, "Complete logical grounding before interpreting absence of a conflict as evidence.").
+gap_definition(unknown_scenario_feasibility, 49, scenarios, "Link the property values the success scenario relies on with assumes facts that a current requirement constrains, so its feasibility can be decided.").
 gap_definition(missing_scenario, 50, scenarios, "Add a specified_by scenario for the requirement.").
 gap_definition(infeasible_scenario, 49, scenarios, "Set expects: rejection on the scenario, correct its assumes fact, or record a human-approved exception requirement that exempts the forbidding requirement.").
 gap_definition(missing_scenario_test, 51, scenario_tests, "Link the scenario to a test with verified_by or validates.").

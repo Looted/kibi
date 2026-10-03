@@ -224,7 +224,7 @@ For a requirement to be proven rather than merely documented:
 
 - Every production symbol must trace to the requirement it implements.
 - Every normative requirement clause must have one complete semantic grounding or remain explicitly unresolved.
-- Requirements must be specified by scenarios, and tests must verify those scenarios. A scenario that expects success while assuming a value a current requirement forbids is reported and blocks proof; an intended exception is recorded as an approved exception requirement (`exempts`), not by editing the rule.
+- Requirements must be specified by scenarios, and tests must verify those scenarios. A scenario that expects success while assuming a value a current requirement forbids is reported and blocks proof; an intended exception is recorded as an exception requirement (`exempts`) that a human approved (`approved_by`), not by editing the rule. A success scenario whose feasibility cannot be decided is flagged as unknown, never counted as feasible.
 - Executable test symbols must identify the code that actually performs the verification.
 - Proof-bearing production symbols must be covered by qualifying tests.
 - End-to-end evidence must be fresh and bound to the current code snapshot.

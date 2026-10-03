@@ -166,7 +166,7 @@ function extractCliKbUsage(command) {
 }
 
 // ../agent-core/dist/knowledge-index.js
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 var SYMBOLS_MANIFEST = ".kb/symbols.yaml";
@@ -204,6 +204,9 @@ function parseScalarOrFlow(raw) {
   return parseFlowList(raw) ?? unquote(raw);
 }
 function scanSymbolsManifest(text) {
+  return scanRecordSequence(text, "symbols");
+}
+function scanRecordSequence(text, sectionKey) {
   const records = [];
   let itemIndent;
   let keyIndent = 0;
@@ -219,7 +222,7 @@ function scanSymbolsManifest(text) {
     const dash = /^(\s*)-(\s+)(.*)$/.exec(rawLine);
     if (indent === 0 && !dash) {
       const pair = keyValue.exec(content);
-      section = pair?.[1] !== undefined && unquote(pair[1]) === "symbols" ? "symbols" : "other";
+      section = pair?.[1] !== undefined && unquote(pair[1]) === sectionKey ? "records" : "other";
       current = undefined;
       itemIndent = undefined;
       continue;
@@ -452,6 +455,43 @@ var ENTITY_LANES = [
 ];
 var SAFE_ENTITY_ID = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
 var MAX_SUMMARY_LINKS = 24;
+var RELATIONSHIPS_DIR = ".kb/relationships";
+var shardCache = new Map;
+function shardPathFor(workspaceRoot, entityId) {
+  const shard = createHash("sha256").update(entityId).digest("hex");
+  return path.join(workspaceRoot, RELATIONSHIPS_DIR, `${shard.slice(0, 2)}.yaml`);
+}
+function shardLinksFrom(workspaceRoot, entityId) {
+  const shardPath = shardPathFor(workspaceRoot, entityId);
+  const signature = fileSignature(shardPath);
+  if (signature === "missing") {
+    shardCache.delete(shardPath);
+    return [];
+  }
+  let cached = shardCache.get(shardPath);
+  if (cached?.signature !== signature) {
+    const byFrom = new Map;
+    const records = scanRecordSequence(readText(shardPath) ?? "", "relationships");
+    for (const { type, from, to } of records) {
+      if (typeof type !== "string" || typeof from !== "string" || typeof to !== "string") {
+        continue;
+      }
+      const list = byFrom.get(from) ?? [];
+      list.push({ type, target: to });
+      byFrom.set(from, list);
+    }
+    cached = { signature, byFrom };
+    shardCache.set(shardPath, cached);
+  }
+  return cached.byFrom.get(entityId) ?? [];
+}
+function flushLink(links, pending) {
+  if (pending?.target !== undefined) {
+    links.push({ type: pending.type ?? "relates_to", target: pending.target });
+  } else if (pending?.bare !== undefined) {
+    links.push({ type: "relates_to", target: pending.bare });
+  }
+}
 function readEntitySummary(workspaceRoot, entityId) {
   const lane = ENTITY_LANES.find(([prefix]) => entityId.startsWith(prefix));
   if (!lane || !SAFE_ENTITY_ID.test(entityId))
@@ -473,9 +513,9 @@ function readEntitySummary(workspaceRoot, entityId) {
   if (lines[0]?.trim() !== "---")
     return { id: entityId };
   const summary = { id: entityId };
-  const links = [];
+  const authored = [];
   let inLinks = false;
-  let pendingType;
+  let pending;
   for (const line of lines.slice(1)) {
     if (line.trim() === "---")
       break;
@@ -485,28 +525,43 @@ function readEntitySummary(workspaceRoot, entityId) {
     if (match?.[1] === "status" && match[2])
       summary.status = unquote(match[2]);
     if (/^\S/.test(line)) {
+      flushLink(authored, pending);
+      pending = undefined;
       inLinks = /^links:\s*$/.test(line);
-      pendingType = undefined;
       continue;
     }
-    if (!inLinks || links.length >= MAX_SUMMARY_LINKS)
+    if (!inLinks)
       continue;
     const entry = /^\s*-\s*(.*)$/.exec(line);
-    const body = (entry ? entry[1] ?? "" : line).trim();
-    if (entry)
-      pendingType = undefined;
-    const field = /^(type|target):\s*(.+)$/.exec(body);
-    if (field?.[1] === "type") {
-      pendingType = unquote(field[2] ?? "");
-    } else if (field?.[1] === "target") {
-      links.push({
-        type: pendingType ?? "relates_to",
-        target: unquote(field[2] ?? "")
-      });
-      pendingType = undefined;
-    } else if (entry && SAFE_ENTITY_ID.test(unquote(body))) {
-      links.push({ type: "relates_to", target: unquote(body) });
+    if (entry) {
+      flushLink(authored, pending);
+      pending = {};
     }
+    if (!pending)
+      continue;
+    const body = (entry ? entry[1] ?? "" : line).trim();
+    const field = /^(type|target):\s*(.+)$/.exec(body);
+    if (field?.[1] === "type")
+      pending.type = unquote(field[2] ?? "");
+    else if (field?.[1] === "target")
+      pending.target = unquote(field[2] ?? "");
+    else if (entry && SAFE_ENTITY_ID.test(unquote(body)))
+      pending.bare = unquote(body);
+  }
+  flushLink(authored, pending);
+  const links = [];
+  const seen = new Set;
+  for (const link of [
+    ...authored,
+    ...shardLinksFrom(workspaceRoot, entityId)
+  ]) {
+    const key = `${link.type}\x00${link.target}`;
+    if (link.target.length === 0 || seen.has(key))
+      continue;
+    seen.add(key);
+    links.push(link);
+    if (links.length >= MAX_SUMMARY_LINKS)
+      break;
   }
   if (links.length > 0)
     summary.links = links;
@@ -660,21 +715,21 @@ function classifyPath2(relativePath) {
 }
 
 // src/session-state.ts
-import { createHash } from "node:crypto";
+import { createHash as createHash2 } from "node:crypto";
 import fs2 from "node:fs";
 import path3 from "node:path";
 var JOURNAL = "session.jsonl";
 function workspaceDataDir(pluginData, workspaceRoot) {
   if (!pluginData)
     return;
-  const key = createHash("sha256").update(path3.resolve(workspaceRoot)).digest("hex").slice(0, 32);
+  const key = createHash2("sha256").update(path3.resolve(workspaceRoot)).digest("hex").slice(0, 32);
   return path3.join(pluginData, "workspaces", key);
 }
 function sessionDir(workspaceDir, sessionId) {
   if (!workspaceDir)
     return;
   const trimmed = sessionId?.trim() ?? "";
-  const key = trimmed.length > 0 ? createHash("sha256").update(trimmed).digest("hex").slice(0, 32) : "unattributed";
+  const key = trimmed.length > 0 ? createHash2("sha256").update(trimmed).digest("hex").slice(0, 32) : "unattributed";
   return path3.join(workspaceDir, "sessions", key);
 }
 function emptySessionState() {
@@ -776,8 +831,12 @@ function formatList(items, limit) {
   const shown = items.slice(0, limit).join(", ");
   return items.length > limit ? `${shown} +${items.length - limit}` : shown;
 }
+var RETIRED_STATUS = /supersed|deprecat|reject|obsolete|retired/i;
+function isRetired(summary) {
+  return summary.status !== undefined && RETIRED_STATUS.test(summary.status);
+}
 function describeEntity(summary) {
-  const notable = summary.status && /supersed|deprecat|reject|obsolete/i.test(summary.status) ? ` (${summary.status})` : "";
+  const notable = isRetired(summary) ? ` (${summary.status})` : "";
   return summary.title ? `${summary.id}${notable}: ${truncate(summary.title, MAX_TITLE)}` : `${summary.id}${notable}`;
 }
 function jsonString(value) {
@@ -791,7 +850,10 @@ var FACT_LINK_TYPES = new Set([
 ]);
 var MAX_GROUNDING = 2;
 function groundingLines(requirementId, summarize) {
-  const links = summarize(requirementId).links ?? [];
+  const requirement = summarize(requirementId);
+  if (isRetired(requirement))
+    return [];
+  const links = requirement.links ?? [];
   const facts = [
     ...new Set(links.filter((link) => FACT_LINK_TYPES.has(link.type)).map((link) => link.target))
   ];

@@ -14,6 +14,7 @@ import type {
   PrologQueryResult,
 } from "../../src/public/operations/runtime-types.js";
 import { compileIntentSpec } from "../../src/public/operations/specs/planning.js";
+import { whatIfResult } from "../helpers/what-if.js";
 
 function contextFor(
   query: (goal: string) => Promise<PrologQueryResult>,
@@ -75,7 +76,7 @@ describe("kb_compile_intent", () => {
   });
   test("emits a deterministic strict-property plan for a new requirement", async () => {
     const query = mock(async (goal: string): Promise<PrologQueryResult> => {
-      if (goal.includes("checks:what_if_contradiction_witnesses_json("))
+      if (goal.includes("checks:what_if_analysis_json("))
         return { success: true, bindings: { JsonString: "[]" } };
       if (goal.includes("kb_relationship"))
         return { success: true, bindings: { Edges: "[]" } };
@@ -142,7 +143,7 @@ describe("kb_compile_intent", () => {
 
   test("fails closed when an update target is ambiguous", async () => {
     const query = mock(async (goal: string): Promise<PrologQueryResult> => {
-      if (goal.includes("checks:what_if_contradiction_witnesses_json("))
+      if (goal.includes("checks:what_if_analysis_json("))
         return { success: true, bindings: { JsonString: "[]" } };
       if (goal.includes("kb_relationship"))
         return { success: true, bindings: { Edges: "[]" } };
@@ -180,7 +181,7 @@ describe("kb_compile_intent", () => {
       },
     ]);
     const query = mock(async (goal: string): Promise<PrologQueryResult> => {
-      if (goal.includes("checks:what_if_contradiction_witnesses_json("))
+      if (goal.includes("checks:what_if_analysis_json("))
         return {
           success: true,
           bindings: { JsonString: JSON.stringify(witnesses) },
@@ -205,7 +206,7 @@ describe("kb_compile_intent", () => {
 
   test("writes one inventory covering every proposition onto the requirement step", async () => {
     const query = mock(async (goal: string): Promise<PrologQueryResult> => {
-      if (goal.includes("checks:what_if_contradiction_witnesses_json("))
+      if (goal.includes("checks:what_if_analysis_json("))
         return { success: true, bindings: { JsonString: "[]" } };
       if (goal.includes("kb_relationship"))
         return { success: true, bindings: { Edges: "[]" } };
@@ -241,7 +242,7 @@ describe("kb_compile_intent", () => {
 
   test("reports current contradiction witnesses for an explicit update", async () => {
     const query = mock(async (goal: string): Promise<PrologQueryResult> => {
-      if (goal.includes("checks:what_if_contradiction_witnesses_json("))
+      if (goal.includes("checks:what_if_analysis_json("))
         return {
           success: true,
           bindings: {
@@ -279,16 +280,117 @@ describe("kb_compile_intent", () => {
     );
     const staged = query.mock.calls
       .map(([goal]) => goal)
-      .find((goal) =>
-        goal.includes("checks:what_if_contradiction_witnesses_json("),
-      );
+      .find((goal) => goal.includes("checks:what_if_analysis_json("));
     expect(staged).toContain("upsert(req, ");
     expect(staged).toContain("'REQ-A'");
   });
 
+  // implements REQ-kibi-truthful-consistency
+  test("blocks on any introduced conflict or infeasibility and keeps the before/after split", async () => {
+    const unrelatedConflict = {
+      kind: "property",
+      status: "contradiction",
+      requirements: ["REQ-X", "REQ-Y"],
+      reason: "Value conflict on quota.remaining: gt 0 vs eq 0",
+      left: { factId: "FACT-X" },
+      right: { factId: "FACT-Y" },
+    };
+    const infeasible = {
+      kind: "scenario_feasibility",
+      status: "infeasible",
+      requirements: ["REQ-QUOTA"],
+      scenario: "SCEN-ZERO",
+      assumedFact: "FACT-ZERO",
+      requirementFact: "FACT-POSITIVE",
+      reason: "Scenario SCEN-ZERO expects success but assumes FACT-ZERO",
+    };
+    const preExisting = {
+      kind: "rule",
+      status: "contradiction",
+      requirements: ["REQ-OLD-A", "REQ-OLD-B"],
+      reason: "pre-existing",
+    };
+    const resolved = {
+      kind: "property",
+      status: "contradiction",
+      requirements: ["REQ-GONE-A", "REQ-GONE-B"],
+      reason: "resolved by the plan",
+    };
+    const analysis = whatIfResult({
+      introduced: [unrelatedConflict, infeasible],
+      unchanged: [preExisting],
+      removed: [resolved],
+    });
+    const query = mock(async (goal: string): Promise<PrologQueryResult> => {
+      if (goal.includes("checks:what_if_analysis_json(")) return analysis;
+      if (goal.includes("kb_relationship"))
+        return { success: true, bindings: { Edges: "[]" } };
+      return { success: true, bindings: { Results: "[]" } };
+    });
+    const plan = (
+      await compileIntentSpec.execute(
+        {
+          intent: "Customer data must be retained for 7 years.",
+          mode: "create",
+          requirementId: "REQ-RETAIN",
+        },
+        contextFor(query),
+      )
+    ).structuredContent;
+    const analysisOut = plan.contradictionAnalysis;
+    expect(analysisOut.outcome).toBe("conflict");
+    expect(plan.status).toBe("blocked");
+    // Witnesses that do not name the target still block, with full detail.
+    expect(analysisOut.witnesses.map((witness) => witness.kind)).toEqual([
+      "property",
+      "scenario_feasibility",
+    ]);
+    expect(analysisOut.witnesses[1]).toMatchObject({
+      scenario: "SCEN-ZERO",
+      assumedFact: "FACT-ZERO",
+      requirementFact: "FACT-POSITIVE",
+    });
+    expect(analysisOut.witnesses[0]?.left).toEqual({ factId: "FACT-X" });
+    expect(analysisOut.introduced).toHaveLength(2);
+    expect(analysisOut.unchanged?.[0]?.reason).toBe("pre-existing");
+    expect(analysisOut.removed?.[0]?.reason).toBe("resolved by the plan");
+  });
+
+  test("ignores pre-existing conflicts that do not name the target requirement", async () => {
+    const analysis = whatIfResult({
+      unchanged: [
+        {
+          kind: "property",
+          status: "contradiction",
+          requirements: ["REQ-OLD-A", "REQ-OLD-B"],
+          reason: "pre-existing",
+        },
+      ],
+    });
+    const query = mock(async (goal: string): Promise<PrologQueryResult> => {
+      if (goal.includes("checks:what_if_analysis_json(")) return analysis;
+      if (goal.includes("kb_relationship"))
+        return { success: true, bindings: { Edges: "[]" } };
+      return { success: true, bindings: { Results: "[]" } };
+    });
+    const plan = (
+      await compileIntentSpec.execute(
+        {
+          intent: "Customer data must be retained for 7 years.",
+          mode: "create",
+          requirementId: "REQ-RETAIN",
+        },
+        contextFor(query),
+      )
+    ).structuredContent;
+    expect(plan.contradictionAnalysis.outcome).toBe("no_conflict");
+    expect(plan.contradictionAnalysis.witnesses).toEqual([]);
+    expect(plan.contradictionAnalysis.unchanged).toHaveLength(1);
+  });
+
   test("keeps unresolved rule overlap out of no_conflict", async () => {
     const query = mock(async (goal: string): Promise<PrologQueryResult> => {
-      if (goal.includes("checks:what_if_contradiction_witnesses_json("))
+      if (goal.includes("checks:what_if_analysis_json("))
         return {
           success: true,
           bindings: {

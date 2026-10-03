@@ -66,6 +66,8 @@ export interface FactFields {
   argument_names?: string[];
   argument_types?: string[];
   argument_descriptions?: string[];
+  /** predicate_schema only: argument names that determine the others. */
+  key_arguments?: string[];
   argument_constants?: Record<string, string[]>;
   argument_aliases?: Record<string, Record<string, string>>;
   aliases?: string[];
@@ -85,6 +87,10 @@ export type Requirement = BaseEntity & {
   type: "req";
   semantic_text?: string;
   logic_claims?: string[];
+  /** Exception requirements only: who approved the exception. */
+  approved_by?: string;
+  /** Optional reference to the approval decision record. */
+  approval_ref?: string;
 };
 export type Scenario = BaseEntity & { type: "scenario" };
 export type TestEntity = BaseEntity & TestVerificationFields & { type: "test" };

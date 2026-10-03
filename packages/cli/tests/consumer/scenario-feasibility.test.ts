@@ -108,14 +108,13 @@ links:
       "SCEN-ZERO-QUOTA-CALL",
     ]);
 
-    // An approved exception that exempts the base requirement and is
-    // specified by the scenario makes it feasible. Its prose ledger comes
-    // from the semantic advisor, as any current requirement's must.
+    // An exception that exempts the base requirement and is specified by
+    // the scenario only counts once a human approved it. Its prose ledger
+    // comes from the semantic advisor, as any current requirement's must.
     const prose = "Promo calls may skip the call quota.";
     const { contract, propositions } = adviseProse(ws, prose);
     expect(propositions).toHaveLength(1);
-    ws.write(
-      ".kb/requirements/REQ-QUOTA-PROMO-EXCEPTION.md",
+    const exception = (approval: string) =>
       doc(
         `
 id: REQ-QUOTA-PROMO-EXCEPTION
@@ -123,7 +122,7 @@ title: Promo calls are exempt from the quota
 type: req
 status: open
 priority: must
-${semanticFrontMatter(prose, contract, propositions)}
+${approval}${semanticFrontMatter(prose, contract, propositions)}
 links:
   - type: exempts
     target: REQ-QUOTA-CALL
@@ -131,7 +130,23 @@ links:
     target: SCEN-ZERO-QUOTA-CALL
 `,
         prose,
-      ),
+      );
+    ws.write(".kb/requirements/REQ-QUOTA-PROMO-EXCEPTION.md", exception(""));
+    ws.sync();
+
+    // Without approval the exception does not exempt, and the violation
+    // says an exception exists but is not approved.
+    const unapproved = checkViolations(ws, "scenario-feasibility");
+    expect(unapproved.map((v) => v.entityId)).toEqual(["SCEN-ZERO-QUOTA-CALL"]);
+    expect(unapproved[0]?.description).toContain("REQ-QUOTA-PROMO-EXCEPTION");
+    expect(unapproved[0]?.description).toContain("not approved");
+    expect(coverageRows(ws).get("REQ-QUOTA-CALL")?.proofGaps).toContain(
+      "infeasible_scenario",
+    );
+
+    ws.write(
+      ".kb/requirements/REQ-QUOTA-PROMO-EXCEPTION.md",
+      exception("approved_by: Product owner\napproval_ref: DEC-42\n"),
     );
     ws.sync();
 

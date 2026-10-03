@@ -342,7 +342,7 @@ printf '%s\n' '{
 
 Intent results include `queryAnalysis`, matched semantic facets, source-location evidence, bounded traceability graph paths, `truncated`, and `abstained: true` when no result reaches `minScore` (default `0.18`). Superseded and deprecated entities are demoted. Source paths must be workspace-relative. The host agent supplies facets; Kibi does not call a model.
 
-On the first page, `data.answer` (`kibi.search-answer.v1`, on by default; `"answer": false` turns it off) lists the current `governing` requirements with `via` and their linked `facts`, `scenarios`, `tests`, and `adrs`; `rationale` ADRs; `notGoverning` superseded or deprecated requirements with `supersededBy`; `observations` (notes, not rules); `truncated`; and a `note`. The layer follows graph links: it is discovery, not proof. See the [MCP reference](mcp-reference.md#kb_search) for details.
+On the first page, `data.answer` (`kibi.search-answer.v1`, on by default; `"answer": false` turns it off) lists the current `governing` requirements with `via` and their linked `facts`, `scenarios`, `tests` (including scenario-backed tests, each with `via`), and `adrs`; `rationale` ADRs; `notGoverning` superseded or deprecated requirements with `supersededBy`; `observations` (notes, not rules); `truncated`; and a `note`. The layer follows graph links: it is discovery, not proof. See the [MCP reference](mcp-reference.md#kb_search) for details.
 
 ## `kibi status`
 

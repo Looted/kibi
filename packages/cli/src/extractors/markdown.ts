@@ -72,6 +72,7 @@ const FACT_STRING_ARRAY_FIELDS = [
   "argument_names",
   "argument_types",
   "argument_descriptions",
+  "key_arguments",
   "aliases",
   "examples",
   "predicate_args",
@@ -130,6 +131,8 @@ export interface ExtractedEntity {
   verification_perspective?: "internal" | "consumer";
   proof_exempt?: boolean;
   proof_exempt_reason?: string;
+  approved_by?: string;
+  approval_ref?: string;
   expects?: "success" | "rejection" | "error";
   proof_contract?: ProofContract;
   proof_bindings?: readonly ProofBinding[];
@@ -167,6 +170,7 @@ export interface ExtractedEntity {
   argument_names?: string[];
   argument_types?: string[];
   argument_descriptions?: string[];
+  key_arguments?: string[];
   aliases?: string[];
   examples?: string[];
   predicate_args?: string[];
@@ -734,6 +738,23 @@ function extractFromMarkdownContent(
         );
       }
       entity.proof_exempt_reason = data.proof_exempt_reason;
+    }
+    // implements REQ-kibi-scenario-feasibility
+    // Human approval of an exception requirement; only an approved exception
+    // makes a success scenario feasible.
+    for (const field of ["approved_by", "approval_ref"] as const) {
+      if (type !== "req" || data[field] === undefined) continue;
+      if (typeof data[field] !== "string" || data[field].trim() === "") {
+        throw new FrontmatterError(
+          `Invalid ${field}; expected a non-empty string`,
+          filePath,
+          {
+            classification: "Invalid Exception Approval",
+            hint: "Set approved_by to the approving person or role (and optionally approval_ref to the decision record) on the exception requirement.",
+          },
+        );
+      }
+      entity[field] = data[field];
     }
 
     if (type !== "fact") {

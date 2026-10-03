@@ -1,6 +1,12 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { createHash } from "node:crypto";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
@@ -22,6 +28,7 @@ import type {
   PrologQueryResult,
 } from "../../src/public/operations/runtime-types.js";
 import { asApply } from "../helpers/coverage-casts.js";
+import { isWhatIfGoal, whatIfResult } from "../helpers/what-if.js";
 
 function sha(value: string): string {
   return createHash("sha256").update(value).digest("hex");
@@ -94,9 +101,11 @@ function filesystemContext(
 ): OperationContext {
   const query: OperationContext["prolog"] = extra?.query ?? {
     query: async (goal): Promise<PrologQueryResult> =>
-      goal.includes("kb_commit_upsert")
-        ? { success: true, bindings: { ChangeKind: "created" } }
-        : { success: true, bindings: { Results: "[]" } },
+      isWhatIfGoal(goal)
+        ? whatIfResult()
+        : goal.includes("kb_commit_upsert")
+          ? { success: true, bindings: { ChangeKind: "created" } }
+          : { success: true, bindings: { Results: "[]" } },
     queryStatusJson: async () => ({ success: true, bindings: {} }),
     nextSolution: async () => null,
     save: async () => ({ success: true, bindings: {} }),
@@ -313,6 +322,174 @@ describe("compile plan application", () => {
     ]);
   });
 
+  // implements REQ-kibi-truthful-consistency
+  function preflightContext(
+    root: string,
+    analysis: Parameters<typeof whatIfResult>[0],
+  ): { context: OperationContext; commits: () => number } {
+    let commits = 0;
+    const context = filesystemContext(root, {
+      query: {
+        query: async (goal): Promise<PrologQueryResult> => {
+          if (isWhatIfGoal(goal)) return whatIfResult(analysis);
+          if (goal.includes("kb_commit_upsert")) {
+            commits += 1;
+            return { success: true, bindings: { ChangeKind: "created" } };
+          }
+          return { success: true, bindings: { Results: "[]" } };
+        },
+        queryStatusJson: async () => ({ success: true, bindings: {} }),
+        nextSolution: async () => null,
+        save: async () => ({ success: true, bindings: {} }),
+      },
+    });
+    return { context, commits: () => commits };
+  }
+
+  function sourceWritingPlan(): CompilePlanV1 {
+    const body = "Requirement body\n";
+    return compilePlan({
+      steps: [
+        {
+          type: "req",
+          id: "REQ-apply",
+          properties: { title: "Apply", status: "open" },
+          relationships: [],
+          document: { path: "requirements/REQ-apply.md", body },
+        },
+      ],
+      sourceWrites: [
+        {
+          path: "requirements/REQ-apply.md",
+          mode: "write",
+          beforeHash: null,
+          afterHash: sha(body),
+          body,
+        },
+      ],
+    });
+  }
+
+  for (const [label, witness] of [
+    [
+      "contradiction",
+      {
+        kind: "property",
+        status: "contradiction",
+        requirements: ["REQ-apply", "REQ-other"],
+        reason: "Value conflict on retention.days: eq 1 vs eq 365",
+      },
+    ],
+    [
+      "infeasible scenario",
+      {
+        kind: "scenario_feasibility",
+        status: "infeasible",
+        requirements: ["REQ-unrelated"],
+        scenario: "SCEN-zero-quota",
+        reason:
+          "Scenario SCEN-zero-quota expects success but assumes FACT-zero",
+      },
+    ],
+  ] as const) {
+    test(`refuses a staged final state that introduces a ${label} before any write`, async () => {
+      const root = makeTempDir();
+      const plan = sourceWritingPlan();
+      const { context, commits } = preflightContext(root, {
+        introduced: [witness],
+      });
+      await expect(
+        executeApplyPlan({ plan, approvedPlanHash: plan.planHash }, context),
+      ).rejects.toThrow(
+        /failed before any write: the staged plan introduces 1 contradiction\(s\) or infeasible scenario\(s\)/,
+      );
+      expect(commits()).toBe(0);
+      expect(existsSync(path.join(root, "requirements", "REQ-apply.md"))).toBe(
+        false,
+      );
+    });
+  }
+
+  test("applies when staged witnesses already existed or stay unresolved", async () => {
+    const root = makeTempDir();
+    const plan = sourceWritingPlan();
+    const { context, commits } = preflightContext(root, {
+      unchanged: [
+        {
+          kind: "property",
+          status: "contradiction",
+          requirements: ["REQ-old-a", "REQ-old-b"],
+          reason: "pre-existing",
+        },
+      ],
+      introduced: [
+        {
+          kind: "rule",
+          status: "unresolved",
+          requirements: ["REQ-apply", "REQ-other"],
+          reason: "Rule conflict (unresolved)",
+        },
+      ],
+    });
+    const result = await executeApplyPlan(
+      { plan, approvedPlanHash: plan.planHash },
+      context,
+    );
+    expect(result.structuredContent).toMatchObject({ outcome: "applied" });
+    expect(commits()).toBe(1);
+  });
+
+  test("fails closed before any write when the staged analysis is unreadable", async () => {
+    const root = makeTempDir();
+    const plan = sourceWritingPlan();
+    let commits = 0;
+    const context = filesystemContext(root, {
+      query: {
+        query: async (goal): Promise<PrologQueryResult> => {
+          if (isWhatIfGoal(goal))
+            return { success: true, bindings: { JsonString: "not json" } };
+          if (goal.includes("kb_commit_upsert")) commits += 1;
+          return { success: true, bindings: { Results: "[]" } };
+        },
+        queryStatusJson: async () => ({ success: true, bindings: {} }),
+        nextSolution: async () => null,
+        save: async () => ({ success: true, bindings: {} }),
+      },
+    });
+    await expect(
+      executeApplyPlan({ plan, approvedPlanHash: plan.planHash }, context),
+    ).rejects.toThrow("contradiction analysis could not be read");
+    expect(commits).toBe(0);
+  });
+
+  test("validates every step before the first write", async () => {
+    const root = makeTempDir();
+    const plan = compilePlan({
+      steps: [
+        {
+          type: "req",
+          id: "REQ-apply",
+          properties: { title: "Apply", status: "open" },
+          relationships: [],
+        },
+        {
+          type: "scenario",
+          id: "SCEN-apply",
+          properties: { title: "Apply scenario", status: "active" },
+          // A relationship must originate at the step's own entity.
+          relationships: [
+            { type: "specified_by", from: "REQ-apply", to: "SCEN-apply" },
+          ],
+        },
+      ],
+    });
+    const { context, commits } = preflightContext(root, {});
+    await expect(
+      executeApplyPlan({ plan, approvedPlanHash: plan.planHash }, context),
+    ).rejects.toThrow(/failed before any write: step SCEN-apply is invalid/);
+    expect(commits()).toBe(0);
+  });
+
   test("refuses a second original apply and validates source-recovery journal IDs", async () => {
     const root = makeTempDir();
     const body = "Replay body\n";
@@ -359,9 +536,11 @@ describe("compile plan application", () => {
     const root = makeTempDir();
     const prolog = {
       query: async (goal: string): Promise<PrologQueryResult> =>
-        goal.includes("kb_commit_upsert")
-          ? { success: true, bindings: { ChangeKind: "created" } }
-          : { success: true, bindings: { Results: "[]" } },
+        isWhatIfGoal(goal)
+          ? whatIfResult()
+          : goal.includes("kb_commit_upsert")
+            ? { success: true, bindings: { ChangeKind: "created" } }
+            : { success: true, bindings: { Results: "[]" } },
       queryStatusJson: async () => ({ success: true, bindings: {} }),
       nextSolution: async () => null,
       save: async () => ({ success: true, bindings: {} }),
@@ -715,7 +894,10 @@ describe("bootstrap plan extra guards", () => {
           signal: new AbortController().signal,
           clock: () => new Date(0),
           prolog: {
-            query: async () => ({ success: true, bindings: {} }),
+            query: async (goal: string) =>
+              isWhatIfGoal(goal)
+                ? whatIfResult()
+                : { success: true, bindings: {} },
             nextSolution: async () => null,
             save: async () => ({ success: true, bindings: {} }),
           },
@@ -801,12 +983,14 @@ describe("bootstrap plan extra guards", () => {
       filesystemContext(root, {
         query: {
           query: async (goal) =>
-            (goal.includes("kb_commit_upsert")
-              ? { success: true, bindings: { ChangeKind: "created" } }
-              : {
-                  success: true,
-                  bindings: { Results: "[]" },
-                }) as unknown as PrologQueryResult,
+            isWhatIfGoal(goal)
+              ? whatIfResult()
+              : ((goal.includes("kb_commit_upsert")
+                  ? { success: true, bindings: { ChangeKind: "created" } }
+                  : {
+                      success: true,
+                      bindings: { Results: "[]" },
+                    }) as unknown as PrologQueryResult),
           queryStatusJson: async () => ({ success: true, bindings: {} }),
           nextSolution: async () => null,
           save: async () => ({ success: true, bindings: {} }),
@@ -1668,12 +1852,14 @@ describe("remaining apply-plan shape and recovery branches", () => {
       filesystemContext(root, {
         query: {
           query: async (goal) =>
-            (goal.includes("kb_commit_upsert")
-              ? { success: true, bindings: { ChangeKind: "mutated" } }
-              : {
-                  success: true,
-                  bindings: { Results: "[]" },
-                }) as unknown as PrologQueryResult,
+            isWhatIfGoal(goal)
+              ? whatIfResult()
+              : ((goal.includes("kb_commit_upsert")
+                  ? { success: true, bindings: { ChangeKind: "mutated" } }
+                  : {
+                      success: true,
+                      bindings: { Results: "[]" },
+                    }) as unknown as PrologQueryResult),
           queryStatusJson: async () => ({ success: true, bindings: {} }),
           nextSolution: async () => null,
           save: async () => ({ success: true, bindings: {} }),

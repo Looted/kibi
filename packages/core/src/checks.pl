@@ -16,12 +16,16 @@
     check_required_fields/1,        % Returns list of missing required field violations
     check_deprecated_adrs/1,        % Returns list of deprecated ADR violations
     check_scenario_feasibility/1,
+    check_scenario_feasibility_unknown/1,
     infeasible_scenario/5,
+    scenario_feasibility_outcome/2,
     check_domain_contradictions/1,  % Returns list of contradiction violations
     check_domain_contradictions_and_witnesses/2,
     check_domain_contradiction_witnesses/1,
     what_if_contradiction_witnesses/2,
     what_if_contradiction_witnesses_json/2,
+    what_if_analysis/2,
+    what_if_analysis_json/2,
     check_strict_fact_shape/1,      % Returns list of malformed strict fact violations
     check_strict_req_fact_pairing/1,% Returns list of malformed strict req/fact pairing violations
     check_strict_readiness/1,       % Returns list of strict readiness audit violations
@@ -85,6 +89,7 @@ check_all(ViolationsDict) :-
     check_required_fields(RequiredFields),
     check_deprecated_adrs(DeprecatedADRs),
     check_scenario_feasibility(ScenarioFeasibility),
+    check_scenario_feasibility_unknown(ScenarioFeasibilityUnknown),
     check_domain_contradictions(Contradictions),
     check_strict_fact_shape(StrictFactShape),
     check_strict_req_fact_pairing(StrictReqFactPairing),
@@ -111,6 +116,7 @@ check_all(ViolationsDict) :-
         required_fields: RequiredFields,
         deprecated_adr_no_successor: DeprecatedADRs,
         scenario_feasibility: ScenarioFeasibility,
+        scenario_feasibility_unknown: ScenarioFeasibilityUnknown,
         domain_contradictions: Contradictions,
         strict_fact_shape: StrictFactShape,
         strict_req_fact_pairing: StrictReqFactPairing,
@@ -536,11 +542,13 @@ deprecated_adr_violation(violation(
 % A scenario that expects success and assumes a property value a current
 % requirement forbids can never pass. Each witness names the scenario, the
 % requirement, the assumed fact and the requirement's fact. An approved
-% exception (a current requirement that `exempts` the base requirement and is
-% `specified_by` the scenario) makes the pair feasible without editing the
-% base requirement. Scenarios that expect rejection or error, or that assume
-% nothing the requirement constrains, are not checked: absence of a witness
-% is not proof that the scenario is feasible.
+% exception (a current requirement that `exempts` the base requirement, is
+% `specified_by` the scenario and carries a non-empty `approved_by`) makes the
+% pair feasible without editing the base requirement. An exception without
+% approval does not exempt; the violation says so. Scenarios that expect
+% rejection or error are not checked. A success scenario whose feasibility
+% cannot be decided is reported by scenario-feasibility-unknown instead:
+% absence of a witness is not proof that the scenario is feasible.
 check_scenario_feasibility(Violations) :-
     findall(
         Violation,
@@ -557,12 +565,24 @@ scenario_feasibility_violation(violation(
     Source
 )) :-
     infeasible_scenario(ScenarioId, ReqId, AssumedFact, ReqFact, Reason),
-    format(string(Description),
+    format(string(Description0),
         "Scenario expects success but assumes ~w, which current requirement ~w forbids via ~w: ~w",
         [AssumedFact, ReqId, ReqFact, Reason]),
-    format(string(Suggestion),
-        "Set expects: rejection on ~w, correct the assumption, or record a human-approved exception requirement that exempts ~w and is specified_by ~w",
-        [ScenarioId, ReqId, ScenarioId]),
+    findall(ExceptionId, unapproved_scenario_exception(ScenarioId, ReqId, ExceptionId), Unapproved0),
+    sort(Unapproved0, Unapproved),
+    (   Unapproved == []
+    ->  Description = Description0,
+        format(string(Suggestion),
+            "Set expects: rejection on ~w, correct the assumption, or record a human-approved exception requirement (approved_by set) that exempts ~w and is specified_by ~w",
+            [ScenarioId, ReqId, ScenarioId])
+    ;   atomic_list_concat(Unapproved, ', ', UnapprovedText),
+        format(string(Description),
+            "~w. An exception exists (~w exempts ~w) but is not approved",
+            [Description0, UnapprovedText, ReqId]),
+        format(string(Suggestion),
+            "Have a human approve ~w by setting approved_by (and optionally approval_ref), or set expects: rejection on ~w, or correct the assumption",
+            [UnapprovedText, ScenarioId])
+    ),
     (   kb_entity(ScenarioId, scenario, Props),
         memberchk(source=Source, Props)
     ->  true
@@ -571,6 +591,12 @@ scenario_feasibility_violation(violation(
 
 %% infeasible_scenario(?ScenarioId, ?ReqId, ?AssumedFact, ?ReqFact, -Reason)
 infeasible_scenario(ScenarioId, ReqId, AssumedFact, ReqFact, Reason) :-
+    assumption_conflict_witness(ScenarioId, ReqId, AssumedFact, ReqFact, Reason),
+    \+ scenario_exempt(ScenarioId, ReqId).
+
+% A success scenario's assumption that a current requirement forbids,
+% ignoring exceptions.
+assumption_conflict_witness(ScenarioId, ReqId, AssumedFact, ReqFact, Reason) :-
     scenario_expects(ScenarioId, success),
     kb_relationship(assumes, ScenarioId, AssumedFact),
     kb:fact_property_tuple(AssumedFact, Subject, Property, AOp, AType, AValue, AUnit, AScope, APolarity),
@@ -579,8 +605,7 @@ infeasible_scenario(ScenarioId, ReqId, AssumedFact, ReqFact, Reason) :-
     kb:scope_intersects(RScope, AScope),
     assumption_conflict(Subject, Property,
                         ROp, RType, RValue, RUnit, RScope, RPolarity,
-                        AOp, AType, AValue, AUnit, AScope, APolarity, Reason),
-    \+ scenario_exempt(ScenarioId, ReqId).
+                        AOp, AType, AValue, AUnit, AScope, APolarity, Reason).
 
 assumption_conflict(Subject, Property, ROp, RType, RValue, RUnit, _RScope, Polarity,
                     AOp, AType, AValue, AUnit, _AScope, Polarity, Reason) :-
@@ -599,12 +624,122 @@ scenario_expects(ScenarioId, Outcome) :-
     kb:normalize_term_atom(Raw, Outcome).
 
 %% scenario_exempt(+ScenarioId, +ReqId)
-% A current exception requirement exempts ReqId and specifies the scenario.
+% An approved, current exception requirement exempts ReqId and specifies the
+% scenario.
 scenario_exempt(ScenarioId, ReqId) :-
+    scenario_exception(ScenarioId, ReqId, ExceptionId),
+    exception_approved(ExceptionId),
+    !.
+
+scenario_exception(ScenarioId, ReqId, ExceptionId) :-
     kb_relationship(exempts, ExceptionId, ReqId),
     kb:current_req(ExceptionId),
-    kb_relationship(specified_by, ExceptionId, ScenarioId),
+    kb_relationship(specified_by, ExceptionId, ScenarioId).
+
+unapproved_scenario_exception(ScenarioId, ReqId, ExceptionId) :-
+    scenario_exception(ScenarioId, ReqId, ExceptionId),
+    \+ exception_approved(ExceptionId).
+
+%% exception_approved(+ExceptionId)
+% An exception counts only once a human approved it: approved_by names them.
+exception_approved(ExceptionId) :-
+    kb_entity(ExceptionId, req, Props),
+    memberchk(approved_by=Raw, Props),
+    evidence_text(Raw, Text),
+    normalize_space(string(Trimmed), Text),
+    Trimmed \== "".
+
+evidence_text(Raw, Text) :-
+    kb:unwrap_rdf_value(Raw, Value),
+    (   string(Value) -> Text = Value
+    ;   atom(Value) -> atom_string(Value, Text)
+    ;   term_string(Value, Text)
+    ).
+
+%% scenario_feasibility_outcome(?ScenarioId, -Outcome)
+% implements REQ-kibi-scenario-feasibility
+% The analysis result for a scenario that expects success:
+%   infeasible(Witness)      an assumption conflicts with a current requirement
+%                            and no approved exception covers it (blocking)
+%   unknown(no_assumptions)  the scenario assumes nothing, so nothing can be
+%                            checked
+%   unknown(unmatched_assumption(FactIds))
+%                            some assumption is not a property value whose
+%                            subject and property a current requirement
+%                            constrains
+%   feasible_by_exception    every conflicting assumption is covered by an
+%                            approved exception
+%   feasible                 every assumption is constrained and compatible
+% Only infeasible blocks; unknown is a non-blocking quality diagnostic.
+scenario_feasibility_outcome(ScenarioId, Outcome) :-
+    (   var(ScenarioId)
+    ->  findall(Id, scenario_expects(Id, success), Ids0),
+        sort(Ids0, Ids),
+        member(ScenarioId, Ids)
+    ;   scenario_expects(ScenarioId, success)
+    ),
+    % Decide the outcome before matching it, so asking for unknown(_) never
+    % skips past an infeasible verdict.
+    scenario_feasibility_outcome_(ScenarioId, Outcome0),
+    Outcome = Outcome0.
+
+scenario_feasibility_outcome_(ScenarioId, infeasible(Witness)) :-
+    infeasible_scenario(ScenarioId, ReqId, AssumedFact, ReqFact, Reason),
+    !,
+    Witness = witness(ReqId, AssumedFact, ReqFact, Reason).
+scenario_feasibility_outcome_(ScenarioId, Outcome) :-
+    findall(FactId, kb_relationship(assumes, ScenarioId, FactId), Assumed0),
+    sort(Assumed0, Assumed),
+    (   Assumed == []
+    ->  Outcome = unknown(no_assumptions)
+    ;   exclude(constrained_assumption, Assumed, Unmatched),
+        Unmatched \== []
+    ->  Outcome = unknown(unmatched_assumption(Unmatched))
+    ;   assumption_conflict_witness(ScenarioId, _, _, _, _)
+    ->  Outcome = feasible_by_exception
+    ;   Outcome = feasible
+    ).
+
+% An assumed property value some current requirement constrains for the same
+% subject, property and an intersecting scope.
+constrained_assumption(FactId) :-
+    kb:fact_property_tuple(FactId, Subject, Property, _, _, _, _, AScope, _),
+    kb:current_req(ReqId),
+    kb:effective_req_property_fact(ReqId, Subject, _, Property, _, _, _, _, RScope, _, _, _),
+    kb:scope_intersects(RScope, AScope),
     !.
+
+%% check_scenario_feasibility_unknown(-Violations)
+% implements REQ-kibi-scenario-feasibility
+% Advisory: success scenarios whose feasibility the checker cannot decide.
+check_scenario_feasibility_unknown(Violations) :-
+    findall(Violation, scenario_feasibility_unknown_violation(Violation), Unsorted),
+    sort(Unsorted, Violations).
+
+scenario_feasibility_unknown_violation(violation(
+    'scenario-feasibility-unknown',
+    ScenarioId,
+    Description,
+    Suggestion,
+    Source
+)) :-
+    scenario_feasibility_outcome(ScenarioId, unknown(Reason)),
+    unknown_feasibility_text(Reason, Description, Suggestion),
+    (   kb_entity(ScenarioId, scenario, Props),
+        memberchk(source=Source, Props)
+    ->  true
+    ;   Source = ""
+    ).
+
+unknown_feasibility_text(no_assumptions,
+    "Scenario expects success but assumes nothing, so its feasibility against current requirements is unknown",
+    "Link the property values the scenario relies on with assumes facts so feasibility can be checked").
+unknown_feasibility_text(unmatched_assumption(FactIds), Description,
+    "Constrain the assumed subject and property with a current requirement, or correct the assumed fact's subject_key/property_key") :-
+    atomic_list_concat(FactIds, ', ', FactText),
+    format(string(Description),
+        "Scenario expects success but its feasibility is unknown: assumption ~w is not constrained by any current requirement",
+        [FactText]).
 
 %% check_req_status_vocabulary(-Violations)
 % Rejects requirement statuses outside the canonical+legacy vocabulary.
@@ -895,25 +1030,11 @@ check_domain_contradiction_witnesses(Witnesses) :-
 % upsert(Type, Props, Relationships) or relate(Relationships) terms, with
 % relationships as rel(Type, From, To, Metadata).  Staging validates entities
 % and relationships exactly as a commit would, so an invalid plan raises the
-% same error here before anything is written.  The entity index is not
-% transactional, so every staged id is re-indexed from the restored store.
+% same error here before anything is written.  See what_if_analysis/2 for the
+% before/after comparison that also covers scenario feasibility.
 what_if_contradiction_witnesses(Entries, Witnesses) :-
-    findall(Id, (member(Entry, Entries), what_if_entry_id(Entry, Id)), Ids0),
-    sort(Ids0, Ids),
-    with_kb_mutex(
-        call_cleanup(
-            catch(
-                rdf_transaction((
-                    checks:what_if_stage(Entries),
-                    checks:check_domain_contradiction_witnesses(Staged),
-                    throw(kibi_what_if_result(Staged))
-                )),
-                kibi_what_if_result(Witnesses),
-                true
-            ),
-            forall(member(Id, Ids), kb:kb_refresh_entity_index(Id))
-        )
-    ).
+    what_if_analysis(Entries, Analysis),
+    Witnesses = Analysis.witnesses.
 
 what_if_contradiction_witnesses_json(Entries, JsonString) :-
     what_if_contradiction_witnesses(Entries, Witnesses),
@@ -921,6 +1042,104 @@ what_if_contradiction_witnesses_json(Entries, JsonString) :-
         json_write_dict(current_output, Witnesses, [width(0)]),
         JsonString
     ).
+
+%% what_if_analysis(+Entries, -Analysis)
+% implements REQ-kibi-truthful-consistency
+% Compare the current KB with the KB after staging Entries (rolled back).
+% Both sides cover domain contradictions (property, predicate and rule
+% witnesses) and scenario infeasibility witnesses (kind scenario_feasibility).
+% Analysis is a dict with
+%   witnesses   staged contradiction witnesses (what_if_contradiction_witnesses/2)
+%   before      every witness of the current KB
+%   after       every witness of the staged KB
+%   introduced  after-witnesses with no matching current witness
+%   removed     current witnesses the plan resolves
+%   unchanged   after-witnesses that already existed
+% Witnesses are matched by kind, status, requirements, facts and scenario, so
+% rewording a fact's prose does not make an existing conflict look new.
+% The entity index is not transactional, so every staged id is re-indexed
+% from the restored store.
+what_if_analysis(Entries, Analysis) :-
+    findall(Id, (member(Entry, Entries), what_if_entry_id(Entry, Id)), Ids0),
+    sort(Ids0, Ids),
+    with_kb_mutex(
+        call_cleanup(
+            (   checks:what_if_witnesses(BeforeContradictions, BeforeInfeasible),
+                catch(
+                    rdf_transaction((
+                        checks:what_if_stage(Entries),
+                        checks:what_if_witnesses(StagedContradictions, StagedInfeasible),
+                        throw(kibi_what_if_result(StagedContradictions, StagedInfeasible))
+                    )),
+                    kibi_what_if_result(AfterContradictions, AfterInfeasible),
+                    true
+                )
+            ),
+            forall(member(Id, Ids), kb:kb_refresh_entity_index(Id))
+        )
+    ),
+    append(BeforeContradictions, BeforeInfeasible, Before),
+    append(AfterContradictions, AfterInfeasible, After),
+    include(what_if_witness_absent(Before), After, Introduced),
+    include(what_if_witness_absent(After), Before, Removed),
+    exclude(what_if_witness_absent(Before), After, Unchanged),
+    Analysis = _{
+        witnesses: AfterContradictions,
+        before: Before,
+        after: After,
+        introduced: Introduced,
+        removed: Removed,
+        unchanged: Unchanged
+    }.
+
+what_if_analysis_json(Entries, JsonString) :-
+    what_if_analysis(Entries, Analysis),
+    with_output_to_string(
+        json_write_dict(current_output, Analysis, [width(0)]),
+        JsonString
+    ).
+
+what_if_witnesses(Contradictions, Infeasible) :-
+    check_domain_contradiction_witnesses(Contradictions),
+    findall(Witness, scenario_infeasibility_witness(Witness), Infeasible0),
+    sort(Infeasible0, Infeasible).
+
+% implements REQ-kibi-scenario-feasibility
+scenario_infeasibility_witness(_{
+    kind: scenario_feasibility,
+    status: infeasible,
+    requirements: [ReqId],
+    scenario: ScenarioId,
+    assumedFact: AssumedFact,
+    requirementFact: ReqFact,
+    reason: ReasonText
+}) :-
+    infeasible_scenario(ScenarioId, ReqId, AssumedFact, ReqFact, Reason),
+    format(string(ReasonText),
+        "Scenario ~w expects success but assumes ~w, which ~w forbids via ~w: ~w",
+        [ScenarioId, AssumedFact, ReqId, ReqFact, Reason]).
+
+what_if_witness_absent(Witnesses, Witness) :-
+    what_if_witness_key(Witness, Key),
+    \+ ( member(Other, Witnesses), what_if_witness_key(Other, Key) ).
+
+what_if_witness_key(Witness, key(Kind, Status, Requirements, Facts, Scenario)) :-
+    witness_field(Witness, kind, Kind),
+    witness_field(Witness, status, Status),
+    witness_field(Witness, requirements, Requirements),
+    witness_field(Witness, scenario, Scenario),
+    findall(FactId,
+        (   member(Side, [left, right]),
+            get_dict(Side, Witness, SideDict),
+            is_dict(SideDict),
+            get_dict(factId, SideDict, FactId)
+        ;   member(Field, [assumedFact, requirementFact]),
+            get_dict(Field, Witness, FactId)
+        ),
+        Facts).
+
+witness_field(Witness, Field, Value) :-
+    (   get_dict(Field, Witness, Value0) -> Value = Value0 ; Value = none ).
 
 what_if_entry_id(upsert(_, Props, _), Id) :- memberchk(id=Id, Props).
 what_if_entry_id(upsert(_, _, Rels), Id) :- what_if_relationship_id(Rels, Id).
@@ -964,13 +1183,17 @@ contradiction_witness_violation(Witness, violation(
 opposing_rule_requirements(ReqA, ReqB, RuleA, RuleB) :-
     opposing_rule_requirement_facts(ReqA, ReqB, _FactA, _FactB, RuleA, RuleB).
 
+% Each unordered pair of (requirement, rule fact) endpoints is compared once,
+% ordered by the requirement-fact pair: ordering requirements and facts
+% independently would never compare REQ-A->FACT-Z with REQ-Z->FACT-A.
 opposing_rule_requirement_facts(ReqA, ReqB, FactA, FactB, RuleA, RuleB) :-
     kb:current_req(ReqA),
     kb:current_req(ReqB),
-    ReqA @< ReqB,
+    ReqA \== ReqB,
     kb_relationship(requires_rule, ReqA, FactA),
     kb_relationship(requires_rule, ReqB, FactB),
-    FactA @< FactB,
+    FactA \== FactB,
+    ReqA-FactA @< ReqB-FactB,
     kb_entity(FactA, fact, PropsA),
     kb_entity(FactB, fact, PropsB),
     memberchk(fact_kind=KindA, PropsA),
@@ -1739,6 +1962,7 @@ check_selected_dispatch(Rules, _{
     required_fields: RequiredFields,
     deprecated_adr_no_successor: DeprecatedADRs,
     scenario_feasibility: ScenarioFeasibility,
+    scenario_feasibility_unknown: ScenarioFeasibilityUnknown,
     domain_contradictions: Contradictions,
     strict_fact_shape: StrictFactShape,
     strict_req_fact_pairing: StrictReqFactPairing,
@@ -1765,6 +1989,7 @@ check_selected_dispatch(Rules, _{
     selected_rule(Rules, 'required-fields', check_required_fields, RequiredFields),
     selected_rule(Rules, 'deprecated-adr-no-successor', check_deprecated_adrs, DeprecatedADRs),
     selected_rule(Rules, 'scenario-feasibility', check_scenario_feasibility, ScenarioFeasibility),
+    selected_rule(Rules, 'scenario-feasibility-unknown', check_scenario_feasibility_unknown, ScenarioFeasibilityUnknown),
     selected_rule(Rules, 'domain-contradictions', check_domain_contradictions, Contradictions),
     selected_rule(Rules, 'strict-fact-shape', check_strict_fact_shape, StrictFactShape),
     selected_rule(Rules, 'strict-req-fact-pairing', check_strict_req_fact_pairing, StrictReqFactPairing),
@@ -1828,6 +2053,7 @@ check_all_with_options(ViolationsDict, RequireAdr) :-
     check_required_fields(RequiredFields),
     check_deprecated_adrs(DeprecatedADRs),
     check_scenario_feasibility(ScenarioFeasibility),
+    check_scenario_feasibility_unknown(ScenarioFeasibilityUnknown),
     check_domain_contradictions(Contradictions),
     check_strict_fact_shape(StrictFactShape),
     check_strict_req_fact_pairing(StrictReqFactPairing),
@@ -1854,6 +2080,7 @@ check_all_with_options(ViolationsDict, RequireAdr) :-
         required_fields: RequiredFields,
         deprecated_adr_no_successor: DeprecatedADRs,
         scenario_feasibility: ScenarioFeasibility,
+        scenario_feasibility_unknown: ScenarioFeasibilityUnknown,
         domain_contradictions: Contradictions,
         strict_fact_shape: StrictFactShape,
         strict_req_fact_pairing: StrictReqFactPairing,

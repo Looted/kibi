@@ -70,6 +70,13 @@ export const GENERATED_RULES = [
     category: "integrity",
   },
   {
+    name: "scenario-feasibility-unknown",
+    description:
+      "Advisory: a scenario that expects success assumes nothing, or assumes a property value no current requirement constrains, so its feasibility cannot be decided",
+    enforcementClass: "advisory",
+    category: "integrity",
+  },
+  {
     name: "domain-contradictions",
     description:
       "Detect contradictions between requirements constraining the same fact",

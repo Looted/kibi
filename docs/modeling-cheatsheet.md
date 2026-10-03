@@ -26,6 +26,8 @@ Name a new entity by the behavior it governs: `<TYPE>-<area>-<behavior>` in keba
 
 A subject key is dotted `component.aspect[.sub]`: at least two lowercase snake_case segments, such as `docs.site` or `kibi.cli.check.staged`. Never derive it from a requirement ID. `kb_model` with `mode: "requirement"` returns `vocabularyAlignment` with ranked subjects and a `reuse_existing` or `declare_new` decision. Follow that decision. A requirement constrains one subject fact for a given key. Property facts for that subject share the key. A second subject fact with the same key grounds every claim twice.
 
+When a predicate is single-valued per key (one `reading` per `sensor`), add `key_arguments: [sensor]` to its `predicate_schema`. Rule comparison only treats two atoms as the same fact through such a declaration; without it, opposing rules over that predicate stay `unresolved` rather than `disjoint`.
+
 When a predicate schema declares `argument_constants`, new facts must use those values. `argument_aliases` names old spellings that map to a constant; writes reject both undeclared values and aliases. `kibi migrate` can apply the mechanical repairs (the only matching namespace, or an alias rewritten to its constant) after you approve the plan hash.
 
 ## Strict property example

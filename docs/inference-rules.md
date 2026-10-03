@@ -40,7 +40,7 @@ Kibi includes deterministic derived predicates for internal analysis and automat
 - **Non-blocking lane:** `observation` and `meta` facts are explicitly excluded from contradiction inference. They serve as non-blocking notes for bugs, workarounds, and historical context.
 - Conflict classes currently covered:
   - exact-value conflicts like `eq pending` vs `eq granted`
-  - numeric conflicts decided exactly: two comparisons conflict when no real value satisfies both. Strict bounds count, so `gt 0` vs `eq 0` and `lte 0` vs `gt 0` conflict while `gte 0` vs `eq 0` does not (`packages/core/src/intervals.pl`)
+  - numeric conflicts decided exactly: two comparisons conflict when no real value satisfies both. Strict bounds count, so `gt 0` vs `eq 0` and `lte 0` vs `gt 0` conflict while `gte 0` vs `eq 0` does not (`packages/core/src/intervals.pl`). When both sides are `value_type: int` the comparison is over the integers: `gt 0` vs `lt 1` conflicts (no integer lies between them), fractional bounds tighten to the nearest integer, and an `eq` with a fractional value admits no integer. A mixed `int`/`number` pair is compared over the reals
   - polarity conflicts like `require` vs `forbid` on the same normalized tuple
 - Scope and validity windows only conflict when they intersect.
 - **Readiness Levels:** Requirements must pass strict readiness checks (e.g., valid `subject_key`, matching `property_key`, valid operator) before participating in contradiction checks.
@@ -52,11 +52,13 @@ Kibi includes deterministic derived predicates for internal analysis and automat
 
 Typed `kibi.logic.v1` rules with opposing modalities (oblige or permit vs forbid) are compared three-valued:
 
-- `contradiction`: one rule's conditions always imply the other's, the conditions can hold together and neither rule has an exception, so the rules must collide.
-- `disjoint`: the actions differ, the scopes or validity windows do not intersect, the conditions cannot hold together, or one rule's exception is implied by the other rule's conditions.
+- `contradiction`: the two rules' conditions are identical (up to variable names), or one rule's conditions always imply the other's and provably can hold, and neither rule has an exception, so the rules must collide. A condition is only proven satisfiable when every comparison in it was translated exactly; a comparison the fragment cannot read (such as `X < Y` between two different variables) keeps the pair `unresolved`.
+- `disjoint`: the actions differ, the scopes or validity windows do not intersect, the conditions provably cannot hold together, or one rule's exception is implied by the other rule's conditions.
 - `unresolved`: the rules may overlap but the fragment cannot decide it.
 
-**Same-fact assumption.** When testing whether two rules' conditions can hold together, condition atoms with the same predicate name whose arguments unify are read as the same fact. Two rules that mention `order_total(T)` are assumed to talk about the same order total. Model distinct quantities with distinct predicate names or subject keys.
+Comparisons of a variable with itself are decided exactly (`X < X` never holds, `X =< X` always does). Rule variables declared `int` or `integer` range over the integers, so `N > 0` and `N < 1` cannot both hold for them.
+
+**Same-fact assumption.** Condition atoms of the two rules are read as the same fact only when their predicate declares a functional dependency: a `predicate_schema` fact with `key_arguments` names the arguments that determine the rest. Two atoms of that predicate whose key arguments are identical must agree on every other argument. With `key_arguments: [sensor]` on `reading(sensor, value)`, `permit act(C) :- reading(C, X), X > 0` and `forbid act(C) :- reading(C, Y), Y =< 0` are `disjoint`. Without the declaration a predicate is multivalued (a sensor may have several readings), so the same pair is `unresolved`, never `disjoint`.
 
 ### Unmodeled clauses are not "no conflict"
 
@@ -70,15 +72,19 @@ A scenario may declare `expects: success | rejection | error` and link the value
 - it assumes a `property_value` fact on the same `subject_key` and `property_key` as a property a current requirement requires, with intersecting scope and compatible type and unit, and
 - the two constraints conflict under the requirement contradiction rules above (value, numeric or polarity conflict).
 
-The scenario is exempt when a current exception requirement `exempts` the forbidding requirement and is `specified_by` the scenario. The base requirement is not edited and stays current.
+The scenario is exempt when a current exception requirement `exempts` the forbidding requirement, is `specified_by` the scenario, and carries a non-empty `approved_by` (the human who approved it). An exception without `approved_by` does not exempt: the violation stays and says an exception exists but is not approved. The base requirement is not edited and stays current.
 
-Every requirement that specifies an infeasible scenario has its scenario stage set to `blocked` and gets the `infeasible_scenario` proof gap, so it cannot be proven through that scenario. The check is one-directional evidence: scenarios with no `assumes`, or whose assumption names a different property, are not compared, and the lack of a violation is not proof of feasibility.
+Every requirement that specifies an infeasible scenario has its scenario stage set to `blocked` and gets the `infeasible_scenario` proof gap, so it cannot be proven through that scenario.
+
+Each success scenario gets one analysis outcome: `infeasible` (blocking, above), `feasible_by_exception` (every conflict is covered by an approved exception), `feasible` (every assumption is constrained and compatible), or `unknown`. `unknown` means the check could not decide: the scenario assumes nothing (`no_assumptions`), or an assumed `subject_key`/`property_key` is not constrained by any current requirement (`unmatched_assumption`). Unknown feasibility is never reported as passed: `kb_check` lists it under the advisory `scenario-feasibility-unknown` rule (a non-blocking quality diagnostic), and the proof ladder records it in `proofStages.scenarios.unknownFeasibility` and as the `unknown_scenario_feasibility` proof advisory without changing proof status.
+
+`kb_compile_intent` and `kb_apply_plan` stage a plan in a rolled-back transaction and compare its contradiction and infeasibility witnesses with the current KB (`introduced`, `removed`, `unchanged`). Any introduced contradiction or infeasible scenario blocks the plan, whichever requirements it names; `kb_apply_plan` refuses it before the first write.
 
 ## Predicate ontology semantics
 
 The ontology lane encodes project-local domain predicates:
 
-- `fact_kind=predicate_schema` defines an allowed predicate signature and its argument names/types.
+- `fact_kind=predicate_schema` defines an allowed predicate signature and its argument names/types. Optional `key_arguments` declares that those arguments determine the remaining ones (a functional dependency used by rule comparison).
 - `fact_kind=predicate` stores one ground predicate claim with `predicate_args` and optional `polarity` (`assert` or `deny`).
 - Requirements link to ground predicate facts with `requires_predicate`.
 - `predicate_schema/6` and `predicate_fact/5` are read-only helpers for querying stored ontology data.

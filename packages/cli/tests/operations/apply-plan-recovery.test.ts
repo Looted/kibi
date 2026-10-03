@@ -31,6 +31,7 @@ import {
   restoreWorkspaceCwd,
   withCwd,
 } from "../helpers/in-process-workspace.js";
+import { isWhatIfGoal, whatIfResult } from "../helpers/what-if.js";
 
 function sha(value: string): string {
   return createHash("sha256").update(value).digest("hex");
@@ -102,9 +103,11 @@ function filesystemContext(
 ): OperationContext {
   const query: OperationContext["prolog"] = extra?.query ?? {
     query: async (goal): Promise<PrologQueryResult> =>
-      goal.includes("kb_commit_upsert")
-        ? { success: true, bindings: { ChangeKind: "created" } }
-        : { success: true, bindings: { Results: "[]" } },
+      isWhatIfGoal(goal)
+        ? whatIfResult()
+        : goal.includes("kb_commit_upsert")
+          ? { success: true, bindings: { ChangeKind: "created" } }
+          : { success: true, bindings: { Results: "[]" } },
     queryStatusJson: async () => ({ success: true, bindings: {} }),
     nextSolution: async () => null,
     save: async () => ({ success: true, bindings: {} }),
@@ -158,9 +161,11 @@ describe("compile plan source recovery and write fallbacks", () => {
       filesystemContext(cwd, {
         query: {
           query: async (goal): Promise<PrologQueryResult> =>
-            goal.includes("kb_commit_upsert")
-              ? { success: false, bindings: {}, error: "derived boom" }
-              : { success: true, bindings: { Results: "[]" } },
+            isWhatIfGoal(goal)
+              ? whatIfResult()
+              : goal.includes("kb_commit_upsert")
+                ? { success: false, bindings: {}, error: "derived boom" }
+                : { success: true, bindings: { Results: "[]" } },
           queryStatusJson: async () => ({ success: true, bindings: {} }),
           nextSolution: async () => null,
           save: async () => ({ success: true, bindings: {} }),
@@ -321,6 +326,7 @@ Must remain independently testable.
         filesystemContext(cwd, {
           query: {
             query: async (goal): Promise<PrologQueryResult> => {
+              if (isWhatIfGoal(goal)) return whatIfResult();
               if (goal.includes("kb_commit_upsert")) {
                 return goal.includes("REQ-partial-a")
                   ? { success: true, bindings: { ChangeKind: "created" } }

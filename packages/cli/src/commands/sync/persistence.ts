@@ -68,6 +68,7 @@ const STRING_ARRAY_FIELDS = new Set([
   "argument_names",
   "argument_types",
   "argument_descriptions",
+  "key_arguments",
   "aliases",
   "examples",
   "predicate_args",
@@ -476,6 +477,11 @@ export async function persistEntities(
         props.push(
           `proof_exempt_reason=${toPrologString(entity.proof_exempt_reason)}`,
         );
+      }
+      for (const field of ["approved_by", "approval_ref"] as const) {
+        const value = entity.type === "req" ? entity[field] : undefined;
+        if (value !== undefined)
+          props.push(`${field}=${toPrologString(value)}`);
       }
       if (sourceFile) props.push(`sourceFile=${toPrologString(sourceFile)}`);
 

@@ -97,6 +97,7 @@ const FACT_STRING_ARRAY_FIELDS = new Set([
   "argument_names",
   "argument_types",
   "argument_descriptions",
+  "key_arguments",
   "aliases",
   "examples",
   "predicate_args",
@@ -236,6 +237,10 @@ function buildEntityAssertionGoal(
     props.push(
       `semantic_inventory=${toPrologString(JSON.stringify(entity.semantic_inventory))}`,
     );
+  }
+  for (const field of ["approved_by", "approval_ref"] as const) {
+    const value = entity.type === "req" ? entity[field] : undefined;
+    if (value !== undefined) props.push(`${field}=${toPrologString(value)}`);
   }
   if (sourceFile) props.push(`sourceFile=${toPrologString(sourceFile)}`);
 

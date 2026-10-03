@@ -2818,6 +2818,16 @@
                 },
                 "type": "array"
               },
+              "approval_ref": {
+                "description": "Requirement-only. Optional reference to the exception's approval decision record.",
+                "minLength": 1,
+                "type": "string"
+              },
+              "approved_by": {
+                "description": "Requirement-only. The human who approved this exception requirement. An exception that exempts a requirement and is specified_by a success scenario makes that scenario feasible only when approved_by is set.",
+                "minLength": 1,
+                "type": "string"
+              },
               "argument_aliases": {
                 "additionalProperties": {},
                 "description": "predicate_schema only: legacy spellings keyed by argument name, each mapped to a declared constant, e.g. {\"severity\": {\"warn\": \"warning\"}}. kibi migrate rewrites facts that still use an alias.",
@@ -2946,6 +2956,16 @@
                   }
                 ],
                 "description": "Optional justification for a coarse file/module-level symbol traceability relationship when narrower function/class/type symbols exist."
+              },
+              "key_arguments": {
+                "description": "predicate_schema only: argument names that determine the remaining arguments (a functional dependency), e.g. [\"sensor\"] for reading(sensor, value). Rule contradiction analysis treats two atoms with identical keys as the same fact; without it the predicate is multivalued and opposing rules stay unresolved instead of disjoint.",
+                "items": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "minItems": 1,
+                "type": "array",
+                "uniqueItems": true
               },
               "links": {
                 "description": "Optional references. Example: ['REQ-cli-gc','https://example.com/spec'].",
@@ -4416,7 +4436,7 @@
             "type": "integer"
           },
           "rules": {
-            "description": "Optional rule subset. Allowed: must-priority-coverage, symbol-coverage, symbol-traceability, no-dangling-refs, source-relationship-parity, no-cycles, required-fields, deprecated-adr-no-successor, scenario-feasibility, domain-contradictions, logic-coverage, rule-safety, rule-verifiability, query-plan-safety, req-status-vocabulary, strict-fact-shape, strict-req-fact-pairing, predicate-verifiability, strict-readiness, semantic-completeness, proof-contract-symbols, entity-id-style, domain-redundancy, domain-implication, subject-key-identity, subject-key-shape, ontology-quality, predicate-schema-conformance. If omitted, server runs canonical and advisory rules plus the full-KB qualityDiagnostics audit scan, including usage telemetry acceptance when evidence exists; migration rules run only when explicitly selected. Advisory and migration findings are non-blocking qualityDiagnostics. If supplied, server preserves scoped validation and skips the full-KB advisory scan.",
+            "description": "Optional rule subset. Allowed: must-priority-coverage, symbol-coverage, symbol-traceability, no-dangling-refs, source-relationship-parity, no-cycles, required-fields, deprecated-adr-no-successor, scenario-feasibility, scenario-feasibility-unknown, domain-contradictions, logic-coverage, rule-safety, rule-verifiability, query-plan-safety, req-status-vocabulary, strict-fact-shape, strict-req-fact-pairing, predicate-verifiability, strict-readiness, semantic-completeness, proof-contract-symbols, entity-id-style, domain-redundancy, domain-implication, subject-key-identity, subject-key-shape, ontology-quality, predicate-schema-conformance. If omitted, server runs canonical and advisory rules plus the full-KB qualityDiagnostics audit scan, including usage telemetry acceptance when evidence exists; migration rules run only when explicitly selected. Advisory and migration findings are non-blocking qualityDiagnostics. If supplied, server preserves scoped validation and skips the full-KB advisory scan.",
             "items": {
               "anyOf": [
                 {
@@ -4453,6 +4473,10 @@
                 },
                 {
                   "const": "scenario-feasibility",
+                  "type": "string"
+                },
+                {
+                  "const": "scenario-feasibility-unknown",
                   "type": "string"
                 },
                 {

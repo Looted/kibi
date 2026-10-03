@@ -4,13 +4,17 @@
 %
 % A constraint is c(Op, Variable, Value) where Op is one of eq, neq, lt, lte,
 % gt, gte and Value is a number.  Variables are ordinary Prolog variables and
-% are compared by identity, never bound.  Each variable's constraints describe
-% a set of reals; the conjunction is satisfiable exactly when every set is
-% non-empty.  Integers, floats and strict bounds are handled without scaling
-% or labelling, so the answer is exact and terminates in linear time.
+% are compared by identity, never bound.  Each variable ranges over the reals
+% unless the caller names it as integer-valued; the conjunction is
+% satisfiable exactly when every variable's set is non-empty.  Strict bounds,
+% non-integer bounds on integer variables and excluded points are handled
+% without scaling or labelling, so the answer is exact and terminates in
+% linear time.
 :- module(intervals, [
     numeric_constraints_satisfiable/1,
+    numeric_constraints_satisfiable/2,
     numeric_constraint_entailed/2,
+    numeric_constraint_entailed/3,
     numeric_constraint_negation/2,
     numeric_constraint_holds/3
 ]).
@@ -18,14 +22,39 @@
 %% numeric_constraints_satisfiable(+Constraints)
 % True when some assignment of reals satisfies every constraint.
 numeric_constraints_satisfiable(Constraints) :-
+    numeric_constraints_satisfiable(Constraints, []).
+
+%% numeric_constraints_satisfiable(+Constraints, +IntegerVariables)
+% As numeric_constraints_satisfiable/1, but every variable in
+% IntegerVariables (compared by identity) ranges over the integers: no
+% integer lies strictly between 0 and 1, and eq 0.5 has no integer solution.
+% IntegerVariables may also be the atom `all`, making every variable integral.
+numeric_constraints_satisfiable(Constraints, IntegerVariables) :-
     term_variables(Constraints, Variables),
-    forall(member(Variable, Variables), variable_feasible(Variable, Constraints)).
+    forall(
+        member(Variable, Variables),
+        (   integer_variable(Variable, IntegerVariables)
+        ->  integer_variable_feasible(Variable, Constraints)
+        ;   variable_feasible(Variable, Constraints)
+        )
+    ).
 
 %% numeric_constraint_entailed(+Premises, +Constraint)
 % True when every assignment that satisfies Premises satisfies Constraint.
 numeric_constraint_entailed(Premises, Constraint) :-
+    numeric_constraint_entailed(Premises, Constraint, []).
+
+%% numeric_constraint_entailed(+Premises, +Constraint, +IntegerVariables)
+numeric_constraint_entailed(Premises, Constraint, IntegerVariables) :-
     numeric_constraint_negation(Constraint, Negated),
-    \+ numeric_constraints_satisfiable([Negated|Premises]).
+    \+ numeric_constraints_satisfiable([Negated|Premises], IntegerVariables).
+
+integer_variable(_, all) :- !.
+integer_variable(Variable, IntegerVariables) :-
+    is_list(IntegerVariables),
+    member(Candidate, IntegerVariables),
+    Candidate == Variable,
+    !.
 
 %% numeric_constraint_negation(+Constraint, -Negated)
 numeric_constraint_negation(c(Op, Variable, Value), c(Negated, Variable, Value)) :-
@@ -87,3 +116,60 @@ interval_non_empty(interval(Lo, _, Hi, _, _)) :- Lo < Hi, !.
 interval_non_empty(interval(Lo, closed, Hi, closed, Excluded)) :-
     Lo =:= Hi,
     \+ ( member(Value, Excluded), Value =:= Lo ).
+
+% Integer variables: every strict or fractional bound is tightened to the
+% nearest admissible integer, so the set is an integer range [Lo, Hi] minus
+% finitely many excluded integers.  An eq bound with a fractional value admits
+% no integer at all.
+integer_variable_feasible(Variable, Constraints) :-
+    findall(Op-Value, (member(c(Op, Other, Value), Constraints), Other == Variable), Bounds),
+    foldl(apply_integer_bound, Bounds, ibox(ninf, pinf, []), Box),
+    integer_box_non_empty(Box).
+
+apply_integer_bound(_, empty, empty) :- !.
+apply_integer_bound(eq-Value, ibox(Lo, Hi, Ex), Box) :- !,
+    (   integral_value(Value, Integer)
+    ->  integer_raise_low(Lo, Integer, Lo1),
+        integer_lower_high(Hi, Integer, Hi1),
+        Box = ibox(Lo1, Hi1, Ex)
+    ;   Box = empty
+    ).
+apply_integer_bound(neq-Value, ibox(Lo, Hi, Ex), ibox(Lo, Hi, Ex1)) :- !,
+    (   integral_value(Value, Integer)
+    ->  Ex1 = [Integer|Ex]
+    ;   Ex1 = Ex
+    ).
+apply_integer_bound(gt-Value, ibox(Lo, Hi, Ex), ibox(Lo1, Hi, Ex)) :- !,
+    Bound is floor(Value) + 1,
+    integer_raise_low(Lo, Bound, Lo1).
+apply_integer_bound(gte-Value, ibox(Lo, Hi, Ex), ibox(Lo1, Hi, Ex)) :- !,
+    Bound is ceiling(Value),
+    integer_raise_low(Lo, Bound, Lo1).
+apply_integer_bound(lt-Value, ibox(Lo, Hi, Ex), ibox(Lo, Hi1, Ex)) :- !,
+    Bound is ceiling(Value) - 1,
+    integer_lower_high(Hi, Bound, Hi1).
+apply_integer_bound(lte-Value, ibox(Lo, Hi, Ex), ibox(Lo, Hi1, Ex)) :- !,
+    Bound is floor(Value),
+    integer_lower_high(Hi, Bound, Hi1).
+
+integral_value(Value, Integer) :-
+    number(Value),
+    Integer is round(Value),
+    Integer =:= Value.
+
+integer_raise_low(ninf, Bound, Bound) :- !.
+integer_raise_low(Lo, Bound, Lo1) :- Lo1 is max(Lo, Bound).
+
+integer_lower_high(pinf, Bound, Bound) :- !.
+integer_lower_high(Hi, Bound, Hi1) :- Hi1 is min(Hi, Bound).
+
+% An unbounded integer range cannot be emptied by finitely many exclusions.
+integer_box_non_empty(empty) :- !, fail.
+integer_box_non_empty(ibox(ninf, _, _)) :- !.
+integer_box_non_empty(ibox(_, pinf, _)) :- !.
+integer_box_non_empty(ibox(Lo, Hi, Excluded)) :-
+    Lo =< Hi,
+    findall(Value, (member(Value, Excluded), Value >= Lo, Value =< Hi), Inside0),
+    sort(Inside0, Inside),
+    length(Inside, ExcludedCount),
+    Hi - Lo + 1 > ExcludedCount.

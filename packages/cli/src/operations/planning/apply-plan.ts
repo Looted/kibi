@@ -29,6 +29,7 @@ import {
   bootstrapPlanHash,
 } from "../bootstrap/types.js";
 import { executeDelete } from "../mutation/delete.js";
+import { validateRelationshipSources } from "../mutation/relationships.js";
 import {
   retirePendingSourceReceipt,
   writePendingSourceReceipt,
@@ -39,6 +40,7 @@ import type {
   UpsertInput,
 } from "../mutation/types.js";
 import { executeUpsert } from "../mutation/upsert.js";
+import { validateUpsertInput } from "../mutation/validation.js";
 import {
   type WorkspaceMutationLockHandle,
   acquireWorkspaceMutationLock,
@@ -49,6 +51,8 @@ import {
   type PlanStep,
   type SourceWritePlan,
   compilePlanHash,
+  isBlockingWitness,
+  parseWhatIfAnalysis,
   planWhatIfGoal,
 } from "./compile-intent.js";
 
@@ -1600,15 +1604,44 @@ async function executeApplyPlanUnlocked(
   );
   const steps = args.plan.steps.map((step) => asUpsert(step));
   // implements REQ-kibi-truthful-consistency
-  // Stage every step together in a rolled-back transaction before the first
-  // write. A step the store would reject then fails the whole plan up front
-  // instead of after earlier steps have committed.
-  const preflight = await prolog.query(
-    planWhatIfGoal(args.plan.steps, context.clock()),
-  );
+  // Validate every step, then stage all of them together in a rolled-back
+  // transaction before the first write. A step the store would reject, or a
+  // final state that introduces a contradiction or an infeasible success
+  // scenario, fails the whole plan up front instead of after earlier steps
+  // have committed.
+  const now = context.clock();
+  for (const step of steps) {
+    try {
+      const validated =
+        Object.keys(step.properties ?? {}).length > 0
+          ? validateUpsertInput(step, now)
+          : undefined;
+      validateRelationshipSources(
+        step.id,
+        validated?.relationships ?? step.relationships ?? [],
+      );
+    } catch (error) {
+      throw new Error(
+        `Apply plan failed before any write: step ${step.id} is invalid: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
+  const preflight = await prolog.query(planWhatIfGoal(args.plan.steps, now));
   if (!preflight.success)
     throw new Error(
       `Apply plan failed before any write: the store rejected the staged plan: ${preflight.error ?? "unknown error"}`,
+    );
+  const staged = parseWhatIfAnalysis(preflight.bindings.JsonString);
+  if (staged === null)
+    throw new Error(
+      "Apply plan failed before any write: the staged plan's contradiction analysis could not be read",
+    );
+  const introducedBlocking = staged.introduced.filter(isBlockingWitness);
+  if (introducedBlocking.length > 0)
+    throw new Error(
+      `Apply plan failed before any write: the staged plan introduces ${introducedBlocking.length} contradiction(s) or infeasible scenario(s): ${introducedBlocking
+        .map((witness) => witness.reason || witness.requirements.join("/"))
+        .join("; ")}`,
     );
   const sourceWrites = await applySourceWrites(
     operationContext,

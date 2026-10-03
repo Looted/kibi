@@ -95,6 +95,8 @@ This section provides guidance on selecting the appropriate entity type for your
 | text_ref     | No       | string         | Independent code/doc evidence pointer            |
 | proof_exempt | No       | boolean        | Marks a current requirement as intentionally outside E2E-proof scope. Requires `proof_exempt_reason`; coverage reports the requirement `not_applicable` with that reason |
 | proof_exempt_reason | No | string        | Required when `proof_exempt` is true — the reviewable justification surfaced in coverage rows |
+| approved_by  | No       | string         | Exception requirements only: the human who approved the exception. An exception that `exempts` a requirement makes its specified success scenarios feasible only when `approved_by` is non-empty |
+| approval_ref | No       | string         | Optional reference to the exception's approval record (ticket, ADR or review link) |
 | semantic_text | No      | string         | Requirement-only normalized authored prose that anchors semantic byte spans |
 | logic_claims | No       | array[string]  | Requirement-only manifest of stable atomic claim keys |
 | semantic_clauses | No | array[string] | Reviewed atomic decomposition override used against the exact semantic source |
@@ -292,7 +294,9 @@ scenarios:
 
 A scenario that sets `expects: success` and links the values its outcome depends on with `assumes` (scenario → `property_value` fact) is checked against current requirements by the canonical `scenario-feasibility` rule. When a current requirement forbids an assumed value (for example it requires `client.call_quota.remaining > 0` and the scenario assumes `= 0`), `kb_check` reports the scenario, the requirement and both facts, and every requirement the scenario specifies gets the `infeasible_scenario` proof gap. Reuse the requirement's `subject_key` and `property_key` in the assumption fact: a differently named property is not compared, and no violation is not proof the scenario is feasible. Scenarios that expect `rejection` or `error` are not checked.
 
-To allow an intended exception without weakening the rule, record a human-approved exception requirement that `exempts` the base requirement and is `specified_by` the scenario. The base requirement stays current and unchanged, and the exception covers only the scenarios it specifies.
+To allow an intended exception without weakening the rule, record a human-approved exception requirement that `exempts` the base requirement, is `specified_by` the scenario, and sets `approved_by` (optionally `approval_ref`). The base requirement stays current and unchanged, and the exception covers only the scenarios it specifies. An exception without `approved_by` does not exempt anything; the violation then says the exception is not approved.
+
+A success scenario whose feasibility cannot be decided (it assumes nothing, or assumes a property no current requirement constrains) is reported by the advisory `scenario-feasibility-unknown` rule and the `unknown_scenario_feasibility` proof advisory; it is never counted as feasible.
 
 **Example:**
 ```yaml
@@ -552,7 +556,7 @@ Facts support two authoring lanes:
   - `observation`
   - `meta`
 - **Ontology lane** for project-local predicate modeling
-  - `predicate_schema`: defines an allowed predicate signature; requires `predicate_name`, `predicate_arity`, `argument_names`, and `argument_types`. May close argument vocabularies with `argument_constants` (allowed values keyed by argument name) and `argument_aliases` (legacy spellings keyed by argument name, each mapped to a declared constant); unlisted arguments stay open
+  - `predicate_schema`: defines an allowed predicate signature; requires `predicate_name`, `predicate_arity`, `argument_names`, and `argument_types`. May close argument vocabularies with `argument_constants` (allowed values keyed by argument name) and `argument_aliases` (legacy spellings keyed by argument name, each mapped to a declared constant); unlisted arguments stay open. Optional `key_arguments` (a non-empty list of declared argument names) states that those arguments determine the rest; rule contradiction analysis identifies two atoms of the predicate only when their key arguments are identical
   - `predicate`: stores a ground predicate claim; requires `predicate_name`, non-empty `predicate_args`, and `canonical_key`; may use `polarity: assert` or `deny`; logical coverage also uses the paired `claim_key` and `claim_text` provenance fields
 - **Logic lane** for conditional and modal requirements
   - `rule_schema`: declares the stable `kibi.logic.v1` signature used by rule facts
@@ -860,6 +864,8 @@ links:
   - type: assumes
     target: FACT-quota-remaining-zero
 # exception req REQ-quota-promo-exception exempts REQ-quota-call and specifies the scenario
+approved_by: Product owner
+approval_ref: DEC-quota-promo
 links:
   - type: exempts
     target: REQ-quota-call

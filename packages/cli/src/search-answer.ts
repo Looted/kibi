@@ -10,8 +10,10 @@ import type { PrologPort } from "./public/operations/runtime-types.js";
  * must stay true (linked facts), and what verifies it (scenarios and tests).
  * Superseded or deprecated requirements are listed separately so they are
  * never read as current policy, and observation facts are labelled as notes,
- * not rules. Everything here is graph traversal over the KB: it is discovery,
- * not proof.
+ * not rules. Tests are collected through the canonical
+ * REQ -specified_by-> SCEN -verified_by-> TEST path as well as direct
+ * requirement links, and each says how it was reached. Everything here is
+ * graph traversal over the KB: it is discovery, not proof.
  */
 export type SearchAnswerEntity = Readonly<{
   id: string;
@@ -19,13 +21,19 @@ export type SearchAnswerEntity = Readonly<{
   status?: string;
 }>;
 
+/**
+ * A test verifying a governing requirement. `via` is `"direct"` for a test
+ * linked to the requirement itself, or the id of the scenario it verifies.
+ */
+export type SearchAnswerTest = SearchAnswerEntity & Readonly<{ via: string }>;
+
 export type SearchAnswerRequirement = SearchAnswerEntity &
   Readonly<{
     score: number;
     via: string;
     facts: readonly (SearchAnswerEntity & { factKind?: string })[];
     scenarios: readonly SearchAnswerEntity[];
-    tests: readonly SearchAnswerEntity[];
+    tests: readonly SearchAnswerTest[];
     adrs: readonly SearchAnswerEntity[];
   }>;
 
@@ -79,6 +87,8 @@ export const SEARCH_ANSWER_LIMITS = {
   observations: 3,
   entityLoads: 60,
   maxBytes: 16_384,
+  /** Title length (characters) kept when an answer must shrink to fit. */
+  titleChars: 160,
 } as const;
 
 type Edge = Readonly<{ rel: string; from: string; to: string }>;
@@ -111,6 +121,18 @@ async function edgesTouching(
     from: normalizeEntityId(from),
     to: normalizeEntityId(to),
   }));
+}
+
+/** Tests that verify a scenario: `verified_by` from it or `validates` into it. */
+function scenarioTests(scenarioId: string, edges: readonly Edge[]): string[] {
+  const tests: string[] = [];
+  for (const edge of edges) {
+    if (edge.rel === "verified_by" && edge.from === scenarioId)
+      tests.push(edge.to);
+    if (edge.rel === "validates" && edge.to === scenarioId)
+      tests.push(edge.from);
+  }
+  return tests;
 }
 
 /** Requirement ids a non-requirement entity points back to. */
@@ -163,8 +185,16 @@ export async function buildSearchAnswer(
   // Candidate requirements: matched requirements first, then requirements
   // that own a matched scenario, test, symbol or fact.
   const candidates = new Map<string, { score: number; via: string }>();
+  const propose = (owner: string, score: number, via: string) => {
+    const previous = candidates.get(owner);
+    if (!previous || previous.score < score)
+      candidates.set(owner, { score, via });
+  };
   const observations: SearchAnswerEntity[] = [];
   const rationale = new Map<string, SearchAnswerEntity>();
+  // A matched test may verify a scenario rather than a requirement; its
+  // targets are resolved to their governing requirements after the loop.
+  const testTargets: { id: string; score: number; targets: string[] }[] = [];
   for (const match of seeds) {
     const id = text(match.entity.id);
     const type = text(match.entity.type);
@@ -185,11 +215,30 @@ export async function buildSearchAnswer(
         continue;
       }
     }
-    for (const owner of owningRequirements(id, type, seedEdges)) {
-      const previous = candidates.get(owner);
-      const score = match.score * 0.9;
-      if (!previous || previous.score < score)
-        candidates.set(owner, { score, via: `${type} ${id}` });
+    const owners = owningRequirements(id, type, seedEdges);
+    if (type === "test") {
+      testTargets.push({ id, score: match.score, targets: owners });
+      continue;
+    }
+    for (const owner of owners)
+      propose(owner, match.score * 0.9, `${type} ${id}`);
+  }
+  const targetIds = [...new Set(testTargets.flatMap((test) => test.targets))];
+  const targetEdges = await edgesTouching(prolog, targetIds);
+  for (const test of testTargets) {
+    for (const target of test.targets) {
+      // A target that some requirement specifies is a scenario: lift the
+      // test to that requirement. Anything else is a directly verified
+      // requirement (non-requirements are filtered when loaded).
+      const scenarioOwners = targetEdges
+        .filter((edge) => edge.rel === "specified_by" && edge.to === target)
+        .map((edge) => edge.from);
+      if (scenarioOwners.length === 0) {
+        propose(target, test.score * 0.9, `test ${test.id}`);
+        continue;
+      }
+      for (const owner of scenarioOwners)
+        propose(owner, test.score * 0.85, `test ${test.id} via ${target}`);
     }
   }
 
@@ -220,6 +269,19 @@ export async function buildSearchAnswer(
     }
     frontier = next;
   }
+
+  // Scenario verification edges, fetched once per scenario across requirements.
+  const scenarioEdges = new Map<string, Edge[]>();
+  const edgesOfScenarios = async (ids: readonly string[]) => {
+    const missing = ids.filter((id) => !scenarioEdges.has(id));
+    const fetched = await edgesTouching(prolog, missing);
+    for (const id of missing)
+      scenarioEdges.set(
+        id,
+        fetched.filter((edge) => edge.from === id || edge.to === id),
+      );
+    return ids.flatMap((id) => scenarioEdges.get(id) ?? []);
+  };
 
   const governing: SearchAnswerRequirement[] = [];
   const notGoverning: (SearchAnswerEntity & { supersededBy?: string })[] = [];
@@ -264,20 +326,33 @@ export async function buildSearchAnswer(
         .filter((edge) => FACT_LINKS.has(edge.rel) && edge.from === id)
         .map((edge) => edge.to),
     );
-    const scenarios = await linked(
-      reqEdges
-        .filter((edge) => edge.rel === "specified_by" && edge.from === id)
-        .map((edge) => edge.to),
-    );
-    const tests = await linked(
-      reqEdges
-        .filter(
-          (edge) =>
-            (edge.rel === "verified_by" && edge.from === id) ||
-            (edge.rel === "validates" && edge.to === id),
-        )
-        .map((edge) => (edge.rel === "verified_by" ? edge.to : edge.from)),
-    );
+    const scenarioIds = [
+      ...new Set(
+        reqEdges
+          .filter((edge) => edge.rel === "specified_by" && edge.from === id)
+          .map((edge) => edge.to),
+      ),
+    ];
+    const scenarios = await linked(scenarioIds);
+    // Tests linked to the requirement itself come first, then tests that
+    // verify one of its scenarios; a test reached both ways counts as direct.
+    const testVia = new Map<string, string>();
+    const reach = (testId: string, via: string) => {
+      if (!testVia.has(testId)) testVia.set(testId, via);
+    };
+    for (const edge of reqEdges) {
+      if (edge.rel === "verified_by" && edge.from === id)
+        reach(edge.to, "direct");
+      if (edge.rel === "validates" && edge.to === id)
+        reach(edge.from, "direct");
+    }
+    const traversed = scenarioIds.slice(0, limits.perRequirement);
+    if (scenarioIds.length > traversed.length) truncated = true;
+    const verification = await edgesOfScenarios(traversed);
+    for (const scenarioId of traversed)
+      for (const testId of scenarioTests(scenarioId, verification))
+        reach(testId, scenarioId);
+    const testRows = await linked([...testVia.keys()]);
     const related = await linked(
       reqEdges
         .filter(
@@ -301,7 +376,10 @@ export async function buildSearchAnswer(
         return { ...brief(fact), ...(factKind ? { factKind } : {}) };
       }),
       scenarios: scenarios.map(brief),
-      tests: tests.map(brief),
+      tests: testRows.map((row) => ({
+        ...brief(row),
+        via: testVia.get(text(row.id)) ?? "direct",
+      })),
       adrs: adrs.map(brief),
     });
   }
@@ -309,7 +387,7 @@ export async function buildSearchAnswer(
   const rationaleList = [...rationale.values()];
   if (rationaleList.length > limits.rationale) truncated = true;
   if (observations.length > limits.observations) truncated = true;
-  let answer: SearchAnswer = {
+  const answer: SearchAnswer = {
     version: "kibi.search-answer.v1",
     governing,
     rationale: rationaleList.slice(0, limits.rationale),
@@ -321,17 +399,97 @@ export async function buildSearchAnswer(
         ? "No current requirement matched or owns a matched entity. Absence here is not evidence that nothing governs the change; refine the query or pass sourceLocations."
         : "Governing requirements are current requirements matched by the query or linked to a matched entity. Links are discovery, not proof: use kb_check and kb_coverage for consistency and proof status.",
   };
-  // Hold the answer under a byte ceiling by dropping the least relevant
-  // governing requirements first.
-  while (
-    Buffer.byteLength(JSON.stringify(answer), "utf8") > limits.maxBytes &&
-    answer.governing.length > 1
-  ) {
-    answer = {
-      ...answer,
-      governing: answer.governing.slice(0, -1),
-      truncated: true,
+  return fitSearchAnswer(answer, limits.maxBytes);
+}
+
+function byteSize(value: unknown): number {
+  return Buffer.byteLength(JSON.stringify(value), "utf8");
+}
+
+/** Shorten to at most `maxChars` code points, ending with an ellipsis. */
+function clip(value: string, maxChars: number): string {
+  const chars = Array.from(value);
+  if (chars.length <= maxChars) return value;
+  return `${chars.slice(0, Math.max(0, maxChars - 1)).join("")}\u2026`;
+}
+
+function clipTitle<T extends SearchAnswerEntity>(entity: T, chars: number): T {
+  return { ...entity, title: clip(entity.title, chars) };
+}
+
+const ANSWER_TRIM_ORDER = [
+  "observations",
+  "notGoverning",
+  "rationale",
+] as const;
+const REQUIREMENT_TRIM_ORDER = ["adrs", "tests", "scenarios", "facts"] as const;
+
+/**
+ * Hold the whole answer under `maxBytes`, marking it truncated when anything
+ * is cut. In order: long titles are clipped, the least relevant governing
+ * requirements are dropped, list items are dropped (notes and side lists
+ * before the remaining requirement's own links), then the remaining
+ * requirement's title and `via` are clipped. If even that cannot fit, the
+ * requirement itself is dropped.
+ */
+export function fitSearchAnswer(
+  answer: SearchAnswer,
+  maxBytes: number = SEARCH_ANSWER_LIMITS.maxBytes,
+): SearchAnswer {
+  let current = answer;
+  const over = () => byteSize(current) > maxBytes;
+  if (!over()) return current;
+  const titleChars = SEARCH_ANSWER_LIMITS.titleChars;
+  const clipAll = <T extends SearchAnswerEntity>(rows: readonly T[]) =>
+    rows.map((row) => clipTitle(row, titleChars));
+  current = {
+    ...current,
+    truncated: true,
+    governing: current.governing.map((req) => ({
+      ...clipTitle(req, titleChars),
+      facts: clipAll(req.facts),
+      scenarios: clipAll(req.scenarios),
+      tests: clipAll(req.tests),
+      adrs: clipAll(req.adrs),
+    })),
+    rationale: clipAll(current.rationale),
+    notGoverning: clipAll(current.notGoverning),
+    observations: clipAll(current.observations),
+  };
+  while (over() && current.governing.length > 1)
+    current = { ...current, governing: current.governing.slice(0, -1) };
+
+  while (over()) {
+    const side = ANSWER_TRIM_ORDER.find((key) => current[key].length > 0);
+    if (side) {
+      current = { ...current, [side]: current[side].slice(0, -1) };
+      continue;
+    }
+    const [req] = current.governing;
+    const own = req
+      ? REQUIREMENT_TRIM_ORDER.find((key) => req[key].length > 0)
+      : undefined;
+    if (!req || !own) break;
+    current = {
+      ...current,
+      governing: [{ ...req, [own]: req[own].slice(0, -1) }],
     };
   }
-  return answer;
+
+  for (const field of ["title", "via"] as const) {
+    while (over()) {
+      const [req] = current.governing;
+      const chars = req ? Array.from(req[field]).length : 0;
+      if (!req || chars <= 1) break;
+      // Each removed code point frees at least one byte; one more makes room
+      // for the ellipsis.
+      const keep = Math.max(1, chars - (byteSize(current) - maxBytes) - 2);
+      current = {
+        ...current,
+        governing: [{ ...req, [field]: clip(req[field], keep) }],
+      };
+    }
+  }
+  if (over()) current = { ...current, governing: [] };
+  return current;
 }

@@ -1,5 +1,6 @@
 // implements REQ-claude-code-kibi-plugin-v1
 import { afterEach, describe, expect, test } from "bun:test";
+import { createHash } from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -306,6 +307,119 @@ describe("agent-core knowledge index", () => {
         { type: "constrains", target: "FACT-checkout-total" },
         { type: "relates_to", target: "ADR-money" },
       ],
+    });
+  });
+
+  test("typed frontmatter links keep their type whichever key comes first", () => {
+    const root = tempDir("kibi-agent-core-link-order-");
+    write(
+      root,
+      ".kb/requirements/REQ-checkout-rounding.md",
+      [
+        "---",
+        "id: REQ-checkout-rounding",
+        "links:",
+        "  - target: FACT-checkout-total",
+        "    type: constrains",
+        "  - type: requires_property",
+        "    target: FACT-total-rounding-cents",
+        "  - target: ADR-money",
+        "  - SCEN-rounding",
+        "status: open",
+        "---",
+        "",
+      ].join("\n"),
+    );
+    expect(readEntitySummary(root, "REQ-checkout-rounding").links).toEqual([
+      { type: "constrains", target: "FACT-checkout-total" },
+      { type: "requires_property", target: "FACT-total-rounding-cents" },
+      { type: "relates_to", target: "ADR-money" },
+      { type: "relates_to", target: "SCEN-rounding" },
+    ]);
+  });
+
+  test("entity summaries include links stored only in relationship shards", () => {
+    const root = tempDir("kibi-agent-core-shards-");
+    const shard = (id: string) =>
+      createHash("sha256").update(id).digest("hex").slice(0, 2);
+    write(
+      root,
+      ".kb/requirements/REQ-checkout-rounding.md",
+      "---\nid: REQ-checkout-rounding\ntitle: Totals round to cents\nstatus: open\nlinks:\n  - type: constrains\n    target: FACT-checkout-total\n---\n",
+    );
+    write(
+      root,
+      `.kb/relationships/${shard("REQ-checkout-rounding")}.yaml`,
+      [
+        "relationships:",
+        "  - id: rel-1",
+        "    type: requires_property",
+        "    from: REQ-checkout-rounding",
+        "    to: FACT-total-rounding-cents",
+        '    created_at: "2026-08-16T21:04:44.071Z"',
+        "  - from: REQ-checkout-rounding",
+        "    to: FACT-checkout-total",
+        "    type: constrains",
+        "    id: rel-2",
+        "  - type: implements",
+        "    from: SYM-other",
+        "    to: REQ-checkout-rounding",
+        "",
+      ].join("\n"),
+    );
+    expect(readEntitySummary(root, "REQ-checkout-rounding").links).toEqual([
+      { type: "constrains", target: "FACT-checkout-total" },
+      { type: "requires_property", target: "FACT-total-rounding-cents" },
+    ]);
+
+    // Grounding that lives only in a shard still reaches the summary, and a
+    // rewritten shard is re-read rather than served from the parse cache.
+    write(
+      root,
+      ".kb/requirements/REQ-shard-only.md",
+      "---\nid: REQ-shard-only\ntitle: Shard grounded\nstatus: open\n---\n",
+    );
+    const shardPath = `.kb/relationships/${shard("REQ-shard-only")}.yaml`;
+    write(
+      root,
+      shardPath,
+      "relationships:\n  - type: relates_to\n    from: REQ-shard-only\n    to: ADR-money\n",
+    );
+    expect(readEntitySummary(root, "REQ-shard-only").links).toEqual([
+      { type: "relates_to", target: "ADR-money" },
+    ]);
+    write(
+      root,
+      shardPath,
+      "relationships:\n  - type: relates_to\n    from: REQ-shard-only\n    to: ADR-money\n  - type: requires_rule\n    from: REQ-shard-only\n    to: FACT-rule\n",
+    );
+    expect(readEntitySummary(root, "REQ-shard-only").links).toEqual([
+      { type: "relates_to", target: "ADR-money" },
+      { type: "requires_rule", target: "FACT-rule" },
+    ]);
+  });
+
+  test("a superseded requirement keeps its status alongside its shard links", () => {
+    const root = tempDir("kibi-agent-core-retired-");
+    write(
+      root,
+      ".kb/requirements/REQ-old-rounding.md",
+      "---\nid: REQ-old-rounding\ntitle: Totals truncate\nstatus: superseded\n---\n",
+    );
+    const shard = createHash("sha256")
+      .update("REQ-old-rounding")
+      .digest("hex")
+      .slice(0, 2);
+    write(
+      root,
+      `.kb/relationships/${shard}.yaml`,
+      "relationships:\n  - type: constrains\n    from: REQ-old-rounding\n    to: FACT-old-total\n",
+    );
+    expect(readEntitySummary(root, "REQ-old-rounding")).toEqual({
+      id: "REQ-old-rounding",
+      title: "Totals truncate",
+      status: "superseded",
+      links: [{ type: "constrains", target: "FACT-old-total" }],
     });
   });
 

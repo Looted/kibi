@@ -59,11 +59,14 @@ function formatList(items: readonly string[], limit: number): string {
   return items.length > limit ? `${shown} +${items.length - limit}` : shown;
 }
 
+const RETIRED_STATUS = /supersed|deprecat|reject|obsolete|retired/i;
+
+function isRetired(summary: EntitySummary): boolean {
+  return summary.status !== undefined && RETIRED_STATUS.test(summary.status);
+}
+
 function describeEntity(summary: EntitySummary): string {
-  const notable =
-    summary.status && /supersed|deprecat|reject|obsolete/i.test(summary.status)
-      ? ` (${summary.status})`
-      : "";
+  const notable = isRetired(summary) ? ` (${summary.status})` : "";
   return summary.title
     ? `${summary.id}${notable}: ${truncate(summary.title, MAX_TITLE)}`
     : `${summary.id}${notable}`;
@@ -83,13 +86,17 @@ const MAX_GROUNDING = 2;
 
 /**
  * What the lead requirement says must stay true (its linked facts) and the
- * decision behind it (a linked ADR), read from authored frontmatter links.
+ * decision behind it (a linked ADR), read from its frontmatter links and
+ * relationship-shard records. A retired requirement is not current policy,
+ * so its grounding is not presented as something to keep true.
  */
 function groundingLines(
   requirementId: string,
   summarize: (entityId: string) => EntitySummary,
 ): string[] {
-  const links = summarize(requirementId).links ?? [];
+  const requirement = summarize(requirementId);
+  if (isRetired(requirement)) return [];
+  const links = requirement.links ?? [];
   const facts = [
     ...new Set(
       links

@@ -10,6 +10,7 @@
     logic_rule_semantic_key/2,
     logic_derive/2,
     logic_rule_conflict/3,
+    logic_rule_conflict/4,
     logic_rule_conflict_witness/3,
     logic_atom_signature/2,
     logic_rules_stratified/1
@@ -18,8 +19,8 @@
 :- use_module(library(http/json)).
 :- use_module(library(aggregate)).
 :- use_module(library(clpfd)).
-:- use_module('intervals.pl', [numeric_constraints_satisfiable/1, numeric_constraint_entailed/2, numeric_constraint_holds/3]).
-:- use_module('kb.pl', [kb_entity/3, predicate_fact/5]).
+:- use_module('intervals.pl', [numeric_constraints_satisfiable/2, numeric_constraint_entailed/3, numeric_constraint_holds/3]).
+:- use_module('kb.pl', [kb_entity/3, predicate_fact/5, predicate_schema_keys/4]).
 
 %% logic_rule_from_props(+Props, -Rule)
 % Props is an entity property list from a fact_kind=rule fact.
@@ -365,9 +366,14 @@ logic_rule_fact(FactId, Rule) :-
 % The JSON decoder keeps variable names as data terms for validation and
 % rendering.  Evaluation reifies those names into fresh Prolog variables so
 % ordinary unification can be used without ever evaluating caller source.
-materialize_rule(
+materialize_rule(Rule, Materialized) :-
+    materialize_rule_environment(Rule, Materialized, _Environment).
+
+% Environment maps each declared variable name to its fresh Prolog variable.
+materialize_rule_environment(
     rule(Kind, Modality, Head, Body, Exceptions, Scope, From, To, Schema, Variables),
-    rule(Kind, Modality, MaterialHead, MaterialBody, MaterialExceptions, Scope, From, To, Schema, Variables)
+    rule(Kind, Modality, MaterialHead, MaterialBody, MaterialExceptions, Scope, From, To, Schema, Variables),
+    Environment
 ) :-
     variable_environment(Variables, Environment),
     materialize_head(Head, Environment, MaterialHead),
@@ -488,55 +494,89 @@ temporal_end(timestamp(Value), Value).
 temporal_end(interval(_, End), End).
 
 %% logic_rule_conflict(+RuleA, +RuleB, -Status)
+% implements REQ-kibi-truthful-consistency
 % Three-valued comparison of two opposing rules.
 %
-%   contradiction  every instance of one rule's body is an instance of the
-%                  other's, the bodies are jointly satisfiable, and neither
-%                  rule carries an exception, so the opposing modalities are
-%                  certain to collide.
+%   contradiction  the rules' bodies are variants of each other, or every
+%                  instance of one rule's body is an instance of the other's
+%                  and that body is provably satisfiable (every comparison in
+%                  it was translated exactly), and neither rule carries an
+%                  exception, so the opposing modalities are certain to
+%                  collide.
 %   disjoint       the heads cannot denote the same action, the scopes or
-%                  validity windows do not intersect, the bodies cannot hold
-%                  together, or an exception of one rule is entailed by the
-%                  other rule's body.
+%                  validity windows do not intersect, the bodies provably
+%                  cannot hold together, or an exception of one rule is
+%                  entailed by the other rule's body.
 %   unresolved     the rules may overlap but the fragment cannot decide it.
 %
 % Rules are materialized before comparison: IR variables are data terms such
-% as var('T', money) and must never be treated as ground values.  Same-name
-% body atoms whose arguments unify are read as the same fact when testing
-% joint satisfiability; this assumption is documented in
+% as var('T', money) and must never be treated as ground values.  Body atoms
+% of the two rules are identified only through a declared functional
+% dependency (a predicate_schema with key_arguments): two atoms of such a
+% predicate whose key arguments are identical must agree on every other
+% argument.  Without a declaration a predicate is multivalued, so
+% final_total(C, X), X > 0 and final_total(C, Y), Y =< 0 may both hold and the
+% pair stays unresolved.  This assumption is documented in
 % docs/inference-rules.md.
 logic_rule_conflict(RuleA, RuleB, Status) :-
-    (   catch(rule_pair_status(RuleA, RuleB, Status0), _, Status0 = unresolved)
+    functional_predicate_declarations(Functional),
+    logic_rule_conflict(RuleA, RuleB, Functional, Status).
+
+%% logic_rule_conflict(+RuleA, +RuleB, +Functional, -Status)
+% Functional is a list of functional(Namespace, Name, Arity, KeyPositions)
+% declarations; logic_rule_conflict/3 reads them from predicate_schema facts.
+logic_rule_conflict(RuleA, RuleB, Functional, Status) :-
+    (   catch(rule_pair_status(RuleA, RuleB, Functional, Status0), _, Status0 = unresolved)
     ->  Status = Status0
     ;   Status = disjoint
     ).
 
-rule_pair_status(RuleA0, RuleB0, Status) :-
-    RuleA0 = rule(_, ModalityA, _, _, _, ScopeA, FromA, ToA, _, _),
-    RuleB0 = rule(_, ModalityB, _, _, _, ScopeB, FromB, ToB, _, _),
+functional_predicate_declarations(Functional) :-
+    catch(
+        findall(functional(Namespace, Name, Arity, Keys),
+                predicate_schema_keys(Namespace, Name, Arity, Keys),
+                Functional0),
+        _,
+        Functional0 = []
+    ),
+    sort(Functional0, Functional).
+
+% Fails only when the rules are certainly disjoint: the modalities do not
+% oppose, the contexts do not intersect, or the heads do not unify.
+rule_pair_status(RuleA0, RuleB0, Functional, Status) :-
+    RuleA0 = rule(_, ModalityA, _, _, _, ScopeA, FromA, ToA, _, VariablesA),
+    RuleB0 = rule(_, ModalityB, _, _, _, ScopeB, FromB, ToB, _, VariablesB),
     conflicting_modality(ModalityA, ModalityB),
     rule_context_compatible(ScopeA, FromA, ToA, ScopeB, FromB, ToB),
-    materialize_rule(RuleA0, RuleA),
-    materialize_rule(RuleB0, RuleB),
+    materialize_rule_environment(RuleA0, RuleA, EnvironmentA),
+    materialize_rule_environment(RuleB0, RuleB, EnvironmentB),
     RuleA = rule(_, _, HeadA, BodyA, ExceptionsA, _, _, _, _, _),
     RuleB = rule(_, _, HeadB, BodyB, ExceptionsB, _, _, _, _, _),
-    HeadA = HeadB,
-    expression_parts(BodyA, PartsA),
-    expression_parts(BodyB, PartsB),
-    (   \+ \+ parts_jointly_satisfiable(PartsA, PartsB)
-    ->  (   exception_entailed(ExceptionsA, PartsB)
-        ->  Status = disjoint
-        ;   exception_entailed(ExceptionsB, PartsA)
-        ->  Status = disjoint
-        ;   ExceptionsA == [], ExceptionsB == [],
-            PartsA = parts(_, _, []), PartsB = parts(_, _, []),
-            (   \+ \+ parts_subsume(PartsA, PartsB)
-            ;   \+ \+ parts_subsume(PartsB, PartsA)
-            )
-        ->  Status = contradiction
-        ;   Status = unresolved
+    (   ExceptionsA == [], ExceptionsB == [],
+        HeadA-BodyA =@= HeadB-BodyB
+    ->  Status = contradiction
+    ;   HeadA = HeadB,
+        integer_variables(VariablesA, EnvironmentA, IntegersA),
+        integer_variables(VariablesB, EnvironmentB, IntegersB),
+        append(IntegersA, IntegersB, Integers),
+        expression_parts(BodyA, PartsA),
+        expression_parts(BodyB, PartsB),
+        body_pair_status(PartsA, PartsB, ExceptionsA, ExceptionsB, Functional, Integers, Status)
+    ).
+
+body_pair_status(PartsA, PartsB, ExceptionsA, ExceptionsB, Functional, Integers, Status) :-
+    (   parts_jointly_unsatisfiable(PartsA, PartsB, Functional, Integers)
+    ->  Status = disjoint
+    ;   exception_entailed(ExceptionsA, PartsB, Integers)
+    ->  Status = disjoint
+    ;   exception_entailed(ExceptionsB, PartsA, Integers)
+    ->  Status = disjoint
+    ;   ExceptionsA == [], ExceptionsB == [],
+        (   certain_subsumption(PartsA, PartsB, Functional, Integers)
+        ;   certain_subsumption(PartsB, PartsA, Functional, Integers)
         )
-    ;   Status = disjoint
+    ->  Status = contradiction
+    ;   Status = unresolved
     ).
 
 rule_context_compatible(scope(AuthA, ScopeA, _), FromA, ToA, scope(AuthB, ScopeB, _), FromB, ToB) :-
@@ -551,6 +591,16 @@ conflicting_modality(oblige, forbid).
 conflicting_modality(forbid, oblige).
 conflicting_modality(permit, forbid).
 conflicting_modality(forbid, permit).
+
+% IR variables declared int or integer range over the integers, so x > 0 and
+% x < 1 cannot both hold for them.
+% convlist/3 keeps the environment's variables; findall/3 would copy them.
+integer_variables(Variables, Environment, Integers) :-
+    convlist(integer_variable_of(Environment), Variables, Integers).
+
+integer_variable_of(Environment, variable(Name, Type, _), Variable) :-
+    memberchk(Type, [int, integer]),
+    memberchk(Name-Variable, Environment).
 
 %% expression_parts(+Expression, -parts(Atoms, Comparisons, Other))
 % Flatten a conjunctive body.  Disjunctions, negations, counts and temporal
@@ -575,34 +625,127 @@ partition_items([Item|Rest], Atoms, [Item|Comparisons], Other) :-
 partition_items([Item|Rest], Atoms, Comparisons, [Item|Other]) :-
     partition_items(Rest, Atoms, Comparisons, Other).
 
-%% parts_jointly_satisfiable(+PartsA, +PartsB)
-% Fails only when the two bodies provably cannot hold for the same instance.
-% Same-name atoms are unified where they can be; comparisons that cannot be
-% translated never make the pair disjoint.
-parts_jointly_satisfiable(parts(AtomsA, ComparisonsA, _), parts(AtomsB, ComparisonsB, _)) :-
-    unify_matching_atoms(AtomsA, AtomsB),
-    append(ComparisonsA, ComparisonsB, Comparisons),
-    translate_comparisons(Comparisons, Constraints, Status),
-    Status \== false,
-    numeric_constraints_satisfiable(Constraints).
+%% parts_jointly_unsatisfiable(+PartsA, +PartsB, +Functional, +Integers)
+% True only when the two bodies provably cannot hold for the same instance:
+% a declared functional dependency forces two provably different values, a
+% comparison is false, or the translated comparisons admit no value.
+% Comparisons that cannot be translated are left out, which can only make the
+% remaining set easier to satisfy, so they never make the pair disjoint.
+parts_jointly_unsatisfiable(parts(AtomsA, ComparisonsA, _), parts(AtomsB, ComparisonsB, _), Functional, Integers) :-
+    \+ \+ (
+        append(AtomsA, AtomsB, Atoms),
+        (   functional_closure(Atoms, Functional)
+        ->  append(ComparisonsA, ComparisonsB, Comparisons),
+            translate_comparisons(Comparisons, Constraints, Status),
+            (   Status == false
+            ->  true
+            ;   \+ numeric_constraints_satisfiable(Constraints, Integers)
+            )
+        ;   true
+        )
+    ).
 
-unify_matching_atoms([], _).
-unify_matching_atoms([Atom|Rest], Others) :-
-    (   member(Other, Others), Atom = Other
-    ->  true
+%% functional_closure(+Atoms, +Functional)
+% Unify the value arguments of every pair of atoms whose predicate declares
+% key arguments and whose key arguments are identical, until nothing changes.
+% Fails when two such atoms carry provably different ground values.  Atoms of
+% undeclared predicates are never identified.
+functional_closure(Atoms, Functional) :-
+    atom_pairs(Atoms, Pairs),
+    foldl(identify_functional_pair(Functional), Pairs, false, Changed),
+    (   Changed == true
+    ->  functional_closure(Atoms, Functional)
     ;   true
-    ),
-    unify_matching_atoms(Rest, Others).
+    ).
 
-%% parts_subsume(+General, +Specific)
+atom_pairs([], []).
+atom_pairs([Atom|Rest], Pairs) :-
+    maplist(atom_pair(Atom), Rest, Head),
+    atom_pairs(Rest, Tail),
+    append(Head, Tail, Pairs).
+
+atom_pair(Left, Right, Left-Right).
+
+identify_functional_pair(Functional, Left-Right, Changed0, Changed) :-
+    Left = atom(Namespace, Name, ArgsLeft, _, _),
+    Right = atom(NamespaceRight, NameRight, ArgsRight, _, _),
+    (   Namespace == NamespaceRight,
+        Name == NameRight,
+        length(ArgsLeft, Arity),
+        length(ArgsRight, Arity)
+    ->  findall(Keys, member(functional(Namespace, Name, Arity, Keys), Functional), KeySets),
+        foldl(identify_by_keys(ArgsLeft, ArgsRight), KeySets, Changed0, Changed)
+    ;   Changed = Changed0
+    ).
+
+identify_by_keys(ArgsLeft, ArgsRight, Keys, Changed0, Changed) :-
+    (   forall(member(Position, Keys),
+               ( nth1(Position, ArgsLeft, KeyLeft),
+                 nth1(Position, ArgsRight, KeyRight),
+                 KeyLeft == KeyRight ))
+    ->  identify_values(ArgsLeft, ArgsRight, Keys, 1, Changed0, Changed)
+    ;   Changed = Changed0
+    ).
+
+identify_values([], [], _, _, Changed, Changed).
+identify_values([Left|LeftRest], [Right|RightRest], Keys, Position, Changed0, Changed) :-
+    (   memberchk(Position, Keys)
+    ->  Changed1 = Changed0
+    ;   identify_value(Left, Right, Changed0, Changed1)
+    ),
+    Next is Position + 1,
+    identify_values(LeftRest, RightRest, Keys, Next, Changed1, Changed).
+
+identify_value(Left, Right, Changed0, Changed) :-
+    (   Left == Right
+    ->  Changed = Changed0
+    ;   ( var(Left) ; var(Right) )
+    ->  Left = Right,
+        Changed = true
+    ;   values_distinct(Left, Right)
+    ->  fail
+    ;   % Equal values in different spellings (1000 ms and 1 s), or values
+        % this fragment cannot compare: identify nothing.
+        Changed = Changed0
+    ).
+
+values_distinct(Left, Right) :-
+    ir_ground(Left),
+    ir_ground(Right),
+    catch(term_value(Left, LeftValue), _, fail),
+    catch(term_value(Right, RightValue), _, fail),
+    (   number(LeftValue), number(RightValue)
+    ->  LeftValue =\= RightValue
+    ;   LeftValue \== RightValue
+    ).
+
+%% certain_subsumption(+General, +Specific, +Functional, +Integers)
+% Every instance of Specific's body is an instance of General's body, and
+% Specific's body provably has an instance: both bodies are plain
+% conjunctions, every Specific comparison was translated (none is unknown),
+% and the translated comparisons are satisfiable.  An untranslatable
+% comparison such as X < Y can make Specific's body empty, so it blocks a
+% contradiction verdict.
+certain_subsumption(General, Specific, Functional, Integers) :-
+    General = parts(_, _, []),
+    Specific = parts(SpecificAtoms, SpecificComparisons, []),
+    \+ \+ (
+        functional_closure(SpecificAtoms, Functional),
+        translate_comparisons(SpecificComparisons, Premises, complete),
+        numeric_constraints_satisfiable(Premises, Integers),
+        parts_subsume(General, Specific, Integers)
+    ).
+
+%% parts_subsume(+General, +Specific, +Integers)
 % Every instance of Specific's body is an instance of General's body: each
 % General atom matches a Specific atom without binding Specific's variables,
-% and each General comparison is entailed by Specific's comparisons.
-parts_subsume(parts(GeneralAtoms, GeneralComparisons, []), parts(SpecificAtoms, SpecificComparisons, _)) :-
+% and each General comparison is entailed by Specific's translated
+% comparisons.  Untranslated premises are dropped, which only weakens what is
+% entailed.
+parts_subsume(parts(GeneralAtoms, GeneralComparisons, []), parts(SpecificAtoms, SpecificComparisons, _), Integers) :-
     match_atoms(GeneralAtoms, SpecificAtoms),
-    translate_comparisons(SpecificComparisons, Premises, PremiseStatus),
-    PremiseStatus \== false,
-    forall(member(Comparison, GeneralComparisons), comparison_entailed(Premises, Comparison)).
+    translate_comparisons(SpecificComparisons, Premises, _PremiseStatus),
+    forall(member(Comparison, GeneralComparisons), comparison_entailed(Premises, Integers, Comparison)).
 
 match_atoms([], _).
 match_atoms([Atom|Rest], Specific) :-
@@ -611,26 +754,26 @@ match_atoms([Atom|Rest], Specific) :-
     Atom = Candidate,
     match_atoms(Rest, Specific).
 
-comparison_entailed(Premises, compare(Op, Left, Right)) :-
+comparison_entailed(Premises, Integers, compare(Op, Left, Right)) :-
     translate_comparison(compare(Op, Left, Right), Result),
     (   Result == true
     ->  true
     ;   Result = constraint(Constraint)
-    ->  numeric_constraint_entailed(Premises, Constraint)
+    ->  numeric_constraint_entailed(Premises, Constraint, Integers)
     ;   fail
     ).
 
-%% exception_entailed(+Exceptions, +OtherParts)
+%% exception_entailed(+Exceptions, +OtherParts, +Integers)
 % An exception that holds whenever the other rule's body holds removes every
 % shared instance, so the rules cannot collide.
-exception_entailed(Exceptions, OtherParts) :-
+exception_entailed(Exceptions, OtherParts, Integers) :-
     member(Exception, Exceptions),
     expression_parts(Exception, ExceptionParts),
     ExceptionParts = parts(_, _, []),
-    \+ \+ parts_subsume(ExceptionParts, OtherParts), !.
+    \+ \+ parts_subsume(ExceptionParts, OtherParts, Integers), !.
 
 %% translate_comparisons(+Comparisons, -Constraints, -Status)
-% Status is false when a ground comparison is false, unknown when some
+% Status is false when a comparison is certainly false, unknown when some
 % comparison could not be translated, and complete otherwise.
 translate_comparisons(Comparisons, Constraints, Status) :-
     foldl(translate_into, Comparisons, acc([], complete), acc(Reversed, Status)),
@@ -655,9 +798,18 @@ translate_operands(Op, num(L), num(R), Result) :- !,
 translate_operands(Op, var(V), num(N), constraint(c(Op, V, N))) :- !.
 translate_operands(Op, num(N), var(V), constraint(c(Flipped, V, N))) :- !,
     flipped_operator(Op, Flipped).
+% The same variable on both sides is decided exactly: X < X never holds and
+% X =< X always does, whatever X denotes.
+translate_operands(Op, var(L), var(R), Result) :-
+    L == R, !,
+    ( reflexive_operator(Op) -> Result = true ; Result = false ).
 translate_operands(Op, ground(L), ground(R), Result) :- !,
     ( catch(compare_terms(Op, L, R), _, fail) -> Result = true ; Result = false ).
 translate_operands(_, _, _, unknown).
+
+reflexive_operator(eq).
+reflexive_operator(lte).
+reflexive_operator(gte).
 
 comparison_operand(Term, var(Term)) :- var(Term), !.
 comparison_operand(Term, num(Value)) :-

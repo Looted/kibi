@@ -39,6 +39,10 @@ entity_property(req, semantic_source_hash, string).
 entity_property(req, semantic_inventory, list_or_json).
 entity_property(req, proof_exempt, boolean).
 entity_property(req, proof_exempt_reason, string).
+% Human approval of an exception requirement (one that `exempts` another).
+% Only an approved exception makes a success scenario feasible.
+entity_property(req, approved_by, string).
+entity_property(req, approval_ref, string).
 % Intended outcome of a scenario: success, rejection or error.
 entity_property(scenario, expects, atom).
 
@@ -67,6 +71,9 @@ entity_property(fact, predicate_arity, integer).
 entity_property(fact, argument_names, list).
 entity_property(fact, argument_types, list).
 entity_property(fact, argument_descriptions, list).
+% Predicate-schema functional dependency: the named arguments determine the
+% remaining ones, so two atoms with equal keys describe the same fact.
+entity_property(fact, key_arguments, list).
 % Predicate-schema vocabularies are JSON objects serialized as strings.
 entity_property(fact, argument_constants, string).
 entity_property(fact, argument_aliases, string).
@@ -123,6 +130,8 @@ optional_property(req, semantic_source_hash).
 optional_property(req, semantic_inventory).
 optional_property(req, proof_exempt).
 optional_property(req, proof_exempt_reason).
+optional_property(req, approved_by).
+optional_property(req, approval_ref).
 optional_property(test, verification_scope).
 optional_property(test, verification_perspective).
 optional_property(test, proof_contract).

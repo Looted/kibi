@@ -19,6 +19,7 @@ import type {
   OperationContext,
   PrologQueryResult,
 } from "../../src/public/operations/runtime-types.js";
+import { isWhatIfGoal, whatIfResult } from "../helpers/what-if.js";
 
 const basePlan = {
   version: "kibi.compile-plan.v1" as const,
@@ -128,9 +129,11 @@ function context(
   workspaceHash = "a".repeat(64),
   query: OperationContext["prolog"] = {
     query: async (goal): Promise<PrologQueryResult> =>
-      goal.includes("kb_commit_upsert")
-        ? { success: true, bindings: { ChangeKind: "created" } }
-        : { success: false, bindings: {} },
+      isWhatIfGoal(goal)
+        ? whatIfResult()
+        : goal.includes("kb_commit_upsert")
+          ? { success: true, bindings: { ChangeKind: "created" } }
+          : { success: false, bindings: {} },
     queryStatusJson: async () => ({ success: true, bindings: {} }),
     nextSolution: async () => null,
     save: async () => ({ success: true, bindings: {} }),
@@ -173,6 +176,7 @@ function filesystemContext(
       workspaceHash,
       queryOverride ?? {
         query: async (goal): Promise<PrologQueryResult> => {
+          if (isWhatIfGoal(goal)) return whatIfResult();
           if (goal.includes("findall("))
             return { success: true, bindings: { Results: "[]" } };
           if (!goal.includes("kb_commit_upsert"))
@@ -226,6 +230,7 @@ describe("kb_apply_plan", () => {
     };
     const mutationContext = context("a".repeat(64), {
       query: async (goal): Promise<PrologQueryResult> => {
+        if (isWhatIfGoal(goal)) return whatIfResult();
         if (goal.includes("kb_commit_upsert")) mutationCalls += 1;
         return { success: true, bindings: { ChangeKind: "created" } };
       },
@@ -406,6 +411,7 @@ describe("kb_apply_plan", () => {
         { plan, approvedPlanHash: plan.planHash },
         filesystemContext(root, "a".repeat(64), undefined, {
           query: async (goal): Promise<PrologQueryResult> => {
+            if (isWhatIfGoal(goal)) return whatIfResult();
             if (goal.includes("findall("))
               return { success: true, bindings: { Results: "[]" } };
             if (goal.includes("kb_commit_upsert")) {
@@ -550,6 +556,7 @@ describe("kb_apply_plan", () => {
       ]);
       const query: OperationContext["prolog"] = {
         query: async (goal): Promise<PrologQueryResult> => {
+          if (isWhatIfGoal(goal)) return whatIfResult();
           if (goal.includes("kb_commit_upsert"))
             return { success: true, bindings: { ChangeKind: "created" } };
           if (goal.includes("kb_entity('REQ-committed-repair', _, _)"))
@@ -612,9 +619,11 @@ describe("kb_apply_plan", () => {
 
       const recoveryQuery: OperationContext["prolog"] = {
         query: async (goal): Promise<PrologQueryResult> =>
-          goal.includes("kb_commit_upsert")
-            ? { success: true, bindings: { ChangeKind: "created" } }
-            : { success: true, bindings: {} },
+          isWhatIfGoal(goal)
+            ? whatIfResult()
+            : goal.includes("kb_commit_upsert")
+              ? { success: true, bindings: { ChangeKind: "created" } }
+              : { success: true, bindings: {} },
         queryStatusJson: async () => ({ success: true, bindings: {} }),
         nextSolution: async () => null,
         save: async () => ({ success: true, bindings: {} }),
