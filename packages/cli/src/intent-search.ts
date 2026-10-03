@@ -6,6 +6,7 @@ import {
   type VALID_ENTITY_TYPES,
   listSearchCandidates,
   loadEntities,
+  loadEntityRows,
   loadSearchCandidates,
 } from "./public/operations/discovery-entities.js";
 import type { PrologPort } from "./public/operations/runtime-types.js";
@@ -361,17 +362,29 @@ function facetValues(facets: IntentSearchFacets | undefined): Array<{
   return result;
 }
 
-function scoreEntity(
+/** An entity's tokens per field, computed once per entity and body. */
+type EntityTokens = Readonly<{
+  body: string | null;
+  title: ReadonlySet<string>;
+  metadata: ReadonlySet<string>;
+  bodyTokens: ReadonlySet<string>;
+  /** Every distinct token, for document frequency. */
+  document: readonly string[];
+}>;
+
+// Both ranking passes of a search score the same candidate objects, and
+// tokenizing them is most of the ranking cost on a large KB, so each entity is
+// tokenized once. Keyed weakly by the entity object, so nothing outlives the
+// search that loaded it.
+const ENTITY_TOKENS = new WeakMap<Record<string, unknown>, EntityTokens>();
+
+// implements REQ-kibi-intent-aware-source-discovery
+function entityTokens(
   entity: Record<string, unknown>,
-  queryTokens: readonly string[],
-  facets: readonly { name: IntentSearchFacetName; value: string }[],
-  sourceEvidence: readonly IntentSourceMatch[],
-  graphEvidence: readonly IntentGraphPath[],
-  documentFrequency: ReadonlyMap<string, number>,
-  documentCount: number,
   body: string | null,
-  superseded = false,
-): { score: number; reasons: string[]; matchedFacets: string[] } {
+): EntityTokens {
+  const cached = ENTITY_TOKENS.get(entity);
+  if (cached !== undefined && cached.body === body) return cached;
   const title = normalize(String(entity.title ?? ""));
   const metadata = normalize(
     [
@@ -386,10 +399,33 @@ function scoreEntity(
       .filter((value): value is string => typeof value === "string")
       .join(" "),
   );
-  const bodyText = normalize(body ?? "");
-  const titleTokens = new Set(tokens(title));
-  const metadataTokens = new Set(tokens(metadata));
-  const bodyTokens = new Set(tokens(bodyText));
+  const computed: EntityTokens = {
+    body,
+    title: new Set(tokens(title)),
+    metadata: new Set(tokens(metadata)),
+    bodyTokens: new Set(tokens(normalize(body ?? ""))),
+    document: tokens(`${entityText(entity)} ${body ?? ""}`),
+  };
+  ENTITY_TOKENS.set(entity, computed);
+  return computed;
+}
+
+function scoreEntity(
+  entity: Record<string, unknown>,
+  queryTokens: readonly string[],
+  facets: readonly { name: IntentSearchFacetName; value: string }[],
+  sourceEvidence: readonly IntentSourceMatch[],
+  graphEvidence: readonly IntentGraphPath[],
+  documentFrequency: ReadonlyMap<string, number>,
+  documentCount: number,
+  body: string | null,
+  superseded = false,
+): { score: number; reasons: string[]; matchedFacets: string[] } {
+  const {
+    title: titleTokens,
+    metadata: metadataTokens,
+    bodyTokens,
+  } = entityTokens(entity, body);
   const allSignalTokens = Array.from(new Set(queryTokens));
   // BM25-style inverse document frequency over title, metadata and body:
   // a token most entities contain (a project name, "requirement") adds
@@ -478,13 +514,41 @@ function buildDocumentFrequency(
 ): Map<string, number> {
   const frequency = new Map<string, number>();
   for (const entity of entities) {
-    const seen = new Set(
-      tokens(`${entityText(entity)} ${bodies.get(entity) ?? ""}`),
-    );
+    const seen = entityTokens(entity, bodies.get(entity) ?? null).document;
     for (const token of seen)
       frequency.set(token, (frequency.get(token) ?? 0) + 1);
   }
   return frequency;
+}
+
+/** Markdown bodies already read in this search, keyed by entity source. */
+export type MarkdownBodyCache = Map<string, string | null>;
+
+/** Files read at once, well under common open-file limits. */
+const BODY_READ_CONCURRENCY = 32;
+
+// implements REQ-kibi-intent-aware-source-discovery
+async function readBodies(
+  entities: readonly Record<string, unknown>[],
+  workspaceRoot: string,
+  cache: MarkdownBodyCache,
+): Promise<Map<Record<string, unknown>, string | null>> {
+  const missing = [
+    ...new Set(entities.map((entity) => String(entity.source ?? ""))),
+  ].filter((source) => !cache.has(source));
+  for (let start = 0; start < missing.length; start += BODY_READ_CONCURRENCY) {
+    const batch = missing.slice(start, start + BODY_READ_CONCURRENCY);
+    const loaded = await Promise.all(
+      batch.map((source) => loadMarkdownBody(source, workspaceRoot)),
+    );
+    batch.forEach((source, index) => cache.set(source, loaded[index] ?? null));
+  }
+  return new Map(
+    entities.map((entity) => [
+      entity,
+      cache.get(String(entity.source ?? "")) ?? null,
+    ]),
+  );
 }
 
 // implements REQ-kibi-intent-aware-source-discovery
@@ -493,6 +557,7 @@ export async function rankIntentEntities(
   options: IntentSearchOptions,
   workspaceRoot: string,
   graphEdges: readonly GraphEdge[] = [],
+  bodyCache: MarkdownBodyCache = new Map(),
 ): Promise<IntentSearchResult> {
   const queryTokens = tokens(options.query);
   const facets = facetValues(options.semanticFacets);
@@ -502,13 +567,7 @@ export async function rankIntentEntities(
       ...facets.flatMap((facet) => tokens(facet.value)),
     ]),
   );
-  const bodies = new Map<Record<string, unknown>, string | null>();
-  for (const entity of entities) {
-    bodies.set(
-      entity,
-      await loadMarkdownBody(String(entity.source ?? ""), workspaceRoot),
-    );
-  }
+  const bodies = await readBodies(entities, workspaceRoot, bodyCache);
   const documentFrequency = buildDocumentFrequency(entities, bodies);
   const supersededIds = new Set(
     graphEdges
@@ -730,10 +789,14 @@ export async function executeIntentSearch(
   workspaceRoot: string,
 ): Promise<IntentSearchResult> {
   const candidates = await loadIntentCandidates(prolog, options);
+  // Both ranking passes read the same Markdown bodies; read each file once.
+  const bodies: MarkdownBodyCache = new Map();
   const firstPass = await rankIntentEntities(
     candidates,
     options,
     workspaceRoot,
+    [],
+    bodies,
   );
   const sourceSeeds = firstPass.matches
     .filter((match) => match.evidence.sourceMatches.length > 0)
@@ -756,17 +819,26 @@ export async function executeIntentSearch(
   const relatedIds = Array.from(
     new Set(graphEdges.flatMap((edge) => [edge.from, edge.to])),
   ).filter((id) => !seeds.includes(id));
-  for (const id of relatedIds.slice(0, MAX_GRAPH_SEEDS * 4)) {
-    const related = await loadEntities(prolog, { id });
-    for (const entity of related) {
-      const key = `${String(entity.type ?? "")}::${String(entity.id ?? "")}`;
-      if (!knownIds.has(key)) {
-        knownIds.add(key);
-        candidates.push(entity);
-      }
+  // One batched query of projected rows for the graph neighbours, rather
+  // than one engine round trip per neighbour.
+  const related = await loadEntityRows(
+    prolog,
+    relatedIds.slice(0, MAX_GRAPH_SEEDS * 4),
+  );
+  for (const entity of related) {
+    const key = `${String(entity.type ?? "")}::${String(entity.id ?? "")}`;
+    if (!knownIds.has(key)) {
+      knownIds.add(key);
+      candidates.push(entity);
     }
   }
-  return rankIntentEntities(candidates, options, workspaceRoot, graphEdges);
+  return rankIntentEntities(
+    candidates,
+    options,
+    workspaceRoot,
+    graphEdges,
+    bodies,
+  );
 }
 
 // implements REQ-kibi-intent-aware-source-discovery

@@ -4,9 +4,12 @@ import {
   type ConsumerWorkspace,
   type Json,
   QUOTA_SUBJECT,
+  adviseProse,
+  authorQuotaRequirement,
   createConsumerWorkspace,
   doc,
   quotaValueFact,
+  semanticFrontMatter,
 } from "./workspace.js";
 
 /**
@@ -166,6 +169,222 @@ fact_kind: observation
     expect(unownedAnswer.governing).toEqual([]);
     expect(String(unownedAnswer.note)).toContain(
       "Absence here is not evidence",
+    );
+  }, 300_000);
+
+  test("reports the checks' verdict, approved exceptions and the snapshot the answer came from", () => {
+    const ws = createConsumerWorkspace("kibi-search-answer-verdict-");
+    workspace = ws;
+
+    ws.write(".kb/facts/FACT-QUOTA-SUBJECT.md", QUOTA_SUBJECT);
+    ws.write(
+      ".kb/facts/FACT-QUOTA-POSITIVE.md",
+      quotaValueFact(
+        "FACT-QUOTA-POSITIVE",
+        "Remaining quota above zero",
+        "gt",
+        0,
+      ),
+    );
+    ws.write(
+      ".kb/facts/FACT-QUOTA-ZERO.md",
+      quotaValueFact("FACT-QUOTA-ZERO", "Remaining quota is zero", "eq", 0),
+    );
+    ws.write(
+      ".kb/requirements/REQ-QUOTA-CALL.md",
+      doc(
+        `
+id: REQ-QUOTA-CALL
+title: A client may call only with remaining quota
+type: req
+status: open
+priority: must
+links:
+  - type: constrains
+    target: FACT-QUOTA-SUBJECT
+  - type: requires_property
+    target: FACT-QUOTA-POSITIVE
+  - type: specified_by
+    target: SCEN-ZERO-QUOTA-CALL
+`,
+        "A client may call only with remaining quota.",
+      ),
+    );
+    ws.write(
+      ".kb/scenarios/SCEN-ZERO-QUOTA-CALL.md",
+      doc(
+        `
+id: SCEN-ZERO-QUOTA-CALL
+title: A zero-quota promo call is answered
+type: scenario
+status: active
+expects: success
+links:
+  - type: assumes
+    target: FACT-QUOTA-ZERO
+`,
+        "Given a client with zero remaining quota, when it makes a promo call, the call is answered.",
+      ),
+    );
+    ws.sync();
+
+    type Verdict = {
+      status: string;
+      witnesses: Array<{ check: string; status: string; scenario?: string }>;
+    };
+    type Answered = Brief & {
+      verdict: Verdict;
+      exceptions: Array<Brief & { approvedBy?: string }>;
+    };
+    const ask = () => {
+      const result = ws.json(["search"], {
+        query: "client call remaining quota",
+      });
+      const answer = (result.data as Json).answer as Json;
+      const governing = answer.governing as Answered[];
+      return {
+        answer,
+        call: governing.find((req) => req.id === "REQ-QUOTA-CALL"),
+      };
+    };
+
+    // The success scenario assumes a value the requirement forbids: the
+    // answer carries the scenario-feasibility witness.
+    const blocked = ask();
+    expect(blocked.call?.verdict.status).toBe("infeasible");
+    expect(blocked.call?.verdict.witnesses).toEqual([
+      expect.objectContaining({
+        check: "scenario-feasibility",
+        status: "infeasible",
+        scenario: "SCEN-ZERO-QUOTA-CALL",
+      }),
+    ]);
+    expect(blocked.call?.exceptions).toEqual([]);
+    const scope = blocked.answer.scope as Json;
+    expect(scope.branch).toBe("main");
+    expect(String(scope.snapshotId)).not.toBe("unknown");
+    expect(typeof scope.syncedAt).toBe("string");
+
+    // An approved exception that exempts it is listed with its approver, and
+    // the scenario is no longer a witness against the requirement.
+    const prose = "Promo calls may skip the call quota.";
+    const { contract, propositions } = adviseProse(ws, prose);
+    ws.write(
+      ".kb/requirements/REQ-QUOTA-PROMO-EXCEPTION.md",
+      doc(
+        `
+id: REQ-QUOTA-PROMO-EXCEPTION
+title: Promo calls are exempt from the quota
+type: req
+status: open
+priority: must
+approved_by: Product owner
+approval_ref: DEC-42
+${semanticFrontMatter(prose, contract, propositions)}
+links:
+  - type: exempts
+    target: REQ-QUOTA-CALL
+  - type: specified_by
+    target: SCEN-ZERO-QUOTA-CALL
+`,
+        prose,
+      ),
+    );
+    ws.sync();
+
+    const exempted = ask();
+    expect(exempted.call?.exceptions).toEqual([
+      {
+        id: "REQ-QUOTA-PROMO-EXCEPTION",
+        title: "Promo calls are exempt from the quota",
+        status: "open",
+        approvedBy: "Product owner",
+      },
+    ]);
+    expect(
+      exempted.call?.verdict.witnesses.some(
+        (witness) => witness.status === "infeasible",
+      ),
+    ).toBe(false);
+  }, 300_000);
+
+  test("names the conflicting requirement and the clauses the checks could not ground", () => {
+    const ws = createConsumerWorkspace("kibi-search-answer-conflict-");
+    workspace = ws;
+
+    const prose =
+      "The remaining call quota must be greater than 0. Every quota reset must be reviewed by an operator.";
+    const { contract, propositions } = adviseProse(ws, prose);
+    const [numeric, review] = propositions as [
+      (typeof propositions)[number],
+      (typeof propositions)[number],
+    ];
+    ws.write(".kb/facts/FACT-QUOTA-SUBJECT.md", QUOTA_SUBJECT);
+    ws.write(
+      ".kb/facts/FACT-QUOTA-POSITIVE.md",
+      quotaValueFact(
+        "FACT-QUOTA-POSITIVE",
+        "Remaining quota above zero",
+        "gt",
+        0,
+        { key: numeric.claim_key, text: numeric.claim_text },
+      ),
+    );
+    ws.write(
+      ".kb/requirements/REQ-QUOTA-CALL.md",
+      doc(
+        `
+id: REQ-QUOTA-CALL
+title: Calls need remaining quota and resets need review
+type: req
+status: open
+priority: must
+${semanticFrontMatter(prose, contract, [{ ...numeric, status: "modeled" }, review])}
+links:
+  - type: constrains
+    target: FACT-QUOTA-SUBJECT
+  - type: requires_property
+    target: FACT-QUOTA-POSITIVE
+`,
+        prose,
+      ),
+    );
+    authorQuotaRequirement(ws, {
+      id: "REQ-QUOTA-FREE-TIER",
+      title: "Free-tier remaining quota is zero",
+      prose: "The free-tier remaining call quota must equal 0.",
+      factId: "FACT-QUOTA-ZERO",
+      operator: "eq",
+      value: 0,
+    });
+    ws.sync();
+
+    type Answered = Brief & {
+      verdict: {
+        status: string;
+        witnesses: Array<{ check: string; status: string; with?: string }>;
+      };
+      unknowns: Array<{ kind: string; detail: string }>;
+    };
+    const result = ws.json(["search"], { query: "remaining call quota" });
+    const governing = ((result.data as Json).answer as Json)
+      .governing as Answered[];
+    const call = governing.find((req) => req.id === "REQ-QUOTA-CALL");
+    expect(call?.verdict.status).toBe("contradiction");
+    expect(call?.verdict.witnesses).toContainEqual(
+      expect.objectContaining({
+        check: "domain-contradictions",
+        status: "contradiction",
+        with: "REQ-QUOTA-FREE-TIER",
+      }),
+    );
+    // The review clause is an ontology gap: the answer says so rather than
+    // implying the requirement is fully analysed.
+    expect(call?.unknowns).toContainEqual(
+      expect.objectContaining({
+        kind: "unresolved_proposition",
+        detail: `ontology_gap: ${review.claim_text}`,
+      }),
     );
   }, 300_000);
 });

@@ -1059,7 +1059,7 @@ export function landingContent(args: {
     </details>
     <details>
       <summary>Can my agent ask Kibi what governs a change?</summary>
-      <p>Yes. <code>kb_search</code> accepts a plain question and, alongside ranked matches, returns the current requirements that govern the topic with their linked facts, scenarios, tests, and ADRs. Superseded requirements are listed separately so they are not read as current policy. These links help the agent find context; consistency and proof still come from the checks.</p>
+      <p>Yes. <code>kb_search</code> accepts a plain question and, alongside ranked matches, returns the current requirements that govern the topic with their linked facts, scenarios, tests, and ADRs (with an excerpt of each decision). For each requirement it also reports any contradiction or infeasible-scenario finding that names it, the approved exceptions that exempt it, and what the checks could not decide, and it names the KB snapshot the answer came from. Superseded requirements are listed separately so they are not read as current policy. No finding is not proof: full consistency and proof status still come from <code>kb_check</code> and <code>kb_coverage</code>.</p>
     </details>
     <details>
       <summary>What happens when an agent edits code a requirement owns?</summary>

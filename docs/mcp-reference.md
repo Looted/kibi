@@ -306,14 +306,18 @@ Intent-mode results additionally carry `evidence` for matched facets, source loc
 
 On the first intent-mode page, `data.answer` (`kibi.search-answer.v1`) turns the matches into what an agent asking "what governs this?" needs:
 
-- `governing`: current requirements matched by the query or linked to a matched entity. Each has `score`, `via` (how it was reached), and its linked `facts` (with `factKind`), `scenarios`, `tests`, and `adrs`. Tests include those that verify the requirement's scenarios; each test's `via` is `direct` or the scenario it was reached through.
-- `rationale`: ADRs that explain the decisions.
+- `governing`: current requirements matched by the query or linked to a matched entity. Each has `score`, `via` (how it was reached), and its linked `facts` (with `factKind`), `scenarios`, `tests`, and `adrs`. Tests include those that verify the requirement's scenarios; each test's `via` is `direct` or the scenario it was reached through. Each requirement also carries:
+  - `verdict`: what the existing checks report about it. `status` is `contradiction` (a domain-contradiction witness names it), `infeasible` (a scenario-feasibility witness: a success scenario it specifies assumes a value a current requirement forbids, or it forbids another requirement's scenario), `unknown` (only `unknowns` below), or `none`. `witnesses` lists each blocking finding with its `check`, `status`, the other requirement (`with`), the `scenario`, the `facts` involved and a `detail`. `none` means no check named the requirement, not that it is proven; proof-ladder status stays in `kb_coverage`.
+  - `exceptions`: requirements that `exempts` it, each with `approvedBy` when a human approved the exception.
+  - `unknowns`: what the checks could not decide, each with a `kind` and `detail`: `contradiction_unresolved` (a rule overlap the checks could not classify), `feasibility_unknown` (a success scenario whose assumptions no current requirement constrains), `unresolved_proposition` (a clause still `ambiguous` or an `ontology_gap`), `analysis_incomplete` (no complete clause ledger), or `verdict_unavailable` (the checks could not run).
+- `rationale`: ADRs that explain the decisions, each with its `source` path and an `excerpt`: the opening sentences of its Decision section (falling back to Rationale, then the first paragraph), at most 280 characters.
 - `notGoverning`: superseded or deprecated requirements, with `supersededBy` when known. They are listed so they are never read as current policy.
 - `observations`: observation/meta facts, labelled as notes rather than rules.
-- `truncated`: `true` when a size bound cut the layer short. The whole answer stays under 16 KB: long titles are clipped, then lower-ranked requirements and list entries are dropped.
+- `scope`: the KB the answer was computed from: `branch`, `snapshotId`, and `syncedAt`. `kb_status` says whether that snapshot is stale.
+- `truncated`: `true` when a size bound cut the layer short. The whole answer stays under 16 KB: long titles, excerpts and details are clipped, then ADR excerpts are dropped, then lower-ranked requirements and list entries; a verdict keeps its `status` when its witnesses are dropped.
 - `note`: how to read the layer. An empty `governing` list is not evidence that nothing governs the change.
 
-The answer layer is graph traversal over the KB: discovery, not proof. Use `kb_check` and `kb_coverage` for consistency and proof status. Pass `answer: false` to skip it.
+The answer layer is graph traversal plus the existing checks scoped to the governing requirements: discovery, not proof. Use `kb_check` and `kb_coverage` for full consistency and proof status. Pass `answer: false` to skip it.
 
 **Example:**
 ```json

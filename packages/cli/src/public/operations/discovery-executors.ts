@@ -288,7 +288,10 @@ export async function executeSearch(
       // first page only.
       const answerLayer =
         (answer ?? true) && offset === 0 && intentResult.matches.length > 0
-          ? await buildSearchAnswer(prolog, intentResult.matches)
+          ? await buildSearchAnswer(prolog, intentResult.matches, {
+              workspaceRoot: context.workspaceRoot,
+              branch: context.branchAttachment?.kbBranch ?? null,
+            })
           : undefined;
       // The structured payload carries every row; the text is a short
       // human-readable digest instead of a second copy of the results.

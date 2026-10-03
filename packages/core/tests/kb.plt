@@ -4451,6 +4451,43 @@ test(relationship_count_counts_both_directions, [setup(setup_kb), cleanup(cleanu
 
 :- end_tests(discovery_aggregate_counts).
 
+:- begin_tests(discovery_search_answer_verdicts).
+
+search_answer_verdict_for(ReqId, Verdict, Scope) :-
+    discovery:search_answer_verdicts_json([ReqId], JsonString),
+    atom_json_dict(JsonString, Json, []),
+    Json.requirements = [Verdict],
+    Scope = Json.scope.
+
+test(rule_contradiction_names_the_other_requirement_from_either_side, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_rule_requirement_pair(customer, customer),
+    search_answer_verdict_for('REQ-RULE-DENY', Deny, Scope),
+    assertion(Deny.id == "REQ-RULE-DENY"),
+    assertion(Deny.contradictions = [_{
+        kind: "rule",
+        status: "contradiction",
+        with: "REQ-RULE-ALLOW",
+        facts: ["FACT-RULE-DENY", "FACT-RULE-ALLOW"],
+        reason: "Rule conflict (contradiction) between REQ-RULE-ALLOW and REQ-RULE-DENY"
+    }]),
+    assertion(is_dict(Scope)),
+    search_answer_verdict_for('REQ-RULE-ALLOW', Allow, _),
+    assertion(Allow.contradictions = [_{kind: "rule", status: "contradiction", with: "REQ-RULE-DENY", facts: ["FACT-RULE-ALLOW", "FACT-RULE-DENY"], reason: _}]).
+
+test(rule_overlap_is_reported_as_unresolved, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_rule_requirement_pair(customer, premium_customer),
+    search_answer_verdict_for('REQ-RULE-ALLOW', Allow, _),
+    assertion(Allow.contradictions = [_{kind: "rule", status: "unresolved", with: "REQ-RULE-DENY", facts: _, reason: _}]).
+
+test(unknown_requirement_has_no_findings, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    search_answer_verdict_for('REQ-DOES-NOT-EXIST', Verdict, _),
+    assertion(Verdict.contradictions == []),
+    assertion(Verdict.scenarios == []),
+    assertion(Verdict.forbids == []),
+    assertion(Verdict.inventory.status == "unknown").
+
+:- end_tests(discovery_search_answer_verdicts).
+
 :- begin_tests(checks_coverage_gaps).
 
 test(check_all_aggregates_empty_kb, [setup(setup_kb), cleanup(cleanup_kb)]) :-

@@ -149,6 +149,16 @@ jobs:
         if: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}
         run: node scripts/check-proof-baseline.mjs
 
+      # Asks the repository's own KB the versioned gold questions through the
+      # built CLI and fails on recall@3, superseded results, abstention or warm
+      # latency below the committed thresholds.
+      - name: Gate kb_search answers on the repository gold set
+        if: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}
+        run: >-
+          bun run scripts/change-to-proof-eval.ts --repo-kb
+          documentation/evaluations/change-to-proof/repo-search-gold.v1.jsonl
+          --thresholds documentation/evaluations/change-to-proof/repo-search-thresholds.json
+
       - name: Generate requirement health report
         if: ${{ !cancelled() && steps.integrity.outcome == 'success' && (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}
         run: bun packages/cli/bin/kibi report --output kibi-report

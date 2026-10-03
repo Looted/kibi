@@ -54,3 +54,40 @@ kept visible rather than treating a create-mode draft as blocked by fiat.
 This fixture run exercises a direct retrieval, a source-symbol retrieval,
 unrelated-source abstention, scalar ambiguity, contradiction, and negation; it
 is a representative smoke corpus, not a claim of broad semantic coverage.
+
+## Repository KB search gate
+
+`repo-search-gold.v1.jsonl` asks Kibi's own KB realistic questions through the
+built CLI (`kibi search --input -`, one process per question). Each case lists
+the current requirements that govern the answer (`expectedIds`); three cases
+must abstain, and thirteen name the superseded or closed requirements a naive
+match would return (`supersededIds`). The file is versioned: when the KB
+changes what governs a question, add a `v2` file rather than editing labels in
+place, so a score change is never a silent relabelling.
+
+```bash
+bun run build && bun packages/cli/bin/kibi sync
+bun run scripts/change-to-proof-eval.ts --repo-kb \
+  documentation/evaluations/change-to-proof/repo-search-gold.v1.jsonl \
+  --thresholds documentation/evaluations/change-to-proof/repo-search-thresholds.json
+```
+
+The runner stops the engine, warms it with one question outside the gold set,
+then asks each question once and prints:
+
+- `recallAt3`: share of positive cases with an expected id in the top three of
+  `answer.governing` or of the ranked results.
+- `supersededResultRate`: share of positive cases whose governing answer or top
+  three results include a requirement the gold set labels superseded.
+- `abstentionPrecision` / `abstentionRecall`: an abstention is an answer that
+  names no governing requirement.
+- `latencyMs`: warm-up time, then p50, p95 and max per question, including CLI
+  start-up.
+
+`repo-search-thresholds.json` holds the gate, set just under the measured
+baseline (recall@3 0.94, no superseded results, abstention precision and recall
+1.0, p50 about 2.0 s and p95 about 2.4 s on a 4-core machine): each quality
+metric tolerates one more failing case than the baseline and fails on the
+second, and the latency ceilings are the 3 s budget for p95 and 2.5 s for p50. The `proof` workflow runs this gate after the proof
+baseline. Misses, superseded results and false abstentions are listed in the
+output so a failure says which question regressed.

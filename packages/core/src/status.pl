@@ -3,7 +3,8 @@
 
 :- module(status, [
     kb_status_json/1,
-    status_meta_dict/1
+    status_meta_dict/1,
+    status_scope_dict/1
 ]).
 
 :- use_module(library(http/json)).
@@ -56,6 +57,19 @@ status_meta_dict(StatusDict) :-
         kbPath: KbPath,
         lastSyncSource: unknown
     }.
+
+%% status_scope_dict(-Scope)
+% implements REQ-kibi-search-answer-layer
+% The snapshot an answer is computed from: the attached snapshot id and when
+% it was synced. Unlike status_meta_dict/1 it skips the freshness scan, so a
+% discovery answer can name its snapshot at no extra cost; kb_status remains
+% the place to ask whether that snapshot is stale.
+status_scope_dict(_{snapshotId: SnapshotId, syncedAt: SyncedAt}) :-
+    attached_kb_info(_Branch, _KbPath, DataFile),
+    !,
+    snapshot_id(SnapshotId),
+    synced_at(DataFile, SyncedAt).
+status_scope_dict(_{snapshotId: unknown, syncedAt: null}).
 
 attached_kb_info(Branch, KbPath, DataFile) :-
     kb:kb_attached(KbPath),

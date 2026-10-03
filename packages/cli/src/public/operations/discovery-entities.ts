@@ -405,6 +405,78 @@ export async function loadEntityIds(
 }
 
 /**
+ * Properties a projected entity row keeps: what intent ranking, result
+ * summaries and the search answer layer read. Large structured properties
+ * (receipt histories, proof contracts, semantic inventories, rule IR) are
+ * left in the store, as for search candidate rows.
+ */
+export const ENTITY_ROW_KEYS = [
+  "id",
+  "title",
+  "status",
+  "priority",
+  "severity",
+  "owner",
+  "tags",
+  "source",
+  "sourceFile",
+  "sourceLine",
+  "sourceColumn",
+  "sourceEndLine",
+  "sourceEndColumn",
+  "source_line",
+  "source_end_line",
+  "updated_at",
+  "created_at",
+  "semantic_text",
+  "text_ref",
+  "fact_kind",
+  "expects",
+  "approved_by",
+  "approval_ref",
+] as const;
+
+/** Upper bound on ids per batched row query, so one answer stays bounded. */
+export const ENTITY_ROW_BATCH_LIMIT = 200;
+
+// implements REQ-mcp-search-discovery, REQ-kibi-search-answer-layer
+export function entityRowsGoal(
+  ids: readonly string[],
+  keys: readonly string[] = ENTITY_ROW_KEYS,
+): string {
+  const idList = ids.map((id) => `'${escapeAtomContent(id)}'`).join(",");
+  const keyList = keys.map((key) => `'${escapeAtomContent(key)}'`).join(",");
+  return `findall([Id,Type,Row], (member(Id, [${idList}]), kb_entity(Id, Type, Props), findall(Key=Value, (member(Key=Value, Props), memberchk(Key, [${keyList}])), Row)), Results)`;
+}
+
+/**
+ * Projected rows for several entities in one Prolog query, in place of one
+ * `loadEntities({ id })` round trip per entity. Unknown ids are skipped.
+ */
+// implements REQ-mcp-search-discovery, REQ-kibi-search-answer-layer
+export async function loadEntityRows(
+  prolog: Pick<PrologPort, "query">,
+  ids: readonly string[],
+  keys: readonly string[] = ENTITY_ROW_KEYS,
+): Promise<Record<string, unknown>[]> {
+  const unique = [...new Set(ids.filter((id) => id.length > 0))];
+  const rows: Record<string, unknown>[] = [];
+  for (let start = 0; start < unique.length; start += ENTITY_ROW_BATCH_LIMIT) {
+    const batch = unique.slice(start, start + ENTITY_ROW_BATCH_LIMIT);
+    const result = await prolog.query(entityRowsGoal(batch, keys));
+    if (!result.success) {
+      throw new Error(result.error || "Entity row query failed");
+    }
+    rows.push(
+      ...parseListOfLists(result.bindings.Results ?? "[]").map(
+        parseEntityFromList,
+      ),
+    );
+  }
+  return dedupeEntities(rows);
+}
+
+/**
  * Replace projected search candidates with complete entities, one bounded
  * query per entity. Used only for the final result page when a caller asks
  * for full entity bodies.

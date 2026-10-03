@@ -11,7 +11,8 @@
     requirement_proof_json/5,
     requirement_proof_json/7,
     symbol_proof_json/7,
-    graph_expand_json/8
+    graph_expand_json/8,
+    search_answer_verdicts_json/2
 ]).
 
 % Source contains non-ASCII text; do not depend on the host locale.
@@ -25,7 +26,9 @@
 :- use_module('kb.pl').
 :- use_module(library(semweb/rdf_db), [rdf_generation/1]).
 :- use_module('requirement_proof.pl', [requirement_proof_context/1, requirement_proof_context/4, requirement_proof_context/6, requirement_proof/4]).
-:- use_module('status.pl', [status_meta_dict/1]).
+:- use_module('checks.pl', [scenario_feasibility_outcome/2, infeasible_scenario/5]).
+:- use_module('logic_ir.pl', [logic_rule_conflict/3, logic_rule_conflict/4]).
+:- use_module('status.pl', [status_meta_dict/1, status_scope_dict/1]).
 :- use_module('../schema/relationships.pl', [relationship_type/1]).
 
 find_gaps_json(TypeFilter, MissingRelationships, PresentRelationships, Tags, SourceFilter, Limit, Offset, JsonString) :-
@@ -98,6 +101,204 @@ symbol_explain_role(SymbolId, Role) :-
     Role \= '',
     !.
 symbol_explain_role(_SymbolId, unknown).
+
+%% search_answer_verdicts_json(+ReqIds, -JsonString)
+% implements REQ-kibi-search-answer-layer
+% What the existing checks report about the requirements a kb_search answer
+% names, in one engine round trip and bounded to those requirements:
+%   contradictions  strict-property and predicate witnesses from
+%                   kb:req_conflict_witness/3, and rule witnesses from the
+%                   pair generator and rule comparison the
+%                   domain-contradictions check uses (disjoint pairs omitted)
+%   scenarios       scenario_feasibility_outcome/2 of each scenario the
+%                   requirement specifies
+%   forbids         other scenarios infeasible_scenario/5 says it forbids
+%   inventory       the semantic-inventory stage of the proof ladder, with
+%                   the propositions still ambiguous or ontology gaps
+% Whole-KB scans (check_domain_contradiction_witnesses/1) are deliberately
+% not used: they take seconds on a large KB. The functional-predicate
+% declarations a rule comparison reads are collected once per call rather
+% than once per compared pair, which dominated the cost for requirements with
+% many rules. A requirement whose checks raise an error reports that error
+% instead of failing the answer. Scope names the snapshot the verdicts were
+% computed from.
+search_answer_verdicts_json(ReqIds, JsonString) :-
+    search_answer_functional(Functional),
+    maplist(search_answer_verdict(Functional), ReqIds, Verdicts),
+    status_scope_dict(Scope),
+    dict_json_string(_{requirements: Verdicts, scope: Scope}, JsonString).
+
+% The declarations logic_rule_conflict/3 would read for every pair; when they
+% cannot be read here, each comparison reads them itself.
+search_answer_functional(some(Functional)) :-
+    catch(logic_ir:functional_predicate_declarations(Functional), _, fail),
+    !.
+search_answer_functional(none).
+
+search_answer_rule_status(some(Functional), RuleA, RuleB, Status) :-
+    !,
+    logic_rule_conflict(RuleA, RuleB, Functional, Status).
+search_answer_rule_status(none, RuleA, RuleB, Status) :-
+    logic_rule_conflict(RuleA, RuleB, Status).
+
+search_answer_verdict(Functional, ReqId, Verdict) :-
+    catch(search_answer_verdict_(Functional, ReqId, Verdict0), Error, true),
+    (   var(Error)
+    ->  Verdict = Verdict0
+    ;   format(string(Text0), "~q", [Error]),
+        search_answer_clip(Text0, 300, Text),
+        Verdict = _{id: ReqId, error: Text}
+    ).
+
+search_answer_verdict_(Functional, ReqId, _{
+    id: ReqId,
+    contradictions: Contradictions,
+    scenarios: Scenarios,
+    forbids: Forbids,
+    inventory: Inventory
+}) :-
+    findall(C, search_answer_contradiction(Functional, ReqId, C), Contradictions0),
+    sort(Contradictions0, Contradictions),
+    findall(S, search_answer_scenario_outcome(ReqId, S), Scenarios0),
+    sort(Scenarios0, Scenarios),
+    findall(F, search_answer_forbidden_scenario(ReqId, F), Forbids0),
+    sort(Forbids0, Forbids),
+    search_answer_inventory(ReqId, Inventory).
+
+search_answer_contradiction(_Functional, ReqId, _{
+    kind: Kind,
+    status: Status,
+    with: Other,
+    facts: Facts,
+    reason: Reason
+}) :-
+    (   req_conflict_witness(ReqId, Other, Witness)
+    ;   req_conflict_witness(Other, ReqId, Witness)
+    ),
+    get_dict(kind, Witness, Kind),
+    get_dict(status, Witness, Status),
+    get_dict(reason, Witness, RawReason),
+    search_answer_text(RawReason, Reason),
+    findall(FactId,
+        (   member(SideKey, [left, right]),
+            get_dict(SideKey, Witness, Side),
+            get_dict(factId, Side, FactId)
+        ),
+        Facts).
+search_answer_contradiction(Functional, ReqId, _{
+    kind: rule,
+    status: Status,
+    with: Other,
+    facts: [FactA, FactB],
+    reason: Reason
+}) :-
+    % The check orders each pair; compare it in that order and only then
+    % orient the result towards ReqId.
+    (   checks:opposing_rule_requirement_facts(ReqId, Other, FactA, FactB, RuleLeft, RuleRight),
+        LeftReq = ReqId, RightReq = Other
+    ;   checks:opposing_rule_requirement_facts(Other, ReqId, FactB, FactA, RuleLeft, RuleRight),
+        LeftReq = Other, RightReq = ReqId
+    ),
+    search_answer_rule_status(Functional, RuleLeft, RuleRight, Status),
+    Status \== disjoint,
+    format(string(Reason), "Rule conflict (~w) between ~w and ~w", [Status, LeftReq, RightReq]).
+
+search_answer_scenario_outcome(ReqId, Outcome) :-
+    kb_relationship(specified_by, ReqId, ScenarioId),
+    scenario_feasibility_outcome(ScenarioId, Result),
+    search_answer_outcome(ScenarioId, Result, Outcome).
+
+search_answer_outcome(ScenarioId, infeasible(witness(ReqIds, AssumedFacts, ReqFacts, RawReason)), _{
+    scenario: ScenarioId,
+    outcome: infeasible,
+    requirement: ReqId,
+    requirements: ReqIds,
+    assumed: AssumedFacts,
+    fact: ReqFacts,
+    reason: Reason
+}) :-
+    !,
+    ( ReqIds = [ReqId|_] -> true ; ReqId = '' ),
+    search_answer_text(RawReason, Reason).
+search_answer_outcome(ScenarioId, unknown(Reason), _{
+    scenario: ScenarioId,
+    outcome: unknown,
+    reason: Reason,
+    facts: []
+}) :-
+    atom(Reason),
+    !.
+search_answer_outcome(ScenarioId, unknown(Compound), _{
+    scenario: ScenarioId,
+    outcome: unknown,
+    reason: Reason,
+    facts: Ids
+}) :-
+    compound(Compound),
+    Compound =.. [Reason, Ids0],
+    is_list(Ids0),
+    !,
+    Ids = Ids0.
+search_answer_outcome(ScenarioId, Result, _{scenario: ScenarioId, outcome: Outcome}) :-
+    (   atom(Result)
+    ->  Outcome = Result
+    ;   format(atom(Outcome), "~q", [Result])
+    ).
+
+search_answer_forbidden_scenario(ReqId, _{
+    scenario: ScenarioId,
+    assumed: AssumedFacts,
+    fact: ReqFacts,
+    reason: Reason
+}) :-
+    infeasible_scenario(ScenarioId, ReqIds, AssumedFacts, ReqFacts, RawReason),
+    memberchk(ReqId, ReqIds),
+    \+ kb_relationship(specified_by, ReqId, ScenarioId),
+    search_answer_text(RawReason, Reason).
+
+search_answer_inventory(ReqId, _{
+    status: Status,
+    propositionCount: Count,
+    unresolved: Unresolved
+}) :-
+    kb_entity(ReqId, req, Props),
+    !,
+    requirement_proof:semantic_inventory_stage(Props, Stage, Entries),
+    get_dict(status, Stage, Status),
+    get_dict(propositionCount, Stage, Count),
+    findall(_{claim: Claim, status: EntryStatus},
+        (   member(Entry, Entries),
+            requirement_proof:inventory_entry_unresolved(Entry),
+            requirement_proof:inventory_entry_status(Entry, EntryStatus),
+            requirement_proof:inventory_entry_field(Entry, claim_text, RawClaim),
+            search_answer_text(RawClaim, Claim0),
+            search_answer_clip(Claim0, 300, Claim)
+        ),
+        Unresolved).
+search_answer_inventory(_ReqId, _{status: unknown, propositionCount: 0, unresolved: []}).
+
+search_answer_text(^^(Value, _Type), Text) :-
+    !,
+    search_answer_text(Value, Text).
+search_answer_text(Value, Text) :-
+    string(Value),
+    !,
+    Text = Value.
+search_answer_text(Value, Text) :-
+    atom(Value),
+    !,
+    atom_string(Value, Text).
+search_answer_text(Value, Text) :-
+    format(string(Text), "~w", [Value]).
+
+search_answer_clip(Text, Max, Clipped) :-
+    string_length(Text, Length),
+    (   Length =< Max
+    ->  Clipped = Text
+    ;   Keep is Max - 1,
+        sub_string(Text, 0, Keep, _, Prefix),
+        string_concat(Prefix, "…", Clipped)
+    ).
 
 % Slim per-requirement proof evidence for quality diagnostics (W1 push-down).
 % Projects only the fields the quality diagnostics consume - proof status,
