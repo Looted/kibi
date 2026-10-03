@@ -1,5 +1,33 @@
 # kibi-mcp
 
+## 2.4.0
+
+### Minor Changes
+
+- f93dcdd: Bootstrap no longer learns only from the code. The agent now starts with a short interview: it asks where product intent already lives (issue trackers such as Jira or YouTrack, wikis, specs, decision logs), which sources are authoritative or stale, and reads them through its own connectors. The bootstrap plan records those sources and the intent claims harvested from them, so each requirement taken from a ticket or page cites it and the citation is part of the approved plan hash. Kibi still never contacts those sources itself.
+  - feat(cli): `kb_plan_bootstrap` / `plan-bootstrap` accept `bootstrapContext.knowledgeSources` (id, kind, title, locator, authority, optional connector) and `bootstrapContext.intentClaims` (statement, sourceId, reference, optional excerpt). Both are normalized into `declaredContext` and bound into `planHash`. Grounded claims from authoritative or supporting sources become `req` candidates with `sourceKind: intent_claim`, citation evidence, and `text_ref: <sourceId>:<reference>`. Ungroundable claims become authoring follow-ups, stale sources are suppressed with `stale_knowledge_source`, and claims citing undeclared sources are reported as non-blocking diagnostics. A `needs_context` plan without declared sources asks for them.
+  - feat(skills): `kibi-bootstrap` 3.1.0 leads with the source interview before planning; the MCP `/kibi-bootstrap` prompt and the Cursor and ZCode commands follow it.
+  - docs: README, landing page, quick start, and install guide lead with a copy-paste agent setup prompt; manual installation moves behind a toggle.
+
+- 676bac9: Kibi tools now answer from the workspace you are working in, in every harness. Hosts start the Kibi MCP server once per project and then let the agent work elsewhere, most often in a git worktree, and until now every lookup was answered from the original checkout's branch with nothing in the result to say so. Each call is now routed to the right workspace, and when that is not possible the result says which workspace answered and why.
+  - Every tool accepts `workspaceRoot`, the absolute path of the directory the call is about. Host hooks fill it in automatically where they exist; any agent can pass its working directory.
+  - Without it, the client's MCP roots are used when the client declares them (cached while the client reports changes), else the attached workspace.
+  - Another workspace is served by a pooled child `kibi-mcp` started there (its own project-local install when present), at most four, retired after ten idle minutes. Async `kb_check` jobs started in a child are polled in that child.
+  - Routing is limited to worktrees of the attached repository, directories under the client's roots, and `KIBI_MCP_ROUTABLE_ROOTS`. Refusals and failures fall back to the attached workspace with a `workspace_mismatch` diagnostic (`pinned`, `not_a_kibi_workspace`, `not_routable`, `unavailable`).
+  - `KIBI_WORKSPACE` and its aliases pin the server and disable routing; `KIBI_MCP_ROUTING=0` disables it; routed children run with `KIBI_MCP_ROUTED=1` and never route further.
+  - The frozen `tools/list` contract fixtures gain the `workspaceRoot` property on every tool.
+
+### Patch Changes
+
+- 22857bf: Adding or editing a symbol that lives in a decorated Python file no longer fails. With the Tree-sitter plugin active, `kb_upsert` aborted with "Cannot refresh incomplete source analysis … Python decorators are not evaluated" and rolled the write back, even though `kibi sync --refresh-symbol-coordinates` handled the same file. Upserts now bind the declaration the same way sync does, and coverage repair plans report those symbols as refreshable instead of failing.
+
+  When the Kibi MCP server keeps running after Kibi is upgraded or reinstalled, its tools used to fail with a bare "Cannot find module …" error. The error now says the server is running from files that are no longer installed and must be restarted, and that the project CLI works meanwhile.
+  - kibi-cli: targeted symbol coordinate refresh (`kb_upsert`) and `inspectCoordinateRepairs` pass `allowPythonDecoratorCoordinates`, matching `sync --refresh-symbol-coordinates`.
+  - kibi-mcp: legacy `kb_symbols_refresh` helpers pass the same flag; tool failures caused by missing modules carry a restart hint.
+
+- Updated dependencies [f93dcdd]
+  - kibi-runtime@2.2.0
+
 ## 2.3.0
 
 ### Minor Changes
