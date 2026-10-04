@@ -21,4 +21,8 @@ claim_text: Builtin providers must be allowed to keep historical deterministic s
 id: FACT-PRED-A98E0E4498BA
 type: fact
 predicate_namespace: kibi.capability
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

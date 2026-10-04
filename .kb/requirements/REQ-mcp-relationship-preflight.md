@@ -32,6 +32,10 @@ semantic_inventory:
     span:
       start: 0
       end: 155
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 MCP relationship validation must reject malformed tuples, invalid targets, and source mismatches with actionable diagnostics before a mutation is persisted.

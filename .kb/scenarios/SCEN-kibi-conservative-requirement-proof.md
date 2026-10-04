@@ -16,6 +16,10 @@ links:
   - type: verified_by
     target: TEST-e2e-coverage-proof-status
 type: scenario
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Given a structurally linked requirement whose semantic inventory, scenario E2E path, executable test symbol, production symbol coverage, or source coordinates are incomplete, when `kb_coverage` runs, then the row retains its compatibility-oriented structural coverage fields while reporting a non-proven `proofStatus`, failed or unresolved proof stages, stable gap codes, and ranked repair actions.

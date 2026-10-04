@@ -57,5 +57,9 @@ semantic_clauses:
   - The public operation surface stays aligned across MCP and the trusted project-local CLI
   - Both peers expose the same versioned operation catalog and structured contracts
   - hosts select the visible approved surface by capability rather than by a fixed preference
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 The public operation surface stays aligned across MCP and the trusted project-local CLI. Both peers expose the same versioned operation catalog and structured contracts; hosts select the visible approved surface by capability rather than by a fixed preference.

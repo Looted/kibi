@@ -9,6 +9,10 @@ tags: [requirements, proof, repair, pagination, packed, e2e]
 links:
   - type: verified_by
     target: TEST-kibi-dependency-ordered-repair-plan
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Given multiple requirements with proof gaps, when a packed consumer requests requirement coverage, then Kibi returns a stable read-only repair plan whose same-requirement phases are dependency ordered, only the earliest phase is ready, and every later phase is blocked by explicit batch IDs. When pagination omits an actionable requirement, the plan is partial with an excluded count. Symbol/type coverage omits requirement plans, and repeated coverage reads leave the KB snapshot unchanged.

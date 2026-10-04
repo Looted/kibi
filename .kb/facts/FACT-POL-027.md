@@ -19,6 +19,10 @@ links:
   - FACT-034
 fact_kind: meta
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 The repository's own OpenCode and Cursor setups do not consume the published `kibi-mcp`, `kibi-opencode`, or `kibi-cursor` packages.

@@ -34,6 +34,10 @@ semantic_inventory:
 logic_claims:
   - CLAIM-7F327A2CB7C5FE63
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Symbol traceability relationships must target the narrowest available class, function, interface, type, enum, or executable symbol unless a coarse file or module symbol carries an explicit granularity reason.

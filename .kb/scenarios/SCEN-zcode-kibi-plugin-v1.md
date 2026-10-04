@@ -16,6 +16,10 @@ links:
     target: TEST-zcode-kibi-plugin-v1
   - type: relates_to
     target: REQ-zcode-kibi-plugin-v1
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 An operator installs and enables kibi-zcode in a workspace that owns .kb/manifest.json.
 

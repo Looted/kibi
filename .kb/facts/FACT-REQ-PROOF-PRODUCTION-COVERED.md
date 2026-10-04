@@ -23,6 +23,10 @@ polarity: assert
 claim_key: CLAIM-540E9376529E8B19
 claim_text: Every proof-bearing production symbol must be covered by a qualifying end-to-end test
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of production test coverage.

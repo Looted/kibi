@@ -15,4 +15,8 @@ claim_key: CLAIM-206C1108783A0F3C
 claim_text: After a turn that observed CreatePlan and did not edit source files or mutate the knowledge base, the stop hook must not emit a followup_message
 id: FACT-PROP-REQ-CURSOR-STOP-JOB-VS-PLAN-C02
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

@@ -18,4 +18,8 @@ claim_key: CLAIM-6D5C825727F4F609
 claim_text: A generic arbitrary plugin-options bag must be absent from v1
 id: FACT-PRED-C32FE5B774E4
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

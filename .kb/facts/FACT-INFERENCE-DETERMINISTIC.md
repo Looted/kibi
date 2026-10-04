@@ -18,6 +18,10 @@ polarity: require
 claim_key: CLAIM-E63C682E6A6BEE59
 claim_text: Kibi must keep deterministic inference capabilities available for product and automation use, but they are not exposed as a raw public inference surface
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Inference outputs are deterministic for the same graph state and query inputs.

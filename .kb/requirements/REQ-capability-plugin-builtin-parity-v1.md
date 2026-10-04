@@ -35,6 +35,10 @@ proof_exempt: false
 semantic_clauses:
   - When kibi.plugins is absent, the host must use only automatically registered kibi-plugin-builtin providers.
   - Builtin providers must be allowed to keep historical deterministic semantic ontology and TypeScript symbol analysis.
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 # REQ-capability-plugin-builtin-parity-v1
 

@@ -15,6 +15,10 @@ tags:
 links:
   - type: relates_to
     target: SCEN-opencode-enforcement
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 ## Scenario: Lifecycle Guidance

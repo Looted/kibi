@@ -18,4 +18,8 @@ claim_key: CLAIM-F56119D70E27236A
 claim_text: The exported provider version must reference an existing resolved package version
 id: FACT-PRED-1E92E684E956
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

@@ -93,6 +93,10 @@ links:
   - type: relates_to
     target: REQ-skillopt-predicate-first-requirements
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Final-state property evidence must preserve the stored property_key without deriving a namespace from subject_key.

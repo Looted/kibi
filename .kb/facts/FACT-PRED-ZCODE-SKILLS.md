@@ -19,5 +19,9 @@ canonical_key: conditional_behavior(kibi_zcode_adapter,installed_and_enabled,exp
 polarity: assert
 id: FACT-PRED-ZCODE-SKILLS
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 When kibi-zcode is installed and enabled, it must expose bundled Kibi skills

@@ -103,6 +103,10 @@ links:
     target: FACT-REQ-PROOF-SOURCE-COORDINATES
   - type: requires_predicate
     target: FACT-REQ-PROOF-RANKED-REPAIRS
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Coverage reports must publish a proof outcome separately from structural coverage. A proven requirement must have a complete proposition ledger with no unresolved assertive entries. Every modeled proposition must have exactly one valid logical grounding. Contradiction analysis must not report a clear outcome while logical grounding is incomplete. Every detected contradiction must block proof. Proof requires a requirement-specified scenario with passing end-to-end test evidence. Every qualifying end-to-end test must have executable test symbols linked through executable_for. Every proof-bearing production symbol must implement the requirement. Every proof-bearing production symbol must be covered by a qualifying end-to-end test. Every proof-bearing symbol must resolve to exact current source coordinates. Missing or unresolved evidence must produce explicit ranked repair guidance.

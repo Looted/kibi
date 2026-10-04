@@ -37,6 +37,10 @@ links:
   - type: verified_by
     target: TEST-agent-guided-migration-orchestration
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Kibi exposes a single typed migration plan so agents can inspect deterministic

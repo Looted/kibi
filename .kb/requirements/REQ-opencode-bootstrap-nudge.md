@@ -31,5 +31,9 @@ semantic_inventory:
 logic_claims:
   - CLAIM-7A9EABE008983B73
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 When OpenCode observes an uninitialized or thin repository, it reads typed bootstrap status and routes the agent to the canonical kibi-bootstrap skill. The agent answers only questions returned by the planner, reviews the exact kb_plan_bootstrap plan, applies that unchanged approved plan through kb_apply_plan, and runs typed check and status afterward.

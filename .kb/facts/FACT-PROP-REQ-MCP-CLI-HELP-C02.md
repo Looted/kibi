@@ -15,4 +15,8 @@ claim_key: CLAIM-6448FEFEA50A7DCD
 claim_text: It must NOT start the MCP stdio server or wait for input when help is requested
 id: FACT-PROP-REQ-MCP-CLI-HELP-C02
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

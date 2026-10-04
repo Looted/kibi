@@ -54,6 +54,10 @@ semantic_inventory:
       end: 292
     payload_hash: 747c70a1f4cb53d49d3379547d4570150768dc4cf9d5d8abdab1e343fdbb3b16
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 The `kibi check` command runs validation rules against the branch KB to ensure structural integrity and requirement coverage.

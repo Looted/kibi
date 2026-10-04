@@ -22,6 +22,10 @@ claim_text: The runner must execute resolved project binaries only inside isolat
 claim_span_start: 1062
 claim_span_end: 1200
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of audited-project immutability.

@@ -13,6 +13,10 @@ verification_perspective: internal
 links:
   - type: validates
     target: SCEN-skillopt-automatic-adoption
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 The adoption suite verifies that eligible predicate candidates are adopted exactly once: the canonical skill and mirrors install in one transaction, retries return the existing receipt, ineligible candidates remain unchanged, and rollback or recovery prevents partial state. See scripts/skillopt-eval/tests/adoption.test.ts, adoption-exactly-once.test.ts, and real-workflow.test.ts.

@@ -21,6 +21,10 @@ polarity: assert
 claim_key: CLAIM-4C1ABF87560ED8A7
 claim_text: Coverage reports must publish a proof outcome separately from structural coverage
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of the distinct proof-outcome contract.

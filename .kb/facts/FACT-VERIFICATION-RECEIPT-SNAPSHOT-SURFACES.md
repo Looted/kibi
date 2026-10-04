@@ -14,6 +14,10 @@ canonical_key: verification_receipt_rule(cli_and_mcp_reporting,current_code_snap
 polarity: assert
 claim_key: CLAIM-BCCEE9616D8F0A33
 claim_text: Coverage and status must expose the deterministic current code snapshot through CLI and MCP
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground predicate for reporting-surface snapshot parity.

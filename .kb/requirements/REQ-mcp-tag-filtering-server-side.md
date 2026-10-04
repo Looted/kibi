@@ -61,6 +61,10 @@ semantic_inventory:
     span:
       start: 221
       end: 306
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 ## Overview

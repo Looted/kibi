@@ -15,4 +15,8 @@ claim_key: CLAIM-D7EC1967FE8D582A
 claim_text: The repository publishes the documentation site, including its landing page, at the root of project Pages on every push to the default branch
 id: FACT-docs-site-root-publish-path
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

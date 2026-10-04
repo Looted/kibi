@@ -13,6 +13,10 @@ links:
     target: SCEN-opencode-guidance-injection
   - type: relates_to
     target: SCEN-opencode-background-sync
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 ## Scenario: Core Plugin Behaviors

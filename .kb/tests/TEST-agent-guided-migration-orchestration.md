@@ -1699,6 +1699,10 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 The migration orchestration suite verifies deterministic plan hashes and action
 ordering, preview immutability, stale-hash rejection, dependency and safety

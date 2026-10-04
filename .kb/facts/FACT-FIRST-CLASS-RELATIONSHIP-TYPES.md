@@ -17,6 +17,10 @@ claim_key: CLAIM-F1464C6F21073AFF
 claim_text: 'Relationships are first-class: `implements`, `validates`, `specified_by`, `covered_by`, `depends_on`, `relates_to`, `constrained_by`, etc'
 id: FACT-FIRST-CLASS-RELATIONSHIP-TYPES
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Relationships are first-class: `implements`, `validates`, `specified_by`, `covered_by`, `depends_on`, `relates_to`, `constrained_by`, etc.
 

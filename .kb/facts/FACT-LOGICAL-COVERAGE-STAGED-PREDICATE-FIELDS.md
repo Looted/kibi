@@ -22,6 +22,10 @@ polarity: assert
 claim_key: CLAIM-20FA89A0E6B17C19
 claim_text: Staged validation overlays must preserve every typed predicate fact field
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of staged predicate-field fidelity.

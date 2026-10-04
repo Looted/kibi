@@ -11,6 +11,10 @@ links:
   - type: verified_by
     target: TEST-cli-branch-store-recovery
 type: scenario
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 1. An agent calls status while the active exact branch store is missing or has

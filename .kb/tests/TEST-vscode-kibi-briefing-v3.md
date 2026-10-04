@@ -14,6 +14,10 @@ tags:
 links:
   - type: validates
     target: SCEN-vscode-kibi-briefing-v3
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Verification plan for Schema-2.0 and Deterministic Ordering in VS Code:

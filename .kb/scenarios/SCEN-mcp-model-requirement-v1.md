@@ -14,6 +14,10 @@ links:
     target: TEST-mcp-model-requirement
   - type: verified_by
     target: TEST-e2e-mcp-model-requirement
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 The MCP model_requirement tool extracts normative claims, chooses strict-lane write sets for high-confidence claims, and falls back to review observations for low-confidence claims.

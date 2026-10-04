@@ -8,6 +8,10 @@ tags:
   - subject-key-identity
 id: FACT-OBS-req-derived-subject-keys-followup
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Observation (completed): the follow-up to converge requirement-derived subject keys onto the shared subject vocabulary is done.
 

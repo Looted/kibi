@@ -24,6 +24,10 @@ claim_text: The planner must select only ready semantic_inventory batches from a
 claim_span_start: 117
 claim_span_end: 231
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of safe repair-batch selection.

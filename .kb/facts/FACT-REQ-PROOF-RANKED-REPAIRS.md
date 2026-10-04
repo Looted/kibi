@@ -22,6 +22,10 @@ polarity: assert
 claim_key: CLAIM-9A7C59796E5CDB94
 claim_text: Missing or unresolved evidence must produce explicit ranked repair guidance
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of repair-oriented proof diagnostics.

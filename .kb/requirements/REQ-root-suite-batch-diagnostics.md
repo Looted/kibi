@@ -40,6 +40,10 @@ semantic_inventory:
       start: 304
       end: 530
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 The curated unit test suite (`test/root.test.ts`) runs package-scoped

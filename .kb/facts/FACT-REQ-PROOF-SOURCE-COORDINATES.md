@@ -23,6 +23,10 @@ polarity: assert
 claim_key: CLAIM-6D6D5B50042B3F58
 claim_text: Every proof-bearing symbol must resolve to exact current source coordinates
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of current symbol coordinate evidence.

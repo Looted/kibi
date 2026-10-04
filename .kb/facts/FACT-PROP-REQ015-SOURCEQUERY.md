@@ -14,4 +14,8 @@ claim_key: CLAIM-5820FCC26EB967A8
 claim_text: The CLI and MCP server must accept a source file path as a query parameter and return all KB entities whose source field matches that path
 id: FACT-PROP-REQ015-SOURCEQUERY
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

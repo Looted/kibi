@@ -10,6 +10,10 @@ tags: [cli, usage-metrics]
 links:
   - type: verified_by
     target: TEST-cli-usage-metrics-v1
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 When diagnostic usage logs exist, the CLI usage metrics command reads them and prints summarized usage information without mutating the KB.

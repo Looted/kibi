@@ -16,6 +16,10 @@ claim_key: CLAIM-B03495A1D1AC6DBE
 claim_text: Concurrent current runtimes serialize through the branch lock, while a stale attached snapshot fails before mutation
 claim_span_start: 666
 claim_span_end: 782
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of branch-lock serialization and stale-snapshot rejection.

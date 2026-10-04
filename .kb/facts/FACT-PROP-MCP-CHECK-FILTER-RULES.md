@@ -17,4 +17,8 @@ claim_key: CLAIM-6A89B124517BBD4D
 claim_text: Support filtering for specific rules (e.g., `must-priority-coverage`, `symbol-traceability`)
 id: FACT-PROP-MCP-CHECK-FILTER-RULES
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

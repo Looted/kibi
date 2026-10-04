@@ -21,6 +21,10 @@ claim_text: Kibi must give each proof obligation a stable symbol identity, conne
 claim_span_start: 0
 claim_span_end: 248
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation for stable case identity and snapshot-bound proof.

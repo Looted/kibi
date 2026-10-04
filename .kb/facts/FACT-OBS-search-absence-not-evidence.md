@@ -12,5 +12,9 @@ tags:
   - resolved:schema-extension
 id: FACT-OBS-search-absence-not-evidence
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Resolved: the logical_requirement_rule schema now declares the kibi.discovery.search subject, and FACT-SEARCH-ABSENCE-NOT-EVIDENCE grounds this claim on REQ-kibi-search-answer-layer.

@@ -16,6 +16,10 @@ links:
     target: SCEN-opencode-kibi-briefing-v2
   - type: relates_to
     target: TEST-opencode-kibi-briefing-v1
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Automated and manual verification for the OpenCode Kibi Briefings v2 contract:

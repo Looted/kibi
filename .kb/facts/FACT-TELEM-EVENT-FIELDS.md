@@ -24,6 +24,10 @@ claim_text: Every event remediation must identify its log line, request identifi
 claim_span_start: 696
 claim_span_end: 871
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of exact event-level repair evidence.

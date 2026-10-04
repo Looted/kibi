@@ -14,4 +14,8 @@ claim_key: CLAIM-93B8B2AAD1506737
 claim_text: '**Package Umbrella Exclusion**: Generic package-level umbrella test documents are insufficient to count as exact E2E evidence for a specific file or symbol'
 id: FACT-PROP-FCG-UMBRELLA-EXCLUSION
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

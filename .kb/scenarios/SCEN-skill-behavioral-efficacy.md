@@ -13,6 +13,10 @@ links:
     target: REQ-skill-behavioral-efficacy
   - type: verified_by
     target: TEST-skill-behavioral-efficacy
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Given a frozen skill candidate and disposable Kibi fixture, the evaluator runs the candidate and both controls on Codex, OpenCode, and Cursor, reconciles brokered MCP evidence with final state, and reports a stratified gate without exposing private scoring data.

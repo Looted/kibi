@@ -15,4 +15,8 @@ claim_key: CLAIM-1907A992CB5758E0
 claim_text: This enables tools and agents to discover the KB presence and status programmatically in a fresh environment
 id: FACT-PROP-REQ-CLI-STATUS-PRE-FIRST-SYNC-C02
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

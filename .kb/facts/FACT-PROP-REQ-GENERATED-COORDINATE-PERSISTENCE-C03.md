@@ -15,4 +15,8 @@ claim_key: CLAIM-6E7A1BA3AFAB9067
 claim_text: a coordinate-generation or artifact-publication failure must not be reported as a complete mutation
 id: FACT-PROP-REQ-GENERATED-COORDINATE-PERSISTENCE-C03
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

@@ -9,6 +9,10 @@ tags:
   - parity
 id: SCEN-kibi-mcp-tool-consolidation
 type: scenario
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 # tools/list exposes 16 consolidated tools and composite calls match their routed operations
 

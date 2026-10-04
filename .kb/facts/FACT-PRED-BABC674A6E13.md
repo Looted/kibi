@@ -22,4 +22,8 @@ claim_text: The published kibi-cursor plugin must resolve and execute the consum
 id: FACT-PRED-BABC674A6E13
 type: fact
 predicate_namespace: kibi.launcher
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

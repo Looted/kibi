@@ -14,6 +14,10 @@ links:
     target: TEST-root-suite-batch-diagnostics
   - type: verified_by
     target: TEST-e2e-root-batch-diagnostics
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 **Given** the curated unit suite is configured with per-batch timeouts

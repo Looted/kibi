@@ -14,6 +14,10 @@ links:
   - type: verified_by
     target: TEST-skillopt-logical-evidence-fidelity
 type: scenario
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Given a correct strict property model whose subject key is dotted, when the independent final-state decoder derives the expected property target, then it uses the stored property key unchanged.

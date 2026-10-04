@@ -34,6 +34,10 @@ semantic_inventory:
       start: 0
       end: 765
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 The `kibi-codex` package is an optional Codex adapter for teams who want Kibi in Codex workflows without changing core Kibi runtime components.

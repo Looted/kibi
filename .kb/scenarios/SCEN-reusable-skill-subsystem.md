@@ -12,6 +12,10 @@ links:
     target: TEST-skill-cli-load-validate
   - type: verified_by
     target: TEST-mcp-skills-resource-discoverability
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 The skills subsystem lists bundled skills, loads skill metadata/body content, validates resource paths, and rejects invalid or oversized bundles.

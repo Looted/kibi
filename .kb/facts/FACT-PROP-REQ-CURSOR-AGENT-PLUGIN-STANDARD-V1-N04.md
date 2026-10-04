@@ -15,4 +15,8 @@ claim_key: CLAIM-B80FC679503D75EB
 claim_text: The portable artifact must include an mcp.json that conforms to the Agent Plugins MCP schema
 id: FACT-PROP-REQ-CURSOR-AGENT-PLUGIN-STANDARD-V1-N04
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

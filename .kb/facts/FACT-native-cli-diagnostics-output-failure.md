@@ -20,4 +20,8 @@ claim_key: CLAIM-86A9DCA7DEE3EE2A
 claim_text: An unavailable native CLI diagnostic output must preserve a successful monitored command result and stdout and stderr
 id: FACT-native-cli-diagnostics-output-failure
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

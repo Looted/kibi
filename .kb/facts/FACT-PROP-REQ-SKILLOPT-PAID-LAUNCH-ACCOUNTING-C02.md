@@ -15,4 +15,8 @@ claim_key: CLAIM-51BD088AB2866532
 claim_text: Those receipts must bind request, parent, capability, invoice, usage, pricing, model, and lease identities and must include signer role, signer key identity, and signature fields
 id: FACT-PROP-REQ-SKILLOPT-PAID-LAUNCH-ACCOUNTING-C02
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

@@ -24,6 +24,10 @@ claim_text: The planner must group same-phase gaps into one small batch per requ
 claim_span_start: 117
 claim_span_end: 362
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of dependency-ordered, same-phase batching.

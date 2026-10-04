@@ -15,4 +15,8 @@ claim_key: CLAIM-7DF8E6986A498C38
 claim_text: Tag list representations must be normalized consistently so server-side filtering matches client-side filtering
 id: FACT-PROP-REQ-MCP-TAG-FILTERING-SERVER-SIDE-C03
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

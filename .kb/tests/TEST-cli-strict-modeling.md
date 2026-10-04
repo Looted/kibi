@@ -9,6 +9,10 @@ tags: [cli, strict-modeling, unit]
 links:
   - type: validates
     target: SCEN-cli-strict-modeling-v1
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Verifies subject/property normalization, stable IDs, strict write-set construction, and migration-warning modeling behavior for contradiction-safe requirement writes.

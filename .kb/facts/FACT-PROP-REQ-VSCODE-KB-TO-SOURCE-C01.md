@@ -15,4 +15,8 @@ claim_key: CLAIM-C1E2C732F49744FB
 claim_text: The VS Code extension must support navigation from the KB tree to source code.\n\nClicking a symbol entity in the Kibi tree sidebar must open its real source file and line.\nNavigation coordinates must be resolved from `.kb/symbols.yaml`.\nThe tree node must still be expandable to show linked KB entities (requirements, tests, etc.) while allowing navigation
 id: FACT-PROP-REQ-VSCODE-KB-TO-SOURCE-C01
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

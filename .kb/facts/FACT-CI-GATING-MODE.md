@@ -18,6 +18,10 @@ polarity: require
 claim_key: CLAIM-C743F550C2313379
 claim_text: CI also runs `kibi check` as a real gate
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 CI pipeline runs kibi check as a required gate; failures block merge.

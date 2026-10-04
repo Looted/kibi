@@ -15,4 +15,8 @@ claim_key: CLAIM-0B0734835B2F77AC
 claim_text: document.path may target authored .kb knowledge lanes and must reject derived .kb trees including branches, recovery, verification, briefs, and migrations
 id: FACT-PROP-REQ-CLI-CANONICAL-RUNTIME-C07
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

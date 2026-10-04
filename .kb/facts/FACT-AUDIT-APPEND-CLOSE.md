@@ -16,6 +16,10 @@ claim_key: CLAIM-B08EED7571042B9C
 claim_text: The persistent audit journal must release its write lock after every append
 claim_span_start: 406
 claim_span_end: 481
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of close-synchronized audit persistence.

@@ -12,6 +12,10 @@ links:
     target: REQ-vscode-traceability
   - type: verified_by
     target: TEST-vscode-traceability-coverage
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Given a source symbol and linked Kibi entities, when a user selects the symbol or entity in VS Code, then the extension can navigate in both directions and preserve the traceability context.

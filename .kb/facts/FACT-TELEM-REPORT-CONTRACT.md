@@ -24,6 +24,10 @@ claim_text: A versioned kibi.telemetry-remediation.v1 report must enumerate ever
 claim_span_start: 559
 claim_span_end: 694
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of the versioned remediation contract.

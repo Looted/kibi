@@ -24,6 +24,10 @@ claim_text: kibi usage-metrics --require-acceptance must exit nonzero unless the
 claim_span_start: 1197
 claim_span_end: 1322
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of the machine-enforceable CLI gate.

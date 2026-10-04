@@ -12,6 +12,10 @@ tags:
 links:
   - type: verified_by
     target: TEST-mcp-search-discovery
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Given a synced Kibi repository with requirements, scenarios, tests, and symbols

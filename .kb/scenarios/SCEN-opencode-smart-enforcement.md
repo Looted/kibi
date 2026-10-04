@@ -18,6 +18,10 @@ links:
     target: SCEN-opencode-posture-detection
   - type: relates_to
     target: SCEN-opencode-risk-classification
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 ## Scenario: Smart Enforcement Policy

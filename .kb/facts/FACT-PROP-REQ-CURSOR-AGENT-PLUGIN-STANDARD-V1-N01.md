@@ -15,4 +15,8 @@ claim_key: CLAIM-B5A638FEE8D1C66C
 claim_text: The kibi-cursor package must ship a portable Agent Plugin artifact alongside the Cursor Plugin
 id: FACT-PROP-REQ-CURSOR-AGENT-PLUGIN-STANDARD-V1-N01
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

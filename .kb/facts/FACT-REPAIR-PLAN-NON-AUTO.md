@@ -24,6 +24,10 @@ claim_text: Every batch must remain non-auto-applicable and require query-before
 claim_span_start: 489
 claim_span_end: 676
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of the non-auto-applicable mutation policy.

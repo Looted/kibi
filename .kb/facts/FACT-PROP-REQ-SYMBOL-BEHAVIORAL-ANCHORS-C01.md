@@ -15,4 +15,8 @@ claim_key: CLAIM-867030205D8FADB4
 claim_text: Symbol traceability granularity checks must reject coarse file/module links only when narrower behavioral symbols are available
 id: FACT-PROP-REQ-SYMBOL-BEHAVIORAL-ANCHORS-C01
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

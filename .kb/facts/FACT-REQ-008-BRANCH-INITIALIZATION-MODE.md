@@ -16,4 +16,8 @@ claim_key: CLAIM-4D1D4C3CFF05EA23
 claim_text: 'On branch checkout, if the branch KB does not exist, it is created by copying from the resolved default branch (see brief.md for precedence: config `defaultBranch`, then `origin/HEAD`, then `main`)'
 id: FACT-REQ-008-BRANCH-INITIALIZATION-MODE
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

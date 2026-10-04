@@ -59,6 +59,10 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 # Real kibi-mcp server lists 16 tools, routes composites and keeps dry-run upserts write-free
 

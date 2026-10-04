@@ -13,6 +13,10 @@ operator: eq
 value_type: string
 value_string: relationships_strict_fact_shapes_requirement_traceability
 polarity: require
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Consistency checks cover entity relationships, strict fact shapes, and requirement traceability.

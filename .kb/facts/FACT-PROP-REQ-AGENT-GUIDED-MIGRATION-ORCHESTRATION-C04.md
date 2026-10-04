@@ -15,4 +15,8 @@ claim_key: CLAIM-3EF02740A21BCBAE
 claim_text: Semantic judgment contradictions E2E execution package changes receipt history and limitation acceptance MUST remain review operator or execution actions
 id: FACT-PROP-REQ-AGENT-GUIDED-MIGRATION-ORCHESTRATION-C04
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

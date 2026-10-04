@@ -11,5 +11,9 @@ tags:
   - fact:subject
 id: FACT-SUBJECT-ZCODE-LOCAL-OPERATIONS
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Canonical subject for project-local Kibi operations delegated through the optional ZCode adapter.

@@ -21,4 +21,8 @@ claim_key: CLAIM-38C827B85B91D638
 claim_text: Those hooks must synchronize the branch-local KB with the working tree after checkout and merge
 id: FACT-PRED-1D7F5E553F97
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

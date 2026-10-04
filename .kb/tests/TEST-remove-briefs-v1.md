@@ -16,6 +16,10 @@ links:
   - type: validates
     target: SCEN-remove-briefs-v1
 type: test
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Verification plan for the briefing removal requirement:

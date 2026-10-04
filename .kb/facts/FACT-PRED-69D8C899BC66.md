@@ -21,4 +21,8 @@ claim_text: A capability plugin must be activated only from explicit package.jso
 id: FACT-PRED-69D8C899BC66
 type: fact
 predicate_namespace: kibi.capability
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

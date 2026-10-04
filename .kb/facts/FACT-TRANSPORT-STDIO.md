@@ -17,6 +17,10 @@ value_string: stdio
 claim_key: CLAIM-6F8F2560C37BC20C
 claim_text: The kibi-mcp server exposes a JSON-RPC 2.0 interface over stdin/stdout
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 The MCP transport uses stdin and stdout for JSON-RPC messages.

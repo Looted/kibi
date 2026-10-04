@@ -46,5 +46,9 @@ logic_claims:
   - CLAIM-76D1EE5598A1792E
 id: REQ-kibi-truthful-consistency
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Contradiction checking must decide numeric comparisons exactly, including strict greater-than and less-than bounds. Rule-versus-rule conflict checking must classify each rule pair as contradiction, disjoint, or unresolved. The proof ladder contradiction stage must report analysis incomplete instead of no conflict found for a requirement with unmodeled propositions.

@@ -14,5 +14,9 @@ links:
   - type: validates
     target: SCEN-mcp-init-kibi-autopilot-v1
 type: test
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Superseded historical verification record. Current onboarding coverage is owned by the shared bootstrap planner and plan/apply tests.

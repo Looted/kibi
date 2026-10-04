@@ -22,4 +22,8 @@ claim_span_start: 999
 claim_span_end: 1135
 id: FACT-prolog-build-rejects-unsafe-archive-entries
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

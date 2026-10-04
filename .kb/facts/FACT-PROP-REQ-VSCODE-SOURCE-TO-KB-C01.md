@@ -15,4 +15,8 @@ claim_key: CLAIM-D08F746F8E6A479F
 claim_text: 'The VS Code extension must surface KB context directly in the editor:\n\nRegistered symbols in the editor must show a `Kibi: Browse linked entities` code action.\nSelecting the action must open a Quick Pick listing all related KB entities.\nSymbols must also support a Code Lens showing the count of linked requirements/tests'
 id: FACT-PROP-REQ-VSCODE-SOURCE-TO-KB-C01
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

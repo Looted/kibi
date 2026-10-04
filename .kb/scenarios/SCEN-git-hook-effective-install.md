@@ -3,6 +3,10 @@ id: SCEN-git-hook-effective-install
 title: Hooks install and diagnose correctly from worktrees, subdirectories, and configured hooks paths
 status: active
 source: .kb/scenarios/SCEN-git-hook-effective-install.md
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Steps:

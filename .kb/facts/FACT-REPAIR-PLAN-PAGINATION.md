@@ -24,6 +24,10 @@ claim_text: Pagination that omits actionable requirements must produce a partial
 claim_span_start: 833
 claim_span_end: 930
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of pagination completeness behavior.

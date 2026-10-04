@@ -170,6 +170,10 @@ logic_claims:
   - CLAIM-31EBE58AEF3405BD
   - CLAIM-7194EE1D9CDD34CB
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 The Kibi MCP server must provide a start-task briefing workflow through a public, read-only tool named `kb_briefing_generate`.

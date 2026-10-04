@@ -14,6 +14,10 @@ canonical_key: verification_receipt_rule(proof_bearing_e2e_test,execution_receip
 polarity: assert
 claim_key: CLAIM-6DC078CEB554A685
 claim_text: Proof-bearing tests must carry append-only kibi.proof-receipt.v1 execution history
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground predicate for the append-only receipt-history contract.

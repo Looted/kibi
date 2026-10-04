@@ -24,6 +24,10 @@ claim_text: The default preview must return one requirement batch with determini
 claim_span_start: 907
 claim_span_end: 1018
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of bounded deterministic pagination.

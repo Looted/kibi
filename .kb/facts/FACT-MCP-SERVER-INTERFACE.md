@@ -8,6 +8,10 @@ source: documentation/facts/FACT-MCP-SERVER-INTERFACE.md
 tags: [mcp, api]
 fact_kind: subject
 subject_key: kibi.mcp.server_interface
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 The server-side integration point exposed by kibi-mcp.

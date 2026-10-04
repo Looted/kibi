@@ -15,4 +15,8 @@ claim_key: CLAIM-7510EC9B66FFBB25
 claim_text: '**Suppression**: Guidance must be suppressed after the first occurrence per path per session to minimize prompt noise'
 id: FACT-PROP-REQ-OPENCODE-FILE-CONTEXT-GUIDANCE-V1-C07
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

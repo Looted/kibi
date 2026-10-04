@@ -9,6 +9,10 @@ tags: [parity, distribution, dogfood, packed, cli, mcp, e2e]
 links:
   - type: verified_by
     target: TEST-kibi-distribution-parity-matrix
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Given source, freshly packed, and project-resolved CLI/MCP binaries, when the canonical requirement-compiler fixtures run in isolated workspaces, then current source and packed outcomes match exactly, matching dogfood outcomes remain explicit, and older unsupported package capabilities remain non-matches with named upgrade actions. Given drift, unresolved provenance, execution failure, or a project divergence without a repair action, the matrix fails closed with a stable issue code.

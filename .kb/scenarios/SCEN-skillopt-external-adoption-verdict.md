@@ -16,6 +16,10 @@ tags:
 links:
   - type: verified_by
     target: TEST-skillopt-external-adoption-verdict
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Given local or fake SkillOpt evidence from a clean source root, when the evaluator has review artifacts but no independently verified external verdict, then the result remains review-only and cannot mutate the canonical skill or mirrors.

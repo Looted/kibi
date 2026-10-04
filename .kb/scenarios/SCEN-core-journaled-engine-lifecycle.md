@@ -10,6 +10,10 @@ tags: [core, engine, lifecycle]
 links:
   - type: verified_by
     target: TEST-core-journaled-engine-lifecycle
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Given concurrent CLI and MCP clients use the same workspace and branch

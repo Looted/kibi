@@ -24,6 +24,10 @@ claim_text: Non-requirement coverage must not emit a requirement repair plan
 claim_span_start: 932
 claim_span_end: 996
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of requirement-only repair-plan scope.

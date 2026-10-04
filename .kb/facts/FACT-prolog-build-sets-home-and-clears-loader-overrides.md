@@ -22,4 +22,8 @@ claim_span_start: 1390
 claim_span_end: 1509
 id: FACT-prolog-build-sets-home-and-clears-loader-overrides
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

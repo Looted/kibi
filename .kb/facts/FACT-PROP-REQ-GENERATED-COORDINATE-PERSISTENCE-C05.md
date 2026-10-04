@@ -15,4 +15,8 @@ claim_key: CLAIM-F0B0DB25D3B05FD3
 claim_text: An explicitly approved coordinate refresh must force coordinate-bearing symbols to persist even when normalized entity hashes match cached hashes
 id: FACT-PROP-REQ-GENERATED-COORDINATE-PERSISTENCE-C05
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

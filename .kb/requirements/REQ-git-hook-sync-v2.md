@@ -36,5 +36,9 @@ semantic_inventory:
     reason: Grounded with the reviewed Git hook synchronization predicate.
 id: REQ-git-hook-sync-v2
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 `kibi init` must install the `post-checkout` and `post-merge` Git hooks by default. Those hooks must synchronize the branch-local KB with the working tree after checkout and merge.

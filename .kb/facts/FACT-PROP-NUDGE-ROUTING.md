@@ -14,4 +14,8 @@ claim_key: CLAIM-7A9EABE008983B73
 claim_text: The plugin must assist with repository knowledge onboarding.\n\nIt must detect uninitialized or weakly seeded repositories that declare Kibi intent.\n\nIt must route the agent to the canonical kibi-bootstrap skill and the kb_plan_bootstrap plan/apply contract for initial inference and seed.\n\nIt must escalate to the user or operator if environmental setup or repair is required
 id: FACT-PROP-NUDGE-ROUTING
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

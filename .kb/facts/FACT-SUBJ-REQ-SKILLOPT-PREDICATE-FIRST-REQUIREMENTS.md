@@ -8,4 +8,8 @@ subject_key: kibi.modeling.predicates
 canonical_key: req.req_skillopt_predicate_first_requirements
 id: FACT-SUBJ-REQ-SKILLOPT-PREDICATE-FIRST-REQUIREMENTS
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

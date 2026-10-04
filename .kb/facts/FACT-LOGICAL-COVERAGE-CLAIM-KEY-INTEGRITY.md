@@ -22,6 +22,10 @@ polarity: assert
 claim_key: CLAIM-6A1D53864E9D3D90
 claim_text: Kibi must reject a ground fact when its claim_key is not the stable key derived from claim_text
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of stable claim provenance integrity.

@@ -157,6 +157,10 @@ logic_claims:
   - CLAIM-9A8DA72AEF9B3B39
   - CLAIM-1AC96FA2E2E26291
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 

@@ -14,6 +14,10 @@ fact_kind: observation
 links:
   - type: relates_to
     target: REQ-cursor-stop-job-vs-plan
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 If the same turn both delivered a plan and actually edited source or mutated the knowledge base, the existing freshness or KB-mutation stop follow-up still applies.

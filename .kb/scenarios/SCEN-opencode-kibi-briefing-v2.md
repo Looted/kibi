@@ -15,6 +15,10 @@ links:
     target: REQ-opencode-kibi-briefing-v2
   - type: relates_to
     target: SCEN-opencode-kibi-briefing-v1
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 **Scenario: Ready state — brief auto-fetched, toast shown, prompt block rendered, cue suppressed**

@@ -11,6 +11,10 @@ tags:
   - npm
   - ci-cd
 fact_kind: observation
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 The GitHub Actions workflow `.github/workflows/publish.yml` is organized into four cooperating phases aimed at minimising CI clone traffic while preserving source-backed verification where needed:

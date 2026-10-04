@@ -22,4 +22,8 @@ claim_span_start: 769
 claim_span_end: 845
 id: FACT-prolog-build-rejects-executable-checksum-mismatch
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

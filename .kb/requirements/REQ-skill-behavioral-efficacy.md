@@ -33,6 +33,10 @@ semantic_inventory:
 logic_claims:
   - CLAIM-6E7FCB72080BA53A
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Canonical Kibi skills must be compared against unchanged and one-shot-rewritten controls using hidden, deterministic final-state and MCP-protocol scoring across the supported agent hosts before any generated skill text is adopted.

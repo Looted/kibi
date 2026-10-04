@@ -9,6 +9,10 @@ tags:
   - scenario-feasibility
 id: SCEN-kibi-scenario-feasibility
 type: scenario
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 # A success scenario assuming a value a current requirement forbids is infeasible unless an approved exception exempts it
 

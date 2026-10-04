@@ -15,4 +15,8 @@ claim_key: CLAIM-F216C603723B0E2B
 claim_text: Kibi MUST expose one kibi.migration-plan.v2 contract from status check and coverage outputs\n\nEvery migration plan MUST bind a canonical SHA-256 planHash to the active branch KB snapshot workspace snapshot configuration hash and evaluated domains\n\nChecks and status MUST remain read-only while kb_apply_plan and kibi migrate --apply-safe MUST require the exact approved plan hash and explicit automatic action IDs\n\nSemantic judgment contradictions E2E execution package changes receipt history and limitation acceptance MUST remain review operator or execution actions\n\nSchema and storage migrations MUST be ordered idempotent audited and recoverable with preserved backups before the next status readback
 id: FACT-PROP-REQ-AGENT-GUIDED-MIGRATION-ORCHESTRATION-C01
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

@@ -12,5 +12,9 @@ tags:
 links:
   - type: verified_by
     target: TEST-opencode-kibi-plugin-v1
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 When a repository needs initial Kibi inference, OpenCode reads bootstrap status and routes the agent to kibi-bootstrap. The planner returns any bounded context questions and an exact plan; approval and application use the public plan/apply contract, followed by a typed check.

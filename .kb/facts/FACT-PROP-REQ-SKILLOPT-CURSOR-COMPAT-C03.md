@@ -15,4 +15,8 @@ claim_key: CLAIM-5F4C5857DF9E298C
 claim_text: The lane must gate evaluation on a passing cursor qualification check, summarize per-variant cell outcomes with absolute floors, and persist a compatibility report without recording account data
 id: FACT-PROP-REQ-SKILLOPT-CURSOR-COMPAT-C03
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

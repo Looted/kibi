@@ -21,4 +21,8 @@ claim_text: Explicit programmatic Jev options must override environment defaults
 id: FACT-PRED-A0122B94C999
 type: fact
 predicate_namespace: kibi.capability
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

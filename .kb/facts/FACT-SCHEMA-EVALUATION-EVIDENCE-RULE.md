@@ -18,6 +18,10 @@ argument_descriptions:
 examples:
   - evaluation_evidence_rule(paid_optimization,provider_quota_exhaustion,budget_exhausted_infrastructure_abort)
 tags: [lane:ontology, predicate-schema, skillopt, evaluation]
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Defines the project-local ontology for Skillopt evidence fidelity. This schema is intentionally narrower than generic state, retention, or preservation predicates.

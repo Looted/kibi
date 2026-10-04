@@ -15,4 +15,8 @@ claim_key: CLAIM-8B681A1C1D4D5023
 claim_text: Automated changelog generation
 id: FACT-PROP-REQ-020-C02
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

@@ -12,6 +12,10 @@ property_key: max_roles
 operator: lte
 value_type: int
 value_int: 2
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 A strict upper bound of at most 2 items.

@@ -56,6 +56,10 @@ links:
     target: FACT-CONTRADICTION-SOURCE-WITNESSES
   - type: requires_predicate
     target: FACT-RULE-OVERLAP-UNRESOLVED
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Predicate suggestion must discover existing project-local schemas from normalized RDF. It must not emit an applicable predicate plan until every ordered argument has an exact binding. Domain contradiction diagnostics must attach source-bound witnesses for strict properties, ground predicates, and safe rules. Rule overlap that cannot be proved or excluded must remain unresolved in requirement proof.

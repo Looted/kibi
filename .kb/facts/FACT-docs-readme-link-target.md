@@ -16,4 +16,8 @@ claim_key: CLAIM-7EAF872340247E1C
 claim_text: The repository README must link a documentation source that the documentation site publishes to that page's published URL, not to the GitHub rendering of the source
 id: FACT-docs-readme-link-target
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

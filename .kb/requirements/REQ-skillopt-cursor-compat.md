@@ -50,5 +50,9 @@ semantic_clauses:
   - compat commands strictly and must run the cursor compatibility lane before any paid evaluation cells are spent
   - The lane must gate evaluation on a passing cursor qualification check, summarize per-variant cell outcomes with absolute floors, and persist a compatibility report without recording account data
   - When arguments or gates are invalid, the operator fails closed with a usage error instead of launching cells
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 The SkillOpt cursor operator must parse its qualify and compat commands strictly and must run the cursor compatibility lane before any paid evaluation cells are spent. The lane must gate evaluation on a passing cursor qualification check, summarize per-variant cell outcomes with absolute floors, and persist a compatibility report without recording account data. When arguments or gates are invalid, the operator fails closed with a usage error instead of launching cells.

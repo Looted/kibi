@@ -11,6 +11,10 @@ tags:
   - deferred
 links:
   - REQ-006
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 When enabled: a CI step parses coverage reports (lcov, cobertura) and upserts

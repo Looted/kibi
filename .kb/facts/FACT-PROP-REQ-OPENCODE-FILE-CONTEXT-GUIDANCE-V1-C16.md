@@ -15,4 +15,8 @@ claim_key: CLAIM-DDDFDE01C4368243
 claim_text: '**Non-Blocking**: Guidance is advisory and must never block the agent''s workflow'
 id: FACT-PROP-REQ-OPENCODE-FILE-CONTEXT-GUIDANCE-V1-C16
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

@@ -22,6 +22,10 @@ polarity: assert
 claim_key: CLAIM-3CBD873F99A468BD
 claim_text: MCP tool schemas must preserve logic-claim uniqueness constraints
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of the MCP logic-claim uniqueness contract.

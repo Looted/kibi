@@ -23,6 +23,10 @@ claim_text: Opening a legacy branch MUST perform one guarded migration into a st
 claim_span_start: 425
 claim_span_end: 616
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of guarded legacy migration publication.

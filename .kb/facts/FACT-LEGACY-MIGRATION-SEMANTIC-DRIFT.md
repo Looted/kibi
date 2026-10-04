@@ -24,6 +24,10 @@ claim_text: An existing semantic_text that differs from current normalized autho
 claim_span_start: 510
 claim_span_end: 646
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of semantic source drift protection.

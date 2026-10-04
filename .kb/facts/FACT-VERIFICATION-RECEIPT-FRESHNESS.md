@@ -14,6 +14,10 @@ canonical_key: verification_receipt_rule(current_code_snapshot,newest_receipt,fr
 polarity: assert
 claim_key: CLAIM-A3834334B2DFAF17
 claim_text: The newest proof receipt for the current code snapshot must be passing and no older than seven days
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground predicate for the current-snapshot freshness window.

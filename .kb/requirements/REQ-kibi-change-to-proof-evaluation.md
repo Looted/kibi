@@ -22,6 +22,10 @@ links:
     target: SCEN-kibi-change-to-proof-evaluation
   - type: verified_by
     target: TEST-kibi-change-to-proof-evaluation
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Kibi must ship deterministic, reviewable evaluation fixtures for intent search and change-to-proof planning so dogfood projects can compare source-linked retrieval, clause disposition, abstention, and plan quality before and after a KB migration.

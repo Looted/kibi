@@ -30,5 +30,9 @@ examples:
   - provider_diagnostic_policy(kibi_doctor,configured_plugin_row,read_only_no_import)
 id: FACT-SCHEMA-PROVIDER-DIAGNOSTIC-POLICY
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Defines what a diagnostic or provenance surface may expose. Reuse for read-only doctor output, effective model identity, and the prohibition on printing credentials.

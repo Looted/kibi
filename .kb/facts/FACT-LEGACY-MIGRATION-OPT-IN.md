@@ -23,6 +23,10 @@ claim_text: Requirement coverage must emit a versioned deterministic legacy migr
 claim_span_start: 0
 claim_span_end: 115
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of opt-in legacy migration preview emission.

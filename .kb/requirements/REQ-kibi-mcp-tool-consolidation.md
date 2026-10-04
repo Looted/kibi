@@ -46,5 +46,9 @@ logic_claims:
   - CLAIM-EF0B6032CE452044
 id: REQ-kibi-mcp-tool-consolidation
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 The Kibi MCP server must expose 16 agent-facing tools, with composite kb_skills and kb_model tools returning the routed catalog operation payload plus the selector. kb_upsert with dryRun true must write nothing and report both write effects as skipped in place of kb_validate_upsert. kb_sparql_remote and kb_job_status must register only when KIBI_MCP_OPTIONAL_TOOLS names them.

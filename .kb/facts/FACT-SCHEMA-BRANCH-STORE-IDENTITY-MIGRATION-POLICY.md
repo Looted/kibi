@@ -27,4 +27,8 @@ examples:
   - branch_store_identity_migration_policy(same_exact_git_identity,literal_branch_store,hashed_branch_store)
 id: FACT-SCHEMA-BRANCH-STORE-IDENTITY-MIGRATION-POLICY
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

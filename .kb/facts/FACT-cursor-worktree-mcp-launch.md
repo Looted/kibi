@@ -14,6 +14,10 @@ tags:
 links:
   - FACT-POL-027
 fact_kind: observation
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Cursor project dogfood previously started MCP only from `git rev-parse --show-toplevel`, so linked worktrees without a local `packages/mcp` build (or without `.cursor/mcp.json`) reported MCP unavailable. A hand-patched local plugin copy at `~/.cursor/plugins/local/kibi-cursor/mcp.json` also pointed at a non-existent `.opencode/bin/kibi-mcp`, which failed even outside worktrees.

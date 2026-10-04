@@ -24,6 +24,10 @@ claim_text: Each preview batch must reconstruct the normalized authored Markdown
 claim_span_start: 233
 claim_span_end: 380
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of source-bound proposition inventories.

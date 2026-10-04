@@ -14,6 +14,10 @@ canonical_key: verification_receipt_rule(requirement_proof,unfresh_or_invalid_re
 polarity: assert
 claim_key: CLAIM-BB50FABD208405B7
 claim_text: A missing, stale, failed, malformed, mismatched, or future-dated proof receipt must not prove the requirement
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground predicate for conservative rejection of unusable evidence.

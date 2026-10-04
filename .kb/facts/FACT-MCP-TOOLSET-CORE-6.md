@@ -15,6 +15,10 @@ operator: eq
 value_type: int
 value_int: 11
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 The public MCP surface is intentionally curated rather than described by a fixed tool count.

@@ -20,4 +20,8 @@ claim_key: CLAIM-C03388C2E2F780AC
 claim_text: When kibi.plugins is absent, the host must use only automatically registered kibi-plugin-builtin providers
 id: FACT-PRED-83F2F476AAFE
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

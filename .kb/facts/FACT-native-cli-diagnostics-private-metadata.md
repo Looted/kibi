@@ -20,4 +20,8 @@ claim_key: CLAIM-6A42D5EC74AED462
 claim_text: Native CLI diagnostic samples must omit command arguments and environment variables
 id: FACT-native-cli-diagnostics-private-metadata
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

@@ -21,6 +21,10 @@ polarity: assert
 claim_key: CLAIM-AB495994E2FB1C33
 claim_text: Current requirements with opposite polarities over the same ground predicate term must produce a blocking contradiction
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of the generic exact-polarity contradiction invariant.

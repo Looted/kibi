@@ -34,6 +34,10 @@ semantic_inventory:
       start: 0
       end: 364
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 The Kibi VS Code extension provides bidirectional traceability between the knowledge base and source code.

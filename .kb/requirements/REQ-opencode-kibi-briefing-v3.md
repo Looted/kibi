@@ -295,6 +295,10 @@ logic_claims:
   - CLAIM-6B757291E002E717
   - CLAIM-C039AC81334809D5
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 The OpenCode Kibi Briefing system must transition to a session-grounded reconcile model to ensure briefings remain accurate and reliable across complex multi-step agent workflows.

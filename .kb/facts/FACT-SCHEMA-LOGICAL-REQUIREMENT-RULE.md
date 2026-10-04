@@ -88,6 +88,10 @@ argument_aliases:
     usage_metrics_acceptance_gate: kibi.telemetry.acceptance
     usage_remediation_command: kibi.telemetry.remediation
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Defines the stable project ontology used to ground Kibi's logical-coverage requirement without turning graph relationship names into ontology predicates.

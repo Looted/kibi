@@ -24,6 +24,10 @@ claim_text: Every assertive proposition must receive exactly one recommended lan
 claim_span_start: 516
 claim_span_end: 672
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of proposition disposition completeness.

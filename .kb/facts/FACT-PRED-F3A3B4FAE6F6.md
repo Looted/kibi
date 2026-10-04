@@ -22,4 +22,8 @@ claim_text: Report generation must fail the workflow when kibi report fails
 id: FACT-PRED-F3A3B4FAE6F6
 type: fact
 predicate_namespace: kibi.requirements
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

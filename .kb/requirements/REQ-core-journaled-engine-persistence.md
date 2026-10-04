@@ -88,6 +88,10 @@ links:
     target: FACT-JOURNALED-ENGINE-MIGRATION
   - type: requires_predicate
     target: FACT-JOURNALED-ENGINE-DELTA-SYNC
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Kibi MUST run one Node.js 18+ single-writer engine for each canonical workspace

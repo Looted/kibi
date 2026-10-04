@@ -9,6 +9,10 @@ tags:
   - discovery
 id: SCEN-kibi-search-answer-layer
 type: scenario
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 # A question to kb_search returns the governing requirements, what must stay true and what verifies it
 

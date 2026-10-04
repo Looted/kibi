@@ -15,4 +15,8 @@ claim_key: CLAIM-05B85025CCAEE762
 claim_text: When a file is deleted, the plugin must inject a safety check reminding the agent to verify whether the file implements any requirement
 id: FACT-PROP-REQ-OPENCODE-FILE-CONTEXT-GUIDANCE-V1-N03
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

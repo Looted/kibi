@@ -18,6 +18,10 @@ polarity: require
 claim_key: CLAIM-0B191D38D86B15DF
 claim_text: All KB writes go through `kb_upsert/2` which validates the changeset schema before committing
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Every upsert is validated against schema and relationship constraints before persistence.

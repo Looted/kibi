@@ -10,6 +10,10 @@ tags: [core, migration, persistence]
 links:
   - type: verified_by
     target: TEST-core-journaled-engine-persistence
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Given a populated legacy branch with `kb.rdf` and its audit journal

@@ -14,6 +14,10 @@ subject_key: kibi.example.strict_lanes
 links:
   - type: relates_to
     target: REQ-018
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 This example demonstrates the primary use of `fact` entities: strict domain facts

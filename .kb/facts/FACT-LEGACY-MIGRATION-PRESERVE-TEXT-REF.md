@@ -24,6 +24,10 @@ claim_text: An existing text_ref that differs from authored prose must block mig
 claim_span_start: 382
 claim_span_end: 514
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of code-evidence preservation.

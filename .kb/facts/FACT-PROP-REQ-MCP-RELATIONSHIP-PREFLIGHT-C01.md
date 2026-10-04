@@ -15,4 +15,8 @@ claim_key: CLAIM-C62B5CEF66028568
 claim_text: MCP relationship validation must reject malformed tuples, invalid targets, and source mismatches with actionable diagnostics before a mutation is persisted
 id: FACT-PROP-REQ-MCP-RELATIONSHIP-PREFLIGHT-C01
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

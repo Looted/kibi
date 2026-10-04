@@ -46,5 +46,9 @@ semantic_inventory:
     reason: Grounded by FACT-prolog-bundled-release-dry-run-can-publish via requires_property.
 id: REQ-prolog-bundled-release
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Release packaging must populate each kibi-swipl platform package only from a SWI-Prolog archive whose SHA-256 sidecar, pinned provenance, and binary SHA-256 all verify. Release packaging must ship each platform package payload as regular files with no symbolic links. The release dry-run workflow must not be able to publish.

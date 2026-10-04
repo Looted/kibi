@@ -40,6 +40,10 @@ semantic_inventory:
       start: 107
       end: 204
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 The `kibi gc` command removes stale KB branch stores that no longer have a corresponding local git branch.

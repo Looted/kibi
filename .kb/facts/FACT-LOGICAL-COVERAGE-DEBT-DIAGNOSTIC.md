@@ -22,6 +22,10 @@ polarity: assert
 claim_key: CLAIM-5C075A0CE1F05208
 claim_text: Every current requirement without a logic_claims manifest must receive a non-blocking logical-coverage debt diagnostic
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of the gradual logical-coverage backfill signal.

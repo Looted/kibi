@@ -18,4 +18,8 @@ claim_span_start: 376
 claim_span_end: 439
 id: FACT-PROP-ZCODE-NO-HARD-GATE
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

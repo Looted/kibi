@@ -17,6 +17,10 @@ claim_key: CLAIM-183ECDE6E879FD37
 claim_text: The parity rule must honor explicit rule selection
 id: FACT-SOURCE-PARITY-RULE-SELECTION
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 The parity rule must honor explicit rule selection.
 

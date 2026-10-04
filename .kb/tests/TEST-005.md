@@ -1700,6 +1700,10 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Starts `kibi-mcp` in a test environment. Sends `tools/list` and asserts:
 - Response has `result.tools` array with the curated public tool set

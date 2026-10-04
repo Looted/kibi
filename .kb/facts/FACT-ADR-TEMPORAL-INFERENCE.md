@@ -8,6 +8,10 @@ source: documentation/facts/FACT-ADR-TEMPORAL-INFERENCE.md
 tags: [adr, inference, temporal]
 fact_kind: subject
 subject_key: kibi.adr.temporal_inference
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Inference resolves current and historical ADR state along supersession chains.

@@ -18,4 +18,8 @@ claim_span_start: 152
 claim_span_end: 245
 id: FACT-prolog-bundled-ci-keeps-system-swipl-job
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

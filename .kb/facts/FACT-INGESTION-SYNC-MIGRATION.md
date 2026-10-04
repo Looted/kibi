@@ -19,6 +19,10 @@ claim_text: Markdown sync must baseline existing legacy requirements once, then 
 claim_span_start: 433
 claim_span_end: 570
 predicate_namespace: kibi.ingestion
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground predicate for compatibility-safe sync enforcement.

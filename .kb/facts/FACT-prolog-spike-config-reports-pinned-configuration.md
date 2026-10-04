@@ -13,4 +13,8 @@ claim_key: CLAIM-91B226BCC0147B41
 claim_text: The configuration check must report the pinned SWI-Prolog version, dependency versions, and required library list
 id: FACT-prolog-spike-config-reports-pinned-configuration
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

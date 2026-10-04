@@ -13,6 +13,10 @@ tags:
 links:
   - type: verified_by
     target: TEST-opencode-kibi-plugin-v1
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 ## Scenario: Prompt Guidance Injection

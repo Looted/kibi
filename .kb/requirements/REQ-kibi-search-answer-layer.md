@@ -46,5 +46,9 @@ logic_claims:
   - CLAIM-DED63830C86F15B5
 id: REQ-kibi-search-answer-layer
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 kb_search must default to intent-v1 ranking and demote superseded, deprecated, and rejected entities. By default kb_search must return a kibi.search-answer.v1 answer layer listing the current governing requirements, their linked facts, rationale ADRs, verifying scenarios and tests, superseded non-governing entries, and observation notes within a byte ceiling. The search answer layer must state that absence of a match is not evidence.

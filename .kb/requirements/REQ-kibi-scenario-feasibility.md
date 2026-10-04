@@ -56,5 +56,9 @@ logic_claims:
   - CLAIM-90669BB32C299C4E
 id: REQ-kibi-scenario-feasibility
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 The scenario-feasibility check must report a scenario that expects success and assumes a property value that a current requirement forbids. The proof ladder must block each requirement specified by an infeasible scenario with the infeasible_scenario gap. An approved exception requirement that exempts the base requirement and is specified by the scenario must make that scenario feasible. The scenario-feasibility check must not check scenarios that expect rejection or error.

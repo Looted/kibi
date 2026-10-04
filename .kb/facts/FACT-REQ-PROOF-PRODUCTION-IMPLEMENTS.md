@@ -22,6 +22,10 @@ polarity: assert
 claim_key: CLAIM-C716C2DA63A93BDF
 claim_text: Every proof-bearing production symbol must implement the requirement
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of production ownership traceability.

@@ -14,4 +14,8 @@ claim_key: CLAIM-7D9BC2D21690A9A7
 claim_text: Provider credit or usage exhaustion must terminate paid optimization as budget-exhausted infrastructure evidence
 id: FACT-PRED-SKILLOPT-CLAIM-7D9BC2D21690A9A7
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

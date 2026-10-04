@@ -13,5 +13,9 @@ type: test
 links:
   - type: validates
     target: SCEN-mcp-relationship-preflight
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Imports the exported relationship configuration and type contract, then asserts the complete supported relationship vocabulary.

@@ -19,4 +19,8 @@ claim_key: CLAIM-1B4BDC604FA68207
 claim_text: When kibi-claude is enabled, it must expose a Claude Code plugin manifest
 id: FACT-PRED-E34B529A9CF1
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

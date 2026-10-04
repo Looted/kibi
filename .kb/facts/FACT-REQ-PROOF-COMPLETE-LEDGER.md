@@ -21,6 +21,10 @@ polarity: assert
 claim_key: CLAIM-FA450AC4EF93F78C
 claim_text: A proven requirement must have a complete proposition ledger with no unresolved assertive entries
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of the semantic-inventory completeness gate.

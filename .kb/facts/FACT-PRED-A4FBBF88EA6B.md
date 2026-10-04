@@ -23,6 +23,10 @@ claim_text: Stale, future-dated, empty, partial, or unobservable evidence must r
 claim_span_start: 210
 claim_span_end: 296
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of fail-closed observability semantics.

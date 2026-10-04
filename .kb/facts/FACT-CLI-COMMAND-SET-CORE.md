@@ -13,6 +13,10 @@ operator: eq
 value_type: string
 value_string: init,sync,query,check,gc,doctor
 polarity: require
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 The baseline command set is init, sync, query, check, gc, and doctor.

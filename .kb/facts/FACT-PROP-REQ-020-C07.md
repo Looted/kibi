@@ -15,4 +15,8 @@ claim_key: CLAIM-3804C9E583B24080
 claim_text: '**Master Publishing**: `master` CI builds and publishes newly bumped versions to npm'
 id: FACT-PROP-REQ-020-C07
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

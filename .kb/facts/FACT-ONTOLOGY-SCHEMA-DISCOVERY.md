@@ -24,6 +24,10 @@ claim_text: Predicate suggestion must discover existing project-local schemas fr
 claim_span_start: 0
 claim_span_end: 85
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of graph-aware predicate-schema discovery.

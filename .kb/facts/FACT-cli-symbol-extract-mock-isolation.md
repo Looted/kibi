@@ -13,6 +13,10 @@ links:
   - SYM-extractSymbolsFromStagedFile
   - TEST-cli-staged-impact-enforcement
 fact_kind: observation
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 # Fact: Symbol Extraction Mock Isolation

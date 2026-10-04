@@ -20,6 +20,10 @@ links:
   - REQ-kibi-ontology-convergence-witnesses
   - REQ-skillopt-predicate-first-requirements
 fact_kind: meta
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Kibi is an agent-native requirements compiler and enforcement layer, not a human-maintained requirements database or a passive retrieval-memory system.

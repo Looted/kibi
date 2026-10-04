@@ -21,6 +21,10 @@ claim_key: CLAIM-3A65A655962C5ADA
 claim_text: Legacy migration may only convert a literal branch store to the hashed store for the same exact active Git branch identity
 id: FACT-BRANCH-STORE-SAME-IDENTITY-MIGRATION
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Legacy migration may only convert a literal branch store to the hashed store for the same exact active Git branch identity.
 

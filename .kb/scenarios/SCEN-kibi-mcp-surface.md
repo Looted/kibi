@@ -14,6 +14,10 @@ links:
     target: TEST-kibi-telemetry-acceptance-gate
   - type: verified_by
     target: TEST-e2e-mcp-model-requirement
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 GIVEN the packed kibi-mcp installation

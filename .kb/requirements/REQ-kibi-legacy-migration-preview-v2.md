@@ -119,6 +119,10 @@ links:
     target: FACT-LEGACY-MIGRATION-READ-ONLY
   - type: requires_predicate
     target: FACT-LEGACY-MIGRATION-PARITY
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Requirement coverage must emit a versioned deterministic legacy migration plan when includeMigrationPreview is true. The planner must select only ready semantic_inventory batches from a complete dependency-ordered repair-plan scope. Each preview batch must reconstruct the normalized authored Markdown body and bind every proposition to an exact SHA-256 source hash and UTF-8 span. Authored requirement prose must be persisted in requirement-only semantic_text while an independent text_ref remains unchanged. An existing semantic_text that differs from current normalized authored Markdown must block preview application as semantic source drift. Every assertive proposition must receive exactly one recommended lane or explicit unresolved disposition while nonlogical prose remains outside logic claims. Predicate rankings must preserve exact schema identifiers, signatures, origins, scores, polarity, and unbound arguments for project-local and built-in schemas. No candidate with an incomplete binding may produce an applicable write. The default preview must return one requirement batch with deterministic pagination and an explicit next offset. Every batch must be read-only, non-auto-applicable, and contain only a reviewed property-patch preview. CLI and MCP requirement coverage must expose semantically identical plans without changing source files or KB bytes.

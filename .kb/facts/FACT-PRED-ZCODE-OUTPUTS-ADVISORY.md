@@ -19,4 +19,8 @@ claim_span_start: 128
 claim_span_end: 210
 id: FACT-PRED-ZCODE-OUTPUTS-ADVISORY
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

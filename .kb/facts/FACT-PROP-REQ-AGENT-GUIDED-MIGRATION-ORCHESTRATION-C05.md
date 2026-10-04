@@ -15,4 +15,8 @@ claim_key: CLAIM-AD03788F5B2C23FD
 claim_text: Schema and storage migrations MUST be ordered idempotent audited and recoverable with preserved backups before the next status readback
 id: FACT-PROP-REQ-AGENT-GUIDED-MIGRATION-ORCHESTRATION-C05
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

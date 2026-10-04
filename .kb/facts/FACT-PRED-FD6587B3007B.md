@@ -21,4 +21,8 @@ claim_key: CLAIM-D5F22EE18EE4D00D
 claim_text: A capability plugin package must resolve from the project-local dependency graph and must not use a global installation
 id: FACT-PRED-FD6587B3007B
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

@@ -62,5 +62,9 @@ semantic_inventory:
       end: 404
 id: REQ-prolog-spike-config-validation
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 The SWI-Prolog spike configuration check must accept the pinned source manifest for linux-x64-gnu and darwin-arm64. The configuration check must reject malformed source metadata. The configuration check must reject unsupported targets. The configuration check must report the pinned SWI-Prolog version, dependency versions, and required library list. The configuration check must not start a native build.

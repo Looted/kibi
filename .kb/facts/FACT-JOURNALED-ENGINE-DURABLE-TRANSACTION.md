@@ -24,6 +24,10 @@ claim_text: The engine MUST attach the branch with SWI-Prolog rdf_persistency an
 claim_span_start: 226
 claim_span_end: 423
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of atomic journal durability and acknowledgement.

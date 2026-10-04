@@ -64,6 +64,10 @@ semantic_inventory:
       start: 337
       end: 427
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 MCP must detect when the attached branch KB snapshot has been replaced externally (for example, by `kibi sync --rebuild`) while the MCP session continues running, and must refresh attachment state before serving queries or mutations.

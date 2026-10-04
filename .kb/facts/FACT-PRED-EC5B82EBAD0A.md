@@ -19,5 +19,9 @@ claim_key: CLAIM-45F10B77B0974B6E
 claim_text: The report must remain responsive and printable
 id: FACT-PRED-EC5B82EBAD0A
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 The proof instrument remains legible on narrow screens and paper.

@@ -9,6 +9,10 @@ tags: [requirements, diagnostics, coverage, proof, receipts]
 links:
   - type: verified_by
     target: TEST-kibi-proof-aware-quality-diagnostics
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Given a requirement with a scenario-backed E2E test whose current proof receipt passes for the live snapshot, when full checks and complete coverage run, then both surfaces use the same proof evidence and full checks do not emit a contradictory `coverage_depth_review`. Independent ontology, symbol, coordinate, or receipt gaps remain visible.

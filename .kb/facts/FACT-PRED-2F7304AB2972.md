@@ -21,4 +21,8 @@ claim_text: An external capability provider must not run during a maintenance op
 id: FACT-PRED-2F7304AB2972
 type: fact
 predicate_namespace: kibi.capability
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

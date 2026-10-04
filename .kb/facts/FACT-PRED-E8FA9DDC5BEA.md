@@ -23,6 +23,10 @@ claim_text: Kibi must evaluate the latest 200 usage events as a versioned kibi.t
 claim_span_start: 0
 claim_span_end: 97
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of the versioned recent-event telemetry report.

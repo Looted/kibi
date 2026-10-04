@@ -17,6 +17,10 @@ value_type: string
 value_string: automatic
 polarity: require
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 When a branch KB is missing, initialization logic creates it automatically.

@@ -91,6 +91,10 @@ logic_claims:
   - CLAIM-55A4848586289BB2
 id: REQ-mcp-workspace-routing
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 When a Kibi MCP tool call carries a workspaceRoot argument, the Kibi MCP server must answer the call from the Kibi workspace that owns that directory.
 

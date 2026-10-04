@@ -14,6 +14,10 @@ canonical_key: verification_receipt_rule(durable_test_status,requirement_proof,n
 polarity: assert
 claim_key: CLAIM-0C6463BA2B3AA64B
 claim_text: Durable test status remains structural metadata and cannot substitute for proof receipts
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground predicate separating structural test metadata from execution proof.

@@ -46,5 +46,9 @@ semantic_inventory:
     reason: Grounded by FACT-prolog-bundled-quickstart-readme-reaches-bootstrap via requires_property.
 id: REQ-prolog-bundled-quickstart
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Published installation guidance must state that no SWI-Prolog install is needed on the supported Linux and macOS platforms. Published installation guidance must document the KIBI_SWIPL override, the lookup order, and the doctor source report. The README quick start must reach a bootstrapped project from the packed release tarballs on every launch platform with no SWI-Prolog installed.

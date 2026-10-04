@@ -38,6 +38,10 @@ logic_claims:
   - CLAIM-4270D9C398140B90
 id: REQ-kibi-local-proof-parity
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Maintainers can replay the CI proof gate locally against a clean clone of the committed HEAD. The proof baseline check offers a semantic-only mode that ignores stale proof evidence and still fails on grounding, contradiction, and traceability regressions.
 

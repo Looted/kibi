@@ -128,6 +128,10 @@ links:
     target: FACT-PRED-AD0C672ED7B9
   - type: requires_predicate
     target: FACT-PRED-4307CB603922
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Kibi must evaluate the latest 200 usage events as a versioned kibi.telemetry-acceptance.v1 report. The report must pass only when its evidence is no more than seven days old and every applicable metric passes. Stale, future-dated, empty, partial, or unobservable evidence must remain insufficient. The report must measure telemetry completeness, semantic-advisor use before requirement writes, exact validation before upserts, source-linked zero-result rate, proof-gap recovery, E2E receipt freshness, and repeated mutation failures. Validation correlation must match the canonical payload and a successful preflight no more than one hour before the upsert. Advisor correlation must match the requirement and, when both events expose it, the semantic source hash, within 24 hours before the write. Proof recovery and receipt freshness must use complete requirement-coverage events instead of partial or non-requirement reports. Three consecutive failed upserts for one mutation target must fail the retry-discipline metric. An unfiltered kb_check must add ranked non-blocking telemetry quality diagnostics when a usage log exists. An absent opt-in usage log must not fabricate telemetry evidence. kibi usage-metrics --require-acceptance must exit nonzero unless the overall status is passed while still printing the report. Diagnostic usage records must preserve stable mutation fingerprints, semantic source hashes, proof-gap counts, receipt-gap counts, and coverage-scope completeness for later audit.

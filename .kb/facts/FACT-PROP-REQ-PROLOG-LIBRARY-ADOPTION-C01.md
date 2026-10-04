@@ -15,4 +15,8 @@ claim_key: CLAIM-6B1DA061279DDD72
 claim_text: Kibi should adopt maintained SWI-Prolog libraries where they clarify bounded graph behavior without replacing the local branch KB model.\n\nThe implementation must keep CHR-derived facts isolated from the existing validation path, keep SPARQL support remote-only and opt-in, and expose the remote SPARQL capability through the curated MCP surface with validation for endpoint safety and SELECT-only queries
 id: FACT-PROP-REQ-PROLOG-LIBRARY-ADOPTION-C01
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

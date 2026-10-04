@@ -175,6 +175,10 @@ logic_claims:
   - CLAIM-794B2C3A835B0346
   - CLAIM-A752F96513BCA21C
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 The VS Code Kibi extension must support a render-first auto-open contract for idle briefings, providing immediate visibility of contextual guidance when unread briefs are detected.

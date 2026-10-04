@@ -16,6 +16,10 @@ links:
     target: REQ-core-atomic-upsert-persistence
   - type: verified_by
     target: TEST-core-atomic-upsert-persistence
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 **Scenario: successful atomic commit**

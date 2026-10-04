@@ -15,4 +15,8 @@ claim_key: CLAIM-B2AE424C29508FFF
 claim_text: Guidance may name either public surface when that is the clearest route for the user
 id: FACT-PROP-REQ-AGENT-KIBI-INTERFACE-SELECTION-C03
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

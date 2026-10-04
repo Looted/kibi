@@ -12,6 +12,10 @@ property_key: storage_location
 operator: eq
 value_type: string
 value_string: repo_local
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 The knowledge base must be local to a single git repository.

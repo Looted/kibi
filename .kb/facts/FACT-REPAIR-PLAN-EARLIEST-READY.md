@@ -24,6 +24,10 @@ claim_text: Only the earliest unresolved batch for each requirement may be ready
 claim_span_start: 364
 claim_span_end: 432
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of conservative ready-state selection.

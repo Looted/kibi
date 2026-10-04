@@ -15,4 +15,8 @@ claim_key: CLAIM-961BE04CC123F56E
 claim_text: The portable artifact must conform to the Agent Plugins 1.0.0 manifest schema with a root plugin.json
 id: FACT-PROP-REQ-CURSOR-AGENT-PLUGIN-STANDARD-V1-N02
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

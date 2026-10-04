@@ -15,4 +15,8 @@ claim_text: hosts select the visible approved surface by capability rather than 
 value_type: string
 id: FACT-PROP-PARITY-SELECTION
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

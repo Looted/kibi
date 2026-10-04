@@ -16,4 +16,8 @@ claim_key: CLAIM-BFA707582FDA4263
 claim_text: Kibi must use the exact active Git branch name as the branch-local KB identity
 id: FACT-EXACT-BRANCH-IDENTITY-SOURCE
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

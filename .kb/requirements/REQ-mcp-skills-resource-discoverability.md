@@ -32,6 +32,10 @@ semantic_inventory:
     span:
       start: 0
       end: 141
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 MCP skill resource handlers must expose declared bundled skill resources through deterministic discovery and reject undeclared resource paths.

@@ -72,6 +72,10 @@ semantic_inventory:
       start: 396
       end: 494
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Agents must preserve human-readable requirement prose while making its supported semantics queryable. Normative relational claims first go through `kb_semantic_advisor` and `kb_suggest_predicates`. When the returned built-in or project-local predicate is suitable, the agent creates the suggested `fact_kind: predicate` fact and links this requirement to it with `requires_predicate`.

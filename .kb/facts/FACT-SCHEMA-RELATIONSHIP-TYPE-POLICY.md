@@ -21,4 +21,8 @@ examples:
   - relationship_type_policy(kibi_relationship_model,implements__validates__specified_by__covered_by__depends_on__relates_to__constrained_by)
 id: FACT-SCHEMA-RELATIONSHIP-TYPE-POLICY
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

@@ -16,4 +16,8 @@ claim_key: CLAIM-339792C9B3635D5D
 claim_text: A missing exact store is created only on an explicit branch ensure
 id: FACT-EXACT-BRANCH-INITIALIZATION-MODE
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

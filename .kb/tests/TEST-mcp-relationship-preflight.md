@@ -1700,5 +1700,9 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Submit malformed relationship tuples, missing targets, and source mismatches and assert that validation rejects them with stable diagnostics before persistence. Executable coverage spans `packages/mcp/tests/tools/validate-upsert.test.ts`, `packages/mcp/tests/tools/upsert.test.ts`, and `packages/mcp/tests/tools/relationship-validation.test.ts`.

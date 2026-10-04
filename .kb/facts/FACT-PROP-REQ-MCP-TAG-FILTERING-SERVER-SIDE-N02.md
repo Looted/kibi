@@ -15,4 +15,8 @@ claim_key: CLAIM-E9F7BACF455C22D5
 claim_text: Matching any provided tag must return the entity
 id: FACT-PROP-REQ-MCP-TAG-FILTERING-SERVER-SIDE-N02
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

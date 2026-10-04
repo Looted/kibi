@@ -100,5 +100,9 @@ links:
     target: FACT-PRED-EC5B82EBAD0A
 id: REQ-kibi-branded-health-report
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Kibi's public requirement-health report is a proof instrument and a brand surface. It uses the canonical marks and proof-rail visual grammar while keeping strict health data understandable, portable, and accessible.

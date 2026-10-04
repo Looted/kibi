@@ -12,5 +12,9 @@ tags:
   - resolved:schema-extension
 id: FACT-OBS-search-intent-default-ranking
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Resolved: the logical_requirement_rule schema now declares the kibi.discovery.search subject, and FACT-SEARCH-DEFAULT-INTENT-RANKING grounds this claim on REQ-kibi-search-answer-layer.

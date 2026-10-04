@@ -24,6 +24,10 @@ claim_text: CLI startup MUST lazily load selected command implementations while 
 claim_span_start: 654
 claim_span_end: 821
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of CLI lazy loading and authoritative metadata parity.

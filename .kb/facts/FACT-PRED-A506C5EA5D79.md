@@ -22,4 +22,8 @@ claim_text: Missing project-local kibi-mcp must produce a concise actionable err
 id: FACT-PRED-A506C5EA5D79
 type: fact
 predicate_namespace: kibi.launcher
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

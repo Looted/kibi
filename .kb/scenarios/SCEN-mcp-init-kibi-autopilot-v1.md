@@ -13,6 +13,10 @@ links:
   - type: relates_to
     target: REQ-mcp-init-kibi-autopilot-v1
 type: scenario
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 **Scenario: Interactive Kibi bootstrap in an uninitialized repository**

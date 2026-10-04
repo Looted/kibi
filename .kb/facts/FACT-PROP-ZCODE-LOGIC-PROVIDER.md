@@ -17,5 +17,9 @@ value_type: string
 value_string: kibi_core
 id: FACT-PROP-ZCODE-LOGIC-PROVIDER
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Project-local Kibi logic used through kibi-zcode must remain provided by kibi-core

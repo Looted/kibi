@@ -29,5 +29,9 @@ examples:
   - provider_setting_source(typesafe_api_key,process_environment,repository_plugin_config_forbidden)
 id: FACT-SCHEMA-PROVIDER-SETTING-SOURCE
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Defines where a provider setting or secret comes from and which source wins. Reuse for environment variables, programmatic constructor options, and the rule that secrets stay outside repository plugin configuration.

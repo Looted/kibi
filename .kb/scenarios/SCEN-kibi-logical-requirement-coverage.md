@@ -14,6 +14,10 @@ links:
   - type: verified_by
     target: TEST-kibi-logical-requirement-coverage
 type: scenario
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Given a requirement body containing multiple atomic normative clauses, when the semantic advisor and modeling tools prepare its logical representation, then every clause has a stable key, every key is preserved on a linked ground strict-property or predicate fact, repeated modeling calls merge the requirement manifest, and `logic-coverage` reports missing or orphaned ground claims.

@@ -21,6 +21,10 @@ claim_text: mismatched contracts must remain non-proof outcomes
 claim_span_start: 300
 claim_span_end: 351
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation for contract-mismatch rejection.

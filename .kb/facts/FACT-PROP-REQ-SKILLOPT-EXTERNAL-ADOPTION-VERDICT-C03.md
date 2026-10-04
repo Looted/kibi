@@ -15,4 +15,8 @@ claim_key: CLAIM-B17D92322CD168A9
 claim_text: 'This requirement does not assume any repository-hosted signer or authority service.\n\nIncomplete runtime configuration and infrastructure failures are not behavioral evidence: the bridge must reject missing or partial executable paths, and runtime, training, interruption, budget, or evidence-conflict failures must produce a structured exit-1 no-go without a terminal eligibility review'
 id: FACT-PROP-REQ-SKILLOPT-EXTERNAL-ADOPTION-VERDICT-C03
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

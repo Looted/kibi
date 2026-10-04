@@ -16,6 +16,10 @@ claim_key: CLAIM-64926C47C2848B43
 claim_text: Each `kb_upsert` mutation must execute one bounded Prolog commit that holds the branch write lock while it validates the attached snapshot, applies the entity and relationships, checks contradictions, records entity and relationship audit rows, synchronizes the audit journal, and saves one RDF snapshot
 claim_span_start: 0
 claim_span_end: 303
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of the single locked upsert commit.

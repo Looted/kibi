@@ -15,4 +15,8 @@ claim_key: CLAIM-BEE788A61C4A7D8B
 claim_text: The doctor must not emit the package-provenance-unresolved migration action when every probed Kibi package resolves to an installed manifest
 id: FACT-PROP-REQ-CLI-DOCTOR-PACKED-PROVENANCE-C02
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

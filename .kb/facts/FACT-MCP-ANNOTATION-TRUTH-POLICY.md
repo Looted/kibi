@@ -18,6 +18,10 @@ claim_key: CLAIM-7559402BE39DC26A
 claim_text: Read-only operations used by non-interactive clients must publish truthful MCP annotations
 id: FACT-MCP-ANNOTATION-TRUTH-POLICY
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Read-only operations used by non-interactive clients must publish truthful MCP annotations.
 

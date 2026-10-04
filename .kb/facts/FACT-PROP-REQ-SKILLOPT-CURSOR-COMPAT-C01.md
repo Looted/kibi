@@ -15,4 +15,8 @@ claim_key: CLAIM-EB0CB5AD393F637A
 claim_text: The SkillOpt cursor operator must parse its qualify
 id: FACT-PROP-REQ-SKILLOPT-CURSOR-COMPAT-C01
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

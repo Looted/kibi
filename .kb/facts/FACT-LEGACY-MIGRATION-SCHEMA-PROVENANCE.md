@@ -24,6 +24,10 @@ claim_text: Predicate rankings must preserve exact schema identifiers, signature
 claim_span_start: 674
 claim_span_end: 832
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of candidate provenance requirements.

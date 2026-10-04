@@ -17,6 +17,10 @@ claim_text: Current requirement writes must reject any omitted assertive proposi
 claim_span_start: 0
 claim_span_end: 72
 predicate_namespace: kibi.ingestion
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground predicate for fail-closed proposition omission.

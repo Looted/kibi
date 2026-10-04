@@ -9,6 +9,10 @@ tags: [requirements, migration, semantics, source-binding, packed, e2e]
 links:
   - type: verified_by
     target: TEST-kibi-legacy-migration-preview-v2
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Given a legacy requirement whose authored Markdown lacks a proposition inventory and whose `text_ref` points to independent code or document evidence, when a packed CLI consumer or MCP caller opts into migration preview, then Kibi returns the same deterministic, read-only review plan with the normalized prose in a `semantic_text` patch and no `text_ref` replacement. Given an existing `semantic_text` value that differs from the normalized authored Markdown, the preview is blocked as semantic source drift.

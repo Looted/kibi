@@ -15,4 +15,8 @@ claim_key: CLAIM-EF560B51A26D9FEA
 claim_text: The tree node must still be expandable to show linked KB entities (requirements, tests, etc.) while allowing navigation
 id: FACT-PROP-REQ-VSCODE-KB-TO-SOURCE-C04
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

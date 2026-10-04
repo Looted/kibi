@@ -15,4 +15,8 @@ claim_key: CLAIM-CF04B0A29E65B7DA
 claim_text: The VS Code extension must provide a structural View of the KB:\n\nImplement a `TreeView` in the VS Code sidebar to browse Kibi entities.\nOrganize entities by type (REQ, SCEN, TEST, etc.).\nSupport hierarchical exploration of linked entities (e.g., REQ -> SCEN -> TEST).\nRefresh the tree view when the underlying KB snapshot changes
 id: FACT-PROP-REQ-VSCODE-SIDEBAR-KB-TREE-C01
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

@@ -21,6 +21,10 @@ claim_text: Retries, skips, stale receipts, partial runs
 claim_span_start: 250
 claim_span_end: 294
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation for non-proof retry, skip, stale, and partial outcomes.

@@ -17,6 +17,10 @@ value_type: string
 value_string: resolved_default_branch
 polarity: require
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 New branch stores are initialized by copying the resolved default branch snapshot. The default branch is determined in this order: `.kb/config.json` `defaultBranch` (if set), then `origin/HEAD` (if available), then `main` as fallback.

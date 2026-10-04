@@ -35,4 +35,8 @@ examples:
   - branch_store_migration_policy(same_identity,legacy_exact_ref_store,hashed_exact_ref_store,reject_arbitrary_cross_branch_moves)
 id: FACT-SCHEMA-BRANCH-STORE-MIGRATION-POLICY
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

@@ -19,4 +19,8 @@ claim_key: CLAIM-86B85730B99AF0C9
 claim_text: When the agent is about to read or edit a source file whose symbols are linked to requirements, kibi-claude hooks must add the linked requirement identifiers to the agent context
 id: FACT-PRED-8FEC71EF2D20
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

@@ -14,6 +14,10 @@ tags:
 links:
   - FACT-CI-GATING
 type: test
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Contract tests that assert packed CI regression jobs run from downloaded artifacts without performing a repository checkout, while still waiting on both JavaScript and Prolog coverage gates. The tests validate `build-and-test` keeps unit coverage mandatory on pull requests and pushes, and that packed jobs continue consuming the tarball artifacts emitted upstream.

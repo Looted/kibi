@@ -23,6 +23,10 @@ claim_text: The report must pass only when its evidence is no more than seven da
 claim_span_start: 99
 claim_span_end: 208
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of conservative acceptance success.

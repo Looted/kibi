@@ -9,6 +9,10 @@ links:
     target: REQ-014
   - type: validates
     target: SCEN-009
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Run the LCOV finalization script against a fixture report and assert that the normalized output and summary are emitted deterministically.

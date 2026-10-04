@@ -15,6 +15,10 @@ operator: eq
 value_type: int
 value_int: 3
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Deterministic inference exists in Kibi, but it is not part of the curated public MCP surface.

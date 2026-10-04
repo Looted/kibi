@@ -10,6 +10,10 @@ tags: [cli, sync, performance]
 links:
   - type: verified_by
     target: TEST-core-journaled-engine-delta-sync
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Given a branch with unchanged and changed source files

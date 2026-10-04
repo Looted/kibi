@@ -8,6 +8,10 @@ source: documentation/facts/FACT-CONSISTENCY-CHECKING.md
 tags: [validation, check]
 fact_kind: subject
 subject_key: kibi.consistency.checking
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 The KB enforces consistency checks over entities and relationships.

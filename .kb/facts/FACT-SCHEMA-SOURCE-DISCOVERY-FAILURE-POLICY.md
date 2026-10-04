@@ -21,4 +21,8 @@ examples:
   - source_discovery_failure_policy(source_relationship_parity,blocking)
 id: FACT-SCHEMA-SOURCE-DISCOVERY-FAILURE-POLICY
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

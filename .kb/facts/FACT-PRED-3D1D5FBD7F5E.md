@@ -19,4 +19,8 @@ claim_key: CLAIM-8A4067501CAD35CE
 claim_text: The Jev model must default to jev-latest
 id: FACT-PRED-3D1D5FBD7F5E
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

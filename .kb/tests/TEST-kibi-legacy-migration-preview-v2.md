@@ -11,6 +11,10 @@ tags: [requirements, migration, semantics, source-binding, packed, e2e]
 links:
   - type: validates
     target: SCEN-kibi-legacy-migration-preview-v2
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Exercises semantic-source separation through focused CLI, Core, and MCP contract tests plus a fresh packed installation. It proves that authored prose is persisted and previewed through `semantic_text`, independent `text_ref` evidence is retained, semantic source drift fails closed, CLI and MCP return equivalent plans, and preview calls do not mutate source or KB state.

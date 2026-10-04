@@ -45,5 +45,9 @@ semantic_inventory:
     reason: Grounded by a predicate fact over the narrow vocabulary-convergence schemas.
 id: REQ-kibi-unit-canonicalization
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Kibi must compare property values with a known duration, data-size, or percentage unit in the base unit of that family. Kibi must store authored property values and units unchanged. Unknown or ambiguous units must never be equated with a different unit.

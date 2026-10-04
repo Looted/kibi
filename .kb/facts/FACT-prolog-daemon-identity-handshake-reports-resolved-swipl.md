@@ -19,4 +19,8 @@ tags:
   - fact:property_value
 id: FACT-prolog-daemon-identity-handshake-reports-resolved-swipl
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

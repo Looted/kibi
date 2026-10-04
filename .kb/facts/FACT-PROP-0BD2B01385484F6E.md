@@ -20,4 +20,8 @@ claim_key: CLAIM-387DE160D72D606F
 claim_text: The kibi-codex plugin registers consumer-local MCP startup behavior for Codex
 id: FACT-PROP-0BD2B01385484F6E
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

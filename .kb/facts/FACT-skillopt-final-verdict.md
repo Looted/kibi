@@ -10,6 +10,10 @@ tags:
   - evaluation
   - no-go
 fact_kind: meta
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 # SkillOpt Kibi skills evaluation: bounded no-go

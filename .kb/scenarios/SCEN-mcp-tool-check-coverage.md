@@ -12,6 +12,10 @@ links:
     target: REQ-mcp-tool-check
   - type: verified_by
     target: TEST-mcp-tool-check-coverage
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Given a branch KB with an integrity violation, when an operator invokes the MCP check tool with a selected rule, then the tool returns clear violation details and can be run again after the mutation to confirm the repaired state.

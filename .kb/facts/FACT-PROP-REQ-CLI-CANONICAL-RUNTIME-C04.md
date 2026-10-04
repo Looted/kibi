@@ -15,4 +15,8 @@ claim_key: CLAIM-ACC45FF9773A9AEA
 claim_text: README.md files under entity directories must be ignored by sync discovery
 id: FACT-PROP-REQ-CLI-CANONICAL-RUNTIME-C04
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

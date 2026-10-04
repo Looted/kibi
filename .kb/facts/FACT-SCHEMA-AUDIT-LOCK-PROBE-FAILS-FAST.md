@@ -24,5 +24,9 @@ examples:
   - audit_lock_probe_fails_fast(existing_journal,nonblocking,stale_runtime)
 id: FACT-SCHEMA-AUDIT-LOCK-PROBE-FAILS-FAST
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Predicate schema for audit_lock_probe_fails_fast/3.

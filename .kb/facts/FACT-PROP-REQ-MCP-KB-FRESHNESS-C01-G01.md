@@ -15,4 +15,8 @@ claim_key: CLAIM-6227CA584850B7C2
 claim_text: MCP must detect when the attached branch KB snapshot has been replaced externally while the MCP session continues running
 id: FACT-PROP-REQ-MCP-KB-FRESHNESS-C01-G01
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

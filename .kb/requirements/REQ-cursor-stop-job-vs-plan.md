@@ -71,6 +71,10 @@ semantic_inventory:
       end: 477
       start: 319
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 The Cursor Kibi `stop` hook must treat plan delivery as distinct from job completion.

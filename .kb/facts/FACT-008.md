@@ -10,6 +10,10 @@ tags:
   - npm
   - package-naming
 fact_kind: observation
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Kibi packages are published to npm as unscoped names:

@@ -8,6 +8,10 @@ tags:
   - proof
 id: SCEN-ci-kb-merge-resolution
 type: scenario
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 ## Given
 An open pull request whose only conflicts with develop are Kibi manifests, branched before `kibi merge-driver` existed and carrying a stale bun.lock, with one new requirement in proof/baseline.json while develop also added one.

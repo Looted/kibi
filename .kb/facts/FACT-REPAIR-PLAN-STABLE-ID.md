@@ -24,6 +24,10 @@ claim_text: The plan identifier must remain stable for the same code snapshot, f
 claim_span_start: 678
 claim_span_end: 831
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of deterministic repair-plan identity.

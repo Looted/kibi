@@ -15,4 +15,8 @@ claim_key: CLAIM-5163A79F19580DA7
 claim_text: When a file is created or edited and matches known symbol patterns or risky paths, the plugin must nudge the agent to record or update requirements
 id: FACT-PROP-REQ-OPENCODE-FILE-CONTEXT-GUIDANCE-V1-N02
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

@@ -15,4 +15,8 @@ claim_text: '**Heuristic Cues**: Heuristic E2E reminders may be used for exact p
 value_type: string
 id: FACT-PROP-FCG-HEURISTIC
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

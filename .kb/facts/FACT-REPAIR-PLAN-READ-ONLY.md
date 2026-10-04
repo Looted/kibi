@@ -24,6 +24,10 @@ claim_text: Requirement coverage must emit a deterministic read-only repair plan
 claim_span_start: 0
 claim_span_end: 115
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of repair-plan emission for proof gaps.

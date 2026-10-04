@@ -47,6 +47,10 @@ links:
     target: TEST-kibi-verification-evidence-contract
 semantic_text: Kibi must give each proof obligation a stable symbol identity, connect executable test symbols to that obligation, and accept proof only from fresh, passed proof receipts bound to the current proof contract, execution fingerprint, and snapshot. Unknown attempt histories, retries, skips, failed runs, stale receipts, and mismatched contracts or fingerprints must remain non-proof outcomes.
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Kibi must give each proof obligation a stable symbol identity, connect executable test symbols to that obligation, and accept proof only from fresh, passed proof receipts bound to the current proof contract, execution fingerprint, and snapshot. Unknown attempt histories, retries, skips, failed runs, stale receipts, and mismatched contracts or fingerprints must remain non-proof outcomes.

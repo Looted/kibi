@@ -19,4 +19,8 @@ claim_key: CLAIM-1FD7BA6027615B74
 claim_text: The launcher must resolve kibi-mcp through consumer-scoped Node package semantics including exports-restricted and pnpm-style layouts, and reject packages outside consumer scope unless active package-manager semantics authorize it
 id: FACT-PRED-DD4E3E041FE1
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

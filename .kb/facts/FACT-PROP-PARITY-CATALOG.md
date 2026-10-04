@@ -15,4 +15,8 @@ claim_text: Both peers expose the same versioned operation catalog and structure
 value_type: string
 id: FACT-PROP-PARITY-CATALOG
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

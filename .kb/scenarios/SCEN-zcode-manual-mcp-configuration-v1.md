@@ -8,6 +8,10 @@ tags:
   - mcp
 id: SCEN-zcode-manual-mcp-configuration-v1
 type: scenario
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 A consumer does not use the marketplace installation path for kibi-zcode.
 

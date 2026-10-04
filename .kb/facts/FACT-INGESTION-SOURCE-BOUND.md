@@ -19,6 +19,10 @@ claim_text: Ledger entries must bind to the exact semantic source field, SHA-256
 claim_span_start: 74
 claim_span_end: 163
 predicate_namespace: kibi.ingestion
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground predicate for source field, digest, and byte-span integrity.

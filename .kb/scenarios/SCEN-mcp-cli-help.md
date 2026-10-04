@@ -12,6 +12,10 @@ tags:
 links:
   - type: verified_by
     target: TEST-mcp-cli-help
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 **Given** the `kibi-mcp` binary is installed and executable

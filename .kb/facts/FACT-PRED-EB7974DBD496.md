@@ -22,4 +22,8 @@ claim_text: kibi init --github must scaffold that same documented workflow and b
 id: FACT-PRED-EB7974DBD496
 type: fact
 predicate_namespace: kibi.requirements
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

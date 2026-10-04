@@ -17,4 +17,8 @@ claim_key: CLAIM-046E0B392D44C46E
 claim_text: first-party Jev secret and model diagnostics may be static
 id: FACT-PROP-ENV-BOOTSTRAP-JEV-STATIC
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

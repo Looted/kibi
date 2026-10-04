@@ -15,4 +15,8 @@ claim_key: CLAIM-4C2B0FF892A705D9
 claim_text: The package-provenance-unresolved migration action is reserved for packages that are genuinely absent from the install graph
 id: FACT-PROP-REQ-CLI-DOCTOR-PACKED-PROVENANCE-C03
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

@@ -24,6 +24,10 @@ claim_text: every downstream batch must name its dependencies
 claim_span_start: 438
 claim_span_end: 487
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of explicit downstream dependencies.
