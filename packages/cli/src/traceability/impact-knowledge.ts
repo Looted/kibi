@@ -41,6 +41,8 @@ function semanticEntityFingerprint(
                   "updated_at",
                   "title",
                   "proof_receipts",
+                  // Provenance metadata, not authored meaning.
+                  "origin",
                 ].includes(key),
             )
             .sort(([a], [b]) => a.localeCompare(b)),

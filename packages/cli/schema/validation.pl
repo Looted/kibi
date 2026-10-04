@@ -8,6 +8,7 @@
 
 :- use_module('entities.pl').
 :- use_module('relationships.pl').
+:- use_module(library(http/json)).
 
 % validate_entity(+Type, +Props:list)
 % Props is a list of Property=Value pairs (e.g. id=ID, title=Title)
@@ -19,7 +20,9 @@ validate_entity(Type, Props) :-
     % all properties have correct types
     forall(member(Key=Val, Props), validate_property_type(Type, Key, Val)),
     % validate entity-specific shape constraints
-    validate_entity_shape(Type, Props).
+    validate_entity_shape(Type, Props),
+    % provenance, when present, names a known origin kind
+    valid_origin_in_props(Props).
 
 % validate_relationship(+RelType, +From, +To)
 % From and To are pairs Type=Id or structures type(Type) - allow Type or Type=Id
@@ -276,3 +279,24 @@ value_type_matches_field(string, Props) :- memberchk(value_string=_, Props), !.
 value_type_matches_field(int, Props) :- memberchk(value_int=_, Props), !.
 value_type_matches_field(number, Props) :- memberchk(value_number=_, Props), !.
 value_type_matches_field(bool, Props) :- memberchk(value_bool=_, Props), !.
+
+% valid_origin_in_props(+Props)
+% Entity provenance travels as a JSON object string (or a dict). When present
+% its kind must be human, agent, migration or import.
+valid_origin_in_props(Props) :-
+    (   memberchk(origin=Raw, Props)
+    ->  origin_kind(Raw, Kind),
+        memberchk(Kind, [human, agent, migration, import])
+    ;   true
+    ).
+
+origin_kind(Raw, Kind) :-
+    (   is_dict(Raw)
+    ->  Dict = Raw
+    ;   (atom(Raw) ; string(Raw)),
+        catch(atom_json_dict(Raw, Dict, []), _, fail),
+        is_dict(Dict)
+    ),
+    get_dict(kind, Dict, RawKind),
+    (atom(RawKind) ; string(RawKind)),
+    atom_string(Kind, RawKind).

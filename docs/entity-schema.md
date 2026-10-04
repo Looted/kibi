@@ -72,6 +72,35 @@ This section provides guidance on selecting the appropriate entity type for your
 | severity     | No       | string         | Severity level                                   |
 | links[]      | No       | array[string]  | Array of URLs                                    |
 | text_ref     | No       | string         | Pointer to Markdown/doc blob                     |
+| origin       | No       | object         | Provenance: who authored the entity and on what authority (see [Entity origin](#entity-origin)). Valid on every type; optional on symbols |
+
+### Entity origin
+
+`origin` records who authored an entity (KB schema 6 and later):
+
+| Field         | Required | Type     | Description |
+|---------------|----------|----------|-------------|
+| `kind`        | Yes      | string   | `human`, `agent`, `migration` (backfilled by `kibi migrate`) or `import` |
+| `ref`         | No       | string   | Where the content came from: URL, document path, ticket, commit or conversation id |
+| `approved_by` | No       | string   | The person who reviewed and approved the entity's content. For an exception requirement this corroborates the requirement-level `approved_by` |
+| `recorded_at` | No       | ISO 8601 | When the provenance was recorded |
+
+```yaml
+origin:
+  kind: agent
+  ref: https://tracker.example/ISSUE-42
+  approved_by: Dana Lee
+  recorded_at: '2026-10-01T09:30:00Z'
+```
+
+How `kb_upsert` (and `kibi upsert`) sets it:
+
+- A new entity written without `origin` is recorded as `{kind: agent, recorded_at: <write time>}`; `kb_upsert` is the agent write path, so a human or an import says so explicitly.
+- Updating an entity without `origin` never changes the stored origin. An entity that has no origin (written before schema 6 or by hand) stays without one; editing it does not make the editor its author.
+- A supplied `origin` is written as given (unknown kinds and unknown fields are rejected); when it has no `recorded_at`, the write time is filled in.
+- `kibi migrate` (schema 5 to 6) stamps `{kind: migration, ref: "kibi migrate v5->v6", recorded_at}` on every authored entity without an origin.
+
+Kibi cannot verify a person's approval. The advisory checks `exception-unapproved`, `exception-approval-self-attested` and `agent-requirement-unapproved` make missing or agent-recorded approvals visible so a human can confirm them (see `docs/cli-reference.md`).
 
 ---
 
@@ -95,8 +124,8 @@ This section provides guidance on selecting the appropriate entity type for your
 | text_ref     | No       | string         | Independent code/doc evidence pointer            |
 | proof_exempt | No       | boolean        | Marks a current requirement as intentionally outside E2E-proof scope. Requires `proof_exempt_reason`; coverage reports the requirement `not_applicable` with that reason |
 | proof_exempt_reason | No | string        | Required when `proof_exempt` is true — the reviewable justification surfaced in coverage rows |
-| approved_by  | No       | string         | Exception requirements only: the human who approved the exception. An exception that `exempts` a requirement makes its specified success scenarios feasible only when `approved_by` is non-empty |
-| approval_ref | No       | string         | Optional reference to the exception's approval record (ticket, ADR or review link) |
+| approved_by  | No       | string         | Exception requirements only: the human who approved the exception. An exception that `exempts` a requirement makes its specified success scenarios feasible only when `approved_by` is non-empty; without it the advisory `exception-unapproved` check reports the exception |
+| approval_ref | No       | string         | Optional reference to the exception's approval record (ticket, ADR or review link). When an agent recorded the exception (`origin.kind: agent`), the advisory `exception-approval-self-attested` check asks for `approval_ref` and `origin.approved_by` |
 | exempts_claims[] | No   | array[string]  | Exception requirements only: claim keys (`CLAIM-...`) of the exempted requirement's clauses this exception waives. Absent, it waives the whole requirement; present, only constraints grounded by facts carrying a listed `claim_key`. The canonical `exception-claim-keys` check requires every key to be a claim of a requirement it `exempts` |
 | semantic_text | No      | string         | Requirement-only normalized authored prose that anchors semantic byte spans |
 | logic_claims | No       | array[string]  | Requirement-only manifest of stable atomic claim keys |

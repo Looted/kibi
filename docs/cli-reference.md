@@ -136,6 +136,7 @@ Extracts entities and relationships from project documents and updates the knowl
 - **Modeling:** Use `flag` for runtime/config gates; record bugs and workarounds as `fact` entities, usually with `fact_kind: observation` or `meta`. **Strict facts** (subject, property_value) drive contradiction checks, while observation/meta facts are non-blocking notes.
 - Symbol manifests must be in YAML format
 - Changes are committed to the branch KB's audit log
+- A requirement whose stored semantic inventory no longer matches the current semantic advisor fails proposition-complete ingestion. Sync checks every requirement before it stops and lists all failing files in one error, then points at `kibi migrate`, which re-derives the inventories it can and lists the ones that need a manual fix.
 
 Normal sync is a delta compile into the running Node engine: unchanged source
 files are skipped, changed/deleted source entities are retracted and reasserted
@@ -541,6 +542,7 @@ Validates knowledge base integrity and runs inference rules.
 - Supports strict advisory modeling checks (`strict-fact-shape`, `strict-req-fact-pairing`, `predicate-verifiability`, `proof-contract-symbols`) that run by default as non-blocking `qualityDiagnostics`, and default-off migration diagnostics (`strict-readiness`, `semantic-completeness`) that run only when explicitly selected with `--rules`. Canonical rules always populate blocking `violations[]`. `--rules` is an invocation-time diagnostic filter only; leftover `.kb/config.json` cannot disable canonical checks. `proof-contract-symbols` reports unresolved `required_proofs.symbol_id` values, type-shape required proofs, and `proof_bindings.source_file` disagreement with the named symbol `sourceFile`. Kibi does not infer TEST names from filenames.
 - Runs the canonical `scenario-feasibility` check (a success scenario whose assumed values cannot hold, alone or together, with the property facts and typed rules of current requirements that govern it, by scope and validity window) and two advisory analysis-gap checks by default: `scenario-feasibility-unknown` (a success scenario whose feasibility cannot be decided: no assumptions, contradictory assumptions, an unconstrained or incomparable assumption, conflicting governing requirements, a rule the assumptions neither satisfy nor refute, or a conflict only with constraints whose validity window may not cover the scenario) and `rule-key-arguments-missing` (an opposing rule pair left `unresolved` only because a condition predicate declares no `key_arguments`; the finding names the predicate as `namespace:name/arity` and the key positions that would decide the pair). Both advisory checks report non-blocking `qualityDiagnostics`.
 - Runs the canonical `exception-claim-keys` check (an exception requirement's `exempts_claims` must name claims of a requirement it `exempts`) and the advisory `numeric-string-value` check (a `property_value` fact stores a plain decimal as `value_type: string` where the comparison is numeric, so contradiction and feasibility checks skip it; the suggestion gives the typed `value_int`/`value_number` replacement).
+- Runs three advisory approval checks by default, all non-blocking: `exception-unapproved` (a current exception requirement `exempts` another requirement but has no `approved_by`, so it exempts nothing), `exception-approval-self-attested` (an exception whose `origin.kind` is `agent` records `approved_by`, but `origin.approved_by` or `approval_ref` is missing, so nothing corroborates that a person approved it) and `agent-requirement-unapproved` (info: current requirements with `origin.kind: agent` and no `origin.approved_by`, listed by id up to 25 per check, then one summary finding with the remaining ids). Kibi cannot verify that a person approved anything; these checks make agent-recorded approvals visible so a human can confirm them.
 - Runs vocabulary-convergence checks by default, all advisory and non-blocking (see [Vocabulary convergence checks](#vocabulary-convergence-checks)): `domain-redundancy`, `subject-key-identity`, `subject-key-shape`, `entity-id-style`, `predicate-schema-conformance` (warnings) and `domain-implication`, `ontology-quality` (info).
 - With `--staged`, inventories every index path before analysis. TypeScript and JavaScript keep their blocking symbol checks; Kibi metadata is validated through its typed lanes; every other readable UTF-8 text file receives advisory file-level ownership and impact-evidence checks.
 - Staged deletions and renames retain committed content and ownership for removal review. Binary blobs, unsupported encodings, symlinks, and submodules are reported with explicit skipped reasons and remain non-blocking.
@@ -761,7 +763,12 @@ flags, it is a read-only preview; `--format json` returns the complete
 - Treats malformed `.kb/config.json` as a blocker instead of guessing `documentation/` paths
 - Writes `.kb/manifest.json` with the latest `schemaVersion`
 - Offers `predicate_schema_alignment` actions for `predicate-schema-conformance` findings with a mechanical repair: moving a predicate fact to the only namespace whose schema matches its name and arity, and rewriting argument aliases to their declared constants (with the matching `canonical_key`). Each action is `automatic`, carries the exact `kb_upsert` input, and re-reads the fact before writing; a fact that changed since planning fails the action instead of being overwritten. Ambiguous namespaces and undeclared values stay review actions.
-- Idempotent: safe to run if already on the latest version
+- Schema 6 (from 5 or older): the `entity_origin_backfill` action records `origin: {kind: migration, ref: "kibi migrate v5->v6", recorded_at}` as the last frontmatter key of every authored entity that has no `origin`; every other byte of the file stays as it was, and entities that already carry an `origin` are left alone. Its evidence lists the count, the count per type, and any file it cannot stamp safely (with the reason).
+- Re-derives drifted semantic inventories at any schema version. When the current semantic advisor reads a requirement's prose differently from its stored `semantic_inventory` (for example a claim it used to call `rationale` is now `normative`), `kibi sync` rejects the requirement. `kibi migrate` lists every such requirement. A `semantic_inventory_rederive` action (automatic) rewrites the inventory with the current advisor: a claim whose `claim_key` and `claim_text` still match keeps its status, so a modeled claim stays modeled with its grounding; a new or reclassified claim becomes unresolved (`ontology_gap`, `ambiguous` or `missing`), never modeled; `logic_claims` and `semantic_source_hash` are rewritten to match. Only the contract fields change. The action re-checks the contract hash it was planned with before writing. A requirement Kibi cannot re-derive safely (a grounding fact whose `claim_key` is no longer a modeled claim, or a modeled claim that is now context) gets a `semantic_inventory_review` action instead, with the exact `kibi model --input -` analyze command and the follow-up `kb_delete`/`kb_upsert` steps.
+- Lists the schema 6 items a person must decide as review actions with stable ids: exceptions that exempt a requirement but have no `approved_by` (`review_exception_unapproved`), agent-recorded exception approvals nobody corroborated (`review_exception_approval_self_attested`), one action per predicate named by `rule-key-arguments-missing` (`review_predicate_key_arguments`), one per scenario reported by `scenario-feasibility-unknown` (`review_scenario_feasibility_unknown`), one queue for the agent-authored requirements `agent-requirement-unapproved` lists (`review_agent_requirements_unapproved`), and any blocking violation.
+- When the plan rewrites authored sources, the schema upgrade depends on those rewrites and a `migration-sync` action recompiles the KB, so the check and coverage readback after `--apply-safe` already see the migrated files. `migration-sync` is left out while a requirement still needs a manual inventory fix, because sync would reject it.
+- Plans quality actions only from a branch store that has been synced at least once; a never-synced store is reported as an incomplete `quality` domain instead of as one missing-relationship action per authored link.
+- Idempotent: safe to run if already on the latest version. A second run after a completed migration plans no schema 6 actions, and `kibi migrate --yes` reports that no migration is needed.
 
 **Flags:**
 - `--dry-run` - Show what would be migrated without making changes
@@ -776,6 +783,19 @@ flags, it is a read-only preview; `--format json` returns the complete
 kibi migrate --format json > plan.json        # review predicate_schema_alignment actions
 kibi migrate --apply-safe --approved-plan-hash "$(jq -r .planHash plan.json)"
 ```
+
+**Example (schema 5 to 6):**
+```bash
+kibi migrate --format json > plan.json        # origin backfill, inventory re-derivations, review items
+kibi migrate --apply-safe --approved-plan-hash "$(jq -r .planHash plan.json)"
+kibi migrate --format json                    # remaining review actions, now including kibi check findings
+```
+
+`kibi migrate --yes` performs the same automatic steps without a plan: it
+stamps origins, re-derives the inventories it can, prints a warning for each
+requirement that needs a manual fix, and records `entityOriginBackfill` in
+`.kb/migrations/<branch>.json`. `kibi migrate --dry-run` prints what it would
+change.
 
 **Notes:**
 - Use `kibi status` to check if a migration is pending for your branch.

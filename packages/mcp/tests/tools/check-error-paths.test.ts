@@ -87,7 +87,7 @@ describe("kb_check error and edge branches", () => {
     );
 
     expect(result.structuredContent?.count).toBe(0);
-    expect(query).toHaveBeenCalledTimes(23);
+    expect(query).toHaveBeenCalledTimes(25);
   });
 
   test("returns early when all requested rules are invalid", async () => {

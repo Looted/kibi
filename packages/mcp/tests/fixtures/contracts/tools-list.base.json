@@ -3023,6 +3023,52 @@
                 ],
                 "description": "Optional comparison operator for property_value facts. Example: 'eq'."
               },
+              "origin": {
+                "additionalProperties": false,
+                "description": "Optional provenance: who authored the entity (kind: human, agent, migration, import) and on what authority (ref, approved_by, recorded_at). Omit it to keep an existing entity's origin; a new entity written without one is recorded as {kind: agent, recorded_at: <write time>}. A supplied origin without recorded_at gets the write time.",
+                "properties": {
+                  "approved_by": {
+                    "description": "The person who reviewed and approved this entity's content. Distinct from the requirement-level approved_by of an exception.",
+                    "minLength": 1,
+                    "pattern": "\\S",
+                    "type": "string"
+                  },
+                  "kind": {
+                    "anyOf": [
+                      {
+                        "const": "human",
+                        "type": "string"
+                      },
+                      {
+                        "const": "agent",
+                        "type": "string"
+                      },
+                      {
+                        "const": "migration",
+                        "type": "string"
+                      },
+                      {
+                        "const": "import",
+                        "type": "string"
+                      }
+                    ],
+                    "description": "Who authored the entity: human, agent, migration (backfilled by kibi migrate) or import."
+                  },
+                  "recorded_at": {
+                    "description": "ISO-8601 time the provenance was recorded.",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:[T ]\\d{2}:\\d{2}(?::\\d{2}(?:\\.\\d+)?)?(?:Z|[+-]\\d{2}:?\\d{2})?)?$",
+                    "type": "string"
+                  },
+                  "ref": {
+                    "description": "Source reference for the authored content: URL, document path, ticket, commit or conversation id.",
+                    "minLength": 1,
+                    "pattern": "\\S",
+                    "type": "string"
+                  }
+                },
+                "required": ["kind"],
+                "type": "object"
+              },
               "owner": {
                 "description": "Optional owner name/team. Example: 'platform-team'.",
                 "type": "string"
@@ -4446,7 +4492,7 @@
             "type": "integer"
           },
           "rules": {
-            "description": "Optional rule subset. Allowed: must-priority-coverage, symbol-coverage, symbol-traceability, no-dangling-refs, source-relationship-parity, no-cycles, required-fields, deprecated-adr-no-successor, scenario-feasibility, scenario-feasibility-unknown, exception-claim-keys, numeric-string-value, rule-key-arguments-missing, domain-contradictions, logic-coverage, rule-safety, rule-verifiability, query-plan-safety, req-status-vocabulary, strict-fact-shape, strict-req-fact-pairing, predicate-verifiability, strict-readiness, semantic-completeness, proof-contract-symbols, entity-id-style, domain-redundancy, domain-implication, subject-key-identity, subject-key-shape, ontology-quality, predicate-schema-conformance. If omitted, server runs canonical and advisory rules plus the full-KB qualityDiagnostics audit scan, including usage telemetry acceptance when evidence exists; migration rules run only when explicitly selected. Advisory and migration findings are non-blocking qualityDiagnostics. If supplied, server preserves scoped validation and skips the full-KB advisory scan.",
+            "description": "Optional rule subset. Allowed: must-priority-coverage, symbol-coverage, symbol-traceability, no-dangling-refs, source-relationship-parity, no-cycles, required-fields, deprecated-adr-no-successor, scenario-feasibility, scenario-feasibility-unknown, exception-claim-keys, numeric-string-value, rule-key-arguments-missing, domain-contradictions, logic-coverage, rule-safety, rule-verifiability, query-plan-safety, req-status-vocabulary, strict-fact-shape, strict-req-fact-pairing, predicate-verifiability, strict-readiness, semantic-completeness, proof-contract-symbols, entity-id-style, domain-redundancy, domain-implication, subject-key-identity, subject-key-shape, ontology-quality, exception-unapproved, exception-approval-self-attested, agent-requirement-unapproved, predicate-schema-conformance. If omitted, server runs canonical and advisory rules plus the full-KB qualityDiagnostics audit scan, including usage telemetry acceptance when evidence exists; migration rules run only when explicitly selected. Advisory and migration findings are non-blocking qualityDiagnostics. If supplied, server preserves scoped validation and skips the full-KB advisory scan.",
             "items": {
               "anyOf": [
                 {
@@ -4571,6 +4617,18 @@
                 },
                 {
                   "const": "ontology-quality",
+                  "type": "string"
+                },
+                {
+                  "const": "exception-unapproved",
+                  "type": "string"
+                },
+                {
+                  "const": "exception-approval-self-attested",
+                  "type": "string"
+                },
+                {
+                  "const": "agent-requirement-unapproved",
                   "type": "string"
                 },
                 {

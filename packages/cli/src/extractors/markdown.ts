@@ -22,6 +22,10 @@ import Ajv, { type ValidateFunction } from "ajv";
 import { load as yamlLoad } from "js-yaml";
 import { semanticClaimKey } from "../operations/semantic-advisor/clauses.js";
 import {
+  type EntityOrigin,
+  normalizeEntityOrigin,
+} from "../public/entity-origin.js";
+import {
   PROOF_BINDINGS_SCHEMA,
   PROOF_CONTRACT_SCHEMA,
   type ProofBinding,
@@ -114,6 +118,7 @@ export interface ExtractedEntity {
   priority?: string;
   severity?: string;
   text_ref?: string;
+  origin?: EntityOrigin;
   semantic_text?: string;
   logic_claims?: string[];
   semantic_clauses?: string[];
@@ -667,6 +672,21 @@ function extractFromMarkdownContent(
     if (data.severity !== undefined) entity.severity = data.severity;
     if (data.text_ref !== undefined) {
       entity.text_ref = data.text_ref;
+    }
+    // implements REQ-004
+    if (data.origin !== undefined) {
+      const normalized = normalizeEntityOrigin(data.origin);
+      if ("error" in normalized) {
+        throw new FrontmatterError(
+          `Invalid origin: ${normalized.error}`,
+          filePath,
+          {
+            classification: "Invalid Entity Origin",
+            hint: "Use origin: {kind: human|agent|migration|import, ref, approved_by, recorded_at}; only kind is required.",
+          },
+        );
+      }
+      entity.origin = normalized.origin;
     }
     if (type === "req" && data.semantic_text !== undefined) {
       entity.semantic_text = data.semantic_text;

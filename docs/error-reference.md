@@ -52,6 +52,14 @@ If `kb_check` reports `logic-coverage`, compare the requirement `logic_claims` m
 
 If `kb_coverage.repairPlan.status` is `partial`, do not execute it as a complete migration. Its `scope.excludedByPagination` count identifies omitted actionable requirements; rerun requirement coverage with `offset: 0` and a large enough `limit`. Apply only `ready` batches, never infer that `blocked` means safe to skip, and rerun coverage after each validated sequential batch because new downstream gaps can become visible as prerequisites are repaired.
 
+## Invalid entity origin
+
+`origin` is an object with a required `kind` (`human`, `agent`, `migration` or `import`) and optional `ref`, `approved_by` and `recorded_at` (ISO 8601). Unknown kinds and unknown fields are rejected by `kb_upsert` and, in Markdown frontmatter, by `kibi sync` (classification `Invalid Entity Origin`). To keep a stored origin, omit `origin` from the upsert instead of copying it.
+
+## Semantic inventory no longer matches the advisor
+
+If `kibi sync` reports `N requirement(s) failed proposition-complete ingestion` after an upgrade, the stored `semantic_inventory` of each listed requirement was written by an older semantic advisor. Run `kibi migrate`: its `semantic_inventory_rederive` actions rewrite the inventories that can be re-derived without losing grounding, and its `semantic_inventory_review` actions give the exact commands for the rest.
+
 ## Unsafe or unverifiable rule fact
 
 `fact_kind: rule` requires a `kibi.logic.v1` `rule_ir`, a deterministic full `rule_hash`, a `semantic_key`, a `rule_schema_id`, and `rule_name`. Submit the typed object through `kb_model` with `mode: "requirement"`; do not provide Prolog source. `rule-safety` rejects function symbols, raw goals, cuts, meta-calls, dynamic predicates, I/O, unsafe/unbound variables, existential rule heads, unstratified negation, incompatible units, and unbounded aggregation. `rule-verifiability` requires `requires_rule` to target a real `rule_schema` and a safe rule fact. Analysis that is timed out or resource-limited is `unresolved`, not proof of consistency.

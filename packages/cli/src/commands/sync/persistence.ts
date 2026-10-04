@@ -526,6 +526,10 @@ export async function persistEntities(
           `exempts_claims=[${entity.exempts_claims.map(toPrologAtom).join(",")}]`,
         );
       }
+      // Provenance travels as a JSON object string, like proof_contract.
+      if (entity.origin !== undefined) {
+        props.push(`origin=${toPrologString(JSON.stringify(entity.origin))}`);
+      }
       if (sourceFile) props.push(`sourceFile=${toPrologString(sourceFile)}`);
 
       if (entity.type === "symbol") {

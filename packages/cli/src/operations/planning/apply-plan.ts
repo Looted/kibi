@@ -38,6 +38,10 @@ import {
   bootstrapPlanHash,
 } from "../bootstrap/types.js";
 import {
+  SCHEMA6_AUTOMATIC_CODES,
+  applySchema6MigrationAction,
+} from "../migration/schema6.js";
+import {
   buildUpsertBatchCommitGoal,
   formatUpsertError,
 } from "../mutation/contradictions.js";
@@ -2759,6 +2763,10 @@ async function applyMigrationAction(
       await applyPredicateSchemaAlignment(action, context);
       return;
     default:
+      if (SCHEMA6_AUTOMATIC_CODES.has(action.code)) {
+        await applySchema6MigrationAction(action, context);
+        return;
+      }
       throw new Error(
         `Migration action '${action.code}' has no automatic executor.`,
       );

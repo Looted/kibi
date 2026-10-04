@@ -25,6 +25,7 @@ import {
 } from "../semantic-advisor/ingestion-boundary.js";
 import type { SemanticAdvisorReceipt } from "../semantic-advisor/types.js";
 import { buildUpsertCommitGoal, formatUpsertError } from "./contradictions.js";
+import { resolveUpsertOrigin } from "./origin.js";
 import {
   planRecoveryNotes,
   settlePendingPlanApplyJournals,
@@ -337,7 +338,22 @@ export async function validateUpsertForCommit(
     staged,
   );
   await assertPredicateArgumentVocabulary(prolog, validated.entity, staged);
-  return { validated, relationships, semantic };
+  // The origin the write records is added last: none of the checks above
+  // reads it, and a rejected payload never pays for the stored-origin read.
+  const recorded = await resolveUpsertOrigin(
+    input,
+    prolog,
+    context.clock(),
+    staged,
+  );
+  return {
+    validated:
+      recorded === input
+        ? validated
+        : validateUpsertInput(recorded, context.clock()),
+    relationships,
+    semantic,
+  };
 }
 
 // implements REQ-kibi-operation-interface-parity

@@ -33,6 +33,32 @@ function cleanup() {
 }
 
 describe("manifest extractor", () => {
+  test("symbol origin is optional and validated when present", () => {
+    const [withOrigin, withoutOrigin] = extractFromManifestString(
+      `symbols:
+  - id: SYM-ORIGIN
+    title: originTagged
+    status: active
+    origin: {kind: agent, ref: session-7}
+  - id: SYM-PLAIN
+    title: plain
+    status: active
+`,
+      "/tmp/symbols.yaml",
+    );
+    expect(withOrigin?.entity.origin).toEqual({
+      kind: "agent",
+      ref: "session-7",
+    });
+    expect(withoutOrigin?.entity.origin).toBeUndefined();
+    expect(() =>
+      extractFromManifestString(
+        "symbols:\n  - id: SYM-BAD\n    title: bad\n    origin: {kind: robot}\n",
+        "/tmp/symbols.yaml",
+      ),
+    ).toThrow("Invalid origin for symbol SYM-BAD");
+  });
+
   test("extracts symbols from YAML manifest", () => {
     const yaml = `
 symbols:

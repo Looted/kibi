@@ -30,6 +30,9 @@ entity_property(_, severity, atom).
 entity_property(_, links, list).
 entity_property(_, text_ref, uri).
 entity_property(_, sourceFile, uri).
+% Provenance of any authored entity: a JSON object (kind, ref, approved_by,
+% recorded_at) naming who authored it and on what authority.
+entity_property(_, origin, list_or_json).
 entity_property(req, semantic_text, string).
 entity_property(req, logic_claims, list).
 entity_property(req, semantic_clauses, list).
@@ -123,6 +126,7 @@ optional_property(Type, priority) :- entity_type(Type).
 optional_property(Type, severity) :- entity_type(Type).
 optional_property(Type, links) :- entity_type(Type).
 optional_property(Type, text_ref) :- entity_type(Type).
+optional_property(Type, origin) :- entity_type(Type).
 optional_property(req, semantic_text).
 optional_property(req, logic_claims).
 optional_property(req, semantic_clauses).

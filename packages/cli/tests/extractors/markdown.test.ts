@@ -52,6 +52,45 @@ The policy must preserve code evidence.`,
     );
   });
 
+  test("reads entity origin and normalizes its values", () => {
+    const result = extractFromMarkdownString(
+      `---
+id: SCEN-ORIGIN
+title: Origin provenance
+type: scenario
+status: active
+origin:
+  kind: import
+  ref: " https://tracker.example/ISSUE-9 "
+  recorded_at: 2026-09-30T08:00:00Z
+---
+
+Imported scenario.`,
+      "/tmp/scenarios/SCEN-ORIGIN.md",
+    );
+
+    expect(result.entity.origin).toEqual({
+      kind: "import",
+      ref: "https://tracker.example/ISSUE-9",
+      recorded_at: "2026-09-30T08:00:00.000Z",
+    });
+  });
+
+  test("rejects an origin with an unknown kind or field", () => {
+    for (const origin of [
+      "{kind: robot}",
+      "{kind: agent, author: x}",
+      "agent",
+    ]) {
+      expect(() =>
+        extractFromMarkdownString(
+          `---\nid: REQ-BAD-ORIGIN\ntitle: Bad\ntype: req\nstatus: open\norigin: ${origin}\n---\n\nBody.`,
+          "/tmp/requirements/REQ-BAD-ORIGIN.md",
+        ),
+      ).toThrow(FrontmatterError);
+    }
+  });
+
   describe("Type Inference", () => {
     test("infers type from path for all supported directories", () => {
       const cases = [

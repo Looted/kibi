@@ -1070,6 +1070,10 @@ export function landingContent(args: {
       <p>For reading, yes. On a commit no single branch points at, such as a CI checkout of a SHA or a bisect, search, query, status, check, coverage, and graph answer from a read-only snapshot compiled from that checkout, and every answer says so. Writes are refused until you check out a branch or set <code>KIBI_BRANCH</code>. Details are in the <a href="${root}reference/cli.html#kibi-branch">CLI reference</a>.</p>
     </details>
     <details>
+      <summary>How do I tell what the agent wrote from what I approved?</summary>
+      <p>Each entity can record its origin: written by a human, an agent, a migration or an import, and who approved it. New entities from your agent are marked as agent-written. <code>kb_check</code> lists agent-written requirements nobody has approved and exceptions whose approval only the agent recorded. Kibi cannot confirm that a person approved something. It shows you what still needs your review.</p>
+    </details>
+    <details>
       <summary>What counts as proven?</summary>
       <p>A requirement is proven only when a test that claims to verify it has fresh end-to-end evidence for the current code. A passing unit test, a coverage percentage, or an old receipt does not count. Freshness is computed from repository-relative paths and file contents, so CI and your own checkout of the same commit agree on what is proven.</p>
     </details>

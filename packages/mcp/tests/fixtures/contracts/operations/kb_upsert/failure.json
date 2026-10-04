@@ -235,6 +235,36 @@
               "enum": ["eq", "neq", "lt", "lte", "gt", "gte"],
               "type": "string"
             },
+            "origin": {
+              "additionalProperties": false,
+              "description": "Optional provenance: who authored the entity (kind: human, agent, migration, import) and on what authority (ref, approved_by, recorded_at). Omit it to keep an existing entity's origin; a new entity written without one is recorded as {kind: agent, recorded_at: <write time>}. A supplied origin without recorded_at gets the write time.",
+              "properties": {
+                "approved_by": {
+                  "description": "The person who reviewed and approved this entity's content. Distinct from the requirement-level approved_by of an exception.",
+                  "minLength": 1,
+                  "pattern": "\\S",
+                  "type": "string"
+                },
+                "kind": {
+                  "description": "Who authored the entity: human, agent, migration (backfilled by kibi migrate) or import.",
+                  "enum": ["human", "agent", "migration", "import"],
+                  "type": "string"
+                },
+                "recorded_at": {
+                  "description": "ISO-8601 time the provenance was recorded.",
+                  "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:[T ]\\d{2}:\\d{2}(?::\\d{2}(?:\\.\\d+)?)?(?:Z|[+-]\\d{2}:?\\d{2})?)?$",
+                  "type": "string"
+                },
+                "ref": {
+                  "description": "Source reference for the authored content: URL, document path, ticket, commit or conversation id.",
+                  "minLength": 1,
+                  "pattern": "\\S",
+                  "type": "string"
+                }
+              },
+              "required": ["kind"],
+              "type": "object"
+            },
             "owner": {
               "description": "Optional owner name/team. Example: 'platform-team'.",
               "type": "string"

@@ -16,6 +16,7 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import type { EntityOrigin } from "../public/entity-origin.js";
 import type { ProofBinding, ProofContract } from "../public/proof-protocol.js";
 import type { ProofReceipt } from "../public/proof-receipt.js";
 
@@ -32,6 +33,8 @@ export interface BaseEntity {
   severity?: string;
   links?: string[];
   text_ref?: string;
+  /** Provenance: who authored the entity and on what authority. */
+  origin?: EntityOrigin;
 }
 
 // Typed fact fields per proposal

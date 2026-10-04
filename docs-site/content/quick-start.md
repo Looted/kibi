@@ -76,6 +76,10 @@ npm exec -- kibi search login
 npm exec -- kibi gaps req --format table
 ```
 
+## Upgrading
+
+After you update the Kibi packages, ask your agent to run `kibi migrate`, or run it yourself. It shows a plan and its hash and changes nothing; `kibi migrate --apply-safe --approved-plan-hash <hash>` applies the automatic steps you approved. The move to KB schema 6 records `origin: {kind: migration}` on the entities you already have and re-derives any requirement that `kibi sync` now rejects because the semantic advisor reads its prose differently. Claims that still match keep their grounding, and changed ones are marked unresolved. Everything Kibi cannot decide for you, such as an exception nobody has approved, stays in the plan as a review item.
+
 ## Next steps
 
 - [Connect your coding agent](connect-an-agent.md) — per-client configuration.

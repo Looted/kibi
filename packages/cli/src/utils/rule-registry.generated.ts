@@ -226,6 +226,28 @@ export const GENERATED_RULES = [
     diagnosticSeverity: "info",
   },
   {
+    name: "exception-unapproved",
+    description:
+      "Advisory: a current exception requirement exempts another requirement but has no approved_by, so it exempts nothing until a human approves it",
+    enforcementClass: "advisory",
+    category: "integrity",
+  },
+  {
+    name: "exception-approval-self-attested",
+    description:
+      "Advisory: an agent-authored exception records approved_by but no human corroborated it (origin.approved_by or approval_ref is missing), so a human should confirm the approval",
+    enforcementClass: "advisory",
+    category: "integrity",
+  },
+  {
+    name: "agent-requirement-unapproved",
+    description:
+      "Informational: current requirements authored by an agent (origin.kind agent) that no human has approved (origin.approved_by), listed up to 25 per check",
+    enforcementClass: "advisory",
+    category: "lifecycle",
+    diagnosticSeverity: "info",
+  },
+  {
     name: "predicate-schema-conformance",
     description:
       "Predicate facts match a predicate_schema (project-local, or the built-in catalog in the default namespace) and use its declared argument constants",

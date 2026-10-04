@@ -247,6 +247,9 @@ function buildEntityAssertionGoal(
       `exempts_claims=[${entity.exempts_claims.map(toPrologAtom).join(",")}]`,
     );
   }
+  if (entity.origin !== undefined) {
+    props.push(`origin=${toPrologString(JSON.stringify(entity.origin))}`);
+  }
   if (sourceFile) props.push(`sourceFile=${toPrologString(sourceFile)}`);
 
   if (entity.type === "symbol") {

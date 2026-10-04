@@ -7,6 +7,7 @@ import {
   getSchemaVersionStatus,
   normalizeSchemaVersion,
 } from "../../utils/schema-version.js";
+import { schema6ReviewActionsFromCheck } from "./schema6-check-actions.js";
 
 export const MIGRATION_PLAN_VERSION = "kibi.migration-plan.v2" as const;
 
@@ -370,7 +371,7 @@ function predicateSchemaAlignmentAction(
 /** Migration code for mechanical predicate namespace/alias repairs. */
 export const PREDICATE_SCHEMA_ALIGNMENT_CODE = "predicate_schema_alignment";
 
-// implements REQ-agent-guided-migration-orchestration, REQ-kibi-predicate-vocabulary-migration
+// implements REQ-agent-guided-migration-orchestration, REQ-kibi-predicate-vocabulary-migration, REQ-cli-schema-migration
 export function buildActionsFromCheck(input: {
   violations?: readonly Readonly<Record<string, unknown>>[];
   qualityDiagnostics?: readonly Readonly<Record<string, unknown>>[];
@@ -399,9 +400,12 @@ export function buildActionsFromCheck(input: {
       }),
     );
   }
+  const reviews = schema6ReviewActionsFromCheck(input.qualityDiagnostics ?? []);
+  actions.push(...reviews.actions.map(migrationAction));
   for (const [index, diagnostic] of (
     input.qualityDiagnostics ?? []
   ).entries()) {
+    if (reviews.consumed.has(index)) continue;
     const id = typeof diagnostic.id === "string" ? diagnostic.id : "quality";
     const entityId =
       typeof diagnostic.entityId === "string" ? diagnostic.entityId : "";

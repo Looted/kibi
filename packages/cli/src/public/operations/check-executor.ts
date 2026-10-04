@@ -39,6 +39,7 @@ import {
   buildMigrationPlan,
   mergeMigrationPlans,
 } from "./migration-plan.js";
+import { collectOriginReviewViolations } from "./origin-review.js";
 import { collectPredicateSchemaConformanceViolations } from "./predicate-schema-conformance.js";
 import type { OperationContext, PrologPort } from "./runtime-types.js";
 import { collectSourceRelationshipParityViolations } from "./source-relationship-parity.js";
@@ -211,11 +212,16 @@ export async function executeCheck(
     )
       ? await collectPredicateSchemaConformanceViolations(prolog)
       : [];
+    const originReviewFindings = await collectOriginReviewViolations(
+      prolog,
+      rulesAllowlist,
+    );
     const partitioned = partitionCheckFindings([
       ...aggregatedFindings,
       ...queryPlanViolations,
       ...sourceRelationshipParityViolations,
       ...predicateConformanceFindings,
+      ...originReviewFindings,
     ]);
     const violations: Violation[] = partitioned.violations;
 

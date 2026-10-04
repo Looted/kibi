@@ -63,6 +63,8 @@ pnpm, Yarn, and Bun work the same way through their local runners; the [installa
 
 </details>
 
+**Upgrading.** After updating the Kibi packages, run `kibi migrate` (or ask your agent to). It previews a reviewable plan; `kibi migrate --apply-safe --approved-plan-hash <hash>` applies its automatic steps. Moving to KB schema 6 records `origin: {kind: migration}` on existing entities and re-derives any requirement inventory that `kibi sync` rejects because the semantic advisor now reads its prose differently. It lists exceptions without an approver and other items for you to decide.
+
 ## Connect your coding agent
 
 The setup prompt above does this step for you. To do it by hand: every client starts the same project-local `kibi-mcp` server (`npx --no-install kibi-mcp`, stdio, working directory = your repository). Optional plugins add bundled skills and hooks on top.
@@ -224,7 +226,7 @@ For a requirement to be proven rather than merely documented:
 
 - Every production symbol must trace to the requirement it implements.
 - Every normative requirement clause must have one complete semantic grounding or remain explicitly unresolved.
-- Requirements must be specified by scenarios, and tests must verify those scenarios. A scenario that expects success while assuming values a current requirement forbids, alone or only in combination, is reported and blocks proof. That holds for conditional requirements too: "checkout may happen only when the cart total is positive" compiles to a typed rule, so a checkout scenario that assumes a zero cart total is infeasible. A requirement only governs scenarios inside its scope and the validity window of its facts. An intended exception is recorded as an exception requirement (`exempts`) that a human approved (`approved_by`), not by editing the rule, and `exempts_claims` can limit it to one clause. A success scenario whose feasibility cannot be decided (for example it assumes a "basket amount" where the rule reads the "cart total") is flagged as unknown, never counted as feasible.
+- Requirements must be specified by scenarios, and tests must verify those scenarios. A scenario that expects success while assuming values a current requirement forbids, alone or only in combination, is reported and blocks proof. That holds for conditional requirements too: "checkout may happen only when the cart total is positive" compiles to a typed rule, so a checkout scenario that assumes a zero cart total is infeasible. A requirement only governs scenarios inside its scope and the validity window of its facts. An intended exception is recorded as an exception requirement (`exempts`) that a human approved (`approved_by`), not by editing the rule, and `exempts_claims` can limit it to one clause. An exception without `approved_by` exempts nothing, and an advisory check says so. A success scenario whose feasibility cannot be decided (for example it assumes a "basket amount" where the rule reads the "cart total") is flagged as unknown, never counted as feasible.
 - Executable test symbols must identify the code that actually performs the verification.
 - Proof-bearing production symbols must be covered by qualifying tests.
 - End-to-end evidence must be fresh and bound to the current code snapshot. Freshness uses repository-relative paths and file contents, so CI and a local checkout of the same commit agree. When the proof command reports results per test, a failing step fails only the tests that own it. Receipt history keeps only the receipts that can still decide proof; `kibi proof compact` trims stores written before that.
@@ -256,6 +258,8 @@ The result uses LLM strengths to address LLM weaknesses: limited memory, halluci
 Eight entity types: `req`, `scenario`, `test`, `fact`, `adr`, `flag`, `event`, and `symbol`. The [entity schema](https://looted.github.io/kibi/reference/entity-schema.html) has the complete model.
 
 Use `flag` only for real runtime or configuration gates. Bug and workaround notes are `fact` records with `fact_kind: observation` or `meta`.
+
+Every entity can record who authored it: `origin: {kind: human | agent | migration | import, ref, approved_by, recorded_at}`. An agent's `kb_upsert` records new entities as `kind: agent` and never rewrites an existing origin by omission. Advisory checks list agent-authored requirements that no person has approved and exception approvals that only an agent recorded. Kibi cannot verify a person's approval; it makes the missing ones visible.
 
 ## Packages
 

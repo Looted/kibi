@@ -20,6 +20,10 @@ import { createHash } from "node:crypto";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import * as path from "node:path";
 import { load as parseYAML } from "js-yaml";
+import {
+  type EntityOrigin,
+  normalizeEntityOrigin,
+} from "../public/entity-origin.js";
 import { DEFAULT_COORDINATES_PATH } from "../utils/manifest-paths.js";
 import { normalizeRepoRelativePath } from "../utils/repo-relative-path.js";
 import {
@@ -42,6 +46,7 @@ export interface ExtractedEntity {
   severity?: string;
   text_ref?: string;
   granularity_reason?: string;
+  origin?: EntityOrigin;
 }
 
 export interface ExtractedRelationship {
@@ -355,6 +360,18 @@ export function extractManifestSymbolRecords(
     }
 
     const id = symbol.id || generateId(filePath, symbol.title);
+    // implements REQ-004
+    let origin: EntityOrigin | undefined;
+    if (symbol.origin !== undefined) {
+      const normalized = normalizeEntityOrigin(symbol.origin);
+      if ("error" in normalized) {
+        throw new ManifestError(
+          `Invalid origin for symbol ${id}: ${normalized.error}`,
+          filePath,
+        );
+      }
+      origin = normalized.origin;
+    }
     const entity: ExtractedEntity = {
       id,
       type: "symbol",
@@ -371,6 +388,7 @@ export function extractManifestSymbolRecords(
       ...(symbol.granularity_reason !== undefined
         ? { granularity_reason: symbol.granularity_reason }
         : {}),
+      ...(origin !== undefined ? { origin } : {}),
       ...(typeof symbol.symbol_kind === "string"
         ? { symbol_kind: symbol.symbol_kind }
         : {}),

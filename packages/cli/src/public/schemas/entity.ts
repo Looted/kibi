@@ -16,6 +16,7 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { ENTITY_ORIGIN_SCHEMA } from "../entity-origin.js";
 import {
   PROOF_BINDINGS_SCHEMA,
   PROOF_CONTRACT_SCHEMA,
@@ -360,6 +361,8 @@ const entitySchema: Record<string, unknown> = {
     severity: { type: "string" },
     links: { type: "array", items: { type: "string" } },
     text_ref: { type: "string" },
+    // Provenance of any authored entity: who wrote it and on what authority.
+    origin: ENTITY_ORIGIN_SCHEMA,
     expects: {
       type: "string",
       enum: ["success", "rejection", "error"],

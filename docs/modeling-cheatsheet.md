@@ -137,6 +137,28 @@ After writes, run `kb_check` with `logic-coverage`, `predicate-verifiability`, a
 
 Do not invent or copy a claim key between clauses. Kibi mutation and Markdown sync surfaces recompute the stable key from `claim_text` and reject mismatches; preserve the exact key returned by `kb_model` with `mode: "analyze"` for that atomic clause.
 
+If an upgrade changes how the advisor reads existing prose, `kibi sync` lists every requirement whose stored inventory no longer matches. Run `kibi migrate`: it re-derives those inventories, keeping each claim whose key and text still match (a modeled claim stays modeled with its grounding) and marking new or reclassified claims unresolved. It lists the requirements it cannot re-derive safely, with the exact commands to fix them.
+
+## Origin
+
+Every entity can carry `origin: {kind, ref, approved_by, recorded_at}` (`kind` is `human`, `agent`, `migration` or `import`; typed fields are snake_case). Leave it out of `kb_upsert` unless you have something to add: a new entity is recorded as `{kind: agent, recorded_at}`, and an update without `origin` keeps whatever is stored. Set `ref` to the conversation, ticket or document the content came from. Record `origin.approved_by` only when a named person reviewed the content. An agent must not fill it in on its own; `agent-requirement-unapproved` lists agent-authored requirements nobody has approved yet.
+
+For an exception requirement, `approved_by` is what lets the exception exempt anything. When an agent records it, also set `approval_ref` to the decision record and `origin.approved_by` to the person who confirmed it; otherwise `exception-approval-self-attested` asks a human to confirm.
+
+```json
+{
+  "type": "req",
+  "id": "REQ-quota-promo-exception",
+  "properties": {
+    "title": "Promotional accounts may exceed the upload quota",
+    "status": "open",
+    "approved_by": "Dana Lee",
+    "approval_ref": "DEC-quota-promo",
+    "origin": { "kind": "agent", "ref": "session 2026-10-01", "approved_by": "Dana Lee" }
+  }
+}
+```
+
 ## Quality diagnostics lane
 
 `kibi check`, MCP `kb_check`, staged impact checks, coverage reports, and OpenCode scheduled checks can surface non-blocking `qualityDiagnostics[]` alongside hard `violations[]`. Treat `violations[]` as correctness failures to fix before handoff. Treat `qualityDiagnostics[]` as audit review guidance unless `blocking: true` or `severity: "error"` is present.

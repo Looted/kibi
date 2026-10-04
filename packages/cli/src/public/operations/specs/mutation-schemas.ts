@@ -1,3 +1,4 @@
+import { ENTITY_ORIGIN_SCHEMA } from "../../entity-origin.js";
 import {
   PROOF_BINDINGS_SCHEMA,
   PROOF_CONTRACT_SCHEMA,
@@ -75,6 +76,11 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       type: "string",
       description:
         "Optional text anchor/reference. Example: 'requirements.md#L40'.",
+    },
+    origin: {
+      ...ENTITY_ORIGIN_SCHEMA,
+      description:
+        "Optional provenance: who authored the entity (kind: human, agent, migration, import) and on what authority (ref, approved_by, recorded_at). Omit it to keep an existing entity's origin; a new entity written without one is recorded as {kind: agent, recorded_at: <write time>}. A supplied origin without recorded_at gets the write time.",
     },
     semantic_text: {
       type: "string",

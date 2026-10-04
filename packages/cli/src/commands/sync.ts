@@ -963,6 +963,9 @@ export async function syncCommand(
       ? extractedResults.filter(({ entity }) => changedEntityIds.has(entity.id))
       : extractedResults;
 
+    // implements REQ-kibi-proposition-complete-ingestion, REQ-cli-schema-migration
+    // Every drifted inventory is reported in one run, not one per sync attempt.
+    const inventoryFailures: string[] = [];
     for (const result of extractedResults) {
       if (result.entity.type !== "req") continue;
       const key = toCacheKey(workspaceRoot, result.entity.source);
@@ -994,12 +997,22 @@ export async function syncCommand(
           previousSemanticHash !== boundary.sourceHash) ||
         advertisedContract;
       if (enforceBoundary && boundary.errors.length > 0) {
-        throw new SyncError(
-          `${key}: proposition-complete ingestion failed: ${boundary.errors.join("; ")}. Run kb_model mode analyze (CLI: semantic-advisor) with the complete requirement prose and preserve its inventory contract.`,
+        inventoryFailures.push(
+          `${key}: proposition-complete ingestion failed: ${boundary.errors.join("; ")}.`,
         );
+        continue;
       }
       nextSemanticHashes[key] = boundary.sourceHash;
       nextSemanticContracts[key] = advertisedContract;
+    }
+    if (inventoryFailures.length > 0) {
+      throw new SyncError(
+        [
+          `${inventoryFailures.length} requirement(s) failed proposition-complete ingestion:`,
+          ...inventoryFailures.map((failure) => `  ${failure}`),
+          "Run 'kibi migrate' to re-derive inventories that drifted with the semantic advisor (it lists any that need a manual fix), or run kb_model mode analyze (CLI: semantic-advisor) with the complete requirement prose and preserve its inventory contract.",
+        ].join("\n"),
+      );
     }
 
     // Collect INVALID_AUTHORING diagnostics
