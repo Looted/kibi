@@ -532,8 +532,10 @@ describe("compile plan application", () => {
             for (const id of ids) if (goal.includes(id)) stored.add(id);
             return { success: true, bindings: { ChangeKind: "created" } };
           }
+          // Existence probes fail for an absent entity; a findall read
+          // succeeds with no rows.
           const lookup = /kb_entity\('([^']+)'/.exec(goal);
-          if (lookup?.[1] !== undefined)
+          if (lookup?.[1] !== undefined && !goal.startsWith("findall("))
             return {
               success: stored.has(lookup[1]),
               bindings: { Results: "[]", Type: "fact" },
@@ -1432,7 +1434,11 @@ describe("source hash and source-write guards", () => {
       { plan, approvedPlanHash: plan.planHash },
       filesystemContext(root),
     );
-    expect(asApply(result.structuredContent).changedPaths).toEqual(["gone.md"]);
+    // The step's own document is written beside the plan's delete.
+    expect(asApply(result.structuredContent).changedPaths).toEqual([
+      "gone.md",
+      ".kb/requirements/REQ-apply.md",
+    ]);
   });
 
   test("writes without rename and refuses delete without unlink", async () => {
@@ -1456,6 +1462,7 @@ describe("source hash and source-write guards", () => {
     );
     expect(asApply(written.structuredContent).changedPaths).toEqual([
       "docs/compat.md",
+      ".kb/requirements/REQ-apply.md",
     ]);
 
     writeFileSync(path.join(root, "gone-no-unlink.md"), "x\n");

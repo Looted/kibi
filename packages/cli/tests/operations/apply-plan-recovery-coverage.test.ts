@@ -745,7 +745,7 @@ describe("compile plan snapshot and derived-commit failures", () => {
     await expect(
       executeApplyPlan({ plan, approvedPlanHash: plan.planHash }, ctx),
     ).rejects.toThrow(
-      /no change was applied \(store unchanged, 1 source file\(s\) restored .*compiled failed/,
+      /no change was applied \(store unchanged, 2 source file\(s\) restored .*compiled failed/,
     );
     expect(existsSync(path.join(root, "docs", "compiled.md"))).toBe(false);
 

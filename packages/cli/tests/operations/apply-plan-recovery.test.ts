@@ -187,9 +187,12 @@ describe("compile plan source recovery and write fallbacks", () => {
         }),
       ),
     ).rejects.toThrow(
-      /Apply plan failed at its store commit; no change was applied \(store unchanged, 1 source file\(s\) restored .*derived boom/,
+      /Apply plan failed at its store commit; no change was applied \(store unchanged, 2 source file\(s\) restored .*derived boom/,
     );
     expect(existsSync(path.join(cwd, "docs", "REQ-repair.md"))).toBe(false);
+    expect(
+      existsSync(path.join(cwd, ".kb", "requirements", "REQ-apply.md")),
+    ).toBe(false);
     expect(planJournalState(cwd, plan)).toBe("rolled_back");
   });
 
@@ -304,7 +307,7 @@ Must remain independently testable.
     ).rejects.toThrow(/committed or repair_required journal/);
   });
 
-  test("a plan without source writes is journaled and a failing later step commits nothing", async () => {
+  test("a plan without source writes journals its entity documents and a failing later step commits nothing", async () => {
     const restoreEnv = isolateKibiEnv();
     restores.push(restoreEnv);
     const cwd = createGitWorkspace();
@@ -357,7 +360,7 @@ Must remain independently testable.
       failure = error;
     }
     expect(String(failure)).toMatch(
-      /no change was applied \(store unchanged, 0 source file\(s\) restored .*step boom/,
+      /no change was applied \(store unchanged, 2 source file\(s\) restored .*step boom/,
     );
     expect(failure).not.toMatchObject({
       code: "PARTIAL_COMMIT_REPAIR_REQUIRED",
@@ -368,6 +371,10 @@ Must remain independently testable.
     expect(commits[0]).toContain("REQ-partial-a");
     expect(stored.size).toBe(0);
     expect(planJournalState(cwd, plan)).toBe("rolled_back");
+    for (const id of ["REQ-partial-a", "REQ-partial-b"])
+      expect(
+        existsSync(path.join(cwd, ".kb", "requirements", `${id}.md`)),
+      ).toBe(false);
   });
 
   test("a pending source receipt failure after the commit reports repairs and blocks writes until its journal is recovered", async () => {
@@ -447,9 +454,10 @@ Must remain independently testable.
     });
     expect(asApply(recovered.structuredContent).status).toBeUndefined();
     expect(planJournalState(cwd, plan)).toBe("committed");
+    // The plan's source write and its requirement's document.
     expect(
       readdirSync(path.join(cwd, ".kb", "recovery", "pending-sources")),
-    ).toHaveLength(1);
+    ).toHaveLength(2);
   });
 
   test("deleting an untracked authored source retires its pending receipt so sync still discovers sources", async () => {
@@ -484,7 +492,10 @@ Must remain independently testable.
 
     expect(result.structuredContent.outcome).toBe("applied");
     expect(existsSync(path.join(cwd, relative))).toBe(false);
-    expect(readdirSync(pendingRoot)).toEqual([]);
+    // Only the step's new document keeps a receipt.
+    expect(readdirSync(pendingRoot)).toEqual([
+      `${sha(".kb/requirements/REQ-apply.md")}.json`,
+    ]);
     await expect(
       discoverSourceFiles(cwd, { trackedOnly: true }),
     ).resolves.toBeDefined();

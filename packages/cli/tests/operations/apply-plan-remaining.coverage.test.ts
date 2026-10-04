@@ -456,6 +456,7 @@ describe("source journal recovery and write rollback", () => {
     expect(result.structuredContent.outcome).toBe("applied");
     expect(asApply(result.structuredContent).changedPaths).toEqual([
       "docs/drifted.md",
+      ".kb/requirements/REQ-apply.md",
     ]);
   });
 
@@ -506,6 +507,7 @@ describe("source journal recovery and write rollback", () => {
     );
     expect(asApply(result.structuredContent).changedPaths).toEqual([
       "docs/missing-after.md",
+      ".kb/requirements/REQ-apply.md",
     ]);
   });
 
@@ -536,6 +538,7 @@ describe("source journal recovery and write rollback", () => {
     );
     expect(asApply(recovered.structuredContent).changedPaths).toEqual([
       "docs/fresh.md",
+      ".kb/requirements/REQ-apply.md",
     ]);
 
     const rolled = compilePlan({
@@ -580,6 +583,7 @@ describe("source journal recovery and write rollback", () => {
     );
     expect(asApply(applied.structuredContent).changedPaths).toEqual([
       "docs/rolled.md",
+      ".kb/requirements/REQ-rolled.md",
     ]);
   });
 

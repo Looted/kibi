@@ -1,7 +1,6 @@
 import { createHash } from "node:crypto";
 import path from "node:path";
 
-import { dump as dumpYaml } from "js-yaml";
 import {
   type IntentSearchFacets,
   type IntentSearchMatch,
@@ -17,8 +16,8 @@ import type {
   WorkspaceSnapshot,
 } from "../../public/operations/runtime-types.js";
 import { buildWhatIfAnalysisGoal } from "../mutation/contradictions.js";
-import { configuredSourceTarget } from "../mutation/source-authoring.js";
-import type { RelationshipInput } from "../mutation/types.js";
+import { canonicalSourcePath } from "../mutation/source-authoring.js";
+import type { RelationshipInput, UpsertInput } from "../mutation/types.js";
 import { validateUpsertInput } from "../mutation/validation.js";
 import { analyzeSemanticAdvisorInputWithPlugins } from "../semantic-advisor/plugin-orchestration.js";
 import { canonicalize } from "../semantic-advisor/shared.js";
@@ -454,80 +453,88 @@ async function sourceHashes(
   return hashes;
 }
 
-function sourceTarget(
-  context: OperationContext,
+/**
+ * A markdown source location may name the requirement's authored document.
+ * Any other location is changed-code evidence and is never a write target.
+ */
+function requirementDocumentPath(
   locations: readonly SourceLocation[] | undefined,
-  existingSource: string,
 ): string | undefined {
-  const explicit = locations?.[0]?.path?.trim();
-  if (explicit) return explicit.replaceAll("\\", "/");
-  if (
-    existingSource &&
-    !/^[A-Za-z][A-Za-z0-9+.-]*:\/\//.test(existingSource) &&
-    /\.(?:md|mdx|ya?ml)$/i.test(existingSource)
-  )
-    return existingSource.replaceAll("\\", "/");
-  return configuredSourceTarget(context.workspaceRoot, "req");
+  const explicit = locations?.[0]?.path?.trim().replaceAll("\\", "/");
+  if (!explicit || !/\.(?:md|mdx)$/i.test(explicit)) return undefined;
+  // Kibi owns the .kb layout: entities there live at their canonical path.
+  if (explicit === ".kb" || explicit.startsWith(".kb/")) return undefined;
+  return explicit;
 }
 
-async function sourceWritePlan(
+// implements REQ-kibi-change-to-proof-plan-compiler-v2
+/**
+ * Name the authored document every entity step writes, as `kb_upsert` would
+ * choose it: the entity's existing authored document, else its canonical
+ * `.kb/<lane>/<ID>.md` (the requirement may name its own markdown document).
+ * `kb_apply_plan` renders each step's entity into its document and journals
+ * the bytes with the rest of the plan. Without documents a plan's entities
+ * lived only in the branch store and vanished on `kibi sync --rebuild` or a
+ * fresh clone.
+ *
+ * The plan stays deterministic: it names targets and the requirement's body,
+ * not bytes, because the document carries the origin the apply records.
+ * Symbol steps keep the manifest path through `kb_upsert`, which also
+ * refreshes their coordinates.
+ */
+async function withDocumentTargets(
   context: OperationContext,
-  requirementId: string,
-  title: string,
-  intent: string,
-  locations: readonly SourceLocation[] | undefined,
-  existingSource: string,
-  existingEntityExists: boolean,
-): Promise<SourceWritePlan[]> {
-  if (!context.fs) return [];
-  if (
-    existingEntityExists &&
-    (locations === undefined || locations.length === 0) &&
-    !existingSource.match(/\.(?:md|mdx|ya?ml|json)$/i)
-  ) {
-    return [];
+  prolog: NonNullable<OperationContext["prolog"]>,
+  steps: readonly PlanStep[],
+  requirement: Readonly<{ id: string; body: string; path?: string }>,
+  now: Date,
+): Promise<PlanStep[]> {
+  if (!context.fs) return [...steps];
+  const targeted: PlanStep[] = [];
+  for (const step of steps) {
+    const type = text(step.type);
+    const id = text(step.id);
+    const properties = isRecord(step.properties) ? step.properties : {};
+    if (type === "symbol" || Object.keys(properties).length === 0) {
+      targeted.push(step);
+      continue;
+    }
+    const stepDocument = isRecord(step.document) ? step.document : {};
+    const document: { path?: string; body?: string } =
+      type === "req" && id === requirement.id
+        ? {
+            body: requirement.body,
+            ...(requirement.path !== undefined
+              ? { path: requirement.path }
+              : {}),
+          }
+        : typeof stepDocument.body === "string"
+          ? { body: stepDocument.body.replace(/\n*$/, "\n") }
+          : {};
+    const input: UpsertInput = {
+      type,
+      id,
+      properties,
+      relationships: (Array.isArray(step.relationships)
+        ? step.relationships.filter(isRecord)
+        : []) as RelationshipInput[],
+      document,
+    };
+    // An invalid entity or an unwritable document would fail the apply.
+    const { entity } = validateUpsertInput(input, now);
+    const [existing] =
+      document.path === undefined
+        ? await loadEntities(prolog, { id, type })
+        : [];
+    targeted.push({
+      ...step,
+      document: {
+        ...document,
+        path: canonicalSourcePath(context, input, entity, existing),
+      },
+    });
   }
-  const relative = sourceTarget(context, locations, existingSource);
-  if (
-    !relative ||
-    path.isAbsolute(relative) ||
-    relative.split(/[\\/]/).includes("..")
-  ) {
-    return [];
-  }
-  const absolute = path.resolve(context.workspaceRoot, relative);
-  const root = path.resolve(context.workspaceRoot);
-  if (absolute !== root && !absolute.startsWith(`${root}${path.sep}`))
-    return [];
-  const workspaceRelative = path.relative(root, absolute);
-  if (
-    workspaceRelative === ".kb" ||
-    workspaceRelative.startsWith(`.kb${path.sep}`)
-  )
-    return [];
-  let before: string | undefined;
-  try {
-    before = await context.fs.readFile(absolute);
-  } catch {
-    before = undefined;
-  }
-  const frontmatter = `---\n${dumpYaml(
-    { id: requirementId, title, type: "req", status: "open" },
-    { noRefs: true, lineWidth: -1 },
-  )}---\n`;
-  const body = `${frontmatter}${intent.trim()}\n`;
-  return [
-    {
-      path: relative,
-      mode: "write",
-      beforeHash:
-        before === undefined
-          ? null
-          : createHash("sha256").update(before).digest("hex"),
-      afterHash: createHash("sha256").update(body).digest("hex"),
-      body,
-    },
-  ];
+  return targeted;
 }
 
 function generatedRequirementId(intent: string): string {
@@ -993,10 +1000,10 @@ export async function executeCompileIntent(
     text(existingEntity.title) ||
     intent.split(/[.!?]/, 1)[0] ||
     intent;
+  const requirementDocument = requirementDocumentPath(args.sourceLocations);
   const source =
-    text(args.sourceLocations?.[0]?.path) ||
-    text(existingEntity.source) ||
-    "mcp://kibi/compile-intent";
+    requirementDocument ??
+    (text(existingEntity.source) || "mcp://kibi/compile-intent");
   const orchestrated = await analyzeSemanticAdvisorInputWithPlugins(
     {
       payload: {
@@ -1230,25 +1237,39 @@ export async function executeCompileIntent(
         entry.includes("not found") ||
         entry.includes("different content"),
     );
-  const statusValue: CompilePlanV1["status"] =
+  let statusValue: CompilePlanV1["status"] =
     contradictions.outcome === "conflict"
       ? "blocked"
       : unresolved
         ? "needs_resolution"
         : "ready";
   const sourceHashMap = await sourceHashes(context, args.sourceLocations);
-  const sourceWrites =
-    statusValue === "ready"
-      ? await sourceWritePlan(
-          context,
-          requirementId,
-          title,
-          intent,
-          args.sourceLocations,
-          source,
-          existing.length > 0,
-        )
-      : [];
+  // Only a ready plan can be applied, so only a ready plan carries documents.
+  // A step whose entity or document cannot be rendered would fail the apply,
+  // so it makes the plan need resolution instead of reporting it ready.
+  let planSteps = stepsWithAcceptedProposals;
+  if (statusValue === "ready") {
+    try {
+      planSteps = await withDocumentTargets(
+        context,
+        prolog,
+        stepsWithAcceptedProposals,
+        {
+          id: requirementId,
+          body: `${intent.trim()}\n`,
+          ...(requirementDocument !== undefined
+            ? { path: requirementDocument }
+            : {}),
+        },
+        context.clock(),
+      );
+    } catch (error) {
+      statusValue = "needs_resolution";
+      diagnostics.push(
+        `A plan step cannot be applied as written: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
   const planBody = {
     version: COMPILE_PLAN_VERSION,
     status: statusValue,
@@ -1266,8 +1287,8 @@ export async function executeCompileIntent(
     propositions,
     contradictionAnalysis: contradictions,
     proposals,
-    steps: stepsWithAcceptedProposals,
-    sourceWrites,
+    steps: planSteps,
+    sourceWrites: [],
     diagnostics,
   };
   // Shadow/provenance metadata is returned for observation but must not enter
@@ -1281,7 +1302,7 @@ export async function executeCompileIntent(
     content: [
       {
         type: "text",
-        text: `Compiled ${intent.length} characters into ${statusValue} plan ${plan.planHash.slice(0, 12)} with ${stepsWithAcceptedProposals.length} step(s).`,
+        text: `Compiled ${intent.length} characters into ${statusValue} plan ${plan.planHash.slice(0, 12)} with ${planSteps.length} step(s).`,
       },
     ],
     structuredContent: plan,

@@ -18,7 +18,8 @@ import {
 /**
  * Consumer view of atomic compile-plan application: `kibi compile-intent`
  * plans a requirement with its scenario, test and rule facts, and
- * `kibi apply-plan` lands all of it in one store commit or none of it. An
+ * `kibi apply-plan` lands all of it in one store commit or none of it, each
+ * entity written to its authored document so a rebuild keeps it. An
  * interrupted application leaves its journal and partly published files on
  * disk; the next mutating call, or an explicit recoveryJournalId, settles it.
  */
@@ -33,7 +34,7 @@ afterEach(() => {
 const REQ = "REQ-checkout-positive-total";
 const SCEN = "SCEN-checkout-positive-total";
 const TEST = "TEST-checkout-positive-total";
-/** The authored requirement document the plan writes outside `.kb`. */
+/** The authored requirement document the plan targets outside `.kb`. */
 const DOC = "docs/requirements/checkout-positive-total.md";
 
 type Relationship = { type: string; from?: string; to: string };
@@ -42,18 +43,18 @@ type PlanStep = {
   id: string;
   properties: Json;
   relationships?: Relationship[];
+  document?: { path?: string; body?: string };
 };
-type SourceWrite = { path: string; body: string; afterHash: string };
 type CompilePlan = Json & {
   planHash: string;
   status: string;
   steps: PlanStep[];
-  sourceWrites: SourceWrite[];
+  sourceWrites: unknown[];
 };
 
 type JournalFile = {
   path: string;
-  origin: "plan" | "relationship-shard";
+  origin: "plan" | "entity-document" | "relationship-shard";
   mode: "write";
   before: null;
   beforeHash: null;
@@ -100,8 +101,25 @@ function compilePlan(ws: ConsumerWorkspace): CompilePlan {
   expect(plan.steps.map((step) => step.id)).toEqual(
     expect.arrayContaining([REQ, SCEN, TEST]),
   );
-  expect(plan.sourceWrites.map((write) => write.path)).toEqual([DOC]);
+  // Every entity is written to its own authored document when the plan
+  // applies; the plan carries no free-standing source writes.
+  expect(plan.sourceWrites).toEqual([]);
+  const requirement = plan.steps.find((step) => step.id === REQ);
+  expect(requirement?.document).toEqual({
+    path: DOC,
+    body: "Checkout may happen only when the cart total is positive.\n",
+  });
+  for (const step of plan.steps)
+    if (step.id !== REQ)
+      expect(step.document?.path).toMatch(
+        new RegExp(`^\\.kb/[a-z]+/${step.id}\\.md$`),
+      );
   return plan;
+}
+
+/** The authored documents an application writes, in step order. */
+function documentsOf(plan: CompilePlan): string[] {
+  return plan.steps.map((step) => step.document?.path as string);
 }
 
 function relationshipsOf(plan: CompilePlan): Relationship[] {
@@ -195,9 +213,10 @@ describe("atomic compile plan application through the kibi CLI", () => {
     const shards = shardsOf(plan);
     expect(shards.length).toBeGreaterThan(0);
 
+    const documents = documentsOf(plan);
     // An empty directory where the last shard goes (invisible to Git, so
-    // the plan's snapshots still match) makes its publish fail after the
-    // source write and every earlier shard were already published.
+    // the plan's snapshots still match) makes its publish fail after every
+    // entity document and every earlier shard were already published.
     const blocked = path.join(ws.root, shards.at(-1) as string);
     mkdirSync(blocked, { recursive: true });
     const approval = { plan, approvedPlanHash: plan.planHash };
@@ -208,10 +227,11 @@ describe("atomic compile plan application through the kibi CLI", () => {
     const restored = failure.message.match(
       /^Apply plan failed while publishing its source writes; no change was applied \(store unchanged, (\d+) source file\(s\) restored from journal (plan-apply-[0-9a-f]+)\)/,
     );
-    expect(restored?.[1]).toBe(String(shards.length));
+    expect(restored?.[1]).toBe(String(documents.length + shards.length - 1));
     const journalId = restored?.[2] as string;
 
-    expect(existsSync(path.join(ws.root, DOC))).toBe(false);
+    for (const document of documents)
+      expect(existsSync(path.join(ws.root, document))).toBe(false);
     for (const shard of shards.slice(0, -1))
       expect(existsSync(path.join(ws.root, shard))).toBe(false);
     expect(statSync(blocked).isDirectory()).toBe(true);
@@ -233,7 +253,7 @@ describe("atomic compile plan application through the kibi CLI", () => {
         planHash: plan.planHash,
         changedEntities: ids.length,
         changedRelationships: relationships.length,
-        changedPaths: [DOC],
+        changedPaths: documents,
         recoveryJournalId: journalId,
         validationSummary: {
           stepsValidated: ids.length,
@@ -244,7 +264,13 @@ describe("atomic compile plan application through the kibi CLI", () => {
     for (const id of ids) expect(storeCount(ws, id)).toBe(1);
     expect(entity(ws, REQ).specified_by).toContain(`kb:entity/${SCEN}`);
     expect(entity(ws, SCEN).verified_by).toContain(`kb:entity/${TEST}`);
-    expect(ws.read(DOC)).toBe(plan.sourceWrites[0]?.body as string);
+    for (const step of plan.steps)
+      expect(ws.read(step.document?.path as string)).toContain(
+        `id: ${step.id}`,
+      );
+    expect(ws.read(DOC)).toContain(
+      "Checkout may happen only when the cart total is positive.",
+    );
     for (const relationship of relationships) {
       const shard = `.kb/relationships/${sha256(relationship.from ?? "").slice(0, 2)}.yaml`;
       expect(ws.read(shard)).toContain(`from: ${relationship.from}`);
@@ -254,6 +280,26 @@ describe("atomic compile plan application through the kibi CLI", () => {
       state: "committed",
       resolution: { action: "completed", by: "apply" },
     });
+
+    // The documents are the entities' source: rebuilding the store from the
+    // checkout keeps every entity and relationship the plan committed.
+    // Timestamps are runtime provenance, not authored content, so the
+    // rebuild stamps fresh ones.
+    const authored = () =>
+      ids.map((id) => {
+        const {
+          created_at: _created,
+          updated_at: _updated,
+          ...rest
+        } = entity(ws, id);
+        return rest;
+      });
+    const before = authored();
+    ws.stage();
+    ws.text(["sync", "--rebuild"]);
+    for (const id of ids) expect(storeCount(ws, id)).toBe(1);
+    expect(authored()).toEqual(before);
+    expect(entity(ws, REQ).source).toBe(DOC);
   }, 300_000);
 
   test("rolls back an application that died while publishing on the next kibi upsert", () => {
@@ -266,10 +312,16 @@ describe("atomic compile plan application through the kibi CLI", () => {
     const journalId = `plan-apply-${plan.planHash.slice(0, 16)}`;
 
     // What the crash left on disk: a prepared journal naming every file the
-    // plan publishes (its source write, then each shard), the files already
-    // published, and a staged temp file for the one in flight.
+    // plan publishes (each entity document, then each shard), the files
+    // already published, and a staged temp file for the one in flight.
     const files: JournalFile[] = [
-      journalFile(DOC, "plan", plan.sourceWrites[0]?.body as string),
+      ...plan.steps.map((step) =>
+        journalFile(
+          step.document?.path as string,
+          "entity-document",
+          `---\nid: ${step.id}\n---\n`,
+        ),
+      ),
       ...shardsOf(plan).map((shard) =>
         journalFile(
           shard,
@@ -308,7 +360,7 @@ describe("atomic compile plan application through the kibi CLI", () => {
             entries: storeEntries(plan),
           },
           summary: {
-            planPaths: [DOC],
+            planPaths: [],
             filePaths: files.map((file) => file.path),
             changedEntities: ids.length,
             changedRelationships: relationships.length,
@@ -365,7 +417,6 @@ describe("atomic compile plan application through the kibi CLI", () => {
     ws.sync();
     const plan = compilePlan(ws);
     const ids = plan.steps.map((step) => step.id);
-    const body = plan.sourceWrites[0]?.body as string;
     const applied = ws.json(["apply-plan"], {
       plan,
       approvedPlanHash: plan.planHash,
@@ -376,14 +427,16 @@ describe("atomic compile plan application through the kibi CLI", () => {
     const journal = journalPath(ws, journalId);
     const finished = readJournal(journal);
     expect(finished.state).toBe("committed");
+    const body = ws.read(DOC);
 
     // What the crash left: the run died right after the store accepted the
     // batch, so every file holds its published bytes and the journal still
     // reads store_committed with the full file and store record.
-    const published = [DOC, ...shardsOf(plan)].map((file) =>
+    const documents = documentsOf(plan);
+    const published = [...documents, ...shardsOf(plan)].map((file) =>
       journalFile(
         file,
-        file === DOC ? "plan" : "relationship-shard",
+        documents.includes(file) ? "entity-document" : "relationship-shard",
         ws.read(file),
       ),
     );

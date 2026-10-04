@@ -7,6 +7,7 @@ tags:
   - apply-plan
   - atomic
   - recovery
+  - rebuild
 origin:
   kind: agent
   recorded_at: '2026-10-04T02:20:05.545Z'
@@ -26,3 +27,7 @@ Then it completes or rolls back the interrupted application from the journal and
 Given a journaled file that was changed outside the journal
 When recovery runs
 Then it changes nothing and fails with `PARTIAL_COMMIT_REPAIR_REQUIRED`.
+
+Given an approved compile plan that applied
+When `kibi sync --rebuild` rebuilds the store from the workspace
+Then every entity and relationship the plan committed is still there, read from each entity's authored document.

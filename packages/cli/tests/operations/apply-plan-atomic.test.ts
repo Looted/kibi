@@ -300,12 +300,16 @@ describe("atomic compile plan application against a real store", () => {
         context(root, port),
       ),
     ).rejects.toThrow(
-      /at its store commit; no change was applied \(store unchanged, 2 source file\(s\) restored/,
+      /at its store commit; no change was applied \(store unchanged, 4 source file\(s\) restored/,
     );
 
     expect(await store.exists("REQ-atomic-a")).toBe(false);
     expect(await store.exists("REQ-atomic-b")).toBe(false);
     expect(existsSync(path.join(root, "docs", "atomic.md"))).toBe(false);
+    for (const id of ["REQ-atomic-a", "REQ-atomic-b"])
+      expect(
+        existsSync(path.join(root, ".kb", "requirements", `${id}.md`)),
+      ).toBe(false);
     expect(shardFiles(root)).toEqual([]);
     expect(journalState(root, plan)).toBe("rolled_back");
   }, 60_000);
@@ -485,7 +489,7 @@ describe("atomic compile plan application against a real store", () => {
           {
             journalId: planApplyJournalId(plan.planHash),
             action: "rolled_back",
-            restoredPaths: ["docs/kept.md"],
+            restoredPaths: [".kb/requirements/REQ-atomic-a.md", "docs/kept.md"],
           },
         ],
       },
@@ -668,7 +672,8 @@ describe("atomic compile plan journal", () => {
         "first after\n",
       );
 
-      const restored = /Rolled back interrupted plan .*restored 1 of 2/;
+      // Its two source writes and its requirement's document.
+      const restored = /Rolled back interrupted plan .*restored 1 of 3/;
       if (nextCall === "kb_upsert") {
         // The upsert settles the journal before it reads or writes anything,
         // then performs its own write and reports the recovery.
@@ -806,7 +811,7 @@ describe("atomic compile plan journal", () => {
       await committed.promise;
 
       const settled =
-        /\[settled before this failure: Completed interrupted plan .*published 0 of 1/;
+        /\[settled before this failure: Completed interrupted plan .*published 0 of 2/;
       if (nextCall === "kb_apply_plan") {
         // A plan compiled against the snapshot before plan A no longer matches.
         const stale = compilePlan({

@@ -342,3 +342,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7d65100586e6
+  - type: requires_predicate
+    from: REQ-kibi-change-to-proof-plan-compiler-v2
+    to: FACT-PRED-plan-apply-entity-documents
+    created_at: 2026-10-04T08:41:16.672Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ec2eb421858f

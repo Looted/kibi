@@ -139,7 +139,7 @@ describe("compile-intent validation and source planning", () => {
     ).rejects.toThrow(/Prolog runtime/);
   });
 
-  test("records missing source hashes and emits a source write for ready creates", async () => {
+  test("records missing source hashes and names the requirement document for ready creates", async () => {
     const root = await mkdtemp(path.join(tmpdir(), "kibi-compile-src-"));
     workspaces.push(root);
     await mkdir(path.join(root, "docs"), { recursive: true });
@@ -162,9 +162,12 @@ describe("compile-intent validation and source planning", () => {
       /^[a-f0-9]{64}$/,
     );
     expect(plan.expected.sourceHashes["docs/missing.md"]).toBeNull();
-    expect(plan.sourceWrites).toEqual([
-      expect.objectContaining({ path: "docs/present.md", mode: "write" }),
-    ]);
+    // Plans name each entity's document; kb_apply_plan renders the bytes.
+    expect(plan.sourceWrites).toEqual([]);
+    expect(
+      plan.steps.find((step) => step.id === plan.target.requirementId)
+        ?.document,
+    ).toMatchObject({ path: "docs/present.md" });
   });
 
   test("auto-selects a high-confidence update target and applies drafts plus proposals", async () => {

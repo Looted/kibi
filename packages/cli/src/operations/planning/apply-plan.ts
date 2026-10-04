@@ -68,6 +68,10 @@ import {
   storeFingerprint,
   withPlanRecoveryNotes,
 } from "../mutation/plan-apply-journal.js";
+import {
+  canonicalSourcePath,
+  renderSourceDocument,
+} from "../mutation/source-authoring.js";
 import type {
   DeletePayload,
   RelationshipInput,
@@ -1697,16 +1701,21 @@ type MutablePlanFileWrite = {
 
 /**
  * Every workspace file the plan changes, with exact before/after bytes: the
- * plan's approved sourceWrites plus the relationship shards its steps append
- * (rendered exactly as executeUpsert would append them, in step order).
+ * plan's approved sourceWrites, the authored document of every entity step,
+ * and the relationship shards its steps append, each rendered exactly as
+ * executeUpsert would write it, in step order. `sources` maps a step index to
+ * its document, which becomes the committed entity's `source`.
  */
+// implements REQ-kibi-change-to-proof-plan-compiler-v2
 async function planFileWrites(
-  workspaceRoot: string,
+  context: OperationContext,
+  prolog: PrologPort,
   fsPort: FilesystemPort,
   sourceWrites: readonly SourceWritePlan[],
   steps: readonly ValidatedPlanStep[],
   now: Date,
-): Promise<PlanApplyFileWrite[]> {
+): Promise<{ files: PlanApplyFileWrite[]; sources: Map<number, string> }> {
+  const workspaceRoot = context.workspaceRoot;
   const files = new Map<string, MutablePlanFileWrite>();
   for (const write of sourceWrites) {
     const target = await resolveSourceWriteTarget(workspaceRoot, fsPort, write);
@@ -1731,6 +1740,64 @@ async function planFileWrites(
       after,
       afterHash: after === null ? null : contentHash(after),
     });
+  }
+  // Entity documents: the bytes kb_upsert would publish for the validated
+  // entity, merged into the document as the plan leaves it. A plan without
+  // them leaves its entities only in the branch store, so a rebuild or a
+  // fresh clone loses them. Symbols keep the kb_upsert path, which also
+  // refreshes their generated coordinates.
+  const sources = new Map<number, string>();
+  for (const [index, step] of steps.entries()) {
+    if (step.input.type === "symbol") continue;
+    const [existing] =
+      step.input.document?.path === undefined
+        ? await loadEntities(prolog, {
+            id: step.input.id,
+            type: step.input.type,
+          })
+        : [];
+    const relative = canonicalSourcePath(
+      context,
+      step.input,
+      step.entity,
+      existing,
+    );
+    let file = files.get(relative);
+    if (file === undefined) {
+      // canonicalSourcePath already refused traversal, derived .kb trees and
+      // symlinks that leave the workspace.
+      const existingBytes = await fsPort
+        .readFile(path.join(workspaceRoot, relative))
+        .catch(() => undefined);
+      const before = existingBytes ?? null;
+      file = {
+        path: relative,
+        origin: "entity-document",
+        mode: "write",
+        before,
+        beforeHash: before === null ? null : contentHash(before),
+        after: before,
+        afterHash: before === null ? null : contentHash(before),
+      };
+      files.set(relative, file);
+    }
+    if (file.mode === "delete") {
+      throw new Error(
+        `Apply plan failed: step ${step.input.id} writes ${relative}, which the plan deletes`,
+      );
+    }
+    sources.set(index, relative);
+    // A plan sourceWrite for the same file is approved, byte-exact content:
+    // it is the document, not a base to render into.
+    if (file.origin === "plan") continue;
+    const after = renderSourceDocument(
+      step.input,
+      step.entity,
+      file.after ?? undefined,
+      relative,
+    );
+    file.after = after;
+    file.afterHash = contentHash(after);
   }
   const root = path.resolve(workspaceRoot);
   const kbRoot = path.join(workspaceRoot, ".kb");
@@ -1781,15 +1848,23 @@ async function planFileWrites(
       }
     }
   }
-  return [...files.values()].filter(
-    (file) => file.origin === "plan" || file.afterHash !== file.beforeHash,
-  );
+  return {
+    files: [...files.values()].filter(
+      (file) =>
+        file.origin === "plan" ||
+        file.origin === "entity-document" ||
+        file.afterHash !== file.beforeHash,
+    ),
+    sources,
+  };
 }
 
 type CompilePlanCommit = Readonly<{
   journalId: string | null;
   changedEntities: number;
   changedRelationships: number;
+  /** Authored files the plan wrote: its sourceWrites and entity documents. */
+  documentPaths: readonly string[];
   effectFailures: readonly Readonly<Record<string, unknown>>[];
   nextActions: readonly Readonly<Record<string, unknown>>[];
 }>;
@@ -1819,12 +1894,20 @@ async function commitCompilePlan(
   now: Date,
   onCommitted: () => void,
 ): Promise<CompilePlanCommit> {
-  const entries: PlanApplyStoreEntry[] = steps.map((step) => ({
-    entity: step.entity,
-    relationships: step.relationships,
-    skipContradictionCheck: step.input._skipContradictionCheck === true,
-  }));
-  const goal = buildUpsertBatchCommitGoal(entries);
+  // Store upserts, one per step. A step with an authored document commits
+  // that document as its source, exactly as a source-first kb_upsert does.
+  const storeEntries = (
+    sources: ReadonlyMap<number, string> = new Map(),
+  ): PlanApplyStoreEntry[] =>
+    steps.map((step, index) => {
+      const source = sources.get(index);
+      return {
+        entity: source === undefined ? step.entity : { ...step.entity, source },
+        relationships: step.relationships,
+        skipContradictionCheck: step.input._skipContradictionCheck === true,
+      };
+    });
+  let entries = storeEntries();
   const entityIds = [
     ...new Set(entries.map((entry) => String(entry.entity.id))),
   ];
@@ -1851,7 +1934,7 @@ async function commitCompilePlan(
     }
     // Without a filesystem there are no workspace files to coordinate: the
     // single store transaction is the whole application.
-    const written = await prolog.query(goal);
+    const written = await prolog.query(buildUpsertBatchCommitGoal(entries));
     if (!written.success) {
       throw new Error(
         `Apply plan failed; no change was applied: ${storeRejection(written).message}`,
@@ -1863,6 +1946,7 @@ async function commitCompilePlan(
       journalId: null,
       changedEntities: entries.length,
       changedRelationships,
+      documentPaths: [],
       effectFailures: [],
       nextActions: [],
     };
@@ -1883,13 +1967,22 @@ async function commitCompilePlan(
       false,
     );
   }
-  const files = await planFileWrites(
-    context.workspaceRoot,
+  const { files, sources } = await planFileWrites(
+    context,
+    prolog,
     fsPort,
     plan.sourceWrites,
     steps,
     now,
   );
+  entries = storeEntries(sources);
+  const goal = buildUpsertBatchCommitGoal(entries);
+  const documentPaths = [
+    ...new Set([
+      ...plan.sourceWrites.map((write) => write.path),
+      ...sources.values(),
+    ]),
+  ];
   let preCommitFingerprint: string;
   try {
     preCommitFingerprint = await storeFingerprint(prolog, entityIds);
@@ -2049,6 +2142,7 @@ async function commitCompilePlan(
       journalId: slot.journalId,
       changedEntities: entries.length,
       changedRelationships,
+      documentPaths,
       effectFailures,
       nextActions,
     };
@@ -2069,6 +2163,7 @@ async function commitCompilePlan(
     journalId: slot.journalId,
     changedEntities: entries.length,
     changedRelationships,
+    documentPaths,
     effectFailures,
     nextActions,
   };
@@ -2257,7 +2352,7 @@ async function executeCompilePlan(
     planHash: args.plan.planHash,
     changedEntities: commit.changedEntities,
     changedRelationships: commit.changedRelationships,
-    changedPaths: args.plan.sourceWrites.map((write) => write.path),
+    changedPaths: [...commit.documentPaths],
     finalSnapshots,
     validationSummary: {
       stepsValidated: steps.length,

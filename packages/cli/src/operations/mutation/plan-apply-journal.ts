@@ -58,7 +58,12 @@ const JOURNAL_ID_PATTERN = /^plan-apply-[a-f0-9]{16}$/;
 export type PlanApplyFileWrite = Readonly<{
   /** Workspace-relative path with forward slashes. */
   path: string;
-  origin: "plan" | "relationship-shard";
+  /**
+   * plan: one of the plan's sourceWrites; entity-document: the authored
+   * document a step's entity is rendered into; relationship-shard: a shard
+   * the steps' relationships append to.
+   */
+  origin: "plan" | "entity-document" | "relationship-shard";
   mode: "write" | "delete";
   beforeHash: string | null;
   afterHash: string | null;
@@ -244,7 +249,9 @@ function isFileWrite(value: unknown): value is PlanApplyFileWrite {
     entry.path !== "" &&
     !path.isAbsolute(entry.path) &&
     !entry.path.split(/[\\/]/).includes("..") &&
-    (entry.origin === "plan" || entry.origin === "relationship-shard") &&
+    (entry.origin === "plan" ||
+      entry.origin === "entity-document" ||
+      entry.origin === "relationship-shard") &&
     (entry.mode === "write" || entry.mode === "delete") &&
     (before === null
       ? entry.beforeHash === null
