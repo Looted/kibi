@@ -5,7 +5,7 @@ status: open
 created_at: 2026-03-21T13:00:00.000Z
 updated_at: 2026-08-18T00:00:00.000Z
 priority: should
-source: documentation/requirements/REQ-opencode-comment-routing.md
+source: .kb/requirements/REQ-opencode-comment-routing.md
 tags:
   - opencode
   - guidance

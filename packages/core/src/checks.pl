@@ -888,7 +888,7 @@ adr_not_superseded(AdrId) :-
     \+ kb_relationship(supersedes, _, AdrId).
 
 %% check_scenario_feasibility(-Violations)
-% implements REQ-kibi-scenario-feasibility
+% implements REQ-kibi-scenario-feasibility-v2
 % A scenario that expects success and whose assumptions cannot hold together
 % with what current requirements require can never pass.  Each witness names
 % the scenario, the requirements, the assumed facts and the requirement facts
@@ -970,7 +970,7 @@ scenario_feasibility_violation(violation(
     ).
 
 %% infeasible_scenario(?ScenarioId, -ReqIds, -AssumedFacts, -ReqFacts, -Reason)
-% implements REQ-kibi-scenario-feasibility
+% implements REQ-kibi-scenario-feasibility-v2
 % One blocking witness for a success scenario: sorted lists of current,
 % non-exempted requirements, the scenario's assumed facts and the requirement
 % facts (property values or rules) whose constraints admit no common value.
@@ -996,7 +996,7 @@ scenario_expects(ScenarioId, Outcome) :-
     kb:normalize_term_atom(Raw, Outcome).
 
 %% constraint_exempt(+ScenarioId, +ReqId, +FactId)
-% implements REQ-kibi-scenario-feasibility
+% implements REQ-kibi-scenario-feasibility-v2
 % An approved, current exception requirement exempts ReqId, specifies the
 % scenario and covers the requirement constraint grounded by FactId: every
 % constraint when the exception lists no exempts_claims, otherwise only those
@@ -1064,7 +1064,7 @@ evidence_text(Raw, Text) :-
     ).
 
 %% scenario_feasibility_outcome(?ScenarioId, -Outcome)
-% implements REQ-kibi-scenario-feasibility
+% implements REQ-kibi-scenario-feasibility-v2
 % The analysis result for a scenario that expects success:
 %   infeasible(witness(ReqIds, AssumedFacts, ReqFacts, Reason))
 %                            the assumptions cannot hold with the constraints
@@ -1125,7 +1125,7 @@ analysis_outcome(analysis([], [], false, [Reason|_]), not_applicable(Reason)) :-
 analysis_outcome(analysis([], [], false, []), feasible).
 
 %% scenario_feasibility_analysis(+ScenarioId, -analysis(Witnesses, Unknowns, ByException, NotApplicable))
-% implements REQ-kibi-scenario-feasibility
+% implements REQ-kibi-scenario-feasibility-v2
 % Every assumed property value becomes a member constraint on its subject and
 % property.  Requirement constraints share that form, whichever lane grounds
 % them:
@@ -1473,7 +1473,7 @@ earlier_time(Time, Acc, Earlier) :-
     (   time_before(Time, Acc) -> Earlier = Time ; Earlier = Acc ).
 
 %% validity_applicability(+Window, +From, +To, -Applicability)
-% implements REQ-kibi-scenario-feasibility
+% implements REQ-kibi-scenario-feasibility-v2
 % A constraint without a validity window applies.  A bounded constraint is
 % undetermined when the scenario's time is unspecified, outside when the two
 % windows are disjoint, applies when the scenario's window lies inside the
@@ -1660,7 +1660,7 @@ member_label(m(_, _, FactId, _, _, _, _, _, _, Text), Label) :-
     format(atom(Label), '~w (~w)', [FactId, Text]).
 
 %% general_rule_results(+Assumptions, +GeneralRule, +Results0, -Results)
-% implements REQ-kibi-scenario-feasibility
+% implements REQ-kibi-scenario-feasibility-v2
 % Decide a restricting rule that is not one constraint per property against
 % the assumptions on the properties it reads (in the rule's scope).  Its
 % conditions hold when every read property is assumed and each condition is
@@ -1961,7 +1961,7 @@ bool_domain_exhausted(bool, Different) :-
     memberchk(false, Different).
 
 %% check_scenario_feasibility_unknown(-Violations)
-% implements REQ-kibi-scenario-feasibility
+% implements REQ-kibi-scenario-feasibility-v2
 % Advisory: success scenarios whose feasibility the checker cannot decide.
 check_scenario_feasibility_unknown(Violations) :-
     findall(Violation, scenario_feasibility_unknown_violation(Violation), Unsorted),
@@ -2023,7 +2023,7 @@ unknown_feasibility_text(undetermined_validity(FactIds), Description,
         [FactText]).
 
 %% check_exception_claim_keys(-Violations)
-% implements REQ-kibi-scenario-feasibility
+% implements REQ-kibi-scenario-feasibility-v2
 % An exception requirement narrows its waiver to individual clauses of the
 % requirement it exempts by listing their claim keys in exempts_claims.  Each
 % listed key must be a claim of an exempted requirement (its logic_claims, its
@@ -2502,7 +2502,7 @@ what_if_witnesses(Contradictions, Infeasible) :-
     findall(Witness, scenario_infeasibility_witness(Witness), Infeasible0),
     sort(Infeasible0, Infeasible).
 
-% implements REQ-kibi-scenario-feasibility
+% implements REQ-kibi-scenario-feasibility-v2
 scenario_infeasibility_witness(_{
     kind: scenario_feasibility,
     status: infeasible,

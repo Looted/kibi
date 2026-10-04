@@ -1,4 +1,4 @@
-// implements REQ-kibi-change-to-proof-plan-compiler, REQ-core-atomic-upsert-persistence
+// implements REQ-kibi-change-to-proof-plan-compiler-v2, REQ-core-atomic-upsert-persistence
 import { afterEach, describe, expect, test } from "bun:test";
 import { createHash } from "node:crypto";
 import {

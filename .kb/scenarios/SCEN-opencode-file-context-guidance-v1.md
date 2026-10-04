@@ -5,7 +5,7 @@ type: scenario
 status: active
 created_at: 2026-05-04T10:00:00Z
 updated_at: 2026-05-04T10:00:00Z
-source: documentation/requirements/REQ-opencode-file-context-guidance-v1.md
+source: .kb/requirements/REQ-opencode-file-context-guidance-v1.md
 priority: must
 tags:
   - opencode

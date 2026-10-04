@@ -1,10 +1,10 @@
 ---
 id: FACT-REQ-PROOF-PLAN-HASH-GUARD
 title: Kibi applies only an approved plan hash
-status: active
+status: superseded
 created_at: 2026-08-13T00:00:00.000Z
 updated_at: 2026-08-13T00:00:00.000Z
-source: documentation/facts/FACT-REQ-PROOF-PLAN-HASH-GUARD.md
+source: .kb/facts/FACT-REQ-PROOF-PLAN-HASH-GUARD.md
 tags:
   - lane:strict
   - planning

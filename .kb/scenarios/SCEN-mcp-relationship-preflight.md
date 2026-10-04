@@ -4,7 +4,7 @@ title: MCP rejects invalid relationship targets before persistence
 status: active
 created_at: 2026-08-18T00:00:00Z
 updated_at: 2026-08-18T00:00:00Z
-source: documentation/scenarios/SCEN-mcp-relationship-preflight.md
+source: .kb/scenarios/SCEN-mcp-relationship-preflight.md
 tags: [mcp, relationships, validation]
 links:
   - type: verified_by

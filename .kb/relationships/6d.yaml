@@ -272,3 +272,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fde0d318b0d6
+  - type: implements
+    from: SYM-proof-executeCompactReceipts
+    to: REQ-kibi-fresh-verification-receipts-v2
+    created_at: 2026-10-04T03:14:53.112Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-87ce7de1fd44
+  - type: covered_by
+    from: SYM-proof-executeCompactReceipts
+    to: TEST-kibi-proof-receipt-compaction
+    created_at: 2026-10-04T03:14:53.129Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d56e1f6258ab

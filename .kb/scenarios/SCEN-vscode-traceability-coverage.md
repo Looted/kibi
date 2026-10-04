@@ -5,7 +5,7 @@ type: scenario
 status: active
 created_at: 2026-07-21T00:00:00.000Z
 updated_at: 2026-07-21T00:00:00.000Z
-source: documentation/scenarios/SCEN-vscode-traceability-coverage.md
+source: .kb/scenarios/SCEN-vscode-traceability-coverage.md
 priority: must
 links:
   - type: relates_to

@@ -51,7 +51,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
-// implements REQ-kibi-telemetry-acceptance-gate, REQ-claude-hook-usage-telemetry
+// implements REQ-kibi-telemetry-acceptance-gate-v2, REQ-claude-hook-usage-telemetry-v2
 /**
  * A row written by a host plugin hook (`interface: "hook"`). Hooks record
  * agent activity around Kibi calls: which Kibi operation a tool call ran
@@ -67,7 +67,7 @@ export interface TelemetryHookEvent extends TelemetryUsageEvent {
   readonly kb_operation?: string | null;
 }
 
-// implements REQ-kibi-telemetry-acceptance-gate, REQ-claude-hook-usage-telemetry
+// implements REQ-kibi-telemetry-acceptance-gate-v2, REQ-claude-hook-usage-telemetry-v2
 /** A host hook row and where it sits relative to the operation events. */
 export interface TelemetryHookRow {
   readonly event: TelemetryHookEvent;
@@ -77,7 +77,7 @@ export interface TelemetryHookRow {
   readonly operationsBefore: number;
 }
 
-// implements REQ-kibi-telemetry-acceptance-gate, REQ-claude-hook-usage-telemetry
+// implements REQ-kibi-telemetry-acceptance-gate-v2, REQ-claude-hook-usage-telemetry-v2
 /** Operation events and host hook rows of one usage log, kept apart. */
 export interface TelemetryUsagePartition {
   readonly operations: readonly TelemetryUsageEvent[];
@@ -144,7 +144,7 @@ export function parseTelemetryUsageLog(
   return events;
 }
 
-// implements REQ-kibi-telemetry-acceptance-gate, REQ-claude-hook-usage-telemetry
+// implements REQ-kibi-telemetry-acceptance-gate-v2, REQ-claude-hook-usage-telemetry-v2
 /**
  * Split events into Kibi operations and host hook rows. Arrays from
  * `parseTelemetryUsageLog` carry their hook rows and log lines; any other
@@ -460,11 +460,11 @@ function advisorBeforeRequirementWriteMetric(
   };
 }
 
-// implements REQ-kibi-telemetry-acceptance-gate
+// implements REQ-kibi-telemetry-acceptance-gate-v2
 /** Kibi operations that count as looking up requirements before an edit. */
 export const LOOKUP_BEFORE_EDIT_OPERATIONS = ["kb_query", "kb_search"] as const;
 
-// implements REQ-kibi-telemetry-acceptance-gate
+// implements REQ-kibi-telemetry-acceptance-gate-v2
 /** The first requirement-linked edit of one host session. */
 export interface FirstLinkedEdit {
   /** `<host>:<session_id>` of the session. */
@@ -480,7 +480,7 @@ function hookSession(event: TelemetryHookEvent): string | undefined {
   return `${event.host ?? "unknown"}:${sessionId}`;
 }
 
-// implements REQ-kibi-telemetry-acceptance-gate, REQ-claude-hook-usage-telemetry
+// implements REQ-kibi-telemetry-acceptance-gate-v2, REQ-claude-hook-usage-telemetry-v2
 /**
  * For each host session, its first edit of a file whose symbols implement a
  * requirement and whether a Kibi lookup (MCP or CLI) preceded it. Rows

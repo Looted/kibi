@@ -68,7 +68,7 @@ function boundedInteger(value: unknown, max: number): number | undefined {
  * dropped (the read runs unbounded, as before); a time limit is capped below
  * the hard per-query timeout.
  */
-// implements REQ-core-journaled-engine-persistence
+// implements REQ-core-engine-read-limits
 export function normalizeQueryLimits(
   value: unknown,
 ): EngineQueryLimits | undefined {
@@ -91,7 +91,7 @@ export function normalizeQueryLimits(
 }
 
 /** Read limits configured through the environment, if any. */
-// implements REQ-core-journaled-engine-persistence
+// implements REQ-core-engine-read-limits
 export function queryLimitsFromEnv(
   env: NodeJS.ProcessEnv = process.env,
 ): EngineQueryLimits | undefined {
@@ -117,7 +117,7 @@ export function queryLimitsFromEnv(
  * predicate) could otherwise return a partial answer or fail; measuring the
  * elapsed time and inferences around the goal reports the limit regardless.
  */
-// implements REQ-core-journaled-engine-persistence
+// implements REQ-core-engine-read-limits
 export const BOUNDED_READ_HELPER_DEFINITION = `(current_predicate(kibi_engine_bounded_read/4) -> true ; ${[
   "assertz((kibi_engine_bounded_read(Goal, Seconds, Inferences, kibi_read_outcome(Outcome)) :- get_time(T0), statistics(inferences, I0), (catch(kibi_engine_bounded_call(Goal, Seconds, Inferences, Inner), time_limit_exceeded, Inner = time) -> Failed = false ; Failed = true), get_time(T1), statistics(inferences, I1), (Inner == time -> Outcome = time ; Inner == inferences -> Outcome = inferences ; number(Seconds), T1 - T0 >= Seconds -> Outcome = time ; integer(Inferences), I1 - I0 >= Inferences -> Outcome = inferences ; Failed == true -> fail ; Outcome = none)))",
   "assertz((kibi_engine_bounded_call(Goal, Seconds, Inferences, Inner) :- (number(Seconds) -> call_with_time_limit(Seconds, kibi_engine_inference_call(Goal, Inferences, Inner)) ; kibi_engine_inference_call(Goal, Inferences, Inner))))",
@@ -133,7 +133,7 @@ const OUTCOME_BINDING = "KibiReadOutcome";
  * KibiReadOutcome binding that settleBoundedRead strips. The surrounding
  * parentheses keep PrologProcess from caching a bounded answer.
  */
-// implements REQ-core-journaled-engine-persistence
+// implements REQ-core-engine-read-limits
 export function boundedReadGoal(
   goal: string,
   limits: EngineQueryLimits,
@@ -155,7 +155,7 @@ type BoundedResult = {
  * Turn a bounded read's answer back into the unbounded answer shape, or into
  * an explicit limitExceeded failure when a limit stopped the goal.
  */
-// implements REQ-core-journaled-engine-persistence
+// implements REQ-core-engine-read-limits
 export function settleBoundedRead<T extends BoundedResult>(
   result: T,
   limits: EngineQueryLimits,
@@ -194,7 +194,7 @@ const QUERY_LIMIT_MESSAGE =
   /QUERY_LIMIT_EXCEEDED: read stopped at its (time|inference) limit of (\d+)/;
 
 /** A read the engine stopped at its limit; never an empty answer. */
-// implements REQ-core-journaled-engine-persistence
+// implements REQ-core-engine-read-limits
 export class EngineQueryLimitError extends Error {
   readonly code = QUERY_LIMIT_EXCEEDED_CODE;
   readonly retryable = false;
@@ -209,7 +209,7 @@ export class EngineQueryLimitError extends Error {
  * The limit that stopped a read, from the typed error or from the message an
  * executor rewrapped it into; null for every other error.
  */
-// implements REQ-core-journaled-engine-persistence
+// implements REQ-core-engine-read-limits
 export function queryLimitExceededOf(
   error: unknown,
 ): EngineLimitExceeded | null {

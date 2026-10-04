@@ -103,7 +103,7 @@ symbol_explain_role(SymbolId, Role) :-
 symbol_explain_role(_SymbolId, unknown).
 
 %% search_answer_verdicts_json(+ReqIds, -JsonString)
-% implements REQ-kibi-search-answer-layer
+% implements REQ-kibi-search-answer-layer-v2
 % What the existing checks report about the requirements a kb_search answer
 % names, in one engine round trip and bounded to those requirements:
 %   contradictions  strict-property and predicate witnesses from

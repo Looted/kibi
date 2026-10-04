@@ -66,7 +66,7 @@ export type BranchAttachment = {
   readOnly?: DetachedReadOnlyAttachment;
 };
 
-// implements REQ-branch-store-recovery-v3
+// implements REQ-branch-store-recovery-v4
 export type DetachedReadOnlyAttachment = {
   /** The checked-out commit. */
   head: string;
@@ -81,7 +81,7 @@ export type DetachedReadOnlyAttachment = {
  * It is never a Git branch's KB: reads on a bare SHA (CI checkouts) use it so
  * no branch identity is guessed, and writes are refused while it is attached.
  */
-// implements REQ-branch-store-recovery-v3
+// implements REQ-branch-store-recovery-v4
 export const DETACHED_SNAPSHOT_KB_BRANCH =
   "kibi-internal/detached-head-snapshot";
 
@@ -108,7 +108,7 @@ const defaultDeps: BranchResolverDeps = {
 export function _setBranchResolverDepsForTests(
   deps: Partial<BranchResolverDeps>,
 ): void {
-  // implements REQ-008
+  // implements REQ-branch-store-recovery-v4
   defaultDeps.execSync = deps.execSync ?? rawExecSync;
   defaultDeps.execFileSync = deps.execFileSync ?? rawExecFileSync;
 }
@@ -153,7 +153,7 @@ function isVolatileArtifact(fileName: string): boolean {
 export function resolveActiveBranch(
   workspaceRoot: string = process.cwd(),
 ): BranchResolutionResult {
-  // implements REQ-008
+  // implements REQ-branch-store-recovery-v4
   // 1. Check KIBI_BRANCH env var first (highest precedence)
   const envBranch = getBranchOverride();
   if (envBranch) {
@@ -274,7 +274,7 @@ export function resolveActiveBranch(
   }
 }
 
-// implements REQ-branch-store-recovery-v3
+// implements REQ-branch-store-recovery-v4
 /**
  * A detached HEAD that exactly one local branch points at is that branch's
  * commit, so its knowledge base is the exact one for this checkout (a
@@ -346,7 +346,7 @@ function describeBranchesAtHead(branches: readonly string[]): string {
  * compiled from this checkout's tracked sources. The result carries a notice
  * naming that store and stating that writes are refused.
  */
-// implements REQ-branch-store-recovery-v3
+// implements REQ-branch-store-recovery-v4
 export function resolveReadBranchAttachment(
   workspaceRoot: string = process.cwd(),
 ): BranchAttachment | BranchResolutionError {
@@ -385,7 +385,7 @@ export function resolveReadBranchAttachment(
  * Actionable refusal for a write attempted on a detached HEAD. Reads keep
  * working through the snapshot; a write needs an exact branch identity.
  */
-// implements REQ-branch-store-recovery-v3
+// implements REQ-branch-store-recovery-v4
 export function detachedHeadWriteRefusal(
   operation: string,
   workspaceRoot: string = process.cwd(),
@@ -484,7 +484,7 @@ export function resolveBranchAttachment(
  * @returns true if in detached HEAD, false otherwise
  */
 export function isDetachedHead(workspaceRoot: string = process.cwd()): boolean {
-  // implements REQ-008
+  // implements REQ-branch-store-recovery-v4
   try {
     const branch = defaultDeps
       .execSync("git rev-parse --abbrev-ref HEAD", {

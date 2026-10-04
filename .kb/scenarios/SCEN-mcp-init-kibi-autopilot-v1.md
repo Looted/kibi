@@ -4,7 +4,7 @@ title: Historical bootstrap scenario (superseded)
 status: superseded
 created_at: 2026-04-19T00:00:00.000Z
 updated_at: 2026-05-05T00:00:00.000Z
-source: documentation/scenarios/SCEN-mcp-init-kibi-autopilot-v1.md
+source: .kb/scenarios/SCEN-mcp-init-kibi-autopilot-v1.md
 tags:
   - scenario
   - bootstrap

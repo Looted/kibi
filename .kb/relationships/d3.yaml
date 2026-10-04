@@ -134,13 +134,6 @@ relationships:
     id: rel-0fe18861ff8f
   - type: implements
     from: SYM-mcp-handle-repair-plan-coverage
-    to: REQ-kibi-legacy-migration-preview
-    created_at: 2026-09-18T07:27:08.838Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7b04d1e341e9
-  - type: implements
-    from: SYM-mcp-handle-repair-plan-coverage
     to: REQ-kibi-legacy-migration-preview-v2
     created_at: 2026-09-18T07:27:08.843Z
     created_by: kibi/upsert
@@ -181,3 +174,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fe75b9425ead
+  - type: implements
+    from: SYM-normalizeRepoRelativePath
+    to: REQ-kibi-fresh-verification-receipts-v2
+    created_at: 2026-10-04T03:15:10.403Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0014137bf4a9
+  - type: covered_by
+    from: SYM-normalizeRepoRelativePath
+    to: TEST-kibi-proof-receipt-compaction
+    created_at: 2026-10-04T03:15:10.416Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-11495b16b7c9
+  - type: implements
+    from: SYM-search-answer-fitSearchAnswer
+    to: REQ-kibi-search-answer-layer-v2
+    created_at: 2026-10-04T03:15:22.809Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-02e99b8e7ce5
+  - type: covered_by
+    from: SYM-search-answer-fitSearchAnswer
+    to: TEST-kibi-search-answer-verdicts
+    created_at: 2026-10-04T03:15:22.821Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9d74f2128a92

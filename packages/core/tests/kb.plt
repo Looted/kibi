@@ -3995,7 +3995,7 @@ test(what_if_reports_staged_conflicts_and_rolls_back, [setup(setup_kb), cleanup(
 
 :- begin_tests(kb_scenario_feasibility).
 
-% implements REQ-kibi-scenario-feasibility
+% implements REQ-kibi-scenario-feasibility-v2
 feasibility_fixture(Expects) :-
     assert_fixture_entity(fact, 'FACT-QUOTA-SUBJECT', "Client call quota", active,
         [fact_kind=subject, subject_key="client.call_quota"]),
@@ -4301,7 +4301,7 @@ test(feasible_requires_the_whole_conjunction_to_be_satisfiable, [setup(setup_kb)
 
 % --- Rule lane, validity windows and clause-level exceptions ---------------
 
-% implements REQ-kibi-scenario-feasibility
+% implements REQ-kibi-scenario-feasibility-v2
 % Subject.property read: Namespace:Name(C, Var).
 property_read_atom(Namespace, Name, Var, Type,
     _{kind:atom, namespace:Namespace, name:Name,

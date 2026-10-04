@@ -4,7 +4,7 @@ title: Agent guidance selects between Kibi public surfaces without claiming excl
 status: open
 created_at: 2026-07-21T00:00:00.000Z
 updated_at: 2026-07-21T00:00:00.000Z
-source: documentation/requirements/REQ-agent-kibi-interface-selection.md
+source: .kb/requirements/REQ-agent-kibi-interface-selection.md
 priority: must
 owner: opencode-team
 tags:

@@ -5,7 +5,7 @@ type: scenario
 status: active
 created_at: 2026-08-11T00:00:00Z
 updated_at: 2026-08-11T00:00:00Z
-source: documentation/scenarios/SCEN-core-journaled-engine-lifecycle.md
+source: .kb/scenarios/SCEN-core-journaled-engine-lifecycle.md
 tags: [core, engine, lifecycle]
 links:
   - type: verified_by

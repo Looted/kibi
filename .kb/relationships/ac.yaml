@@ -258,3 +258,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-537b0da6268b
+  - type: verified_by
+    from: SCEN-kibi-search-gold-set-gate
+    to: TEST-kibi-search-gold-set-gate
+    created_at: 2026-10-04T02:40:07.838Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4ae0ea3aa63a

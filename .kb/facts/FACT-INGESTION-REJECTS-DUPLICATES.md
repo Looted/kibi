@@ -5,7 +5,7 @@ type: fact
 status: active
 created_at: 2026-08-10T00:00:00.000Z
 updated_at: 2026-08-10T00:00:00.000Z
-source: documentation/facts/FACT-INGESTION-REJECTS-DUPLICATES.md
+source: .kb/facts/FACT-INGESTION-REJECTS-DUPLICATES.md
 fact_kind: predicate
 predicate_name: rejects_duplicate_proposition_identity
 predicate_args:

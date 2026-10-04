@@ -328,7 +328,7 @@ export const SOURCE_PLANNED_LIFECYCLE_CODES: ReadonlySet<string> = new Set([
 ]);
 
 /** Exception review shared by the source scan and the exception-unapproved rule. */
-// implements REQ-kibi-scenario-feasibility, REQ-cli-schema-migration
+// implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export function exceptionUnapprovedActionInput(input: {
   exceptionId: string;
   exempts: readonly string[];
@@ -385,7 +385,7 @@ const PREDICATE_SIGNATURE =
  * Map the schema 6 review findings of one check to stable review actions.
  * Returns the actions and the indexes of the diagnostics they replace.
  */
-// implements REQ-cli-schema-migration, REQ-agent-guided-migration-orchestration, REQ-kibi-scenario-feasibility
+// implements REQ-cli-schema-migration, REQ-agent-guided-migration-orchestration, REQ-kibi-schema6-migration
 export function schema6ReviewActionsFromCheck(
   diagnostics: readonly Diagnostic[],
 ): { actions: MigrationActionInput[]; consumed: ReadonlySet<number> } {

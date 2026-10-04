@@ -110,13 +110,6 @@ relationships:
     id: rel-0ef22db85a1c
   - type: implements
     from: SYM-cli-canonical-filesystem-path
-    to: REQ-kibi-change-to-proof-plan-compiler
-    created_at: 2026-09-30T14:45:45.867Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7948551acb0d
-  - type: implements
-    from: SYM-cli-canonical-filesystem-path
     to: REQ-core-journaled-engine-persistence
     created_at: 2026-09-30T14:45:45.874Z
     created_by: kibi/upsert
@@ -157,3 +150,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6deb57e140f0
+  - type: requires_predicate
+    from: REQ-kibi-search-gold-set-gate
+    to: FACT-PRED-search-gold-set-asked-in-ci
+    created_at: 2026-10-04T02:40:22.718Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4ba59dc49945
+  - type: requires_predicate
+    from: REQ-kibi-search-gold-set-gate
+    to: FACT-PRED-search-gold-set-warm-run
+    created_at: 2026-10-04T02:40:22.739Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b2a043f80f56
+  - type: requires_predicate
+    from: REQ-kibi-search-gold-set-gate
+    to: FACT-PRED-search-gold-set-thresholds
+    created_at: 2026-10-04T02:40:22.747Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d0ead3101e14
+  - type: requires_predicate
+    from: REQ-kibi-search-gold-set-gate
+    to: FACT-PRED-search-gold-set-fails-closed
+    created_at: 2026-10-04T02:40:22.759Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8595864f1173
+  - type: requires_predicate
+    from: REQ-kibi-search-gold-set-gate
+    to: FACT-PRED-search-gold-set-lists-regressions
+    created_at: 2026-10-04T02:40:22.767Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0bc524bd7fa9
+  - type: specified_by
+    from: REQ-kibi-search-gold-set-gate
+    to: SCEN-kibi-search-gold-set-gate
+    created_at: 2026-10-04T02:40:22.780Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-29b51b8be536
+  - type: depends_on
+    from: REQ-kibi-search-gold-set-gate
+    to: REQ-kibi-change-to-proof-evaluation
+    created_at: 2026-10-04T02:40:22.791Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3513e9c0edc4
+  - type: depends_on
+    from: REQ-kibi-search-gold-set-gate
+    to: REQ-kibi-search-answer-layer-v2
+    created_at: 2026-10-04T02:40:22.807Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8464ac0fa592
+  - type: implements
+    from: SYM-cli-canonical-filesystem-path
+    to: REQ-kibi-change-to-proof-plan-compiler-v2
+    created_at: 2026-10-04T02:59:17.114Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c4b51271a6bf

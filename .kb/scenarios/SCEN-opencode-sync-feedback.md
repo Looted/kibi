@@ -4,7 +4,7 @@ title: OpenCode Sync Feedback Messaging
 type: scenario
 status: active
 created_at: 2026-05-13T00:00:00Z
-source: documentation/scenarios/SCEN-opencode-sync-feedback.md
+source: .kb/scenarios/SCEN-opencode-sync-feedback.md
 priority: must
 tags:
   - opencode

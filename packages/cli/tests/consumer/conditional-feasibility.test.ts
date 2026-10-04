@@ -1,4 +1,4 @@
-// implements REQ-kibi-scenario-feasibility, REQ-kibi-truthful-consistency
+// implements REQ-kibi-scenario-feasibility-v2, REQ-kibi-truthful-consistency
 import { afterEach, describe, expect, test } from "bun:test";
 import {
   type ConsumerWorkspace,

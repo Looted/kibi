@@ -4,7 +4,7 @@ title: Proof status is separate from structural coverage
 status: active
 created_at: 2026-08-10T00:00:00.000Z
 updated_at: 2026-08-10T00:00:00.000Z
-source: documentation/facts/FACT-REQ-PROOF-SEPARATE-STATUS.md
+source: .kb/facts/FACT-REQ-PROOF-SEPARATE-STATUS.md
 tags:
   - lane:ontology
   - requirements

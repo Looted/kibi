@@ -5,7 +5,7 @@ type: test
 status: pending
 created_at: 2026-07-21T00:00:00.000Z
 updated_at: 2026-07-21T00:00:00.000Z
-source: documentation/tests/TEST-cursor-worktree-kibi-continuity.md
+source: .kb/tests/TEST-cursor-worktree-kibi-continuity.md
 priority: must
 tags:
   - cursor

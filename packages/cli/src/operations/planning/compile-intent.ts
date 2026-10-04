@@ -28,10 +28,10 @@ import type {
   SemanticModelingSuggestion,
 } from "../semantic-advisor/types.js";
 
-// implements REQ-kibi-change-to-proof-plan-compiler
+// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export const COMPILE_PLAN_VERSION = "kibi.compile-plan.v1" as const;
 
-// implements REQ-kibi-change-to-proof-plan-compiler
+// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export type CompileIntentArgs = Readonly<{
   intent: string;
   mode: "create" | "update";
@@ -46,14 +46,14 @@ export type CompileIntentArgs = Readonly<{
   proposalDecisions?: readonly ProposalDecision[];
 }>;
 
-// implements REQ-kibi-change-to-proof-plan-compiler
+// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export type ScenarioDraft = Readonly<{
   id?: string;
   title: string;
   body: string;
 }>;
 
-// implements REQ-kibi-change-to-proof-plan-compiler
+// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export type TestDraft = Readonly<{
   id?: string;
   title: string;
@@ -64,13 +64,13 @@ export type TestDraft = Readonly<{
   verificationPerspective?: "internal" | "consumer";
 }>;
 
-// implements REQ-kibi-change-to-proof-plan-compiler
+// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export type ProposalDecision = Readonly<{
   proposalId: string;
   decision: "accept" | "reject";
 }>;
 
-// implements REQ-kibi-change-to-proof-plan-compiler
+// implements REQ-kibi-change-to-proof-plan-compiler-v2
 /**
  * One witness from the staged what-if analysis. The engine's full evidence
  * (sides, facts, scenario, comparison) is kept alongside these normalized
@@ -86,7 +86,7 @@ export type ContradictionWitness = Readonly<
   } & Record<string, unknown>
 >;
 
-// implements REQ-kibi-change-to-proof-plan-compiler
+// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export type TraceabilityProposal = Readonly<{
   proposalId: string;
   candidateId: string;
@@ -97,10 +97,10 @@ export type TraceabilityProposal = Readonly<{
   decision: "pending" | "accept" | "reject";
 }>;
 
-// implements REQ-kibi-change-to-proof-plan-compiler
+// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export type PlanStep = Readonly<Record<string, unknown>>;
 
-// implements REQ-kibi-change-to-proof-plan-compiler
+// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export function compilePlanHash(
   plan: Readonly<Record<string, unknown>>,
 ): string {
@@ -108,7 +108,7 @@ export function compilePlanHash(
   return hash(body);
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler
+// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export type CompilePlanV1 = Readonly<{
   version: typeof COMPILE_PLAN_VERSION;
   planHash: string;
@@ -747,7 +747,7 @@ function draftId(prefix: string, title: string, index: number): string {
   return `${prefix}-${slug(title)}-${shortHash(`${title}\0${index}`).toUpperCase()}`;
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler
+// implements REQ-kibi-change-to-proof-plan-compiler-v2
 function draftSteps(
   requirementId: string,
   scenarios: readonly ScenarioDraft[],
@@ -895,7 +895,7 @@ function draftSteps(
   return { steps, diagnostics };
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler
+// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export async function executeCompileIntent(
   args: CompileIntentArgs,
   context: OperationContext,

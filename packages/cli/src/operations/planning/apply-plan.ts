@@ -106,7 +106,7 @@ export type {
   EntityDeletionPlan,
 } from "./apply-plan-types.js";
 
-// implements REQ-kibi-change-to-proof-plan-compiler
+// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export const PLAN_APPLY_RESULT_VERSION = "kibi.plan-apply-result.v1" as const;
 
 const ENTITY_TYPES = new Set([
@@ -1391,7 +1391,7 @@ async function executeBootstrapPlan(
   };
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler, REQ-core-atomic-upsert-persistence
+// implements REQ-kibi-change-to-proof-plan-compiler-v2, REQ-core-atomic-upsert-persistence
 async function executeApplyPlanUnlocked(
   args: ApplyPlanArgs,
   context: OperationContext,
@@ -1418,7 +1418,7 @@ async function executeApplyPlanUnlocked(
   return withRecoveryReport(result, recovered);
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler, REQ-agent-guided-migration-orchestration
+// implements REQ-kibi-change-to-proof-plan-compiler-v2, REQ-agent-guided-migration-orchestration
 async function dispatchApplyPlan(
   args: ApplyPlanArgs,
   context: OperationContext,
@@ -1798,7 +1798,7 @@ function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler, REQ-core-atomic-upsert-persistence
+// implements REQ-kibi-change-to-proof-plan-compiler-v2, REQ-core-atomic-upsert-persistence
 /**
  * Apply a validated compile plan all-or-nothing:
  * 1. journal every file change (exact bytes) and every store upsert, plus a
@@ -2074,7 +2074,7 @@ async function commitCompilePlan(
   };
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler
+// implements REQ-kibi-change-to-proof-plan-compiler-v2
 async function executeCompilePlan(
   args: Extract<ApplyPlanArgs, { plan: CompilePlanV1 }>,
   context: OperationContext,
@@ -2285,7 +2285,7 @@ async function executeCompilePlan(
   };
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler, REQ-core-atomic-upsert-persistence
+// implements REQ-kibi-change-to-proof-plan-compiler-v2, REQ-core-atomic-upsert-persistence
 /** The kb_apply_plan result for a plan journal this call recovered or found finished. */
 async function planJournalRecoveryResult(
   context: OperationContext,
@@ -2358,7 +2358,7 @@ async function planJournalRecoveryResult(
   };
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler, REQ-core-atomic-upsert-persistence
+// implements REQ-kibi-change-to-proof-plan-compiler-v2, REQ-core-atomic-upsert-persistence
 async function executePlanJournalRecovery(
   journalId: string,
   context: OperationContext,
@@ -2464,7 +2464,7 @@ function withRecoveryReport(
   return { content, structuredContent: result.structuredContent };
 }
 
-// implements REQ-agent-guided-migration-orchestration, REQ-cli-canonical-runtime, REQ-KIBI-BOOTSTRAP-PLAN, REQ-kibi-change-to-proof-plan-compiler, REQ-kibi-predicate-vocabulary-migration
+// implements REQ-agent-guided-migration-orchestration, REQ-cli-canonical-runtime, REQ-KIBI-BOOTSTRAP-PLAN, REQ-kibi-change-to-proof-plan-compiler-v2, REQ-kibi-predicate-vocabulary-migration
 export async function executeApplyPlan(
   args: ApplyPlanArgs,
   context: OperationContext,

@@ -5,7 +5,7 @@ type: test
 status: pending
 created_at: 2026-05-04T10:00:00.000Z
 updated_at: 2026-05-04T10:00:00.000Z
-source: documentation/requirements/REQ-opencode-file-context-guidance-v1.md
+source: .kb/requirements/REQ-opencode-file-context-guidance-v1.md
 priority: must
 tags:
   - opencode

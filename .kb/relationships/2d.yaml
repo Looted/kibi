@@ -132,3 +132,101 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8b6677ec8ecb
+  - type: requires_property
+    from: REQ-branch-store-recovery-v4
+    to: FACT-EXACT-BRANCH-IDENTITY-SOURCE
+    created_at: 2026-10-04T02:18:02.241Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1195f7b642fc
+  - type: requires_predicate
+    from: REQ-branch-store-recovery-v4
+    to: FACT-PRED-D62E80F439F2
+    created_at: 2026-10-04T02:18:02.260Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7af1a6b6bde0
+  - type: requires_property
+    from: REQ-branch-store-recovery-v4
+    to: FACT-EXACT-BRANCH-STORE-ENSURE-ONLY
+    created_at: 2026-10-04T02:18:02.272Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2ed1b9778683
+  - type: requires_predicate
+    from: REQ-branch-store-recovery-v4
+    to: FACT-PRED-1B6C15026E81
+    created_at: 2026-10-04T02:18:02.278Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-00f0163097be
+  - type: requires_predicate
+    from: REQ-branch-store-recovery-v4
+    to: FACT-BRANCH-STORE-SAME-IDENTITY-MIGRATION
+    created_at: 2026-10-04T02:18:02.285Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a787fb429b71
+  - type: requires_property
+    from: REQ-branch-store-recovery-v4
+    to: FACT-BRANCH-CROSS-IDENTITY-MIGRATION-REFUSED
+    created_at: 2026-10-04T02:18:02.293Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2be19e6442d7
+  - type: requires_predicate
+    from: REQ-branch-store-recovery-v4
+    to: FACT-PRED-detached-head-single-branch-attach
+    created_at: 2026-10-04T02:18:02.300Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-148901d2d805
+  - type: requires_predicate
+    from: REQ-branch-store-recovery-v4
+    to: FACT-PRED-detached-head-snapshot-reads
+    created_at: 2026-10-04T02:18:02.312Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-766273cca08b
+  - type: requires_predicate
+    from: REQ-branch-store-recovery-v4
+    to: FACT-PRED-detached-head-read-only-warning
+    created_at: 2026-10-04T02:18:02.322Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c6acbac27249
+  - type: requires_predicate
+    from: REQ-branch-store-recovery-v4
+    to: FACT-PRED-detached-head-writes-refused
+    created_at: 2026-10-04T02:18:02.332Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-13e2f105168a
+  - type: constrains
+    from: REQ-branch-store-recovery-v4
+    to: FACT-KB-PER-BRANCH
+    created_at: 2026-10-04T02:18:02.339Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4cfd84ddd94a
+  - type: specified_by
+    from: REQ-branch-store-recovery-v4
+    to: SCEN-branch-store-recovery
+    created_at: 2026-10-04T02:18:02.347Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d8de3e829388
+  - type: specified_by
+    from: REQ-branch-store-recovery-v4
+    to: SCEN-branch-detached-head-read-only
+    created_at: 2026-10-04T02:18:02.355Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3f9f5630e4e6
+  - type: supersedes
+    from: REQ-branch-store-recovery-v4
+    to: REQ-branch-store-recovery-v3
+    created_at: 2026-10-04T02:18:02.362Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d82b3c58e197

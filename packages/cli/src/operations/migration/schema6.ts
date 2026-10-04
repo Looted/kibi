@@ -146,7 +146,7 @@ type SourceRequirement = {
  * Exceptions without approved_by, read from authored sources so the list is
  * available before the KB compiles.
  */
-// implements REQ-kibi-scenario-feasibility, REQ-cli-schema-migration
+// implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export function unapprovedExceptionsFromSources(
   workspaceRoot: string,
 ): Array<{ exceptionId: string; exempts: string[]; source: string }> {

@@ -90,3 +90,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6bc0145c2903
+  - type: implements
+    from: SYM-claude-fileKnowledgeSnippet
+    to: REQ-agent-core-edit-snippets
+    created_at: 2026-10-04T03:13:40.136Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fea35c3ec319
+  - type: covered_by
+    from: SYM-claude-fileKnowledgeSnippet
+    to: TEST-agent-core-edit-snippets
+    created_at: 2026-10-04T03:13:40.144Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-90ef9062580d

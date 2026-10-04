@@ -4,7 +4,7 @@ title: Cursor stop hook distinguishes plan delivery from job completion
 status: open
 created_at: 2026-08-18T00:00:00.000Z
 updated_at: 2026-08-18T00:00:00.000Z
-source: documentation/requirements/REQ-cursor-stop-job-vs-plan.md
+source: .kb/requirements/REQ-cursor-stop-job-vs-plan.md
 priority: must
 owner: cursor-team
 tags:

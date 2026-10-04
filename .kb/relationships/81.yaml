@@ -27,13 +27,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-87f9774f43e7
-  - type: implements
-    from: SYM-validateSupersedesSourceHistory
-    to: REQ-branch-store-recovery-v3
-    created_at: 2026-08-17T11:09:32.910Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f3bc1160c069
   - type: covered_by
     from: SYM-validateSupersedesSourceHistory
     to: TEST-cli-supersedes-history-unit
@@ -174,13 +167,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c40a452e007d
-  - type: implements
-    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-compileplanv1
-    to: REQ-kibi-change-to-proof-plan-compiler
-    created_at: 2026-09-18T07:16:09.966Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-21b65abda796
   - type: covered_by
     from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-compileplanv1
     to: TEST-e2e-plan-compiler-hash
@@ -265,3 +251,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-43cb0da1f988
+  - type: implements
+    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-compileplanv1
+    to: REQ-kibi-change-to-proof-plan-compiler-v2
+    created_at: 2026-10-04T03:01:46.237Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2bbdf6135d73
+  - type: implements
+    from: SYM-validateSupersedesSourceHistory
+    to: REQ-branch-store-recovery-v4
+    created_at: 2026-10-04T03:07:42.406Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb7cbed2a467

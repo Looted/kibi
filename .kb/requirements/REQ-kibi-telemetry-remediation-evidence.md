@@ -4,7 +4,7 @@ title: Diagnostic telemetry identifies exact evidence repairs across CLI and MCP
 status: open
 created_at: 2026-08-10T00:00:00Z
 updated_at: 2026-08-10T00:00:00Z
-source: documentation/requirements/REQ-kibi-telemetry-remediation-evidence.md
+source: .kb/requirements/REQ-kibi-telemetry-remediation-evidence.md
 priority: must
 tags: [telemetry, diagnostics, remediation, correlation, cli, mcp]
 logic_claims:

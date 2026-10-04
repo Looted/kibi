@@ -1,4 +1,4 @@
-// implements REQ-kibi-telemetry-acceptance-gate
+// implements REQ-kibi-telemetry-acceptance-gate-v2
 import { afterEach, describe, expect, test } from "bun:test";
 import {
   DEFAULT_TELEMETRY_ACCEPTANCE_POLICY,

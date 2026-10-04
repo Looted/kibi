@@ -4,7 +4,7 @@ title: Cursor dogfood MCP launcher falls back across linked worktrees
 status: active
 created_at: 2026-07-19T20:00:00Z
 updated_at: 2026-07-19T20:00:00Z
-source: documentation/facts/FACT-cursor-worktree-mcp-launch.md
+source: .kb/facts/FACT-cursor-worktree-mcp-launch.md
 tags:
   - cursor
   - dogfood

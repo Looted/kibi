@@ -231,7 +231,7 @@ function actionName(subject: string, verb: string): string {
     : identifier(`${subject} ${verbText.replace(/^be\s+/i, "")}`);
 }
 
-// implements REQ-kibi-truthful-consistency
+// implements REQ-kibi-conditional-requirement-authoring
 export function detectConditionalRule(
   statement: string,
 ): ConditionalRuleMatch | null {

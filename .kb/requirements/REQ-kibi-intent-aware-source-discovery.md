@@ -4,7 +4,7 @@ title: Kibi finds requirements and implementation evidence from natural-language
 status: open
 created_at: 2026-08-13T00:00:00Z
 updated_at: 2026-08-13T00:00:00Z
-source: documentation/requirements/REQ-kibi-intent-aware-source-discovery.md
+source: .kb/requirements/REQ-kibi-intent-aware-source-discovery.md
 priority: must
 owner: platform-team
 tags: [search, intent, source, traceability]

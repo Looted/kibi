@@ -5,7 +5,7 @@ title: "OpenCode Kibi Briefing v4: Render-First Idle Delivery & Prompt-Time Repl
 status: closed
 created_at: 2026-04-29T10:00:00.000Z
 updated_at: 2026-04-30T10:00:00.000Z
-source: documentation/requirements/REQ-opencode-kibi-briefing-v4.md
+source: .kb/requirements/REQ-opencode-kibi-briefing-v4.md
 priority: must
 tags:
   - opencode

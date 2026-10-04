@@ -4,7 +4,7 @@ title: Upsert commits RDF and audit state atomically across runtimes
 status: active
 created_at: 2026-08-11T00:00:00Z
 updated_at: 2026-08-11T00:00:00Z
-source: documentation/requirements/REQ-core-atomic-upsert-persistence.md
+source: .kb/requirements/REQ-core-atomic-upsert-persistence.md
 priority: must
 tags:
   - core

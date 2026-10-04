@@ -129,7 +129,7 @@ function resolvePluginsOption(
  * path keeps its lazy, non-mutating behavior). A failed snapshot compile is
  * reported but not fatal, so status can still diagnose the snapshot store.
  */
-// implements REQ-branch-store-recovery-v3
+// implements REQ-branch-store-recovery-v4
 async function resolveDetachedReadAttachment(
   root: string,
 ): Promise<BranchAttachment | undefined> {

@@ -4,7 +4,7 @@ title: Migration batches remain review-only
 status: active
 created_at: 2026-08-11T00:00:00.000Z
 updated_at: 2026-08-11T00:00:00.000Z
-source: documentation/facts/FACT-LEGACY-MIGRATION-READ-ONLY.md
+source: .kb/facts/FACT-LEGACY-MIGRATION-READ-ONLY.md
 tags:
   - lane:ontology
   - requirements

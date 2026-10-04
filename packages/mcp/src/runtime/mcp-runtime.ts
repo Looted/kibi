@@ -27,7 +27,7 @@ import {
  * read-only snapshot compiled from the checkout, which the shared session
  * engine then serves.
  */
-// implements REQ-branch-store-recovery-v3
+// implements REQ-branch-store-recovery-v4
 function resolveMcpAttachment(
   workspaceRoot: string,
   spec: Parameters<typeof resolveOperationAttachment>[1] & {

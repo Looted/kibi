@@ -239,13 +239,6 @@ relationships:
     id: rel-37eed80e410c
   - type: implements
     from: SYM-execute-ingest-proof
-    to: REQ-kibi-fresh-verification-receipts
-    created_at: 2026-09-26T10:36:25.115Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d94c0dce989a
-  - type: implements
-    from: SYM-execute-ingest-proof
     to: REQ-kibi-verification-receipts-v2
     created_at: 2026-09-26T10:36:25.128Z
     created_by: kibi/upsert
@@ -307,13 +300,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-94099ebefafe
-  - type: implements
-    from: SYM-claude-runHook
-    to: REQ-claude-hook-usage-telemetry
-    created_at: 2026-10-01T20:21:01.539Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-fe9b0db3b1ea
   - type: validates
     from: TEST-ci-kb-merge-resolution
     to: SCEN-ci-kb-merge-resolution
@@ -321,3 +307,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7f8d45de640a
+  - type: verified_by
+    from: SCEN-branch-detached-head-read-only
+    to: TEST-branch-detached-head-read-only
+    created_at: 2026-10-04T02:17:45.708Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1b292ed90c76
+  - type: implements
+    from: SYM-claude-runHook
+    to: REQ-claude-hook-usage-telemetry-v2
+    created_at: 2026-10-04T02:59:05.161Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ea66afb4aa2c
+  - type: implements
+    from: SYM-execute-ingest-proof
+    to: REQ-kibi-fresh-verification-receipts-v2
+    created_at: 2026-10-04T03:00:11.918Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ede8e010f8f5

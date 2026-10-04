@@ -4,7 +4,7 @@ title: "OpenCode Kibi Briefing v4: Render-First Delivery Scenarios"
 status: closed
 created_at: 2026-04-29T10:00:00Z
 updated_at: 2026-04-30T10:00:00Z
-source: documentation/scenarios/SCEN-opencode-kibi-briefing-v4.md
+source: .kb/scenarios/SCEN-opencode-kibi-briefing-v4.md
 tags:
   - scenario
   - opencode

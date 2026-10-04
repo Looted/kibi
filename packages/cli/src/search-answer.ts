@@ -14,7 +14,7 @@ import type {
 } from "./public/operations/runtime-types.js";
 import { loadMarkdownBody } from "./search-ranking.js";
 
-// implements REQ-kibi-search-answer-layer
+// implements REQ-kibi-search-answer-layer-v2
 /**
  * The answer layer turns ranked matches into what an agent asking "what
  * governs this?" needs: the current requirements that apply, why (ADRs, with
@@ -357,7 +357,7 @@ function clip(value: string, maxChars: number): string {
  * Rationale, then to the first prose paragraph), as plain text of at most
  * `maxChars` characters.
  */
-// implements REQ-kibi-search-answer-layer
+// implements REQ-kibi-search-answer-layer-v2
 export function adrExcerpt(
   body: string,
   maxChars: number = SEARCH_ANSWER_LIMITS.excerptChars,
@@ -482,7 +482,7 @@ const FEASIBILITY_UNKNOWN_TEXT: Readonly<Record<string, string>> = {
 };
 
 /** Project the Prolog verdict of one requirement onto the answer fields. */
-// implements REQ-kibi-search-answer-layer
+// implements REQ-kibi-search-answer-layer-v2
 export function projectVerdict(
   raw: RawVerdict | undefined,
   perRequirement: number = SEARCH_ANSWER_LIMITS.perRequirement,

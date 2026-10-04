@@ -4,7 +4,7 @@ title: SkillOpt behavioral efficacy methodology
 status: active
 created_at: 2026-07-21T16:00:00Z
 updated_at: 2026-08-04T00:00:00Z
-source: documentation/facts/FACT-skillopt-methodology.md
+source: .kb/facts/FACT-skillopt-methodology.md
 tags:
   - skillopt
   - evaluation

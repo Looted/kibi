@@ -307,3 +307,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-106c963e8df8
+  - type: implements
+    from: SYM-proof-receipt-outcomes
+    to: REQ-kibi-fresh-verification-receipts-v2
+    created_at: 2026-10-04T03:05:09.861Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-020542d8a20c

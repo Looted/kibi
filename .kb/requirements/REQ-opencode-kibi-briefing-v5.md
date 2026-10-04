@@ -4,7 +4,7 @@ title: 'OpenCode Kibi Briefing v5: Session-Local Reconcile & Semantic Dedupe'
 status: closed
 created_at: 2026-04-30T12:00:00.000Z
 updated_at: 2026-04-30T12:00:00.000Z
-source: documentation/requirements/REQ-opencode-kibi-briefing-v5.md
+source: .kb/requirements/REQ-opencode-kibi-briefing-v5.md
 priority: must
 tags:
   - opencode

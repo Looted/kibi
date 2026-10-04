@@ -156,7 +156,7 @@ jobs:
         if: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}
         run: >-
           bun run scripts/change-to-proof-eval.ts --repo-kb
-          documentation/evaluations/change-to-proof/repo-search-gold.v1.jsonl
+          documentation/evaluations/change-to-proof/repo-search-gold.v2.jsonl
           --thresholds documentation/evaluations/change-to-proof/repo-search-thresholds.json
 
       - name: Generate requirement health report

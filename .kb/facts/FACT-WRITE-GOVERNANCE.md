@@ -4,7 +4,7 @@ title: Write Governance
 status: active
 created_at: 2026-02-20T14:40:00Z
 updated_at: 2026-02-20T14:40:00Z
-source: documentation/facts/FACT-WRITE-GOVERNANCE.md
+source: .kb/facts/FACT-WRITE-GOVERNANCE.md
 tags: [governance, safety]
 fact_kind: subject
 subject_key: kibi.write.governance

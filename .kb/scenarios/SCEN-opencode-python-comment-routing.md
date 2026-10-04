@@ -5,7 +5,7 @@ type: scenario
 status: active
 created_at: 2026-03-21T13:00:00Z
 updated_at: 2026-03-21T13:00:00Z
-source: documentation/scenarios/SCEN-opencode-python-comment-routing.md
+source: .kb/scenarios/SCEN-opencode-python-comment-routing.md
 priority: should
 tags:
   - opencode

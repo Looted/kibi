@@ -192,13 +192,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e22ef6e1bd74
-  - type: implements
-    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-testdraft
-    to: REQ-kibi-change-to-proof-plan-compiler
-    created_at: 2026-09-18T07:18:48.391Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-365bc81e8566
   - type: covered_by
     from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-testdraft
     to: TEST-e2e-plan-compiler-hash
@@ -284,16 +277,23 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-44dbbf2292e1
   - type: implements
-    from: SYM-telemetry-acceptance-parse-log
-    to: REQ-kibi-telemetry-acceptance-gate
-    created_at: 2026-10-01T20:22:47.048Z
+    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-testdraft
+    to: REQ-kibi-change-to-proof-plan-compiler-v2
+    created_at: 2026-10-04T03:02:32.443Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-3d287958bc84
+    id: rel-52b266f7f78b
   - type: implements
     from: SYM-telemetry-acceptance-parse-log
-    to: REQ-claude-hook-usage-telemetry
-    created_at: 2026-10-01T20:22:47.188Z
+    to: REQ-claude-hook-usage-telemetry-v2
+    created_at: 2026-10-04T03:07:12.968Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-1f0ae5dd2d76
+    id: rel-8803d39fbdce
+  - type: implements
+    from: SYM-telemetry-acceptance-parse-log
+    to: REQ-kibi-telemetry-acceptance-gate-v2
+    created_at: 2026-10-04T03:07:19.262Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-002477453eed

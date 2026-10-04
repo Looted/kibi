@@ -1,6 +1,6 @@
 ---
 title: Exact branch-local KB identity and same-identity storage migration
-status: open
+status: closed
 priority: must
 tags:
   - git
@@ -8,6 +8,7 @@ tags:
   - storage
   - recovery
   - exact-identity
+  - historical-status:superseded
 links:
   - type: specified_by
     target: SCEN-branch-store-recovery

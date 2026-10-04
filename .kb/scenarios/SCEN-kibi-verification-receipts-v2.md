@@ -4,7 +4,7 @@ title: Append current-contract proof evidence without rewriting receipt history
 status: active
 created_at: 2026-08-14T00:00:00Z
 updated_at: 2026-08-14T00:00:00Z
-source: documentation/scenarios/SCEN-kibi-verification-receipts-v2.md
+source: .kb/scenarios/SCEN-kibi-verification-receipts-v2.md
 tags: [requirements, proof, verification, receipts, e2e, v2]
 links:
   - type: verified_by

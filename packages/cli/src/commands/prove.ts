@@ -583,7 +583,7 @@ export async function proveCommand(
 }
 
 /** The artifacts one integration run is evaluated through. */
-// implements REQ-kibi-fresh-verification-receipts
+// implements REQ-kibi-fresh-verification-receipts-v2
 export type EvaluatedRun = Readonly<{
   /** Each artifact is ingested against exactly its own tests. */
   artifacts: readonly Readonly<{
@@ -596,7 +596,7 @@ export type EvaluatedRun = Readonly<{
 }>;
 
 /** Read a command integration's optional per-test report and attribute it. */
-// implements REQ-kibi-fresh-verification-receipts
+// implements REQ-kibi-fresh-verification-receipts-v2
 export async function readCommandAttribution(
   reportPath: string,
   selectedTestIds: readonly string[],
@@ -626,7 +626,7 @@ export async function readCommandAttribution(
 }
 
 /** Where a partition's evaluated artifact is kept next to the run artifact. */
-// implements REQ-kibi-fresh-verification-receipts
+// implements REQ-kibi-fresh-verification-receipts-v2
 export function partitionArtifactPath(
   artifactPath: string,
   outcome: string,
@@ -652,7 +652,7 @@ function describeFailedStep(step: FailedProofStep): string {
  * failing outcome gets a failing slice that names the steps that failed. The
  * whole-process artifact is kept alongside for audit.
  */
-// implements REQ-kibi-fresh-verification-receipts
+// implements REQ-kibi-fresh-verification-receipts-v2
 export function buildCommandRunArtifacts(input: {
   integration: ProofIntegration;
   commandArgv: readonly string[];

@@ -4,7 +4,7 @@ title: Cursor stop hook treats plan delivery separately from job completion
 status: active
 created_at: 2026-08-18T00:00:00.000Z
 updated_at: 2026-08-18T00:00:00.000Z
-source: documentation/facts/FACT-OBS-cursor-stop-plan-vs-job.md
+source: .kb/facts/FACT-OBS-cursor-stop-plan-vs-job.md
 tags:
   - cursor
   - plugin

@@ -4,7 +4,7 @@ title: Legacy requirements produce conservative source-bound migration previews
 status: closed
 created_at: 2026-08-11T00:00:00.000Z
 updated_at: 2026-08-11T00:00:00.000Z
-source: documentation/requirements/REQ-kibi-legacy-migration-preview.md
+source: .kb/requirements/REQ-kibi-legacy-migration-preview.md
 priority: must
 tags:
   - requirements
@@ -110,8 +110,6 @@ semantic_inventory:
       start: 1124
       end: 1239
 links:
-  - type: supersedes
-    target: REQ-kibi-legacy-migration-preview-v2
   - type: depends_on
     target: REQ-kibi-dependency-ordered-repair-plan
   - type: depends_on

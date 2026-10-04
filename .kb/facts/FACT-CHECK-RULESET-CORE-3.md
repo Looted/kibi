@@ -4,7 +4,7 @@ title: Core Check Ruleset Has Ten Categories
 status: active
 created_at: 2026-02-20T14:40:00Z
 updated_at: 2026-04-24T08:22:00Z
-source: documentation/facts/FACT-CHECK-RULESET-CORE-3.md
+source: .kb/facts/FACT-CHECK-RULESET-CORE-3.md
 tags: [validation, rules]
 fact_kind: property_value
 subject_key: kibi.consistency.checking

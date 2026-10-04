@@ -20,13 +20,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3b208163c166
-  - type: implements
-    from: SYM-auto-92638075C834
-    to: REQ-branch-store-recovery-v2
-    created_at: 2026-08-16T07:54:10.592Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-afbf71814b32
   - type: covered_by
     from: SYM-auto-92638075C834
     to: TEST-cli-branch-store-recovery
@@ -209,3 +202,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2b5214e303a3
+  - type: implements
+    from: SYM-auto-92638075C834
+    to: REQ-branch-store-recovery-v4
+    created_at: 2026-10-04T02:56:58.578Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2f2826b14fa5
+  - type: implements
+    from: SYM-reqcompiler-usage-report
+    to: REQ-kibi-telemetry-acceptance-gate-v2
+    created_at: 2026-10-04T03:06:35.564Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-998edd5b4daf

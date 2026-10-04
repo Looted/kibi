@@ -5,7 +5,7 @@ type: scenario
 status: active
 created_at: 2026-07-21T00:00:00Z
 updated_at: 2026-08-09T00:00:00Z
-source: documentation/facts/FACT-skillopt-methodology.md
+source: .kb/facts/FACT-skillopt-methodology.md
 priority: must
 tags: [skillopt, codex, evaluation, security]
 links:

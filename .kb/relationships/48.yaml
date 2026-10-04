@@ -237,3 +237,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d2fcbae46cf5
+  - type: implements
+    from: SYM-mcp-session-ensureProlog
+    to: REQ-core-prolog-process-management
+    created_at: 2026-10-04T03:03:49.085Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5f1b9b527416
+  - type: implements
+    from: SYM-agent-core-appendHookUsageRows
+    to: REQ-claude-hook-usage-telemetry-v2
+    created_at: 2026-10-04T03:15:27.997Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9b08ddd377e0
+  - type: covered_by
+    from: SYM-agent-core-appendHookUsageRows
+    to: TEST-host-hook-usage-telemetry
+    created_at: 2026-10-04T03:15:28.013Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1ab87bc5b8e7

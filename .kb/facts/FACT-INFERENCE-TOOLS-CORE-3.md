@@ -4,7 +4,7 @@ title: Inference Is Not Part Of The Public MCP Core Toolset
 status: superseded
 created_at: 2026-02-20T14:40:00.000Z
 updated_at: 2026-03-22T12:30:00.000Z
-source: documentation/facts/FACT-INFERENCE-TOOLS-CORE-3.md
+source: .kb/facts/FACT-INFERENCE-TOOLS-CORE-3.md
 tags:
   - inference
   - tools

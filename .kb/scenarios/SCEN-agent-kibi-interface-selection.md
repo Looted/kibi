@@ -5,7 +5,7 @@ type: scenario
 status: active
 created_at: 2026-07-21T00:00:00Z
 updated_at: 2026-07-21T00:00:00Z
-source: documentation/scenarios/SCEN-agent-kibi-interface-selection.md
+source: .kb/scenarios/SCEN-agent-kibi-interface-selection.md
 priority: must
 tags:
   - opencode

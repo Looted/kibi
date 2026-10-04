@@ -73,7 +73,7 @@ function errorResult(
  * An answer from a detached HEAD's read-only snapshot says so in the
  * envelope: which store was read and that writes are refused.
  */
-// implements REQ-branch-store-recovery-v3
+// implements REQ-branch-store-recovery-v4
 function withDetachedReadOnlyNotice<
   T extends { readonly diagnostics: readonly unknown[] },
 >(envelope: T, context: OperationContext): T {

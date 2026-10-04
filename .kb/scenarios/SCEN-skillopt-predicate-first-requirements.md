@@ -4,7 +4,7 @@ title: Agent routes requirement claims to predicate, strict, or review lanes
 status: active
 created_at: 2026-07-26T00:00:00Z
 updated_at: 2026-08-04T00:00:00Z
-source: documentation/requirements/REQ-skillopt-predicate-first-requirements.md
+source: .kb/requirements/REQ-skillopt-predicate-first-requirements.md
 tags: [skillopt, agents, requirements, predicates, ontology]
 links:
   - type: verified_by

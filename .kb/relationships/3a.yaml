@@ -1,11 +1,4 @@
 relationships:
-  - type: implements
-    from: SYM-auto-947A5C4D4E76
-    to: REQ-branch-store-recovery-v2
-    created_at: 2026-08-16T07:54:15.608Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3b0b1044e6ea
   - type: covered_by
     from: SYM-auto-947A5C4D4E76
     to: TEST-cli-branch-store-recovery
@@ -202,3 +195,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-936108d72457
+  - type: verified_by
+    from: SCEN-kibi-entity-origin
+    to: TEST-kibi-entity-origin
+    created_at: 2026-10-04T02:21:18.175Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4b8848675d6d
+  - type: implements
+    from: SYM-auto-947A5C4D4E76
+    to: REQ-branch-store-recovery-v4
+    created_at: 2026-10-04T02:57:04.186Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-19c63e7f0267
+  - type: implements
+    from: SYM-entity-origin-resolveUpsertOrigin
+    to: REQ-kibi-entity-origin
+    created_at: 2026-10-04T03:12:43.139Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-df6027de36b0
+  - type: covered_by
+    from: SYM-entity-origin-resolveUpsertOrigin
+    to: TEST-kibi-entity-origin
+    created_at: 2026-10-04T03:12:43.156Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-df73f3216beb
+  - type: implements
+    from: SYM-semantic-advisor-detectConditionalRule
+    to: REQ-kibi-conditional-requirement-authoring
+    created_at: 2026-10-04T03:13:33.808Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-40f95af4b3fa
+  - type: covered_by
+    from: SYM-semantic-advisor-detectConditionalRule
+    to: TEST-kibi-conditional-requirement-authoring
+    created_at: 2026-10-04T03:13:33.829Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dcfc5f52708b

@@ -559,7 +559,7 @@ scenario_stage(ReqId, Stage, ScenarioIds) :-
     findall(ScenarioId,
         (member(ScenarioId, ScenarioTargets), \+ existing_scenario(ScenarioId)),
         InvalidScenarioTargets),
-    % implements REQ-kibi-scenario-feasibility
+    % implements REQ-kibi-scenario-feasibility-v2
     % A scenario that expects success but whose assumptions cannot hold with
     % what current requirements require (pairwise or jointly) can never pass,
     % so the requirement cannot be proven through it.

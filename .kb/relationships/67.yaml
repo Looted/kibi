@@ -6,13 +6,6 @@ relationships:
     created_at: 2026-08-15T22:21:20.248Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-  - type: implements
-    from: SYM-auto-479CCD24D41F
-    to: REQ-branch-store-recovery-v2
-    created_at: 2026-08-16T07:54:29.923Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-25ef64dfc6d4
   - type: covered_by
     from: SYM-auto-479CCD24D41F
     to: TEST-cli-branch-store-recovery
@@ -223,3 +216,115 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b8770c24a730
+  - type: requires_predicate
+    from: REQ-kibi-schema6-migration
+    to: FACT-PRED-schema6-init
+    created_at: 2026-10-04T02:25:19.893Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e55ec7acb968
+  - type: requires_predicate
+    from: REQ-kibi-schema6-migration
+    to: FACT-PRED-schema6-origin-backfill
+    created_at: 2026-10-04T02:25:19.916Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-17867dd7eee5
+  - type: requires_predicate
+    from: REQ-kibi-schema6-migration
+    to: FACT-PRED-schema6-origin-preserved
+    created_at: 2026-10-04T02:25:19.931Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-64cb9e8a3163
+  - type: requires_predicate
+    from: REQ-kibi-schema6-migration
+    to: FACT-PRED-schema6-inventory-rederive
+    created_at: 2026-10-04T02:25:19.941Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5c86d16c6846
+  - type: requires_predicate
+    from: REQ-kibi-schema6-migration
+    to: FACT-PRED-schema6-reclassified-unresolved
+    created_at: 2026-10-04T02:25:19.950Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eaa266903dd4
+  - type: requires_predicate
+    from: REQ-kibi-schema6-migration
+    to: FACT-PRED-schema6-rederive-stale-refused
+    created_at: 2026-10-04T02:25:19.961Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a3fc91ef63df
+  - type: requires_predicate
+    from: REQ-kibi-schema6-migration
+    to: FACT-PRED-schema6-inventory-review
+    created_at: 2026-10-04T02:25:19.975Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fc649a704474
+  - type: requires_predicate
+    from: REQ-kibi-schema6-migration
+    to: FACT-PRED-schema6-exception-review
+    created_at: 2026-10-04T02:25:19.985Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4961bb36f112
+  - type: requires_predicate
+    from: REQ-kibi-schema6-migration
+    to: FACT-PRED-schema6-sync-lists-all
+    created_at: 2026-10-04T02:25:19.993Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fe208184a6f2
+  - type: requires_predicate
+    from: REQ-kibi-schema6-migration
+    to: FACT-PRED-schema6-idempotent
+    created_at: 2026-10-04T02:25:20.003Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a98914270ad9
+  - type: specified_by
+    from: REQ-kibi-schema6-migration
+    to: SCEN-kibi-schema6-migration
+    created_at: 2026-10-04T02:25:20.009Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-49c87b9a731d
+  - type: depends_on
+    from: REQ-kibi-schema6-migration
+    to: REQ-cli-schema-migration
+    created_at: 2026-10-04T02:25:20.017Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1ff64a797270
+  - type: depends_on
+    from: REQ-kibi-schema6-migration
+    to: REQ-kibi-entity-origin
+    created_at: 2026-10-04T02:25:20.024Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bde9cf1394ee
+  - type: implements
+    from: SYM-auto-479CCD24D41F
+    to: REQ-branch-store-recovery-v4
+    created_at: 2026-10-04T02:56:15.979Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-59d73883f541
+  - type: implements
+    from: SYM-proof-parseProofTestReport
+    to: REQ-kibi-fresh-verification-receipts-v2
+    created_at: 2026-10-04T03:15:05.728Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6588928faabd
+  - type: covered_by
+    from: SYM-proof-parseProofTestReport
+    to: TEST-kibi-proof-receipt-compaction
+    created_at: 2026-10-04T03:15:05.744Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e09228037e6d

@@ -4,7 +4,7 @@ title: 'OpenCode Kibi Briefings v2: Auto-Show with Prompt-Block Rendering'
 status: closed
 created_at: 2026-04-23T00:00:00.000Z
 updated_at: 2026-04-23T00:00:00.000Z
-source: documentation/requirements/REQ-opencode-kibi-briefing-v2.md
+source: .kb/requirements/REQ-opencode-kibi-briefing-v2.md
 priority: must
 tags:
   - opencode

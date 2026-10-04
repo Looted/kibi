@@ -55,7 +55,7 @@ export function declaresWriteEffect(
  * checkout. The snapshot store is a cache of the checkout's tracked sources:
  * refreshing it never touches a branch KB or an authored file.
  */
-// implements REQ-branch-store-recovery-v3
+// implements REQ-branch-store-recovery-v4
 export async function refreshDetachedSnapshot(
   workspaceRoot: string,
   attachment: BranchAttachment,
@@ -82,7 +82,7 @@ export async function refreshDetachedSnapshot(
  * a detached HEAD. Reads on a detached HEAD that no single branch points at
  * attach a freshly compiled read-only snapshot of the checkout.
  */
-// implements REQ-branch-store-recovery-v3
+// implements REQ-branch-store-recovery-v4
 export async function resolveOperationAttachment(
   workspaceRoot: string,
   spec: { readonly name: string; readonly effects: readonly OperationEffect[] },

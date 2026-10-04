@@ -4,7 +4,7 @@ title: Missing coverage remains explicit remediation work
 status: active
 created_at: 2026-08-10T00:00:00.000Z
 updated_at: 2026-08-10T00:00:00.000Z
-source: documentation/requirements/REQ-kibi-telemetry-remediation-evidence.md
+source: .kb/requirements/REQ-kibi-telemetry-remediation-evidence.md
 tags:
   - lane:ontology
   - telemetry

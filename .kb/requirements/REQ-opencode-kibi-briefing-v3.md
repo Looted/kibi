@@ -4,7 +4,7 @@ title: "OpenCode Kibi Briefing v3: Reliable Session-Grounded Guidance"
 status: closed
 created_at: 2026-04-24T00:00:00.000Z
 updated_at: 2026-04-24T00:00:00.000Z
-source: documentation/requirements/REQ-opencode-kibi-briefing-v3.md
+source: .kb/requirements/REQ-opencode-kibi-briefing-v3.md
 priority: must
 tags:
   - opencode

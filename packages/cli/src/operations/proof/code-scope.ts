@@ -92,7 +92,7 @@ function record(value: unknown): Record<string, unknown> | null {
  * same projection, never the raw stored value, or a cosmetic extra key would
  * make every receipt of that test silently fall back to snapshot matching.
  */
-// implements REQ-kibi-fresh-verification-receipts
+// implements REQ-kibi-fresh-verification-receipts-v2
 export function receiptBindingContract(raw: unknown): ProofContract | null {
   const contract = record(raw);
   if (!contract) return null;
@@ -113,7 +113,7 @@ export function receiptBindingContract(raw: unknown): ProofContract | null {
   };
 }
 
-// implements REQ-kibi-fresh-verification-receipts
+// implements REQ-kibi-fresh-verification-receipts-v2
 export type ReceiptBindingInput = Readonly<{
   workspaceRoot: string;
   readFile: (absolutePath: string) => Promise<string>;
@@ -134,7 +134,7 @@ export type ReceiptBindingInput = Readonly<{
  * written on a CI runner and on a developer checkout of the same commit
  * therefore carry the same binding.
  */
-// implements REQ-kibi-fresh-verification-receipts
+// implements REQ-kibi-fresh-verification-receipts-v2
 export async function currentReceiptBindingHash(
   input: ReceiptBindingInput,
 ): Promise<string | undefined> {

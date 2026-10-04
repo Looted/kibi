@@ -5,7 +5,7 @@ type: test
 status: passing
 created_at: 2026-08-13T00:00:00.000Z
 updated_at: 2026-08-14T00:00:00.000Z
-source: documentation/tests/TEST-kibi-verification-evidence-contract.md
+source: .kb/tests/TEST-kibi-verification-evidence-contract.md
 priority: must
 verification_scope: end_to_end
 verification_perspective: consumer

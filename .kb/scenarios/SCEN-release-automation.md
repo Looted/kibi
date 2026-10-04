@@ -4,7 +4,7 @@ title: Changesets release automation is verified before publishing
 status: passing
 created_at: 2026-05-29T19:40:00Z
 updated_at: 2026-05-29T19:40:00Z
-source: documentation/scenarios/SCEN-release-automation.md
+source: .kb/scenarios/SCEN-release-automation.md
 tags:
   - release
   - automation

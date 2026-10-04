@@ -34,13 +34,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0c09040b4ff2
-  - type: implements
-    from: SYM-classifySupersedesHistory
-    to: REQ-branch-store-recovery-v3
-    created_at: 2026-08-17T11:04:46.103Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-40d01e69c898
   - type: covered_by
     from: SYM-classifySupersedesHistory
     to: TEST-cli-supersedes-history-unit
@@ -384,3 +377,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0c17f008bb71
+  - type: implements
+    from: SYM-classifySupersedesHistory
+    to: REQ-branch-store-recovery-v4
+    created_at: 2026-10-04T02:58:35.968Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-59790047a51d
+  - type: implements
+    from: SYM-plan-apply-journal-recoverPlanApplyJournal
+    to: REQ-kibi-change-to-proof-plan-compiler-v2
+    created_at: 2026-10-04T03:14:33.747Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e81a07e7d709
+  - type: covered_by
+    from: SYM-plan-apply-journal-recoverPlanApplyJournal
+    to: TEST-kibi-plan-apply-atomic
+    created_at: 2026-10-04T03:14:33.766Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b71c4cf845eb

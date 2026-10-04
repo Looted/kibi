@@ -1,4 +1,4 @@
-// implements REQ-opencode-kibi-plugin-v1, REQ-kibi-telemetry-acceptance-gate
+// implements REQ-opencode-kibi-plugin-v1, REQ-kibi-telemetry-acceptance-gate-v2
 import { existsSync } from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -19,7 +19,7 @@ import { getFileLinkedTargetsByType } from "./file-entity-links.js";
 /** OpenCode's built-in file-editing tools. */
 const EDIT_TOOLS = new Set(["edit", "write", "patch", "multiedit"]);
 
-// implements REQ-opencode-kibi-plugin-v1, REQ-kibi-telemetry-acceptance-gate
+// implements REQ-opencode-kibi-plugin-v1, REQ-kibi-telemetry-acceptance-gate-v2
 export type OpencodeToolCall = {
   /** Kibi workspace root (the session's worktree). */
   worktree: string;
@@ -44,7 +44,7 @@ function packageVersion(): string | null {
   return cachedPackageVersion;
 }
 
-// implements REQ-opencode-kibi-plugin-v1, REQ-kibi-telemetry-acceptance-gate
+// implements REQ-opencode-kibi-plugin-v1, REQ-kibi-telemetry-acceptance-gate-v2
 /**
  * Opt-in (`KIBI_DIAGNOSTIC_MODE`) hook rows for the lookup-before-first-edit
  * telemetry metric, written through the shared kibi-agent-core format: Kibi

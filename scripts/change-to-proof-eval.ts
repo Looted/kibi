@@ -643,7 +643,7 @@ export async function evaluateCompile(
   };
 }
 
-// implements REQ-kibi-change-to-proof-evaluation
+// implements REQ-kibi-search-gold-set-gate, REQ-kibi-change-to-proof-evaluation
 /**
  * A question asked of the repository's own KB through the built CLI. Any of
  * `expectedIds` (current governing requirements) in the top three of the
@@ -658,7 +658,7 @@ export type RepoSearchGoldCase = Readonly<{
   expectAbstention?: boolean;
 }>;
 
-// implements REQ-kibi-change-to-proof-evaluation
+// implements REQ-kibi-search-gold-set-gate, REQ-kibi-change-to-proof-evaluation
 export type RepoSearchObservation = Readonly<{
   /** `answer.governing` ids, in answer order. */
   governingIds: readonly string[];
@@ -667,7 +667,7 @@ export type RepoSearchObservation = Readonly<{
   latencyMs: number;
 }>;
 
-// implements REQ-kibi-change-to-proof-evaluation
+// implements REQ-kibi-search-gold-set-gate, REQ-kibi-change-to-proof-evaluation
 export type RepoSearchEvaluation = Readonly<{
   caseCount: number;
   positiveCaseCount: number;
@@ -698,7 +698,7 @@ export type RepoSearchEvaluation = Readonly<{
   falseAbstentions: readonly string[];
 }>;
 
-// implements REQ-kibi-change-to-proof-evaluation
+// implements REQ-kibi-search-gold-set-gate, REQ-kibi-change-to-proof-evaluation
 export type RepoSearchThresholds = Readonly<{
   minRecallAt3?: number;
   maxSupersededResultRate?: number;
@@ -709,7 +709,7 @@ export type RepoSearchThresholds = Readonly<{
 }>;
 
 /** Nearest-rank percentile; 0 for no values. */
-// implements REQ-kibi-change-to-proof-evaluation
+// implements REQ-kibi-search-gold-set-gate, REQ-kibi-change-to-proof-evaluation
 export function percentile(values: readonly number[], p: number): number {
   if (values.length === 0) return 0;
   const sorted = [...values].sort((left, right) => left - right);
@@ -717,7 +717,7 @@ export function percentile(values: readonly number[], p: number): number {
   return sorted[Math.min(sorted.length, Math.max(1, rank)) - 1] as number;
 }
 
-// implements REQ-kibi-change-to-proof-evaluation
+// implements REQ-kibi-search-gold-set-gate, REQ-kibi-change-to-proof-evaluation
 export function scoreRepoSearch(
   cases: readonly RepoSearchGoldCase[],
   observations: ReadonlyMap<string, RepoSearchObservation>,
@@ -791,7 +791,7 @@ export function scoreRepoSearch(
   };
 }
 
-// implements REQ-kibi-change-to-proof-evaluation
+// implements REQ-kibi-search-gold-set-gate, REQ-kibi-change-to-proof-evaluation
 export function repoSearchThresholdFailures(
   evaluation: RepoSearchEvaluation,
   thresholds: RepoSearchThresholds,
@@ -827,7 +827,7 @@ export function repoSearchThresholdFailures(
 }
 
 /** Governing and result ids from `kibi search --input -` JSON output. */
-// implements REQ-kibi-change-to-proof-evaluation
+// implements REQ-kibi-search-gold-set-gate, REQ-kibi-change-to-proof-evaluation
 export function parseCliSearchOutput(
   stdout: string,
 ): Omit<RepoSearchObservation, "latencyMs"> {
@@ -880,7 +880,7 @@ function runCli(
   return { stdout: result.stdout, latencyMs };
 }
 
-// implements REQ-kibi-change-to-proof-evaluation
+// implements REQ-kibi-search-gold-set-gate, REQ-kibi-change-to-proof-evaluation
 /**
  * Ask every gold question of the repository KB through the built CLI, one
  * process per question as an agent's hook or shell would. The engine is
@@ -915,7 +915,7 @@ function optionValue(
   return index >= 0 ? args[index + 1] : undefined;
 }
 
-// implements REQ-kibi-change-to-proof-evaluation
+// implements REQ-kibi-search-gold-set-gate, REQ-kibi-change-to-proof-evaluation
 async function mainRepoKb(args: readonly string[]): Promise<void> {
   const goldPath = args[0];
   if (!goldPath || goldPath.startsWith("--")) {

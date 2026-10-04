@@ -4,7 +4,7 @@ title: Semantic source separation packed vertical-slice tests
 status: passing
 created_at: 2026-08-11T00:00:00Z
 updated_at: 2026-08-11T00:00:00Z
-source: documentation/tests/TEST-kibi-legacy-migration-preview-v2.md
+source: .kb/tests/TEST-kibi-legacy-migration-preview-v2.md
 verification_scope: end_to_end
 verification_perspective: consumer
 tags: [requirements, migration, semantics, source-binding, packed, e2e]

@@ -1,7 +1,7 @@
 ---
 id: REQ-symbol-granularity
 title: Symbol traceability uses narrowest valid symbols
-status: open
+status: closed
 created_at: 2026-05-30T00:00:00.000Z
 updated_at: 2026-05-30T00:00:00.000Z
 source: docs/symbol-traceability-taxonomy.md

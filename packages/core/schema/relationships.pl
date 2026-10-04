@@ -51,7 +51,7 @@ valid_relationship(requires_rule, req, fact).
 %% The scenario's outcome depends on the property_value fact holding (for
 %% example "the order total is 0"). Checked against current requirements by
 %% the scenario-feasibility rule.
-% implements REQ-kibi-scenario-feasibility
+% implements REQ-kibi-scenario-feasibility-v2
 valid_relationship(assumes, scenario, fact).
 
 %% exempts(+ExceptionReqId, +BaseReqId)

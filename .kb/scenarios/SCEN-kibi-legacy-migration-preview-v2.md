@@ -4,7 +4,7 @@ title: Preview legacy semantic prose without replacing evidence
 status: active
 created_at: 2026-08-11T00:00:00Z
 updated_at: 2026-08-11T00:00:00Z
-source: documentation/scenarios/SCEN-kibi-legacy-migration-preview-v2.md
+source: .kb/scenarios/SCEN-kibi-legacy-migration-preview-v2.md
 tags: [requirements, migration, semantics, source-binding, packed, e2e]
 links:
   - type: verified_by

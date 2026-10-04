@@ -1,6 +1,6 @@
 ---
 title: An approved exempting exception requirement makes its scenarios feasible
-status: active
+status: superseded
 fact_kind: predicate
 predicate_namespace: kibi.checks
 predicate_name: check_exemption_policy

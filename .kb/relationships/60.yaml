@@ -188,3 +188,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-141ad9c84d7c
+  - type: implements
+    from: SYM-BranchRecoverOptions
+    to: REQ-branch-store-recovery-v4
+    created_at: 2026-10-04T02:55:04.621Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-14b074bb3530

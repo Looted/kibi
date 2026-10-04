@@ -4,7 +4,7 @@ title: Proof-bearing symbols resolve to current source coordinates
 status: active
 created_at: 2026-08-10T00:00:00.000Z
 updated_at: 2026-08-10T00:00:00.000Z
-source: documentation/facts/FACT-REQ-PROOF-SOURCE-COORDINATES.md
+source: .kb/facts/FACT-REQ-PROOF-SOURCE-COORDINATES.md
 tags:
   - lane:ontology
   - requirements

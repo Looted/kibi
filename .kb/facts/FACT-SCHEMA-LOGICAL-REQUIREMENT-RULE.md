@@ -4,7 +4,7 @@ title: Logical requirement rule predicate schema
 status: active
 created_at: 2026-08-04T00:00:00.000Z
 updated_at: 2026-08-04T00:00:00.000Z
-source: documentation/facts/FACT-SCHEMA-LOGICAL-REQUIREMENT-RULE.md
+source: .kb/facts/FACT-SCHEMA-LOGICAL-REQUIREMENT-RULE.md
 tags:
   - lane:ontology
   - predicate-schema
@@ -31,6 +31,7 @@ examples:
 argument_constants:
   subject:
     - kibi.audit.log
+    - kibi.branch.detached_head
     - kibi.checks.contradictions
     - kibi.checks.core_rules
     - kibi.cli.check.staged
@@ -43,10 +44,16 @@ argument_constants:
     - kibi.distribution.parity
     - kibi.engine.journal
     - kibi.engine.prolog_process
+    - kibi.engine.read_limits
+    - kibi.entity.origin
+    - kibi.host.edit_snippets
     - kibi.logic.coverage
     - kibi.mcp.tool_schema
     - kibi.migration.legacy_plan
+    - kibi.migration.schema6
     - kibi.modeling.predicates
+    - kibi.modeling.semantic_advisor
+    - kibi.plan.apply
     - kibi.proof.requirement
     - kibi.report.github
     - kibi.report.html

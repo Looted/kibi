@@ -4,7 +4,7 @@ title: Quality diagnostics respect snapshot-bound proof evidence
 status: open
 created_at: 2026-08-14T00:00:00.000Z
 updated_at: 2026-08-14T00:00:00.000Z
-source: documentation/requirements/REQ-kibi-proof-aware-quality-diagnostics.md
+source: .kb/requirements/REQ-kibi-proof-aware-quality-diagnostics.md
 priority: must
 tags:
   - requirements

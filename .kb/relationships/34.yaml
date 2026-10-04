@@ -55,13 +55,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7ce540816cca
-  - type: implements
-    from: SYM-assertSourceWriteStaysInWorkspace
-    to: REQ-kibi-change-to-proof-plan-compiler
-    created_at: 2026-09-18T06:52:36.096Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-04ae058e5906
   - type: covered_by
     from: SYM-assertSourceWriteStaysInWorkspace
     to: TEST-kibi-change-to-proof-plan-compiler
@@ -160,3 +153,157 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-355d4ef24900
+  - type: requires_predicate
+    from: REQ-kibi-telemetry-acceptance-gate-v2
+    to: FACT-PRED-E8FA9DDC5BEA
+    created_at: 2026-10-04T02:14:53.594Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-83fc8ad40dc2
+  - type: requires_predicate
+    from: REQ-kibi-telemetry-acceptance-gate-v2
+    to: FACT-PRED-56D7C9AC1D9E
+    created_at: 2026-10-04T02:14:53.618Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-731570132df1
+  - type: requires_predicate
+    from: REQ-kibi-telemetry-acceptance-gate-v2
+    to: FACT-PRED-A4FBBF88EA6B
+    created_at: 2026-10-04T02:14:53.635Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fbcecd2eb7d0
+  - type: requires_predicate
+    from: REQ-kibi-telemetry-acceptance-gate-v2
+    to: FACT-PRED-telemetry-acceptance-eight-metrics
+    created_at: 2026-10-04T02:14:53.645Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-58a46ba08fe8
+  - type: requires_predicate
+    from: REQ-kibi-telemetry-acceptance-gate-v2
+    to: FACT-PRED-A29952A9FDA9
+    created_at: 2026-10-04T02:14:53.656Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-475979566fc6
+  - type: requires_predicate
+    from: REQ-kibi-telemetry-acceptance-gate-v2
+    to: FACT-PRED-9577B3E62F04
+    created_at: 2026-10-04T02:14:53.669Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d796ef15227a
+  - type: requires_predicate
+    from: REQ-kibi-telemetry-acceptance-gate-v2
+    to: FACT-PRED-4CCA58034E58
+    created_at: 2026-10-04T02:14:53.681Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-509d0d5d0a98
+  - type: requires_predicate
+    from: REQ-kibi-telemetry-acceptance-gate-v2
+    to: FACT-PRED-013AE2CA693B
+    created_at: 2026-10-04T02:14:53.691Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f51fcd03bab5
+  - type: requires_predicate
+    from: REQ-kibi-telemetry-acceptance-gate-v2
+    to: FACT-PRED-2F0C934215A2
+    created_at: 2026-10-04T02:14:53.711Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8438ae6dff82
+  - type: requires_predicate
+    from: REQ-kibi-telemetry-acceptance-gate-v2
+    to: FACT-PRED-2FD5F64B095E
+    created_at: 2026-10-04T02:14:53.722Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-36292f83875e
+  - type: requires_predicate
+    from: REQ-kibi-telemetry-acceptance-gate-v2
+    to: FACT-PRED-AD0C672ED7B9
+    created_at: 2026-10-04T02:14:53.731Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b28f89adffa7
+  - type: requires_predicate
+    from: REQ-kibi-telemetry-acceptance-gate-v2
+    to: FACT-PRED-4307CB603922
+    created_at: 2026-10-04T02:14:53.737Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2c5d46f25b1
+  - type: requires_predicate
+    from: REQ-kibi-telemetry-acceptance-gate-v2
+    to: FACT-PRED-telemetry-lookup-before-first-edit
+    created_at: 2026-10-04T02:14:53.743Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c05650eda10a
+  - type: requires_predicate
+    from: REQ-kibi-telemetry-acceptance-gate-v2
+    to: FACT-PRED-telemetry-lookup-not-applicable
+    created_at: 2026-10-04T02:14:53.751Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b61a69f259e0
+  - type: specified_by
+    from: REQ-kibi-telemetry-acceptance-gate-v2
+    to: SCEN-kibi-telemetry-acceptance-gate
+    created_at: 2026-10-04T02:14:53.762Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3b816f9d8fd2
+  - type: specified_by
+    from: REQ-kibi-telemetry-acceptance-gate-v2
+    to: SCEN-kibi-telemetry-lookup-before-first-edit
+    created_at: 2026-10-04T02:14:53.777Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7e8b6df75154
+  - type: supersedes
+    from: REQ-kibi-telemetry-acceptance-gate-v2
+    to: REQ-kibi-telemetry-acceptance-gate
+    created_at: 2026-10-04T02:14:53.787Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ab45f5cdc53e
+  - type: depends_on
+    from: REQ-kibi-telemetry-acceptance-gate-v2
+    to: REQ-kibi-conservative-requirement-proof
+    created_at: 2026-10-04T02:14:53.796Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1c8c22c472e8
+  - type: depends_on
+    from: REQ-kibi-telemetry-acceptance-gate-v2
+    to: REQ-kibi-dependency-ordered-repair-plan
+    created_at: 2026-10-04T02:14:53.812Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-511cdb5cb5d0
+  - type: implements
+    from: SYM-assertSourceWriteStaysInWorkspace
+    to: REQ-kibi-change-to-proof-plan-compiler-v2
+    created_at: 2026-10-04T02:55:33.861Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5f79abba766b
+  - type: implements
+    from: SYM-reqcompiler-telemetry-metric-id
+    to: REQ-kibi-telemetry-acceptance-gate-v2
+    created_at: 2026-10-04T03:05:54.196Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d7cc92d0b25b
+  - type: implements
+    from: SYM-reqcompiler-telemetry-metric-status
+    to: REQ-kibi-telemetry-acceptance-gate-v2
+    created_at: 2026-10-04T03:05:58.472Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e855b715fb44

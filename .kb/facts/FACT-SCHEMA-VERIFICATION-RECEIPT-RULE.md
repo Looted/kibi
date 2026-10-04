@@ -4,7 +4,7 @@ title: Verification receipt rule predicate schema
 status: active
 created_at: 2026-08-10T00:00:00Z
 updated_at: 2026-08-10T00:00:00Z
-source: documentation/facts/FACT-SCHEMA-VERIFICATION-RECEIPT-RULE.md
+source: .kb/facts/FACT-SCHEMA-VERIFICATION-RECEIPT-RULE.md
 tags: [lane:ontology, predicate-schema, requirements, verification, receipts]
 fact_kind: predicate_schema
 predicate_namespace: kibi.verification

@@ -48,13 +48,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d7f025a8336d
-  - type: implements
-    from: SYM-operation-execute-check
-    to: REQ-kibi-telemetry-acceptance-gate
-    created_at: 2026-08-22T20:29:32.561Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-53a7339ceffd
   - type: covered_by
     from: SYM-operation-execute-check
     to: TEST-kibi-operation-interface-parity
@@ -174,3 +167,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e0ac18548b14
+  - type: implements
+    from: SYM-operation-execute-check
+    to: REQ-kibi-telemetry-acceptance-gate-v2
+    created_at: 2026-10-04T03:04:30.953Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4422bfc4a210

@@ -47,7 +47,7 @@ function withOrigin(input: UpsertInput, origin: unknown): UpsertInput {
  * Without a Prolog runtime the existing entity cannot be read, so only rule 1
  * applies.
  */
-// implements REQ-004
+// implements REQ-kibi-entity-origin
 export async function resolveUpsertOrigin(
   input: UpsertInput,
   prolog: Pick<PrologPort, "query"> | undefined,

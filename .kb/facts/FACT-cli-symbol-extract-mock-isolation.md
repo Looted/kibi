@@ -4,7 +4,7 @@ title: Symbol extraction tests must restore ts-morph project mocks
 status: active
 created_at: 2026-05-30T00:00:00Z
 updated_at: 2026-05-30T00:00:00Z
-source: documentation/facts/FACT-cli-symbol-extract-mock-isolation.md
+source: .kb/facts/FACT-cli-symbol-extract-mock-isolation.md
 tags:
   - cli
   - traceability

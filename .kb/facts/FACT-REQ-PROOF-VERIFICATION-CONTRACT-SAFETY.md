@@ -4,7 +4,7 @@ title: Kibi rejects mismatched verification contracts as proof
 status: active
 created_at: 2026-08-13T00:00:00.000Z
 updated_at: 2026-08-13T00:00:00.000Z
-source: documentation/facts/FACT-REQ-PROOF-VERIFICATION-CONTRACT-SAFETY.md
+source: .kb/facts/FACT-REQ-PROOF-VERIFICATION-CONTRACT-SAFETY.md
 tags:
   - lane:strict
   - verification

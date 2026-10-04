@@ -4,7 +4,7 @@ title: MCP Transport Is Stdio
 status: active
 created_at: 2026-02-20T14:25:00.000Z
 updated_at: 2026-02-20T14:25:00.000Z
-source: documentation/facts/FACT-TRANSPORT-STDIO.md
+source: .kb/facts/FACT-TRANSPORT-STDIO.md
 tags:
   - mcp
   - transport

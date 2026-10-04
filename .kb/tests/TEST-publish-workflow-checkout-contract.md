@@ -4,7 +4,7 @@ title: Publish workflow checkout contract stays shallow and artifact-aware
 status: passing
 created_at: 2026-04-21T17:11:22Z
 updated_at: 2026-04-21T17:11:22Z
-source: documentation/tests/TEST-publish-workflow-checkout-contract.md
+source: .kb/tests/TEST-publish-workflow-checkout-contract.md
 tags:
   - release
   - automation

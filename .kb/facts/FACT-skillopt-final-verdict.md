@@ -4,7 +4,7 @@ title: SkillOpt Kibi skills evaluation bounded no-go
 status: active
 created_at: 2026-07-21T16:00:00Z
 updated_at: 2026-07-21T16:00:00Z
-source: documentation/facts/FACT-skillopt-final-verdict.md
+source: .kb/facts/FACT-skillopt-final-verdict.md
 tags:
   - skillopt
   - evaluation

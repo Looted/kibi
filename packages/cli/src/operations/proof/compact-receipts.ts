@@ -37,7 +37,7 @@ import {
 } from "./receipt-compaction.js";
 import { patchReceiptsIntoDocument } from "./receipt-document.js";
 
-// implements REQ-kibi-fresh-verification-receipts
+// implements REQ-kibi-fresh-verification-receipts-v2
 export type CompactReceiptsArgs = Readonly<{
   /** Compact a single test entity only. */
   testId?: string;
@@ -45,7 +45,7 @@ export type CompactReceiptsArgs = Readonly<{
   dryRun?: boolean;
 }>;
 
-// implements REQ-kibi-fresh-verification-receipts
+// implements REQ-kibi-fresh-verification-receipts-v2
 export type CompactReceiptsTestResult = Readonly<{
   testId: string;
   before: number;
@@ -53,7 +53,7 @@ export type CompactReceiptsTestResult = Readonly<{
   removed: number;
 }>;
 
-// implements REQ-kibi-fresh-verification-receipts
+// implements REQ-kibi-fresh-verification-receipts-v2
 export type CompactReceiptsResult = Readonly<{
   policy: typeof PROOF_RECEIPT_COMPACTION_POLICY;
   snapshot: string;
@@ -79,7 +79,7 @@ function receiptRecords(value: unknown): Readonly<Record<string, unknown>>[] {
  * the receipt-stripped document (an input of the per-contract binding) and
  * therefore every receipt's freshness are unchanged by the rewrite.
  */
-// implements REQ-kibi-fresh-verification-receipts
+// implements REQ-kibi-fresh-verification-receipts-v2
 export async function rewriteReceiptHistory(
   test: Readonly<Record<string, unknown>>,
   nextReceipts: readonly Readonly<Record<string, unknown>>[],
@@ -127,7 +127,7 @@ export async function rewriteReceiptHistory(
  * are not structurally valid are reported and left untouched, because an
  * invalid history decides `invalid` and must stay visible.
  */
-// implements REQ-kibi-fresh-verification-receipts
+// implements REQ-kibi-fresh-verification-receipts-v2
 export async function executeCompactReceipts(
   args: CompactReceiptsArgs,
   context: OperationContext,

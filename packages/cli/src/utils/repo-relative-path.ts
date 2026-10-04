@@ -34,7 +34,7 @@ import path from "node:path";
  * a name under the exact bytes git checked out. Where a path is an identity
  * (the workspace snapshot), the caller compares it in NFC.
  */
-// implements REQ-kibi-fresh-verification-receipts
+// implements REQ-kibi-fresh-verification-receipts-v2
 export function normalizeRepoRelativePath(
   workspaceRoot: string,
   candidate: string,

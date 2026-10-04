@@ -1,12 +1,13 @@
 ---
 title: Scenarios that assume a forbidden value are reported infeasible and block proof
-status: open
+status: closed
 priority: must
 tags:
   - scenarios
   - checks
   - requirement-proof
   - scenario-feasibility
+  - historical-status:superseded
 semantic_text: The scenario-feasibility check must report a scenario that expects success and assumes a property value that a current requirement forbids. The proof ladder must block each requirement specified by an infeasible scenario with the infeasible_scenario gap. An approved exception requirement that exempts the base requirement and is specified by the scenario must make that scenario feasible. The scenario-feasibility check must not check scenarios that expect rejection or error.
 semantic_clauses:
   - The scenario-feasibility check must report a scenario that expects success and assumes a property value that a current requirement forbids.

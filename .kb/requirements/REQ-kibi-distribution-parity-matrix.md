@@ -4,7 +4,7 @@ title: Requirement-compiler behavior remains equal across resolved distributions
 status: open
 created_at: 2026-08-10T00:00:00Z
 updated_at: 2026-08-10T00:00:00Z
-source: documentation/requirements/REQ-kibi-distribution-parity-matrix.md
+source: .kb/requirements/REQ-kibi-distribution-parity-matrix.md
 priority: must
 tags: [requirements, parity, distribution, dogfood, packed, cli, mcp]
 logic_claims:

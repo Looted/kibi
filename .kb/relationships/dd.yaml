@@ -377,3 +377,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b50c221924a4
+  - type: implements
+    from: SYM-mcp-session-resetSessionStateForTests
+    to: REQ-core-prolog-process-management
+    created_at: 2026-10-04T03:04:09.956Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c217f9ed90fa

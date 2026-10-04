@@ -88,7 +88,7 @@ test(comparison_exceptions_fold_into_the_body) :-
     permit_checkout_when(gt, 5, Large),
     logic_rule_conflict(Rule, Large, [functional(cart, total, 2, [1])], disjoint).
 
-% implements REQ-kibi-scenario-feasibility
+% implements REQ-kibi-scenario-feasibility-v2
 test(property_form_reads_rule_conditions_as_property_constraints) :-
     forbid_unless_positive(Rule),
     logic_rule_property_form(Rule, property_form(forbid, Head, '', '', '', [cart-total], [cond(cart-total, lte, number(0, none), money)])),

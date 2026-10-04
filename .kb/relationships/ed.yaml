@@ -251,3 +251,87 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bede588af2e1
+  - type: requires_property
+    from: REQ-kibi-change-to-proof-plan-compiler-v2
+    to: FACT-REQ-PROOF-PLAN-LEDGER
+    created_at: 2026-10-04T02:20:20.413Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-14c947d67939
+  - type: requires_predicate
+    from: REQ-kibi-change-to-proof-plan-compiler-v2
+    to: FACT-PRED-plan-apply-hash-guard
+    created_at: 2026-10-04T02:20:20.438Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-97b724fff195
+  - type: requires_predicate
+    from: REQ-kibi-change-to-proof-plan-compiler-v2
+    to: FACT-PRED-plan-apply-all-or-nothing
+    created_at: 2026-10-04T02:20:20.455Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-40a47f896d93
+  - type: requires_predicate
+    from: REQ-kibi-change-to-proof-plan-compiler-v2
+    to: FACT-PRED-plan-apply-journal
+    created_at: 2026-10-04T02:20:20.467Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dc553989b0a8
+  - type: requires_predicate
+    from: REQ-kibi-change-to-proof-plan-compiler-v2
+    to: FACT-PRED-plan-apply-recovery
+    created_at: 2026-10-04T02:20:20.479Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1f2a69ea9907
+  - type: requires_predicate
+    from: REQ-kibi-change-to-proof-plan-compiler-v2
+    to: FACT-PRED-plan-apply-recovery-refusal
+    created_at: 2026-10-04T02:20:20.488Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-142295cf97e7
+  - type: constrains
+    from: REQ-kibi-change-to-proof-plan-compiler-v2
+    to: FACT-REQ-PROOF-PLAN-SUBJECT
+    created_at: 2026-10-04T02:20:20.498Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6d77e58bb5ee
+  - type: specified_by
+    from: REQ-kibi-change-to-proof-plan-compiler-v2
+    to: SCEN-kibi-change-to-proof-plan-compiler
+    created_at: 2026-10-04T02:20:20.509Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4b362cea2d45
+  - type: specified_by
+    from: REQ-kibi-change-to-proof-plan-compiler-v2
+    to: SCEN-kibi-plan-apply-atomic
+    created_at: 2026-10-04T02:20:20.517Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5ec859c5aa83
+  - type: supersedes
+    from: REQ-kibi-change-to-proof-plan-compiler-v2
+    to: REQ-kibi-change-to-proof-plan-compiler
+    created_at: 2026-10-04T02:20:20.525Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4ce6dbe69e44
+  - type: implements
+    from: SYM-quality-eval-scoreRepoSearch
+    to: REQ-kibi-search-gold-set-gate
+    created_at: 2026-10-04T03:13:58.982Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c53b0ca8829c
+  - type: covered_by
+    from: SYM-quality-eval-scoreRepoSearch
+    to: TEST-kibi-search-gold-set-gate
+    created_at: 2026-10-04T03:13:59.001Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-28da1e0063ac

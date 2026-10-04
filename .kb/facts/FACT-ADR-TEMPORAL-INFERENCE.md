@@ -4,7 +4,7 @@ title: Temporal ADR Inference
 status: active
 created_at: 2026-02-20T14:40:00Z
 updated_at: 2026-02-20T14:40:00Z
-source: documentation/facts/FACT-ADR-TEMPORAL-INFERENCE.md
+source: .kb/facts/FACT-ADR-TEMPORAL-INFERENCE.md
 tags: [adr, inference, temporal]
 fact_kind: subject
 subject_key: kibi.adr.temporal_inference

@@ -130,13 +130,13 @@ function formatList(items: readonly string[], limit: number): string {
 
 const RETIRED_STATUS = /supersed|deprecat|reject|obsolete|retired/i;
 
-// implements REQ-claude-code-kibi-plugin-v1, REQ-opencode-kibi-plugin-v1
+// implements REQ-agent-core-edit-snippets, REQ-claude-code-kibi-plugin-v1, REQ-opencode-kibi-plugin-v1
 /** True for a status that marks an entity as no longer current policy. */
 export function isRetiredStatus(status: string | undefined): boolean {
   return status !== undefined && RETIRED_STATUS.test(status);
 }
 
-// implements REQ-claude-code-kibi-plugin-v1, REQ-opencode-kibi-plugin-v1
+// implements REQ-agent-core-edit-snippets, REQ-claude-code-kibi-plugin-v1, REQ-opencode-kibi-plugin-v1
 /** `ID (status): title`, with the status shown only when it is retired. */
 export function describeEntity(summary: EntitySummary): string {
   const notable = isRetiredStatus(summary.status) ? ` (${summary.status})` : "";
@@ -149,7 +149,7 @@ function jsonString(value: string): string {
   return JSON.stringify(value);
 }
 
-// implements REQ-claude-code-kibi-plugin-v1, REQ-opencode-kibi-plugin-v1
+// implements REQ-agent-core-edit-snippets, REQ-claude-code-kibi-plugin-v1, REQ-opencode-kibi-plugin-v1
 /** Link types through which a requirement is grounded in semantic facts. */
 export const GROUNDING_LINK_TYPES: readonly string[] = [
   "constrains",
@@ -158,7 +158,7 @@ export const GROUNDING_LINK_TYPES: readonly string[] = [
   "requires_rule",
 ];
 
-// implements REQ-claude-code-kibi-plugin-v1, REQ-opencode-kibi-plugin-v1
+// implements REQ-agent-core-edit-snippets, REQ-claude-code-kibi-plugin-v1, REQ-opencode-kibi-plugin-v1
 /**
  * What a requirement says must stay true (its linked facts) and the decision
  * behind it (a linked ADR), read from its frontmatter links and
@@ -209,7 +209,7 @@ export function implementedRequirementIds(
   return [...new Set(symbols.flatMap((symbol) => symbol.implements))];
 }
 
-// implements REQ-claude-code-kibi-plugin-v1, REQ-cursor-kibi-plugin-v1, REQ-codex-kibi-plugin-v1, REQ-zcode-kibi-plugin-v1, REQ-opencode-kibi-plugin-v1
+// implements REQ-agent-core-edit-snippets, REQ-claude-code-kibi-plugin-v1, REQ-cursor-kibi-plugin-v1, REQ-codex-kibi-plugin-v1, REQ-zcode-kibi-plugin-v1, REQ-opencode-kibi-plugin-v1
 /**
  * Memoized entity summaries for one hook process: titles, statuses and links
  * are read from the workspace once per entity however often a snippet asks.
@@ -226,7 +226,7 @@ export function createEntitySummarizer(workspaceRoot: string): Summarize {
   };
 }
 
-// implements REQ-claude-code-kibi-plugin-v1, REQ-cursor-kibi-plugin-v1, REQ-codex-kibi-plugin-v1, REQ-zcode-kibi-plugin-v1
+// implements REQ-agent-core-edit-snippets, REQ-claude-code-kibi-plugin-v1, REQ-cursor-kibi-plugin-v1, REQ-codex-kibi-plugin-v1, REQ-zcode-kibi-plugin-v1
 /**
  * Knowledge snippet for a file with requirement-linked symbols, or undefined
  * when the manifest links nothing to it.
@@ -343,7 +343,7 @@ export function focusUpdate(
   return `Kibi: this edit to ${relativePath} is inside ${symbol.title}${owners}.`;
 }
 
-// implements REQ-codex-kibi-plugin-v1, REQ-zcode-kibi-plugin-v1
+// implements REQ-agent-core-edit-snippets, REQ-codex-kibi-plugin-v1, REQ-zcode-kibi-plugin-v1
 export type EditKnowledgeInput = {
   /** Workspace-relative paths the edit call targets, in call order. */
   relativePaths: readonly string[];
@@ -361,7 +361,7 @@ export type EditKnowledgeInput = {
   maxChars?: number | undefined;
 };
 
-// implements REQ-codex-kibi-plugin-v1, REQ-zcode-kibi-plugin-v1
+// implements REQ-agent-core-edit-snippets, REQ-codex-kibi-plugin-v1, REQ-zcode-kibi-plugin-v1
 /**
  * Pre-edit context for hosts without their own snippet memory: the shared
  * edit snippet for each linked file the call targets, shown once per file per
@@ -391,7 +391,7 @@ export function editKnowledgeContext(
   return snippets.length > 0 ? snippets.join("\n\n") : undefined;
 }
 
-// implements REQ-codex-kibi-plugin-v1, REQ-zcode-kibi-plugin-v1
+// implements REQ-agent-core-edit-snippets, REQ-codex-kibi-plugin-v1, REQ-zcode-kibi-plugin-v1
 /**
  * Claim the one-time slot for `key` under `stateDir`: true the first time a
  * key is claimed, false afterwards. The marker is created exclusively, so

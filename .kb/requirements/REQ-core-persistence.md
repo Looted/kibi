@@ -1,7 +1,7 @@
 ---
 id: REQ-core-persistence
 title: RDF persistence using SWI-Prolog rdf_persistency library
-status: open
+status: closed
 created_at: 2026-05-13T10:00:00.000Z
 updated_at: 2026-05-13T10:00:00.000Z
 source: REQ-009

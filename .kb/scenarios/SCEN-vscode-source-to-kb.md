@@ -4,7 +4,7 @@ title: 'VS Code: Discovering KB context from editor'
 type: scenario
 status: active
 created_at: 2026-05-13T00:00:00.000Z
-source: documentation/scenarios/SCEN-vscode-source-to-kb.md
+source: .kb/scenarios/SCEN-vscode-source-to-kb.md
 priority: must
 tags:
   - vscode

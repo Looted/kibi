@@ -4,7 +4,7 @@ title: MCP Public Tool Surface Is Curated
 status: superseded
 created_at: 2026-02-20T14:25:00.000Z
 updated_at: 2026-04-24T08:12:00.000Z
-source: documentation/facts/FACT-MCP-TOOLSET-CORE-6.md
+source: .kb/facts/FACT-MCP-TOOLSET-CORE-6.md
 tags:
   - mcp
   - tools

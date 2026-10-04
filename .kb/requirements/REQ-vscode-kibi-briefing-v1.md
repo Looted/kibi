@@ -4,7 +4,7 @@ title: 'VS Code Kibi Briefing v1: Channel-Gated Brief Notifications'
 status: closed
 created_at: 2026-04-26T00:00:00.000Z
 updated_at: 2026-04-26T00:00:00.000Z
-source: documentation/requirements/REQ-vscode-kibi-briefing-v1.md
+source: .kb/requirements/REQ-vscode-kibi-briefing-v1.md
 priority: must
 tags:
   - vscode

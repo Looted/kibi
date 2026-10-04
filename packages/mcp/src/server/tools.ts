@@ -100,7 +100,7 @@ function withAgentVisibleText(
   return [{ type: "text", text }, ...nonTextParts];
 }
 
-// implements REQ-008
+// implements REQ-002
 function debugLog(...args: Parameters<typeof console.error>): void {
   if (isMcpDebugEnabled()) {
     console.error(...args);
@@ -227,7 +227,7 @@ function withWorkspaceNotice<T extends { diagnostics: readonly unknown[] }>(
  * Observe the context an operation opens so its envelope can say when a
  * detached HEAD answered from the read-only snapshot, and which store.
  */
-// implements REQ-branch-store-recovery-v3
+// implements REQ-branch-store-recovery-v4
 function observeDetachedReads(base: OperationRuntime): {
   readonly runtime: OperationRuntime;
   readonly notice: () => DetachedReadOnlyDiagnostic | undefined;

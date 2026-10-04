@@ -4,7 +4,7 @@ title: Agent previews and safely applies a migration plan
 status: active
 created_at: 2026-08-14T00:00:00Z
 updated_at: 2026-08-14T00:00:00Z
-source: documentation/requirements/REQ-agent-guided-migration-orchestration.md
+source: .kb/requirements/REQ-agent-guided-migration-orchestration.md
 priority: must
 tags:
   - migration

@@ -1,4 +1,4 @@
-// implements REQ-claude-hook-usage-telemetry, REQ-kibi-telemetry-acceptance-gate
+// implements REQ-claude-hook-usage-telemetry-v2, REQ-kibi-telemetry-acceptance-gate-v2
 import { randomUUID } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
@@ -25,7 +25,7 @@ import { classifyPath } from "./path-policy.js";
  * enables them.
  */
 
-// implements REQ-claude-hook-usage-telemetry, REQ-kibi-telemetry-acceptance-gate
+// implements REQ-claude-hook-usage-telemetry-v2, REQ-kibi-telemetry-acceptance-gate-v2
 /** What the hook did for one tool call. Unset `action` means "nothing to record". */
 export type HookTrace = {
   action?: string;
@@ -39,13 +39,13 @@ export type HookTrace = {
   kbUsedBefore?: boolean | undefined;
 };
 
-// implements REQ-claude-hook-usage-telemetry, REQ-kibi-telemetry-acceptance-gate
+// implements REQ-claude-hook-usage-telemetry-v2, REQ-kibi-telemetry-acceptance-gate-v2
 /** Hook actions the acceptance report reads; hosts emit these names. */
 export const HOOK_ACTION_EDITED = "edited";
-// implements REQ-claude-hook-usage-telemetry, REQ-kibi-telemetry-acceptance-gate
+// implements REQ-claude-hook-usage-telemetry-v2, REQ-kibi-telemetry-acceptance-gate-v2
 export const HOOK_ACTION_KB_USAGE = "kb_usage";
 
-// implements REQ-claude-hook-usage-telemetry
+// implements REQ-claude-hook-usage-telemetry-v2
 export function hookTelemetryEnabled(
   env: NodeJS.ProcessEnv = process.env,
 ): boolean {
@@ -53,7 +53,7 @@ export function hookTelemetryEnabled(
   return value === "1" || value === "true";
 }
 
-// implements REQ-claude-hook-usage-telemetry
+// implements REQ-claude-hook-usage-telemetry-v2
 export type HookUsageRow = {
   /** Host agent, e.g. `claude-code`, `cursor`, `codex`, `zcode`, `opencode`. */
   host: string;
@@ -67,7 +67,7 @@ export type HookUsageRow = {
   startedAt: Date;
 };
 
-// implements REQ-claude-hook-usage-telemetry
+// implements REQ-claude-hook-usage-telemetry-v2
 /** Append one hook row to `.kb/usage.log` when the operator opted in. */
 export function appendHookUsage(
   row: HookUsageRow,
@@ -105,7 +105,7 @@ export function appendHookUsage(
   }
 }
 
-// implements REQ-claude-hook-usage-telemetry, REQ-kibi-telemetry-acceptance-gate
+// implements REQ-claude-hook-usage-telemetry-v2, REQ-kibi-telemetry-acceptance-gate-v2
 /**
  * Trace for a tool call that ran a Kibi operation through MCP or the
  * project-local CLI, or undefined for any other tool.
@@ -120,7 +120,7 @@ export function kbUsageTrace(
     : undefined;
 }
 
-// implements REQ-claude-hook-usage-telemetry, REQ-kibi-telemetry-acceptance-gate
+// implements REQ-claude-hook-usage-telemetry-v2, REQ-kibi-telemetry-acceptance-gate-v2
 /**
  * One `edited` trace per workspace-relative path an edit tool changed,
  * skipping docs, config, and generated paths. `requirementIdsFor` names the
@@ -144,7 +144,7 @@ export function editTraces(
   return traces;
 }
 
-// implements REQ-claude-hook-usage-telemetry
+// implements REQ-claude-hook-usage-telemetry-v2
 /** Append one row per trace, sharing the call's host, session and tool. */
 export function appendHookUsageRows(
   row: Omit<HookUsageRow, "trace">,
@@ -155,7 +155,7 @@ export function appendHookUsageRows(
   for (const trace of traces) appendHookUsage({ ...row, trace }, env);
 }
 
-// implements REQ-claude-hook-usage-telemetry
+// implements REQ-claude-hook-usage-telemetry-v2
 /**
  * Version of the adapter package whose `package.json` sits at
  * `packageJsonPath`, or null when it cannot be read.

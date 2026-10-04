@@ -365,7 +365,7 @@ export async function runProofProducer(options = {}) {
  * selected test with the outcome of its own declared steps. kibi prove then
  * fails only the tests whose steps failed instead of every test in the run.
  */
-// implements REQ-kibi-fresh-verification-receipts
+// implements REQ-kibi-fresh-verification-receipts-v2
 export function buildProofTestReport(selected, attempts) {
   return {
     version: "kibi.proof-test-report.v1",

@@ -652,7 +652,7 @@ function scopeFileHash(absolutePath: string): string {
  * repository. Only repository content can be compared between a CI checkout
  * and a developer machine, so such a file is never read.
  */
-// implements REQ-kibi-fresh-verification-receipts
+// implements REQ-kibi-fresh-verification-receipts-v2
 export const OUTSIDE_WORKSPACE_SCOPE_HASH = "outside-workspace";
 
 export function resolveBoundSymbolScope(

@@ -4,7 +4,7 @@ title: Kibi change-to-proof evaluation subject
 status: active
 created_at: 2026-08-13T00:00:00.000Z
 updated_at: 2026-08-13T00:00:00.000Z
-source: documentation/facts/FACT-REQ-PROOF-EVALUATION-SUBJECT.md
+source: .kb/facts/FACT-REQ-PROOF-EVALUATION-SUBJECT.md
 tags:
   - lane:strict
   - evaluation

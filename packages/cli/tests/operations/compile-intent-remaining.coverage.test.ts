@@ -1,4 +1,4 @@
-// implements REQ-kibi-change-to-proof-plan-compiler
+// implements REQ-kibi-change-to-proof-plan-compiler-v2
 import { afterEach, describe, expect, mock, spyOn, test } from "bun:test";
 import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";

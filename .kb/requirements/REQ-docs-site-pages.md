@@ -1,6 +1,6 @@
 ---
 title: Documentation site published beside the requirement report
-status: open
+status: closed
 tags:
   - docs
   - pages

@@ -4,7 +4,7 @@ title: 'VS Code: Navigation from Tree to Code'
 type: scenario
 status: active
 created_at: 2026-05-13T00:00:00.000Z
-source: documentation/scenarios/SCEN-vscode-kb-to-source.md
+source: .kb/scenarios/SCEN-vscode-kb-to-source.md
 priority: must
 tags:
   - vscode

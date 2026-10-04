@@ -5,7 +5,7 @@ type: fact
 status: active
 created_at: 2026-08-10T00:00:00.000Z
 updated_at: 2026-08-10T00:00:00.000Z
-source: documentation/facts/FACT-INGESTION-UNRESOLVED-NOT-CONSISTENT.md
+source: .kb/facts/FACT-INGESTION-UNRESOLVED-NOT-CONSISTENT.md
 fact_kind: predicate
 predicate_name: unresolved_state_not_consistency
 predicate_args:

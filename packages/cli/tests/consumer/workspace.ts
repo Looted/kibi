@@ -1,4 +1,4 @@
-// implements REQ-kibi-truthful-consistency, REQ-kibi-scenario-feasibility, REQ-kibi-search-answer-layer
+// implements REQ-kibi-truthful-consistency, REQ-kibi-scenario-feasibility-v2, REQ-kibi-search-answer-layer-v2
 import {
   mkdirSync,
   mkdtempSync,

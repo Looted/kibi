@@ -4,7 +4,7 @@ title: Reviewed schemas bind exactly and contradictions return inspectable evide
 status: active
 created_at: 2026-08-10T00:00:00Z
 updated_at: 2026-08-10T00:00:00Z
-source: documentation/scenarios/SCEN-kibi-ontology-convergence-witnesses.md
+source: .kb/scenarios/SCEN-kibi-ontology-convergence-witnesses.md
 tags: [requirements, ontology, contradictions, witnesses, e2e]
 links:
   - type: verified_by

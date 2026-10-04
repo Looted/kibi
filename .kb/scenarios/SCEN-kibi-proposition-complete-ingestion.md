@@ -4,7 +4,7 @@ title: Reject incomplete requirement ledgers without stranding legacy projects
 status: active
 created_at: 2026-08-10T00:00:00Z
 updated_at: 2026-08-10T00:00:00Z
-source: documentation/scenarios/SCEN-kibi-proposition-complete-ingestion.md
+source: .kb/scenarios/SCEN-kibi-proposition-complete-ingestion.md
 tags: [requirements, semantic-inventory, ingestion, e2e]
 links:
   - type: verified_by

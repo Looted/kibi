@@ -17,13 +17,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b442bd57f001
-  - type: implements
-    from: SYM-auto-EE0B2692CF85
-    to: REQ-branch-store-recovery-v2
-    created_at: 2026-08-16T07:49:35.558Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b2bfe839afd9
   - type: covered_by
     from: SYM-auto-EE0B2692CF85
     to: TEST-cli-branch-store-recovery
@@ -213,3 +206,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f6755d09107c
+  - type: implements
+    from: SYM-auto-EE0B2692CF85
+    to: REQ-branch-store-recovery-v4
+    created_at: 2026-10-04T02:57:44.380Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9436bcd99f82

@@ -4,7 +4,7 @@ title: Core CLI Command Set
 status: active
 created_at: 2026-02-20T14:25:00Z
 updated_at: 2026-04-24T00:00:00Z
-source: documentation/facts/FACT-CLI-COMMAND-SET-CORE.md
+source: .kb/facts/FACT-CLI-COMMAND-SET-CORE.md
 tags: [cli, commands]
 fact_kind: property_value
 subject_key: kibi.cli.surface

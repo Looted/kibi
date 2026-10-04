@@ -90,7 +90,7 @@ const RATIONALE_HEADING = /^#{1,6}[ \t]+(?:rationale|why)\b/im;
  * True when a Markdown document (frontmatter ignored) has a heading that
  * starts with "Rationale" or "Why", at any level.
  */
-// implements REQ-kibi-scenario-feasibility
+// implements REQ-kibi-entity-origin
 export function markdownHasRationaleSection(content: string): boolean {
   const body = content.startsWith("---")
     ? content.replace(/^---\r?\n[\s\S]*?\r?\n---[ \t]*(?:\r?\n|$)/, "")
@@ -103,7 +103,7 @@ export function markdownHasRationaleSection(content: string): boolean {
  * and report whether it has a Rationale or Why section. Unreadable files
  * count as having none.
  */
-// implements REQ-kibi-scenario-feasibility
+// implements REQ-kibi-entity-origin
 export function rationaleSectionReader(
   workspaceRoot: string,
 ): (entity: Entity) => boolean {
@@ -146,7 +146,7 @@ function isCurrent(entity: Entity, superseded: ReadonlySet<string>): boolean {
 }
 
 /** Evaluate the origin review rules over loaded requirements. */
-// implements REQ-kibi-scenario-feasibility, REQ-004
+// implements REQ-kibi-entity-origin
 export function evaluateOriginReview(
   input: OriginReviewInput,
   rules: ReadonlySet<string> = new Set(ORIGIN_REVIEW_RULES),
@@ -328,7 +328,7 @@ async function reviewRelationships(
 }
 
 /** Load requirements and relationships once and evaluate the selected rules. */
-// implements REQ-kibi-scenario-feasibility, REQ-004
+// implements REQ-kibi-entity-origin
 export async function collectOriginReviewViolations(
   prolog: Pick<PrologPort, "query">,
   rules: ReadonlySet<string>,

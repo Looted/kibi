@@ -2,7 +2,7 @@ import type { MigrationPlan } from "../../public/operations/migration-plan.js";
 import type { BootstrapPlanV1 } from "../bootstrap/types.js";
 import type { CompilePlanV1, SourceWritePlan } from "./compile-intent.js";
 
-// implements REQ-kibi-change-to-proof-plan-compiler
+// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export type ApplyPlanArgs =
   | Readonly<{
       plan: BootstrapPlanV1;
@@ -34,7 +34,7 @@ export type EntityDeletionPlan = Readonly<{
   supersessionRequired: boolean;
 }>;
 
-// implements REQ-kibi-change-to-proof-plan-compiler, REQ-core-atomic-upsert-persistence
+// implements REQ-kibi-change-to-proof-plan-compiler-v2, REQ-core-atomic-upsert-persistence
 export type PlanApplyRecoveredJournal = Readonly<{
   journalId: string;
   planHash: string;

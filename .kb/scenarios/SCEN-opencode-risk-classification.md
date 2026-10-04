@@ -4,7 +4,7 @@ title: OpenCode Risk Class Triggers
 type: scenario
 status: active
 created_at: 2026-05-13T00:00:00.000Z
-source: documentation/scenarios/SCEN-opencode-risk-classification.md
+source: .kb/scenarios/SCEN-opencode-risk-classification.md
 priority: must
 tags:
   - enforcement

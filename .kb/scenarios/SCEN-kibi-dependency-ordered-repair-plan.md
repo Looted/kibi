@@ -4,7 +4,7 @@ title: Inspect complete and paginated requirement repair plans
 status: active
 created_at: 2026-08-10T00:00:00Z
 updated_at: 2026-08-10T00:00:00Z
-source: documentation/scenarios/SCEN-kibi-dependency-ordered-repair-plan.md
+source: .kb/scenarios/SCEN-kibi-dependency-ordered-repair-plan.md
 tags: [requirements, proof, repair, pagination, packed, e2e]
 links:
   - type: verified_by

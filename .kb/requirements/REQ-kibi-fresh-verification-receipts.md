@@ -1,10 +1,10 @@
 ---
 id: REQ-kibi-fresh-verification-receipts
 title: Requirement proof uses fresh snapshot-bound proof receipts
-status: open
+status: closed
 created_at: 2026-08-10T00:00:00.000Z
 updated_at: 2026-08-10T00:00:00.000Z
-source: documentation/requirements/REQ-kibi-fresh-verification-receipts.md
+source: .kb/requirements/REQ-kibi-fresh-verification-receipts.md
 priority: must
 tags:
   - requirements
@@ -14,6 +14,7 @@ tags:
   - e2e
   - parity
   - snapshot-v2
+  - historical-status:superseded
 logic_claims:
   - CLAIM-6DC078CEB554A685
   - CLAIM-BCC4E6CCF9623500

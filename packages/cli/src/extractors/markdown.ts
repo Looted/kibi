@@ -714,7 +714,7 @@ function extractFromMarkdownContent(
     if (type === "req" && data.semantic_source_hash !== undefined) {
       entity.semantic_source_hash = data.semantic_source_hash;
     }
-    // implements REQ-kibi-scenario-feasibility
+    // implements REQ-kibi-scenario-feasibility-v2
     if (type === "scenario" && data.expects !== undefined) {
       if (
         data.expects !== "success" &&
@@ -761,7 +761,7 @@ function extractFromMarkdownContent(
       }
       entity.proof_exempt_reason = data.proof_exempt_reason;
     }
-    // implements REQ-kibi-scenario-feasibility
+    // implements REQ-kibi-scenario-feasibility-v2
     // Human approval of an exception requirement; only an approved exception
     // makes a success scenario feasible.
     for (const field of ["approved_by", "approval_ref"] as const) {

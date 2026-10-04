@@ -1039,7 +1039,7 @@ fold_body(all(Items0), Extra, all(Items)) :- !, append(Items0, Extra, Items).
 fold_body(Body, Extra, all([Body|Extra])).
 
 %% logic_rule_property_form(+Rule, -Form)
-% implements REQ-kibi-scenario-feasibility
+% implements REQ-kibi-scenario-feasibility-v2
 % Read a rule as a restriction over subject properties: the form scenario
 % feasibility shares with the property lane.  A body atom reads a property
 % when its namespace is the property's subject_key and its name the

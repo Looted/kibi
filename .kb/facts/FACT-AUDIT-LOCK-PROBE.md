@@ -4,7 +4,7 @@ title: Upsert probes stale audit locks before RDF mutation
 status: active
 created_at: 2026-08-11T00:00:00Z
 updated_at: 2026-08-11T00:00:00Z
-source: documentation/facts/FACT-AUDIT-LOCK-PROBE.md
+source: .kb/facts/FACT-AUDIT-LOCK-PROBE.md
 tags: [lane:ontology, audit, locking, stale-runtime]
 fact_kind: predicate
 predicate_namespace: kibi.audit

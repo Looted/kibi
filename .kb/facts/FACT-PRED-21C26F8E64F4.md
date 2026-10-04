@@ -1,10 +1,10 @@
 ---
 id: FACT-PRED-21C26F8E64F4
 title: Telemetry acceptance measures seven workflow signals
-status: active
+status: superseded
 created_at: 2026-08-10T00:00:00.000Z
 updated_at: 2026-08-10T00:00:00.000Z
-source: documentation/requirements/REQ-kibi-telemetry-acceptance-gate.md
+source: .kb/requirements/REQ-kibi-telemetry-acceptance-gate.md
 tags:
   - lane:ontology
   - telemetry

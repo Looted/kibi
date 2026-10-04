@@ -4,7 +4,7 @@ title: Unbound predicate arguments never produce an applicable plan
 status: active
 created_at: 2026-08-10T00:00:00.000Z
 updated_at: 2026-08-10T00:00:00.000Z
-source: documentation/facts/FACT-ONTOLOGY-EXACT-BINDINGS.md
+source: .kb/facts/FACT-ONTOLOGY-EXACT-BINDINGS.md
 tags:
   - lane:ontology
   - requirements

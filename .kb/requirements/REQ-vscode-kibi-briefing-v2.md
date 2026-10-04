@@ -4,7 +4,7 @@ title: 'VS Code Kibi Briefing v2: Render-First Auto-Open Contract'
 status: closed
 created_at: 2026-04-29T00:00:00.000Z
 updated_at: 2026-04-29T00:00:00.000Z
-source: documentation/requirements/REQ-vscode-kibi-briefing-v2.md
+source: .kb/requirements/REQ-vscode-kibi-briefing-v2.md
 priority: must
 tags:
   - vscode

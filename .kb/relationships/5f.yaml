@@ -160,3 +160,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9cb5bea094f6
+  - type: implements
+    from: SYM-engine-limits-EngineQueryLimitError
+    to: REQ-core-engine-read-limits
+    created_at: 2026-10-04T03:12:29.802Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-291010d6d27f
+  - type: covered_by
+    from: SYM-engine-limits-EngineQueryLimitError
+    to: TEST-core-engine-read-limits
+    created_at: 2026-10-04T03:12:29.815Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fe9361088951

@@ -4,7 +4,7 @@ title: MCP schemas preserve logical-claim uniqueness
 status: active
 created_at: 2026-08-04T00:00:00.000Z
 updated_at: 2026-08-04T00:00:00.000Z
-source: documentation/facts/FACT-LOGICAL-COVERAGE-MCP-CLAIM-UNIQUENESS.md
+source: .kb/facts/FACT-LOGICAL-COVERAGE-MCP-CLAIM-UNIQUENESS.md
 tags:
   - lane:ontology
   - requirements

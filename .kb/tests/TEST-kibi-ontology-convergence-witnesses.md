@@ -4,7 +4,7 @@ title: Packed ontology convergence and contradiction witness tests
 status: passing
 created_at: 2026-08-10T00:00:00.000Z
 updated_at: 2026-08-10T00:00:00.000Z
-source: documentation/tests/TEST-kibi-ontology-convergence-witnesses.md
+source: .kb/tests/TEST-kibi-ontology-convergence-witnesses.md
 verification_scope: end_to_end
 verification_perspective: consumer
 tags:

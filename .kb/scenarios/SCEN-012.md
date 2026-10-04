@@ -4,7 +4,7 @@ title: Markdown string links sync as generic relationships
 status: active
 created_at: 2026-03-20T16:20:00Z
 updated_at: 2026-03-20T16:20:00Z
-source: documentation/scenarios/SCEN-012.md
+source: .kb/scenarios/SCEN-012.md
 priority: must
 tags:
   - sync

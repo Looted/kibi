@@ -4,7 +4,7 @@ title: User Role Assignment
 status: active
 created_at: 2026-02-20T13:00:00.000Z
 updated_at: 2026-04-21T10:00:00.000Z
-source: documentation/facts/FACT-USER-ROLE.md
+source: .kb/facts/FACT-USER-ROLE.md
 tags:
   - domain
   - auth

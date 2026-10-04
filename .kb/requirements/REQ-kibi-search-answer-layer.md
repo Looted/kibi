@@ -1,12 +1,13 @@
 ---
 title: kb_search answers questions with the current governing requirements and what verifies them
-status: open
+status: closed
 priority: must
 tags:
   - search
   - intent-search
   - answer-layer
   - discovery
+  - historical-status:superseded
 semantic_text: kb_search must default to intent-v1 ranking and demote superseded, deprecated, and rejected entities. By default kb_search must return a kibi.search-answer.v1 answer layer listing the current governing requirements, their linked facts, rationale ADRs, verifying scenarios and tests, superseded non-governing entries, and observation notes within a byte ceiling. The search answer layer must state that absence of a match is not evidence.
 semantic_clauses:
   - kb_search must default to intent-v1 ranking and demote superseded, deprecated, and rejected entities.

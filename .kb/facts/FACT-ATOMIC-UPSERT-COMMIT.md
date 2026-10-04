@@ -4,7 +4,7 @@ title: Upsert commits all mutation stages under one branch lock
 status: active
 created_at: 2026-08-11T00:00:00Z
 updated_at: 2026-08-11T00:00:00Z
-source: documentation/facts/FACT-ATOMIC-UPSERT-COMMIT.md
+source: .kb/facts/FACT-ATOMIC-UPSERT-COMMIT.md
 tags: [lane:ontology, persistence, upsert, concurrency]
 fact_kind: predicate
 predicate_namespace: kibi.persistence

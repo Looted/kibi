@@ -5,7 +5,7 @@ type: test
 status: pending
 created_at: 2026-07-21T00:00:00.000Z
 updated_at: 2026-07-21T00:00:00.000Z
-source: documentation/tests/TEST-agent-kibi-interface-selection.md
+source: .kb/tests/TEST-agent-kibi-interface-selection.md
 priority: must
 tags:
   - opencode

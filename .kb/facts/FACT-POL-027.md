@@ -4,7 +4,7 @@ title: Repository dogfoods local kibi-mcp, kibi-opencode, and kibi-cursor builds
 status: active
 created_at: 2026-03-20T00:00:00.000Z
 updated_at: 2026-07-19T20:00:00.000Z
-source: documentation/facts/FACT-POL-027.md
+source: .kb/facts/FACT-POL-027.md
 tags:
   - dogfood
   - opencode

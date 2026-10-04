@@ -4,7 +4,7 @@ title: CLI and MCP expose the deterministic verification snapshot
 status: active
 created_at: 2026-08-10T00:00:00Z
 updated_at: 2026-08-10T00:00:00Z
-source: documentation/facts/FACT-VERIFICATION-RECEIPT-SNAPSHOT-SURFACES.md
+source: .kb/facts/FACT-VERIFICATION-RECEIPT-SNAPSHOT-SURFACES.md
 tags: [lane:ontology, requirements, verification, receipts, parity]
 fact_kind: predicate
 predicate_namespace: kibi.verification

@@ -1,9 +1,9 @@
 ---
 id: ADR-annotation-strategy
-title: "Use symbols.yaml manifest for code-symbol-to-entity mapping (no inline annotations)"
-status: accepted
-created_at: 2026-02-18T00:00:00Z
-updated_at: 2026-02-18T00:00:00Z
+title: Use symbols.yaml manifest for code-symbol-to-entity mapping (no inline annotations)
+status: superseded
+created_at: 2026-02-18T00:00:00.000Z
+updated_at: 2026-02-18T00:00:00.000Z
 priority: must
 tags:
   - vscode
@@ -17,6 +17,7 @@ origin:
   kind: migration
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
+type: adr
 ---
 
 ## Context

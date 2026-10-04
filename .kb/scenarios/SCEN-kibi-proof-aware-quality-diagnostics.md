@@ -4,7 +4,7 @@ title: Keep proof-aware diagnostics consistent across coverage and full checks
 status: active
 created_at: 2026-08-14T00:00:00Z
 updated_at: 2026-08-14T00:00:00Z
-source: documentation/scenarios/SCEN-kibi-proof-aware-quality-diagnostics.md
+source: .kb/scenarios/SCEN-kibi-proof-aware-quality-diagnostics.md
 tags: [requirements, diagnostics, coverage, proof, receipts]
 links:
   - type: verified_by

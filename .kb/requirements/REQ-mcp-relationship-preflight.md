@@ -4,7 +4,7 @@ title: MCP relationship preflight rejects invalid relationship targets
 status: open
 created_at: 2026-07-21T00:00:00.000Z
 updated_at: 2026-08-18T00:00:00.000Z
-source: documentation/requirements/REQ-mcp-relationship-preflight.md
+source: .kb/requirements/REQ-mcp-relationship-preflight.md
 priority: high
 tags:
   - mcp

@@ -4,7 +4,7 @@ title: Source, packed, dogfood, and pinned distribution parity tests
 status: passing
 created_at: 2026-08-10T00:00:00.000Z
 updated_at: 2026-08-10T00:00:00.000Z
-source: documentation/tests/TEST-kibi-distribution-parity-matrix.md
+source: .kb/tests/TEST-kibi-distribution-parity-matrix.md
 verification_scope: end_to_end
 verification_perspective: consumer
 tags:

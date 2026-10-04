@@ -4,7 +4,7 @@ title: Verification receipts bind inspectable execution provenance
 status: active
 created_at: 2026-08-10T00:00:00Z
 updated_at: 2026-08-10T00:00:00Z
-source: documentation/facts/FACT-VERIFICATION-RECEIPT-BINDING.md
+source: .kb/facts/FACT-VERIFICATION-RECEIPT-BINDING.md
 tags: [lane:ontology, requirements, verification, receipts]
 fact_kind: predicate
 predicate_namespace: kibi.verification

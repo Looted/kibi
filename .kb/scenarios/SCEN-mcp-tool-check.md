@@ -4,7 +4,7 @@ title: "MCP Tool: kb_check"
 type: scenario
 status: active
 created_at: 2026-05-13T00:00:00Z
-source: documentation/scenarios/SCEN-mcp-tool-check.md
+source: .kb/scenarios/SCEN-mcp-tool-check.md
 priority: must
 tags:
   - mcp

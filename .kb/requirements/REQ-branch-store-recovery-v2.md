@@ -1,7 +1,7 @@
 ---
 id: REQ-branch-store-recovery-v2
 title: Exact branch-local KB identity and recoverable storage
-status: open
+status: closed
 priority: must
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
@@ -59,6 +59,7 @@ tags:
   - branching
   - storage
   - recovery
+  - historical-status:superseded
 links:
   - type: specified_by
     target: SCEN-branch-store-recovery

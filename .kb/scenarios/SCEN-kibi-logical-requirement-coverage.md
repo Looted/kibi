@@ -4,7 +4,7 @@ title: Compound prose is fully grounded and checked for contradictions
 status: active
 created_at: 2026-08-04T00:00:00.000Z
 updated_at: 2026-08-04T00:00:00.000Z
-source: documentation/scenarios/SCEN-kibi-logical-requirement-coverage.md
+source: .kb/scenarios/SCEN-kibi-logical-requirement-coverage.md
 tags:
   - requirements
   - prolog

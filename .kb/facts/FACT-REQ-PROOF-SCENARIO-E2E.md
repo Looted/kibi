@@ -4,7 +4,7 @@ title: Proof requires scenario-backed passing E2E evidence
 status: active
 created_at: 2026-08-10T00:00:00.000Z
 updated_at: 2026-08-10T00:00:00.000Z
-source: documentation/facts/FACT-REQ-PROOF-SCENARIO-E2E.md
+source: .kb/facts/FACT-REQ-PROOF-SCENARIO-E2E.md
 tags:
   - lane:ontology
   - requirements

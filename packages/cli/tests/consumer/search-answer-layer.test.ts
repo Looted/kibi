@@ -1,4 +1,4 @@
-// implements REQ-kibi-search-answer-layer
+// implements REQ-kibi-search-answer-layer-v2
 import { afterEach, describe, expect, test } from "bun:test";
 import {
   type ConsumerWorkspace,

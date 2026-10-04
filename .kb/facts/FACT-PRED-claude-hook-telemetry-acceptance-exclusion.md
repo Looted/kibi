@@ -1,6 +1,6 @@
 ---
 title: 'Predicate: conditional_behavior(telemetry_acceptance_evaluation,hook_usage_records_present,exclude_hook_usage_records)'
-status: active
+status: superseded
 fact_kind: predicate
 predicate_name: conditional_behavior
 predicate_args:

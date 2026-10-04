@@ -205,7 +205,7 @@ describe("telemetry remediation", () => {
     });
   });
 
-  // implements REQ-kibi-telemetry-remediation-evidence, REQ-claude-hook-usage-telemetry
+  // implements REQ-kibi-telemetry-remediation-evidence, REQ-claude-hook-usage-telemetry-v2
   test("points unguided first edits and operations at their usage.log lines", () => {
     const hook = (fields: Record<string, unknown>) => ({
       timestamp: timestamp(5),

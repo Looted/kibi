@@ -223,3 +223,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-de349d57ae26
+  - type: implements
+    from: SYM-engine-limits-boundedReadGoal
+    to: REQ-core-engine-read-limits
+    created_at: 2026-10-04T03:12:16.089Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e24695ae30a9
+  - type: covered_by
+    from: SYM-engine-limits-boundedReadGoal
+    to: TEST-core-engine-read-limits
+    created_at: 2026-10-04T03:12:16.107Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-342b81e77eff
+  - type: implements
+    from: SYM-agent-core-editKnowledgeContext
+    to: REQ-agent-core-edit-snippets
+    created_at: 2026-10-04T03:13:52.708Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-28dadeaaa7f2
+  - type: covered_by
+    from: SYM-agent-core-editKnowledgeContext
+    to: TEST-agent-core-edit-snippets
+    created_at: 2026-10-04T03:13:52.723Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b9cc0e631a60

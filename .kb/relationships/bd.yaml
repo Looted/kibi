@@ -230,3 +230,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8d25512db312
+  - type: implements
+    from: SYM-schema6-planInventoryRederivation
+    to: REQ-kibi-schema6-migration
+    created_at: 2026-10-04T03:13:11.667Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fe2dbc378cd4
+  - type: covered_by
+    from: SYM-schema6-planInventoryRederivation
+    to: TEST-kibi-schema6-migration
+    created_at: 2026-10-04T03:13:11.682Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a40666c73098

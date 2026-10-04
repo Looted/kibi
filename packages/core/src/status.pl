@@ -59,7 +59,7 @@ status_meta_dict(StatusDict) :-
     }.
 
 %% status_scope_dict(-Scope)
-% implements REQ-kibi-search-answer-layer
+% implements REQ-kibi-search-answer-layer-v2
 % The snapshot an answer is computed from: the attached snapshot id and when
 % it was synced. Unlike status_meta_dict/1 it skips the freshness scan, so a
 % discovery answer can name its snapshot at no extra cost; kb_status remains

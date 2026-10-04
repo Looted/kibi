@@ -1,7 +1,7 @@
 ---
 id: REQ-core-atomic-upsert-persistence
 title: Atomic upsert persistence and bounded audit-lock failures
-status: open
+status: closed
 created_at: 2026-08-11T00:00:00Z
 updated_at: 2026-08-11T00:00:00Z
 source: packages/core/src/kb.pl

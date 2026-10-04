@@ -439,7 +439,7 @@ export const ENTITY_ROW_KEYS = [
 /** Upper bound on ids per batched row query, so one answer stays bounded. */
 export const ENTITY_ROW_BATCH_LIMIT = 200;
 
-// implements REQ-mcp-search-discovery, REQ-kibi-search-answer-layer
+// implements REQ-mcp-search-discovery, REQ-kibi-search-answer-layer-v2
 export function entityRowsGoal(
   ids: readonly string[],
   keys: readonly string[] = ENTITY_ROW_KEYS,
@@ -453,7 +453,7 @@ export function entityRowsGoal(
  * Projected rows for several entities in one Prolog query, in place of one
  * `loadEntities({ id })` round trip per entity. Unknown ids are skipped.
  */
-// implements REQ-mcp-search-discovery, REQ-kibi-search-answer-layer
+// implements REQ-mcp-search-discovery, REQ-kibi-search-answer-layer-v2
 export async function loadEntityRows(
   prolog: Pick<PrologPort, "query">,
   ids: readonly string[],

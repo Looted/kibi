@@ -4,7 +4,7 @@ title: Kibi binds proof-bearing tests to stable obligations and fresh proof rece
 status: open
 created_at: 2026-08-13T00:00:00.000Z
 updated_at: 2026-08-13T00:00:00.000Z
-source: documentation/requirements/REQ-kibi-verification-evidence-contract.md
+source: .kb/requirements/REQ-kibi-verification-evidence-contract.md
 priority: must
 owner: platform-team
 tags:

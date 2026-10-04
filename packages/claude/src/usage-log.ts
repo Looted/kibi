@@ -1,4 +1,4 @@
-// implements REQ-claude-hook-usage-telemetry
+// implements REQ-claude-hook-usage-telemetry-v2
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
