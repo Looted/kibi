@@ -145,6 +145,56 @@ The seed is safety-validated, rebound to the selected immutable skill surface, a
 
 `skillopt:optimize` prints `run-id`, `max-steps`, `artifact-root`, and `fixture-run-root` on stderr. Review output is stored **outside the source worktree** under `$XDG_RUNTIME_DIR/kibi-skillopt/operator/` (falling back to `~/.cache` or the process temp dir), including `optimization-review.json`.
 
+## Model configuration
+
+The target and optimizer models and their reasoning efforts come from the
+harness process environment. Unset or empty variables keep the defaults:
+
+| Variable | Default | Accepts |
+| --- | --- | --- |
+| `KIBI_SKILLOPT_TARGET_MODEL` | `gpt-5.6-luna` | Codex model id matching `^[a-z0-9][a-z0-9._-]{0,63}$` |
+| `KIBI_SKILLOPT_TARGET_EFFORT` | `medium` | `minimal`, `low`, `medium`, `high`, `xhigh` |
+| `KIBI_SKILLOPT_OPTIMIZER_MODEL` | `gpt-5.6-sol` | Codex model id matching `^[a-z0-9][a-z0-9._-]{0,63}$` |
+| `KIBI_SKILLOPT_OPTIMIZER_EFFORT` | `xhigh` | `minimal`, `low`, `medium`, `high`, `xhigh` |
+
+The resolved values go into every generated Codex config (`model`,
+`model_reasoning_effort`) and `codex exec --model`. They are also recorded in
+the run lock (`targetModel`, `targetReasoningEffort`, `optimizerModel`,
+`optimizerReasoningEffort`), the preflight and canary receipts, the screen lock,
+and the campaign evaluation model profile. These artifacts must match the active
+configuration. Ledger entries, provider requests, launch receipts and trust-plane
+ceilings accept only the two configured models. If you change a variable between
+commands of the same run or campaign, the harness rejects the run with a model
+mismatch, such as `package_evidence_model_mismatch`, `canary_model_mismatch` or
+`run lock model pin does not match the active model configuration`. Keep the
+variables exported, unchanged, for every command of a run. The Python contracts
+in `tools/skillopt` read the same variables and enforce the same agreement.
+
+Pricing: the defaults use the built-in price-equivalent table: `gpt-5.6-sol` is
+priced, and `gpt-5.6-luna` has no pinned estimate (`null`). Any non-default model
+needs explicit prices in `KIBI_SKILLOPT_MODEL_PRICING`, a JSON object keyed by
+model id with the same fields as the run-lock pricing table. The optimizer must
+have numeric prices. The target may be given as an explicit `null`, which means no
+estimate, the same as the default target. If an entry is missing, malformed, or
+names a model that is not configured, the harness refuses before preflight, the
+capability canary, or any paid launch. The error names the model. Built-in
+prices cannot be overridden, and the harness never invents prices.
+
+```bash
+export KIBI_SKILLOPT_OPTIMIZER_MODEL=<optimizer-model-id>
+export KIBI_SKILLOPT_OPTIMIZER_EFFORT=xhigh
+export KIBI_SKILLOPT_TARGET_MODEL=<target-model-id>
+export KIBI_SKILLOPT_TARGET_EFFORT=low
+export KIBI_SKILLOPT_MODEL_PRICING='{
+  "<optimizer-model-id>": {"inputPerMillionTokens": 5, "cachedInputPerMillionTokens": 0.5, "outputPerMillionTokens": 30},
+  "<target-model-id>": {"inputPerMillionTokens": 1, "cachedInputPerMillionTokens": 0.1, "outputPerMillionTokens": 4}
+}'
+bun run scripts/skillopt-eval/operator.ts optimize --skill kibi-usage --max-steps 4
+```
+
+The prices above are placeholders. Use the published list prices for the models
+you configure.
+
 ## What optimize runs
 
 For a bounded iterative campaign that stops before held-out, use:
@@ -245,7 +295,7 @@ URIs. A successful short seeded probe does not validate a deep workspace path.
 1. `uv sync --project tools/skillopt --frozen` and `verify_pin.py`
 2. `codex login status` must already say `Logged in using ChatGPT`
 3. Fresh run id, explicit artifact root outside the protected source tree, and materialized fixture corpus
-4. Preflight and paid capability canary. Target rollouts use `gpt-5.6-luna` at medium effort; the one-shot and iterative optimizer use `gpt-5.6-sol` at xhigh effort.
+4. Preflight and paid capability canary. By default, target rollouts use `gpt-5.6-luna` at medium effort, and the one-shot and iterative optimizer use `gpt-5.6-sol` at xhigh effort. See [Model configuration](#model-configuration) to change them.
 5. Score baseline and one-shot on the balanced four-case public development set. Seed the trainer with an explicitly supplied preserved candidate when present, otherwise with the stronger comparator, then run `--max-steps` complete rounds over all eight balanced training cases. Behavioral misses retain partial scores and structured public evidence for reflection.
 6. Give each optimizer round both its current trajectories and a compact cumulative family summary, preventing recurring predicate or mutation failures from disappearing when a later stochastic rollout differs.
 7. Reject candidate bodies that copy repository-specific release policy or evaluator artifacts. The reusable result must be branch/package-manager neutral and explain how every assertive proposition becomes a keyed strict fact, approved ground predicate, or safe `kibi.logic.v1` rule; ambiguity, nonlogical prose, and ontology gaps remain explicit ledger states.

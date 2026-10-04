@@ -19,6 +19,7 @@ import {
   type IsolationWorkspace,
   createIsolationWorkspace,
 } from "./isolation-workspace";
+import { modelForRole } from "./models";
 import {
   type CanaryModel,
   type CanaryPhase,
@@ -26,9 +27,7 @@ import {
   type CanaryRunner,
   type CapabilityCanaryModelRun,
   type CapabilityCanaryOptions,
-  OPTIMIZER_MODEL,
   SKILLOPT_EVALUATION_BRANCH,
-  TARGET_MODEL,
   buildCodexConfig,
   buildCodexExecArgv,
 } from "./permissions";
@@ -74,7 +73,7 @@ function modelRun(
   role: CanaryRole,
   events: readonly Readonly<Record<string, unknown>>[],
 ): CapabilityCanaryModelRun {
-  const model: CanaryModel = role === "target" ? TARGET_MODEL : OPTIMIZER_MODEL;
+  const model: CanaryModel = modelForRole(role);
   return { role, model, events };
 }
 

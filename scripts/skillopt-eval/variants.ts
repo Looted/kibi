@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { z } from "zod";
 import type { CanonicalSkill } from "./catalog";
 import { contractHash } from "./contracts/common";
+import { type SkillOptModelId, modelForRole } from "./runtime/models";
 
 export const MAX_CANDIDATE_BODY_BYTES = 100_000;
 
@@ -31,7 +32,7 @@ export type FrozenVariant = VariantSurface &
   }>;
 
 export type OneShotRequest = Readonly<{
-  model: "gpt-5.6-sol";
+  model: SkillOptModelId;
   baselineBody: string;
   objectives: readonly string[];
   familyNames: readonly string[];
@@ -198,7 +199,7 @@ export async function generateOneShotVariant(
   optimizer: OneShotOptimizer,
 ): Promise<OneShotResult> {
   const request: OneShotRequest = {
-    model: "gpt-5.6-sol",
+    model: modelForRole("optimizer"),
     baselineBody: input.baselineBody,
     objectives: [...input.objectives],
     familyNames: [...input.familyNames],

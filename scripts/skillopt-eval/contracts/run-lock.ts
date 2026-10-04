@@ -2,6 +2,12 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { z } from "zod";
 import {
+  ModelIdSchema,
+  ModelPricingSchema,
+  ReasoningEffortSchema,
+  activeSkillOptModelConfig,
+} from "../runtime/models";
+import {
   ArtifactIdSchema,
   CONTRACT_SCHEMA_VERSION,
   ContractIntegrityError,
@@ -13,14 +19,6 @@ import {
   parseJsonText,
 } from "./common";
 import { CodexGatesSchema } from "./gates";
-
-const ModelPricingSchema = z
-  .object({
-    inputPerMillionTokens: z.number().nonnegative(),
-    cachedInputPerMillionTokens: z.number().nonnegative(),
-    outputPerMillionTokens: z.number().nonnegative(),
-  })
-  .strict();
 
 export const SourceLockSchema = z
   .object({
@@ -70,12 +68,7 @@ export const PricingTableSchema = z
     effectiveFrom: z.iso.date(),
     currency: z.literal("USD"),
     source: NonEmptyStringSchema,
-    models: z
-      .object({
-        "gpt-5.6-luna": ModelPricingSchema.nullable(),
-        "gpt-5.6-sol": ModelPricingSchema,
-      })
-      .strict(),
+    models: z.record(ModelIdSchema, ModelPricingSchema.nullable()),
   })
   .strict();
 
@@ -100,8 +93,10 @@ export function createRunLockSchema(sourceLockPath = DEFAULT_SOURCE_LOCK_PATH) {
         codexExecutable: ExecutableIdentitySchema,
         cliArgs: z.array(NonEmptyStringSchema).min(1),
         artifactRoot: NonEmptyStringSchema,
-        targetModel: z.literal("gpt-5.6-luna"),
-        optimizerModel: z.literal("gpt-5.6-sol"),
+        targetModel: ModelIdSchema,
+        targetReasoningEffort: ReasoningEffortSchema,
+        optimizerModel: ModelIdSchema,
+        optimizerReasoningEffort: ReasoningEffortSchema,
         skillopt: z
           .object({
             package: z.literal("skillopt"),
@@ -145,6 +140,36 @@ export function createRunLockSchema(sourceLockPath = DEFAULT_SOURCE_LOCK_PATH) {
             message: `${lock.repositoryHashAlgorithm} object ID must be ${expectedLength} characters`,
             path: ["repositoryCommit"],
           });
+        }
+        const pricedModels = Object.keys(lock.pricing.models).sort();
+        const pinnedModels = [
+          ...new Set([lock.targetModel, lock.optimizerModel]),
+        ].sort();
+        if (
+          JSON.stringify(pricedModels) !== JSON.stringify(pinnedModels) ||
+          lock.pricing.models[lock.optimizerModel] === null
+        ) {
+          context.addIssue({
+            code: "custom",
+            message: "pricing models must price exactly the pinned models",
+            path: ["pricing", "models"],
+          });
+        }
+        const active = activeSkillOptModelConfig();
+        for (const key of [
+          "targetModel",
+          "targetReasoningEffort",
+          "optimizerModel",
+          "optimizerReasoningEffort",
+        ] as const) {
+          if (lock[key] !== active[key]) {
+            context.addIssue({
+              code: "custom",
+              message:
+                "run lock model pin does not match the active model configuration",
+              path: [key],
+            });
+          }
         }
       }),
   );

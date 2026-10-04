@@ -15,14 +15,13 @@ import {
   type WorkspaceOptions,
   createIsolationWorkspace,
 } from "./isolation-workspace";
-import {
-  type CanaryPhase,
-  type CanaryRunner,
-  type CapabilityCanaryModelRun,
-  type CapabilityCanaryOptions,
-  type CapabilityCanaryReceipt,
-  OPTIMIZER_MODEL,
-  TARGET_MODEL,
+import { assertSkillOptModelsReadyForPaidWork } from "./models";
+import type {
+  CanaryPhase,
+  CanaryRunner,
+  CapabilityCanaryModelRun,
+  CapabilityCanaryOptions,
+  CapabilityCanaryReceipt,
 } from "./permissions";
 
 export function defaultCanaryRun(
@@ -40,6 +39,17 @@ export function defaultCanaryRun(
 export { createIsolationWorkspace };
 export type { IsolationWorkspace, WorkspaceOptions };
 
+function canaryModels(): Pick<
+  CapabilityCanaryReceipt,
+  "targetModel" | "optimizerModel"
+> {
+  const config = assertSkillOptModelsReadyForPaidWork();
+  return {
+    targetModel: config.targetModel,
+    optimizerModel: config.optimizerModel,
+  };
+}
+
 function noGoReceipt(
   options: CapabilityCanaryOptions,
   authMode: "file" | "keyring" | null,
@@ -52,8 +62,7 @@ function noGoReceipt(
   return {
     verdict: "no-go",
     runId: options.runId,
-    targetModel: TARGET_MODEL,
-    optimizerModel: OPTIMIZER_MODEL,
+    ...canaryModels(),
     authMode,
     paidModelCalls,
     modelInvocationAttempts: paidModelCalls,
@@ -76,6 +85,9 @@ export async function runCapabilityCanary(
     verifyEvidence?: typeof verifyCapabilityEvidence;
   }>,
 ): Promise<CapabilityCanaryReceipt> {
+  // Fail closed before staging or any paid model call when the configured
+  // models are invalid or lack explicit pricing.
+  const models = canaryModels();
   const sourceWorktree = resolve(options.sourceWorktree ?? process.cwd());
   const configuredArtifactRoot = await resolveArtifactRoot(
     options.artifactRoot,
@@ -124,8 +136,7 @@ export async function runCapabilityCanary(
   return {
     verdict: "pass",
     runId: options.runId,
-    targetModel: TARGET_MODEL,
-    optimizerModel: OPTIMIZER_MODEL,
+    ...models,
     authMode,
     paidModelCalls: 2,
     modelInvocationAttempts: 2,

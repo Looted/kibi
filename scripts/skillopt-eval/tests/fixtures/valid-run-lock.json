@@ -14,7 +14,9 @@
   "cliArgs": ["exec", "--json", "--model", "gpt-5.6-luna"],
   "artifactRoot": ".artifacts/skillopt/00000000-0000-4000-8000-000000000001",
   "targetModel": "gpt-5.6-luna",
+  "targetReasoningEffort": "medium",
   "optimizerModel": "gpt-5.6-sol",
+  "optimizerReasoningEffort": "xhigh",
   "skillopt": {
     "package": "skillopt",
     "version": "0.2.0",

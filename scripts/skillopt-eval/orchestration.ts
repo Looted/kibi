@@ -4,6 +4,10 @@ import { randomUUID } from "node:crypto";
 import { CANONICAL_SKILLS, type CanonicalSkill } from "./catalog";
 import { type RunState, RunStateSchema } from "./contracts/workflow";
 import { RunStore } from "./orchestration-store";
+import {
+  type ModelPricing,
+  resolveSkillOptModelPricing,
+} from "./runtime/models";
 
 export { RunStore } from "./orchestration-store";
 
@@ -16,24 +20,26 @@ export const BUDGET_LIMITS = {
   contingency: 2,
 } as const;
 
-const MODEL_PRICING = {
-  // Retain the historical Mini estimate for old offline artifacts only.
+// Retain the historical Mini estimate for old offline artifacts only.
+const LEGACY_MODEL_PRICING: Readonly<Record<string, ModelPricing>> = {
   "gpt-5.4-mini": {
     inputPerMillionTokens: 0.4,
     cachedInputPerMillionTokens: 0.1,
     outputPerMillionTokens: 1.6,
   },
-  "gpt-5.6-luna": null,
-  "gpt-5.6-sol": {
-    inputPerMillionTokens: 5,
-    cachedInputPerMillionTokens: 0.5,
-    outputPerMillionTokens: 30,
-  },
-} as const;
+};
+
+function pricingFor(model: string): ModelPricing | null {
+  const active = resolveSkillOptModelPricing();
+  if (Object.hasOwn(active, model)) return active[model] ?? null;
+  const legacy = LEGACY_MODEL_PRICING[model];
+  if (legacy !== undefined) return legacy;
+  throw new Error(`model_pricing_missing:${model}`);
+}
 
 // implements REQ-skillopt-codex-optimization
 export function estimatePriceEquivalent(
-  model: keyof typeof MODEL_PRICING,
+  model: string,
   usage: Readonly<{
     inputTokens: number;
     cachedInputTokens: number;
@@ -53,7 +59,7 @@ export function estimatePriceEquivalent(
   ) {
     throw new Error("request_tokens_exceed_cap");
   }
-  const pricing = MODEL_PRICING[model];
+  const pricing = pricingFor(model);
   if (pricing === null) return null;
   const uncachedInput = usage.inputTokens - usage.cachedInputTokens;
   return (

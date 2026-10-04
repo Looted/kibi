@@ -39,6 +39,7 @@ import {
   type CodexRuntimeLease,
   createCodexRuntimeLease,
 } from "./runtime/codex-runtime";
+import { assertSkillOptModelsReadyForPaidWork } from "./runtime/models";
 import type { SkillSurface } from "./runtime/skill-assembly";
 import {
   TargetEpisodeBudgetError,
@@ -283,6 +284,7 @@ async function runPaidOptimization(
     throw new CliUsageError(
       "optimize requires --allow-paid after preflight and smoke",
     );
+  assertSkillOptModelsReadyForPaidWork();
   if (options.skill === undefined || options.skill === "all")
     throw new CliUsageError(
       "real optimize requires one --skill (use bundle for the assembled suite)",
@@ -452,6 +454,7 @@ async function runPaidBundleStage(
     throw new CliUsageError(
       "bundle requires --allow-paid after preflight and smoke",
     );
+  assertSkillOptModelsReadyForPaidWork();
   if (options.skill !== "all")
     throw new CliUsageError("real bundle requires --skill all");
   if (options.cellRuntime === undefined)

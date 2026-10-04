@@ -1,5 +1,6 @@
 export const TRUST_PLANE_MODULE = true;
 import { z } from "zod";
+import { PinnedModelSchema } from "../runtime/models";
 import {
   ArtifactIdSchema,
   CONTRACT_SCHEMA_VERSION,
@@ -45,10 +46,7 @@ const RunCeilingsSchema = z
   .object({
     totalMicrousd: z.int().nonnegative(),
     maxRequests: z.int().positive(),
-    models: z
-      .array(z.enum(["gpt-5.6-luna", "gpt-5.6-sol"]))
-      .min(1)
-      .max(2),
+    models: z.array(PinnedModelSchema).min(1).max(2),
     maxInputTokens: z.int().positive(),
     maxOutputTokens: z.int().positive(),
     maxRetries: z.int().nonnegative(),
