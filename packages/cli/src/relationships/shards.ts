@@ -71,7 +71,18 @@ export function readShard(shardPath: string): RelationshipRecord[] {
     return [];
   }
 
-  const content = fs.readFileSync(shardPath, "utf8");
+  return parseShardText(fs.readFileSync(shardPath, "utf8"), shardPath);
+}
+
+/**
+ * Parses relationship shard text read from `shardPath`.
+ * Returns an empty array for blank text. Throws on parse errors.
+ */
+// implements REQ-kibi-operation-interface-parity
+export function parseShardText(
+  content: string,
+  shardPath: string,
+): RelationshipRecord[] {
   if (!content.trim()) {
     return [];
   }
@@ -166,7 +177,11 @@ export function writeShard(
     fs.mkdirSync(dir, { recursive: true });
   }
 
-  // Sort and dedupe records
+  atomicWriteText(shardPath, renderShardRecords(records));
+}
+
+/** Canonical shard text for `records`: sorted and deduplicated. */
+function renderShardRecords(records: RelationshipRecord[]): string {
   const sorted = sortRecords(records);
   const seen = new Set<string>();
   const unique: RelationshipRecord[] = [];
@@ -178,8 +193,7 @@ export function writeShard(
     unique.push(record);
   }
 
-  const yamlContent = serializeToYAML(unique);
-  atomicWriteText(shardPath, yamlContent);
+  return serializeToYAML(unique);
 }
 
 /**
@@ -349,44 +363,69 @@ export function appendRelationship(
   relationship: Omit<RelationshipRecord, "id">,
 ): { shardPath: string; recordId: string } {
   const shardPath = computeShardPath(kbRoot, relationship.from);
-  const existing = readShard(shardPath);
-
-  // Generate deterministic ID
-  const recordId = relationshipIdFor(
-    relationship.type,
-    relationship.from,
-    relationship.to,
-  );
-
-  // Check if relationship already exists
-  const exists = existing.some(
-    (r) =>
-      r.type === relationship.type &&
-      r.from === relationship.from &&
-      r.to === relationship.to,
-  );
-
-  if (!exists) {
-    const newRecord: RelationshipRecord = {
-      ...relationship,
-      id: recordId,
-    };
-    if (fs.existsSync(shardPath)) {
-      const document = parseDocument(fs.readFileSync(shardPath, "utf8"));
-      const sequence = document.get("relationships", true);
-      if (!sequence || typeof sequence !== "object" || !("items" in sequence)) {
-        throw new Error(
-          `Invalid shard file: missing 'relationships' array at ${shardPath}`,
-        );
-      }
-      (sequence as { items: unknown[] }).items.push(newRecord);
-      atomicWriteText(shardPath, document.toString());
-    } else {
-      writeShard(shardPath, [newRecord]);
+  const existing = fs.existsSync(shardPath)
+    ? fs.readFileSync(shardPath, "utf8")
+    : null;
+  const next = renderShardWithRelationship(shardPath, existing, relationship);
+  if (next !== null) {
+    if (existing === null) {
+      fs.mkdirSync(path.dirname(shardPath), { recursive: true });
     }
+    atomicWriteText(shardPath, next);
   }
 
-  return { shardPath, recordId };
+  return {
+    shardPath,
+    recordId: relationshipIdFor(
+      relationship.type,
+      relationship.from,
+      relationship.to,
+    ),
+  };
+}
+
+/**
+ * The shard text appendRelationship would publish for `relationship`, without
+ * writing it: `existing` is the current shard text, or null when the shard
+ * file does not exist. Returns null when the shard already records the
+ * relationship. Callers that must journal exact after-bytes before any write
+ * (atomic plan application) render a shard through this function.
+ */
+// implements REQ-kibi-operation-interface-parity, REQ-core-atomic-upsert-persistence
+export function renderShardWithRelationship(
+  shardPath: string,
+  existing: string | null,
+  relationship: Omit<RelationshipRecord, "id">,
+): string | null {
+  const records = existing === null ? [] : parseShardText(existing, shardPath);
+  if (
+    records.some(
+      (r) =>
+        r.type === relationship.type &&
+        r.from === relationship.from &&
+        r.to === relationship.to,
+    )
+  ) {
+    return null;
+  }
+  const newRecord: RelationshipRecord = {
+    ...relationship,
+    id: relationshipIdFor(
+      relationship.type,
+      relationship.from,
+      relationship.to,
+    ),
+  };
+  if (existing === null) return renderShardRecords([newRecord]);
+  const document = parseDocument(existing);
+  const sequence = document.get("relationships", true);
+  if (!sequence || typeof sequence !== "object" || !("items" in sequence)) {
+    throw new Error(
+      `Invalid shard file: missing 'relationships' array at ${shardPath}`,
+    );
+  }
+  (sequence as { items: unknown[] }).items.push(newRecord);
+  return document.toString();
 }
 
 /**

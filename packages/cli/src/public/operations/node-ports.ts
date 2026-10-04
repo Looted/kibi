@@ -195,6 +195,20 @@ export const nodeFilesystem: NodeFilesystemPort = {
   },
   stat: (filePath) => fs.stat(filePath),
   unlink: (filePath) => fs.unlink(filePath),
+  fsync: async (filePath) => {
+    // Windows cannot open a directory handle; directory entries are durable
+    // there once the rename returns.
+    if (process.platform === "win32") {
+      const stat = await fs.stat(filePath);
+      if (stat.isDirectory()) return;
+    }
+    const handle = await fs.open(filePath, "r");
+    try {
+      await handle.sync();
+    } finally {
+      await handle.close();
+    }
+  },
   glob: (patterns, options) =>
     fg([...patterns], {
       cwd: options.cwd,

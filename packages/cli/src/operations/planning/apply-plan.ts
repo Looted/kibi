@@ -18,8 +18,17 @@ import {
   migrationPlanHash,
 } from "../../public/operations/migration-plan.js";
 import { readMigrationConfigStatus } from "../../public/operations/migration-plan.js";
-import type { OperationContext } from "../../public/operations/runtime-types.js";
+import type {
+  FilesystemPort,
+  OperationContext,
+  PrologPort,
+  PrologQueryResult,
+} from "../../public/operations/runtime-types.js";
 import { readWorkspaceSnapshot } from "../../public/operations/workspace-snapshot.js";
+import {
+  computeShardPath,
+  renderShardWithRelationship,
+} from "../../relationships/shards.js";
 import { canonicalFilesystemPath } from "../../utils/canonical-path.js";
 import { isDerivedKbPath } from "../../utils/kb-paths.js";
 import {
@@ -28,17 +37,43 @@ import {
   bootstrapEmptyKbSnapshotId,
   bootstrapPlanHash,
 } from "../bootstrap/types.js";
+import {
+  buildUpsertBatchCommitGoal,
+  formatUpsertError,
+} from "../mutation/contradictions.js";
 import { executeDelete } from "../mutation/delete.js";
 import {
-  retirePendingSourceReceipt,
-  writePendingSourceReceipt,
-} from "../mutation/source-authoring.js";
+  PLAN_APPLY_JOURNAL_VERSION,
+  type PlanApplyFileWrite,
+  type PlanApplyJournal,
+  type PlanApplyJournalHandle,
+  type PlanApplyRecovery,
+  type PlanApplyStoreEntry,
+  contentHash,
+  createPlanApplyJournal,
+  isPlanApplyJournalId,
+  openPlanApplyJournal,
+  openPlanApplyJournalById,
+  planRecoveryNotes,
+  publishJournaledFiles,
+  reconcilePendingSourceReceipts,
+  recordPlanApplyJournal,
+  recoverPlanApplyJournal,
+  restoreJournaledFiles,
+  settlePendingPlanApplyJournals,
+  storeFingerprint,
+  withPlanRecoveryNotes,
+} from "../mutation/plan-apply-journal.js";
 import type {
   DeletePayload,
   RelationshipInput,
   UpsertInput,
 } from "../mutation/types.js";
-import { executeUpsert, validateUpsertForCommit } from "../mutation/upsert.js";
+import {
+  assertRelationshipShardContained,
+  executeUpsert,
+  validateUpsertForCommit,
+} from "../mutation/upsert.js";
 import {
   type WorkspaceMutationLockHandle,
   acquireWorkspaceMutationLock,
@@ -91,28 +126,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function digest(value: string): string {
   return createHash("sha256").update(value).digest("hex");
-}
-
-/**
- * Reconcile pending-source receipts with committed source writes: a written
- * file is bound to its exact bytes until Git tracks it, and a deleted file
- * must not leave a receipt that later syncs would report as missing.
- */
-function reconcilePendingSourceReceipts(
-  workspaceRoot: string,
-  writes: readonly {
-    readonly path: string;
-    readonly mode?: "write" | "delete";
-    readonly afterHash: string | null;
-  }[],
-): void {
-  for (const write of writes) {
-    if ((write.mode ?? "write") === "delete") {
-      retirePendingSourceReceipt(workspaceRoot, write.path);
-    } else if (write.afterHash !== null) {
-      writePendingSourceReceipt(workspaceRoot, write.path, write.afterHash);
-    }
-  }
 }
 
 function relationships(step: PlanStep): RelationshipInput[] {
@@ -494,6 +507,75 @@ async function validateSources(
   return checked;
 }
 
+/**
+ * Validate one approved source write against the live workspace: the target
+ * must be workspace-relative, stay inside the workspace (also through
+ * symlinks), avoid Kibi's derived runtime trees, still hold the approved
+ * before-bytes, and carry an after-hash that matches its staged body.
+ */
+async function resolveSourceWriteTarget(
+  workspaceRoot: string,
+  fsPort: NonNullable<OperationContext["fs"]>,
+  write: SourceWritePlan,
+): Promise<{
+  absolute: string;
+  /** Workspace-relative path with forward slashes. */
+  relative: string;
+  existing: string | undefined;
+  mode: "write" | "delete";
+}> {
+  if (
+    !write.path ||
+    path.isAbsolute(write.path) ||
+    write.path.split(/[\\/]/).includes("..")
+  ) {
+    throw new Error(
+      `Apply plan failed: sourceWrites.path must be workspace-relative: ${write.path}`,
+    );
+  }
+  const absolute = path.resolve(workspaceRoot, write.path);
+  const root = path.resolve(workspaceRoot);
+  assertSourceWriteStaysInWorkspace(root, absolute, write.path);
+  const relative = path.relative(root, absolute).split(path.sep).join("/");
+  if (relative === ".kb" || isDerivedKbPath(relative)) {
+    throw new Error(
+      "Apply plan failed: sourceWrites.path cannot target Kibi's derived .kb runtime trees",
+    );
+  }
+  const realRoot = canonicalFilesystemPath(root);
+  const realExisting = canonicalFilesystemPath(absolute);
+  if (
+    realExisting !== realRoot &&
+    !realExisting.startsWith(`${realRoot}${path.sep}`)
+  ) {
+    throw new Error(
+      `Apply plan failed: sourceWrites.path follows a symlink outside the workspace: ${write.path}`,
+    );
+  }
+  const existing = await fsPort.readFile(absolute).catch(() => undefined);
+  const beforeHash = existing === undefined ? null : digest(existing);
+  if (beforeHash !== write.beforeHash) {
+    throw new Error(`Apply plan failed: source hash changed for ${write.path}`);
+  }
+  const mode = write.mode ?? "write";
+  if (
+    mode === "write" &&
+    (write.body === undefined ||
+      write.afterHash === null ||
+      digest(write.body) !== write.afterHash)
+  ) {
+    throw new Error(
+      `Apply plan failed: afterHash does not match staged body for ${write.path}`,
+    );
+  }
+  if (mode === "delete" && write.afterHash !== null) {
+    throw new Error(
+      `Apply plan failed: delete source write must have a null afterHash for ${write.path}`,
+    );
+  }
+  return { absolute, relative, existing, mode };
+}
+
 async function applySourceWrites(
   context: OperationContext,
   writes: readonly SourceWritePlan[],
@@ -660,62 +742,11 @@ async function applySourceWrites(
   try {
     // Validate every target and hash before touching the working tree.
     for (const write of writes) {
-      if (
-        !write.path ||
-        path.isAbsolute(write.path) ||
-        write.path.split(/[\\/]/).includes("..")
-      ) {
-        throw new Error(
-          `Apply plan failed: sourceWrites.path must be workspace-relative: ${write.path}`,
-        );
-      }
-      const absolute = path.resolve(context.workspaceRoot, write.path);
-      const root = path.resolve(context.workspaceRoot);
-      assertSourceWriteStaysInWorkspace(root, absolute, write.path);
-      const workspaceRelative = path
-        .relative(root, absolute)
-        .split(path.sep)
-        .join("/");
-      if (workspaceRelative === ".kb" || isDerivedKbPath(workspaceRelative)) {
-        throw new Error(
-          "Apply plan failed: sourceWrites.path cannot target Kibi's derived .kb runtime trees",
-        );
-      }
-      const realRoot = canonicalFilesystemPath(root);
-      const realExisting = canonicalFilesystemPath(absolute);
-      if (
-        realExisting !== realRoot &&
-        !realExisting.startsWith(`${realRoot}${path.sep}`)
-      ) {
-        throw new Error(
-          `Apply plan failed: sourceWrites.path follows a symlink outside the workspace: ${write.path}`,
-        );
-      }
-      const existing = await context.fs
-        .readFile(absolute)
-        .catch(() => undefined);
-      const beforeHash = existing === undefined ? null : digest(existing);
-      if (beforeHash !== write.beforeHash) {
-        throw new Error(
-          `Apply plan failed: source hash changed for ${write.path}`,
-        );
-      }
-      const mode = write.mode ?? "write";
-      if (
-        mode === "write" &&
-        (write.body === undefined ||
-          write.afterHash === null ||
-          digest(write.body) !== write.afterHash)
-      ) {
-        throw new Error(
-          `Apply plan failed: afterHash does not match staged body for ${write.path}`,
-        );
-      }
-      if (mode === "delete" && write.afterHash !== null) {
-        throw new Error(
-          `Apply plan failed: delete source write must have a null afterHash for ${write.path}`,
-        );
-      }
+      const { absolute, existing, mode } = await resolveSourceWriteTarget(
+        context.workspaceRoot,
+        fsPort,
+        write,
+      );
       originals.push({ absolute, body: existing });
       paths.push(write.path);
       const stageBase = path.join(
@@ -1356,7 +1387,7 @@ async function executeBootstrapPlan(
   };
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler, REQ-agent-guided-migration-orchestration
+// implements REQ-kibi-change-to-proof-plan-compiler, REQ-core-atomic-upsert-persistence
 async function executeApplyPlanUnlocked(
   args: ApplyPlanArgs,
   context: OperationContext,
@@ -1365,7 +1396,41 @@ async function executeApplyPlanUnlocked(
   content: Array<{ type: "text"; text: string }>;
   structuredContent: ApplyPlanResult;
 }> {
+  // Finish any interrupted plan application before this call reads or writes
+  // anything, and report what was done alongside this call's own result.
+  const recovered = await recoverInterruptedPlans(
+    context,
+    "recoveryJournalId" in args ? args.recoveryJournalId : undefined,
+  );
+  if (recovered.some((recovery) => recovery.action !== "none")) onCommitted();
+  let result: Awaited<ReturnType<typeof dispatchApplyPlan>>;
+  try {
+    result = await dispatchApplyPlan(args, context, onCommitted, recovered);
+  } catch (error) {
+    // A plan compiled before the recovery commonly fails its snapshot check
+    // now; the failure still names the interrupted plan that was settled.
+    throw withPlanRecoveryNotes(error, planRecoveryNotes(recovered));
+  }
+  return withRecoveryReport(result, recovered);
+}
+
+// implements REQ-kibi-change-to-proof-plan-compiler, REQ-agent-guided-migration-orchestration
+async function dispatchApplyPlan(
+  args: ApplyPlanArgs,
+  context: OperationContext,
+  onCommitted: () => void,
+  recovered: readonly PlanApplyRecovery[],
+): Promise<{
+  content: Array<{ type: "text"; text: string }>;
+  structuredContent: ApplyPlanResult;
+}> {
   if ("recoveryJournalId" in args) {
+    if (isPlanApplyJournalId(args.recoveryJournalId))
+      return executePlanJournalRecovery(
+        args.recoveryJournalId,
+        context,
+        recovered,
+      );
     if (args.recoveryJournalId.startsWith("bootstrap-")) {
       if (!context.fs)
         throw new Error(
@@ -1569,7 +1634,467 @@ async function executeApplyPlanUnlocked(
       },
     };
   }
+  return executeCompilePlan(args, context, onCommitted, recovered);
+}
+
+type ValidatedPlanStep = Readonly<{
+  input: UpsertInput;
+  entity: Readonly<Record<string, unknown>>;
+  relationships: readonly RelationshipInput[];
+}>;
+
+// implements REQ-kibi-truthful-consistency
+/**
+ * Run every step through the validation chain executeUpsert runs. Each step
+ * is validated against the live store plus what the earlier steps will have
+ * written by then (`staged`): entities they create count as relationship
+ * targets, their kinds and claim keys are read from the plan, their
+ * relationships merge into a later upsert of the same entity, and their
+ * predicate schemas govern later predicate facts.
+ */
+async function validatePlanSteps(
+  steps: readonly UpsertInput[],
+  context: OperationContext,
+): Promise<ValidatedPlanStep[]> {
+  const stagedEntities = new Map<string, Readonly<Record<string, unknown>>>();
+  const stagedRelationships: RelationshipInput[] = [];
+  const validated: ValidatedPlanStep[] = [];
+  for (const step of steps) {
+    try {
+      const { validated: result } = await validateUpsertForCommit(
+        step,
+        context,
+        {
+          staged: {
+            entities: stagedEntities,
+            relationships: [...stagedRelationships],
+          },
+        },
+      );
+      stagedEntities.set(step.id, result.entity);
+      stagedRelationships.push(...result.relationships);
+      validated.push({
+        input: step,
+        entity: result.entity,
+        relationships: result.relationships,
+      });
+    } catch (error) {
+      throw new Error(
+        `step ${step.id} is invalid: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
+  return validated;
+}
+
+type MutablePlanFileWrite = {
+  -readonly [Key in keyof PlanApplyFileWrite]: PlanApplyFileWrite[Key];
+};
+
+/**
+ * Every workspace file the plan changes, with exact before/after bytes: the
+ * plan's approved sourceWrites plus the relationship shards its steps append
+ * (rendered exactly as executeUpsert would append them, in step order).
+ */
+async function planFileWrites(
+  workspaceRoot: string,
+  fsPort: FilesystemPort,
+  sourceWrites: readonly SourceWritePlan[],
+  steps: readonly ValidatedPlanStep[],
+  now: Date,
+): Promise<PlanApplyFileWrite[]> {
+  const files = new Map<string, MutablePlanFileWrite>();
+  for (const write of sourceWrites) {
+    const target = await resolveSourceWriteTarget(workspaceRoot, fsPort, write);
+    if (files.has(target.relative)) {
+      throw new Error(
+        `Apply plan failed: sourceWrites lists ${write.path} more than once`,
+      );
+    }
+    if (target.mode === "delete" && !fsPort.unlink) {
+      throw new Error(
+        `Apply plan failed: delete requires filesystem unlink support: ${write.path}`,
+      );
+    }
+    const before = target.existing ?? null;
+    const after = target.mode === "write" ? (write.body ?? "") : null;
+    files.set(target.relative, {
+      path: target.relative,
+      origin: "plan",
+      mode: target.mode,
+      before,
+      beforeHash: before === null ? null : contentHash(before),
+      after,
+      afterHash: after === null ? null : contentHash(after),
+    });
+  }
+  const root = path.resolve(workspaceRoot);
+  const kbRoot = path.join(workspaceRoot, ".kb");
+  const createdAt = now.toISOString();
+  for (const step of steps) {
+    for (const relationship of step.relationships) {
+      const type =
+        typeof relationship.type === "string" ? relationship.type : "";
+      const from =
+        typeof relationship.from === "string"
+          ? relationship.from
+          : step.input.id;
+      const to = typeof relationship.to === "string" ? relationship.to : "";
+      if (!type || !from || !to) continue;
+      const shardPath = computeShardPath(kbRoot, from);
+      assertRelationshipShardContained(workspaceRoot, shardPath);
+      const relative = path
+        .relative(root, path.resolve(shardPath))
+        .split(path.sep)
+        .join("/");
+      let file = files.get(relative);
+      if (file === undefined) {
+        const existing = await fsPort.readFile(shardPath).catch(() => null);
+        const existingHash = existing === null ? null : contentHash(existing);
+        file = {
+          path: relative,
+          origin: "relationship-shard",
+          mode: "write",
+          before: existing,
+          beforeHash: existingHash,
+          after: existing,
+          afterHash: existingHash,
+        };
+        files.set(relative, file);
+      }
+      const next = renderShardWithRelationship(shardPath, file.after, {
+        type,
+        from,
+        to,
+        created_at: createdAt,
+        created_by: "kibi/upsert",
+        source: "mcp://kibi/upsert",
+      });
+      if (next !== null) {
+        file.mode = "write";
+        file.after = next;
+        file.afterHash = contentHash(next);
+      }
+    }
+  }
+  return [...files.values()].filter(
+    (file) => file.origin === "plan" || file.afterHash !== file.beforeHash,
+  );
+}
+
+type CompilePlanCommit = Readonly<{
+  journalId: string | null;
+  changedEntities: number;
+  changedRelationships: number;
+  effectFailures: readonly Readonly<Record<string, unknown>>[];
+  nextActions: readonly Readonly<Record<string, unknown>>[];
+}>;
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+// implements REQ-kibi-change-to-proof-plan-compiler, REQ-core-atomic-upsert-persistence
+/**
+ * Apply a validated compile plan all-or-nothing:
+ * 1. journal every file change (exact bytes) and every store upsert, plus a
+ *    fingerprint of the touched store entities, before the first write;
+ * 2. publish the files with temp-file + rename (fsync where available);
+ * 3. commit every step in one Prolog batch transaction — the only commit
+ *    point.
+ * Any failure before the commit restores every file from the journal and
+ * leaves the store untouched; an interrupted application is completed or
+ * rolled back from the journal by the next mutating call.
+ */
+async function commitCompilePlan(
+  context: OperationContext,
+  prolog: PrologPort,
+  plan: CompilePlanV1,
+  steps: readonly ValidatedPlanStep[],
+  revalidate: () => Promise<void>,
+  now: Date,
+  onCommitted: () => void,
+): Promise<CompilePlanCommit> {
+  const entries: PlanApplyStoreEntry[] = steps.map((step) => ({
+    entity: step.entity,
+    relationships: step.relationships,
+    skipContradictionCheck: step.input._skipContradictionCheck === true,
+  }));
+  const goal = buildUpsertBatchCommitGoal(entries);
+  const entityIds = [
+    ...new Set(entries.map((entry) => String(entry.entity.id))),
+  ];
+  const changedRelationships = entries.reduce(
+    (sum, entry) => sum + entry.relationships.length,
+    0,
+  );
+  const storeRejection = (result: PrologQueryResult): Error =>
+    new Error(
+      `the store rejected the plan's batch transaction: ${formatUpsertError(
+        entityIds.length === 1
+          ? String(entityIds[0])
+          : `plan batch [${entityIds.join(", ")}]`,
+        result.error,
+        result.errorRecord,
+      )}`,
+    );
+  const fsPort = context.fs;
+  if (fsPort === undefined) {
+    if (plan.sourceWrites.length > 0) {
+      throw new Error(
+        "Apply plan failed: sourceWrites require a filesystem-capable runtime",
+      );
+    }
+    // Without a filesystem there are no workspace files to coordinate: the
+    // single store transaction is the whole application.
+    const written = await prolog.query(goal);
+    if (!written.success) {
+      throw new Error(
+        `Apply plan failed; no change was applied: ${storeRejection(written).message}`,
+      );
+    }
+    onCommitted();
+    prolog.invalidateCache?.();
+    return {
+      journalId: null,
+      changedEntities: entries.length,
+      changedRelationships,
+      effectFailures: [],
+      nextActions: [],
+    };
+  }
+
+  const slot = openPlanApplyJournal(context, plan.planHash);
+  if (slot.existing?.state === "committed") {
+    throw new OperationError(
+      "MUTATION_ALREADY_COMMITTED",
+      `MUTATION_ALREADY_COMMITTED: plan ${plan.planHash} was already applied (journal ${slot.journalId}); compile a fresh plan instead of applying it again`,
+      false,
+    );
+  }
+  if (slot.existing !== null && slot.existing.state !== "rolled_back") {
+    throw new OperationError(
+      "PLAN_APPLY_RECOVERY_REQUIRED",
+      `Plan ${plan.planHash} has an unfinished journal ${slot.journalId}; run kb_apply_plan with recoveryJournalId=${slot.journalId} before applying it again`,
+      false,
+    );
+  }
+  const files = await planFileWrites(
+    context.workspaceRoot,
+    fsPort,
+    plan.sourceWrites,
+    steps,
+    now,
+  );
+  let preCommitFingerprint: string;
+  try {
+    preCommitFingerprint = await storeFingerprint(prolog, entityIds);
+  } catch (error) {
+    throw new Error(
+      `Apply plan failed before any write: the store could not be fingerprinted for the plan journal: ${errorMessage(error)}`,
+    );
+  }
+  const handle: PlanApplyJournalHandle = createPlanApplyJournal(
+    slot.journalPath,
+    {
+      version: PLAN_APPLY_JOURNAL_VERSION,
+      journalId: slot.journalId,
+      planHash: plan.planHash,
+      branch: slot.branch,
+      state: "prepared",
+      createdAt: now.toISOString(),
+      updatedAt: now.toISOString(),
+      files,
+      store: { entityIds, preCommitFingerprint, entries },
+      summary: {
+        planPaths: plan.sourceWrites.map((write) => write.path),
+        filePaths: files.map((file) => file.path),
+        changedEntities: entries.length,
+        changedRelationships,
+      },
+    },
+  );
+
+  const rollBack = async (error: unknown, phase: string): Promise<never> => {
+    let restored: string[];
+    try {
+      restored = await restoreJournaledFiles(
+        fsPort,
+        context.workspaceRoot,
+        handle.journalPath,
+        files,
+      );
+    } catch (rollbackError) {
+      throw new OperationError(
+        "PLAN_APPLY_RECOVERY_REQUIRED",
+        `Plan ${plan.planHash} failed ${phase} (${errorMessage(error)}), and restoring its source writes also failed (${errorMessage(rollbackError)}). Journal ${slot.journalId} is kept: the next kb_apply_plan or kb_upsert call rolls it back, or run kb_apply_plan with recoveryJournalId=${slot.journalId}`,
+        false,
+      );
+    }
+    const detail = `Plan ${plan.planHash.slice(0, 12)} failed ${phase}; no change was applied: the store is unchanged and ${restored.length} source file(s) were restored from journal ${slot.journalId}.`;
+    try {
+      recordPlanApplyJournal(handle, {
+        state: "rolled_back",
+        resolution: { action: "rolled_back", by: "apply", detail },
+      });
+    } catch {
+      // The files are restored and the store never committed, so a journal
+      // left in an earlier state resolves to the same rollback next time.
+    }
+    const message = `Apply plan failed ${phase}; no change was applied (store unchanged, ${restored.length} source file(s) restored from journal ${slot.journalId}): ${errorMessage(error)}`;
+    if (error instanceof OperationError) {
+      throw new OperationError(error.code, message, error.retryable);
+    }
+    throw new Error(message);
+  };
+
+  try {
+    await publishJournaledFiles(fsPort, context.workspaceRoot, files);
+  } catch (error) {
+    return rollBack(error, "while publishing its source writes");
+  }
+  if (plan.sourceWrites.length > 0) {
+    // Steps were validated against the workspace as it was; validate them
+    // again against the published source bytes before the commit.
+    try {
+      await revalidate();
+    } catch (error) {
+      return rollBack(error, "validation against its published source writes");
+    }
+  }
+  try {
+    recordPlanApplyJournal(handle, { state: "store_committing" });
+  } catch (error) {
+    return rollBack(error, "while journaling its store commit");
+  }
+
+  let written: PrologQueryResult | undefined;
+  let commitFailure: unknown;
+  try {
+    written = await prolog.query(goal);
+    if (!written.success) commitFailure = storeRejection(written);
+  } catch (error) {
+    commitFailure = error;
+  }
+  const effectFailures: Readonly<Record<string, unknown>>[] = [];
+  const nextActions: Readonly<Record<string, unknown>>[] = [];
+  if (commitFailure !== undefined) {
+    // The batch is one transaction: it either changed the plan's entities or
+    // changed nothing. Decide from the store, not from the transport.
+    let fingerprint: string | undefined;
+    try {
+      fingerprint = await storeFingerprint(prolog, entityIds);
+    } catch (probeError) {
+      if (written === undefined) {
+        throw new OperationError(
+          "PLAN_APPLY_RECOVERY_REQUIRED",
+          `Plan ${plan.planHash} lost contact with the store during its commit (${errorMessage(commitFailure)}), and the store could not be inspected (${errorMessage(probeError)}). Journal ${slot.journalId} is kept: the next kb_apply_plan or kb_upsert call completes or rolls it back, or run kb_apply_plan with recoveryJournalId=${slot.journalId}`,
+          false,
+        );
+      }
+      // The store answered with a rejection; trust it.
+    }
+    if (fingerprint === undefined || fingerprint === preCommitFingerprint) {
+      return rollBack(commitFailure, "at its store commit");
+    }
+    effectFailures.push({
+      kind: "store-commit",
+      errorCode: "STORE_COMMIT_REPORTED_FAILURE",
+      detail: `The store reported a failure (${errorMessage(commitFailure)}) but shows the plan's batch committed; the plan is kept as applied.`,
+    });
+    nextActions.push(
+      {
+        operation: "kb_status",
+        reason:
+          "The store committed the plan's batch while reporting a failure; confirm the branch snapshot is persisted before further writes.",
+        required: true,
+      },
+      {
+        operation: "kb_check",
+        reason:
+          "Run the consistency checks after the unconfirmed store commit and follow their typed repair actions.",
+        required: true,
+      },
+    );
+  }
+  // The batch transaction committed: every step is in the store.
+  onCommitted();
+  prolog.invalidateCache?.();
+  try {
+    recordPlanApplyJournal(handle, { state: "store_committed" });
+  } catch {
+    // A journal left at store_committing is completed on the next call: the
+    // store fingerprint now shows the commit.
+  }
+  try {
+    reconcilePendingSourceReceipts(context.workspaceRoot, files);
+  } catch (error) {
+    effectFailures.push({
+      kind: "pending-source-receipt",
+      errorCode: "PENDING_SOURCE_RECEIPT_FAILED",
+      detail: errorMessage(error),
+    });
+    nextActions.push({
+      operation: "kb_apply_plan",
+      input: { recoveryJournalId: slot.journalId },
+      reason:
+        "The plan committed, but binding its new source files to pending-source receipts failed; recovering the journal finishes the receipts. Do not apply the original plan again.",
+      required: true,
+    });
+    return {
+      journalId: slot.journalId,
+      changedEntities: entries.length,
+      changedRelationships,
+      effectFailures,
+      nextActions,
+    };
+  }
+  try {
+    recordPlanApplyJournal(handle, {
+      state: "committed",
+      resolution: {
+        action: "completed",
+        by: "apply",
+        detail: `Applied plan ${plan.planHash.slice(0, 12)}: ${entries.length} step(s) in one store transaction and ${files.length} journaled file(s).`,
+      },
+    });
+  } catch {
+    // A store_committed journal completes idempotently on the next call.
+  }
+  return {
+    journalId: slot.journalId,
+    changedEntities: entries.length,
+    changedRelationships,
+    effectFailures,
+    nextActions,
+  };
+}
+
+// implements REQ-kibi-change-to-proof-plan-compiler
+async function executeCompilePlan(
+  args: Extract<ApplyPlanArgs, { plan: CompilePlanV1 }>,
+  context: OperationContext,
+  onCommitted: () => void,
+  recovered: readonly PlanApplyRecovery[],
+): Promise<{
+  content: Array<{ type: "text"; text: string }>;
+  structuredContent: ApplyPlanResult;
+}> {
   validateCompilePlanShape(args);
+  // Re-applying a plan whose interrupted application this call just
+  // completed returns that completion instead of failing its snapshot check.
+  const completed = recovered.find(
+    (recovery) =>
+      recovery.planHash === args.plan.planHash &&
+      recovery.action === "completed",
+  );
+  if (completed !== undefined) {
+    return planJournalRecoveryResult(
+      context,
+      completed,
+      openPlanApplyJournalById(context, completed.journalId).journal,
+    );
+  }
   const prolog =
     context.prolog ?? (await context.ensureProlog?.()) ?? undefined;
   if (!prolog) throw new Error("Apply plan requires a Prolog runtime");
@@ -1577,10 +2102,16 @@ async function executeApplyPlanUnlocked(
   // compiled entity steps against the staged source snapshot without asking
   // each step to independently select a document target; otherwise a plan
   // with multiple authored entity kinds could be rejected for an ambiguous
-  // per-entity path after its source batch has already been validated.
-  const operationContext = context.prolog
-    ? { ...context, sourceFirst: false as const }
-    : { ...context, prolog, sourceFirst: false as const };
+  // per-entity path after its source batch has already been validated. One
+  // clock reading stamps every step, so the journaled store payload is exactly
+  // what validation produced.
+  const now = context.clock();
+  const operationContext: OperationContext = {
+    ...context,
+    prolog,
+    sourceFirst: false as const,
+    clock: () => now,
+  };
   const statusResult = await executeStatus({}, operationContext);
   const status = statusResult.structuredContent;
   if (!status)
@@ -1606,47 +2137,25 @@ async function executeApplyPlanUnlocked(
   // then stage all of them together in a rolled-back transaction, before the
   // first write. A step executeUpsert would reject, or a final state that
   // introduces a contradiction or an infeasible success scenario, fails the
-  // whole plan up front instead of after earlier steps have committed.
-  //
-  // Each step is validated against the live store plus what the earlier steps
-  // will have written by then (`staged`): entities they create count as
-  // relationship targets, their kinds and claim keys are read from the plan,
-  // their relationships merge into a later upsert of the same entity, and
-  // their predicate schemas govern later predicate facts. Limits of this
-  // emulation, where execution re-validates each step anyway:
+  // whole plan up front. Limits of the staged emulation:
   // - symbol granularity reads source code from the workspace as it is now;
-  //   the plan's sourceWrites (applied after this preflight) are not
-  //   overlaid, so a step whose sourceFile the plan itself rewrites is judged
-  //   against the current bytes;
+  //   the plan's sourceWrites are validated again once they are published,
+  //   before the store commit, and a failure then rolls them back;
   // - staged entities are the validated plan payloads; fields executeUpsert
-  //   derives while committing (canonical symbol re-extraction, source paths
-  //   chosen by source-first authoring) are not reproduced, and this runtime
-  //   applies compile plans with sourceFirst disabled, so neither arises here;
-  // - state written concurrently by another writer between this preflight
-  //   and a step's execution is not seen; in a filesystem-capable runtime
-  //   the workspace mutation lock kb_apply_plan holds keeps such writers out.
-  const now = context.clock();
-  const stagedEntities = new Map<string, Readonly<Record<string, unknown>>>();
-  const stagedRelationships: RelationshipInput[] = [];
-  for (const step of steps) {
-    try {
-      const { validated } = await validateUpsertForCommit(
-        step,
-        operationContext,
-        {
-          staged: {
-            entities: stagedEntities,
-            relationships: [...stagedRelationships],
-          },
-        },
-      );
-      stagedEntities.set(step.id, validated.entity);
-      stagedRelationships.push(...validated.relationships);
-    } catch (error) {
-      throw new Error(
-        `Apply plan failed before any write: step ${step.id} is invalid: ${error instanceof Error ? error.message : String(error)}`,
-      );
-    }
+  //   derives while committing source-first (canonical symbol re-extraction,
+  //   chosen source paths) do not arise, because compile plans apply with
+  //   sourceFirst disabled;
+  // - the store's own checks (entity schema, relationship endpoints,
+  //   requirement contradictions) run again inside the batch transaction, so
+  //   state another writer changed after this preflight aborts the whole
+  //   batch instead of committing part of it.
+  let validated: ValidatedPlanStep[];
+  try {
+    validated = await validatePlanSteps(steps, operationContext);
+  } catch (error) {
+    throw new Error(
+      `Apply plan failed before any write: ${errorMessage(error)}`,
+    );
   }
   const preflight = await prolog.query(planWhatIfGoal(args.plan.steps, now));
   if (!preflight.success)
@@ -1665,96 +2174,28 @@ async function executeApplyPlanUnlocked(
         .map((witness) => witness.reason || witness.requirements.join("/"))
         .join("; ")}`,
     );
-  const sourceWrites = await applySourceWrites(
+  const commit = await commitCompilePlan(
     operationContext,
-    args.plan.sourceWrites,
-    args.plan.planHash,
-    false,
+    prolog,
+    args.plan,
+    validated,
+    async () => {
+      await validatePlanSteps(steps, operationContext);
+    },
+    now,
     onCommitted,
   );
+  const effectFailures = [...commit.effectFailures];
+  const nextActions = [...commit.nextActions];
   const notes: string[] = [
-    "Plan steps are staged together and validated before sequential application; source writes are journaled for replay.",
+    commit.journalId === null
+      ? "Plan steps were validated together and committed in one store transaction."
+      : `Plan steps were validated together, journaled in ${commit.journalId}, and committed in one store transaction; source writes are restored from the journal if the commit fails.`,
   ];
-  let changedEntities = 0;
-  let changedRelationships = 0;
-  let appliedSteps = 0;
-  const effectFailures: Readonly<Record<string, unknown>>[] = [];
-  const nextActions: Readonly<Record<string, unknown>>[] = [];
-  let compiledCommit = false;
-  try {
-    for (const step of steps) {
-      const result = await executeUpsert(step, operationContext);
-      appliedSteps += 1;
-      // Each step's compiled commit is an authoritative mutation boundary.
-      // Mark it immediately so a later step's failure can never be mistaken
-      // for a retryable whole-plan failure.
-      onCommitted();
-      const payload = result.structuredContent;
-      if (payload && typeof payload === "object") {
-        const row = payload as {
-          created?: number;
-          updated?: number;
-          relationships_created?: number;
-        };
-        changedEntities += Number(row.created ?? 0) + Number(row.updated ?? 0);
-        changedRelationships += Number(row.relationships_created ?? 0);
-        const details = payload as Record<string, unknown>;
-        if (Array.isArray(details.effectFailures)) {
-          effectFailures.push(...details.effectFailures.filter(isRecord));
-        }
-        if (Array.isArray(details.nextActions)) {
-          nextActions.push(...details.nextActions.filter(isRecord));
-        }
-      }
-    }
-    compiledCommit = true;
-    onCommitted();
-  } catch (error) {
-    if (sourceWrites.journalId !== null) {
-      effectFailures.push({
-        kind: "compiled-store",
-        errorCode: "DERIVED_COMMIT_FAILED",
-        detail: error instanceof Error ? error.message : String(error),
-      });
-      nextActions.push({
-        operation: "kb_apply_plan",
-        input: { recoveryJournalId: sourceWrites.journalId },
-        reason:
-          "Authoritative source files are committed but compiled effects failed; replay the recovery journal instead of retrying the original mutation.",
-        required: true,
-      });
-      onCommitted();
-      await markSourceJournal(
-        operationContext,
-        sourceWrites.journalId,
-        "repair_required",
-      );
-    } else if (appliedSteps > 0) {
-      // A journalless plan (sourceWrites: []) already committed earlier steps
-      // when a later step failed. Expose an explicit non-retryable
-      // partial-commit error instead of a generic exception that invites a
-      // blind retry of the whole plan.
-      if (error instanceof OperationError) throw error;
-      throw new OperationError(
-        "PARTIAL_COMMIT_REPAIR_REQUIRED",
-        `Plan ${args.plan.planHash} committed ${appliedSteps} of ${steps.length} step(s) before failing: ${error instanceof Error ? error.message : String(error)}. This plan carries no recovery journal; do not retry the original plan; inspect the committed snapshot and apply a fresh plan for the remaining steps`,
-        false,
-      );
-    } else {
-      throw error;
-    }
-  }
-  if (compiledCommit) {
-    await markSourceJournal(
-      operationContext,
-      sourceWrites.journalId,
-      "compiled_published",
-    );
-  }
   // Everything before this point is authoritative. A status/workspace
   // readback failure therefore cannot turn the operation into a retryable
-  // mutation: return a repairable partial completion with deterministic next
-  // actions instead.
+  // mutation: return a repairable completion with deterministic next actions
+  // instead.
   let finalStatus: typeof status | undefined;
   let finalWorkspace:
     | Awaited<ReturnType<typeof readWorkspaceSnapshot>>
@@ -1773,7 +2214,7 @@ async function executeApplyPlanUnlocked(
       );
     }
   } catch (error) {
-    postCommitFailure = error instanceof Error ? error.message : String(error);
+    postCommitFailure = errorMessage(error);
     effectFailures.push({
       kind: "post-commit-readback",
       errorCode: "POST_COMMIT_READBACK_FAILED",
@@ -1793,11 +2234,6 @@ async function executeApplyPlanUnlocked(
         required: true,
       },
     );
-    await markSourceJournal(
-      operationContext,
-      sourceWrites.journalId,
-      "repair_required",
-    );
   }
   const finalSnapshots =
     finalStatus !== undefined && finalWorkspace?.available === true
@@ -1815,9 +2251,9 @@ async function executeApplyPlanUnlocked(
     version: PLAN_APPLY_RESULT_VERSION,
     outcome: "applied",
     planHash: args.plan.planHash,
-    changedEntities,
-    changedRelationships,
-    changedPaths: sourceWrites.paths,
+    changedEntities: commit.changedEntities,
+    changedRelationships: commit.changedRelationships,
+    changedPaths: args.plan.sourceWrites.map((write) => write.path),
     finalSnapshots,
     validationSummary: {
       stepsValidated: steps.length,
@@ -1825,7 +2261,7 @@ async function executeApplyPlanUnlocked(
       sourceHashesChecked,
       notes,
     },
-    recoveryJournalId: sourceWrites.journalId,
+    recoveryJournalId: commit.journalId,
     ...(effectFailures.length > 0 || postCommitFailure !== undefined
       ? {
           status: "committed_with_repairs" as const,
@@ -1838,11 +2274,190 @@ async function executeApplyPlanUnlocked(
     content: [
       {
         type: "text",
-        text: `Applied plan ${args.plan.planHash.slice(0, 12)} with ${steps.length} sequential step(s).`,
+        text: `Applied plan ${args.plan.planHash.slice(0, 12)}: ${steps.length} step(s) committed in one store transaction.`,
       },
     ],
     structuredContent: payload,
   };
+}
+
+// implements REQ-kibi-change-to-proof-plan-compiler, REQ-core-atomic-upsert-persistence
+/** The kb_apply_plan result for a plan journal this call recovered or found finished. */
+async function planJournalRecoveryResult(
+  context: OperationContext,
+  recovery: PlanApplyRecovery,
+  journal: PlanApplyJournal,
+): Promise<{
+  content: Array<{ type: "text"; text: string }>;
+  structuredContent: ApplyPlanResult;
+}> {
+  let finalSnapshots = {
+    branch: journal.branch,
+    kbSnapshotId: "recovered",
+    workspaceSnapshot: "recovered",
+  };
+  try {
+    const status = (await executeStatus({}, context)).structuredContent;
+    const workspace = await readWorkspaceSnapshot(context);
+    if (status !== undefined && workspace.available) {
+      finalSnapshots = {
+        branch: status.branch,
+        kbSnapshotId: status.snapshotId,
+        workspaceSnapshot: workspace.snapshot.hash,
+      };
+    }
+  } catch {
+    // Snapshot readback is informational after a recovery.
+  }
+  const completedNow = recovery.action === "completed";
+  return {
+    content: [{ type: "text", text: recovery.detail }],
+    structuredContent: {
+      version: PLAN_APPLY_RESULT_VERSION,
+      outcome: recovery.state === "committed" ? "replayed" : "rolled_back",
+      planHash: recovery.planHash,
+      changedEntities: completedNow ? journal.summary.changedEntities : 0,
+      changedRelationships: completedNow
+        ? journal.summary.changedRelationships
+        : 0,
+      changedPaths: recovery.restoredPaths,
+      finalSnapshots,
+      validationSummary: {
+        stepsValidated: 0,
+        stepsApplied: completedNow ? journal.summary.changedEntities : 0,
+        sourceHashesChecked: journal.summary.filePaths.length,
+        notes: [recovery.detail],
+      },
+      recoveryJournalId: recovery.journalId,
+      ...(recovery.receiptFailure !== undefined
+        ? {
+            status: "committed_with_repairs" as const,
+            effectFailures: [
+              {
+                kind: "pending-source-receipt",
+                errorCode: "PENDING_SOURCE_RECEIPT_FAILED",
+                detail: recovery.receiptFailure,
+              },
+            ],
+            nextActions: [
+              {
+                operation: "kb_apply_plan",
+                input: { recoveryJournalId: recovery.journalId },
+                reason:
+                  "The plan is committed, but binding its new source files to pending-source receipts failed; recover the journal again to finish them.",
+                required: true,
+              },
+            ],
+          }
+        : {}),
+    },
+  };
+}
+
+// implements REQ-kibi-change-to-proof-plan-compiler, REQ-core-atomic-upsert-persistence
+async function executePlanJournalRecovery(
+  journalId: string,
+  context: OperationContext,
+  recovered: readonly PlanApplyRecovery[],
+): Promise<{
+  content: Array<{ type: "text"; text: string }>;
+  structuredContent: ApplyPlanResult;
+}> {
+  if (!context.fs)
+    throw new Error(
+      "Plan journal recovery requires a filesystem-capable runtime",
+    );
+  const handle = openPlanApplyJournalById(context, journalId);
+  const recovery =
+    recovered.find((candidate) => candidate.journalId === journalId) ??
+    (await recoverPlanApplyJournal(context, handle, {
+      prolog: async () => context.prolog ?? (await context.ensureProlog?.()),
+    }));
+  return planJournalRecoveryResult(context, recovery, handle.journal);
+}
+
+/**
+ * Finish every interrupted plan application of the active branch before
+ * this call reads or writes anything.
+ */
+async function recoverInterruptedPlans(
+  context: OperationContext,
+  explicitJournalId: string | undefined,
+): Promise<PlanApplyRecovery[]> {
+  if (!context.fs) return [];
+  return settlePendingPlanApplyJournals(
+    context,
+    {
+      prolog: async () => context.prolog ?? (await context.ensureProlog?.()),
+    },
+    explicitJournalId,
+  );
+}
+
+/** Report recoveries this call performed alongside its own result. */
+function withRecoveryReport(
+  result: {
+    content: Array<{ type: "text"; text: string }>;
+    structuredContent: ApplyPlanResult;
+  },
+  recovered: readonly PlanApplyRecovery[],
+): {
+  content: Array<{ type: "text"; text: string }>;
+  structuredContent: ApplyPlanResult;
+} {
+  const structured = result.structuredContent as Readonly<
+    Record<string, unknown>
+  >;
+  const own =
+    typeof structured.recoveryJournalId === "string"
+      ? structured.recoveryJournalId
+      : undefined;
+  const reported = recovered.filter(
+    (recovery) => recovery.action !== "none" && recovery.journalId !== own,
+  );
+  if (reported.length === 0) return result;
+  const notes = reported.map((recovery) => recovery.detail);
+  const [first, ...rest] = result.content;
+  const content = [
+    {
+      type: "text" as const,
+      text: [first?.text ?? "", ...notes].join(" ").trim(),
+    },
+    ...rest,
+  ];
+  const recoveredJournals = reported.map((recovery) => ({
+    journalId: recovery.journalId,
+    planHash: recovery.planHash,
+    action: recovery.action,
+    restoredPaths: recovery.restoredPaths,
+  }));
+  if (isRecord(structured.validationSummary)) {
+    const summary = structured.validationSummary;
+    return {
+      content,
+      structuredContent: {
+        ...structured,
+        validationSummary: {
+          ...summary,
+          notes: [
+            ...(Array.isArray(summary.notes) ? summary.notes : []),
+            ...notes,
+          ],
+          recoveredJournals,
+        },
+      } as unknown as ApplyPlanResult,
+    };
+  }
+  if (Array.isArray(structured.notes)) {
+    return {
+      content,
+      structuredContent: {
+        ...structured,
+        notes: [...structured.notes, ...notes],
+      } as unknown as ApplyPlanResult,
+    };
+  }
+  return { content, structuredContent: result.structuredContent };
 }
 
 // implements REQ-agent-guided-migration-orchestration, REQ-cli-canonical-runtime, REQ-KIBI-BOOTSTRAP-PLAN, REQ-kibi-change-to-proof-plan-compiler, REQ-kibi-predicate-vocabulary-migration

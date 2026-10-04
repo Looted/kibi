@@ -95,6 +95,18 @@ The read ran under `KIBI_ENGINE_READ_TIME_LIMIT_MS` or `KIBI_ENGINE_READ_INFEREN
 
 `<operation> writes the branch KB, but HEAD is detached at <sha> ...` means the checkout has no single branch identity (zero or several local branches point at HEAD). Reads still work from the read-only snapshot and carry a `detached_head_read_only` diagnostic. To write, check out a branch (`git switch <branch>` or `git switch -c <branch>`) or set `KIBI_BRANCH` to name the branch explicitly, then retry.
 
+## Plan application journal (`kb_apply_plan`)
+
+`Apply plan failed ...; no change was applied` means the compile plan failed before its single store commit. Its source writes were restored from the journal and the store is unchanged. Fix the cause and apply the same plan again.
+
+`PLAN_APPLY_RECOVERY_REQUIRED` (non-retryable) means a plan application was interrupted and could not be settled yet: the store could not be inspected, or a committed plan's pending-source receipts failed. Run `kb_apply_plan` with the named `recoveryJournalId` once the engine or filesystem is available. Do not re-apply the original plan.
+
+`PARTIAL_COMMIT_REPAIR_REQUIRED` from a plan journal means a journaled file holds neither its journaled before nor after bytes, or the journal is unreadable. Recovery changed nothing. Restore each listed file to its before or after bytes and retry, or reconcile the workspace and store by hand (`kibi sync`) and remove the named journal file.
+
+`MUTATION_ALREADY_COMMITTED` means the plan was already applied. Compile a fresh plan instead.
+
+An error ending in `[settled before this failure: ...]` comes from a mutating call that first completed or rolled back an interrupted plan from its journal, then failed on its own work. The settlement stands; read it to learn which plan was completed or rolled back. A plan compiled before that settlement usually fails its snapshot check and must be compiled again.
+
 ## Low-confidence requirement modeling downgrade (`kb_model` mode `requirement`)
 
 When confidence is below `0.70`, Kibi emits a non-blocking `fact_kind: observation`. If the prose is normative, retry with explicit `subjectKey`, `propertyKey`, `operator`, and `value` so the tool can produce strict facts.

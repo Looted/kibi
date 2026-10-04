@@ -149,6 +149,12 @@ export interface FilesystemPort {
   stat(path: string): Promise<FilesystemStat>;
   /** Optional destructive primitive used only to roll back newly-created files. */
   unlink?(path: string): Promise<void>;
+  /**
+   * Flush a file's (or directory's) contents to stable storage when the host
+   * supports it. Atomic plan application calls it on staged files before the
+   * rename that publishes them.
+   */
+  fsync?(path: string): Promise<void>;
 }
 
 export interface GitPort {

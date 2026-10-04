@@ -1,7 +1,14 @@
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 // implements REQ-kibi-change-to-proof-plan-compiler, REQ-agent-guided-migration-orchestration
 import { createHash } from "node:crypto";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
@@ -706,7 +713,7 @@ describe("compile plan snapshot and derived-commit failures", () => {
     ).rejects.toThrow(/workspace snapshot changed since compilation/);
   });
 
-  test("journals derived-commit failure after authoritative source writes", async () => {
+  test("rolls back the source writes when the compiled commit fails, and a retry then applies", async () => {
     const root = makeTempDir();
     const body = "compiled source\n";
     const plan = compilePlan({
@@ -735,15 +742,36 @@ describe("compile plan snapshot and derived-commit failures", () => {
         save: async () => ({ success: true, bindings: {} }),
       },
     };
+    await expect(
+      executeApplyPlan({ plan, approvedPlanHash: plan.planHash }, ctx),
+    ).rejects.toThrow(
+      /no change was applied \(store unchanged, 1 source file\(s\) restored .*compiled failed/,
+    );
+    expect(existsSync(path.join(root, "docs", "compiled.md"))).toBe(false);
+
+    // A rolled-back journal does not block applying the same plan again.
     const result = await executeApplyPlan(
       { plan, approvedPlanHash: plan.planHash },
-      ctx,
+      {
+        ...filesystemContext(root),
+        prolog: {
+          ...ctx.prolog,
+          query: async (goal: string): Promise<PrologQueryResult> =>
+            isWhatIfGoal(goal)
+              ? whatIfResult()
+              : goal.includes("kb_commit_upsert")
+                ? { success: true, bindings: { ChangeKind: "created" } }
+                : { success: true, bindings: { Results: "[]" } },
+        },
+      },
     );
-    expect(asApply(result.structuredContent).status).toBe(
-      "committed_with_repairs",
-    );
-    expect(asApply(result.structuredContent).recoveryJournalId).toMatch(
-      /^source-writes-/,
+    expect(result.structuredContent).toMatchObject({
+      outcome: "applied",
+      recoveryJournalId: expect.stringMatching(/^plan-apply-[a-f0-9]{16}$/),
+    });
+    expect(asApply(result.structuredContent).status).toBeUndefined();
+    expect(readFileSync(path.join(root, "docs", "compiled.md"), "utf8")).toBe(
+      body,
     );
   });
 

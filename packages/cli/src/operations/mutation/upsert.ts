@@ -25,6 +25,11 @@ import {
 } from "../semantic-advisor/ingestion-boundary.js";
 import type { SemanticAdvisorReceipt } from "../semantic-advisor/types.js";
 import { buildUpsertCommitGoal, formatUpsertError } from "./contradictions.js";
+import {
+  planRecoveryNotes,
+  settlePendingPlanApplyJournals,
+  withPlanRecoveryNotes,
+} from "./plan-apply-journal.js";
 import { assertPredicateArgumentVocabulary } from "./predicate-vocabulary-guard.js";
 import {
   existingRelationships,
@@ -95,7 +100,8 @@ function textHash(value: string): string {
   return createHash("sha256").update(value).digest("hex");
 }
 
-function assertRelationshipShardContained(
+// implements REQ-core-atomic-upsert-persistence
+export function assertRelationshipShardContained(
   workspaceRoot: string,
   shardPath: string,
 ): void {
@@ -417,6 +423,7 @@ export async function executeUpsert(
   let operationFailure: { readonly error: unknown } | undefined;
   const relationshipShardBefore = new Map<string, string | null>();
   const relationshipShardAfterHash = new Map<string, string | null>();
+  let planRecoveryWarnings: string[] = [];
   const holdsSymbolCompilerLock =
     input.type === "symbol" &&
     context.fs !== undefined &&
@@ -429,6 +436,15 @@ export async function executeUpsert(
     if (holdsSourceMutationLock) {
       sourceMutationLock = await acquireWorkspaceMutationLock(
         context.workspaceRoot,
+      );
+      // implements REQ-core-atomic-upsert-persistence
+      // An interrupted kb_apply_plan left a journal: complete or roll it back
+      // before this write reads or changes the files the journal guards.
+      planRecoveryWarnings = planRecoveryNotes(
+        await settlePendingPlanApplyJournals(
+          { ...context, branchAttachment },
+          { prolog: async () => prolog },
+        ),
       );
     }
     if (holdsSymbolCompilerLock) {
@@ -644,7 +660,7 @@ export async function executeUpsert(
           created: 0,
           updated: 0,
           relationships_created: validated.relationships.length,
-          warnings: semantic.warnings,
+          warnings: [...planRecoveryWarnings, ...semantic.warnings],
           semanticAdvisor: semantic.receipt,
           deferredCommit,
           ...(sourceWrite ? { sourceWrites: [sourceWrite.receipt] } : {}),
@@ -733,6 +749,7 @@ export async function executeUpsert(
       updated: changeKind === "updated" ? 1 : 0,
       relationships_created: validated.relationships.length,
       warnings: [
+        ...planRecoveryWarnings,
         ...semantic.warnings,
         ...coverage,
         ...idStyleWarnings,
@@ -809,7 +826,7 @@ export async function executeUpsert(
           created: changeKind === "created" ? 1 : 0,
           updated: changeKind === "updated" ? 1 : 0,
           relationships_created: relationshipCount,
-          warnings: [detail],
+          warnings: [...planRecoveryWarnings, detail],
           semanticAdvisor: semanticAdvisor as SemanticAdvisorReceipt,
           status: "committed_with_repairs",
           effectFailures: [
@@ -865,11 +882,15 @@ export async function executeUpsert(
       throw failure;
     }
     if (error instanceof OperationError) {
-      operationFailure = { error };
-      throw error;
+      const failure = withPlanRecoveryNotes(error, planRecoveryWarnings);
+      operationFailure = { error: failure };
+      throw failure;
     }
     const message = error instanceof Error ? error.message : String(error);
-    const failure = new Error(`Upsert execution failed: ${message}`);
+    const failure = withPlanRecoveryNotes(
+      new Error(`Upsert execution failed: ${message}`),
+      planRecoveryWarnings,
+    );
     operationFailure = { error: failure };
     throw failure;
   } finally {

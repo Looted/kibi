@@ -91,6 +91,29 @@ function compilePlan(overrides: Partial<CompilePlanV1> = {}): CompilePlanV1 {
   return { ...body, planHash: compilePlanHash(body) };
 }
 
+/**
+ * Entity-deletion plans still publish their source writes through the
+ * legacy source-writes journal; compile plans use the atomic plan journal.
+ */
+function deletionPlan(
+  sourceWrites: readonly {
+    path: string;
+    mode: "write" | "delete";
+    beforeHash: string | null;
+    afterHash: string | null;
+    body?: string;
+  }[],
+) {
+  const body = {
+    version: "kibi.entity-deletion-plan.v1" as const,
+    entityIds: ["FACT-CRASH"],
+    sourceHashes: {},
+    sourceWrites,
+    supersessionRequired: false,
+  };
+  return { ...body, planHash: sha(JSON.stringify(body)) };
+}
+
 function filesystemContext(
   workspaceRoot: string,
   extra?: {
@@ -620,7 +643,8 @@ describe("compile plan application", () => {
       context,
     );
     expect(result.structuredContent).toMatchObject({ outcome: "applied" });
-    expect(commits()).toBe(2);
+    // Both steps, including the forward reference, commit in one batch.
+    expect(commits()).toBe(1);
 
     // Without the creating step the target is missing and nothing is written.
     const orphan = compilePlan({
@@ -1484,7 +1508,7 @@ describe("source hash and source-write guards", () => {
         body: after,
       },
     ];
-    const plan = compilePlan({ sourceWrites: writes });
+    const plan = deletionPlan(writes);
     const journalId = `source-writes-${plan.planHash.slice(0, 16)}`;
     const recoveryDir = path.join(root, ".kb", "recovery");
     mkdirSync(recoveryDir, { recursive: true });
@@ -1523,25 +1547,15 @@ describe("source hash and source-write guards", () => {
     );
     expect(recovered.structuredContent.outcome).toBe("applied");
 
-    const drifted = compilePlan({
-      steps: [
-        {
-          type: "req",
-          id: "REQ-drift",
-          properties: { title: "Drift", status: "open" },
-          relationships: [],
-        },
-      ],
-      sourceWrites: [
-        {
-          path: "docs/drift.md",
-          mode: "write",
-          beforeHash: sha("old\n"),
-          afterHash: sha("new\n"),
-          body: "new\n",
-        },
-      ],
-    });
+    const drifted = deletionPlan([
+      {
+        path: "docs/drift.md",
+        mode: "write",
+        beforeHash: sha("old\n"),
+        afterHash: sha("new\n"),
+        body: "new\n",
+      },
+    ]);
     const driftId = `source-writes-${drifted.planHash.slice(0, 16)}`;
     mkdirSync(path.join(root, "docs"), { recursive: true });
     writeFileSync(path.join(root, "docs", "drift.md"), "outside\n");
@@ -1946,7 +1960,7 @@ describe("remaining apply-plan shape and recovery branches", () => {
         body: after,
       },
     ];
-    const plan = compilePlan({ sourceWrites: writes });
+    const plan = deletionPlan(writes);
     const journalId = `source-writes-${plan.planHash.slice(0, 16)}`;
     const recoveryDir = path.join(root, ".kb", "recovery");
     mkdirSync(recoveryDir, { recursive: true });
@@ -1981,18 +1995,17 @@ describe("remaining apply-plan shape and recovery branches", () => {
       filesystemContext(root),
     );
     expect(recovered.structuredContent.outcome).toBe("applied");
+    expect(existsSync(path.join(root, "docs", "new.md"))).toBe(false);
 
-    const mismatch = compilePlan({
-      sourceWrites: [
-        {
-          path: "docs/other.md",
-          mode: "write",
-          beforeHash: null,
-          afterHash: sha("x\n"),
-          body: "x\n",
-        },
-      ],
-    });
+    const mismatch = deletionPlan([
+      {
+        path: "docs/other.md",
+        mode: "write",
+        beforeHash: null,
+        afterHash: sha("x\n"),
+        body: "x\n",
+      },
+    ]);
     const mismatchId = `source-writes-${mismatch.planHash.slice(0, 16)}`;
     writeFileSync(
       path.join(recoveryDir, `${mismatchId}.json`),
@@ -2017,9 +2030,9 @@ describe("remaining apply-plan shape and recovery branches", () => {
       { plan: mismatch, approvedPlanHash: mismatch.planHash },
       filesystemContext(root),
     );
-    expect(asApply(applied.structuredContent).changedPaths).toEqual([
-      "docs/other.md",
-    ]);
+    expect(applied.structuredContent).toMatchObject({
+      sourcePaths: ["docs/other.md"],
+    });
   });
 
   test("records committed_with_repairs when a bootstrap upsert returns repair status", async () => {

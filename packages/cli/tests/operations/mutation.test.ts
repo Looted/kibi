@@ -46,6 +46,13 @@ function createContext(handler: QueryHandler): {
   };
 }
 
+/** Goals a dry run must never send: anything that writes the store. */
+function writeGoals(query: ReturnType<typeof mock>): string[] {
+  return query.mock.calls
+    .map(([goal]) => String(goal))
+    .filter((goal) => /kb_commit|kb_assert|kb_retract|kb_save/.test(goal));
+}
+
 const payload = {
   type: "req",
   id: "REQ-MUTATION-SHARED",
@@ -292,7 +299,10 @@ describe("shared mutation operation specs", () => {
         proof_receipts: [proofReceipt],
       },
     });
-    expect(query).toHaveBeenCalledTimes(1);
+    // The dry run reads the store (the validation a real write runs) but
+    // never writes it.
+    expect(query).toHaveBeenCalled();
+    expect(writeGoals(query)).toEqual([]);
     expect(save).not.toHaveBeenCalled();
   });
 
@@ -375,7 +385,7 @@ describe("shared mutation operation specs", () => {
         status: payload.properties.status,
       },
     });
-    expect(query).not.toHaveBeenCalled();
+    expect(writeGoals(query)).toEqual([]);
     expect(save).not.toHaveBeenCalled();
   });
 

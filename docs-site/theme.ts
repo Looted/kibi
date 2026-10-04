@@ -996,7 +996,7 @@ export function landingContent(args: {
     </li>
     <li>
       <h3>Approve real decisions</h3>
-      <p>The agent proposes a plan before it writes project knowledge. You approve it, or you correct the product call. The bookkeeping stays with the agent.</p>
+      <p>The agent proposes a plan before it writes project knowledge. You approve it, or you correct the product call. A plan compiled from your prompt lands in full or not at all, and the bookkeeping stays with the agent.</p>
     </li>
     <li>
       <h3>Read the result</h3>

@@ -117,7 +117,7 @@ The agent first asks where product intent already lives outside the code, such a
 ## What stays in your hands
 
 - **Product calls.** If two behaviors would contradict, you pick one. Kibi will not paper over that.
-- **Approval of the plan.** Bootstrap and other bulk writes show you the plan before they apply it.
+- **Approval of the plan.** Bootstrap and other bulk writes show you the plan before they apply it. A plan compiled from a prompt applies in full or not at all; if the agent is interrupted mid-write, its next write completes or rolls back that plan.
 - **The report.** You decide whether a gap is work still to do, or a behavior you no longer want.
 
 The agent writes the model through typed operations. It does not edit `.kb/` by hand. A change is not finished while checks are failing or the snapshot is stale.

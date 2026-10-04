@@ -146,7 +146,7 @@ export const CLI_OPERATION_METADATA = [
     name: "kb_apply_plan",
     cliName: "apply-plan",
     description:
-      "Apply an explicitly approved kibi.bootstrap-plan.v1, kibi.compile-plan.v1, kibi.migration-plan.v2, or entity-deletion plan after revalidating its canonical hash and live snapshots. Bootstrap actions are dependency-ordered, sequential, source-first, and recoverable from a typed journal.",
+      "Apply an explicitly approved kibi.bootstrap-plan.v1, kibi.compile-plan.v1, kibi.migration-plan.v2, or entity-deletion plan after revalidating its canonical hash and live snapshots. Compile plans apply all-or-nothing: a durable journal records every source write and store mutation before the first write, all steps commit in one store transaction, and an interrupted application is completed or rolled back by the next mutating call. Bootstrap actions are dependency-ordered, sequential, source-first, and recoverable from a typed journal.",
   },
   {
     name: "kb_ingest_proof",

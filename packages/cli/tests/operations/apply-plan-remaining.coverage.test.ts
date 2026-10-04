@@ -150,6 +150,26 @@ function stubProlog(): OperationContext["prolog"] {
   };
 }
 
+/** An entity-deletion plan: it still publishes through the legacy journal. */
+function deletionPlan(
+  sourceWrites: readonly {
+    path: string;
+    mode: "write" | "delete";
+    beforeHash: string | null;
+    afterHash: string | null;
+    body?: string;
+  }[],
+) {
+  const body = {
+    version: "kibi.entity-deletion-plan.v1" as const,
+    entityIds: ["FACT-RECOVER"],
+    sourceHashes: {},
+    sourceWrites,
+    supersessionRequired: false,
+  };
+  return { ...body, planHash: sha(JSON.stringify(body)) };
+}
+
 function filesystemContext(
   workspaceRoot: string,
   extra?: {
@@ -1054,11 +1074,25 @@ describe("compile plan remaining commit and readback paths", () => {
     ).rejects.toThrow(/does not expose workspace snapshots/);
   });
 
-  test("forwards upsert effectFailures and rethrows compiled failures without a journal", async () => {
+  test("refuses a malformed step before any write and rolls back a commit that never reached the store", async () => {
     // implements REQ-014
     const root = makeTempDir();
+    const commits: string[] = [];
+    const recordingProlog = (
+      commit: () => Promise<PrologQueryResult>,
+    ): OperationContext["prolog"] => ({
+      ...stubProlog(),
+      query: async (goal): Promise<PrologQueryResult> => {
+        if (isWhatIfGoal(goal)) return whatIfResult();
+        if (goal.includes("kb_commit_upsert")) {
+          commits.push(goal);
+          return commit();
+        }
+        return { success: true, bindings: { Results: "[]" } };
+      },
+    });
     // A step whose properties are not a record has no title, so the
-    // preflight refuses it before executeUpsert is ever reached.
+    // preflight refuses it before any commit goal is sent.
     const malformed = compilePlan({
       steps: [
         {
@@ -1069,78 +1103,35 @@ describe("compile plan remaining commit and readback paths", () => {
         },
       ],
     });
-    const neverCalled = spyOn(upsertModule, "executeUpsert");
-    track(neverCalled);
     await expect(
       executeApplyPlan(
         { plan: malformed, approvedPlanHash: malformed.planHash },
-        filesystemContext(root),
+        filesystemContext(root, {
+          query: recordingProlog(async () => ({
+            success: true,
+            bindings: { ChangeKind: "created" },
+          })),
+        }),
       ),
     ).rejects.toThrow(
       /failed before any write: step REQ-apply is invalid: .*title/,
     );
-    expect(neverCalled).not.toHaveBeenCalled();
-    restoreLastSpy();
-    const plan = compilePlan({
-      steps: [
-        {
-          type: "req",
-          id: "REQ-apply",
-          properties: { title: "Apply", status: "open" },
-          relationships: [
-            "skip-me" as unknown as { type: string; from: string; to: string },
-            {
-              type: "specified_by",
-              from: "REQ-apply",
-              to: "SCEN-apply",
-            },
-          ],
-          document: { path: "docs/only-path.md" },
-        },
-      ],
-    });
-    track(
-      spyOn(upsertModule, "executeUpsert").mockResolvedValue({
-        content: [{ type: "text", text: "ok" }],
-        structuredContent: {
-          created: 1,
-          updated: 1,
-          relationships_created: 1,
-          effectFailures: [
-            null as never,
-            { kind: "derived-effect", errorCode: "X" },
-          ],
-          nextActions: [
-            null as never,
-            { operation: "kb_check", reason: "x", required: false },
-          ],
-        } as never,
-      }),
-    );
-    const forwarded = await executeApplyPlan(
-      { plan, approvedPlanHash: plan.planHash },
-      filesystemContext(root),
-    );
-    expect(asApply(forwarded.structuredContent).status).toBe(
-      "committed_with_repairs",
-    );
-    expect(asApply(forwarded.structuredContent).effectFailures).toEqual([
-      { kind: "derived-effect", errorCode: "X" },
-    ]);
+    expect(commits).toEqual([]);
 
+    // The transport fails, but the store still shows the pre-commit state:
+    // nothing committed, so the plan rolls back instead of asking for repair.
     const emptyWrites = compilePlan({ sourceWrites: [] });
-    restoreLastSpy();
-    track(
-      spyOn(upsertModule, "executeUpsert").mockRejectedValue(
-        new Error("compiled boom"),
-      ),
-    );
     await expect(
       executeApplyPlan(
         { plan: emptyWrites, approvedPlanHash: emptyWrites.planHash },
-        filesystemContext(root),
+        filesystemContext(root, {
+          query: recordingProlog(async () => {
+            throw new Error("compiled boom");
+          }),
+        }),
       ),
-    ).rejects.toThrow(/compiled boom/);
+    ).rejects.toThrow(/no change was applied .*compiled boom/);
+    expect(commits).toHaveLength(1);
   });
 
   test("keeps the commit when final status has no payload or workspace readback fails", async () => {
@@ -1928,17 +1919,15 @@ describe("apply-plan leftover recovery and bootstrap catch", () => {
     const after = "after\n";
     mkdirSync(path.join(root, "docs"), { recursive: true });
     writeFileSync(path.join(root, "docs", "recover.md"), before);
-    const plan = compilePlan({
-      sourceWrites: [
-        {
-          path: "docs/recover.md",
-          mode: "write",
-          beforeHash: sha(before),
-          afterHash: sha(after),
-          body: after,
-        },
-      ],
-    });
+    const plan = deletionPlan([
+      {
+        path: "docs/recover.md",
+        mode: "write",
+        beforeHash: sha(before),
+        afterHash: sha(after),
+        body: after,
+      },
+    ]);
     const journalId = `source-writes-${plan.planHash.slice(0, 16)}`;
     plantJournal(root, journalId, {
       version: 1,
