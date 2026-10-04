@@ -38,4 +38,8 @@ tags:
   - logic-ir-v1
 id: FACT-RULE-48AEB32CAA5D0D22
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

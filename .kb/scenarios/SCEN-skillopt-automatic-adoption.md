@@ -11,6 +11,10 @@ tags: [skillopt, codex, evaluation, security, self-improvement]
 links:
   - type: verified_by
     target: TEST-skillopt-automatic-adoption
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Given a clean source worktree and a Codex-generated SkillOpt body, when the body passes candidate safety validation and its frontmatter and resources hashes match the canonical surface, then the workflow adopts the body transactionally, synchronizes mirrors, records the automatic safety result, and leaves source commit/push decisions to the operator.

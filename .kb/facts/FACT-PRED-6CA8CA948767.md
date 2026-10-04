@@ -22,4 +22,8 @@ claim_text: Re-running the GitHub scaffold must not overwrite a customized workf
 id: FACT-PRED-6CA8CA948767
 type: fact
 predicate_namespace: kibi.requirements
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

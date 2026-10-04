@@ -3,6 +3,10 @@ title: Hash-bound bootstrap planning and shared apply recovery
 status: accepted
 id: ADR-KIBI-BOOTSTRAP-PLAN-APPLY
 type: adr
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 # Decision
 

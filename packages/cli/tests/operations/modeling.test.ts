@@ -59,6 +59,100 @@ describe("shared modeling operation executors", () => {
     }
   });
 
+  // implements REQ-kibi-truthful-consistency
+  test("modelRequirementSpec models a conditional as a typed rule, not a property", async () => {
+    const result = await modelRequirementSpec.execute(
+      {
+        text: "Checkout may happen only when the cart total is positive.",
+        requirementId: "REQ-checkout-positive-total",
+      },
+      testContext(),
+    );
+    const plan = result.structuredContent?.applyPlan ?? [];
+    const rule = plan.find(
+      (step) =>
+        step.type === "fact" &&
+        (step.properties as Record<string, unknown>).fact_kind === "rule",
+    );
+    const requirement = plan.find((step) => step.type === "req");
+
+    expect(result.structuredContent?.confidence).toBe(0.8);
+    expect(
+      plan.some(
+        (step) =>
+          (step.properties as Record<string, unknown>).fact_kind ===
+          "observation",
+      ),
+    ).toBe(false);
+    expect(requirement?.relationships).toContainEqual(
+      expect.objectContaining({ type: "requires_rule", to: rule?.id }),
+    );
+    if (requirement) {
+      const payload = {
+        type: requirement.type,
+        id: String(requirement.id),
+        properties: requirement.properties as Record<string, unknown>,
+        relationships: requirement.relationships as Array<
+          Record<string, unknown>
+        >,
+      };
+      const semantic = analyzeSemanticAdvisorInput({ payload });
+      expect(
+        validateSemanticInventoryBoundary(
+          payload,
+          payload.relationships,
+          semantic.receipt,
+        ).errors,
+      ).toEqual([]);
+    }
+  });
+
+  // implements REQ-kibi-truthful-consistency
+  test("modelRequirementSpec leaves an untranslatable conditional unresolved", async () => {
+    const text =
+      "Checkout may happen only when the cart total is positive and the user is verified.";
+    const withoutTarget = await modelRequirementSpec.execute(
+      { text },
+      testContext(),
+    );
+    const withTarget = await modelRequirementSpec.execute(
+      { text, requirementId: "REQ-checkout-verified-positive" },
+      testContext(),
+    );
+
+    expect(withoutTarget.structuredContent?.applyPlan).toEqual([]);
+    expect(withoutTarget.structuredContent?.warnings).toMatchObject([
+      { kind: "unresolved_conditional_clause" },
+    ]);
+    expect(withTarget.structuredContent?.applyPlan).toMatchObject([
+      {
+        type: "req",
+        id: "REQ-checkout-verified-positive",
+        relationships: [],
+        properties: {
+          semantic_inventory: [{ status: "ontology_gap" }],
+        },
+      },
+    ]);
+  });
+
+  // implements REQ-kibi-truthful-consistency
+  test("modelRequirementSpec keeps a below-threshold observation an open gap", async () => {
+    const result = await modelRequirementSpec.execute(
+      { text: "Capture this ambiguous discovery note.", confidence: 0.1 },
+      testContext(),
+    );
+    const [observation] = result.structuredContent?.applyPlan ?? [];
+    const properties = (observation?.properties ?? {}) as Record<
+      string,
+      unknown
+    >;
+
+    expect(properties.fact_kind).toBe("observation");
+    expect(properties.tags).toContain("review:ontology-gap");
+    expect(properties.claim_key).toBeUndefined();
+  });
+
   test("suggestPredicatesSpec returns ranked predicate candidates", async () => {
     // Given: prose that matches the built-in persistence ontology.
     const input = {

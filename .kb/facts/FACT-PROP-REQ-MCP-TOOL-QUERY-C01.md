@@ -15,4 +15,8 @@ claim_key: CLAIM-957B0DABB388428A
 claim_text: The `kb_query` MCP tool must:\n\nAllow agents to retrieve entities from the knowledge base using structured filters (id, type, sourceFile, tags).\nSupport pagination via `limit` and `offset` parameters.\nReturn entities in a structured format suitable for model consumption.\nCorrectly handle missing entities by returning an empty result or appropriate error message
 id: FACT-PROP-REQ-MCP-TOOL-QUERY-C01
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

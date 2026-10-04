@@ -18,4 +18,8 @@ claim_key: CLAIM-303792FABB5EDCA6
 claim_text: A TypeSafe client or network call must be absent when kibi-plugin-jev is imported or the registry is inactive
 id: FACT-PRED-423972ABA451
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

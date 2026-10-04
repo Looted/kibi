@@ -41,6 +41,10 @@ semantic_inventory:
       start: 520
       end: 659
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Kibi extracts entities and relationships from source files using specialized extractors:

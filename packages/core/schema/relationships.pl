@@ -22,6 +22,8 @@ relationship_type(constrains).
 relationship_type(requires_property).
 relationship_type(requires_predicate).
 relationship_type(requires_rule).
+relationship_type(assumes).
+relationship_type(exempts).
 
 % valid_relationship(RelType, FromType, ToType).
 valid_relationship(depends_on, req, req).
@@ -44,6 +46,18 @@ valid_relationship(constrains, req, fact).
 valid_relationship(requires_property, req, fact).
 valid_relationship(requires_predicate, req, fact).
 valid_relationship(requires_rule, req, fact).
+
+%% assumes(+ScenarioId, +FactId)
+%% The scenario's outcome depends on the property_value fact holding (for
+%% example "the order total is 0"). Checked against current requirements by
+%% the scenario-feasibility rule.
+% implements REQ-kibi-scenario-feasibility-v2
+valid_relationship(assumes, scenario, fact).
+
+%% exempts(+ExceptionReqId, +BaseReqId)
+%% An approved exception requirement exempts the scenarios it specifies from
+%% BaseReqId's property constraints. BaseReqId stays current and unchanged.
+valid_relationship(exempts, req, req).
 
 %% supersedes(+NewAdrId, +OldAdrId)
 %% NewAdrId is the decision that replaces OldAdrId.

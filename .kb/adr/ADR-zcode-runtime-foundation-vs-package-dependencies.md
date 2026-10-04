@@ -8,6 +8,10 @@ tags:
   - runtime
 id: ADR-zcode-runtime-foundation-vs-package-dependencies
 type: adr
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 # ADR: Runtime foundation ownership is separate from npm package dependencies
 

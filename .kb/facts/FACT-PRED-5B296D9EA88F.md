@@ -20,5 +20,9 @@ claim_text: The report must escape knowledge-base text and work without network 
 id: FACT-PRED-5B296D9EA88F
 type: fact
 predicate_namespace: kibi.requirements
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Ground representation of one atomic behavior in the Kibi HTML requirement-health report.

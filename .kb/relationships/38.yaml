@@ -53,13 +53,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-9387fd684df5
   - type: implements
-    from: SYM-branchMigrateCommand
-    to: REQ-branch-store-recovery-v3
-    created_at: 2026-08-17T08:37:24.174Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ffe0d266464a
-  - type: implements
     from: SYM-predicate-build-suggestion
     to: REQ-kibi-predicate-suggestion-relevance-v1
     created_at: 2026-08-21T08:28:44.912Z
@@ -171,3 +164,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3667d16b405a
+  - type: implements
+    from: SYM-branchMigrateCommand
+    to: REQ-branch-store-recovery-v4
+    created_at: 2026-10-04T02:58:13.166Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b91f23d39d4d

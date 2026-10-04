@@ -4,7 +4,6 @@ title: OpenCode Risk Class Triggers
 type: scenario
 status: active
 created_at: 2026-05-13T00:00:00.000Z
-source: documentation/scenarios/SCEN-opencode-risk-classification.md
 priority: must
 tags:
   - enforcement
@@ -15,6 +14,10 @@ links:
     target: TEST-opencode-smart-enforcement
   - type: verified_by
     target: TEST-e2e-opencode-enforcement-surface
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 ## Scenario: Risk Class Triggers

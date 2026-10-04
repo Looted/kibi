@@ -21,4 +21,8 @@ claim_text: This enables agents to query the complete history of architectural d
 text_ref: documentation/requirements/REQ-016.md
 id: FACT-PRED-ADR-DECISION-HISTORY-QUERY-CAPABILITY
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

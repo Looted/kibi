@@ -42,6 +42,18 @@ function summary(
   return "Requirement prose appears normative but needs review before it can participate in logic checks.";
 }
 
+/**
+ * How an agent reaches a catalog operation: MCP serves the modeling
+ * operations as modes of kb_model.
+ */
+function hostToolName(operation: string): string {
+  if (operation === "kb_model_requirement")
+    return "kb_model (mode requirement)";
+  if (operation === "kb_suggest_predicates")
+    return "kb_model (mode predicates)";
+  return operation;
+}
+
 // implements REQ-mcp-semantic-advisor-preflight
 export function buildAdvisorResult(
   payload: Payload,
@@ -171,7 +183,7 @@ export function buildAdvisorResult(
     warnings:
       readiness === "needs_modeling"
         ? [
-            `Semantic advisor: ${receipt.summary} Next action: call ${tools.join(" or ")} before treating this requirement as Prolog-checkable.`,
+            `Semantic advisor: ${receipt.summary} Next action: call ${tools.map(hostToolName).join(" or ")} before treating this requirement as Prolog-checkable.`,
           ]
         : [],
   };

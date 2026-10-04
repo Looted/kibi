@@ -192,3 +192,108 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-edeefd59d95f
+  - type: verified_by
+    from: SCEN-core-engine-read-limits
+    to: TEST-core-engine-read-limits
+    created_at: 2026-10-04T02:18:46.761Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-302e12051956
+  - type: requires_predicate
+    from: REQ-agent-core-edit-snippets
+    to: FACT-PRED-edit-snippets-shared-builder
+    created_at: 2026-10-04T02:42:12.411Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b012ccd5fae8
+  - type: requires_predicate
+    from: REQ-agent-core-edit-snippets
+    to: FACT-PRED-edit-snippets-must-keep-true
+    created_at: 2026-10-04T02:42:12.446Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8cb601aa8c95
+  - type: requires_predicate
+    from: REQ-agent-core-edit-snippets
+    to: FACT-PRED-edit-snippets-decision
+    created_at: 2026-10-04T02:42:12.464Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f791975b1fbf
+  - type: requires_predicate
+    from: REQ-agent-core-edit-snippets
+    to: FACT-PRED-edit-snippets-retired-lead
+    created_at: 2026-10-04T02:42:12.479Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-80b1381bc8ae
+  - type: requires_predicate
+    from: REQ-agent-core-edit-snippets
+    to: FACT-PRED-edit-snippets-read-lines
+    created_at: 2026-10-04T02:42:12.488Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7bebfb73d2b6
+  - type: requires_predicate
+    from: REQ-agent-core-edit-snippets
+    to: FACT-PRED-edit-snippets-size-budget
+    created_at: 2026-10-04T02:42:12.498Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-242fc9a10bdf
+  - type: requires_predicate
+    from: REQ-agent-core-edit-snippets
+    to: FACT-PRED-edit-snippets-shard-grounding
+    created_at: 2026-10-04T02:42:12.506Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-25993d6cd9c1
+  - type: requires_predicate
+    from: REQ-agent-core-edit-snippets
+    to: FACT-PRED-edit-snippets-once-per-session
+    created_at: 2026-10-04T02:42:12.514Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c9c348e427df
+  - type: specified_by
+    from: REQ-agent-core-edit-snippets
+    to: SCEN-agent-core-edit-snippets
+    created_at: 2026-10-04T02:42:12.522Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b842ee7964f1
+  - type: relates_to
+    from: REQ-agent-core-edit-snippets
+    to: REQ-claude-code-kibi-plugin-v1
+    created_at: 2026-10-04T02:42:12.530Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a33a8cc92aeb
+  - type: relates_to
+    from: REQ-agent-core-edit-snippets
+    to: REQ-cursor-kibi-plugin-v1
+    created_at: 2026-10-04T02:42:12.536Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4bf33eb3144b
+  - type: relates_to
+    from: REQ-agent-core-edit-snippets
+    to: REQ-codex-kibi-plugin-v1
+    created_at: 2026-10-04T02:42:12.542Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1241095f6a36
+  - type: relates_to
+    from: REQ-agent-core-edit-snippets
+    to: REQ-zcode-kibi-plugin-v1
+    created_at: 2026-10-04T02:42:12.549Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e0891da0f94c
+  - type: relates_to
+    from: REQ-agent-core-edit-snippets
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-10-04T02:42:12.556Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-73d3a7ce7062

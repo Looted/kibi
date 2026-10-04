@@ -45,6 +45,10 @@ logic_claims:
   - CLAIM-3F9DB0AE7FC227B0
   - CLAIM-33C75F0D3C7CEFB9
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 All entity and relationship mutations in the KB are recorded in a persistent audit log (`audit.log`) in the branch directory.

@@ -22,4 +22,8 @@ claim_text: Inference rules expose current_adr/1, adr_chain/2, and superseded_by
 text_ref: documentation/requirements/REQ-016.md
 id: FACT-PRED-ADR-TEMPORAL-INFERENCE-CONTRACT
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

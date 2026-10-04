@@ -15,4 +15,8 @@ claim_key: CLAIM-59CFC9A6FC5AAA80
 claim_text: Guidance must be suppressed after the first occurrence per path per session
 id: FACT-PROP-REQ-OPENCODE-FILE-CONTEXT-GUIDANCE-V1-N04
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

@@ -19,4 +19,8 @@ claim_span_start: 65
 claim_span_end: 185
 id: FACT-PRED-ZCODE-DOCS-MANUAL-MCP-PATH
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

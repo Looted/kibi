@@ -171,13 +171,23 @@ describe("kibi search", () => {
     expect(result2.results.map((r) => r.entity.id)).toEqual(firstIds);
   });
 
-  test("returns empty results for no-signal queries", () => {
-    const output = execSync(
-      `bun ${kibiBin} search "to in out log logged unable" --format json`,
-      { cwd: tmpDir, encoding: "utf8" },
-    );
+  // The legacy lexical ranking treats this query's tokens as stop words; the
+  // default intent-v1 ranking scores body matches and abstains on its own
+  // confidence threshold instead, so these cases pin legacy explicitly.
+  function legacyNoSignalSearch(): unknown {
+    const output = execSync(`bun ${kibiBin} search --input -`, {
+      cwd: tmpDir,
+      encoding: "utf8",
+      input: JSON.stringify({
+        query: "to in out log logged unable",
+        rankingMode: "legacy",
+      }),
+    });
+    return (JSON.parse(output) as { data: unknown }).data;
+  }
 
-    const result = JSON.parse(output) as {
+  test("returns empty results for no-signal queries", () => {
+    const result = legacyNoSignalSearch() as {
       count: number;
       results: Array<{ entity: { id: string } }>;
     };
@@ -186,12 +196,7 @@ describe("kibi search", () => {
   });
 
   test("returns empty output consistently for no-signal queries", () => {
-    const output = execSync(
-      `bun ${kibiBin} search "to in out log logged unable" --format json`,
-      { cwd: tmpDir, encoding: "utf8" },
-    );
-
-    const result = JSON.parse(output) as {
+    const result = legacyNoSignalSearch() as {
       count: number;
       results: Array<{ entity: { id: string } }>;
     };

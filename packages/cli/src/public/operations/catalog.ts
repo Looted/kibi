@@ -5,6 +5,7 @@ import {
 } from "./contracts.js";
 import { planBootstrapSpec } from "./specs/bootstrap.js";
 import { checkSpec } from "./specs/check.js";
+import { modelSpec, skillsSpec } from "./specs/composite.js";
 import { querySpec, searchSpec, statusSpec } from "./specs/discovery.js";
 import { prepareImpactReviewSpec } from "./specs/impact-review-preparation.js";
 import {
@@ -36,6 +37,7 @@ export const OPERATION_CATALOG = [
   skillsListSpec,
   skillsLoadSpec,
   skillsReadSpec,
+  skillsSpec,
   querySpec,
   searchSpec,
   statusSpec,
@@ -45,6 +47,7 @@ export const OPERATION_CATALOG = [
   semanticAdvisorSpec,
   modelRequirementSpec,
   suggestPredicatesSpec,
+  modelSpec,
   planBootstrapSpec,
   validateUpsertSpec,
   upsertSpec,

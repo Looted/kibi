@@ -349,7 +349,7 @@ function conformanceSuggestion(evidence: PredicateConformanceEvidence): string {
   if (evidence.candidateNamespaces.length > 1) {
     return "Set predicate_namespace to the schema this claim belongs to.";
   }
-  return "Declare a predicate_schema for this signature (kb_suggest_predicates helps pick an existing one) or move the claim to a schema that already exists.";
+  return "Declare a predicate_schema for this signature (kb_model mode predicates helps pick an existing one) or move the claim to a schema that already exists.";
 }
 
 /** Load every fact once and evaluate predicate conformance. */

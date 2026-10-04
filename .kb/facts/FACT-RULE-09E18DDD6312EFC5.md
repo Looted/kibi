@@ -57,4 +57,8 @@ tags:
 text_ref: docs/architecture/multilingual-language-catalog.md
 id: FACT-RULE-09E18DDD6312EFC5
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

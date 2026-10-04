@@ -18,15 +18,20 @@ import * as os from "node:os";
 import * as path from "node:path";
 import {
   type BranchErrorCode,
+  DETACHED_SNAPSHOT_KB_BRANCH,
   _setBranchResolverDepsForTests,
   copyCleanSnapshot,
+  detachedHeadWriteRefusal,
   getBranchDiagnostic,
   getVolatileArtifactPatterns,
   isDetachedHead,
   isValidBranchName,
   resolveActiveBranch,
+  resolveBranchAttachment,
   resolveDefaultBranch,
+  resolveReadBranchAttachment,
 } from "../../src/utils/branch-resolver";
+import { branchStorePath } from "../../src/utils/branch-store-locator";
 
 describe("branch-resolver", () => {
   let tmpDir: string;
@@ -141,17 +146,29 @@ describe("branch-resolver", () => {
       expect((result as { branch: string }).branch).toBe("test-branch");
     });
 
-    test("returns DETACHED_HEAD error in detached HEAD state", () => {
+    test("attaches the one branch a detached HEAD points at", () => {
       execSync("git init -b main", { cwd: tmpDir });
       execSync("git config user.email 'test@test.com'", { cwd: tmpDir });
       execSync("git config user.name 'Test User'", { cwd: tmpDir });
       execSync("git commit --allow-empty -m 'init'", { cwd: tmpDir });
-      // Create a commit and checkout it directly (detached HEAD)
       const commitHash = execSync("git rev-parse HEAD", {
         cwd: tmpDir,
         encoding: "utf8",
       }).trim();
       execSync(`git checkout ${commitHash}`, { cwd: tmpDir });
+
+      expect(resolveActiveBranch(tmpDir)).toEqual({ branch: "main" });
+    });
+
+    test("returns DETACHED_HEAD error in detached HEAD state", () => {
+      execSync("git init -b main", { cwd: tmpDir });
+      execSync("git config user.email 'test@test.com'", { cwd: tmpDir });
+      execSync("git config user.name 'Test User'", { cwd: tmpDir });
+      execSync("git commit --allow-empty -m 'init'", { cwd: tmpDir });
+      // Detach at a commit no branch points at
+      execSync("git commit --allow-empty -m 'second'", { cwd: tmpDir });
+      execSync("git checkout HEAD~1", { cwd: tmpDir });
+      execSync("git commit --allow-empty -m 'detached only'", { cwd: tmpDir });
 
       const result = resolveActiveBranch(tmpDir);
 
@@ -365,6 +382,126 @@ describe("branch-resolver", () => {
 
     test("returns true when not in git repo", () => {
       expect(isDetachedHead(tmpDir)).toBe(true);
+    });
+  });
+
+  // A bare-SHA checkout (CI, bisect, review tools) reads from a snapshot of
+  // the checkout and refuses writes; no branch identity is guessed for it.
+  describe("detached HEAD read-only attachment", () => {
+    function initRepo(cwd: string): string {
+      mkdirSync(cwd, { recursive: true });
+      execSync("git init -b main", { cwd, stdio: "pipe" });
+      execSync("git config user.email 'test@test.com'", { cwd, stdio: "pipe" });
+      execSync("git config user.name 'Test User'", { cwd, stdio: "pipe" });
+      execSync("git commit --allow-empty -m 'init'", { cwd, stdio: "pipe" });
+      return execSync("git rev-parse HEAD", { cwd, encoding: "utf8" }).trim();
+    }
+
+    test("serves a bare SHA no branch points at from the snapshot store", () => {
+      initRepo(tmpDir);
+      execSync("git checkout --detach", { cwd: tmpDir, stdio: "pipe" });
+      execSync("git commit --allow-empty -m 'detached only'", {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+      const head = execSync("git rev-parse HEAD", {
+        cwd: tmpDir,
+        encoding: "utf8",
+      }).trim();
+
+      const result = resolveReadBranchAttachment(tmpDir);
+
+      expect(result).toMatchObject({
+        gitBranch: "HEAD",
+        kbBranch: DETACHED_SNAPSHOT_KB_BRANCH,
+        storePath: branchStorePath(tmpDir, DETACHED_SNAPSHOT_KB_BRANCH),
+        kind: "detached_snapshot",
+        migrationRequired: false,
+        readOnly: { head, branchesAtHead: [] },
+      });
+      const notice = "error" in result ? "" : (result.readOnly?.notice ?? "");
+      expect(notice).toContain(head.slice(0, 12));
+      expect(notice).toContain(
+        branchStorePath(tmpDir, DETACHED_SNAPSHOT_KB_BRANCH),
+      );
+      expect(notice).toContain("writes are refused");
+      // The write path keeps refusing, and says how to get unstuck.
+      expect(resolveBranchAttachment(tmpDir)).toMatchObject({
+        code: "DETACHED_HEAD",
+      });
+      const refusal = detachedHeadWriteRefusal("kb_upsert", tmpDir);
+      expect(refusal).toContain("kb_upsert writes the branch KB");
+      expect(refusal).toContain("no local branch points at it");
+      expect(refusal).toContain("git switch -c <branch>");
+    });
+
+    test("does not pick between two branches that share HEAD", () => {
+      initRepo(tmpDir);
+      execSync("git branch release", { cwd: tmpDir, stdio: "pipe" });
+      execSync("git checkout --detach", { cwd: tmpDir, stdio: "pipe" });
+
+      const result = resolveReadBranchAttachment(tmpDir);
+
+      expect(result).toMatchObject({
+        kind: "detached_snapshot",
+        kbBranch: DETACHED_SNAPSHOT_KB_BRANCH,
+        readOnly: { branchesAtHead: ["main", "release"] },
+      });
+      const refusal = detachedHeadWriteRefusal("kibi sync", tmpDir);
+      expect(refusal).toContain("2 local branches point at it (main, release)");
+      expect(refusal).toContain("'git switch main'");
+    });
+
+    test("keeps the exact branch when exactly one branch is at HEAD", () => {
+      const head = initRepo(tmpDir);
+      execSync(`git checkout ${head}`, { cwd: tmpDir, stdio: "pipe" });
+
+      const read = resolveReadBranchAttachment(tmpDir);
+
+      expect(read).toEqual(resolveBranchAttachment(tmpDir));
+      expect(read).toMatchObject({ kbBranch: "main", kind: "exact" });
+      expect("error" in read ? undefined : read.readOnly).toBeUndefined();
+    });
+
+    test("serves a CI-style shallow checkout with no local branches", () => {
+      const source = path.join(tmpDir, "source");
+      const head = initRepo(source);
+      const ci = path.join(tmpDir, "ci");
+      mkdirSync(ci);
+      execSync("git init -b main", { cwd: ci, stdio: "pipe" });
+      execSync(
+        `git fetch --depth 1 file://${source} +refs/heads/main:refs/remotes/origin/main`,
+        { cwd: ci, stdio: "pipe" },
+      );
+      execSync(`git checkout --detach ${head}`, { cwd: ci, stdio: "pipe" });
+      expect(existsSync(path.join(ci, ".git", "shallow"))).toBe(true);
+
+      const result = resolveReadBranchAttachment(ci);
+
+      expect(result).toMatchObject({
+        kind: "detached_snapshot",
+        storePath: branchStorePath(ci, DETACHED_SNAPSHOT_KB_BRANCH),
+        readOnly: { head, branchesAtHead: [] },
+      });
+    });
+
+    test("refuses a snapshot store whose identity belongs to another branch", () => {
+      initRepo(tmpDir);
+      execSync("git checkout --detach", { cwd: tmpDir, stdio: "pipe" });
+      execSync("git commit --allow-empty -m 'detached only'", {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+      const storePath = branchStorePath(tmpDir, DETACHED_SNAPSHOT_KB_BRANCH);
+      mkdirSync(storePath, { recursive: true });
+      writeFileSync(
+        path.join(storePath, "branch.json"),
+        `${JSON.stringify({ branch: "main", key: "wrong" })}\n`,
+      );
+
+      expect(resolveReadBranchAttachment(tmpDir)).toMatchObject({
+        code: "AMBIGUOUS_ATTACHMENT",
+      });
     });
   });
 

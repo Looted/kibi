@@ -54,5 +54,9 @@ semantic_inventory:
     reason: Grounded by a predicate fact over the narrow vocabulary-convergence schemas.
 id: REQ-kibi-subject-vocabulary
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Kibi check must report a subject key derived from a requirement ID as a subject-key-identity warning. Kibi check must report a subject key that is not dotted lowercase snake segments as a subject-key-shape warning. kb_model_requirement must reuse the existing subject fact when the ranked vocabulary matches the clause. kb_model_requirement must explicitly declare a new subject when no existing subject matches the clause.

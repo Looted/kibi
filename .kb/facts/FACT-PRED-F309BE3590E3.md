@@ -21,4 +21,8 @@ claim_text: Augment mode must add capability results beside builtin providers
 id: FACT-PRED-F309BE3590E3
 type: fact
 predicate_namespace: kibi.capability
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

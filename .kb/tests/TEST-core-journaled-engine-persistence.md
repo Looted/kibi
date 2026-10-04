@@ -1703,6 +1703,10 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 The persistence suite attaches a journaled branch, verifies journal replay after
 detach/reattach, proves a failed RDF transaction rolls back both entity and

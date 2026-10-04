@@ -21,6 +21,10 @@ links:
     target: FACT-RELATIONSHIP-AUDIT-METADATA
 id: FACT-RELATIONSHIP-PROVENANCE-TIMESTAMP
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Each relationship triple is stored in RDF with a provenance timestamp.
 

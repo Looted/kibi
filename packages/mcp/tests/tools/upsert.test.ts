@@ -707,7 +707,8 @@ export function greet() {
       ],
     });
 
-    expect(query).toHaveBeenCalledTimes(11);
+    // Includes the existence read that decides the new entity's origin.
+    expect(query).toHaveBeenCalledTimes(12);
     expect(invalidateCache).toHaveBeenCalledTimes(1);
     expect(result.structuredContent).toMatchObject({
       created: 1,

@@ -18,6 +18,8 @@
 :- use_module('kb.pl').
 :- use_module('checks.pl', [
     check_domain_contradictions_and_witnesses/2,
+    infeasible_scenario/5,
+    scenario_feasibility_outcome/2,
     check_rule_safety/1,
     check_rule_verifiability/1
 ]).
@@ -61,7 +63,7 @@ requirement_proof_context(VerificationSnapshot, CheckedAt, MaxAgeSeconds,
         proofTestBindings: TestBindings
     }.
 
-% implements REQ-kibi-proof-applicability-reason
+% implements REQ-kibi-conservative-requirement-proof
 % Exemption first: a current requirement explicitly marked proof_exempt with a
 % reason is intentionally outside E2E-proof scope and must never fall through
 % to the ladder (which would report misleading receipt gaps).
@@ -78,7 +80,7 @@ requirement_proof(ReqId, _ReqProps, _Context, Proof) :-
 requirement_proof(ReqId, ReqProps, Context, Proof) :-
     semantic_inventory_stage(ReqProps, SemanticStage, Inventory),
     logic_grounding_stage(ReqId, ReqProps, Inventory, Context, LogicStage),
-    contradiction_stage(ReqId, LogicStage.status, Context, ContradictionStage),
+    contradiction_stage(ReqId, LogicStage.status, SemanticStage.status, Context, ContradictionStage),
     scenario_stage(ReqId, ScenarioStage, ScenarioIds),
     scenario_test_stage(ScenarioIds, ScenarioTestStage, ScenarioTests),
     passing_e2e_stage(ScenarioTestStage, Context, PassingE2eStage, PassingE2eTests),
@@ -512,6 +514,21 @@ contradiction_stage(_ReqId, LogicStatus, _Context, Stage) :-
     Stage = _{status: unresolved, outcome: incomplete_grounding, conflicts: []}.
 contradiction_stage(_ReqId, passed, _Context, _{status: passed, outcome: no_conflict_found, conflicts: []}).
 
+%% contradiction_stage(+ReqId, +LogicStatus, +InventoryStatus, +Context, -Stage)
+% implements REQ-kibi-truthful-consistency
+% Absence of a conflict is evidence only when every normative proposition was
+% modeled.  Propositions still marked ambiguous or ontology_gap were never
+% encoded, so the checker cannot have looked at them: report the analysis as
+% incomplete instead of no_conflict_found.  Found conflicts still win.
+contradiction_stage(ReqId, LogicStatus, InventoryStatus, Context, Stage) :-
+    contradiction_stage(ReqId, LogicStatus, Context, Stage0),
+    (   Stage0.outcome == no_conflict_found,
+        InventoryStatus == unresolved
+    ->  Stage = _{status: unresolved, outcome: analysis_incomplete, conflicts: [],
+                  reason: "unresolved_propositions"}
+    ;   Stage = Stage0
+    ).
+
 requirement_contradictions(ReqId, Violations, Conflicts) :-
     include(violation_mentions_requirement(ReqId), Violations, Conflicts0),
     maplist(violation_description, Conflicts0, Conflicts).
@@ -542,15 +559,45 @@ scenario_stage(ReqId, Stage, ScenarioIds) :-
     findall(ScenarioId,
         (member(ScenarioId, ScenarioTargets), \+ existing_scenario(ScenarioId)),
         InvalidScenarioTargets),
-    ((ScenarioIds = [] ; InvalidScenarioTargets \= []) -> Status = missing ; Status = passed),
+    % implements REQ-kibi-scenario-feasibility-v2
+    % A scenario that expects success but whose assumptions cannot hold with
+    % what current requirements require (pairwise or jointly) can never pass,
+    % so the requirement cannot be proven through it.
+    findall(ScenarioId,
+        (member(ScenarioId, ScenarioIds), once(infeasible_scenario(ScenarioId, _, _, _, _))),
+        InfeasibleScenarios),
+    % A success scenario whose feasibility cannot be decided is reported as a
+    % distinct, non-blocking note instead of being counted as feasible.
+    findall(_{scenario: ScenarioId, reason: ReasonText},
+        (   member(ScenarioId, ScenarioIds),
+            once(scenario_feasibility_outcome(ScenarioId, unknown(Reason))),
+            unknown_feasibility_reason(Reason, ReasonText)
+        ),
+        UnknownFeasibility),
+    (   (ScenarioIds = [] ; InvalidScenarioTargets \= [])
+    ->  Status = missing
+    ;   InfeasibleScenarios \= []
+    ->  Status = blocked
+    ;   Status = passed
+    ),
     maplist(entity_source_ref, ScenarioIds, Sources),
     Stage = _{
         status: Status,
         scenarios: ScenarioIds,
         scenarioTargets: ScenarioTargets,
         invalidScenarioTargets: InvalidScenarioTargets,
+        infeasibleScenarios: InfeasibleScenarios,
+        unknownFeasibility: UnknownFeasibility,
         sources: Sources
     }.
+
+unknown_feasibility_reason(no_assumptions, no_assumptions).
+unknown_feasibility_reason(contradictory_assumptions(_), contradictory_assumptions).
+unknown_feasibility_reason(unmatched_assumption(_), unmatched_assumption).
+unknown_feasibility_reason(incomparable_assumption(_), incomparable_assumption).
+unknown_feasibility_reason(conflicting_requirements(_), conflicting_requirements).
+unknown_feasibility_reason(undecided_rule(_), undecided_rule).
+unknown_feasibility_reason(undetermined_validity(_), undetermined_validity).
 
 existing_scenario(ScenarioId) :-
     kb_entity(ScenarioId, scenario, _).
@@ -1610,8 +1657,9 @@ receipt_completeness_issue(failed_proof_receipt).
 receipt_completeness_issue(invalid_proof_receipt).
 receipt_completeness_issue(proof_contract_mismatch).
 
-proof_issue_advisory(_Gap, _Stages) :-
-    fail.
+% Unknown scenario feasibility never blocks proof: it is surfaced as an
+% advisory so it is not mistaken for a passed feasibility check.
+proof_issue_advisory(unknown_scenario_feasibility, _Stages).
 
 proof_gap_present(missing_semantic_inventory, Stages) :- Stages.semanticInventory.propositionCount =:= 0.
 proof_gap_present(incomplete_semantic_inventory, Stages) :- Stages.semanticInventory.missingCount > 0.
@@ -1626,7 +1674,11 @@ proof_gap_present(ambiguous_logic_grounding, Stages) :-
 proof_gap_present(blocking_contradiction, Stages) :- Stages.contradictions.status == blocked.
 proof_gap_present(contradiction_check_incomplete, Stages) :- Stages.contradictions.status == unresolved.
 proof_gap_present(missing_scenario, Stages) :- Stages.scenarios.status == missing.
-proof_gap_present(missing_scenario_test, Stages) :- Stages.scenarios.status == passed, Stages.scenarioTests.status == missing.
+proof_gap_present(infeasible_scenario, Stages) :- Stages.scenarios.infeasibleScenarios \= [].
+proof_gap_present(unknown_scenario_feasibility, Stages) :-
+    get_dict(unknownFeasibility, Stages.scenarios, Unknown),
+    Unknown \= [].
+proof_gap_present(missing_scenario_test, Stages) :- memberchk(Stages.scenarios.status, [passed, blocked]), Stages.scenarioTests.status == missing.
 proof_gap_present(missing_passing_e2e, Stages) :- Stages.passingE2e.status == missing.
 proof_gap_present(missing_proof_receipt, Stages) :- Stages.passingE2e.missingReceiptTests \= [].
 proof_gap_present(stale_proof_receipt, Stages) :- Stages.passingE2e.staleReceiptTests \= [].
@@ -1652,7 +1704,9 @@ gap_definition(missing_logic_grounding, 32, logic_grounding, "Ground every model
 gap_definition(ambiguous_logic_grounding, 33, logic_grounding, "Remove duplicate or invalid ground representations and validate linked rules.").
 gap_definition(blocking_contradiction, 40, contradictions, "Supersede or reconcile the conflicting normative requirement.").
 gap_definition(contradiction_check_incomplete, 41, contradictions, "Complete logical grounding before interpreting absence of a conflict as evidence.").
+gap_definition(unknown_scenario_feasibility, 49, scenarios, "Link the property values the success scenario relies on with assumes facts that a current requirement constrains, so its feasibility can be decided.").
 gap_definition(missing_scenario, 50, scenarios, "Add a specified_by scenario for the requirement.").
+gap_definition(infeasible_scenario, 49, scenarios, "Set expects: rejection on the scenario, correct its assumes fact, or record a human-approved exception requirement that exempts the forbidding requirement.").
 gap_definition(missing_scenario_test, 51, scenario_tests, "Link the scenario to a test with verified_by or validates.").
 gap_definition(missing_passing_e2e, 52, passing_e2e, "Record fresh passing end-to-end evidence on a scenario-backed test.").
 gap_definition(missing_proof_receipt, 53, passing_e2e, "Run the configured proof integration through kibi prove and append its kibi.proof-receipt.v1 result for the scenario-backed proof-bearing test.").

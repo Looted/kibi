@@ -4,7 +4,6 @@ title: Proof requires scenario-backed passing E2E evidence
 status: active
 created_at: 2026-08-10T00:00:00.000Z
 updated_at: 2026-08-10T00:00:00.000Z
-source: documentation/facts/FACT-REQ-PROOF-SCENARIO-E2E.md
 tags:
   - lane:ontology
   - requirements
@@ -22,6 +21,10 @@ polarity: assert
 claim_key: CLAIM-BE38830D1474567E
 claim_text: Proof requires a requirement-specified scenario with passing end-to-end test evidence
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of the behavioral verification-depth gate.

@@ -20,5 +20,9 @@ claim_text: Report generation must fail when pagination would make requirement-l
 id: FACT-PRED-B606CED833B8
 type: fact
 predicate_namespace: kibi.requirements
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Ground representation of one atomic behavior in the Kibi HTML requirement-health report.

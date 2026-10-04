@@ -9,6 +9,10 @@ tags:
   - review:rule-gap
 id: FACT-OBS-superseded-must-requirements-still-need-coverage
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Observed 2026-10-02 while superseding REQ-claude-mcp-follows-session-workspace and REQ-mcp-launchers-follow-session-workspace with REQ-mcp-workspace-routing.
 

@@ -15,4 +15,8 @@ claim_key: CLAIM-D19905F495ABB7C3
 claim_text: compat commands strictly and must run the cursor compatibility lane before any paid evaluation cells are spent
 id: FACT-PROP-REQ-SKILLOPT-CURSOR-COMPAT-C02
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

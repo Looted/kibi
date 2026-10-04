@@ -15,4 +15,8 @@ claim_key: CLAIM-8ED771213571A72A
 claim_text: 'Only medium/high-confidence suggestions trigger prompts.\n\n**Non-blocking behavior**: Analysis runs after `file.edited` events without blocking sync or other plugin operations.\n\n**Configurability**: Respect `guidance.commentDetection.enabled` and `guidance.commentDetection.minLines` settings.\n\n\nSaving a `.py` file with a long docstring triggers specific FACT/ADR/REQ routing guidance.\nSaving a `.ts` file with a long `//` comment block triggers appropriate guidance.\nShort/ordinary comments do not trigger guidance.\nRepeated saves of identical comments do not spam warnings.\nSync and targeted validation behavior remain unchanged'
 id: FACT-PROP-REQ-OPENCODE-COMMENT-ROUTING-C03
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

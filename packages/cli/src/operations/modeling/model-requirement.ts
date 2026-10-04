@@ -8,10 +8,14 @@ import {
   isConventionalSubjectKey,
   normalizeSubjectKey,
 } from "../../utils/strict-modeling.js";
+import { propositionRole } from "../semantic-advisor/analyze-prose.js";
 import {
+  extractSemanticClauses,
+  modeledClaimRole,
   normalizeSemanticClause,
   semanticClaimKey,
 } from "../semantic-advisor/clauses.js";
+import { detectConditionalRule } from "../semantic-advisor/conditional-rules.js";
 import { semanticSourceHash } from "../semantic-advisor/shared.js";
 import { buildLogicApplyPlan } from "./logic-modeling.js";
 import {
@@ -296,11 +300,7 @@ export function annotateModelRequirementStep(
           {
             claim_key: context.claimKey,
             claim_text: normalizedClaimText,
-            role: /\b(?:must|shall|should|required|requires?)\b/i.test(
-              claimText,
-            )
-              ? "normative"
-              : "descriptive",
+            role: modeledClaimRole(claimText),
             status: "modeled",
             span: {
               start: 0,
@@ -312,6 +312,243 @@ export function annotateModelRequirementStep(
     };
   }
   return step;
+}
+
+type ModeledStatement = ExtractedClaim & {
+  statement: string;
+  source: string;
+  sourceFiles: string[];
+};
+
+function stepProperties(
+  step: Record<string, unknown>,
+): Record<string, unknown> {
+  return step.properties !== null && typeof step.properties === "object"
+    ? (step.properties as Record<string, unknown>)
+    : {};
+}
+
+// implements REQ-kibi-truthful-consistency
+function unresolvedObservationStep(
+  step: Record<string, unknown>,
+): Record<string, unknown> {
+  if (step.type !== "fact") return step;
+  const properties = stepProperties(step);
+  const tags = Array.isArray(properties.tags) ? properties.tags : [];
+  return {
+    ...step,
+    properties: {
+      ...properties,
+      tags: Array.from(new Set([...tags, "review:ontology-gap"])),
+    },
+  };
+}
+
+// implements REQ-kibi-proposition-complete-ingestion
+// The advisor decides each proposition's role, and proposition-complete
+// ingestion compares the persisted inventory with it. A rule modality alone
+// would call "X must not happen unless C" normative where the advisor reads an
+// exception, so the role comes from the advisor's own clause analysis.
+function advisorRole(semanticText: string, claimKey: string): string | null {
+  const clause = extractSemanticClauses(semanticText).find(
+    (entry) => entry.claim_key === claimKey,
+  );
+  return clause ? propositionRole(clause.text, clause.normative) : null;
+}
+
+function withAdvisorRoles(
+  plan: Array<Record<string, unknown>>,
+): Array<Record<string, unknown>> {
+  return plan.map((step) => {
+    if (step.type !== "req") return step;
+    const properties = stepProperties(step);
+    const semanticText = properties.semantic_text;
+    const inventory = properties.semantic_inventory;
+    if (typeof semanticText !== "string" || !Array.isArray(inventory))
+      return step;
+    return {
+      ...step,
+      properties: {
+        ...properties,
+        semantic_inventory: inventory.map((entry: unknown) => {
+          if (entry === null || typeof entry !== "object") return entry;
+          const row = entry as Record<string, unknown>;
+          const role =
+            typeof row.claim_key === "string"
+              ? advisorRole(semanticText, row.claim_key)
+              : null;
+          return role === null ? row : { ...row, role };
+        }),
+      },
+    };
+  });
+}
+
+// implements REQ-kibi-logical-requirement-coverage
+async function logicModelResult(
+  args: ModelRequirementArgs,
+  extracted: ModeledStatement,
+  logic: NonNullable<ModelRequirementArgs["logic"]>,
+  workspaceRoot: string,
+  confidence: number,
+): Promise<ModelRequirementResult> {
+  const logicPlan = buildLogicApplyPlan({
+    text: args.text,
+    logic,
+    source: extracted.source,
+    ...(typeof args.requirementId === "string"
+      ? { requirementId: args.requirementId }
+      : {}),
+    ...(args.existingLogicClaims !== undefined
+      ? { existingLogicClaims: args.existingLogicClaims }
+      : {}),
+    ...(args.claimKey !== undefined ? { claimKey: args.claimKey } : {}),
+    ...(args.claimText !== undefined ? { claimText: args.claimText } : {}),
+  });
+  const applyPlan = withAdvisorRoles(logicPlan.applyPlan);
+  const fallbackWriteSet = buildStrictWriteSet({
+    claim: extracted.claim,
+    statement: extracted.statement,
+  });
+  const migrationWarning = await getWorkspaceMigrationWarning(workspaceRoot);
+  const structuredContent = {
+    statement: extracted.statement,
+    claimKey: logicPlan.claimKey,
+    logicClaims: Array.from(
+      new Set([...(args.existingLogicClaims ?? []), logicPlan.claimKey]),
+    ),
+    source: extracted.source,
+    sourceFiles: extracted.sourceFiles,
+    claim: extracted.claim,
+    writeSet: fallbackWriteSet,
+    applyPlan,
+    isStrict: false,
+    confidence,
+    extractionMode: extracted.extractionMode,
+    extractionWarnings: extracted.extractionWarnings,
+    warnings: [],
+    migrationWarning,
+    logic: {
+      semanticKey: logicPlan.semanticKey,
+      claimKey: logicPlan.claimKey,
+      claimText: logicPlan.claimText,
+      renderedProlog: logicPlan.renderedProlog,
+      normalized: logicPlan.normalized,
+    },
+  };
+  return {
+    content: [
+      {
+        type: "text",
+        text: `Modeled typed kibi.logic.v1 rule ${logicPlan.semanticKey}; apply the returned schema, rule, and requirement steps sequentially.`,
+      },
+    ],
+    structuredContent,
+    applyPlan,
+    writeSet: fallbackWriteSet,
+    migrationWarning,
+  };
+}
+
+// implements REQ-kibi-truthful-consistency
+// A recognised conditional clause that cannot be translated gets no
+// observation and no strict property. With a requirementId the requirement
+// records the clause as an unresolved ontology gap in its inventory.
+async function unresolvedConditionalResult(
+  args: ModelRequirementArgs,
+  extracted: ModeledStatement,
+  reason: string,
+  workspaceRoot: string,
+): Promise<ModelRequirementResult> {
+  const semanticText = args.text.trim();
+  const claimText = normalizeSemanticClause(extracted.statement);
+  const claimKey = semanticClaimKey(claimText);
+  const logicClaims = Array.from(
+    new Set([...(args.existingLogicClaims ?? []), claimKey]),
+  );
+  const start = Math.max(0, semanticText.indexOf(claimText));
+  const applyPlan: Array<Record<string, unknown>> =
+    typeof args.requirementId === "string"
+      ? [
+          {
+            type: "req",
+            id: args.requirementId,
+            properties: {
+              title:
+                claimText.split(/[.!?]/, 1)[0] || "Conditional requirement",
+              status: "open",
+              source: extracted.source,
+              semantic_text: semanticText,
+              logic_claims: logicClaims,
+              semantic_clauses: [claimText],
+              semantic_inventory_version: "kibi.semantic-inventory.v1",
+              semantic_source_field: "semantic_text",
+              semantic_source_hash: semanticSourceHash(semanticText),
+              semantic_inventory: [
+                {
+                  claim_key: claimKey,
+                  claim_text: claimText,
+                  role:
+                    advisorRole(semanticText, claimKey) ??
+                    modeledClaimRole(claimText),
+                  status: "ontology_gap",
+                  span: {
+                    start: Buffer.byteLength(
+                      semanticText.slice(0, start),
+                      "utf8",
+                    ),
+                    end: Buffer.byteLength(
+                      semanticText.slice(0, start + claimText.length),
+                      "utf8",
+                    ),
+                  },
+                  reason,
+                },
+              ],
+            },
+            relationships: [],
+          },
+        ]
+      : [];
+  const writeSet = buildStrictWriteSet({
+    claim: extracted.claim,
+    statement: extracted.statement,
+  });
+  const migrationWarning = await getWorkspaceMigrationWarning(workspaceRoot);
+  return {
+    content: [
+      {
+        type: "text",
+        text: "Recognised a conditional requirement but could not translate it; it stays unresolved until a typed kibi.logic.v1 rule is supplied.",
+      },
+    ],
+    structuredContent: {
+      statement: extracted.statement,
+      claimKey,
+      logicClaims,
+      source: extracted.source,
+      sourceFiles: extracted.sourceFiles,
+      claim: extracted.claim,
+      writeSet,
+      applyPlan,
+      isStrict: false,
+      confidence: 0,
+      extractionMode: extracted.extractionMode,
+      extractionWarnings: extracted.extractionWarnings,
+      warnings: [
+        {
+          kind: "unresolved_conditional_clause",
+          message: `${reason} The clause stays unresolved: Kibi emitted no strict property and no observation for it.`,
+          nextAction:
+            "Pass logic with a kibi.logic.v1 rule that forbids the action unless the condition holds, or call kb_model with mode predicates when the condition is a domain relation, then apply the returned steps sequentially.",
+        },
+      ],
+      migrationWarning,
+    },
+    applyPlan,
+    writeSet,
+    migrationWarning,
+  };
 }
 
 export async function getWorkspaceMigrationWarning(
@@ -335,85 +572,65 @@ export async function handleKbModelRequirement(
       normalizeSourceFiles(args.sourceFiles)[0] ??
       "mcp://kibi/model-requirement",
   });
-  if (args.logic !== undefined) {
-    const logicPlan = buildLogicApplyPlan({
-      text: args.text,
-      logic: args.logic,
-      source: extracted.source,
-      ...(typeof args.requirementId === "string"
-        ? { requirementId: args.requirementId }
-        : {}),
-      ...(args.existingLogicClaims !== undefined
-        ? { existingLogicClaims: args.existingLogicClaims }
-        : {}),
-      ...(args.claimKey !== undefined ? { claimKey: args.claimKey } : {}),
-      ...(args.claimText !== undefined ? { claimText: args.claimText } : {}),
-    });
-    const fallbackWriteSet = buildStrictWriteSet({
-      claim: extracted.claim,
-      statement: extracted.statement,
-    });
-    const migrationWarning = await getWorkspaceMigrationWarning(workspaceRoot);
-    const structuredContent = {
-      statement: extracted.statement,
-      claimKey: logicPlan.claimKey,
-      logicClaims: Array.from(
-        new Set([...(args.existingLogicClaims ?? []), logicPlan.claimKey]),
-      ),
-      source: extracted.source,
-      sourceFiles: extracted.sourceFiles,
-      claim: extracted.claim,
-      writeSet: fallbackWriteSet,
-      applyPlan: logicPlan.applyPlan,
-      isStrict: false,
-      confidence: args.confidence ?? 1,
-      extractionMode: extracted.extractionMode,
-      extractionWarnings: extracted.extractionWarnings,
-      warnings: [],
-      migrationWarning,
-      logic: {
-        semanticKey: logicPlan.semanticKey,
-        claimKey: logicPlan.claimKey,
-        claimText: logicPlan.claimText,
-        renderedProlog: logicPlan.renderedProlog,
-        normalized: logicPlan.normalized,
-      },
-    };
-    return {
-      content: [
-        {
-          type: "text",
-          text: `Modeled typed kibi.logic.v1 rule ${logicPlan.semanticKey}; apply the returned schema, rule, and requirement steps sequentially.`,
-        },
-      ],
-      structuredContent,
-      applyPlan: logicPlan.applyPlan,
-      writeSet: fallbackWriteSet,
-      migrationWarning,
-    };
-  }
+  if (args.logic !== undefined)
+    return logicModelResult(
+      args,
+      extracted,
+      args.logic,
+      workspaceRoot,
+      args.confidence ?? 1,
+    );
+  // implements REQ-kibi-truthful-consistency
+  // A conditional requirement ("X may happen only when C", "X must not happen
+  // unless C") restricts an action. It goes to the rule lane and never falls
+  // back to a strict property or an observation; a conditional clause this
+  // reader cannot translate stays unresolved.
+  const conditional =
+    extracted.extractionMode === "provided"
+      ? null
+      : detectConditionalRule(extracted.statement);
+  if (conditional?.kind === "rule")
+    return logicModelResult(
+      args,
+      extracted,
+      conditional.ir,
+      workspaceRoot,
+      args.confidence ?? 0.8,
+    );
+  if (conditional?.kind === "unparsed")
+    return unresolvedConditionalResult(
+      args,
+      extracted,
+      conditional.reason,
+      workspaceRoot,
+    );
   const claimKey = semanticClaimKey(extracted.statement);
   const aligned = await applyVocabularyAlignment(context, extracted, claimKey);
   const writeSet = aligned.writeSet;
   const logicClaims = Array.from(
     new Set([...(args.existingLogicClaims ?? []), claimKey]),
   );
-  const applyPlan = aligned
-    .adjustPlan(strictWriteSetToApplyPlan(writeSet))
-    .map((step) =>
-      annotateModelRequirementStep(step, {
-        claimKey,
-        statement: extracted.statement,
-        logicClaims,
-      }),
-    );
+  const plan = aligned.adjustPlan(strictWriteSetToApplyPlan(writeSet));
+  // A strict write set grounds the claim, so its steps carry the claim. The
+  // below-threshold observation is only a review artifact: it gets no claim
+  // provenance (that would make it look like grounding) and is tagged as an
+  // open ontology gap.
+  const applyPlan = writeSet.isStrict
+    ? plan.map((step) =>
+        annotateModelRequirementStep(step, {
+          claimKey,
+          statement: extracted.statement,
+          logicClaims,
+        }),
+      )
+    : plan.map(unresolvedObservationStep);
   const migrationWarning = await getWorkspaceMigrationWarning(workspaceRoot);
   const warnings = writeSet.isStrict
     ? [...aligned.warnings]
     : [
         {
           kind: "low_confidence_observation_downgrade",
-          message: `Claim confidence ${writeSet.confidence.toFixed(2)} is below the strict threshold 0.70, so Kibi emitted an observation fact instead of strict subject/property facts.`,
+          message: `Claim confidence ${writeSet.confidence.toFixed(2)} is below the strict threshold 0.70, so Kibi emitted a review:ontology-gap observation instead of strict subject/property facts. The clause stays unresolved: the observation does not ground it.`,
           nextAction:
             "If this is normative, provide subjectKey, propertyKey, operator, and value explicitly, then apply the returned strict write-set sequentially.",
         },

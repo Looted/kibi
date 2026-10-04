@@ -38,6 +38,7 @@ export interface IsolatedInstall {
 
 type KibiPackage =
   | "core"
+  | "agent-core"
   | "cli"
   | "runtime"
   | "mcp"
@@ -48,6 +49,7 @@ type KibiPackage =
 
 const REQUIRED_DEP_PACKAGES: ReadonlyArray<KibiPackage> = [
   "core",
+  "agent-core",
   "plugin-sdk",
   "plugin-builtin",
   "swipl",
@@ -276,6 +278,7 @@ export function installOpencodeTarball(
 
   for (const dep of [
     "core",
+    "agent-core",
     "plugin-sdk",
     "plugin-builtin",
     "swipl",

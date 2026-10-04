@@ -15,4 +15,8 @@ claim_key: CLAIM-46C68E5AFA82EA18
 claim_text: When a returned built-in or project-local predicate is suitable, the agent must create the suggested predicate fact
 id: FACT-PROP-REQ-SKILLOPT-PREDICATE-FIRST-REQUIREMENTS-C03
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

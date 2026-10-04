@@ -12,4 +12,8 @@ claim_key: CLAIM-01C1926546AE9F52
 claim_text: The documentation site is rendered from the repository's docs/ sources at build time instead of a forked copy
 id: FACT-DOCS-SITE-SOURCE-MODE
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

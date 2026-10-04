@@ -17,4 +17,8 @@ claim_key: CLAIM-9F67B4E7EF5AA95B
 claim_text: Non-empty process environment values win over project `.env.kibi` or `KIBI_ENV_FILE`, which win over user `~/.config/kibi/env`, which win over legacy `.env` gap-fill
 id: FACT-PROP-ENV-BOOTSTRAP-PRECEDENCE
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

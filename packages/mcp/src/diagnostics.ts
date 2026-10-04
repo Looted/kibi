@@ -245,8 +245,11 @@ function canonicalDiagnosticValue(value: unknown): unknown {
 }
 
 function mutationFingerprint(args: Record<string, unknown>): string {
+  // A kb_upsert dry run must fingerprint like the write it previews, so
+  // validation-before-upsert pairs the two.
+  const { dryRun: _dryRun, ...payload } = args;
   return createHash("sha256")
-    .update(JSON.stringify(canonicalDiagnosticValue(args)))
+    .update(JSON.stringify(canonicalDiagnosticValue(payload)))
     .digest("hex");
 }
 
@@ -406,12 +409,60 @@ function appendContradictionCheckFields(
   }
 }
 
-export function deriveDiagnosticFields(
+const MODEL_MODE_OPERATIONS: Readonly<Record<string, string>> = {
+  analyze: "kb_semantic_advisor",
+  requirement: "kb_model_requirement",
+  predicates: "kb_suggest_predicates",
+};
+
+const SKILL_ACTION_OPERATIONS: Readonly<Record<string, string>> = {
+  list: "kb_skills_list",
+  load: "kb_skills_load",
+  read: "kb_skills_read",
+};
+
+/** Composite tools report diagnostics under the operation they routed to. */
+// implements REQ-kibi-mcp-tool-consolidation
+export function routedOperationName(
   toolName: string,
+  args: Record<string, unknown>,
+): string {
+  if (toolName === "kb_model" && typeof args.mode === "string")
+    return MODEL_MODE_OPERATIONS[args.mode] ?? toolName;
+  if (toolName === "kb_skills" && typeof args.action === "string")
+    return SKILL_ACTION_OPERATIONS[args.action] ?? toolName;
+  if (toolName === "kb_upsert" && args.dryRun === true)
+    return "kb_validate_upsert";
+  return toolName;
+}
+
+/**
+ * The business arguments the routed operation received: the composite's
+ * selector is dropped, so a usage entry matches the narrow CLI route's entry.
+ */
+// implements REQ-kibi-mcp-tool-consolidation
+export function routedBusinessArgs(
+  toolName: string,
+  args: Record<string, unknown>,
+): Record<string, unknown> {
+  if (routedOperationName(toolName, args) === toolName) return args;
+  const selector =
+    toolName === "kb_model"
+      ? "mode"
+      : toolName === "kb_skills"
+        ? "action"
+        : "dryRun";
+  const { [selector]: _selector, ...rest } = args;
+  return rest;
+}
+
+export function deriveDiagnosticFields(
+  invokedToolName: string,
   args: Record<string, unknown>,
   telemetry: Record<string, unknown> | null,
   result: unknown,
 ): Record<string, unknown> {
+  const toolName = routedOperationName(invokedToolName, args);
   const fields: Record<string, unknown> = {
     telemetry_status: telemetry ? "provided" : "missing",
   };

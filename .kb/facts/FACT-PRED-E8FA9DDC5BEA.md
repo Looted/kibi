@@ -4,7 +4,7 @@ title: Telemetry acceptance uses a versioned recent-event report
 status: active
 created_at: 2026-08-10T00:00:00.000Z
 updated_at: 2026-08-10T00:00:00.000Z
-source: documentation/requirements/REQ-kibi-telemetry-acceptance-gate.md
+source: .kb/requirements/REQ-kibi-telemetry-acceptance-gate.md
 tags:
   - lane:ontology
   - telemetry
@@ -23,6 +23,10 @@ claim_text: Kibi must evaluate the latest 200 usage events as a versioned kibi.t
 claim_span_start: 0
 claim_span_end: 97
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of the versioned recent-event telemetry report.

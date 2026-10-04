@@ -14,4 +14,8 @@ claim_key: CLAIM-DE4082419A031E05
 claim_text: Semantic-advisor readiness must remain partial until every normative claim has a distinct logical grounding edge
 id: FACT-PRED-SKILLOPT-CLAIM-DE4082419A031E05
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

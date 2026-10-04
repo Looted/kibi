@@ -8,4 +8,8 @@ tags:
   - strict-lane
 id: FACT-SUBJ-PAID-LAUNCH-FIXTURE-SIGNER
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

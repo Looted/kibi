@@ -74,8 +74,8 @@ function contextFor(
 
 function quietQuery(): (goal: string) => Promise<PrologQueryResult> {
   return mock(async (goal: string): Promise<PrologQueryResult> => {
-    if (goal.includes("findall([A,B,Reason]"))
-      return { success: true, bindings: { Rows: "[]" } };
+    if (goal.includes("checks:what_if_analysis_json("))
+      return { success: true, bindings: { JsonString: "[]" } };
     if (goal.includes("kb_relationship"))
       return { success: true, bindings: { Edges: "[]" } };
     return { success: true, bindings: { Results: "[]" } };
@@ -139,7 +139,7 @@ describe("compile-intent validation and source planning", () => {
     ).rejects.toThrow(/Prolog runtime/);
   });
 
-  test("records missing source hashes and emits a source write for ready creates", async () => {
+  test("records missing source hashes and names the requirement document for ready creates", async () => {
     const root = await mkdtemp(path.join(tmpdir(), "kibi-compile-src-"));
     workspaces.push(root);
     await mkdir(path.join(root, "docs"), { recursive: true });
@@ -162,16 +162,19 @@ describe("compile-intent validation and source planning", () => {
       /^[a-f0-9]{64}$/,
     );
     expect(plan.expected.sourceHashes["docs/missing.md"]).toBeNull();
-    expect(plan.sourceWrites).toEqual([
-      expect.objectContaining({ path: "docs/present.md", mode: "write" }),
-    ]);
+    // Plans name each entity's document; kb_apply_plan renders the bytes.
+    expect(plan.sourceWrites).toEqual([]);
+    expect(
+      plan.steps.find((step) => step.id === plan.target.requirementId)
+        ?.document,
+    ).toMatchObject({ path: "docs/present.md" });
   });
 
   test("auto-selects a high-confidence update target and applies drafts plus proposals", async () => {
     const root = await mkdtemp(path.join(tmpdir(), "kibi-compile-update-"));
     workspaces.push(root);
     const query = mock(async (goal: string): Promise<PrologQueryResult> => {
-      if (goal.includes("findall([A,B,Reason]"))
+      if (goal.includes("checks:what_if_analysis_json("))
         return { success: false, bindings: {} };
       if (goal.includes("kb_entity('REQ-TOP'"))
         return {
@@ -228,8 +231,8 @@ describe("compile-intent validation and source planning", () => {
     const root = await mkdtemp(path.join(tmpdir(), "kibi-compile-dup-"));
     workspaces.push(root);
     const query = mock(async (goal: string): Promise<PrologQueryResult> => {
-      if (goal.includes("findall([A,B,Reason]"))
-        return { success: true, bindings: { Rows: "[]" } };
+      if (goal.includes("checks:what_if_analysis_json("))
+        return { success: true, bindings: { JsonString: "[]" } };
       if (goal.includes("kb_relationship"))
         return { success: true, bindings: { Edges: "[]" } };
       if (goal.includes("kb_entity("))
@@ -248,8 +251,8 @@ describe("compile-intent validation and source planning", () => {
     );
     const id = first.structuredContent.target.requirementId;
     const dup = mock(async (goal: string): Promise<PrologQueryResult> => {
-      if (goal.includes("findall([A,B,Reason]"))
-        return { success: true, bindings: { Rows: "[]" } };
+      if (goal.includes("checks:what_if_analysis_json("))
+        return { success: true, bindings: { JsonString: "[]" } };
       if (goal.includes(`kb_entity('${id}'`))
         return {
           success: true,
@@ -279,11 +282,13 @@ describe("compile-intent validation and source planning", () => {
     const root = await mkdtemp(path.join(tmpdir(), "kibi-compile-explicit-"));
     workspaces.push(root);
     const query = mock(async (goal: string): Promise<PrologQueryResult> => {
-      if (goal.includes("findall([A,B,Reason]"))
+      if (goal.includes("checks:what_if_analysis_json("))
         return {
           success: true,
           bindings: {
-            Rows: "[[FACT-A,FACT-B,conflict]]",
+            JsonString: JSON.stringify([
+              { requirements: ["FACT-A", "FACT-B"], reason: "conflict" },
+            ]),
           },
         };
       if (goal.includes("kb_entity('REQ-KEEP'"))
@@ -318,7 +323,7 @@ describe("compile-intent validation and source planning", () => {
     const root = await mkdtemp(path.join(tmpdir(), "kibi-compile-extra-"));
     workspaces.push(root);
     const query = mock(async (goal: string): Promise<PrologQueryResult> => {
-      if (goal.includes("findall([A,B,Reason]"))
+      if (goal.includes("checks:what_if_analysis_json("))
         return { success: false, bindings: {} };
       if (goal.includes("kb_relationship"))
         return { success: true, bindings: { Edges: "[]" } };
@@ -422,26 +427,40 @@ describe("compile-intent validation and source planning", () => {
         contextFor(root, quietQuery()),
       )
     ).structuredContent;
-    const testStep = (id: string) =>
-      plan.steps.find((step) => step.type === "test" && step.id === id) as
+    const step = (type: string, id: string) =>
+      plan.steps.find((entry) => entry.type === type && entry.id === id) as
         | { relationships?: unknown[]; properties?: unknown }
         | undefined;
-    expect(testStep("TEST-B")?.relationships).toEqual([
-      { type: "verified_by", from: "SCEN-B", to: "TEST-B" },
-    ]);
-    expect(testStep("TEST-B")?.properties).toEqual(
+    expect(step("test", "TEST-B")?.properties).toEqual(
       expect.objectContaining({
         verification_scope: "integration",
         verification_perspective: "internal",
       }),
     );
-    expect(testStep("TEST-A")?.relationships).toEqual([
+    // verified_by runs scenario -> test, so the scenario step carries it and
+    // every test is written before the scenarios that link to it.
+    expect(step("test", "TEST-B")?.relationships).toEqual([]);
+    expect(step("scenario", "SCEN-A")?.relationships).toEqual([
       { type: "verified_by", from: "SCEN-A", to: "TEST-A" },
-    ]);
-    expect(testStep("TEST-BOTH")?.relationships).toEqual([
-      { type: "verified_by", from: "SCEN-B", to: "TEST-BOTH" },
       { type: "verified_by", from: "SCEN-A", to: "TEST-BOTH" },
     ]);
+    expect(step("scenario", "SCEN-B")?.relationships).toEqual([
+      { type: "verified_by", from: "SCEN-B", to: "TEST-B" },
+      { type: "verified_by", from: "SCEN-B", to: "TEST-BOTH" },
+    ]);
+    const order = plan.steps.map((entry) => String(entry.type));
+    expect(order.lastIndexOf("test")).toBeLessThan(order.indexOf("scenario"));
+    expect(order.lastIndexOf("scenario")).toBeLessThan(order.indexOf("req"));
+    // The specified_by links fold into the one requirement step, which an
+    // upsert can apply; a step without properties would fail validation.
+    const requirements = plan.steps.filter((entry) => entry.type === "req");
+    expect(requirements).toHaveLength(1);
+    expect(requirements[0]?.relationships).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ type: "specified_by", to: "SCEN-A" }),
+        expect.objectContaining({ type: "specified_by", to: "SCEN-B" }),
+      ]),
+    );
     expect(
       plan.diagnostics.some((diagnostic) => /unresolved/.test(diagnostic)),
     ).toBe(false);
@@ -493,8 +512,8 @@ describe("compile-intent validation and source planning", () => {
     const root = await mkdtemp(path.join(tmpdir(), "kibi-compile-prop-"));
     workspaces.push(root);
     const query = mock(async (goal: string): Promise<PrologQueryResult> => {
-      if (goal.includes("findall([A,B,Reason]"))
-        return { success: true, bindings: { Rows: "[]" } };
+      if (goal.includes("checks:what_if_analysis_json("))
+        return { success: true, bindings: { JsonString: "[]" } };
       if (goal.includes("kb_entity('REQ-KEEP'"))
         return {
           success: true,

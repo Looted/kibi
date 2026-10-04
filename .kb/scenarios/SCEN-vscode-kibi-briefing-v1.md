@@ -4,7 +4,6 @@ title: "VS Code Kibi Briefing v1: Channel Gating and Manual Access"
 status: closed
 created_at: 2026-04-26T00:00:00Z
 updated_at: 2026-04-26T00:00:00Z
-source: documentation/scenarios/SCEN-vscode-kibi-briefing-v1.md
 tags:
   - scenario
   - vscode
@@ -13,6 +12,10 @@ tags:
 links:
   - type: relates_to
     target: REQ-vscode-kibi-briefing-v1
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 id: SCEN-vscode-kibi-briefing-v1
 title: "VS Code Kibi Briefing v1: Channel Gating and Manual Access"

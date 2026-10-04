@@ -43,5 +43,9 @@ semantic_inventory:
       end: 275
 id: REQ-prolog-coverage-test-selection
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 The Prolog coverage runner must load every test file supplied by repeated --test options. The Prolog coverage runner must fail when any selected test file contains a failing test. The Prolog coverage runner must include each selected test file in annotated coverage artifacts.

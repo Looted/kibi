@@ -59,6 +59,7 @@
     deprecated_no_successor/1,
     symbol_no_req_coverage/2,
     predicate_schema/6,
+    predicate_schema_keys/4,
     predicate_fact/5,
     canonical_property_tuple/9,
     contradicting_reqs/3,
@@ -85,6 +86,7 @@
 :- use_module('../schema/entities.pl', [entity_type/1, entity_property/3, required_property/2]).
 :- use_module('../schema/relationships.pl', [relationship_type/1, valid_relationship/3]).
 :- use_module('units.pl', [canonical_quantity/6]).
+:- use_module('intervals.pl', [numeric_constraints_satisfiable/2]).
 :- use_module('../schema/validation.pl', [validate_entity/2, validate_relationship/3]).
 
 % Constants
@@ -2569,8 +2571,8 @@ req_conflict_witness(ReqA, ReqB, Witness) :-
     intervals_overlap(ValidFromA, ValidToA, ValidFromB, ValidToB),
     % Compare canonical quantities (30 min == 1800 s); witnesses keep the
     % authored values so evidence still points at the source text.
-    canonical_quantity(ValTypeA, ValA, UnitA, CanonTypeA, CanonValA, CanonUnitA),
-    canonical_quantity(ValTypeB, ValB, UnitB, CanonTypeB, CanonValB, CanonUnitB),
+    comparison_quantity(ValTypeA, ValA, UnitA, CanonTypeA, CanonValA, CanonUnitA),
+    comparison_quantity(ValTypeB, ValB, UnitB, CanonTypeB, CanonValB, CanonUnitB),
     (   polarity_conflict(SubjectKey, PropertyKey, OpA, CanonTypeA, CanonValA, CanonUnitA, ScopeA, PolarityA,
                           OpB, CanonTypeB, CanonValB, CanonUnitB, ScopeB, PolarityB, Reason)
     ;   property_conflict(SubjectKey, PropertyKey, OpA, CanonTypeA, CanonValA, CanonUnitA, PolarityA,
@@ -2728,6 +2730,21 @@ canonical_property_tuple(FactId, Subject, Property, Op, CanonType, CanonValue, C
     fact_property_tuple(FactId, Subject, Property, Op, ValType, Value, Unit, Scope, Polarity),
     canonical_quantity(ValType, Value, Unit, CanonType, CanonValue, CanonUnit).
 
+%% comparison_quantity(+ValType, +Value, +Unit, -Type, -CanonValue, -CanonUnit)
+% implements REQ-kibi-truthful-consistency
+% canonical_quantity/6 for comparisons that depend on the value domain.
+% Canonicalization reports any integral value as int, but a value declared
+% `number` keeps real semantics: number gt 0 and number lt 1 do not conflict
+% even though 0 and 1 are integral.  An int that scales to a fraction
+% (int 1 ms is 0.001 s) is compared as a number, which only admits more
+% values.
+comparison_quantity(ValType, Value, Unit, Type, CanonValue, CanonUnit) :-
+    canonical_quantity(ValType, Value, Unit, CanonType, CanonValue, CanonUnit),
+    (   ValType == number, CanonType == int
+    ->  Type = number
+    ;   Type = CanonType
+    ).
+
 %% predicate_schema(+FactId, -Namespace, -Name, -Arity, -ArgumentNames, -ArgumentTypes)
 % Read one project-local ontology predicate schema fact.
 predicate_schema(FactId, Namespace, Name, Arity, ArgumentNames, ArgumentTypes) :-
@@ -2743,6 +2760,27 @@ predicate_schema(FactId, Namespace, Name, Arity, ArgumentNames, ArgumentTypes) :
     normalize_term_atom_list(ArgumentNamesRaw, ArgumentNames),
     memberchk(argument_types=ArgumentTypesRaw, Props),
     normalize_term_atom_list(ArgumentTypesRaw, ArgumentTypes).
+
+%% predicate_schema_keys(?Namespace, ?Name, ?Arity, -KeyPositions)
+% implements REQ-kibi-truthful-consistency
+% A predicate_schema that declares key_arguments states a functional
+% dependency: the remaining arguments are determined by the key arguments.
+% KeyPositions are the 1-based positions of the named key arguments.  A
+% predicate without this declaration is treated as multivalued, so two atoms
+% of it are never assumed to describe the same fact.
+predicate_schema_keys(Namespace, Name, Arity, KeyPositions) :-
+    predicate_schema(FactId, Namespace, Name, Arity, ArgumentNames, _ArgumentTypes),
+    kb_entity(FactId, fact, Props),
+    memberchk(key_arguments=KeysRaw, Props),
+    normalize_term_atom_list(KeysRaw, KeyNames),
+    KeyNames \= [],
+    length(ArgumentNames, Arity),
+    maplist(argument_name_position(ArgumentNames), KeyNames, Positions0),
+    sort(Positions0, KeyPositions).
+
+argument_name_position(ArgumentNames, KeyName, Position) :-
+    nth1(Position, ArgumentNames, KeyName),
+    !.
 
 %% predicate_fact(+FactId, -Namespace, -Name, -Args, -Polarity)
 % Read one ground ontology predicate fact.
@@ -2842,8 +2880,22 @@ property_conflict(Subject, Property, OpA, TypeA, ValA, UnitA, Polarity,
                   OpB, TypeB, ValB, UnitB, Polarity, Reason) :-
     unit_compatible(UnitA, UnitB),
     compatible_types(TypeA, TypeB),
-    values_conflict(OpA, ValA, OpB, ValB, TypeA),
+    conflict_value_type(TypeA, TypeB, Type),
+    values_conflict(OpA, ValA, OpB, ValB, Type),
     format(atom(Reason), 'Value conflict on ~w.~w: ~w ~w vs ~w ~w', [Subject, Property, OpA, ValA, OpB, ValB]).
+
+%% conflict_value_type(+TypeA, +TypeB, -Type)
+% The value domain both constraints are compared in.  A property is treated as
+% integer-valued only when both sides declare int; a mixed int/number pair is
+% compared over the reals so a conflict is never claimed from one side's
+% narrower declaration.
+% implements REQ-kibi-truthful-consistency
+conflict_value_type(int, int, int) :- !.
+conflict_value_type(TypeA, TypeB, number) :-
+    is_numeric_type(TypeA),
+    is_numeric_type(TypeB),
+    !.
+conflict_value_type(Type, _, Type).
 
 %% compatible_types(+TypeA, +TypeB)
 % Types are compatible if they are the same or both numeric.
@@ -2898,33 +2950,28 @@ values_conflict(eq, ValA, neq, ValB, Type) :-
 values_conflict(neq, ValA, eq, ValB, Type) :-
     same_value(Type, ValA, Type, ValB).
 
-% Numeric gap conflict: lte X vs gte Y where X < Y
-values_conflict(lte, ValA, gte, ValB, Type) :-
+% Numeric conflict: the two comparisons admit no common value of the type's
+% domain.  `number` ranges over the reals; `int` ranges over the integers, so
+% gt 0 and lt 1 conflict for int (no integer lies strictly between them) but
+% not for number.  This covers every operator pair (eq/gt, lte/gt at the same
+% bound, gte/gt, ...) instead of a hand-written table.  neq/neq never
+% conflicts and eq/neq is handled above.
+% implements REQ-kibi-truthful-consistency
+values_conflict(OpA, ValA, OpB, ValB, Type) :-
     is_numeric_type(Type),
-    ValA < ValB.
-values_conflict(gte, ValB, lte, ValA, Type) :-
-    is_numeric_type(Type),
-    ValA < ValB.
+    numeric_operator(OpA),
+    numeric_operator(OpB),
+    \+ ( OpA == eq, OpB == eq ),
+    \+ ( OpA == eq, OpB == neq ),
+    \+ ( OpA == neq, OpB == eq ),
+    number(ValA), number(ValB),
+    numeric_type_integer_variables(Type, IntegerVariables),
+    \+ numeric_constraints_satisfiable([c(OpA, X, ValA), c(OpB, X, ValB)], IntegerVariables).
 
-% Also catch lt/gt variants
-values_conflict(lt, ValA, gt, ValB, Type) :-
-    is_numeric_type(Type),
-    ValA =< ValB.
-values_conflict(gt, ValB, lt, ValA, Type) :-
-    is_numeric_type(Type),
-    ValA =< ValB.
-values_conflict(lt, ValA, gte, ValB, Type) :-
-    is_numeric_type(Type),
-    ValA =< ValB.
-values_conflict(gte, ValB, lt, ValA, Type) :-
-    is_numeric_type(Type),
-    ValA =< ValB.
-values_conflict(lte, ValA, gt, ValB, Type) :-
-    is_numeric_type(Type),
-    ValA < ValB.
-values_conflict(gt, ValB, lte, ValA, Type) :-
-    is_numeric_type(Type),
-    ValA < ValB.
+numeric_type_integer_variables(int, all) :- !.
+numeric_type_integer_variables(_, []).
+
+numeric_operator(Op) :- memberchk(Op, [eq, neq, lt, lte, gt, gte]).
 
 %% is_numeric_type(+Type)
 % True for numeric value types.

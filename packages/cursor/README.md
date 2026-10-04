@@ -122,8 +122,9 @@ agent-plugin/
 Hooks are warning-only and never replace MCP/CLI behavior:
 
 - **sessionStart**: bootstrap reminder when `.kb/manifest.json` is missing.
-- **preToolUse**: warns on explicit direct `.kb/**` edits without blocking.
-- **beforeReadFile** and **postToolUse (Read)**: inject source-linked lookup guidance once per path per session.
+- **preToolUse**: warns on explicit direct `.kb/**` edits without blocking. Before the first edit of a file whose symbols implement a requirement, it adds the shared Kibi snippet (from `kibi-agent-core/snippets`, the same builder the Claude Code plugin uses): the requirements and their implementing symbols, what the lead requirement must keep true and the decision behind it, the covering tests, and the symbol the edit lands in. A superseded or retired lead requirement gets no "must keep true" or "Decision" line. Once per path per session.
+- **beforeReadFile** and **postToolUse (Read)**: inject source-linked lookup guidance once per path per session, with the same snippet minus the "must keep true" and "Decision" lines.
+- **postToolUse** (opt-in telemetry): with `KIBI_DIAGNOSTIC_MODE=1`, appends `interface: "hook"` rows with `host: "cursor"` to `.kb/usage.log` for `kb_*` lookups (MCP or `kibi <route>` in Shell) and for edited files with the requirements they implement, keyed by `conversation_id`. `kibi usage-metrics` reads them for the `lookup_before_first_edit` metric. Nothing is written without the variable.
 - **postToolUse (Write/Edit)**: inject traceability and freshness guidance once per path per session, including `kb_check({sourceFiles:[...], includeImpactDiagnostics:true, includeWorkingTreeDiff:true})` for meaningful source edits.
 - **stop**: emits a single freshness or impact-check follow-up when meaningful paths were **edited** during the turn (reads and search do not count). Plan delivery (`CreatePlan`) stays silent unless that same turn also edited source or mutated the KB.
 

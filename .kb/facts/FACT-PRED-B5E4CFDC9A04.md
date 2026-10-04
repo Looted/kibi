@@ -1,7 +1,7 @@
 ---
 title: Requirement health uses canonical Kibi identity
 status: active
-source: documentation/requirements/REQ-kibi-branded-health-report.md
+source: .kb/requirements/REQ-kibi-branded-health-report.md
 text_ref: documentation/requirements/REQ-kibi-branded-health-report.md
 tags:
   - lane:ontology
@@ -19,5 +19,9 @@ claim_key: CLAIM-9CB7F74E46AEF113
 claim_text: The Kibi HTML requirement-health report and generated badge must use the canonical Kibi logo, wordmark, and proof-rail visual system
 id: FACT-PRED-B5E4CFDC9A04
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 The rendered report and badge visibly use Kibi's canonical identity.

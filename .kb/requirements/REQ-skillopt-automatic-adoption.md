@@ -1,7 +1,7 @@
 ---
 id: REQ-skillopt-automatic-adoption
 title: Passing SkillOpt candidates must self-improve the canonical skill
-status: open
+status: closed
 created_at: 2026-07-24T00:00:00.000Z
 updated_at: 2026-07-24T00:00:00.000Z
 source: docs/skillopt.md
@@ -59,6 +59,10 @@ logic_claims:
   - CLAIM-2979131FC2043527
   - CLAIM-8C3B47A08FA5150A
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 After Codex-only preflight and smoke checks pass, a generated SkillOpt candidate must pass automatic safety and immutable-surface validation before it is adopted into the canonical skill and synchronized mirrors. Automatic adoption must use the transactional rollback path, must never claim a behavioral evaluation pass when none was run, and must not commit or push source changes.

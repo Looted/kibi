@@ -300,3 +300,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-921d8f000483
+  - type: covered_by
+    from: SYM-reqcompiler-legacy-migration-predicate-candidate
+    to: TEST-kibi-legacy-migration-preview-v2
+    created_at: 2026-10-04T04:18:54.596Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d9f631cf0de3

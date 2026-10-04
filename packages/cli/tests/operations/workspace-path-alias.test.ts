@@ -25,6 +25,7 @@ import type {
   OperationContext,
   PrologQueryResult,
 } from "../../src/public/operations/runtime-types.js";
+import { isWhatIfGoal, whatIfResult } from "../helpers/what-if.js";
 
 const roots: string[] = [];
 
@@ -51,9 +52,11 @@ function context(workspaceRoot: string): OperationContext {
     clock: () => new Date("2026-09-30T00:00:00Z"),
     prolog: {
       query: async (goal): Promise<PrologQueryResult> =>
-        String(goal).includes("kb_commit_upsert")
-          ? { success: true, bindings: { ChangeKind: "created" } }
-          : { success: true, bindings: { Results: "[]" } },
+        isWhatIfGoal(goal)
+          ? whatIfResult()
+          : String(goal).includes("kb_commit_upsert")
+            ? { success: true, bindings: { ChangeKind: "created" } }
+            : { success: true, bindings: { Results: "[]" } },
       queryStatusJson: async () => ({ success: true, bindings: {} }),
       nextSolution: async () => null,
       save: async () => ({ success: true, bindings: {} }),

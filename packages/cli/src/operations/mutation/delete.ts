@@ -20,6 +20,11 @@ import {
 import { resolveBranchAttachment } from "../../utils/branch-resolver.js";
 import { buildEntityDeleteAuditGoal } from "./audit.js";
 import {
+  planRecoveryNotes,
+  settlePendingPlanApplyJournals,
+  withPlanRecoveryNotes,
+} from "./plan-apply-journal.js";
+import {
   RELATIONSHIP_TYPES,
   dependentRelationshipsGoal,
 } from "./relationships.js";
@@ -468,10 +473,22 @@ export async function executeDelete(
   let sourceMutationLock: WorkspaceMutationLockHandle | undefined;
   let committed = false;
   let operationFailure: { readonly error: unknown } | undefined;
+  let recoveryNotes: string[] = [];
+  const reported = (text: string): string =>
+    recoveryNotes.length > 0 ? `${text} ${recoveryNotes.join(" ")}` : text;
   try {
     if (context.fs && context.sourceMutationLockHeld !== true) {
       sourceMutationLock = await acquireWorkspaceMutationLock(
         context.workspaceRoot,
+      );
+      // implements REQ-core-atomic-upsert-persistence
+      // Finish an interrupted kb_apply_plan before this delete reads or
+      // changes the files its journal guards.
+      recoveryNotes = planRecoveryNotes(
+        await settlePendingPlanApplyJournals(
+          { ...context, branchAttachment },
+          { prolog: async () => prolog },
+        ),
       );
     }
     const ids = input.ids ?? [];
@@ -496,7 +513,9 @@ export async function executeDelete(
         content: [
           {
             type: "text",
-            text: `Deleted ${payload.relationships_deleted ?? 0} relationships. Skipped ${payload.skipped}.${payload.sync_required ? " Run kibi sync to reconcile the relationship shard." : ""}`,
+            text: reported(
+              `Deleted ${payload.relationships_deleted ?? 0} relationships. Skipped ${payload.skipped}.${payload.sync_required ? " Run kibi sync to reconcile the relationship shard." : ""}`,
+            ),
           },
         ],
         structuredContent: payload,
@@ -661,7 +680,9 @@ export async function executeDelete(
         content: [
           {
             type: "text",
-            text: `Deletion plan ${planHash.slice(0, 12)} must be applied through kb_apply_plan.`,
+            text: reported(
+              `Deletion plan ${planHash.slice(0, 12)} must be applied through kb_apply_plan.`,
+            ),
           },
         ],
         structuredContent: payload,
@@ -689,7 +710,9 @@ export async function executeDelete(
       content: [
         {
           type: "text",
-          text: `Deleted ${payload.deleted} entities. Skipped ${payload.skipped}.${errors.length > 0 ? ` Errors: ${errors.join("; ")}` : ""}`,
+          text: reported(
+            `Deleted ${payload.deleted} entities. Skipped ${payload.skipped}.${errors.length > 0 ? ` Errors: ${errors.join("; ")}` : ""}`,
+          ),
         },
       ],
       structuredContent: payload,
@@ -700,16 +723,23 @@ export async function executeDelete(
     // wrap it as non-retryable immediately instead of only when lock release
     // also fails.
     if (error instanceof OperationError || error instanceof InputError) {
-      operationFailure = { error };
-      throw error;
-    }
-    if (committed) {
-      const failure = classifySourceMutationFailure("Delete", error, true);
+      const failure = withPlanRecoveryNotes(error, recoveryNotes);
       operationFailure = { error: failure };
       throw failure;
     }
-    const failure = new Error(
-      `Delete execution failed: ${error instanceof Error ? error.message : String(error)}`,
+    if (committed) {
+      const failure = withPlanRecoveryNotes(
+        classifySourceMutationFailure("Delete", error, true),
+        recoveryNotes,
+      );
+      operationFailure = { error: failure };
+      throw failure;
+    }
+    const failure = withPlanRecoveryNotes(
+      new Error(
+        `Delete execution failed: ${error instanceof Error ? error.message : String(error)}`,
+      ),
+      recoveryNotes,
     );
     operationFailure = { error: failure };
     throw failure;

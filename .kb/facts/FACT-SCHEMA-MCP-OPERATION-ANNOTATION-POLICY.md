@@ -30,4 +30,8 @@ examples:
   - mcp_operation_annotation_policy(kb_status,true,false,true,closed_world)
 id: FACT-SCHEMA-MCP-OPERATION-ANNOTATION-POLICY
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

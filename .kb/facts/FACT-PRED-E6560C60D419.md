@@ -21,4 +21,8 @@ claim_text: package.json kibi.plugins must be the canonical v1 capability plugin
 id: FACT-PRED-E6560C60D419
 type: fact
 predicate_namespace: kibi.capability
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

@@ -5,11 +5,14 @@ type: scenario
 status: active
 created_at: 2026-08-11T00:00:00Z
 updated_at: 2026-08-11T00:00:00Z
-source: documentation/scenarios/SCEN-core-journaled-engine-lifecycle.md
 tags: [core, engine, lifecycle]
 links:
   - type: verified_by
     target: TEST-core-journaled-engine-lifecycle
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Given concurrent CLI and MCP clients use the same workspace and branch

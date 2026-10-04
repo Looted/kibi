@@ -251,7 +251,7 @@ describe("kibi usage-metrics", () => {
     expect(result.acceptance.version).toBe("kibi.telemetry-acceptance.v1");
     expect(result.acceptance.status).toBe("insufficient_evidence");
     expect(result.acceptance.scope.evaluatedEvents).toBe(10);
-    expect(result.acceptance.metrics).toHaveLength(7);
+    expect(result.acceptance.metrics).toHaveLength(8);
   });
 
   test("renders table output and applies the zero-result file limit", () => {

@@ -15,4 +15,8 @@ claim_key: CLAIM-954E745065BDCD3D
 claim_text: Guidance must keep historical policy changes visible through supersession links, not rewritten prose
 id: FACT-PROP-REQ-AGENT-KIBI-INTERFACE-SELECTION-C04
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

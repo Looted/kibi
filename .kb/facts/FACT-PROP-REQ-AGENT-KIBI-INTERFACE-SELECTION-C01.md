@@ -15,4 +15,8 @@ claim_key: CLAIM-C1862263F103BE07
 claim_text: Agent-facing guidance must treat the Kibi public MCP and CLI surfaces as peers
 id: FACT-PROP-REQ-AGENT-KIBI-INTERFACE-SELECTION-C01
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

@@ -164,6 +164,10 @@ semantic_inventory:
     payload_hash: 093a86c14fc00c2fed58758576443be2a2fdc88262b72f5e0e0ecb9afd89ad20
     status: modeled
     reason: Grounded by logical_requirement_rule with approved schema FACT-SCHEMA-LOGICAL-REQUIREMENT-RULE.
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 The recommended GitHub integration publishes `kibi-report/index.html` and

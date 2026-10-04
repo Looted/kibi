@@ -78,5 +78,9 @@ semantic_inventory:
     reason: Grounded by the blocking source-discovery failure policy.
 id: REQ-kibi-source-relationship-parity
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Kibi check must compare every relationship authored in tracked Markdown, symbol manifests, or canonical relationship shards with compiled RDF and block when an authored edge is missing. Compiled relationships owned by explicit runtime-only source entities are exempt from reverse source ownership only; authored-to-compiled drift is never exempt. The parity rule must honor explicit rule selection and source-discovery failures must remain blocking.

@@ -21,4 +21,8 @@ claim_text: The TYPESAFE_API_KEY provider setting must come from the process env
 id: FACT-PRED-DA56CE761218
 type: fact
 predicate_namespace: kibi.capability
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

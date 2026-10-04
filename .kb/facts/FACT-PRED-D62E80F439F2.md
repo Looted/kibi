@@ -21,4 +21,8 @@ claim_key: CLAIM-3A485C91255E982A
 claim_text: It must not normalize master to main, infer a default branch for a new store, or rename a Git branch
 id: FACT-PRED-D62E80F439F2
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

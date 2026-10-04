@@ -225,6 +225,7 @@ fs.appendFileSync(log, JSON.stringify({
   argv: process.argv.slice(1),
   cwd: process.cwd(),
   kibiWorkspace: process.env.KIBI_WORKSPACE ?? null,
+  attachRoot: process.env.KIBI_MCP_ATTACH_ROOT ?? null,
 }) + "\\n");
 const args = process.argv.slice(2);
 if (args.includes("--print-resolution")) {
@@ -296,6 +297,7 @@ process.stdin.on("data", (chunk) => {
               argv: string[];
               cwd: string;
               kibiWorkspace: string | null;
+              attachRoot: string | null;
             },
         );
       const serverInvocation = invocations.find(
@@ -308,7 +310,10 @@ process.stdin.on("data", (chunk) => {
         "kibi-mcp",
       ]);
       assert.equal(serverInvocation.cwd, workspace);
-      assert.equal(serverInvocation.kibiWorkspace, workspace);
+      // The launcher attaches the server without pinning it, so per-call
+      // workspace routing stays on.
+      assert.equal(serverInvocation.attachRoot, workspace);
+      assert.equal(serverInvocation.kibiWorkspace, null);
     },
   );
 

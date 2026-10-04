@@ -42,8 +42,8 @@ const VERSION = packageJson.version ?? "0.1.0";
 
 const SERVER_INSTRUCTIONS = [
   "Kibi is a branch-local requirements knowledge base for software traceability.",
-  "Start with kb_search for discovery, then kb_query for exact lookups before any mutation.",
-  "Model requirements as linked facts via kb_model_requirement or kb_upsert (create endpoints before linking them).",
+  "Start with kb_search (ask it a question; its answer layer names the governing requirements, facts, ADRs and tests), then kb_query for exact lookups before any mutation.",
+  "Model requirements as linked facts via kb_model (mode requirement) or kb_upsert (create endpoints before linking them); preflight writes with kb_upsert dryRun:true.",
   "Mutate sequentially with kb_upsert and kb_delete; validate with kb_check during iteration and run an unfiltered kb_check before completion.",
   "Confirm branch freshness with kb_status. For first-time repository setup, use the kibi-bootstrap prompt.",
 ].join(" ");

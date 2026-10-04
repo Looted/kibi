@@ -17,6 +17,10 @@ claim_key: CLAIM-40AD985B2077AD85
 claim_text: source-discovery failures must remain blocking
 id: FACT-SOURCE-PARITY-DISCOVERY-BLOCK
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 source-discovery failures must remain blocking.
 

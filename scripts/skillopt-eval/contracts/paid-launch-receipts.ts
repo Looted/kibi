@@ -1,5 +1,6 @@
 export const PAID_LAUNCH_RECEIPTS_MODULE = true;
 import { z } from "zod";
+import { PinnedModelSchema } from "../runtime/models";
 import {
   ArtifactIdSchema,
   CONTRACT_SCHEMA_VERSION,
@@ -19,7 +20,7 @@ const LaunchBindingSchema = z
     invoiceId: NonEmptyStringSchema,
     usageHash: Sha256Schema,
     pricingHash: Sha256Schema,
-    model: z.enum(["gpt-5.6-luna", "gpt-5.6-sol"]),
+    model: PinnedModelSchema,
     leaseId: ArtifactIdSchema,
   })
   .strict();

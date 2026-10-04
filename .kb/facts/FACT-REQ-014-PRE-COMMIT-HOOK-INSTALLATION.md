@@ -20,6 +20,10 @@ claim_key: CLAIM-25B1A21FBA8F8B08
 claim_text: '`kibi init` installs a pre-commit git hook by default'
 id: FACT-REQ-014-PRE-COMMIT-HOOK-INSTALLATION
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 `kibi init` installs a pre-commit git hook by default.
 

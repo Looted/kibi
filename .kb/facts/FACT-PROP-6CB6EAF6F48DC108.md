@@ -20,4 +20,8 @@ claim_key: CLAIM-DF5F85EFF9599777
 claim_text: The applicability threshold shall be 0.62
 id: FACT-PROP-6CB6EAF6F48DC108
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

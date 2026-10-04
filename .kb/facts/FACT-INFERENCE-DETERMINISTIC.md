@@ -4,7 +4,6 @@ title: Deterministic Inference Execution
 status: active
 created_at: 2026-02-20T14:40:00.000Z
 updated_at: 2026-04-24T08:22:00.000Z
-source: documentation/facts/FACT-INFERENCE-DETERMINISTIC.md
 tags:
   - inference
   - determinism
@@ -18,6 +17,10 @@ polarity: require
 claim_key: CLAIM-E63C682E6A6BEE59
 claim_text: Kibi must keep deterministic inference capabilities available for product and automation use, but they are not exposed as a raw public inference surface
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Inference outputs are deterministic for the same graph state and query inputs.

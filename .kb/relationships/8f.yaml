@@ -125,13 +125,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-512580c1fa84
-  - type: implements
-    from: SYM-claude-HookUsageRow
-    to: REQ-claude-hook-usage-telemetry
-    created_at: 2026-10-01T20:20:25.902Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3700231ad778
   - type: covered_by
     from: SYM-claude-HookUsageRow
     to: TEST-claude-code-kibi-plugin-v1
@@ -153,3 +146,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-698a7692571a
+  - type: implements
+    from: SYM-claude-HookUsageRow
+    to: REQ-claude-hook-usage-telemetry-v2
+    created_at: 2026-10-04T02:58:47.374Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-99a94f682975

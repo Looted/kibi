@@ -52,7 +52,16 @@ const VOLATILE_KEYS = new Set([
   // Per-workspace filesystem identity; CLI and MCP parity runs use two temp trees.
   "attachedIno",
   "attachedDev",
+  // origin.recorded_at is the write time of an upsert without an origin.
+  "recorded_at",
 ]);
+
+/**
+ * Source receipt hashes cover authored bytes, which include the write time
+ * kb_upsert records in origin.recorded_at. Parity keeps whether a hash is
+ * present; the harness compares the authored bytes with that time masked.
+ */
+const SOURCE_HASH_KEYS = new Set(["beforeHash", "afterHash"]);
 
 async function runWorkspaceCommand(
   root: string,
@@ -283,9 +292,11 @@ export function normalizeParityValue(
 
   const normalized: Record<string, unknown> = {};
   for (const [key, entry] of Object.entries(value)) {
-    if (!VOLATILE_KEYS.has(key)) {
-      normalized[key] = normalizeParityValue(entry, workspaceRoots);
-    }
+    if (VOLATILE_KEYS.has(key)) continue;
+    normalized[key] =
+      SOURCE_HASH_KEYS.has(key) && typeof entry === "string"
+        ? "<source-hash>"
+        : normalizeParityValue(entry, workspaceRoots);
   }
   return normalized;
 }

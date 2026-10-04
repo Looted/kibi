@@ -6,6 +6,53 @@ The Kibi Model Context Protocol (MCP) server is a peer public interface alongsid
 
 The public MCP surface is intentionally curated. Agents can call exact lookup, discovery/reporting, mutation, and validation tools through MCP, with equivalent operation access through `kibi <route> --input <file|->`. Every MCP tool also accepts `workspaceRoot`, the directory the call is about; see [Workspace Routing](#workspace-routing).
 
+### Tool list
+
+The server registers 16 tools by default:
+
+| Area | Tools |
+|---|---|
+| Discovery and reporting | `kb_query`, `kb_search`, `kb_status`, `kb_find_gaps`, `kb_coverage`, `kb_graph` |
+| Skills | `kb_skills` |
+| Modeling (read-only) | `kb_model` |
+| Mutation and validation | `kb_upsert` (also the `dryRun: true` preflight), `kb_delete`, `kb_check`, `kb_ingest_proof` |
+| Planning and review | `kb_prepare_impact_review`, `kb_plan_bootstrap`, `kb_compile_intent`, `kb_apply_plan` |
+
+Two more tools are opt-in. Set `KIBI_MCP_OPTIONAL_TOOLS` in the server
+environment to a comma-separated list of names, or `all`:
+
+- `kb_sparql_remote`: remote SPARQL `SELECT` queries ([below](#kb_sparql_remote)).
+- `kb_job_status`: polls `kb_check` jobs started with `async: true`
+  ([below](#kb_job_status)). Without it, `kb_check` ignores `async: true` and
+  runs synchronously.
+
+### Catalog operations, MCP calls, and CLI routes
+
+The shared operation catalog is larger than the MCP tool list. Narrow
+operations stay in the catalog and on the CLI; MCP reaches them through a
+consolidated tool so hosts load fewer tool definitions. Result payloads still
+name catalog operations, for example `recommended_tools: ["kb_model_requirement"]`,
+`suggested_next_tool`, `suggested_next_tools`, and repair-plan `workflowSteps`.
+Translate them with this table:
+
+| Catalog operation | MCP call | CLI route |
+|---|---|---|
+| `kb_skills_list` | `kb_skills` with `action: "list"` | `kibi skills list` / `skills-list`, or `kibi skill` with `"action":"list"` |
+| `kb_skills_load` | `kb_skills` with `action: "load"`, `id` | `kibi skills load` / `skills-load`, or `kibi skill` |
+| `kb_skills_read` | `kb_skills` with `action: "read"`, `id`, `resource` | `kibi skills read` / `skills-read`, or `kibi skill` |
+| `kb_semantic_advisor` | `kb_model` with `mode: "analyze"` | `kibi semantic-advisor`, or `kibi model` with `"mode":"analyze"` |
+| `kb_model_requirement` | `kb_model` with `mode: "requirement"` | `kibi model-requirement`, or `kibi model` |
+| `kb_suggest_predicates` | `kb_model` with `mode: "predicates"` | `kibi suggest-predicates`, or `kibi model` |
+| `kb_validate_upsert` | `kb_upsert` with `dryRun: true` | `kibi validate-upsert`, or `kibi upsert` with `"dryRun": true` |
+| `kb_sparql_remote` | `kb_sparql_remote` (opt-in) | `kibi sparql-remote` |
+| `kb_job_status` | `kb_job_status` (opt-in) | none: jobs live in the server process |
+
+Every other operation has an MCP tool and a CLI route of the same name (for
+example `kb_check` and `kibi check`). With diagnostic logging on,
+`.kb/usage.log` records a `kb_model` call under its routed operation (`mode:
+"predicates"` logs as `kb_suggest_predicates`) and a `kb_upsert` dry run as
+`kb_validate_upsert`.
+
 ### Host-visible tool names
 
 The canonical MCP names in this reference use the `kb_*` form. Some hosts display tools with the configured MCP server name prefixed. In OpenCode, the same tools commonly appear as `kibi_kb_search`, `kibi_kb_query`, `kibi_kb_upsert`, `kibi_kb_check`, and `kibi_kb_plan_bootstrap`. Use the host-visible prefixed name when an agent must reference an exact tool identifier; the semantics are identical to the canonical `kb_*` names documented here.
@@ -16,11 +63,11 @@ For a copy-paste discovery snippet, see [generic-agent onboarding](generic-agent
 
 MCP-capable agents should use the standard `tools/list` capability discovery step, then follow Kibi's progressive-disclosure path instead of assuming that a package `skills/` directory is loaded by the host:
 
-1. Call `kb_skills_list` to obtain the bundled skill manifests.
-2. Call `kb_skills_load` with a returned ID, normally `kibi-usage` for general Kibi workflow guidance. Load `kibi-bootstrap`, `kibi-freshness`, or `kibi-traceability` when the task matches those workflows.
-3. Call `kb_skills_read` only for resource paths declared by that manifest.
+1. Call `kb_skills` with `action: "list"` to obtain the bundled skill manifests.
+2. Call `kb_skills` with `action: "load"` and a returned `id`, normally `kibi-usage` for general Kibi workflow guidance. Load `kibi-bootstrap`, `kibi-freshness`, or `kibi-traceability` when the task matches those workflows.
+3. Call `kb_skills` with `action: "read"` only for resource paths declared by that manifest.
 
-These skill operations are local, read-only, and do not require Prolog. They return a human-readable `content` item plus structured data for clients that support structured tool results. Their MCP registrations advertise `readOnlyHint: true`, `destructiveHint: false`, `idempotentHint: true`, and `openWorldHint: false` as client-facing behavior hints. Clients must treat annotations and skill text as untrusted guidance: authorization, schema validation, approval gates, and mutation sequencing remain enforced by the server and repository workflow.
+These skill operations are local, read-only, and do not require Prolog. They return a human-readable `content` item plus structured data for clients that support structured tool results. The `kb_skills` registration advertises `readOnlyHint: true`, `destructiveHint: false`, `idempotentHint: true`, and `openWorldHint: false` as client-facing behavior hints. Clients must treat annotations and skill text as untrusted guidance: authorization, schema validation, approval gates, and mutation sequencing remain enforced by the server and repository workflow.
 
 The CLI is a peer surface with the same skill operations through structured JSON routes (select by what the host exposes):
 
@@ -28,6 +75,7 @@ The CLI is a peer surface with the same skill operations through structured JSON
 printf '%s\n' '{}' | kibi skills-list --input -
 printf '%s\n' '{"id":"kibi-usage"}' | kibi skills-load --input -
 printf '%s\n' '{"id":"kibi-usage","resource":"resources/workflows.md"}' | kibi skills-read --input -
+printf '%s\n' '{"action":"load","id":"kibi-usage"}' | kibi skill --input -
 ```
 
 If neither a visible Kibi MCP surface nor a trusted local CLI is available, the agent must stop and ask the operator to enable one; it must not infer availability from configuration files or read `.kb/` directly.
@@ -86,18 +134,39 @@ When using discovery tools, agents and operators should assume that ignored path
 
 When prose contains a machine-checkable rule, do not store it only in `text_ref` or freeform `links`. Use the concise decision tree in `docs/modeling-cheatsheet.md`.
 
-1. Call `kb_semantic_advisor` with the complete body when starting from raw prose, or run `kb_validate_upsert` before `kb_upsert` for new or updated normative requirements. Verify the returned atomic clause inventory; supply `clauses` when automatic decomposition is incomplete.
-2. For property/value requirements, call `kb_model_requirement` or create a `fact_kind: subject` fact plus a `fact_kind: property_value` fact. Link the requirement with `constrains` and `requires_property`.
-3. Model every assertive proposition: use `kb_suggest_predicates` for approved ground ontology claims, strict facts for scalar claims, and `kb_model_requirement` with a validated `kibi.logic.v1` object for conditions, exceptions, modalities, quantifiers, cardinality, or bounded temporal rules. Preserve `claim_key` and `claim_text` on each ground fact/rule, replace stale manifests with the exact current assertive key set, persist the complete `semantic_inventory` plus its `inventory_contract`, and link with `requires_predicate`, `requires_property`, or `requires_rule`. Ambiguity, ontology gaps, and missing interpretations remain explicitly unresolved.
+1. Call `kb_model` with `mode: "analyze"` and the complete body when starting from raw prose, or run `kb_upsert` with `dryRun: true` before the real `kb_upsert` for new or updated normative requirements. Verify the returned atomic clause inventory; supply `clauses` when automatic decomposition is incomplete.
+2. For property/value requirements, call `kb_model` with `mode: "requirement"` or create a `fact_kind: subject` fact plus a `fact_kind: property_value` fact. Link the requirement with `constrains` and `requires_property`.
+3. Model every assertive proposition: use `kb_model` with `mode: "predicates"` for approved ground ontology claims, strict facts for scalar claims, and `kb_model` with `mode: "requirement"` and a validated `kibi.logic.v1` object for conditions, exceptions, modalities, quantifiers, cardinality, or bounded temporal rules. Preserve `claim_key` and `claim_text` on each ground fact/rule, replace stale manifests with the exact current assertive key set, persist the complete `semantic_inventory` plus its `inventory_contract`, and link with `requires_predicate`, `requires_property`, or `requires_rule`. Ambiguity, ontology gaps, and missing interpretations remain explicitly unresolved.
 4. Use snake_case field names exactly as the MCP schema shows. `kb_upsert.properties` rejects camelCase aliases such as `subjectKey`, `propertyKey`, `predicateName`, and generic `value`.
 
-Semantic advisor modeling suggestions remain advisory and do not auto-create facts. The proposition ledger is a mutation contract for current requirements: the advisor canonicalizes repeated identical normalized claims to one proposition at the first source occurrence; `kb_validate_upsert` and `kb_upsert` still reject source/hash/span drift, duplicate identities in a submitted ledger, omitted assertions, invalid `nonlogical` classifications, and modeled entries whose linked fact claim keys do not match. Review every proposition and still run `kb_check`; successful ingestion proves accounting integrity, not domain truth or contradiction safety.
+Semantic advisor modeling suggestions remain advisory and do not auto-create facts. The proposition ledger is a mutation contract for current requirements: the advisor canonicalizes repeated identical normalized claims to one proposition at the first source occurrence; `kb_upsert` (dry run or real) still rejects source/hash/span drift, duplicate identities in a submitted ledger, omitted assertions, invalid `nonlogical` classifications, and modeled entries whose linked fact claim keys do not match. Review every proposition and still run `kb_check`; successful ingestion proves accounting integrity, not domain truth or contradiction safety.
 
-### `kb_model_requirement`
+### `kb_model`
+
+Turn requirement prose into checkable structure without writing the KB. One
+tool covers three read-only modes, selected by the required `mode` field; the
+other fields are the inputs of the mode's catalog operation, and the result is
+that operation's payload plus `mode`. Apply any returned plan with sequential
+`kb_upsert` calls.
+
+| `mode` | Catalog operation | CLI route | Use it to |
+|---|---|---|---|
+| `analyze` | `kb_semantic_advisor` | `semantic-advisor` | Get the clause ledger, grounding, ambiguity, and modeling suggestions for prose. |
+| `requirement` | `kb_model_requirement` | `model-requirement` | Turn one claim (or a typed `logic` object) into a strict write set or rule plan. |
+| `predicates` | `kb_suggest_predicates` | `suggest-predicates` | Rank ontology predicate schemas and get a predicate-fact plan or ontology-gap observation. |
+
+`text` is required in every mode. `kibi model --input -` accepts the same
+object on the CLI:
+
+```bash
+printf '%s\n' '{"mode":"analyze","text":"Sessions expire after at most 30 minutes."}' | kibi model --input -
+```
+
+#### `mode: "requirement"` (`kb_model_requirement`)
 
 Model a normative requirement claim into a deterministic strict write-set or a validated `kibi.logic.v1` rule plan for contradiction-ready KB persistence. Accepts an LLM-supplied semantic claim (or a typed `logic` object) and returns a ready-to-apply sequence of `req`, `fact_kind: subject`, `fact_kind: property_value`, `rule_schema`, and `rule` entities with typed relationships. Raw Prolog is rejected.
 
-High-confidence scalar claims (≥ 0.7) produce a strict write-set: one `req`, one `fact_kind: subject`, one `fact_kind: property_value`, and two typed relationships. A valid `logic` input produces a `rule_schema`, a `rule` with canonical JSON/full hash/semantic key, and `requires_rule`. Low-confidence claims (< 0.7) produce a single `fact_kind: observation` artifact that does not enter the contradiction lane, plus a warning explaining how to retry with explicit claim fields.
+High-confidence scalar claims (≥ 0.7) produce a strict write-set: one `req`, one `fact_kind: subject`, one `fact_kind: property_value`, and two typed relationships. A valid `logic` input produces a `rule_schema`, a `rule` with canonical JSON/full hash/semantic key, and `requires_rule`. A conditional clause ("X may happen only when C", "X only if C", "X must not happen unless C") without explicit claim fields is modeled the same way: when C is one comparison on one subject property ("the cart total is positive"), Kibi builds a `forbid` rule on the action with C as its exception (confidence 0.8). A conditional it cannot translate (several conditions, pronouns, relations) returns no observation and no strict facts: the plan is empty, or with `requirementId` a requirement update that records the clause as `ontology_gap`, plus an `unresolved_conditional_clause` warning asking for a typed `logic` rule. Other low-confidence claims (< 0.7) produce a single `fact_kind: observation` artifact tagged `review:ontology-gap` that does not enter the contradiction lane and carries no claim key (it does not ground the clause), plus a warning explaining how to retry with explicit claim fields.
 
 **Parameters:**
 - `text` (required): One atomic plain-language normative clause to model.
@@ -123,9 +192,9 @@ For strict claims, `vocabularyAlignment` reports how the clause subject was reso
 The modeling call is read-only. Applying its plan is a separate mutation and must follow the caller's authorization boundary. The write-set is deterministic and idempotent—the same claim produces the same stable entity IDs. Apply authorized writes through sequential `kb_upsert` calls.
 
 
-### `kb_suggest_predicates`
+#### `mode: "predicates"` (`kb_suggest_predicates`)
 
-Suggest ontology predicate candidates for a prose requirement before an agent writes freeform ontology notes. Agents should spell out the requirement claim, call this tool, then either apply a returned `fact_kind: predicate` plan linked with `requires_predicate`, supply exact `argumentBindings` when a fitting schema still has unbound arguments, or record the returned `review:ontology-gap` observation when no predicate fits. Gap observations include a `relates_to` review anchor so unresolved ontology work remains queryable without entering the contradiction lane.
+Suggest ontology predicate candidates for a prose requirement before an agent writes freeform ontology notes. Agents should spell out the requirement claim, call this mode, then either apply a returned `fact_kind: predicate` plan linked with `requires_predicate`, supply exact `argumentBindings` when a fitting schema still has unbound arguments, or record the returned `review:ontology-gap` observation when no predicate fits. Gap observations include a `relates_to` review anchor so unresolved ontology work remains queryable without entering the contradiction lane.
 
 When a project-local schema declares `argument_constants`, bound values that are aliases are rewritten to their declared constant and any other undeclared value leaves that argument unbound, so the candidate lists the allowed constants instead of producing an applicable plan with a new atom. `kb_upsert` enforces the same vocabulary for predicate facts.
 
@@ -155,6 +224,7 @@ Candidate diagnostics are additive: each candidate may report `eligibility` (`el
 **Example:**
 ```json
 {
+  "mode": "predicates",
   "text": "When the user navigates away with unsaved annotation edits, the editor must auto-save the draft and return to idle mode.",
   "requirementId": "REQ-EDITOR-004",
   "source": "requirements/editor.md#L12",
@@ -163,7 +233,7 @@ Candidate diagnostics are additive: each candidate may report `eligibility` (`el
 ```
 
 
-### `kb_semantic_advisor`
+#### `mode: "analyze"` (`kb_semantic_advisor`)
 
 Analyze requirement prose without mutating the KB. Use this before constructing a `kb_upsert` payload when you have raw requirement text and want modeling suggestions.
 
@@ -183,7 +253,7 @@ Analyze requirement prose without mutating the KB. Use this before constructing 
 
 The receipt returns stable provenance `claim_key` values, `claim_text`, exact UTF-8 byte spans, per-clause suggestion indexes, and a `logic_coverage` manifest comparison. Proposition statuses are `modeled`, `ambiguous`, `ontology_gap`, `nonlogical`, or `missing`; an assertive span is never silently dropped. Observation apply plans carry a typed `relates_to` review anchor when the category is known, while remaining outside contradiction checks. Suggestion kinds include `strict_property`, `predicate`, `rule`, `ambiguity_observation`, and `ontology_gap`. Supported deterministic suggestions include multi-claim prose, cardinality, thresholds with units, retention/expiry durations, booleans, enum sets, permissions and prohibitions, defaults, uniqueness constraints, state memberships, state transitions, exception rules, mutual exclusion, dependency rules, ownership, retry policies, escalation, availability SLAs, notification routing, idempotency, data residency, audit logging, consent, lifecycle, conflict-resolution, fallback/degradation, batch constraints, cross-entity consistency, conditional behavior, temporal ordering, comparative numeric constraints, rate limits, and ambiguity observations.
 
-For exact predicate suggestions, the receipt `candidate_lane` and `suggested_next_tools` follow the generated suggestion rather than the weaker signal heuristic. For example, a lifecycle rule containing a number still routes to `kb_suggest_predicates`, not `kb_model_requirement`, when the advisor can ground it as a predicate fact.
+For exact predicate suggestions, the receipt `candidate_lane` and `suggested_next_tools` follow the generated suggestion rather than the weaker signal heuristic. For example, a lifecycle rule containing a number still routes to `kb_suggest_predicates` (`kb_model` mode `predicates`), not `kb_model_requirement` (mode `requirement`), when the advisor can ground it as a predicate fact. These receipt fields name catalog operations; see [the mapping table](#catalog-operations-mcp-calls-and-cli-routes).
 
 ### `kb_query`
 
@@ -211,14 +281,15 @@ Array of matching entities with deterministic ordering.
 
 ### `kb_search`
 
-Search entities by metadata and markdown body text for exploratory discovery. Set `rankingMode: "intent-v1"` to use deterministic host-agent facets, source-location matching, bounded traceability evidence, and explicit low-confidence abstention.
+Ask the KB a question or search it. The default `intent-v1` ranking accepts natural-language questions ("what governs checkout rounding?"), deterministic host-agent facets, and changed-code source locations, returns bounded traceability evidence, and abstains explicitly below its confidence threshold. Superseded and deprecated entities are demoted in the ranking. Set `rankingMode: "legacy"` for the older lexical ranking.
 
 **Parameters:**
 - `query` (required): Free-text query
 - `type` (optional): Entity type filter
 - `limit` (optional): Maximum number of ranked results
 - `offset` (optional): Number of results to skip
-- `rankingMode` (optional): `legacy` (default) or `intent-v1`
+- `rankingMode` (optional): `intent-v1` (default) or `legacy`
+- `answer` (optional, default `true`): Intent mode, first page only. Adds the answer layer described below.
 - `semanticFacets` (optional): Host-provided `actors`, `actions`, `objects`, `constraints`, or `aliases` arrays
 - `sourceLocations` (optional): Workspace-relative `{path, line?, column?, symbol?}` locations for changed code
 - `minScore` (optional): Intent acceptance threshold between `0` and `1`; defaults to `0.18`
@@ -231,12 +302,27 @@ By default each result carries identifying metadata only — `id`, `type`, `titl
 
 Candidate retrieval is paged internally, so a large KB no longer serializes its entire matching corpus into one Prolog response.
 
-Intent-mode results additionally carry `evidence` for matched facets, source locations, graph paths, and normalized score. The payload includes `queryAnalysis` with candidate/accepted counts, top score, top-two margin, ranking mode, and `abstained`. An abstention is an explicit no-answer signal, not a successful empty lexical search.
+Intent-mode results additionally carry `evidence` for matched facets, source locations, graph paths, and normalized score. The payload includes `queryAnalysis` with candidate/accepted counts, top score, top-two margin, ranking mode, and `abstained`, plus `truncated`. An abstention is an explicit no-answer signal, not a successful empty lexical search.
+
+On the first intent-mode page, `data.answer` (`kibi.search-answer.v1`) turns the matches into what an agent asking "what governs this?" needs:
+
+- `governing`: current requirements matched by the query or linked to a matched entity. Each has `score`, `via` (how it was reached), and its linked `facts` (with `factKind`), `scenarios`, `tests`, and `adrs`. Tests include those that verify the requirement's scenarios; each test's `via` is `direct` or the scenario it was reached through. Each requirement also carries:
+  - `verdict`: what the existing checks report about it. `status` is `contradiction` (a domain-contradiction witness names it), `infeasible` (a scenario-feasibility witness: a success scenario it specifies assumes a value a current requirement forbids, or it forbids another requirement's scenario), `unknown` (only `unknowns` below), or `none`. `witnesses` lists each blocking finding with its `check`, `status`, the other requirement (`with`), the `scenario`, the `facts` involved and a `detail`. `none` means no check named the requirement, not that it is proven; proof-ladder status stays in `kb_coverage`.
+  - `exceptions`: requirements that `exempts` it, each with `approvedBy` when a human approved the exception.
+  - `unknowns`: what the checks could not decide, each with a `kind` and `detail`: `contradiction_unresolved` (a rule overlap the checks could not classify), `feasibility_unknown` (a success scenario whose assumptions no current requirement constrains), `unresolved_proposition` (a clause still `ambiguous` or an `ontology_gap`), `analysis_incomplete` (no complete clause ledger), or `verdict_unavailable` (the checks could not run).
+- `rationale`: ADRs that explain the decisions, each with its `source` path and an `excerpt`: the opening sentences of its Decision section (falling back to Rationale, then the first paragraph), at most 280 characters.
+- `notGoverning`: superseded or deprecated requirements, with `supersededBy` when known. They are listed so they are never read as current policy.
+- `observations`: observation/meta facts, labelled as notes rather than rules.
+- `scope`: the KB the answer was computed from: `branch`, `snapshotId`, and `syncedAt`. `kb_status` says whether that snapshot is stale.
+- `truncated`: `true` when a size bound cut the layer short. The whole answer stays under 16 KB: long titles, excerpts and details are clipped, then ADR excerpts are dropped, then lower-ranked requirements and list entries; a verdict keeps its `status` when its witnesses are dropped.
+- `note`: how to read the layer. An empty `governing` list is not evidence that nothing governs the change.
+
+The answer layer is graph traversal plus the existing checks scoped to the governing requirements: discovery, not proof. Use `kb_check` and `kb_coverage` for full consistency and proof status. Pass `answer: false` to skip it.
 
 **Example:**
 ```json
 {
-  "query": "login flow",
+  "query": "what governs the login flow?",
   "type": "req",
   "limit": 10
 }
@@ -244,18 +330,22 @@ Intent-mode results additionally carry `evidence` for matched facets, source loc
 
 ### `kb_compile_intent`
 
-Compile complete post-change intent into a deterministic, snapshot-bound plan without mutating the KB. The compiler reuses intent-aware discovery and the semantic advisor, accounts for every proposition, checks current contradiction witnesses, proposes canonical traceability links, and emits dependency-ordered `kb_upsert`-style steps only for resolved typed claims.
+Compile complete post-change intent into a deterministic, snapshot-bound plan without mutating the KB. The compiler reuses intent-aware discovery and the semantic advisor, accounts for every proposition, checks current contradiction witnesses, proposes canonical traceability links, and emits dependency-ordered `kb_upsert`-style steps only for resolved typed claims. A conditional clause ("only when", "only if", "must not ... unless") on one subject property compiles to a `forbid` rule linked by `requires_rule`; one the advisor cannot translate stays an `ontology_gap` proposition and the plan `needs_resolution`.
 
 **Parameters:**
 - `intent` (required): Complete desired behavior, not a patch fragment.
 - `mode` (required): `create` or `update`.
 - `requirementId` (optional): Exact update target; automatic update selection is gated by score and runner-up margin.
 - `title`, `clauses`, `semanticFacets`, `sourceLocations`, `interpretations` (optional): Context for title, proposition decomposition, host-agent facets, changed-code evidence, and typed rule IR.
-- `scenarioDrafts`, `testDrafts` (optional): Draft traceability artifacts. Tests are linked through scenarios with `verified_by`; when multiple scenarios are supplied, each test must declare stable `scenarioIds` (a single scenario remains backward-compatible). Draft tests default to ancillary `integration`/`internal` evidence; explicitly declare `end_to_end`/`consumer` when that is the intended proof-bearing scope.
+- `scenarioDrafts`, `testDrafts` (optional): Draft traceability artifacts. Each draft's `body` is carried as the step's `document.body`, not as an entity property. Tests are linked through scenarios with `verified_by` (the scenario step carries the link, and tests are ordered before the scenarios that link to them; the requirement step carries `specified_by`); when multiple scenarios are supplied, each test must declare stable `scenarioIds` (a single scenario remains backward-compatible). Draft tests default to ancillary `integration`/`internal` evidence; explicitly declare `end_to_end`/`consumer` when that is the intended proof-bearing scope.
 - `proposalDecisions` (optional): Explicit `accept`/`reject` decisions for returned traceability proposals; pending proposals are excluded from executable steps.
 
 **Returns:**
-`kibi.compile-plan.v1` with `planHash`, status (`ready`, `needs_resolution`, or `blocked`), branch/KB/workspace snapshot bindings, discovery candidates, proposition ledger, contradiction witnesses, traceability proposals, dependency-ordered steps, source before-hashes, and diagnostics. The plan is a review artifact; it is not a mutation request.
+`kibi.compile-plan.v1` with `planHash`, status (`ready`, `needs_resolution`, or `blocked`), branch/KB/workspace snapshot bindings, discovery candidates, proposition ledger, contradiction analysis, traceability proposals, dependency-ordered steps, source before-hashes, and diagnostics. The plan is a review artifact; it is not a mutation request.
+
+Every non-symbol step of a `ready` plan carries `document.path`, the authored document `kb_apply_plan` writes that entity to (the same canonical path `kb_upsert` would pick). The requirement's document is the first `sourceLocations` entry when it is a `.md`/`.mdx` file outside `.kb/`, otherwise its existing document or `.kb/requirements/<id>.md`; its `document.body` is the intent. Code `sourceLocations` are evidence only and are never write targets. `sourceWrites` is empty for compile plans. A step that cannot be applied as written (it fails entity validation or its document path cannot be resolved) makes the plan `needs_resolution` with the diagnostic `A plan step cannot be applied as written: …`.
+
+`contradictionAnalysis` stages the plan in a rolled-back transaction and compares it with the current KB: `introduced`, `removed` and `unchanged` list full contradiction and scenario-infeasibility witnesses (kind `property`, `predicate`, `rule` or `scenario_feasibility`; a scenario witness carries `scenario`, `requirements`, `assumedFacts` and `requirementFacts`). Any introduced contradiction or infeasible scenario makes the plan `blocked`, whichever requirements it names; a pre-existing one blocks only when it names the target requirement. `witnesses` lists the ones that decided `outcome`.
 
 **Example:**
 ```json
@@ -268,18 +358,27 @@ Compile complete post-change intent into a deterministic, snapshot-bound plan wi
 
 ### `kb_apply_plan`
 
-Apply an approved `kibi.compile-plan.v1` after revalidating its canonical hash, branch/KB/workspace snapshots, source before-hashes, and entity/relationship shapes. Entity steps are applied sequentially through the shared upsert boundary. Applying a compile plan does not publish source files and does not claim crash recovery.
+Apply an approved `kibi.compile-plan.v1` after revalidating its canonical hash, branch/KB/workspace snapshots, source before-hashes, and entity/relationship shapes. Every step runs through the same validation chain as `kb_upsert` (schema, proof receipts, relationship sources and targets, strict-lane pairing, supersedes direction, proposition-complete ingestion, grounding claim keys, predicate argument vocabulary), with entities and relationships created by earlier steps treated as present, and the whole plan is staged in a rolled-back transaction before the first write; a plan whose staged state introduces a contradiction or an infeasible success scenario is refused with nothing written.
+
+A compile plan then applies all-or-nothing:
+
+1. Before the first write, Kibi writes a durable journal (`plan-apply-<hash>`) next to the branch store (under `.kb/recovery/plan-apply/` until the store exists). The journal records the plan hash, the exact before and after bytes and hashes of every workspace file the plan changes (its `sourceWrites`, each step's entity document, and the relationship shards its steps append), every store upsert, and a fingerprint of the store entities the plan touches. Plans without source writes get a journal too.
+2. Files are published with temp-file + rename, fsynced where the host supports it.
+3. All steps commit in one store transaction. That transaction is the only commit point. Each entity is committed with its authored document as its source, so `kibi sync --rebuild` keeps every entity and relationship the plan applied.
+
+Any failure before the commit restores every file from the journal and leaves the store untouched; the error says `no change was applied` and the plan can be applied again. If the process dies mid-application, the next `kb_apply_plan`, `kb_upsert` or `kb_delete` call (or `kb_apply_plan` with that `recoveryJournalId`) finishes the journal before doing anything else. A journal interrupted before the store commit was submitted is rolled back. One interrupted during the commit is decided by the store fingerprint: unchanged means roll back, changed means complete. One whose commit was accepted is completed. Recovery is idempotent, and it refuses (`PARTIAL_COMMIT_REPAIR_REQUIRED`), changing nothing, when a journaled file holds neither its journaled before nor after bytes. Mutating calls on that branch then fail until an operator resolves it. `kibi sync` does not yet settle pending plan journals; run a mutating call or the explicit recovery first.
 
 **Parameters:**
 - `plan` (required): Complete plan returned by `kb_compile_intent`.
 - `approvedPlanHash` (required): Exact reviewed `planHash`.
+- `recoveryJournalId` (instead of `plan`): A `plan-apply-*` journal to complete or roll back, or another typed recovery journal returned by a `committed_with_repairs` result. Recovery never replays the original plan request.
 
 **Returns:**
-`kibi.plan-apply-result.v1` with applied entity/relationship counts, final snapshots, validation counts, changed paths, and explicit notes about the current sequential boundary. It also accepts `kibi.migration-plan.v2`; migration application requires `approvedActionIds`, an exact `approvedPlanHash`, and rejects blocked or non-automatic actions. Migration results report per-action outcomes and reconciliation failures.
+`kibi.plan-apply-result.v1` with entity/relationship counts, final snapshots, validation counts, changed paths (every source write and entity document the plan wrote), `recoveryJournalId`, and notes. `outcome` is `applied` when this call committed the plan, or `replayed` / `rolled_back` when a recovery completed or rolled back an interrupted application. Recoveries a call performed before its own work are listed in `validationSummary.recoveredJournals` and in the text content. If the call then fails, its error text ends with `[settled before this failure: ...]`. A store that reports a failure but shows the batch committed yields `committed_with_repairs` with `STORE_COMMIT_REPORTED_FAILURE`. A pending-source receipt failure after the commit yields `committed_with_repairs` with `PENDING_SOURCE_RECEIPT_FAILED` and a `kb_apply_plan` recovery next action; further writes fail with `PLAN_APPLY_RECOVERY_REQUIRED` until that journal is recovered. Re-applying a committed plan fails with `MUTATION_ALREADY_COMMITTED`. It also accepts `kibi.migration-plan.v2`; migration application requires `approvedActionIds`, an exact `approvedPlanHash`, and rejects blocked or non-automatic actions. Migration results report per-action outcomes and reconciliation failures.
 
 ### `kb_ingest_proof`
 
-Ingest a producer-emitted `kibi.proof-run.v1` artifact and evaluate it against each selected test's `kibi.proof-contract.v1` proof obligations. Kibi rechecks the live workspace snapshot, integration command binding, run-level outcome, attempt history, success policy, and append-only proof history, then derives and appends idempotent `kibi.proof-receipt.v1` receipts. Producers report what happened; Kibi evaluates proof. Caller-authored receipts and trusted outcomes are rejected.
+Ingest a producer-emitted `kibi.proof-run.v1` artifact and evaluate it against each selected test's `kibi.proof-contract.v1` proof obligations. Kibi rechecks the live workspace snapshot, integration command binding, run-level outcome, attempt history, success policy, and proof history ordering, then derives and appends idempotent `kibi.proof-receipt.v1` receipts and compacts each history to the receipts that can still decide proof (`kibi.proof-receipt-compaction.v1`; kept receipts are never edited or reordered). Producers report what happened; Kibi evaluates proof. Caller-authored receipts and trusted outcomes are rejected.
 
 **Parameters:**
 - `snapshot` (required): Workspace snapshot captured immediately before execution.
@@ -287,7 +386,7 @@ Ingest a producer-emitted `kibi.proof-run.v1` artifact and evaluate it against e
 - `testIds` (optional): Existing test entities with `kibi.proof-contract.v1`. Omit to evaluate every test contracted to the artifact's integration.
 
 **Returns:**
-Per-test outcomes, receipt ids, applied/duplicate flags, receipt counts, expected-versus-received gap reports, plus the artifact digest and Kibi-derived environment hash. A changed snapshot, unknown integration, command drift, run-level failure, failed success policy, or append-only violation fails before mutation.
+Per-test outcomes, receipt ids, applied/duplicate flags, receipt counts, the number of superseded receipts compacted away (`compacted`), expected-versus-received gap reports, plus the artifact digest and Kibi-derived environment hash. A changed snapshot, unknown integration, command drift, run-level failure, failed success policy, or append-only violation fails before mutation.
 
 ### `kb_status`
 
@@ -331,58 +430,47 @@ returns (up to the engine/Prolog timeout). Read-tool timeouts still must
 **not** call `resetProlog` / `terminate()`, so siblings no longer fail with
 `Kibi engine connection closed`; they may wait behind the in-flight goal.
 
+To keep one read from holding the queue, set `KIBI_ENGINE_READ_TIME_LIMIT_MS`
+and/or `KIBI_ENGINE_READ_INFERENCE_LIMIT` in the MCP server's environment (see
+[engine read limits](cli-reference.md#engine-read-limits)). A bounded read runs
+under SWI-Prolog `call_with_time_limit/2` and `call_with_inference_limit/3`, so
+the engine stops it itself and serves the next queued request. A tool whose
+read hit its limit returns an error envelope with `error.code`
+`QUERY_LIMIT_EXCEEDED` and `error.details.limitExceeded`
+(`{ "kind": "time" | "inferences", "limit": <n> }`); it never returns a partial
+answer. Write requests are never bounded, but the read-only queries a write
+tool such as `kb_upsert` runs before it writes are reads: under a limit they can
+stop it with `QUERY_LIMIT_EXCEEDED` before anything is written.
+
+On a detached HEAD that no single local branch points at, read tools answer
+from a read-only snapshot of the checkout and add a `detached_head_read_only`
+warning diagnostic (commit, branches at HEAD, store path, `writes:
+"refused"`); write tools fail with instructions to check out a branch or set
+`KIBI_BRANCH`. See [`kibi branch`](cli-reference.md#kibi-branch).
+
 Discovery tools (`kb_query`, `kb_search`, `kb_status`) may opt into
 `agentVisibleStructuredData` so envelope `data` is also embedded in `content`
 text for hosts that hide `structuredContent`.
 
-### `kb_skills_list`
+### `kb_skills`
 
-List bundled Kibi agent skills available for progressive disclosure. Read-only; does not mutate the KB or require Prolog.
-
-**Parameters:**
-- None
-
-**Returns:**
-Array of skill manifests with `id`, `name`, `version`, `description`, and declared `resources`.
-
-**Example:**
-```json
-{}
-```
-
-### `kb_skills_load`
-
-Load a bundled Kibi agent skill by ID, returning its manifest metadata, Markdown body, declared resources, content hash, and source type. Read-only; does not execute scripts or require Prolog.
-
-The visible text includes the skill's declared resources so agents can discover follow-up `kb_skills_read` calls without guessing resource paths.
+Read bundled Kibi agent skills for progressive disclosure. Read-only; does not mutate the KB or require Prolog. The CLI peer is `kibi skill --input -`; the narrower `skills-list`, `skills-load`, and `skills-read` routes remain.
 
 **Parameters:**
-- `id` (required): Bundled skill ID to load. Example: `'kibi-usage'`.
+- `action` (required): `list`, `load`, or `read`.
+- `id` (required for `load` and `read`): Bundled skill ID. Example: `'kibi-usage'`.
+- `resource` (required for `read`): Manifest-declared resource path. Example: `'resources/fact-lanes.md'`. Arbitrary file paths are not exposed.
 
 **Returns:**
-Skill bundle with `manifest`, `body`, `resources`, `hash`, and `sourceType`.
+The payload of the routed operation plus `action`:
+- `list`: skill manifests with `id`, `name`, `version`, `description`, and declared `resources`.
+- `load`: the skill bundle with `manifest`, `body`, `resources`, `hash`, and `sourceType`. The visible text lists the declared resources so agents can discover follow-up `read` calls without guessing paths.
+- `read`: the resource contents as text.
 
 **Example:**
 ```json
 {
-  "id": "kibi-usage"
-}
-```
-
-### `kb_skills_read`
-
-Read a declared resource from a bundled Kibi agent skill. Resource paths are restricted to the skill manifest; arbitrary file paths are not exposed. Read-only; does not require Prolog.
-
-**Parameters:**
-- `id` (required): Bundled skill ID. Example: `'kibi-usage'`.
-- `resource` (required): Manifest-declared resource path to read. Example: `'resources/fact-lanes.md'`.
-
-**Returns:**
-Resource contents as text.
-
-**Example:**
-```json
-{
+  "action": "read",
   "id": "kibi-usage",
   "resource": "resources/fact-lanes.md"
 }
@@ -477,6 +565,8 @@ Nodes, edges, truncation flag, and status metadata.
 
 ### `kb_sparql_remote`
 
+Registered only when `KIBI_MCP_OPTIONAL_TOOLS` names it (or is `all`); the `kibi sparql-remote` CLI route is always available.
+
 Run an opt-in SPARQL `SELECT` query against an external HTTP(S) SPARQL endpoint. This tool is remote-only: it does not query Kibi's local RDF store directly, does not start a local SPARQL endpoint, and does not store credentials.
 
 **Parameters:**
@@ -513,6 +603,7 @@ working-tree files for Git.
 - `id`: Entity ID
 - `properties`: Entity fields, including required `title` and `status` (status values depend on entity type; legacy values may still be accepted for compatibility). For `symbol` entities this may include `sourceFile`, `symbol_role`, and `granularity_reason`; for `fact` entities this includes typed fact fields such as `fact_kind`, `subject_key`, `property_key`, `operator`, `value_type`, and one matching `value_*` field.
 - `relationships` (optional): Relationship rows with enum-backed `type`, `from`, and `to`
+- `dryRun` (optional, default `false`): Validate the payload and write nothing. See [Dry run](#dry-run-validation).
 - `document` (optional): `{ path?, body? }` for an explicit tracked source
   target. Existing entities preserve their current body when `body` is omitted;
   new requirements default the body to `semantic_text`. New entities without a
@@ -520,18 +611,20 @@ working-tree files for Git.
 
 `symbol_role` values are `behavioral`, `structural`, `type-shape`, `config`, `module`, and `unknown`. Use `behavioral` for manual anchors when behavior is hidden inside factory/expression composition and the extractor cannot create a narrower symbol.
 
+`properties.origin` (optional, every type) records provenance: `{kind: human|agent|migration|import, ref?, approved_by?, recorded_at?}`. A new entity written without it is recorded as `{kind: agent, recorded_at: <write time>}` (a dry run validates a supplied origin but does not add the default to `normalizedPreview`). An update without it never changes the stored origin, and an entity that has none keeps none. A supplied origin is written as given; a missing `recorded_at` gets the write time. See `docs/entity-schema.md#entity-origin`.
+
 For current requirement writes with assertive prose, mutation fails closed unless the payload preserves the complete advisor ledger and source contract. Every assertive claim key must appear exactly once in `logic_claims`; every `modeled` entry must have exactly one logical relationship whose target fact carries that same key. Explicit unresolved statuses are accepted as honest inventory states but do not make the requirement proof-complete.
 
 **Returns:**
 Confirmation of entity creation/update and relationship creation counts. Successful responses may also include `structuredContent.semanticAdvisor` and `structuredContent.warnings`. Modeling suggestions remain reviewable, while proposition accounting and source/grounding integrity are blocking for applicable requirement writes.
 
-### `kb_validate_upsert`
+### Dry run validation
 
-Validate a `kb_upsert` payload without mutating the KB. This read-only preflight returns `valid`, `errors`, `warnings`, `semanticAdvisor`, and `normalizedPreview`, including the same proposition-completeness and exact grounding-identity checks used by `kb_upsert`.
+Call `kb_upsert` with `dryRun: true` to validate a payload without mutating the KB (catalog operation `kb_validate_upsert`; CLI `kibi upsert` with `"dryRun": true`, or `kibi validate-upsert`). This read-only preflight returns `valid`, `errors`, `warnings`, `semanticAdvisor`, and `normalizedPreview`, plus `dryRun: true` and `skippedEffects: ["kb-write", "workspace-write"]`. With a store attached it runs exactly the validation a real `kb_upsert` runs before its first write: schema, append-only proof receipts, relationship sources and live targets, symbol granularity, strict-lane pairing, supersedes direction, proposition completeness, grounding claim keys and predicate argument vocabulary. A dry run therefore rejects what the write would reject. Without a store it runs only the store-independent checks.
 
 `semanticAdvisor` includes a version, payload hash, source-bound inventory contract, proposition ledger, logic readiness, candidate lane, detected signals, ambiguity witnesses, modeling suggestions, and suggested next tools. A valid preflight proves source accounting at the ingestion boundary; contradiction checks and proof evidence are still separate proof stages.
 
-When invoked through MCP, `kb_validate_upsert` also attaches to Prolog and validates live relationship endpoint types before mutation. Invalid tuples such as `verified_by fact -> test` are rejected in preflight with the same relationship guidance `kb_upsert` would return.
+When invoked through MCP, the dry run also attaches to Prolog and validates live relationship endpoint types before mutation. Invalid tuples such as `verified_by fact -> test` are rejected in preflight with the same relationship guidance `kb_upsert` would return.
 
 ### `kb_delete`
 
@@ -559,21 +652,21 @@ directly.
 Run KB validation rules after mutations. Agents can also opt into read-only changed-file impact diagnostics for source edits while the edit context is still fresh. The MCP tool and CLI JSON route are peer interactive gates; CLI staged checks and git hooks remain the commit-time enforcement gate.
 
 **Parameters:**
-- `rules` (optional): Validation rule subset. The allowed names are maintained in `packages/core/schema/rule-registry.json` (single source for the tool schema, the TS rule registry, and the Prolog check dispatch): `must-priority-coverage`, `symbol-coverage`, `symbol-traceability`, `no-dangling-refs`, `source-relationship-parity`, `no-cycles`, `required-fields`, `deprecated-adr-no-successor`, `domain-contradictions`, `strict-fact-shape`, `strict-req-fact-pairing`, `predicate-verifiability`, `logic-coverage`, `rule-safety`, `rule-verifiability`, `query-plan-safety`, `req-status-vocabulary`, `strict-readiness`, `semantic-completeness`, `proof-contract-symbols`, `entity-id-style`, `domain-redundancy`, `domain-implication`, `subject-key-identity`, `subject-key-shape`, `ontology-quality`, `predicate-schema-conformance`. Canonical rules populate blocking `violations[]`. The vocabulary-convergence rules (`entity-id-style`, `domain-redundancy`, `subject-key-identity`, `subject-key-shape`, `predicate-schema-conformance` as warnings; `domain-implication`, `ontology-quality` as info) are advisory, run by default, and report non-blocking `qualityDiagnostics` whose `evidence.witnesses` carry exact requirement IDs, fact IDs, and signatures; see `docs/cli-reference.md` for their precise definitions. `kb_check` never resolves capability plugins, so these results are deterministic and offline. `domain-redundancy` is suppressed for pairs linked by `supersedes` or `restates`. `req-status-vocabulary` rejects requirement statuses outside the canonical+legacy vocabulary (`open`, `in_progress`, `closed`; legacy `active`, `approved`) — e.g. ADR vocabulary such as `accepted` compiles but silently falls out of the proof ladder. `strict-fact-shape`, `strict-req-fact-pairing`, `predicate-verifiability`, and `proof-contract-symbols` are advisory modeling checks: they run by default and report as non-blocking `qualityDiagnostics`. `proof-contract-symbols` reports unresolved `required_proofs.symbol_id` values, type-shape required proofs, and `proof_bindings.source_file` disagreement with the named symbol `sourceFile`; Kibi does not infer TEST names from filenames. Migration diagnostics (`strict-readiness`, `semantic-completeness`) run only when explicitly selected. `logic-coverage` is enabled by default, validates explicitly declared requirement manifests against linked ground facts, and leaves requirements without a manifest as gradual-backfill debt reported by quality diagnostics. `domain-contradictions` compares strict property constraints and exact opposite predicate polarities over the same namespace, predicate name, and ordered arguments. It does not infer arbitrary equivalence between differently shaped predicates.
+- `rules` (optional): Validation rule subset. The allowed names are maintained in `packages/core/schema/rule-registry.json` (single source for the tool schema, the TS rule registry, and the Prolog check dispatch): `must-priority-coverage`, `symbol-coverage`, `symbol-traceability`, `no-dangling-refs`, `source-relationship-parity`, `source-path-dangling`, `no-cycles`, `required-fields`, `deprecated-adr-no-successor`, `superseded-requirement-open`, `scenario-feasibility`, `scenario-feasibility-unknown`, `exception-claim-keys`, `numeric-string-value`, `rule-key-arguments-missing`, `domain-contradictions`, `logic-coverage`, `rule-safety`, `rule-verifiability`, `query-plan-safety`, `req-status-vocabulary`, `strict-fact-shape`, `strict-req-fact-pairing`, `predicate-verifiability`, `strict-readiness`, `semantic-completeness`, `proof-contract-symbols`, `entity-id-style`, `domain-redundancy`, `domain-implication`, `subject-key-identity`, `subject-key-shape`, `ontology-quality`, `exception-unapproved`, `exception-approval-self-attested`, `agent-requirement-unapproved`, `requirement-rationale-missing`, `symbol-owner-superseded`, `adr-unlinked`, `adr-proposed`, `predicate-schema-conformance`. Canonical rules populate blocking `violations[]`. The vocabulary-convergence rules (`entity-id-style`, `domain-redundancy`, `subject-key-identity`, `subject-key-shape`, `predicate-schema-conformance` as warnings; `domain-implication`, `ontology-quality` as info) are advisory, run by default, and report non-blocking `qualityDiagnostics` whose `evidence.witnesses` carry exact requirement IDs, fact IDs, and signatures; see `docs/cli-reference.md` for their precise definitions. `kb_check` never resolves capability plugins, so these results are deterministic and offline. `domain-redundancy` is suppressed for pairs linked by `supersedes` or `restates`. `req-status-vocabulary` rejects requirement statuses outside the canonical+legacy vocabulary (`open`, `in_progress`, `closed`; legacy `active`, `approved`) — e.g. ADR vocabulary such as `accepted` compiles but silently falls out of the proof ladder. `scenario-feasibility` blocks on a success scenario whose assumed values cannot hold, alone or together, with what the current requirements governing it require through `requires_property` facts or typed `requires_rule` rules, within each constraint's scope and validity window (each witness names a minimal set of requirements, assumption facts and requirement facts), unless an exception requirement with a non-empty `approved_by` exempts the requirement (only the clauses in its `exempts_claims`, when set); `scenario-feasibility-unknown` is advisory and lists success scenarios whose feasibility cannot be decided (no `assumes`, assumptions that contradict each other, an assumed property no governing requirement constrains, a type, unit or operator that cannot be compared, governing requirements with no common value, a governing rule the assumptions neither satisfy nor refute, or a conflict only with constraints whose validity window may not cover the scenario). `exception-claim-keys` blocks on an exception whose `exempts_claims` names a key that is not a claim of a requirement it exempts. `numeric-string-value` is advisory and lists `property_value` facts that store a plain decimal as `value_type: string` where the comparison is numeric, since strings are never coerced and such facts drop out of contradiction and feasibility checks. `exception-unapproved` (an exception that `exempts` a requirement but has no `approved_by`), `exception-approval-self-attested` (an agent-authored exception whose `approved_by` is not corroborated by `origin.approved_by` and `approval_ref`) and `agent-requirement-unapproved` (info; agent-authored current requirements without `origin.approved_by`, at most 25 per check plus one summary) are advisory approval checks. `superseded-requirement-open` blocks a requirement that another requirement `supersedes` unless its status is `closed`, and reports requirements that supersede each other (directly or through a chain) once per cycle, naming every member; `no-cycles` follows only `depends_on`. `source-path-dangling` blocks an authored `source` field that names neither an existing workspace path (a `#anchor` suffix is ignored), an existing entity id, nor an http(s) URL; a missing `source` is allowed. The authored field is dead data (the compiled `source` is always the entity's own file and `kb_upsert` never writes the field), so each finding names its automatic fix: `evidence.rewrite` for a pre-canonical `documentation/<lane>/...` or `<lane>/...` value whose file exists under `.kb/<lane>/` and is not the entity's own file, otherwise `evidence.remove` (`self` for a value naming the entity's own file, `dangling` for one Kibi cannot map), plus `evidence.refused` when the edit is not safe. The migration plan turns superseded requirements into a `close_superseded_requirements` automatic action plus one `review_supersession_cycle` per cycle, and dangling sources into the automatic `source_path_rewrite` action (whose evidence lists `rewrites` and `removals`); only a value with `evidence.refused` becomes a `review_source_path_dangling` review. `symbol-owner-superseded` (a symbol whose every `implements` target is superseded or deprecated; at most 25 per check plus one summary), `adr-unlinked` (an accepted ADR no requirement or ADR links with, in either direction), `adr-proposed` (info: an ADR still `proposed` and not superseded) and `requirement-rationale-missing` (a current requirement with `origin.kind` `human` or `agent` and no `rationale` field, no `## Rationale`/`## Why` section and no ADR link; at most 25 per check plus one summary) are advisory lifecycle checks. `subject-key-identity` also reports one subject or claim minted as several active facts (the same `subject_key`, or the same `subject_key`, `property_key`, `operator`, typed value and `unit`), and `subject-key-shape` also reports property keys that number a clause (`clause_03_...`). `rule-key-arguments-missing` is advisory and names, for each opposing rule pair that is `unresolved` only because a condition predicate declares no `key_arguments`, the predicate (`namespace:name/arity`) and the key positions that would decide the pair. `strict-fact-shape`, `strict-req-fact-pairing`, `predicate-verifiability`, and `proof-contract-symbols` are advisory modeling checks: they run by default and report as non-blocking `qualityDiagnostics`. `proof-contract-symbols` reports unresolved `required_proofs.symbol_id` values, type-shape required proofs, and `proof_bindings.source_file` disagreement with the named symbol `sourceFile`; Kibi does not infer TEST names from filenames. Migration diagnostics (`strict-readiness`, `semantic-completeness`) run only when explicitly selected. `logic-coverage` is enabled by default, validates explicitly declared requirement manifests against linked ground facts, and leaves requirements without a manifest as gradual-backfill debt reported by quality diagnostics. `domain-contradictions` compares strict property constraints and exact opposite predicate polarities over the same namespace, predicate name, and ordered arguments. It does not infer arbitrary equivalence between differently shaped predicates.
 - `sourceFiles` (optional): Repo-relative source paths to inspect for changed-file impact diagnostics.
 - `staged` (optional): Inspect staged source changes when building impact diagnostics.
 - `includeWorkingTreeDiff` (optional): Include unstaged working-tree content/diffs for the supplied `sourceFiles`.
 - `includeImpactDiagnostics` (optional): Include changed-file diagnostics such as `symbol_granularity_violation` and `symbol_semantic_review_needed` in structured output.
 - `maxDiagnostics` (optional): Cap returned impact diagnostics. Graph validation violations are not capped by this value.
 - `workspaceRoot` (optional): Workspace root for impact diagnostics. Defaults to the MCP server workspace.
-- `async` (optional, default `false`): Start the check as a background job and return a `kibi.job.v1` receipt (`jobId`, `status: "running"`, `pollWith: "kb_job_status"`) immediately instead of holding the request until the tool timeout. Use for full checks on large KBs that would exceed `KIBI_MCP_TOOL_TIMEOUT_MS`. Poll `kb_job_status` until `status` is `succeeded` (full result under `result`) or `failed` (error under `error`). Jobs are process-local: they are not persisted and are dropped on server restart.
+- `async` (optional, default `false`): Start the check as a background job and return a `kibi.job.v1` receipt (`jobId`, `status: "running"`, `pollWith: "kb_job_status"`) immediately instead of holding the request until the tool timeout. Use for full checks on large KBs that would exceed `KIBI_MCP_TOOL_TIMEOUT_MS`. This needs the opt-in `kb_job_status` tool (`KIBI_MCP_OPTIONAL_TOOLS=kb_job_status`); without it, `async: true` is ignored and the check runs synchronously. Poll `kb_job_status` until `status` is `succeeded` (full result under `result`) or `failed` (error under `error`). Jobs are process-local: they are not persisted and are dropped on server restart.
 
 **Returns:**
 Validation report with any hard violations found and suggested fixes. `structuredContent.violations[]` is the blocking correctness lane: graph, schema, contradiction, query-plan, and staged enforcement failures live there and continue to drive `count` and failure status. `structuredContent.qualityDiagnostics[]` is the additive audit-quality lane for non-blocking modeling, coverage-depth, symbol fanout, duplicate-coordinate, broad-requirement, status, strict-fact, and telemetry-acceptance review signals.
 
 Rule filtering affects the audit-quality lane. When `rules` is omitted, MCP runs the normal full validation profile and also performs the full-KB audit-quality scan that populates `qualityDiagnostics[]`. When `rules` is supplied, MCP preserves the requested scoped validation and skips that full-KB advisory scan so iteration stays fast and predictable. Source impact diagnostics are independent: pass `includeImpactDiagnostics: true` with `sourceFiles` or `staged: true` when you need changed-file review during a filtered check.
 
-When diagnostic mode has produced `.kb/usage.log`, the unfiltered scan evaluates `kibi.telemetry-acceptance.v1` over its latest 200 events. It ranks advisor/preflight bypasses, source lookup misses, stalled proof-gap recovery, receipt gaps, and repeated mutation failures as `category: telemetry` recommendations. Diagnostic callers may supply opaque `session_id` and `actor_id` metadata; when both evidence records expose an identifier, advisor/preflight correlation requires equality and never borrows evidence across an explicit boundary. Stale or incomplete evidence stays `insufficient_evidence`; absence of observable fields is never interpreted as a pass. A missing log is skipped because MCP diagnostic logging is opt-in. Use the CLI-only `kibi usage-metrics --format json --require-acceptance` route when a hard completion gate is required, and `kibi usage-remediation --format json` for exact read-only repair evidence.
+When diagnostic mode has produced `.kb/usage.log`, the unfiltered scan evaluates `kibi.telemetry-acceptance.v1` over its latest 200 events. It ranks advisor/preflight bypasses, edits of requirement-linked files that no lookup preceded (from host hook rows), source lookup misses, stalled proof-gap recovery, receipt gaps, and repeated mutation failures as `category: telemetry` recommendations. Diagnostic callers may supply opaque `session_id` and `actor_id` metadata; when both evidence records expose an identifier, advisor/preflight correlation requires equality and never borrows evidence across an explicit boundary. Stale or incomplete evidence stays `insufficient_evidence`; absence of observable fields is never interpreted as a pass. A missing log is skipped because MCP diagnostic logging is opt-in. Use the CLI-only `kibi usage-metrics --format json --require-acceptance` route when a hard completion gate is required, and `kibi usage-remediation --format json` for exact read-only repair evidence.
 
 Quality diagnostics use explicit `severity` and `blocking` fields. `severity: "review"` and `severity: "info"` are advisory and do not fail checks by default; `severity: "warning"` is still non-blocking unless `blocking: true`; `severity: "error"` or `blocking: true` is a hard failure signal. Existing hard violations remain in `violations[]` rather than being downgraded into the advisory lane.
 
@@ -593,6 +686,8 @@ with an explicit hash/action approval through `kb_apply_plan`.
 ```
 
 ### `kb_job_status`
+
+Registered only when `KIBI_MCP_OPTIONAL_TOOLS` names it (or is `all`).
 
 Poll a background job started by a long-running operation called with
 `async: true` (currently `kb_check`). This tool is MCP-server-native: jobs
@@ -641,15 +736,27 @@ they record `unknown`. Rows record business arguments and agent-supplied
 telemetry metadata, and the log stays local to the workspace under
 `.kb/usage.log`.
 
-The Claude Code plugin hooks add rows with `interface: "hook"`. They record the
-agent activity around Kibi calls rather than Kibi operations: which source,
-test, or `.kb/` file was read or edited, whether a requirement snippet was
-shown or suppressed (`hook_action`), which requirements own the file, and
-whether the session had used Kibi yet (`kb_used_before`). Rows carry the host
-`session_id`, so one session's lookups and edits can be put in order.
-Acceptance metrics, `kibi usage-metrics`, and `kibi usage-remediation` ignore
-hook rows, so a busy editing session never pushes operations out of their
-bounded window.
+The host plugin hooks (Claude Code, Cursor, Codex, ZCode, and OpenCode) add
+rows with `interface: "hook"` under the same opt-in. They record the agent
+activity around Kibi calls rather than Kibi operations, and every row names its
+`host` and the host `session_id`, so one session's lookups and edits can be put
+in order. All hosts write two kinds of row:
+
+- `hook_action: "kb_usage"` when a tool call ran a Kibi operation, through MCP
+  or a `kibi <route>` shell command, with the canonical name in `kb_operation`
+  (`kb_search`, `kb_query`, …);
+- `hook_action: "edited"` for each source, test, or `.kb/` file an edit tool
+  changed (`path`, `path_kind`), with the requirements the file's symbols
+  implement in `requirement_ids`. Docs, config, and generated paths are not
+  recorded.
+
+The Claude Code plugin also records whether a requirement snippet was shown or
+suppressed and whether the session had used Kibi yet (`kb_used_before`).
+Hook rows never enter the bounded window of operation events, so a busy
+editing session never pushes operations out of it. The only metric that reads
+them is `lookup_before_first_edit`: per host session, did a `kb_search` or
+`kb_query` run before the first edit of a file with non-empty
+`requirement_ids`? It is `not_applicable` when no hook recorded such an edit.
 
 Counts are only recorded when they can be read. A call whose payload cannot be
 parsed records `result_count: null` rather than zero, and acceptance metrics
@@ -752,7 +859,9 @@ always the attached server's.
 
 `KIBI_WORKSPACE` (or `KIBI_PROJECT_ROOT`, `KIBI_ROOT`) pins the server to one
 workspace and disables routing; `KIBI_MCP_ROUTING=0` disables it without
-pinning. Routed children run with `KIBI_MCP_ROUTED=1` and never route further.
+pinning. Host plugin launchers set `KIBI_MCP_ATTACH_ROOT` to the session's
+workspace and start the server there; unlike the pinning variables it leaves
+routing enabled. Routed children run with `KIBI_MCP_ROUTED=1` and never route further.
 For `kb_check`, a `workspaceRoot` that no Kibi workspace owns keeps its older
 meaning: the tree to inspect for impact diagnostics. The CLI JSON routes do not
 take `workspaceRoot`; they run in the current directory, which makes them the
@@ -761,11 +870,11 @@ fallback when a result reports a mismatch.
 ## Recommended Agent Workflow
 
 1. **Interactive Bootstrap**: Start with the `/kibi-bootstrap` workflow, inspect typed status, and let `kb_plan_bootstrap` return any bounded context questions. Always preview candidates for user approval before applying.
-2. **Gather Context**: Use `kb_search` for discovery (decomposing broad tasks into focused probes) and `kb_query` for exact follow-up.
+2. **Gather Context**: Use `kb_search` for discovery (ask it a direct question or decompose broad tasks into focused probes; read `data.answer` for the governing requirements) and `kb_query` for exact follow-up.
 3. **Inspect Freshness**: Use `kb_status` when branch or stale-state confidence matters.
 4. **Analyze**: Use `kb_find_gaps`, `kb_coverage`, and `kb_graph` for curated reporting.
 5. **Check Source Impact**: After meaningful source edits, run `kb_check` with `sourceFiles`, `includeImpactDiagnostics: true`, and `includeWorkingTreeDiff: true` before deciding whether requirements/tests/symbol links need updates.
-6. **Execute Changes**: Use `kb_upsert` to create/update entities and relationships.
+6. **Execute Changes**: Model prose with `kb_model`, preflight with `kb_upsert` and `dryRun: true`, then use `kb_upsert` to create/update entities and relationships.
 7. **Validate**: Run `kb_check` after structural changes. Use explicit `rules` during iteration for scoped validation; run an unfiltered `kb_check` before completion to include the full-KB `qualityDiagnostics[]` audit scan.
 8. **Clean Up**: Use `kb_delete` only for intentional removals after validating dependencies.
 

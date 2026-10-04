@@ -46,6 +46,10 @@ semantic_clauses:
   - A TypeSafe client or network call must be absent when kibi-plugin-jev is imported or the registry is inactive.
   - When the Jev semantic classifier is unavailable, classification must fall back to builtin analysis.
   - Plugin diagnostics must not expose credentials.
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 # REQ-capability-plugin-jev-fallback-v1
 

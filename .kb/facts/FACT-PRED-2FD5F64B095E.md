@@ -4,7 +4,7 @@ title: Missing opt-in logs do not invent evidence
 status: active
 created_at: 2026-08-10T00:00:00.000Z
 updated_at: 2026-08-10T00:00:00.000Z
-source: documentation/requirements/REQ-kibi-telemetry-acceptance-gate.md
+source: .kb/requirements/REQ-kibi-telemetry-acceptance-gate.md
 tags:
   - lane:ontology
   - telemetry
@@ -23,6 +23,10 @@ claim_text: An absent opt-in usage log must not fabricate telemetry evidence
 claim_span_start: 1131
 claim_span_end: 1195
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of opt-in log absence semantics.

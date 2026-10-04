@@ -55,6 +55,10 @@ logic_claims:
   - CLAIM-6189F8978EDF093D
   - CLAIM-ECBEC0BAECCA4929
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 The Prolog KB core implements foundational validation rules to ensure data consistency:

@@ -8,6 +8,10 @@ tags:
   - routing
 id: SCEN-mcp-workspace-routing
 type: scenario
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 ## Given
 A Kibi MCP server attached to one checkout, while the agent works in a git worktree of the same repository (any harness; hooks optional).

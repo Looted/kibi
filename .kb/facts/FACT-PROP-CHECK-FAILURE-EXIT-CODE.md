@@ -18,4 +18,8 @@ claim_key: CLAIM-F0BB0D90E442DB1A
 claim_text: Failure results in a non-zero exit code and descriptive violation logs
 id: FACT-PROP-CHECK-FAILURE-EXIT-CODE
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

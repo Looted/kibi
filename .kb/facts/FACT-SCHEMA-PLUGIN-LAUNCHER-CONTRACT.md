@@ -30,4 +30,8 @@ examples:
   - plugin_launcher_contract(kibi_cursor_launcher,dependency_runtime_resolution,consumer_project_local_only_no_download)
 id: FACT-SCHEMA-PLUGIN-LAUNCHER-CONTRACT
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

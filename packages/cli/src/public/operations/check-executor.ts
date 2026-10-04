@@ -39,8 +39,13 @@ import {
   buildMigrationPlan,
   mergeMigrationPlans,
 } from "./migration-plan.js";
+import { collectOriginReviewViolations } from "./origin-review.js";
 import { collectPredicateSchemaConformanceViolations } from "./predicate-schema-conformance.js";
 import type { OperationContext, PrologPort } from "./runtime-types.js";
+import {
+  SOURCE_PATH_DANGLING_RULE,
+  collectSourcePathDanglingViolations,
+} from "./source-path-dangling.js";
 import { collectSourceRelationshipParityViolations } from "./source-relationship-parity.js";
 import type { OperationResult } from "./types.js";
 import { readWorkspaceSnapshot } from "./workspace-snapshot.js";
@@ -211,11 +216,21 @@ export async function executeCheck(
     )
       ? await collectPredicateSchemaConformanceViolations(prolog)
       : [];
+    const sourcePathFindings = rulesAllowlist.has(SOURCE_PATH_DANGLING_RULE)
+      ? collectSourcePathDanglingViolations(workspaceRoot)
+      : [];
+    const originReviewFindings = await collectOriginReviewViolations(
+      prolog,
+      rulesAllowlist,
+      workspaceRoot,
+    );
     const partitioned = partitionCheckFindings([
       ...aggregatedFindings,
       ...queryPlanViolations,
       ...sourceRelationshipParityViolations,
+      ...sourcePathFindings,
       ...predicateConformanceFindings,
+      ...originReviewFindings,
     ]);
     const violations: Violation[] = partitioned.violations;
 

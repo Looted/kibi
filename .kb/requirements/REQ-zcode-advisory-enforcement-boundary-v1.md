@@ -98,6 +98,10 @@ semantic_inventory:
     payload_hash: bd70bcd9e024f0d104fb363f2b39b7b903c6f85f18bb87b0181497913d0270ec
 id: REQ-zcode-advisory-enforcement-boundary-v1
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 The kibi-zcode adapter's asset scope is declarative plugin assets.
 

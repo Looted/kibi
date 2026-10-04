@@ -15,4 +15,8 @@ claim_key: CLAIM-47F72380509E882E
 claim_text: '**Fallback**: If KB query is unstable, agents must consult documentation/requirements/REQ-020.md and ADRs for release policy'
 id: FACT-PROP-REQ-020-C10
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

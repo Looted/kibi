@@ -15,4 +15,8 @@ claim_key: CLAIM-C2DE8571B0CEC508
 claim_text: 'Kibi extracts entities and relationships from source files using specialized extractors:\nMarkdown extractor: Parses YAML frontmatter for core entity types and interprets Markdown links as `relates_to` edges.\nSymbol extractor: Parses `symbols.yaml` to import code symbol definitions into the KB.\nTyped relationship objects in Markdown frontmatter are imported with their explicit types.\n\nSymbol coordinate refreshes must keep authored metadata in `symbols.yaml` and generated locations in `symbol-coordinates.yaml`'
 id: FACT-PROP-REQ-CORE-EXTRACTORS-C01
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

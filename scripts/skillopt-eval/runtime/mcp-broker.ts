@@ -1,22 +1,24 @@
+/**
+ * MCP tools the evaluator broker advertises and forwards. These are the names
+ * the Kibi MCP server registers by default; narrower catalog operations are
+ * reached through `kb_skills` (`action`), `kb_model` (`mode`), and `kb_upsert`
+ * (`dryRun: true`). See `mcp-tool-names.ts` for how trace calls map back to
+ * catalog operation names.
+ */
 export const REQUIRED_KIBI_TOOLS = [
   "kb_plan_bootstrap",
   "kb_apply_plan",
   "kb_search",
   "kb_query",
   "kb_status",
-  "kb_semantic_advisor",
-  "kb_suggest_predicates",
-  "kb_model_requirement",
-  "kb_validate_upsert",
+  "kb_model",
   "kb_check",
   "kb_graph",
   "kb_upsert",
   "kb_delete",
   "kb_ingest_proof",
   "kb_coverage",
-  "kb_skills_list",
-  "kb_skills_load",
-  "kb_skills_read",
+  "kb_skills",
 ] as const;
 
 type ToolDescriptor = Readonly<{ name: string } & Record<string, unknown>>;

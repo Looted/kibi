@@ -251,3 +251,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4fc0f247d4cc
+  - type: implements
+    from: SYM-cli-impact-collectFullKbQualityDiagnostics
+    to: REQ-kibi-telemetry-acceptance-gate-v2
+    created_at: 2026-10-04T02:59:20.868Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d81246282e2f
+  - type: implements
+    from: SYM-ingest-proof-result
+    to: REQ-kibi-fresh-verification-receipts-v2
+    created_at: 2026-10-04T03:00:38.877Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-144148af0905

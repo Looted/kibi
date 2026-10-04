@@ -91,7 +91,8 @@ const LockSchema = z
           })
           .strict(),
       )
-      .length(4),
+      .min(4)
+      .max(5),
     lockHash: Sha256Schema,
     productionAdoption: z.literal("external-verdict-required"),
   })
@@ -793,7 +794,8 @@ async function analyzeSource(
     );
     const expectedRequests = taskFinalStateRequests(
       sourceCell.taskId,
-      fixture.evaluatorManifest.protocolContract !== undefined,
+      fixture.evaluatorManifest.protocolContract?.exactMigrationApply !==
+        undefined,
     );
     if (!sameRequests(finalState.requests, expectedRequests))
       fail("final_state_requests_mismatch");

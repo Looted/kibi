@@ -1,9 +1,11 @@
-import { join } from "node:path";
-import { resolveBoundSymbolScope } from "../../extractors/manifest.js";
 import {
+  currentReceiptBindingHash,
   loadCoveredBySymbolsByTest,
-  receiptCodeScopeSymbolIds,
 } from "./code-scope.js";
+import {
+  compactProofReceipts,
+  isOrderedReceiptSubsequence,
+} from "./receipt-compaction.js";
 import {
   type ProofGap,
   evaluateContractAgainstRun,
@@ -21,7 +23,6 @@ import {
   effectiveProofFingerprint,
   jsonDigest,
   proofContractHash,
-  receiptBindingHash,
 } from "../../public/proof-fingerprint.js";
 import {
   PROOF_CONTRACT_VERSION,
@@ -52,10 +53,7 @@ import {
   releaseWorkspaceMutationLock,
 } from "../mutation/workspace-mutation-lock.js";
 import { MutationRollbackFailureError } from "../mutation/saga.js";
-import {
-  patchReceiptsIntoDocument,
-  removeFrontmatterBlock,
-} from "./receipt-document.js";
+import { patchReceiptsIntoDocument } from "./receipt-document.js";
 
 // implements REQ-kibi-verification-evidence-contract
 export type IngestProofArgs = Readonly<{
@@ -71,6 +69,8 @@ export type IngestProofTestResult = Readonly<{
   applied: boolean;
   duplicate: boolean;
   receiptCount: number;
+  /** Superseded receipts the ingest compaction dropped from the history. */
+  compacted: number;
   gaps: readonly ProofGap[];
 }>;
 
@@ -100,6 +100,7 @@ type PendingReceiptCommit = {
   outcome: ProofReceipt["outcome"];
   receiptId: string;
   receiptCount: number;
+  compacted: number;
   gaps: readonly ProofGap[];
   deferred: DeferredUpsertCommit;
 };
@@ -431,34 +432,18 @@ async function executeIngestProofUnlocked(
     // Per-contract receipt binding (W2): hash the receipt-stripped authored
     // document, the contract, and the bound symbols' source hashes so the
     // receipt survives unrelated workspace changes and stales only when its
-    // own inputs (contract, document, production code scope) change.
-    let bindingHash: string | undefined;
-    const source = typeof test.source === "string" ? test.source : "";
-    if (context.fs && source !== "" && /\.(md|mdx)$/i.test(source)) {
-      try {
-        const absolute = resolveContainedSourcePath(
-          context.workspaceRoot,
-          source,
-        );
-        const authored = await context.fs.readFile(absolute);
-        const stripped = removeFrontmatterBlock(authored, "proof_receipts");
-        const codeScope = resolveBoundSymbolScope(
-          join(context.workspaceRoot, ".kb", "symbols.yaml"),
-          receiptCodeScopeSymbolIds(
-            contract,
-            bindings,
-            coveredBy.get(testId) ?? [],
-          ),
-        );
-        bindingHash = receiptBindingHash(
-          contract,
-          stripped ?? authored,
-          codeScope,
-        );
-      } catch {
-        bindingHash = undefined;
-      }
-    }
+    // own inputs (contract, document, production code scope) change. The
+    // same function computes the binding coverage compares against.
+    const fs = context.fs;
+    const bindingHash =
+      fs === undefined
+        ? undefined
+        : await currentReceiptBindingHash({
+            workspaceRoot: context.workspaceRoot,
+            readFile: (absolute) => fs.readFile(absolute),
+            test,
+            coveredBySymbols: coveredBy.get(testId) ?? [],
+          });
     const receipt: ProofReceipt = {
       version: PROOF_RECEIPT_VERSION,
       receipt_id: `PR-${jsonDigest({
@@ -519,18 +504,20 @@ async function executeIngestProofUnlocked(
         applied: false,
         duplicate: true,
         receiptCount: existing.length,
+        compacted: 0,
         gaps: evaluation.gaps,
       });
       continue;
     }
-    const nextReceipts = [
+    const appended = [
       ...existing,
       receipt as unknown as Record<string, unknown>,
-    ].slice(-MAX_PROOF_RECEIPTS);
+    ];
+    const appendedWindow = appended.slice(-MAX_PROOF_RECEIPTS);
     const historyErrors = proofReceiptHistoryErrors(
       testId,
       test.verification_scope,
-      nextReceipts,
+      appendedWindow,
     );
     const bindingErrors = proofReceiptCurrentBindingErrors(
       testId,
@@ -544,6 +531,27 @@ async function executeIngestProofUnlocked(
       throw new Error(
         `Proof ingest failed for ${testId}: ${receiptErrors.join("; ")}`,
       );
+    // Compact only the validated history: superseded receipts that can no
+    // longer decide this test's proof for the snapshot and binding the new
+    // receipt was produced on are dropped, so histories stay a handful of
+    // entries instead of growing to the rotation cap. The new receipt is
+    // always the newest entry and is always kept.
+    const nextReceipts = [
+      ...compactProofReceipts(appendedWindow, {
+        codeSnapshot: snapshot,
+        ...(receipt.binding_hash === undefined
+          ? {}
+          : { bindingHash: receipt.binding_hash }),
+      }).kept,
+    ];
+    if (
+      nextReceipts.at(-1)?.receipt_id !== receipt.receipt_id ||
+      !isOrderedReceiptSubsequence(nextReceipts, appended)
+    ) {
+      throw new Error(
+        `Proof ingest failed for ${testId}: receipt compaction must only drop superseded receipts`,
+      );
+    }
     const properties = projectEntityProperties(test);
     properties.proof_receipts = undefined;
     // Surgical receipt append: splice only the proof_receipts block into the
@@ -569,8 +577,13 @@ async function executeIngestProofUnlocked(
       }
     }
     // exactOptionalPropertyTypes: only pass the override when one exists.
+    // The compacted history was checked above to be the existing history plus
+    // the new receipt with superseded entries removed, so the generic
+    // append-only revalidation (which would reject any removal) is replaced
+    // by that stricter subsequence check.
     const upsertOptions = {
       deferCompiledCommit: true as const,
+      allowReceiptsPrune: true as const,
       ...(sourceDocumentOverride === undefined
         ? {}
         : { sourceDocumentOverride }),
@@ -595,6 +608,7 @@ async function executeIngestProofUnlocked(
       outcome: receipt.outcome,
       receiptId: receipt.receipt_id,
       receiptCount: nextReceipts.length,
+      compacted: appended.length - nextReceipts.length,
       gaps: evaluation.gaps,
       deferred,
     });
@@ -645,6 +659,7 @@ async function executeIngestProofUnlocked(
         applied: true,
         duplicate: false,
         receiptCount: entry.receiptCount,
+        compacted: entry.compacted,
         gaps: entry.gaps,
       });
     }

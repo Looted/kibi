@@ -1,10 +1,10 @@
 ---
 id: REQ-skillopt-codex-optimization
 title: SkillOpt optimization must use Codex-only behavioral evidence
-status: open
+status: closed
 created_at: 2026-07-21T00:00:00.000Z
 updated_at: 2026-09-05T00:00:00.000Z
-source: documentation/facts/FACT-skillopt-methodology.md
+source: .kb/facts/FACT-skillopt-methodology.md
 priority: must
 tags: []
 links:
@@ -522,6 +522,10 @@ logic_claims:
   - CLAIM-9D3C3944BE609E75
   - CLAIM-2AD43E76A1C69BA8
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 SkillOpt behavioral evaluation must use Codex as its sole host. Candidate adoption remains forbidden until every individual and bundle gate passes and a reviewer explicitly approves the exact candidate hashes. Optimization may change skill bodies only; skill frontmatter and declared resources remain immutable.

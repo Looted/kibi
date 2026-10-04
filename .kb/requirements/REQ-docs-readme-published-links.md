@@ -48,5 +48,9 @@ semantic_inventory:
     status: modeled
 id: REQ-docs-readme-published-links
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 The repository README must link a documentation source that the documentation site publishes to that page's published URL, not to the GitHub rendering of the source. The published documentation site must include an llms.txt index whose page links are exactly the documentation catalog. The documentation landing page must link to that index so a language model can continue from the main page into the deeper documentation.

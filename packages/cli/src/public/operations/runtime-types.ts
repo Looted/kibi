@@ -1,3 +1,4 @@
+import type { EngineLimitExceeded } from "../../engine-limits.js";
 import type { CapabilityRegistry } from "../../plugins/registry.js";
 import type { PrologErrorRecord } from "../../prolog/error-terms.js";
 import type { BranchAttachment } from "../../utils/branch-resolver.js";
@@ -19,6 +20,8 @@ export type PrologQueryResult = {
   readonly error?: string;
   /** Structured error term when the failure crossed a kb.pl throw site. */
   readonly errorRecord?: PrologErrorRecord;
+  /** Set when the engine stopped a bounded read at its limit. */
+  readonly limitExceeded?: EngineLimitExceeded;
 };
 
 export type PrologEntityQueryInput = Readonly<{
@@ -146,6 +149,12 @@ export interface FilesystemPort {
   stat(path: string): Promise<FilesystemStat>;
   /** Optional destructive primitive used only to roll back newly-created files. */
   unlink?(path: string): Promise<void>;
+  /**
+   * Flush a file's (or directory's) contents to stable storage when the host
+   * supports it. Atomic plan application calls it on staged files before the
+   * rename that publishes them.
+   */
+  fsync?(path: string): Promise<void>;
 }
 
 export interface GitPort {

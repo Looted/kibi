@@ -25,8 +25,7 @@ import {
   type ProofReceipt,
   proofReceiptHistoryErrors,
 } from "../../public/proof-receipt.js";
-import { projectEntityProperties } from "../mutation/entity-projection.js";
-import { executeUpsert } from "../mutation/upsert.js";
+import { rewriteReceiptHistory } from "./compact-receipts.js";
 
 // implements REQ-kibi-verification-evidence-contract
 export type PruneReceiptsArgs = Readonly<{
@@ -122,17 +121,10 @@ export async function executePruneReceipts(
       );
     }
 
-    const properties = projectEntityProperties(test);
-    properties.proof_receipts = undefined;
-    await executeUpsert(
-      {
-        type: "test",
-        id: testId,
-        properties: { ...properties, proof_receipts: nextReceipts },
-      },
-      context,
-      { allowReceiptsPrune: true },
-    );
+    // Patch only the receipts block: a canonical re-render of the authored
+    // document would change the receipt-stripped bytes the per-contract
+    // binding hashes and stale every receipt the prune keeps.
+    await rewriteReceiptHistory(test, nextReceipts, context);
     results.push({
       testId,
       before: receipts.length,

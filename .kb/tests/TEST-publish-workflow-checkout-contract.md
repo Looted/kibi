@@ -4,7 +4,6 @@ title: Publish workflow checkout contract stays shallow and artifact-aware
 status: passing
 created_at: 2026-04-21T17:11:22Z
 updated_at: 2026-04-21T17:11:22Z
-source: documentation/tests/TEST-publish-workflow-checkout-contract.md
 tags:
   - release
   - automation
@@ -14,6 +13,10 @@ links:
   - REQ-020
   - ADR-014
   - FACT-009
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 # Publish Workflow Checkout Contract

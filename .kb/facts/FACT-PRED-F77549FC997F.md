@@ -1,7 +1,7 @@
 ---
 title: Requirement health shows the exact proven ratio
 status: active
-source: documentation/requirements/REQ-kibi-branded-health-report.md
+source: .kb/requirements/REQ-kibi-branded-health-report.md
 text_ref: documentation/requirements/REQ-kibi-branded-health-report.md
 tags:
   - lane:ontology
@@ -19,5 +19,9 @@ claim_key: CLAIM-E1F0DBED556875B9
 claim_text: The report must show the exact proven numerator and current-requirement denominator beside the percentage
 id: FACT-PRED-F77549FC997F
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 The score exposes its strict numerator and denominator.

@@ -1,5 +1,7 @@
 // implements REQ-claude-code-kibi-plugin-v1
 import { afterEach, describe, expect, test } from "bun:test";
+import { spawn } from "node:child_process";
+import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -15,6 +17,11 @@ import {
 } from "./fixture";
 
 afterEach(cleanupTempDirs);
+
+/** Relationship shard holding a `from` id's records, as the Kibi writer names it. */
+function shardOf(entityId: string): string {
+  return createHash("sha256").update(entityId).digest("hex").slice(0, 2);
+}
 
 /** Keys Claude Code accepts on these events' hook output. */
 const ALLOWED_TOP_LEVEL = new Set(["hookSpecificOutput"]);
@@ -213,6 +220,75 @@ describe("pre-edit snippets", () => {
     );
   });
 
+  test("a first edit names what the owning requirement must keep true and why", async () => {
+    const fixture = createKibiWorkspace();
+    const text = await session(fixture).pre("Edit", {
+      file_path: path.join(fixture.root, "src/checkout.ts"),
+      old_string: "  return Math.round(total * 100) / 100;",
+      new_string: "  return total;",
+    });
+    expect(text).toContain(
+      "REQ-checkout-rounding must keep true: FACT-checkout-total; FACT-total-rounding-cents: Totals round half up to two decimals.",
+    );
+    expect(text).toContain(
+      "Decision: ADR-money-as-decimal: Money is computed as decimal cents.",
+    );
+  });
+
+  test("grounding stored only in relationship shards reaches the edit snippet", async () => {
+    const fixture = createKibiWorkspace();
+    write(
+      fixture.root,
+      ".kb/requirements/REQ-checkout-rounding.md",
+      "---\nid: REQ-checkout-rounding\ntitle: Checkout totals round to cents\nstatus: open\n---\n",
+    );
+    write(
+      fixture.root,
+      `.kb/relationships/${shardOf("REQ-checkout-rounding")}.yaml`,
+      [
+        "relationships:",
+        "  - id: rel-a",
+        "    type: requires_property",
+        "    from: REQ-checkout-rounding",
+        "    to: FACT-total-rounding-cents",
+        "  - to: ADR-money-as-decimal",
+        "    from: REQ-checkout-rounding",
+        "    type: relates_to",
+        "",
+      ].join("\n"),
+    );
+    const text = await session(fixture).pre("Edit", {
+      file_path: path.join(fixture.root, "src/checkout.ts"),
+      old_string: "  return Math.round(total * 100) / 100;",
+      new_string: "  return total;",
+    });
+    expect(text).toContain(
+      "REQ-checkout-rounding must keep true: FACT-total-rounding-cents: Totals round half up to two decimals.",
+    );
+    expect(text).toContain(
+      "Decision: ADR-money-as-decimal: Money is computed as decimal cents.",
+    );
+  });
+
+  test("a superseded lead requirement is not presented as something to keep true", async () => {
+    const fixture = createKibiWorkspace();
+    write(
+      fixture.root,
+      `.kb/relationships/${shardOf("REQ-currency-display")}.yaml`,
+      "relationships:\n  - type: constrains\n    from: REQ-currency-display\n    to: FACT-total-rounding-cents\n",
+    );
+    const text = await session(fixture).pre("Edit", {
+      file_path: "src/checkout.ts",
+      old_string: "  return `$${total.toFixed(2)}`;",
+      new_string: "  return `${total}`;",
+    });
+    expect(text?.split("\n")[1]).toContain(
+      "REQ-currency-display (superseded): Totals display with a currency symbol",
+    );
+    expect(text).not.toContain("must keep true");
+    expect(text).not.toContain("Decision:");
+  });
+
   test("after a read, edits add only new focus facts", async () => {
     const fixture = createKibiWorkspace();
     const { pre } = session(fixture);
@@ -251,7 +327,7 @@ describe("pre-edit snippets", () => {
       content: "export {}",
     });
     expect(text).toContain("no symbol in src/new-feature.ts is linked");
-    expect(text).toContain('rankingMode:"intent-v1"');
+    expect(text).toContain('kb_search({query:"<behavior being changed>"');
     expect(
       await pre("Write", { file_path: "src/new-feature.ts", content: "" }),
     ).toBeUndefined();
@@ -502,6 +578,33 @@ describe("usage telemetry", () => {
       requirement_ids: ["REQ-checkout-rounding", "REQ-currency-display"],
     });
     expect(rows[3]).toMatchObject({ kb_operation: "kb_search" });
+    // Edit rows name the requirements the edited file implements, which is
+    // what lets the acceptance report judge lookup-before-first-edit.
+    expect(rows[2]).toMatchObject({
+      host_tool: "Edit",
+      path: "src/checkout.ts",
+      requirement_ids: ["REQ-checkout-rounding", "REQ-currency-display"],
+    });
+  });
+
+  test("records CLI lookups and unlinked edits for the lookup-before-edit metric", async () => {
+    const fixture = createKibiWorkspace();
+    const { post } = session(fixture, "s-cli", optedIn);
+    await post("Bash", {
+      command: `printf '%s\\n' '{"query":"rounding"}' | npx --no-install kibi search --input -`,
+    });
+    await post("Edit", { file_path: path.join(fixture.root, "src/helper.ts") });
+
+    expect(
+      usageRows(fixture).map((row) => [
+        row.hook_action,
+        row.kb_operation,
+        row.requirement_ids,
+      ]),
+    ).toEqual([
+      ["kb_usage", "kb_search", []],
+      ["edited", null, []],
+    ]);
   });
 
   test("records suppressed context as silent instead of dropping the call", async () => {
@@ -562,4 +665,118 @@ describe("workspace stamp", () => {
     );
     expect(result).toEqual({});
   });
+});
+
+// implements REQ-agent-core-edit-snippets
+const claudePluginRoot = path.resolve(import.meta.dir, "..");
+
+type HookCommandRun = { code: number | null; stdout: string; stderr: string };
+
+/**
+ * Run the command `hooks/hooks.json` registers for `event` the way Claude
+ * Code does for a tool call its matcher selects: through a shell, from the
+ * session cwd, with the plugin root and data directories in the environment
+ * and the hook payload on stdin. The command starts the committed
+ * `bin/hook-runner.mjs` bundle that installs ship.
+ */
+function runClaudeHookCommand(
+  event: string,
+  toolName: string,
+  payload: Record<string, unknown>,
+  fixture: Fixture,
+): Promise<HookCommandRun> {
+  const manifest = JSON.parse(
+    fs.readFileSync(path.join(claudePluginRoot, "hooks", "hooks.json"), "utf8"),
+  ) as {
+    hooks: Record<
+      string,
+      { matcher?: string; hooks: { type: string; command: string }[] }[]
+    >;
+  };
+  const group = manifest.hooks[event]?.find(
+    (candidate) =>
+      candidate.matcher === undefined ||
+      new RegExp(`^(?:${candidate.matcher})$`).test(toolName),
+  );
+  const command = group?.hooks[0]?.command;
+  if (!command) throw new Error(`hooks.json routes no ${event} ${toolName}`);
+  const env: NodeJS.ProcessEnv = {
+    ...process.env,
+    CLAUDE_PLUGIN_ROOT: claudePluginRoot,
+    CLAUDE_PLUGIN_DATA: fixture.pluginData,
+  };
+  // A developer's own telemetry opt-in must not reach the hook process.
+  for (const key of ["KIBI_DIAGNOSTIC_MODE", "KIBI_CLI_DIAGNOSTIC_MODE"]) {
+    Reflect.deleteProperty(env, key);
+  }
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, {
+      cwd: fixture.root,
+      env,
+      shell: true,
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+    let stdout = "";
+    let stderr = "";
+    child.stdout.setEncoding("utf8").on("data", (chunk: string) => {
+      stdout += chunk;
+    });
+    child.stderr.setEncoding("utf8").on("data", (chunk: string) => {
+      stderr += chunk;
+    });
+    child.on("error", reject);
+    child.on("close", (code) => resolve({ code, stdout, stderr }));
+    child.stdin.end(
+      JSON.stringify({
+        ...payload,
+        hook_event_name: event,
+        tool_name: toolName,
+      }),
+    );
+  });
+}
+
+describe("hook command pre-edit snippet (end to end)", () => {
+  test("the PreToolUse command gives a first Edit of linked code its requirement, what it must keep true and its decision within the snippet budget", async () => {
+    const fixture = createKibiWorkspace();
+    const edit = () =>
+      runClaudeHookCommand(
+        "PreToolUse",
+        "Edit",
+        {
+          session_id: "e2e-edit",
+          cwd: fixture.root,
+          tool_input: {
+            file_path: path.join(fixture.root, "src/checkout.ts"),
+            old_string: "  return Math.round(total * 100) / 100;",
+            new_string: "  return total;",
+          },
+        },
+        fixture,
+      );
+
+    const run = await edit();
+    expect(run.code).toBe(0);
+    expect(run.stderr).toBe("");
+    const output = JSON.parse(run.stdout) as HookOutput;
+    const text = contextOf(output, "PreToolUse") ?? "";
+    expect(text).toStartWith(
+      "Kibi knowledge for src/checkout.ts (symbol manifest):\n- REQ-checkout-rounding: Checkout totals round to cents — computeTotal\n",
+    );
+    expect(text).toContain(
+      "\nREQ-checkout-rounding must keep true: FACT-checkout-total; FACT-total-rounding-cents: Totals round half up to two decimals.\n",
+    );
+    expect(text).toContain(
+      "\nDecision: ADR-money-as-decimal: Money is computed as decimal cents.\n",
+    );
+    expect(text).toContain(
+      "\nThe edit is inside computeTotal, which implements REQ-checkout-rounding.\n",
+    );
+    expect(text.length).toBeLessThanOrEqual(MAX_SNIPPET_CHARS);
+
+    // The session already has the snippet; the same edit adds nothing new.
+    const repeat = await edit();
+    expect(repeat.code).toBe(0);
+    expect(JSON.parse(repeat.stdout)).toEqual({});
+  }, 30_000);
 });

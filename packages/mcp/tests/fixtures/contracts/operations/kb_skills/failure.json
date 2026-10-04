@@ -1,0 +1,38 @@
+{
+  "error": {
+    "class": "JSONRPCError",
+    "code": -32602,
+    "message": "Skill id is required"
+  },
+  "input": {
+    "action": "load",
+    "id": "kibi-contract-fixture"
+  },
+  "tool": {
+    "description": "Read bundled Kibi agent skills (workflow guidance). action:list returns the catalog; action:load returns a skill's metadata, Markdown body, declared resources and content hash (start with id 'kibi-usage'); action:read returns one manifest-declared resource. Read-only; does not require Prolog.",
+    "inputSchema": {
+      "properties": {
+        "action": {
+          "description": "list, load (needs id) or read (needs id and resource).",
+          "enum": ["list", "load", "read"],
+          "type": "string"
+        },
+        "id": {
+          "description": "Bundled skill ID. Example: 'kibi-usage'.",
+          "type": "string"
+        },
+        "resource": {
+          "description": "Manifest-declared resource path to read. Example: 'resources/workflows.md'.",
+          "type": "string"
+        },
+        "workspaceRoot": {
+          "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+          "type": "string"
+        }
+      },
+      "required": ["action"],
+      "type": "object"
+    },
+    "name": "kb_skills"
+  }
+}

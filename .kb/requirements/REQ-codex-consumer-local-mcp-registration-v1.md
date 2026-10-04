@@ -27,5 +27,9 @@ semantic_inventory:
       end: 77
 id: REQ-codex-consumer-local-mcp-registration-v1
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 The kibi-codex plugin registers consumer-local MCP startup behavior for Codex.

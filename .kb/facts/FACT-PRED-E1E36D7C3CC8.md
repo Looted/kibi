@@ -22,4 +22,8 @@ claim_text: The Kibi GitHub integration must publish the requirement-health badg
 id: FACT-PRED-E1E36D7C3CC8
 type: fact
 predicate_namespace: kibi.requirements
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

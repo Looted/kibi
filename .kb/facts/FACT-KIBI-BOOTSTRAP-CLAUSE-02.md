@@ -12,4 +12,8 @@ claim_key: CLAIM-AAD92792B8861C87
 claim_text: An explicit bootstrap request must perform initial inference and seed through kibi-bootstrap, then seeded repositories must hand off to normal Kibi work
 id: FACT-KIBI-BOOTSTRAP-CLAUSE-02
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

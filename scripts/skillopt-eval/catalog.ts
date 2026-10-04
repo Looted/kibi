@@ -89,6 +89,43 @@ const FAMILY_BY_SKILL: Readonly<Record<CanonicalSkill, readonly string[]>> = {
   ],
 };
 
+/**
+ * Optional fifth family per skill. Supplemental families join the public
+ * development/train cohort (campaign evaluate, development screen) and the
+ * materialized held-out corpus, but not the legacy optimize trainer or the
+ * 16-task held-out gate matrix, whose contracts stay on the four core
+ * families (see buildCoreSkillCatalog).
+ */
+const SUPPLEMENTAL_FAMILY_BY_SKILL: Readonly<
+  Partial<Record<CanonicalSkill, string>>
+> = {
+  "kibi-usage": "intent-consult",
+  "kibi-freshness": "consistency-report",
+  "kibi-traceability": "scenario-feasibility",
+};
+
+const CORE_FAMILIES_PER_SKILL = 4;
+const MAX_FAMILIES_PER_SKILL = 5;
+const TASKS_PER_FAMILY = 7;
+
+/** Core families followed by the skill's supplemental family, if any. */
+// implements REQ-skillopt-codex-optimization
+export function skillFamilies(skill: CanonicalSkill): readonly string[] {
+  const supplemental = SUPPLEMENTAL_FAMILY_BY_SKILL[skill];
+  return [
+    ...FAMILY_BY_SKILL[skill],
+    ...(supplemental === undefined ? [] : [supplemental]),
+  ];
+}
+
+// implements REQ-skillopt-codex-optimization
+export function isSupplementalFamily(
+  skill: CatalogSkill,
+  family: string,
+): boolean {
+  return skill !== "bundle" && SUPPLEMENTAL_FAMILY_BY_SKILL[skill] === family;
+}
+
 const SPLIT_COUNTS: Readonly<Record<TaskSplit, number>> = {
   train: 2,
   development: 1,
@@ -124,9 +161,11 @@ function taskSpec(input: {
   };
 }
 
+/** Every family of one skill, supplemental family included. */
+// implements REQ-skillopt-codex-optimization
 export function buildSkillCatalog(skill: CanonicalSkill): readonly TaskSpec[] {
   const tasks: TaskSpec[] = [];
-  for (const family of FAMILY_BY_SKILL[skill]) {
+  for (const family of skillFamilies(skill)) {
     for (const split of ["train", "development", "held-out"] as const) {
       for (let index = 0; index < SPLIT_COUNTS[split]; index += 1) {
         const id = `${skill}-${family}-${split}-${index + 1}`;
@@ -143,6 +182,19 @@ export function buildSkillCatalog(skill: CanonicalSkill): readonly TaskSpec[] {
     }
   }
   return tasks;
+}
+
+/**
+ * The four core families only: the cohort the legacy optimize trainer and the
+ * 16-task held-out gate matrix are contracted to.
+ */
+// implements REQ-skillopt-codex-optimization
+export function buildCoreSkillCatalog(
+  skill: CanonicalSkill,
+): readonly TaskSpec[] {
+  return buildSkillCatalog(skill).filter(
+    (task) => !isSupplementalFamily(skill, task.family),
+  );
 }
 
 export function buildBundleCatalog(): readonly TaskSpec[] {
@@ -174,12 +226,25 @@ export function buildHeldOutCatalog(): readonly TaskSpec[] {
   ];
 }
 
+// implements REQ-skillopt-codex-optimization
 export function validateSkillCatalog(
   tasks: readonly TaskSpec[],
   expectedSkill: CanonicalSkill,
 ): void {
-  if (tasks.length !== 28) {
-    throw new CatalogError(`expected 28 tasks, received ${tasks.length}`);
+  const families = skillFamilies(expectedSkill);
+  if (
+    families.length < CORE_FAMILIES_PER_SKILL ||
+    families.length > MAX_FAMILIES_PER_SKILL
+  ) {
+    throw new CatalogError(
+      `expected ${CORE_FAMILIES_PER_SKILL}..${MAX_FAMILIES_PER_SKILL} families, received ${families.length}`,
+    );
+  }
+  const expectedTasks = families.length * TASKS_PER_FAMILY;
+  if (tasks.length !== expectedTasks) {
+    throw new CatalogError(
+      `expected ${expectedTasks} tasks, received ${tasks.length}`,
+    );
   }
   const ids = new Set<string>();
   for (const task of tasks) {
@@ -191,10 +256,12 @@ export function validateSkillCatalog(
       throw new CatalogError(`unexpected skill: ${task.skill}`);
     }
   }
-  for (const family of FAMILY_BY_SKILL[expectedSkill]) {
+  for (const family of families) {
     const familyTasks = tasks.filter((task) => task.family === family);
-    if (familyTasks.length !== 7) {
-      throw new CatalogError(`family ${family} must contain 7 tasks`);
+    if (familyTasks.length !== TASKS_PER_FAMILY) {
+      throw new CatalogError(
+        `family ${family} must contain ${TASKS_PER_FAMILY} tasks`,
+      );
     }
     for (const split of ["train", "development", "held-out"] as const) {
       const splitCount = familyTasks.filter(

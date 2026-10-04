@@ -4,7 +4,6 @@ title: Remove Kibi briefing surfaces (fulfilled; archived)
 status: closed
 created_at: 2026-05-28T00:00:00.000Z
 updated_at: 2026-05-28T00:00:00.000Z
-source: documentation/requirements/REQ-remove-briefs-v1.md
 priority: must
 owner: platform-team
 tags:
@@ -56,6 +55,10 @@ semantic_inventory:
 logic_claims:
   - CLAIM-CC07119627B258DB
   - CLAIM-88652EA2A55E0EDF
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Kibi must remove the active briefing product surface across MCP, OpenCode, VS Code, and shared CLI configuration while preserving the rest of the knowledge-base discovery, query, sync, and validation workflows.

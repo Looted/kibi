@@ -67,7 +67,10 @@ bun scripts/skillopt-eval/campaign.ts compose \
 `evaluate` accepts one to three candidate manifest files. The baseline is
 loaded automatically from the current source. Both limits are explicit:
 `--repeats` is 1..3 and `--max-target-episodes` is 1..256, and the latter must
-cover the complete baseline-plus-candidate development matrix.
+cover the complete baseline-plus-candidate development matrix. The matrix is
+repeats x (candidates + 1) x development tasks; `kibi-usage`,
+`kibi-freshness` and `kibi-traceability` have five development tasks (four
+core families plus one supplemental family), `kibi-bootstrap` has four.
 
 ```text
 bun scripts/skillopt-eval/campaign.ts evaluate \
@@ -85,8 +88,8 @@ baseline hash, frontmatter hash, resource hash, insertion anchor, paragraph
 shape, source cleanliness, fixture readiness, and target-cell cap. It then
 freezes all bodies, initializes the private cross-process target budget,
 creates a fresh fixture root, and runs preflight and the capability canary. The
-live screen uses the existing Luna medium target profile and Sol xhigh
-optimizer profile, with source head/tree and all skill-resource fences checked
+live screen uses the configured target and optimizer profiles (Luna medium and
+Sol xhigh unless overridden; see [Model configuration](skillopt.md#model-configuration)), with source head/tree and all skill-resource fences checked
 again before completion. Development tasks are generated programmatically;
 private manifests are consumed internally and are never printed.
 

@@ -15,4 +15,8 @@ claim_key: CLAIM-0D8F70EC5534576F
 claim_text: The sync compiler must treat symbol-coordinates.yaml as a dependency of symbols.yaml, detect artifact creation, modification, and deletion, derive cache identities relative to the explicit workspace root, and recompile affected symbols
 id: FACT-PROP-REQ-GENERATED-COORDINATE-PERSISTENCE-C04
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

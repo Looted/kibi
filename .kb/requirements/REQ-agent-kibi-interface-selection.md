@@ -4,7 +4,6 @@ title: Agent guidance selects between Kibi public surfaces without claiming excl
 status: open
 created_at: 2026-07-21T00:00:00.000Z
 updated_at: 2026-07-21T00:00:00.000Z
-source: documentation/requirements/REQ-agent-kibi-interface-selection.md
 priority: must
 owner: opencode-team
 tags:
@@ -66,6 +65,10 @@ semantic_inventory:
       start: 224
       end: 324
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Agent-facing guidance must treat the Kibi public MCP and CLI surfaces as peers.

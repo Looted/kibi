@@ -27,13 +27,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-75aa6cb616b3
-  - type: implements
-    from: SYM-branchEnsureCommand
-    to: REQ-branch-store-recovery-v3
-    created_at: 2026-08-17T08:37:33.999Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1564c7bf421f
   - type: covered_by
     from: SYM-cli-register-foundation-commands
     to: TEST-kibi-github-report-integration
@@ -272,3 +265,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-26fa6728cc8c
+  - type: implements
+    from: SYM-branchEnsureCommand
+    to: REQ-branch-store-recovery-v4
+    created_at: 2026-10-04T02:58:03.463Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-37a57af6c7b9
+  - type: implements
+    from: SYM-source-paths-plannedSourcePathRepairs
+    to: REQ-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-04T06:00:22.439Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a6d3cd012dce
+  - type: covered_by
+    from: SYM-source-paths-plannedSourcePathRepairs
+    to: TEST-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-04T06:00:22.456Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2ff04eef9f8

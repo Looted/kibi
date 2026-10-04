@@ -4,7 +4,6 @@ title: Verify Changesets-based release automation and fallback policy
 status: passing
 created_at: 2026-03-11T12:20:00.000Z
 updated_at: 2026-04-21T00:00:00.000Z
-source: documentation/tests/TEST-014.md
 tags:
   - release
   - automation
@@ -1705,6 +1704,10 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 # Test: Release Automation and Fallback Verification
 

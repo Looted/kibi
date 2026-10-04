@@ -21,4 +21,8 @@ claim_key: CLAIM-57A1D330DEA165C0
 claim_text: '`kibi init` must install the `post-checkout` and `post-merge` Git hooks by default'
 id: FACT-PRED-EBFEFF1CF787
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

@@ -15,4 +15,8 @@ claim_key: CLAIM-4E26B65389DA82B3
 claim_text: Normative relational claims must first go through kb_semantic_advisor and kb_suggest_predicates
 id: FACT-PROP-REQ-SKILLOPT-PREDICATE-FIRST-REQUIREMENTS-N02
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

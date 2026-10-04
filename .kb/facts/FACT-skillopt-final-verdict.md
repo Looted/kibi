@@ -4,12 +4,15 @@ title: SkillOpt Kibi skills evaluation bounded no-go
 status: active
 created_at: 2026-07-21T16:00:00Z
 updated_at: 2026-07-21T16:00:00Z
-source: documentation/facts/FACT-skillopt-final-verdict.md
 tags:
   - skillopt
   - evaluation
   - no-go
 fact_kind: meta
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 # SkillOpt Kibi skills evaluation: bounded no-go

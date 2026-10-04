@@ -56,9 +56,34 @@ export type BranchAttachment = {
   kbBranch: string;
   /** The resolved compiled-store path. Never derive this path at call sites. */
   storePath: string;
-  kind: "exact" | "explicit_override" | "legacy_compat";
+  kind: "exact" | "explicit_override" | "legacy_compat" | "detached_snapshot";
   migrationRequired: boolean;
+  /**
+   * Present only on a detached HEAD that no single local branch points at.
+   * The attachment then serves reads from a snapshot compiled from the
+   * checkout, and every write route must refuse it.
+   */
+  readOnly?: DetachedReadOnlyAttachment;
 };
+
+// implements REQ-branch-store-recovery-v4
+export type DetachedReadOnlyAttachment = {
+  /** The checked-out commit. */
+  head: string;
+  /** Local branches whose tip is HEAD (zero, or two or more). */
+  branchesAtHead: readonly string[];
+  /** Human-readable account of the store used and the write refusal. */
+  notice: string;
+};
+
+/**
+ * Store identity of the read-only snapshot compiled from a detached checkout.
+ * It is never a Git branch's KB: reads on a bare SHA (CI checkouts) use it so
+ * no branch identity is guessed, and writes are refused while it is attached.
+ */
+// implements REQ-branch-store-recovery-v4
+export const DETACHED_SNAPSHOT_KB_BRANCH =
+  "kibi-internal/detached-head-snapshot";
 
 export type BranchErrorCode =
   | "ENV_OVERRIDE"
@@ -83,7 +108,7 @@ const defaultDeps: BranchResolverDeps = {
 export function _setBranchResolverDepsForTests(
   deps: Partial<BranchResolverDeps>,
 ): void {
-  // implements REQ-008
+  // implements REQ-branch-store-recovery-v4
   defaultDeps.execSync = deps.execSync ?? rawExecSync;
   defaultDeps.execFileSync = deps.execFileSync ?? rawExecFileSync;
 }
@@ -128,7 +153,7 @@ function isVolatileArtifact(fileName: string): boolean {
 export function resolveActiveBranch(
   workspaceRoot: string = process.cwd(),
 ): BranchResolutionResult {
-  // implements REQ-008
+  // implements REQ-branch-store-recovery-v4
   // 1. Check KIBI_BRANCH env var first (highest precedence)
   const envBranch = getBranchOverride();
   if (envBranch) {
@@ -155,6 +180,8 @@ export function resolveActiveBranch(
 
     if (!branch) {
       // Empty result means detached HEAD
+      const atHead = uniqueBranchAtHead(workspaceRoot);
+      if (atHead) return { branch: atHead };
       return {
         error: getBranchDiagnostic(undefined, "Git is in detached HEAD state"),
         code: "DETACHED_HEAD",
@@ -185,6 +212,8 @@ export function resolveActiveBranch(
         .trim();
 
       if (branch === "HEAD") {
+        const atHead = uniqueBranchAtHead(workspaceRoot);
+        if (atHead) return { branch: atHead };
         return {
           error: getBranchDiagnostic(
             undefined,
@@ -243,6 +272,135 @@ export function resolveActiveBranch(
       };
     }
   }
+}
+
+// implements REQ-branch-store-recovery-v4
+/**
+ * A detached HEAD that exactly one local branch points at is that branch's
+ * commit, so its knowledge base is the exact one for this checkout (a
+ * `git checkout <sha>` of a branch tip, or a tool that detaches before
+ * running). Zero or several candidates stay a DETACHED_HEAD diagnostic: no
+ * branch is guessed.
+ */
+function uniqueBranchAtHead(workspaceRoot: string): string | null {
+  const names = branchesAtHead(workspaceRoot);
+  if (names.length !== 1) return null;
+  const [name] = names;
+  return name !== undefined && isValidBranchName(name) ? name : null;
+}
+
+/** Local branch names whose tip is HEAD, sorted; empty when Git cannot say. */
+function branchesAtHead(workspaceRoot: string): string[] {
+  try {
+    return defaultDeps
+      .execFileSync(
+        "git",
+        ["branch", "--points-at", "HEAD", "--format=%(refname:short)"],
+        {
+          cwd: workspaceRoot,
+          encoding: "utf8",
+          timeout: 5000,
+          stdio: ["pipe", "pipe", "pipe"],
+        },
+      )
+      .toString()
+      .split("\n")
+      .map((name) => name.trim())
+      .filter((name) => name.length > 0 && !name.startsWith("("))
+      .sort();
+  } catch {
+    return [];
+  }
+}
+
+function headCommit(workspaceRoot: string): string | null {
+  try {
+    const head = defaultDeps
+      .execFileSync("git", ["rev-parse", "--verify", "HEAD"], {
+        cwd: workspaceRoot,
+        encoding: "utf8",
+        timeout: 5000,
+        stdio: ["pipe", "pipe", "pipe"],
+      })
+      .toString()
+      .trim();
+    return /^[0-9a-f]{40,64}$/u.test(head) ? head : null;
+  } catch {
+    return null;
+  }
+}
+
+function describeBranchesAtHead(branches: readonly string[]): string {
+  return branches.length === 0
+    ? "no local branch points at it"
+    : `${branches.length} local branches point at it (${branches.join(", ")}), so no single branch KB is implied`;
+}
+
+/**
+ * Resolve the attachment for a read-only operation.
+ *
+ * Identical to {@link resolveBranchAttachment} except on a detached HEAD that
+ * no single local branch points at (a CI checkout of a bare SHA, or a commit
+ * two branches share). Such a checkout has no exact branch identity, and no
+ * other branch's KB may stand in for it, so reads are served from a snapshot
+ * compiled from this checkout's tracked sources. The result carries a notice
+ * naming that store and stating that writes are refused.
+ */
+// implements REQ-branch-store-recovery-v4
+export function resolveReadBranchAttachment(
+  workspaceRoot: string = process.cwd(),
+): BranchAttachment | BranchResolutionError {
+  const attachment = resolveBranchAttachment(workspaceRoot);
+  if (!("error" in attachment) || attachment.code !== "DETACHED_HEAD") {
+    return attachment;
+  }
+  const head = headCommit(workspaceRoot);
+  if (head === null) return attachment;
+  const branches = branchesAtHead(workspaceRoot);
+  const storePath = branchStorePath(workspaceRoot, DETACHED_SNAPSHOT_KB_BRANCH);
+  if (
+    existsSync(storePath) &&
+    !branchStoreManifestMatches(storePath, DETACHED_SNAPSHOT_KB_BRANCH)
+  ) {
+    return {
+      error: `Detached HEAD snapshot store identity mismatch at ${storePath}; refusing to read it.`,
+      code: "AMBIGUOUS_ATTACHMENT",
+    };
+  }
+  return {
+    gitBranch: "HEAD",
+    kbBranch: DETACHED_SNAPSHOT_KB_BRANCH,
+    storePath,
+    kind: "detached_snapshot",
+    migrationRequired: false,
+    readOnly: {
+      head,
+      branchesAtHead: branches,
+      notice: `Detached HEAD at ${head.slice(0, 12)}: ${describeBranchesAtHead(branches)}. Read-only answers come from a snapshot compiled from this checkout's tracked sources (store ${storePath}); writes are refused until a branch is checked out.`,
+    },
+  };
+}
+
+/**
+ * Actionable refusal for a write attempted on a detached HEAD. Reads keep
+ * working through the snapshot; a write needs an exact branch identity.
+ */
+// implements REQ-branch-store-recovery-v4
+export function detachedHeadWriteRefusal(
+  operation: string,
+  workspaceRoot: string = process.cwd(),
+): string {
+  const head = headCommit(workspaceRoot);
+  const branches = branchesAtHead(workspaceRoot);
+  const where =
+    head === null
+      ? "HEAD is detached"
+      : `HEAD is detached at ${head.slice(0, 12)} and ${describeBranchesAtHead(branches)}`;
+  const switchHint =
+    branches.length > 0
+      ? `'git switch ${branches[0]}' (or another branch at HEAD)`
+      : "'git switch -c <branch>'";
+  return `${operation} writes the branch KB, but ${where}. Check out a branch first: ${switchHint}, or set KIBI_BRANCH to name the branch explicitly. Read-only operations (search, query, status, check, coverage, graph) keep working on a detached HEAD from a read-only snapshot of the checkout.`;
 }
 
 /**
@@ -326,7 +484,7 @@ export function resolveBranchAttachment(
  * @returns true if in detached HEAD, false otherwise
  */
 export function isDetachedHead(workspaceRoot: string = process.cwd()): boolean {
-  // implements REQ-008
+  // implements REQ-branch-store-recovery-v4
   try {
     const branch = defaultDeps
       .execSync("git rev-parse --abbrev-ref HEAD", {

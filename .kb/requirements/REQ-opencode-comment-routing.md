@@ -5,7 +5,6 @@ status: open
 created_at: 2026-03-21T13:00:00.000Z
 updated_at: 2026-08-18T00:00:00.000Z
 priority: should
-source: documentation/requirements/REQ-opencode-comment-routing.md
 tags:
   - opencode
   - guidance
@@ -54,6 +53,10 @@ semantic_inventory:
       start: 1340
       end: 1981
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 ## Overview

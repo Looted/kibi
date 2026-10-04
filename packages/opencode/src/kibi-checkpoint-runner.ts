@@ -1,4 +1,4 @@
-// implements REQ-opencode-worktree-hard-enforcement-v1
+// implements REQ-opencode-smart-enforcement-v1
 
 import { DEFAULTS, type KibiConfig } from "./config.js";
 import type { E2eCoverageSignal } from "./e2e-coverage-signals.js";
@@ -81,7 +81,7 @@ interface RequestedCheckpoint {
   guidanceRendered: boolean;
 }
 
-// implements REQ-opencode-worktree-hard-enforcement-v1
+// implements REQ-opencode-smart-enforcement-v1
 export class KibiCheckpointRunner {
   private readonly config: KibiConfig | undefined;
   private readonly runSync: SyncRunner | undefined;
@@ -107,7 +107,7 @@ export class KibiCheckpointRunner {
     this.clearTimeoutFn = options.clearTimeoutFn ?? clearTimeout;
   }
 
-  // implements REQ-opencode-worktree-hard-enforcement-v1
+  // implements REQ-opencode-smart-enforcement-v1
   requestCheckpoint(
     context: KibiCheckpointContext,
     fingerprint: string,
@@ -147,7 +147,7 @@ export class KibiCheckpointRunner {
     return { kind: "requested", metadata: requested.metadata };
   }
 
-  // implements REQ-opencode-worktree-hard-enforcement-v1
+  // implements REQ-opencode-smart-enforcement-v1
   isCheckpointPassed(
     fingerprint: string,
     context?: KibiCheckpointContext,
@@ -162,7 +162,7 @@ export class KibiCheckpointRunner {
     );
   }
 
-  // implements REQ-opencode-worktree-hard-enforcement-v1
+  // implements REQ-opencode-smart-enforcement-v1
   async runCheckpoint(
     context: KibiCheckpointContext,
     fingerprint: string,

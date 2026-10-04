@@ -1,3 +1,4 @@
+import { ENTITY_ORIGIN_SCHEMA } from "../../entity-origin.js";
 import {
   PROOF_BINDINGS_SCHEMA,
   PROOF_CONTRACT_SCHEMA,
@@ -76,6 +77,11 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       description:
         "Optional text anchor/reference. Example: 'requirements.md#L40'.",
     },
+    origin: {
+      ...ENTITY_ORIGIN_SCHEMA,
+      description:
+        "Optional provenance: who authored the entity (kind: human, agent, migration, import) and on what authority (ref, approved_by, recorded_at). Omit it to keep an existing entity's origin; a new entity written without one is recorded as {kind: agent, recorded_at: <write time>}. A supplied origin without recorded_at gets the write time.",
+    },
     semantic_text: {
       type: "string",
       description:
@@ -87,26 +93,52 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       uniqueItems: true,
       items: { type: "string", pattern: "^CLAIM-[A-F0-9]{16}$" },
       description:
-        "Requirement-only manifest of every atomic normative claim key returned by kb_semantic_advisor. A requirement is logic-complete only when every key is grounded by a linked property_value or predicate fact with the same claim_key.",
+        "Requirement-only manifest of every atomic normative claim key returned by kb_model mode analyze (CLI: semantic-advisor). A requirement is logic-complete only when every key is grounded by a linked property_value or predicate fact with the same claim_key.",
     },
     semantic_clauses: {
       type: "array",
       minItems: 1,
       items: { type: "string", minLength: 1 },
       description:
-        "Optional complete atomic decomposition used by kb_semantic_advisor and proposition-complete ingestion. Preserve it when automatic sentence splitting needs a reviewed override.",
+        "Optional complete atomic decomposition used by kb_model mode analyze and proposition-complete ingestion. Preserve it when automatic sentence splitting needs a reviewed override.",
     },
     semantic_inventory_version: {
       type: "string",
       const: "kibi.semantic-inventory.v1",
       description:
-        "Requirement-only proposition ledger contract version returned by kb_semantic_advisor.",
+        "Requirement-only proposition ledger contract version returned by kb_model mode analyze (CLI: semantic-advisor).",
     },
     semantic_source_field: {
       type: "string",
       enum: ["semantic_text", "text_ref", "title"],
       description:
         "Requirement field whose exact UTF-8 bytes anchor semantic_inventory spans.",
+    },
+    approved_by: {
+      type: "string",
+      minLength: 1,
+      description:
+        "Requirement-only. The human who approved this exception requirement. An exception that exempts a requirement and is specified_by a success scenario makes that scenario feasible only when approved_by is set.",
+    },
+    approval_ref: {
+      type: "string",
+      minLength: 1,
+      description:
+        "Requirement-only. Optional reference to the exception's approval decision record.",
+    },
+    rationale: {
+      type: "string",
+      minLength: 1,
+      description:
+        "Requirement-only. Why the requirement exists, in one or two sentences from whoever stated the intent; not part of the checked meaning.",
+    },
+    exempts_claims: {
+      type: "array",
+      minItems: 1,
+      uniqueItems: true,
+      items: { type: "string", pattern: "^CLAIM-[A-F0-9]{16}$" },
+      description:
+        "Requirement-only. Claim keys of the exempted requirement whose constraints this exception waives; omit to waive the whole requirement.",
     },
     semantic_source_hash: {
       type: "string",
@@ -186,7 +218,7 @@ export const ENTITY_PROPERTIES_SCHEMA = {
         "rule",
       ],
       description:
-        "Optional fact lane kind for fact entities. Strict lane uses 'subject' and 'property_value'; context lane uses 'observation' or 'meta'; ontology lane uses 'predicate_schema' or 'predicate'. Use kb_model_requirement or kb_suggest_predicates when starting from prose.",
+        "Optional fact lane kind for fact entities. Strict lane uses 'subject' and 'property_value'; context lane uses 'observation' or 'meta'; ontology lane uses 'predicate_schema' or 'predicate'. Use kb_model (mode requirement or predicates) when starting from prose.",
     },
     subject_key: {
       type: "string",
@@ -263,13 +295,13 @@ export const ENTITY_PROPERTIES_SCHEMA = {
     predicate_name: {
       type: "string",
       description:
-        "Optional predicate name for ontology predicate facts. Prefer kb_suggest_predicates before hand-writing predicate_name.",
+        "Optional predicate name for ontology predicate facts. Prefer kb_model mode predicates before hand-writing predicate_name.",
     },
     predicate_args: {
       type: "array",
       items: { type: "string" },
       description:
-        "Optional ordered predicate arguments for ontology predicate facts. Prefer kb_suggest_predicates before hand-writing predicate_args.",
+        "Optional ordered predicate arguments for ontology predicate facts. Prefer kb_model mode predicates before hand-writing predicate_args.",
     },
     predicate_namespace: {
       type: "string",
@@ -294,6 +326,14 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       type: "array",
       items: { type: "string" },
       description: "Optional ordered argument explanations.",
+    },
+    key_arguments: {
+      type: "array",
+      items: { type: "string", minLength: 1 },
+      minItems: 1,
+      uniqueItems: true,
+      description:
+        'predicate_schema only: argument names that determine the remaining arguments (a functional dependency), e.g. ["sensor"] for reading(sensor, value). Rule contradiction analysis treats two atoms with identical keys as the same fact; without it the predicate is multivalued and opposing rules stay unresolved instead of disjoint.',
     },
     argument_constants: {
       type: "object",
@@ -327,7 +367,7 @@ export const ENTITY_PROPERTIES_SCHEMA = {
     semantic_inventory: {
       type: "array",
       description:
-        "Requirement proposition ledger returned by kb_semantic_advisor; preserve entries while modeling each assertive span.",
+        "Requirement proposition ledger returned by kb_model mode analyze (CLI: semantic-advisor); preserve entries while modeling each assertive span.",
       items: { type: "object" },
     },
     rule_ir: {
@@ -391,6 +431,8 @@ export const RELATIONSHIPS_SCHEMA = {
           "consumes",
           "supersedes",
           "restates",
+          "assumes",
+          "exempts",
           "relates_to",
         ],
         description:

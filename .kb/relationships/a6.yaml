@@ -188,3 +188,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f126ac9af3db
+  - type: verified_by
+    from: SCEN-agent-core-edit-snippets
+    to: TEST-agent-core-edit-snippets
+    created_at: 2026-10-04T02:41:51.124Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5ffc3bc27884

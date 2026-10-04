@@ -179,6 +179,10 @@ semantic_clauses:
   - The exposed MCP configuration must resolve the project-local kibi-mcp binary
   - When the resolved project root does not own .kb/manifest.json, kibi-zcode hooks must emit no output
   - When the resolved project root does not own .kb/manifest.json, the kibi-zcode MCP endpoint must expose no tools
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 The `kibi-zcode` package is an optional ZCode adapter.
 

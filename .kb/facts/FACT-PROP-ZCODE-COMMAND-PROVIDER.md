@@ -17,5 +17,9 @@ value_type: string
 value_string: kibi_cli
 id: FACT-PROP-ZCODE-COMMAND-PROVIDER
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Project-local Kibi command workflows used through kibi-zcode must remain provided by kibi-cli

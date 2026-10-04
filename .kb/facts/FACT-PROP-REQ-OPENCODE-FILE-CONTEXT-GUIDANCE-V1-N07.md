@@ -15,4 +15,8 @@ claim_key: CLAIM-55BC4568B874114B
 claim_text: A test entity is E2E if it has tags including e2e or a source path under an e2e directory
 id: FACT-PROP-REQ-OPENCODE-FILE-CONTEXT-GUIDANCE-V1-N07
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

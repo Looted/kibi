@@ -22,4 +22,8 @@ claim_span_start: 356
 claim_span_end: 576
 id: FACT-prolog-build-publishes-checksum-and-pinned-manifest
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

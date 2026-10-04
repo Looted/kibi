@@ -26,6 +26,7 @@ import {
 } from "./file-operation-state.js"; // implements REQ-opencode-file-context-guidance-v1
 import type { ReminderKind } from "./file-operation-state.js";
 import type { CacheKey } from "./guidance-cache.js";
+import { recordOpencodeToolTelemetry } from "./hook-telemetry.js";
 import {
   type KbFreshnessScope,
   createKbFreshnessEvidenceStore,
@@ -174,6 +175,10 @@ export interface Hooks {
     output: SystemTransformOutput,
   ) => void | Promise<void>;
   "chat.params"?: (input: unknown, output: unknown) => void | Promise<void>;
+  "tool.execute.after"?: (
+    input: { tool?: string; sessionID?: string; args?: unknown } | undefined,
+    output?: unknown,
+  ) => void | Promise<void>;
 }
 
 export type Plugin = (input: PluginInput) => Hooks | Promise<Hooks>;
@@ -642,6 +647,17 @@ const kibiOpencodePlugin: Plugin = async (
     runtimeOverlay,
     posture,
     lintRequirementDoc,
+  };
+
+  // Opt-in usage rows for the lookup-before-first-edit telemetry metric.
+  hooks["tool.execute.after"] = async (toolCall) => {
+    recordOpencodeToolTelemetry({
+      worktree: rootWorkContext.worktreeRoot,
+      tool: toolCall?.tool,
+      args: toolCall?.args,
+      sessionId: toolCall?.sessionID,
+      startedAt: new Date(),
+    });
   };
 
   hooks.event = async ({ event }) => {

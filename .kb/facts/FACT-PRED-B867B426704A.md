@@ -19,4 +19,8 @@ claim_key: CLAIM-B0C7CD09A216CE9D
 claim_text: When the resolved project root does not own .kb/manifest.json, kibi-claude hooks must emit no output
 id: FACT-PRED-B867B426704A
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

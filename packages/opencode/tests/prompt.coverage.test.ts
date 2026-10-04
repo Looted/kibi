@@ -1,5 +1,6 @@
 import { describe, test } from "bun:test";
 import { strict as assert } from "node:assert";
+import path from "node:path";
 import type { KibiConfig } from "../src/config";
 import { GuidanceCache } from "../src/guidance-cache";
 import {
@@ -10,6 +11,10 @@ import {
 } from "../src/prompt";
 import type { PromptContext } from "../src/prompt";
 import type { RepoPosture } from "../src/repo-posture";
+
+// The repository root, so source-linked lookups resolve the same whether the
+// suite runs from the package directory or the repository root.
+const REPO_ROOT = path.resolve(import.meta.dir, "../../..");
 
 const supportedCapability = {
   supported: true,
@@ -149,7 +154,7 @@ describe("prompt coverage", () => {
       posture: "root_active",
       riskClass: "manual_kb_edit",
       cache,
-      workspaceRoot: process.cwd(),
+      workspaceRoot: REPO_ROOT,
       branch: "coverage-test",
     };
 
@@ -188,7 +193,7 @@ describe("prompt coverage", () => {
       posture: "root_active",
       riskClass: "behavior_candidate",
       cache,
-      workspaceRoot: process.cwd(),
+      workspaceRoot: REPO_ROOT,
       branch: "coverage-test-cache",
     };
 
@@ -207,7 +212,7 @@ describe("prompt coverage", () => {
       posture: "root_active",
       riskClass: "behavior_candidate",
       cache,
-      workspaceRoot: process.cwd(),
+      workspaceRoot: REPO_ROOT,
       branch: "coverage-cache-degraded",
     };
 
@@ -236,7 +241,7 @@ describe("prompt coverage", () => {
       posture: "root_active",
       riskClass: "behavior_candidate",
       cache,
-      workspaceRoot: process.cwd(),
+      workspaceRoot: REPO_ROOT,
       branch: "coverage-test-file-op-cache",
       fileOperationReminder: {
         path: "packages/opencode/src/prompt.ts",
@@ -286,7 +291,7 @@ describe("prompt coverage", () => {
       posture: "root_active",
       riskClass: "behavior_candidate",
       cache,
-      workspaceRoot: process.cwd(),
+      workspaceRoot: REPO_ROOT,
       branch: "coverage-test-freshness",
       kbFreshness: {
         state: "evidence-required",
@@ -319,7 +324,7 @@ describe("prompt coverage", () => {
         focusEdit: { path: "packages/opencode/src/prompt.ts", kind: "code" },
         posture: "root_active",
         riskClass: "behavior_candidate",
-        workspaceRoot: process.cwd(),
+        workspaceRoot: REPO_ROOT,
         branch: "coverage-test-overlap",
         fileOperationReminder: {
           path: "packages/opencode/src/prompt.ts",

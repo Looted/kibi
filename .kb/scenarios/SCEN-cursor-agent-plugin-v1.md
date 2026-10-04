@@ -5,7 +5,6 @@ type: scenario
 status: active
 created_at: 2026-08-07T00:00:00Z
 updated_at: 2026-08-07T00:00:00Z
-source: documentation/scenarios/SCEN-cursor-agent-plugin-v1.md
 tags:
   - scenario
   - kibi
@@ -16,6 +15,10 @@ links:
     target: TEST-cursor-agent-plugin-v1
   - type: relates_to
     target: REQ-cursor-agent-plugin-standard-v1
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 ## Scenario: Portable artifact conforms to the Agent Plugins standard

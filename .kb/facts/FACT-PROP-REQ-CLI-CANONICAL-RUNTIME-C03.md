@@ -15,4 +15,8 @@ claim_key: CLAIM-AAEAF6504ABB4ECE
 claim_text: kibi sync must not honor leftover .kb/config.json path overrides
 id: FACT-PROP-REQ-CLI-CANONICAL-RUNTIME-C03
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

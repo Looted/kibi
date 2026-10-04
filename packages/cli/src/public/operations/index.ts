@@ -11,6 +11,7 @@ export * from "./migration-plan.js";
 export * from "./symbol-repair-plan.js";
 export * from "./specs/bootstrap.js";
 export * from "./specs/check.js";
+export * from "./specs/composite.js";
 export * from "./specs/impact-review-preparation.js";
 export * from "./specs/discovery.js";
 export * from "./specs/modeling.js";

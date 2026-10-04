@@ -15,4 +15,8 @@ claim_text: The OpenCode Kibi Plugin must provide proactive, contextual guidance
 value_type: string
 id: FACT-PROP-FCG-GUIDANCE-SOURCE
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

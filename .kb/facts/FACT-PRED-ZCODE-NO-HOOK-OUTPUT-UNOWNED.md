@@ -19,5 +19,9 @@ canonical_key: conditional_behavior(kibi_zcode_adapter,no_owned_kb_manifest,emit
 polarity: deny
 id: FACT-PRED-ZCODE-NO-HOOK-OUTPUT-UNOWNED
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 When the resolved project root does not own .kb/manifest.json, kibi-zcode hooks must emit no output

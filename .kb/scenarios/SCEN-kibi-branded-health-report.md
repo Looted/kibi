@@ -12,6 +12,10 @@ links:
     target: TEST-kibi-branded-health-report
 id: SCEN-kibi-branded-health-report
 type: scenario
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Given a synced Kibi project whose current requirements stop at different proof gates
 When an operator generates the HTML requirement-health report

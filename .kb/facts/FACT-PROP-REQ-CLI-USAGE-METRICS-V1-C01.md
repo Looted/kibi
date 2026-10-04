@@ -15,4 +15,8 @@ claim_key: CLAIM-271E3E84AC325156
 claim_text: The CLI provides a usage metrics command that summarizes diagnostic usage events for audit and maintenance workflows
 id: FACT-PROP-REQ-CLI-USAGE-METRICS-V1-C01
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

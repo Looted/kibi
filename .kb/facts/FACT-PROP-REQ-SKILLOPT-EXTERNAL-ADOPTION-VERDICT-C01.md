@@ -15,4 +15,8 @@ claim_key: CLAIM-B1E1D3BDCBA90F7F
 claim_text: Local or fake SkillOpt evidence stays review-only
 id: FACT-PROP-REQ-SKILLOPT-EXTERNAL-ADOPTION-VERDICT-C01
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

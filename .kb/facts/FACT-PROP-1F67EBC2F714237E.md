@@ -20,4 +20,8 @@ claim_key: CLAIM-94B3A133D10BFB98
 claim_text: The kibi-claude package must remain optional
 id: FACT-PROP-1F67EBC2F714237E
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

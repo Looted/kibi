@@ -15,4 +15,8 @@ claim_key: CLAIM-1792CB8762EF466F
 claim_text: '**Created/Edited**: When a file is created or edited, if it matches known symbol patterns or risky paths, the plugin must nudge the agent toward Kibi discovery'
 id: FACT-PROP-REQ-OPENCODE-FILE-CONTEXT-GUIDANCE-V1-C05
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

@@ -1,4 +1,8 @@
 import * as path from "node:path";
+import {
+  createEntitySummarizer,
+  requirementGroundingLines,
+} from "kibi-agent-core/snippets";
 import type { CommentAnalysisResult } from "./comment-analysis.js";
 // implements REQ-opencode-smart-enforcement-v1, REQ-opencode-kibi-plugin-v1, REQ-agent-kibi-interface-selection
 import type { KibiConfig } from "./config.js";
@@ -213,7 +217,7 @@ export function postureGuidance(
   posture: RepoPosture,
   capability: KibiBootstrapCommandCapability = getKibiBootstrapCommandCapability(),
 ): string | null {
-  // implements REQ-opencode-prompt-injection
+  // implements REQ-opencode-guidance-injection
   switch (posture) {
     case "vendored_only":
       // Minimal guidance only, no bootstrap nags
@@ -395,7 +399,23 @@ If you're adding long explanatory comments, consider routing that knowledge to:
           context.workspaceRoot,
           absEdited,
         );
-        if (linkedIds.length >= 1 && linkedIds.length <= 3) {
+        const leadId = linkedIds[0];
+        if (leadId !== undefined && linkedIds.length <= 3) {
+          // What the lead requirement must keep true and the decision behind
+          // it, from the shared kibi-agent-core projection. One fact keeps
+          // the bullet inside the prompt's word budget; retired requirements
+          // contribute nothing.
+          const grounding = requirementGroundingLines(
+            leadId,
+            createEntitySummarizer(context.workspaceRoot),
+            { maxFacts: 1 },
+          );
+          if (grounding.length > 0) {
+            selectedBlock = insertBulletAfterHeader(
+              selectedBlock,
+              `- ${grounding.join(" ")}`,
+            );
+          }
           selectedBlock = insertBulletAfterHeader(
             selectedBlock,
             `- Existing Kibi links: ${linkedIds.join(", ")}`,

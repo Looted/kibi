@@ -8,6 +8,10 @@ tags:
   - boundary
 id: SCEN-zcode-advisory-boundary-v1
 type: scenario
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 kibi-zcode is installed and enabled in an owned workspace.
 

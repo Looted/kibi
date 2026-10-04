@@ -20,4 +20,8 @@ claim_key: CLAIM-179749472EB4BE33
 claim_text: 'The launcher must resolve the consumer workspace by trying these named sources first in order: explicit workspace argument, WORKSPACE_FOLDER_PATHS, KIBI_WORKSPACE, CURSOR_WORKSPACE, then cwd only when cwd contains project-local kibi-mcp'
 id: FACT-PRED-7DF9B295814F
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

@@ -17,4 +17,8 @@ claim_key: CLAIM-3B00C14EE898530D
 claim_text: Kibi CLI and MCP must share one harness-independent environment bootstrap
 id: FACT-PROP-ENV-BOOTSTRAP-SHARED
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

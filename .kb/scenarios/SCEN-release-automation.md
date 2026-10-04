@@ -4,7 +4,6 @@ title: Changesets release automation is verified before publishing
 status: passing
 created_at: 2026-05-29T19:40:00Z
 updated_at: 2026-05-29T19:40:00Z
-source: documentation/scenarios/SCEN-release-automation.md
 tags:
   - release
   - automation
@@ -12,6 +11,10 @@ tags:
 links:
   - type: verified_by
     target: TEST-014
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 # Scenario: Release automation is verified before publishing

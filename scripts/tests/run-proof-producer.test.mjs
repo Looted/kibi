@@ -5,6 +5,7 @@ import {
   existsSync,
   mkdtempSync,
   readFileSync,
+  readdirSync,
   rmSync,
   writeFileSync,
 } from "node:fs";
@@ -330,4 +331,74 @@ test("proof steps run without the operator's usage-telemetry opt-in", async () =
   assert.equal("KIBI_DIAGNOSTIC_MODE" in seen[0], false);
   assert.equal("KIBI_CLI_DIAGNOSTIC_MODE" in seen[0], false);
   assert.equal(seen[0].KIBI_PROOF_KEEP, "yes");
+});
+
+test("proof producer reports each test's own step outcomes for kibi prove", async () => {
+  const directory = tempDir();
+  const reportPath = path.join(directory, "runs", "self-proof.tests.json");
+  const pass = [process.execPath, "-e", "process.exit(0)"];
+  const fail = [process.execPath, "-e", "process.exit(4)"];
+  const lines = [];
+  const stepEnvs = [];
+  const result = await runProofProducer({
+    workspaceRoot: directory,
+    testIds: ["TEST-GREEN", "TEST-RED"],
+    entries: [
+      { test_id: "TEST-GREEN", steps: [pass] },
+      { test_id: "TEST-RED", steps: [pass, fail] },
+    ],
+    env: { ...process.env, KIBI_PROOF_TEST_REPORT: reportPath },
+    spawnProcess: (command, args, options) => {
+      stepEnvs.push(options.env);
+      return spawn(command, args, options);
+    },
+    write: (line) => lines.push(line),
+  });
+
+  assert.equal(result.exitCode, 1);
+  // The shared passing step runs once; neither step sees the report path.
+  assert.equal(stepEnvs.length, 2);
+  assert.ok(stepEnvs.every((env) => !("KIBI_PROOF_TEST_REPORT" in env)));
+  const written = JSON.parse(readFileSync(reportPath, "utf8"));
+  assert.deepEqual(written, result.report);
+  assert.deepEqual(written, {
+    version: "kibi.proof-test-report.v1",
+    tests: [
+      {
+        test_id: "TEST-GREEN",
+        outcome: "passed",
+        steps: [
+          { step_index: 1, command: pass, outcome: "passed", exit_code: 0 },
+        ],
+      },
+      {
+        test_id: "TEST-RED",
+        outcome: "failed",
+        steps: [
+          { step_index: 1, command: pass, outcome: "passed", exit_code: 0 },
+          { step_index: 2, command: fail, outcome: "failed", exit_code: 4 },
+        ],
+      },
+    ],
+  });
+  assert.ok(
+    lines.includes("[proof] 1 step(s) failed in 1 of 2 test(s): TEST-RED"),
+    lines.join("\n"),
+  );
+});
+
+test("proof producer writes no test report unless kibi prove asks for one", async () => {
+  const directory = tempDir();
+  const result = await runProofProducer({
+    workspaceRoot: directory,
+    testIds: ["TEST-QUIET"],
+    entries: [
+      { test_id: "TEST-QUIET", steps: [[process.execPath, "-e", "0"]] },
+    ],
+    env: { ...process.env, KIBI_PROOF_TEST_REPORT: "" },
+    write: () => undefined,
+  });
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.report.tests[0].outcome, "passed");
+  assert.deepEqual(readdirSync(directory), []);
 });

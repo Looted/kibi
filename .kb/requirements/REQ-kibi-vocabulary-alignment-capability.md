@@ -55,5 +55,9 @@ semantic_inventory:
     reason: Grounded by a predicate fact over the narrow vocabulary-convergence schemas.
 id: REQ-kibi-vocabulary-alignment-capability
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 The builtin vocabulary-alignment provider must produce complete subject rankings and claim comparisons without network access. An activated vocabulary-alignment provider may run from kb_model_requirement. kb_check must never call a vocabulary-alignment provider. A failed replace-mode vocabulary-alignment provider must fall back to the builtin provider with fallbackUsed stamped.

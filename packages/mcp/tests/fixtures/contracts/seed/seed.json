@@ -101,6 +101,67 @@
         }
       }
     },
+    "kb_skills": {
+      "input": {
+        "action": "load",
+        "id": "kibi-contract-fixture"
+      },
+      "success": {
+        "structuredContent": {
+          "action": "load",
+          "skill": {
+            "id": "kibi-contract-fixture",
+            "name": "kibi-contract-fixture",
+            "title": "Seeded contract skill",
+            "description": "Local fixture skill loaded from the contract seed.",
+            "sourceType": "fixture",
+            "contentHash": "seed-hash",
+            "resources": ["instructions.md"],
+            "body": "# Seeded contract skill\n"
+          }
+        }
+      },
+      "failure": {
+        "error": {
+          "class": "JSONRPCError",
+          "code": -32602,
+          "message": "Skill id is required"
+        }
+      }
+    },
+    "kb_model": {
+      "input": {
+        "mode": "analyze",
+        "text": "The editor must save changes automatically when the user navigates away.",
+        "type": "req",
+        "id": "REQ-CONTRACT-AUTO-SAVE",
+        "title": "Auto-save on navigation",
+        "source": "contracts/seed/requirements/REQ-CONTRACT-AUTO-SAVE.md",
+        "status": "open"
+      },
+      "success": {
+        "structuredContent": {
+          "mode": "analyze",
+          "receipt": {
+            "summary": "One reviewable suggestion produced.",
+            "suggestions": [
+              {
+                "kind": "strict-property",
+                "label": "commit_action"
+              }
+            ]
+          },
+          "warnings": []
+        }
+      },
+      "failure": {
+        "error": {
+          "class": "JSONRPCError",
+          "code": -32602,
+          "message": "Semantic advisor failed: text must be a non-empty string"
+        }
+      }
+    },
     "kb_skills_load": {
       "input": {
         "id": "kibi-contract-fixture"

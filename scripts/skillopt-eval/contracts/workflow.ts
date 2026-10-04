@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { PinnedModelSchema } from "../runtime/models";
 import {
   ArtifactIdSchema,
   CONTRACT_SCHEMA_VERSION,
@@ -31,7 +32,7 @@ export const LedgerEntrySchema = boundedContractSchema(
         "bundle",
         "infrastructure",
       ]),
-      model: z.enum(["gpt-5.6-luna", "gpt-5.6-sol", "none"]),
+      model: z.union([z.literal("none"), PinnedModelSchema]),
       usage: UsageSchema,
       priceEquivalentEstimate: PriceEquivalentEstimateSchema,
     })

@@ -4,7 +4,6 @@ title: Kibi finds requirements and implementation evidence from natural-language
 status: open
 created_at: 2026-08-13T00:00:00Z
 updated_at: 2026-08-13T00:00:00Z
-source: documentation/requirements/REQ-kibi-intent-aware-source-discovery.md
 priority: must
 owner: platform-team
 tags: [search, intent, source, traceability]
@@ -24,6 +23,10 @@ links:
     target: SCEN-kibi-intent-aware-source-discovery
   - type: verified_by
     target: TEST-kibi-intent-aware-source-discovery
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Given a natural-language functionality request, Kibi must rank matching requirements, scenarios, tests, facts, and implementation symbols using lexical, semantic, relationship, and source-location evidence. The result must expose deterministic scores, evidence paths, source locations, and explicit zero-result or ambiguity states rather than presenting an unsupported match as proof.

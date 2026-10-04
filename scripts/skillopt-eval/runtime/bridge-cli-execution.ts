@@ -192,7 +192,8 @@ async function realResult(
           env: process.env,
           finalStateRequests: taskFinalStateRequests(
             taskId,
-            fixture.evaluatorManifest.protocolContract !== undefined,
+            fixture.evaluatorManifest.protocolContract?.exactMigrationApply !==
+              undefined,
           ),
           evaluatorManifest: fixture.evaluatorManifest,
           hiddenMarkers: options.hiddenMarkers,

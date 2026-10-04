@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test } from "bun:test";
+import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
@@ -284,6 +284,11 @@ describe("engine socket locations preserve private canonical identities", () => 
         timeout: 10_000,
       });
       let daemonError: unknown;
+      // An in-process daemon ends its host process shortly after it stops;
+      // here the host is the shared test runner, which must keep going.
+      const exitSpy = spyOn(process, "exit").mockImplementation(
+        (() => undefined as never) as typeof process.exit,
+      );
       const daemon = runEngineDaemon({
         workspaceRoot: workspace,
         branch: "main",
@@ -328,6 +333,8 @@ describe("engine socket locations preserve private canonical identities", () => 
         await sibling.terminate();
         await client.terminate();
         await daemon;
+        await Bun.sleep(150);
+        exitSpy.mockRestore();
       }
     },
     20_000,

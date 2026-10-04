@@ -31,6 +31,10 @@ semantic_inventory:
       start: 0
       end: 116
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 The CLI provides a usage metrics command that summarizes diagnostic usage events for audit and maintenance workflows.

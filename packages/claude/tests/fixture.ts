@@ -97,7 +97,17 @@ export function createKibiWorkspace(): Fixture {
   write(
     root,
     ".kb/requirements/REQ-checkout-rounding.md",
-    "---\nid: REQ-checkout-rounding\ntitle: Checkout totals round to cents\nstatus: open\n---\n\nTotals round half up to two decimals.\n",
+    "---\nid: REQ-checkout-rounding\ntitle: Checkout totals round to cents\nstatus: open\nlinks:\n  - type: constrains\n    target: FACT-checkout-total\n  - type: requires_property\n    target: FACT-total-rounding-cents\n  - ADR-money-as-decimal\n---\n\nTotals round half up to two decimals.\n",
+  );
+  write(
+    root,
+    ".kb/facts/FACT-total-rounding-cents.md",
+    "---\nid: FACT-total-rounding-cents\ntitle: Totals round half up to two decimals\nstatus: active\n---\n",
+  );
+  write(
+    root,
+    ".kb/adr/ADR-money-as-decimal.md",
+    "---\nid: ADR-money-as-decimal\ntitle: Money is computed as decimal cents\nstatus: accepted\n---\n",
   );
   write(
     root,

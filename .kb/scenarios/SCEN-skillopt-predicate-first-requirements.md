@@ -4,11 +4,15 @@ title: Agent routes requirement claims to predicate, strict, or review lanes
 status: active
 created_at: 2026-07-26T00:00:00Z
 updated_at: 2026-08-04T00:00:00Z
-source: documentation/requirements/REQ-skillopt-predicate-first-requirements.md
+source: .kb/requirements/REQ-skillopt-predicate-first-requirements.md
 tags: [skillopt, agents, requirements, predicates, ontology]
 links:
   - type: verified_by
     target: TEST-skillopt-predicate-first-requirements
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Given readable normative requirement prose and the current predicate catalog, when an agent models the requirement, then it obtains semantic advice and predicate suggestions before mutation, uses the suggested predicate and `requires_predicate` only for a suitable relational claim, routes scalar constraints to strict subject/property facts, and preserves ambiguous, unmatched, ontology-gap, and false-positive cases as review observations or the correct non-predicate outcome.

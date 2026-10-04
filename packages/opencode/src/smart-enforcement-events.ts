@@ -157,11 +157,21 @@ export function handleKbToolEvent(
       branch: env.rootWorkContext.branch,
       fingerprint: `${env.input.sessionId ?? ""}-${env.rootWorkContext.branch}`,
     };
+    // A dry-run upsert only validates and is not a KB mutation.
+    const args = (props.args ??
+      (props.input as Record<string, unknown> | undefined)?.args ??
+      (props.call as Record<string, unknown> | undefined)?.args) as
+      | Record<string, unknown>
+      | undefined;
+    const evidenceTool =
+      toolName === "kb_upsert" && args?.dryRun === true
+        ? "kb_validate_upsert"
+        : toolName;
     try {
-      env.freshnessStore.recordToolEvidence(scope, toolName);
+      env.freshnessStore.recordToolEvidence(scope, evidenceTool);
       env.log.info("kb-freshness.tool-evidence", {
         event: "kb_freshness_tool_evidence",
-        tool: toolName,
+        tool: evidenceTool,
       });
     } catch {
       // best-effort, never crash the event handler

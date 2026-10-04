@@ -4,7 +4,6 @@ title: Maximum of Three
 status: active
 created_at: 2026-02-20T13:00:00.000Z
 updated_at: 2026-04-21T10:00:00.000Z
-source: documentation/facts/FACT-LIMIT-3.md
 tags:
   - cardinality
 fact_kind: property_value
@@ -18,6 +17,10 @@ claim_text: allowing the new constraint (maximum of 3 roles) to take precedence 
 claim_span_start: 238
 claim_span_end: 343
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 A strict upper bound of at most 3 items.

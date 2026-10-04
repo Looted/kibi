@@ -15,4 +15,8 @@ claim_key: CLAIM-46FF585AFDBB5020
 claim_text: '**Automation**: All release steps are automated via Changesets'
 id: FACT-PROP-REQ-020-C05
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

@@ -21,4 +21,8 @@ claim_text: An external semantic classifier must be allowed only for kb_compile_
 id: FACT-PRED-820A58EABBF6
 type: fact
 predicate_namespace: kibi.capability
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

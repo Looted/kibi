@@ -39,5 +39,9 @@ examples:
   - upsert_commit_contains(branch_lock,snapshot_validation,rdf_mutation,contradiction_check,entity_audit,relationship_audit,audit_sync,snapshot_save)
 id: FACT-SCHEMA-UPSERT-COMMIT-CONTAINS
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Predicate schema for upsert_commit_contains/8.

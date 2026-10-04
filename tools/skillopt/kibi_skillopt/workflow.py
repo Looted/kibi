@@ -21,6 +21,7 @@ from .common import (
     Usage,
 )
 from .episode import Skill
+from .model_pins import ModelId, resolve_model_config
 
 
 class LedgerEntry(ContractModel):
@@ -35,7 +36,7 @@ class LedgerEntry(ContractModel):
     category: Literal[
         "preflight", "development", "optimization", "held-out", "bundle", "infrastructure"
     ]
-    model: Literal["gpt-5.6-luna", "gpt-5.6-sol", "none"]
+    model: Literal["none"] | ModelId
     usage: Usage
     price_equivalent_estimate: Annotated[
         PriceEquivalentEstimate, Field(alias="priceEquivalentEstimate")
@@ -47,6 +48,12 @@ class LedgerEntry(ContractModel):
         if value is None:
             raise ContractValidationError("episodeId cannot be null")
         return value
+
+    @model_validator(mode="after")
+    def verify_pinned_model(self) -> Self:
+        if self.model != "none" and self.model not in resolve_model_config().pinned_models():
+            raise ContractValidationError("model_not_pinned")
+        return self
 
     @model_validator(mode="after")
     def verify_chain_link(self) -> Self:

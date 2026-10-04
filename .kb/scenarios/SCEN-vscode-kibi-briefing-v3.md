@@ -4,7 +4,6 @@ title: "VS Code Kibi Briefing v3: Deterministic Ordering & Schema-2.0 Scenarios"
 status: closed
 created_at: 2026-05-06T04:45:00Z
 updated_at: 2026-05-06T04:45:00Z
-source: documentation/scenarios/SCEN-vscode-kibi-briefing-v3.md
 tags:
   - scenario
   - vscode
@@ -13,6 +12,10 @@ tags:
 links:
   - type: relates_to
     target: REQ-vscode-kibi-briefing-v3
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 **Scenario: Deterministic Latest Selection — Filename priority**

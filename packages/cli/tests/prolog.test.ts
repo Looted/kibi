@@ -208,6 +208,26 @@ describe("PrologProcess", () => {
     expect(result3.success).toBe(true);
   });
 
+  test("answers a finished query as soon as its frame arrives, not on the next poll", async () => {
+    // Compound goals bypass the result cache, so each one is a real round
+    // trip. Waiting out a 50 ms poll per answer would take at least 1 s.
+    const queries = 20;
+    const startedAt = performance.now();
+    for (let index = 0; index < queries; index += 1) {
+      const result = await sharedProlog.query(`(X = ${index})`);
+      expect(result.bindings.X).toBe(String(index));
+    }
+    expect(performance.now() - startedAt).toBeLessThan(queries * 50);
+  });
+
+  test("still classifies an error reported before its answer frame", async () => {
+    const result = await sharedProlog.query("(atom_length(X, _))");
+    expect(result.success).toBe(false);
+    expect(result.error).toBeDefined();
+    // The session keeps answering after the error.
+    expect((await sharedProlog.query("(Y = ok)")).bindings.Y).toBe("ok");
+  });
+
   test("caches successful query results and supports invalidation", async () => {
     const first = await sharedProlog.query("X = 99");
     const cached = await sharedProlog.query("X = 99");

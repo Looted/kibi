@@ -57,6 +57,10 @@ semantic_clauses:
   - Each capability must have at most one replace provider per capability.
   - Shadow mode must leave canonical capability results unchanged.
   - Augment mode must add capability results beside builtin providers.
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 # REQ-capability-plugin-three-capabilities-v1
 

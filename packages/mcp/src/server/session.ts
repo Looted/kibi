@@ -27,7 +27,8 @@ import {
   getBranchDiagnostic,
   isValidBranchName,
   resolveActiveBranch,
-  resolveBranchAttachment,
+  type resolveBranchAttachment,
+  resolveReadBranchAttachment,
 } from "kibi-runtime";
 import { getBranchOverride, isMcpDebugEnabled } from "../env.js";
 import { resolveKbPath, resolveWorkspaceRoot } from "../workspace.js";
@@ -62,7 +63,9 @@ const defaultSessionDeps: SessionDeps = {
   getBranchDiagnostic,
   isValidBranchName,
   resolveActiveBranch,
-  resolveBranchAttachment,
+  // The session engine serves reads; on a detached HEAD it attaches the
+  // checkout's read-only snapshot, and writes are refused before reaching it.
+  resolveBranchAttachment: resolveReadBranchAttachment,
   resolveKbPath,
   resolveWorkspaceRoot,
 };
@@ -101,7 +104,7 @@ const state: McpSessionState = {
   shutdownTimeout: null,
 };
 
-// implements REQ-008
+// implements REQ-core-prolog-process-management
 export function getPrologProcess(): PrologProcess | null {
   return state.prologProcess;
 }
@@ -111,12 +114,12 @@ export function getActiveBranchName(): string {
   return state.activeBranchName;
 }
 
-// implements REQ-008
+// implements REQ-mcp-kb-freshness
 export function getAttachedBranchKbPath(): string | null {
   return state.attachedBranchKbPath;
 }
 
-// implements REQ-008
+// implements REQ-core-prolog-process-management
 export function getIsShuttingDown(): boolean {
   return state.isShuttingDown;
 }
@@ -129,7 +132,7 @@ export function updateAttachedBranchStamp(stamp: BranchKbStamp): void {
   state.attachedBranchStamp = stamp;
 }
 
-// implements REQ-008
+// implements REQ-core-prolog-process-management
 export function resetSessionStateForTests(): void {
   state.prologProcess = null;
   state.isInitialized = false;
@@ -147,18 +150,18 @@ export function resetSessionStateForTests(): void {
 }
 
 export function _setSessionDepsForTests(
-  // implements REQ-008
+  // implements REQ-core-prolog-process-management
   overrides: Partial<SessionDeps>,
 ): void {
   sessionDeps = { ...sessionDeps, ...overrides };
 }
 
 export function _resetSessionDepsForTests(): void {
-  // implements REQ-008
+  // implements REQ-core-prolog-process-management
   sessionDeps = { ...defaultSessionDeps };
 }
 
-// implements REQ-008
+// implements REQ-core-prolog-process-management
 export function _setPrologProcessForTests(process: PrologProcess | null): void {
   state.prologProcess = process;
 }
@@ -173,7 +176,7 @@ export function ensureBranchKbExists(
   workspaceRoot: string,
   branch: string,
 ): boolean {
-  // implements REQ-008
+  // implements REQ-branch-store-recovery-v4
   if (!sessionDeps.isValidBranchName(branch)) {
     throw new Error(`Invalid branch name: ${branch}`);
   }
@@ -251,7 +254,7 @@ export async function initiateGracefulShutdown(exitCode = 0): Promise<void> {
   process.exit(exitCode);
 }
 
-// implements REQ-008
+// implements REQ-core-prolog-process-management
 export async function resetProlog(reason: string): Promise<void> {
   debugLog(`[KIBI-MCP] Resetting Prolog worker: ${reason}`);
   state.prologResetGeneration += 1;
@@ -331,7 +334,7 @@ function usesBranchKbPath(kbPath: string): boolean {
   );
 }
 
-// implements REQ-008
+// implements REQ-core-prolog-process-management
 async function ensurePrologUnsafe(): Promise<PrologProcess> {
   const generationAtStart = state.prologResetGeneration;
   const workspaceRoot = sessionDeps.resolveWorkspaceRoot();

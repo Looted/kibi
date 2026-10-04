@@ -18,7 +18,7 @@ Use this reference when an MCP mutation fails. Fix the payload instead of fallin
 | `closedWorld` | `closed_world` |
 | `value: true` | `value_type: "bool"` and `value_bool: true` |
 
-If starting from prose, call `kb_model_requirement` and apply its sequential `applyPlan` instead of guessing field names.
+If starting from prose, call `kb_model` with `mode: "requirement"` and apply its sequential `applyPlan` instead of guessing field names.
 
 ## Invalid `status`, `fact_kind`, `operator`, or `value_type`
 
@@ -42,21 +42,29 @@ Use the enum values shown in the MCP `inputSchema`. For property facts, common v
 - non-empty `predicate_args`
 - `canonical_key`
 
-Call `kb_suggest_predicates` before hand-writing ontology predicates.
+Call `kb_model` with `mode: "predicates"` before hand-writing ontology predicates.
 
 ## Incomplete logical claim provenance
 
-`claim_key` and `claim_text` are an auditable pair. If either is present on a fact, supply both. Use the stable key returned by `kb_semantic_advisor` for that exact atomic clause; do not invent or reuse a key for different prose.
+`claim_key` and `claim_text` are an auditable pair. If either is present on a fact, supply both. Use the stable key returned by `kb_model` with `mode: "analyze"` for that exact atomic clause; do not invent or reuse a key for different prose.
 
 If `kb_check` reports `logic-coverage`, compare the requirement `logic_claims` manifest with its linked `property_value` and `predicate` facts. Ground every missing key, add any omitted linked key to the manifest, and keep ambiguity or ontology gaps explicitly unresolved rather than satisfying the check with an observation.
 
 If `kb_coverage.repairPlan.status` is `partial`, do not execute it as a complete migration. Its `scope.excludedByPagination` count identifies omitted actionable requirements; rerun requirement coverage with `offset: 0` and a large enough `limit`. Apply only `ready` batches, never infer that `blocked` means safe to skip, and rerun coverage after each validated sequential batch because new downstream gaps can become visible as prerequisites are repaired.
 
+## Invalid entity origin
+
+`origin` is an object with a required `kind` (`human`, `agent`, `migration` or `import`) and optional `ref`, `approved_by` and `recorded_at` (ISO 8601). Unknown kinds and unknown fields are rejected by `kb_upsert` and, in Markdown frontmatter, by `kibi sync` (classification `Invalid Entity Origin`). To keep a stored origin, omit `origin` from the upsert instead of copying it.
+
+## Semantic inventory no longer matches the advisor
+
+If `kibi sync` reports `N requirement(s) failed proposition-complete ingestion` after an upgrade, the stored `semantic_inventory` of each listed requirement was written by an older semantic advisor. Run `kibi migrate`: its `semantic_inventory_rederive` actions rewrite the inventories that can be re-derived without losing grounding, and its `semantic_inventory_review` actions give the exact commands for the rest.
+
 ## Unsafe or unverifiable rule fact
 
-`fact_kind: rule` requires a `kibi.logic.v1` `rule_ir`, a deterministic full `rule_hash`, a `semantic_key`, a `rule_schema_id`, and `rule_name`. Submit the typed object through `kb_model_requirement`; do not provide Prolog source. `rule-safety` rejects function symbols, raw goals, cuts, meta-calls, dynamic predicates, I/O, unsafe/unbound variables, existential rule heads, unstratified negation, incompatible units, and unbounded aggregation. `rule-verifiability` requires `requires_rule` to target a real `rule_schema` and a safe rule fact. Analysis that is timed out or resource-limited is `unresolved`, not proof of consistency.
+`fact_kind: rule` requires a `kibi.logic.v1` `rule_ir`, a deterministic full `rule_hash`, a `semantic_key`, a `rule_schema_id`, and `rule_name`. Submit the typed object through `kb_model` with `mode: "requirement"`; do not provide Prolog source. `rule-safety` rejects function symbols, raw goals, cuts, meta-calls, dynamic predicates, I/O, unsafe/unbound variables, existential rule heads, unstratified negation, incompatible units, and unbounded aggregation. `rule-verifiability` requires `requires_rule` to target a real `rule_schema` and a safe rule fact. Analysis that is timed out or resource-limited is `unresolved`, not proof of consistency.
 
-If validation reports `Logical Claim Provenance Mismatch`, the fact's `claim_key` was copied, invented, or derived from different text. Re-run `kb_semantic_advisor` for the exact atomic clause and preserve its returned `claim_key` and canonicalized `claim_text` together.
+If validation reports `Logical Claim Provenance Mismatch`, the fact's `claim_key` was copied, invented, or derived from different text. Re-run `kb_model` with `mode: "analyze"` for the exact atomic clause and preserve its returned `claim_key` and canonicalized `claim_text` together.
 
 ## Relationship source mismatch
 
@@ -64,7 +72,7 @@ Same-call relationship rows must start from the entity being upserted. To link `
 
 ## Invalid relationship tuple
 
-`kb_validate_upsert` and `kb_upsert` reject relationship source/target type pairs that are not part of the relationship schema. For example, facts are not directly verified by tests: do not write `verified_by fact -> test` or `validates test -> fact`. Create or update a requirement, link the requirement to the fact with `constrains`, `requires_property`, or `requires_predicate`, and link the requirement or its scenario to the test with `verified_by` / `validates`.
+`kb_upsert` (dry run or real) rejects relationship source/target type pairs that are not part of the relationship schema. For example, facts are not directly verified by tests: do not write `verified_by fact -> test` or `validates test -> fact`. Create or update a requirement, link the requirement to the fact with `constrains`, `requires_property`, or `requires_predicate`, and link the requirement or its scenario to the test with `verified_by` / `validates`.
 
 ## Strict-lane mismatch
 
@@ -77,7 +85,15 @@ Legacy prose facts may remain readable during migration, but they do not provide
 
 ## Contradiction detected
 
-Create an append-only replacement requirement and add `supersedes`, or deprecate the conflicting requirement before writing the new one.
+Create an append-only replacement requirement and add `supersedes`, or deprecate the conflicting requirement before writing the new one. Then set the replaced requirement to `status: closed`.
+
+## Superseded requirement still open (`superseded-requirement-open`)
+
+`kibi check` blocks a requirement that another requirement `supersedes` while its status is not `closed`. Upsert it with `status: closed`, or run `kibi migrate` (action `close_superseded_requirements`), which edits only the status line. If the requirement still states current intent, delete the `supersedes` link instead. A finding that starts with `Supersession cycle:` names requirements that supersede each other; nothing closes them automatically. Decide which one is current, delete the `supersedes` link that points at it, then close the others.
+
+## Dangling source (`source-path-dangling`)
+
+An authored `source` frontmatter field must name an existing workspace path (a `#anchor` suffix is fine), an existing entity id, or an http(s) URL. The field is dead data: the compiled `source` is always the entity's own file, and Kibi never writes the field, so `kb_upsert` cannot fix it and an agent must not hand-edit `.kb/`. Run `kibi migrate` instead; its automatic `source_path_rewrite` action repairs the finding. When the value names another knowledge file by its pre-canonical path (`documentation/<lane>/...`, or `<lane>/...` relative to the knowledge root) and that file exists under `.kb/<lane>/`, the finding carries `evidence.rewrite` and the action points the field there. Otherwise the finding carries `evidence.remove` and the action removes the line: `self` when the value names the entity's own file (in any spelling, compared case-insensitively), `dangling` when it names nothing Kibi can map. Only when the edit is not safe, for example a value spanning several lines, does the finding carry `evidence.refused`; `kibi migrate` then plans a `review_source_path_dangling` action, and a person edits the field by hand.
 
 ## Audit journal or snapshot lock
 
@@ -87,11 +103,31 @@ Create an append-only replacement requirement and add `supersedes`, or deprecate
 
 Timeout diagnostics include `stage=<name>` and the child PID. The stage is one of the bounded commit markers (`runtime`, `lock`, `rdf_mutation`, `contradiction_check`, `entity_audit`, `relationship_audit`, `snapshot_save`, or `audit_sync`); use it to distinguish a stale lock from a filesystem or Prolog failure without relying on entity payload logging.
 
-## Low-confidence `kb_model_requirement` downgrade
+## Read stopped at its engine limit (`QUERY_LIMIT_EXCEEDED`)
+
+The read ran under `KIBI_ENGINE_READ_TIME_LIMIT_MS` or `KIBI_ENGINE_READ_INFERENCE_LIMIT` and was stopped before it computed an answer; `error.details.limitExceeded` names the `kind` (`time` or `inferences`) and the `limit`. Nothing was read partially and nothing was written. Narrow the request (a type, id, tag, or smaller page), or raise or unset the limit in the CLI or MCP server environment, then retry.
+
+## Write refused on a detached HEAD
+
+`<operation> writes the branch KB, but HEAD is detached at <sha> ...` means the checkout has no single branch identity (zero or several local branches point at HEAD). Reads still work from the read-only snapshot and carry a `detached_head_read_only` diagnostic. To write, check out a branch (`git switch <branch>` or `git switch -c <branch>`) or set `KIBI_BRANCH` to name the branch explicitly, then retry.
+
+## Plan application journal (`kb_apply_plan`)
+
+`Apply plan failed ...; no change was applied` means the compile plan failed before its single store commit. Its source writes were restored from the journal and the store is unchanged. Fix the cause and apply the same plan again.
+
+`PLAN_APPLY_RECOVERY_REQUIRED` (non-retryable) means a plan application was interrupted and could not be settled yet: the store could not be inspected, or a committed plan's pending-source receipts failed. Run `kb_apply_plan` with the named `recoveryJournalId` once the engine or filesystem is available. Do not re-apply the original plan.
+
+`PARTIAL_COMMIT_REPAIR_REQUIRED` from a plan journal means a journaled file holds neither its journaled before nor after bytes, or the journal is unreadable. Recovery changed nothing. Restore each listed file to its before or after bytes and retry, or reconcile the workspace and store by hand (`kibi sync`) and remove the named journal file.
+
+`MUTATION_ALREADY_COMMITTED` means the plan was already applied. Compile a fresh plan instead.
+
+An error ending in `[settled before this failure: ...]` comes from a mutating call that first completed or rolled back an interrupted plan from its journal, then failed on its own work. The settlement stands; read it to learn which plan was completed or rolled back. A plan compiled before that settlement usually fails its snapshot check and must be compiled again.
+
+## Low-confidence requirement modeling downgrade (`kb_model` mode `requirement`)
 
 When confidence is below `0.70`, Kibi emits a non-blocking `fact_kind: observation`. If the prose is normative, retry with explicit `subjectKey`, `propertyKey`, `operator`, and `value` so the tool can produce strict facts.
 
-## `kb_suggest_predicates` ontology gap
+## Predicate suggestion ontology gap (`kb_model` mode `predicates`)
 
 If no candidate meets `minScore`, Kibi emits a `review:ontology-gap` observation. Keep it as review evidence, or add a project-local `fact_kind: predicate_schema` when the language is recurring domain ontology.
 
@@ -112,8 +148,9 @@ Fix the underlying modeling issue when the diagnostic points to real drift, but 
 Telemetry diagnostics are also advisory in `kb_check`, but `kibi usage-metrics --require-acceptance` converts their versioned report into an explicit process gate. Common IDs and repairs are:
 
 - `repeated_mutation_failures`: stop retrying, query endpoints, validate a reduced exact payload, repair runtime health, and retry once.
-- `mutation_validation_bypassed`: run `kb_validate_upsert` for the exact payload within one hour before sequential `kb_upsert`.
-- `semantic_advisor_bypassed`: rerun `kb_semantic_advisor` for the same requirement and current source hash before writing it.
+- `mutation_validation_bypassed`: run `kb_upsert` with `dryRun: true` (catalog operation `kb_validate_upsert`) for the exact payload within one hour before sequential `kb_upsert`.
+- `semantic_advisor_bypassed`: rerun `kb_model` with `mode: "analyze"` (catalog operation `kb_semantic_advisor`) for the same requirement and current source hash before writing it.
+- `lookup_before_first_edit_bypassed`: a host session edited a requirement-linked file before any `kb_search` or `kb_query`. Before the first edit of such a file, ask `kb_search` about the change (or `kb_query` with `sourceFile`) and read the requirements it names. The evidence comes from host plugin hook rows, which are written only in diagnostic mode.
 - `e2e_receipt_freshness_low`: query the affected requirements/tests, run `kibi prove` for the covering integrations, let receipts append idempotently with preserved history, and rerun complete coverage.
 - `proof_gap_recovery_stalled`: apply reviewed ready repair batches and demonstrate a lower complete-scope gap count.
 - `source_lookup_zero_result_rate_high`: inspect and refresh the cited source links before repeating focused lookups.

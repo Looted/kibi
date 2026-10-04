@@ -7,6 +7,10 @@ tags:
   - enforcement
 id: SCEN-zcode-hard-enforcement-owner-v1
 type: scenario
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 A repository runs kibi init and receives its Kibi git hooks.
 

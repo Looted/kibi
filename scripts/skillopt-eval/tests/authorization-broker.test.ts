@@ -25,12 +25,9 @@ import {
 describe("trusted broker authorization contracts", () => {
   test("isolates predicate tools on the evaluator broker allowlist", () => {
     // Given
-    const predicateTools = [
-      "kb_semantic_advisor",
-      "kb_suggest_predicates",
-      "kb_model_requirement",
-      "kb_validate_upsert",
-    ];
+    // kb_model reaches the advisor, requirement and predicate operations;
+    // kb_upsert with dryRun:true is the validation preflight.
+    const predicateTools = ["kb_model", "kb_upsert"];
     const allowlist = new Set<string>(REQUIRED_KIBI_TOOLS);
 
     // When
@@ -38,6 +35,14 @@ describe("trusted broker authorization contracts", () => {
 
     // Then
     expect(exposed).toBe(true);
+    for (const retired of [
+      "kb_semantic_advisor",
+      "kb_suggest_predicates",
+      "kb_model_requirement",
+      "kb_validate_upsert",
+    ]) {
+      expect(allowlist.has(retired)).toBe(false);
+    }
     // Deletion is brokered and protocol-scored per task: the allowlist
     // exposes kb_delete, while each private manifest forbids it except on
     // deletion-sanctioned objectives.

@@ -130,8 +130,9 @@ if (RUN_NODE_TEST_SUITE) {
               })}\n`,
             );
             const response = await sendMcpRequest(mcp, 2, "tools/call", {
-              name: "kb_skills_list",
+              name: "kb_skills",
               arguments: {
+                action: "list",
                 _diagnostic_telemetry: diagnosticTelemetry(
                   "session-packed",
                   "actor-packed",
@@ -160,6 +161,8 @@ if (RUN_NODE_TEST_SUITE) {
                 business_args: row.business_args,
               },
               {
+                // Usage evidence records the routed operation, so the MCP
+                // kb_skills call matches the CLI skills-list entry.
                 tool: "kb_skills_list",
                 status: "success",
                 telemetry_status: "provided",

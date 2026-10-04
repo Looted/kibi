@@ -89,6 +89,10 @@ logic_claims:
   - CLAIM-61866D483A777C0D
   - CLAIM-5A7BDFF1926F473B
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 The CLI manages the lifecycle of the SWI-Prolog child process, handling startup, shutdown, and error recovery.

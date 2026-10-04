@@ -22,4 +22,8 @@ claim_text: unresolved placeholders are invalid and ambiguous multiple usable ro
 id: FACT-PRED-270BA8568B7D
 type: fact
 predicate_namespace: kibi.launcher
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

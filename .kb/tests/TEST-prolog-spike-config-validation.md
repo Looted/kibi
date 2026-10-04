@@ -319,5 +319,9 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Run `bun test ./scripts/tests/swipl-spike-config.test.ts`. The test invokes the public spike wrapper with the pinned manifest for Linux x64 and macOS arm64, checks the reported versions and required libraries, and confirms no native build directory appears. It also rejects malformed manifests and an unsupported target with specific errors.

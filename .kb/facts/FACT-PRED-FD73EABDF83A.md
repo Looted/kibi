@@ -22,4 +22,8 @@ claim_text: 'It must resolve the consumer workspace in deterministic order: expl
 id: FACT-PRED-FD73EABDF83A
 type: fact
 predicate_namespace: kibi.launcher
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

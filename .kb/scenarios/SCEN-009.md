@@ -12,6 +12,10 @@ links:
   - type: verified_by
     target: TEST-011
 type: scenario
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Steps:
 1. KB contains REQ-X with priority: must but no specifiedby scenario.

@@ -13,4 +13,8 @@ claim_key: CLAIM-BFD7680847E0AD7D
 claim_text: Kibi initialization must attach the exact Git branch and create infrastructure only
 id: FACT-KIBI-BOOTSTRAP-PROPERTY
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

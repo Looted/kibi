@@ -8,7 +8,11 @@ import {
 } from "../public/operations/runtime-types.js";
 import type { OperationSpec } from "../public/operations/types.js";
 import { createCliRuntime } from "../runtime/cli-runtime.js";
-import { resolveBranchAttachment } from "../utils/branch-resolver.js";
+import { refreshDetachedSnapshot } from "../runtime/detached-snapshot.js";
+import {
+  resolveBranchAttachment,
+  resolveReadBranchAttachment,
+} from "../utils/branch-resolver.js";
 import { safeCleanupProlog } from "../utils/prolog-cleanup.js";
 import { renderDiscoveryTable } from "./discovery-table.js";
 
@@ -47,9 +51,14 @@ export async function withAttachedBranchProlog<T>(
   let branchName: string;
 
   try {
-    const attachment = resolveBranchAttachment(process.cwd());
+    // Callers only read: a detached HEAD reads its read-only snapshot.
+    const attachment = resolveReadBranchAttachment(process.cwd());
     if ("error" in attachment) throw new Error(attachment.error);
     branchName = attachment.kbBranch;
+    if (attachment.readOnly !== undefined) {
+      console.warn(`[KIBI] ${attachment.readOnly.notice}`);
+      await refreshDetachedSnapshot(process.cwd(), attachment);
+    }
 
     if (usesEngine) {
       engine = new EngineClient({

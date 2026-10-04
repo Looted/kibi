@@ -4,7 +4,6 @@ title: MCP schemas preserve paired claim provenance
 status: active
 created_at: 2026-08-04T00:00:00.000Z
 updated_at: 2026-08-04T00:00:00.000Z
-source: documentation/facts/FACT-LOGICAL-COVERAGE-MCP-PROVENANCE-PAIR.md
 tags:
   - lane:ontology
   - requirements
@@ -22,6 +21,10 @@ polarity: assert
 claim_key: CLAIM-3C684BC9D8615DF1
 claim_text: MCP tool schemas must preserve conditional claim provenance requirements
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of the MCP paired-provenance contract.

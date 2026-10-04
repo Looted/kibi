@@ -19,6 +19,10 @@ claim_key: CLAIM-DC162540AEA7A2B4
 claim_text: Compiled relationships owned by explicit runtime-only source entities are exempt from reverse source ownership only
 id: FACT-SOURCE-PARITY-RUNTIME-REVERSE-EXEMPT
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Compiled relationships owned by explicit runtime-only source entities are exempt from reverse source ownership only.
 

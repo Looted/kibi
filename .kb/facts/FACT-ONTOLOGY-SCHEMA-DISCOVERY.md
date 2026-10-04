@@ -4,7 +4,6 @@ title: Predicate suggestion discovers normalized project schemas
 status: active
 created_at: 2026-08-10T00:00:00.000Z
 updated_at: 2026-08-10T00:00:00.000Z
-source: documentation/facts/FACT-ONTOLOGY-SCHEMA-DISCOVERY.md
 tags:
   - lane:ontology
   - requirements
@@ -24,6 +23,10 @@ claim_text: Predicate suggestion must discover existing project-local schemas fr
 claim_span_start: 0
 claim_span_end: 85
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of graph-aware predicate-schema discovery.

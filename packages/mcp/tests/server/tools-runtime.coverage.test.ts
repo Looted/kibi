@@ -1,5 +1,8 @@
-// implements REQ-008
-import { afterEach, describe, expect, mock, test } from "bun:test";
+// implements REQ-002
+import { afterAll, afterEach, describe, expect, mock, test } from "bun:test";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import type { PrologProcess } from "kibi-runtime";
 
 import {
@@ -9,6 +12,13 @@ import {
 } from "../../src/server/tools-runtime.js";
 
 const previousDebug = process.env.KIBI_MCP_DEBUG;
+// Write specs open against a directory outside any Git checkout, so the
+// host checkout's HEAD (detached on CI) cannot refuse them.
+const outsideGit = mkdtempSync(join(tmpdir(), "kibi-mcp-runtime-"));
+
+afterAll(() => {
+  rmSync(outsideGit, { recursive: true, force: true });
+});
 
 afterEach(() => {
   _setToolsServerDepsForTests({}, true);
@@ -344,7 +354,7 @@ describe("DEFAULT_TOOLS_RUNTIME session wiring", () => {
     try {
       const skipped = await DEFAULT_TOOLS_RUNTIME.operationRuntime.open(
         writeSpec,
-        {},
+        { workspaceRoot: outsideGit },
       );
       await DEFAULT_TOOLS_RUNTIME.operationRuntime.afterSuccess(
         writeSpec,
@@ -362,7 +372,7 @@ describe("DEFAULT_TOOLS_RUNTIME session wiring", () => {
       );
       const context = await DEFAULT_TOOLS_RUNTIME.operationRuntime.open(
         writeSpec,
-        {},
+        { workspaceRoot: outsideGit },
       );
       await DEFAULT_TOOLS_RUNTIME.operationRuntime.afterSuccess(
         writeSpec,
@@ -396,7 +406,7 @@ describe("DEFAULT_TOOLS_RUNTIME session wiring", () => {
     try {
       const context = await DEFAULT_TOOLS_RUNTIME.operationRuntime.open(
         writeSpec,
-        {},
+        { workspaceRoot: outsideGit },
       );
       await DEFAULT_TOOLS_RUNTIME.operationRuntime.afterSuccess(
         writeSpec,

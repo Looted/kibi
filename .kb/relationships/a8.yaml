@@ -188,3 +188,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-14454f9e9531
+  - type: implements
+    from: SYM-core-values-conflict
+    to: REQ-kibi-truthful-consistency
+    created_at: 2026-10-03T09:25:57.623Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6f9e501443f2
+  - type: covered_by
+    from: SYM-core-values-conflict
+    to: TEST-kibi-truthful-consistency
+    created_at: 2026-10-03T09:25:57.649Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-213ca0094989

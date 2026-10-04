@@ -163,7 +163,11 @@ describe("diagnostic usage telemetry through the registration path", () => {
       },
     }));
 
-    await callTool(handlers, "kb_semantic_advisor", { text: "must retain" });
+    // kb_model routes to the advisor and logs under the routed operation.
+    await callTool(handlers, "kb_model", {
+      mode: "analyze",
+      text: "must retain",
+    });
 
     expect(rows[0]).toMatchObject({
       tool: "kb_semantic_advisor",
@@ -171,6 +175,17 @@ describe("diagnostic usage telemetry through the registration path", () => {
       semantic_candidate_lane: "strict",
       semantic_suggestion_kinds: ["predicate"],
       result_summary: "semantic advisor ready via strict",
+    });
+  });
+
+  test("logs a kb_skills call like the CLI skills-list route", async () => {
+    const { handlers, rows } = createHarness(() => ({ skills: [] }));
+
+    await callTool(handlers, "kb_skills", { action: "list" });
+
+    expect(rows[0]).toMatchObject({
+      tool: "kb_skills_list",
+      business_args: {},
     });
   });
 

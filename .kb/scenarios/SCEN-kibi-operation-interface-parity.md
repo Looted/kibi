@@ -5,7 +5,6 @@ type: scenario
 status: active
 created_at: 2026-07-21T00:00:00.000Z
 updated_at: 2026-07-21T00:00:00.000Z
-source: documentation/scenarios/SCEN-kibi-operation-interface-parity.md
 priority: must
 tags:
   - mcp
@@ -17,6 +16,10 @@ links:
     target: REQ-kibi-operation-interface-parity
   - type: relates_to
     target: ADR-022
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 ## Scenario

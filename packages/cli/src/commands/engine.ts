@@ -1,9 +1,14 @@
 import path from "node:path";
 import { EngineClient } from "../engine.js";
-import { resolveBranchAttachment } from "../utils/branch-resolver.js";
+import {
+  resolveBranchAttachment,
+  resolveReadBranchAttachment,
+} from "../utils/branch-resolver.js";
 
+// Engine maintenance never writes the KB, so a detached HEAD addresses the
+// daemon serving its read-only snapshot.
 function currentBranch(root: string): string {
-  const resolved = resolveBranchAttachment(root);
+  const resolved = resolveReadBranchAttachment(root);
   if ("error" in resolved) {
     throw new Error(resolved.error);
   }

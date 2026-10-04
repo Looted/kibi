@@ -15,4 +15,8 @@ claim_key: CLAIM-92775AA5E43E3BD9
 claim_text: The plugin must maintain a cache for enforcement state and guidance context:\n\nInvalidate cache on branch switches.\nInvalidate cache on git worktree changes.\nInvalidate cache when `.kb/config.json` or posture-relevant files change.\nSupport configurable TTL or event-based invalidation for guidance blocks
 id: FACT-PROP-REQ-OPENCODE-GUIDANCE-CACHING-C01
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

@@ -312,7 +312,6 @@ export function installHook(
   hookPath: string,
   content: string,
 ): InstallHookResult {
-  // implements REQ-008
   // implements REQ-git-hook-effective-install
   const kibiSection = `${KIBI_HOOK_BEGIN}\n${content}\n${KIBI_HOOK_END}`;
 

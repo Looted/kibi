@@ -16,6 +16,7 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import type { EntityOrigin } from "../public/entity-origin.js";
 import type { ProofBinding, ProofContract } from "../public/proof-protocol.js";
 import type { ProofReceipt } from "../public/proof-receipt.js";
 
@@ -32,6 +33,8 @@ export interface BaseEntity {
   severity?: string;
   links?: string[];
   text_ref?: string;
+  /** Provenance: who authored the entity and on what authority. */
+  origin?: EntityOrigin;
 }
 
 // Typed fact fields per proposal
@@ -66,6 +69,8 @@ export interface FactFields {
   argument_names?: string[];
   argument_types?: string[];
   argument_descriptions?: string[];
+  /** predicate_schema only: argument names that determine the others. */
+  key_arguments?: string[];
   argument_constants?: Record<string, string[]>;
   argument_aliases?: Record<string, Record<string, string>>;
   aliases?: string[];
@@ -85,6 +90,14 @@ export type Requirement = BaseEntity & {
   type: "req";
   semantic_text?: string;
   logic_claims?: string[];
+  /** Exception requirements only: who approved the exception. */
+  approved_by?: string;
+  /** Optional reference to the approval decision record. */
+  approval_ref?: string;
+  /** Why the requirement exists; explanation, not checked meaning. */
+  rationale?: string;
+  /** Exception requirements only: claim keys of the exempted requirement it waives. */
+  exempts_claims?: string[];
 };
 export type Scenario = BaseEntity & { type: "scenario" };
 export type TestEntity = BaseEntity & TestVerificationFields & { type: "test" };

@@ -55,9 +55,9 @@ export const modelRequirementSpec = {
       },
       operator: {
         type: "string",
-        enum: ["eq", "gte", "lte", "neq", "bool", "polarity"],
+        enum: ["eq", "gt", "gte", "lt", "lte", "neq", "bool", "polarity"],
         description:
-          "Optional extracted semantic claim operator. Example: 'eq'.",
+          "Optional extracted semantic claim operator. Use gt/lt for strict bounds ('greater than zero' is gt 0, not gte 0). Example: 'eq'.",
       },
       value: {
         description:

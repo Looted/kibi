@@ -4,7 +4,6 @@ title: "MCP-Owned Kibi Briefings v1 Automated Verification"
 status: closed
 created_at: 2026-04-20T00:00:00Z
 updated_at: 2026-04-24T09:15:00Z
-source: documentation/tests/TEST-mcp-kibi-briefing-v1.md
 priority: must
 tags:
   - test
@@ -14,6 +13,10 @@ tags:
 links:
   - type: validates
     target: SCEN-mcp-kibi-briefing-v1
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Automated verification for the MCP-owned Kibi Briefings v1 contract includes:

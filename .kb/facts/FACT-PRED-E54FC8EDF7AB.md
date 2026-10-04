@@ -18,4 +18,8 @@ claim_key: CLAIM-E6E0E9DF0A44A625
 claim_text: Allowed capability states are one of kibi.semantic-classifier.v1, kibi.ontology-pack.v1, and kibi.symbol-extractor.v1
 id: FACT-PRED-E54FC8EDF7AB
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

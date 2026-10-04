@@ -6,6 +6,10 @@ tags:
   - tooling
 id: SCEN-kibi-local-proof-parity
 type: scenario
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Given a branch whose KB change breaks logical grounding for a proven requirement, while every local proof receipt is stale
 When the maintainer runs `bun run proof:baseline:semantic`

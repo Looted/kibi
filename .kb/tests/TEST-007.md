@@ -15,6 +15,10 @@ links:
   - type: validates
     target: SCEN-001
 verification_scope: unit
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Calls `kb_attach/1` on a temp RDF store, then `kb_assert_entity/2` with a valid

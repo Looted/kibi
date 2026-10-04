@@ -5,12 +5,15 @@ type: scenario
 status: active
 created_at: 2026-07-20T00:00:00Z
 updated_at: 2026-07-20T00:00:00Z
-source: documentation/scenarios/SCEN-mcp-kb-freshness.md
 priority: must
 tags: [mcp, branch, freshness]
 links:
   - type: verified_by
     target: TEST-mcp-kb-freshness
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 ## Scenario: Same-branch KB replacement

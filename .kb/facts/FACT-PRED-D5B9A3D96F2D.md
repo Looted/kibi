@@ -21,4 +21,8 @@ claim_key: CLAIM-DE59C964E152A960
 claim_text: A published kibi-cursor plugin shall resolve and run only the kibi-mcp package installed in the consumer project, without downloading packages or consulting global or plugin-local runtimes
 id: FACT-PRED-D5B9A3D96F2D
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

@@ -4,7 +4,6 @@ title: Kibi rejects retry and partial verification as proof
 status: active
 created_at: 2026-08-13T00:00:00.000Z
 updated_at: 2026-08-13T00:00:00.000Z
-source: documentation/facts/FACT-REQ-PROOF-VERIFICATION-RETRY-SAFETY.md
 tags:
   - lane:strict
   - verification
@@ -21,6 +20,10 @@ claim_text: Retries, skips, stale receipts, partial runs
 claim_span_start: 250
 claim_span_end: 294
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation for non-proof retry, skip, stale, and partial outcomes.

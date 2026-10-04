@@ -19,4 +19,8 @@ claim_key: CLAIM-667188ECE5EC04C8
 claim_text: When the Jev semantic classifier is unavailable, classification must fall back to builtin analysis
 id: FACT-PRED-BFAAB22DB967
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

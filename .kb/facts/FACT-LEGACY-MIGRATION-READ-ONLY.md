@@ -4,7 +4,6 @@ title: Migration batches remain review-only
 status: active
 created_at: 2026-08-11T00:00:00.000Z
 updated_at: 2026-08-11T00:00:00.000Z
-source: documentation/facts/FACT-LEGACY-MIGRATION-READ-ONLY.md
 tags:
   - lane:ontology
   - requirements
@@ -24,6 +23,10 @@ claim_text: Every batch must be read-only, non-auto-applicable, and contain only
 claim_span_start: 1020
 claim_span_end: 1122
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of preview-only application policy.

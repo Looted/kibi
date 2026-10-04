@@ -8,6 +8,10 @@ tags:
   - hooks
 id: SCEN-claude-code-kibi-plugin-v1
 type: scenario
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 # Claude Code Kibi Plugin v1: progressive-disclosure hook behaviors
 

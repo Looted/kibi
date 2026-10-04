@@ -7,12 +7,17 @@ import {
   prepareOperationInput,
 } from "./cli-validate.js";
 import {
+  QUERY_LIMIT_EXCEEDED_CODE,
+  queryLimitExceededOf,
+} from "./engine-limits.js";
+import {
   operationData,
   toKibiResult,
 } from "./public/operations/result-envelope.js";
 import type { OperationContext } from "./public/operations/runtime-types.js";
 import type { OperationSpec } from "./public/operations/types.js";
 import type { OperationEffect } from "./public/operations/types.js";
+import { detachedReadOnlyDiagnostic } from "./runtime/detached-snapshot.js";
 
 const outputValidator = new Ajv2020({ strict: false, allErrors: true });
 
@@ -37,6 +42,7 @@ function errorResult(
     resultVersion?: string;
   },
   attempted = true,
+  details?: unknown,
 ): CliProtocolResult {
   const envelope = toKibiResult(
     spec ?? {
@@ -52,6 +58,7 @@ function errorResult(
         code: error.code,
         message: error.detail,
         retryable: error.retryable,
+        ...(details !== undefined ? { details } : {}),
       },
     },
   );
@@ -60,6 +67,20 @@ function errorResult(
     stdout: `${JSON.stringify(envelope)}\n`,
     stderr: `Error [${error.code}]: ${error.detail}\n`,
   };
+}
+
+/**
+ * An answer from a detached HEAD's read-only snapshot says so in the
+ * envelope: which store was read and that writes are refused.
+ */
+// implements REQ-branch-store-recovery-v4
+function withDetachedReadOnlyNotice<
+  T extends { readonly diagnostics: readonly unknown[] },
+>(envelope: T, context: OperationContext): T {
+  const notice = detachedReadOnlyDiagnostic(context.branchAttachment);
+  return notice
+    ? { ...envelope, diagnostics: [...envelope.diagnostics, notice] }
+    : envelope;
 }
 
 function protocolValid(
@@ -72,6 +93,29 @@ function protocolValid(
   } catch {
     return false;
   }
+}
+
+/**
+ * The error envelope for a route that never ran because its runtime could
+ * not open (no branch to attach, a detached HEAD refusing a write), so
+ * stdout still carries one JSON document.
+ */
+// implements REQ-kibi-operation-interface-parity, REQ-branch-store-recovery-v4
+export function openFailureResult(
+  catalogName: string,
+  spec: Parameters<typeof errorResult>[2],
+  error: unknown,
+): CliProtocolResult {
+  return errorResult(
+    catalogName,
+    new OperationError(
+      "OPERATION_FAILED",
+      error instanceof Error ? error.message : String(error),
+      false,
+    ),
+    spec,
+    false,
+  );
 }
 
 // implements REQ-kibi-operation-interface-parity
@@ -107,7 +151,10 @@ export async function executeOperation(
       : context;
     const result = await spec.execute(prepared.businessInput, executionContext);
     const output = operationData(result);
-    const envelope = toKibiResult(spec, output);
+    const envelope = withDetachedReadOnlyNotice(
+      toKibiResult(spec, output),
+      context,
+    );
     if (!protocolValid(spec, envelope)) {
       return errorResult(
         catalogName,
@@ -122,6 +169,18 @@ export async function executeOperation(
   } catch (error) {
     if (error instanceof InputError || error instanceof OperationError) {
       return errorResult(catalogName, error, spec);
+    }
+    // A read stopped at its engine limit reports the limit, not a failure
+    // that could pass for a missing answer.
+    const limitExceeded = queryLimitExceededOf(error);
+    if (error instanceof Error && limitExceeded !== null) {
+      return errorResult(
+        catalogName,
+        new OperationError(QUERY_LIMIT_EXCEEDED_CODE, error.message, false),
+        spec,
+        true,
+        { limitExceeded },
+      );
     }
     if (error instanceof Error) {
       return errorResult(

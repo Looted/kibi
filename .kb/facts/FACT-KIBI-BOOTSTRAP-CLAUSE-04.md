@@ -12,4 +12,8 @@ claim_key: CLAIM-0D02947169FC8F33
 claim_text: The planner must return a deterministic read-only hash-bound plan with exact branch, KB, workspace, and source evidence bindings and bounded context questions
 id: FACT-KIBI-BOOTSTRAP-CLAUSE-04
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

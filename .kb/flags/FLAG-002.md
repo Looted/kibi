@@ -11,6 +11,10 @@ tags:
   - deferred
 links:
   - ADR-005
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 When enabled: replaces manual `symbols.yaml` maintenance with automatic symbol

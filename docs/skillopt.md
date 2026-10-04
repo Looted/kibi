@@ -145,6 +145,56 @@ The seed is safety-validated, rebound to the selected immutable skill surface, a
 
 `skillopt:optimize` prints `run-id`, `max-steps`, `artifact-root`, and `fixture-run-root` on stderr. Review output is stored **outside the source worktree** under `$XDG_RUNTIME_DIR/kibi-skillopt/operator/` (falling back to `~/.cache` or the process temp dir), including `optimization-review.json`.
 
+## Model configuration
+
+The target and optimizer models and their reasoning efforts come from the
+harness process environment. Unset or empty variables keep the defaults:
+
+| Variable | Default | Accepts |
+| --- | --- | --- |
+| `KIBI_SKILLOPT_TARGET_MODEL` | `gpt-5.6-luna` | Codex model id matching `^[a-z0-9][a-z0-9._-]{0,63}$` |
+| `KIBI_SKILLOPT_TARGET_EFFORT` | `medium` | `minimal`, `low`, `medium`, `high`, `xhigh` |
+| `KIBI_SKILLOPT_OPTIMIZER_MODEL` | `gpt-5.6-sol` | Codex model id matching `^[a-z0-9][a-z0-9._-]{0,63}$` |
+| `KIBI_SKILLOPT_OPTIMIZER_EFFORT` | `xhigh` | `minimal`, `low`, `medium`, `high`, `xhigh` |
+
+The resolved values go into every generated Codex config (`model`,
+`model_reasoning_effort`) and `codex exec --model`. They are also recorded in
+the run lock (`targetModel`, `targetReasoningEffort`, `optimizerModel`,
+`optimizerReasoningEffort`), the preflight and canary receipts, the screen lock,
+and the campaign evaluation model profile. These artifacts must match the active
+configuration. Ledger entries, provider requests, launch receipts and trust-plane
+ceilings accept only the two configured models. If you change a variable between
+commands of the same run or campaign, the harness rejects the run with a model
+mismatch, such as `package_evidence_model_mismatch`, `canary_model_mismatch` or
+`run lock model pin does not match the active model configuration`. Keep the
+variables exported, unchanged, for every command of a run. The Python contracts
+in `tools/skillopt` read the same variables and enforce the same agreement.
+
+Pricing: the defaults use the built-in price-equivalent table: `gpt-5.6-sol` is
+priced, and `gpt-5.6-luna` has no pinned estimate (`null`). Any non-default model
+needs explicit prices in `KIBI_SKILLOPT_MODEL_PRICING`, a JSON object keyed by
+model id with the same fields as the run-lock pricing table. The optimizer must
+have numeric prices. The target may be given as an explicit `null`, which means no
+estimate, the same as the default target. If an entry is missing, malformed, or
+names a model that is not configured, the harness refuses before preflight, the
+capability canary, or any paid launch. The error names the model. Built-in
+prices cannot be overridden, and the harness never invents prices.
+
+```bash
+export KIBI_SKILLOPT_OPTIMIZER_MODEL=<optimizer-model-id>
+export KIBI_SKILLOPT_OPTIMIZER_EFFORT=xhigh
+export KIBI_SKILLOPT_TARGET_MODEL=<target-model-id>
+export KIBI_SKILLOPT_TARGET_EFFORT=low
+export KIBI_SKILLOPT_MODEL_PRICING='{
+  "<optimizer-model-id>": {"inputPerMillionTokens": 5, "cachedInputPerMillionTokens": 0.5, "outputPerMillionTokens": 30},
+  "<target-model-id>": {"inputPerMillionTokens": 1, "cachedInputPerMillionTokens": 0.1, "outputPerMillionTokens": 4}
+}'
+bun run scripts/skillopt-eval/operator.ts optimize --skill kibi-usage --max-steps 4
+```
+
+The prices above are placeholders. Use the published list prices for the models
+you configure.
+
 ## What optimize runs
 
 For a bounded iterative campaign that stops before held-out, use:
@@ -208,11 +258,12 @@ down a fresh seeded KB. Its `fixture-readiness.json` receipt captures setup
 failures without model usage; it does not guarantee later cells cannot fail.
 
 ```bash
-bun run skillopt:screen --allow-paid --skill kibi-usage --candidate-hash <SHA256-A> --candidate-hash <SHA256-B> --repeats 2 --max-cells 24
+bun run skillopt:screen --allow-paid --skill kibi-usage --candidate-hash <SHA256-A> --candidate-hash <SHA256-B> --repeats 2 --max-cells 30
 ```
 
-The example reserves 24 target episodes: baseline plus two candidates, four
-public development tasks, and two repetitions. A fresh canary adds at most two
+The example reserves 30 target episodes: baseline plus two candidates, five
+public development tasks (four core families plus the supplemental family),
+and two repetitions. `kibi-bootstrap` has no supplemental family and keeps four. A fresh canary adds at most two
 model invocations. `--max-cells` limits target episodes, not provider-internal
 turns or dollars; token usage is preserved from episode receipts. Model failures
 stop the stage without automatic retries. The command does not generate a new
@@ -244,7 +295,7 @@ URIs. A successful short seeded probe does not validate a deep workspace path.
 1. `uv sync --project tools/skillopt --frozen` and `verify_pin.py`
 2. `codex login status` must already say `Logged in using ChatGPT`
 3. Fresh run id, explicit artifact root outside the protected source tree, and materialized fixture corpus
-4. Preflight and paid capability canary. Target rollouts use `gpt-5.6-luna` at medium effort; the one-shot and iterative optimizer use `gpt-5.6-sol` at xhigh effort.
+4. Preflight and paid capability canary. By default, target rollouts use `gpt-5.6-luna` at medium effort, and the one-shot and iterative optimizer use `gpt-5.6-sol` at xhigh effort. See [Model configuration](#model-configuration) to change them.
 5. Score baseline and one-shot on the balanced four-case public development set. Seed the trainer with an explicitly supplied preserved candidate when present, otherwise with the stronger comparator, then run `--max-steps` complete rounds over all eight balanced training cases. Behavioral misses retain partial scores and structured public evidence for reflection.
 6. Give each optimizer round both its current trajectories and a compact cumulative family summary, preventing recurring predicate or mutation failures from disappearing when a later stochastic rollout differs.
 7. Reject candidate bodies that copy repository-specific release policy or evaluator artifacts. The reusable result must be branch/package-manager neutral and explain how every assertive proposition becomes a keyed strict fact, approved ground predicate, or safe `kibi.logic.v1` rule; ambiguity, nonlogical prose, and ontology gaps remain explicit ledger states.
@@ -259,6 +310,50 @@ Each accepted one-shot or iterative response is copied to `accepted-output/candi
 The outer trainer deadline is derived from the internal four-case baseline selection, all 12 target cells per requested round, one optimizer allowance per round, and startup grace. A four-round run therefore cannot be cut off by the old fixed 15-minute `uv` deadline; an actual outer timeout is reported as a structured training infrastructure no-go with its diagnostic path.
 
 Diagnostic reconciliation is the multiset of successful model-originated Kibi calls. When the model makes no Kibi call, the matching usage-receipt multiset is legitimately empty and the missing required call is scored as a behavioral protocol failure. A non-empty successful-call multiset without matching usage receipts remains an infrastructure no-go.
+
+### Reasoning cases and evidence lanes
+
+Each of `kibi-usage`, `kibi-freshness` and `kibi-traceability` has a fifth,
+supplemental task family next to its four core families: `intent-consult`
+(governing intent, abstention, observation versus policy, agent-origin
+provenance), `consistency-report` (incomplete versus complete contradiction
+analysis) and `scenario-feasibility` (a success scenario that a precondition
+forbids, before and after a human exception approval, and a rejection
+scenario). Each family has two training, one development and four held-out
+tasks. Campaign `evaluate`/`confirm` and `skillopt:screen` use all families.
+The legacy `skillopt:optimize` trainer (eight training trajectories) and the
+16-task held-out aggregate gates keep the four core families.
+
+These cases start from deterministic seeded stores built by the real CLI:
+`seeded_governed_area_kb` (a closed requirement superseded by a current one,
+its rationale ADR, an observation fact, a passing test and a symbol still
+linked to the old requirement), `seeded_precondition_kb` (a compiled
+call-quota precondition with a zero-quota fact and a rejection scenario) and
+`seeded_consistency_kb` (one requirement with an unmodeled clause and a fully
+modeled compatible pair). Each setup must end with a clean check and fresh
+status before a target episode starts.
+
+The evaluator reads three lanes beside the independent final-state queries:
+
+- **Final answer.** The target's output schema requires an `answer` string. The
+  evaluator takes the last agent message, parses a fenced `kibi-answer` JSON
+  block (`verdict`, `governing`, `conflict`, `unknowns`, `nextStep`, optional
+  `proof`) and falls back to a regex reading when the block is missing.
+  Answer-scored prompts end with a format instruction that lists every verdict
+  value, so the format cannot hint at the expected one. Closeout prose signals
+  read this answer together with the final KB state.
+- **Ordering.** From the Codex transcript: the index of the first `kb_search`,
+  the first file change or patch, and the number of Kibi calls before that edit.
+- **Workspace assertions.** Regex assertions over the final `src/` files
+  (recorded as `final-workspace-src.json`), scored as critical final-state
+  entries such as `workspace-assert-governing-rule-preserved`.
+
+`protocolContract.requiredCalls[].args` are enforced as subset predicates: an
+object matches when every listed field matches, and an array matches when every
+listed element matches some actual element. For example,
+`{"sourceLocations":[{"path":"src/fixture.ts"}]}` requires a lookup located on
+that file, and `{"rules":["domain-contradictions"]}` requires that rule among
+the checked rules.
 
 ## Artifact layout
 
@@ -281,7 +376,17 @@ Diagnostic reconciliation is the multiset of successful model-originated Kibi ca
 
 `$OPERATOR_BASE` prefers `~/.cache/kibi-skillopt/operator` (or `$XDG_CACHE_HOME`) so paid optimizer last-messages survive logout; `$XDG_RUNTIME_DIR/kibi-skillopt/operator` remains a writable fallback, then a private temp directory. Each optimizer attempt copies `--output-last-message` and parse errors to `failed-output/` before the ephemeral workspace is removed.
 
-The smoke gate requires the shell isolation probe exactly once and one model-originated read-only `kb_semantic_advisor` call. It verifies the matching successful `tools/call` broker trace, valid hash chain, and successful `.kb/usage.log` diagnostic receipt before optimization starts. The probe suppresses the expected read-only-write denial so exact-output evidence contains only its pass token. If a real cell reports infrastructure failure, the command stops immediately and emits a structured `cell_infrastructure_failure` no-go result; this is distinct from `HELD_OUT_MATRIX_INELIGIBLE`, which is reserved for a complete matrix with behavioral gate failures.
+The smoke gate requires the shell isolation probe exactly once and one model-originated read-only `kb_model` call with `mode: "analyze"`. It verifies the matching successful `tools/call` broker trace, valid hash chain, and successful `.kb/usage.log` diagnostic receipt before optimization starts; the usage log records that call under its routed catalog operation, `kb_semantic_advisor`. The probe suppresses the expected read-only-write denial so exact-output evidence contains only its pass token. If a real cell reports infrastructure failure, the command stops immediately and emits a structured `cell_infrastructure_failure` no-go result; this is distinct from `HELD_OUT_MATRIX_INELIGIBLE`, which is reserved for a complete matrix with behavioral gate failures.
+
+The evaluator broker advertises and forwards only the default MCP tools the
+harness needs (`kb_search`, `kb_query`, `kb_status`, `kb_skills`, `kb_model`,
+`kb_upsert`, `kb_delete`, `kb_check`, `kb_graph`, `kb_coverage`,
+`kb_plan_bootstrap`, `kb_apply_plan`, `kb_ingest_proof`). Protocol rubrics name
+catalog operations: broker evidence routes `kb_model` by `mode` to
+`kb_semantic_advisor`, `kb_model_requirement`, or `kb_suggest_predicates`, and
+a `kb_upsert` with `dryRun: true` to `kb_validate_upsert`, exactly as the MCP
+server's usage log does. A dry run therefore satisfies a validation step and is
+never counted as a write.
 
 Real cell final-state scoring uses the independent verifier's all-entity `kb_query`, `kb_check`, and `kb_status` receipts. Valid evidence that shows a wrong fact or predicate lane is a behavioral failure and the optimizer may continue; `evidence-conflict` is reserved for malformed, unbound, hash-invalid, or contradictory evidence.
 

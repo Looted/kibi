@@ -162,6 +162,15 @@ export function extractKbMcpToolCall(
       "source_files",
     ]);
 
+    // A dry-run upsert only validates; report it as the read-only operation
+    // it routes to so hooks do not treat it as a KB write.
+    if (
+      normalizedToolName === "kb_upsert" &&
+      readBoolean(payload, ["dryRun"]) === true
+    ) {
+      normalizedToolName = "kb_validate_upsert";
+    }
+
     if (normalizedToolName?.startsWith("kb_")) {
       return {
         toolName: normalizedToolName,
@@ -256,4 +265,50 @@ export function extractKbMcpToolName(
   }
 
   return undefined;
+}
+
+/** Project-local CLI routes and the Kibi operation each one runs. */
+const KIBI_CLI_ROUTES: Readonly<Record<string, string>> = {
+  check: "kb_check",
+  query: "kb_query",
+  "kb-query": "kb_query",
+  search: "kb_search",
+  status: "kb_status",
+  graph: "kb_graph",
+  coverage: "kb_coverage",
+  "find-gaps": "kb_find_gaps",
+  gaps: "kb_find_gaps",
+  upsert: "kb_upsert",
+  sync: "kb_sync",
+};
+
+/**
+ * The Kibi operation a shell command runs through the project-local CLI
+ * (`kibi search`, `npx --no-install kibi query --input -`), or undefined.
+ */
+// implements REQ-claude-code-kibi-plugin-v1
+export function kibiCliOperation(command: unknown): string | undefined {
+  if (typeof command !== "string") return undefined;
+  const route = /(?:^|[\s;&|(/])kibi\s+([a-z-]+)/.exec(command)?.[1];
+  return route ? KIBI_CLI_ROUTES[route] : undefined;
+}
+
+/** Host tool names that run a shell command from `tool_input.command`. */
+const SHELL_TOOL_NAMES = new Set(["Bash", "bash", "Shell", "shell"]);
+
+/**
+ * The Kibi operation a host tool call ran through either peer surface: a Kibi
+ * MCP tool under any host prefix, or the project-local CLI in a shell tool.
+ */
+// implements REQ-claude-code-kibi-plugin-v1, REQ-cursor-kibi-plugin-v1
+export function hostKbOperation(
+  toolName: string | undefined,
+  toolInput: unknown,
+): string | undefined {
+  const mcp = canonicalKbToolName(toolName);
+  if (mcp !== undefined && /^kb_[a-z_]+$/.test(mcp)) return mcp;
+  if (!toolName || !SHELL_TOOL_NAMES.has(toolName) || !isRecord(toolInput)) {
+    return undefined;
+  }
+  return kibiCliOperation(toolInput.command);
 }

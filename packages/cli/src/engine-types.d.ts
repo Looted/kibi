@@ -1,3 +1,5 @@
+import type { EngineQueryLimits } from "./engine-limits.js";
+
 // implements REQ-core-journaled-engine-persistence
 export type EngineAttachmentIdentity = Readonly<{
   path: string;
@@ -85,4 +87,6 @@ export type EngineRequest = {
   readonly targetDirectory?: string;
   readonly cancelOf?: number;
   readonly command?: EngineCommandV1;
+  /** Bounds for a read-only request; the daemon ignores them for writes. */
+  readonly limits?: EngineQueryLimits;
 };

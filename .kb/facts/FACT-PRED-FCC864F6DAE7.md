@@ -22,4 +22,8 @@ claim_text: 'The workflow must use pull_request with contents: read, not pull_re
 id: FACT-PRED-FCC864F6DAE7
 type: fact
 predicate_namespace: kibi.requirements
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

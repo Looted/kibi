@@ -22,4 +22,8 @@ claim_text: Only the repository default branch and intentional workflow_dispatch
 id: FACT-PRED-BC91393C6DE0
 type: fact
 predicate_namespace: kibi.requirements
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

@@ -20,13 +20,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2edbe10d319e
-  - type: implements
-    from: SYM-auto-1861120B3765
-    to: REQ-branch-store-recovery-v2
-    created_at: 2026-08-16T07:54:35.768Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e0c11d03c2eb
   - type: covered_by
     from: SYM-auto-1861120B3765
     to: TEST-cli-branch-store-recovery
@@ -279,3 +272,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-983b43c2ed2c
+  - type: specified_by
+    from: REQ-kibi-search-answer-layer
+    to: SCEN-kibi-search-answer-layer
+    created_at: 2026-10-03T09:15:44.378Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-763f0816e4ea
+  - type: verified_by
+    from: REQ-kibi-search-answer-layer
+    to: TEST-kibi-search-answer-layer
+    created_at: 2026-10-03T09:15:44.434Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-155e150b628a
+  - type: implements
+    from: SYM-TOOLS
+    to: REQ-kibi-mcp-tool-consolidation
+    created_at: 2026-10-03T09:25:30.506Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-675d6d596b79
+  - type: covered_by
+    from: SYM-TOOLS
+    to: TEST-kibi-mcp-tool-consolidation
+    created_at: 2026-10-03T09:25:30.571Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3969fe3a1998
+  - type: requires_predicate
+    from: REQ-kibi-search-answer-layer
+    to: FACT-SEARCH-DEFAULT-INTENT-RANKING
+    created_at: 2026-10-03T09:58:42.084Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f9a6f9c80dfd
+  - type: requires_predicate
+    from: REQ-kibi-search-answer-layer
+    to: FACT-SEARCH-ANSWER-LAYER-CONTENTS
+    created_at: 2026-10-03T09:58:42.130Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ff0035aaa29d
+  - type: requires_predicate
+    from: REQ-kibi-search-answer-layer
+    to: FACT-SEARCH-ABSENCE-NOT-EVIDENCE
+    created_at: 2026-10-03T09:58:42.160Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-00768dff9bec
+  - type: implements
+    from: SYM-auto-1861120B3765
+    to: REQ-branch-store-recovery-v4
+    created_at: 2026-10-04T02:55:59.431Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-86687b7b1a68
+  - type: executable_for
+    from: SYM-test-branch-detached-head-read-only-cli
+    to: TEST-branch-detached-head-read-only-cli
+    created_at: 2026-10-04T05:28:39.155Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-788f8a938c9a

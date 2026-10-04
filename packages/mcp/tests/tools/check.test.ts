@@ -229,10 +229,24 @@ describe("MCP Check Tool Handler", () => {
 
     const result = await handleKbCheck(prolog, { maxDiagnostics: 1 });
 
-    expect(result.structuredContent?.qualityDiagnostics).toHaveLength(1);
-    expect(result.structuredContent?.qualityDiagnostics?.[0]?.id).toBe(
-      "broad_requirement_review",
+    // maxDiagnostics caps the full-scan review diagnostics. Check-rule
+    // advisories (rule.*) keep their own bounds: these requirements were
+    // written through kb_upsert with no rationale, so
+    // agent-requirement-unapproved and requirement-rationale-missing list them.
+    const quality = result.structuredContent?.qualityDiagnostics ?? [];
+    const fullScan = quality.filter(
+      (diagnostic) => !diagnostic.id.startsWith("rule."),
     );
+    expect(fullScan).toHaveLength(1);
+    expect(fullScan[0]?.id).toBe("broad_requirement_review");
+    expect(
+      quality
+        .filter((diagnostic) => diagnostic.id.startsWith("rule."))
+        .map((diagnostic) => diagnostic.id),
+    ).toEqual([
+      "rule.agent-requirement-unapproved",
+      "rule.requirement-rationale-missing",
+    ]);
   }, 30000);
 
   test("should detect must-priority requirement without scenario", async () => {

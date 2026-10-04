@@ -29,5 +29,9 @@ examples:
   - capability_protocol_contract(capability_plugin,kibi.plugin.v1,kibiPlugin)
 id: FACT-SCHEMA-CAPABILITY-PROTOCOL-CONTRACT
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Defines which protocol identifier and named export make a capability plugin valid. Reuse this schema for later protocol versions instead of a one-off plugin fact.

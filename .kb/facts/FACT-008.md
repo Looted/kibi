@@ -4,12 +4,15 @@ title: npm packages published as kibi-core, kibi-cli, kibi-mcp, and kibi-opencod
 status: active
 created_at: 2026-02-25T15:50:00Z
 updated_at: 2026-03-20T00:00:00Z
-source: documentation/facts/FACT-008.md
 tags:
   - deployment
   - npm
   - package-naming
 fact_kind: observation
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Kibi packages are published to npm as unscoped names:

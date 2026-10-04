@@ -15,4 +15,8 @@ claim_text: the plugin must not attempt first-read interception or modify file c
 value_type: string
 id: FACT-PROP-FCG-FILE-ACCESS
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

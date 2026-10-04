@@ -11,6 +11,10 @@ links:
     target: TEST-cli-symbol-behavioral-anchors
   - type: verified_by
     target: TEST-mcp-upsert-symbol-behavioral-anchors
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Given a source file with exported interfaces, type aliases, or enums but no extracted behavioral symbols, when a coarse symbol with traceability relationships links to that file, then Kibi accepts the link unless a narrower behavioral symbol is available.

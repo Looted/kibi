@@ -35,6 +35,10 @@ export type SealedCellEvidenceContext = Readonly<{
   finalState: string;
   brokerTrace: string;
   diagnosticReceipt: string;
+  /** Raw Codex JSONL; feeds the final-answer and edit-ordering lanes. */
+  transcript?: string;
+  /** Final `src/` contents; feeds the workspace-assertion lane. */
+  workspaceFiles?: Readonly<Record<string, string>>;
 }>;
 
 export type CodexCellOptions = Readonly<{

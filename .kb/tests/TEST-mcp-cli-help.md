@@ -4,7 +4,6 @@ title: kibi-mcp help exits cleanly in workspace and packed installs
 status: active
 created_at: 2026-04-17T12:00:00.000Z
 updated_at: 2026-04-17T12:00:00.000Z
-source: documentation/tests/TEST-mcp-cli-help.md
 tags:
   - mcp
   - cli
@@ -1704,6 +1703,10 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 The test verifies that the `kibi-mcp` binary correctly handles help requests without entering an interactive loop.
 

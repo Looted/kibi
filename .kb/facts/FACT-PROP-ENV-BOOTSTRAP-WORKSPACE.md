@@ -17,4 +17,8 @@ claim_key: CLAIM-84CBFD93350DABA2
 claim_text: Workspace resolution for env files and doctor plugin configuration must use resolveKibiWorkspaceRoot, and MCP resolveWorkspaceRoot must delegate to it
 id: FACT-PROP-ENV-BOOTSTRAP-WORKSPACE
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

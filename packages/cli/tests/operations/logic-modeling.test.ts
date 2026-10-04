@@ -10,6 +10,7 @@ import {
   buildLogicApplyPlan,
   logicRuleFactId,
 } from "../../src/operations/modeling/logic-modeling.js";
+import { modeledClaimRole } from "../../src/operations/semantic-advisor/clauses.js";
 
 const atom = (
   name: string,
@@ -105,7 +106,10 @@ describe("logic modeling apply plans", () => {
     const text = "Preface. The cache stays warm overnight.";
     const result = buildLogicApplyPlan({
       text,
-      logic: validRule({ ruleSchemaId: "FACT-RULE-SCHEMA-CUSTOM" }),
+      logic: validRule({
+        ruleSchemaId: "FACT-RULE-SCHEMA-CUSTOM",
+        modality: "assert",
+      }),
       source: "test://logic/custom",
       requirementId: "REQ-LOGIC-CUSTOM",
       claimKey: "CLAIM-SUPPLIED",
@@ -137,6 +141,29 @@ describe("logic modeling apply plans", () => {
           claim_key: "CLAIM-SUPPLIED",
         }),
       ],
+    });
+  });
+
+  test("classifies restrictive may-only phrasing as normative", () => {
+    expect(
+      modeledClaimRole(
+        "Checkout may be initiated only when the cart's final payable total is greater than zero.",
+      ),
+    ).toBe("normative");
+    expect(modeledClaimRole("The cache stays warm overnight.")).toBe(
+      "descriptive",
+    );
+  });
+
+  test("marks a deontic rule normative even without must or shall", () => {
+    const result = buildLogicApplyPlan({
+      text: "Checkout may be initiated only when the cart's final payable total is greater than zero.",
+      logic: validRule({ modality: "forbid" }),
+      source: "test://logic/checkout",
+      requirementId: "REQ-LOGIC-CHECKOUT",
+    });
+    expect(result.applyPlan.at(-1)?.properties).toMatchObject({
+      semantic_inventory: [expect.objectContaining({ role: "normative" })],
     });
   });
 

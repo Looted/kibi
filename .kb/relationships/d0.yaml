@@ -118,3 +118,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a2a2d2ba842d
+  - type: executable_for
+    from: SYM-test-opencode-tool-telemetry-acceptance
+    to: TEST-opencode-tool-telemetry-acceptance
+    created_at: 2026-10-04T05:46:43.390Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d4d1af0b7d7d

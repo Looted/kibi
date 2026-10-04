@@ -1,6 +1,6 @@
 ---
 title: 'Predicate: conditional_behavior(telemetry_acceptance_evaluation,hook_usage_records_present,exclude_hook_usage_records)'
-status: active
+status: superseded
 fact_kind: predicate
 predicate_name: conditional_behavior
 predicate_args:
@@ -18,4 +18,8 @@ tags:
   - claude
 id: FACT-PRED-claude-hook-telemetry-acceptance-exclusion
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

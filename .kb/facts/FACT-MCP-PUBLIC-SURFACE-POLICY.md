@@ -18,6 +18,10 @@ claim_key: CLAIM-500E7B556B3D37D6
 claim_text: The public MCP surface remains intentionally curated and deterministic
 id: FACT-MCP-PUBLIC-SURFACE-POLICY
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 The public MCP surface remains intentionally curated and deterministic.
 

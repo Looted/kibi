@@ -2,8 +2,8 @@
 
 This guide explains how a requirement goes from "implemented" to "proven":
 fresh evidence from any proof producer, bound to the current code snapshot,
-evaluated against explicit proof obligations, and recorded in append-only
-proof history.
+evaluated against explicit proof obligations, and recorded in an ordered
+proof history that only ever drops receipts that can no longer decide proof.
 
 Kibi does not support test runners. Kibi supports **proof evidence**.
 Playwright, pytest, JUnit, TAP, Go tests, shell commands, database harnesses,
@@ -157,7 +157,11 @@ Evidence production is configured in tracked, Kibi-managed
   Playwright `retries: 0`) should branch on this stable marker instead of
   guessing which output-path variable implies a proof run.
 - `producer: command` lets Kibi synthesize the envelope from the process
-  outcome (aggregate-run provenance).
+  outcome (aggregate-run provenance). One process runs the steps of every
+  selected test, so by default one failing step fails every test in the run.
+  To have each test judged by its own steps, the command writes a
+  `kibi.proof-test-report.v1` to the path in `KIBI_PROOF_TEST_REPORT` (see
+  [per-test attribution](#per-test-attribution-for-command-integrations)).
 - `producer: playwright` (or a custom id) expects the child to emit
   `kibi.proof-run.v1` at `KIBI_PROOF_OUTPUT`.
 - `producer: junit` / `tap` make Kibi convert the native report at `artifact`
@@ -289,6 +293,69 @@ them fresh. Keep `covered_by` links accurate: they decide which production
 code a receipt vouches for. Set `KIBI_PROOF_BINDING_MODE=strict-snapshot` to
 instead bind every receipt to the whole-workspace snapshot it was proven on.
 
+Both the binding and the snapshot are computed from repository-relative paths
+and file contents only, so a CI runner and a developer checkout of the same
+commit agree:
+
+- the workspace snapshot names each file by its repository-relative path in
+  Unicode NFC, so a checkout whose filesystem reports decomposed names hashes
+  the same as one that reports composed names, wherever the repository lives;
+- a test document and each symbol's `sourceFile` are located through their
+  normalized repository-relative path (`./a.ts`, `a\b.ts` and an absolute
+  path inside the checkout all name the same file);
+- a `sourceFile` that leaves the repository (a `..` escape or another
+  machine's absolute path) contributes the fixed marker `outside-workspace`
+  instead of whatever that path holds on the current machine.
+
+## Receipt history compaction
+
+Every `kibi prove` run appends one receipt per test, so a long-lived branch
+would otherwise accumulate receipts that can no longer change any decision.
+Ingest compacts each history as it appends
+(`kibi.proof-receipt-compaction.v1`), keeping only:
+
+- the newest receipt, and the newest passing receipt;
+- for the current binding and for the live snapshot, the newest receipt per
+  verification scope and contract hash — exactly the receipts coverage selects
+  from.
+
+Compaction is deterministic and only removes receipts: the kept receipts are
+the originals, in their original order, so every coverage decision is the
+same before and after. Stores written before compaction can be compacted
+once with `kibi proof compact` (`--dry-run` reports what would be removed).
+
+## Per-test attribution for command integrations
+
+A `command` integration is one process. When it writes a
+`kibi.proof-test-report.v1` to the path Kibi passes in
+`KIBI_PROOF_TEST_REPORT`, each selected test is evaluated against its own
+steps:
+
+```json
+{
+  "version": "kibi.proof-test-report.v1",
+  "tests": [
+    {
+      "test_id": "TEST-checkout",
+      "outcome": "failed",
+      "steps": [
+        { "step_index": 1, "command": ["bun", "test", "checkout"], "outcome": "failed", "exit_code": 1 }
+      ]
+    }
+  ]
+}
+```
+
+Tests whose steps all passed receive passing receipts even when the process
+exited non-zero; only tests with a failing step receive failing receipts. The
+`kibi prove` summary lists `attribution: "per_test"` and the `failedSteps`
+(test, step, command, outcome, exit code) for that integration. Attribution
+fails closed: with no report, a report that omits or duplicates a selected
+test, a test reported `passed` over a failing step, or a failing process whose
+report blames no test, the whole run is evaluated as one unit as before
+(`attribution: "aggregate"` with an `attributionReason`). Kibi's own
+`scripts/run-proof-producer.mjs` writes this report.
+
 ## Trust boundary
 
 Local proof evidence is trusted as part of the local execution environment.
@@ -332,11 +399,12 @@ against the schema in CI.
 | `run did not pass (outcome: …)` | Run-level failure despite passing results | Fix the run (setup/teardown/infrastructure); rerun |
 | `attempt history unavailable` | Source format carries no retry data | Accept aggregate provenance, or use a producer with complete history |
 | `missing proof result` | Producer never reported a required obligation | Ensure the obligation ran in the configured integration/target |
-| `proof_receipts is append-only` | History was rewritten by hand | Update via the engine, which appends; never edit history |
+| `proof_receipts is append-only` | History was rewritten by hand | Update via the engine (`kibi prove`, `kibi proof compact`); never edit history |
+| Every test of a `command` integration failed for one step | The command wrote no `kibi.proof-test-report.v1` | Write the report to `KIBI_PROOF_TEST_REPORT`; the summary's `attributionReason` says why it was not used |
 | Receipts stale after code changes | The edit touched code in a test's [freshness scope](#receipt-freshness-scope) | Re-run `kibi prove` for the affected tests |
 
 ## For agent workflows
 
 Bundled skill guidance is in `kibi-usage` → `resources/proof.md`
-(`kb_skills_load` with `id: "kibi-usage"`, then `kb_skills_read`).
+(`kb_skills` with `action: "load"` and `id: "kibi-usage"`, then `action: "read"`).
 Deterministic discovery: `kibi proof inspect --json`.

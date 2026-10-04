@@ -4,7 +4,6 @@ title: Semantic prose persists independently from evidence references
 status: active
 created_at: 2026-08-11T00:00:00.000Z
 updated_at: 2026-08-11T00:00:00.000Z
-source: documentation/facts/FACT-LEGACY-MIGRATION-SEMANTIC-SOURCE.md
 tags:
   - lane:ontology
   - requirements
@@ -24,6 +23,10 @@ claim_text: Authored requirement prose must be persisted in requirement-only sem
 claim_span_start: 382
 claim_span_end: 508
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of independent semantic prose and evidence fields.

@@ -42,5 +42,9 @@ semantic_clauses:
   - When kibi doctor runs with JSON output on an installed consumer workspace, it must report the installed kibi-mcp package version by resolving the package entrypoint whenever the package does not export its package.json subpath
   - The doctor must not emit the package-provenance-unresolved migration action when every probed Kibi package resolves to an installed manifest
   - The package-provenance-unresolved migration action is reserved for packages that are genuinely absent from the install graph
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 When kibi doctor runs with JSON output on an installed consumer workspace, it must report the installed kibi-mcp package version by resolving the package entrypoint whenever the package does not export its package.json subpath. The doctor must not emit the package-provenance-unresolved migration action when every probed Kibi package resolves to an installed manifest. The package-provenance-unresolved migration action is reserved for packages that are genuinely absent from the install graph.

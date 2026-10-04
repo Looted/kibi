@@ -237,13 +237,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ed2042794a46
-  - type: implements
-    from: SYM-legacy-migration-plan-version
-    to: REQ-kibi-legacy-migration-preview
-    created_at: 2026-09-18T07:25:52.682Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e6ed95175adf
   - type: covered_by
     from: SYM-legacy-migration-plan-version
     to: TEST-kibi-legacy-migration-preview
@@ -426,3 +419,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b37d4865bbbd
+  - type: requires_predicate
+    from: REQ-kibi-entity-origin
+    to: FACT-PRED-entity-origin-field
+    created_at: 2026-10-04T02:21:35.284Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-69c289c98ff7
+  - type: requires_predicate
+    from: REQ-kibi-entity-origin
+    to: FACT-PRED-entity-origin-rejects-unknown
+    created_at: 2026-10-04T02:21:35.319Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d6105d92a1b9
+  - type: requires_predicate
+    from: REQ-kibi-entity-origin
+    to: FACT-PRED-entity-origin-agent-default
+    created_at: 2026-10-04T02:21:35.338Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0dd0c2edcd4b
+  - type: requires_predicate
+    from: REQ-kibi-entity-origin
+    to: FACT-PRED-entity-origin-update-preserves
+    created_at: 2026-10-04T02:21:35.356Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f566f43000a6
+  - type: requires_predicate
+    from: REQ-kibi-entity-origin
+    to: FACT-PRED-entity-origin-supplied
+    created_at: 2026-10-04T02:21:35.373Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5147a2711817
+  - type: requires_predicate
+    from: REQ-kibi-entity-origin
+    to: FACT-PRED-entity-origin-approval-advisories
+    created_at: 2026-10-04T02:21:35.388Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-948eac210c99
+  - type: specified_by
+    from: REQ-kibi-entity-origin
+    to: SCEN-kibi-entity-origin
+    created_at: 2026-10-04T02:21:35.400Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-175914b87866
+  - type: depends_on
+    from: REQ-kibi-entity-origin
+    to: REQ-004
+    created_at: 2026-10-04T02:21:35.414Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ff085a9fe219
+  - type: implements
+    from: SYM-legacy-migration-plan-version
+    to: REQ-kibi-legacy-migration-preview-v2
+    created_at: 2026-10-04T03:03:13.402Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bd1a0cfc39be
+  - type: covered_by
+    from: SYM-legacy-migration-plan-version
+    to: TEST-kibi-legacy-migration-preview-v2
+    created_at: 2026-10-04T04:18:08.293Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-506a5f72760b

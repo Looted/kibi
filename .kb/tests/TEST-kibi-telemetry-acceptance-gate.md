@@ -4,7 +4,6 @@ title: Packed telemetry acceptance gate tests
 status: passing
 created_at: 2026-08-10T00:00:00.000Z
 updated_at: 2026-08-10T00:00:00.000Z
-source: documentation/tests/TEST-kibi-telemetry-acceptance-gate.md
 verification_scope: end_to_end
 verification_perspective: consumer
 tags:
@@ -1704,5 +1703,9 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Exercises `kibi.telemetry-acceptance.v1` through a fresh packed CLI installation, including successful enforcement, fail-closed exit behavior, canonical preflight correlation, repeated failure detection, and unfiltered quality-diagnostic presentation.

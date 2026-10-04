@@ -50,6 +50,10 @@ semantic_inventory:
     payload_hash: dabdb104c64edb625606424805d85de96a45978e47d5dcbca19ca411159a4a1f
 id: REQ-zcode-manual-mcp-configuration-v1
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Documentation must identify the kibi-zcode adapter as optional.
 

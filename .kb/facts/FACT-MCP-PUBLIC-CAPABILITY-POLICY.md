@@ -20,6 +20,10 @@ claim_key: CLAIM-AF3924185E8D9C99
 claim_text: It includes exact retrieval (`kb_query`), discovery/reporting (`kb_search`, `kb_status`, `kb_find_gaps`, `kb_coverage`, `kb_graph`), mutation (`kb_upsert`, `kb_delete`), and validation (`kb_check`)
 id: FACT-MCP-PUBLIC-CAPABILITY-POLICY
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 It includes exact retrieval (`kb_query`), discovery/reporting (`kb_search`, `kb_status`, `kb_find_gaps`, `kb_coverage`, `kb_graph`), mutation (`kb_upsert`, `kb_delete`), and validation (`kb_check`).
 

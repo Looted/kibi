@@ -1703,6 +1703,10 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Contract fixtures cover no-op, one-symbol, relationship-only, deletion,
 coordinate-only, and rebuild sync paths through the Node CLI and MCP.

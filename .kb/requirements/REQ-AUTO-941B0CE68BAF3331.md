@@ -26,5 +26,9 @@ semantic_inventory:
       end: 76
 id: REQ-AUTO-941B0CE68BAF3331
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 The staged check must inventory every path in the Git index before filtering.

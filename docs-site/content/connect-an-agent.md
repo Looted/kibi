@@ -7,17 +7,17 @@ If you used the [agent setup prompt](quick-start.md#2-paste-the-setup-prompt-int
 
 Once Kibi is installed in the repository, your agent needs a way to call it. Two surfaces expose the same operations:
 
-- **MCP server** (`kibi-mcp`) — tools such as `kb_search`, `kb_check`, and `kb_upsert` show up in the client's tool list.
+- **MCP server** (`kibi-mcp`) — 16 tools such as `kb_search`, `kb_check`, and `kb_upsert` show up in the client's tool list. `kb_search` also answers plain questions, such as "what governs checkout rounding?", with the requirements that apply. The [MCP reference](../reference/mcp.md) lists every tool.
 - **CLI** (`kibi`) — the same operations as JSON on stdin, plus commands you run yourself, such as `kibi report`.
 
 Use whichever surface your client can see. You do not configure both unless you want to.
 
 > [!TIP]
-> Claude Code, Cursor, Codex, OpenCode, and ZCode also have optional plugins that wire this up for you. The JSON below is the manual fallback when you are not using a plugin. Details and plugin install steps are in the [installation guide](install.md).
+> Claude Code, Cursor, Codex, OpenCode, and ZCode also have optional plugins that wire this up for you. Each plugin shows the agent the requirement a file implements before it edits that file, with what the requirement must keep true and the decision behind it. The JSON below is the manual fallback when you are not using a plugin. Details and plugin install steps are in the [installation guide](install.md).
 
 ## Claude Code
 
-The `kibi-claude` plugin brings the server, the bundled skills, and hooks that show the agent the linked requirements and tests before it reads or edits code:
+The `kibi-claude` plugin brings the server, the bundled skills, and hooks that show the agent the linked requirements and tests before it reads or edits code, and before an edit, what those requirements must keep true and the decision behind them:
 
 ```bash
 claude plugin marketplace add Looted/kibi
@@ -117,7 +117,7 @@ The agent first asks where product intent already lives outside the code, such a
 ## What stays in your hands
 
 - **Product calls.** If two behaviors would contradict, you pick one. Kibi will not paper over that.
-- **Approval of the plan.** Bootstrap and other bulk writes show you the plan before they apply it.
+- **Approval of the plan.** Bootstrap and other bulk writes show you the plan before they apply it. A plan compiled from a prompt applies in full or not at all; if the agent is interrupted mid-write, its next write completes or rolls back that plan.
 - **The report.** You decide whether a gap is work still to do, or a behavior you no longer want.
 
 The agent writes the model through typed operations. It does not edit `.kb/` by hand. A change is not finished while checks are failing or the snapshot is stale.

@@ -4,7 +4,6 @@ title: Symbol extraction tests must restore ts-morph project mocks
 status: active
 created_at: 2026-05-30T00:00:00Z
 updated_at: 2026-05-30T00:00:00Z
-source: documentation/facts/FACT-cli-symbol-extract-mock-isolation.md
 tags:
   - cli
   - traceability
@@ -13,6 +12,10 @@ links:
   - SYM-extractSymbolsFromStagedFile
   - TEST-cli-staged-impact-enforcement
 fact_kind: observation
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 # Fact: Symbol Extraction Mock Isolation

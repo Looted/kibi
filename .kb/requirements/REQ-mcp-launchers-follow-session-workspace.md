@@ -59,6 +59,10 @@ logic_claims:
   - CLAIM-1069C258DAA95AB3
 id: REQ-mcp-launchers-follow-session-workspace
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 When the MCP client supports roots, each non-Claude host MCP launcher must answer each tool call from the Kibi workspace that the client roots name.
 

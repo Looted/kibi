@@ -27,7 +27,7 @@ describe("kb_semantic_advisor", () => {
       ],
     });
     expect(result.structuredContent.warnings.join("\n")).toContain(
-      "kb_model_requirement",
+      "kb_model (mode requirement)",
     );
     expect(result.content[0]?.text).toContain("strict_property");
   });

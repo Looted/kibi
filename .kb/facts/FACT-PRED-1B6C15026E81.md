@@ -22,4 +22,8 @@ claim_key: CLAIM-6CC3B8DE2744A748
 claim_text: A damaged exact store is diagnosed without mutation and rebuilt only through a previewed, explicit recovery that preserves the previous bytes
 id: FACT-PRED-1B6C15026E81
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

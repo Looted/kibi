@@ -24,5 +24,9 @@ examples:
   - source_bound_semantic_inventory(source_field,sha256,utf8_span)
 id: FACT-SCHEMA-SOURCE-BOUND-SEMANTIC-INVENTORY
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Predicate schema for source_bound_semantic_inventory/3.

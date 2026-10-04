@@ -17,4 +17,8 @@ claim_key: CLAIM-EF09C880EE493EE7
 claim_text: Support being called both before and after mutations to verify integrity
 id: FACT-PROP-MCP-CHECK-BEFORE-AFTER
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

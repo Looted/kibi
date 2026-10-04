@@ -24,4 +24,8 @@ examples:
   - entity_field_policy(kibi_entity_model,id__type__title__status__created_at__updated_at,priority__tags__owner__source__links)
 id: FACT-SCHEMA-ENTITY-FIELD-POLICY
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

@@ -81,6 +81,10 @@ logic_claims:
   - CLAIM-435A512436172461
 id: REQ-claude-mcp-follows-session-workspace
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 When the MCP client supports roots, the kibi-claude MCP launcher must read the client roots before each tool call.
 

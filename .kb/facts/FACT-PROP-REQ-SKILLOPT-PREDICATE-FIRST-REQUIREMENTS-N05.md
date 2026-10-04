@@ -15,4 +15,8 @@ claim_key: CLAIM-EC580A9E53F062DC
 claim_text: Reusable guidance must explain the Prolog-shaped ground model including declared predicate schemas
 id: FACT-PROP-REQ-SKILLOPT-PREDICATE-FIRST-REQUIREMENTS-N05
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

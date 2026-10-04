@@ -1,0 +1,8 @@
+{
+  "minRecallAt3": 0.9,
+  "maxSupersededResultRate": 0.05,
+  "minAbstentionPrecision": 0.75,
+  "minAbstentionRecall": 0.66,
+  "maxP50Ms": 2500,
+  "maxP95Ms": 3000
+}

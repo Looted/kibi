@@ -21,7 +21,7 @@ describe("bundled skill parity", () => {
     const runtime = loadBundledSkillFrom(runtimeRoot, "kibi-usage");
     const scopedGuidance = [
       "For a task that explicitly supplies a malformed concrete mutation payload",
-      "For conditional relational claims, after the initial `kb_suggest_predicates`",
+      "For conditional relational claims, after the initial `kb_model` predicates call",
     ];
 
     expect(runtime.body).toBe(canonical.body);
@@ -34,6 +34,6 @@ describe("bundled skill parity", () => {
         readBundledSkillResourceFrom(runtimeRoot, "kibi-usage", resource),
       ).toBe(readBundledSkillResource("kibi-usage", resource));
     }
-    expect(canonical.manifest.version).toBe("2.2.0");
+    expect(canonical.manifest.version).toBe("2.3.0");
   });
 });

@@ -223,13 +223,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8c401ded9aaa
-  - type: implements
-    from: SYM-kibi-cli-src-public-operations-specs-planning-ts-compileintentspec
-    to: REQ-kibi-change-to-proof-plan-compiler
-    created_at: 2026-09-18T07:20:03.825Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1755b1e17609
   - type: covered_by
     from: SYM-kibi-cli-src-public-operations-specs-planning-ts-compileintentspec
     to: TEST-e2e-plan-compiler-hash
@@ -286,3 +279,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1baffc035deb
+  - type: implements
+    from: SYM-kibi-cli-src-public-operations-specs-planning-ts-compileintentspec
+    to: REQ-kibi-change-to-proof-plan-compiler-v2
+    created_at: 2026-10-04T03:02:50.236Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-56aae4b932fc

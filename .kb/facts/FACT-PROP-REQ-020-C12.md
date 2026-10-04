@@ -15,4 +15,8 @@ claim_key: CLAIM-7DDA4A28657EC85E
 claim_text: Changesets provides a robust, open-source solution for multi-package release management, changelog generation, and CI integration
 id: FACT-PROP-REQ-020-C12
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

@@ -5,7 +5,6 @@ type: fact
 status: active
 created_at: 2026-08-10T00:00:00.000Z
 updated_at: 2026-08-10T00:00:00.000Z
-source: documentation/facts/FACT-INGESTION-ONE-GROUNDING.md
 fact_kind: predicate
 predicate_name: exactly_one_claim_grounding
 predicate_args:
@@ -18,6 +17,10 @@ claim_text: Every modeled proposition must have exactly one logical grounding fa
 claim_span_start: 337
 claim_span_end: 431
 predicate_namespace: kibi.ingestion
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground predicate for bijective modeled-claim linkage.

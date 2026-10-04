@@ -6,13 +6,6 @@ relationships:
     created_at: "2026-08-15T22:21:24.067Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-  - type: implements
-    from: SYM-auto-23EC77D7D2F2
-    to: REQ-branch-store-recovery-v2
-    created_at: 2026-08-16T07:54:32.880Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4b3b19511baa
   - type: covered_by
     from: SYM-auto-23EC77D7D2F2
     to: TEST-cli-branch-store-recovery
@@ -83,13 +76,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f0945365a4a6
-  - type: implements
-    from: SYM-mcp-getPrologProcess
-    to: REQ-008
-    created_at: 2026-09-07T12:47:36.494Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1a32ecdaae80
   - type: covered_by
     from: SYM-mcp-getPrologProcess
     to: TEST-mcp-session-state
@@ -188,3 +174,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ce3e996f4646
+  - type: implements
+    from: SYM-auto-23EC77D7D2F2
+    to: REQ-branch-store-recovery-v4
+    created_at: 2026-10-04T02:56:06.515Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a3515af86652
+  - type: implements
+    from: SYM-mcp-getPrologProcess
+    to: REQ-core-prolog-process-management
+    created_at: 2026-10-04T03:03:39.396Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-08dbd80d3695
+  - type: supersedes
+    from: ADR-annotation-strategy-v2
+    to: ADR-annotation-strategy
+    created_at: 2026-10-04T03:16:07.025Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e6ae8ebeeb1d
+  - type: relates_to
+    from: ADR-annotation-strategy-v2
+    to: REQ-vscode-traceability
+    created_at: 2026-10-04T03:16:07.054Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0fb6ad16e00c
+  - type: relates_to
+    from: ADR-annotation-strategy-v2
+    to: REQ-cli-staged-impact-enforcement
+    created_at: 2026-10-04T03:16:07.073Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-06151c5e33c3
+  - type: covered_by
+    from: SYM-mcp-getPrologProcess
+    to: TEST-005
+    created_at: 2026-10-04T03:27:47.034Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-688790ff1df1

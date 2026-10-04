@@ -4,7 +4,6 @@ title: Verification receipt rule predicate schema
 status: active
 created_at: 2026-08-10T00:00:00Z
 updated_at: 2026-08-10T00:00:00Z
-source: documentation/facts/FACT-SCHEMA-VERIFICATION-RECEIPT-RULE.md
 tags: [lane:ontology, predicate-schema, requirements, verification, receipts]
 fact_kind: predicate_schema
 predicate_namespace: kibi.verification
@@ -18,6 +17,10 @@ argument_descriptions:
   - Required evidence or proof outcome.
 examples:
   - verification_receipt_rule(current_code_snapshot,newest_receipt,fresh_passing_within_seven_days)
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Defines the stable project ontology for snapshot-bound execution evidence without conflating ontology predicates with graph relationships.

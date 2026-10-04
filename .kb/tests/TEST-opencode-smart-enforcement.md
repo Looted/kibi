@@ -5,7 +5,6 @@ type: test
 status: passing
 created_at: 2026-04-03T00:00:00.000Z
 updated_at: 2026-04-20T00:00:00.000Z
-source: documentation/tests/TEST-opencode-smart-enforcement.md
 priority: must
 tags:
   - enforcement
@@ -1706,5 +1705,9 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Verify smart enforcement reads typed Kibi status and next actions, routes general work to canonical skills, routes explicit bootstrap requests to kibi-bootstrap, and keeps guidance advisory.

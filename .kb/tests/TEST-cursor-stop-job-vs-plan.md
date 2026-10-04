@@ -5,7 +5,6 @@ type: test
 status: active
 created_at: 2026-08-18T00:00:00.000Z
 updated_at: 2026-08-18T00:00:00.000Z
-source: documentation/tests/TEST-cursor-stop-job-vs-plan.md
 priority: must
 verification_scope: end_to_end
 tags:
@@ -1709,6 +1708,10 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Verification for Cursor stop-hook plan-versus-job behavior lives in `packages/cursor` unit tests:
 

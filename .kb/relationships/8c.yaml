@@ -174,3 +174,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a6db209dd8f1
+  - type: requires_predicate
+    from: REQ-kibi-conditional-requirement-authoring
+    to: FACT-PRED-conditional-authoring-forbid-rule
+    created_at: 2026-10-04T02:31:48.685Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-61fd08e1edc1
+  - type: requires_predicate
+    from: REQ-kibi-conditional-requirement-authoring
+    to: FACT-PRED-conditional-authoring-ontology-gap
+    created_at: 2026-10-04T02:31:48.721Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cf93b0a29342
+  - type: requires_predicate
+    from: REQ-kibi-conditional-requirement-authoring
+    to: FACT-PRED-conditional-authoring-warning
+    created_at: 2026-10-04T02:31:48.745Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a338d1ffc295
+  - type: requires_predicate
+    from: REQ-kibi-conditional-requirement-authoring
+    to: FACT-PRED-conditional-authoring-below-threshold
+    created_at: 2026-10-04T02:31:48.762Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c466c39ee156
+  - type: requires_predicate
+    from: REQ-kibi-conditional-requirement-authoring
+    to: FACT-PRED-compile-intent-drafts-applicable
+    created_at: 2026-10-04T02:31:48.779Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a45f4fe42949
+  - type: specified_by
+    from: REQ-kibi-conditional-requirement-authoring
+    to: SCEN-kibi-conditional-requirement-authoring
+    created_at: 2026-10-04T02:31:48.794Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a0e25d1fc699
+  - type: specified_by
+    from: REQ-kibi-conditional-requirement-authoring
+    to: SCEN-kibi-conditional-feasibility
+    created_at: 2026-10-04T02:31:48.810Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d25f63a49d57
+  - type: relates_to
+    from: REQ-kibi-conditional-requirement-authoring
+    to: REQ-kibi-scenario-feasibility-v2
+    created_at: 2026-10-04T02:31:48.825Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-22a8a232edfc
+  - type: implements
+    from: SYM-superseded-closure-planSupersededClosures
+    to: REQ-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-04T06:00:04.310Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d458d2ae6ecd
+  - type: covered_by
+    from: SYM-superseded-closure-planSupersededClosures
+    to: TEST-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-04T06:00:04.325Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e280ba277c91

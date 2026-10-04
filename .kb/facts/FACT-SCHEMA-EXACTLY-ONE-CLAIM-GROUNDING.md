@@ -21,5 +21,9 @@ examples:
   - exactly_one_claim_grounding(modeled_proposition,claim_key)
 id: FACT-SCHEMA-EXACTLY-ONE-CLAIM-GROUNDING
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Predicate schema for exactly_one_claim_grounding/2.

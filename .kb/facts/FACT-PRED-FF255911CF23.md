@@ -22,4 +22,8 @@ claim_text: It must spawn the declared kibi-mcp bin with cwd and KIBI_WORKSPACE 
 id: FACT-PRED-FF255911CF23
 type: fact
 predicate_namespace: kibi.launcher
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

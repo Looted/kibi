@@ -24,5 +24,9 @@ examples:
   - unresolved_state_not_consistency(ambiguity,ontology_gap,missing)
 id: FACT-SCHEMA-UNRESOLVED-STATE-NOT-CONSISTENCY
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Predicate schema for unresolved_state_not_consistency/3.

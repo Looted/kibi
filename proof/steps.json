@@ -1782,5 +1782,231 @@
         "./packages/mcp/tests/server/workspace-router.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-kibi-truthful-consistency",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "300000",
+        "./packages/cli/tests/consumer/truthful-consistency.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-scenario-feasibility",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "300000",
+        "./packages/cli/tests/consumer/scenario-feasibility.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-search-answer-layer",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/cli/tests/consumer/search-answer-layer.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-mcp-tool-consolidation",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "300000",
+        "./packages/mcp/tests/server/tool-surface-consumer.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-legacy-migration-preview-v2",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/operations/legacy-migration-plan.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-entity-origin-cli",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/cli/tests/consumer/entity-origin.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-schema6-migration-cli",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/cli/tests/consumer/schema6-migration.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-conditional-feasibility-cli",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/cli/tests/consumer/conditional-feasibility.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-codex-edit-snippet-hook",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/codex/tests/hook-runner.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-cursor-edit-snippet-hook",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cursor/tests/hook-runner.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-claude-edit-snippet-hook",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/claude/tests/hook-runner.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-search-gold-set-gate-cli",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "200000",
+        "./scripts/tests/repo-search-gold-gate.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-branch-detached-head-read-only-cli",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/cli/tests/consumer/detached-head.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-core-engine-read-limits-cli",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/cli/tests/consumer/engine-read-limits.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-plan-apply-atomic-cli",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/cli/tests/consumer/plan-apply-atomic.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-proof-receipt-compaction-cli",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/cli/tests/consumer/proof-receipt-compaction.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-telemetry-lookup-before-first-edit-cli",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/cli/tests/consumer/telemetry-lookup-before-first-edit.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-kb-lifecycle-integrity",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/cli/tests/commands/migrate-lifecycle.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-opencode-tool-telemetry-acceptance",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/opencode/tests/tool-telemetry-acceptance.test.ts"
+      ]
+    ]
   }
 ]

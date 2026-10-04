@@ -15,4 +15,8 @@ claim_key: CLAIM-C0A414B0C67253F8
 claim_text: Manual release processes are error-prone and inconsistent
 id: FACT-PROP-REQ-020-C11
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

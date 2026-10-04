@@ -11,6 +11,10 @@ tags:
   - deferred
 links:
   - REQ-001
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 When enabled: allows entities from a remote kibi KB to be referenced (read-only)

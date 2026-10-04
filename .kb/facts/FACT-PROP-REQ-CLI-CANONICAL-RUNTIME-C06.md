@@ -15,4 +15,8 @@ claim_key: CLAIM-FDB2F593DE25BF3A
 claim_text: kb_upsert source authoring must write markdown entities into the matching canonical .kb lane and symbols into .kb/symbols.yaml
 id: FACT-PROP-REQ-CLI-CANONICAL-RUNTIME-C06
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

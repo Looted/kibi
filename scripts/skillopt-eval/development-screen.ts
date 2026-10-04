@@ -107,8 +107,10 @@ export function validateScreenPlan(options: {
     )
   )
     throw new Error("screen_surface_mismatch");
+  // Four core development tasks, plus one when the skill has a fifth family.
   if (
-    tasks.length !== 4 ||
+    tasks.length < 4 ||
+    tasks.length > 5 ||
     tasks.some((task) => task.split !== "development") ||
     new Set(tasks.map((task) => task.id)).size !== tasks.length
   )

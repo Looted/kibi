@@ -14,4 +14,8 @@ claim_key: CLAIM-5F2E185D038B0B36
 claim_text: '**Modifier Pattern**: Lifecycle events are treated as modifiers layered on top of existing semantic risk classification, not as a standalone `RiskClass`'
 id: FACT-PROP-FCG-MODIFIER
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

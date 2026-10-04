@@ -30,6 +30,9 @@ entity_property(_, severity, atom).
 entity_property(_, links, list).
 entity_property(_, text_ref, uri).
 entity_property(_, sourceFile, uri).
+% Provenance of any authored entity: a JSON object (kind, ref, approved_by,
+% recorded_at) naming who authored it and on what authority.
+entity_property(_, origin, list_or_json).
 entity_property(req, semantic_text, string).
 entity_property(req, logic_claims, list).
 entity_property(req, semantic_clauses, list).
@@ -39,6 +42,17 @@ entity_property(req, semantic_source_hash, string).
 entity_property(req, semantic_inventory, list_or_json).
 entity_property(req, proof_exempt, boolean).
 entity_property(req, proof_exempt_reason, string).
+% Human approval of an exception requirement (one that `exempts` another).
+% Only an approved exception makes a success scenario feasible.
+entity_property(req, approved_by, string).
+entity_property(req, approval_ref, string).
+% Why the requirement exists, in the words of whoever stated the intent.
+% Explanation only: it is never part of the checked meaning.
+entity_property(req, rationale, string).
+% Claim keys of the exempted requirement an exception waives (all when absent).
+entity_property(req, exempts_claims, list).
+% Intended outcome of a scenario: success, rejection or error.
+entity_property(scenario, expects, atom).
 
 % Typed fact fields - only valid for fact entities
 entity_property(fact, fact_kind, atom).
@@ -65,6 +79,9 @@ entity_property(fact, predicate_arity, integer).
 entity_property(fact, argument_names, list).
 entity_property(fact, argument_types, list).
 entity_property(fact, argument_descriptions, list).
+% Predicate-schema functional dependency: the named arguments determine the
+% remaining ones, so two atoms with equal keys describe the same fact.
+entity_property(fact, key_arguments, list).
 % Predicate-schema vocabularies are JSON objects serialized as strings.
 entity_property(fact, argument_constants, string).
 entity_property(fact, argument_aliases, string).
@@ -112,6 +129,7 @@ optional_property(Type, priority) :- entity_type(Type).
 optional_property(Type, severity) :- entity_type(Type).
 optional_property(Type, links) :- entity_type(Type).
 optional_property(Type, text_ref) :- entity_type(Type).
+optional_property(Type, origin) :- entity_type(Type).
 optional_property(req, semantic_text).
 optional_property(req, logic_claims).
 optional_property(req, semantic_clauses).
@@ -121,6 +139,10 @@ optional_property(req, semantic_source_hash).
 optional_property(req, semantic_inventory).
 optional_property(req, proof_exempt).
 optional_property(req, proof_exempt_reason).
+optional_property(req, approved_by).
+optional_property(req, approval_ref).
+optional_property(req, rationale).
+optional_property(req, exempts_claims).
 optional_property(test, verification_scope).
 optional_property(test, verification_perspective).
 optional_property(test, proof_contract).

@@ -55,5 +55,9 @@ semantic_inventory:
     reason: Grounded by a predicate fact over the narrow vocabulary-convergence schemas.
 id: REQ-kibi-domain-redundancy
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Kibi check must report two distinct current requirements that ground the identical logical term as a domain-redundancy warning with exact witnesses. Requirement pairs linked by supersedes must be exempt from domain-redundancy. Requirement pairs linked by restates must be exempt from domain-redundancy. Kibi check must report a numeric bound that strictly implies another bound on the same subject and property as informational domain-implication.

@@ -4,10 +4,13 @@ import path from "node:path";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 
+import { type OperationName, getSpec } from "kibi-runtime";
 import { DIAGNOSTIC_TELEMETRY_SCHEMA } from "../../src/diagnostics.js";
 import { registerAllTools } from "../../src/server/tools.js";
+import { withWorkspaceRootSchema } from "../../src/server/workspace-router.js";
 import {
   TOOLS,
+  buildBaseTools,
   withDiagnosticTelemetrySchema,
 } from "../../src/tools-config.js";
 
@@ -51,10 +54,33 @@ const TOOL_LIST_DIAGNOSTIC_PATH = path.join(
   "tools-list.diagnostic.json",
 );
 
+const ROUTED_NARROW_OPERATIONS = new Set([
+  "kb_skills_load",
+  "kb_semantic_advisor",
+  "kb_validate_upsert",
+  "kb_model_requirement",
+  "kb_suggest_predicates",
+]);
+
+function narrowToolDefinition(name: string) {
+  const spec = getSpec(name as OperationName);
+  const [definition] = withWorkspaceRootSchema([
+    {
+      name: spec.name,
+      description: spec.description,
+      inputSchema: spec.businessInputSchema,
+    },
+  ]);
+  if (!definition) throw new Error(`Missing catalog definition: ${name}`);
+  return definition;
+}
+
 const OPERATION_NAMES = [
   "kb_query",
   "kb_search",
   "kb_status",
+  "kb_skills",
+  "kb_model",
   "kb_skills_load",
   "kb_semantic_advisor",
   "kb_find_gaps",
@@ -295,9 +321,9 @@ describe("mcp contract fixtures", () => {
       registered.map((tool) => [tool.name, tool]),
     );
 
-    // 22 canonical catalog operations + the MCP-server-native kb_job_status
-    // poll tool (see jobs.ts).
-    expect(registered.map((tool) => tool.name)).toHaveLength(23);
+    // 16 agent-facing tools; kb_sparql_remote and kb_job_status register
+    // only when KIBI_MCP_OPTIONAL_TOOLS names them.
+    expect(registered.map((tool) => tool.name)).toHaveLength(16);
     expect(registered.map((tool) => tool.name)).not.toContain(
       "kb_briefing_generate",
     );
@@ -327,13 +353,25 @@ describe("mcp contract fixtures", () => {
       );
     }
 
+    // Narrow catalog operations that MCP reaches through kb_skills, kb_model
+    // or kb_upsert dryRun keep their operation fixtures against the catalog
+    // definition; every other operation must be a registered tool.
+    const catalogDefinitions = new Map(
+      withWorkspaceRootSchema(
+        buildBaseTools(new Set(["kb_sparql_remote"])),
+      ).map((tool) => [tool.name, tool]),
+    );
     for (const operationName of OPERATION_NAMES) {
+      const routed = ROUTED_NARROW_OPERATIONS.has(operationName);
       const tool = registeredByName.get(operationName);
-      if (!tool) {
+      if (!tool && !routed && operationName !== "kb_sparql_remote") {
         throw new Error(`Missing registered tool: ${operationName}`);
       }
 
-      const toolDefinition = toolDefinitions.get(operationName);
+      const toolDefinition = routed
+        ? narrowToolDefinition(operationName)
+        : (toolDefinitions.get(operationName) ??
+          catalogDefinitions.get(operationName));
       if (!toolDefinition) {
         throw new Error(`Missing tool definition: ${operationName}`);
       }

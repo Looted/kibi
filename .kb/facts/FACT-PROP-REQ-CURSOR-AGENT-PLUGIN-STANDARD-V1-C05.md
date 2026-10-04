@@ -15,4 +15,8 @@ claim_key: CLAIM-4034D7E0BF135200
 claim_text: Any client that supports the open Agent Plugins standard must be able to load Kibi Agent Skills and the MCP server from that artifact
 id: FACT-PROP-REQ-CURSOR-AGENT-PLUGIN-STANDARD-V1-C05
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

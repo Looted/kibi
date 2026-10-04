@@ -16,7 +16,9 @@
     "cliArgs",
     "artifactRoot",
     "targetModel",
+    "targetReasoningEffort",
     "optimizerModel",
+    "optimizerReasoningEffort",
     "skillopt",
     "sourceLockHash",
     "catalogHash",
@@ -100,8 +102,18 @@
     "artifactRoot": {
       "$ref": "contract-definitions.schema.json#/$defs/nonEmptyString"
     },
-    "targetModel": { "const": "gpt-5.6-luna" },
-    "optimizerModel": { "const": "gpt-5.6-sol" },
+    "targetModel": {
+      "$ref": "contract-definitions.schema.json#/$defs/modelId"
+    },
+    "targetReasoningEffort": {
+      "$ref": "contract-definitions.schema.json#/$defs/reasoningEffort"
+    },
+    "optimizerModel": {
+      "$ref": "contract-definitions.schema.json#/$defs/modelId"
+    },
+    "optimizerReasoningEffort": {
+      "$ref": "contract-definitions.schema.json#/$defs/reasoningEffort"
+    },
     "skillopt": {
       "type": "object",
       "additionalProperties": false,
@@ -163,13 +175,11 @@
         },
         "models": {
           "type": "object",
-          "additionalProperties": false,
-          "required": ["gpt-5.6-luna", "gpt-5.6-sol"],
-          "properties": {
-            "gpt-5.6-luna": {
-              "oneOf": [{ "$ref": "#/$defs/modelPricing" }, { "type": "null" }]
-            },
-            "gpt-5.6-sol": { "$ref": "#/$defs/modelPricing" }
+          "propertyNames": {
+            "$ref": "contract-definitions.schema.json#/$defs/modelId"
+          },
+          "additionalProperties": {
+            "oneOf": [{ "$ref": "#/$defs/modelPricing" }, { "type": "null" }]
           }
         }
       }

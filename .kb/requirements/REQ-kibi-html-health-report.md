@@ -72,5 +72,9 @@ semantic_inventory:
       end: 727
 id: REQ-kibi-html-health-report
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 The Kibi CLI must generate a self-contained HTML requirement-health report from complete requirement and symbol coverage data. The report must show the Git branch, current requirement count, fully proven count and percentage, missing scenarios, stale end-to-end evidence, unique contradictions, unowned production symbols, and per-requirement proof stages. The report must escape knowledge-base text and work without network assets. The output option must accept an HTML file or directory and default to kibi-report/index.html. The open option must launch the generated file in the default browser only after a successful write. Report generation must fail when pagination would make requirement-level health metrics incomplete.

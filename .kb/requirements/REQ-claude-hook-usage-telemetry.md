@@ -1,12 +1,13 @@
 ---
 title: Claude hooks record opt-in agent activity around Kibi calls
-status: open
+status: closed
 priority: should
 tags:
   - claude
   - telemetry
   - hooks
   - diagnostics
+  - historical-status:superseded
 semantic_text: |-
   kibi-claude hooks must append hook usage records to .kb/usage.log only when KIBI_DIAGNOSTIC_MODE is enabled.
 
@@ -91,6 +92,10 @@ logic_claims:
   - CLAIM-C533C51637295AA8
 id: REQ-claude-hook-usage-telemetry
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 kibi-claude hooks must append hook usage records to .kb/usage.log only when KIBI_DIAGNOSTIC_MODE is enabled.
 

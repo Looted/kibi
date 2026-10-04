@@ -4,7 +4,6 @@ title: 'VS Code Kibi Briefing v1: Channel-Gated Brief Notifications'
 status: closed
 created_at: 2026-04-26T00:00:00.000Z
 updated_at: 2026-04-26T00:00:00.000Z
-source: documentation/requirements/REQ-vscode-kibi-briefing-v1.md
 priority: must
 tags:
   - vscode
@@ -150,6 +149,10 @@ logic_claims:
   - CLAIM-1BD09D1C26F16854
   - CLAIM-FA1EDB0EB18A3163
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 The VS Code Kibi extension must support brief notifications gated by shared config to provide contextual guidance while respecting project-level policy.

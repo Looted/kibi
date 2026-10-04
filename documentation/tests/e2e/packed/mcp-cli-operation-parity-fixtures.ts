@@ -33,6 +33,11 @@ export const OPERATIONS: readonly OperationCase[] = [
       resource: "resources/operation-access.md",
     },
   },
+  {
+    tool: "kb_skills",
+    route: "skill",
+    input: { action: "load", id: "kibi-usage" },
+  },
   { tool: "kb_find_gaps", route: "find-gaps", input: { type: "req" } },
   { tool: "kb_coverage", route: "coverage", input: { by: "req" } },
   {
@@ -42,6 +47,17 @@ export const OPERATIONS: readonly OperationCase[] = [
       type: "req",
       id: "REQ-PACKED-UPSERT",
       properties: { title: "Packed upsert", status: "open" },
+    },
+  },
+  {
+    // MCP reaches the validation preflight as kb_upsert with dryRun:true.
+    tool: "kb_upsert",
+    route: "upsert",
+    input: {
+      type: "req",
+      id: "REQ-PACKED-UPSERT",
+      properties: { title: "Packed upsert", status: "open" },
+      dryRun: true,
     },
   },
   {
@@ -81,6 +97,11 @@ export const OPERATIONS: readonly OperationCase[] = [
       text: "Packed routes must remain equivalent.",
       confidence: 0.6,
     },
+  },
+  {
+    tool: "kb_model",
+    route: "model",
+    input: { mode: "analyze", text: "Packed routes must remain equivalent." },
   },
   {
     tool: "kb_suggest_predicates",

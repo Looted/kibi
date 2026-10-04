@@ -13,4 +13,8 @@ claim_text: For the scripts coverage shard, the runner must list every recursive
 text_ref: scripts/run-unit-coverage.ts
 id: FACT-scripts-coverage-shard-enumerates-tests
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

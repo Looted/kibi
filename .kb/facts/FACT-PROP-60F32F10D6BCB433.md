@@ -20,4 +20,8 @@ claim_key: CLAIM-85F4539DE7FF58E8
 claim_text: The weak-candidate margin shall be 0.06
 id: FACT-PROP-60F32F10D6BCB433
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

@@ -19,6 +19,10 @@ claim_key: CLAIM-3901918BF8D31ABF
 claim_text: authored-to-compiled drift is never exempt
 id: FACT-SOURCE-PARITY-FORWARD-NEVER-EXEMPT
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 authored-to-compiled drift is never exempt.
 

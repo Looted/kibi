@@ -60,5 +60,9 @@ semantic_inventory:
     status: modeled
 id: REQ-docs-site-root-pages
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 The repository publishes the documentation site, including its landing page, at the root of project Pages on every push to the default branch. The requirement-health report is published under /kibi-report/ beside the documentation site. The documentation site is rendered from the repository's docs/ sources at build time instead of a forked copy. The documentation build fails when an internal documentation link is broken.

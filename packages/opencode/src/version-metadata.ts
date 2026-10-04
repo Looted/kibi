@@ -14,7 +14,7 @@ export interface ReadKibiPackageVersionsOptions {
   readFileSync?: (path: string | URL, encoding: "utf-8") => string;
 }
 
-// implements REQ-opencode-toast-package-versions-v1
+// implements REQ-opencode-kibi-plugin-v1
 export function readKibiPackageVersions(
   options?: ReadKibiPackageVersionsOptions,
 ): KibiPackageVersions {

@@ -15,4 +15,8 @@ claim_key: CLAIM-1F6AF01B7B4AD519
 claim_text: MCP must not block normal branch-switch semantics while detecting same-branch replacements
 id: FACT-PROP-REQ-MCP-KB-FRESHNESS-C04
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

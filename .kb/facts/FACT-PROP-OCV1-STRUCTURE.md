@@ -15,4 +15,8 @@ claim_text: This requirement is an umbrella doc for granular behaviors
 value_type: string
 id: FACT-PROP-OCV1-STRUCTURE
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

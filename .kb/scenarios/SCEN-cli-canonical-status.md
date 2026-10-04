@@ -8,6 +8,10 @@ links:
     target: TEST-e2e-status-freshness
   - type: verified_by
     target: TEST-cli-sync-discovery-readme-ignore
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 GIVEN a synced workspace whose requirements live under `.kb/requirements/`
 WHEN an agent edits, adds, or deletes a canonical knowledge-lane markdown file without running sync

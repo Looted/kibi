@@ -15,4 +15,8 @@ claim_key: CLAIM-8BA59596EE190D0A
 claim_text: Source-file reads, search, and other non-edit tools must not be recorded as dirty paths
 id: FACT-PROP-REQ-CURSOR-STOP-JOB-VS-PLAN-C03
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

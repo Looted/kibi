@@ -4,7 +4,7 @@ title: Validation correlation requires an exact recent preflight
 status: active
 created_at: 2026-08-10T00:00:00.000Z
 updated_at: 2026-08-10T00:00:00.000Z
-source: documentation/requirements/REQ-kibi-telemetry-acceptance-gate.md
+source: .kb/requirements/REQ-kibi-telemetry-acceptance-gate.md
 tags:
   - lane:ontology
   - telemetry
@@ -23,6 +23,10 @@ claim_text: Validation correlation must match the canonical payload and a succes
 claim_span_start: 534
 claim_span_end: 656
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of payload-bound validation correlation.

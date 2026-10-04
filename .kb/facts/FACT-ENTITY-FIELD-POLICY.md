@@ -18,6 +18,10 @@ claim_key: CLAIM-2DB9C3841ACC3703
 claim_text: Each has required fields (`id`, `type`, `title`, `status`, `created_at`, `updated_at`) and optional fields (`priority`, `tags`, `owner`, `source`, `links`)
 id: FACT-ENTITY-FIELD-POLICY
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Each has required fields (`id`, `type`, `title`, `status`, `created_at`, `updated_at`) and optional fields (`priority`, `tags`, `owner`, `source`, `links`).
 

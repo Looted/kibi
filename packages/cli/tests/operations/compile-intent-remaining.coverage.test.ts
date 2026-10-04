@@ -1,4 +1,4 @@
-// implements REQ-kibi-change-to-proof-plan-compiler
+// implements REQ-kibi-change-to-proof-plan-compiler-v2
 import { afterEach, describe, expect, mock, spyOn, test } from "bun:test";
 import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -80,8 +80,8 @@ function contextFor(
 
 function quietQuery(): (goal: string) => Promise<PrologQueryResult> {
   return mock(async (goal: string): Promise<PrologQueryResult> => {
-    if (goal.includes("findall([A,B,Reason]"))
-      return { success: true, bindings: { Rows: "[]" } };
+    if (goal.includes("checks:what_if_analysis_json("))
+      return { success: true, bindings: { JsonString: "[]" } };
     if (goal.includes("kb_relationship"))
       return { success: true, bindings: { Edges: "[]" } };
     return { success: true, bindings: { Results: "[]" } };
@@ -89,7 +89,7 @@ function quietQuery(): (goal: string) => Promise<PrologQueryResult> {
 }
 
 describe("executeCompileIntent leftover planning branches", () => {
-  test("slugifies punctuation-only intent and skips .kb source writes", async () => {
+  test("slugifies punctuation-only intent and keeps a .kb location at the canonical document", async () => {
     const restoreEnv = isolateKibiEnv();
     restores.push(restoreEnv);
     const root = await mkdtemp(path.join(tmpdir(), "kibi-compile-slug-"));
@@ -105,17 +105,25 @@ describe("executeCompileIntent leftover planning branches", () => {
       )
     ).structuredContent;
     expect(plan.target.requirementId).toMatch(/^REQ-intent-/i);
+    // Kibi owns the .kb layout: a location there never renames the document.
     expect(plan.sourceWrites).toEqual([]);
+    expect(
+      plan.steps.find((step) => step.id === plan.target.requirementId)
+        ?.document,
+    ).toEqual({
+      body: "!!!\n",
+      path: `.kb/requirements/${plan.target.requirementId}.md`,
+    });
   });
 
-  test("skips writes for an existing entity whose source is not markdown", async () => {
+  test("writes the canonical document for an existing entity that has none", async () => {
     const restoreEnv = isolateKibiEnv();
     restores.push(restoreEnv);
     const root = await mkdtemp(path.join(tmpdir(), "kibi-compile-mcp-"));
     workspaces.push(root);
     const query = mock(async (goal: string): Promise<PrologQueryResult> => {
-      if (goal.includes("findall([A,B,Reason]"))
-        return { success: true, bindings: { Rows: "[]" } };
+      if (goal.includes("checks:what_if_analysis_json("))
+        return { success: true, bindings: { JsonString: "[]" } };
       if (goal.includes("kb_entity('REQ-KEEP'"))
         return {
           success: true,
@@ -138,7 +146,10 @@ describe("executeCompileIntent leftover planning branches", () => {
         contextFor(root, query),
       )
     ).structuredContent;
-    expect(plan.sourceWrites).toEqual([]);
+    // A store-only requirement gains a document, so a rebuild keeps it.
+    expect(
+      plan.steps.find((step) => step.id === "REQ-KEEP")?.document,
+    ).toMatchObject({ path: ".kb/requirements/REQ-KEEP.md" });
   });
 
   test("marks host-origin propositions and skips writes when status is not ready", async () => {
@@ -149,11 +160,16 @@ describe("executeCompileIntent leftover planning branches", () => {
     const intent = "Customer data must be retained for 7 years.";
     const claimKey = semanticClaimKey(intent);
     const query = mock(async (goal: string): Promise<PrologQueryResult> => {
-      if (goal.includes("findall([A,B,Reason]"))
+      if (goal.includes("checks:what_if_analysis_json("))
         return {
           success: true,
           bindings: {
-            Rows: "[['file:///tmp/REQ-KEEP','kb:entity/REQ-OTHER',overlap]]",
+            JsonString: JSON.stringify([
+              {
+                requirements: ["file:///tmp/REQ-KEEP", "kb:entity/REQ-OTHER"],
+                reason: "overlap",
+              },
+            ]),
           },
         };
       if (goal.includes("kb_entity('REQ-KEEP'"))
@@ -198,7 +214,7 @@ describe("executeCompileIntent leftover planning branches", () => {
     ).toBe(true);
   });
 
-  test("records a before hash when the planned source already exists", async () => {
+  test("records a before hash and targets an existing markdown location", async () => {
     const restoreEnv = isolateKibiEnv();
     restores.push(restoreEnv);
     const root = await mkdtemp(path.join(tmpdir(), "kibi-compile-before-"));
@@ -215,7 +231,17 @@ describe("executeCompileIntent leftover planning branches", () => {
         contextFor(root, quietQuery()),
       )
     ).structuredContent;
-    expect(plan.sourceWrites[0]?.beforeHash).toMatch(/^[a-f0-9]{64}$/);
+    expect(plan.expected.sourceHashes["docs/present.md"]).toMatch(
+      /^[a-f0-9]{64}$/,
+    );
+    // The markdown location is the requirement's document.
+    expect(
+      plan.steps.find((step) => step.id === plan.target.requirementId)
+        ?.document,
+    ).toEqual({
+      body: "Customer data must be retained for 7 years.\n",
+      path: "docs/present.md",
+    });
   });
 
   test("merges duplicate draft steps and warns when tests have no scenarios", async () => {
@@ -248,8 +274,8 @@ describe("executeCompileIntent leftover planning branches", () => {
     await mkdir(path.join(root, "docs"), { recursive: true });
     await writeFile(path.join(root, "docs", "REQ.md"), "old\n");
     const query = mock(async (goal: string): Promise<PrologQueryResult> => {
-      if (goal.includes("findall([A,B,Reason]"))
-        return { success: true, bindings: { Rows: "[]" } };
+      if (goal.includes("checks:what_if_analysis_json("))
+        return { success: true, bindings: { JsonString: "[]" } };
       if (goal.includes("kb_entity('REQ-KEEP'"))
         return {
           success: true,
@@ -273,9 +299,8 @@ describe("executeCompileIntent leftover planning branches", () => {
       )
     ).structuredContent;
     expect(
-      plan.sourceWrites.length === 0 ||
-        plan.sourceWrites[0]?.path === "docs/REQ.md",
-    ).toBe(true);
+      plan.steps.find((step) => step.id === "REQ-KEEP")?.document,
+    ).toMatchObject({ path: "docs/REQ.md" });
   });
 
   test("classifies rationale, example, and subjective clauses as nonlogical", async () => {
@@ -305,14 +330,14 @@ describe("executeCompileIntent leftover planning branches", () => {
     ).toBe(true);
   });
 
-  test("skips source writes when the existing entity source escapes the workspace", async () => {
+  test("needs resolution when the existing entity source escapes the workspace", async () => {
     const restoreEnv = isolateKibiEnv();
     restores.push(restoreEnv);
     const root = await mkdtemp(path.join(tmpdir(), "kibi-compile-dotdot-"));
     workspaces.push(root);
     const query = mock(async (goal: string): Promise<PrologQueryResult> => {
-      if (goal.includes("findall([A,B,Reason]"))
-        return { success: true, bindings: { Rows: "[]" } };
+      if (goal.includes("checks:what_if_analysis_json("))
+        return { success: true, bindings: { JsonString: "[]" } };
       if (goal.includes("kb_entity('REQ-KEEP'"))
         return {
           success: true,
@@ -335,7 +360,11 @@ describe("executeCompileIntent leftover planning branches", () => {
         contextFor(root, query),
       )
     ).structuredContent;
+    expect(plan.status).toBe("needs_resolution");
     expect(plan.sourceWrites).toEqual([]);
+    expect(plan.diagnostics.join(" ")).toContain(
+      "A plan step cannot be applied as written",
+    );
   });
 
   test("auto-selects a high-margin update target and accepts mixed proposals", async () => {

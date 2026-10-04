@@ -258,4 +258,42 @@ Demo proof body
     expect(bodyChanged?.dirty).toBe(true);
     expect(bodyChanged?.hash).not.toBe(clean?.hash);
   });
+
+  test("hashes the same commit identically wherever and however it is checked out", async () => {
+    // A CI runner and a developer machine see the same repository under
+    // different absolute roots, and macOS may report decomposed (NFD) names
+    // where Linux reports the composed (NFC) bytes git stored.
+    const checkout = async (prefix: string, accented: string) => {
+      const workspaceRoot = mkdtempSync(path.join(os.tmpdir(), prefix));
+      tempDirs.push(workspaceRoot);
+      execFileSync("git", ["init", "-b", "main"], {
+        cwd: workspaceRoot,
+        stdio: "ignore",
+      });
+      mkdirSync(path.join(workspaceRoot, "src", "nested"), {
+        recursive: true,
+      });
+      writeFileSync(path.join(workspaceRoot, "src", "feature.ts"), "v1\n");
+      writeFileSync(
+        path.join(workspaceRoot, "src", "nested", `${accented}.ts`),
+        "export const name = 1;\n",
+      );
+      writeFileSync(path.join(workspaceRoot, "src", "zeta.ts"), "z\n");
+      execFileSync("git", ["add", "src"], { cwd: workspaceRoot });
+      return nodeGit.workspaceSnapshot?.(workspaceRoot);
+    };
+
+    const composed = "café";
+    const decomposed = "café";
+    const ci = await checkout("kibi-snapshot-ci-", composed);
+    const local = await checkout(
+      "kibi-snapshot-local-checkout-elsewhere-",
+      decomposed,
+    );
+    const otherCommit = await checkout("kibi-snapshot-other-", "cafe");
+
+    expect(ci?.fileCount).toBe(3);
+    expect(local?.hash).toBe(ci?.hash);
+    expect(otherCommit?.hash).not.toBe(ci?.hash);
+  });
 });

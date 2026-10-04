@@ -62,13 +62,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b4c0389bde8c
-  - type: implements
-    from: SYM-reqcompiler-runtime-workspace-snapshot
-    to: REQ-kibi-fresh-verification-receipts
-    created_at: 2026-08-17T11:55:28.393Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-65166c868c30
   - type: covered_by
     from: SYM-reqcompiler-runtime-workspace-snapshot
     to: TEST-cli-workspace-snapshot-dirtiness
@@ -160,13 +153,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8876aa2ad507
-  - type: implements
-    from: SYM-legacy-migration-plan-build
-    to: REQ-kibi-legacy-migration-preview
-    created_at: 2026-09-18T07:25:27.902Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2253c6469603
   - type: implements
     from: SYM-legacy-migration-plan-build
     to: REQ-kibi-legacy-migration-preview-v2
@@ -419,3 +405,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9fdecfe58a4e
+  - type: implements
+    from: SYM-cli-dry-run-upsert
+    to: REQ-kibi-mcp-tool-consolidation
+    created_at: 2026-10-03T09:26:37.889Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cfb42a14abff
+  - type: covered_by
+    from: SYM-cli-dry-run-upsert
+    to: TEST-kibi-mcp-tool-consolidation
+    created_at: 2026-10-03T09:26:37.921Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-921d216bb9ea
+  - type: implements
+    from: SYM-reqcompiler-runtime-workspace-snapshot
+    to: REQ-kibi-fresh-verification-receipts-v2
+    created_at: 2026-10-04T03:05:23.649Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-17f0661de2bc

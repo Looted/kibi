@@ -19,5 +19,9 @@ canonical_key: conditional_behavior(kibi_zcode_adapter,no_owned_kb_manifest,expo
 polarity: deny
 id: FACT-PRED-ZCODE-NO-MCP-TOOLS-UNOWNED
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 When the resolved project root does not own .kb/manifest.json, the kibi-zcode MCP endpoint must expose no tools

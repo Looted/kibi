@@ -15,4 +15,8 @@ claim_key: CLAIM-5F337CD07C780747
 claim_text: Safe, auditable, and reproducible releases
 id: FACT-PROP-REQ-020-C03
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

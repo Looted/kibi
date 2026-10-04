@@ -1,6 +1,3 @@
-import { join } from "node:path";
-
-import { resolveBoundSymbolScope } from "../../../extractors/manifest.js";
 import { PROOF_RECEIPT_MAX_AGE_SECONDS } from "../../proof-receipt.js";
 import { executeStatus } from "../discovery-executors.js";
 import {
@@ -200,16 +197,13 @@ export function currentProofBindingMode(): "per_contract" | "strict_snapshot" {
     : "per_contract";
 }
 
+// implements REQ-kibi-verification-evidence-contract
 export async function perContractTestBindings(
   context: OperationContext,
 ): Promise<string | null> {
   if (currentProofBindingMode() !== "per_contract") return null;
   const { loadEntities } = await import("../discovery-entities.js");
-  const { receiptBindingHash } = await import("../../proof-fingerprint.js");
-  const { removeFrontmatterBlock } = await import(
-    "../../../operations/proof/receipt-document.js"
-  );
-  const { loadCoveredBySymbolsByTest, receiptCodeScopeSymbolIds } =
+  const { currentReceiptBindingHash, loadCoveredBySymbolsByTest } =
     await import("../../../operations/proof/code-scope.js");
   // Only the contract, scoped code, and authored source feed the binding
   // hash. The paged projection never materializes receipt histories, which
@@ -230,39 +224,20 @@ export async function perContractTestBindings(
     ? await loadCoveredBySymbolsByTest(requireProlog(context))
     : new Map<string, readonly string[]>();
   const entries: string[] = [];
-  const manifestPath = join(context.workspaceRoot, ".kb", "symbols.yaml");
+  const fs = context.fs;
   for (const test of tests) {
     const testId = typeof test.id === "string" ? test.id : "";
-    const contract =
-      test.proof_contract !== undefined &&
-      test.proof_contract !== null &&
-      typeof test.proof_contract === "object"
-        ? (test.proof_contract as Record<string, unknown>)
-        : undefined;
-    const source = typeof test.source === "string" ? test.source : "";
-    if (testId === "" || contract === undefined || source === "") continue;
-    if (!/\.(md|mdx)$/i.test(source)) continue;
-    if (!context.fs) continue;
-    try {
-      const absolute = join(context.workspaceRoot, source);
-      const authored = await context.fs.readFile(absolute);
-      const stripped = removeFrontmatterBlock(authored, "proof_receipts");
-      const codeScope = resolveBoundSymbolScope(
-        manifestPath,
-        receiptCodeScopeSymbolIds(
-          contract,
-          test.proof_bindings,
-          coveredBy.get(testId) ?? [],
-        ),
-      );
-      const binding = receiptBindingHash(
-        contract as never,
-        stripped ?? authored,
-        codeScope,
-      );
+    if (testId === "" || fs === undefined) continue;
+    // The same computation ingest uses to write binding_hash. Unreadable or
+    // non-markdown documents keep strict snapshot semantics for that test.
+    const binding = await currentReceiptBindingHash({
+      workspaceRoot: context.workspaceRoot,
+      readFile: (absolute) => fs.readFile(absolute),
+      test,
+      coveredBySymbols: coveredBy.get(testId) ?? [],
+    });
+    if (binding !== undefined) {
       entries.push(`${toPrologAtom(testId)}: ${toPrologAtom(binding)}`);
-    } catch {
-      // Unreadable documents keep strict semantics for that test.
     }
   }
   if (entries.length === 0) return null;

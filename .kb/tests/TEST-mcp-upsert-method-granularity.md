@@ -9,6 +9,10 @@ tags: [mcp, symbols, traceability, unit]
 links:
   - type: validates
     target: SCEN-symbol-granularity
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Verifies that MCP upsert accepts traceability targeting an existing class method symbol, rejects ambiguous bare method targets, and requires explicit granularity rationale for coarse module-level symbol links.

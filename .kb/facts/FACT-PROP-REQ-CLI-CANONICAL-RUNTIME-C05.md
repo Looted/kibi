@@ -15,4 +15,8 @@ claim_key: CLAIM-FFBFCED402A50713
 claim_text: Untracked knowledge files must not be ingested unless a pending source receipt recovers them
 id: FACT-PROP-REQ-CLI-CANONICAL-RUNTIME-C05
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

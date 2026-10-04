@@ -25,5 +25,9 @@ semantic_inventory:
       end: 129
 id: REQ-tree-sitter-language-authoring-scaffold
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 The Tree-sitter language authoring scaffold must create an unqualified disconnected draft without modifying live language support.

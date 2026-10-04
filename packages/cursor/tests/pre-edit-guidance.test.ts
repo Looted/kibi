@@ -26,6 +26,28 @@ function createWorkspace(symbolsManifest?: string): string {
   return root;
 }
 
+function tempDir(prefix: string): string {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), prefix));
+  tempRoots.push(directory);
+  return directory;
+}
+
+function writeKb(root: string, relativePath: string, content: string): void {
+  const target = path.join(root, ".kb", relativePath);
+  fs.mkdirSync(path.dirname(target), { recursive: true });
+  fs.writeFileSync(target, content);
+}
+
+function usageRows(root: string): Record<string, unknown>[] {
+  const logPath = path.join(root, ".kb", "usage.log");
+  if (!fs.existsSync(logPath)) return [];
+  return fs
+    .readFileSync(logPath, "utf8")
+    .trim()
+    .split("\n")
+    .map((line) => JSON.parse(line) as Record<string, unknown>);
+}
+
 const MANIFEST = `symbols:
   - id: SYM-checkout-total
     sourceFile: src/checkout.ts
@@ -212,9 +234,14 @@ describe("preToolUse emits guidance before the edit is written", () => {
 
     const first = await runHook(payload, { pluginData });
     expect(first.permission).toBe("allow");
+    expect(first.agent_message).toContain(
+      "Kibi knowledge for src/checkout.ts (symbol manifest):\n- REQ-checkout-total — SYM-checkout-total",
+    );
     expect(first.agent_message).toContain("Kibi pre-edit guidance");
-    expect(first.agent_message).toContain("REQ-checkout-total");
-    expect(first.agent_message).not.toContain("TEST-checkout-total");
+    expect(first.agent_message).toContain("before changing behavior here");
+    // Tests appear as coverage evidence, never as owned requirements.
+    expect(first.agent_message).toContain("Covered by: TEST-checkout-total.");
+    expect(first.agent_message).not.toContain("implements TEST");
     expect(first.agent_message).not.toContain("REQ-checkout-legacy");
 
     expect(await runHook(payload, { pluginData })).toStrictEqual({});
@@ -266,6 +293,94 @@ describe("preToolUse emits guidance before the edit is written", () => {
     ).toStrictEqual({});
   });
 
+  test("names what the lead requirement must keep true and the decision behind it", async () => {
+    const cwd = createWorkspace(MANIFEST);
+    writeKb(
+      cwd,
+      "requirements/REQ-checkout-total.md",
+      "---\nid: REQ-checkout-total\ntitle: Checkout totals round to cents\nstatus: open\nlinks:\n  - type: constrains\n    target: FACT-checkout-total\n  - type: requires_property\n    target: FACT-total-rounding-cents\n  - ADR-money-as-decimal\n---\n",
+    );
+    writeKb(
+      cwd,
+      "facts/FACT-total-rounding-cents.md",
+      "---\nid: FACT-total-rounding-cents\ntitle: Totals round half up to two decimals\nstatus: active\n---\n",
+    );
+    writeKb(
+      cwd,
+      "adr/ADR-money-as-decimal.md",
+      "---\nid: ADR-money-as-decimal\ntitle: Money is computed as decimal cents\nstatus: accepted\n---\n",
+    );
+
+    const result = await runHook(
+      {
+        hook_event_name: "preToolUse",
+        cwd,
+        tool_name: "StrReplace",
+        tool_input: { file_path: "src/checkout.ts" },
+      },
+      { pluginData: tempDir("kibi-cursor-data-") },
+    );
+
+    expect(result.agent_message).toContain(
+      "- REQ-checkout-total: Checkout totals round to cents — SYM-checkout-total",
+    );
+    expect(result.agent_message).toContain(
+      "REQ-checkout-total must keep true: FACT-checkout-total; FACT-total-rounding-cents: Totals round half up to two decimals.",
+    );
+    expect(result.agent_message).toContain(
+      "Decision: ADR-money-as-decimal: Money is computed as decimal cents.",
+    );
+  });
+
+  test("a retired lead requirement is not presented as something to keep true", async () => {
+    const cwd = createWorkspace(MANIFEST);
+    writeKb(
+      cwd,
+      "requirements/REQ-checkout-total.md",
+      "---\nid: REQ-checkout-total\ntitle: Totals truncate\nstatus: superseded\nlinks:\n  - type: constrains\n    target: FACT-checkout-total\n  - ADR-money-as-decimal\n---\n",
+    );
+
+    const result = await runHook(
+      {
+        hook_event_name: "preToolUse",
+        cwd,
+        tool_name: "Write",
+        tool_input: { file_path: "src/checkout.ts" },
+      },
+      { pluginData: tempDir("kibi-cursor-data-") },
+    );
+
+    expect(result.agent_message).toContain(
+      "- REQ-checkout-total (superseded): Totals truncate",
+    );
+    expect(result.agent_message).not.toContain("must keep true");
+    expect(result.agent_message).not.toContain("Decision:");
+  });
+
+  test("a read of a linked file shows its requirements without edit grounding", async () => {
+    const cwd = createWorkspace(MANIFEST);
+    writeKb(
+      cwd,
+      "requirements/REQ-checkout-total.md",
+      "---\nid: REQ-checkout-total\ntitle: Checkout totals round to cents\nstatus: open\nlinks:\n  - type: constrains\n    target: FACT-checkout-total\n---\n",
+    );
+
+    const result = await runHook(
+      {
+        hook_event_name: "beforeReadFile",
+        cwd,
+        file_path: "src/checkout.ts",
+      },
+      { pluginData: tempDir("kibi-cursor-data-") },
+    );
+
+    expect(result.permission).toBe("allow");
+    expect(result.agent_message).toContain(
+      "- REQ-checkout-total: Checkout totals round to cents — SYM-checkout-total",
+    );
+    expect(result.agent_message).not.toContain("must keep true");
+  });
+
   test("still warns on direct .kb edits instead of guiding", async () => {
     const cwd = createWorkspace(MANIFEST);
     const pluginData = fs.mkdtempSync(
@@ -285,5 +400,81 @@ describe("preToolUse emits guidance before the edit is written", () => {
     expect(result.agent_message).toContain(
       "Do not read or edit `.kb/` files directly",
     );
+  });
+});
+
+describe("opt-in hook telemetry", () => {
+  const optedIn = { KIBI_DIAGNOSTIC_MODE: "1" };
+
+  async function post(
+    cwd: string,
+    pluginData: string,
+    toolName: string,
+    toolInput: Record<string, unknown>,
+    env: NodeJS.ProcessEnv,
+  ) {
+    return runHook(
+      {
+        hook_event_name: "postToolUse",
+        conversation_id: "conv-1",
+        cwd,
+        tool_name: toolName,
+        tool_input: toolInput,
+      },
+      { pluginData, env },
+    );
+  }
+
+  test("records lookups and requirement-linked edits for the lookup-before-edit metric", async () => {
+    const cwd = createWorkspace(MANIFEST);
+    const pluginData = tempDir("kibi-cursor-data-");
+
+    await post(cwd, pluginData, "MCP:kb_search", { query: "totals" }, optedIn);
+    await post(
+      cwd,
+      pluginData,
+      "Shell",
+      { command: "npx --no-install kibi query --input -" },
+      optedIn,
+    );
+    await post(
+      cwd,
+      pluginData,
+      "Write",
+      { file_path: "src/checkout.ts" },
+      optedIn,
+    );
+    await post(cwd, pluginData, "Write", { file_path: "src/new.ts" }, optedIn);
+    await post(cwd, pluginData, "Write", { file_path: "docs/a.md" }, optedIn);
+
+    const rows = usageRows(cwd);
+    expect(
+      rows.map((row) => [
+        row.hook_action,
+        row.kb_operation,
+        row.path,
+        row.requirement_ids,
+      ]),
+    ).toEqual([
+      ["kb_usage", "kb_search", null, []],
+      ["kb_usage", "kb_query", null, []],
+      ["edited", null, "src/checkout.ts", ["REQ-checkout-total"]],
+      ["edited", null, "src/new.ts", []],
+    ]);
+    expect(rows[2]).toMatchObject({
+      interface: "hook",
+      host: "cursor",
+      session_id: "conv-1",
+      host_tool: "Write",
+      path_kind: "source",
+    });
+  });
+
+  test("writes nothing unless the operator opted in", async () => {
+    const cwd = createWorkspace(MANIFEST);
+    const pluginData = tempDir("kibi-cursor-data-");
+    await post(cwd, pluginData, "MCP:kb_search", { query: "totals" }, {});
+    await post(cwd, pluginData, "Write", { file_path: "src/checkout.ts" }, {});
+    expect(usageRows(cwd)).toEqual([]);
   });
 });

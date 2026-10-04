@@ -22,4 +22,8 @@ claim_text: kibi init --badge-only without --github must be rejected
 id: FACT-PRED-D492CCE08A65
 type: fact
 predicate_namespace: kibi.requirements
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

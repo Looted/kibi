@@ -4,7 +4,6 @@ title: Logical requirement rule predicate schema
 status: active
 created_at: 2026-08-04T00:00:00.000Z
 updated_at: 2026-08-04T00:00:00.000Z
-source: documentation/facts/FACT-SCHEMA-LOGICAL-REQUIREMENT-RULE.md
 tags:
   - lane:ontology
   - predicate-schema
@@ -31,6 +30,7 @@ examples:
 argument_constants:
   subject:
     - kibi.audit.log
+    - kibi.branch.detached_head
     - kibi.checks.contradictions
     - kibi.checks.core_rules
     - kibi.cli.check.staged
@@ -39,13 +39,21 @@ argument_constants:
     - kibi.cli.startup
     - kibi.coverage.repair_plan
     - kibi.coverage.requirement
+    - kibi.discovery.search
     - kibi.distribution.parity
     - kibi.engine.journal
     - kibi.engine.prolog_process
+    - kibi.engine.read_limits
+    - kibi.entity.origin
+    - kibi.host.edit_snippets
+    - kibi.kb.lifecycle
     - kibi.logic.coverage
     - kibi.mcp.tool_schema
     - kibi.migration.legacy_plan
+    - kibi.migration.schema6
     - kibi.modeling.predicates
+    - kibi.modeling.semantic_advisor
+    - kibi.plan.apply
     - kibi.proof.requirement
     - kibi.report.github
     - kibi.report.html
@@ -87,6 +95,10 @@ argument_aliases:
     usage_metrics_acceptance_gate: kibi.telemetry.acceptance
     usage_remediation_command: kibi.telemetry.remediation
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Defines the stable project ontology used to ground Kibi's logical-coverage requirement without turning graph relationship names into ontology predicates.

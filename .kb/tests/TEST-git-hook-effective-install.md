@@ -2,7 +2,6 @@
 id: TEST-git-hook-effective-install
 title: Effective Git hooks path resolver, installer results, and init context regressions
 status: passing
-source: .kb/tests/TEST-git-hook-effective-install.md
 links:
   - type: validates
     target: SCEN-git-hook-effective-install
@@ -610,6 +609,10 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Real-git regression coverage for effective hooks path handling:

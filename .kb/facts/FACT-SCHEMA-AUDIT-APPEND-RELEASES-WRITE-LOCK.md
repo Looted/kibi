@@ -21,5 +21,9 @@ examples:
   - audit_append_releases_write_lock(audit_journal,every_append)
 id: FACT-SCHEMA-AUDIT-APPEND-RELEASES-WRITE-LOCK
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Predicate schema for audit_append_releases_write_lock/2.

@@ -1,11 +1,4 @@
 relationships:
-  - id: rel-6f0da43da467
-    type: implements
-    from: SYM-auto-EB53162A3CF2
-    to: REQ-branch-store-recovery-v2
-    created_at: "2026-08-16T07:54:37.137Z"
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
   - type: covered_by
     from: SYM-auto-EB53162A3CF2
     to: TEST-cli-branch-store-recovery
@@ -111,3 +104,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d3e5a1d9b2d8
+  - type: implements
+    from: SYM-BranchEnsureOptions
+    to: REQ-branch-store-recovery-v4
+    created_at: 2026-10-04T02:54:51.068Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f930444345f1
+  - type: implements
+    from: SYM-auto-EB53162A3CF2
+    to: REQ-branch-store-recovery-v4
+    created_at: 2026-10-04T02:57:40.807Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-57f35b30194a
+  - type: implements
+    from: SYM-mcp-session-inFlightRequests
+    to: REQ-core-prolog-process-management
+    created_at: 2026-10-04T03:03:53.699Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0f800b1d76c5
+  - type: implements
+    from: SYM-schema6-buildSchema6MigrationFragment
+    to: REQ-kibi-schema6-migration
+    created_at: 2026-10-04T03:13:26.284Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d5b599b59dcb
+  - type: covered_by
+    from: SYM-schema6-buildSchema6MigrationFragment
+    to: TEST-kibi-schema6-migration
+    created_at: 2026-10-04T03:13:26.294Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-341a160e0e25
+  - type: covered_by
+    from: SYM-schema6-buildSchema6MigrationFragment
+    to: TEST-kibi-schema6-migration-cli
+    created_at: 2026-10-04T04:44:05.236Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f06577645bd0

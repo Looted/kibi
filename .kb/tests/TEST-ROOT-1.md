@@ -4,7 +4,10 @@ title: Feature Test
 type: test
 status: passing
 tags: [test]
-source: documentation/tests/TEST-ROOT-1.md
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 # Feature Test

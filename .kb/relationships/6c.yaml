@@ -237,3 +237,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d799c991879f
+  - type: implements
+    from: SYM-origin-review-evaluateOriginReview
+    to: REQ-kibi-entity-origin
+    created_at: 2026-10-04T03:12:50.314Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9ad013c3674d
+  - type: covered_by
+    from: SYM-origin-review-evaluateOriginReview
+    to: TEST-kibi-entity-origin
+    created_at: 2026-10-04T03:12:50.339Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-64388265aecd
+  - type: covered_by
+    from: SYM-origin-review-evaluateOriginReview
+    to: TEST-kibi-entity-origin-cli
+    created_at: 2026-10-04T04:43:38.487Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bd110d36648c

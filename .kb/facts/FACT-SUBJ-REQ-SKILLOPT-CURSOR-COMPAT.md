@@ -8,4 +8,8 @@ subject_key: kibi.skillopt.cursor_lane
 canonical_key: req.req_skillopt_cursor_compat
 id: FACT-SUBJ-REQ-SKILLOPT-CURSOR-COMPAT
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

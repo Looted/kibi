@@ -28,7 +28,7 @@ import { taskScopedPublicSkillDescriptors } from "./real-workflow-setup";
 import { canonicalHash } from "./real-workflow-types";
 import { runCodexCell } from "./runtime/codex-cell-runner";
 import { createCodexRuntimeLease } from "./runtime/codex-runtime";
-import { TARGET_EFFORT, TARGET_MODEL } from "./runtime/permissions";
+import { assertSkillOptModelsReadyForPaidWork } from "./runtime/models";
 import { runBoundedProcess } from "./runtime/process";
 import { readTargetEpisodeBudget } from "./target-episode-budget";
 import { defaultEvaluateDevelopment } from "./training-setup";
@@ -102,6 +102,8 @@ export async function main(args: readonly string[]): Promise<number> {
     return 0;
   }
   const options = parseScreenArgs(args);
+  // Refuse unpriced or invalid model pins before any paid preparation.
+  const models = assertSkillOptModelsReadyForPaidWork();
   const sourceWorktree = process.cwd();
   const campaignBudget = await readTargetEpisodeBudget(
     process.env,
@@ -201,8 +203,8 @@ export async function main(args: readonly string[]): Promise<number> {
       repeats: options.repeats,
       maxCells: options.maxCells,
       ...(campaignBudget === undefined ? {} : { campaignBudget }),
-      targetModel: TARGET_MODEL,
-      targetEffort: TARGET_EFFORT,
+      targetModel: models.targetModel,
+      targetEffort: models.targetReasoningEffort,
       policy: "baseline-relative-development-screen.v2",
       origins,
       surfaces: variants.map(({ body, ...variant }) => variant),

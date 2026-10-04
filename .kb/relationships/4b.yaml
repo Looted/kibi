@@ -56,13 +56,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-35d27cdbcf91
   - type: implements
-    from: SYM-syncCommand
-    to: REQ-branch-store-recovery-v3
-    created_at: 2026-08-17T08:38:14.295Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f823731bb07e
-  - type: implements
     from: SYM-opencode-risk-classification-type
     to: REQ-opencode-risk-classification
     created_at: 2026-08-18T21:04:49.568Z
@@ -239,13 +232,6 @@ relationships:
     id: rel-2f268f590c5e
   - type: implements
     from: SYM-syncCommand
-    to: REQ-branch-store-recovery-v2
-    created_at: 2026-09-18T07:45:04.020Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c53444cff275
-  - type: implements
-    from: SYM-syncCommand
     to: REQ-core-extractors
     created_at: 2026-09-18T07:45:04.028Z
     created_by: kibi/upsert
@@ -370,3 +356,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e78585d47113
+  - type: implements
+    from: SYM-proof-receipt-outcome
+    to: REQ-kibi-fresh-verification-receipts-v2
+    created_at: 2026-10-04T03:05:06.179Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ead15c1fa10c
+  - type: implements
+    from: SYM-syncCommand
+    to: REQ-branch-store-recovery-v4
+    created_at: 2026-10-04T03:06:51.702Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-262df1fe75d0
+  - type: executable_for
+    from: SYM-test-kibi-proof-receipt-compaction-cli
+    to: TEST-kibi-proof-receipt-compaction-cli
+    created_at: 2026-10-04T05:29:58.414Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fa351fdb83cb

@@ -91,7 +91,9 @@ describe("MCP upsert semantic advisor", () => {
       ],
     });
     expect(structured?.warnings).toEqual(
-      expect.arrayContaining([expect.stringContaining("kb_model_requirement")]),
+      expect.arrayContaining([
+        expect.stringContaining("kb_model (mode requirement)"),
+      ]),
     );
   });
 });

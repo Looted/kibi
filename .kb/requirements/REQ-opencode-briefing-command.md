@@ -3,7 +3,6 @@ id: REQ-opencode-briefing-command
 title: OpenCode Briefing Command
 status: closed
 created_at: 2026-05-13T00:00:00.000Z
-source: packages/opencode/src/brief-intent.ts
 priority: must
 owner: opencode-team
 tags:
@@ -70,6 +69,10 @@ logic_claims:
   - CLAIM-5740C3F71658AD9D
   - CLAIM-FC43DB73F09F6AFB
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 The plugin must support focused knowledge briefings:

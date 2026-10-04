@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { z } from "zod";
 import { parseTraceReceipts, verifyTraceChain } from "./jsonrpc";
+import { routedOperationName, toolCallArguments } from "./mcp-tool-names";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
@@ -78,7 +79,13 @@ export async function verifyCapabilityEvidence(
         receipt.direction === "target_to_server" &&
         receipt.kind === "request" &&
         receipt.method === "tools/call" &&
-        receipt.toolName === toolName,
+        receipt.toolName !== undefined &&
+        // toolNames are catalog operations, as the usage log records them;
+        // a kb_model or kb_upsert dryRun request is routed to its operation.
+        routedOperationName(
+          receipt.toolName,
+          toolCallArguments(receipt.payload),
+        ) === toolName,
     );
     const responses = requests.flatMap((request) =>
       trace.filter(
@@ -87,7 +94,7 @@ export async function verifyCapabilityEvidence(
           receipt.direction === "server_to_target" &&
           receipt.kind === "response" &&
           receipt.method === "tools/call" &&
-          receipt.toolName === toolName,
+          receipt.toolName === request.toolName,
       ),
     );
     const successfulResponses = responses.filter((response) =>

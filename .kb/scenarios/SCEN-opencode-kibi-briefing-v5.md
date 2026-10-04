@@ -4,7 +4,6 @@ title: "OpenCode Kibi Briefing v5: Session-Local & Dedupe Scenarios"
 status: closed
 created_at: 2026-04-30T12:00:00Z
 updated_at: 2026-04-30T12:00:00Z
-source: documentation/scenarios/SCEN-opencode-kibi-briefing-v5.md
 tags:
   - scenario
   - opencode
@@ -13,6 +12,10 @@ tags:
 links:
   - type: relates_to
     target: REQ-opencode-kibi-briefing-v5
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 **Scenario: Session-Local Baseline — Historical unread briefs ignored**

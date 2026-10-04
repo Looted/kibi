@@ -24,6 +24,10 @@ claim_text: Normal sync MUST compile only changed source entities relationship s
 claim_span_start: 618
 claim_span_end: 827
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of delta sync, rebuild, and idle-compaction behavior.

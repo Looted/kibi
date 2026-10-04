@@ -22,6 +22,10 @@ import Ajv, { type ValidateFunction } from "ajv";
 import { load as yamlLoad } from "js-yaml";
 import { semanticClaimKey } from "../operations/semantic-advisor/clauses.js";
 import {
+  type EntityOrigin,
+  normalizeEntityOrigin,
+} from "../public/entity-origin.js";
+import {
   PROOF_BINDINGS_SCHEMA,
   PROOF_CONTRACT_SCHEMA,
   type ProofBinding,
@@ -72,6 +76,7 @@ const FACT_STRING_ARRAY_FIELDS = [
   "argument_names",
   "argument_types",
   "argument_descriptions",
+  "key_arguments",
   "aliases",
   "examples",
   "predicate_args",
@@ -113,6 +118,7 @@ export interface ExtractedEntity {
   priority?: string;
   severity?: string;
   text_ref?: string;
+  origin?: EntityOrigin;
   semantic_text?: string;
   logic_claims?: string[];
   semantic_clauses?: string[];
@@ -130,6 +136,11 @@ export interface ExtractedEntity {
   verification_perspective?: "internal" | "consumer";
   proof_exempt?: boolean;
   proof_exempt_reason?: string;
+  approved_by?: string;
+  approval_ref?: string;
+  rationale?: string;
+  exempts_claims?: string[];
+  expects?: "success" | "rejection" | "error";
   proof_contract?: ProofContract;
   proof_bindings?: readonly ProofBinding[];
   proof_receipts?: readonly ProofReceipt[];
@@ -166,6 +177,7 @@ export interface ExtractedEntity {
   argument_names?: string[];
   argument_types?: string[];
   argument_descriptions?: string[];
+  key_arguments?: string[];
   aliases?: string[];
   examples?: string[];
   predicate_args?: string[];
@@ -236,6 +248,8 @@ type RelationshipType =
   | "consumes"
   | "supersedes"
   | "restates"
+  | "assumes"
+  | "exempts"
   | "relates_to";
 
 const VALID_RELATIONSHIP_TYPES = new Set<RelationshipType>([
@@ -256,6 +270,8 @@ const VALID_RELATIONSHIP_TYPES = new Set<RelationshipType>([
   "consumes",
   "supersedes",
   "restates",
+  "assumes",
+  "exempts",
   "relates_to",
 ]);
 
@@ -302,6 +318,8 @@ const VALID_RELATIONSHIP_DIRECTIONS: ReadonlyArray<{
   { type: "supersedes", from: "adr", to: "adr" },
   { type: "supersedes", from: "req", to: "req" },
   { type: "restates", from: "req", to: "req" },
+  { type: "assumes", from: "scenario", to: "fact" },
+  { type: "exempts", from: "req", to: "req" },
 ];
 
 const RELATIONSHIP_TYPE_DISPLAY_LIST = Array.from(VALID_RELATIONSHIP_TYPES)
@@ -656,6 +674,21 @@ function extractFromMarkdownContent(
     if (data.text_ref !== undefined) {
       entity.text_ref = data.text_ref;
     }
+    // implements REQ-004
+    if (data.origin !== undefined) {
+      const normalized = normalizeEntityOrigin(data.origin);
+      if ("error" in normalized) {
+        throw new FrontmatterError(
+          `Invalid origin: ${normalized.error}`,
+          filePath,
+          {
+            classification: "Invalid Entity Origin",
+            hint: "Use origin: {kind: human|agent|migration|import, ref, approved_by, recorded_at}; only kind is required.",
+          },
+        );
+      }
+      entity.origin = normalized.origin;
+    }
     if (type === "req" && data.semantic_text !== undefined) {
       entity.semantic_text = data.semantic_text;
     } else if (type === "req") {
@@ -680,6 +713,24 @@ function extractFromMarkdownContent(
     }
     if (type === "req" && data.semantic_source_hash !== undefined) {
       entity.semantic_source_hash = data.semantic_source_hash;
+    }
+    // implements REQ-kibi-scenario-feasibility-v2
+    if (type === "scenario" && data.expects !== undefined) {
+      if (
+        data.expects !== "success" &&
+        data.expects !== "rejection" &&
+        data.expects !== "error"
+      ) {
+        throw new FrontmatterError(
+          "Invalid expects; expected success, rejection or error",
+          filePath,
+          {
+            classification: "Invalid Scenario Outcome",
+            hint: "Set expects: success, expects: rejection or expects: error on the scenario.",
+          },
+        );
+      }
+      entity.expects = data.expects;
     }
     if (type === "req" && data.proof_exempt !== undefined) {
       if (typeof data.proof_exempt !== "boolean") {
@@ -709,6 +760,43 @@ function extractFromMarkdownContent(
         );
       }
       entity.proof_exempt_reason = data.proof_exempt_reason;
+    }
+    // implements REQ-kibi-scenario-feasibility-v2
+    // Human approval of an exception requirement; only an approved exception
+    // makes a success scenario feasible.
+    for (const field of ["approved_by", "approval_ref"] as const) {
+      if (type !== "req" || data[field] === undefined) continue;
+      if (typeof data[field] !== "string" || data[field].trim() === "") {
+        throw new FrontmatterError(
+          `Invalid ${field}; expected a non-empty string`,
+          filePath,
+          {
+            classification: "Invalid Exception Approval",
+            hint: "Set approved_by to the approving person or role (and optionally approval_ref to the decision record) on the exception requirement.",
+          },
+        );
+      }
+      entity[field] = data[field];
+    }
+    // implements REQ-core-validation-rules
+    // Why the requirement exists; requirement-rationale-missing reads it.
+    if (type === "req" && data.rationale !== undefined) {
+      if (typeof data.rationale !== "string" || data.rationale.trim() === "") {
+        throw new FrontmatterError(
+          "Invalid rationale; expected a non-empty string",
+          filePath,
+          {
+            classification: "Invalid Rationale",
+            hint: "Set rationale to one or two sentences saying why the requirement exists, or remove the field.",
+          },
+        );
+      }
+      entity.rationale = data.rationale;
+    }
+    if (type === "req" && Array.isArray(data.exempts_claims)) {
+      entity.exempts_claims = data.exempts_claims.filter(
+        (value): value is string => typeof value === "string",
+      );
     }
 
     if (type !== "fact") {

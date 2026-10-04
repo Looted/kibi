@@ -1,4 +1,4 @@
-// implements REQ-008
+// implements REQ-cli-staged-impact-enforcement
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";

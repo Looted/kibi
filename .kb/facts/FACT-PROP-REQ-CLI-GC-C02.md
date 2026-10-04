@@ -15,4 +15,8 @@ claim_key: CLAIM-6D4A56A6E8B488CD
 claim_text: This keeps the `.kb/branches/` directory clean and prevents disk bloat from long-deleted features
 id: FACT-PROP-REQ-CLI-GC-C02
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

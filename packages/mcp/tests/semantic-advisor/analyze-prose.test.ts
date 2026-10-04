@@ -160,7 +160,7 @@ describe("semantic advisor prose analysis", () => {
         expect.objectContaining({ type: "req" }),
       ]),
     );
-    expect(result.warnings.join("\n")).toContain("kb_model_requirement");
+    expect(result.warnings.join("\n")).toContain("kb_model (mode requirement)");
   });
 
   test("routes permission and conditional prose toward predicate modeling", () => {

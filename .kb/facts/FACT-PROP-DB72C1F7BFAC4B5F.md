@@ -20,4 +20,8 @@ claim_key: CLAIM-B8B9B523CCC37CE5
 claim_text: kibi-claude hooks must add at most one knowledge snippet per file per session
 id: FACT-PROP-DB72C1F7BFAC4B5F
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

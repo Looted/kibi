@@ -14,4 +14,8 @@ claim_key: CLAIM-50956285FDEECBA9
 claim_text: For repository bootstrap, agent-facing guidance must route to the canonical kibi-bootstrap skill and kb_plan_bootstrap plan/apply contract
 id: FACT-PROP-OCV1-BOOTSTRAP-ROUTING
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

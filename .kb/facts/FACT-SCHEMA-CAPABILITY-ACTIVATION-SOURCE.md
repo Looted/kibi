@@ -29,5 +29,9 @@ examples:
   - capability_activation_source(capability_plugin,package_json_kibi_plugins,explicit_only)
 id: FACT-SCHEMA-CAPABILITY-ACTIVATION-SOURCE
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Defines where a capability is activated and whether that source is explicit. Reuse for any future capability family that is enabled from project configuration rather than ambient discovery.

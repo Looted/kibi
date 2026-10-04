@@ -8,6 +8,10 @@ tags:
   - ci
 id: SCEN-kibi-html-health-report
 type: scenario
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Given a synced Kibi project with requirement and symbol coverage
 When an operator generates the requirement-health report

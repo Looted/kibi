@@ -8,6 +8,10 @@ tags:
   - parity
 id: SCEN-kibi-source-relationship-parity
 type: scenario
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 1. A tracked requirement or symbol manifest authors a typed relationship.
 2. The compiled RDF snapshot lacks that exact edge.

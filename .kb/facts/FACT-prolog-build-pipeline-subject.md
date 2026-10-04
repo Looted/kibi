@@ -15,4 +15,8 @@ subject_key: kibi.prolog.build_pipeline_validation
 canonical_key: kibi.prolog.build_pipeline_validation
 id: FACT-prolog-build-pipeline-subject
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

@@ -4,12 +4,15 @@ title: KB sync now uses two-pass relationship assertion
 status: active
 created_at: 2026-02-25T14:30:00Z
 updated_at: 2026-02-25T14:30:00Z
-source: documentation/facts/FACT-007.md
 tags:
   - kb-sync
   - improvement
   - relationships
 fact_kind: observation
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 KB sync now uses a two-pass approach for relationship assertion:

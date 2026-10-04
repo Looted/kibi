@@ -29,5 +29,9 @@ examples:
   - provider_allowed_operation(external_semantic_classifier,kb_semantic_advisor,allow)
 id: FACT-SCHEMA-PROVIDER-ALLOWED-OPERATION
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Defines whether a provider class may perform an operation. Reuse for external-call allowlists, maintenance-path denials, host-seam participation, and disclosure that is not enforcement.

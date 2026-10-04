@@ -14,4 +14,8 @@ claim_key: CLAIM-F5829888B7CA8EE6
 claim_text: '**Scope**: Lifecycle reminders are only eligible in `root_active` or `hybrid_root_plus_vendored` postures'
 id: FACT-PROP-FCG-SCOPE
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

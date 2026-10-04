@@ -146,3 +146,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e2812a58c1e7
+  - type: implements
+    from: SYM-telemetry-acceptance-analyze
+    to: REQ-kibi-telemetry-acceptance-gate-v2
+    created_at: 2026-10-04T03:07:02.397Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-05e651ebad4d
+  - type: implements
+    from: SYM-schema6-applyOriginBackfill
+    to: REQ-kibi-schema6-migration
+    created_at: 2026-10-04T03:13:04.804Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c9cd397cb7e6
+  - type: covered_by
+    from: SYM-schema6-applyOriginBackfill
+    to: TEST-kibi-schema6-migration
+    created_at: 2026-10-04T03:13:04.815Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2ea039177ea0
+  - type: covered_by
+    from: SYM-schema6-applyOriginBackfill
+    to: TEST-kibi-schema6-migration-cli
+    created_at: 2026-10-04T04:43:59.247Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-32573d8ba12e

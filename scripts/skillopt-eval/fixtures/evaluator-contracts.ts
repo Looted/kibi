@@ -157,6 +157,23 @@ const ProtocolContractSchema = z
   })
   .strict();
 
+/** A regex over one final `src/` file (the workspace-assertion lane). */
+const WorkspaceAssertionSchema = z
+  .object({
+    key: z.string().regex(/^[a-z0-9-]+$/),
+    path: z.string().regex(/^src\/[A-Za-z0-9_./-]+$/),
+    pattern: z.string().min(1),
+    flags: z
+      .string()
+      .regex(/^[imsu]*$/)
+      .optional(),
+    expectMatch: z.boolean(),
+  })
+  .strict()
+  .refine((assertion) => !assertion.path.split("/").includes(".."), {
+    message: "workspace assertion path must stay inside src/",
+  });
+
 const WorkflowExpectationSchema = z
   .object({
     expectedOutcome: z.enum(["complete", "interim", "blocked"]),
@@ -233,8 +250,12 @@ const PrivateEvaluatorManifestSchema = z
         "seeded_fresh_kb",
         "seeded_stale_kb",
         "thin_root_kb",
+        "seeded_governed_area_kb",
+        "seeded_precondition_kb",
+        "seeded_consistency_kb",
       ])
       .optional(),
+    workspaceAssertions: z.array(WorkspaceAssertionSchema).optional(),
     protocolContract: ProtocolContractSchema.optional(),
     orderedMcpPredicates: z
       .object({

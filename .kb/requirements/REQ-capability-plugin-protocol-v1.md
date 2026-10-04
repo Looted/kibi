@@ -35,6 +35,10 @@ proof_exempt: false
 semantic_clauses:
   - An activated capability plugin must export validated protocol kibi.plugin.v1 from the named export kibiPlugin.
   - The exported provider version must reference an existing resolved package version.
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 # REQ-capability-plugin-protocol-v1
 

@@ -22,4 +22,8 @@ claim_span_start: 847
 claim_span_end: 997
 id: FACT-prolog-build-rejects-manifest-provenance-mismatch
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
