@@ -238,7 +238,7 @@ rule_description('proof-contract-symbols', 'Detect unresolved required_proofs.sy
 rule_description('entity-id-style', 'Entity IDs name the governed behavior and match their filename stem; new purely numeric IDs are reported at creation boundaries').
 rule_description('domain-redundancy', 'Two current requirements must not ground the identical logical term or share a ground fact unless linked by supersedes or restates').
 rule_description('domain-implication', 'Informational: one requirement\'s numeric bound strictly implies another requirement\'s bound on the same subject and property').
-rule_description('subject-key-identity', 'Subject keys must name a shared component, not be derived from a requirement ID, and one subject or claim must not be minted as several active subject facts or same-operator property_value facts').
+rule_description('subject-key-identity', 'Subject keys must name a shared component, not be derived from a requirement ID, and one subject or claim must not be minted as several active subject facts or identical property_value facts').
 rule_description('subject-key-shape', 'Subject keys follow dotted component.aspect[.sub] with lowercase snake segments, and property keys name a property rather than a numbered clause (clause_NN)').
 rule_description('ontology-quality', 'Informational: predicate schemas whose argument values mostly occur in only one fact are carrying prose instead of a shared vocabulary').
 rule_description('exception-unapproved', 'Advisory: a current exception requirement exempts another requirement but has no approved_by, so it exempts nothing until a human approves it').

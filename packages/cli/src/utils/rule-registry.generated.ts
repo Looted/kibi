@@ -220,7 +220,7 @@ export const GENERATED_RULES = [
   {
     name: "subject-key-identity",
     description:
-      "Subject keys must name a shared component, not be derived from a requirement ID, and one subject or claim must not be minted as several active subject facts or same-operator property_value facts",
+      "Subject keys must name a shared component, not be derived from a requirement ID, and one subject or claim must not be minted as several active subject facts or identical property_value facts",
     enforcementClass: "advisory",
     category: "integrity",
   },

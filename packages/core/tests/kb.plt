@@ -5877,6 +5877,12 @@ test(subject_key_identity_reports_one_claim_minted_as_several_facts, [setup(setu
     % The two bounds of a range differ in operator: not duplicates.
     sq_property_fact('FACT-TIMEOUT-MIN', "kibi.check", timeout, gte, int, 1, s),
     sq_property_fact('FACT-TIMEOUT-MAX', "kibi.check", timeout, lte, int, 60, s),
+    % Two requirements bounding the same property differently state distinct
+    % claims, which domain-implication compares: not duplicates either.
+    sq_property_fact('FACT-TIMEOUT-MAX-AUDIT', "kibi.check", timeout, lte, int, 120, s),
+    % The same number in another unit is a different stored value; when two
+    % requirements ground it, domain-redundancy reports the pair.
+    sq_property_fact('FACT-TIMEOUT-MAX-MIN', "kibi.check", timeout, lte, int, 1, min),
     check_subject_key_identity(Violations),
     Violations = [violation('subject-key-identity', 'FACT-EXIT-A', Description, _, _, Evidence)],
     assertion(Evidence.facts == ['FACT-EXIT-A', 'FACT-EXIT-B']),

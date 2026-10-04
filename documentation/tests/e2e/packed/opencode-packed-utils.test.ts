@@ -145,7 +145,7 @@ describe("opencode packed utility helpers", () => {
         "kibi-plugin-jev": `file:${tarballs["plugin-jev"]}`,
         "kibi-plugin-treesitter": `file:${tarballs["plugin-treesitter"]}`,
       });
-      assert.equal(Object.keys(completePackageJson.dependencies).length, 12);
+      assert.equal(Object.keys(completePackageJson.dependencies).length, 13);
     } finally {
       rmSync(prefix, { recursive: true, force: true });
     }

@@ -362,9 +362,12 @@ implication_witness_violation(Witness, violation(
 % The rule also reports vocabulary fragmentation, where one subject or claim
 % was minted as several facts so requirements about it never meet: more than
 % one active subject fact for the same subject_key, and more than one active
-% property_value fact for the same subject_key, property_key and operator.
-% Facts that differ only in operator (for example the two bounds of a range)
-% are not duplicates.  Each group is reported once, on its first fact id.
+% property_value fact stating the same claim: the same subject_key,
+% property_key, operator, typed value and unit.  Facts that differ in operator
+% (the two bounds of a range) or in value (two requirements bounding the same
+% property differently) are distinct claims, which domain-contradictions and
+% domain-implication compare.  Each group is reported once, on its first fact
+% id.
 % implements REQ-kibi-subject-vocabulary
 check_subject_key_identity(Violations) :-
     findall(Segment-ReqId, requirement_subject_segment(ReqId, Segment), SegmentPairs0),
@@ -420,13 +423,14 @@ duplicate_subject_fact_violations(Violations) :-
 %% duplicate_property_fact_violations(-Violations)
 duplicate_property_fact_violations(Violations) :-
     findall(
-        key(SubjectKey, PropertyKey, Operator)-FactId,
+        key(SubjectKey, PropertyKey, Operator, Value)-FactId,
         (   fact_subject_key_of_kind(FactId, property_value, SubjectKey),
             kb_entity(FactId, fact, Props),
             memberchk(property_key=RawProperty, Props),
             normalize_term_atom(RawProperty, PropertyKey),
             memberchk(operator=RawOperator, Props),
             normalize_term_atom(RawOperator, Operator),
+            property_value_signature(Props, Value),
             active_fact(FactId)
         ),
         Pairs0
@@ -438,21 +442,41 @@ duplicate_property_fact_violations(Violations) :-
             'subject-key-identity',
             FirstId,
             Description,
-            "If the facts state the same constraint, link every requirement to one shared fact and remove the duplicates (kb_delete) once nothing links them; if they conflict, supersede the requirement that is no longer current",
+            "Link every requirement to one shared fact and remove the duplicates (kb_delete) once nothing links them",
             Source,
             _{subjectKey: SubjectKey, propertyKey: PropertyKey, operator: Operator, facts: FactIds}
         ),
-        (   member(key(SubjectKey, PropertyKey, Operator)-FactIds, Groups),
+        (   member(key(SubjectKey, PropertyKey, Operator, _)-FactIds, Groups),
             FactIds = [FirstId, _|_],
             length(FactIds, Count),
             atomic_list_concat(FactIds, ', ', FactText),
             format(string(Description),
-                "~w active property_value facts constrain ~w ~w with operator ~w (~w), so one claim is minted as several facts",
+                "~w active property_value facts state the same claim on ~w ~w (operator ~w, same value) (~w), so one claim is minted as several facts",
                 [Count, SubjectKey, PropertyKey, Operator, FactText]),
             entity_text(FirstId, fact, source, Source)
         ),
         Violations
     ).
+
+%% property_value_signature(+Props, -Signature)
+% The typed value and unit of a property_value fact, as Field-Value pairs in a
+% fixed field order, so two facts compare equal only when they store the same
+% value of the same type in the same unit.
+property_value_signature(Props, Signature) :-
+    findall(
+        Field-Value,
+        (   member(Field, [value_type, value_string, value_int, value_number, value_bool, unit]),
+            memberchk(Field=Raw, Props),
+            signature_value(Raw, Value),
+            Value \== ''
+        ),
+        Signature
+    ).
+
+signature_value('^^'(Raw, _), Value) :- !, signature_value(Raw, Value).
+signature_value(literal(type(_, Raw)), Value) :- !, signature_value(Raw, Value).
+signature_value(Raw, Value) :- string(Raw), !, atom_string(Value, Raw).
+signature_value(Raw, Raw).
 
 %% active_fact(+FactId)
 % A fact whose status does not retire it.
