@@ -6,6 +6,12 @@ import type {
   WorkflowCloseout,
 } from "../scoring/evidence-utils";
 import { probeRequiredMcp } from "./canary-runtime";
+import {
+  type CaseSignalContext,
+  caseForbiddenObserved,
+  caseSignalObserved,
+  workspaceAssertionPasses,
+} from "./case-signals";
 import { prepareExistingLogin } from "./codex-auth";
 import { readOptionalArtifact } from "./codex-cell-artifacts";
 import type {
@@ -22,6 +28,30 @@ import { stageKibiMcpBroker } from "./mcp-broker-stage";
 import { routedOperationName, toolCallArguments } from "./mcp-tool-names";
 import type { CanaryRunner } from "./permissions";
 import { runBoundedProcess } from "./process";
+import {
+  type FinalAnswerEvidence,
+  type TranscriptOrdering,
+  finalAnswerEvidence,
+  transcriptOrdering,
+} from "./transcript-evidence";
+
+/** Evaluator lanes beside the final-state receipt and the broker trace. */
+type EvidenceLanes = Readonly<{
+  answer: FinalAnswerEvidence;
+  ordering: TranscriptOrdering;
+  workspaceFiles: Readonly<Record<string, string>>;
+}>;
+
+function evidenceLanes(
+  transcript: string | undefined,
+  workspaceFiles: Readonly<Record<string, string>> | undefined,
+): EvidenceLanes {
+  return {
+    answer: finalAnswerEvidence(transcript ?? ""),
+    ordering: transcriptOrdering(transcript ?? ""),
+    workspaceFiles: workspaceFiles ?? {},
+  };
+}
 
 function stringEnvironment(env: NodeJS.ProcessEnv): Record<string, string> {
   return Object.fromEntries(
@@ -124,8 +154,14 @@ function workflowSignalObserved(
   signal: string,
   results: readonly Readonly<{ tool: string; result: unknown }>[],
   brokerTools: readonly string[],
+  context: CaseSignalContext,
 ): boolean {
+  const caseOutcome = caseSignalObserved(signal, context);
+  if (caseOutcome !== undefined) return caseOutcome;
   const text = JSON.stringify(results).toLowerCase();
+  // Prose claims may come from the KB or from the agent's final answer (the
+  // third text source); structural JSON-key signals stay KB-only.
+  const prose = `${text}\n${context.answer.text.toLowerCase()}`;
   const status = latestContent(results, "kb_status");
   const hasBrokerTool = (tool: string): boolean => brokerTools.includes(tool);
   switch (signal) {
@@ -149,9 +185,9 @@ function workflowSignalObserved(
       );
     case "recovery boundary reported":
       return (
-        text.includes("sync") ||
-        text.includes("migrat") ||
-        text.includes("recover")
+        prose.includes("sync") ||
+        prose.includes("migrat") ||
+        prose.includes("recover")
       );
     case "status consulted before decision":
       return hasBrokerTool("kb_status");
@@ -192,7 +228,7 @@ function workflowSignalObserved(
         text.includes("stale")
       );
     case "operator escalation emitted":
-      return text.includes("operator");
+      return prose.includes("operator");
     case "bootstrap attached exactly":
       return (
         hasBrokerTool("kb_plan_bootstrap") || hasBrokerTool("kb_apply_plan")
@@ -208,7 +244,7 @@ function workflowSignalObserved(
     case "pending receipts inspected":
       return hasBrokerTool("kb_status");
     case "conflict refusal explicit":
-      return text.includes("conflict");
+      return prose.includes("conflict");
     case "strict claim modeled":
       return text.includes("claim_key") || text.includes('"fact_kind"');
     case "predicate fact stored":
@@ -224,22 +260,22 @@ function workflowSignalObserved(
       );
     }
     case "migration preview":
-      return text.includes("migration") && text.includes("preview");
+      return prose.includes("migration") && prose.includes("preview");
     case "recovery preview":
-      return text.includes("recovery") && text.includes("preview");
+      return prose.includes("recovery") && prose.includes("preview");
     case "original backup preserved":
-      return text.includes("backup") && text.includes("preserv");
+      return prose.includes("backup") && prose.includes("preserv");
     case "cross-branch migration refused":
-      return text.includes("branch migrate") && text.includes("refus");
+      return prose.includes("branch migrate") && prose.includes("refus");
     case "missing branch-store status":
       return (
         text.includes("branch_store_missing") ||
         text.includes("sync_metadata_missing")
       );
     case "final snapshot before verification":
-      return text.includes("snapshot") && text.includes("verification");
+      return prose.includes("snapshot") && prose.includes("verification");
     case "explicit apply boundary":
-      return text.includes("--apply") || text.includes("apply boundary");
+      return prose.includes("--apply") || prose.includes("apply boundary");
     case "stale symbol IDs":
       return (
         Array.isArray(status?.staleReasons) &&
@@ -260,9 +296,9 @@ function workflowSignalObserved(
       return text.includes("proofgap") || text.includes("unresolved");
     case "receipt reuse conditions unchanged":
       return (
-        text.includes("contract") &&
-        text.includes("snapshot") &&
-        text.includes("fresh")
+        prose.includes("contract") &&
+        prose.includes("snapshot") &&
+        prose.includes("fresh")
       );
     case "historical contract receipt preserved":
       return text.includes("proof_receipts") && text.includes("contract_hash");
@@ -281,21 +317,23 @@ function workflowSignalObserved(
         text.includes("qualitydiagnostics") && text.includes("disposition")
       );
     case "replacement evidence":
-      return text.includes("replacement") || text.includes("remap");
+      return prose.includes("replacement") || prose.includes("remap");
     case "coverage transfer evidence":
       return text.includes("covered_by") || text.includes("coverage");
     case "canonical relationship shard":
       return text.includes("relationship") && text.includes("shard");
     case "unrelated records":
-      return text.includes("unrelated") || text.includes("preserv");
+      return prose.includes("unrelated") || prose.includes("preserv");
     case "release defect":
-      return text.includes("release defect") || text.includes("export surface");
+      return (
+        prose.includes("release defect") || prose.includes("export surface")
+      );
     case "new package version required":
-      return text.includes("new package") || text.includes("newly versioned");
+      return prose.includes("new package") || prose.includes("newly versioned");
     case "target path absent":
-      return text.includes("target") && text.includes("absent");
+      return prose.includes("target") && prose.includes("absent");
     case "journals preserved":
-      return text.includes("journal") && text.includes("preserv");
+      return prose.includes("journal") && prose.includes("preserv");
     case "syncState stale":
       return status?.syncState === "stale";
     case "matching CLI/core schema":
@@ -326,53 +364,54 @@ function workflowSignalObserved(
       );
     case "stale plan hash rejected":
       return (
-        text.includes("plan changed") ||
-        (text.includes("stale") && text.includes("hash"))
+        prose.includes("plan changed") ||
+        (prose.includes("stale") && prose.includes("hash"))
       );
     case "fresh migration preview":
       return (
-        text.includes("migration") &&
-        text.includes("preview") &&
-        text.includes("hash")
+        prose.includes("migration") &&
+        prose.includes("preview") &&
+        prose.includes("hash")
       );
     case "destructive action refused":
       return (
-        text.includes("not automatic") ||
-        (text.includes("refus") && text.includes("action"))
+        prose.includes("not automatic") ||
+        (prose.includes("refus") && prose.includes("action"))
       );
     case "migration plan without Prolog":
       return (
-        text.includes("without prolog") ||
-        (text.includes("prolog") && text.includes("not start"))
+        prose.includes("without prolog") ||
+        (prose.includes("prolog") && prose.includes("not start"))
       );
     case "recovery backup required":
       return (
-        text.includes("backup") &&
-        (text.includes("required") || text.includes("preserv"))
+        prose.includes("backup") &&
+        (prose.includes("required") || prose.includes("preserv"))
       );
     case "complete extraction evidence":
       return (
-        text.includes("complete extraction") ||
-        text.includes("current extraction")
+        prose.includes("complete extraction") ||
+        prose.includes("current extraction")
       );
     case "authored ownership safety":
       return (
-        text.includes("authored") &&
-        (text.includes("ownership") || text.includes("live relationship"))
+        prose.includes("authored") &&
+        (prose.includes("ownership") || prose.includes("live relationship"))
       );
     case "current contract required":
       return (
-        text.includes("current contract") || text.includes("contract mismatch")
+        prose.includes("current contract") ||
+        prose.includes("contract mismatch")
       );
     case "operator package action":
-      return text.includes("operator") && text.includes("package");
+      return prose.includes("operator") && prose.includes("package");
     case "structured five-axis closeout":
       return (
-        text.includes("taskoutcome") &&
-        text.includes("kbstate") &&
-        text.includes("verificationstate") &&
-        text.includes("proofstate") &&
-        text.includes("limitationdisposition")
+        prose.includes("taskoutcome") &&
+        prose.includes("kbstate") &&
+        prose.includes("verificationstate") &&
+        prose.includes("proofstate") &&
+        prose.includes("limitationdisposition")
       );
     case "ontology gap remains unresolved":
       return text.includes("ontology_gap") || text.includes("unresolved");
@@ -384,10 +423,10 @@ function workflowSignalObserved(
       return text.includes("coverage_receipt_gaps") && text.includes("test");
     case "evidence-backed repair candidates":
       return (
-        text.includes("staleReasons") || text.includes("repair candidates")
+        prose.includes("staleReasons") || prose.includes("repair candidates")
       );
     default:
-      return text.includes(signal.toLowerCase());
+      return prose.includes(signal.toLowerCase());
   }
 }
 
@@ -395,7 +434,10 @@ function forbiddenActionObserved(
   action: string,
   results: readonly Readonly<{ tool: string; result: unknown }>[],
   brokerTools: readonly string[],
+  context: CaseSignalContext,
 ): boolean {
+  const caseOutcome = caseForbiddenObserved(action, context);
+  if (caseOutcome !== undefined) return caseOutcome;
   const text = JSON.stringify(results).toLowerCase();
   const status = latestContent(results, "kb_status");
   const hasBrokerTool = (tool: string): boolean => brokerTools.includes(tool);
@@ -610,6 +652,7 @@ function sealedFinalState(
   finalState: string,
   options: Pick<CodexCellOptions, "evaluatorManifest" | "finalStateRequests">,
   brokerTools: readonly string[],
+  lanes: EvidenceLanes = evidenceLanes(undefined, undefined),
 ) {
   const receipt = FinalStateReceiptSchema.parse(JSON.parse(finalState));
   const integrityValid = receipt.requests.every(
@@ -662,6 +705,16 @@ function sealedFinalState(
           : "fresh"
         : "not_evaluated";
   const expectedWorkflow = options.evaluatorManifest.workflowExpectation;
+  const workspaceAssertions =
+    options.evaluatorManifest.workspaceAssertions ?? [];
+  const signalContext: CaseSignalContext = {
+    results: requests,
+    brokerTools,
+    answer: lanes.answer,
+    ordering: lanes.ordering,
+    workspaceFiles: lanes.workspaceFiles,
+    workspaceAssertions,
+  };
   // Coverage remains available as raw final-state evidence, but a workflow
   // that declares proof out of scope must not inherit an unresolved result
   // from the verifier's general coverage request.
@@ -728,7 +781,12 @@ function sealedFinalState(
             value:
               signal === undefined
                 ? false
-                : workflowSignalObserved(signal, requests, brokerTools),
+                : workflowSignalObserved(
+                    signal,
+                    requests,
+                    brokerTools,
+                    signalContext,
+                  ),
           },
         ];
       }
@@ -744,7 +802,30 @@ function sealedFinalState(
             value:
               action === undefined
                 ? false
-                : !forbiddenActionObserved(action, requests, brokerTools),
+                : !forbiddenActionObserved(
+                    action,
+                    requests,
+                    brokerTools,
+                    signalContext,
+                  ),
+          },
+        ];
+      }
+      if (assertion.query.startsWith("workspace://assert/")) {
+        const index = Number.parseInt(
+          assertion.query.slice("workspace://assert/".length),
+          10,
+        );
+        const workspaceAssertion = workspaceAssertions[index];
+        return [
+          {
+            key: assertion.key,
+            value:
+              workspaceAssertion !== undefined &&
+              workspaceAssertionPasses(
+                workspaceAssertion,
+                lanes.workspaceFiles,
+              ),
           },
         ];
       }
@@ -905,18 +986,26 @@ function sealedDiagnostic(
   };
 }
 
+// implements REQ-skillopt-codex-optimization
 export function sealDefaultCellEvidence(
   options: Pick<CodexCellOptions, "evaluatorManifest" | "finalStateRequests">,
   evidence: Readonly<{
     finalState: string;
     brokerTrace: string;
     diagnosticReceipt: string;
+    transcript?: string;
+    workspaceFiles?: Readonly<Record<string, string>>;
   }>,
 ) {
   const broker = sealedBroker(evidence.brokerTrace);
   const brokerTools = broker.evidence.orderedCalls.map((call) => call.tool);
   return {
-    finalState: sealedFinalState(evidence.finalState, options, brokerTools),
+    finalState: sealedFinalState(
+      evidence.finalState,
+      options,
+      brokerTools,
+      evidenceLanes(evidence.transcript, evidence.workspaceFiles),
+    ),
     broker: broker.evidence,
     diagnostic: sealedDiagnostic(
       evidence.diagnosticReceipt,
@@ -992,11 +1081,15 @@ export function defaultCodexCellDependencies(
       finalState,
       brokerTrace,
       diagnosticReceipt,
+      transcript,
+      workspaceFiles,
     }) =>
       sealDefaultCellEvidence(options, {
         finalState,
         brokerTrace,
         diagnosticReceipt,
+        ...(transcript === undefined ? {} : { transcript }),
+        ...(workspaceFiles === undefined ? {} : { workspaceFiles }),
       }),
     clock: () => new Date(),
   };
