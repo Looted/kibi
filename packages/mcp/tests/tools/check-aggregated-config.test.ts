@@ -6,7 +6,7 @@ import type { PrologProcess } from "kibi-cli/prolog";
 import { handleKbCheck } from "../../src/tools/check.js";
 
 describe("MCP check aggregated config overrides", () => {
-  test("should allow explicit strict-fact-shape opt-in even when config disables it", async () => {
+  test("should block explicit strict-fact-shape violations even when config disables it", async () => {
     const workspaceRoot = mkdtempSync(
       path.join(os.tmpdir(), "kibi-mcp-check-optin-"),
     );
@@ -62,16 +62,21 @@ describe("MCP check aggregated config overrides", () => {
         workspaceRoot,
       });
 
-      expect(result.structuredContent?.count).toBe(0);
-      expect(result.structuredContent?.violations).toEqual([]);
+      expect(result.structuredContent?.count).toBe(1);
+      expect(result.structuredContent?.violations).toEqual([
+        expect.objectContaining({
+          rule: "strict-fact-shape",
+          entityId: "FACT-MALFORMED-OPTIN-001",
+        }),
+      ]);
       expect(
-        result.structuredContent?.qualityDiagnostics?.some(
-          (diagnostic) =>
-            diagnostic.id === "rule.strict-fact-shape" &&
-            diagnostic.entityId === "FACT-MALFORMED-OPTIN-001" &&
-            diagnostic.blocking === false,
-        ),
-      ).toBe(true);
+        result.structuredContent?.qualityDiagnostics ?? [],
+      ).not.toContainEqual(
+        expect.objectContaining({
+          id: "rule.strict-fact-shape",
+          entityId: "FACT-MALFORMED-OPTIN-001",
+        }),
+      );
       expect(query).toHaveBeenCalledTimes(1);
     } finally {
       rmSync(workspaceRoot, { recursive: true, force: true });

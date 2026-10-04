@@ -34,7 +34,7 @@ function emptyFullQualityResult(goal: string) {
 }
 
 describe("MCP check aggregated defaults", () => {
-  test("should report strict-fact-shape as a quality diagnostic by default", async () => {
+  test("should report strict-fact-shape as a blocking violation by default", async () => {
     const workspaceRoot = mkdtempSync(
       path.join(os.tmpdir(), "kibi-mcp-check-default-"),
     );
@@ -76,16 +76,21 @@ describe("MCP check aggregated defaults", () => {
 
       const result = await handleKbCheck(prolog, { workspaceRoot });
 
-      expect(result.structuredContent?.count).toBe(0);
-      expect(result.structuredContent?.violations).toEqual([]);
+      expect(result.structuredContent?.count).toBe(1);
+      expect(result.structuredContent?.violations).toEqual([
+        expect.objectContaining({
+          rule: "strict-fact-shape",
+          entityId: "FACT-MALFORMED-DEFAULT-001",
+        }),
+      ]);
       expect(
-        result.structuredContent?.qualityDiagnostics?.some(
-          (diagnostic) =>
-            diagnostic.id === "rule.strict-fact-shape" &&
-            diagnostic.entityId === "FACT-MALFORMED-DEFAULT-001" &&
-            diagnostic.blocking === false,
-        ),
-      ).toBe(true);
+        result.structuredContent?.qualityDiagnostics ?? [],
+      ).not.toContainEqual(
+        expect.objectContaining({
+          id: "rule.strict-fact-shape",
+          entityId: "FACT-MALFORMED-DEFAULT-001",
+        }),
+      );
       expect(query).toHaveBeenCalledTimes(25);
     } finally {
       rmSync(workspaceRoot, { recursive: true, force: true });
