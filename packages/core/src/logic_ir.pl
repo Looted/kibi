@@ -15,7 +15,9 @@
     logic_rule_missing_keys/4,
     functional_predicate_declarations/1,
     logic_atom_signature/2,
-    logic_rules_stratified/1
+    logic_rules_stratified/1,
+    logic_rule_fold_exceptions/2,
+    logic_rule_property_form/2
 ]).
 
 :- use_module(library(http/json)).
@@ -631,7 +633,9 @@ value_last_declarations(Predicates, Declarations) :-
 
 % Fails only when the rules are certainly disjoint: the modalities do not
 % oppose, the contexts do not intersect, or the heads do not unify.
-rule_pair_status(RuleA0, RuleB0, Functional, Status) :-
+rule_pair_status(RuleA00, RuleB00, Functional, Status) :-
+    logic_rule_fold_exceptions(RuleA00, RuleA0),
+    logic_rule_fold_exceptions(RuleB00, RuleB0),
     RuleA0 = rule(_, ModalityA, _, _, _, ScopeA, FromA, ToA, _, VariablesA),
     RuleB0 = rule(_, ModalityB, _, _, _, ScopeB, FromB, ToB, _, VariablesB),
     conflicting_modality(ModalityA, ModalityB),
@@ -997,6 +1001,167 @@ flipped_operator(gt, lt).
 flipped_operator(lte, gte).
 flipped_operator(gte, lte).
 
+
+%% logic_rule_fold_exceptions(+Rule, -Folded)
+% implements REQ-kibi-truthful-consistency
+% "forbid H :- B unless E1, ..., En" fires exactly when B holds and no Ei
+% does.  When every exception is a single comparison, its negation is again
+% a comparison (lt and gte, eq and neq, ...), so the rule is equivalent to
+% "forbid H :- B, not E1, ..., not En" without exceptions.  This is how an
+% "only when C" requirement (forbid unless C) is compared: the conflict and
+% scenario checks then reason about one body.  Rules with any other kind of
+% exception are returned unchanged.
+logic_rule_fold_exceptions(
+    rule(Kind, Modality, Head, Body, Exceptions, Scope, From, To, Schema, Variables),
+    rule(Kind, Modality, Head, FoldedBody, Remaining, Scope, From, To, Schema, Variables)
+) :-
+    (   Exceptions \== [],
+        maplist(negated_comparison, Exceptions, Negated)
+    ->  fold_body(Body, Negated, FoldedBody),
+        Remaining = []
+    ;   FoldedBody = Body,
+        Remaining = Exceptions
+    ).
+
+negated_comparison(compare(Op, Left, Right), compare(Negated, Left, Right)) :-
+    comparison_negation(Op, Negated).
+
+comparison_negation(eq, neq).
+comparison_negation(neq, eq).
+comparison_negation(lt, gte).
+comparison_negation(gte, lt).
+comparison_negation(gt, lte).
+comparison_negation(lte, gt).
+
+fold_body(none, [Single], Single) :- !.
+fold_body(none, Items, all(Items)) :- !.
+fold_body(all(Items0), Extra, all(Items)) :- !, append(Items0, Extra, Items).
+fold_body(Body, Extra, all([Body|Extra])).
+
+%% logic_rule_property_form(+Rule, -Form)
+% implements REQ-kibi-scenario-feasibility
+% Read a rule as a restriction over subject properties: the form scenario
+% feasibility shares with the property lane.  A body atom reads a property
+% when its namespace is the property's subject_key and its name the
+% property_key; its last argument is the property's value and any earlier
+% arguments name the instance.  After folding comparison exceptions
+% (logic_rule_fold_exceptions/2) Form is
+%
+%   property_form(Modality, Head, ScopeName, From, To, Keys, Conditions)
+%
+% Keys are the Subject-Property pairs of every property atom in the body and
+% remaining exceptions, however nested.  Conditions is
+%   * a list of cond(Subject-Property, Op, Term, ValueType): the rule fires
+%     exactly when every condition holds (an empty list fires whenever the
+%     read properties have values);
+%   * never: a comparison between two constants is false, so the rule never
+%     fires;
+%   * untranslatable: the body uses something this reading cannot decide (a
+%     negation, disjunction, count or temporal relation, an atom that is not
+%     a property read, two reads of one property with different values, a
+%     property value reused as an instance, a comparison between two
+%     properties, or an exception that is not a single comparison).
+logic_rule_property_form(Rule0, property_form(Modality, Head, ScopeName, From, To, Keys, Conditions)) :-
+    logic_rule_fold_exceptions(Rule0, Rule),
+    Rule = rule(_Kind, Modality, Head, Body, Exceptions, scope(_, ScopeName, _), From, To, _Schema, _Variables),
+    findall(Key,
+        (   member(Expression, [Body|Exceptions]),
+            expression_property_key(Expression, Key)
+        ),
+        Keys0),
+    sort(Keys0, Keys),
+    expression_parts(Body, parts(Atoms, Comparisons, Other)),
+    (   Exceptions == [],
+        Other == [],
+        maplist(property_read, Atoms, Reads),
+        property_value_bindings(Reads, Head, Bindings, ConstantConditions)
+    ->  foldl(comparison_condition(Bindings), Comparisons, ConstantConditions, Conditions0),
+        (   Conditions0 == untranslatable
+        ->  Conditions = untranslatable
+        ;   Conditions0 == never
+        ->  Conditions = never
+        ;   reverse(Conditions0, Conditions)
+        )
+    ;   Conditions = untranslatable
+    ).
+
+expression_property_key(atom(Namespace, Name, Args, _, _), Namespace-Name) :-
+    Namespace \== default,
+    Args \== [].
+expression_property_key(all(Items), Key) :-
+    member(Item, Items),
+    expression_property_key(Item, Key).
+expression_property_key(any(Items), Key) :-
+    member(Item, Items),
+    expression_property_key(Item, Key).
+expression_property_key(not(Atom), Key) :-
+    expression_property_key(Atom, Key).
+expression_property_key(count(Atom, _, _), Key) :-
+    expression_property_key(Atom, Key).
+
+property_read(atom(Namespace, Name, Args, positive, _), read(Namespace-Name, Value, Instance)) :-
+    Namespace \== default,
+    Args \== [],
+    append(Instance, [Value], Args).
+
+% Bindings maps each value variable name to its property and declared type.
+% A read with a constant value is a condition on that property.
+property_value_bindings(Reads, Head, Bindings, ConstantConditions) :-
+    findall(Name, (member(read(_, _, Instance), Reads), member(var(Name, _), Instance)), InstanceNames),
+    (   Head = atom(_, _, HeadArgs, _, _)
+    ->  findall(Name, member(var(Name, _), HeadArgs), HeadNames)
+    ;   HeadNames = []
+    ),
+    append(InstanceNames, HeadNames, IdentityNames),
+    foldl(read_binding(IdentityNames), Reads, acc([], []), acc(Bindings, ConstantConditions)),
+    % One property, one value: two reads of the same property must agree.
+    forall(
+        (   member(read(Key, ValueA, _), Reads),
+            member(read(Key, ValueB, _), Reads)
+        ),
+        ValueA == ValueB
+    ).
+
+read_binding(IdentityNames, read(Key, var(Name, Type), _), acc(Bindings0, Conditions), acc(Bindings, Conditions)) :-
+    !,
+    \+ memberchk(Name, IdentityNames),
+    (   memberchk(Name-OtherKey-_, Bindings0)
+    ->  OtherKey == Key,
+        Bindings = Bindings0
+    ;   Bindings = [Name-Key-Type|Bindings0]
+    ).
+read_binding(_, read(Key, Value, _), acc(Bindings, Conditions), acc(Bindings, [cond(Key, eq, Value, value)|Conditions])) :-
+    constant_term(Value).
+
+constant_term(number(_, _)).
+constant_term(duration(_, _)).
+constant_term(const(_, _)).
+
+comparison_condition(_, _, untranslatable, untranslatable) :- !.
+comparison_condition(_, _, never, never) :- !.
+comparison_condition(Bindings, compare(Op, Left, Right), Conditions, Next) :-
+    condition_operand(Bindings, Left, LeftOperand),
+    condition_operand(Bindings, Right, RightOperand),
+    (   LeftOperand = property(Key, Type), RightOperand = constant(Term)
+    ->  Next = [cond(Key, Op, Term, Type)|Conditions]
+    ;   LeftOperand = constant(Term), RightOperand = property(Key, Type)
+    ->  flipped_operator(Op, Flipped),
+        Next = [cond(Key, Flipped, Term, Type)|Conditions]
+    ;   LeftOperand = constant(_), RightOperand = constant(_)
+    ->  (   catch(compare_terms(Op, Left, Right), _, fail)
+        ->  Next = Conditions
+        ;   catch(compare_terms(Op, Left, Right), _, true)
+        ->  Next = untranslatable
+        ;   Next = never
+        )
+    ;   Next = untranslatable
+    ).
+
+condition_operand(Bindings, var(Name, _), property(Key, Type)) :-
+    memberchk(Name-Key-Type, Bindings), !.
+condition_operand(_, Term, constant(Term)) :-
+    constant_term(Term), !.
+condition_operand(_, Term, other(Term)).
 
 %% logic_rules_stratified(+Rules)
 % Check the finite dependency graph for a negated edge on a cycle.  A single

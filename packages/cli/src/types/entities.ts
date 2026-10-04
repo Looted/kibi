@@ -91,6 +91,8 @@ export type Requirement = BaseEntity & {
   approved_by?: string;
   /** Optional reference to the approval decision record. */
   approval_ref?: string;
+  /** Exception requirements only: claim keys of the exempted requirement it waives. */
+  exempts_claims?: string[];
 };
 export type Scenario = BaseEntity & { type: "scenario" };
 export type TestEntity = BaseEntity & TestVerificationFields & { type: "test" };

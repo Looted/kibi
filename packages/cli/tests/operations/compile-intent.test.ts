@@ -113,6 +113,88 @@ describe("kb_compile_intent", () => {
     );
   });
 
+  // implements REQ-kibi-truthful-consistency
+  describe("conditional requirements", () => {
+    const query = mock(
+      async (goal: string): Promise<PrologQueryResult> =>
+        goal.includes("checks:what_if_analysis_json(")
+          ? { success: true, bindings: { JsonString: "[]" } }
+          : {
+              success: true,
+              bindings: { Results: "[]", Rows: "[]", Edges: "[]" },
+            },
+    );
+    const compile = async (intent: string) =>
+      (
+        await compileIntentSpec.execute(
+          {
+            intent,
+            mode: "create",
+            requirementId: "REQ-checkout-positive-total",
+          },
+          contextFor(query),
+        )
+      ).structuredContent;
+    const props = (step: { properties?: unknown } | undefined) =>
+      (step?.properties ?? {}) as Record<string, unknown>;
+    const ruleStep = (plan: Awaited<ReturnType<typeof compile>>) =>
+      plan.steps.find(
+        (step) => step.type === "fact" && props(step).fact_kind === "rule",
+      );
+
+    test("compiles only-when prose to a forbid-unless rule plan", async () => {
+      const intent =
+        "Checkout may happen only when the cart total is positive.";
+      const plan = await compile(intent);
+      const rule = ruleStep(plan);
+      const requirement = plan.steps.find((step) => step.type === "req");
+
+      expect(plan.status).toBe("ready");
+      expect(plan.propositions).toMatchObject([
+        { disposition: "rule", status: "modeled" },
+      ]);
+      expect(props(rule).rule_ir).toMatchObject({
+        modality: "forbid",
+        head: { name: "checkout" },
+        exceptions: [{ kind: "compare", operator: "gt" }],
+      });
+      expect(requirement?.relationships).toContainEqual(
+        expect.objectContaining({ type: "requires_rule", to: rule?.id }),
+      );
+      expect(
+        plan.steps.some(
+          (step) =>
+            props(step).fact_kind === "observation" ||
+            props(step).fact_kind === "property_value",
+        ),
+      ).toBe(false);
+      expect(plan.planHash).toBe((await compile(intent)).planHash);
+    });
+
+    test("compiles must-not-unless prose to the same rule", async () => {
+      const onlyWhen = await compile(
+        "Checkout may happen only when the cart total is positive.",
+      );
+      const unless = await compile(
+        "Checkout must not happen unless the cart total is positive.",
+      );
+
+      expect(unless.status).toBe("ready");
+      expect(ruleStep(unless)?.id).toBeDefined();
+      expect(ruleStep(unless)?.id).toBe(ruleStep(onlyWhen)?.id);
+    });
+
+    test("leaves a conditional it cannot translate unresolved", async () => {
+      const plan = await compile(
+        "Checkout may happen only when the cart total is positive and the user is verified.",
+      );
+
+      expect(plan.status).toBe("needs_resolution");
+      expect(plan.propositions).toMatchObject([{ status: "ontology_gap" }]);
+      expect(plan.steps.filter((step) => step.type === "fact")).toEqual([]);
+    });
+  });
+
   // executable_for TEST-kibi-entity-id-style
   test("create honors a caller-chosen slug ID instead of a prose hash", async () => {
     const query = mock(

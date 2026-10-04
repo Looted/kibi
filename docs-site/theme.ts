@@ -1063,7 +1063,7 @@ export function landingContent(args: {
     </details>
     <details>
       <summary>What happens when an agent edits code a requirement owns?</summary>
-      <p>With the Claude Code, Cursor, Codex, ZCode, or OpenCode plugin, the pre-edit hook (OpenCode: the edit prompt) names the requirement the file implements, what it must keep true (from its linked facts), and the decision behind it (its ADR), before the change is made. A superseded or retired requirement is not shown as current. Afterwards <code>kb_check</code> reports conflicts it can decide and says when an analysis is incomplete instead of calling it clean. A scenario that assumes something a current requirement forbids, on its own or only in combination with its other assumptions, is flagged and blocks proof.</p>
+      <p>With the Claude Code, Cursor, Codex, ZCode, or OpenCode plugin, the pre-edit hook (OpenCode: the edit prompt) names the requirement the file implements, what it must keep true (from its linked facts), and the decision behind it (its ADR), before the change is made. A superseded or retired requirement is not shown as current. Afterwards <code>kb_check</code> reports conflicts it can decide and says when an analysis is incomplete instead of calling it clean. A scenario that assumes something a current requirement forbids, on its own or only in combination with its other assumptions, is flagged and blocks proof. Conditional requirements count: "checkout may happen only when the cart total is positive" becomes a typed rule, and a checkout scenario with a zero total is flagged unless a human approved an exception for it.</p>
     </details>
     <details>
       <summary>Does Kibi work on a CI checkout or a detached commit?</summary>

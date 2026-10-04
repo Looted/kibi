@@ -75,7 +75,7 @@
     },
     {
       "name": "scenario-feasibility",
-      "description": "A scenario that expects success must not assume property values that cannot hold, alone or together, with what current requirements require, unless an approved exception requirement exempts the requirement",
+      "description": "A scenario that expects success must not assume property values that cannot hold, alone or together, with what current requirements require through typed property values or rules, unless an approved exception requirement waives that requirement or the listed clauses",
       "enforcementClass": "canonical",
       "category": "integrity",
       "implementation": "prolog",
@@ -84,11 +84,29 @@
     },
     {
       "name": "scenario-feasibility-unknown",
-      "description": "Advisory: a scenario that expects success assumes nothing, assumes values that contradict each other, or assumes a property value no current requirement constrains comparably (type, unit or operator mismatch, or conflicting requirements), so its feasibility cannot be decided",
+      "description": "Advisory: a scenario that expects success assumes nothing, assumes values that contradict each other, assumes a property value no governing requirement constrains comparably (type, unit or operator mismatch, or conflicting requirements), leaves a governing rule's conditions undecided, or conflicts only with constraints whose validity window may not cover it, so its feasibility cannot be decided",
       "enforcementClass": "advisory",
       "category": "integrity",
       "implementation": "prolog",
       "prologPredicate": "check_scenario_feasibility_unknown",
+      "prologPredicateArity": 1
+    },
+    {
+      "name": "exception-claim-keys",
+      "description": "An exception requirement's exempts_claims must name claim keys of a requirement it exempts, and requires an exempts link",
+      "enforcementClass": "canonical",
+      "category": "integrity",
+      "implementation": "prolog",
+      "prologPredicate": "check_exception_claim_keys",
+      "prologPredicateArity": 1
+    },
+    {
+      "name": "numeric-string-value",
+      "description": "Advisory: a property value stores a numeric-looking string where the comparison is numeric (ordering operator, or an int/number fact on the same property); the finding names the fact and the typed value, without converting it",
+      "enforcementClass": "advisory",
+      "category": "integrity",
+      "implementation": "prolog",
+      "prologPredicate": "check_numeric_string_values",
       "prologPredicateArity": 1
     },
     {

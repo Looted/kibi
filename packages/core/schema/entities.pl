@@ -43,6 +43,8 @@ entity_property(req, proof_exempt_reason, string).
 % Only an approved exception makes a success scenario feasible.
 entity_property(req, approved_by, string).
 entity_property(req, approval_ref, string).
+% Claim keys of the exempted requirement an exception waives (all when absent).
+entity_property(req, exempts_claims, list).
 % Intended outcome of a scenario: success, rejection or error.
 entity_property(scenario, expects, atom).
 
@@ -132,6 +134,7 @@ optional_property(req, proof_exempt).
 optional_property(req, proof_exempt_reason).
 optional_property(req, approved_by).
 optional_property(req, approval_ref).
+optional_property(req, exempts_claims).
 optional_property(test, verification_scope).
 optional_property(test, verification_perspective).
 optional_property(test, proof_contract).

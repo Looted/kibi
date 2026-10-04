@@ -97,6 +97,7 @@ This section provides guidance on selecting the appropriate entity type for your
 | proof_exempt_reason | No | string        | Required when `proof_exempt` is true — the reviewable justification surfaced in coverage rows |
 | approved_by  | No       | string         | Exception requirements only: the human who approved the exception. An exception that `exempts` a requirement makes its specified success scenarios feasible only when `approved_by` is non-empty |
 | approval_ref | No       | string         | Optional reference to the exception's approval record (ticket, ADR or review link) |
+| exempts_claims[] | No   | array[string]  | Exception requirements only: claim keys (`CLAIM-...`) of the exempted requirement's clauses this exception waives. Absent, it waives the whole requirement; present, only constraints grounded by facts carrying a listed `claim_key`. The canonical `exception-claim-keys` check requires every key to be a claim of a requirement it `exempts` |
 | semantic_text | No      | string         | Requirement-only normalized authored prose that anchors semantic byte spans |
 | logic_claims | No       | array[string]  | Requirement-only manifest of stable atomic claim keys |
 | semantic_clauses | No | array[string] | Reviewed atomic decomposition override used against the exact semantic source |
@@ -292,11 +293,11 @@ scenarios:
 | text_ref     | No       | string         | Markdown/doc pointer                             |
 | expects      | No       | enum           | Intended outcome: `success`, `rejection` or `error` |
 
-A scenario that sets `expects: success` and links the values its outcome depends on with `assumes` (scenario → `property_value` fact) is checked against current requirements by the canonical `scenario-feasibility` rule. When a current requirement forbids an assumed value (for example it requires `client.call_quota.remaining > 0` and the scenario assumes `= 0`), or several assumptions can only hold together with a value the requirements forbid (it requires `<= 5` and the scenario assumes `>= 5` and `!= 5`), `kb_check` reports the scenario, the requirements and the facts involved, and every requirement the scenario specifies gets the `infeasible_scenario` proof gap. Reuse the requirement's `subject_key` and `property_key` in the assumption fact: a differently named property is not compared, and no violation is not proof the scenario is feasible. Scenarios that expect `rejection` or `error` are not checked.
+A scenario that sets `expects: success` and links the values its outcome depends on with `assumes` (scenario → `property_value` fact) is checked against current requirements by the canonical `scenario-feasibility` rule, through their `requires_property` facts and their typed `requires_rule` rules alike. A rule restricting an action ("checkout may happen only when the cart total is positive") governs the scenarios that perform it: those `specified_by` the requirement, or that assume a predicate fact naming the action. A requirement constraint only applies inside the validity window (`valid_from`/`valid_to`) of the fact that grounds it, and a scoped one only in its scope. When a current requirement forbids an assumed value (for example it requires `client.call_quota.remaining > 0` and the scenario assumes `= 0`), or several assumptions can only hold together with a value the requirements forbid (it requires `<= 5` and the scenario assumes `>= 5` and `!= 5`), `kb_check` reports the scenario, the requirements and the facts involved, and every requirement the scenario specifies gets the `infeasible_scenario` proof gap. Reuse the requirement's `subject_key` and `property_key` in the assumption fact: a differently named property is not compared, and no violation is not proof the scenario is feasible. Scenarios that expect `rejection` or `error` are not checked.
 
-To allow an intended exception without weakening the rule, record a human-approved exception requirement that `exempts` the base requirement, is `specified_by` the scenario, and sets `approved_by` (optionally `approval_ref`). The base requirement stays current and unchanged, and the exception covers only the scenarios it specifies. An exception without `approved_by` does not exempt anything; the violation then says the exception is not approved.
+To allow an intended exception without weakening the rule, record a human-approved exception requirement that `exempts` the base requirement, is `specified_by` the scenario, and sets `approved_by` (optionally `approval_ref`). The base requirement stays current and unchanged, and the exception covers only the scenarios it specifies. An exception without `approved_by` does not exempt anything; the violation then says the exception is not approved. To waive one clause of a multi-clause requirement, list that clause's claim key in `exempts_claims`: the other clauses still govern the scenario.
 
-A success scenario whose feasibility cannot be decided (it assumes nothing, its assumptions contradict each other, it assumes a property no current requirement constrains, an assumption's type, unit or operator cannot be compared with the requirement's, or the governing requirements admit no common value) is reported by the advisory `scenario-feasibility-unknown` rule and the `unknown_scenario_feasibility` proof advisory; it is never counted as feasible.
+A success scenario whose feasibility cannot be decided (it assumes nothing, its assumptions contradict each other, it assumes a property no current requirement governing it constrains, an assumption's type, unit or operator cannot be compared with the requirement's, the governing requirements admit no common value, the assumptions neither satisfy nor refute a governing rule's conditions, or it conflicts only with constraints whose validity window may or may not cover its time) is reported by the advisory `scenario-feasibility-unknown` rule and the `unknown_scenario_feasibility` proof advisory; it is never counted as feasible.
 
 **Example:**
 ```yaml
@@ -642,7 +643,7 @@ Kibi supports relationship types listed below. Each relationship has metadata:
 | supersedes          | req                  | req                  | The source requirement replaces the target requirement; the target stops being current |
 | restates            | req                  | req                  | The source requirement intentionally restates a current requirement (e.g. a product requirement echoed in a platform requirement). Both stay current; `domain-redundancy` is suppressed for the pair |
 | assumes             | scenario             | fact                 | The scenario's outcome depends on this `property_value` fact holding; checked by `scenario-feasibility` when the scenario expects success |
-| exempts             | req                  | req                  | An approved exception requirement exempts the scenarios it specifies from the target requirement's property constraints; the target stays current |
+| exempts             | req                  | req                  | An approved exception requirement exempts the scenarios it specifies from the target requirement's property and rule constraints (only the clauses in `exempts_claims` when set); the target stays current |
 | relates_to          | a                    | b                    | Generic relationship (escape hatch)               |
 
 ---
@@ -866,6 +867,8 @@ links:
 # exception req REQ-quota-promo-exception exempts REQ-quota-call and specifies the scenario
 approved_by: Product owner
 approval_ref: DEC-quota-promo
+# optional: waive only these clauses of REQ-quota-call
+exempts_claims: [CLAIM-0123456789ABCDEF]
 links:
   - type: exempts
     target: REQ-quota-call

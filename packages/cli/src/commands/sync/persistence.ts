@@ -521,6 +521,11 @@ export async function persistEntities(
         if (value !== undefined)
           props.push(`${field}=${toPrologString(value)}`);
       }
+      if (entity.type === "req" && entity.exempts_claims) {
+        props.push(
+          `exempts_claims=[${entity.exempts_claims.map(toPrologAtom).join(",")}]`,
+        );
+      }
       if (sourceFile) props.push(`sourceFile=${toPrologString(sourceFile)}`);
 
       if (entity.type === "symbol") {

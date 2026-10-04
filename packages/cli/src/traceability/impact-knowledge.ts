@@ -57,6 +57,7 @@ function semanticEntityFingerprint(
       "proof_exempt_reason",
       "approved_by",
       "approval_ref",
+      "exempts_claims",
       "proof_contract",
       "proof_bindings",
     ])

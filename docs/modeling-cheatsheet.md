@@ -13,7 +13,8 @@ Use this one-page guide when deciding how to model knowledge through peer MCP to
    - `fact_kind: property_value` with `subject_key`, `property_key`, `operator`, `value_type`, and exactly one `value_*`, linked by `requires_property`.
    - Prefer `kb_model` with `mode: "requirement"` when starting from prose.
 6. **For each relational domain clause?** Call `kb_model` with `mode: "predicates"`, then write `fact_kind: predicate` with `predicate_name`, `predicate_args`, and `canonical_key`, linked by `requires_predicate`. For conditions, exceptions, modalities, quantifiers, cardinality, or bounded temporal clauses, submit typed `kibi.logic.v1` to `kb_model` with `mode: "requirement"`, persist `rule_schema` + `rule`, and link with `requires_rule`.
-7. **BDD behavior?** Use `scenario`, linked with `specified_by`.
+   - A conditional clause ("checkout may happen only when the cart total is positive", "checkout must not happen unless ...") restricts an action; it is a rule, not a property of every situation. `kb_compile_intent` and `kb_model` (`mode: "requirement"`) translate one comparison on one subject property into a `forbid` rule with that exception, linked by `requires_rule`. A conditional they cannot translate (several conditions, pronouns, relations) stays an `ontology_gap` in the inventory with no observation and no property; supply the typed rule yourself.
+7. **BDD behavior?** Use `scenario`, linked with `specified_by`. A scenario that expects success and `assumes` values is checked against current requirements' property facts and rules (see `docs/inference-rules.md`). A human-approved exception requirement (`exempts` the base requirement, `specified_by` the scenario, `approved_by` set) waives the base requirement for that scenario only; `exempts_claims` narrows the waiver to the listed claim keys.
 8. **Executable evidence?** Use `test`, linked with `verified_by` or `validates`.
    - When the requirement has a `scenario`, this link must target the scenario: use `verified_by(Scenario, Test)` or `validates(Test, Scenario)`. Directly linking `verified_by(Req, Test)` and `validates(Test, Req)` does not satisfy scenario-aware symbol-coverage.
    - For small behavior fixes discovered from source, create or update a `req` for the observable behavior. Link strict or observation facts from that requirement, then link the requirement or scenario to the executable test. Do not create direct `fact -> test` / `test -> fact` verification shortcuts.
@@ -116,12 +117,13 @@ The claim keys above are illustrative. Always use the stable key returned for th
 
 ## Semantic advisor receipts
 
-`kb_upsert` with `dryRun: true` and successful `kb_upsert` responses may include semantic advisor receipts for requirements. The receipt contains `clauses` and `logic_coverage`, including expected, declared, missing, and unresolved claim keys. A receipt with `logic_readiness: needs_modeling` means at least one clause still needs work. Inspect `suggestions` for one of four reviewable paths:
+`kb_upsert` with `dryRun: true` and successful `kb_upsert` responses may include semantic advisor receipts for requirements. The receipt contains `clauses` and `logic_coverage`, including expected, declared, missing, and unresolved claim keys. A receipt with `logic_readiness: needs_modeling` means at least one clause still needs work. Inspect `suggestions` for one of five reviewable paths:
 
 - `strict_property` — draft subject/property facts plus requirement relationships.
 - `predicate` — draft ontology predicate fact and relationship guidance.
 - `ambiguity_observation` — observation artifact when prose has competing interpretations.
 - `ontology_gap` — observation artifact plus a recommended predicate schema when the claim is logical but unsupported.
+- `rule` — a validated `kibi.logic.v1` rule, from a host interpretation or from a conditional clause ("only when", "only if", "must not ... unless") the advisor translated; link it with `requires_rule`.
 
 Suggestions are non-blocking and must be reviewed before applying; they are not enforcement receipts. Current deterministic coverage includes:
 

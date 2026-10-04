@@ -4299,6 +4299,310 @@ test(feasible_requires_the_whole_conjunction_to_be_satisfiable, [setup(setup_kb)
     assertion(checks:scenario_feasibility_outcome('SCEN-Q-NOT-0',
         unknown(conflicting_requirements(['REQ-Q-ABOVE-9', 'REQ-Q-AT-MOST-5'])))).
 
+% --- Rule lane, validity windows and clause-level exceptions ---------------
+
+% implements REQ-kibi-scenario-feasibility
+% Subject.property read: Namespace:Name(C, Var).
+property_read_atom(Namespace, Name, Var, Type,
+    _{kind:atom, namespace:Namespace, name:Name,
+      args:[_{kind:var, name:'C', type:cart}, _{kind:var, name:Var, type:Type}]}).
+
+number_compare(Op, Var, Type, Value,
+    _{kind:compare, operator:Op, left:_{kind:var, name:Var, type:Type}, right:_{kind:number, value:Value}}).
+
+checkout_rule_dict(Kind, Modality, Body, Exceptions, Variables, Extra, Dict) :-
+    findall(_{name:Name, type:Type}, member(Name-Type, ['C'-cart|Variables]), VariableDicts),
+    Dict0 = _{version:'kibi.logic.v1', kind:Kind, modality:Modality,
+              head:_{kind:atom, name:checkout, args:[_{kind:var, name:'C', type:cart}]},
+              body:Body, exceptions:Exceptions, variables:VariableDicts},
+    put_dict(Extra, Dict0, Dict).
+
+% "Checkout may happen only when <Namespace>.<Name> is positive", authored as
+% forbid checkout unless the value is above zero.
+only_when_positive_rule(Namespace, Name, Extra, Dict) :-
+    property_read_atom(Namespace, Name, 'T', money, Read),
+    number_compare(gt, 'T', money, 0, Positive),
+    checkout_rule_dict(rule, forbid, Read, [Positive], ['T'-money], Extra, Dict).
+
+% A current requirement grounded by typed rules, one claim per rule.
+rule_requirement(ReqId, Rules) :-
+    findall(ClaimKey, member(rule(_, ClaimKey, _), Rules), ClaimKeys),
+    assert_fixture_entity(req, ReqId, "Checkout requirement", open, [logic_claims=ClaimKeys]),
+    forall(member(rule(FactId, ClaimKey, Dict), Rules),
+        (   atom_json_dict(JsonAtom, Dict, []),
+            atom_string(JsonAtom, Json),
+            atom_string(FactId, SemanticKey),
+            assert_fixture_entity(fact, FactId, "Checkout rule", active, [
+                fact_kind=rule, rule_ir=Json,
+                rule_hash="dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                rule_schema_id="FACT-RULE-SCHEMA-TEST", rule_name="checkout_rule",
+                semantic_key=SemanticKey, claim_key=ClaimKey,
+                claim_text="Checkout clause", claim_span_start=0, claim_span_end=20
+            ]),
+            kb_assert_relationship(requires_rule, ReqId, FactId, [])
+        )).
+
+% A property_value fact on Subject.Property.
+property_fact(Id, Subject, Property, Op, Type, Value, Extra) :-
+    value_key(Type, ValueKey),
+    append([fact_kind=property_value, subject_key=Subject, property_key=Property,
+            operator=Op, value_type=Type, ValueKey=Value], Extra, Props),
+    assert_fixture_entity(fact, Id, "Cart value", active, Props).
+
+% A success scenario that specifies ReqId (so it performs ReqId's action).
+checkout_scenario(ScenarioId, FactIds, ReqId) :-
+    success_scenario_assuming(ScenarioId, FactIds),
+    kb_assert_relationship(specified_by, ReqId, ScenarioId, []).
+
+approved_exception(ExceptionId, BaseId, ScenarioId, Extra) :-
+    assert_fixture_entity(req, ExceptionId, "Free promo checkout", open,
+        [approved_by="Product owner"|Extra]),
+    kb_assert_relationship(exempts, ExceptionId, BaseId, []),
+    kb_assert_relationship(specified_by, ExceptionId, ScenarioId, []).
+
+outcome_name(Outcome, Name) :-
+    (   compound(Outcome) -> functor(Outcome, Name, _) ; Name = Outcome ).
+
+test(an_only_when_rule_blocks_a_success_scenario_whose_assumptions_violate_it, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    only_when_positive_rule(cart, total, _{}, Rule),
+    rule_requirement('REQ-CHECKOUT-POSITIVE', [rule('FACT-RULE-CHECKOUT-POSITIVE', "CLAIM-AAAAAAAAAAAAAAAA", Rule)]),
+    property_fact('FACT-CART-ZERO', "cart", "total", eq, int, 0, []),
+    property_fact('FACT-CART-FIVE', "cart", "total", eq, int, 5, []),
+    checkout_scenario('SCEN-CHECKOUT-ZERO', ['FACT-CART-ZERO'], 'REQ-CHECKOUT-POSITIVE'),
+    checkout_scenario('SCEN-CHECKOUT-FIVE', ['FACT-CART-FIVE'], 'REQ-CHECKOUT-POSITIVE'),
+    assertion(checks:scenario_feasibility_outcome('SCEN-CHECKOUT-ZERO',
+        infeasible(witness(['REQ-CHECKOUT-POSITIVE'], ['FACT-CART-ZERO'], ['FACT-RULE-CHECKOUT-POSITIVE'], _)))),
+    assertion(checks:scenario_feasibility_outcome('SCEN-CHECKOUT-FIVE', feasible)),
+    check_scenario_feasibility([violation('scenario-feasibility', 'SCEN-CHECKOUT-ZERO', Description, _, _)]),
+    assertion(sub_string(Description, _, _, _, "rule forbids checkout unless gt 0")),
+    % The blocking rule, the proof ladder and what-if analysis read one verdict.
+    requirement_proof:scenario_stage('REQ-CHECKOUT-POSITIVE', Stage, _),
+    assertion(Stage.status == blocked),
+    assertion(Stage.infeasibleScenarios == ['SCEN-CHECKOUT-ZERO']),
+    checks:what_if_analysis([], Analysis),
+    Analysis.unchanged = [Witness],
+    assertion(Witness.scenario == 'SCEN-CHECKOUT-ZERO'),
+    assertion(Witness.requirementFacts == ['FACT-RULE-CHECKOUT-POSITIVE']),
+    % The rule restricts checkout: a scenario not shown to perform it is not
+    % governed, so its assumption stays unmatched rather than blocked.
+    success_scenario_assuming('SCEN-UNLINKED-ZERO', ['FACT-CART-ZERO']),
+    assertion(checks:scenario_feasibility_outcome('SCEN-UNLINKED-ZERO', unknown(unmatched_assumption(['FACT-CART-ZERO'])))),
+    % Assuming the action is enough to be governed.
+    assert_fixture_entity(fact, 'FACT-CHECKOUT-CART-1', "Cart 1 checks out", active,
+        [fact_kind=predicate, predicate_name="checkout", predicate_args=["cart_1"], polarity=assert,
+         canonical_key="checkout.cart:cart_1.assert"]),
+    success_scenario_assuming('SCEN-ACTION-ZERO', ['FACT-CART-ZERO', 'FACT-CHECKOUT-CART-1']),
+    assertion(checks:scenario_feasibility_outcome('SCEN-ACTION-ZERO',
+        infeasible(witness(['REQ-CHECKOUT-POSITIVE'], ['FACT-CART-ZERO'], ['FACT-RULE-CHECKOUT-POSITIVE'], _)))).
+
+test(rule_and_property_lanes_give_the_same_feasibility_answers, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    % The same requirement three ways: forbid-unless rule (cart), permit-only-
+    % when constraint rule (basket) and typed property value (order).
+    only_when_positive_rule(cart, total, _{}, ForbidUnless),
+    rule_requirement('REQ-CART-POSITIVE', [rule('FACT-RULE-CART-POSITIVE', "CLAIM-BBBBBBBBBBBBBBBB", ForbidUnless)]),
+    property_read_atom(basket, total, 'T', money, BasketRead),
+    number_compare(gt, 'T', money, 0, BasketPositive),
+    checkout_rule_dict(constraint, permit, _{kind:all, items:[BasketRead, BasketPositive]}, [], ['T'-money], _{}, OnlyWhen),
+    rule_requirement('REQ-BASKET-POSITIVE', [rule('FACT-RULE-BASKET-POSITIVE', "CLAIM-CCCCCCCCCCCCCCCC", OnlyWhen)]),
+    assert_fixture_entity(fact, 'FACT-ORDER-SUBJECT', "Order", active, [fact_kind=subject, subject_key="order"]),
+    property_fact('FACT-ORDER-POSITIVE', "order", "total", gt, number, 0, []),
+    assert_fixture_entity(req, 'REQ-ORDER-POSITIVE', "Order total positive", open, []),
+    kb_assert_relationship(constrains, 'REQ-ORDER-POSITIVE', 'FACT-ORDER-SUBJECT', []),
+    kb_assert_relationship(requires_property, 'REQ-ORDER-POSITIVE', 'FACT-ORDER-POSITIVE', []),
+    Sets = [[eq-0], [eq-5], [lte-0], [gte-0, neq-0], [eq-(-1)], [gte-0, lt-1]],
+    forall(member(Subject-ReqId, ["cart"-'REQ-CART-POSITIVE', "basket"-'REQ-BASKET-POSITIVE', "order"-'REQ-ORDER-POSITIVE']),
+        forall(nth1(Index, Sets, Set),
+            (   findall(FactId,
+                    (   nth1(Position, Set, Op-Value),
+                        format(atom(FactId), 'FACT-~w-~w-~w', [Subject, Index, Position]),
+                        property_fact(FactId, Subject, "total", Op, number, Value, [])
+                    ),
+                    FactIds),
+                format(atom(ScenarioId), 'SCEN-~w-~w', [Subject, Index]),
+                checkout_scenario(ScenarioId, FactIds, ReqId)
+            ))),
+    findall(Subject-Names,
+        (   member(Subject, ["cart", "basket", "order"]),
+            findall(Name,
+                (   nth1(Index, Sets, _),
+                    format(atom(ScenarioId), 'SCEN-~w-~w', [Subject, Index]),
+                    checks:scenario_feasibility_outcome(ScenarioId, Outcome),
+                    outcome_name(Outcome, Name)
+                ),
+                Names)
+        ),
+        Lanes),
+    Expected = [infeasible, feasible, infeasible, feasible, infeasible, feasible],
+    assertion(Lanes == ["cart"-Expected, "basket"-Expected, "order"-Expected]).
+
+test(a_rule_with_several_conditions_is_decided_by_entailment_and_refutation, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    % forbid checkout(C) :- cart:total(C, T), cart:region(C, R), T =< 0, R = eu.
+    property_read_atom(cart, total, 'T', money, TotalRead),
+    property_read_atom(cart, region, 'R', region, RegionRead),
+    number_compare(lte, 'T', money, 0, NonPositive),
+    InEu = _{kind:compare, operator:eq, left:_{kind:var, name:'R', type:region}, right:_{kind:const, value:eu, type:string}},
+    checkout_rule_dict(rule, forbid, _{kind:all, items:[TotalRead, RegionRead, NonPositive, InEu]}, [],
+        ['T'-money, 'R'-region], _{}, Rule),
+    rule_requirement('REQ-EU-POSITIVE', [rule('FACT-RULE-EU-POSITIVE', "CLAIM-DDDDDDDDDDDDDDDD", Rule)]),
+    property_fact('FACT-CART-ZERO', "cart", "total", eq, int, 0, []),
+    property_fact('FACT-CART-FIVE', "cart", "total", eq, int, 5, []),
+    property_fact('FACT-CART-EU', "cart", "region", eq, string, "eu", []),
+    property_fact('FACT-CART-US', "cart", "region", eq, string, "us", []),
+    checkout_scenario('SCEN-EU-ZERO', ['FACT-CART-ZERO', 'FACT-CART-EU'], 'REQ-EU-POSITIVE'),
+    checkout_scenario('SCEN-US-ZERO', ['FACT-CART-ZERO', 'FACT-CART-US'], 'REQ-EU-POSITIVE'),
+    checkout_scenario('SCEN-ZERO-ONLY', ['FACT-CART-ZERO'], 'REQ-EU-POSITIVE'),
+    checkout_scenario('SCEN-FIVE-ONLY', ['FACT-CART-FIVE'], 'REQ-EU-POSITIVE'),
+    assertion(checks:scenario_feasibility_outcome('SCEN-EU-ZERO',
+        infeasible(witness(['REQ-EU-POSITIVE'], ['FACT-CART-EU', 'FACT-CART-ZERO'], ['FACT-RULE-EU-POSITIVE'], _)))),
+    assertion(checks:scenario_feasibility_outcome('SCEN-US-ZERO', feasible)),
+    assertion(checks:scenario_feasibility_outcome('SCEN-FIVE-ONLY', feasible)),
+    % The region is unspecified: neither entailed nor refuted, so unknown.
+    assertion(checks:scenario_feasibility_outcome('SCEN-ZERO-ONLY', unknown(undecided_rule(['FACT-RULE-EU-POSITIVE'])))),
+    check_scenario_feasibility_unknown([violation('scenario-feasibility-unknown', 'SCEN-ZERO-ONLY', Description, _, _)]),
+    assertion(sub_string(Description, _, _, _, "neither satisfy nor refute")),
+    requirement_proof:scenario_stage('REQ-EU-POSITIVE', Stage, _),
+    assertion(Stage.status == blocked),
+    Stage.unknownFeasibility = [Unknown],
+    assertion(Unknown.scenario == 'SCEN-ZERO-ONLY'),
+    assertion(Unknown.reason == undecided_rule).
+
+test(an_approved_exception_waives_a_rule_only_for_its_scenario, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    only_when_positive_rule(cart, total, _{}, Rule),
+    rule_requirement('REQ-CHECKOUT-POSITIVE', [rule('FACT-RULE-CHECKOUT-POSITIVE', "CLAIM-AAAAAAAAAAAAAAAA", Rule)]),
+    property_fact('FACT-CART-ZERO', "cart", "total", eq, int, 0, []),
+    % The promo scenario specifies only the exception; that is enough to
+    % perform the exempted requirement's action.
+    success_scenario_assuming('SCEN-FREE-PROMO', ['FACT-CART-ZERO']),
+    approved_exception('REQ-FREE-PROMO', 'REQ-CHECKOUT-POSITIVE', 'SCEN-FREE-PROMO', []),
+    checkout_scenario('SCEN-OTHER-ZERO', ['FACT-CART-ZERO'], 'REQ-CHECKOUT-POSITIVE'),
+    assertion(checks:scenario_feasibility_outcome('SCEN-FREE-PROMO', feasible_by_exception)),
+    assertion(checks:scenario_feasibility_outcome('SCEN-OTHER-ZERO', infeasible(_))),
+    check_scenario_feasibility(Violations),
+    findall(Id, member(violation(_, Id, _, _, _), Violations), Ids),
+    assertion(Ids == ['SCEN-OTHER-ZERO']).
+
+test(an_exception_to_one_clause_does_not_waive_another, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    only_when_positive_rule(cart, total, _{}, TotalRule),
+    only_when_positive_rule(cart, items, _{}, ItemsRule),
+    rule_requirement('REQ-CHECKOUT-PAYABLE', [
+        rule('FACT-RULE-POSITIVE-TOTAL', "CLAIM-AAAAAAAAAAAAAAAA", TotalRule),
+        rule('FACT-RULE-HAS-ITEMS', "CLAIM-EEEEEEEEEEEEEEEE", ItemsRule)
+    ]),
+    property_fact('FACT-CART-ZERO', "cart", "total", eq, int, 0, []),
+    property_fact('FACT-CART-NO-ITEMS', "cart", "items", eq, int, 0, []),
+    property_fact('FACT-CART-TWO-ITEMS', "cart", "items", eq, int, 2, []),
+    success_scenario_assuming('SCEN-PROMO-EMPTY', ['FACT-CART-ZERO', 'FACT-CART-NO-ITEMS']),
+    approved_exception('REQ-FREE-PROMO', 'REQ-CHECKOUT-PAYABLE', 'SCEN-PROMO-EMPTY',
+        [exempts_claims=["CLAIM-AAAAAAAAAAAAAAAA"]]),
+    success_scenario_assuming('SCEN-PROMO-TWO-ITEMS', ['FACT-CART-ZERO', 'FACT-CART-TWO-ITEMS']),
+    kb_assert_relationship(specified_by, 'REQ-FREE-PROMO', 'SCEN-PROMO-TWO-ITEMS', []),
+    % The waived total clause no longer blocks; the items clause still does.
+    assertion(checks:scenario_feasibility_outcome('SCEN-PROMO-EMPTY',
+        infeasible(witness(['REQ-CHECKOUT-PAYABLE'], ['FACT-CART-NO-ITEMS'], ['FACT-RULE-HAS-ITEMS'], _)))),
+    assertion(checks:scenario_feasibility_outcome('SCEN-PROMO-TWO-ITEMS', feasible_by_exception)),
+    check_scenario_feasibility([violation('scenario-feasibility', 'SCEN-PROMO-EMPTY', Description, Suggestion, _)]),
+    assertion(sub_string(Description, _, _, _, "waives only the claims listed in its exempts_claims")),
+    assertion(sub_string(Suggestion, _, _, _, "exempts_claims on REQ-FREE-PROMO")),
+    check_exception_claim_keys(KeyViolations),
+    assertion(KeyViolations == []).
+
+test(exempts_claims_must_name_claims_of_an_exempted_requirement, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    only_when_positive_rule(cart, total, _{}, Rule),
+    rule_requirement('REQ-CHECKOUT-POSITIVE', [rule('FACT-RULE-CHECKOUT-POSITIVE', "CLAIM-AAAAAAAAAAAAAAAA", Rule)]),
+    success_scenario_assuming('SCEN-FREE-PROMO', []),
+    approved_exception('REQ-TYPO-EXCEPTION', 'REQ-CHECKOUT-POSITIVE', 'SCEN-FREE-PROMO',
+        [exempts_claims=["CLAIM-AAAAAAAAAAAAAAAA", "CLAIM-0000000000000000"]]),
+    assert_fixture_entity(req, 'REQ-ORPHAN-EXCEPTION', "Exception without a base", open,
+        [approved_by="Product owner", exempts_claims=["CLAIM-AAAAAAAAAAAAAAAA"]]),
+    check_exception_claim_keys(Violations),
+    findall(Id-Description, member(violation('exception-claim-keys', Id, Description, _, _), Violations), Found),
+    assertion(length(Found, 2)),
+    memberchk('REQ-TYPO-EXCEPTION'-TypoDescription, Found),
+    assertion(sub_string(TypoDescription, _, _, _, "CLAIM-0000000000000000")),
+    assertion(\+ sub_string(TypoDescription, _, _, _, "CLAIM-AAAAAAAAAAAAAAAA")),
+    memberchk('REQ-ORPHAN-EXCEPTION'-OrphanDescription, Found),
+    assertion(sub_string(OrphanDescription, _, _, _, "exempts no requirement")),
+    check_all(All),
+    assertion(All.exception_claim_keys == Violations).
+
+test(validity_windows_decide_whether_a_constraint_applies, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    quota_fact('FACT-Q-POSITIVE-2026', gt, int, 0,
+        [valid_from="2026-01-01T00:00:00Z", valid_to="2026-12-31T00:00:00Z"]),
+    quota_requirement('REQ-Q-POSITIVE-2026', ['FACT-Q-POSITIVE-2026']),
+    quota_fact('FACT-Q-ZERO', eq, int, 0),
+    quota_fact('FACT-Q-FIVE', eq, int, 5),
+    quota_fact('FACT-Q-ZERO-2025', eq, int, 0,
+        [valid_from="2025-03-01T00:00:00Z", valid_to="2025-03-02T00:00:00Z"]),
+    quota_fact('FACT-Q-ZERO-MARCH', eq, int, 0,
+        [valid_from="2026-03-01T00:00:00Z", valid_to="2026-03-02T00:00:00Z"]),
+    quota_fact('FACT-Q-ZERO-NEW-YEAR', eq, int, 0,
+        [valid_from="2025-12-31T00:00:00Z", valid_to="2026-01-02T00:00:00Z"]),
+    success_scenario_assuming('SCEN-Q-UNTIMED', ['FACT-Q-ZERO']),
+    success_scenario_assuming('SCEN-Q-UNTIMED-FIVE', ['FACT-Q-FIVE']),
+    success_scenario_assuming('SCEN-Q-2025', ['FACT-Q-ZERO-2025']),
+    success_scenario_assuming('SCEN-Q-MARCH', ['FACT-Q-ZERO-MARCH']),
+    success_scenario_assuming('SCEN-Q-NEW-YEAR', ['FACT-Q-ZERO-NEW-YEAR']),
+    % No scenario time: a bounded constraint may or may not apply.
+    assertion(checks:scenario_feasibility_outcome('SCEN-Q-UNTIMED', unknown(undetermined_validity(['FACT-Q-POSITIVE-2026'])))),
+    assertion(checks:scenario_feasibility_outcome('SCEN-Q-UNTIMED-FIVE', feasible)),
+    assertion(checks:scenario_feasibility_outcome('SCEN-Q-2025', not_applicable(outside_validity(['FACT-Q-ZERO-2025'])))),
+    assertion(checks:scenario_feasibility_outcome('SCEN-Q-MARCH',
+        infeasible(witness(['REQ-Q-POSITIVE-2026'], ['FACT-Q-ZERO-MARCH'], ['FACT-Q-POSITIVE-2026'], _)))),
+    assertion(checks:scenario_feasibility_outcome('SCEN-Q-NEW-YEAR', unknown(undetermined_validity(['FACT-Q-POSITIVE-2026'])))),
+    check_scenario_feasibility(Blocking),
+    findall(Id, member(violation(_, Id, _, _, _), Blocking), BlockingIds),
+    assertion(BlockingIds == ['SCEN-Q-MARCH']),
+    check_scenario_feasibility_unknown(Unknown),
+    findall(Id, member(violation(_, Id, _, _, _), Unknown), UnknownIds),
+    assertion(UnknownIds == ['SCEN-Q-NEW-YEAR', 'SCEN-Q-UNTIMED']),
+    member(violation(_, 'SCEN-Q-UNTIMED', Description, _, _), Unknown),
+    assertion(sub_string(Description, _, _, _, "validity window")),
+    kb_assert_relationship(specified_by, 'REQ-Q-POSITIVE-2026', 'SCEN-Q-UNTIMED', []),
+    requirement_proof:scenario_stage('REQ-Q-POSITIVE-2026', Stage, _),
+    Stage.unknownFeasibility = [UnknownStage],
+    assertion(UnknownStage.reason == undetermined_validity),
+    % A rule's own validity window is read the same way.
+    only_when_positive_rule(cart, total, _{validFrom:'2026-01-01T00:00:00Z', validTo:'2026-12-31T00:00:00Z'}, Rule),
+    rule_requirement('REQ-CHECKOUT-2026', [rule('FACT-RULE-CHECKOUT-2026', "CLAIM-FFFFFFFFFFFFFFFF", Rule)]),
+    property_fact('FACT-CART-ZERO', "cart", "total", eq, int, 0, []),
+    checkout_scenario('SCEN-CHECKOUT-UNTIMED', ['FACT-CART-ZERO'], 'REQ-CHECKOUT-2026'),
+    assertion(checks:scenario_feasibility_outcome('SCEN-CHECKOUT-UNTIMED', unknown(undetermined_validity(['FACT-RULE-CHECKOUT-2026'])))).
+
+test(a_scoped_requirement_does_not_apply_to_a_disjoint_scope, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    only_when_positive_rule(cart, total, _{scope:_{name:eu}}, Rule),
+    rule_requirement('REQ-EU-CHECKOUT-POSITIVE', [rule('FACT-RULE-EU-CHECKOUT', "CLAIM-AAAAAAAAAAAAAAAA", Rule)]),
+    property_fact('FACT-CART-ZERO-US', "cart", "total", eq, int, 0, [scope="us"]),
+    property_fact('FACT-CART-ZERO-EU', "cart", "total", eq, int, 0, [scope="eu"]),
+    property_fact('FACT-CART-ZERO', "cart", "total", eq, int, 0, []),
+    checkout_scenario('SCEN-US-ZERO', ['FACT-CART-ZERO-US'], 'REQ-EU-CHECKOUT-POSITIVE'),
+    checkout_scenario('SCEN-EU-ZERO', ['FACT-CART-ZERO-EU'], 'REQ-EU-CHECKOUT-POSITIVE'),
+    checkout_scenario('SCEN-ANY-ZERO', ['FACT-CART-ZERO'], 'REQ-EU-CHECKOUT-POSITIVE'),
+    assertion(checks:scenario_feasibility_outcome('SCEN-US-ZERO', not_applicable(disjoint_scope(['FACT-CART-ZERO-US'])))),
+    assertion(checks:scenario_feasibility_outcome('SCEN-EU-ZERO', infeasible(_))),
+    % An unscoped assumption holds in every scope, the EU included.
+    assertion(checks:scenario_feasibility_outcome('SCEN-ANY-ZERO', infeasible(_))),
+    check_scenario_feasibility_unknown(Unknown),
+    assertion(Unknown == []).
+
+test(numeric_looking_strings_in_numeric_comparisons_are_flagged_not_coerced, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    property_fact('FACT-TOTAL-TEXT-ABOVE', "cart", "total", gt, string, "5", []),
+    property_fact('FACT-TOTAL-INT', "cart", "total", lte, int, 100, []),
+    property_fact('FACT-TOTAL-TEXT-EQ', "cart", "total", eq, string, "2.50", []),
+    property_fact('FACT-CODE-TEXT', "cart", "postal_code", eq, string, "02134", []),
+    property_fact('FACT-TIER-TEXT', "cart", "tier", gt, string, "gold", []),
+    property_fact('FACT-SCI-TEXT', "cart", "weight", lt, string, "1e3", []),
+    check_numeric_string_values(Violations),
+    findall(Id, member(violation('numeric-string-value', Id, _, _, _), Violations), Ids),
+    assertion(Ids == ['FACT-TOTAL-TEXT-ABOVE', 'FACT-TOTAL-TEXT-EQ']),
+    member(violation(_, 'FACT-TOTAL-TEXT-ABOVE', AboveDescription, AboveSuggestion, _), Violations),
+    assertion(sub_string(AboveDescription, _, _, _, "operator gt")),
+    assertion(sub_string(AboveSuggestion, _, _, _, "value_type: int and value_int: 5")),
+    member(violation(_, 'FACT-TOTAL-TEXT-EQ', EqDescription, EqSuggestion, _), Violations),
+    assertion(sub_string(EqDescription, _, _, _, "FACT-TOTAL-INT")),
+    assertion(sub_string(EqSuggestion, _, _, _, "value_type: number and value_number: 2.5")),
+    % The value is reported, never converted: the string stays incomparable.
+    assertion(kb:fact_property_tuple('FACT-TOTAL-TEXT-ABOVE', _, _, _, string, "5", _, _, _)).
+
 :- end_tests(kb_scenario_feasibility).
 
 % Strict-lane pairing validation tests (REQ-011)

@@ -120,6 +120,14 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       description:
         "Requirement-only. Optional reference to the exception's approval decision record.",
     },
+    exempts_claims: {
+      type: "array",
+      minItems: 1,
+      uniqueItems: true,
+      items: { type: "string", pattern: "^CLAIM-[A-F0-9]{16}$" },
+      description:
+        "Requirement-only. Claim keys of the exempted requirement whose constraints this exception waives; omit to waive the whole requirement.",
+    },
     semantic_source_hash: {
       type: "string",
       pattern: "^[a-f0-9]{64}$",

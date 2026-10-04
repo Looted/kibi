@@ -596,6 +596,8 @@ unknown_feasibility_reason(contradictory_assumptions(_), contradictory_assumptio
 unknown_feasibility_reason(unmatched_assumption(_), unmatched_assumption).
 unknown_feasibility_reason(incomparable_assumption(_), incomparable_assumption).
 unknown_feasibility_reason(conflicting_requirements(_), conflicting_requirements).
+unknown_feasibility_reason(undecided_rule(_), undecided_rule).
+unknown_feasibility_reason(undetermined_validity(_), undetermined_validity).
 
 existing_scenario(ScenarioId) :-
     kb_entity(ScenarioId, scenario, _).

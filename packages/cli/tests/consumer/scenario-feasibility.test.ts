@@ -4,6 +4,7 @@ import {
   type ConsumerWorkspace,
   QUOTA_SUBJECT,
   adviseProse,
+  checkAdvisories,
   checkViolations,
   coverageRows,
   createConsumerWorkspace,
@@ -231,7 +232,7 @@ ${assumed.map((target) => `  - type: assumes\n    target: ${target}`).join("\n")
       "FACT-QUOTA-AT-LEAST-5, FACT-QUOTA-NOT-5",
     );
     expect(infeasible[0]?.description).toContain("REQ-QUOTA-CAP");
-    expect(checkViolations(ws, "scenario-feasibility-unknown")).toEqual([]);
+    expect(checkAdvisories(ws, "scenario-feasibility-unknown")).toEqual([]);
     const blocked = coverageRows(ws).get("REQ-QUOTA-CAP");
     expect(blocked?.proofGaps).toContain("infeasible_scenario");
     expect(blocked?.proofStages.scenarios?.infeasibleScenarios).toEqual([

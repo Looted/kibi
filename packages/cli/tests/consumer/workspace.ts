@@ -104,6 +104,26 @@ export function checkViolations(
   }>;
 }
 
+/**
+ * Advisory rule findings for the given rule. `kibi check` reports advisory
+ * rules as non-blocking qualityDiagnostics (id `rule.<rule>`), never as
+ * violations.
+ */
+export function checkAdvisories(
+  workspace: ConsumerWorkspace,
+  rule: string,
+): Array<{ entityId: string; message: string }> {
+  const result = workspace.json(["check", "--format", "json", "--rules", rule]);
+  const structured = result.structuredContent as Json;
+  return (
+    structured.qualityDiagnostics as Array<{
+      id: string;
+      entityId: string;
+      message: string;
+    }>
+  ).filter((diagnostic) => diagnostic.id === `rule.${rule}`);
+}
+
 export type CoverageRow = Json & {
   id: string;
   proofGaps: string[];

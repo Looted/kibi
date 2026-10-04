@@ -319,11 +319,15 @@ function mergeSteps(steps: readonly PlanStep[]): PlanStep[] {
     ]);
     merged.set(key, { ...previous, ...step, properties, relationships });
   }
-  return [...merged.values()].sort((left, right) => {
-    const leftType = text(left.type) === "req" ? 1 : 0;
-    const rightType = text(right.type) === "req" ? 1 : 0;
-    return leftType - rightType || text(left.id).localeCompare(text(right.id));
-  });
+  // Steps apply in order and a relationship needs both endpoints, so order
+  // by what links to what: tests before the scenarios that are verified_by
+  // them, and the requirement (specified_by, requires_*) last.
+  const rank = (step: Record<string, unknown>) =>
+    ({ test: 1, scenario: 2, req: 3 })[text(step.type)] ?? 0;
+  return [...merged.values()].sort(
+    (left, right) =>
+      rank(left) - rank(right) || text(left.id).localeCompare(text(right.id)),
+  );
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -751,7 +755,12 @@ function draftSteps(
 ): { steps: PlanStep[]; diagnostics: string[] } {
   const diagnostics: string[] = [];
   const steps: PlanStep[] = [];
+  const testSteps: PlanStep[] = [];
   const scenarioIds: string[] = [];
+  // verified_by runs scenario -> test, and an upsert step may only carry
+  // relationships from its own entity, so each scenario step carries the
+  // links to its tests and the tests are written before it.
+  const scenarioTests = new Map<string, string[]>();
   const linkedScenarioIds = new Set<string>();
   const duplicateScenarioIds = new Set<string>();
   const testIds = new Set<string>();
@@ -764,15 +773,18 @@ function draftSteps(
       );
     }
     scenarioIds.push(id);
+    // The draft prose is document body, not an entity property: the entity
+    // schema has no `body`, so carrying it in properties made every staged
+    // what-if check and every apply of a plan with drafts fail validation.
     steps.push({
       type: "scenario",
       id,
       properties: {
         title: scenario.title.trim(),
         status: "draft",
-        body: scenario.body.trim(),
         source: "mcp://kibi/compile-intent",
       },
+      document: { body: scenario.body.trim() },
       relationships: [],
     });
   });
@@ -831,26 +843,36 @@ function draftSteps(
         );
       }
     }
-    for (const scenarioId of validScenarioIds)
+    for (const scenarioId of validScenarioIds) {
       linkedScenarioIds.add(scenarioId);
-    steps.push({
+      scenarioTests.set(scenarioId, [
+        ...(scenarioTests.get(scenarioId) ?? []),
+        id,
+      ]);
+    }
+    testSteps.push({
       type: "test",
       id,
       properties: {
         title: test.title.trim(),
         status: "draft",
-        body: test.body.trim(),
         source: "mcp://kibi/compile-intent",
         verification_scope: test.verificationScope ?? "integration",
         verification_perspective: test.verificationPerspective ?? "internal",
       },
-      relationships: validScenarioIds.map((scenarioId) => ({
-        type: "verified_by",
-        from: scenarioId,
-        to: id,
-      })),
+      document: { body: test.body.trim() },
+      relationships: [],
     });
   });
+  const scenarioSteps = steps.map((step) => ({
+    ...step,
+    relationships: (scenarioTests.get(text(step.id)) ?? []).map((to) => ({
+      type: "verified_by",
+      from: text(step.id),
+      to,
+    })),
+  }));
+  steps.splice(0, steps.length, ...testSteps, ...scenarioSteps);
   for (const scenarioId of scenarioIds) {
     if (!linkedScenarioIds.has(scenarioId)) {
       diagnostics.push(
@@ -1158,8 +1180,11 @@ export async function executeCompileIntent(
         },
       ];
     });
+  // Merging folds the drafts' relationship-only requirement step (its
+  // specified_by links) into the requirement step, which an upsert needs:
+  // a step without properties fails entity validation.
   const stepsWithAcceptedProposals = applyAcceptedProposals(
-    [...stepsWithInventory, ...drafts.steps],
+    mergeSteps([...stepsWithInventory, ...drafts.steps]),
     proposals,
   );
   const contradictions = await contradictionAnalysis(

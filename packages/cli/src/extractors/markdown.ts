@@ -133,6 +133,7 @@ export interface ExtractedEntity {
   proof_exempt_reason?: string;
   approved_by?: string;
   approval_ref?: string;
+  exempts_claims?: string[];
   expects?: "success" | "rejection" | "error";
   proof_contract?: ProofContract;
   proof_bindings?: readonly ProofBinding[];
@@ -755,6 +756,11 @@ function extractFromMarkdownContent(
         );
       }
       entity[field] = data[field];
+    }
+    if (type === "req" && Array.isArray(data.exempts_claims)) {
+      entity.exempts_claims = data.exempts_claims.filter(
+        (value): value is string => typeof value === "string",
+      );
     }
 
     if (type !== "fact") {

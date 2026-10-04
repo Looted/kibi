@@ -239,6 +239,16 @@ search_answer_outcome(ScenarioId, unknown(Compound), _{
     is_list(Ids0),
     !,
     Ids = Ids0.
+search_answer_outcome(ScenarioId, not_applicable(Compound), _{
+    scenario: ScenarioId,
+    outcome: not_applicable,
+    reason: Reason,
+    facts: Ids
+}) :-
+    compound(Compound),
+    Compound =.. [Reason, Ids],
+    is_list(Ids),
+    !.
 search_answer_outcome(ScenarioId, Result, _{scenario: ScenarioId, outcome: Outcome}) :-
     (   atom(Result)
     ->  Outcome = Result

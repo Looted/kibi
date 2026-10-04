@@ -475,6 +475,10 @@ const FEASIBILITY_UNKNOWN_TEXT: Readonly<Record<string, string>> = {
     "expects success but its assumptions contradict each other, so the scenario can never happen",
   conflicting_requirements:
     "expects success but the requirements constraining it conflict with each other, so its feasibility is unknown",
+  undecided_rule:
+    "expects success but a rule governing it can be neither satisfied nor refuted from its assumptions, so its feasibility is unknown",
+  undetermined_validity:
+    "expects success but would conflict only with constraints whose validity window may not cover the scenario's time, so its feasibility is unknown",
 };
 
 /** Project the Prolog verdict of one requirement onto the answer fields. */

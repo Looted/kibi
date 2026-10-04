@@ -203,6 +203,16 @@
               },
               "type": "array"
             },
+            "exempts_claims": {
+              "description": "Requirement-only. Claim keys of the exempted requirement whose constraints this exception waives; omit to waive the whole requirement.",
+              "items": {
+                "pattern": "^CLAIM-[A-F0-9]{16}$",
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array",
+              "uniqueItems": true
+            },
             "fact_kind": {
               "description": "Optional fact lane kind for fact entities. Strict lane uses 'subject' and 'property_value'; context lane uses 'observation' or 'meta'; ontology lane uses 'predicate_schema' or 'predicate'. Use kb_model (mode requirement or predicates) when starting from prose.",
               "enum": [

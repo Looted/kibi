@@ -39,6 +39,7 @@ import {
 import { nodeFilesystem } from "../../src/public/operations/node-ports.js";
 import type {
   OperationContext,
+  PrologPort,
   PrologQueryResult,
 } from "../../src/public/operations/runtime-types.js";
 import * as reporting from "../../src/public/operations/specs/reporting.js";
@@ -136,7 +137,7 @@ function compilePlan(overrides: Partial<CompilePlanV1> = {}): CompilePlanV1 {
   return { ...body, planHash: compilePlanHash(body) };
 }
 
-function stubProlog(): OperationContext["prolog"] {
+function stubProlog(): PrologPort {
   return {
     query: async (goal): Promise<PrologQueryResult> =>
       isWhatIfGoal(goal)

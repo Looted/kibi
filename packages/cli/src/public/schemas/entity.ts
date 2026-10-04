@@ -390,6 +390,14 @@ const entitySchema: Record<string, unknown> = {
       description:
         "Requirement-only. Optional reference to the approval decision record (ticket, ADR or review link) for an exception requirement.",
     },
+    exempts_claims: {
+      type: "array",
+      minItems: 1,
+      uniqueItems: true,
+      items: { type: "string", pattern: "^CLAIM-[A-F0-9]{16}$" },
+      description:
+        "Requirement-only. Narrows an exception requirement to individual clauses: the claim keys (from logic_claims) of the requirement it exempts whose constraints it waives. Without it the exception waives the whole exempted requirement.",
+    },
     semantic_text: {
       type: "string",
       description:
@@ -694,6 +702,7 @@ const entitySchema: Record<string, unknown> = {
             { required: ["proof_exempt_reason"] },
             { required: ["approved_by"] },
             { required: ["approval_ref"] },
+            { required: ["exempts_claims"] },
           ],
         },
       },
