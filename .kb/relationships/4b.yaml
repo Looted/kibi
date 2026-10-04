@@ -370,3 +370,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-262df1fe75d0
+  - type: executable_for
+    from: SYM-test-kibi-proof-receipt-compaction-cli
+    to: TEST-kibi-proof-receipt-compaction-cli
+    created_at: 2026-10-04T05:29:58.414Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fa351fdb83cb

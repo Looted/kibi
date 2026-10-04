@@ -192,3 +192,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-10f9297bb88a
+  - type: covered_by
+    from: SYM-proof-compactProofReceipts
+    to: TEST-kibi-proof-receipt-compaction-cli
+    created_at: 2026-10-04T05:30:17.047Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ff89f21b273f

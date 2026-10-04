@@ -1011,8 +1011,11 @@ queue:
 | `KIBI_ENGINE_READ_TIME_LIMIT_MS` | Wall-clock budget, in milliseconds, for each read-only engine request (capped at 115000, below the engine's hard 120 s query timeout). |
 | `KIBI_ENGINE_READ_INFERENCE_LIMIT` | Logical-inference budget for each read-only engine request. |
 
-Both are unset by default (reads are unbounded, as before). Writes, module
-loads, and `kibi sync` compilation are never bounded. A read that reaches its
+Both are unset by default (reads are unbounded, as before). Write requests,
+module loads, and `kibi sync` compilation are never bounded. The read-only
+queries a write operation such as `kibi upsert` runs before it writes are
+reads, so a write can fail with `QUERY_LIMIT_EXCEEDED` before anything is
+written. A read that reaches its
 limit is stopped inside Prolog and fails with error code
 `QUERY_LIMIT_EXCEEDED`; the envelope's `error.details.limitExceeded` is
 `{ "kind": "time" | "inferences", "limit": <n> }`. It is never reported as an

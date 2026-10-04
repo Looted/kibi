@@ -209,3 +209,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d4b1c9105f5a
+  - type: validates
+    from: TEST-core-engine-read-limits-cli
+    to: SCEN-core-engine-read-limits
+    created_at: 2026-10-04T05:28:52.103Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-84237651805e

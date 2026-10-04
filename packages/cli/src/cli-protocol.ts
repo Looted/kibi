@@ -95,6 +95,29 @@ function protocolValid(
   }
 }
 
+/**
+ * The error envelope for a route that never ran because its runtime could
+ * not open (no branch to attach, a detached HEAD refusing a write), so
+ * stdout still carries one JSON document.
+ */
+// implements REQ-kibi-operation-interface-parity, REQ-branch-store-recovery-v4
+export function openFailureResult(
+  catalogName: string,
+  spec: Parameters<typeof errorResult>[2],
+  error: unknown,
+): CliProtocolResult {
+  return errorResult(
+    catalogName,
+    new OperationError(
+      "OPERATION_FAILED",
+      error instanceof Error ? error.message : String(error),
+      false,
+    ),
+    spec,
+    false,
+  );
+}
+
 // implements REQ-kibi-operation-interface-parity
 export async function executeOperation(
   catalogName: string,

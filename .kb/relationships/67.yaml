@@ -328,3 +328,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e09228037e6d
+  - type: covered_by
+    from: SYM-proof-parseProofTestReport
+    to: TEST-kibi-proof-receipt-compaction-cli
+    created_at: 2026-10-04T05:30:31.030Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-729fa05ad04e

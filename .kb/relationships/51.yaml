@@ -258,3 +258,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6f7f15acdc7f
+  - type: covered_by
+    from: SYM-engine-limits-boundedReadGoal
+    to: TEST-core-engine-read-limits-cli
+    created_at: 2026-10-04T05:29:09.569Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f9dc2cd51e19

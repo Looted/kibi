@@ -321,3 +321,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ec3cd6008af7
+  - type: validates
+    from: TEST-kibi-telemetry-lookup-before-first-edit-cli
+    to: SCEN-kibi-telemetry-lookup-before-first-edit
+    created_at: 2026-10-04T05:30:34.581Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1096accd7a10

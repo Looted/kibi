@@ -216,3 +216,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e7ab9ed7bbd2
+  - type: covered_by
+    from: SYM-plan-apply-journal-settlePendingPlanApplyJournals
+    to: TEST-kibi-plan-apply-atomic-cli
+    created_at: 2026-10-04T05:29:51.464Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fde762eb2c37

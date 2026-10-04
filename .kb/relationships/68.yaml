@@ -230,3 +230,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e19ebd3755e7
+  - type: covered_by
+    from: SYM-detached-snapshot-resolveOperationAttachment
+    to: TEST-branch-detached-head-read-only-cli
+    created_at: 2026-10-04T05:28:49.203Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aa0bab3e67d8

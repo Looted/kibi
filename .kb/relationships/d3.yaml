@@ -209,3 +209,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6b494e771c75
+  - type: covered_by
+    from: SYM-normalizeRepoRelativePath
+    to: TEST-kibi-proof-receipt-compaction-cli
+    created_at: 2026-10-04T05:30:04.375Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0f8d83662ee9

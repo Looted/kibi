@@ -436,7 +436,9 @@ the engine stops it itself and serves the next queued request. A tool whose
 read hit its limit returns an error envelope with `error.code`
 `QUERY_LIMIT_EXCEEDED` and `error.details.limitExceeded`
 (`{ "kind": "time" | "inferences", "limit": <n> }`); it never returns a partial
-answer. Writes are never bounded.
+answer. Write requests are never bounded, but the read-only queries a write
+tool such as `kb_upsert` runs before it writes are reads: under a limit they can
+stop it with `QUERY_LIMIT_EXCEEDED` before anything is written.
 
 On a detached HEAD that no single local branch points at, read tools answer
 from a read-only snapshot of the checkout and add a `detached_head_read_only`

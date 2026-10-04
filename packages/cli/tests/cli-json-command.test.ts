@@ -282,7 +282,7 @@ describe("runJsonInvocation", () => {
     expect(io.stderr.join("")).toContain("id");
   });
 
-  test("records diagnostic usage when a Prolog operation fails to open", async () => {
+  test("answers with an error envelope and records diagnostic usage when a Prolog operation fails to open", async () => {
     const restoreEnv = isolateKibiEnv();
     restores.push(restoreEnv);
     process.env.KIBI_CLI_DIAGNOSTIC_MODE = "1";
@@ -296,15 +296,22 @@ describe("runJsonInvocation", () => {
     program.parse(["query", "--input", inputPath], { from: "user" });
 
     await withCwd(cwd, async () => {
-      await expect(
-        runJsonInvocation({
-          operationName: "kb_query",
-          inputPath,
-          command,
-        }),
-      ).rejects.toThrow(/Git branch|git|Kibi requires/i);
+      await runJsonInvocation({
+        operationName: "kb_query",
+        inputPath,
+        command,
+      });
     });
 
+    // The route never ran, but stdout is still one JSON envelope.
+    expect(process.exitCode).toBe(1);
+    const printed = JSON.parse(io.stdout.join(""));
+    expect(printed).toMatchObject({
+      operation: "kb_query",
+      status: "error",
+      error: { code: "OPERATION_FAILED", retryable: false },
+    });
+    expect(printed.error.message).toMatch(/Git branch|git|Kibi requires/i);
     const rows = readUsageLog(path.join(cwd, ".kb", "usage.log"));
     expect(rows[0]).toMatchObject({
       tool: "kb_query",

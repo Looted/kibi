@@ -412,3 +412,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f96cac9c480d
+  - type: covered_by
+    from: SYM-proof-attributeCommandRun
+    to: TEST-kibi-proof-receipt-compaction-cli
+    created_at: 2026-10-04T05:30:10.469Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9db23b63c784

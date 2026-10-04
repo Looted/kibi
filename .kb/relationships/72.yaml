@@ -363,3 +363,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fa015da26a54
+  - type: validates
+    from: TEST-branch-detached-head-read-only-cli
+    to: SCEN-branch-detached-head-read-only
+    created_at: 2026-10-04T05:28:35.900Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8160b0e2b37c

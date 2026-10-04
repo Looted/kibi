@@ -5309,7 +5309,7 @@ coordinates:
     sourceLine: 2
   SYM-cli-context-type:
     identityHash: f6050e743075f256509f8e0de2abb303a558feafea6c728031324d24e148125d
-    sourceHash: 3b7237ce59614ee0dd4cfbfea8f0a61e19b37d6c72fd80a57ab7b2097af9debb
+    sourceHash: 2d1781a4d8dcebc3e200eb2cc65f655572e94557109f161d63aaa620983ff41e
     sourceColumn: 12
     sourceEndColumn: 2
     sourceEndLine: 27
@@ -6701,12 +6701,12 @@ coordinates:
     sourceLine: 125
   SYM-cli-json-invocation-type:
     identityHash: 40f797811a53cc571ec05f58809cf64fb389a51aec60fceb41187ec36a9f652d
-    sourceHash: 4995e3cdd302199851bf75760542fb45a04f4671c4b6762462ed34f8abba1079
+    sourceHash: 62adde4930fca47d043b86957f95c9aaafc5e172ff3a6f711cd247878f886d3f
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 49
+    sourceEndLine: 52
     sourceFile: packages/cli/src/cli-json-command.ts
-    sourceLine: 41
+    sourceLine: 44
   SYM-cli-kb-merge-driver-command:
     identityHash: be45d8677cac89da1175aea8a8350ee9f95e7904ab2957ff84c5e31970dcde30
     sourceHash: 4a9159fc3622585cfcdaa5093701886a3371c98d715eb1af17ce317bc3096b9a
@@ -7533,15 +7533,15 @@ coordinates:
     sourceLine: 1
   SYM-cli-protocol-execute-operation:
     identityHash: bbaf90605c5ed95b389487e04888032397701c95154f866272e65820196f13ae
-    sourceHash: 3b7237ce59614ee0dd4cfbfea8f0a61e19b37d6c72fd80a57ab7b2097af9debb
+    sourceHash: 2d1781a4d8dcebc3e200eb2cc65f655572e94557109f161d63aaa620983ff41e
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 175
+    sourceEndLine: 198
     sourceFile: packages/cli/src/cli-protocol.ts
-    sourceLine: 99
+    sourceLine: 122
   SYM-cli-protocol-result-type:
     identityHash: 9070b5797b7c25462d5edaac80e18ddb709a752be3601fb1b577d7c44509cfbb
-    sourceHash: 3b7237ce59614ee0dd4cfbfea8f0a61e19b37d6c72fd80a57ab7b2097af9debb
+    sourceHash: 2d1781a4d8dcebc3e200eb2cc65f655572e94557109f161d63aaa620983ff41e
     sourceColumn: 12
     sourceEndColumn: 2
     sourceEndLine: 34
@@ -8133,12 +8133,12 @@ coordinates:
     sourceLine: 102
   SYM-cli-run-json-invocation:
     identityHash: 0d223b3f47217b952aac4316ca70725a6b5b332b93eee3f45fd64ccfc61172c2
-    sourceHash: 4995e3cdd302199851bf75760542fb45a04f4671c4b6762462ed34f8abba1079
+    sourceHash: 62adde4930fca47d043b86957f95c9aaafc5e172ff3a6f711cd247878f886d3f
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 207
+    sourceEndLine: 215
     sourceFile: packages/cli/src/cli-json-command.ts
-    sourceLine: 99
+    sourceLine: 102
   SYM-cli-SagaRollbackFailure:
     identityHash: 31e8ad40ec425f79ba6f0608aeb604da2ebcd1fb92d17c303a7d103cbc47a24e
     sourceHash: c544753dbfc758bb504158c8557e1b4faafa77286f273c8e19ae25717e54dd90
@@ -31883,6 +31883,14 @@ coordinates:
     sourceEndLine: 48
     sourceFile: packages/mcp/src/tools/upsert.ts
     sourceLine: 25
+  SYM-test-branch-detached-head-read-only-cli:
+    identityHash: 45db4bcf54ecdc11b5b457eaa0c5c1c927df3990151bb09e11d14e4df3ff625a
+    sourceHash: ffff9246ed77b1e9386d4098beb91cd710d8cf4170aee49f125f2693d7400147
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 214
+    sourceFile: packages/cli/tests/consumer/detached-head.test.ts
+    sourceLine: 1
   SYM-test-bundled-swipl-docs:
     identityHash: a6b27d69e3bfe8b87e159b958b6c13ba620a2cd54a9a10104688f125ecaa9a11
     sourceHash: 15d9da25929663f0d8466b452ffa486d80479192be560ea5767dbfeae05c0413
@@ -32019,6 +32027,14 @@ coordinates:
     sourceEndLine: 5029
     sourceFile: packages/core/tests/kb.plt
     sourceLine: 5029
+  SYM-test-core-engine-read-limits-cli:
+    identityHash: 95a81e8a5ed192ed2d6a5e483687e9da4c6dacfefc62e6d7d8b48ba95c89d39c
+    sourceHash: c5ed49d1f5a3e53ef2360ddf46cf7a50d078b3d9b07e18786d4743c66922c270
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 169
+    sourceFile: packages/cli/tests/consumer/engine-read-limits.test.ts
+    sourceLine: 1
   SYM-test-core-fixed-timestamp-file:
     identityHash: 10a5d02437a93cb7743e80a199022fe9913e597be5f2dfa3623fb0234e1c01b9
     sourceHash: 90408ee20f31e9dd3dcf3935c612561c5bca58af5bd55f05ff2540eaa8267b1d
@@ -32171,6 +32187,22 @@ coordinates:
     sourceEndLine: 208
     sourceFile: packages/mcp/tests/server/tool-surface-consumer.test.ts
     sourceLine: 1
+  SYM-test-kibi-plan-apply-atomic-cli:
+    identityHash: d1811792f1ce9141cda00d70a7a74bc00c15368d9da6406d4373dd064102a6a7
+    sourceHash: 056dfa866aadb9330e3b69882490955c0b34603c939e96b4b72912f4605273f4
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 449
+    sourceFile: packages/cli/tests/consumer/plan-apply-atomic.test.ts
+    sourceLine: 1
+  SYM-test-kibi-proof-receipt-compaction-cli:
+    identityHash: 1afaa96db686ddfacec927b9c3020e2d09eefee14d630ceac96efc12ce9ce997
+    sourceHash: b646b2ae3339ec9793fe001c4ac59aa38207fc200b65c02e53617b27fa4a8b0d
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 519
+    sourceFile: packages/cli/tests/consumer/proof-receipt-compaction.test.ts
+    sourceLine: 1
   SYM-test-kibi-scenario-feasibility:
     identityHash: 5787ec7d5a1248f63be46d767657847608d04490c9c5ae7ebc0733c60dc4a9de
     sourceHash: 4525ebc798be756f8749bf7687b9dcf2379b771e616b0d53b063bb542bbdf65f
@@ -32202,6 +32234,14 @@ coordinates:
     sourceEndColumn: 0
     sourceEndLine: 386
     sourceFile: scripts/tests/repo-search-gold-gate.test.ts
+    sourceLine: 1
+  SYM-test-kibi-telemetry-lookup-before-first-edit-cli:
+    identityHash: 535cc91f1bdd22eb8dc42ee006ab2eed9c5638abb4edc37be6c3feaf8ac134bf
+    sourceHash: cde0cf1f72862cc7140ba219b30fa765d920d57595f1365432359169cad0cc27
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 346
+    sourceFile: packages/cli/tests/consumer/telemetry-lookup-before-first-edit.test.ts
     sourceLine: 1
   SYM-test-kibi-truthful-consistency:
     identityHash: 3e4c23b346f132a30ee7c7ffda076a1f290357f19efb555b12d8594fe8ed6569

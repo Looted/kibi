@@ -3,7 +3,10 @@ import type { Command } from "commander";
 import { InputError } from "./cli-errors.js";
 import { loadInput } from "./cli-input.js";
 import { loadOperationSpec } from "./cli-operation-loader.js";
-import { executeOperation as executeProtocolOperation } from "./cli-protocol.js";
+import {
+  executeOperation as executeProtocolOperation,
+  openFailureResult,
+} from "./cli-protocol.js";
 import { prepareOperationInput } from "./cli-validate.js";
 import {
   appendCliDiagnosticUsage,
@@ -156,7 +159,12 @@ export async function runJsonInvocation(
   let result: Awaited<ReturnType<typeof executeProtocolOperation>>;
   try {
     result = await withConsoleOnStderr(async () => {
-      const context = await runtime.open(spec, { workspaceRoot });
+      let context: Awaited<ReturnType<typeof runtime.open>>;
+      try {
+        context = await runtime.open(spec, { workspaceRoot });
+      } catch (error) {
+        return openFailureResult(invocation.operationName, spec, error);
+      }
       const executed = await executeProtocolOperation(
         invocation.operationName,
         input,

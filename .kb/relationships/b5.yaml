@@ -398,3 +398,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b71c4cf845eb
+  - type: covered_by
+    from: SYM-plan-apply-journal-recoverPlanApplyJournal
+    to: TEST-kibi-plan-apply-atomic-cli
+    created_at: 2026-10-04T05:29:44.314Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7986e0bf0f5d
+  - type: validates
+    from: TEST-kibi-proof-receipt-compaction-cli
+    to: SCEN-kibi-proof-receipt-compaction
+    created_at: 2026-10-04T05:29:55.525Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a0748769ffc7

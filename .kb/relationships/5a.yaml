@@ -328,3 +328,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-86687b7b1a68
+  - type: executable_for
+    from: SYM-test-branch-detached-head-read-only-cli
+    to: TEST-branch-detached-head-read-only-cli
+    created_at: 2026-10-04T05:28:39.155Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-788f8a938c9a

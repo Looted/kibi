@@ -202,3 +202,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8a2b9d21ff9a
+  - type: covered_by
+    from: SYM-detached-snapshot-refreshDetachedSnapshot
+    to: TEST-branch-detached-head-read-only-cli
+    created_at: 2026-10-04T05:28:45.075Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9beed7a50a40

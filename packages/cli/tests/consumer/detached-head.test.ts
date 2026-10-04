@@ -172,12 +172,25 @@ describe("detached HEAD checkouts through the kibi CLI", () => {
       },
     });
     expect(upsert.status).toBe(1);
-    expect(upsert.stdout.trim()).toBe("");
-    expect(upsert.stderr).toContain(
+    // stdout stays one JSON envelope, and it says nothing was written.
+    const refusal = JSON.parse(upsert.stdout) as Json;
+    expect(refusal).toMatchObject({
+      operation: "kb_upsert",
+      status: "error",
+      data: null,
+      effects: [
+        { kind: "kb-write", status: "not_applicable" },
+        { kind: "workspace-write", status: "not_applicable" },
+      ],
+      error: { code: "OPERATION_FAILED", retryable: false },
+    });
+    const message = (refusal.error as Json).message as string;
+    expect(message).toContain(
       `kb_upsert writes the branch KB, but HEAD is detached at ${first.slice(0, 12)} and no local branch points at it.`,
     );
-    expect(upsert.stderr).toContain("'git switch -c <branch>'");
-    expect(upsert.stderr).toContain("KIBI_BRANCH");
+    expect(message).toContain("'git switch -c <branch>'");
+    expect(message).toContain("KIBI_BRANCH");
+    expect(upsert.stderr).toContain(message);
     expect(
       existsSync(path.join(ws.root, ".kb/scenarios/SCEN-login-refused.md")),
     ).toBe(false);

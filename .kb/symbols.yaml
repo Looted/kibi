@@ -47454,6 +47454,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-core-engine-read-limits
+      - type: covered_by
+        target: TEST-core-engine-read-limits-cli
       - type: implements
         target: REQ-core-engine-read-limits
   - id: SYM-engine-limits-boundedReadGoal
@@ -47467,6 +47469,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-core-engine-read-limits
+      - type: covered_by
+        target: TEST-core-engine-read-limits-cli
       - type: implements
         target: REQ-core-engine-read-limits
   - id: SYM-engine-limits-settleBoundedRead
@@ -47480,6 +47484,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-core-engine-read-limits
+      - type: covered_by
+        target: TEST-core-engine-read-limits-cli
       - type: implements
         target: REQ-core-engine-read-limits
   - id: SYM-engine-limits-EngineQueryLimitError
@@ -47493,6 +47499,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-core-engine-read-limits
+      - type: covered_by
+        target: TEST-core-engine-read-limits-cli
       - type: implements
         target: REQ-core-engine-read-limits
   - id: SYM-entity-origin-normalizeEntityOrigin
@@ -47720,6 +47728,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-branch-detached-head-read-only
+      - type: covered_by
+        target: TEST-branch-detached-head-read-only-cli
       - type: implements
         target: REQ-branch-store-recovery-v4
   - id: SYM-detached-snapshot-refreshDetachedSnapshot
@@ -47733,6 +47743,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-branch-detached-head-read-only
+      - type: covered_by
+        target: TEST-branch-detached-head-read-only-cli
       - type: implements
         target: REQ-branch-store-recovery-v4
   - id: SYM-plan-apply-journal-createPlanApplyJournal
@@ -47746,6 +47758,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-plan-apply-atomic
+      - type: covered_by
+        target: TEST-kibi-plan-apply-atomic-cli
       - type: implements
         target: REQ-kibi-change-to-proof-plan-compiler-v2
   - id: SYM-plan-apply-journal-recoverPlanApplyJournal
@@ -47759,6 +47773,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-plan-apply-atomic
+      - type: covered_by
+        target: TEST-kibi-plan-apply-atomic-cli
       - type: implements
         target: REQ-kibi-change-to-proof-plan-compiler-v2
   - id: SYM-plan-apply-journal-settlePendingPlanApplyJournals
@@ -47772,6 +47788,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-plan-apply-atomic
+      - type: covered_by
+        target: TEST-kibi-plan-apply-atomic-cli
       - type: implements
         target: REQ-kibi-change-to-proof-plan-compiler-v2
   - id: SYM-proof-compactProofReceipts
@@ -47785,6 +47803,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-proof-receipt-compaction
+      - type: covered_by
+        target: TEST-kibi-proof-receipt-compaction-cli
       - type: implements
         target: REQ-kibi-fresh-verification-receipts-v2
   - id: SYM-proof-executeCompactReceipts
@@ -47798,6 +47818,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-proof-receipt-compaction
+      - type: covered_by
+        target: TEST-kibi-proof-receipt-compaction-cli
       - type: implements
         target: REQ-kibi-fresh-verification-receipts-v2
   - id: SYM-proof-attributeCommandRun
@@ -47811,6 +47833,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-proof-receipt-compaction
+      - type: covered_by
+        target: TEST-kibi-proof-receipt-compaction-cli
       - type: implements
         target: REQ-kibi-fresh-verification-receipts-v2
   - id: SYM-proof-parseProofTestReport
@@ -47824,6 +47848,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-proof-receipt-compaction
+      - type: covered_by
+        target: TEST-kibi-proof-receipt-compaction-cli
       - type: implements
         target: REQ-kibi-fresh-verification-receipts-v2
   - id: SYM-normalizeRepoRelativePath
@@ -47837,6 +47863,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-proof-receipt-compaction
+      - type: covered_by
+        target: TEST-kibi-proof-receipt-compaction-cli
       - type: implements
         target: REQ-kibi-fresh-verification-receipts-v2
   - id: SYM-search-answer-projectVerdict
@@ -47908,6 +47936,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-telemetry-lookup-before-first-edit
+      - type: covered_by
+        target: TEST-kibi-telemetry-lookup-before-first-edit-cli
       - type: implements
         target: REQ-kibi-telemetry-acceptance-gate-v2
   - id: SYM-test-kibi-entity-origin-cli
@@ -47994,3 +48024,63 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-kibi-search-gold-set-gate-cli
+  - id: SYM-test-branch-detached-head-read-only-cli
+    title: Detached HEAD consumer suite
+    status: active
+    sourceFile: packages/cli/tests/consumer/detached-head.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T05:28:38.198Z
+    relationships:
+      - type: executable_for
+        target: TEST-branch-detached-head-read-only-cli
+  - id: SYM-test-core-engine-read-limits-cli
+    title: Engine read limits consumer suite
+    status: active
+    sourceFile: packages/cli/tests/consumer/engine-read-limits.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T05:28:54.120Z
+    relationships:
+      - type: executable_for
+        target: TEST-core-engine-read-limits-cli
+  - id: SYM-test-kibi-plan-apply-atomic-cli
+    title: Atomic plan application consumer suite
+    status: active
+    sourceFile: packages/cli/tests/consumer/plan-apply-atomic.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T05:29:28.063Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-plan-apply-atomic-cli
+  - id: SYM-test-kibi-proof-receipt-compaction-cli
+    title: Proof receipt compaction consumer suite
+    status: active
+    sourceFile: packages/cli/tests/consumer/proof-receipt-compaction.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T05:29:57.403Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-proof-receipt-compaction-cli
+  - id: SYM-test-kibi-telemetry-lookup-before-first-edit-cli
+    title: Lookup before first edit consumer suite
+    status: active
+    sourceFile: packages/cli/tests/consumer/telemetry-lookup-before-first-edit.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T05:30:36.636Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-telemetry-lookup-before-first-edit-cli

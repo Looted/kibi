@@ -1924,5 +1924,65 @@
         "./scripts/tests/repo-search-gold-gate.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-branch-detached-head-read-only-cli",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/cli/tests/consumer/detached-head.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-core-engine-read-limits-cli",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/cli/tests/consumer/engine-read-limits.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-plan-apply-atomic-cli",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/cli/tests/consumer/plan-apply-atomic.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-proof-receipt-compaction-cli",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/cli/tests/consumer/proof-receipt-compaction.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-telemetry-lookup-before-first-edit-cli",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/cli/tests/consumer/telemetry-lookup-before-first-edit.test.ts"
+      ]
+    ]
   }
 ]
