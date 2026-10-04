@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import type { CatalogSkill } from "../catalog";
+import { OBJECTIVE_CASE_CONTRACTS, type RequiredCall } from "./case-contracts";
 import type { parseTaskSpec } from "./contracts";
 import type { parsePrivateEvaluatorManifest } from "./evaluator-contracts";
 import {
@@ -176,6 +177,8 @@ const COORDINATE_REPAIR_CALLS = [
 
 function requiredTools(task: FixtureTaskSpec): readonly string[] {
   const objective = task.taskData.objectiveCode;
+  const contract = OBJECTIVE_CASE_CONTRACTS[objective];
+  if (contract !== undefined) return [...contract.requiredTools];
   if (objective === "generated_only_symbol_coordinate_repair") {
     return [...COORDINATE_REPAIR_CALLS];
   }
@@ -337,6 +340,12 @@ export function buildPrivateManifest(input: {
 }) {
   const criticalKey = `final-${input.task.family}`;
   const workspaceKey = "workspace-isolated";
+  const caseContract =
+    OBJECTIVE_CASE_CONTRACTS[input.task.taskData.objectiveCode];
+  const workspaceAssertions = caseContract?.workspaceAssertions ?? [];
+  const workspaceAssertionKeys = workspaceAssertions.map(
+    (assertion) => `workspace-assert-${assertion.key}`,
+  );
   const predicateExpectation = buildPredicateExpectation(input.task);
   const expectedWorkflow = workflowExpectation(input.task);
   const workflowAssertion = expectedWorkflow
@@ -405,6 +414,12 @@ export function buildPrivateManifest(input: {
             critical: true,
           },
       ...workflowAssertion,
+      ...workspaceAssertions.map((assertion, index) => ({
+        key: workspaceAssertionKeys[index] ?? `workspace-assert-${index + 1}`,
+        query: `workspace://assert/${index}`,
+        expected: true,
+        critical: true,
+      })),
       {
         key: workspaceKey,
         query: "workspace://isolation/sentinel-count",
@@ -418,38 +433,55 @@ export function buildPrivateManifest(input: {
         ? coordinateFinalStateRequests(input.task.id)
         : undefined,
     fixtureSetup:
-      input.task.taskData.objectiveCode ===
-      "generated_only_symbol_coordinate_repair"
-        ? ("generated_coordinate_divergence" as const)
-        : input.task.initialState.kb === "fresh"
-          ? ("seeded_fresh_kb" as const)
-          : input.task.initialState.kb === "stale"
-            ? ("seeded_stale_kb" as const)
-            : input.task.initialState.kb === "absent"
-              ? ("thin_root_kb" as const)
-              : undefined,
+      caseContract !== undefined
+        ? caseContract.fixtureSetup
+        : input.task.taskData.objectiveCode ===
+            "generated_only_symbol_coordinate_repair"
+          ? ("generated_coordinate_divergence" as const)
+          : input.task.initialState.kb === "fresh"
+            ? ("seeded_fresh_kb" as const)
+            : input.task.initialState.kb === "stale"
+              ? ("seeded_stale_kb" as const)
+              : input.task.initialState.kb === "absent"
+                ? ("thin_root_kb" as const)
+                : undefined,
+    workspaceAssertions:
+      workspaceAssertions.length === 0
+        ? undefined
+        : workspaceAssertions.map((assertion) => ({ ...assertion })),
     protocolContract:
-      input.task.taskData.objectiveCode ===
-      "generated_only_symbol_coordinate_repair"
+      caseContract !== undefined
         ? {
-            requiredCalls: COORDINATE_REPAIR_CALLS.map((tool) => ({ tool })),
-            forbiddenTools: [
-              "kb_upsert",
-              "kb_delete",
-              "kb_ingest_proof",
-              "kb_model_requirement",
-              "kb_validate_upsert",
-            ],
-            exactMigrationApply: {
-              actionCode: "symbol_refresh_coordinates",
-              invocationCommandArgv: [
-                "kibi",
-                "sync",
-                "--refresh-symbol-coordinates",
-              ],
-            },
+            requiredCalls: (
+              caseContract.requiredCalls ??
+              caseContract.requiredTools.map((tool): RequiredCall => ({ tool }))
+            ).map((call) => ({
+              tool: call.tool,
+              ...(call.args === undefined ? {} : { args: { ...call.args } }),
+            })),
+            forbiddenTools: [...(caseContract.forbiddenTools ?? [])],
           }
-        : undefined,
+        : input.task.taskData.objectiveCode ===
+            "generated_only_symbol_coordinate_repair"
+          ? {
+              requiredCalls: COORDINATE_REPAIR_CALLS.map((tool) => ({ tool })),
+              forbiddenTools: [
+                "kb_upsert",
+                "kb_delete",
+                "kb_ingest_proof",
+                "kb_model_requirement",
+                "kb_validate_upsert",
+              ],
+              exactMigrationApply: {
+                actionCode: "symbol_refresh_coordinates",
+                invocationCommandArgv: [
+                  "kibi",
+                  "sync",
+                  "--refresh-symbol-coordinates",
+                ],
+              },
+            }
+          : undefined,
     orderedMcpPredicates: {
       required: requiredTools(input.task).map((tool, index) => ({
         tool,
@@ -502,6 +534,7 @@ export function buildPrivateManifest(input: {
                 ),
               ]
             : []),
+          ...workspaceAssertionKeys,
         ],
       },
       {

@@ -4,10 +4,12 @@ import path from "node:path";
 import {
   type TaskSpec,
   buildBundleCatalog,
+  buildCoreSkillCatalog,
   buildHeldOutCatalog,
   buildPublicCatalog,
   buildSkillCatalog,
   catalogHash,
+  skillFamilies,
   validateSkillCatalog,
 } from "../catalog";
 import { CANONICAL_SKILLS } from "../catalog";
@@ -32,14 +34,19 @@ afterEach(() => {
 });
 
 describe("SkillOpt fixture catalog", () => {
-  test("uses the balanced 8/4 public corpus across all four families", () => {
-    const train = publicSkillDescriptors("train");
-    const development = publicSkillDescriptors("development");
+  test("uses the balanced 8/4 core corpus across the four core families", () => {
+    const train = publicSkillDescriptors("train", "kibi-usage", "core");
+    const development = publicSkillDescriptors(
+      "development",
+      "kibi-usage",
+      "core",
+    );
 
     expect(train).toHaveLength(8);
     expect(development).toHaveLength(4);
     const families = new Set(train.map(({ family }) => family));
     expect(families.size).toBe(4);
+    expect(families.has("intent-consult")).toBe(false);
     expect(new Set(development.map(({ family }) => family))).toEqual(families);
     expect(
       [...families].map(
@@ -48,11 +55,37 @@ describe("SkillOpt fixture catalog", () => {
     ).toEqual([2, 2, 2, 2]);
   });
 
-  test("builds the frozen 8/4/16 split for one skill", () => {
-    const tasks = buildSkillCatalog("kibi-usage");
+  test("adds the supplemental fifth family to the public cohort only by scope", () => {
+    const train = publicSkillDescriptors("train");
+    const development = publicSkillDescriptors("development");
 
-    expect(tasks).toHaveLength(28);
+    expect(train).toHaveLength(10);
+    expect(development).toHaveLength(5);
+    expect(skillFamilies("kibi-usage")).toHaveLength(5);
+    expect(skillFamilies("kibi-usage").at(-1)).toBe("intent-consult");
+    expect(skillFamilies("kibi-bootstrap")).toHaveLength(4);
+    expect(
+      development.filter(({ family }) => family === "intent-consult"),
+    ).toHaveLength(1);
+  });
+
+  test("builds the frozen 8/4/16 core split and a 10/5/20 split with the fifth family", () => {
+    const tasks = buildSkillCatalog("kibi-usage");
+    const core = buildCoreSkillCatalog("kibi-usage");
+
+    expect(tasks).toHaveLength(35);
+    expect(core).toHaveLength(28);
+    expect(core.filter((task) => task.split === "held-out")).toHaveLength(16);
     expect(() => validateSkillCatalog(tasks, "kibi-usage")).not.toThrow();
+    expect(() => validateSkillCatalog(core, "kibi-usage")).toThrow(
+      "expected 35 tasks",
+    );
+    expect(() =>
+      validateSkillCatalog(
+        buildSkillCatalog("kibi-bootstrap"),
+        "kibi-bootstrap",
+      ),
+    ).not.toThrow();
   });
 
   test("rejects duplicate task IDs before host launch", () => {
@@ -79,7 +112,8 @@ describe("SkillOpt fixture catalog", () => {
   test("encodes explicit state, scorer reference, and family task data", () => {
     const tasks = [...buildPublicCatalog(), ...buildHeldOutCatalog()];
 
-    expect(tasks).toHaveLength(120);
+    // 3 skills x 5 families + 1 skill x 4 families, 7 tasks each, + 8 bundles.
+    expect(tasks).toHaveLength(141);
     expect(
       tasks.every(
         (task) =>
@@ -176,22 +210,28 @@ describe("predicate corpus materializes stable authorized roots", () => {
     expect(first.roots).not.toBe(second.roots);
   });
 
-  test("keeps catalog totals at 120 overall and 28 for kibi-usage", () => {
+  test("keeps the 28-task core per skill and adds 7 per supplemental family", () => {
     const usage = buildSkillCatalog("kibi-usage");
-    expect(usage).toHaveLength(28);
+    expect(usage).toHaveLength(35);
+    expect(buildCoreSkillCatalog("kibi-usage")).toHaveLength(28);
     expect(() => validateSkillCatalog(usage, "kibi-usage")).not.toThrow();
     const total = [...buildPublicCatalog(), ...buildHeldOutCatalog()];
-    expect(total).toHaveLength(120);
+    expect(total).toHaveLength(141);
     const usagePublic = buildPublicCatalog().filter(
       (task) => task.skill === "kibi-usage",
     );
     const usageHeldOut = buildHeldOutCatalog().filter(
       (task) => task.skill === "kibi-usage",
     );
-    expect(usagePublic.length + usageHeldOut.length).toBe(28);
-    expect(CANONICAL_SKILLS.length * 28 + buildBundleCatalog().length).toBe(
-      120,
-    );
+    expect(usagePublic.length + usageHeldOut.length).toBe(35);
+    const supplementalFamilies = CANONICAL_SKILLS.filter(
+      (skill) => skillFamilies(skill).length === 5,
+    ).length;
+    expect(
+      CANONICAL_SKILLS.length * 28 +
+        supplementalFamilies * 7 +
+        buildBundleCatalog().length,
+    ).toBe(141);
   });
 
   test("unsigned roots cannot authorize training or evaluation", () => {
@@ -301,7 +341,7 @@ describe("SkillOpt corpus executability invariants", () => {
   }
 
   test("every task carries an objective-specific expectation", () => {
-    expect(allTasks).toHaveLength(120);
+    expect(allTasks).toHaveLength(141);
     const uncovered = allTasks.filter((task) => {
       const manifest = manifestFor(task);
       return (

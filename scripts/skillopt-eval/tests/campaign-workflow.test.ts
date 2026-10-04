@@ -36,6 +36,7 @@ const tasks: PublicTaskDescriptor[] = [
   "safe-mutation-direction",
   "fact-predicate-modeling",
   "validation-recovery",
+  "intent-consult",
 ].map((family) => ({
   id: `kibi-usage-${family}-development-1`,
   family,
@@ -378,14 +379,14 @@ describe("campaign paid orchestration", () => {
         skill: "kibi-usage",
         manifests: [candidateManifest()],
         repeats: 1,
-        maxTargetEpisodes: 8,
+        maxTargetEpisodes: 10,
         allowPaid: true,
         runId: "evaluate-run",
         dependencies: fake.deps,
       });
       expect(evaluation.status).toBe("complete");
-      expect(evaluation.cells).toHaveLength(8);
-      expect(evaluation.pairings).toHaveLength(4);
+      expect(evaluation.cells).toHaveLength(10);
+      expect(evaluation.pairings).toHaveLength(5);
       expect(evaluation.aggregate.noRegression).toBe(true);
       expect(fake.calls.indexOf("fixture-readiness")).toBeLessThan(
         fake.calls.indexOf("canary"),
@@ -410,7 +411,7 @@ describe("campaign paid orchestration", () => {
         skill: "kibi-usage",
         manifests: [candidateManifest()],
         repeats: 1,
-        maxTargetEpisodes: 8,
+        maxTargetEpisodes: 10,
         allowPaid: true,
         runId: "00000000-0000-4000-8000-000000000001",
         dependencies: defaultCellDependencies(fake.deps),
@@ -451,7 +452,7 @@ describe("campaign paid orchestration", () => {
         skill: "kibi-usage",
         manifests: [candidateManifest()],
         repeats: 1,
-        maxTargetEpisodes: 8,
+        maxTargetEpisodes: 10,
         allowPaid: true,
         runId: "00000000-0000-4000-8000-000000000002",
         dependencies: defaultCellDependencies(fake.deps),
@@ -469,7 +470,7 @@ describe("campaign paid orchestration", () => {
           artifactRoot: confirmOutput.root,
           previousEvaluation: prior,
           repeats: 1,
-          maxTargetEpisodes: 8,
+          maxTargetEpisodes: 10,
           allowPaid: true,
           runId: "00000000-0000-4000-8000-000000000003",
           dependencies: defaultCellDependencies(fake.deps),
@@ -494,7 +495,7 @@ describe("campaign paid orchestration", () => {
           skill: "kibi-usage",
           manifests: [{ ...manifest, frozenBodyHash: "c".repeat(64) }],
           repeats: 1,
-          maxTargetEpisodes: 8,
+          maxTargetEpisodes: 10,
           allowPaid: true,
           dependencies: fake.deps,
         }),
@@ -511,7 +512,7 @@ describe("campaign paid orchestration", () => {
             skill: "kibi-usage",
             manifests: [manifest],
             repeats: 1,
-            maxTargetEpisodes: 7,
+            maxTargetEpisodes: 9,
             allowPaid: true,
             dependencies: capFake.deps,
           }),
@@ -536,7 +537,7 @@ describe("campaign paid orchestration", () => {
           skill: "kibi-usage",
           manifests: [candidateManifest()],
           repeats: 1,
-          maxTargetEpisodes: 8,
+          maxTargetEpisodes: 10,
           allowPaid: true,
           dependencies: fake.deps,
         }),
@@ -565,7 +566,7 @@ describe("campaign confirmation", () => {
         skill: "kibi-usage",
         manifests: [candidateManifest()],
         repeats: 1,
-        maxTargetEpisodes: 8,
+        maxTargetEpisodes: 10,
         allowPaid: true,
         runId: "prior-run",
         dependencies: fake.deps,
@@ -576,24 +577,24 @@ describe("campaign confirmation", () => {
         artifactRoot: second.root,
         previousEvaluation: prior,
         repeats: 2,
-        maxTargetEpisodes: 16,
+        maxTargetEpisodes: 20,
         allowPaid: true,
         runId: "new-run",
         dependencies: fake.deps,
       });
-      expect(confirmed.cells).toHaveLength(24);
+      expect(confirmed.cells).toHaveLength(30);
       expect(confirmed.runs).toEqual([
         {
           runId: "prior-run",
           kind: "prior",
-          cellCount: 8,
+          cellCount: 10,
           repeats: 1,
           artifactRoot: first.root,
         },
         {
           runId: "new-run",
           kind: "new",
-          cellCount: 16,
+          cellCount: 20,
           repeats: 2,
           artifactRoot: second.root,
         },
@@ -601,7 +602,7 @@ describe("campaign confirmation", () => {
       expect(new Set(confirmed.cells.map((cell) => cell.runId))).toEqual(
         new Set(["prior-run", "new-run"]),
       );
-      expect(confirmed.pairings).toHaveLength(12);
+      expect(confirmed.pairings).toHaveLength(15);
       expect(JSON.stringify(prior)).toBe(priorSnapshot);
       expect(
         JSON.parse(await readFile(join(first.root, "evaluation.json"), "utf8")),
@@ -623,7 +624,7 @@ describe("campaign confirmation", () => {
         skill: "kibi-usage",
         manifests: [candidateManifest()],
         repeats: 1,
-        maxTargetEpisodes: 8,
+        maxTargetEpisodes: 10,
         allowPaid: true,
         dependencies: firstFake.deps,
       });
@@ -645,7 +646,7 @@ describe("campaign confirmation", () => {
           artifactRoot: second.root,
           previousEvaluation: prior,
           repeats: 1,
-          maxTargetEpisodes: 8,
+          maxTargetEpisodes: 10,
           allowPaid: true,
           dependencies: regressionDeps,
         }),
@@ -654,7 +655,7 @@ describe("campaign confirmation", () => {
         await readFile(join(second.root, "evaluation.json"), "utf8"),
       );
       expect(saved.status).toBe("complete");
-      expect(saved.cells).toHaveLength(16);
+      expect(saved.cells).toHaveLength(20);
       expect(saved.aggregate.noRegression).toBe(false);
       expect(
         JSON.parse(await readFile(join(second.root, "campaign.json"), "utf8"))
@@ -679,7 +680,7 @@ describe("campaign evidence integrity", () => {
         skill: "kibi-usage",
         manifests: [manifest],
         repeats: 1,
-        maxTargetEpisodes: 8,
+        maxTargetEpisodes: 10,
         allowPaid: true,
         runId: "00000000-0000-4000-8000-000000000007",
         dependencies: defaultCellDependencies(fake.deps, { surface }),
@@ -800,7 +801,7 @@ describe("campaign evidence integrity", () => {
         skill: "kibi-usage",
         manifests: [candidateManifest()],
         repeats: 1,
-        maxTargetEpisodes: 8,
+        maxTargetEpisodes: 10,
         allowPaid: true,
         runId: "00000000-0000-4000-8000-000000000008",
         dependencies: defaultCellDependencies(fake.deps),
@@ -829,7 +830,7 @@ describe("campaign evidence integrity", () => {
           artifactRoot: confirmOutput.root,
           previousEvaluation: tampered,
           repeats: 1,
-          maxTargetEpisodes: 8,
+          maxTargetEpisodes: 10,
           allowPaid: true,
           runId: "00000000-0000-4000-8000-000000000009",
           dependencies: defaultCellDependencies(fake.deps),
@@ -853,7 +854,7 @@ describe("campaign evidence integrity", () => {
         skill: "kibi-usage",
         manifests: [candidateManifest()],
         repeats: 1,
-        maxTargetEpisodes: 8,
+        maxTargetEpisodes: 10,
         allowPaid: true,
         runId: "family-prior-run",
         dependencies: fake.deps,
@@ -876,7 +877,7 @@ describe("campaign evidence integrity", () => {
           artifactRoot: confirmOutput.root,
           previousEvaluation: tampered,
           repeats: 1,
-          maxTargetEpisodes: 8,
+          maxTargetEpisodes: 10,
           allowPaid: true,
           runId: "family-confirm-run",
           dependencies: fake.deps,
@@ -1070,7 +1071,7 @@ describe("campaign revise/package boundaries", () => {
         skill: "kibi-usage",
         manifests: [manifest],
         repeats: 1,
-        maxTargetEpisodes: 8,
+        maxTargetEpisodes: 10,
         allowPaid: true,
         runId: "00000000-0000-4000-8000-000000000004",
         dependencies: defaultCellDependencies(fake.deps, { surface }),

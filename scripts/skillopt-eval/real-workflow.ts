@@ -253,21 +253,25 @@ export async function runRealOptimization(
   try {
     await mkdir(root, { recursive: true, mode: 0o700 });
     const roots = await predicateRoots(root);
+    // The trainer bridge and its held-out gates are contracted to the four
+    // core families; supplemental families run through campaign evaluate.
     const trainDescriptors =
       options.cellRuntime === undefined
-        ? publicSkillDescriptors("train", skill)
+        ? publicSkillDescriptors("train", skill, "core")
         : await taskScopedPublicSkillDescriptors(
             "train",
             options.cellRuntime.fixtureRunRoot,
             skill,
+            "core",
           );
     const developmentDescriptors =
       options.cellRuntime === undefined
-        ? publicSkillDescriptors("development", skill)
+        ? publicSkillDescriptors("development", skill, "core")
         : await taskScopedPublicSkillDescriptors(
             "development",
             options.cellRuntime.fixtureRunRoot,
             skill,
+            "core",
           );
     const candidates: Array<{
       skill: CanonicalSkill;

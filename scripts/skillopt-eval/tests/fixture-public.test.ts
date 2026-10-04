@@ -5,6 +5,7 @@ import {
   CANONICAL_SKILLS,
   buildHeldOutCatalog,
   buildPublicCatalog,
+  skillFamilies,
 } from "../catalog";
 import { parsePublicTaskManifest, parsePublicTaskSpec } from "../fixtures";
 import * as publicFixtures from "../fixtures";
@@ -27,19 +28,28 @@ describe("public SkillOpt fixture corpus", () => {
   test("exposes only balanced train and development descriptors", () => {
     const tasks = buildPublicCatalog();
 
-    expect(tasks).toHaveLength(48);
+    // Four core families per skill plus the supplemental fifth family of
+    // kibi-usage, kibi-freshness and kibi-traceability.
+    expect(tasks).toHaveLength(57);
     expect(tasks.every((task) => task.split !== "held-out")).toBe(true);
+    const objectiveCounts: Record<string, number> = {
+      "kibi-usage": 9,
+      "kibi-freshness": 6,
+      "kibi-traceability": 6,
+      "kibi-bootstrap": 4,
+    };
     for (const skill of CANONICAL_SKILLS) {
       const skillTasks = tasks.filter((task) => task.skill === skill);
+      const families = skillFamilies(skill).length;
       expect(skillTasks.filter((task) => task.split === "train")).toHaveLength(
-        8,
+        2 * families,
       );
       expect(
         skillTasks.filter((task) => task.split === "development"),
-      ).toHaveLength(4);
+      ).toHaveLength(families);
       expect(
         new Set(skillTasks.map((task) => task.taskData.objectiveCode)).size,
-      ).toBe(skill === "kibi-usage" ? 6 : 4);
+      ).toBe(objectiveCounts[skill]);
       // Predicate family carries a distinct objective per semantic case;
       // remaining families keep one objective per family.
       if (skill === "kibi-usage") {
@@ -104,7 +114,7 @@ describe("public SkillOpt fixture corpus", () => {
     });
     const { publicRoot } = receipt.roots;
 
-    expect(receipt.publicIndex.tasks).toHaveLength(48);
+    expect(receipt.publicIndex.tasks).toHaveLength(57);
     expect(path.basename(publicRoot)).toBe("public");
     expect(path.basename(receipt.roots.heldOutRoot)).toBe("held-out");
     expect(path.basename(receipt.roots.evaluatorRoot)).toBe("evaluator");

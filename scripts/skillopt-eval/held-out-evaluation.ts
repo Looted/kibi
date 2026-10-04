@@ -5,7 +5,7 @@ import {
   CANONICAL_SKILLS,
   type CanonicalSkill,
   buildBundleCatalog,
-  buildSkillCatalog,
+  buildCoreSkillCatalog,
 } from "./catalog";
 import { assertCellInfrastructureHealthy } from "./evaluation-infrastructure";
 import { parseHeldOutTaskManifest } from "./fixtures/contracts";
@@ -58,7 +58,8 @@ function terminalTasks(
           replicates: [1, 2, 3] as const,
         }))
       : [];
-  const skills = buildSkillCatalog(skill)
+  // The 16-task held-out gate matrix is contracted to the core families.
+  const skills = buildCoreSkillCatalog(skill)
     .filter(
       (task) =>
         task.split === "held-out" && task.family !== "fact-predicate-modeling",
@@ -208,7 +209,8 @@ export const defaultEvaluateHeldOut: RealOptimizationDependencies["evaluateHeldO
               env: input.env,
               finalStateRequests: taskFinalStateRequests(
                 task.taskId,
-                task.fixture.evaluatorManifest.protocolContract !== undefined,
+                task.fixture.evaluatorManifest.protocolContract
+                  ?.exactMigrationApply !== undefined,
               ),
               evaluatorManifest: task.fixture.evaluatorManifest,
               hiddenMarkers: runtime.hiddenMarkers ?? [],

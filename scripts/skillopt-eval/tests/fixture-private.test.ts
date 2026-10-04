@@ -63,8 +63,8 @@ describe("private SkillOpt fixture corpus", () => {
     expect(firstReceipt.publicIndex).toEqual(secondReceipt.publicIndex);
     expect(firstReceipt.heldOutIndex).toEqual(secondReceipt.heldOutIndex);
     expect(firstReceipt.privateIndex).toEqual(secondReceipt.privateIndex);
-    expect(firstReceipt.heldOutIndex.tasks).toHaveLength(72);
-    expect(firstReceipt.privateIndex.tasks).toHaveLength(120);
+    expect(firstReceipt.heldOutIndex.tasks).toHaveLength(84);
+    expect(firstReceipt.privateIndex.tasks).toHaveLength(141);
     expect(
       new Set(firstReceipt.privateIndex.tasks.map((entry) => entry.taskId)),
     ).toEqual(

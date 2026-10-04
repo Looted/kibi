@@ -9,6 +9,10 @@ import type {
   WorktreeState,
 } from "../catalog";
 import {
+  KIBI_ANSWER_FORMAT_INSTRUCTION,
+  answerScoredObjective,
+} from "./case-contracts";
+import {
   type PredicateSemanticClass,
   predicateCaseBySplitIndex,
 } from "./predicate-cases";
@@ -17,6 +21,11 @@ import {
   BOOTSTRAP_DEFINITIONS,
   TRACEABILITY_DEFINITIONS,
 } from "./task-definitions-bootstrap";
+import {
+  type DogfoodCase,
+  SUPPLEMENTAL_CASES,
+  SUPPLEMENTAL_DEFINITIONS,
+} from "./task-definitions-supplemental";
 import {
   FRESHNESS_DEFINITIONS,
   USAGE_DEFINITIONS,
@@ -28,15 +37,6 @@ type BuilderContext = Readonly<{
   index: number;
 }>;
 
-type DogfoodCase = Readonly<{
-  prompt: string;
-  objectiveCode: string;
-  kb: KnowledgeState;
-  worktree: WorktreeState;
-  adversarialCases: readonly AdversarialCase[];
-  mutation?: "read-only" | "write";
-  approvalPhase?: ApprovalPhase;
-}>;
 export type FamilyPayload = Readonly<{
   prompt: string;
   activationMode: ActivationMode;
@@ -59,10 +59,22 @@ export type FamilyPayload = Readonly<{
 const DEFINITIONS: Readonly<
   Record<CanonicalSkill, Readonly<Record<string, Definition>>>
 > = {
-  "kibi-usage": USAGE_DEFINITIONS,
-  "kibi-freshness": FRESHNESS_DEFINITIONS,
-  "kibi-traceability": TRACEABILITY_DEFINITIONS,
-  "kibi-bootstrap": BOOTSTRAP_DEFINITIONS,
+  "kibi-usage": {
+    ...USAGE_DEFINITIONS,
+    ...SUPPLEMENTAL_DEFINITIONS["kibi-usage"],
+  },
+  "kibi-freshness": {
+    ...FRESHNESS_DEFINITIONS,
+    ...SUPPLEMENTAL_DEFINITIONS["kibi-freshness"],
+  },
+  "kibi-traceability": {
+    ...TRACEABILITY_DEFINITIONS,
+    ...SUPPLEMENTAL_DEFINITIONS["kibi-traceability"],
+  },
+  "kibi-bootstrap": {
+    ...BOOTSTRAP_DEFINITIONS,
+    ...SUPPLEMENTAL_DEFINITIONS["kibi-bootstrap"],
+  },
 };
 const SKILL_FILES = [
   "skills/kibi-usage/SKILL.md",
@@ -548,8 +560,11 @@ function payload(
     (special?.mutation ?? definition.mutation) === "write"
       ? " Before kb_upsert (including a dryRun: true validation), kb_apply_plan, or kb_check, call kb_search then kb_query."
       : "";
+  const answerFormat = answerScoredObjective(effectiveObjectiveCode)
+    ? KIBI_ANSWER_FORMAT_INSTRUCTION
+    : "";
   return {
-    prompt: `${special?.prompt ?? `${definition.instruction} This is ${split} case ${index + 1}; use only the public Kibi MCP surface.`}${searchThenQuery}`,
+    prompt: `${special?.prompt ?? `${definition.instruction} This is ${split} case ${index + 1}; use only the public Kibi MCP surface.`}${searchThenQuery}${answerFormat}`,
     activationMode: definition.activationMode,
     initialState: {
       repository: definition.repository,
@@ -587,10 +602,8 @@ export function buildFamilyPayload(context: BuilderContext): FamilyPayload {
   if (context.family === "fact-predicate-modeling") {
     return predicatePayload(definition, context.split, context.index);
   }
-  const special =
-    DOGFOOD_CASES[
-      `${context.skill}/${context.family}/${context.split}/${context.index}`
-    ];
+  const slot = `${context.skill}/${context.family}/${context.split}/${context.index}`;
+  const special = DOGFOOD_CASES[slot] ?? SUPPLEMENTAL_CASES[slot];
   return payload(definition, context.split, context.index, special);
 }
 
