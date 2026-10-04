@@ -1,3 +1,4 @@
+import "../offline-test-preload";
 import { describe, expect, test } from "bun:test";
 import {
   parseDebitSubentryReceipt,

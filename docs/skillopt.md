@@ -17,7 +17,9 @@ depending on a particular operator's session or cache layout.
 | Clean source worktree | `git status --porcelain` must be empty | Paid optimize preflight rejects dirty trees (`source_not_clean`). |
 
 Run `bun run test:skillopt` before paid work. Its test-only preload isolates the
-offline fixtures' historical model pins from exported campaign settings. It
+offline fixtures' historical model pins from exported campaign settings. Direct
+proof test entry points also import this preload, including the trust-boundary
+E2E script, so they use the same isolation without the package script. It
 does not change the operator environment or the model pins of paid commands;
 the model-configuration tests still exercise explicit overrides and mismatches.
 

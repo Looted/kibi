@@ -19,6 +19,7 @@
  *
  * Run via `bun run documentation/tests/e2e/skillopt-trust-boundaries.e2e.ts`.
  */
+import "../../../scripts/skillopt-eval/offline-test-preload";
 import { spawnSync } from "node:child_process";
 import { createHash, randomUUID } from "node:crypto";
 import {

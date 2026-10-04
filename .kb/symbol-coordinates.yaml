@@ -11213,7 +11213,7 @@ coordinates:
     sourceLine: 1
   SYM-e2e-skillopt-trust-boundaries:
     identityHash: 159cd066924e9a81b2532ea21ed5e75952f025e4e469a0b622030f7f4699ead5
-    sourceHash: 6eed5f5be2c341c74194bcdcf6d74633b6c91e3744b8aad3be279d0c5157c541
+    sourceHash: 344ccb4966084f925c8374e4e0a0a191261b1128f3f1eb41eec9d936f39c2cfb
     sourceColumn: 44
     sourceEndColumn: 73
     sourceEndLine: 20
@@ -23877,10 +23877,10 @@ coordinates:
     sourceLine: 59
   SYM-skillopt-adoption-exactly-once-tests:
     identityHash: b9a03d36146205c5b48dff7c4d1527aad768f7b8f541506872997f7c9335797c
-    sourceHash: 0f18de853b3f842ca97ea4ec86e4996c4001d9132ea1baa5e336b3ed4502bd19
+    sourceHash: 07a2a90c0cd68bf11ab3a1c7ddce36563a4d875b31ab786739dddc530192e571
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 251
+    sourceEndLine: 252
     sourceFile: scripts/skillopt-eval/tests/adoption-exactly-once.test.ts
     sourceLine: 1
   SYM-skillopt-adoption-fixture-approval-artifacts:
@@ -24157,18 +24157,18 @@ coordinates:
     sourceLine: 20
   SYM-skillopt-adoption-recovery-tests:
     identityHash: 463ffbb1c0ee65cc3fca7ee80e79739f86847342c5f3c13876355a3eb43c4f12
-    sourceHash: 5c457bda8551325c8d3f5eca3f0aaaabbff5b443569dd19ab1ce9a96b32892f9
+    sourceHash: 93353bf9898c7901cdd26c2534e319fba1a025f24e4c8a7c55a01108ba75221c
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 446
+    sourceEndLine: 447
     sourceFile: scripts/skillopt-eval/tests/adoption-recovery.test.ts
     sourceLine: 1
   SYM-skillopt-adoption-tests:
     identityHash: 00f2d64c7d832eb3fa66b6f5c7a3b183e67ae1afc5d7cc975041bc7e9427c4e4
-    sourceHash: a96d4ef6fb9d1feb997403d9ffbd93a1c70d2419f76068b271e0808414e19e56
+    sourceHash: cec666b4dd9659a1c0451c6c224574a8cf9988ca01bb7211711fb4befae66446
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 232
+    sourceEndLine: 233
     sourceFile: scripts/skillopt-eval/tests/adoption.test.ts
     sourceLine: 1
   SYM-skillopt-adoption-transaction-error:
@@ -27693,20 +27693,20 @@ coordinates:
     sourceLine: 46
   SYM-skillopt-paid-launch-evidence-tests:
     identityHash: 6bd883a4ddd6c1a74bc9ad095e92050a2eb445aa4fb3ffdfc1a15e1e56970bef
-    sourceHash: 70c04c10172ff6e6d77145c587e808da10e03164c536b5a0dbe74f01ec01845a
+    sourceHash: 327301cad47a11c9ded67d753a7395adf0161a5356c7679679cc8391f6bd6824
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 76
+    sourceEndLine: 77
     sourceFile: scripts/skillopt-eval/tests/paid-launch-evidence.test.ts
     sourceLine: 1
   SYM-skillopt-paid-launch-receipt-tests:
     identityHash: 6bb88bf40db6ac835b28a64dd378ae6c318370dc356311f41af64f2410c35a7e
-    sourceHash: c5575f3dba4f3a3570d10e4674bc982df64fc990fb9bfc701a57f42677784e40
+    sourceHash: 034cd8a66176ca8614aa8f09b5476f8d6a477db317acfb4161dfbbcaaf3b8ca6
     sourceColumn: 10
     sourceEndColumn: 47
-    sourceEndLine: 14
+    sourceEndLine: 15
     sourceFile: scripts/skillopt-eval/tests/paid-launch-receipts.test.ts
-    sourceLine: 14
+    sourceLine: 15
   SYM-skillopt-parse-answer:
     identityHash: 2d9e247445fd4f134d8c63861d96f5fec72b543e6aed17bfc987922fe2d8c7a1
     sourceHash: 4f78675f36045b1d866c67c2eab7f735e20d18392cecad0a3f1ade51baeeab39
@@ -33677,7 +33677,7 @@ coordinates:
     sourceLine: 11
   SYM-zcode-case-advisory-hooks:
     identityHash: 9f0ab2d8b7f70f6c3f5a630e213488dd0556bbafa55951a938543e82fa32aed3
-    sourceHash: 672d0590807170676d86f5796ca520497ab1163432b7635a3d17d227c0d3f15a
+    sourceHash: 57dc8f76ebebcdc326eb4dc8ca52157fa584bdfc6a71ad3c1cdb34c4b65f334a
     sourceColumn: 0
     sourceEndColumn: 0
     sourceEndLine: 1574
@@ -33685,7 +33685,7 @@ coordinates:
     sourceLine: 1
   SYM-zcode-case-canonicalize-check-source-files:
     identityHash: 16c1211147647c78ef96ecb3e2102a8910719d83deb3117064b2abe0378baa19
-    sourceHash: 672d0590807170676d86f5796ca520497ab1163432b7635a3d17d227c0d3f15a
+    sourceHash: 57dc8f76ebebcdc326eb4dc8ca52157fa584bdfc6a71ad3c1cdb34c4b65f334a
     sourceColumn: 0
     sourceEndColumn: 0
     sourceEndLine: 1574
@@ -33693,7 +33693,7 @@ coordinates:
     sourceLine: 1
   SYM-zcode-case-canonicalize-workspace-path:
     identityHash: 07d297e416e44c811ecf74e52fb351d7660dd296ff12eed7b6bf2f60e0db025f
-    sourceHash: 672d0590807170676d86f5796ca520497ab1163432b7635a3d17d227c0d3f15a
+    sourceHash: 57dc8f76ebebcdc326eb4dc8ca52157fa584bdfc6a71ad3c1cdb34c4b65f334a
     sourceColumn: 0
     sourceEndColumn: 0
     sourceEndLine: 1574
@@ -33701,7 +33701,7 @@ coordinates:
     sourceLine: 1
   SYM-zcode-case-hooks-no-kb-mutation:
     identityHash: 5d9e2043dddbf562b8407de4cb12680a3e4632f5089349ac6353b0c7388e1863
-    sourceHash: 672d0590807170676d86f5796ca520497ab1163432b7635a3d17d227c0d3f15a
+    sourceHash: 57dc8f76ebebcdc326eb4dc8ca52157fa584bdfc6a71ad3c1cdb34c4b65f334a
     sourceColumn: 0
     sourceEndColumn: 0
     sourceEndLine: 1574
@@ -33717,7 +33717,7 @@ coordinates:
     sourceLine: 1
   SYM-zcode-case-mutated-workspace-paths:
     identityHash: 4fcb8d0af7920970b8a9ce6e449f4b209a81b7f6f339cb2f647c7ca6b34bd25d
-    sourceHash: 672d0590807170676d86f5796ca520497ab1163432b7635a3d17d227c0d3f15a
+    sourceHash: 57dc8f76ebebcdc326eb4dc8ca52157fa584bdfc6a71ad3c1cdb34c4b65f334a
     sourceColumn: 0
     sourceEndColumn: 0
     sourceEndLine: 1574
@@ -33749,7 +33749,7 @@ coordinates:
     sourceLine: 79
   SYM-zcode-case-session-state-isolation:
     identityHash: afc8a36af5ece6a2dd080a6b8004103b5bf4f517d388440e5beb4a8d0b2c24d3
-    sourceHash: 672d0590807170676d86f5796ca520497ab1163432b7635a3d17d227c0d3f15a
+    sourceHash: 57dc8f76ebebcdc326eb4dc8ca52157fa584bdfc6a71ad3c1cdb34c4b65f334a
     sourceColumn: 0
     sourceEndColumn: 0
     sourceEndLine: 1574
@@ -33765,7 +33765,7 @@ coordinates:
     sourceLine: 1
   SYM-zcode-case-unconfigured-workspace-silent:
     identityHash: f7e9b01fe9520f4fc007ed237f221cbe847c8fa8cb3c5c921b527b6ece858818
-    sourceHash: 672d0590807170676d86f5796ca520497ab1163432b7635a3d17d227c0d3f15a
+    sourceHash: 57dc8f76ebebcdc326eb4dc8ca52157fa584bdfc6a71ad3c1cdb34c4b65f334a
     sourceColumn: 0
     sourceEndColumn: 0
     sourceEndLine: 1574
