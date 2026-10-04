@@ -761,15 +761,27 @@ describe("discovery executors", () => {
         ).bootstrap?.nextAction,
       ).toBeDefined();
 
-      await expect(
-        executeStatus(
-          {},
-          context(root, {
-            branchAttachment: undefined,
-            git: undefined,
-          }),
-        ),
-      ).rejects.toThrow("Status execution failed");
+      const originalBranchOverride = process.env.KIBI_BRANCH;
+      try {
+        // This case requires no branch authority. Proof CI supplies an explicit
+        // override, which intentionally permits status outside a Git checkout.
+        Reflect.deleteProperty(process.env, "KIBI_BRANCH");
+        await expect(
+          executeStatus(
+            {},
+            context(root, {
+              branchAttachment: undefined,
+              git: undefined,
+            }),
+          ),
+        ).rejects.toThrow("Status execution failed");
+      } finally {
+        if (originalBranchOverride === undefined) {
+          Reflect.deleteProperty(process.env, "KIBI_BRANCH");
+        } else {
+          process.env.KIBI_BRANCH = originalBranchOverride;
+        }
+      }
     } finally {
       rmSync(root, { recursive: true, force: true });
     }
