@@ -1996,5 +1996,17 @@
         "./packages/cli/tests/commands/migrate-lifecycle.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-opencode-tool-telemetry-acceptance",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/opencode/tests/tool-telemetry-acceptance.test.ts"
+      ]
+    ]
   }
 ]

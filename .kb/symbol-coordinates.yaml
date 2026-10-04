@@ -32283,6 +32283,14 @@ coordinates:
     sourceEndLine: 202
     sourceFile: documentation/tests/e2e/packed/opencode-bootstrap-paths.test.ts
     sourceLine: 1
+  SYM-test-opencode-tool-telemetry-acceptance:
+    identityHash: 150ebe0c3dba9246bac61f59ac310c22fcdaedac63071bd590f6561976c4c88d
+    sourceHash: 3c18882b8f3785a8ad3aba2c07c8e9167762ecef13b48bb99d3e2557184572f0
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 287
+    sourceFile: packages/opencode/tests/tool-telemetry-acceptance.test.ts
+    sourceLine: 1
   SYM-test-owned-engine-cleanup:
     identityHash: a69ebb44c749a6728e1f4cacd3790c643159c5d33356e565b6557fb09e738bf4
     sourceHash: a8a921f266dce2a3c8836da243b71f3b6f205912069fb96b669cb7d7dfddd163

@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 149,
-  "proofProven": 149,
+  "currentRequirements": 157,
+  "proofProven": 157,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -76,11 +76,6 @@
       "gaps": [],
       "uncoveredSymbols": []
     },
-    "REQ-branch-store-recovery-v3": {
-      "proofStatus": "proven",
-      "gaps": [],
-      "uncoveredSymbols": []
-    },
     "REQ-capability-plugin-activation-disclosure-v1": {
       "proofStatus": "proven",
       "gaps": [],
@@ -117,11 +112,6 @@
       "uncoveredSymbols": []
     },
     "REQ-claude-code-kibi-plugin-v1": {
-      "proofStatus": "proven",
-      "gaps": [],
-      "uncoveredSymbols": []
-    },
-    "REQ-claude-hook-usage-telemetry": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []
@@ -311,11 +301,6 @@
       "gaps": [],
       "uncoveredSymbols": []
     },
-    "REQ-kibi-change-to-proof-plan-compiler": {
-      "proofStatus": "proven",
-      "gaps": [],
-      "uncoveredSymbols": []
-    },
     "REQ-kibi-conservative-requirement-proof": {
       "proofStatus": "proven",
       "gaps": [],
@@ -347,11 +332,6 @@
       "uncoveredSymbols": []
     },
     "REQ-kibi-env-bootstrap": {
-      "proofStatus": "proven",
-      "gaps": [],
-      "uncoveredSymbols": []
-    },
-    "REQ-kibi-fresh-verification-receipts": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []
@@ -432,11 +412,6 @@
       "uncoveredSymbols": []
     },
     "REQ-kibi-subject-vocabulary": {
-      "proofStatus": "proven",
-      "gaps": [],
-      "uncoveredSymbols": []
-    },
-    "REQ-kibi-telemetry-acceptance-gate": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []
@@ -736,17 +711,82 @@
       "gaps": [],
       "uncoveredSymbols": []
     },
-    "REQ-kibi-scenario-feasibility": {
-      "proofStatus": "proven",
-      "gaps": [],
-      "uncoveredSymbols": []
-    },
-    "REQ-kibi-search-answer-layer": {
-      "proofStatus": "proven",
-      "gaps": [],
-      "uncoveredSymbols": []
-    },
     "REQ-kibi-truthful-consistency": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-agent-core-edit-snippets": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-branch-store-recovery-v4": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-claude-hook-usage-telemetry-v2": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-core-engine-read-limits": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-change-to-proof-plan-compiler-v2": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-conditional-requirement-authoring": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-entity-origin": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-fresh-verification-receipts-v2": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-kb-lifecycle-integrity": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-legacy-migration-preview-v2": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-scenario-feasibility-v2": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-schema6-migration": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-search-answer-layer-v2": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-search-gold-set-gate": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-telemetry-acceptance-gate-v2": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []

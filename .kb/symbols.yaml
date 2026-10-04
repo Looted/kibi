@@ -47908,6 +47908,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-host-hook-usage-telemetry
+      - type: covered_by
+        target: TEST-opencode-tool-telemetry-acceptance
       - type: implements
         target: REQ-claude-hook-usage-telemetry-v2
   - id: SYM-opencode-recordOpencodeToolTelemetry
@@ -47921,6 +47923,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-host-hook-usage-telemetry
+      - type: covered_by
+        target: TEST-opencode-tool-telemetry-acceptance
       - type: implements
         target: REQ-claude-hook-usage-telemetry-v2
       - type: implements
@@ -48096,3 +48100,15 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-kibi-kb-lifecycle-integrity
+  - id: SYM-test-opencode-tool-telemetry-acceptance
+    title: OpenCode tool telemetry acceptance suite
+    status: active
+    sourceFile: packages/opencode/tests/tool-telemetry-acceptance.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T05:46:42.515Z
+    relationships:
+      - type: executable_for
+        target: TEST-opencode-tool-telemetry-acceptance
