@@ -293,3 +293,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8a02538b955d
+  - type: covered_by
+    from: SYM-reqcompiler-legacy-migration-batch
+    to: TEST-kibi-legacy-migration-preview-v2
+    created_at: 2026-10-04T04:18:36.348Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8483fcd18d3b

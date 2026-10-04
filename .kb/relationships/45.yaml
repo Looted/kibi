@@ -209,3 +209,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c5889b05923e
+  - type: validates
+    from: TEST-kibi-legacy-migration-preview-v2
+    to: SCEN-kibi-legacy-migration-preview-v2
+    created_at: 2026-10-04T04:17:42.755Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-41e79bf784f2

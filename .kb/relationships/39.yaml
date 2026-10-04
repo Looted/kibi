@@ -146,3 +146,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ba347f6d63c9
+  - type: covered_by
+    from: SYM-reqcompiler-semantic-source-field
+    to: TEST-kibi-legacy-migration-preview-v2
+    created_at: 2026-10-04T04:19:18.816Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b23643fb4a03

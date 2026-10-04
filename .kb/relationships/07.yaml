@@ -209,3 +209,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-55182065df3d
+  - type: covered_by
+    from: SYM-reqcompiler-mcp-coverage-result
+    to: TEST-kibi-legacy-migration-preview-v2
+    created_at: 2026-10-04T04:19:13.161Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fb2d27f21ab9

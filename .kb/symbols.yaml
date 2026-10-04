@@ -26224,6 +26224,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-legacy-migration-preview
+      - type: covered_by
+        target: TEST-kibi-legacy-migration-preview-v2
       - type: implements
         target: REQ-kibi-legacy-migration-preview-v2
   - id: SYM-mcp-handle-repair-plan-coverage
@@ -26511,11 +26513,12 @@ symbols:
     title: SemanticSourceField
     sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
     symbol_role: type-shape
+    status: active
     relationships:
-      - type: implements
-        target: REQ-kibi-legacy-migration-preview-v2
       - type: covered_by
         target: TEST-kibi-legacy-migration-preview-v2
+      - type: implements
+        target: REQ-kibi-legacy-migration-preview-v2
   - id: SYM-reqcompiler-diagnostic-mutation-fingerprint
     title: diagnosticMutationFingerprint
     sourceFile: packages/cli/src/public/diagnostic-usage.ts
@@ -26706,47 +26709,52 @@ symbols:
     title: LegacyMigrationPlanInput
     sourceFile: packages/cli/src/public/operations/legacy-migration-plan.ts
     symbol_role: type-shape
+    status: active
     relationships:
-      - type: implements
-        target: REQ-kibi-legacy-migration-preview-v2
       - type: covered_by
         target: TEST-kibi-legacy-migration-preview-v2
+      - type: implements
+        target: REQ-kibi-legacy-migration-preview-v2
   - id: SYM-reqcompiler-legacy-migration-predicate-candidate
     title: LegacyMigrationPredicateCandidate
     sourceFile: packages/cli/src/public/operations/legacy-migration-plan.ts
     symbol_role: type-shape
+    status: active
     relationships:
-      - type: implements
-        target: REQ-kibi-legacy-migration-preview-v2
       - type: covered_by
         target: TEST-kibi-legacy-migration-preview-v2
+      - type: implements
+        target: REQ-kibi-legacy-migration-preview-v2
   - id: SYM-reqcompiler-legacy-migration-proposition
     title: LegacyMigrationProposition
     sourceFile: packages/cli/src/public/operations/legacy-migration-plan.ts
     symbol_role: type-shape
+    status: active
     relationships:
-      - type: implements
-        target: REQ-kibi-legacy-migration-preview-v2
       - type: covered_by
         target: TEST-kibi-legacy-migration-preview-v2
+      - type: implements
+        target: REQ-kibi-legacy-migration-preview-v2
   - id: SYM-reqcompiler-legacy-migration-batch
     title: LegacyMigrationBatch
     sourceFile: packages/cli/src/public/operations/legacy-migration-plan.ts
     symbol_role: type-shape
+    status: active
     relationships:
-      - type: implements
-        target: REQ-kibi-legacy-migration-preview-v2
       - type: covered_by
         target: TEST-kibi-legacy-migration-preview-v2
+      - type: implements
+        target: REQ-kibi-legacy-migration-preview-v2
   - id: SYM-reqcompiler-legacy-migration-plan
     title: LegacyMigrationPlan
     sourceFile: packages/cli/src/public/operations/legacy-migration-plan.ts
     symbol_role: type-shape
+    status: active
     relationships:
-      - type: implements
-        target: REQ-kibi-legacy-migration-preview-v2
       - type: covered_by
         target: TEST-kibi-legacy-migration-preview-v2
+      - type: implements
+        target: REQ-kibi-legacy-migration-preview-v2
   - id: SYM-reqcompiler-repair-plan-repair
     title: RepairPlanRepair
     sourceFile: packages/cli/src/public/operations/repair-plan.ts
@@ -26810,28 +26818,30 @@ symbols:
     title: CoverageInput
     sourceFile: packages/cli/src/public/operations/specs/reporting.ts
     symbol_role: type-shape
+    status: active
     relationships:
-      - type: implements
-        target: REQ-kibi-dependency-ordered-repair-plan
-      - type: implements
-        target: REQ-kibi-legacy-migration-preview-v2
       - type: covered_by
         target: TEST-kibi-dependency-ordered-repair-plan
       - type: covered_by
         target: TEST-kibi-legacy-migration-preview-v2
+      - type: implements
+        target: REQ-kibi-dependency-ordered-repair-plan
+      - type: implements
+        target: REQ-kibi-legacy-migration-preview-v2
   - id: SYM-reqcompiler-coverage-payload
     title: CoveragePayload
     sourceFile: packages/cli/src/public/operations/specs/reporting.ts
     symbol_role: type-shape
+    status: active
     relationships:
-      - type: implements
-        target: REQ-kibi-dependency-ordered-repair-plan
-      - type: implements
-        target: REQ-kibi-legacy-migration-preview-v2
       - type: covered_by
         target: TEST-kibi-dependency-ordered-repair-plan
       - type: covered_by
         target: TEST-kibi-legacy-migration-preview-v2
+      - type: implements
+        target: REQ-kibi-dependency-ordered-repair-plan
+      - type: implements
+        target: REQ-kibi-legacy-migration-preview-v2
   - id: SYM-reqcompiler-workspace-snapshot-evidence
     title: WorkspaceSnapshotEvidence
     status: active
@@ -26981,28 +26991,30 @@ symbols:
     title: CoverageResult
     sourceFile: packages/mcp/src/tools/coverage.ts
     symbol_role: type-shape
+    status: active
     relationships:
-      - type: implements
-        target: REQ-kibi-dependency-ordered-repair-plan
-      - type: implements
-        target: REQ-kibi-legacy-migration-preview-v2
       - type: covered_by
         target: TEST-kibi-dependency-ordered-repair-plan
       - type: covered_by
         target: TEST-kibi-legacy-migration-preview-v2
+      - type: implements
+        target: REQ-kibi-dependency-ordered-repair-plan
+      - type: implements
+        target: REQ-kibi-legacy-migration-preview-v2
   - id: SYM-reqcompiler-mcp-coverage-args
     title: CoverageArgs
     sourceFile: packages/mcp/src/tools/coverage.ts
     symbol_role: type-shape
+    status: active
     relationships:
-      - type: implements
-        target: REQ-kibi-dependency-ordered-repair-plan
-      - type: implements
-        target: REQ-kibi-legacy-migration-preview-v2
       - type: covered_by
         target: TEST-kibi-dependency-ordered-repair-plan
       - type: covered_by
         target: TEST-kibi-legacy-migration-preview-v2
+      - type: implements
+        target: REQ-kibi-dependency-ordered-repair-plan
+      - type: implements
+        target: REQ-kibi-legacy-migration-preview-v2
   - id: SYM-reqcompiler-coverage-command
     title: coverageCommand
     sourceFile: packages/cli/src/commands/coverage.ts
@@ -38482,6 +38494,8 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-kibi-legacy-migration-preview
+      - type: executable_for
+        target: TEST-kibi-legacy-migration-preview-v2
   - id: SYM-e2e-test-root-batch-diagnostics
     title: root_batch_diagnostics
     status: active

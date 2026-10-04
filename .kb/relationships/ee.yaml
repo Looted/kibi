@@ -356,3 +356,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1e01eb6279a0
+  - type: covered_by
+    from: SYM-reqcompiler-legacy-migration-proposition
+    to: TEST-kibi-legacy-migration-preview-v2
+    created_at: 2026-10-04T04:19:00.631Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6567f70da141

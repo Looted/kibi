@@ -258,3 +258,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9fe1d1d6fed8
+  - type: executable_for
+    from: SYM-e2e-test-legacy-migration-plan
+    to: TEST-kibi-legacy-migration-preview-v2
+    created_at: 2026-10-04T04:17:45.518Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f420456297f2

@@ -482,3 +482,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bd1a0cfc39be
+  - type: covered_by
+    from: SYM-legacy-migration-plan-version
+    to: TEST-kibi-legacy-migration-preview-v2
+    created_at: 2026-10-04T04:18:08.293Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-506a5f72760b
