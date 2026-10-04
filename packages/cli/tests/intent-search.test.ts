@@ -40,6 +40,21 @@ describe("intent-v1 search ranking", () => {
     ]);
   });
 
+  test("ignores the frame of a 'what governs' question", async () => {
+    const result = await rankIntentEntities(
+      [
+        entity("REQ-UPLOAD-RESUME", "Incomplete video uploads can be resumed"),
+        entity("REQ-PLAYBACK", "Playback rules govern the video player", {
+          semantic_text: "Playback resumes once an upload finishes.",
+        }),
+      ],
+      { query: "what governs resuming a video upload?" },
+      workspaceRoot,
+      [],
+    );
+    expect(result.matches[0]?.entity.id).toBe("REQ-UPLOAD-RESUME");
+  });
+
   test("meets a question's verb with the entity's noun", async () => {
     const result = await rankIntentEntities(
       [

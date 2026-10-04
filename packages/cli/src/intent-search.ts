@@ -118,7 +118,10 @@ const FACET_NAMES: readonly IntentSearchFacetName[] = [
 
 // Function words and question scaffolding carry no domain signal. Without
 // them, "how should kibi handle a detached HEAD?" scores on "detached" and
-// "head" rather than on how many entities mention "should".
+// "head" rather than on how many entities mention "should". The frame of the
+// questions kb_search invites ("what governs X?", "what must stay true when
+// X?") is scaffolding too: entries are stemmed forms, so "govern" also drops
+// "governs", "governing" and "governed".
 const STOP_WORDS = new Set([
   "a",
   "about",
@@ -137,6 +140,7 @@ const STOP_WORDS = new Set([
   "does",
   "for",
   "from",
+  "govern",
   "happen",
   "happens",
   "how",
@@ -148,6 +152,7 @@ const STOP_WORDS = new Set([
   "it",
   "its",
   "me",
+  "must",
   "my",
   "of",
   "on",
@@ -155,6 +160,7 @@ const STOP_WORDS = new Set([
   "our",
   "should",
   "so",
+  "stay",
   "tell",
   "than",
   "that",
@@ -168,6 +174,7 @@ const STOP_WORDS = new Set([
   "this",
   "those",
   "to",
+  "true",
   "us",
   "was",
   "we",

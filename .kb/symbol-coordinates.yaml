@@ -14717,15 +14717,15 @@ coordinates:
     sourceLine: 4
   SYM-kibi-cli-src-intent-search-ts-executeintentsearch:
     identityHash: f5bde2dc1e4cb9d8784e066dcf3c66b6cf2d75c1d6636ed126d3d73201228e57
-    sourceHash: 3716e7dce71c5ec77b6ec33000b9f8fdc1bc617302a79077949f4feaee615d58
+    sourceHash: 172b762dd9a9e95a4948a65afef53c5053d32b041296c5aae5d7fb4edb05ca68
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 842
+    sourceEndLine: 849
     sourceFile: packages/cli/src/intent-search.ts
-    sourceLine: 786
+    sourceLine: 793
   SYM-kibi-cli-src-intent-search-ts-intentgraphpath:
     identityHash: 987239811362a67ee03734407e7b990942867fa3337e6f9d41dc702e9e4f343c
-    sourceHash: 3716e7dce71c5ec77b6ec33000b9f8fdc1bc617302a79077949f4feaee615d58
+    sourceHash: 172b762dd9a9e95a4948a65afef53c5053d32b041296c5aae5d7fb4edb05ca68
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 58
@@ -14733,7 +14733,7 @@ coordinates:
     sourceLine: 54
   SYM-kibi-cli-src-intent-search-ts-intentsearchanalysis:
     identityHash: abca443012af4c63df0251404a16d4ae895cae34fc76d892b6e7609756ae5212
-    sourceHash: 3716e7dce71c5ec77b6ec33000b9f8fdc1bc617302a79077949f4feaee615d58
+    sourceHash: 172b762dd9a9e95a4948a65afef53c5053d32b041296c5aae5d7fb4edb05ca68
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 83
@@ -14741,7 +14741,7 @@ coordinates:
     sourceLine: 75
   SYM-kibi-cli-src-intent-search-ts-intentsearchevidence:
     identityHash: c3a014f237e54be2f29358f5c474de0bb31fd3619c41a2b530dbf2f9ee47bd61
-    sourceHash: 3716e7dce71c5ec77b6ec33000b9f8fdc1bc617302a79077949f4feaee615d58
+    sourceHash: 172b762dd9a9e95a4948a65afef53c5053d32b041296c5aae5d7fb4edb05ca68
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 67
@@ -14749,7 +14749,7 @@ coordinates:
     sourceLine: 61
   SYM-kibi-cli-src-intent-search-ts-intentsearchfacetname:
     identityHash: 07d6c7d5fdcd045789120a50f923f96ec8a18db4289875a965d358aa73f83972
-    sourceHash: 3716e7dce71c5ec77b6ec33000b9f8fdc1bc617302a79077949f4feaee615d58
+    sourceHash: 172b762dd9a9e95a4948a65afef53c5053d32b041296c5aae5d7fb4edb05ca68
     sourceColumn: 12
     sourceEndColumn: 14
     sourceEndLine: 22
@@ -14757,7 +14757,7 @@ coordinates:
     sourceLine: 17
   SYM-kibi-cli-src-intent-search-ts-intentsearchfacets:
     identityHash: dcf39a0deaa94992e4fc14a99345cb62a6d3d0e6b03561465738e0640f33b97d
-    sourceHash: 3716e7dce71c5ec77b6ec33000b9f8fdc1bc617302a79077949f4feaee615d58
+    sourceHash: 172b762dd9a9e95a4948a65afef53c5053d32b041296c5aae5d7fb4edb05ca68
     sourceColumn: 12
     sourceEndColumn: 2
     sourceEndLine: 27
@@ -14765,7 +14765,7 @@ coordinates:
     sourceLine: 25
   SYM-kibi-cli-src-intent-search-ts-intentsearchmatch:
     identityHash: 894d57ac23950ce149b421443e4c305aa4e862a1e5870d75ec94eacdceb05e7f
-    sourceHash: 3716e7dce71c5ec77b6ec33000b9f8fdc1bc617302a79077949f4feaee615d58
+    sourceHash: 172b762dd9a9e95a4948a65afef53c5053d32b041296c5aae5d7fb4edb05ca68
     sourceColumn: 12
     sourceEndColumn: 2
     sourceEndLine: 72
@@ -14773,7 +14773,7 @@ coordinates:
     sourceLine: 70
   SYM-kibi-cli-src-intent-search-ts-intentsearchoptions:
     identityHash: 69e774bae203df2d7f6e3521fc75b25d2a86e33f790eab308e2c60ce095e21e4
-    sourceHash: 3716e7dce71c5ec77b6ec33000b9f8fdc1bc617302a79077949f4feaee615d58
+    sourceHash: 172b762dd9a9e95a4948a65afef53c5053d32b041296c5aae5d7fb4edb05ca68
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 44
@@ -14781,7 +14781,7 @@ coordinates:
     sourceLine: 38
   SYM-kibi-cli-src-intent-search-ts-intentsearchresult:
     identityHash: c9cefe22d9d2e70b977261888ad020e28e732b520b32d84f6dd23d47edfaae05
-    sourceHash: 3716e7dce71c5ec77b6ec33000b9f8fdc1bc617302a79077949f4feaee615d58
+    sourceHash: 172b762dd9a9e95a4948a65afef53c5053d32b041296c5aae5d7fb4edb05ca68
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 89
@@ -14789,7 +14789,7 @@ coordinates:
     sourceLine: 86
   SYM-kibi-cli-src-intent-search-ts-intentsourcematch:
     identityHash: bd470ac1ee85aa3091335f10d214123c8dc0c2ca9c0a2fb8123dc660f7f68b41
-    sourceHash: 3716e7dce71c5ec77b6ec33000b9f8fdc1bc617302a79077949f4feaee615d58
+    sourceHash: 172b762dd9a9e95a4948a65afef53c5053d32b041296c5aae5d7fb4edb05ca68
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 51
@@ -14797,15 +14797,15 @@ coordinates:
     sourceLine: 47
   SYM-kibi-cli-src-intent-search-ts-rankintententities:
     identityHash: ab55c4b44d14e7bb691a388e11d2fc3f6e67b8772c003262ad586552c3f1d8ff
-    sourceHash: 3716e7dce71c5ec77b6ec33000b9f8fdc1bc617302a79077949f4feaee615d58
+    sourceHash: 172b762dd9a9e95a4948a65afef53c5053d32b041296c5aae5d7fb4edb05ca68
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 663
+    sourceEndLine: 670
     sourceFile: packages/cli/src/intent-search.ts
-    sourceLine: 555
+    sourceLine: 562
   SYM-kibi-cli-src-intent-search-ts-sourcelocation:
     identityHash: fc1f15d53eba2cc28c159e0cfad1f8c4ae2c26445113c03185404657fff83249
-    sourceHash: 3716e7dce71c5ec77b6ec33000b9f8fdc1bc617302a79077949f4feaee615d58
+    sourceHash: 172b762dd9a9e95a4948a65afef53c5053d32b041296c5aae5d7fb4edb05ca68
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 35
@@ -14813,12 +14813,12 @@ coordinates:
     sourceLine: 30
   SYM-kibi-cli-src-intent-search-ts-validateintentsearchinput:
     identityHash: 9628284159b45503f17f477ad5437d973e8b66a2495a6ded677bdc5c94f88d1e
-    sourceHash: 3716e7dce71c5ec77b6ec33000b9f8fdc1bc617302a79077949f4feaee615d58
+    sourceHash: 172b762dd9a9e95a4948a65afef53c5053d32b041296c5aae5d7fb4edb05ca68
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 887
+    sourceEndLine: 894
     sourceFile: packages/cli/src/intent-search.ts
-    sourceLine: 845
+    sourceLine: 852
   SYM-kibi-cli-src-operations-planning-apply-plan-ts-applyplanargs:
     identityHash: 126bfde084caf98600f3321edc5fb8cbe8eb6ecfaa259728c98f3885e1be2368
     sourceHash: d2eb5433aa9a37fe939e2f34c4fdc232bd5df23c34ef15c42cd75c538058c524
@@ -31853,7 +31853,7 @@ coordinates:
     sourceLine: 19
   SYM-test-kibi-intent-aware-source-discovery:
     identityHash: 53700bb0c1a499e6000367cc027987bf4678e57a09998d021428b9c77dba8638
-    sourceHash: 5e030b4cedde446313ecb6c96dd90bb8b743a0d96f4df23a642fe694cc2c1b74
+    sourceHash: 847090bc5c36061a69ca502bec529b0ceea49ccf82b34a16e9fe03d3afbb3f44
     sourceColumn: 9
     sourceEndColumn: 1
     sourceEndLine: 23
