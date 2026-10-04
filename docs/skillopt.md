@@ -208,11 +208,12 @@ down a fresh seeded KB. Its `fixture-readiness.json` receipt captures setup
 failures without model usage; it does not guarantee later cells cannot fail.
 
 ```bash
-bun run skillopt:screen --allow-paid --skill kibi-usage --candidate-hash <SHA256-A> --candidate-hash <SHA256-B> --repeats 2 --max-cells 24
+bun run skillopt:screen --allow-paid --skill kibi-usage --candidate-hash <SHA256-A> --candidate-hash <SHA256-B> --repeats 2 --max-cells 30
 ```
 
-The example reserves 24 target episodes: baseline plus two candidates, four
-public development tasks, and two repetitions. A fresh canary adds at most two
+The example reserves 30 target episodes: baseline plus two candidates, five
+public development tasks (four core families plus the supplemental family),
+and two repetitions. `kibi-bootstrap` has no supplemental family and keeps four. A fresh canary adds at most two
 model invocations. `--max-cells` limits target episodes, not provider-internal
 turns or dollars; token usage is preserved from episode receipts. Model failures
 stop the stage without automatic retries. The command does not generate a new
@@ -259,6 +260,50 @@ Each accepted one-shot or iterative response is copied to `accepted-output/candi
 The outer trainer deadline is derived from the internal four-case baseline selection, all 12 target cells per requested round, one optimizer allowance per round, and startup grace. A four-round run therefore cannot be cut off by the old fixed 15-minute `uv` deadline; an actual outer timeout is reported as a structured training infrastructure no-go with its diagnostic path.
 
 Diagnostic reconciliation is the multiset of successful model-originated Kibi calls. When the model makes no Kibi call, the matching usage-receipt multiset is legitimately empty and the missing required call is scored as a behavioral protocol failure. A non-empty successful-call multiset without matching usage receipts remains an infrastructure no-go.
+
+### Reasoning cases and evidence lanes
+
+Each of `kibi-usage`, `kibi-freshness` and `kibi-traceability` has a fifth,
+supplemental task family next to its four core families: `intent-consult`
+(governing intent, abstention, observation versus policy, agent-origin
+provenance), `consistency-report` (incomplete versus complete contradiction
+analysis) and `scenario-feasibility` (a success scenario that a precondition
+forbids, before and after a human exception approval, and a rejection
+scenario). Each family has two training, one development and four held-out
+tasks. Campaign `evaluate`/`confirm` and `skillopt:screen` use all families.
+The legacy `skillopt:optimize` trainer (eight training trajectories) and the
+16-task held-out aggregate gates keep the four core families.
+
+These cases start from deterministic seeded stores built by the real CLI:
+`seeded_governed_area_kb` (a closed requirement superseded by a current one,
+its rationale ADR, an observation fact, a passing test and a symbol still
+linked to the old requirement), `seeded_precondition_kb` (a compiled
+call-quota precondition with a zero-quota fact and a rejection scenario) and
+`seeded_consistency_kb` (one requirement with an unmodeled clause and a fully
+modeled compatible pair). Each setup must end with a clean check and fresh
+status before a target episode starts.
+
+The evaluator reads three lanes beside the independent final-state queries:
+
+- **Final answer.** The target's output schema requires an `answer` string. The
+  evaluator takes the last agent message, parses a fenced `kibi-answer` JSON
+  block (`verdict`, `governing`, `conflict`, `unknowns`, `nextStep`, optional
+  `proof`) and falls back to a regex reading when the block is missing.
+  Answer-scored prompts end with a format instruction that lists every verdict
+  value, so the format cannot hint at the expected one. Closeout prose signals
+  read this answer together with the final KB state.
+- **Ordering.** From the Codex transcript: the index of the first `kb_search`,
+  the first file change or patch, and the number of Kibi calls before that edit.
+- **Workspace assertions.** Regex assertions over the final `src/` files
+  (recorded as `final-workspace-src.json`), scored as critical final-state
+  entries such as `workspace-assert-governing-rule-preserved`.
+
+`protocolContract.requiredCalls[].args` are enforced as subset predicates: an
+object matches when every listed field matches, and an array matches when every
+listed element matches some actual element. For example,
+`{"sourceLocations":[{"path":"src/fixture.ts"}]}` requires a lookup located on
+that file, and `{"rules":["domain-contradictions"]}` requires that rule among
+the checked rules.
 
 ## Artifact layout
 

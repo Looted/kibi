@@ -67,7 +67,10 @@ bun scripts/skillopt-eval/campaign.ts compose \
 `evaluate` accepts one to three candidate manifest files. The baseline is
 loaded automatically from the current source. Both limits are explicit:
 `--repeats` is 1..3 and `--max-target-episodes` is 1..256, and the latter must
-cover the complete baseline-plus-candidate development matrix.
+cover the complete baseline-plus-candidate development matrix. The matrix is
+repeats x (candidates + 1) x development tasks; `kibi-usage`,
+`kibi-freshness` and `kibi-traceability` have five development tasks (four
+core families plus one supplemental family), `kibi-bootstrap` has four.
 
 ```text
 bun scripts/skillopt-eval/campaign.ts evaluate \
