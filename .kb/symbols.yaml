@@ -48531,7 +48531,11 @@ symbols:
       recorded_at: 2026-10-04T17:42:45.683Z
     relationships:
       - type: covered_by
+        target: TEST-e2e-root-batch-diagnostics
+      - type: covered_by
         target: TEST-root-suite-batch-diagnostics
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
       - type: implements
         target: REQ-root-suite-batch-diagnostics
       - type: implements

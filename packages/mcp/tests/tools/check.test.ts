@@ -1269,7 +1269,7 @@ describe("MCP Check Tool Handler", () => {
     expect(violation).toBeUndefined();
   }, 15000);
 
-  test("should report explicit strict-fact-shape findings as quality diagnostics even when leftover config disables it", async () => {
+  test("should report explicit strict-fact-shape findings as violations even when leftover config disables it", async () => {
     await fs.mkdir(path.join(testKbPath, ".kb"), { recursive: true });
     await fs.writeFile(
       path.join(testKbPath, ".kb", "config.json"),
@@ -1306,14 +1306,13 @@ describe("MCP Check Tool Handler", () => {
         "FACT-CHECK-STRICT-001",
       );
 
-      expect(result.structuredContent?.count).toBe(0);
+      expect(result.structuredContent?.count).toBe(1);
       expect(
         result.structuredContent?.violations.find(
           (v) => v.rule === "strict-fact-shape",
         ),
-      ).toBeUndefined();
-      expect(diagnostic).toBeDefined();
-      expect(diagnostic?.blocking).toBe(false);
+      ).toEqual(expect.objectContaining({ entityId: "FACT-CHECK-STRICT-001" }));
+      expect(diagnostic).toBeUndefined();
     } finally {
       await prolog.query("kb_detach");
       const reattachResult = await prolog.query(`kb_attach('${testKbPath}')`);

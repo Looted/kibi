@@ -65,7 +65,7 @@ describe("MCP check aggregated path", () => {
     expect(firstCallGoal).toContain("check_all_json_with_options");
   });
 
-  test("should include strict-fact-shape quality diagnostics when returned from aggregated checks", async () => {
+  test("should include strict-fact-shape violations when returned from aggregated checks", async () => {
     const query = mock(async (goal: string) => {
       if (goal.includes("check_all_json_with_options")) {
         return {
@@ -104,10 +104,14 @@ describe("MCP check aggregated path", () => {
         item.id === "rule.strict-fact-shape" &&
         item.entityId === "FACT-MALFORMED-001",
     );
-    expect(result.structuredContent?.count).toBe(0);
-    expect(result.structuredContent?.violations).toEqual([]);
-    expect(diagnostic).toBeDefined();
-    expect(diagnostic?.blocking).toBe(false);
+    expect(result.structuredContent?.count).toBe(1);
+    expect(result.structuredContent?.violations).toEqual([
+      expect.objectContaining({
+        rule: "strict-fact-shape",
+        entityId: "FACT-MALFORMED-001",
+      }),
+    ]);
+    expect(diagnostic).toBeUndefined();
     expect(result.content[0]?.text).toContain("strict-fact-shape");
     expect(result.content[0]?.text).toContain("FACT-MALFORMED-001");
   });
