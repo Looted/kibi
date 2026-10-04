@@ -21525,10 +21525,10 @@ coordinates:
     sourceLine: 30
   SYM-quality-maintenance-roundtrip-tests:
     identityHash: b3513c18636c88d2168efeb894340be61f76b6a1437d3ff74faa4bc5044b1a39
-    sourceHash: 8371ff656f8fa8125e9868d4643dd35fa69dd2c541bcd6c6e2577a43d5047c2c
+    sourceHash: cc853535e7b3248b82578fe444ce4a9971bb276d97584f359a883c87eaf5b6ba
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 437
+    sourceEndLine: 452
     sourceFile: packages/cli/tests/commands/proof-maintenance-in-process.test.ts
     sourceLine: 1
   SYM-quality-maintenance-wrapper-tests:
