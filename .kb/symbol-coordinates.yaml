@@ -33677,34 +33677,34 @@ coordinates:
     sourceLine: 11
   SYM-zcode-case-advisory-hooks:
     identityHash: 9f0ab2d8b7f70f6c3f5a630e213488dd0556bbafa55951a938543e82fa32aed3
-    sourceHash: 57dc8f76ebebcdc326eb4dc8ca52157fa584bdfc6a71ad3c1cdb34c4b65f334a
+    sourceHash: f7a467feb093ea7ebbbfeef82d97a8a00d1ee3cb0291ceb74500587088a9bcca
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 1574
+    sourceEndLine: 1575
     sourceFile: packages/zcode/tests/hook-runner.test.ts
     sourceLine: 1
   SYM-zcode-case-canonicalize-check-source-files:
     identityHash: 16c1211147647c78ef96ecb3e2102a8910719d83deb3117064b2abe0378baa19
-    sourceHash: 57dc8f76ebebcdc326eb4dc8ca52157fa584bdfc6a71ad3c1cdb34c4b65f334a
+    sourceHash: f7a467feb093ea7ebbbfeef82d97a8a00d1ee3cb0291ceb74500587088a9bcca
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 1574
+    sourceEndLine: 1575
     sourceFile: packages/zcode/tests/hook-runner.test.ts
     sourceLine: 1
   SYM-zcode-case-canonicalize-workspace-path:
     identityHash: 07d297e416e44c811ecf74e52fb351d7660dd296ff12eed7b6bf2f60e0db025f
-    sourceHash: 57dc8f76ebebcdc326eb4dc8ca52157fa584bdfc6a71ad3c1cdb34c4b65f334a
+    sourceHash: f7a467feb093ea7ebbbfeef82d97a8a00d1ee3cb0291ceb74500587088a9bcca
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 1574
+    sourceEndLine: 1575
     sourceFile: packages/zcode/tests/hook-runner.test.ts
     sourceLine: 1
   SYM-zcode-case-hooks-no-kb-mutation:
     identityHash: 5d9e2043dddbf562b8407de4cb12680a3e4632f5089349ac6353b0c7388e1863
-    sourceHash: 57dc8f76ebebcdc326eb4dc8ca52157fa584bdfc6a71ad3c1cdb34c4b65f334a
+    sourceHash: f7a467feb093ea7ebbbfeef82d97a8a00d1ee3cb0291ceb74500587088a9bcca
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 1574
+    sourceEndLine: 1575
     sourceFile: packages/zcode/tests/hook-runner.test.ts
     sourceLine: 1
   SYM-zcode-case-manual-mcp-fallback:
@@ -33717,10 +33717,10 @@ coordinates:
     sourceLine: 1
   SYM-zcode-case-mutated-workspace-paths:
     identityHash: 4fcb8d0af7920970b8a9ce6e449f4b209a81b7f6f339cb2f647c7ca6b34bd25d
-    sourceHash: 57dc8f76ebebcdc326eb4dc8ca52157fa584bdfc6a71ad3c1cdb34c4b65f334a
+    sourceHash: f7a467feb093ea7ebbbfeef82d97a8a00d1ee3cb0291ceb74500587088a9bcca
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 1574
+    sourceEndLine: 1575
     sourceFile: packages/zcode/tests/hook-runner.test.ts
     sourceLine: 1
   SYM-zcode-case-optional-package-contract:
@@ -33749,10 +33749,10 @@ coordinates:
     sourceLine: 79
   SYM-zcode-case-session-state-isolation:
     identityHash: afc8a36af5ece6a2dd080a6b8004103b5bf4f517d388440e5beb4a8d0b2c24d3
-    sourceHash: 57dc8f76ebebcdc326eb4dc8ca52157fa584bdfc6a71ad3c1cdb34c4b65f334a
+    sourceHash: f7a467feb093ea7ebbbfeef82d97a8a00d1ee3cb0291ceb74500587088a9bcca
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 1574
+    sourceEndLine: 1575
     sourceFile: packages/zcode/tests/hook-runner.test.ts
     sourceLine: 1
   SYM-zcode-case-shipped-plugin-payload:
@@ -33765,10 +33765,10 @@ coordinates:
     sourceLine: 1
   SYM-zcode-case-unconfigured-workspace-silent:
     identityHash: f7e9b01fe9520f4fc007ed237f221cbe847c8fa8cb3c5c921b527b6ece858818
-    sourceHash: 57dc8f76ebebcdc326eb4dc8ca52157fa584bdfc6a71ad3c1cdb34c4b65f334a
+    sourceHash: f7a467feb093ea7ebbbfeef82d97a8a00d1ee3cb0291ceb74500587088a9bcca
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 1574
+    sourceEndLine: 1575
     sourceFile: packages/zcode/tests/hook-runner.test.ts
     sourceLine: 1
   SYM-zcode-clearDirtyPaths:

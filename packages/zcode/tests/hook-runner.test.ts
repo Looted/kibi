@@ -283,7 +283,7 @@ describe("ZCode hook runner workspace opt-in", () => {
     }
   });
 
-  test("hook events never mutate .kb contents when telemetry is disabled", async () => {
+  test("hook events never mutate .kb contents", async () => {
     const { cwd, pluginData } = workspaceFixture("kibi-zcode-kb-snapshot");
     const requirementPath = path.join(cwd, ".kb", "requirements", "REQ-1.md");
     fs.mkdirSync(path.dirname(requirementPath), { recursive: true });
@@ -312,6 +312,7 @@ describe("ZCode hook runner workspace opt-in", () => {
       { hook_event_name: "Stop" as const },
     ];
 
+    // Exercise the disabled-telemetry contract regardless of operator opt-in.
     for (const event of events) {
       await runHook(
         { ...event, session_id: "kb-snapshot-session", cwd },
