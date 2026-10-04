@@ -39,6 +39,7 @@ describe("SkillOpt versioned contracts", () => {
         "from pathlib import Path; from tools.skillopt.kibi_skillopt import RunLock; p=Path('scripts/skillopt-eval/tests/fixtures/valid-run-lock.json'); print(RunLock.model_validate_json(p.read_text()).model_dump_json(by_alias=True))",
       ],
       cwd: repoRoot,
+      env: { ...process.env },
     });
 
     expect(python.exitCode).toBe(0);

@@ -16,6 +16,11 @@ depending on a particular operator's session or cache layout.
 | Bubblewrap | `bwrap --version` | Required for the isolated Codex capability canary and cell sandboxes. |
 | Clean source worktree | `git status --porcelain` must be empty | Paid optimize preflight rejects dirty trees (`source_not_clean`). |
 
+Run `bun run test:skillopt` before paid work. Its test-only preload isolates the
+offline fixtures' historical model pins from exported campaign settings. It
+does not change the operator environment or the model pins of paid commands;
+the model-configuration tests still exercise explicit overrides and mismatches.
+
 ## Trust-plane scope
 
 **Primary path for improving the bundled skills:** authenticated Codex CLI SkillOpt. Select one of `kibi-usage`, `kibi-freshness`, `kibi-traceability`, or `kibi-bootstrap`; use the bundle suite for assembled acceptance. The scripts verify the pin, confirm the Codex login, and run the paid pipeline. `prepareExistingLogin` only mirrors that operator-owned session into a private Codex home; it does not provision credentials.
