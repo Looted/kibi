@@ -153,3 +153,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8de73161c4d4
+  - type: implements
+    from: SYM-skillopt-answer-contract
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-10-04T12:49:55.706Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-44e8802d91e9
+  - type: covered_by
+    from: SYM-skillopt-answer-contract
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-10-04T12:49:55.741Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dc0608ac0da3

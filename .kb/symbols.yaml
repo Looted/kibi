@@ -48294,3 +48294,107 @@ symbols:
         target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-kibi-mcp-tool-consolidation
+  - id: SYM-skillopt-answer-contract
+    title: KibiAnswer
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/transcript-evidence.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T12:49:54.051Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-answer-verdicts
+    title: KIBI_ANSWER_VERDICTS
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/transcript-evidence.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T12:50:00.447Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-final-answer-contract
+    title: FinalAnswerEvidence
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/transcript-evidence.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T12:50:06.431Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-final-answer
+    title: finalAnswerEvidence
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/transcript-evidence.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T12:50:11.977Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-last-agent-message
+    title: lastAgentMessage
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/transcript-evidence.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T12:50:17.236Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-ordering-contract
+    title: TranscriptOrdering
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/transcript-evidence.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T12:50:22.453Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-parse-answer
+    title: parseKibiAnswer
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/transcript-evidence.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T12:50:27.668Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-transcript-ordering
+    title: transcriptOrdering
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/transcript-evidence.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T12:50:32.658Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization

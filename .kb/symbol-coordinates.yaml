@@ -24203,6 +24203,22 @@ coordinates:
     sourceEndLine: 34
     sourceFile: scripts/skillopt-eval/catalog.ts
     sourceLine: 27
+  SYM-skillopt-answer-contract:
+    identityHash: c42a3d8e8ac5f69131238c5e700fd0466b6cc59095f9655bf8f37301269a0d99
+    sourceHash: 4f78675f36045b1d866c67c2eab7f735e20d18392cecad0a3f1ade51baeeab39
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 36
+    sourceFile: scripts/skillopt-eval/runtime/transcript-evidence.ts
+    sourceLine: 26
+  SYM-skillopt-answer-verdicts:
+    identityHash: 6f8c16cc51a5396f986befa6de205c2b00b2d88e4498f740e1251dace4e5f8a1
+    sourceHash: 4f78675f36045b1d866c67c2eab7f735e20d18392cecad0a3f1ade51baeeab39
+    sourceColumn: 13
+    sourceEndColumn: 10
+    sourceEndLine: 23
+    sourceFile: scripts/skillopt-eval/runtime/transcript-evidence.ts
+    sourceLine: 14
   SYM-skillopt-approval-phase-type:
     identityHash: dd8408d77b1d2aa0c6e04613faff9ba9d31ff205557c0e2836fa81a49b6b4b24
     sourceHash: e7878667b4fe581a869327d4ae97719001dc6c429995965e7102f453610509b7
@@ -26571,6 +26587,22 @@ coordinates:
     sourceEndLine: 66
     sourceFile: scripts/skillopt-eval/runtime/mcp-broker.ts
     sourceLine: 43
+  SYM-skillopt-final-answer:
+    identityHash: 8861031b133971d8b2d8bbefb4f0fa4ea6bf5d49bba1abb8139d2bb781f5c64d
+    sourceHash: 4f78675f36045b1d866c67c2eab7f735e20d18392cecad0a3f1ade51baeeab39
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 236
+    sourceFile: scripts/skillopt-eval/runtime/transcript-evidence.ts
+    sourceLine: 233
+  SYM-skillopt-final-answer-contract:
+    identityHash: 385bf4628dcf3d96d0413ebea78be46a4fa671808a0abb0f4a99998a36577cbb
+    sourceHash: 4f78675f36045b1d866c67c2eab7f735e20d18392cecad0a3f1ade51baeeab39
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 43
+    sourceFile: scripts/skillopt-eval/runtime/transcript-evidence.ts
+    sourceLine: 39
   SYM-skillopt-final-state-context-type:
     identityHash: c4c7fefffce9bf3867fb90c140c1e083e21d41ba735b292121da43d22453d7e7
     sourceHash: 87b13a54742f7f0d7c76c66ca16bd98ce60d888482213a6367f2eb6e00baf632
@@ -27251,6 +27283,14 @@ coordinates:
     sourceEndLine: 24
     sourceFile: scripts/skillopt-eval/catalog.ts
     sourceLine: 24
+  SYM-skillopt-last-agent-message:
+    identityHash: c1de58d579916bcc63633fa3bba23bc091fbd2ef9cf575de03c46d2975196676
+    sourceHash: 4f78675f36045b1d866c67c2eab7f735e20d18392cecad0a3f1ade51baeeab39
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 123
+    sourceFile: scripts/skillopt-eval/runtime/transcript-evidence.ts
+    sourceLine: 116
   SYM-skillopt-load-canonical-snapshot:
     identityHash: 0890c97446990b1299d6bdb8c840acc3bc80b645a7ec201c68d9f4751ee419a5
     sourceHash: 23943cdbec5914537eeff7754ea1b28769302338e51ced2dba1db6c50bdef80a
@@ -27643,6 +27683,14 @@ coordinates:
     sourceEndLine: 364
     sourceFile: scripts/skillopt-eval/optimize.ts
     sourceLine: 212
+  SYM-skillopt-ordering-contract:
+    identityHash: c1cf481c596f7e547f75587f3da6d9f367eb507435e9872d3c4253c4899ed264
+    sourceHash: 4f78675f36045b1d866c67c2eab7f735e20d18392cecad0a3f1ade51baeeab39
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 55
+    sourceFile: scripts/skillopt-eval/runtime/transcript-evidence.ts
+    sourceLine: 46
   SYM-skillopt-paid-launch-evidence-tests:
     identityHash: 6bd883a4ddd6c1a74bc9ad095e92050a2eb445aa4fb3ffdfc1a15e1e56970bef
     sourceHash: 70c04c10172ff6e6d77145c587e808da10e03164c536b5a0dbe74f01ec01845a
@@ -27659,6 +27707,14 @@ coordinates:
     sourceEndLine: 14
     sourceFile: scripts/skillopt-eval/tests/paid-launch-receipts.test.ts
     sourceLine: 14
+  SYM-skillopt-parse-answer:
+    identityHash: 2d9e247445fd4f134d8c63861d96f5fec72b543e6aed17bfc987922fe2d8c7a1
+    sourceHash: 4f78675f36045b1d866c67c2eab7f735e20d18392cecad0a3f1ade51baeeab39
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 230
+    sourceFile: scripts/skillopt-eval/runtime/transcript-evidence.ts
+    sourceLine: 228
   SYM-skillopt-parse-debit-subentry-receipt:
     identityHash: 7052aed628882db595a1c13e2c0a9280cda3ba62cb15778fca54800406d00938
     sourceHash: f15073bae892ef8a2021b19620af3c02ba53bbb14206cf7bc91a63a226113e82
@@ -30363,6 +30419,14 @@ coordinates:
     sourceEndLine: 268
     sourceFile: scripts/skillopt-eval/tests/training-setup.test.ts
     sourceLine: 1
+  SYM-skillopt-transcript-ordering:
+    identityHash: 7abaf354b1ff134bc7ab253cb179fade559b873e5446dd4beafcc5ab58055e8b
+    sourceHash: 4f78675f36045b1d866c67c2eab7f735e20d18392cecad0a3f1ade51baeeab39
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 360
+    sourceFile: scripts/skillopt-eval/runtime/transcript-evidence.ts
+    sourceLine: 314
   SYM-skillopt-validate-approval:
     identityHash: d88517a3ef0d60236dfe57d03f058afb9afb07fb71d0f130d68f9a13d7f7847c
     sourceHash: e7149e229f2be769a72b893da8ff850a3596c963819b2b8ea5edc07cc60476aa

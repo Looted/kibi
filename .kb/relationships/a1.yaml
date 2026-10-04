@@ -300,3 +300,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8483fcd18d3b
+  - type: implements
+    from: SYM-skillopt-final-answer-contract
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-10-04T12:50:07.693Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e6db4ab9c8d2
+  - type: covered_by
+    from: SYM-skillopt-final-answer-contract
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-10-04T12:50:07.723Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-92daf78700ce
