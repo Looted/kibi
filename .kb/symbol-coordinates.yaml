@@ -29517,7 +29517,7 @@ coordinates:
     sourceLine: 23
   SYM-skillopt-runtime-model-canary-context:
     identityHash: 0b92389be72d7bb4fe3836690bcb2762a800bc3553b4fbca7fdba1ad3c356b5b
-    sourceHash: fa541baf748b8cfbba0cfa0ca2883f319cc94ffa95686fd5a2bef43fa96e5d4c
+    sourceHash: a5fea2386da65cc0dfe886830b45a961aa76cea08db063974d3e72c122da43aa
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 70
@@ -29525,7 +29525,7 @@ coordinates:
     sourceLine: 59
   SYM-skillopt-runtime-model-canary-result:
     identityHash: 3b521a2acad6481d26e5622b8636ea93a09ac976da80065559f304c71f795437
-    sourceHash: fa541baf748b8cfbba0cfa0ca2883f319cc94ffa95686fd5a2bef43fa96e5d4c
+    sourceHash: a5fea2386da65cc0dfe886830b45a961aa76cea08db063974d3e72c122da43aa
     sourceColumn: 12
     sourceEndColumn: 7
     sourceEndLine: 57
@@ -29717,7 +29717,7 @@ coordinates:
     sourceLine: 78
   SYM-skillopt-runtime-run-model-canary:
     identityHash: 106fb022bb130ebc2a844a9334a8dc3ca84254158078e9659ff05d4aff848029
-    sourceHash: fa541baf748b8cfbba0cfa0ca2883f319cc94ffa95686fd5a2bef43fa96e5d4c
+    sourceHash: a5fea2386da65cc0dfe886830b45a961aa76cea08db063974d3e72c122da43aa
     sourceColumn: 22
     sourceEndColumn: 1
     sourceEndLine: 398

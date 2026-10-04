@@ -216,10 +216,10 @@ export async function runModelCanary(
         });
         const prompt =
           context.role === "target"
-            ? `Use shell_command exactly once to execute ${probe.command}. Do not infer or claim success without that tool event. If it exits zero, return probeExecuted=true; otherwise fail.`
+            ? `Use the available shell execution tool (shell_command or exec_command, through code mode when required) exactly once to execute ${probe.command}. Do not infer or claim success without that tool event. If it exits zero, return probeExecuted=true; otherwise fail.`
             : [
                 "Call the read-only kibi MCP tool kb_model exactly once with mode `analyze`, text `A session timeout must be 30 minutes.`, and complete diagnostic telemetry (is_autonomous=true, a brief reasoning string, confidence_score=1, attempt_number=1, missing_context empty). Wait for its successful result.",
-                `Then use shell_command exactly once to execute ${probe.command}.`,
+                `Then use the available shell execution tool (shell_command or exec_command, through code mode when required) exactly once to execute ${probe.command}.`,
                 "Do not call any other shell or MCP tool. Do not infer or claim success without both completed tool calls. If both succeed, return probeExecuted=true; otherwise fail.",
               ].join(" ");
         phase = "model";

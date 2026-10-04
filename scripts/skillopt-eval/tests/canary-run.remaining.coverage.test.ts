@@ -73,6 +73,41 @@ async function preparedCanary() {
 }
 
 describe("runModelCanary remaining event and IO failure branches", () => {
+  test.each(["target", "optimizer"] as const)(
+    "%s canary requests one probe through the available executor",
+    async (role) => {
+      const prepared = await preparedCanary();
+      let prompt = "";
+      const result = await runModelCanary({
+        ...prepared.context,
+        role,
+        run: async (argv, _cwd, _env, _timeout, stdin) => {
+          if (argv.join(" ") === "codex login status")
+            return chatGptResult(argv);
+          prompt = stdin ?? "";
+          return {
+            argv,
+            stdout: jsonl([{ type: "turn.completed" }]),
+            stderr: "",
+            exitCode: 0,
+            signal: null,
+          };
+        },
+      });
+      expect(prompt).toContain("exec_command, through code mode when required");
+      expect(prompt).toContain(
+        "exactly once to execute ./.runtime/canary-probe",
+      );
+      // Naming the current executor must never admit a final success claim
+      // when the model supplied no completed command evidence.
+      expect(result).toMatchObject({
+        kind: "no-go",
+        reason: "missing_probe_execution",
+        paidModelCalls: 1,
+      });
+    },
+  );
+
   test("returns no-go when Codex emits an error event after a zero exit", async () => {
     const prepared = await preparedCanary();
     const result = await runModelCanary({
