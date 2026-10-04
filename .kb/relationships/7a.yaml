@@ -286,3 +286,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-466827ae4e6d
+  - type: implements
+    from: SYM-plan-apply-bootstrap-action-result
+    to: REQ-bootstrap-write-safety
+    created_at: 2026-10-04T17:31:08.209Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0dc7da12b922
+  - type: covered_by
+    from: SYM-plan-apply-bootstrap-action-result
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-10-04T17:47:29.434Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b34040fa8b08

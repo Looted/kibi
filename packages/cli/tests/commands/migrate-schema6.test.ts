@@ -85,11 +85,11 @@ describe("kibi migrate to schema 6", () => {
     if (existsSync(root)) rmSync(root, { recursive: true, force: true });
   });
 
-  test("kibi init starts new knowledge bases at schema 6", () => {
+  test("kibi init starts new knowledge bases at schema 7", () => {
     expect(
       JSON.parse(readFileSync(path.join(root, ".kb/manifest.json"), "utf8"))
         .schemaVersion,
-    ).toBe(6);
+    ).toBe(7);
     const result = runKibi(["migrate", "--yes"], root);
     expect(result.status).toBe(0);
     expect(result.stdout).toContain("No migration needed");
@@ -185,7 +185,7 @@ describe("kibi migrate to schema 6", () => {
       expect(
         JSON.parse(readFileSync(path.join(root, ".kb/manifest.json"), "utf8"))
           .schemaVersion,
-      ).toBe(6);
+      ).toBe(7);
       const requirement = frontmatter(
         path.join(root, ".kb/requirements/REQ-upload-resume.md"),
       );
@@ -258,9 +258,9 @@ describe("kibi migrate to schema 6", () => {
       );
       expect(audit).toMatchObject({
         fromVersion: 5,
-        toVersion: 6,
+        toVersion: 7,
         entityOriginBackfill: 4,
-        steps: ["entity-origin-v6"],
+        steps: ["entity-origin-v6", "polarity-values-v7"],
       });
 
       // The unsafe requirement still blocks sync, with every failure listed.

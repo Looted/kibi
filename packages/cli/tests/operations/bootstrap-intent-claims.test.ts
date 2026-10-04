@@ -5,6 +5,8 @@ import path from "node:path";
 
 import type { BootstrapContext } from "../../src/operations/bootstrap/types.js";
 import { bootstrapPlanHash } from "../../src/operations/bootstrap/types.js";
+import { validateUpsertInput } from "../../src/operations/mutation/validation.js";
+import type { UpsertInput } from "../../src/operations/mutation/types.js";
 import {
   nodeFilesystem,
   nodeGit,
@@ -118,6 +120,11 @@ describe("bootstrap from declared knowledge sources", () => {
       context(thinRepository()),
     );
     const plan = result.structuredContent.plan;
+
+    for (const action of plan.actions)
+      expect(() =>
+        validateUpsertInput(action.payload as UpsertInput, new Date()),
+      ).not.toThrow();
 
     const cited = plan.candidates.find(
       (candidate) => candidate.title === interview.intentClaims?.[0]?.statement,

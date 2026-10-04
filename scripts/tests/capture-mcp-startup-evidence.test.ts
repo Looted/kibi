@@ -35,6 +35,9 @@ const tempRoots: string[] = [];
 function makeWorkspace(): string {
   const root = mkdtempSync(join(tmpdir(), "kibi-mcp-evidence-"));
   tempRoots.push(root);
+  const bin = join(root, ".test-bin");
+  mkdirSync(bin);
+  writeFileSync(join(bin, "pnpm"), "#!/bin/sh\nexit 1\n", { mode: 0o755 });
   writeFileSync(
     join(root, "package.json"),
     JSON.stringify({
@@ -54,6 +57,11 @@ function runEvidence(workspace: string): Record<string, unknown> {
     {
       cwd: workspace,
       stdio: "pipe",
+      // These fixtures exercise config and shim classification with pnpm unavailable.
+      env: {
+        ...process.env,
+        PATH: `${join(workspace, ".test-bin")}:${process.env.PATH}`,
+      },
     },
   );
   return JSON.parse(readFileSync(out, "utf8"));

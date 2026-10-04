@@ -51,7 +51,7 @@ export type BootstrapActionResult = Readonly<{
 export type ApplyPlanResult =
   | Readonly<{
       version: "kibi.plan-apply-result.v1";
-      outcome: "applied" | "replayed" | "partially_applied";
+      outcome: "applied" | "replayed" | "partially_applied" | "rejected";
       planHash: string;
       actionResults: readonly BootstrapActionResult[];
       changedEntities: number;
@@ -64,7 +64,7 @@ export type ApplyPlanResult =
       recoveryJournalId: string | null;
       changedPaths?: readonly string[];
       validationSummary?: Readonly<Record<string, unknown>>;
-      status?: "committed_with_repairs";
+      status?: "committed_with_repairs" | "rejected";
       effectFailures?: readonly Readonly<Record<string, unknown>>[];
       nextActions?: readonly Readonly<Record<string, unknown>>[];
     }>

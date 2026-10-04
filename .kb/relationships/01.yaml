@@ -209,3 +209,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-eef2de763492
+  - type: implements
+    from: SYM-migration-semantic-inventory-rederive-code
+    to: REQ-cli-schema-migration
+    created_at: 2026-10-04T17:27:33.120Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6b713dfebcbe
+  - type: implements
+    from: SYM-test-cli-unit-batches
+    to: REQ-root-suite-batch-diagnostics
+    created_at: 2026-10-04T17:42:48.401Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7d89732e8b6d
+  - type: implements
+    from: SYM-test-cli-unit-batches
+    to: REQ-test-journaled-engine-harness
+    created_at: 2026-10-04T17:42:48.474Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-00237e089030
+  - type: covered_by
+    from: SYM-test-cli-unit-batches
+    to: TEST-root-suite-batch-diagnostics
+    created_at: 2026-10-04T17:42:48.499Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7c8a2cdea32c
+  - type: covered_by
+    from: SYM-migration-semantic-inventory-rederive-code
+    to: TEST-cli-migrate
+    created_at: 2026-10-04T17:46:34.440Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cc819490a7d6

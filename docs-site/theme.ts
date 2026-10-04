@@ -1036,6 +1036,7 @@ export function landingContent(args: {
 <section class="install" id="install">
   <h2>Add Kibi to the repository</h2>
   <p>Kibi is driven by your coding agent, so the recommended setup is a prompt. Your agent installs the packages, runs <code>kibi init</code>, connects itself to Kibi, and bootstraps the knowledge base behind a plan you approve. The package-manager tabs are the manual route; <code>kibi init</code> alone does not invent what the product does.</p>
+  <p>Bootstrap checks candidate writes before review, keeps ungrounded claims as cited follow-ups, prioritizes product intent, and reports candidates beyond the limit. Invalid plans write nothing; deterministic failures require a corrected plan. Existing KBs use <code>kibi migrate --yes</code> and <code>kibi sync</code> to upgrade to schema 7, where malformed strict facts fail validation.</p>
   <div class="pm-tabs" data-pm-tabs>
     <div class="pm-tablist" role="tablist" aria-label="Setup method">${installTabs}</div>
     ${installPanels}

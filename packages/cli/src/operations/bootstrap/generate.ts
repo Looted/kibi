@@ -9,6 +9,7 @@ import { buildBootstrapCandidates } from "./candidates.js";
 import { discoverBootstrap } from "./discovery.js";
 import { buildIntentClaimCandidates } from "./intent-claims.js";
 import { normalizeBootstrapContext, presentBootstrap } from "./presentation.js";
+import { validateBootstrapPayload } from "./validation.js";
 import type {
   Candidate,
   PlanBootstrapArgs,
@@ -35,7 +36,10 @@ function titleKey(candidate: Candidate): string {
 }
 
 function firstUpsertId(candidate: Candidate): string {
-  const first = candidate.applyPlan[0];
+  const first =
+    candidate.applyPlan.find(
+      (payload) => payload.type === candidate.entityType,
+    ) ?? candidate.applyPlan[0];
   if (typeof first?.id === "string") return first.id;
   const properties = first?.properties;
   return properties !== null &&
@@ -58,55 +62,94 @@ export function selectBootstrapCandidates(
 ): {
   readonly candidates: readonly Candidate[];
   readonly suppressed: readonly Readonly<Record<string, unknown>>[];
+  readonly sourceOnlySignals: readonly SourceOnlySignal[];
+  readonly diagnostics: readonly string[];
 } {
-  const allowed =
-    entityTypes && entityTypes.length > 0 ? new Set(entityTypes) : null;
-  const sorted = input
-    .filter((candidate) => allowed?.has(candidate.entityType) ?? true)
-    .sort(
-      (left, right) =>
-        right.confidence - left.confidence ||
-        left.sourcePath.localeCompare(right.sourcePath),
+  const allowed = entityTypes?.length ? new Set(entityTypes) : null;
+  const lane = (candidate: Candidate): number => {
+    if (candidate.sourceKind === "intent_claim") return 0;
+    if (
+      candidate.entityType === "req" &&
+      ["typed_markdown", "generic_markdown"].includes(candidate.sourceKind)
     )
-    .slice(0, maximum);
-  const typedTitles = new Set(
-    sorted
-      .filter((candidate) => candidate.sourceKind === "typed_markdown")
-      .map(titleKey),
-  );
-  const selected = new Map<string, Candidate>();
+      return 1;
+    return 2;
+  };
   const suppressed: Readonly<Record<string, unknown>>[] = [];
-  const suppress = (candidate: Candidate, reason: string): void => {
+  const sourceOnlySignals: SourceOnlySignal[] = [];
+  const diagnostics: string[] = [];
+  const suppress = (
+    candidate: Candidate,
+    reason: string,
+    message?: string,
+  ): void => {
     suppressed.push({
       candidateId: candidate.candidateId,
       reason,
       sourcePath: candidate.sourcePath,
       entityType: candidate.entityType,
+      ...(message ? { message } : {}),
     });
   };
-  for (const candidate of sorted) {
-    if (existingIds.has(firstUpsertId(candidate))) {
-      suppress(candidate, "entity_exists");
-      continue;
-    }
+  const writable = input
+    .filter((candidate) => {
+      if (allowed && !allowed.has(candidate.entityType)) return false;
+      if (existingIds.has(firstUpsertId(candidate))) {
+        suppress(candidate, "entity_exists");
+        return false;
+      }
+      try {
+        if (candidate.applyPlan.length === 0)
+          throw new Error("Candidate has no write actions");
+        for (const payload of candidate.applyPlan)
+          validateBootstrapPayload(payload, new Date());
+        return true;
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        suppress(candidate, "invalid_write", message);
+        diagnostics.push(
+          `Invalid bootstrap candidate at ${candidate.sourcePath}: ${message}`,
+        );
+        sourceOnlySignals.push({
+          kind: "req",
+          title: `Author requirement: ${candidate.title}`,
+          sourcePath: candidate.sourcePath,
+          confidence: candidate.confidence,
+          evidence: candidate.evidence,
+        });
+        return false;
+      }
+    })
+    .sort(
+      (left, right) =>
+        lane(left) - lane(right) ||
+        right.confidence - left.confidence ||
+        left.sourcePath.localeCompare(right.sourcePath) ||
+        left.candidateId.localeCompare(right.candidateId),
+    );
+  const typedTitles = new Set(
+    writable
+      .filter((candidate) => candidate.sourceKind === "typed_markdown")
+      .map(titleKey),
+  );
+  const selected = new Map<string, Candidate>();
+  for (const candidate of writable) {
     const key = titleKey(candidate);
     if (candidate.sourceKind === "generic_markdown" && typedTitles.has(key)) {
       suppress(candidate, "shadowed_by_typed_source");
-      continue;
-    }
-    const previous = selected.get(key);
-    if (!previous) {
-      selected.set(key, candidate);
-      continue;
-    }
-    const keepCandidate =
-      candidate.confidence > previous.confidence ||
-      (candidate.confidence === previous.confidence &&
-        candidate.sourcePath < previous.sourcePath);
-    suppress(keepCandidate ? previous : candidate, "duplicate_title");
-    if (keepCandidate) selected.set(key, candidate);
+    } else if (selected.has(key)) {
+      suppress(candidate, "duplicate_title");
+    } else selected.set(key, candidate);
   }
-  return { candidates: [...selected.values()], suppressed };
+  const unique = [...selected.values()];
+  for (const candidate of unique.slice(maximum))
+    suppress(candidate, "over_limit");
+  return {
+    candidates: unique.slice(0, maximum),
+    suppressed,
+    sourceOnlySignals,
+    diagnostics,
+  };
 }
 
 async function existingEntityIds(
@@ -117,8 +160,10 @@ async function existingEntityIds(
     // Ids only: materializing every entity (receipt histories included)
     // just to build this set exceeds the bounded engine output.
     return new Set((await loadEntityIds(context.prolog)).filter(Boolean));
-  } catch {
-    return new Set<string>();
+  } catch (error) {
+    throw new Error(
+      `Bootstrap binding could not read existing entity IDs: ${error instanceof Error ? error.message : String(error)}`,
+    );
   }
 }
 
@@ -225,9 +270,13 @@ export async function executePlanBootstrap(
   const includeGenericMarkdown = args.includeGenericMarkdown ?? true;
   const minConfidence = clamp(args.minConfidence ?? 0.8, 0.6, 0.95);
   const maxCandidates = clamp(Math.trunc(args.maxCandidates ?? 50), 1, 200);
+  const entityBindingDiagnostics: string[] = [];
   const [discovery, existingIds] = await Promise.all([
     discoverBootstrap(context),
-    existingEntityIds(context),
+    existingEntityIds(context).catch((error: Error) => {
+      entityBindingDiagnostics.push(error.message);
+      return new Set<string>();
+    }),
   ]);
   // Discovery runs before planning so its evidence paths can be bound into
   // the exact plan rather than leaving the reviewer to reconstruct them.
@@ -240,11 +289,16 @@ export async function executePlanBootstrap(
   const built = discovery.activation.allowCandidateGeneration
     ? buildBootstrapCandidates(
         discovery.evidence,
-        existingIds,
+        new Set<string>(),
         minConfidence,
         includeGenericMarkdown,
       )
-    : { candidates: [], sourceOnlySignals: [] };
+    : {
+        candidates: [],
+        sourceOnlySignals: [],
+        suppressed: [],
+        diagnostics: [],
+      };
   // Intent harvested from declared knowledge sources joins the repository
   // evidence under the same activation policy, filters, and selection.
   const claimed = discovery.activation.allowCandidateGeneration
@@ -287,14 +341,22 @@ export async function executePlanBootstrap(
       ? { bootstrapContext: args.bootstrapContext }
       : {}),
     candidates: selected.candidates,
-    sourceOnlySignals: filteredSignals,
+    sourceOnlySignals: [
+      ...filteredSignals,
+      ...filterSourceOnlySignals(selected.sourceOnlySignals, args.entityTypes),
+    ],
     suppressedCandidates: [
       ...selected.suppressed,
       ...claimed.suppressed,
+      ...built.suppressed,
       ...ignored,
     ],
     expected,
-    bindingDiagnostics,
-    contextDiagnostics: claimed.diagnostics,
+    bindingDiagnostics: [...bindingDiagnostics, ...entityBindingDiagnostics],
+    contextDiagnostics: [
+      ...claimed.diagnostics,
+      ...built.diagnostics,
+      ...selected.diagnostics,
+    ],
   });
 }

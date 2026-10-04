@@ -48,6 +48,11 @@ import {
 import { listLaneMarkdownFiles } from "./kb-sources.js";
 import { applyOriginBackfill, planOriginBackfill } from "./origin-backfill.js";
 import {
+  POLARITY_VALUE_BACKFILL_CODE,
+  applyPolarityValueBackfill,
+  planPolarityValueBackfill,
+} from "./polarity-values.js";
+import {
   type PlannedSourcePathRepairs,
   type SourcePathRemoval,
   type SourcePathRewrite,
@@ -236,6 +241,29 @@ export function buildSchema6MigrationFragment(input: {
   const actions: MigrationAction[] = [];
   const sourceRewriteActionIds: string[] = [];
   const diagnostics: string[] = [];
+  const polarityTargets = planPolarityValueBackfill(input.workspaceRoot);
+  if (polarityTargets.length > 0) {
+    const id = "polarity-value-backfill";
+    sourceRewriteActionIds.push(id);
+    actions.push(
+      migrationAction({
+        id,
+        code: POLARITY_VALUE_BACKFILL_CODE,
+        category: "schema",
+        safety: "automatic",
+        autoApplicable: true,
+        invocation: { kind: "cli", command_argv: ["kibi", "migrate", "--yes"] },
+        affectedEntityIds: polarityTargets.map((row) => row.id),
+        affectedFiles: polarityTargets.map((row) => row.path),
+        postconditions: [{ rule: "strict-fact-shape", findings: 0 }],
+        evidence: {
+          count: polarityTargets.length,
+          encoding: { operator: "eq", value_type: "bool", value_bool: true },
+          preserves: "IDs, polarity and authored body",
+        },
+      }),
+    );
+  }
   const drift = planInventoryRederivation(input.workspaceRoot);
   for (const plan of drift) {
     const action = plan.safe ? rederiveAction(plan) : reviewAction(plan);
@@ -414,6 +442,10 @@ export async function applySchema6MigrationAction(
   context: ApplyContext,
 ): Promise<void> {
   switch (action.code) {
+    case POLARITY_VALUE_BACKFILL_CODE: {
+      applyPolarityValueBackfill(context.workspaceRoot);
+      return;
+    }
     case SEMANTIC_INVENTORY_REDERIVE_CODE: {
       const requirementId = action.affectedEntityIds[0];
       if (requirementId === undefined)
@@ -474,6 +506,7 @@ export async function applySchema6MigrationAction(
 
 // implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export const SCHEMA6_AUTOMATIC_CODES: ReadonlySet<string> = new Set([
+  POLARITY_VALUE_BACKFILL_CODE,
   SEMANTIC_INVENTORY_REDERIVE_CODE,
   ENTITY_ORIGIN_BACKFILL_CODE,
   CLOSE_SUPERSEDED_REQUIREMENTS_CODE,

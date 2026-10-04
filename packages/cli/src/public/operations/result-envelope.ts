@@ -158,11 +158,23 @@ export function toKibiResult<T>(
   } = {},
 ): KibiResult<T> {
   const row = record(data) ? data : undefined;
-  const status =
-    options.status ??
-    (row?.status === "committed_with_repairs"
-      ? "committed_with_repairs"
-      : "success");
+  let status = options.status;
+  if (!status) {
+    status = "success";
+    if (row?.status === "committed_with_repairs")
+      status = "committed_with_repairs";
+    if (row?.status === "rejected") status = "error";
+  }
+  const terminalError =
+    row?.status === "rejected"
+      ? {
+          code: "BOOTSTRAP_PLAN_REJECTED",
+          message:
+            "Bootstrap stopped at a deterministic failure. Inspect actionResults for committed actions and re-plan from the current state.",
+          retryable: false,
+        }
+      : undefined;
+  const resultError = options.error ?? terminalError;
   const outcome = effectOutcome(status, options);
   return {
     kibiProtocol: KIBI_PROTOCOL_VERSION,
@@ -176,7 +188,7 @@ export function toKibiResult<T>(
     ],
     diagnostics: options.diagnostics ?? diagnostics(row?.diagnostics),
     nextActions: options.nextActions ?? nextActions(row?.nextActions),
-    ...(options.error ? { error: options.error } : {}),
+    ...(resultError ? { error: resultError } : {}),
   };
 }
 

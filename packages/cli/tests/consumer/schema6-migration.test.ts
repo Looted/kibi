@@ -1,4 +1,5 @@
 // implements REQ-kibi-schema6-migration
+import { LATEST_KB_SCHEMA_VERSION } from "../../src/utils/schema-version.js";
 import { afterEach, describe, expect, test } from "bun:test";
 import {
   type ConsumerWorkspace,
@@ -83,7 +84,7 @@ describe("schema 6 migration through the kibi CLI", () => {
 
     // kibi init starts at schema 6; a KB written before it says 5.
     const manifest = JSON.parse(ws.read(".kb/manifest.json")) as Json;
-    expect(manifest.schemaVersion).toBe(6);
+    expect(manifest.schemaVersion).toBe(LATEST_KB_SCHEMA_VERSION);
     ws.write(
       ".kb/manifest.json",
       `${JSON.stringify({ ...manifest, schemaVersion: 5 }, null, 2)}\n`,
@@ -259,12 +260,14 @@ links:
         )
         .map((result) => result.outcome),
     ).toEqual(["applied", "applied", "applied", "applied"]);
-    expect(JSON.parse(ws.read(".kb/manifest.json")).schemaVersion).toBe(6);
+    expect(JSON.parse(ws.read(".kb/manifest.json")).schemaVersion).toBe(
+      LATEST_KB_SCHEMA_VERSION,
+    );
     const status = ws.json(["status", "--format", "json"]);
     expect(status.syncState).toBe("fresh");
     expect(status.schemaStatus).toMatchObject({
       status: "current",
-      currentVersion: 6,
+      currentVersion: LATEST_KB_SCHEMA_VERSION,
     });
 
     // Every entity now says the migration recorded it.
