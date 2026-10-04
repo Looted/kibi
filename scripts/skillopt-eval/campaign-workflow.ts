@@ -1086,7 +1086,8 @@ async function defaultEvaluateSample(
     env: input.env,
     finalStateRequests: taskFinalStateRequests(
       input.task.id,
-      fixture.evaluatorManifest.protocolContract !== undefined,
+      fixture.evaluatorManifest.protocolContract?.exactMigrationApply !==
+        undefined,
     ),
     evaluatorManifest: fixture.evaluatorManifest,
     hiddenMarkers: input.runtime.hiddenMarkers ?? [],
