@@ -9,7 +9,7 @@ import {
 } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { execFileSync } from "../helpers/isolated-env.js";
+import { execFileSync, spawnSync } from "../helpers/isolated-env.js";
 
 /**
  * A fresh consumer workspace driven only through the built `kibi` binary:
@@ -17,9 +17,16 @@ import { execFileSync } from "../helpers/isolated-env.js";
  * JSON routes.
  */
 
-const KIBI_CLI = path.resolve(import.meta.dir, "../../bin/kibi");
+export const KIBI_CLI = path.resolve(import.meta.dir, "../../bin/kibi");
 
 export type Json = Record<string, unknown>;
+
+/** Exit status and both output streams of one CLI run. */
+export type CliRun = Readonly<{
+  status: number | null;
+  stdout: string;
+  stderr: string;
+}>;
 
 export type ConsumerWorkspace = Readonly<{
   root: string;
@@ -28,9 +35,20 @@ export type ConsumerWorkspace = Readonly<{
   /** `git add .kb`: put authored documents inside the source boundary. */
   stage(): void;
   sync(): void;
-  json(args: readonly string[], input?: Json): Json;
+  /**
+   * The JSON a CLI route printed. `env` adds variables for this run only
+   * (the sandbox still drops host Kibi identity variables).
+   */
+  json(args: readonly string[], input?: Json, env?: NodeJS.ProcessEnv): Json;
   /** Raw stdout of a `kibi` command that prints text. */
   text(args: readonly string[]): string;
+  /** Run the CLI without throwing on a non-zero exit. */
+  kibi(
+    args: readonly string[],
+    options?: Readonly<{ input?: Json; env?: NodeJS.ProcessEnv }>,
+  ): CliRun;
+  /** Run git with a fixed identity and without the hooks `kibi init` installs. */
+  git(...args: string[]): string;
   cleanup(): void;
 }>;
 
@@ -39,6 +57,7 @@ function run(
   command: string,
   args: readonly string[],
   input?: string,
+  env?: NodeJS.ProcessEnv,
 ) {
   return execFileSync(command, args, {
     cwd: root,
@@ -46,8 +65,22 @@ function run(
     input,
     stdio: ["pipe", "pipe", "pipe"],
     timeout: 120_000,
+    ...(env === undefined ? {} : { env }),
   });
 }
+
+const GIT_CONFIG = [
+  "-c",
+  "user.email=consumer@example.com",
+  "-c",
+  "user.name=Kibi Consumer",
+  "-c",
+  "commit.gpgsign=false",
+  "-c",
+  "core.hooksPath=/dev/null",
+  "-c",
+  "advice.detachedHead=false",
+] as const;
 
 export function createConsumerWorkspace(prefix: string): ConsumerWorkspace {
   const root = realpathSync(mkdtempSync(path.join(os.tmpdir(), prefix)));
@@ -56,6 +89,25 @@ export function createConsumerWorkspace(prefix: string): ConsumerWorkspace {
   // `kibi sync` reads the Git-tracked source boundary.
   const stage = () => {
     run(root, "git", ["add", ".kb"]);
+  };
+  const kibi: ConsumerWorkspace["kibi"] = (args, options = {}) => {
+    const result = spawnSync(
+      "node",
+      [KIBI_CLI, ...args, ...(options.input ? ["--input", "-"] : [])],
+      {
+        cwd: root,
+        encoding: "utf8",
+        input: options.input ? `${JSON.stringify(options.input)}\n` : "",
+        timeout: 120_000,
+        ...(options.env === undefined ? {} : { env: options.env }),
+      },
+    );
+    if (result.error) throw result.error;
+    return {
+      status: result.status,
+      stdout: result.stdout,
+      stderr: result.stderr,
+    };
   };
   return {
     root,
@@ -75,7 +127,7 @@ export function createConsumerWorkspace(prefix: string): ConsumerWorkspace {
     text(args) {
       return run(root, "node", [KIBI_CLI, ...args]);
     },
-    json(args, input) {
+    json(args, input, env) {
       // check exits non-zero when it reports violations; the JSON is still
       // the result.
       try {
@@ -84,6 +136,7 @@ export function createConsumerWorkspace(prefix: string): ConsumerWorkspace {
           "node",
           [KIBI_CLI, ...args, ...(input ? ["--input", "-"] : [])],
           input ? `${JSON.stringify(input)}\n` : undefined,
+          env,
         );
         return JSON.parse(stdout) as Json;
       } catch (error) {
@@ -94,7 +147,18 @@ export function createConsumerWorkspace(prefix: string): ConsumerWorkspace {
         throw error;
       }
     },
+    kibi,
+    git(...args) {
+      return run(root, "git", [...GIT_CONFIG, ...args]).trim();
+    },
     cleanup() {
+      // Stop this checkout's engine (a no-op when none runs) before its
+      // workspace disappears.
+      try {
+        kibi(["engine", "stop"]);
+      } catch {
+        // Cleanup is best effort; the temp tree is removed regardless.
+      }
       rmSync(root, { recursive: true, force: true });
     },
   };
