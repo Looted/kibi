@@ -89,7 +89,7 @@ import { initializeTargetEpisodeBudget } from "./target-episode-budget";
  * Campaign cohort hashes and stored evaluations bind to it, so a profile change
  * between campaign commands is rejected as a model mismatch.
  */
-// implements REQ-skillopt-codex-optimization
+// implements REQ-skillopt-paid-launch-accounting
 export function campaignModelProfile(): SkillOptModelConfig {
   const config = activeSkillOptModelConfig();
   return {

@@ -11,16 +11,16 @@ import { z } from "zod";
  * models inside one cohort.
  */
 
-// implements REQ-skillopt-codex-optimization
+// implements REQ-skillopt-paid-launch-accounting
 export const DEFAULT_TARGET_MODEL = "gpt-5.6-luna" as const;
-// implements REQ-skillopt-codex-optimization
+// implements REQ-skillopt-paid-launch-accounting
 export const DEFAULT_OPTIMIZER_MODEL = "gpt-5.6-sol" as const;
-// implements REQ-skillopt-codex-optimization
+// implements REQ-skillopt-paid-launch-accounting
 export const DEFAULT_TARGET_EFFORT = "medium" as const;
-// implements REQ-skillopt-codex-optimization
+// implements REQ-skillopt-paid-launch-accounting
 export const DEFAULT_OPTIMIZER_EFFORT = "xhigh" as const;
 
-// implements REQ-skillopt-codex-optimization
+// implements REQ-skillopt-paid-launch-accounting
 export const SKILLOPT_MODEL_ENV = {
   targetModel: "KIBI_SKILLOPT_TARGET_MODEL",
   targetReasoningEffort: "KIBI_SKILLOPT_TARGET_EFFORT",
@@ -31,9 +31,9 @@ export const SKILLOPT_MODEL_ENV = {
 
 const MODEL_ID_PATTERN = /^[a-z0-9][a-z0-9._-]{0,63}$/;
 
-// implements REQ-skillopt-codex-optimization
+// implements REQ-skillopt-paid-launch-accounting
 export const ModelIdSchema = z.string().regex(MODEL_ID_PATTERN);
-// implements REQ-skillopt-codex-optimization
+// implements REQ-skillopt-paid-launch-accounting
 export const ReasoningEffortSchema = z.enum([
   "minimal",
   "low",
@@ -42,12 +42,12 @@ export const ReasoningEffortSchema = z.enum([
   "xhigh",
 ]);
 
-// implements REQ-skillopt-codex-optimization
+// implements REQ-skillopt-paid-launch-accounting
 export type SkillOptModelId = z.infer<typeof ModelIdSchema>;
-// implements REQ-skillopt-codex-optimization
+// implements REQ-skillopt-paid-launch-accounting
 export type ReasoningEffort = z.infer<typeof ReasoningEffortSchema>;
 
-// implements REQ-skillopt-codex-optimization
+// implements REQ-skillopt-paid-launch-accounting
 export const ModelPricingSchema = z
   .object({
     inputPerMillionTokens: z.number().finite().nonnegative(),
@@ -56,10 +56,10 @@ export const ModelPricingSchema = z
   })
   .strict();
 
-// implements REQ-skillopt-codex-optimization
+// implements REQ-skillopt-paid-launch-accounting
 export type ModelPricing = Readonly<z.infer<typeof ModelPricingSchema>>;
 
-// implements REQ-skillopt-codex-optimization
+// implements REQ-skillopt-paid-launch-accounting
 export type SkillOptModelConfig = Readonly<{
   targetModel: SkillOptModelId;
   targetReasoningEffort: ReasoningEffort;
@@ -67,7 +67,7 @@ export type SkillOptModelConfig = Readonly<{
   optimizerReasoningEffort: ReasoningEffort;
 }>;
 
-// implements REQ-skillopt-codex-optimization
+// implements REQ-skillopt-paid-launch-accounting
 export const DEFAULT_SKILLOPT_MODEL_CONFIG: SkillOptModelConfig = Object.freeze(
   {
     targetModel: DEFAULT_TARGET_MODEL,
@@ -81,7 +81,7 @@ export const DEFAULT_SKILLOPT_MODEL_CONFIG: SkillOptModelConfig = Object.freeze(
  * Built-in price-equivalent estimates. Only the default models have pinned
  * prices; `null` means no public estimate is pinned for that model.
  */
-// implements REQ-skillopt-codex-optimization
+// implements REQ-skillopt-paid-launch-accounting
 export const BUILT_IN_MODEL_PRICING: Readonly<
   Record<string, ModelPricing | null>
 > = Object.freeze({
@@ -93,7 +93,7 @@ export const BUILT_IN_MODEL_PRICING: Readonly<
   }),
 });
 
-// implements REQ-skillopt-codex-optimization
+// implements REQ-skillopt-paid-launch-accounting
 export class SkillOptModelConfigError extends Error {
   readonly name = "SkillOptModelConfigError";
 }
@@ -128,7 +128,7 @@ function parseEffort(env: NodeJS.ProcessEnv, name: string, fallback: string) {
   return parsed.data;
 }
 
-// implements REQ-skillopt-codex-optimization
+// implements REQ-skillopt-paid-launch-accounting
 export function resolveSkillOptModelConfig(
   env: NodeJS.ProcessEnv = process.env,
 ): SkillOptModelConfig {
@@ -157,12 +157,12 @@ export function resolveSkillOptModelConfig(
 }
 
 /** The configuration pinned by this harness process' environment. */
-// implements REQ-skillopt-codex-optimization
+// implements REQ-skillopt-paid-launch-accounting
 export function activeSkillOptModelConfig(): SkillOptModelConfig {
   return resolveSkillOptModelConfig(process.env);
 }
 
-// implements REQ-skillopt-codex-optimization
+// implements REQ-skillopt-paid-launch-accounting
 export function modelForRole(
   role: "target" | "optimizer",
   config: SkillOptModelConfig = activeSkillOptModelConfig(),
@@ -170,7 +170,7 @@ export function modelForRole(
   return role === "target" ? config.targetModel : config.optimizerModel;
 }
 
-// implements REQ-skillopt-codex-optimization
+// implements REQ-skillopt-paid-launch-accounting
 export function effortForRole(
   role: "target" | "optimizer",
   config: SkillOptModelConfig = activeSkillOptModelConfig(),
@@ -180,7 +180,7 @@ export function effortForRole(
     : config.optimizerReasoningEffort;
 }
 
-// implements REQ-skillopt-codex-optimization
+// implements REQ-skillopt-paid-launch-accounting
 export function pinnedModelIds(
   config: SkillOptModelConfig = activeSkillOptModelConfig(),
 ): readonly SkillOptModelId[] {
@@ -192,7 +192,7 @@ export function pinnedModelIds(
  * configuration. With defaults this is exactly the historical
  * `gpt-5.6-luna | gpt-5.6-sol` enum.
  */
-// implements REQ-skillopt-codex-optimization
+// implements REQ-skillopt-paid-launch-accounting
 export const PinnedModelSchema = ModelIdSchema.refine(
   (model) => pinnedModelIds().includes(model),
   { message: "model_not_pinned" },
@@ -231,7 +231,7 @@ function operatorPricing(
  * target may be priced as explicit `null` (no estimate), mirroring the
  * built-in target; the optimizer always needs numeric prices.
  */
-// implements REQ-skillopt-codex-optimization
+// implements REQ-skillopt-paid-launch-accounting
 export function resolveSkillOptModelPricing(
   config: SkillOptModelConfig = activeSkillOptModelConfig(),
   env: NodeJS.ProcessEnv = process.env,
@@ -272,7 +272,7 @@ export function resolveSkillOptModelPricing(
  * Gate for every paid launch or canary: the model configuration must be valid
  * and every pinned model must have explicit pricing before any spend.
  */
-// implements REQ-skillopt-codex-optimization
+// implements REQ-skillopt-paid-launch-accounting
 export function assertSkillOptModelsReadyForPaidWork(
   env: NodeJS.ProcessEnv = process.env,
 ): SkillOptModelConfig {
@@ -281,7 +281,7 @@ export function assertSkillOptModelsReadyForPaidWork(
   return config;
 }
 
-// implements REQ-skillopt-codex-optimization
+// implements REQ-skillopt-paid-launch-accounting
 export function sameSkillOptModelConfig(
   left: SkillOptModelConfig,
   right: SkillOptModelConfig,
