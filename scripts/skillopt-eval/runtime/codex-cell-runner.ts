@@ -283,6 +283,24 @@ export async function runCodexCell(
             await stopFixtureEngine(workspace.target);
           }
         });
+        // Fixture setup may log semantic-advisor calls before the broker exists.
+        // Preserve those records separately so the episode journal contains only
+        // model-originated calls, which must reconcile with the broker trace.
+        const setupDiagnosticPath = join(workspace.target, ".kb/usage.log");
+        const setupDiagnostic = await readOptionalArtifact(setupDiagnosticPath);
+        if (setupDiagnostic !== "") {
+          const setupDiagnosticRoot = join(
+            options.artifactRoot,
+            "fixture-setup-diagnostics",
+          );
+          await mkdir(setupDiagnosticRoot, { recursive: true, mode: 0o700 });
+          await writeFile(
+            join(setupDiagnosticRoot, `${request.episodeId}.jsonl`),
+            setupDiagnostic,
+            { mode: 0o600, flag: "wx" },
+          );
+          await rm(setupDiagnosticPath);
+        }
         const broker = await dependencies.stageBroker(
           workspace,
           options.sourceWorktree,

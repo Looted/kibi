@@ -48398,3 +48398,16 @@ symbols:
         target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-read-workspace-sources
+    title: readWorkspaceSources
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-runner.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T15:40:56.357Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization

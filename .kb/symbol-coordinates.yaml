@@ -24965,7 +24965,7 @@ coordinates:
     sourceLine: 1
   SYM-skillopt-codex-cell-runner-tests:
     identityHash: 895688ac9e8e724b48f026a2b2f80e13210918070400e1e7ff626ffc1c390326
-    sourceHash: f7805c77a0ef3ef45c59309e180ad8282d7ca074b9da0f349d6b724ef8ae9467
+    sourceHash: a5ac27398cc5ce352a0c65c25e53bb9c151f3b2411021e0a0b0e70dd5745b599
     sourceColumn: 10
     sourceEndColumn: 27
     sourceEndLine: 40
@@ -26045,7 +26045,7 @@ coordinates:
     sourceLine: 57
   SYM-skillopt-episode-output-schema:
     identityHash: 76de77784092fc8aebff56b7db8b2da18935beccfc9b0a0b9d78f2e40769cc0b
-    sourceHash: a9b1f6864b235a6fa524c7219e468d36c4aa7f4137fb95f0288d8dab3dae6037
+    sourceHash: 5554d39040185f552c68ee66ececee76cd3e8bc57092eac2210769ec64635bdb
     sourceColumn: 13
     sourceEndColumn: 10
     sourceEndLine: 75
@@ -28971,6 +28971,14 @@ coordinates:
     sourceEndLine: 107
     sourceFile: scripts/skillopt-eval/adoption-durable.ts
     sourceLine: 82
+  SYM-skillopt-read-workspace-sources:
+    identityHash: 50319966c8a48fc7cc35a8d06a202c2bbe73872b03a635a114089e51513c88e9
+    sourceHash: 5554d39040185f552c68ee66ececee76cd3e8bc57092eac2210769ec64635bdb
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 121
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-runner.ts
+    sourceLine: 86
   SYM-skillopt-real-optimization-run:
     identityHash: 055b7f8b0fba999acc9995cb6b853811fbc4122cb9a96c929d12394938b93750
     sourceHash: 6cb49dc37ac055874a3147a9bf71b5ab0777c219df76a3d26c3aa098aaac6208
@@ -29229,10 +29237,10 @@ coordinates:
     sourceLine: 115
   SYM-skillopt-run-codex-cell:
     identityHash: 0760ed0f8df794e2f364975492d941e9a1c7fb5e885b9323b0d9b9c7e9301a74
-    sourceHash: a9b1f6864b235a6fa524c7219e468d36c4aa7f4137fb95f0288d8dab3dae6037
+    sourceHash: 5554d39040185f552c68ee66ececee76cd3e8bc57092eac2210769ec64635bdb
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 431
+    sourceEndLine: 449
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-runner.ts
     sourceLine: 161
   SYM-skillopt-run-independent-final-state:

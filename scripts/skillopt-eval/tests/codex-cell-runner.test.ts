@@ -42,6 +42,9 @@ describe("Codex cell runner", () => {
     // Given
     const publicFixture = await fixture();
     const artifactRoot = await longArtifactRoot("skillopt-cell-artifacts-");
+    const episodeRequest = request(publicFixture.hash);
+    const setupDiagnostic =
+      '{"tool":"kb_semantic_advisor","status":"success"}\n';
     let ephemeralRoot = "";
     let ephemeralParent = "";
     let observedArgv: readonly string[] = [];
@@ -53,7 +56,7 @@ describe("Codex cell runner", () => {
     // When
     const completed = await runCodexCell(
       {
-        request: request(publicFixture.hash),
+        request: episodeRequest,
         fixtureRoot: publicFixture.root,
         sourceWorktree: process.cwd(),
         artifactRoot,
@@ -69,12 +72,31 @@ describe("Codex cell runner", () => {
         timeoutMs: 1_000,
       },
       {
-        prepareLogin: async ({ privateCodexHome }) => ({
-          mode: "file",
-          env: { CODEX_HOME: privateCodexHome },
-          realCodexHome: "/private/real-codex",
-        }),
+        prepareLogin: async ({ privateCodexHome }) => {
+          await writeFile(
+            join(dirname(privateCodexHome), "workspace/.kb/usage.log"),
+            setupDiagnostic,
+          );
+          return {
+            mode: "file",
+            env: { CODEX_HOME: privateCodexHome },
+            realCodexHome: "/private/real-codex",
+          };
+        },
         stageBroker: async (workspace) => {
+          expect(existsSync(join(workspace.target, ".kb/usage.log"))).toBe(
+            false,
+          );
+          expect(
+            await readFile(
+              join(
+                artifactRoot,
+                "fixture-setup-diagnostics",
+                `${episodeRequest.episodeId}.jsonl`,
+              ),
+              "utf8",
+            ),
+          ).toBe(setupDiagnostic);
           ephemeralRoot = workspace.root;
           ephemeralParent = dirname(ephemeralRoot);
           const broker = fakeBroker(workspace);
@@ -151,6 +173,12 @@ describe("Codex cell runner", () => {
     expect(existsSync(ephemeralRoot)).toBe(false);
     expect(existsSync(ephemeralParent)).toBe(false);
     expect(existsSync(completed.artifactDirectory)).toBe(true);
+    expect(
+      await readFile(
+        join(completed.artifactDirectory, "diagnostic-receipt.jsonl"),
+        "utf8",
+      ),
+    ).toBe('{"tool":"kb_status"}\n');
     expect(existsSync(join(artifactRoot, ".fixture-setup-lock"))).toBe(true);
     expect(JSON.parse(await readFile(completed.receiptPath, "utf8"))).toEqual(
       completed.receipt,
