@@ -31837,7 +31837,7 @@ coordinates:
     sourceLine: 1
   SYM-test-kibi-change-to-proof-evaluation:
     identityHash: fbeb1ae7eb058e413d2526e9adbe518d84560f637455e837dffb55fff54b06e9
-    sourceHash: 337da2678627a111a490a1b3f69bf9fbc4d62e49914ddde66e9e9f600c783379
+    sourceHash: ab8fbdce4a7db234b285c4718bb15a6666a0f53b2b350aa3444f7086a5f641b3
     sourceColumn: 9
     sourceEndColumn: 1
     sourceEndLine: 29
@@ -31877,10 +31877,10 @@ coordinates:
     sourceLine: 1
   SYM-test-kibi-search-answer-layer:
     identityHash: ac862c520bef8554cc5ad1d1c367582df51708ba005db2b88bb44f74306c1e98
-    sourceHash: b84412c4b33bed4922a8288baaef496bf7cbf0f442b1b09efca302e0cebc2816
+    sourceHash: 5f88644ae61913c868df903c321781a43d7992a4552ee2fdb0b5356d7b72ff24
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 391
+    sourceEndLine: 396
     sourceFile: packages/cli/tests/consumer/search-answer-layer.test.ts
     sourceLine: 1
   SYM-test-kibi-truthful-consistency:

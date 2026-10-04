@@ -566,7 +566,7 @@ describe("repository KB search evaluation", () => {
       await expect(main()).rejects.toThrow(/Usage:.*--repo-kb/);
     } finally {
       process.argv = previousArgv;
-      process.exitCode = previousExitCode;
+      process.exitCode = previousExitCode ?? 0;
       process.stdout.write = originalOut;
       process.stderr.write = originalErr;
     }

@@ -24,7 +24,12 @@ afterEach(() => {
   workspace = undefined;
 });
 
-type Brief = { id: string; status?: string; supersededBy?: string };
+type Brief = {
+  id: string;
+  title?: string;
+  status?: string;
+  supersededBy?: string;
+};
 
 describe("search answer layer through the kibi CLI", () => {
   test("answers with the governing requirement, its facts, scenario and test, and lists the superseded one separately", () => {
