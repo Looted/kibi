@@ -1984,5 +1984,17 @@
         "./packages/cli/tests/consumer/telemetry-lookup-before-first-edit.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-kibi-kb-lifecycle-integrity",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/cli/tests/commands/migrate-lifecycle.test.ts"
+      ]
+    ]
   }
 ]

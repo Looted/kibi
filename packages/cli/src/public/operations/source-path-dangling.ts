@@ -46,7 +46,7 @@ function suggestion(source: SourceRepair): string {
  * evidence names the automatic fix (`rewrite` or `remove`) and, when the
  * edit is not safe, why (`refused`).
  */
-// implements REQ-core-validation-rules
+// implements REQ-core-validation-rules, REQ-kibi-kb-lifecycle-integrity
 export function sourcePathDanglingViolations(
   dangling: readonly SourceRepair[],
 ): Violation[] {
@@ -72,7 +72,7 @@ export function sourcePathDanglingViolations(
  * values that resolve to nothing. The compiled `source` (the entity's own
  * file) always resolves, so the check reads authored frontmatter.
  */
-// implements REQ-core-validation-rules
+// implements REQ-core-validation-rules, REQ-kibi-kb-lifecycle-integrity
 export function collectSourcePathDanglingViolations(
   workspaceRoot: string,
 ): Violation[] {

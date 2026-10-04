@@ -119,7 +119,7 @@ export type SupersededClosureInput = Readonly<{
 }>;
 
 /** One automatic action that closes every listed superseded requirement. */
-// implements REQ-cli-schema-migration, REQ-core-validation-rules
+// implements REQ-cli-schema-migration, REQ-core-validation-rules, REQ-kibi-kb-lifecycle-integrity
 export function closeSupersededRequirementsActionInput(
   closures: readonly SupersededClosureInput[],
 ): MigrationActionInput {
@@ -152,7 +152,7 @@ export function closeSupersededRequirementsActionInput(
 }
 
 /** Review: requirements that supersede each other; a person picks the current one. */
-// implements REQ-cli-schema-migration, REQ-core-validation-rules
+// implements REQ-cli-schema-migration, REQ-core-validation-rules, REQ-kibi-kb-lifecycle-integrity
 export function supersessionCycleReviewActionInput(cycle: {
   members: readonly string[];
   edges: readonly (readonly [string, string])[];
@@ -187,7 +187,7 @@ export type SourcePathRewriteInput = Readonly<{
   to: string;
 }>;
 
-// implements REQ-kibi-schema6-migration
+// implements REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export type SourcePathRemovalInput = Readonly<{
   entityId: string;
   file: string;
@@ -210,7 +210,7 @@ function byEntityThenFile(
  * One automatic action that rewrites every listed moved source and removes
  * every listed redundant or dead one.
  */
-// implements REQ-kibi-schema6-migration, REQ-core-validation-rules
+// implements REQ-kibi-schema6-migration, REQ-core-validation-rules, REQ-kibi-kb-lifecycle-integrity
 export function sourcePathRewriteActionInput(
   input: Readonly<{
     rewrites: readonly SourcePathRewriteInput[];
@@ -247,7 +247,7 @@ export function sourcePathRewriteActionInput(
  * Review: a source value Kibi would rewrite or remove but cannot edit
  * safely (it spans several lines, or the edit would change other fields).
  */
-// implements REQ-kibi-schema6-migration, REQ-core-validation-rules
+// implements REQ-kibi-schema6-migration, REQ-core-validation-rules, REQ-kibi-kb-lifecycle-integrity
 export function sourcePathReviewActionInput(source: {
   entityId: string;
   value: unknown;
@@ -295,7 +295,7 @@ type Violation = Readonly<Record<string, unknown>>;
  * only for a value Kibi cannot edit safely), plus the sync that recompiles
  * what they rewrite.
  */
-// implements REQ-cli-schema-migration, REQ-agent-guided-migration-orchestration, REQ-kibi-schema6-migration
+// implements REQ-cli-schema-migration, REQ-agent-guided-migration-orchestration, REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export function lifecycleActionsFromViolations(
   violations: readonly Violation[],
 ): { actions: MigrationActionInput[]; consumed: ReadonlySet<number> } {

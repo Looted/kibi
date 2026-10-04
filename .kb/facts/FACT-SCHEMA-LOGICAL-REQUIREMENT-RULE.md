@@ -46,6 +46,7 @@ argument_constants:
     - kibi.engine.read_limits
     - kibi.entity.origin
     - kibi.host.edit_snippets
+    - kibi.kb.lifecycle
     - kibi.logic.coverage
     - kibi.mcp.tool_schema
     - kibi.migration.legacy_plan

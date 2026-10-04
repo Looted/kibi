@@ -564,7 +564,7 @@ deprecated_adr_violation(violation(
 %% ------------------------------------------------------------------
 
 %% check_superseded_requirement_open(-Violations)
-% implements REQ-core-validation-rules
+% implements REQ-core-validation-rules, REQ-kibi-kb-lifecycle-integrity
 % A requirement that another requirement supersedes is retired, so it must
 % carry the terminal status `closed`; an open superseded requirement reads as
 % current to every agent that finds it.  Supersession must also be acyclic:

@@ -22,7 +22,7 @@ import {
   writeManifest,
 } from "../helpers/schema6-fixture.js";
 
-// implements REQ-cli-schema-migration, REQ-core-validation-rules, REQ-kibi-schema6-migration
+// implements REQ-cli-schema-migration, REQ-core-validation-rules, REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 
 const kibiCliEntry = path.resolve(__dirname, "../../src/cli.ts");
 const TIMEOUT_MS = 180_000;

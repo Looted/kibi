@@ -48084,3 +48084,15 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-kibi-telemetry-lookup-before-first-edit-cli
+  - id: SYM-test-kibi-kb-lifecycle-integrity
+    title: kibi migrate lifecycle repairs suite
+    status: active
+    sourceFile: packages/cli/tests/commands/migrate-lifecycle.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T05:39:09.733Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-kb-lifecycle-integrity

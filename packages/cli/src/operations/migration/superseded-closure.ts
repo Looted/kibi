@@ -83,7 +83,7 @@ function reachable(
  * strongly connected component that contains a cycle), as sorted member
  * lists sorted by first member.
  */
-// implements REQ-core-validation-rules
+// implements REQ-core-validation-rules, REQ-kibi-kb-lifecycle-integrity
 export function supersessionCycles(
   edges: readonly (readonly [string, string])[],
 ): string[][] {
@@ -165,7 +165,7 @@ function readRequirementsAndEdges(workspaceRoot: string): {
  * read from authored Markdown and relationship shards. Cycle members are
  * listed only under their cycle. Read-only.
  */
-// implements REQ-core-validation-rules, REQ-cli-schema-migration
+// implements REQ-core-validation-rules, REQ-cli-schema-migration, REQ-kibi-kb-lifecycle-integrity
 export function planSupersededClosures(
   workspaceRoot: string,
 ): SupersessionPlan {
@@ -223,7 +223,7 @@ export type SupersededClosureResult = Readonly<{
  * supersession cycle are never touched. With `planned`, only those ids are
  * closed. Idempotent: a closed requirement is not planned again.
  */
-// implements REQ-cli-schema-migration
+// implements REQ-cli-schema-migration, REQ-kibi-kb-lifecycle-integrity
 export function applySupersededClosures(
   workspaceRoot: string,
   planned?: ReadonlySet<string>,

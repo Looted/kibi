@@ -325,3 +325,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2fd22b59d8df
+  - type: executable_for
+    from: SYM-test-kibi-kb-lifecycle-integrity
+    to: TEST-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-04T05:39:10.567Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-51874645dd2a
