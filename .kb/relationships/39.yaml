@@ -153,3 +153,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b23643fb4a03
+  - type: covered_by
+    from: SYM-agent-core-requirementGroundingLines
+    to: TEST-codex-edit-snippet-hook
+    created_at: 2026-10-04T04:47:08.042Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ff6e3e50fec7
+  - type: covered_by
+    from: SYM-agent-core-requirementGroundingLines
+    to: TEST-cursor-edit-snippet-hook
+    created_at: 2026-10-04T04:47:22.238Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-155f5cace4a3
+  - type: covered_by
+    from: SYM-agent-core-requirementGroundingLines
+    to: TEST-claude-edit-snippet-hook
+    created_at: 2026-10-04T04:47:41.393Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b74cd50fe047

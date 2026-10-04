@@ -1,4 +1,4 @@
-// implements REQ-kibi-scenario-feasibility-v2, REQ-kibi-truthful-consistency
+// implements REQ-kibi-scenario-feasibility-v2, REQ-kibi-conditional-requirement-authoring, REQ-kibi-truthful-consistency
 import { afterEach, describe, expect, test } from "bun:test";
 import {
   type ConsumerWorkspace,
@@ -135,6 +135,7 @@ function zeroFact(
   subject: string,
   property: string,
   scope?: string,
+  window?: Readonly<{ from: string; to: string }>,
 ): string {
   return doc(`
 id: ${id}
@@ -148,6 +149,7 @@ operator: eq
 value_type: int
 value_int: 0
 ${scope ? `scope: ${scope}` : ""}
+${window ? `valid_from: ${window.from}\nvalid_to: ${window.to}` : ""}
 `);
 }
 
@@ -212,6 +214,9 @@ describe("conditional requirement feasibility through the kibi CLI", () => {
     );
     const ruleStep = (plan.steps as Json[]).find(
       (step) => (step.properties as Json | undefined)?.fact_kind === "rule",
+    );
+    expect((ruleStep?.properties as Json).title).toBe(
+      "Rule: Checkout may happen only when the cart total is positive",
     );
     expect((ruleStep?.properties as Json).rule_ir).toMatchObject({
       modality: "forbid",
@@ -318,5 +323,141 @@ links:
       coverageRows(ws).get(CHECKOUT)?.proofStages.scenarios
         ?.infeasibleScenarios,
     ).toEqual(["SCEN-checkout-zero-total"]);
+  }, 600_000);
+
+  test("a compiled rule decides only scenarios inside its validity window, and an untranslatable conditional stays an open gap", () => {
+    const ws = createConsumerWorkspace("kibi-conditional-validity-");
+    workspace = ws;
+
+    // When each zero-total checkout happens comes from its assumed fact.
+    const dated: Array<[string, string, { from: string; to: string }?]> = [
+      [
+        "FACT-cart-total-zero-2027",
+        "A March 2027 cart total is zero",
+        {
+          from: "2027-03-01",
+          to: "2027-03-31",
+        },
+      ],
+      [
+        "FACT-cart-total-zero-2026",
+        "A June 2026 cart total is zero",
+        {
+          from: "2026-06-01",
+          to: "2026-06-30",
+        },
+      ],
+      ["FACT-cart-total-zero-undated", "An undated cart total is zero"],
+    ];
+    for (const [id, title, window] of dated)
+      ws.write(
+        `.kb/facts/${id}.md`,
+        zeroFact(id, title, "cart", "total", undefined, window),
+      );
+    ws.sync();
+
+    const scenarios: readonly Scenario[] = [
+      {
+        id: "SCEN-checkout-zero-total-2027",
+        title: "A zero-total cart checks out in March 2027",
+        assumes: "FACT-cart-total-zero-2027",
+      },
+      {
+        id: "SCEN-checkout-zero-total-2026",
+        title: "A zero-total cart checks out in June 2026",
+        assumes: "FACT-cart-total-zero-2026",
+      },
+      {
+        id: "SCEN-checkout-zero-total-undated",
+        title: "A zero-total cart checks out at an unstated time",
+        assumes: "FACT-cart-total-zero-undated",
+      },
+    ];
+    const plan = compileAndApply(
+      ws,
+      "Checkout may happen only when the cart total is positive.",
+      CHECKOUT,
+      scenarios,
+    );
+
+    // The rule holds during 2027 only. kb_upsert replaces an entity's
+    // properties, so the window is written onto the compiled rule as a
+    // whole entity.
+    const ruleId = (plan.steps as Json[]).find(
+      (step) => (step.properties as Json | undefined)?.fact_kind === "rule",
+    )?.id as string;
+    const rule = (ws.json(["query"], { id: ruleId }).data as Json)
+      .entities as Json[];
+    const {
+      id: _id,
+      type: _type,
+      source: _source,
+      created_at: _createdAt,
+      updated_at: _updatedAt,
+      ...ruleProperties
+    } = rule[0] as Json;
+    expect(
+      ws.json(["upsert"], {
+        type: "fact",
+        id: ruleId,
+        properties: {
+          ...ruleProperties,
+          valid_from: "2027-01-01",
+          valid_to: "2027-12-31",
+        },
+      }),
+    ).toMatchObject({ status: "success" });
+    for (const scenario of scenarios) assume(ws, scenario);
+
+    // Inside the window the rule blocks; before it the rule does not apply;
+    // with no stated time the checks cannot tell and say so.
+    expect(feasibilityByScenario(ws)).toEqual({
+      infeasible: ["SCEN-checkout-zero-total-2027"],
+      unknown: ["SCEN-checkout-zero-total-undated"],
+    });
+    expect(
+      checkAdvisories(ws, "scenario-feasibility-unknown")[0]?.message,
+    ).toContain("validity window may or may not cover the scenario's time");
+    const ladder = coverageRows(ws).get(CHECKOUT)?.proofStages.scenarios;
+    expect(ladder?.infeasibleScenarios).toEqual([
+      "SCEN-checkout-zero-total-2027",
+    ]);
+    expect(ladder?.unknownFeasibility).toEqual([
+      {
+        scenario: "SCEN-checkout-zero-total-undated",
+        reason: "undetermined_validity",
+      },
+    ]);
+
+    // A conditional whose condition the reader cannot translate compiles to
+    // no rule and no observation: the clause stays an ontology gap and the
+    // plan is not ready to apply.
+    const untranslatable =
+      "Checkout may happen only when the cart total is positive and the user is verified.";
+    const gapPlan = ws.json(["compile-intent"], {
+      intent: untranslatable,
+      mode: "create",
+      requirementId: "REQ-checkout-verified-positive",
+    }).data as Json;
+    expect(gapPlan.status).toBe("needs_resolution");
+    expect(gapPlan.propositions).toMatchObject([{ status: "ontology_gap" }]);
+    expect(
+      (gapPlan.steps as Json[]).map(
+        (step) => (step.properties as Json | undefined)?.fact_kind,
+      ),
+    ).not.toEqual(expect.arrayContaining(["rule", "observation"]));
+    const modeled = ws.json(["model-requirement"], {
+      text: untranslatable,
+      requirementId: "REQ-checkout-verified-positive",
+    }).data as Json;
+    expect(modeled.warnings).toMatchObject([
+      { kind: "unresolved_conditional_clause" },
+    ]);
+    expect(modeled.applyPlan).toMatchObject([
+      {
+        type: "req",
+        properties: { semantic_inventory: [{ status: "ontology_gap" }] },
+      },
+    ]);
   }, 600_000);
 });

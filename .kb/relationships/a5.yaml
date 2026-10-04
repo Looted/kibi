@@ -139,3 +139,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1914b8c30a6e
+  - type: covered_by
+    from: SYM-core-proof-scenario-stage
+    to: TEST-kibi-conditional-feasibility-cli
+    created_at: 2026-10-04T04:44:44.753Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f85cc9eb92b5

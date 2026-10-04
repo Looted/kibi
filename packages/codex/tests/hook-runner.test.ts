@@ -1,9 +1,11 @@
 import { afterEach, describe, expect, test } from "bun:test";
+import { spawn } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-import { runHook } from "../src/hook-runner";
+import { MAX_SNIPPET_CHARS } from "kibi-agent-core/snippets";
+import { type HookResult, runHook } from "../src/hook-runner";
 import { loadHookState } from "../src/hook-state";
 
 function createTempRoot(prefix: string): string {
@@ -634,4 +636,177 @@ describe("Codex opt-in hook telemetry", () => {
     await post(cwd, pluginData, "apply_patch", { command: CHECKOUT_PATCH }, {});
     expect(usageRows(cwd)).toEqual([]);
   });
+});
+
+// implements REQ-agent-core-edit-snippets
+const codexPluginRoot = path.resolve(import.meta.dir, "..");
+
+type HookCommandRun = { code: number | null; stdout: string; stderr: string };
+
+/**
+ * Run the command `hooks/hooks.json` registers for `event` the way Codex
+ * does: through a shell, from the session cwd, with the plugin root and data
+ * directories in the environment and the hook payload on stdin. The command
+ * starts the committed `bin/hook-runner.mjs` bundle that installs ship.
+ */
+function runCodexHookCommand(
+  event: string,
+  payload: Record<string, unknown>,
+  options: { cwd: string; pluginData: string },
+): Promise<HookCommandRun> {
+  const manifest = JSON.parse(
+    fs.readFileSync(path.join(codexPluginRoot, "hooks", "hooks.json"), "utf8"),
+  ) as {
+    hooks: Record<string, { hooks: { type: string; command: string }[] }[]>;
+  };
+  const command = manifest.hooks[event]?.[0]?.hooks[0]?.command;
+  if (!command) throw new Error(`hooks.json registers no ${event} command`);
+  const env: NodeJS.ProcessEnv = {
+    ...process.env,
+    PLUGIN_ROOT: codexPluginRoot,
+    PLUGIN_DATA: options.pluginData,
+  };
+  // A developer's own telemetry opt-in must not reach the hook process.
+  for (const key of ["KIBI_DIAGNOSTIC_MODE", "KIBI_CLI_DIAGNOSTIC_MODE"]) {
+    Reflect.deleteProperty(env, key);
+  }
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, {
+      cwd: options.cwd,
+      env,
+      shell: true,
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+    let stdout = "";
+    let stderr = "";
+    child.stdout.setEncoding("utf8").on("data", (chunk: string) => {
+      stdout += chunk;
+    });
+    child.stderr.setEncoding("utf8").on("data", (chunk: string) => {
+      stderr += chunk;
+    });
+    child.on("error", reject);
+    child.on("close", (code) => resolve({ code, stdout, stderr }));
+    child.stdin.end(JSON.stringify(payload));
+  });
+}
+
+function additionalContextOf(run: HookCommandRun): string {
+  expect(run.code).toBe(0);
+  expect(run.stderr).toBe("");
+  const output = JSON.parse(run.stdout) as HookResult;
+  expect(Object.keys(output).sort()).toEqual([
+    "continue",
+    "hookSpecificOutput",
+  ]);
+  expect(output.continue).toBe(true);
+  const specific = output.hookSpecificOutput;
+  expect(specific?.hookEventName).toBe("PreToolUse");
+  if (!specific || !("additionalContext" in specific)) {
+    throw new Error(`no additionalContext in ${run.stdout}`);
+  }
+  return specific.additionalContext;
+}
+
+describe("Codex hook command pre-edit knowledge (end to end)", () => {
+  test("the PreToolUse command gives an apply_patch to linked code its requirement, what it must keep true and its decision, once per session", async () => {
+    const cwd = linkedWorkspace();
+    const pluginData = createTempRoot("kibi-codex-e2e-data-");
+    tempRoots.push(pluginData);
+    const preEdit = (sessionId: string) =>
+      runCodexHookCommand(
+        "PreToolUse",
+        {
+          hook_event_name: "PreToolUse",
+          session_id: sessionId,
+          cwd,
+          tool_name: "apply_patch",
+          tool_input: { command: CHECKOUT_PATCH },
+        },
+        { cwd, pluginData },
+      );
+
+    const context = additionalContextOf(await preEdit("codex-e2e-1"));
+    expect(context).toStartWith(
+      "Kibi knowledge for src/checkout.ts (symbol manifest):\n- REQ-checkout-rounding: Checkout totals round to cents — computeTotal\n",
+    );
+    expect(context).toContain(
+      "\nREQ-checkout-rounding must keep true: FACT-checkout-total; FACT-total-rounding-cents: Totals round half up to two decimals.\n",
+    );
+    expect(context).toContain(
+      "\nDecision: ADR-money-as-decimal: Money is computed as decimal cents.\n",
+    );
+    expect(context).toContain("\nCovered by: TEST-checkout-rounding.\n");
+    expect(context.length).toBeLessThanOrEqual(MAX_SNIPPET_CHARS);
+
+    // A second hook process in the same session finds the shown marker.
+    const repeat = await preEdit("codex-e2e-1");
+    expect(repeat.code).toBe(0);
+    expect(JSON.parse(repeat.stdout)).toEqual({ continue: true });
+    // A new session is told again, with the same snippet.
+    expect(additionalContextOf(await preEdit("codex-e2e-2"))).toBe(context);
+  }, 30_000);
+
+  test("a file owning more requirements than fit is cut at the snippet budget after its grounding and decision", async () => {
+    const cwd = linkedWorkspace();
+    const pluginData = createTempRoot("kibi-codex-e2e-data-");
+    tempRoots.push(pluginData);
+    const extra = ["audit", "currency", "discounts", "refunds", "taxes"];
+    writeFile(
+      cwd,
+      ".kb/symbols.yaml",
+      [
+        "symbols:",
+        "  - id: SYM-computeTotal",
+        "    title: computeTotal",
+        "    sourceFile: src/checkout.ts",
+        "    relationships:",
+        "      - type: implements",
+        "        target: REQ-checkout-rounding",
+        ...extra.flatMap((area) => [
+          `  - id: SYM-checkout-${area}`,
+          `    title: apply${area[0]?.toUpperCase()}${area.slice(1)}AdjustmentsToEveryLineItem`,
+          "    sourceFile: src/checkout.ts",
+          "    relationships:",
+          "      - type: implements",
+          `        target: REQ-checkout-${area}`,
+        ]),
+        "",
+      ].join("\n"),
+    );
+    for (const area of extra) {
+      writeFile(
+        cwd,
+        `.kb/requirements/REQ-checkout-${area}.md`,
+        `---\nid: REQ-checkout-${area}\ntitle: Checkout ${area} adjustments apply to every line item before totals are rounded and shown\nstatus: open\n---\n`,
+      );
+    }
+
+    const context = additionalContextOf(
+      await runCodexHookCommand(
+        "PreToolUse",
+        {
+          hook_event_name: "PreToolUse",
+          session_id: "codex-e2e-budget",
+          cwd,
+          tool_name: "apply_patch",
+          tool_input: { command: CHECKOUT_PATCH },
+        },
+        { cwd, pluginData },
+      ),
+    );
+
+    expect(context.length).toBe(MAX_SNIPPET_CHARS);
+    expect(context).toEndWith("…");
+    expect(context).toContain(
+      "\n- REQ-checkout-rounding: Checkout totals round to cents — computeTotal\n",
+    );
+    expect(context).toContain("\n- +2 more requirements: kb_query(");
+    expect(context).toContain(
+      "\nREQ-checkout-rounding must keep true: FACT-checkout-total; FACT-total-rounding-cents: Totals round half up to two decimals.\n",
+    );
+    expect(context).toContain(
+      "\nDecision: ADR-money-as-decimal: Money is computed as decimal cents.\n",
+    );
+  }, 30_000);
 });

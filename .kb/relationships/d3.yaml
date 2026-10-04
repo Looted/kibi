@@ -202,3 +202,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9d74f2128a92
+  - type: covered_by
+    from: SYM-search-answer-fitSearchAnswer
+    to: TEST-kibi-search-answer-layer
+    created_at: 2026-10-04T04:43:04.906Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6b494e771c75

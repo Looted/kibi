@@ -335,3 +335,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-28da1e0063ac
+  - type: covered_by
+    from: SYM-quality-eval-scoreRepoSearch
+    to: TEST-kibi-search-gold-set-gate-cli
+    created_at: 2026-10-04T04:48:08.058Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7d65100586e6

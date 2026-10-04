@@ -293,3 +293,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8de483670f2a
+  - type: executable_for
+    from: SYM-test-kibi-schema6-migration-cli
+    to: TEST-kibi-schema6-migration-cli
+    created_at: 2026-10-04T04:43:44.725Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-73170e3ae575

@@ -195,3 +195,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fc11f03aa876
+  - type: validates
+    from: TEST-kibi-search-answer-layer
+    to: SCEN-kibi-search-answer-verdicts
+    created_at: 2026-10-04T04:42:54.537Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-45243005764b

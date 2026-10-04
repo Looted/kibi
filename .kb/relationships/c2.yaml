@@ -339,3 +339,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-33e01f3db25b
+  - type: executable_for
+    from: SYM-test-cursor-edit-snippet-hook
+    to: TEST-cursor-edit-snippet-hook
+    created_at: 2026-10-04T04:47:14.212Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ff1fd66d3617

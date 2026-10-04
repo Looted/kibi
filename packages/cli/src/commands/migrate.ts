@@ -1063,17 +1063,30 @@ async function migratePlanCommand(
       console.log("No approved automatic migration actions are ready.");
       return { exitCode: 0 };
     }
-    const [{ createCliRuntime }, { executeOperation }, { applyPlanSpec }] =
-      await Promise.all([
-        import("../runtime/cli-runtime.js"),
-        import("../public/operations/runtime-types.js"),
-        import("../public/operations/specs/planning.js"),
-      ]);
-    const result = await executeOperation(
-      createCliRuntime({ workspaceRoot }),
-      applyPlanSpec,
-      { plan, approvedPlanHash: options.approvedPlanHash, approvedActionIds },
-    );
+    const [
+      { createCliRuntime },
+      { executeOperation },
+      { applyPlanSpec },
+      { withConsoleOnStderr },
+    ] = await Promise.all([
+      import("../runtime/cli-runtime.js"),
+      import("../public/operations/runtime-types.js"),
+      import("../public/operations/specs/planning.js"),
+      import("../cli-json-command.js"),
+    ]);
+    const approvedPlanHash = options.approvedPlanHash;
+    const execute = () =>
+      executeOperation(createCliRuntime({ workspaceRoot }), applyPlanSpec, {
+        plan,
+        approvedPlanHash,
+        approvedActionIds,
+      });
+    // The actions reuse commands that print progress; keep stdout to the
+    // JSON result.
+    const result =
+      options.format === "json"
+        ? await withConsoleOnStderr(execute)
+        : await execute();
     if (options.format === "json") {
       console.log(JSON.stringify(result, null, 2));
     } else {

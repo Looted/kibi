@@ -1,9 +1,12 @@
 import { afterEach, describe, expect, test } from "bun:test";
+import { spawn } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-import { runHook } from "../src/hook-runner";
+import { MAX_SNIPPET_CHARS } from "kibi-agent-core/snippets";
+import { PRE_EDIT_FOLLOWUP } from "../src/guidance";
+import { type CursorHookResult, runHook } from "../src/hook-runner";
 import { loadHookState } from "../src/hook-state";
 
 function createTempRoot(prefix: string): string {
@@ -686,4 +689,164 @@ describe("Cursor hook runner workspace stamp", () => {
       ),
     ).toEqual({});
   });
+});
+
+// implements REQ-agent-core-edit-snippets
+const cursorPluginRoot = path.resolve(import.meta.dir, "..");
+
+type HookCommandRun = { code: number | null; stdout: string; stderr: string };
+
+/**
+ * Run the command `hooks/hooks.json` registers for `event` the way Cursor
+ * does: through a shell from the plugin root (the command names the built
+ * `dist/hook-runner.js` relative to it), with the hook payload on stdin.
+ */
+function runCursorHookCommand(
+  event: string,
+  payload: Record<string, unknown>,
+  pluginData: string,
+): Promise<HookCommandRun> {
+  const manifest = JSON.parse(
+    fs.readFileSync(path.join(cursorPluginRoot, "hooks", "hooks.json"), "utf8"),
+  ) as { hooks: Record<string, { command: string }[]> };
+  const command = manifest.hooks[event]?.[0]?.command;
+  if (!command) throw new Error(`hooks.json registers no ${event} command`);
+  const env: NodeJS.ProcessEnv = { ...process.env, PLUGIN_DATA: pluginData };
+  // A developer's own telemetry opt-in must not reach the hook process.
+  for (const key of ["KIBI_DIAGNOSTIC_MODE", "KIBI_CLI_DIAGNOSTIC_MODE"]) {
+    Reflect.deleteProperty(env, key);
+  }
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, {
+      cwd: cursorPluginRoot,
+      env,
+      shell: true,
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+    let stdout = "";
+    let stderr = "";
+    child.stdout.setEncoding("utf8").on("data", (chunk: string) => {
+      stdout += chunk;
+    });
+    child.stderr.setEncoding("utf8").on("data", (chunk: string) => {
+      stderr += chunk;
+    });
+    child.on("error", reject);
+    child.on("close", (code) => resolve({ code, stdout, stderr }));
+    child.stdin.end(JSON.stringify(payload));
+  });
+}
+
+/** Source whose `computeTotal` spans lines 3-7. */
+const CURSOR_CHECKOUT_SOURCE = [
+  "// checkout",
+  "",
+  "export function computeTotal(items: number[]): number {",
+  "  let total = 0;",
+  "  for (const item of items) total += item;",
+  "  return Math.round(total * 100) / 100;",
+  "}",
+  "",
+].join("\n");
+
+/** A bootstrapped workspace whose checkout code implements a grounded requirement. */
+function cursorLinkedWorkspace(): string {
+  const root = createTempRoot("kibi-cursor-e2e-ws-");
+  tempRoots.push(root);
+  const write = (relativePath: string, content: string) => {
+    const target = path.join(root, relativePath);
+    fs.mkdirSync(path.dirname(target), { recursive: true });
+    fs.writeFileSync(target, content);
+  };
+  write(".kb/manifest.json", "{}");
+  write(
+    ".kb/symbols.yaml",
+    [
+      "symbols:",
+      "  - id: SYM-computeTotal",
+      "    title: computeTotal",
+      "    sourceFile: src/checkout.ts",
+      "    relationships:",
+      "      - type: implements",
+      "        target: REQ-checkout-rounding",
+      "      - type: covered_by",
+      "        target: TEST-checkout-rounding",
+      "",
+    ].join("\n"),
+  );
+  write(
+    ".kb/symbol-coordinates.yaml",
+    "version: 1\ncoordinates:\n  SYM-computeTotal:\n    sourceFile: src/checkout.ts\n    sourceLine: 3\n    sourceEndLine: 7\n",
+  );
+  write(
+    ".kb/requirements/REQ-checkout-rounding.md",
+    "---\nid: REQ-checkout-rounding\ntitle: Checkout totals round to cents\nstatus: open\nlinks:\n  - type: constrains\n    target: FACT-checkout-total\n  - type: requires_property\n    target: FACT-total-rounding-cents\n  - ADR-money-as-decimal\n---\n\nTotals round half up to two decimals.\n",
+  );
+  write(
+    ".kb/facts/FACT-total-rounding-cents.md",
+    "---\nid: FACT-total-rounding-cents\ntitle: Totals round half up to two decimals\nstatus: active\n---\n",
+  );
+  write(
+    ".kb/adr/ADR-money-as-decimal.md",
+    "---\nid: ADR-money-as-decimal\ntitle: Money is computed as decimal cents\nstatus: accepted\n---\n",
+  );
+  write("src/checkout.ts", CURSOR_CHECKOUT_SOURCE);
+  return root;
+}
+
+describe("Cursor hook command pre-edit knowledge (end to end)", () => {
+  test("the preToolUse command gives an edit of linked code its requirement, what it must keep true and its decision within the snippet budget", async () => {
+    const workspace = cursorLinkedWorkspace();
+    const pluginData = createTempRoot("kibi-cursor-e2e-data-");
+    tempRoots.push(pluginData);
+    const preEdit = () =>
+      runCursorHookCommand(
+        "preToolUse",
+        {
+          hook_event_name: "preToolUse",
+          conversation_id: "cursor-e2e-1",
+          workspace_roots: [workspace],
+          tool_name: "StrReplace",
+          tool_input: {
+            file_path: path.join(workspace, "src/checkout.ts"),
+            old_string: "  return Math.round(total * 100) / 100;",
+            new_string: "  return total;",
+          },
+        },
+        pluginData,
+      );
+
+    const run = await preEdit();
+    expect(run.code).toBe(0);
+    expect(run.stderr).toBe("");
+    const output = JSON.parse(run.stdout) as CursorHookResult;
+    expect(Object.keys(output).sort()).toEqual(["agent_message", "permission"]);
+    // Advisory only: the edit is allowed, never denied or rewritten.
+    expect(output.permission).toBe("allow");
+    const message = output.agent_message ?? "";
+    const start = message.indexOf("Kibi knowledge for src/checkout.ts");
+    const end = message.indexOf(`\n${PRE_EDIT_FOLLOWUP}`);
+    expect(start).toBeGreaterThanOrEqual(0);
+    expect(end).toBeGreaterThan(start);
+    const snippet = message.slice(start, end);
+    expect(snippet).toStartWith(
+      "Kibi knowledge for src/checkout.ts (symbol manifest):\n- REQ-checkout-rounding: Checkout totals round to cents — computeTotal\n",
+    );
+    expect(snippet).toContain(
+      "\nREQ-checkout-rounding must keep true: FACT-checkout-total; FACT-total-rounding-cents: Totals round half up to two decimals.\n",
+    );
+    expect(snippet).toContain(
+      "\nDecision: ADR-money-as-decimal: Money is computed as decimal cents.\n",
+    );
+    expect(snippet).toContain(
+      "\nThe edit is inside computeTotal, which implements REQ-checkout-rounding.\n",
+    );
+    expect(snippet.length).toBeLessThanOrEqual(MAX_SNIPPET_CHARS);
+    expect(message).toEndWith(PRE_EDIT_FOLLOWUP);
+
+    // A later hook process in the same conversation does not repeat it.
+    const repeat = await preEdit();
+    expect(repeat.code).toBe(0);
+    expect(JSON.parse(repeat.stdout)).toEqual({});
+  }, 30_000);
 });

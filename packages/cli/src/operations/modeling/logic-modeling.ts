@@ -108,7 +108,7 @@ export function buildLogicApplyPlan(
         type: "fact",
         id: ruleId,
         properties: {
-          title: `${validation.normalized.kind} rule ${semanticKey}`,
+          title: `Rule: ${claimText}`,
           status: "active",
           source: input.source,
           fact_kind: "rule",

@@ -237,3 +237,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-dcfc5f52708b
+  - type: validates
+    from: TEST-kibi-entity-origin-cli
+    to: SCEN-kibi-entity-origin
+    created_at: 2026-10-04T04:43:15.763Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a9816b3bb2de
+  - type: covered_by
+    from: SYM-entity-origin-resolveUpsertOrigin
+    to: TEST-kibi-entity-origin-cli
+    created_at: 2026-10-04T04:43:32.498Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b5f4d6187825
+  - type: covered_by
+    from: SYM-semantic-advisor-detectConditionalRule
+    to: TEST-kibi-conditional-feasibility-cli
+    created_at: 2026-10-04T04:44:34.330Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d58d8d133a92
+  - type: executable_for
+    from: SYM-test-kibi-search-gold-set-gate-cli
+    to: TEST-kibi-search-gold-set-gate-cli
+    created_at: 2026-10-04T04:47:47.196Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-746c3a50b23c

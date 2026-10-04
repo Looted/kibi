@@ -392,4 +392,185 @@ links:
       }),
     );
   }, 300_000);
+
+  test("gives each governing requirement its verdict, exceptions, unknowns and rationale excerpt, scoped to the synced snapshot", () => {
+    const ws = createConsumerWorkspace("kibi-search-answer-verdicts-");
+    workspace = ws;
+
+    const prose =
+      "The remaining call quota must be greater than 0. Every quota reset must be reviewed by an operator.";
+    const { contract, propositions } = adviseProse(ws, prose);
+    const [numeric, review] = propositions as [
+      (typeof propositions)[number],
+      (typeof propositions)[number],
+    ];
+    ws.write(".kb/facts/FACT-QUOTA-SUBJECT.md", QUOTA_SUBJECT);
+    ws.write(
+      ".kb/facts/FACT-QUOTA-POSITIVE.md",
+      quotaValueFact(
+        "FACT-QUOTA-POSITIVE",
+        "Remaining quota above zero",
+        "gt",
+        0,
+        { key: numeric.claim_key, text: numeric.claim_text },
+      ),
+    );
+    ws.write(
+      ".kb/adr/ADR-QUOTA-GATEWAY.md",
+      doc(
+        `
+id: ADR-QUOTA-GATEWAY
+title: Enforce the call quota at the gateway
+type: adr
+status: accepted
+`,
+        `
+## Context
+
+Clients overran shared capacity during launch week.
+
+## Decision
+
+The gateway rejects a client call once its remaining quota is used up. Quota resets go through an operator review.
+
+## Consequences
+
+Clients see a rejection instead of degraded latency.
+`,
+      ),
+    );
+    ws.write(
+      ".kb/requirements/REQ-QUOTA-CALL.md",
+      doc(
+        `
+id: REQ-QUOTA-CALL
+title: Calls need remaining quota and resets need review
+type: req
+status: open
+priority: must
+${semanticFrontMatter(prose, contract, [{ ...numeric, status: "modeled" }, review])}
+links:
+  - type: constrains
+    target: FACT-QUOTA-SUBJECT
+  - type: requires_property
+    target: FACT-QUOTA-POSITIVE
+  - type: relates_to
+    target: ADR-QUOTA-GATEWAY
+`,
+        prose,
+      ),
+    );
+    // A second current requirement pins the same property to a value the
+    // first one forbids.
+    authorQuotaRequirement(ws, {
+      id: "REQ-QUOTA-FREE-TIER",
+      title: "Free-tier remaining quota is zero",
+      prose: "The free-tier remaining call quota must equal 0.",
+      factId: "FACT-QUOTA-ZERO",
+      operator: "eq",
+      value: 0,
+    });
+    const exceptionProse = "Promo calls may skip the call quota.";
+    const exception = adviseProse(ws, exceptionProse);
+    ws.write(
+      ".kb/requirements/REQ-QUOTA-PROMO-EXCEPTION.md",
+      doc(
+        `
+id: REQ-QUOTA-PROMO-EXCEPTION
+title: Promo calls are exempt from the quota
+type: req
+status: open
+priority: must
+approved_by: Product owner
+approval_ref: DEC-42
+${semanticFrontMatter(exceptionProse, exception.contract, exception.propositions)}
+links:
+  - type: exempts
+    target: REQ-QUOTA-CALL
+`,
+        exceptionProse,
+      ),
+    );
+    ws.sync();
+
+    type Answered = Brief & {
+      adrs: Brief[];
+      verdict: {
+        status: string;
+        witnesses: Array<{
+          check: string;
+          status: string;
+          with?: string;
+          facts: string[];
+        }>;
+      };
+      exceptions: Array<Brief & { approvedBy?: string }>;
+      unknowns: Array<{ kind: string; detail: string }>;
+    };
+    const result = ws.json(["search"], { query: "remaining call quota" });
+    const answer = (result.data as Json).answer as Json;
+    const governing = answer.governing as Answered[];
+    const call = governing.find((req) => req.id === "REQ-QUOTA-CALL");
+
+    // The verdict names the other requirement and the facts that conflict.
+    expect(call?.verdict.status).toBe("contradiction");
+    expect(call?.verdict.witnesses).toContainEqual(
+      expect.objectContaining({
+        check: "domain-contradictions",
+        status: "contradiction",
+        with: "REQ-QUOTA-FREE-TIER",
+        facts: ["FACT-QUOTA-POSITIVE", "FACT-QUOTA-ZERO"],
+      }),
+    );
+    // The approved exception is listed with its approver; it does not hide
+    // the contradiction, which is between two other requirements.
+    expect(call?.exceptions).toEqual([
+      {
+        id: "REQ-QUOTA-PROMO-EXCEPTION",
+        title: "Promo calls are exempt from the quota",
+        status: "open",
+        approvedBy: "Product owner",
+      },
+    ]);
+    expect(call?.unknowns).toContainEqual(
+      expect.objectContaining({
+        kind: "unresolved_proposition",
+        detail: `ontology_gap: ${review.claim_text}`,
+      }),
+    );
+    expect(call?.adrs.map((adr) => adr.id)).toEqual(["ADR-QUOTA-GATEWAY"]);
+    // The conflicting requirement carries the mirror witness and nothing
+    // exempts it.
+    const freeTier = governing.find((req) => req.id === "REQ-QUOTA-FREE-TIER");
+    expect(freeTier?.verdict.witnesses).toContainEqual(
+      expect.objectContaining({
+        check: "domain-contradictions",
+        with: "REQ-QUOTA-CALL",
+      }),
+    );
+    expect(freeTier?.exceptions).toEqual([]);
+
+    // The rationale quotes the ADR's Decision section, not its Context, and
+    // says where the ADR lives.
+    expect(answer.rationale).toEqual([
+      {
+        id: "ADR-QUOTA-GATEWAY",
+        title: "Enforce the call quota at the gateway",
+        status: "accepted",
+        source: ".kb/adr/ADR-QUOTA-GATEWAY.md",
+        excerpt:
+          "The gateway rejects a client call once its remaining quota is used up. Quota resets go through an operator review.",
+      },
+    ]);
+
+    // The scope is the snapshot kibi status reports for this branch.
+    const status = ws.json(["status", "--format", "json"]);
+    expect(status.syncState).toBe("fresh");
+    expect(answer.scope).toEqual({
+      branch: "main",
+      snapshotId: status.snapshotId,
+      syncedAt: status.syncedAt,
+    });
+    expect(String(status.snapshotId)).not.toBe("missing");
+  }, 300_000);
 });

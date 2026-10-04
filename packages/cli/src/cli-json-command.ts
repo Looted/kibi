@@ -19,6 +19,25 @@ export function writeOptionalStderr(stderr: string | undefined): void {
 }
 
 // implements REQ-kibi-operation-interface-parity
+/**
+ * Runs `fn` with console.log and console.info sent to stderr. Commands that a
+ * JSON route reuses (sync, branch ensure, migrate) print progress; on stdout
+ * it would land ahead of the JSON document and make it unparseable.
+ */
+export async function withConsoleOnStderr<T>(fn: () => Promise<T>): Promise<T> {
+  const { log, info } = console;
+  const toStderr = (...args: unknown[]) => console.error(...args);
+  console.log = toStderr;
+  console.info = toStderr;
+  try {
+    return await fn();
+  } finally {
+    console.log = log;
+    console.info = info;
+  }
+}
+
+// implements REQ-kibi-operation-interface-parity
 export type JsonInvocation = {
   readonly operationName: OperationName;
   readonly inputPath: string;
@@ -136,18 +155,21 @@ export async function runJsonInvocation(
   const runtime = createCliRuntime({ workspaceRoot });
   let result: Awaited<ReturnType<typeof executeProtocolOperation>>;
   try {
-    const context = await runtime.open(spec, { workspaceRoot });
-    result = await executeProtocolOperation(
-      invocation.operationName,
-      input,
-      context,
-    );
-    if (result.exitCode === 0 && spec.effects.includes("kb-write")) {
-      await runtime.afterSuccess(spec, context);
-    }
-    await runtime.close(context, {
-      status: "success",
-      result,
+    result = await withConsoleOnStderr(async () => {
+      const context = await runtime.open(spec, { workspaceRoot });
+      const executed = await executeProtocolOperation(
+        invocation.operationName,
+        input,
+        context,
+      );
+      if (executed.exitCode === 0 && spec.effects.includes("kb-write")) {
+        await runtime.afterSuccess(spec, context);
+      }
+      await runtime.close(context, {
+        status: "success",
+        result: executed,
+      });
+      return executed;
     });
   } catch (error) {
     if (diagnostic) {

@@ -342,3 +342,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5e8dd0a54b45
+  - type: validates
+    from: TEST-kibi-search-gold-set-gate-cli
+    to: SCEN-kibi-search-gold-set-gate
+    created_at: 2026-10-04T04:47:44.601Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a73494b02baf

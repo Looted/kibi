@@ -1,7 +1,8 @@
-// implements REQ-kibi-truthful-consistency, REQ-kibi-scenario-feasibility-v2, REQ-kibi-search-answer-layer-v2
+// implements REQ-kibi-truthful-consistency, REQ-kibi-scenario-feasibility-v2, REQ-kibi-search-answer-layer-v2, REQ-kibi-schema6-migration
 import {
   mkdirSync,
   mkdtempSync,
+  readFileSync,
   realpathSync,
   rmSync,
   writeFileSync,
@@ -23,8 +24,13 @@ export type Json = Record<string, unknown>;
 export type ConsumerWorkspace = Readonly<{
   root: string;
   write(relativePath: string, content: string): void;
+  read(relativePath: string): string;
+  /** `git add .kb`: put authored documents inside the source boundary. */
+  stage(): void;
   sync(): void;
   json(args: readonly string[], input?: Json): Json;
+  /** Raw stdout of a `kibi` command that prints text. */
+  text(args: readonly string[]): string;
   cleanup(): void;
 }>;
 
@@ -47,6 +53,10 @@ export function createConsumerWorkspace(prefix: string): ConsumerWorkspace {
   const root = realpathSync(mkdtempSync(path.join(os.tmpdir(), prefix)));
   run(root, "git", ["init", "-q", "-b", "main"]);
   run(root, "node", [KIBI_CLI, "init"]);
+  // `kibi sync` reads the Git-tracked source boundary.
+  const stage = () => {
+    run(root, "git", ["add", ".kb"]);
+  };
   return {
     root,
     write(relativePath, content) {
@@ -54,10 +64,16 @@ export function createConsumerWorkspace(prefix: string): ConsumerWorkspace {
       mkdirSync(path.dirname(target), { recursive: true });
       writeFileSync(target, content);
     },
+    read(relativePath) {
+      return readFileSync(path.join(root, relativePath), "utf8");
+    },
+    stage,
     sync() {
-      // `kibi sync` reads the Git-tracked source boundary.
-      run(root, "git", ["add", ".kb"]);
+      stage();
       run(root, "node", [KIBI_CLI, "sync"]);
+    },
+    text(args) {
+      return run(root, "node", [KIBI_CLI, ...args]);
     },
     json(args, input) {
       // check exits non-zero when it reports violations; the JSON is still

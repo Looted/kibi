@@ -139,3 +139,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-341a160e0e25
+  - type: covered_by
+    from: SYM-schema6-buildSchema6MigrationFragment
+    to: TEST-kibi-schema6-migration-cli
+    created_at: 2026-10-04T04:44:05.236Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f06577645bd0

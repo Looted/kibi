@@ -275,7 +275,7 @@ function ruleSuggestion(
         type: "fact",
         id: factId,
         properties: {
-          title: `${candidate.ir.kind} rule ${semanticKey}`,
+          title: `Rule: ${candidate.claim_text}`,
           status: "active",
           source: sourceOf(payload),
           fact_kind: "rule",

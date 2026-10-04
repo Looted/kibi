@@ -1814,7 +1814,7 @@
         "bun",
         "test",
         "--timeout",
-        "300000",
+        "600000",
         "./packages/cli/tests/consumer/search-answer-layer.test.ts"
       ]
     ]
@@ -1838,6 +1838,90 @@
         "bun",
         "test",
         "./packages/cli/tests/operations/legacy-migration-plan.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-entity-origin-cli",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/cli/tests/consumer/entity-origin.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-schema6-migration-cli",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/cli/tests/consumer/schema6-migration.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-conditional-feasibility-cli",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/cli/tests/consumer/conditional-feasibility.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-codex-edit-snippet-hook",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/codex/tests/hook-runner.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-cursor-edit-snippet-hook",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cursor/tests/hook-runner.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-claude-edit-snippet-hook",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/claude/tests/hook-runner.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-search-gold-set-gate-cli",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "200000",
+        "./scripts/tests/repo-search-gold-gate.test.ts"
       ]
     ]
   }

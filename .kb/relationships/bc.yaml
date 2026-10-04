@@ -104,3 +104,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-90ef9062580d
+  - type: covered_by
+    from: SYM-claude-fileKnowledgeSnippet
+    to: TEST-claude-edit-snippet-hook
+    created_at: 2026-10-04T04:47:35.656Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9f39190b55e5

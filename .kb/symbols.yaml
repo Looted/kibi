@@ -42550,6 +42550,8 @@ symbols:
         target: TEST-agent-core-edit-snippets
       - type: covered_by
         target: TEST-claude-code-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
       - type: implements
         target: REQ-agent-core-edit-snippets
       - type: implements
@@ -47388,6 +47390,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-kibi-conditional-feasibility-cli
+      - type: covered_by
         target: TEST-kibi-scenario-feasibility
       - type: implements
         target: REQ-kibi-scenario-feasibility-v2
@@ -47397,6 +47401,8 @@ symbols:
     sourceFile: packages/core/src/requirement_proof.pl
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-kibi-conditional-feasibility-cli
       - type: covered_by
         target: TEST-kibi-scenario-feasibility
       - type: implements
@@ -47500,6 +47506,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-entity-origin
+      - type: covered_by
+        target: TEST-kibi-entity-origin-cli
       - type: implements
         target: REQ-kibi-entity-origin
   - id: SYM-entity-origin-resolveUpsertOrigin
@@ -47513,6 +47521,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-entity-origin
+      - type: covered_by
+        target: TEST-kibi-entity-origin-cli
       - type: implements
         target: REQ-kibi-entity-origin
   - id: SYM-origin-review-evaluateOriginReview
@@ -47526,6 +47536,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-entity-origin
+      - type: covered_by
+        target: TEST-kibi-entity-origin-cli
       - type: implements
         target: REQ-kibi-entity-origin
   - id: SYM-schema6-planOriginBackfill
@@ -47539,6 +47551,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-schema6-migration
+      - type: covered_by
+        target: TEST-kibi-schema6-migration-cli
       - type: implements
         target: REQ-kibi-schema6-migration
   - id: SYM-schema6-applyOriginBackfill
@@ -47552,6 +47566,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-schema6-migration
+      - type: covered_by
+        target: TEST-kibi-schema6-migration-cli
       - type: implements
         target: REQ-kibi-schema6-migration
   - id: SYM-schema6-planInventoryRederivation
@@ -47565,6 +47581,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-schema6-migration
+      - type: covered_by
+        target: TEST-kibi-schema6-migration-cli
       - type: implements
         target: REQ-kibi-schema6-migration
   - id: SYM-schema6-applyInventoryRederivation
@@ -47578,6 +47596,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-schema6-migration
+      - type: covered_by
+        target: TEST-kibi-schema6-migration-cli
       - type: implements
         target: REQ-kibi-schema6-migration
   - id: SYM-schema6-buildSchema6MigrationFragment
@@ -47591,6 +47611,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-schema6-migration
+      - type: covered_by
+        target: TEST-kibi-schema6-migration-cli
       - type: implements
         target: REQ-kibi-schema6-migration
   - id: SYM-semantic-advisor-detectConditionalRule
@@ -47602,6 +47624,8 @@ symbols:
       kind: agent
       recorded_at: 2026-10-04T03:13:32.923Z
     relationships:
+      - type: covered_by
+        target: TEST-kibi-conditional-feasibility-cli
       - type: covered_by
         target: TEST-kibi-conditional-requirement-authoring
       - type: implements
@@ -47617,6 +47641,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-agent-core-edit-snippets
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: covered_by
+        target: TEST-codex-edit-snippet-hook
+      - type: covered_by
+        target: TEST-cursor-edit-snippet-hook
       - type: implements
         target: REQ-agent-core-edit-snippets
   - id: SYM-agent-core-editKnowledgeContext
@@ -47630,6 +47660,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-agent-core-edit-snippets
+      - type: covered_by
+        target: TEST-codex-edit-snippet-hook
       - type: implements
         target: REQ-agent-core-edit-snippets
   - id: SYM-quality-eval-scoreRepoSearch
@@ -47643,6 +47675,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-search-gold-set-gate
+      - type: covered_by
+        target: TEST-kibi-search-gold-set-gate-cli
       - type: implements
         target: REQ-kibi-search-gold-set-gate
   - id: SYM-quality-eval-repoSearchThresholdFailures
@@ -47656,6 +47690,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-search-gold-set-gate
+      - type: covered_by
+        target: TEST-kibi-search-gold-set-gate-cli
       - type: implements
         target: REQ-kibi-search-gold-set-gate
   - id: SYM-quality-eval-runRepoSearchEvaluation
@@ -47669,6 +47705,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-search-gold-set-gate
+      - type: covered_by
+        target: TEST-kibi-search-gold-set-gate-cli
       - type: implements
         target: REQ-kibi-search-gold-set-gate
   - id: SYM-detached-snapshot-resolveOperationAttachment
@@ -47811,6 +47849,8 @@ symbols:
       recorded_at: 2026-10-04T03:15:15.388Z
     relationships:
       - type: covered_by
+        target: TEST-kibi-search-answer-layer
+      - type: covered_by
         target: TEST-kibi-search-answer-verdicts
       - type: implements
         target: REQ-kibi-search-answer-layer-v2
@@ -47823,6 +47863,8 @@ symbols:
       kind: agent
       recorded_at: 2026-10-04T03:15:21.947Z
     relationships:
+      - type: covered_by
+        target: TEST-kibi-search-answer-layer
       - type: covered_by
         target: TEST-kibi-search-answer-verdicts
       - type: implements
@@ -47868,3 +47910,87 @@ symbols:
         target: TEST-kibi-telemetry-lookup-before-first-edit
       - type: implements
         target: REQ-kibi-telemetry-acceptance-gate-v2
+  - id: SYM-test-kibi-entity-origin-cli
+    title: Entity origin consumer suite
+    status: active
+    sourceFile: packages/cli/tests/consumer/entity-origin.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T04:43:17.774Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-entity-origin-cli
+  - id: SYM-test-kibi-schema6-migration-cli
+    title: Schema 6 migration consumer suite
+    status: active
+    sourceFile: packages/cli/tests/consumer/schema6-migration.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T04:43:43.830Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-schema6-migration-cli
+  - id: SYM-test-kibi-conditional-feasibility-cli
+    title: Conditional requirement feasibility consumer suite
+    status: active
+    sourceFile: packages/cli/tests/consumer/conditional-feasibility.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T04:44:25.067Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-conditional-feasibility-cli
+  - id: SYM-test-codex-edit-snippet-hook
+    title: Codex hook command pre-edit knowledge suite
+    status: active
+    sourceFile: packages/codex/tests/hook-runner.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T04:46:51.758Z
+    relationships:
+      - type: executable_for
+        target: TEST-codex-edit-snippet-hook
+  - id: SYM-test-cursor-edit-snippet-hook
+    title: Cursor hook command pre-edit knowledge suite
+    status: active
+    sourceFile: packages/cursor/tests/hook-runner.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T04:47:13.190Z
+    relationships:
+      - type: executable_for
+        target: TEST-cursor-edit-snippet-hook
+  - id: SYM-test-claude-edit-snippet-hook
+    title: Claude Code hook command pre-edit snippet suite
+    status: active
+    sourceFile: packages/claude/tests/hook-runner.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T04:47:27.781Z
+    relationships:
+      - type: executable_for
+        target: TEST-claude-edit-snippet-hook
+  - id: SYM-test-kibi-search-gold-set-gate-cli
+    title: Repository search gold-set gate suite
+    status: active
+    sourceFile: scripts/tests/repo-search-gold-gate.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T04:47:46.295Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-search-gold-set-gate-cli
