@@ -2004,6 +2004,7 @@ async function evaluateWithPreparation(
     input.sourceRoot,
     input.artifactRoot,
   );
+  let completedCells: readonly CampaignCell[] = [];
   try {
     const current = await input.dependencies.surface(
       input.sourceRoot,
@@ -2121,6 +2122,7 @@ async function evaluateWithPreparation(
         runtime,
         dependencies: input.dependencies,
       });
+      completedCells = cells;
       const priorCells: CampaignCell[] =
         input.prior?.cells.map((cell) => ({
           ...cell,
@@ -2238,8 +2240,10 @@ async function evaluateWithPreparation(
       input.command,
       input.runId,
       error,
-      error instanceof CampaignScreenFailure ? error.attemptedCells : 0,
-      error instanceof CampaignScreenFailure ? error.cells : [],
+      error instanceof CampaignScreenFailure
+        ? error.attemptedCells
+        : completedCells.length,
+      error instanceof CampaignScreenFailure ? error.cells : completedCells,
     );
     throw error;
   } finally {

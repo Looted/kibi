@@ -195,13 +195,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4ca3c9cac9f1
-  - type: implements
-    from: SYM-skillopt-mcp-operation-tool
-    to: REQ-kibi-mcp-tool-consolidation
-    created_at: 2026-10-04T12:21:15.368Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e928ffa4d7bc
   - type: covered_by
     from: SYM-skillopt-mcp-operation-tool
     to: TEST-skillopt-codex-optimization
@@ -209,3 +202,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-282f7665c3f0
+  - type: implements
+    from: SYM-skillopt-mcp-operation-tool
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-10-04T20:37:12.327Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b81bf5fc2d67

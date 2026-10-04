@@ -27365,7 +27365,7 @@ coordinates:
     sourceLine: 1
   SYM-skillopt-mcp-call-arguments:
     identityHash: becc5360af31fe1b7af8c7fe2e4f161893534a9c45ee3866e3bf10899749ae0e
-    sourceHash: bc54d9e34ce38a6479bbee272d77cfed1b8c931d7fd550693d436badd9eacb1d
+    sourceHash: 8eb8082c6537caa4e7af22e8546dcacacd07ce42d74a6e2697d02128efa2e787
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 46
@@ -27373,7 +27373,7 @@ coordinates:
     sourceLine: 43
   SYM-skillopt-mcp-model-modes:
     identityHash: 87d91c324af902dcad346eaf3f080649716dcec0f80e94bcfbe2e7e00f79c552
-    sourceHash: bc54d9e34ce38a6479bbee272d77cfed1b8c931d7fd550693d436badd9eacb1d
+    sourceHash: 8eb8082c6537caa4e7af22e8546dcacacd07ce42d74a6e2697d02128efa2e787
     sourceColumn: 13
     sourceEndColumn: 1
     sourceEndLine: 16
@@ -27381,7 +27381,7 @@ coordinates:
     sourceLine: 12
   SYM-skillopt-mcp-operation-tool:
     identityHash: 8882d9c04d86fef00e9e568c4f1000f97f9f14651ca50e2ee10cf6f2a0842698
-    sourceHash: bc54d9e34ce38a6479bbee272d77cfed1b8c931d7fd550693d436badd9eacb1d
+    sourceHash: 8eb8082c6537caa4e7af22e8546dcacacd07ce42d74a6e2697d02128efa2e787
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 62
@@ -27389,7 +27389,7 @@ coordinates:
     sourceLine: 60
   SYM-skillopt-mcp-routed-operation:
     identityHash: 2065d83bfd8ad9d5df76090886e6e942bd0bc789c506958b8c78aa86867c3f2f
-    sourceHash: bc54d9e34ce38a6479bbee272d77cfed1b8c931d7fd550693d436badd9eacb1d
+    sourceHash: 8eb8082c6537caa4e7af22e8546dcacacd07ce42d74a6e2697d02128efa2e787
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 39

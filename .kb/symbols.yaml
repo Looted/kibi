@@ -48254,7 +48254,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-codex-optimization
       - type: implements
-        target: REQ-kibi-mcp-tool-consolidation
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-mcp-routed-operation
     title: routedOperationName
     status: active
@@ -48280,7 +48280,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-codex-optimization
       - type: implements
-        target: REQ-kibi-mcp-tool-consolidation
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-mcp-operation-tool
     title: mcpToolForOperation
     status: active
@@ -48293,7 +48293,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-codex-optimization
       - type: implements
-        target: REQ-kibi-mcp-tool-consolidation
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-answer-contract
     title: KibiAnswer
     status: active
