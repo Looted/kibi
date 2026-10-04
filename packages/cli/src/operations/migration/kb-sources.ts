@@ -26,6 +26,8 @@ import {
   writeFileSync,
 } from "node:fs";
 import path from "node:path";
+import { isDeepStrictEqual } from "node:util";
+import { load as loadYaml } from "js-yaml";
 import {
   ENTITY_LANES,
   type EntityLane,
@@ -118,6 +120,89 @@ export function sliceFrontmatter(content: string): FrontmatterSlice | null {
     suffix: content.slice(close),
     eol: text.includes("\r\n") || content[openEnd - 1] === "\r" ? "\r\n" : "\n",
   };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function topLevelFieldPattern(key: string): RegExp {
+  return new RegExp(`^${key}[ \\t]*:[^\\r\\n]*`, "m");
+}
+
+/**
+ * The value of one top-level frontmatter key, read from its own line without
+ * parsing the whole document (test files carry large receipt histories).
+ * Falls back to a full parse when the value spans several lines. Returns
+ * `undefined` when the key is absent or the frontmatter does not parse.
+ */
+// implements REQ-cli-schema-migration
+export function readTopLevelField(frontmatter: string, key: string): unknown {
+  const match = topLevelFieldPattern(key).exec(frontmatter);
+  if (match === null) return undefined;
+  const after = frontmatter.slice(match.index + match[0].length);
+  const continues = /^\r?\n[ \t]+\S/.test(after);
+  try {
+    if (!continues) {
+      const parsed = loadYaml(match[0]);
+      if (isRecord(parsed)) return parsed[key];
+    }
+    const parsed = loadYaml(frontmatter);
+    return isRecord(parsed) ? parsed[key] : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function scalarLine(key: string, value: string, previous: string): string {
+  const raw = previous.slice(previous.indexOf(":") + 1).trim();
+  if (raw.startsWith('"')) return `${key}: ${JSON.stringify(value)}`;
+  if (raw.startsWith("'")) return `${key}: '${value.replaceAll("'", "''")}'`;
+  try {
+    const plain = loadYaml(`${key}: ${value}`);
+    if (isRecord(plain) && plain[key] === value) return `${key}: ${value}`;
+  } catch {
+    // Fall through to a quoted scalar.
+  }
+  return `${key}: ${JSON.stringify(value)}`;
+}
+
+/**
+ * Set one top-level scalar frontmatter key, leaving every other byte of the
+ * document unchanged: the key's line is replaced in place, or appended as the
+ * last frontmatter key when absent. Returns null when the key spans several
+ * lines or the edit would not read back as exactly that change.
+ */
+// implements REQ-cli-schema-migration
+export function withTopLevelField(
+  content: string,
+  key: string,
+  value: string,
+): string | null {
+  const slice = sliceFrontmatter(content);
+  if (slice === null) return null;
+  const match = topLevelFieldPattern(key).exec(slice.text);
+  let text: string;
+  if (match === null) {
+    text = `${slice.text}${scalarLine(key, value, "")}${slice.eol}`;
+  } else {
+    const after = slice.text.slice(match.index + match[0].length);
+    if (/^\r?\n[ \t]+\S/.test(after)) return null;
+    text = `${slice.text.slice(0, match.index)}${scalarLine(key, value, match[0])}${after}`;
+  }
+  try {
+    const before = loadYaml(slice.text);
+    const next = loadYaml(text);
+    if (!isRecord(before) || !isRecord(next) || next[key] !== value) {
+      return null;
+    }
+    const { [key]: _beforeValue, ...beforeRest } = before;
+    const { [key]: _nextValue, ...nextRest } = next;
+    if (!isDeepStrictEqual(beforeRest, nextRest)) return null;
+  } catch {
+    return null;
+  }
+  return `${slice.prefix}${text}${slice.suffix}`;
 }
 
 /** Replace a file's bytes atomically. */

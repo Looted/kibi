@@ -44,6 +44,13 @@ export const GENERATED_RULES = [
     category: "integrity",
   },
   {
+    name: "source-path-dangling",
+    description:
+      "An authored entity's source field must name an existing workspace path (a #anchor suffix is ignored), an existing entity id, or an http(s) URL; a missing source is allowed",
+    enforcementClass: "canonical",
+    category: "integrity",
+  },
+  {
     name: "no-cycles",
     description: "No circular dependency chains in requirements",
     enforcementClass: "canonical",
@@ -59,6 +66,13 @@ export const GENERATED_RULES = [
     name: "deprecated-adr-no-successor",
     description:
       "Deprecated ADRs must have a successor ADR that supersedes them",
+    enforcementClass: "canonical",
+    category: "lifecycle",
+  },
+  {
+    name: "superseded-requirement-open",
+    description:
+      "A requirement that another requirement supersedes must have status closed, and supersedes links between requirements must not form a cycle",
     enforcementClass: "canonical",
     category: "lifecycle",
   },
@@ -206,14 +220,14 @@ export const GENERATED_RULES = [
   {
     name: "subject-key-identity",
     description:
-      "Subject keys must name a shared component, not be derived from a requirement ID",
+      "Subject keys must name a shared component, not be derived from a requirement ID, and one subject or claim must not be minted as several active subject facts or same-operator property_value facts",
     enforcementClass: "advisory",
     category: "integrity",
   },
   {
     name: "subject-key-shape",
     description:
-      "Subject keys follow dotted component.aspect[.sub] with lowercase snake segments",
+      "Subject keys follow dotted component.aspect[.sub] with lowercase snake segments, and property keys name a property rather than a numbered clause (clause_NN)",
     enforcementClass: "advisory",
     category: "integrity",
   },
@@ -243,6 +257,35 @@ export const GENERATED_RULES = [
     name: "agent-requirement-unapproved",
     description:
       "Informational: current requirements authored by an agent (origin.kind agent) that no human has approved (origin.approved_by), listed up to 25 per check",
+    enforcementClass: "advisory",
+    category: "lifecycle",
+    diagnosticSeverity: "info",
+  },
+  {
+    name: "requirement-rationale-missing",
+    description:
+      "Advisory: a current requirement authored by a human or an agent (origin.kind human or agent) states no rationale: no rationale field, no Rationale or Why section in its body, and no link to an ADR; listed up to 25 per check plus one summary finding",
+    enforcementClass: "advisory",
+    category: "lifecycle",
+  },
+  {
+    name: "symbol-owner-superseded",
+    description:
+      "Advisory: a symbol whose every implements target is superseded or deprecated has no current owning requirement; listed up to 25 per check plus one summary finding",
+    enforcementClass: "advisory",
+    category: "traceability",
+  },
+  {
+    name: "adr-unlinked",
+    description:
+      "Advisory: an accepted ADR that no requirement or other ADR is linked with (relates_to, supersedes or any typed edge, in either direction)",
+    enforcementClass: "advisory",
+    category: "lifecycle",
+  },
+  {
+    name: "adr-proposed",
+    description:
+      "Informational: an ADR that is still proposed and not superseded, so nobody accepted or withdrew the decision",
     enforcementClass: "advisory",
     category: "lifecycle",
     diagnosticSeverity: "info",

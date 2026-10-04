@@ -122,11 +122,14 @@ describe("schema 6 review actions from check findings", () => {
       origin: { kind: "agent" },
     }));
     const { qualityDiagnostics } = partitionCheckFindings(
-      evaluateOriginReview({
-        requirements,
-        exempts: [],
-        superseded: new Set(),
-      }),
+      evaluateOriginReview(
+        {
+          requirements,
+          exempts: [],
+          superseded: new Set(),
+        },
+        new Set(["agent-requirement-unapproved"]),
+      ),
     );
     expect(qualityDiagnostics).toHaveLength(AGENT_REQUIREMENT_REVIEW_LIMIT + 1);
 
@@ -188,5 +191,168 @@ describe("schema 6 review actions from check findings", () => {
     } finally {
       rmSync(root, { recursive: true, force: true });
     }
+  });
+
+  test("lifecycle violations map to one close action, cycle reviews, one rewrite action and a sync", () => {
+    const actions = buildActionsFromCheck({
+      violations: [
+        {
+          rule: "superseded-requirement-open",
+          entityId: "REQ-old",
+          source: ".kb/requirements/REQ-old.md",
+          evidence: { supersededBy: ["REQ-new"], status: "open" },
+        },
+        {
+          rule: "superseded-requirement-open",
+          entityId: "REQ-loop-a",
+          evidence: {
+            cycle: ["REQ-loop-a", "REQ-loop-b"],
+            edges: [
+              ["REQ-loop-a", "REQ-loop-b"],
+              ["REQ-loop-b", "REQ-loop-a"],
+            ],
+          },
+        },
+        {
+          rule: "source-path-dangling",
+          entityId: "ADR-001",
+          source: ".kb/adr/ADR-001.md",
+          evidence: {
+            value: "documentation/adr/ADR-001.md",
+            file: ".kb/adr/ADR-001.md",
+            rewrite: ".kb/adr/ADR-001.md",
+          },
+        },
+        {
+          rule: "source-path-dangling",
+          entityId: "FACT-STD-001",
+          source: ".kb/facts/FACT-STD-001.md",
+          evidence: {
+            value: "memory-bank/techContext.md",
+            file: ".kb/facts/FACT-STD-001.md",
+          },
+        },
+      ],
+    });
+
+    expect(actions.map((action) => [action.id, action.code])).toEqual([
+      [
+        "review-supersession-cycle-REQ-loop-a-REQ-loop-b",
+        "review_supersession_cycle",
+      ],
+      [
+        "review-source-path-dangling-FACT-STD-001",
+        "review_source_path_dangling",
+      ],
+      ["close-superseded-requirements", "close_superseded_requirements"],
+      ["source-path-rewrite", "source_path_rewrite"],
+      ["migration-sync", "migration_sync"],
+    ]);
+    const byCode = new Map(actions.map((action) => [action.code, action]));
+    expect(byCode.get("close_superseded_requirements")).toMatchObject({
+      safety: "automatic",
+      autoApplicable: true,
+      affectedEntityIds: ["REQ-old"],
+      affectedFiles: [".kb/requirements/REQ-old.md"],
+      evidence: {
+        requirements: [
+          { id: "REQ-old", status: "open", supersededBy: ["REQ-new"] },
+        ],
+      },
+    });
+    expect(byCode.get("review_supersession_cycle")).toMatchObject({
+      safety: "review",
+      dispositionRequired: true,
+      affectedEntityIds: ["REQ-loop-a", "REQ-loop-b"],
+    });
+    expect(
+      JSON.stringify(byCode.get("review_supersession_cycle")?.invocation),
+    ).toContain(
+      "REQ-loop-a supersedes REQ-loop-b; REQ-loop-b supersedes REQ-loop-a",
+    );
+    expect(byCode.get("source_path_rewrite")?.evidence).toMatchObject({
+      rewrites: [
+        {
+          entityId: "ADR-001",
+          file: ".kb/adr/ADR-001.md",
+          from: "documentation/adr/ADR-001.md",
+          to: ".kb/adr/ADR-001.md",
+        },
+      ],
+    });
+    expect(byCode.get("migration_sync")?.dependsOn).toEqual([
+      "close-superseded-requirements",
+      "source-path-rewrite",
+    ]);
+  });
+
+  test("symbol-owner and rationale findings become review queues; ADR findings one review each", () => {
+    const actions = buildActionsFromCheck({
+      qualityDiagnostics: [
+        {
+          id: "rule.symbol-owner-superseded",
+          entityId: "SYM-b",
+          source: "src/b.ts",
+          evidence: { owners: ["REQ-old"], replacements: ["REQ-new"] },
+        },
+        {
+          id: "rule.symbol-owner-superseded",
+          entityId: "SYM-a",
+          source: "src/a.ts",
+          evidence: { owners: ["REQ-old"], replacements: [] },
+        },
+        {
+          id: "rule.symbol-owner-superseded",
+          entityId: "workspace",
+          evidence: { total: 30, listed: 25 },
+        },
+        {
+          id: "rule.requirement-rationale-missing",
+          entityId: "REQ-why",
+          source: ".kb/requirements/REQ-why.md",
+          evidence: { origin: { kind: "human" } },
+        },
+        {
+          id: "rule.adr-unlinked",
+          entityId: "ADR-003",
+          source: ".kb/adr/ADR-003.md",
+          message:
+            "Accepted ADR ADR-003 is not linked to any requirement or ADR",
+          suggestion: "Link ADR-003 to the requirements it explains",
+        },
+        {
+          id: "rule.adr-proposed",
+          entityId: "ADR-012",
+          message: "ADR ADR-012 is still proposed",
+          suggestion: "Ask the decision owner to accept or withdraw ADR-012",
+        },
+      ],
+    });
+
+    expect(actions.map((action) => [action.id, action.code])).toEqual([
+      ["review-adr-unlinked-ADR-003", "review_adr_unlinked"],
+      ["review-adr-proposed-ADR-012", "review_adr_proposed"],
+      ["review-symbol-owner-superseded", "review_symbol_owner_superseded"],
+      [
+        "review-requirement-rationale-missing",
+        "review_requirement_rationale_missing",
+      ],
+    ]);
+    const symbols = actions.find(
+      (action) => action.code === "review_symbol_owner_superseded",
+    );
+    expect(symbols?.affectedEntityIds).toEqual(["SYM-a", "SYM-b"]);
+    expect(symbols?.affectedFiles).toEqual(["src/a.ts", "src/b.ts"]);
+    expect(JSON.stringify(symbols?.invocation)).toContain(
+      "30 symbol(s) implement only superseded or deprecated requirements; these 2 come first",
+    );
+    const rationale = actions.find(
+      (action) => action.code === "review_requirement_rationale_missing",
+    );
+    expect(rationale?.evidence).toEqual({
+      requirements: ["REQ-why"],
+      total: 1,
+    });
+    expect(actions[0]?.affectedFiles).toEqual([".kb/adr/ADR-003.md"]);
   });
 });

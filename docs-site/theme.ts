@@ -1071,7 +1071,7 @@ export function landingContent(args: {
     </details>
     <details>
       <summary>How do I tell what the agent wrote from what I approved?</summary>
-      <p>Each entity can record its origin: written by a human, an agent, a migration or an import, and who approved it. New entities from your agent are marked as agent-written. <code>kb_check</code> lists agent-written requirements nobody has approved and exceptions whose approval only the agent recorded. Kibi cannot confirm that a person approved something. It shows you what still needs your review.</p>
+      <p>Each entity can record its origin: written by a human, an agent, a migration or an import, and who approved it. New entities from your agent are marked as agent-written. <code>kb_check</code> lists agent-written requirements nobody has approved, exceptions whose approval only the agent recorded, and requirements that do not say why they exist. Kibi cannot confirm that a person approved something. It shows you what still needs your review.</p>
     </details>
     <details>
       <summary>What counts as proven?</summary>

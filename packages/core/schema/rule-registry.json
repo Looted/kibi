@@ -47,6 +47,15 @@
       "prologPredicateArity": null
     },
     {
+      "name": "source-path-dangling",
+      "description": "An authored entity's source field must name an existing workspace path (a #anchor suffix is ignored), an existing entity id, or an http(s) URL; a missing source is allowed",
+      "enforcementClass": "canonical",
+      "category": "integrity",
+      "implementation": "typescript",
+      "prologPredicate": null,
+      "prologPredicateArity": null
+    },
+    {
       "name": "no-cycles",
       "description": "No circular dependency chains in requirements",
       "enforcementClass": "canonical",
@@ -71,6 +80,15 @@
       "category": "lifecycle",
       "implementation": "prolog",
       "prologPredicate": "check_deprecated_adrs",
+      "prologPredicateArity": 1
+    },
+    {
+      "name": "superseded-requirement-open",
+      "description": "A requirement that another requirement supersedes must have status closed, and supersedes links between requirements must not form a cycle",
+      "enforcementClass": "canonical",
+      "category": "lifecycle",
+      "implementation": "prolog",
+      "prologPredicate": "check_superseded_requirement_open",
       "prologPredicateArity": 1
     },
     {
@@ -256,7 +274,7 @@
     },
     {
       "name": "subject-key-identity",
-      "description": "Subject keys must name a shared component, not be derived from a requirement ID",
+      "description": "Subject keys must name a shared component, not be derived from a requirement ID, and one subject or claim must not be minted as several active subject facts or same-operator property_value facts",
       "enforcementClass": "advisory",
       "category": "integrity",
       "implementation": "prolog",
@@ -265,7 +283,7 @@
     },
     {
       "name": "subject-key-shape",
-      "description": "Subject keys follow dotted component.aspect[.sub] with lowercase snake segments",
+      "description": "Subject keys follow dotted component.aspect[.sub] with lowercase snake segments, and property keys name a property rather than a numbered clause (clause_NN)",
       "enforcementClass": "advisory",
       "category": "integrity",
       "implementation": "prolog",
@@ -308,6 +326,43 @@
       "implementation": "typescript",
       "prologPredicate": null,
       "prologPredicateArity": null,
+      "diagnosticSeverity": "info"
+    },
+    {
+      "name": "requirement-rationale-missing",
+      "description": "Advisory: a current requirement authored by a human or an agent (origin.kind human or agent) states no rationale: no rationale field, no Rationale or Why section in its body, and no link to an ADR; listed up to 25 per check plus one summary finding",
+      "enforcementClass": "advisory",
+      "category": "lifecycle",
+      "implementation": "typescript",
+      "prologPredicate": null,
+      "prologPredicateArity": null
+    },
+    {
+      "name": "symbol-owner-superseded",
+      "description": "Advisory: a symbol whose every implements target is superseded or deprecated has no current owning requirement; listed up to 25 per check plus one summary finding",
+      "enforcementClass": "advisory",
+      "category": "traceability",
+      "implementation": "prolog",
+      "prologPredicate": "check_symbol_owner_superseded",
+      "prologPredicateArity": 1
+    },
+    {
+      "name": "adr-unlinked",
+      "description": "Advisory: an accepted ADR that no requirement or other ADR is linked with (relates_to, supersedes or any typed edge, in either direction)",
+      "enforcementClass": "advisory",
+      "category": "lifecycle",
+      "implementation": "prolog",
+      "prologPredicate": "check_adr_unlinked",
+      "prologPredicateArity": 1
+    },
+    {
+      "name": "adr-proposed",
+      "description": "Informational: an ADR that is still proposed and not superseded, so nobody accepted or withdrew the decision",
+      "enforcementClass": "advisory",
+      "category": "lifecycle",
+      "implementation": "prolog",
+      "prologPredicate": "check_adr_proposed",
+      "prologPredicateArity": 1,
       "diagnosticSeverity": "info"
     },
     {

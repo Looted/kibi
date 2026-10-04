@@ -63,7 +63,7 @@ pnpm, Yarn, and Bun work the same way through their local runners; the [installa
 
 </details>
 
-**Upgrading.** After updating the Kibi packages, run `kibi migrate` (or ask your agent to). It previews a reviewable plan; `kibi migrate --apply-safe --approved-plan-hash <hash>` applies its automatic steps. Moving to KB schema 6 records `origin: {kind: migration}` on existing entities and re-derives any requirement inventory that `kibi sync` rejects because the semantic advisor now reads its prose differently. It lists exceptions without an approver and other items for you to decide.
+**Upgrading.** After updating the Kibi packages, run `kibi migrate` (or ask your agent to). It previews a reviewable plan; `kibi migrate --apply-safe --approved-plan-hash <hash>` applies its automatic steps. Moving to KB schema 6 records `origin: {kind: migration}` on existing entities and re-derives any requirement inventory that `kibi sync` rejects because the semantic advisor now reads its prose differently. It also closes superseded requirements that were left open and repoints `source` fields that still use pre-canonical knowledge paths (`documentation/...`); `kibi check` now blocks both. It lists exceptions without an approver, requirements that supersede each other, sources it cannot map, and other items for you to decide.
 
 ## Connect your coding agent
 
@@ -259,7 +259,7 @@ Eight entity types: `req`, `scenario`, `test`, `fact`, `adr`, `flag`, `event`, a
 
 Use `flag` only for real runtime or configuration gates. Bug and workaround notes are `fact` records with `fact_kind: observation` or `meta`.
 
-Every entity can record who authored it: `origin: {kind: human | agent | migration | import, ref, approved_by, recorded_at}`. An agent's `kb_upsert` records new entities as `kind: agent` and never rewrites an existing origin by omission. Advisory checks list agent-authored requirements that no person has approved and exception approvals that only an agent recorded. Kibi cannot verify a person's approval; it makes the missing ones visible.
+Every entity can record who authored it: `origin: {kind: human | agent | migration | import, ref, approved_by, recorded_at}`. An agent's `kb_upsert` records new entities as `kind: agent` and never rewrites an existing origin by omission. Advisory checks list agent-authored requirements that no person has approved, exception approvals that only an agent recorded, and human- or agent-authored requirements that do not say why they exist (an optional `rationale` field, a Rationale section, or a linked ADR answers that). Kibi cannot verify a person's approval; it makes the missing ones visible. Other advisory checks flag code whose only owning requirements were superseded, ADRs nothing links to or that were never accepted, and one subject or claim minted as several facts.
 
 ## Packages
 

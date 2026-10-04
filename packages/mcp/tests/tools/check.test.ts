@@ -231,7 +231,8 @@ describe("MCP Check Tool Handler", () => {
 
     // maxDiagnostics caps the full-scan review diagnostics. Check-rule
     // advisories (rule.*) keep their own bounds: these requirements were
-    // written through kb_upsert, so agent-requirement-unapproved lists them.
+    // written through kb_upsert with no rationale, so
+    // agent-requirement-unapproved and requirement-rationale-missing list them.
     const quality = result.structuredContent?.qualityDiagnostics ?? [];
     const fullScan = quality.filter(
       (diagnostic) => !diagnostic.id.startsWith("rule."),
@@ -242,7 +243,10 @@ describe("MCP Check Tool Handler", () => {
       quality
         .filter((diagnostic) => diagnostic.id.startsWith("rule."))
         .map((diagnostic) => diagnostic.id),
-    ).toEqual(["rule.agent-requirement-unapproved"]);
+    ).toEqual([
+      "rule.agent-requirement-unapproved",
+      "rule.requirement-rationale-missing",
+    ]);
   }, 30000);
 
   test("should detect must-priority requirement without scenario", async () => {

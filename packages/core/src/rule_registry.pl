@@ -19,9 +19,11 @@ known_rule('symbol-coverage').
 known_rule('symbol-traceability').
 known_rule('no-dangling-refs').
 known_rule('source-relationship-parity').
+known_rule('source-path-dangling').
 known_rule('no-cycles').
 known_rule('required-fields').
 known_rule('deprecated-adr-no-successor').
+known_rule('superseded-requirement-open').
 known_rule('scenario-feasibility').
 known_rule('scenario-feasibility-unknown').
 known_rule('exception-claim-keys').
@@ -48,6 +50,10 @@ known_rule('ontology-quality').
 known_rule('exception-unapproved').
 known_rule('exception-approval-self-attested').
 known_rule('agent-requirement-unapproved').
+known_rule('requirement-rationale-missing').
+known_rule('symbol-owner-superseded').
+known_rule('adr-unlinked').
+known_rule('adr-proposed').
 known_rule('predicate-schema-conformance').
 
 rule_enforcement_class('must-priority-coverage', canonical).
@@ -55,9 +61,11 @@ rule_enforcement_class('symbol-coverage', canonical).
 rule_enforcement_class('symbol-traceability', canonical).
 rule_enforcement_class('no-dangling-refs', canonical).
 rule_enforcement_class('source-relationship-parity', canonical).
+rule_enforcement_class('source-path-dangling', canonical).
 rule_enforcement_class('no-cycles', canonical).
 rule_enforcement_class('required-fields', canonical).
 rule_enforcement_class('deprecated-adr-no-successor', canonical).
+rule_enforcement_class('superseded-requirement-open', canonical).
 rule_enforcement_class('scenario-feasibility', canonical).
 rule_enforcement_class('scenario-feasibility-unknown', advisory).
 rule_enforcement_class('exception-claim-keys', canonical).
@@ -84,6 +92,10 @@ rule_enforcement_class('ontology-quality', advisory).
 rule_enforcement_class('exception-unapproved', advisory).
 rule_enforcement_class('exception-approval-self-attested', advisory).
 rule_enforcement_class('agent-requirement-unapproved', advisory).
+rule_enforcement_class('requirement-rationale-missing', advisory).
+rule_enforcement_class('symbol-owner-superseded', advisory).
+rule_enforcement_class('adr-unlinked', advisory).
+rule_enforcement_class('adr-proposed', advisory).
 rule_enforcement_class('predicate-schema-conformance', advisory).
 
 rule_implementation('must-priority-coverage', prolog).
@@ -91,9 +103,11 @@ rule_implementation('symbol-coverage', prolog).
 rule_implementation('symbol-traceability', prolog).
 rule_implementation('no-dangling-refs', prolog).
 rule_implementation('source-relationship-parity', typescript).
+rule_implementation('source-path-dangling', typescript).
 rule_implementation('no-cycles', prolog).
 rule_implementation('required-fields', prolog).
 rule_implementation('deprecated-adr-no-successor', prolog).
+rule_implementation('superseded-requirement-open', prolog).
 rule_implementation('scenario-feasibility', prolog).
 rule_implementation('scenario-feasibility-unknown', prolog).
 rule_implementation('exception-claim-keys', prolog).
@@ -120,6 +134,10 @@ rule_implementation('ontology-quality', prolog).
 rule_implementation('exception-unapproved', typescript).
 rule_implementation('exception-approval-self-attested', typescript).
 rule_implementation('agent-requirement-unapproved', typescript).
+rule_implementation('requirement-rationale-missing', typescript).
+rule_implementation('symbol-owner-superseded', prolog).
+rule_implementation('adr-unlinked', prolog).
+rule_implementation('adr-proposed', prolog).
 rule_implementation('predicate-schema-conformance', typescript).
 
 rule_predicate('must-priority-coverage', check_must_priority_coverage).
@@ -129,6 +147,7 @@ rule_predicate('no-dangling-refs', check_no_dangling_refs).
 rule_predicate('no-cycles', check_no_cycles).
 rule_predicate('required-fields', check_required_fields).
 rule_predicate('deprecated-adr-no-successor', check_deprecated_adrs).
+rule_predicate('superseded-requirement-open', check_superseded_requirement_open).
 rule_predicate('scenario-feasibility', check_scenario_feasibility).
 rule_predicate('scenario-feasibility-unknown', check_scenario_feasibility_unknown).
 rule_predicate('exception-claim-keys', check_exception_claim_keys).
@@ -151,6 +170,9 @@ rule_predicate('domain-implication', check_domain_implication).
 rule_predicate('subject-key-identity', check_subject_key_identity).
 rule_predicate('subject-key-shape', check_subject_key_shape).
 rule_predicate('ontology-quality', check_ontology_quality).
+rule_predicate('symbol-owner-superseded', check_symbol_owner_superseded).
+rule_predicate('adr-unlinked', check_adr_unlinked).
+rule_predicate('adr-proposed', check_adr_proposed).
 
 rule_predicate_arity('must-priority-coverage', 1).
 rule_predicate_arity('symbol-coverage', 1).
@@ -159,6 +181,7 @@ rule_predicate_arity('no-dangling-refs', 1).
 rule_predicate_arity('no-cycles', 1).
 rule_predicate_arity('required-fields', 1).
 rule_predicate_arity('deprecated-adr-no-successor', 1).
+rule_predicate_arity('superseded-requirement-open', 1).
 rule_predicate_arity('scenario-feasibility', 1).
 rule_predicate_arity('scenario-feasibility-unknown', 1).
 rule_predicate_arity('exception-claim-keys', 1).
@@ -181,15 +204,20 @@ rule_predicate_arity('domain-implication', 1).
 rule_predicate_arity('subject-key-identity', 1).
 rule_predicate_arity('subject-key-shape', 1).
 rule_predicate_arity('ontology-quality', 1).
+rule_predicate_arity('symbol-owner-superseded', 1).
+rule_predicate_arity('adr-unlinked', 1).
+rule_predicate_arity('adr-proposed', 1).
 
 rule_description('must-priority-coverage', 'Every must-priority requirement must have a scenario and a test').
 rule_description('symbol-coverage', 'Production symbols need qualifying coverage via covered_by plus a canonical requirement/scenario test path').
 rule_description('symbol-traceability', 'Production symbols must directly implement requirements for ownership; covered_by is coverage only and executable_for is test identity only').
 rule_description('no-dangling-refs', 'All relationship targets must exist in the KB').
 rule_description('source-relationship-parity', 'Authored Markdown and relationship-shard edges must exactly match the compiled KB').
+rule_description('source-path-dangling', 'An authored entity\'s source field must name an existing workspace path (a #anchor suffix is ignored), an existing entity id, or an http(s) URL; a missing source is allowed').
 rule_description('no-cycles', 'No circular dependency chains in requirements').
 rule_description('required-fields', 'All entities must have required fields').
 rule_description('deprecated-adr-no-successor', 'Deprecated ADRs must have a successor ADR that supersedes them').
+rule_description('superseded-requirement-open', 'A requirement that another requirement supersedes must have status closed, and supersedes links between requirements must not form a cycle').
 rule_description('scenario-feasibility', 'A scenario that expects success must not assume property values that cannot hold, alone or together, with what current requirements require through typed property values or rules, unless an approved exception requirement waives that requirement or the listed clauses').
 rule_description('scenario-feasibility-unknown', 'Advisory: a scenario that expects success assumes nothing, assumes values that contradict each other, assumes a property value no governing requirement constrains comparably (type, unit or operator mismatch, or conflicting requirements), leaves a governing rule\'s conditions undecided, or conflicts only with constraints whose validity window may not cover it, so its feasibility cannot be decided').
 rule_description('exception-claim-keys', 'An exception requirement\'s exempts_claims must name claim keys of a requirement it exempts, and requires an exempts link').
@@ -210,10 +238,14 @@ rule_description('proof-contract-symbols', 'Detect unresolved required_proofs.sy
 rule_description('entity-id-style', 'Entity IDs name the governed behavior and match their filename stem; new purely numeric IDs are reported at creation boundaries').
 rule_description('domain-redundancy', 'Two current requirements must not ground the identical logical term or share a ground fact unless linked by supersedes or restates').
 rule_description('domain-implication', 'Informational: one requirement\'s numeric bound strictly implies another requirement\'s bound on the same subject and property').
-rule_description('subject-key-identity', 'Subject keys must name a shared component, not be derived from a requirement ID').
-rule_description('subject-key-shape', 'Subject keys follow dotted component.aspect[.sub] with lowercase snake segments').
+rule_description('subject-key-identity', 'Subject keys must name a shared component, not be derived from a requirement ID, and one subject or claim must not be minted as several active subject facts or same-operator property_value facts').
+rule_description('subject-key-shape', 'Subject keys follow dotted component.aspect[.sub] with lowercase snake segments, and property keys name a property rather than a numbered clause (clause_NN)').
 rule_description('ontology-quality', 'Informational: predicate schemas whose argument values mostly occur in only one fact are carrying prose instead of a shared vocabulary').
 rule_description('exception-unapproved', 'Advisory: a current exception requirement exempts another requirement but has no approved_by, so it exempts nothing until a human approves it').
 rule_description('exception-approval-self-attested', 'Advisory: an agent-authored exception records approved_by but no human corroborated it (origin.approved_by or approval_ref is missing), so a human should confirm the approval').
 rule_description('agent-requirement-unapproved', 'Informational: current requirements authored by an agent (origin.kind agent) that no human has approved (origin.approved_by), listed up to 25 per check').
+rule_description('requirement-rationale-missing', 'Advisory: a current requirement authored by a human or an agent (origin.kind human or agent) states no rationale: no rationale field, no Rationale or Why section in its body, and no link to an ADR; listed up to 25 per check plus one summary finding').
+rule_description('symbol-owner-superseded', 'Advisory: a symbol whose every implements target is superseded or deprecated has no current owning requirement; listed up to 25 per check plus one summary finding').
+rule_description('adr-unlinked', 'Advisory: an accepted ADR that no requirement or other ADR is linked with (relates_to, supersedes or any typed edge, in either direction)').
+rule_description('adr-proposed', 'Informational: an ADR that is still proposed and not superseded, so nobody accepted or withdrew the decision').
 rule_description('predicate-schema-conformance', 'Predicate facts match a predicate_schema (project-local, or the built-in catalog in the default namespace) and use its declared argument constants').

@@ -85,7 +85,15 @@ Legacy prose facts may remain readable during migration, but they do not provide
 
 ## Contradiction detected
 
-Create an append-only replacement requirement and add `supersedes`, or deprecate the conflicting requirement before writing the new one.
+Create an append-only replacement requirement and add `supersedes`, or deprecate the conflicting requirement before writing the new one. Then set the replaced requirement to `status: closed`.
+
+## Superseded requirement still open (`superseded-requirement-open`)
+
+`kibi check` blocks a requirement that another requirement `supersedes` while its status is not `closed`. Upsert it with `status: closed`, or run `kibi migrate` (action `close_superseded_requirements`), which edits only the status line. If the requirement still states current intent, delete the `supersedes` link instead. A finding that starts with `Supersession cycle:` names requirements that supersede each other; nothing closes them automatically. Decide which one is current, delete the `supersedes` link that points at it, then close the others.
+
+## Dangling source (`source-path-dangling`)
+
+An authored `source` frontmatter field must name an existing workspace path (a `#anchor` suffix is fine), an existing entity id, or an http(s) URL. When the value names a knowledge file by its pre-canonical path (`documentation/<lane>/...`, or `<lane>/...` relative to the knowledge root) and that file exists under `.kb/<lane>/`, the finding names the new path and `kibi migrate` rewrites it (action `source_path_rewrite`). Otherwise point `source` at the document the entity came from, or remove the field if nobody knows the origin.
 
 ## Audit journal or snapshot lock
 

@@ -683,7 +683,7 @@ title: Legacy Account Policy Note
 status: active
 created_at: 2026-02-20T10:00:00Z
 updated_at: 2026-02-20T10:00:00Z
-source: facts/FACT-LEGACY-TRACEABLE-001.md
+source: .kb/facts/FACT-LEGACY-TRACEABLE-001.md
 ---
 Legacy prose fact without strict shape
 `,
@@ -699,7 +699,7 @@ status: open
 priority: should
 created_at: 2026-02-20T10:00:00Z
 updated_at: 2026-02-20T10:00:00Z
-source: requirements/REQ-LEGACY-TRACEABLE-001.md
+source: .kb/requirements/REQ-LEGACY-TRACEABLE-001.md
 links:
   - type: constrains
     target: FACT-LEGACY-TRACEABLE-001
@@ -747,7 +747,7 @@ title: Subject-only account policy
 status: active
 created_at: 2026-02-20T10:00:00Z
 updated_at: 2026-02-20T10:00:00Z
-source: facts/FACT-SUBJECT-ONLY-001.md
+source: .kb/facts/FACT-SUBJECT-ONLY-001.md
 fact_kind: subject
 subject_key: account.policy
 ---
@@ -764,7 +764,7 @@ status: open
 priority: should
 created_at: 2026-02-20T10:00:00Z
 updated_at: 2026-02-20T10:00:00Z
-source: requirements/REQ-SUBJECT-ONLY-001.md
+source: .kb/requirements/REQ-SUBJECT-ONLY-001.md
 links:
   - type: constrains
     target: FACT-SUBJECT-ONLY-001
@@ -1075,7 +1075,7 @@ status: open
 priority: must
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
-source: requirements/REQ-VERIFIED-001.md
+source: .kb/requirements/REQ-VERIFIED-001.md
 links:
   - type: specified_by
     target: SCEN-VERIFIED-001
@@ -1095,7 +1095,7 @@ title: Verified Scenario
 status: active
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
-source: scenarios/SCEN-VERIFIED-001.md
+source: .kb/scenarios/SCEN-VERIFIED-001.md
 ---
 
 # Verified Scenario
@@ -1110,7 +1110,7 @@ title: Verified Test
 status: passing
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
-source: tests/TEST-VERIFIED-001.md
+source: .kb/tests/TEST-VERIFIED-001.md
 links:
   - type: validates
     target: REQ-VERIFIED-001
@@ -1179,7 +1179,7 @@ status: open
 priority: should
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
-source: requirements/REQ-SELF-CYCLE.md
+source: .kb/requirements/REQ-SELF-CYCLE.md
 links:
   - type: depends_on
     target: REQ-SELF-CYCLE
@@ -1423,7 +1423,7 @@ title: Old Decision
 status: deprecated
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
-source: adr/ADR-001.md
+source: .kb/adr/ADR-001.md
 ---
 
 # Old Decision
@@ -1459,7 +1459,7 @@ title: Old Decision
 status: deprecated
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
-source: adr/ADR-001.md
+source: .kb/adr/ADR-001.md
 links:
   - type: supersedes
     target: ADR-002
@@ -1477,7 +1477,7 @@ title: New Decision
 status: accepted
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
-source: adr/ADR-002.md
+source: .kb/adr/ADR-002.md
 links:
   - type: supersedes
     target: ADR-001
@@ -1516,7 +1516,7 @@ title: User Role Assignment
 status: active
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
-source: facts/FACT-USER-ROLE.md
+source: .kb/facts/FACT-USER-ROLE.md
 fact_kind: subject
 subject_key: user.role_assignment
 ---
@@ -1531,7 +1531,7 @@ title: Maximum of Two
 status: active
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
-source: facts/FACT-LIMIT-2.md
+source: .kb/facts/FACT-LIMIT-2.md
 fact_kind: property_value
 subject_key: user.role_assignment
 property_key: max_roles
@@ -1550,7 +1550,7 @@ title: Maximum of Three
 status: active
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
-source: facts/FACT-LIMIT-3.md
+source: .kb/facts/FACT-LIMIT-3.md
 fact_kind: property_value
 subject_key: user.role_assignment
 property_key: max_roles
@@ -1570,7 +1570,7 @@ status: open
 priority: should
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
-source: requirements/REQ-018.md
+source: .kb/requirements/REQ-018.md
 links:
   - type: constrains
     target: FACT-USER-ROLE
@@ -1589,7 +1589,7 @@ status: open
 priority: should
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
-source: requirements/REQ-019.md
+source: .kb/requirements/REQ-019.md
 links:
   - type: constrains
     target: FACT-USER-ROLE
@@ -1630,7 +1630,7 @@ title: User Role Assignment
 status: active
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
-source: facts/FACT-USER-ROLE.md
+source: .kb/facts/FACT-USER-ROLE.md
 fact_kind: subject
 subject_key: user.role_assignment
 ---
@@ -1645,7 +1645,7 @@ title: Maximum of Two
 status: active
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
-source: facts/FACT-LIMIT-2.md
+source: .kb/facts/FACT-LIMIT-2.md
 fact_kind: property_value
 subject_key: user.role_assignment
 property_key: max_roles
@@ -1664,7 +1664,7 @@ title: Maximum of Three
 status: active
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
-source: facts/FACT-LIMIT-3.md
+source: .kb/facts/FACT-LIMIT-3.md
 fact_kind: property_value
 subject_key: user.role_assignment
 property_key: max_roles
@@ -1680,11 +1680,11 @@ value_int: 3
         `---
 id: REQ-018
 title: Users have a maximum of 2 roles
-status: open
+status: closed
 priority: should
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
-source: requirements/REQ-018.md
+source: .kb/requirements/REQ-018.md
 links:
   - type: constrains
     target: FACT-USER-ROLE
@@ -1703,7 +1703,7 @@ status: open
 priority: should
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
-source: requirements/REQ-019.md
+source: .kb/requirements/REQ-019.md
 links:
   - type: constrains
     target: FACT-USER-ROLE
@@ -2076,7 +2076,7 @@ title: Legacy Fact
 status: active
 created_at: 2026-02-20T10:00:00Z
 updated_at: 2026-02-20T10:00:00Z
-source: facts/FACT-LEGACY-001.md
+source: .kb/facts/FACT-LEGACY-001.md
 ---
 Content
 `,
@@ -2116,7 +2116,7 @@ title: Well-formed Subject Fact
 status: active
 created_at: 2026-02-20T10:00:00Z
 updated_at: 2026-02-20T10:00:00Z
-source: facts/FACT-WELLFORMED-001.md
+source: .kb/facts/FACT-WELLFORMED-001.md
 fact_kind: subject
 subject_key: user.profile
 ---
@@ -2155,7 +2155,7 @@ title: Legacy Fact
 status: active
 created_at: 2026-02-20T10:00:00Z
 updated_at: 2026-02-20T10:00:00Z
-source: facts/FACT-LEGACY-001.md
+source: .kb/facts/FACT-LEGACY-001.md
 ---
 Legacy prose fact without strict shape
 `,
@@ -2193,7 +2193,7 @@ title: CLI Pairing Subject
 status: active
 created_at: 2026-02-20T10:00:00Z
 updated_at: 2026-02-20T10:00:00Z
-source: facts/FACT-PAIR-SUBJECT-CLI-001.md
+source: .kb/facts/FACT-PAIR-SUBJECT-CLI-001.md
 fact_kind: subject
 subject_key: account.session
 ---
@@ -2208,7 +2208,7 @@ title: CLI Pairing Property
 status: active
 created_at: 2026-02-20T10:00:00Z
 updated_at: 2026-02-20T10:00:00Z
-source: facts/FACT-PAIR-PROP-CLI-001.md
+source: .kb/facts/FACT-PAIR-PROP-CLI-001.md
 fact_kind: property_value
 subject_key: billing.account
 property_key: max_sessions
@@ -2229,7 +2229,7 @@ status: open
 priority: should
 created_at: 2026-02-20T10:00:00Z
 updated_at: 2026-02-20T10:00:00Z
-source: requirements/REQ-PAIRING-CLI-001.md
+source: .kb/requirements/REQ-PAIRING-CLI-001.md
 links:
   - type: constrains
     target: FACT-PAIR-SUBJECT-CLI-001
@@ -3179,15 +3179,15 @@ export function wtFunction() {
 
       writeFileSync(
         path.join(reqDir, "REQ-COV-CHAIN-002.md"),
-        "---\nid: REQ-COV-CHAIN-002\ntitle: Coverage Chain Req\nstatus: open\npriority: must\nsource: requirements/REQ-COV-CHAIN-002.md\nlinks:\n  - type: specified_by\n    target: SCEN-COV-CHAIN-002\n---\n\n# Coverage Chain Req\n",
+        "---\nid: REQ-COV-CHAIN-002\ntitle: Coverage Chain Req\nstatus: open\npriority: must\nsource: .kb/requirements/REQ-COV-CHAIN-002.md\nlinks:\n  - type: specified_by\n    target: SCEN-COV-CHAIN-002\n---\n\n# Coverage Chain Req\n",
       );
       writeFileSync(
         path.join(scenarioDir, "SCEN-COV-CHAIN-002.md"),
-        "---\nid: SCEN-COV-CHAIN-002\ntitle: Coverage Chain Scenario\nstatus: active\nsource: scenarios/SCEN-COV-CHAIN-002.md\nlinks:\n  - type: verified_by\n    target: TEST-COV-CHAIN-002\n---\n\n# Coverage Chain Scenario\n",
+        "---\nid: SCEN-COV-CHAIN-002\ntitle: Coverage Chain Scenario\nstatus: active\nsource: .kb/scenarios/SCEN-COV-CHAIN-002.md\nlinks:\n  - type: verified_by\n    target: TEST-COV-CHAIN-002\n---\n\n# Coverage Chain Scenario\n",
       );
       writeFileSync(
         path.join(testDir, "TEST-COV-CHAIN-002.md"),
-        "---\nid: TEST-COV-CHAIN-002\ntitle: Coverage Chain Test\nstatus: passing\nsource: tests/TEST-COV-CHAIN-002.md\n---\n\n# Coverage Chain Test\n",
+        "---\nid: TEST-COV-CHAIN-002\ntitle: Coverage Chain Test\nstatus: passing\nsource: .kb/tests/TEST-COV-CHAIN-002.md\n---\n\n# Coverage Chain Test\n",
       );
       writeFileSync(
         path.join(docsDir, "symbols.yaml"),
@@ -3221,15 +3221,15 @@ export function wtFunction() {
 
       writeFileSync(
         path.join(reqDir, "REQ-DIRECT-BLOCKED-002.md"),
-        "---\nid: REQ-DIRECT-BLOCKED-002\ntitle: Direct Blocked Req\nstatus: open\npriority: must\nsource: requirements/REQ-DIRECT-BLOCKED-002.md\nlinks:\n  - type: specified_by\n    target: SCEN-DIRECT-BLOCKED-002\n  - type: verified_by\n    target: TEST-DIRECT-BLOCKED-002\n---\n\n# Direct Blocked Req\n",
+        "---\nid: REQ-DIRECT-BLOCKED-002\ntitle: Direct Blocked Req\nstatus: open\npriority: must\nsource: .kb/requirements/REQ-DIRECT-BLOCKED-002.md\nlinks:\n  - type: specified_by\n    target: SCEN-DIRECT-BLOCKED-002\n  - type: verified_by\n    target: TEST-DIRECT-BLOCKED-002\n---\n\n# Direct Blocked Req\n",
       );
       writeFileSync(
         path.join(scenarioDir, "SCEN-DIRECT-BLOCKED-002.md"),
-        "---\nid: SCEN-DIRECT-BLOCKED-002\ntitle: Direct Blocked Scenario\nstatus: active\nsource: scenarios/SCEN-DIRECT-BLOCKED-002.md\n---\n\n# Direct Blocked Scenario\n",
+        "---\nid: SCEN-DIRECT-BLOCKED-002\ntitle: Direct Blocked Scenario\nstatus: active\nsource: .kb/scenarios/SCEN-DIRECT-BLOCKED-002.md\n---\n\n# Direct Blocked Scenario\n",
       );
       writeFileSync(
         path.join(testDir, "TEST-DIRECT-BLOCKED-002.md"),
-        "---\nid: TEST-DIRECT-BLOCKED-002\ntitle: Direct Blocked Test\nstatus: passing\nsource: tests/TEST-DIRECT-BLOCKED-002.md\n---\n\n# Direct Blocked Test\n",
+        "---\nid: TEST-DIRECT-BLOCKED-002\ntitle: Direct Blocked Test\nstatus: passing\nsource: .kb/tests/TEST-DIRECT-BLOCKED-002.md\n---\n\n# Direct Blocked Test\n",
       );
       writeFileSync(
         path.join(docsDir, "symbols.yaml"),

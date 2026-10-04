@@ -25,7 +25,20 @@ import {
   type MigrationAction,
   migrationAction,
 } from "../../public/operations/migration-plan.js";
-import { exceptionUnapprovedActionInput } from "../../public/operations/schema6-check-actions.js";
+import {
+  CLOSE_SUPERSEDED_REQUIREMENTS_ACTION_ID,
+  CLOSE_SUPERSEDED_REQUIREMENTS_CODE,
+  MIGRATION_SYNC_ACTION_ID,
+  MIGRATION_SYNC_CODE,
+  SOURCE_PATH_REWRITE_ACTION_ID,
+  SOURCE_PATH_REWRITE_CODE,
+  closeSupersededRequirementsActionInput,
+  exceptionUnapprovedActionInput,
+  migrationSyncActionInput,
+  sourcePathReviewActionInput,
+  sourcePathRewriteActionInput,
+  supersessionCycleReviewActionInput,
+} from "../../public/operations/schema6-check-actions.js";
 import { readAllShards } from "../../relationships/shards.js";
 import {
   type InventoryRederivation,
@@ -34,6 +47,15 @@ import {
 } from "./inventory-rederive.js";
 import { listLaneMarkdownFiles } from "./kb-sources.js";
 import { applyOriginBackfill, planOriginBackfill } from "./origin-backfill.js";
+import {
+  type SourcePathRewrite,
+  applySourcePathRewrites,
+  findDanglingSources,
+} from "./source-paths.js";
+import {
+  applySupersededClosures,
+  planSupersededClosures,
+} from "./superseded-closure.js";
 
 /** The KB schema generation that introduced entity `origin`. */
 export const ORIGIN_SCHEMA_VERSION = 6;
@@ -44,10 +66,13 @@ export const SEMANTIC_INVENTORY_REDERIVE_CODE = "semantic_inventory_rederive";
 export const SEMANTIC_INVENTORY_REVIEW_CODE = "semantic_inventory_review";
 /** Automatic: stamp `origin: {kind: migration}` on authored entities. */
 export const ENTITY_ORIGIN_BACKFILL_CODE = "entity_origin_backfill";
-/** Automatic: recompile sources rewritten by earlier migration actions. */
-export const MIGRATION_SYNC_CODE = "migration_sync";
 export const ENTITY_ORIGIN_BACKFILL_ACTION_ID = "entity-origin-backfill";
-export const MIGRATION_SYNC_ACTION_ID = "migration-sync";
+export {
+  CLOSE_SUPERSEDED_REQUIREMENTS_CODE,
+  MIGRATION_SYNC_ACTION_ID,
+  MIGRATION_SYNC_CODE,
+  SOURCE_PATH_REWRITE_CODE,
+};
 
 const CURRENT_REQUIREMENT_STATUSES = new Set([
   "open",
@@ -189,9 +214,10 @@ export type Schema6MigrationFragment = Readonly<{
 
 /**
  * Source-derived migration actions: inventory re-derivation whenever an
- * advisor change makes stored inventories drift (any schema version), and,
- * for a KB older than schema 6, the origin backfill plus the exceptions that
- * stop exempting anything. Read-only.
+ * advisor change makes stored inventories drift and the lifecycle repairs
+ * (superseded requirements to close, dangling source paths) at any schema
+ * version, and, for a KB older than schema 6, the origin backfill plus the
+ * exceptions that stop exempting anything. Read-only.
  */
 // implements REQ-cli-schema-migration, REQ-agent-guided-migration-orchestration, REQ-kibi-proposition-complete-ingestion
 export function buildSchema6MigrationFragment(input: {
@@ -262,27 +288,79 @@ export function buildSchema6MigrationFragment(input: {
       actions.push(migrationAction(exceptionUnapprovedActionInput(exception)));
     }
   }
+  // Blocking lifecycle findings with a mechanical fix are planned at any
+  // schema version: they block kibi check until they are resolved.
+  const lifecycle = buildLifecycleRepairActions(input.workspaceRoot);
+  actions.push(...lifecycle.actions);
+  sourceRewriteActionIds.push(...lifecycle.sourceRewriteActionIds);
   return { actions, sourceRewriteActionIds, diagnostics };
+}
+
+/**
+ * Actions for the superseded-requirement-open and source-path-dangling
+ * findings in authored sources: close superseded requirements and rewrite
+ * retired documentation/ sources automatically; one review per supersession
+ * cycle and per source Kibi cannot map. Read-only.
+ */
+// implements REQ-cli-schema-migration, REQ-core-validation-rules
+export function buildLifecycleRepairActions(workspaceRoot: string): {
+  actions: MigrationAction[];
+  sourceRewriteActionIds: string[];
+} {
+  const actions: MigrationAction[] = [];
+  const sourceRewriteActionIds: string[] = [];
+  const supersession = planSupersededClosures(workspaceRoot);
+  if (supersession.closures.length > 0) {
+    actions.push(
+      migrationAction(
+        closeSupersededRequirementsActionInput(supersession.closures),
+      ),
+    );
+    sourceRewriteActionIds.push(CLOSE_SUPERSEDED_REQUIREMENTS_ACTION_ID);
+  }
+  for (const cycle of supersession.cycles) {
+    actions.push(migrationAction(supersessionCycleReviewActionInput(cycle)));
+  }
+  const dangling = findDanglingSources(workspaceRoot);
+  const rewrites: SourcePathRewrite[] = [];
+  for (const source of dangling) {
+    if (source.rewrite !== undefined && typeof source.value === "string") {
+      rewrites.push({
+        entityId: source.entityId,
+        file: source.file,
+        from: source.value,
+        to: source.rewrite,
+      });
+    } else {
+      actions.push(migrationAction(sourcePathReviewActionInput(source)));
+    }
+  }
+  if (rewrites.length > 0) {
+    actions.push(migrationAction(sourcePathRewriteActionInput(rewrites)));
+    sourceRewriteActionIds.push(SOURCE_PATH_REWRITE_ACTION_ID);
+  }
+  return { actions, sourceRewriteActionIds };
 }
 
 /** The sync that recompiles sources rewritten by earlier actions. */
 export function migrationSyncAction(
   dependsOn: readonly string[],
 ): MigrationAction {
-  return migrationAction({
-    id: MIGRATION_SYNC_ACTION_ID,
-    code: MIGRATION_SYNC_CODE,
-    category: "freshness",
-    safety: "automatic",
-    autoApplicable: true,
-    invocation: { kind: "cli", command_argv: ["kibi", "sync"] },
-    dependsOn,
-    affectedFiles: [".kb/branches"],
-    postconditions: [{ syncState: "fresh" }],
-    evidence: {
-      reason:
-        "Earlier migration actions rewrite authored sources; recompile them so status, check and coverage read the migrated KB.",
-    },
+  return migrationAction(migrationSyncActionInput(dependsOn));
+}
+
+function plannedRewrites(action: MigrationAction): SourcePathRewrite[] {
+  const rewrites = action.evidence.rewrites;
+  if (!Array.isArray(rewrites)) return [];
+  return rewrites.flatMap((raw) => {
+    if (raw === null || typeof raw !== "object") return [];
+    const { entityId, file, from, to } = raw as Record<string, unknown>;
+    return typeof entityId === "string" &&
+      typeof file === "string" &&
+      typeof from === "string" &&
+      typeof to === "string"
+      ? [{ entityId, file, from, to }]
+      : [];
   });
 }
 
@@ -316,6 +394,28 @@ export async function applySchema6MigrationAction(
     case ENTITY_ORIGIN_BACKFILL_CODE:
       applyOriginBackfill(context.workspaceRoot, context.clock().toISOString());
       return;
+    case CLOSE_SUPERSEDED_REQUIREMENTS_CODE: {
+      const result = applySupersededClosures(
+        context.workspaceRoot,
+        new Set(action.affectedEntityIds),
+      );
+      if (result.skipped.length > 0)
+        throw new Error(
+          `Could not close ${result.skipped.map((skip) => `${skip.path} (${skip.reason})`).join(", ")}; set status: closed by hand.`,
+        );
+      return;
+    }
+    case SOURCE_PATH_REWRITE_CODE: {
+      const result = applySourcePathRewrites(
+        context.workspaceRoot,
+        plannedRewrites(action),
+      );
+      if (result.skipped.length > 0)
+        throw new Error(
+          `Could not rewrite the source of ${result.skipped.map((skip) => `${skip.file} (${skip.reason})`).join(", ")}; rerun kibi migrate and approve the new plan.`,
+        );
+      return;
+    }
     case MIGRATION_SYNC_CODE: {
       const { syncCommand } = await import("../../commands/sync.js");
       const result = await syncCommand({
@@ -337,5 +437,7 @@ export async function applySchema6MigrationAction(
 export const SCHEMA6_AUTOMATIC_CODES: ReadonlySet<string> = new Set([
   SEMANTIC_INVENTORY_REDERIVE_CODE,
   ENTITY_ORIGIN_BACKFILL_CODE,
+  CLOSE_SUPERSEDED_REQUIREMENTS_CODE,
+  SOURCE_PATH_REWRITE_CODE,
   MIGRATION_SYNC_CODE,
 ]);

@@ -34,6 +34,14 @@ import {
   applyOriginBackfill,
   planOriginBackfill,
 } from "../operations/migration/origin-backfill.js";
+import {
+  applySourcePathRewrites,
+  findDanglingSources,
+} from "../operations/migration/source-paths.js";
+import {
+  applySupersededClosures,
+  planSupersededClosures,
+} from "../operations/migration/superseded-closure.js";
 import type { MigrationPlan } from "../public/operations/migration-plan.js";
 import { extractSymbolsFromStagedFile } from "../traceability/symbol-extract.js";
 import { resolveBranchAttachment } from "../utils/branch-resolver.js";
@@ -78,6 +86,10 @@ interface MigrationAuditRecord {
   symbolGranularityLegacyLinks: number;
   /** Entities carrying origin {kind: migration, ref: 'kibi migrate v5->v6'}. */
   entityOriginBackfill: number;
+  /** Superseded requirements this run set to status: closed. */
+  supersededRequirementsClosed: number;
+  /** Pre-canonical source paths this run pointed at their .kb/ file. */
+  sourcePathsRewritten: number;
   toVersion: number;
   warning: string | null;
   steps: readonly string[];
@@ -151,7 +163,7 @@ const SCHEMA_MIGRATION_STEPS: readonly SchemaMigrationStep[] = [
     from: 5,
     to: 6,
     description:
-      "Record origin {kind: migration} on authored entities written before schema 6.",
+      "Record origin {kind: migration} on authored entities written before schema 6, close superseded requirements, and point pre-canonical source paths at their .kb/ files.",
   },
 ];
 
@@ -235,6 +247,8 @@ function buildMigrationAuditRecord(args: {
   semanticAdvisorBackfill: "pending" | "completed" | "not_applicable" | null;
   symbolGranularityLegacyLinks: number;
   entityOriginBackfill: number;
+  supersededRequirementsClosed: number;
+  sourcePathsRewritten: number;
   warning: string | null;
   steps: readonly string[];
 }): MigrationAuditRecord {
@@ -248,6 +262,8 @@ function buildMigrationAuditRecord(args: {
     status: "applied",
     symbolGranularityLegacyLinks: args.symbolGranularityLegacyLinks,
     entityOriginBackfill: args.entityOriginBackfill,
+    supersededRequirementsClosed: args.supersededRequirementsClosed,
+    sourcePathsRewritten: args.sourcePathsRewritten,
     toVersion: LATEST_KB_SCHEMA_VERSION,
     warning: args.warning,
     steps: args.steps,
@@ -495,6 +511,78 @@ function rederiveDriftedInventories(
   return { rederived, manual: result.manual.length };
 }
 
+type LifecycleRepairOutcome = {
+  closed: number;
+  rewritten: number;
+  manual: number;
+};
+
+/**
+ * Close superseded requirements and point pre-canonical source paths at
+ * their .kb/ files. Both findings block kibi check, so this runs at any
+ * schema version. Supersession cycles and sources Kibi cannot map are left
+ * for a person and reported as warnings.
+ */
+// implements REQ-cli-schema-migration, REQ-core-validation-rules
+function repairLifecycleFindings(
+  cwd: string,
+  dryRun: boolean,
+): LifecycleRepairOutcome {
+  const supersession = planSupersededClosures(cwd);
+  const dangling = findDanglingSources(cwd);
+  const unmapped = dangling.filter((source) => source.rewrite === undefined);
+  let closed = supersession.closures.length;
+  let rewritten = dangling.length - unmapped.length;
+  if (dryRun) {
+    if (closed > 0) {
+      console.log(
+        `dry run: would close ${closed} superseded requirement(s): ${supersession.closures.map((closure) => closure.id).join(", ")}.`,
+      );
+    }
+    if (rewritten > 0) {
+      console.log(
+        `dry run: would point ${rewritten} pre-canonical source path(s) at their .kb/ files.`,
+      );
+    }
+  } else {
+    const closures = applySupersededClosures(cwd);
+    closed = closures.closed.length;
+    if (closed > 0) {
+      console.log(
+        `Closed ${closed} superseded requirement(s): ${closures.closed.map((closure) => closure.id).join(", ")}.`,
+      );
+    }
+    for (const skip of closures.skipped) {
+      printWarning(`Status not set for ${skip.path}: ${skip.reason}.`);
+    }
+    const rewrites = applySourcePathRewrites(cwd);
+    rewritten = rewrites.written.length;
+    if (rewritten > 0) {
+      console.log(
+        `Pointed ${rewritten} pre-canonical source path(s) at their .kb/ files.`,
+      );
+    }
+    for (const skip of rewrites.skipped) {
+      printWarning(`Source not rewritten for ${skip.file}: ${skip.reason}.`);
+    }
+  }
+  for (const cycle of supersession.cycles) {
+    printWarning(
+      `Requirements ${cycle.members.join(", ")} supersede each other; decide which one is current, remove the supersedes link that points at it, and close the others.`,
+    );
+  }
+  for (const source of unmapped) {
+    printWarning(
+      `${source.entityId} (${source.file}) has source ${JSON.stringify(source.value)}, which names no workspace path, entity or URL; point it at the document the entity came from or remove it.`,
+    );
+  }
+  return {
+    closed,
+    rewritten,
+    manual: supersession.cycles.length + unmapped.length,
+  };
+}
+
 export function warnMigrationRequiredWithoutYes(): { exitCode: number } {
   printWarning("Migration required for this repository.");
   console.log("No changes applied.");
@@ -589,13 +677,17 @@ export async function migrateCommand(
   }
 
   if (!needsStorageMigration && !needsSchemaUpgrade) {
-    // An advisor change can make stored inventories drift at any version.
+    // An advisor change can make stored inventories drift at any version,
+    // and lifecycle findings block kibi check at any version.
     const drift = rederiveDriftedInventories(cwd, options.dryRun === true);
-    if (drift.rederived.length > 0 || drift.manual > 0) {
-      if (options.dryRun !== true && drift.rederived.length > 0) {
-        console.log(
-          "Run 'kibi sync' to recompile the re-derived requirements.",
-        );
+    const lifecycle = repairLifecycleFindings(cwd, options.dryRun === true);
+    const rewroteSources =
+      drift.rederived.length > 0 ||
+      lifecycle.closed > 0 ||
+      lifecycle.rewritten > 0;
+    if (rewroteSources || drift.manual > 0 || lifecycle.manual > 0) {
+      if (options.dryRun !== true && rewroteSources) {
+        console.log("Run 'kibi sync' to recompile the rewritten sources.");
       }
       if (options.yes === true) updateGitIgnore(cwd);
       return { exitCode: 0 };
@@ -674,6 +766,7 @@ export async function migrateCommand(
       }
     }
     rederiveDriftedInventories(cwd, true);
+    repairLifecycleFindings(cwd, true);
     console.log(
       `dry run: would write migration audit metadata to ${toRelativePath(cwd, auditPath)}.`,
     );
@@ -718,6 +811,7 @@ export async function migrateCommand(
     ? applyOriginBackfill(cwd, migratedAt)
     : { written: [], skipped: [], previouslyStamped: 0 };
   rederiveDriftedInventories(cwd, false);
+  const lifecycle = repairLifecycleFindings(cwd, false);
 
   const existingManifest = readKbManifest(cwd) ?? defaultKbManifest();
   writeKbManifest(cwd, {
@@ -737,6 +831,8 @@ export async function migrateCommand(
       symbolGranularityLegacyLinks: symbolGranularityMigration.count,
       entityOriginBackfill:
         originBackfill.written.length + originBackfill.previouslyStamped,
+      supersededRequirementsClosed: lifecycle.closed,
+      sourcePathsRewritten: lifecycle.rewritten,
       warning: migrationWarning,
       steps: migrationSteps.map((step) => step.id),
     }),
@@ -786,12 +882,18 @@ async function buildWorkspaceMigrationPlan(
     { statusSpec },
     { checkSpec },
     { coverageSpec },
-    { buildMigrationPlan, mergeMigrationPlans, migrationAction },
+    {
+      buildMigrationPlan,
+      mergeMigrationPlans,
+      migrationAction,
+      withoutActionCodes,
+    },
     {
       ORIGIN_SCHEMA_VERSION,
       buildSchema6MigrationFragment,
       migrationSyncAction,
     },
+    { SOURCE_PLANNED_LIFECYCLE_CODES },
   ] = await Promise.all([
     import("../runtime/cli-runtime.js"),
     import("../public/operations/runtime-types.js"),
@@ -800,6 +902,7 @@ async function buildWorkspaceMigrationPlan(
     import("../public/operations/specs/reporting.js"),
     import("../public/operations/migration-plan.js"),
     import("../operations/migration/schema6.js"),
+    import("../public/operations/schema6-check-actions.js"),
   ]);
   const runtime = createCliRuntime({ workspaceRoot });
   const statusResult = await executeOperation(runtime, statusSpec, {});
@@ -871,7 +974,14 @@ async function buildWorkspaceMigrationPlan(
   if (checkable && storeSynced) {
     const checkResult = await executeOperation(runtime, checkSpec, {});
     if (checkResult.structuredContent?.migrationPlan !== undefined) {
-      plans.push(checkResult.structuredContent.migrationPlan);
+      // Lifecycle repairs and their sync are planned above from authored
+      // sources, which may be newer than the compiled store.
+      plans.push(
+        withoutActionCodes(
+          checkResult.structuredContent.migrationPlan,
+          SOURCE_PLANNED_LIFECYCLE_CODES,
+        ),
+      );
     }
     const coverageInputs = [
       { by: "req" as const, limit: 10_000, offset: 0 },

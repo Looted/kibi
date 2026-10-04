@@ -126,6 +126,12 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       description:
         "Requirement-only. Optional reference to the exception's approval decision record.",
     },
+    rationale: {
+      type: "string",
+      minLength: 1,
+      description:
+        "Requirement-only. Why the requirement exists, in one or two sentences from whoever stated the intent; not part of the checked meaning.",
+    },
     exempts_claims: {
       type: "array",
       minItems: 1,

@@ -393,6 +393,13 @@ const entitySchema: Record<string, unknown> = {
       description:
         "Requirement-only. Optional reference to the approval decision record (ticket, ADR or review link) for an exception requirement.",
     },
+    rationale: {
+      type: "string",
+      minLength: 1,
+      pattern: "\\S",
+      description:
+        "Requirement-only. Why the requirement exists, in one or two sentences from whoever stated the intent. Explanation only: it is not part of the checked meaning.",
+    },
     exempts_claims: {
       type: "array",
       minItems: 1,
@@ -705,6 +712,7 @@ const entitySchema: Record<string, unknown> = {
             { required: ["proof_exempt_reason"] },
             { required: ["approved_by"] },
             { required: ["approval_ref"] },
+            { required: ["rationale"] },
             { required: ["exempts_claims"] },
           ],
         },

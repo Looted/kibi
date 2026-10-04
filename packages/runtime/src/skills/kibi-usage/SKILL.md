@@ -2,7 +2,7 @@
 id: kibi-usage
 name: Kibi Usage
 description: Use Kibi's source-first, exact-Git, migration-aware, proof-aware operations safely across MCP or the trusted local CLI, including partial completion repair.
-version: 2.2.0
+version: 2.3.0
 kibiCompatibility: ">=1.0.0"
 tags:
   - kibi
@@ -89,7 +89,10 @@ runs where you are and needs no `workspaceRoot`.
    defaults to intent ranking, so you can ask it a question ("what governs
    checkout rounding?"); its `data.answer` layer lists the current governing
    requirements with linked facts, scenarios, tests, and ADRs, separates
-   superseded requirements, and labels observations as notes. Those links are
+   superseded requirements, and labels observations as notes. Each governing
+   requirement also carries a `verdict` (`contradiction`, `infeasible`,
+   `unknown`, or `none`, which is not proof), the `exceptions` that exempt it,
+   and the `unknowns` the checks could not decide. Those links and verdicts are
    discovery, not proof. Pass `sourceLocations` before changing a source file,
    and `rankingMode: "legacy"` for literal identifier lookups. See
    `resources/workflows.md` for the mode recipe.
@@ -153,8 +156,32 @@ Existing entities preserve body bytes when `document.body` is omitted; new
 requirements default their body to `semantic_text`. Relationship mutations
 patch canonical shards while preserving unrelated records. Authored entity
 deletion returns a hash-bound approval plan; requirements normally evolve via a
-new entity linked with `supersedes`. Read `resources/source-authoring.md` before
-source writes, deletion approval, or recovery.
+new entity linked with `supersedes`; set the replaced requirement to
+`status: closed` in the same change, because `kb_check` blocks an open
+superseded requirement and supersession cycles. An authored `source` field
+must name an existing path (`#anchor` allowed), an entity id, or an http(s)
+URL. Read `resources/source-authoring.md` before source writes, deletion
+approval, or recovery.
+
+`kb_apply_plan` applies a whole plan atomically: a failure changes nothing.
+An interrupted plan is settled by the next `kb_apply_plan`, `kb_upsert`, or
+`kb_delete` call, or by `kb_apply_plan` with its `recoveryJournalId`; never
+re-apply the original plan. On a detached HEAD, reads answer from a read-only
+snapshot and writes are refused; check out a branch before mutating.
+
+## Origin and approvals
+
+Entities record `origin` (`kind`: `human`, `agent`, `migration`, or `import`,
+plus optional `ref` and `approved_by`). `kb_upsert` records `kind: agent` on
+entities you create; leave `origin.approved_by` to the person who reviews them.
+An exception (a requirement that `exempts` another) exempts nothing until a
+human sets `approved_by`; `kb_check` flags approvals an agent recorded without
+corroboration. Never fill in an approval yourself. Record why a requirement
+exists in `rationale`, or link the ADR that explains it.
+
+Conditional clauses ("only when", "only if", "must not ... unless") compile
+into typed `forbid` rules linked by `requires_rule`, not property facts; one
+`kb_model` or `kb_compile_intent` cannot translate stays an `ontology_gap`.
 
 ## Semantic and proof guardrails
 

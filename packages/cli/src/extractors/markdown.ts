@@ -138,6 +138,7 @@ export interface ExtractedEntity {
   proof_exempt_reason?: string;
   approved_by?: string;
   approval_ref?: string;
+  rationale?: string;
   exempts_claims?: string[];
   expects?: "success" | "rejection" | "error";
   proof_contract?: ProofContract;
@@ -776,6 +777,21 @@ function extractFromMarkdownContent(
         );
       }
       entity[field] = data[field];
+    }
+    // implements REQ-core-validation-rules
+    // Why the requirement exists; requirement-rationale-missing reads it.
+    if (type === "req" && data.rationale !== undefined) {
+      if (typeof data.rationale !== "string" || data.rationale.trim() === "") {
+        throw new FrontmatterError(
+          "Invalid rationale; expected a non-empty string",
+          filePath,
+          {
+            classification: "Invalid Rationale",
+            hint: "Set rationale to one or two sentences saying why the requirement exists, or remove the field.",
+          },
+        );
+      }
+      entity.rationale = data.rationale;
     }
     if (type === "req" && Array.isArray(data.exempts_claims)) {
       entity.exempts_claims = data.exempts_claims.filter(

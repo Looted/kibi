@@ -46,9 +46,286 @@ export const AGENT_REQUIREMENTS_REVIEW_CODE =
 export const AGENT_REQUIREMENTS_REVIEW_ACTION_ID =
   "review-agent-requirements-unapproved";
 
+/** Automatic: close superseded requirements that are not closed. */
+export const CLOSE_SUPERSEDED_REQUIREMENTS_CODE =
+  "close_superseded_requirements";
+export const CLOSE_SUPERSEDED_REQUIREMENTS_ACTION_ID =
+  "close-superseded-requirements";
+/** Review: requirements that supersede each other (no automatic fix). */
+export const SUPERSESSION_CYCLE_REVIEW_CODE = "review_supersession_cycle";
+/** Automatic: point pre-canonical knowledge-file sources at `.kb/`. */
+export const SOURCE_PATH_REWRITE_CODE = "source_path_rewrite";
+export const SOURCE_PATH_REWRITE_ACTION_ID = "source-path-rewrite";
+/** Review: an authored source that names no path, entity or URL. */
+export const SOURCE_PATH_REVIEW_CODE = "review_source_path_dangling";
+/** Review: symbols whose every owning requirement is retired (one queue). */
+export const SYMBOL_OWNER_REVIEW_CODE = "review_symbol_owner_superseded";
+export const SYMBOL_OWNER_REVIEW_ACTION_ID = "review-symbol-owner-superseded";
+/** Review: an accepted ADR nothing links to. */
+export const ADR_UNLINKED_REVIEW_CODE = "review_adr_unlinked";
+/** Review: an ADR still proposed. */
+export const ADR_PROPOSED_REVIEW_CODE = "review_adr_proposed";
+/** Review: human- or agent-authored requirements with no rationale (one queue). */
+export const RATIONALE_REVIEW_CODE = "review_requirement_rationale_missing";
+export const RATIONALE_REVIEW_ACTION_ID =
+  "review-requirement-rationale-missing";
+/** Automatic: recompile sources rewritten by earlier migration actions. */
+export const MIGRATION_SYNC_CODE = "migration_sync";
+export const MIGRATION_SYNC_ACTION_ID = "migration-sync";
+
+const MIGRATE_YES = {
+  kind: "cli",
+  command_argv: ["kibi", "migrate", "--yes"],
+} as const;
+
 export function exceptionUnapprovedActionId(exceptionId: string): string {
   return `review-exception-unapproved-${exceptionId}`;
 }
+
+function stableIdPart(value: string): string {
+  return value.replace(/[^A-Za-z0-9_-]+/g, "-");
+}
+
+/** The sync that recompiles sources rewritten by earlier actions. */
+export function migrationSyncActionInput(
+  dependsOn: readonly string[],
+): MigrationActionInput {
+  return {
+    id: MIGRATION_SYNC_ACTION_ID,
+    code: MIGRATION_SYNC_CODE,
+    category: "freshness",
+    safety: "automatic",
+    autoApplicable: true,
+    invocation: { kind: "cli", command_argv: ["kibi", "sync"] },
+    dependsOn,
+    affectedFiles: [".kb/branches"],
+    postconditions: [{ syncState: "fresh" }],
+    evidence: {
+      reason:
+        "Earlier migration actions rewrite authored sources; recompile them so status, check and coverage read the migrated KB.",
+    },
+  };
+}
+
+export type SupersededClosureInput = Readonly<{
+  id: string;
+  path?: string;
+  status: string;
+  supersededBy: readonly string[];
+}>;
+
+/** One automatic action that closes every listed superseded requirement. */
+// implements REQ-cli-schema-migration, REQ-core-validation-rules
+export function closeSupersededRequirementsActionInput(
+  closures: readonly SupersededClosureInput[],
+): MigrationActionInput {
+  const sorted = [...closures].sort((left, right) =>
+    left.id.localeCompare(right.id),
+  );
+  return {
+    id: CLOSE_SUPERSEDED_REQUIREMENTS_ACTION_ID,
+    code: CLOSE_SUPERSEDED_REQUIREMENTS_CODE,
+    category: "quality",
+    safety: "automatic",
+    autoApplicable: true,
+    invocation: MIGRATE_YES,
+    affectedEntityIds: sorted.map((closure) => closure.id),
+    affectedFiles: sorted.flatMap((closure) =>
+      closure.path !== undefined ? [closure.path] : [],
+    ),
+    postconditions: [{ rule: "superseded-requirement-open", violations: 0 }],
+    evidence: {
+      reason:
+        "A requirement another requirement supersedes is retired and must be closed (superseded-requirement-open). Each listed requirement gets status: closed; the rest of its file is unchanged.",
+      count: sorted.length,
+      requirements: sorted.map((closure) => ({
+        id: closure.id,
+        status: closure.status,
+        supersededBy: [...closure.supersededBy],
+      })),
+    },
+  };
+}
+
+/** Review: requirements that supersede each other; a person picks the current one. */
+// implements REQ-cli-schema-migration, REQ-core-validation-rules
+export function supersessionCycleReviewActionInput(cycle: {
+  members: readonly string[];
+  edges: readonly (readonly [string, string])[];
+  files?: readonly string[];
+}): MigrationActionInput {
+  const members = [...cycle.members].sort();
+  const edges = cycle.edges.map(([from, to]) => `${from} supersedes ${to}`);
+  return {
+    id: `review-supersession-cycle-${members.map(stableIdPart).join("-")}`,
+    code: SUPERSESSION_CYCLE_REVIEW_CODE,
+    category: "quality",
+    safety: "review",
+    invocation: {
+      kind: "review",
+      instruction: `Supersession cycle between ${members.join(" and ")} (${edges.join("; ")}): none of them is current, so kibi migrate closes none of them. Decide which requirement states current intent, delete the supersedes link that points at it (kb_delete relationships [{type: supersedes, from: <other>, to: <current>}]), then set status: closed on the requirements it replaces.`,
+    },
+    affectedEntityIds: members,
+    affectedFiles: [...(cycle.files ?? [])],
+    dispositionRequired: true,
+    allowedDispositions: ["fixed", "deferred"],
+    evidence: {
+      cycle: members,
+      edges: cycle.edges.map(([from, to]) => [from, to]),
+    },
+  };
+}
+
+export type SourcePathRewriteInput = Readonly<{
+  entityId: string;
+  file: string;
+  from: string;
+  to: string;
+}>;
+
+/** One automatic action that rewrites every listed retired source path. */
+// implements REQ-cli-schema-migration, REQ-core-validation-rules
+export function sourcePathRewriteActionInput(
+  rewrites: readonly SourcePathRewriteInput[],
+): MigrationActionInput {
+  const sorted = [...rewrites].sort(
+    (left, right) =>
+      left.entityId.localeCompare(right.entityId) ||
+      left.file.localeCompare(right.file),
+  );
+  return {
+    id: SOURCE_PATH_REWRITE_ACTION_ID,
+    code: SOURCE_PATH_REWRITE_CODE,
+    category: "quality",
+    safety: "automatic",
+    autoApplicable: true,
+    invocation: MIGRATE_YES,
+    affectedEntityIds: sorted.map((rewrite) => rewrite.entityId),
+    affectedFiles: sorted.map((rewrite) => rewrite.file),
+    postconditions: [{ rule: "source-path-dangling", rewritten: 0 }],
+    evidence: {
+      reason:
+        "These source fields name a knowledge file by its pre-canonical path (under documentation/, or relative to the knowledge root); each is pointed at the same file under .kb/. Only the source line changes.",
+      count: sorted.length,
+      rewrites: sorted.map((rewrite) => ({ ...rewrite })),
+    },
+  };
+}
+
+/** Review: a source value Kibi cannot map; a person repoints or removes it. */
+// implements REQ-cli-schema-migration, REQ-core-validation-rules
+export function sourcePathReviewActionInput(source: {
+  entityId: string;
+  value: unknown;
+  file?: string;
+}): MigrationActionInput {
+  const shown =
+    typeof source.value === "string"
+      ? source.value
+      : JSON.stringify(source.value);
+  return {
+    id: `review-source-path-dangling-${stableIdPart(source.entityId)}`,
+    code: SOURCE_PATH_REVIEW_CODE,
+    category: "quality",
+    safety: "review",
+    invocation: {
+      kind: "review",
+      instruction: `${source.entityId} has source '${shown}', which is not an existing workspace path, an entity id or an http(s) URL, and Kibi cannot map it to a moved file. Point source at the document the entity came from (a tracked path, optionally with #anchor; an entity id; or a URL) by editing its frontmatter source field, or remove the field if nobody knows the origin.`,
+    },
+    affectedEntityIds: [source.entityId],
+    affectedFiles: source.file !== undefined ? [source.file] : [],
+    dispositionRequired: true,
+    evidence: { entityId: source.entityId, source: source.value },
+  };
+}
+
+type Violation = Readonly<Record<string, unknown>>;
+
+/**
+ * Map the blocking findings that schema 6 migrates mechanically to stable
+ * actions with the same ids `kibi migrate` plans from authored sources:
+ * superseded-requirement-open (one close action, one review per cycle) and
+ * source-path-dangling (one rewrite action, one review per unmappable
+ * value), plus the sync that recompiles what they rewrite.
+ */
+// implements REQ-cli-schema-migration, REQ-agent-guided-migration-orchestration
+export function lifecycleActionsFromViolations(
+  violations: readonly Violation[],
+): { actions: MigrationActionInput[]; consumed: ReadonlySet<number> } {
+  const actions: MigrationActionInput[] = [];
+  const consumed = new Set<number>();
+  const closures: SupersededClosureInput[] = [];
+  const rewrites: SourcePathRewriteInput[] = [];
+  for (const [index, violation] of violations.entries()) {
+    const entityId = text(violation.entityId);
+    const evidence = isRecord(violation.evidence) ? violation.evidence : {};
+    const source = text(violation.source);
+    if (violation.rule === "superseded-requirement-open") {
+      const cycle = stringList(evidence.cycle);
+      if (cycle.length > 0) {
+        const edges = Array.isArray(evidence.edges)
+          ? evidence.edges.flatMap((edge) => {
+              const pair = stringList(edge);
+              return pair.length === 2
+                ? [[pair[0], pair[1]] as [string, string]]
+                : [];
+            })
+          : [];
+        actions.push(
+          supersessionCycleReviewActionInput({ members: cycle, edges }),
+        );
+      } else if (entityId !== "") {
+        closures.push({
+          id: entityId,
+          ...(source !== "" ? { path: source } : {}),
+          status: text(evidence.status),
+          supersededBy: stringList(evidence.supersededBy),
+        });
+      } else {
+        continue;
+      }
+      consumed.add(index);
+    } else if (violation.rule === "source-path-dangling") {
+      if (entityId === "") continue;
+      const file = text(evidence.file) || source;
+      const rewrite = text(evidence.rewrite);
+      if (rewrite !== "" && typeof evidence.value === "string") {
+        rewrites.push({ entityId, file, from: evidence.value, to: rewrite });
+      } else {
+        actions.push(
+          sourcePathReviewActionInput({
+            entityId,
+            value: evidence.value,
+            ...(file !== "" ? { file } : {}),
+          }),
+        );
+      }
+      consumed.add(index);
+    }
+  }
+  const rewriteActionIds: string[] = [];
+  if (closures.length > 0) {
+    actions.push(closeSupersededRequirementsActionInput(closures));
+    rewriteActionIds.push(CLOSE_SUPERSEDED_REQUIREMENTS_ACTION_ID);
+  }
+  if (rewrites.length > 0) {
+    actions.push(sourcePathRewriteActionInput(rewrites));
+    rewriteActionIds.push(SOURCE_PATH_REWRITE_ACTION_ID);
+  }
+  if (rewriteActionIds.length > 0) {
+    actions.push(migrationSyncActionInput(rewriteActionIds));
+  }
+  return { actions, consumed };
+}
+
+/** Action codes `kibi migrate` plans itself from authored sources. */
+export const SOURCE_PLANNED_LIFECYCLE_CODES: ReadonlySet<string> = new Set([
+  CLOSE_SUPERSEDED_REQUIREMENTS_CODE,
+  SUPERSESSION_CYCLE_REVIEW_CODE,
+  SOURCE_PATH_REWRITE_CODE,
+  SOURCE_PATH_REVIEW_CODE,
+  MIGRATION_SYNC_CODE,
+]);
 
 /** Exception review shared by the source scan and the exception-unapproved rule. */
 // implements REQ-kibi-scenario-feasibility, REQ-cli-schema-migration
@@ -90,6 +367,17 @@ function text(value: unknown): string {
   return typeof value === "string" ? value : "";
 }
 
+type ReviewQueue = {
+  ids: string[];
+  files: string[];
+  evidence: Array<{ entityId: string; evidence: Record<string, unknown> }>;
+  total: number;
+};
+
+function reviewQueue(): ReviewQueue {
+  return { ids: [], files: [], evidence: [], total: 0 };
+}
+
 const PREDICATE_SIGNATURE =
   /predicate (\S+):(\S+)\/(\d+) declares no key_arguments/;
 
@@ -106,6 +394,8 @@ export function schema6ReviewActionsFromCheck(
   const agentRequirements: string[] = [];
   let agentRequirementsTotal = 0;
   const agentRequirementFiles: string[] = [];
+  const symbolOwners = reviewQueue();
+  const rationaleQueue = reviewQueue();
   const predicates = new Map<
     string,
     {
@@ -184,6 +474,43 @@ export function schema6ReviewActionsFromCheck(
         consumed.add(index);
         break;
       }
+      case "rule.symbol-owner-superseded":
+      case "rule.requirement-rationale-missing": {
+        // Bounded page plus one summary finding: one review queue each.
+        const queue =
+          diagnostic.id === "rule.symbol-owner-superseded"
+            ? symbolOwners
+            : rationaleQueue;
+        if (entityId !== "" && entityId !== "workspace") {
+          queue.ids.push(entityId);
+          if (source !== "") queue.files.push(source);
+          queue.evidence.push({ entityId, evidence });
+        }
+        if (typeof evidence.total === "number") queue.total = evidence.total;
+        consumed.add(index);
+        break;
+      }
+      case "rule.adr-unlinked":
+      case "rule.adr-proposed": {
+        if (entityId === "") continue;
+        const unlinked = diagnostic.id === "rule.adr-unlinked";
+        actions.push({
+          id: `${unlinked ? "review-adr-unlinked" : "review-adr-proposed"}-${entityId}`,
+          code: unlinked ? ADR_UNLINKED_REVIEW_CODE : ADR_PROPOSED_REVIEW_CODE,
+          category: "quality",
+          safety: "review",
+          invocation: {
+            kind: "review",
+            instruction: `${text(diagnostic.message)}. ${text(diagnostic.suggestion)}`,
+          },
+          affectedEntityIds: [entityId],
+          affectedFiles: source !== "" ? [source] : [],
+          dispositionRequired: true,
+          evidence: { diagnostic },
+        });
+        consumed.add(index);
+        break;
+      }
       case "rule.rule-key-arguments-missing": {
         const match = PREDICATE_SIGNATURE.exec(text(diagnostic.message));
         if (match === null) continue;
@@ -224,6 +551,42 @@ export function schema6ReviewActionsFromCheck(
         rulePairs: pairs,
         findings: [...new Set(group.messages)].sort(),
       },
+    });
+  }
+  if (symbolOwners.ids.length > 0) {
+    const listed = [...new Set(symbolOwners.ids)].sort();
+    const total = Math.max(symbolOwners.total, listed.length);
+    actions.push({
+      id: SYMBOL_OWNER_REVIEW_ACTION_ID,
+      code: SYMBOL_OWNER_REVIEW_CODE,
+      category: "symbol",
+      safety: "review",
+      invocation: {
+        kind: "review",
+        instruction: `${total} symbol(s) implement only superseded or deprecated requirements${total > listed.length ? `; these ${listed.length} come first` : ""}: ${listed.join(", ")}. For each, kb_upsert the symbol with an implements link to the requirement that replaced its owner (evidence lists the replacements) when it still implements that behavior, or remove the symbol when the behavior is gone. Rerun kb_check for the next page.`,
+      },
+      affectedEntityIds: listed,
+      affectedFiles: [...new Set(symbolOwners.files)].sort(),
+      dispositionRequired: true,
+      evidence: { symbols: symbolOwners.evidence, total },
+    });
+  }
+  if (rationaleQueue.ids.length > 0) {
+    const listed = [...new Set(rationaleQueue.ids)].sort();
+    const total = Math.max(rationaleQueue.total, listed.length);
+    actions.push({
+      id: RATIONALE_REVIEW_ACTION_ID,
+      code: RATIONALE_REVIEW_CODE,
+      category: "quality",
+      safety: "review",
+      invocation: {
+        kind: "review",
+        instruction: `${total} human- or agent-authored requirement(s) state no rationale${total > listed.length ? `; these ${listed.length} come first` : ""}: ${listed.join(", ")}. Ask the person who stated the intent why it matters, then kb_upsert the requirement with rationale set to that answer (or link the ADR that records the decision). Rerun kb_check for the next page.`,
+      },
+      affectedEntityIds: listed,
+      affectedFiles: [...new Set(rationaleQueue.files)].sort(),
+      dispositionRequired: true,
+      evidence: { requirements: listed, total },
     });
   }
   if (agentRequirements.length > 0) {

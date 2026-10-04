@@ -52,6 +52,8 @@ function semanticEntityFingerprint(
     else if (entity.semantic_source_field === "text_ref")
       semantic.text_ref = entity.text_ref;
     else semantic.semantic_text = entity.semantic_text;
+    // rationale explains why a requirement exists; it is not checked meaning,
+    // so editing it does not count as a semantic change.
     for (const key of [
       "semantic_clauses",
       "logic_claims",

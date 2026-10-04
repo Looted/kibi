@@ -516,7 +516,11 @@ export async function persistEntities(
           `proof_exempt_reason=${toPrologString(entity.proof_exempt_reason)}`,
         );
       }
-      for (const field of ["approved_by", "approval_ref"] as const) {
+      for (const field of [
+        "approved_by",
+        "approval_ref",
+        "rationale",
+      ] as const) {
         const value = entity.type === "req" ? entity[field] : undefined;
         if (value !== undefined)
           props.push(`${field}=${toPrologString(value)}`);

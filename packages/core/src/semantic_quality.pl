@@ -8,8 +8,10 @@
 %   entity-id-style      filename stem must equal the frontmatter id
 %   domain-redundancy    two current requirements ground the same term
 %   domain-implication   one numeric bound implies another (informational)
-%   subject-key-identity subject keys derived from requirement IDs
-%   subject-key-shape    subject keys outside component.aspect[.sub]
+%   subject-key-identity subject keys derived from requirement IDs, and one
+%                        subject or claim minted as several facts
+%   subject-key-shape    subject keys outside component.aspect[.sub], and
+%                        property keys that number a clause
 %   ontology-quality     predicate schemas whose arguments are mostly
 %                        one-off atoms (prose smuggled into atoms)
 %
@@ -356,6 +358,13 @@ implication_witness_violation(Witness, violation(
 %
 % Subject facts are reported; property_value facts are reported only when no
 % subject fact carries the same key (otherwise fixing the subject fixes them).
+%
+% The rule also reports vocabulary fragmentation, where one subject or claim
+% was minted as several facts so requirements about it never meet: more than
+% one active subject fact for the same subject_key, and more than one active
+% property_value fact for the same subject_key, property_key and operator.
+% Facts that differ only in operator (for example the two bounds of a range)
+% are not duplicates.  Each group is reported once, on its first fact id.
 % implements REQ-kibi-subject-vocabulary
 check_subject_key_identity(Violations) :-
     findall(Segment-ReqId, requirement_subject_segment(ReqId, Segment), SegmentPairs0),
@@ -368,7 +377,95 @@ check_subject_key_identity(Violations) :-
         subject_key_identity_violation(Segments, SubjectKeys, Violation),
         Violations0
     ),
-    sort(Violations0, Violations).
+    duplicate_subject_fact_violations(SubjectDuplicates),
+    duplicate_property_fact_violations(PropertyDuplicates),
+    append([Violations0, SubjectDuplicates, PropertyDuplicates], Violations1),
+    sort(Violations1, Violations).
+
+%% duplicate_subject_fact_violations(-Violations)
+duplicate_subject_fact_violations(Violations) :-
+    findall(
+        SubjectKey-FactId,
+        (   fact_subject_key_of_kind(FactId, subject, SubjectKey),
+            active_fact(FactId)
+        ),
+        Pairs0
+    ),
+    sort(Pairs0, Pairs),
+    group_pairs_by_key(Pairs, Groups),
+    findall(
+        violation(
+            'subject-key-identity',
+            FirstId,
+            Description,
+            Suggestion,
+            Source,
+            _{subjectKey: SubjectKey, facts: FactIds}
+        ),
+        (   member(SubjectKey-FactIds, Groups),
+            FactIds = [FirstId, _|_],
+            length(FactIds, Count),
+            atomic_list_concat(FactIds, ', ', FactText),
+            format(string(Description),
+                "~w active subject facts share subject_key ~w (~w), so requirements about this subject are split across facts that never meet",
+                [Count, SubjectKey, FactText]),
+            format(string(Suggestion),
+                "Keep one subject fact for ~w, point every requirement's constrains link at it, and remove the others (kb_delete) once nothing links them",
+                [SubjectKey]),
+            entity_text(FirstId, fact, source, Source)
+        ),
+        Violations
+    ).
+
+%% duplicate_property_fact_violations(-Violations)
+duplicate_property_fact_violations(Violations) :-
+    findall(
+        key(SubjectKey, PropertyKey, Operator)-FactId,
+        (   fact_subject_key_of_kind(FactId, property_value, SubjectKey),
+            kb_entity(FactId, fact, Props),
+            memberchk(property_key=RawProperty, Props),
+            normalize_term_atom(RawProperty, PropertyKey),
+            memberchk(operator=RawOperator, Props),
+            normalize_term_atom(RawOperator, Operator),
+            active_fact(FactId)
+        ),
+        Pairs0
+    ),
+    sort(Pairs0, Pairs),
+    group_pairs_by_key(Pairs, Groups),
+    findall(
+        violation(
+            'subject-key-identity',
+            FirstId,
+            Description,
+            "If the facts state the same constraint, link every requirement to one shared fact and remove the duplicates (kb_delete) once nothing links them; if they conflict, supersede the requirement that is no longer current",
+            Source,
+            _{subjectKey: SubjectKey, propertyKey: PropertyKey, operator: Operator, facts: FactIds}
+        ),
+        (   member(key(SubjectKey, PropertyKey, Operator)-FactIds, Groups),
+            FactIds = [FirstId, _|_],
+            length(FactIds, Count),
+            atomic_list_concat(FactIds, ', ', FactText),
+            format(string(Description),
+                "~w active property_value facts constrain ~w ~w with operator ~w (~w), so one claim is minted as several facts",
+                [Count, SubjectKey, PropertyKey, Operator, FactText]),
+            entity_text(FirstId, fact, source, Source)
+        ),
+        Violations
+    ).
+
+%% active_fact(+FactId)
+% A fact whose status does not retire it.
+active_fact(FactId) :-
+    entity_text(FactId, fact, status, Status),
+    retired_fact_status(Status, Retired),
+    Retired == false.
+
+retired_fact_status(Status, Retired) :-
+    (   memberchk(Status, ["superseded", "deprecated", "closed", "removed", "retired", "inactive", "archived"])
+    ->  Retired = true
+    ;   Retired = false
+    ).
 
 subject_key_identity_violation(Segments, SubjectKeys, violation(
     'subject-key-identity',
@@ -471,6 +568,33 @@ subject_key_shape_violation(violation(
     \+ valid_subject_key(SubjectKey),
     format(string(Description), "Subject key ~w does not follow the component.aspect[.sub] convention", [SubjectKey]),
     entity_text(FactId, fact, source, Source).
+% A property key that numbers a clause (`clause_03_must_refresh_...`,
+% `contract_clause_2`) names a position in one requirement's prose, not a
+% property other requirements can share, so equal claims never meet.
+subject_key_shape_violation(violation(
+    'subject-key-shape',
+    FactId,
+    Description,
+    "Rename the property key to the property the clause constrains (for example refresh_before_serving), reusing an existing property_key for the same subject when one fits",
+    Source
+)) :-
+    kb_entity(FactId, fact, Props),
+    memberchk(property_key=RawKey, Props),
+    normalize_term_atom(RawKey, PropertyKey),
+    clause_numbered_property_key(PropertyKey),
+    format(string(Description), "Property key ~w numbers a clause instead of naming a property", [PropertyKey]),
+    entity_text(FactId, fact, source, Source).
+
+%% clause_numbered_property_key(+PropertyKey)
+% True when the key contains the word `clause` followed by a number.
+clause_numbered_property_key(PropertyKey) :-
+    atom(PropertyKey),
+    atomic_list_concat(Words, '_', PropertyKey),
+    append(_, [clause, Number|_], Words),
+    atom_codes(Number, Codes),
+    Codes \== [],
+    forall(member(Code, Codes), code_type(Code, digit)),
+    !.
 
 %% valid_subject_key(+SubjectKey)
 valid_subject_key(SubjectKey) :-

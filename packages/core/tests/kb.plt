@@ -5151,6 +5151,119 @@ test(proof_contract_symbols_reports_unresolved_type_shape_and_source_mismatch, [
     member(violation('proof-contract-symbols', 'TEST-CONTRACT-BIND', BindDesc, _, _), Violations),
     sub_string(BindDesc, _, _, _, "source_file").
 
+test(superseded_requirement_open_requires_closed_status, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-OLD-OPEN', "Old open", open, []),
+    assert_fixture_entity(req, 'REQ-OLD-CLOSED', "Old closed", closed, []),
+    assert_fixture_entity(req, 'REQ-NEW', "New", open, []),
+    assert_fixture_entity(req, 'REQ-NEWER', "Newer", open, []),
+    kb_assert_relationship(supersedes, 'REQ-NEW', 'REQ-OLD-OPEN', []),
+    kb_assert_relationship(supersedes, 'REQ-NEWER', 'REQ-OLD-OPEN', []),
+    kb_assert_relationship(supersedes, 'REQ-NEW', 'REQ-OLD-CLOSED', []),
+    check_superseded_requirement_open(Violations),
+    Violations = [violation('superseded-requirement-open', 'REQ-OLD-OPEN', Description, Suggestion, _, Evidence)],
+    assertion(Evidence.supersededBy == ['REQ-NEW', 'REQ-NEWER']),
+    assertion(Evidence.status == open),
+    assertion(sub_string(Description, _, _, _, "superseded by REQ-NEW, REQ-NEWER but its status is open")),
+    assertion(sub_string(Suggestion, _, _, _, "close_superseded_requirements")),
+    % Closing the requirement clears the finding.
+    kb_assert_entity(req, [id='REQ-OLD-OPEN', title="Old open", status=closed,
+        created_at="2026-05-01T00:00:00Z", updated_at="2026-05-01T00:00:00Z",
+        source="test://kb.plt"]),
+    check_superseded_requirement_open(After),
+    assertion(After == []).
+
+test(superseded_requirement_open_reports_each_cycle_once, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-LOOP-A', "Loop A", open, []),
+    assert_fixture_entity(req, 'REQ-LOOP-B', "Loop B", open, []),
+    assert_fixture_entity(req, 'REQ-LOOP-C', "Loop C", open, []),
+    assert_fixture_entity(req, 'REQ-TAIL', "Tail", open, []),
+    kb_assert_relationship(supersedes, 'REQ-LOOP-A', 'REQ-LOOP-B', []),
+    kb_assert_relationship(supersedes, 'REQ-LOOP-B', 'REQ-LOOP-C', []),
+    kb_assert_relationship(supersedes, 'REQ-LOOP-C', 'REQ-LOOP-A', []),
+    kb_assert_relationship(supersedes, 'REQ-LOOP-C', 'REQ-TAIL', []),
+    check_superseded_requirement_open(Violations),
+    findall(Id, member(violation(_, Id, _, _, _, _), Violations), Ids),
+    % One cycle finding on its first member, plus the open requirement the
+    % cycle supersedes; cycle members are not reported again as open.
+    assertion(Ids == ['REQ-LOOP-A', 'REQ-TAIL']),
+    member(violation(_, 'REQ-LOOP-A', Description, _, _, Evidence), Violations),
+    assertion(Evidence.cycle == ['REQ-LOOP-A', 'REQ-LOOP-B', 'REQ-LOOP-C']),
+    assertion(length(Evidence.edges, 3)),
+    assertion(sub_string(Description, 0, _, _, "Supersession cycle: REQ-LOOP-A, REQ-LOOP-B, REQ-LOOP-C")),
+    % no-cycles follows depends_on only, so the cycle is not reported twice.
+    check_no_cycles(NoCycles),
+    assertion(NoCycles == []).
+
+test(superseded_requirement_open_is_selectable_and_serialized, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-OLD-SEL', "Old", in_progress, []),
+    assert_fixture_entity(req, 'REQ-NEW-SEL', "New", open, []),
+    kb_assert_relationship(supersedes, 'REQ-NEW-SEL', 'REQ-OLD-SEL', []),
+    check_selected_json(['superseded-requirement-open'], Json),
+    atom_json_dict(Json, Dict, []),
+    Dict.superseded_requirement_open = [Row],
+    assertion(Row.entityId == "REQ-OLD-SEL"),
+    assertion(Row.evidence.status == "in_progress").
+
+test(symbol_owner_superseded_lists_symbols_without_current_owner, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-RETIRED', "Retired", closed, []),
+    assert_fixture_entity(req, 'REQ-DONE', "Done but current", closed, []),
+    assert_fixture_entity(req, 'REQ-SUCCESSOR', "Successor", open, []),
+    kb_assert_relationship(supersedes, 'REQ-SUCCESSOR', 'REQ-RETIRED', []),
+    assert_fixture_entity(symbol, 'SYM-ORPHANED', "orphaned", active, []),
+    assert_fixture_entity(symbol, 'SYM-SHARED', "shared", active, []),
+    assert_fixture_entity(symbol, 'SYM-DONE', "done", active, []),
+    assert_fixture_entity(symbol, 'SYM-GONE', "gone", removed, []),
+    kb_assert_relationship(implements, 'SYM-ORPHANED', 'REQ-RETIRED', []),
+    kb_assert_relationship(implements, 'SYM-SHARED', 'REQ-RETIRED', []),
+    kb_assert_relationship(implements, 'SYM-SHARED', 'REQ-SUCCESSOR', []),
+    kb_assert_relationship(implements, 'SYM-DONE', 'REQ-DONE', []),
+    kb_assert_relationship(implements, 'SYM-GONE', 'REQ-RETIRED', []),
+    check_symbol_owner_superseded(Violations),
+    % A closed requirement is done, not retired; removed symbols are ignored.
+    Violations = [violation('symbol-owner-superseded', 'SYM-ORPHANED', Description, Suggestion, _, Evidence)],
+    assertion(Evidence.owners == ['REQ-RETIRED']),
+    assertion(Evidence.replacements == ['REQ-SUCCESSOR']),
+    assertion(sub_string(Description, _, _, _, "implements only superseded or deprecated requirements (REQ-RETIRED)")),
+    assertion(sub_string(Suggestion, _, _, _, "implements REQ-SUCCESSOR")).
+
+test(symbol_owner_superseded_caps_the_list_with_a_summary, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-RETIRED-CAP', "Retired", closed, []),
+    assert_fixture_entity(req, 'REQ-SUCCESSOR-CAP', "Successor", open, []),
+    kb_assert_relationship(supersedes, 'REQ-SUCCESSOR-CAP', 'REQ-RETIRED-CAP', []),
+    forall(between(1, 27, N),
+           (   format(atom(Id), 'SYM-CAP-~|~`0t~d~2+', [N]),
+               assert_fixture_entity(symbol, Id, "capped", active, []),
+               kb_assert_relationship(implements, Id, 'REQ-RETIRED-CAP', [])
+           )),
+    check_symbol_owner_superseded(Violations),
+    length(Violations, 26),
+    last(Violations, violation('symbol-owner-superseded', workspace, Summary, _, _, Evidence)),
+    assertion(Evidence.total == 27),
+    assertion(Evidence.listed == 25),
+    assertion(sub_string(Summary, 0, _, _, "2 more symbol(s)")),
+    Violations = [violation(_, First, _, _, _, _)|_],
+    assertion(First == 'SYM-CAP-01').
+
+test(adr_unlinked_and_adr_proposed_report_drifting_decisions, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-GOVERNED', "Governed", open, []),
+    assert_fixture_entity(adr, 'ADR-LINKED', "Linked", accepted, []),
+    assert_fixture_entity(adr, 'ADR-LINKED-FROM-REQ', "Linked from req", accepted, []),
+    assert_fixture_entity(adr, 'ADR-ALONE', "Alone", accepted, []),
+    assert_fixture_entity(adr, 'ADR-PENDING', "Pending", proposed, []),
+    assert_fixture_entity(adr, 'ADR-PENDING-REPLACED', "Pending replaced", proposed, []),
+    assert_fixture_entity(symbol, 'SYM-CONSTRAINED', "constrained", active, []),
+    kb_assert_relationship(relates_to, 'ADR-LINKED', 'REQ-GOVERNED', []),
+    kb_assert_relationship(relates_to, 'REQ-GOVERNED', 'ADR-LINKED-FROM-REQ', []),
+    kb_assert_relationship(supersedes, 'ADR-LINKED', 'ADR-PENDING-REPLACED', []),
+    % A symbol constraint says where a decision applies, not which intent it serves.
+    kb_assert_relationship(constrained_by, 'SYM-CONSTRAINED', 'ADR-ALONE', []),
+    check_adr_unlinked(Unlinked),
+    findall(Id, member(violation('adr-unlinked', Id, _, _, _), Unlinked), UnlinkedIds),
+    assertion(UnlinkedIds == ['ADR-ALONE']),
+    check_adr_proposed(Proposed),
+    findall(Id, member(violation('adr-proposed', Id, _, _, _), Proposed), ProposedIds),
+    assertion(ProposedIds == ['ADR-PENDING']).
+
 :- end_tests(checks_coverage_gaps).
 
 :- begin_tests(kb_wrapper_coverage_gaps).
@@ -5741,6 +5854,48 @@ test(subject_vocabulary_json_lists_subjects_with_constraining_requirements, [set
     atom_json_dict(ClaimsJson, [Claim], []),
     assertion(Claim.factId == "FACT-EXPORT-CSV"),
     assertion(Claim.requirements == ["REQ-report-export-csv"]).
+
+test(subject_key_identity_reports_one_subject_minted_as_several_facts, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    sq_subject_fact('FACT-SUBJ-PLUGIN-A', "opencode.kibi_plugin"),
+    sq_subject_fact('FACT-SUBJ-PLUGIN-B', "opencode.kibi_plugin"),
+    sq_subject_fact('FACT-SUBJ-SIDEBAR', "opencode.sidebar"),
+    kb_assert_entity(fact, [
+        id='FACT-SUBJ-PLUGIN-OLD', title="Retired subject", status=deprecated,
+        created_at="2026-09-28T00:00:00Z", updated_at="2026-09-28T00:00:00Z",
+        source="test://kb.plt", fact_kind=subject, subject_key="opencode.kibi_plugin"
+    ]),
+    check_subject_key_identity(Violations),
+    Violations = [violation('subject-key-identity', 'FACT-SUBJ-PLUGIN-A', Description, _, _, Evidence)],
+    % Retired facts do not count.
+    assertion(Evidence.facts == ['FACT-SUBJ-PLUGIN-A', 'FACT-SUBJ-PLUGIN-B']),
+    assertion(sub_string(Description, 0, _, _, "2 active subject facts share subject_key opencode.kibi_plugin")).
+
+test(subject_key_identity_reports_one_claim_minted_as_several_facts, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    sq_subject_fact('FACT-SUBJ-CHECK', "kibi.check"),
+    sq_property_fact('FACT-EXIT-A', "kibi.check", failure_exit_code, eq, int, 1, ''),
+    sq_property_fact('FACT-EXIT-B', "kibi.check", failure_exit_code, eq, int, 1, ''),
+    % The two bounds of a range differ in operator: not duplicates.
+    sq_property_fact('FACT-TIMEOUT-MIN', "kibi.check", timeout, gte, int, 1, s),
+    sq_property_fact('FACT-TIMEOUT-MAX', "kibi.check", timeout, lte, int, 60, s),
+    check_subject_key_identity(Violations),
+    Violations = [violation('subject-key-identity', 'FACT-EXIT-A', Description, _, _, Evidence)],
+    assertion(Evidence.facts == ['FACT-EXIT-A', 'FACT-EXIT-B']),
+    assertion(Evidence.propertyKey == failure_exit_code),
+    assertion(Evidence.operator == eq),
+    assertion(sub_string(Description, _, _, _, "so one claim is minted as several facts")).
+
+test(subject_key_shape_reports_clause_numbered_property_keys, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    sq_subject_fact('FACT-SUBJ-ATTACH', "mcp.branch_attachment"),
+    sq_property_fact('FACT-PROP-CLAUSE', "mcp.branch_attachment", clause_01_mcp_must_refresh, eq, bool, true, ''),
+    sq_property_fact('FACT-PROP-CONTRACT', "mcp.branch_attachment", contract_clause_2, eq, bool, true, ''),
+    sq_property_fact('FACT-PROP-NAMED', "mcp.branch_attachment", refresh_before_serving, eq, bool, true, ''),
+    sq_property_fact('FACT-PROP-COUNT', "mcp.branch_attachment", clause_count, lte, int, 3, ''),
+    check_subject_key_shape(Violations),
+    findall(Id-Description, member(violation('subject-key-shape', Id, Description, _, _), Violations), Pairs),
+    pairs_keys(Pairs, Ids),
+    assertion(Ids == ['FACT-PROP-CLAUSE', 'FACT-PROP-CONTRACT']),
+    memberchk('FACT-PROP-CONTRACT'-ContractDescription, Pairs),
+    assertion(ContractDescription == "Property key contract_clause_2 numbers a clause instead of naming a property").
 
 :- end_tests(semantic_quality_checks).
 

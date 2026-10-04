@@ -65,7 +65,7 @@ This section provides guidance on selecting the appropriate entity type for your
 | status       | Yes      | string         | Entity status (see below for values)             |
 | created_at   | Yes      | ISO 8601       | Creation timestamp                               |
 | updated_at   | Yes      | ISO 8601       | Last update timestamp                            |
-| source       | Yes      | string         | Provenance (file path, URL, or reference)        |
+| source       | Yes      | string         | Provenance (file path, URL, or reference). Compiled from the entity's own file; an authored `source` frontmatter field must name an existing workspace path (`#anchor` allowed), an existing entity id, or an http(s) URL, or `kibi check` blocks it under `source-path-dangling` |
 | tags[]       | No       | array[string]  | Array of metadata/search tags only               |
 | owner        | No       | string         | Owner/assignee                                   |
 | priority     | No       | string         | Priority level (must, should, could)             |
@@ -112,7 +112,7 @@ Kibi cannot verify a person's approval. The advisory checks `exception-unapprove
 |--------------|----------|----------------|--------------------------------------------------|
 | id           | Yes      | string         | Unique identifier                                |
 | title        | Yes      | string         | Requirement summary                              |
-| status       | Yes      | string         | open, in_progress, closed, deprecated. ADR vocabulary such as `accepted` compiles but is not a requirement status: it silently removes the requirement from the proof ladder, and `kibi check` reports it under `req-status-vocabulary`. Superseded requirements keep their status and gain a `supersedes` link from the successor. |
+| status       | Yes      | string         | open, in_progress, closed, deprecated. ADR vocabulary such as `accepted` compiles but is not a requirement status: it silently removes the requirement from the proof ladder, and `kibi check` reports it under `req-status-vocabulary`. A superseded requirement (the target of a `supersedes` link from its successor) must be `closed`; `kibi check` blocks an open one under `superseded-requirement-open`. |
 | created_at   | Yes      | ISO 8601       | Creation timestamp                               |
 | updated_at   | Yes      | ISO 8601       | Last update timestamp                            |
 | source       | Yes      | string         | Provenance                                       |
@@ -126,6 +126,7 @@ Kibi cannot verify a person's approval. The advisory checks `exception-unapprove
 | proof_exempt_reason | No | string        | Required when `proof_exempt` is true — the reviewable justification surfaced in coverage rows |
 | approved_by  | No       | string         | Exception requirements only: the human who approved the exception. An exception that `exempts` a requirement makes its specified success scenarios feasible only when `approved_by` is non-empty; without it the advisory `exception-unapproved` check reports the exception |
 | approval_ref | No       | string         | Optional reference to the exception's approval record (ticket, ADR or review link). When an agent recorded the exception (`origin.kind: agent`), the advisory `exception-approval-self-attested` check asks for `approval_ref` and `origin.approved_by` |
+| rationale    | No       | string         | Why the requirement exists, in one or two sentences from whoever stated the intent. Explanation only, never part of the checked meaning. The advisory `requirement-rationale-missing` check asks human- and agent-authored requirements for it unless the body has a `## Rationale` or `## Why` section or an ADR is linked |
 | exempts_claims[] | No   | array[string]  | Exception requirements only: claim keys (`CLAIM-...`) of the exempted requirement's clauses this exception waives. Absent, it waives the whole requirement; present, only constraints grounded by facts carrying a listed `claim_key`. The canonical `exception-claim-keys` check requires every key to be a claim of a requirement it `exempts` |
 | semantic_text | No      | string         | Requirement-only normalized authored prose that anchors semantic byte spans |
 | logic_claims | No       | array[string]  | Requirement-only manifest of stable atomic claim keys |

@@ -15,6 +15,10 @@
     check_no_cycles/1,              % Returns list of cycle violations
     check_required_fields/1,        % Returns list of missing required field violations
     check_deprecated_adrs/1,        % Returns list of deprecated ADR violations
+    check_superseded_requirement_open/1,
+    check_symbol_owner_superseded/1,
+    check_adr_unlinked/1,
+    check_adr_proposed/1,
     check_scenario_feasibility/1,
     check_scenario_feasibility_unknown/1,
     check_exception_claim_keys/1,
@@ -92,6 +96,10 @@ check_all(ViolationsDict) :-
     check_no_cycles(Cycles),
     check_required_fields(RequiredFields),
     check_deprecated_adrs(DeprecatedADRs),
+    check_superseded_requirement_open(SupersededRequirementOpen),
+    check_symbol_owner_superseded(SymbolOwnerSuperseded),
+    check_adr_unlinked(AdrUnlinked),
+    check_adr_proposed(AdrProposed),
     check_scenario_feasibility(ScenarioFeasibility),
     check_scenario_feasibility_unknown(ScenarioFeasibilityUnknown),
     check_exception_claim_keys(ExceptionClaimKeys),
@@ -122,6 +130,10 @@ check_all(ViolationsDict) :-
         no_cycles: Cycles,
         required_fields: RequiredFields,
         deprecated_adr_no_successor: DeprecatedADRs,
+        superseded_requirement_open: SupersededRequirementOpen,
+        symbol_owner_superseded: SymbolOwnerSuperseded,
+        adr_unlinked: AdrUnlinked,
+        adr_proposed: AdrProposed,
         scenario_feasibility: ScenarioFeasibility,
         scenario_feasibility_unknown: ScenarioFeasibilityUnknown,
         exception_claim_keys: ExceptionClaimKeys,
@@ -546,6 +558,334 @@ deprecated_adr_violation(violation(
     ->  true
     ;   Source = ""
     ).
+
+%% ------------------------------------------------------------------
+%% Lifecycle: superseded requirements, retired owners, ADR drift
+%% ------------------------------------------------------------------
+
+%% check_superseded_requirement_open(-Violations)
+% implements REQ-core-validation-rules
+% A requirement that another requirement supersedes is retired, so it must
+% carry the terminal status `closed`; an open superseded requirement reads as
+% current to every agent that finds it.  Supersession must also be acyclic:
+% when requirements supersede each other, directly or through a chain, none of
+% them is current and no status edit can decide which one should be.  Each
+% such cycle is reported once, naming every member, and its members are not
+% reported again as open.  `no-cycles` only follows depends_on, so cycles are
+% reported here.
+check_superseded_requirement_open(Violations) :-
+    requirement_supersession_edges(Edges),
+    supersession_cycles(Edges, Cycles),
+    append(Cycles, CycleMembers0),
+    sort(CycleMembers0, CycleMembers),
+    findall(To, member(_-To, Edges), Targets0),
+    sort(Targets0, Targets),
+    findall(
+        Violation,
+        superseded_open_violation(Edges, Targets, CycleMembers, Violation),
+        OpenViolations
+    ),
+    maplist(supersession_cycle_violation(Edges), Cycles, CycleViolations),
+    append(OpenViolations, CycleViolations, Violations0),
+    sort(Violations0, Violations).
+
+%% requirement_supersession_edges(-Edges)
+% Sorted From-To pairs of supersedes edges whose target is a requirement.
+requirement_supersession_edges(Edges) :-
+    findall(
+        From-To,
+        (   kb_relationship(supersedes, From, To),
+            kb_entity(To, req, _)
+        ),
+        Edges0
+    ),
+    sort(Edges0, Edges).
+
+%% supersession_cycles(+Edges, -Cycles)
+% Every set of requirements that reach each other through supersedes edges
+% (a strongly connected component with a cycle), as sorted member lists.
+supersession_cycles(Edges, Cycles) :-
+    findall(From, member(From-_, Edges), Starts0),
+    sort(Starts0, Starts),
+    findall(
+        Component,
+        (   member(Start, Starts),
+            supersession_reachable(Edges, Start, Reach),
+            ord_memberchk(Start, Reach),
+            include(supersession_reaches(Edges, Start), Reach, Component0),
+            sort(Component0, Component)
+        ),
+        Components
+    ),
+    sort(Components, Cycles).
+
+% True when Node reaches Target through supersedes edges.
+supersession_reaches(Edges, Target, Node) :-
+    supersession_reachable(Edges, Node, Reach),
+    ord_memberchk(Target, Reach).
+
+%% supersession_reachable(+Edges, +Start, -Reach)
+% Ordered set of nodes reachable from Start in one or more steps.
+supersession_reachable(Edges, Start, Reach) :-
+    supersession_successors(Edges, Start, Next),
+    supersession_walk(Edges, Next, [], Reach).
+
+supersession_walk(_, [], Reach, Reach).
+supersession_walk(Edges, [Node|Queue], Seen, Reach) :-
+    (   ord_memberchk(Node, Seen)
+    ->  supersession_walk(Edges, Queue, Seen, Reach)
+    ;   ord_add_element(Seen, Node, Seen1),
+        supersession_successors(Edges, Node, Next),
+        append(Queue, Next, Queue1),
+        supersession_walk(Edges, Queue1, Seen1, Reach)
+    ).
+
+supersession_successors(Edges, Node, Next) :-
+    findall(To, member(Node-To, Edges), Next).
+
+superseded_open_violation(Edges, Targets, CycleMembers, violation(
+    'superseded-requirement-open',
+    ReqId,
+    Description,
+    Suggestion,
+    Source,
+    _{supersededBy: Successors, status: Status}
+)) :-
+    member(ReqId, Targets),
+    kb_entity(ReqId, req, Props),
+    findall(From, member(From-ReqId, Edges), Successors0),
+    sort(Successors0, Successors),
+    requirement_status_atom(Props, Status),
+    Status \== closed,
+    not_in_supersession_cycle(ReqId, CycleMembers),
+    atomic_list_concat(Successors, ', ', SuccessorText),
+    format(string(Description),
+        "Requirement ~w is superseded by ~w but its status is ~w; a superseded requirement must be closed",
+        [ReqId, SuccessorText, Status]),
+    format(string(Suggestion),
+        "Set status: closed on ~w (kibi migrate does this with its close_superseded_requirements action). If ~w still states current intent, remove the supersedes link instead",
+        [ReqId, ReqId]),
+    violation_source(ReqId, req, Source).
+
+not_in_supersession_cycle(ReqId, CycleMembers) :-
+    \+ ord_memberchk(ReqId, CycleMembers).
+
+requirement_status_atom(Props, Status) :-
+    (   memberchk(status=Raw, Props)
+    ->  normalize_term_atom(Raw, Status)
+    ;   Status = missing
+    ).
+
+supersession_cycle_violation(Edges, Members, violation(
+    'superseded-requirement-open',
+    FirstId,
+    Description,
+    "Decide which requirement states current intent: delete the supersedes link that points at it (kb_delete the relationship), then close the requirements it replaces",
+    Source,
+    _{cycle: Members, edges: EdgeList}
+)) :-
+    Members = [FirstId|_],
+    findall(
+        [From, To],
+        (   member(From-To, Edges),
+            ord_memberchk(From, Members),
+            ord_memberchk(To, Members)
+        ),
+        EdgeList
+    ),
+    findall(
+        Text,
+        (   member([From, To], EdgeList),
+            format(atom(Text), "~w supersedes ~w", [From, To])
+        ),
+        EdgeTexts
+    ),
+    atomic_list_concat(EdgeTexts, '; ', EdgeText),
+    atomic_list_concat(Members, ', ', MemberText),
+    format(string(Description),
+        "Supersession cycle: ~w (~w), so none of these requirements is current and none can be closed automatically",
+        [MemberText, EdgeText]),
+    violation_source(FirstId, req, Source).
+
+%% requirement_sets(-ReqIds, -Retired)
+% Ordered sets of every requirement id and of the retired ones: superseded by
+% another requirement, or deprecated.  `closed` means done, not retired: code
+% that implements a closed requirement still has a current owner.
+requirement_sets(ReqIds, Retired) :-
+    findall(
+        ReqId-Status,
+        (   kb_entity(ReqId, req, Props),
+            requirement_status_atom(Props, Status)
+        ),
+        Pairs
+    ),
+    findall(ReqId, member(ReqId-_, Pairs), ReqIds0),
+    sort(ReqIds0, ReqIds),
+    findall(To, kb_relationship(supersedes, _, To), Superseded),
+    findall(ReqId, member(ReqId-deprecated, Pairs), Deprecated),
+    append(Superseded, Deprecated, Retired0),
+    sort(Retired0, Retired1),
+    ord_intersection(Retired1, ReqIds, Retired).
+
+%% check_symbol_owner_superseded(-Violations)
+% implements REQ-core-validation-rules
+% Advisory: a symbol whose every `implements` target is superseded or
+% deprecated has no current owner, so its behavior is governed by retired intent.  The
+% first symbol_owner_review_limit/1 symbols (by id) are listed, then one
+% summary finding counts the rest, so a large KB yields a bounded queue.
+symbol_owner_review_limit(25).
+
+check_symbol_owner_superseded(Violations) :-
+    requirement_sets(ReqIds, Retired),
+    findall(
+        SymbolId-Owners,
+        symbol_with_retired_owners(ReqIds, Retired, SymbolId, Owners),
+        Pairs0
+    ),
+    sort(Pairs0, Pairs),
+    length(Pairs, Total),
+    symbol_owner_review_limit(Limit),
+    (   Total > Limit
+    ->  length(Listed, Limit),
+        append(Listed, _, Pairs),
+        Remaining is Total - Limit,
+        format(string(SummaryText),
+            "~w more symbol(s) implement only superseded or deprecated requirements; the list above stops at ~w",
+            [Remaining, Limit]),
+        Summary = [violation(
+            'symbol-owner-superseded',
+            workspace,
+            SummaryText,
+            "Relink the listed symbols first; the next kb_check lists the following ones",
+            "",
+            _{total: Total, listed: Limit}
+        )]
+    ;   Listed = Pairs,
+        Summary = []
+    ),
+    maplist(symbol_owner_superseded_violation, Listed, Findings),
+    append(Findings, Summary, Violations).
+
+symbol_with_retired_owners(ReqIds, Retired, SymbolId, Owners) :-
+    findall(Id-ReqId, kb_relationship(implements, Id, ReqId), Edges0),
+    sort(Edges0, Edges),
+    group_pairs_by_key(Edges, Groups),
+    member(SymbolId-Targets, Groups),
+    ord_intersection(Targets, ReqIds, Owners),
+    Owners \== [],
+    ord_subtract(Owners, Retired, []),
+    kb_entity(SymbolId, symbol, SymbolProps),
+    live_symbol(SymbolProps).
+
+live_symbol(Props) :-
+    requirement_status_atom(Props, Status),
+    \+ memberchk(Status, [deprecated, removed]).
+
+symbol_owner_superseded_violation(SymbolId-Owners, violation(
+    'symbol-owner-superseded',
+    SymbolId,
+    Description,
+    Suggestion,
+    Source,
+    _{owners: Owners, replacements: Replacements}
+)) :-
+    findall(
+        NewId,
+        (   member(ReqId, Owners),
+            kb_relationship(supersedes, NewId, ReqId)
+        ),
+        Replacements0
+    ),
+    sort(Replacements0, Replacements),
+    (   kb_entity(SymbolId, symbol, Props),
+        memberchk(title=RawTitle, Props)
+    ->  violation_text(RawTitle, Title)
+    ;   Title = SymbolId
+    ),
+    atomic_list_concat(Owners, ', ', OwnerText),
+    format(string(Description),
+        "Symbol ~w (~w) implements only superseded or deprecated requirements (~w), so no current requirement owns it",
+        [Title, SymbolId, OwnerText]),
+    (   Replacements == []
+    ->  Suggestion = "Link the symbol to the current requirement that governs it (implements), or remove the symbol if its behavior is gone"
+    ;   atomic_list_concat(Replacements, ', ', ReplacementText),
+        format(string(Suggestion),
+            "Link the symbol to the requirement that replaced its owner (implements ~w) if it still implements that behavior, or remove the symbol if its behavior is gone",
+            [ReplacementText])
+    ),
+    violation_source(SymbolId, symbol, Source).
+
+%% check_adr_unlinked(-Violations)
+% implements REQ-016
+% Advisory: an accepted ADR that no requirement or other ADR is linked with
+% (relates_to, supersedes or any other typed edge, in either direction)
+% explains nothing an agent can reach from the requirements it governs.
+% Symbol constrained_by links do not count: they say where a decision
+% applies, not which intent it serves.
+check_adr_unlinked(Violations) :-
+    findall(Violation, adr_unlinked_violation(Violation), Violations0),
+    sort(Violations0, Violations).
+
+adr_unlinked_violation(violation(
+    'adr-unlinked',
+    AdrId,
+    Description,
+    Suggestion,
+    Source
+)) :-
+    kb_entity(AdrId, adr, Props),
+    requirement_status_atom(Props, accepted),
+    adr_without_knowledge_links(AdrId),
+    format(string(Description),
+        "Accepted ADR ~w is not linked to any requirement or ADR, so nothing that governs behavior points at this decision",
+        [AdrId]),
+    format(string(Suggestion),
+        "Link ~w to the requirements it explains (relates_to), supersede it with the ADR that replaced it, or deprecate it if the decision no longer applies",
+        [AdrId]),
+    violation_source(AdrId, adr, Source).
+
+adr_without_knowledge_links(AdrId) :-
+    \+ adr_knowledge_link(AdrId).
+
+adr_knowledge_link(AdrId) :-
+    relationship_type(Type),
+    (   kb_relationship(Type, AdrId, Other)
+    ;   kb_relationship(Type, Other, AdrId)
+    ),
+    Other \== AdrId,
+    (   kb_entity(Other, req, _)
+    ;   kb_entity(Other, adr, _)
+    ),
+    !.
+
+%% check_adr_proposed(-Violations)
+% implements REQ-016
+% Informational: an ADR still `proposed` (and not superseded) is a decision
+% nobody accepted or withdrew; agents cannot tell whether it governs.
+check_adr_proposed(Violations) :-
+    findall(Violation, adr_proposed_violation(Violation), Violations0),
+    sort(Violations0, Violations).
+
+adr_proposed_violation(violation(
+    'adr-proposed',
+    AdrId,
+    Description,
+    Suggestion,
+    Source
+)) :-
+    kb_entity(AdrId, adr, Props),
+    requirement_status_atom(Props, proposed),
+    adr_not_superseded(AdrId),
+    format(string(Description),
+        "ADR ~w is still proposed: the decision was never accepted or withdrawn",
+        [AdrId]),
+    format(string(Suggestion),
+        "Ask the decision owner to accept ~w (status: accepted) or withdraw it (status: deprecated, or supersede it with the ADR that was adopted)",
+        [AdrId]),
+    violation_source(AdrId, adr, Source).
+
+adr_not_superseded(AdrId) :-
+    \+ kb_relationship(supersedes, _, AdrId).
 
 %% check_scenario_feasibility(-Violations)
 % implements REQ-kibi-scenario-feasibility
@@ -3069,6 +3409,10 @@ check_selected_dispatch(Rules, _{
     no_cycles: Cycles,
     required_fields: RequiredFields,
     deprecated_adr_no_successor: DeprecatedADRs,
+    superseded_requirement_open: SupersededRequirementOpen,
+    symbol_owner_superseded: SymbolOwnerSuperseded,
+    adr_unlinked: AdrUnlinked,
+    adr_proposed: AdrProposed,
     scenario_feasibility: ScenarioFeasibility,
     scenario_feasibility_unknown: ScenarioFeasibilityUnknown,
     exception_claim_keys: ExceptionClaimKeys,
@@ -3099,6 +3443,10 @@ check_selected_dispatch(Rules, _{
     selected_rule(Rules, 'no-cycles', check_no_cycles, Cycles),
     selected_rule(Rules, 'required-fields', check_required_fields, RequiredFields),
     selected_rule(Rules, 'deprecated-adr-no-successor', check_deprecated_adrs, DeprecatedADRs),
+    selected_rule(Rules, 'superseded-requirement-open', check_superseded_requirement_open, SupersededRequirementOpen),
+    selected_rule(Rules, 'symbol-owner-superseded', check_symbol_owner_superseded, SymbolOwnerSuperseded),
+    selected_rule(Rules, 'adr-unlinked', check_adr_unlinked, AdrUnlinked),
+    selected_rule(Rules, 'adr-proposed', check_adr_proposed, AdrProposed),
     selected_rule(Rules, 'scenario-feasibility', check_scenario_feasibility, ScenarioFeasibility),
     selected_rule(Rules, 'scenario-feasibility-unknown', check_scenario_feasibility_unknown, ScenarioFeasibilityUnknown),
     selected_rule(Rules, 'exception-claim-keys', check_exception_claim_keys, ExceptionClaimKeys),
@@ -3166,6 +3514,10 @@ check_all_with_options(ViolationsDict, RequireAdr) :-
     check_no_cycles(Cycles),
     check_required_fields(RequiredFields),
     check_deprecated_adrs(DeprecatedADRs),
+    check_superseded_requirement_open(SupersededRequirementOpen),
+    check_symbol_owner_superseded(SymbolOwnerSuperseded),
+    check_adr_unlinked(AdrUnlinked),
+    check_adr_proposed(AdrProposed),
     check_scenario_feasibility(ScenarioFeasibility),
     check_scenario_feasibility_unknown(ScenarioFeasibilityUnknown),
     check_exception_claim_keys(ExceptionClaimKeys),
@@ -3196,6 +3548,10 @@ check_all_with_options(ViolationsDict, RequireAdr) :-
         no_cycles: Cycles,
         required_fields: RequiredFields,
         deprecated_adr_no_successor: DeprecatedADRs,
+        superseded_requirement_open: SupersededRequirementOpen,
+        symbol_owner_superseded: SymbolOwnerSuperseded,
+        adr_unlinked: AdrUnlinked,
+        adr_proposed: AdrProposed,
         scenario_feasibility: ScenarioFeasibility,
         scenario_feasibility_unknown: ScenarioFeasibilityUnknown,
         exception_claim_keys: ExceptionClaimKeys,
