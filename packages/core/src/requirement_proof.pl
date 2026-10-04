@@ -63,7 +63,7 @@ requirement_proof_context(VerificationSnapshot, CheckedAt, MaxAgeSeconds,
         proofTestBindings: TestBindings
     }.
 
-% implements REQ-kibi-proof-applicability-reason
+% implements REQ-kibi-conservative-requirement-proof
 % Exemption first: a current requirement explicitly marked proof_exempt with a
 % reason is intentionally outside E2E-proof scope and must never fall through
 % to the ladder (which would report misleading receipt gaps).

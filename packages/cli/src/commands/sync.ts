@@ -1133,7 +1133,7 @@ export async function syncCommand(
       livePath,
     );
 
-    // implements REQ-core-journaled-engine-delta-sync
+    // implements REQ-core-journaled-engine-persistence
     // Normal syncs are compiled directly into the long-lived single-writer
     // engine. Rebuilds retain generation replacement semantics, and injected
     // Prolog runtimes keep the staging path used by the contract fixtures.

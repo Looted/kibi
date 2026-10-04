@@ -217,7 +217,7 @@ export function postureGuidance(
   posture: RepoPosture,
   capability: KibiBootstrapCommandCapability = getKibiBootstrapCommandCapability(),
 ): string | null {
-  // implements REQ-opencode-prompt-injection
+  // implements REQ-opencode-guidance-injection
   switch (posture) {
     case "vendored_only":
       // Minimal guidance only, no bootstrap nags

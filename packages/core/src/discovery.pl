@@ -378,7 +378,7 @@ coverage_report_json(By, Tags, IncludePassing, BindingMode, TestBindings, Includ
     Response = _{summary: Summary, rows: Rows, meta: Meta},
     dict_json_string(Response, JsonString).
 
-% implements REQ-kibi-coverage-status-filter
+% implements REQ-kibi-conservative-requirement-proof
 % Proof-status filtered report. The status filter selects requirement rows by
 % proofStatus (proven, missing, unresolved, not_applicable) and replaces the
 % default include-passing filtering, so callers can enumerate exactly one
