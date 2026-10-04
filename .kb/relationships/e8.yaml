@@ -293,3 +293,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-36de4979f5d0
+  - type: implements
+    from: SYM-schema6-check-actions-supersessionCycleReviewActionInput
+    to: REQ-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-04T06:00:45.611Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-53febc2892af
+  - type: covered_by
+    from: SYM-schema6-check-actions-supersessionCycleReviewActionInput
+    to: TEST-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-04T06:00:45.631Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-af727136d9e2

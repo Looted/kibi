@@ -23075,6 +23075,38 @@ coordinates:
     sourceEndLine: 300
     sourceFile: packages/cli/src/operations/migration/schema6.ts
     sourceLine: 226
+  SYM-schema6-check-actions-closeSupersededRequirementsActionInput:
+    identityHash: cab98f318ee617a928cc68c42fef415babc45f7ba8a26aa100b2f7d0a20194b1
+    sourceHash: fa8e03990bcc267520de8a2543ec1c5687fc75007007d8c0d53e5b362816fe3a
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 152
+    sourceFile: packages/cli/src/public/operations/schema6-check-actions.ts
+    sourceLine: 123
+  SYM-schema6-check-actions-sourcePathReviewActionInput:
+    identityHash: 3636fd5f981a484204da6a8c7235200b9b07ec25c4fc01147946361046884df2
+    sourceHash: fa8e03990bcc267520de8a2543ec1c5687fc75007007d8c0d53e5b362816fe3a
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 286
+    sourceFile: packages/cli/src/public/operations/schema6-check-actions.ts
+    sourceLine: 251
+  SYM-schema6-check-actions-sourcePathRewriteActionInput:
+    identityHash: 8b7823769afe5d358e0d37de96eead51feb06a4c2864074f61227e8fba303453
+    sourceHash: fa8e03990bcc267520de8a2543ec1c5687fc75007007d8c0d53e5b362816fe3a
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 244
+    sourceFile: packages/cli/src/public/operations/schema6-check-actions.ts
+    sourceLine: 214
+  SYM-schema6-check-actions-supersessionCycleReviewActionInput:
+    identityHash: 992b944702b69423873e98e6be0d368a0bfe1d6de23708d3f187207dd45c34b1
+    sourceHash: fa8e03990bcc267520de8a2543ec1c5687fc75007007d8c0d53e5b362816fe3a
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 181
+    sourceFile: packages/cli/src/public/operations/schema6-check-actions.ts
+    sourceLine: 156
   SYM-schema6-planInventoryRederivation:
     identityHash: 90b421ccc9a9f99c59761f2607361a845fae7b5a8aa1632c8bbc3b4d9a9d1087
     sourceHash: e592d117821c38de29e6497125a789b8815be5bec19624b7d7ca517db55915c7
@@ -30979,6 +31011,38 @@ coordinates:
     sourceEndLine: 31
     sourceFile: packages/cli/src/plugins/source-classification.ts
     sourceLine: 1
+  SYM-source-path-dangling-collectSourcePathDanglingViolations:
+    identityHash: 639849d4ca070ad0f91e77eef2cc37165ef4c7a6c0f840ffdb64d71f01dc3dff
+    sourceHash: 7cd358740799cbff55c04032b763fb1a89a962ca2c7a68199ede85474cb7c0a3
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 80
+    sourceFile: packages/cli/src/public/operations/source-path-dangling.ts
+    sourceLine: 76
+  SYM-source-paths-applySourcePathRepairs:
+    identityHash: 3b095322e9d9d97728877c3d361518de578bbc996f90d6a6acceaf98f570988f
+    sourceHash: 4d326524e05e839820eae5f1136c5eb178c90e7efdb4daaf6a0d2cf660be8d03
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 436
+    sourceFile: packages/cli/src/operations/migration/source-paths.ts
+    sourceLine: 395
+  SYM-source-paths-findSourceRepairs:
+    identityHash: 04bba8f9f5b17fe361faef616782a2252ed1cfcd6d7f3606c84a1fe354384af8
+    sourceHash: 4d326524e05e839820eae5f1136c5eb178c90e7efdb4daaf6a0d2cf660be8d03
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 316
+    sourceFile: packages/cli/src/operations/migration/source-paths.ts
+    sourceLine: 314
+  SYM-source-paths-plannedSourcePathRepairs:
+    identityHash: 93eb37bf532e649159c96ba99d91480a7afc244e55bbfcbd25266b73a62d2213
+    sourceHash: 4d326524e05e839820eae5f1136c5eb178c90e7efdb4daaf6a0d2cf660be8d03
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 376
+    sourceFile: packages/cli/src/operations/migration/source-paths.ts
+    sourceLine: 364
   SYM-SourceAnalysisMode:
     identityHash: 3dffb4f28988f2cc2c1f1206ba9fca55568394d811daa321a9d213713b65eda0
     sourceHash: d9dfb8b17421f8b132da20195ffb22ee7bcf9fa4b8c4ce994e69cac1323d14c6
@@ -31315,6 +31379,22 @@ coordinates:
     sourceEndLine: 756
     sourceFile: scripts/run-unit-coverage.ts
     sourceLine: 744
+  SYM-superseded-closure-applySupersededClosures:
+    identityHash: 66e2eed6b22ef4d7a8937ca9852bc7582ae8c527433884af7c285f0d425cd1bc
+    sourceHash: 2877c988f998c7622622f58369d451664b176e2fda5609954efb33dc51d8e038
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 252
+    sourceFile: packages/cli/src/operations/migration/superseded-closure.ts
+    sourceLine: 227
+  SYM-superseded-closure-planSupersededClosures:
+    identityHash: 668fbc38aae42f431fe9e167ed5af7c5c12dc539501424bcfb465f3ea8e06f6c
+    sourceHash: 2877c988f998c7622622f58369d451664b176e2fda5609954efb33dc51d8e038
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 213
+    sourceFile: packages/cli/src/operations/migration/superseded-closure.ts
+    sourceLine: 169
   SYM-supported-staged-files:
     identityHash: fdd7b6bc3513b815ca38b9585fe5ad0ee87924f25c9e59aca7992b982faa598b
     sourceHash: 3fcc594dd6e373f4207c2a5e69d33d060d0c8b711d8d263202c1067d3a6342d0

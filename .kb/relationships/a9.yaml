@@ -272,3 +272,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-37a57af6c7b9
+  - type: implements
+    from: SYM-source-paths-plannedSourcePathRepairs
+    to: REQ-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-04T06:00:22.439Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a6d3cd012dce
+  - type: covered_by
+    from: SYM-source-paths-plannedSourcePathRepairs
+    to: TEST-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-04T06:00:22.456Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2ff04eef9f8

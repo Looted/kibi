@@ -384,3 +384,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c217f9ed90fa
+  - type: implements
+    from: SYM-schema6-check-actions-sourcePathRewriteActionInput
+    to: REQ-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-04T06:00:51.266Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-162bb294d830
+  - type: covered_by
+    from: SYM-schema6-check-actions-sourcePathRewriteActionInput
+    to: TEST-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-04T06:00:51.286Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1dac08617e46

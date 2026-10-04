@@ -230,3 +230,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-22a8a232edfc
+  - type: implements
+    from: SYM-superseded-closure-planSupersededClosures
+    to: REQ-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-04T06:00:04.310Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d458d2ae6ecd
+  - type: covered_by
+    from: SYM-superseded-closure-planSupersededClosures
+    to: TEST-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-04T06:00:04.325Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e280ba277c91

@@ -48112,3 +48112,133 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-opencode-tool-telemetry-acceptance
+  - id: SYM-superseded-closure-planSupersededClosures
+    title: planSupersededClosures
+    status: active
+    sourceFile: packages/cli/src/operations/migration/superseded-closure.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T06:00:03.375Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-superseded-closure-applySupersededClosures
+    title: applySupersededClosures
+    status: active
+    sourceFile: packages/cli/src/operations/migration/superseded-closure.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T06:00:09.620Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-source-paths-findSourceRepairs
+    title: findSourceRepairs
+    status: active
+    sourceFile: packages/cli/src/operations/migration/source-paths.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T06:00:15.684Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-source-paths-plannedSourcePathRepairs
+    title: plannedSourcePathRepairs
+    status: active
+    sourceFile: packages/cli/src/operations/migration/source-paths.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T06:00:21.601Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-source-paths-applySourcePathRepairs
+    title: applySourcePathRepairs
+    status: active
+    sourceFile: packages/cli/src/operations/migration/source-paths.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T06:00:27.519Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-source-path-dangling-collectSourcePathDanglingViolations
+    title: collectSourcePathDanglingViolations
+    status: active
+    sourceFile: packages/cli/src/public/operations/source-path-dangling.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T06:00:33.353Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-schema6-check-actions-closeSupersededRequirementsActionInput
+    title: closeSupersededRequirementsActionInput
+    status: active
+    sourceFile: packages/cli/src/public/operations/schema6-check-actions.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T06:00:39.094Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-schema6-check-actions-supersessionCycleReviewActionInput
+    title: supersessionCycleReviewActionInput
+    status: active
+    sourceFile: packages/cli/src/public/operations/schema6-check-actions.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T06:00:44.762Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-schema6-check-actions-sourcePathRewriteActionInput
+    title: sourcePathRewriteActionInput
+    status: active
+    sourceFile: packages/cli/src/public/operations/schema6-check-actions.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T06:00:50.450Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-schema6-check-actions-sourcePathReviewActionInput
+    title: sourcePathReviewActionInput
+    status: active
+    sourceFile: packages/cli/src/public/operations/schema6-check-actions.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T06:00:56.128Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
