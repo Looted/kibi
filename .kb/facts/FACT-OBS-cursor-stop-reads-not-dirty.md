@@ -4,7 +4,6 @@ title: Read and search tools do not mark dirty paths
 status: active
 created_at: 2026-08-18T00:00:00.000Z
 updated_at: 2026-08-18T00:00:00.000Z
-source: .kb/facts/FACT-OBS-cursor-stop-reads-not-dirty.md
 tags:
   - cursor
   - plugin

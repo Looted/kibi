@@ -4,7 +4,6 @@ title: Paid SkillOpt launches require capability-bound trust and ledger accounti
 status: open
 created_at: 2026-07-26T00:00:00.000Z
 updated_at: 2026-07-26T00:00:00.000Z
-source: .kb/requirements/REQ-skillopt-paid-launch-accounting.md
 priority: must
 tags:
   - skillopt

@@ -4,7 +4,6 @@ title: Detected contradictions block proof
 status: active
 created_at: 2026-08-10T00:00:00.000Z
 updated_at: 2026-08-10T00:00:00.000Z
-source: .kb/facts/FACT-REQ-PROOF-CONTRADICTION-BLOCKS.md
 tags:
   - lane:ontology
   - requirements

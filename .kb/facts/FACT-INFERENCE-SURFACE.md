@@ -4,7 +4,6 @@ title: Inference API Surface
 status: active
 created_at: 2026-02-20T14:40:00Z
 updated_at: 2026-04-24T08:22:00Z
-source: .kb/facts/FACT-INFERENCE-SURFACE.md
 tags: [inference, mcp]
 fact_kind: subject
 subject_key: kibi.inference.surface

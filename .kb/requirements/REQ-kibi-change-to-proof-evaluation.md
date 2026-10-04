@@ -4,7 +4,6 @@ title: Kibi measures change-to-proof search and planning quality
 status: open
 created_at: 2026-08-13T00:00:00Z
 updated_at: 2026-08-13T00:00:00Z
-source: .kb/requirements/REQ-kibi-change-to-proof-evaluation.md
 priority: should
 owner: platform-team
 tags: [evaluation, search, planning, dogfood]

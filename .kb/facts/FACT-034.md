@@ -4,7 +4,6 @@ title: Kibi npm package matrix (core, cli, mcp, opencode)
 status: active
 created_at: 2026-03-11T12:15:00Z
 updated_at: 2026-03-20T00:00:00Z
-source: .kb/facts/FACT-034.md
 tags:
   - npm
   - release

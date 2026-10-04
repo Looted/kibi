@@ -4,7 +4,6 @@ title: "VS Code Kibi Briefings v2 Verification"
 status: closed
 created_at: 2026-04-29T00:00:00Z
 updated_at: 2026-04-29T00:00:00Z
-source: .kb/tests/TEST-vscode-kibi-briefing-v2.md
 priority: must
 tags:
   - test

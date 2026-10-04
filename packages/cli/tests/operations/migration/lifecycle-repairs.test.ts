@@ -11,10 +11,13 @@ import path from "node:path";
 import {
   readTopLevelField,
   withTopLevelField,
+  withoutTopLevelField,
 } from "../../../src/operations/migration/kb-sources.js";
 import {
-  applySourcePathRewrites,
+  applySourcePathRepairs,
   findDanglingSources,
+  findSourceRepairs,
+  plannedSourcePathRepairs,
   resolveAuthoredSource,
 } from "../../../src/operations/migration/source-paths.js";
 import {
@@ -73,6 +76,50 @@ describe("top-level frontmatter edits", () => {
       "a.md#top",
     );
   });
+
+  test("removes only the key's line, keeping every other byte", () => {
+    expect(
+      withoutTopLevelField(
+        "---\nid: ADR-1\nsource: '.kb/adr/ADR-1.md' # old\ntags: [a]\n---\n\nBody\n",
+        "source",
+      ),
+    ).toBe("---\nid: ADR-1\ntags: [a]\n---\n\nBody\n");
+    expect(
+      withoutTopLevelField(
+        "---\r\nid: REQ-1\r\nsource: x.md\r\n---\r\nBody\r\n",
+        "source",
+      ),
+    ).toBe("---\r\nid: REQ-1\r\n---\r\nBody\r\n");
+    // A nested look-alike is not the top-level key; nothing to remove.
+    const nested = "---\nid: REQ-1\nmeta:\n  source: x.md\n---\n";
+    expect(withoutTopLevelField(nested, "source")).toBe(nested);
+  });
+
+  test("refuses removals that would not read back as exactly that change", () => {
+    // A multi-line value.
+    expect(
+      withoutTopLevelField(
+        "---\nid: REQ-1\nsource:\n  - a.md\n---\nBody\n",
+        "source",
+      ),
+    ).toBeNull();
+    // A sequence at the key's own indentation: dropping the line leaves it dangling.
+    expect(
+      withoutTopLevelField("---\nid: REQ-1\nsource:\n- a.md\n---\n", "source"),
+    ).toBeNull();
+    // The line belongs to another key's quoted value.
+    expect(
+      withoutTopLevelField(
+        '---\nid: REQ-1\ntitle: "one\nsource: two"\n---\n',
+        "source",
+      ),
+    ).toBeNull();
+    // A quoted key the line pattern cannot see.
+    expect(
+      withoutTopLevelField('---\nid: REQ-1\n"source": x.md\n---\n', "source"),
+    ).toBeNull();
+    expect(withoutTopLevelField("no frontmatter\n", "source")).toBeNull();
+  });
 });
 
 describe("authored source resolution", () => {
@@ -125,6 +172,45 @@ describe("authored source resolution", () => {
       kind: "dangling",
     });
   });
+
+  test("a value naming the entity's own file resolves to self, in any spelling", () => {
+    const own = { ...context, file: ".kb/adr/ADR-1.md" };
+    const spellings: Array<[string, boolean]> = [
+      [".kb/adr/ADR-1.md", true],
+      ["./.kb/adr/ADR-1.md#context", true],
+      // A case mismatch names no existing path on a case-sensitive disk.
+      [".KB/ADR/adr-1.md", false],
+      ["documentation/adr/ADR-1.md", false],
+      ["adr/ADR-1.md#context", false],
+      ["documentation/adr/adr-1.MD", false],
+    ];
+    for (const [value, resolves] of spellings) {
+      expect(resolveAuthoredSource(value, own)).toEqual({
+        kind: "self",
+        resolves,
+      });
+    }
+    // Another entity's file, an existing other path, an entity id and a URL
+    // are provenance.
+    const other = { ...context, file: ".kb/adr/ADR-2.md" };
+    expect(resolveAuthoredSource("documentation/adr/ADR-1.md", other)).toEqual({
+      kind: "dangling",
+      rewrite: ".kb/adr/ADR-1.md",
+    });
+    expect(resolveAuthoredSource(".kb/adr/ADR-1.md", other).kind).toBe("path");
+    expect(resolveAuthoredSource("REQ-known", own).kind).toBe("entity");
+    expect(resolveAuthoredSource("https://example.com/adr", own).kind).toBe(
+      "url",
+    );
+    // An existing workspace file is not the entity's own file, even when its
+    // path would map onto it under .kb/.
+    const shadowed = {
+      ...context,
+      file: ".kb/adr/ADR-1.md",
+      exists: (relative: string) => relative === "adr/ADR-1.md",
+    };
+    expect(resolveAuthoredSource("adr/ADR-1.md", shadowed).kind).toBe("path");
+  });
 });
 
 describe("lifecycle repairs on authored sources", () => {
@@ -138,18 +224,43 @@ describe("lifecycle repairs on authored sources", () => {
     rmSync(root, { recursive: true, force: true });
   });
 
-  test("finds dangling sources and rewrites only the mappable ones", () => {
-    const adr = write(
+  test("rewrites moved sources, removes redundant and dead ones, and keeps provenance", () => {
+    const adr1 = ".kb/adr/ADR-1.md";
+    const adr2 = ".kb/adr/ADR-2.md";
+    const fact = ".kb/facts/FACT-std.md";
+    const self = ".kb/facts/FACT-ATOMIC.md";
+    const multi = ".kb/facts/FACT-multi.md";
+    write(
       root,
-      ".kb/adr/ADR-1.md",
+      adr1,
       "---\nid: ADR-1\ntitle: One\nstatus: accepted\nsource: documentation/adr/ADR-1.md\n---\n\nBody\n",
     );
     write(
       root,
-      ".kb/facts/FACT-std.md",
+      adr2,
+      "---\nid: ADR-2\ntitle: Two\nstatus: accepted\nsource: documentation/adr/ADR-1.md#context\n---\n\nBody\n",
+    );
+    write(
+      root,
+      fact,
       "---\nid: FACT-std\ntitle: Std\nstatus: active\nsource: memory-bank/techContext.md\n---\n",
     );
+    write(
+      root,
+      self,
+      "---\nid: FACT-ATOMIC\ntitle: Atomic\nstatus: active\nsource: documentation/facts/FACT-atomic.md\n---\n",
+    );
+    write(
+      root,
+      multi,
+      "---\nid: FACT-multi\ntitle: Multi\nstatus: active\nsource:\n  - memory-bank/a.md\n---\n",
+    );
     write(root, "docs/spec.md", "# Spec\n");
+    const own = write(
+      root,
+      ".kb/requirements/REQ-own.md",
+      "---\nid: REQ-own\ntitle: Own\nstatus: open\nsource: ./.kb/requirements/REQ-own.md\n---\n",
+    );
     write(
       root,
       ".kb/requirements/REQ-ok.md",
@@ -160,46 +271,148 @@ describe("lifecycle repairs on authored sources", () => {
       ".kb/requirements/REQ-cites.md",
       "---\nid: REQ-cites\ntitle: Cites\nstatus: open\nsource: REQ-ok\n---\n",
     );
+    write(
+      root,
+      ".kb/requirements/REQ-web.md",
+      "---\nid: REQ-web\ntitle: Web\nstatus: open\nsource: https://example.com/spec\n---\n",
+    );
     write(root, ".kb/symbols.yaml", "symbols:\n  - id: SYM-known\n");
     write(
       root,
       ".kb/tests/TEST-sym.md",
       "---\nid: TEST-sym\ntitle: Sym\nstatus: passing\nsource: SYM-known\n---\n",
     );
+    const untouched = [
+      ".kb/requirements/REQ-ok.md",
+      ".kb/requirements/REQ-cites.md",
+      ".kb/requirements/REQ-web.md",
+      ".kb/tests/TEST-sym.md",
+    ].map((file) => [file, readFileSync(path.join(root, file), "utf8")]);
 
-    const dangling = findDanglingSources(root);
+    // The check sees only values that name nothing; an existing
+    // self-reference resolves, so only kibi migrate removes it.
     expect(
-      dangling.map((source) => [source.entityId, source.rewrite ?? null]),
+      findDanglingSources(root).map((source) => [
+        source.entityId,
+        source.fix,
+        source.refused ?? null,
+      ]),
     ).toEqual([
-      ["ADR-1", ".kb/adr/ADR-1.md"],
-      ["FACT-std", null],
+      ["ADR-1", { kind: "remove", reason: "self" }, null],
+      ["ADR-2", { kind: "rewrite", to: ".kb/adr/ADR-1.md#context" }, null],
+      ["FACT-ATOMIC", { kind: "remove", reason: "self" }, null],
+      [
+        "FACT-multi",
+        { kind: "remove", reason: "dangling" },
+        "the source field spans several lines, or editing it would change other frontmatter fields",
+      ],
+      ["FACT-std", { kind: "remove", reason: "dangling" }, null],
     ]);
-
-    // A plan made before the source changed is not applied.
-    const stale = applySourcePathRewrites(root, [
-      {
-        entityId: "ADR-1",
-        file: ".kb/adr/ADR-1.md",
-        from: "documentation/adr/ADR-0.md",
-        to: ".kb/adr/ADR-1.md",
-      },
-    ]);
-    expect(stale.written).toEqual([]);
-    expect(stale.skipped).toEqual([
-      { file: ".kb/adr/ADR-1.md", reason: "source changed since planning" },
-    ]);
-
-    const result = applySourcePathRewrites(root);
-    expect(result.written.map((rewrite) => rewrite.entityId)).toEqual([
-      "ADR-1",
-    ]);
-    expect(readFileSync(adr, "utf8")).toBe(
-      "---\nid: ADR-1\ntitle: One\nstatus: accepted\nsource: .kb/adr/ADR-1.md\n---\n\nBody\n",
+    const repairs = findSourceRepairs(root);
+    expect(repairs.map((repair) => [repair.entityId, repair.dangling])).toEqual(
+      [
+        ["ADR-1", true],
+        ["ADR-2", true],
+        ["FACT-ATOMIC", true],
+        ["FACT-multi", true],
+        ["FACT-std", true],
+        ["REQ-own", false],
+      ],
     );
-    expect(findDanglingSources(root).map((source) => source.entityId)).toEqual([
-      "FACT-std",
+    const planned = plannedSourcePathRepairs(repairs);
+    expect(planned).toEqual({
+      rewrites: [
+        {
+          entityId: "ADR-2",
+          file: adr2,
+          from: "documentation/adr/ADR-1.md#context",
+          to: ".kb/adr/ADR-1.md#context",
+        },
+      ],
+      removals: [
+        {
+          entityId: "ADR-1",
+          file: adr1,
+          from: "documentation/adr/ADR-1.md",
+          reason: "self",
+        },
+        {
+          entityId: "FACT-ATOMIC",
+          file: self,
+          from: "documentation/facts/FACT-atomic.md",
+          reason: "self",
+        },
+        {
+          entityId: "FACT-std",
+          file: fact,
+          from: "memory-bank/techContext.md",
+          reason: "dangling",
+        },
+        {
+          entityId: "REQ-own",
+          file: ".kb/requirements/REQ-own.md",
+          from: "./.kb/requirements/REQ-own.md",
+          reason: "self",
+        },
+      ],
+    });
+
+    // A plan made before the value changed is not applied.
+    const stale = applySourcePathRepairs(root, {
+      rewrites: [],
+      removals: [
+        {
+          entityId: "ADR-1",
+          file: adr1,
+          from: "documentation/adr/ADR-0.md",
+          reason: "self",
+        },
+      ],
+    });
+    expect(stale).toEqual({
+      rewritten: [],
+      removed: [],
+      skipped: [{ file: adr1, reason: "source changed since planning" }],
+    });
+
+    const result = applySourcePathRepairs(root, planned);
+    expect(result.rewritten).toEqual(planned.rewrites);
+    expect(result.removed).toEqual(planned.removals);
+    expect(result.skipped).toEqual([]);
+    expect(readFileSync(path.join(root, adr1), "utf8")).toBe(
+      "---\nid: ADR-1\ntitle: One\nstatus: accepted\n---\n\nBody\n",
+    );
+    expect(readFileSync(path.join(root, adr2), "utf8")).toBe(
+      "---\nid: ADR-2\ntitle: Two\nstatus: accepted\nsource: .kb/adr/ADR-1.md#context\n---\n\nBody\n",
+    );
+    expect(readFileSync(own, "utf8")).toBe(
+      "---\nid: REQ-own\ntitle: Own\nstatus: open\n---\n",
+    );
+    for (const [file, before] of untouched) {
+      expect(readFileSync(path.join(root, file as string), "utf8")).toBe(
+        before as string,
+      );
+    }
+
+    // Only the value Kibi cannot edit safely is left, and it falls back to
+    // a person: an unplanned run skips it with the reason.
+    expect(findSourceRepairs(root).map((repair) => repair.entityId)).toEqual([
+      "FACT-multi",
     ]);
-    expect(applySourcePathRewrites(root).written).toEqual([]);
+    expect(applySourcePathRepairs(root)).toEqual({
+      rewritten: [],
+      removed: [],
+      skipped: [
+        {
+          file: multi,
+          reason:
+            "the source field spans several lines, or editing it would change other frontmatter fields",
+        },
+      ],
+    });
+    expect(readFileSync(path.join(root, multi), "utf8")).toContain(
+      "source:\n  - memory-bank/a.md\n",
+    );
   });
 
   test("closes superseded requirements, skipping cycles, and touches only the status line", () => {

@@ -1249,6 +1249,106 @@ links:
   );
 
   test(
+    "source-path-dangling blocks a dead source field and plans its automatic removal",
+    async () => {
+      const factDir = path.join(tmpDir, ".kb/facts");
+      mkdirSync(factDir, { recursive: true });
+      const observation = (id: string, source: string) =>
+        `---\nid: ${id}\ntitle: ${id}\ntype: fact\nstatus: active\nfact_kind: observation\nsource: ${source}\n---\n\nNotes.\n`;
+      writeFileSync(
+        path.join(factDir, "FACT-NOTES.md"),
+        observation("FACT-NOTES", "memory-bank/techContext.md"),
+      );
+      // A value naming the entity's own file resolves: kibi migrate removes
+      // it, but the check does not block it.
+      writeFileSync(
+        path.join(factDir, "FACT-SELF.md"),
+        observation("FACT-SELF", ".kb/facts/FACT-SELF.md"),
+      );
+
+      const { status, stdout } = runKibi(
+        kibiBin,
+        ["check", "--rules", "source-path-dangling", "--format", "json"],
+        tmpDir,
+      );
+      expect(status).toBe(1);
+      const { violations } = (
+        JSON.parse(stdout) as {
+          structuredContent: {
+            violations: Array<{
+              rule: string;
+              entityId: string;
+              suggestion?: string;
+              evidence?: Record<string, unknown>;
+            }>;
+          };
+        }
+      ).structuredContent;
+      expect(
+        violations.map((violation) => [violation.rule, violation.entityId]),
+      ).toEqual([["source-path-dangling", "FACT-NOTES"]]);
+      expect(violations[0]?.evidence).toEqual({
+        value: "memory-bank/techContext.md",
+        file: ".kb/facts/FACT-NOTES.md",
+        remove: "dangling",
+      });
+      expect(violations[0]?.suggestion).toContain(
+        "kibi migrate removes this source field (source_path_rewrite)",
+      );
+      expect(violations[0]?.suggestion).toContain(
+        "The compiled source is always the entity's own file (.kb/facts/FACT-NOTES.md)",
+      );
+      // The JSON route carries the migration plan: the finding maps to the
+      // automatic action, so nothing is left for a person to review.
+      const route = spawnSync("bun", [kibiBin, "check", "--input", "-"], {
+        cwd: tmpDir,
+        encoding: "utf8",
+        input: `${JSON.stringify({ rules: ["source-path-dangling"] })}\n`,
+        timeout: TEST_TIMEOUT_MS,
+      });
+      expect(route.status, route.stderr).toBe(0);
+      const actions =
+        (
+          JSON.parse(route.stdout) as {
+            data?: {
+              migrationPlan?: {
+                actions: Array<{
+                  id: string;
+                  code: string;
+                  safety: string;
+                  evidence: Record<string, unknown>;
+                }>;
+              };
+            };
+          }
+        ).data?.migrationPlan?.actions ?? [];
+      expect(
+        actions.filter(
+          (action) => action.code === "review_source_path_dangling",
+        ),
+      ).toEqual([]);
+      expect(
+        actions.find((action) => action.code === "source_path_rewrite"),
+      ).toMatchObject({
+        id: "source-path-rewrite",
+        safety: "automatic",
+        evidence: {
+          rewrites: [],
+          removals: [
+            {
+              entityId: "FACT-NOTES",
+              file: ".kb/facts/FACT-NOTES.md",
+              from: "memory-bank/techContext.md",
+              reason: "dangling",
+            },
+          ],
+        },
+      });
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
     "detects cycle in depends_on",
     async () => {
       const reqDir = path.join(tmpDir, ".kb/requirements");

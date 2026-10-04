@@ -5,7 +5,6 @@ type: scenario
 status: active
 created_at: 2026-09-15T00:00:00.000Z
 updated_at: 2026-09-15T00:00:00.000Z
-source: .kb/scenarios/SCEN-zcode-kibi-plugin-v1.md
 tags:
   - scenario
   - zcode

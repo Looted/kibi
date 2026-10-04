@@ -4,7 +4,6 @@ title: Plan delivery with edits still triggers stop follow-up
 status: active
 created_at: 2026-08-18T00:00:00.000Z
 updated_at: 2026-08-18T00:00:00.000Z
-source: .kb/facts/FACT-OBS-cursor-stop-plan-with-edits.md
 tags:
   - cursor
   - plugin

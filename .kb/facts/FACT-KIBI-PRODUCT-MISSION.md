@@ -4,7 +4,6 @@ title: Kibi is an agent-native requirements compiler and enforcement layer
 status: active
 created_at: 2026-08-11T00:00:00Z
 updated_at: 2026-08-11T00:00:00Z
-source: .kb/facts/FACT-KIBI-PRODUCT-MISSION.md
 tags:
   - product-strategy
   - mission

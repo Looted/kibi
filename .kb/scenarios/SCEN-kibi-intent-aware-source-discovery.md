@@ -4,7 +4,6 @@ title: Search a project by functionality and trace results to source
 status: active
 created_at: 2026-08-13T00:00:00Z
 updated_at: 2026-08-13T00:00:00Z
-source: .kb/scenarios/SCEN-kibi-intent-aware-source-discovery.md
 tags: [search, intent, source, traceability]
 links:
   - type: verified_by

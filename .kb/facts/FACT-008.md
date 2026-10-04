@@ -4,7 +4,6 @@ title: npm packages published as kibi-core, kibi-cli, kibi-mcp, and kibi-opencod
 status: active
 created_at: 2026-02-25T15:50:00Z
 updated_at: 2026-03-20T00:00:00Z
-source: .kb/facts/FACT-008.md
 tags:
   - deployment
   - npm

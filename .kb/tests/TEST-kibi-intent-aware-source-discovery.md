@@ -5,7 +5,6 @@ type: test
 status: passing
 created_at: 2026-08-13T00:00:00.000Z
 updated_at: 2026-08-13T00:00:00.000Z
-source: .kb/tests/TEST-kibi-intent-aware-source-discovery.md
 priority: must
 verification_scope: end_to_end
 verification_perspective: consumer

@@ -4,7 +4,6 @@ title: Coverage reports expose conservative end-to-end requirement proof
 status: open
 created_at: 2026-08-10T00:00:00Z
 updated_at: 2026-08-10T00:00:00Z
-source: .kb/requirements/REQ-kibi-conservative-requirement-proof.md
 priority: must
 tags: [requirements, proof, prolog, coverage, e2e, traceability]
 logic_claims:

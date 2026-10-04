@@ -4,7 +4,6 @@ title: 'OpenCode Kibi Briefings v1: Cue-Driven Discovery Through /brief-kibi'
 status: closed
 created_at: 2026-04-20T00:00:00.000Z
 updated_at: 2026-04-20T00:00:00.000Z
-source: .kb/requirements/REQ-opencode-kibi-briefing-v1.md
 priority: must
 tags:
   - opencode

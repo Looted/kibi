@@ -4,7 +4,6 @@ title: Packed correlated telemetry remediation tests
 status: passing
 created_at: 2026-08-10T00:00:00.000Z
 updated_at: 2026-08-10T00:00:00.000Z
-source: .kb/tests/TEST-kibi-telemetry-remediation-evidence.md
 verification_scope: end_to_end
 verification_perspective: consumer
 tags:

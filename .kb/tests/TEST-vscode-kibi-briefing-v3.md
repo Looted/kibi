@@ -4,7 +4,6 @@ title: "VS Code Kibi Briefings v3 Verification Plan"
 status: closed
 created_at: 2026-05-06T04:48:00Z
 updated_at: 2026-05-06T04:48:00Z
-source: .kb/tests/TEST-vscode-kibi-briefing-v3.md
 priority: must
 tags:
   - test

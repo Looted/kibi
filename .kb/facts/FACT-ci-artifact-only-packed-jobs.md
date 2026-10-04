@@ -4,7 +4,6 @@ title: Packed CI regression jobs consume artifacts without repository checkout
 status: active
 created_at: 2026-04-21T17:11:22Z
 updated_at: 2026-04-21T17:11:22Z
-source: .kb/facts/FACT-ci-artifact-only-packed-jobs.md
 tags:
   - ci
   - workflow

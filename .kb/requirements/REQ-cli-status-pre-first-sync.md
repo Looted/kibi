@@ -4,7 +4,6 @@ title: CLI status returns machine-readable metadata before first sync
 status: open
 created_at: 2026-04-17T12:00:00.000Z
 updated_at: 2026-04-17T12:00:00.000Z
-source: .kb/requirements/REQ-cli-status-pre-first-sync.md
 tags:
   - cli
   - discovery

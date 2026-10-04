@@ -65,7 +65,7 @@ This section provides guidance on selecting the appropriate entity type for your
 | status       | Yes      | string         | Entity status (see below for values)             |
 | created_at   | Yes      | ISO 8601       | Creation timestamp                               |
 | updated_at   | Yes      | ISO 8601       | Last update timestamp                            |
-| source       | Yes      | string         | Provenance (file path, URL, or reference). Compiled from the entity's own file; an authored `source` frontmatter field must name an existing workspace path (`#anchor` allowed), an existing entity id, or an http(s) URL, or `kibi check` blocks it under `source-path-dangling` |
+| source       | Yes      | string         | The entity's own file (workspace-relative). Always compiled from the file path; Kibi ignores an authored `source` frontmatter field and never writes one, so `kb_upsert` cannot set it. A leftover authored value must name an existing workspace path (`#anchor` allowed), an existing entity id, or an http(s) URL, or `kibi check` blocks it under `source-path-dangling`; `kibi migrate` (`source_path_rewrite`) removes values that name the entity's own file or nothing, and rewrites pre-canonical paths to another moved knowledge file |
 | tags[]       | No       | array[string]  | Array of metadata/search tags only               |
 | owner        | No       | string         | Owner/assignee                                   |
 | priority     | No       | string         | Priority level (must, should, could)             |

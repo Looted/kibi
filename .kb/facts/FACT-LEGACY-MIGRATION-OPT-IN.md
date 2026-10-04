@@ -4,7 +4,6 @@ title: Coverage migration preview is explicit and versioned
 status: active
 created_at: 2026-08-11T00:00:00.000Z
 updated_at: 2026-08-11T00:00:00.000Z
-source: .kb/facts/FACT-LEGACY-MIGRATION-OPT-IN.md
 tags:
   - lane:ontology
   - requirements

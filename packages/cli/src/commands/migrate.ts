@@ -35,8 +35,8 @@ import {
   planOriginBackfill,
 } from "../operations/migration/origin-backfill.js";
 import {
-  applySourcePathRewrites,
-  findDanglingSources,
+  applySourcePathRepairs,
+  findSourceRepairs,
 } from "../operations/migration/source-paths.js";
 import {
   applySupersededClosures,
@@ -90,6 +90,8 @@ interface MigrationAuditRecord {
   supersededRequirementsClosed: number;
   /** Pre-canonical source paths this run pointed at their .kb/ file. */
   sourcePathsRewritten: number;
+  /** Authored source values this run removed: they named the entity's own file or nothing. */
+  sourcePathsRemoved: number;
   toVersion: number;
   warning: string | null;
   steps: readonly string[];
@@ -163,7 +165,7 @@ const SCHEMA_MIGRATION_STEPS: readonly SchemaMigrationStep[] = [
     from: 5,
     to: 6,
     description:
-      "Record origin {kind: migration} on authored entities written before schema 6, close superseded requirements, and point pre-canonical source paths at their .kb/ files.",
+      "Record origin {kind: migration} on authored entities written before schema 6, close superseded requirements, and repair authored source fields (point moved knowledge files at .kb/, remove redundant and dead values).",
   },
 ];
 
@@ -249,6 +251,7 @@ function buildMigrationAuditRecord(args: {
   entityOriginBackfill: number;
   supersededRequirementsClosed: number;
   sourcePathsRewritten: number;
+  sourcePathsRemoved: number;
   warning: string | null;
   steps: readonly string[];
 }): MigrationAuditRecord {
@@ -264,6 +267,7 @@ function buildMigrationAuditRecord(args: {
     entityOriginBackfill: args.entityOriginBackfill,
     supersededRequirementsClosed: args.supersededRequirementsClosed,
     sourcePathsRewritten: args.sourcePathsRewritten,
+    sourcePathsRemoved: args.sourcePathsRemoved,
     toVersion: LATEST_KB_SCHEMA_VERSION,
     warning: args.warning,
     steps: args.steps,
@@ -514,26 +518,42 @@ function rederiveDriftedInventories(
 type LifecycleRepairOutcome = {
   closed: number;
   rewritten: number;
+  removed: number;
   manual: number;
 };
 
+const REMOVED_SOURCES_NOTE =
+  "the compiled source is always the entity's own file";
+
 /**
- * Close superseded requirements and point pre-canonical source paths at
- * their .kb/ files. Both findings block kibi check, so this runs at any
- * schema version. Supersession cycles and sources Kibi cannot map are left
- * for a person and reported as warnings.
+ * Close superseded requirements and repair authored source fields: point
+ * moved knowledge files at .kb/, and remove values that name the entity's
+ * own file or nothing Kibi can map. Superseded requirements and dangling
+ * sources block kibi check, so this runs at any schema version.
+ * Supersession cycles and source fields Kibi cannot edit safely are left for
+ * a person and reported as warnings.
  */
-// implements REQ-cli-schema-migration, REQ-core-validation-rules
+// implements REQ-cli-schema-migration, REQ-core-validation-rules, REQ-kibi-schema6-migration
 function repairLifecycleFindings(
   cwd: string,
   dryRun: boolean,
 ): LifecycleRepairOutcome {
   const supersession = planSupersededClosures(cwd);
-  const dangling = findDanglingSources(cwd);
-  const unmapped = dangling.filter((source) => source.rewrite === undefined);
   let closed = supersession.closures.length;
-  let rewritten = dangling.length - unmapped.length;
+  let rewritten = 0;
+  let removed = 0;
+  let unrepaired: Array<{ file: string; reason: string }> = [];
   if (dryRun) {
+    const repairs = findSourceRepairs(cwd);
+    for (const repair of repairs) {
+      if (repair.refused !== undefined) {
+        unrepaired.push({ file: repair.file, reason: repair.refused });
+      } else if (repair.fix.kind === "rewrite") {
+        rewritten += 1;
+      } else {
+        removed += 1;
+      }
+    }
     if (closed > 0) {
       console.log(
         `dry run: would close ${closed} superseded requirement(s): ${supersession.closures.map((closure) => closure.id).join(", ")}.`,
@@ -542,6 +562,11 @@ function repairLifecycleFindings(
     if (rewritten > 0) {
       console.log(
         `dry run: would point ${rewritten} pre-canonical source path(s) at their .kb/ files.`,
+      );
+    }
+    if (removed > 0) {
+      console.log(
+        `dry run: would remove ${removed} redundant or dead source field(s); ${REMOVED_SOURCES_NOTE}.`,
       );
     }
   } else {
@@ -555,15 +580,19 @@ function repairLifecycleFindings(
     for (const skip of closures.skipped) {
       printWarning(`Status not set for ${skip.path}: ${skip.reason}.`);
     }
-    const rewrites = applySourcePathRewrites(cwd);
-    rewritten = rewrites.written.length;
+    const repairs = applySourcePathRepairs(cwd);
+    rewritten = repairs.rewritten.length;
+    removed = repairs.removed.length;
+    unrepaired = [...repairs.skipped];
     if (rewritten > 0) {
       console.log(
         `Pointed ${rewritten} pre-canonical source path(s) at their .kb/ files.`,
       );
     }
-    for (const skip of rewrites.skipped) {
-      printWarning(`Source not rewritten for ${skip.file}: ${skip.reason}.`);
+    if (removed > 0) {
+      console.log(
+        `Removed ${removed} redundant or dead source field(s); ${REMOVED_SOURCES_NOTE}.`,
+      );
     }
   }
   for (const cycle of supersession.cycles) {
@@ -571,15 +600,16 @@ function repairLifecycleFindings(
       `Requirements ${cycle.members.join(", ")} supersede each other; decide which one is current, remove the supersedes link that points at it, and close the others.`,
     );
   }
-  for (const source of unmapped) {
+  for (const skip of unrepaired) {
     printWarning(
-      `${source.entityId} (${source.file}) has source ${JSON.stringify(source.value)}, which names no workspace path, entity or URL; point it at the document the entity came from or remove it.`,
+      `Source field of ${skip.file} not repaired: ${skip.reason}; a person edits it by hand (kibi migrate --format json lists it as review_source_path_dangling).`,
     );
   }
   return {
     closed,
     rewritten,
-    manual: supersession.cycles.length + unmapped.length,
+    removed,
+    manual: supersession.cycles.length + unrepaired.length,
   };
 }
 
@@ -684,7 +714,8 @@ export async function migrateCommand(
     const rewroteSources =
       drift.rederived.length > 0 ||
       lifecycle.closed > 0 ||
-      lifecycle.rewritten > 0;
+      lifecycle.rewritten > 0 ||
+      lifecycle.removed > 0;
     if (rewroteSources || drift.manual > 0 || lifecycle.manual > 0) {
       if (options.dryRun !== true && rewroteSources) {
         console.log("Run 'kibi sync' to recompile the rewritten sources.");
@@ -833,6 +864,7 @@ export async function migrateCommand(
         originBackfill.written.length + originBackfill.previouslyStamped,
       supersededRequirementsClosed: lifecycle.closed,
       sourcePathsRewritten: lifecycle.rewritten,
+      sourcePathsRemoved: lifecycle.removed,
       warning: migrationWarning,
       steps: migrationSteps.map((step) => step.id),
     }),

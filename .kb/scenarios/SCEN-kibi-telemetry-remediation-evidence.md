@@ -4,7 +4,6 @@ title: Correlate diagnostic evidence and repair exact unmatched events
 status: active
 created_at: 2026-08-10T00:00:00Z
 updated_at: 2026-08-10T00:00:00Z
-source: .kb/scenarios/SCEN-kibi-telemetry-remediation-evidence.md
 tags: [telemetry, diagnostics, remediation, cli, mcp, packed, e2e]
 links:
   - type: verified_by

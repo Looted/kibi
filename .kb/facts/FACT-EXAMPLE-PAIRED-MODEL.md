@@ -4,7 +4,6 @@ title: "Paired modeling example: strict domain fact + requirement constraint"
 status: active
 created_at: 2026-03-27T10:00:00Z
 updated_at: 2026-04-22T10:00:00Z
-source: .kb/facts/FACT-EXAMPLE-PAIRED-MODEL.md
 tags:
   - example
   - modeling

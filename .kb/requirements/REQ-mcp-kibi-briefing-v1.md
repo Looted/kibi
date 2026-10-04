@@ -4,7 +4,6 @@ title: 'MCP-Owned Kibi Briefings v1: Read-Only, Deterministic Start-Task Briefin
 status: closed
 created_at: 2026-04-20T00:00:00.000Z
 updated_at: 2026-04-20T00:00:00.000Z
-source: .kb/requirements/REQ-mcp-kibi-briefing-v1.md
 priority: must
 tags:
   - mcp

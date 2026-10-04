@@ -5,7 +5,6 @@ type: scenario
 status: active
 created_at: 2026-08-07T00:00:00Z
 updated_at: 2026-08-07T00:00:00Z
-source: .kb/scenarios/SCEN-cursor-agent-plugin-v1.md
 tags:
   - scenario
   - kibi

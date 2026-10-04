@@ -4,7 +4,6 @@ title: Requirement ingestion is proposition-complete and source-bound
 status: open
 created_at: 2026-08-10T00:00:00Z
 updated_at: 2026-08-10T00:00:00Z
-source: .kb/requirements/REQ-kibi-proposition-complete-ingestion.md
 priority: must
 tags: [requirements, semantic-inventory, ingestion, prolog, sync]
 logic_claims:

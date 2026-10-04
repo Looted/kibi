@@ -3,7 +3,6 @@ id: REQ-opencode-bootstrap-nudge
 title: OpenCode Bootstrap Nudge
 status: open
 created_at: 2026-05-13T00:00:00.000Z
-source: packages/opencode/src/init-kibi-capability.ts
 priority: must
 owner: opencode-team
 tags:

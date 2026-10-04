@@ -4,7 +4,6 @@ title: Maximum of Three
 status: active
 created_at: 2026-02-20T13:00:00.000Z
 updated_at: 2026-04-21T10:00:00.000Z
-source: .kb/facts/FACT-LIMIT-3.md
 tags:
   - cardinality
 fact_kind: property_value

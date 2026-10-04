@@ -4,7 +4,6 @@ title: MCP binary exposes deterministic top-level help without entering stdio mo
 status: open
 created_at: 2026-04-17T12:00:00.000Z
 updated_at: 2026-04-17T12:00:00.000Z
-source: .kb/requirements/REQ-mcp-cli-help.md
 tags:
   - mcp
   - cli

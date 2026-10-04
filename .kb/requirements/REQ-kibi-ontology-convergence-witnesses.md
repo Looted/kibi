@@ -4,7 +4,6 @@ title: Predicate schemas converge conservatively and contradictions expose exact
 status: open
 created_at: 2026-08-10T00:00:00Z
 updated_at: 2026-08-10T00:00:00Z
-source: .kb/requirements/REQ-kibi-ontology-convergence-witnesses.md
 priority: must
 tags: [requirements, ontology, predicates, contradictions, prolog, witnesses]
 logic_claims:

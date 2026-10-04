@@ -4,7 +4,6 @@ title: Cursor worktree handoffs preserve Kibi continuity
 status: open
 created_at: 2026-07-21T00:00:00.000Z
 updated_at: 2026-07-21T00:00:00.000Z
-source: .kb/requirements/REQ-cursor-worktree-kibi-continuity.md
 priority: must
 owner: cursor-team
 tags:

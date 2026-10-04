@@ -19,9 +19,10 @@ import {
   EXCEPTION_TEXT,
   UPLOAD_TEXT,
   writeCurrentRequirement,
+  writeManifest,
 } from "../helpers/schema6-fixture.js";
 
-// implements REQ-cli-schema-migration, REQ-core-validation-rules
+// implements REQ-cli-schema-migration, REQ-core-validation-rules, REQ-kibi-schema6-migration
 
 const kibiCliEntry = path.resolve(__dirname, "../../src/cli.ts");
 const TIMEOUT_MS = 180_000;
@@ -66,13 +67,24 @@ function read(root: string, relative: string): string {
 const OLD = ".kb/requirements/REQ-upload-old.md";
 const ADR = ".kb/adr/ADR-upload-chunks.md";
 const FACT = ".kb/facts/FACT-upload-notes.md";
+const CHUNK = ".kb/facts/FACT-upload-chunk-size.md";
+const SELF = ".kb/facts/FACT-upload-self.md";
+const MULTI = ".kb/facts/FACT-upload-legacy.md";
+const REFUSED =
+  "the source field spans several lines, or editing it would change other frontmatter fields";
+
+function observation(id: string, sourceLines: string): string {
+  return `---\nid: ${id}\ntitle: ${id}\ntype: fact\nstatus: active\nfact_kind: observation\n${sourceLines}---\n\nNotes.\n`;
+}
 
 /**
  * A schema 6 KB with every lifecycle finding kibi migrate repairs: a
  * superseded requirement still open, two requirements that supersede each
- * other, a source pointing into the retired documentation/ tree, and one
- * pointing at a file that never existed. Valid sources (a path with an
- * anchor, an entity id, a URL) must be left alone.
+ * other, and source fields that are dead data: one naming its own file by
+ * the retired documentation/ path, one naming its own file under .kb/, one
+ * naming another moved file, one naming a file that never existed, and one
+ * spanning several lines that Kibi cannot edit safely. Valid sources (a path
+ * with an anchor, an entity id, a URL) must be left alone.
  */
 function writeLifecycleFixture(root: string): void {
   writeCurrentRequirement(root, "REQ-upload-old", UPLOAD_TEXT, {
@@ -98,7 +110,21 @@ function writeLifecycleFixture(root: string): void {
   write(
     root,
     FACT,
-    "---\nid: FACT-upload-notes\ntitle: Upload notes\ntype: fact\nstatus: active\nfact_kind: observation\nsource: memory-bank/techContext.md\n---\n\nNotes.\n",
+    observation("FACT-upload-notes", "source: memory-bank/techContext.md\n"),
+  );
+  write(
+    root,
+    CHUNK,
+    observation(
+      "FACT-upload-chunk-size",
+      "source: documentation/adr/ADR-upload-chunks.md#decision\n",
+    ),
+  );
+  write(root, SELF, observation("FACT-upload-self", `source: ${SELF}\n`));
+  write(
+    root,
+    MULTI,
+    observation("FACT-upload-legacy", "source:\n  - memory-bank/a.md\n"),
   );
 }
 
@@ -124,7 +150,7 @@ describe("kibi migrate lifecycle repairs", () => {
   });
 
   test(
-    "plans and applies the lifecycle repairs on a schema 6 KB, leaving cycles and unmapped sources for review",
+    "plans and applies the lifecycle repairs on a schema 6 KB, leaving cycles and unsafe source edits for review",
     () => {
       const plan = readPlan(root);
 
@@ -138,14 +164,40 @@ describe("kibi migrate lifecycle repairs", () => {
       expect(action(plan, "source-path-rewrite")).toMatchObject({
         code: "source_path_rewrite",
         safety: "automatic",
-        affectedEntityIds: ["ADR-upload-chunks"],
+        autoApplicable: true,
+        affectedEntityIds: [
+          "ADR-upload-chunks",
+          "FACT-upload-chunk-size",
+          "FACT-upload-notes",
+          "FACT-upload-self",
+        ],
         evidence: {
           rewrites: [
+            {
+              entityId: "FACT-upload-chunk-size",
+              file: CHUNK,
+              from: "documentation/adr/ADR-upload-chunks.md#decision",
+              to: `${ADR}#decision`,
+            },
+          ],
+          removals: [
             {
               entityId: "ADR-upload-chunks",
               file: ADR,
               from: "documentation/adr/ADR-upload-chunks.md",
-              to: ADR,
+              reason: "self",
+            },
+            {
+              entityId: "FACT-upload-notes",
+              file: FACT,
+              from: "memory-bank/techContext.md",
+              reason: "dangling",
+            },
+            {
+              entityId: "FACT-upload-self",
+              file: SELF,
+              from: SELF,
+              reason: "self",
             },
           ],
         },
@@ -165,11 +217,12 @@ describe("kibi migrate lifecycle repairs", () => {
         "REQ-upload-loop-a supersedes REQ-upload-loop-b; REQ-upload-loop-b supersedes REQ-upload-loop-a",
       );
       expect(
-        action(plan, "review-source-path-dangling-FACT-upload-notes"),
+        action(plan, "review-source-path-dangling-FACT-upload-legacy"),
       ).toMatchObject({
         code: "review_source_path_dangling",
         safety: "review",
-        affectedFiles: [FACT],
+        affectedFiles: [MULTI],
+        evidence: { refused: REFUSED },
       });
       expect(action(plan, "migration-sync")?.dependsOn).toEqual(
         expect.arrayContaining([
@@ -177,17 +230,20 @@ describe("kibi migrate lifecycle repairs", () => {
           "source-path-rewrite",
         ]),
       );
-      // Valid sources produce nothing.
+      // Valid sources produce nothing; only the unsafe edit needs a person.
       const reviewed = plan.actions
         .filter((candidate) => candidate.code === "review_source_path_dangling")
         .map((candidate) => candidate.id);
       expect(reviewed).toEqual([
-        "review-source-path-dangling-FACT-upload-notes",
+        "review-source-path-dangling-FACT-upload-legacy",
       ]);
 
       const oldBefore = read(root, OLD);
       const loopBefore = read(root, ".kb/requirements/REQ-upload-loop-a.md");
+      const adrBefore = read(root, ADR);
       const factBefore = read(root, FACT);
+      const selfBefore = read(root, SELF);
+      const multiBefore = read(root, MULTI);
       const applied = runKibi(
         ["migrate", "--apply-safe", "--approved-plan-hash", plan.planHash],
         root,
@@ -198,11 +254,24 @@ describe("kibi migrate lifecycle repairs", () => {
       expect(read(root, OLD)).toBe(
         oldBefore.replace("status: open\n", "status: closed\n"),
       );
-      expect(read(root, ADR)).toContain(`\nsource: ${ADR}\n`);
+      // Only the source line changes.
+      expect(read(root, ADR)).toBe(
+        adrBefore.replace(
+          "source: documentation/adr/ADR-upload-chunks.md\n",
+          "",
+        ),
+      );
+      expect(read(root, FACT)).toBe(
+        factBefore.replace("source: memory-bank/techContext.md\n", ""),
+      );
+      expect(read(root, SELF)).toBe(
+        selfBefore.replace(`source: ${SELF}\n`, ""),
+      );
+      expect(read(root, CHUNK)).toContain(`\nsource: ${ADR}#decision\n`);
+      expect(read(root, MULTI)).toBe(multiBefore);
       expect(read(root, ".kb/requirements/REQ-upload-loop-a.md")).toBe(
         loopBefore,
       );
-      expect(read(root, FACT)).toBe(factBefore);
 
       const check = runKibi(
         [
@@ -225,7 +294,7 @@ describe("kibi migrate lifecycle repairs", () => {
         violations.map((violation) => [violation.rule, violation.entityId]),
       ).toEqual([
         ["superseded-requirement-open", "REQ-upload-loop-a"],
-        ["source-path-dangling", "FACT-upload-notes"],
+        ["source-path-dangling", "FACT-upload-legacy"],
       ]);
 
       const next = readPlan(root);
@@ -238,7 +307,7 @@ describe("kibi migrate lifecycle repairs", () => {
         ),
       ).toBeDefined();
       expect(
-        action(next, "review-source-path-dangling-FACT-upload-notes"),
+        action(next, "review-source-path-dangling-FACT-upload-legacy"),
       ).toBeDefined();
     },
     TIMEOUT_MS,
@@ -255,7 +324,14 @@ describe("kibi migrate lifecycle repairs", () => {
       expect(dry.stdout).toContain(
         "dry run: would point 1 pre-canonical source path(s) at their .kb/ files.",
       );
+      expect(dry.stdout).toContain(
+        "dry run: would remove 3 redundant or dead source field(s); the compiled source is always the entity's own file.",
+      );
+      expect(dry.stdout).toContain(
+        `Source field of ${MULTI} not repaired: ${REFUSED}`,
+      );
       expect(read(root, OLD)).toContain("status: open\n");
+      expect(read(root, SELF)).toContain(`source: ${SELF}\n`);
 
       const result = runKibi(["migrate", "--yes"], root);
       expect(result.status, result.stderr).toBe(0);
@@ -267,19 +343,46 @@ describe("kibi migrate lifecycle repairs", () => {
         "Pointed 1 pre-canonical source path(s) at their .kb/ files.",
       );
       expect(output).toContain(
+        "Removed 3 redundant or dead source field(s); the compiled source is always the entity's own file.",
+      );
+      expect(output).toContain(
         "Requirements REQ-upload-loop-a, REQ-upload-loop-b supersede each other",
       );
       expect(output).toContain(
-        'FACT-upload-notes (.kb/facts/FACT-upload-notes.md) has source "memory-bank/techContext.md"',
+        `Source field of ${MULTI} not repaired: ${REFUSED}`,
       );
       expect(output).toContain(
         "Run 'kibi sync' to recompile the rewritten sources.",
       );
       expect(read(root, OLD)).toContain("status: closed\n");
+      expect(read(root, SELF)).not.toContain("source:");
 
       const again = runKibi(["migrate", "--yes"], root);
       expect(again.stdout).not.toContain("Closed ");
       expect(again.stdout).not.toContain("Pointed ");
+      expect(again.stdout).not.toContain("Removed ");
+    },
+    TIMEOUT_MS,
+  );
+
+  test(
+    "a schema upgrade records the source repairs in the migration audit",
+    () => {
+      writeManifest(root, 5);
+      git(root, "add", "--all");
+
+      const result = runKibi(["migrate", "--yes"], root);
+      expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(0);
+      const audit = JSON.parse(read(root, ".kb/migrations/main.json"));
+      expect(audit).toMatchObject({
+        fromVersion: 5,
+        toVersion: 6,
+        supersededRequirementsClosed: 1,
+        sourcePathsRewritten: 1,
+        sourcePathsRemoved: 3,
+      });
+      expect(read(root, FACT)).not.toContain("source:");
+      expect(read(root, CHUNK)).toContain(`\nsource: ${ADR}#decision\n`);
     },
     TIMEOUT_MS,
   );

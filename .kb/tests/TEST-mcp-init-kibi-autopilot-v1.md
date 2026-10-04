@@ -4,7 +4,6 @@ title: Historical onboarding test (superseded)
 status: superseded
 created_at: 2026-04-19T00:00:00.000Z
 updated_at: 2026-05-05T00:00:00.000Z
-source: .kb/tests/TEST-mcp-init-kibi-autopilot-v1.md
 priority: must
 tags:
   - test

@@ -17,36 +17,52 @@
 */
 
 import {
-  type DanglingSource,
+  type SourceRepair,
   findDanglingSources,
+  shownSourceValue,
 } from "../../operations/migration/source-paths.js";
 import type { Violation } from "../../utils/rule-registry.js";
 
 /** An authored source field that names no path, entity or URL. */
 export const SOURCE_PATH_DANGLING_RULE = "source-path-dangling";
 
-function shown(value: unknown): string {
-  return typeof value === "string" ? value : JSON.stringify(value);
+function suggestion(source: SourceRepair): string {
+  const compiled = `The compiled source is always the entity's own file (${source.file}), so the field carries nothing Kibi compiles.`;
+  if (source.refused !== undefined) {
+    return `kibi migrate cannot edit this source field safely (${source.refused}), so it plans a review_source_path_dangling action for a person. ${compiled}`;
+  }
+  if (source.fix.kind === "rewrite") {
+    return `The file moved to ${source.fix.to}; kibi migrate rewrites the source field there (source_path_rewrite). ${compiled}`;
+  }
+  const why =
+    source.fix.reason === "self"
+      ? "it names the entity's own file"
+      : "nothing it names can be mapped";
+  return `kibi migrate removes this source field (source_path_rewrite) because ${why}. ${compiled}`;
 }
 
-/** One blocking finding per authored source that resolves to nothing. */
+/**
+ * One blocking finding per authored source that resolves to nothing. The
+ * evidence names the automatic fix (`rewrite` or `remove`) and, when the
+ * edit is not safe, why (`refused`).
+ */
 // implements REQ-core-validation-rules
 export function sourcePathDanglingViolations(
-  dangling: readonly DanglingSource[],
+  dangling: readonly SourceRepair[],
 ): Violation[] {
   return dangling.map((source) => ({
     rule: SOURCE_PATH_DANGLING_RULE,
     entityId: source.entityId,
-    description: `${source.entityId} names source '${shown(source.value)}', which is not an existing workspace path, an entity id or an http(s) URL`,
-    suggestion:
-      source.rewrite !== undefined
-        ? `The file moved to ${source.rewrite}; kibi migrate rewrites the source field there (source_path_rewrite)`
-        : "Point source at the document this entity came from (a tracked path, optionally with #anchor; an entity id; or an http(s) URL), or remove the source field if nobody knows the origin",
+    description: `${source.entityId} names source '${shownSourceValue(source.value)}', which is not an existing workspace path, an entity id or an http(s) URL`,
+    suggestion: suggestion(source),
     source: source.file,
     evidence: {
       value: source.value,
       file: source.file,
-      ...(source.rewrite !== undefined ? { rewrite: source.rewrite } : {}),
+      ...(source.fix.kind === "rewrite"
+        ? { rewrite: source.fix.to }
+        : { remove: source.fix.reason }),
+      ...(source.refused !== undefined ? { refused: source.refused } : {}),
     },
   }));
 }

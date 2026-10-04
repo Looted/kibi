@@ -4,7 +4,6 @@ title: Record an end-to-end test as proof for a scenario
 status: active
 created_at: 2026-08-13T00:00:00Z
 updated_at: 2026-08-14T00:00:00Z
-source: .kb/scenarios/SCEN-kibi-verification-evidence-contract.md
 tags: [verification, e2e, playwright, receipts, proof]
 links:
   - type: verified_by

@@ -205,6 +205,47 @@ export function withTopLevelField(
   return `${slice.prefix}${text}${slice.suffix}`;
 }
 
+function frontmatterRecord(text: string): Record<string, unknown> | null {
+  const parsed = loadYaml(text);
+  if (parsed === undefined || parsed === null) return {};
+  return isRecord(parsed) ? parsed : null;
+}
+
+/**
+ * Remove one top-level scalar frontmatter key, leaving every other byte of
+ * the document unchanged: only the key's line and its line break go. Returns
+ * the content unchanged when the key is absent. Returns null when the key
+ * spans several lines or the edit would not read back as exactly that
+ * change (the key gone, every other key parsing identically).
+ */
+// implements REQ-kibi-schema6-migration
+export function withoutTopLevelField(
+  content: string,
+  key: string,
+): string | null {
+  const slice = sliceFrontmatter(content);
+  if (slice === null) return null;
+  const match = topLevelFieldPattern(key).exec(slice.text);
+  let text = slice.text;
+  if (match !== null) {
+    const after = slice.text.slice(match.index + match[0].length);
+    if (/^\r?\n[ \t]+\S/.test(after)) return null;
+    text = `${slice.text.slice(0, match.index)}${after.replace(/^\r?\n/, "")}`;
+  }
+  try {
+    const before = frontmatterRecord(slice.text);
+    const next = frontmatterRecord(text);
+    if (before === null || next === null || Object.hasOwn(next, key)) {
+      return null;
+    }
+    const { [key]: _beforeValue, ...beforeRest } = before;
+    if (!isDeepStrictEqual(beforeRest, next)) return null;
+  } catch {
+    return null;
+  }
+  return match === null ? content : `${slice.prefix}${text}${slice.suffix}`;
+}
+
 /** Replace a file's bytes atomically. */
 export function writeFileAtomically(filePath: string, content: string): void {
   mkdirSync(path.dirname(filePath), { recursive: true });

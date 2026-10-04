@@ -4,7 +4,6 @@ title: Historical MCP onboarding lifecycle (superseded)
 status: closed
 created_at: 2026-04-19T00:00:00.000Z
 updated_at: 2026-05-05T00:00:00.000Z
-source: .kb/requirements/REQ-mcp-init-kibi-autopilot-v1.md
 priority: must
 owner: opencode-team
 tags:

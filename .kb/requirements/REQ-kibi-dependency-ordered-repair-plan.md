@@ -4,7 +4,6 @@ title: Requirement proof gaps produce a safe dependency-ordered repair plan
 status: open
 created_at: 2026-08-10T00:00:00Z
 updated_at: 2026-08-10T00:00:00Z
-source: .kb/requirements/REQ-kibi-dependency-ordered-repair-plan.md
 priority: must
 tags: [requirements, proof, repair, migration, planning, parity]
 logic_claims:

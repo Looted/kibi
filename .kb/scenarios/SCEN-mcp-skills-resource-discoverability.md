@@ -4,7 +4,6 @@ title: Bundled skill resources are discoverable and undeclared paths are rejecte
 status: active
 created_at: 2026-08-18T00:00:00Z
 updated_at: 2026-08-18T00:00:00Z
-source: .kb/scenarios/SCEN-mcp-skills-resource-discoverability.md
 tags: [mcp, skills, discoverability]
 links:
   - type: verified_by

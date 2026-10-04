@@ -4,7 +4,6 @@ title: CI packed jobs stay artifact-only behind coverage gates
 status: passing
 created_at: 2026-04-21T17:11:22.000Z
 updated_at: 2026-05-13T00:00:00.000Z
-source: .kb/tests/TEST-ci-workflow-checkout-contract.md
 tags:
   - ci
   - workflow

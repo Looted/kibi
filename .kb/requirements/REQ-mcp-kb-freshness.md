@@ -4,7 +4,6 @@ title: MCP auto-refreshes KB attachment on same-branch external replacement
 status: open
 created_at: 2026-06-08T10:00:00.000Z
 updated_at: 2026-06-08T10:00:00.000Z
-source: .kb/requirements/REQ-mcp-kb-freshness.md
 priority: must
 tags:
   - mcp

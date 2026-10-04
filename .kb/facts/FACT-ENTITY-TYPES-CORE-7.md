@@ -4,7 +4,6 @@ title: Eight Core Entity Types
 status: active
 created_at: 2026-02-20T14:40:00.000Z
 updated_at: 2026-02-20T20:30:00.000Z
-source: .kb/facts/FACT-ENTITY-TYPES-CORE-7.md
 tags:
   - schema
   - entities

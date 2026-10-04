@@ -4,7 +4,6 @@ title: Evaluation evidence rule predicate schema
 status: active
 created_at: 2026-08-04T00:00:00Z
 updated_at: 2026-08-04T00:00:00Z
-source: .kb/facts/FACT-SCHEMA-EVALUATION-EVIDENCE-RULE.md
 fact_kind: predicate_schema
 predicate_namespace: kibi.skillopt
 predicate_name: evaluation_evidence_rule

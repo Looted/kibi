@@ -4,7 +4,6 @@ title: "OpenCode Kibi Briefings v1 Verification"
 status: closed
 created_at: 2026-04-20T00:00:00Z
 updated_at: 2026-04-20T00:00:00Z
-source: .kb/tests/TEST-opencode-kibi-briefing-v1.md
 priority: must
 tags:
   - test

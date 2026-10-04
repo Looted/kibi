@@ -4,7 +4,6 @@ title: OpenCode Briefing Command Cue
 type: scenario
 status: closed
 created_at: 2026-05-13T00:00:00Z
-source: .kb/scenarios/SCEN-opencode-briefing-command.md
 priority: must
 tags:
   - opencode

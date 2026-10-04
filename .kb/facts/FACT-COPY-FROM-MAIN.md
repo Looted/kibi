@@ -4,7 +4,6 @@ title: Copy From Default Branch Snapshot
 status: superseded
 created_at: 2026-02-20T14:40:00.000Z
 updated_at: 2026-04-24T08:12:00.000Z
-source: .kb/facts/FACT-COPY-FROM-MAIN.md
 tags:
   - branching
   - copy-from-default-branch

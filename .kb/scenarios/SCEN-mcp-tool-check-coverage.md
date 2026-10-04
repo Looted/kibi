@@ -5,7 +5,6 @@ type: scenario
 status: active
 created_at: 2026-07-21T00:00:00Z
 updated_at: 2026-07-21T00:00:00Z
-source: .kb/scenarios/SCEN-mcp-tool-check-coverage.md
 priority: must
 links:
   - type: relates_to

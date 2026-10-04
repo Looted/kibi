@@ -193,7 +193,7 @@ describe("schema 6 review actions from check findings", () => {
     }
   });
 
-  test("lifecycle violations map to one close action, cycle reviews, one rewrite action and a sync", () => {
+  test("lifecycle violations map to one close action, cycle reviews, one source repair action and a sync", () => {
     const actions = buildActionsFromCheck({
       violations: [
         {
@@ -230,20 +230,41 @@ describe("schema 6 review actions from check findings", () => {
           evidence: {
             value: "memory-bank/techContext.md",
             file: ".kb/facts/FACT-STD-001.md",
+            remove: "dangling",
+          },
+        },
+        {
+          rule: "source-path-dangling",
+          entityId: "FACT-ATOMIC",
+          source: ".kb/facts/FACT-ATOMIC.md",
+          evidence: {
+            value: "documentation/facts/FACT-atomic.md",
+            file: ".kb/facts/FACT-ATOMIC.md",
+            remove: "self",
+          },
+        },
+        {
+          rule: "source-path-dangling",
+          entityId: "FACT-MULTI",
+          source: ".kb/facts/FACT-MULTI.md",
+          evidence: {
+            value: ["memory-bank/a.md"],
+            file: ".kb/facts/FACT-MULTI.md",
+            remove: "dangling",
+            refused:
+              "the source field spans several lines, or editing it would change other frontmatter fields",
           },
         },
       ],
     });
 
+    // Only the value Kibi cannot edit safely needs a person.
     expect(actions.map((action) => [action.id, action.code])).toEqual([
       [
         "review-supersession-cycle-REQ-loop-a-REQ-loop-b",
         "review_supersession_cycle",
       ],
-      [
-        "review-source-path-dangling-FACT-STD-001",
-        "review_source_path_dangling",
-      ],
+      ["review-source-path-dangling-FACT-MULTI", "review_source_path_dangling"],
       ["close-superseded-requirements", "close_superseded_requirements"],
       ["source-path-rewrite", "source_path_rewrite"],
       ["migration-sync", "migration_sync"],
@@ -270,16 +291,55 @@ describe("schema 6 review actions from check findings", () => {
     ).toContain(
       "REQ-loop-a supersedes REQ-loop-b; REQ-loop-b supersedes REQ-loop-a",
     );
-    expect(byCode.get("source_path_rewrite")?.evidence).toMatchObject({
-      rewrites: [
-        {
-          entityId: "ADR-001",
-          file: ".kb/adr/ADR-001.md",
-          from: "documentation/adr/ADR-001.md",
-          to: ".kb/adr/ADR-001.md",
-        },
+    expect(byCode.get("source_path_rewrite")).toMatchObject({
+      safety: "automatic",
+      autoApplicable: true,
+      affectedEntityIds: ["ADR-001", "FACT-ATOMIC", "FACT-STD-001"],
+      affectedFiles: [
+        ".kb/adr/ADR-001.md",
+        ".kb/facts/FACT-ATOMIC.md",
+        ".kb/facts/FACT-STD-001.md",
       ],
+      evidence: {
+        count: 3,
+        rewrites: [
+          {
+            entityId: "ADR-001",
+            file: ".kb/adr/ADR-001.md",
+            from: "documentation/adr/ADR-001.md",
+            to: ".kb/adr/ADR-001.md",
+          },
+        ],
+        removals: [
+          {
+            entityId: "FACT-ATOMIC",
+            file: ".kb/facts/FACT-ATOMIC.md",
+            from: "documentation/facts/FACT-atomic.md",
+            reason: "self",
+          },
+          {
+            entityId: "FACT-STD-001",
+            file: ".kb/facts/FACT-STD-001.md",
+            from: "memory-bank/techContext.md",
+            reason: "dangling",
+          },
+        ],
+      },
     });
+    const review = byCode.get("review_source_path_dangling");
+    expect(review).toMatchObject({
+      safety: "review",
+      dispositionRequired: true,
+      affectedFiles: [".kb/facts/FACT-MULTI.md"],
+      evidence: {
+        source: ["memory-bank/a.md"],
+        refused:
+          "the source field spans several lines, or editing it would change other frontmatter fields",
+      },
+    });
+    expect(
+      review?.invocation.kind === "review" ? review.invocation.instruction : "",
+    ).toContain("The compiled source is always the entity's own file");
     expect(byCode.get("migration_sync")?.dependsOn).toEqual([
       "close-superseded-requirements",
       "source-path-rewrite",

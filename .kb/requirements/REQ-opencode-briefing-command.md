@@ -3,7 +3,6 @@ id: REQ-opencode-briefing-command
 title: OpenCode Briefing Command
 status: closed
 created_at: 2026-05-13T00:00:00.000Z
-source: packages/opencode/src/brief-intent.ts
 priority: must
 owner: opencode-team
 tags:

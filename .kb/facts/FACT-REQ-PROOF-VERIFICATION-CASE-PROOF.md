@@ -4,7 +4,6 @@ title: Kibi binds proof to stable end-to-end cases
 status: active
 created_at: 2026-08-13T00:00:00.000Z
 updated_at: 2026-08-13T00:00:00.000Z
-source: .kb/facts/FACT-REQ-PROOF-VERIFICATION-CASE-PROOF.md
 tags:
   - lane:strict
   - verification

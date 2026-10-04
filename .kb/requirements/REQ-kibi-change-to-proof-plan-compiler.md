@@ -4,7 +4,6 @@ title: Kibi compiles intent into reviewable requirement and proof plans
 status: closed
 created_at: 2026-08-13T00:00:00.000Z
 updated_at: 2026-08-13T00:00:00.000Z
-source: .kb/requirements/REQ-kibi-change-to-proof-plan-compiler.md
 priority: must
 owner: platform-team
 tags:

@@ -4,7 +4,6 @@ title: Consumer runs kibi-mcp help without starting the MCP server
 status: active
 created_at: 2026-04-17T12:00:00Z
 updated_at: 2026-04-17T12:00:00Z
-source: .kb/scenarios/SCEN-mcp-cli-help.md
 tags:
   - mcp
   - cli

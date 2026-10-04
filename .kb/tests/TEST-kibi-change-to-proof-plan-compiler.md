@@ -5,7 +5,6 @@ type: test
 status: passing
 created_at: 2026-08-13T00:00:00.000Z
 updated_at: 2026-08-13T00:00:00.000Z
-source: .kb/tests/TEST-kibi-change-to-proof-plan-compiler.md
 priority: must
 verification_scope: integration
 verification_perspective: internal

@@ -5,7 +5,6 @@ type: scenario
 status: active
 created_at: 2026-06-02T00:00:00Z
 updated_at: 2026-06-02T00:00:00Z
-source: .kb/scenarios/SCEN-codex-kibi-plugin-v1.md
 tags:
   - scenario
   - codex

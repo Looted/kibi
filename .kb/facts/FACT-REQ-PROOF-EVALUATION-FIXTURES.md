@@ -4,7 +4,6 @@ title: Kibi ships change-to-proof evaluation fixtures
 status: active
 created_at: 2026-08-13T00:00:00.000Z
 updated_at: 2026-08-13T00:00:00.000Z
-source: .kb/facts/FACT-REQ-PROOF-EVALUATION-FIXTURES.md
 tags:
   - lane:strict
   - evaluation

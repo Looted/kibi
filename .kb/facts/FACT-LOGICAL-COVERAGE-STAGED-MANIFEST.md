@@ -4,7 +4,6 @@ title: Staged overlays preserve requirement claim manifests
 status: active
 created_at: 2026-08-04T00:00:00.000Z
 updated_at: 2026-08-04T00:00:00.000Z
-source: .kb/facts/FACT-LOGICAL-COVERAGE-STAGED-MANIFEST.md
 tags:
   - lane:ontology
   - requirements

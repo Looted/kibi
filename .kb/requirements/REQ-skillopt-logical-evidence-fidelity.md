@@ -4,7 +4,6 @@ title: Skillopt logical evidence and feedback remain semantically faithful
 status: open
 created_at: 2026-08-04T00:00:00.000Z
 updated_at: 2026-08-04T00:00:00.000Z
-source: .kb/requirements/REQ-skillopt-logical-evidence-fidelity.md
 priority: must
 tags:
   - skillopt

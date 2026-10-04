@@ -4,7 +4,6 @@ title: "Agent requests a start-task briefing from kb_briefing_generate"
 status: closed
 created_at: 2026-04-20T00:00:00Z
 updated_at: 2026-04-24T09:15:00Z
-source: .kb/scenarios/SCEN-mcp-kibi-briefing-v1.md
 tags:
   - scenario
   - mcp

@@ -5,7 +5,6 @@ status: open
 created_at: 2026-03-21T00:00:00.000Z
 updated_at: 2026-08-18T00:00:00.000Z
 priority: should
-source: .kb/requirements/REQ-mcp-tag-filtering-server-side.md
 tags:
   - mcp
   - query

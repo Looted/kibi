@@ -4,7 +4,6 @@ title: Logical requirement rule predicate schema
 status: active
 created_at: 2026-08-04T00:00:00.000Z
 updated_at: 2026-08-04T00:00:00.000Z
-source: .kb/facts/FACT-SCHEMA-LOGICAL-REQUIREMENT-RULE.md
 tags:
   - lane:ontology
   - predicate-schema

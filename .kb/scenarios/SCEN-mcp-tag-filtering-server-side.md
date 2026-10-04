@@ -4,7 +4,6 @@ title: Tag-filtered kb_query uses server-side matching without a full entity sca
 status: active
 created_at: 2026-08-18T00:00:00Z
 updated_at: 2026-08-18T00:00:00Z
-source: .kb/scenarios/SCEN-mcp-tag-filtering-server-side.md
 tags: [mcp, query, tags, normalization]
 links:
   - type: verified_by

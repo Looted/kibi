@@ -15157,12 +15157,12 @@ coordinates:
     sourceLine: 1
   SYM-kibi-migrate-plan-command:
     identityHash: 760096891a38c5b8b7c1720a80a7539e712de3592dc78b6958f21d83251f06b6
-    sourceHash: a6f43691e932541f5c82a3e4dae4abdac5ea40aaf07be30ac7f499026854477c
+    sourceHash: 559a8908d9d6c5e6405206d296a3b4f00ea00cf4a85ebbc4f717bea76a7afd11
     sourceColumn: 15
     sourceEndColumn: 1
-    sourceEndLine: 1117
+    sourceEndLine: 1149
     sourceFile: packages/cli/src/commands/migrate.ts
-    sourceLine: 1038
+    sourceLine: 1070
   SYM-kibi-migration-action:
     identityHash: d2ee598831ee19d36ede5548c619fd1213808a2007f2f3765383670ddaeca0f7
     sourceHash: 5c60523f430da91b588fbf326f54c61f111ac8cf2e62127b89e85039419e2c01
@@ -15493,7 +15493,7 @@ coordinates:
     sourceLine: 1
   SYM-kibi-usage-skill-guidance:
     identityHash: 4596b4770fa6eca3c0b31b8c58f21cc8c076ffe4dc4e76b6252e9984eb6c5857
-    sourceHash: a669293fb5f993e5fed4e69bdecccec8c2045221fffa3bd1c224e87f2ce44df5
+    sourceHash: 81698c517e2c6876828dde14ef3d61d483b8b08b4fb8392788e2cbfa22157c43
     sourceColumn: 6
     sourceEndColumn: 16
     sourceEndLine: 3
@@ -16965,12 +16965,12 @@ coordinates:
     sourceLine: 454
   SYM-migrateCommand:
     identityHash: 86a1a8de89500a1a35f35fc8b3412e2a31e5f74cfb5eb7e7dad686fe2df7796c
-    sourceHash: a6f43691e932541f5c82a3e4dae4abdac5ea40aaf07be30ac7f499026854477c
+    sourceHash: 559a8908d9d6c5e6405206d296a3b4f00ea00cf4a85ebbc4f717bea76a7afd11
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 871
+    sourceEndLine: 903
     sourceFile: packages/cli/src/commands/migrate.ts
-    sourceLine: 594
+    sourceLine: 624
   SYM-migration-compare-ready-actions:
     identityHash: c11ac941840ef1b512991e7a45910bd53906c373ee6027be3a5d5f5d0dc1d495
     sourceHash: 5c60523f430da91b588fbf326f54c61f111ac8cf2e62127b89e85039419e2c01
@@ -21501,10 +21501,10 @@ coordinates:
     sourceLine: 155
   SYM-quality-suite-cli-check-integrity:
     identityHash: 59cbf6da4b29ed23e193f9701bb2cd75b0efd02902ef04c34b4c462067f39857
-    sourceHash: d61549ddade94d22d19c7be2ecbc5bb385f609929bcb8167f908e5a9a5a6f43f
+    sourceHash: f3e7342a1f7bb5b881db365017b829814d8a03291b1c83d01789de9700a3ca98
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 3266
+    sourceEndLine: 3366
     sourceFile: packages/cli/tests/commands/check.test.ts
     sourceLine: 1
   SYM-quality-suite-mcp-schema-adapter:
@@ -23069,12 +23069,12 @@ coordinates:
     sourceLine: 188
   SYM-schema6-buildSchema6MigrationFragment:
     identityHash: 5624dbdaff2ca1c49309f297aad55f71b5fe5b41541703c4114e5a9bbbb94fa2
-    sourceHash: 32958a81d99a6653a768c1b1678160bf49261a84acd2a1df659a4f1d9b6327b2
+    sourceHash: 202f8dbcbaa5298e5df6db6c6d94f03e987b39c2c86180347ae9cbcedd093ab6
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 297
+    sourceEndLine: 300
     sourceFile: packages/cli/src/operations/migration/schema6.ts
-    sourceLine: 223
+    sourceLine: 226
   SYM-schema6-planInventoryRederivation:
     identityHash: 90b421ccc9a9f99c59761f2607361a845fae7b5a8aa1632c8bbc3b4d9a9d1087
     sourceHash: e592d117821c38de29e6497125a789b8815be5bec19624b7d7ca517db55915c7

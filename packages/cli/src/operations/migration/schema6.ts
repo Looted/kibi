@@ -48,9 +48,12 @@ import {
 import { listLaneMarkdownFiles } from "./kb-sources.js";
 import { applyOriginBackfill, planOriginBackfill } from "./origin-backfill.js";
 import {
+  type PlannedSourcePathRepairs,
+  type SourcePathRemoval,
   type SourcePathRewrite,
-  applySourcePathRewrites,
-  findDanglingSources,
+  applySourcePathRepairs,
+  findSourceRepairs,
+  plannedSourcePathRepairs,
 } from "./source-paths.js";
 import {
   applySupersededClosures,
@@ -298,11 +301,12 @@ export function buildSchema6MigrationFragment(input: {
 
 /**
  * Actions for the superseded-requirement-open and source-path-dangling
- * findings in authored sources: close superseded requirements and rewrite
- * retired documentation/ sources automatically; one review per supersession
- * cycle and per source Kibi cannot map. Read-only.
+ * findings in authored sources: close superseded requirements, and rewrite
+ * moved or remove redundant and dead source values, automatically; one
+ * review per supersession cycle and per source value Kibi cannot edit
+ * safely. Read-only.
  */
-// implements REQ-cli-schema-migration, REQ-core-validation-rules
+// implements REQ-cli-schema-migration, REQ-core-validation-rules, REQ-kibi-schema6-migration
 export function buildLifecycleRepairActions(workspaceRoot: string): {
   actions: MigrationAction[];
   sourceRewriteActionIds: string[];
@@ -321,22 +325,24 @@ export function buildLifecycleRepairActions(workspaceRoot: string): {
   for (const cycle of supersession.cycles) {
     actions.push(migrationAction(supersessionCycleReviewActionInput(cycle)));
   }
-  const dangling = findDanglingSources(workspaceRoot);
-  const rewrites: SourcePathRewrite[] = [];
-  for (const source of dangling) {
-    if (source.rewrite !== undefined && typeof source.value === "string") {
-      rewrites.push({
-        entityId: source.entityId,
-        file: source.file,
-        from: source.value,
-        to: source.rewrite,
-      });
-    } else {
-      actions.push(migrationAction(sourcePathReviewActionInput(source)));
-    }
+  const repairs = findSourceRepairs(workspaceRoot);
+  for (const repair of repairs) {
+    if (repair.refused === undefined) continue;
+    actions.push(
+      migrationAction(
+        sourcePathReviewActionInput({
+          entityId: repair.entityId,
+          value: repair.value,
+          file: repair.file,
+          reason: repair.refused,
+          ...(repair.fix.kind === "rewrite" ? { rewrite: repair.fix.to } : {}),
+        }),
+      ),
+    );
   }
-  if (rewrites.length > 0) {
-    actions.push(migrationAction(sourcePathRewriteActionInput(rewrites)));
+  const planned = plannedSourcePathRepairs(repairs);
+  if (planned.rewrites.length > 0 || planned.removals.length > 0) {
+    actions.push(migrationAction(sourcePathRewriteActionInput(planned)));
     sourceRewriteActionIds.push(SOURCE_PATH_REWRITE_ACTION_ID);
   }
   return { actions, sourceRewriteActionIds };
@@ -349,19 +355,44 @@ export function migrationSyncAction(
   return migrationAction(migrationSyncActionInput(dependsOn));
 }
 
-function plannedRewrites(action: MigrationAction): SourcePathRewrite[] {
-  const rewrites = action.evidence.rewrites;
-  if (!Array.isArray(rewrites)) return [];
-  return rewrites.flatMap((raw) => {
-    if (raw === null || typeof raw !== "object") return [];
-    const { entityId, file, from, to } = raw as Record<string, unknown>;
-    return typeof entityId === "string" &&
+function plannedRecords(value: unknown): Record<string, unknown>[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter(
+    (raw): raw is Record<string, unknown> =>
+      raw !== null && typeof raw === "object" && !Array.isArray(raw),
+  );
+}
+
+/** The rewrites and removals an approved source_path_rewrite action lists. */
+// implements REQ-kibi-schema6-migration
+function plannedRepairs(action: MigrationAction): PlannedSourcePathRepairs {
+  const rewrites: SourcePathRewrite[] = [];
+  for (const { entityId, file, from, to } of plannedRecords(
+    action.evidence.rewrites,
+  )) {
+    if (
+      typeof entityId === "string" &&
       typeof file === "string" &&
       typeof from === "string" &&
       typeof to === "string"
-      ? [{ entityId, file, from, to }]
-      : [];
-  });
+    ) {
+      rewrites.push({ entityId, file, from, to });
+    }
+  }
+  const removals: SourcePathRemoval[] = [];
+  for (const { entityId, file, from, reason } of plannedRecords(
+    action.evidence.removals,
+  )) {
+    if (
+      typeof entityId === "string" &&
+      typeof file === "string" &&
+      typeof from === "string" &&
+      (reason === "self" || reason === "dangling")
+    ) {
+      removals.push({ entityId, file, from, reason });
+    }
+  }
+  return { rewrites, removals };
 }
 
 type ApplyContext = Readonly<{
@@ -406,13 +437,13 @@ export async function applySchema6MigrationAction(
       return;
     }
     case SOURCE_PATH_REWRITE_CODE: {
-      const result = applySourcePathRewrites(
+      const result = applySourcePathRepairs(
         context.workspaceRoot,
-        plannedRewrites(action),
+        plannedRepairs(action),
       );
       if (result.skipped.length > 0)
         throw new Error(
-          `Could not rewrite the source of ${result.skipped.map((skip) => `${skip.file} (${skip.reason})`).join(", ")}; rerun kibi migrate and approve the new plan.`,
+          `Could not repair the source of ${result.skipped.map((skip) => `${skip.file} (${skip.reason})`).join(", ")}; rerun kibi migrate and approve the new plan.`,
         );
       return;
     }

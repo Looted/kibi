@@ -158,10 +158,13 @@ patch canonical shards while preserving unrelated records. Authored entity
 deletion returns a hash-bound approval plan; requirements normally evolve via a
 new entity linked with `supersedes`; set the replaced requirement to
 `status: closed` in the same change, because `kb_check` blocks an open
-superseded requirement and supersession cycles. An authored `source` field
-must name an existing path (`#anchor` allowed), an entity id, or an http(s)
-URL. Read `resources/source-authoring.md` before source writes, deletion
-approval, or recovery.
+superseded requirement and supersession cycles. Kibi compiles `source` from
+the entity's own file and never writes an authored `source` field, so
+`kb_upsert` cannot change one. When `kb_check` blocks a leftover value
+(`source-path-dangling`), run `kibi migrate`: its automatic
+`source_path_rewrite` action removes the value, or rewrites it when the file
+moved. Never hand-edit `.kb/` for it. Read `resources/source-authoring.md`
+before source writes, deletion approval, or recovery.
 
 `kb_apply_plan` applies a whole plan atomically: a failure changes nothing.
 An interrupted plan is settled by the next `kb_apply_plan`, `kb_upsert`, or

@@ -4,7 +4,6 @@ title: OpenCode Bootstrap Nudge Guidance
 type: scenario
 status: active
 created_at: 2026-05-13T00:00:00.000Z
-source: .kb/scenarios/SCEN-opencode-bootstrap-nudge.md
 priority: must
 tags:
   - opencode

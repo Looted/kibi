@@ -53,10 +53,14 @@ export const CLOSE_SUPERSEDED_REQUIREMENTS_ACTION_ID =
   "close-superseded-requirements";
 /** Review: requirements that supersede each other (no automatic fix). */
 export const SUPERSESSION_CYCLE_REVIEW_CODE = "review_supersession_cycle";
-/** Automatic: point pre-canonical knowledge-file sources at `.kb/`. */
+/**
+ * Automatic: repair redundant or dead authored `source` values. A moved
+ * knowledge file is rewritten to its `.kb/` path; a value naming the
+ * entity's own file or nothing Kibi can map is removed.
+ */
 export const SOURCE_PATH_REWRITE_CODE = "source_path_rewrite";
 export const SOURCE_PATH_REWRITE_ACTION_ID = "source-path-rewrite";
-/** Review: an authored source that names no path, entity or URL. */
+/** Review: a source value Kibi cannot edit safely (the automatic fix's fallback). */
 export const SOURCE_PATH_REVIEW_CODE = "review_source_path_dangling";
 /** Review: symbols whose every owning requirement is retired (one queue). */
 export const SYMBOL_OWNER_REVIEW_CODE = "review_symbol_owner_superseded";
@@ -183,16 +187,39 @@ export type SourcePathRewriteInput = Readonly<{
   to: string;
 }>;
 
-/** One automatic action that rewrites every listed retired source path. */
-// implements REQ-cli-schema-migration, REQ-core-validation-rules
-export function sourcePathRewriteActionInput(
-  rewrites: readonly SourcePathRewriteInput[],
-): MigrationActionInput {
-  const sorted = [...rewrites].sort(
-    (left, right) =>
-      left.entityId.localeCompare(right.entityId) ||
-      left.file.localeCompare(right.file),
+// implements REQ-kibi-schema6-migration
+export type SourcePathRemovalInput = Readonly<{
+  entityId: string;
+  file: string;
+  from: string;
+  /** `self`: the value names the entity's own file; `dangling`: nothing Kibi can map. */
+  reason: "self" | "dangling";
+}>;
+
+function byEntityThenFile(
+  left: Readonly<{ entityId: string; file: string }>,
+  right: Readonly<{ entityId: string; file: string }>,
+): number {
+  return (
+    left.entityId.localeCompare(right.entityId) ||
+    left.file.localeCompare(right.file)
   );
+}
+
+/**
+ * One automatic action that rewrites every listed moved source and removes
+ * every listed redundant or dead one.
+ */
+// implements REQ-kibi-schema6-migration, REQ-core-validation-rules
+export function sourcePathRewriteActionInput(
+  input: Readonly<{
+    rewrites: readonly SourcePathRewriteInput[];
+    removals: readonly SourcePathRemovalInput[];
+  }>,
+): MigrationActionInput {
+  const rewrites = [...input.rewrites].sort(byEntityThenFile);
+  const removals = [...input.removals].sort(byEntityThenFile);
+  const all = [...rewrites, ...removals].sort(byEntityThenFile);
   return {
     id: SOURCE_PATH_REWRITE_ACTION_ID,
     code: SOURCE_PATH_REWRITE_CODE,
@@ -200,29 +227,43 @@ export function sourcePathRewriteActionInput(
     safety: "automatic",
     autoApplicable: true,
     invocation: MIGRATE_YES,
-    affectedEntityIds: sorted.map((rewrite) => rewrite.entityId),
-    affectedFiles: sorted.map((rewrite) => rewrite.file),
-    postconditions: [{ rule: "source-path-dangling", rewritten: 0 }],
+    affectedEntityIds: [...new Set(all.map((item) => item.entityId))],
+    affectedFiles: [...new Set(all.map((item) => item.file))],
+    postconditions: [
+      { rule: "source-path-dangling", violations: 0 },
+      { selfReferencingSources: 0 },
+    ],
     evidence: {
       reason:
-        "These source fields name a knowledge file by its pre-canonical path (under documentation/, or relative to the knowledge root); each is pointed at the same file under .kb/. Only the source line changes.",
-      count: sorted.length,
-      rewrites: sorted.map((rewrite) => ({ ...rewrite })),
+        "The authored source field is dead data: the compiled source is always the entity's own file, and Kibi ignores the field when compiling and never writes it. Each rewrite points a knowledge file named by its pre-canonical path (under documentation/, or relative to the knowledge root) at the same file under .kb/. Each removal deletes a value that names the entity's own file (reason self) or nothing Kibi can map (reason dangling). Only the source line changes.",
+      count: all.length,
+      rewrites: rewrites.map((rewrite) => ({ ...rewrite })),
+      removals: removals.map((removal) => ({ ...removal })),
     },
   };
 }
 
-/** Review: a source value Kibi cannot map; a person repoints or removes it. */
-// implements REQ-cli-schema-migration, REQ-core-validation-rules
+/**
+ * Review: a source value Kibi would rewrite or remove but cannot edit
+ * safely (it spans several lines, or the edit would change other fields).
+ */
+// implements REQ-kibi-schema6-migration, REQ-core-validation-rules
 export function sourcePathReviewActionInput(source: {
   entityId: string;
   value: unknown;
   file?: string;
+  reason?: string;
+  rewrite?: string;
 }): MigrationActionInput {
   const shown =
     typeof source.value === "string"
       ? source.value
       : JSON.stringify(source.value);
+  const where = source.file !== undefined ? ` in ${source.file}` : "";
+  const edit =
+    source.rewrite !== undefined
+      ? `replace the whole field with the single line 'source: ${source.rewrite}'`
+      : "delete the whole field, every line of it";
   return {
     id: `review-source-path-dangling-${stableIdPart(source.entityId)}`,
     code: SOURCE_PATH_REVIEW_CODE,
@@ -230,12 +271,17 @@ export function sourcePathReviewActionInput(source: {
     safety: "review",
     invocation: {
       kind: "review",
-      instruction: `${source.entityId} has source '${shown}', which is not an existing workspace path, an entity id or an http(s) URL, and Kibi cannot map it to a moved file. Point source at the document the entity came from (a tracked path, optionally with #anchor; an entity id; or a URL) by editing its frontmatter source field, or remove the field if nobody knows the origin.`,
+      instruction: `${source.entityId} has source '${shown}'${where}, which kibi migrate would repair automatically but cannot edit safely (${source.reason ?? "the edit would not read back as exactly that change"}). The compiled source is always the entity's own file; Kibi ignores the authored field when compiling and never writes it. A person edits the frontmatter by hand: ${edit}. Then rerun kibi migrate.`,
     },
     affectedEntityIds: [source.entityId],
     affectedFiles: source.file !== undefined ? [source.file] : [],
     dispositionRequired: true,
-    evidence: { entityId: source.entityId, source: source.value },
+    evidence: {
+      entityId: source.entityId,
+      source: source.value,
+      ...(source.reason !== undefined ? { refused: source.reason } : {}),
+      ...(source.rewrite !== undefined ? { rewrite: source.rewrite } : {}),
+    },
   };
 }
 
@@ -245,10 +291,11 @@ type Violation = Readonly<Record<string, unknown>>;
  * Map the blocking findings that schema 6 migrates mechanically to stable
  * actions with the same ids `kibi migrate` plans from authored sources:
  * superseded-requirement-open (one close action, one review per cycle) and
- * source-path-dangling (one rewrite action, one review per unmappable
- * value), plus the sync that recompiles what they rewrite.
+ * source-path-dangling (one automatic rewrite-or-remove action; a review
+ * only for a value Kibi cannot edit safely), plus the sync that recompiles
+ * what they rewrite.
  */
-// implements REQ-cli-schema-migration, REQ-agent-guided-migration-orchestration
+// implements REQ-cli-schema-migration, REQ-agent-guided-migration-orchestration, REQ-kibi-schema6-migration
 export function lifecycleActionsFromViolations(
   violations: readonly Violation[],
 ): { actions: MigrationActionInput[]; consumed: ReadonlySet<number> } {
@@ -256,6 +303,7 @@ export function lifecycleActionsFromViolations(
   const consumed = new Set<number>();
   const closures: SupersededClosureInput[] = [];
   const rewrites: SourcePathRewriteInput[] = [];
+  const removals: SourcePathRemovalInput[] = [];
   for (const [index, violation] of violations.entries()) {
     const entityId = text(violation.entityId);
     const evidence = isRecord(violation.evidence) ? violation.evidence : {};
@@ -289,16 +337,30 @@ export function lifecycleActionsFromViolations(
       if (entityId === "") continue;
       const file = text(evidence.file) || source;
       const rewrite = text(evidence.rewrite);
-      if (rewrite !== "" && typeof evidence.value === "string") {
-        rewrites.push({ entityId, file, from: evidence.value, to: rewrite });
-      } else {
+      const refused = text(evidence.refused);
+      const from =
+        typeof evidence.value === "string"
+          ? evidence.value
+          : (JSON.stringify(evidence.value) ?? "");
+      if (refused !== "" || file === "") {
         actions.push(
           sourcePathReviewActionInput({
             entityId,
             value: evidence.value,
             ...(file !== "" ? { file } : {}),
+            ...(refused !== "" ? { reason: refused } : {}),
+            ...(rewrite !== "" ? { rewrite } : {}),
           }),
         );
+      } else if (rewrite !== "") {
+        rewrites.push({ entityId, file, from, to: rewrite });
+      } else {
+        removals.push({
+          entityId,
+          file,
+          from,
+          reason: evidence.remove === "self" ? "self" : "dangling",
+        });
       }
       consumed.add(index);
     }
@@ -308,8 +370,8 @@ export function lifecycleActionsFromViolations(
     actions.push(closeSupersededRequirementsActionInput(closures));
     rewriteActionIds.push(CLOSE_SUPERSEDED_REQUIREMENTS_ACTION_ID);
   }
-  if (rewrites.length > 0) {
-    actions.push(sourcePathRewriteActionInput(rewrites));
+  if (rewrites.length > 0 || removals.length > 0) {
+    actions.push(sourcePathRewriteActionInput({ rewrites, removals }));
     rewriteActionIds.push(SOURCE_PATH_REWRITE_ACTION_ID);
   }
   if (rewriteActionIds.length > 0) {

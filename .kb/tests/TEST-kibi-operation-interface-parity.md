@@ -5,7 +5,6 @@ type: test
 status: passing
 created_at: 2026-07-21T00:00:00.000Z
 updated_at: 2026-07-22T00:00:00.000Z
-source: .kb/tests/TEST-kibi-operation-interface-parity.md
 priority: must
 verification_scope: end_to_end
 verification_perspective: consumer

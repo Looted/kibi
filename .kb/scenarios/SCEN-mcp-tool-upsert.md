@@ -4,7 +4,6 @@ title: "MCP Tool: kb_upsert"
 type: scenario
 status: active
 created_at: 2026-05-13T00:00:00Z
-source: .kb/scenarios/SCEN-mcp-tool-upsert.md
 priority: must
 tags:
   - mcp

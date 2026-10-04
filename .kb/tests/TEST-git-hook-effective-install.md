@@ -2,7 +2,6 @@
 id: TEST-git-hook-effective-install
 title: Effective Git hooks path resolver, installer results, and init context regressions
 status: passing
-source: .kb/tests/TEST-git-hook-effective-install.md
 links:
   - type: validates
     target: SCEN-git-hook-effective-install

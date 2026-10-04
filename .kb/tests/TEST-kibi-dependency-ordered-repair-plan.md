@@ -4,7 +4,6 @@ title: Packed dependency-ordered repair plan tests
 status: passing
 created_at: 2026-08-10T00:00:00.000Z
 updated_at: 2026-08-10T00:00:00.000Z
-source: .kb/tests/TEST-kibi-dependency-ordered-repair-plan.md
 verification_scope: end_to_end
 verification_perspective: consumer
 tags:

@@ -4,7 +4,6 @@ title: Feature Test
 type: test
 status: passing
 tags: [test]
-source: .kb/tests/TEST-ROOT-1.md
 origin:
   kind: migration
   ref: kibi migrate v5->v6

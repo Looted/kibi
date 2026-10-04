@@ -4,7 +4,6 @@ title: Repair batches follow semantic and graph dependencies
 status: active
 created_at: 2026-08-10T00:00:00.000Z
 updated_at: 2026-08-10T00:00:00.000Z
-source: .kb/facts/FACT-REPAIR-PLAN-DEPENDENCY-ORDER.md
 tags:
   - lane:ontology
   - requirements

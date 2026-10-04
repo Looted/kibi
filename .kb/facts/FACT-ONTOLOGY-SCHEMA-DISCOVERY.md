@@ -4,7 +4,6 @@ title: Predicate suggestion discovers normalized project schemas
 status: active
 created_at: 2026-08-10T00:00:00.000Z
 updated_at: 2026-08-10T00:00:00.000Z
-source: .kb/facts/FACT-ONTOLOGY-SCHEMA-DISCOVERY.md
 tags:
   - lane:ontology
   - requirements

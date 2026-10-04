@@ -4,7 +4,6 @@ title: Proof-bearing E2E tests use current-contract proof receipts v2
 status: closed
 created_at: 2026-08-14T00:00:00Z
 updated_at: 2026-08-14T00:00:00Z
-source: .kb/requirements/REQ-kibi-verification-receipts-v2.md
 priority: must
 tags: [requirements, proof, verification, receipts, e2e, v2, append-only]
 logic_claims:

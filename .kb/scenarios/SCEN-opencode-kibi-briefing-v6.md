@@ -4,7 +4,6 @@ title: "OpenCode Kibi Briefing v6: Schema-2.0 & Session-Delta Scenarios"
 status: closed
 created_at: 2026-05-06T04:35:00Z
 updated_at: 2026-05-06T04:35:00Z
-source: .kb/scenarios/SCEN-opencode-kibi-briefing-v6.md
 tags:
   - scenario
   - opencode

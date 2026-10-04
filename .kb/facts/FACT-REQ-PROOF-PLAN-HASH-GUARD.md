@@ -4,7 +4,6 @@ title: Kibi applies only an approved plan hash
 status: superseded
 created_at: 2026-08-13T00:00:00.000Z
 updated_at: 2026-08-13T00:00:00.000Z
-source: .kb/facts/FACT-REQ-PROOF-PLAN-HASH-GUARD.md
 tags:
   - lane:strict
   - planning

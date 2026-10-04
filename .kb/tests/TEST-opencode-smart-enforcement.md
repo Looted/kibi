@@ -5,7 +5,6 @@ type: test
 status: passing
 created_at: 2026-04-03T00:00:00.000Z
 updated_at: 2026-04-20T00:00:00.000Z
-source: .kb/tests/TEST-opencode-smart-enforcement.md
 priority: must
 tags:
   - enforcement

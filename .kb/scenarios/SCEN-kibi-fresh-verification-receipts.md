@@ -4,7 +4,6 @@ title: Evaluate snapshot-bound E2E receipt evidence conservatively
 status: active
 created_at: 2026-08-10T00:00:00Z
 updated_at: 2026-08-10T00:00:00Z
-source: .kb/scenarios/SCEN-kibi-fresh-verification-receipts.md
 tags: [requirements, proof, verification, receipts, e2e, parity]
 links:
   - type: verified_by

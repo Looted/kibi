@@ -4,7 +4,6 @@ title: Gate completion on fresh workflow telemetry
 status: active
 created_at: 2026-08-10T00:00:00Z
 updated_at: 2026-08-10T00:00:00Z
-source: .kb/scenarios/SCEN-kibi-telemetry-acceptance-gate.md
 tags: [telemetry, acceptance, diagnostics, packed, e2e]
 links:
   - type: verified_by

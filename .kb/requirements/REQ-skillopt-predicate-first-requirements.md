@@ -4,7 +4,6 @@ title: Agents model suitable relational requirements as predicates without losin
 status: open
 created_at: 2026-07-26T00:00:00.000Z
 updated_at: 2026-08-04T00:00:00.000Z
-source: .omo/plans/skillopt-predicate-requirements.md
 priority: must
 tags:
   - skillopt

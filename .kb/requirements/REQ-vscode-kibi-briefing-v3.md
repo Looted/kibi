@@ -4,7 +4,6 @@ title: 'VS Code Kibi Briefing v3: Schema-2.0 Alignment & Deterministic Ordering'
 status: closed
 created_at: 2026-05-06T04:40:00.000Z
 updated_at: 2026-05-06T04:40:00.000Z
-source: .kb/requirements/REQ-vscode-kibi-briefing-v3.md
 priority: must
 tags:
   - vscode

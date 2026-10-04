@@ -4,7 +4,6 @@ title: Staged overlays preserve typed test verification metadata
 status: active
 created_at: 2026-08-04T00:00:00.000Z
 updated_at: 2026-08-04T00:00:00.000Z
-source: .kb/facts/FACT-LOGICAL-COVERAGE-STAGED-TEST-METADATA.md
 tags:
   - lane:ontology
   - requirements

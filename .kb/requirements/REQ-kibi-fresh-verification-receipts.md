@@ -4,7 +4,6 @@ title: Requirement proof uses fresh snapshot-bound proof receipts
 status: closed
 created_at: 2026-08-10T00:00:00.000Z
 updated_at: 2026-08-10T00:00:00.000Z
-source: .kb/requirements/REQ-kibi-fresh-verification-receipts.md
 priority: must
 tags:
   - requirements

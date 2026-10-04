@@ -4,7 +4,6 @@ title: Unproved rule overlap remains unresolved
 status: active
 created_at: 2026-08-10T00:00:00.000Z
 updated_at: 2026-08-10T00:00:00.000Z
-source: .kb/facts/FACT-RULE-OVERLAP-UNRESOLVED.md
 tags:
   - lane:ontology
   - requirements

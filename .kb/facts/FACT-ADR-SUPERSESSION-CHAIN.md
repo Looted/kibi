@@ -4,7 +4,6 @@ title: ADR Supersession Chain Semantics
 status: active
 created_at: 2026-04-24T00:00:00.000Z
 updated_at: 2026-04-24T00:00:00.000Z
-source: .kb/facts/FACT-ADR-SUPERSESSION-CHAIN.md
 tags:
   - adr
   - schema

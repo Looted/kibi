@@ -4,7 +4,6 @@ title: Consistency Checking Scope
 status: active
 created_at: 2026-04-24T00:00:00Z
 updated_at: 2026-04-24T00:00:00Z
-source: .kb/facts/FACT-CONSISTENCY-CHECKING-SCOPE.md
 tags: [validation, check]
 fact_kind: property_value
 subject_key: kibi.consistency.checking

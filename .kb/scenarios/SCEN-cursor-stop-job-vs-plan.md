@@ -5,7 +5,6 @@ type: scenario
 status: active
 created_at: 2026-08-18T00:00:00.000Z
 updated_at: 2026-08-18T00:00:00.000Z
-source: .kb/scenarios/SCEN-cursor-stop-job-vs-plan.md
 tags:
   - scenario
   - cursor

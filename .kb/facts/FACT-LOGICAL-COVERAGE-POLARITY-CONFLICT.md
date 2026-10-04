@@ -4,7 +4,6 @@ title: Opposite polarity on one ground term is a blocking contradiction
 status: active
 created_at: 2026-08-04T00:00:00.000Z
 updated_at: 2026-08-04T00:00:00.000Z
-source: .kb/facts/FACT-LOGICAL-COVERAGE-POLARITY-CONFLICT.md
 tags:
   - lane:ontology
   - requirements

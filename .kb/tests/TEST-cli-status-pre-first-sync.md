@@ -4,7 +4,6 @@ title: CLI status is valid before first sync in workspace and packed installs
 status: active
 created_at: 2026-04-17T12:00:00.000Z
 updated_at: 2026-04-17T12:00:00.000Z
-source: .kb/tests/TEST-cli-status-pre-first-sync.md
 tags:
   - cli
   - status

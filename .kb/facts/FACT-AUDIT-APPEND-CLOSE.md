@@ -4,7 +4,6 @@ title: Audit appends release the journal write lock
 status: active
 created_at: 2026-08-11T00:00:00Z
 updated_at: 2026-08-11T00:00:00Z
-source: .kb/facts/FACT-AUDIT-APPEND-CLOSE.md
 tags: [lane:ontology, audit, persistence, locking]
 fact_kind: predicate
 predicate_namespace: kibi.audit

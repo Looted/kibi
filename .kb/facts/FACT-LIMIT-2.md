@@ -4,7 +4,6 @@ title: Maximum of Two
 status: active
 created_at: 2026-02-20T13:00:00Z
 updated_at: 2026-04-21T10:00:00Z
-source: .kb/facts/FACT-LIMIT-2.md
 tags: [cardinality]
 fact_kind: property_value
 subject_key: user.role_assignment

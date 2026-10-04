@@ -4,7 +4,6 @@ title: Unfresh or invalid receipts cannot prove requirements
 status: active
 created_at: 2026-08-10T00:00:00Z
 updated_at: 2026-08-10T00:00:00Z
-source: .kb/facts/FACT-VERIFICATION-RECEIPT-REJECTS-INVALID.md
 tags: [lane:ontology, requirements, verification, receipts]
 fact_kind: predicate
 predicate_namespace: kibi.verification

@@ -4,7 +4,6 @@ title: GitHub Actions workflow handles npm publishing
 status: active
 created_at: 2026-02-25T15:50:00Z
 updated_at: 2026-04-21T00:00:00Z
-source: .kb/facts/FACT-009.md
 tags:
   - deployment
   - github-actions

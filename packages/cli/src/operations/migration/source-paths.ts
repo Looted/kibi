@@ -25,17 +25,22 @@ import {
   readTopLevelField,
   sliceFrontmatter,
   withTopLevelField,
+  withoutTopLevelField,
   writeFileAtomically,
 } from "./kb-sources.js";
 
 /**
- * The authored `source` frontmatter field names where an entity came from: a
- * workspace document, another entity, or a URL. It is provenance, distinct
- * from the compiled `source` (the entity's own file). Values written before
- * the canonical `.kb/` layout still name knowledge files by their old path:
- * under the retired `documentation/` tree, or relative to the knowledge root
- * (`requirements/REQ-x.md`). This module finds values that resolve to nothing
- * and the ones that map mechanically onto the file under `.kb/`.
+ * The authored `source` frontmatter field is dead data. The compiled
+ * `source` is always the entity's own file: the Markdown extractor ignores
+ * the field, and Kibi never writes it. Values written before the canonical
+ * `.kb/` layout still name knowledge files by their old path: under the
+ * retired `documentation/` tree, or relative to the knowledge root
+ * (`requirements/REQ-x.md`). This module finds the values that resolve to
+ * nothing (the `source-path-dangling` check) and every value `kibi migrate`
+ * repairs: a moved file is rewritten to its `.kb/` path, and a value that
+ * names the entity's own file or nothing Kibi can map is removed. A value
+ * naming another existing workspace path, an entity id or an http(s) URL is
+ * provenance and stays.
  */
 
 /** One authored `source` value and the entity file that carries it. */
@@ -52,20 +57,39 @@ export type AuthoredSourceScan = Readonly<{
   entityIds: ReadonlySet<string>;
 }>;
 
+// implements REQ-core-validation-rules, REQ-kibi-schema6-migration
 export type SourceResolution =
   | Readonly<{ kind: "missing" | "path" | "entity" | "url" }>
+  /** Names the entity's own file; `resolves` is false when that spelling names no existing path. */
+  | Readonly<{ kind: "self"; resolves: boolean }>
   | Readonly<{ kind: "dangling"; rewrite?: string }>;
 
-/** One `source` value that resolves to nothing. */
-export type DanglingSource = AuthoredSourceRef &
+/** Why `kibi migrate` removes an authored `source` value. */
+// implements REQ-kibi-schema6-migration
+export type SourceRemovalReason = "self" | "dangling";
+
+/** The edit `kibi migrate` makes to one authored `source` value. */
+// implements REQ-kibi-schema6-migration
+export type SourceFix =
+  | Readonly<{ kind: "rewrite"; to: string }>
+  | Readonly<{ kind: "remove"; reason: SourceRemovalReason }>;
+
+/** One authored `source` value that is redundant or resolves to nothing. */
+// implements REQ-core-validation-rules, REQ-kibi-schema6-migration
+export type SourceRepair = AuthoredSourceRef &
   Readonly<{
-    /** The moved `.kb/` file the value maps onto, when it exists. */
-    rewrite?: string;
+    /** Names no existing path, entity id or URL: `source-path-dangling` blocks it. */
+    dangling: boolean;
+    fix: SourceFix;
+    /** Why the value cannot be edited safely; a person must edit it. */
+    refused?: string;
   }>;
 
 const URL_PATTERN = /^https?:\/\/\S+$/i;
 const LEGACY_ROOT = "documentation/";
 const SYMBOL_ID_LINE = /^[ \t]*-?[ \t]*id[ \t]*:[ \t]*(.+?)[ \t]*$/gm;
+const SOURCE_EDIT_REFUSED =
+  "the source field spans several lines, or editing it would change other frontmatter fields";
 
 function scalarText(value: unknown): string | undefined {
   if (typeof value === "string") return value.trim();
@@ -75,6 +99,12 @@ function scalarText(value: unknown): string | undefined {
 
 function unquote(value: string): string {
   return value.replace(/^(['"])(.*)\1$/, "$2");
+}
+
+/** An authored value as plain text, the form plans record and compare. */
+// implements REQ-core-validation-rules, REQ-kibi-schema6-migration
+export function shownSourceValue(value: unknown): string {
+  return typeof value === "string" ? value : (JSON.stringify(value) ?? "");
 }
 
 /**
@@ -114,17 +144,22 @@ const LEGACY_LANE_ROOTS = new Set<string>([...ENTITY_LANES, "symbols.yaml"]);
 
 /**
  * Resolve one authored `source` value: an existing workspace path (any
- * `#anchor` suffix ignored), an existing entity id or an http(s) URL. A
- * dangling `documentation/<lane>/...` or `<lane>/...` value carries the
+ * `#anchor` suffix ignored), an existing entity id or an http(s) URL. With
+ * the entity's own `file`, a value naming that file (canonical or
+ * pre-canonical spelling, `./` and `#anchor` ignored, compared
+ * case-insensitively) resolves to `self`. A dangling
+ * `documentation/<lane>/...` or `<lane>/...` value carries the
  * `.kb/<lane>/...` rewrite when that file exists.
  */
-// implements REQ-core-validation-rules, REQ-cli-schema-migration
+// implements REQ-core-validation-rules, REQ-kibi-schema6-migration
 export function resolveAuthoredSource(
   value: unknown,
   context: Readonly<{
     workspaceRoot: string;
     entityIds: ReadonlySet<string>;
     exists: (relativePath: string) => boolean;
+    /** Workspace-relative path of the entity's own file. */
+    file?: string;
   }>,
 ): SourceResolution {
   if (value === undefined || value === null) return { kind: "missing" };
@@ -139,7 +174,21 @@ export function resolveAuthoredSource(
     .trim()
     .replaceAll("\\", "/")
     .replace(/^\.\//, "");
-  if (relative !== "" && context.exists(relative)) return { kind: "path" };
+  const own = context.file?.toLowerCase();
+  const exists = relative !== "" && context.exists(relative);
+  if (own !== undefined && relative.toLowerCase() === own) {
+    return { kind: "self", resolves: exists };
+  }
+  // Another existing file is provenance, even when its path would map onto
+  // the entity's own file under .kb/.
+  if (exists) return { kind: "path" };
+  const lower = relative.toLowerCase();
+  const legacy = lower.startsWith(LEGACY_ROOT)
+    ? lower.slice(LEGACY_ROOT.length)
+    : lower;
+  if (own !== undefined && `${KB_ROOT}/${legacy}` === own) {
+    return { kind: "self", resolves: false };
+  }
   const rest = relative.startsWith(LEGACY_ROOT)
     ? relative.slice(LEGACY_ROOT.length)
     : relative;
@@ -171,33 +220,99 @@ export function workspacePathExists(
   };
 }
 
-/**
- * Every authored `source` value that resolves to nothing, sorted by entity
- * id. Each path is checked once per call. Read-only.
- */
-// implements REQ-core-validation-rules, REQ-cli-schema-migration
-export function findDanglingSources(workspaceRoot: string): DanglingSource[] {
-  const scan = scanAuthoredSources(workspaceRoot);
-  const context = {
-    workspaceRoot,
-    entityIds: scan.entityIds,
-    exists: workspacePathExists(workspaceRoot),
-  };
-  const dangling: DanglingSource[] = [];
-  for (const ref of scan.refs) {
-    const resolution = resolveAuthoredSource(ref.value, context);
-    if (resolution.kind !== "dangling") continue;
-    dangling.push(
-      resolution.rewrite !== undefined
-        ? { ...ref, rewrite: resolution.rewrite }
-        : ref,
-    );
+function repairFor(
+  ref: AuthoredSourceRef,
+  resolution: SourceResolution,
+): SourceRepair | undefined {
+  if (resolution.kind === "self") {
+    return {
+      ...ref,
+      dangling: !resolution.resolves,
+      fix: { kind: "remove", reason: "self" },
+    };
   }
-  return dangling.sort(
+  if (resolution.kind !== "dangling") return undefined;
+  return {
+    ...ref,
+    dangling: true,
+    fix:
+      resolution.rewrite !== undefined
+        ? { kind: "rewrite", to: resolution.rewrite }
+        : { kind: "remove", reason: "dangling" },
+  };
+}
+
+function editedContent(content: string, fix: SourceFix): string | null {
+  return fix.kind === "rewrite"
+    ? withTopLevelField(content, "source", fix.to)
+    : withoutTopLevelField(content, "source");
+}
+
+/** Every repairable source value, sorted by entity id. Read-only. */
+function classifySources(workspaceRoot: string): SourceRepair[] {
+  const scan = scanAuthoredSources(workspaceRoot);
+  const exists = workspacePathExists(workspaceRoot);
+  const repairs: SourceRepair[] = [];
+  for (const ref of scan.refs) {
+    const repair = repairFor(
+      ref,
+      resolveAuthoredSource(ref.value, {
+        workspaceRoot,
+        entityIds: scan.entityIds,
+        exists,
+        file: ref.file,
+      }),
+    );
+    if (repair !== undefined) repairs.push(repair);
+  }
+  return repairs.sort(
     (left, right) =>
       left.entityId.localeCompare(right.entityId) ||
       left.file.localeCompare(right.file),
   );
+}
+
+/** Mark the repairs whose edit would not read back as exactly that change. */
+function withEditability(
+  workspaceRoot: string,
+  repairs: readonly SourceRepair[],
+): SourceRepair[] {
+  return repairs.map((repair) => {
+    const content = readText(path.join(workspaceRoot, repair.file));
+    if (content !== null && editedContent(content, repair.fix) !== null) {
+      return repair;
+    }
+    return {
+      ...repair,
+      refused:
+        content === null
+          ? "the entity file cannot be read"
+          : SOURCE_EDIT_REFUSED,
+    };
+  });
+}
+
+/**
+ * Every authored `source` value that resolves to nothing, sorted by entity
+ * id, with the fix `kibi migrate` makes and, when the edit is not safe, why.
+ * Each path is checked once per call. Read-only.
+ */
+// implements REQ-core-validation-rules, REQ-kibi-schema6-migration
+export function findDanglingSources(workspaceRoot: string): SourceRepair[] {
+  return withEditability(
+    workspaceRoot,
+    classifySources(workspaceRoot).filter((repair) => repair.dangling),
+  );
+}
+
+/**
+ * Every authored `source` value `kibi migrate` rewrites or removes: the
+ * dangling ones plus existing values that name the entity's own file.
+ * Read-only.
+ */
+// implements REQ-kibi-schema6-migration
+export function findSourceRepairs(workspaceRoot: string): SourceRepair[] {
+  return withEditability(workspaceRoot, classifySources(workspaceRoot));
 }
 
 export type SourcePathRewrite = Readonly<{
@@ -207,64 +322,115 @@ export type SourcePathRewrite = Readonly<{
   to: string;
 }>;
 
-export type SourcePathRewriteResult = Readonly<{
-  written: readonly SourcePathRewrite[];
+// implements REQ-kibi-schema6-migration
+export type SourcePathRemoval = Readonly<{
+  entityId: string;
+  file: string;
+  from: string;
+  reason: SourceRemovalReason;
+}>;
+
+// implements REQ-kibi-schema6-migration
+export type PlannedSourcePathRepairs = Readonly<{
+  rewrites: readonly SourcePathRewrite[];
+  removals: readonly SourcePathRemoval[];
+}>;
+
+// implements REQ-kibi-schema6-migration
+export type SourcePathRepairResult = Readonly<{
+  rewritten: readonly SourcePathRewrite[];
+  removed: readonly SourcePathRemoval[];
   skipped: readonly Readonly<{ file: string; reason: string }>[];
 }>;
 
+type PlannedRepair = SourcePathRewrite | SourcePathRemoval;
+
+function plannedRepair(repair: SourceRepair): PlannedRepair {
+  const base = {
+    entityId: repair.entityId,
+    file: repair.file,
+    from: shownSourceValue(repair.value),
+  };
+  return repair.fix.kind === "rewrite"
+    ? { ...base, to: repair.fix.to }
+    : { ...base, reason: repair.fix.reason };
+}
+
 /**
- * Rewrite each dangling `documentation/<lane>/...` or `<lane>/...` source to
- * the `.kb/<lane>/...` file it names, editing only the `source` line. With `planned`, only
- * those rewrites are applied, and only while the value still reads as planned.
- * Idempotent: a rewritten value resolves and is not found again.
+ * The rewrite and removal records a migration plan lists for these repairs.
+ * Repairs Kibi cannot edit safely are left out; they need a person.
  */
-// implements REQ-cli-schema-migration
-export function applySourcePathRewrites(
+// implements REQ-kibi-schema6-migration
+export function plannedSourcePathRepairs(
+  repairs: readonly SourceRepair[],
+): PlannedSourcePathRepairs {
+  const rewrites: SourcePathRewrite[] = [];
+  const removals: SourcePathRemoval[] = [];
+  for (const repair of repairs) {
+    if (repair.refused !== undefined) continue;
+    const planned = plannedRepair(repair);
+    if ("to" in planned) rewrites.push(planned);
+    else removals.push(planned);
+  }
+  return { rewrites, removals };
+}
+
+function samePlannedRepair(left: PlannedRepair, right: PlannedRepair): boolean {
+  if (left.entityId !== right.entityId || left.from !== right.from) {
+    return false;
+  }
+  if ("to" in left) return "to" in right && left.to === right.to;
+  return "reason" in right && left.reason === right.reason;
+}
+
+/**
+ * Repair each redundant or dead `source` value, editing only its line: a
+ * moved knowledge file is rewritten to its `.kb/` path, and a value naming
+ * the entity's own file or nothing Kibi can map is removed. With `planned`,
+ * only those repairs are applied, and only while the value still reads as
+ * planned. A value that cannot be edited safely is skipped with a reason.
+ * Idempotent: a repaired value is not found again.
+ */
+// implements REQ-kibi-schema6-migration
+export function applySourcePathRepairs(
   workspaceRoot: string,
-  planned?: readonly SourcePathRewrite[],
-): SourcePathRewriteResult {
+  planned?: PlannedSourcePathRepairs,
+): SourcePathRepairResult {
   const wanted =
     planned === undefined
       ? undefined
-      : new Map(planned.map((rewrite) => [rewrite.file, rewrite]));
-  const written: SourcePathRewrite[] = [];
+      : new Map<string, PlannedRepair>(
+          [...planned.rewrites, ...planned.removals].map((repair) => [
+            repair.file,
+            repair,
+          ]),
+        );
+  const rewritten: SourcePathRewrite[] = [];
+  const removed: SourcePathRemoval[] = [];
   const skipped: Array<{ file: string; reason: string }> = [];
-  for (const source of findDanglingSources(workspaceRoot)) {
-    if (source.rewrite === undefined || typeof source.value !== "string") {
-      continue;
-    }
-    const rewrite: SourcePathRewrite = {
-      entityId: source.entityId,
-      file: source.file,
-      from: source.value,
-      to: source.rewrite,
-    };
+  for (const repair of classifySources(workspaceRoot)) {
+    const current = plannedRepair(repair);
     if (wanted !== undefined) {
-      const plan = wanted.get(source.file);
+      const plan = wanted.get(repair.file);
       if (plan === undefined) continue;
-      if (plan.from !== rewrite.from || plan.to !== rewrite.to) {
+      if (!samePlannedRepair(plan, current)) {
         skipped.push({
-          file: source.file,
+          file: repair.file,
           reason: "source changed since planning",
         });
         continue;
       }
     }
-    const absolute = path.join(workspaceRoot, source.file);
+    const absolute = path.join(workspaceRoot, repair.file);
     const content = readText(absolute);
-    const next =
-      content === null
-        ? null
-        : withTopLevelField(content, "source", rewrite.to);
+    const next = content === null ? null : editedContent(content, repair.fix);
     if (next === null) {
-      skipped.push({
-        file: source.file,
-        reason: "source could not be rewritten without changing other fields",
-      });
+      skipped.push({ file: repair.file, reason: SOURCE_EDIT_REFUSED });
       continue;
     }
     writeFileAtomically(absolute, next);
-    written.push(rewrite);
+    if ("to" in current) rewritten.push(current);
+    else removed.push(current);
   }
-  return { written, skipped };
+  return { rewritten, removed, skipped };
 }

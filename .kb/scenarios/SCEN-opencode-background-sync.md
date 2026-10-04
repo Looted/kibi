@@ -4,7 +4,6 @@ title: OpenCode Background Sync Scheduling
 type: scenario
 status: active
 created_at: 2026-05-13T00:00:00Z
-source: .kb/scenarios/SCEN-opencode-background-sync.md
 priority: must
 tags:
   - opencode

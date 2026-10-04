@@ -4,7 +4,6 @@ title: Proof-bearing E2E tests retain append-only receipt history
 status: superseded
 created_at: 2026-08-10T00:00:00.000Z
 updated_at: 2026-08-10T00:00:00.000Z
-source: .kb/facts/FACT-VERIFICATION-RECEIPT-HISTORY.md
 tags:
   - lane:ontology
   - requirements

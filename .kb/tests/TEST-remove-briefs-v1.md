@@ -4,7 +4,6 @@ title: Briefing removal verification plan
 status: passing
 created_at: 2026-05-28T00:00:00.000Z
 updated_at: 2026-05-28T00:00:00.000Z
-source: .kb/tests/TEST-remove-briefs-v1.md
 priority: must
 tags:
   - removal

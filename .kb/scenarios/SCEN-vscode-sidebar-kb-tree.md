@@ -4,7 +4,6 @@ title: 'VS Code: Structural TreeView implementation'
 type: scenario
 status: active
 created_at: 2026-05-13T00:00:00.000Z
-source: .kb/scenarios/SCEN-vscode-sidebar-kb-tree.md
 priority: must
 tags:
   - vscode

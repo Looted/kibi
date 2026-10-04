@@ -4,7 +4,6 @@ title: MCP upsert preflight surfaces semantic advisor receipts
 status: open
 created_at: 2026-06-07T00:00:00.000Z
 updated_at: 2026-06-07T00:00:00.000Z
-source: packages/mcp/src/semantic-advisor/analyze-prose.ts
 priority: high
 tags:
   - mcp

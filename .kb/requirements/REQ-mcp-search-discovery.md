@@ -4,7 +4,6 @@ title: Curated discovery and reporting tools are available through MCP and CLI
 status: open
 created_at: 2026-03-22T00:00:00.000Z
 updated_at: 2026-03-22T18:30:00.000Z
-source: .kb/requirements/REQ-mcp-search-discovery.md
 priority: must
 tags:
   - mcp

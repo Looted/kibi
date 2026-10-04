@@ -5,7 +5,6 @@ type: scenario
 status: active
 created_at: 2026-08-11T00:00:00Z
 updated_at: 2026-08-11T00:00:00Z
-source: .kb/scenarios/SCEN-core-journaled-engine-delta-sync.md
 tags: [cli, sync, performance]
 links:
   - type: verified_by

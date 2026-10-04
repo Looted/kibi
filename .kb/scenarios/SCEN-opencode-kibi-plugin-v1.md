@@ -5,7 +5,6 @@ type: scenario
 status: active
 created_at: 2026-04-13T10:00:00Z
 updated_at: 2026-05-13T00:00:00Z
-source: .kb/scenarios/SCEN-opencode-kibi-plugin-v1.md
 links:
   - type: verified_by
     target: TEST-opencode-kibi-plugin-v1

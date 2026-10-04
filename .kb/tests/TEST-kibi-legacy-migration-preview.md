@@ -4,7 +4,6 @@ title: Legacy migration preview vertical-slice tests
 status: passing
 created_at: 2026-08-11T00:00:00.000Z
 updated_at: 2026-08-11T00:00:00.000Z
-source: .kb/tests/TEST-kibi-legacy-migration-preview.md
 verification_scope: end_to_end
 verification_perspective: consumer
 tags:

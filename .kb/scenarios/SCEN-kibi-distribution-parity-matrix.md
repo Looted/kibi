@@ -4,7 +4,6 @@ title: Compare requirement-compiler semantics across actual runtime resolutions
 status: active
 created_at: 2026-08-10T00:00:00Z
 updated_at: 2026-08-10T00:00:00Z
-source: .kb/scenarios/SCEN-kibi-distribution-parity-matrix.md
 tags: [parity, distribution, dogfood, packed, cli, mcp, e2e]
 links:
   - type: verified_by

@@ -4,7 +4,6 @@ title: Publishing workflow triggers on master branch push
 status: active
 created_at: 2026-02-25T15:50:00Z
 updated_at: 2026-04-21T00:00:00Z
-source: .kb/facts/FACT-010.md
 tags:
   - deployment
   - github-actions

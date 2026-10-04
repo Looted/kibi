@@ -4,7 +4,6 @@ title: Compare change-to-proof outcomes across KB migrations
 status: active
 created_at: 2026-08-13T00:00:00.000Z
 updated_at: 2026-08-13T00:00:00.000Z
-source: .kb/scenarios/SCEN-kibi-change-to-proof-evaluation.md
 tags:
   - evaluation
   - search
