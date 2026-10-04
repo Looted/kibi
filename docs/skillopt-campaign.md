@@ -88,8 +88,8 @@ baseline hash, frontmatter hash, resource hash, insertion anchor, paragraph
 shape, source cleanliness, fixture readiness, and target-cell cap. It then
 freezes all bodies, initializes the private cross-process target budget,
 creates a fresh fixture root, and runs preflight and the capability canary. The
-live screen uses the existing Luna medium target profile and Sol xhigh
-optimizer profile, with source head/tree and all skill-resource fences checked
+live screen uses the configured target and optimizer profiles (Luna medium and
+Sol xhigh unless overridden; see [Model configuration](skillopt.md#model-configuration)), with source head/tree and all skill-resource fences checked
 again before completion. Development tasks are generated programmatically;
 private manifests are consumed internally and are never printed.
 
