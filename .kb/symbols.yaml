@@ -48242,3 +48242,55 @@ symbols:
         target: TEST-kibi-kb-lifecycle-integrity
       - type: implements
         target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-skillopt-mcp-model-modes
+    title: MODEL_MODE_OPERATIONS
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/mcp-tool-names.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T12:15:17.280Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-kibi-mcp-tool-consolidation
+  - id: SYM-skillopt-mcp-routed-operation
+    title: routedOperationName
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/mcp-tool-names.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T12:20:31.949Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-mcp-call-arguments
+    title: toolCallArguments
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/mcp-tool-names.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T12:20:52.940Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-kibi-mcp-tool-consolidation
+  - id: SYM-skillopt-mcp-operation-tool
+    title: mcpToolForOperation
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/mcp-tool-names.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T12:21:14.729Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-kibi-mcp-tool-consolidation

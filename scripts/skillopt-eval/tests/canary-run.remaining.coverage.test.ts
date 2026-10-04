@@ -98,6 +98,22 @@ describe("runModelCanary remaining event and IO failure branches", () => {
       expect(prompt).toContain(
         "exactly once to execute ./.runtime/canary-probe",
       );
+      if (role === "optimizer") {
+        const payload = prompt.match(
+          /with these JSON arguments: (\{.+\})\. Wait/,
+        );
+        expect(JSON.parse(payload?.[1] ?? "null")).toEqual({
+          mode: "analyze",
+          text: "A session timeout must be 30 minutes.",
+          _diagnostic_telemetry: {
+            is_autonomous: true,
+            reasoning: expect.any(String),
+            confidence_score: 1,
+            attempt_number: 1,
+            missing_context: "",
+          },
+        });
+      }
       // Naming the current executor must never admit a final success claim
       // when the model supplied no completed command evidence.
       expect(result).toMatchObject({

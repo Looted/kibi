@@ -1,6 +1,7 @@
 /**
  * The Kibi MCP server reaches some catalog operations through consolidated
- * tools: `kb_model` dispatches by `mode`, and `kb_upsert` with `dryRun: true`
+ * tools: `kb_model` dispatches by `mode`, `kb_skills` by `action`, and
+ * `kb_upsert` with `dryRun: true`
  * is the read-only validation preflight. Its diagnostic usage log records the
  * routed catalog operation name, so evaluator evidence normalizes broker trace
  * calls the same way before comparing them with rubric predicates and usage
@@ -25,6 +26,11 @@ export function routedOperationName(
 ): string {
   if (toolName === "kb_model" && typeof args.mode === "string") {
     return MODEL_MODE_OPERATIONS[args.mode] ?? toolName;
+  }
+  if (toolName === "kb_skills") {
+    if (args.action === "list") return "kb_skills_list";
+    if (args.action === "load") return "kb_skills_load";
+    if (args.action === "read") return "kb_skills_read";
   }
   if (toolName === "kb_upsert" && args.dryRun === true) {
     return "kb_validate_upsert";

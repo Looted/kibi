@@ -202,3 +202,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b0296a4058f3
+  - type: implements
+    from: SYM-skillopt-mcp-model-modes
+    to: REQ-kibi-mcp-tool-consolidation
+    created_at: 2026-10-04T12:15:17.941Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1ed2158fc5b6
+  - type: covered_by
+    from: SYM-skillopt-mcp-model-modes
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-10-04T12:15:17.953Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2aba1dd4a6e4
