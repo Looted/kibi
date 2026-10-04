@@ -24,6 +24,7 @@ import {
 import type { Violation } from "../../utils/rule-registry.js";
 
 /** An authored source field that names no path, entity or URL. */
+// implements REQ-core-validation-rules, REQ-kibi-kb-lifecycle-integrity
 export const SOURCE_PATH_DANGLING_RULE = "source-path-dangling";
 
 function suggestion(source: SourceRepair): string {

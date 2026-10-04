@@ -33,14 +33,17 @@ import {
 } from "./kb-sources.js";
 
 /** One authored entity the v5 -> v6 migration stamps with an origin. */
+// implements REQ-kibi-entity-origin, REQ-cli-schema-migration
 export type OriginBackfillTarget = Readonly<{
   id: string;
   type: string;
   path: string;
 }>;
 
+// implements REQ-kibi-entity-origin, REQ-cli-schema-migration
 export type OriginBackfillSkip = Readonly<{ path: string; reason: string }>;
 
+// implements REQ-kibi-entity-origin, REQ-cli-schema-migration
 export type OriginBackfillPlan = Readonly<{
   targets: readonly OriginBackfillTarget[];
   /** Files Kibi cannot stamp safely; sync reports most of them anyway. */
@@ -129,6 +132,7 @@ export function planOriginBackfill(workspaceRoot: string): OriginBackfillPlan {
 }
 
 /** The origin recorded on entities the v5 -> v6 migration backfills. */
+// implements REQ-kibi-entity-origin, REQ-cli-schema-migration
 export function migrationOrigin(recordedAt: string): EntityOrigin {
   return {
     kind: "migration",
@@ -172,6 +176,7 @@ export function withBackfilledOrigin(
   return `${slice.prefix}${text}${slice.suffix}`;
 }
 
+// implements REQ-kibi-entity-origin, REQ-cli-schema-migration
 export type OriginBackfillResult = Readonly<{
   written: readonly OriginBackfillTarget[];
   skipped: readonly OriginBackfillSkip[];

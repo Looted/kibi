@@ -1,11 +1,13 @@
 import type { PrologQueryResult } from "../../src/public/operations/runtime-types.js";
 
 /** True for the rolled-back staging goal kb_apply_plan and kb_compile_intent run. */
+// implements REQ-kibi-truthful-consistency
 export function isWhatIfGoal(goal: string): boolean {
   return goal.includes("checks:what_if_analysis_json(");
 }
 
 /** What-if analysis result for a plan that introduces and resolves nothing. */
+// implements REQ-kibi-truthful-consistency
 export function whatIfResult(
   analysis: Readonly<{
     introduced?: readonly Record<string, unknown>[];

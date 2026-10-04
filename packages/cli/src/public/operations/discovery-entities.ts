@@ -410,6 +410,7 @@ export async function loadEntityIds(
  * (receipt histories, proof contracts, semantic inventories, rule IR) are
  * left in the store, as for search candidate rows.
  */
+// implements REQ-kibi-search-answer-layer-v2
 export const ENTITY_ROW_KEYS = [
   "id",
   "title",
@@ -437,6 +438,7 @@ export const ENTITY_ROW_KEYS = [
 ] as const;
 
 /** Upper bound on ids per batched row query, so one answer stays bounded. */
+// implements REQ-kibi-search-answer-layer-v2
 export const ENTITY_ROW_BATCH_LIMIT = 200;
 
 // implements REQ-mcp-search-discovery, REQ-kibi-search-answer-layer-v2

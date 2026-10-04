@@ -15,8 +15,10 @@ import { normalizeKey } from "./shared.js";
  * reader cannot translate is reported as `unparsed`, so the caller keeps it
  * unresolved instead of downgrading it to an observation that looks modeled.
  */
+// implements REQ-kibi-conditional-requirement-authoring
 export type ConditionalRuleShape = "only_when" | "unless";
 
+// implements REQ-kibi-conditional-requirement-authoring
 export type ConditionalRuleMatch =
   | Readonly<{
       kind: "rule";

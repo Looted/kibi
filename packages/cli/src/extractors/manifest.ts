@@ -655,6 +655,7 @@ function scopeFileHash(absolutePath: string): string {
 // implements REQ-kibi-fresh-verification-receipts-v2
 export const OUTSIDE_WORKSPACE_SCOPE_HASH = "outside-workspace";
 
+// implements REQ-kibi-fresh-verification-receipts-v2
 export function resolveBoundSymbolScope(
   manifestPath: string,
   symbolIds: readonly string[],

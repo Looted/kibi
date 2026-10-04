@@ -61,14 +61,19 @@ import {
 } from "./superseded-closure.js";
 
 /** The KB schema generation that introduced entity `origin`. */
+// implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export const ORIGIN_SCHEMA_VERSION = 6;
 
 /** Automatic: re-derive a drifted inventory with the current advisor. */
+// implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export const SEMANTIC_INVENTORY_REDERIVE_CODE = "semantic_inventory_rederive";
 /** Review: a drifted inventory Kibi cannot re-derive safely. */
+// implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export const SEMANTIC_INVENTORY_REVIEW_CODE = "semantic_inventory_review";
 /** Automatic: stamp `origin: {kind: migration}` on authored entities. */
+// implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export const ENTITY_ORIGIN_BACKFILL_CODE = "entity_origin_backfill";
+// implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export const ENTITY_ORIGIN_BACKFILL_ACTION_ID = "entity-origin-backfill";
 export {
   CLOSE_SUPERSEDED_REQUIREMENTS_CODE,
@@ -208,6 +213,7 @@ export function unapprovedExceptionsFromSources(
     .sort((left, right) => left.exceptionId.localeCompare(right.exceptionId));
 }
 
+// implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export type Schema6MigrationFragment = Readonly<{
   actions: readonly MigrationAction[];
   /** Automatic actions that rewrite authored sources. */
@@ -349,6 +355,7 @@ export function buildLifecycleRepairActions(workspaceRoot: string): {
 }
 
 /** The sync that recompiles sources rewritten by earlier actions. */
+// implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export function migrationSyncAction(
   dependsOn: readonly string[],
 ): MigrationAction {
@@ -465,6 +472,7 @@ export async function applySchema6MigrationAction(
   }
 }
 
+// implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export const SCHEMA6_AUTOMATIC_CODES: ReadonlySet<string> = new Set([
   SEMANTIC_INVENTORY_REDERIVE_CODE,
   ENTITY_ORIGIN_BACKFILL_CODE,

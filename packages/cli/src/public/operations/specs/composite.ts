@@ -75,18 +75,21 @@ export async function dispatchComposite(
   };
 }
 
+// implements REQ-kibi-mcp-tool-consolidation
 export const SKILL_ROUTES = {
   list: skillsListSpec,
   load: skillsLoadSpec,
   read: skillsReadSpec,
 } as const;
 
+// implements REQ-kibi-mcp-tool-consolidation
 export const MODEL_ROUTES = {
   analyze: semanticAdvisorSpec,
   requirement: modelRequirementSpec,
   predicates: suggestPredicatesSpec,
 } as const;
 
+// implements REQ-kibi-mcp-tool-consolidation
 export const skillsSpec = {
   name: "kb_skills",
   cliName: "skill",
@@ -110,6 +113,7 @@ export const skillsSpec = {
     dispatchComposite("action", SKILL_ROUTES, input, context),
 } as const satisfies OperationSpec;
 
+// implements REQ-kibi-mcp-tool-consolidation
 export const modelSpec = {
   name: "kb_model",
   cliName: "model",

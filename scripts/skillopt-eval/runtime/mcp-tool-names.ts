@@ -7,6 +7,7 @@
  * receipts. Keep this mapping identical to `routedOperationName` in
  * `packages/mcp/src/diagnostics.ts`.
  */
+// implements REQ-kibi-mcp-tool-consolidation
 export const MODEL_MODE_OPERATIONS: Readonly<Record<string, string>> = {
   analyze: "kb_semantic_advisor",
   requirement: "kb_model_requirement",
@@ -32,6 +33,7 @@ export function routedOperationName(
 }
 
 /** Arguments of a JSON-RPC `tools/call` request payload, or `{}`. */
+// implements REQ-kibi-mcp-tool-consolidation
 export function toolCallArguments(payload: unknown): Record<string, unknown> {
   if (!isRecord(payload) || !isRecord(payload.params)) return {};
   return isRecord(payload.params.arguments) ? payload.params.arguments : {};
@@ -48,6 +50,7 @@ const OPERATION_MCP_TOOLS: Readonly<Record<string, string>> = {
 };
 
 /** The default MCP tool that reaches a catalog operation. */
+// implements REQ-kibi-mcp-tool-consolidation
 export function mcpToolForOperation(operation: string): string {
   return OPERATION_MCP_TOOLS[operation] ?? operation;
 }

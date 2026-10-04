@@ -529,6 +529,7 @@ function buildDocumentFrequency(
 }
 
 /** Markdown bodies already read in this search, keyed by entity source. */
+// implements REQ-kibi-search-answer-layer-v2
 export type MarkdownBodyCache = Map<string, string | null>;
 
 /** Files read at once, well under common open-file limits. */

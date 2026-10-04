@@ -34,6 +34,7 @@ export const ENTITY_ORIGIN_KINDS = [
   "import",
 ] as const;
 
+// implements REQ-kibi-entity-origin
 export type EntityOriginKind = (typeof ENTITY_ORIGIN_KINDS)[number];
 
 // implements REQ-kibi-entity-origin
@@ -49,6 +50,7 @@ export type EntityOrigin = {
 };
 
 /** `ref` recorded on entities backfilled by the schema v5 -> v6 migration. */
+// implements REQ-kibi-entity-origin
 export const SCHEMA6_MIGRATION_ORIGIN_REF = "kibi migrate v5->v6";
 
 const ISO_TIMESTAMP_PATTERN =

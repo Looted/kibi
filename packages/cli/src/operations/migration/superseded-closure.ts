@@ -38,9 +38,11 @@ import {
  */
 
 /** The terminal requirement status. */
+// implements REQ-cli-schema-migration, REQ-kibi-kb-lifecycle-integrity
 export const CLOSED_REQUIREMENT_STATUS = "closed";
 
 /** A superseded requirement whose status is not closed. */
+// implements REQ-cli-schema-migration, REQ-kibi-kb-lifecycle-integrity
 export type SupersededClosure = Readonly<{
   id: string;
   /** Workspace-relative path of the requirement's file. */
@@ -50,12 +52,14 @@ export type SupersededClosure = Readonly<{
 }>;
 
 /** Requirements that supersede each other, directly or through a chain. */
+// implements REQ-cli-schema-migration, REQ-kibi-kb-lifecycle-integrity
 export type SupersessionCycle = Readonly<{
   members: readonly string[];
   edges: readonly (readonly [string, string])[];
   files: readonly string[];
 }>;
 
+// implements REQ-cli-schema-migration, REQ-kibi-kb-lifecycle-integrity
 export type SupersessionPlan = Readonly<{
   closures: readonly SupersededClosure[];
   cycles: readonly SupersessionCycle[];
@@ -212,6 +216,7 @@ export function planSupersededClosures(
   };
 }
 
+// implements REQ-cli-schema-migration, REQ-kibi-kb-lifecycle-integrity
 export type SupersededClosureResult = Readonly<{
   closed: readonly SupersededClosure[];
   skipped: readonly Readonly<{ path: string; reason: string }>[];

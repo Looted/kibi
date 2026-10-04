@@ -578,6 +578,7 @@ function unmatchedClauseSuggestion(
   );
 }
 
+// implements REQ-kibi-conditional-requirement-authoring
 export function propositionRole(
   statement: string,
   normative: boolean,

@@ -40,13 +40,16 @@ export type SearchAnswerEntity = Readonly<{
  * A test verifying a governing requirement. `via` is `"direct"` for a test
  * linked to the requirement itself, or the id of the scenario it verifies.
  */
+// implements REQ-kibi-search-answer-layer-v2
 export type SearchAnswerTest = SearchAnswerEntity & Readonly<{ via: string }>;
 
 /** An ADR with the opening of its decision (or rationale) section. */
+// implements REQ-kibi-search-answer-layer-v2
 export type SearchAnswerRationale = SearchAnswerEntity &
   Readonly<{ source?: string; excerpt?: string }>;
 
 /** A blocking finding of an existing check that names the requirement. */
+// implements REQ-kibi-search-answer-layer-v2
 export type SearchAnswerWitness = Readonly<{
   check: "domain-contradictions" | "scenario-feasibility";
   status: "contradiction" | "infeasible";
@@ -63,6 +66,7 @@ export type SearchAnswerWitness = Readonly<{
  * still ambiguous or ontology gaps, a missing clause ledger, or a verdict
  * that could not be computed.
  */
+// implements REQ-kibi-search-answer-layer-v2
 export type SearchAnswerUnknown = Readonly<{
   kind:
     | "contradiction_unresolved"
@@ -74,6 +78,7 @@ export type SearchAnswerUnknown = Readonly<{
   entities: readonly string[];
 }>;
 
+// implements REQ-kibi-search-answer-layer-v2
 export type SearchAnswerVerdict = Readonly<{
   /**
    * The worst finding: `contradiction` or `infeasible` when a blocking
@@ -85,9 +90,11 @@ export type SearchAnswerVerdict = Readonly<{
 }>;
 
 /** A requirement that `exempts` the governing one. */
+// implements REQ-kibi-search-answer-layer-v2
 export type SearchAnswerException = SearchAnswerEntity &
   Readonly<{ approvedBy?: string }>;
 
+// implements REQ-kibi-search-answer-layer-v2
 export type SearchAnswerRequirement = SearchAnswerEntity &
   Readonly<{
     score: number;
@@ -102,12 +109,14 @@ export type SearchAnswerRequirement = SearchAnswerEntity &
   }>;
 
 /** The KB the answer was computed from. */
+// implements REQ-kibi-search-answer-layer-v2
 export type SearchAnswerScope = Readonly<{
   branch: string | null;
   snapshotId: string;
   syncedAt: string | null;
 }>;
 
+// implements REQ-kibi-search-answer-layer-v2
 export type SearchAnswer = Readonly<{
   version: "kibi.search-answer.v1";
   governing: readonly SearchAnswerRequirement[];
@@ -119,6 +128,7 @@ export type SearchAnswer = Readonly<{
   note: string;
 }>;
 
+// implements REQ-kibi-search-answer-layer-v2
 export type SearchAnswerOptions = Readonly<{
   /** Root that ADR sources resolve against; without it no excerpts. */
   workspaceRoot?: string;
@@ -168,6 +178,7 @@ const ROW_KEYS = [
   "sourceFile",
 ] as const;
 
+// implements REQ-kibi-search-answer-layer-v2
 export const SEARCH_ANSWER_LIMITS = {
   seeds: 10,
   governing: 5,

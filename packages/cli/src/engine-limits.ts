@@ -28,10 +28,13 @@
  */
 
 /** Envelope error code for a read stopped at its limit. */
+// implements REQ-core-engine-read-limits
 export const QUERY_LIMIT_EXCEEDED_CODE = "QUERY_LIMIT_EXCEEDED";
 
 /** Environment opt-in for read limits on every engine client. */
+// implements REQ-core-engine-read-limits
 export const ENGINE_READ_TIME_LIMIT_ENV = "KIBI_ENGINE_READ_TIME_LIMIT_MS";
+// implements REQ-core-engine-read-limits
 export const ENGINE_READ_INFERENCE_LIMIT_ENV =
   "KIBI_ENGINE_READ_INFERENCE_LIMIT";
 
@@ -39,9 +42,11 @@ export const ENGINE_READ_INFERENCE_LIMIT_ENV =
  * Upper bound for a requested time limit. The daemon's SWI process kills a
  * query at 120 s and recycles the session; a bounded read must end first.
  */
+// implements REQ-core-engine-read-limits
 export const ENGINE_READ_TIME_LIMIT_CAP_MS = 115_000;
 const ENGINE_READ_INFERENCE_LIMIT_CAP = 1_000_000_000_000;
 
+// implements REQ-core-engine-read-limits
 export type EngineQueryLimits = Readonly<{
   /** Wall-clock budget for the Prolog goal, in milliseconds. */
   timeMs?: number;
@@ -49,6 +54,7 @@ export type EngineQueryLimits = Readonly<{
   inferences?: number;
 }>;
 
+// implements REQ-core-engine-read-limits
 export type EngineLimitExceeded = Readonly<{
   kind: "time" | "inferences";
   limit: number;
@@ -233,6 +239,7 @@ export function queryLimitExceededOf(
 }
 
 /** Reject an engine answer that reports a limit hit. */
+// implements REQ-core-engine-read-limits
 export function assertWithinQueryLimits(value: unknown): void {
   if (value === null || typeof value !== "object") return;
   const hit = (value as { limitExceeded?: unknown }).limitExceeded;

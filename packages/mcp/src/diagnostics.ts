@@ -422,6 +422,7 @@ const SKILL_ACTION_OPERATIONS: Readonly<Record<string, string>> = {
 };
 
 /** Composite tools report diagnostics under the operation they routed to. */
+// implements REQ-kibi-mcp-tool-consolidation
 export function routedOperationName(
   toolName: string,
   args: Record<string, unknown>,
@@ -439,6 +440,7 @@ export function routedOperationName(
  * The business arguments the routed operation received: the composite's
  * selector is dropped, so a usage entry matches the narrow CLI route's entry.
  */
+// implements REQ-kibi-mcp-tool-consolidation
 export function routedBusinessArgs(
   toolName: string,
   args: Record<string, unknown>,

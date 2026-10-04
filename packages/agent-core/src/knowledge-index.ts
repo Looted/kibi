@@ -411,6 +411,7 @@ const ENTITY_LANES: readonly [prefix: string, lane: string][] = [
 
 const SAFE_ENTITY_ID = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
 
+// implements REQ-agent-core-edit-snippets
 export type EntityLink = { type: string; target: string };
 
 export type EntitySummary = {

@@ -84,6 +84,7 @@ type InventoryEntry = {
 };
 
 /** What re-derivation changed for one claim. */
+// implements REQ-kibi-proposition-complete-ingestion, REQ-cli-schema-migration
 export type InventoryClaimChange = Readonly<{
   claim_key: string;
   change:
@@ -99,6 +100,7 @@ export type InventoryClaimChange = Readonly<{
   after?: Readonly<{ role: string; status: string }>;
 }>;
 
+// implements REQ-kibi-proposition-complete-ingestion, REQ-cli-schema-migration
 export type InventoryRederivationSummary = Readonly<{
   keptModeled: number;
   roleChanges: number;
@@ -108,6 +110,7 @@ export type InventoryRederivationSummary = Readonly<{
 }>;
 
 /** The re-derived inventory contract written to the requirement. */
+// implements REQ-kibi-proposition-complete-ingestion, REQ-cli-schema-migration
 export type InventoryContract = Readonly<{
   semantic_inventory_version: string;
   semantic_source_field: string;
@@ -116,6 +119,7 @@ export type InventoryContract = Readonly<{
   logic_claims: readonly string[];
 }>;
 
+// implements REQ-kibi-proposition-complete-ingestion, REQ-cli-schema-migration
 export type InventoryRederivation = Readonly<{
   requirementId: string;
   path: string;
@@ -590,6 +594,7 @@ function rewriteContract(
   return `${slice.prefix}${rendered}${slice.suffix}`;
 }
 
+// implements REQ-kibi-proposition-complete-ingestion, REQ-cli-schema-migration
 export type InventoryRederivationOutcome = Readonly<{
   requirementId: string;
   path: string;

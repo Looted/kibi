@@ -394,6 +394,7 @@ export function buildProofTestReport(selected, attempts) {
 }
 
 /** Write the report atomically so kibi prove never reads a partial file. */
+// implements REQ-kibi-fresh-verification-receipts-v2
 export function writeProofTestReport(reportPath, report) {
   mkdirSync(path.dirname(reportPath), { recursive: true });
   const temporary = `${reportPath}.${process.pid}.tmp`;

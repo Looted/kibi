@@ -197,6 +197,7 @@ export function currentProofBindingMode(): "per_contract" | "strict_snapshot" {
     : "per_contract";
 }
 
+// implements REQ-kibi-verification-evidence-contract
 export async function perContractTestBindings(
   context: OperationContext,
 ): Promise<string | null> {

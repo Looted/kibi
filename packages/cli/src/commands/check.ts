@@ -1378,6 +1378,7 @@ export async function getAllEntityIds(
 
   return content.split(",").map((id) => id.trim().replace(/^'|'$/g, ""));
 }
+// implements REQ-cli-check
 export async function checkNoDanglingRefs(
   prolog: PrologProcess,
 ): Promise<Violation[]> {

@@ -35,6 +35,7 @@ import {
 } from "../../utils/kb-paths.js";
 
 /** One authored Markdown entity file under a canonical `.kb/<lane>/`. */
+// implements REQ-cli-schema-migration
 export type LaneMarkdownFile = Readonly<{
   lane: EntityLane;
   absolutePath: string;
@@ -89,6 +90,7 @@ export function listLaneMarkdownFiles(
 }
 
 /** A Markdown document split around its YAML frontmatter. */
+// implements REQ-cli-schema-migration
 export type FrontmatterSlice = Readonly<{
   /** Everything up to and including the opening `---` line. */
   prefix: string;
@@ -247,6 +249,7 @@ export function withoutTopLevelField(
 }
 
 /** Replace a file's bytes atomically. */
+// implements REQ-cli-schema-migration
 export function writeFileAtomically(filePath: string, content: string): void {
   mkdirSync(path.dirname(filePath), { recursive: true });
   const tempPath = `${filePath}.kibi-migrate-${process.pid}-${Date.now()}`;
@@ -254,6 +257,7 @@ export function writeFileAtomically(filePath: string, content: string): void {
   renameSync(tempPath, filePath);
 }
 
+// implements REQ-cli-schema-migration
 export function readText(filePath: string): string | null {
   try {
     return readFileSync(filePath, "utf8");

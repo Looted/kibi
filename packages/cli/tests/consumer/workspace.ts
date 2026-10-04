@@ -17,17 +17,21 @@ import { execFileSync, spawnSync } from "../helpers/isolated-env.js";
  * JSON routes.
  */
 
+// implements REQ-kibi-truthful-consistency, REQ-kibi-scenario-feasibility-v2, REQ-kibi-search-answer-layer-v2, REQ-kibi-schema6-migration
 export const KIBI_CLI = path.resolve(import.meta.dir, "../../bin/kibi");
 
+// implements REQ-kibi-truthful-consistency, REQ-kibi-scenario-feasibility-v2, REQ-kibi-search-answer-layer-v2, REQ-kibi-schema6-migration
 export type Json = Record<string, unknown>;
 
 /** Exit status and both output streams of one CLI run. */
+// implements REQ-kibi-truthful-consistency, REQ-kibi-scenario-feasibility-v2, REQ-kibi-search-answer-layer-v2, REQ-kibi-schema6-migration
 export type CliRun = Readonly<{
   status: number | null;
   stdout: string;
   stderr: string;
 }>;
 
+// implements REQ-kibi-truthful-consistency, REQ-kibi-scenario-feasibility-v2, REQ-kibi-search-answer-layer-v2, REQ-kibi-schema6-migration
 export type ConsumerWorkspace = Readonly<{
   root: string;
   write(relativePath: string, content: string): void;
@@ -82,6 +86,7 @@ const GIT_CONFIG = [
   "advice.detachedHead=false",
 ] as const;
 
+// implements REQ-kibi-truthful-consistency, REQ-kibi-scenario-feasibility-v2, REQ-kibi-search-answer-layer-v2, REQ-kibi-schema6-migration
 export function createConsumerWorkspace(prefix: string): ConsumerWorkspace {
   const root = realpathSync(mkdtempSync(path.join(os.tmpdir(), prefix)));
   run(root, "git", ["init", "-q", "-b", "main"]);
@@ -165,6 +170,7 @@ export function createConsumerWorkspace(prefix: string): ConsumerWorkspace {
 }
 
 /** `kibi check --format json` violations for the given rules. */
+// implements REQ-kibi-truthful-consistency, REQ-kibi-scenario-feasibility-v2, REQ-kibi-search-answer-layer-v2, REQ-kibi-schema6-migration
 export function checkViolations(
   workspace: ConsumerWorkspace,
   rules: string,
@@ -189,6 +195,7 @@ export function checkViolations(
  * rules as non-blocking qualityDiagnostics (id `rule.<rule>`), never as
  * violations.
  */
+// implements REQ-kibi-truthful-consistency, REQ-kibi-scenario-feasibility-v2, REQ-kibi-search-answer-layer-v2, REQ-kibi-schema6-migration
 export function checkAdvisories(
   workspace: ConsumerWorkspace,
   rule: string,
@@ -204,6 +211,7 @@ export function checkAdvisories(
   ).filter((diagnostic) => diagnostic.id === `rule.${rule}`);
 }
 
+// implements REQ-kibi-truthful-consistency, REQ-kibi-scenario-feasibility-v2, REQ-kibi-search-answer-layer-v2, REQ-kibi-schema6-migration
 export type CoverageRow = Json & {
   id: string;
   proofGaps: string[];
@@ -211,6 +219,7 @@ export type CoverageRow = Json & {
 };
 
 /** `kibi coverage --format json` requirement rows by id. */
+// implements REQ-kibi-truthful-consistency, REQ-kibi-scenario-feasibility-v2, REQ-kibi-search-answer-layer-v2, REQ-kibi-schema6-migration
 export function coverageRows(
   workspace: ConsumerWorkspace,
 ): Map<string, CoverageRow> {
@@ -234,10 +243,12 @@ export function coverageRows(
 }
 
 /** Front-matter document for a `.kb` entity. */
+// implements REQ-kibi-truthful-consistency, REQ-kibi-scenario-feasibility-v2, REQ-kibi-search-answer-layer-v2, REQ-kibi-schema6-migration
 export function doc(frontMatter: string, body = ""): string {
   return `---\n${frontMatter.trim()}\n---\n${body}\n`;
 }
 
+// implements REQ-kibi-truthful-consistency, REQ-kibi-scenario-feasibility-v2, REQ-kibi-search-answer-layer-v2, REQ-kibi-schema6-migration
 export const QUOTA_SUBJECT = doc(`
 id: FACT-QUOTA-SUBJECT
 title: Client call quota
@@ -247,6 +258,7 @@ fact_kind: subject
 subject_key: client.call_quota
 `);
 
+// implements REQ-kibi-truthful-consistency, REQ-kibi-scenario-feasibility-v2, REQ-kibi-search-answer-layer-v2, REQ-kibi-schema6-migration
 export function quotaValueFact(
   id: string,
   title: string,
@@ -278,6 +290,7 @@ type AdvisorProposition = {
 };
 
 /** The semantic advisor's clause ledger and inventory contract for prose. */
+// implements REQ-kibi-truthful-consistency, REQ-kibi-scenario-feasibility-v2, REQ-kibi-search-answer-layer-v2, REQ-kibi-schema6-migration
 export function adviseProse(
   workspace: ConsumerWorkspace,
   prose: string,
@@ -292,6 +305,7 @@ export function adviseProse(
 }
 
 /** Front matter carrying a requirement's proposition ledger. */
+// implements REQ-kibi-truthful-consistency, REQ-kibi-scenario-feasibility-v2, REQ-kibi-search-answer-layer-v2, REQ-kibi-schema6-migration
 export function semanticFrontMatter(
   prose: string,
   contract: Json,
@@ -320,6 +334,7 @@ logic_claims: [${entries.map((p) => p.claim_key).join(", ")}]`;
  * client.call_quota.remaining property fact, as a consumer would after
  * running the semantic advisor.
  */
+// implements REQ-kibi-truthful-consistency, REQ-kibi-scenario-feasibility-v2, REQ-kibi-search-answer-layer-v2, REQ-kibi-schema6-migration
 export function authorQuotaRequirement(
   workspace: ConsumerWorkspace,
   spec: Readonly<{

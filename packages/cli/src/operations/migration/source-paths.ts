@@ -44,6 +44,7 @@ import {
  */
 
 /** One authored `source` value and the entity file that carries it. */
+// implements REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export type AuthoredSourceRef = Readonly<{
   entityId: string;
   /** Workspace-relative, `/`-separated path of the entity's own file. */
@@ -51,6 +52,7 @@ export type AuthoredSourceRef = Readonly<{
   value: unknown;
 }>;
 
+// implements REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export type AuthoredSourceScan = Readonly<{
   refs: readonly AuthoredSourceRef[];
   /** Ids of every authored entity, symbols included. */
@@ -201,6 +203,7 @@ export function resolveAuthoredSource(
 }
 
 /** A memoized existence test confined to the workspace. */
+// implements REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export function workspacePathExists(
   workspaceRoot: string,
 ): (relativePath: string) => boolean {
@@ -315,6 +318,7 @@ export function findSourceRepairs(workspaceRoot: string): SourceRepair[] {
   return withEditability(workspaceRoot, classifySources(workspaceRoot));
 }
 
+// implements REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export type SourcePathRewrite = Readonly<{
   entityId: string;
   file: string;

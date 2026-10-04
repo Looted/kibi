@@ -46,6 +46,7 @@ export const PROOF_TEST_REPORT_OUTCOMES = [
   "interrupted",
 ] as const;
 
+// implements REQ-kibi-fresh-verification-receipts-v2
 export type ProofTestReportOutcome =
   (typeof PROOF_TEST_REPORT_OUTCOMES)[number];
 
