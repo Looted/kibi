@@ -39,6 +39,7 @@ import {
   setupSeededGovernedAreaKb,
   setupSeededPreconditionKb,
   setupSeededStaleKb,
+  setupSeededPartialKb,
   setupThinRootKb,
   stopFixtureEngine,
 } from "./fixture-kb-setup";
@@ -200,13 +201,18 @@ export async function runCodexCell(
     if (hashWorkspace(workspace.target) !== request.workspaceFixtureHash) {
       throw new FixtureIntegrityError();
     }
-    // Real materialized fixtures intentionally omit .kb. Create its directory
-    // before Codex applies the direct-access deny rule so the brokered Kibi MCP
-    // runtime can initialize diagnostic usage logging beneath it.
-    await mkdir(join(workspace.target, ".kb"), {
-      recursive: true,
-      mode: 0o700,
-    });
+    // CLI-owned setup creates and validates its own infrastructure. Keep the
+    // fixture's initial absent-root condition until that setup runs.
+    // Only fixtures without CLI setup need a directory for broker diagnostics.
+    if (
+      options.evaluatorManifest.fixtureSetup === undefined ||
+      options.evaluatorManifest.fixtureSetup === "none"
+    ) {
+      await mkdir(join(workspace.target, ".kb"), {
+        recursive: true,
+        mode: 0o700,
+      });
+    }
     await assembleCanonicalSkills({
       sourceRepoRoot: options.sourceWorktree,
       workspace: workspace.target,
@@ -273,6 +279,8 @@ export async function runCodexCell(
                   workspace.target,
                   stagingCliRoot,
                 );
+              } else if (setupMode === "seeded_partial_kb") {
+                await setupSeededPartialKb(workspace.target, stagingCliRoot);
               } else if (setupMode === "seeded_stale_kb") {
                 await setupSeededStaleKb(workspace.target, stagingCliRoot);
               } else if (setupMode === "thin_root_kb") {

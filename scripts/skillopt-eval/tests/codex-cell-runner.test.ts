@@ -3,7 +3,11 @@ import { existsSync } from "node:fs";
 import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
+import { hashWorkspace } from "../fixtures/workspace";
 import { RequiredMcpStartupError } from "../runtime/canary-runtime";
+import { Client } from "../../../packages/mcp/node_modules/@modelcontextprotocol/sdk/dist/esm/client/index.js";
+import { StdioClientTransport } from "../../../packages/mcp/node_modules/@modelcontextprotocol/sdk/dist/esm/client/stdio.js";
+import { defaultCodexCellDependencies } from "../runtime/codex-cell-defaults";
 import {
   EPISODE_OUTPUT_SCHEMA,
   runCodexCell,
@@ -22,6 +26,103 @@ import {
 import { evaluatorManifest } from "./fixtures/evaluator-authority-fixtures";
 
 afterEach(cleanupRoots);
+
+test.each([
+  ["thin_root_kb", "root_active_thin", true],
+  ["seeded_partial_kb", "root_partial", false],
+] as const)(
+  "fixture %s exposes its intended activation through staged MCP before model dispatch",
+  async (fixtureSetup, activationState, planEligible) => {
+    const publicFixture = await fixture();
+    await mkdir(join(publicFixture.root, "src"));
+    await writeFile(
+      join(publicFixture.root, "src/fixture.ts"),
+      'export const fixtureFamily = "native-setup";\n',
+    );
+    const artifactRoot = await mkdtemp(
+      join(tmpdir(), "skillopt-native-setup-"),
+    );
+    roots.push(artifactRoot);
+    const options = {
+      request: request(hashWorkspace(publicFixture.root)),
+      fixtureRoot: publicFixture.root,
+      sourceWorktree: process.cwd(),
+      artifactRoot,
+      targetSkill: "kibi-usage" as const,
+      codexExecutable: process.execPath,
+      bwrapExecutable: "/usr/bin/bwrap",
+      env: process.env,
+      finalStateRequests: [{ tool: "kb_status" as const, args: {} }],
+      evaluatorManifest: {
+        ...evaluatorManifest("predicate"),
+        fixtureSetup,
+      },
+      hiddenMarkers: [],
+      pricingHash: "e".repeat(64),
+      priceAmount: 0,
+      timeoutMs: 1_000,
+    };
+    const dependencies = defaultCodexCellDependencies(options);
+    const stopBeforeModel = new Error(
+      "native fixture verified; no model dispatch",
+    );
+    let verified = false;
+    await expect(
+      runCodexCell(options, {
+        ...dependencies,
+        prepareLogin: async ({ privateCodexHome, sandboxHome }) => ({
+          mode: "file",
+          env: {
+            ...process.env,
+            CODEX_HOME: privateCodexHome,
+            HOME: sandboxHome,
+          },
+          realCodexHome: join(artifactRoot, "unused-host-login"),
+        }),
+        stageBroker: async (workspace, sourceRoot) => {
+          const broker = await dependencies.stageBroker(workspace, sourceRoot);
+          const client = new Client({
+            name: "fixture-readiness",
+            version: "1",
+          });
+          try {
+            await client.connect(
+              new StdioClientTransport({
+                command: broker.command,
+                args: [...broker.args],
+                cwd: broker.cwd,
+                env: { ...process.env, KIBI_BRANCH: "skillopt-eval" },
+                stderr: "pipe",
+              }),
+            );
+            const result = await client.callTool({
+              name: "kb_status",
+              arguments: {},
+            });
+            expect(result.structuredContent).toMatchObject({
+              status: "success",
+              data: {
+                bootstrap: {
+                  activationState,
+                  planEligible,
+                },
+              },
+            });
+            verified = true;
+          } finally {
+            await client.close();
+          }
+          throw stopBeforeModel;
+        },
+        run: async () => {
+          throw new Error("Must not dispatch a model in an offline test");
+        },
+      }),
+    ).rejects.toThrow(stopBeforeModel.message);
+    expect(verified).toBe(true);
+  },
+  90_000,
+);
 
 async function longArtifactRoot(prefix: string): Promise<string> {
   const root = await mkdtemp(join(tmpdir(), prefix));
@@ -64,7 +165,7 @@ describe("Codex cell runner", () => {
         codexExecutable: process.execPath,
         bwrapExecutable: "/usr/bin/bwrap",
         env: process.env,
-        finalStateRequests: [{ tool: "kb_status", args: {} }],
+        finalStateRequests: [{ tool: "kb_status" as const, args: {} }],
         evaluatorManifest: evaluatorManifest("predicate"),
         hiddenMarkers: [],
         pricingHash: "e".repeat(64),
@@ -204,7 +305,7 @@ describe("Codex cell runner", () => {
         codexExecutable: process.execPath,
         bwrapExecutable: "/usr/bin/bwrap",
         env: process.env,
-        finalStateRequests: [{ tool: "kb_status", args: {} }],
+        finalStateRequests: [{ tool: "kb_status" as const, args: {} }],
         evaluatorManifest: evaluatorManifest("predicate"),
         hiddenMarkers: [],
         pricingHash: "e".repeat(64),
@@ -269,7 +370,7 @@ describe("Codex cell runner", () => {
         codexExecutable: process.execPath,
         bwrapExecutable: "/usr/bin/bwrap",
         env: process.env,
-        finalStateRequests: [{ tool: "kb_status", args: {} }],
+        finalStateRequests: [{ tool: "kb_status" as const, args: {} }],
         evaluatorManifest: evaluatorManifest("predicate"),
         hiddenMarkers: [],
         pricingHash: "e".repeat(64),

@@ -230,3 +230,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-74f819ab58e4
+  - type: implements
+    from: SYM-skillopt-runtime-fixture-kb-setup-setupseededgovernedareakb-0b4488e6
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-10-05T13:18:33.753Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7a34e6799ff7
+  - type: covered_by
+    from: SYM-skillopt-runtime-fixture-kb-setup-setupseededgovernedareakb-0b4488e6
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-10-05T13:18:33.789Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5634b59a392d

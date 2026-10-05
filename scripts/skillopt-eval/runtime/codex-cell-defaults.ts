@@ -674,8 +674,17 @@ function sealedFinalState(
       const actual = receipt.requests[index];
       return actual !== undefined && sameRequest(actual, request);
     });
+  const requests = receipt.requests.map(({ tool, result }) => ({
+    tool,
+    result,
+  }));
+  const status = latestContent(requests, "kb_status");
+  const infrastructureBlocked =
+    isRecord(status?.bootstrap) &&
+    status.bootstrap.activationState === "root_partial";
   const taskComplete =
     complete &&
+    !infrastructureBlocked &&
     receipt.requests.some(
       (request) =>
         request.tool === "kb_query" && successfulResult(request.result),
@@ -685,11 +694,6 @@ function sealedFinalState(
         request.tool === "kb_check" && cleanCheckResult(request.result),
     ) &&
     safeMutationComplete(receipt, options.evaluatorManifest.taskId);
-  const requests = receipt.requests.map(({ tool, result }) => ({
-    tool,
-    result,
-  }));
-  const status = latestContent(requests, "kb_status");
   const attachment = status?.branchAttachment;
   const kbState =
     isRecord(attachment) && attachment.migrationRequired === true
@@ -747,7 +751,8 @@ function sealedFinalState(
         status.operatorAcceptance !== undefined)) ||
     JSON.stringify(requests).includes('"disposition":"accepted"')
       ? "accepted"
-      : JSON.stringify(requests).includes('"disposition":"deferred"')
+      : infrastructureBlocked ||
+          JSON.stringify(requests).includes('"disposition":"deferred"')
         ? "unaccepted"
         : "not_applicable";
   const closeout: WorkflowCloseout = {

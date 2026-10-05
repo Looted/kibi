@@ -27,7 +27,7 @@ Set up Kibi (https://github.com/Looted/kibi) in this repository, then bootstrap 
 5. Verify: run `kibi check` and `kibi status`, fix anything they report, and summarize what was added. Do not commit; I will review the changes.
 ```
 
-The agent installs `kibi-core`, `kibi-cli`, and `kibi-mcp` with your package manager, runs `kibi init` to create the `.kb/` layout and the Git hooks that keep it synchronized, and registers Kibi's MCP server for itself. Some agents only see new MCP tools after a restart; until then they use the same operations through the CLI.
+The agent installs `kibi-core`, `kibi-cli`, and `kibi-mcp` with your package manager, runs `kibi init` to create the `.kb/` layout and the Git hooks that keep it synchronized, and registers Kibi's MCP server for itself. Re-running `kibi init` completes missing directories and schema files while preserving existing knowledge and schema files. Some agents only see new MCP tools after a restart; until then they use the same operations through the CLI.
 
 Next it interviews you. Code shows what the software does but rarely why, so the agent asks where product intent already lives (issue trackers such as Jira or YouTrack, wikis, specs, decision logs), which of those sources are authoritative and which are stale, and what it cannot reach yet. It reads the sources through the connectors it has, then combines what they say with what it finds in the codebase into a read-only bootstrap plan. Each requirement taken from a source cites the ticket or page it came from. Nothing is written until you approve it: the agent shows you the complete plan and its hash, you approve, and it applies the plan in one audited step, then validates the result.
 

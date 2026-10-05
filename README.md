@@ -59,7 +59,7 @@ npm install --save-dev kibi-core kibi-cli kibi-mcp
 npm exec -- kibi init
 ```
 
-`kibi init` creates the `.kb/` layout and installs the Git hooks that keep it in sync. It does not infer product knowledge. [Connect your coding agent](#connect-your-coding-agent), then ask it:
+`kibi init` creates the `.kb/` layout and installs the Git hooks that keep it in sync. Re-running it completes missing directories and schema files while preserving existing knowledge and schema files. It does not infer product knowledge. [Connect your coding agent](#connect-your-coding-agent), then ask it:
 
 > **Bootstrap Kibi for this repository.**
 

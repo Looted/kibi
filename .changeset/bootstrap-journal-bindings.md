@@ -1,5 +1,6 @@
 ---
 "kibi-cli": patch
+"kibi-runtime": patch
 ---
 
 Approved bootstrap plans now apply when the current KB uses a journal generation and revision. A change to that revision still rejects the plan before writing.

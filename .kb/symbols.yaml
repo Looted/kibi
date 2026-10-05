@@ -5739,11 +5739,18 @@ symbols:
   - id: SYM-copySchemaFiles
     title: copySchemaFiles
     sourceFile: packages/cli/src/commands/init-helpers.ts
+    status: active
+    symbol_role: behavioral
+    text_ref: docs-site/content/quick-start.md
     relationships:
-      - type: implements
-        target: REQ-cli-init
       - type: covered_by
         target: TEST-001
+      - type: covered_by
+        target: TEST-cli-canonical-init
+      - type: implements
+        target: REQ-cli-init
+      - type: implements
+        target: REQ-cli-init-canonical
   - id: SYM-core-derived-chr
     title: derived_chr Prolog module derives bounded validation facts
     sourceFile: packages/core/src/derived_chr.pl
@@ -5862,11 +5869,18 @@ symbols:
   - id: SYM-createKbDirectoryStructure
     title: createKbDirectoryStructure
     sourceFile: packages/cli/src/commands/init-helpers.ts
+    status: active
+    symbol_role: behavioral
+    text_ref: docs-site/content/quick-start.md
     relationships:
-      - type: implements
-        target: REQ-cli-init
       - type: covered_by
         target: TEST-001
+      - type: covered_by
+        target: TEST-cli-canonical-init
+      - type: implements
+        target: REQ-cli-init
+      - type: implements
+        target: REQ-cli-init-canonical
   - id: SYM-createKbFreshnessEvidenceStore
     title: createKbFreshnessEvidenceStore
     status: active
@@ -49599,6 +49613,71 @@ symbols:
     origin:
       kind: agent
       recorded_at: 2026-10-05T12:25:52.864Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-runtime-fixture-kb-setup-setupseededpartialkb-6a846f9e
+    title: setupSeededPartialKb
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T13:18:12.103Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-runtime-fixture-kb-setup-semanticledger-236a7fda
+    title: semanticLedger
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T13:18:23.705Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-runtime-fixture-kb-setup-setupseededgovernedareakb-0b4488e6
+    title: setupSeededGovernedAreaKb
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T13:18:32.149Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-runtime-fixture-kb-setup-setupseededpreconditionkb-403f2dec
+    title: setupSeededPreconditionKb
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T13:18:38.774Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-runtime-fixture-kb-setup-setupseededconsistencykb-6edad3d3
+    title: setupSeededConsistencyKb
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T13:18:45.116Z
     relationships:
       - type: covered_by
         target: TEST-skillopt-codex-optimization

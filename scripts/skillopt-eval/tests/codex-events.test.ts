@@ -253,6 +253,38 @@ describe("Codex JSONL normalization", () => {
     }
   });
 
+  test("decodes literal shell serialization without hiding KB operands or expansions", () => {
+    const serialized =
+      "/bin/bash -c \"git status --short --branch && git branch --show-current && rg --files -g '\"'!'\"\\\\.kb/**' -g '\"'!**/.kb/**'\"' | head -100\"";
+    for (const command of [
+      serialized,
+      "rg --files -g '!\\\\.kb/**' -g '!**/.kb/**'",
+    ]) {
+      const result = normalizeCodexJsonl(
+        JSON.stringify({
+          type: "item.completed",
+          item: { type: "command_execution", command },
+        }),
+        { hiddenMarkers: [], forbiddenRoots: [] },
+      );
+      expect(result.violations).not.toContain("direct_kb_access");
+    }
+    for (const command of [
+      serialized + " && cat .kb/secret",
+      "rg --files -g '!\\\\.kb/**' && cat .kb/secret",
+      'rg --files -g "!\\\\.kb/** $(cat .kb/secret)"',
+    ]) {
+      const result = normalizeCodexJsonl(
+        JSON.stringify({
+          type: "item.completed",
+          item: { type: "command_execution", command },
+        }),
+        { hiddenMarkers: [], forbiddenRoots: [] },
+      );
+      expect(result.violations).toContain("direct_kb_access");
+    }
+  });
+
   test("Given direct or ambiguous KB-bearing command operands When normalized Then access is not hidden by a negative glob", () => {
     const commands = [
       "/bin/bash -c \"rg --files -g '\"'! .kb/**'\"' && cat .kb/usage.log\"",
