@@ -317,12 +317,25 @@ export function buildClaudeExecArgv(
   ];
 }
 
-/** Claude discovers project skills under `.claude/skills`. */
-async function mirrorSkillsForClaude(workspaceRoot: string): Promise<void> {
+/**
+ * Claude discovers project skills under `.claude/skills`. The mirror is host
+ * plumbing, so it is git-excluded like `.runtime/`: an untracked copy would
+ * otherwise mark the proof snapshot dirty and skew the verification axis.
+ */
+// implements REQ-skillopt-claude-code-host
+export async function mirrorSkillsForClaude(
+  workspaceRoot: string,
+): Promise<void> {
   const target = join(workspaceRoot, ".claude/skills");
   await rm(target, { recursive: true, force: true });
   await mkdir(dirname(target), { recursive: true });
   await cp(join(workspaceRoot, ".agents/skills"), target, { recursive: true });
+  const exclude = join(workspaceRoot, ".git/info/exclude");
+  const current = await readFile(exclude, "utf8").catch(() => null);
+  if (current !== null && !current.split("\n").includes(".claude/skills/")) {
+    const separator = current === "" || current.endsWith("\n") ? "" : "\n";
+    await writeFile(exclude, `${current}${separator}.claude/skills/\n`);
+  }
 }
 
 // implements REQ-skillopt-claude-code-host

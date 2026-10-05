@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
+import { execFileSync } from "node:child_process";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -8,6 +9,7 @@ import {
   claudeStreamToCodexJsonl,
   claudeTargetEnv,
   claudeTargetSettings,
+  mirrorSkillsForClaude,
   openClaudeSession,
   selectedSkillOptHost,
 } from "../runtime/claude-code-host";
@@ -247,5 +249,32 @@ describe("Claude Code SkillOpt host", () => {
     expect(await readFile(join(realConfig, ".credentials.json"), "utf8")).toBe(
       "refreshed",
     );
+  });
+
+  test("mirrors skills without dirtying the proof snapshot", async () => {
+    // Given a committed fixture repository with assembled skills
+    const root = await temporaryRoot();
+    await mkdir(join(root, ".agents/skills/kibi-usage"), { recursive: true });
+    await writeFile(join(root, ".agents/skills/kibi-usage/SKILL.md"), "x\n");
+    const git = (...args: string[]) =>
+      execFileSync("git", args, { cwd: root, encoding: "utf8" });
+    git("init", "-q");
+    git("-c", "user.email=e@x", "-c", "user.name=e", "add", "-A");
+    git("-c", "user.email=e@x", "-c", "user.name=e", "commit", "-qm", "init");
+
+    // When the host mirrors skills twice
+    await mirrorSkillsForClaude(root);
+    await mirrorSkillsForClaude(root);
+
+    // Then Claude sees the skill and git still reports a clean tree
+    expect(
+      await readFile(join(root, ".claude/skills/kibi-usage/SKILL.md"), "utf8"),
+    ).toBe("x\n");
+    expect(git("status", "--porcelain")).toBe("");
+    expect(
+      (await readFile(join(root, ".git/info/exclude"), "utf8"))
+        .split("\n")
+        .filter((line) => line === ".claude/skills/"),
+    ).toHaveLength(1);
   });
 });

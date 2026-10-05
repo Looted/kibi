@@ -7,6 +7,7 @@ for (const key of [
   "KIBI_SKILLOPT_OPTIMIZER_MODEL",
   "KIBI_SKILLOPT_OPTIMIZER_EFFORT",
   "KIBI_SKILLOPT_MODEL_PRICING",
+  "KIBI_SKILLOPT_HOST",
 ]) {
   delete process.env[key];
 }
