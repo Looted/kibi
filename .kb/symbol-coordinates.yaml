@@ -11227,6 +11227,14 @@ coordinates:
     sourceEndLine: 164
     sourceFile: documentation/tests/e2e/packed/runtime-symbol-analysis.test.ts
     sourceLine: 1
+  SYM-e2e-skillopt-claude-code-host:
+    identityHash: be4b7319b32fe2fa39d5e57b508c153632e253a6acacf03c1f6944499434a20f
+    sourceHash: b9197d40cf879d8556ac13205f98346994f0acae0e9f639f5737b4a313abda95
+    sourceColumn: 44
+    sourceEndColumn: 73
+    sourceEndLine: 19
+    sourceFile: documentation/tests/e2e/skillopt-claude-code-host.e2e.ts
+    sourceLine: 19
   SYM-e2e-skillopt-trust-boundaries:
     identityHash: 159cd066924e9a81b2532ea21ed5e75952f025e4e469a0b622030f7f4699ead5
     sourceHash: 344ccb4966084f925c8374e4e0a0a191261b1128f3f1eb41eec9d936f39c2cfb
@@ -25387,6 +25395,70 @@ coordinates:
     sourceEndLine: 373
     sourceFile: scripts/skillopt-eval/tests/claude-code-host.test.ts
     sourceLine: 1
+  SYM-skillopt-claude-code-target-host:
+    identityHash: 7dad8a0d44d8adad3509f7ce93f33038b2c84de6af1b4d552a845c20dad1cf3a
+    sourceHash: ec592828fcff8c7cb01b908244221438884e901693ca3199be3c30d7d9f67958
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 422
+    sourceFile: scripts/skillopt-eval/runtime/claude-code-host.ts
+    sourceLine: 370
+  SYM-skillopt-claude-host-campaign-dependencies:
+    identityHash: 3d1f5778ca8bc7551158e6800166752e822ebbd7a1ca4f1a9e6fa9bb97b1090d
+    sourceHash: 22c5094821a5e69e8fdca22958c47734315ebbc29c8b7268baf4e6765ec8d601
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 189
+    sourceFile: scripts/skillopt-eval/claude-code-campaign.ts
+    sourceLine: 180
+  SYM-skillopt-claude-host-cell-smoke:
+    identityHash: fe5667441c4d569d51bea8cfa35a4da74ad5efbcf102c6a21cd342c0d8617a03
+    sourceHash: 149be40406a91ae44960b893df3f9691bbd0593ccd7c1410fe2dcbac77554046
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 178
+    sourceFile: scripts/skillopt-eval/host-cell-smoke.ts
+    sourceLine: 34
+  SYM-skillopt-claude-session-login:
+    identityHash: 57d103b3a38d01faebaf05cd74f09b437c6197399dd94cf5fa33e1f18e547bab
+    sourceHash: ec592828fcff8c7cb01b908244221438884e901693ca3199be3c30d7d9f67958
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 236
+    sourceFile: scripts/skillopt-eval/runtime/claude-code-host.ts
+    sourceLine: 204
+  SYM-skillopt-claude-skill-mirror:
+    identityHash: 1c25e9db085d90864d4eb66252a78d8887cfc9680059c4992e8788a688e03015
+    sourceHash: ec592828fcff8c7cb01b908244221438884e901693ca3199be3c30d7d9f67958
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 367
+    sourceFile: scripts/skillopt-eval/runtime/claude-code-host.ts
+    sourceLine: 354
+  SYM-skillopt-claude-stream-to-codex-jsonl:
+    identityHash: 08909baf904cea4cd5dcd51e9aff47326a0b4b683241931aad5d2164f6f58137
+    sourceHash: ec592828fcff8c7cb01b908244221438884e901693ca3199be3c30d7d9f67958
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 699
+    sourceFile: scripts/skillopt-eval/runtime/claude-code-host.ts
+    sourceLine: 545
+  SYM-skillopt-claude-target-env:
+    identityHash: b99e9497bf0bdf76978bb2191d91b802c701392188eb2bd834b5b629ddbbdbb6
+    sourceHash: ec592828fcff8c7cb01b908244221438884e901693ca3199be3c30d7d9f67958
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 171
+    sourceFile: scripts/skillopt-eval/runtime/claude-code-host.ts
+    sourceLine: 134
+  SYM-skillopt-claude-target-settings:
+    identityHash: ca47e7e59efd7cbaebb03ad438236bad8f148c8bc795effcd6578aa71878f489
+    sourceHash: ec592828fcff8c7cb01b908244221438884e901693ca3199be3c30d7d9f67958
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 280
+    sourceFile: scripts/skillopt-eval/runtime/claude-code-host.ts
+    sourceLine: 256
   SYM-skillopt-cli-main:
     identityHash: 52a7afafd58366af3edc4244ceadf094e0bc33c42a32f9ca2ca9d973f629cd33
     sourceHash: 406b8d9c87d9fe21d98cdbe9af186db212193bceacce58f09a0d6009659893bf

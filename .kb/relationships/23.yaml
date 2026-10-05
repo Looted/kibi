@@ -213,3 +213,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c4b51271a6bf
+  - type: implements
+    from: SYM-skillopt-claude-skill-mirror
+    to: REQ-skillopt-claude-code-host
+    created_at: 2026-10-05T22:06:25.843Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-35481bca6e07
+  - type: covered_by
+    from: SYM-skillopt-claude-skill-mirror
+    to: TEST-skillopt-claude-code-host
+    created_at: 2026-10-05T22:06:25.865Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-74caa3d190dd
+  - type: covered_by
+    from: SYM-skillopt-claude-skill-mirror
+    to: TEST-e2e-skillopt-claude-code-host
+    created_at: 2026-10-05T22:06:25.880Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-800e58e8f0fb
