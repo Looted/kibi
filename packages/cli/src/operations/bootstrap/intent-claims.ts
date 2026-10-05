@@ -77,15 +77,26 @@ export function buildIntentClaimCandidates(
     const confidence = AUTHORITY_CONFIDENCE[source.authority];
     const evidence = citation(source, claim);
     const provenance = `${source.id}:${claim.reference}`;
-    const modeled = claimFor(
-      claim.statement,
-      `knowledge-source:${source.id}`,
-      confidence,
-      provenance,
-    );
-    const writeSet = modeled
-      ? buildStrictWriteSet({ claim: modeled, statement: claim.statement })
-      : null;
+    let writeSet: ReturnType<typeof buildStrictWriteSet> | null = null;
+    try {
+      const modeled = claimFor(
+        claim.statement,
+        `knowledge-source:${source.id}`,
+        confidence,
+        provenance,
+      );
+      writeSet = modeled
+        ? buildStrictWriteSet({ claim: modeled, statement: claim.statement })
+        : null;
+      if (!modeled)
+        diagnostics.push(
+          `Intent claim needs authoring at ${source.id}:${claim.reference}: ${claim.statement}`,
+        );
+    } catch (error) {
+      diagnostics.push(
+        `Intent claim extraction failed at ${source.id}:${claim.reference}: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
     if (
       writeSet?.isStrict &&
       confidence >= minConfidence &&

@@ -1,12 +1,24 @@
 import type { SemanticClaim } from "../../utils/strict-modeling.js";
 
+// implements REQ-KIBI-BOOTSTRAP-PLAN
+export function normalizeClaimStatement(statement: string): string {
+  return statement
+    .replace(/^\s*(?:[-*+]|\d+[.)])\s+/, "")
+    .replace(/^\s*\[(?: |x)\]\s*/i, "")
+    .trim();
+}
+
 export function claimFor(
   statement: string,
   source: string,
   confidence: number,
   provenance: string,
 ): SemanticClaim | null {
-  const normalized = statement.replace(/^\s*(?:[-*+]|\d+[.)])\s+/, "").trim();
+  const cleaned = normalizeClaimStatement(statement);
+  if (cleaned.endsWith("?")) return null;
+  const normalized = /^(?:must|shall|should)\s+/i.test(cleaned)
+    ? `System ${cleaned}`
+    : cleaned;
   const retention = normalized.match(
     /^(?<subject>.+?)\s+(?:must|shall|should)\s+be\s+retained\s+for\s+(?<value>\d+)\s+(?<unit>day|days|month|months|year|years)\.?$/i,
   );

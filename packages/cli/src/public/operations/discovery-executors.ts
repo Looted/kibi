@@ -1,3 +1,4 @@
+import path from "node:path";
 import { compilerFingerprintReason } from "../../commands/sync/cache.js";
 import { EngineClient } from "../../engine.js";
 import {
@@ -119,6 +120,9 @@ export type StatusPayload = {
   readonly schemaStatus?: MigrationConfigStatus;
   readonly migrationPlan?: MigrationPlan;
   readonly bootstrap?: {
+    readonly incompleteApplications?: readonly Readonly<
+      Record<string, unknown>
+    >[];
     readonly activationState: string;
     readonly activationMode: string;
     readonly planEligible: boolean;
@@ -550,11 +554,54 @@ export async function executeStatus(
       context,
       bootstrapSourceFiles,
     );
+    const incompleteApplications: Readonly<Record<string, unknown>>[] = [];
+    if (context.fs?.glob) {
+      // Scope the scan to recovery itself: workspace globs intentionally exclude
+      // compiled and recovery internals from source discovery.
+      const recoveryRoot = path.join(context.workspaceRoot, ".kb", "recovery");
+      const journals = await context.fs.glob(["bootstrap-*.json"], {
+        cwd: recoveryRoot,
+      });
+      for (const journalPath of journals) {
+        try {
+          const journal = JSON.parse(
+            await context.fs.readFile(path.resolve(recoveryRoot, journalPath)),
+          );
+          if (
+            journal.kind === "bootstrap" &&
+            ["rejected", "repair_required", "applying"].includes(journal.state)
+          )
+            incompleteApplications.push({
+              journalId: path.basename(journalPath, ".json"),
+              state: journal.state,
+              appliedActions: (journal.results ?? []).filter(
+                (row: { outcome?: string }) => row.outcome === "applied",
+              ).length,
+              failedActions: (journal.results ?? []).filter(
+                (row: { outcome?: string }) => row.outcome === "failed",
+              ),
+              nextOperation:
+                journal.state === "rejected"
+                  ? "kb_plan_bootstrap"
+                  : "kb_apply_plan",
+            });
+        } catch (error) {
+          incompleteApplications.push({
+            journalId: path.basename(journalPath, ".json"),
+            state: "unreadable",
+            detail: error instanceof Error ? error.message : String(error),
+          });
+        }
+      }
+    }
     const statusWithPlan: StatusPayload = {
       ...enrichedPayload,
       schemaStatus,
       migrationPlan,
       bootstrap: {
+        ...(incompleteApplications.length > 0
+          ? { incompleteApplications }
+          : {}),
         activationState: bootstrapActivation.activationState,
         activationMode: bootstrapActivation.activationMode,
         planEligible:

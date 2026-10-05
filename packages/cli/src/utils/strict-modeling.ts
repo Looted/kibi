@@ -410,7 +410,7 @@ function buildPropertyFactTitle(
   const label = humanizeKey(normalizedPropertyKey);
 
   if (claim.operator === "polarity") {
-    return `${label} ${normalizePolarityValue(claim.value)}`;
+    return `${label} ${normalizePolarityValue(claim.value) === "forbid" ? "forbidden" : "required"}`;
   }
 
   const operatorLabel =
@@ -434,6 +434,9 @@ function buildPropertyFactTitle(
 function buildPropertyFactFields(claim: SemanticClaim): Partial<FactFields> {
   if (claim.operator === "polarity") {
     return {
+      operator: "eq",
+      value_type: "bool",
+      value_bool: true,
       polarity: normalizePolarityValue(claim.value),
     };
   }

@@ -77,7 +77,7 @@ rule_enforcement_class('rule-safety', canonical).
 rule_enforcement_class('rule-verifiability', canonical).
 rule_enforcement_class('query-plan-safety', canonical).
 rule_enforcement_class('req-status-vocabulary', canonical).
-rule_enforcement_class('strict-fact-shape', advisory).
+rule_enforcement_class('strict-fact-shape', canonical).
 rule_enforcement_class('strict-req-fact-pairing', advisory).
 rule_enforcement_class('predicate-verifiability', advisory).
 rule_enforcement_class('strict-readiness', migration).

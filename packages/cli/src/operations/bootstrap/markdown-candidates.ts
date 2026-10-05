@@ -7,7 +7,7 @@ import {
   strictPlan,
   upsert,
 } from "./candidate-helpers.js";
-import { claimFor } from "./requirement-claims.js";
+import { claimFor, normalizeClaimStatement } from "./requirement-claims.js";
 import type {
   BootstrapEvidence,
   Candidate,
@@ -17,6 +17,8 @@ import type {
 export type CandidateBuildResult = {
   readonly candidates: readonly Candidate[];
   readonly sourceOnlySignals: readonly SourceOnlySignal[];
+  readonly diagnostics: readonly string[];
+  readonly suppressed: readonly Readonly<Record<string, unknown>>[];
 };
 
 function headingSignals(
@@ -118,7 +120,7 @@ function requirementCandidate(
   );
   if (!claim) return null;
   const writeSet = buildStrictWriteSet({ claim, statement });
-  if (!writeSet.isStrict || existingIds.has(writeSet.req.id)) return null;
+  if (!writeSet.isStrict) return null;
   return {
     candidateId: `norm:${writeSet.req.id.toLowerCase()}`,
     entityType: "req",
@@ -148,6 +150,7 @@ export function markdownCandidates(
 ): CandidateBuildResult {
   const candidates: Candidate[] = [];
   const sourceOnlySignals: SourceOnlySignal[] = [];
+  const diagnostics: string[] = [];
   const relativePath = item.relativePath ?? item.label;
   let heading: string | undefined;
   let headingLine = 0;
@@ -180,21 +183,50 @@ export function markdownCandidates(
       );
       continue;
     }
-    const statement = line
-      .replace(/^\s*[-*+]\s+/, "")
-      .replace(/^\s*\d+[.)]\s+/, "")
-      .trim();
+    const statement = normalizeClaimStatement(line);
     if (!statement || !/\b(must|shall|should)\b/i.test(statement)) continue;
-    const candidate = requirementCandidate(
-      item,
-      statement,
-      index + 1,
-      heading,
-      headingLine,
-      existingIds,
-      minConfidence,
-    );
-    if (candidate) candidates.push(candidate);
+    try {
+      const candidate = requirementCandidate(
+        item,
+        statement,
+        index + 1,
+        heading,
+        headingLine,
+        existingIds,
+        minConfidence,
+      );
+      if (candidate) {
+        if (
+          !candidate.applyPlan.some(
+            (payload) =>
+              payload.type === "req" && existingIds.has(String(payload.id)),
+          )
+        )
+          candidates.push(candidate);
+      } else {
+        diagnostics.push(
+          `Requirement needs authoring at ${relativePath}#L${index + 1}: ${statement}`,
+        );
+        sourceOnlySignals.push({
+          kind: "req",
+          title: `Author requirement: ${statement}`,
+          sourcePath: `${relativePath}#L${index + 1}`,
+          confidence: 0.8,
+          evidence: [`normative_statement:${relativePath}#L${index + 1}`],
+        });
+      }
+    } catch (error) {
+      diagnostics.push(
+        `Requirement extraction failed at ${relativePath}#L${index + 1}: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      sourceOnlySignals.push({
+        kind: "req",
+        title: `Review requirement: ${statement}`,
+        sourcePath: `${relativePath}#L${index + 1}`,
+        confidence: 0.8,
+        evidence: [`normative_statement:${relativePath}#L${index + 1}`],
+      });
+    }
   }
-  return { candidates, sourceOnlySignals };
+  return { candidates, sourceOnlySignals, diagnostics, suppressed: [] };
 }

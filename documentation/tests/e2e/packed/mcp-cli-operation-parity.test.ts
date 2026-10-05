@@ -46,6 +46,9 @@ describe("packed MCP and CLI operation parity", { concurrency: false }, () => {
         await startSparqlServer());
       tarballs = await packAll();
       sandbox = createSandbox();
+      // This fixture verifies the base wire contract. A developer's host
+      // telemetry opt-in must not turn the packed server into diagnostic mode.
+      sandbox.env.KIBI_DIAGNOSTIC_MODE = "0";
       await sandbox.install(tarballs);
       await sandbox.initGitRepo();
       await kibi(sandbox, ["init"]);

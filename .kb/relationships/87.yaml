@@ -321,3 +321,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-74de3473437e
+  - type: implements
+    from: SYM-migrate-polarity-values-apply
+    to: REQ-bootstrap-write-safety
+    created_at: 2026-10-04T16:22:30.302Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-93fc8f505cbb
+  - type: covered_by
+    from: SYM-migrate-polarity-values-apply
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-10-04T16:22:30.485Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b89f24bbe273
+  - type: implements
+    from: SYM-migrate-polarity-values-apply
+    to: REQ-cli-schema-migration
+    created_at: 2026-10-04T16:22:30.589Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-105f76a21302

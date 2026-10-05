@@ -4,7 +4,7 @@ description: Use Kibi's source-first, exact-Git, migration-aware, proof-aware op
 license: AGPL-3.0-or-later
 metadata:
   id: kibi-usage
-  version: 2.3.0
+  version: 2.3.1
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -144,8 +144,13 @@ migration, worktrees, quarantine, restore, and purge.
 ## Typed results and recovery
 
 Every CLI JSON/MCP result has `kibiProtocol`, `operation`, `resultVersion`,
-`status`, `data`, `effects`, `diagnostics`, and typed `nextActions`. Treat
-`status: error` as a failed pre-commit operation. If the status is
+`status`, `data`, `effects`, `diagnostics`, and typed `nextActions`.
+`status: error` normally means a failed pre-commit operation. The bootstrap
+error `BOOTSTRAP_PLAN_REJECTED` can follow earlier committed actions: inspect
+`data.actionResults` and `data.applied`, then re-plan from the current state.
+Its journal is terminal; never recover or replay it. `BOOTSTRAP_PLAN_INVALID`
+fails preflight before bootstrap writes or a new journal; obtain a corrected
+plan. If the status is
 `committed_with_repairs`, the mutation already committed: inspect failed effects,
 execute each required repair action in order, and never retry the original
 operation. Record effect failures, followed actions, and unsafe retries in

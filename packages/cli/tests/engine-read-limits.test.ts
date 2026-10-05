@@ -1,5 +1,5 @@
-import { afterAll, afterEach, describe, expect, spyOn, test } from "bun:test";
-import { existsSync, mkdtempSync, rmSync } from "node:fs";
+import { afterAll, afterEach, describe, expect, test } from "bun:test";
+import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import {
@@ -13,11 +13,7 @@ import {
   queryLimitExceededOf,
   queryLimitsFromEnv,
 } from "../src/engine-limits.js";
-import {
-  EngineClient,
-  engineSocketPath,
-  runEngineDaemon,
-} from "../src/engine.js";
+import { EngineClient } from "../src/engine.js";
 import { ensureBranchStoreManifest } from "../src/utils/branch-store-locator.js";
 
 // A read that never finishes on its own: it occupies the single engine queue
@@ -64,20 +60,23 @@ describe("engine read limits (configuration)", () => {
 
 describe("engine read limits (daemon)", () => {
   const roots: string[] = [];
-  const exitSpy = spyOn(process, "exit").mockImplementation((() => {
-    return undefined as never;
-  }) as typeof process.exit);
+  const owners: EngineClient[] = [];
   const previousIdle = process.env.KIBI_ENGINE_IDLE_TIMEOUT_MS;
 
-  afterEach(() => {
+  afterEach(async () => {
+    for (const owner of owners.splice(0)) {
+      try {
+        await owner.stop(false);
+      } finally {
+        await owner.terminate();
+      }
+    }
     for (const root of roots.splice(0)) {
       rmSync(root, { recursive: true, force: true });
     }
   });
 
-  afterAll(async () => {
-    await new Promise((resolve) => setTimeout(resolve, 150));
-    exitSpy.mockRestore();
+  afterAll(() => {
     if (previousIdle === undefined) {
       Reflect.deleteProperty(process.env, "KIBI_ENGINE_IDLE_TIMEOUT_MS");
     } else {
@@ -87,26 +86,24 @@ describe("engine read limits (daemon)", () => {
 
   async function startDaemon(): Promise<{
     root: string;
-    daemon: Promise<void>;
     client: (readLimits: EngineQueryLimits | null) => EngineClient;
   }> {
     process.env.KIBI_ENGINE_IDLE_TIMEOUT_MS = "60000";
     const root = mkdtempSync(path.join(tmpdir(), "kibi-read-limits-"));
     roots.push(root);
     ensureBranchStoreManifest(root, "main");
-    const socketPath = engineSocketPath(root, "main");
-    const daemon = runEngineDaemon({
+    // Start the Node daemon used by CLI/MCP, so this exercises real queue
+    // limits without hosting an interactive Prolog process inside Bun.
+    const owner = new EngineClient({
       workspaceRoot: root,
       branch: "main",
-      socketPath,
+      timeout: 20_000,
+      readLimits: null,
     });
-    const deadline = Date.now() + 20_000;
-    while (!existsSync(socketPath) && Date.now() < deadline) {
-      await new Promise((resolve) => setTimeout(resolve, 25));
-    }
+    owners.push(owner);
+    await owner.start();
     return {
       root,
-      daemon,
       client: (readLimits) =>
         new EngineClient({
           workspaceRoot: root,
@@ -118,7 +115,7 @@ describe("engine read limits (daemon)", () => {
   }
 
   test("a runaway read stops at its time limit and frees the queue for the next client", async () => {
-    const { daemon, client } = await startDaemon();
+    const { client } = await startDaemon();
     const bounded = client({ timeMs: 300 });
     const unbounded = client(null);
     try {
@@ -154,11 +151,10 @@ describe("engine read limits (daemon)", () => {
       await bounded.terminate();
       await unbounded.terminate();
     }
-    await daemon;
   }, 60_000);
 
   test("an inference limit stops a read but never a write", async () => {
-    const { daemon, client } = await startDaemon();
+    const { client } = await startDaemon();
     const bounded = client({ inferences: 1_000 });
     const unbounded = client(null);
     try {
@@ -189,6 +185,5 @@ describe("engine read limits (daemon)", () => {
       await bounded.terminate();
       await unbounded.terminate();
     }
-    await daemon;
   }, 60_000);
 });

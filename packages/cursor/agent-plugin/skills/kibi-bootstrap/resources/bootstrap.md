@@ -14,3 +14,9 @@ approved hash; inspect its typed result
 and follow `nextActions` if it returns `committed_with_repairs`. Direct
 `kb_upsert` is forbidden for every bootstrap task; never manually replay the
 plan through it.
+
+`BOOTSTRAP_PLAN_INVALID` fails before bootstrap writes or a new journal; request
+a corrected plan. `BOOTSTRAP_PLAN_REJECTED` reports a deterministic failure and
+may include earlier committed `data.actionResults`. Re-plan from the current
+state; its terminal journal cannot recover. Review candidate suppressions and
+cited authoring follow-ups, including any `over_limit` entries, before approval.

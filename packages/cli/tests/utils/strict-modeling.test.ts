@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { describe, expect, test } from "bun:test";
+import { afterEach, describe, expect, test } from "bun:test";
 import {
   type SemanticClaim,
   buildStableRequirementIds,
@@ -24,6 +24,7 @@ import {
   modelRequirementClaims,
   normalizePropertyKey,
   normalizeSubjectKey,
+  normalizeTextRef,
 } from "../../src/utils/strict-modeling.js";
 
 const CUSTOMER_RETENTION_STATEMENT =
@@ -241,5 +242,233 @@ describe("strict-modeling", () => {
         "confidence-band:low",
       ]),
     );
+  });
+});
+
+import { isolateKibiEnv } from "../helpers/in-process-workspace.js";
+function claim(overrides: Partial<SemanticClaim> = {}): SemanticClaim {
+  return {
+    source: ".kb/requirements/sample.md",
+    subjectKey: "Widget.State",
+    propertyKey: "enabled",
+    operator: "eq",
+    value: true,
+    confidence: 0.95,
+    provenance: ".kb/requirements/sample.md#L1",
+    ...overrides,
+  };
+}
+
+describe("strict-modeling leftover operators and guards", () => {
+  test("normalize keys reject empty values and collapse punctuation", () => {
+    expect(normalizeSubjectKey("A/B\\\\C...")).toBe("a.b.c");
+    expect(normalizePropertyKey("  Foo--Bar  ")).toBe("foo_bar");
+    expect(() => normalizeSubjectKey("...")).toThrow(/subjectKey/);
+    expect(() => normalizePropertyKey("!!!")).toThrow(/propertyKey/);
+  });
+
+  test("buildStableRequirementIds and write sets cover operators and types", () => {
+    expect(() => buildStableRequirementIds(claim({ source: "!!!" }))).toThrow(
+      /source must normalize/,
+    );
+    expect(
+      buildStableRequirementIds(claim({ value: "  " })).normalizedValue,
+    ).toBe("empty");
+    expect(() =>
+      buildStrictWriteSet({ claim: claim(), statement: "   " }),
+    ).toThrow(/non-empty prose/);
+    expect(() =>
+      buildStrictWriteSet({
+        claim: claim({ provenance: "   ", source: "   " }),
+        statement: "ok",
+      }),
+    ).toThrow(/source must normalize/);
+
+    const nan = buildStrictWriteSet({
+      claim: claim({ confidence: Number.NaN }),
+      statement: "A widget must stay enabled.",
+    });
+    expect(nan.isStrict).toBe(false);
+    expect(nan.confidence).toBe(0);
+
+    const medium = buildStrictWriteSet({
+      claim: claim({ confidence: 0.82, operator: "neq", value: "off" }),
+      statement: "State must not be off.",
+    });
+    expect(medium.isStrict).toBe(true);
+    if (medium.isStrict) {
+      expect(medium.req.properties.tags).toEqual(
+        expect.arrayContaining(["confidence-band:medium"]),
+      );
+      expect(medium.propertyFact.properties).toMatchObject({
+        operator: "neq",
+        value_type: "string",
+        value_string: "off",
+      });
+    }
+
+    const gte = buildStrictWriteSet({
+      claim: claim({ operator: "gte", value: 1.5, confidence: 0.99 }),
+      statement: "Count must be at least 1.5.",
+    });
+    if (gte.isStrict) {
+      expect(gte.propertyFact.properties.title).toContain(">=");
+      expect(gte.propertyFact.properties.value_type).toBe("number");
+    }
+
+    const lte = buildStrictWriteSet({
+      claim: claim({ operator: "lte", value: 3, confidence: 0.99 }),
+      statement: "Count must be at most 3.",
+    });
+    if (lte.isStrict) {
+      expect(lte.propertyFact.properties.title).toContain("<=");
+    }
+
+    const boolOp = buildStrictWriteSet({
+      claim: claim({ operator: "bool", value: "true", confidence: 0.99 }),
+      statement: "Flag must be true.",
+    });
+    if (boolOp.isStrict) {
+      expect(boolOp.propertyFact.properties).toMatchObject({
+        operator: "eq",
+        value_type: "bool",
+        value_bool: true,
+      });
+    }
+    expect(() =>
+      buildStrictWriteSet({
+        claim: claim({ operator: "bool", value: "maybe" }),
+        statement: "Flag must be boolean.",
+      }),
+    ).toThrow(/Boolean claims/);
+
+    const polarityTrue = buildStrictWriteSet({
+      claim: claim({ operator: "polarity", value: true, confidence: 0.99 }),
+      statement: "Polarity require.",
+    });
+    if (polarityTrue.isStrict) {
+      expect(polarityTrue.propertyFact.properties.polarity).toBe("require");
+    }
+    const polarityForbid = buildStrictWriteSet({
+      claim: claim({ operator: "polarity", value: "forbid", confidence: 0.99 }),
+      statement: "Polarity forbid.",
+    });
+    if (polarityForbid.isStrict) {
+      expect(polarityForbid.propertyFact.properties.polarity).toBe("forbid");
+    }
+    expect(() =>
+      buildStrictWriteSet({
+        claim: claim({ operator: "polarity", value: "maybe" }),
+        statement: "Polarity invalid.",
+      }),
+    ).toThrow(/Polarity claims/);
+
+    const boolFalse = buildStrictWriteSet({
+      claim: claim({ operator: "bool", value: false, confidence: 0.99 }),
+      statement: "Flag false.",
+    });
+    if (boolFalse.isStrict) {
+      expect(boolFalse.propertyFact.properties.value_bool).toBe(false);
+    }
+    const boolStringFalse = buildStrictWriteSet({
+      claim: claim({ operator: "bool", value: "false", confidence: 0.99 }),
+      statement: "Flag string false.",
+    });
+    if (boolStringFalse.isStrict) {
+      expect(boolStringFalse.propertyFact.properties.value_bool).toBe(false);
+    }
+
+    const modeled = modelRequirementClaims([
+      { claim: claim({ confidence: 0.4 }), statement: "Low." },
+      { claim: claim({ confidence: 0.4 }), statement: "Low again." },
+      { claim: claim({ confidence: 0.99, value: 9 }), statement: "High." },
+    ]);
+    expect(modeled.length).toBe(2);
+  });
+});
+
+let restoreEnv: (() => void) | undefined;
+afterEach(() => {
+  restoreEnv?.();
+  restoreEnv = undefined;
+});
+describe("strict-modeling remaining typed-value and clamp branches", () => {
+  test("clamps confidence, integer numbers, boolean eq values, and polarity false", () => {
+    restoreEnv = isolateKibiEnv();
+
+    const high = buildStrictWriteSet({
+      claim: claim({ confidence: 1.7, operator: "eq", value: true }),
+      statement: "Enabled must stay true.",
+    });
+    expect(high.confidence).toBe(1);
+    if (high.isStrict) {
+      expect(high.propertyFact.properties).toMatchObject({
+        value_type: "bool",
+        value_bool: true,
+      });
+    }
+
+    const low = buildStrictWriteSet({
+      claim: claim({ confidence: -4, operator: "gte", value: 3 }),
+      statement: "Negative confidence becomes observation.",
+    });
+    expect(low.isStrict).toBe(false);
+    expect(low.confidence).toBe(0);
+
+    const infinite = buildStrictWriteSet({
+      claim: claim({ confidence: Number.POSITIVE_INFINITY, value: 8 }),
+      statement: "Infinity confidence is not finite.",
+    });
+    expect(infinite.isStrict).toBe(false);
+
+    const integer = buildStrictWriteSet({
+      claim: claim({ operator: "lte", value: 4, confidence: 0.99 }),
+      statement: "Count must be at most 4.",
+    });
+    if (integer.isStrict) {
+      expect(integer.propertyFact.properties).toMatchObject({
+        value_type: "int",
+        value_int: 4,
+      });
+      expect(String(integer.propertyFact.properties.title)).toContain("<=");
+    }
+
+    const polarityFalse = buildStrictWriteSet({
+      claim: claim({ operator: "polarity", value: false, confidence: 0.99 }),
+      statement: "Polarity forbid from boolean false.",
+    });
+    if (polarityFalse.isStrict) {
+      expect(polarityFalse.propertyFact.properties.polarity).toBe("forbid");
+      expect(String(polarityFalse.propertyFact.properties.title)).toContain(
+        "forbid",
+      );
+    }
+
+    const polarityRequire = buildStrictWriteSet({
+      claim: claim({
+        operator: "polarity",
+        value: "require",
+        confidence: 0.99,
+        subjectKey: "a..b__c",
+        propertyKey: "foo--bar",
+      }),
+      statement: "Polarity require from string.",
+    });
+    if (polarityRequire.isStrict) {
+      expect(polarityRequire.propertyFact.properties.polarity).toBe("require");
+      expect(polarityRequire.subjectFact.properties.title).toBe("A B C");
+    }
+
+    const modeled = modelRequirementClaims([
+      { claim: claim({ value: 1 }), statement: "One." },
+      { claim: claim({ value: 1 }), statement: "One again." },
+      { claim: claim({ value: 2 }), statement: "Two." },
+    ]);
+    expect(modeled).toHaveLength(2);
+    expect(() => normalizeTextRef("  ", "  ")).toThrow(
+      "Strict modeling requires claim provenance or source",
+    );
+    expect(normalizeTextRef("  ", "src.md")).toBe("src.md");
+    expect(normalizeTextRef("prov.md", "src.md")).toBe("prov.md");
   });
 });

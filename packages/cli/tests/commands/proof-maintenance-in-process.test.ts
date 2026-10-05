@@ -6,6 +6,7 @@ import { proofCompactCommand } from "../../src/commands/proof-compact.js";
 import { proofMigrateLegacyCommand } from "../../src/commands/proof-migrate-legacy.js";
 import { proofPruneCommand } from "../../src/commands/proof-prune.js";
 import { syncCommand } from "../../src/commands/sync.js";
+import { EngineClient } from "../../src/engine.js";
 import { executeMigrateLegacyReceipts } from "../../src/operations/proof/migrate-legacy-receipts.js";
 import { removeFrontmatterBlock } from "../../src/operations/proof/receipt-document.js";
 import { PrologProcess } from "../../src/prolog.js";
@@ -197,7 +198,7 @@ async function stopEngine(root: string): Promise<void> {
 
 function contextFor(
   root: string,
-  prolog: PrologProcess,
+  prolog: PrologPort,
   fs: FilesystemPort = nodeFilesystem,
 ): OperationContext {
   const attachment = resolveBranchAttachment(root);
@@ -206,7 +207,7 @@ function contextFor(
     workspaceRoot: root,
     signal: new AbortController().signal,
     clock: () => new Date("2026-09-07T00:00:00.000Z"),
-    prolog: prolog as unknown as PrologPort,
+    prolog,
     fs,
     branchAttachment: attachment,
   };
@@ -383,7 +384,14 @@ describe("proof maintenance real source and graph integration", () => {
       source: secondSource,
       legacy: true,
     });
-    const prolog = await attachedStore(root);
+    // Source-write recovery uses the production Node engine; Bun's direct
+    // interactive Prolog transport is outside this fixture's contract.
+    const prolog = new EngineClient({
+      workspaceRoot: root,
+      branch: "main",
+      timeout: 30_000,
+    });
+    await prolog.start();
     const publicationAttempts: string[] = [];
     const failingFs: FilesystemPort = {
       ...nodeFilesystem,
@@ -398,10 +406,17 @@ describe("proof maintenance real source and graph integration", () => {
       },
     };
 
-    await expect(
-      executeMigrateLegacyReceipts({}, contextFor(root, prolog, failingFs)),
-    ).rejects.toThrow(/maintenance interrupted/);
-    await closeStore(prolog);
+    try {
+      await expect(
+        executeMigrateLegacyReceipts({}, contextFor(root, prolog, failingFs)),
+      ).rejects.toThrow(/maintenance interrupted/);
+    } finally {
+      try {
+        await prolog.stop(false);
+      } finally {
+        await prolog.terminate();
+      }
+    }
     expect(publicationAttempts).toHaveLength(2);
     const sourcePathFromPublication = (temporaryPath: string): string => {
       const marker = temporaryPath.indexOf(".md.kibi-source-");

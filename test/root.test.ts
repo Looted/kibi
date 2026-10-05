@@ -31,6 +31,9 @@ export function isolatedUnitBatchEnv(
     NODE_ENV: "test",
     KIBI_ENGINE_IDLE_TIMEOUT_MS: "30000",
     KIBI_RUNTIME_DIR: runtimeDirectory,
+    // Mock SkillOpt episodes must never contend with a developer's live
+    // authentication lease or write under their real Codex home.
+    CODEX_HOME: join(runtimeDirectory, "codex-home"),
   };
   // Proof CI sets KIBI_BRANCH for the dogfood detached HEAD. Unit batches are
   // independent Git sandboxes and must resolve their own branch identity.
@@ -102,57 +105,38 @@ const CLI_BATCH_ARGS = [
   "--isolate",
   "--max-concurrency=1",
 ];
-const CLI_PROCESS_ISOLATED_TESTS = [
-  {
-    label: "cli graph",
-    path: "./packages/cli/tests/commands/graph.test.ts",
-  },
-  {
-    label: "cli compile plan source recovery",
-    path: "./packages/cli/tests/operations/apply-plan-recovery.test.ts",
-  },
-  {
-    label: "cli apply plan migration branches",
-    path: "./packages/cli/tests/operations/apply-plan-coverage.test.ts",
-  },
-  {
-    label: "cli proof impact",
-    path: "./packages/cli/tests/operations/proof-impact.test.ts",
-  },
-  {
-    label: "cli working tree source changes",
-    path: "./packages/cli/tests/public/source-changes.test.ts",
-  },
-  {
-    label: "cli check operation",
-    path: "./packages/cli/tests/operations/check.test.ts",
-  },
-  {
-    label: "cli discovery shared",
-    path: "./packages/cli/tests/commands/discovery-shared-remaining.coverage.test.ts",
-  },
-];
+// implements REQ-test-journaled-engine-harness, REQ-root-suite-batch-diagnostics
+// covered_by TEST-root-suite-batch-diagnostics
+export function createCliUnitBatches(
+  directory = "./packages/cli",
+): readonly Batch[] {
+  const paths: string[] = [];
+  const collect = (root: string): void => {
+    for (const entry of readdirSync(root, { withFileTypes: true })) {
+      if (["node_modules", "dist", ".git", ".kb"].includes(entry.name))
+        continue;
+      const file = join(root, entry.name);
+      if (entry.isDirectory()) collect(file);
+      else if (
+        entry.isFile() &&
+        /\.(?:test|spec)\.[cm]?[jt]sx?$/.test(entry.name)
+      )
+        paths.push(file);
+    }
+  };
+  collect(directory);
+  // Bun's module isolation does not isolate child-process state. A fresh
+  // process per CLI file prevents exited Git children and daemon mocks from
+  // poisoning later files; each receives its own runtime and Codex home.
+  return paths.sort().map((file) => ({
+    label: `cli ${file}`,
+    args: [...CLI_BATCH_ARGS, `./${file}`],
+  }));
+}
 
 // implements REQ-test-journaled-engine-harness
 // covered_by TEST-root-suite-batch-diagnostics
-export const CLI_UNIT_BATCHES: readonly Batch[] = [
-  {
-    label: "cli",
-    args: [
-      ...CLI_BATCH_ARGS,
-      // These files hung in long-lived Bun processes with exited Git children.
-      // Each still runs once below, with a fresh process and private runtime.
-      ...CLI_PROCESS_ISOLATED_TESTS.map(
-        (test) => `--path-ignore-patterns=${test.path.slice(2)}`,
-      ),
-      "./packages/cli",
-    ],
-  },
-  ...CLI_PROCESS_ISOLATED_TESTS.map((test) => ({
-    label: test.label,
-    args: [...CLI_BATCH_ARGS, test.path],
-  })),
-];
+export const CLI_UNIT_BATCHES: readonly Batch[] = createCliUnitBatches();
 
 const BATCHES: Batch[] = [
   {

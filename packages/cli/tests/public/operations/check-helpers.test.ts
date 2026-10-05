@@ -22,31 +22,25 @@ describe("partitionCheckFindings", () => {
     const partitioned = partitionCheckFindings([
       finding("required-fields", "REQ-001"),
       finding("domain-contradictions", "REQ-002"),
+      finding("strict-fact-shape", "FACT-001"),
     ]);
 
     expect(partitioned.violations.map((item) => item.rule)).toEqual([
       "required-fields",
       "domain-contradictions",
+      "strict-fact-shape",
     ]);
     expect(partitioned.qualityDiagnostics).toEqual([]);
   });
 
   test("moves advisory findings into non-blocking quality diagnostics", () => {
     const partitioned = partitionCheckFindings([
-      finding("strict-fact-shape", "FACT-001"),
       finding("strict-req-fact-pairing", "REQ-001"),
       finding("predicate-verifiability", "REQ-002"),
     ]);
 
     expect(partitioned.violations).toEqual([]);
     expect(partitioned.qualityDiagnostics).toEqual([
-      expect.objectContaining({
-        id: "rule.strict-fact-shape",
-        entityId: "FACT-001",
-        blocking: false,
-        severity: "warning",
-        category: "integrity",
-      }),
       expect.objectContaining({
         id: "rule.strict-req-fact-pairing",
         entityId: "REQ-001",

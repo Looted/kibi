@@ -583,6 +583,7 @@ Facts support two authoring lanes:
 - **Strict lane** for normative, contradiction-sensitive knowledge
   - `subject`: requires `subject_key`
   - `property_value`: requires `subject_key`, `property_key`, `operator`, `value_type`, and exactly one value field
+  - A scalar obligation such as "Exports must include headers" uses `operator: eq`, `value_type: bool`, `value_bool: true`, and `polarity: require` (or `forbid` for "must not"). Polarity modifies a typed comparison and never replaces it. Schema 7 makes malformed strict fact shapes blocking; `kibi migrate --yes` converts legacy polarity-only facts without changing IDs.
 - **Context lane** for non-blocking knowledge
   - `observation`
   - `meta`

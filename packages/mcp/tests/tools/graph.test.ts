@@ -242,7 +242,9 @@ describe("kb_graph isolated-core regression (issue #118)", () => {
 
   beforeAll(async () => {
     fixture = setupIsolatedCore();
-    prolog = new RealPrologProcess();
+    // Match production MCP's persistent session; per-query startup can consume
+    // the integration deadline before the repeated graph calls are exercised.
+    prolog = new RealPrologProcess({ oneShot: false });
     await prolog.start();
     await prolog.query(
       "set_prolog_flag(answer_write_options, [max_depth(0), spacing(next_argument)])",

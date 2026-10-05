@@ -157,7 +157,7 @@ export const GENERATED_RULES = [
     name: "strict-fact-shape",
     description:
       "Detect malformed strict facts (facts with fact_kind that are missing required fields)",
-    enforcementClass: "advisory",
+    enforcementClass: "canonical",
     category: "integrity",
   },
   {

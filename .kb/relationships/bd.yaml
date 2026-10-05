@@ -251,3 +251,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6f2d4f1255a7
+  - type: implements
+    from: SYM-migrate-polarity-backfill-code
+    to: REQ-bootstrap-write-safety
+    created_at: 2026-10-04T16:24:03.329Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb74d684554c
+  - type: covered_by
+    from: SYM-migrate-polarity-backfill-code
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-10-04T16:24:03.361Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-79e9e8caa32c

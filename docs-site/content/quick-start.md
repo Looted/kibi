@@ -52,6 +52,10 @@ Then [connect your coding agent](connect-an-agent.md) and ask it:
 
 </details>
 
+Bootstrap validates every candidate before offering write actions. Claims that cannot be grounded stay cited authoring follow-ups; product intent takes priority over repository observations, and candidates beyond the limit are reported. Invalid approved plans are refused before any bootstrap write. Deterministic failures are terminal and require a corrected plan; interrupted writes and derived effects retain journal recovery.
+
+Existing KBs upgrade to schema 7 with `kibi migrate --yes` followed by `kibi sync`. The migration preserves fact IDs and bodies while encoding legacy polarity-only facts as typed booleans; malformed strict facts now fail `kibi check`.
+
 ## 3. Approve the bootstrap plan
 
 Read the plan the agent shows you. Check that requirements cite the sources you trust, answer any remaining questions the planner raises, and correct any product call it got wrong before you approve. Kibi never contacts your tracker or wiki itself; it records what the agent read and binds it into the plan's hash.

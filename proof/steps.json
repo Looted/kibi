@@ -527,6 +527,17 @@
         "node",
         "scripts/run-proof-packed-e2e.mjs",
         "documentation/tests/e2e/packed/init-sync-check.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/consumer/bootstrap-write-failures.test.ts",
+        "./packages/cli/tests/operations/bootstrap-write-failures.test.ts",
+        "./packages/cli/tests/operations/bootstrap.test.ts",
+        "./packages/cli/tests/operations/apply-plan.test.ts",
+        "./packages/cli/tests/operations/bootstrap-intent-claims.test.ts"
       ]
     ]
   },

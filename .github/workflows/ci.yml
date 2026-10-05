@@ -160,8 +160,10 @@ jobs:
 
       - name: Upload unit coverage to Codecov
         if: ${{ github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/develop') }}
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@0fb7174895f61a3b6b78fc075e0cd60383518dac # v5.5.5
         with:
+          # Install the official CLI from PyPI while the binary CDN fails TLS.
+          use_pypi: true
           files: ./coverage/unit/lcov.info
           token: ${{ secrets.CODECOV_TOKEN }}
           flags: unit
@@ -273,7 +275,7 @@ jobs:
 
       - name: Rehearse release decision with mock registry
         run: |
-          PUBLISHED_TOKENS=$(bun scripts/package-catalog.ts --print-publishable-tsv | while IFS=$'\t' read -r dir name; do
+          PUBLISHED_TOKENS=$(bun scripts/package-catalog.ts --print-publishable-tsv | while IFS=$'\t' read -r dir _; do
             node -e "const fs=require('node:fs'); const j=JSON.parse(fs.readFileSync('packages/' + process.argv[1] + '/package.json','utf8')); process.stdout.write(j.name + '@' + j.version + ',');" "$dir"
           done | sed 's/,$//')
           GITHUB_REF_NAME=master KIBI_RELEASE_MOCK_NPM="$PUBLISHED_TOKENS" \
@@ -337,9 +339,9 @@ jobs:
       - name: Run CLI regression tests
         run: |
           NODE_OPTIONS='--enable-source-maps' node scripts/run-packed-e2e.mjs \
-            $RUNNER_TEMP/kibi-e2e-packed-compiled \
-            $RUNNER_TEMP/kibi-e2e-packed-compiled/cli-workflows.test.js \
-            $RUNNER_TEMP/kibi-e2e-packed-compiled/cli-query-regression.test.js
+            "$RUNNER_TEMP/kibi-e2e-packed-compiled" \
+            "$RUNNER_TEMP/kibi-e2e-packed-compiled/cli-workflows.test.js" \
+            "$RUNNER_TEMP/kibi-e2e-packed-compiled/cli-query-regression.test.js"
         env:
           KIBI_E2E_ALLOW_PATCHED_INSTALL: "0"
           KIBI_TEST_TARBALLS: ${{ github.workspace }}/packages
@@ -381,9 +383,9 @@ jobs:
       - name: Run MCP packed regression tests
         run: |
           NODE_OPTIONS='--enable-source-maps' node scripts/run-packed-e2e.mjs \
-            $RUNNER_TEMP/kibi-e2e-packed-compiled \
-            $RUNNER_TEMP/kibi-e2e-packed-compiled/mcp-protocol-regression.test.js \
-            $RUNNER_TEMP/kibi-e2e-packed-compiled/mcp-pnpm-upgrade-stale-path.test.js
+            "$RUNNER_TEMP/kibi-e2e-packed-compiled" \
+            "$RUNNER_TEMP/kibi-e2e-packed-compiled/mcp-protocol-regression.test.js" \
+            "$RUNNER_TEMP/kibi-e2e-packed-compiled/mcp-pnpm-upgrade-stale-path.test.js"
         env:
           KIBI_E2E_ALLOW_PATCHED_INSTALL: "0"
           KIBI_TEST_TARBALLS: ${{ github.workspace }}/packages

@@ -155,3 +155,11 @@ Telemetry diagnostics are also advisory in `kb_check`, but `kibi usage-metrics -
 - `proof_gap_recovery_stalled`: apply reviewed ready repair batches and demonstrate a lower complete-scope gap count.
 - `source_lookup_zero_result_rate_high`: inspect and refresh the cited source links before repeating focused lookups.
 - `telemetry_completeness_low`, `telemetry_evidence_stale`, or `telemetry_acceptance_incomplete`: capture current complete diagnostic events; do not waive missing evidence as success.
+
+## Bootstrap write validation
+
+`BOOTSTRAP_PLAN_INVALID` refuses an approved plan before any bootstrap write or journal is created. Re-plan; do not recover the invalid plan. Candidates suppressed as `invalid_write` include the validation message and become cited requirement-authoring follow-ups.
+
+`BOOTSTRAP_PLAN_REJECTED` marks a deterministic failure after application began. Inspect `actionResults` for the actions that committed, then request a corrected plan from the current state. The terminal journal cannot be replayed; `kibi status` lists incomplete bootstrap applications. IO interruptions and derived-effect repairs continue to use `recoveryJournalId`.
+
+`over_limit` lists each candidate excluded by `maxCandidates`, after deduplication and existing-entity suppression. Product intent and typed requirements are selected ahead of provider observations. `extraction_failed` names a source the planner could not extract, and an existing-ID read failure blocks plan binding.
