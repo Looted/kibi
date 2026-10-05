@@ -8,6 +8,7 @@
 
 :- use_module('entities.pl').
 :- use_module('relationships.pl').
+:- use_module(library(http/json)).
 
 % validate_entity(+Type, +Props:list)
 % Props is a list of Property=Value pairs (e.g. id=ID, title=Title)
@@ -19,7 +20,9 @@ validate_entity(Type, Props) :-
     % all properties have correct types
     forall(member(Key=Val, Props), validate_property_type(Type, Key, Val)),
     % validate entity-specific shape constraints
-    validate_entity_shape(Type, Props).
+    validate_entity_shape(Type, Props),
+    % provenance, when present, names a known origin kind
+    valid_origin_in_props(Props).
 
 % validate_relationship(+RelType, +From, +To)
 % From and To are pairs Type=Id or structures type(Type) - allow Type or Type=Id
@@ -105,6 +108,7 @@ is_fact_only_field(predicate_arity).
 is_fact_only_field(argument_names).
 is_fact_only_field(argument_types).
 is_fact_only_field(argument_descriptions).
+is_fact_only_field(key_arguments).
 is_fact_only_field(argument_constants).
 is_fact_only_field(argument_aliases).
 is_fact_only_field(aliases).
@@ -156,6 +160,7 @@ validate_fact_shape(predicate_schema, Props) :-
     memberchk(argument_types=ArgumentTypes, Props),
     same_length(ArgumentNames, ArgumentTypes),
     length(ArgumentNames, Arity),
+    valid_key_arguments(Props, ArgumentNames),
     valid_optional_fact_enums(Props),
     valid_polarity_in_props(Props), !.
 validate_fact_shape(predicate, Props) :-
@@ -184,6 +189,24 @@ validate_fact_shape(Kind, _Props) :-
     % Unknown fact_kind values fail validation
     \+ memberchk(Kind, [subject, property_value, observation, meta, predicate_schema, predicate, rule_schema, rule]),
     fail.
+
+% valid_key_arguments(+Props, +ArgumentNames)
+% Optional key_arguments must be a non-empty list of distinct declared
+% argument names.
+valid_key_arguments(Props, ArgumentNames) :-
+    (   memberchk(key_arguments=Keys, Props)
+    ->  is_list(Keys),
+        Keys \= [],
+        maplist(text_atom, ArgumentNames, NameAtoms),
+        maplist(text_atom, Keys, KeyAtoms),
+        sort(KeyAtoms, UniqueKeys),
+        same_length(KeyAtoms, UniqueKeys),
+        forall(member(Key, KeyAtoms), memberchk(Key, NameAtoms))
+    ;   true
+    ).
+
+text_atom(Value, Atom) :- atom(Value), !, Atom = Value.
+text_atom(Value, Atom) :- string(Value), atom_string(Atom, Value).
 
 % valid_operator(+Op)
 valid_operator(Op) :- memberchk(Op, [eq, neq, lt, lte, gt, gte]), !.
@@ -256,3 +279,24 @@ value_type_matches_field(string, Props) :- memberchk(value_string=_, Props), !.
 value_type_matches_field(int, Props) :- memberchk(value_int=_, Props), !.
 value_type_matches_field(number, Props) :- memberchk(value_number=_, Props), !.
 value_type_matches_field(bool, Props) :- memberchk(value_bool=_, Props), !.
+
+% valid_origin_in_props(+Props)
+% Entity provenance travels as a JSON object string (or a dict). When present
+% its kind must be human, agent, migration or import.
+valid_origin_in_props(Props) :-
+    (   memberchk(origin=Raw, Props)
+    ->  origin_kind(Raw, Kind),
+        memberchk(Kind, [human, agent, migration, import])
+    ;   true
+    ).
+
+origin_kind(Raw, Kind) :-
+    (   is_dict(Raw)
+    ->  Dict = Raw
+    ;   (atom(Raw) ; string(Raw)),
+        catch(atom_json_dict(Raw, Dict, []), _, fail),
+        is_dict(Dict)
+    ),
+    get_dict(kind, Dict, RawKind),
+    (atom(RawKind) ; string(RawKind)),
+    atom_string(Kind, RawKind).

@@ -36,6 +36,10 @@ semantic_inventory:
       start: 0
       end: 406
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Kibi should adopt maintained SWI-Prolog libraries where they clarify bounded graph behavior without replacing the local branch KB model.

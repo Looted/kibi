@@ -4,7 +4,6 @@ title: Kibi exposes intent search uncertainty
 status: active
 created_at: 2026-08-13T00:00:00.000Z
 updated_at: 2026-08-13T00:00:00.000Z
-source: documentation/facts/FACT-REQ-PROOF-INTENT-EXPLICIT-UNCERTAINTY.md
 tags:
   - lane:strict
   - intent
@@ -21,6 +20,10 @@ claim_text: The result must expose deterministic scores, evidence paths, source 
 claim_span_start: 207
 claim_span_end: 383
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation for explicit zero-result and ambiguity outcomes.

@@ -4,7 +4,6 @@ title: "OpenCode Kibi Briefings v6 Verification Plan"
 status: closed
 created_at: 2026-05-06T04:38:00Z
 updated_at: 2026-05-06T04:38:00Z
-source: documentation/tests/TEST-opencode-kibi-briefing-v6.md
 priority: must
 tags:
   - test
@@ -14,6 +13,10 @@ tags:
 links:
   - type: validates
     target: SCEN-opencode-kibi-briefing-v6
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Verification plan for Schema-2.0 and Session-Delta migration:

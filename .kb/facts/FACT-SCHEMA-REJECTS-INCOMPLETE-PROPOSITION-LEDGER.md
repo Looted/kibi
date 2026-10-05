@@ -18,5 +18,9 @@ examples:
   - rejects_incomplete_proposition_ledger(current_requirement_write)
 id: FACT-SCHEMA-REJECTS-INCOMPLETE-PROPOSITION-LEDGER
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Predicate schema for rejects_incomplete_proposition_ledger/1.

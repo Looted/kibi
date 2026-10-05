@@ -10,5 +10,9 @@ tags:
   - pagination
 id: TEST-kibi-proof-contract-projection-pagination
 type: test
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 The Prolog fixture projects 123 tests with proof contracts, bindings, and 8 KB receipt histories, then verifies ordered pages of 37, 37, 37, and 12 rows; an exact-ID page is also covered. Every projected row retains the contract and bindings while excluding proof_receipts. The CLI fixture selects 235 projected tests in three pages of at most 100, returns all IDs in order, and asserts that no selection goal or result materializes receipt history. Tests: packages/core/tests/kb.plt, packages/cli/tests/modeling-and-public-lcov.test.ts, and packages/cli/tests/proof/prove-command.test.ts.

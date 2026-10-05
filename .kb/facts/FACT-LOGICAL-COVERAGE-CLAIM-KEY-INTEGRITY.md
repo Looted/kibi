@@ -4,7 +4,6 @@ title: Claim keys are bound to their atomic clause text
 status: active
 created_at: 2026-08-04T00:00:00.000Z
 updated_at: 2026-08-04T00:00:00.000Z
-source: documentation/facts/FACT-LOGICAL-COVERAGE-CLAIM-KEY-INTEGRITY.md
 tags:
   - lane:ontology
   - requirements
@@ -22,6 +21,10 @@ polarity: assert
 claim_key: CLAIM-6A1D53864E9D3D90
 claim_text: Kibi must reject a ground fact when its claim_key is not the stable key derived from claim_text
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of stable claim provenance integrity.

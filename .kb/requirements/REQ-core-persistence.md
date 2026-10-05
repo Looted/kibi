@@ -1,7 +1,7 @@
 ---
 id: REQ-core-persistence
 title: RDF persistence using SWI-Prolog rdf_persistency library
-status: open
+status: closed
 created_at: 2026-05-13T10:00:00.000Z
 updated_at: 2026-05-13T10:00:00.000Z
 source: REQ-009
@@ -69,6 +69,10 @@ logic_claims:
   - CLAIM-769054E19123AAE0
   - CLAIM-24B213340E7C4B0B
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Kibi's knowledge base is persisted on disk using the SWI-Prolog `rdf_persistency` library.

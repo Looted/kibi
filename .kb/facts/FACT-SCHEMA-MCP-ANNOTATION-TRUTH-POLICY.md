@@ -24,4 +24,8 @@ examples:
   - mcp_annotation_truth_policy(kibi_mcp,non_interactive,truthful)
 id: FACT-SCHEMA-MCP-ANNOTATION-TRUTH-POLICY
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

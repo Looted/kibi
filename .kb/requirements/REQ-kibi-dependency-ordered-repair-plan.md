@@ -4,7 +4,6 @@ title: Requirement proof gaps produce a safe dependency-ordered repair plan
 status: open
 created_at: 2026-08-10T00:00:00Z
 updated_at: 2026-08-10T00:00:00Z
-source: documentation/requirements/REQ-kibi-dependency-ordered-repair-plan.md
 priority: must
 tags: [requirements, proof, repair, migration, planning, parity]
 logic_claims:
@@ -92,6 +91,10 @@ links:
     target: FACT-REPAIR-PLAN-PAGINATION
   - type: requires_predicate
     target: FACT-REPAIR-PLAN-REQ-ONLY
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Requirement coverage must emit a deterministic read-only repair plan for every returned requirement with proof gaps. The planner must group same-phase gaps into one small batch per requirement and order batches from source and semantic inventory through logical endpoints, manifests, contradiction resolution, scenarios, tests, receipts, symbols, and coordinates. Only the earliest unresolved batch for each requirement may be ready, and every downstream batch must name its dependencies. Every batch must remain non-auto-applicable and require query-before-mutation, endpoint-before-relationship creation, validation before writes, sequential upserts, and coverage rechecking. The plan identifier must remain stable for the same code snapshot, filters, proof evidence, and gaps while ignoring volatile check times and receipt ages. Pagination that omits actionable requirements must produce a partial plan with the excluded count. Non-requirement coverage must not emit a requirement repair plan.

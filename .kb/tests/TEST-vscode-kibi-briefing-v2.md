@@ -4,7 +4,6 @@ title: "VS Code Kibi Briefings v2 Verification"
 status: closed
 created_at: 2026-04-29T00:00:00Z
 updated_at: 2026-04-29T00:00:00Z
-source: documentation/tests/TEST-vscode-kibi-briefing-v2.md
 priority: must
 tags:
   - test
@@ -14,6 +13,10 @@ tags:
 links:
   - type: validates
     target: SCEN-vscode-kibi-briefing-v2
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Verification plan for the VS Code render-first auto-open briefing system:

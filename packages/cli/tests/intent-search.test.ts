@@ -23,6 +23,87 @@ function entity(
 }
 
 describe("intent-v1 search ranking", () => {
+  test("ranks on the question's domain terms, not its scaffolding", async () => {
+    const result = await rankIntentEntities(
+      [
+        entity("REQ-DETACHED", "Detached HEAD branch attachment"),
+        entity("REQ-SHOULD-A", "What the CLI should print"),
+        entity("REQ-SHOULD-B", "How agents should search"),
+        entity("REQ-SHOULD-C", "Which hooks should run"),
+      ],
+      { query: "how should we handle a detached HEAD?" },
+      workspaceRoot,
+      [],
+    );
+    expect(result.matches.map((match) => match.entity.id)).toEqual([
+      "REQ-DETACHED",
+    ]);
+  });
+
+  test("ignores the frame of a 'what governs' question", async () => {
+    const result = await rankIntentEntities(
+      [
+        entity("REQ-UPLOAD-RESUME", "Incomplete video uploads can be resumed"),
+        entity("REQ-PLAYBACK", "Playback rules govern the video player", {
+          semantic_text: "Playback resumes once an upload finishes.",
+        }),
+      ],
+      { query: "what governs resuming a video upload?" },
+      workspaceRoot,
+      [],
+    );
+    expect(result.matches[0]?.entity.id).toBe("REQ-UPLOAD-RESUME");
+  });
+
+  test("meets a question's verb with the entity's noun", async () => {
+    const result = await rankIntentEntities(
+      [
+        entity("REQ-CONFLICTS", "Contradiction witnesses for requirements"),
+        entity("REQ-OTHER", "Release notes formatting"),
+      ],
+      { query: "what happens when requirements contradict" },
+      workspaceRoot,
+      [],
+    );
+    expect(result.matches[0]?.entity.id).toBe("REQ-CONFLICTS");
+  });
+
+  test("ranks superseded entities below current ones and says why", async () => {
+    const result = await rankIntentEntities(
+      [
+        entity("REQ-OLD", "Checkout total policy", { status: "active" }),
+        entity("REQ-DEPRECATED", "Checkout total policy", {
+          status: "deprecated",
+        }),
+        entity("REQ-NEW", "Checkout total policy", { status: "open" }),
+      ],
+      { query: "checkout total policy" },
+      workspaceRoot,
+      [{ relationship: "supersedes", from: "REQ-NEW", to: "REQ-OLD" }],
+    );
+    expect(result.matches[0]?.entity.id).toBe("REQ-NEW");
+    const old = result.matches.find((match) => match.entity.id === "REQ-OLD");
+    const deprecated = result.matches.find(
+      (match) => match.entity.id === "REQ-DEPRECATED",
+    );
+    expect(old?.reasons).toContain("demoted: superseded");
+    expect(deprecated?.reasons).toContain("demoted: deprecated");
+    expect(result.analysis.ambiguous).toBe(false);
+  });
+
+  test("flags near-tied leading matches as ambiguous", async () => {
+    const result = await rankIntentEntities(
+      [
+        entity("REQ-A", "Invoice retention period"),
+        entity("REQ-B", "Invoice retention period"),
+      ],
+      { query: "invoice retention" },
+      workspaceRoot,
+      [],
+    );
+    expect(result.analysis.ambiguous).toBe(true);
+  });
+
   test("recovers functionality through host-agent semantic facets", async () => {
     const result = await rankIntentEntities(
       [

@@ -6,6 +6,24 @@ import { promisify } from "node:util";
 import { EngineClient } from "../../../packages/cli/src/engine";
 import { buildUpsertCommitGoal } from "../../../packages/cli/src/operations/mutation/contradictions";
 import { escapeAtom } from "../../../packages/cli/src/prolog/codec";
+import {
+  CONSISTENCY_E2E_TEST_DOCUMENT,
+  CONSISTENCY_E2E_TEST_PATH,
+  CONSISTENCY_E2E_TEST_SOURCE,
+  CONSISTENCY_IDS,
+  CONSISTENCY_PROSE,
+  CONSISTENCY_SUBJECT_DOCUMENT,
+  GOVERNED_AREA_DOCUMENTS,
+  GOVERNED_FIXTURE_SOURCE,
+  GOVERNED_FIXTURE_TEST,
+  type LedgerProposition,
+  PRECONDITION_DOCUMENTS,
+  PRECONDITION_IDS,
+  PRECONDITION_INTENT,
+  PRECONDITION_ORIGIN,
+  consistencyValueFact,
+  ledgerRequirement,
+} from "./fixture-seeds";
 
 const execFileAsync = promisify(execFile);
 
@@ -437,14 +455,17 @@ export async function setupThinRootKb(
   await stageCommitAll(workspaceTarget);
 }
 
-async function runSeededFixtureTest(workspaceTarget: string): Promise<void> {
+async function runSeededFixtureTest(
+  workspaceTarget: string,
+  testPath: string = FIXTURE_TEST_PATH,
+): Promise<void> {
   const child = Bun.spawn(
     [
       process.execPath,
       "test",
       "--timeout",
       String(FIXTURE_TEST_TIMEOUT_MS),
-      FIXTURE_TEST_PATH,
+      testPath,
     ],
     {
       cwd: workspaceTarget,
@@ -647,4 +668,318 @@ export async function stopFixtureEngine(
     // No daemon was running.
   }
   await daemon.terminate();
+}
+
+async function writeDocuments(
+  workspaceTarget: string,
+  documents: Readonly<Record<string, string>>,
+): Promise<void> {
+  for (const [relativePath, content] of Object.entries(documents)) {
+    const target = join(workspaceTarget, relativePath);
+    await mkdir(join(target, ".."), { recursive: true, mode: 0o700 });
+    await writeFile(target, content, "utf8");
+  }
+}
+
+/** Commit everything, then import it; sync reads the Git source boundary. */
+async function commitAndSync(
+  workspaceTarget: string,
+  cliRoot: string,
+): Promise<void> {
+  await stageCommitAll(workspaceTarget);
+  await runCliWithRetry(
+    () => runStagedCli(cliRoot, workspaceTarget, ["sync"]),
+    "import sync",
+    { retryOnInteractivePrologTimeout: true },
+  );
+}
+
+async function initSeededRepository(
+  workspaceTarget: string,
+  cliRoot: string,
+): Promise<void> {
+  await initFixtureRepository(workspaceTarget);
+  await runCliWithRetry(
+    () => runStagedCli(cliRoot, workspaceTarget, ["init"]),
+    "kibi init",
+  );
+}
+
+async function validateSeed(
+  workspaceTarget: string,
+  cliRoot: string,
+  label: string,
+): Promise<void> {
+  await runCliWithRetry(
+    () => runStagedCli(cliRoot, workspaceTarget, ["check"]),
+    `${label} validation`,
+  );
+}
+
+function jsonRecord(text: string, label: string): Record<string, unknown> {
+  // Routes print one JSON envelope; a trailing human error line may follow.
+  const line = text
+    .split("\n")
+    .find((candidate) => candidate.trim().startsWith("{"));
+  try {
+    const parsed: unknown = JSON.parse(line ?? text);
+    if (parsed !== null && typeof parsed === "object" && !Array.isArray(parsed))
+      return parsed as Record<string, unknown>;
+  } catch {
+    // Reported below.
+  }
+  throw new FixtureSetupError(`${label} returned no JSON envelope`);
+}
+
+function recordField(
+  value: unknown,
+  key: string,
+  label: string,
+): Record<string, unknown> {
+  const field =
+    value !== null && typeof value === "object"
+      ? (value as Record<string, unknown>)[key]
+      : undefined;
+  if (field === null || typeof field !== "object" || Array.isArray(field))
+    throw new FixtureSetupError(`${label} is missing ${key}`);
+  return field as Record<string, unknown>;
+}
+
+async function jsonRoute(
+  cliRoot: string,
+  workspaceTarget: string,
+  route: string,
+  input: unknown,
+): Promise<Record<string, unknown>> {
+  const stdout = await runCliWithRetry(
+    () =>
+      runStagedCli(
+        cliRoot,
+        workspaceTarget,
+        [route, "--input", "-"],
+        `${JSON.stringify(input)}\n`,
+      ),
+    route,
+  );
+  return jsonRecord(stdout, route);
+}
+
+/** The semantic advisor's clause ledger for prose (computed live). */
+// implements REQ-skillopt-codex-optimization
+export async function semanticLedger(
+  cliRoot: string,
+  workspaceTarget: string,
+  prose: string,
+): Promise<{
+  contract: { version: string; source_field: string; source_hash: string };
+  propositions: readonly LedgerProposition[];
+}> {
+  const envelope = await jsonRoute(
+    cliRoot,
+    workspaceTarget,
+    "semantic-advisor",
+    { text: prose },
+  );
+  const receipt = recordField(
+    recordField(envelope, "data", "semantic-advisor"),
+    "receipt",
+    "semantic-advisor",
+  );
+  const contract = recordField(
+    receipt,
+    "inventory_contract",
+    "advisor receipt",
+  );
+  const propositions = receipt.propositions;
+  if (
+    typeof contract.version !== "string" ||
+    typeof contract.source_field !== "string" ||
+    typeof contract.source_hash !== "string" ||
+    !Array.isArray(propositions)
+  )
+    throw new FixtureSetupError("semantic-advisor receipt is incomplete");
+  return {
+    contract: {
+      version: contract.version,
+      source_field: contract.source_field,
+      source_hash: contract.source_hash,
+    },
+    propositions: propositions as LedgerProposition[],
+  };
+}
+
+/**
+ * Evaluator-owned staging for intent-consultation cases: a current
+ * requirement that supersedes a closed v1, an ADR with the rationale, an
+ * observation fact that contradicts the policy, a passing unit test, and the
+ * production symbol in src/fixture.ts still implementing the superseded v1.
+ * The KB is committed, synced and checked clean before the model starts.
+ */
+// implements REQ-skillopt-codex-optimization
+export async function setupSeededGovernedAreaKb(
+  workspaceTarget: string,
+  cliRoot: string,
+): Promise<void> {
+  await initSeededRepository(workspaceTarget, cliRoot);
+  await writeDocuments(workspaceTarget, {
+    [FIXTURE_SOURCE_PATH]: GOVERNED_FIXTURE_SOURCE,
+    [FIXTURE_TEST_PATH]: GOVERNED_FIXTURE_TEST,
+    ...GOVERNED_AREA_DOCUMENTS,
+  });
+  await runSeededFixtureTest(workspaceTarget);
+  await commitAndSync(workspaceTarget, cliRoot);
+  await validateSeed(workspaceTarget, cliRoot, "governed-area fixture");
+}
+
+/**
+ * Evaluator-owned staging for scenario-precondition cases. The base
+ * requirement ("a client call may happen only when the call quota remaining
+ * is positive") is compiled through compile-intent and applied with its
+ * approved plan hash, so its forbid rule and clause ledger are production
+ * output; its origin is then stamped as human-approved. A zero-quota
+ * property fact and a scenario that expects rejection are seeded beside it.
+ */
+// implements REQ-skillopt-codex-optimization
+export async function setupSeededPreconditionKb(
+  workspaceTarget: string,
+  cliRoot: string,
+): Promise<void> {
+  await initSeededRepository(workspaceTarget, cliRoot);
+  await commitAndSync(workspaceTarget, cliRoot);
+  const compiled = await jsonRoute(cliRoot, workspaceTarget, "compile-intent", {
+    intent: PRECONDITION_INTENT,
+    mode: "create",
+    requirementId: PRECONDITION_IDS.base,
+  });
+  const plan = recordField(compiled, "data", "compile-intent");
+  if (plan.status !== "ready" || typeof plan.planHash !== "string")
+    throw new FixtureSetupError(
+      `precondition plan is not ready: ${String(plan.status)}`,
+    );
+  const applied = await jsonRoute(cliRoot, workspaceTarget, "apply-plan", {
+    plan,
+    approvedPlanHash: plan.planHash,
+  });
+  if (recordField(applied, "data", "apply-plan").outcome !== "applied")
+    throw new FixtureSetupError("precondition plan was not applied");
+  // Absorb the plan's pending-source receipts before editing its output.
+  await commitAndSync(workspaceTarget, cliRoot);
+  const requirementPath = join(
+    workspaceTarget,
+    ".kb",
+    "requirements",
+    `${PRECONDITION_IDS.base}.md`,
+  );
+  const requirement = await readFile(requirementPath, "utf8");
+  if (!/^ {2}kind: agent$/m.test(requirement))
+    throw new FixtureSetupError("compiled requirement has no agent origin");
+  await writeFile(
+    requirementPath,
+    requirement.replace(/^ {2}kind: agent$/m, PRECONDITION_ORIGIN),
+    "utf8",
+  );
+  await writeDocuments(workspaceTarget, PRECONDITION_DOCUMENTS);
+  await commitAndSync(workspaceTarget, cliRoot);
+  await validateSeed(workspaceTarget, cliRoot, "precondition fixture");
+}
+
+/**
+ * Evaluator-owned staging for consistency-report cases: one requirement with
+ * a modeled numeric clause and an ontology-gap review clause (contradiction
+ * stage `analysis_incomplete`) validated by a passing e2e test entity without
+ * a proof receipt, and two fully modeled, compatible requirements on the same
+ * property (`>= 0` and `<= 1000`). Clause ledgers come from the live advisor.
+ */
+// implements REQ-skillopt-codex-optimization
+export async function setupSeededConsistencyKb(
+  workspaceTarget: string,
+  cliRoot: string,
+): Promise<void> {
+  await initSeededRepository(workspaceTarget, cliRoot);
+  const incomplete = await semanticLedger(
+    cliRoot,
+    workspaceTarget,
+    CONSISTENCY_PROSE.incomplete,
+  );
+  const [numeric, review] = incomplete.propositions;
+  if (
+    incomplete.propositions.length !== 2 ||
+    numeric === undefined ||
+    review === undefined ||
+    review.status !== "ontology_gap"
+  )
+    throw new FixtureSetupError(
+      "consistency fixture expects one numeric clause and one ontology gap",
+    );
+  const documents: Record<string, string> = {
+    [`.kb/facts/${CONSISTENCY_IDS.subject}.md`]: CONSISTENCY_SUBJECT_DOCUMENT,
+    [`.kb/facts/${CONSISTENCY_IDS.positiveFact}.md`]: consistencyValueFact({
+      id: CONSISTENCY_IDS.positiveFact,
+      title: "Remaining call quota above zero",
+      operator: "gt",
+      value: 0,
+      claimKey: numeric.claim_key,
+      claimText: numeric.claim_text,
+    }),
+    [`.kb/requirements/${CONSISTENCY_IDS.incomplete}.md`]: ledgerRequirement({
+      id: CONSISTENCY_IDS.incomplete,
+      title: "Calls need remaining quota and quota resets need review",
+      prose: CONSISTENCY_PROSE.incomplete,
+      contract: incomplete.contract,
+      propositions: [{ ...numeric, status: "modeled" }, review],
+      links: [
+        { type: "constrains", target: CONSISTENCY_IDS.subject },
+        { type: "requires_property", target: CONSISTENCY_IDS.positiveFact },
+      ],
+    }),
+    [CONSISTENCY_E2E_TEST_PATH]: CONSISTENCY_E2E_TEST_SOURCE,
+    [`.kb/tests/${CONSISTENCY_IDS.e2eTest}.md`]: CONSISTENCY_E2E_TEST_DOCUMENT,
+  };
+  const modeled = [
+    {
+      id: CONSISTENCY_IDS.nonNegative,
+      factId: CONSISTENCY_IDS.nonNegativeFact,
+      title: "Remaining call quota is never negative",
+      prose: CONSISTENCY_PROSE.nonNegative,
+      operator: "gte",
+      value: 0,
+    },
+    {
+      id: CONSISTENCY_IDS.cap,
+      factId: CONSISTENCY_IDS.capFact,
+      title: "Remaining call quota is at most 1000",
+      prose: CONSISTENCY_PROSE.cap,
+      operator: "lte",
+      value: 1000,
+    },
+  ] as const;
+  for (const spec of modeled) {
+    const ledger = await semanticLedger(cliRoot, workspaceTarget, spec.prose);
+    const [claim] = ledger.propositions;
+    if (ledger.propositions.length !== 1 || claim === undefined)
+      throw new FixtureSetupError(`${spec.id} expects exactly one clause`);
+    documents[`.kb/facts/${spec.factId}.md`] = consistencyValueFact({
+      id: spec.factId,
+      title: spec.title,
+      operator: spec.operator,
+      value: spec.value,
+      claimKey: claim.claim_key,
+      claimText: claim.claim_text,
+    });
+    documents[`.kb/requirements/${spec.id}.md`] = ledgerRequirement({
+      id: spec.id,
+      title: spec.title,
+      prose: spec.prose,
+      contract: ledger.contract,
+      propositions: [{ ...claim, status: "modeled" }],
+      links: [
+        { type: "constrains", target: CONSISTENCY_IDS.subject },
+        { type: "requires_property", target: spec.factId },
+      ],
+    });
+  }
+  await writeDocuments(workspaceTarget, documents);
+  await runSeededFixtureTest(workspaceTarget, CONSISTENCY_E2E_TEST_PATH);
+  await commitAndSync(workspaceTarget, cliRoot);
+  await validateSeed(workspaceTarget, cliRoot, "consistency fixture");
 }

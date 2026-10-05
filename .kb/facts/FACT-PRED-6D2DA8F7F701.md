@@ -1,7 +1,7 @@
 ---
 title: Requirement health uses no network assets
 status: active
-source: documentation/requirements/REQ-kibi-branded-health-report.md
+source: .kb/requirements/REQ-kibi-branded-health-report.md
 text_ref: documentation/requirements/REQ-kibi-branded-health-report.md
 tags:
   - lane:ontology
@@ -19,5 +19,9 @@ claim_key: CLAIM-508540B126EC9849
 claim_text: The report and badge must remain self-contained and use no network assets
 id: FACT-PRED-6D2DA8F7F701
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 The generated HTML and SVG carry their complete visual identity without remote dependencies.

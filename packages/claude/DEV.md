@@ -10,7 +10,7 @@ for anyone outside this repository.
 | --- | --- |
 | Hooks | `.claude/settings.json` runs `$CLAUDE_PROJECT_DIR/packages/claude/bin/hook-runner.mjs`, the committed bundle of the checkout you opened |
 | MCP server | Root `.mcp.json` starts the workspace `kibi-mcp` through `packages/cursor/scripts/worktree-resolver.sh`, the same resolver the Cursor dogfood uses. A worktree without a local build falls back to the primary checkout's build, or builds one |
-| Skills | Served through the MCP skill tools (`kb_skills_list`, `kb_skills_load`) |
+| Skills | Served through the MCP `kb_skills` tool (`action: "list"` / `"load"` / `"read"`) |
 | Released plugin | `.claude/settings.json` sets `"kibi-claude@kibi": false`, so a user-level install from the marketplace never runs alongside the dogfood hooks |
 
 First session in a fresh clone:

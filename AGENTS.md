@@ -25,7 +25,7 @@ Skill text is guidance, never permission to bypass schemas, approvals or mutatio
 ## Using Kibi
 
 - Select the interface by capability: visible MCP `kb_*` tools first; otherwise the trusted project-local CLI JSON routes (`printf '%s\n' '{...}' | npx --no-install kibi <route> --input -`); if neither is available, stop and tell the operator. Never infer MCP availability from config files.
-- Load workflow guidance with `kb_skills_list` / `kb_skills_load` (CLI: `kibi skills-list`, `kibi skills-load`).
+- Load workflow guidance with `kb_skills` (`action: "list"` / `"load"`; CLI: `kibi skills-list`, `kibi skills-load`).
 - Do **not** read or edit `.kb/` files directly. Go through Kibi operations.
 - CLI-only operations (sync, refresh) may be run when needed for validation or freshness.
 - Infrastructure setup or repair beyond `kibi init` / `/kibi-bootstrap` is for the operator.
@@ -60,7 +60,7 @@ Graph coverage is useful for discovery but is **not semantic proof**.
 ### Semantic facts
 
 - Contradiction-checked requirements link to a `fact_kind: subject` via `constrains` and a `fact_kind: property_value` via `requires_property`. Typed fact fields are snake_case only.
-- For domain claims, call `kb_suggest_predicates` before writing prose and prefer the returned `fact_kind: predicate` plan linked via `requires_predicate`. Reuse `predicate_schema` `argument_constants` instead of minting atoms. If no predicate fits, use an `observation` tagged `review:ontology-gap`.
+- For domain claims, call `kb_model` with `mode: "predicates"` (CLI: `kibi suggest-predicates`) before writing prose and prefer the returned `fact_kind: predicate` plan linked via `requires_predicate`. Reuse `predicate_schema` `argument_constants` instead of minting atoms. If no predicate fits, use an `observation` tagged `review:ontology-gap`.
 - Field examples and recovery guidance: `docs/modeling-cheatsheet.md`, `docs/error-reference.md`.
 
 ## Symbol Traceability

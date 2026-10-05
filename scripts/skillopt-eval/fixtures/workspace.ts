@@ -9,6 +9,7 @@ import {
 } from "node:fs";
 import path from "node:path";
 import { CANONICAL_SKILLS } from "../catalog";
+import { PRECONDITION_APPROVED_EXCEPTION } from "../runtime/fixture-seeds";
 import type { parseTaskSpec } from "./contracts";
 import { predicateCaseById } from "./predicate-cases";
 
@@ -91,6 +92,11 @@ function writeAdversarialFiles(input: WorkspaceInput): void {
     writeJson(input.root, "approval-state.json", {
       phase: input.task.taskData.approvalPhase,
       mutationAllowed: input.task.taskData.approvalPhase === "post-approval",
+      // The human decision a post-approval exception case must follow.
+      ...(input.task.taskData.objectiveCode ===
+      "scenario_exception_post_approval"
+        ? { approvedException: { ...PRECONDITION_APPROVED_EXCEPTION } }
+        : {}),
     });
   }
 }

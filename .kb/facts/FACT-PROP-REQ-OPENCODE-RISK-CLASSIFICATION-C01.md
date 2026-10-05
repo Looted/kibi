@@ -15,4 +15,8 @@ claim_key: CLAIM-093542C105C70A84
 claim_text: 'Every proposed edit or action must be classified to determine enforcement level:\n\n`safe_docs_only`: Edits to non-KB documentation.\n`safe_test_only`: Edits to tests only.\n`kb_doc_structural`: Edits to KB entity frontmatter or relationships.\n`req_policy_candidate`: New requirements that may need policy alignment.\n`behavior_candidate`: Code changes requiring traceability.\n`traceability_candidate`: Symbol changes missing requirement links.\n`manual_kb_edit`: Direct edits to `.kb/**` internal files (maximum warning)'
 id: FACT-PROP-REQ-OPENCODE-RISK-CLASSIFICATION-C01
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

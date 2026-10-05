@@ -9,6 +9,10 @@ links:
     target: REQ-014
   - type: validates
     target: SCEN-009
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Run the unit coverage orchestration fixture and assert that the test command, coverage collection, and summary handoff complete in order. When package shards report the same source file, the runner emits one LCOV record with the line-coverage union instead of concatenating duplicate records.

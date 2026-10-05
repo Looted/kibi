@@ -4,7 +4,6 @@ title: Agent discovers, validates, and traverses Kibi knowledge without leaving 
 status: active
 created_at: 2026-03-22T00:00:00Z
 updated_at: 2026-03-22T18:30:00Z
-source: .kb/scenarios/SCEN-mcp-search-discovery.md
 tags:
   - mcp
   - cli
@@ -12,6 +11,10 @@ tags:
 links:
   - type: verified_by
     target: TEST-mcp-search-discovery
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Given a synced Kibi repository with requirements, scenarios, tests, and symbols

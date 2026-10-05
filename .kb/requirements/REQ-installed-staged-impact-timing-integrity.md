@@ -25,5 +25,9 @@ semantic_inventory:
       end: 147
 id: REQ-installed-staged-impact-timing-integrity
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 The installed staged-impact benchmark must record bounded timing and cache observations without weakening failures or claiming unavailable evidence.

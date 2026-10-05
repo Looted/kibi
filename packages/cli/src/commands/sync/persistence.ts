@@ -68,6 +68,7 @@ const STRING_ARRAY_FIELDS = new Set([
   "argument_names",
   "argument_types",
   "argument_descriptions",
+  "key_arguments",
   "aliases",
   "examples",
   "predicate_args",
@@ -173,25 +174,66 @@ function parsePrologList(value: unknown): string[] {
   return values;
 }
 
-async function entityIdsForSource(
+function sourceLookupCandidates(sourceFile: string): string[] {
+  return [
+    ...new Set([
+      sourceFile,
+      path.relative(process.cwd(), sourceFile),
+      path.basename(sourceFile),
+    ]),
+  ];
+}
+
+async function entityIdsForCandidate(
   prolog: PrologProcess,
-  sourceFile: string,
-): Promise<string[]> {
-  const candidates = new Set([
-    sourceFile,
-    path.relative(process.cwd(), sourceFile),
-    path.basename(sourceFile),
-  ]);
+  candidate: string,
+  ids: Set<string>,
+): Promise<void> {
+  const result = await prolog.query(
+    `kb_entities_by_source(${toPrologString(candidate)}, Ids)`,
+  );
+  if (result.success) {
+    for (const id of parsePrologList(result.bindings?.Ids)) ids.add(id);
+  }
+}
+
+/**
+ * Source lookups per round trip. One engine round trip per candidate made a
+ * cold sync of ~1,600 sources spend minutes in socket and poll latency; the
+ * lookups are pure reads, so a bounded batch returns the same id union.
+ */
+const SOURCE_LOOKUP_BATCH_SIZE = 200;
+
+// implements REQ-core-journaled-engine-persistence
+async function entityIdsForSources(
+  prolog: PrologProcess,
+  sourceFiles: readonly string[],
+): Promise<Set<string>> {
+  const candidates = [
+    ...new Set(sourceFiles.flatMap((file) => sourceLookupCandidates(file))),
+  ];
   const ids = new Set<string>();
-  for (const candidate of candidates) {
-    const result = await prolog.query(
-      `kb_entities_by_source(${toPrologString(candidate)}, Ids)`,
+  for (
+    let offset = 0;
+    offset < candidates.length;
+    offset += SOURCE_LOOKUP_BATCH_SIZE
+  ) {
+    const chunk = candidates.slice(offset, offset + SOURCE_LOOKUP_BATCH_SIZE);
+    const sources = chunk.map((candidate) => toPrologString(candidate));
+    const batched = await prolog.query(
+      `findall(Id, (member(Source, [${sources.join(",")}]), kb_entities_by_source(Source, SourceIds), member(Id, SourceIds)), Ids)`,
     );
-    if (result.success) {
-      for (const id of parsePrologList(result.bindings?.Ids)) ids.add(id);
+    if (batched.success) {
+      for (const id of parsePrologList(batched.bindings?.Ids)) ids.add(id);
+      continue;
+    }
+    // A failed batch must not hide the ids a single lookup would still find:
+    // retry this chunk one candidate at a time, as before batching.
+    for (const candidate of chunk) {
+      await entityIdsForCandidate(prolog, candidate, ids);
     }
   }
-  return [...ids];
+  return ids;
 }
 
 /** Remove entities owned by changed/deleted source files before re-upserting. */
@@ -199,10 +241,7 @@ export async function retractEntitiesForSources(
   prolog: PrologProcess,
   sourceFiles: readonly string[],
 ): Promise<number> {
-  const ids = new Set<string>();
-  for (const sourceFile of sourceFiles) {
-    for (const id of await entityIdsForSource(prolog, sourceFile)) ids.add(id);
-  }
+  const ids = await entityIdsForSources(prolog, sourceFiles);
   if (ids.size === 0) return 0;
 
   const goals = [...ids].map((id) => `kb_retract_entity(${toPrologAtom(id)})`);
@@ -469,10 +508,31 @@ export async function persistEntities(
       if (entity.type === "req" && entity.proof_exempt !== undefined) {
         props.push(`proof_exempt=${entity.proof_exempt}`);
       }
+      if (entity.type === "scenario" && entity.expects !== undefined) {
+        props.push(`expects=${toPrologAtom(entity.expects)}`);
+      }
       if (entity.type === "req" && entity.proof_exempt_reason !== undefined) {
         props.push(
           `proof_exempt_reason=${toPrologString(entity.proof_exempt_reason)}`,
         );
+      }
+      for (const field of [
+        "approved_by",
+        "approval_ref",
+        "rationale",
+      ] as const) {
+        const value = entity.type === "req" ? entity[field] : undefined;
+        if (value !== undefined)
+          props.push(`${field}=${toPrologString(value)}`);
+      }
+      if (entity.type === "req" && entity.exempts_claims) {
+        props.push(
+          `exempts_claims=[${entity.exempts_claims.map(toPrologAtom).join(",")}]`,
+        );
+      }
+      // Provenance travels as a JSON object string, like proof_contract.
+      if (entity.origin !== undefined) {
+        props.push(`origin=${toPrologString(JSON.stringify(entity.origin))}`);
       }
       if (sourceFile) props.push(`sourceFile=${toPrologString(sourceFile)}`);
 

@@ -4,7 +4,6 @@ title: Detected contradictions block proof
 status: active
 created_at: 2026-08-10T00:00:00.000Z
 updated_at: 2026-08-10T00:00:00.000Z
-source: documentation/facts/FACT-REQ-PROOF-CONTRADICTION-BLOCKS.md
 tags:
   - lane:ontology
   - requirements
@@ -22,6 +21,10 @@ polarity: assert
 claim_key: CLAIM-78DCDEACB0D210A3
 claim_text: Every detected contradiction must block proof
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of the blocking contradiction gate.

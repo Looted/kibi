@@ -30,6 +30,7 @@ export const DEFAULT_TELEMETRY_ACCEPTANCE_POLICY = {
   telemetryCompletenessMinimum: 0.95,
   validationBeforeUpsertMinimum: 1,
   advisorBeforeRequirementWriteMinimum: 1,
+  lookupBeforeFirstEditMinimum: 1,
   sourceLookupZeroResultMaximum: 0.2,
   preflightMaxAgeSeconds: 60 * 60,
   advisorMaxAgeSeconds: 24 * 60 * 60,
@@ -50,18 +51,67 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
+// implements REQ-kibi-telemetry-acceptance-gate-v2, REQ-claude-hook-usage-telemetry-v2
+/**
+ * A row written by a host plugin hook (`interface: "hook"`). Hooks record
+ * agent activity around Kibi calls: which Kibi operation a tool call ran
+ * (`hook_action: "kb_usage"`) and which files an edit tool changed, with the
+ * requirements those files' symbols implement (`hook_action: "edited"`).
+ */
+export interface TelemetryHookEvent extends TelemetryUsageEvent {
+  readonly interface?: string;
+  readonly host?: string;
+  readonly hook_action?: string;
+  readonly path?: string | null;
+  readonly requirement_ids?: readonly string[];
+  readonly kb_operation?: string | null;
+}
+
+// implements REQ-kibi-telemetry-acceptance-gate-v2, REQ-claude-hook-usage-telemetry-v2
+/** A host hook row and where it sits relative to the operation events. */
+export interface TelemetryHookRow {
+  readonly event: TelemetryHookEvent;
+  /** 1-based `.kb/usage.log` line (array position for in-memory events). */
+  readonly logLine: number;
+  /** Operation events that precede this row in the log. */
+  readonly operationsBefore: number;
+}
+
+// implements REQ-kibi-telemetry-acceptance-gate-v2, REQ-claude-hook-usage-telemetry-v2
+/** Operation events and host hook rows of one usage log, kept apart. */
+export interface TelemetryUsagePartition {
+  readonly operations: readonly TelemetryUsageEvent[];
+  /** 1-based `.kb/usage.log` line of each operation event. */
+  readonly operationLines: readonly number[];
+  readonly hookRows: readonly TelemetryHookRow[];
+}
+
+/**
+ * Hook rows and line numbers of every array `parseTelemetryUsageLog`
+ * returned. The array itself keeps its operation-only shape, so callers that
+ * pass it straight to the analyzers need no change.
+ */
+const parsedUsageLogs = new WeakMap<
+  readonly TelemetryUsageEvent[],
+  Omit<TelemetryUsagePartition, "operations">
+>();
+
 /**
  * Parse Kibi operation events from `.kb/usage.log`.
  *
  * Host plugin hooks share the log and tag their rows `interface: "hook"`.
  * Those rows describe agent activity around Kibi calls, not Kibi operations,
- * so they are dropped here: otherwise a busy editing session would push every
- * operation out of the bounded acceptance window.
+ * so they are left out of the returned array: otherwise a busy editing
+ * session would push every operation out of the bounded acceptance window.
+ * They stay attached to the array for `partitionTelemetryUsage`, which is how
+ * the `lookup_before_first_edit` metric reads them.
  */
 export function parseTelemetryUsageLog(
   contents: string,
 ): TelemetryUsageEvent[] {
   const events: TelemetryUsageEvent[] = [];
+  const operationLines: number[] = [];
+  const hookRows: TelemetryHookRow[] = [];
   for (const [index, line] of contents.split(/\r?\n/).entries()) {
     const trimmed = line.trim();
     if (!trimmed) continue;
@@ -79,10 +129,48 @@ export function parseTelemetryUsageLog(
         `Failed to parse .kb/usage.log line ${index + 1}: expected object`,
       );
     }
-    if (parsed.interface === "hook") continue;
+    if (parsed.interface === "hook") {
+      hookRows.push({
+        event: parsed as TelemetryHookEvent,
+        logLine: index + 1,
+        operationsBefore: events.length,
+      });
+      continue;
+    }
     events.push(parsed as TelemetryUsageEvent);
+    operationLines.push(index + 1);
   }
+  parsedUsageLogs.set(events, { operationLines, hookRows });
   return events;
+}
+
+// implements REQ-kibi-telemetry-acceptance-gate-v2, REQ-claude-hook-usage-telemetry-v2
+/**
+ * Split events into Kibi operations and host hook rows. Arrays from
+ * `parseTelemetryUsageLog` carry their hook rows and log lines; any other
+ * array is split on `interface: "hook"`, with positions as line numbers.
+ */
+export function partitionTelemetryUsage(
+  events: readonly TelemetryUsageEvent[],
+): TelemetryUsagePartition {
+  const parsed = parsedUsageLogs.get(events);
+  if (parsed !== undefined) return { operations: events, ...parsed };
+  const operations: TelemetryUsageEvent[] = [];
+  const operationLines: number[] = [];
+  const hookRows: TelemetryHookRow[] = [];
+  for (const [index, event] of events.entries()) {
+    if ((event as TelemetryHookEvent).interface === "hook") {
+      hookRows.push({
+        event: event as TelemetryHookEvent,
+        logLine: index + 1,
+        operationsBefore: operations.length,
+      });
+    } else {
+      operations.push(event);
+      operationLines.push(index + 1);
+    }
+  }
+  return { operations, operationLines, hookRows };
 }
 
 function eventArgs(
@@ -372,6 +460,103 @@ function advisorBeforeRequirementWriteMetric(
   };
 }
 
+// implements REQ-kibi-telemetry-acceptance-gate-v2
+/** Kibi operations that count as looking up requirements before an edit. */
+export const LOOKUP_BEFORE_EDIT_OPERATIONS = ["kb_query", "kb_search"] as const;
+
+// implements REQ-kibi-telemetry-acceptance-gate-v2
+/** The first requirement-linked edit of one host session. */
+export interface FirstLinkedEdit {
+  /** `<host>:<session_id>` of the session. */
+  readonly session: string;
+  readonly edit: TelemetryHookRow;
+  /** True when kb_search or kb_query ran earlier in the same session. */
+  readonly lookedUp: boolean;
+}
+
+function hookSession(event: TelemetryHookEvent): string | undefined {
+  const sessionId = event.session_id;
+  if (typeof sessionId !== "string" || sessionId.length === 0) return undefined;
+  return `${event.host ?? "unknown"}:${sessionId}`;
+}
+
+// implements REQ-kibi-telemetry-acceptance-gate-v2, REQ-claude-hook-usage-telemetry-v2
+/**
+ * For each host session, its first edit of a file whose symbols implement a
+ * requirement and whether a Kibi lookup (MCP or CLI) preceded it. Rows
+ * without a session id cannot be ordered within a session and are skipped;
+ * sessions whose first linked edit predates the evaluated window are left
+ * out.
+ */
+export function firstLinkedEdits(
+  hookRows: readonly TelemetryHookRow[],
+  recentStart: number,
+): FirstLinkedEdit[] {
+  const lookedUp = new Set<string>();
+  const edited = new Set<string>();
+  const firstEdits: FirstLinkedEdit[] = [];
+  for (const row of hookRows) {
+    const session = hookSession(row.event);
+    if (session === undefined) continue;
+    const { hook_action: action, kb_operation: operation } = row.event;
+    if (
+      action === "kb_usage" &&
+      LOOKUP_BEFORE_EDIT_OPERATIONS.some((candidate) => candidate === operation)
+    ) {
+      lookedUp.add(session);
+      continue;
+    }
+    if (
+      action !== "edited" ||
+      edited.has(session) ||
+      !Array.isArray(row.event.requirement_ids) ||
+      row.event.requirement_ids.length === 0
+    ) {
+      continue;
+    }
+    edited.add(session);
+    if (row.operationsBefore < recentStart) continue;
+    firstEdits.push({ session, edit: row, lookedUp: lookedUp.has(session) });
+  }
+  return firstEdits;
+}
+
+function lookupBeforeFirstEditMetric(
+  hookRows: readonly TelemetryHookRow[],
+  recentStart: number,
+  policy: TelemetryAcceptancePolicy,
+): MutableMetric {
+  const firstEdits = firstLinkedEdits(hookRows, recentStart);
+  const attempts = firstEdits.length;
+  const guided = firstEdits.filter((entry) => entry.lookedUp).length;
+  const unguidedEditPaths = new Set(
+    firstEdits
+      .filter((entry) => !entry.lookedUp)
+      .map((entry) => entry.edit.event.path ?? "unknown path"),
+  );
+
+  const actual = rate(guided, attempts);
+  return {
+    id: "lookup_before_first_edit",
+    status: thresholdStatus(actual, ">=", policy.lookupBeforeFirstEditMinimum),
+    numerator: guided,
+    denominator: attempts,
+    ...(actual !== undefined ? { rate: actual } : {}),
+    threshold: {
+      operator: ">=",
+      value: policy.lookupBeforeFirstEditMinimum,
+    },
+    message:
+      attempts === 0
+        ? "No host hook recorded an edit of a requirement-linked file in the evaluated window."
+        : `${guided}/${attempts} sessions ran kb_search or kb_query before their first edit of a requirement-linked file.`,
+    evidence: {
+      unguidedEditPaths: [...unguidedEditPaths].sort().slice(0, 20),
+      lookupOperations: [...LOOKUP_BEFORE_EDIT_OPERATIONS],
+    },
+  };
+}
+
 function sourceLookupMessage(
   zeroResults: number,
   lookups: number,
@@ -629,7 +814,8 @@ export function analyzeTelemetryAcceptance(
   now: Date = new Date(),
   policy: TelemetryAcceptancePolicy = DEFAULT_TELEMETRY_ACCEPTANCE_POLICY,
 ): TelemetryAcceptanceReport {
-  const all = events.map((event, index) => ({
+  const { operations, hookRows } = partitionTelemetryUsage(events);
+  const all = operations.map((event, index) => ({
     event,
     index,
     time: timestampMillis(event.timestamp),
@@ -653,14 +839,15 @@ export function analyzeTelemetryAcceptance(
     telemetryCompletenessMetric(recent, policy),
     advisorBeforeRequirementWriteMetric(all, recentStart, policy),
     validationBeforeUpsertMetric(all, recentStart, policy),
+    lookupBeforeFirstEditMetric(hookRows, recentStart, policy),
     sourceLookupMetric(recent, policy),
     proofGapRecoveryMetric(recent),
     receiptFreshnessMetric(recent),
     repeatedMutationFailuresMetric(recent, policy),
   ];
   const diagnostics: string[] = [];
-  if (events.length === 0) diagnostics.push("usage_log_empty");
-  if (lastTime === null && events.length > 0) {
+  if (operations.length === 0) diagnostics.push("usage_log_empty");
+  if (lastTime === null && operations.length > 0) {
     diagnostics.push("usage_log_timestamps_unavailable");
   } else if (!fresh) {
     diagnostics.push(
@@ -676,9 +863,9 @@ export function analyzeTelemetryAcceptance(
     evaluatedAt: now.toISOString(),
     policy,
     scope: {
-      totalEvents: events.length,
+      totalEvents: operations.length,
       evaluatedEvents: recent.length,
-      truncated: events.length > recent.length,
+      truncated: operations.length > recent.length,
       firstTimestamp:
         firstTime === null ? null : new Date(firstTime).toISOString(),
       lastTimestamp:
@@ -713,14 +900,21 @@ const METRIC_DIAGNOSTICS: Readonly<
     severity: "warning",
     rank: 30,
     suggestion:
-      "Run kb_semantic_advisor on the complete current requirement prose before its next upsert, preserve the returned source hash, and recheck telemetry.",
+      "Run kb_model with mode analyze (CLI: semantic-advisor) on the complete current requirement prose before its next upsert, preserve the returned source hash, and recheck telemetry.",
   },
   validation_before_upsert: {
     id: "mutation_validation_bypassed",
     severity: "warning",
     rank: 20,
     suggestion:
-      "Run kb_validate_upsert for the exact payload no more than one hour before each sequential kb_upsert attempt.",
+      "Run kb_upsert with dryRun true (CLI: validate-upsert) for the exact payload no more than one hour before each sequential kb_upsert attempt.",
+  },
+  lookup_before_first_edit: {
+    id: "lookup_before_first_edit_bypassed",
+    severity: "warning",
+    rank: 35,
+    suggestion:
+      "Before a session's first edit of a requirement-linked file, run kb_search for the change (or kb_query with sourceFile for the file) and read the requirements it names; host hook rows in diagnostic mode record the order.",
   },
   source_lookup_zero_result_rate: {
     id: "source_lookup_zero_result_rate_high",

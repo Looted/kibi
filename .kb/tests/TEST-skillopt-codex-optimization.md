@@ -18,6 +18,10 @@ verification_perspective: internal
 links:
   - type: validates
     target: SCEN-skillopt-codex-optimization
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 The parsed methodology and run-lock contracts require the same Codex-only host, held-out, family, bootstrap, and bundle gate values. The run-lock schema rejects stale evaluation-host arrays before a run can start.

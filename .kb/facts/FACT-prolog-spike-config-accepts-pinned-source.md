@@ -13,4 +13,8 @@ claim_key: CLAIM-2C6217A130B5C6B9
 claim_text: The SWI-Prolog spike configuration check must accept the pinned source manifest for linux-x64-gnu and darwin-arm64
 id: FACT-prolog-spike-config-accepts-pinned-source
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

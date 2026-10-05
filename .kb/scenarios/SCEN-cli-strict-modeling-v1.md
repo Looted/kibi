@@ -14,6 +14,10 @@ links:
     target: TEST-cli-strict-modeling
   - type: verified_by
     target: TEST-e2e-strict-modeling-surface
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 The CLI strict-modeling utilities normalize subject and property keys, build stable requirement IDs, and emit strict-lane write sets that preserve validated requirement/fact pairing semantics.

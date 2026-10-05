@@ -12,4 +12,8 @@ claim_key: CLAIM-060359AD8D5787D9
 claim_text: Applying bootstrap must require explicit approval, execute dependency-ordered actions sequentially through kb_apply_plan, and never permit direct kb_upsert for bootstrap tasks
 id: FACT-KIBI-BOOTSTRAP-CLAUSE-06
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

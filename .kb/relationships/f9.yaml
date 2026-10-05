@@ -234,3 +234,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-03f0f044d0f7
+  - type: covered_by
+    from: SYM-cli-build-search-answer
+    to: TEST-kibi-search-answer-layer
+    created_at: 2026-10-03T09:26:06.118Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6ecde31dbe20
+  - type: implements
+    from: SYM-BranchStoreState
+    to: REQ-branch-store-recovery-v4
+    created_at: 2026-10-04T02:55:14.334Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d4448cbd954e
+  - type: implements
+    from: SYM-cli-build-search-answer
+    to: REQ-kibi-search-answer-layer-v2
+    created_at: 2026-10-04T02:59:11.794Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-94fa09f58717
+  - type: implements
+    from: SYM-quality-eval-runRepoSearchEvaluation
+    to: REQ-kibi-search-gold-set-gate
+    created_at: 2026-10-04T03:14:12.143Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-727abd210457
+  - type: covered_by
+    from: SYM-quality-eval-runRepoSearchEvaluation
+    to: TEST-kibi-search-gold-set-gate
+    created_at: 2026-10-04T03:14:12.159Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-73b13459fd9a
+  - type: covered_by
+    from: SYM-quality-eval-runRepoSearchEvaluation
+    to: TEST-kibi-search-gold-set-gate-cli
+    created_at: 2026-10-04T04:48:00.490Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a54099569092

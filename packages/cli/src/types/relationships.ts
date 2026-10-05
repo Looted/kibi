@@ -35,6 +35,8 @@ export interface BaseRelationship {
     | "consumes"
     | "supersedes"
     | "restates"
+    | "assumes"
+    | "exempts"
     | "relates_to";
   from: string; // entity ID
   to: string; // entity ID

@@ -44,6 +44,10 @@ semantic_inventory:
       start: 218
     status: modeled
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 The `kibi doctor` command runs a series of diagnostic checks to verify that the local environment (SWI-Prolog version, git)

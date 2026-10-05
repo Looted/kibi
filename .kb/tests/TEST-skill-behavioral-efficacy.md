@@ -11,6 +11,10 @@ tags: [skills, evaluation, integration, security]
 links:
   - type: validates
     target: SCEN-skill-behavioral-efficacy
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 The deterministic evaluator verifies frozen run-lock and report schemas, state and protocol scoring, private-manifest isolation, evidence reconciliation, budget/retry rules, and the paired host/family adoption thresholds before live runs can produce an adoption receipt.

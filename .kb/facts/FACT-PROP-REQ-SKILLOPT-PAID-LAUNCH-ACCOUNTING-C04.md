@@ -15,4 +15,8 @@ claim_key: CLAIM-6525F601F1D4D17D
 claim_text: Symbol ownership remains limited to the behavioral boundaries that enforce or parse those guarantees; schemas, types, errors, fields, and fixture data are structural support rather than separate implementations
 id: FACT-PROP-REQ-SKILLOPT-PAID-LAUNCH-ACCOUNTING-C04
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

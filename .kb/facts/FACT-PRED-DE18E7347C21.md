@@ -18,4 +18,8 @@ claim_key: CLAIM-0B24DE1EDE8B627D
 claim_text: Optional Jev must be absent from the default CLI, MCP, and runtime dependency graphs
 id: FACT-PRED-DE18E7347C21
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

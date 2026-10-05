@@ -21,4 +21,8 @@ claim_text: KIBI_JEV_MODEL must optionally select the Jev model as a provider se
 id: FACT-PRED-6E8169262E5D
 type: fact
 predicate_namespace: kibi.capability
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

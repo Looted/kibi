@@ -15,4 +15,8 @@ claim_key: CLAIM-33DAF370A02DCC89
 claim_text: Full checks must use the same live snapshot-bound receipt evidence as requirement coverage when deciding whether to emit coverage-depth diagnostics
 id: FACT-PROP-REQ-KIBI-PROOF-AWARE-QUALITY-DIAGNOSTICS-C01
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

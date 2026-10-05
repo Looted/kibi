@@ -9,5 +9,9 @@ tags:
   - internal
 id: TEST-mcp-schema-adapter
 type: test
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Runs packages/mcp/tests/server/json-schema-to-zod-remaining.coverage.test.ts. Exercises allOf, enum holes, unknown schema descriptions, fallback values, and converted schema validation. Unit evidence for the MCP operation schema adapter.

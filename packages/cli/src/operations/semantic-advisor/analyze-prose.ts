@@ -16,6 +16,10 @@ import {
   hasNormativeAssertion,
   semanticClaimKey,
 } from "./clauses.js";
+import {
+  type ConditionalRuleMatch,
+  detectConditionalRule,
+} from "./conditional-rules.js";
 import { observationPlan } from "./observation-plan.js";
 import {
   type Payload,
@@ -213,9 +217,13 @@ function predicateSuggestion(
   );
 }
 
+const HOST_RULE_RATIONALE =
+  "The host supplied a typed kibi.logic.v1 interpretation. Kibi validated its safety, canonicalized it, and will persist it as data-backed rule evidence.";
+
 function ruleSuggestion(
   payload: Payload,
   candidate: NonNullable<SemanticAdvisorInput["interpretations"]>[number],
+  rationale = HOST_RULE_RATIONALE,
 ): SemanticModelingSuggestion | null {
   const validation = validateLogicIr(candidate.ir);
   if (
@@ -255,8 +263,7 @@ function ruleSuggestion(
     claim_text: candidate.claim_text,
     confidence: candidate.confidence ?? 0.75,
     evidence: candidate.claim_text,
-    rationale:
-      "The host supplied a typed kibi.logic.v1 interpretation. Kibi validated its safety, canonicalized it, and will persist it as data-backed rule evidence.",
+    rationale,
     suggested_next_tool: "kb_model_requirement",
     rule: validation.normalized,
     semantic_key: semanticKey,
@@ -268,7 +275,7 @@ function ruleSuggestion(
         type: "fact",
         id: factId,
         properties: {
-          title: `${candidate.ir.kind} rule ${semanticKey}`,
+          title: `Rule: ${candidate.claim_text}`,
           status: "active",
           source: sourceOf(payload),
           fact_kind: "rule",
@@ -293,6 +300,59 @@ function ruleSuggestion(
   };
 }
 
+// implements REQ-kibi-truthful-consistency
+// "X may happen only when C" and "X must not happen unless C" are conditional
+// requirements: they restrict an action, not a property of every situation.
+// Route them to the rule lane as a typed forbid-unless rule, so scenario
+// feasibility and contradiction checks see the action and its condition.
+function conditionalRuleSuggestion(
+  payload: Payload,
+  clause: SemanticClause,
+  match: ConditionalRuleMatch | null,
+): SemanticModelingSuggestion | null {
+  if (match?.kind !== "rule") return null;
+  return ruleSuggestion(
+    payload,
+    {
+      claim_key: clause.claim_key,
+      claim_text: clause.text,
+      ir: match.ir,
+      confidence: 0.8,
+    },
+    `Conditional requirement (${match.shape === "only_when" ? "only when" : "must not ... unless"}): ${match.action} is forbidden unless ${match.subjectKey}.${match.propertyKey} meets the stated condition${match.scope ? ` in scope ${match.scope}` : ""}. Kibi modeled it as a typed forbid-unless rule; assume ${match.subjectKey}.${match.propertyKey} property values in scenarios to check them against it.`,
+  );
+}
+
+// implements REQ-kibi-truthful-consistency
+// A conditional clause that is neither a translatable rule nor a catalog
+// predicate stays an ontology gap (unresolved), never a strict property or an
+// observation that looks modeled: the strict lane would drop the condition.
+function unresolvedConditionalSuggestion(
+  payload: Payload,
+  clause: SemanticClause,
+  match: ConditionalRuleMatch | null,
+): SemanticModelingSuggestion | null {
+  if (match === null) return null;
+  return {
+    kind: "ontology_gap",
+    claim_key: clause.claim_key,
+    claim_text: clause.text,
+    confidence: 0.6,
+    evidence: match.evidence,
+    rationale:
+      match.kind === "unparsed"
+        ? `${match.reason} Supply a typed kibi.logic.v1 interpretation (forbid the action unless the condition holds) instead of an observation.`
+        : "The conditional clause did not produce a valid kibi.logic.v1 rule; supply a typed interpretation instead of an observation.",
+    suggested_next_tool: "kb_suggest_predicates",
+    recommendedPredicateSchema: null,
+    applyPlan: observationPlan(payload, "Ontology gap: conditional clause", [
+      "semantic-advisor-suggestion",
+      "review:ontology-gap",
+      "needs_rule_interpretation",
+    ]),
+  };
+}
+
 function modelingSuggestions(
   payload: Payload,
   modeled: boolean,
@@ -312,8 +372,11 @@ function modelingSuggestions(
     .map((clause) => clause.claim_key);
   for (const clause of clauses) {
     const candidate = clause.text;
+    const conditional = detectConditionalRule(candidate);
     const rawSuggestion =
+      conditionalRuleSuggestion(payload, clause, conditional) ??
       predicateSuggestion(payload, candidate) ??
+      unresolvedConditionalSuggestion(payload, clause, conditional) ??
       ontologyGapSuggestion(payload, candidate) ??
       ambiguitySuggestion(payload, candidate) ??
       detectStrictSuggestion(payload, candidate);
@@ -515,7 +578,8 @@ function unmatchedClauseSuggestion(
   );
 }
 
-function propositionRole(
+// implements REQ-kibi-conditional-requirement-authoring
+export function propositionRole(
   statement: string,
   normative: boolean,
 ): SemanticPropositionRole {

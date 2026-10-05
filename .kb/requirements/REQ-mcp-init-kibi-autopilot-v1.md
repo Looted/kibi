@@ -4,7 +4,6 @@ title: Historical MCP onboarding lifecycle (superseded)
 status: closed
 created_at: 2026-04-19T00:00:00.000Z
 updated_at: 2026-05-05T00:00:00.000Z
-source: documentation/requirements/REQ-mcp-init-kibi-autopilot-v1.md
 priority: must
 owner: opencode-team
 tags:
@@ -55,6 +54,10 @@ logic_claims:
 type: req
 proof_exempt: true
 proof_exempt_reason: Historical requirement already retired as superseded before the test-quality audit; retained for provenance, outside current implementation proof scope.
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 The Kibi MCP server must provide an interactive bootstrap workflow for the `/init-kibi` slash command to onboard new repositories through bounded discovery and read-only candidate synthesis.

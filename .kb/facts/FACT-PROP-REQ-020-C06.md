@@ -15,4 +15,8 @@ claim_key: CLAIM-8E9C2B4098E4E5A6
 claim_text: '**Versioning on Develop**: Version bumps and changelog updates happen on `develop` (or feature branches) using `bun run version-packages`'
 id: FACT-PROP-REQ-020-C06
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

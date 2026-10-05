@@ -21,4 +21,8 @@ examples:
   - check_rule_selection_policy(source_relationship_parity,honor_explicit_selection)
 id: FACT-SCHEMA-CHECK-RULE-SELECTION-POLICY
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

@@ -14,4 +14,8 @@ claim_key: CLAIM-87DBE563B1D0DDDC
 claim_text: Exact entity queries must preserve every target when a relationship type occurs more than once
 id: FACT-PRED-SKILLOPT-CLAIM-87DBE563B1D0DDDC
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

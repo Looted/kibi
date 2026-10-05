@@ -21,4 +21,8 @@ claim_text: kibi doctor must fail the provider diagnostic when a configured plug
 id: FACT-PRED-0D7C66BA043B
 type: fact
 predicate_namespace: kibi.capability
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

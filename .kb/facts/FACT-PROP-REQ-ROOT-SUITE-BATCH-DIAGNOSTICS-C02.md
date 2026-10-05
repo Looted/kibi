@@ -15,4 +15,8 @@ claim_key: CLAIM-1C806E08FBD2E6DA
 claim_text: When a batch\nfails, `getBatchFailureMessage` produces a human-readable message that\nidentifies the batch label, timeout status, exit code, and summary count\nso the operator can trace the failure without re-running the suite
 id: FACT-PROP-REQ-ROOT-SUITE-BATCH-DIAGNOSTICS-C02
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

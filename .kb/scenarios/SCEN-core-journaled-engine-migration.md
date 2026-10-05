@@ -5,11 +5,14 @@ type: scenario
 status: active
 created_at: 2026-08-11T00:00:00Z
 updated_at: 2026-08-11T00:00:00Z
-source: documentation/scenarios/SCEN-core-journaled-engine-migration.md
 tags: [core, migration, persistence]
 links:
   - type: verified_by
     target: TEST-core-journaled-engine-persistence
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Given a populated legacy branch with `kb.rdf` and its audit journal

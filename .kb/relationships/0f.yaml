@@ -188,3 +188,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f15748d456d3
+  - type: implements
+    from: SYM-source-paths-applySourcePathRepairs
+    to: REQ-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-04T06:00:28.396Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aba834aa73d9
+  - type: covered_by
+    from: SYM-source-paths-applySourcePathRepairs
+    to: TEST-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-04T06:00:28.411Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f93982471ace

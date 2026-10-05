@@ -14,6 +14,10 @@
       "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "modelId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$" },
+    "reasoningEffort": {
+      "enum": ["minimal", "low", "medium", "high", "xhigh"]
+    },
     "timestamp": {
       "type": "string",
       "format": "date-time",

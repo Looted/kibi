@@ -155,10 +155,17 @@ export function presentBootstrap(input: {
     input.candidates.length + input.sourceOnlySignals.length > 0
       ? `Bootstrap plan is ready for review with ${input.candidates.length} safe candidate(s) and ${input.sourceOnlySignals.length} source-only authoring follow-up(s).`
       : (input.activation.handoffMessage ?? blockedFallback);
+  const overLimitCount = input.suppressedCandidates.filter(
+    (row) => row.reason === "over_limit",
+  ).length;
+  const limitSummary =
+    overLimitCount > 0
+      ? ` ${overLimitCount} candidate(s) exceeded maxCandidates; raise the limit or narrow entityTypes.`
+      : "";
   const tldr =
-    confidenceLevel === "low" && !input.activation.applyBlocked
+    (confidenceLevel === "low" && !input.activation.applyBlocked
       ? `Low-confidence bootstrap (${String(guidance.confidence.score)}): review diagnostics before proceeding. ${baseTldr}`
-      : baseTldr;
+      : baseTldr) + limitSummary;
   const rawActions = input.candidates.flatMap((candidate) =>
     candidate.applyPlan.map((payload) => ({ candidate, payload })),
   );

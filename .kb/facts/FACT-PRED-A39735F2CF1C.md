@@ -23,4 +23,8 @@ claim_key: CLAIM-C117EBE7EABDFB20
 claim_text: The launcher shall spawn the declared kibi-mcp bin with the consumer workspace as cwd and KIBI_WORKSPACE, preserve stdio, and propagate child exit codes and termination signals
 id: FACT-PRED-A39735F2CF1C
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

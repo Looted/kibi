@@ -22,4 +22,8 @@ claim_text: A pull_request event must never deploy GitHub Pages, replace the can
 id: FACT-PRED-A24C352F14B2
 type: fact
 predicate_namespace: kibi.requirements
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

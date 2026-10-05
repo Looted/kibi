@@ -150,3 +150,115 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-815ea3641337
+  - type: requires_predicate
+    from: REQ-claude-hook-usage-telemetry-v2
+    to: FACT-PRED-claude-hook-telemetry-opt-in
+    created_at: 2026-10-04T02:13:09.591Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-538fa89381a1
+  - type: requires_predicate
+    from: REQ-claude-hook-usage-telemetry-v2
+    to: FACT-PRED-claude-hook-telemetry-interface
+    created_at: 2026-10-04T02:13:09.612Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-656c80e7078f
+  - type: requires_predicate
+    from: REQ-claude-hook-usage-telemetry-v2
+    to: FACT-PRED-claude-hook-telemetry-session
+    created_at: 2026-10-04T02:13:09.623Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b811d7a1f736
+  - type: requires_predicate
+    from: REQ-claude-hook-usage-telemetry-v2
+    to: FACT-PRED-claude-hook-telemetry-host
+    created_at: 2026-10-04T02:13:09.631Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2b9ec3a3daad
+  - type: requires_predicate
+    from: REQ-claude-hook-usage-telemetry-v2
+    to: FACT-PRED-claude-hook-telemetry-requirement-ids
+    created_at: 2026-10-04T02:13:09.639Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4d8abaec61da
+  - type: requires_predicate
+    from: REQ-claude-hook-usage-telemetry-v2
+    to: FACT-PRED-claude-hook-telemetry-kb-used-before
+    created_at: 2026-10-04T02:13:09.646Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-73e7f0880830
+  - type: requires_predicate
+    from: REQ-claude-hook-usage-telemetry-v2
+    to: FACT-PRED-claude-hook-telemetry-context-shown
+    created_at: 2026-10-04T02:13:09.656Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-45912fea23f2
+  - type: requires_predicate
+    from: REQ-claude-hook-usage-telemetry-v2
+    to: FACT-PRED-host-hook-telemetry-shared-writer
+    created_at: 2026-10-04T02:13:09.663Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-508630a60ac0
+  - type: requires_predicate
+    from: REQ-claude-hook-usage-telemetry-v2
+    to: FACT-PRED-claude-hook-telemetry-acceptance-lookup-only
+    created_at: 2026-10-04T02:13:09.670Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-452afc1ce152
+  - type: requires_predicate
+    from: REQ-claude-hook-usage-telemetry-v2
+    to: FACT-PRED-claude-hook-telemetry-write-failure
+    created_at: 2026-10-04T02:13:09.678Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-969b553009fb
+  - type: specified_by
+    from: REQ-claude-hook-usage-telemetry-v2
+    to: SCEN-claude-hook-usage-telemetry-v2
+    created_at: 2026-10-04T02:13:09.684Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6639b4d8340c
+  - type: verified_by
+    from: REQ-claude-hook-usage-telemetry-v2
+    to: TEST-claude-code-kibi-plugin-v1
+    created_at: 2026-10-04T02:13:09.690Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d8f762ac0e90
+  - type: verified_by
+    from: REQ-claude-hook-usage-telemetry-v2
+    to: TEST-host-hook-usage-telemetry
+    created_at: 2026-10-04T02:13:09.696Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f1ff3f92c42f
+  - type: verified_by
+    from: REQ-claude-hook-usage-telemetry-v2
+    to: TEST-kibi-telemetry-lookup-before-first-edit
+    created_at: 2026-10-04T02:13:09.702Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-291974541ade
+  - type: supersedes
+    from: REQ-claude-hook-usage-telemetry-v2
+    to: REQ-claude-hook-usage-telemetry
+    created_at: 2026-10-04T02:13:09.708Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c7cf0145135a
+  - type: depends_on
+    from: REQ-claude-hook-usage-telemetry-v2
+    to: REQ-claude-code-kibi-plugin-v1
+    created_at: 2026-10-04T02:13:09.714Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f213a6e240d9

@@ -276,15 +276,15 @@ relationships:
 
 ## Workflow
 
-1. `kb_semantic_advisor` on the full screen description; audit the atomic clause list and
+1. `kb_model` with `mode: "analyze"` on the full screen description; audit the atomic clause list and
    supply `clauses` when automatic decomposition misses an obligation.
-2. For each relational layout clause, call `kb_suggest_predicates` and apply the returned
+2. For each relational layout clause, call `kb_model` with `mode: "predicates"` and apply the returned
    predicate `applyPlan` + `requires_predicate` link.
-3. For each scalar placement/alignment/order clause, call `kb_model_requirement` and apply
+3. For each scalar placement/alignment/order clause, call `kb_model` with `mode: "requirement"` and apply
    the strict subject/property plan + `constrains` / `requires_property` links.
 4. Preserve `claim_key` / `claim_text` on every ground fact and merge every key into the
    requirement `logic_claims` manifest.
-5. `kb_validate_upsert` every payload, create endpoints first, then `kb_upsert` sequentially.
+5. `kb_upsert` with `dryRun: true` for every payload, create endpoints first, then `kb_upsert` sequentially.
 6. Run `kb_check` with `logic-coverage`, `predicate-verifiability`, and
    `domain-contradictions` during iteration, then a final unfiltered `kb_check`.
 

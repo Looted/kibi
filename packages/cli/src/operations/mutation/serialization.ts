@@ -14,6 +14,7 @@ const ATOM_FIELDS = [
   "operator",
   "value_type",
   "polarity",
+  "expects",
 ] as const;
 
 const STRING_FIELDS = [
@@ -37,7 +38,8 @@ function serializeValue(key: string, value: unknown): string {
     key === "semantic_inventory" ||
     key === "proof_contract" ||
     key === "proof_bindings" ||
-    key === "proof_receipts"
+    key === "proof_receipts" ||
+    key === "origin"
   ) {
     return toPrologString(JSON.stringify(value));
   }

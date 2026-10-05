@@ -4,7 +4,6 @@ title: "OpenCode Kibi Briefings v2 Verification"
 status: closed
 created_at: 2026-04-23T00:00:00Z
 updated_at: 2026-04-24T09:15:00Z
-source: documentation/tests/TEST-opencode-kibi-briefing-v2.md
 priority: must
 tags:
   - test
@@ -16,6 +15,10 @@ links:
     target: SCEN-opencode-kibi-briefing-v2
   - type: relates_to
     target: TEST-opencode-kibi-briefing-v1
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Automated and manual verification for the OpenCode Kibi Briefings v2 contract:

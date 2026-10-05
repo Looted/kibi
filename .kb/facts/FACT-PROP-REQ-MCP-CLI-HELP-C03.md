@@ -15,4 +15,8 @@ claim_key: CLAIM-4A83CC5BE9D362E1
 claim_text: This allows users and system administrators to verify the binary installation and inspect usage information without needing an MCP client
 id: FACT-PROP-REQ-MCP-CLI-HELP-C03
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

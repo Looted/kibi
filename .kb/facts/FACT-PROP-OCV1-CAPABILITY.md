@@ -15,4 +15,8 @@ claim_text: The OpenCode Kibi Plugin v1 provides Kibi context and synchronizatio
 value_type: string
 id: FACT-PROP-OCV1-CAPABILITY
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

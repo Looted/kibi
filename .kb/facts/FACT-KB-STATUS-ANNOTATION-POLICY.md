@@ -20,6 +20,10 @@ claim_key: CLAIM-F0AB50022F29AA2B
 claim_text: In particular, `kb_status` advertises read-only, non-destructive, idempotent, closed-world behavior so clients can inspect branch state without a mutation-approval prompt
 id: FACT-KB-STATUS-ANNOTATION-POLICY
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 In particular, `kb_status` advertises read-only, non-destructive, idempotent, closed-world behavior so clients can inspect branch state without a mutation-approval prompt.
 

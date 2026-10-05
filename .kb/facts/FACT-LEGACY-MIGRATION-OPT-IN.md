@@ -4,7 +4,6 @@ title: Coverage migration preview is explicit and versioned
 status: active
 created_at: 2026-08-11T00:00:00.000Z
 updated_at: 2026-08-11T00:00:00.000Z
-source: documentation/facts/FACT-LEGACY-MIGRATION-OPT-IN.md
 tags:
   - lane:ontology
   - requirements
@@ -23,6 +22,10 @@ claim_text: Requirement coverage must emit a versioned deterministic legacy migr
 claim_span_start: 0
 claim_span_end: 115
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of opt-in legacy migration preview emission.

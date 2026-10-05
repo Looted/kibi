@@ -28,6 +28,8 @@ describe("relationship type contract", () => {
       "consumes",
       "supersedes",
       "restates",
+      "assumes",
+      "exempts",
       "relates_to",
     ]);
   });

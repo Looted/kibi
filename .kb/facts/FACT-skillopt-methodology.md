@@ -4,12 +4,15 @@ title: SkillOpt behavioral efficacy methodology
 status: active
 created_at: 2026-07-21T16:00:00Z
 updated_at: 2026-08-04T00:00:00Z
-source: documentation/facts/FACT-skillopt-methodology.md
 tags:
   - skillopt
   - evaluation
   - methodology
 fact_kind: meta
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 # SkillOpt behavioral efficacy methodology

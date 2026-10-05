@@ -118,3 +118,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d2ba59857afe
+  - type: relates_to
+    from: FACT-OBS-search-answer-layer-contents
+    to: REQ-kibi-search-answer-layer
+    created_at: 2026-10-03T09:16:06.311Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0367844b2819
+  - type: covered_by
+    from: SYM-requirement-semantic-text
+    to: TEST-kibi-legacy-migration-preview-v2
+    created_at: 2026-10-04T04:19:22.747Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-791d2feaf4bc

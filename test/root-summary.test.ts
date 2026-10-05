@@ -12,7 +12,7 @@ import {
   BATCH_CONCURRENCY,
   BATCH_TIMEOUT_MINUTES,
   CLI_ENGINE_BATCH_TIMEOUT_MS,
-  CLI_UNIT_BATCHES,
+  createCliUnitBatches,
   type SuiteSummary,
   getBatchFailureMessage,
   isCuratedSuiteEntryPoint,
@@ -40,6 +40,7 @@ describe("getBatchFailureMessage", () => {
       expect(env.KIBI_BRANCH).toBeUndefined();
       expect("KIBI_BRANCH" in env).toBe(false);
       expect(env.KIBI_RUNTIME_DIR).toBe("/tmp/kibi-unit-runtime");
+      expect(env.CODEX_HOME).toBe("/tmp/kibi-unit-runtime/codex-home");
     } finally {
       if (original === undefined) {
         Reflect.deleteProperty(process.env, "KIBI_BRANCH");
@@ -110,7 +111,9 @@ describe("CLI process partition", () => {
       "packages/cli/tests/operations/proof-impact.test.ts",
       "packages/cli/tests/public/source-changes.test.ts",
       "packages/cli/tests/commands/discovery-shared-remaining.coverage.test.ts",
-      // Similarly named files and tests outside tests/ must remain in the main batch.
+      "packages/cli/tests/engine-read-limits.test.ts",
+      "packages/cli/tests/engine-daemon-inprocess.test.ts",
+      // Discovery also includes similarly named tests and tests outside tests/.
       "packages/cli/tests/commands/check.test.ts",
       "packages/cli/src/runtime/cli-runtime.test.ts",
     ];
@@ -152,8 +155,9 @@ test(${JSON.stringify(file)}, () => {
         .map((line) => JSON.parse(line) as { file: string; runtime: string });
       rmSync(recordsPath);
 
+      const batches = createCliUnitBatches();
       const summaries: SuiteSummary[] = [];
-      for (const batch of CLI_UNIT_BATCHES) {
+      for (const batch of batches) {
         expect(batch.args).toContain("--isolate");
         expect(batch.args).toContain("--max-concurrency=1");
         expect(batch.args[batch.args.indexOf("--timeout") + 1]).toBe("120000");
@@ -180,8 +184,8 @@ test(${JSON.stringify(file)}, () => {
             record.file === "packages/cli/tests/commands/check.test.ts",
         )?.runtime,
       );
-      expect(new Set(CLI_UNIT_BATCHES.map((batch) => batch.label)).size).toBe(
-        CLI_UNIT_BATCHES.length,
+      expect(new Set(batches.map((batch) => batch.label)).size).toBe(
+        batches.length,
       );
       expect(
         summaries.reduce((total, summary) => total + summary.pass, 0),
@@ -193,7 +197,7 @@ test(${JSON.stringify(file)}, () => {
         summaries.every((summary) => summary.fail === 0 && summary.pass > 0),
       ).toBe(true);
       expect(new Set(after.map((record) => record.runtime)).size).toBe(
-        CLI_UNIT_BATCHES.length,
+        batches.length,
       );
       expect(
         after.every((record) =>

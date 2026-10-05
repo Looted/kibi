@@ -275,6 +275,14 @@ describe("explicit workspaceRoot", () => {
     expect(decision.notice?.detail.reason).toBe("pinned");
   });
 
+  test("a host launcher's attach root does not pin the server", () => {
+    const attached = kibiWorkspace("kibi-router-main-");
+    const { router: r } = router(attached, {
+      env: { PATH: process.env.PATH ?? "", KIBI_MCP_ATTACH_ROOT: attached },
+    });
+    expect(r.enabled).toBe(true);
+  });
+
   test("a routed child never routes further", () => {
     const attached = kibiWorkspace("kibi-router-main-");
     const { router: r } = router(attached, {

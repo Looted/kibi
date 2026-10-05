@@ -12,4 +12,8 @@ claim_key: CLAIM-FA953357BC2B9A7B
 claim_text: Status and next actions must classify thin, seeded, degraded, and repair-required states consistently
 id: FACT-KIBI-BOOTSTRAP-CLAUSE-05
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

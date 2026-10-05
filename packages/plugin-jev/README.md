@@ -73,7 +73,9 @@ subject. Jev refines that result:
   state the same obligation?"). A yes is a review candidate
   (`review:possible-duplicate`), never a verdict.
 
-Vocabulary alignment runs only inside `kb_model_requirement`. `kb_check` and
+Vocabulary alignment runs only inside requirement modeling (the
+`kb_model_requirement` operation: MCP `kb_model` with `mode: "requirement"`,
+CLI `kibi model-requirement`). `kb_check` and
 `kibi check` never call it: the Prolog checks (`domain-redundancy`,
 `subject-key-identity`, and the others) stay deterministic, offline, and the
 only pass/fail authority.

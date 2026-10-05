@@ -1,3 +1,4 @@
+import path from "node:path";
 import { compilerFingerprintReason } from "../../commands/sync/cache.js";
 import { EngineClient } from "../../engine.js";
 import {
@@ -9,6 +10,8 @@ import {
   validateIntentSearchInput,
 } from "../../intent-search.js";
 import { classifyActivation } from "../../operations/bootstrap/activation.js";
+import { SwiplResolutionError } from "../../prolog/swipl-resolver.js";
+import { type SearchAnswer, buildSearchAnswer } from "../../search-answer.js";
 import { rankEntities } from "../../search-ranking.js";
 import type { SearchMatch } from "../../search-ranking.js";
 import { resolveBranchAttachment } from "../../utils/branch-resolver.js";
@@ -64,12 +67,15 @@ export type SearchInput = {
   readonly sourceLocations?: readonly SourceLocation[];
   readonly minScore?: number;
   readonly fields?: "summary" | "full";
+  readonly answer?: boolean;
 };
 
 export type SearchPayload = {
   readonly results: readonly (SearchMatch | IntentSearchMatch)[];
   readonly count: number;
+  readonly truncated?: boolean;
   readonly queryAnalysis?: IntentSearchAnalysis;
+  readonly answer?: SearchAnswer;
 };
 
 export type StatusInput = Readonly<Record<string, never>>;
@@ -94,7 +100,11 @@ export type StatusPayload = {
   readonly branchAttachment?: {
     readonly gitBranch: string;
     readonly kbBranch: string;
-    readonly kind: "exact" | "explicit_override" | "legacy_compat";
+    readonly kind:
+      | "exact"
+      | "explicit_override"
+      | "legacy_compat"
+      | "detached_snapshot";
     readonly migrationRequired: boolean;
   };
   readonly proofSnapshotChanges?: readonly Record<string, unknown>[];
@@ -110,6 +120,9 @@ export type StatusPayload = {
   readonly schemaStatus?: MigrationConfigStatus;
   readonly migrationPlan?: MigrationPlan;
   readonly bootstrap?: {
+    readonly incompleteApplications?: readonly Readonly<
+      Record<string, unknown>
+    >[];
     readonly activationState: string;
     readonly activationMode: string;
     readonly planEligible: boolean;
@@ -244,11 +257,12 @@ export async function executeSearch(
     type,
     limit = 20,
     offset = 0,
-    rankingMode = "legacy",
+    rankingMode = "intent-v1",
     semanticFacets,
     sourceLocations,
     minScore,
     fields = "summary",
+    answer,
   } = input;
   const trimmedQuery = query.trim();
   if (!trimmedQuery) {
@@ -278,21 +292,34 @@ export async function executeSearch(
         context.workspaceRoot,
       );
       const paginated = paginateResults(intentResult.matches, limit, offset);
+      // The answer layer summarizes the whole ranking, so it belongs to the
+      // first page only.
+      const answerLayer =
+        (answer ?? true) && offset === 0 && intentResult.matches.length > 0
+          ? await buildSearchAnswer(prolog, intentResult.matches, {
+              workspaceRoot: context.workspaceRoot,
+              branch: context.branchAttachment?.kbBranch ?? null,
+            })
+          : undefined;
+      // The structured payload carries every row; the text is a short
+      // human-readable digest instead of a second copy of the results.
       const text =
         intentResult.matches.length === 0
           ? `No intent search results for '${trimmedQuery}' (abstained).`
-          : `Found ${intentResult.matches.length} intent search results for '${trimmedQuery}'. Showing ${paginated.length} (offset ${offset}, limit ${limit}): ${paginated
-              .map(
-                (match) =>
-                  `${String(match.entity.id ?? "")} [${match.reasons.join(", ")}]`,
-              )
-              .join(", ")}`;
+          : `Found ${intentResult.matches.length} intent search results for '${trimmedQuery}'${intentResult.analysis.ambiguous ? " (top matches are close; confirm before relying on one)" : ""}. Top: ${paginated
+              .slice(0, 5)
+              .map((match) => String(match.entity.id ?? ""))
+              .join(
+                ", ",
+              )}${answerLayer ? `. Governing: ${answerLayer.governing.map((req) => req.id).join(", ") || "none found"}` : ""}.`;
       return {
         content: [{ type: "text", text }],
         structuredContent: {
           results: await projectMatches(prolog, paginated, fields),
           count: intentResult.matches.length,
+          truncated: offset + paginated.length < intentResult.matches.length,
           queryAnalysis: intentResult.analysis,
+          ...(answerLayer ? { answer: answerLayer } : {}),
         },
       };
     }
@@ -327,6 +354,7 @@ export async function executeSearch(
       structuredContent: {
         results: await projectMatches(prolog, paginated, fields),
         count: matches.length,
+        truncated: offset + paginated.length < matches.length,
       },
     };
   } catch (error) {
@@ -408,7 +436,9 @@ export async function executeStatus(
           errorCode:
             error instanceof OperationJsonDecodeError
               ? error.code
-              : "engine_status_unavailable",
+              : error instanceof SwiplResolutionError
+                ? error.code
+                : "engine_status_unavailable",
           detail: message,
           recoveryRequired: false,
         };
@@ -440,8 +470,13 @@ export async function executeStatus(
           detail:
             engineStatus.detail ??
             "The branch store is structurally readable but the engine status response is unavailable.",
+          // implements REQ-prolog-doctor-runtime-report
+          // A missing or unusable SWI-Prolog is not fixed by restarting the
+          // engine; point at the diagnostic that reports the resolution.
           remediation: {
-            command_argv: ["kibi", "engine", "stop"],
+            command_argv: engineStatus.errorCode?.startsWith("swipl_")
+              ? ["kibi", "doctor"]
+              : ["kibi", "engine", "stop"],
             applyRequired: false,
           },
         }
@@ -519,11 +554,54 @@ export async function executeStatus(
       context,
       bootstrapSourceFiles,
     );
+    const incompleteApplications: Readonly<Record<string, unknown>>[] = [];
+    if (context.fs?.glob) {
+      // Scope the scan to recovery itself: workspace globs intentionally exclude
+      // compiled and recovery internals from source discovery.
+      const recoveryRoot = path.join(context.workspaceRoot, ".kb", "recovery");
+      const journals = await context.fs.glob(["bootstrap-*.json"], {
+        cwd: recoveryRoot,
+      });
+      for (const journalPath of journals) {
+        try {
+          const journal = JSON.parse(
+            await context.fs.readFile(path.resolve(recoveryRoot, journalPath)),
+          );
+          if (
+            journal.kind === "bootstrap" &&
+            ["rejected", "repair_required", "applying"].includes(journal.state)
+          )
+            incompleteApplications.push({
+              journalId: path.basename(journalPath, ".json"),
+              state: journal.state,
+              appliedActions: (journal.results ?? []).filter(
+                (row: { outcome?: string }) => row.outcome === "applied",
+              ).length,
+              failedActions: (journal.results ?? []).filter(
+                (row: { outcome?: string }) => row.outcome === "failed",
+              ),
+              nextOperation:
+                journal.state === "rejected"
+                  ? "kb_plan_bootstrap"
+                  : "kb_apply_plan",
+            });
+        } catch (error) {
+          incompleteApplications.push({
+            journalId: path.basename(journalPath, ".json"),
+            state: "unreadable",
+            detail: error instanceof Error ? error.message : String(error),
+          });
+        }
+      }
+    }
     const statusWithPlan: StatusPayload = {
       ...enrichedPayload,
       schemaStatus,
       migrationPlan,
       bootstrap: {
+        ...(incompleteApplications.length > 0
+          ? { incompleteApplications }
+          : {}),
         activationState: bootstrapActivation.activationState,
         activationMode: bootstrapActivation.activationMode,
         planEligible:

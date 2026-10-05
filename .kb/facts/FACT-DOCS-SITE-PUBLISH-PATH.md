@@ -12,4 +12,8 @@ claim_key: CLAIM-FE70D6D3DFA37E5E
 claim_text: The repository publishes the browsable documentation site at /docs/ on project Pages alongside the requirement-health report under /kibi-report/ on every push to the default branch
 id: FACT-DOCS-SITE-PUBLISH-PATH
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

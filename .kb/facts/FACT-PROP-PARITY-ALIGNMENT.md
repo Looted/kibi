@@ -15,4 +15,8 @@ claim_text: The public operation surface stays aligned across MCP and the truste
 value_type: string
 id: FACT-PROP-PARITY-ALIGNMENT
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

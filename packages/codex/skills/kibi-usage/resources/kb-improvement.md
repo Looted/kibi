@@ -19,7 +19,7 @@ are in `resources/fact-lanes.md` and the Predicate-First workflow in
 | Process or governance note | `meta` | usually `relates_to` |
 | Runtime or config gate | `flag` | `guards` |
 
-Call `kb_semantic_advisor` on the complete requirement body before encoding a
+Call `kb_model` with `mode: "analyze"` on the complete requirement body before encoding a
 clause. Apply a predicate only when a returned schema fits; otherwise leave an
 ontology-gap observation.
 

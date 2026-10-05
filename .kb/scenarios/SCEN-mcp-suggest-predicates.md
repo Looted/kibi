@@ -9,6 +9,10 @@ tags: [mcp, ontology, predicates]
 links:
   - type: verified_by
     target: TEST-mcp-suggest-predicates
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Given requirement prose and the current predicate schema catalog, the MCP suggestion tool ranks suitable predicates, returns safe predicate fact apply plans and relationship guidance when a candidate fits, and falls back to an ontology-gap observation when no schema meets the score threshold.

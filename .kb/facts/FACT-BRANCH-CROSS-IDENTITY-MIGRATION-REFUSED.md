@@ -21,6 +21,10 @@ links:
     target: FACT-BRANCH-CROSS-IDENTITY-MIGRATION-LEGACY
 id: FACT-BRANCH-CROSS-IDENTITY-MIGRATION-REFUSED
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Every cross-identity pair, including main to master, must be refused.
 

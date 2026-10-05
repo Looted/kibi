@@ -17,4 +17,8 @@ claim_key: CLAIM-65CFF32C6CEA6DF6
 claim_text: Bootstrap source labels are process, project_env, user_env, legacy_env, or missing, and must never include secret values
 id: FACT-PROP-ENV-BOOTSTRAP-SOURCE-LABELS
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

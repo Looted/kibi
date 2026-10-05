@@ -2,7 +2,7 @@ import type { MigrationPlan } from "../../public/operations/migration-plan.js";
 import type { BootstrapPlanV1 } from "../bootstrap/types.js";
 import type { CompilePlanV1, SourceWritePlan } from "./compile-intent.js";
 
-// implements REQ-kibi-change-to-proof-plan-compiler
+// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export type ApplyPlanArgs =
   | Readonly<{
       plan: BootstrapPlanV1;
@@ -34,6 +34,14 @@ export type EntityDeletionPlan = Readonly<{
   supersessionRequired: boolean;
 }>;
 
+// implements REQ-kibi-change-to-proof-plan-compiler-v2, REQ-core-atomic-upsert-persistence
+export type PlanApplyRecoveredJournal = Readonly<{
+  journalId: string;
+  planHash: string;
+  action: "completed" | "rolled_back";
+  restoredPaths: readonly string[];
+}>;
+
 export type BootstrapActionResult = Readonly<{
   actionId: string;
   outcome: "applied" | "failed" | "skipped";
@@ -43,7 +51,7 @@ export type BootstrapActionResult = Readonly<{
 export type ApplyPlanResult =
   | Readonly<{
       version: "kibi.plan-apply-result.v1";
-      outcome: "applied" | "replayed" | "partially_applied";
+      outcome: "applied" | "replayed" | "partially_applied" | "rejected";
       planHash: string;
       actionResults: readonly BootstrapActionResult[];
       changedEntities: number;
@@ -56,13 +64,18 @@ export type ApplyPlanResult =
       recoveryJournalId: string | null;
       changedPaths?: readonly string[];
       validationSummary?: Readonly<Record<string, unknown>>;
-      status?: "committed_with_repairs";
+      status?: "committed_with_repairs" | "rejected";
       effectFailures?: readonly Readonly<Record<string, unknown>>[];
       nextActions?: readonly Readonly<Record<string, unknown>>[];
     }>
   | Readonly<{
       version: "kibi.plan-apply-result.v1";
-      outcome: "applied" | "replayed";
+      /**
+       * applied: this call committed the plan. replayed / rolled_back: a
+       * plan journal recovery completed or rolled back an interrupted
+       * application.
+       */
+      outcome: "applied" | "replayed" | "rolled_back";
       planHash: string;
       changedEntities: number;
       changedRelationships: number;
@@ -77,6 +90,8 @@ export type ApplyPlanResult =
         stepsApplied: number;
         sourceHashesChecked: number;
         notes: readonly string[];
+        /** Interrupted plan journals this call finished before its own work. */
+        recoveredJournals?: readonly PlanApplyRecoveredJournal[];
       };
       recoveryJournalId: string | null;
       status?: "committed_with_repairs";

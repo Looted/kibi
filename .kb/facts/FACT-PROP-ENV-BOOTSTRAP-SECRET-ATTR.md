@@ -17,4 +17,8 @@ claim_key: CLAIM-987CF003A78B4146
 claim_text: Doctor secret attribution must use the actual bootstrap sources with remembered pre-bootstrap process keys
 id: FACT-PROP-ENV-BOOTSTRAP-SECRET-ATTR
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

@@ -2,10 +2,13 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { engineStopCommand } from "../../src/commands/engine.js";
 import { initCommand } from "../../src/commands/init.js";
+import { proofCompactCommand } from "../../src/commands/proof-compact.js";
 import { proofMigrateLegacyCommand } from "../../src/commands/proof-migrate-legacy.js";
 import { proofPruneCommand } from "../../src/commands/proof-prune.js";
 import { syncCommand } from "../../src/commands/sync.js";
+import { EngineClient } from "../../src/engine.js";
 import { executeMigrateLegacyReceipts } from "../../src/operations/proof/migrate-legacy-receipts.js";
+import { removeFrontmatterBlock } from "../../src/operations/proof/receipt-document.js";
 import { PrologProcess } from "../../src/prolog.js";
 import { toPrologString } from "../../src/prolog/codec.js";
 import { nodeFilesystem } from "../../src/public/operations/node-ports.js";
@@ -195,7 +198,7 @@ async function stopEngine(root: string): Promise<void> {
 
 function contextFor(
   root: string,
-  prolog: PrologProcess,
+  prolog: PrologPort,
   fs: FilesystemPort = nodeFilesystem,
 ): OperationContext {
   const attachment = resolveBranchAttachment(root);
@@ -204,7 +207,7 @@ function contextFor(
     workspaceRoot: root,
     signal: new AbortController().signal,
     clock: () => new Date("2026-09-07T00:00:00.000Z"),
-    prolog: prolog as unknown as PrologPort,
+    prolog,
     fs,
     branchAttachment: attachment,
   };
@@ -301,6 +304,63 @@ describe("proof maintenance real source and graph integration", () => {
     expect(props).not.toContain("PR-MAINT-00000001");
   }, 30_000);
 
+  test("compacts an existing store to the deciding receipts without touching the rest of the document", async () => {
+    const root = await workspace();
+    const id = "TEST-MAINT-COMPACT";
+    const relative = `.kb/tests/${id}.md`;
+    mkdirSync(`${root}/.kb/tests`, { recursive: true });
+    // Hand-written frontmatter (comment, key order) that a canonical
+    // re-render would not reproduce.
+    const authored = sourceDocument(id, { receipts: true }).replace(
+      "status: active\n",
+      "# reviewed by hand; keep this note\nstatus: active\n",
+    );
+    writeFileSync(`${root}/${relative}`, authored);
+    git(root, `add ${relative}`);
+    git(root, "commit -m 'compaction source'");
+    // Three runs of an older snapshot: only the newest still decides proof.
+    await seedEntity(root, {
+      id,
+      source: relative,
+      receipts: [proofReceipt(1, id), proofReceipt(2, id), proofReceipt(3, id)],
+    });
+    const io = captureIo({ stdio: true });
+    restores.push(io.restore);
+
+    await withCwd(root, () => proofCompactCommand({ dryRun: true }));
+    await stopEngine(root);
+    expect(readFileSync(`${root}/${relative}`, "utf8")).toBe(authored);
+    expect(io.stdout.join("")).toContain(
+      "Would remove 2 superseded receipt(s) across 1 test(s).",
+    );
+
+    await withCwd(root, () => proofCompactCommand({}));
+    await stopEngine(root);
+
+    const after = readFileSync(`${root}/${relative}`, "utf8");
+    expect(io.stdout.join("")).toContain(`  ${id}: 3 -> 1 receipt(s)`);
+    expect(after).toContain("PR-MAINT-00000003");
+    expect(after).not.toContain("PR-MAINT-00000002");
+    expect(removeFrontmatterBlock(after, "proof_receipts")).toBe(
+      removeFrontmatterBlock(authored, "proof_receipts"),
+    );
+    const synced = await withCwd(root, () =>
+      syncCommand({ workspaceRoot: root }),
+    );
+    await stopEngine(root);
+    expect(synced.success).toBe(true);
+    const props = await queryEntityProps(root, id);
+    expect(props).toContain("PR-MAINT-00000003");
+    expect(props).not.toContain("PR-MAINT-00000001");
+    expect(props).not.toContain("PR-MAINT-00000002");
+
+    // Idempotent: a second pass finds nothing left to remove.
+    await withCwd(root, () => proofCompactCommand({ test: id }));
+    await stopEngine(root);
+    expect(readFileSync(`${root}/${relative}`, "utf8")).toBe(after);
+    expect(io.stdout.join("")).toContain("No test had superseded receipts.");
+  }, 60_000);
+
   test("rolls back only the interrupted second source write after a real first migration commit", async () => {
     const root = await workspace();
     const firstId = "TEST-MAINT-FIRST";
@@ -324,7 +384,14 @@ describe("proof maintenance real source and graph integration", () => {
       source: secondSource,
       legacy: true,
     });
-    const prolog = await attachedStore(root);
+    // Source-write recovery uses the production Node engine; Bun's direct
+    // interactive Prolog transport is outside this fixture's contract.
+    const prolog = new EngineClient({
+      workspaceRoot: root,
+      branch: "main",
+      timeout: 30_000,
+    });
+    await prolog.start();
     const publicationAttempts: string[] = [];
     const failingFs: FilesystemPort = {
       ...nodeFilesystem,
@@ -339,10 +406,17 @@ describe("proof maintenance real source and graph integration", () => {
       },
     };
 
-    await expect(
-      executeMigrateLegacyReceipts({}, contextFor(root, prolog, failingFs)),
-    ).rejects.toThrow(/maintenance interrupted/);
-    await closeStore(prolog);
+    try {
+      await expect(
+        executeMigrateLegacyReceipts({}, contextFor(root, prolog, failingFs)),
+      ).rejects.toThrow(/maintenance interrupted/);
+    } finally {
+      try {
+        await prolog.stop(false);
+      } finally {
+        await prolog.terminate();
+      }
+    }
     expect(publicationAttempts).toHaveLength(2);
     const sourcePathFromPublication = (temporaryPath: string): string => {
       const marker = temporaryPath.indexOf(".md.kibi-source-");

@@ -4,7 +4,6 @@ title: Maximum of Two
 status: active
 created_at: 2026-02-20T13:00:00Z
 updated_at: 2026-04-21T10:00:00Z
-source: documentation/facts/FACT-LIMIT-2.md
 tags: [cardinality]
 fact_kind: property_value
 subject_key: user.role_assignment
@@ -12,6 +11,10 @@ property_key: max_roles
 operator: lte
 value_type: int
 value_int: 2
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 A strict upper bound of at most 2 items.

@@ -15,4 +15,8 @@ claim_key: CLAIM-1723C5882A71BA2F
 claim_text: MCP must not fall back to JavaScript tag filtering once tag normalization is reliable
 id: FACT-PROP-REQ-MCP-TAG-FILTERING-SERVER-SIDE-N04
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

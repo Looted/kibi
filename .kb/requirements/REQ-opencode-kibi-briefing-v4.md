@@ -5,7 +5,6 @@ title: "OpenCode Kibi Briefing v4: Render-First Idle Delivery & Prompt-Time Repl
 status: closed
 created_at: 2026-04-29T10:00:00.000Z
 updated_at: 2026-04-30T10:00:00.000Z
-source: documentation/requirements/REQ-opencode-kibi-briefing-v4.md
 priority: must
 tags:
   - opencode
@@ -331,6 +330,10 @@ logic_claims:
   - CLAIM-498D97FCBEB2E33A
   - CLAIM-B2E955F8C9D045ED
   - CLAIM-A17E1ACC337E3E30
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 The OpenCode Kibi Briefing system must transition to a render-first idle-delivery and prompt-time replay model. This contract ensures that briefings are reliably delivered by persisting render-ready envelopes at session idle and replaying unread briefs for the current branch during the next safe transform cycle.

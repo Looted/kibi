@@ -1,7 +1,7 @@
 ---
 id: REQ-cli-sync
 title: Import entities from source files into the branch KB
-status: open
+status: closed
 created_at: 2026-05-13T10:00:00.000Z
 updated_at: 2026-05-13T10:00:00.000Z
 source: REQ-003
@@ -61,6 +61,10 @@ semantic_inventory:
     payload_hash: fd856c826575a3e48b6863e3523cd7aafc99854831fb70cbc99feb780499f7d2
     reason: No approved domain predicate schema expresses this clause; generic logical_requirement_rule grounding was removed.
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 The `kibi sync` command performs a full import of entities from the local filesystem into the branch-specific KB.

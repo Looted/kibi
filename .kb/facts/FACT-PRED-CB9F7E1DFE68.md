@@ -21,4 +21,8 @@ claim_text: Plugin secrets must be supplied from the process environment outside
 id: FACT-PRED-CB9F7E1DFE68
 type: fact
 predicate_namespace: kibi.capability
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

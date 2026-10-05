@@ -29,5 +29,9 @@ examples:
   - capability_mode(kibi_capability,shadow,non_canonical)
 id: FACT-SCHEMA-CAPABILITY-MODE
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Defines the observable effect of a capability provider mode. Reuse for any capability that distinguishes canonical replacement, additive augmentation, and non-canonical shadow execution.

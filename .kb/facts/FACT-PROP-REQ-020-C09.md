@@ -15,4 +15,8 @@ claim_key: CLAIM-046FFE16817A0B33
 claim_text: '**No Direct Publish**: Manual `npm publish` and manual version bumps on `master` are prohibited'
 id: FACT-PROP-REQ-020-C09
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

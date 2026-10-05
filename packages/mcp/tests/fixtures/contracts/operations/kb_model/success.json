@@ -1,0 +1,213 @@
+{
+  "input": {
+    "id": "REQ-CONTRACT-AUTO-SAVE",
+    "mode": "analyze",
+    "source": "contracts/seed/requirements/REQ-CONTRACT-AUTO-SAVE.md",
+    "status": "open",
+    "text": "The editor must save changes automatically when the user navigates away.",
+    "title": "Auto-save on navigation",
+    "type": "req"
+  },
+  "structuredContent": {
+    "mode": "analyze",
+    "receipt": {
+      "suggestions": [
+        {
+          "kind": "strict-property",
+          "label": "commit_action"
+        }
+      ],
+      "summary": "One reviewable suggestion produced."
+    },
+    "warnings": []
+  },
+  "tool": {
+    "description": "Turn requirement prose into checkable structure without writing the KB. mode:analyze returns the semantic advisor receipt: the clause ledger, what is grounded, what is ambiguous and suggested modeling (pass clauses for compound prose and optional typed kibi.logic.v1 interpretations). mode:requirement converts one claim (subjectKey, propertyKey, operator, value, or typed logic) into a strict-lane write set and applyPlan. mode:predicates ranks ontology predicate schemas and returns an applicable predicate-fact plan only for reviewed bindings, otherwise an ontology-gap observation. Apply returned plans with kb_upsert.",
+    "inputSchema": {
+      "properties": {
+        "argumentBindings": {
+          "additionalProperties": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "description": "Optional exact predicate argument values keyed by a candidate schema's argument_names. Required before applying a candidate whose binding_status is incomplete; Kibi never substitutes guessed values for unbound arguments.",
+          "type": "object"
+        },
+        "claimKey": {
+          "description": "Optional advisor-issued claim key for the exact proposition represented by logic.",
+          "type": "string"
+        },
+        "claimText": {
+          "description": "Optional exact proposition text represented by logic; defaults to text.",
+          "type": "string"
+        },
+        "clauses": {
+          "description": "Optional complete list of atomic requirement clauses supplied by the caller. Use this for compound prose so every normative clause receives a stable claim key and independent grounding review.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "confidence": {
+          "default": 0.8,
+          "description": "Confidence score for the extracted claim. >= 0.70 yields strict-lane output; lower confidence yields observation-only review output.",
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        "existingLogicClaims": {
+          "description": "Existing requirement logic_claims values. The returned requirement update merges the new atomic claim key into this manifest instead of replacing prior claims.",
+          "items": {
+            "pattern": "^CLAIM-[A-F0-9]{16}$",
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "id": {
+          "description": "Optional requirement ID used for deterministic draft relationship guidance.",
+          "type": "string"
+        },
+        "includeExistingSchemas": {
+          "default": true,
+          "description": "Whether to include existing KB fact_kind=predicate_schema facts alongside Kibi's built-in predicate catalog. Default: true.",
+          "type": "boolean"
+        },
+        "interpretations": {
+          "description": "Optional host-LLM typed kibi.logic.v1 interpretations. Kibi validates and canonicalizes them; raw Prolog is not accepted.",
+          "items": {
+            "properties": {
+              "claim_key": {
+                "type": "string"
+              },
+              "claim_text": {
+                "type": "string"
+              },
+              "confidence": {
+                "maximum": 1,
+                "minimum": 0,
+                "type": "number"
+              },
+              "ir": {
+                "type": "object"
+              },
+              "span": {
+                "type": "object"
+              }
+            },
+            "required": ["claim_key", "claim_text", "ir"],
+            "type": "object"
+          },
+          "maxItems": 3,
+          "type": "array"
+        },
+        "logic": {
+          "description": "Optional typed kibi.logic.v1 IR. Kibi validates and canonicalizes it into a rule fact; raw Prolog is rejected.",
+          "type": "object"
+        },
+        "maxCandidates": {
+          "default": 5,
+          "description": "Maximum ranked predicate candidates to return. Default: 5.",
+          "maximum": 20,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "minScore": {
+          "default": 0.35,
+          "description": "Minimum candidate score. Higher values make ontology-gap fallback more likely. Default: 0.35.",
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        "mode": {
+          "description": "analyze (advisor receipt), requirement (strict claim write set) or predicates (ontology predicate plan).",
+          "enum": ["analyze", "requirement", "predicates"],
+          "type": "string"
+        },
+        "operator": {
+          "description": "Optional extracted semantic claim operator. Use gt/lt for strict bounds ('greater than zero' is gt 0, not gte 0). Example: 'eq'.",
+          "enum": ["eq", "gt", "gte", "lt", "lte", "neq", "bool", "polarity"],
+          "type": "string"
+        },
+        "polarityHint": {
+          "description": "Optional reviewed polarity override for claims whose surface negation does not express predicate denial. Use only after reviewing the selected schema and full claim scope.",
+          "enum": ["assert", "deny"],
+          "type": "string"
+        },
+        "propertyKey": {
+          "description": "Optional extracted semantic claim propertyKey. Example: 'Retention Years'.",
+          "type": "string"
+        },
+        "provenance": {
+          "description": "Optional extracted text reference. Falls back to source when omitted. Example: '.kb/requirements/customer-retention.md#L1'.",
+          "type": "string"
+        },
+        "requirementId": {
+          "description": "Optional existing requirement ID to receive the requires_rule relationship.",
+          "type": "string"
+        },
+        "schemaId": {
+          "description": "Optional exact reviewed predicate schema ID. When supplied, Kibi selects that schema instead of lexical rank order and fails closed if it is unavailable.",
+          "minLength": 1,
+          "type": "string"
+        },
+        "source": {
+          "description": "Optional primary source path or provenance root used for stable IDs and text refs. Example: '.kb/requirements/customer-retention.md'.",
+          "type": "string"
+        },
+        "sourceFiles": {
+          "description": "Optional related source files. The first value is used as the source fallback when source is omitted.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "status": {
+          "description": "Optional requirement status for draft suggestions.",
+          "type": "string"
+        },
+        "subjectHint": {
+          "description": "Optional canonical subject key to use as the first predicate argument. Example: 'editor.annotation'.",
+          "type": "string"
+        },
+        "subjectKey": {
+          "description": "Optional extracted semantic claim subjectKey. Example: 'Customer.Data'.",
+          "type": "string"
+        },
+        "text": {
+          "description": "Required prose requirement text to model. Example: 'Customer data must be retained for 7 years.'",
+          "type": "string"
+        },
+        "title": {
+          "description": "Optional requirement title for draft apply plans.",
+          "type": "string"
+        },
+        "type": {
+          "default": "req",
+          "description": "Entity type context for analysis. Requirement, domain-fact, and supporting prose all receive a proposition ledger; only requirements receive deterministic modeling suggestions.",
+          "enum": [
+            "req",
+            "scenario",
+            "test",
+            "adr",
+            "flag",
+            "event",
+            "symbol",
+            "fact"
+          ],
+          "type": "string"
+        },
+        "value": {
+          "description": "Optional extracted semantic claim value. Accepts string, number, or boolean."
+        },
+        "workspaceRoot": {
+          "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+          "type": "string"
+        }
+      },
+      "required": ["mode", "text"],
+      "type": "object"
+    },
+    "name": "kb_model"
+  }
+}

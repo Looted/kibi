@@ -7,12 +7,13 @@
  * failure. Run via `bun run documentation/tests/e2e/root-batch-diagnostics.e2e.ts`.
  */
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join, relative } from "node:path";
 import { COVERAGE_SHARDS } from "../../../scripts/run-unit-coverage.ts";
 import {
   BATCH_TIMEOUT_MINUTES,
+  createCliUnitBatches,
   getBatchFailureMessage,
   isCuratedSuiteEntryPoint,
   parseSuiteSummaries,
@@ -166,7 +167,47 @@ describe("root batch diagnostics passing fixture", () => {
       batched.pass > 0,
     `runBatch must return the clean fixture summary: ${JSON.stringify(batched)}`,
   );
-  console.log("root-batch-diagnostics e2e: passed");
+
+  // Discover and execute actual files through the production collector and
+  // runner. Each subprocess must receive a different private runtime.
+  const discoveryRoot = join(fixtureDir, "cli");
+  const executions = join(fixtureDir, "discovered-runs.jsonl");
+  for (const file of ["one.test.ts", "nested/two.spec.ts"]) {
+    const target = join(discoveryRoot, file);
+    mkdirSync(dirname(target), { recursive: true });
+    writeFileSync(
+      target,
+      `import {expect, test} from "bun:test";
+import {appendFileSync} from "node:fs";
+import {join} from "node:path";
+test("discovered file receives an isolated runtime", () => {
+  expect(process.env.NODE_ENV).toBe("test");
+  expect(process.env.CODEX_HOME).toBe(join(process.env.KIBI_RUNTIME_DIR ?? "", "codex-home"));
+  appendFileSync(${JSON.stringify(executions)}, JSON.stringify({file: ${JSON.stringify(file)}, runtime: process.env.KIBI_RUNTIME_DIR}) + "\\n");
+});
+`,
+    );
+  }
+  writeFileSync(join(discoveryRoot, "README.md"), "No executable test here.");
+  const discovered = createCliUnitBatches(relative(process.cwd(), discoveryRoot));
+  assert(discovered.length === 2, "discovery must select exactly the two test files");
+  for (const batch of discovered) {
+    const summary = await runBatch(batch);
+    assert(summary.pass === 1 && summary.fail === 0, "each discovered file must run once and pass");
+  }
+  const records = readFileSync(executions, "utf8")
+    .trim()
+    .split("\n")
+    .map((line) => JSON.parse(line) as {file: string; runtime: string});
+  assert(
+    records.length === 2 && new Set(records.map((record) => record.file)).size === 2,
+    "every discovered file must execute exactly once",
+  );
+  assert(
+    new Set(records.map((record) => record.runtime)).size === 2,
+    "discovered files must use distinct runtime directories",
+  );
+  console.log("root-batch-diagnostics e2e: passed (discovery and process isolation)");
 } finally {
   rmSync(fixtureDir, { recursive: true, force: true });
 }

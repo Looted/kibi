@@ -1838,6 +1838,63 @@ describe("retract helpers", () => {
     ).rejects.toThrow(/Failed to retract changed source entity/);
   });
 
+  test("retractEntitiesForSources looks up many sources in bounded round trips", async () => {
+    // 150 sources in a nested directory yield 450 distinct lookup
+    // candidates (path, cwd-relative path, basename): three round trips of
+    // at most 200, instead of one per candidate.
+    const sources = Array.from(
+      { length: 150 },
+      (_, index) => `/abs/docs/req/REQ-${index}.md`,
+    );
+    const lookups: string[] = [];
+    const prolog = makeProlog();
+    prolog.query.mockImplementation(async (goal: string | string[]) => {
+      const g = Array.isArray(goal) ? goal.join(", ") : goal;
+      if (g.includes("kb_entities_by_source")) {
+        lookups.push(g);
+        // Every chunk resolves the same entity plus one of its own.
+        return {
+          success: true,
+          bindings: { Ids: `['REQ-shared', 'REQ-chunk-${lookups.length}']` },
+        };
+      }
+      return { success: true, bindings: {} };
+    });
+
+    expect(
+      await retractEntitiesForSources(asPrologProcess(prolog), sources),
+    ).toBe(4);
+    expect(lookups).toHaveLength(3);
+    expect(lookups[0]).toContain('"/abs/docs/req/REQ-0.md"');
+    expect(lookups[0]).toContain('"REQ-0.md"');
+  });
+
+  test("retractEntitiesForSources retries a failed batch one candidate at a time", async () => {
+    const prolog = makeProlog();
+    const single: string[] = [];
+    prolog.query.mockImplementation(async (goal: string | string[]) => {
+      const g = Array.isArray(goal) ? goal.join(", ") : goal;
+      if (g.startsWith("findall(")) {
+        return { success: false, bindings: {}, error: "batch lookup failed" };
+      }
+      if (g.startsWith("kb_entities_by_source(")) {
+        single.push(g);
+        return g.includes('"docs/REQ-A.md"')
+          ? { success: true, bindings: { Ids: "['REQ-A']" } }
+          : { success: true, bindings: { Ids: "[]" } };
+      }
+      return { success: true, bindings: {} };
+    });
+
+    expect(
+      await retractEntitiesForSources(asPrologProcess(prolog), [
+        "docs/REQ-A.md",
+      ]),
+    ).toBe(1);
+    // The relative path and basename candidates are still consulted.
+    expect(single).toContain('kb_entities_by_source("REQ-A.md", Ids)');
+  });
+
   test("retractEntitiesById, relationships-by-id, and retractRelationships cover empty, batch, and sequential paths", async () => {
     const empty = makeProlog();
     expect(await retractEntitiesById(asPrologProcess(empty), [])).toBe(0);

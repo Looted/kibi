@@ -22,6 +22,10 @@ claim_text: An unsupported capability must never count as a match
 claim_span_start: 718
 claim_span_end: 771
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of fail-closed unsupported behavior.

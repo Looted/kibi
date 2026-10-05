@@ -5,7 +5,6 @@ type: fact
 status: active
 created_at: 2026-08-10T00:00:00.000Z
 updated_at: 2026-08-10T00:00:00.000Z
-source: documentation/facts/FACT-INGESTION-REJECTS-DUPLICATES.md
 fact_kind: predicate
 predicate_name: rejects_duplicate_proposition_identity
 predicate_args:
@@ -18,6 +17,10 @@ claim_text: Duplicate claim keys or spans must be rejected
 claim_span_start: 165
 claim_span_end: 211
 predicate_namespace: kibi.ingestion
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground predicate for claim-key and source-span uniqueness.

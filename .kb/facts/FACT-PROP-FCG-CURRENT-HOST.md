@@ -14,4 +14,8 @@ claim_key: CLAIM-B51B083D785F5441
 claim_text: '**Current-Host Only**: Guidance is based on host-side event monitoring'
 id: FACT-PROP-FCG-CURRENT-HOST
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

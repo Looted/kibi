@@ -10,6 +10,10 @@ tags:
   - review:bug
 id: FACT-OBS-claude-mcp-attaches-main-checkout-in-worktrees
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Observed 2026-10-01 in a Claude Code desktop session running in the git worktree .claude/worktrees/kibi-usage-telemetry-e124d4.
 

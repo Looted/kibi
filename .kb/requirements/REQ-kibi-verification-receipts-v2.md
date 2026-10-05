@@ -1,10 +1,9 @@
 ---
 id: REQ-kibi-verification-receipts-v2
 title: Proof-bearing E2E tests use current-contract proof receipts v2
-status: open
+status: closed
 created_at: 2026-08-14T00:00:00Z
 updated_at: 2026-08-14T00:00:00Z
-source: documentation/requirements/REQ-kibi-verification-receipts-v2.md
 priority: must
 tags: [requirements, proof, verification, receipts, e2e, v2, append-only]
 logic_claims:
@@ -50,6 +49,10 @@ links:
     target: SCEN-kibi-verification-receipts-v2
   - type: verified_by
     target: TEST-kibi-verification-receipts-v2
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Proof-bearing tests must use kibi.proof-receipt.v1 evidence produced by kibi prove. Each proof receipt must bind exact integration command argv, the current proof contract hash, the effective execution fingerprint, complete required proof obligations, the live code snapshot, run-level outcome, timestamps, and artifact digest. Proof receipt history remains append-only with deterministic idempotent receipt identity. Only a current proof receipt matching the live snapshot, contract hash, and execution fingerprint may prove the test.

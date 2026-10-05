@@ -51,7 +51,7 @@ const defaultToolsServerDeps: ToolsServerDeps = {
 let sessionModulePromise: Promise<SessionModule> | null = null;
 const prologPorts = new WeakMap<PrologProcess, PrologPort>();
 
-// implements REQ-008
+// implements REQ-002
 export function _setToolsServerDepsForTests(
   deps: Partial<ToolsServerDeps>,
   resetPromise = false,

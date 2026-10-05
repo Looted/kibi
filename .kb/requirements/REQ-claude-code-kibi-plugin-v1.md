@@ -171,6 +171,10 @@ semantic_clauses:
   - At session stop, kibi-claude hooks must remind the agent at most once about each edited source file that lacks a later impact check
 id: REQ-claude-code-kibi-plugin-v1
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 The kibi-claude package must remain optional.
 

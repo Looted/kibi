@@ -4,12 +4,15 @@ title: Test suite has flaky integration tests
 status: active
 created_at: 2026-02-25T16:30:00Z
 updated_at: 2026-02-25T16:30:00Z
-source: documentation/facts/FACT-011.md
 tags:
   - testing
   - flakiness
   - test-pollution
 fact_kind: observation
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 The kibi test suite has flaky integration tests that fail when run together but pass when run in isolation:

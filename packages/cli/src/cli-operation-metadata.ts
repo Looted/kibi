@@ -29,6 +29,12 @@ export const CLI_OPERATION_METADATA = [
       "Read a declared resource from a bundled Kibi agent skill. Resource paths are restricted to the skill manifest; arbitrary file paths are not exposed. Read-only; does not require Prolog.",
   },
   {
+    name: "kb_skills",
+    cliName: "skill",
+    description:
+      "Read bundled Kibi agent skills (workflow guidance). action:list returns the catalog; action:load returns a skill's metadata, Markdown body, declared resources and content hash (start with id 'kibi-usage'); action:read returns one manifest-declared resource. Read-only; does not require Prolog.",
+  },
+  {
     name: "kb_query",
     cliName: "query",
     description:
@@ -38,7 +44,7 @@ export const CLI_OPERATION_METADATA = [
     name: "kb_search",
     cliName: "search",
     description:
-      "Search KB entities for discovery using legacy lexical ranking or deterministic intent-v1 ranking. Intent mode accepts host-agent semantic facets and source locations, returns evidence and abstains below its confidence threshold. Use for exploratory lookup before exact follow-up with kb_query. No mutation side effects.",
+      "Ask the KB a question or search it. Default intent-v1 ranking accepts questions, host-agent semantic facets and changed-code source locations, returns evidence, abstains below its confidence threshold and adds an answer layer: the current requirements that govern the topic, what must stay true (linked facts), why (ADRs) and what verifies it (scenarios, tests). Use before changing behavior, then kb_query for exact follow-up. No mutation side effects.",
   },
   {
     name: "kb_status",
@@ -83,6 +89,12 @@ export const CLI_OPERATION_METADATA = [
       "Suggest ontology predicate schemas for prose requirements before agents write facts. Retrieval/ranking is followed by a semantic applicability gate and conservative binding review; complete-looking generic placeholders never trigger application. Read-only guidance returns additive candidate diagnostics, an applicable predicate-fact plan only for a semantically eligible candidate with reviewed bindings, or an explicit ontology-gap observation plus a deterministic review-only predicate schema draft when no schema fits.",
   },
   {
+    name: "kb_model",
+    cliName: "model",
+    description:
+      "Turn requirement prose into checkable structure without writing the KB. mode:analyze returns the semantic advisor receipt: the clause ledger, what is grounded, what is ambiguous and suggested modeling (pass clauses for compound prose and optional typed kibi.logic.v1 interpretations). mode:requirement converts one claim (subjectKey, propertyKey, operator, value, or typed logic) into a strict-lane write set and applyPlan. mode:predicates ranks ontology predicate schemas and returns an applicable predicate-fact plan only for reviewed bindings, otherwise an ontology-gap observation. Apply returned plans with kb_upsert.",
+  },
+  {
     name: "kb_plan_bootstrap",
     cliName: "plan-bootstrap",
     description:
@@ -92,13 +104,13 @@ export const CLI_OPERATION_METADATA = [
     name: "kb_validate_upsert",
     cliName: "validate-upsert",
     description:
-      "Validate a kb_upsert payload without mutating the KB. Use this read-only preflight before kb_upsert, especially for requirements, because it returns schema/modeling errors plus semantic advisor receipts that identify prose likely needing kb_model_requirement, kb_suggest_predicates, ambiguity review, or an ontology-gap observation.",
+      "Validate a kb_upsert payload without mutating the KB. Use this read-only preflight before kb_upsert, especially for requirements, because it returns schema/modeling errors plus semantic advisor receipts that identify prose likely needing kb_model mode requirement or predicates, ambiguity review, or an ontology-gap observation.",
   },
   {
     name: "kb_upsert",
     cliName: "upsert",
     description:
-      "Create or update one entity and optional relationships. Use for KB mutations after validating intent; prefer kb_validate_upsert first because it returns semantic advisor receipts for prose-heavy requirements. Use kb_model_requirement before hand-writing strict property facts from prose, and kb_suggest_predicates before hand-writing ontology predicate facts. Use the `relationships` array for batch creation of multiple links in a single call (e.g., linking a requirement to multiple tests or facts). Prefer modeling requirements as reusable fact links (`constrains`, `requires_property`, or `requires_predicate`) so consistency and contradiction checks remain queryable. Relationship endpoints must already exist in KB. For requirements, the write will be rejected if it contradicts existing current requirements that constrain the same subject with incompatible properties. To replace a conflicting requirement, include a `supersedes` relationship from the new requirement to the old one in the same request. Successful writes may return non-blocking semantic advisor warnings; inspect and repair those warnings before treating prose as contradiction-checkable. Do not use for read-only inspection. Side effects: writes KB, may refresh symbol coordinates.",
+      "Create or update one entity and optional relationships. Use for KB mutations after validating intent; prefer a dryRun:true call first because it validates without writing and returns semantic advisor receipts for prose-heavy requirements. Use kb_model (mode requirement) before hand-writing strict property facts from prose, and kb_model (mode predicates) before hand-writing ontology predicate facts. Use the `relationships` array for batch creation of multiple links in a single call (e.g., linking a requirement to multiple tests or facts). Prefer modeling requirements as reusable fact links (`constrains`, `requires_property`, or `requires_predicate`) so consistency and contradiction checks remain queryable. Relationship endpoints must already exist in KB. For requirements, the write will be rejected if it contradicts existing current requirements that constrain the same subject with incompatible properties. To replace a conflicting requirement, include a `supersedes` relationship from the new requirement to the old one in the same request, then upsert the old requirement with status closed (kb_check blocks a superseded requirement that is not closed). Successful writes may return non-blocking semantic advisor warnings; inspect and repair those warnings before treating prose as contradiction-checkable. Do not use for read-only inspection. Side effects: writes KB, may refresh symbol coordinates; dryRun:true writes nothing.",
   },
   {
     name: "kb_delete",
@@ -134,7 +146,7 @@ export const CLI_OPERATION_METADATA = [
     name: "kb_apply_plan",
     cliName: "apply-plan",
     description:
-      "Apply an explicitly approved kibi.bootstrap-plan.v1, kibi.compile-plan.v1, kibi.migration-plan.v2, or entity-deletion plan after revalidating its canonical hash and live snapshots. Bootstrap actions are dependency-ordered, sequential, source-first, and recoverable from a typed journal.",
+      "Apply an explicitly approved kibi.bootstrap-plan.v1, kibi.compile-plan.v1, kibi.migration-plan.v2, or entity-deletion plan after revalidating its canonical hash and live snapshots. Compile plans apply all-or-nothing: a durable journal records every source write and store mutation before the first write, all steps commit in one store transaction, and an interrupted application is completed or rolled back by the next mutating call. Bootstrap actions are dependency-ordered, sequential, source-first, and recoverable from a typed journal.",
   },
   {
     name: "kb_ingest_proof",

@@ -5,6 +5,7 @@ import {
   mkdirSync,
   readFileSync,
   readdirSync,
+  rmSync,
   writeFileSync,
 } from "node:fs";
 import path from "node:path";
@@ -12,6 +13,10 @@ import path from "node:path";
 import { engineStopCommand } from "../../src/commands/engine.js";
 import { initCommand } from "../../src/commands/init.js";
 import { discoverSourceFiles } from "../../src/commands/sync/discovery.js";
+import {
+  openPlanApplyJournalById,
+  planApplyJournalId,
+} from "../../src/operations/mutation/plan-apply-journal.js";
 import { writePendingSourceReceipt } from "../../src/operations/mutation/source-authoring.js";
 import { executeApplyPlan } from "../../src/operations/planning/apply-plan.js";
 import {
@@ -31,6 +36,7 @@ import {
   restoreWorkspaceCwd,
   withCwd,
 } from "../helpers/in-process-workspace.js";
+import { isWhatIfGoal, whatIfResult } from "../helpers/what-if.js";
 
 function sha(value: string): string {
   return createHash("sha256").update(value).digest("hex");
@@ -102,9 +108,11 @@ function filesystemContext(
 ): OperationContext {
   const query: OperationContext["prolog"] = extra?.query ?? {
     query: async (goal): Promise<PrologQueryResult> =>
-      goal.includes("kb_commit_upsert")
-        ? { success: true, bindings: { ChangeKind: "created" } }
-        : { success: true, bindings: { Results: "[]" } },
+      isWhatIfGoal(goal)
+        ? whatIfResult()
+        : goal.includes("kb_commit_upsert")
+          ? { success: true, bindings: { ChangeKind: "created" } }
+          : { success: true, bindings: { Results: "[]" } },
     queryStatusJson: async () => ({ success: true, bindings: {} }),
     nextSolution: async () => null,
     save: async () => ({ success: true, bindings: {} }),
@@ -133,8 +141,16 @@ function filesystemContext(
   };
 }
 
+/** The atomic plan journal a compile plan application wrote, if any. */
+function planJournalState(cwd: string, plan: CompilePlanV1): string {
+  return openPlanApplyJournalById(
+    filesystemContext(cwd),
+    planApplyJournalId(plan.planHash),
+  ).journal.state;
+}
+
 describe("compile plan source recovery and write fallbacks", () => {
-  test("compiled-store failure marks the journal repair_required", async () => {
+  test("a store rejection rolls back the plan's source writes and changes nothing", async () => {
     const restoreEnv = isolateKibiEnv();
     restores.push(restoreEnv);
     const cwd = createGitWorkspace();
@@ -153,33 +169,31 @@ describe("compile plan source recovery and write fallbacks", () => {
         },
       ],
     });
-    const result = await executeApplyPlan(
-      { plan, approvedPlanHash: plan.planHash },
-      filesystemContext(cwd, {
-        query: {
-          query: async (goal): Promise<PrologQueryResult> =>
-            goal.includes("kb_commit_upsert")
-              ? { success: false, bindings: {}, error: "derived boom" }
-              : { success: true, bindings: { Results: "[]" } },
-          queryStatusJson: async () => ({ success: true, bindings: {} }),
-          nextSolution: async () => null,
-          save: async () => ({ success: true, bindings: {} }),
-        },
-      }),
-    );
-    expect(asApply(result.structuredContent).status).toBe(
-      "committed_with_repairs",
-    );
-    const journalId = asApply(result.structuredContent).recoveryJournalId;
-    expect(journalId).toBeString();
-    const journal = JSON.parse(
-      readFileSync(
-        path.join(cwd, ".kb", "recovery", `${journalId}.json`),
-        "utf8",
+    await expect(
+      executeApplyPlan(
+        { plan, approvedPlanHash: plan.planHash },
+        filesystemContext(cwd, {
+          query: {
+            query: async (goal): Promise<PrologQueryResult> =>
+              isWhatIfGoal(goal)
+                ? whatIfResult()
+                : goal.includes("kb_commit_upsert")
+                  ? { success: false, bindings: {}, error: "derived boom" }
+                  : { success: true, bindings: { Results: "[]" } },
+            queryStatusJson: async () => ({ success: true, bindings: {} }),
+            nextSolution: async () => null,
+            save: async () => ({ success: true, bindings: {} }),
+          },
+        }),
       ),
-    ) as { state: string };
-    expect(journal.state).toBe("repair_required");
-    expect(existsSync(path.join(cwd, "docs", "REQ-repair.md"))).toBe(true);
+    ).rejects.toThrow(
+      /Apply plan failed at its store commit; no change was applied \(store unchanged, 2 source file\(s\) restored .*derived boom/,
+    );
+    expect(existsSync(path.join(cwd, "docs", "REQ-repair.md"))).toBe(false);
+    expect(
+      existsSync(path.join(cwd, ".kb", "requirements", "REQ-apply.md")),
+    ).toBe(false);
+    expect(planJournalState(cwd, plan)).toBe("rolled_back");
   });
 
   test("source writes fall back to write+unlink when rename is unavailable", async () => {
@@ -293,7 +307,7 @@ Must remain independently testable.
     ).rejects.toThrow(/committed or repair_required journal/);
   });
 
-  test("a journalless plan with an early committed step fails as a non-retryable partial commit", async () => {
+  test("a plan without source writes journals its entity documents and a failing later step commits nothing", async () => {
     const restoreEnv = isolateKibiEnv();
     restores.push(restoreEnv);
     const cwd = createGitWorkspace();
@@ -315,16 +329,24 @@ Must remain independently testable.
         },
       ],
     });
-    await expect(
-      executeApplyPlan(
+    // A store whose transaction applies every step or none: step B fails
+    // inside the batch, so step A is never stored either.
+    const stored = new Set<string>();
+    const commits: string[] = [];
+    let failure: unknown;
+    try {
+      await executeApplyPlan(
         { plan, approvedPlanHash: plan.planHash },
         filesystemContext(cwd, {
           query: {
             query: async (goal): Promise<PrologQueryResult> => {
+              if (isWhatIfGoal(goal)) return whatIfResult();
               if (goal.includes("kb_commit_upsert")) {
-                return goal.includes("REQ-partial-a")
-                  ? { success: true, bindings: { ChangeKind: "created" } }
-                  : { success: false, bindings: {}, error: "step boom" };
+                commits.push(goal);
+                if (goal.includes("REQ-partial-b"))
+                  return { success: false, bindings: {}, error: "step boom" };
+                stored.add("REQ-partial-a");
+                return { success: true, bindings: { ChangeKind: "created" } };
               }
               return { success: true, bindings: { Results: "[]" } };
             },
@@ -333,14 +355,29 @@ Must remain independently testable.
             save: async () => ({ success: true, bindings: {} }),
           },
         }),
-      ),
-    ).rejects.toMatchObject({
+      );
+    } catch (error) {
+      failure = error;
+    }
+    expect(String(failure)).toMatch(
+      /no change was applied \(store unchanged, 2 source file\(s\) restored .*step boom/,
+    );
+    expect(failure).not.toMatchObject({
       code: "PARTIAL_COMMIT_REPAIR_REQUIRED",
-      retryable: false,
     });
+    // One batch carried both steps; the store kept neither.
+    expect(commits).toHaveLength(1);
+    expect(commits[0]).toContain("kb_commit_upsert_batch");
+    expect(commits[0]).toContain("REQ-partial-a");
+    expect(stored.size).toBe(0);
+    expect(planJournalState(cwd, plan)).toBe("rolled_back");
+    for (const id of ["REQ-partial-a", "REQ-partial-b"])
+      expect(
+        existsSync(path.join(cwd, ".kb", "requirements", `${id}.md`)),
+      ).toBe(false);
   });
 
-  test("a pending source receipt failure after source commitment exposes the recovery journal", async () => {
+  test("a pending source receipt failure after the commit reports repairs and blocks writes until its journal is recovered", async () => {
     const restoreEnv = isolateKibiEnv();
     restores.push(restoreEnv);
     const cwd = createGitWorkspace();
@@ -364,31 +401,63 @@ Must remain independently testable.
         },
       ],
     });
-    await expect(
-      executeApplyPlan(
-        { plan, approvedPlanHash: plan.planHash },
-        filesystemContext(cwd),
-      ),
-    ).rejects.toMatchObject({
-      code: "SOURCE_COMMIT_REPAIR_REQUIRED",
-      retryable: false,
+    const journalId = planApplyJournalId(plan.planHash);
+    const result = await executeApplyPlan(
+      { plan, approvedPlanHash: plan.planHash },
+      filesystemContext(cwd),
+    );
+    expect(result.structuredContent).toMatchObject({
+      outcome: "applied",
+      status: "committed_with_repairs",
+      recoveryJournalId: journalId,
+      effectFailures: [{ errorCode: "PENDING_SOURCE_RECEIPT_FAILED" }],
+      nextActions: [
+        { operation: "kb_apply_plan", input: { recoveryJournalId: journalId } },
+      ],
     });
-    const journal = JSON.parse(
-      readFileSync(
-        path.join(
-          cwd,
-          ".kb",
-          "recovery",
-          `source-writes-${plan.planHash.slice(0, 16)}.json`,
-        ),
-        "utf8",
-      ),
-    ) as { state: string };
-    expect(journal.state).toBe("repair_required");
-    // The authoritative committed bytes stay in place.
+    // The committed bytes stay in place; the journal keeps the receipts.
     expect(
       readFileSync(path.join(cwd, "docs", "REQ-receipt-journal.md"), "utf8"),
     ).toBe(body);
+    expect(planJournalState(cwd, plan)).toBe("store_committed");
+
+    // Another write is refused while the receipts are unfinished.
+    const other = compilePlan({
+      steps: [
+        {
+          type: "req",
+          id: "REQ-other",
+          properties: { title: "Other", status: "open" },
+          relationships: [],
+        },
+      ],
+    });
+    await expect(
+      executeApplyPlan(
+        { plan: other, approvedPlanHash: other.planHash },
+        filesystemContext(cwd),
+      ),
+    ).rejects.toMatchObject({
+      code: "PLAN_APPLY_RECOVERY_REQUIRED",
+      retryable: false,
+    });
+
+    // Once receipts can be written, recovering the journal finishes them.
+    rmSync(path.join(cwd, ".kb", "recovery", "pending-sources"));
+    const recovered = await executeApplyPlan(
+      { recoveryJournalId: journalId },
+      filesystemContext(cwd),
+    );
+    expect(recovered.structuredContent).toMatchObject({
+      outcome: "replayed",
+      recoveryJournalId: journalId,
+    });
+    expect(asApply(recovered.structuredContent).status).toBeUndefined();
+    expect(planJournalState(cwd, plan)).toBe("committed");
+    // The plan's source write and its requirement's document.
+    expect(
+      readdirSync(path.join(cwd, ".kb", "recovery", "pending-sources")),
+    ).toHaveLength(2);
   });
 
   test("deleting an untracked authored source retires its pending receipt so sync still discovers sources", async () => {
@@ -423,7 +492,10 @@ Must remain independently testable.
 
     expect(result.structuredContent.outcome).toBe("applied");
     expect(existsSync(path.join(cwd, relative))).toBe(false);
-    expect(readdirSync(pendingRoot)).toEqual([]);
+    // Only the step's new document keeps a receipt.
+    expect(readdirSync(pendingRoot)).toEqual([
+      `${sha(".kb/requirements/REQ-apply.md")}.json`,
+    ]);
     await expect(
       discoverSourceFiles(cwd, { trackedOnly: true }),
     ).resolves.toBeDefined();

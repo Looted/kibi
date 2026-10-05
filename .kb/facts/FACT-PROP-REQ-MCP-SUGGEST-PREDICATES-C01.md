@@ -15,4 +15,8 @@ claim_key: CLAIM-35C07B949BBA2AD5
 claim_text: The MCP server must suggest matching ontology predicate schemas for requirement prose, return safe predicate fact apply plans when a schema fits, and report ontology-gap observations when no candidate is suitable
 id: FACT-PROP-REQ-MCP-SUGGEST-PREDICATES-C01
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

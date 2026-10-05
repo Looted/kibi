@@ -17,5 +17,9 @@ value_type: string
 value_string: optional
 id: FACT-PROP-ZCODE-OPTIONAL
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 The kibi-zcode package must remain optional

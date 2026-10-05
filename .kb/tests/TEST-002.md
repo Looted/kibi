@@ -14,6 +14,10 @@ links:
     target: REQ-cli-sync
   - type: validates
     target: SCEN-007
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Runs `kibi sync` against `test/fixtures/` and then `kibi query req --format json`.

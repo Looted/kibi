@@ -306,6 +306,85 @@ describe("semantic advisor operation", () => {
     }
   });
 
+  // implements REQ-kibi-truthful-consistency
+  test("routes only-when and must-not-unless prose to one forbid-unless rule", () => {
+    const suggestionsFor = (text: string) =>
+      analyzeSemanticAdvisorInput({
+        payload: {
+          type: "req",
+          id: "REQ-CHECKOUT",
+          properties: { title: "Checkout", semantic_text: text },
+        },
+      }).receipt.suggestions;
+    const onlyWhen = suggestionsFor(
+      "Checkout may happen only when the cart total is positive.",
+    );
+    const unless = suggestionsFor(
+      "Checkout must not happen unless the cart total is positive.",
+    );
+
+    expect(onlyWhen.map(({ kind }) => kind)).toEqual(["rule"]);
+    expect(unless.map(({ kind }) => kind)).toEqual(["rule"]);
+    expect(onlyWhen[0]).toMatchObject({
+      confidence: 0.8,
+      suggested_next_tool: "kb_model_requirement",
+      rule: {
+        modality: "forbid",
+        head: { name: "checkout" },
+        body: { namespace: "cart", name: "total" },
+        exceptions: [{ kind: "compare", operator: "gt" }],
+      },
+    });
+    // Both phrasings say the same thing, so they share one rule identity.
+    const key = (list: typeof onlyWhen) =>
+      list[0]?.kind === "rule" ? list[0].semantic_key : null;
+    expect(key(onlyWhen)).not.toBeNull();
+    expect(key(onlyWhen)).toBe(key(unless));
+  });
+
+  // implements REQ-kibi-truthful-consistency
+  test("keeps a conditional it cannot translate as an unresolved ontology gap", () => {
+    for (const text of [
+      "Checkout may happen only when the cart total is positive and the user is verified.",
+      "Admins may export reports only when the tenant has the export feature enabled.",
+    ]) {
+      const receipt = analyzeSemanticAdvisorInput({
+        payload: {
+          type: "req",
+          id: "REQ-CONDITIONAL",
+          properties: { title: "Conditional", semantic_text: text },
+        },
+      }).receipt;
+      const [suggestion] = receipt.suggestions;
+
+      expect(receipt.suggestions.map(({ kind }) => kind)).toEqual([
+        "ontology_gap",
+      ]);
+      expect(JSON.stringify(suggestion?.applyPlan)).toContain(
+        "needs_rule_interpretation",
+      );
+      expect(receipt.logic_coverage.unresolved_claim_keys).toContain(
+        semanticClaimKey(text),
+      );
+    }
+  });
+
+  // implements REQ-kibi-truthful-consistency
+  test("keeps a catalog predicate for a conditional the rule reader cannot translate", () => {
+    const receipt = analyzeSemanticAdvisorInput({
+      payload: {
+        type: "req",
+        id: "REQ-POST-DELETION",
+        properties: {
+          title: "Post deletion",
+          semantic_text: "Users cannot delete posts unless they own them.",
+        },
+      },
+    }).receipt;
+
+    expect(receipt.suggestions.map(({ kind }) => kind)).toEqual(["predicate"]);
+  });
+
   test("keeps semantic prose independent from text_ref evidence", () => {
     expect(
       semanticSourceOf({

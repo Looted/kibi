@@ -50,7 +50,7 @@ export interface ManifestLookupEntry {
 export type ManifestLookup = Map<string, ManifestLookupEntry>;
 
 export function createManifestLookupSentinelKey(manifestPath: string): string {
-  // implements REQ-008
+  // implements REQ-cli-staged-impact-enforcement
   return `${MANIFEST_SENTINEL_PREFIX}${manifestPath}`;
 }
 
@@ -291,7 +291,7 @@ function analyzeWithBuiltinFallback(
 }
 
 export function extractSymbolsFromStagedFile(
-  // implements REQ-008
+  // implements REQ-cli-staged-impact-enforcement
   stagedFile: StagedFile,
   manifestLookup?: ManifestLookup,
   options?: ExtractSymbolsOptions,
@@ -438,7 +438,7 @@ function intersectingHunks(
   return out;
 }
 
-// implements REQ-008
+// implements REQ-cli-staged-impact-enforcement
 function sourceSymbolLocator(
   symbol: SdkSourceAnalysisResult["symbols"][number] & {
     qualifiedName?: string;

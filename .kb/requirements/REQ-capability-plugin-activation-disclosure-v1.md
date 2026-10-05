@@ -46,6 +46,10 @@ semantic_clauses:
   - A capability plugin must be activated only from explicit package.json kibi.plugins configuration.
   - A capability plugin package must resolve from the project-local dependency graph and must not use a global installation.
   - Plugin permission metadata must not be an allowed provider operation for sandbox enforcement.
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 # REQ-capability-plugin-activation-disclosure-v1
 

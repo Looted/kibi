@@ -10,5 +10,9 @@ tags:
   - mutation-lock
 id: TEST-kibi-proof-ingest-batch-atomicity
 type: test
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 This focused regression exercises more than 25 receipt updates and injects Prolog commit failure in batch 1 and batch 2. A batch-1 failure leaves 0 compiled receipts committed and restores all 52 authored documents. A batch-2 failure preserves the first 25 committed receipts and restores all 27 uncommitted authored documents, including later prepared entries. Assertions verify exact authored-source and compiled-receipt consistency, that the operation-owned mutation lock remains held at each batch boundary and during rollback, and that a competing writer cannot acquire the lock before compensation finishes. Test: packages/cli/tests/operations/ingest-proof.test.ts.

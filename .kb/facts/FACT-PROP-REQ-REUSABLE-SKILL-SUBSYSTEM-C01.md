@@ -15,4 +15,8 @@ claim_key: CLAIM-9B9967E9775967AE
 claim_text: The CLI exposes reusable bundled Markdown skills and validates their manifests/resources before surfacing them to agents
 id: FACT-PROP-REQ-REUSABLE-SKILL-SUBSYSTEM-C01
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

@@ -244,3 +244,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-dd082980b20b
+  - type: implements
+    from: SYM-migrateCommand
+    to: REQ-kibi-schema6-migration-v2
+    created_at: 2026-10-04T17:34:11.543Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a0aefcad50f0
+  - type: covered_by
+    from: SYM-migrateCommand
+    to: TEST-kibi-schema6-migration-cli
+    created_at: 2026-10-04T17:34:11.602Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-26d67377437d

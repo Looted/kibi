@@ -20,4 +20,8 @@ claim_key: CLAIM-BE91D78C76F5AED6
 claim_text: Undeclared, path, and global plugin package names are invalid resolution inputs and must fail closed
 id: FACT-PRED-F0C5009A90C2
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

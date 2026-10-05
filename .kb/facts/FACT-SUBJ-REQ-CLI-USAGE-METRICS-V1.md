@@ -8,4 +8,8 @@ subject_key: kibi.cli.usage_metrics
 canonical_key: req.req_cli_usage_metrics_v1
 id: FACT-SUBJ-REQ-CLI-USAGE-METRICS-V1
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

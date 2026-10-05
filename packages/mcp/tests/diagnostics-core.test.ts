@@ -318,6 +318,26 @@ describe("deriveDiagnosticFields", () => {
     expect(upsert.mutation_fingerprint).toBe(validate.mutation_fingerprint);
   });
 
+  test("a kb_upsert dry run records as validation with the write's fingerprint", () => {
+    const payload = {
+      type: "req",
+      id: "REQ-1",
+      properties: { title: "One", status: "open" },
+    };
+    const dryRun = deriveDiagnosticFields(
+      "kb_upsert",
+      { ...payload, dryRun: true },
+      null,
+      { structuredContent: { valid: true, dryRun: true } },
+    );
+    const upsert = deriveDiagnosticFields("kb_upsert", payload, null, {
+      structuredContent: { created: 1, updated: 0 },
+    });
+
+    expect(dryRun.validation_valid).toBe(true);
+    expect(dryRun.mutation_fingerprint).toBe(upsert.mutation_fingerprint);
+  });
+
   test("kb_coverage records complete proof and receipt recovery signals", () => {
     const result = deriveDiagnosticFields(
       "kb_coverage",

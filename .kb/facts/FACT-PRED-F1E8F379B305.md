@@ -19,4 +19,8 @@ claim_key: CLAIM-7B062DA2D111C910
 claim_text: When a kibi-claude hook runs, it must not invoke the Kibi CLI or the Kibi engine
 id: FACT-PRED-F1E8F379B305
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

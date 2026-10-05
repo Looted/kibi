@@ -4,7 +4,7 @@ title: Advisor evidence cannot cross explicit correlation boundaries
 status: active
 created_at: 2026-08-10T00:00:00.000Z
 updated_at: 2026-08-10T00:00:00.000Z
-source: documentation/requirements/REQ-kibi-telemetry-remediation-evidence.md
+source: .kb/requirements/REQ-kibi-telemetry-remediation-evidence.md
 tags:
   - lane:ontology
   - telemetry
@@ -24,6 +24,10 @@ claim_text: Correlation for advisor evidence must require matching session and a
 claim_span_start: 325
 claim_span_end: 439
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of conservative advisor correlation.

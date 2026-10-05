@@ -23,7 +23,7 @@ Most project knowledge is scattered across prompts, tickets, code, and conversat
 - **Memory is enforceable** — Symbols need requirement ownership, requirements need complete semantics and scenarios, scenarios need tests, and proof-bearing tests need fresh execution evidence.
 - **Prolog guards against drift** — Typed properties, predicates, and safe rules let deterministic checks expose contradictions, unsupported invention, and incomplete semantics before they become accepted project knowledge.
 - **E2E behavior is traceable** — Kibi records what an end-to-end test proves, not merely which lines it happened to execute. You can navigate from a symbol to its requirement or from a test to the scenario and intent it verifies.
-- **Intent survives branch changes** — Each Git branch has its own KB snapshot, keeping feature context isolated and available when you return.
+- **Intent survives branch changes** — Each Git branch has its own KB snapshot, keeping feature context isolated and available when you return. A detached checkout of a commit no single branch points at (a CI checkout of a SHA, a bisect) still answers reads from a read-only snapshot of that checkout and says so; writes wait until a branch is checked out.
 - **Works across languages** — TypeScript and JavaScript symbols are built in. The optional [`kibi-plugin-treesitter`](https://looted.github.io/kibi/reference/plugins.html) adds offline symbol extraction for Python, Go, Rust, Java, C#, PHP, C, C++, Bash, Ruby, and Terraform/HCL using pinned WASM grammars.
 - **Keep knowledge local** — KB state lives in your repository's `.kb/` directory; Kibi does not send external telemetry or analytics.
 
@@ -45,6 +45,10 @@ Set up Kibi (https://github.com/Looted/kibi) in this repository, then bootstrap 
 
 The agent installs the packages, runs `kibi init`, and connects itself to Kibi. Then it asks where your product intent already lives (issue trackers such as Jira or YouTrack, wikis, specs) and which of those sources to trust, reads them through the connectors it has, and produces a read-only bootstrap plan in which each requirement cites the ticket or page it came from. It shows you the plan and its hash and writes nothing until you approve. After that, work normally: prompt for features, fixes, and refactors, and the agent keeps requirements, scenarios, tests, and code links in step with the code.
 
+Bootstrap validates every candidate before offering write actions. Claims that cannot be grounded stay cited authoring follow-ups; product intent takes priority over repository observations, and candidates beyond the limit are reported. Invalid approved plans are refused before any bootstrap write. Deterministic failures are terminal and require a corrected plan; interrupted writes and derived effects retain journal recovery.
+
+Existing KBs upgrade to schema 7 with `kibi migrate --yes` followed by `kibi sync`. The migration preserves fact IDs and bodies while encoding legacy polarity-only facts as typed booleans; malformed strict facts now fail `kibi check`.
+
 <details>
 <summary>Manual installation</summary>
 
@@ -63,6 +67,8 @@ pnpm, Yarn, and Bun work the same way through their local runners; the [installa
 
 </details>
 
+**Upgrading.** After updating the Kibi packages, run `kibi migrate` (or ask your agent to). It previews a reviewable plan; `kibi migrate --apply-safe --approved-plan-hash <hash>` applies its automatic steps. Moving to KB schema 6 records `origin: {kind: migration}` on existing entities and re-derives any requirement inventory that `kibi sync` rejects because the semantic advisor now reads its prose differently. It also closes superseded requirements that were left open and repairs leftover `source` frontmatter fields: Kibi always takes an entity's source from its own file, so it removes values that name that file or nothing, and repoints pre-canonical paths (`documentation/...`) to another moved knowledge file; `kibi check` now blocks superseded requirements left open and `source` values that point at nothing. It lists exceptions without an approver, requirements that supersede each other, `source` fields it cannot edit safely, and other items for you to decide.
+
 ## Connect your coding agent
 
 The setup prompt above does this step for you. To do it by hand: every client starts the same project-local `kibi-mcp` server (`npx --no-install kibi-mcp`, stdio, working directory = your repository). Optional plugins add bundled skills and hooks on top.
@@ -70,7 +76,7 @@ The setup prompt above does this step for you. To do it by hand: every client st
 <details>
 <summary>Claude Code</summary>
 
-Install the optional `kibi-claude` plugin from this repository's marketplace. It brings the MCP server, the bundled skills, and advisory hooks that show the agent the linked requirements and tests before it reads or edits code:
+Install the optional `kibi-claude` plugin from this repository's marketplace. It brings the MCP server, the bundled skills, and advisory hooks that show the agent the linked requirements and tests before it reads or edits code, and before an edit, what the lead requirement must keep true and the decision behind it:
 
 ```bash
 claude plugin marketplace add Looted/kibi
@@ -104,7 +110,7 @@ Add Kibi to `.cursor/mcp.json`:
 }
 ```
 
-The optional `kibi-cursor` plugin adds rules, bundled skills, commands, and advisory hooks. See the [Cursor plugin guide](https://looted.github.io/kibi/guide/install.html#optional-cursor-plugin).
+The optional `kibi-cursor` plugin adds rules, bundled skills, commands, and advisory hooks that show the same requirement context as the Claude Code plugin before reads and edits of linked code. See the [Cursor plugin guide](https://looted.github.io/kibi/guide/install.html#optional-cursor-plugin).
 
 </details>
 
@@ -115,7 +121,7 @@ The optional `kibi-cursor` plugin adds rules, bundled skills, commands, and advi
 codex mcp add kibi -- npx --no-install kibi-mcp
 ```
 
-The optional `kibi-codex` plugin bundles Kibi skills, MCP configuration, and warning-only lifecycle hooks. Add the Kibi repository marketplace, open Codex, then run `/plugins`, choose **Kibi Plugins**, and install `kibi-codex`:
+The optional `kibi-codex` plugin bundles Kibi skills, MCP configuration, and warning-only lifecycle hooks; before `apply_patch` changes linked code, the hook adds the requirement, what it must keep true, and its decision to the agent's context. Add the Kibi repository marketplace, open Codex, then run `/plugins`, choose **Kibi Plugins**, and install `kibi-codex`:
 
 ```bash
 codex plugin marketplace add Looted/kibi
@@ -128,7 +134,7 @@ The repository marketplace is not the official OpenAI Plugin Directory; self-ser
 <details>
 <summary>OpenCode</summary>
 
-Add Kibi to `opencode.json`. The optional `kibi-opencode` plugin adds prompt guidance and background maintenance:
+Add Kibi to `opencode.json`. The optional `kibi-opencode` plugin adds prompt guidance (including what a requirement linked to the file being edited must keep true) and background maintenance:
 
 ```json
 {
@@ -167,11 +173,13 @@ Add Kibi to `.vscode/mcp.json`:
 <details>
 <summary>ZCode and other MCP clients</summary>
 
-Any stdio MCP client works with `command: npx`, `args: --no-install kibi-mcp`. ZCode also has an optional plugin, installed from a local checkout; see the [ZCode plugin guide](https://looted.github.io/kibi/guide/install.html#optional-zcode-plugin). Agents without MCP can use the same operations through the CLI's JSON routes.
+Any stdio MCP client works with `command: npx`, `args: --no-install kibi-mcp`. ZCode also has an optional plugin, installed from a local checkout, whose edit hook shows the same requirement context as the Claude Code plugin; see the [ZCode plugin guide](https://looted.github.io/kibi/guide/install.html#optional-zcode-plugin). Agents without MCP can use the same operations through the CLI's JSON routes.
 
 </details>
 
-Kibi's **skill subsystem** is the agent-guidance mechanism: four bundled skills cover operation safety, bootstrap, freshness, and traceability. Agents load them with `kb_skills_list` and `kb_skills_load` (or the equivalent read-only CLI routes), so you do not paste a long system prompt. See [agent onboarding](https://looted.github.io/kibi/reference/agent-onboarding.html) for the copy-paste discovery snippet for generic agents.
+Kibi's **skill subsystem** is the agent-guidance mechanism: four bundled skills cover operation safety, bootstrap, freshness, and traceability. Agents load them with the `kb_skills` MCP tool (`action: "list"`, then `"load"`) or the equivalent read-only CLI routes, so you do not paste a long system prompt. See [agent onboarding](https://looted.github.io/kibi/reference/agent-onboarding.html) for the copy-paste discovery snippet for generic agents.
+
+The MCP server keeps its tool list to 16 tools. `kb_search` answers plain questions such as "what governs checkout rounding?": besides ranked matches it returns the current requirements that govern the topic, with their linked facts, scenarios, tests, and ADRs (with an excerpt of each decision), and lists superseded requirements separately. For each governing requirement it adds a verdict from the existing contradiction and scenario-feasibility checks, the approved exceptions that exempt it, and what the checks could not decide, and it names the branch and KB snapshot it answered from. That answer is discovery, not proof: a requirement no check names is not thereby proven. Prose modeling goes through `kb_model`, and `kb_upsert` with `dryRun: true` runs the same validation as the real write without making it. A plan compiled from intent (`kb_compile_intent`, then `kb_apply_plan` after you approve its hash) lands in full or not at all: a failing step leaves the knowledge base and the workspace unchanged, and if the agent is interrupted mid-write, its next write completes or rolls back the plan from a journal. Each entity the plan applies is written to its own document, so rebuilding the knowledge base from the checkout keeps it. The [MCP reference](https://looted.github.io/kibi/reference/mcp.html) lists every tool and maps older operation names to them.
 
 ## See what is proven
 
@@ -183,7 +191,7 @@ npm exec -- kibi report --open
 
 To publish the report and a clickable badge on GitHub Pages, run `npm exec -- kibi init --github`, then enable **Settings → Pages → Source → GitHub Actions**. The [GitHub integration guide](https://looted.github.io/kibi/guide/github-integration.html) covers the workflow ([docs/examples/github/kibi-report.yml](docs/examples/github/kibi-report.yml)), badge-only publishing, and other package managers. The same guide has a CI step that keeps pull requests mergeable when only `.kb/symbols.yaml` or a relationship shard conflicts ([docs/examples/github/kibi-kb-merge.yml](docs/examples/github/kibi-kb-merge.yml)).
 
-For day-to-day inspection, `kibi status`, `kibi search`, `kibi gaps`, `kibi coverage`, and `kibi check` are in the [CLI reference](https://looted.github.io/kibi/reference/cli.html).
+For day-to-day inspection, `kibi status`, `kibi search`, `kibi gaps`, `kibi coverage`, and `kibi check` are in the [CLI reference](https://looted.github.io/kibi/reference/cli.html). When many agents share one repository's engine, `KIBI_ENGINE_READ_TIME_LIMIT_MS` and `KIBI_ENGINE_READ_INFERENCE_LIMIT` bound each read; a read that hits its limit fails with `QUERY_LIMIT_EXCEEDED` instead of returning a partial answer ([engine read limits](https://looted.github.io/kibi/reference/cli.html#engine-read-limits)).
 
 ## How it works
 
@@ -222,16 +230,18 @@ For a requirement to be proven rather than merely documented:
 
 - Every production symbol must trace to the requirement it implements.
 - Every normative requirement clause must have one complete semantic grounding or remain explicitly unresolved.
-- Requirements must be specified by scenarios, and tests must verify those scenarios.
+- Requirements must be specified by scenarios, and tests must verify those scenarios. A scenario that expects success while assuming values a current requirement forbids, alone or only in combination, is reported and blocks proof. That holds for conditional requirements too: "checkout may happen only when the cart total is positive" compiles to a typed rule, so a checkout scenario that assumes a zero cart total is infeasible. A requirement only governs scenarios inside its scope and the validity window of its facts. An intended exception is recorded as an exception requirement (`exempts`) that a human approved (`approved_by`), not by editing the rule, and `exempts_claims` can limit it to one clause. An exception without `approved_by` exempts nothing, and an advisory check says so. A success scenario whose feasibility cannot be decided (for example it assumes a "basket amount" where the rule reads the "cart total") is flagged as unknown, never counted as feasible.
 - Executable test symbols must identify the code that actually performs the verification.
 - Proof-bearing production symbols must be covered by qualifying tests.
-- End-to-end evidence must be fresh and bound to the current code snapshot.
+- End-to-end evidence must be fresh and bound to the current code snapshot. Freshness uses repository-relative paths and file contents, so CI and a local checkout of the same commit agree. When the proof command reports results per test, a failing step fails only the tests that own it. Receipt history keeps only the receipts that can still decide proof; `kibi proof compact` trims stores written before that.
 
 That makes questions answerable in both directions: which requirement owns this symbol, what this E2E test actually verifies, which requirements lack a scenario or current evidence, and whether two current requirements contradict each other. Code coverage alone cannot answer them: it shows that a test touched a line, not which product behavior was exercised.
 
 ### Prolog as the safety layer
 
 Suppose the product defines exactly three user roles. Once that constraint is encoded as a strict property or predicate, an agent cannot quietly invent a fourth role and treat it as established intent: Kibi can surface the contradiction or missing authorization deterministically.
+
+Kibi does not report "no conflict" when it could not tell. Numeric constraints are compared exactly ("greater than 0" conflicts with "equals 0"), and a requirement with clauses that are not yet modeled is reported as an incomplete analysis rather than a clean pass. Two opposing rules that Kibi cannot decide stay `unresolved`; when the only missing piece is a `key_arguments` declaration on a predicate, an advisory check names that predicate.
 
 Prolog does not decide whether the original human intent was correct. It verifies the knowledge that was encoded, while Kibi keeps ambiguity, missing ontology, incomplete grounding, and stale evidence explicit instead of calling them proof.
 
@@ -253,6 +263,8 @@ Eight entity types: `req`, `scenario`, `test`, `fact`, `adr`, `flag`, `event`, a
 
 Use `flag` only for real runtime or configuration gates. Bug and workaround notes are `fact` records with `fact_kind: observation` or `meta`.
 
+Every entity can record who authored it: `origin: {kind: human | agent | migration | import, ref, approved_by, recorded_at}`. An agent's `kb_upsert` records new entities as `kind: agent` and never rewrites an existing origin by omission. Advisory checks list agent-authored requirements that no person has approved, exception approvals that only an agent recorded, and human- or agent-authored requirements that do not say why they exist (an optional `rationale` field, a Rationale section, or a linked ADR answers that). Kibi cannot verify a person's approval; it makes the missing ones visible. Other advisory checks flag code whose only owning requirements were superseded, ADRs nothing links to or that were never accepted, and one subject or claim minted as several facts.
+
 ## Packages
 
 Install `kibi-core`, `kibi-cli`, and `kibi-mcp` in the project. Everything else is optional.
@@ -263,10 +275,10 @@ Install `kibi-core`, `kibi-cli`, and `kibi-mcp` in the project. Everything else 
 | `kibi-cli` | Human, agent, automation, and Git-hook interface |
 | `kibi-mcp` | MCP surface exposing the public Kibi operation contracts |
 | `kibi-claude` | Claude Code skills, MCP, requirement context before reads/edits, and advisory hooks (plugin marketplace) |
-| `kibi-cursor` | Cursor rules, skills, MCP, and advisory hooks |
-| `kibi-codex` | Codex skills, MCP, and lifecycle hooks |
-| `kibi-opencode` | OpenCode guidance and background maintenance |
-| `kibi-zcode` | ZCode skills, command, MCP, and advisory hooks (local checkout) |
+| `kibi-cursor` | Cursor rules, skills, MCP, requirement context before reads/edits, and advisory hooks |
+| `kibi-codex` | Codex skills, MCP, requirement context before edits, and lifecycle hooks |
+| `kibi-opencode` | OpenCode guidance (including requirement context for edits) and background maintenance |
+| `kibi-zcode` | ZCode skills, command, MCP, requirement context before edits, and advisory hooks (local checkout) |
 | `kibi-vscode` | VS Code knowledge explorer and traceability view |
 | `kibi-plugin-sdk` | Protocol types and validators for [capability plugins](https://looted.github.io/kibi/reference/plugins.html) |
 | `kibi-plugin-builtin` | Default semantic, ontology, and TypeScript symbol capabilities |

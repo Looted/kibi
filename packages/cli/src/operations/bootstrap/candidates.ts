@@ -17,48 +17,44 @@ function typedCandidates(
   item: BootstrapEvidence,
   existingIds: ReadonlySet<string>,
 ): Candidate[] {
-  try {
-    const results =
-      item.kind === "symbol_manifest"
-        ? extractFromManifestString(
+  const results =
+    item.kind === "symbol_manifest"
+      ? extractFromManifestString(
+          item.content ?? "",
+          item.relativePath ?? item.label,
+        )
+      : [
+          extractFromMarkdownString(
             item.content ?? "",
             item.relativePath ?? item.label,
-          )
-        : [
-            extractFromMarkdownString(
-              item.content ?? "",
-              item.relativePath ?? item.label,
-            ),
-          ];
-    return results.flatMap(({ entity, relationships }) => {
-      if (existingIds.has(entity.id)) return [];
-      const sourceKind =
-        item.kind === "symbol_manifest" ? "symbol_manifest" : "typed_markdown";
-      return [
-        {
-          candidateId: `${sourceKind === "symbol_manifest" ? "mf" : "md"}:${item.relativePath}:${entity.id}`,
-          entityType: entity.type,
-          title: entity.title,
-          sourceKind,
-          sourcePath: item.absolutePath ?? item.label,
-          confidence: sourceKind === "symbol_manifest" ? 0.98 : 1,
-          confidenceBand: "high",
-          evidence: [
-            `extracted_from_${sourceKind}:${item.relativePath}`,
-            `entity_id:${entity.id}`,
-          ],
-          relationships: relationships.map(({ type, from, to }) => ({
-            type,
-            from,
-            to,
-          })),
-          applyPlan: [upsert(entity, relationships)],
-        },
-      ];
-    });
-  } catch {
-    return [];
-  }
+          ),
+        ];
+  return results.flatMap(({ entity, relationships }) => {
+    if (existingIds.has(entity.id)) return [];
+    const sourceKind =
+      item.kind === "symbol_manifest" ? "symbol_manifest" : "typed_markdown";
+    return [
+      {
+        candidateId: `${sourceKind === "symbol_manifest" ? "mf" : "md"}:${item.relativePath}:${entity.id}`,
+        entityType: entity.type,
+        title: entity.title,
+        sourceKind,
+        sourcePath: item.absolutePath ?? item.label,
+        confidence: sourceKind === "symbol_manifest" ? 0.98 : 1,
+        confidenceBand: "high",
+        evidence: [
+          `extracted_from_${sourceKind}:${item.relativePath}`,
+          `entity_id:${entity.id}`,
+        ],
+        relationships: relationships.map(({ type, from, to }) => ({
+          type,
+          from,
+          to,
+        })),
+        applyPlan: [upsert(entity, relationships)],
+      },
+    ];
+  });
 }
 
 function providerCandidate(
@@ -134,13 +130,33 @@ export function buildBootstrapCandidates(
 ): CandidateBuildResult {
   const candidates: Candidate[] = [];
   const sourceOnlySignals: SourceOnlySignal[] = [];
+  const diagnostics: string[] = [];
+  const suppressed: Readonly<Record<string, unknown>>[] = [];
   for (const item of evidence) {
-    if (item.kind === "typed_markdown" || item.kind === "symbol_manifest")
-      candidates.push(...typedCandidates(item, existingIds));
+    if (item.kind === "typed_markdown" || item.kind === "symbol_manifest") {
+      try {
+        candidates.push(...typedCandidates(item, existingIds));
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        const sourcePath = item.relativePath ?? item.label;
+        diagnostics.push(
+          `Bootstrap extraction failed at ${sourcePath}: ${message}`,
+        );
+        suppressed.push({
+          candidateId: "",
+          sourcePath,
+          entityType: "",
+          reason: "extraction_failed",
+          message,
+        });
+      }
+    }
     if (item.kind === "generic_markdown" && includeGenericMarkdown) {
       const built = markdownCandidates(item, existingIds, minConfidence);
       candidates.push(...built.candidates);
       sourceOnlySignals.push(...built.sourceOnlySignals);
+      diagnostics.push(...built.diagnostics);
+      suppressed.push(...built.suppressed);
     }
     if (item.kind === "test_topology") {
       const confidence =
@@ -163,6 +179,8 @@ export function buildBootstrapCandidates(
   }
   return {
     candidates,
+    diagnostics,
+    suppressed,
     sourceOnlySignals: sourceOnlySignals.sort(
       (left, right) =>
         right.confidence - left.confidence ||

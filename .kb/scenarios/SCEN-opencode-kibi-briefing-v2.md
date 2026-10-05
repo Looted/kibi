@@ -4,7 +4,6 @@ title: "OpenCode Kibi Briefing v2: Auto-Show and Fallback Behaviors"
 status: closed
 created_at: 2026-04-23T00:00:00Z
 updated_at: 2026-04-24T09:15:00Z
-source: documentation/scenarios/SCEN-opencode-kibi-briefing-v2.md
 tags:
   - scenario
   - opencode
@@ -15,6 +14,10 @@ links:
     target: REQ-opencode-kibi-briefing-v2
   - type: relates_to
     target: SCEN-opencode-kibi-briefing-v1
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 **Scenario: Ready state — brief auto-fetched, toast shown, prompt block rendered, cue suppressed**

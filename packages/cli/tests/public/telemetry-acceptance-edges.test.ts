@@ -1,4 +1,4 @@
-// implements REQ-kibi-telemetry-acceptance-gate
+// implements REQ-kibi-telemetry-acceptance-gate-v2
 import { afterEach, describe, expect, test } from "bun:test";
 import {
   DEFAULT_TELEMETRY_ACCEPTANCE_POLICY,
@@ -10,6 +10,7 @@ import {
   analyzeTelemetryAcceptance,
   createTelemetryAcceptanceDiagnostics,
   parseTelemetryUsageLog,
+  thresholdStatus,
 } from "../../src/public/telemetry-acceptance.js";
 
 // The suite is pure and in-memory; the guard only keeps a failed expectation
@@ -603,6 +604,16 @@ describe("telemetry acceptance edge gates", () => {
     });
   });
 
+  test("compares rates against each threshold operator and skips missing rates", () => {
+    expect(thresholdStatus(undefined, "<", 4)).toBe("not_applicable");
+    expect(thresholdStatus(3, "<", 4)).toBe("passed");
+    expect(thresholdStatus(4, "<", 4)).toBe("failed");
+    expect(thresholdStatus(4, ">=", 4)).toBe("passed");
+    expect(thresholdStatus(3, ">=", 4)).toBe("failed");
+    expect(thresholdStatus(4, "<=", 4)).toBe("passed");
+    expect(thresholdStatus(5, "<=", 4)).toBe("failed");
+  });
+
   test("requires complete req-scoped coverage telemetry before judging proof gaps", () => {
     const report = analyzeTelemetryAcceptance(
       [
@@ -644,6 +655,40 @@ describe("telemetry acceptance edge gates", () => {
     expect(metric(report, "e2e_receipt_freshness").message).toBe(
       "No complete requirement coverage event with receipt-freshness telemetry is available.",
     );
+  });
+
+  test("orders repeated-failure targets with equal streaks by target id", () => {
+    const failure = (secondsBefore: number, id: string) =>
+      event(secondsBefore, {
+        tool: "kb_upsert",
+        status: "error",
+        error_category: "validation_failed",
+        business_args: { type: "req", id },
+      });
+    const events: TelemetryUsageEvent[] = [];
+    const threshold =
+      DEFAULT_TELEMETRY_ACCEPTANCE_POLICY.repeatedMutationFailureThreshold;
+    for (let index = 0; index < threshold; index += 1) {
+      events.push(failure(400 - index * 2, "REQ-Z"));
+      events.push(failure(399 - index * 2, "REQ-A"));
+    }
+
+    const report = analyzeTelemetryAcceptance(events, NOW);
+
+    expect(metric(report, "repeated_mutation_failures").evidence).toEqual({
+      targets: [
+        {
+          target: "req:REQ-A",
+          consecutiveFailures: threshold,
+          errorCategories: ["validation_failed"],
+        },
+        {
+          target: "req:REQ-Z",
+          consecutiveFailures: threshold,
+          errorCategories: ["validation_failed"],
+        },
+      ],
+    });
   });
 
   test("resets failure streaks on success and aggregates error categories", () => {

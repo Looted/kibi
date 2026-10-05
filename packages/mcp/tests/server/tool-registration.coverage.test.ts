@@ -103,9 +103,15 @@ describe("registerConfiguredTools", () => {
     );
 
     expect(registered).toEqual(TOOLS.map((tool) => tool.name));
+    // Composite tools route on action/mode; the selectors are ignored by the
+    // other stubbed handlers.
     for (const execute of executes) {
-      await execute({}).catch(() => undefined);
+      await execute({ action: "list", mode: "analyze", text: "x" }).catch(
+        () => undefined,
+      );
     }
+    expect(calls).toContain("skills-list");
+    expect(calls).toContain("advisor");
     expect(calls.length).toBeGreaterThan(10);
   });
 

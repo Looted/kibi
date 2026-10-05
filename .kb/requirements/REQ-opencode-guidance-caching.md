@@ -32,6 +32,10 @@ semantic_inventory:
       start: 0
       end: 308
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 The plugin must maintain a cache for enforcement state and guidance context:

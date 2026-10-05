@@ -4,7 +4,6 @@ title: Staged overlays preserve requirement claim manifests
 status: active
 created_at: 2026-08-04T00:00:00.000Z
 updated_at: 2026-08-04T00:00:00.000Z
-source: documentation/facts/FACT-LOGICAL-COVERAGE-STAGED-MANIFEST.md
 tags:
   - lane:ontology
   - requirements
@@ -22,6 +21,10 @@ polarity: assert
 claim_key: CLAIM-6147C3D428852FD3
 claim_text: Staged validation overlays must preserve requirement logic_claims manifests
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of staged requirement-manifest fidelity.

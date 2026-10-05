@@ -1,5 +1,10 @@
-import { describe, expect, test } from "bun:test";
+import { afterEach, describe, expect, test } from "bun:test";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { readFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import {
+  currentReceiptBindingHash,
   loadCoveredBySymbolsByTest,
   receiptCodeScopeSymbolIds,
 } from "../../src/operations/proof/code-scope.js";
@@ -73,5 +78,95 @@ describe("loadCoveredBySymbolsByTest", () => {
         }),
       }),
     ).rejects.toThrow(/covered_by relationship query failed: .*ENOBUFS/);
+  });
+});
+
+describe("currentReceiptBindingHash", () => {
+  const roots: string[] = [];
+  afterEach(() => {
+    for (const root of roots.splice(0)) {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  const contract = {
+    version: "kibi.proof-contract.v1",
+    integration: "self-proof",
+    required_proofs: [{ symbol_id: "SYM-flow", target: "default" }],
+    success_policy: "all_required_first_attempt",
+  };
+
+  function checkout(
+    prefix: string,
+    options: { sourceFile: string; receipts: string; code?: string },
+  ): string {
+    const root = mkdtempSync(path.join(tmpdir(), prefix));
+    roots.push(root);
+    mkdirSync(path.join(root, ".kb", "tests"), { recursive: true });
+    mkdirSync(path.join(root, "src"), { recursive: true });
+    writeFileSync(
+      path.join(root, "src", "flow.ts"),
+      options.code ?? "export const flow = 1;\n",
+    );
+    writeFileSync(
+      path.join(root, ".kb", "symbols.yaml"),
+      `symbols:\n  - id: SYM-flow\n    title: flow\n    sourceFile: '${options.sourceFile.replaceAll("<root>", root)}'\n`,
+    );
+    writeFileSync(
+      path.join(root, ".kb", "tests", "TEST-flow.md"),
+      `---\nid: TEST-flow\ntitle: Flow\nproof_receipts:\n${options.receipts}---\nBody\n`,
+    );
+    return root;
+  }
+
+  const binding = (root: string, source: string) =>
+    currentReceiptBindingHash({
+      workspaceRoot: root,
+      readFile: (absolute) => readFile(absolute, "utf8"),
+      test: {
+        id: "TEST-flow",
+        source: source.replaceAll("<root>", root),
+        proof_contract: contract,
+      },
+      coveredBySymbols: [],
+    });
+
+  test("binds the same commit identically in a CI runner and a local checkout", async () => {
+    const ci = checkout("kibi-binding-ci-", {
+      sourceFile: "src/flow.ts",
+      receipts: "  - receipt_id: PR-CI\n",
+    });
+    const local = checkout("kibi-binding-local-elsewhere-", {
+      sourceFile: "<root>/src/flow.ts",
+      receipts: "  - receipt_id: PR-LOCAL-1\n  - receipt_id: PR-LOCAL-2\n",
+    });
+
+    const ciBinding = await binding(ci, ".kb/tests/TEST-flow.md");
+    expect(ciBinding).toMatch(/^[a-f0-9]{64}$/);
+    expect(await binding(local, "./.kb/tests/TEST-flow.md")).toBe(ciBinding);
+    expect(await binding(local, "<root>/.kb/tests/TEST-flow.md")).toBe(
+      ciBinding,
+    );
+    expect(await binding(local, ".kb\\tests\\TEST-flow.md")).toBe(ciBinding);
+  });
+
+  test("follows scoped code content and refuses documents outside the repository", async () => {
+    const before = checkout("kibi-binding-before-", {
+      sourceFile: "src/flow.ts",
+      receipts: "  - receipt_id: PR-ONE\n",
+    });
+    const edited = checkout("kibi-binding-edited-", {
+      sourceFile: "src/flow.ts",
+      receipts: "  - receipt_id: PR-ONE\n",
+      code: "export const flow = 2;\n",
+    });
+
+    expect(await binding(edited, ".kb/tests/TEST-flow.md")).not.toBe(
+      await binding(before, ".kb/tests/TEST-flow.md"),
+    );
+    expect(
+      await binding(before, "../elsewhere/.kb/tests/TEST-flow.md"),
+    ).toBeUndefined();
+    expect(await binding(before, "src/flow.ts")).toBeUndefined();
   });
 });

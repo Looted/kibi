@@ -24,4 +24,8 @@ examples:
   - mcp_public_surface_policy(kibi_mcp,curated,deterministic)
 id: FACT-SCHEMA-MCP-PUBLIC-SURFACE-POLICY
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

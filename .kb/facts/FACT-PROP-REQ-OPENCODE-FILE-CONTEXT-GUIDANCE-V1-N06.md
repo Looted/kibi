@@ -15,4 +15,8 @@ claim_key: CLAIM-C0CD98E94B98147E
 claim_text: Exact E2E evidence requires a covered_by relationship to an E2E-marked test entity
 id: FACT-PROP-REQ-OPENCODE-FILE-CONTEXT-GUIDANCE-V1-N06
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

@@ -14,4 +14,8 @@ claim_key: CLAIM-0587E4B2168FD2B6
 claim_text: Safe-mutation evaluation fixtures must expose the requested typed relationships and the real test evidence needed to close symbol coverage
 id: FACT-PRED-SKILLOPT-CLAIM-0587E4B2168FD2B6
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

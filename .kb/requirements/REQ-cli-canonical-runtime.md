@@ -96,6 +96,10 @@ semantic_inventory:
       end: 1203
 id: REQ-cli-canonical-runtime
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Runtime operations honor the canonical `.kb/` contract after init.
 

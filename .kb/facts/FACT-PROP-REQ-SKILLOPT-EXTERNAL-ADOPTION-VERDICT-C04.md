@@ -15,4 +15,8 @@ claim_key: CLAIM-EE241F293DB8EE4F
 claim_text: Only a complete matrix may reach external-verdict review
 id: FACT-PROP-REQ-SKILLOPT-EXTERNAL-ADOPTION-VERDICT-C04
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

@@ -41,6 +41,8 @@ function semanticEntityFingerprint(
                   "updated_at",
                   "title",
                   "proof_receipts",
+                  // Provenance metadata, not authored meaning.
+                  "origin",
                 ].includes(key),
             )
             .sort(([a], [b]) => a.localeCompare(b)),
@@ -50,11 +52,16 @@ function semanticEntityFingerprint(
     else if (entity.semantic_source_field === "text_ref")
       semantic.text_ref = entity.text_ref;
     else semantic.semantic_text = entity.semantic_text;
+    // rationale explains why a requirement exists; it is not checked meaning,
+    // so editing it does not count as a semantic change.
     for (const key of [
       "semantic_clauses",
       "logic_claims",
       "proof_exempt",
       "proof_exempt_reason",
+      "approved_by",
+      "approval_ref",
+      "exempts_claims",
       "proof_contract",
       "proof_bindings",
     ])

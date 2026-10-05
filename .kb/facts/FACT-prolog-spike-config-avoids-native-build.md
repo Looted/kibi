@@ -13,4 +13,8 @@ claim_key: CLAIM-B09E2F32FAD12268
 claim_text: The configuration check must not start a native build
 id: FACT-prolog-spike-config-avoids-native-build
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

@@ -1,7 +1,7 @@
 ---
 id: REQ-branch-store-recovery-v2
 title: Exact branch-local KB identity and recoverable storage
-status: open
+status: closed
 priority: must
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
@@ -59,6 +59,7 @@ tags:
   - branching
   - storage
   - recovery
+  - historical-status:superseded
 links:
   - type: specified_by
     target: SCEN-branch-store-recovery
@@ -69,6 +70,10 @@ semantic_clauses:
   - a damaged exact store is diagnosed without mutation and rebuilt only through a previewed, explicit recovery that preserves the previous bytes.
   - The historical master to legacy main store migration is a single compatibility workflow and must reject arbitrary cross-branch moves.
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Kibi must use the exact active Git branch name as the branch-local KB identity. It must not normalize master to main, infer a default branch for a new store, or rename a Git branch. A missing exact store is created only on an explicit branch ensure; a damaged exact store is diagnosed without mutation and rebuilt only through a previewed, explicit recovery that preserves the previous bytes. The historical master to legacy main store migration is a single compatibility workflow and must reject arbitrary cross-branch moves.

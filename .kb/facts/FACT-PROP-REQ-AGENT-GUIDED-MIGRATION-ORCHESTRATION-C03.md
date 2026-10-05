@@ -15,4 +15,8 @@ claim_key: CLAIM-DDE966DD631FAC53
 claim_text: Checks and status MUST remain read-only while kb_apply_plan and kibi migrate --apply-safe MUST require the exact approved plan hash and explicit automatic action IDs
 id: FACT-PROP-REQ-AGENT-GUIDED-MIGRATION-ORCHESTRATION-C03
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

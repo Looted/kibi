@@ -15,4 +15,8 @@ claim_key: CLAIM-2074E284C8719F99
 claim_text: The `kibi-mcp` binary must support standard CLI help flags (`--help`, `-h`) and exit immediately with human-readable help text
 id: FACT-PROP-REQ-MCP-CLI-HELP-C01
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

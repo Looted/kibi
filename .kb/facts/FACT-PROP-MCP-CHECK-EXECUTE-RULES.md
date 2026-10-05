@@ -17,4 +17,8 @@ claim_key: CLAIM-EC70D209FB360198
 claim_text: Execute Kibi validation rules against the current branch KB snapshot
 id: FACT-PROP-MCP-CHECK-EXECUTE-RULES
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

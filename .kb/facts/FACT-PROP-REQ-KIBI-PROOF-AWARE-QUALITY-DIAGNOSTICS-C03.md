@@ -15,4 +15,8 @@ claim_key: CLAIM-DAD987CB98C79901
 claim_text: Receipt freshness diagnostics must identify affected requirements and tests and direct agents to kibi prove with current proof receipts
 id: FACT-PROP-REQ-KIBI-PROOF-AWARE-QUALITY-DIAGNOSTICS-C03
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

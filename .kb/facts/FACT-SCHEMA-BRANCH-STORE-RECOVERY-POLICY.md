@@ -33,4 +33,8 @@ examples:
   - branch_store_recovery_policy(damaged_exact_store,non_mutating,previewed_explicit_recovery,preserve_previous_bytes)
 id: FACT-SCHEMA-BRANCH-STORE-RECOVERY-POLICY
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

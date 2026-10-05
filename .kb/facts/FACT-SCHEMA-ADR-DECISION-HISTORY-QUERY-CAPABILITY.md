@@ -30,4 +30,8 @@ examples:
   - adr_decision_history_query_capability(complete_decision_history,any_topic,evolution_over_time,currently_effective_adr)
 id: FACT-SCHEMA-ADR-DECISION-HISTORY-QUERY-CAPABILITY
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

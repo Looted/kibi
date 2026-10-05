@@ -293,3 +293,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-420bb88d6133
+  - type: implements
+    from: SYM-reqcompiler-telemetry-acceptance-metric
+    to: REQ-kibi-telemetry-acceptance-gate-v2
+    created_at: 2026-10-04T03:05:28.089Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3961cf3ff724

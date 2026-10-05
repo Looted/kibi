@@ -125,3 +125,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ded08f5039d2
+  - type: relates_to
+    from: FACT-OBS-search-intent-default-ranking
+    to: REQ-kibi-search-answer-layer
+    created_at: 2026-10-03T09:16:04.084Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b8110d5c3d95
+  - type: implements
+    from: SYM-migrate-polarity-values-plan
+    to: REQ-bootstrap-write-safety
+    created_at: 2026-10-04T16:22:17.155Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-92a91135faf9
+  - type: covered_by
+    from: SYM-migrate-polarity-values-plan
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-10-04T16:22:17.308Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-996e62fc59fe
+  - type: implements
+    from: SYM-migrate-polarity-values-plan
+    to: REQ-cli-schema-migration
+    created_at: 2026-10-04T16:22:17.350Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5be425f121ac

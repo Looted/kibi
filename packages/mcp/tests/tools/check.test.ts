@@ -229,10 +229,24 @@ describe("MCP Check Tool Handler", () => {
 
     const result = await handleKbCheck(prolog, { maxDiagnostics: 1 });
 
-    expect(result.structuredContent?.qualityDiagnostics).toHaveLength(1);
-    expect(result.structuredContent?.qualityDiagnostics?.[0]?.id).toBe(
-      "broad_requirement_review",
+    // maxDiagnostics caps the full-scan review diagnostics. Check-rule
+    // advisories (rule.*) keep their own bounds: these requirements were
+    // written through kb_upsert with no rationale, so
+    // agent-requirement-unapproved and requirement-rationale-missing list them.
+    const quality = result.structuredContent?.qualityDiagnostics ?? [];
+    const fullScan = quality.filter(
+      (diagnostic) => !diagnostic.id.startsWith("rule."),
     );
+    expect(fullScan).toHaveLength(1);
+    expect(fullScan[0]?.id).toBe("broad_requirement_review");
+    expect(
+      quality
+        .filter((diagnostic) => diagnostic.id.startsWith("rule."))
+        .map((diagnostic) => diagnostic.id),
+    ).toEqual([
+      "rule.agent-requirement-unapproved",
+      "rule.requirement-rationale-missing",
+    ]);
   }, 30000);
 
   test("should detect must-priority requirement without scenario", async () => {
@@ -1255,7 +1269,7 @@ describe("MCP Check Tool Handler", () => {
     expect(violation).toBeUndefined();
   }, 15000);
 
-  test("should report explicit strict-fact-shape findings as quality diagnostics even when leftover config disables it", async () => {
+  test("should report explicit strict-fact-shape findings as violations even when leftover config disables it", async () => {
     await fs.mkdir(path.join(testKbPath, ".kb"), { recursive: true });
     await fs.writeFile(
       path.join(testKbPath, ".kb", "config.json"),
@@ -1292,14 +1306,13 @@ describe("MCP Check Tool Handler", () => {
         "FACT-CHECK-STRICT-001",
       );
 
-      expect(result.structuredContent?.count).toBe(0);
+      expect(result.structuredContent?.count).toBe(1);
       expect(
         result.structuredContent?.violations.find(
           (v) => v.rule === "strict-fact-shape",
         ),
-      ).toBeUndefined();
-      expect(diagnostic).toBeDefined();
-      expect(diagnostic?.blocking).toBe(false);
+      ).toEqual(expect.objectContaining({ entityId: "FACT-CHECK-STRICT-001" }));
+      expect(diagnostic).toBeUndefined();
     } finally {
       await prolog.query("kb_detach");
       const reattachResult = await prolog.query(`kb_attach('${testKbPath}')`);

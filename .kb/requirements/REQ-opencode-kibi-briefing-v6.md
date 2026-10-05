@@ -4,7 +4,6 @@ title: 'OpenCode Kibi Briefing v6: Schema-2.0 & Session-Delta Migration'
 status: closed
 created_at: 2026-05-06T04:30:00.000Z
 updated_at: 2026-05-06T04:30:00.000Z
-source: documentation/requirements/REQ-opencode-kibi-briefing-v6.md
 priority: must
 tags:
   - opencode
@@ -285,6 +284,10 @@ logic_claims:
   - CLAIM-8DC22115D5C3F90F
   - CLAIM-397A6AEC79F98B1E
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 The OpenCode Kibi Briefing system must migrate to Schema-2.0 to support session-delta tracking, providing a high-fidelity audit of changes since the session began.

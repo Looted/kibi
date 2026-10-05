@@ -22,4 +22,8 @@ claim_text: The same documented workflow must generate that report on pull reque
 id: FACT-PRED-A7E39C48DF6B
 type: fact
 predicate_namespace: kibi.requirements
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

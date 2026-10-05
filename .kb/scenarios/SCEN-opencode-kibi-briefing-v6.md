@@ -4,7 +4,6 @@ title: "OpenCode Kibi Briefing v6: Schema-2.0 & Session-Delta Scenarios"
 status: closed
 created_at: 2026-05-06T04:35:00Z
 updated_at: 2026-05-06T04:35:00Z
-source: documentation/scenarios/SCEN-opencode-kibi-briefing-v6.md
 tags:
   - scenario
   - opencode
@@ -13,6 +12,10 @@ tags:
 links:
   - type: relates_to
     target: REQ-opencode-kibi-briefing-v6
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 **Scenario: Session-Delta Reconciliation — Accurate lifecycle tracking**

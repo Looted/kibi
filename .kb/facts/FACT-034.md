@@ -4,7 +4,6 @@ title: Kibi npm package matrix (core, cli, mcp, opencode)
 status: active
 created_at: 2026-03-11T12:15:00Z
 updated_at: 2026-03-20T00:00:00Z
-source: documentation/facts/FACT-034.md
 tags:
   - npm
   - release
@@ -14,6 +13,10 @@ links:
   - ADR-014
   - FACT-POL-027
 fact_kind: meta
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 # Fact: Kibi npm Package Matrix

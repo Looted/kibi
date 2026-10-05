@@ -125,3 +125,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-64f8420ac94d
+  - type: validates
+    from: TEST-cursor-edit-snippet-hook
+    to: SCEN-agent-core-edit-snippets
+    created_at: 2026-10-04T04:47:11.364Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-26b62e21b0c4

@@ -4,7 +4,6 @@ title: Quality diagnostics respect snapshot-bound proof evidence
 status: open
 created_at: 2026-08-14T00:00:00.000Z
 updated_at: 2026-08-14T00:00:00.000Z
-source: documentation/requirements/REQ-kibi-proof-aware-quality-diagnostics.md
 priority: must
 tags:
   - requirements
@@ -55,6 +54,10 @@ semantic_clauses:
   - A fresh passing scenario-backed E2E receipt must not produce a contradictory weak-depth warning when other proof gaps remain
   - Receipt freshness diagnostics must identify affected requirements and tests and direct agents to kibi prove with current proof receipts
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Full checks must use the same live snapshot-bound receipt evidence as requirement coverage when deciding whether to emit coverage-depth diagnostics. A fresh passing scenario-backed E2E receipt must not produce a contradictory weak-depth warning when other proof gaps remain. Receipt freshness diagnostics must identify affected requirements and tests and direct agents to kibi prove with current proof receipts.

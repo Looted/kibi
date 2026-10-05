@@ -46,5 +46,9 @@ logic_claims:
   - CLAIM-F778D70AA4378DC5
 id: REQ-prolog-daemon-runtime-identity
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 The engine daemon handshake must report the resolved SWI-Prolog executable and version. The engine daemon must reject a request from a client whose resolved SWI-Prolog differs from its own. The engine client must replace a daemon whose resolved SWI-Prolog differs instead of reusing it

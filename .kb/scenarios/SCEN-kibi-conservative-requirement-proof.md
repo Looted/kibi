@@ -4,7 +4,6 @@ title: Inspect conservative proof separately from structural coverage
 status: active
 created_at: 2026-08-10T00:00:00.000Z
 updated_at: 2026-08-10T00:00:00.000Z
-source: documentation/scenarios/SCEN-kibi-conservative-requirement-proof.md
 tags:
   - requirements
   - proof
@@ -16,6 +15,10 @@ links:
   - type: verified_by
     target: TEST-e2e-coverage-proof-status
 type: scenario
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Given a structurally linked requirement whose semantic inventory, scenario E2E path, executable test symbol, production symbol coverage, or source coordinates are incomplete, when `kb_coverage` runs, then the row retains its compatibility-oriented structural coverage fields while reporting a non-proven `proofStatus`, failed or unresolved proof stages, stable gap codes, and ranked repair actions.

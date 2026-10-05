@@ -167,3 +167,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a8b5fcc1d377
+  - type: implements
+    from: SYM-core-intervals-numeric-satisfiable
+    to: REQ-kibi-truthful-consistency
+    created_at: 2026-10-03T09:25:48.810Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb6fdc77364d
+  - type: covered_by
+    from: SYM-core-intervals-numeric-satisfiable
+    to: TEST-kibi-truthful-consistency
+    created_at: 2026-10-03T09:25:48.827Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3a6cf9cc3b05

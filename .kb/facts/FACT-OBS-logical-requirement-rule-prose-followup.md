@@ -9,6 +9,10 @@ tags:
   - review:ontology-gap
 id: FACT-OBS-logical-requirement-rule-prose-followup
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Observation (completed): the follow-up to reduce prose-like arguments in `logical_requirement_rule/3` is done for the `subject` slot.
 

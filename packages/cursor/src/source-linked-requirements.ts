@@ -2,10 +2,12 @@
 import path from "node:path";
 
 import {
+  type IndexedSymbol,
   buildKnowledgeIndex,
   loadKnowledgeIndex,
   scanSymbolsManifest,
 } from "kibi-agent-core/knowledge-index";
+import { implementedRequirementIds } from "kibi-agent-core/snippets";
 
 const MAX_LINKED_REQUIREMENTS = 3;
 const CURSOR_INDEX_OPTIONS = {
@@ -25,31 +27,46 @@ function toManifestPath(workspaceRoot: string, filePath: string): string {
   return path.relative(workspaceRoot, absolute).split(path.sep).join("/");
 }
 
+// implements REQ-cursor-kibi-plugin-v1
+export type SourceLinkedSymbols = {
+  /** Manifest (workspace-relative, forward-slash) path of the file. */
+  relativePath: string;
+  /** Symbols in the file with typed relationships; empty when unlinked. */
+  symbols: IndexedSymbol[];
+};
+
 /**
- * Resolve typed requirement ownership through the shared line-scanned index.
- * Cursor stores the cache beside its hook state, so subsequent hook processes
- * pay only two stats and a small JSON parse while the manifests are unchanged.
+ * Typed symbol relationships for one file through the shared line-scanned
+ * index. Cursor stores the cache beside its hook state, so subsequent hook
+ * processes pay only two stats and a small JSON parse while the manifests are
+ * unchanged.
  */
+// implements REQ-cursor-kibi-plugin-v1
+export function getSourceLinkedSymbols(
+  workspaceRoot: string,
+  filePath: string,
+  cacheDir?: string,
+): SourceLinkedSymbols {
+  const relativePath = toManifestPath(workspaceRoot, filePath);
+  const symbols =
+    loadKnowledgeIndex(workspaceRoot, cacheDir, CURSOR_INDEX_OPTIONS).files[
+      relativePath
+    ] ?? [];
+  return { relativePath, symbols };
+}
+
+/** Requirements the file's symbols implement (typed `implements` only). */
 export function getSourceLinkedRequirementIds(
   workspaceRoot: string,
   editedPath: string,
   cacheDir?: string,
 ): string[] {
-  const relativePath = toManifestPath(workspaceRoot, editedPath);
-  const symbols = loadKnowledgeIndex(
+  const { symbols } = getSourceLinkedSymbols(
     workspaceRoot,
+    editedPath,
     cacheDir,
-    CURSOR_INDEX_OPTIONS,
-  ).files[relativePath];
-  if (!symbols) return [];
-
-  const ordered: string[] = [];
-  for (const symbol of symbols) {
-    for (const requirementId of symbol.implements) {
-      if (!ordered.includes(requirementId)) ordered.push(requirementId);
-    }
-  }
-  return ordered.slice(0, MAX_LINKED_REQUIREMENTS);
+  );
+  return implementedRequirementIds(symbols).slice(0, MAX_LINKED_REQUIREMENTS);
 }
 
 /** Parse the canonical writer subset while retaining typed relationships. */

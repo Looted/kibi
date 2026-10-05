@@ -15,4 +15,8 @@ claim_key: CLAIM-B9E994AA90FE0B42
 claim_text: The portable artifact must package the canonical Kibi Agent Skills under the skills directory
 id: FACT-PROP-REQ-CURSOR-AGENT-PLUGIN-STANDARD-V1-N03
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

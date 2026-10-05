@@ -1,7 +1,7 @@
 ---
 id: REQ-core-atomic-upsert-persistence
 title: Atomic upsert persistence and bounded audit-lock failures
-status: open
+status: closed
 created_at: 2026-08-11T00:00:00Z
 updated_at: 2026-08-11T00:00:00Z
 source: packages/core/src/kb.pl
@@ -74,6 +74,10 @@ links:
     target: REQ-core-prolog-process-management
   - type: relates_to
     target: REQ-mcp-tool-upsert
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Each `kb_upsert` mutation must execute one bounded Prolog commit that holds the branch write lock while it validates the attached snapshot, applies the entity and relationships, checks contradictions, records entity and relationship audit rows, synchronizes the audit journal, and saves one RDF snapshot. A failed or timed-out pre-save stage must not publish the entity or relationships as durable state.

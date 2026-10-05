@@ -20,4 +20,8 @@ claim_key: CLAIM-6BD137F24FF5D674
 claim_text: At session stop, kibi-claude hooks must remind the agent at most once about each edited source file that lacks a later impact check
 id: FACT-PROP-E5A7DECFE2B39039
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

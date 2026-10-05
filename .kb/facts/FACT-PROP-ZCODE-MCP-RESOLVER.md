@@ -17,5 +17,9 @@ value_type: string
 value_string: project_local_kibi_mcp_binary
 id: FACT-PROP-ZCODE-MCP-RESOLVER
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 The exposed MCP configuration must resolve the project-local kibi-mcp binary

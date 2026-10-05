@@ -44,6 +44,13 @@ export const GENERATED_RULES = [
     category: "integrity",
   },
   {
+    name: "source-path-dangling",
+    description:
+      "An authored entity's source field must name an existing workspace path (a #anchor suffix is ignored), an existing entity id, or an http(s) URL; a missing source is allowed",
+    enforcementClass: "canonical",
+    category: "integrity",
+  },
+  {
     name: "no-cycles",
     description: "No circular dependency chains in requirements",
     enforcementClass: "canonical",
@@ -61,6 +68,48 @@ export const GENERATED_RULES = [
       "Deprecated ADRs must have a successor ADR that supersedes them",
     enforcementClass: "canonical",
     category: "lifecycle",
+  },
+  {
+    name: "superseded-requirement-open",
+    description:
+      "A requirement that another requirement supersedes must have status closed, and supersedes links between requirements must not form a cycle",
+    enforcementClass: "canonical",
+    category: "lifecycle",
+  },
+  {
+    name: "scenario-feasibility",
+    description:
+      "A scenario that expects success must not assume property values that cannot hold, alone or together, with what current requirements require through typed property values or rules, unless an approved exception requirement waives that requirement or the listed clauses",
+    enforcementClass: "canonical",
+    category: "integrity",
+  },
+  {
+    name: "scenario-feasibility-unknown",
+    description:
+      "Advisory: a scenario that expects success assumes nothing, assumes values that contradict each other, assumes a property value no governing requirement constrains comparably (type, unit or operator mismatch, or conflicting requirements), leaves a governing rule's conditions undecided, or conflicts only with constraints whose validity window may not cover it, so its feasibility cannot be decided",
+    enforcementClass: "advisory",
+    category: "integrity",
+  },
+  {
+    name: "exception-claim-keys",
+    description:
+      "An exception requirement's exempts_claims must name claim keys of a requirement it exempts, and requires an exempts link",
+    enforcementClass: "canonical",
+    category: "integrity",
+  },
+  {
+    name: "numeric-string-value",
+    description:
+      "Advisory: a property value stores a numeric-looking string where the comparison is numeric (ordering operator, or an int/number fact on the same property); the finding names the fact and the typed value, without converting it",
+    enforcementClass: "advisory",
+    category: "integrity",
+  },
+  {
+    name: "rule-key-arguments-missing",
+    description:
+      "Advisory: an opposing rule pair stays unresolved only because a body predicate declares no key_arguments; the finding names the predicate and the key positions that would decide the pair",
+    enforcementClass: "advisory",
+    category: "integrity",
   },
   {
     name: "domain-contradictions",
@@ -108,7 +157,7 @@ export const GENERATED_RULES = [
     name: "strict-fact-shape",
     description:
       "Detect malformed strict facts (facts with fact_kind that are missing required fields)",
-    enforcementClass: "advisory",
+    enforcementClass: "canonical",
     category: "integrity",
   },
   {
@@ -171,14 +220,14 @@ export const GENERATED_RULES = [
   {
     name: "subject-key-identity",
     description:
-      "Subject keys must name a shared component, not be derived from a requirement ID",
+      "Subject keys must name a shared component, not be derived from a requirement ID, and one subject or claim must not be minted as several active subject facts or identical property_value facts",
     enforcementClass: "advisory",
     category: "integrity",
   },
   {
     name: "subject-key-shape",
     description:
-      "Subject keys follow dotted component.aspect[.sub] with lowercase snake segments",
+      "Subject keys follow dotted component.aspect[.sub] with lowercase snake segments, and property keys name a property rather than a numbered clause (clause_NN)",
     enforcementClass: "advisory",
     category: "integrity",
   },
@@ -188,6 +237,57 @@ export const GENERATED_RULES = [
       "Informational: predicate schemas whose argument values mostly occur in only one fact are carrying prose instead of a shared vocabulary",
     enforcementClass: "advisory",
     category: "integrity",
+    diagnosticSeverity: "info",
+  },
+  {
+    name: "exception-unapproved",
+    description:
+      "Advisory: a current exception requirement exempts another requirement but has no approved_by, so it exempts nothing until a human approves it",
+    enforcementClass: "advisory",
+    category: "integrity",
+  },
+  {
+    name: "exception-approval-self-attested",
+    description:
+      "Advisory: an agent-authored exception records approved_by but no human corroborated it (origin.approved_by or approval_ref is missing), so a human should confirm the approval",
+    enforcementClass: "advisory",
+    category: "integrity",
+  },
+  {
+    name: "agent-requirement-unapproved",
+    description:
+      "Informational: current requirements authored by an agent (origin.kind agent) that no human has approved (origin.approved_by), listed up to 25 per check",
+    enforcementClass: "advisory",
+    category: "lifecycle",
+    diagnosticSeverity: "info",
+  },
+  {
+    name: "requirement-rationale-missing",
+    description:
+      "Advisory: a current requirement authored by a human or an agent (origin.kind human or agent) states no rationale: no rationale field, no Rationale or Why section in its body, and no link to an ADR; listed up to 25 per check plus one summary finding",
+    enforcementClass: "advisory",
+    category: "lifecycle",
+  },
+  {
+    name: "symbol-owner-superseded",
+    description:
+      "Advisory: a symbol whose every implements target is superseded or deprecated has no current owning requirement; listed up to 25 per check plus one summary finding",
+    enforcementClass: "advisory",
+    category: "traceability",
+  },
+  {
+    name: "adr-unlinked",
+    description:
+      "Advisory: an accepted ADR that no requirement or other ADR is linked with (relates_to, supersedes or any typed edge, in either direction)",
+    enforcementClass: "advisory",
+    category: "lifecycle",
+  },
+  {
+    name: "adr-proposed",
+    description:
+      "Informational: an ADR that is still proposed and not superseded, so nobody accepted or withdrew the decision",
+    enforcementClass: "advisory",
+    category: "lifecycle",
     diagnosticSeverity: "info",
   },
   {

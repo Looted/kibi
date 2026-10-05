@@ -5,7 +5,6 @@ type: fact
 status: active
 created_at: 2026-08-10T00:00:00.000Z
 updated_at: 2026-08-10T00:00:00.000Z
-source: documentation/facts/FACT-INGESTION-SOURCE-BOUND.md
 fact_kind: predicate
 predicate_name: source_bound_semantic_inventory
 predicate_args:
@@ -19,6 +18,10 @@ claim_text: Ledger entries must bind to the exact semantic source field, SHA-256
 claim_span_start: 74
 claim_span_end: 163
 predicate_namespace: kibi.ingestion
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground predicate for source field, digest, and byte-span integrity.

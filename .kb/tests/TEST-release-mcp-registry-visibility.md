@@ -10,6 +10,10 @@ tags:
   - regression
 id: TEST-release-mcp-registry-visibility
 type: test
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Runs the actual publish-mcp-registry npm verification step from .github/workflows/publish.yml in temporary workspaces with fake npm and sleep executables. Covers immediate visibility, two E404 responses followed by correct metadata, exhaustion after twelve attempts, and immediate rejection of wrong or missing mcpName. The requests select registry.npmjs.org and bound npm fetch attempts and timeout.
 

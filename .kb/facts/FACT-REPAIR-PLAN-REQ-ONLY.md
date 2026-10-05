@@ -4,7 +4,6 @@ title: Non-requirement coverage denies requirement repair plans
 status: active
 created_at: 2026-08-10T00:00:00.000Z
 updated_at: 2026-08-10T00:00:00.000Z
-source: documentation/facts/FACT-REPAIR-PLAN-REQ-ONLY.md
 tags:
   - lane:ontology
   - requirements
@@ -24,6 +23,10 @@ claim_text: Non-requirement coverage must not emit a requirement repair plan
 claim_span_start: 932
 claim_span_end: 996
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of requirement-only repair-plan scope.

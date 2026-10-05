@@ -15,4 +15,8 @@ claim_key: CLAIM-8EDBB59AFBE25BAF
 claim_text: Repositories without Kibi initialized must use kibi-bootstrap to run kb_plan_bootstrap
 id: FACT-PROP-REQ-OPENCODE-FILE-CONTEXT-GUIDANCE-V1-N09
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

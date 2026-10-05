@@ -17,8 +17,10 @@ test(entity_types_count) :-
 test(relationship_types_count) :-
     findall(R, relationship_type(R), Rs),
     sort(Rs, Sorted),
-    % relationship_type/1 includes 18 items; ensure length and membership
-    length(Sorted, 18),
+    % relationship_type/1 includes 20 items; ensure length and membership
+    length(Sorted, 20),
+    memberchk(assumes, Sorted),
+    memberchk(exempts, Sorted),
     memberchk(depends_on, Sorted),
     memberchk(executable_for, Sorted),
     memberchk(specified_by, Sorted),
@@ -66,6 +68,14 @@ test(invalid_property_type) :-
 test(valid_entity) :-
     Props = [id=foo, title="T", status=active, created_at="2020-01-01", updated_at="2020-01-01", source="http://x"],
     validate_entity(req, Props).
+
+test(origin_known_kinds_valid) :-
+    forall(member(Origin, ["{\"kind\":\"human\"}", "{\"kind\":\"agent\",\"ref\":\"s-1\"}", "{\"kind\":\"migration\",\"recorded_at\":\"2026-10-01T00:00:00Z\"}", "{\"kind\":\"import\"}"]),
+           validate_entity(scenario, [id='SCEN-O', title="T", status=active, created_at="2020-01-01", updated_at="2020-01-01", source="x", origin=Origin])).
+
+test(origin_unknown_kind_or_shape_invalid) :-
+    forall(member(Origin, ["{\"kind\":\"robot\"}", "{\"ref\":\"s-1\"}", "agent", "not json"]),
+           \+ validate_entity(req, [id=foo, title="T", status=active, created_at="2020-01-01", updated_at="2020-01-01", source="x", origin=Origin])).
 
 test(test_entity_without_verification_fields_valid) :-
     Props = [id='TEST-LEGACY', title="Legacy test", status=pending, created_at="2024-01-01", updated_at="2024-01-01", source="tests/TEST-LEGACY.md"],

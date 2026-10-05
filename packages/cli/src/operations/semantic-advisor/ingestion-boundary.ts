@@ -224,7 +224,7 @@ export function assertSemanticInventoryBoundary(
   );
   if (result.errors.length > 0) {
     throw new Error(
-      `Proposition-complete ingestion failed: ${result.errors.join("; ")}. Run kb_semantic_advisor with the complete prose and preserve its inventory contract before retrying.`,
+      `Proposition-complete ingestion failed: ${result.errors.join("; ")}. Run kb_model mode analyze (CLI: semantic-advisor) with the complete prose and preserve its inventory contract before retrying.`,
     );
   }
 }
@@ -234,6 +234,9 @@ export async function assertLogicalGroundingClaimKeys(
   prolog: PrologPort,
   payload: Payload,
   relationships: readonly SemanticRelationship[],
+  staged?: Readonly<{
+    entities: ReadonlyMap<string, Readonly<Record<string, unknown>>>;
+  }>,
 ): Promise<void> {
   if (stringValue(payload.type) !== "req") return;
   if (
@@ -252,12 +255,19 @@ export async function assertLogicalGroundingClaimKeys(
     )
       continue;
     const target = stringValue(relationship.to);
-    const result = await prolog.query(
-      `once((kb_entity('${escapeAtom(target)}', fact, _SemanticGroundProps), memberchk(claim_key=_SemanticGroundRaw, _SemanticGroundProps), normalize_term_atom(_SemanticGroundRaw, ClaimKey)))`,
-    );
-    const claimKey = result.success
-      ? stringValue(result.bindings.ClaimKey).replace(/^['"]|['"]$/g, "")
-      : "";
+    // A grounding fact an earlier plan step writes is read from that write.
+    const planned = staged?.entities.get(target);
+    let claimKey = "";
+    if (planned !== undefined) {
+      claimKey = planned.type === "fact" ? stringValue(planned.claim_key) : "";
+    } else {
+      const result = await prolog.query(
+        `once((kb_entity('${escapeAtom(target)}', fact, _SemanticGroundProps), memberchk(claim_key=_SemanticGroundRaw, _SemanticGroundProps), normalize_term_atom(_SemanticGroundRaw, ClaimKey)))`,
+      );
+      claimKey = result.success
+        ? stringValue(result.bindings.ClaimKey).replace(/^['"]|['"]$/g, "")
+        : "";
+    }
     if (!claimKey) {
       throw new Error(
         `Proposition-complete ingestion failed: logical grounding target '${target}' must declare a claim_key.`,

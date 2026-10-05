@@ -21,4 +21,8 @@ claim_text: Effective provider model identity must be exposed in plugin provenan
 id: FACT-PRED-CA1925EDF055
 type: fact
 predicate_namespace: kibi.capability
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

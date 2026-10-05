@@ -4,7 +4,6 @@ title: 'VS Code Kibi Briefing v3: Schema-2.0 Alignment & Deterministic Ordering'
 status: closed
 created_at: 2026-05-06T04:40:00.000Z
 updated_at: 2026-05-06T04:40:00.000Z
-source: documentation/requirements/REQ-vscode-kibi-briefing-v3.md
 priority: must
 tags:
   - vscode
@@ -142,6 +141,10 @@ logic_claims:
   - CLAIM-B9FAFE432BE4C3CF
   - CLAIM-94E1F561DE0FCF34
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 The VS Code Kibi extension must align with the Schema-2.0 briefing envelope and implement deterministic filename-timestamp ordering for latest-brief selection.

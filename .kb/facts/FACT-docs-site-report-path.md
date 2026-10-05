@@ -16,4 +16,8 @@ claim_key: CLAIM-3C1E636A1BAD5DC5
 claim_text: The requirement-health report is published under /kibi-report/ beside the documentation site
 id: FACT-docs-site-report-path
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

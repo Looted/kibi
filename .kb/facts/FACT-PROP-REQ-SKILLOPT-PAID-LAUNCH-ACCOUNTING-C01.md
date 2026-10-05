@@ -15,4 +15,8 @@ claim_key: CLAIM-576BF8BC10A10142
 claim_text: Paid SkillOpt model launches must fail closed unless the external trust boundary validates immutable authority and supervisor-parent bindings; binds each one-use capability to the exact request ID, request hash, approved pricing, model, and lease; enforces pinned TLS, CA, SNI, IP, egress, request, invoice, and authorization ceilings; and preserves same-request idempotency without cross-request attribution.\n\nEvery accepted launch must produce strict typed debit-subentry, final debit/reconciliation, and final-verdict receipts
 id: FACT-PROP-REQ-SKILLOPT-PAID-LAUNCH-ACCOUNTING-C01
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

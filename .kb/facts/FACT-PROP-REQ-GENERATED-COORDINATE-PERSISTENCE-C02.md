@@ -15,4 +15,8 @@ claim_key: CLAIM-E74E76450FD5233B
 claim_text: A source-first symbol upsert must preserve or regenerate valid coordinates in persisted RDF without copying coordinate fields into the authored symbol manifest
 id: FACT-PROP-REQ-GENERATED-COORDINATE-PERSISTENCE-C02
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

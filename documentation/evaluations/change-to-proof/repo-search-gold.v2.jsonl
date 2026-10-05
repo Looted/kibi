@@ -1,0 +1,36 @@
+{"id":"repo-upsert-dry-run","query":"what must stay true when changing kb_upsert dry runs?","expectedIds":["REQ-kibi-mcp-tool-consolidation","REQ-mcp-tool-upsert"]}
+{"id":"repo-relationship-shards","query":"which requirement governs relationship shards?","expectedIds":["REQ-kibi-source-relationship-parity","REQ-cli-kb-merge-driver"]}
+{"id":"repo-contradicting-requirements","query":"what happens when two current requirements contradict each other?","expectedIds":["REQ-kibi-truthful-consistency"]}
+{"id":"repo-search-superseded","query":"how are superseded requirements shown in kb_search answers?","expectedIds":["REQ-kibi-search-answer-layer-v2"],"supersededIds":["REQ-kibi-search-answer-layer"]}
+{"id":"repo-gc","query":"which branch stores may kibi gc delete?","expectedIds":["REQ-cli-gc"],"supersededIds":["REQ-003"]}
+{"id":"repo-merge-driver","query":"how does kibi merge-driver resolve conflicting symbols.yaml edits?","expectedIds":["REQ-cli-kb-merge-driver"]}
+{"id":"repo-doctor-prolog","query":"what does kibi doctor report about SWI-Prolog?","expectedIds":["REQ-prolog-doctor-runtime-report","REQ-cli-doctor"]}
+{"id":"repo-bundled-runtime","query":"which SWI-Prolog does Kibi use when a bundled runtime and a system install both exist?","expectedIds":["REQ-prolog-bundled-runtime"]}
+{"id":"repo-stale-receipt","query":"when is a proof receipt stale for the current code snapshot?","expectedIds":["REQ-kibi-fresh-verification-receipts-v2"],"supersededIds":["REQ-kibi-verification-receipts-v2","REQ-kibi-fresh-verification-receipts"]}
+{"id":"repo-infeasible-scenario","query":"when is a scenario reported infeasible?","expectedIds":["REQ-kibi-scenario-feasibility-v2"],"supersededIds":["REQ-kibi-scenario-feasibility"]}
+{"id":"repo-unit-canonicalization","query":"are 30 minutes and 1800 seconds treated as the same property value?","expectedIds":["REQ-kibi-unit-canonicalization"]}
+{"id":"repo-entity-ids","query":"how should new entity ids be named?","expectedIds":["REQ-kibi-entity-id-style"]}
+{"id":"repo-staged-check","query":"what does the staged pre-commit check enforce for behavior edits?","expectedIds":["REQ-cli-staged-impact-enforcement"]}
+{"id":"repo-mcp-workspace","query":"which workspace does the MCP server answer a call from?","expectedIds":["REQ-mcp-workspace-routing"],"supersededIds":["REQ-claude-mcp-follows-session-workspace","REQ-mcp-launchers-follow-session-workspace"]}
+{"id":"repo-capability-plugins","query":"how are capability plugins activated and do they reach the network?","expectedIds":["REQ-capability-plugin-activation-disclosure-v1"]}
+{"id":"repo-npm-release","query":"how must npm package releases be versioned and published?","expectedIds":["REQ-020"]}
+{"id":"repo-proof-binding","query":"how does a proof-bearing test bind to a proof obligation?","expectedIds":["REQ-kibi-verification-evidence-contract"]}
+{"id":"repo-status-pre-sync","query":"what must kibi status return before the first sync?","expectedIds":["REQ-cli-status-pre-first-sync"]}
+{"id":"repo-argument-constants","query":"can a predicate schema restrict which argument constants are allowed?","expectedIds":["REQ-kibi-predicate-argument-constants"]}
+{"id":"repo-advisory-diagnostics","query":"which kb_check findings are advisory quality diagnostics rather than violations?","expectedIds":["REQ-audit-quality-diagnostics-v1"]}
+{"id":"repo-mcp-tools","query":"which tools does the MCP server expose to agents?","expectedIds":["REQ-kibi-mcp-tool-consolidation","REQ-002"],"supersededIds":["REQ-mcp-init-kibi-autopilot-v1"]}
+{"id":"repo-health-report","query":"what must the requirement health HTML report show?","expectedIds":["REQ-kibi-html-health-report","REQ-kibi-branded-health-report"]}
+{"id":"repo-daemon-identity","query":"can the engine daemon serve a client that resolved a different SWI-Prolog?","expectedIds":["REQ-prolog-daemon-runtime-identity"]}
+{"id":"repo-bootstrap-plan","query":"what must a bootstrap plan guarantee before it is applied?","expectedIds":["REQ-KIBI-BOOTSTRAP-PLAN"],"supersededIds":["REQ-mcp-init-kibi-autopilot-v1"]}
+{"id":"repo-worktree-hooks","query":"where does kibi init install git hooks inside a linked worktree?","expectedIds":["REQ-git-hook-effective-install"]}
+{"id":"repo-subject-keys","query":"how should subject keys be chosen for semantic facts?","expectedIds":["REQ-kibi-subject-vocabulary"]}
+{"id":"repo-sync-import","query":"how does kibi sync discover and import entities from source files?","expectedIds":["REQ-cli-canonical-runtime"],"supersededIds":["REQ-cli-sync","REQ-003"]}
+{"id":"repo-symbol-granularity","query":"must symbol traceability always link the narrowest symbol?","expectedIds":["REQ-symbol-behavioral-anchors"],"supersededIds":["REQ-symbol-granularity"]}
+{"id":"repo-rdf-persistency","query":"how does Kibi persist the KB with rdf_persistency?","expectedIds":["REQ-core-journaled-engine-persistence"],"supersededIds":["REQ-core-persistence","REQ-009","REQ-core-atomic-upsert-persistence"]}
+{"id":"repo-vscode-sidebar","query":"what does the VS Code tree view sidebar show?","expectedIds":["REQ-vscode-sidebar-kb-tree"],"supersededIds":["REQ-010"]}
+{"id":"repo-receipts-v2","query":"how are proof receipts v2 validated for E2E tests?","expectedIds":["REQ-kibi-fresh-verification-receipts-v2"],"supersededIds":["REQ-kibi-verification-receipts-v2","REQ-kibi-fresh-verification-receipts"]}
+{"id":"repo-branch-copy","query":"does a new branch copy the default branch KB when it is first checked out?","expectedIds":["REQ-branch-store-recovery-v4"],"supersededIds":["REQ-012","REQ-branch-store-recovery-v2","REQ-branch-store-recovery-v3"]}
+{"id":"repo-docs-site","query":"how is the documentation site published to GitHub Pages?","expectedIds":["REQ-docs-site-root-pages"],"supersededIds":["REQ-docs-site-pages"]}
+{"id":"repo-abstain-billing","query":"how should Kibi bill customers for premium seats?","expectedIds":[],"expectAbstention":true}
+{"id":"repo-abstain-gdpr","query":"what is the GDPR retention period for customer emails?","expectedIds":[],"expectAbstention":true}
+{"id":"repo-abstain-autoscaling","query":"which Kubernetes autoscaling policy applies to the web tier?","expectedIds":[],"expectAbstention":true}

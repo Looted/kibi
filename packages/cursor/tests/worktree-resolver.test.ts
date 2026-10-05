@@ -60,7 +60,7 @@ function createFixture(prefix = "kibi-cursor-resolver-"): RepositoryFixture {
     "bun",
     [
       'printf "runtime=%s\\n" "$PWD"',
-      'printf "workspace=%s\\n" "$KIBI_WORKSPACE"',
+      'printf "workspace=%s\\n" "$KIBI_MCP_ATTACH_ROOT"',
       'printf "launcher=%s\\n" "$2"',
       'printf "arguments=%s\\n" "$*"',
       'printf "host=%s\\n" "$KIBI_MCP_HOST"',
@@ -384,7 +384,7 @@ describe("Cursor worktree MCP resolver", () => {
         "  exit 0",
         "fi",
         'printf "runtime=%s\\n" "$PWD"',
-        'printf "workspace=%s\\n" "$KIBI_WORKSPACE"',
+        'printf "workspace=%s\\n" "$KIBI_MCP_ATTACH_ROOT"',
         'printf "launcher=%s\\n" "$2"',
         'printf "arguments=%s\\n" "$*"',
         'printf "host=%s\\n" "$KIBI_MCP_HOST"',

@@ -86,3 +86,4 @@ artifacts/skillopt/
 # --- Claude Code (local state; .claude/settings.json is the committed dogfood config) ---
 .claude/worktrees/
 .claude/settings.local.json
+.kb/branches/

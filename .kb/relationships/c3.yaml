@@ -6,13 +6,6 @@ relationships:
     created_at: "2026-08-15T22:20:14.867Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-  - type: implements
-    from: SYM-auto-02C5362C86BE
-    to: REQ-branch-store-recovery-v2
-    created_at: 2026-08-16T07:53:46.783Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8030de93e993
   - type: covered_by
     from: SYM-auto-02C5362C86BE
     to: TEST-cli-branch-store-recovery
@@ -286,3 +279,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-501379085972
+  - type: verified_by
+    from: SCEN-kibi-schema6-migration
+    to: TEST-kibi-schema6-migration
+    created_at: 2026-10-04T02:24:53.670Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8679392a6d4c
+  - type: implements
+    from: SYM-auto-02C5362C86BE
+    to: REQ-branch-store-recovery-v4
+    created_at: 2026-10-04T02:55:44.231Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-45c0e9b5add8

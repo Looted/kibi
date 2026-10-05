@@ -12,4 +12,8 @@ claim_key: CLAIM-5B1AC90906AE403D
 claim_text: Public interfaces must use canonical plan-bootstrap and kb_plan_bootstrap names without legacy aliases
 id: FACT-KIBI-BOOTSTRAP-CLAUSE-03
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

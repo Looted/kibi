@@ -80,6 +80,10 @@ logic_claims:
   - CLAIM-F05F6D6F1413047B
 id: REQ-ci-kb-merge-resolution
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 The Kibi KB merge workflow must build the merge driver from the base branch.
 

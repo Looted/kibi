@@ -13,4 +13,8 @@ claim_key: CLAIM-16F84736A1B01D5B
 claim_text: The `kibi check` command runs validation rules against the branch KB to ensure structural integrity and requirement coverage
 id: FACT-PROP-KIBI-CHECK-RULES-ENFORCED
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

@@ -15,4 +15,8 @@ claim_key: CLAIM-76A149F31027A6F8
 claim_text: The curated unit test suite (`test/root.test.ts`) runs package-scoped\nbatches as spawned `bun` subprocesses and must surface actionable\ndiagnostics when a batch times out, exits non-zero, or produces an\nunexpected number of bun summaries.\n\nEach batch is bounded by `BATCH_TIMEOUT_MINUTES` (25 min)
 id: FACT-PROP-REQ-ROOT-SUITE-BATCH-DIAGNOSTICS-C01
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

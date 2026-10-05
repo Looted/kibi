@@ -28,5 +28,9 @@ examples:
   - conditional_behavior(kibi_zcode_adapter,installed_and_enabled,emit_advisory_reminders_only)
 id: FACT-SCHEMA-CONDITIONAL-BEHAVIOR
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Defines the project-local predicate used to model ZCode adapter behavior under explicit activation or workspace conditions.

@@ -15,4 +15,8 @@ claim_key: CLAIM-2F306D93E829A446
 claim_text: When kibi doctor runs with JSON output on an installed consumer workspace, it must report the installed kibi-mcp package version by resolving the package entrypoint whenever the package does not export its package.json subpath
 id: FACT-PROP-REQ-CLI-DOCTOR-PACKED-PROVENANCE-C01
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

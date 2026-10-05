@@ -4,7 +4,6 @@ title: Curated discovery and reporting tools are available through MCP and CLI
 status: open
 created_at: 2026-03-22T00:00:00.000Z
 updated_at: 2026-03-22T18:30:00.000Z
-source: .kb/requirements/REQ-mcp-search-discovery.md
 priority: must
 tags:
   - mcp
@@ -33,6 +32,10 @@ semantic_inventory:
       start: 0
       end: 481
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Kibi must provide a curated read-only discovery surface for both MCP and CLI.

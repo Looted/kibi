@@ -49,7 +49,7 @@ export type BranchErrorCode =
   | "UNKNOWN_ERROR";
 
 export function branchErrorToDiagnostic(
-  // implements REQ-008
+  // implements REQ-branch-store-recovery-v4
   _code: BranchErrorCode,
   message: string,
   branch?: string,

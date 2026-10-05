@@ -12,4 +12,8 @@ claim_key: CLAIM-F440124327660157
 claim_text: The documentation build fails when an internal documentation link is broken
 id: FACT-DOCS-SITE-BROKEN-LINK-POLICY
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

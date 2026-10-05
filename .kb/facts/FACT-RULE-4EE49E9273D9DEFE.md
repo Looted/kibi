@@ -35,4 +35,8 @@ claim_span_start: 645
 claim_span_end: 765
 id: FACT-RULE-4EE49E9273D9DEFE
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

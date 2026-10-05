@@ -216,3 +216,33 @@ describe("shared bootstrap executor", () => {
     }
   });
 });
+
+// executable_for TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+test("existing entity enumeration failure blocks binding instead of disabling suppression", async () => {
+  const root = mkdtempSync(
+    path.join(os.tmpdir(), "kibi-bootstrap-id-failure-"),
+  );
+  try {
+    writeRootManifest(root);
+    const context = planningContext(root);
+    const result = await planBootstrapSpec.execute(
+      {},
+      {
+        ...context,
+        prolog: {
+          query: async () => {
+            throw new Error("id enumeration unavailable");
+          },
+          nextSolution: async () => null,
+          save: async () => ({ success: true, bindings: {} }),
+        },
+      },
+    );
+    expect(result.structuredContent.plan.status).toBe("blocked");
+    expect(result.structuredContent.plan.diagnostics.join("\n")).toContain(
+      "existing entity IDs",
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});

@@ -105,6 +105,10 @@ logic_claims:
   - CLAIM-6FEBDD5BAC05A477
 id: REQ-kibi-env-bootstrap
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 # REQ-kibi-env-bootstrap
 

@@ -23,6 +23,10 @@ claim_text: Kibi MUST run one Node.js 18+ single-writer engine for each canonica
 claim_span_start: 0
 claim_span_end: 90
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of the branch-local single-writer engine boundary.

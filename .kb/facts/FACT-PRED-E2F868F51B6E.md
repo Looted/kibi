@@ -22,4 +22,8 @@ claim_text: The published GitHub Pages path must be /kibi-report/ so the report 
 id: FACT-PRED-E2F868F51B6E
 type: fact
 predicate_namespace: kibi.requirements
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

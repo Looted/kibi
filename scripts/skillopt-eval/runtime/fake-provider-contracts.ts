@@ -1,7 +1,8 @@
 import { z } from "zod";
+import { PinnedModelSchema } from "./models";
 
 export const HashSchema = z.string().regex(/^[a-f0-9]{64}$/);
-export const ModelSchema = z.enum(["gpt-5.6-luna", "gpt-5.6-sol"]);
+export const ModelSchema = PinnedModelSchema;
 
 export function hasRoleKeyReuse(
   providerKeyId: string,

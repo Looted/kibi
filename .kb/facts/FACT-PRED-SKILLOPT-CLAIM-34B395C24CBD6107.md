@@ -14,4 +14,8 @@ claim_key: CLAIM-34B395C24CBD6107
 claim_text: Behavioral failures without critical failures must retain a structured feedback category for the optimizer
 id: FACT-PRED-SKILLOPT-CLAIM-34B395C24CBD6107
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

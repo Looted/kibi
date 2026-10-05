@@ -15,4 +15,8 @@ claim_key: CLAIM-1DD6E7F6784123C1
 claim_text: the plugin must not attempt first-read interception or modify file content returned by tools
 id: FACT-PROP-REQ-OPENCODE-FILE-CONTEXT-GUIDANCE-V1-C14
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

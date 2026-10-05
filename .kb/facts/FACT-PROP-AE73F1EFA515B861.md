@@ -20,4 +20,8 @@ claim_key: CLAIM-F51B8CA6D6AB3904
 claim_text: The staged check must inventory every path in the Git index before filtering
 id: FACT-PROP-AE73F1EFA515B861
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

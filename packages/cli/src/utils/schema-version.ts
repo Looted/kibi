@@ -17,7 +17,8 @@
  */
 
 // implements REQ-003
-export const LATEST_KB_SCHEMA_VERSION = 5;
+// Schema 7 requires strict fact shapes and encodes legacy polarity values.
+export const LATEST_KB_SCHEMA_VERSION = 7;
 
 export interface SchemaVersionStatus {
   status: "missing" | "invalid" | "older" | "current" | "newer";
@@ -72,7 +73,7 @@ export function getSchemaVersionStatus(
       latestVersion,
       needsMigration: true,
       warning: hasSchemaVersion
-        ? "KB schemaVersion is invalid and should be migrated."
+        ? "KB schemaVersion is invalid; run 'kibi migrate' to plan the repair."
         : "KB schemaVersion is missing; the repository should be initialized or migrated.",
     };
   }
@@ -93,7 +94,7 @@ export function getSchemaVersionStatus(
       currentVersion,
       latestVersion,
       needsMigration: true,
-      warning: `KB schemaVersion ${currentVersion} is older than the latest version ${latestVersion} and should be migrated.`,
+      warning: `KB schemaVersion ${currentVersion} is older than the latest version ${latestVersion}; run 'kibi migrate' to plan the upgrade.`,
     };
   }
 

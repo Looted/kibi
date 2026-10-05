@@ -15,4 +15,8 @@ claim_key: CLAIM-95DF68E76EC233A1
 claim_text: The Kibi VS Code extension provides bidirectional traceability between the knowledge base and source code.\n\nThis requirement is an umbrella doc for the following granular behaviors:\nNavigation from KB Tree to Source (REQ-vscode-kb-to-source)\nDiscovering KB Context from Editor (REQ-vscode-source-to-kb)\nStructural TreeView Sidebar (REQ-vscode-sidebar-kb-tree)
 id: FACT-PROP-REQ-VSCODE-TRACEABILITY-C01
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

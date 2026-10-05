@@ -15,4 +15,8 @@ claim_key: CLAIM-8A6BF5268C7491AB
 claim_text: The `kb_upsert` MCP tool must:\n\nAllow agents to create or update a single entity with its metadata.\nSupport batch creation of relationships to other existing entities in the same call.\nValidate relationship types against the supported canonical list.\nEnforce requirement consistency by rejecting writes that contradict existing requirements, unless a `supersedes` relationship is provided.\nTrigger a refresh of symbol coordinates if the upsert affects symbol linkage
 id: FACT-PROP-REQ-MCP-TOOL-UPSERT-C01
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

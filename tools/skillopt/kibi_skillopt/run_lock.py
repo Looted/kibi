@@ -19,6 +19,7 @@ from .common import (
     contract_hash,
     parse_json_value,
 )
+from .model_pins import ModelId, ReasoningEffort, resolve_model_config
 
 
 class CleanState(ContractModel):
@@ -39,17 +40,12 @@ class ModelPricing(ContractModel):
     output_per_million_tokens: Annotated[JsonNumber, Field(alias="outputPerMillionTokens", ge=0)]
 
 
-class PricingModels(ContractModel):
-    target: Annotated[ModelPricing | None, Field(alias="gpt-5.6-luna")]
-    optimizer: Annotated[ModelPricing, Field(alias="gpt-5.6-sol")]
-
-
 class PricingTable(ContractModel):
     name: Literal["price-equivalent-estimates"]
     effective_from: Annotated[date, Field(alias="effectiveFrom")]
     currency: Literal["USD"]
     source: NonEmptyString
-    models: PricingModels
+    models: dict[ModelId, ModelPricing | None]
 
 
 class SkillOptPin(ContractModel):
@@ -178,8 +174,10 @@ class RunLock(ContractModel):
     codex_executable: Annotated[ExecutableIdentity, Field(alias="codexExecutable")]
     cli_args: Annotated[list[NonEmptyString], Field(alias="cliArgs", min_length=1)]
     artifact_root: Annotated[NonEmptyString, Field(alias="artifactRoot")]
-    target_model: Annotated[Literal["gpt-5.6-luna"], Field(alias="targetModel")]
-    optimizer_model: Annotated[Literal["gpt-5.6-sol"], Field(alias="optimizerModel")]
+    target_model: Annotated[ModelId, Field(alias="targetModel")]
+    target_reasoning_effort: Annotated[ReasoningEffort, Field(alias="targetReasoningEffort")]
+    optimizer_model: Annotated[ModelId, Field(alias="optimizerModel")]
+    optimizer_reasoning_effort: Annotated[ReasoningEffort, Field(alias="optimizerReasoningEffort")]
     skillopt: SkillOptPin
     source_lock_hash: Annotated[Sha256, Field(alias="sourceLockHash")]
     catalog_hash: Annotated[Sha256, Field(alias="catalogHash")]
@@ -199,6 +197,23 @@ class RunLock(ContractModel):
         if len(self.repository_commit) != expected_length:
             raise ContractValidationError(
                 f"{self.repository_hash_algorithm} object ID must be {expected_length} characters"
+            )
+        return self
+
+    @model_validator(mode="after")
+    def verify_model_pins(self) -> Self:
+        pinned = {self.target_model, self.optimizer_model}
+        if set(self.pricing.models) != pinned or self.pricing.models[self.optimizer_model] is None:
+            raise ContractValidationError("pricing models must price exactly the pinned models")
+        active = resolve_model_config()
+        if (
+            self.target_model != active.target_model
+            or self.target_reasoning_effort != active.target_reasoning_effort
+            or self.optimizer_model != active.optimizer_model
+            or self.optimizer_reasoning_effort != active.optimizer_reasoning_effort
+        ):
+            raise ContractValidationError(
+                "run lock model pin does not match the active model configuration"
             )
         return self
 

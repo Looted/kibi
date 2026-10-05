@@ -4,7 +4,21 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
+import {
+  appendHookUsageRows,
+  editTraces,
+  hookTelemetryEnabled,
+  kbUsageTrace,
+  readPackageVersion,
+} from "kibi-agent-core/hook-usage-log";
 import { stampKibiWorkspace } from "kibi-agent-core/kb-mcp-tools";
+import {
+  type LineRange,
+  createEntitySummarizer,
+  editFocus,
+  fileKnowledgeSnippet,
+  implementedRequirementIds,
+} from "kibi-agent-core/snippets";
 import { preEditGuidance, readGuidance, writeGuidance } from "./guidance.js";
 import { parseHookInput, parseStdinJson, readStdin } from "./hook-input.js";
 import {
@@ -31,7 +45,10 @@ import {
   isMeaningfulTrackedPath,
   toRepoRelativePath,
 } from "./path-policy.js";
-import { getSourceLinkedRequirementIds } from "./source-linked-requirements.js";
+import {
+  type SourceLinkedSymbols,
+  getSourceLinkedSymbols,
+} from "./source-linked-requirements.js";
 
 export type CursorHookResult = {
   additional_context?: string;
@@ -49,7 +66,92 @@ export type CursorHookResult = {
 export type HookEnvironment = {
   pluginData?: string;
   workspaceTrusted?: boolean;
+  /** Process environment for the telemetry opt-in; defaults to process.env. */
+  env?: NodeJS.ProcessEnv;
 };
+
+const MAX_LINKED_REQUIREMENTS = 3;
+
+/**
+ * The shared kibi-agent-core snippet for a file that implements requirements,
+ * or undefined so the generic Cursor guidance applies. Test-only links
+ * (`covered_by`, `executable_for`) are not requirement ownership here.
+ */
+// implements REQ-cursor-kibi-plugin-v1
+function knowledgeFor(
+  workspaceRoot: string,
+  linked: SourceLinkedSymbols,
+  surface: "read" | "edit",
+  focus?: LineRange[],
+): string | undefined {
+  if (implementedRequirementIds(linked.symbols).length === 0) return undefined;
+  return fileKnowledgeSnippet({
+    relativePath: linked.relativePath,
+    symbols: linked.symbols,
+    surface,
+    focus,
+    summarize: createEntitySummarizer(workspaceRoot),
+  });
+}
+
+let cachedPackageVersion: string | null | undefined;
+
+function packageVersion(): string | null {
+  // dist/hook-runner.js sits one level below the package root.
+  if (cachedPackageVersion !== undefined) return cachedPackageVersion;
+  cachedPackageVersion = readPackageVersion(
+    path.join(
+      path.dirname(fileURLToPath(import.meta.url)),
+      "..",
+      "package.json",
+    ),
+  );
+  return cachedPackageVersion;
+}
+
+/**
+ * Opt-in (`KIBI_DIAGNOSTIC_MODE`) hook rows for the lookup-before-first-edit
+ * telemetry metric: Kibi lookups through MCP or the CLI, and edits with the
+ * requirements the edited files implement.
+ */
+// implements REQ-cursor-kibi-plugin-v1
+function recordToolTelemetry(
+  input: ReturnType<typeof parseHookInput>,
+  workspaceRoot: string,
+  stateDir: string | undefined,
+  startedAt: Date,
+  env: NodeJS.ProcessEnv | undefined,
+): void {
+  if (!hookTelemetryEnabled(env)) return;
+  const kbUsage = kbUsageTrace(input.toolName, input.toolInput);
+  const traces = kbUsage
+    ? [kbUsage]
+    : isKnownEditableTool(input.toolName)
+      ? editTraces(
+          extractExplicitPathFields(input.toolInput).map((candidate) =>
+            toRepoRelativePath(candidate, workspaceRoot),
+          ),
+          (relativePath) =>
+            implementedRequirementIds(
+              getSourceLinkedSymbols(workspaceRoot, relativePath, stateDir)
+                .symbols,
+            ),
+        )
+      : [];
+  appendHookUsageRows(
+    {
+      host: "cursor",
+      packageVersion: packageVersion(),
+      workspaceRoot,
+      event: "postToolUse",
+      sessionId: input.conversationId,
+      hostTool: input.toolName,
+      startedAt,
+    },
+    traces,
+    env,
+  );
+}
 
 const editableTools = new Set([
   "Edit",
@@ -137,6 +239,7 @@ export async function runHook(
   rawInput: unknown,
   environment: HookEnvironment = {},
 ): Promise<CursorHookResult> {
+  const startedAt = new Date();
   const input = parseHookInput(rawInput);
   const pluginData = environment.pluginData ?? process.env.PLUGIN_DATA;
   const stateDir = resolveStateDir(pluginData, input.conversationId);
@@ -201,15 +304,21 @@ export async function runHook(
         return emptyResult();
       }
 
+      const linked = getSourceLinkedSymbols(cwd, primaryPath, stateDir);
       const guidance = preEditGuidance(primaryPath, {
         cwd,
         hasKibi: kibiReady,
         mcpState: state.mcpState,
         workspaceTrusted,
-        linkedRequirementIds: getSourceLinkedRequirementIds(
+        linkedRequirementIds: implementedRequirementIds(linked.symbols).slice(
+          0,
+          MAX_LINKED_REQUIREMENTS,
+        ),
+        knowledge: knowledgeFor(
           cwd,
-          primaryPath,
-          stateDir,
+          linked,
+          "edit",
+          editFocus(path.resolve(cwd, primaryPath), input.toolInput),
         ),
       });
       if (!guidance) {
@@ -237,6 +346,11 @@ export async function runHook(
         hasKibi: kibiReady,
         mcpState: state.mcpState,
         workspaceTrusted,
+        knowledge: knowledgeFor(
+          cwd,
+          getSourceLinkedSymbols(cwd, primaryPath, stateDir),
+          "read",
+        ),
       });
       if (!guidance) {
         return { permission: "allow" };
@@ -250,6 +364,13 @@ export async function runHook(
     }
 
     case "postToolUse": {
+      if (kibiReady) {
+        try {
+          recordToolTelemetry(input, cwd, stateDir, startedAt, environment.env);
+        } catch {
+          // Telemetry is best effort and must never change the hook's output.
+        }
+      }
       const kbToolCall = extractKbMcpToolCall(input.toolName, input.toolInput);
       if (kbToolCall) {
         recordKbMcpTool(stateDir, kbToolCall.toolName, {
@@ -295,6 +416,11 @@ export async function runHook(
           hasKibi: kibiReady,
           mcpState: state.mcpState,
           workspaceTrusted,
+          knowledge: knowledgeFor(
+            cwd,
+            getSourceLinkedSymbols(cwd, primaryPath, stateDir),
+            "read",
+          ),
         });
         if (!guidance) {
           return emptyResult();

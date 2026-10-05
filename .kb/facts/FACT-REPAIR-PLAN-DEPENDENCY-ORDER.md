@@ -4,7 +4,6 @@ title: Repair batches follow semantic and graph dependencies
 status: active
 created_at: 2026-08-10T00:00:00.000Z
 updated_at: 2026-08-10T00:00:00.000Z
-source: documentation/facts/FACT-REPAIR-PLAN-DEPENDENCY-ORDER.md
 tags:
   - lane:ontology
   - requirements
@@ -24,6 +23,10 @@ claim_text: The planner must group same-phase gaps into one small batch per requ
 claim_span_start: 117
 claim_span_end: 362
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of dependency-ordered, same-phase batching.

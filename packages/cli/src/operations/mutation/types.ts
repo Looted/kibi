@@ -16,8 +16,24 @@ export type UpsertInput = {
     /** Complete document bytes. Omit to preserve the existing body bytes. */
     readonly body?: string;
   };
+  /** Validate and preview the write without mutating the KB. */
+  readonly dryRun?: boolean;
   readonly _skipContradictionCheck?: boolean;
   readonly _requestId?: string;
+};
+
+// implements REQ-kibi-truthful-consistency
+/**
+ * Store state an upsert's validation must see in addition to the live KB:
+ * what earlier steps of the same plan will have written by the time this
+ * upsert runs. Validators treat these entities and relationships as present,
+ * and a staged entity shadows the stored entity with the same id.
+ */
+export type StagedUpsertState = {
+  /** Validated entities (id, type and properties) by id. */
+  readonly entities: ReadonlyMap<string, Readonly<Record<string, unknown>>>;
+  /** Relationships the earlier steps add, in step order. */
+  readonly relationships: readonly RelationshipInput[];
 };
 
 // implements REQ-kibi-operation-interface-parity

@@ -9,6 +9,10 @@ tags: [cli, symbols, traceability, unit]
 links:
   - type: validates
     target: SCEN-symbol-granularity
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Verifies that staged symbol extraction qualifies duplicate class method symbols and keeps method-level traceability directives attached to the method rather than the containing class.

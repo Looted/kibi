@@ -5,7 +5,6 @@ type: scenario
 status: active
 created_at: 2026-06-09T00:00:00Z
 updated_at: 2026-06-09T00:00:00Z
-source: documentation/scenarios/SCEN-cursor-kibi-plugin-v1.md
 tags:
   - scenario
   - cursor
@@ -15,6 +14,10 @@ links:
     target: TEST-cursor-kibi-plugin-v1
   - type: relates_to
     target: REQ-cursor-kibi-plugin-v1
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 ## Scenario: Optional plugin installation and use in Cursor

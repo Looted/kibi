@@ -1,11 +1,4 @@
 relationships:
-  - id: rel-350a4ba24176
-    type: implements
-    from: SYM-firstGitAdditionCommit
-    to: REQ-branch-store-recovery-v3
-    created_at: "2026-08-17T11:04:39.202Z"
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
   - type: covered_by
     from: SYM-firstGitAdditionCommit
     to: TEST-cli-supersedes-history-unit
@@ -139,3 +132,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3219f42b1441
+  - type: implements
+    from: SYM-firstGitAdditionCommit
+    to: REQ-branch-store-recovery-v4
+    created_at: 2026-10-04T03:00:23.139Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8413ac0fdd87
+  - type: implements
+    from: SYM-schema6-applyInventoryRederivation
+    to: REQ-kibi-schema6-migration
+    created_at: 2026-10-04T03:13:19.171Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb3947d1f269
+  - type: covered_by
+    from: SYM-schema6-applyInventoryRederivation
+    to: TEST-kibi-schema6-migration
+    created_at: 2026-10-04T03:13:19.187Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-893c3bcbd682
+  - type: covered_by
+    from: SYM-schema6-applyInventoryRederivation
+    to: TEST-kibi-schema6-migration-cli
+    created_at: 2026-10-04T04:43:52.570Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f81410716e1e
+  - type: executable_for
+    from: SYM-test-claude-edit-snippet-hook
+    to: TEST-claude-edit-snippet-hook
+    created_at: 2026-10-04T04:47:28.683Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7d270355ba6e

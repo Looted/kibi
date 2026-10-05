@@ -8,4 +8,8 @@ subject_key: vscode.kibi_extension
 canonical_key: req.req_vscode_source_to_kb
 id: FACT-SUBJ-REQ-VSCODE-SOURCE-TO-KB
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

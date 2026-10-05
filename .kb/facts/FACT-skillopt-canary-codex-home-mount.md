@@ -11,6 +11,10 @@ tags:
   - canary
   - isolation
 fact_kind: observation
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 # Capability canary CODEX_HOME mount nuance

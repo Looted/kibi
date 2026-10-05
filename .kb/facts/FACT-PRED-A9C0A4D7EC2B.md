@@ -1,7 +1,7 @@
 ---
 title: Requirement health meets its accessibility target
 status: active
-source: documentation/requirements/REQ-kibi-branded-health-report.md
+source: .kb/requirements/REQ-kibi-branded-health-report.md
 text_ref: documentation/requirements/REQ-kibi-branded-health-report.md
 tags:
   - lane:ontology
@@ -20,5 +20,9 @@ claim_key: CLAIM-E369BAFB4AA913A6
 claim_text: The report must meet WCAG AA contrast and communicate status without color alone
 id: FACT-PRED-A9C0A4D7EC2B
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Proof status remains readable through text and symbols with accessible contrast.

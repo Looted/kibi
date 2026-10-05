@@ -49,5 +49,9 @@ logic_claims:
   - CLAIM-063154CE4A81EAE4
 id: REQ-prolog-doctor-runtime-report
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 kibi doctor must report the SWI-Prolog source, executable path, and version. kibi doctor must fail when the resolved SWI-Prolog cannot load a required library. kibi doctor must name the platform package to add when no bundled or system SWI-Prolog is found

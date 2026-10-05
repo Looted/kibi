@@ -19,6 +19,10 @@ claim_key: CLAIM-29422CD5F6D5A1D0
 claim_text: Kibi check must compare every relationship authored in tracked Markdown, symbol manifests, or canonical relationship shards with compiled RDF and block when an authored edge is missing
 id: FACT-SOURCE-PARITY-AUTHORED-BLOCK
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Kibi check must compare every relationship authored in tracked Markdown, symbol manifests, or canonical relationship shards with compiled RDF and block when an authored edge is missing.
 

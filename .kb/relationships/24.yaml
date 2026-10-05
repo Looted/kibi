@@ -335,3 +335,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d0d9569038a9
+  - type: implements
+    from: SYM-telemetry-acceptance-diagnostics
+    to: REQ-kibi-telemetry-acceptance-gate-v2
+    created_at: 2026-10-04T03:07:07.776Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-35153b7d091f

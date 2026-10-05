@@ -15,4 +15,8 @@ claim_key: CLAIM-B5AE6C2844A5E3A2
 claim_text: Quality diagnostics must be visible automatically through existing CLI, MCP, coverage, staged-check, and OpenCode scheduled-check paths so agents are prompted to update granular requirements, symbols, facts, and tests without needing a separate audit command
 id: FACT-PROP-REQ-AUDIT-QUALITY-DIAGNOSTICS-V1-C02
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

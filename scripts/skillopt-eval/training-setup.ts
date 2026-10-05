@@ -298,7 +298,8 @@ export const defaultEvaluateDevelopment: RealOptimizationDependencies["evaluateD
         env: input.env,
         finalStateRequests: taskFinalStateRequests(
           descriptor.id,
-          fixture.evaluatorManifest.protocolContract !== undefined,
+          fixture.evaluatorManifest.protocolContract?.exactMigrationApply !==
+            undefined,
         ),
         evaluatorManifest: fixture.evaluatorManifest,
         hiddenMarkers: runtime.hiddenMarkers ?? [],

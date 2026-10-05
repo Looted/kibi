@@ -33,6 +33,11 @@ export type {
 export {
   VALID_ENTITY_TYPES,
   OPERATION_CATALOG,
+  MODEL_ROUTES,
+  SKILL_ROUTES,
+  dispatchComposite,
+  modelSpec,
+  skillsSpec,
   applyPlanSpec,
   planBootstrapSpec,
   checkSpec,
@@ -205,7 +210,14 @@ export {
 } from "kibi-cli/operations/result-envelope";
 export type { NormalizedResultPayload } from "kibi-cli/operations/result-envelope";
 export * from "kibi-cli/public/branch-resolver";
-export { EngineClient, engineSocketPath } from "kibi-cli/engine";
+export {
+  EngineClient,
+  EngineQueryLimitError,
+  QUERY_LIMIT_EXCEEDED_CODE,
+  engineSocketPath,
+  queryLimitExceededOf,
+} from "kibi-cli/engine";
+export type { EngineLimitExceeded, EngineQueryLimits } from "kibi-cli/engine";
 export { PrologProcess, resolveKbPlPath } from "kibi-cli/prolog";
 export {
   escapeAtomContent,

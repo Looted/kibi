@@ -19,4 +19,8 @@ claim_key: CLAIM-33E4D5BB01AD55FF
 claim_text: When kibi-claude is installed or enabled, it must not modify core Kibi runtime components
 id: FACT-PRED-84D9BC5F78D9
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

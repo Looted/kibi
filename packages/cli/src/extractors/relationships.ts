@@ -58,6 +58,8 @@ const VALID_RELATIONSHIP_TYPES = new Set([
   "consumes",
   "supersedes",
   "restates",
+  "assumes",
+  "exempts",
   "relates_to",
 ]);
 

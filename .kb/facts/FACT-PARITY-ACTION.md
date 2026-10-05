@@ -22,6 +22,10 @@ claim_text: Every project-resolved divergence must name an upgrade or compatibil
 claim_span_start: 856
 claim_span_end: 934
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of repairable project divergence.

@@ -7,6 +7,10 @@ import {
   getSchemaVersionStatus,
   normalizeSchemaVersion,
 } from "../../utils/schema-version.js";
+import {
+  lifecycleActionsFromViolations,
+  schema6ReviewActionsFromCheck,
+} from "./schema6-check-actions.js";
 
 export const MIGRATION_PLAN_VERSION = "kibi.migration-plan.v2" as const;
 
@@ -286,6 +290,25 @@ export function mergeMigrationPlans(
   });
 }
 
+/**
+ * The same plan without the actions whose code another planner owns, e.g.
+ * lifecycle repairs `kibi migrate` plans from authored sources.
+ */
+// implements REQ-agent-guided-migration-orchestration
+export function withoutActionCodes(
+  plan: MigrationPlan,
+  codes: ReadonlySet<string>,
+): MigrationPlan {
+  if (!plan.actions.some((action) => codes.has(action.code))) return plan;
+  return buildMigrationPlan({
+    expected: plan.expected,
+    evaluatedDomains: plan.scope.evaluatedDomains,
+    incompleteDomains: plan.scope.incompleteDomains,
+    actions: plan.actions.filter((action) => !codes.has(action.code)),
+    diagnostics: plan.diagnostics,
+  });
+}
+
 function actionDefaults(input: Partial<MigrationAction>): MigrationAction {
   return {
     id: input.id ?? "migration-action-unknown",
@@ -370,13 +393,16 @@ function predicateSchemaAlignmentAction(
 /** Migration code for mechanical predicate namespace/alias repairs. */
 export const PREDICATE_SCHEMA_ALIGNMENT_CODE = "predicate_schema_alignment";
 
-// implements REQ-agent-guided-migration-orchestration, REQ-kibi-predicate-vocabulary-migration
+// implements REQ-agent-guided-migration-orchestration, REQ-kibi-predicate-vocabulary-migration, REQ-cli-schema-migration
 export function buildActionsFromCheck(input: {
   violations?: readonly Readonly<Record<string, unknown>>[];
   qualityDiagnostics?: readonly Readonly<Record<string, unknown>>[];
 }): MigrationAction[] {
   const actions: MigrationAction[] = [];
+  const lifecycle = lifecycleActionsFromViolations(input.violations ?? []);
+  actions.push(...lifecycle.actions.map(migrationAction));
   for (const [index, violation] of (input.violations ?? []).entries()) {
+    if (lifecycle.consumed.has(index)) continue;
     const rule = typeof violation.rule === "string" ? violation.rule : "check";
     const entityId =
       typeof violation.entityId === "string" ? violation.entityId : "";
@@ -399,9 +425,12 @@ export function buildActionsFromCheck(input: {
       }),
     );
   }
+  const reviews = schema6ReviewActionsFromCheck(input.qualityDiagnostics ?? []);
+  actions.push(...reviews.actions.map(migrationAction));
   for (const [index, diagnostic] of (
     input.qualityDiagnostics ?? []
   ).entries()) {
+    if (reviews.consumed.has(index)) continue;
     const id = typeof diagnostic.id === "string" ? diagnostic.id : "quality";
     const entityId =
       typeof diagnostic.entityId === "string" ? diagnostic.entityId : "";

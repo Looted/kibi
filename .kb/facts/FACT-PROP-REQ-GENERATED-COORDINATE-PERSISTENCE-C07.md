@@ -15,4 +15,8 @@ claim_key: CLAIM-6FEF9037E6FC8893
 claim_text: Coordinate artifact publication must be atomic, bound to current extraction identity, preserve unrelated valid records, and fail closed on malformed artifacts
 id: FACT-PROP-REQ-GENERATED-COORDINATE-PERSISTENCE-C07
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

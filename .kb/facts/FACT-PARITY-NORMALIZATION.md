@@ -22,6 +22,10 @@ claim_text: Normalization must remove volatile paths, timestamps, ephemeral iden
 claim_span_start: 422
 claim_span_end: 629
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of conservative semantic normalization.

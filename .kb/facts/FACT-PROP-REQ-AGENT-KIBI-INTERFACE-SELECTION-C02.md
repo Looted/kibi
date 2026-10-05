@@ -15,4 +15,8 @@ claim_key: CLAIM-83CB27CE535B006D
 claim_text: Guidance must not present MCP as the only public surface
 id: FACT-PROP-REQ-AGENT-KIBI-INTERFACE-SELECTION-C02
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

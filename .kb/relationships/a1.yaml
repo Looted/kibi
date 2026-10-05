@@ -41,13 +41,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-318de2793a0e
-  - type: implements
-    from: SYM-auto-4B78DAEF6C6B
-    to: REQ-branch-store-recovery-v2
-    created_at: 2026-08-16T07:54:05.681Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-919a58205d4d
   - type: covered_by
     from: SYM-auto-4B78DAEF6C6B
     to: TEST-cli-branch-store-recovery
@@ -97,13 +90,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-902e12da934e
-  - type: implements
-    from: SYM-kibi-cli-src-operations-planning-apply-plan-ts-executeapplyplan
-    to: REQ-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-21T19:53:00.850Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a081948b2df5
   - type: implements
     from: SYM-kibi-cli-src-operations-planning-apply-plan-ts-executeapplyplan
     to: REQ-KIBI-BOOTSTRAP-PLAN
@@ -293,3 +279,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4f8fdc31786e
+  - type: implements
+    from: SYM-auto-4B78DAEF6C6B
+    to: REQ-branch-store-recovery-v4
+    created_at: 2026-10-04T02:56:19.523Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ff2a8798f6f4
+  - type: implements
+    from: SYM-kibi-cli-src-operations-planning-apply-plan-ts-executeapplyplan
+    to: REQ-kibi-change-to-proof-plan-compiler-v2
+    created_at: 2026-10-04T03:01:15.530Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8a02538b955d
+  - type: covered_by
+    from: SYM-reqcompiler-legacy-migration-batch
+    to: TEST-kibi-legacy-migration-preview-v2
+    created_at: 2026-10-04T04:18:36.348Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8483fcd18d3b
+  - type: implements
+    from: SYM-kibi-cli-src-operations-planning-apply-plan-ts-executeapplyplan
+    to: REQ-bootstrap-write-safety
+    created_at: 2026-10-04T16:24:20.314Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-554d748ecb57
+  - type: implements
+    from: SYM-migration-origin-schema-version
+    to: REQ-cli-schema-migration
+    created_at: 2026-10-04T17:27:05.710Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9ade1f399768
+  - type: covered_by
+    from: SYM-migration-origin-schema-version
+    to: TEST-cli-migrate
+    created_at: 2026-10-04T17:45:59.416Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6d8ebd137bef

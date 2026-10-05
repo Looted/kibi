@@ -20,7 +20,12 @@ import { createHash } from "node:crypto";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import * as path from "node:path";
 import { load as parseYAML } from "js-yaml";
+import {
+  type EntityOrigin,
+  normalizeEntityOrigin,
+} from "../public/entity-origin.js";
 import { DEFAULT_COORDINATES_PATH } from "../utils/manifest-paths.js";
+import { normalizeRepoRelativePath } from "../utils/repo-relative-path.js";
 import {
   type ParsedCoordinateArtifact,
   mergeCoordinatesWithManifest,
@@ -41,6 +46,7 @@ export interface ExtractedEntity {
   severity?: string;
   text_ref?: string;
   granularity_reason?: string;
+  origin?: EntityOrigin;
 }
 
 export interface ExtractedRelationship {
@@ -72,6 +78,8 @@ type RelationshipType =
   | "consumes"
   | "supersedes"
   | "restates"
+  | "assumes"
+  | "exempts"
   | "relates_to";
 
 const VALID_RELATIONSHIP_TYPES = new Set<RelationshipType>([
@@ -91,6 +99,8 @@ const VALID_RELATIONSHIP_TYPES = new Set<RelationshipType>([
   "consumes",
   "supersedes",
   "restates",
+  "assumes",
+  "exempts",
   "relates_to",
 ]);
 
@@ -136,6 +146,8 @@ const VALID_RELATIONSHIP_DIRECTIONS: ReadonlyArray<{
   { type: "supersedes", from: "adr", to: "adr" },
   { type: "supersedes", from: "req", to: "req" },
   { type: "restates", from: "req", to: "req" },
+  { type: "assumes", from: "scenario", to: "fact" },
+  { type: "exempts", from: "req", to: "req" },
 ];
 
 const RELATIONSHIP_TYPE_DISPLAY_LIST = Array.from(VALID_RELATIONSHIP_TYPES)
@@ -348,6 +360,18 @@ export function extractManifestSymbolRecords(
     }
 
     const id = symbol.id || generateId(filePath, symbol.title);
+    // implements REQ-004
+    let origin: EntityOrigin | undefined;
+    if (symbol.origin !== undefined) {
+      const normalized = normalizeEntityOrigin(symbol.origin);
+      if ("error" in normalized) {
+        throw new ManifestError(
+          `Invalid origin for symbol ${id}: ${normalized.error}`,
+          filePath,
+        );
+      }
+      origin = normalized.origin;
+    }
     const entity: ExtractedEntity = {
       id,
       type: "symbol",
@@ -364,6 +388,7 @@ export function extractManifestSymbolRecords(
       ...(symbol.granularity_reason !== undefined
         ? { granularity_reason: symbol.granularity_reason }
         : {}),
+      ...(origin !== undefined ? { origin } : {}),
       ...(typeof symbol.symbol_kind === "string"
         ? { symbol_kind: symbol.symbol_kind }
         : {}),
@@ -622,6 +647,15 @@ function scopeFileHash(absolutePath: string): string {
   return hash;
 }
 
+/**
+ * Scope hash of a symbol whose recorded source file lies outside the
+ * repository. Only repository content can be compared between a CI checkout
+ * and a developer machine, so such a file is never read.
+ */
+// implements REQ-kibi-fresh-verification-receipts-v2
+export const OUTSIDE_WORKSPACE_SCOPE_HASH = "outside-workspace";
+
+// implements REQ-kibi-fresh-verification-receipts-v2
 export function resolveBoundSymbolScope(
   manifestPath: string,
   symbolIds: readonly string[],
@@ -630,16 +664,22 @@ export function resolveBoundSymbolScope(
   if (wanted.length === 0) return [];
   const sourceFiles = scopeSourceFiles(manifestPath);
   // The manifest lives at <workspace>/.kb/symbols.yaml; source files are
-  // workspace-relative.
+  // workspace-relative. Every recorded path is normalized to its
+  // repo-relative form first, so `./a.ts`, `a\b.ts` and an absolute path
+  // inside this checkout hash the same file wherever the checkout lives.
   const workspaceRoot = path.dirname(path.dirname(path.resolve(manifestPath)));
   const scope: ReceiptCodeScopeEntry[] = [];
   for (const symbolId of wanted) {
     const sourceFile = sourceFiles.get(symbolId);
     if (sourceFile === undefined) continue;
-    const absolute = path.isAbsolute(sourceFile)
-      ? sourceFile
-      : path.resolve(workspaceRoot, sourceFile);
-    scope.push({ symbolId, sourceHash: scopeFileHash(absolute) });
+    const relative = normalizeRepoRelativePath(workspaceRoot, sourceFile);
+    scope.push({
+      symbolId,
+      sourceHash:
+        relative === null
+          ? OUTSIDE_WORKSPACE_SCOPE_HASH
+          : scopeFileHash(path.join(workspaceRoot, relative)),
+    });
   }
   scope.sort((left, right) => left.symbolId.localeCompare(right.symbolId));
   return scope;

@@ -14,4 +14,8 @@ claim_span_start: 0
 claim_span_end: 64
 id: FACT-OBS-141D6CBE864E4D01
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

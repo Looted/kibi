@@ -5,7 +5,6 @@ type: scenario
 status: active
 created_at: 2026-04-03T00:00:00Z
 updated_at: 2026-05-13T00:00:00Z
-source: documentation/scenarios/SCEN-opencode-smart-enforcement.md
 priority: must
 tags:
   - enforcement
@@ -18,6 +17,10 @@ links:
     target: SCEN-opencode-posture-detection
   - type: relates_to
     target: SCEN-opencode-risk-classification
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 ## Scenario: Smart Enforcement Policy

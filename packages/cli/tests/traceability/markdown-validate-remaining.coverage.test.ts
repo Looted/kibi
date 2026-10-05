@@ -1,4 +1,4 @@
-// implements REQ-008
+// implements REQ-cli-staged-impact-enforcement
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { FrontmatterError } from "../../src/extractors/markdown.js";
 import * as markdown from "../../src/extractors/markdown.js";

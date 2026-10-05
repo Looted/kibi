@@ -15,4 +15,8 @@ claim_key: CLAIM-B38ADF46F0A2215C
 claim_text: The plugin must maintain KB freshness via background synchronization:\n\nRun sync in a debounced, non-blocking manner after relevant file edits.\nEnsure the KB stays up to date without blocking the main user experience.\nDebounce interval must be configurable via plugin settings.\nTransition to `maintenanceDegraded` mode if the scheduler cannot be created or sync fails
 id: FACT-PROP-REQ-OPENCODE-BACKGROUND-SYNC-C01
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

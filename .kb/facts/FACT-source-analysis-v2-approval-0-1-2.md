@@ -9,4 +9,8 @@ text_ref: 'The source-analysis v2 contract remains current for the qualified Tre
 fact_kind: observation
 id: FACT-source-analysis-v2-approval-0-1-2
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

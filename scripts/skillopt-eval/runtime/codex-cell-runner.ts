@@ -1,4 +1,14 @@
-import { chmod, cp, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import type { Dirent } from "node:fs";
+import {
+  chmod,
+  cp,
+  mkdir,
+  mkdtemp,
+  readFile,
+  readdir,
+  rm,
+  writeFile,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { EpisodeRequestSchema } from "../contracts/episode";
@@ -24,7 +34,10 @@ import { replayCodexEpisode } from "./codex-episode";
 import {
   FixtureSetupError,
   setupGeneratedCoordinateDivergence,
+  setupSeededConsistencyKb,
   setupSeededFreshKb,
+  setupSeededGovernedAreaKb,
+  setupSeededPreconditionKb,
   setupSeededStaleKb,
   setupThinRootKb,
   stopFixtureEngine,
@@ -45,15 +58,67 @@ export type {
   CompletedCodexCell,
 } from "./codex-cell-types";
 
-/** Codex rejects open object schemas; keep this strict like canary/optimizer. */
+/**
+ * Codex rejects open object schemas; keep this strict like canary/optimizer.
+ * `answer` carries the user-facing final answer that the evaluator's
+ * final-answer lane scores.
+ */
+// implements REQ-skillopt-codex-optimization
 export const EPISODE_OUTPUT_SCHEMA = {
   type: "object",
   additionalProperties: false,
-  required: ["completed"],
+  required: ["completed", "answer"],
   properties: {
     completed: { type: "boolean" },
+    answer: { type: "string" },
   },
 } as const;
+
+const WORKSPACE_SOURCE_ROOT = "src";
+const MAX_WORKSPACE_SOURCE_FILES = 64;
+const MAX_WORKSPACE_SOURCE_BYTES = 256 * 1024;
+
+/**
+ * Final contents of the target's `src/` tree for the workspace-assertion lane.
+ * Bounded and regular-file only; unreadable entries are skipped.
+ */
+// implements REQ-skillopt-codex-optimization
+export async function readWorkspaceSources(
+  workspaceRoot: string,
+): Promise<Readonly<Record<string, string>>> {
+  const files: Record<string, string> = {};
+  let bytes = 0;
+  const visit = async (relative: string): Promise<void> => {
+    let entries: Dirent[];
+    try {
+      entries = await readdir(join(workspaceRoot, relative), {
+        withFileTypes: true,
+      });
+    } catch {
+      return;
+    }
+    for (const entry of entries.sort((a, b) => a.name.localeCompare(b.name))) {
+      const child = `${relative}/${entry.name}`;
+      if (entry.isDirectory()) {
+        await visit(child);
+      } else if (
+        entry.isFile() &&
+        Object.keys(files).length < MAX_WORKSPACE_SOURCE_FILES
+      ) {
+        try {
+          const content = await readFile(join(workspaceRoot, child), "utf8");
+          if (bytes + content.length > MAX_WORKSPACE_SOURCE_BYTES) continue;
+          bytes += content.length;
+          files[child] = content;
+        } catch {
+          // Unreadable files simply do not contribute.
+        }
+      }
+    }
+  };
+  await visit(WORKSPACE_SOURCE_ROOT);
+  return files;
+}
 
 // SWI can encode the workspace URI into a journal filename. Keep that path
 // independent of the potentially deep persistent artifact cache, including
@@ -193,6 +258,21 @@ export async function runCodexCell(
               const setupMode = options.evaluatorManifest.fixtureSetup;
               if (setupMode === "seeded_fresh_kb") {
                 await setupSeededFreshKb(workspace.target, stagingCliRoot);
+              } else if (setupMode === "seeded_governed_area_kb") {
+                await setupSeededGovernedAreaKb(
+                  workspace.target,
+                  stagingCliRoot,
+                );
+              } else if (setupMode === "seeded_precondition_kb") {
+                await setupSeededPreconditionKb(
+                  workspace.target,
+                  stagingCliRoot,
+                );
+              } else if (setupMode === "seeded_consistency_kb") {
+                await setupSeededConsistencyKb(
+                  workspace.target,
+                  stagingCliRoot,
+                );
               } else if (setupMode === "seeded_stale_kb") {
                 await setupSeededStaleKb(workspace.target, stagingCliRoot);
               } else if (setupMode === "thin_root_kb") {
@@ -277,10 +357,18 @@ export async function runCodexCell(
             receiptPath: join(artifactDirectory, "final-state.json"),
           });
         }
+        const workspaceFiles = await readWorkspaceSources(workspace.target);
+        await writeFile(
+          join(artifactDirectory, "final-workspace-src.json"),
+          `${JSON.stringify(workspaceFiles)}\n`,
+          { mode: 0o600 },
+        );
         const sealedEvidence = await dependencies.evaluateSealedEvidence({
           finalState,
           brokerTrace,
           diagnosticReceipt,
+          transcript,
+          workspaceFiles,
         });
         const score = scoreCell(options.evaluatorManifest, {
           ...sealedEvidence,

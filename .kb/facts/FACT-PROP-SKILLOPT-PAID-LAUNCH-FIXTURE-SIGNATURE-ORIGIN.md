@@ -15,4 +15,8 @@ tags:
   - strict-lane
 id: FACT-PROP-SKILLOPT-PAID-LAUNCH-FIXTURE-SIGNATURE-ORIGIN
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

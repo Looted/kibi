@@ -15,6 +15,10 @@ links:
     target: TEST-cli-config-schema
   - type: verified_by
     target: TEST-e2e-schema-version-surface
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Configuration helpers report the current KB schema version and keep migration/config validation behavior aligned with write-governance expectations.

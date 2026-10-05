@@ -14,4 +14,8 @@ claim_key: CLAIM-D593FEA65D7C463C
 claim_text: Final-state property evidence must preserve the stored property_key without deriving a namespace from subject_key
 id: FACT-PRED-SKILLOPT-CLAIM-D593FEA65D7C463C
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

@@ -42,6 +42,9 @@ function text(value: unknown): string | undefined {
 export async function assertPredicateArgumentVocabulary(
   prolog: Pick<PrologPort, "query">,
   entity: Readonly<Record<string, unknown>>,
+  staged?: Readonly<{
+    entities: ReadonlyMap<string, Readonly<Record<string, unknown>>>;
+  }>,
 ): Promise<void> {
   if (entity.type !== "fact" || entity.fact_kind !== "predicate") return;
   const name = text(entity.predicate_name);
@@ -60,9 +63,25 @@ export async function assertPredicateArgumentVocabulary(
       `Predicate schema lookup failed: ${result.error ?? "unknown error"}`,
     );
   }
-  const schemas = result.bindings.Results
+  const stored = result.bindings.Results
     ? parseListOfLists(result.bindings.Results).map(parseEntityFromList)
     : [];
+  // Schemas an earlier plan step writes replace the stored version of the
+  // same id and count as declared.
+  const plannedSchemas = [...(staged?.entities.values() ?? [])].filter(
+    (candidate) =>
+      candidate.type === "fact" &&
+      candidate.fact_kind === "predicate_schema" &&
+      text(candidate.predicate_name) === name &&
+      (text(candidate.predicate_namespace) ?? "default") === namespace &&
+      Number(candidate.predicate_arity) === args.length,
+  );
+  const schemas = [
+    ...stored.filter(
+      (schema) => !staged?.entities.has(String(schema.id ?? "")),
+    ),
+    ...plannedSchemas,
+  ];
   const problems: string[] = [];
   for (const schema of schemas) {
     const argumentNames = Array.isArray(schema.argument_names)

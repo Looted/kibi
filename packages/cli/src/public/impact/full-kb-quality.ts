@@ -293,6 +293,7 @@ function toExtractedEntity(entity: Record<string, unknown>): ExtractedEntity {
     "argument_names",
     "argument_types",
     "argument_descriptions",
+    "key_arguments",
     "aliases",
     "examples",
     "predicate_args",

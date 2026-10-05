@@ -307,3 +307,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-05306a754fba
+  - type: implements
+    from: SYM-schema6-check-actions-closeSupersededRequirementsActionInput
+    to: REQ-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-04T06:00:39.888Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce757ed04577
+  - type: covered_by
+    from: SYM-schema6-check-actions-closeSupersededRequirementsActionInput
+    to: TEST-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-04T06:00:39.908Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-05c3dbd1cb1d

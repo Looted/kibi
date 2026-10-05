@@ -15,4 +15,8 @@ claim_key: CLAIM-ECD1F71256D876D4
 claim_text: MCP must refresh attachment state before serving queries or mutations after a same-branch replacement
 id: FACT-PROP-REQ-MCP-KB-FRESHNESS-N02
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

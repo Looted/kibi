@@ -1,4 +1,4 @@
-// implements REQ-008
+// implements REQ-branch-store-recovery-v4
 import { afterEach, describe, expect, test } from "bun:test";
 import type { execSync } from "node:child_process";
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";

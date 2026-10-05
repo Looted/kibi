@@ -4,13 +4,16 @@ title: GitHub Actions workflow handles npm publishing
 status: active
 created_at: 2026-02-25T15:50:00Z
 updated_at: 2026-04-21T00:00:00Z
-source: documentation/facts/FACT-009.md
 tags:
   - deployment
   - github-actions
   - npm
   - ci-cd
 fact_kind: observation
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 The GitHub Actions workflow `.github/workflows/publish.yml` is organized into four cooperating phases aimed at minimising CI clone traffic while preserving source-backed verification where needed:

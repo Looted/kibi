@@ -4,7 +4,6 @@ title: "OpenCode surfaces a cue for /brief-kibi without executing it"
 status: closed
 created_at: 2026-04-20T00:00:00Z
 updated_at: 2026-04-20T00:00:00Z
-source: documentation/scenarios/SCEN-opencode-kibi-briefing-v1.md
 tags:
   - scenario
   - opencode
@@ -15,6 +14,10 @@ links:
     target: REQ-opencode-kibi-briefing-v1
   - type: relates_to
     target: REQ-mcp-kibi-briefing-v1
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 

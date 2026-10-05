@@ -4,7 +4,6 @@ title: Fresh repository returns status metadata immediately after kibi init
 status: active
 created_at: 2026-04-17T12:00:00Z
 updated_at: 2026-04-17T12:00:00Z
-source: documentation/scenarios/SCEN-cli-status-pre-first-sync.md
 tags:
   - cli
   - init
@@ -12,6 +11,10 @@ tags:
 links:
   - type: verified_by
     target: TEST-cli-status-pre-first-sync
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 **Given** a repository that has been initialized with `kibi init`

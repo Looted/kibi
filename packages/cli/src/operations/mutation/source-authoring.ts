@@ -846,7 +846,13 @@ export function renderYamlRelationshipDeletion(
     : { body: existingContent, removed: false };
 }
 
-function renderSourceDocument(
+/**
+ * The bytes an upsert of `entity` publishes at `relativePath`, merged into the
+ * document's current content. Compile plans render their documents with it
+ * so a plan writes exactly what `kb_upsert` would.
+ */
+// implements REQ-kibi-change-to-proof-plan-compiler-v2
+export function renderSourceDocument(
   input: UpsertInput,
   entity: Readonly<Record<string, unknown>>,
   existingContent: string | undefined,

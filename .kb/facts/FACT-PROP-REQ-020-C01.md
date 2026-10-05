@@ -15,4 +15,8 @@ claim_key: CLAIM-71ECF95CFB22CA5C
 claim_text: Consistent semantic versioning across all npm packages
 id: FACT-PROP-REQ-020-C01
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

@@ -23,6 +23,10 @@ claim_text: CLI and MCP clients MUST use the framed local engine protocol and MU
 claim_span_start: 92
 claim_span_end: 224
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of the normal-operation protocol boundary.

@@ -4,7 +4,6 @@ title: Skillopt logical evidence and feedback remain semantically faithful
 status: open
 created_at: 2026-08-04T00:00:00.000Z
 updated_at: 2026-08-04T00:00:00.000Z
-source: documentation/requirements/REQ-skillopt-logical-evidence-fidelity.md
 priority: must
 tags:
   - skillopt
@@ -93,6 +92,10 @@ links:
   - type: relates_to
     target: REQ-skillopt-predicate-first-requirements
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Final-state property evidence must preserve the stored property_key without deriving a namespace from subject_key.

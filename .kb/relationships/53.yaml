@@ -43,13 +43,6 @@ relationships:
     id: rel-ce6d4f9f9225
   - type: implements
     from: SYM-deriveDiagnosticFields
-    to: REQ-kibi-telemetry-acceptance-gate
-    created_at: 2026-08-22T20:05:18.099Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-36b47f924f7a
-  - type: implements
-    from: SYM-deriveDiagnosticFields
     to: REQ-kibi-telemetry-remediation-evidence
     created_at: 2026-08-22T20:05:18.103Z
     created_by: kibi/upsert
@@ -133,13 +126,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-99ed57f24e69
   - type: implements
-    from: SYM-attachment-failure-message
-    to: REQ-branch-store-recovery-v3
-    created_at: 2026-09-14T19:11:53.408Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5a677a445fc9
-  - type: implements
     from: SYM-quality-inventory-273ca1c87f24
     to: REQ-020
     created_at: 2026-09-14T20:38:56.243Z
@@ -188,3 +174,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-798666277d34
+  - type: implements
+    from: SYM-attachment-failure-message
+    to: REQ-branch-store-recovery-v4
+    created_at: 2026-10-04T02:55:39.283Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8074febf8279
+  - type: implements
+    from: SYM-deriveDiagnosticFields
+    to: REQ-kibi-telemetry-acceptance-gate-v2
+    created_at: 2026-10-04T02:59:51.130Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-170be6bb1370

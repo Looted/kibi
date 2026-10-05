@@ -68,6 +68,10 @@ semantic_inventory:
     payload_hash: 745ccd815c2d2460083f64cefba483ce9fc024c1f076147e6e5d905303614847
     reason: Grounded by FACT-cli-query-3BA695 via requires_predicate.
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 The `kibi query` command provides CLI access to the knowledge base. It supports filtering by entity type, ID, tags, and source file.

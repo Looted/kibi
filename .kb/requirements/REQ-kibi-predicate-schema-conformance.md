@@ -45,5 +45,9 @@ semantic_inventory:
     reason: Grounded by a predicate fact over a narrow policy schema with a declared vocabulary.
 id: REQ-kibi-predicate-schema-conformance
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Kibi check must report a predicate fact with no schema for its namespace, name, and arity as a predicate-schema-conformance warning. Kibi check must report a predicate fact that uses an undeclared argument constant as a predicate-schema-conformance warning. Predicate facts in the default namespace that match the built-in predicate catalog must not be reported by predicate-schema-conformance.

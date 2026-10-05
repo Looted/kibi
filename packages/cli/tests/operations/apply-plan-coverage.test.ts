@@ -1,9 +1,16 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { createHash } from "node:crypto";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
+import { LOGIC_IR_VERSION, validateLogicIr } from "../../src/logic/ir.js";
 import {
   executeApplyPlan,
   orderBootstrapActions,
@@ -22,6 +29,7 @@ import type {
   PrologQueryResult,
 } from "../../src/public/operations/runtime-types.js";
 import { asApply } from "../helpers/coverage-casts.js";
+import { isWhatIfGoal, whatIfResult } from "../helpers/what-if.js";
 
 function sha(value: string): string {
   return createHash("sha256").update(value).digest("hex");
@@ -83,6 +91,29 @@ function compilePlan(overrides: Partial<CompilePlanV1> = {}): CompilePlanV1 {
   return { ...body, planHash: compilePlanHash(body) };
 }
 
+/**
+ * Entity-deletion plans still publish their source writes through the
+ * legacy source-writes journal; compile plans use the atomic plan journal.
+ */
+function deletionPlan(
+  sourceWrites: readonly {
+    path: string;
+    mode: "write" | "delete";
+    beforeHash: string | null;
+    afterHash: string | null;
+    body?: string;
+  }[],
+) {
+  const body = {
+    version: "kibi.entity-deletion-plan.v1" as const,
+    entityIds: ["FACT-CRASH"],
+    sourceHashes: {},
+    sourceWrites,
+    supersessionRequired: false,
+  };
+  return { ...body, planHash: sha(JSON.stringify(body)) };
+}
+
 function filesystemContext(
   workspaceRoot: string,
   extra?: {
@@ -94,9 +125,11 @@ function filesystemContext(
 ): OperationContext {
   const query: OperationContext["prolog"] = extra?.query ?? {
     query: async (goal): Promise<PrologQueryResult> =>
-      goal.includes("kb_commit_upsert")
-        ? { success: true, bindings: { ChangeKind: "created" } }
-        : { success: true, bindings: { Results: "[]" } },
+      isWhatIfGoal(goal)
+        ? whatIfResult()
+        : goal.includes("kb_commit_upsert")
+          ? { success: true, bindings: { ChangeKind: "created" } }
+          : { success: true, bindings: { Results: "[]" } },
     queryStatusJson: async () => ({ success: true, bindings: {} }),
     nextSolution: async () => null,
     save: async () => ({ success: true, bindings: {} }),
@@ -313,6 +346,354 @@ describe("compile plan application", () => {
     ]);
   });
 
+  // implements REQ-kibi-truthful-consistency
+  function preflightContext(
+    root: string,
+    analysis: Parameters<typeof whatIfResult>[0],
+  ): { context: OperationContext; commits: () => number } {
+    let commits = 0;
+    const context = filesystemContext(root, {
+      query: {
+        query: async (goal): Promise<PrologQueryResult> => {
+          if (isWhatIfGoal(goal)) return whatIfResult(analysis);
+          if (goal.includes("kb_commit_upsert")) {
+            commits += 1;
+            return { success: true, bindings: { ChangeKind: "created" } };
+          }
+          return { success: true, bindings: { Results: "[]" } };
+        },
+        queryStatusJson: async () => ({ success: true, bindings: {} }),
+        nextSolution: async () => null,
+        save: async () => ({ success: true, bindings: {} }),
+      },
+    });
+    return { context, commits: () => commits };
+  }
+
+  function sourceWritingPlan(): CompilePlanV1 {
+    const body = "Requirement body\n";
+    return compilePlan({
+      steps: [
+        {
+          type: "req",
+          id: "REQ-apply",
+          properties: { title: "Apply", status: "open" },
+          relationships: [],
+          document: { path: "requirements/REQ-apply.md", body },
+        },
+      ],
+      sourceWrites: [
+        {
+          path: "requirements/REQ-apply.md",
+          mode: "write",
+          beforeHash: null,
+          afterHash: sha(body),
+          body,
+        },
+      ],
+    });
+  }
+
+  for (const [label, witness] of [
+    [
+      "contradiction",
+      {
+        kind: "property",
+        status: "contradiction",
+        requirements: ["REQ-apply", "REQ-other"],
+        reason: "Value conflict on retention.days: eq 1 vs eq 365",
+      },
+    ],
+    [
+      "infeasible scenario",
+      {
+        kind: "scenario_feasibility",
+        status: "infeasible",
+        requirements: ["REQ-unrelated"],
+        scenario: "SCEN-zero-quota",
+        reason:
+          "Scenario SCEN-zero-quota expects success but assumes FACT-zero",
+      },
+    ],
+  ] as const) {
+    test(`refuses a staged final state that introduces a ${label} before any write`, async () => {
+      const root = makeTempDir();
+      const plan = sourceWritingPlan();
+      const { context, commits } = preflightContext(root, {
+        introduced: [witness],
+      });
+      await expect(
+        executeApplyPlan({ plan, approvedPlanHash: plan.planHash }, context),
+      ).rejects.toThrow(
+        /failed before any write: the staged plan introduces 1 contradiction\(s\) or infeasible scenario\(s\)/,
+      );
+      expect(commits()).toBe(0);
+      expect(existsSync(path.join(root, "requirements", "REQ-apply.md"))).toBe(
+        false,
+      );
+    });
+  }
+
+  test("applies when staged witnesses already existed or stay unresolved", async () => {
+    const root = makeTempDir();
+    const plan = sourceWritingPlan();
+    const { context, commits } = preflightContext(root, {
+      unchanged: [
+        {
+          kind: "property",
+          status: "contradiction",
+          requirements: ["REQ-old-a", "REQ-old-b"],
+          reason: "pre-existing",
+        },
+      ],
+      introduced: [
+        {
+          kind: "rule",
+          status: "unresolved",
+          requirements: ["REQ-apply", "REQ-other"],
+          reason: "Rule conflict (unresolved)",
+        },
+      ],
+    });
+    const result = await executeApplyPlan(
+      { plan, approvedPlanHash: plan.planHash },
+      context,
+    );
+    expect(result.structuredContent).toMatchObject({ outcome: "applied" });
+    expect(commits()).toBe(1);
+  });
+
+  test("fails closed before any write when the staged analysis is unreadable", async () => {
+    const root = makeTempDir();
+    const plan = sourceWritingPlan();
+    let commits = 0;
+    const context = filesystemContext(root, {
+      query: {
+        query: async (goal): Promise<PrologQueryResult> => {
+          if (isWhatIfGoal(goal))
+            return { success: true, bindings: { JsonString: "not json" } };
+          if (goal.includes("kb_commit_upsert")) commits += 1;
+          return { success: true, bindings: { Results: "[]" } };
+        },
+        queryStatusJson: async () => ({ success: true, bindings: {} }),
+        nextSolution: async () => null,
+        save: async () => ({ success: true, bindings: {} }),
+      },
+    });
+    await expect(
+      executeApplyPlan({ plan, approvedPlanHash: plan.planHash }, context),
+    ).rejects.toThrow("contradiction analysis could not be read");
+    expect(commits).toBe(0);
+  });
+
+  test("validates every step before the first write", async () => {
+    const root = makeTempDir();
+    const plan = compilePlan({
+      steps: [
+        {
+          type: "req",
+          id: "REQ-apply",
+          properties: { title: "Apply", status: "open" },
+          relationships: [],
+        },
+        {
+          type: "scenario",
+          id: "SCEN-apply",
+          properties: { title: "Apply scenario", status: "active" },
+          // A relationship must originate at the step's own entity.
+          relationships: [
+            { type: "specified_by", from: "REQ-apply", to: "SCEN-apply" },
+          ],
+        },
+      ],
+    });
+    const { context, commits } = preflightContext(root, {});
+    await expect(
+      executeApplyPlan({ plan, approvedPlanHash: plan.planHash }, context),
+    ).rejects.toThrow(/failed before any write: step SCEN-apply is invalid/);
+    expect(commits()).toBe(0);
+  });
+
+  // implements REQ-kibi-truthful-consistency
+  // A store that holds only what the plan's committed steps wrote, so a
+  // lookup of an entity no step has committed yet fails.
+  function stagedStoreContext(
+    root: string,
+    ids: readonly string[],
+  ): { context: OperationContext; commits: () => number } {
+    const stored = new Set<string>();
+    let commits = 0;
+    const context = filesystemContext(root, {
+      query: {
+        query: async (goal): Promise<PrologQueryResult> => {
+          if (isWhatIfGoal(goal)) return whatIfResult();
+          if (goal.includes("kb_commit_upsert")) {
+            commits += 1;
+            for (const id of ids) if (goal.includes(id)) stored.add(id);
+            return { success: true, bindings: { ChangeKind: "created" } };
+          }
+          // Existence probes fail for an absent entity; a findall read
+          // succeeds with no rows.
+          const lookup = /kb_entity\('([^']+)'/.exec(goal);
+          if (lookup?.[1] !== undefined && !goal.startsWith("findall("))
+            return {
+              success: stored.has(lookup[1]),
+              bindings: { Results: "[]", Type: "fact" },
+            };
+          return { success: true, bindings: { Results: "[]" } };
+        },
+        queryStatusJson: async () => ({ success: true, bindings: {} }),
+        nextSolution: async () => null,
+        save: async () => ({ success: true, bindings: {} }),
+      },
+    });
+    return { context, commits: () => commits };
+  }
+
+  const retainRule = {
+    version: LOGIC_IR_VERSION,
+    kind: "rule",
+    modality: "oblige",
+    variables: [{ name: "X", type: "entity" }],
+    head: {
+      kind: "atom",
+      name: "retain",
+      args: [{ kind: "var", name: "X", type: "entity" }],
+    },
+    body: {
+      kind: "atom",
+      name: "customer",
+      args: [{ kind: "var", name: "X", type: "entity" }],
+    },
+  } as const;
+
+  function ruleFactStep(id: string): CompilePlanV1["steps"][number] {
+    const validation = validateLogicIr(retainRule);
+    return {
+      type: "fact",
+      id,
+      properties: {
+        title: "Retain customers rule",
+        status: "active",
+        fact_kind: "rule",
+        rule_ir: retainRule,
+        rule_hash: validation.ruleHash,
+        rule_schema_id: "FACT-RULE-SCHEMA-LOGIC-V1",
+        rule_name: "kibi.logic.v1",
+        semantic_key: validation.semanticKey,
+      },
+      relationships: [],
+    };
+  }
+
+  function ruledRequirementStep(
+    target: string,
+    type = "requires_rule",
+  ): CompilePlanV1["steps"][number] {
+    return {
+      type: "req",
+      id: "REQ-ruled",
+      properties: { title: "Retain customers", status: "open" },
+      relationships: [{ type, from: "REQ-ruled", to: target }],
+    };
+  }
+
+  test("refuses a plan whose later step fails the upsert validation chain with zero writes", async () => {
+    const root = makeTempDir();
+    const valid = sourceWritingPlan();
+    const plan = compilePlan({
+      steps: [
+        ...valid.steps,
+        {
+          type: "req",
+          id: "REQ-normative",
+          properties: {
+            title: "Token expiry",
+            status: "open",
+            // Current normative prose without its proposition inventory.
+            semantic_text: "The service must reject expired tokens.",
+          },
+          relationships: [],
+        },
+      ],
+      sourceWrites: valid.sourceWrites,
+    });
+    const { context, commits } = preflightContext(root, {});
+    await expect(
+      executeApplyPlan({ plan, approvedPlanHash: plan.planHash }, context),
+    ).rejects.toThrow(
+      /failed before any write: step REQ-normative is invalid: Proposition-complete ingestion failed/,
+    );
+    expect(commits()).toBe(0);
+    expect(existsSync(path.join(root, "requirements", "REQ-apply.md"))).toBe(
+      false,
+    );
+  });
+
+  test("lets a step target an entity an earlier step of the plan creates", async () => {
+    const root = makeTempDir();
+    const ids = ["FACT-RULE-NEW", "REQ-ruled"];
+    const plan = compilePlan({
+      steps: [
+        ruleFactStep("FACT-RULE-NEW"),
+        ruledRequirementStep("FACT-RULE-NEW"),
+      ],
+    });
+    const { context, commits } = stagedStoreContext(root, ids);
+    const result = await executeApplyPlan(
+      { plan, approvedPlanHash: plan.planHash },
+      context,
+    );
+    expect(result.structuredContent).toMatchObject({ outcome: "applied" });
+    // Both steps, including the forward reference, commit in one batch.
+    expect(commits()).toBe(1);
+
+    // Without the creating step the target is missing and nothing is written.
+    const orphan = compilePlan({
+      steps: [ruledRequirementStep("FACT-RULE-NEW")],
+    });
+    const fresh = stagedStoreContext(makeTempDir(), ids);
+    await expect(
+      executeApplyPlan(
+        { plan: orphan, approvedPlanHash: orphan.planHash },
+        fresh.context,
+      ),
+    ).rejects.toThrow(
+      /failed before any write: step REQ-ruled is invalid: .*FACT-RULE-NEW.*fact_kind=rule/,
+    );
+    expect(fresh.commits()).toBe(0);
+  });
+
+  test("judges a plan-created target by the kind the plan gives it", async () => {
+    const root = makeTempDir();
+    const plan = compilePlan({
+      steps: [
+        {
+          type: "fact",
+          id: "FACT-SUBJECT-NEW",
+          properties: {
+            title: "Client quota",
+            status: "active",
+            fact_kind: "subject",
+            subject_key: "client.quota",
+          },
+          relationships: [],
+        },
+        ruledRequirementStep("FACT-SUBJECT-NEW", "requires_property"),
+      ],
+    });
+    const { context, commits } = stagedStoreContext(root, [
+      "FACT-SUBJECT-NEW",
+      "REQ-ruled",
+    ]);
+    await expect(
+      executeApplyPlan({ plan, approvedPlanHash: plan.planHash }, context),
+    ).rejects.toThrow(
+      /failed before any write: step REQ-ruled is invalid: Relationship 'requires_property' requires target 'FACT-SUBJECT-NEW'/,
+    );
+    expect(commits()).toBe(0);
+  });
+
   test("refuses a second original apply and validates source-recovery journal IDs", async () => {
     const root = makeTempDir();
     const body = "Replay body\n";
@@ -359,9 +740,11 @@ describe("compile plan application", () => {
     const root = makeTempDir();
     const prolog = {
       query: async (goal: string): Promise<PrologQueryResult> =>
-        goal.includes("kb_commit_upsert")
-          ? { success: true, bindings: { ChangeKind: "created" } }
-          : { success: true, bindings: { Results: "[]" } },
+        isWhatIfGoal(goal)
+          ? whatIfResult()
+          : goal.includes("kb_commit_upsert")
+            ? { success: true, bindings: { ChangeKind: "created" } }
+            : { success: true, bindings: { Results: "[]" } },
       queryStatusJson: async () => ({ success: true, bindings: {} }),
       nextSolution: async () => null,
       save: async () => ({ success: true, bindings: {} }),
@@ -715,7 +1098,10 @@ describe("bootstrap plan extra guards", () => {
           signal: new AbortController().signal,
           clock: () => new Date(0),
           prolog: {
-            query: async () => ({ success: true, bindings: {} }),
+            query: async (goal: string) =>
+              isWhatIfGoal(goal)
+                ? whatIfResult()
+                : { success: true, bindings: {} },
             nextSolution: async () => null,
             save: async () => ({ success: true, bindings: {} }),
           },
@@ -801,12 +1187,14 @@ describe("bootstrap plan extra guards", () => {
       filesystemContext(root, {
         query: {
           query: async (goal) =>
-            (goal.includes("kb_commit_upsert")
-              ? { success: true, bindings: { ChangeKind: "created" } }
-              : {
-                  success: true,
-                  bindings: { Results: "[]" },
-                }) as unknown as PrologQueryResult,
+            isWhatIfGoal(goal)
+              ? whatIfResult()
+              : ((goal.includes("kb_commit_upsert")
+                  ? { success: true, bindings: { ChangeKind: "created" } }
+                  : {
+                      success: true,
+                      bindings: { Results: "[]" },
+                    }) as unknown as PrologQueryResult),
           queryStatusJson: async () => ({ success: true, bindings: {} }),
           nextSolution: async () => null,
           save: async () => ({ success: true, bindings: {} }),
@@ -1046,7 +1434,11 @@ describe("source hash and source-write guards", () => {
       { plan, approvedPlanHash: plan.planHash },
       filesystemContext(root),
     );
-    expect(asApply(result.structuredContent).changedPaths).toEqual(["gone.md"]);
+    // The step's own document is written beside the plan's delete.
+    expect(asApply(result.structuredContent).changedPaths).toEqual([
+      "gone.md",
+      ".kb/requirements/REQ-apply.md",
+    ]);
   });
 
   test("writes without rename and refuses delete without unlink", async () => {
@@ -1070,6 +1462,7 @@ describe("source hash and source-write guards", () => {
     );
     expect(asApply(written.structuredContent).changedPaths).toEqual([
       "docs/compat.md",
+      ".kb/requirements/REQ-apply.md",
     ]);
 
     writeFileSync(path.join(root, "gone-no-unlink.md"), "x\n");
@@ -1122,7 +1515,7 @@ describe("source hash and source-write guards", () => {
         body: after,
       },
     ];
-    const plan = compilePlan({ sourceWrites: writes });
+    const plan = deletionPlan(writes);
     const journalId = `source-writes-${plan.planHash.slice(0, 16)}`;
     const recoveryDir = path.join(root, ".kb", "recovery");
     mkdirSync(recoveryDir, { recursive: true });
@@ -1161,25 +1554,15 @@ describe("source hash and source-write guards", () => {
     );
     expect(recovered.structuredContent.outcome).toBe("applied");
 
-    const drifted = compilePlan({
-      steps: [
-        {
-          type: "req",
-          id: "REQ-drift",
-          properties: { title: "Drift", status: "open" },
-          relationships: [],
-        },
-      ],
-      sourceWrites: [
-        {
-          path: "docs/drift.md",
-          mode: "write",
-          beforeHash: sha("old\n"),
-          afterHash: sha("new\n"),
-          body: "new\n",
-        },
-      ],
-    });
+    const drifted = deletionPlan([
+      {
+        path: "docs/drift.md",
+        mode: "write",
+        beforeHash: sha("old\n"),
+        afterHash: sha("new\n"),
+        body: "new\n",
+      },
+    ]);
     const driftId = `source-writes-${drifted.planHash.slice(0, 16)}`;
     mkdirSync(path.join(root, "docs"), { recursive: true });
     writeFileSync(path.join(root, "docs", "drift.md"), "outside\n");
@@ -1584,7 +1967,7 @@ describe("remaining apply-plan shape and recovery branches", () => {
         body: after,
       },
     ];
-    const plan = compilePlan({ sourceWrites: writes });
+    const plan = deletionPlan(writes);
     const journalId = `source-writes-${plan.planHash.slice(0, 16)}`;
     const recoveryDir = path.join(root, ".kb", "recovery");
     mkdirSync(recoveryDir, { recursive: true });
@@ -1619,18 +2002,17 @@ describe("remaining apply-plan shape and recovery branches", () => {
       filesystemContext(root),
     );
     expect(recovered.structuredContent.outcome).toBe("applied");
+    expect(existsSync(path.join(root, "docs", "new.md"))).toBe(false);
 
-    const mismatch = compilePlan({
-      sourceWrites: [
-        {
-          path: "docs/other.md",
-          mode: "write",
-          beforeHash: null,
-          afterHash: sha("x\n"),
-          body: "x\n",
-        },
-      ],
-    });
+    const mismatch = deletionPlan([
+      {
+        path: "docs/other.md",
+        mode: "write",
+        beforeHash: null,
+        afterHash: sha("x\n"),
+        body: "x\n",
+      },
+    ]);
     const mismatchId = `source-writes-${mismatch.planHash.slice(0, 16)}`;
     writeFileSync(
       path.join(recoveryDir, `${mismatchId}.json`),
@@ -1655,9 +2037,9 @@ describe("remaining apply-plan shape and recovery branches", () => {
       { plan: mismatch, approvedPlanHash: mismatch.planHash },
       filesystemContext(root),
     );
-    expect(asApply(applied.structuredContent).changedPaths).toEqual([
-      "docs/other.md",
-    ]);
+    expect(applied.structuredContent).toMatchObject({
+      sourcePaths: ["docs/other.md"],
+    });
   });
 
   test("records committed_with_repairs when a bootstrap upsert returns repair status", async () => {
@@ -1668,12 +2050,14 @@ describe("remaining apply-plan shape and recovery branches", () => {
       filesystemContext(root, {
         query: {
           query: async (goal) =>
-            (goal.includes("kb_commit_upsert")
-              ? { success: true, bindings: { ChangeKind: "mutated" } }
-              : {
-                  success: true,
-                  bindings: { Results: "[]" },
-                }) as unknown as PrologQueryResult,
+            isWhatIfGoal(goal)
+              ? whatIfResult()
+              : ((goal.includes("kb_commit_upsert")
+                  ? { success: true, bindings: { ChangeKind: "mutated" } }
+                  : {
+                      success: true,
+                      bindings: { Results: "[]" },
+                    }) as unknown as PrologQueryResult),
           queryStatusJson: async () => ({ success: true, bindings: {} }),
           nextSolution: async () => null,
           save: async () => ({ success: true, bindings: {} }),

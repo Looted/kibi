@@ -139,3 +139,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-84fc9ed8243a
+  - type: validates
+    from: TEST-kibi-mcp-tool-consolidation
+    to: SCEN-kibi-mcp-tool-consolidation
+    created_at: 2026-10-03T09:15:14.739Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4bdc7de2d38d
+  - type: covered_by
+    from: SYM-core-check-scenario-feasibility
+    to: TEST-kibi-scenario-feasibility
+    created_at: 2026-10-03T09:26:46.829Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-04e97e02976a
+  - type: implements
+    from: SYM-core-check-scenario-feasibility
+    to: REQ-kibi-scenario-feasibility-v2
+    created_at: 2026-10-04T02:59:33.074Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6d746d934d52
+  - type: implements
+    from: SYM-detached-snapshot-refreshDetachedSnapshot
+    to: REQ-branch-store-recovery-v4
+    created_at: 2026-10-04T03:14:21.748Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5660cc0efe60
+  - type: covered_by
+    from: SYM-detached-snapshot-refreshDetachedSnapshot
+    to: TEST-branch-detached-head-read-only
+    created_at: 2026-10-04T03:14:21.766Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-de7e689a8aa6
+  - type: implements
+    from: SYM-search-answer-projectVerdict
+    to: REQ-kibi-search-answer-layer-v2
+    created_at: 2026-10-04T03:15:16.234Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5a4b4fd9c4f8
+  - type: covered_by
+    from: SYM-search-answer-projectVerdict
+    to: TEST-kibi-search-answer-verdicts
+    created_at: 2026-10-04T03:15:16.248Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a0276a0d2f84
+  - type: covered_by
+    from: SYM-search-answer-projectVerdict
+    to: TEST-kibi-search-answer-layer
+    created_at: 2026-10-04T04:43:11.573Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c9a87d0f2256
+  - type: covered_by
+    from: SYM-core-check-scenario-feasibility
+    to: TEST-kibi-conditional-feasibility-cli
+    created_at: 2026-10-04T04:44:40.534Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8a2b9d21ff9a
+  - type: covered_by
+    from: SYM-detached-snapshot-refreshDetachedSnapshot
+    to: TEST-branch-detached-head-read-only-cli
+    created_at: 2026-10-04T05:28:45.075Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9beed7a50a40

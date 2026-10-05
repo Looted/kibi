@@ -1,6 +1,6 @@
 {
   "name": "kibi-plugin-builtin",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Default Kibi capability plugins: TS symbol extraction, ontology pack, and semantic classifier",
   "type": "module",
   "main": "./dist/index.js",
@@ -12,7 +12,10 @@
     },
     "./package.json": "./package.json"
   },
-  "files": ["dist", "CHANGELOG.md"],
+  "files": [
+    "dist",
+    "CHANGELOG.md"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",

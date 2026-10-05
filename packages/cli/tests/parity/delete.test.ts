@@ -15,7 +15,13 @@ describe("delete parity", () => {
       const upsertInput = {
         type: "req",
         id: "REQ-DELETE-PARITY",
-        properties: { title: "Delete transport parity", status: "open" },
+        properties: {
+          title: "Delete transport parity",
+          status: "open",
+          // A fixed write time keeps both seeded files (and so the deletion
+          // plans' source hashes) byte-identical.
+          origin: { kind: "agent", recorded_at: "2026-01-01T00:00:00.000Z" },
+        },
         document: { path: "requirements/REQ-DELETE-PARITY.md" },
       } as const;
       const [cliSeeded, mcpSeeded] = await Promise.all([

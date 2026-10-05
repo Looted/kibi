@@ -223,3 +223,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-38b8cf162527
+  - type: verified_by
+    from: SCEN-cli-migrate
+    to: TEST-kibi-schema6-migration-cli
+    created_at: 2026-10-04T17:48:57.824Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ece4084a169d
+  - type: verified_by
+    from: SCEN-cli-migrate
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-10-04T17:48:58.135Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cbb26aa9a408

@@ -17,4 +17,8 @@ claim_key: CLAIM-98BEE3359E84D72E
 claim_text: Blank values are unset and must not overwrite
 id: FACT-PROP-ENV-BOOTSTRAP-BLANK
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

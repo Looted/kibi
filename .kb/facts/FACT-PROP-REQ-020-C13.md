@@ -15,4 +15,8 @@ claim_key: CLAIM-4418DB2C27AC4997
 claim_text: If KB query is unavailable or unreliable, agents and maintainers MUST refer to this document and the corresponding ADR for authoritative release policy
 id: FACT-PROP-REQ-020-C13
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

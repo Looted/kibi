@@ -11,6 +11,7 @@ import {
   assertSymbolCoordinatesPresent,
 } from "../runtime/fixture-kb-setup";
 import { REQUIRED_KIBI_TOOLS } from "../runtime/mcp-broker";
+import { mcpToolForOperation } from "../runtime/mcp-tool-names";
 import { migrationApplyContractViolations } from "../scoring/cell";
 import type { CellEvidence } from "../scoring/cell";
 
@@ -39,7 +40,7 @@ describe("generated_only_symbol_coordinate_repair held-out task", () => {
     expect(TASK.taskData.mutation).toBe("write");
     expect(TASK.taskData.approvalPhase).toBe("post-approval");
     const total = [...buildPublicCatalog(), ...buildHeldOutCatalog()];
-    expect(total).toHaveLength(120);
+    expect(total).toHaveLength(141);
     const family = total.filter(
       (task) => task.family === "symbol-impact-granularity",
     );
@@ -148,7 +149,10 @@ describe("generated_only_symbol_coordinate_repair held-out task", () => {
     }
     const advertised = new Set<string>(REQUIRED_KIBI_TOOLS);
     for (const tool of requiredTools) {
-      expect(advertised.has(tool), `broker must advertise ${tool}`).toBe(true);
+      expect(
+        advertised.has(mcpToolForOperation(tool)),
+        `broker must advertise the MCP tool for ${tool}`,
+      ).toBe(true);
     }
     // Delete-sanctioned objectives require kb_delete through the broker;
     // the coordinate-repair objective must never join them.

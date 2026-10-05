@@ -5,7 +5,6 @@ type: scenario
 status: active
 created_at: 2026-07-21T00:00:00Z
 updated_at: 2026-07-21T00:00:00Z
-source: documentation/scenarios/SCEN-agent-kibi-interface-selection.md
 priority: must
 tags:
   - opencode
@@ -18,6 +17,10 @@ links:
     target: REQ-agent-kibi-interface-selection
   - type: relates_to
     target: ADR-022
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 ## Scenario

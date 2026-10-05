@@ -15,4 +15,8 @@ claim_key: CLAIM-5BE77E3C3E73A342
 claim_text: 'Deterministic test-fixture signatures must declare `signatureProvenance: deterministic-test-fixture` and `externallySigned: false`; fixture evidence must never claim external signing.\n\nThis is intentionally an umbrella requirement because one paid launch crosses the external trust client, capability gateway, crash-safe accounting, reconciliation, and independently parsed receipt chain'
 id: FACT-PROP-REQ-SKILLOPT-PAID-LAUNCH-ACCOUNTING-C03
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

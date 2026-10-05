@@ -18,4 +18,8 @@ claim_span_start: 442
 claim_span_end: 517
 id: FACT-PROP-KIBI-INIT-HOOKS-ENFORCEMENT-OWNER
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

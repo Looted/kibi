@@ -16,7 +16,29 @@ export type GuidanceContext = {
   readonly workspaceTrusted: boolean;
   /** Requirements the edited file already owns, when the manifest knows them. */
   readonly linkedRequirementIds?: readonly string[];
+  /**
+   * The shared kibi-agent-core knowledge snippet for a file that implements
+   * requirements: titles, what the lead requirement must keep true and the
+   * decision behind it (edits), tests, and the next-layer calls.
+   */
+  readonly knowledge?: string | undefined;
 };
+
+// implements REQ-cursor-kibi-plugin-v1
+/** Cursor's own ask once the shared snippet has named the requirements. */
+export const PRE_EDIT_FOLLOWUP =
+  "Kibi pre-edit guidance: read those requirements with kb_query before changing behavior here; if the change contradicts one, resolve that in Kibi before writing the edit.";
+
+function withAdvisory(
+  context: GuidanceContext,
+  guidance: readonly string[],
+): string {
+  const advisory = interfaceAdvisory(
+    context.mcpState,
+    context.workspaceTrusted,
+  );
+  return advisory ? [advisory, ...guidance].join("\n") : guidance.join("\n");
+}
 
 export function readGuidance(
   filePath: string,
@@ -29,6 +51,9 @@ export function readGuidance(
   const relativePath = toRepoRelativePath(filePath, context.cwd);
   if (!isMeaningfulTrackedPath(relativePath)) {
     return undefined;
+  }
+  if (context.knowledge) {
+    return withAdvisory(context, [context.knowledge]);
   }
 
   const guidance = [
@@ -65,6 +90,9 @@ export function preEditGuidance(
   }
   if (isDocumentationTrackedPath(relativePath)) {
     return undefined;
+  }
+  if (context.knowledge) {
+    return withAdvisory(context, [context.knowledge, PRE_EDIT_FOLLOWUP]);
   }
 
   const linkedRequirements = context.linkedRequirementIds ?? [];

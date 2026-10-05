@@ -20,4 +20,8 @@ claim_key: CLAIM-220282AF6C04F1A1
 claim_text: The launcher shall reject unresolved placeholders and ambiguous sets of multiple usable workspace roots with a clear error
 id: FACT-PRED-073AC8A66AD6
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

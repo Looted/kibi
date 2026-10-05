@@ -4,7 +4,6 @@ title: "VS Code Kibi Briefing v2: Auto-Open Scenarios"
 status: closed
 created_at: 2026-04-29T00:00:00Z
 updated_at: 2026-04-29T00:00:00Z
-source: documentation/scenarios/SCEN-vscode-kibi-briefing-v2.md
 tags:
   - scenario
   - vscode
@@ -13,6 +12,10 @@ tags:
 links:
   - type: relates_to
     target: REQ-vscode-kibi-briefing-v2
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 **Scenario: VS Code Channel Enabled — New brief auto-opens**

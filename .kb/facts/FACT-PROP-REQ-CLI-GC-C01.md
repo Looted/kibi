@@ -15,4 +15,8 @@ claim_key: CLAIM-F6BDC944EFE3155C
 claim_text: The `kibi gc` command removes stale KB branch stores that no longer have a corresponding local git branch
 id: FACT-PROP-REQ-CLI-GC-C01
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

@@ -20,5 +20,9 @@ claim_text: The output option must accept an HTML file or directory and default 
 id: FACT-PRED-FCCC8C0397F3
 type: fact
 predicate_namespace: kibi.requirements
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Ground representation of one atomic behavior in the Kibi HTML requirement-health report.

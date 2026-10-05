@@ -161,8 +161,11 @@ maps to `proofStatus: unresolved`, not `proven`.
 - `bun run proof:replay` (this repository) — replay the CI proof job's gate
   steps from `.github/workflows/proof.yml` in a clean clone of the committed
   HEAD, outside the repository tree, and stop at the first failing step.
-- `kibi proof prune --keep 1` — drop superseded receipts (re-proving the same
-  snapshot appends duplicates).
+- `kibi proof compact` — one-off: drop receipts that can no longer decide
+  proof from a store written before `kibi prove` compacted histories on
+  ingest. Coverage decisions are unchanged.
+- `kibi proof prune --keep 1` — keep only the newest receipt per test,
+  whether or not older ones still decide proof.
 - `kibi proof migrate-legacy` — remove legacy `verification_receipts` blocks
   from tests that already carry a `proof_contract`.
 - `docs/proving-requirements.md` — the runner-neutral proof pipeline:

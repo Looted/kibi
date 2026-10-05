@@ -9,6 +9,10 @@ tags: [mcp, model-requirement, unit]
 links:
   - type: validates
     target: SCEN-mcp-model-requirement-v1
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Verifies claim extraction, confidence routing, strict apply-plan generation, observation fallback, and workspace migration warnings for the MCP model_requirement tool.

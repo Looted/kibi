@@ -14,4 +14,8 @@ claim_key: CLAIM-C2D96701E5482769
 claim_text: Public MCP access uses `kb_query` with the `sourceFile` filter
 id: FACT-PROP-REQ015-SOURCEFILE
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

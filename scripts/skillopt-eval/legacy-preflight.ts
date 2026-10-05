@@ -22,9 +22,11 @@ import {
   withPreparedLogin,
 } from "./runtime/codex-auth";
 import {
+  type SkillOptModelId,
+  activeSkillOptModelConfig,
+} from "./runtime/models";
+import {
   type CapabilityCanaryReceipt,
-  OPTIMIZER_MODEL,
-  TARGET_MODEL,
   buildCodexConfig,
 } from "./runtime/permissions";
 import {
@@ -51,8 +53,8 @@ export type PreflightConfig = Readonly<{
 export type PreflightReceipt = Readonly<{
   verdict: "pass" | "no-go";
   runId: string;
-  targetModel: typeof TARGET_MODEL;
-  optimizerModel: typeof OPTIMIZER_MODEL;
+  targetModel: SkillOptModelId;
+  optimizerModel: SkillOptModelId;
   skilloptCommit: typeof SKILLOPT_COMMIT;
   codexVersion: string | null;
   authMode: "file" | "keyring" | null;
@@ -105,10 +107,11 @@ function baseReceipt(
     configValid: boolean;
   }>,
 ): Omit<PreflightReceipt, "verdict" | "reason"> {
+  const models = activeSkillOptModelConfig();
   return {
     runId: config.runId,
-    targetModel: TARGET_MODEL,
-    optimizerModel: OPTIMIZER_MODEL,
+    targetModel: models.targetModel,
+    optimizerModel: models.optimizerModel,
     skilloptCommit: SKILLOPT_COMMIT,
     ...state,
     paidModelCalls: 0,

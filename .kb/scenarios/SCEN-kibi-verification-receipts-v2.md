@@ -4,11 +4,14 @@ title: Append current-contract proof evidence without rewriting receipt history
 status: active
 created_at: 2026-08-14T00:00:00Z
 updated_at: 2026-08-14T00:00:00Z
-source: documentation/scenarios/SCEN-kibi-verification-receipts-v2.md
 tags: [requirements, proof, verification, receipts, e2e, v2]
 links:
   - type: verified_by
     target: TEST-kibi-verification-receipts-v2
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Given a scenario-backed E2E test with an existing receipt history, when the exact current proof contract is executed through `kibi prove`, then Kibi appends a `kibi.proof-receipt.v1` result containing the command, contract hash, required case results, timing, snapshot, outcome, and artifact digest while preserving every older receipt unchanged.

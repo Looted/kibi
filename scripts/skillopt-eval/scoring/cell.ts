@@ -282,12 +282,97 @@ export function migrationApplyContractViolations(
   return [...new Set(violations)];
 }
 
+/**
+ * Subset predicate over call arguments. Objects match when every expected
+ * field matches; arrays match when every expected element matches some actual
+ * element (so `rules: ["domain-contradictions"]` means "rules include it" and
+ * `sourceLocations: [{ path: "src/x.ts" }]` means "some location has that
+ * path"); scalars compare exactly.
+ */
+// implements REQ-skillopt-codex-optimization
+export function argumentsMatch(expected: unknown, actual: unknown): boolean {
+  if (Array.isArray(expected)) {
+    if (!Array.isArray(actual)) return false;
+    return expected.every((entry) =>
+      actual.some((candidate) => argumentsMatch(entry, candidate)),
+    );
+  }
+  if (isRecordLike(expected)) {
+    if (!isRecordLike(actual)) return false;
+    return Object.entries(expected).every(([key, value]) =>
+      argumentsMatch(value, actual[key]),
+    );
+  }
+  return Object.is(expected, actual);
+}
+
+/**
+ * Ordered required calls with their argument predicates. Each required call
+ * must be matched by a later model-originated call than the previous one.
+ * Without raw call arguments only argument-free requirements can match.
+ */
+// implements REQ-skillopt-codex-optimization
+export function requiredCallViolations(
+  contract: ProtocolContract,
+  evidence: CellEvidence,
+): readonly string[] {
+  const calls: readonly RawCallView[] =
+    evidence.broker.rawCalls ??
+    evidence.broker.orderedCalls.map(({ tool }) => ({
+      tool,
+      args: {},
+      resultOk: true,
+    }));
+  const violations: string[] = [];
+  let cursor = 0;
+  for (const [index, required] of contract.requiredCalls.entries()) {
+    const found = calls.findIndex(
+      (call, callIndex) =>
+        callIndex >= cursor &&
+        call.tool === required.tool &&
+        (required.args === undefined ||
+          argumentsMatch(required.args, call.args)),
+    );
+    if (found < 0) {
+      violations.push(
+        `required call ${index + 1} (${required.tool}${required.args === undefined ? "" : " with matching arguments"}) not observed in order`,
+      );
+      continue;
+    }
+    cursor = found + 1;
+  }
+  return violations;
+}
+
+/** Every protocol-contract violation: required calls, forbidden tools, apply. */
+// implements REQ-skillopt-codex-optimization
+export function protocolContractViolations(
+  contract: ProtocolContract,
+  evidence: CellEvidence,
+): readonly string[] {
+  const violations = [...requiredCallViolations(contract, evidence)];
+  if (contract.exactMigrationApply !== undefined) {
+    violations.push(...migrationApplyContractViolations(contract, evidence));
+  } else {
+    for (const call of evidence.broker.rawCalls ?? []) {
+      if (contract.forbiddenTools.includes(call.tool)) {
+        violations.push(`forbidden tool attempted: ${call.tool}`);
+      }
+    }
+    for (const call of evidence.broker.orderedCalls) {
+      if (contract.forbiddenTools.includes(call.tool)) {
+        violations.push(`forbidden tool attempted: ${call.tool}`);
+      }
+    }
+  }
+  return [...new Set(violations)];
+}
+
 function protocolPasses(manifest: Manifest, evidence: CellEvidence): boolean {
   if (
     manifest.protocolContract !== undefined &&
     manifest.protocolContract !== null &&
-    migrationApplyContractViolations(manifest.protocolContract, evidence)
-      .length > 0
+    protocolContractViolations(manifest.protocolContract, evidence).length > 0
   ) {
     return false;
   }

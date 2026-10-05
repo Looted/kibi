@@ -4,7 +4,7 @@ title: Upsert commits RDF and audit state atomically across runtimes
 status: active
 created_at: 2026-08-11T00:00:00Z
 updated_at: 2026-08-11T00:00:00Z
-source: documentation/requirements/REQ-core-atomic-upsert-persistence.md
+source: .kb/requirements/REQ-core-atomic-upsert-persistence.md
 priority: must
 tags:
   - core
@@ -16,6 +16,10 @@ links:
     target: REQ-core-atomic-upsert-persistence
   - type: verified_by
     target: TEST-core-atomic-upsert-persistence
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 **Scenario: successful atomic commit**

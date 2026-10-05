@@ -31,4 +31,8 @@ examples:
   - adr_temporal_inference_contract(current_adr_1,adr_chain_2,superseded_by_2,flag_superseded_or_deprecated_adr_without_successor)
 id: FACT-SCHEMA-ADR-TEMPORAL-INFERENCE-CONTRACT
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

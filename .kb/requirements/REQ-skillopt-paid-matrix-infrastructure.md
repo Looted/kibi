@@ -47,5 +47,9 @@ proof_exempt: true
 proof_exempt_reason: Executing the held-out matrix and paid-launch ledger requires paid model launches plus root-installed external trust infrastructure that repository proof runs cannot provide; verification is limited to the fixture-level integration contracts (TEST-skillopt-external-adoption-verdict, TEST-skillopt-paid-launch-accounting) and the fail-closed boundaries proven by TEST-e2e-skillopt-trust-boundaries.
 id: REQ-skillopt-paid-matrix-infrastructure
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 The held-out evaluation matrix, fake-provider gateway ledger, paid-launch receipt chain, and mirror-adoption transaction machinery execute only under external supervisor launches with an installed external trust plane. Repository proof runs execute these paths only through fixture-level integration contracts with deterministic-test-fixture signatures (signatureProvenance deterministic-test-fixture and externallySigned false), because the full paths require paid model launches, root-installed verifier infrastructure, and supervisor parent processes. The repository-provable fail-closed boundaries are owned by REQ-skillopt-external-adoption-verdict and REQ-skillopt-paid-launch-accounting.

@@ -13,4 +13,8 @@ claim_key: CLAIM-E9ABBEB3CB9F1EA3
 claim_text: The configuration check must reject malformed source metadata
 id: FACT-prolog-spike-config-rejects-malformed-metadata
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

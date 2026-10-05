@@ -24,5 +24,9 @@ examples:
   - upsert_failure_is_not_durable(pre_save_stage,entity,relationships)
 id: FACT-SCHEMA-UPSERT-FAILURE-IS-NOT-DURABLE
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Predicate schema for upsert_failure_is_not_durable/3.

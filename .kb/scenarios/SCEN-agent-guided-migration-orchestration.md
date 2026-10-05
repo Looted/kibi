@@ -4,7 +4,7 @@ title: Agent previews and safely applies a migration plan
 status: active
 created_at: 2026-08-14T00:00:00Z
 updated_at: 2026-08-14T00:00:00Z
-source: documentation/requirements/REQ-agent-guided-migration-orchestration.md
+source: .kb/requirements/REQ-agent-guided-migration-orchestration.md
 priority: must
 tags:
   - migration
@@ -17,6 +17,10 @@ links:
     target: REQ-011
   - type: verified_by
     target: TEST-agent-guided-migration-orchestration
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 **Scenario: deterministic automatic repair**

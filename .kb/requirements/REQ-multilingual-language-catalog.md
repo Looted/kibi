@@ -55,5 +55,9 @@ tags:
   - source-classification
 id: REQ-multilingual-language-catalog
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Source classification must retain C/C++ header and Perl/Prolog ambiguity until a consistent explicit language signal is present. Source classification must derive extensionless Python, Bash, Ruby and JavaScript language hints from bounded shebang text without executing source. Qualified Java, C# and C++ callable locators must remain stable when another supported overload is added. HCL declaration records must preserve structural scope without implying executable-symbol proof.

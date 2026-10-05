@@ -4,7 +4,6 @@ title: 'OpenCode Kibi Briefing v5: Session-Local Reconcile & Semantic Dedupe'
 status: closed
 created_at: 2026-04-30T12:00:00.000Z
 updated_at: 2026-04-30T12:00:00.000Z
-source: documentation/requirements/REQ-opencode-kibi-briefing-v5.md
 priority: must
 tags:
   - opencode
@@ -177,6 +176,10 @@ logic_claims:
   - CLAIM-2C6BB355FAA81609
   - CLAIM-97581B67B61D001B
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 The OpenCode Kibi Briefing system must transition to a session-local reconcile model with semantic duplicate suppression while preserving the render-first TUI delivery established in v4.

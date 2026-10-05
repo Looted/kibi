@@ -45,5 +45,9 @@ semantic_inventory:
     reason: Grounded by a predicate fact over the narrow vocabulary-convergence schemas.
 id: REQ-kibi-entity-id-style
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Kibi must report an entity whose Markdown filename stem differs from its frontmatter id as an entity-id-style warning. Kibi must report a purely numeric entity ID as an entity-id-style warning where the entity is created. Committed legacy numbered entities must not be reported by entity-id-style.

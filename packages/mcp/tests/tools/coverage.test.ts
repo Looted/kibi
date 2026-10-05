@@ -147,7 +147,9 @@ describe("kb_coverage isolated-core regression (issue #118)", () => {
 
   beforeAll(async () => {
     fixture = setupIsolatedCore();
-    prolog = new RealPrologProcess();
+    // Keep the production MCP session attached throughout seeding and both
+    // coverage calls, rather than charging every query for process startup.
+    prolog = new RealPrologProcess({ oneShot: false });
     await prolog.start();
     await prolog.query(
       "set_prolog_flag(answer_write_options, [max_depth(0), spacing(next_argument)])",

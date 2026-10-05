@@ -15,4 +15,8 @@ claim_key: CLAIM-61EBDC8FA535AB94
 claim_text: It must not write user-configurable .kb/config.json, entity path overrides, or persistent check-disabling policy
 id: FACT-PROP-REQ-CLI-INIT-CANONICAL-C02
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

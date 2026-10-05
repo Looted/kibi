@@ -4,7 +4,6 @@ title: "VS Code Kibi Briefings v3 Verification Plan"
 status: closed
 created_at: 2026-05-06T04:48:00Z
 updated_at: 2026-05-06T04:48:00Z
-source: documentation/tests/TEST-vscode-kibi-briefing-v3.md
 priority: must
 tags:
   - test
@@ -14,6 +13,10 @@ tags:
 links:
   - type: validates
     target: SCEN-vscode-kibi-briefing-v3
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Verification plan for Schema-2.0 and Deterministic Ordering in VS Code:

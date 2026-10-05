@@ -11,6 +11,10 @@ import type { HookInput } from "./hook-input.js";
 
 import { stampKibiWorkspace } from "kibi-agent-core/kb-mcp-tools";
 import {
+  createEntitySummarizer,
+  implementedRequirementIds,
+} from "kibi-agent-core/snippets";
+import {
   type KbUsage,
   extractCliKbUsage,
   extractMcpKbUsage,
@@ -21,7 +25,6 @@ import {
   type IndexedSymbol,
   type KnowledgeIndex,
   loadKnowledgeIndex,
-  readEntitySummary,
 } from "./knowledge-index.js";
 import { classifyPath, toWorkspacePath } from "./path-policy.js";
 import {
@@ -40,6 +43,7 @@ import {
   focusedSymbols,
   searchTip,
   sessionStartContext,
+  editFocus as sharedEditFocus,
   stopReminder,
   unownedSourceNote,
 } from "./snippets.js";
@@ -75,8 +79,6 @@ export type HookEnvironment = {
 const readTools = new Set(["Read"]);
 const editTools = new Set(["Edit", "MultiEdit", "Write", "NotebookEdit"]);
 const searchTools = new Set(["Grep", "Glob"]);
-/** Files larger than this are not scanned to locate an edit. */
-const MAX_FOCUS_SCAN_BYTES = 2 * 1024 * 1024;
 
 function context(event: ContextEvent, text: string): HookOutput {
   return {
@@ -117,36 +119,7 @@ export function editFocus(
   absolutePath: string,
   toolInput: unknown,
 ): LineRange[] | undefined {
-  if (!isRecord(toolInput)) return undefined;
-  const needles: string[] = [];
-  if (typeof toolInput.old_string === "string")
-    needles.push(toolInput.old_string);
-  if (Array.isArray(toolInput.edits)) {
-    for (const edit of toolInput.edits) {
-      if (isRecord(edit) && typeof edit.old_string === "string") {
-        needles.push(edit.old_string);
-      }
-    }
-  }
-  const usable = needles.filter((needle) => needle.length > 0);
-  if (usable.length === 0) return undefined;
-
-  let content: string;
-  try {
-    if (fs.statSync(absolutePath).size > MAX_FOCUS_SCAN_BYTES) return undefined;
-    content = fs.readFileSync(absolutePath, "utf8");
-  } catch {
-    return undefined;
-  }
-
-  const ranges: LineRange[] = [];
-  for (const needle of usable) {
-    const offset = content.indexOf(needle);
-    if (offset < 0) continue;
-    const start = content.slice(0, offset).split("\n").length;
-    ranges.push({ start, end: start + needle.split("\n").length - 1 });
-  }
-  return ranges.length > 0 ? ranges : undefined;
+  return sharedEditFocus(absolutePath, toolInput);
 }
 
 function isExplored(state: SessionState, relativePath: string): boolean {
@@ -154,7 +127,7 @@ function isExplored(state: SessionState, relativePath: string): boolean {
 }
 
 function requirementIds(symbols: readonly IndexedSymbol[]): string[] {
-  return [...new Set(symbols.flatMap((symbol) => symbol.implements))];
+  return implementedRequirementIds(symbols);
 }
 
 type Workspace = {
@@ -379,6 +352,13 @@ function postToolUse(
         trace.action = "edited";
         trace.path = target.relative;
         trace.pathKind = pathKind;
+        // Which requirements the edited file implements is what tells the
+        // acceptance report whether this edit needed a lookup first.
+        if (workspace.telemetry && pathKind !== "kb") {
+          trace.requirementIds = requirementIds(
+            workspace.index().files[target.relative] ?? [],
+          );
+        }
       }
     }
   } else if (toolName === "Bash") {
@@ -441,7 +421,6 @@ export async function runHook(
 
   const dataDir = workspaceDataDir(pluginData, resolved.root);
   let index: KnowledgeIndex | undefined;
-  const summaries = new Map<string, EntitySummary>();
   const workspace: Workspace = {
     root: resolved.root,
     stateDir: sessionDir(dataDir, input.sessionId),
@@ -450,14 +429,7 @@ export async function runHook(
       return index;
     },
     telemetry: hookTelemetryEnabled(environment.env),
-    summarize: (entityId) => {
-      let summary = summaries.get(entityId);
-      if (!summary) {
-        summary = readEntitySummary(resolved.root, entityId);
-        summaries.set(entityId, summary);
-      }
-      return summary;
-    },
+    summarize: createEntitySummarizer(resolved.root),
   };
 
   const trace: HookTrace = {};

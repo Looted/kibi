@@ -56,5 +56,9 @@ semantic_inventory:
     reason: Grounded by FACT-prolog-bundled-ci-release-uses-cached-build via requires_property.
 id: REQ-prolog-bundled-ci
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Kibi's own CI Prolog jobs must run the bundled SWI-Prolog archive built by the release pipeline after re-verifying its checksum, pins, and binary hash. Kibi's own CI must keep one job that runs a system SWI-Prolog selected with KIBI_SWIPL=system. A cached CI archive must skip the commit and run binding only through the explicit cached-build flag. Release workflows must never use the cached-build flag.

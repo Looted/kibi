@@ -20,13 +20,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0dd26220a650
-  - type: implements
-    from: SYM-auto-B2B1769454DE
-    to: REQ-branch-store-recovery-v2
-    created_at: 2026-08-16T07:54:13.105Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6837ab04e577
   - type: covered_by
     from: SYM-auto-B2B1769454DE
     to: TEST-cli-branch-store-recovery
@@ -174,3 +167,101 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e4d8eea784fb
+  - type: requires_predicate
+    from: REQ-core-engine-read-limits
+    to: FACT-PRED-engine-read-limits-opt-in
+    created_at: 2026-10-04T02:19:03.312Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a45e9195e0ad
+  - type: requires_predicate
+    from: REQ-core-engine-read-limits
+    to: FACT-PRED-engine-read-limits-stop
+    created_at: 2026-10-04T02:19:03.341Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8d127dfbf8a5
+  - type: requires_predicate
+    from: REQ-core-engine-read-limits
+    to: FACT-PRED-engine-read-limits-error
+    created_at: 2026-10-04T02:19:03.358Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2175c0d20f0d
+  - type: requires_predicate
+    from: REQ-core-engine-read-limits
+    to: FACT-PRED-engine-read-limits-queue
+    created_at: 2026-10-04T02:19:03.370Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3c79020cb733
+  - type: requires_predicate
+    from: REQ-core-engine-read-limits
+    to: FACT-PRED-engine-read-limits-cap
+    created_at: 2026-10-04T02:19:03.382Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-abeaff7bc746
+  - type: requires_predicate
+    from: REQ-core-engine-read-limits
+    to: FACT-PRED-engine-read-limits-writes-unbounded
+    created_at: 2026-10-04T02:19:03.394Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a549a87bff79
+  - type: specified_by
+    from: REQ-core-engine-read-limits
+    to: SCEN-core-engine-read-limits
+    created_at: 2026-10-04T02:19:03.406Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4c51242399ba
+  - type: depends_on
+    from: REQ-core-engine-read-limits
+    to: REQ-core-journaled-engine-persistence
+    created_at: 2026-10-04T02:19:03.415Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e9b1a383f6a3
+  - type: implements
+    from: SYM-auto-B2B1769454DE
+    to: REQ-branch-store-recovery-v4
+    created_at: 2026-10-04T02:57:17.223Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9c33d991eedd
+  - type: implements
+    from: SYM-plan-apply-journal-createPlanApplyJournal
+    to: REQ-kibi-change-to-proof-plan-compiler-v2
+    created_at: 2026-10-04T03:14:27.382Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0b861944bcaf
+  - type: covered_by
+    from: SYM-plan-apply-journal-createPlanApplyJournal
+    to: TEST-kibi-plan-apply-atomic
+    created_at: 2026-10-04T03:14:27.396Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3267b2decc9a
+  - type: covered_by
+    from: SYM-plan-apply-journal-createPlanApplyJournal
+    to: TEST-kibi-plan-apply-atomic-cli
+    created_at: 2026-10-04T05:29:37.154Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-56d489246235
+  - type: implements
+    from: SYM-migrate-command-warn-migration-required-without-yes
+    to: REQ-cli-schema-migration
+    created_at: 2026-10-04T17:30:14.333Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c97229b50a25
+  - type: covered_by
+    from: SYM-migrate-command-warn-migration-required-without-yes
+    to: TEST-kibi-schema6-migration-cli
+    created_at: 2026-10-04T17:30:14.502Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aecaa93a03dc

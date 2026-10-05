@@ -22,6 +22,10 @@ claim_text: The gate must fail for source-to-packed drift, unresolved provenance
 claim_span_start: 936
 claim_span_end: 1060
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of fail-closed matrix conditions.

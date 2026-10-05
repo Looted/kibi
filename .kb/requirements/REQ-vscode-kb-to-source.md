@@ -32,6 +32,10 @@ semantic_inventory:
       start: 0
       end: 359
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 The VS Code extension must support navigation from the KB tree to source code:

@@ -90,6 +90,10 @@ semantic_clauses:
   - An SDK-only third-party plugin must be allowed through the host capability seam as a provider operation.
   - An external semantic classifier must be allowed only for kb_semantic_advisor.
   - An external semantic classifier must be allowed only for kb_compile_intent.
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 # REQ-capability-plugin-observable-behavior-v1
 

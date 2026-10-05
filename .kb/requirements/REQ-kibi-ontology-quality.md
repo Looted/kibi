@@ -34,5 +34,9 @@ semantic_inventory:
     reason: Grounded by a predicate fact over the narrow vocabulary-convergence schemas.
 id: REQ-kibi-ontology-quality
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Kibi check must report a predicate whose argument values mostly occur in only one fact as informational ontology-quality. Ontology-quality must not report predicates with fewer facts than the configured minimum.

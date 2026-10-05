@@ -15,4 +15,8 @@ claim_key: CLAIM-ABCF552AF7013256
 claim_text: A fresh passing scenario-backed E2E receipt must not produce a contradictory weak-depth warning when other proof gaps remain
 id: FACT-PROP-REQ-KIBI-PROOF-AWARE-QUALITY-DIAGNOSTICS-C02
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

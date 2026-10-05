@@ -27,13 +27,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d1245c40aca8
-  - type: implements
-    from: SYM-auto-888C4EC7C8E5
-    to: REQ-branch-store-recovery-v2
-    created_at: 2026-08-16T07:53:49.248Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-557b499b5b7e
   - type: covered_by
     from: SYM-auto-888C4EC7C8E5
     to: TEST-cli-branch-store-recovery
@@ -398,3 +391,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5e8b6cdd3c0b
+  - type: implements
+    from: SYM-auto-888C4EC7C8E5
+    to: REQ-branch-store-recovery-v4
+    created_at: 2026-10-04T02:56:52.338Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-22335ab51f84
+  - type: implements
+    from: SYM-proof-attributeCommandRun
+    to: REQ-kibi-fresh-verification-receipts-v2
+    created_at: 2026-10-04T03:14:59.643Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1d2b76befdef
+  - type: covered_by
+    from: SYM-proof-attributeCommandRun
+    to: TEST-kibi-proof-receipt-compaction
+    created_at: 2026-10-04T03:14:59.663Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f96cac9c480d
+  - type: covered_by
+    from: SYM-proof-attributeCommandRun
+    to: TEST-kibi-proof-receipt-compaction-cli
+    created_at: 2026-10-04T05:30:10.469Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9db23b63c784

@@ -30,4 +30,8 @@ examples:
   - mcp_public_capability_policy(kibi_mcp,kb_query,kb_search__kb_status__kb_find_gaps__kb_coverage__kb_graph,kb_upsert__kb_delete,kb_check)
 id: FACT-SCHEMA-MCP-PUBLIC-CAPABILITY-POLICY
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

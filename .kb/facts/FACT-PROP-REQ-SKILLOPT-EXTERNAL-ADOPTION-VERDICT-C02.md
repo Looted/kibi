@@ -15,4 +15,8 @@ claim_key: CLAIM-65C263B803EC6E28
 claim_text: Production mutation of the canonical skill and mirrors is allowed only after an independently verified external verdict binds the source root, candidate hash, immutable root authorization, supervisor parent, invocation and matrix identity, and terminal evidence
 id: FACT-PROP-REQ-SKILLOPT-EXTERNAL-ADOPTION-VERDICT-C02
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

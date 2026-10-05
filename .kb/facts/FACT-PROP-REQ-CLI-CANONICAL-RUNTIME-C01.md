@@ -15,4 +15,8 @@ claim_key: CLAIM-5C2F95488F59C332
 claim_text: kibi sync extracts Markdown and YAML metadata from discovered files and upserts the results into the branch Prolog KB
 id: FACT-PROP-REQ-CLI-CANONICAL-RUNTIME-C01
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

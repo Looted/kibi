@@ -13,4 +13,8 @@ claim_text: The scripts coverage shard must request process-per-file isolation
 text_ref: scripts/run-unit-coverage.ts
 id: FACT-scripts-coverage-shard-process-isolation
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

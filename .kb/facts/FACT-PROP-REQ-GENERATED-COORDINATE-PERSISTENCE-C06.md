@@ -15,4 +15,8 @@ claim_key: CLAIM-90667997A663922B
 claim_text: sync cache state may advance only after refresh, extraction, RDF persistence, and durable save succeed
 id: FACT-PROP-REQ-GENERATED-COORDINATE-PERSISTENCE-C06
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

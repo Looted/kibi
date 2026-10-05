@@ -17,4 +17,8 @@ claim_key: CLAIM-5E64EE51B2FCE374
 claim_text: It can be restricted to specific rules or focused on staged changes (used in pre-commit hooks)
 id: FACT-PROP-CHECK-RULE-SELECTION
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

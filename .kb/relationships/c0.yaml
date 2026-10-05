@@ -160,13 +160,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-790d57529766
-  - type: implements
-    from: SYM-kibi-cli-src-operations-planning-apply-plan-ts-applyplanargs
-    to: REQ-kibi-change-to-proof-plan-compiler
-    created_at: 2026-09-18T07:13:14.017Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-405945ce1fd5
   - type: covered_by
     from: SYM-kibi-cli-src-operations-planning-apply-plan-ts-applyplanargs
     to: TEST-e2e-plan-compiler-hash
@@ -209,3 +202,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9f75804ad0c6
+  - type: implements
+    from: SYM-kibi-cli-src-operations-planning-apply-plan-ts-applyplanargs
+    to: REQ-kibi-change-to-proof-plan-compiler-v2
+    created_at: 2026-10-04T03:01:08.223Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1e7b5a5b4f45

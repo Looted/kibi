@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { parseTelemetryUsageLog } from "../../src/public/telemetry-acceptance.js";
 import {
   TELEMETRY_REMEDIATION_VERSION,
   buildTelemetryRemediationReport,
@@ -147,5 +148,137 @@ describe("telemetry remediation", () => {
           ["proof_gap_recovery", "e2e_receipt_freshness"].includes(item.metric),
       ),
     ).toHaveLength(2);
+  });
+
+  test("asks for current evidence when the window has no timestamps", () => {
+    const events = Array.from({ length: 20 }, (_, index) => ({
+      tool: "kb_status",
+      status: "success",
+      telemetry_status: "provided",
+      telemetry: { is_autonomous: true },
+      request_id: `stale-${index}`,
+    }));
+    const report = buildTelemetryRemediationReport(events, NOW);
+
+    expect(report.items[0]).toEqual({
+      id: "evidence_freshness:report:.kb/usage.log",
+      rank: 5,
+      metric: "evidence_freshness",
+      scope: "report",
+      target: ".kb/usage.log",
+      reason: "The acceptance window has no current timestamped evidence.",
+      action:
+        "Run the current workflow in diagnostic mode, then regenerate this report.",
+      event: null,
+    });
+  });
+
+  test("does not accept a matching preflight older than the preflight age limit", () => {
+    const payload = {
+      type: "req",
+      id: "REQ-AGE",
+      properties: { title: "Age", status: "open" },
+    };
+    const events = Array.from({ length: 20 }, (_, index) =>
+      event(index + 1, "kb_status"),
+    );
+    events.push(
+      event(21, "kb_validate_upsert", {
+        timestamp: new Date(NOW.getTime() - 3 * 60 * 60 * 1000).toISOString(),
+        validation_valid: true,
+        mutation_fingerprint: "same-payload",
+        business_args: payload,
+      }),
+      event(22, "kb_upsert", {
+        timestamp: NOW.toISOString(),
+        mutation_fingerprint: "same-payload",
+        business_args: payload,
+      }),
+    );
+    const report = buildTelemetryRemediationReport(events, NOW);
+
+    expect(
+      report.items.find((item) => item.metric === "validation_before_upsert"),
+    ).toMatchObject({
+      target: "req:REQ-AGE",
+      event: { logLine: 22, requestId: "request-22" },
+    });
+  });
+
+  // implements REQ-kibi-telemetry-remediation-evidence, REQ-claude-hook-usage-telemetry-v2
+  test("points unguided first edits and operations at their usage.log lines", () => {
+    const hook = (fields: Record<string, unknown>) => ({
+      timestamp: timestamp(5),
+      request_id: `hook-${String(fields.session_id)}-${String(fields.hook_action)}`,
+      tool: "hook_PostToolUse",
+      interface: "hook",
+      host: "codex",
+      hook_event: "PostToolUse",
+      status: "success",
+      ...fields,
+    });
+    const rows = [
+      hook({
+        session_id: "session-edit-first",
+        hook_action: "edited",
+        path: "src/checkout.ts",
+        requirement_ids: ["REQ-checkout-rounding"],
+      }),
+      hook({
+        session_id: "session-guided",
+        hook_action: "kb_usage",
+        kb_operation: "kb_search",
+      }),
+      hook({
+        session_id: "session-guided",
+        hook_action: "edited",
+        path: "src/cart.ts",
+        requirement_ids: ["REQ-cart-limit"],
+      }),
+      ...failingEvents(),
+    ];
+    // A blank line still counts as a line of the log.
+    const lines = rows.map((row) => JSON.stringify(row));
+    lines.splice(1, 0, "");
+    const report = buildTelemetryRemediationReport(
+      parseTelemetryUsageLog(`${lines.join("\n")}\n`),
+      NOW,
+    );
+
+    const lookupItems = report.items.filter(
+      (item) => item.metric === "lookup_before_first_edit",
+    );
+    expect(lookupItems).toEqual([
+      {
+        id: "lookup_before_first_edit:line-1:src/checkout.ts",
+        rank: 35,
+        metric: "lookup_before_first_edit",
+        scope: "event",
+        target: "src/checkout.ts",
+        reason:
+          "This session edited a requirement-linked file before any kb_search or kb_query.",
+        action:
+          "Before the next edit of this file, run kb_search for the change or kb_query with this sourceFile, and read the requirements it names.",
+        event: {
+          logLine: 1,
+          requestId: "hook-session-edit-first-edited",
+          timestamp: timestamp(5),
+          tool: "hook_PostToolUse",
+          sessionId: "session-edit-first",
+          actorId: null,
+        },
+      },
+    ]);
+    // Operation items point past the three hook rows and the blank line.
+    const validation = report.items.find(
+      (item) => item.metric === "validation_before_upsert",
+    );
+    expect(validation?.event).toMatchObject({
+      logLine: 27,
+      requestId: "request-23",
+    });
+    expect(validation?.id).toBe(
+      "validation_before_upsert:line-27:req:REQ-REMEDIATION",
+    );
   });
 });

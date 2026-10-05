@@ -15,4 +15,8 @@ claim_key: CLAIM-9ECA827AD2AF2BEE
 claim_text: Every migration plan MUST bind a canonical SHA-256 planHash to the active branch KB snapshot workspace snapshot configuration hash and evaluated domains
 id: FACT-PROP-REQ-AGENT-GUIDED-MIGRATION-ORCHESTRATION-C02
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

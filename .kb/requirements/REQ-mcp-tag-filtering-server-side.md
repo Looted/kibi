@@ -5,7 +5,6 @@ status: open
 created_at: 2026-03-21T00:00:00.000Z
 updated_at: 2026-08-18T00:00:00.000Z
 priority: should
-source: documentation/requirements/REQ-mcp-tag-filtering-server-side.md
 tags:
   - mcp
   - query
@@ -61,6 +60,10 @@ semantic_inventory:
     span:
       start: 221
       end: 306
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 ## Overview

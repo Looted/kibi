@@ -43,7 +43,7 @@ symbols, and the exact call that opens the next layer. Snippets are capped at
 | --- | --- | --- |
 | Session start | One paragraph: Kibi is active, how many files have requirement-linked symbols, which `kb_*` operations exist, and the `kibi-usage` skill | Each start, resume, clear, and compact |
 | Before `Read` of a linked source or test file | Requirements with titles, the symbols that implement them, covering tests, and the next-layer calls (`kb_query` by id, intent-mode `kb_search` with `sourceLocations`). A read window (`offset`/`limit`) names the symbol it lands in | Once per file per session. Skipped if the agent already queried that file or all of its requirements through Kibi |
-| Before `Edit`/`MultiEdit`/`Write`/`NotebookEdit` | First edit of an unseen file: the same snippet, plus the symbol the edit lands in (found from `old_string` and the symbol coordinates) and the `kb_check` impact call. File already shown: one line, and only when the edit lands in a symbol not yet named | Once per file, then once per new symbol |
+| Before `Edit`/`MultiEdit`/`Write`/`NotebookEdit` | First edit of an unseen file: the same snippet, plus what the lead requirement must keep true (up to two facts linked by `constrains`, `requires_property`, `requires_predicate`, or `requires_rule`) and its decision (ADR), the symbol the edit lands in (found from `old_string` and the symbol coordinates), and the `kb_check` impact call. A superseded or retired lead requirement gets no "must keep true" or "Decision" line. File already shown: one line, and only when the edit lands in a symbol not yet named | Once per file, then once per new symbol |
 | Before editing an unowned source file | One note: the intent-mode `kb_search` call that finds requirements which may already describe this behavior | Once per file |
 | Before the first `Grep`/`Glob` | One tip that intent questions are answered by `kb_search` | Once per session, and never after the agent has used Kibi |
 | Direct `.kb/` reads or edits | One note that `kb_query`/`kb_upsert` keep the store consistent | Once per session |
@@ -85,12 +85,17 @@ The plugin records nothing by default. To capture usage for diagnosis, set
 in the `env` block of `~/.claude/settings.json`. The MCP server, the CLI JSON
 routes, and these hooks all honor that one variable.
 
-When opted in, the hooks append rows tagged `interface: "hook"` to the
-workspace's `.kb/usage.log`. A row notes which source, test, or `.kb/` file the
-agent read or edited, whether a requirement snippet was shown or suppressed,
-and whether the session had used Kibi yet, keyed by the Claude Code session
-id. That is what shows whether agents look things up before they edit or only
-afterwards. Remove the variable to stop recording.
+When opted in, the hooks append rows tagged `interface: "hook"` and
+`host: "claude-code"` to the workspace's `.kb/usage.log`. A row notes which
+source, test, or `.kb/` file the agent read or edited (with the requirements
+the file's symbols implement), which Kibi operation a call ran through MCP or
+the CLI, whether a requirement snippet was shown or suppressed, and whether the
+session had used Kibi yet, keyed by the Claude Code session id. The row format
+is shared with the Cursor, Codex, ZCode, and OpenCode plugins
+(`kibi-agent-core/hook-usage-log`). `kibi usage-metrics` turns these rows into
+the `lookup_before_first_edit` metric: the share of sessions that ran
+`kb_search` or `kb_query` before their first edit of a requirement-linked
+file. Remove the variable to stop recording.
 
 ## Layout
 

@@ -15,4 +15,8 @@ claim_key: CLAIM-AF0E9350F5CB0FFF
 claim_text: Gitignore must track authored .kb/ knowledge lanes and ignore derived .kb/branches, .kb/recovery, .kb/verification, and .kb/briefs trees
 id: FACT-PROP-REQ-CLI-INIT-CANONICAL-C04
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

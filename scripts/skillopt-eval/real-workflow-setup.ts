@@ -2,7 +2,11 @@ import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
 import { readFile, rm } from "node:fs/promises";
 import { join } from "node:path";
-import { type CanonicalSkill, buildSkillCatalog } from "./catalog";
+import {
+  type CanonicalSkill,
+  buildCoreSkillCatalog,
+  buildSkillCatalog,
+} from "./catalog";
 import { parsePublicTaskManifest } from "./fixtures/contracts";
 import { materializePredicateCorpus } from "./fixtures/predicate-corpus";
 import {
@@ -12,13 +16,27 @@ import {
   canonicalHash,
 } from "./real-workflow-types";
 
+/**
+ * "core" limits descriptors to the four core families (the legacy optimize
+ * trainer's contract); "all" adds the skill's supplemental family.
+ */
+// implements REQ-skillopt-codex-optimization
+export type FamilyScope = "all" | "core";
+
+function scopedCatalog(skill: CanonicalSkill, scope: FamilyScope) {
+  return scope === "core"
+    ? buildCoreSkillCatalog(skill)
+    : buildSkillCatalog(skill);
+}
+
 // implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 export function publicSkillDescriptors(
   split: "train" | "development",
   skill: CanonicalSkill = "kibi-usage",
+  scope: FamilyScope = "all",
 ): readonly PublicTaskDescriptor[] {
-  return buildSkillCatalog(skill)
+  return scopedCatalog(skill, scope)
     .filter((entry) => entry.split === split)
     .map((entry) => ({
       id: entry.id,
@@ -39,9 +57,10 @@ export async function taskScopedPublicSkillDescriptors(
   split: "train" | "development",
   fixtureRunRoot: string,
   skill: CanonicalSkill = "kibi-usage",
+  scope: FamilyScope = "all",
 ): Promise<readonly PublicTaskDescriptor[]> {
   return Promise.all(
-    buildSkillCatalog(skill)
+    scopedCatalog(skill, scope)
       .filter((entry) => entry.split === split)
       .map(async (entry) => {
         const taskPath = join(

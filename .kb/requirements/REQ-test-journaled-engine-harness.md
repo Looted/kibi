@@ -79,6 +79,10 @@ links:
     target: FACT-TEST-ROOT-BOUNDED-BATCHES
   - type: requires_predicate
     target: FACT-CLI-LAZY-OPERATION-LOAD
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Test fixtures MUST isolate engine sockets and PID files in a private runtime

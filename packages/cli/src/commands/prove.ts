@@ -4,6 +4,14 @@ import path from "node:path";
 
 import { executeIngestProof } from "../operations/proof/ingest-proof.js";
 import type { IngestProofResult } from "../operations/proof/ingest-proof.js";
+import {
+  type FailedProofStep,
+  PROOF_TEST_REPORT_ENV,
+  PROOF_TEST_REPORT_VERSION,
+  type ProofRunAttribution,
+  attributeCommandRun,
+  proofTestReportPath,
+} from "../proof/command-test-report.js";
 import type { ProofIntegration } from "../proof/integrations.js";
 import {
   PROOF_RUNS_DIR,
@@ -371,6 +379,7 @@ export async function proveCommand(
     await mkdir(runsDir, { recursive: true });
 
     const ingestResults: IngestProofResult[] = [];
+    const runAttribution = new Map<IngestProofResult, EvaluatedRun>();
     const failures: string[] = [];
     for (const [integrationId, tests] of groups) {
       const integration = resolveIntegration(
@@ -391,14 +400,25 @@ export async function proveCommand(
       );
       await mkdir(path.dirname(artifactPath), { recursive: true });
       await rm(artifactPath, { force: true });
+      const selectedTestIds = tests.map((test) => String(test.id));
+      // Command integrations may attribute their run per test; any report
+      // left by an earlier run must never be read as this run's evidence.
+      const testReportPath =
+        integration.producer === "command"
+          ? proofTestReportPath(artifactPath)
+          : undefined;
+      if (testReportPath !== undefined)
+        await rm(testReportPath, { force: true });
       const env = commandEnvironment(
         integration,
         commandArgv,
         snapshot,
         context.workspaceRoot,
-        tests.map((test) => String(test.id)),
+        selectedTestIds,
         artifactPath,
       );
+      if (testReportPath !== undefined)
+        env[PROOF_TEST_REPORT_ENV] = testReportPath;
       const startedAt = new Date().toISOString();
       let exitCode: number;
       try {
@@ -411,25 +431,51 @@ export async function proveCommand(
       }
       const finishedAt = new Date().toISOString();
 
-      let artifact: ProofRunArtifact;
+      let evaluated: EvaluatedRun;
       try {
-        artifact = await buildArtifact({
-          integration,
-          commandArgv,
-          exitCode,
-          startedAt,
-          finishedAt,
-          artifactPath,
-          snapshot,
-          tests,
-        });
+        evaluated =
+          testReportPath === undefined
+            ? {
+                artifacts: [
+                  {
+                    artifact: await buildArtifact({
+                      integration,
+                      commandArgv,
+                      exitCode,
+                      startedAt,
+                      finishedAt,
+                      artifactPath,
+                      snapshot,
+                      tests,
+                    }),
+                    testIds: selectedTestIds,
+                  },
+                ],
+              }
+            : buildCommandRunArtifacts({
+                integration,
+                commandArgv,
+                exitCode,
+                startedAt,
+                finishedAt,
+                snapshot,
+                tests,
+                attribution: await readCommandAttribution(
+                  testReportPath,
+                  selectedTestIds,
+                  exitCode,
+                ),
+              });
       } catch (error) {
         failures.push(
           `integration '${integrationId}': ${error instanceof Error ? error.message : String(error)}`,
         );
         continue;
       }
-      const artifactErrors = proofRunArtifactErrors(artifact);
+      const artifactErrors = [
+        ...(evaluated.wholeRun === undefined ? [] : [evaluated.wholeRun]),
+        ...evaluated.artifacts.map((entry) => entry.artifact),
+      ].flatMap((artifact) => proofRunArtifactErrors(artifact));
       if (artifactErrors.length > 0) {
         failures.push(
           `integration '${integrationId}' produced an invalid kibi.proof-run.v1 artifact: ${artifactErrors.join("; ")}`,
@@ -439,9 +485,18 @@ export async function proveCommand(
       await mkdir(path.dirname(artifactPath), { recursive: true });
       await writeFile(
         artifactPath,
-        `${JSON.stringify(artifact, null, 2)}\n`,
+        `${JSON.stringify(evaluated.wholeRun ?? evaluated.artifacts[0]?.artifact, null, 2)}\n`,
         "utf8",
       );
+      if (evaluated.wholeRun !== undefined) {
+        for (const entry of evaluated.artifacts) {
+          await writeFile(
+            partitionArtifactPath(artifactPath, entry.artifact.run.outcome),
+            `${JSON.stringify(entry.artifact, null, 2)}\n`,
+            "utf8",
+          );
+        }
+      }
       const afterRun = await readWorkspaceSnapshot(context);
       if (!afterRun.available || afterRun.snapshot.hash !== snapshot) {
         failures.push(
@@ -449,15 +504,25 @@ export async function proveCommand(
         );
         continue;
       }
-      const ingested = await ingestProof(
-        {
-          snapshot,
-          artifact: artifact as unknown as Record<string, unknown>,
-          testIds: tests.map((test) => String(test.id)),
-        },
-        context,
-      );
-      ingestResults.push(ingested.structuredContent);
+      // One ingest per partition: each test is evaluated only against the
+      // slice of the run its own steps produced.
+      const partitionResults: IngestProofResult[] = [];
+      for (const entry of evaluated.artifacts) {
+        const ingested = await ingestProof(
+          {
+            snapshot,
+            artifact: entry.artifact as unknown as Record<string, unknown>,
+            testIds: entry.testIds,
+          },
+          context,
+        );
+        partitionResults.push(ingested.structuredContent);
+      }
+      const merged = mergeIngestResults(partitionResults);
+      if (merged !== undefined) {
+        ingestResults.push(merged);
+        runAttribution.set(merged, evaluated);
+      }
       const afterIngest = await readWorkspaceSnapshot(context);
       if (!afterIngest.available || afterIngest.snapshot.hash !== snapshot) {
         failures.push(
@@ -482,11 +547,25 @@ export async function proveCommand(
       proved: passed,
       failed,
       unchanged,
-      runs: ingestResults.map((result) => ({
-        integration: result.integration,
-        summary: summarize(result),
-        results: result.results,
-      })),
+      runs: ingestResults.map((result) => {
+        const attribution = runAttribution.get(result)?.attribution;
+        return {
+          integration: result.integration,
+          summary: summarize(result),
+          ...(attribution === undefined
+            ? {}
+            : {
+                attribution: attribution.attribution,
+                ...(attribution.attribution === "aggregate"
+                  ? { attributionReason: attribution.reason }
+                  : {}),
+                ...(attribution.failedSteps.length > 0
+                  ? { failedSteps: attribution.failedSteps }
+                  : {}),
+              }),
+          results: result.results,
+        };
+      }),
       ...(failures.length > 0 ? { failures } : {}),
     };
     process.stdout.write(`${JSON.stringify(summary)}\n`);
@@ -501,6 +580,190 @@ export async function proveCommand(
         : { status: "error", error: 1 },
     );
   }
+}
+
+/** The artifacts one integration run is evaluated through. */
+// implements REQ-kibi-fresh-verification-receipts-v2
+export type EvaluatedRun = Readonly<{
+  /** Each artifact is ingested against exactly its own tests. */
+  artifacts: readonly Readonly<{
+    artifact: ProofRunArtifact;
+    testIds: readonly string[];
+  }>[];
+  /** The whole process run, kept when the evidence was partitioned. */
+  wholeRun?: ProofRunArtifact;
+  attribution?: ProofRunAttribution;
+}>;
+
+/** Read a command integration's optional per-test report and attribute it. */
+// implements REQ-kibi-fresh-verification-receipts-v2
+export async function readCommandAttribution(
+  reportPath: string,
+  selectedTestIds: readonly string[],
+  exitCode: number,
+): Promise<ProofRunAttribution> {
+  let raw: string;
+  try {
+    raw = await readFile(reportPath, "utf8");
+  } catch {
+    return attributeCommandRun({
+      selectedTestIds,
+      exitCode,
+      report: undefined,
+    });
+  }
+  let report: unknown;
+  try {
+    report = JSON.parse(raw);
+  } catch (error) {
+    return {
+      attribution: "aggregate",
+      reason: `the ${PROOF_TEST_REPORT_VERSION} is not valid JSON (${error instanceof Error ? error.message : String(error)}), so the run is evaluated as one unit`,
+      failedSteps: [],
+    };
+  }
+  return attributeCommandRun({ selectedTestIds, exitCode, report });
+}
+
+/** Where a partition's evaluated artifact is kept next to the run artifact. */
+// implements REQ-kibi-fresh-verification-receipts-v2
+export function partitionArtifactPath(
+  artifactPath: string,
+  outcome: string,
+): string {
+  const stem = artifactPath.endsWith(".json")
+    ? artifactPath.slice(0, -".json".length)
+    : artifactPath;
+  return `${stem}.${outcome}.json`;
+}
+
+function describeFailedStep(step: FailedProofStep): string {
+  return `${step.testId} step ${step.stepIndex} ${step.outcome}${step.exitCode === null ? "" : ` (exit ${step.exitCode})`}: ${step.command.join(" ")}`;
+}
+
+/**
+ * Build the kibi.proof-run.v1 evidence of a `command` integration run.
+ *
+ * Without per-test attribution the run is one unit, exactly as before: a
+ * failing process fails every selected test. With a valid
+ * kibi.proof-test-report.v1 the run is split into one artifact per test
+ * outcome: tests whose own steps all passed are evaluated against a passing
+ * slice (exit code 0, the aggregate result of their own steps), and each
+ * failing outcome gets a failing slice that names the steps that failed. The
+ * whole-process artifact is kept alongside for audit.
+ */
+// implements REQ-kibi-fresh-verification-receipts-v2
+export function buildCommandRunArtifacts(input: {
+  integration: ProofIntegration;
+  commandArgv: readonly string[];
+  exitCode: number;
+  startedAt: string;
+  finishedAt: string;
+  snapshot: string;
+  tests: readonly SelectedTest[];
+  attribution: ProofRunAttribution;
+}): EvaluatedRun {
+  const { integration, exitCode, tests, attribution } = input;
+  const base = (
+    run: ProofRunArtifact["run"],
+    proofResults: ProofResult[],
+    diagnostics: readonly string[],
+  ): ProofRunArtifact => ({
+    version: PROOF_RUN_VERSION,
+    producer: {
+      name: "kibi-command-producer",
+      ...(integration.producer_version !== undefined
+        ? { version: integration.producer_version }
+        : {}),
+    },
+    integration: integration.id,
+    command_argv: [...input.commandArgv],
+    code_snapshot: input.snapshot,
+    environment: {
+      os: process.platform,
+      arch: process.arch,
+      runtime: { name: "node", version: process.version },
+    },
+    run,
+    proof_results: proofResults,
+    ...(diagnostics.length > 0 ? { diagnostics: [...diagnostics] } : {}),
+  });
+  const timing = { started_at: input.startedAt, finished_at: input.finishedAt };
+  const allTestIds = tests.map((test) => String(test.id));
+  const wholeResults = dedupeObligations(tests);
+  const failedLines = attribution.failedSteps.map(describeFailedStep);
+
+  if (attribution.attribution === "aggregate") {
+    const passedRun = exitCode === 0;
+    const artifact = base(
+      {
+        outcome: passedRun ? "passed" : "failed",
+        exit_code: exitCode,
+        ...timing,
+      },
+      passedRun ? wholeResults : markAggregateFailure(wholeResults),
+      passedRun ? [] : [attribution.reason, ...failedLines],
+    );
+    return {
+      artifacts: [{ artifact, testIds: allTestIds }],
+      attribution,
+    };
+  }
+
+  const byId = new Map(tests.map((test) => [String(test.id), test]));
+  const artifacts = attribution.partitions.map((partition) => {
+    const partitionTests = partition.testIds.map(
+      (testId) => byId.get(testId) as SelectedTest,
+    );
+    const results = dedupeObligations(partitionTests).map((result) => ({
+      ...result,
+      outcome: partition.outcome,
+    }));
+    const artifact = base(
+      {
+        outcome: partition.outcome,
+        exit_code: partition.exitCode,
+        ...timing,
+        ...(partition.outcome === "passed"
+          ? {}
+          : { failure_phase: "execution" as const }),
+      },
+      results,
+      [
+        `per-test attribution: ${partition.testIds.length} of ${allTestIds.length} selected test(s) whose own steps ${partition.outcome === "passed" ? "all passed" : `ended ${partition.outcome}`}; the integration process exited ${exitCode}`,
+        ...partition.failedSteps.map(describeFailedStep),
+      ],
+    );
+    return { artifact, testIds: partition.testIds };
+  });
+  const wholeRun = base(
+    {
+      outcome: exitCode === 0 ? "passed" : "failed",
+      exit_code: exitCode,
+      ...timing,
+    },
+    exitCode === 0 ? wholeResults : markAggregateFailure(wholeResults),
+    [
+      `evaluated per test: ${attribution.partitions.map((partition) => `${partition.testIds.length} ${partition.outcome}`).join(", ")}`,
+      ...failedLines,
+    ],
+  );
+  return { artifacts, wholeRun, attribution };
+}
+
+function mergeIngestResults(
+  results: readonly IngestProofResult[],
+): IngestProofResult | undefined {
+  const [first] = results;
+  if (first === undefined) return undefined;
+  if (results.length === 1) return first;
+  return {
+    ...first,
+    passed: results.reduce((sum, result) => sum + result.passed, 0),
+    failed: results.reduce((sum, result) => sum + result.failed, 0),
+    unchanged: results.reduce((sum, result) => sum + result.unchanged, 0),
+    results: results.flatMap((result) => result.results),
+  };
 }
 
 async function buildArtifact(input: {
@@ -529,28 +792,8 @@ async function buildArtifact(input: {
     started_at: startedAt,
     finished_at: finishedAt,
   });
-  if (integration.producer === "command") {
-    const results = dedupeObligations(tests);
-    return {
-      version: PROOF_RUN_VERSION,
-      producer: {
-        name: "kibi-command-producer",
-        ...(integration.producer_version !== undefined
-          ? { version: integration.producer_version }
-          : {}),
-      },
-      integration: integration.id,
-      command_argv: [...commandArgv],
-      code_snapshot: snapshot,
-      environment: {
-        os: process.platform,
-        arch: process.arch,
-        runtime: { name: "node", version: process.version },
-      },
-      run: run(exitCode === 0 ? "passed" : "failed"),
-      proof_results: exitCode === 0 ? results : markAggregateFailure(results),
-    };
-  }
+  // `command` integrations never reach this function: proveCommand builds
+  // their artifacts with buildCommandRunArtifacts (per-test attribution).
   if (integration.producer === "junit" || integration.producer === "tap") {
     const nativePath = integration.artifact;
     if (!nativePath)

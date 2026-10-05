@@ -17,4 +17,8 @@ claim_key: CLAIM-6FEBDD5BAC05A477
 claim_text: Legacy env sources must be labeled legacy_env with a migration hint
 id: FACT-PROP-ENV-BOOTSTRAP-LEGACY-LABEL
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

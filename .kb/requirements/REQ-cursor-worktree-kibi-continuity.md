@@ -4,7 +4,6 @@ title: Cursor worktree handoffs preserve Kibi continuity
 status: open
 created_at: 2026-07-21T00:00:00.000Z
 updated_at: 2026-07-21T00:00:00.000Z
-source: documentation/requirements/REQ-cursor-worktree-kibi-continuity.md
 priority: must
 owner: cursor-team
 tags:
@@ -37,6 +36,10 @@ semantic_inventory:
       start: 0
       end: 339
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Cursor worktree changes must preserve Kibi continuity across handoffs.

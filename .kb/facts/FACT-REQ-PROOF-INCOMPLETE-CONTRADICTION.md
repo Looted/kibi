@@ -4,7 +4,6 @@ title: Incomplete grounding cannot produce a clear contradiction outcome
 status: active
 created_at: 2026-08-10T00:00:00.000Z
 updated_at: 2026-08-10T00:00:00.000Z
-source: documentation/facts/FACT-REQ-PROOF-INCOMPLETE-CONTRADICTION.md
 tags:
   - lane:ontology
   - requirements
@@ -22,6 +21,10 @@ polarity: assert
 claim_key: CLAIM-F98FF1D58B960443
 claim_text: Contradiction analysis must not report a clear outcome while logical grounding is incomplete
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of conservative contradiction reporting.

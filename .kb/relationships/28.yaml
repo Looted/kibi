@@ -255,3 +255,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-024546cdb9bd
+  - type: implements
+    from: SYM-superseded-closure-applySupersededClosures
+    to: REQ-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-04T06:00:10.477Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-41e9acc2d4c3
+  - type: covered_by
+    from: SYM-superseded-closure-applySupersededClosures
+    to: TEST-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-04T06:00:10.497Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-412248fa3d07

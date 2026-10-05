@@ -18,4 +18,8 @@ claim_key: CLAIM-0DD019DFE9EE55AB
 claim_text: Each capability must have at most one replace provider per capability
 id: FACT-PRED-20836C7ECF57
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

@@ -251,3 +251,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b9d82ba6faeb
+  - type: implements
+    from: SYM-engine-limits-settleBoundedRead
+    to: REQ-core-engine-read-limits
+    created_at: 2026-10-04T03:12:23.146Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-590e895f2572
+  - type: covered_by
+    from: SYM-engine-limits-settleBoundedRead
+    to: TEST-core-engine-read-limits
+    created_at: 2026-10-04T03:12:23.167Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d9508fc535b7
+  - type: covered_by
+    from: SYM-engine-limits-settleBoundedRead
+    to: TEST-core-engine-read-limits-cli
+    created_at: 2026-10-04T05:29:22.456Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-82b13cd6ae30

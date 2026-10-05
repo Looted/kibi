@@ -160,3 +160,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a831e4b259db
+  - type: requires_predicate
+    from: REQ-kibi-kb-lifecycle-integrity
+    to: FACT-PRED-kb-lifecycle-superseded-closed
+    created_at: 2026-10-04T05:38:25.499Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5c49698c7cdf
+  - type: requires_predicate
+    from: REQ-kibi-kb-lifecycle-integrity
+    to: FACT-PRED-kb-lifecycle-cycle-once
+    created_at: 2026-10-04T05:38:25.521Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fde1b8484b6b
+  - type: requires_predicate
+    from: REQ-kibi-kb-lifecycle-integrity
+    to: FACT-PRED-kb-lifecycle-source-resolves
+    created_at: 2026-10-04T05:38:25.530Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aabf1d9a117b
+  - type: requires_predicate
+    from: REQ-kibi-kb-lifecycle-integrity
+    to: FACT-PRED-kb-lifecycle-migrate-closes
+    created_at: 2026-10-04T05:38:25.539Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-128fb9de3519
+  - type: requires_predicate
+    from: REQ-kibi-kb-lifecycle-integrity
+    to: FACT-PRED-kb-lifecycle-migrate-sources
+    created_at: 2026-10-04T05:38:25.546Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-14647f8f70ab
+  - type: requires_predicate
+    from: REQ-kibi-kb-lifecycle-integrity
+    to: FACT-PRED-kb-lifecycle-review-actions
+    created_at: 2026-10-04T05:38:25.553Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d2518bad00ef
+  - type: specified_by
+    from: REQ-kibi-kb-lifecycle-integrity
+    to: SCEN-kibi-kb-lifecycle-integrity
+    created_at: 2026-10-04T05:38:25.562Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-034353872fe7
+  - type: depends_on
+    from: REQ-kibi-kb-lifecycle-integrity
+    to: REQ-kibi-schema6-migration
+    created_at: 2026-10-04T05:38:25.574Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a5fda272bdbe

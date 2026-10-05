@@ -4,7 +4,6 @@ title: Incomplete predicate bindings cannot become writes
 status: active
 created_at: 2026-08-11T00:00:00.000Z
 updated_at: 2026-08-11T00:00:00.000Z
-source: documentation/facts/FACT-LEGACY-MIGRATION-NO-INCOMPLETE-WRITE.md
 tags:
   - lane:ontology
   - requirements
@@ -24,6 +23,10 @@ claim_text: No candidate with an incomplete binding may produce an applicable wr
 claim_span_start: 834
 claim_span_end: 905
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of incomplete-binding safety.

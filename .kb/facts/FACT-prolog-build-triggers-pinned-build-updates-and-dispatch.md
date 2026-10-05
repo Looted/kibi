@@ -22,4 +22,8 @@ claim_span_start: 243
 claim_span_end: 354
 id: FACT-prolog-build-triggers-pinned-build-updates-and-dispatch
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

@@ -20,4 +20,8 @@ claim_key: CLAIM-7C2C6F8ACD2F8DA8
 claim_text: When the project-local kibi-mcp dependency is missing, the launcher shall report a concise actionable error outcome
 id: FACT-PRED-F555DB150F42
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

@@ -996,7 +996,7 @@ export function landingContent(args: {
     </li>
     <li>
       <h3>Approve real decisions</h3>
-      <p>The agent proposes a plan before it writes project knowledge. You approve it, or you correct the product call. The bookkeeping stays with the agent.</p>
+      <p>The agent proposes a plan before it writes project knowledge. You approve it, or you correct the product call. A plan compiled from your prompt lands in full or not at all, and the bookkeeping stays with the agent.</p>
     </li>
     <li>
       <h3>Read the result</h3>
@@ -1036,6 +1036,7 @@ export function landingContent(args: {
 <section class="install" id="install">
   <h2>Add Kibi to the repository</h2>
   <p>Kibi is driven by your coding agent, so the recommended setup is a prompt. Your agent installs the packages, runs <code>kibi init</code>, connects itself to Kibi, and bootstraps the knowledge base behind a plan you approve. The package-manager tabs are the manual route; <code>kibi init</code> alone does not invent what the product does.</p>
+  <p>Bootstrap checks candidate writes before review, keeps ungrounded claims as cited follow-ups, prioritizes product intent, and reports candidates beyond the limit. Invalid plans write nothing; deterministic failures require a corrected plan. Existing KBs use <code>kibi migrate --yes</code> and <code>kibi sync</code> to upgrade to schema 7, where malformed strict facts fail validation.</p>
   <div class="pm-tabs" data-pm-tabs>
     <div class="pm-tablist" role="tablist" aria-label="Setup method">${installTabs}</div>
     ${installPanels}
@@ -1058,8 +1059,24 @@ export function landingContent(args: {
       <p>TypeScript and JavaScript work out of the box. Add the optional <code>kibi-plugin-treesitter</code> package for Python, Go, Rust, Java, C#, PHP, C, C++, Bash, Ruby, and Terraform/HCL. It runs offline with pinned grammars. Setup is in the <a href="${root}reference/plugins.html">plugin reference</a>.</p>
     </details>
     <details>
+      <summary>Can my agent ask Kibi what governs a change?</summary>
+      <p>Yes. <code>kb_search</code> accepts a plain question and, alongside ranked matches, returns the current requirements that govern the topic with their linked facts, scenarios, tests, and ADRs (with an excerpt of each decision). For each requirement it also reports any contradiction or infeasible-scenario finding that names it, the approved exceptions that exempt it, and what the checks could not decide, and it names the KB snapshot the answer came from. Superseded requirements are listed separately so they are not read as current policy. No finding is not proof: full consistency and proof status still come from <code>kb_check</code> and <code>kb_coverage</code>.</p>
+    </details>
+    <details>
+      <summary>What happens when an agent edits code a requirement owns?</summary>
+      <p>With the Claude Code, Cursor, Codex, ZCode, or OpenCode plugin, the pre-edit hook (OpenCode: the edit prompt) names the requirement the file implements, what it must keep true (from its linked facts), and the decision behind it (its ADR), before the change is made. A superseded or retired requirement is not shown as current. Afterwards <code>kb_check</code> reports conflicts it can decide and says when an analysis is incomplete instead of calling it clean. A scenario that assumes something a current requirement forbids, on its own or only in combination with its other assumptions, is flagged and blocks proof. Conditional requirements count: "checkout may happen only when the cart total is positive" becomes a typed rule, and a checkout scenario with a zero total is flagged unless a human approved an exception for it.</p>
+    </details>
+    <details>
+      <summary>Does Kibi work on a CI checkout or a detached commit?</summary>
+      <p>For reading, yes. On a commit no single branch points at, such as a CI checkout of a SHA or a bisect, search, query, status, check, coverage, and graph answer from a read-only snapshot compiled from that checkout, and every answer says so. Writes are refused until you check out a branch or set <code>KIBI_BRANCH</code>. Details are in the <a href="${root}reference/cli.html#kibi-branch">CLI reference</a>.</p>
+    </details>
+    <details>
+      <summary>How do I tell what the agent wrote from what I approved?</summary>
+      <p>Each entity can record its origin: written by a human, an agent, a migration or an import, and who approved it. New entities from your agent are marked as agent-written. <code>kb_check</code> lists agent-written requirements nobody has approved, exceptions whose approval only the agent recorded, and requirements that do not say why they exist. Kibi cannot confirm that a person approved something. It shows you what still needs your review.</p>
+    </details>
+    <details>
       <summary>What counts as proven?</summary>
-      <p>A requirement is proven only when a test that claims to verify it has fresh end-to-end evidence for the current code. A passing unit test, a coverage percentage, or an old receipt does not count.</p>
+      <p>A requirement is proven only when a test that claims to verify it has fresh end-to-end evidence for the current code. A passing unit test, a coverage percentage, or an old receipt does not count. Freshness is computed from repository-relative paths and file contents, so CI and your own checkout of the same commit agree on what is proven.</p>
     </details>
     <details>
       <summary>Will Kibi decide the product for me?</summary>

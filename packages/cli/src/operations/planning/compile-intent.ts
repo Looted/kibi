@@ -1,7 +1,6 @@
 import { createHash } from "node:crypto";
 import path from "node:path";
 
-import { dump as dumpYaml } from "js-yaml";
 import {
   type IntentSearchFacets,
   type IntentSearchMatch,
@@ -16,7 +15,10 @@ import type {
   OperationContext,
   WorkspaceSnapshot,
 } from "../../public/operations/runtime-types.js";
-import { configuredSourceTarget } from "../mutation/source-authoring.js";
+import { buildWhatIfAnalysisGoal } from "../mutation/contradictions.js";
+import { canonicalSourcePath } from "../mutation/source-authoring.js";
+import type { RelationshipInput, UpsertInput } from "../mutation/types.js";
+import { validateUpsertInput } from "../mutation/validation.js";
 import { analyzeSemanticAdvisorInputWithPlugins } from "../semantic-advisor/plugin-orchestration.js";
 import { canonicalize } from "../semantic-advisor/shared.js";
 import type {
@@ -25,10 +27,10 @@ import type {
   SemanticModelingSuggestion,
 } from "../semantic-advisor/types.js";
 
-// implements REQ-kibi-change-to-proof-plan-compiler
+// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export const COMPILE_PLAN_VERSION = "kibi.compile-plan.v1" as const;
 
-// implements REQ-kibi-change-to-proof-plan-compiler
+// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export type CompileIntentArgs = Readonly<{
   intent: string;
   mode: "create" | "update";
@@ -43,14 +45,14 @@ export type CompileIntentArgs = Readonly<{
   proposalDecisions?: readonly ProposalDecision[];
 }>;
 
-// implements REQ-kibi-change-to-proof-plan-compiler
+// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export type ScenarioDraft = Readonly<{
   id?: string;
   title: string;
   body: string;
 }>;
 
-// implements REQ-kibi-change-to-proof-plan-compiler
+// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export type TestDraft = Readonly<{
   id?: string;
   title: string;
@@ -61,19 +63,29 @@ export type TestDraft = Readonly<{
   verificationPerspective?: "internal" | "consumer";
 }>;
 
-// implements REQ-kibi-change-to-proof-plan-compiler
+// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export type ProposalDecision = Readonly<{
   proposalId: string;
   decision: "accept" | "reject";
 }>;
 
-// implements REQ-kibi-change-to-proof-plan-compiler
-export type ContradictionWitness = Readonly<{
-  requirements: readonly string[];
-  reason: string;
-}>;
+// implements REQ-kibi-change-to-proof-plan-compiler-v2
+/**
+ * One witness from the staged what-if analysis. The engine's full evidence
+ * (sides, facts, scenario, comparison) is kept alongside these normalized
+ * fields so callers can act on more than requirement ids.
+ */
+export type ContradictionWitness = Readonly<
+  {
+    requirements: readonly string[];
+    reason: string;
+    status?: string;
+    /** property | predicate | rule | scenario_feasibility */
+    kind?: string;
+  } & Record<string, unknown>
+>;
 
-// implements REQ-kibi-change-to-proof-plan-compiler
+// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export type TraceabilityProposal = Readonly<{
   proposalId: string;
   candidateId: string;
@@ -84,10 +96,10 @@ export type TraceabilityProposal = Readonly<{
   decision: "pending" | "accept" | "reject";
 }>;
 
-// implements REQ-kibi-change-to-proof-plan-compiler
+// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export type PlanStep = Readonly<Record<string, unknown>>;
 
-// implements REQ-kibi-change-to-proof-plan-compiler
+// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export function compilePlanHash(
   plan: Readonly<Record<string, unknown>>,
 ): string {
@@ -95,7 +107,7 @@ export function compilePlanHash(
   return hash(body);
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler
+// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export type CompilePlanV1 = Readonly<{
   version: typeof COMPILE_PLAN_VERSION;
   planHash: string;
@@ -130,7 +142,14 @@ export type CompilePlanV1 = Readonly<{
   }[];
   contradictionAnalysis: {
     outcome: "no_conflict" | "conflict" | "unresolved";
+    /** Witnesses that decided the outcome: introduced ones, plus staged ones naming the target requirement. */
     witnesses: readonly ContradictionWitness[];
+    /** Staged witnesses the current KB does not have. */
+    introduced?: readonly ContradictionWitness[];
+    /** Current witnesses the plan resolves. */
+    removed?: readonly ContradictionWitness[];
+    /** Staged witnesses that already exist in the current KB. */
+    unchanged?: readonly ContradictionWitness[];
   };
   proposals: readonly TraceabilityProposal[];
   steps: readonly PlanStep[];
@@ -299,15 +318,67 @@ function mergeSteps(steps: readonly PlanStep[]): PlanStep[] {
     ]);
     merged.set(key, { ...previous, ...step, properties, relationships });
   }
-  return [...merged.values()].sort((left, right) => {
-    const leftType = text(left.type) === "req" ? 1 : 0;
-    const rightType = text(right.type) === "req" ? 1 : 0;
-    return leftType - rightType || text(left.id).localeCompare(text(right.id));
-  });
+  // Steps apply in order and a relationship needs both endpoints, so order
+  // by what links to what: tests before the scenarios that are verified_by
+  // them, and the requirement (specified_by, requires_*) last.
+  const rank = (step: Record<string, unknown>) =>
+    ({ test: 1, scenario: 2, req: 3 })[text(step.type)] ?? 0;
+  return [...merged.values()].sort(
+    (left, right) =>
+      rank(left) - rank(right) || text(left.id).localeCompare(text(right.id)),
+  );
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+// implements REQ-kibi-truthful-consistency
+// Each advisor suggestion carries an inventory in which only its own clause is
+// modeled, so merging suggestion steps left the requirement with whichever
+// inventory came last (or none). The compiled plan already knows every
+// proposition's final status: write that one inventory, and a logic_claims
+// manifest covering every assertive proposition, onto the requirement step.
+function withRequirementInventory(
+  steps: readonly PlanStep[],
+  requirementId: string,
+  receipt: SemanticAdvisorReceipt,
+  propositions: CompilePlanV1["propositions"],
+): PlanStep[] {
+  if (propositions.length === 0) return [...steps];
+  const roles = new Map(
+    receipt.propositions.map((proposition) => [
+      proposition.claim_key,
+      proposition.role,
+    ]),
+  );
+  const inventory = propositions.map((proposition) => ({
+    claim_key: proposition.claimKey,
+    claim_text: proposition.text,
+    role: roles.get(proposition.claimKey) ?? "descriptive",
+    status: proposition.status,
+    span: proposition.span,
+  }));
+  const logicClaims = propositions
+    .filter((proposition) => proposition.status !== "nonlogical")
+    .map((proposition) => proposition.claimKey);
+  return steps.map((step) => {
+    if (text(step.type) !== "req" || text(step.id) !== requirementId)
+      return step;
+    const properties = isRecord(step.properties) ? step.properties : {};
+    return {
+      ...step,
+      properties: {
+        ...properties,
+        logic_claims: logicClaims,
+        semantic_clauses: propositions.map((proposition) => proposition.text),
+        semantic_inventory_version: receipt.inventory_contract.version,
+        semantic_source_field: receipt.inventory_contract.source_field,
+        semantic_source_hash: receipt.inventory_contract.source_hash,
+        semantic_inventory: inventory,
+      },
+    };
+  });
 }
 
 function propositionStatus(
@@ -382,114 +453,245 @@ async function sourceHashes(
   return hashes;
 }
 
-function sourceTarget(
-  context: OperationContext,
+/**
+ * A markdown source location may name the requirement's authored document.
+ * Any other location is changed-code evidence and is never a write target.
+ */
+function requirementDocumentPath(
   locations: readonly SourceLocation[] | undefined,
-  existingSource: string,
 ): string | undefined {
-  const explicit = locations?.[0]?.path?.trim();
-  if (explicit) return explicit.replaceAll("\\", "/");
-  if (
-    existingSource &&
-    !/^[A-Za-z][A-Za-z0-9+.-]*:\/\//.test(existingSource) &&
-    /\.(?:md|mdx|ya?ml)$/i.test(existingSource)
-  )
-    return existingSource.replaceAll("\\", "/");
-  return configuredSourceTarget(context.workspaceRoot, "req");
+  const explicit = locations?.[0]?.path?.trim().replaceAll("\\", "/");
+  if (!explicit || !/\.(?:md|mdx)$/i.test(explicit)) return undefined;
+  // Kibi owns the .kb layout: entities there live at their canonical path.
+  if (explicit === ".kb" || explicit.startsWith(".kb/")) return undefined;
+  return explicit;
 }
 
-async function sourceWritePlan(
+// implements REQ-kibi-change-to-proof-plan-compiler-v2
+/**
+ * Name the authored document every entity step writes, as `kb_upsert` would
+ * choose it: the entity's existing authored document, else its canonical
+ * `.kb/<lane>/<ID>.md` (the requirement may name its own markdown document).
+ * `kb_apply_plan` renders each step's entity into its document and journals
+ * the bytes with the rest of the plan. Without documents a plan's entities
+ * lived only in the branch store and vanished on `kibi sync --rebuild` or a
+ * fresh clone.
+ *
+ * The plan stays deterministic: it names targets and the requirement's body,
+ * not bytes, because the document carries the origin the apply records.
+ * Symbol steps keep the manifest path through `kb_upsert`, which also
+ * refreshes their coordinates.
+ */
+async function withDocumentTargets(
   context: OperationContext,
-  requirementId: string,
-  title: string,
-  intent: string,
-  locations: readonly SourceLocation[] | undefined,
-  existingSource: string,
-  existingEntityExists: boolean,
-): Promise<SourceWritePlan[]> {
-  if (!context.fs) return [];
-  if (
-    existingEntityExists &&
-    (locations === undefined || locations.length === 0) &&
-    !existingSource.match(/\.(?:md|mdx|ya?ml|json)$/i)
-  ) {
-    return [];
+  prolog: NonNullable<OperationContext["prolog"]>,
+  steps: readonly PlanStep[],
+  requirement: Readonly<{ id: string; body: string; path?: string }>,
+  now: Date,
+): Promise<PlanStep[]> {
+  if (!context.fs) return [...steps];
+  const targeted: PlanStep[] = [];
+  for (const step of steps) {
+    const type = text(step.type);
+    const id = text(step.id);
+    const properties = isRecord(step.properties) ? step.properties : {};
+    if (type === "symbol" || Object.keys(properties).length === 0) {
+      targeted.push(step);
+      continue;
+    }
+    const stepDocument = isRecord(step.document) ? step.document : {};
+    const document: { path?: string; body?: string } =
+      type === "req" && id === requirement.id
+        ? {
+            body: requirement.body,
+            ...(requirement.path !== undefined
+              ? { path: requirement.path }
+              : {}),
+          }
+        : typeof stepDocument.body === "string"
+          ? { body: stepDocument.body.replace(/\n*$/, "\n") }
+          : {};
+    const input: UpsertInput = {
+      type,
+      id,
+      properties,
+      relationships: (Array.isArray(step.relationships)
+        ? step.relationships.filter(isRecord)
+        : []) as RelationshipInput[],
+      document,
+    };
+    // An invalid entity or an unwritable document would fail the apply.
+    const { entity } = validateUpsertInput(input, now);
+    const [existing] =
+      document.path === undefined
+        ? await loadEntities(prolog, { id, type })
+        : [];
+    targeted.push({
+      ...step,
+      document: {
+        ...document,
+        path: canonicalSourcePath(context, input, entity, existing),
+      },
+    });
   }
-  const relative = sourceTarget(context, locations, existingSource);
-  if (
-    !relative ||
-    path.isAbsolute(relative) ||
-    relative.split(/[\\/]/).includes("..")
-  ) {
-    return [];
-  }
-  const absolute = path.resolve(context.workspaceRoot, relative);
-  const root = path.resolve(context.workspaceRoot);
-  if (absolute !== root && !absolute.startsWith(`${root}${path.sep}`))
-    return [];
-  const workspaceRelative = path.relative(root, absolute);
-  if (
-    workspaceRelative === ".kb" ||
-    workspaceRelative.startsWith(`.kb${path.sep}`)
-  )
-    return [];
-  let before: string | undefined;
-  try {
-    before = await context.fs.readFile(absolute);
-  } catch {
-    before = undefined;
-  }
-  const frontmatter = `---\n${dumpYaml(
-    { id: requirementId, title, type: "req", status: "open" },
-    { noRefs: true, lineWidth: -1 },
-  )}---\n`;
-  const body = `${frontmatter}${intent.trim()}\n`;
-  return [
-    {
-      path: relative,
-      mode: "write",
-      beforeHash:
-        before === undefined
-          ? null
-          : createHash("sha256").update(before).digest("hex"),
-      afterHash: createHash("sha256").update(body).digest("hex"),
-      body,
-    },
-  ];
+  return targeted;
 }
 
 function generatedRequirementId(intent: string): string {
   return `REQ-${slug(intent)}-${shortHash(intent).toUpperCase()}`;
 }
 
+// implements REQ-kibi-truthful-consistency
+/** Rolled-back staging goal for a plan's steps (see what_if_analysis/2). */
+export function planWhatIfGoal(steps: readonly PlanStep[], now: Date): string {
+  return buildWhatIfAnalysisGoal(
+    steps.map((step) => {
+      const relationships = (
+        Array.isArray(step.relationships)
+          ? step.relationships.filter(isRecord)
+          : []
+      ).map((relationship) => ({
+        type: text(relationship.type),
+        from: text(relationship.from),
+        to: text(relationship.to),
+      })) as RelationshipInput[];
+      const properties = isRecord(step.properties) ? step.properties : {};
+      if (Object.keys(properties).length === 0) {
+        return {
+          entity: { id: text(step.id), type: text(step.type) },
+          relationships,
+          skipContradictionCheck: true,
+          relationshipsOnly: true,
+        };
+      }
+      const validated = validateUpsertInput(
+        {
+          type: text(step.type),
+          id: text(step.id),
+          properties,
+          relationships,
+        },
+        now,
+      );
+      return {
+        entity: validated.entity,
+        relationships: validated.relationships,
+        skipContradictionCheck: true,
+      };
+    }),
+  );
+}
+
+// implements REQ-kibi-truthful-consistency
+export type WhatIfAnalysis = Readonly<{
+  after: readonly ContradictionWitness[];
+  introduced: readonly ContradictionWitness[];
+  removed: readonly ContradictionWitness[];
+  unchanged: readonly ContradictionWitness[];
+}>;
+
+function whatIfWitness(witness: Record<string, unknown>): ContradictionWitness {
+  return {
+    ...witness,
+    requirements: Array.isArray(witness.requirements)
+      ? witness.requirements.map((id) => normalizeEntityId(String(id)))
+      : [],
+    reason: text(witness.reason),
+    status: text(witness.status) || "contradiction",
+    ...(typeof witness.kind === "string" ? { kind: witness.kind } : {}),
+  };
+}
+
+function whatIfWitnesses(value: unknown): ContradictionWitness[] {
+  return (Array.isArray(value) ? value.filter(isRecord) : []).map(
+    whatIfWitness,
+  );
+}
+
+// implements REQ-kibi-truthful-consistency
+/**
+ * Parse checks:what_if_analysis_json/2 output. The binding is a quoted Prolog
+ * string, so the JSON may arrive encoded once more as a JSON string. A bare
+ * witness array (the what_if_contradiction_witnesses_json/2 shape) carries no
+ * current-KB baseline, so every witness in it is treated as introduced.
+ * Returns null when the output cannot be read.
+ */
+export function parseWhatIfAnalysis(raw: unknown): WhatIfAnalysis | null {
+  if (typeof raw !== "string") return null;
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+    if (typeof parsed === "string") parsed = JSON.parse(parsed);
+  } catch {
+    return null;
+  }
+  if (Array.isArray(parsed)) {
+    const after = whatIfWitnesses(parsed);
+    return { after, introduced: after, removed: [], unchanged: [] };
+  }
+  if (!isRecord(parsed)) return null;
+  return {
+    after: whatIfWitnesses(parsed.after),
+    introduced: whatIfWitnesses(parsed.introduced),
+    removed: whatIfWitnesses(parsed.removed),
+    unchanged: whatIfWitnesses(parsed.unchanged),
+  };
+}
+
+// implements REQ-kibi-truthful-consistency
+/** Blocking: a proven contradiction or an infeasible success scenario. */
+export function isBlockingWitness(witness: ContradictionWitness): boolean {
+  return witness.status === "contradiction" || witness.status === "infeasible";
+}
+
+// implements REQ-kibi-truthful-consistency
+// Check the KB as it would be after this plan, not the KB as it is: stage every
+// planned step in a rolled-back transaction and compare its contradiction and
+// scenario-feasibility witnesses with the current KB's. Any witness the plan
+// introduces counts, whichever requirements it names; a staged witness that
+// already existed counts only when it names the target requirement. Rule
+// overlap the checker can neither prove nor exclude stays unresolved rather
+// than becoming consistency.
 async function contradictionAnalysis(
   prolog: NonNullable<OperationContext["prolog"]>,
   requirementId: string,
-): Promise<{
-  outcome: "no_conflict" | "conflict" | "unresolved";
-  witnesses: ContradictionWitness[];
-}> {
-  const result = await prolog.query(
-    "findall([A,B,Reason], contradicting_reqs(A, B, Reason), Rows)",
-  );
-  if (!result.success) return { outcome: "unresolved", witnesses: [] };
-  const rows = parseTriples(result.bindings.Rows ?? "[]");
-  const witnesses = rows
-    .map(([left, right, reason]) => ({
-      left: normalizeEntityId(left),
-      right: normalizeEntityId(right),
-      reason,
-    }))
-    .filter(
-      ({ left, right }) => left === requirementId || right === requirementId,
-    )
-    .map(({ left, right, reason }) => ({
-      requirements: [left, right],
-      reason,
-    }));
+  steps: readonly PlanStep[],
+  now: Date,
+): Promise<CompilePlanV1["contradictionAnalysis"]> {
+  const unavailable = {
+    outcome: "unresolved" as const,
+    witnesses: [],
+    introduced: [],
+    removed: [],
+    unchanged: [],
+  };
+  let goal: string;
+  try {
+    goal = planWhatIfGoal(steps, now);
+  } catch {
+    return unavailable;
+  }
+  const result = await prolog.query(goal);
+  if (!result.success) return unavailable;
+  const analysis = parseWhatIfAnalysis(result.bindings.JsonString);
+  if (analysis === null) return unavailable;
+  const witnesses = [
+    ...analysis.introduced,
+    ...analysis.unchanged.filter((witness) =>
+      witness.requirements.includes(requirementId),
+    ),
+  ];
+  const outcome = witnesses.some(isBlockingWitness)
+    ? "conflict"
+    : witnesses.length > 0
+      ? "unresolved"
+      : "no_conflict";
   return {
-    outcome: witnesses.length > 0 ? "conflict" : "no_conflict",
+    outcome,
     witnesses,
+    introduced: analysis.introduced,
+    removed: analysis.removed,
+    unchanged: analysis.unchanged,
   };
 }
 
@@ -552,7 +754,7 @@ function draftId(prefix: string, title: string, index: number): string {
   return `${prefix}-${slug(title)}-${shortHash(`${title}\0${index}`).toUpperCase()}`;
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler
+// implements REQ-kibi-change-to-proof-plan-compiler-v2
 function draftSteps(
   requirementId: string,
   scenarios: readonly ScenarioDraft[],
@@ -560,7 +762,12 @@ function draftSteps(
 ): { steps: PlanStep[]; diagnostics: string[] } {
   const diagnostics: string[] = [];
   const steps: PlanStep[] = [];
+  const testSteps: PlanStep[] = [];
   const scenarioIds: string[] = [];
+  // verified_by runs scenario -> test, and an upsert step may only carry
+  // relationships from its own entity, so each scenario step carries the
+  // links to its tests and the tests are written before it.
+  const scenarioTests = new Map<string, string[]>();
   const linkedScenarioIds = new Set<string>();
   const duplicateScenarioIds = new Set<string>();
   const testIds = new Set<string>();
@@ -573,15 +780,18 @@ function draftSteps(
       );
     }
     scenarioIds.push(id);
+    // The draft prose is document body, not an entity property: the entity
+    // schema has no `body`, so carrying it in properties made every staged
+    // what-if check and every apply of a plan with drafts fail validation.
     steps.push({
       type: "scenario",
       id,
       properties: {
         title: scenario.title.trim(),
         status: "draft",
-        body: scenario.body.trim(),
         source: "mcp://kibi/compile-intent",
       },
+      document: { body: scenario.body.trim() },
       relationships: [],
     });
   });
@@ -640,26 +850,36 @@ function draftSteps(
         );
       }
     }
-    for (const scenarioId of validScenarioIds)
+    for (const scenarioId of validScenarioIds) {
       linkedScenarioIds.add(scenarioId);
-    steps.push({
+      scenarioTests.set(scenarioId, [
+        ...(scenarioTests.get(scenarioId) ?? []),
+        id,
+      ]);
+    }
+    testSteps.push({
       type: "test",
       id,
       properties: {
         title: test.title.trim(),
         status: "draft",
-        body: test.body.trim(),
         source: "mcp://kibi/compile-intent",
         verification_scope: test.verificationScope ?? "integration",
         verification_perspective: test.verificationPerspective ?? "internal",
       },
-      relationships: validScenarioIds.map((scenarioId) => ({
-        type: "verified_by",
-        from: scenarioId,
-        to: id,
-      })),
+      document: { body: test.body.trim() },
+      relationships: [],
     });
   });
+  const scenarioSteps = steps.map((step) => ({
+    ...step,
+    relationships: (scenarioTests.get(text(step.id)) ?? []).map((to) => ({
+      type: "verified_by",
+      from: text(step.id),
+      to,
+    })),
+  }));
+  steps.splice(0, steps.length, ...testSteps, ...scenarioSteps);
   for (const scenarioId of scenarioIds) {
     if (!linkedScenarioIds.has(scenarioId)) {
       diagnostics.push(
@@ -682,7 +902,7 @@ function draftSteps(
   return { steps, diagnostics };
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler
+// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export async function executeCompileIntent(
   args: CompileIntentArgs,
   context: OperationContext,
@@ -780,10 +1000,10 @@ export async function executeCompileIntent(
     text(existingEntity.title) ||
     intent.split(/[.!?]/, 1)[0] ||
     intent;
+  const requirementDocument = requirementDocumentPath(args.sourceLocations);
   const source =
-    text(args.sourceLocations?.[0]?.path) ||
-    text(existingEntity.source) ||
-    "mcp://kibi/compile-intent";
+    requirementDocument ??
+    (text(existingEntity.source) || "mcp://kibi/compile-intent");
   const orchestrated = await analyzeSemanticAdvisorInputWithPlugins(
     {
       payload: {
@@ -933,6 +1153,12 @@ export async function executeCompileIntent(
         : []),
     ]),
   ]);
+  const stepsWithInventory = withRequirementInventory(
+    steps,
+    requirementId,
+    advisor.receipt,
+    propositions,
+  );
   const drafts = draftSteps(
     requirementId,
     args.scenarioDrafts ?? [],
@@ -961,18 +1187,32 @@ export async function executeCompileIntent(
         },
       ];
     });
+  // Merging folds the drafts' relationship-only requirement step (its
+  // specified_by links) into the requirement step, which an upsert needs:
+  // a step without properties fails entity validation.
   const stepsWithAcceptedProposals = applyAcceptedProposals(
-    [...steps, ...drafts.steps],
+    mergeSteps([...stepsWithInventory, ...drafts.steps]),
     proposals,
   );
-  const contradictions = await contradictionAnalysis(prolog, requirementId);
+  const contradictions = await contradictionAnalysis(
+    prolog,
+    requirementId,
+    stepsWithAcceptedProposals,
+    context.clock(),
+  );
   if (contradictions.outcome === "conflict")
     diagnostics.push(
-      "Current requirement conflicts must be resolved with an explicit supersedes relationship before applying this plan.",
+      contradictions.witnesses.some(
+        (witness) => witness.kind === "scenario_feasibility",
+      )
+        ? "The plan leaves a success scenario infeasible or conflicts with a current requirement: set expects: rejection, correct the assumption, record an approved exception, or supersede the conflicting requirement before applying this plan."
+        : "Current requirement conflicts must be resolved with an explicit supersedes relationship before applying this plan.",
     );
   if (contradictions.outcome === "unresolved")
     diagnostics.push(
-      "Contradiction analysis could not run against the attached KB snapshot.",
+      contradictions.witnesses.length > 0
+        ? "Contradiction analysis is unresolved: the planned rules may overlap with current requirements and the checker can neither prove nor exclude a conflict."
+        : "Contradiction analysis could not run against the attached KB snapshot with this plan staged.",
     );
   if (
     args.mode === "create" &&
@@ -997,25 +1237,39 @@ export async function executeCompileIntent(
         entry.includes("not found") ||
         entry.includes("different content"),
     );
-  const statusValue: CompilePlanV1["status"] =
+  let statusValue: CompilePlanV1["status"] =
     contradictions.outcome === "conflict"
       ? "blocked"
       : unresolved
         ? "needs_resolution"
         : "ready";
   const sourceHashMap = await sourceHashes(context, args.sourceLocations);
-  const sourceWrites =
-    statusValue === "ready"
-      ? await sourceWritePlan(
-          context,
-          requirementId,
-          title,
-          intent,
-          args.sourceLocations,
-          source,
-          existing.length > 0,
-        )
-      : [];
+  // Only a ready plan can be applied, so only a ready plan carries documents.
+  // A step whose entity or document cannot be rendered would fail the apply,
+  // so it makes the plan need resolution instead of reporting it ready.
+  let planSteps = stepsWithAcceptedProposals;
+  if (statusValue === "ready") {
+    try {
+      planSteps = await withDocumentTargets(
+        context,
+        prolog,
+        stepsWithAcceptedProposals,
+        {
+          id: requirementId,
+          body: `${intent.trim()}\n`,
+          ...(requirementDocument !== undefined
+            ? { path: requirementDocument }
+            : {}),
+        },
+        context.clock(),
+      );
+    } catch (error) {
+      statusValue = "needs_resolution";
+      diagnostics.push(
+        `A plan step cannot be applied as written: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
   const planBody = {
     version: COMPILE_PLAN_VERSION,
     status: statusValue,
@@ -1033,8 +1287,8 @@ export async function executeCompileIntent(
     propositions,
     contradictionAnalysis: contradictions,
     proposals,
-    steps: stepsWithAcceptedProposals,
-    sourceWrites,
+    steps: planSteps,
+    sourceWrites: [],
     diagnostics,
   };
   // Shadow/provenance metadata is returned for observation but must not enter
@@ -1048,7 +1302,7 @@ export async function executeCompileIntent(
     content: [
       {
         type: "text",
-        text: `Compiled ${intent.length} characters into ${statusValue} plan ${plan.planHash.slice(0, 12)} with ${stepsWithAcceptedProposals.length} step(s).`,
+        text: `Compiled ${intent.length} characters into ${statusValue} plan ${plan.planHash.slice(0, 12)} with ${planSteps.length} step(s).`,
       },
     ],
     structuredContent: plan,

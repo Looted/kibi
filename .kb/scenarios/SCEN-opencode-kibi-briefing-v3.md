@@ -4,7 +4,6 @@ title: "OpenCode Kibi Briefing v3: Session Reconciliation and Cache Management"
 status: closed
 created_at: 2026-04-24T00:00:00Z
 updated_at: 2026-04-24T00:00:00Z
-source: documentation/scenarios/SCEN-opencode-kibi-briefing-v3.md
 tags:
   - scenario
   - opencode
@@ -13,6 +12,10 @@ tags:
 links:
   - type: relates_to
     target: REQ-opencode-kibi-briefing-v3
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 id: SCEN-opencode-kibi-briefing-v3
 title: "OpenCode Kibi Briefing v3: Session Reconciliation and Cache Management"

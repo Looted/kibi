@@ -208,7 +208,7 @@ export function applyOntologyMatchSuggestions(
       evidence: match.evidence,
       rationale:
         match.rationale ??
-        `Ontology pack '${match.packId}' matched ${match.predicateName}; review via kb_suggest_predicates before mutation.`,
+        `Ontology pack '${match.packId}' matched ${match.predicateName}; review via kb_model (mode predicates) before mutation.`,
       suggested_next_tool: "kb_suggest_predicates",
       recommendedPredicateSchema: {
         predicate_name: match.predicateName,

@@ -65,13 +65,42 @@ This section provides guidance on selecting the appropriate entity type for your
 | status       | Yes      | string         | Entity status (see below for values)             |
 | created_at   | Yes      | ISO 8601       | Creation timestamp                               |
 | updated_at   | Yes      | ISO 8601       | Last update timestamp                            |
-| source       | Yes      | string         | Provenance (file path, URL, or reference)        |
+| source       | Yes      | string         | The entity's own file (workspace-relative). Always compiled from the file path; Kibi ignores an authored `source` frontmatter field and never writes one, so `kb_upsert` cannot set it. A leftover authored value must name an existing workspace path (`#anchor` allowed), an existing entity id, or an http(s) URL, or `kibi check` blocks it under `source-path-dangling`; `kibi migrate` (`source_path_rewrite`) removes values that name the entity's own file or nothing, and rewrites pre-canonical paths to another moved knowledge file |
 | tags[]       | No       | array[string]  | Array of metadata/search tags only               |
 | owner        | No       | string         | Owner/assignee                                   |
 | priority     | No       | string         | Priority level (must, should, could)             |
 | severity     | No       | string         | Severity level                                   |
 | links[]      | No       | array[string]  | Array of URLs                                    |
 | text_ref     | No       | string         | Pointer to Markdown/doc blob                     |
+| origin       | No       | object         | Provenance: who authored the entity and on what authority (see [Entity origin](#entity-origin)). Valid on every type; optional on symbols |
+
+### Entity origin
+
+`origin` records who authored an entity (KB schema 6 and later):
+
+| Field         | Required | Type     | Description |
+|---------------|----------|----------|-------------|
+| `kind`        | Yes      | string   | `human`, `agent`, `migration` (backfilled by `kibi migrate`) or `import` |
+| `ref`         | No       | string   | Where the content came from: URL, document path, ticket, commit or conversation id |
+| `approved_by` | No       | string   | The person who reviewed and approved the entity's content. For an exception requirement this corroborates the requirement-level `approved_by` |
+| `recorded_at` | No       | ISO 8601 | When the provenance was recorded |
+
+```yaml
+origin:
+  kind: agent
+  ref: https://tracker.example/ISSUE-42
+  approved_by: Dana Lee
+  recorded_at: '2026-10-01T09:30:00Z'
+```
+
+How `kb_upsert` (and `kibi upsert`) sets it:
+
+- A new entity written without `origin` is recorded as `{kind: agent, recorded_at: <write time>}`; `kb_upsert` is the agent write path, so a human or an import says so explicitly.
+- Updating an entity without `origin` never changes the stored origin. An entity that has no origin (written before schema 6 or by hand) stays without one; editing it does not make the editor its author.
+- A supplied `origin` is written as given (unknown kinds and unknown fields are rejected); when it has no `recorded_at`, the write time is filled in.
+- `kibi migrate` (schema 5 to 6) stamps `{kind: migration, ref: "kibi migrate v5->v6", recorded_at}` on every authored entity without an origin.
+
+Kibi cannot verify a person's approval. The advisory checks `exception-unapproved`, `exception-approval-self-attested` and `agent-requirement-unapproved` make missing or agent-recorded approvals visible so a human can confirm them (see `docs/cli-reference.md`).
 
 ---
 
@@ -83,7 +112,7 @@ This section provides guidance on selecting the appropriate entity type for your
 |--------------|----------|----------------|--------------------------------------------------|
 | id           | Yes      | string         | Unique identifier                                |
 | title        | Yes      | string         | Requirement summary                              |
-| status       | Yes      | string         | open, in_progress, closed, deprecated. ADR vocabulary such as `accepted` compiles but is not a requirement status: it silently removes the requirement from the proof ladder, and `kibi check` reports it under `req-status-vocabulary`. Superseded requirements keep their status and gain a `supersedes` link from the successor. |
+| status       | Yes      | string         | open, in_progress, closed, deprecated. ADR vocabulary such as `accepted` compiles but is not a requirement status: it silently removes the requirement from the proof ladder, and `kibi check` reports it under `req-status-vocabulary`. A superseded requirement (the target of a `supersedes` link from its successor) must be `closed`; `kibi check` blocks an open one under `superseded-requirement-open`. |
 | created_at   | Yes      | ISO 8601       | Creation timestamp                               |
 | updated_at   | Yes      | ISO 8601       | Last update timestamp                            |
 | source       | Yes      | string         | Provenance                                       |
@@ -95,6 +124,10 @@ This section provides guidance on selecting the appropriate entity type for your
 | text_ref     | No       | string         | Independent code/doc evidence pointer            |
 | proof_exempt | No       | boolean        | Marks a current requirement as intentionally outside E2E-proof scope. Requires `proof_exempt_reason`; coverage reports the requirement `not_applicable` with that reason |
 | proof_exempt_reason | No | string        | Required when `proof_exempt` is true — the reviewable justification surfaced in coverage rows |
+| approved_by  | No       | string         | Exception requirements only: the human who approved the exception. An exception that `exempts` a requirement makes its specified success scenarios feasible only when `approved_by` is non-empty; without it the advisory `exception-unapproved` check reports the exception |
+| approval_ref | No       | string         | Optional reference to the exception's approval record (ticket, ADR or review link). When an agent recorded the exception (`origin.kind: agent`), the advisory `exception-approval-self-attested` check asks for `approval_ref` and `origin.approved_by` |
+| rationale    | No       | string         | Why the requirement exists, in one or two sentences from whoever stated the intent. Explanation only, never part of the checked meaning. The advisory `requirement-rationale-missing` check asks human- and agent-authored requirements for it unless the body has a `## Rationale` or `## Why` section or an ADR is linked |
+| exempts_claims[] | No   | array[string]  | Exception requirements only: claim keys (`CLAIM-...`) of the exempted requirement's clauses this exception waives. Absent, it waives the whole requirement; present, only constraints grounded by facts carrying a listed `claim_key`. The canonical `exception-claim-keys` check requires every key to be a claim of a requirement it `exempts` |
 | semantic_text | No      | string         | Requirement-only normalized authored prose that anchors semantic byte spans |
 | logic_claims | No       | array[string]  | Requirement-only manifest of stable atomic claim keys |
 | semantic_clauses | No | array[string] | Reviewed atomic decomposition override used against the exact semantic source |
@@ -288,6 +321,13 @@ scenarios:
 | severity     | No       | string         | Severity level                                   |
 | links[]      | No       | array[string]  | URLs                                             |
 | text_ref     | No       | string         | Markdown/doc pointer                             |
+| expects      | No       | enum           | Intended outcome: `success`, `rejection` or `error` |
+
+A scenario that sets `expects: success` and links the values its outcome depends on with `assumes` (scenario → `property_value` fact) is checked against current requirements by the canonical `scenario-feasibility` rule, through their `requires_property` facts and their typed `requires_rule` rules alike. A rule restricting an action ("checkout may happen only when the cart total is positive") governs the scenarios that perform it: those `specified_by` the requirement, or that assume a predicate fact naming the action. A requirement constraint only applies inside the validity window (`valid_from`/`valid_to`) of the fact that grounds it, and a scoped one only in its scope. When a current requirement forbids an assumed value (for example it requires `client.call_quota.remaining > 0` and the scenario assumes `= 0`), or several assumptions can only hold together with a value the requirements forbid (it requires `<= 5` and the scenario assumes `>= 5` and `!= 5`), `kb_check` reports the scenario, the requirements and the facts involved, and every requirement the scenario specifies gets the `infeasible_scenario` proof gap. Reuse the requirement's `subject_key` and `property_key` in the assumption fact: a differently named property is not compared, and no violation is not proof the scenario is feasible. Scenarios that expect `rejection` or `error` are not checked.
+
+To allow an intended exception without weakening the rule, record a human-approved exception requirement that `exempts` the base requirement, is `specified_by` the scenario, and sets `approved_by` (optionally `approval_ref`). The base requirement stays current and unchanged, and the exception covers only the scenarios it specifies. An exception without `approved_by` does not exempt anything; the violation then says the exception is not approved. To waive one clause of a multi-clause requirement, list that clause's claim key in `exempts_claims`: the other clauses still govern the scenario.
+
+A success scenario whose feasibility cannot be decided (it assumes nothing, its assumptions contradict each other, it assumes a property no current requirement governing it constrains, an assumption's type, unit or operator cannot be compared with the requirement's, the governing requirements admit no common value, the assumptions neither satisfy nor refute a governing rule's conditions, or it conflicts only with constraints whose validity window may or may not cover its time) is reported by the advisory `scenario-feasibility-unknown` rule and the `unknown_scenario_feasibility` proof advisory; it is never counted as feasible.
 
 **Example:**
 ```yaml
@@ -325,7 +365,7 @@ tags:
 | proof_bindings | No | array[object] | Optional native-runner bindings (`native_id`, aliases, source coordinates) for proof obligations; provenance metadata, never a contract replacement |
 | proof_receipts | No | array[object] | Append-only proof-receipt execution history; evidence is `kibi.proof-receipt.v1`; requires `verification_scope` |
 
-`proof_receipts` is append-only: never remove or rewrite existing entries, and include the full history when authoring a test file directly. Receipts are engine-derived from `kibi.proof-run.v1` producer artifacts — see [proving requirements](proving-requirements.md) for contracts, the `kibi prove` workflow, and the artifact reference.
+`proof_receipts` is append-only for authors: never remove or rewrite existing entries, and include the full history when authoring a test file directly. Only the engine shortens a history: `kibi prove` compacts it on ingest to the receipts that can still decide proof, and `kibi proof compact` and `kibi proof prune` are the maintenance commands. Receipts are engine-derived from `kibi.proof-run.v1` producer artifacts — see [proving requirements](proving-requirements.md) for contracts, the `kibi prove` workflow, and the artifact reference.
 
 `tags` remain metadata only. They do not alias or replace typed verification fields.
 
@@ -543,11 +583,12 @@ Facts support two authoring lanes:
 - **Strict lane** for normative, contradiction-sensitive knowledge
   - `subject`: requires `subject_key`
   - `property_value`: requires `subject_key`, `property_key`, `operator`, `value_type`, and exactly one value field
+  - A scalar obligation such as "Exports must include headers" uses `operator: eq`, `value_type: bool`, `value_bool: true`, and `polarity: require` (or `forbid` for "must not"). Polarity modifies a typed comparison and never replaces it. Schema 7 makes malformed strict fact shapes blocking; `kibi migrate --yes` converts legacy polarity-only facts without changing IDs.
 - **Context lane** for non-blocking knowledge
   - `observation`
   - `meta`
 - **Ontology lane** for project-local predicate modeling
-  - `predicate_schema`: defines an allowed predicate signature; requires `predicate_name`, `predicate_arity`, `argument_names`, and `argument_types`. May close argument vocabularies with `argument_constants` (allowed values keyed by argument name) and `argument_aliases` (legacy spellings keyed by argument name, each mapped to a declared constant); unlisted arguments stay open
+  - `predicate_schema`: defines an allowed predicate signature; requires `predicate_name`, `predicate_arity`, `argument_names`, and `argument_types`. May close argument vocabularies with `argument_constants` (allowed values keyed by argument name) and `argument_aliases` (legacy spellings keyed by argument name, each mapped to a declared constant); unlisted arguments stay open. Optional `key_arguments` (a non-empty list of declared argument names) states that those arguments determine the rest; rule contradiction analysis identifies two atoms of the predicate only when their key arguments are identical
   - `predicate`: stores a ground predicate claim; requires `predicate_name`, non-empty `predicate_args`, and `canonical_key`; may use `polarity: assert` or `deny`; logical coverage also uses the paired `claim_key` and `claim_text` provenance fields
 - **Logic lane** for conditional and modal requirements
   - `rule_schema`: declares the stable `kibi.logic.v1` signature used by rule facts
@@ -632,6 +673,8 @@ Kibi supports relationship types listed below. Each relationship has metadata:
 | supersedes          | adr                  | adr                  | The source ADR formally replaces the target ADR. The target is expected to carry status: archived or deprecated |
 | supersedes          | req                  | req                  | The source requirement replaces the target requirement; the target stops being current |
 | restates            | req                  | req                  | The source requirement intentionally restates a current requirement (e.g. a product requirement echoed in a platform requirement). Both stay current; `domain-redundancy` is suppressed for the pair |
+| assumes             | scenario             | fact                 | The scenario's outcome depends on this `property_value` fact holding; checked by `scenario-feasibility` when the scenario expects success |
+| exempts             | req                  | req                  | An approved exception requirement exempts the scenarios it specifies from the target requirement's property and rule constraints (only the clauses in `exempts_claims` when set); the target stays current |
 | relates_to          | a                    | b                    | Generic relationship (escape hatch)               |
 
 ---
@@ -844,6 +887,24 @@ relationship:
   created_at: 2026-09-28T10:00:00Z
   created_by: analyst
   source: .kb/requirements/REQ-billing-invoice-retention.md
+```
+
+**assumes** and **exempts**
+```yaml
+# scenario SCEN-promo-zero-quota-call expects success and assumes zero quota
+links:
+  - type: assumes
+    target: FACT-quota-remaining-zero
+# exception req REQ-quota-promo-exception exempts REQ-quota-call and specifies the scenario
+approved_by: Product owner
+approval_ref: DEC-quota-promo
+# optional: waive only these clauses of REQ-quota-call
+exempts_claims: [CLAIM-0123456789ABCDEF]
+links:
+  - type: exempts
+    target: REQ-quota-call
+  - type: specified_by
+    target: SCEN-promo-zero-quota-call
 ```
 
 ---

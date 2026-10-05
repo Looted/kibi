@@ -21,4 +21,8 @@ claim_text: An SDK-only third-party plugin must be allowed through the host capa
 id: FACT-PRED-9FDC0C2BE3F2
 type: fact
 predicate_namespace: kibi.capability
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

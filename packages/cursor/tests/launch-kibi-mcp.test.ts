@@ -108,7 +108,7 @@ if (args.includes("--signal-test")) {
 } else if (args.includes("--exit-7")) {
   process.exit(7);
 } else {
-  const result = JSON.stringify({ label: ${JSON.stringify(label)}, cwd: process.cwd(), workspace: process.env.KIBI_WORKSPACE });
+  const result = JSON.stringify({ label: ${JSON.stringify(label)}, cwd: process.cwd(), workspace: process.env.KIBI_MCP_ATTACH_ROOT });
   if (process.env.KIBI_LAUNCH_TEST_OUTPUT) writeFileSync(process.env.KIBI_LAUNCH_TEST_OUTPUT, result);
   process.stdout.write(result);
 }

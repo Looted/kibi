@@ -1,4 +1,4 @@
-// implements REQ-008
+// implements REQ-symbol-behavioral-anchors
 import { afterEach, describe, expect, test } from "bun:test";
 import { isSymbolRole } from "../../src/public/symbol-granularity.js";
 import { isolateKibiEnv } from "../helpers/in-process-workspace.js";

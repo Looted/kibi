@@ -19,5 +19,9 @@ canonical_key: conditional_behavior(kibi_zcode_adapter,installed_or_enabled,modi
 polarity: deny
 id: FACT-PRED-ZCODE-NO-CORE-RUNTIME-MODIFICATION
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Installing or enabling kibi-zcode must not modify core Kibi runtime components

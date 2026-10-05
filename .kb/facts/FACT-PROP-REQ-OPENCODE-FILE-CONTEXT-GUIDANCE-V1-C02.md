@@ -15,4 +15,8 @@ claim_key: CLAIM-62E414D2C0D36026
 claim_text: The plugin must monitor file lifecycle events and provide advisory-only reminders
 id: FACT-PROP-REQ-OPENCODE-FILE-CONTEXT-GUIDANCE-V1-C02
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

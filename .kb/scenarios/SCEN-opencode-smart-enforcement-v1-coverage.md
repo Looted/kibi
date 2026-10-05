@@ -5,7 +5,6 @@ type: scenario
 status: active
 created_at: 2026-07-21T00:00:00.000Z
 updated_at: 2026-07-21T00:00:00.000Z
-source: documentation/scenarios/SCEN-opencode-smart-enforcement-v1-coverage.md
 priority: must
 links:
   - type: relates_to
@@ -14,6 +13,10 @@ links:
     target: TEST-opencode-smart-enforcement-v1-coverage
   - type: verified_by
     target: TEST-e2e-opencode-enforcement-surface
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Given a risky edit and its detected repository posture, when the OpenCode plugin builds guidance, then enforcement is contextual and points to the public briefing workflow without unnecessary blocking noise.

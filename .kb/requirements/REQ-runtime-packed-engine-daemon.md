@@ -33,5 +33,9 @@ semantic_inventory:
     payload_hash: 3f07a1a7c241d610c2275333bd314330dccd7a4bd7f926bdf1fb86208e406696
 id: REQ-runtime-packed-engine-daemon
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 The published kibi-runtime package MUST ship a self-contained engine daemon entry point that the runtime engine client resolves without a nested kibi-cli install. A consumer installing only published kibi packages MUST be able to start the Kibi engine and serve typed queries from the installed runtime.

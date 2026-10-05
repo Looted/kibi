@@ -70,12 +70,13 @@ import { createCodexRuntimeLease } from "./runtime/codex-runtime";
 import { PublicTaskClaimSchema } from "./runtime/file-bridge";
 import { taskFinalStateRequests } from "./runtime/final-state-requests";
 import {
-  type CapabilityCanaryReceipt,
-  OPTIMIZER_MODEL,
-  OPTIMIZER_REASONING_EFFORT,
-  TARGET_EFFORT,
-  TARGET_MODEL,
-} from "./runtime/permissions";
+  ModelIdSchema,
+  ReasoningEffortSchema,
+  type SkillOptModelConfig,
+  activeSkillOptModelConfig,
+  assertSkillOptModelsReadyForPaidWork,
+} from "./runtime/models";
+import type { CapabilityCanaryReceipt } from "./runtime/permissions";
 import {
   type SkillAssemblyReceipt,
   assembleCanonicalSkills,
@@ -83,12 +84,21 @@ import {
 import { resolveTaskFixture } from "./runtime/task-fixture";
 import { initializeTargetEpisodeBudget } from "./target-episode-budget";
 
-export const CAMPAIGN_MODEL_PROFILE = {
-  targetModel: TARGET_MODEL,
-  targetReasoningEffort: TARGET_EFFORT,
-  optimizerModel: OPTIMIZER_MODEL,
-  optimizerReasoningEffort: OPTIMIZER_REASONING_EFFORT,
-} as const;
+/**
+ * The model profile pinned by the operator environment for this process.
+ * Campaign cohort hashes and stored evaluations bind to it, so a profile change
+ * between campaign commands is rejected as a model mismatch.
+ */
+// implements REQ-skillopt-paid-launch-accounting
+export function campaignModelProfile(): SkillOptModelConfig {
+  const config = activeSkillOptModelConfig();
+  return {
+    targetModel: config.targetModel,
+    targetReasoningEffort: config.targetReasoningEffort,
+    optimizerModel: config.optimizerModel,
+    optimizerReasoningEffort: config.optimizerReasoningEffort,
+  };
+}
 
 type CampaignCommand =
   | "revise"
@@ -334,10 +344,10 @@ function zEvaluationSchema() {
       cohortBindingHash: Sha256Schema,
       model: z
         .object({
-          targetModel: z.literal(TARGET_MODEL),
-          targetReasoningEffort: z.literal(TARGET_EFFORT),
-          optimizerModel: z.literal(OPTIMIZER_MODEL),
-          optimizerReasoningEffort: z.literal(OPTIMIZER_REASONING_EFFORT),
+          targetModel: ModelIdSchema,
+          targetReasoningEffort: ReasoningEffortSchema,
+          optimizerModel: ModelIdSchema,
+          optimizerReasoningEffort: ReasoningEffortSchema,
         })
         .strict(),
     })
@@ -1086,7 +1096,8 @@ async function defaultEvaluateSample(
     env: input.env,
     finalStateRequests: taskFinalStateRequests(
       input.task.id,
-      fixture.evaluatorManifest.protocolContract !== undefined,
+      fixture.evaluatorManifest.protocolContract?.exactMigrationApply !==
+        undefined,
     ),
     evaluatorManifest: fixture.evaluatorManifest,
     hiddenMarkers: input.runtime.hiddenMarkers ?? [],
@@ -1173,6 +1184,19 @@ export const defaultCampaignDependencies: CampaignDependencies = {
 
 function requirePaid(allowPaid: boolean): void {
   if (!allowPaid) assertNoPaidFlag();
+  assertSkillOptModelsReadyForPaidWork();
+}
+
+function assertReceiptModels(
+  receipt: Readonly<{ targetModel: string; optimizerModel: string }>,
+  code: string,
+): void {
+  const models = activeSkillOptModelConfig();
+  if (
+    receipt.targetModel !== models.targetModel ||
+    receipt.optimizerModel !== models.optimizerModel
+  )
+    throw new CampaignArtifactError(code);
 }
 
 function validateDevelopmentTasks(
@@ -1230,6 +1254,7 @@ async function paidPreparation(
   }>
 > {
   const { store, sourceRoot, runId, skill, dependencies } = input;
+  assertSkillOptModelsReadyForPaidWork();
   if (!(await dependencies.sourceClean(sourceRoot, input.env))) {
     throw new CampaignArtifactError("source_not_clean");
   }
@@ -1267,6 +1292,7 @@ async function paidPreparation(
   await store.writeJson("preflight.json", preflight);
   if (preflight.verdict !== "pass")
     throw new CampaignArtifactError("preflight_no_go");
+  assertReceiptModels(preflight, "preflight_model_mismatch");
   const preflightFence = await dependencies.sourceFence(sourceRoot);
   if (!sameFence(beforeFence, preflightFence))
     throw new CampaignArtifactError("source_fence_changed");
@@ -1296,6 +1322,7 @@ async function paidPreparation(
   await store.writeJson("canary.json", canary);
   if (canary.verdict !== "pass")
     throw new CampaignArtifactError("canary_no_go");
+  assertReceiptModels(canary, "canary_model_mismatch");
   const afterFence = await dependencies.sourceFence(sourceRoot);
   if (!sameFence(beforeFence, afterFence))
     throw new CampaignArtifactError("source_fence_changed");
@@ -1516,7 +1543,7 @@ type CampaignIdentity = Readonly<{
     frontmatterHash: string;
     resourcesHash: string;
     taskCatalogHash: string;
-    model: typeof CAMPAIGN_MODEL_PROFILE;
+    model: SkillOptModelConfig;
   }>;
 }>;
 
@@ -1547,7 +1574,7 @@ function campaignIdentity(
       frontmatterHash: input.surface.frontmatterHash,
       resourcesHash: input.surface.resourcesHash,
       taskCatalogHash: taskCatalogHash(input.tasks),
-      model: CAMPAIGN_MODEL_PROFILE,
+      model: campaignModelProfile(),
     },
   };
 }
@@ -1586,7 +1613,7 @@ export async function loadVerifiedCampaignEvaluation(
   }
   if (
     contractHash(JsonValueSchema.parse(evaluation.context.model)) !==
-    contractHash(JsonValueSchema.parse(CAMPAIGN_MODEL_PROFILE))
+    contractHash(JsonValueSchema.parse(campaignModelProfile()))
   ) {
     throw new CampaignArtifactError("package_evidence_model_mismatch");
   }
@@ -1625,7 +1652,7 @@ export async function loadVerifiedCampaignEvaluation(
       frontmatterHash: current.frontmatterHash,
       resourcesHash: current.resourcesHash,
       taskCatalogHash: evaluation.context.taskCatalogHash,
-      model: CAMPAIGN_MODEL_PROFILE,
+      model: campaignModelProfile(),
     },
   };
   if (
@@ -2155,7 +2182,7 @@ async function evaluateWithPreparation(
         maxTargetEpisodes: input.maxTargetEpisodes,
         taskCatalogHash: taskCatalogHash(tasks),
         cohortBindingHash: runLockHash,
-        model: CAMPAIGN_MODEL_PROFILE,
+        model: campaignModelProfile(),
       } as const;
       const evaluation = await buildEvaluation({
         command: input.command,

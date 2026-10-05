@@ -14,4 +14,8 @@ claim_key: CLAIM-368FEE750F2FC6BA
 claim_text: Safe-mutation final-state scoring must verify the exact requested ownership and coverage relationships
 id: FACT-PRED-SKILLOPT-CLAIM-368FEE750F2FC6BA
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

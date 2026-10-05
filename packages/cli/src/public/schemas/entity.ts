@@ -16,6 +16,7 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { ENTITY_ORIGIN_SCHEMA } from "../entity-origin.js";
 import {
   PROOF_BINDINGS_SCHEMA,
   PROOF_CONTRACT_SCHEMA,
@@ -360,6 +361,14 @@ const entitySchema: Record<string, unknown> = {
     severity: { type: "string" },
     links: { type: "array", items: { type: "string" } },
     text_ref: { type: "string" },
+    // Provenance of any authored entity: who wrote it and on what authority.
+    origin: ENTITY_ORIGIN_SCHEMA,
+    expects: {
+      type: "string",
+      enum: ["success", "rejection", "error"],
+      description:
+        "Scenario-only. The scenario's intended outcome. A scenario that expects success and assumes (via `assumes` facts) a value a current requirement forbids fails the scenario-feasibility check.",
+    },
     proof_exempt: {
       type: "boolean",
       description:
@@ -370,6 +379,34 @@ const entitySchema: Record<string, unknown> = {
       minLength: 1,
       description:
         "Requirement-only. Required when proof_exempt is true; surfaces as the applicability reason in coverage rows.",
+    },
+    approved_by: {
+      type: "string",
+      minLength: 1,
+      pattern: "\\S",
+      description:
+        "Requirement-only. The human who approved this exception requirement. An exception (a requirement that exempts another and is specified_by a scenario) makes that success scenario feasible only when approved_by is set.",
+    },
+    approval_ref: {
+      type: "string",
+      minLength: 1,
+      description:
+        "Requirement-only. Optional reference to the approval decision record (ticket, ADR or review link) for an exception requirement.",
+    },
+    rationale: {
+      type: "string",
+      minLength: 1,
+      pattern: "\\S",
+      description:
+        "Requirement-only. Why the requirement exists, in one or two sentences from whoever stated the intent. Explanation only: it is not part of the checked meaning.",
+    },
+    exempts_claims: {
+      type: "array",
+      minItems: 1,
+      uniqueItems: true,
+      items: { type: "string", pattern: "^CLAIM-[A-F0-9]{16}$" },
+      description:
+        "Requirement-only. Narrows an exception requirement to individual clauses: the claim keys (from logic_claims) of the requirement it exempts whose constraints it waives. Without it the exception waives the whole exempted requirement.",
     },
     semantic_text: {
       type: "string",
@@ -528,6 +565,15 @@ const entitySchema: Record<string, unknown> = {
     argument_names: { type: "array", items: { type: "string" } },
     argument_types: { type: "array", items: { type: "string" } },
     argument_descriptions: { type: "array", items: { type: "string" } },
+    // predicate_schema only: the argument names that determine the remaining
+    // arguments. Rule comparison identifies two atoms of the predicate only
+    // when their key arguments are identical.
+    key_arguments: {
+      type: "array",
+      minItems: 1,
+      uniqueItems: true,
+      items: { type: "string", minLength: 1 },
+    },
     aliases: { type: "array", items: { type: "string" } },
     examples: { type: "array", items: { type: "string" } },
     predicate_args: { type: "array", items: { type: "string" } },
@@ -611,6 +657,7 @@ const entitySchema: Record<string, unknown> = {
             { required: ["argument_names"] },
             { required: ["argument_types"] },
             { required: ["argument_descriptions"] },
+            { required: ["key_arguments"] },
             { required: ["aliases"] },
             { required: ["examples"] },
             { required: ["predicate_args"] },
@@ -663,9 +710,19 @@ const entitySchema: Record<string, unknown> = {
             { required: ["semantic_source_hash"] },
             { required: ["proof_exempt"] },
             { required: ["proof_exempt_reason"] },
+            { required: ["approved_by"] },
+            { required: ["approval_ref"] },
+            { required: ["rationale"] },
+            { required: ["exempts_claims"] },
           ],
         },
       },
+    },
+    {
+      if: {
+        properties: { type: { const: "scenario" } },
+      },
+      else: { not: { required: ["expects"] } },
     },
     ...factConditionals,
   ],

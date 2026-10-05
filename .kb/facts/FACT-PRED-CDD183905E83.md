@@ -20,4 +20,8 @@ claim_key: CLAIM-63A77AF6D21E6F55
 claim_text: When an installed capability plugin is not activated, the host must not import that package
 id: FACT-PRED-CDD183905E83
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

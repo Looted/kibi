@@ -4,7 +4,6 @@ title: OpenCode Briefing Command Cue
 type: scenario
 status: closed
 created_at: 2026-05-13T00:00:00Z
-source: documentation/scenarios/SCEN-opencode-briefing-command.md
 priority: must
 tags:
   - opencode
@@ -12,6 +11,10 @@ tags:
 links:
   - type: verified_by
     target: TEST-opencode-kibi-plugin-v1
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 ## Scenario: Briefing Command Surfacing

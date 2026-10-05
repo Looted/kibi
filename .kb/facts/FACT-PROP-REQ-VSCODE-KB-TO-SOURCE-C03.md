@@ -15,4 +15,8 @@ claim_key: CLAIM-542BDD224890A05B
 claim_text: Navigation coordinates must be resolved from `.kb/symbols.yaml`
 id: FACT-PROP-REQ-VSCODE-KB-TO-SOURCE-C03
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

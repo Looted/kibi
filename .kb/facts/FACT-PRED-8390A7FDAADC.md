@@ -22,4 +22,8 @@ claim_text: kibi init --github --badge-only is an explicit opt-out that publishe
 id: FACT-PRED-8390A7FDAADC
 type: fact
 predicate_namespace: kibi.requirements
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

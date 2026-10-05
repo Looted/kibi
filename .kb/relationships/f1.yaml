@@ -202,3 +202,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-353bb2c5f5a0
+  - type: implements
+    from: SYM-reqcompiler-usage-options
+    to: REQ-kibi-telemetry-acceptance-gate-v2
+    created_at: 2026-10-04T03:06:21.682Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2c7048c84cd2

@@ -4,12 +4,15 @@ title: Publishing workflow triggers on master branch push
 status: active
 created_at: 2026-02-25T15:50:00Z
 updated_at: 2026-04-21T00:00:00Z
-source: documentation/facts/FACT-010.md
 tags:
   - deployment
   - github-actions
   - release-management
 fact_kind: observation
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 The npm publishing workflow is configured to trigger automatically on pushes to the `master` branch.

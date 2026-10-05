@@ -1,11 +1,4 @@
 relationships:
-  - id: rel-6f0da43da467
-    type: implements
-    from: SYM-auto-EB53162A3CF2
-    to: REQ-branch-store-recovery-v2
-    created_at: "2026-08-16T07:54:37.137Z"
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
   - type: covered_by
     from: SYM-auto-EB53162A3CF2
     to: TEST-cli-branch-store-recovery
@@ -111,3 +104,150 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d3e5a1d9b2d8
+  - type: implements
+    from: SYM-BranchEnsureOptions
+    to: REQ-branch-store-recovery-v4
+    created_at: 2026-10-04T02:54:51.068Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f930444345f1
+  - type: implements
+    from: SYM-auto-EB53162A3CF2
+    to: REQ-branch-store-recovery-v4
+    created_at: 2026-10-04T02:57:40.807Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-57f35b30194a
+  - type: implements
+    from: SYM-mcp-session-inFlightRequests
+    to: REQ-core-prolog-process-management
+    created_at: 2026-10-04T03:03:53.699Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0f800b1d76c5
+  - type: implements
+    from: SYM-schema6-buildSchema6MigrationFragment
+    to: REQ-kibi-schema6-migration
+    created_at: 2026-10-04T03:13:26.284Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d5b599b59dcb
+  - type: covered_by
+    from: SYM-schema6-buildSchema6MigrationFragment
+    to: TEST-kibi-schema6-migration
+    created_at: 2026-10-04T03:13:26.294Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-341a160e0e25
+  - type: covered_by
+    from: SYM-schema6-buildSchema6MigrationFragment
+    to: TEST-kibi-schema6-migration-cli
+    created_at: 2026-10-04T04:44:05.236Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f06577645bd0
+  - type: supersedes
+    from: REQ-kibi-schema6-migration-v2
+    to: REQ-kibi-schema6-migration
+    created_at: 2026-10-04T17:32:26.821Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1dcf45661d50
+  - type: specified_by
+    from: REQ-kibi-schema6-migration-v2
+    to: SCEN-kibi-schema6-migration
+    created_at: 2026-10-04T17:32:26.877Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2d1be33001e
+  - type: depends_on
+    from: REQ-kibi-schema6-migration-v2
+    to: REQ-cli-schema-migration
+    created_at: 2026-10-04T17:32:26.917Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5ab2fdb36b2b
+  - type: depends_on
+    from: REQ-kibi-schema6-migration-v2
+    to: REQ-kibi-entity-origin
+    created_at: 2026-10-04T17:32:26.969Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e644d4e3109d
+  - type: requires_predicate
+    from: REQ-kibi-schema6-migration-v2
+    to: FACT-PRED-schema6-exception-review
+    created_at: 2026-10-04T17:32:26.988Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bd8cb9ddb267
+  - type: requires_predicate
+    from: REQ-kibi-schema6-migration-v2
+    to: FACT-migration-schema7-idempotent
+    created_at: 2026-10-04T17:32:27.001Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d64e358e9bc7
+  - type: requires_predicate
+    from: REQ-kibi-schema6-migration-v2
+    to: FACT-migration-schema7-init
+    created_at: 2026-10-04T17:32:27.012Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a79809591181
+  - type: requires_predicate
+    from: REQ-kibi-schema6-migration-v2
+    to: FACT-PRED-schema6-inventory-rederive
+    created_at: 2026-10-04T17:32:27.033Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3f0b33c98d9e
+  - type: requires_predicate
+    from: REQ-kibi-schema6-migration-v2
+    to: FACT-PRED-schema6-inventory-review
+    created_at: 2026-10-04T17:32:27.061Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c8c965656fc7
+  - type: requires_predicate
+    from: REQ-kibi-schema6-migration-v2
+    to: FACT-PRED-schema6-origin-backfill
+    created_at: 2026-10-04T17:32:27.086Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-75acf3f81783
+  - type: requires_predicate
+    from: REQ-kibi-schema6-migration-v2
+    to: FACT-PRED-schema6-origin-preserved
+    created_at: 2026-10-04T17:32:27.118Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-16316fc7f437
+  - type: requires_predicate
+    from: REQ-kibi-schema6-migration-v2
+    to: FACT-PRED-schema6-reclassified-unresolved
+    created_at: 2026-10-04T17:32:27.141Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ff1080ffd117
+  - type: requires_predicate
+    from: REQ-kibi-schema6-migration-v2
+    to: FACT-PRED-schema6-rederive-stale-refused
+    created_at: 2026-10-04T17:32:27.162Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-705c604bfc5b
+  - type: requires_predicate
+    from: REQ-kibi-schema6-migration-v2
+    to: FACT-PRED-schema6-sync-lists-all
+    created_at: 2026-10-04T17:32:27.174Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4edf98358cea
+  - type: implements
+    from: SYM-schema6-buildSchema6MigrationFragment
+    to: REQ-kibi-schema6-migration-v2
+    created_at: 2026-10-04T17:33:56.438Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d2df7fccac3d

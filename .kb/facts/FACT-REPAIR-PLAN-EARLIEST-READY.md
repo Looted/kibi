@@ -4,7 +4,6 @@ title: Only the earliest repair batch is ready
 status: active
 created_at: 2026-08-10T00:00:00.000Z
 updated_at: 2026-08-10T00:00:00.000Z
-source: documentation/facts/FACT-REPAIR-PLAN-EARLIEST-READY.md
 tags:
   - lane:ontology
   - requirements
@@ -24,6 +23,10 @@ claim_text: Only the earliest unresolved batch for each requirement may be ready
 claim_span_start: 364
 claim_span_end: 432
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of conservative ready-state selection.

@@ -4,11 +4,14 @@ title: Reject incomplete requirement ledgers without stranding legacy projects
 status: active
 created_at: 2026-08-10T00:00:00Z
 updated_at: 2026-08-10T00:00:00Z
-source: documentation/scenarios/SCEN-kibi-proposition-complete-ingestion.md
 tags: [requirements, semantic-inventory, ingestion, e2e]
 links:
   - type: verified_by
     target: TEST-kibi-proposition-complete-ingestion
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Given a current requirement submitted through `kb_validate_upsert` or `kb_upsert`, when its assertive prose omits a proposition, reuses a claim key or span, drifts from its recorded source hash, labels an assertion nonlogical, or links a modeled proposition to the wrong claim fact, then ingestion fails before mutation with repair guidance.

@@ -13,4 +13,8 @@ claim_key: CLAIM-4AF1C39751B8F6DE
 claim_text: The configuration check must reject unsupported targets
 id: FACT-prolog-spike-config-rejects-unsupported-target
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

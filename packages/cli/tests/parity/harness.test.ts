@@ -87,7 +87,7 @@ describe("semantic MCP/CLI operation parity", () => {
   }, 30_000);
 
   afterAll(() => {
-    expect(PARITY_CASES).toHaveLength(22);
+    expect(PARITY_CASES).toHaveLength(24);
   });
 
   for (const parityCase of PARITY_CASES) {
@@ -407,6 +407,20 @@ describe("semantic MCP/CLI operation parity", () => {
             normalizeParityValue(value, [cliWorkspace.root, mcpWorkspace.root]),
           );
           expect(postComparison.parity, postComparison.diff).toBe(true);
+          if (parityCase.operation === "kb_upsert") {
+            // Both transports author the same bytes, apart from the write
+            // time recorded in origin.recorded_at.
+            const authored = async (root: string) =>
+              (
+                await readFile(
+                  path.join(root, ".kb", "requirements", "REQ-CONTRACT-002.md"),
+                  "utf8",
+                )
+              ).replace(/recorded_at: .*/g, "recorded_at: <write-time>");
+            expect(await authored(cliWorkspace.root)).toBe(
+              await authored(mcpWorkspace.root),
+            );
+          }
 
           const failedEntityQuery = { type: "req", id: "REQ-CONTRACT-FAILED" };
           const [beforeFailedCli, beforeFailedMcp] = await Promise.all([

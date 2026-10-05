@@ -52,6 +52,10 @@ Then [connect your coding agent](connect-an-agent.md) and ask it:
 
 </details>
 
+Bootstrap validates every candidate before offering write actions. Claims that cannot be grounded stay cited authoring follow-ups; product intent takes priority over repository observations, and candidates beyond the limit are reported. Invalid approved plans are refused before any bootstrap write. Deterministic failures are terminal and require a corrected plan; interrupted writes and derived effects retain journal recovery.
+
+Existing KBs upgrade to schema 7 with `kibi migrate --yes` followed by `kibi sync`. The migration preserves fact IDs and bodies while encoding legacy polarity-only facts as typed booleans; malformed strict facts now fail `kibi check`.
+
 ## 3. Approve the bootstrap plan
 
 Read the plan the agent shows you. Check that requirements cite the sources you trust, answer any remaining questions the planner raises, and correct any product call it got wrong before you approve. Kibi never contacts your tracker or wiki itself; it records what the agent read and binds it into the plan's hash.
@@ -75,6 +79,10 @@ npm exec -- kibi status   # branch, snapshot freshness, migration state
 npm exec -- kibi search login
 npm exec -- kibi gaps req --format table
 ```
+
+## Upgrading
+
+After you update the Kibi packages, ask your agent to run `kibi migrate`, or run it yourself. It shows a plan and its hash and changes nothing; `kibi migrate --apply-safe --approved-plan-hash <hash>` applies the automatic steps you approved. The move to KB schema 6 records `origin: {kind: migration}` on the entities you already have and re-derives any requirement that `kibi sync` now rejects because the semantic advisor reads its prose differently. Claims that still match keep their grounding, and changed ones are marked unresolved. It also closes requirements that were superseded but left open, since `kibi check` now blocks them, and cleans up leftover `source` fields in entity frontmatter. Kibi always takes an entity's source from its own file, so `kibi migrate` removes values that name that file or point at nothing (`kibi check` blocks the second kind), and repoints pre-canonical paths such as `documentation/...` that name another moved knowledge file. Everything Kibi cannot decide for you, such as an exception nobody has approved or two requirements that supersede each other, stays in the plan as a review item.
 
 ## Next steps
 

@@ -1,6 +1,6 @@
 ---
 title: Documentation site published beside the requirement report
-status: open
+status: closed
 tags:
   - docs
   - pages
@@ -49,6 +49,10 @@ semantic_inventory:
       end: 368
       start: 293
     status: modeled
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 # Requirement: Documentation site published beside the requirement report
 

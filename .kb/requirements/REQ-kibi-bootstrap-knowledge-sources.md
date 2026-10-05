@@ -78,5 +78,9 @@ semantic_inventory:
       end: 734
 id: REQ-kibi-bootstrap-knowledge-sources
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 The bootstrap planner must accept declared knowledge sources and cited intent claims and bind them into the plan hash. Kibi must never contact a declared knowledge source itself. A grounded intent claim from an authoritative or supporting source must become a requirement candidate that keeps its source citation. An intent claim the strict modeler cannot ground must remain an authoring follow-up. Intent claims from stale sources must not produce candidates. An intent claim citing an undeclared source must be reported as a non-blocking diagnostic. A needs_context plan without declared knowledge sources must ask where product intent lives. The kibi-bootstrap skill must interview the human about knowledge sources before planning.

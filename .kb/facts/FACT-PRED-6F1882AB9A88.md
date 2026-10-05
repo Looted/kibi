@@ -22,4 +22,8 @@ claim_text: The canonical installation is copying the documented standalone GitH
 id: FACT-PRED-6F1882AB9A88
 type: fact
 predicate_namespace: kibi.requirements
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

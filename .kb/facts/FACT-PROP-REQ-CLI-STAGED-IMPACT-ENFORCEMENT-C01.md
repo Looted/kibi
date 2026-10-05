@@ -15,4 +15,8 @@ claim_key: CLAIM-91A5F8025E089BCC
 claim_text: The staged check must block behavior-changing source edits unless the staged change set includes Kibi impact evidence or a fresh symbols manifest refresh
 id: FACT-PROP-REQ-CLI-STAGED-IMPACT-ENFORCEMENT-C01
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

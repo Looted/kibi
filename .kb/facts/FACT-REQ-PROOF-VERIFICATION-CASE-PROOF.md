@@ -4,7 +4,6 @@ title: Kibi binds proof to stable end-to-end cases
 status: active
 created_at: 2026-08-13T00:00:00.000Z
 updated_at: 2026-08-13T00:00:00.000Z
-source: documentation/facts/FACT-REQ-PROOF-VERIFICATION-CASE-PROOF.md
 tags:
   - lane:strict
   - verification
@@ -21,6 +20,10 @@ claim_text: Kibi must give each proof obligation a stable symbol identity, conne
 claim_span_start: 0
 claim_span_end: 248
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation for stable case identity and snapshot-bound proof.

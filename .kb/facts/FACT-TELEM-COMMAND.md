@@ -4,7 +4,7 @@ title: Usage remediation is machine-readable and read-only
 status: active
 created_at: 2026-08-10T00:00:00.000Z
 updated_at: 2026-08-10T00:00:00.000Z
-source: documentation/requirements/REQ-kibi-telemetry-remediation-evidence.md
+source: .kb/requirements/REQ-kibi-telemetry-remediation-evidence.md
 tags:
   - lane:ontology
   - telemetry
@@ -25,6 +25,10 @@ claim_text: The usage-remediation command must render the report as machine-read
 claim_span_start: 919
 claim_span_end: 1051
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of the operator remediation surface.

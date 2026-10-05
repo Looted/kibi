@@ -9,6 +9,10 @@ import type {
   WorktreeState,
 } from "../catalog";
 import {
+  KIBI_ANSWER_FORMAT_INSTRUCTION,
+  answerScoredObjective,
+} from "./case-contracts";
+import {
   type PredicateSemanticClass,
   predicateCaseBySplitIndex,
 } from "./predicate-cases";
@@ -17,6 +21,11 @@ import {
   BOOTSTRAP_DEFINITIONS,
   TRACEABILITY_DEFINITIONS,
 } from "./task-definitions-bootstrap";
+import {
+  type DogfoodCase,
+  SUPPLEMENTAL_CASES,
+  SUPPLEMENTAL_DEFINITIONS,
+} from "./task-definitions-supplemental";
 import {
   FRESHNESS_DEFINITIONS,
   USAGE_DEFINITIONS,
@@ -28,15 +37,6 @@ type BuilderContext = Readonly<{
   index: number;
 }>;
 
-type DogfoodCase = Readonly<{
-  prompt: string;
-  objectiveCode: string;
-  kb: KnowledgeState;
-  worktree: WorktreeState;
-  adversarialCases: readonly AdversarialCase[];
-  mutation?: "read-only" | "write";
-  approvalPhase?: ApprovalPhase;
-}>;
 export type FamilyPayload = Readonly<{
   prompt: string;
   activationMode: ActivationMode;
@@ -59,10 +59,22 @@ export type FamilyPayload = Readonly<{
 const DEFINITIONS: Readonly<
   Record<CanonicalSkill, Readonly<Record<string, Definition>>>
 > = {
-  "kibi-usage": USAGE_DEFINITIONS,
-  "kibi-freshness": FRESHNESS_DEFINITIONS,
-  "kibi-traceability": TRACEABILITY_DEFINITIONS,
-  "kibi-bootstrap": BOOTSTRAP_DEFINITIONS,
+  "kibi-usage": {
+    ...USAGE_DEFINITIONS,
+    ...SUPPLEMENTAL_DEFINITIONS["kibi-usage"],
+  },
+  "kibi-freshness": {
+    ...FRESHNESS_DEFINITIONS,
+    ...SUPPLEMENTAL_DEFINITIONS["kibi-freshness"],
+  },
+  "kibi-traceability": {
+    ...TRACEABILITY_DEFINITIONS,
+    ...SUPPLEMENTAL_DEFINITIONS["kibi-traceability"],
+  },
+  "kibi-bootstrap": {
+    ...BOOTSTRAP_DEFINITIONS,
+    ...SUPPLEMENTAL_DEFINITIONS["kibi-bootstrap"],
+  },
 };
 const SKILL_FILES = [
   "skills/kibi-usage/SKILL.md",
@@ -455,7 +467,7 @@ function predicatePayload(
   index: number,
 ): FamilyPayload {
   const semanticCase = predicateCaseBySplitIndex(split, index);
-  const claimPrompt = `Model the complete normative claim through Kibi's clause-complete logical workflow using only the public MCP surface. Before kb_validate_upsert or kb_upsert, call kb_search then kb_query. Claim: "${semanticCase.publicClaim.claimText}" Decompose every atomic obligation, preserve each advisor-issued claim key on its ground fact, and merge the complete logic_claims manifest; one correct fact is not sufficient for compound prose. Treat structured projectLocalSchemas in predicate-claim.json as approved ontology declarations; when a declared schema endpoint is absent, create that schema before its ground predicate fact. Relationship types remain graph edges, not predicate names.`;
+  const claimPrompt = `Model the complete normative claim through Kibi's clause-complete logical workflow using only the public MCP surface. Before any kb_upsert (including a dryRun: true validation), call kb_search then kb_query. Claim: "${semanticCase.publicClaim.claimText}" Decompose every atomic obligation, preserve each advisor-issued claim key on its ground fact, and merge the complete logic_claims manifest; one correct fact is not sufficient for compound prose. Treat structured projectLocalSchemas in predicate-claim.json as approved ontology declarations; when a declared schema endpoint is absent, create that schema before its ground predicate fact. Relationship types remain graph edges, not predicate names.`;
   const objectiveByClass: Readonly<Record<PredicateSemanticClass, string>> = {
     builtin_relational: "model_predicate_builtin_relational",
     strict_scalar_counterexample: "model_predicate_strict_scalar",
@@ -546,10 +558,13 @@ function payload(
   ];
   const searchThenQuery =
     (special?.mutation ?? definition.mutation) === "write"
-      ? " Before kb_validate_upsert, kb_upsert, kb_apply_plan, or kb_check, call kb_search then kb_query."
+      ? " Before kb_upsert (including a dryRun: true validation), kb_apply_plan, or kb_check, call kb_search then kb_query."
       : "";
+  const answerFormat = answerScoredObjective(effectiveObjectiveCode)
+    ? KIBI_ANSWER_FORMAT_INSTRUCTION
+    : "";
   return {
-    prompt: `${special?.prompt ?? `${definition.instruction} This is ${split} case ${index + 1}; use only the public Kibi MCP surface.`}${searchThenQuery}`,
+    prompt: `${special?.prompt ?? `${definition.instruction} This is ${split} case ${index + 1}; use only the public Kibi MCP surface.`}${searchThenQuery}${answerFormat}`,
     activationMode: definition.activationMode,
     initialState: {
       repository: definition.repository,
@@ -587,10 +602,8 @@ export function buildFamilyPayload(context: BuilderContext): FamilyPayload {
   if (context.family === "fact-predicate-modeling") {
     return predicatePayload(definition, context.split, context.index);
   }
-  const special =
-    DOGFOOD_CASES[
-      `${context.skill}/${context.family}/${context.split}/${context.index}`
-    ];
+  const slot = `${context.skill}/${context.family}/${context.split}/${context.index}`;
+  const special = DOGFOOD_CASES[slot] ?? SUPPLEMENTAL_CASES[slot];
   return payload(definition, context.split, context.index, special);
 }
 

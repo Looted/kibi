@@ -146,3 +146,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ffb1c7637fbf
+  - type: verified_by
+    from: SCEN-kibi-telemetry-lookup-before-first-edit
+    to: TEST-kibi-telemetry-lookup-before-first-edit
+    created_at: 2026-10-04T02:14:36.906Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ec1ecea2e8a4

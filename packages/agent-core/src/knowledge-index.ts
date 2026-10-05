@@ -1,5 +1,5 @@
 // implements REQ-claude-code-kibi-plugin-v1
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -90,15 +90,23 @@ function parseScalarOrFlow(raw: string | undefined): unknown {
  * `symbols:` mapping and a bare top-level sequence.
  */
 export function scanSymbolsManifest(text: string): RawRecord[] {
+  return scanRecordSequence(text, "symbols");
+}
+
+/**
+ * Scan the block sequence under top-level `sectionKey` (or a bare root
+ * sequence) into raw records.
+ */
+function scanRecordSequence(text: string, sectionKey: string): RawRecord[] {
   const records: RawRecord[] = [];
   let itemIndent: number | undefined;
   let keyIndent = 0;
   let current: RawRecord | undefined;
   let listKey: string | undefined;
   let listItem: RawRecord | undefined;
-  // Top-level section: symbols are the `symbols:` sequence or a bare root
-  // sequence; sequences under any other top-level key are ignored.
-  let section: "root" | "symbols" | "other" = "root";
+  // Top-level section: records are the `<sectionKey>:` sequence or a bare
+  // root sequence; sequences under any other top-level key are ignored.
+  let section: "root" | "records" | "other" = "root";
 
   for (const rawLine of text.split(/\r?\n/)) {
     const content = rawLine.trim();
@@ -109,8 +117,8 @@ export function scanSymbolsManifest(text: string): RawRecord[] {
     if (indent === 0 && !dash) {
       const pair = keyValue.exec(content);
       section =
-        pair?.[1] !== undefined && unquote(pair[1]) === "symbols"
-          ? "symbols"
+        pair?.[1] !== undefined && unquote(pair[1]) === sectionKey
+          ? "records"
           : "other";
       current = undefined;
       itemIndent = undefined;
@@ -403,11 +411,90 @@ const ENTITY_LANES: readonly [prefix: string, lane: string][] = [
 
 const SAFE_ENTITY_ID = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
 
-export type EntitySummary = { id: string; title?: string; status?: string };
+// implements REQ-agent-core-edit-snippets
+export type EntityLink = { type: string; target: string };
+
+export type EntitySummary = {
+  id: string;
+  title?: string;
+  status?: string;
+  /**
+   * Frontmatter `links` (plain string entries read as `relates_to`) merged
+   * with canonical relationship-shard records whose `from` is this entity.
+   */
+  links?: EntityLink[];
+};
+
+const MAX_SUMMARY_LINKS = 24;
+const RELATIONSHIPS_DIR = ".kb/relationships";
+
+type ShardLinks = { signature: string; byFrom: Map<string, EntityLink[]> };
 
 /**
- * Read an entity's title and status from its canonical authored document
- * (`.kb/<lane>/<ID>.md`). Only the frontmatter head is read.
+ * Parsed relationship shards keyed by absolute path and revalidated by size
+ * and mtime, so one process parses each shard once however many summaries it
+ * reads.
+ */
+const shardCache = new Map<string, ShardLinks>();
+
+/** Shard holding a `from` id's records: first two hex chars of SHA-256(id). */
+function shardPathFor(workspaceRoot: string, entityId: string): string {
+  const shard = createHash("sha256").update(entityId).digest("hex");
+  return path.join(
+    workspaceRoot,
+    RELATIONSHIPS_DIR,
+    `${shard.slice(0, 2)}.yaml`,
+  );
+}
+
+function shardLinksFrom(workspaceRoot: string, entityId: string): EntityLink[] {
+  const shardPath = shardPathFor(workspaceRoot, entityId);
+  const signature = fileSignature(shardPath);
+  if (signature === "missing") {
+    shardCache.delete(shardPath);
+    return [];
+  }
+  let cached = shardCache.get(shardPath);
+  if (cached?.signature !== signature) {
+    const byFrom = new Map<string, EntityLink[]>();
+    const records = scanRecordSequence(
+      readText(shardPath) ?? "",
+      "relationships",
+    );
+    for (const { type, from, to } of records) {
+      if (
+        typeof type !== "string" ||
+        typeof from !== "string" ||
+        typeof to !== "string"
+      ) {
+        continue;
+      }
+      const list = byFrom.get(from) ?? [];
+      list.push({ type, target: to });
+      byFrom.set(from, list);
+    }
+    cached = { signature, byFrom };
+    shardCache.set(shardPath, cached);
+  }
+  return cached.byFrom.get(entityId) ?? [];
+}
+
+/** One frontmatter `links:` entry, collected fully before it is typed. */
+type PendingLink = { type?: string; target?: string; bare?: string };
+
+function flushLink(links: EntityLink[], pending: PendingLink | undefined) {
+  if (pending?.target !== undefined) {
+    links.push({ type: pending.type ?? "relates_to", target: pending.target });
+  } else if (pending?.bare !== undefined) {
+    links.push({ type: "relates_to", target: pending.bare });
+  }
+}
+
+/**
+ * Read an entity's title, status and outgoing links. Title and status come
+ * from the frontmatter head of its canonical authored document
+ * (`.kb/<lane>/<ID>.md`); links come from that frontmatter plus the canonical
+ * relationship shard (`.kb/relationships/<shard>.yaml`) holding its records.
  */
 export function readEntitySummary(
   workspaceRoot: string,
@@ -423,7 +510,7 @@ export function readEntitySummary(
       "r",
     );
     try {
-      const buffer = Buffer.alloc(4096);
+      const buffer = Buffer.alloc(8192);
       const bytes = fs.readSync(descriptor, buffer, 0, buffer.length, 0);
       head = buffer.subarray(0, bytes).toString("utf8");
     } finally {
@@ -436,11 +523,51 @@ export function readEntitySummary(
   const lines = head.split(/\r?\n/);
   if (lines[0]?.trim() !== "---") return { id: entityId };
   const summary: EntitySummary = { id: entityId };
+  const authored: EntityLink[] = [];
+  let inLinks = false;
+  let pending: PendingLink | undefined;
   for (const line of lines.slice(1)) {
     if (line.trim() === "---") break;
     const match = /^(title|status):\s*(.*)$/.exec(line);
     if (match?.[1] === "title" && match[2]) summary.title = unquote(match[2]);
     if (match?.[1] === "status" && match[2]) summary.status = unquote(match[2]);
+    if (/^\S/.test(line)) {
+      flushLink(authored, pending);
+      pending = undefined;
+      inLinks = /^links:\s*$/.test(line);
+      continue;
+    }
+    if (!inLinks) continue;
+    // Typed entries carry `type: X` and `target: Y` in either order, so an
+    // entry is pushed only when the next entry or section starts; a bare
+    // `- ID` entry is a generic relates_to link.
+    const entry = /^\s*-\s*(.*)$/.exec(line);
+    if (entry) {
+      flushLink(authored, pending);
+      pending = {};
+    }
+    if (!pending) continue;
+    const body = (entry ? (entry[1] ?? "") : line).trim();
+    const field = /^(type|target):\s*(.+)$/.exec(body);
+    if (field?.[1] === "type") pending.type = unquote(field[2] ?? "");
+    else if (field?.[1] === "target") pending.target = unquote(field[2] ?? "");
+    else if (entry && SAFE_ENTITY_ID.test(unquote(body)))
+      pending.bare = unquote(body);
   }
+  flushLink(authored, pending);
+
+  const links: EntityLink[] = [];
+  const seen = new Set<string>();
+  for (const link of [
+    ...authored,
+    ...shardLinksFrom(workspaceRoot, entityId),
+  ]) {
+    const key = `${link.type}\u0000${link.target}`;
+    if (link.target.length === 0 || seen.has(key)) continue;
+    seen.add(key);
+    links.push(link);
+    if (links.length >= MAX_SUMMARY_LINKS) break;
+  }
+  if (links.length > 0) summary.links = links;
   return summary;
 }

@@ -21,5 +21,9 @@ examples:
   - upsert_concurrency_requires_fresh_snapshot(current_runtimes_serialize,stale_snapshot_fails_before_mutation)
 id: FACT-SCHEMA-UPSERT-CONCURRENCY-REQUIRES-FRESH-SNAPSHOT
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Predicate schema for upsert_concurrency_requires_fresh_snapshot/2.

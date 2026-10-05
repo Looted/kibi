@@ -173,6 +173,7 @@ export type ProofReceipt = Readonly<{
   finished_at: string;
   artifact_digest: string;
   contract_hash: string;
+  binding_hash?: string;
   fingerprint: string;
   fingerprint_components: ProofFingerprintComponents;
   integration_id: string;

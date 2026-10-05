@@ -50,6 +50,7 @@ import {
 } from "../public/impact-diagnostics.js";
 import type { QualityDiagnostic } from "../public/impact-diagnostics.js";
 import { executeCheck } from "../public/operations/check-executor.js";
+import { refreshDetachedSnapshot } from "../runtime/detached-snapshot.js";
 import {
   KIBI_NO_IMPACT_DECLARATION,
   KIBI_SYMBOLS_MANIFEST_PATH,
@@ -104,7 +105,7 @@ import {
   formatViolations as formatStagedViolations,
   validateStagedSymbols,
 } from "../traceability/validate.js";
-import { resolveBranchAttachment } from "../utils/branch-resolver.js";
+import { resolveReadBranchAttachment } from "../utils/branch-resolver.js";
 import { CANONICAL_ENTITY_PATHS, isEntityLanePath } from "../utils/kb-paths.js";
 import { safeCleanupProlog } from "../utils/prolog-cleanup.js";
 import type { Violation } from "../utils/rule-registry.js";
@@ -669,9 +670,14 @@ export async function checkCommand(
     if (options.kbPath) {
       resolvedKbPath = options.kbPath;
     } else {
-      const attachment = resolveBranchAttachment(process.cwd());
+      const attachment = resolveReadBranchAttachment(process.cwd());
       if ("error" in attachment) throw new Error(attachment.error);
       resolvedBranch = attachment.kbBranch;
+      if (attachment.readOnly !== undefined) {
+        // Check reads only: a detached HEAD checks its read-only snapshot.
+        console.warn(`[KIBI] ${attachment.readOnly.notice}`);
+        await refreshDetachedSnapshot(process.cwd(), attachment);
+      }
       if (attachment.migrationRequired) {
         console.warn(
           `Warning: reading legacy KB attachment ${attachment.gitBranch} -> ${attachment.kbBranch}; migrate before writes or sync.`,
@@ -1372,6 +1378,7 @@ export async function getAllEntityIds(
 
   return content.split(",").map((id) => id.trim().replace(/^'|'$/g, ""));
 }
+// implements REQ-cli-check
 export async function checkNoDanglingRefs(
   prolog: PrologProcess,
 ): Promise<Violation[]> {
@@ -1388,6 +1395,8 @@ export async function checkNoDanglingRefs(
     "requires_property",
     "supersedes",
     "restates",
+    "assumes",
+    "exempts",
     "relates_to",
   ];
 

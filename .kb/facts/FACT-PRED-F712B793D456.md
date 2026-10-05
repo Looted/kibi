@@ -21,4 +21,8 @@ claim_text: Plugin permission metadata must not be an allowed provider operation
 id: FACT-PRED-F712B793D456
 type: fact
 predicate_namespace: kibi.capability
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

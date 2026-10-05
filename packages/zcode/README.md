@@ -62,13 +62,24 @@ All hooks are advisory; the hard enforcement gate remains the
   `kb_search`/`kb_query` discovery, the `kibi-usage` skill, and `kb_status`
   freshness checks.
 - **PreToolUse** (`Edit|MultiEdit|Write|apply_patch`): direct `.kb/` edits get
-  an advisory `additionalContext` warning to use Kibi MCP tools instead.
+  an advisory `additionalContext` warning to use Kibi MCP tools instead. An
+  edit of a file whose symbols are linked to a requirement gets the shared
+  Kibi snippet (from `kibi-agent-core/snippets`, the same builder the Claude
+  Code plugin uses) as `additionalContext`: the requirements, what the lead
+  requirement must keep true and the decision behind it, the covering tests,
+  and the symbol the edit lands in when `old_string` is found. Up to three
+  files per call, once per file per session; a superseded or retired lead
+  requirement gets no "must keep true" or "Decision" line.
 - **PostToolUse**: records `kb_*` MCP tool usage (including impact checks)
   and canonical workspace-relative paths from file-mutating tools only
   (`Edit`, `MultiEdit`, `Write`, `apply_patch`); read-only tool calls with
   path arguments never count as changes. State is namespaced per host session
   (`session_id`, hashed on disk), and a later edit to a path invalidates an
-  earlier impact check for that exact path.
+  earlier impact check for that exact path. With `KIBI_DIAGNOSTIC_MODE=1` it
+  also appends opt-in `interface: "hook"` rows with `host: "zcode"` to
+  `.kb/usage.log` for `kb_*` lookups (MCP or `kibi <route>` in Bash) and for
+  edited files with the requirements they implement; `kibi usage-metrics`
+  reads them for the `lookup_before_first_edit` metric.
 - **Stop**: emits an impact-check or freshness reminder naming canonical
   workspace-relative paths that changed during this session without a
   corresponding covering `kb_check`.

@@ -18,6 +18,7 @@ const SEED_INPUTS = {
   kb_skills_list: {},
   kb_skills_load: { id: "kibi-usage" },
   kb_skills_read: { id: "kibi-usage", resource: "resources/workflows.md" },
+  kb_skills: { action: "load", id: "kibi-usage" },
   kb_find_gaps: {
     type: "req",
     missingRelationships: ["verified_by"],
@@ -60,6 +61,10 @@ const SEED_INPUTS = {
   kb_suggest_predicates: {
     text: "The editor must save changes automatically when the user navigates away.",
     maxCandidates: 1,
+  },
+  kb_model: {
+    mode: "analyze",
+    text: "The editor must save changes automatically when the user navigates away.",
   },
   kb_plan_bootstrap: {
     includeGenericMarkdown: false,

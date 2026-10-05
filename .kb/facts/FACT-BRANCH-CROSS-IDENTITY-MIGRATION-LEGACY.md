@@ -18,6 +18,10 @@ claim_key: CLAIM-449AE98BAC3BD69C
 claim_text: The historical master to legacy main store migration is a single compatibility workflow and must reject arbitrary cross-branch moves
 id: FACT-BRANCH-CROSS-IDENTITY-MIGRATION-LEGACY
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 The historical master to legacy main store migration is a single compatibility workflow and must reject arbitrary cross-branch moves.
 

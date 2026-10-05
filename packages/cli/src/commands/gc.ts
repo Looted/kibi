@@ -2,6 +2,10 @@ import { spawnSync } from "node:child_process";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import {
+  DETACHED_SNAPSHOT_KB_BRANCH,
+  resolveReadBranchAttachment,
+} from "../utils/branch-resolver.js";
+import {
   branchStoreKey,
   branchStoresRoot,
   readBranchStoreManifest,
@@ -135,6 +139,12 @@ export async function gcCommand(options: GcOptions = {}): Promise<void> {
       return;
     }
     const live = localBranches(workspaceRoot);
+    // The detached-HEAD snapshot is a regenerable read cache: live while this
+    // checkout is detached on it, stale (collectable) once a branch is out.
+    const readAttachment = resolveReadBranchAttachment(workspaceRoot);
+    if (!("error" in readAttachment) && readAttachment.readOnly !== undefined) {
+      live.add(DETACHED_SNAPSHOT_KB_BRANCH);
+    }
     const candidates: Array<{ branch: string; path: string; legacy: boolean }> =
       [];
     const visit = (dir: string, relativeBranch: string): void => {

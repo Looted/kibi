@@ -15,4 +15,8 @@ claim_key: CLAIM-01CCD99E5420D145
 claim_text: The plugin must distinguish between authoritative E2E evidence and heuristic cues
 id: FACT-PROP-REQ-OPENCODE-FILE-CONTEXT-GUIDANCE-V1-C08
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

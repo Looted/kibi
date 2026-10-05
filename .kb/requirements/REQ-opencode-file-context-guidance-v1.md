@@ -109,5 +109,9 @@ semantic_clauses:
   - A test entity is E2E if it has tags including e2e or a source path under an e2e directory
   - Guidance is advisory and must never block the agent workflow
   - Repositories without Kibi initialized must use kibi-bootstrap to run kb_plan_bootstrap
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 The OpenCode Kibi Plugin provides advisory file-lifecycle guidance and uses established end-to-end evidence. It distinguishes authoritative test relationships from heuristic cues, folds reminders into one non-blocking prompt block, and routes initial repository inference through kibi-bootstrap and the plan/apply contract.

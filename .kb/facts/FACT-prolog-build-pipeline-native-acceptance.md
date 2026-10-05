@@ -9,6 +9,10 @@ tags:
   - native-evidence
 id: FACT-prolog-build-pipeline-native-acceptance
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Native acceptance was observed in [SWI-Prolog build run 36757628273](https://github.com/Looted/kibi/actions/runs/36757628273), attempt 1, on source commit `c9d5327bbc78250f08ec1936a0ccd172b4e211b8`. All four build jobs and their four separate consumer jobs completed successfully. Independent downloaded-byte audits accepted every target archive and verified all twelve GitHub artifact ZIP digests and sizes.
 

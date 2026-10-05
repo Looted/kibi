@@ -4,7 +4,6 @@ title: "MCP Tool: kb_upsert"
 type: scenario
 status: active
 created_at: 2026-05-13T00:00:00Z
-source: documentation/scenarios/SCEN-mcp-tool-upsert.md
 priority: must
 tags:
   - mcp
@@ -12,6 +11,10 @@ tags:
 links:
   - type: verified_by
     target: TEST-mcp-upsert-coverage
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 ## Scenario: Entity and Relationship Mutation

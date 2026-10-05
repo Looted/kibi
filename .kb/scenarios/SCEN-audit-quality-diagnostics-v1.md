@@ -19,6 +19,10 @@ links:
     target: TEST-opencode-advisory-diagnostics
   - type: verified_by
     target: TEST-coverage-depth-labels
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 # Audit Quality Diagnostics

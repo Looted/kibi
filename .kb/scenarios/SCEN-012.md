@@ -4,7 +4,6 @@ title: Markdown string links sync as generic relationships
 status: active
 created_at: 2026-03-20T16:20:00Z
 updated_at: 2026-03-20T16:20:00Z
-source: documentation/scenarios/SCEN-012.md
 priority: must
 tags:
   - sync
@@ -14,6 +13,10 @@ links:
   - REQ-cli-sync
   - type: verified_by
     target: TEST-015
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 ## Scenario

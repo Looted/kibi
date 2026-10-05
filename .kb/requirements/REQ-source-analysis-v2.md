@@ -45,5 +45,9 @@ semantic_inventory:
     semantic_key: SEM-C683C7258099C25317549C75
 id: REQ-source-analysis-v2
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 Source analysis v2 must preserve an explicit completeness status. Source analysis v2 must validate UTF-16 source ranges against the supplied snapshot content. Source analysis v2 must preserve authored symbol identity when declaration locators are unambiguous.

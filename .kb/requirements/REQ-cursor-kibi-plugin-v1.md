@@ -34,6 +34,10 @@ semantic_inventory:
       start: 0
       end: 794
 type: req
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 The `kibi-cursor` package is an optional Cursor adapter for teams who want Kibi in Cursor workflows without changing core Kibi runtime components.

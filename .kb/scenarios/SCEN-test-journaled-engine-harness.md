@@ -10,6 +10,10 @@ tags: [testing, engine, performance, isolation]
 links:
   - type: verified_by
     target: TEST-test-journaled-engine-harness
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Given integration and packed E2E tests exercise the journaled Kibi engine

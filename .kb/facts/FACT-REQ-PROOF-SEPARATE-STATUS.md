@@ -4,7 +4,6 @@ title: Proof status is separate from structural coverage
 status: active
 created_at: 2026-08-10T00:00:00.000Z
 updated_at: 2026-08-10T00:00:00.000Z
-source: documentation/facts/FACT-REQ-PROOF-SEPARATE-STATUS.md
 tags:
   - lane:ontology
   - requirements
@@ -21,6 +20,10 @@ polarity: assert
 claim_key: CLAIM-4C1ABF87560ED8A7
 claim_text: Coverage reports must publish a proof outcome separately from structural coverage
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation of the distinct proof-outcome contract.

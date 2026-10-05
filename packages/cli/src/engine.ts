@@ -30,6 +30,15 @@ import * as os from "node:os";
 import * as path from "node:path";
 import { performance } from "node:perf_hooks";
 import { fileURLToPath } from "node:url";
+import {
+  BOUNDED_READ_HELPER_DEFINITION,
+  type EngineQueryLimits,
+  assertWithinQueryLimits,
+  boundedReadGoal,
+  normalizeQueryLimits,
+  queryLimitsFromEnv,
+  settleBoundedRead,
+} from "./engine-limits.js";
 import type {
   EngineAttachmentIdentity,
   EngineCommandV1,
@@ -60,6 +69,23 @@ export type {
   EngineCommandV1,
   EngineRequest,
 } from "./engine-types.js";
+export {
+  EngineQueryLimitError,
+  QUERY_LIMIT_EXCEEDED_CODE,
+  queryLimitExceededOf,
+} from "./engine-limits.js";
+export type {
+  EngineLimitExceeded,
+  EngineQueryLimits,
+} from "./engine-limits.js";
+
+/** Request methods whose read-only work may carry per-request limits. */
+const READ_LIMITED_METHODS: ReadonlySet<EngineRequest["method"]> = new Set([
+  "query",
+  "command",
+  "entities",
+  "search",
+]);
 
 export const ENGINE_PROTOCOL_VERSION = 1;
 export const ENGINE_IDLE_TIMEOUT_MS = 10 * 60 * 1000;
@@ -858,6 +884,12 @@ export type EngineClientOptions = {
   readonly timeout?: number;
   /** Internal stop-before-publish client may attach while it owns the lease. */
   readonly allowPublicationLock?: boolean;
+  /**
+   * Bounds for this client's read-only requests. Defaults to
+   * KIBI_ENGINE_READ_TIME_LIMIT_MS / KIBI_ENGINE_READ_INFERENCE_LIMIT; null
+   * sends none (sync and other maintenance clients).
+   */
+  readonly readLimits?: EngineQueryLimits | null;
 };
 
 /** PrologPort-compatible client used by CLI and MCP operation runtimes. */
@@ -867,6 +899,7 @@ export class EngineClient {
   private readonly branch: string;
   private readonly timeout: number;
   private readonly allowPublicationLock: boolean;
+  private readonly readLimits: EngineQueryLimits | undefined;
   private socket: net.Socket | null = null;
   private daemon: ChildProcess | null = null;
   private inputBuffer: Buffer<ArrayBufferLike> = Buffer.alloc(0);
@@ -884,6 +917,10 @@ export class EngineClient {
     this.branch = options.branch;
     this.timeout = options.timeout ?? 120_000;
     this.allowPublicationLock = options.allowPublicationLock ?? false;
+    this.readLimits =
+      options.readLimits === undefined
+        ? queryLimitsFromEnv()
+        : (options.readLimits ?? undefined);
   }
 
   async start(allowSpawn = true): Promise<void> {
@@ -1104,7 +1141,12 @@ export class EngineClient {
       if (socket === null || socket.destroyed)
         throw new Error("Kibi engine is not connected");
       const id = ++this.requestId;
-      return await new Promise<T>((resolve, reject) => {
+      const limits =
+        this.readLimits !== undefined &&
+        READ_LIMITED_METHODS.has(request.method)
+          ? { limits: this.readLimits }
+          : {};
+      const value = await new Promise<T>((resolve, reject) => {
         this.pending.set(id, {
           resolve: resolve as (value: unknown) => void,
           reject,
@@ -1114,6 +1156,7 @@ export class EngineClient {
           socket.write(
             frame({
               ...request,
+              ...limits,
               id,
               protocolVersion: ENGINE_PROTOCOL_VERSION,
               packageVersions: ENGINE_PACKAGE_VERSIONS,
@@ -1147,6 +1190,10 @@ export class EngineClient {
           else signal.addEventListener("abort", abort, { once: true });
         }
       });
+      // A bounded read stopped at its limit has no answer; never let it pass
+      // as an empty or failed lookup.
+      assertWithinQueryLimits(value);
+      return value;
     } finally {
       release();
     }
@@ -1899,6 +1946,28 @@ export async function runEngineDaemon(requestedOptions: {
   let queue: Promise<void> = Promise.resolve();
   let idleCompactionQueued = false;
   const queryCache = new Map<string, PrologQueryResult>();
+  // The bounded-read helper lives in the Prolog session; a recycled session
+  // (new pid) defines it again before its first bounded read.
+  let boundedReadHelperPid: number | null = null;
+  const runBoundedRead = async (
+    goal: string,
+    limits: EngineQueryLimits,
+  ): Promise<PrologQueryResult> => {
+    const pid = prolog.getPid();
+    if (boundedReadHelperPid !== pid) {
+      const defined = await prolog.query(BOUNDED_READ_HELPER_DEFINITION);
+      if (!defined.success) {
+        throw new Error(
+          defined.error ?? "Failed to define the bounded-read helper",
+        );
+      }
+      boundedReadHelperPid = pid;
+    }
+    return settleBoundedRead(
+      await prolog.query(boundedReadGoal(goal, limits)),
+      limits,
+    );
+  };
   let freshnessCache: {
     readonly capturedAt: number;
     readonly result: PrologQueryResult;
@@ -2025,6 +2094,12 @@ export async function runEngineDaemon(requestedOptions: {
       freshnessCache = null;
       attachedIdentity = readEngineAttachmentIdentity(branchPath);
     }
+    // Read-only work runs inside the request's limits, when it has any.
+    const readLimits = normalizeQueryLimits(request.limits);
+    const runRead = (goal: string): Promise<PrologQueryResult> =>
+      readLimits === undefined
+        ? prolog.query(goal)
+        : runBoundedRead(goal, readLimits);
     switch (request.method) {
       case "entities": {
         const limit = request.limit ?? 100;
@@ -2053,10 +2128,10 @@ export async function runEngineDaemon(requestedOptions: {
           request.sourceFile === undefined
             ? "none"
             : `'${quoteProlog(request.sourceFile)}'`;
-        const result = await prolog.query(
+        const result = await runRead(
           `kb_query_entities(${type}, ${id}, ${tags}, ${source}, ${limit}, ${offset}, Rows, Count)`,
         );
-        if (!result.success) {
+        if (!result.success && result.limitExceeded === undefined) {
           throw new Error(result.error ?? "Indexed entity query failed");
         }
         return result;
@@ -2083,10 +2158,10 @@ export async function runEngineDaemon(requestedOptions: {
           request.type === undefined
             ? "none"
             : `'${quoteProlog(request.type)}'`;
-        const result = await prolog.query(
+        const result = await runRead(
           `kb_search_entities(${type}, '${quoteProlog(request.searchQuery)}', ${limit}, ${offset}, Rows, Count)`,
         );
-        if (!result.success) {
+        if (!result.success && result.limitExceeded === undefined) {
           throw new Error(
             result.error ?? "Indexed search candidate query failed",
           );
@@ -2131,7 +2206,7 @@ export async function runEngineDaemon(requestedOptions: {
             }
             // Rule selection is intentionally resolved inside the engine. A
             // caller never supplies a Prolog goal over the command boundary.
-            return prolog.query("checks:check_all_json(JsonString)");
+            return runRead("checks:check_all_json(JsonString)");
           }
           case "relationship": {
             if (!command.type || !command.from || !command.to) {
@@ -2217,7 +2292,7 @@ export async function runEngineDaemon(requestedOptions: {
               command.sourceFile === undefined
                 ? "none"
                 : `'${quoteProlog(command.sourceFile)}'`;
-            return prolog.query(
+            return runRead(
               `kb_query_entities(${type}, ${id}, ${tags}, ${source}, ${command.limit}, ${command.offset}, Rows, Count)`,
             );
           }
@@ -2239,7 +2314,7 @@ export async function runEngineDaemon(requestedOptions: {
               command.type === undefined
                 ? "none"
                 : `'${quoteProlog(command.type)}'`;
-            return prolog.query(
+            return runRead(
               `kb_search_entities(${type}, '${quoteProlog(command.query)}', ${command.limit}, ${command.offset}, Rows, Count)`,
             );
           }
@@ -2296,7 +2371,16 @@ export async function runEngineDaemon(requestedOptions: {
             return cached;
           }
         }
-        const result = await prolog.query(request.goal);
+        // Writes and module loads always run to completion; a limit may
+        // only stop a read.
+        const boundable =
+          !mutatingEngineGoal(request.goal) &&
+          !/\b(?:use_module|consult|load_files|ensure_loaded)\s*\(/.test(
+            request.goal,
+          );
+        const result = boundable
+          ? await runRead(request.goal)
+          : await prolog.query(request.goal);
         session.recordModuleLoad(request.goal, result);
         if (result.success && mutatingEngineGoal(request.goal)) {
           fsyncJournaledBranchStore(branchPath);

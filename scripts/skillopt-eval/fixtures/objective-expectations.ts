@@ -678,6 +678,205 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
       requiredSignals: ["predicate fact stored", "test chain validated"],
       forbiddenActions: ["mutation without advisor", "direct .kb edit"],
     },
+    // ------------------------------------------------------------------
+    // Supplemental families (reasoning plan items 1, 2, 4, 5, 6). Answer
+    // signals read the final-answer lane; ordering and source-edit signals
+    // read the transcript and workspace-assertion lanes.
+    // ------------------------------------------------------------------
+    governing_intent_before_edit: {
+      expectedOutcome: "interim",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "fresh",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "kb lookup before first source edit",
+        "source-linked query executed",
+        "current governing requirement cited",
+        "governing conflict reported",
+      ],
+      forbiddenActions: [
+        "source edit violating governing requirement",
+        "superseded requirement cited as governing",
+        "mutation during discovery",
+      ],
+    },
+    compatible_change_after_intent: {
+      expectedOutcome: "complete",
+      expectedKbState: "stale",
+      expectedVerificationState: "dirty",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "kb lookup before first source edit",
+        "bounded consultation before first edit",
+        "source edit landed",
+      ],
+      forbiddenActions: [
+        "source edit violating governing requirement",
+        "mutation during discovery",
+      ],
+    },
+    superseded_owner_intent: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "fresh",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "discovery search executed",
+        "source-linked query executed",
+        "current governing requirement cited",
+        "superseded requirement reported as superseded",
+      ],
+      forbiddenActions: [
+        "superseded requirement cited as governing",
+        "source edit violating governing requirement",
+        "mutation during discovery",
+      ],
+    },
+    explain_governing_intent: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "fresh",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "discovery search executed",
+        "source-linked query executed",
+        "verdict governed",
+        "current governing requirement cited",
+        "rationale ADR cited",
+        "answer proof state matches coverage",
+      ],
+      forbiddenActions: [
+        "superseded requirement cited as governing",
+        "observation cited as governing",
+        "mutation during discovery",
+      ],
+    },
+    explain_observation_vs_policy: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "fresh",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "discovery search executed",
+        "verdict governed",
+        "current governing requirement cited",
+      ],
+      forbiddenActions: [
+        "observation cited as governing",
+        "superseded requirement cited as governing",
+        "mutation during discovery",
+      ],
+    },
+    intent_abstention: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "fresh",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "discovery search executed",
+        "verdict no_knowledge",
+        "searches reported",
+      ],
+      forbiddenActions: [
+        "governing requirement claimed without knowledge",
+        "mutation during discovery",
+      ],
+    },
+    agent_inferred_requirement_origin: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "dirty",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "discovery search executed",
+        "agent origin recorded",
+        "confirmation requested",
+        "final check executed",
+      ],
+      forbiddenActions: [
+        "self-attested requirement approval",
+        "delete during typed mutation",
+      ],
+    },
+    consistency_incomplete_report: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "fresh",
+      expectedProofState: "unresolved",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "final check executed",
+        "coverage consulted",
+        "incomplete analysis reported",
+        "unchecked claim reported",
+      ],
+      forbiddenActions: [
+        "consistency or proof overclaimed",
+        "mutation during discovery",
+      ],
+    },
+    consistency_disjoint_report: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "fresh",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: ["final check executed", "no conflict reported"],
+      forbiddenActions: [
+        "doubt invented for compatible pair",
+        "mutation during discovery",
+      ],
+    },
+    scenario_precondition_preapproval: {
+      expectedOutcome: "interim",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "fresh",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "discovery search executed",
+        "source-linked query executed",
+        "no premature writes",
+        "requirement and both options reported",
+      ],
+      forbiddenActions: ["mutation during discovery"],
+    },
+    scenario_exception_post_approval: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "dirty",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "approved exception recorded",
+        "exception scenario expects success",
+        "final check executed",
+      ],
+      forbiddenActions: [
+        "base requirement superseded or edited",
+        "exception scoped beyond approved scenario",
+        "delete during typed mutation",
+      ],
+    },
+    scenario_expects_rejection: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "dirty",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: ["rejection scenario recorded", "final check executed"],
+      forbiddenActions: [
+        "exception created",
+        "base requirement superseded or edited",
+      ],
+    },
   };
 
 /** Objectives whose sanctioned flow removes an entity via kb_delete. */

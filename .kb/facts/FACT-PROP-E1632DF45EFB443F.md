@@ -22,4 +22,8 @@ claim_span_start: 0
 claim_span_end: 51
 id: FACT-PROP-E1632DF45EFB443F
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

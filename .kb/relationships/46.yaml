@@ -223,3 +223,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-51be2656642e
+  - type: requires_predicate
+    from: REQ-kibi-mcp-tool-consolidation
+    to: FACT-MCP-SIXTEEN-TOOLS-COMPOSITE-PARITY
+    created_at: 2026-10-03T09:15:47.836Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8da59467583f
+  - type: requires_predicate
+    from: REQ-kibi-mcp-tool-consolidation
+    to: FACT-MCP-UPSERT-DRY-RUN-NO-WRITE
+    created_at: 2026-10-03T09:15:47.883Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5a6bb7ab6571
+  - type: requires_predicate
+    from: REQ-kibi-mcp-tool-consolidation
+    to: FACT-MCP-OPTIONAL-TOOLS-ENV-GATED
+    created_at: 2026-10-03T09:15:47.905Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9cbb406f566d
+  - type: specified_by
+    from: REQ-kibi-mcp-tool-consolidation
+    to: SCEN-kibi-mcp-tool-consolidation
+    created_at: 2026-10-03T09:15:47.938Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0f2e27c34e7e
+  - type: verified_by
+    from: REQ-kibi-mcp-tool-consolidation
+    to: TEST-kibi-mcp-tool-consolidation
+    created_at: 2026-10-03T09:15:47.953Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9fe1d1d6fed8
+  - type: executable_for
+    from: SYM-e2e-test-legacy-migration-plan
+    to: TEST-kibi-legacy-migration-preview-v2
+    created_at: 2026-10-04T04:17:45.518Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f420456297f2

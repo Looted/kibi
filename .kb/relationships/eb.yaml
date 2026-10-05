@@ -125,3 +125,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-09dd724eae3a
+  - type: requires_predicate
+    from: REQ-kibi-scenario-feasibility
+    to: FACT-SCENARIO-FEASIBILITY-FORBIDDEN-ASSUMPTION
+    created_at: 2026-10-03T09:15:51.392Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5b055de32a80
+  - type: requires_predicate
+    from: REQ-kibi-scenario-feasibility
+    to: FACT-SCENARIO-FEASIBILITY-BLOCKS-PROOF
+    created_at: 2026-10-03T09:15:51.423Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1ce5a337af5e
+  - type: requires_predicate
+    from: REQ-kibi-scenario-feasibility
+    to: FACT-SCENARIO-FEASIBILITY-EXCEPTION-EXEMPT
+    created_at: 2026-10-03T09:15:51.443Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-43368b859ff8
+  - type: requires_predicate
+    from: REQ-kibi-scenario-feasibility
+    to: FACT-SCENARIO-FEASIBILITY-REJECTION-EXEMPT
+    created_at: 2026-10-03T09:15:51.453Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-088e1c6e7cd4
+  - type: specified_by
+    from: REQ-kibi-scenario-feasibility
+    to: SCEN-kibi-scenario-feasibility
+    created_at: 2026-10-03T09:15:51.473Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3941ed19b6c8
+  - type: verified_by
+    from: REQ-kibi-scenario-feasibility
+    to: TEST-kibi-scenario-feasibility
+    created_at: 2026-10-03T09:15:51.500Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce98eb8efa00

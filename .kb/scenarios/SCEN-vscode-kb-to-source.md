@@ -4,7 +4,6 @@ title: 'VS Code: Navigation from Tree to Code'
 type: scenario
 status: active
 created_at: 2026-05-13T00:00:00.000Z
-source: documentation/scenarios/SCEN-vscode-kb-to-source.md
 priority: must
 tags:
   - vscode
@@ -12,6 +11,10 @@ tags:
 links:
   - type: verified_by
     target: TEST-vscode-traceability
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 ## Scenario: Navigation from Sidebar to Code

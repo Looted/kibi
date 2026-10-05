@@ -19,4 +19,8 @@ claim_span_start: 291
 claim_span_end: 373
 id: FACT-PRED-ZCODE-NO-MCP-REPLACEMENT
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

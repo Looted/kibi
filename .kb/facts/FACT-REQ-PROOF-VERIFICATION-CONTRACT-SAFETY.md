@@ -4,7 +4,6 @@ title: Kibi rejects mismatched verification contracts as proof
 status: active
 created_at: 2026-08-13T00:00:00.000Z
 updated_at: 2026-08-13T00:00:00.000Z
-source: documentation/facts/FACT-REQ-PROOF-VERIFICATION-CONTRACT-SAFETY.md
 tags:
   - lane:strict
   - verification
@@ -21,6 +20,10 @@ claim_text: mismatched contracts must remain non-proof outcomes
 claim_span_start: 300
 claim_span_end: 351
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
 Ground representation for contract-mismatch rejection.

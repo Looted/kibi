@@ -15,4 +15,8 @@ claim_key: CLAIM-1FA72431FE04350E
 claim_text: Integration with CI/CD for publish gates and release verification
 id: FACT-PROP-REQ-020-C04
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

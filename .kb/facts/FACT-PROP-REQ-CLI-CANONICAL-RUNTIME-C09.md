@@ -15,4 +15,8 @@ claim_key: CLAIM-43BD9C7F35E8F20D
 claim_text: MCP workspace activation and Cursor hook readiness must treat .kb/manifest.json as the initialized project signal, not leftover .kb/config.json
 id: FACT-PROP-REQ-CLI-CANONICAL-RUNTIME-C09
 type: fact
+origin:
+  kind: migration
+  ref: kibi migrate v5->v6
+  recorded_at: '2026-10-04T01:17:15.284Z'
 ---

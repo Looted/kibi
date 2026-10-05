@@ -176,12 +176,15 @@ cd "$runtimeRoot" || {
   printf 'kibi-mcp resolver: selected runtime root is inaccessible: %s\n' "$runtimeRoot" >&2
   exit 1
 }
-KIBI_WORKSPACE=$workspaceRoot
-export KIBI_WORKSPACE
+# Attach without pinning: KIBI_WORKSPACE would disable per-call workspace
+# routing. kibi-mcp moves to this root at startup, after resolving its runtime
+# from the current directory. An operator-set KIBI_WORKSPACE still applies.
+KIBI_MCP_ATTACH_ROOT=$workspaceRoot
+export KIBI_MCP_ATTACH_ROOT
 # Identify the host on usage rows without enabling telemetry. Usage logging
 # stays off unless the operator opts in with KIBI_DIAGNOSTIC_MODE=1, which the
 # server reads directly from the environment.
-KIBI_MCP_HOST=cursor
+KIBI_MCP_HOST=${KIBI_MCP_HOST:-cursor}
 export KIBI_MCP_HOST
 
 if [ "$runtimeExecutable" = bun ]; then
