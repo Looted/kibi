@@ -1,6 +1,6 @@
 {
   "name": "kibi-agent-core",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Shared low-latency hook helpers for Kibi agent adapters",
   "type": "module",
   "main": "./dist/index.js",
@@ -31,7 +31,10 @@
       "default": "./dist/snippets.js"
     }
   },
-  "files": ["dist", "CHANGELOG.md"],
+  "files": [
+    "dist",
+    "CHANGELOG.md"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
