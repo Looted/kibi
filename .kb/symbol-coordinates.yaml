@@ -16493,15 +16493,15 @@ coordinates:
     sourceLine: 27
   SYM-mcp-release-package-metadata:
     identityHash: 240336405ff91215ab2edd07d6f820210720d29abbb8cb1622c6097a330b8fa9
-    sourceHash: 07a562c70848a5f1e38a8bcc26c9d5b28f4c3d93bb45ae1509bac38cd9782ad1
+    sourceHash: f92b072a2f7eca27ec23083508d0fd50915f5de83beea6268d13611808914eb1
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 53
+    sourceEndLine: 56
     sourceFile: packages/mcp/package.json
     sourceLine: 1
   SYM-mcp-release-registry-metadata:
     identityHash: 243381a6fc622289060ae9fc50ab65b559c478b15c309c3e7e4cf730e442d06a
-    sourceHash: f897d1cef82bba82924c0bb205de25447e495c49a9a90e68b962fcc8ca2a3816
+    sourceHash: 21c841aa2002d6ca0a2f4ac0e72ad70a19c49a7936f35a9784b4b9a8c687b1ea
     sourceColumn: 0
     sourceEndColumn: 0
     sourceEndLine: 21
@@ -23141,10 +23141,10 @@ coordinates:
     sourceLine: 240
   SYM-runtime-packed-daemon-build:
     identityHash: 0b663b050962de77e0604feaa0dd61916f1e00fcc990f11723d8321a0b856ede
-    sourceHash: d4c6a3ed0ae85a34af8436a7f869d3aaa71653d4e459b0eb83de3809d70b70eb
+    sourceHash: 3af1440f7641af35503f26267a6683947d2dd94193180efee80d27a7e4ca72df
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 38
+    sourceEndLine: 40
     sourceFile: packages/runtime/package.json
     sourceLine: 1
   SYM-runtime-PrologPort:
@@ -34021,7 +34021,7 @@ coordinates:
     sourceLine: 1
   SYM-zcode-mcp-registration-config:
     identityHash: a49902dfe1abb97958a5441b1232d9235135aea24308be1265c4be0c751661e5
-    sourceHash: 404369b7e4a2dabb1098fbc2345e76fb7cd927371a86805533e5d0887e9434c5
+    sourceHash: d43504340f7f947daebb0246e7a4aafc66f0498950cce0a28c650abebcdc0953
     sourceColumn: 0
     sourceEndColumn: 0
     sourceEndLine: 22

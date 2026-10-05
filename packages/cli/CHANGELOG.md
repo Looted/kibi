@@ -1,10 +1,169 @@
 # kibi-cli
 
+## 2.5.0
+
+### Minor Changes
+
+- f4c81c4: `kb_apply_plan` now applies a compile plan all-or-nothing. If any step fails, including a step after the first, the store and the workspace are left as they were and the same plan can be applied again; you no longer get a half-applied plan that needs manual repair. If the process dies mid-application, the next `kb_apply_plan`, `kb_upsert` or `kb_delete` call completes or rolls back the interrupted plan from its journal and reports which. `kb_upsert` with `dryRun: true` now runs exactly the validation a real write runs (including strict-lane pairing and supersedes direction, which it used to skip), so it rejects what the write would reject.
+
+  - Compile plans write a durable journal before the first write: `plan-apply-<planHash[0:16]>.json` in the branch store directory, or `.kb/recovery/plan-apply/<branchKey>/` until the store manifest exists. It records the plan hash, exact before/after bytes and hashes of every workspace file the plan changes (its `sourceWrites` plus the relationship shards its steps append, rendered in memory by the new `renderShardWithRelationship`), every store upsert, and a fingerprint of the touched store entities. Plans without source writes are journaled too.
+  - Files publish with temp-file + fsync + rename + directory fsync (`FilesystemPort.fsync` is new and optional; `nodeFilesystem` implements it). All steps then commit in one `kb_commit_upsert_batch` transaction, which is the only commit point. Steps no longer run one by one through `executeUpsert`.
+  - Any failure before the commit restores every file from the journal and aborts. Error text says `no change was applied`, and the journal ends `rolled_back`. A commit failure is decided from the store fingerprint, not the transport. A store that reports failure but shows the batch committed returns `committed_with_repairs` with `STORE_COMMIT_REPORTED_FAILURE`. A store that cannot be inspected keeps the journal and throws the new non-retryable `PLAN_APPLY_RECOVERY_REQUIRED`.
+  - Recovery runs at the start of `kb_apply_plan`, and of `kb_upsert`/`kb_delete` when they take the workspace mutation lock. It also runs through `kb_apply_plan` `recoveryJournalId: "plan-apply-…"`. Journal states:
+
+    - `prepared`: rolled back.
+    - `store_committing`: decided by the fingerprint.
+    - `store_committed`: completed.
+    - `committed` / `rolled_back`: idempotent no-op.
+
+    Results report `outcome: "replayed" | "rolled_back"` and `validationSummary.recoveredJournals`; upsert warnings and delete text also report the recovery, and a call that settles a journal and then fails on its own work appends `[settled before this failure: …]` to its error text (typed errors keep their code and retryability). Before changing anything, recovery checks that every journaled file is at its before or after hash. Otherwise it changes nothing and throws `PARTIAL_COMMIT_REPAIR_REQUIRED`. The journalless `PARTIAL_COMMIT_REPAIR_REQUIRED` path for compile plans is gone.
+
+  - A pending-source receipt failure after the commit now returns `committed_with_repairs` (`PENDING_SOURCE_RECEIPT_FAILED`) instead of throwing `SOURCE_COMMIT_REPAIR_REQUIRED`. Later writes fail with `PLAN_APPLY_RECOVERY_REQUIRED` until the journal is recovered.
+  - Behavior change: `executeValidateUpsert` (`kb_upsert` `dryRun: true`, CLI `validate-upsert`) uses `validateUpsertForCommit` whenever a store is attached. The response shape is unchanged. The dry run now reads the store for existing relationships, strict-lane pairing and supersedes history. Without a store it keeps the store-independent checks.
+  - Entity-deletion and bootstrap plans keep their existing journals.
+
+- 89870c1: Bootstrap now checks its write actions before review and application, so ordinary require/forbid claims can be applied without malformed facts or semantic-inventory failures. Invalid and ungroundable claims remain cited authoring follow-ups; product intent receives priority over repository observations, and excluded or unreadable candidates are reported. Deterministic failures stop in a terminal journal with committed actions listed and guidance to re-plan; interrupted writes still recover.
+
+  Encode polarity as an `eq` boolean `true` comparison with a require/forbid modifier in the shared strict builder, retaining existing stable IDs. Add writer-schema and semantic-inventory preflight, per-claim extraction diagnostics, task-list normalization, selection accounting, and terminal failure reporting through CLI/MCP status and result envelopes.
+
+  Migration: KB schema 7 makes `strict-fact-shape` a blocking canonical check. Run `kibi migrate --yes`, then `kibi sync`. The migration rewrites legacy polarity-only property facts to the typed boolean encoding while preserving IDs, polarity, relationships, and document bodies. Other malformed strict facts require explicit correction; they are not treated as proof.
+
+- ebb2491: Entities created by `kb_compile_intent` plans now survive `kibi sync --rebuild`. Before this, `kb_apply_plan` committed plan entities only to the branch store, so rebuilding the store from the workspace silently dropped them and their relationships. Applying a plan now writes each entity to its authored document, exactly as `kb_upsert` does, and code files named in `sourceLocations` are no longer overwritten with a requirement document.
+
+  - `kb_compile_intent` sets `document.path` on every non-symbol step of a `ready` plan (the canonical path `kb_upsert` would choose) and returns `sourceWrites: []`. The requirement's document is the first `sourceLocations` entry only when it is a `.md`/`.mdx` file outside `.kb/`; code locations are evidence only. A step that fails entity validation or path resolution makes the plan `needs_resolution` with `A plan step cannot be applied as written: …`.
+  - `kb_apply_plan` renders each step's document with the newly exported `renderSourceDocument` at apply time, journals it with the new file origin `entity-document`, publishes documents before relationship shards, and commits each entity with that document as its `source`. `changedPaths` lists every document written. Plan source writes that target the same path keep their exact bytes.
+
+- 9ab84a4: Conditional requirements are now checked against scenarios. Write "checkout may happen only when the cart total is positive" (or "checkout must not happen unless ...") and `kb_compile_intent` compiles it to a typed rule; a checkout scenario that assumes a zero cart total is then infeasible and blocks proof, exactly as a property requirement would. A requirement only governs scenarios in its scope and inside the validity window of its facts, an approved exception can waive a single clause, and a conditional Kibi cannot translate stays an open gap instead of being stored as a note that looks modeled.
+
+  - Rule-lane feasibility: a current requirement's `requires_rule` rule whose body reads subject properties (`namespace:name(Entity, Value)`) contributes constraints in the same form as `requires_property` facts. A `forbid`/`deny` rule with one condition on one property contributes the negated condition; a `permit`/`oblige` rule of kind `constraint` contributes each condition. A rule restricts only scenarios that perform its action (`specified_by` the requirement or an exception to it, or assuming a predicate fact naming the action). Other restricting rules are decided on their own (entailed blocks, refuted is irrelevant, otherwise unknown). `logic_rule_property_form/2` folds comparison exceptions into the body and reads property keys from every nested atom.
+  - Validity windows: requirement constraints apply over their grounding fact's `valid_from`/`valid_to` (a rule IR's `validFrom`/`validTo` take precedence). The scenario's time is the intersection of its assumed facts' windows; a bounded constraint at an unspecified or partly overlapping time is undetermined.
+  - New outcome `not_applicable` (`disjoint_scope`, `outside_validity`) when no current requirement governs any assumption, and new unknown reasons `undecided_rule` and `undetermined_validity`, reported by `scenario-feasibility-unknown` and the proof ladder's `unknownFeasibility`.
+  - New optional requirement field `exempts_claims` (claim keys): an approved exception then waives only the constraints grounded by facts carrying those keys. New canonical rule `exception-claim-keys` requires `exempts_claims` to name claims of a requirement the exception `exempts`.
+  - New advisory rule `numeric-string-value`: a `property_value` fact storing a plain decimal as `value_type: string` where the comparison is numeric (ordering operator, or an `int`/`number` peer fact) silently drops out of contradiction and feasibility checks; the suggestion gives the typed replacement.
+  - Authoring: the semantic advisor, `kb_compile_intent` and `kb_model` (`mode: "requirement"`) route "only when", "only if" and "must not ... unless" clauses with one comparison on one subject property to a `forbid` rule with that exception (`requires_rule`, confidence 0.8). A conditional they cannot translate is an `ontology_gap` proposition with no observation and no strict property; `kb_model` returns an `unresolved_conditional_clause` warning. Below-threshold `kb_model` observations are tagged `review:ontology-gap` and no longer carry a claim key, since they do not ground the clause. Requirement inventory roles follow the advisor's proposition roles.
+  - `kb_compile_intent` scenario and test drafts are now applicable: draft prose moves from an entity property (rejected by the entity schema, which made the what-if check and `kb_apply_plan` fail) to the step's `document.body`, `verified_by` links ride on the scenario step with tests ordered first, and the drafts' `specified_by` links merge into the requirement step.
+  - Rule facts that `kb_compile_intent` and `kb_model` create are titled `Rule: <clause>` instead of `rule rule SEM-…`.
+
+- 352d5a0: Kibi's contradiction and feasibility verdicts no longer overclaim. Two rules over a predicate that can hold several values (several readings per sensor) are now `unresolved` instead of `disjoint`, identical rules whose condition can never hold are `disjoint` rather than a `contradiction`, a rule body with a comparison Kibi cannot read never yields a `contradiction`, and integer properties are compared as integers, so `> 0` conflicts with `< 1`. A success scenario is now also blocked when its assumptions only conflict with a requirement in combination (`>= 5` and `!= 5` against `<= 5`), an exception requirement only exempts a scenario once a human approved it, and a success scenario Kibi cannot check is flagged as unknown instead of silently passing. `kb_apply_plan` refuses a plan before its first write when any step would fail the same validation `kb_upsert` runs.
+
+  - New optional `predicate_schema` field `key_arguments` (argument names that determine the rest). Rule comparison identifies two atoms of a predicate only through it; without it, opposing rules stay `unresolved`. Comparisons of a variable with itself are decided exactly, and `int`/`integer` rule variables range over the integers.
+  - Identical (alpha-renamed) opposing rules are a `contradiction` only when their shared condition provably holds: every comparison translated, the functional closure consistent, no negation, disjunction, count or temporal relation, and the constraints satisfiable. A condition that cannot hold (`X > 0, X < 0`, `X < X`, two values of a keyed predicate) makes them `disjoint`; one Kibi cannot read keeps them `unresolved`.
+  - A rule variable shared by both rules counts as an integer for a `disjoint` verdict only when every declaration of it is `int`/`integer` (`N: int, N > 0` against `N: number, N < 1` is no longer `disjoint`); a `contradiction` witness must satisfy every declaration.
+  - New advisory rule `rule-key-arguments-missing`: for an opposing rule pair that is `unresolved` only because a condition predicate declares no `key_arguments`, it names the predicate (`namespace:name/arity`) and the key positions (argument names when a schema exists) that would decide the pair.
+  - `values_conflict/5` is domain-aware: `int` pairs use integer bounds; mixed `int`/`number` pairs stay real. A `number` keeps real semantics after unit canonicalization even when its value is integral, so `number > 0` and `number < 1` requirements no longer contradict.
+  - New optional requirement fields `approved_by` and `approval_ref`. `scenario-feasibility` only accepts an exception with a non-empty `approved_by`; otherwise the violation says the exception exists but is not approved.
+  - Scenario feasibility compares unit-canonicalized constraints per property and scope. Besides one assumption against one requirement fact, it reports a joint witness when the assumptions hold on their own but not together with the governing requirement constraints; the witness names a minimal set of requirements, assumption facts and requirement facts. Integer semantics apply only when every constraint in the set is `int`. The blocking rule, the proof ladder and the what-if analysis read the same witnesses; what-if scenario witnesses now carry `assumedFacts` and `requirementFacts` lists (previously `assumedFact` and `requirementFact`).
+  - Success scenarios get an explicit outcome (`infeasible`, `feasible`, `feasible_by_exception`, `unknown`). `feasible` now requires every assumption to be compared with every governing constraint and the whole conjunction to be satisfiable. Unknown reasons are `no_assumptions`, `contradictory_assumptions`, `unmatched_assumption`, `incomparable_assumption` (type, unit or operator mismatch) and `conflicting_requirements`; they are reported by the new advisory rule `scenario-feasibility-unknown` and as the `unknown_scenario_feasibility` proof advisory, without changing proof status.
+  - Opposing rule pairs are compared once per requirement pair; REQ-A→FACT-Z vs REQ-Z→FACT-A was previously never compared.
+  - New `what_if_analysis/2` compares the current and staged KB (contradictions and infeasible scenarios) and returns `introduced`, `removed` and `unchanged` witnesses. `kb_compile_intent` blocks on any introduced conflict or infeasibility and returns the full witnesses plus the split.
+  - `kb_apply_plan` runs every step through the extracted `kb_upsert` validation chain (`validateUpsertForCommit`: schema, proof receipts, relationship sources and targets, strict-lane pairing, supersedes direction, proposition-complete ingestion, grounding claim keys, predicate argument vocabulary) before the first write, treating entities and relationships created by earlier steps as present, and refuses a plan that introduces a contradiction or infeasible scenario.
+
+- d25a626: Kibi now answers questions on a CI checkout or any detached commit, compiles a cold knowledge base minutes faster, and can stop a runaway read before it blocks other agents. On a bare SHA, search, query, status, check, coverage and graph read a snapshot of that checkout and say so in every answer, while writes are refused with the command that fixes it. A cold `kibi sync` of the Kibi repository went from about 4 min 23 s to 19 s, and `--refresh-symbol-coordinates` from about 5 min 55 s to 26 s, with byte-identical results.
+
+  - Detached HEAD with zero or several local branches at HEAD: read-only operations (CLI routes, human commands, MCP tools) attach a read-only snapshot store (`kibi-internal/detached-head-snapshot`) compiled incrementally from the checkout's tracked sources, and add a `detached_head_read_only` warning diagnostic with the commit, branches at HEAD, store path and `writes: "refused"`. Write operations and `kibi sync` refuse with an actionable message (`git switch <branch>`, `git switch -c <branch>`, or `KIBI_BRANCH`). One branch at HEAD still attaches that branch exactly; no branch KB is ever guessed or written. `kibi engine stop/status` address the snapshot daemon, and `kibi gc` keeps the snapshot while it is in use.
+  - Sync: source-owned entity lookups before retracts run in batches of 200 instead of one engine round trip per path candidate; the Prolog client wakes on the answer frame instead of a 50 ms poll; TypeScript coordinate enrichment adds every source file before the first export check, so the type checker program is built once instead of once per file.
+  - Engine read limits: `KIBI_ENGINE_READ_TIME_LIMIT_MS` and `KIBI_ENGINE_READ_INFERENCE_LIMIT` (opt-in, unset by default) bound each read-only engine request with `call_with_time_limit/2` and `call_with_inference_limit/3`. A read that hits its limit fails with `QUERY_LIMIT_EXCEEDED` and `error.details.limitExceeded` (`kind`, `limit`) on the CLI and MCP envelopes, never with a partial answer; write requests, module loads and sync compilation are never bounded, while the read-only queries a write operation such as `kb_upsert` runs before writing count as reads and can stop it before anything is written.
+  - A CLI JSON route whose runtime cannot open (a detached HEAD refusing a write, no branch to attach) now prints an `OPERATION_FAILED` error envelope on stdout, not just a message on stderr.
+
+- a037b53: Every entity can now record who wrote it and who approved it, and `kibi migrate` brings existing knowledge bases to KB schema 6. Requirements your agent writes through `kb_upsert` are marked as agent-authored, and new advisory checks list exceptions nobody approved, exception approvals only an agent recorded, agent-written requirements no person has reviewed, and requirements that do not say why they exist; Kibi cannot verify a person's approval, so these checks show what is still waiting for one. `kibi check` now blocks superseded requirements that are still open and `source` fields that point at nothing, and `kibi migrate` closes the requirements and repairs the source fields for you (Kibi always compiles `source` from the entity's own file, so it removes leftover values that name that file or nothing), leaving only supersession cycles and source fields it cannot edit safely for review. When an upgraded semantic advisor reads existing prose differently, `kibi sync` lists every affected requirement at once and `kibi migrate` re-derives their inventories without dropping grounding.
+
+  - New optional `origin` field on every entity type (optional on symbols): `{kind: human | agent | migration | import, ref?, approved_by?, recorded_at?}`. It is validated in the Markdown extractor, the symbol manifest, the Prolog schema (`entities.pl`, `validation.pl`), the generated entity JSON schema and the `kb_upsert` input schema, and stored as a JSON object like `proof_contract`. Unknown kinds and unknown fields are rejected.
+  - `kb_upsert` and `kb_apply_plan` record `{kind: agent, recorded_at: <write time>}` on a new entity written without `origin`, and never change a stored origin when `origin` is omitted. An entity without an origin stays without one when updated. A supplied origin is written as given, with `recorded_at` filled in when missing.
+  - New advisory check rules (non-blocking `qualityDiagnostics`, run by default): `exception-unapproved` (an exception that `exempts` a requirement but has no `approved_by`, so it exempts nothing), `exception-approval-self-attested` (an agent-authored exception with `approved_by` but no `origin.approved_by` or `approval_ref`) and `agent-requirement-unapproved` (info; agent-authored current requirements without `origin.approved_by`, at most 25 per check plus one summary finding).
+  - `LATEST_KB_SCHEMA_VERSION` is 6; `kibi init` starts new knowledge bases at 6. The older/invalid schema warnings now point at `kibi migrate`.
+  - `kibi migrate` plans new actions. `entity_origin_backfill` (automatic) stamps `origin: {kind: migration, ref: "kibi migrate v5->v6", recorded_at}` as the last frontmatter key of every authored entity without one, leaving every other byte unchanged. `semantic_inventory_rederive` (automatic, at any schema version) rewrites a drifted inventory with the current advisor: a claim whose `claim_key` and `claim_text` still match keeps its status and grounding, and a new or reclassified claim becomes unresolved, never modeled. `logic_claims` and `semantic_source_hash` are rewritten consistently, and the action re-checks its planned contract hash before writing. `semantic_inventory_review` lists inventories that cannot be re-derived safely, with the exact `kibi model --input -` command. `migration-sync` recompiles the rewritten sources.
+  - Review actions with stable ids for the decisions schema 6 leaves to a person: `review_exception_unapproved`, `review_exception_approval_self_attested`, one `review_predicate_key_arguments` per predicate named by `rule-key-arguments-missing`, one `review_scenario_feasibility_unknown` per scenario, and one `review_agent_requirements_unapproved` queue for the requirements `agent-requirement-unapproved` lists. Blocking violations stay review actions as before.
+  - The schema upgrade action depends on the source-rewriting actions, so approving it approves what it does. `kibi migrate` no longer plans quality actions from a branch store that was never synced (it marks the `quality` domain incomplete instead of listing every authored relationship as missing), and plans check findings for a schema 5 store before the upgrade.
+  - `kibi migrate --yes` and `--dry-run` perform or preview the same backfill and re-derivations. The audit record gains `entityOriginBackfill`. Both paths are idempotent. A pre-existing quirk is fixed: the symbol-granularity step is no longer reported (or counted in the audit) when the upgrade did not include it.
+  - `kibi sync` checks every requirement before failing on proposition-complete ingestion and lists all failing files in one error, with a pointer to `kibi migrate`.
+  - New blocking check rules: `superseded-requirement-open` (a requirement another requirement `supersedes` must have `status: closed`; supersession cycles are reported once per cycle, naming every member and edge) and `source-path-dangling` (an authored `source` frontmatter field must name an existing workspace path, with any `#anchor` ignored, an existing entity id, or an http(s) URL; a missing `source` is fine).
+  - `kibi migrate` repairs both at any schema version. `close_superseded_requirements` (automatic) sets `status: closed` on every superseded requirement that is not closed, editing only the status line. `source_path_rewrite` (automatic) repairs every authored `source` value that is redundant or dead; the authored field is dead data, since the compiled `source` is always the entity's own file and Kibi never writes the field. A value naming another knowledge file by its pre-canonical path (`documentation/<lane>/...`, or `<lane>/...` relative to the knowledge root) is pointed at that file under `.kb/` (evidence `rewrites: {entityId, file, from, to}`). A value naming the entity's own file (pre-canonical or `.kb/` spelling, `./` and `#anchor` ignored, compared case-insensitively) and a dangling value Kibi cannot map are removed (evidence `removals: {entityId, file, from, reason: self | dangling}`). Other existing workspace paths, http(s) URLs and entity ids are left alone. A removal deletes only the source line through the new `withoutTopLevelField` helper, which refuses multi-line values and any edit that would change another key; such a value gets a `review_source_path_dangling` action, its only remaining use. `kibi check` maps each `source-path-dangling` finding to the same automatic action, and its suggestion now says that `kibi migrate` removes or rewrites the value. Supersession cycles stay `review_supersession_cycle` actions. `kibi migrate --yes` and `--dry-run` perform or preview the same repairs, and the audit record gains `supersededRequirementsClosed`, `sourcePathsRewritten` and `sourcePathsRemoved`.
+  - New advisory check rules: `symbol-owner-superseded` (symbols whose every owning requirement is superseded or deprecated; at most 25 per check plus a summary), `adr-unlinked` (accepted ADRs nothing links with), `adr-proposed` (info; ADRs still proposed) and `requirement-rationale-missing` (human- or agent-authored requirements with no `rationale`, no `## Rationale`/`## Why` section and no linked ADR; at most 25 per check plus a summary). Each maps to a migration review action (`review_symbol_owner_superseded`, `review_adr_unlinked`, `review_adr_proposed`, `review_requirement_rationale_missing`). `subject-key-identity` also reports one subject or claim minted as several active facts, and `subject-key-shape` also reports property keys that number a clause.
+  - `kibi migrate --apply-safe --format json` and every `--input` JSON route print only the JSON result on stdout. Progress from the commands they run along the way (sync, branch ensure, migrate) now goes to stderr instead of landing ahead of the JSON.
+  - New optional requirement field `rationale` (a non-empty string): why the requirement exists. It is explanation only and never part of the checked meaning or the semantic fingerprint.
+
+  ## Migrating
+
+  1. Update `kibi-core`, `kibi-cli` and `kibi-mcp` together.
+  2. Run `kibi migrate --format json > plan.json` and review it. Expect one `entity_origin_backfill` action (its evidence counts the entities per type), one `semantic_inventory_rederive` per drifted requirement, one `close_superseded_requirements` action listing the superseded requirements that are still open, one `source_path_rewrite` action listing the source values it will rewrite or remove, and review actions for anything you must decide. A KB already at schema 6 still gets the two lifecycle actions, because their findings now block `kibi check`.
+  3. Apply the automatic actions: `kibi migrate --apply-safe --approved-plan-hash "$(jq -r .planHash plan.json)"`. This stamps origins, re-derives inventories, closes superseded requirements, repairs redundant or dead `source` fields, writes schema 6 to `.kb/manifest.json` and syncs. `kibi migrate --yes` does the same without a plan.
+  4. Run `kibi migrate --format json` again for the remaining review actions. For each `review_exception_unapproved`, either record who approved the exception (`approved_by`, plus `approval_ref`) or remove its `exempts` link. For each `semantic_inventory_review`, follow the listed `kibi model` and `kb_upsert` steps. For each `review_predicate_key_arguments`, declare `key_arguments` only if the predicate really is single-valued per key. For each `review_supersession_cycle`, decide which requirement is current, delete the `supersedes` link that points at it, and close the others. A `review_source_path_dangling` appears only for a `source` field Kibi cannot edit safely (one spanning several lines, for example); have a person remove it by hand, or replace it with the single line the action names. The advisory queues (`review_symbol_owner_superseded`, `review_adr_unlinked`, `review_adr_proposed`, `review_requirement_rationale_missing`) do not block and can be worked through over time.
+  5. Commit the rewritten `.kb/` files. The origin backfill touches every entity file once; rerunning `kibi migrate` changes nothing.
+
+- f8fff87: The telemetry acceptance and remediation reports now show whether agents look requirements up before they change requirement-linked code. A new `lookup_before_first_edit` metric gives, per host session, the share of sessions that ran `kb_search` or `kb_query` (through MCP or the CLI) before their first edit of a file whose symbols implement a requirement. Sessions that edited first appear in the report with the file and its exact `.kb/usage.log` line. The data comes from opt-in hook rows that every Kibi host plugin now writes when `KIBI_DIAGNOSTIC_MODE` is set; nothing is recorded otherwise.
+
+  - `kibi usage-metrics` / `kb_check` telemetry acceptance: new metric `lookup_before_first_edit` (threshold `>=` policy `lookupBeforeFirstEditMinimum`, default 1) with evidence `unguidedEditPaths` and `lookupOperations`. It is `not_applicable` when no host hook recorded a requirement-linked edit, so logs without hook rows are judged as before. A failed metric adds the advisory diagnostic `lookup_before_first_edit_bypassed` (rank 35).
+  - `kibi usage-remediation`: one event item per session whose first linked edit had no earlier lookup, pointing at that hook row.
+  - `parseTelemetryUsageLog` still returns only Kibi operation rows; hook rows stay attached to the returned array (read them with `partitionTelemetryUsage`). Remediation `logLine` values now count hook rows and blank lines, so they match the file.
+  - `kibi-agent-core/hook-usage-log`: shared `appendHookUsage` / `appendHookUsageRows`, `kbUsageTrace` and `editTraces`. Hook rows (`interface: "hook"`) carry `host`, `session_id`, `hook_action` (`kb_usage` or `edited`), `kb_operation`, `path`, `path_kind` and `requirement_ids`. `hostKbOperation` recognizes MCP tool names and `kibi <route>` shell commands; `extractEditedPaths` reads `apply_patch` headers.
+  - Claude Code: `edited` rows now carry the file's `requirement_ids`, and every row names its `host`. Cursor (`postToolUse`), Codex and ZCode (`PostToolUse`) and OpenCode (`tool.execute.after`) now write the same `kb_usage` and `edited` rows.
+
+- 1012d1c: The Kibi MCP server now offers 16 tools instead of 23, so agents load less tool text and pick the right call more often. Skills, prose modeling and upsert validation each moved behind one tool, and the remote SPARQL and job-polling tools are off unless you turn them on. CLI routes are unchanged.
+
+  - `kb_skills` with `action: "list" | "load" | "read"` replaces `kb_skills_list`, `kb_skills_load` and `kb_skills_read`.
+  - `kb_model` with `mode: "analyze" | "requirement" | "predicates"` replaces `kb_semantic_advisor`, `kb_model_requirement` and `kb_suggest_predicates`; inputs are unchanged and results carry the routed payload plus `mode`.
+  - `kb_upsert` with `dryRun: true` replaces `kb_validate_upsert`: it validates and returns the advisor receipt without writing and reports both write effects as skipped. `kb_upsert` checks its input schema first, so a payload with an unknown field or a wrong enum value now fails with an input error naming the field instead of a `valid: false` receipt; the CLI `validate-upsert` route keeps the lenient preview.
+  - `kb_sparql_remote` and `kb_job_status` register only when `KIBI_MCP_OPTIONAL_TOOLS` names them (comma-separated, or `all`). Without `kb_job_status`, `kb_check` with `async: true` runs synchronously.
+  - The operation catalog gains composite `kb_skills` (CLI `kibi skill`) and `kb_model` (CLI `kibi model`); the narrower operations and their CLI routes remain. Usage telemetry records the routed operation name, so acceptance metrics are unchanged.
+  - Semantic advisor warnings and predicate diagnostics name `kb_model (mode requirement)` and `kb_model (mode predicates)` instead of the removed tool names.
+  - Migration: replace calls to the removed tool names as above. The frozen `tools/list` fixtures change accordingly.
+
+- 68298a6: Proof receipts no longer pile up: every `kibi prove` keeps only the receipts that can still decide proof, and the new `kibi proof compact` trims stores written before this release without changing any coverage decision. One failing step in a `command` proof integration now fails only the tests that own it when the command reports per-test results, and the `kibi prove` summary names the failing step. Freshness is computed from repository-relative paths and file contents, so CI and a local checkout of the same commit agree on what is proven.
+
+  - Receipt compaction (`kibi.proof-receipt-compaction.v1`) runs on every ingest (`kibi prove`, `kb_ingest_proof`). It keeps the newest receipt, the newest passing receipt, and the newest receipt per scope and contract hash for the current binding and for the live snapshot. Kept receipts are the originals in their original order; ingest refuses any compaction that would not be an ordered subsequence. Per-test ingest results report `compacted`, the number of receipts dropped.
+  - `kibi proof compact [--test <id>] [--dry-run] [--json]` applies the same policy once to an existing store against the live snapshot and each test's current binding. Only the `proof_receipts` frontmatter block is rewritten; invalid histories are reported as skipped and left untouched. `kibi proof prune` now patches the same block instead of re-rendering the whole document.
+  - `command` integrations receive `KIBI_PROOF_TEST_REPORT`. A `kibi.proof-test-report.v1` written there (`tests[].test_id`, `outcome`, `steps[]` with `step_index`, `command`, `outcome`, `exit_code`) partitions the run: each test is ingested against an artifact built from its own steps, and partition artifacts are kept next to the whole-run artifact as `<integration>.<outcome>.json`. A missing, malformed or incomplete report, or a failing process whose report blames no test, keeps the previous whole-run evaluation. Each `runs[]` entry of the summary carries `attribution` (`per_test` or `aggregate`), `attributionReason` and `failedSteps`.
+  - The workspace snapshot keys each path in Unicode NFC. Receipt bindings locate the test document and each symbol's `sourceFile` through a normalized repository-relative path; a `sourceFile` outside the repository contributes the fixed `outside-workspace` marker instead of local file content. Ingest and coverage share one binding computation (`currentReceiptBindingHash`). Existing snapshots and bindings for ASCII, in-repository paths are unchanged.
+
+- 1012d1c: Scenarios can now say what outcome they expect and what they assume, and Kibi checks that against your requirements. A scenario that expects success while assuming a value a current requirement forbids (for example a zero-quota call when calls need remaining quota) is reported by `kb_check` and blocks proof of the requirements it specifies. An intended exception is recorded as an approved exception requirement instead of weakening or editing the rule.
+
+  - New scenario property `expects` (`success`, `rejection`, `error`), new relationships `assumes` (scenario → `property_value` fact) and `exempts` (exception req → base req).
+  - New canonical `kb_check` rule `scenario-feasibility` with witnesses naming the scenario, requirement and both facts. An exception applies when a current requirement `exempts` the base requirement and is `specified_by` the scenario.
+  - The proof ladder's scenario stage reports `infeasibleScenarios`, sets status `blocked`, and adds the `infeasible_scenario` gap; coverage repair plans map it to the scenario phase.
+  - Scenarios without `assumes`, or that expect rejection or error, are not checked; no violation is not proof of feasibility.
+
+- 1012d1c: `kb_search` now answers questions. Ask it "how should Kibi handle a detached HEAD?" and it returns the current requirements that govern the topic, what they require to stay true, the decisions behind them and what verifies them, with superseded requirements listed separately so they are never read as current policy. Each governing requirement also says what the existing checks report about it (contradictions, infeasible scenarios, approved exceptions and what is still undecided), and the answer names the KB snapshot it came from. A warm `kibi search`, CLI start-up included, now takes about 2 seconds instead of 4 to 6 on the KBs we measured (Kibi's own and a 110-requirement application KB).
+
+  - The default `rankingMode` is `intent-v1`; pass `rankingMode: "legacy"` for the previous lexical ranking. Question words, including the frame of "what governs X?" and "what must stay true when X?", are ignored, terms are stemmed and weighted by rarity, and superseded, deprecated or rejected entities are ranked lower with a `demoted:` reason. Results flag `ambiguous` when the top matches are too close to call and report `truncated`.
+  - New `answer` input (default true) adds `data.answer` (`kibi.search-answer.v1`): `governing` requirements with `via`, linked `facts`, `scenarios`, `tests` (direct or reached through a scenario, marked by `via`) and `adrs`; `rationale`; `notGoverning` with `supersededBy`; `observations`; a `note` that absence is not evidence. It follows `supersedes` chains to the current requirement and stays under 16 KB, clipping titles and dropping lower-ranked entries when needed.
+  - Each governing requirement carries a `verdict` (`contradiction`, `infeasible`, `unknown` or `none`) with the domain-contradiction and scenario-feasibility `witnesses` that name it, `exceptions` (requirements that `exempts` it, with `approvedBy`) and `unknowns` (unresolved rule overlaps, scenarios of unknown feasibility, ambiguous or ontology-gap clauses, a missing clause ledger, or checks that could not run). `rationale` ADRs carry their `source` path and a decision `excerpt`. The answer-level `scope` gives `branch`, `snapshotId` and `syncedAt`. Under the byte ceiling, excerpts are dropped before any governing requirement and a verdict keeps its status when its witnesses are dropped.
+  - kibi-core: `discovery:search_answer_verdicts_json/2` computes those verdicts for the named requirements only (no whole-KB scan), reading functional-predicate declarations once per call instead of once per compared rule pair; `status:status_scope_dict/1` reports the attached snapshot id and sync time without a freshness scan.
+  - Latency: the answer layer fetches edges, entity rows and verdicts in a handful of batched engine queries instead of one round trip per hop and per linked entity, graph neighbours of the ranked matches load in one query, Markdown bodies are read once per search, and each candidate is tokenized once across both ranking passes.
+  - Graph links in the answer are discovery, not proof, and a `none` verdict means no check named the requirement; use `kb_check` and `kb_coverage` for full consistency and proof status.
+
+- 1012d1c: Kibi no longer says "no conflict" when it could not tell. Numeric requirements are compared exactly, so "the total must be greater than 0" now conflicts with "the total is 0", and a requirement whose clauses are not all modeled is reported as an incomplete analysis instead of a clean pass. Rules written as typed logic are compared three-valued: contradiction, disjoint or unresolved.
+
+  - New `intervals.pl` decides one-variable numeric constraints exactly, including strict `gt`/`lt` bounds; `values_conflict/5` uses it for every operator pair.
+  - The proof ladder's contradiction stage returns `status: unresolved`, `outcome: analysis_incomplete` (reason `unresolved_propositions`) when the semantic inventory has unresolved propositions.
+  - `kb_model_requirement` and the strict-claim schema accept `gt` and `lt`.
+  - The modeling round trip keeps what it modeled: `kb_compile_intent` writes the full semantic inventory (`semantic_clauses`, `semantic_inventory`, inventory hash and `logic_claims`) onto the requirement step, runs a rolled-back what-if contradiction check over the whole plan, and `kb_apply_plan` repeats that check before any write. "may … only" clauses are classified as normative.
+
+### Patch Changes
+
+- 1012d1c: Kibi keeps answering from the right place when you work in a git worktree, a detached checkout, or on a machine without Prolog. Host launchers no longer pin the MCP server to the first workspace, so per-call workspace routing keeps working, and a missing Prolog runtime points at `kibi doctor` instead of failing opaquely.
+
+  - Claude Code, Codex, Cursor and Z Code launchers set `KIBI_MCP_ATTACH_ROOT` instead of `KIBI_WORKSPACE`; the server starts in that directory without disabling routing. `KIBI_WORKSPACE`, `KIBI_PROJECT_ROOT` and `KIBI_ROOT` still pin.
+  - A detached HEAD whose commit is the tip of exactly one local branch attaches that branch's KB.
+  - `kb_status` reports `swipl_*` error codes with a `kibi doctor` remediation when the Prolog runtime cannot be resolved.
+  - CI and publish check that the committed Claude hook bundle matches its source.
+
+- Updated dependencies [89870c1]
+- Updated dependencies [9ab84a4]
+- Updated dependencies [352d5a0]
+- Updated dependencies [d25a626]
+- Updated dependencies [a037b53]
+- Updated dependencies [1012d1c]
+- Updated dependencies [1012d1c]
+- Updated dependencies [1012d1c]
+  - kibi-core@0.15.0
+  - kibi-plugin-builtin@0.4.1
+
 ## 2.4.0
 
 ### Minor Changes
 
 - f93dcdd: Bootstrap no longer learns only from the code. The agent now starts with a short interview: it asks where product intent already lives (issue trackers such as Jira or YouTrack, wikis, specs, decision logs), which sources are authoritative or stale, and reads them through its own connectors. The bootstrap plan records those sources and the intent claims harvested from them, so each requirement taken from a ticket or page cites it and the citation is part of the approved plan hash. Kibi still never contacts those sources itself.
+
   - feat(cli): `kb_plan_bootstrap` / `plan-bootstrap` accept `bootstrapContext.knowledgeSources` (id, kind, title, locator, authority, optional connector) and `bootstrapContext.intentClaims` (statement, sourceId, reference, optional excerpt). Both are normalized into `declaredContext` and bound into `planHash`. Grounded claims from authoritative or supporting sources become `req` candidates with `sourceKind: intent_claim`, citation evidence, and `text_ref: <sourceId>:<reference>`. Ungroundable claims become authoring follow-ups, stale sources are suppressed with `stale_knowledge_source`, and claims citing undeclared sources are reported as non-blocking diagnostics. A `needs_context` plan without declared sources asks for them.
   - feat(skills): `kibi-bootstrap` 3.1.0 leads with the source interview before planning; the MCP `/kibi-bootstrap` prompt and the Cursor and ZCode commands follow it.
   - docs: README, landing page, quick start, and install guide lead with a copy-paste agent setup prompt; manual installation moves behind a toggle.
@@ -18,6 +177,7 @@
 - 22857bf: Adding or editing a symbol that lives in a decorated Python file no longer fails. With the Tree-sitter plugin active, `kb_upsert` aborted with "Cannot refresh incomplete source analysis … Python decorators are not evaluated" and rolled the write back, even though `kibi sync --refresh-symbol-coordinates` handled the same file. Upserts now bind the declaration the same way sync does, and coverage repair plans report those symbols as refreshable instead of failing.
 
   When the Kibi MCP server keeps running after Kibi is upgraded or reinstalled, its tools used to fail with a bare "Cannot find module …" error. The error now says the server is running from files that are no longer installed and must be restarted, and that the project CLI works meanwhile.
+
   - kibi-cli: targeted symbol coordinate refresh (`kb_upsert`) and `inspectCoordinateRepairs` pass `allowPythonDecoratorCoordinates`, matching `sync --refresh-symbol-coordinates`.
   - kibi-mcp: legacy `kb_symbols_refresh` helpers pass the same flag; tool failures caused by missing modules carry a restart hint.
 
@@ -32,6 +192,7 @@
 ### Minor Changes
 
 - 7aa1471: Kibi can now run without a hand-installed SWI-Prolog. It looks for an explicit `KIBI_SWIPL` executable first, then the tested SWI-Prolog build shipped in the new `kibi-swipl` platform packages, and only then `swipl` on `PATH` (9.0 or newer). `KIBI_SWIPL=system` skips the bundle. `kibi doctor` now reports which runtime was chosen (source, path, version), checks that every required library loads, and explains which platform package to add when the bundle is missing. A running Kibi engine that was started with a different SWI-Prolog is restarted instead of reused. Release builds now ship the tested SWI-Prolog for Linux x64, Linux arm64, macOS arm64, and macOS x64 inside the `kibi-swipl-<platform>` packages, and an install that skips optional dependencies still succeeds and explains which package to add.
+
   - kibi-cli: add `resolveSwipl()` (env, bundled with manifest and SHA-256 verification, PATH), a per-process cache, and `SWI_HOME_DIR` for bundled builds in both `PrologProcess` spawn paths.
   - kibi-cli: engine handshake and requests carry the resolved `<bin>@<version>`; the daemon rejects mismatches and clients replace a mismatched daemon.
   - kibi-cli: `doctor` SWI-Prolog check uses the resolver and loads all required libraries.
@@ -41,11 +202,13 @@
   - New packages `kibi-swipl` and `kibi-swipl-<platform>` start at 1.0.0 outside this changeset and version together through a changesets fixed group.
 
 - db5376c: Projects can now opt into impact reviews that bind a change to its exact source, knowledge decisions and trusted analysis policy. Kibi validates both staged changes and a complete pull-request diff, rejects stale review evidence, and lets agents prepare an unauthored review template through the CLI or MCP instead of hand-assembling one. Every decision and reviewer field stays for an agent to write; preparation never approves or proves anything.
+
   - Add versioned impact policy and review schemas, immutable review fingerprints, reviewed Python decorator coordinate migration and the trusted aggregate `check-diff` command.
   - Add the read-only `prepare-impact-review --input` CLI route and `kb_prepare_impact_review` MCP operation; regenerate the bundled operation-access catalog for the agent integrations.
   - Keep the sample CI workflow inactive until it is adopted on a protected target.
 
 - db5376c: Kibi can now analyze source in Python, Go, Rust and a broader set of common programming and configuration languages, offline, while JavaScript and TypeScript keep working as before. Staged checks read source and authored knowledge from one immutable Git tree, inspect both sides of every change, and keep incomplete analysis explicit instead of treating it as proof. Large files now return an explicit analysis failure instead of a second validation error.
+
   - Add the asynchronous `kibi.symbol-extractor.v2` contract with validated UTF-16 ranges, bounded inputs and host-assigned provenance, plus a ts-morph v2 adapter.
   - Add the optional `kibi-plugin-treesitter` package with pinned WASM grammars, queries, licenses and an approved-analyzer closure verified before import.
   - Capture staged and explicit-diff snapshots from Git objects; merge duplicate symbol-manifest records deterministically and fail conflicting authored fields with `SOURCE_DUPLICATE_CONFLICT`.
@@ -62,15 +225,18 @@
 ### Patch Changes
 
 - 58083a1: Kibi can use workspaces reached through native filesystem aliases, including macOS temporary paths, without rejecting valid source writes or confusing engine identity. Long temporary paths use a private shorter engine socket path instead of failing to start. GitHub scaffolding preserves the actual README filename on case-insensitive filesystems. Source writes still reject traversal and symlinks that escape the workspace.
+
   - kibi-cli: canonicalize existing filesystem ancestors before authored-path containment checks and engine identity comparison; reject dangling symlinks.
   - kibi-cli and kibi-runtime: choose an owned deterministic runtime directory whose complete Unix socket path fits the platform byte limit.
   - kibi-cli: select README candidates by actual directory-entry spelling while preserving priority and broken-symlink checks.
 
 - a260a34: Kibi's CLI pre-release tests now check Git-hook behavior using the Git executable available on each runner. The init error test runs in its own Git workspace, so a host checkout cannot change the result. This keeps the release check meaningful across supported build environments; installed CLI behavior is unchanged.
+
   - kibi-cli tests: resolve the actual Git executable for the generated-manifest hook fixture.
   - kibi-cli tests: isolate the mocked init branch error from the ambient checkout.
 
 - 3d78159: Setting up Kibi no longer starts with installing SWI-Prolog. The documentation now says that Linux (x64 and arm64, glibc 2.28 or newer) and macOS (Apple silicon and Intel) need nothing beyond Node.js 22, explains the lookup order and the `KIBI_SWIPL` and `KIBI_SWIPL=system` overrides, and shows how `kibi doctor` reports which SWI-Prolog is in use and what to do when an install skipped the bundled runtime (`--omit=optional`, pnpm `supportedArchitectures`). Manual instructions stay for Alpine and native Windows. The GitHub Pages report workflows that `kibi init` can write no longer install SWI-Prolog by hand, because `npm ci` brings the bundled runtime with it.
+
   - kibi-cli: drop the `apt-get install swi-prolog` step from the shipped `kibi-report.yml` and `kibi-badge.yml` workflow templates.
   - kibi-cursor, kibi-claude: README and plugin manifest prerequisites say SWI-Prolog is bundled on supported platforms and only needed on `PATH` elsewhere.
   - Kibi's own CI and proof now run the pipeline-built bundled SWI-Prolog (one job keeps a system install with `KIBI_SWIPL=system`), and the release dry run follows the README quick start with the packed tarballs on four platforms; neither ships in a package.
@@ -90,6 +256,7 @@
 - f7c2d56: A full proof campaign spends much less time repeating the same packed test and rewriting the knowledge base once per receipt. Contracts that declare the identical command now share one execution, and the receipt campaign commits in batches instead of flushing the journal after every test. Selecting which tests to prove no longer loads every receipt history up front.
 
   Receipt source documents stay protected through the batched commit, and a failed batch restores every uncommitted document while preserving earlier committed batches.
+
   - Run each distinct proof-step command once and record that attempt on every contract that declared it.
   - Honor `KIBI_PROOF_STEP_CONCURRENCY` (default 1) when distinct commands can run together.
   - Reuse one snapshot-keyed compilation of the packed end-to-end suite across proof steps.
@@ -100,12 +267,14 @@
 - 2723322: Proof receipts now go stale when the code they vouch for changes. In the default per-contract binding mode, a receipt was meant to stay fresh only until its test's code or the production code behind it changed. In practice the code scope was always empty, so editing production code never marked any receipt stale. Receipts now bind to the current source of the test's own contracted code and of every production symbol linked `covered_by` the test. Edits to unrelated files still leave them fresh.
 
   **Upgrade note:** this changes every receipt's binding hash, so all existing receipts become stale once after upgrading. Run `kibi prove` (for example `kibi prove --all`) to record fresh evidence. Keep `covered_by` links accurate, since they now decide which production code each receipt covers.
+
   - The code scope is the contract's `required_proofs` symbols, any `proof_bindings` symbols, and all symbols linked `covered_by` the test. Receipt ingest and coverage derive it through one shared function (`operations/proof/code-scope.ts`), so they always agree.
   - Scope hashes use each symbol's current source-file content, not the coordinate artifact. The coordinate overlay discarded `sourceHash`, which is why the scope was empty, and it also dropped entries after any edit. A deleted source file hashes as `missing`.
   - Ingest loads `covered_by` links outside its per-test binding `try`/`catch`, so an engine failure fails the ingest instead of writing receipts without a binding hash.
   - File hashes and the manifest's symbol-to-source mapping are cached by modification time and size.
 
 - f01838e: Search works again on a mature knowledge base, including searches grounded to a changed source file, and it no longer spends a large share of an agent's context on results it has not chosen yet. Search used to ask Prolog for up to 100,000 full entity records regardless of the requested limit, so on this repository even `limit: 5` failed outright with a bounded-output error. Results now come back as summaries by default, which cut a five-hit response from 154 KB to 3 KB while keeping ranking, ordering, and totals identical.
+
   - Page indexed candidate retrieval in bounded chunks instead of one unbounded read, fixing the `ENOBUFS` failures without changing the candidate set or ranking.
   - Use paged source-file queries for intent searches with source locations instead of falling back to an unbounded full-KB read.
   - Add `fields` to `kb_search`: `summary` (default) returns identifying metadata plus score, reasons, and snippet; `full` returns complete entity bodies as before.
@@ -117,6 +286,7 @@
   When you model a new requirement, Kibi now ranks the subjects that already exist and either reuses one or explicitly declares a new one. It also flags claims that look like possible duplicates. An intentional restatement can be recorded with the new `restates` relationship. Skills and docs now recommend naming entities by the behavior they govern (`REQ-cli-gc`) instead of a sequence number (`REQ-042`). Existing numbered IDs stay valid.
 
   Predicate schemas can now declare the allowed values for an argument, plus the old spellings that map onto them. New facts must use those values. `kibi check` reports predicate facts that don't match any schema, and `kibi migrate` can fix the mechanical cases after you approve the plan hash. It moves a fact to the only namespace whose schema matches, and rewrites old spellings to the declared value. Everything that needs judgment stays a review item.
+
   - core: new `semantic_quality.pl` (`entity-id-style`, `domain-redundancy`, `domain-implication`, `subject-key-identity`, `subject-key-shape`, `ontology-quality`) and `units.pl`. Unit canonicalization is used for comparison only, and unknown or ambiguous units such as `KB` are never equated. Adds the `restates` req→req relationship and an optional `diagnosticSeverity` in the rule registry. Adds `:- encoding(utf8)` to modules that contain non-ASCII text.
   - cli/mcp: `restates` is wired through the extractors, schemas, and mutation paths. `entity-id-style` warnings are reported on `kb_upsert` creates and on staged added or renamed entity files. `kb_model_requirement` returns `vocabularyAlignment` (subject decision, candidates, redundancy candidates, stamps, `fallbackUsed`). Ontology-quality thresholds can be set with `KIBI_ONTOLOGY_QUALITY_MAX_SINGLETON_RATIO` / `KIBI_ONTOLOGY_QUALITY_MIN_FACTS`. `kb_compile_intent` create mode now keeps a caller-supplied `requirementId`. `kibi check --staged` now also prints its pass line when metadata-only staged changes have only advisory findings, matching the staged-symbol path.
   - cli/mcp: `predicate_schema` facts accept `argument_constants` and `argument_aliases`, stored like `rule_ir` as JSON. `kb_upsert` / `kb_validate_upsert` reject malformed vocabularies and predicate facts that use undeclared values or aliases. `kb_suggest_predicates` binds aliases to their constant and leaves undeclared values unbound. The new advisory TypeScript rule `predicate-schema-conformance` checks predicate facts against project schemas and the built-in catalog. Its mechanical repairs become automatic `predicate_schema_alignment` migration actions that carry the exact `kb_upsert` input and re-read the fact before writing.
@@ -129,6 +299,7 @@
 ### Patch Changes
 
 - 173ed66: `kibi coverage`, `kibi proof impact`, and requirement health reports no longer break with "Predicate or file not found" once a project's proof receipt history grows large. Per-contract proof binding used to load every test together with its full receipt history in a single answer. Past the 8 MiB output cap, that answer terminated the engine's Prolog session, and later queries quietly ran in throwaway processes without the attached KB. The engine now reads only the small per-test data it needs, and it restarts and reattaches its session if a query ever overflows or times out. Failures are reported instead of being hidden behind stale results.
+
   - Engine daemon: a lost interactive SWI session (output overflow, timeout, crash) is recycled before the next request. Recycling restarts the process, reattaches the branch store, and reloads the preloaded and client-loaded modules. The overflowing request still fails with the explicit ENOBUFS error.
   - `PrologProcess`: once started, a lost process never falls back to one-shot execution; queries raise `PrologProcessTerminatedError` with the cause. New `oneShotMode`/`needsRestart()` accessors and an injectable `maxOutputBytes` cap.
   - `runOperationJsonQuery`: isolated (one-shot or unstarted) ports report `oneShotMode` and receive the combined module-load + call goal.
@@ -140,6 +311,7 @@
   this repository, `kibi status` for a fresh KB drops from about 3 seconds to
   about 1.7, and a command that needs neither schema validation nor symbol
   extraction starts about 0.5 seconds sooner.
+
   - `kb_status_json` skips the full-entity stale-reason scan when the KB is
     fresh, because a fresh verdict already rules out every stale reason.
   - `kibi-plugin-builtin` loads ts-morph (the TypeScript compiler) on first
@@ -175,17 +347,20 @@
 - 6c72dd8: When a Kibi write is rejected, the result no longer claims it wrote to the KB or the workspace. Agents that read the `effects` list to decide whether to re-check or retry now see `failed` (with the error code) when an operation ran and stopped, and `not_applicable` when the input was rejected before anything ran. A `kb_delete` call that only returns a deletion plan now reports its writes as not applicable too, because `kb_apply_plan` performs them.
 
   Deleting an entity file that was created but not yet staged in Git no longer breaks later syncs. Before this fix, the leftover recovery receipt made every `kibi sync` fail with "Pending source is missing" until the branch KB was recovered. Adding or removing a symbol through `kb_upsert` or a deletion plan also no longer re-wraps unrelated long titles in `.kb/symbols.yaml`, which used to leave noisy diffs that the next coordinate refresh reverted.
+
   - cli: `toKibiResult` derives effect statuses from the envelope outcome. Error envelopes report declared effects as `failed` (carrying `error.code`) or, with `attempted: false`, as `not_applicable`; explicit `effectFailures` still take precedence. The CLI protocol marks input-validation errors as not attempted, and the MCP timeout envelope inherits the same rule.
   - cli: payloads can list `skippedEffects`, which the envelope reports as `not_applicable`; `kb_delete` sets it on plan-only results and its output contract declares the field.
   - cli: `kb_apply_plan` retires the pending-source receipt of every source it deletes (new `retirePendingSourceReceipt`), on first apply, replay, and journal recovery alike.
   - cli: authored YAML round-trips (symbol manifest, Markdown frontmatter, relationship shards) serialize with unlimited line width, matching sync and coordinate-refresh output.
 
 - 0d161a7: Kibi no longer fails to save anything when a workspace sits deep in a directory tree. In a repository whose path was around 150 characters or longer, every `kb_upsert` and other write died with "invalid term_t … out of range" and no hint about the cause. Writes now work at any path length. Two smaller rough edges are fixed as well: `kibi init` no longer blames `core.hooksPath` when it refuses a hooks directory that escapes the repository through a symlink, and the "Pending source is missing" error now says how to recover.
+
   - kibi-core: SWI-Prolog's `rdf_db` cannot write a journal for a graph whose URI is roughly 230 characters or longer. Journaled stores whose `file://` graph URI would exceed 200 characters now use a short digest-based `urn:kibi:store:<sha1>` graph URI; shorter paths keep their existing URI, so existing stores are unaffected.
   - kibi-cli: `init` reports "The Git hooks directory resolves outside this repository" unless `core.hooksPath` is actually configured.
   - kibi-cli: `Pending source is missing` errors (sync and discovery) point to `kibi branch recover --apply` for deliberately deleted sources.
 
 - 6513324: Proof reporting does far less work, and large coverage reports can no longer overflow the engine. On this repository, evaluating requirement proof coverage against the live snapshot took about 132M Prolog inferences per run. It now takes about 43M on a cold engine and about 15M on a warm one. That's the evaluation behind `kibi coverage`, `kibi proof impact`, the proof baseline check, and the requirement health report. Whole-KB coverage reports are now read in small pages. The unpaged report was already 5.7 MB of the engine's 8 MiB output cap and grew with every requirement and proof run. Report contents are unchanged.
+
   - kibi-core: `kb_entity/3` memoizes each entity's decoded property list per graph and `rdf_generation/1`. The memo is invalidated by any RDF change, including inside transactions and on rollback. Coverage previously re-materialized and re-decoded every property, receipt histories included, about 100k times per report.
   - kibi-core: receipt-history parsing and receipt-shape validation are memoized by content (`variant_sha1/2`) and bounded to 4,096 entries. They previously re-parsed and re-validated every stored receipt on every evaluation.
   - kibi-core: `kb_ensure_indexes` skips its full type-triple recount while its inputs (graph, RDF generation, legacy fact count, index entity count) are unchanged.
@@ -194,6 +369,7 @@
   - kibi-cli: `executeCoverage` reads reports in pages of `COVERAGE_ROW_PAGE_SIZE` (10) rows via `readCoveragePages`.
 
 - 25f11b1: The badge that `kibi init --github` adds to your README now links to the published explanation of the `% proven` metric at https://looted.github.io/kibi/ instead of the GitHub rendering of the Markdown source. The Kibi documentation site moved to the root of that domain, with the requirement-health report still under `/kibi-report/`. The Cursor and OpenCode package READMEs also link to the published guides, so the links work when you read them on npm.
+
   - cli: `KIBI_METRIC_DOCS_URL` points at `https://looted.github.io/kibi/guide/github-integration.html#what-the-badge-means`.
   - cursor, opencode: README setup and troubleshooting links point at the published guide pages instead of repository-relative or GitHub blob URLs.
   - repo tooling (not published): the docs site builds into the GitHub Pages root and renders `llms.txt` as one H2 link list per catalog group from the shared page metadata.
@@ -204,17 +380,20 @@
   requirements and facts with large semantic inventories can exceed the output
   bound on its own. Search now shrinks the page when that happens instead of
   failing.
+
   - `loadSearchCandidates` halves the page size and retries the same offset when
     a page overflows the bounded Prolog output. It keeps the smaller size for the
     rest of the scan and rethrows only when a single entity overflows on its own
     or the error is not an overflow.
 
 - 2633bdb: kb_search no longer fails on large knowledge bases. On repositories with thousands of entities, search previously died with "Query exceeded bounded Prolog output capacity (ENOBUFS)" because it requested every candidate entity in a single query. Search candidates are now fetched in bounded pages (500 per query) before ranking, in both legacy and intent-v1 ranking modes, so each response stays well under the output bound in practice and the observed large-KB failure is fixed. The page size bounds response size per query; it is not a byte-level guarantee for arbitrarily large individual entity payloads.
+
   - Add `loadSearchCandidates` paged fetcher in `discovery-entities.ts` and use it from `executeSearch` and intent-search candidate loading.
   - Call the port's `searchEntities` through the port itself so the method receiver is preserved for `PrologPort` implementations that are not pre-bound (e.g. `EngineClient`, whose `searchEntities` depends on `this`).
   - Cover the paging contract with behavior tests (multi-page aggregation, candidate cap, empty-page termination, receiver preservation).
 
 - 9e17968: `kb_search`, `kb_query`, intent search, and bootstrap planning no longer fail with `ENOBUFS` once a project's proof receipt history grows large. Several discovery paths asked the engine for every candidate entity with all its properties, test receipt histories included, in a single answer. On this repository that answer is 8–14 MiB, past the engine's 8 MiB output cap, so even a `limit: 1` search for an existing requirement failed. Results and ranking are unchanged. Search candidates now carry only the fields ranking needs, and complete entities are loaded only for the page actually returned.
+
   - kibi-core: `kb_search_entities` returns projected candidate rows (identity, title, status, tags, source and coordinates, text fields). Receipt histories, proof contracts, and other large structured properties stay in the store. New `kb_list_search_candidates/5` (projected, paged listing) and `kb_entity_ids/1` (IDs without properties).
   - kibi-cli: `kb_search` with `fields: "full"` reloads only the returned page's complete entities by ID. Ports without the engine's indexed methods run the same bounded Prolog search through `query` instead of loading every entity.
   - kibi-cli: `kb_query` pages are fetched in bounded chunks (`ENTITY_QUERY_CHUNK_SIZE`, 25 rows) through the engine and through the non-engine fallback, which no longer materializes every matching entity before paginating.
@@ -225,6 +404,7 @@
   `kibi doctor` now tells you when your installed Git hooks were written by a different Kibi version, for example a pre-commit hook that predates the generated-manifest gate. Such a hook keeps running, so nothing looked wrong, but it silently skipped newer checks.
 
   Deleting an entity that has outgoing relationships no longer leaves those relationships behind in `.kb/relationships/` shards. The deletion plan now removes them together with the entity, so `kibi check` no longer reports source-relationship parity violations after an approved delete.
+
   - cli: sync stamps `compilerFingerprint` (a hash of the bundled entity property schema) into `sync-cache.json` and discards a cache stamped under a different contract. `kibi status` / `kb_status` add a `compiler_changed` stale reason (remediation `kibi sync`) and report `syncState: "stale"` until then.
   - cli: `kibi doctor` adds a "Kibi-managed hook sections" check that fails when an installed kibi-managed section in the effective hooks directory differs from the running CLI's template (remediation `kibi init`). The installer and the check share one template list.
   - cli: entity deletion plans (`kb_delete` → `kb_apply_plan`) add hash-bound source writes that remove the deleted entities' outgoing rows from relationship shards, via the new pure `renderShardWithout` shared with relationship deletion.
@@ -235,6 +415,7 @@
   twice, each copy with different requirement and test links. Only one copy
   reached the knowledge base, and `kb_upsert` updated the first copy while the
   second kept shadowing it, so the duplicate could never be fixed through Kibi.
+
   - The symbol manifest writer folds every record with the upserted ID into the
     first one: it keeps the union of their relationships and fills fields the
     first copy lacks, then removes the other copies.
@@ -244,6 +425,7 @@
     `SYM-COVERAGE_SHARDS`), which now carry the combined links of both copies.
 
 - f01838e: Usage telemetry now records what a call actually returned. Since mid-August every MCP tool result was logged with a count of zero, so a search that returned 190 hits looked identical to one that found nothing, and acceptance reports drew conclusions from fabricated data. Result and violation counts are now read correctly, and a payload that genuinely cannot be parsed is recorded as unknown rather than as an empty result, so a broken logger can no longer look like a healthy but empty knowledge base.
+
   - Add `normalizeResultPayload` to the result-envelope module and use it in both the MCP and CLI diagnostic loggers, resolving the `{ structuredContent }` wrapper and the bare `kibiProtocol` envelope through one contract.
   - Record `result_count` and `violation_count` as `null` with a `count unavailable` summary when no payload is readable, and omit `zero_results` in that case.
   - Restore `protocol_version`, `result_version`, `result_status`, and `effect_failures` on MCP rows, and fix the mirrored CLI case where a wrapped envelope logged protocol fields but lost the count.
@@ -268,6 +450,7 @@
 - e6be0cc: Optional Jev plugins can now be configured from the environment after a normal `package.json` activation, and `kibi doctor` shows which capability plugins that activation selected.
 
   `TYPESAFE_API_KEY` remains the only credential and is never read from `package.json`. `KIBI_JEV_MODEL` selects the model (default `jev-latest`; a blank value is ignored). `KIBI_JEV_TIMEOUT_MS` sets a positive timeout up to 120000 milliseconds and fails with a clear provider error when the value is malformed. Explicit constructor options still win. Advisor and compile-intent results include plugin version, mode, external/network/metered flags, fallback, and the effective model when the classifier discloses one. Shadow comparisons stay out of the canonical result.
+
   - Resolve Jev model and timeout from the environment with programmatic precedence
   - Preserve optional `semanticClassifier.model` on provenance stamps
   - Report parsed `kibi.plugins` from `kibi doctor` without importing plugin packages
@@ -275,6 +458,7 @@
   ***
 
 - c77b371: Proof coverage reaches every requirement that has honest end-to-end evidence: fourteen new packed end-to-end tests wire previously unproven scenarios (status freshness, conservative proof reporting, snapshot relevance, MCP model-requirement and freshness, schema version, strict modeling, plan-hash enforcement, OpenCode enforcement, briefing removal, Prolog/SPARQL adoption, check-gate enforcement, evaluator gold runs, batch diagnostics) into the proof ladder, and requirements that are historically retired can now actually opt out of E2E proof.
+
   - `kb_check` with `async: true` returns a `kibi.job.v1` receipt whose shape is declared in the tool's output contract, so hosts no longer reject the response schema mismatch on large KBs.
   - Authored `proof_exempt` / `proof_exempt_reason` frontmatter on requirement documents is now extracted and persisted; previously the exemption was silently dropped on sync.
   - The MCP JSON-Schema-to-Zod bridge converts `anyOf` unions faithfully for declared output contracts (input `oneOf` guards keep their intentional lenient behavior).
@@ -282,6 +466,7 @@
   - New proof obligations: `TEST-e2e-*` packed scenarios, `TEST-kibi-change-to-proof-evaluation-live` gold-corpus run, and `TEST-e2e-root-batch-diagnostics`; `runBatch` is exported from the curated suite runner for diagnostic reuse.
 
 - f33a665: Proof failures now name the exact requirement, symbol, and why each `covered_by` candidate did not qualify, without changing what counts as proven. Agents can inspect a requirement with `kibi proof explain` and compare current proof state to the committed `proof/baseline.json` snapshot with `kibi proof impact`, instead of reverse-engineering Prolog or guessing from aggregate counts.
+
   - Keep `kibi.requirement-proof.v3` and add additive production-symbol `explanations` plus TEST `testResolutions` on the same Proof.
   - Ratchet `proof/baseline.json` to v2 with compact requirement fingerprints; aggregate counts stay the ratchet.
   - Add `kibi proof explain` and `kibi proof impact` as Proof projections, mixed-role leftovers in `symbol-traceability`, and advisory `proof-contract-symbols`.
@@ -294,6 +479,7 @@
 ### Patch Changes
 
 - b375e8f: This maintenance update brings the affected package code and tests into line with Kibi's Biome checks while preserving runtime behavior. It also replaces MCP non-null assertions with receiver-preserving method calls.
+
   - Format affected files, sort imports, and remove unnecessary template literals.
   - Preserve EngineClient `this` when forwarding optional Prolog methods.
 
@@ -304,24 +490,28 @@
 - 58a9181: `kibi doctor` now fails when a capability plugin is activated in `package.json` but the package is not a declared dependency. Previously the check could report `declared=no` and still pass, even though loading that plugin is rejected.
 
   Add the package to `dependencies`, `devDependencies`, or `optionalDependencies`, or remove the `kibi.plugins` entry. The check still only reads `package.json` and does not import the plugin.
+
   - Fail the Capability plugins doctor check when any configured row has `declared=no`
   - Keep the existing row text and add an actionable remediation
 
 - 783cc75: Capability plugins can now be loaded safely from a project's package.json without changing default behavior when none are configured.
 
   Kibi hosts a lazy, injectable capability-plugin registry shared by CLI and MCP. Builtin providers always register; optional packages load only when a capability is first used, with replace/augment/shadow mode rules and an allowlist that keeps external semantic classifiers out of sync/check/upsert/status/proof paths.
+
   - Add `packages/cli/src/plugins` host loader/registry, composition helpers, and source-analysis service
   - Wire `OperationContext.ensurePlugins` through CLI and MCP runtimes
   - Pass operation context through MCP semantic-advisor / model-requirement / suggest-predicates registration
   - Depend on `kibi-plugin-sdk` `^0.1.0` and re-export the registry from `kibi-runtime`
 
 - e6571b4: External classifiers stay limited to the two allowlisted operations, ontology matches keep their claim keys through host composition, and CLI predicate rule tables now re-export the builtin pack so advisor and modeling cannot drift. Lane selection from the builtin classifier also accepts host snake_case signal shapes, which unblocks typecheck/build for capability-plugin call sites.
+
   - fix(builtin): chooseLane accepts kind-only LaneSignal (unblocks analysis-receipt typecheck)
   - feat(cli): stamp claimKey on composed ontology match candidates
   - refactor(cli): re-export predicate rule tables from kibi-plugin-builtin
   - chore(builtin): export rule sets + package.json subpath
 
 - 142d7ee: Semantic advisor and compile-intent responses that include capability-plugin provenance no longer fail host output validation. Agents and CLI clients can read `capabilityPlugins` stamps on successful envelopes instead of hitting `PROTOCOL_VALIDATION_FAILED`.
+
   - fix(cli): declare optional `capabilityPlugins` on kb_semantic_advisor and kb_compile_intent output contracts
   - test(cli): protocol regression for plugin-bearing semantic-advisor envelopes
 
@@ -338,16 +528,19 @@
   Under Bun 1.4 with coverage, `sync-coverage` was timing out `git add` via `spawnSync` and then cascading 120s failures through migrate and check-remaining until the 25-minute process bound. Those files now run in their own `cli.sync-coverage` shard.
 
 - 5420c44: CI unit-coverage no longer hangs the shared commands shard on `sync.test.ts`, and Bun 1.4 live-socket write-EPIPE no longer fails the shared engine-remaining shard. Daemon socket refusal/serve coverage runs in its own isolate process.
+
   - Isolate `sync.test.ts` into `cli.sync-command` coverage shard
   - Move live/stale/daemon socket path tests into `cli.engine-live-socket` isolate
   - Remap live-socket EPIPE by `code`/`errno` in the daemon probe
 
 - 783cc75: Coordinate enrichment, granularity candidate collection, and private-member helpers now live in `kibi-plugin-builtin`, so the CLI can analyze TypeScript/JavaScript symbols without depending on `ts-morph` directly. Hosts that only install `kibi-cli` still get the same enrichment and staged-symbol behavior through the builtin plugin.
+
   - Export `enrichSymbolCoordinatesWithTsMorph`, `collectGranularityCandidates`, `onlyCandidate`, and `isPrivateClassMember` from `kibi-plugin-builtin`
   - Thin-wrap those helpers from CLI `symbols-ts`, `symbol-granularity`, and `symbol-extract`
   - Drop `ts-morph` from `kibi-cli` runtime dependencies (kept as a test-only devDependency for AST spies)
 
 - 217b044: Provider secrets now resolve the same way in every harness: existing process env wins, then project `.env.kibi` (or `KIBI_ENV_FILE`), then `~/.config/kibi/env`, with legacy `.env` only filling gaps (labeled `legacy_env`). Blank values are unset. `kibi doctor` stays import-free: package/capability/mode/declared for any plugin, plus static first-party Jev secret/model diagnostics from the real bootstrap attribution — never by re-reading files without the pre-bootstrap process snapshot, and never by executing plugin code.
+
   - Shared `bootstrapKibiEnvironment` with remembered process-key snapshot, blank-as-unset, and `legacy_env`
   - Doctor uses `resolveKibiWorkspaceRoot` + bootstrap `sources`; no `loadPluginPackage` / dynamic import
   - MCP `resolveWorkspaceRoot` delegates to the same canonical resolver
@@ -358,6 +551,7 @@
   Maintenance paths stay on deterministic builtin ts-morph analysis. External replace/augment/shadow extractors only participate when a caller passes an explicit registry (for example symbol repair). This matches the documented v1 contract that sync/check/status/proof must not invoke external plugins.
 
 - 16919be: MCP discovery no longer dies when one tool hits the host timeout. Timed-out reads cancel in-flight work without tearing down the shared engine, so parallel `kb_status` / `kb_search` / `kb_query` calls stop cascading into `Kibi engine connection closed`. Healthy `kb_status` reuses the session engine. Discovery tools that opt into `agentVisibleStructuredData` embed JSON in `content` for hosts that hide `structuredContent`.
+
   - MCP: abort-only on read tool timeouts; reset Prolog only for wedged mutations
   - MCP: `adaptProlog` forwards AbortSignal to EngineClient query/status/save paths
   - CLI: EngineClient settles pending RPCs once (abort vs response race-safe); cancel marks are per-connection
@@ -368,6 +562,7 @@
 - 8985874: Capability plugins now fail closed on unsafe resolution, poisoned loads, and silent classifier errors, and Jev records the model it actually called.
 
   Project config rejects duplicate package activation and duplicate replace providers. Package entry resolution uses Node/Bun as the source of truth and refuses entries that escape the package root, including via symlinks. A failed plugin import no longer poisons later retries in the same registry. Semantic classifier failures are returned as diagnostics instead of being swallowed, and Jev includes its configured model id in those diagnostics.
+
   - Validate duplicate plugin activation, secrets, and provider ids
   - Confine resolved plugin entries to the realpath'd package root
   - Evict rejected loadedPackages promises
@@ -375,12 +570,14 @@
   - Configurable Jev model (default `jev-latest`) on errors and requests
 
 - db07d8f: Proof diagnostics now agree with the Prolog decision: a structural type-shape unit contract is shown as qualifying, `kibi proof impact` compares against the Git HEAD baseline and exits 0 after a successful report, and mixed-role symbols fail the strict proof integrity gate.
+
   - Mode-aware candidate evaluation in Prolog; receipt fallback uses `test_receipt_evidence(Context, TestId, Evidence)`.
   - `proof impact` reads `HEAD:proof/baseline.json` with no worktree fallback; diagnostic exit 0.
   - Strict proof workflow and baseline checker include canonical `symbol-traceability`.
 
 - 7de8890: `kibi proof migrate-legacy` now detects legacy `verification_receipts` blocks in the authored test documents, not only in compiled entities left over from older stores. Because current sync no longer extracts the legacy lane, the compiled-store check alone could never fire on a workspace synced by a current release, leaving the exact stale blocks the command exists to remove untouched. The migration still runs only for tests that already carry a `proof_contract`, keeps pruning compiled legacy lanes where they exist, and reports the same summary output.
 - e697943: Native ZCode proof runs now preserve the exact test case, integration, and command provenance needed to explain verification results. This makes each ZCode behavior receipt independently traceable instead of treating the adapter suite as one aggregate pass. The CLI also rejects incomplete or mismatched native evidence rather than accepting an ambiguous result.
+
   - Enforce native result and binding validation for self-emitting proof integrations.
   - Record the configured `zcode-native` command and producer fingerprint in proof artifacts.
 
@@ -402,6 +599,7 @@
 ### Major Changes
 
 - 812c201: Kibi's proof layer is now runner-neutral: any test runner, script, or harness can prove requirements, and Playwright is no longer built into the proof model.
+
   - `kibi prove` replaces `kibi verify` as the single command to run configured proof producers and record evidence. Proof contracts (`kibi.proof-contract.v1`) declare explicit obligations (`symbol_id` + `target`) executed by a configured integration in `.kb/proof/integrations.json`; `kibi proof inspect` discovers test infrastructure deterministically; one producer run can satisfy many test contracts, and re-ingestion is idempotent.
   - Evidence moves to the `kibi.proof-run.v1` artifact (typed environment, run-level outcome, factual attempt history with `native_case`/`aggregate_run` provenance) evaluated into `kibi.proof-receipt.v1` receipts bound to the live snapshot, contract hash, and effective execution fingerprint. Command proof is the universal fallback, so every project can prove requirements without a first-party framework adapter; strict first-attempt policy never upgrades unknown attempt history into passing evidence.
   - Breaking removals: `kibi verify`, `kb_ingest_verification`, `kibi.playwright-run.v1`, `verification_contract`/`verification_receipts` entity fields (replaced by `proof_contract`/`proof_bindings`/`proof_receipts`), the `required_case_symbols`×`required_projects` Cartesian contract, and `retries` fields. Migrate by re-running `kibi prove` after bootstrap configures proof for your repository.
@@ -476,6 +674,7 @@
   The change-to-proof evaluator exercises the compile API against an isolated Prolog fixture with independently seeded requirements and contradiction facts. Its search cases exercise the production ranker over fixed fixture entities, including supplied source context and unrelated-source abstention; they do not claim full KB-backed retrieval or independent source discovery.
 
 - 8b49574: The published CLI now loads the HTML report stylesheet with a Node-compatible `import.meta.url` path, so `kibi-cli` builds under `tsc`. Type-only telemetry, proof, apply-plan, and engine contracts live in `.d.ts` files, which the existing coverage ignore already excludes.
+
   - Replace Bun-only `import.meta.dir` in the HTML report
   - Rename extracted type modules to `.d.ts` so the unit-coverage manifest does not require them
 
@@ -486,20 +685,24 @@
   suggestion reset, source-hash warnings) are testable, and a vanished
   relationship shard after a successful commit is reported as a repair instead
   of being silently skipped.
+
   - Export small CLI, OpenCode, MCP, and SkillOpt test seams and report vanished relationship shards.
   - Keep migration `--yes` and legacy-delete blocks unchanged.
 
 - 7dfd0a5: The journaled engine daemon now starts under Node, not only Bun. Hosts that spawn `engine-daemon.js` with Node 22.14 and earlier never set `import.meta.main`, so the process exited immediately and clients waited until timeout. The entry check now compares `argv[1]` to the module URL so `kibi` and unit tests can attach to a live daemon again.
 - 0fba134: Reconnect to the live branch generation before journaled sync mutations. A daemon left attached to a replaced store is stopped and restarted so relationship deletes and cache recovery no longer require `--rebuild`.
 - d53e77a: When a workspace disappears while Kibi is running, the detached engine now notices and shuts down so later commands do not inherit a stale lock or socket. Proof runs also reject packed suites that finish without executing a runnable test, which keeps reported verification aligned with work that actually ran.
+
   - Add a bounded watchdog override for integration fixtures.
   - Require a complete, non-empty TAP result from packed proof runs.
 
 - 121a83c: Type-only CLI contracts now live in dedicated type modules so unit coverage measures executable logic instead of interface declarations. Public imports stay the same. Agents and CI still see the same runtime behavior.
+
   - Move telemetry, proof-protocol, apply-plan, and engine types into sibling `*-types.ts` files
   - Re-export those types from the original modules so public paths do not change
 
 - e6cd1f1: Kibi now explains when a symbol needs an authored anchor before its coordinates can be refreshed. Python methods such as `Service.decide` no longer silently repeat an ineffective automatic repair, while symbols that extraction can locate still receive automatic refresh guidance.
+
   - Count text-heuristic coordinate misses as failures, including non-JS/TS sources.
   - Inspect current extraction and explicit coarse anchors before classifying requirement and symbol coordinate repairs as automatic.
   - Cover repeated refreshes, authored coarse-anchor recovery, mixed repair batches, and supported text/AST extraction.
@@ -513,13 +716,16 @@
   credentials, such as `https://x-access-token:…@github.com/owner/repo`. CI
   and Cloud Agent checkouts rewrite remotes that way, so the README badge
   URL is written instead of being skipped as an unknown repository.
+
   - Accept optional userinfo on HTTPS GitHub remotes in `parseGitHubRemote`.
 
 - ebe2d36: The HTML health report now loads its stylesheet from a static CSS file instead of inlining hundreds of CSS lines in TypeScript. The rendered report looks the same for operators. Unit coverage no longer treats those stylesheet lines as executable TypeScript, so the number reflects real report logic.
+
   - Extract report CSS to `html-report.css` with brand token placeholders
   - Copy the stylesheet into `dist/report` during the `kibi-cli` build
 
 - b1682f1: Agents receive clearer guidance for repairing the actual supplied mutation request and preserving approved predicate bindings. The scoped additions retain the existing workflow while separating payload recovery from conditional relational modeling.
+
   - Update `kibi-usage` to 2.1.2 in CLI/runtime sources and the generated Codex/Cursor distributions.
   - Preserve the other three skills and all existing resource content.
   - Retain production-adoption safeguards; development comparisons are not held-out evidence.
@@ -538,6 +744,7 @@
   Technical summary: `PrologProcess.waitForReady`, `isProcessUsable`, and `isRunning` now also check `child.signalCode`; the query-timeout diagnostic message includes the terminating signal.
 
 - b1682f1: Kibi CLI now preserves quoted Prolog text and large structured responses when reading optimization evidence. This prevents Unicode, escape sequences, nested metadata, and pipe-delivered JSON from being silently corrupted or truncated during SkillOpt evaluations.
+
   - Harden Prolog response parsing and atom/string escaping.
   - Normalize entity endpoints at graph and quality-evidence callers.
   - Use bounded paginated entity projection when full KB quality reads exceed the Prolog transport capacity.
@@ -547,14 +754,17 @@
   OpenCode without lowering Codecov gates. Previously unreachable catch,
   tie-break, workspace-escape, and package-walk paths are exported as small
   helpers and covered by in-process remaining-coverage tests.
+
   - Export leftover defensive helpers and add remaining-coverage tests.
   - Keep migration `--yes` and delete `migrationRequired` blocks unchanged.
 
 - 9ea635e: Proof workflows no longer wedge tests that collect a lot of receipt history. Running `kibi prove` many times on the same contracted test could push its receipt history past the 50-entry storage cap, leaving the test entity permanently invalid — `kibi check` flagged it, and no mutation could repair it because receipts are append-only. Proof ingest now rotates the oldest receipts at the cap, so the newest evidence is always kept and the test stays valid; the append-only rule still forbids rewriting or shrinking history, and only permits the exact cap-rotation shape ingest produces.
+
   - Rotation only triggers when appending would exceed the cap, drops the minimum number of oldest entries, and preserves the 49 newest historical receipts verbatim.
   - Receipt-history append-only validation accepts only that exact rotation shape; pruning without appending, multi-receipt replacement, and below-cap trimming remain rejected.
 
 - 5999143: Agent-facing skill docs now use the current status field names, so agents following the freshness and E2E receipt workflows look for fields that actually exist in `kb_status` output instead of stale ones.
+
   - Bundled `kibi-freshness` and `kibi-usage` skills (all agent mirrors) now reference `proofSnapshotChanges` and `proofSnapshot` (previously `verificationSnapshotChanges`/`verificationSnapshot` from the pre-proof-architecture status schema).
   - The skillopt-eval harness reads `proofSnapshot*` status fields and its held-out eval prompts name the current fields, so "dirty editor path" evidence gathering works against live status output again.
 
@@ -579,6 +789,7 @@
   when a live compiled edge and relationship shard exist, preventing the next sync
   from resurrecting an explicitly deleted edge. Source symbol analysis also
   recognizes members of exported class expressions such as `FileBridge`.
+
   - Use maintained SAX XML parsing with strict failure diagnostics for malformed,
     conflicting, or ambiguous native reports.
   - Validate TAP subtest plans and hierarchy identities before producing evidence.
@@ -603,6 +814,7 @@
   entry is the same program; tests can call it without going through
   `process.argv`. Coverage numbers reflect those modules instead of silently
   omitting them.
+
   - Export `runEngineDaemonCli` from `engine-daemon.ts` and add in-process command tests.
 
 - Updated dependencies [d53e77a]
@@ -635,6 +847,7 @@
 - 9e6fb3f: Kibi now uses one opinionated project contract: all Kibi-managed knowledge lives under `.kb/`, check enforcement is owned by the installed Kibi version, and projects can no longer weaken health by disabling rules or relocating entity paths in `.kb/config.json`. Existing repositories must run `kibi migrate --yes` to move legacy `documentation/...` knowledge into the canonical layout and adopt `.kb/manifest.json`.
 
   Advisory modeling checks still run by default, but they report as non-blocking quality diagnostics instead of failing `kibi check`. Migration rewrites the old blanket `.kb/` gitignore stanza so authored lanes are trackable, and a malformed leftover `config.json` blocks the one-way cutover instead of guessing default paths.
+
   - Remove user-configurable entity paths and persistent `checks.rules` overrides; retire `.kb/config.json` after migration.
   - Introduce `.kb/manifest.json` for Kibi-owned lifecycle metadata (schema version, semantic backfill state).
   - Add one-way legacy storage migration (`documentation/` and custom configured paths → `.kb/<lane>/`).
@@ -659,6 +872,7 @@
   effect and repair information, while branch stores are hashed and explicitly
   identity-bound. The mutation path can author tracked source documents and
   canonical relationship shards without staging or committing them.
+
   - Add the `kibi-runtime` first-party integration package.
   - Add exact branch-store manifests, explicit legacy migration/quarantine, and
     typed result/effect contracts.
@@ -666,16 +880,19 @@
     approval plans.
 
 - 33262f8: Kibi can now turn its conservative proof model into a polished requirement-health site that people can open, screenshot, share, or publish from CI. Run `kibi report --open` for the local dashboard, or publish the self-contained output directory directly to GitHub Pages without a separate frontend build.
+
   - Add the human-facing `kibi report` command with configurable output, tag filtering, complete-scope enforcement, and default-browser launch support.
   - Render proof percentage, health metrics, snapshot warnings, searchable requirement-stage cards, receipt freshness, contradiction witnesses, and unowned-code counts in one offline HTML file.
   - Publish the `develop` branch report as a GitHub Actions artifact, and document local use plus a GitHub Pages deployment workflow.
 
 - 15b5825: Projects can now publish a Kibi requirement-health badge together with the full HTML report on GitHub Pages. Copy the documented workflow into `.github/workflows`, or run `kibi init --github` to scaffold those same files. Clicking the README badge opens the matching report.
+
   - Add canonical GitHub Actions workflows for badge+report and an explicit badge-only opt-out.
   - Scaffold the documented integration with `kibi init --github` without overwriting customized workflows or duplicating badges.
   - Document the manual copy/paste flow in the README and `docs/github-integration.md`.
 
 - 1ca62af: Kibi's public requirement-health report now makes its proof claims inspectable and trustworthy after the page has been sitting on disk or GitHub Pages. Proven no longer shares a card with blocking proof gaps, evidence ages stay honest in a static file, and the report header identifies the repository, branch, and commit when that metadata is available.
+
   - Classify extra verification-receipt issues as `proofAdvisories` when strict proof already exists; `proofGaps` remain blocking-only.
   - Preserve absolute evidence and generation timestamps, compute relative ages in the viewer, and link proof-chain sources from structured coordinates.
   - Present strict proof coverage, unmapped production symbols, requirements without implementation, proof-gate filtering, filter counts, a Kibi favicon, and a subtle getting-started CTA without loading network assets.
@@ -683,6 +900,7 @@
 - 7654339: Predicate suggestions now abstain more safely when relevance is weak or bindings are unreviewed, while explaining candidate eligibility and rejection reasons.
 
   When a genuine ontology gap remains, agents receive a reviewable schema draft instead of an empty recommendation. Reusable launcher schemas and regression coverage improve guidance for consumer-local package resolution and process execution.
+
   - Add public applicability, binding-provenance, score diagnostics, abstention, and recommended-schema draft fields.
   - Add five launcher-oriented schemas, Cursor launcher coverage, MCP assertions, and reference documentation.
   - Preserve `requires_rule` relationship shards during source-first extraction and sync.
@@ -703,29 +921,35 @@
   matching source declaration as well as the compiled relationship. Unrelated
   symbols, relationships, comments, and formatting remain intact, so a later
   sync does not recreate the relationship that was deleted.
+
   - Add CST-preserving exact relationship deletion for YAML symbol manifests.
   - Fail closed when an authored YAML relationship cannot be parsed or patched,
     and cover source and compiled-delete integration behavior.
 
 - 3d7d04f: Generic MCP and CLI agents now discover Kibi's operating rules from bundled skills instead of a long copy-paste prompt. Improving an existing product KB is covered by a `kibi-usage` resource rather than a second manual, so agent guidance stays in one place and cannot drift from the packaged workflow.
+
   - Add `kibi-usage` `resources/kb-improvement.md` and bump that skill to 2.1.0.
   - Replace `docs/prompts/llm-rules.md` with `docs/generic-agent-onboarding.md`.
   - Remove the obsolete retroactive-init prompt; bootstrap stays in the `kibi-bootstrap` skill.
 
 - 2d6cc59: Kibi requirement-health reports now look and read like Kibi: the real logo and wordmark anchor a dark proof-instrument interface, while a sequential proof rail explains exactly where requirements stop. The generated badge uses the same brand system, so an honest low score remains recognizable and opens into useful evidence instead of looking like a broken generic badge.
+
   - Add self-contained Kibi brand primitives and apply them to the HTML report and SVG badge.
   - Show the proven numerator, current-requirement denominator, and sequential semantic, scenario, implementation, E2E, and evidence gates.
   - Keep strict proof scoring, snapshot warnings, escaping, offline delivery, responsive behavior, and print output intact.
 
 - 8f71f1a: Proof no longer treats coarse test-suite and extractor-miss symbols as missing coordinates after their E2E receipts land. Refresh now stores a title match or whole-file span for those anchors, so a passing contracted test can prove a requirement instead of opening a new coordinate gap.
+
   - Persist title-match or whole-file coordinates for coarse granularity symbols during `kibi sync --refresh-symbol-coordinates`.
   - Keep extractable symbols without AST coordinates as refresh failures rather than inventing locations.
 
 - a07fad5: The requirement-health README badge now matches Codecov and other Shields-style badges in a GitHub badge row. The label pane uses the standard grey, the type is regular 11px instead of bold, and the proven-percentage side keeps padding so the last letter no longer touches the edge.
+
   - Use Codecov chrome: `#555` label, white 11px type, 1px text shadow, sheen, and 3px corners.
   - Size panes from the message text with reserved padding, and blend the logo ground into the label fill.
 
 - 2e68da9: Kibi's generated requirement-health badge now matches the height of standard GitHub badges and stays readable at small sizes. It uses the canonical Kibi logo on its own, so the badge no longer relies on a tiny wordmark that is difficult to recognize when rendered inline.
+
   - Render the health badge at 20px with a compact logo-only mark and centered status label.
 
 - 4cf383b: `kibi doctor --format json` now reports the installed `kibi-mcp` version on
@@ -733,6 +957,7 @@
   map. Coordinated `kibi-cli` + `kibi-mcp` installs no longer see a misleading
   "install one coordinated Kibi artifact set" instruction; that remediation now
   fires only when a package is genuinely absent from the install graph.
+
   - Resolve sibling package manifests through the package entrypoint when the
     `./package.json` subpath is not exported, instead of falling through to
     unresolved provenance.
@@ -745,16 +970,19 @@
     ownership and abort coordinate refresh.
 
 - 7bc4f61: Symbol coordinates no longer vanish when agents edit symbols, and a stale warm cache can no longer hide the damage. Editing a symbol through Kibi now keeps its exact code location in compiled knowledge, and when compiled state ever loses those coordinates while everything else looks unchanged, the approved coordinate refresh actually repairs it instead of reporting "Imported 0". Refresh failures now stop the operation loudly instead of being logged and ignored, so proof gaps appear immediately rather than after the next full rebuild.
+
   - Source-first symbol upserts re-extract the canonical manifest + artifact entity before committing; authored `symbols.yaml` stays coordinate-free.
   - Sync cache v2: workspace-root-relative keys, `symbol-coordinates.yaml` fingerprinted with its manifest, explicit refreshes forced through persistence, cache written only after durable save.
   - Generated artifacts become identity-bound v2 records published atomically under a workspace symbol compiler lock; malformed artifacts fail closed everywhere.
   - New MCP/CLI regression suites plus a Prolog proof-stage regression cover persistence, warm-cache repair, and fail-closed behavior.
 
 - 51fb55b: GitHub Pages now publishes the requirement-health report and badge under `/kibi-report/` instead of the site root. That keeps Kibi from occupying `/index.html` by default on project and owner Pages sites.
+
   - Namespace the packaged report and badge-only workflows, `kibi init --github` URLs, and this repository's proof Pages deploy under `/kibi-report/`.
   - Document that `deploy-pages` still replaces the Pages deployment; merge `kibi-report/` into an existing site when Pages is already in use.
 
 - 1ca62af: Pull requests now generate and validate the Kibi requirement-health report without publishing it. Reviewers can download the candidate HTML report and badge as a workflow artifact, while GitHub Pages still shows only the repository default-branch snapshot.
+
   - Run the canonical `kibi-report.yml` (and badge-only) workflow on `pull_request` as well as default-branch push and `workflow_dispatch`.
   - Upload `kibi-pr-report` from pull requests; skip Pages configure/upload/deploy on `pull_request`.
   - Keep `pages: write` and `id-token: write` on the deploy job only. Do not use `pull_request_target`.
@@ -762,6 +990,7 @@
 - f1a6d5c: Canonical Kibi skill guidance no longer names specific agent hosts or editor products.
 
   Users running SkillOpt trust-plane scans (or anyone redistributing the bundled skills) previously hit hard failures because baseline skill text mentioned a specific host by name while candidate validation forbids host/provider claims in optimized bodies. The guidance now says "hosts may expose prefixed identifiers" and "editor dot-directories", keeping the same operational advice without naming any product. No workflow steps changed; only two sentences were reworded.
+
   - kibi-usage SKILL.md: host-prefix sentence made host-neutral
   - kibi-freshness SKILL.md: dirty-worktree example path made product-neutral
 
@@ -772,6 +1001,7 @@
   Follows the earlier host-neutral wording fix; together these make all four canonical skills valid baselines for SkillOpt runs.
 
 - 8fe890c: The requirement-health README badge now looks like the other GitHub badges: the Kibi logo sits next to a `kibi` label, and the status pane is only as wide as the proven-percentage text. The extra empty space on the right is gone, so it no longer dominates the badge row.
+
   - Pair the canonical logo with a `kibi` label on the left pane.
   - Size the SVG from the label and message text instead of a fixed 178px width.
 
@@ -785,6 +1015,7 @@
   genuinely stale artifacts. The Git execution buffer is now 64 MiB, so large
   manifests and coordinate artifacts are read in full and freshness is judged
   against what is actually staged.
+
   - Raise the child-process buffer used by staged-file collection to 64 MiB
   - Keep injected test executors unchanged; only the default executor grows
 
@@ -793,6 +1024,7 @@
   authored source is missing. If another operation replaces a receipt during
   recovery, Kibi preserves that newer intent and reports the recovery as
   incomplete instead of silently deleting it.
+
   - Carry receipt path, source path, source hash, and raw receipt digest through
     recovery publication for authored files and relationship shards.
   - Compare receipt identity before cleanup and fail when it changed.
@@ -800,11 +1032,13 @@
     and replacement-receipt retention in isolated fixtures.
 
 - Generated symbol coordinates now stay aligned with live source files during sync and source-first mutations, even when operations overlap or fail partway through. Coordinate artifacts are published and restored atomically, so callers do not inherit stale or half-written compiler state.
+
   - Add workspace-scoped symbol compiler locking and compare-before-restore artifact rollback.
   - Include coordinate artifacts and referenced source files in sync freshness fingerprints.
   - Support explicit `test-suite` granularity for intentionally coarse test anchors.
 
 - 535dea8: Agents can now keep working in synthetic, detached, or unreadable workspaces while Kibi reports the migration work it can evaluate. Coverage and checks preserve their useful domain results when branch status is unavailable, and the Codex/Cursor skill assets now stay aligned with their published plugin metadata.
+
   - Keep status-derived migration actions read-only and append them only when branch resolution succeeds.
   - Preserve the shared migration-plan contract across coverage and checks without requiring a Prolog-backed status query in non-Git harnesses.
   - Synchronize plugin manifests and freshness skill CLI examples for the next coordinated patch release.
@@ -812,18 +1046,22 @@
 - 5fdb828: CI-generated proof reports no longer claim the workspace was dirty.
 
   Every strict proof run appends fresh verification receipts to the tracked test documents before the health report is generated. Those receipt-only edits cannot change the verification snapshot hash — receipts are stripped before hashing — yet the workspace dirtiness flag was computed from raw git status, so every CI report shipped a "Proof was evaluated against a dirty workspace" warning even though the checkout was clean. Receipt-only markdown changes are now classified as not snapshot-relevant, keeping the dirtiness flag consistent with the snapshot hash it guards.
+
   - `workspaceSnapshot` in `packages/cli/src/public/operations/node-ports.ts` now compares receipt-stripped working-tree content against the receipt-stripped `HEAD` blob for modified tracked markdown files; matching content marks the change as receipt-only and excludes it from snapshot dirtiness.
   - Added a unit regression covering receipt appends to a tracked proof document: dirtiness stays false while non-receipt edits still dirty the snapshot.
 
 - b97329a: Verification status now remains reusable when the only local changes are operational Kibi artifacts that are excluded from the code snapshot. Those changes still appear in status diagnostics, while source changes continue to mark verification evidence dirty.
+
   - Derive workspace snapshot dirtiness from snapshot-relevant changes rather than every Git porcelain row.
   - Preserve complete change records and counts for operational diagnostics.
 
 - c942344: Kibi now keeps long-lived Prolog discovery responses intact even when JSON is printed across multiple lines, and Codex hook state remains durable under concurrent updates. Coverage runs also produce an auditable source manifest and continue collecting all shards so one failure cannot hide the rest of the signal. This makes the initial coverage floor measurable while leaving a clear path to the 100% target.
+
   - Patch `kibi-cli` for multiline Prolog binding parsing.
   - Patch `kibi-codex` for append-only hook-state persistence and deterministic concurrency handling.
 
 - 07803e4: Kibi discovery commands no longer let one relationship query corrupt JSON output for later commands sharing the workspace engine. Status now distinguishes a readable branch store from an unavailable or malformed engine response, so operators get a safe restart hint instead of an unnecessary branch-store recovery diagnosis.
+
   - Keep daemon Prolog answer formatting immutable across requests, reject `set_prolog_flag` through the engine query boundary, and fail closed when exclusive publication cannot stop an existing engine.
   - Add bounded JSON-binding diagnostics and regression coverage for cross-command engine reuse and status classification.
 
@@ -832,6 +1070,7 @@
   edges can no longer hide a newer contradictory policy merely by making that
   newer requirement non-current. Relationship checks also block authored links
   that have silently disappeared from compiled knowledge.
+
   - Document `supersedes` as new-to-old across bundled and generated skills.
   - Reject reversed supersession when tracked source history proves that the
     purported replacement predates its target.
@@ -843,6 +1082,7 @@
     authored-to-compiled relationship parity.
 
 - 400e88c: Supersession writes now enforce tracked source history when Kibi is running through the journaled engine. Conservative proof also distinguishes executable production behavior from structurally tested TypeScript type shapes, keeping exported types traceable without pretending that erased declarations receive runtime E2E coverage.
+
   - Read target requirement provenance through the engine's typed entity projection.
   - Retain the raw Prolog fallback for compatible embedded callers.
   - Require E2E `covered_by` and runtime coordinates only for behavioral production symbols; retain type-shape ownership through real unit import contracts.
@@ -871,11 +1111,13 @@
 ### Patch Changes
 
 - de7b85a: Verification contracts can now evolve without forcing projects to erase valid historical test evidence. Kibi preserves every earlier receipt, accepts a newly appended receipt for the current contract, and only treats evidence matching both the current contract and live code snapshot as proof.
+
   - Separate immutable receipt-history validation from current-contract binding during verification ingest.
   - Report `verification_contract_mismatch` as an explicit proof gap until current-contract evidence is appended.
   - Teach the usage skill and SkillOpt evaluator to preserve older-contract receipts and forbid history rewrites.
 
 - 584336b: Agents now get consistent guidance when execution proof, structural coverage, and KB freshness disagree. Current-contract E2E evidence is recorded as v2 without rewriting history, and full checks no longer report a contradictory weak-depth warning when the same live receipt already proves the scenario-backed test. Receipt freshness repairs also identify the affected requirements and tests so agents can rerun the exact contract.
+
   - Share snapshot-bound proof evidence with full quality diagnostics.
   - Add bounded receipt-gap telemetry and v2-native remediation guidance.
   - Document and test the new receipt and proof-aware diagnostic requirements.
@@ -883,11 +1125,13 @@
   - Keep the MCP package contract verifier self-contained with an explicit semver development dependency and matching workspace lock ranges.
 
 - Kibi can now explain a missing or damaged branch-local KB without changing it. Agents receive a precise recovery path, preserving the existing store before a deliberate rebuild, and no longer need to guess whether a clean check also means a clean, fresh KB.
+
   - Add non-mutating branch-store inspection to status and a preview-first `kibi branch recover --apply` workflow.
   - Restrict branch migration to the detected historical `master` -> legacy `main` compatibility attachment; arbitrary branch moves are refused.
   - Refresh CLI/MCP status documentation, mirrored agent skills, and release-gate packed consumer coverage.
 
 - ef75929: Kibi’s release checks now validate compiled package APIs and dependency ranges in isolated npm and pnpm consumers, while the usage skill and private SkillOpt evaluator report task completion, KB freshness, verification, proof, and accepted limitations independently. Consumer repositories keep ownership of their local artifact update scripts and dependency overrides.
+
   - Remove library-side consumer dogfood installers and retain release-only packed checks.
   - Add deterministic closeout expectations and dogfood-derived held-out cases.
 
@@ -900,16 +1144,19 @@
 ### Minor Changes
 
 - 9d71304: Kibi can now compile a complete change intent into a reviewable, snapshot-bound plan before anything is written, then apply an explicitly approved plan only after rechecking its hash and live snapshots. The new operations reuse intent-aware discovery and semantic modeling, account for every proposition, surface current contradiction witnesses, and keep traceability proposals separate from executable steps until explicitly accepted.
+
   - Add the shared `kb_compile_intent` / `compile-intent` operation and deterministic `kibi.compile-plan.v1` result.
   - Add the guarded `kb_apply_plan` / `apply-plan` mutation boundary and `kibi.plan-apply-result.v1` result.
   - Add contracted verification ingestion through `kb_ingest_verification`, including snapshot-bound `kibi.verification-receipt.v2` case results.
   - Register the operation through the CLI and MCP parity surfaces with contract tests and documentation.
 
 - Dogfood projects now get branch-local knowledge bases that follow the exact Git ref, actionable stale-source diagnostics, and a sanctioned relationship cleanup path. Verification receipts and packed package provenance are stricter and reproducible, while agents receive conservative symbol-recovery guidance and explicit interim-state signals. This prevents silent `master`/`main` drift and makes passing E2E evidence distinguishable from complete semantic proof.
+
   - Remove implicit branch-name normalization and add previewed legacy branch migration.
   - Add exact relationship deletion, v2 receipt/schema parity, status diagnostics, dogfood package manifests, and SkillOpt cases.
 
 - 9d71304: Kibi search can now recover requirements from unfamiliar functionality wording and changed source locations when the host agent supplies semantic facets. Intent searches return deterministic ranking evidence, traceability graph evidence, and an explicit abstention signal for low-confidence results while preserving the existing lexical search behavior.
+
   - Add the `intent-v1` search ranking mode and source-location validation.
   - Expose semantic facet matches, source matches, graph paths, and query analysis in shared CLI/MCP structured output.
 
@@ -921,11 +1168,13 @@
 ### Patch Changes
 
 - 7ddbaff: Dogfood projects can now resume proof work without losing their declared test intent. Test entities persist a typed verification contract, workspace snapshots ignore receipt-only churn consistently, and the sync guard no longer mistakes quoted requirement prose for executable escape hatches. Explicit ontology gaps remain unresolved rather than being reported as missing logical proof.
+
   - Persist and validate `verification_contract.v1` through extraction, mutation, sync, and staged traceability KBs.
   - Version the receipt-stable workspace snapshot as `kibi.workspace-snapshot.v2`.
   - Make logic coverage inventory-aware and support Prolog-encoded semantic inventories.
 
 - MCP startup now fails with the original dependency error instead of silently loading an unpackaged source file, and the CLI/MCP package contract is checked against the packed artifacts. The coordinated release also makes MCP require the CLI release that exports every operation it imports.
+
   - Preserve compiled-entrypoint import errors in the `kibi-mcp` launcher.
   - Require the compatible `kibi-cli` export surface and verify it in isolated package consumers.
 
@@ -955,6 +1204,7 @@
   journaled engine without leaving background processes behind. Packed end-to-end
   tests share one immutable installation and run with bounded concurrency, making
   the release suite faster while preserving workspace and branch isolation.
+
   - Lazily load CLI operation implementations while parity-testing lightweight
     registration metadata against the authoritative operation catalog.
   - Gracefully flush and stop engine daemons on process signals, and add
@@ -970,6 +1220,7 @@
 ### Patch Changes
 
 - Upserts now finish as one bounded commit, so an entity, its relationships, audit history, and branch snapshot succeed or fail together. Historical audit journals no longer remain locked after a write, and stale runtimes receive a clear restart instruction instead of hanging indefinitely. Timed-out Prolog work is terminated and reaped, including the process group, so later Kibi operations can continue safely.
+
   - Add `kb_commit_upsert/5` with branch-lock, snapshot, audit-lock, stage-marker, and single-save handling.
   - Attach persistent audit stores with `sync(close)` and use non-blocking stale-lock probes.
   - Route CLI upserts through the combined commit goal and manage Bun one-shot children asynchronously with TERM/KILL escalation.
@@ -996,6 +1247,7 @@
   Diagnostic workflows now produce correlated evidence through both CLI JSON and MCP surfaces. Operators can run a read-only versioned remediation report that points to exact unmatched log events, preserves explicit missing-coverage work, and prevents advisor or preflight evidence from a different identified session or actor from counting as proof.
 
   Legacy prose can now be inspected one requirement at a time through a deterministic migration preview. The preview preserves existing code evidence, binds every extracted proposition to exact authored source, ranks project-local ontology candidates, and never emits an auto-applicable write.
+
   - Add the shared `kibi.requirement-proof.v2` Prolog evaluator and expose its rows, fresh receipt evidence, and summary counts through CLI and MCP coverage.
   - Persist generated symbol coordinates and symbol metadata into normal and staged RDF projections.
   - Preserve semantic-inventory JSON through mutation, sync, RDF storage, and query round trips, and refresh coordinates before extracting their manifest overlay.
@@ -1030,23 +1282,27 @@
 ### Patch Changes
 
 - 5e4e126: Agents no longer treat Kibi's CLI as an MCP fallback. MCP tools and the trusted project-local CLI are presented as peer surfaces over the same 18 operations, and agent guidance now selects whichever interface is visible and approved in the current environment. The CLI's `--input` JSON routes remain first-class for agent automation, with no preference order implied.
+
   - Reframe `kibi-usage` Interface Selection and the operation-access preference column to peer surfaces.
   - Update OpenCode prompt injection, enforcement, and init-kibi guidance.
   - Update the MCP init-kibi prompt and the staged-impact evidence resolution text.
   - Re-sync the Cursor and Codex skill bundles.
 
 - 6d66110: Read-only Kibi commands (`kibi query`, `kibi search`, `kibi status`, `kibi gaps`, `kibi coverage`, `kibi graph`) now work in non-git workspaces again, attaching to the `main` branch just like `kibi init` and `kibi migrate` already do. A recent branch-resolution fix for unborn git repos had removed that non-git fallback, which broke the packed-install smoke test and blocked npm publishing.
+
   - Restore the `main` fallback in the CLI operation runtime only for `NOT_A_GIT_REPO` and `GIT_NOT_AVAILABLE` contexts.
   - Keep propagating genuine git branch-resolution errors (detached HEAD, invalid branch, unknown) so read operations never silently attach to the wrong branch.
   - Add a runtime regression test pinning non-git fallback to `main` and a second test confirming real git failures still propagate.
 
 - 750ff49: `kibi check --staged` now reports the paths Kibi is actually configured to use. Previously the stale-coordinates and missing-evidence diagnostics always printed the default `documentation/symbols.yaml` and `documentation/symbol-coordinates.yaml`, so repos that configure `paths.symbols` (for example `docs/symbols.yaml`) were told to stage files that do not exist. The staged-symbols freshness check also stopped treating coarse-documented symbols as a perpetual failure: source files whose manifest entries are all documented with a canonical granularity reason (for example `module-level-behavior`) no longer require per-symbol coordinate refresh and no longer emit `symbols_manifest_stale` after a coordinate refresh.
+
   - Thread the config-resolved symbols manifest path from `check --staged` into `collectStagedKibiDiagnostics` and render `files`/`message`/`suggestion` with the effective `symbols-coordinates.yaml` path carried on the impact evidence.
   - Define "coarse" with the canonical no-coordinates granularity set (`COARSE_GRANULARITY_REASONS`: `config-artifact`, `module-level-behavior`, `extractor-miss`, `test-suite`), so unknown or malformed reasons cannot bypass freshness checks. `legacy-link` records stay coordinate-bearing because they track real extractable symbols.
   - Exclude coarse records from per-symbol coordinate comparison; a file with only coarse records is `not_required`, mixed manifests still require complete fresh fine-grained coverage, and record-less files remain `stale`/`missing`.
   - Add unit and CLI-level regression tests covering configured `docs/` diagnostics paths and coarse/mixed/invalid-granularity freshness.
 
 - 2a85fc8: Kibi can now track whether every atomic clause in a normative requirement has a queryable logical representation. Readable prose remains intact, while stable claim keys, linked strict-property or predicate facts, and a requirement manifest expose incomplete modeling before it silently weakens contradiction detection. Exact opposite polarities over the same ground predicate now produce a contradiction.
+
   - Remove repository-specific release and optimizer-corpus text from `kibi-usage`.
   - Add portable clause-complete prose-to-ground-predicate/property guidance and examples.
   - Preserve logical claim and predicate-schema fields through Markdown sync.
@@ -1066,10 +1322,12 @@
   fix(cli): add scoped canonical skill bundle loaders
 
 - 38f72bf: Refreshing symbol coordinates now leaves the authored symbol manifest stable and keeps generated locations exclusively in `symbol-coordinates.yaml`. Repeated refreshes no longer alternate thousands of generated fields in and out of `symbols.yaml`, making traceability updates reviewable and idempotent.
+
   - Strip generated coordinate fields from every authored symbol entry after extraction.
   - Clarify the manifest header and cover coordinate-free and legacy entries in the refresh tests.
 
 - 2d93976: `kibi sync --refresh-symbol-coordinates` no longer reports coarse symbol anchors as coordinate-refresh failures. Symbols that intentionally represent a whole test file, module-level behavior, config artifact, or an acknowledged extractor miss legitimately carry no per-symbol coordinates, so they are now counted as unchanged instead of failed. This makes the refresh summary trustworthy: `failed` now means a fine-grained code symbol that should have coordinates but could not be located.
+
   - Treat `test-suite`, `module-level-behavior`, `config-artifact`, and `extractor-miss` granularity reasons as coordinate-ineligible.
   - Repoint `formatInvalidRelationshipError`/`Tuple` and `formatRelationshipSourceMismatch` to their defining module and merge their interface-parity traceability.
   - Drop duplicate and dead symbol manifest entries (`SkillsLoadPayload`, re-export duplicate `SemanticAdvisorArgs`, `SYM-parity-format-*`, duplicate `process-control` anchor).
@@ -1079,6 +1337,7 @@
 - 2f9073c: Kibi now ships optional guidance for recording UI and visual expectations, so agents working on a screen can discover "where things live" and cannot silently drift the layout. A prose requirement anchors the full visual description, checkable positions, alignment, and header ordering decompose into strict facts that reject conflicting writes, and relational alignment uses the built-in `visual_layout_rule` predicate. The lane is per-project: non-UI projects simply never model UI subjects, and no validation rule requires them.
 
   Also, `kb_status` within a long-lived MCP session now observes same-session file and KB changes instead of returning a stale cached result. Compound Prolog goals (such as the status query) are no longer cached in one-shot mode, so a status check after a source or documentation edit reports the current freshness state.
+
   - Add `docs/ui-requirements.md` with the three-layer UI modeling guide, payload-shaped examples, and the check workflow.
   - Point the modeling cheatsheet decision tree, agent LLM rules, and the AGENTS quick references at the new UI lane.
   - Add a self-contained `kibi-usage` skill resource (`resources/ui-requirements.md`), declare it in the skill manifest, and add a UI modeling workflow section.
@@ -1107,20 +1366,24 @@
 ### Patch Changes
 
 - 80d5173: Broad Kibi searches now return ranked results even when the serialized entity set is larger than the subprocess runtime's former default output capacity. Searches that exceed Kibi's explicit safety bound now report a clear bounded-capacity failure instead of returning truncated output or a misleading generic Prolog error. Graph, status, and other JSON reporting commands now also load their Prolog module correctly in fresh Node CLI and MCP sessions.
+
   - Bound one-shot and interactive Node Prolog stdout and stderr capture at 8 MiB, and require a complete response terminator before parsing, while preserving query timeouts and ranking-before-pagination.
   - Translate `ENOBUFS` into a deterministic nonempty query error shared by CLI and MCP discovery paths.
   - Reject negative pagination and search queries above 4,096 characters through the existing typed input-validation boundary.
   - Load reporting modules before executing module-qualified goals in interactive Prolog sessions.
 
 - Staged Kibi checks no longer emit duplicate `symbol_coordinate_review` diagnostics when both staged and working-tree symbol manifests contain entries for the same source files. The manifest lookup now deduplicates by symbol ID and source-signature before running impact validation.
+
   - Deduplicate authored and manifest symbol extraction results by stable lookup key before building the staged impact lookup.
   - Prefer staged entries over working-tree entries when both exist for the same symbol.
 
 - CLI read-side operations (query, search, status, gaps, coverage, graph) now resolve the active branch correctly on unborn repositories (fresh `git init` with no commits). Previously, these operations silently fell back to `main` when `git rev-parse --abbrev-ref HEAD` failed on an unborn HEAD, causing empty results while `kibi sync` correctly wrote to the actual branch.
+
   - Replace `git rev-parse --abbrev-ref HEAD` with `resolveActiveBranch(root)` for all read-side CLI operations.
   - Propagate branch resolution errors instead of silently falling back to `main`.
 
 - 610b5be: The improved Kibi guidance skills will ship to CLI, Codex, and Cursor users in the next package release. This keeps the canonical CLI skill bundle and the generated client-plugin mirrors aligned for downstream installs.
+
   - Release the canonical skills bundled by `kibi-cli`.
   - Release the generated `kibi-codex` and `kibi-cursor` skill mirrors.
 
@@ -1132,25 +1395,30 @@
 ### Minor Changes
 
 - 6abc7ea: Operators can now run semantic requirement analysis through the dedicated `semantic-advisor --input` CLI route with the same JSON contract and deterministic suggestions as MCP. MCP and upsert analysis now reuse the shared CLI implementation, so ambiguity witnesses and modeling advice stay aligned without starting Prolog.
+
   - Move semantic-advisor analysis, types, coverage evaluation, and execution into size-bounded `kibi-cli` modules.
   - Replace the MCP semantic-advisor implementation with a thin shared-executor adapter and update upsert imports.
 
 - 6c132ee: Operators can use `find-gaps`, `coverage`, and `graph` through either CLI flags or JSON input with the same results exposed by MCP. The existing `gaps` command remains available as an alias, while reporting defaults and traversal bounds stay unchanged.
+
   - Move find-gaps, coverage, and graph execution into shared `kibi-cli` operation specs.
   - Replace MCP reporting business logic with thin shared-executor adapters.
   - Route legacy reporting commands and JSON input through the shared operation protocol.
 
 - a0fee4a: Kibi CLI now exposes all 18 MCP operations as peer public routes with exact JSON input/output, enabling agents to use either interface. Agents and automation can choose the transport their environment supports without losing operation coverage or contract fidelity.
+
   - Added a transport-neutral operation catalog.
   - Added dedicated CLI commands for upsert, delete, semantic-advisor, model-requirement, suggest-predicates, autopilot-generate, sparql-remote, and validate-upsert.
   - Added a cross-surface parity harness.
 
 - c229a35: CLI and MCP operations now run through explicit, transport-neutral contexts while each transport keeps ownership of its own lifecycle. This makes one-shot CLI execution and persistent MCP sessions predictable without changing MCP tool behavior.
+
   - Add public operation runtime, capability-port, and lifecycle types to `kibi-cli`.
   - Add separate CLI and MCP runtime adapters with write-only MCP stamp refresh.
   - Route MCP registrations through runtime-backed operation specs while preserving timeout, diagnostics, and in-flight request handling.
 
 - 212fe1c: CLI users can now validate and apply one MCP-shaped upsert payload through `validate-upsert --input` and `upsert --input`, including stdin input. Both transports now enforce the same relationship, contradiction, strict-fact, audit, symbol-granularity, durability, and rollback behavior.
+
   - Move validated upsert execution behind shared Prolog, filesystem, save, and symbol-refresh ports.
   - Keep MCP handlers as thin compatibility adapters and verify CLI/MCP graph-state parity.
   - Ensure a failed relationship prevents save and leaves no partial entity or edge state.
@@ -1163,30 +1431,36 @@
 ### Patch Changes
 
 - 212fe1c: CLI and MCP checks now run the same validation executor, so both interfaces report the same violations for equivalent inputs. The CLI retains its staged workflow, fix suggestions, path overrides, dry-run behavior, and human-readable output while JSON input gains explicit parity coverage for impact diagnostics.
+
   - Route non-staged CLI validation and MCP `kb_check` through the shared check executor.
   - Preserve CLI advisory-quality and exit-code semantics in its adapter.
   - Add executable CLI/MCP check parity and JSON impact-option coverage.
 
 - 8c3a2e9: CLI and MCP operation changes now have an executable semantic parity safety net. Contributors get immediate failures when an operation is missing, duplicated, or returns transport-specific business data.
+
   - Add isolated seeded workspace fixtures for all 18 catalog operations.
   - Compare CLI JSON and in-memory MCP results after narrowly scoped volatile-field normalization.
   - Enforce exact catalog-to-parity-case registry completeness.
 
 - cafa25f: Agents can now select Kibi by available capability instead of stopping at MCP-specific guidance. The bundled skills prefer approved MCP tools, fall back safely to a project-local non-installing CLI runner, and provide executable JSON recipes plus an exact 18-operation access catalog.
+
   - Document every shared MCP operation's dedicated CLI route, input mode, effects, Prolog requirement, mutability, and telemetry handling.
   - Regenerate Cursor and Codex skill mirrors from the canonical capability-based source.
 
 - 0a8a5d3: CLI and MCP users now receive real requirement-modeling and predicate-suggestion plans through the same shared operation executors. Prolog-backed status and reports work reliably again, nested skill commands accept JSON input, and compatibility errors no longer block parity verification.
+
   - Move modeling execution into `kibi-cli` and keep MCP handlers as thin adapters.
   - Split modeling internals into reviewable modules and use the operation workspace context for migration checks.
   - Restore compatible Prolog query, validation, deletion, and error behavior.
   - Align the MCP dependency range with the released CLI version and remove silent OpenCode catches.
 
 - 212fe1c: Remote SPARQL SELECT queries now produce the same decoded rows through the CLI JSON route and MCP tool. Network access remains opt-in and HTTP(S)-only, while caller-provided timeouts retain their existing whole-second behavior.
+
   - Share endpoint, query, timeout, request, and result-decoding logic through the CLI operation executor.
   - Route CLI and MCP adapters through an explicit network port and verify parity against a local HTTP fixture.
 
 - 6c132ee: Skill discovery now returns the same bundled metadata, content hashes, and declared resources through CLI JSON routes and MCP tools. This makes scripted CLI usage consistent with agent-facing skill loading while preserving the existing human-oriented `kibi skills` commands.
+
   - Share bundled skill list, load, and resource-read executors between CLI and MCP.
   - Exercise all three skill operations through the executable CLI/MCP parity harness.
 
@@ -1207,11 +1481,13 @@
 ### Patch Changes
 
 - 6830005: Formatting-only source diffs no longer trigger Kibi impact review warnings. Agents and developers can now run formatter fixes without receiving semantic-review prompts for unchanged behavior, while actual copy or behavior edits still surface impact diagnostics.
+
   - Filter formatter-only changed-file impact hunks before extracting semantic-review symbols.
   - Preserve review diagnostics for meaningful text changes inside string and template literals.
   - Add regression coverage for whitespace-only and trailing-comma formatter diffs.
 
 - c7126dd: CLI sync extraction tests no longer leak mocked extractors into later impact-analysis tests. This makes the unit coverage workflow deterministic in CI and prevents unrelated impact manifest checks from failing after sync extraction error-path tests run first.
+
   - Add an explicit extraction dependency seam for `processExtractions` while preserving the existing default CLI behavior.
   - Route sync extraction tests through injected dependencies instead of Bun module-level mocks.
   - Verify the polluted test ordering that previously failed in CI now passes.
@@ -1227,6 +1503,7 @@
 - f1db710: Coverage reports now explain how deep each requirement's test evidence goes without changing existing covered/uncovered semantics. CLI users and MCP clients can distinguish direct passing e2e evidence, scenario-backed e2e evidence, unit-only evidence, nonpassing test evidence, scenario-only coverage, and no evidence at all. Typed test verification fields are honored before legacy e2e tag/path heuristics, so modern test metadata produces more reliable coverage labels.
 
   Technical summary:
+
   - Add additive `coverageDepth` / `coverage_depth` fields and coverage evidence lists to requirement coverage rows.
   - Classify coverage depth from direct requirement tests, scenario tests, test statuses, and typed `verification_scope` values.
   - Surface coverage depth in CLI table output and MCP structured coverage results while preserving existing summary and `coverageStatus` fields.
@@ -1235,6 +1512,7 @@
 - f1db710: OpenCode background checks now surface advisory Kibi quality diagnostics without turning a clean check into an operational plugin failure. Users get concise structured maintenance logs for review-only findings while hard `kibi check` violations keep the existing failure behavior and exit status. The CLI check command also exposes a JSON format so background integrations can consume the same structured diagnostics reliably.
 
   Technical summary:
+
   - Add `kibi check --format json` output with `structuredContent.violations`, `count`, `diagnostics`, and `qualityDiagnostics`.
   - Run OpenCode targeted background checks with JSON output and parse non-blocking `qualityDiagnostics` on successful checks.
   - Log advisory diagnostic summaries through structured warning logs, preserving terminal silence and existing hard check failure routing.
@@ -1242,6 +1520,7 @@
 - f1db710: Kibi check outputs now have a stable advisory diagnostics lane for auditability review signals. Operators and MCP clients can receive `qualityDiagnostics` alongside hard `violations` without advisory-only findings changing pass/fail counts or exit behavior. Existing staged impact failures, including symbol granularity violations, remain blocking. Source impact analysis now also highlights overly broad symbols, indistinguishable symbol coordinates, and mixed-purpose component/class ownership as review-only guidance.
 
   Technical summary:
+
   - Add the public `QualityDiagnostic` type with `error`, `warning`, `review`, and `info` severities plus explicit `blocking` semantics.
   - Preserve existing `violations`, `diagnostics`, and `impactDiagnostics` fields while adding MCP structured `qualityDiagnostics` output support.
   - Preserve explicitly filtered MCP `kb_check` rule semantics so advisory full-KB quality scans only run for unfiltered checks or requested impact diagnostics.
@@ -1254,6 +1533,7 @@
 - 48b65b9: Kibi quality checks now let teams resolve noisy advisory warnings with explicit, reviewable KB metadata instead of creating fake e2e evidence. Passing integration-level regression evidence can satisfy coverage-depth quality checks, and requirements tagged as intentional umbrella or epic requirements no longer keep emitting broad-fanout diagnostics.
 
   Technical summary:
+
   - Preserve test `verification_scope` and `verification_perspective` fields during CLI sync persistence.
   - Treat passing integration coverage as sufficient quality evidence for coverage-depth diagnostics.
   - Suppress broad-fanout quality diagnostics for requirements explicitly tagged `umbrella` or `epic`.
@@ -1261,6 +1541,7 @@
 - 439cb2e: Kibi now makes semantic Prolog adoption easier to measure and debug. Diagnostic usage logs expose semantic advisor readiness, predicate suggestion outcomes, upsert semantic readiness, and contradiction failures as structured fields instead of generic success/error text. Operators can opt into predicate-link audits and get Prolog validation query-plan safety checked by default, with normal `.kb/config.json` overrides available when needed.
 
   Technical summary:
+
   - Add `predicate-verifiability` as a default-off KB check rule that flags `requires_predicate` targets whose `fact_kind` is not `predicate`.
   - Add `query-plan-safety` as a default-enabled KB check rule that flags Prolog validation clauses that place negation before later generator calls.
   - Enrich MCP diagnostic usage fields for `kb_semantic_advisor`, `kb_suggest_predicates`, and `kb_upsert`.
@@ -1270,6 +1551,7 @@
   - Refresh changed Prolog check modules through the MCP aggregated check loader.
 
 - cb8d977: Kibi sync no longer treats README files inside configured entity directories as entities. This prevents human documentation such as fixture READMEs from producing missing-frontmatter warnings or failed background syncs while preserving normal entity markdown discovery.
+
   - Ignore `**/README.md` during CLI sync markdown discovery.
   - Ignore documentation `README.md` files during status freshness checks so synced workspaces remain fresh.
   - Add regression coverage for README exclusion in sync discovery.
@@ -1277,6 +1559,7 @@
 - 224f18b: Agents and hook users now get clearer guidance when behavior-changing staged files are missing Kibi impact evidence. The staged check points to the staged-impact workflow, explains that MCP KB writes do not automatically stage tracked markdown or manifest evidence, and tells users which files to stage before rerunning the hook. MCP validation also catches invalid relationship shortcuts earlier, and bundled skill loading makes follow-up resources easier to discover.
 
   Technical summary:
+
   - Add Prolog-backed relationship tuple preflight to `kb_validate_upsert` when invoked through MCP.
   - Improve invalid relationship and relationship-source mismatch guidance in MCP upsert flows.
   - Include declared skill resources in `kb_skills_load` visible text and missing-resource errors.
@@ -1294,6 +1577,7 @@
 - Symbol metadata writes now work consistently through MCP and the underlying Prolog schema. Agents can create source-linked symbol entities with `symbol_role` and `granularity_reason` metadata without hitting a transaction failure after JSON validation succeeds. This keeps behavioral-anchor traceability usable from the MCP-first workflow.
 
   Technical summary:
+
   - Add `symbol_role` and `granularity_reason` to the Prolog entity schema copies shipped by `kibi-core` and `kibi-cli`.
   - Serialize `granularity_reason` as a Prolog atom in `kb_upsert` transactions.
   - Add Prolog and MCP regression coverage for symbol metadata fields.
@@ -1308,6 +1592,7 @@
 - Kibi now gives agents source-impact feedback while they are still editing, instead of waiting for the commit hook to be the first signal. Meaningful source edits can be checked through MCP with changed-file impact diagnostics, so agents see coarse symbol ownership, stale symbol evidence, and semantic-review prompts while the source context is fresh. OpenCode, Cursor, and Codex adapters now steer agents toward that MCP-first workflow and keep CLI/hooks as the later safety net.
 
   Technical summary:
+
   - Add reusable CLI changed-file impact diagnostics and export them for MCP consumption.
   - Extend MCP `kb_check` with source-file impact options and structured impact output.
   - Update OpenCode, Cursor, and Codex guidance/hooks to request impact-enabled `kb_check` after source edits.
@@ -1320,6 +1605,7 @@
 - Kibi now gives agents clearer guidance for the diagnostics flow, so the release notes should reflect that the bundled usage text and MCP logging story were tightened together.
 
   This update also keeps the package mirrors aligned where applicable, which helps downstream plugin consumers stay in sync with the canonical guidance.
+
   - Hardened bundled skill guidance for kibi usage.
   - Improved MCP diagnostic logging shape and validation hints.
   - Synced packaged skill copies where they are shipped with the release.
@@ -1329,6 +1615,7 @@
 ### Patch Changes
 
 - Added CLI-level regression tests proving that typed markdown links (`verified_by`, `specified_by`, `validates`) imported through `kibi sync` are visible to `kibi check --rules symbol-coverage` with the correct scenario-aware semantics.
+
   - `kibi-cli`: added cross-boundary typed-link symbol-coverage regression tests for complete scenario→test chains and scenario-blocked direct req→test paths.
 
 - Updated dependencies [c810f5f]
@@ -1339,6 +1626,7 @@
 ### Patch Changes
 
 - 5fdcd46: MCP now re-validates the attached branch KB whenever the same-branch snapshot is externally rebuilt, so running `kibi sync --rebuild` no longer leaves a long-running server stuck on stale data. If refresh cannot be reconciled, requests fail fast with explicit `KbRefreshError` behavior instead of silently continuing from a stale attachment.
+
   - Added formal docs for same-branch KB freshness detection in MCP, including stat-based stamps and fail-closed retry semantics.
   - Clarified CLI behavior so `--rebuild` is documented as triggering MCP auto-refresh on unchanged branch attachments where applicable.
   - Added KB entities/ADR/requirements evidence and symbol traceability updates for the MCP session refresh path.
@@ -1355,6 +1643,7 @@
 - 909be41: Agents now get clearer guidance when modeling Kibi facts and predicates. Instead of opaque validation errors that encourage falling back to prose, common mistakes now point to exact snake_case fields and typed value payloads.
 
   The documentation also gives agents a compact path for choosing between requirements, strict facts, predicate facts, observations, and metadata. This makes semantic KB modeling easier to apply consistently across product projects.
+
   - Improve `kb_upsert` diagnostics for camelCase fact fields and incomplete strict/predicate facts.
   - Add modeling-helper warnings for low-confidence requirement downgrades and ontology-gap predicate suggestions.
   - Add modeling cheatsheet, MCP error reference, and product KB improvement prompt.
@@ -1362,6 +1651,7 @@
 - c724c8b: Kibi now treats symbol granularity as a behavioral traceability decision instead of assuming every exported declaration is an equally precise target. Agents can model behavior hidden inside factory or composition expressions with manual behavioral anchors, while interfaces, type aliases, and enums no longer block valid coarse behavioral links by themselves. This makes traceability stricter where real behavior symbols exist and more flexible when extractors only see type-shape declarations.
 
   Technical summary:
+
   - Added `symbol_role` metadata for symbol entities.
   - Added shared role-aware symbol granularity helpers.
   - Updated MCP upsert and CLI staged checks to reject coarse links only when narrower behavioral symbols are available.
@@ -1386,6 +1676,7 @@
 - Timed-out MCP tool calls now recover cleanly instead of leaving stale Prolog workers behind. Follow-up Kibi tool calls should be able to continue with a fresh worker after a timeout, reducing the need for users to manually find and terminate wedged `swipl` processes.
 
   Technical summary:
+
   - Add MCP tool execution timeout handling with owned Prolog worker reset.
   - Classify timeout and Prolog worker reset diagnostics in usage metrics.
   - Harden interactive Prolog timeout termination and repeated termination cleanup.
@@ -1395,6 +1686,7 @@
 ### Patch Changes
 
 - 8b73781: Bootstrap guidance is now easier for agents to apply correctly in OpenCode. The `/init-kibi` workflow and bundled Kibi usage skill explain that OpenCode can expose canonical `kb_*` MCP tools with a `kibi_` server prefix, and autopilot bootstrap output now includes an explicit `applyPlan` so agents can preview exact writes before asking for approval.
+
   - `kibi-mcp`: expose aggregate `structuredContent.applyPlan`/top-level `applyPlan` from `kb_autopilot_generate`, preserve `/init-kibi` as a post-hoc bootstrap prompt, mention it in visible output, and advertise typed fact fields in the `kb_upsert` input schema.
   - `kibi-opencode`: document the OpenCode `kibi_kb_*` tool-name convention in `/init-kibi` alias guidance and README.
   - `kibi-cli`: update the bundled `kibi-usage` skill with host-prefix guidance for OpenCode users.
@@ -1433,6 +1725,7 @@
 - Kibi CLI users no longer get configuration or init output for the removed briefs feature. Existing project setup stays focused on the core knowledge base files and hooks, with no new `.kb/briefs/` ignore entry created by `kibi init`. Stale brief-specific config should now be treated as removed product surface rather than as a supported no-op.
 
   Technical summary:
+
   - Remove CLI brief config support and the public `brief-config` export from built artifacts.
   - Regenerate CLI dist after removing brief schema/init behavior.
 
@@ -1441,6 +1734,7 @@
 ### Patch Changes
 
 - Kibi now recovers more cleanly when an interactive Prolog query times out. Instead of leaving the stale Prolog child running after a timeout, Kibi terminates it so the next MCP operation can restart from a clean process and surface a clearer timeout failure path.
+
   - Terminate the interactive `PrologProcess` child when a query timeout fires.
   - Add regression coverage proving timed-out interactive queries do not leave a stuck child running.
 
@@ -1468,6 +1762,7 @@
 ### Minor Changes
 
 - f8a3a88: This update introduces a split symbol coordinate workflow that separates logical symbol definitions from their physical source locations. Symbol coordinates are now managed in `documentation/symbol-coordinates.yaml`, which improves git diff readability and reduces merge conflicts when only line numbers change. The `kibi sync` command now supports a `--refresh-symbol-coordinates` flag to explicitly update these locations.
+
   - **kibi-cli**: Added `--refresh-symbol-coordinates` flag to `kibi sync` and updated pre-commit hooks to enforce coordinate staging.
   - **kibi-mcp**: Updated symbol resolution logic to read from the new split coordinate manifest.
   - **kibi-opencode**: Updated background sync behavior and documentation to support the split manifest workflow.
@@ -1485,10 +1780,12 @@
   The `kibi check --staged` command now enforces a hard gate: behavior-changing source edits must be accompanied by staged Kibi impact evidence (KB entity documentation or refreshed `documentation/symbols.yaml`). This prevents commits that change behavior without updating the knowledge base.
 
   **New diagnostics:**
+
   - `kibi_impact_evidence_missing` — emitted when behavior source edits lack staged KB evidence
   - `symbols_manifest_stale` — emitted when source edits alter symbol coordinates but the staged manifest is missing or stale
 
   **What this means for users:**
+
   - If you change behavior-bearing source code, stage relevant KB entity markdown or refresh `documentation/symbols.yaml`
   - Test-only edits (`tests/`, `*.test.*`) and docs-only edits (`.md`) are exempt
   - The no-impact override is available only for classifier false positives, not genuine behavior changes
@@ -1496,6 +1793,7 @@
   **OpenCode guidance updated** to remind agents that Kibi impact evidence is required before completion/commit.
 
   **Technical changes:**
+
   - Added `packages/cli/src/traceability/evidence-model.ts` — typed Kibi impact evidence interfaces
   - Added `packages/cli/src/traceability/staged-diagnostics.ts` — `collectStagedKibiDiagnostics()` with stable diagnostic IDs
   - Added `packages/cli/src/traceability/staged-impact-contract.ts` — behavior classification and evidence parsing
@@ -1518,6 +1816,7 @@
 ### Minor Changes
 
 - Kibi now records a schema version in new `.kb/config.json` files and can report migration status without rewriting existing configs during normal loads. Older repositories that never stored `schemaVersion` still load cleanly, but tooling can now detect that they need migration. The CLI also exposes shared schema-version helpers so other packages can use the same version and warning logic.
+
   - add shared KB schema-version constants and migration status utilities for CLI consumers
   - write `schemaVersion` into init-generated configs while preserving readable legacy versionless configs on load
 
@@ -1528,6 +1827,7 @@
 ### Patch Changes
 
 - Kibi now supports fully automated requirement modeling and schema migrations, allowing repositories to stay up-to-date with the latest contradiction-safe modeling standards without manual intervention. The new system enforces strict readiness levels for requirement/fact pairings and automatically downgrades low-confidence claims to non-blocking observations to ensure high precision in conflict detection.
+
   - add `kibi migrate` command for automated KB schema upgrades
   - implement strict readiness checks and confidence-based modeling lanes
   - update MCP guidance and CLI documentation for automated contradiction workflows
@@ -1549,10 +1849,12 @@
 ### Patch Changes
 
 - 7880675: Kibi now makes symbol manifest tracking harder to forget. New projects initialized with `kibi init` get a default `documentation/symbols.yaml`, and the managed pre-commit hook blocks commits when that manifest has unstaged changes so refreshed coordinates are committed with the related work.
+
   - Create the default symbol manifest during `kibi init` when it is missing.
   - Add a pre-commit guard that requires dirty `documentation/symbols.yaml` changes to be staged before `kibi check --staged` runs.
 
 - 2a00e15: Kibi discovery is now less noisy for broad agent queries. When agents send multi-intent natural-language searches, targeted domain-specific entities now rank above unrelated generic results. No-signal queries (containing only common stop words) return an empty result instead of arbitrary token-coverage matches. OpenCode agents are now guided to decompose broad queries into focused probes and follow up with exact `kb_query` lookups.
+
   - `kibi-cli`: Add stop-word filtering, hyphen normalization, plural normalization, and minimum-score threshold to `search-ranking.ts`; add synthetic regression corpus tests.
   - `kibi-mcp`: Add wrapper-level regression tests asserting improved ranking is preserved end-to-end.
   - `kibi-opencode`: Update injected agent guidance to instruct query decomposition with concrete examples.
@@ -1596,6 +1898,7 @@
 - 0ec1cb1: Realign release metadata with the traceability schema update so all publishable packages carry the same patch release notes.
 - 4a74281: Enable `noUncheckedIndexedAccess` incrementally across the source packages and add explicit guards where CLI parsing and traceability helpers read indexed values.
 - 0ec1cb1: fix(cli): merge working-tree manifests with staged overrides in buildManifestLookup
+
   - `kibi check --staged` now pre-populates `manifestLookup` from the working-tree
     `config.paths.symbols` manifest before processing staged-manifest overrides.
     This prevents code-only staged changes (where `symbols.yaml` is not staged) from
@@ -1605,13 +1908,16 @@
     `toPrologString` from `../prolog/codec` to keep Prolog serialisation consistent.
 
 - 0ec1cb1: fix(opencode): respect absolute configured KB doc roots in bootstrap detection
+
   - Treat absolute `paths.*` entries in `.kb/config.json` as authoritative when checking whether a workspace is bootstrapped.
   - Add a regression test covering healthy absolute custom doc roots while preserving the existing missing-target bootstrap warning.
 
 - 0ec1cb1: fix(cli): restore prolog codec exports
+
   - Regenerate the checked-in `src/prolog/codec.js` artifact so `toPrologString` and `toPrologAtom` are available as named exports at runtime, fixing CLI traceability test imports.
 
 - 0ec1cb1: fix(cli): eliminate 2-second false wait during PrologProcess startup under Bun
+
   - `PrologProcess.waitForReady()` previously looped for up to 2000ms waiting for any stdout/stderr output from `swipl`.
   - Under Bun v1.3.6, spawned `swipl` does not emit output until stdin is written, causing every `start()` to waste ~2 seconds.
   - The fix sends `true.\n` to stdin immediately after spawn and waits for the `true.` response, reducing startup detection time from ~2000ms to ~50ms.
@@ -1619,6 +1925,7 @@
 
 - 3a11e57: Fix `kibi status` JSON serialization before first sync and add `kibi-mcp --help` output
 - 0ec1cb1: Accept `sourceFile` as an optional entity property during `kb_upsert`.
+
   - Allows symbol (and other) entities to include `sourceFile` in `properties` without triggering JSON schema validation errors.
   - Adds `sourceFile` to the JSON entity schema and the Prolog entity schema.
   - Adds regression test for symbol upsert with `sourceFile`.
@@ -1652,6 +1959,7 @@
 
 - 6cdf9f5: Realign release metadata with the traceability schema update so all publishable packages carry the same patch release notes.
 - efc7fd7: fix(cli): merge working-tree manifests with staged overrides in buildManifestLookup
+
   - `kibi check --staged` now pre-populates `manifestLookup` from the working-tree
     `config.paths.symbols` manifest before processing staged-manifest overrides.
     This prevents code-only staged changes (where `symbols.yaml` is not staged) from
@@ -1661,19 +1969,23 @@
     `toPrologString` from `../prolog/codec` to keep Prolog serialisation consistent.
 
 - d344f57: fix(opencode): respect absolute configured KB doc roots in bootstrap detection
+
   - Treat absolute `paths.*` entries in `.kb/config.json` as authoritative when checking whether a workspace is bootstrapped.
   - Add a regression test covering healthy absolute custom doc roots while preserving the existing missing-target bootstrap warning.
 
   fix(cli): restore prolog codec exports
+
   - Regenerate the checked-in `src/prolog/codec.js` artifact so `toPrologString` and `toPrologAtom` are available as named exports at runtime, fixing CLI traceability test imports.
 
 - 2994632: fix(cli): eliminate 2-second false wait during PrologProcess startup under Bun
+
   - `PrologProcess.waitForReady()` previously looped for up to 2000ms waiting for any stdout/stderr output from `swipl`.
   - Under Bun v1.3.6, spawned `swipl` does not emit output until stdin is written, causing every `start()` to waste ~2 seconds.
   - The fix sends `true.\n` to stdin immediately after spawn and waits for the `true.` response, reducing startup detection time from ~2000ms to ~50ms.
   - This resolves the `temp-kb.test.ts` timeout under bare `bun test` and significantly speeds up all CLI tests that spawn Prolog processes.
 
 - 7111197: Accept `sourceFile` as an optional entity property during `kb_upsert`.
+
   - Allows symbol (and other) entities to include `sourceFile` in `properties` without triggering JSON schema validation errors.
   - Adds `sourceFile` to the JSON entity schema and the Prolog entity schema.
   - Adds regression test for symbol upsert with `sourceFile`.
@@ -1740,6 +2052,7 @@
 ### Patch Changes
 
 - 7bd2adf: Bug fixes and Node.js v24 compatibility.
+
   - **Node 24**: Replace deprecated `import ... assert` with `import ... with` per TC39 Import Attributes proposal.
   - **Core**: Use `member/2` instead of `memberchk/2` in `relationship_allowed`; make `status_meta_dict` resilient to non-standard KB paths.
   - **CLI**: Fix staged traceability check to resolve symbol IDs from `symbols.yaml` using both `sourceFile` and legacy `source` fields.
@@ -1749,6 +2062,7 @@
   - **Tests**: Isolate workspace test from rogue `/tmp/.git`, add 30s timeout to `beforeAll` hooks to prevent flaky timeouts.
 
 - 7bd2adf: Internal code quality improvements and refactoring.
+
   - Deduplicate `splitTopLevel` into single canonical function in `codec.ts`.
   - Deduplicate `Violation`, `ChecksConfig`, and rule definitions between CLI and MCP.
   - Extract `safeCleanupProlog` helper to eliminate duplicated teardown patterns.
@@ -1826,6 +2140,7 @@
 ### Patch Changes
 
 - 82b9742: Fix issue #53 npm consumer regressions
+
   - Fixed Prolog lifecycle bug where repeated kb_attach in same process failed with "No permission to modify static procedure 'kb:entity/4'"
   - Added rdf_unload_graph to kb_detach to prevent RDF graph duplication on reattach
   - Fixed MCP symbols manifest resolution to honor paths.symbols configuration (matching CLI behavior)
