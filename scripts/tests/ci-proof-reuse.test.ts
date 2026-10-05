@@ -12,7 +12,10 @@ import os from "node:os";
 import path from "node:path";
 
 import { nodeGit } from "../../packages/cli/src/public/operations/node-ports.js";
-import { assessProofReuse } from "../ci-proof-reuse.js";
+import {
+  assessProofReuse,
+  pendingDevelopProofRuns,
+} from "../ci-proof-reuse.js";
 
 const repository = "Looted/kibi";
 const headSha = "a".repeat(40);
@@ -146,6 +149,47 @@ describe("CI proof attestation reuse", () => {
     ]) {
       expect(assessProofReuse(candidate(overrides)).mode).toBe("execute");
     }
+  });
+});
+
+describe("waiting for the in-flight develop proof", () => {
+  const listing = (runs: unknown[]) => ({
+    total_count: runs.length,
+    workflow_runs: runs,
+  });
+
+  test("a queued or running develop push proof of the PR head is pending", () => {
+    const running = { ...run, status: "in_progress", conclusion: null };
+    const queued = { ...run, id: 124, status: "queued", conclusion: null };
+    expect(
+      pendingDevelopProofRuns(listing([running, queued]), headSha).map(
+        (pending) => pending.id,
+      ),
+    ).toEqual([123, 124]);
+  });
+
+  test("finished runs and runs for other commits, branches or events are not waited on", () => {
+    expect(
+      pendingDevelopProofRuns(
+        listing([
+          run,
+          { ...run, conclusion: "failure" },
+          { ...run, status: "in_progress", head_sha: "f".repeat(40) },
+          { ...run, status: "in_progress", head_branch: "feature" },
+          { ...run, status: "in_progress", event: "pull_request" },
+        ]),
+        headSha,
+      ),
+    ).toEqual([]);
+  });
+
+  test("an incomplete run listing is rejected", () => {
+    expect(() =>
+      pendingDevelopProofRuns(
+        { total_count: 2, workflow_runs: [run] },
+        headSha,
+      ),
+    ).toThrow("incomplete or malformed");
   });
 });
 
@@ -298,7 +342,11 @@ if (args[0] === "api") {
       JSON.stringify(emitted),
     );
     const decisionPath = path.join(fixture, "decision.json");
-    const runGate = (base: string, merge: string) => {
+    const runGate = (
+      base: string,
+      merge: string,
+      extraEnv: Record<string, string> = {},
+    ) => {
       execFileSync(
         "bun",
         [
@@ -320,6 +368,7 @@ if (args[0] === "api") {
             PR_HEAD_BRANCH: "develop",
             PR_HEAD_SHA: developSha,
             PR_BASE_SHA: base,
+            ...extraEnv,
           },
         },
       );
@@ -329,6 +378,35 @@ if (args[0] === "api") {
       };
     };
     expect(runGate(masterBase, mergedSha).mode).toBe("reused");
+
+    // develop's own proof of this head is still running: the gate waits on it
+    // (bounded) and only runs full proof if it never finishes successfully.
+    writeFileSync(
+      path.join(fixture, "runs.json"),
+      JSON.stringify({
+        total_count: 1,
+        workflow_runs: [
+          {
+            ...run,
+            head_sha: developSha,
+            status: "in_progress",
+            conclusion: null,
+          },
+        ],
+      }),
+    );
+    expect(
+      runGate(masterBase, mergedSha, {
+        KIBI_PROOF_REUSE_WAIT_SECONDS: "0",
+      }).mode,
+    ).toBe("execute");
+    writeFileSync(
+      path.join(fixture, "runs.json"),
+      JSON.stringify({
+        total_count: 1,
+        workflow_runs: [{ ...run, head_sha: developSha }],
+      }),
+    );
 
     git(root, "reset", "--hard", masterBase);
     writeFileSync(
