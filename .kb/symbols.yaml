@@ -50018,3 +50018,19 @@ symbols:
         target: TEST-skillopt-claude-code-host
       - type: implements
         target: REQ-skillopt-claude-code-host
+  - id: SYM-skillopt-selected-host-choice
+    title: selectedSkillOptHost
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/claude-code-host.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: "Piotr thread 2026-10-05: supersede the Codex-only rule; support different harnesses and run what the operator asks"
+      recorded_at: 2026-10-05T23:49:05.551Z
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-claude-code-host
+      - type: covered_by
+        target: TEST-skillopt-claude-code-host
+      - type: implements
+        target: REQ-skillopt-operator-selected-harness

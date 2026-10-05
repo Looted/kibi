@@ -12,7 +12,7 @@ semantic_text: When the operator sets KIBI_SKILLOPT_HOST to claude-code, SkillOp
 origin:
   kind: agent
   ref: 'Piotr thread 2026-10-05: continue PR 331 with Claude Code CLI after Codex usage ran out'
-  recorded_at: '2026-10-05T22:05:32.997Z'
+  recorded_at: '2026-10-05T23:49:01.948Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
 semantic_source_hash: b9f7ef50cd321b2609ee864d83bde9fbddc2bb40bf3c4820dd752057ef9cab75
