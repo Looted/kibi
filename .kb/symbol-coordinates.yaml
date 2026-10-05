@@ -24485,10 +24485,10 @@ coordinates:
     sourceLine: 90
   SYM-skillopt-bootstrap-acceptance-protocol:
     identityHash: 724eab9afabbcbaad439b62f1e8962b3294a4a1b08f77e65eff63342206f9e74
-    sourceHash: a95fca4e248d66402e70bc4a4cc2e24c334b430e90424acddb151bf1a5b2083c
+    sourceHash: 6f4a23dd88d431e3bcd69d4b9e886234d2ae88f990cf766d8869d6dbd7871170
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 77
+    sourceEndLine: 83
     sourceFile: documentation/evaluations/skillopt/bootstrap-acceptance-protocol.md
     sourceLine: 1
   SYM-skillopt-bridge-artifact-root-env:
@@ -27205,7 +27205,7 @@ coordinates:
     sourceLine: 53
   SYM-skillopt-fixture-build-bundle-payload:
     identityHash: 8348e332313e3675389d7072d6ab60a685b73863cd8228fd339f4a62883074a3
-    sourceHash: 5953e9983bf1ef6e9dd33a8b2d313f7af7537252e6c8450d0a15d679a6b53ff4
+    sourceHash: 168001fecdb75414cfdbb340ce1764cff90013eb00f1aacea8634635e215b4c3
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 626
@@ -27213,7 +27213,7 @@ coordinates:
     sourceLine: 617
   SYM-skillopt-fixture-build-family-payload:
     identityHash: fce340b56e38d49173801981933c35f9cb90b080e63caf2754f985af34dbb812
-    sourceHash: 5953e9983bf1ef6e9dd33a8b2d313f7af7537252e6c8450d0a15d679a6b53ff4
+    sourceHash: 168001fecdb75414cfdbb340ce1764cff90013eb00f1aacea8634635e215b4c3
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 614
@@ -27269,7 +27269,7 @@ coordinates:
     sourceLine: 169
   SYM-skillopt-fixture-family-payload-type:
     identityHash: 0b736071d997442ee5cd1e7c48afca4cdff9cb6e941dce38b1b12664d543af23
-    sourceHash: 5953e9983bf1ef6e9dd33a8b2d313f7af7537252e6c8450d0a15d679a6b53ff4
+    sourceHash: 168001fecdb75414cfdbb340ce1764cff90013eb00f1aacea8634635e215b4c3
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 58

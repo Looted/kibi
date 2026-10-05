@@ -20,6 +20,12 @@ Include normative obligations with conditions, exceptions, negative wording and 
 
 Keep the evaluator's ledger outside the target workspace. The agent gets only the source documents, source authority/context, and user task. Use exported tracker evidence for reproducible offline tests; reserve live connector behavior for a separately reported integration run.
 
+The supplied-plan `onboarding-review` task explicitly permits ordinary file-reading
+tools for its public evidence file. Kibi MCP remains the interface for KB operations;
+the task does not authorize writes. Its required status check and strict source,
+omission, non-product-content and proof assertions remain unchanged. Do not reward
+a model for ignoring a blanket MCP-only instruction to access the supplied file.
+
 ## Observable milestones
 
 ### Scripted operator in public SkillOpt cells

@@ -1,6 +1,20 @@
 import { expect, test } from "bun:test";
 import { onboardingReviewEvidence } from "../fixtures/onboarding-review";
 import { onboardingReviewMatches } from "../runtime/onboarding-review";
+import { buildPublicCatalog } from "../catalog";
+
+test("supplied-source review permits reading its evidence file without authorizing writes", () => {
+  const tasks = buildPublicCatalog().filter(
+    (task) => task.taskData.objectiveCode === "onboarding_evidence_review",
+  );
+  expect(tasks.length).toBeGreaterThan(0);
+  for (const task of tasks) {
+    expect(task.allowedPublicFiles).toContain("src/onboarding-review.json");
+    expect(task.prompt).toContain("ordinary file-reading tools");
+    expect(task.prompt).not.toContain("use only the public Kibi MCP surface");
+    expect(task.prompt).toContain("do not mutate files or KB entities");
+  }
+});
 
 const evidence = JSON.stringify({
   obligations: [

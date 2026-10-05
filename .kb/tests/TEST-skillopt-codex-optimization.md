@@ -1,6 +1,6 @@
 ---
 id: TEST-skillopt-codex-optimization
-title: Codex SkillOpt preserves evaluator authority and exact-plan approval across identical re-previews
+title: Codex SkillOpt permits supplied-source reading and preserves exact-plan approval across identical re-previews
 type: test
 status: passing
 created_at: 2026-07-21T00:00:00.000Z

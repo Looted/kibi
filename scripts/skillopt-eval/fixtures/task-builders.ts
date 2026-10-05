@@ -570,7 +570,7 @@ function payload(
     ? KIBI_ANSWER_FORMAT_INSTRUCTION
     : "";
   return {
-    prompt: `${special?.prompt ?? `${dialogue ?? definition.instruction} This is ${split} case ${index + 1}; ${dialogue === undefined ? "use only the public Kibi MCP surface." : "use ordinary file-reading tools for the supplied Markdown document and the public Kibi MCP surface for knowledge-base operations."}`}${searchThenQuery}${answerFormat}`,
+    prompt: `${special?.prompt ?? `${dialogue ?? definition.instruction} This is ${split} case ${index + 1}; ${dialogue !== undefined || effectiveObjectiveCode === "onboarding_evidence_review" ? "use ordinary file-reading tools for the supplied source files and the public Kibi MCP surface for knowledge-base operations." : "use only the public Kibi MCP surface."}`}${searchThenQuery}${answerFormat}`,
     activationMode: definition.activationMode,
     initialState: {
       repository: definition.repository,
