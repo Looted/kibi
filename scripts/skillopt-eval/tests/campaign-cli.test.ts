@@ -88,6 +88,38 @@ describe("campaign CLI", () => {
     }
   });
 
+  test("composes a full body and rejects mixing revision modes", async () => {
+    const parent = await mkdtemp(join(tmpdir(), "campaign-cli-body-"));
+    try {
+      const bodyPath = join(parent, "body.md");
+      const body =
+        "## New workflow\nReview sources before approving their plan.\n";
+      await writeFile(bodyPath, body);
+      const artifactRoot = join(parent, "artifacts");
+      const args = [
+        "compose",
+        "--artifact-root",
+        artifactRoot,
+        "--skill",
+        "kibi-bootstrap",
+        "--body-file",
+        bodyPath,
+      ];
+      expect(
+        await campaignMain([...args, "--insertion-file", "unused.json"]),
+      ).toBe(2);
+      expect(await campaignMain(args)).toBe(0);
+      const manifest = JSON.parse(
+        await readFile(join(artifactRoot, "manifest.json"), "utf8"),
+      );
+      expect(manifest.revisionMode).toBe("body-replacement");
+      expect(manifest.frozenBody).toBe(body);
+      expect(manifest.provenance.kind).toBe("host-composed");
+    } finally {
+      await rm(parent, { recursive: true, force: true });
+    }
+  });
+
   test("keeps bundle packaging exclusive from individual candidates and evidence", async () => {
     const parent = await mkdtemp(
       join(tmpdir(), "campaign-cli-bundle-package-"),

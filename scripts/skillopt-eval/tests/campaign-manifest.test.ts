@@ -13,6 +13,8 @@ import {
   CampaignArtifactError,
   CampaignArtifactStore,
   composeCampaignManifest,
+  replaceCampaignBody,
+  CampaignManifestSchema,
   defaultSourceFence,
   parsePublicFeedback,
   sha256Text,
@@ -181,4 +183,39 @@ describe("campaign manifests", () => {
       await rm(parent, { recursive: true, force: true });
     }
   });
+});
+
+test("full-body revisions retain baseline and resource fences without fabricated optimizer provenance", () => {
+  const manifest = replaceCampaignBody({
+    skill: "kibi-bootstrap",
+    surface,
+    body: "## Reorganized workflow\nRead sources, review coverage, apply the approved plan, and verify results.\n",
+  });
+  expect(manifest.schemaVersion).toBe("1.1.0");
+  expect(manifest.insertions).toEqual([]);
+  expect(() =>
+    validateCampaignManifestAgainstSurface(manifest, surface),
+  ).not.toThrow();
+  expect(() =>
+    validateCampaignManifestAgainstSurface(manifest, {
+      ...surface,
+      resourcesHash: "c".repeat(64),
+    }),
+  ).toThrow("manifest_surface_mismatch");
+  expect(() =>
+    validateCampaignManifestAgainstSurface(
+      { ...manifest, frozenBody: "tampered" },
+      surface,
+    ),
+  ).toThrow("manifest_body_hash_mismatch");
+  expect(
+    CampaignManifestSchema.safeParse({ ...manifest, revisionMode: undefined })
+      .success,
+  ).toBe(false);
+  expect(
+    CampaignManifestSchema.safeParse({
+      ...manifest,
+      insertions: [insertion("## Discovery", "mixed")],
+    }).success,
+  ).toBe(false);
 });

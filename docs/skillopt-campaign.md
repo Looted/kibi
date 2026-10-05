@@ -62,6 +62,24 @@ bun scripts/skillopt-eval/campaign.ts compose \
   [--insertion-file <insertion-b.json>]
 ```
 
+### Evaluate a reviewed full-body revision
+
+For a structural rewrite, `compose --body-file <body.md>` freezes a complete
+Markdown body instead of insertions. This emits a version 1.1 manifest with
+`revisionMode: "body-replacement"` and explicit host-composed provenance.
+It preserves baseline, frontmatter and resource hashes; it does not claim the
+optimizer generated the revision. `--body-file` and `--insertion-file` are
+mutually exclusive. Evaluation, confirmation and packaging retain the same
+source, evidence and model fences. Rewriting a body never implies adoption.
+
+Bootstrap also has a supplemental `onboarding-review` family. Its fictional
+library evidence exercises tracker-only and document-only training cases and
+a combined-source development case, including omitted intent and a tooling
+example incorrectly selected as product policy. Scoring reconciles the report
+against immutable fixture evidence and rejects false proof claims. This is a
+review-decision exercise, not evidence of a successful end-to-end bootstrap.
+No private project material or credentials are included.
+
 ### Evaluate candidates
 
 `evaluate` accepts one to three candidate manifest files. The baseline is
@@ -70,7 +88,7 @@ loaded automatically from the current source. Both limits are explicit:
 cover the complete baseline-plus-candidate development matrix. The matrix is
 repeats x (candidates + 1) x development tasks; `kibi-usage`,
 `kibi-freshness` and `kibi-traceability` have five development tasks (four
-core families plus one supplemental family), `kibi-bootstrap` has four.
+core families plus one supplemental family), `kibi-bootstrap` also has five.
 
 ```text
 bun scripts/skillopt-eval/campaign.ts evaluate \

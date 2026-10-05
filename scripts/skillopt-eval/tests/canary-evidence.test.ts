@@ -59,6 +59,80 @@ async function mcpEvidence(
 }
 
 describe("Codex capability evidence", () => {
+  test.each([
+    ["list", "kb_skills_list"],
+    ["load", "kb_skills_load"],
+    ["read", "kb_skills_read"],
+  ])(
+    "reconciles consolidated skill %s diagnostics",
+    async (action, operation) => {
+      const root = await mkdtemp(join(tmpdir(), "skillopt-skills-evidence-"));
+      roots.push(root);
+      const absolutePath = join(root, "canary-probe");
+      await writeFile(absolutePath, "probe\n");
+      const probe = {
+        absolutePath,
+        command: "./.runtime/canary-probe",
+        expectedOutput: "skillopt-capability-canary:pass\n",
+        sha256: await sha256File(absolutePath),
+      };
+      const events = [
+        {
+          type: "item.completed",
+          item: {
+            type: "command_execution",
+            command: probe.command,
+            aggregated_output: probe.expectedOutput,
+            exit_code: 0,
+            status: "completed",
+          },
+        },
+      ];
+      const tracePath = join(root, "broker-trace.jsonl");
+      await appendTraceReceipt(tracePath, {
+        correlationId: "rpc-1",
+        direction: "target_to_server",
+        kind: "request",
+        method: "tools/call",
+        toolName: "kb_skills",
+        requestId: 1,
+        payload: { params: { name: "kb_skills", arguments: { action } } },
+      });
+      await appendTraceReceipt(tracePath, {
+        correlationId: "rpc-1",
+        direction: "server_to_target",
+        kind: "response",
+        method: "tools/call",
+        toolName: "kb_skills",
+        requestId: 1,
+        payload: { result: { content: [] } },
+      });
+      const evidence = {
+        brokerTrace: await readFile(tracePath, "utf8"),
+        diagnosticReceipt: JSON.stringify({
+          tool: operation,
+          status: "success",
+          telemetry: { attempt_number: 1 },
+        }),
+        toolNames: [operation],
+      };
+      await expect(
+        verifyCapabilityEvidence(events, probe, evidence),
+      ).resolves.toBeUndefined();
+      // The consolidated wire name is not a substitute for the routed receipt.
+      await expect(
+        verifyCapabilityEvidence(events, probe, {
+          ...evidence,
+          diagnosticReceipt: JSON.stringify({
+            tool: "kb_skills",
+            status: "success",
+            telemetry: { attempt_number: 1 },
+          }),
+        }),
+      ).rejects.toMatchObject({ message: "invalid_diagnostic_receipt" });
+    },
+  );
+
   test("accepts the exact broker-added bash wrapper around the probe", async () => {
     // Given
     const root = await mkdtemp(join(tmpdir(), "skillopt-evidence-test-"));

@@ -26,6 +26,7 @@ import {
 import { parseTraceReceipts, verifyTraceChain } from "./jsonrpc";
 import { stageKibiMcpBroker } from "./mcp-broker-stage";
 import { routedOperationName, toolCallArguments } from "./mcp-tool-names";
+import { onboardingReviewMatches } from "./onboarding-review";
 import type { CanaryRunner } from "./permissions";
 import { runBoundedProcess } from "./process";
 import {
@@ -165,6 +166,12 @@ function workflowSignalObserved(
   const status = latestContent(results, "kb_status");
   const hasBrokerTool = (tool: string): boolean => brokerTools.includes(tool);
   switch (signal) {
+    case "onboarding evidence reconciled":
+      return onboardingReviewMatches(
+        context.answer.text,
+        context.workspaceFiles["src/onboarding-review.json"],
+        context.taskId,
+      );
     case "discovery search executed":
       return hasBrokerTool("kb_search");
     case "source-linked query executed":
@@ -708,6 +715,7 @@ function sealedFinalState(
   const workspaceAssertions =
     options.evaluatorManifest.workspaceAssertions ?? [];
   const signalContext: CaseSignalContext = {
+    taskId: options.evaluatorManifest.taskId,
     results: requests,
     brokerTools,
     answer: lanes.answer,

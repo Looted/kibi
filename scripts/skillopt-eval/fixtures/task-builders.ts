@@ -531,6 +531,9 @@ function payload(
   const effectiveObjectiveCode =
     special?.objectiveCode ?? definition.objectiveCode;
   const conditionalFiles = [
+    ...(effectiveObjectiveCode === "onboarding_evidence_review"
+      ? ["src/onboarding-review.json"]
+      : []),
     ...((special?.worktree ?? definition.worktree) === "dirty"
       ? ["changes/uncommitted.patch"]
       : []),

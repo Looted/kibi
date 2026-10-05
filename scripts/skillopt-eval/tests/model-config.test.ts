@@ -129,6 +129,32 @@ function ledgerEntry(model: string) {
 }
 
 describe("SkillOpt model configuration", () => {
+  test("offline preload isolates fixture pins without changing the operator environment", async () => {
+    const originalPins = ENV_KEYS.map((key) => process.env[key]);
+    const child = Bun.spawn(
+      [
+        process.execPath,
+        "--preload",
+        join(import.meta.dir, "../offline-test-preload.ts"),
+        "-e",
+        `import { resolveSkillOptModelConfig, resolveSkillOptModelPricing } from ${JSON.stringify(join(import.meta.dir, "../runtime/models.ts"))}; console.log(JSON.stringify({config: resolveSkillOptModelConfig(), pricing: resolveSkillOptModelPricing()}));`,
+      ],
+      { env: { ...process.env, ...OVERRIDE }, stdout: "pipe", stderr: "pipe" },
+    );
+    const [stdout, stderr, exitCode] = await Promise.all([
+      new Response(child.stdout).text(),
+      new Response(child.stderr).text(),
+      child.exited,
+    ]);
+    expect(stderr).toBe("");
+    expect(exitCode).toBe(0);
+    expect(JSON.parse(stdout)).toEqual({
+      config: DEFAULT_SKILLOPT_MODEL_CONFIG,
+      pricing: resolveSkillOptModelPricing(DEFAULT_SKILLOPT_MODEL_CONFIG, {}),
+    });
+    expect(ENV_KEYS.map((key) => process.env[key])).toEqual(originalPins);
+  });
+
   test("defaults keep the historical model and effort pins", async () => {
     await withEnv({}, () => {
       expect(resolveSkillOptModelConfig()).toEqual(

@@ -34,6 +34,7 @@ const VALUE_FLAGS = new Set([
   "--heading",
   "--feedback",
   "--insertion-file",
+  "--body-file",
   "--candidate-manifest",
   "--previous-evaluation",
   "--evaluation",
@@ -61,7 +62,7 @@ function usage(): string {
     "Usage: campaign.ts <revise|compose|evaluate|confirm|package> --artifact-root PATH [options]",
     "Common: --source-root PATH",
     "revise: --skill SKILL --objective-file FILE --heading HEADING --allow-paid [--feedback FILE]",
-    "compose: --skill SKILL --insertion-file FILE [--insertion-file FILE ...]",
+    "compose: --skill SKILL (--body-file FILE | --insertion-file FILE [--insertion-file FILE ...])",
     "evaluate: --skill SKILL --candidate-manifest FILE [1..3] --max-target-episodes N --repeats 1..3 --allow-paid",
     "confirm: --previous-evaluation FILE --max-target-episodes N --repeats 1..3 --allow-paid",
     "package: --candidate-manifest FILE [1..4] [--evaluation FILE] OR --candidate-manifest <bundle-manifest>",
@@ -255,11 +256,22 @@ export async function campaignMain(
       return 0;
     }
     if (args.command === "compose") {
+      const bodyFile = optionalValue(args, "--body-file");
+      if (
+        bodyFile !== undefined &&
+        repeated(args, "--insertion-file").length > 0
+      )
+        throw new CampaignCliError(
+          "--body-file and --insertion-file are mutually exclusive",
+        );
       const manifest = await runComposeCampaign({
         sourceRoot: source,
         artifactRoot: artifact,
         skill: skill(value(args, "--skill")),
-        insertions: await composeInsertions(args),
+        insertions: bodyFile === undefined ? await composeInsertions(args) : [],
+        ...(bodyFile === undefined
+          ? {}
+          : { replacementBody: await readFile(resolve(bodyFile), "utf8") }),
         dependencies,
       });
       process.stdout.write(

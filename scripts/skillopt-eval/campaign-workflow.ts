@@ -20,6 +20,7 @@ import {
   feedbackTrajectories,
   manifestHash,
   parsePublicFeedback,
+  replaceCampaignBody,
   sha256Text,
   validateCampaignManifestAgainstSurface,
 } from "./campaign-artifacts";
@@ -1939,6 +1940,7 @@ export async function runComposeCampaign(
     artifactRoot: string;
     skill: CanonicalSkill;
     insertions: readonly { headingAnchor: string; paragraph: string }[];
+    replacementBody?: string;
     runId?: string;
     dependencies?: Partial<CampaignDependencies>;
   }>,
@@ -1956,12 +1958,21 @@ export async function runComposeCampaign(
   );
   try {
     const current = await dependencies.surface(input.sourceRoot, input.skill);
-    const manifest = composeCampaignManifest({
-      skill: input.skill,
-      surface: current,
-      insertions: input.insertions,
-      provenance: { kind: "host-composed", modelSource: "none" },
-    });
+    if (input.replacementBody !== undefined && input.insertions.length > 0)
+      throw new CampaignArtifactError("replacement_with_insertions");
+    const manifest =
+      input.replacementBody === undefined
+        ? composeCampaignManifest({
+            skill: input.skill,
+            surface: current,
+            insertions: input.insertions,
+            provenance: { kind: "host-composed", modelSource: "none" },
+          })
+        : replaceCampaignBody({
+            skill: input.skill,
+            surface: current,
+            body: input.replacementBody,
+          });
     await store.writeJson("manifest.json", manifest);
     await store.writeText("frozen-body.md", manifest.frozenBody);
     await store.writeJson("campaign.json", {
@@ -2004,6 +2015,7 @@ async function evaluateWithPreparation(
     input.sourceRoot,
     input.artifactRoot,
   );
+  let completedCells: readonly CampaignCell[] = [];
   try {
     const current = await input.dependencies.surface(
       input.sourceRoot,
@@ -2121,6 +2133,7 @@ async function evaluateWithPreparation(
         runtime,
         dependencies: input.dependencies,
       });
+      completedCells = cells;
       const priorCells: CampaignCell[] =
         input.prior?.cells.map((cell) => ({
           ...cell,
@@ -2238,8 +2251,10 @@ async function evaluateWithPreparation(
       input.command,
       input.runId,
       error,
-      error instanceof CampaignScreenFailure ? error.attemptedCells : 0,
-      error instanceof CampaignScreenFailure ? error.cells : [],
+      error instanceof CampaignScreenFailure
+        ? error.attemptedCells
+        : completedCells.length,
+      error instanceof CampaignScreenFailure ? error.cells : completedCells,
     );
     throw error;
   } finally {

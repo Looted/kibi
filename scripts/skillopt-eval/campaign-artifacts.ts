@@ -17,6 +17,7 @@ import {
   contractHash,
 } from "./contracts/common";
 import { runBoundedProcess } from "./runtime/process";
+import { validateCandidateBody } from "./variants";
 
 const CampaignInsertionSchema = z
   .object({
@@ -51,18 +52,37 @@ const HostProvenanceSchema = z
 
 export const CampaignManifestSchema = z
   .object({
-    schemaVersion: z.literal("1.0.0"),
+    schemaVersion: z.enum(["1.0.0", "1.1.0"]),
     artifactType: z.literal("skillopt-campaign-manifest"),
+    revisionMode: z.literal("body-replacement").optional(),
     skill: z.enum(CANONICAL_SKILLS),
     baselineBodyHash: Sha256Schema,
     frontmatterHash: Sha256Schema,
     resourcesHash: Sha256Schema,
-    insertions: z.array(CampaignInsertionSchema).min(1).max(4),
+    insertions: z.array(CampaignInsertionSchema).max(4),
     frozenBody: z.string().min(1),
     frozenBodyHash: Sha256Schema,
     provenance: z.union([ModelProvenanceSchema, HostProvenanceSchema]),
   })
-  .strict();
+  .strict()
+  .superRefine((value, context) => {
+    const replacement =
+      value.schemaVersion === "1.1.0" &&
+      value.revisionMode === "body-replacement";
+    if (
+      replacement
+        ? value.insertions.length !== 0 ||
+          value.provenance.kind !== "host-composed"
+        : value.schemaVersion !== "1.0.0" ||
+          value.revisionMode !== undefined ||
+          value.insertions.length === 0
+    ) {
+      context.addIssue({
+        code: "custom",
+        message: "manifest_revision_shape_invalid",
+      });
+    }
+  });
 
 export type CampaignInsertion = z.infer<typeof CampaignInsertionSchema>;
 export type CampaignManifest = z.infer<typeof CampaignManifestSchema>;
@@ -244,6 +264,12 @@ export function validateCampaignManifestAgainstSurface(
   if (parsed.frozenBodyHash !== sha256Text(parsed.frozenBody)) {
     throw new CampaignArtifactError("manifest_body_hash_mismatch");
   }
+  if (parsed.revisionMode === "body-replacement") {
+    validateCandidateBody(parsed.frozenBody);
+    if (parsed.frozenBody === surface.body)
+      throw new CampaignArtifactError("replacement_unchanged");
+    return;
+  }
   const recomposed = composeCampaignManifest({
     skill: parsed.skill,
     surface,
@@ -256,6 +282,33 @@ export function validateCampaignManifestAgainstSurface(
   ) {
     throw new CampaignArtifactError("manifest_composition_mismatch");
   }
+}
+
+/** Freeze a reviewed full-body revision without claiming optimizer provenance. */
+// implements REQ-skillopt-codex-optimization
+export function replaceCampaignBody(
+  input: Readonly<{
+    skill: CanonicalSkill;
+    surface: CampaignSourceSurface;
+    body: string;
+  }>,
+): CampaignManifest {
+  validateCandidateBody(input.body);
+  if (input.body === input.surface.body)
+    throw new CampaignArtifactError("replacement_unchanged");
+  return CampaignManifestSchema.parse({
+    schemaVersion: "1.1.0",
+    artifactType: "skillopt-campaign-manifest",
+    revisionMode: "body-replacement",
+    skill: input.skill,
+    baselineBodyHash: sha256Text(input.surface.body),
+    frontmatterHash: input.surface.frontmatterHash,
+    resourcesHash: input.surface.resourcesHash,
+    insertions: [],
+    frozenBody: input.body,
+    frozenBodyHash: sha256Text(input.body),
+    provenance: { kind: "host-composed", modelSource: "none" },
+  });
 }
 
 export async function readCampaignManifest(

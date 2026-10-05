@@ -21,6 +21,7 @@ import type {
 
 // implements REQ-skillopt-codex-optimization
 export type CaseSignalContext = Readonly<{
+  taskId?: string;
   results: readonly Readonly<{ tool: string; result: unknown }>[];
   brokerTools: readonly string[];
   answer: FinalAnswerEvidence;

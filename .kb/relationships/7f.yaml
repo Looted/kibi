@@ -181,3 +181,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-77d080cc3542
+  - type: implements
+    from: SYM-skillopt-campaign-workflow-campaignruntime-aa661724
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-10-05T12:24:00.787Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-990182caf18c
+  - type: covered_by
+    from: SYM-skillopt-campaign-workflow-campaignruntime-aa661724
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-10-05T12:24:00.808Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b876b89517d3

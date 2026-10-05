@@ -30,13 +30,13 @@ describe("public SkillOpt fixture corpus", () => {
 
     // Four core families per skill plus the supplemental fifth family of
     // kibi-usage, kibi-freshness and kibi-traceability.
-    expect(tasks).toHaveLength(57);
+    expect(tasks).toHaveLength(60);
     expect(tasks.every((task) => task.split !== "held-out")).toBe(true);
     const objectiveCounts: Record<string, number> = {
       "kibi-usage": 9,
       "kibi-freshness": 6,
       "kibi-traceability": 6,
-      "kibi-bootstrap": 4,
+      "kibi-bootstrap": 5,
     };
     for (const skill of CANONICAL_SKILLS) {
       const skillTasks = tasks.filter((task) => task.skill === skill);
@@ -114,7 +114,7 @@ describe("public SkillOpt fixture corpus", () => {
     });
     const { publicRoot } = receipt.roots;
 
-    expect(receipt.publicIndex.tasks).toHaveLength(57);
+    expect(receipt.publicIndex.tasks).toHaveLength(60);
     expect(path.basename(publicRoot)).toBe("public");
     expect(path.basename(receipt.roots.heldOutRoot)).toBe("held-out");
     expect(path.basename(receipt.roots.evaluatorRoot)).toBe("evaluator");
@@ -258,4 +258,33 @@ describe("public SkillOpt fixture corpus", () => {
     );
     expect(task.prompt).toContain("mutation-request.json");
   });
+});
+
+test("bootstrap apply fixture supplies scoped operator delegation and cited intent", () => {
+  const root = temporaryRoot();
+  roots.push(root);
+  const task = buildPublicCatalog().find(
+    (task) =>
+      task.skill === "kibi-bootstrap" &&
+      task.family === "approval-plan-apply" &&
+      task.split === "development",
+  );
+  if (task === undefined) throw new Error("missing apply fixture");
+  materializeFixtureRun({
+    runRoot: path.join(root, "run"),
+    canonicalSkillRoot: CANONICAL_SKILL_ROOT,
+    publicTasks: [task],
+    heldOutTasks: [],
+  });
+  const approvalPath = files(path.join(root, "run")).find((file) =>
+    file.endsWith("approval-state.json"),
+  );
+  if (approvalPath === undefined) throw new Error("missing approval artifact");
+  const approval = JSON.parse(
+    readFileSync(path.join(root, "run", approvalPath), "utf8"),
+  );
+  expect(approval.approvalActor).toBe("fixture-operator");
+  expect(approval.delegatedApproval).toContain("exact canonical hash");
+  expect(approval.bootstrapContext.intentClaims).toHaveLength(1);
+  expect(approval.approvedPlanHash).toBeUndefined();
 });

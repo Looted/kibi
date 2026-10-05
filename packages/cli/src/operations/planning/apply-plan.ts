@@ -338,7 +338,8 @@ function validateBootstrapPlanShape(
   }
   if (
     !/^[a-f0-9]{64}$/i.test(plan.expected.kbSnapshotId) &&
-    !/^empty-source-state-[a-f0-9]{64}$/i.test(plan.expected.kbSnapshotId)
+    !/^empty-source-state-[a-f0-9]{64}$/i.test(plan.expected.kbSnapshotId) &&
+    !/^generation-[^:\s]+:\d+$/.test(plan.expected.kbSnapshotId)
   ) {
     throw new Error(
       "Bootstrap apply failed: ready plans require an exact KB snapshot binding",

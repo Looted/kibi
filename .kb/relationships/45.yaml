@@ -216,3 +216,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-41e79bf784f2
+  - type: implements
+    from: SYM-skillopt-campaign-main
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-10-05T12:02:51.678Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce1c1ef6de81
+  - type: covered_by
+    from: SYM-skillopt-campaign-main
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-10-05T12:02:51.704Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-74f819ab58e4

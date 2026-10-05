@@ -77,6 +77,11 @@ const CONTRADICTION_CHECK: RequiredCall = {
 // implements REQ-skillopt-codex-optimization
 export const OBJECTIVE_CASE_CONTRACTS: Readonly<Record<string, CaseContract>> =
   {
+    onboarding_evidence_review: {
+      fixtureSetup: "seeded_fresh_kb",
+      requiredTools: ["kb_status"],
+      forbiddenTools: ["kb_upsert", "kb_delete", "kb_apply_plan"],
+    },
     // Item 1: consult governing intent before changing behavior.
     governing_intent_before_edit: {
       fixtureSetup: "seeded_governed_area_kb",
@@ -166,5 +171,8 @@ export const OBJECTIVE_CASE_CONTRACTS: Readonly<Record<string, CaseContract>> =
 /** Objectives whose prompt carries the `kibi-answer` format instruction. */
 // implements REQ-skillopt-codex-optimization
 export function answerScoredObjective(objectiveCode: string): boolean {
-  return Object.hasOwn(OBJECTIVE_CASE_CONTRACTS, objectiveCode);
+  return (
+    objectiveCode !== "onboarding_evidence_review" &&
+    Object.hasOwn(OBJECTIVE_CASE_CONTRACTS, objectiveCode)
+  );
 }

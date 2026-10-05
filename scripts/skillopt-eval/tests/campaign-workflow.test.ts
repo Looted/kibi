@@ -657,6 +657,18 @@ describe("campaign confirmation", () => {
       expect(saved.status).toBe("complete");
       expect(saved.cells).toHaveLength(20);
       expect(saved.aggregate.noRegression).toBe(false);
+      const failedState = JSON.parse(
+        await readFile(join(second.root, "campaign-state.json"), "utf8"),
+      );
+      expect(failedState.status).toBe("failed");
+      expect(failedState.attemptedCells).toBe(10);
+      expect(failedState.cells).toHaveLength(10);
+      expect(
+        new Set(failedState.cells.map((cell: { runId: string }) => cell.runId)),
+      ).toEqual(new Set([saved.runId]));
+      expect(failedState.cells).toEqual(
+        saved.cells.filter((cell: { runId: string }) => cell.runId === saved.runId),
+      );
       expect(
         JSON.parse(await readFile(join(second.root, "campaign.json"), "utf8"))
           .status,

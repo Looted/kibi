@@ -60,6 +60,8 @@ Existing KBs upgrade to schema 7 with `kibi migrate --yes` followed by `kibi syn
 
 Read the plan the agent shows you. Check that requirements cite the sources you trust, answer any remaining questions the planner raises, and correct any product call it got wrong before you approve. Kibi never contacts your tracker or wiki itself; it records what the agent read and binds it into the plan's hash.
 
+Bootstrap plans bind approval to the current workspace and KB snapshot, including the journal generation and revision. A changed KB requires a new plan and matching approval.
+
 ## 4. Look at the proof state
 
 After bootstrap, ask your agent for the health report — or run it yourself:

@@ -202,3 +202,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5c5abc5b1310
+  - type: implements
+    from: SYM-skillopt-fixtures-case-contracts-objective-case-contracts-8e9355e2
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-10-05T12:24:42.883Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2074cf47d803
+  - type: covered_by
+    from: SYM-skillopt-fixtures-case-contracts-objective-case-contracts-8e9355e2
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-10-05T12:24:42.895Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7f81ccf27524

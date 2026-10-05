@@ -199,6 +199,18 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     // ------------------------------------------------------------------
     // kibi-bootstrap base families
     // ------------------------------------------------------------------
+    onboarding_evidence_review: {
+      expectedOutcome: "interim",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "fresh",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "onboarding evidence reconciled",
+        "approval boundary respected",
+      ],
+      forbiddenActions: ["apply plan without approval", "direct .kb edit"],
+    },
     bootstrap_analysis: {
       expectedOutcome: "interim",
       expectedKbState: "clean_fresh",

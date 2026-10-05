@@ -328,3 +328,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1096accd7a10
+  - type: implements
+    from: SYM-skillopt-runtime-case-signals-supersededrequirementids-338b9306
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-10-05T12:24:58.440Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-79e7774ffd14
+  - type: covered_by
+    from: SYM-skillopt-runtime-case-signals-supersededrequirementids-338b9306
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-10-05T12:24:58.459Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0ead97121a06
+  - type: implements
+    from: SYM-skillopt-runtime-transcript-evidence-parsekibianswer-295a8922
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-10-05T12:25:35.646Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e42072cfd24
+  - type: covered_by
+    from: SYM-skillopt-runtime-transcript-evidence-parsekibianswer-295a8922
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-10-05T12:25:35.662Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cd7020a43b07

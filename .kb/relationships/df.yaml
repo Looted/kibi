@@ -216,3 +216,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3b17b27fb86f
+  - type: implements
+    from: SYM-skillopt-campaign-artifacts-bundlemanifestschema-779d52f8
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-10-05T12:23:04.949Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d36a3c2c4421
+  - type: covered_by
+    from: SYM-skillopt-campaign-artifacts-bundlemanifestschema-779d52f8
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-10-05T12:23:04.969Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ea42c3c0c83f
+  - type: implements
+    from: SYM-skillopt-campaign-workflow-runrevisecampaign-65760487
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-10-05T12:23:33.348Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6f0d42de8cca
+  - type: covered_by
+    from: SYM-skillopt-campaign-workflow-runrevisecampaign-65760487
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-10-05T12:23:33.363Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-509eb64a3073
+  - type: implements
+    from: SYM-skillopt-runtime-mcp-tool-names-mcptoolforoperation-c53b4b7b
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-10-05T12:25:27.203Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f1002efabdcb
+  - type: covered_by
+    from: SYM-skillopt-runtime-mcp-tool-names-mcptoolforoperation-c53b4b7b
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-10-05T12:25:27.216Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ab42c6c0eb84

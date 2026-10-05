@@ -6,12 +6,16 @@ import {
   mkdtemp,
   readFile,
   rm,
+  symlink,
   writeFile,
 } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { PassThrough } from "node:stream";
+import { Client } from "../../../packages/mcp/node_modules/@modelcontextprotocol/sdk/dist/esm/client/index.js";
+import { StdioClientTransport } from "../../../packages/mcp/node_modules/@modelcontextprotocol/sdk/dist/esm/client/stdio.js";
 import { runIndependentFinalState } from "../runtime/final-state";
+import { stopFixtureEngine } from "../runtime/fixture-kb-setup";
 import { createIsolationWorkspace } from "../runtime/isolation-workspace";
 import {
   appendTraceReceipt,
@@ -42,6 +46,57 @@ async function temporaryRoot(prefix: string): Promise<string> {
 }
 
 describe("evaluator-owned Kibi MCP evidence", () => {
+  test("staged MCP hosts the real engine without Node on PATH", async () => {
+    const root = await temporaryRoot("skillopt-staged-node-");
+    const workspace = await createIsolationWorkspace({
+      artifactRoot: root,
+      runId: "staged-node",
+      role: "optimizer",
+    });
+    const client = new Client({ name: "staged-node-regression", version: "1" });
+    try {
+      const isolatedPath = join(root, "bin");
+      await mkdir(isolatedPath);
+      const gitPath = Bun.which("git");
+      if (gitPath === null) throw new Error("The engine fixture requires Git.");
+      await symlink(gitPath, join(isolatedPath, "git"));
+      const staged = await stageKibiMcpBroker(workspace, process.cwd());
+      const transport = new StdioClientTransport({
+        command: staged.command,
+        args: [...staged.args],
+        cwd: staged.cwd,
+        env: {
+          HOME: workspace.sandboxHome,
+          PATH: isolatedPath,
+          KIBI_BRANCH: "skillopt-eval",
+          KIBI_SWIPL: Bun.which("swipl") ?? "",
+        },
+        stderr: "pipe",
+      });
+      await client.connect(transport);
+      const result = await client.callTool({
+        name: "kb_model",
+        arguments: {
+          mode: "analyze",
+          text: "A session timeout must be 30 minutes.",
+          _diagnostic_telemetry: {
+            is_autonomous: true,
+            reasoning: "Verify the isolated engine runtime.",
+            confidence_score: 1,
+            attempt_number: 1,
+            missing_context: "",
+          },
+        },
+      });
+      if (result.isError) throw new Error(JSON.stringify(result));
+      expect(result.structuredContent).toMatchObject({ status: "success" });
+    } finally {
+      await client.close();
+      await stopFixtureEngine(workspace.target);
+      await workspace.cleanup();
+    }
+  });
+
   test("redacts nested secrets while preserving unknown JSON-RPC fields", () => {
     // Given
     const message = {

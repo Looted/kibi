@@ -248,3 +248,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-207a4b80dcb9
+  - type: implements
+    from: SYM-skillopt-fixtures-case-contracts-workspaceassertion-ef52433e
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-10-05T12:24:30.477Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-938feb1e215c
+  - type: covered_by
+    from: SYM-skillopt-fixtures-case-contracts-workspaceassertion-ef52433e
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-10-05T12:24:30.494Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-43c9b5acd1d0

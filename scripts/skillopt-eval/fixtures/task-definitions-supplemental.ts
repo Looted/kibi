@@ -52,6 +52,16 @@ function seededDefinition(
 export const SUPPLEMENTAL_DEFINITIONS: Readonly<
   Partial<Record<CanonicalSkill, Readonly<Record<string, Definition>>>>
 > = {
+  "kibi-bootstrap": {
+    "onboarding-review": seededDefinition(
+      "Review the supplied fictional library onboarding evidence in src/onboarding-review.json. Decide whether the proposed bootstrap is ready for approval and report its coverage and remaining work. No approval has been granted; do not mutate files or KB entities. Return a fenced bootstrap-review JSON object with fields decision (request_approval, revise_plan, complete, or blocked), selectedBySource (each product source ID to selected intent count, including zero; exclude tooling), missingReferences (string array), nonProductReferences (string array), proof (proven or not_established), and nextStep (nonempty string).",
+      "onboarding_evidence_review",
+      {
+        sourceFile: "src/onboarding-review.json",
+        approvalPhase: "pre-approval",
+      },
+    ),
+  },
   "kibi-usage": {
     "intent-consult": seededDefinition(
       "Before changing fixtureFamily() in src/fixture.ts, find what governs it through the public Kibi surface.",

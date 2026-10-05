@@ -37,7 +37,7 @@ async function buildRuntimeBundle(
   const outputRoot = resolve(privateRoot, "kibi-mcp-bundle");
   await writeFile(
     entryPath,
-    `import { startServer } from ${JSON.stringify(resolve(sourceWorktree, "packages/mcp/dist/server.js"))};\nawait startServer();\n`,
+    `import { fileURLToPath } from "node:url";\nimport { startServer } from ${JSON.stringify(resolve(sourceWorktree, "packages/mcp/dist/server.js"))};\nprocess.env.KIBI_NODE_PATH = fileURLToPath(new URL("../node", import.meta.url));\nawait startServer();\n`,
     { encoding: "utf8", mode: 0o600 },
   );
   const build = await Bun.build({
@@ -127,6 +127,10 @@ export async function stageKibiMcpRuntime(
   );
   const bundlePath = resolve(stagedRoot, "dist/server.js");
   const stagedCommand = resolve(stagedRoot, "bun");
+  const daemonNode = Bun.which("node");
+  if (daemonNode === null) {
+    throw new RuntimePrerequisiteError("missing_node_executable");
+  }
   await Promise.all([
     mkdir(resolve(stagedRoot, "dist"), { recursive: true, mode: 0o700 }),
     mkdir(resolve(stagedRoot, "node_modules/kibi-cli"), {
@@ -143,6 +147,11 @@ export async function stageKibiMcpRuntime(
     stagedCommand,
   );
   await chmod(stagedCommand, 0o500);
+  // MCP runs under Bun, but the Kibi engine daemon requires Node. Stage it
+  // independently so the restricted runtime PATH needs no host installation.
+  const stagedNode = resolve(stagedRoot, "node");
+  await cp(await realpath(daemonNode), stagedNode);
+  await chmod(stagedNode, 0o500);
   const sourceRoots = new Set<string>([
     sourceWorktree,
     resolve(sourceWorktree),
