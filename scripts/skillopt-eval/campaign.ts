@@ -17,6 +17,7 @@ import {
   runReviseCampaign,
 } from "./campaign-workflow";
 import { CANONICAL_SKILLS, type CanonicalSkill } from "./catalog";
+import { hostCampaignDependencies } from "./claude-code-campaign";
 import { runBoundedProcess } from "./runtime/process";
 
 const COMMANDS = new Set([
@@ -394,4 +395,8 @@ export async function campaignMain(
   }
 }
 
-if (import.meta.main) process.exitCode = await campaignMain();
+if (import.meta.main)
+  process.exitCode = await campaignMain(
+    process.argv.slice(2),
+    hostCampaignDependencies(process.env),
+  );

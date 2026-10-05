@@ -25379,6 +25379,14 @@ coordinates:
     sourceEndLine: 16
     sourceFile: scripts/skillopt-eval/catalog.ts
     sourceLine: 16
+  SYM-skillopt-claude-code-host-tests:
+    identityHash: 79f40da70c984fe9276fe4fc3edd9242a3edc199cb79b4f78dd35b146230ff00
+    sourceHash: 0391856931db85570fd930a466e5672ca169e9a9606c56fb04d84af298ebdbac
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 252
+    sourceFile: scripts/skillopt-eval/tests/claude-code-host.test.ts
+    sourceLine: 1
   SYM-skillopt-cli-main:
     identityHash: 52a7afafd58366af3edc4244ceadf094e0bc33c42a32f9ca2ca9d973f629cd33
     sourceHash: 406b8d9c87d9fe21d98cdbe9af186db212193bceacce58f09a0d6009659893bf

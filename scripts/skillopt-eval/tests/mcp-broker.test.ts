@@ -11,6 +11,7 @@ import {
 } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+import { createInterface } from "node:readline";
 import { PassThrough } from "node:stream";
 import { Client } from "../../../packages/mcp/node_modules/@modelcontextprotocol/sdk/dist/esm/client/index.js";
 import { StdioClientTransport } from "../../../packages/mcp/node_modules/@modelcontextprotocol/sdk/dist/esm/client/stdio.js";
@@ -279,6 +280,72 @@ await new Promise(() => {});
     const childPid = Number.parseInt(await readFile(pidPath, "utf8"), 10);
     expect(() => process.kill(-childPid, 0)).toThrow();
     expect(await readFile(tracePath, "utf8")).toContain('"kind":"startup"');
+  });
+
+  test("relays a target response to a server request without arming a tool timeout", async () => {
+    // Given a server that asks the client for roots before answering a call
+    const root = await temporaryRoot("skillopt-broker-roots-");
+    const serverPath = join(root, "roots.ts");
+    const tracePath = join(root, "trace.jsonl");
+    await writeFile(
+      serverPath,
+      `import { createInterface } from "node:readline";
+const send = (m) => console.log(JSON.stringify(m));
+for await (const line of createInterface({ input: process.stdin })) {
+  const m = JSON.parse(line);
+  if (m.method === "initialize") send({jsonrpc:"2.0",id:m.id,result:{protocolVersion:"2025-11-25",capabilities:{tools:{}},serverInfo:{name:"fake",version:"1"}}});
+  else if (m.method === "ping") { send({jsonrpc:"2.0",id:0,method:"roots/list"}); }
+  else if (m.id === 0 && m.method === undefined) send({jsonrpc:"2.0",id:7,result:{rootsSeen:true}});
+}
+`,
+      { mode: 0o700 },
+    );
+    const input = new PassThrough();
+    const output = new PassThrough();
+    const lines = createInterface({ input: output });
+    const received: Record<string, unknown>[] = [];
+    lines.on("line", (line) => received.push(JSON.parse(line)));
+    const attempt = runMcpBroker(
+      {
+        downstream: {
+          command: process.execPath,
+          args: [serverPath],
+          cwd: root,
+        },
+        tracePath,
+        startupTimeoutMs: 5_000,
+        toolTimeoutMs: 150,
+        killGraceMs: 25,
+      },
+      { input, output, error: new PassThrough() },
+    );
+    const until = async (predicate: () => boolean) => {
+      for (let tries = 0; tries < 200 && !predicate(); tries += 1)
+        await new Promise((resolveWait) => setTimeout(resolveWait, 10));
+    };
+    input.write(
+      `${JSON.stringify({ jsonrpc: "2.0", id: 1, method: "initialize", params: {} })}\n`,
+    );
+    await until(() => received.some((m) => m.id === 1));
+    input.write(
+      `${JSON.stringify({ jsonrpc: "2.0", id: 7, method: "ping" })}\n`,
+    );
+    await until(() => received.some((m) => m.method === "roots/list"));
+
+    // When the target answers the server request and stays idle past the timeout
+    input.write(
+      `${JSON.stringify({ jsonrpc: "2.0", id: 0, result: { roots: [] } })}\n`,
+    );
+    await until(() => received.some((m) => m.id === 7));
+    await new Promise((resolveWait) => setTimeout(resolveWait, 400));
+    input.end();
+
+    // Then the broker shut down normally instead of failing with a timeout
+    await attempt;
+    expect(received.find((m) => m.id === 7)).toMatchObject({
+      result: { rootsSeen: true },
+    });
+    expect(await readFile(tracePath, "utf8")).not.toContain('"kind":"timeout"');
   });
 
   test("reaps an unresponsive downstream group when the target transport closes", async () => {

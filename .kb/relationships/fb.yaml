@@ -265,3 +265,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f09e97cd09c1
+  - type: specified_by
+    from: REQ-skillopt-claude-code-host
+    to: SCEN-skillopt-claude-code-host
+    created_at: 2026-10-05T21:21:01.938Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d718165c14a6
+  - type: relates_to
+    from: REQ-skillopt-claude-code-host
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-10-05T21:21:01.979Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7eb83ede86fa

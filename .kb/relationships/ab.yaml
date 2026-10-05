@@ -255,3 +255,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7e026f3d8da6
+  - type: executable_for
+    from: SYM-skillopt-claude-code-host-tests
+    to: TEST-skillopt-claude-code-host
+    created_at: 2026-10-05T21:21:38.741Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1c202bb85891

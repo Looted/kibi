@@ -49865,3 +49865,15 @@ symbols:
         target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-claude-code-host-tests
+    title: Claude Code SkillOpt host tests
+    status: active
+    sourceFile: scripts/skillopt-eval/tests/claude-code-host.test.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T21:21:37.193Z
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-claude-code-host

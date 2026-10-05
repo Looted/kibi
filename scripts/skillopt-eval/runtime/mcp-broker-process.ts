@@ -249,7 +249,10 @@ export async function runMcpBroker(
       io.output.write(`${JSON.stringify(response)}\n`);
       return;
     }
-    if (id !== undefined) {
+    // Only target requests await a server response. A target *response* to a
+    // server-initiated request (for example `roots/list`) carries an id but no
+    // method; tracking it would time out and kill the broker mid-episode.
+    if (id !== undefined && method !== undefined) {
       const timer = setTimeout(
         () => fail(new McpBrokerError("timeout")),
         options.toolTimeoutMs,
@@ -286,7 +289,12 @@ export async function runMcpBroker(
       return;
     }
     const id = jsonRpcId(message);
-    const matched = id === undefined ? undefined : pending.get(requestKey(id));
+    // Server-initiated requests reuse the id space; only responses settle
+    // a pending target request.
+    const matched =
+      id === undefined || jsonRpcMethod(message) !== undefined
+        ? undefined
+        : pending.get(requestKey(id));
     if (matched !== undefined && id !== undefined) {
       clearTimeout(matched.timer);
       pending.delete(requestKey(id));
