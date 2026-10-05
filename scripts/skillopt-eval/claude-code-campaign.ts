@@ -18,6 +18,7 @@ import {
   resolveClaudeExecutable,
   runClaudeModelCanary,
   selectedSkillOptHost,
+  withClaudeAuthLease,
 } from "./runtime/claude-code-host";
 import { createIsolationWorkspace } from "./runtime/isolation-workspace";
 import { stageKibiMcpBroker } from "./runtime/mcp-broker-stage";
@@ -130,23 +131,22 @@ export async function runClaudeCodeCanary(
   const root = await mkdtemp(join(scratchRoot, "claude-canary-"));
   const runs = [];
   try {
-    for (const role of ["target", "optimizer"] as const) {
-      const result = await runClaudeModelCanary({
-        role,
-        env: options.env ?? process.env,
-        scratchRoot: root,
-        run,
-      });
-      runs.push(result);
-      if (!result.passed) break;
-    }
+    // Only target-side commands run on this host (`revise` is refused), so
+    // only the target model is probed. The auth lease serializes the probe
+    // with cells that may refresh the shared login.
+    const env = options.env ?? process.env;
+    runs.push(
+      await withClaudeAuthLease(env, () =>
+        runClaudeModelCanary({ role: "target", env, scratchRoot: root, run }),
+      ),
+    );
   } finally {
     await rm(root, { recursive: true, force: true });
   }
   const failed = runs.find((entry) => !entry.passed);
   const attempts = runs.length as 0 | 1 | 2;
   return {
-    verdict: failed === undefined && runs.length === 2 ? "pass" : "no-go",
+    verdict: failed === undefined && runs.length === 1 ? "pass" : "no-go",
     runId: options.runId,
     targetModel: models.targetModel,
     optimizerModel: models.optimizerModel,
@@ -174,7 +174,7 @@ export async function runClaudeCodeCanary(
 /**
  * Campaign dependency overrides for the selected host; `undefined` keeps the
  * Codex defaults. Only target-side commands (compose/evaluate/confirm) are
- * covered; the Codex optimizer step is not reimplemented here.
+ * covered; `campaignMain` refuses `revise`, whose optimizer step is Codex.
  */
 // implements REQ-skillopt-claude-code-host
 export function hostCampaignDependencies(

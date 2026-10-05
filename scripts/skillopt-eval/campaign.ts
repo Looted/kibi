@@ -18,6 +18,10 @@ import {
 } from "./campaign-workflow";
 import { CANONICAL_SKILLS, type CanonicalSkill } from "./catalog";
 import { hostCampaignDependencies } from "./claude-code-campaign";
+import {
+  ClaudeHostConfigError,
+  selectedSkillOptHost,
+} from "./runtime/claude-code-host";
 import { runBoundedProcess } from "./runtime/process";
 
 const COMMANDS = new Set([
@@ -228,10 +232,20 @@ async function composeInsertions(args: ParsedArgs) {
 
 export async function campaignMain(
   argv: readonly string[] = process.argv.slice(2),
-  dependencies?: Partial<CampaignDependencies>,
+  explicitDependencies?: Partial<CampaignDependencies>,
 ): Promise<number> {
   try {
     const args = parseArgs(argv);
+    const dependencies =
+      explicitDependencies ?? hostCampaignDependencies(process.env);
+    if (
+      args.command === "revise" &&
+      selectedSkillOptHost(process.env) === "claude-code"
+    ) {
+      throw new CampaignCliError(
+        "revise runs the optimizer on Codex; KIBI_SKILLOPT_HOST=claude-code supports compose, evaluate and confirm",
+      );
+    }
     const source = await sourceRoot(args);
     const artifact = resolve(value(args, "--artifact-root"));
     if (args.command === "revise") {
@@ -383,20 +397,20 @@ export async function campaignMain(
   } catch (error) {
     if (
       error instanceof CampaignCliError ||
+      error instanceof ClaudeHostConfigError ||
       error instanceof CampaignArtifactError ||
       error instanceof z.ZodError
     ) {
       process.stderr.write(
         `${error instanceof Error ? error.message : String(error)}\n`,
       );
-      return error instanceof CampaignCliError ? 2 : 1;
+      return error instanceof CampaignCliError ||
+        error instanceof ClaudeHostConfigError
+        ? 2
+        : 1;
     }
     throw error;
   }
 }
 
-if (import.meta.main)
-  process.exitCode = await campaignMain(
-    process.argv.slice(2),
-    hostCampaignDependencies(process.env),
-  );
+if (import.meta.main) process.exitCode = await campaignMain();

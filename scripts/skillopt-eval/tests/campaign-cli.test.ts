@@ -159,4 +159,35 @@ describe("campaign CLI", () => {
       await rm(parent, { recursive: true, force: true });
     }
   });
+
+  test("refuses revise and unknown hosts before any paid preparation", async () => {
+    const saved = process.env.KIBI_SKILLOPT_HOST;
+    try {
+      process.env.KIBI_SKILLOPT_HOST = "claude-code";
+      expect(
+        await campaignMain([
+          "revise",
+          "--artifact-root",
+          "/nonexistent/skillopt",
+          "--skill",
+          "kibi-usage",
+          "--allow-paid",
+        ]),
+      ).toBe(2);
+      process.env.KIBI_SKILLOPT_HOST = "other";
+      expect(
+        await campaignMain([
+          "evaluate",
+          "--artifact-root",
+          "/nonexistent/skillopt",
+          "--skill",
+          "kibi-usage",
+        ]),
+      ).toBe(2);
+    } finally {
+      if (saved === undefined)
+        Reflect.deleteProperty(process.env, "KIBI_SKILLOPT_HOST");
+      else process.env.KIBI_SKILLOPT_HOST = saved;
+    }
+  });
 });

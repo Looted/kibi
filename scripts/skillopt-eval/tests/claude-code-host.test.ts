@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { execFileSync } from "node:child_process";
+import { existsSync, readdirSync, statSync } from "node:fs";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -134,6 +135,47 @@ describe("Claude Code SkillOpt host", () => {
     expect(ordering.editedPaths).toEqual(["/w/src/app.ts"]);
   });
 
+  test("exposes what host tools read to the hidden-marker scan", () => {
+    // Given a Read whose result carries a hidden marker, and a thinking block
+    const raw = stream(
+      {
+        type: "assistant",
+        message: {
+          content: [
+            { type: "thinking", thinking: "consider the policy file" },
+            {
+              type: "tool_use",
+              id: "r1",
+              name: "Read",
+              input: { file_path: "/w/docs/policy.md" },
+            },
+          ],
+        },
+      },
+      {
+        type: "user",
+        message: {
+          content: [
+            {
+              type: "tool_result",
+              tool_use_id: "r1",
+              content: "intro HIDDEN_MARKER_X tail",
+            },
+          ],
+        },
+      },
+      RESULT,
+    );
+    const converted = claudeStreamToCodexJsonl(raw);
+    const normalized = normalizeCodexJsonl(converted, {
+      hiddenMarkers: ["HIDDEN_MARKER_X"],
+      forbiddenRoots: [],
+    });
+    expect(normalized.violations).toContain("hidden_data_leakage");
+    expect(converted).toContain("consider the policy file");
+    expect(finalAnswerEvidence(converted).text).toBe("Applied REQ-loan-due.");
+  });
+
   test("flags direct KB reads and failed turns like Codex evidence", () => {
     const raw = stream(
       {
@@ -205,7 +247,17 @@ describe("Claude Code SkillOpt host", () => {
       },
     });
     const settings = claudeTargetSettings({ deniedRoots: ["/src/repo"] });
-    const permissions = settings.permissions as { deny: string[] };
+    const permissions = settings.permissions as {
+      allow: string[];
+      deny: string[];
+    };
+    // File tools are granted only inside the workspace; nothing unscoped.
+    expect(permissions.allow).toEqual(
+      expect.arrayContaining(["Read(./**)", "Edit(./**)"]),
+    );
+    expect(permissions.allow).not.toContain("Read");
+    expect(permissions.allow).not.toContain("Edit");
+    expect(permissions.allow).not.toContain("Write");
     expect(permissions.deny).toEqual(
       expect.arrayContaining([
         "Read(./.kb/**)",
@@ -233,7 +285,7 @@ describe("Claude Code SkillOpt host", () => {
     const root = await temporaryRoot();
     const realConfig = join(root, "real");
     await mkdir(realConfig, { recursive: true });
-    await writeFile(join(realConfig, ".credentials.json"), "old");
+    await writeFile(join(realConfig, ".credentials.json"), '{"v":"old"}');
     const session = await openClaudeSession({
       env: { CLAUDE_CONFIG_DIR: realConfig },
       claudeExecutable: "/bin/claude",
@@ -242,12 +294,15 @@ describe("Claude Code SkillOpt host", () => {
     });
     expect(
       await readFile(join(root, "private/.credentials.json"), "utf8"),
-    ).toBe("old");
+    ).toBe('{"v":"old"}');
     expect(session.privateRoots).toEqual([realConfig]);
-    await writeFile(join(root, "private/.credentials.json"), "refreshed");
+    await writeFile(
+      join(root, "private/.credentials.json"),
+      '{"v":"refreshed"}',
+    );
     await session.finalize();
     expect(await readFile(join(realConfig, ".credentials.json"), "utf8")).toBe(
-      "refreshed",
+      '{"v":"refreshed"}',
     );
   });
 
@@ -276,5 +331,42 @@ describe("Claude Code SkillOpt host", () => {
         .split("\n")
         .filter((line) => line === ".claude/skills/"),
     ).toHaveLength(1);
+  });
+
+  test("never writes back a missing, unchanged or truncated login", async () => {
+    const root = await temporaryRoot();
+    const realConfig = join(root, "real");
+    await mkdir(realConfig, { recursive: true });
+    const open = (name: string) =>
+      openClaudeSession({
+        env: { CLAUDE_CONFIG_DIR: realConfig },
+        claudeExecutable: "/bin/claude",
+        privateConfigDir: join(root, name),
+        sandboxHome: join(root, `${name}-home`),
+      });
+
+    // Absent login: nothing is created on either side
+    const absent = await open("absent");
+    await absent.finalize();
+    expect(existsSync(join(realConfig, ".credentials.json"))).toBe(false);
+
+    // Truncated refresh: the operator's login is kept
+    const login = '{"claudeAiOauth":{"refreshToken":"r1"}}';
+    await writeFile(join(realConfig, ".credentials.json"), login);
+    const killed = await open("killed");
+    await writeFile(join(root, "killed/.credentials.json"), '{"claudeAi');
+    await killed.finalize();
+    expect(await readFile(join(realConfig, ".credentials.json"), "utf8")).toBe(
+      login,
+    );
+
+    // Unchanged login: the real file is left untouched
+    const before = statSync(join(realConfig, ".credentials.json")).mtimeMs;
+    const unchanged = await open("unchanged");
+    await unchanged.finalize();
+    expect(statSync(join(realConfig, ".credentials.json")).mtimeMs).toBe(
+      before,
+    );
+    expect(readdirSync(realConfig)).toEqual([".credentials.json"]);
   });
 });

@@ -5,11 +5,12 @@ import {
   mkdtemp,
   readFile,
   realpath,
+  rename,
   rm,
   writeFile,
 } from "node:fs/promises";
 import { homedir } from "node:os";
-import { dirname, join, resolve } from "node:path";
+import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { withHeldOutExecutionLease } from "../held-out-execution-lease";
 import { RuntimePrerequisiteError } from "./canary-errors";
 import type { McpServerLaunch } from "./canary-runtime";
@@ -64,8 +65,10 @@ export const CLAUDE_TARGET_TOOLS = [
 
 const KIBI_MCP_SERVER = "kibi";
 
+// implements REQ-skillopt-claude-code-host
 export type SkillOptHost = "codex" | "claude-code";
 
+// implements REQ-skillopt-claude-code-host
 export class ClaudeHostConfigError extends Error {
   readonly name = "ClaudeHostConfigError";
 }
@@ -173,6 +176,14 @@ function realClaudeConfigDir(env: NodeJS.ProcessEnv): string {
 
 const CREDENTIALS_FILE = ".credentials.json";
 
+function isJsonObject(text: string): boolean {
+  try {
+    return isRecord(JSON.parse(text));
+  } catch {
+    return false;
+  }
+}
+
 async function readOptional(path: string): Promise<string | null> {
   try {
     return await readFile(path, "utf8");
@@ -214,7 +225,12 @@ export async function openClaudeSession(
       if (original === null) return;
       const refreshed = await readOptional(privateCredentials);
       if (refreshed === null || refreshed === original) return;
-      await writeFile(realCredentials, refreshed, { mode: 0o600 });
+      // A host killed mid-refresh can leave a truncated file; never let it
+      // replace the operator's working login.
+      if (!isJsonObject(refreshed)) return;
+      const staged = `${realCredentials}.skillopt-${process.pid}`;
+      await writeFile(staged, refreshed, { mode: 0o600 });
+      await rename(staged, realCredentials);
     },
   };
 }
@@ -230,7 +246,12 @@ export async function withClaudeAuthLease<T>(
   return await withHeldOutExecutionLease(lockDir, operation);
 }
 
-/** Permission settings passed with `--settings`; deny wins over allow. */
+/**
+ * Permission settings passed with `--settings`; deny wins over allow. File
+ * tools are allowed only inside the workspace (`./**`); under `dontAsk`
+ * anything else is refused. Private roots are denied explicitly as well, so
+ * a later allow rule cannot reopen them.
+ */
 // implements REQ-skillopt-claude-code-host
 export function claudeTargetSettings(
   input: Readonly<{ deniedRoots: readonly string[] }>,
@@ -240,7 +261,7 @@ export function claudeTargetSettings(
     .flatMap((root) => [`Read(/${root}/**)`, `Edit(/${root}/**)`]);
   return {
     permissions: {
-      allow: [...CLAUDE_TARGET_TOOLS, `mcp__${KIBI_MCP_SERVER}`],
+      allow: ["Read(./**)", "Edit(./**)", "Skill", `mcp__${KIBI_MCP_SERVER}`],
       deny: [
         "Read(./.kb/**)",
         "Edit(./.kb/**)",
@@ -317,6 +338,13 @@ export function buildClaudeExecArgv(
   ];
 }
 
+function isWithin(path: string, root: string): boolean {
+  const relation = relative(resolve(root), resolve(path));
+  return (
+    relation === "" || (!relation.startsWith("..") && !isAbsolute(relation))
+  );
+}
+
 /**
  * Claude discovers project skills under `.claude/skills`. The mirror is host
  * plumbing, so it is git-excluded like `.runtime/`: an untracked copy would
@@ -378,6 +406,10 @@ export function claudeCodeTargetHost(): TargetHost {
               workspace.siblingRun,
               workspace.codexHome,
               ...session.privateRoots,
+              // Other episodes, fixture manifests and the operator's home.
+              ...[options.artifactRoot, homedir()].filter(
+                (root) => !isWithin(workspace.target, root),
+              ),
             ],
           }),
           outputSchema,
@@ -418,16 +450,54 @@ function hostToolItem(
     result === null ? "in_progress" : failed ? "failed" : "completed";
   const mcpPrefix = `mcp__${KIBI_MCP_SERVER}__`;
   if (name.startsWith(mcpPrefix)) {
-    return {
-      id,
-      type: "mcp_tool_call",
-      server: KIBI_MCP_SERVER,
-      tool: name.slice(mcpPrefix.length),
-      arguments: input,
+    return mcpToolItem(id, name.slice(mcpPrefix.length), input, result, {
       status,
-      ...(result === null ? {} : failed ? { error: result } : { result }),
-    };
+      failed,
+    });
   }
+  // Host tool output is kept, like Codex command output, so hidden-marker
+  // and private-path scans see what the target actually read.
+  const output =
+    result === null ? {} : { aggregated_output: resultText(result) };
+  return { ...builtinToolItem(id, name, input, status), ...output };
+}
+
+function resultText(result: JsonRecord): string {
+  const content = Array.isArray(result.content) ? result.content : [];
+  return content
+    .map((entry) =>
+      isRecord(entry) && typeof entry.text === "string"
+        ? entry.text
+        : JSON.stringify(entry),
+    )
+    .join("\n");
+}
+
+function mcpToolItem(
+  id: string,
+  tool: string,
+  input: JsonRecord,
+  result: JsonRecord | null,
+  state: Readonly<{ status: string; failed: boolean }>,
+): JsonRecord {
+  const { status, failed } = state;
+  return {
+    id,
+    type: "mcp_tool_call",
+    server: KIBI_MCP_SERVER,
+    tool,
+    arguments: input,
+    status,
+    ...(result === null ? {} : failed ? { error: result } : { result }),
+  };
+}
+
+function builtinToolItem(
+  id: string,
+  name: string,
+  input: JsonRecord,
+  status: string,
+): JsonRecord {
   if (name === "Edit" || name === "Write" || name === "NotebookEdit") {
     const path = input.file_path ?? input.notebook_path;
     return {
@@ -511,6 +581,21 @@ export function claudeStreamToCodexJsonl(stdout: string): string {
         : [];
       for (const block of content) {
         if (!isRecord(block)) continue;
+        if (
+          block.type === "thinking" &&
+          typeof block.thinking === "string" &&
+          block.thinking !== ""
+        ) {
+          emit({
+            type: "item.completed",
+            item: {
+              id: `reasoning_${messageIndex++}`,
+              type: "reasoning",
+              text: block.thinking,
+            },
+          });
+          continue;
+        }
         if (block.type === "text" && typeof block.text === "string") {
           emit({
             type: "item.completed",
@@ -666,6 +751,7 @@ const CANARY_SCHEMA = {
   },
 } as const;
 
+// implements REQ-skillopt-claude-code-host
 export type ClaudeCanaryRun = Readonly<{
   role: "target" | "optimizer";
   model: string;

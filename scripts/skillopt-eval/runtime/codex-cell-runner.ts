@@ -254,6 +254,9 @@ export async function runCodexCell(
 ): Promise<CompletedCodexCell> {
   assertNoCallerScoreInjection(options);
   const request = EpisodeRequestSchema.parse(options.request);
+  // Resolve the host before reserving budget or copying fixtures, so a bad
+  // KIBI_SKILLOPT_HOST fails before any work.
+  const host = selectedTargetHost(options, dependencies);
   await reserveTargetEpisode(options.env, options.sourceWorktree);
   const artifactDirectory = resolve(
     options.artifactRoot,
@@ -317,7 +320,6 @@ export async function runCodexCell(
         ? {}
         : { candidates: options.bundleCandidates }),
     });
-    const host = selectedTargetHost(options, dependencies);
     return await host.withLease(options.env, async () => {
       const session = await host.openSession({ workspace, env: options.env });
       try {

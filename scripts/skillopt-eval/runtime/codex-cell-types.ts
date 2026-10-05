@@ -64,6 +64,7 @@ export type CodexCellOptions = Readonly<{
 }>;
 
 /** Host process state for one target cell (login, private roots). */
+// implements REQ-skillopt-claude-code-host
 export type TargetHostSession = Readonly<{
   env: NodeJS.ProcessEnv;
   /** Real host credential roots the target must never reference. */
@@ -71,6 +72,7 @@ export type TargetHostSession = Readonly<{
   finalize: () => Promise<void>;
 }>;
 
+// implements REQ-skillopt-claude-code-host
 export type TargetHostLaunch = Readonly<{
   argv: readonly [string, ...string[]];
   /**
@@ -81,6 +83,7 @@ export type TargetHostLaunch = Readonly<{
 }>;
 
 /** The agent host that executes target cells (Codex by default). */
+// implements REQ-skillopt-claude-code-host
 export type TargetHost = Readonly<{
   id: "codex" | "claude-code";
   withLease: <T>(
