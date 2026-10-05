@@ -47,8 +47,10 @@ Kibi tool ordering and Kibi diagnostic reconciliation, and add no model invocati
 Read-only cases refuse writes. The apply case starts without delegated approval:
 the operator may approve only a ready preview actually returned by Kibi, with the
 single supplied obligation and repository observations. Approval binds the whole
-unchanged plan and its canonical hash, is consumed by one apply attempt, and is
-invalidated by replanning. An unapproved write is blocked before forwarding and
+unchanged plan and its canonical hash and is consumed by one apply attempt.
+Replanning suspends writes until its result arrives: an identical successful
+preview preserves consent, while a changed or failed preview invalidates it.
+An unapproved write is blocked before forwarding and
 recorded as a security violation. Report dialogue exhaustion, refusal, unknown
 context and any unauthorized attempt separately from product failures.
 

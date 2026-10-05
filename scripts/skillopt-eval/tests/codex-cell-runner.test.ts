@@ -229,6 +229,14 @@ test.each([
                 status: "approved",
                 approvedPlanHash: plan.planHash,
               });
+              const rechecked = await client.callTool({
+                name: "kb_plan_bootstrap",
+                arguments: { bootstrapContext, includeGenericMarkdown: false },
+              });
+              expect(
+                (rechecked.structuredContent as { data: { plan: unknown } })
+                  .data.plan,
+              ).toEqual(plan);
               const applied = await client.callTool({
                 name: "kb_apply_plan",
                 arguments: { plan, approvedPlanHash: plan.planHash },

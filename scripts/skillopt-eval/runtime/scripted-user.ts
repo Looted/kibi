@@ -75,7 +75,8 @@ export class ScriptedUser {
 
   beginPlan(): number {
     this.preview = undefined;
-    this.approved = undefined;
+    // Suspend writes while planning. Re-reading an identical approved plan
+    // does not withdraw the user's consent; only a changed/failed result does.
     return ++this.generation;
   }
 
@@ -85,6 +86,8 @@ export class ScriptedUser {
     generation: number,
   ): void {
     if (generation !== this.generation) return;
+    const priorApproval = this.approved;
+    this.approved = undefined;
     const result = response.result;
     const envelope =
       record(result) && result.isError !== true
@@ -156,6 +159,7 @@ export class ScriptedUser {
     )
       return;
     this.preview = structuredClone(plan);
+    if (isDeepStrictEqual(priorApproval, plan)) this.approved = priorApproval;
   }
 
   answer(args: Record<string, unknown>): Record<string, unknown> {
@@ -220,6 +224,7 @@ export class ScriptedUser {
   permits(tool: string, args: Record<string, unknown>): boolean {
     if (tool === "kb_apply_plan") {
       const allowed =
+        this.preview !== undefined &&
         this.approved !== undefined &&
         args.approvedPlanHash === this.approved.planHash &&
         isDeepStrictEqual(args.plan, this.approved);

@@ -120,6 +120,38 @@ test("replanning invalidates approval and late responses cannot restore an older
   expect(user.answer(approval).status).toBe("declined");
 });
 
+test("an identical successful re-preview preserves the user's exact-plan approval", () => {
+  const user = new ScriptedUser(bootstrapUserProfile("approve"));
+  user.observePlan(args, response, user.beginPlan());
+  expect(user.answer(approval).status).toBe("approved");
+  user.observePlan(args, structuredClone(response), user.beginPlan());
+  expect(user.permits("kb_apply_plan", structuredClone(apply))).toBe(true);
+  expect(user.permits("kb_apply_plan", apply)).toBe(false);
+});
+
+test("changed or failed re-previews revoke approval even if the old plan returns later", () => {
+  const changedBody = { ...body, expected: { workspaceSnapshot: "changed" } };
+  const changedPlan = {
+    ...changedBody,
+    planHash: bootstrapPlanHash(changedBody),
+  };
+  for (const next of [
+    {
+      result: {
+        structuredContent: { status: "success", data: { plan: changedPlan } },
+      },
+    },
+    { error: { code: -32603, message: "Planner failed" } },
+  ]) {
+    const user = new ScriptedUser(bootstrapUserProfile("approve"));
+    user.observePlan(args, response, user.beginPlan());
+    expect(user.answer(approval).status).toBe("approved");
+    user.observePlan(args, next, user.beginPlan());
+    user.observePlan(args, response, user.beginPlan());
+    expect(user.permits("kb_apply_plan", apply)).toBe(false);
+  }
+});
+
 test("refusal and out-of-scope previews never become write authorization", () => {
   for (const mode of ["approve", "decline"] as const) {
     const user = new ScriptedUser(bootstrapUserProfile(mode));
@@ -253,6 +285,8 @@ for await (const line of createInterface({ input: process.stdin })) {
       (await call("skillopt_ask_user", approval)).result.structuredContent
         .status,
     ).toBe("approved");
+    // The live model rechecked the same planner preview after approval.
+    await call("kb_plan_bootstrap", args);
     expect((await call("kb_apply_plan", apply)).result).toEqual({});
     expect(
       (await call("kb_apply_plan", apply)).error.data.skilloptViolation,
