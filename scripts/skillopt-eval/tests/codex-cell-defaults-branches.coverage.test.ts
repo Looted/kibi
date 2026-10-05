@@ -253,7 +253,18 @@ describe("sealDefaultCellEvidence remaining closeout and broker branches", () =>
     for (const activationState of ["root_partial", "root_active_seeded"]) {
       const sealed = sealDefaultCellEvidence(
         {
-          evaluatorManifest: completeManifest(),
+          evaluatorManifest: {
+            ...completeManifest(),
+            expectedFinalState: [
+              ...completeManifest().expectedFinalState,
+              {
+                key: "inspection-complete",
+                query: "state://inspection",
+                expected: true,
+                critical: true,
+              },
+            ],
+          },
           finalStateRequests: requests(),
         },
         {
@@ -275,6 +286,10 @@ describe("sealDefaultCellEvidence remaining closeout and broker branches", () =>
       expect(sealed.finalState.closeout.taskOutcome).toBe(
         activationState === "root_partial" ? "blocked" : "complete",
       );
+      expect(sealed.finalState.claims).toContainEqual({
+        key: "inspection-complete",
+        value: true,
+      });
       expect(sealed.finalState.closeout.limitationDisposition).toBe(
         activationState === "root_partial" ? "unaccepted" : "not_applicable",
       );

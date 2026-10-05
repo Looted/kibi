@@ -80,6 +80,21 @@ against immutable fixture evidence and rejects false proof claims. This is a
 review-decision exercise, not evidence of a successful end-to-end bootstrap.
 No private project material or credentials are included.
 
+The isolated public fixture workspaces do not inherit the source repository's
+`kibi.plugins` configuration: current bootstrap cells use the builtin classifier,
+not JEV. Report the modeling backend alongside the agent model. The
+[bootstrap acceptance protocol](../documentation/evaluations/skillopt/bootstrap-acceptance-protocol.md)
+defines separate builtin/JEV cohorts and a fuller source-to-readback acceptance
+matrix. The supplemental review family does not replace that matrix.
+
+Native offline regressions exercise the actual staged MCP path before model
+runs: thin eligibility, intentional partial infrastructure, and the approved
+plan's precise normative scope, application and cited readback. Correct
+inspection completion is independent from a blocked infrastructure closeout.
+The review scorer accepts one strict report under either a `json` or
+`bootstrap-review` fence; coverage, omitted intent and proof checks are identical.
+
+
 ### Evaluate candidates
 
 `evaluate` accepts one to three candidate manifest files. The baseline is

@@ -244,17 +244,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-509eb64a3073
-  - type: implements
-    from: SYM-skillopt-runtime-mcp-tool-names-mcptoolforoperation-c53b4b7b
-    to: REQ-skillopt-codex-optimization
-    created_at: 2026-10-05T12:25:27.203Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f1002efabdcb
-  - type: covered_by
-    from: SYM-skillopt-runtime-mcp-tool-names-mcptoolforoperation-c53b4b7b
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-10-05T12:25:27.216Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ab42c6c0eb84

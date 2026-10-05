@@ -153,17 +153,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3faa437b3e65
-  - type: implements
-    from: SYM-skillopt-runtime-mcp-tool-names-routedoperationname-7e33859a
-    to: REQ-skillopt-codex-optimization
-    created_at: 2026-10-05T12:25:21.129Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7a07c46b4c16
-  - type: covered_by
-    from: SYM-skillopt-runtime-mcp-tool-names-routedoperationname-7e33859a
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-10-05T12:25:21.143Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-914ac16a37cb

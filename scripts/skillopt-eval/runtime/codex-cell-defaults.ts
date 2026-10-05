@@ -684,7 +684,6 @@ function sealedFinalState(
     status.bootstrap.activationState === "root_partial";
   const taskComplete =
     complete &&
-    !infrastructureBlocked &&
     receipt.requests.some(
       (request) =>
         request.tool === "kb_query" && successfulResult(request.result),
@@ -734,7 +733,11 @@ function sealedFinalState(
     expectedWorkflow?.expectedProofState === "not_evaluated"
       ? "not_evaluated"
       : proofStateFromCoverage(latestContent(requests, "kb_coverage"));
-  const taskOutcome = taskComplete ? "complete" : "blocked";
+  // Successful inspection and a usable infrastructure are separate outcomes.
+  // A read-only repair task can finish inspecting while correctly reporting
+  // that product work remains blocked on operator action.
+  const taskOutcome =
+    taskComplete && !infrastructureBlocked ? "complete" : "blocked";
   // Pre-approval phases expect the agent to stop before any write; when it
   // does, that is the sanctioned "interim" outcome rather than "blocked".
   const stoppedBeforeWrites = !brokerTools.some(

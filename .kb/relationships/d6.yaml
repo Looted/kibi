@@ -241,17 +241,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-30a6043e11c6
-  - type: implements
-    from: SYM-skillopt-runtime-transcript-evidence-kibi-answer-verdicts-1bf4b684
-    to: REQ-skillopt-codex-optimization
-    created_at: 2026-10-05T12:25:53.796Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-da0a7ded7117
-  - type: covered_by
-    from: SYM-skillopt-runtime-transcript-evidence-kibi-answer-verdicts-1bf4b684
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-10-05T12:25:53.812Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2a7a12f6a5e1

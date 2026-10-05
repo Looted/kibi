@@ -174,3 +174,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3ab1ec581532
+  - type: implements
+    from: SYM-skillopt-transcript-ordering
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-10-04T12:50:33.813Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0a29057ae30c
+  - type: covered_by
+    from: SYM-skillopt-transcript-ordering
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-10-04T12:50:33.842Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-488bd231780b

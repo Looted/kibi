@@ -90,3 +90,24 @@ test("a clean document-only preview can proceed to approval without inventing ga
     ),
   ).toBe(false);
 });
+
+test("accepts the same strict review under a JSON fence and rejects ambiguous or false reports", () => {
+  const jsonAnswer = (value: unknown) =>
+    answer(value).replace("bootstrap-review", "json");
+  expect(onboardingReviewMatches(jsonAnswer(review), evidence)).toBe(true);
+  expect(
+    onboardingReviewMatches(
+      jsonAnswer({ ...review, proof: "proven" }),
+      evidence,
+    ),
+  ).toBe(false);
+  expect(
+    onboardingReviewMatches(
+      jsonAnswer({ ...review, decision: "request_approval" }),
+      evidence,
+    ),
+  ).toBe(false);
+  expect(
+    onboardingReviewMatches(jsonAnswer(review) + answer(review), evidence),
+  ).toBe(false);
+});

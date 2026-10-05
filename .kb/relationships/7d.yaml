@@ -300,17 +300,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3961cf3ff724
-  - type: implements
-    from: SYM-skillopt-runtime-mcp-tool-names-toolcallarguments-102a79e8
-    to: REQ-skillopt-codex-optimization
-    created_at: 2026-10-05T12:25:24.289Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1c66d6b5db38
-  - type: covered_by
-    from: SYM-skillopt-runtime-mcp-tool-names-toolcallarguments-102a79e8
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-10-05T12:25:24.305Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-cb7f4d28a194

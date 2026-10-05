@@ -3,7 +3,9 @@ import { existsSync } from "node:fs";
 import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import { hashWorkspace } from "../fixtures/workspace";
+import { hashWorkspace, writePublicWorkspace } from "../fixtures/workspace";
+import { buildPublicCatalog } from "../catalog";
+import { parsePublicTaskSpec } from "../fixtures/contracts";
 import { RequiredMcpStartupError } from "../runtime/canary-runtime";
 import { Client } from "../../../packages/mcp/node_modules/@modelcontextprotocol/sdk/dist/esm/client/index.js";
 import { StdioClientTransport } from "../../../packages/mcp/node_modules/@modelcontextprotocol/sdk/dist/esm/client/stdio.js";
@@ -34,11 +36,22 @@ test.each([
   "fixture %s exposes its intended activation through staged MCP before model dispatch",
   async (fixtureSetup, activationState, planEligible) => {
     const publicFixture = await fixture();
-    await mkdir(join(publicFixture.root, "src"));
-    await writeFile(
-      join(publicFixture.root, "src/fixture.ts"),
-      'export const fixtureFamily = "native-setup";\n',
+    const family =
+      fixtureSetup === "thin_root_kb"
+        ? "approval-plan-apply"
+        : "repair-escalation";
+    const task = buildPublicCatalog().find(
+      (entry) =>
+        entry.skill === "kibi-bootstrap" &&
+        entry.family === family &&
+        entry.split === "development",
     );
+    if (task === undefined) throw new Error(`Missing public task ${family}`);
+    writePublicWorkspace({
+      root: publicFixture.root,
+      task: parsePublicTaskSpec(task),
+      canonicalSkillRoot: join(process.cwd(), "packages/cli/src/public/skills"),
+    });
     const artifactRoot = await mkdtemp(
       join(tmpdir(), "skillopt-native-setup-"),
     );
@@ -108,6 +121,82 @@ test.each([
                 },
               },
             });
+            if (fixtureSetup === "thin_root_kb") {
+              const approval = JSON.parse(
+                await readFile(
+                  join(workspace.target, "approval-state.json"),
+                  "utf8",
+                ),
+              );
+              await client.callTool({
+                name: "kb_search",
+                arguments: { query: "library" },
+              });
+              await client.callTool({
+                name: "kb_query",
+                arguments: { type: "req" },
+              });
+              const preview = await client.callTool({
+                name: "kb_plan_bootstrap",
+                arguments: {
+                  bootstrapContext: approval.bootstrapContext,
+                  ...approval.plannerOptions,
+                },
+              });
+              const plan = (
+                preview.structuredContent as {
+                  data: { plan: Record<string, unknown> };
+                }
+              ).data.plan;
+              expect(plan.status).toBe("ready");
+              const requirements = (
+                plan.candidates as {
+                  entityType: string;
+                  title: string;
+                  sourceKind: string;
+                }[]
+              ).filter((candidate) => candidate.entityType === "req");
+              expect(requirements).toHaveLength(1);
+              expect(requirements[0]).toMatchObject({
+                title: "Loans must retain a due date.",
+                sourceKind: "intent_claim",
+              });
+              const applied = await client.callTool({
+                name: "kb_apply_plan",
+                arguments: { plan, approvedPlanHash: plan.planHash },
+              });
+              expect(applied.structuredContent).toMatchObject({
+                status: "success",
+              });
+              const readback = await client.callTool({
+                name: "kb_query",
+                arguments: { type: "req" },
+              });
+              const entities = (
+                readback.structuredContent as { data: { entities: unknown[] } }
+              ).data.entities;
+              expect(entities).toHaveLength(1);
+              expect(entities[0]).toMatchObject({
+                title: "Loans must retain a due date.",
+                text_ref: "library-policy:loan-due-date",
+              });
+              const checked = await client.callTool({
+                name: "kb_check",
+                arguments: {},
+              });
+              expect(checked.structuredContent).toMatchObject({
+                status: "success",
+                data: { count: 0 },
+              });
+              const status = await client.callTool({
+                name: "kb_status",
+                arguments: {},
+              });
+              expect(status.structuredContent).toMatchObject({
+                status: "success",
+                data: { syncState: "fresh" },
+              });
+            }
             verified = true;
           } finally {
             await client.close();

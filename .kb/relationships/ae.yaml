@@ -314,17 +314,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-020542d8a20c
-  - type: implements
-    from: SYM-skillopt-runtime-transcript-evidence-transcriptordering-16c4c253
-    to: REQ-skillopt-codex-optimization
-    created_at: 2026-10-05T12:25:51.233Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3bc636b7f98e
-  - type: covered_by
-    from: SYM-skillopt-runtime-transcript-evidence-transcriptordering-16c4c253
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-10-05T12:25:51.250Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9df91abf807e

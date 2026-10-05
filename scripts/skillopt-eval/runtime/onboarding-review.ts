@@ -32,7 +32,9 @@ export function onboardingReviewMatches(
 ): boolean {
   try {
     const blocks = [
-      ...answer.matchAll(/```bootstrap-review\s*\n([\s\S]*?)```/g),
+      ...answer.matchAll(
+        /```(?:bootstrap-review|json)[ \t]*\r?\n([\s\S]*?)```/g,
+      ),
     ];
     if (blocks.length !== 1 || evidenceText === undefined) return false;
     const raw: unknown = JSON.parse(evidenceText);
