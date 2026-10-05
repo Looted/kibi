@@ -27,17 +27,17 @@ id: TEST-e2e-skillopt-claude-code-host
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v1
-    receipt_id: PR-fdc7ced7cc011ac368dae46a
+    receipt_id: PR-81e5de2e45cf7d89527646ed
     test_id: TEST-e2e-skillopt-claude-code-host
     scope: end_to_end
     outcome: passed
-    code_snapshot: 69e9e1730f3d0d8ec61da714725eb4396f298386aec2729d3bc44e36c2336b10
+    code_snapshot: baae7f6c1a25b642600fea853ea02a65b9b7cda206dca9c223fb3a81b6f52c2c
     environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-05T22:07:27.235Z'
-    finished_at: '2026-10-05T22:07:35.892Z'
-    artifact_digest: 2c214b6c7a8607c8d494a746090ced2d976c26fdd6320afd096dd68049356508
+    started_at: '2026-10-05T23:50:25.356Z'
+    finished_at: '2026-10-05T23:50:33.004Z'
+    artifact_digest: e702cc63035ca842121bca4efbfb68ab0688420359ac4ddd7aab30892b81965e
     contract_hash: 02cdbc61eab27f0b1203de8a66cbc91c48c20ebdba40e826e70b19d8fb2e5133
-    binding_hash: 824bb8d4c48a76dc7d586f2710e8d2fe40449a57e243f2e3f2c4fe4341355a60
+    binding_hash: ea9a8c478a3b5185f7347e79473861c26bea782679568b648379f70fd598a04b
     fingerprint: edc50f34845b35fae0302426ae504ffff6e362237aabdce36718803cd4b1017d
     fingerprint_components:
       contract: 02cdbc61eab27f0b1203de8a66cbc91c48c20ebdba40e826e70b19d8fb2e5133

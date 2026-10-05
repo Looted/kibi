@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 159,
-  "proofProven": 159,
+  "currentRequirements": 160,
+  "proofProven": 160,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -797,6 +797,11 @@
       "uncoveredSymbols": []
     },
     "REQ-skillopt-claude-code-host": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-skillopt-operator-selected-harness": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []

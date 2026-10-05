@@ -50025,7 +50025,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      ref: "Piotr thread 2026-10-05: supersede the Codex-only rule; support different harnesses and run what the operator asks"
+      ref: 'Piotr thread 2026-10-05: supersede the Codex-only rule; support different harnesses and run what the operator asks'
       recorded_at: 2026-10-05T23:49:05.551Z
     relationships:
       - type: covered_by
