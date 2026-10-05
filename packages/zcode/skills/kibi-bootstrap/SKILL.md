@@ -4,7 +4,7 @@ description: Bootstrap Kibi from the current Git checkout and the project's exis
 license: AGPL-3.0-or-later
 metadata:
   id: kibi-bootstrap
-  version: 3.1.0
+  version: 3.1.1
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -89,6 +89,11 @@ Finish with `kb_check` and `kb_status`.
 Consume the versioned `kibiProtocol: 1` result envelope: inspect `status`, `effects`,
 `diagnostics`, and `nextActions`. On `committed_with_repairs`, execute required
 repair actions and never retry the original mutation.
+On `BOOTSTRAP_PLAN_INVALID`, obtain a corrected preview and approval before
+applying. On `BOOTSTRAP_PLAN_REJECTED`, inspect committed `data.actionResults`
+and re-plan from the current state; the journal is terminal and cannot recover.
+Review `suppressedCandidates`, `sourceOnlySignals`, and diagnostics for invalid,
+ungroundable, unreadable, or over-limit candidates before approving a plan.
 
 Kibi may author tracked Markdown/YAML/manifests and relationship shards
 transactionally, but never Git-stages or commits them. Never read or edit

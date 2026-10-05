@@ -37,6 +37,7 @@ import {
   bootstrapEmptyKbSnapshotId,
   bootstrapPlanHash,
 } from "../bootstrap/types.js";
+import { validateBootstrapPayload } from "../bootstrap/validation.js";
 import {
   SCHEMA6_AUTOMATIC_CODES,
   applySchema6MigrationAction,
@@ -358,6 +359,45 @@ function validateBootstrapPlanShape(
   if (!Array.isArray(plan.actions) || plan.actions.length === 0)
     throw new Error("Bootstrap apply failed: ready plans must contain actions");
   return orderBootstrapActions(plan.actions);
+}
+
+// implements REQ-KIBI-BOOTSTRAP-PLAN
+function preflightBootstrapActions(
+  actions: readonly BootstrapAction[],
+  context: OperationContext,
+): void {
+  for (const action of actions) {
+    try {
+      const input = validateBootstrapPayload(action.payload, context.clock());
+      if (input.document?.path !== undefined)
+        canonicalSourcePath(context, input, {
+          id: input.id,
+          ...input.properties,
+        });
+    } catch (error) {
+      throw new OperationError(
+        "BOOTSTRAP_PLAN_INVALID",
+        `Bootstrap action ${action.id} is invalid: ${error instanceof Error ? error.message : String(error)}. Re-plan before applying; no bootstrap writes or journal were created.`,
+        false,
+      );
+    }
+  }
+}
+
+// implements REQ-KIBI-BOOTSTRAP-PLAN
+function isDeterministicBootstrapFailure(error: unknown): boolean {
+  const detail = error instanceof Error ? error.message : String(error);
+  return (
+    /(?:Entity|Relationship) validation failed|Proposition-complete ingestion failed|Contradiction detected for requirement|(?:'type' and 'id' are required|unsupported step entity type|every step needs an entity id)/i.test(
+      detail,
+    ) ||
+    (error instanceof OperationError &&
+      [
+        "BOOTSTRAP_PLAN_INVALID",
+        "SOURCE_PATH_INVALID",
+        "DOCUMENT_PATH_REQUIRED",
+      ].includes(error.code))
+  );
 }
 
 function isEntityDeletionApplyArgs(
@@ -1042,6 +1082,7 @@ async function executeBootstrapPlan(
   const actions = recovery
     ? [...(remainingActions ?? args.plan.actions)]
     : validateBootstrapPlanShape(args);
+  preflightBootstrapActions(actions, context);
   const prolog = context.prolog ?? (await context.ensureProlog?.());
   if (!prolog) throw new Error("Bootstrap apply requires a Prolog runtime");
   const operationContext = { ...context, prolog, sourceFirst: true as const };
@@ -1133,7 +1174,7 @@ async function executeBootstrapPlan(
   const initialCheckpoint = await checkpoint();
   let lastCheckpoint = initialCheckpoint;
   const writeJournal = async (
-    state: "applying" | "committed" | "repair_required",
+    state: "applying" | "committed" | "repair_required" | "rejected",
     activeActionId?: string,
     currentCheckpoint: BootstrapCheckpoint = lastCheckpoint,
   ) => {
@@ -1257,19 +1298,26 @@ async function executeBootstrapPlan(
         await writeJournal("applying", undefined, lastCheckpoint);
       } catch (error) {
         const detail = error instanceof Error ? error.message : String(error);
+        const deterministic = isDeterministicBootstrapFailure(error);
         results.push({ actionId: action.id, outcome: "failed", detail });
-        failures.push({ actionId: action.id, detail });
-        await writeJournal("repair_required", activeActionId, lastCheckpoint);
+        failures.push({ actionId: action.id, detail, deterministic });
+        await writeJournal(
+          deterministic ? "rejected" : "repair_required",
+          activeActionId,
+          lastCheckpoint,
+        );
         return {
           content: [
             {
               type: "text",
-              text: `Bootstrap plan ${args.plan.planHash.slice(0, 12)} partially applied; repair journal ${journalId}.`,
+              text: deterministic
+                ? `Bootstrap plan rejected at ${action.id}: ${detail}. ${results.filter((row) => row.outcome === "applied").length} action(s) committed; re-plan from the current state.`
+                : `Bootstrap plan ${args.plan.planHash.slice(0, 12)} partially applied; repair journal ${journalId}.`,
             },
           ],
           structuredContent: {
             version: PLAN_APPLY_RESULT_VERSION,
-            outcome: "partially_applied",
+            outcome: deterministic ? "rejected" : "partially_applied",
             planHash: args.plan.planHash,
             actionResults: results,
             changedEntities,
@@ -1288,17 +1336,24 @@ async function executeBootstrapPlan(
               sourceHashesChecked: Object.keys(args.plan.expected.sourceHashes)
                 .length,
               notes: [
-                "Bootstrap application stopped at a repairable action failure.",
+                deterministic
+                  ? "Bootstrap stopped at a deterministic action failure; the journal is terminal. Re-plan from the current state."
+                  : "Bootstrap application stopped at a repairable action failure.",
               ],
             },
-            status: "committed_with_repairs",
+            status: deterministic ? "rejected" : "committed_with_repairs",
             effectFailures: failures,
             nextActions: [
               {
-                operation: "kb_apply_plan",
-                input: { recoveryJournalId: journalId },
-                reason:
-                  "Resume the remaining bootstrap actions from the immutable recovery journal; do not retry the original plan.",
+                operation: deterministic
+                  ? "kb_plan_bootstrap"
+                  : "kb_apply_plan",
+                ...(deterministic
+                  ? {}
+                  : { input: { recoveryJournalId: journalId } }),
+                reason: deterministic
+                  ? "Re-plan a corrected bootstrap from the current state; this journal cannot be replayed."
+                  : "Resume the remaining bootstrap actions from the immutable recovery journal; do not retry the original plan.",
                 required: true,
               },
             ],
@@ -1453,6 +1508,7 @@ async function dispatchApplyPlan(
         `${args.recoveryJournalId}.json`,
       );
       const journal = JSON.parse(await context.fs.readFile(journalPath)) as {
+        state?: string;
         version?: number;
         kind?: string;
         plan?: BootstrapPlanV1;
@@ -1473,6 +1529,19 @@ async function dispatchApplyPlan(
         !journal.plan
       )
         throw new Error("Bootstrap recovery journal is invalid");
+      if (
+        journal.state === "rejected" ||
+        (journal.results ?? []).some(
+          (row) =>
+            row.outcome === "failed" &&
+            isDeterministicBootstrapFailure(new Error(String(row.detail))),
+        )
+      )
+        throw new OperationError(
+          "BOOTSTRAP_PLAN_REJECTED",
+          "Bootstrap recovery refused: deterministic failure is terminal; re-plan from the current state.",
+          false,
+        );
       if (
         !/^[a-f0-9]{64}$/i.test(journal.plan.planHash) ||
         bootstrapPlanHash(
@@ -2567,6 +2636,8 @@ export async function executeApplyPlan(
   content: Array<{ type: "text"; text: string }>;
   structuredContent: ApplyPlanResult;
 }> {
+  if (isBootstrapApplyArgs(args))
+    preflightBootstrapActions(validateBootstrapPlanShape(args), context);
   if (!context.fs || context.sourceMutationLockHeld === true)
     return executeApplyPlanUnlocked(args, context);
   const lock: WorkspaceMutationLockHandle = await acquireWorkspaceMutationLock(

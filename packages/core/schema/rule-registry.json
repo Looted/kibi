@@ -193,7 +193,7 @@
     {
       "name": "strict-fact-shape",
       "description": "Detect malformed strict facts (facts with fact_kind that are missing required fields)",
-      "enforcementClass": "advisory",
+      "enforcementClass": "canonical",
       "category": "integrity",
       "implementation": "prolog",
       "prologPredicate": "check_strict_fact_shape",

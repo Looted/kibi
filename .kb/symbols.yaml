@@ -875,6 +875,8 @@ symbols:
       - type: implements
         target: REQ-agent-guided-migration-orchestration
       - type: implements
+        target: REQ-bootstrap-write-safety
+      - type: implements
         target: REQ-cli-canonical-runtime
       - type: implements
         target: REQ-KIBI-BOOTSTRAP-PLAN
@@ -10885,8 +10887,12 @@ symbols:
         target: TEST-cli-config-schema
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-schema6-migration-cli
       - type: implements
         target: REQ-011
+      - type: implements
+        target: REQ-kibi-schema6-migration-v2
   - id: SYM-mirrorSkillsDir
     title: mirrorSkillsDir
     sourceFile: scripts/sync-agent-skills.ts
@@ -47623,6 +47629,8 @@ symbols:
         target: TEST-kibi-schema6-migration-cli
       - type: implements
         target: REQ-kibi-schema6-migration
+      - type: implements
+        target: REQ-kibi-schema6-migration-v2
   - id: SYM-semantic-advisor-detectConditionalRule
     title: detectConditionalRule
     status: active
@@ -48242,3 +48250,293 @@ symbols:
         target: TEST-kibi-kb-lifecycle-integrity
       - type: implements
         target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-bootstrap-validate-payload
+    title: validateBootstrapPayload
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/validation.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T16:20:13.430Z
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-bootstrap-write-safety
+  - id: SYM-bootstrap-normalize-claim
+    title: normalizeClaimStatement
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/requirement-claims.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T16:21:57.047Z
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-bootstrap-write-safety
+  - id: SYM-migrate-polarity-values-plan
+    title: planPolarityValueBackfill
+    status: active
+    sourceFile: packages/cli/src/operations/migration/polarity-values.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T16:22:10.507Z
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-bootstrap-write-safety
+      - type: implements
+        target: REQ-cli-schema-migration
+  - id: SYM-migrate-polarity-values-apply
+    title: applyPolarityValueBackfill
+    status: active
+    sourceFile: packages/cli/src/operations/migration/polarity-values.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T16:22:24.247Z
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-bootstrap-write-safety
+      - type: implements
+        target: REQ-cli-schema-migration
+  - id: SYM-migrate-polarity-backfill-code
+    title: POLARITY_VALUE_BACKFILL_CODE
+    status: active
+    sourceFile: packages/cli/src/operations/migration/polarity-values.ts
+    symbol_role: config
+    granularity_reason: config-artifact
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T16:24:00.280Z
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-bootstrap-write-safety
+  - id: SYM-migration-unapproved-exceptions-from-sources
+    title: unapprovedExceptionsFromSources
+    status: active
+    sourceFile: packages/cli/src/operations/migration/schema6.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T17:24:31.341Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-schema6-migration-cli
+      - type: implements
+        target: REQ-cli-schema-migration
+  - id: SYM-migration-build-lifecycle-repair-actions
+    title: buildLifecycleRepairActions
+    status: active
+    sourceFile: packages/cli/src/operations/migration/schema6.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T17:24:51.212Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-schema6-migration-cli
+      - type: implements
+        target: REQ-cli-schema-migration
+  - id: SYM-migration-migration-sync-action
+    title: migrationSyncAction
+    status: active
+    sourceFile: packages/cli/src/operations/migration/schema6.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T17:25:21.522Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-schema6-migration-cli
+      - type: implements
+        target: REQ-cli-schema-migration
+  - id: SYM-migration-apply-schema6-migration-action
+    title: applySchema6MigrationAction
+    status: active
+    sourceFile: packages/cli/src/operations/migration/schema6.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T17:25:50.906Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-schema6-migration-cli
+      - type: implements
+        target: REQ-cli-schema-migration
+  - id: SYM-migration-schema6-migration-fragment
+    title: Schema6MigrationFragment
+    status: active
+    sourceFile: packages/cli/src/operations/migration/schema6.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T17:26:29.988Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migrate
+      - type: implements
+        target: REQ-cli-schema-migration
+  - id: SYM-migration-origin-schema-version
+    title: ORIGIN_SCHEMA_VERSION
+    status: active
+    sourceFile: packages/cli/src/operations/migration/schema6.ts
+    symbol_role: config
+    granularity_reason: config-artifact
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T17:26:59.442Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migrate
+      - type: implements
+        target: REQ-cli-schema-migration
+  - id: SYM-migration-semantic-inventory-rederive-code
+    title: SEMANTIC_INVENTORY_REDERIVE_CODE
+    status: active
+    sourceFile: packages/cli/src/operations/migration/schema6.ts
+    symbol_role: config
+    granularity_reason: config-artifact
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T17:27:26.638Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migrate
+      - type: implements
+        target: REQ-cli-schema-migration
+  - id: SYM-migration-semantic-inventory-review-code
+    title: SEMANTIC_INVENTORY_REVIEW_CODE
+    status: active
+    sourceFile: packages/cli/src/operations/migration/schema6.ts
+    symbol_role: config
+    granularity_reason: config-artifact
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T17:27:56.847Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migrate
+      - type: implements
+        target: REQ-cli-schema-migration
+  - id: SYM-migration-entity-origin-backfill-code
+    title: ENTITY_ORIGIN_BACKFILL_CODE
+    status: active
+    sourceFile: packages/cli/src/operations/migration/schema6.ts
+    symbol_role: config
+    granularity_reason: config-artifact
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T17:28:22.574Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migrate
+      - type: implements
+        target: REQ-cli-schema-migration
+  - id: SYM-migration-entity-origin-backfill-action-id
+    title: ENTITY_ORIGIN_BACKFILL_ACTION_ID
+    status: active
+    sourceFile: packages/cli/src/operations/migration/schema6.ts
+    symbol_role: config
+    granularity_reason: config-artifact
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T17:28:42.448Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migrate
+      - type: implements
+        target: REQ-cli-schema-migration
+  - id: SYM-migration-schema6-automatic-codes
+    title: SCHEMA6_AUTOMATIC_CODES
+    status: active
+    sourceFile: packages/cli/src/operations/migration/schema6.ts
+    symbol_role: config
+    granularity_reason: config-artifact
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T17:29:12.722Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migrate
+      - type: implements
+        target: REQ-cli-schema-migration
+  - id: SYM-migrate-command-format-schema-version
+    title: formatSchemaVersion
+    status: active
+    sourceFile: packages/cli/src/commands/migrate.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T17:29:31.519Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-schema6-migration-cli
+      - type: implements
+        target: REQ-cli-schema-migration
+  - id: SYM-migrate-command-warn-migration-required-without-yes
+    title: warnMigrationRequiredWithoutYes
+    status: active
+    sourceFile: packages/cli/src/commands/migrate.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T17:30:08.824Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-schema6-migration-cli
+      - type: implements
+        target: REQ-cli-schema-migration
+  - id: SYM-plan-apply-plan-apply-recovered-journal
+    title: PlanApplyRecoveredJournal
+    status: active
+    sourceFile: packages/cli/src/operations/planning/apply-plan-types.d.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T17:30:41.163Z
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-bootstrap-write-safety
+  - id: SYM-plan-apply-bootstrap-action-result
+    title: BootstrapActionResult
+    status: active
+    sourceFile: packages/cli/src/operations/planning/apply-plan-types.d.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T17:31:02.185Z
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-bootstrap-write-safety
+  - id: SYM-test-cli-unit-batches
+    title: createCliUnitBatches
+    status: active
+    sourceFile: test/root.test.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T17:42:45.683Z
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-root-batch-diagnostics
+      - type: covered_by
+        target: TEST-root-suite-batch-diagnostics
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
+      - type: implements
+        target: REQ-root-suite-batch-diagnostics
+      - type: implements
+        target: REQ-test-journaled-engine-harness

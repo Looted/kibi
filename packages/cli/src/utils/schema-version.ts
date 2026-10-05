@@ -17,8 +17,8 @@
  */
 
 // implements REQ-003
-// Schema 6 adds entity `origin` provenance; see commands/migrate.ts.
-export const LATEST_KB_SCHEMA_VERSION = 6;
+// Schema 7 requires strict fact shapes and encodes legacy polarity values.
+export const LATEST_KB_SCHEMA_VERSION = 7;
 
 export interface SchemaVersionStatus {
   status: "missing" | "invalid" | "older" | "current" | "newer";

@@ -213,3 +213,108 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3092a27916ea
+  - type: constrains
+    from: REQ-bootstrap-write-safety
+    to: FACT-bootstrap-write-safety-subject
+    created_at: 2026-10-04T16:04:33.010Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-90e5ee3c8e29
+  - type: specified_by
+    from: REQ-bootstrap-write-safety
+    to: SCEN-bootstrap-write-safety
+    created_at: 2026-10-04T16:04:33.103Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b9a0b9abb7f3
+  - type: verified_by
+    from: REQ-bootstrap-write-safety
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-10-04T16:04:33.133Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4e42eac5ef87
+  - type: restates
+    from: REQ-bootstrap-write-safety
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-10-04T16:04:33.176Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-186768d17cf4
+  - type: requires_property
+    from: REQ-bootstrap-write-safety
+    to: FACT-bootstrap-write-safety-candidate-validation
+    created_at: 2026-10-04T16:04:33.199Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e6d750de0eca
+  - type: requires_property
+    from: REQ-bootstrap-write-safety
+    to: FACT-bootstrap-write-safety-ungrounded-followups
+    created_at: 2026-10-04T16:04:33.248Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-86d7b052083c
+  - type: requires_property
+    from: REQ-bootstrap-write-safety
+    to: FACT-bootstrap-write-safety-apply-preflight
+    created_at: 2026-10-04T16:04:33.265Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb4119bf3b5e
+  - type: requires_property
+    from: REQ-bootstrap-write-safety
+    to: FACT-bootstrap-write-safety-terminal-failures
+    created_at: 2026-10-04T16:04:33.277Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-739a4c7930ee
+  - type: requires_property
+    from: REQ-bootstrap-write-safety
+    to: FACT-bootstrap-write-safety-terminal-recovery
+    created_at: 2026-10-04T16:04:33.289Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8ac4691eaeab
+  - type: requires_property
+    from: REQ-bootstrap-write-safety
+    to: FACT-bootstrap-write-safety-task-extraction
+    created_at: 2026-10-04T16:04:33.310Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a2fb21620260
+  - type: requires_property
+    from: REQ-bootstrap-write-safety
+    to: FACT-bootstrap-write-safety-intent-priority
+    created_at: 2026-10-04T16:04:33.325Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1770a6095f3b
+  - type: requires_property
+    from: REQ-bootstrap-write-safety
+    to: FACT-bootstrap-write-safety-candidate-accounting
+    created_at: 2026-10-04T16:04:33.343Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-16995f342633
+  - type: requires_property
+    from: REQ-bootstrap-write-safety
+    to: FACT-bootstrap-write-safety-binding-failures
+    created_at: 2026-10-04T16:04:33.367Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b71e3430d988
+  - type: requires_property
+    from: REQ-bootstrap-write-safety
+    to: FACT-bootstrap-write-safety-polarity-migration
+    created_at: 2026-10-04T16:04:33.390Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-447da6c66d2f
+  - type: requires_property
+    from: REQ-bootstrap-write-safety
+    to: FACT-bootstrap-write-safety-strict-fact-check
+    created_at: 2026-10-04T16:04:33.406Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b8c56c49745e

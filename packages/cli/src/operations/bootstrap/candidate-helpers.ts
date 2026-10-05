@@ -1,4 +1,6 @@
 import type { StrictWriteSet } from "../../utils/strict-modeling.js";
+import { annotateModelRequirementStep } from "../modeling/model-requirement.js";
+import { semanticClaimKey } from "../semantic-advisor/clauses.js";
 
 export function confidenceBand(value: number): string {
   return value >= 0.9 ? "high" : value >= 0.8 ? "medium" : "low";
@@ -44,6 +46,7 @@ export function strictPlan(
       },
     ];
   }
+  const claimKey = semanticClaimKey(writeSet.req.properties.title);
   return [
     {
       type: "fact",
@@ -67,5 +70,11 @@ export function strictPlan(
         to,
       })),
     },
-  ];
+  ].map((step) =>
+    annotateModelRequirementStep(step, {
+      claimKey,
+      statement: writeSet.req.properties.title,
+      logicClaims: [claimKey],
+    }),
+  );
 }

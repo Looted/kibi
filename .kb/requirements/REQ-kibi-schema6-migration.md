@@ -1,6 +1,6 @@
 ---
 title: kibi migrate upgrades a KB to schema 6 with origin backfill and grounding-preserving inventory re-derivation
-status: open
+status: closed
 priority: must
 tags:
   - migration

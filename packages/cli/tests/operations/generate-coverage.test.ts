@@ -37,7 +37,13 @@ function candidate(overrides: Partial<Candidate> = {}): Candidate {
     confidenceBand: "high",
     evidence: [],
     relationships: [],
-    applyPlan: [{ id: "REQ-A", properties: { id: "REQ-A" } }],
+    applyPlan: [
+      {
+        type: "req",
+        id: "REQ-A",
+        properties: { id: "REQ-A", title: "Retention", status: "open" },
+      },
+    ],
     ...overrides,
   };
 }
@@ -77,7 +83,13 @@ describe("selectBootstrapCandidates", () => {
       candidateId: "cand-generic",
       sourceKind: "generic_markdown",
       sourcePath: "docs/generic.md",
-      applyPlan: [{ id: "REQ-GENERIC" }],
+      applyPlan: [
+        {
+          type: "req",
+          id: "REQ-GENERIC",
+          properties: { title: "Retention", status: "open" },
+        },
+      ],
     });
     const existing = candidate({
       candidateId: "cand-exist",
@@ -89,7 +101,13 @@ describe("selectBootstrapCandidates", () => {
       candidateId: "cand-dup",
       sourcePath: "docs/b.md",
       confidence: 0.95,
-      applyPlan: [{ id: "REQ-B" }],
+      applyPlan: [
+        {
+          type: "req",
+          id: "REQ-B",
+          properties: { title: "Retention", status: "open" },
+        },
+      ],
     });
     const noId = candidate({
       candidateId: "cand-empty",
@@ -104,13 +122,13 @@ describe("selectBootstrapCandidates", () => {
     );
     expect(selected.candidates.map((row) => row.candidateId)).toEqual([
       "cand-dup",
-      "cand-empty",
     ]);
     expect(selected.suppressed.map((row) => row.reason)).toEqual(
       expect.arrayContaining([
         "entity_exists",
         "shadowed_by_typed_source",
         "duplicate_title",
+        "invalid_write",
       ]),
     );
 
@@ -134,13 +152,25 @@ describe("selectBootstrapCandidates", () => {
       candidateId: "first",
       sourcePath: "docs/a.md",
       confidence: 0.8,
-      applyPlan: [{ id: "REQ-1" }],
+      applyPlan: [
+        {
+          type: "req",
+          id: "REQ-1",
+          properties: { title: "Retention", status: "open" },
+        },
+      ],
     });
     const second = candidate({
       candidateId: "second",
       sourcePath: "docs/z.md",
       confidence: 0.8,
-      applyPlan: [{ id: "REQ-2" }],
+      applyPlan: [
+        {
+          type: "req",
+          id: "REQ-2",
+          properties: { title: "Retention", status: "open" },
+        },
+      ],
     });
     const selected = selectBootstrapCandidates(
       [second, first],

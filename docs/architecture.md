@@ -81,7 +81,7 @@ graph TD
 - `packages/opencode/` (OpenCode) adds prompt guidance and background sync alongside the configured `kibi-mcp` server
 - Each package README lists exactly what its hooks emit
 
-> **Entity Modeling:** `flag` entities represent runtime/config gates. Bug and workaround notes belong in `fact` entities with `fact_kind: observation` or `meta`. **Strict facts** drive contradiction checks; observation/meta are non-blocking notes. See [Entity Schema](entity-schema.md). `domain-contradictions` applies to strict lane; `strict-fact-shape` is an advisory default-on quality diagnostic.
+> **Entity Modeling:** `flag` entities represent runtime/config gates. Bug and workaround notes belong in `fact` entities with `fact_kind: observation` or `meta`. **Strict facts** drive contradiction checks; observation/meta are non-blocking notes. See [Entity Schema](entity-schema.md). `domain-contradictions` applies to strict lane; `strict-fact-shape` is a canonical blocking check as of schema 7.
 ### VS Code Extension
 - Located at `packages/vscode/`
 - Explorer tree of requirements, scenarios, tests, decisions, flags, events, and symbols from the workspace knowledge base

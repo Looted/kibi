@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 157,
-  "proofProven": 157,
+  "currentRequirements": 158,
+  "proofProven": 158,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -771,7 +771,7 @@
       "gaps": [],
       "uncoveredSymbols": []
     },
-    "REQ-kibi-schema6-migration": {
+    "REQ-kibi-schema6-migration-v2": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []
@@ -787,6 +787,11 @@
       "uncoveredSymbols": []
     },
     "REQ-kibi-telemetry-acceptance-gate-v2": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-bootstrap-write-safety": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []

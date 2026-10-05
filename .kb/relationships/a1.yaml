@@ -300,3 +300,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8483fcd18d3b
+  - type: implements
+    from: SYM-kibi-cli-src-operations-planning-apply-plan-ts-executeapplyplan
+    to: REQ-bootstrap-write-safety
+    created_at: 2026-10-04T16:24:20.314Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-554d748ecb57
+  - type: implements
+    from: SYM-migration-origin-schema-version
+    to: REQ-cli-schema-migration
+    created_at: 2026-10-04T17:27:05.710Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9ade1f399768
+  - type: covered_by
+    from: SYM-migration-origin-schema-version
+    to: TEST-cli-migrate
+    created_at: 2026-10-04T17:45:59.416Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6d8ebd137bef

@@ -167,6 +167,13 @@ const SCHEMA_MIGRATION_STEPS: readonly SchemaMigrationStep[] = [
     description:
       "Record origin {kind: migration} on authored entities written before schema 6, close superseded requirements, and repair authored source fields (point moved knowledge files at .kb/, remove redundant and dead values).",
   },
+  {
+    id: "polarity-values-v7",
+    from: 6,
+    to: 7,
+    description:
+      "Encode legacy polarity-only property facts as eq boolean true with require/forbid polarity; strict fact shapes are blocking.",
+  },
 ];
 
 function migrationStepsFor(
@@ -707,11 +714,17 @@ export async function migrateCommand(
   }
 
   if (!needsStorageMigration && !needsSchemaUpgrade) {
+    const { planPolarityValueBackfill, applyPolarityValueBackfill } =
+      await import("../operations/migration/polarity-values.js");
+    const polarityCount = options.dryRun
+      ? planPolarityValueBackfill(cwd).length
+      : applyPolarityValueBackfill(cwd);
     // An advisor change can make stored inventories drift at any version,
     // and lifecycle findings block kibi check at any version.
     const drift = rederiveDriftedInventories(cwd, options.dryRun === true);
     const lifecycle = repairLifecycleFindings(cwd, options.dryRun === true);
     const rewroteSources =
+      polarityCount > 0 ||
       drift.rederived.length > 0 ||
       lifecycle.closed > 0 ||
       lifecycle.rewritten > 0 ||
@@ -754,8 +767,15 @@ export async function migrateCommand(
   const originBackfillStep = migrationSteps.some(
     (step) => step.id === "entity-origin-v6",
   );
+  const { planPolarityValueBackfill, applyPolarityValueBackfill } =
+    await import("../operations/migration/polarity-values.js");
+  const polarityBackfill = planPolarityValueBackfill(cwd);
 
   if (options.dryRun) {
+    if (polarityBackfill.length > 0)
+      console.log(
+        `dry run: would encode ${polarityBackfill.length} legacy polarity-only fact(s) as typed booleans.`,
+      );
     if (storagePlan.moves.length > 0) {
       console.log(
         `dry run: would move ${storagePlan.moves.length} legacy knowledge file(s) into .kb/:`,
@@ -835,7 +855,12 @@ export async function migrateCommand(
       : "not_applicable");
 
   const migratedAt = new Date().toISOString();
-  // Source rewrites run before the manifest records schema 6, so an
+  const polarityValuesRewritten = applyPolarityValueBackfill(cwd);
+  if (polarityValuesRewritten > 0)
+    console.log(
+      `Encoded ${polarityValuesRewritten} legacy polarity-only fact(s) as typed booleans.`,
+    );
+  // Source rewrites run before the manifest records the new schema, so an
   // interrupted run is retried by the next 'kibi migrate --yes'; both are
   // idempotent.
   const originBackfill = originBackfillStep
