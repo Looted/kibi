@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 158,
-  "proofProven": 158,
+  "currentRequirements": 159,
+  "proofProven": 159,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -792,6 +792,11 @@
       "uncoveredSymbols": []
     },
     "REQ-bootstrap-write-safety": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-skillopt-claude-code-host": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []
