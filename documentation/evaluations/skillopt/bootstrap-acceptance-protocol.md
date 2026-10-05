@@ -22,6 +22,41 @@ Keep the evaluator's ledger outside the target workspace. The agent gets only th
 
 ## Observable milestones
 
+### Scripted operator in public SkillOpt cells
+
+The public train/development `bootstrap-analysis`, `bounded-context-questions`
+and `approval-plan-apply` families expose `skillopt_ask_user` through the trusted
+MCP broker. The agent asks a context, clarification or approval question, receives
+a deterministic operator answer, and continues in the same Codex session. Four
+exchanges are available; unknown clarifications remain unknown. This exercises
+tool-mediated dialogue, not the desktop's native question UI or a general human
+simulator. Held-out, repair and source-review cases retain their existing flow.
+
+Both skill variants receive a user-style Markdown link to the same fictional
+document on disk, `documentation/library-policy.md`, and its source authority.
+The operator response contains no extracted claims or planner payload: the agent
+must open the file, interpret its content and author its own cited claims.
+Answers and approval policy are host-owned, outside the target mount; they contain
+no scoring rubric, obligation ledger or evaluation feedback. The broker records
+questions and answers in its hash-chained trace. Citations point to the supplied
+Markdown document. Native regressions read that actual file before constructing
+the preview, using agent-chosen source IDs and project summary.
+User exchanges are excluded from
+Kibi tool ordering and Kibi diagnostic reconciliation, and add no model invocation.
+
+Read-only cases refuse writes. The apply case starts without delegated approval:
+the operator may approve only a ready preview actually returned by Kibi, with the
+single supplied obligation and repository observations. Approval binds the whole
+unchanged plan and its canonical hash, is consumed by one apply attempt, and is
+invalidated by replanning. An unapproved write is blocked before forwarding and
+recorded as a security violation. Report dialogue exhaustion, refusal, unknown
+context and any unauthorized attempt separately from product failures.
+
+Freeze the new corpus/runtime hashes before another paired run. Previous
+single-prompt scores are not directly comparable: asking a legitimate question
+previously ended the episode without an operator response. Offline regressions
+establish the dialogue plumbing and approval boundary, not model performance.
+
 1. Intake: use context already supplied; ask only questions needed to establish purpose, source authority and priority scope. Record unavailable sources without inventing access.
 2. Extraction: account for every source obligation, preserve qualifiers and citations, expose conflicts, and exclude instructions/examples from product policy.
 3. Preview: compare submitted, selected, suppressed and unresolved intent per source and product area. Detect whole-source omissions, candidate-cap truncation and invalid-write diagnostics. A ready plan is not a completeness verdict.

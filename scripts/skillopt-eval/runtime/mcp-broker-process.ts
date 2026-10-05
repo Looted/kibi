@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import { readFile } from "node:fs/promises";
 import { createInterface } from "node:readline";
 import type { Readable, Writable } from "node:stream";
 import {
@@ -14,6 +15,12 @@ import {
   REQUIRED_KIBI_TOOLS,
   filterAdvertisedTools,
 } from "./mcp-broker";
+import { toolCallArguments } from "./mcp-tool-names";
+import {
+  SCRIPTED_USER_TOOL,
+  ScriptedUser,
+  ScriptedUserProfileSchema,
+} from "./scripted-user";
 
 const REQUIRED_TOOL_NAMES = new Set<string>(REQUIRED_KIBI_TOOLS);
 
@@ -50,6 +57,8 @@ type PendingRequest = Readonly<{
   toolName?: string;
   startedAt: number;
   timer: NodeJS.Timeout;
+  args: Record<string, unknown>;
+  planGeneration?: number;
 }>;
 
 type BrokerIo = Readonly<{
@@ -67,6 +76,13 @@ export async function runMcpBroker(
     error: process.stderr,
   },
 ): Promise<void> {
+  let user: ScriptedUser | undefined;
+  if (options.scriptedUserPath !== undefined) {
+    const profile: unknown = JSON.parse(
+      await readFile(options.scriptedUserPath, "utf8"),
+    );
+    user = new ScriptedUser(ScriptedUserProfileSchema.parse(profile));
+  }
   const ownsGroup = process.env.KIBI_SKILLOPT_PROCESS_GROUP !== "python_bridge";
   const child = spawn(
     options.downstream.command,
@@ -158,6 +174,57 @@ export async function runMcpBroker(
       requestId: id,
       payload: message,
     });
+    const args = toolCallArguments(message);
+    if (
+      method === "tools/call" &&
+      user !== undefined &&
+      toolName !== undefined
+    ) {
+      if (toolName === SCRIPTED_USER_TOOL.name) {
+        const answer = user.answer(args);
+        const response = {
+          jsonrpc: "2.0",
+          id: id ?? null,
+          result: {
+            content: [{ type: "text", text: JSON.stringify(answer) }],
+            structuredContent: answer,
+          },
+        };
+        record({
+          correlationId,
+          direction: "broker",
+          kind: "response",
+          method,
+          toolName,
+          requestId: id,
+          payload: response,
+        });
+        io.output.write(`${JSON.stringify(response)}\n`);
+        return;
+      }
+      if (!user.permits(toolName, args)) {
+        const response = {
+          jsonrpc: "2.0",
+          id: id ?? null,
+          error: {
+            code: -32602,
+            message: "Fixture operator has not approved this exact write.",
+            data: { skilloptViolation: "forbidden_write" },
+          },
+        };
+        record({
+          correlationId,
+          direction: "broker",
+          kind: "error",
+          method,
+          toolName,
+          requestId: id,
+          payload: response,
+        });
+        io.output.write(`${JSON.stringify(response)}\n`);
+        return;
+      }
+    }
     if (
       method === "tools/call" &&
       (toolName === undefined || !REQUIRED_TOOL_NAMES.has(toolName))
@@ -193,6 +260,10 @@ export async function runMcpBroker(
         toolName,
         startedAt: performance.now(),
         timer,
+        args,
+        ...(toolName === "kb_plan_bootstrap" && user !== undefined
+          ? { planGeneration: user.beginPlan() }
+          : {}),
       });
     }
     child.stdin.write(`${line}\n`);
@@ -227,12 +298,24 @@ export async function runMcpBroker(
     let forwarded = message;
     if (matched?.method === "tools/list") {
       try {
-        forwarded = filterAdvertisedTools(message);
+        const filtered = filterAdvertisedTools(message);
+        forwarded = filtered;
+        if (user !== undefined) {
+          forwarded = {
+            ...filtered,
+            result: {
+              ...filtered.result,
+              tools: [...filtered.result.tools, SCRIPTED_USER_TOOL],
+            },
+          };
+        }
       } catch {
         fail(new McpBrokerError("startup"));
         return;
       }
     }
+    if (matched?.planGeneration !== undefined)
+      user?.observePlan(matched.args, message, matched.planGeneration);
     record({
       correlationId:
         matched?.correlationId ??

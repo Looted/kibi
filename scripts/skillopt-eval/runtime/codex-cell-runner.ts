@@ -12,6 +12,10 @@ import {
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { EpisodeRequestSchema } from "../contracts/episode";
+import {
+  bootstrapUserMode,
+  bootstrapUserProfile,
+} from "../fixtures/bootstrap-user";
 import { fixtureSymbolId, hashWorkspace } from "../fixtures/workspace";
 import { withHeldOutExecutionLease } from "../held-out-execution-lease";
 import { scoreCell } from "../scoring/cell";
@@ -308,6 +312,14 @@ export async function runCodexCell(
             { mode: 0o600, flag: "wx" },
           );
           await rm(setupDiagnosticPath);
+        }
+        const userMode = bootstrapUserMode(request.taskId);
+        if (userMode !== undefined) {
+          await writeFile(
+            join(workspace.privateEvidence, "scripted-user.json"),
+            JSON.stringify(bootstrapUserProfile(userMode)),
+            { mode: 0o600, flag: "wx" },
+          );
         }
         const broker = await dependencies.stageBroker(
           workspace,

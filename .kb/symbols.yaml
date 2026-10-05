@@ -49694,3 +49694,174 @@ symbols:
         target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-user-answer
+    title: ScriptedUser.answer
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/scripted-user.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T16:55:23.053Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-user-context
+    title: BOOTSTRAP_USER_CONTEXT
+    status: active
+    sourceFile: scripts/skillopt-eval/fixtures/bootstrap-user.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T16:55:30.454Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-user-instruction
+    title: bootstrapDialogueInstruction
+    status: active
+    sourceFile: scripts/skillopt-eval/fixtures/bootstrap-user.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T16:55:39.520Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-user-mode
+    title: bootstrapUserMode
+    status: active
+    sourceFile: scripts/skillopt-eval/fixtures/bootstrap-user.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T16:55:47.103Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-user-permission
+    title: ScriptedUser.permits
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/scripted-user.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T16:55:56.710Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-user-plan-generation
+    title: ScriptedUser.beginPlan
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/scripted-user.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T16:56:06.810Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-user-preview
+    title: ScriptedUser.observePlan
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/scripted-user.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T16:56:17.034Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-user-profile-schema
+    title: ScriptedUserProfileSchema
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/scripted-user.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T16:56:26.613Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-user-profile
+    title: bootstrapUserProfile
+    status: active
+    sourceFile: scripts/skillopt-eval/fixtures/bootstrap-user.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T16:56:35.436Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-user-tool
+    title: SCRIPTED_USER_TOOL
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/scripted-user.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T16:56:56.052Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-broker-terminate-group
+    title: terminateGroup
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/mcp-broker-process.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T17:22:00.839Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-bootstrap-acceptance-protocol
+    title: bootstrap-acceptance-protocol.md
+    status: active
+    sourceFile: documentation/evaluations/skillopt/bootstrap-acceptance-protocol.md
+    symbol_role: module
+    granularity_reason: module-level-behavior
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T17:24:19.769Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-user-state
+    title: ScriptedUser
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/scripted-user.ts
+    symbol_role: behavioral
+    granularity_reason: module-level-behavior
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T17:55:47.313Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization

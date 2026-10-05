@@ -874,6 +874,7 @@ function sealedBroker(brokerTrace: string) {
         receipt.direction === "target_to_server" &&
         receipt.kind === "request" &&
         receipt.method === "tools/call" &&
+        receipt.toolName !== "skillopt_ask_user" &&
         receipt.toolName !== undefined,
     )
     .map((receipt, index) => ({
@@ -911,6 +912,7 @@ function sealedBroker(brokerTrace: string) {
         receipt.direction === "target_to_server" &&
         receipt.kind === "request" &&
         receipt.method === "tools/call" &&
+        receipt.toolName !== "skillopt_ask_user" &&
         receipt.toolName !== undefined,
     )
     .map((receipt) => {
@@ -955,6 +957,17 @@ function sealedBroker(brokerTrace: string) {
       rawCalls,
     },
     successfulTools,
+    violations: receipts.flatMap((receipt) => {
+      const payload = receipt.payload;
+      const error = isRecord(payload) ? payload.error : undefined;
+      const data = isRecord(error) ? error.data : undefined;
+      return receipt.direction === "broker" &&
+        receipt.kind === "error" &&
+        isRecord(data) &&
+        data.skilloptViolation === "forbidden_write"
+        ? ["forbidden_write"]
+        : [];
+    }),
   };
 }
 
@@ -1028,7 +1041,7 @@ export function sealDefaultCellEvidence(
       broker.successfulTools,
     ),
     codex: { complete: true, integrityValid: true, claims: [] },
-    isolation: { observedSentinels: [], violations: [] },
+    isolation: { observedSentinels: [], violations: broker.violations },
   };
 }
 

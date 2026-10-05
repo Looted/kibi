@@ -260,7 +260,7 @@ describe("public SkillOpt fixture corpus", () => {
   });
 });
 
-test("bootstrap apply fixture supplies scoped operator delegation and cited intent", () => {
+test("bootstrap apply fixture supplies cited intent but waits for operator approval", () => {
   const root = temporaryRoot();
   roots.push(root);
   const task = buildPublicCatalog().find(
@@ -284,7 +284,17 @@ test("bootstrap apply fixture supplies scoped operator delegation and cited inte
     readFileSync(path.join(root, "run", approvalPath), "utf8"),
   );
   expect(approval.approvalActor).toBe("fixture-operator");
-  expect(approval.delegatedApproval).toContain("exact canonical hash");
-  expect(approval.bootstrapContext.intentClaims).toHaveLength(1);
+  expect(approval.delegatedApproval).toBeNull();
+  expect(approval.mutationAllowed).toBe(false);
+  expect(approval.phase).toBe("pre-approval");
+  expect(approval.approvalChannel).toBe("skillopt_ask_user");
+  expect(approval.bootstrapContext).toBeUndefined();
+  const documentPath = files(path.join(root, "run")).find((file) =>
+    file.endsWith("documentation/library-policy.md"),
+  );
+  if (!documentPath) throw new Error("missing user Markdown document");
+  expect(readFileSync(path.join(root, "run", documentPath), "utf8")).toContain(
+    "Loans must retain a due date.",
+  );
   expect(approval.approvedPlanHash).toBeUndefined();
 });

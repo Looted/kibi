@@ -57,7 +57,10 @@ test.each([
     );
     roots.push(artifactRoot);
     const options = {
-      request: request(hashWorkspace(publicFixture.root)),
+      request: {
+        ...request(hashWorkspace(publicFixture.root)),
+        taskId: task.id,
+      },
       fixtureRoot: publicFixture.root,
       sourceWorktree: process.cwd(),
       artifactRoot,
@@ -94,6 +97,9 @@ test.each([
         }),
         stageBroker: async (workspace, sourceRoot) => {
           const broker = await dependencies.stageBroker(workspace, sourceRoot);
+          expect(await readFile(broker.bundlePath, "utf8")).not.toContain(
+            "Loans must retain a due date.",
+          );
           const client = new Client({
             name: "fixture-readiness",
             version: "1",
@@ -128,6 +134,56 @@ test.each([
                   "utf8",
                 ),
               );
+              expect(approval.mutationAllowed).toBe(false);
+              expect(approval.delegatedApproval).toBeNull();
+              expect(approval.bootstrapContext).toBeUndefined();
+              const context = await client.callTool({
+                name: "skillopt_ask_user",
+                arguments: {
+                  topic: "context",
+                  question:
+                    "What intent and authoritative sources should we use?",
+                },
+              });
+              expect(context.structuredContent).toMatchObject({
+                status: "answered",
+              });
+              const userAnswer = context.structuredContent as {
+                answer: string;
+                bootstrapContext?: unknown;
+              };
+              expect(userAnswer.bootstrapContext).toBeUndefined();
+              const documentPath = /\]\(([^)]+\.md)\)/.exec(
+                userAnswer.answer,
+              )?.[1];
+              expect(documentPath).toBe("documentation/library-policy.md");
+              if (!documentPath)
+                throw new Error("Operator did not supply a Markdown document");
+              const document = await readFile(
+                join(workspace.target, documentPath),
+                "utf8",
+              );
+              const statement = /^Loans must .+$/m.exec(document)?.[0];
+              expect(statement).toBe("Loans must retain a due date.");
+              const bootstrapContext = {
+                projectSummary: "The document describes a lending desk.",
+                knowledgeSources: [
+                  {
+                    id: "operator-document",
+                    kind: "specification",
+                    title: "Project documentation",
+                    locator: documentPath,
+                    authority: "authoritative",
+                  },
+                ],
+                intentClaims: [
+                  {
+                    sourceId: "operator-document",
+                    reference: "loan-due-date",
+                    statement,
+                  },
+                ],
+              };
               await client.callTool({
                 name: "kb_search",
                 arguments: { query: "library" },
@@ -139,8 +195,8 @@ test.each([
               const preview = await client.callTool({
                 name: "kb_plan_bootstrap",
                 arguments: {
-                  bootstrapContext: approval.bootstrapContext,
-                  ...approval.plannerOptions,
+                  bootstrapContext,
+                  includeGenericMarkdown: false,
                 },
               });
               const plan = (
@@ -161,6 +217,18 @@ test.each([
                 title: "Loans must retain a due date.",
                 sourceKind: "intent_claim",
               });
+              const answer = await client.callTool({
+                name: "skillopt_ask_user",
+                arguments: {
+                  topic: "approval",
+                  question: "Do you approve this preview?",
+                  planHash: plan.planHash,
+                },
+              });
+              expect(answer.structuredContent).toMatchObject({
+                status: "approved",
+                approvedPlanHash: plan.planHash,
+              });
               const applied = await client.callTool({
                 name: "kb_apply_plan",
                 arguments: { plan, approvedPlanHash: plan.planHash },
@@ -178,7 +246,7 @@ test.each([
               expect(entities).toHaveLength(1);
               expect(entities[0]).toMatchObject({
                 title: "Loans must retain a due date.",
-                text_ref: "library-policy:loan-due-date",
+                text_ref: "operator-document:loan-due-date",
               });
               const checked = await client.callTool({
                 name: "kb_check",

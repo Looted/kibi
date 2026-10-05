@@ -74,6 +74,7 @@ type BrokerLaunch = Readonly<{
 export type BrokerOptions = Readonly<{
   downstream: BrokerLaunch;
   tracePath: string;
+  scriptedUserPath?: string;
   startupTimeoutMs: number;
   toolTimeoutMs: number;
   killGraceMs: number;
