@@ -234,22 +234,31 @@ export async function loadSearchCandidates(
 }
 
 /**
- * Projected candidate rows for every entity (optionally of one type), in id
- * order, bounded by `maxCandidates`. For semantic discovery that has no
- * lexical token to pre-filter candidates.
+ * Projected candidate rows for every entity (optionally of one type, and
+ * optionally only those whose source contains `sourceFile`), in id order,
+ * bounded by `maxCandidates`. For semantic discovery that has no lexical
+ * token to pre-filter candidates, and for source-located search.
  */
 // implements REQ-kibi-operation-interface-parity, REQ-mcp-search-discovery
 export async function listSearchCandidates(
   prolog: Pick<PrologPort, "query">,
-  input: { readonly type?: string; readonly maxCandidates: number },
+  input: {
+    readonly type?: string;
+    readonly sourceFile?: string;
+    readonly maxCandidates: number;
+  },
   signal?: AbortSignal,
 ): Promise<Record<string, unknown>[]> {
   const type = input.type ? `'${escapeAtomContent(input.type)}'` : "none";
+  const source =
+    input.sourceFile !== undefined
+      ? `, '${escapeAtomContent(input.sourceFile)}'`
+      : "";
   return readCandidatePages(
     (page) =>
       readRowsAndCount(
         prolog,
-        `kb_list_search_candidates(${type}, ${page.limit}, ${page.offset}, Rows, Count)`,
+        `kb_list_search_candidates(${type}${source}, ${page.limit}, ${page.offset}, Rows, Count)`,
         "Search candidate listing failed",
         signal,
       ),
