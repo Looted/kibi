@@ -201,6 +201,32 @@ describe("modeling guidance: canonical entity-choice rule", () => {
       expect(content).toMatch(/Direct\s+`kb_upsert`\s+is forbidden/i);
       expect(content).toContain("committed_with_repairs");
     });
+
+    test("hands unplanned claims, scenarios and predicates to kibi-usage only after close-out", () => {
+      const content = readDoc(
+        "packages/runtime/src/skills/kibi-bootstrap/SKILL.md",
+      );
+      const closeOut = content.indexOf("10. **Close out**");
+      const deepen = content.indexOf("11. **Deepen.**");
+      expect(closeOut).toBeGreaterThan(0);
+      expect(deepen).toBeGreaterThan(closeOut);
+      const step = content.slice(deepen, content.indexOf("12. **Report**"));
+      for (const phrase of [
+        "`kibi-usage`",
+        "`invalid_write`",
+        "`sourceOnlySignals`",
+        "`sourceId:reference`",
+        'mode: "predicates"',
+        "`specified_by`",
+        "`review:conflict`",
+        "`review:open-question`",
+      ])
+        expect(step).toContain(phrase);
+      // The prohibition covers the bootstrap plan, not post-bootstrap authoring.
+      expect(content).toMatch(
+        /Direct `kb_upsert` is forbidden[^\n]*bootstrap plan's own writes[^\n]*not step 11/,
+      );
+    });
   });
 
   // ─── README.md ──────────────────────────────────────────────────────────────
