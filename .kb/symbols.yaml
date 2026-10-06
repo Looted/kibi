@@ -3151,8 +3151,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-004
+      - type: covered_by
+        target: TEST-cli-staged-consistency
       - type: implements
         target: REQ-cli-check
+      - type: implements
+        target: REQ-cli-staged-consistency
   - id: SYM-CheckOptions
     title: CheckOptions
     sourceFile: packages/cli/src/commands/check.ts
@@ -43349,6 +43353,8 @@ symbols:
       - type: covered_by
         target: TEST-docs-site-pages
       - type: implements
+        target: REQ-docs-site-analytics
+      - type: implements
         target: REQ-docs-site-root-pages
   - id: SYM-docs-site-theme-layout
     title: layout
@@ -43362,6 +43368,8 @@ symbols:
         target: TEST-docs-site-pages
       - type: implements
         target: REQ-docs-readme-published-links
+      - type: implements
+        target: REQ-docs-site-analytics
       - type: implements
         target: REQ-docs-site-root-pages
   - id: SYM-docs-site-theme-prepareMark
@@ -43383,6 +43391,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-docs-site-pages
+      - type: implements
+        target: REQ-docs-site-analytics
       - type: implements
         target: REQ-docs-site-root-pages
   - id: SYM-docs-site-theme-styles
@@ -50235,3 +50245,80 @@ symbols:
         target: TEST-kb-entity-body-context
       - type: implements
         target: REQ-kb-entity-body-context
+  - id: SYM-test-cli-staged-consistency
+    title: Staged consistency consumer suite
+    status: active
+    sourceFile: packages/cli/tests/consumer/staged-consistency.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-06T18:18:48.407Z
+    relationships:
+      - type: executable_for
+        target: TEST-cli-staged-consistency
+  - id: SYM-cli-staged-consistency-collectIntroducedConsistencyViolations
+    title: collectIntroducedConsistencyViolations
+    status: active
+    sourceFile: packages/cli/src/traceability/staged-consistency.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-06T18:21:03.435Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-staged-consistency
+      - type: implements
+        target: REQ-cli-staged-consistency
+  - id: SYM-cli-staged-consistency-stagesKnowledge
+    title: stagesKnowledge
+    status: active
+    sourceFile: packages/cli/src/traceability/staged-consistency.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-06T18:21:09.641Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-staged-consistency
+      - type: implements
+        target: REQ-cli-staged-consistency
+  - id: SYM-cli-staged-consistency-formatConsistencyViolations
+    title: formatConsistencyViolations
+    status: active
+    sourceFile: packages/cli/src/traceability/staged-consistency.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-06T18:21:15.721Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-staged-consistency
+      - type: implements
+        target: REQ-cli-staged-consistency
+  - id: SYM-docs-site-catalog-UMAMI_SCRIPT_SRC
+    title: UMAMI_SCRIPT_SRC
+    status: active
+    sourceFile: docs-site/catalog.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-06T17:53:51.912Z
+    relationships:
+      - type: covered_by
+        target: TEST-docs-site-pages
+      - type: implements
+        target: REQ-docs-site-analytics
+  - id: SYM-docs-site-catalog-UMAMI_DOMAINS
+    title: UMAMI_DOMAINS
+    status: active
+    sourceFile: docs-site/catalog.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-06T17:53:57.679Z
+    relationships:
+      - type: covered_by
+        target: TEST-docs-site-pages
+      - type: implements
+        target: REQ-docs-site-analytics

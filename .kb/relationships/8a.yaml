@@ -195,3 +195,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d410669e1b46
+  - type: executable_for
+    from: SYM-test-cli-staged-consistency
+    to: TEST-cli-staged-consistency
+    created_at: 2026-10-06T18:18:49.650Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a7764e9fe434

@@ -1,9 +1,9 @@
 {
   "name": "kibi-mcp",
-  "version": "3.1.0",
+  "version": "3.1.1",
   "mcpName": "io.github.Looted/kibi-mcp",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.30.0",
+    "@modelcontextprotocol/sdk": "^1.32.1",
     "ajv": "^8.18.0",
     "cli-table3": "^0.6.5",
     "commander": "^11.0.0",

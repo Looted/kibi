@@ -25,7 +25,7 @@ Most project knowledge is scattered across prompts, tickets, code, and conversat
 - **E2E behavior is traceable** — Kibi records what an end-to-end test proves, not merely which lines it happened to execute. You can navigate from a symbol to its requirement or from a test to the scenario and intent it verifies.
 - **Intent survives branch changes** — Each Git branch has its own KB snapshot, keeping feature context isolated and available when you return. A detached checkout of a commit no single branch points at (a CI checkout of a SHA, a bisect) still answers reads from a read-only snapshot of that checkout and says so; writes wait until a branch is checked out.
 - **Works across languages** — TypeScript and JavaScript symbols are built in. The optional [`kibi-plugin-treesitter`](https://looted.github.io/kibi/reference/plugins.html) adds offline symbol extraction for Python, Go, Rust, Java, C#, PHP, C, C++, Bash, Ruby, and Terraform/HCL using pinned WASM grammars.
-- **Keep knowledge local** — KB state lives in your repository's `.kb/` directory; Kibi does not send external telemetry or analytics.
+- **Keep knowledge local** — KB state lives in your repository's `.kb/` directory; the Kibi packages send no external telemetry or analytics. Only the documentation website counts visits, with cookieless [Umami](https://umami.is) analytics.
 
 ## Quick start
 

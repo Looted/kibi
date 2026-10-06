@@ -230,3 +230,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4323d2d3802c
+  - type: implements
+    from: SYM-docs-site-theme-landingContent
+    to: REQ-docs-site-analytics
+    created_at: 2026-10-06T17:54:01.872Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c3709bdd8dd4
