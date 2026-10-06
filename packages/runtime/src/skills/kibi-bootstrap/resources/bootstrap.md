@@ -13,7 +13,10 @@ unchanged returned `structuredContent.plan` to `kb_apply_plan` once with its
 approved hash; inspect its typed result
 and follow `nextActions` if it returns `committed_with_repairs`. Direct
 `kb_upsert` is forbidden for every bootstrap task; never manually replay the
-plan through it.
+plan through it. That rule covers the plan's own writes. After apply and
+close-out, the deepen step hands unplanned claims (`invalid_write`,
+`sourceOnlySignals`), scenarios and predicates to the normal `kibi-usage`
+workflow, where `kb_model` and `kb_upsert` are the expected tools.
 
 `BOOTSTRAP_PLAN_INVALID` fails before bootstrap writes or a new journal; request
 a corrected plan. `BOOTSTRAP_PLAN_REJECTED` reports a deterministic failure and
