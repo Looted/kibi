@@ -1,6 +1,6 @@
 {
   "name": "kibi-swipl-linux-x64-gnu",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Relocatable SWI-Prolog 10.0.2 runtime for Kibi on Linux x64 (glibc 2.28 or newer)",
   "os": ["linux"],
   "cpu": ["x64"],
