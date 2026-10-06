@@ -2,6 +2,7 @@ import { buildGuidance } from "./guidance.js";
 import type {
   ActivationPolicy,
   BootstrapAction,
+  BootstrapClaimConflict,
   BootstrapContext,
   BootstrapDeclaredContext,
   BootstrapIntentClaim,
@@ -14,6 +15,7 @@ import type {
 } from "./types.js";
 
 import {
+  INTENT_CLAIM_KINDS,
   KNOWLEDGE_SOURCE_AUTHORITIES,
   KNOWLEDGE_SOURCE_KINDS,
   bootstrapPlanHash,
@@ -68,8 +70,10 @@ function intentClaims(
     const statement = value.statement?.trim().replace(/\s+/g, " ");
     const sourceId = value.sourceId?.trim();
     const reference = value.reference?.trim();
+    const kind = value.kind ?? "intent";
     if (!statement || !sourceId || !reference) continue;
-    const key = `${sourceId}\u0000${reference}\u0000${statement}`;
+    if (!INTENT_CLAIM_KINDS.includes(kind)) continue;
+    const key = `${sourceId}\u0000${reference}\u0000${statement}\u0000${kind}`;
     if (seen.has(key)) continue;
     seen.add(key);
     const excerpt = value.excerpt?.trim();
@@ -78,17 +82,46 @@ function intentClaims(
       sourceId,
       reference,
       ...(excerpt ? { excerpt } : {}),
+      // The default stays implicit so plans that declare no kinds keep
+      // their established shape and hash.
+      ...(kind !== "intent" ? { kind } : {}),
     });
   }
   return result;
 }
 
+function conflicts(
+  values?: readonly BootstrapClaimConflict[],
+): readonly BootstrapClaimConflict[] {
+  const seen = new Set<string>();
+  const result: BootstrapClaimConflict[] = [];
+  for (const value of values ?? []) {
+    const note = value.note?.trim().replace(/\s+/g, " ");
+    const refs = new Map<string, { sourceId: string; reference: string }>();
+    for (const ref of value.claimReferences ?? []) {
+      const sourceId = ref.sourceId?.trim();
+      const reference = ref.reference?.trim();
+      if (sourceId && reference)
+        refs.set(`${sourceId}\u0000${reference}`, { sourceId, reference });
+    }
+    if (!note || refs.size < 2) continue;
+    const claimReferences = [...refs.values()];
+    const key = `${[...refs.keys()].sort().join("\u0001")}\u0002${note}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.push({ claimReferences, note });
+  }
+  return result;
+}
+
+// implements REQ-bootstrap-claim-kinds-and-conflicts
 export function normalizeBootstrapContext(
   input?: BootstrapContext,
 ): BootstrapDeclaredContext {
   const projectSummary = input?.projectSummary?.trim();
   const sources = knowledgeSources(input?.knowledgeSources);
   const claims = intentClaims(input?.intentClaims);
+  const declaredConflicts = conflicts(input?.conflicts);
   return {
     ...(projectSummary ? { projectSummary } : {}),
     sourceOfTruthPaths: strings(input?.sourceOfTruthPaths),
@@ -97,6 +130,7 @@ export function normalizeBootstrapContext(
     verificationAnchors: strings(input?.verificationAnchors),
     ...(sources.length > 0 ? { knowledgeSources: sources } : {}),
     ...(claims.length > 0 ? { intentClaims: claims } : {}),
+    ...(declaredConflicts.length > 0 ? { conflicts: declaredConflicts } : {}),
   };
 }
 

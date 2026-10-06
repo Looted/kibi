@@ -5981,14 +5981,68 @@
             "additionalProperties": {},
             "description": "Optional declared bootstrap context supplied by the agent to ground the read-only synthesis output.",
             "properties": {
+              "conflicts": {
+                "description": "Contradictions the agent found between declared intentClaims and leaves for the human to resolve. Each becomes a cited fact candidate with fact_kind observation tagged review:conflict. Every claimReference must match a declared claim's sourceId and reference. Bound into the plan hash.",
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "claimReferences": {
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "reference": {
+                            "minLength": 1,
+                            "type": "string"
+                          },
+                          "sourceId": {
+                            "minLength": 1,
+                            "type": "string"
+                          }
+                        },
+                        "required": ["sourceId", "reference"],
+                        "type": "object"
+                      },
+                      "maxItems": 10,
+                      "minItems": 2,
+                      "type": "array"
+                    },
+                    "note": {
+                      "description": "What disagrees, in one sentence, without resolving it.",
+                      "minLength": 1,
+                      "type": "string"
+                    }
+                  },
+                  "required": ["claimReferences", "note"],
+                  "type": "object"
+                },
+                "maxItems": 50,
+                "type": "array"
+              },
               "intentClaims": {
-                "description": "Statements of product intent the agent harvested from knowledgeSources, each citing its source. Normative claims the strict modeler can ground become cited req candidates; the rest become explicit authoring follow-ups. Bound into the plan hash.",
+                "description": "Statements the agent harvested from knowledgeSources, each citing its source. Intent claims (the default kind) that the strict modeler can ground become cited req candidates; the rest become explicit authoring follow-ups. Observation and open_question claims never become requirements: they become cited fact candidates with fact_kind observation, open questions tagged review:open-question. Bound into the plan hash.",
                 "items": {
                   "additionalProperties": false,
                   "properties": {
                     "excerpt": {
                       "description": "Optional short quote supporting the claim.",
                       "type": "string"
+                    },
+                    "kind": {
+                      "anyOf": [
+                        {
+                          "const": "intent",
+                          "type": "string"
+                        },
+                        {
+                          "const": "observation",
+                          "type": "string"
+                        },
+                        {
+                          "const": "open_question",
+                          "type": "string"
+                        }
+                      ],
+                      "description": "intent: intended behavior (may become a req). observation: how things are today, without stating intent. open_question: something the sources leave undecided. Default: intent."
                     },
                     "reference": {
                       "description": "Exact citation inside the source: a ticket key, page URL, or section anchor.",

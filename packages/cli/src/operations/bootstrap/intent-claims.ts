@@ -1,5 +1,6 @@
+import { createHash } from "node:crypto";
 import { buildStrictWriteSet } from "../../utils/strict-modeling.js";
-import { confidenceBand, strictPlan } from "./candidate-helpers.js";
+import { confidenceBand, strictPlan, upsert } from "./candidate-helpers.js";
 import { claimFor } from "./requirement-claims.js";
 import type {
   BootstrapDeclaredContext,
@@ -34,6 +35,159 @@ function citation(
   ];
 }
 
+function digest(...parts: readonly string[]): string {
+  return createHash("sha256")
+    .update(parts.join("\u0000"))
+    .digest("hex")
+    .slice(0, 16)
+    .toUpperCase();
+}
+
+/**
+ * An observation or open question from a declared source is evidence for the
+ * human, not a requirement: it becomes a cited, non-blocking observation fact
+ * so the plan keeps it without entering the contradiction lane.
+ */
+// implements REQ-bootstrap-claim-kinds-and-conflicts
+function reviewClaimCandidate(
+  source: BootstrapKnowledgeSource,
+  claim: BootstrapIntentClaim,
+  kind: "observation" | "open_question",
+  confidence: number,
+): Candidate {
+  const id = `FACT-BOOTSTRAP-${kind === "open_question" ? "QUESTION" : "OBSERVATION"}-${digest(source.id, claim.reference, claim.statement)}`;
+  const entity = {
+    type: "fact",
+    id,
+    title: claim.statement,
+    status: "active",
+    fact_kind: "observation",
+    source: `knowledge-source:${source.id}`,
+    text_ref: `${source.id}:${claim.reference}`,
+    tags: [
+      "bootstrap",
+      `knowledge-source:${source.id}`,
+      kind === "open_question" ? "review:open-question" : "claim:observation",
+    ],
+  };
+  return {
+    candidateId: `claim:${source.id}:${id.toLowerCase()}`,
+    entityType: "fact",
+    title: claim.statement,
+    sourceKind: "intent_claim",
+    sourcePath: claim.reference,
+    confidence,
+    confidenceBand: confidenceBand(confidence),
+    evidence: [
+      ...citation(source, claim),
+      `claim_kind:${kind}`,
+      ...(claim.excerpt ? [`excerpt:${claim.excerpt}`] : []),
+    ],
+    relationships: [],
+    applyPlan: [upsert(entity)],
+  };
+}
+
+/**
+ * A conflict the agent declared between claims becomes an observation fact
+ * tagged review:conflict that cites every conflicting claim, so the
+ * disagreement stays explicit in the KB instead of an external report.
+ */
+// implements REQ-bootstrap-claim-kinds-and-conflicts
+function conflictCandidates(
+  declared: BootstrapDeclaredContext,
+  sources: ReadonlyMap<string, BootstrapKnowledgeSource>,
+  existingIds: ReadonlySet<string>,
+  minConfidence: number,
+): IntentClaimBuildResult {
+  const claims = new Set(
+    (declared.intentClaims ?? []).map(
+      (claim) => `${claim.sourceId}\u0000${claim.reference}`,
+    ),
+  );
+  const candidates: Candidate[] = [];
+  const suppressed: Readonly<Record<string, unknown>>[] = [];
+  const diagnostics: string[] = [];
+  const confidence = AUTHORITY_CONFIDENCE.authoritative;
+  for (const conflict of declared.conflicts ?? []) {
+    const refs = conflict.claimReferences.map(
+      (ref) => `${ref.sourceId}:${ref.reference}`,
+    );
+    const undeclared = conflict.claimReferences.filter(
+      (ref) => !claims.has(`${ref.sourceId}\u0000${ref.reference}`),
+    );
+    if (undeclared.length > 0) {
+      diagnostics.push(
+        `Conflict "${conflict.note}" cites claim(s) not declared in intentClaims: ${undeclared.map((ref) => `${ref.sourceId}:${ref.reference}`).join(", ")}; declare them or correct the reference.`,
+      );
+      continue;
+    }
+    const id = `FACT-BOOTSTRAP-CONFLICT-${digest(...[...refs].sort(), conflict.note)}`;
+    const candidateId = `conflict:${id.toLowerCase()}`;
+    if (confidence < minConfidence) {
+      suppressed.push({
+        candidateId,
+        reason: "below_min_confidence",
+        sourcePath: refs.join(", "),
+        entityType: "fact",
+      });
+      continue;
+    }
+    if (existingIds.has(id)) {
+      suppressed.push({
+        candidateId,
+        reason: "entity_exists",
+        sourcePath: refs.join(", "),
+        entityType: "fact",
+      });
+      continue;
+    }
+    const title = `Conflict between ${refs.join(" and ")}: ${conflict.note}`;
+    candidates.push({
+      candidateId,
+      entityType: "fact",
+      title,
+      sourceKind: "intent_claim",
+      sourcePath: refs.join(", "),
+      confidence,
+      confidenceBand: confidenceBand(confidence),
+      evidence: conflict.claimReferences.flatMap((ref) => {
+        const source = sources.get(ref.sourceId);
+        return [
+          `intent_claim:${ref.sourceId}:${ref.reference}`,
+          ...(source
+            ? [`knowledge_source:${source.kind}:${source.locator}`]
+            : []),
+        ];
+      }),
+      relationships: [],
+      applyPlan: [
+        upsert({
+          type: "fact",
+          id,
+          title,
+          status: "active",
+          fact_kind: "observation",
+          source: "bootstrap:declared-conflict",
+          text_ref: refs.join("; "),
+          tags: [
+            "bootstrap",
+            "review:conflict",
+            ...[
+              ...new Set(
+                conflict.claimReferences.map(
+                  (ref) => `knowledge-source:${ref.sourceId}`,
+                ),
+              ),
+            ],
+          ],
+        }),
+      ],
+    });
+  }
+  return { candidates, sourceOnlySignals: [], suppressed, diagnostics };
+}
+
 /**
  * Turn intent the agent harvested from declared knowledge sources into cited
  * bootstrap candidates. Kibi never contacts those sources: it only records
@@ -42,7 +196,7 @@ function citation(
  * strict modeler cannot ground stays an explicit authoring follow-up instead
  * of becoming unverifiable knowledge.
  */
-// implements REQ-kibi-bootstrap-knowledge-sources
+// implements REQ-kibi-bootstrap-knowledge-sources, REQ-bootstrap-claim-kinds-and-conflicts
 export function buildIntentClaimCandidates(
   declared: BootstrapDeclaredContext,
   existingIds: ReadonlySet<string>,
@@ -63,18 +217,35 @@ export function buildIntentClaimCandidates(
       );
       continue;
     }
+    const kind = claim.kind ?? "intent";
     if (source.authority === "stale") {
       suppressed.push({
         candidateId: "",
         reason: "stale_knowledge_source",
         sourcePath: claim.reference,
-        entityType: "req",
+        entityType: kind === "intent" ? "req" : "fact",
         statement: claim.statement,
         sourceId: source.id,
       });
       continue;
     }
     const confidence = AUTHORITY_CONFIDENCE[source.authority];
+    if (kind !== "intent") {
+      const review = reviewClaimCandidate(source, claim, kind, confidence);
+      const id = String(review.applyPlan[0]?.id ?? "");
+      if (confidence < minConfidence || existingIds.has(id))
+        suppressed.push({
+          candidateId: review.candidateId,
+          reason:
+            confidence < minConfidence
+              ? "below_min_confidence"
+              : "entity_exists",
+          sourcePath: claim.reference,
+          entityType: "fact",
+        });
+      else candidates.push(review);
+      continue;
+    }
     const evidence = citation(source, claim);
     const provenance = `${source.id}:${claim.reference}`;
     let writeSet: ReturnType<typeof buildStrictWriteSet> | null = null;
@@ -144,5 +315,16 @@ export function buildIntentClaimCandidates(
       evidence,
     });
   }
-  return { candidates, sourceOnlySignals, suppressed, diagnostics };
+  const declaredConflicts = conflictCandidates(
+    declared,
+    sources,
+    existingIds,
+    minConfidence,
+  );
+  return {
+    candidates: [...candidates, ...declaredConflicts.candidates],
+    sourceOnlySignals,
+    suppressed: [...suppressed, ...declaredConflicts.suppressed],
+    diagnostics: [...diagnostics, ...declaredConflicts.diagnostics],
+  };
 }
