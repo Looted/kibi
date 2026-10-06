@@ -27,7 +27,7 @@
     },
     "packages/agent-core": {
       "name": "kibi-agent-core",
-      "version": "0.1.1",
+      "version": "0.2.0",
       "devDependencies": {
         "@types/node": "^25.9.8",
         "semver": "^7.8.5",
@@ -37,7 +37,7 @@
     },
     "packages/claude": {
       "name": "kibi-claude",
-      "version": "0.3.0",
+      "version": "0.4.1",
       "devDependencies": {
         "@types/node": "latest",
         "kibi-agent-core": "^0.1.0",
@@ -55,7 +55,7 @@
     },
     "packages/cli": {
       "name": "kibi-cli",
-      "version": "2.4.0",
+      "version": "2.5.1",
       "bin": {
         "kibi": "bin/kibi",
       },
@@ -83,7 +83,7 @@
     },
     "packages/codex": {
       "name": "kibi-codex",
-      "version": "2.1.0",
+      "version": "2.2.1",
       "devDependencies": {
         "@types/node": "latest",
         "kibi-agent-core": "^0.1.0",
@@ -100,11 +100,11 @@
     },
     "packages/core": {
       "name": "kibi-core",
-      "version": "0.14.1",
+      "version": "0.15.0",
     },
     "packages/cursor": {
       "name": "kibi-cursor",
-      "version": "2.2.0",
+      "version": "2.3.1",
       "dependencies": {
         "kibi-agent-core": "^0.1.0",
       },
@@ -123,7 +123,7 @@
     },
     "packages/mcp": {
       "name": "kibi-mcp",
-      "version": "2.4.0",
+      "version": "3.0.1",
       "bin": {
         "kibi-mcp": "bin/kibi-mcp",
       },
@@ -150,7 +150,7 @@
     },
     "packages/opencode": {
       "name": "kibi-opencode",
-      "version": "2.0.2",
+      "version": "2.1.1",
       "dependencies": {
         "@opencode-ai/plugin": "^1.4.7",
         "@opentui/core": "^0.1.99",
@@ -165,7 +165,7 @@
     },
     "packages/plugin-builtin": {
       "name": "kibi-plugin-builtin",
-      "version": "0.4.0",
+      "version": "0.4.1",
       "dependencies": {
         "kibi-plugin-sdk": "^0.4.0",
         "ts-morph": "^23.0.0",
@@ -212,7 +212,7 @@
     },
     "packages/runtime": {
       "name": "kibi-runtime",
-      "version": "2.2.0",
+      "version": "2.3.1",
       "dependencies": {
         "gray-matter": "^4.0.3",
         "kibi-core": "^0.14.1",
@@ -267,7 +267,7 @@
     },
     "packages/zcode": {
       "name": "kibi-zcode",
-      "version": "0.3.0",
+      "version": "0.4.1",
       "devDependencies": {
         "@types/node": "latest",
         "kibi-agent-core": "^0.1.0",
