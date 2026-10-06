@@ -31,6 +31,7 @@ import {
   listContextAuthoredEntities,
   readAuthoredEntity,
 } from "../../public/operations/entity-context.js";
+import { readKbManifest, writeKbManifest } from "../../utils/kb-manifest.js";
 import {
   listLaneMarkdownFiles,
   readText,
@@ -61,7 +62,24 @@ export type BodyContextPlan = Readonly<{
   targets: readonly BodyContextTarget[];
   /** Files Kibi cannot edit safely, with the reason. */
   skipped: readonly Readonly<{ id: string; path: string; reason: string }>[];
+  /** Context-less entities that already carried the tag before migration. */
+  alreadyTagged?: readonly string[];
 }>;
+
+/**
+ * Ids the schema 8 migration acknowledges: every context-less entity it tags
+ * plus those that already carried the tag. Recorded in the manifest, which is
+ * the only thing that makes the tag honored by `entity-context-missing`.
+ */
+// implements REQ-kb-entity-body-context, REQ-cli-schema-migration
+export function acknowledgedContextIds(plan: BodyContextPlan): string[] {
+  return [
+    ...new Set([
+      ...plan.targets.map((target) => target.id),
+      ...(plan.alreadyTagged ?? []),
+    ]),
+  ].sort();
+}
 
 /**
  * Requirements without a front-matter `semantic_text`, pinned to the value
@@ -194,11 +212,15 @@ export function planContextMissingTags(workspaceRoot: string): BodyContextPlan {
   const superseded = authoredSupersededIds(workspaceRoot, entities);
   const targets: BodyContextTarget[] = [];
   const skipped: { id: string; path: string; reason: string }[] = [];
+  const alreadyTagged: string[] = [];
   for (const entity of entities) {
     if (!isCurrentAuthoredEntity(entity, superseded)) continue;
     const view = contextEntityOf(entity);
     if (assessContext(entity.type, entity.body, view).ok) continue;
-    if (isContextAcknowledged(view.tags)) continue;
+    if (isContextAcknowledged(view.tags)) {
+      alreadyTagged.push(entity.id);
+      continue;
+    }
     const before = readText(`${workspaceRoot}/${entity.path}`);
     if (before === null) continue;
     const after = withAddedTag(before, CONTEXT_MISSING_TAG);
@@ -218,7 +240,7 @@ export function planContextMissingTags(workspaceRoot: string): BodyContextPlan {
       after,
     });
   }
-  return { targets, skipped };
+  return { targets, skipped, alreadyTagged };
 }
 
 /** Count targets by entity type, sorted by type. */
@@ -251,5 +273,27 @@ export function applySemanticTextPins(workspaceRoot: string): number {
 /** Tag entities that lack context, then return how many were rewritten. */
 // implements REQ-kb-entity-body-context, REQ-cli-schema-migration
 export function applyContextMissingTags(workspaceRoot: string): number {
-  return applyPlan(workspaceRoot, planContextMissingTags(workspaceRoot));
+  const plan = planContextMissingTags(workspaceRoot);
+  const count = applyPlan(workspaceRoot, plan);
+  recordContextAcknowledged(workspaceRoot, acknowledgedContextIds(plan));
+  return count;
+}
+
+/**
+ * Record the acknowledged ids in the manifest. The tag alone is never honored
+ * by `entity-context-missing`; the manifest is what the migration vouches with.
+ */
+function recordContextAcknowledged(
+  workspaceRoot: string,
+  ids: readonly string[],
+): void {
+  if (ids.length === 0) return;
+  const manifest = readKbManifest(workspaceRoot);
+  if (manifest === null) return;
+  writeKbManifest(workspaceRoot, {
+    ...manifest,
+    contextAcknowledged: [
+      ...new Set([...(manifest.contextAcknowledged ?? []), ...ids]),
+    ].sort(),
+  });
 }

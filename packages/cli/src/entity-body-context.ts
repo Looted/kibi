@@ -300,21 +300,22 @@ export type ContextFinding = Readonly<{
 
 /**
  * The finding for an entity whose body lacks context, or null when it has
- * context, is exempt, or is tagged review:context-missing. The strict check
- * and the kb_upsert warning share it.
+ * context, is exempt, or is acknowledged by the schema 8 migration
+ * (`acknowledged`, true only for ids the migration recorded in the manifest;
+ * the tag alone never exempts). The strict check and the kb_upsert warning
+ * share it.
  */
 // implements REQ-kb-entity-body-context
 export function contextFinding(
   type: string,
   id: string,
   body: string,
-  entity: ContextEntity & Readonly<{ tags?: unknown }>,
+  entity: ContextEntity,
+  acknowledged = false,
 ): ContextFinding | null {
   const assessment = assessContext(type, body, entity);
   if (assessment.ok || assessment.reason === undefined) return null;
-  if (Array.isArray(entity.tags) && entity.tags.includes(CONTEXT_MISSING_TAG)) {
-    return null;
-  }
+  if (acknowledged) return null;
   return {
     type,
     id,
@@ -353,7 +354,12 @@ export function missingContextDescription(
 /** Hint shared by the check finding and the kb_upsert warning. */
 // implements REQ-kb-entity-body-context
 export const CONTEXT_MISSING_HINT =
-  "Add a '## Context' section (requirements) or a prose body (scenarios, tests, ADRs, observation facts) stating why this exists, who asked, the source and anything that does not fit the front matter. Never invent a reason the requester did not give: write 'Reason not stated' instead and leave the entity tagged review:context-missing until a person answers.";
+  "Add a '## Context' section (requirements) or a prose body (scenarios, tests, ADRs, observation facts) stating why this exists, who asked, the source and anything that does not fit the front matter. Never invent a reason the requester did not give: write who asked, the source and 'Reason not stated' in the Context section instead.";
+
+/** Suggestion for a review:context-missing tag the schema 8 migration did not set. */
+// implements REQ-kb-entity-body-context
+export const RESERVED_TAG_HINT =
+  "review:context-missing is reserved for entities acknowledged by the schema 8 migration; add context instead: write who asked, the source and 'Reason not stated' in the Context section, and remove the tag.";
 
 /** Where an entity's statement came from, for the `## Source` section. */
 // implements REQ-kb-entity-body-context
@@ -375,6 +381,23 @@ function blockquote(text: string): string {
     .join("\n");
 }
 
+function contextSectionBlock(context: string): string {
+  return `## Context\n\n${context.trim()}`;
+}
+
+function sourceSectionBlock(source: BodySource | undefined): string | null {
+  const sourceLines: string[] = [];
+  const excerpt = source?.excerpt?.trim();
+  if (excerpt) sourceLines.push(blockquote(excerpt));
+  const reference = [source?.title?.trim(), source?.reference?.trim()]
+    .filter((part): part is string => part !== undefined && part !== "")
+    .join(" - ");
+  if (reference) sourceLines.push(`Source: ${reference}`);
+  return sourceLines.length > 0
+    ? `## Source\n\n${sourceLines.join("\n\n")}`
+    : null;
+}
+
 /**
  * Render a requirement body: the statement, then `## Context` and
  * `## Source` when given. The statement stays the first, heading-free block
@@ -388,19 +411,72 @@ export function renderRequirementBody(input: {
 }): string {
   const blocks = [input.statement.trim()];
   const context = input.context?.trim();
-  if (context) blocks.push(`## Context\n\n${context}`);
-  const source = input.source;
-  const sourceLines: string[] = [];
-  const excerpt = source?.excerpt?.trim();
-  if (excerpt) sourceLines.push(blockquote(excerpt));
-  const reference = [source?.title?.trim(), source?.reference?.trim()]
-    .filter((part): part is string => part !== undefined && part !== "")
-    .join(" - ");
-  if (reference) sourceLines.push(`Source: ${reference}`);
-  if (sourceLines.length > 0) {
-    blocks.push(`## Source\n\n${sourceLines.join("\n\n")}`);
-  }
+  if (context) blocks.push(contextSectionBlock(context));
+  const source = sourceSectionBlock(input.source);
+  if (source !== null) blocks.push(source);
   return `${blocks.join("\n\n")}\n`;
+}
+
+/**
+ * Revise a requirement body for a changed statement. The non-context part is
+ * replaced by the new statement; every context section is kept byte for byte,
+ * except that a supplied `context` replaces the `## Context` section and a
+ * supplied source replaces the `## Source` section (each is appended when the
+ * body had none).
+ */
+// implements REQ-kb-entity-body-context
+export function reviseRequirementBody(input: {
+  existingBody: string;
+  statement: string;
+  context?: string | undefined;
+  source?: BodySource | undefined;
+}): string {
+  const replacements = new Map<string, string>();
+  const context = input.context?.trim();
+  if (context) replacements.set("context", contextSectionBlock(context));
+  const source = sourceSectionBlock(input.source);
+  if (source !== null) replacements.set("source", source);
+
+  type Block = { key: string; lines: string[] };
+  const blocks: Block[] = [];
+  let open: Block | null = null;
+  let openLevel = 0;
+  for (const row of classifyLines(input.existingBody)) {
+    if (!row.inContext) {
+      open = null;
+      continue;
+    }
+    const startsBlock =
+      row.level > 0 &&
+      isContextHeading(row.heading) &&
+      (open === null || row.level <= openLevel);
+    if (startsBlock) {
+      const word = row.heading
+        .trim()
+        .replace(/^[*_`\s]+/, "")
+        .split(/\W+/, 1)[0];
+      open = { key: (word ?? "").toLowerCase(), lines: [] };
+      openLevel = row.level;
+      blocks.push(open);
+    }
+    open?.lines.push(row.line);
+  }
+
+  const used = new Set<string>();
+  const parts: string[] = [input.statement.trim()];
+  for (const block of blocks) {
+    const replacement = replacements.get(block.key);
+    if (replacement !== undefined && !used.has(block.key)) {
+      used.add(block.key);
+      parts.push(replacement);
+    } else if (replacement === undefined) {
+      parts.push(block.lines.join("\n").replace(/\n+$/, ""));
+    }
+  }
+  for (const [key, replacement] of replacements) {
+    if (!used.has(key)) parts.push(replacement);
+  }
+  return `${parts.join("\n\n")}\n`;
 }
 
 function firstLine(text: string): string | undefined {

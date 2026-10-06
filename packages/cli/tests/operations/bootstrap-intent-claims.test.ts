@@ -175,7 +175,7 @@ describe("bootstrap from declared knowledge sources", () => {
     );
   });
 
-  test("a claim whose source text states no reason keeps the review:context-missing tag", () => {
+  test("a claim whose source text states no reason is not tagged as acknowledged legacy", () => {
     const source = interview.knowledgeSources?.[0];
     if (!source) throw new Error("fixture source missing");
     const result = buildIntentClaimCandidates(
@@ -196,12 +196,12 @@ describe("bootstrap from declared knowledge sources", () => {
     const requirement = result.candidates[0]?.applyPlan.find(
       (step) => step.type === "req",
     );
-    expect((requirement?.properties as { tags?: string[] }).tags).toContain(
-      "review:context-missing",
-    );
+    expect(
+      (requirement?.properties as { tags?: string[] }).tags ?? [],
+    ).not.toContain("review:context-missing");
   });
 
-  test("a source passage with real context keeps the entity untagged", () => {
+  test("a source passage with real context leaves the entity untagged", () => {
     const source = interview.knowledgeSources?.[0];
     if (!source) throw new Error("fixture source missing");
     const result = buildIntentClaimCandidates(

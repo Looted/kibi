@@ -88,7 +88,7 @@ describe("entity-context-missing evaluation", () => {
     expect(findings.map((finding) => finding.entityId)).toEqual(["REQ-new"]);
   });
 
-  test("tagged legacy entities are acknowledged and counted once", () => {
+  test("migration-acknowledged entities are counted once and do not block", () => {
     const findings = evaluateEntityContext(
       [
         entity(
@@ -111,6 +111,8 @@ describe("entity-context-missing evaluation", () => {
         ),
       ],
       new Set(),
+      undefined,
+      new Set(["REQ-legacy", "SCEN-legacy", "TEST-fine"]),
     );
     expect(findings).toHaveLength(1);
     expect(findings[0]?.rule).toBe(ENTITY_CONTEXT_ACKNOWLEDGED_RULE);
@@ -122,16 +124,46 @@ describe("entity-context-missing evaluation", () => {
     });
   });
 
+  test("the tag does not silence the check unless the migration acknowledged the entity", () => {
+    const findings = evaluateEntityContext(
+      [
+        entity("req", "REQ-selftag", "tags: [review:context-missing]\n", "x\n"),
+        entity(
+          "scenario",
+          "SCEN-acked",
+          "tags: [review:context-missing]\n",
+          "\n",
+        ),
+      ],
+      new Set(),
+      undefined,
+      new Set(["SCEN-acked"]),
+    );
+    const blocking = findings.filter(
+      (finding) => finding.rule === ENTITY_CONTEXT_MISSING_RULE,
+    );
+    expect(blocking.map((finding) => finding.entityId)).toEqual([
+      "REQ-selftag",
+    ]);
+    expect(blocking[0]?.description).toContain("not honored");
+    expect(blocking[0]?.suggestion).toBe(
+      "review:context-missing is reserved for entities acknowledged by the schema 8 migration; add context instead: write who asked, the source and 'Reason not stated' in the Context section, and remove the tag.",
+    );
+    expect(blocking[0]?.suggestion).not.toContain("leave the entity tagged");
+  });
+
   test("selected rules limit what is reported", () => {
     const entities = [
       entity("req", "REQ-thin", "", "x\n"),
       entity("req", "REQ-legacy", "tags: [review:context-missing]\n", "x\n"),
     ];
+    const acknowledged = new Set(["REQ-legacy"]);
     expect(
       evaluateEntityContext(
         entities,
         new Set(),
         new Set([ENTITY_CONTEXT_MISSING_RULE]),
+        acknowledged,
       ).map((finding) => finding.rule),
     ).toEqual([ENTITY_CONTEXT_MISSING_RULE]);
     expect(
@@ -139,6 +171,7 @@ describe("entity-context-missing evaluation", () => {
         entities,
         new Set(),
         new Set([ENTITY_CONTEXT_ACKNOWLEDGED_RULE]),
+        acknowledged,
       ).map((finding) => finding.rule),
     ).toEqual([ENTITY_CONTEXT_ACKNOWLEDGED_RULE]);
   });

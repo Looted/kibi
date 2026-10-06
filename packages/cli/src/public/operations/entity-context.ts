@@ -19,7 +19,9 @@
 import path from "node:path";
 import { load as loadYaml } from "js-yaml";
 import {
+  CONTEXT_MISSING_TAG,
   CONTEXT_REQUIRED_TYPES,
+  RESERVED_TAG_HINT,
   assessContext,
   contextFinding,
   isContextAcknowledged,
@@ -35,6 +37,7 @@ import {
   sliceFrontmatter,
 } from "../../operations/migration/kb-sources.js";
 import { readAllShards } from "../../relationships/shards.js";
+import { readKbManifest } from "../../utils/kb-manifest.js";
 import type { Violation } from "../../utils/rule-registry.js";
 
 /** A current entity must carry body context (blocking). */
@@ -228,6 +231,7 @@ export function evaluateEntityContext(
   entities: readonly AuthoredEntity[],
   superseded: ReadonlySet<string>,
   rules: ReadonlySet<string> = new Set(ENTITY_CONTEXT_RULES),
+  acknowledgedIds: ReadonlySet<string> = new Set(),
 ): Violation[] {
   const findings: Violation[] = [];
   const acknowledged: { id: string; type: string }[] = [];
@@ -238,18 +242,21 @@ export function evaluateEntityContext(
     const view = contextEntityOf(entity);
     const assessment = assessContext(entity.type, entity.body, view);
     if (assessment.ok) continue;
-    if (isContextAcknowledged(view.tags)) {
+    if (acknowledgedIds.has(entity.id)) {
       acknowledged.push({ id: entity.id, type: entity.type });
       continue;
     }
     if (!rules.has(ENTITY_CONTEXT_MISSING_RULE)) continue;
     const finding = contextFinding(entity.type, entity.id, entity.body, view);
     if (finding === null) continue;
+    const selfTagged = isContextAcknowledged(view.tags);
     findings.push({
       rule: ENTITY_CONTEXT_MISSING_RULE,
       entityId: entity.id,
-      description: finding.description,
-      suggestion: finding.suggestion,
+      description: selfTagged
+        ? `${finding.description}; ${CONTEXT_MISSING_TAG} is not honored here because the schema 8 migration did not acknowledge this entity`
+        : finding.description,
+      suggestion: selfTagged ? RESERVED_TAG_HINT : finding.suggestion,
       source: entity.path,
       evidence: {
         type: entity.type,
@@ -273,7 +280,7 @@ export function evaluateEntityContext(
         .map(([type, count]) => `${count} ${type}`)
         .join(", ")})`,
       suggestion:
-        "Ask the person who knows why each entity exists, record the answer in its body, then remove the review:context-missing tag; never invent a reason",
+        "Ask the person who knows why each entity exists and record the answer in its body; never invent a reason",
       evidence: { total: acknowledged.length, byType },
     });
   }
@@ -292,5 +299,6 @@ export function collectEntityContextViolations(
     entities,
     authoredSupersededIds(workspaceRoot, entities),
     rules,
+    new Set(readKbManifest(workspaceRoot)?.contextAcknowledged ?? []),
   );
 }

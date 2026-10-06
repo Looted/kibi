@@ -781,6 +781,7 @@ export async function migrateCommand(
     (step) => step.id === "entity-body-context-v8",
   );
   const {
+    acknowledgedContextIds,
     applyContextMissingTags,
     applySemanticTextPins,
     countByType,
@@ -928,6 +929,16 @@ export async function migrateCommand(
     ...existingManifest,
     schemaVersion: LATEST_KB_SCHEMA_VERSION,
     semanticAdvisorBackfill,
+    ...(contextPlan !== null
+      ? {
+          contextAcknowledged: [
+            ...new Set([
+              ...(existingManifest.contextAcknowledged ?? []),
+              ...acknowledgedContextIds(contextPlan),
+            ]),
+          ].sort(),
+        }
+      : {}),
   });
 
   writeJsonAtomically(

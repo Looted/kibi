@@ -38,7 +38,7 @@ describe("kb_upsert context warning", () => {
     expect(warnings[0]).toContain("Reason not stated");
   });
 
-  test("stays quiet for a sectioned body, exempt types and acknowledged tags", () => {
+  test("stays quiet for a sectioned body, exempt types and migration-acknowledged ids", () => {
     const root = workspace();
     expect(
       entityContextWarnings(
@@ -61,13 +61,21 @@ describe("kb_upsert context warning", () => {
         root,
       ),
     ).toEqual([]);
-    expect(
-      entityContextWarnings(
-        { type: "scenario", id: "SCEN-a", properties: {} },
-        { title: "Scenario", tags: ["review:context-missing"] },
-        root,
-      ),
-    ).toEqual([]);
+    const scenario = { type: "scenario", id: "SCEN-a", properties: {} };
+    const tagged = { title: "Scenario", tags: ["review:context-missing"] };
+    // The tag alone does not silence the warning.
+    expect(entityContextWarnings(scenario, tagged, root)).toHaveLength(1);
+    mkdirSync(path.join(root, ".kb"), { recursive: true });
+    writeFileSync(
+      path.join(root, ".kb/manifest.json"),
+      JSON.stringify({
+        manifestVersion: 1,
+        schemaVersion: 8,
+        semanticAdvisorBackfill: "not_applicable",
+        contextAcknowledged: ["SCEN-a"],
+      }),
+    );
+    expect(entityContextWarnings(scenario, tagged, root)).toEqual([]);
   });
 
   test("reads the preserved body of an existing document when none is supplied", () => {

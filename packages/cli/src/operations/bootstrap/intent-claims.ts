@@ -1,9 +1,5 @@
 import { createHash } from "node:crypto";
-import {
-  CONTEXT_MISSING_TAG,
-  assessContext,
-  renderRequirementBody,
-} from "../../entity-body-context.js";
+import { renderRequirementBody } from "../../entity-body-context.js";
 import { buildStrictWriteSet } from "../../utils/strict-modeling.js";
 import { confidenceBand, strictPlan, upsert } from "./candidate-helpers.js";
 import { claimFor } from "./requirement-claims.js";
@@ -70,36 +66,16 @@ function claimBody(
 }
 
 /**
- * Attach the claim body to an upsert step. A claim whose source text states
- * no reason beyond the statement keeps the review:context-missing tag, so the
- * gap stays visible instead of blocking apply or being invented.
+ * Attach the claim body to an upsert step. The body is the statement plus the
+ * cited source; no context tag is added, so a claim whose source states no
+ * reason is reported by entity-context-missing instead of being acknowledged.
  */
 // implements REQ-kb-entity-body-context
 function withClaimBody(
   step: Readonly<Record<string, unknown>>,
   body: string,
 ): Readonly<Record<string, unknown>> {
-  const properties =
-    step.properties !== null && typeof step.properties === "object"
-      ? (step.properties as Readonly<Record<string, unknown>>)
-      : {};
-  const type = String(step.type ?? "");
-  const tags = Array.isArray(properties.tags)
-    ? (properties.tags as readonly unknown[])
-    : [];
-  const withTag =
-    !assessContext(type, body, {
-      title: properties.title,
-      semantic_text: properties.semantic_text ?? properties.title,
-      fact_kind: properties.fact_kind,
-    }).ok && !tags.includes(CONTEXT_MISSING_TAG);
-  return {
-    ...step,
-    ...(withTag
-      ? { properties: { ...properties, tags: [...tags, CONTEXT_MISSING_TAG] } }
-      : {}),
-    document: { body },
-  };
+  return { ...step, document: { body } };
 }
 
 /**

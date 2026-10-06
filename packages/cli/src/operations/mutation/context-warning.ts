@@ -3,6 +3,7 @@ import path from "node:path";
 import { contextFinding } from "../../entity-body-context.js";
 import { requirementSemanticText } from "../../extractors/markdown.js";
 import { readAuthoredEntity } from "../../public/operations/entity-context.js";
+import { readKbManifest } from "../../utils/kb-manifest.js";
 import type { UpsertInput } from "./types.js";
 
 function readBody(workspaceRoot: string, source: unknown): string | undefined {
@@ -62,12 +63,20 @@ export function entityContextWarnings(
       : input.type === "req"
         ? requirementSemanticText(body)
         : undefined;
-  const finding = contextFinding(input.type, input.id, body, {
-    title: entity.title,
-    semantic_text: semanticText,
-    fact_kind: entity.fact_kind,
-    tags: entity.tags,
-  });
+  const acknowledged = (
+    readKbManifest(workspaceRoot)?.contextAcknowledged ?? []
+  ).includes(input.id);
+  const finding = contextFinding(
+    input.type,
+    input.id,
+    body,
+    {
+      title: entity.title,
+      semantic_text: semanticText,
+      fact_kind: entity.fact_kind,
+    },
+    acknowledged,
+  );
   return finding === null
     ? []
     : [

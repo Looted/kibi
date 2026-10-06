@@ -1,7 +1,10 @@
 import { createHash } from "node:crypto";
 import path from "node:path";
 
-import { renderRequirementBody } from "../../entity-body-context.js";
+import {
+  renderRequirementBody,
+  reviseRequirementBody,
+} from "../../entity-body-context.js";
 import {
   type IntentSearchFacets,
   type IntentSearchMatch,
@@ -12,6 +15,7 @@ import { publicCapabilityStamp } from "../../plugins/compose-semantic-classifier
 import { normalizeEntityId, parseTriples } from "../../prolog/codec.js";
 import { loadEntities } from "../../public/operations/discovery-entities.js";
 import { executeStatus } from "../../public/operations/discovery-executors.js";
+import { readAuthoredEntity } from "../../public/operations/entity-context.js";
 import type {
   OperationContext,
   WorkspaceSnapshot,
@@ -560,6 +564,22 @@ async function withDocumentTargets(
     });
   }
   return targeted;
+}
+
+/** Body of the requirement's existing authored document, when readable. */
+async function existingRequirementBody(
+  context: OperationContext,
+  source: string,
+): Promise<string | undefined> {
+  if (!context.fs || !source.endsWith(".md")) return undefined;
+  try {
+    const raw = await context.fs.readFile(
+      path.join(context.workspaceRoot, source),
+    );
+    return readAuthoredEntity(String(raw), source)?.body ?? undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 function generatedRequirementId(intent: string): string {
@@ -1273,19 +1293,35 @@ export async function executeCompileIntent(
   // A step whose entity or document cannot be rendered would fail the apply,
   // so it makes the plan need resolution instead of reporting it ready.
   let planSteps = stepsWithAcceptedProposals;
-  // A create always carries context. An update without new context keeps the
-  // existing document body so earlier context sections survive.
+  // A create always carries context. An update replaces the non-context part
+  // of the existing body with the new intent and keeps its context sections
+  // byte for byte; supplied context or source replaces those sections too.
+  const sourceInput = {
+    excerpt: args.sourceExcerpt,
+    reference: args.sourceReference,
+  };
+  const existingBody =
+    args.mode === "update"
+      ? await existingRequirementBody(
+          context,
+          requirementDocument ?? text(existingEntity.source),
+        )
+      : undefined;
   const requirementBody =
-    text(args.context) !== ""
-      ? renderRequirementBody({
+    existingBody !== undefined
+      ? reviseRequirementBody({
+          existingBody,
           statement: intent,
           context: args.context,
-          source: {
-            excerpt: args.sourceExcerpt,
-            reference: args.sourceReference,
-          },
+          source: sourceInput,
         })
-      : undefined;
+      : text(args.context) !== ""
+        ? renderRequirementBody({
+            statement: intent,
+            context: args.context,
+            source: sourceInput,
+          })
+        : undefined;
   if (statusValue === "ready") {
     try {
       planSteps = await withDocumentTargets(

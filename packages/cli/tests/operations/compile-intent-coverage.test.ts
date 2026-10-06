@@ -247,6 +247,62 @@ describe("compile-intent validation and source planning", () => {
     );
   });
 
+  test("an update rewrites the statement and keeps or replaces context sections", async () => {
+    const root = await mkdtemp(path.join(tmpdir(), "kibi-compile-revise-"));
+    workspaces.push(root);
+    const relative = ".kb/requirements/REQ-keep.md";
+    const contextBlock =
+      "## Context\n\nLegal asked after an audit found data deleted too early.\n";
+    const sourceBlock = "## Source\n\n> Keep records.\n\nSource: TICKET-1\n";
+    await mkdir(path.join(root, ".kb/requirements"), { recursive: true });
+    await writeFile(
+      path.join(root, relative),
+      `---\nid: REQ-keep\ntitle: Retention\nstatus: open\n---\nCustomer data must be retained for 5 years.\n\n${contextBlock}\n${sourceBlock}`,
+    );
+    const query = mock(async (goal: string): Promise<PrologQueryResult> => {
+      if (goal.includes("checks:what_if_analysis_json("))
+        return { success: true, bindings: { JsonString: "[]" } };
+      if (goal.includes("kb_relationship"))
+        return { success: true, bindings: { Edges: "[]" } };
+      if (goal.includes("kb_entity('REQ-keep'"))
+        return {
+          success: true,
+          bindings: {
+            Results: `[[REQ-keep,req,[title="Retention",status=open,source="${relative}"]]]`,
+          },
+        };
+      return { success: true, bindings: { Results: "[]" } };
+    });
+    const bodyOf = async (extra: Record<string, unknown>) => {
+      const plan = (
+        await executeCompileIntent(
+          {
+            intent: "Customer data must be retained for 7 years.",
+            mode: "update",
+            requirementId: "REQ-keep",
+            ...extra,
+          },
+          contextFor(root, query),
+        )
+      ).structuredContent;
+      return (
+        plan.steps.find((step) => step.id === "REQ-keep")?.document as
+          | { body?: string }
+          | undefined
+      )?.body;
+    };
+    // No context supplied: the statement changes, context sections survive.
+    expect(await bodyOf({})).toBe(
+      `Customer data must be retained for 7 years.\n\n${contextBlock}\n${sourceBlock}`,
+    );
+    // Supplied context replaces the Context section and keeps Source.
+    expect(
+      await bodyOf({ context: "Compliance moved the limit to seven years." }),
+    ).toBe(
+      `Customer data must be retained for 7 years.\n\n## Context\n\nCompliance moved the limit to seven years.\n\n${sourceBlock}`,
+    );
+  });
+
   test("auto-selects a high-confidence update target and applies drafts plus proposals", async () => {
     const root = await mkdtemp(path.join(tmpdir(), "kibi-compile-update-"));
     workspaces.push(root);

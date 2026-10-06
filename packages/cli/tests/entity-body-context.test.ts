@@ -6,6 +6,7 @@ import {
   isContextExempt,
   parseBodySections,
   renderRequirementBody,
+  reviseRequirementBody,
   tokenSetJaccard,
   withoutContextSections,
 } from "../src/entity-body-context";
@@ -131,6 +132,49 @@ describe("entity body sections", () => {
     expect(renderRequirementBody({ statement: "Only statement." })).toBe(
       "Only statement.\n",
     );
+  });
+});
+
+describe("reviseRequirementBody", () => {
+  const existing =
+    "Old statement.\n\nExtra non-context note.\n\n## Context\n\nWhy it exists.\n\n### Constraint\n\nKeep nested text.\n\n## Source\n\n> quoted\n\nSource: T-1\n\n## Out of scope\n\nNot context.\n";
+
+  test("replaces the non-context part and keeps context sections byte for byte", () => {
+    expect(
+      reviseRequirementBody({ existingBody: existing, statement: "New." }),
+    ).toBe(
+      "New.\n\n## Context\n\nWhy it exists.\n\n### Constraint\n\nKeep nested text.\n\n## Source\n\n> quoted\n\nSource: T-1\n",
+    );
+  });
+
+  test("supplied context or source replaces just that section", () => {
+    const revised = reviseRequirementBody({
+      existingBody: existing,
+      statement: "New.",
+      context: "Fresh reason.",
+    });
+    expect(revised).toBe(
+      "New.\n\n## Context\n\nFresh reason.\n\n## Source\n\n> quoted\n\nSource: T-1\n",
+    );
+    expect(
+      reviseRequirementBody({
+        existingBody: existing,
+        statement: "New.",
+        source: { excerpt: "fresh quote", reference: "T-2" },
+      }),
+    ).toBe(
+      "New.\n\n## Context\n\nWhy it exists.\n\n### Constraint\n\nKeep nested text.\n\n## Source\n\n> fresh quote\n\nSource: T-2\n",
+    );
+  });
+
+  test("appends a section the body did not have", () => {
+    expect(
+      reviseRequirementBody({
+        existingBody: "Only statement.\n",
+        statement: "New.",
+        context: "Reason.",
+      }),
+    ).toBe("New.\n\n## Context\n\nReason.\n");
   });
 });
 

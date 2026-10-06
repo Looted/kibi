@@ -15,6 +15,7 @@ import {
   applySchema6MigrationAction,
   buildSchema6MigrationFragment,
 } from "../../../src/operations/migration/schema6.js";
+import { readKbManifest } from "../../../src/utils/kb-manifest.js";
 
 // implements REQ-kb-entity-body-context
 
@@ -109,6 +110,11 @@ describe("schema 8 planning", () => {
         "---\nid: FACT-obs\ntitle: Obs\nfact_kind: observation\n---\n\n",
       ".kb/requirements/REQ-tagged.md":
         "---\nid: REQ-tagged\ntitle: T\ntags: [review:context-missing]\n---\nT.\n",
+      ".kb/manifest.json": JSON.stringify({
+        manifestVersion: 1,
+        schemaVersion: 7,
+        semanticAdvisorBackfill: "not_applicable",
+      }),
     });
     const plan = planContextMissingTags(root);
     expect(plan.targets.map((target) => target.id).sort()).toEqual([
@@ -118,8 +124,18 @@ describe("schema 8 planning", () => {
       "SCEN-thin",
     ]);
     expect(countByType(plan.targets)).toEqual({ fact: 1, req: 2, scenario: 1 });
+    expect(plan.alreadyTagged).toEqual(["REQ-tagged"]);
     expect(applyContextMissingTags(root)).toBe(4);
     expect(applyContextMissingTags(root)).toBe(0);
+    // The ids the migration acknowledged are recorded in the manifest, the
+    // only thing entity-context-missing honors; a later self-tag is not in it.
+    expect(readKbManifest(root)?.contextAcknowledged).toEqual([
+      "FACT-obs",
+      "REQ-new",
+      "REQ-tagged",
+      "REQ-thin",
+      "SCEN-thin",
+    ]);
   });
 });
 

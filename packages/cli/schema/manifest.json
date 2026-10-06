@@ -21,6 +21,11 @@
       "type": "string",
       "enum": ["pending", "completed", "not_applicable"],
       "description": "Retroactive semantic-advisor backfill review state"
+    },
+    "contextAcknowledged": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Entity ids the schema 8 migration acknowledged as lacking body context; only these may carry review:context-missing without an entity-context-missing violation"
     }
   }
 }

@@ -174,12 +174,15 @@ exempt. `kb_upsert` returns the same finding as a warning, including on dryRun.
 - `fact` (`observation`/`meta`): what was seen, where, when, how confirmed.
 - Never invent a reason the requester did not give. Write "Reason not stated"
   and the source instead.
-- Entities tagged `review:context-missing` are acknowledged legacy from the
-  schema 8 migration (`kibi migrate`); they are not violations, and are counted
-  by the advisory `entity-context-acknowledged`. Do not fabricate context to
-  clear the tag; add real context when it is known and remove the tag.
+- The tag `review:context-missing` is reserved for entities the schema 8
+  migration (`kibi migrate`) acknowledged and recorded in the manifest; it is
+  counted by the advisory `entity-context-acknowledged`. Never add it yourself:
+  on any other entity it is still a violation. Write who asked, the source and
+  "Reason not stated" in the Context section instead.
 - `kb_plan_compile_intent` requires `context` when the plan creates a
-  requirement, and accepts `sourceExcerpt` and `sourceReference`.
+  requirement, and accepts `sourceExcerpt` and `sourceReference`. On update it
+  rewrites the statement and keeps the existing context sections unless you
+  supply new `context` or source.
 
 ## Source-first mutation
 

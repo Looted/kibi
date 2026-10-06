@@ -125,7 +125,7 @@ Finance asked for this after the March audit found two unreviewed large refunds.
 Finance audit follow-up, ticket FIN-212.
 ```
 
-Scenarios and tests keep Given/When/Then prose, assumptions, what is asserted and what would make it a false pass. When the reason was not given, write "Reason not stated"; never invent one. `entity-context-missing` blocks entities without context; `review:context-missing` marks acknowledged legacy.
+Scenarios and tests keep Given/When/Then prose, assumptions, what is asserted and what would make it a false pass. When the reason was not given, write "Reason not stated"; never invent one. `entity-context-missing` blocks entities without context; `review:context-missing` is reserved for entities the schema 8 migration acknowledged and is not honored on any other entity; write who asked, the source and "Reason not stated" instead.
 
 ## Common field-name mistakes
 

@@ -3,6 +3,7 @@ import {
   existsSync,
   mkdirSync,
   mkdtempSync,
+  readFileSync,
   realpathSync,
   rmSync,
   writeFileSync,
@@ -68,7 +69,7 @@ describe("kibi check entity-context-missing", () => {
   });
 
   test(
-    "blocks a thin entity, accepts context, and counts acknowledged legacy entities",
+    "blocks a thin entity and a self-applied tag, accepts context, and counts migration-acknowledged entities",
     () => {
       write(
         root,
@@ -92,6 +93,22 @@ describe("kibi check entity-context-missing", () => {
           "tags:\n  - review:context-missing\n",
           "REQ-ctx-legacy must hold.\n",
         ),
+      );
+      write(
+        root,
+        ".kb/requirements/REQ-ctx-selftag.md",
+        requirement(
+          "REQ-ctx-selftag",
+          "tags:\n  - review:context-missing\n",
+          "REQ-ctx-selftag must hold.\n",
+        ),
+      );
+      // Only ids the schema 8 migration recorded in the manifest are honored.
+      const manifestPath = path.join(root, ".kb/manifest.json");
+      const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
+      writeFileSync(
+        manifestPath,
+        `${JSON.stringify({ ...manifest, contextAcknowledged: ["REQ-ctx-legacy"] }, null, 2)}\n`,
       );
       git(root, "add", "--all");
       const sync = runKibi(["sync"], root);
@@ -126,7 +143,10 @@ describe("kibi check entity-context-missing", () => {
           violation.rule,
           violation.entityId,
         ]),
-      ).toEqual([["entity-context-missing", "REQ-ctx-thin"]]);
+      ).toEqual([
+        ["entity-context-missing", "REQ-ctx-selftag"],
+        ["entity-context-missing", "REQ-ctx-thin"],
+      ]);
       const acknowledged = content.qualityDiagnostics.filter(
         (diagnostic) => diagnostic.id === "rule.entity-context-acknowledged",
       );
