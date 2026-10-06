@@ -5,8 +5,9 @@
  * system, the client script (search, copy buttons, scrollspy, mobile nav),
  * and the landing page. Output must stay self-contained per docs/brand-guide.md:
  * inline styles and scripts only, platform font stacks, no network assets.
- * The one exception is the deferred Umami analytics script in the page head;
- * the site works unchanged when it is blocked.
+ * The one exception is the opt-in Umami analytics script in the page head,
+ * emitted only when the build is given a website ID; the site works unchanged
+ * when it is absent or blocked.
  *
  * Colors are the brand tokens from docs/brand-guide.md. Do not introduce
  * other hues; proven green stays reserved for complete proof.
@@ -17,7 +18,6 @@ import {
   SITE_TAGLINE,
   UMAMI_DOMAINS,
   UMAMI_SCRIPT_SRC,
-  UMAMI_WEBSITE_ID,
   publishedLlmsIndexHref,
 } from "./catalog.js";
 
@@ -43,6 +43,8 @@ export type PageShell = {
   wordmarkSvg: string;
   commit: string | null;
   branch: string;
+  /** Umami website ID; null builds a page without analytics. */
+  analyticsId: string | null;
 };
 
 // implements REQ-docs-site-root-pages
@@ -1129,6 +1131,7 @@ export function layout(page: PageShell): string {
     wordmarkSvg,
     commit,
     branch,
+    analyticsId,
   } = page;
   const favicon = svgFavicon(logoSvg);
   // The report URL is relative to the site root (e.g. "kibi-report/"):
@@ -1171,8 +1174,7 @@ export function layout(page: PageShell): string {
 <meta property="og:title" content="${title}">
 <meta property="og:description" content="${description}">
 <link rel="icon" href="${favicon}">
-<script defer src="${UMAMI_SCRIPT_SRC}" data-website-id="${UMAMI_WEBSITE_ID}" data-domains="${UMAMI_DOMAINS}"></script>
-<style>${styles}</style>
+${analyticsId ? `<script defer src="${UMAMI_SCRIPT_SRC}" data-website-id="${analyticsId}" data-domains="${UMAMI_DOMAINS}" data-do-not-track="true" data-performance="true"></script>\n` : ""}<style>${styles}</style>
 </head>
 <body${section === null ? ' class="page-home"' : ""}>
 <a class="skip-link" href="#main">Skip to content</a>
@@ -1208,7 +1210,7 @@ ${pagerHtml}
 ${tocBlock}
 </div>
 <footer class="footer">
-  <span>Kibi documentation &mdash; built from the repository <code style="font-family:var(--mono)">docs/</code> sources. Visits are counted with cookieless Umami analytics; the Kibi packages send none. ${editLink}</span>
+  <span>Kibi documentation &mdash; built from the repository <code style="font-family:var(--mono)">docs/</code> sources.${analyticsId ? " Visits are counted with cookieless Umami analytics; the Kibi packages send none." : ""} ${editLink}</span>
   <nav aria-label="Footer">
     <a class="external" href="${githubUrl}" target="_blank" rel="noopener noreferrer" data-umami-event="github-click" data-umami-event-location="footer">GitHub</a>
     ${reportHref ? `<a href="${reportHref}">Requirement health</a>` : ""}

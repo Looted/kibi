@@ -10,10 +10,13 @@ import path from "node:path";
 
 const repoRoot = path.resolve(import.meta.dir, "../../..");
 
-function runDocsSite(out: string) {
-  return spawnSync("bun", ["docs-site/build.ts", "--out", out], {
+function runDocsSite(out: string, extra: string[] = []) {
+  // Builds under test never inherit the Pages website ID.
+  const { KIBI_UMAMI_WEBSITE_ID: _ignored, ...env } = process.env;
+  return spawnSync("bun", ["docs-site/build.ts", "--out", out, ...extra], {
     cwd: repoRoot,
     encoding: "utf8",
+    env,
   });
 }
 
@@ -90,12 +93,18 @@ describe("documentation site pages", () => {
     }
   });
 
-  test("every page loads Umami analytics scoped to the published host and tags the key calls to action", () => {
+  test("builds without analytics by default and loads Umami scoped to the published host when given a website ID", () => {
+    const id = "197fb489-cdd4-4d95-ae8a-119dc6422a45";
+    const plain = mkdtempSync(path.join(tmpdir(), "kibi-docs-site-plain-"));
     const out = mkdtempSync(path.join(tmpdir(), "kibi-docs-site-analytics-"));
     try {
-      expect(runDocsSite(out).status).toBe(0);
-      const tag =
-        '<script defer src="https://cloud.umami.is/script.js" data-website-id="197fb489-cdd4-4d95-ae8a-119dc6422a45" data-domains="looted.github.io"></script>';
+      expect(runDocsSite(plain).status).toBe(0);
+      const plainIndex = readFileSync(path.join(plain, "index.html"), "utf8");
+      expect(plainIndex).not.toContain("cloud.umami.is");
+      expect(plainIndex).not.toContain("Umami analytics");
+
+      expect(runDocsSite(out, ["--umami-website-id", id]).status).toBe(0);
+      const tag = `<script defer src="https://cloud.umami.is/script.js" data-website-id="${id}" data-domains="looted.github.io" data-do-not-track="true" data-performance="true"></script>`;
       for (const page of [
         "index.html",
         "guide/quick-start.html",
@@ -112,7 +121,18 @@ describe("documentation site pages", () => {
       // Copy and tab clicks report through the client script, which stays a no-op without Umami.
       expect(index).toContain('track("install-copy", { method: panel })');
       expect(index).toContain('track("install-tab"');
+
+      const workflow = readFileSync(
+        path.join(repoRoot, ".github/workflows/proof.yml"),
+        "utf8",
+      );
+      expect(workflow).toContain(`KIBI_UMAMI_WEBSITE_ID: ${id}\n`);
+
+      const invalid = runDocsSite(out, ["--umami-website-id", '"><script>']);
+      expect(invalid.status).toBe(1);
+      expect(invalid.stderr).toContain("Invalid Umami website ID");
     } finally {
+      rmSync(plain, { recursive: true, force: true });
       rmSync(out, { recursive: true, force: true });
     }
   });

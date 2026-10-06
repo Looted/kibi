@@ -14,8 +14,8 @@ operator: eq
 value_type: string
 value_string: umami
 polarity: require
-claim_key: CLAIM-B7DCB07410DBD7E3
-claim_text: Every documentation site page loads the Umami analytics script
+claim_key: CLAIM-4566EC9C2803C5A3
+claim_text: Every published documentation site page loads the Umami analytics script
 origin:
   kind: agent
   recorded_at: '2026-10-06T17:52:28.214Z'
