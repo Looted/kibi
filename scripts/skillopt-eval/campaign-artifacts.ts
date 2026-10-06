@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { z } from "zod";
+import type { SkillManifest } from "../../packages/cli/src/public/skills";
 import { type ArtifactPath, prepareArtifactPath } from "./artifact-path";
 import {
   type BaselineInsertionPlan,
@@ -17,7 +18,11 @@ import {
   contractHash,
 } from "./contracts/common";
 import { runBoundedProcess } from "./runtime/process";
-import { validateCandidateBody } from "./variants";
+import {
+  CandidateValidationError,
+  validateCandidateBody,
+  validateCandidateDescription,
+} from "./variants";
 
 const CampaignInsertionSchema = z
   .object({
@@ -52,30 +57,74 @@ const HostProvenanceSchema = z
 
 export const CampaignManifestSchema = z
   .object({
-    schemaVersion: z.enum(["1.0.0", "1.1.0"]),
+    schemaVersion: z.enum(["1.0.0", "1.1.0", "1.2.0"]),
     artifactType: z.literal("skillopt-campaign-manifest"),
-    revisionMode: z.literal("body-replacement").optional(),
+    revisionMode: z
+      .enum(["body-replacement", "body-and-description-replacement"])
+      .optional(),
     skill: z.enum(CANONICAL_SKILLS),
     baselineBodyHash: Sha256Schema,
+    /** Baseline frontmatter the candidate was composed against. */
     frontmatterHash: Sha256Schema,
     resourcesHash: Sha256Schema,
     insertions: z.array(CampaignInsertionSchema).max(4),
     frozenBody: z.string().min(1),
     frozenBodyHash: Sha256Schema,
+    /** 1.2.0 only: the candidate frontmatter `description`. */
+    frozenDescription: z.string().optional(),
+    frozenDescriptionHash: Sha256Schema.optional(),
+    /** 1.2.0 only: baseline frontmatter with only `description` replaced. */
+    candidateFrontmatterHash: Sha256Schema.optional(),
     provenance: z.union([ModelProvenanceSchema, HostProvenanceSchema]),
   })
   .strict()
   .superRefine((value, context) => {
+    const describedFields = [
+      value.frozenDescription,
+      value.frozenDescriptionHash,
+      value.candidateFrontmatterHash,
+    ];
+    if (value.schemaVersion === "1.2.0") {
+      if (
+        value.revisionMode !== "body-and-description-replacement" ||
+        value.insertions.length !== 0 ||
+        value.provenance.kind !== "host-composed" ||
+        describedFields.some((field) => field === undefined)
+      ) {
+        context.addIssue({
+          code: "custom",
+          message: "manifest_revision_shape_invalid",
+        });
+        return;
+      }
+      if (
+        value.frozenDescriptionHash !==
+        sha256Text(value.frozenDescription as string)
+      ) {
+        context.addIssue({
+          code: "custom",
+          message: "manifest_description_hash_mismatch",
+        });
+      }
+      try {
+        validateCandidateDescription(value.frozenDescription as string);
+      } catch (error) {
+        if (!(error instanceof CandidateValidationError)) throw error;
+        context.addIssue({ code: "custom", message: error.message });
+      }
+      return;
+    }
     const replacement =
       value.schemaVersion === "1.1.0" &&
       value.revisionMode === "body-replacement";
     if (
-      replacement
+      describedFields.some((field) => field !== undefined) ||
+      (replacement
         ? value.insertions.length !== 0 ||
           value.provenance.kind !== "host-composed"
         : value.schemaVersion !== "1.0.0" ||
           value.revisionMode !== undefined ||
-          value.insertions.length === 0
+          value.insertions.length === 0)
     ) {
       context.addIssue({
         code: "custom",
@@ -91,6 +140,11 @@ export type CampaignSourceSurface = Readonly<{
   body: string;
   frontmatterHash: string;
   resourcesHash: string;
+  /**
+   * Parsed baseline frontmatter. Required only to compose or validate a
+   * body-and-description (1.2.0) manifest.
+   */
+  manifest?: Readonly<SkillManifest>;
 }>;
 
 const BundleManifestEntrySchema = z.discriminatedUnion("arm", [
@@ -264,6 +318,10 @@ export function validateCampaignManifestAgainstSurface(
   if (parsed.frozenBodyHash !== sha256Text(parsed.frozenBody)) {
     throw new CampaignArtifactError("manifest_body_hash_mismatch");
   }
+  if (parsed.revisionMode === "body-and-description-replacement") {
+    validateDescribedRevision(parsed, surface);
+    return;
+  }
   if (parsed.revisionMode === "body-replacement") {
     validateCandidateBody(parsed.frozenBody);
     if (parsed.frozenBody === surface.body)
@@ -309,6 +367,133 @@ export function replaceCampaignBody(
     frozenBodyHash: sha256Text(input.body),
     provenance: { kind: "host-composed", modelSource: "none" },
   });
+}
+
+/**
+ * The canonical hash of `baseline` with only `description` replaced. Every
+ * other frontmatter field stays bound to the baseline the candidate was
+ * composed against.
+ */
+// implements REQ-skillopt-description-candidates
+export function candidateFrontmatterHash(
+  baseline: Readonly<SkillManifest>,
+  description: string,
+): string {
+  return contractHash(JsonValueSchema.parse({ ...baseline, description }));
+}
+
+function baselineManifest(
+  surface: CampaignSourceSurface,
+): Readonly<SkillManifest> {
+  const manifest = surface.manifest;
+  if (manifest === undefined)
+    throw new CampaignArtifactError("manifest_surface_frontmatter_unavailable");
+  if (contractHash(JsonValueSchema.parse(manifest)) !== surface.frontmatterHash)
+    throw new CampaignArtifactError("manifest_surface_mismatch");
+  return manifest;
+}
+
+function assertCandidateDescription(description: string): void {
+  try {
+    validateCandidateDescription(description);
+  } catch (error) {
+    if (error instanceof CandidateValidationError)
+      throw new CampaignArtifactError(error.message);
+    throw error;
+  }
+}
+
+function validateDescribedRevision(
+  manifest: CampaignManifest,
+  surface: CampaignSourceSurface,
+): void {
+  const description = manifest.frozenDescription;
+  if (
+    description === undefined ||
+    manifest.frozenDescriptionHash !== sha256Text(description)
+  )
+    throw new CampaignArtifactError("manifest_description_hash_mismatch");
+  assertCandidateDescription(description);
+  const baseline = baselineManifest(surface);
+  if (manifest.frozenBody !== surface.body)
+    validateCandidateBody(manifest.frozenBody);
+  if (
+    manifest.frozenBody === surface.body &&
+    description === baseline.description
+  )
+    throw new CampaignArtifactError("replacement_unchanged");
+  if (
+    manifest.candidateFrontmatterHash !==
+    candidateFrontmatterHash(baseline, description)
+  )
+    throw new CampaignArtifactError("manifest_candidate_frontmatter_mismatch");
+}
+
+/**
+ * Freeze a reviewed revision of the body and the frontmatter `description`.
+ * Agents decide whether to load a skill from its description, so this is the
+ * only frontmatter field a candidate may change; resources stay frozen.
+ */
+// implements REQ-skillopt-description-candidates
+export function replaceCampaignBodyAndDescription(
+  input: Readonly<{
+    skill: CanonicalSkill;
+    surface: CampaignSourceSurface;
+    body: string;
+    description: string;
+  }>,
+): CampaignManifest {
+  assertCandidateDescription(input.description);
+  const baseline = baselineManifest(input.surface);
+  const manifest = CampaignManifestSchema.parse({
+    schemaVersion: "1.2.0",
+    artifactType: "skillopt-campaign-manifest",
+    revisionMode: "body-and-description-replacement",
+    skill: input.skill,
+    baselineBodyHash: sha256Text(input.surface.body),
+    frontmatterHash: input.surface.frontmatterHash,
+    resourcesHash: input.surface.resourcesHash,
+    insertions: [],
+    frozenBody: input.body,
+    frozenBodyHash: sha256Text(input.body),
+    frozenDescription: input.description,
+    frozenDescriptionHash: sha256Text(input.description),
+    candidateFrontmatterHash: candidateFrontmatterHash(
+      baseline,
+      input.description,
+    ),
+    provenance: { kind: "host-composed", modelSource: "none" },
+  });
+  validateDescribedRevision(manifest, input.surface);
+  return manifest;
+}
+
+/**
+ * The hash that identifies a candidate arm in cells, pairings and aggregates.
+ * Body-only manifests keep their frozen body hash; a described candidate also
+ * binds its frontmatter, so equal bodies with different descriptions (or a
+ * description-only change) never collide with each other or with baseline.
+ */
+// implements REQ-skillopt-description-candidates
+export function campaignCandidateHash(manifest: CampaignManifest): string {
+  if (manifest.candidateFrontmatterHash === undefined)
+    return manifest.frozenBodyHash;
+  return contractHash(
+    JsonValueSchema.parse({
+      frozenBodyHash: manifest.frozenBodyHash,
+      candidateFrontmatterHash: manifest.candidateFrontmatterHash,
+    }),
+  );
+}
+
+/** The assembly override a manifest requests: its body and, for 1.2.0, its description. */
+// implements REQ-skillopt-description-candidates
+export function campaignCandidateSurface(
+  manifest: CampaignManifest,
+): Readonly<{ body: string; description?: string }> {
+  return manifest.frozenDescription === undefined
+    ? { body: manifest.frozenBody }
+    : { body: manifest.frozenBody, description: manifest.frozenDescription };
 }
 
 export async function readCampaignManifest(

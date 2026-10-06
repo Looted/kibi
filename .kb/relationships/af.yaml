@@ -174,3 +174,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-67c173b4d640
+  - type: implements
+    from: SYM-skillopt-campaign-candidate-hash
+    to: REQ-skillopt-description-candidates
+    created_at: 2026-10-06T00:23:17.177Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d771606beac4
+  - type: covered_by
+    from: SYM-skillopt-campaign-candidate-hash
+    to: TEST-e2e-skillopt-description-candidates
+    created_at: 2026-10-06T00:23:17.193Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d83b68fbf614

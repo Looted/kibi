@@ -16,11 +16,14 @@ import {
   type CampaignSourceSurface,
   type PublicFeedback,
   type SourceFence,
+  campaignCandidateHash,
+  campaignCandidateSurface,
   composeCampaignManifest,
   feedbackTrajectories,
   manifestHash,
   parsePublicFeedback,
   replaceCampaignBody,
+  replaceCampaignBodyAndDescription,
   sha256Text,
   validateCampaignManifestAgainstSurface,
 } from "./campaign-artifacts";
@@ -48,7 +51,7 @@ import {
   runPreflight,
   sourceWorktreeIsClean,
 } from "./preflight";
-import { surface } from "./real-workflow";
+import { campaignSurface } from "./real-workflow";
 import { taskScopedPublicSkillDescriptors } from "./real-workflow-setup";
 import {
   type PublicTaskDescriptor,
@@ -237,7 +240,7 @@ type EvaluateSampleInput = Readonly<{
 export type CampaignDependencies = Readonly<{
   sourceClean: typeof sourceWorktreeIsClean;
   sourceFence: (root: string) => Promise<SourceFence>;
-  surface: typeof surface;
+  surface: typeof campaignSurface;
   runPreflight: typeof runPreflight;
   runCanary: typeof runCapabilityCanary;
   fixtureReadiness: (workspace: string, cliRoot: string) => Promise<void>;
@@ -604,9 +607,7 @@ function assertDerivedEvaluationConsistent(
 ): void {
   const cells = evaluation.cells as readonly CampaignCell[];
   const baselineHash = sha256Text(evaluation.baselineBody);
-  const candidateHashes = evaluation.candidates.map(
-    (candidate) => candidate.frozenBodyHash,
-  );
+  const candidateHashes = evaluation.candidates.map(campaignCandidateHash);
   const baseline = summarizeArm("baseline", baselineHash, cells);
   const candidates = candidateHashes.map((hash, index) =>
     summarizeArm(`candidate-${index + 1}`, hash, cells),
@@ -710,17 +711,33 @@ function validateCellSet(
   }
 }
 
+/**
+ * The candidate fields a cohort binds to. Body-only manifests keep their
+ * original shape so existing cohort hashes are unchanged; a described
+ * candidate also binds its description and resulting frontmatter.
+ */
+function candidateBinding(manifest: CampaignManifest) {
+  return {
+    skill: manifest.skill,
+    baselineBodyHash: manifest.baselineBodyHash,
+    frontmatterHash: manifest.frontmatterHash,
+    resourcesHash: manifest.resourcesHash,
+    frozenBodyHash: manifest.frozenBodyHash,
+    ...(manifest.candidateFrontmatterHash === undefined ||
+    manifest.frozenDescriptionHash === undefined
+      ? {}
+      : {
+          frozenDescriptionHash: manifest.frozenDescriptionHash,
+          candidateFrontmatterHash: manifest.candidateFrontmatterHash,
+        }),
+  };
+}
+
 function evaluationBinding(evaluation: CampaignEvaluation) {
   return {
     skill: evaluation.skill,
     baselineBody: evaluation.baselineBody,
-    candidates: evaluation.candidates.map((candidate) => ({
-      skill: candidate.skill,
-      baselineBodyHash: candidate.baselineBodyHash,
-      frontmatterHash: candidate.frontmatterHash,
-      resourcesHash: candidate.resourcesHash,
-      frozenBodyHash: candidate.frozenBodyHash,
-    })),
+    candidates: evaluation.candidates.map(candidateBinding),
     context: {
       sourceHead: evaluation.context.sourceHead,
       sourceTreeHash: evaluation.context.sourceTreeHash,
@@ -1091,7 +1108,10 @@ async function defaultEvaluateSample(
     sourceWorktree: input.sourceWorktree,
     artifactRoot: input.artifactRoot,
     targetSkill: input.skill,
-    candidate: { body: input.variant.body },
+    candidate:
+      input.variant.description === undefined
+        ? { body: input.variant.body }
+        : { body: input.variant.body, description: input.variant.description },
     codexExecutable: input.runtime.codexExecutable,
     bwrapExecutable: input.runtime.bwrapExecutable,
     env: input.env,
@@ -1148,7 +1168,7 @@ export const defaultCampaignDependencies: CampaignDependencies = {
     const { defaultSourceFence } = await import("./campaign-artifacts");
     return defaultSourceFence(root);
   },
-  surface,
+  surface: campaignSurface,
   runPreflight,
   runCanary: runCapabilityCanary,
   fixtureReadiness: probeFixtureReadiness,
@@ -1489,9 +1509,7 @@ async function buildEvaluation(
   }>,
 ): Promise<CampaignEvaluation> {
   const baselineHash = sha256Text(input.baselineBody);
-  const candidateHashes = input.candidates.map(
-    (candidate) => candidate.frozenBodyHash,
-  );
+  const candidateHashes = input.candidates.map(campaignCandidateHash);
   const baseline = summarizeArm("baseline", baselineHash, input.cells);
   const candidates = candidateHashes.map((hash, index) =>
     summarizeArm(`candidate-${index + 1}`, hash, input.cells),
@@ -1535,6 +1553,8 @@ type CampaignIdentity = Readonly<{
     frontmatterHash: string;
     resourcesHash: string;
     frozenBodyHash: string;
+    frozenDescriptionHash?: string;
+    candidateFrontmatterHash?: string;
   }>[];
   context: Readonly<{
     sourceHead: string;
@@ -1560,13 +1580,7 @@ function campaignIdentity(
   return {
     skill: input.skill,
     baselineBody: input.surface.body,
-    candidates: input.manifests.map((manifest) => ({
-      skill: manifest.skill,
-      baselineBodyHash: manifest.baselineBodyHash,
-      frontmatterHash: manifest.frontmatterHash,
-      resourcesHash: manifest.resourcesHash,
-      frozenBodyHash: manifest.frozenBodyHash,
-    })),
+    candidates: input.manifests.map(candidateBinding),
     context: {
       sourceHead: input.fence.head,
       sourceTreeHash: input.fence.treeHash,
@@ -1638,13 +1652,7 @@ export async function loadVerifiedCampaignEvaluation(
   const identity: CampaignIdentity = {
     skill: evaluation.skill,
     baselineBody: evaluation.baselineBody,
-    candidates: evaluation.candidates.map((manifest) => ({
-      skill: manifest.skill,
-      baselineBodyHash: manifest.baselineBodyHash,
-      frontmatterHash: manifest.frontmatterHash,
-      resourcesHash: manifest.resourcesHash,
-      frozenBodyHash: manifest.frozenBodyHash,
-    })),
+    candidates: evaluation.candidates.map(candidateBinding),
     context: {
       sourceHead: fence.head,
       sourceTreeHash: fence.treeHash,
@@ -1665,7 +1673,7 @@ export async function loadVerifiedCampaignEvaluation(
 
   const expectedBodyHashes = new Set([
     sha256Text(evaluation.baselineBody),
-    ...evaluation.candidates.map((candidate) => candidate.frozenBodyHash),
+    ...evaluation.candidates.map(campaignCandidateHash),
   ]);
   const canonicalTasks = buildSkillCatalog(evaluation.skill)
     .filter((task) => task.split === "development")
@@ -1680,7 +1688,7 @@ export async function loadVerifiedCampaignEvaluation(
     cohorts,
     canonicalTasks,
     sha256Text(evaluation.baselineBody),
-    evaluation.candidates.map((candidate) => candidate.frozenBodyHash),
+    evaluation.candidates.map(campaignCandidateHash),
   );
   const currentRuns = evaluation.runs.filter(
     (run) => run.runId === evaluation.runId,
@@ -1800,10 +1808,7 @@ function assertSameCandidateSurface(
     throw new CampaignArtifactError("candidate_count_invalid");
   if (manifests.some((manifest) => manifest.skill !== skill))
     throw new CampaignArtifactError("candidate_skill_mismatch");
-  if (
-    new Set(manifests.map((manifest) => manifest.frozenBodyHash)).size !==
-    manifests.length
-  ) {
+  if (new Set(manifests.map(campaignCandidateHash)).size !== manifests.length) {
     throw new CampaignArtifactError("candidate_duplicate");
   }
 }
@@ -1941,6 +1946,8 @@ export async function runComposeCampaign(
     skill: CanonicalSkill;
     insertions: readonly { headingAnchor: string; paragraph: string }[];
     replacementBody?: string;
+    /** With `replacementBody`, also replace the frontmatter description (1.2.0). */
+    replacementDescription?: string;
     runId?: string;
     dependencies?: Partial<CampaignDependencies>;
   }>,
@@ -1960,6 +1967,11 @@ export async function runComposeCampaign(
     const current = await dependencies.surface(input.sourceRoot, input.skill);
     if (input.replacementBody !== undefined && input.insertions.length > 0)
       throw new CampaignArtifactError("replacement_with_insertions");
+    if (
+      input.replacementDescription !== undefined &&
+      input.replacementBody === undefined
+    )
+      throw new CampaignArtifactError("description_requires_body");
     const manifest =
       input.replacementBody === undefined
         ? composeCampaignManifest({
@@ -1968,13 +1980,25 @@ export async function runComposeCampaign(
             insertions: input.insertions,
             provenance: { kind: "host-composed", modelSource: "none" },
           })
-        : replaceCampaignBody({
-            skill: input.skill,
-            surface: current,
-            body: input.replacementBody,
-          });
+        : input.replacementDescription === undefined
+          ? replaceCampaignBody({
+              skill: input.skill,
+              surface: current,
+              body: input.replacementBody,
+            })
+          : replaceCampaignBodyAndDescription({
+              skill: input.skill,
+              surface: current,
+              body: input.replacementBody,
+              description: input.replacementDescription,
+            });
     await store.writeJson("manifest.json", manifest);
     await store.writeText("frozen-body.md", manifest.frozenBody);
+    if (manifest.frozenDescription !== undefined)
+      await store.writeText(
+        "frozen-description.txt",
+        `${manifest.frozenDescription}\n`,
+      );
     await store.writeJson("campaign.json", {
       schemaVersion: "1.0.0",
       artifactType: "skillopt-campaign",
@@ -2065,9 +2089,7 @@ async function evaluateWithPreparation(
                   tasks,
                 }),
                 tasks,
-                candidateHashes: input.manifests.map(
-                  (manifest) => manifest.frozenBodyHash,
-                ),
+                candidateHashes: input.manifests.map(campaignCandidateHash),
                 dependencies: input.dependencies,
               });
             },
@@ -2106,6 +2128,8 @@ async function evaluateWithPreparation(
         resourcesHash: current.resourcesHash,
         provenance: "canonical" as const,
       };
+      // A described candidate is identified by its body and its
+      // description-replaced frontmatter (see campaignCandidateHash).
       const candidates = input.manifests.map((manifest) => ({
         schemaVersion: "1.0.0" as const,
         artifactType: "skillopt-variant" as const,
@@ -2113,10 +2137,14 @@ async function evaluateWithPreparation(
         variant: "skillopt" as const,
         status: "frozen" as const,
         body: manifest.frozenBody,
-        bodyHash: manifest.frozenBodyHash,
-        frontmatterHash: manifest.frontmatterHash,
+        bodyHash: campaignCandidateHash(manifest),
+        frontmatterHash:
+          manifest.candidateFrontmatterHash ?? manifest.frontmatterHash,
         resourcesHash: manifest.resourcesHash,
         provenance: "skillopt" as const,
+        ...(manifest.frozenDescription === undefined
+          ? {}
+          : { description: manifest.frozenDescription }),
       }));
       const cells = await executeScreen({
         store,
@@ -2160,7 +2188,7 @@ async function evaluateWithPreparation(
         cohorts,
         tasks,
         baseline.bodyHash,
-        input.manifests.map((manifest) => manifest.frozenBodyHash),
+        input.manifests.map(campaignCandidateHash),
       );
       const sourceFence = await input.dependencies.sourceFence(
         input.sourceRoot,
@@ -2375,9 +2403,11 @@ export async function runPackageCampaign(
     const candidates = Object.fromEntries(
       input.manifests.map((manifest) => [
         manifest.skill,
-        { body: manifest.frozenBody },
+        campaignCandidateSurface(manifest),
       ]),
-    ) as Partial<Record<CanonicalSkill, { body: string }>>;
+    ) as Partial<
+      Record<CanonicalSkill, ReturnType<typeof campaignCandidateSurface>>
+    >;
     const receipt = await dependencies.assemble({
       sourceRepoRoot: input.sourceRoot,
       workspace,
@@ -2398,8 +2428,13 @@ export async function runPackageCampaign(
       const source = currentSurfaces.get(skill);
       if (source === undefined)
         throw new CampaignArtifactError("package_source_surface_missing");
+      // A described candidate's assembled frontmatter must be exactly the
+      // baseline with its description replaced; everything else is baseline.
+      const expectedFrontmatterHash =
+        input.manifests.find((manifest) => manifest.skill === skill)
+          ?.candidateFrontmatterHash ?? source.frontmatterHash;
       if (
-        actual.frontmatterHash !== source.frontmatterHash ||
+        actual.frontmatterHash !== expectedFrontmatterHash ||
         actual.resourcesHash !== source.resourcesHash
       ) {
         throw new CampaignArtifactError("package_assembled_surface_mismatch");
@@ -2443,6 +2478,9 @@ export async function runPackageCampaign(
       });
       evidenceValid = evaluation.aggregate.noRegression;
     }
+    const describedManifests = input.manifests.filter(
+      (manifest) => manifest.frozenDescription !== undefined,
+    );
     await store.writeJson("package-receipt.json", {
       schemaVersion: "1.0.0",
       artifactType: "skillopt-campaign-package",
@@ -2459,6 +2497,19 @@ export async function runPackageCampaign(
             actual.body !== source.body
           );
         }),
+        ...(describedManifests.length === 0
+          ? {}
+          : {
+              candidateDescriptionChanges: describedManifests.map(
+                (manifest) => ({
+                  skill: manifest.skill,
+                  baselineFrontmatterHash: manifest.frontmatterHash,
+                  candidateFrontmatterHash: manifest.candidateFrontmatterHash,
+                  frozenDescriptionHash: manifest.frozenDescriptionHash,
+                  frozenDescription: manifest.frozenDescription,
+                }),
+              ),
+            }),
       },
       evidenceValid,
       productionAdoption: "not-performed",

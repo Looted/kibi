@@ -307,3 +307,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-37dd10925737
+  - type: implements
+    from: SYM-skillopt-selected-host-choice
+    to: REQ-skillopt-operator-selected-harness
+    created_at: 2026-10-05T23:49:07.180Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a4977a38ab07
+  - type: covered_by
+    from: SYM-skillopt-selected-host-choice
+    to: TEST-skillopt-claude-code-host
+    created_at: 2026-10-05T23:49:07.210Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c42096d8e09d
+  - type: covered_by
+    from: SYM-skillopt-selected-host-choice
+    to: TEST-e2e-skillopt-claude-code-host
+    created_at: 2026-10-05T23:49:07.246Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5dbc968cefd2

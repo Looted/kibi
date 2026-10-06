@@ -286,3 +286,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-49d612b9b796
+  - type: implements
+    from: SYM-skillopt-claude-stream-to-codex-jsonl
+    to: REQ-skillopt-claude-code-host
+    created_at: 2026-10-05T22:06:32.577Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1e760e55b79b
+  - type: covered_by
+    from: SYM-skillopt-claude-stream-to-codex-jsonl
+    to: TEST-skillopt-claude-code-host
+    created_at: 2026-10-05T22:06:32.601Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5b2f2db3b7f6
+  - type: covered_by
+    from: SYM-skillopt-claude-stream-to-codex-jsonl
+    to: TEST-e2e-skillopt-claude-code-host
+    created_at: 2026-10-05T22:06:32.622Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4762eb719028

@@ -125,3 +125,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-120e18810ad9
+  - type: implements
+    from: SYM-skillopt-campaign-candidate-surface
+    to: REQ-skillopt-description-candidates
+    created_at: 2026-10-06T00:23:23.196Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7c1e1557e62a
+  - type: covered_by
+    from: SYM-skillopt-campaign-candidate-surface
+    to: TEST-e2e-skillopt-description-candidates
+    created_at: 2026-10-06T00:23:23.213Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a874bfd95013

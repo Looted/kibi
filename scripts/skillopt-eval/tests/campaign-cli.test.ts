@@ -1,9 +1,9 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, spyOn, test } from "bun:test";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { campaignMain } from "../campaign";
-import { composeCampaignManifest } from "../campaign-artifacts";
+import { composeCampaignManifest, sha256Text } from "../campaign-artifacts";
 import { surface } from "../real-workflow";
 
 describe("campaign CLI", () => {
@@ -120,6 +120,80 @@ describe("campaign CLI", () => {
     }
   });
 
+  test("composes a body-and-description revision only together with a body file", async () => {
+    const parent = await mkdtemp(join(tmpdir(), "campaign-cli-description-"));
+    const stdout = spyOn(process.stdout, "write");
+    try {
+      const current = await surface(process.cwd(), "kibi-bootstrap");
+      const bodyPath = join(parent, "body.md");
+      const descriptionPath = join(parent, "description.txt");
+      const description =
+        "Use first when a repository has no Kibi store: bootstrap it from sources.";
+      await writeFile(bodyPath, current.body);
+      await writeFile(descriptionPath, `${description}\n`);
+      const artifactRoot = join(parent, "artifacts");
+      expect(
+        await campaignMain([
+          "compose",
+          "--artifact-root",
+          join(parent, "unpaired"),
+          "--skill",
+          "kibi-bootstrap",
+          "--description-file",
+          descriptionPath,
+        ]),
+      ).toBe(2);
+      stdout.mockClear();
+      expect(
+        await campaignMain([
+          "compose",
+          "--artifact-root",
+          artifactRoot,
+          "--skill",
+          "kibi-bootstrap",
+          "--body-file",
+          bodyPath,
+          "--description-file",
+          descriptionPath,
+        ]),
+      ).toBe(0);
+      const manifest = JSON.parse(
+        await readFile(join(artifactRoot, "manifest.json"), "utf8"),
+      );
+      expect(manifest).toMatchObject({
+        schemaVersion: "1.2.0",
+        revisionMode: "body-and-description-replacement",
+        frozenBody: current.body,
+        frozenDescription: description,
+        frozenDescriptionHash: sha256Text(description),
+      });
+      const output = JSON.parse(String(stdout.mock.calls.at(-1)?.[0]));
+      expect(output).toMatchObject({
+        status: "complete",
+        frozenBodyHash: sha256Text(current.body),
+        frozenDescriptionHash: sha256Text(description),
+      });
+
+      await writeFile(descriptionPath, "First line.\nversion: 9.9.9\n");
+      expect(
+        await campaignMain([
+          "compose",
+          "--artifact-root",
+          join(parent, "multiline"),
+          "--skill",
+          "kibi-bootstrap",
+          "--body-file",
+          bodyPath,
+          "--description-file",
+          descriptionPath,
+        ]),
+      ).toBe(1);
+    } finally {
+      stdout.mockRestore();
+      await rm(parent, { recursive: true, force: true });
+    }
+  });
+
   test("keeps bundle packaging exclusive from individual candidates and evidence", async () => {
     const parent = await mkdtemp(
       join(tmpdir(), "campaign-cli-bundle-package-"),
@@ -157,6 +231,37 @@ describe("campaign CLI", () => {
       ).toBe(1);
     } finally {
       await rm(parent, { recursive: true, force: true });
+    }
+  });
+
+  test("refuses revise and unknown hosts before any paid preparation", async () => {
+    const saved = process.env.KIBI_SKILLOPT_HOST;
+    try {
+      process.env.KIBI_SKILLOPT_HOST = "claude-code";
+      expect(
+        await campaignMain([
+          "revise",
+          "--artifact-root",
+          "/nonexistent/skillopt",
+          "--skill",
+          "kibi-usage",
+          "--allow-paid",
+        ]),
+      ).toBe(2);
+      process.env.KIBI_SKILLOPT_HOST = "other";
+      expect(
+        await campaignMain([
+          "evaluate",
+          "--artifact-root",
+          "/nonexistent/skillopt",
+          "--skill",
+          "kibi-usage",
+        ]),
+      ).toBe(2);
+    } finally {
+      if (saved === undefined)
+        Reflect.deleteProperty(process.env, "KIBI_SKILLOPT_HOST");
+      else process.env.KIBI_SKILLOPT_HOST = saved;
     }
   });
 });

@@ -9,6 +9,10 @@ import {
 } from "../../../packages/cli/src/public/skills";
 import { withSharedAdoptionLock } from "../adoption-lock";
 import { CANONICAL_SKILLS, type CanonicalSkill } from "../catalog";
+import {
+  CandidateValidationError,
+  validateCandidateDescription,
+} from "../variants";
 
 export type SkillSurface = Readonly<{
   body: string;
@@ -18,6 +22,11 @@ export type SkillSurface = Readonly<{
 
 export type SkillCandidateSurface = Readonly<{
   body: string;
+  /**
+   * Replacement frontmatter `description`. Every other frontmatter field stays
+   * frozen; `frontmatterHash` and `manifest` still describe the baseline.
+   */
+  description?: string;
   frontmatterHash?: string;
   resourcesHash?: string;
   manifest?: Readonly<SkillManifest>;
@@ -31,6 +40,8 @@ export type SkillAssemblyReceipt = Readonly<{
     frontmatterHash: string;
     resourcesHash: string;
     bodyChanged: boolean;
+    /** Present only when the candidate supplied a description. */
+    descriptionChanged?: boolean;
   }>[];
 }>;
 
@@ -42,7 +53,8 @@ export class CandidateSurfaceError extends Error {
       | "baseline_changed"
       | "frontmatter_changed"
       | "resources_changed"
-      | "invalid_body",
+      | "invalid_body"
+      | "invalid_description",
   ) {
     super(`candidate_surface_${kind}`);
   }
@@ -62,6 +74,30 @@ function frontmatterPrefix(markdown: string): string {
   const match = /^---\r?\n[\s\S]*?\r?\n---\r?\n/.exec(markdown);
   if (match === null) throw new CandidateSurfaceError("frontmatter_changed");
   return match[0];
+}
+
+/**
+ * Replace only the single-line `description:` value of a frontmatter block.
+ * The value is emitted JSON-quoted, which is a valid YAML double-quoted
+ * scalar, so arbitrary validated text cannot alter any other field.
+ */
+function replaceFrontmatterDescription(
+  prefix: string,
+  description: string,
+): string {
+  const lines = prefix.split(/(?<=\n)/);
+  const indexes = lines.flatMap((line, index) =>
+    /^description:/.test(line) ? [index] : [],
+  );
+  const index = indexes[0];
+  if (indexes.length !== 1 || index === undefined)
+    throw new CandidateSurfaceError("frontmatter_changed");
+  // A folded, literal or wrapped baseline value would leave continuation lines.
+  if (/^[ \t]/.test(lines[index + 1] ?? ""))
+    throw new CandidateSurfaceError("frontmatter_changed");
+  const ending = /\r?\n$/.exec(lines[index] ?? "")?.[0] ?? "";
+  lines[index] = `description: ${JSON.stringify(description)}${ending}`;
+  return lines.join("");
 }
 
 function canonicalResources(
@@ -114,6 +150,40 @@ function assertCandidateSurface(
   if (candidate.body.trim().length === 0) {
     throw new CandidateSurfaceError("invalid_body");
   }
+  if (candidate.description !== undefined) {
+    try {
+      validateCandidateDescription(candidate.description);
+    } catch (error) {
+      if (error instanceof CandidateValidationError)
+        throw new CandidateSurfaceError("invalid_description");
+      throw error;
+    }
+  }
+}
+
+/**
+ * Re-load the assembled skill through the production loader and prove that
+ * the description is the candidate's and every other field is the baseline's.
+ */
+function verifyAssembledDescription(
+  skillsDir: string,
+  id: CanonicalSkill,
+  baseline: Readonly<SkillManifest>,
+  body: string,
+  description: string,
+): string {
+  const assembled = loadBundledSkillFrom(skillsDir, id);
+  if (
+    assembled.manifest.description !== description ||
+    canonicalHash({
+      ...assembled.manifest,
+      description: baseline.description,
+    }) !== canonicalHash(baseline) ||
+    assembled.body !== body
+  ) {
+    throw new CandidateSurfaceError("frontmatter_changed");
+  }
+  return canonicalHash(assembled.manifest);
 }
 
 // implements REQ-skillopt-codex-optimization
@@ -184,11 +254,13 @@ async function assembleCanonicalSkillsUnlocked(
   for (const skill of loaded) {
     const body =
       skill.candidate !== undefined ? skill.candidate.body : skill.bundle.body;
+    const description = skill.candidate?.description;
+    const prefix = frontmatterPrefix(skill.markdown);
     const root = join(input.workspace, ".agents/skills", skill.id);
     await mkdir(root, { recursive: true });
     await writeFile(
       join(root, "SKILL.md"),
-      `${frontmatterPrefix(skill.markdown)}${body}`,
+      `${description === undefined ? prefix : replaceFrontmatterDescription(prefix, description)}${body}`,
     );
     for (const [resource, content] of Object.entries(skill.resources)) {
       const target = join(root, resource);
@@ -202,6 +274,23 @@ async function assembleCanonicalSkillsUnlocked(
       resourcesHash: canonicalHash(skill.resources),
       bodyChanged: body !== skill.bundle.body,
     });
+  }
+  const assembledSkillsDir = join(input.workspace, ".agents/skills");
+  for (const [index, skill] of loaded.entries()) {
+    const description = skill.candidate?.description;
+    const receipt = receipts[index];
+    if (description === undefined || receipt === undefined) continue;
+    receipts[index] = {
+      ...receipt,
+      frontmatterHash: verifyAssembledDescription(
+        assembledSkillsDir,
+        skill.id,
+        skill.bundle.manifest,
+        skill.candidate?.body ?? skill.bundle.body,
+        description,
+      ),
+      descriptionChanged: description !== skill.bundle.manifest.description,
+    };
   }
   return { skills: receipts };
 }
