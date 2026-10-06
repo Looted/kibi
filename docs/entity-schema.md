@@ -909,6 +909,21 @@ links:
 
 ---
 
+## Body contract
+
+The Markdown body is where context lives; front matter is the checked meaning. Sections are split by ATX headings. The context headings are `Context`, `Rationale`, `Why`, `Background`, `Source`, `Notes` and `Evidence` (case-insensitive prefix match); a context section runs to the next heading of the same or higher level.
+
+| Type | What counts as context | Body should carry |
+| --- | --- | --- |
+| `req` | Only text under context headings | The statement, `## Context` (why, who asked, constraints), `## Source` (blockquoted excerpt and reference) |
+| `scenario` | All non-heading prose | Given/When/Then prose and the assumptions it depends on |
+| `test` | All non-heading prose | What it asserts, how (fixture, entry point), what would make it a false pass |
+| `adr` | All non-heading prose | Context, Decision, Consequences |
+| `fact` (`observation`, `meta`) | All non-heading prose | What was seen, where, when, how confirmed |
+| `symbol`, `flag`, `event`, other fact kinds | Exempt | Front matter is the content |
+
+The blocking `entity-context-missing` check requires at least 12 words of context that are not a restatement of the title (normalized token-set Jaccard below 0.8; a requirement is also compared with `semantic_text`). Never invent a reason: write "Reason not stated" and the source. Context sections of a requirement are excluded when `semantic_text` is derived from the body, and Kibi writes `semantic_text` explicitly in front matter on every requirement it authors, so adding context never changes claim spans or hashes. Entities that predate the rule are tagged `review:context-missing` by the schema 8 migration (see `kibi migrate`) and counted by the advisory `entity-context-acknowledged` diagnostic instead of blocking.
+
 ## Notes
 - The schema is the eight entity types and the relationship catalog in this document.
 - IDs must be stable and unique. Set an explicit frontmatter `id` named by what the entity governs (`<TYPE>-<area>-<behavior>`, e.g. `REQ-cli-gc`) and keep the filename stem equal to it; never pick the next free number. A missing `id` falls back to a path-and-title hash that changes on rename. `entity-id-style` reports stem mismatches and newly created numeric IDs; legacy numbered entities are grandfathered.

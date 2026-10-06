@@ -1,6 +1,6 @@
 {
-  "kibi-bootstrap/SKILL.md": "40f14b2a233457b065c92b444020fe0050cd16bc23226c6cb9dcc6eb8b0556ac",
-  "kibi-bootstrap/resources/bootstrap.md": "79bc723a3e196c60e246f9124f520f8dbb98c2927d8db60278383f982fd13c44",
+  "kibi-bootstrap/SKILL.md": "ad5c685ce28c8b887e3b4db5ae6fb3b9aa844469b8fe21535883b4afed679687",
+  "kibi-bootstrap/resources/bootstrap.md": "e93fae88a6853d0092cde7eee33f7d4943a8141e3841bfe3f64ab73247867b6a",
   "kibi-bootstrap/resources/branch-lifecycle.md": "c854264ce888439140883a3fc636db5e522f020dd27b30a5c1ecc4105b64ed13",
   "kibi-bootstrap/resources/operation-access.md": "b5a6a59e72d800c376e7fad79132897623c32a0ce152a1e8d73f9628b444db51",
   "kibi-bootstrap/resources/source-authoring.md": "bf296e62f69474e01797d6cb9469bf624551dca834dd188abb6e705bd96fa586",
@@ -13,7 +13,7 @@
   "kibi-traceability/resources/operation-access.md": "39f7972ab7f4ae7479e78f7072bb50e8e6c4cdf4f857425f69d2522d37db437c",
   "kibi-traceability/resources/source-authoring.md": "408c6ee2bef1b84e0194c0538ef929c26a0a617e631b2234247388140dbbdd08",
   "kibi-traceability/resources/traceability.md": "38c290a0bc71bd1692e115f22694743946e2f69630e134acfd43cee5f613fb88",
-  "kibi-usage/SKILL.md": "c76b8432500e1fdab4d08b66fe906b1f2ab5f25ab72f7a04eeccbe6008b471d1",
+  "kibi-usage/SKILL.md": "758ddf6c77a719780c347047780d93f84f3e6ae6f2dc6b6854509b78e2c16226",
   "kibi-usage/resources/branch-lifecycle.md": "f1bf359e9826e83c548f3cd0287f8175a62456527b0132b06b3f9f74aa59b7d6",
   "kibi-usage/resources/fact-lanes.md": "97f5a9aaa331835018312d6684038c2b2a0c383827716fb7c9de3faedbee622b",
   "kibi-usage/resources/kb-improvement.md": "a8408fce27342bdce6415a6718599e53fe00bb33aa1fd3dc42353ec6f61adcd7",
@@ -21,7 +21,7 @@
   "kibi-usage/resources/operation-access.md": "eb455796c066787ffd3fae8db0db1d3e87a84265a57f06ae61e30103cd6aed66",
   "kibi-usage/resources/proof.md": "7391046fbdeece4858b668360c60755f184af6dfedda9dbc67e2fa4574dbce7f",
   "kibi-usage/resources/relationship-directions.md": "0fdd67032c2d15299f772845fc4f807eb9435b09507bd87a5911ab33db2f143d",
-  "kibi-usage/resources/source-authoring.md": "80978cea0614484292c7a70d511a3f50458f48ef976bf0675b8bb96abe9d3d36",
+  "kibi-usage/resources/source-authoring.md": "a29d411fe86e6e29ce364e4ad5925bda40127c4b328a4c657d5b5f0d9fe98ff1",
   "kibi-usage/resources/ui-requirements.md": "ea8e8a4c546acb668963ec354cd31711152c3ca3bc7d3078d2252ff9e2cd44a3",
   "kibi-usage/resources/workflows.md": "bde1cc6f1aaba6cbc1db59cfe23f01986bf95e02e471f2d066ce428d5a81e1f0"
 }
