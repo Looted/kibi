@@ -402,3 +402,24 @@ export function renderRequirementBody(input: {
   }
   return `${blocks.join("\n\n")}\n`;
 }
+
+function firstLine(text: string): string | undefined {
+  return text
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .find(Boolean);
+}
+
+/**
+ * The line a search row shows for a body: the first line of the context
+ * prose when the body has any, else the first non-blank body line. With a
+ * statement-only body the first line would repeat the title.
+ */
+// implements REQ-kb-entity-body-context
+export function bodySnippetLine(
+  type: string,
+  body: string,
+  entity: ContextEntity = {},
+): string | undefined {
+  return firstLine(contextProse(type, body, entity)) ?? firstLine(body);
+}

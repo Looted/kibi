@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { bodySnippetLine } from "./entity-body-context.js";
 
 export interface SearchMatch {
   entity: Record<string, unknown>;
@@ -164,7 +165,7 @@ async function rankEntity(
     if (isPhraseSearchMatch(bodyForms, queryContext.phrase)) {
       score += 15;
       reasons.push("markdown body match");
-      snippet = buildSnippet(bodyText, queryContext.phrase);
+      snippet = buildSnippet(bodyText, queryContext.phrase, entity);
     } else {
       const bodyTokenMatches = countTokenMatches(
         bodyForms,
@@ -173,7 +174,7 @@ async function rankEntity(
       if (bodyTokenMatches > 0) {
         score += bodyTokenMatches * 3;
         reasons.push("markdown body token coverage");
-        snippet = buildSnippet(bodyText, queryContext.phrase);
+        snippet = buildSnippet(bodyText, queryContext.phrase, entity);
       }
     }
   }
@@ -361,15 +362,18 @@ function getInlineBodyText(entity: Record<string, unknown>): string | null {
 function buildSnippet(
   bodyText: string,
   queryForms: SearchTextForms,
+  entity: Record<string, unknown>,
 ): string | undefined {
   const lines = bodyText
     .split(/\r?\n/)
     .map((line) => line.trim())
     .filter(Boolean);
+  // The line that matches the query wins; otherwise the context prose, then
+  // the first line.
   const matchedLine =
     lines.find((line) =>
       isPhraseSearchMatch(buildSearchTextForms(line), queryForms),
-    ) ?? lines[0];
+    ) ?? bodySnippetLine(String(entity.type ?? ""), bodyText, entity);
 
   return snippetFromMatchedLine(matchedLine);
 }
