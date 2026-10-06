@@ -18,7 +18,7 @@ metadata:
     - resources/source-authoring.md
     - resources/operation-access.md
 ---
-## Step 0: Always call `kb_status` first
+## Interface and preview (Step 0: always call `kb_status` first)
 
 Make `kb_status` your first tool call on every bootstrap task. This includes review-only, approval-readiness, blocked, repair, and apply tasks, and tasks you think you could answer from the prompt alone. An answer with no Kibi calls is incomplete. The visible approved MCP tools and the trusted project-local CLI are equal peers. CLI JSON uses `--input`, for example `printf '%s\n' '{}' | kibi status --input -` (see `resources/operation-access.md`). If neither interface is available, stop and name what is missing.
 
@@ -41,7 +41,7 @@ Seed branch-local Kibi knowledge from cited product intent, without creating a p
 5. **Narrow with filters, not caps.** If the output is too large or mostly tooling or metadata, re-preview with `includeGenericMarkdown: false`, `entityTypes`, or declared `sourceOfTruthPaths`. Avoid `maxCandidates`. Keep confirmed intent claims.
 6. **Request approval.** Show the complete `structuredContent.plan`, the full hash (never abbreviated), which candidates cite which sources, what was omitted, and any claim that contradicts code or another claim, for the human to decide. With no answer, stop as "awaiting approval." If declined, replan and ask again with the new hash.
 7. **Pre-apply check.** The plan you send must equal the returned plan: every top-level field, including `suppressedCandidates`, `diagnostics`, `candidates`, `actions`, and `expected`, with every array the same length and order. Never rebuild it from preview fields. If the host cannot pass the exact object, stop and say so.
-8. **Apply once** with `kb_apply_plan`, the exact plan, and `approvedPlanHash`.
+8. **Apply once** with `kb_apply_plan`, the exact plan, and `approvedPlanHash`. The operation owns dependency ordering, source-first writes, sequential mutation, and recovery journaling.
 9. **Read back** with `kb_query` and `kb_search` to confirm writes and citations.
 10. **Close out** with `kb_check`, then `kb_status`.
 11. **Report** calls made, result statuses, applied scope, gaps, and follow-ups. Classify as complete, partial, awaiting approval, or blocked. Hand off to the normal Kibi workflow.
@@ -57,7 +57,7 @@ Inspect the `kibiProtocol: 1` envelope: `status`, `effects`, `diagnostics`, `nex
 
 ## Safety boundaries
 
-- Never use `kb_upsert` for bootstrap tasks, even after approval. Never replay plan actions manually.
+- Direct `kb_upsert` is forbidden for every bootstrap task, even after approval. Never replay plan actions manually.
 - Use `kb_delete` only for an approved, hash-bound deletion plan. Evolve requirements with `supersedes`.
 - Never read or edit `.kb` directly.
 - Kibi authors tracked Markdown, YAML, manifests, and relationship shards, but never Git-stages or commits them.
