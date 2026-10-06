@@ -62,3 +62,6 @@ proof_receipts:
         attempts:
           status: unavailable
 ---
+Consumer test for REQ-cli-staged-consistency (SCEN-cli-staged-consistency). It runs `kibi check --staged --format json` in a temporary consumer Git workspace and asserts two observable outcomes. Staging a success scenario that a current requirement forbids exits with status 1 and a single scenario-feasibility violation on that scenario. After that state is committed, staging an unrelated change exits with status 0 and no violations.
+
+It exercises the real staged projection (a temporary KB built from the staged tree), so a pass means the pre-commit hook behaves that way for a user. The blocking case depends on the projection carrying the scenario's expected outcome, which commit 21b889a4 also fixed.

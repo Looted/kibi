@@ -42,3 +42,13 @@ id: REQ-cli-staged-consistency
 type: req
 ---
 The staged check must block a staged change that introduces a domain contradiction, an infeasible success scenario or an invalid exception claim key into the staged knowledge. The staged check must not block a staged change for a consistency violation that already exists at the base commit.
+
+## Context
+
+The pre-commit hook runs `kibi check --staged`, which only checked symbol traceability, so a commit could add a success scenario that a current requirement forbids while a full `kibi check` failed on the same tree. When entity documents or relationship shards are staged, the check now runs the domain-contradictions, scenario-feasibility and exception-claim-keys rules on a temporary KB projected from the staged tree (without code symbols). It blocks only on violations the base commit's tree does not already have, so an unrelated change over a committed violation still passes.
+
+## Source
+
+> kibi check --staged, which the pre-commit hook runs, only validated symbol traceability, so a commit could add a success scenario that a current requirement forbids while full kibi check failed on the same tree.
+
+Commit 21b889a4 (fix(cli): block staged changes that introduce contradictions or infeasible scenarios).
