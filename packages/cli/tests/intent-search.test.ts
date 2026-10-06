@@ -167,84 +167,48 @@ describe("intent-v1 search ranking", () => {
     expect(result.matches[0]?.reasons).toContain("source location match");
   });
 
-  test("loads source-located candidates through bounded source-file pages", async () => {
-    const sourcePages: Array<{
-      sourceFile: string | undefined;
-      limit: number;
-      offset: number;
-    }> = [];
-    const graphGoals: string[] = [];
-    const sourceSymbol = entity("SYM-TAX", "Tax calculation", {
-      type: "symbol",
-      sourceFile: "src/tax.ts",
-      sourceLine: 4,
-      sourceEndLine: 10,
-    });
+  test("loads source-located candidates as projected rows through bounded source pages", async () => {
+    const goals: string[] = [];
+    let fullEntityQueries = 0;
 
     const result = await executeIntentSearch(
       {
         query: "unrelated editor wording",
+        type: "symbol",
         sourceLocations: [
           { path: "src/tax.ts", line: 7, symbol: "Tax calculation" },
         ],
       },
       {
         query: async (goal: string) => {
-          graphGoals.push(goal);
-          return { success: true, bindings: { Edges: "[]" } };
-        },
-        queryEntities: async (input: {
-          sourceFile?: string;
-          limit: number;
-          offset: number;
-        }) => {
-          const { sourceFile, limit, offset } = input;
-          sourcePages.push({ sourceFile, limit, offset });
-          return { entities: [sourceSymbol], count: 1 };
-        },
-        searchEntities: async () => ({ entities: [], count: 0 }),
-      } as never,
-      workspaceRoot,
-    );
-
-    expect(sourcePages).toEqual([
-      { sourceFile: "src/tax.ts", limit: 500, offset: 0 },
-    ]);
-    expect(graphGoals).toHaveLength(1);
-    expect(graphGoals[0]).toContain("kb_relationship");
-    expect(result.matches[0]?.entity.id).toBe("SYM-TAX");
-    expect(result.matches[0]?.reasons).toContain("source location match");
-  });
-
-  test("uses source-file lookup when the host lacks paged entity queries", async () => {
-    const legacyQueryGoals: string[] = [];
-    const result = await executeIntentSearch(
-      {
-        query: "unrelated editor wording",
-        sourceLocations: [{ path: "src/tax.ts", line: 7 }],
-      },
-      {
-        query: async (goal: string) => {
-          legacyQueryGoals.push(goal);
-          if (goal.includes("kb_entities_by_source")) {
+          goals.push(goal);
+          if (goal.includes("kb_list_search_candidates")) {
             return {
               success: true,
               bindings: {
-                Results:
-                  "[['SYM-TAX',symbol,[id='SYM-TAX',title='Tax calculation',sourceFile='src/tax.ts',sourceLine=4,sourceEndLine=10]]]",
+                Rows: "[['SYM-TAX',symbol,[id='SYM-TAX',title='Tax calculation',sourceFile='src/tax.ts',sourceLine=4,sourceEndLine=10]]]",
+                Count: "1",
               },
             };
           }
           return { success: true, bindings: { Edges: "[]" } };
         },
+        queryEntities: async () => {
+          fullEntityQueries += 1;
+          return { entities: [], count: 0 };
+        },
         searchEntities: async () => ({ entities: [], count: 0 }),
       } as never,
       workspaceRoot,
     );
 
+    expect(fullEntityQueries).toBe(0);
     expect(
-      legacyQueryGoals.some((goal) => goal.includes("kb_entities_by_source")),
-    ).toBe(true);
+      goals.filter((goal) => goal.includes("kb_list_search_candidates")),
+    ).toEqual([
+      "kb_list_search_candidates('symbol', 'src/tax.ts', 500, 0, Rows, Count)",
+    ]);
+    expect(goals.some((goal) => goal.includes("kb_relationship"))).toBe(true);
     expect(result.matches[0]?.entity.id).toBe("SYM-TAX");
     expect(result.matches[0]?.reasons).toContain("source location match");
   });

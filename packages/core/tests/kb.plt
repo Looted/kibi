@@ -515,6 +515,33 @@ test(list_search_candidates_pages_projected_rows_by_id, [setup(setup_kb), cleanu
     kb_entity_ids(Ids),
     assertion(Ids == ['REQ-LIST-A', 'REQ-LIST-B', 'REQ-LIST-C', 'TEST-LIST']).
 
+test(list_search_candidates_filters_by_source_without_full_payloads, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(symbol, 'SYM-TAX-B', "Tax rounding", active, [
+        sourceFile="src/tax.ts"
+    ]),
+    assert_fixture_entity(symbol, 'SYM-TAX-A', "Tax total", active, [
+        sourceFile="src/tax.ts"
+    ]),
+    assert_fixture_entity(test, 'TEST-TAX', "Tax test", active, [
+        sourceFile="tests/tax.test.ts",
+        proof_receipts="[{\"history\":\"large\"}]"
+    ]),
+    assert_fixture_entity(symbol, 'SYM-BILLING', "Billing", active, [
+        sourceFile="src/billing.ts"
+    ]),
+    kb_list_search_candidates(none, 'src/tax.ts', 10, 0, Rows, Count),
+    assertion(Count == 2),
+    findall(Id, member([Id, _, _], Rows), RowIds),
+    assertion(RowIds == ['SYM-TAX-A', 'SYM-TAX-B']),
+    kb_list_search_candidates(symbol, 'src/tax.ts', 1, 1, Second, _),
+    assertion(Second = [['SYM-TAX-B', symbol, _]]),
+    kb_list_search_candidates(none, 'tax', 10, 0, Matched, MatchedCount),
+    assertion(MatchedCount == 3),
+    forall(member([_, _, Props], Matched),
+           assertion(\+ memberchk(proof_receipts=_, Props))),
+    kb_list_search_candidates(none, none, 10, 0, _, AllCount),
+    assertion(AllCount == 4).
+
 :- end_tests(search_candidates).
 
 :- begin_tests(status_freshness).

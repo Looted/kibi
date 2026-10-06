@@ -124,14 +124,18 @@ describe("intent-search remaining candidate, graph, and related-id branches", ()
       {
         query: async () => ({
           success: true,
-          bindings: { Results: encodeEntities(oversized), Edges: "[]" },
+          bindings: {
+            Rows: encodeEntities(oversized),
+            Count: String(oversized.length),
+            Edges: "[]",
+          },
         }),
         nextSolution: async () => null,
         save: async () => ({ success: true, bindings: {} }),
       },
       "/tmp",
     );
-    expect(capped.analysis.candidateCount).toBeLessThanOrEqual(10_000);
+    expect(capped.analysis.candidateCount).toBe(10_000);
   });
 
   test("graphGoal emits both depth-1 and depth-2 findall goals", () => {
