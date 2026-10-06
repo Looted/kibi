@@ -2,10 +2,8 @@ import path from "node:path";
 
 import { escapeAtom, normalizeEntityId, parseTriples } from "./prolog/codec.js";
 import {
-  SEARCH_CANDIDATE_PAGE_SIZE,
   type VALID_ENTITY_TYPES,
   listSearchCandidates,
-  loadEntities,
   loadEntityRows,
   loadSearchCandidates,
 } from "./public/operations/discovery-entities.js";
@@ -713,29 +711,19 @@ async function loadIntentCandidates(
     }
   };
 
+  // Source-located candidates are projected rows too, read through the
+  // same source filter kb_query_entities applies, so a file with many
+  // receipt-bearing tests does not ship their complete payloads.
   const sourceLocations = options.sourceLocations ?? [];
-  if (sourceLocations.length > 0 && prolog.queryEntities) {
-    for (const location of sourceLocations) {
-      if (candidates.size >= MAX_CANDIDATES) break;
-      let offset = 0;
-      let total = Number.POSITIVE_INFINITY;
-      while (offset < total && candidates.size < MAX_CANDIDATES) {
-        const limit = Math.min(
-          SEARCH_CANDIDATE_PAGE_SIZE,
-          MAX_CANDIDATES - candidates.size,
-        );
-        const page = await prolog.queryEntities({
-          ...(options.type !== undefined ? { type: options.type } : {}),
-          sourceFile: location.path,
-          limit,
-          offset,
-        });
-        if (page.entities.length === 0) break;
-        addCandidates(page.entities);
-        total = page.count;
-        offset += page.entities.length;
-      }
-    }
+  for (const location of sourceLocations) {
+    if (candidates.size >= MAX_CANDIDATES) break;
+    addCandidates(
+      await listSearchCandidates(prolog, {
+        ...(options.type !== undefined ? { type: options.type } : {}),
+        sourceFile: location.path,
+        maxCandidates: MAX_CANDIDATES - candidates.size,
+      }),
+    );
   }
 
   // Lexical candidates are projected rows (no receipt histories or other
@@ -758,16 +746,6 @@ async function loadIntentCandidates(
         maxCandidates: MAX_CANDIDATES,
       }),
     );
-  } else if (sourceLocations.length > 0 && !prolog.queryEntities) {
-    for (const location of sourceLocations) {
-      if (candidates.size >= MAX_CANDIDATES) break;
-      addCandidates(
-        await loadEntities(prolog, {
-          ...(options.type !== undefined ? { type: options.type } : {}),
-          sourceFile: location.path,
-        }),
-      );
-    }
   }
 
   // An unfamiliar host-agent alias may not exist in the lexical index at all.

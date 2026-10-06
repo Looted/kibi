@@ -1,6 +1,6 @@
 {
   "name": "kibi-cli",
-  "version": "2.5.1",
+  "version": "2.5.2",
   "type": "module",
   "description": "Kibi CLI for knowledge base management",
   "engines": {
@@ -235,10 +235,10 @@
     "fast-glob": "^3.2.12",
     "gray-matter": "^4.0.3",
     "js-yaml": "^4.1.0",
-    "kibi-core": "^0.15.0",
-    "kibi-plugin-builtin": "^0.4.1",
-    "kibi-plugin-sdk": "^0.4.0",
-    "kibi-swipl": "^1.0.0",
+    "kibi-core": "^0.15.1",
+    "kibi-plugin-builtin": "^0.4.2",
+    "kibi-plugin-sdk": "^0.4.1",
+    "kibi-swipl": "^1.0.1",
     "saxes": "^6.0.0",
     "ignore": "^5.3.0",
     "yaml": "^2.9.0"
@@ -251,8 +251,13 @@
   },
   "license": "AGPL-3.0-or-later",
   "author": "Piotr Franczyk",
+  "homepage": "https://looted.github.io/kibi/",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Looted/kibi.git"
+    "url": "https://github.com/Looted/kibi.git",
+    "directory": "packages/cli"
+  },
+  "bugs": {
+    "url": "https://github.com/Looted/kibi/issues"
   }
 }

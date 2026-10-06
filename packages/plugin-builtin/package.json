@@ -1,6 +1,6 @@
 {
   "name": "kibi-plugin-builtin",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Default Kibi capability plugins: TS symbol extraction, ontology pack, and semantic classifier",
   "type": "module",
   "main": "./dist/index.js",
@@ -12,10 +12,7 @@
     },
     "./package.json": "./package.json"
   },
-  "files": [
-    "dist",
-    "CHANGELOG.md"
-  ],
+  "files": ["dist", "CHANGELOG.md"],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
@@ -27,15 +24,20 @@
   },
   "license": "AGPL-3.0-or-later",
   "author": "Piotr Franczyk",
+  "homepage": "https://looted.github.io/kibi/",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Looted/kibi.git"
+    "url": "https://github.com/Looted/kibi.git",
+    "directory": "packages/plugin-builtin"
+  },
+  "bugs": {
+    "url": "https://github.com/Looted/kibi/issues"
   },
   "publishConfig": {
     "access": "public"
   },
   "dependencies": {
-    "kibi-plugin-sdk": "^0.4.0",
+    "kibi-plugin-sdk": "^0.4.1",
     "ts-morph": "^23.0.0"
   },
   "devDependencies": {

@@ -1,6 +1,6 @@
 {
   "name": "kibi-agent-core",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Shared low-latency hook helpers for Kibi agent adapters",
   "type": "module",
   "main": "./dist/index.js",
@@ -31,10 +31,7 @@
       "default": "./dist/snippets.js"
     }
   },
-  "files": [
-    "dist",
-    "CHANGELOG.md"
-  ],
+  "files": ["dist", "CHANGELOG.md"],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
@@ -45,9 +42,14 @@
   },
   "license": "AGPL-3.0-or-later",
   "author": "Piotr Franczyk",
+  "homepage": "https://looted.github.io/kibi/",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Looted/kibi.git"
+    "url": "https://github.com/Looted/kibi.git",
+    "directory": "packages/agent-core"
+  },
+  "bugs": {
+    "url": "https://github.com/Looted/kibi/issues"
   },
   "publishConfig": {
     "access": "public"

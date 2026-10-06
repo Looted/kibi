@@ -1,6 +1,6 @@
 {
   "name": "kibi-plugin-jev",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Optional TypeSafe Jev semantic classifier for Kibi",
   "type": "module",
   "main": "./dist/index.js",
@@ -23,16 +23,21 @@
   },
   "license": "AGPL-3.0-or-later",
   "author": "Piotr Franczyk",
+  "homepage": "https://looted.github.io/kibi/",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Looted/kibi.git"
+    "url": "https://github.com/Looted/kibi.git",
+    "directory": "packages/plugin-jev"
+  },
+  "bugs": {
+    "url": "https://github.com/Looted/kibi/issues"
   },
   "publishConfig": {
     "access": "public"
   },
   "dependencies": {
     "@typesafe-ai/sdk": "^0.6.0",
-    "kibi-plugin-sdk": "^0.4.0"
+    "kibi-plugin-sdk": "^0.4.1"
   },
   "devDependencies": {
     "@types/node": "latest",

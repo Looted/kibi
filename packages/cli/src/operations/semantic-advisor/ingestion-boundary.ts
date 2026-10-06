@@ -32,7 +32,7 @@ export interface SemanticInventoryBoundaryResult {
   readonly sourceHash: string;
 }
 
-type SemanticRelationship = Readonly<{
+export type SemanticRelationship = Readonly<{
   type?: unknown;
   from?: unknown;
   to?: unknown;
@@ -229,6 +229,78 @@ export function assertSemanticInventoryBoundary(
   }
 }
 
+function modeledClaimKeysOf(payload: Payload): readonly string[] | null {
+  if (stringValue(payload.type) !== "req") return null;
+  if (
+    propertiesOf(payload).semantic_inventory_version !==
+    SEMANTIC_INVENTORY_VERSION
+  )
+    return null;
+  return inventoryOf(payload)
+    .filter(({ status }) => status === "modeled")
+    .map(({ claim_key }) => stringValue(claim_key));
+}
+
+function groundingTargets(
+  payload: Payload,
+  relationships: readonly SemanticRelationship[],
+): readonly string[] {
+  return relationships
+    .filter(
+      (relationship) =>
+        relationship.from === payload.id &&
+        LOGICAL_RELATIONSHIPS.has(stringValue(relationship.type)),
+    )
+    .map((relationship) => stringValue(relationship.to));
+}
+
+function plannedClaimKey(planned: Readonly<Record<string, unknown>>): string {
+  return planned.type === "fact" ? stringValue(planned.claim_key) : "";
+}
+
+function groundingClaimKeyError(
+  modeledClaimKeys: readonly string[],
+  grounded: readonly (readonly [target: string, claimKey: string])[],
+): string | null {
+  const missing = grounded.find(([, claimKey]) => !claimKey);
+  if (missing)
+    return `Proposition-complete ingestion failed: logical grounding target '${missing[0]}' must declare a claim_key.`;
+  const groundedClaimKeys = grounded.map(([, claimKey]) => claimKey);
+  const duplicate = groundedClaimKeys.find(
+    (claimKey, index) => groundedClaimKeys.indexOf(claimKey) !== index,
+  );
+  if (duplicate)
+    return `Proposition-complete ingestion failed: claim '${duplicate}' has more than one logical grounding relationship.`;
+  if (
+    groundedClaimKeys.length !== modeledClaimKeys.length ||
+    modeledClaimKeys.some((claimKey) => !groundedClaimKeys.includes(claimKey))
+  )
+    return "Proposition-complete ingestion failed: modeled proposition claim_keys must match logical grounding target claim_keys exactly.";
+  return null;
+}
+
+/**
+ * The write-time claim_key check, run against planned writes only. Returns
+ * null when it passes or when a target is outside the plan (the write-time
+ * check reads that target from the KB).
+ */
+// implements REQ-kibi-proposition-complete-ingestion, REQ-bootstrap-intent-claim-accounting
+export function stagedLogicalGroundingError(
+  payload: Payload,
+  relationships: readonly SemanticRelationship[],
+  planned: ReadonlyMap<string, Readonly<Record<string, unknown>>>,
+): string | null {
+  const modeledClaimKeys = modeledClaimKeysOf(payload);
+  if (!modeledClaimKeys) return null;
+  const grounded: (readonly [string, string])[] = [];
+  for (const target of groundingTargets(payload, relationships)) {
+    const entity = planned.get(target);
+    if (entity === undefined) return null;
+    grounded.push([target, plannedClaimKey(entity)]);
+  }
+  return groundingClaimKeyError(modeledClaimKeys, grounded);
+}
+
 // implements REQ-kibi-proposition-complete-ingestion
 export async function assertLogicalGroundingClaimKeys(
   prolog: PrologPort,
@@ -238,28 +310,15 @@ export async function assertLogicalGroundingClaimKeys(
     entities: ReadonlyMap<string, Readonly<Record<string, unknown>>>;
   }>,
 ): Promise<void> {
-  if (stringValue(payload.type) !== "req") return;
-  if (
-    propertiesOf(payload).semantic_inventory_version !==
-    SEMANTIC_INVENTORY_VERSION
-  )
-    return;
-  const modeledClaimKeys = inventoryOf(payload)
-    .filter(({ status }) => status === "modeled")
-    .map(({ claim_key }) => stringValue(claim_key));
-  const groundedClaimKeys: string[] = [];
-  for (const relationship of relationships) {
-    if (
-      relationship.from !== payload.id ||
-      !LOGICAL_RELATIONSHIPS.has(stringValue(relationship.type))
-    )
-      continue;
-    const target = stringValue(relationship.to);
+  const modeledClaimKeys = modeledClaimKeysOf(payload);
+  if (!modeledClaimKeys) return;
+  const grounded: (readonly [string, string])[] = [];
+  for (const target of groundingTargets(payload, relationships)) {
     // A grounding fact an earlier plan step writes is read from that write.
     const planned = staged?.entities.get(target);
     let claimKey = "";
     if (planned !== undefined) {
-      claimKey = planned.type === "fact" ? stringValue(planned.claim_key) : "";
+      claimKey = plannedClaimKey(planned);
     } else {
       const result = await prolog.query(
         `once((kb_entity('${escapeAtom(target)}', fact, _SemanticGroundProps), memberchk(claim_key=_SemanticGroundRaw, _SemanticGroundProps), normalize_term_atom(_SemanticGroundRaw, ClaimKey)))`,
@@ -268,27 +327,10 @@ export async function assertLogicalGroundingClaimKeys(
         ? stringValue(result.bindings.ClaimKey).replace(/^['"]|['"]$/g, "")
         : "";
     }
-    if (!claimKey) {
-      throw new Error(
-        `Proposition-complete ingestion failed: logical grounding target '${target}' must declare a claim_key.`,
-      );
-    }
-    groundedClaimKeys.push(claimKey);
+    grounded.push([target, claimKey]);
+    // The first target without a claim_key is reported; later reads are moot.
+    if (!claimKey) break;
   }
-  const duplicate = groundedClaimKeys.find(
-    (claimKey, index) => groundedClaimKeys.indexOf(claimKey) !== index,
-  );
-  if (duplicate) {
-    throw new Error(
-      `Proposition-complete ingestion failed: claim '${duplicate}' has more than one logical grounding relationship.`,
-    );
-  }
-  if (
-    groundedClaimKeys.length !== modeledClaimKeys.length ||
-    modeledClaimKeys.some((claimKey) => !groundedClaimKeys.includes(claimKey))
-  ) {
-    throw new Error(
-      "Proposition-complete ingestion failed: modeled proposition claim_keys must match logical grounding target claim_keys exactly.",
-    );
-  }
+  const error = groundingClaimKeyError(modeledClaimKeys, grounded);
+  if (error) throw new Error(error);
 }

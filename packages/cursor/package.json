@@ -1,6 +1,6 @@
 {
   "name": "kibi-cursor",
-  "version": "2.3.1",
+  "version": "2.3.2",
   "description": "Kibi Cursor plugin - thin adapter for Cursor MCP integration and editor hooks",
   "type": "module",
   "main": "dist/index.js",
@@ -28,9 +28,14 @@
     "node": ">=18"
   },
   "license": "AGPL-3.0-or-later",
+  "homepage": "https://looted.github.io/kibi/",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Looted/kibi.git"
+    "url": "https://github.com/Looted/kibi.git",
+    "directory": "packages/cursor"
+  },
+  "bugs": {
+    "url": "https://github.com/Looted/kibi/issues"
   },
   "publishConfig": {
     "access": "public"
@@ -54,7 +59,7 @@
     }
   },
   "dependencies": {
-    "kibi-agent-core": "^0.2.0"
+    "kibi-agent-core": "^0.2.1"
   },
   "devDependencies": {
     "@types/node": "latest",

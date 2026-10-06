@@ -1,6 +1,6 @@
 {
   "name": "kibi-swipl-linux-arm64-gnu",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Relocatable SWI-Prolog 10.0.2 runtime for Kibi on Linux arm64 (glibc 2.28 or newer)",
   "os": ["linux"],
   "cpu": ["arm64"],
@@ -12,10 +12,14 @@
   },
   "license": "BSD-2-Clause AND Apache-2.0 AND BSD-3-Clause AND Zlib",
   "author": "Piotr Franczyk",
+  "homepage": "https://looted.github.io/kibi/",
   "repository": {
     "type": "git",
     "url": "https://github.com/Looted/kibi.git",
     "directory": "packages/swipl-linux-arm64-gnu"
+  },
+  "bugs": {
+    "url": "https://github.com/Looted/kibi/issues"
   },
   "publishConfig": {
     "access": "public"

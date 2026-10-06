@@ -1,6 +1,6 @@
 {
   "name": "kibi-mcp",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "mcpName": "io.github.Looted/kibi-mcp",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.30.0",
@@ -10,9 +10,8 @@
     "fast-glob": "^3.2.12",
     "gray-matter": "^4.0.3",
     "js-yaml": "^4.1.0",
-    "kibi-runtime": "^2.3.1",
-    "kibi-core": "^0.15.0",
-    "mcpcat": "^0.1.12",
+    "kibi-runtime": "^2.3.2",
+    "kibi-core": "^0.15.1",
     "zod": "^4.3.6"
   },
   "type": "module",
@@ -29,10 +28,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "prepack": "npm run build && node ../../scripts/verify-package-contract.mjs kibi-mcp"
   },
-  "files": [
-    "dist",
-    "bin"
-  ],
+  "files": ["dist", "bin"],
   "engines": {
     "node": ">=22"
   },
@@ -48,8 +44,13 @@
   },
   "license": "AGPL-3.0-or-later",
   "author": "Piotr Franczyk",
+  "homepage": "https://looted.github.io/kibi/",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Looted/kibi.git"
+    "url": "https://github.com/Looted/kibi.git",
+    "directory": "packages/mcp"
+  },
+  "bugs": {
+    "url": "https://github.com/Looted/kibi/issues"
   }
 }

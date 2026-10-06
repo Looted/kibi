@@ -286,3 +286,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fcfdfecf9268
+  - type: implements
+    from: SYM-kibi-bootstrap-plan-presentation
+    to: REQ-bootstrap-intent-claim-accounting
+    created_at: 2026-10-06T11:23:06.404Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c2b775502796

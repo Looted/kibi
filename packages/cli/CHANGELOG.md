@@ -1,5 +1,36 @@
 # kibi-cli
 
+## 2.5.2
+
+### Patch Changes
+
+- 564b171: Bootstrap plans no longer drop the intent claims you declared from tracker, wiki or spec sources when the repository has many candidates. Previously the default 50-candidate cap could silently discard every claim from one source, and two markdown lines that restated one rule could leave an approved plan half-applied. Now every declared claim is planned, each source reports how many of its claims were planned, and a plan that plans none of an authoritative source's claims asks for context instead of reporting ready.
+
+  `kb_plan_bootstrap` applies `maxCandidates` only to discovered candidates. Candidates that would rewrite an already-planned entity with different content are suppressed as `duplicate_entity`, and the write-time `claim_key` grounding check now also runs at plan time against planned writes, suppressing mismatches as `invalid_write`. The plan adds one `Knowledge source …` diagnostic per declared source. The `kibi-bootstrap` skill (3.2.1) tells agents to read those diagnostics and no longer advises against `maxCandidates`.
+
+- 1cddf4d: Approved bootstrap plans now apply when the current KB uses a journal generation and revision. A change to that revision still rejects the plan before writing.
+
+  Accept the existing journal snapshot format in bootstrap plan validation while retaining canonical hash, workspace, and live snapshot checks.
+
+- 271ed4d: Running `kibi init` now completes an existing empty or partially initialized knowledge directory so bootstrap can proceed. Repeated initialization preserves authored knowledge, lifecycle metadata, symbols, and existing schema files.
+
+  Reconcile missing canonical directories, branch storage, ignore entries, and schema files instead of skipping setup whenever `.kb` exists. Refuse substituted directory paths and copy missing schema files without overwriting existing destinations.
+
+- 2a2b2db: Every Kibi package page on npm now has a README that says what the package is for and how to install it, and links to the documentation site. Package metadata now points npm's "Homepage" link at the documentation site, its "Repository" link at the package's own folder on GitHub, and adds an "Issues" link.
+
+  Adds READMEs to `kibi-cli`, `kibi-mcp`, `kibi-core`, `kibi-runtime`, `kibi-agent-core`, `kibi-codex`, `kibi-plugin-builtin` and `kibi-plugin-sdk`. Sets `homepage` to https://looted.github.io/kibi/, adds `repository.directory` and `bugs` to every package, and refreshes the `kibi-plugin-treesitter` integrity manifest and source-analyzer approval for its changed `package.json`.
+
+- 2c6ce25: `kb_search` with `sourceLocations` no longer reads complete entities for every entity in the given files. Results and rankings are unchanged; a file covered by many tests with long proof receipt histories now costs a fraction of the engine output it used to.
+
+  Source-located intent candidates use the projected search-candidate rows through the new `kb_list_search_candidates/6` (type, source filter, limit, offset), which applies the same source filter as `kb_query_entities/8`. The separate full-entity source lookup used when a host lacks paged entity queries is removed, so every host loads the same candidate set.
+
+- Updated dependencies [2a2b2db]
+- Updated dependencies [2c6ce25]
+  - kibi-core@0.15.1
+  - kibi-plugin-builtin@0.4.2
+  - kibi-plugin-sdk@0.4.1
+  - kibi-swipl@1.0.1
+
 ## 2.5.1
 
 ### Patch Changes

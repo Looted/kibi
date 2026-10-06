@@ -1,6 +1,6 @@
 {
   "name": "kibi-codex",
-  "version": "2.2.1",
+  "version": "2.2.2",
   "description": "Kibi Codex plugin - thin adapter for Codex MCP integration",
   "type": "module",
   "main": "dist/index.js",
@@ -25,9 +25,14 @@
     "node": ">=18"
   },
   "license": "AGPL-3.0-or-later",
+  "homepage": "https://looted.github.io/kibi/",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Looted/kibi.git"
+    "url": "https://github.com/Looted/kibi.git",
+    "directory": "packages/codex"
+  },
+  "bugs": {
+    "url": "https://github.com/Looted/kibi/issues"
   },
   "publishConfig": {
     "access": "public"
@@ -54,7 +59,7 @@
   },
   "devDependencies": {
     "@types/node": "latest",
-    "kibi-agent-core": "^0.2.0",
+    "kibi-agent-core": "^0.2.1",
     "typescript": "^5.7.0"
   }
 }

@@ -126,16 +126,21 @@
     "@types/node": "^20.0.0",
     "@types/bun": "latest",
     "@vscode/vsce": "^3.0.0",
-    "esbuild": "^0.23.0",
+    "esbuild": "^0.28.2",
     "typescript": "^5.0.0"
   },
   "dependencies": {
     "js-yaml": "^4.1.0",
     "kibi-cli": "^2.1.0"
   },
+  "homepage": "https://looted.github.io/kibi/",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Looted/kibi.git"
+    "url": "https://github.com/Looted/kibi.git",
+    "directory": "packages/vscode"
+  },
+  "bugs": {
+    "url": "https://github.com/Looted/kibi/issues"
   },
   "license": "AGPL-3.0-or-later",
   "author": "Piotr Franczyk"

@@ -363,3 +363,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f062bae51f74
+  - type: implements
+    from: SYM-semantic-staged-logical-grounding-error
+    to: REQ-bootstrap-intent-claim-accounting
+    created_at: 2026-10-06T11:21:13.336Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5e11aebe7cb3
+  - type: covered_by
+    from: SYM-semantic-staged-logical-grounding-error
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-10-06T11:21:13.364Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-89be3d34d382

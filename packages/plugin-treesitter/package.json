@@ -1,6 +1,6 @@
 {
   "name": "kibi-plugin-treesitter",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Offline multi-language Tree-sitter symbol extraction",
   "type": "module",
   "main": "./dist/index.js",
@@ -35,10 +35,14 @@
   },
   "license": "AGPL-3.0-or-later",
   "author": "Piotr Franczyk",
+  "homepage": "https://looted.github.io/kibi/",
   "repository": {
     "type": "git",
     "url": "https://github.com/Looted/kibi.git",
     "directory": "packages/plugin-treesitter"
+  },
+  "bugs": {
+    "url": "https://github.com/Looted/kibi/issues"
   },
   "publishConfig": {
     "access": "public"
@@ -48,7 +52,7 @@
   },
   "devDependencies": {
     "@types/node": "25.9.8",
-    "kibi-plugin-sdk": "^0.4.0",
+    "kibi-plugin-sdk": "^0.4.1",
     "typescript": "^5.7.0"
   },
   "peerDependencies": {

@@ -26,6 +26,7 @@
     kb_query_entities/8,
     kb_search_entities/6,
     kb_list_search_candidates/5,
+    kb_list_search_candidates/6,
     kb_entity_ids/1,
     kb_rebuild_indexes/0,
     kb_entity/3,
@@ -1816,14 +1817,22 @@ kb_search_entities(TypeFilter, Query, Limit, Offset, Rows, Count) :-
 % candidate rows, ordered by id. Semantic discovery uses it when no lexical
 % token can pre-filter the candidate set.
 kb_list_search_candidates(TypeFilter, Limit, Offset, Rows, Count) :-
+    kb_list_search_candidates(TypeFilter, none, Limit, Offset, Rows, Count).
+
+%% kb_list_search_candidates(+Type, +Source, +Limit, +Offset, -Rows, -Count)
+% As kb_list_search_candidates/5, optionally restricted to entities whose
+% indexed source contains Source (the kb_query_entities/8 source filter).
+% Source-located search uses it so candidates stay projected rows instead of
+% complete entities.
+% implements REQ-mcp-search-discovery, REQ-kibi-intent-aware-source-discovery
+kb_list_search_candidates(TypeFilter, SourceFilter, Limit, Offset, Rows, Count) :-
     integer(Limit),
     integer(Offset),
     Limit >= 0,
     Offset >= 0,
     kb_ensure_indexes,
     findall(Id,
-            ( kb_index_entity(Id, _),
-              (TypeFilter == none -> true ; kb_index_type(TypeFilter, Id)) ),
+            indexed_entity_match(TypeFilter, none, [], SourceFilter, Id),
             RawIds),
     sort(RawIds, Ids),
     length(Ids, Count),
