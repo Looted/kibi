@@ -20,6 +20,7 @@ import {
   UMAMI_SCRIPT_SRC,
   publishedLlmsIndexHref,
 } from "./catalog.js";
+import { terminalDemoHtml } from "./terminal-demo.js";
 
 // implements REQ-docs-site-root-pages
 export type Section = "guide" | "reference";
@@ -406,13 +407,7 @@ figure.code:hover .code-copy, .code-copy:focus-visible, .code-copy.copied { opac
 /* ---------- Landing ---------- */
 .hero { padding: 0 0 8px; }
 .hero-grid { display: block; }
-.hero-lower {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
-  gap: 36px 80px;
-  align-items: start;
-  margin-top: 28px;
-}
+.hero-lower { margin-top: 28px; }
 .hero-mark svg.mark { width: min(280px, 72vw); height: auto; display: block; }
 .hero-title {
   font-size: clamp(32px, 4vw, 48px); line-height: 1.12; letter-spacing: -0.02em;
@@ -432,40 +427,30 @@ figure.code:hover .code-copy, .code-copy:focus-visible, .code-copy.copied { opac
 .hero-rail { margin: 40px 0 0; overflow-x: auto; }
 .rail-svg { width: 100%; min-width: 0; height: auto; display: block; }
 
-.ledger {
-  background:
-    linear-gradient(180deg, rgba(162, 211, 244, 0.07), transparent 46%),
-    var(--panel);
-  border: 1px solid rgba(162, 211, 244, 0.28);
-  border-radius: 12px;
-  padding: 14px 16px 12px;
-  box-shadow: 0 22px 50px rgba(0, 0, 0, 0.28);
-}
-.ledger-kicker {
-  display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
-  font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
-  color: var(--mist); font-weight: 600;
-}
-.ledger-kicker a { font-size: 12px; letter-spacing: 0; text-transform: none; font-weight: 600; }
-.ledger-score { display: flex; align-items: baseline; gap: 8px; margin: 8px 0 2px; }
-.ledger-num { font-family: var(--mono); font-size: 22px; font-weight: 600; color: var(--snow); }
-.ledger-den { color: var(--mist); font-size: 14px; }
-.prose .ledger ol { list-style: none; margin: 8px 0 0; padding: 0; }
-.prose .ledger li { margin: 0; }
-.ledger li {
-  display: grid; grid-template-columns: 10px minmax(0, 1fr) auto;
-  gap: 10px; align-items: center;
-  padding: 6px 0; border-top: 1px solid rgba(52, 67, 79, 0.85);
-  font-size: 13.5px;
-}
-.ledger .name { color: var(--snow); }
-.ledger .state { font-family: var(--mono); font-size: 12px; white-space: nowrap; }
-.ledger .state.proven { color: var(--proven); }
-.ledger .state.gap { color: var(--warning); }
-.ledger .state.bad { color: var(--contradiction); }
-.ledger-foot { margin: 8px 0 0; color: var(--mist); font-size: 12.5px; }
-.dot.gap { background: var(--warning); }
-.dot.bad { background: var(--contradiction); }
+/* Animated terminal: one scene per Kibi use case, replayed by the client script. */
+.kd-section { margin-top: 44px; }
+.landing h2.kd-title { font-size: 15px; color: var(--mist); font-weight: 600; margin: 0 0 12px; }
+.kd { background: var(--panel); border: 1px solid var(--rail); border-radius: 10px; overflow: hidden; min-width: 0; }
+.kd-bar { display: flex; align-items: center; gap: 6px; padding: 7px 10px; border-bottom: 1px solid var(--rail); background: var(--carbon); flex-wrap: wrap; }
+.kd-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--rail); }
+.kd-tabs { margin-left: auto; display: flex; gap: 2px; flex-wrap: wrap; }
+.kd-tab { font: 600 12px var(--sans); color: var(--mist); background: transparent; border: 1px solid transparent; border-radius: 6px; padding: 2px 8px; cursor: pointer; }
+.kd-tab[aria-pressed="true"] { color: var(--ice); border-color: var(--rail); }
+.kd-tab:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
+.kd-screen { font-family: var(--mono); font-size: 14px; line-height: 1.6; padding: 12px 16px; height: calc((var(--kd-rows) + 1) * 1.6em + 24px); overflow: hidden; white-space: pre-wrap; word-break: break-word; }
+.kd-ln { display: block; min-height: 1.6em; }
+.landing .kd-note { color: var(--mist); font-size: 12.5px; margin: 8px 0 0; }
+.kd-you, .kd-info { color: var(--ice); }
+.kd-tool, .kd-dim { color: var(--mist); }
+.kd-name { color: var(--signal); font-weight: 600; }
+.kd-ok { color: var(--proven); }
+.kd-bad { color: var(--contradiction); }
+.kd-warn { color: var(--warning); }
+.kd-caret { display: inline-block; width: 0.55em; height: 1.05em; vertical-align: -0.16em; background: var(--ice); animation: kd-blink 1s steps(1) infinite; }
+@keyframes kd-blink { 50% { opacity: 0; } }
+@media (max-width: 560px) { .kd-screen { font-size: 11.5px; height: calc((var(--kd-rows) * 2 - 2) * 1.6em + 24px); } }
+@media (prefers-reduced-motion: reduce) { .kd-caret { animation: none; } }
+
 
 .landing > section { margin-top: 72px; }
 .landing > section.hero { margin-top: 0; }
@@ -570,7 +555,7 @@ figure.code:hover .code-copy, .code-copy:focus-visible, .code-copy.copied { opac
   .search { flex: 1; }
   .content { padding: 28px 20px 56px; }
   .pager { grid-template-columns: 1fr; }
-  .path-grid, .hero-lower, .prose .steps { grid-template-columns: 1fr; }
+  .path-grid, .prose .steps { grid-template-columns: 1fr; }
   .prose .steps li { padding: 0 0 20px 22px; }
   .rail-svg { min-width: 640px; }
   .footer { padding: 18px 20px; }
@@ -656,6 +641,67 @@ export const clientScript = String.raw`
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape") closeNav();
   });
+
+  /* ----- Animated terminal (landing page) ----- */
+  var demo = document.querySelector("[data-terminal-demo]");
+  var demoData = document.getElementById("kd-scenes");
+  if (demo && demoData) {
+    var scenes = JSON.parse(demoData.textContent || "{}");
+    var screen = demo.querySelector(".kd-screen");
+    var tabs = demo.querySelectorAll(".kd-tab");
+    var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var run = 0;
+    var line = function (runs) {
+      var el = document.createElement("span");
+      el.className = "kd-ln";
+      runs.forEach(function (r) {
+        var part = document.createElement("span");
+        part.className = "kd-" + r[0];
+        part.textContent = r[1];
+        el.appendChild(part);
+      });
+      screen.appendChild(el);
+      return el;
+    };
+    var wait = function (ms, id) {
+      return new Promise(function (done) { setTimeout(function () { done(id === run); }, ms); });
+    };
+    var play = async function (index) {
+      var id = ++run;
+      tabs.forEach(function (t, j) { t.setAttribute("aria-pressed", String(index === j)); });
+      screen.textContent = "";
+      var lines = scenes.scenes[index].lines;
+      if (reduce) { lines.forEach(function (l) { line(l.runs); }); return; }
+      var caret = document.createElement("span");
+      caret.className = "kd-caret";
+      for (var i = 0; i < lines.length; i++) {
+        var l = lines[i];
+        if (l.typed) {
+          var text = l.runs[0][1];
+          var el = line([[l.runs[0][0], text.slice(0, 2)]]);
+          var target = el.firstChild;
+          el.appendChild(caret);
+          for (var c = 2; c < text.length; c++) {
+            if (!(await wait(24 + Math.random() * 28, id))) return;
+            target.textContent += text[c];
+          }
+          if (!(await wait(250, id))) return;
+          caret.remove();
+        } else {
+          line(l.runs);
+        }
+        if (!(await wait(l.pauseMs, id))) return;
+      }
+      if (await wait(scenes.hold, id)) play((index + 1) % scenes.scenes.length);
+    };
+    tabs.forEach(function (t, j) {
+      t.addEventListener("click", function () {
+        track("terminal-scene", { scene: t.textContent });
+        play(j);
+      });
+    });
+    play(0);
+  }
 
   /* ----- Copy buttons ----- */
   document.addEventListener("click", function (e) {
@@ -961,9 +1007,9 @@ export function landingContent(args: {
 </figure>`;
     })
     .join("\n");
-  const liveReport = reportUrl
-    ? `<a href="${reportUrl}" data-umami-event="cta-click" data-umami-event-target="ledger-report">Live report</a>`
-    : "";
+  const reportCta = reportUrl
+    ? `<a class="btn btn-ghost" href="${reportUrl}" data-umami-event="cta-click" data-umami-event-target="hero-live-report">See Kibi&rsquo;s live report</a>`
+    : `<a class="btn btn-ghost" href="${root}guide/reading-the-report.html" data-umami-event="cta-click" data-umami-event-target="read-report">Read a health report</a>`;
   const reportStrip = reportUrl
     ? `<section class="report-strip">
   <div>
@@ -986,22 +1032,13 @@ export function landingContent(args: {
       <p class="hero-sub">You keep prompting your coding agent. Kibi writes that intent down beside the code, carries it onto every branch, and treats &ldquo;done&rdquo; as a claim that needs fresh evidence.</p>
       <div class="hero-actions">
         <a class="btn btn-primary" href="${root}guide/quick-start.html" data-umami-event="cta-click" data-umami-event-target="install">Install Kibi</a>
-        <a class="btn btn-ghost" href="${root}guide/reading-the-report.html" data-umami-event="cta-click" data-umami-event-target="read-report">Read a health report</a>
+        ${reportCta}
       </div>
       <p class="hero-canon">${escapeHtml(SITE_TAGLINE)}</p>
     </div>
-    <aside class="ledger" aria-label="Example requirement-health ledger">
-      <div class="ledger-kicker"><span>Example ledger</span>${liveReport}</div>
-      <div class="ledger-score"><span class="ledger-num">4</span><span class="ledger-den">of 11 fully proven</span></div>
-      <ol>
-        <li><span class="dot proven" aria-hidden="true"></span><span class="name">Drafts save when you leave</span><span class="state proven">Proven</span></li>
-        <li><span class="dot gap" aria-hidden="true"></span><span class="name">Export keeps the current filters</span><span class="state gap">Proof gap</span></li>
-        <li><span class="dot bad" aria-hidden="true"></span><span class="name">Exactly three user roles</span><span class="state bad">Contradiction</span></li>
-      </ol>
-      <p class="ledger-foot">An example, not this repository&rsquo;s live numbers.</p>
-    </aside>
     </div>
   </div>
+  ${terminalDemoHtml()}
   <div class="hero-rail">${RAIL_SVG}</div>
 </section>
 <section>

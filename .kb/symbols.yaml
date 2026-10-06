@@ -50258,28 +50258,93 @@ symbols:
         target: TEST-docs-site-pages
       - type: implements
         target: REQ-docs-site-analytics
-  - id: SYM-test-kibi-upsert-review-lanes
-    title: kb_upsert review lanes consumer suite
+  - id: SYM-docs-site-terminal-demo-terminalDemoHtml
+    title: terminalDemoHtml
     status: active
-    sourceFile: packages/cli/tests/consumer/upsert-review-lanes.test.ts
+    sourceFile: docs-site/terminal-demo.ts
     symbol_role: behavioral
-    granularity_reason: test-suite
     origin:
       kind: agent
-      ref: 'Piotr thread 2026-10-06: test project onboarding round 3 (advisor roles, relationship upserts, review observations)'
-      recorded_at: 2026-10-06T20:41:54.053Z
+      recorded_at: 2026-10-06T21:26:36.635Z
     relationships:
-      - type: executable_for
-        target: TEST-kibi-upsert-review-lanes
+      - type: covered_by
+        target: TEST-docs-site-pages
+      - type: implements
+        target: REQ-docs-site-terminal-demo
+  - id: SYM-docs-site-terminal-demo-terminalDemoSvg
+    title: terminalDemoSvg
+    status: active
+    sourceFile: docs-site/terminal-demo.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-06T21:26:42.514Z
+    relationships:
+      - type: covered_by
+        target: TEST-docs-site-pages
+      - type: implements
+        target: REQ-docs-site-terminal-demo
+  - id: SYM-docs-site-terminal-demo-TERMINAL_SCENES
+    title: TERMINAL_SCENES
+    status: active
+    sourceFile: docs-site/terminal-demo.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-06T21:26:47.653Z
+    relationships:
+      - type: covered_by
+        target: TEST-docs-site-pages
+      - type: implements
+        target: REQ-docs-site-terminal-demo
+  - id: SYM-docs-site-terminal-demo-TERMINAL_HOLD_MS
+    title: TERMINAL_HOLD_MS
+    status: active
+    sourceFile: docs-site/terminal-demo.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-06T21:26:52.788Z
+    relationships:
+      - type: covered_by
+        target: TEST-docs-site-pages
+      - type: implements
+        target: REQ-docs-site-terminal-demo
+  - id: SYM-docs-site-terminal-demo-TERMINAL_ROWS
+    title: TERMINAL_ROWS
+    status: active
+    sourceFile: docs-site/terminal-demo.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-06T21:26:58.083Z
+    relationships:
+      - type: covered_by
+        target: TEST-docs-site-pages
+      - type: implements
+        target: REQ-docs-site-terminal-demo
+  - id: SYM-docs-site-terminal-demo-TERMINAL_SVG_PATH
+    title: TERMINAL_SVG_PATH
+    status: active
+    sourceFile: docs-site/terminal-demo.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-06T21:27:03.180Z
+    relationships:
+      - type: covered_by
+        target: TEST-docs-site-pages
+      - type: implements
+        target: REQ-docs-site-terminal-demo
   - id: SYM-cli-proposition-role-advisorPropositionRole
     title: advisorPropositionRole
     status: active
-    sourceFile: packages/cli/src/operations/semantic-advisor/proposition-role.ts
-    symbol_role: behavioral
     origin:
       kind: agent
       ref: 'Piotr thread 2026-10-06: test project onboarding round 3 (advisor roles, relationship upserts, review observations)'
       recorded_at: 2026-10-06T20:44:20.161Z
+    sourceFile: packages/cli/src/operations/semantic-advisor/proposition-role.ts
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-kibi-bootstrap-knowledge-sources
@@ -50290,12 +50355,12 @@ symbols:
   - id: SYM-cli-proposition-role-isDefinitionShape
     title: isDefinitionShape
     status: active
-    sourceFile: packages/cli/src/operations/semantic-advisor/proposition-role.ts
-    symbol_role: behavioral
     origin:
       kind: agent
       ref: 'Piotr thread 2026-10-06: test project onboarding round 3 (advisor roles, relationship upserts, review observations)'
       recorded_at: 2026-10-06T20:44:28.035Z
+    sourceFile: packages/cli/src/operations/semantic-advisor/proposition-role.ts
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-kibi-bootstrap-knowledge-sources
@@ -50306,12 +50371,12 @@ symbols:
   - id: SYM-cli-proposition-role-legacyPropositionRoles
     title: legacyPropositionRoles
     status: active
-    sourceFile: packages/cli/src/operations/semantic-advisor/proposition-role.ts
-    symbol_role: behavioral
     origin:
       kind: agent
       ref: 'Piotr thread 2026-10-06: test project onboarding round 3 (advisor roles, relationship upserts, review observations)'
       recorded_at: 2026-10-06T20:44:35.219Z
+    sourceFile: packages/cli/src/operations/semantic-advisor/proposition-role.ts
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-kibi-bootstrap-knowledge-sources
@@ -50320,12 +50385,26 @@ symbols:
   - id: SYM-cli-requirement-semantics-withStoredRequirementSemantics
     title: withStoredRequirementSemantics
     status: active
-    sourceFile: packages/cli/src/operations/mutation/requirement-semantics.ts
-    symbol_role: behavioral
     origin:
       kind: agent
       ref: 'Piotr thread 2026-10-06: test project onboarding round 3 (advisor roles, relationship upserts, review observations)'
       recorded_at: 2026-10-06T20:44:41.464Z
+    sourceFile: packages/cli/src/operations/mutation/requirement-semantics.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-upsert-review-lanes
+      - type: implements
+        target: REQ-kibi-upsert-preserves-requirement-semantics
+  - id: SYM-cli-stored-entity-storedEntityLookup
+    title: storedEntityLookup
+    status: active
+    origin:
+      kind: agent
+      ref: 'Piotr thread 2026-10-06: test project onboarding round 3 (advisor roles, relationship upserts, review observations)'
+      recorded_at: 2026-10-06T22:18:56.380Z
+    sourceFile: packages/cli/src/operations/mutation/stored-entity.ts
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-kibi-upsert-review-lanes
@@ -50334,29 +50413,28 @@ symbols:
   - id: SYM-core-valid-claim-provenance
     title: valid_claim_provenance
     status: active
-    sourceFile: packages/core/schema/validation.pl
-    symbol_role: behavioral
     origin:
       kind: agent
       ref: 'Piotr thread 2026-10-06: test project onboarding round 3 (advisor roles, relationship upserts, review observations)'
       recorded_at: 2026-10-06T20:44:47.862Z
+    sourceFile: packages/core/schema/validation.pl
+    symbol_role: behavioral
     granularity_reason: extractor-miss
     relationships:
       - type: covered_by
         target: TEST-kibi-upsert-review-lanes
       - type: implements
         target: REQ-kibi-review-observation-claim-text
-  - id: SYM-cli-stored-entity-storedEntityLookup
-    title: storedEntityLookup
+  - id: SYM-test-kibi-upsert-review-lanes
+    title: kb_upsert review lanes consumer suite
     status: active
-    sourceFile: packages/cli/src/operations/mutation/stored-entity.ts
-    symbol_role: behavioral
     origin:
       kind: agent
       ref: 'Piotr thread 2026-10-06: test project onboarding round 3 (advisor roles, relationship upserts, review observations)'
-      recorded_at: 2026-10-06T22:18:56.380Z
+      recorded_at: 2026-10-06T20:41:54.053Z
+    sourceFile: packages/cli/tests/consumer/upsert-review-lanes.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
     relationships:
-      - type: covered_by
+      - type: executable_for
         target: TEST-kibi-upsert-review-lanes
-      - type: implements
-        target: REQ-kibi-upsert-preserves-requirement-semantics

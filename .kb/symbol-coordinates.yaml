@@ -11109,10 +11109,10 @@ coordinates:
     sourceLine: 18
   SYM-docs-site-pages-build:
     identityHash: 5db60e46bde4607bb3b3f7c45ea3b41dd0be936f5573db9513a1071fc44d36ed
-    sourceHash: 4a02bdd4a679ab905ee6eb931397382b9e045e765b25faed06cf232f4f0b6812
+    sourceHash: 3e888fb3c3f4b0cb24a98d4f74089cd01a4c0271675eb68d757a3d2de75592eb
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 140
+    sourceEndLine: 176
     sourceFile: packages/cli/tests/docs-site-pages.test.ts
     sourceLine: 1
   SYM-docs-site-readmePublishedDocProblems:
@@ -11123,70 +11123,118 @@ coordinates:
     sourceEndLine: 33
     sourceFile: docs-site/readme-links.ts
     sourceLine: 20
+  SYM-docs-site-terminal-demo-TERMINAL_HOLD_MS:
+    identityHash: 6ca4baaa13728c6127798f967e96327d69c711a06dd6ab6feee5d8f743b5962e
+    sourceHash: 7f50e9371b462a28c9399c408050f2f5d5d81f689c30f74347f9cfe74a7c8153
+    sourceColumn: 13
+    sourceEndColumn: 36
+    sourceEndLine: 67
+    sourceFile: docs-site/terminal-demo.ts
+    sourceLine: 67
+  SYM-docs-site-terminal-demo-TERMINAL_ROWS:
+    identityHash: ad8c1ba958b8175e70fd1618b719d58bc4e3b2266a0eae2a6677799b6772c41b
+    sourceHash: 7f50e9371b462a28c9399c408050f2f5d5d81f689c30f74347f9cfe74a7c8153
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 170
+    sourceFile: docs-site/terminal-demo.ts
+    sourceLine: 168
+  SYM-docs-site-terminal-demo-TERMINAL_SCENES:
+    identityHash: d6de526dfcca4800ea0a522f9e4cb0687e41b0c9c780e8dde1c66cbfb439c391
+    sourceHash: 7f50e9371b462a28c9399c408050f2f5d5d81f689c30f74347f9cfe74a7c8153
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 165
+    sourceFile: docs-site/terminal-demo.ts
+    sourceLine: 70
+  SYM-docs-site-terminal-demo-TERMINAL_SVG_PATH:
+    identityHash: 98ecc76f07fa08fa06d8a5a46c365506fc2aa9333f3d5c25a94083ea38f48a84
+    sourceHash: 7f50e9371b462a28c9399c408050f2f5d5d81f689c30f74347f9cfe74a7c8153
+    sourceColumn: 13
+    sourceEndColumn: 59
+    sourceEndLine: 317
+    sourceFile: docs-site/terminal-demo.ts
+    sourceLine: 317
+  SYM-docs-site-terminal-demo-terminalDemoHtml:
+    identityHash: 8e44a120c28dc04ce3d359837bc2829941150ef71795770de899e7486cbabf99
+    sourceHash: 7f50e9371b462a28c9399c408050f2f5d5d81f689c30f74347f9cfe74a7c8153
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 205
+    sourceFile: docs-site/terminal-demo.ts
+    sourceLine: 177
+  SYM-docs-site-terminal-demo-terminalDemoSvg:
+    identityHash: ba2f4f43be2897b2705e0909904716b9939f77a25b0dc99ff50b7ec1fb0c082e
+    sourceHash: 7f50e9371b462a28c9399c408050f2f5d5d81f689c30f74347f9cfe74a7c8153
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 314
+    sourceFile: docs-site/terminal-demo.ts
+    sourceLine: 234
   SYM-docs-site-theme-clientScript:
     identityHash: 9acb31c4882a74eebacdedcdfb99a244027ce506609e7120e80eadac0f712254
-    sourceHash: b68f82e534904fd58d531ac329f1414985dfd3b1f9a79dadeebdd6e7c08d49c5
+    sourceHash: 4a053480598486370d5ee4ab674262ce3d169b8e3f7c7ef10f89d640c35ac528
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 898
+    sourceEndLine: 944
     sourceFile: docs-site/theme.ts
-    sourceLine: 626
+    sourceLine: 611
   SYM-docs-site-theme-escapeHtml:
     identityHash: fe4622310b1a494331981c56d10258475cb947b7660510e07058ef0e11eb7e73
-    sourceHash: b68f82e534904fd58d531ac329f1414985dfd3b1f9a79dadeebdd6e7c08d49c5
+    sourceHash: 4a053480598486370d5ee4ab674262ce3d169b8e3f7c7ef10f89d640c35ac528
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 58
+    sourceEndLine: 59
     sourceFile: docs-site/theme.ts
-    sourceLine: 51
+    sourceLine: 52
   SYM-docs-site-theme-landingContent:
     identityHash: adf8ffc4f6b9b108709ed71aad0f34409685b053bb0ab2445c63b41ff1680f09
-    sourceHash: b68f82e534904fd58d531ac329f1414985dfd3b1f9a79dadeebdd6e7c08d49c5
+    sourceHash: 4a053480598486370d5ee4ab674262ce3d169b8e3f7c7ef10f89d640c35ac528
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 1114
+    sourceEndLine: 1151
     sourceFile: docs-site/theme.ts
-    sourceLine: 901
+    sourceLine: 947
   SYM-docs-site-theme-layout:
     identityHash: 8f7eb6acde5c1a0e7ac594bae9fa218221b88622c0cb1d3bb2127d8709f234c5
-    sourceHash: b68f82e534904fd58d531ac329f1414985dfd3b1f9a79dadeebdd6e7c08d49c5
+    sourceHash: 4a053480598486370d5ee4ab674262ce3d169b8e3f7c7ef10f89d640c35ac528
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 1227
+    sourceEndLine: 1264
     sourceFile: docs-site/theme.ts
-    sourceLine: 1117
+    sourceLine: 1154
   SYM-docs-site-theme-PageShell:
     identityHash: 3cefed9b17f02db1f6fe7c1db6dafa60647efd2ca63b9cd39b4f06cb8ab06fff
-    sourceHash: b68f82e534904fd58d531ac329f1414985dfd3b1f9a79dadeebdd6e7c08d49c5
+    sourceHash: 4a053480598486370d5ee4ab674262ce3d169b8e3f7c7ef10f89d640c35ac528
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 48
+    sourceEndLine: 49
     sourceFile: docs-site/theme.ts
-    sourceLine: 28
+    sourceLine: 29
   SYM-docs-site-theme-prepareMark:
     identityHash: cafe5d90179472d5b9daf522f003cd4bbebad7d4ae07d5b9f406343c31997e29
-    sourceHash: b68f82e534904fd58d531ac329f1414985dfd3b1f9a79dadeebdd6e7c08d49c5
+    sourceHash: 4a053480598486370d5ee4ab674262ce3d169b8e3f7c7ef10f89d640c35ac528
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 70
+    sourceEndLine: 71
     sourceFile: docs-site/theme.ts
-    sourceLine: 62
+    sourceLine: 63
   SYM-docs-site-theme-Section:
     identityHash: c867c4a996aa91c8751252c1d2b8581d852416758a52001e58ccea035425f7f0
-    sourceHash: b68f82e534904fd58d531ac329f1414985dfd3b1f9a79dadeebdd6e7c08d49c5
+    sourceHash: 4a053480598486370d5ee4ab674262ce3d169b8e3f7c7ef10f89d640c35ac528
     sourceColumn: 12
     sourceEndColumn: 44
-    sourceEndLine: 25
+    sourceEndLine: 26
     sourceFile: docs-site/theme.ts
-    sourceLine: 25
+    sourceLine: 26
   SYM-docs-site-theme-styles:
     identityHash: dfde36e536915eaefe0a7bb28016beb69109cd7951088a468d01ee730af2d8a3
-    sourceHash: b68f82e534904fd58d531ac329f1414985dfd3b1f9a79dadeebdd6e7c08d49c5
+    sourceHash: 4a053480598486370d5ee4ab674262ce3d169b8e3f7c7ef10f89d640c35ac528
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 623
+    sourceEndLine: 608
     sourceFile: docs-site/theme.ts
-    sourceLine: 94
+    sourceLine: 95
   SYM-doctor-detect-execute-apply-plan:
     identityHash: 797844b76baaf88f813fcec00435154edeee1de1d00e05d0c1f19239c3863904
     sourceHash: 9134dc18c46a7d4920639d2534a0e4e0a6988e1620591d5d2c88c1bff361d1f3

@@ -9,6 +9,10 @@
 
 **Prompt the intent. Kibi makes the agent remember it—and prove the implementation.**
 
+<img src="assets/terminal-demo.svg" width="820" alt="Animated terminal: Kibi refuses a contradicting requirement, flags an impossible scenario, an unproven requirement and untraced code, answers a knowledge-base search, and reminds the agent of a requirement before an edit">
+
+<sub>Simplified from what Kibi reports in each case.</sub>
+
 Kibi is an agent-native requirements compiler and enforcement layer. You describe product intent in natural language; the agent creates and maintains the structured requirements, scenarios, tests, semantic facts, and code links. Kibi then checks that the implementation remains coherent with that intent.
 
 Unlike passive memory or retrieval systems, Kibi is designed to place itself in the agent's workflow. The agent does not have to remember to consult a ticket, board, or requirements folder: Kibi's hooks, tools, and validation gates continuously bring the relevant product context back into the work.
