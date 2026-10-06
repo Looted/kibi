@@ -50322,3 +50322,81 @@ symbols:
         target: TEST-docs-site-pages
       - type: implements
         target: REQ-docs-site-analytics
+  - id: SYM-docs-site-terminal-demo-terminalDemoHtml
+    title: terminalDemoHtml
+    status: active
+    sourceFile: docs-site/terminal-demo.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-06T21:26:36.635Z
+    relationships:
+      - type: covered_by
+        target: TEST-docs-site-pages
+      - type: implements
+        target: REQ-docs-site-terminal-demo
+  - id: SYM-docs-site-terminal-demo-terminalDemoSvg
+    title: terminalDemoSvg
+    status: active
+    sourceFile: docs-site/terminal-demo.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-06T21:26:42.514Z
+    relationships:
+      - type: covered_by
+        target: TEST-docs-site-pages
+      - type: implements
+        target: REQ-docs-site-terminal-demo
+  - id: SYM-docs-site-terminal-demo-TERMINAL_SCENES
+    title: TERMINAL_SCENES
+    status: active
+    sourceFile: docs-site/terminal-demo.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-06T21:26:47.653Z
+    relationships:
+      - type: covered_by
+        target: TEST-docs-site-pages
+      - type: implements
+        target: REQ-docs-site-terminal-demo
+  - id: SYM-docs-site-terminal-demo-TERMINAL_HOLD_MS
+    title: TERMINAL_HOLD_MS
+    status: active
+    sourceFile: docs-site/terminal-demo.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-06T21:26:52.788Z
+    relationships:
+      - type: covered_by
+        target: TEST-docs-site-pages
+      - type: implements
+        target: REQ-docs-site-terminal-demo
+  - id: SYM-docs-site-terminal-demo-TERMINAL_ROWS
+    title: TERMINAL_ROWS
+    status: active
+    sourceFile: docs-site/terminal-demo.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-06T21:26:58.083Z
+    relationships:
+      - type: covered_by
+        target: TEST-docs-site-pages
+      - type: implements
+        target: REQ-docs-site-terminal-demo
+  - id: SYM-docs-site-terminal-demo-TERMINAL_SVG_PATH
+    title: TERMINAL_SVG_PATH
+    status: active
+    sourceFile: docs-site/terminal-demo.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-06T21:27:03.180Z
+    relationships:
+      - type: covered_by
+        target: TEST-docs-site-pages
+      - type: implements
+        target: REQ-docs-site-terminal-demo
