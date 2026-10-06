@@ -62,6 +62,39 @@ bun scripts/skillopt-eval/campaign.ts compose \
   [--insertion-file <insertion-b.json>]
 ```
 
+### Evaluate a reviewed full-body revision
+
+For a structural rewrite, `compose --body-file <body.md>` freezes a complete
+Markdown body instead of insertions. This emits a version 1.1 manifest with
+`revisionMode: "body-replacement"` and explicit host-composed provenance.
+It preserves baseline, frontmatter and resource hashes; it does not claim the
+optimizer generated the revision. `--body-file` and `--insertion-file` are
+mutually exclusive. Evaluation, confirmation and packaging retain the same
+source, evidence and model fences. Rewriting a body never implies adoption.
+
+Bootstrap also has a supplemental `onboarding-review` family. Its fictional
+library evidence exercises tracker-only and document-only training cases and
+a combined-source development case, including omitted intent and a tooling
+example incorrectly selected as product policy. Scoring reconciles the report
+against immutable fixture evidence and rejects false proof claims. This is a
+review-decision exercise, not evidence of a successful end-to-end bootstrap.
+No private project material or credentials are included.
+
+The isolated public fixture workspaces do not inherit the source repository's
+`kibi.plugins` configuration: current bootstrap cells use the builtin classifier,
+not JEV. Report the modeling backend alongside the agent model. The
+[bootstrap acceptance protocol](../documentation/evaluations/skillopt/bootstrap-acceptance-protocol.md)
+defines separate builtin/JEV cohorts and a fuller source-to-readback acceptance
+matrix. The supplemental review family does not replace that matrix.
+
+Native offline regressions exercise the actual staged MCP path before model
+runs: thin eligibility, intentional partial infrastructure, and the approved
+plan's precise normative scope, application and cited readback. Correct
+inspection completion is independent from a blocked infrastructure closeout.
+The review scorer accepts one strict report under either a `json` or
+`bootstrap-review` fence; coverage, omitted intent and proof checks are identical.
+
+
 ### Evaluate candidates
 
 `evaluate` accepts one to three candidate manifest files. The baseline is
@@ -70,7 +103,7 @@ loaded automatically from the current source. Both limits are explicit:
 cover the complete baseline-plus-candidate development matrix. The matrix is
 repeats x (candidates + 1) x development tasks; `kibi-usage`,
 `kibi-freshness` and `kibi-traceability` have five development tasks (four
-core families plus one supplemental family), `kibi-bootstrap` has four.
+core families plus one supplemental family), `kibi-bootstrap` also has five.
 
 ```text
 bun scripts/skillopt-eval/campaign.ts evaluate \

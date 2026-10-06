@@ -216,3 +216,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fb2d27f21ab9
+  - type: implements
+    from: SYM-createKbDirectoryStructure
+    to: REQ-cli-init-canonical
+    created_at: 2026-10-05T13:20:30.898Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ae3aa0f1baac
+  - type: covered_by
+    from: SYM-createKbDirectoryStructure
+    to: TEST-cli-canonical-init
+    created_at: 2026-10-05T13:20:30.925Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2e748f14400b
+  - type: implements
+    from: SYM-skillopt-claude-host-campaign-dependencies
+    to: REQ-skillopt-claude-code-host
+    created_at: 2026-10-05T22:06:39.752Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a64bbef788ea
+  - type: covered_by
+    from: SYM-skillopt-claude-host-campaign-dependencies
+    to: TEST-skillopt-claude-code-host
+    created_at: 2026-10-05T22:06:39.785Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6cfe8ef5056a
+  - type: covered_by
+    from: SYM-skillopt-claude-host-campaign-dependencies
+    to: TEST-e2e-skillopt-claude-code-host
+    created_at: 2026-10-05T22:06:39.811Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-93859dee3c4f

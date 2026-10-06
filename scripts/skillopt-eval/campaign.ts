@@ -17,6 +17,11 @@ import {
   runReviseCampaign,
 } from "./campaign-workflow";
 import { CANONICAL_SKILLS, type CanonicalSkill } from "./catalog";
+import { hostCampaignDependencies } from "./claude-code-campaign";
+import {
+  ClaudeHostConfigError,
+  selectedSkillOptHost,
+} from "./runtime/claude-code-host";
 import { runBoundedProcess } from "./runtime/process";
 
 const COMMANDS = new Set([
@@ -34,6 +39,8 @@ const VALUE_FLAGS = new Set([
   "--heading",
   "--feedback",
   "--insertion-file",
+  "--body-file",
+  "--description-file",
   "--candidate-manifest",
   "--previous-evaluation",
   "--evaluation",
@@ -61,7 +68,7 @@ function usage(): string {
     "Usage: campaign.ts <revise|compose|evaluate|confirm|package> --artifact-root PATH [options]",
     "Common: --source-root PATH",
     "revise: --skill SKILL --objective-file FILE --heading HEADING --allow-paid [--feedback FILE]",
-    "compose: --skill SKILL --insertion-file FILE [--insertion-file FILE ...]",
+    "compose: --skill SKILL (--body-file FILE [--description-file FILE] | --insertion-file FILE [--insertion-file FILE ...])",
     "evaluate: --skill SKILL --candidate-manifest FILE [1..3] --max-target-episodes N --repeats 1..3 --allow-paid",
     "confirm: --previous-evaluation FILE --max-target-episodes N --repeats 1..3 --allow-paid",
     "package: --candidate-manifest FILE [1..4] [--evaluation FILE] OR --candidate-manifest <bundle-manifest>",
@@ -209,6 +216,12 @@ async function packageSelection(args: ParsedArgs): Promise<
   return { kind: "individual", manifests: await manifests(args) };
 }
 
+/** A description file holds one line; drop only the editor's final newline. */
+async function readDescriptionFile(path: string): Promise<string> {
+  const text = await readFile(resolve(path), "utf8");
+  return text.replace(/\r?\n$/, "");
+}
+
 async function composeInsertions(args: ParsedArgs) {
   const paths = repeated(args, "--insertion-file");
   if (paths.length < 1 || paths.length > 4)
@@ -226,10 +239,20 @@ async function composeInsertions(args: ParsedArgs) {
 
 export async function campaignMain(
   argv: readonly string[] = process.argv.slice(2),
-  dependencies?: Partial<CampaignDependencies>,
+  explicitDependencies?: Partial<CampaignDependencies>,
 ): Promise<number> {
   try {
     const args = parseArgs(argv);
+    const dependencies =
+      explicitDependencies ?? hostCampaignDependencies(process.env);
+    if (
+      args.command === "revise" &&
+      selectedSkillOptHost(process.env) === "claude-code"
+    ) {
+      throw new CampaignCliError(
+        "revise runs the optimizer on Codex; KIBI_SKILLOPT_HOST=claude-code supports compose, evaluate and confirm",
+      );
+    }
     const source = await sourceRoot(args);
     const artifact = resolve(value(args, "--artifact-root"));
     if (args.command === "revise") {
@@ -255,15 +278,43 @@ export async function campaignMain(
       return 0;
     }
     if (args.command === "compose") {
+      const bodyFile = optionalValue(args, "--body-file");
+      const descriptionFile = optionalValue(args, "--description-file");
+      if (
+        bodyFile !== undefined &&
+        repeated(args, "--insertion-file").length > 0
+      )
+        throw new CampaignCliError(
+          "--body-file and --insertion-file are mutually exclusive",
+        );
+      if (descriptionFile !== undefined && bodyFile === undefined)
+        throw new CampaignCliError("--description-file requires --body-file");
       const manifest = await runComposeCampaign({
         sourceRoot: source,
         artifactRoot: artifact,
         skill: skill(value(args, "--skill")),
-        insertions: await composeInsertions(args),
+        insertions: bodyFile === undefined ? await composeInsertions(args) : [],
+        ...(bodyFile === undefined
+          ? {}
+          : { replacementBody: await readFile(resolve(bodyFile), "utf8") }),
+        ...(descriptionFile === undefined
+          ? {}
+          : {
+              replacementDescription:
+                await readDescriptionFile(descriptionFile),
+            }),
         dependencies,
       });
       process.stdout.write(
-        `${JSON.stringify({ command: args.command, status: "complete", skill: manifest.skill, frozenBodyHash: manifest.frozenBodyHash })}\n`,
+        `${JSON.stringify({
+          command: args.command,
+          status: "complete",
+          skill: manifest.skill,
+          frozenBodyHash: manifest.frozenBodyHash,
+          ...(manifest.frozenDescriptionHash === undefined
+            ? {}
+            : { frozenDescriptionHash: manifest.frozenDescriptionHash }),
+        })}\n`,
       );
       return 0;
     }
@@ -340,7 +391,7 @@ export async function campaignMain(
           command: args.command,
           status: "ready-for-review",
           skills: receipt.skills
-            .filter((entry) => entry.bodyChanged)
+            .filter((entry) => entry.bodyChanged || entry.descriptionChanged)
             .map((entry) => entry.id)
             .sort(),
         })}\n`,
@@ -361,7 +412,7 @@ export async function campaignMain(
         command: args.command,
         status: "ready-for-review",
         skills: receipt.skills
-          .filter((entry) => entry.bodyChanged)
+          .filter((entry) => entry.bodyChanged || entry.descriptionChanged)
           .map((entry) => entry.id)
           .sort(),
       })}\n`,
@@ -370,13 +421,17 @@ export async function campaignMain(
   } catch (error) {
     if (
       error instanceof CampaignCliError ||
+      error instanceof ClaudeHostConfigError ||
       error instanceof CampaignArtifactError ||
       error instanceof z.ZodError
     ) {
       process.stderr.write(
         `${error instanceof Error ? error.message : String(error)}\n`,
       );
-      return error instanceof CampaignCliError ? 2 : 1;
+      return error instanceof CampaignCliError ||
+        error instanceof ClaudeHostConfigError
+        ? 2
+        : 1;
     }
     throw error;
   }

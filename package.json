@@ -73,7 +73,7 @@
     "skillopt:history": "bun run scripts/skillopt-eval/inspect-history.ts",
     "skillopt:screen": "bun run scripts/skillopt-eval/screen-history.ts",
     "skillopt:campaign": "bun run scripts/skillopt-eval/campaign.ts",
-    "test:skillopt": "bun test --timeout 15000 ./scripts/skillopt-eval/tests",
+    "test:skillopt": "bun test --preload ./scripts/skillopt-eval/offline-test-preload.ts --timeout 15000 ./scripts/skillopt-eval/tests",
     "benchmark:journaled-engine": "node documentation/tests/benchmarks/journaled-engine.bench.mjs",
     "docs:site": "bun docs-site/build.ts",
     "sync:cursor-plugin-local": "./scripts/sync-cursor-plugin-local.sh",

@@ -6,6 +6,7 @@ import {
   readFileSync,
   rmSync,
   statSync,
+  symlinkSync,
   writeFileSync,
 } from "node:fs";
 import * as os from "node:os";
@@ -163,8 +164,93 @@ describe("kibi init", () => {
       stdio: "pipe",
     });
 
-    // init is idempotent and prints a skipping message when .kb exists
-    expect(out.toLowerCase()).toContain("already exists, skipping");
+    // Repeated init reports preservation while completing missing infrastructure.
+    expect(out).toContain("Existing Kibi source knowledge was preserved.");
+  });
+
+  test("completes an empty existing root into a bootstrap-eligible installation", () => {
+    execSync("git init -b main", { cwd: tmpDir });
+    mkdirSync(path.join(tmpDir, ".kb"));
+    const out = execSync(`bun ${kibiBin} init --no-hooks`, {
+      cwd: tmpDir,
+      encoding: "utf8",
+      stdio: "pipe",
+    });
+    expect(out).toContain("Bootstrap Kibi for this repository");
+    expect(out).not.toContain("repair degraded Kibi infrastructure");
+    for (const lane of [
+      "requirements",
+      "scenarios",
+      "tests",
+      "facts",
+      "adr",
+      "flags",
+      "events",
+    ]) {
+      expect(statSync(path.join(tmpDir, ".kb", lane)).isDirectory()).toBe(true);
+    }
+    expect(existsSync(path.join(tmpDir, ".kb/schema/entities.pl"))).toBe(true);
+    expect(existsSync(branchStorePath(tmpDir, "main"))).toBe(true);
+    expect(readFileSync(path.join(tmpDir, ".gitignore"), "utf8")).toContain(
+      ".kb/branches/",
+    );
+  });
+
+  test("repairs missing infrastructure and preserves existing knowledge and schema on repeated init", () => {
+    execSync("git init -b main", { cwd: tmpDir });
+    execSync(`bun ${kibiBin} init --no-hooks`, { cwd: tmpDir, stdio: "pipe" });
+    const requirementPath = path.join(
+      tmpDir,
+      ".kb/requirements/REQ-example.md",
+    );
+    writeFileSync(
+      requirementPath,
+      "---\nid: REQ-example\ntitle: Example\nstatus: active\n---\nRetain authored content.\n",
+    );
+    const schemaPath = path.join(tmpDir, ".kb/schema/entities.pl");
+    writeFileSync(schemaPath, "% preserved local schema\n");
+    const preservedPaths = [
+      requirementPath,
+      schemaPath,
+      path.join(tmpDir, ".kb/manifest.json"),
+      path.join(tmpDir, ".kb/symbols.yaml"),
+    ];
+    const preserved = preservedPaths.map((file) => readFileSync(file, "utf8"));
+    rmSync(path.join(tmpDir, ".kb/scenarios"), { recursive: true });
+    rmSync(path.join(tmpDir, ".kb/schema/relationships.pl"));
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const out = execSync(`bun ${kibiBin} init --no-hooks`, {
+        cwd: tmpDir,
+        encoding: "utf8",
+        stdio: "pipe",
+      });
+      expect(out).not.toContain("repair degraded Kibi infrastructure");
+      expect(statSync(path.join(tmpDir, ".kb/scenarios")).isDirectory()).toBe(
+        true,
+      );
+      expect(existsSync(path.join(tmpDir, ".kb/schema/relationships.pl"))).toBe(
+        true,
+      );
+      expect(preservedPaths.map((file) => readFileSync(file, "utf8"))).toEqual(
+        preserved,
+      );
+    }
+  });
+
+  test("refuses a symlinked knowledge lane without writing through it", () => {
+    execSync("git init -b main", { cwd: tmpDir });
+    const outside = path.join(tmpDir, "outside");
+    mkdirSync(outside);
+    mkdirSync(path.join(tmpDir, ".kb"));
+    symlinkSync(outside, path.join(tmpDir, ".kb/requirements"));
+    expect(() =>
+      execSync(`bun ${kibiBin} init --no-hooks`, {
+        cwd: tmpDir,
+        stdio: "pipe",
+      }),
+    ).toThrow();
+    expect(existsSync(path.join(tmpDir, ".kb/manifest.json"))).toBe(false);
+    expect(existsSync(path.join(outside, "manifest.json"))).toBe(false);
   });
 
   test("routes an initialized thin repository to bootstrap", () => {
@@ -388,8 +474,8 @@ describe("kibi init", () => {
       stdio: "pipe",
     });
 
-    // init is idempotent and prints a skipping message when .kb exists
-    expect(out.toLowerCase()).toContain("already exists, skipping");
+    // Repeated init reports preservation while completing missing infrastructure.
+    expect(out).toContain("Existing Kibi source knowledge was preserved.");
   });
 
   test("init --help documents --github and --badge-only", () => {

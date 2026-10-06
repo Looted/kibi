@@ -188,3 +188,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f68203e37067
+  - type: implements
+    from: SYM-skillopt-campaign-artifacts-campaignartifactstore-42509001
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-10-05T12:20:42.822Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-096c694d321a
+  - type: covered_by
+    from: SYM-skillopt-campaign-artifacts-campaignartifactstore-42509001
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-10-05T12:20:42.837Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a0a8f28523a5
+  - type: implements
+    from: SYM-skillopt-user-context
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-10-05T16:55:32.383Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-308298addfa2
+  - type: covered_by
+    from: SYM-skillopt-user-context
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-10-05T16:55:32.412Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-abb673230f73

@@ -349,3 +349,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ec2eb421858f
+  - type: implements
+    from: SYM-skillopt-fixtures-task-definitions-supplemental-supplemental-cases-8e8546d2
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-10-05T12:24:52.026Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-23dd67cb2511
+  - type: covered_by
+    from: SYM-skillopt-fixtures-task-definitions-supplemental-supplemental-cases-8e8546d2
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-10-05T12:24:52.046Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f062bae51f74

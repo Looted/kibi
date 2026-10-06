@@ -19,6 +19,7 @@
 import {
   type Stats,
   chmodSync,
+  constants,
   copyFileSync,
   existsSync,
   lstatSync,
@@ -32,7 +33,10 @@ import {
   getBranchDiagnostic,
   resolveActiveBranch,
 } from "../utils/branch-resolver.js";
-import { ensureBranchStoreManifest } from "../utils/branch-store-locator.js";
+import {
+  branchStorePath,
+  ensureBranchStoreManifest,
+} from "../utils/branch-store-locator.js";
 import { defaultKbManifest, writeKbManifest } from "../utils/kb-manifest.js";
 import { ENTITY_LANES, KB_PATHS } from "../utils/kb-paths.js";
 import { SYMBOLS_MANIFEST_COMMENT_BLOCK } from "./sync/manifest.js";
@@ -152,15 +156,31 @@ export function createKbDirectoryStructure(
   kbDir: string,
   currentBranch: string,
 ): void {
-  mkdirSync(kbDir, { recursive: true });
-  mkdirSync(path.join(kbDir, "schema"), { recursive: true });
-  // Canonical tracked knowledge lanes under .kb/.
-  for (const lane of ENTITY_LANES) {
-    mkdirSync(path.join(kbDir, lane), { recursive: true });
+  // Preflight all directories before writing; never follow a substituted lane
+  // into another location while completing a partial installation.
+  const directories = [
+    kbDir,
+    path.join(kbDir, "schema"),
+    ...ENTITY_LANES.map((lane) => path.join(kbDir, lane)),
+    path.join(kbDir, "branches"),
+    branchStorePath(path.dirname(kbDir), currentBranch),
+  ];
+  for (const directory of directories) {
+    try {
+      if (!lstatSync(directory).isDirectory()) {
+        throw new Error(
+          `Refusing to initialize non-directory or symlink: ${directory}`,
+        );
+      }
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+    }
   }
+  for (const directory of directories)
+    mkdirSync(directory, { recursive: true });
   ensureBranchStoreManifest(path.dirname(kbDir), currentBranch);
-  console.log("✓ Created .kb/ directory structure");
-  console.log(`✓ Created hashed branch store for ${currentBranch}`);
+  console.log("✓ Ensured .kb/ directory structure");
+  console.log(`✓ Verified hashed branch store for ${currentBranch}`);
 }
 
 export function createManifestFile(kbDir: string): void {
@@ -271,9 +291,20 @@ export async function copySchemaFiles(
   for (const file of schemaFiles) {
     const sourcePath = path.join(schemaSourceDir, file);
     const destPath = path.join(kbDir, "schema", file);
-    copyFileSync(sourcePath, destPath);
+    // Init completes missing schema files; existing files belong to the current
+    // installation and must not be overwritten by a repeated initialization.
+    try {
+      copyFileSync(sourcePath, destPath, constants.COPYFILE_EXCL);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
+      if (!lstatSync(destPath).isFile()) {
+        throw new Error(
+          `Refusing non-file or symlink schema destination: ${destPath}`,
+        );
+      }
+    }
   }
-  console.log(`✓ Copied ${schemaFiles.length} schema files`);
+  console.log(`✓ Ensured ${schemaFiles.length} schema files`);
 }
 
 const KIBI_HOOK_BEGIN = "# BEGIN kibi-managed";

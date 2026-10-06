@@ -377,3 +377,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fa351fdb83cb
+  - type: implements
+    from: SYM-skillopt-user-preview
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-10-05T16:56:18.705Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-05ddae2ae890
+  - type: covered_by
+    from: SYM-skillopt-user-preview
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-10-05T16:56:18.753Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2a84880a2f22

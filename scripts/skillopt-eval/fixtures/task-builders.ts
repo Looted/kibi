@@ -8,6 +8,7 @@ import type {
   TaskSplit,
   WorktreeState,
 } from "../catalog";
+import { bootstrapDialogueInstruction } from "./bootstrap-user";
 import {
   KIBI_ANSWER_FORMAT_INSTRUCTION,
   answerScoredObjective,
@@ -530,7 +531,12 @@ function payload(
     special?.approvalPhase ?? definition.approvalPhase;
   const effectiveObjectiveCode =
     special?.objectiveCode ?? definition.objectiveCode;
+  const dialogue = bootstrapDialogueInstruction(effectiveObjectiveCode, split);
   const conditionalFiles = [
+    ...(dialogue !== undefined ? ["documentation/library-policy.md"] : []),
+    ...(effectiveObjectiveCode === "onboarding_evidence_review"
+      ? ["src/onboarding-review.json"]
+      : []),
     ...((special?.worktree ?? definition.worktree) === "dirty"
       ? ["changes/uncommitted.patch"]
       : []),
@@ -564,7 +570,7 @@ function payload(
     ? KIBI_ANSWER_FORMAT_INSTRUCTION
     : "";
   return {
-    prompt: `${special?.prompt ?? `${definition.instruction} This is ${split} case ${index + 1}; use only the public Kibi MCP surface.`}${searchThenQuery}${answerFormat}`,
+    prompt: `${special?.prompt ?? `${dialogue ?? definition.instruction} This is ${split} case ${index + 1}; ${dialogue !== undefined || effectiveObjectiveCode === "onboarding_evidence_review" ? "use ordinary file-reading tools for the supplied source files and the public Kibi MCP surface for knowledge-base operations." : "use only the public Kibi MCP surface."}`}${searchThenQuery}${answerFormat}`,
     activationMode: definition.activationMode,
     initialState: {
       repository: definition.repository,

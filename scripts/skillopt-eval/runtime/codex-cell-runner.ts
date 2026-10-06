@@ -12,11 +12,16 @@ import {
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { EpisodeRequestSchema } from "../contracts/episode";
+import {
+  bootstrapUserMode,
+  bootstrapUserProfile,
+} from "../fixtures/bootstrap-user";
 import { fixtureSymbolId, hashWorkspace } from "../fixtures/workspace";
 import { withHeldOutExecutionLease } from "../held-out-execution-lease";
 import { scoreCell } from "../scoring/cell";
 import { reserveTargetEpisode } from "../target-episode-budget";
 import { RequiredMcpStartupError } from "./canary-runtime";
+import { claudeCodeTargetHost, selectedSkillOptHost } from "./claude-code-host";
 import { persistRefreshedLogin, withCodexAuthLease } from "./codex-auth";
 import {
   persistCodexEpisode,
@@ -29,6 +34,9 @@ import {
   type CodexCellOptions,
   type CompletedCodexCell,
   FixtureIntegrityError,
+  type PreparedLogin,
+  type TargetHost,
+  type TargetHostSession,
 } from "./codex-cell-types";
 import { replayCodexEpisode } from "./codex-episode";
 import {
@@ -37,6 +45,7 @@ import {
   setupSeededConsistencyKb,
   setupSeededFreshKb,
   setupSeededGovernedAreaKb,
+  setupSeededPartialKb,
   setupSeededPreconditionKb,
   setupSeededStaleKb,
   setupThinRootKb,
@@ -56,6 +65,7 @@ export type {
   CodexCellDependencies,
   CodexCellOptions,
   CompletedCodexCell,
+  TargetHost,
 } from "./codex-cell-types";
 
 /**
@@ -151,6 +161,86 @@ async function createCellTempParent(): Promise<string> {
   throw lastError ?? new Error("no_short_private_temp_root");
 }
 
+/** The historical Codex target host: auth lease, private CODEX_HOME, exec. */
+// implements REQ-skillopt-codex-optimization
+export function codexTargetHost(
+  dependencies: Pick<CodexCellDependencies, "prepareLogin">,
+): TargetHost {
+  const logins = new WeakMap<TargetHostSession, PreparedLogin>();
+  return {
+    id: "codex",
+    withLease: withCodexAuthLease,
+    openSession: async ({ workspace, env }) => {
+      const login = await dependencies.prepareLogin({
+        privateCodexHome: workspace.codexHome,
+        sandboxHome: workspace.sandboxHome,
+        env,
+      });
+      const session: TargetHostSession = {
+        env: login.env,
+        privateRoots: [login.realCodexHome],
+        finalize: () =>
+          persistRefreshedLogin({
+            mode: login.mode,
+            realCodexHome: login.realCodexHome,
+            privateCodexHome: workspace.codexHome,
+          }),
+      };
+      logins.set(session, login);
+      return session;
+    },
+    prepareLaunch: async ({
+      options,
+      workspace,
+      broker,
+      outputSchemaPath,
+      session,
+    }) => {
+      const login = logins.get(session);
+      if (login === undefined) throw new Error("codex_session_unknown");
+      await writeFile(
+        join(workspace.codexHome, "config.toml"),
+        buildCodexConfig({
+          role: "target",
+          authMode: login.mode,
+          paths: {
+            workspace: workspace.target,
+            runPrivateHome: workspace.codexHome,
+            realCodexHome: login.realCodexHome,
+            sourceWorktree: options.sourceWorktree,
+            fixtureKb: join(workspace.target, ".kb"),
+            privateScorer: workspace.privateScorer,
+            privateEvidence: workspace.privateEvidence,
+            siblingRuns: workspace.siblingRun,
+          },
+          bwrapExecutable: options.bwrapExecutable,
+          codexExecutable: options.codexExecutable,
+          mcpServer: broker,
+        }),
+        { mode: 0o600 },
+      );
+      return {
+        argv: buildCodexExecArgv({
+          codexCommand: options.codexExecutable,
+          workspace: workspace.target,
+          outputSchema: outputSchemaPath,
+          role: "target",
+        }),
+      };
+    },
+  };
+}
+
+function selectedTargetHost(
+  options: CodexCellOptions,
+  dependencies: CodexCellDependencies,
+): TargetHost {
+  if (dependencies.targetHost !== undefined) return dependencies.targetHost;
+  return selectedSkillOptHost(options.env) === "claude-code"
+    ? claudeCodeTargetHost()
+    : codexTargetHost(dependencies);
+}
+
 function assertNoCallerScoreInjection(options: CodexCellOptions): void {
   if (Object.hasOwn(options, "score") || Object.hasOwn(options, "receipt")) {
     throw new CallerScoreInjectionError();
@@ -164,6 +254,9 @@ export async function runCodexCell(
 ): Promise<CompletedCodexCell> {
   assertNoCallerScoreInjection(options);
   const request = EpisodeRequestSchema.parse(options.request);
+  // Resolve the host before reserving budget or copying fixtures, so a bad
+  // KIBI_SKILLOPT_HOST fails before any work.
+  const host = selectedTargetHost(options, dependencies);
   await reserveTargetEpisode(options.env, options.sourceWorktree);
   const artifactDirectory = resolve(
     options.artifactRoot,
@@ -184,6 +277,7 @@ export async function runCodexCell(
     workspaceForCleanup = workspace;
     const startedAt = dependencies.clock().toISOString();
     let transcript = "";
+    let rawHostTranscript = "";
     let stderr = "";
     let exitCode: number | null = null;
     let termination: "exit" | "timeout" | "interrupted" = "exit";
@@ -200,13 +294,18 @@ export async function runCodexCell(
     if (hashWorkspace(workspace.target) !== request.workspaceFixtureHash) {
       throw new FixtureIntegrityError();
     }
-    // Real materialized fixtures intentionally omit .kb. Create its directory
-    // before Codex applies the direct-access deny rule so the brokered Kibi MCP
-    // runtime can initialize diagnostic usage logging beneath it.
-    await mkdir(join(workspace.target, ".kb"), {
-      recursive: true,
-      mode: 0o700,
-    });
+    // CLI-owned setup creates and validates its own infrastructure. Keep the
+    // fixture's initial absent-root condition until that setup runs.
+    // Only fixtures without CLI setup need a directory for broker diagnostics.
+    if (
+      options.evaluatorManifest.fixtureSetup === undefined ||
+      options.evaluatorManifest.fixtureSetup === "none"
+    ) {
+      await mkdir(join(workspace.target, ".kb"), {
+        recursive: true,
+        mode: 0o700,
+      });
+    }
     await assembleCanonicalSkills({
       sourceRepoRoot: options.sourceWorktree,
       workspace: workspace.target,
@@ -221,15 +320,11 @@ export async function runCodexCell(
         ? {}
         : { candidates: options.bundleCandidates }),
     });
-    return await withCodexAuthLease(options.env, async () => {
-      const login = await dependencies.prepareLogin({
-        privateCodexHome: workspace.codexHome,
-        sandboxHome: workspace.sandboxHome,
-        env: options.env,
-      });
+    return await host.withLease(options.env, async () => {
+      const session = await host.openSession({ workspace, env: options.env });
       try {
         const cellEnv = {
-          ...login.env,
+          ...session.env,
           KIBI_BRANCH: SKILLOPT_EVALUATION_BRANCH,
         };
         // Evaluator-owned precondition setup runs BEFORE staging the broker,
@@ -273,6 +368,8 @@ export async function runCodexCell(
                   workspace.target,
                   stagingCliRoot,
                 );
+              } else if (setupMode === "seeded_partial_kb") {
+                await setupSeededPartialKb(workspace.target, stagingCliRoot);
               } else if (setupMode === "seeded_stale_kb") {
                 await setupSeededStaleKb(workspace.target, stagingCliRoot);
               } else if (setupMode === "thin_root_kb") {
@@ -283,6 +380,32 @@ export async function runCodexCell(
             await stopFixtureEngine(workspace.target);
           }
         });
+        // Fixture setup may log semantic-advisor calls before the broker exists.
+        // Preserve those records separately so the episode journal contains only
+        // model-originated calls, which must reconcile with the broker trace.
+        const setupDiagnosticPath = join(workspace.target, ".kb/usage.log");
+        const setupDiagnostic = await readOptionalArtifact(setupDiagnosticPath);
+        if (setupDiagnostic !== "") {
+          const setupDiagnosticRoot = join(
+            options.artifactRoot,
+            "fixture-setup-diagnostics",
+          );
+          await mkdir(setupDiagnosticRoot, { recursive: true, mode: 0o700 });
+          await writeFile(
+            join(setupDiagnosticRoot, `${request.episodeId}.jsonl`),
+            setupDiagnostic,
+            { mode: 0o600, flag: "wx" },
+          );
+          await rm(setupDiagnosticPath);
+        }
+        const userMode = bootstrapUserMode(request.taskId);
+        if (userMode !== undefined) {
+          await writeFile(
+            join(workspace.privateEvidence, "scripted-user.json"),
+            JSON.stringify(bootstrapUserProfile(userMode)),
+            { mode: 0o600, flag: "wx" },
+          );
+        }
         const broker = await dependencies.stageBroker(
           workspace,
           options.sourceWorktree,
@@ -293,49 +416,30 @@ export async function runCodexCell(
         await writeFile(outputSchema, JSON.stringify(EPISODE_OUTPUT_SCHEMA), {
           mode: 0o600,
         });
-        await writeFile(
-          join(workspace.codexHome, "config.toml"),
-          buildCodexConfig({
-            role: "target",
-            authMode: login.mode,
-            paths: {
-              workspace: workspace.target,
-              runPrivateHome: workspace.codexHome,
-              realCodexHome: login.realCodexHome,
-              sourceWorktree: options.sourceWorktree,
-              fixtureKb: join(workspace.target, ".kb"),
-              privateScorer: workspace.privateScorer,
-              privateEvidence: workspace.privateEvidence,
-              siblingRuns: workspace.siblingRun,
-            },
-            bwrapExecutable: options.bwrapExecutable,
-            codexExecutable: options.codexExecutable,
-            mcpServer: broker,
-          }),
-          { mode: 0o600 },
-        );
+        const launch = await host.prepareLaunch({
+          options,
+          workspace,
+          broker,
+          outputSchemaPath: outputSchema,
+          session,
+        });
         let launched = false;
         try {
           await dependencies.probeMcp({ ...broker, env: cellEnv });
           launched = true;
           const result = await dependencies.run(
-            buildCodexExecArgv({
-              codexCommand: options.codexExecutable,
-              workspace: workspace.target,
-              outputSchema,
-              role: "target",
-            }),
+            launch.argv,
             workspace.target,
             cellEnv,
             options.timeoutMs,
             request.prompt,
           );
-          transcript = result.stdout;
+          rawHostTranscript = result.stdout;
           stderr = result.stderr;
           exitCode = result.exitCode;
         } catch (error) {
           if (error instanceof ProcessControlError) {
-            transcript = error.result.stdout;
+            rawHostTranscript = error.result.stdout;
             stderr = error.result.stderr;
             exitCode = null;
             termination = error.kind === "timeout" ? "timeout" : "interrupted";
@@ -344,6 +448,17 @@ export async function runCodexCell(
           } else {
             throw error;
           }
+        }
+        if (launch.normalizeTranscript === undefined) {
+          transcript = rawHostTranscript;
+        } else {
+          // Keep the host's own stream next to the normalized evidence.
+          await writeFile(
+            join(artifactDirectory, `raw-${host.id}-stream.jsonl`),
+            rawHostTranscript,
+            { mode: 0o600 },
+          );
+          transcript = launch.normalizeTranscript(rawHostTranscript);
         }
         brokerTrace = await readOptionalArtifact(broker.tracePath);
         diagnosticReceipt = await dependencies.diagnosticReceipt(workspace);
@@ -390,7 +505,7 @@ export async function runCodexCell(
             workspace.privateScorer,
             workspace.privateEvidence,
             workspace.siblingRun,
-            login.realCodexHome,
+            ...session.privateRoots,
           ],
           pricingHash: options.pricingHash,
           priceAmount: options.priceAmount,
@@ -412,11 +527,7 @@ export async function runCodexCell(
         );
         return { receipt, artifactDirectory, receiptPath };
       } finally {
-        await persistRefreshedLogin({
-          mode: login.mode,
-          realCodexHome: login.realCodexHome,
-          privateCodexHome: workspace.codexHome,
-        });
+        await session.finalize();
       }
     });
   } finally {

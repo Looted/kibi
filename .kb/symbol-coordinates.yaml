@@ -717,7 +717,7 @@ coordinates:
     sourceLine: 215
   SYM-assertBootstrapRecoveryDependencies:
     identityHash: 41566f82bbd88adec37a698029d25f7b2a0b0ccbe2b8453bb37f4b6a3b9cc4d4
-    sourceHash: f577a675904b313fc282be8ff902574c1e4bd1fb4c565be99d9c603207750173
+    sourceHash: aaf49fa69feb4bad8f9f6e1c8522c2e65c576953ba2bd1b9d799bc9111f7621d
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 252
@@ -773,7 +773,7 @@ coordinates:
     sourceLine: 123
   SYM-assertSourceWriteStaysInWorkspace:
     identityHash: 1566a786f0fa1396dd8c32f2d1c775aca1c05e20f6173ab7f878836c0a60f728
-    sourceHash: f577a675904b313fc282be8ff902574c1e4bd1fb4c565be99d9c603207750173
+    sourceHash: aaf49fa69feb4bad8f9f6e1c8522c2e65c576953ba2bd1b9d799bc9111f7621d
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 234
@@ -2237,12 +2237,12 @@ coordinates:
     sourceLine: 89
   SYM-canonical-createManifestFile:
     identityHash: 7600137157606e76b2265200414025cc47860e6a2ee881de08bcddcf154fe7f1
-    sourceHash: 0818910cdaf9598851148c732b95967fd3bec6b1ab27327832adce2df67bdab6
+    sourceHash: 8409a1db22d9dacd2803be19b6f7dcfc30574ab7fb04f93a4c6af527b76b554e
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 169
+    sourceEndLine: 189
     sourceFile: packages/cli/src/commands/init-helpers.ts
-    sourceLine: 166
+    sourceLine: 186
   SYM-canonical-DEFAULT_CONFIG_PATHS:
     identityHash: 34104405663c2c7fc096a8954c11287798e598def54607b659077cba193a0e6f
     sourceHash: 2b71fba40bd1eea3e9d983cbdcdf70c6b0a68d53e4e0043014292f3e0e3fb4f4
@@ -4389,7 +4389,7 @@ coordinates:
     sourceLine: 22
   SYM-CI-PROOF-REUSE-DECISION:
     identityHash: e3e3131040a5420f7b5b4daa95df4b382733a3fe2782deb396895b5311d8efac
-    sourceHash: 91decbb6b53c3111e65a4726768176a3dea7f629e5aaedb64fb48fc4f2018b44
+    sourceHash: 35bf5b4fa43284f582d532a3a3055759591c40eeec29aa07c954170055dde77b
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 199
@@ -4397,7 +4397,7 @@ coordinates:
     sourceLine: 81
   SYM-CI-PROOF-REUSE-TYPE:
     identityHash: 16020a28e3596dea566a529334d84fbf7ed136957b6407105f9f2c69931b6aa4
-    sourceHash: 91decbb6b53c3111e65a4726768176a3dea7f629e5aaedb64fb48fc4f2018b44
+    sourceHash: 35bf5b4fa43284f582d532a3a3055759591c40eeec29aa07c954170055dde77b
     sourceColumn: 12
     sourceEndColumn: 2
     sourceEndLine: 66
@@ -6653,10 +6653,10 @@ coordinates:
     sourceLine: 1
   SYM-cli-init-command:
     identityHash: 823f873f8d9020c1782bc765fa25b4e99ff4b01fe1f7b860c2e14544298c8af8
-    sourceHash: 1713217a611c6c9da83563913ddd43d18961c43d4c525b96a520aa73ad765190
+    sourceHash: d256c90ace6e6d5eddb798365c0511de3739d28711d8b36e481b10802293eee4
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 294
+    sourceEndLine: 290
     sourceFile: packages/cli/src/commands/init.ts
     sourceLine: 156
   SYM-cli-input-error:
@@ -9077,12 +9077,12 @@ coordinates:
     sourceLine: 111
   SYM-copySchemaFiles:
     identityHash: 509b6a46582413cbd6b2c412b1f82b34155bf996ea05692af87d9204df6b46eb
-    sourceHash: 0818910cdaf9598851148c732b95967fd3bec6b1ab27327832adce2df67bdab6
+    sourceHash: 8409a1db22d9dacd2803be19b6f7dcfc30574ab7fb04f93a4c6af527b76b554e
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 277
+    sourceEndLine: 308
     sourceFile: packages/cli/src/commands/init-helpers.ts
-    sourceLine: 262
+    sourceLine: 282
   SYM-core-adr-chain:
     identityHash: c3d28954e48cce0795f39fb47954d76a51c83d26d3e67b35441667c559022712
     sourceHash: 85bbb31b993d2cbdf687a2d34956d22ae594c8d12541e2214b00d593026a1a06
@@ -9581,10 +9581,10 @@ coordinates:
     sourceLine: 152
   SYM-createConfigFile:
     identityHash: d657271efb227c46d5315d37c2ce998138f6d9e069d5db1febe00863092f2ddc
-    sourceHash: 0818910cdaf9598851148c732b95967fd3bec6b1ab27327832adce2df67bdab6
+    sourceHash: 8409a1db22d9dacd2803be19b6f7dcfc30574ab7fb04f93a4c6af527b76b554e
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 488
+    sourceEndLine: 519
     sourceFile: packages/cli/src/commands/init-helpers.ts
     sourceLine: 1
   SYM-createFileOperationState:
@@ -9597,12 +9597,12 @@ coordinates:
     sourceLine: 47
   SYM-createKbDirectoryStructure:
     identityHash: ebd3e400d3d98a0d2b97bd406d7c16828154f8739a2daa57fd28b0802daa958c
-    sourceHash: 0818910cdaf9598851148c732b95967fd3bec6b1ab27327832adce2df67bdab6
+    sourceHash: 8409a1db22d9dacd2803be19b6f7dcfc30574ab7fb04f93a4c6af527b76b554e
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 164
+    sourceEndLine: 184
     sourceFile: packages/cli/src/commands/init-helpers.ts
-    sourceLine: 151
+    sourceLine: 155
   SYM-createKbFreshnessEvidenceStore:
     identityHash: 727039b6171a92aec1991a941c7a09c5e45e506dbf63adc49fbe18728a8c6fbd
     sourceHash: c14e8992f021d2584e9ef2108d548f9d0d824c78d8ae810585cd5473d6ddeb16
@@ -10549,12 +10549,12 @@ coordinates:
     sourceLine: 44
   SYM-defaultWorkflowDependencies:
     identityHash: 292817e8faf45b1c5f55fc614908aa8c96325d74b1bdaa424e29f19863e5e4f8
-    sourceHash: 0c38d4b29e43f89689606c5b60b6f5004d969bac989d6142f75740bcdc99e77b
+    sourceHash: 607f37e39238272532052af225082f9670403124f99eff309d4420e287a7d87e
     sourceColumn: 13
     sourceEndColumn: 32
-    sourceEndLine: 79
+    sourceEndLine: 80
     sourceFile: scripts/skillopt-eval/cli-workflow.ts
-    sourceLine: 72
+    sourceLine: 73
   SYM-DeleteArgs:
     identityHash: 2ea5d5712a5d906cad561eaffb5f5e35d4badd8c16e310b942f54fa2848d201d
     sourceHash: c0f83606ec1af7fe9a7d299c8e9f26c38bbe281960c2f6355e1917a9280e01b3
@@ -11029,7 +11029,7 @@ coordinates:
     sourceLine: 20
   SYM-docs-site-theme-clientScript:
     identityHash: 9acb31c4882a74eebacdedcdfb99a244027ce506609e7120e80eadac0f712254
-    sourceHash: 2ca006e08f58a1d9e667f3632a16fc9a027f46b08af7201397af8cc343fe2c52
+    sourceHash: 0e0be66c15d67951491985d2be5d58dd5372b11efdc478a73dc7cf714285d5eb
     sourceColumn: 13
     sourceEndColumn: 1
     sourceEndLine: 875
@@ -11037,7 +11037,7 @@ coordinates:
     sourceLine: 619
   SYM-docs-site-theme-escapeHtml:
     identityHash: fe4622310b1a494331981c56d10258475cb947b7660510e07058ef0e11eb7e73
-    sourceHash: 2ca006e08f58a1d9e667f3632a16fc9a027f46b08af7201397af8cc343fe2c52
+    sourceHash: 0e0be66c15d67951491985d2be5d58dd5372b11efdc478a73dc7cf714285d5eb
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 51
@@ -11045,7 +11045,7 @@ coordinates:
     sourceLine: 44
   SYM-docs-site-theme-landingContent:
     identityHash: adf8ffc4f6b9b108709ed71aad0f34409685b053bb0ab2445c63b41ff1680f09
-    sourceHash: 2ca006e08f58a1d9e667f3632a16fc9a027f46b08af7201397af8cc343fe2c52
+    sourceHash: 0e0be66c15d67951491985d2be5d58dd5372b11efdc478a73dc7cf714285d5eb
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 1089
@@ -11053,7 +11053,7 @@ coordinates:
     sourceLine: 878
   SYM-docs-site-theme-layout:
     identityHash: 8f7eb6acde5c1a0e7ac594bae9fa218221b88622c0cb1d3bb2127d8709f234c5
-    sourceHash: 2ca006e08f58a1d9e667f3632a16fc9a027f46b08af7201397af8cc343fe2c52
+    sourceHash: 0e0be66c15d67951491985d2be5d58dd5372b11efdc478a73dc7cf714285d5eb
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 1201
@@ -11061,7 +11061,7 @@ coordinates:
     sourceLine: 1092
   SYM-docs-site-theme-PageShell:
     identityHash: 3cefed9b17f02db1f6fe7c1db6dafa60647efd2ca63b9cd39b4f06cb8ab06fff
-    sourceHash: 2ca006e08f58a1d9e667f3632a16fc9a027f46b08af7201397af8cc343fe2c52
+    sourceHash: 0e0be66c15d67951491985d2be5d58dd5372b11efdc478a73dc7cf714285d5eb
     sourceColumn: 12
     sourceEndColumn: 2
     sourceEndLine: 41
@@ -11069,7 +11069,7 @@ coordinates:
     sourceLine: 23
   SYM-docs-site-theme-prepareMark:
     identityHash: cafe5d90179472d5b9daf522f003cd4bbebad7d4ae07d5b9f406343c31997e29
-    sourceHash: 2ca006e08f58a1d9e667f3632a16fc9a027f46b08af7201397af8cc343fe2c52
+    sourceHash: 0e0be66c15d67951491985d2be5d58dd5372b11efdc478a73dc7cf714285d5eb
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 63
@@ -11077,7 +11077,7 @@ coordinates:
     sourceLine: 55
   SYM-docs-site-theme-Section:
     identityHash: c867c4a996aa91c8751252c1d2b8581d852416758a52001e58ccea035425f7f0
-    sourceHash: 2ca006e08f58a1d9e667f3632a16fc9a027f46b08af7201397af8cc343fe2c52
+    sourceHash: 0e0be66c15d67951491985d2be5d58dd5372b11efdc478a73dc7cf714285d5eb
     sourceColumn: 12
     sourceEndColumn: 44
     sourceEndLine: 20
@@ -11085,7 +11085,7 @@ coordinates:
     sourceLine: 20
   SYM-docs-site-theme-styles:
     identityHash: dfde36e536915eaefe0a7bb28016beb69109cd7951088a468d01ee730af2d8a3
-    sourceHash: 2ca006e08f58a1d9e667f3632a16fc9a027f46b08af7201397af8cc343fe2c52
+    sourceHash: 0e0be66c15d67951491985d2be5d58dd5372b11efdc478a73dc7cf714285d5eb
     sourceColumn: 13
     sourceEndColumn: 1
     sourceEndLine: 616
@@ -11227,9 +11227,25 @@ coordinates:
     sourceEndLine: 164
     sourceFile: documentation/tests/e2e/packed/runtime-symbol-analysis.test.ts
     sourceLine: 1
+  SYM-e2e-skillopt-claude-code-host:
+    identityHash: be4b7319b32fe2fa39d5e57b508c153632e253a6acacf03c1f6944499434a20f
+    sourceHash: b9197d40cf879d8556ac13205f98346994f0acae0e9f639f5737b4a313abda95
+    sourceColumn: 44
+    sourceEndColumn: 73
+    sourceEndLine: 19
+    sourceFile: documentation/tests/e2e/skillopt-claude-code-host.e2e.ts
+    sourceLine: 19
+  SYM-e2e-skillopt-description-candidates:
+    identityHash: f4ead73f14923b005209e72ce0dbcf30a0aced3b91ee5826a46490177a18db30
+    sourceHash: 271a2cbce7cc269f5d3de9edcd08b9e06210daf6e21a7c15e77ba28464076286
+    sourceColumn: 44
+    sourceEndColumn: 79
+    sourceEndLine: 18
+    sourceFile: documentation/tests/e2e/skillopt-description-candidates.e2e.ts
+    sourceLine: 18
   SYM-e2e-skillopt-trust-boundaries:
     identityHash: 159cd066924e9a81b2532ea21ed5e75952f025e4e469a0b622030f7f4699ead5
-    sourceHash: 6eed5f5be2c341c74194bcdcf6d74633b6c91e3744b8aad3be279d0c5157c541
+    sourceHash: 344ccb4966084f925c8374e4e0a0a191261b1128f3f1eb41eec9d936f39c2cfb
     sourceColumn: 44
     sourceEndColumn: 73
     sourceEndLine: 20
@@ -11941,12 +11957,12 @@ coordinates:
     sourceLine: 82
   SYM-ensureSymbolsManifestFile:
     identityHash: 4c866328e3155277ee2521543a00ec9d6660eaa2b2b811685621b1cb5b5469f5
-    sourceHash: 0818910cdaf9598851148c732b95967fd3bec6b1ab27327832adce2df67bdab6
+    sourceHash: 8409a1db22d9dacd2803be19b6f7dcfc30574ab7fb04f93a4c6af527b76b554e
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 260
+    sourceEndLine: 280
     sourceFile: packages/cli/src/commands/init-helpers.ts
-    sourceLine: 250
+    sourceLine: 270
   SYM-entity-id-style-issues:
     identityHash: f4b3cfbfeba3ec7b21709d741a7fd1f65b09dd94a93164f0d3554ffb76103f62
     sourceHash: 38b36d8872a3b1a385973e980215f5656cbe175ff88775a7b81459fd424e64ec
@@ -12565,7 +12581,7 @@ coordinates:
     sourceLine: 130
   SYM-FIXTURE_BRANCH:
     identityHash: dde1f7f2eab113f5cf296d7367c4e1809504f47a485b8cdd0b6096278ae6427a
-    sourceHash: 56692ab08ddfccb5841d567f40fe93573d1a5a5122a4492187a2b7af6e5d5ea6
+    sourceHash: 3e11dee128f03976db849cb8b454f6f34dbcd9171556e2383a5671ebab824973
     sourceColumn: 13
     sourceEndColumn: 45
     sourceEndLine: 30
@@ -12605,7 +12621,7 @@ coordinates:
     sourceLine: 36
   SYM-FixtureSetupError:
     identityHash: c62a9706bfede236b5437477e021c84464aef1c5d16658f249f777f85641fbb1
-    sourceHash: 56692ab08ddfccb5841d567f40fe93573d1a5a5122a4492187a2b7af6e5d5ea6
+    sourceHash: 3e11dee128f03976db849cb8b454f6f34dbcd9171556e2383a5671ebab824973
     sourceColumn: 13
     sourceEndColumn: 1
     sourceEndLine: 34
@@ -12613,7 +12629,7 @@ coordinates:
     sourceLine: 32
   SYM-FixtureSetupError-name:
     identityHash: 8ad961e732c75d9cced814d7674b21a33076b0bfaf4f9604b372d9503e90e0ba
-    sourceHash: 56692ab08ddfccb5841d567f40fe93573d1a5a5122a4492187a2b7af6e5d5ea6
+    sourceHash: 3e11dee128f03976db849cb8b454f6f34dbcd9171556e2383a5671ebab824973
     sourceColumn: 20
     sourceEndColumn: 47
     sourceEndLine: 33
@@ -12717,12 +12733,12 @@ coordinates:
     sourceLine: 300
   SYM-getCurrentBranch:
     identityHash: c4bb05b6e772f658f17862f054de9d8eebf7d49de8f96e848703657fef3f3f42
-    sourceHash: 0818910cdaf9598851148c732b95967fd3bec6b1ab27327832adce2df67bdab6
+    sourceHash: 8409a1db22d9dacd2803be19b6f7dcfc30574ab7fb04f93a4c6af527b76b554e
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 149
+    sourceEndLine: 153
     sourceFile: packages/cli/src/commands/init-helpers.ts
-    sourceLine: 138
+    sourceLine: 142
   SYM-getE2eCoverageSignal:
     identityHash: 1161868634117c7dfb8c063d8c7456e4d1081245e4af32642a55cf2e341abf82
     sourceHash: 9a29bd7d2a51598989ffa4653004f87c1d01ed65093fa0930678991e7eed5f61
@@ -12893,12 +12909,12 @@ coordinates:
     sourceLine: 1
   SYM-git-hook-install-result-type:
     identityHash: 35e1e467a3b01296a2a4a9c84bb1552d07b7dfa8764d299a9525c5f1edd379f2
-    sourceHash: 0818910cdaf9598851148c732b95967fd3bec6b1ab27327832adce2df67bdab6
+    sourceHash: 8409a1db22d9dacd2803be19b6f7dcfc30574ab7fb04f93a4c6af527b76b554e
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 391
+    sourceEndLine: 422
     sourceFile: packages/cli/src/commands/init-helpers.ts
-    sourceLine: 388
+    sourceLine: 419
   SYM-git-repository-context-resolver:
     identityHash: c029c277f93f1a8835ccb156c9d0715297cdfd19023686394668e1bf3c7399e1
     sourceHash: 361e251dcbd6f16021d4da9e714947b501b727fa067e397ec8b77f76f194610d
@@ -13069,12 +13085,12 @@ coordinates:
     sourceLine: 165
   SYM-hasManagedHooks:
     identityHash: 466043ba952607ca6871ef1857b0c9b2c5e3dda836dfb67fc225f3f4baa486ac
-    sourceHash: 0818910cdaf9598851148c732b95967fd3bec6b1ab27327832adce2df67bdab6
+    sourceHash: 8409a1db22d9dacd2803be19b6f7dcfc30574ab7fb04f93a4c6af527b76b554e
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 436
+    sourceEndLine: 467
     sourceFile: packages/cli/src/commands/init-helpers.ts
-    sourceLine: 428
+    sourceLine: 459
   SYM-hasNormativeAssertion:
     identityHash: bc98a01e9183ab0a39fdad716b60095b98aa604e5d2399d8285a3bd84987f0f9
     sourceHash: 20e1c08ffc4fb0ffb906e215a1501b841817cdf665d1aae5c65af3ebe19e5949
@@ -13845,12 +13861,12 @@ coordinates:
     sourceLine: 36
   SYM-install-hook-result-type:
     identityHash: 49f0e0fc5ab50fcea3a4d84f4a956b8559e6e39a2fa91898707e9ed7c8d7540e
-    sourceHash: 0818910cdaf9598851148c732b95967fd3bec6b1ab27327832adce2df67bdab6
+    sourceHash: 8409a1db22d9dacd2803be19b6f7dcfc30574ab7fb04f93a4c6af527b76b554e
     sourceColumn: 12
     sourceEndColumn: 26
-    sourceEndLine: 291
+    sourceEndLine: 322
     sourceFile: packages/cli/src/commands/init-helpers.ts
-    sourceLine: 286
+    sourceLine: 317
   SYM-installed-impact-PackedInstallOptions:
     identityHash: df024eef017913ed6163c0444c9ee4e30205abae1719f7ce390d71e9a9ca9d57
     sourceHash: d8e4cbaea23e18263fc7d9f88c196603ebdfa4f4e57d802382aa31927f9190c5
@@ -13877,20 +13893,20 @@ coordinates:
     sourceLine: 750
   SYM-installGitHooks:
     identityHash: 8d527e8ad281a8abf0c730a5637006ec882354bebe3d9b8d5cfd5a340938ebaa
-    sourceHash: 0818910cdaf9598851148c732b95967fd3bec6b1ab27327832adce2df67bdab6
+    sourceHash: 8409a1db22d9dacd2803be19b6f7dcfc30574ab7fb04f93a4c6af527b76b554e
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 487
+    sourceEndLine: 518
     sourceFile: packages/cli/src/commands/init-helpers.ts
-    sourceLine: 438
+    sourceLine: 469
   SYM-installHook:
     identityHash: 49fd6e5ada6abb256602f5c33cddf13f24683f659d3b6aeb5ec24c6189e23db3
-    sourceHash: 0818910cdaf9598851148c732b95967fd3bec6b1ab27327832adce2df67bdab6
+    sourceHash: 8409a1db22d9dacd2803be19b6f7dcfc30574ab7fb04f93a4c6af527b76b554e
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 386
+    sourceEndLine: 417
     sourceFile: packages/cli/src/commands/init-helpers.ts
-    sourceLine: 311
+    sourceLine: 342
   SYM-integrations-path:
     identityHash: 06ff697913e108a7d292bd392fbe852bc321bec633dbdcf8641526a1465c2475
     sourceHash: d890379bd06f6fb3b0f3a28eb7bdacda245aed32e4e90349b33d1c6a0799cecf
@@ -14573,7 +14589,7 @@ coordinates:
     sourceLine: 252
   SYM-kibi-bootstrap-cli-src-operations-planning-apply-plan-orderbootstrapactions:
     identityHash: 38e0dd2bbeb1710b91d6f83dbc7bce04aca2bec5bcb3b9526ff0ff489673fe70
-    sourceHash: f577a675904b313fc282be8ff902574c1e4bd1fb4c565be99d9c603207750173
+    sourceHash: aaf49fa69feb4bad8f9f6e1c8522c2e65c576953ba2bd1b9d799bc9111f7621d
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 300
@@ -14589,10 +14605,10 @@ coordinates:
     sourceLine: 109
   SYM-kibi-bootstrap-init-e2e:
     identityHash: b256d1a81b44e8ae7825568862c24e50fdf4823a054fadb275890b7568650c13
-    sourceHash: 541efbe029aae71f5b733fa6db3b2d4ca56271fbfc3166de9ee48802cca8cbc1
+    sourceHash: 8c806505cb6b0c9929188b2f57e338d7e2d95cfad242775d928b7cb1b6f20fa8
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 460
+    sourceEndLine: 546
     sourceFile: packages/cli/tests/commands/init.test.ts
     sourceLine: 1
   SYM-kibi-bootstrap-mcp-adapter:
@@ -14941,15 +14957,15 @@ coordinates:
     sourceLine: 51
   SYM-kibi-cli-src-operations-planning-apply-plan-ts-executeapplyplan:
     identityHash: c680c86bbc0ec15587fdd6d07925d307e8648d35576b129e41d1e687e0d1c1d7
-    sourceHash: f577a675904b313fc282be8ff902574c1e4bd1fb4c565be99d9c603207750173
+    sourceHash: aaf49fa69feb4bad8f9f6e1c8522c2e65c576953ba2bd1b9d799bc9111f7621d
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 2667
+    sourceEndLine: 2668
     sourceFile: packages/cli/src/operations/planning/apply-plan.ts
-    sourceLine: 2632
+    sourceLine: 2633
   SYM-kibi-cli-src-operations-planning-apply-plan-ts-plan-apply-result-version:
     identityHash: b898eb202a5fb6c6dfed2252990bc81dae2aa149e90dfcb485e97c0716c68bfc
-    sourceHash: f577a675904b313fc282be8ff902574c1e4bd1fb4c565be99d9c603207750173
+    sourceHash: aaf49fa69feb4bad8f9f6e1c8522c2e65c576953ba2bd1b9d799bc9111f7621d
     sourceColumn: 13
     sourceEndColumn: 77
     sourceEndLine: 115
@@ -16493,7 +16509,7 @@ coordinates:
     sourceLine: 27
   SYM-mcp-release-package-metadata:
     identityHash: 240336405ff91215ab2edd07d6f820210720d29abbb8cb1622c6097a330b8fa9
-    sourceHash: f92b072a2f7eca27ec23083508d0fd50915f5de83beea6268d13611808914eb1
+    sourceHash: 55273c5aa0a6afcc11172007c019cae7c4aafe7cb2622bd32eb79cf4da206a36
     sourceColumn: 0
     sourceEndColumn: 0
     sourceEndLine: 56
@@ -16501,7 +16517,7 @@ coordinates:
     sourceLine: 1
   SYM-mcp-release-registry-metadata:
     identityHash: 243381a6fc622289060ae9fc50ab65b559c478b15c309c3e7e4cf730e442d06a
-    sourceHash: 21c841aa2002d6ca0a2f4ac0e72ad70a19c49a7936f35a9784b4b9a8c687b1ea
+    sourceHash: 020908dd5837a9303a619023ba7b2a1efbfcc35f36d95d45e1f4691e5603659c
     sourceColumn: 0
     sourceEndColumn: 0
     sourceEndLine: 21
@@ -18365,12 +18381,12 @@ coordinates:
     sourceLine: 157
   SYM-outdatedManagedHooks:
     identityHash: 03bf160f47582fcbcaf47f0be62abf8d0f0cd18e3c9922de97d965de76c662d7
-    sourceHash: 0818910cdaf9598851148c732b95967fd3bec6b1ab27327832adce2df67bdab6
+    sourceHash: 8409a1db22d9dacd2803be19b6f7dcfc30574ab7fb04f93a4c6af527b76b554e
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 424
+    sourceEndLine: 455
     sourceFile: packages/cli/src/commands/init-helpers.ts
-    sourceLine: 414
+    sourceLine: 445
   SYM-pack-packages-if-main:
     identityHash: ba9ba4b86b27015c87320e6c7c0c5ee5e44b135900937933d417b8931ec32c84
     sourceHash: 8bd0935ccbd21fdba25f558dd97bf390be04129486f02782c4e8a17275a4e870
@@ -21301,7 +21317,7 @@ coordinates:
     sourceLine: 523
   SYM-quality-inventory-522c5b9aeb69:
     identityHash: 6529c16ed47a56026cd6659bc79a00c8644deaac8c378279cb6c3d969f45fa4e
-    sourceHash: 5a874103d3efabd7692aa93d77eeec116fbb5c13640d5fb455e0a4535baee287
+    sourceHash: 355a25d4403bcd1665518cc19bb04626cfc0147be1818afbe374dac4987920e1
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 30
@@ -23141,7 +23157,7 @@ coordinates:
     sourceLine: 240
   SYM-runtime-packed-daemon-build:
     identityHash: 0b663b050962de77e0604feaa0dd61916f1e00fcc990f11723d8321a0b856ede
-    sourceHash: 3af1440f7641af35503f26267a6683947d2dd94193180efee80d27a7e4ca72df
+    sourceHash: 963c64fe57d1d6e11865a842927c800a4a7e3ed7399abe1c856a20648d0e6ea9
     sourceColumn: 0
     sourceEndColumn: 0
     sourceEndLine: 40
@@ -23901,7 +23917,7 @@ coordinates:
     sourceLine: 288
   SYM-setupGeneratedCoordinateDivergence:
     identityHash: 7839c1b96d061cbb23b54d3dd05795facfed76b10b4da4c0603ff02d093a8650
-    sourceHash: 56692ab08ddfccb5841d567f40fe93573d1a5a5122a4492187a2b7af6e5d5ea6
+    sourceHash: 3e11dee128f03976db849cb8b454f6f34dbcd9171556e2383a5671ebab824973
     sourceColumn: 22
     sourceEndColumn: 1
     sourceEndLine: 328
@@ -23997,7 +24013,7 @@ coordinates:
     sourceLine: 1
   SYM-skillopt-activation-mode-type:
     identityHash: 5d5e47f8f4f04db35e6091fa3ea03a2261567b91353551b49675408d6d408df2
-    sourceHash: e7878667b4fe581a869327d4ae97719001dc6c429995965e7102f453610509b7
+    sourceHash: ee6d31c09f7362edf321657fa932f24452cc66be8244af111a05ea55e1274912
     sourceColumn: 12
     sourceEndColumn: 30
     sourceEndLine: 22
@@ -24037,10 +24053,10 @@ coordinates:
     sourceLine: 59
   SYM-skillopt-adoption-exactly-once-tests:
     identityHash: b9a03d36146205c5b48dff7c4d1527aad768f7b8f541506872997f7c9335797c
-    sourceHash: 0f18de853b3f842ca97ea4ec86e4996c4001d9132ea1baa5e336b3ed4502bd19
+    sourceHash: 07a2a90c0cd68bf11ab3a1c7ddce36563a4d875b31ab786739dddc530192e571
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 251
+    sourceEndLine: 252
     sourceFile: scripts/skillopt-eval/tests/adoption-exactly-once.test.ts
     sourceLine: 1
   SYM-skillopt-adoption-fixture-approval-artifacts:
@@ -24317,18 +24333,18 @@ coordinates:
     sourceLine: 20
   SYM-skillopt-adoption-recovery-tests:
     identityHash: 463ffbb1c0ee65cc3fca7ee80e79739f86847342c5f3c13876355a3eb43c4f12
-    sourceHash: 5c457bda8551325c8d3f5eca3f0aaaabbff5b443569dd19ab1ce9a96b32892f9
+    sourceHash: 93353bf9898c7901cdd26c2534e319fba1a025f24e4c8a7c55a01108ba75221c
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 446
+    sourceEndLine: 447
     sourceFile: scripts/skillopt-eval/tests/adoption-recovery.test.ts
     sourceLine: 1
   SYM-skillopt-adoption-tests:
     identityHash: 00f2d64c7d832eb3fa66b6f5c7a3b183e67ae1afc5d7cc975041bc7e9427c4e4
-    sourceHash: a96d4ef6fb9d1feb997403d9ffbd93a1c70d2419f76068b271e0808414e19e56
+    sourceHash: cec666b4dd9659a1c0451c6c224574a8cf9988ca01bb7211711fb4befae66446
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 232
+    sourceEndLine: 233
     sourceFile: scripts/skillopt-eval/tests/adoption.test.ts
     sourceLine: 1
   SYM-skillopt-adoption-transaction-error:
@@ -24357,15 +24373,31 @@ coordinates:
     sourceLine: 135
   SYM-skillopt-adversarial-case-type:
     identityHash: 2505c294066b48723fa07130926be1c7c61b51f8ba605ea511e2b4685e10e054
-    sourceHash: e7878667b4fe581a869327d4ae97719001dc6c429995965e7102f453610509b7
+    sourceHash: ee6d31c09f7362edf321657fa932f24452cc66be8244af111a05ea55e1274912
     sourceColumn: 12
     sourceEndColumn: 24
     sourceEndLine: 34
     sourceFile: scripts/skillopt-eval/catalog.ts
     sourceLine: 27
+  SYM-skillopt-answer-contract:
+    identityHash: c42a3d8e8ac5f69131238c5e700fd0466b6cc59095f9655bf8f37301269a0d99
+    sourceHash: 4f78675f36045b1d866c67c2eab7f735e20d18392cecad0a3f1ade51baeeab39
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 36
+    sourceFile: scripts/skillopt-eval/runtime/transcript-evidence.ts
+    sourceLine: 26
+  SYM-skillopt-answer-verdicts:
+    identityHash: 6f8c16cc51a5396f986befa6de205c2b00b2d88e4498f740e1251dace4e5f8a1
+    sourceHash: 4f78675f36045b1d866c67c2eab7f735e20d18392cecad0a3f1ade51baeeab39
+    sourceColumn: 13
+    sourceEndColumn: 10
+    sourceEndLine: 23
+    sourceFile: scripts/skillopt-eval/runtime/transcript-evidence.ts
+    sourceLine: 14
   SYM-skillopt-approval-phase-type:
     identityHash: dd8408d77b1d2aa0c6e04613faff9ba9d31ff205557c0e2836fa81a49b6b4b24
-    sourceHash: e7878667b4fe581a869327d4ae97719001dc6c429995965e7102f453610509b7
+    sourceHash: ee6d31c09f7362edf321657fa932f24452cc66be8244af111a05ea55e1274912
     sourceColumn: 12
     sourceEndColumn: 80
     sourceEndLine: 26
@@ -24405,12 +24437,12 @@ coordinates:
     sourceLine: 1
   SYM-skillopt-assemble-canonical-skills:
     identityHash: d6872692da5a3e08c97b12a7254d1db6e7b57ab2b6b5989d75ed6bf0f1cc8096
-    sourceHash: 6d8ad0bd7faf324a2adcd693d5b89ae9e4565950f0898ce218a8b703109b4c1a
+    sourceHash: cc964c3a2d9ff6e9a921662407c45fd29f686d7eed10c7c23cc41c571b74a4bf
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 136
+    sourceEndLine: 206
     sourceFile: scripts/skillopt-eval/runtime/skill-assembly.ts
-    sourceLine: 120
+    sourceLine: 190
   SYM-skillopt-assert-cell-infrastructure-healthy:
     identityHash: dda5db14e5f19efbd940875b0b9f7c1c56cd5153cdc6e53fcacd277f79efcfeb
     sourceHash: 22b6c342bbf22f8bf56392c4a9a04c5701af1ab1fdff8c788f5dc18f136481be
@@ -24467,6 +24499,14 @@ coordinates:
     sourceEndLine: 100
     sourceFile: scripts/skillopt-eval/held-out-cell-binding.ts
     sourceLine: 90
+  SYM-skillopt-bootstrap-acceptance-protocol:
+    identityHash: 724eab9afabbcbaad439b62f1e8962b3294a4a1b08f77e65eff63342206f9e74
+    sourceHash: 6f4a23dd88d431e3bcd69d4b9e886234d2ae88f990cf766d8869d6dbd7871170
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 83
+    sourceFile: documentation/evaluations/skillopt/bootstrap-acceptance-protocol.md
+    sourceLine: 1
   SYM-skillopt-bridge-artifact-root-env:
     identityHash: 126f212874a64c47fd132197139e9d6c4ef08d166d0dcc582e86b5f1e8d3e7dc
     sourceHash: 9fb6d63b9dc582807702994a7274ac2b6298b26a62a1c4dc7b638fb3ff11c051
@@ -24613,20 +24653,28 @@ coordinates:
     sourceLine: 95
   SYM-skillopt-broker-options:
     identityHash: 2b3bce867a6e0d058f980edb73dc0532c2d3f1d79ac0381ae0ab1e7d7dd40054
-    sourceHash: 366e8b3a1f80c3a00ec9520f187f5bc7b07e309d7ec0169c53233b18b4539d43
+    sourceHash: 4f5622136dd39317dfec9c93d42276fb96bd2745493a062156865bff9b6c26fa
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 80
+    sourceEndLine: 81
     sourceFile: scripts/skillopt-eval/runtime/mcp-broker.ts
     sourceLine: 74
   SYM-skillopt-broker-stage-options:
     identityHash: fab8a81432db6559aa3af46afd9d7db0c8c7390e33c59c6cdc9cf049c8555bb1
-    sourceHash: 8caadac0d16b6930d8cd4539fbd654a8bbf4be215b597d106b135ec8655695db
+    sourceHash: a3979136c29c4d550e5d8b9ba1755ecab6f14ffcf1662de5446fa9a7f64da4be
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 19
+    sourceEndLine: 20
     sourceFile: scripts/skillopt-eval/runtime/mcp-broker-stage.ts
-    sourceLine: 17
+    sourceLine: 18
+  SYM-skillopt-broker-terminate-group:
+    identityHash: 3bd43abdc31a08a51f58027a4d00bd8ff9a62438cd3b7a0e453d6613ae5090ae
+    sourceHash: 714f30e4299de4cbe81d38646104577b0d9b756e14bc3a0f18a47d06ccb1298b
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 45
+    sourceFile: scripts/skillopt-eval/runtime/mcp-broker-process.ts
+    sourceLine: 35
   SYM-skillopt-budget-ledger:
     identityHash: 94ae27f997269fb048f28ebf4a59de177ed0b109215a9327a9f536d7578ed4e9
     sourceHash: 903dae6431adb4920e11de5292e6ac42ba12600c497ca82fb5f1afd694485c70
@@ -24669,20 +24717,20 @@ coordinates:
     sourceLine: 14
   SYM-skillopt-build-bundle-catalog:
     identityHash: 5704fefd616267432187e347e8fb6e455beb12b3055cb0f286cdecff123bf57d
-    sourceHash: e7878667b4fe581a869327d4ae97719001dc6c429995965e7102f453610509b7
+    sourceHash: ee6d31c09f7362edf321657fa932f24452cc66be8244af111a05ea55e1274912
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 210
+    sourceEndLine: 211
     sourceFile: scripts/skillopt-eval/catalog.ts
-    sourceLine: 200
+    sourceLine: 201
   SYM-skillopt-build-held-out-catalog:
     identityHash: bb7c952bd0d882cc43c0365492ca89c0d9320a1d71aed0b9baaf327a32334844
-    sourceHash: e7878667b4fe581a869327d4ae97719001dc6c429995965e7102f453610509b7
+    sourceHash: ee6d31c09f7362edf321657fa932f24452cc66be8244af111a05ea55e1274912
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 227
+    sourceEndLine: 228
     sourceFile: scripts/skillopt-eval/catalog.ts
-    sourceLine: 220
+    sourceLine: 221
   SYM-skillopt-build-held-out-reservation:
     identityHash: 1dbfd46c1dc877ee5636200aab37b52a4941134247b2a39d14b7d16dd0bec4d6
     sourceHash: 46753e8311d3f77ddfd750248ad423bd0ae9c9385f5254309f904e614fffd673
@@ -24725,12 +24773,12 @@ coordinates:
     sourceLine: 16
   SYM-skillopt-build-public-catalog:
     identityHash: 8bb7a739c2ff27ecb1c303cfba8fb88f932778407d14cd1fd801d89b365ec9b1
-    sourceHash: e7878667b4fe581a869327d4ae97719001dc6c429995965e7102f453610509b7
+    sourceHash: ee6d31c09f7362edf321657fa932f24452cc66be8244af111a05ea55e1274912
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 217
+    sourceEndLine: 218
     sourceFile: scripts/skillopt-eval/catalog.ts
-    sourceLine: 213
+    sourceLine: 214
   SYM-skillopt-build-report-artifacts:
     identityHash: ce6abe8cd891da4249c100aa548a20b83201d33a8cfb57d7263bc329dc476950
     sourceHash: 1f752dfcc32addb7baf8c60e5fe31b9614f3cb04be8b7c092023483b9bb7e412
@@ -24749,12 +24797,12 @@ coordinates:
     sourceLine: 29
   SYM-skillopt-build-skill-catalog:
     identityHash: d860361f33e2b7d99b7cd79f86363e06fc22b9541ce3f7e913a848c1ca7cb40c
-    sourceHash: e7878667b4fe581a869327d4ae97719001dc6c429995965e7102f453610509b7
+    sourceHash: ee6d31c09f7362edf321657fa932f24452cc66be8244af111a05ea55e1274912
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 185
+    sourceEndLine: 186
     sourceFile: scripts/skillopt-eval/catalog.ts
-    sourceLine: 166
+    sourceLine: 167
   SYM-skillopt-build-todo5-evidence-document:
     identityHash: 36f693ecb0941d07fb17217d31e6fd2e9ca49b6bf4f2e117e42552555ae542ba
     sourceHash: 869acfdd0e044074a073d33c2fa6d1425a9f193e03fc92cbe4021d8d2140ce04
@@ -24773,15 +24821,15 @@ coordinates:
     sourceLine: 69
   SYM-skillopt-bundle-arm-summary-type:
     identityHash: 4c4209ca6876737e223a73ab5496b499a9f6cbf0c78ed5374fc5a1bf114b3bae
-    sourceHash: 1c5b0a80a5e1dc0c4331170657008204ee6b9a90c4248ffb9ef058df22f6ba6a
+    sourceHash: 0d38483e1d5e287692909e63a9b3d1a1fcd9780458664d5dd4288d6285a2ca30
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 42
+    sourceEndLine: 43
     sourceFile: scripts/skillopt-eval/bundle-workflow.ts
-    sourceLine: 36
+    sourceLine: 37
   SYM-skillopt-bundle-arm-type:
     identityHash: 474dbaad55b22cf6a77d3aff75327d4b48a18bc2c3c571a5a655e7bce4cbc0eb
-    sourceHash: 1c5b0a80a5e1dc0c4331170657008204ee6b9a90c4248ffb9ef058df22f6ba6a
+    sourceHash: 0d38483e1d5e287692909e63a9b3d1a1fcd9780458664d5dd4288d6285a2ca30
     sourceColumn: 12
     sourceEndColumn: 48
     sourceEndLine: 23
@@ -24789,31 +24837,31 @@ coordinates:
     sourceLine: 23
   SYM-skillopt-bundle-candidates-resolver:
     identityHash: 8dd4584ba2c4574de17347ecd76b53930067eaf53bca2c3cb34517c473b98501
-    sourceHash: 1c5b0a80a5e1dc0c4331170657008204ee6b9a90c4248ffb9ef058df22f6ba6a
+    sourceHash: 0d38483e1d5e287692909e63a9b3d1a1fcd9780458664d5dd4288d6285a2ca30
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 305
+    sourceEndLine: 311
     sourceFile: scripts/skillopt-eval/bundle-workflow.ts
     sourceLine: 1
   SYM-skillopt-bundle-cell-runner-type:
     identityHash: 074435ff9e0ed5f3a6aaf603258e052a2c0ef1d60ebd4e105766c858daad1426
-    sourceHash: 1c5b0a80a5e1dc0c4331170657008204ee6b9a90c4248ffb9ef058df22f6ba6a
+    sourceHash: 0d38483e1d5e287692909e63a9b3d1a1fcd9780458664d5dd4288d6285a2ca30
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 126
+    sourceEndLine: 127
     sourceFile: scripts/skillopt-eval/bundle-workflow.ts
-    sourceLine: 111
+    sourceLine: 112
   SYM-skillopt-bundle-cell-summary-type:
     identityHash: 28a790ffefdbce914196040bbf11518965d252b88614aed693c3981ba83a3e9d
-    sourceHash: 1c5b0a80a5e1dc0c4331170657008204ee6b9a90c4248ffb9ef058df22f6ba6a
+    sourceHash: 0d38483e1d5e287692909e63a9b3d1a1fcd9780458664d5dd4288d6285a2ca30
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 34
+    sourceEndLine: 35
     sourceFile: scripts/skillopt-eval/bundle-workflow.ts
-    sourceLine: 27
+    sourceLine: 28
   SYM-skillopt-bundle-default-timeout:
     identityHash: 75b63b09e296dd46f892c0897dba4dbfdb2b057408a294dcd057d5fb3c5c752b
-    sourceHash: 1c5b0a80a5e1dc0c4331170657008204ee6b9a90c4248ffb9ef058df22f6ba6a
+    sourceHash: 0d38483e1d5e287692909e63a9b3d1a1fcd9780458664d5dd4288d6285a2ca30
     sourceColumn: 6
     sourceEndColumn: 36
     sourceEndLine: 21
@@ -24821,15 +24869,15 @@ coordinates:
     sourceLine: 21
   SYM-skillopt-bundle-evaluate-verdict:
     identityHash: dba149c140a89ef6054226f38fa5665fa27fcfa5f1635f4c883cabeb4d2880f4
-    sourceHash: 1c5b0a80a5e1dc0c4331170657008204ee6b9a90c4248ffb9ef058df22f6ba6a
+    sourceHash: 0d38483e1d5e287692909e63a9b3d1a1fcd9780458664d5dd4288d6285a2ca30
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 89
+    sourceEndLine: 90
     sourceFile: scripts/skillopt-eval/bundle-workflow.ts
-    sourceLine: 68
+    sourceLine: 69
   SYM-skillopt-bundle-evaluation-branch:
     identityHash: a34ac5e5033d493657b395c91cd118c2fb98be1428516b4ab2ba71302ad61977
-    sourceHash: 1c5b0a80a5e1dc0c4331170657008204ee6b9a90c4248ffb9ef058df22f6ba6a
+    sourceHash: 0d38483e1d5e287692909e63a9b3d1a1fcd9780458664d5dd4288d6285a2ca30
     sourceColumn: 13
     sourceEndColumn: 66
     sourceEndLine: 20
@@ -24837,92 +24885,492 @@ coordinates:
     sourceLine: 20
   SYM-skillopt-bundle-gate-options-type:
     identityHash: 047544c20680dbbc5086d99e8bdef357c33b98f438d17387e2a70a140677d4e2
-    sourceHash: 1c5b0a80a5e1dc0c4331170657008204ee6b9a90c4248ffb9ef058df22f6ba6a
+    sourceHash: 0d38483e1d5e287692909e63a9b3d1a1fcd9780458664d5dd4288d6285a2ca30
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 105
+    sourceEndLine: 106
     sourceFile: scripts/skillopt-eval/bundle-workflow.ts
-    sourceLine: 91
+    sourceLine: 92
   SYM-skillopt-bundle-gate-result-type:
     identityHash: 9d634c9476c267efba669b797fabf70efe00f3c6af4adcc714cf41b3c4c81c33
-    sourceHash: 1c5b0a80a5e1dc0c4331170657008204ee6b9a90c4248ffb9ef058df22f6ba6a
+    sourceHash: 0d38483e1d5e287692909e63a9b3d1a1fcd9780458664d5dd4288d6285a2ca30
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 132
+    sourceEndLine: 133
     sourceFile: scripts/skillopt-eval/bundle-workflow.ts
-    sourceLine: 128
+    sourceLine: 129
   SYM-skillopt-bundle-run-paid-gate:
     identityHash: 7ee21f269762a04771830767c57c3ae45317ac22ab66acb58f3ba6711d55f3da
-    sourceHash: 1c5b0a80a5e1dc0c4331170657008204ee6b9a90c4248ffb9ef058df22f6ba6a
+    sourceHash: 0d38483e1d5e287692909e63a9b3d1a1fcd9780458664d5dd4288d6285a2ca30
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 304
+    sourceEndLine: 310
     sourceFile: scripts/skillopt-eval/bundle-workflow.ts
-    sourceLine: 135
+    sourceLine: 136
   SYM-skillopt-bundle-summarize-arm:
     identityHash: 0d1b9e35a30c5f3fd7f293e6cee112c31eb763569a3402e37eba9c141c47cece
-    sourceHash: 1c5b0a80a5e1dc0c4331170657008204ee6b9a90c4248ffb9ef058df22f6ba6a
+    sourceHash: 0d38483e1d5e287692909e63a9b3d1a1fcd9780458664d5dd4288d6285a2ca30
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 62
+    sourceEndLine: 63
     sourceFile: scripts/skillopt-eval/bundle-workflow.ts
-    sourceLine: 45
+    sourceLine: 46
   SYM-skillopt-caller-score-injection-error:
     identityHash: 649795a0f9a7273851f30e36e8e469f4433ecc6d0b0d2a2b736a298206c66758
-    sourceHash: 87b13a54742f7f0d7c76c66ca16bd98ce60d888482213a6367f2eb6e00baf632
+    sourceHash: 37f871add3752aff757ab9a0ff0247e73f1a9cea723e55cc4f05afb6b6546eb7
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 106
+    sourceEndLine: 148
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
-    sourceLine: 100
+    sourceLine: 142
   SYM-skillopt-caller-score-injection-error-name:
     identityHash: dc1e8a0a8ee023529a5518ae89e541440fec172ee9e7e203309c1a89aaed81e5
-    sourceHash: 87b13a54742f7f0d7c76c66ca16bd98ce60d888482213a6367f2eb6e00baf632
+    sourceHash: 37f871add3752aff757ab9a0ff0247e73f1a9cea723e55cc4f05afb6b6546eb7
     sourceColumn: 11
     sourceEndColumn: 46
-    sourceEndLine: 101
+    sourceEndLine: 143
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
-    sourceLine: 101
-  SYM-skillopt-candidate-surface-error:
-    identityHash: 1198dc44d356715abba5681e7ba68199ff23ec1b9d74e8ae85972853519134e3
-    sourceHash: 6d8ad0bd7faf324a2adcd693d5b89ae9e4565950f0898ce218a8b703109b4c1a
+    sourceLine: 143
+  SYM-skillopt-campaign-artifacts-bundlecandidatemanifest-8e7ca250:
+    identityHash: d42cef018abfb27c8227f45af1684d202547b140644383a11ca4db192652635c
+    sourceHash: 908c4d39b63933ae51b9f13354db6f1b3c9b5597b4ed3d481a7d9b476679c758
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 184
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    sourceLine: 181
+  SYM-skillopt-campaign-artifacts-bundlemanifest-871598d9:
+    identityHash: c47b7038b80756a1a116a1587f0fc04734f9f039f59a84ea5878af3a0a8846c2
+    sourceHash: 908c4d39b63933ae51b9f13354db6f1b3c9b5597b4ed3d481a7d9b476679c758
+    sourceColumn: 12
+    sourceEndColumn: 66
+    sourceEndLine: 180
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    sourceLine: 180
+  SYM-skillopt-campaign-artifacts-bundlemanifestschema-779d52f8:
+    identityHash: 1d6ff265df36b6d524d67518b952259d495e4ad58c1368a7584bb7c2049409e3
+    sourceHash: 908c4d39b63933ae51b9f13354db6f1b3c9b5597b4ed3d481a7d9b476679c758
+    sourceColumn: 13
+    sourceEndColumn: 4
+    sourceEndLine: 178
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    sourceLine: 166
+  SYM-skillopt-campaign-artifacts-campaignartifacterror-782da37c:
+    identityHash: d93df1a9251e962970e1fff01a413e582758e6672bad3d4943d01e93925be0f8
+    sourceHash: 908c4d39b63933ae51b9f13354db6f1b3c9b5597b4ed3d481a7d9b476679c758
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 49
-    sourceFile: scripts/skillopt-eval/runtime/skill-assembly.ts
-    sourceLine: 37
-  SYM-skillopt-candidate-surface-error-name:
-    identityHash: 080a23aac2010fd74edd7613bf637c22f1ed0a90e9a1b78e30245fc1ac266f73
-    sourceHash: 6d8ad0bd7faf324a2adcd693d5b89ae9e4565950f0898ce218a8b703109b4c1a
+    sourceEndLine: 192
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    sourceLine: 186
+  SYM-skillopt-campaign-artifacts-campaignartifacterror-name-14622f09:
+    identityHash: d47447b063ea3ab25164907fec4ed910ca9621ffd85a9a68ef61f7d1ae235db6
+    sourceHash: 908c4d39b63933ae51b9f13354db6f1b3c9b5597b4ed3d481a7d9b476679c758
     sourceColumn: 11
     sourceEndColumn: 42
-    sourceEndLine: 38
-    sourceFile: scripts/skillopt-eval/runtime/skill-assembly.ts
-    sourceLine: 38
-  SYM-skillopt-candidate-validation-error:
-    identityHash: 0cb196aa19797aef175cff36bdbcc8f961ace9761e22cab03da7784355df9540
-    sourceHash: 19d696f4b2641e1fea7c14a7902c7c273d5a033c00265b1a0181f9aa9395630c
+    sourceEndLine: 187
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    sourceLine: 187
+  SYM-skillopt-campaign-artifacts-campaignartifactstore-42509001:
+    identityHash: 2a2584d2d8e64db19a1114b2c42152a9ab21cf3ffd427b9e1474efed6c9c3a2a
+    sourceHash: 908c4d39b63933ae51b9f13354db6f1b3c9b5597b4ed3d481a7d9b476679c758
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 69
-    sourceFile: scripts/skillopt-eval/variants.ts
+    sourceEndLine: 730
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    sourceLine: 677
+  SYM-skillopt-campaign-artifacts-campaignartifactstore-close-998268d4:
+    identityHash: edc7b19f736c569e03090f0e0e5e04b5b199ee46ad088ee0f1d74cf716dbb5c4
+    sourceHash: 908c4d39b63933ae51b9f13354db6f1b3c9b5597b4ed3d481a7d9b476679c758
+    sourceColumn: 8
+    sourceEndColumn: 3
+    sourceEndLine: 729
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    sourceLine: 727
+  SYM-skillopt-campaign-artifacts-campaignartifactstore-open-eddd058c:
+    identityHash: 99595f63d8d117d7141c1be5ada45d4773e6f052377330dfe9012263da905080
+    sourceHash: 908c4d39b63933ae51b9f13354db6f1b3c9b5597b4ed3d481a7d9b476679c758
+    sourceColumn: 15
+    sourceEndColumn: 3
+    sourceEndLine: 710
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    sourceLine: 680
+  SYM-skillopt-campaign-artifacts-campaignartifactstore-root-93504e43:
+    identityHash: 269e07b9cd6f817e4836367ff3152dc0749eb9c301fea539e40d2cd7a6b2284e
+    sourceHash: 908c4d39b63933ae51b9f13354db6f1b3c9b5597b4ed3d481a7d9b476679c758
+    sourceColumn: 6
+    sourceEndColumn: 3
+    sourceEndLine: 714
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    sourceLine: 712
+  SYM-skillopt-campaign-artifacts-campaignartifactstore-writejson-c2c8ffd9:
+    identityHash: 273a9e8e47ccdf5bc51ad53e5774a4b009891a2e83a7d4314fb79e013b672c1e
+    sourceHash: 908c4d39b63933ae51b9f13354db6f1b3c9b5597b4ed3d481a7d9b476679c758
+    sourceColumn: 8
+    sourceEndColumn: 3
+    sourceEndLine: 721
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    sourceLine: 716
+  SYM-skillopt-campaign-artifacts-campaignartifactstore-writetext-a0eeecf6:
+    identityHash: 33948613d276ba424d0086dd979e8e436bb66067fe8f8facfa7f459a21da26be
+    sourceHash: 908c4d39b63933ae51b9f13354db6f1b3c9b5597b4ed3d481a7d9b476679c758
+    sourceColumn: 8
+    sourceEndColumn: 3
+    sourceEndLine: 725
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    sourceLine: 723
+  SYM-skillopt-campaign-artifacts-campaigninsertion-2882fd8f:
+    identityHash: 8e7ea1c500bdbcb327e8971cb77e76463ec882d7fd575db50e6d4e0594d872fe
+    sourceHash: 908c4d39b63933ae51b9f13354db6f1b3c9b5597b4ed3d481a7d9b476679c758
+    sourceColumn: 12
+    sourceEndColumn: 72
+    sourceEndLine: 136
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    sourceLine: 136
+  SYM-skillopt-campaign-artifacts-campaignmanifest-45267817:
+    identityHash: 957424eb3751895ce8d844acdeb4c561b9ba6889ba67b4f8216c498f49c07651
+    sourceHash: 908c4d39b63933ae51b9f13354db6f1b3c9b5597b4ed3d481a7d9b476679c758
+    sourceColumn: 12
+    sourceEndColumn: 70
+    sourceEndLine: 137
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    sourceLine: 137
+  SYM-skillopt-campaign-artifacts-campaignmodelprovenance-f489f4b8:
+    identityHash: b29dc2d88c1db35d08a27a26bed990b8f64547340c43d292102d44ea3d9fe406
+    sourceHash: 908c4d39b63933ae51b9f13354db6f1b3c9b5597b4ed3d481a7d9b476679c758
+    sourceColumn: 12
+    sourceEndColumn: 76
+    sourceEndLine: 138
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    sourceLine: 138
+  SYM-skillopt-campaign-artifacts-campaignsourcesurface-98d09abf:
+    identityHash: f8ff36a522224a993840be7f48c6c523612ccc1cb10f4569d9abb7addd594da3
+    sourceHash: 908c4d39b63933ae51b9f13354db6f1b3c9b5597b4ed3d481a7d9b476679c758
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 148
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    sourceLine: 139
+  SYM-skillopt-campaign-artifacts-composecampaignmanifest-a6b0744d:
+    identityHash: 5cb662f01379d29d0b7e2024fa68ab1cc36cabfb10af11dd0ab9c9520a6d6b5f
+    sourceHash: 908c4d39b63933ae51b9f13354db6f1b3c9b5597b4ed3d481a7d9b476679c758
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 303
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    sourceLine: 221
+  SYM-skillopt-campaign-artifacts-defaultsourcefence-efc6036d:
+    identityHash: 3b6b9c0fa64177c6e42445a1bee1c3a5814d143e5f4f3667d7c191261332e9ab
+    sourceHash: 908c4d39b63933ae51b9f13354db6f1b3c9b5597b4ed3d481a7d9b476679c758
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 675
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    sourceLine: 630
+  SYM-skillopt-campaign-artifacts-feedbacktrajectories-f37a1639:
+    identityHash: 01878e23fba73b29728b1eae9b2f38a97e036c7c3c820fcef6c9f86b7c53fadd
+    sourceHash: 908c4d39b63933ae51b9f13354db6f1b3c9b5597b4ed3d481a7d9b476679c758
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 621
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    sourceLine: 614
+  SYM-skillopt-campaign-artifacts-manifesthash-a6d98f85:
+    identityHash: 0fc57c2305369858ee7e032ceb19dec9f8b8e8fbe1ab226fdfdb4ac2fcc225a5
+    sourceHash: 908c4d39b63933ae51b9f13354db6f1b3c9b5597b4ed3d481a7d9b476679c758
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 200
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    sourceLine: 198
+  SYM-skillopt-campaign-artifacts-parsepublicfeedback-c07709d1:
+    identityHash: 4daab49c39e153aca525fea431d498d5094f27e8750b0610abb17adc33d7a3b5
+    sourceHash: 908c4d39b63933ae51b9f13354db6f1b3c9b5597b4ed3d481a7d9b476679c758
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 599
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    sourceLine: 596
+  SYM-skillopt-campaign-artifacts-publicfeedback-27f8da4c:
+    identityHash: d0f14c9db26ef44ce388f791b6578032b85b0dd4b083dc1042e40feb2dca35ee
+    sourceHash: 908c4d39b63933ae51b9f13354db6f1b3c9b5597b4ed3d481a7d9b476679c758
+    sourceColumn: 12
+    sourceEndColumn: 66
+    sourceEndLine: 565
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    sourceLine: 565
+  SYM-skillopt-campaign-artifacts-publicfeedbackschema-31665c30:
+    identityHash: 3dbfeae8b4d758ea585b66e235ed87a1d7a8c7a5f25777279b1e2541fb2e381a
+    sourceHash: 908c4d39b63933ae51b9f13354db6f1b3c9b5597b4ed3d481a7d9b476679c758
+    sourceColumn: 13
+    sourceEndColumn: 11
+    sourceEndLine: 564
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    sourceLine: 559
+  SYM-skillopt-campaign-artifacts-readbundlecandidatemanifest-de3d79e5:
+    identityHash: 877151873ec37e75dc2070cc18b33fd1aa2604894a66fa0899aabcbe63fb0e67
+    sourceHash: 908c4d39b63933ae51b9f13354db6f1b3c9b5597b4ed3d481a7d9b476679c758
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 528
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    sourceLine: 512
+  SYM-skillopt-campaign-artifacts-readbundlemanifest-89f928ea:
+    identityHash: 2da69cdce1339b175f35a55676f55a08d4dad2beafa847144a5d300aff6ee925
+    sourceHash: 908c4d39b63933ae51b9f13354db6f1b3c9b5597b4ed3d481a7d9b476679c758
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 541
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    sourceLine: 530
+  SYM-skillopt-campaign-artifacts-readcampaignmanifest-9709fde8:
+    identityHash: b0e8dd9bdea02958c9b3ce8f5eaee37c73fc48bf6bf326c0662fd746f41ca3e6
+    sourceHash: 908c4d39b63933ae51b9f13354db6f1b3c9b5597b4ed3d481a7d9b476679c758
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 510
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    sourceLine: 499
+  SYM-skillopt-campaign-artifacts-readpublicfeedback-2d59d416:
+    identityHash: 1273244f657428604ad71ec2365aa18757d586fefb1292d720a1b54cd0f631cc
+    sourceHash: 908c4d39b63933ae51b9f13354db6f1b3c9b5597b4ed3d481a7d9b476679c758
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 612
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    sourceLine: 601
+  SYM-skillopt-campaign-artifacts-resolvebundlecampaignmanifestpath-5c688987:
+    identityHash: deb4fbd664ccd1bf5cba03172b3d052a10b00ac695e7fb174b688c981780fe25
+    sourceHash: 908c4d39b63933ae51b9f13354db6f1b3c9b5597b4ed3d481a7d9b476679c758
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 548
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    sourceLine: 543
+  SYM-skillopt-campaign-artifacts-sha256text-cf05d14e:
+    identityHash: 05d580b57444260f39145d6cf6054cac61af08780e3f30c716e956382b7d58ce
+    sourceHash: 908c4d39b63933ae51b9f13354db6f1b3c9b5597b4ed3d481a7d9b476679c758
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 196
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    sourceLine: 194
+  SYM-skillopt-campaign-artifacts-sourcefence-aa02ce67:
+    identityHash: a54648a54550aa9af4cc033c6ed3b0093866e5eef13205b22d20d1d0b9e718f1
+    sourceHash: 908c4d39b63933ae51b9f13354db6f1b3c9b5597b4ed3d481a7d9b476679c758
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 627
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    sourceLine: 623
+  SYM-skillopt-campaign-campaignclierror-bf31157b:
+    identityHash: 0b9e274c185d38c61d7a279988b93e40199aec6ecd78c45f6a1fdc47e447d91e
+    sourceHash: a88485d4780c0dec303f073cb982bf9ed1b1dd6f0c5d832f825401a0f8a54dce
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 64
+    sourceFile: scripts/skillopt-eval/campaign.ts
+    sourceLine: 62
+  SYM-skillopt-campaign-campaignclierror-name-403c8361:
+    identityHash: 6d8291bf3d8d7cd50b01dfd6eb3174e101546d2db770ac23f2841e749413bba3
+    sourceHash: a88485d4780c0dec303f073cb982bf9ed1b1dd6f0c5d832f825401a0f8a54dce
+    sourceColumn: 11
+    sourceEndColumn: 37
+    sourceEndLine: 63
+    sourceFile: scripts/skillopt-eval/campaign.ts
     sourceLine: 63
+  SYM-skillopt-campaign-candidate-hash:
+    identityHash: 7e8a335d12bedbe77eb788f8a8f8052594292a1bc6d346350d93ff91025a59f3
+    sourceHash: 908c4d39b63933ae51b9f13354db6f1b3c9b5597b4ed3d481a7d9b476679c758
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 487
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    sourceLine: 478
+  SYM-skillopt-campaign-candidate-surface:
+    identityHash: e5646622f9a1b8f711639e04ded7a82993bc6d24d4b6a5ba287f41a81f10c711
+    sourceHash: 908c4d39b63933ae51b9f13354db6f1b3c9b5597b4ed3d481a7d9b476679c758
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 497
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    sourceLine: 491
+  SYM-skillopt-campaign-main:
+    identityHash: b0c5094513b56fd0534df2a5ee10e4f731c00b73f385f4592a05bab92d9ce299
+    sourceHash: a88485d4780c0dec303f073cb982bf9ed1b1dd6f0c5d832f825401a0f8a54dce
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 438
+    sourceFile: scripts/skillopt-eval/campaign.ts
+    sourceLine: 240
+  SYM-skillopt-campaign-manifest-schema:
+    identityHash: e2b06e39440aca5c2a15ce41fc647f1aa62a613810d25c37a5458ceb9bf0804e
+    sourceHash: 908c4d39b63933ae51b9f13354db6f1b3c9b5597b4ed3d481a7d9b476679c758
+    sourceColumn: 13
+    sourceEndColumn: 4
+    sourceEndLine: 134
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    sourceLine: 58
+  SYM-skillopt-campaign-surface:
+    identityHash: 53a0ab02290ba0c7a099e9fd690eec77b47bb3e652548179d3613491ccf560cf
+    sourceHash: 37158957873face5a672dd02293b0bdbf97dfc688e3444466ec0f8d8578e059d
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 77
+    sourceFile: scripts/skillopt-eval/real-workflow.ts
+    sourceLine: 72
+  SYM-skillopt-campaign-workflow-campaigncell-f64e00ff:
+    identityHash: 102e3f4cf06d2e060d4619db56a3d36127a7e1e27722b038b2dc893781ec5334
+    sourceHash: 7bdc3035063b4ffd046f22425f7928d8c9691e7cc72aa5b387ffc35ab90159b7
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 140
+    sourceFile: scripts/skillopt-eval/campaign-workflow.ts
+    sourceLine: 115
+  SYM-skillopt-campaign-workflow-campaigndependencies-fb8ccf38:
+    identityHash: 847945681fee0b80f1b0f47c52c81ec42b8f2340ffd3e6f838783350238ee149
+    sourceHash: 7bdc3035063b4ffd046f22425f7928d8c9691e7cc72aa5b387ffc35ab90159b7
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 272
+    sourceFile: scripts/skillopt-eval/campaign-workflow.ts
+    sourceLine: 240
+  SYM-skillopt-campaign-workflow-campaignevaluation-7845dd95:
+    identityHash: f64a1b34dec3efba545fc6bb37d79fb740964757a776547b24461bf9bbab6506
+    sourceHash: 7bdc3035063b4ffd046f22425f7928d8c9691e7cc72aa5b387ffc35ab90159b7
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 191
+    sourceFile: scripts/skillopt-eval/campaign-workflow.ts
+    sourceLine: 189
+  SYM-skillopt-campaign-workflow-campaignmodelprofile-77a90067:
+    identityHash: 2437040f7d471107daa52d2cddee3cf0e9033c57d24b67bf12ad2d1ee6c5fc66
+    sourceHash: 7bdc3035063b4ffd046f22425f7928d8c9691e7cc72aa5b387ffc35ab90159b7
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 105
+    sourceFile: scripts/skillopt-eval/campaign-workflow.ts
+    sourceLine: 97
+  SYM-skillopt-campaign-workflow-campaignruntime-aa661724:
+    identityHash: 401d166bab06c3aadf4ad1395ff9ee8c1321c0e12f8f4a19744a901b82b9018d
+    sourceHash: 7bdc3035063b4ffd046f22425f7928d8c9691e7cc72aa5b387ffc35ab90159b7
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 223
+    sourceFile: scripts/skillopt-eval/campaign-workflow.ts
+    sourceLine: 215
+  SYM-skillopt-campaign-workflow-defaultcampaigndependencies-e89d5e0d:
+    identityHash: ef07f46614d0e23c80231f517a7d1ad68703c117bd8a30ec4b0ad2a1c7bba9fd
+    sourceHash: 7bdc3035063b4ffd046f22425f7928d8c9691e7cc72aa5b387ffc35ab90159b7
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 1204
+    sourceFile: scripts/skillopt-eval/campaign-workflow.ts
+    sourceLine: 1165
+  SYM-skillopt-campaign-workflow-loadverifiedcampaignevaluation-63ad6370:
+    identityHash: aa23e5e097458d013620b6746bf948236d90df93ca7588ad130a119836756737
+    sourceHash: 7bdc3035063b4ffd046f22425f7928d8c9691e7cc72aa5b387ffc35ab90159b7
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 1738
+    sourceFile: scripts/skillopt-eval/campaign-workflow.ts
+    sourceLine: 1601
+  SYM-skillopt-campaign-workflow-parsecompletecampaignevaluation-e4f544e4:
+    identityHash: bb5a9cc1054b152e98c9a78f1b28d505f51d4e5e2f217bf0f00a129051873b6c
+    sourceHash: 7bdc3035063b4ffd046f22425f7928d8c9691e7cc72aa5b387ffc35ab90159b7
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 772
+    sourceFile: scripts/skillopt-eval/campaign-workflow.ts
+    sourceLine: 761
+  SYM-skillopt-campaign-workflow-readcompletecampaignevaluation-de3f402c:
+    identityHash: 564ac5198e2be421a3c61c18ea311d0f90c1202d40c23c0ad619ac3cd7e61170
+    sourceHash: 7bdc3035063b4ffd046f22425f7928d8c9691e7cc72aa5b387ffc35ab90159b7
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 785
+    sourceFile: scripts/skillopt-eval/campaign-workflow.ts
+    sourceLine: 774
+  SYM-skillopt-campaign-workflow-runconfirmcampaign-aedd45f6:
+    identityHash: 3d39f529ad5e0b222fd5ec8baa1d310073e01f68d8f2aaca6ad8ffcc29ad6224
+    sourceHash: 7bdc3035063b4ffd046f22425f7928d8c9691e7cc72aa5b387ffc35ab90159b7
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 2358
+    sourceFile: scripts/skillopt-eval/campaign-workflow.ts
+    sourceLine: 2326
+  SYM-skillopt-campaign-workflow-runevaluatecampaign-59b34950:
+    identityHash: 8a2eb6556c5f9602473f2c7b2edd951c156a84d6b650e2b499c04d0aded32fa3
+    sourceHash: 7bdc3035063b4ffd046f22425f7928d8c9691e7cc72aa5b387ffc35ab90159b7
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 2324
+    sourceFile: scripts/skillopt-eval/campaign-workflow.ts
+    sourceLine: 2293
+  SYM-skillopt-campaign-workflow-runpackagecampaign-5dd2d3a5:
+    identityHash: bf6c16e70a743350ed65dd1886a77ad6a8deec0fe027577198bd45e07b7ae595
+    sourceHash: 7bdc3035063b4ffd046f22425f7928d8c9691e7cc72aa5b387ffc35ab90159b7
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 2532
+    sourceFile: scripts/skillopt-eval/campaign-workflow.ts
+    sourceLine: 2360
+  SYM-skillopt-campaign-workflow-runrevisecampaign-65760487:
+    identityHash: b9b0fab6725dfd4ec8c0e9c30cb4bd10daea374d2ef8cb974a3962dcf0b4cd84
+    sourceHash: 7bdc3035063b4ffd046f22425f7928d8c9691e7cc72aa5b387ffc35ab90159b7
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 1940
+    sourceFile: scripts/skillopt-eval/campaign-workflow.ts
+    sourceLine: 1816
+  SYM-skillopt-candidate-frontmatter-hash:
+    identityHash: c31c6d03325fa7e05a199b4a9cdb5270bbdd8e9e1cd6950776467e0dc11789a9
+    sourceHash: 908c4d39b63933ae51b9f13354db6f1b3c9b5597b4ed3d481a7d9b476679c758
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 383
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    sourceLine: 378
+  SYM-skillopt-candidate-surface-error:
+    identityHash: 1198dc44d356715abba5681e7ba68199ff23ec1b9d74e8ae85972853519134e3
+    sourceHash: cc964c3a2d9ff6e9a921662407c45fd29f686d7eed10c7c23cc41c571b74a4bf
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 61
+    sourceFile: scripts/skillopt-eval/runtime/skill-assembly.ts
+    sourceLine: 48
+  SYM-skillopt-candidate-surface-error-name:
+    identityHash: 080a23aac2010fd74edd7613bf637c22f1ed0a90e9a1b78e30245fc1ac266f73
+    sourceHash: cc964c3a2d9ff6e9a921662407c45fd29f686d7eed10c7c23cc41c571b74a4bf
+    sourceColumn: 11
+    sourceEndColumn: 42
+    sourceEndLine: 49
+    sourceFile: scripts/skillopt-eval/runtime/skill-assembly.ts
+    sourceLine: 49
+  SYM-skillopt-candidate-validation-error:
+    identityHash: 0cb196aa19797aef175cff36bdbcc8f961ace9761e22cab03da7784355df9540
+    sourceHash: 84c0667e91dcb63f5e03dd7edc1a081a41bd2a2f6522e6deab740403bfd50ceb
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 76
+    sourceFile: scripts/skillopt-eval/variants.ts
+    sourceLine: 70
   SYM-skillopt-candidate-validation-error-code:
     identityHash: 15f8f5e518a59c448a4a8292c0e4a7d081ba40aa46465de811a4a80eedc5bdee
-    sourceHash: 19d696f4b2641e1fea7c14a7902c7c273d5a033c00265b1a0181f9aa9395630c
+    sourceHash: 84c0667e91dcb63f5e03dd7edc1a081a41bd2a2f6522e6deab740403bfd50ceb
     sourceColumn: 12
-    sourceEndColumn: 40
-    sourceEndLine: 78
+    sourceEndColumn: 32
+    sourceEndLine: 89
     sourceFile: scripts/skillopt-eval/variants.ts
-    sourceLine: 71
+    sourceLine: 78
   SYM-skillopt-candidate-validation-error-name:
     identityHash: a753a3cfed98a689244983a33920ad4446f1aca76bc1e77efe772eef2128561a
-    sourceHash: 19d696f4b2641e1fea7c14a7902c7c273d5a033c00265b1a0181f9aa9395630c
+    sourceHash: 84c0667e91dcb63f5e03dd7edc1a081a41bd2a2f6522e6deab740403bfd50ceb
     sourceColumn: 11
     sourceEndColumn: 45
-    sourceEndLine: 64
+    sourceEndLine: 71
     sourceFile: scripts/skillopt-eval/variants.ts
-    sourceLine: 64
+    sourceLine: 71
   SYM-skillopt-canonical-property-key:
     identityHash: 4ee63dab907ae954f9ec7f4e5cebcb18701039502265cf08234a8ab5690a84ef
     sourceHash: f50520f772b666fe6dd300ac30e73f1d638a73fb42a949bf572081ca584f0ca7
@@ -24933,7 +25381,7 @@ coordinates:
     sourceLine: 130
   SYM-skillopt-canonical-skill-type:
     identityHash: 543da0c200ad265893309bc43f06a5d61e71a047e63bea92364b261baf9f501f
-    sourceHash: e7878667b4fe581a869327d4ae97719001dc6c429995965e7102f453610509b7
+    sourceHash: ee6d31c09f7362edf321657fa932f24452cc66be8244af111a05ea55e1274912
     sourceColumn: 12
     sourceEndColumn: 63
     sourceEndLine: 15
@@ -24941,7 +25389,7 @@ coordinates:
     sourceLine: 15
   SYM-skillopt-canonical-skills:
     identityHash: 637411dcc7ad64b3975b8f60f16ad9caea091e016c968210f5507b731f0f92e1
-    sourceHash: e7878667b4fe581a869327d4ae97719001dc6c429995965e7102f453610509b7
+    sourceHash: ee6d31c09f7362edf321657fa932f24452cc66be8244af111a05ea55e1274912
     sourceColumn: 13
     sourceEndColumn: 10
     sourceEndLine: 13
@@ -24965,20 +25413,92 @@ coordinates:
     sourceLine: 197
   SYM-skillopt-catalog-hash:
     identityHash: 74c3d2229e097291a1ce633328c8a7ae6260414499ccbf723e291f0cf2c16f00
-    sourceHash: e7878667b4fe581a869327d4ae97719001dc6c429995965e7102f453610509b7
+    sourceHash: ee6d31c09f7362edf321657fa932f24452cc66be8244af111a05ea55e1274912
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 281
+    sourceEndLine: 282
     sourceFile: scripts/skillopt-eval/catalog.ts
-    sourceLine: 279
+    sourceLine: 280
   SYM-skillopt-catalog-skill-type:
     identityHash: e186231a01c21cd054f9ebbeb7a0080396b0e64a5a6b2d5dbb491bf9da6a791a
-    sourceHash: e7878667b4fe581a869327d4ae97719001dc6c429995965e7102f453610509b7
+    sourceHash: ee6d31c09f7362edf321657fa932f24452cc66be8244af111a05ea55e1274912
     sourceColumn: 12
     sourceEndColumn: 53
     sourceEndLine: 16
     sourceFile: scripts/skillopt-eval/catalog.ts
     sourceLine: 16
+  SYM-skillopt-claude-code-host-tests:
+    identityHash: 79f40da70c984fe9276fe4fc3edd9242a3edc199cb79b4f78dd35b146230ff00
+    sourceHash: b95378e0ffed64a713bb47061b4531cc6a152b8abb5dbce731060ca27a809e3f
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 373
+    sourceFile: scripts/skillopt-eval/tests/claude-code-host.test.ts
+    sourceLine: 1
+  SYM-skillopt-claude-code-target-host:
+    identityHash: 7dad8a0d44d8adad3509f7ce93f33038b2c84de6af1b4d552a845c20dad1cf3a
+    sourceHash: ec592828fcff8c7cb01b908244221438884e901693ca3199be3c30d7d9f67958
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 422
+    sourceFile: scripts/skillopt-eval/runtime/claude-code-host.ts
+    sourceLine: 370
+  SYM-skillopt-claude-host-campaign-dependencies:
+    identityHash: 3d1f5778ca8bc7551158e6800166752e822ebbd7a1ca4f1a9e6fa9bb97b1090d
+    sourceHash: 22c5094821a5e69e8fdca22958c47734315ebbc29c8b7268baf4e6765ec8d601
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 189
+    sourceFile: scripts/skillopt-eval/claude-code-campaign.ts
+    sourceLine: 180
+  SYM-skillopt-claude-host-cell-smoke:
+    identityHash: fe5667441c4d569d51bea8cfa35a4da74ad5efbcf102c6a21cd342c0d8617a03
+    sourceHash: 6f2d993a10e711d03aac499c38d893d672e7b747861ae5183dc4eae93f23c0bb
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 206
+    sourceFile: scripts/skillopt-eval/host-cell-smoke.ts
+    sourceLine: 37
+  SYM-skillopt-claude-session-login:
+    identityHash: 57d103b3a38d01faebaf05cd74f09b437c6197399dd94cf5fa33e1f18e547bab
+    sourceHash: ec592828fcff8c7cb01b908244221438884e901693ca3199be3c30d7d9f67958
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 236
+    sourceFile: scripts/skillopt-eval/runtime/claude-code-host.ts
+    sourceLine: 204
+  SYM-skillopt-claude-skill-mirror:
+    identityHash: 1c25e9db085d90864d4eb66252a78d8887cfc9680059c4992e8788a688e03015
+    sourceHash: ec592828fcff8c7cb01b908244221438884e901693ca3199be3c30d7d9f67958
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 367
+    sourceFile: scripts/skillopt-eval/runtime/claude-code-host.ts
+    sourceLine: 354
+  SYM-skillopt-claude-stream-to-codex-jsonl:
+    identityHash: 08909baf904cea4cd5dcd51e9aff47326a0b4b683241931aad5d2164f6f58137
+    sourceHash: ec592828fcff8c7cb01b908244221438884e901693ca3199be3c30d7d9f67958
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 699
+    sourceFile: scripts/skillopt-eval/runtime/claude-code-host.ts
+    sourceLine: 545
+  SYM-skillopt-claude-target-env:
+    identityHash: b99e9497bf0bdf76978bb2191d91b802c701392188eb2bd834b5b629ddbbdbb6
+    sourceHash: ec592828fcff8c7cb01b908244221438884e901693ca3199be3c30d7d9f67958
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 171
+    sourceFile: scripts/skillopt-eval/runtime/claude-code-host.ts
+    sourceLine: 134
+  SYM-skillopt-claude-target-settings:
+    identityHash: ca47e7e59efd7cbaebb03ad438236bad8f148c8bc795effcd6578aa71878f489
+    sourceHash: ec592828fcff8c7cb01b908244221438884e901693ca3199be3c30d7d9f67958
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 280
+    sourceFile: scripts/skillopt-eval/runtime/claude-code-host.ts
+    sourceLine: 256
   SYM-skillopt-cli-main:
     identityHash: 52a7afafd58366af3edc4244ceadf094e0bc33c42a32f9ca2ca9d973f629cd33
     sourceHash: 406b8d9c87d9fe21d98cdbe9af186db212193bceacce58f09a0d6009659893bf
@@ -25013,12 +25533,12 @@ coordinates:
     sourceLine: 1
   SYM-skillopt-codex-cell-dependencies-type:
     identityHash: 9490d8f72e7cf7348b3acf43ede64624b08969685c68b47c7d268f7e7ab60029
-    sourceHash: 87b13a54742f7f0d7c76c66ca16bd98ce60d888482213a6367f2eb6e00baf632
+    sourceHash: 37f871add3752aff757ab9a0ff0247e73f1a9cea723e55cc4f05afb6b6546eb7
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 84
+    sourceEndLine: 126
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
-    sourceLine: 66
+    sourceLine: 106
   SYM-skillopt-codex-cell-fixture-cleanupRoots:
     identityHash: 4933db4c02e6efa0317957a7eb2389412bdcd6baf0a9a4d0927d859e6f7eda7d
     sourceHash: a8e78eba18608c3706e47b48dd103db9b079db20f81b3cbac80f81e4c2a875b0
@@ -25093,7 +25613,7 @@ coordinates:
     sourceLine: 93
   SYM-skillopt-codex-cell-options-type:
     identityHash: 9afa2620c49f61e1d0cfdb12a121f7955d9820be5398f7bf3e7ef76ffc4ab837
-    sourceHash: 87b13a54742f7f0d7c76c66ca16bd98ce60d888482213a6367f2eb6e00baf632
+    sourceHash: 37f871add3752aff757ab9a0ff0247e73f1a9cea723e55cc4f05afb6b6546eb7
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 64
@@ -25109,12 +25629,12 @@ coordinates:
     sourceLine: 1
   SYM-skillopt-codex-cell-runner-tests:
     identityHash: 895688ac9e8e724b48f026a2b2f80e13210918070400e1e7ff626ffc1c390326
-    sourceHash: f7805c77a0ef3ef45c59309e180ad8282d7ca074b9da0f349d6b724ef8ae9467
+    sourceHash: a18175d5c08440e44d37f3eb41cbab7ca73cae7e06ecbe073064892e16fd3b79
     sourceColumn: 10
     sourceEndColumn: 27
-    sourceEndLine: 40
+    sourceEndLine: 306
     sourceFile: scripts/skillopt-eval/tests/codex-cell-runner.test.ts
-    sourceLine: 40
+    sourceLine: 306
   SYM-skillopt-codex-episode-receipt-schema:
     identityHash: 0e440aab6d8757d2d47efc7d1bde01b913a36440e74afc2a45916994a8fab05b
     sourceHash: 20b22b7af499c2b019d7a4b0a6b20419385baf036fbb2aee1c8ad645f1422a14
@@ -25141,7 +25661,7 @@ coordinates:
     sourceLine: 71
   SYM-skillopt-codex-events-tests:
     identityHash: 65d6a62db84a8b1f3dc0667730894fa406c88cea3615aca41bf86dbd429f272f
-    sourceHash: 66c7d876879c2517a0700658153becc9c219d934c7bee877f17a47c767ac4e03
+    sourceHash: fed2ab1d9762d70f5cb0032823ff6ac4e4cde9b209a985ade782c48025858806
     sourceColumn: 10
     sourceEndColumn: 35
     sourceEndLine: 7
@@ -25149,7 +25669,7 @@ coordinates:
     sourceLine: 7
   SYM-skillopt-codex-normalization-options-type:
     identityHash: 8440f767ea10a6c2e38c5be5a633ff4e2d507dc69b1670fb77a7491ef2d3814b
-    sourceHash: 7c30455fd193204891a8f690d40cc95540d49a9a79b967e771db20bc159cf93f
+    sourceHash: 880ea4cb0cfcc895b16c8b90cc9ec7c99c2596765b27d8a366569ca2d3b1eb7a
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 43
@@ -25157,7 +25677,7 @@ coordinates:
     sourceLine: 40
   SYM-skillopt-codex-normalization-type:
     identityHash: 3aa78de0ed64b482643f1445fe81cdeca2461491322ea0b4eaff3a7553433365
-    sourceHash: 7c30455fd193204891a8f690d40cc95540d49a9a79b967e771db20bc159cf93f
+    sourceHash: 880ea4cb0cfcc895b16c8b90cc9ec7c99c2596765b27d8a366569ca2d3b1eb7a
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 38
@@ -25245,7 +25765,7 @@ coordinates:
     sourceLine: 26
   SYM-skillopt-codex-violation-type:
     identityHash: 2e987d8ae751fe7ed63ed08993666c26e349931151fb3caee66216eadbf4520a
-    sourceHash: 7c30455fd193204891a8f690d40cc95540d49a9a79b967e771db20bc159cf93f
+    sourceHash: 880ea4cb0cfcc895b16c8b90cc9ec7c99c2596765b27d8a366569ca2d3b1eb7a
     sourceColumn: 12
     sourceEndColumn: 63
     sourceEndLine: 20
@@ -25253,7 +25773,7 @@ coordinates:
     sourceLine: 20
   SYM-skillopt-codex-violations:
     identityHash: c5f2157e1c8e4a988dac3340f91dcd7390805d4e76da7f4959d08422f5fa6396
-    sourceHash: 7c30455fd193204891a8f690d40cc95540d49a9a79b967e771db20bc159cf93f
+    sourceHash: 880ea4cb0cfcc895b16c8b90cc9ec7c99c2596765b27d8a366569ca2d3b1eb7a
     sourceColumn: 13
     sourceEndColumn: 10
     sourceEndLine: 19
@@ -25269,12 +25789,12 @@ coordinates:
     sourceLine: 71
   SYM-skillopt-completed-codex-cell-type:
     identityHash: 3ae4574d6e9e86c31e181c19b2f5b0d00eef24e06beeecce3a61886301f7672c
-    sourceHash: 87b13a54742f7f0d7c76c66ca16bd98ce60d888482213a6367f2eb6e00baf632
+    sourceHash: 37f871add3752aff757ab9a0ff0247e73f1a9cea723e55cc4f05afb6b6546eb7
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 90
+    sourceEndLine: 132
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
-    sourceLine: 86
+    sourceLine: 128
   SYM-skillopt-contract-approval-schema:
     identityHash: df8c5833e61db321023169b92bcd8d03f23c22f825855faa1bc4e5bcf9f0a76a
     sourceHash: 137333d6c6aee62090968fea383a3f745b0d42e82b59b6e2e2b18831edb0ea7b
@@ -25733,7 +26253,7 @@ coordinates:
     sourceLine: 21
   SYM-skillopt-contract-ts-tests-fixture:
     identityHash: 515f0ca9561bb2927db1faed0f1c47c063619bed667a5c862f52c43f8b2a3efb
-    sourceHash: 96b2a8c5ab1efb55a81aaa4ead0dd2dc93b65fbee6b0300582e8e5d0974baf92
+    sourceHash: 6adfa24927f2b4d8d4bb313ed2e45a00cd1a72cf0cf1d6ed114550835c84ea22
     sourceColumn: 9
     sourceEndColumn: 1
     sourceEndLine: 26
@@ -25757,12 +26277,12 @@ coordinates:
     sourceLine: 14
   SYM-skillopt-create-baseline-variant:
     identityHash: 88b8fbf3901cf6c9babc03e2945ab178903369d60e439b04b08242352efd312c
-    sourceHash: 19d696f4b2641e1fea7c14a7902c7c273d5a033c00265b1a0181f9aa9395630c
+    sourceHash: 84c0667e91dcb63f5e03dd7edc1a081a41bd2a2f6522e6deab740403bfd50ceb
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 168
+    sourceEndLine: 214
     sourceFile: scripts/skillopt-eval/variants.ts
-    sourceLine: 150
+    sourceLine: 196
   SYM-skillopt-create-codex-runtime-lease:
     identityHash: 6ce977cccb3adfbaa6433e80b2b31b6c95cb673773061b98665f891d470cc0ef
     sourceHash: 8cbbf008b2a72612c4d8b7d112e5579676ffb66ef9ca6f5703358e0e2fa9d6bf
@@ -26053,12 +26573,12 @@ coordinates:
     sourceLine: 390
   SYM-skillopt-default-codex-cell-dependencies:
     identityHash: 1b46cedf2c2c218888ef62ce298dad627a9ea770f9aa561d9495ac52150fa231
-    sourceHash: 8c6eadc081f9c791ef873a20479374512d5fde997121b6543e2cdf5f67de2324
+    sourceHash: ae4ff0dad4f1810d0e8a473fa23012b90bf4ec2f2d4326a8e3c70ebac76c86c3
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 1096
+    sourceEndLine: 1125
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-defaults.ts
-    sourceLine: 1020
+    sourceLine: 1049
   SYM-skillopt-default-codex-login-run:
     identityHash: e202a6e54d55e4fbe46657a7004a3d7680825d88cd5102852665b222327fd9c4
     sourceHash: e5a7445a88a2b777ffc1ab0ae5bce282c01070822a81f3abebfdc77c9ce1a572
@@ -26101,12 +26621,12 @@ coordinates:
     sourceLine: 184
   SYM-skillopt-delete-objectives:
     identityHash: 42f41246d7b694982d9120658c71141d1e107a244ea5e2d10aedc2db84483aca
-    sourceHash: e76e455ca73883d77b62a19a81518770bce2f3cd7aeafd591428b5f5495445d7
+    sourceHash: d7268a1e638818fe9861af7a65b4fc8a84ac76490b8eb2e8f6cbc0bfa847615d
     sourceColumn: 13
     sourceEndColumn: 2
-    sourceEndLine: 890
+    sourceEndLine: 902
     sourceFile: scripts/skillopt-eval/fixtures/objective-expectations.ts
-    sourceLine: 884
+    sourceLine: 896
   SYM-skillopt-derive-adoption-id:
     identityHash: 7b482de7f0fb8f7c554429e368c5121e65a60261f31ac605c81e47334f1d7816
     sourceHash: 23943cdbec5914537eeff7754ea1b28769302338e51ced2dba1db6c50bdef80a
@@ -26125,12 +26645,12 @@ coordinates:
     sourceLine: 75
   SYM-skillopt-deterministic-variant-label:
     identityHash: bf7d67fc04587a6bb0d11d7daef9a66755a0019cd1770498938ab920b619d6b8
-    sourceHash: 7c30455fd193204891a8f690d40cc95540d49a9a79b967e771db20bc159cf93f
+    sourceHash: 880ea4cb0cfcc895b16c8b90cc9ec7c99c2596765b27d8a366569ca2d3b1eb7a
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 285
+    sourceEndLine: 339
     sourceFile: scripts/skillopt-eval/runtime/codex-events.ts
-    sourceLine: 275
+    sourceLine: 329
   SYM-skillopt-development-gate:
     identityHash: 32cbdc275ba17222448bde5536349fb321dc2e550dd85d1125c6de1cc8d98bf5
     sourceHash: 719a541f889858fdefa17d283727138a78b43a6b3a16476e643ee4743f837724
@@ -26189,12 +26709,12 @@ coordinates:
     sourceLine: 57
   SYM-skillopt-episode-output-schema:
     identityHash: 76de77784092fc8aebff56b7db8b2da18935beccfc9b0a0b9d78f2e40769cc0b
-    sourceHash: a9b1f6864b235a6fa524c7219e468d36c4aa7f4137fb95f0288d8dab3dae6037
+    sourceHash: 3846328d8ecd0e5236f1990d6d801b9d7649b5050729afebf7b652fbc93a505a
     sourceColumn: 13
     sourceEndColumn: 10
-    sourceEndLine: 75
+    sourceEndLine: 85
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-runner.ts
-    sourceLine: 67
+    sourceLine: 77
   SYM-skillopt-episode-replay-input-type:
     identityHash: 2446a7d8c0009ddeb62264f980e2fa93a9ddb1b1ee94fff34002dffece5605a8
     sourceHash: 20b22b7af499c2b019d7a4b0a6b20419385baf036fbb2aee1c8ad645f1422a14
@@ -26725,15 +27245,31 @@ coordinates:
     sourceLine: 13
   SYM-skillopt-filter-advertised-tools:
     identityHash: 5e2b983341b8c52322adf6dd01f63cd858303403b6f78b0465a511b8f5a01ed8
-    sourceHash: 366e8b3a1f80c3a00ec9520f187f5bc7b07e309d7ec0169c53233b18b4539d43
+    sourceHash: 4f5622136dd39317dfec9c93d42276fb96bd2745493a062156865bff9b6c26fa
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 66
     sourceFile: scripts/skillopt-eval/runtime/mcp-broker.ts
     sourceLine: 43
+  SYM-skillopt-final-answer:
+    identityHash: 8861031b133971d8b2d8bbefb4f0fa4ea6bf5d49bba1abb8139d2bb781f5c64d
+    sourceHash: 4f78675f36045b1d866c67c2eab7f735e20d18392cecad0a3f1ade51baeeab39
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 236
+    sourceFile: scripts/skillopt-eval/runtime/transcript-evidence.ts
+    sourceLine: 233
+  SYM-skillopt-final-answer-contract:
+    identityHash: 385bf4628dcf3d96d0413ebea78be46a4fa671808a0abb0f4a99998a36577cbb
+    sourceHash: 4f78675f36045b1d866c67c2eab7f735e20d18392cecad0a3f1ade51baeeab39
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 43
+    sourceFile: scripts/skillopt-eval/runtime/transcript-evidence.ts
+    sourceLine: 39
   SYM-skillopt-final-state-context-type:
     identityHash: c4c7fefffce9bf3867fb90c140c1e083e21d41ba735b292121da43d22453d7e7
-    sourceHash: 87b13a54742f7f0d7c76c66ca16bd98ce60d888482213a6367f2eb6e00baf632
+    sourceHash: 37f871add3752aff757ab9a0ff0247e73f1a9cea723e55cc4f05afb6b6546eb7
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 26
@@ -26765,7 +27301,7 @@ coordinates:
     sourceLine: 61
   SYM-skillopt-fixture-assert-coordinates-absent:
     identityHash: 45f87f3da5a383529da7fd46bbf1a2a394896f18087b24957885e46851085049
-    sourceHash: 56692ab08ddfccb5841d567f40fe93573d1a5a5122a4492187a2b7af6e5d5ea6
+    sourceHash: 3e11dee128f03976db849cb8b454f6f34dbcd9171556e2383a5671ebab824973
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 71
@@ -26773,7 +27309,7 @@ coordinates:
     sourceLine: 59
   SYM-skillopt-fixture-assert-coordinates-present:
     identityHash: 5d99b0ec23327e10e014256baff3b3a72f28066d6b963da4a3b08a447d1b9d0f
-    sourceHash: 56692ab08ddfccb5841d567f40fe93573d1a5a5122a4492187a2b7af6e5d5ea6
+    sourceHash: 3e11dee128f03976db849cb8b454f6f34dbcd9171556e2383a5671ebab824973
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 56
@@ -26781,7 +27317,7 @@ coordinates:
     sourceLine: 44
   SYM-skillopt-fixture-blinded-order:
     identityHash: 9c5b8d0b5d4ecd6f9d98444c99371b36ab2dc9f32b0f265da8d88b229de1bff7
-    sourceHash: 865e7ae0f7213a27fe60b7dcdc64e27b48edbd625ca6a4f146a8a2ddfed2d98f
+    sourceHash: 18794c2846ef16656bf03bf60dca497155f57b410a993ba9ee4a79c494f58d81
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 69
@@ -26789,20 +27325,20 @@ coordinates:
     sourceLine: 53
   SYM-skillopt-fixture-build-bundle-payload:
     identityHash: 8348e332313e3675389d7072d6ab60a685b73863cd8228fd339f4a62883074a3
-    sourceHash: 95fb1a6fff2469c17e1cbccb33709af650d62b61376ff93fb3f5566c480565d3
+    sourceHash: 168001fecdb75414cfdbb340ce1764cff90013eb00f1aacea8634635e215b4c3
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 620
+    sourceEndLine: 626
     sourceFile: scripts/skillopt-eval/fixtures/task-builders.ts
-    sourceLine: 611
+    sourceLine: 617
   SYM-skillopt-fixture-build-family-payload:
     identityHash: fce340b56e38d49173801981933c35f9cb90b080e63caf2754f985af34dbb812
-    sourceHash: 95fb1a6fff2469c17e1cbccb33709af650d62b61376ff93fb3f5566c480565d3
+    sourceHash: 168001fecdb75414cfdbb340ce1764cff90013eb00f1aacea8634635e215b4c3
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 608
+    sourceEndLine: 614
     sourceFile: scripts/skillopt-eval/fixtures/task-builders.ts
-    sourceLine: 598
+    sourceLine: 604
   SYM-skillopt-fixture-build-index:
     identityHash: fa866d7f728d5be8d744f3d5dd32a1f28d2d6f46af1c43ea60e7b9cad0fb2e70
     sourceHash: cf8e2ace9d461987c36748d3663c1c0fee24a60be1e6c2c57b4ef5fa1d0fd516
@@ -26813,7 +27349,7 @@ coordinates:
     sourceLine: 27
   SYM-skillopt-fixture-catalog-tests:
     identityHash: b45df41e105ea2880eef3086f795fac7c6930bfee4bc2ad977108e71547a6100
-    sourceHash: e48277218929dd15e32f8803b5271e5550213196496f81d11abbfdb83151d79d
+    sourceHash: 7d467767056411151d2da72d872438f41b4484722298c279d23082ddcd1527a4
     sourceColumn: 10
     sourceEndColumn: 34
     sourceEndLine: 36
@@ -26821,7 +27357,7 @@ coordinates:
     sourceLine: 36
   SYM-skillopt-fixture-cli-env:
     identityHash: 0e353e69cee90fdcfe8414b17f7bf44dfc9b22893ea89ae9824f3f4427525945
-    sourceHash: 56692ab08ddfccb5841d567f40fe93573d1a5a5122a4492187a2b7af6e5d5ea6
+    sourceHash: 3e11dee128f03976db849cb8b454f6f34dbcd9171556e2383a5671ebab824973
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 101
@@ -26845,20 +27381,20 @@ coordinates:
     sourceLine: 10
   SYM-skillopt-fixture-entity-ids:
     identityHash: 7cfb3bb31703334dd74e82f0bc15113cebc395bdd3076af3ed0f903911e4d0f6
-    sourceHash: bde937bd5711da7713382a8a89e4e9c69da7e3e788a6f4ab7b79991167c5a2cd
+    sourceHash: 7580c172e9231093c5cafc03a227b8efe3b32b6c369f7d79836651fea5d8785b
     sourceColumn: 9
     sourceEndColumn: 1
-    sourceEndLine: 134
+    sourceEndLine: 176
     sourceFile: scripts/skillopt-eval/fixtures/workspace.ts
-    sourceLine: 127
+    sourceLine: 169
   SYM-skillopt-fixture-family-payload-type:
     identityHash: 0b736071d997442ee5cd1e7c48afca4cdff9cb6e941dce38b1b12664d543af23
-    sourceHash: 95fb1a6fff2469c17e1cbccb33709af650d62b61376ff93fb3f5566c480565d3
+    sourceHash: 168001fecdb75414cfdbb340ce1764cff90013eb00f1aacea8634635e215b4c3
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 57
+    sourceEndLine: 58
     sourceFile: scripts/skillopt-eval/fixtures/task-builders.ts
-    sourceLine: 40
+    sourceLine: 41
   SYM-skillopt-fixture-freshness-definitions:
     identityHash: 4a4e3587dcd577641a44146c8884ffe02a62574dcbf249e4025858d94c8cbdeb
     sourceHash: 699f92c573d1a572c2060e88059f38729ef58645c541891deb7a9f57248e3766
@@ -26869,15 +27405,15 @@ coordinates:
     sourceLine: 58
   SYM-skillopt-fixture-hash-workspace:
     identityHash: 7e8202910eac510204520a52d1d28481f2153c1eb2f7339cda1928f5fc629cc7
-    sourceHash: bde937bd5711da7713382a8a89e4e9c69da7e3e788a6f4ab7b79991167c5a2cd
+    sourceHash: 7580c172e9231093c5cafc03a227b8efe3b32b6c369f7d79836651fea5d8785b
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 214
+    sourceEndLine: 256
     sourceFile: scripts/skillopt-eval/fixtures/workspace.ts
-    sourceLine: 205
+    sourceLine: 247
   SYM-skillopt-fixture-init-definitions:
     identityHash: 608997ed746d4bda03d8727dfdaf5058b6f9330b248f802f1447b156fca6aa00
-    sourceHash: be7a0b3c058f2477544c207bece57647c795f3ec18c86772251f9f077c2175ab
+    sourceHash: ac3c70069e66740b47f4629df4e817b7e05847958474421e8e9ff1b971530a4c
     sourceColumn: 13
     sourceEndColumn: 1
     sourceEndLine: 111
@@ -26885,20 +27421,20 @@ coordinates:
     sourceLine: 58
   SYM-skillopt-fixture-integrity-error:
     identityHash: 9a894d4b527561df2c13d83b06ab1b695fa35ff3a410f511cc8334f06b35323d
-    sourceHash: 87b13a54742f7f0d7c76c66ca16bd98ce60d888482213a6367f2eb6e00baf632
+    sourceHash: 37f871add3752aff757ab9a0ff0247e73f1a9cea723e55cc4f05afb6b6546eb7
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 98
+    sourceEndLine: 140
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
-    sourceLine: 92
+    sourceLine: 134
   SYM-skillopt-fixture-integrity-error-name:
     identityHash: 4c7842770c056d0a33404a1e4c5d10a7088750453fee88dcc3f0e473e8cbbd7f
-    sourceHash: 87b13a54742f7f0d7c76c66ca16bd98ce60d888482213a6367f2eb6e00baf632
+    sourceHash: 37f871add3752aff757ab9a0ff0247e73f1a9cea723e55cc4f05afb6b6546eb7
     sourceColumn: 11
     sourceEndColumn: 42
-    sourceEndLine: 93
+    sourceEndLine: 135
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
-    sourceLine: 93
+    sourceLine: 135
   SYM-skillopt-fixture-materialize-run:
     identityHash: e5b12b3063ca96ac229e5ae146536c794827744d937899c7d3297dc3033b7ffa
     sourceHash: 593f67dd8f030357eea2c5d9598ea8a72ae22a8cc49004b00a80fd03e810c740
@@ -26941,20 +27477,20 @@ coordinates:
     sourceLine: 163
   SYM-skillopt-fixture-parse-private-manifest:
     identityHash: 2099b56fb7c701a82a701cf8271b46352437c7000417529996e58bf0a1758004
-    sourceHash: 15f48f4f714cfa1d138ffcaa9260fd698941610cf443341118c2b905d5ef57dc
+    sourceHash: 900453adec4903eec99d8341b8b96682e637adc213aa72ca239508b193971321
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 318
+    sourceEndLine: 319
     sourceFile: scripts/skillopt-eval/fixtures/evaluator-contracts.ts
-    sourceLine: 314
+    sourceLine: 315
   SYM-skillopt-fixture-parse-private-value:
     identityHash: 617c9487ab8a9bddcefad272ac05eb63c06aa353b528e51e0b06a5e93149a042
-    sourceHash: 15f48f4f714cfa1d138ffcaa9260fd698941610cf443341118c2b905d5ef57dc
+    sourceHash: 900453adec4903eec99d8341b8b96682e637adc213aa72ca239508b193971321
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 322
+    sourceEndLine: 323
     sourceFile: scripts/skillopt-eval/fixtures/evaluator-contracts.ts
-    sourceLine: 320
+    sourceLine: 321
   SYM-skillopt-fixture-parse-public-manifest:
     identityHash: 4f53accfccf0114cd270cabf9b42fe415f93fe94e21116e009b721b647994afc
     sourceHash: 6b44d76cd5e5da9605bc32c79f48d2db7ada03b16b452c80ee9b116b60b0fff1
@@ -26989,23 +27525,23 @@ coordinates:
     sourceLine: 131
   SYM-skillopt-fixture-private-integrity:
     identityHash: 21781aa23b438a8f3ddac5fb75281f7cfa0705b7d52c04c9c21ab78346ee5590
-    sourceHash: 865e7ae0f7213a27fe60b7dcdc64e27b48edbd625ca6a4f146a8a2ddfed2d98f
+    sourceHash: 18794c2846ef16656bf03bf60dca497155f57b410a993ba9ee4a79c494f58d81
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 596
+    sourceEndLine: 598
     sourceFile: scripts/skillopt-eval/fixtures/evaluator.ts
-    sourceLine: 572
+    sourceLine: 574
   SYM-skillopt-fixture-private-manifest:
     identityHash: f8d72a64aadd87c343e26ff1a65d0930159c69b750b6c26024990cf6ea199d01
-    sourceHash: 865e7ae0f7213a27fe60b7dcdc64e27b48edbd625ca6a4f146a8a2ddfed2d98f
+    sourceHash: 18794c2846ef16656bf03bf60dca497155f57b410a993ba9ee4a79c494f58d81
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 569
+    sourceEndLine: 571
     sourceFile: scripts/skillopt-eval/fixtures/evaluator.ts
     sourceLine: 336
   SYM-skillopt-fixture-private-tests:
     identityHash: 274dcc02436d15408aa49581d21e793f2ceafb8813cc2dbf863560a5f4c264f0
-    sourceHash: 9a70be8a4d01aa5c842a8edd79a86356b6ee1175a0a52e82e3739f2655e2d2ba
+    sourceHash: 56f9275e595d9633b35a3a7ab33f64bb6dc2e8aff90207dfa46421433e2f4556
     sourceColumn: 10
     sourceEndColumn: 41
     sourceEndLine: 49
@@ -27013,7 +27549,7 @@ coordinates:
     sourceLine: 49
   SYM-skillopt-fixture-public-tests:
     identityHash: 2bfd41b9725d6a4fba5fd5de588f3b60fee0e3835c36e59a0ee394e757e80aa9
-    sourceHash: afd1e099fb3200a475200a8d1d5e01bc0c9108699f75e9fa89e08963da4d09f8
+    sourceHash: 77ba3263d6f74d50facd4c303998d8b460b83938fc3af03b336d78be9ce6d880
     sourceColumn: 10
     sourceEndColumn: 40
     sourceEndLine: 27
@@ -27045,12 +27581,12 @@ coordinates:
     sourceLine: 19
   SYM-skillopt-fixture-symbol-id:
     identityHash: a327f72975bac749f489dc74bf440a215ba4e48d7b50f391216a81f7454f2ad9
-    sourceHash: bde937bd5711da7713382a8a89e4e9c69da7e3e788a6f4ab7b79991167c5a2cd
+    sourceHash: 7580c172e9231093c5cafc03a227b8efe3b32b6c369f7d79836651fea5d8785b
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 124
+    sourceEndLine: 166
     sourceFile: scripts/skillopt-eval/fixtures/workspace.ts
-    sourceLine: 121
+    sourceLine: 163
   SYM-skillopt-fixture-test-canonical-skill-root:
     identityHash: cad1646265dc964b44e533903f61661eb24b2621e8f4aed10af9e0d93ebf66db
     sourceHash: 7843be75f29d48eceb2db137bdbdd16ed9f207fd98f4d02fe1959c498e06d7cd
@@ -27093,7 +27629,7 @@ coordinates:
     sourceLine: 32
   SYM-skillopt-fixture-traceability-definitions:
     identityHash: 4e8f8510bc06af099a6142dedeba7808a77e810785b7e9515d28ff976ceba84f
-    sourceHash: be7a0b3c058f2477544c207bece57647c795f3ec18c86772251f9f077c2175ab
+    sourceHash: ac3c70069e66740b47f4629df4e817b7e05847958474421e8e9ff1b971530a4c
     sourceColumn: 13
     sourceEndColumn: 1
     sourceEndLine: 56
@@ -27117,28 +27653,108 @@ coordinates:
     sourceLine: 51
   SYM-skillopt-fixture-write-workspace:
     identityHash: 8b83caf6708684f4f9bcdfe91b5dd6d254e58db425f8a0f8ce35516973931786
-    sourceHash: bde937bd5711da7713382a8a89e4e9c69da7e3e788a6f4ab7b79991167c5a2cd
+    sourceHash: 7580c172e9231093c5cafc03a227b8efe3b32b6c369f7d79836651fea5d8785b
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 275
+    sourceEndLine: 337
     sourceFile: scripts/skillopt-eval/fixtures/workspace.ts
-    sourceLine: 217
+    sourceLine: 259
+  SYM-skillopt-fixtures-case-contracts-answerscoredobjective-8df4e0d3:
+    identityHash: 428684ee80384933c06bb3f401de69de4021e97413aa746868a7436e0a550a59
+    sourceHash: 9aff5ed7d2e524a09a343b99cdb1114dec22e9137bc2be0e62b8dc168b7469e0
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 179
+    sourceFile: scripts/skillopt-eval/fixtures/case-contracts.ts
+    sourceLine: 174
+  SYM-skillopt-fixtures-case-contracts-casecontract-5089d1a6:
+    identityHash: 77b46ce3d8477aba1e48f030c2047c4c04b83870f72191588469e531423db7bc
+    sourceHash: 9aff5ed7d2e524a09a343b99cdb1114dec22e9137bc2be0e62b8dc168b7469e0
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 49
+    sourceFile: scripts/skillopt-eval/fixtures/case-contracts.ts
+    sourceLine: 41
+  SYM-skillopt-fixtures-case-contracts-fixturesetupmode-6e8842e1:
+    identityHash: 26001b4387b2ec5e3066ba78aba49d29f1bf8cf9d6f314dd5d46c89197d34cfb
+    sourceHash: 9aff5ed7d2e524a09a343b99cdb1114dec22e9137bc2be0e62b8dc168b7469e0
+    sourceColumn: 12
+    sourceEndColumn: 28
+    sourceEndLine: 19
+    sourceFile: scripts/skillopt-eval/fixtures/case-contracts.ts
+    sourceLine: 10
+  SYM-skillopt-fixtures-case-contracts-kibi-answer-format-instruction-12b5bc5a:
+    identityHash: d490010c88a12ee033ef985cb7b8e5ad4deb41141790160662e8f0f252ff6c6a
+    sourceHash: 9aff5ed7d2e524a09a343b99cdb1114dec22e9137bc2be0e62b8dc168b7469e0
+    sourceColumn: 13
+    sourceEndColumn: 459
+    sourceEndLine: 57
+    sourceFile: scripts/skillopt-eval/fixtures/case-contracts.ts
+    sourceLine: 56
+  SYM-skillopt-fixtures-case-contracts-objective-case-contracts-8e9355e2:
+    identityHash: d9c0e7fbcefb4a0299c00461f068f624354e6ab4d6896c85f25dbf303a63531b
+    sourceHash: 9aff5ed7d2e524a09a343b99cdb1114dec22e9137bc2be0e62b8dc168b7469e0
+    sourceColumn: 13
+    sourceEndColumn: 3
+    sourceEndLine: 170
+    sourceFile: scripts/skillopt-eval/fixtures/case-contracts.ts
+    sourceLine: 79
+  SYM-skillopt-fixtures-case-contracts-requiredcall-0d6de131:
+    identityHash: 3b0d8881f694a4e19efa5b85814c02650a5f77ad9c5f0bde7b0194af544bd7ca
+    sourceHash: 9aff5ed7d2e524a09a343b99cdb1114dec22e9137bc2be0e62b8dc168b7469e0
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 38
+    sourceFile: scripts/skillopt-eval/fixtures/case-contracts.ts
+    sourceLine: 34
+  SYM-skillopt-fixtures-case-contracts-workspaceassertion-ef52433e:
+    identityHash: fb44baae9a8c33ff4428ba0d6927a85c9f9d5984d6b37a8aa52834bbf8b86db3
+    sourceHash: 9aff5ed7d2e524a09a343b99cdb1114dec22e9137bc2be0e62b8dc168b7469e0
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 31
+    sourceFile: scripts/skillopt-eval/fixtures/case-contracts.ts
+    sourceLine: 23
+  SYM-skillopt-fixtures-task-definitions-supplemental-dogfoodcase-62f8db0b:
+    identityHash: 7e904fddd8f9b639e7d15751976b6bc1cbd6d1adedda01ba71ccd40165a29d02
+    sourceHash: 56622fc7730a9ab419f6ec55069f496a096336637ade41914d7f90c9f97b4d7d
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 20
+    sourceFile: scripts/skillopt-eval/fixtures/task-definitions-supplemental.ts
+    sourceLine: 12
+  SYM-skillopt-fixtures-task-definitions-supplemental-supplemental-cases-8e8546d2:
+    identityHash: 0ca6166d9bd696297dda53aedd0f218d2e563faeda881b90e56924c0523799f7
+    sourceHash: 56622fc7730a9ab419f6ec55069f496a096336637ade41914d7f90c9f97b4d7d
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 233
+    sourceFile: scripts/skillopt-eval/fixtures/task-definitions-supplemental.ts
+    sourceLine: 134
+  SYM-skillopt-fixtures-task-definitions-supplemental-supplemental-definitions-97a1cd74:
+    identityHash: bc1d354f0c7f234fb574bab0354ddab9d4af1c8257f213d5e2f8e45d57c6c159
+    sourceHash: 56622fc7730a9ab419f6ec55069f496a096336637ade41914d7f90c9f97b4d7d
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 85
+    sourceFile: scripts/skillopt-eval/fixtures/task-definitions-supplemental.ts
+    sourceLine: 52
   SYM-skillopt-freeze-candidate-variant:
     identityHash: 0bdae41369ab9309c081c157d8025abfec7d2659f92044c9d4c5a7e3a69edba4
-    sourceHash: 19d696f4b2641e1fea7c14a7902c7c273d5a033c00265b1a0181f9aa9395630c
+    sourceHash: 84c0667e91dcb63f5e03dd7edc1a081a41bd2a2f6522e6deab740403bfd50ceb
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 187
+    sourceEndLine: 233
     sourceFile: scripts/skillopt-eval/variants.ts
-    sourceLine: 171
+    sourceLine: 217
   SYM-skillopt-frozen-variant:
     identityHash: 6ead30e9f3594416431ce77cc8fddacc22366fe0d303a760142953f9e020eb5d
-    sourceHash: 19d696f4b2641e1fea7c14a7902c7c273d5a033c00265b1a0181f9aa9395630c
+    sourceHash: 84c0667e91dcb63f5e03dd7edc1a081a41bd2a2f6522e6deab740403bfd50ceb
     sourceColumn: 12
     sourceEndColumn: 5
-    sourceEndLine: 32
+    sourceEndLine: 39
     sourceFile: scripts/skillopt-eval/variants.ts
-    sourceLine: 17
+    sourceLine: 19
   SYM-skillopt-fsync-directory:
     identityHash: 1d021034f78c91b996c61a9fcd4ccfc43211acd9661a7a07b1d3cecedba26122
     sourceHash: 3acb15536a2388291c9f33474569a203a849f3040170114ed65d8b8f9e53e020
@@ -27149,12 +27765,12 @@ coordinates:
     sourceLine: 120
   SYM-skillopt-generate-one-shot-variant:
     identityHash: dcd3dcf61c8d873d8074669160be94721d4dd49f579f593143905f8faec2f354
-    sourceHash: 19d696f4b2641e1fea7c14a7902c7c273d5a033c00265b1a0181f9aa9395630c
+    sourceHash: 84c0667e91dcb63f5e03dd7edc1a081a41bd2a2f6522e6deab740403bfd50ceb
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 238
+    sourceEndLine: 284
     sourceFile: scripts/skillopt-eval/variants.ts
-    sourceLine: 190
+    sourceLine: 236
   SYM-skillopt-hash-authorized-source-tree:
     identityHash: 9bb9dfc776f687e6300e598ae8cc87d77198af998b246c2f4c049f7a53e3bed6
     sourceHash: 45edf84789bba5a33318bdbc03717226bd8a0fd3173362863de327472500556a
@@ -27253,7 +27869,7 @@ coordinates:
     sourceLine: 1
   SYM-skillopt-init-fixture-repository:
     identityHash: 457121bc3698ee3046c8356469ceb2785ea46bfa4cb38c7d0cd64afe87a42027
-    sourceHash: 56692ab08ddfccb5841d567f40fe93573d1a5a5122a4492187a2b7af6e5d5ea6
+    sourceHash: 3e11dee128f03976db849cb8b454f6f34dbcd9171556e2383a5671ebab824973
     sourceColumn: 22
     sourceEndColumn: 1
     sourceEndLine: 418
@@ -27285,7 +27901,7 @@ coordinates:
     sourceLine: 245
   SYM-skillopt-is-predicate-objective:
     identityHash: 2cac807b8e22553e3d4013489f2f5c38b3fd9598c14f5fe8879404eed5fed10a
-    sourceHash: e76e455ca73883d77b62a19a81518770bce2f3cd7aeafd591428b5f5495445d7
+    sourceHash: d7268a1e638818fe9861af7a65b4fc8a84ac76490b8eb2e8f6cbc0bfa847615d
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 41
@@ -27405,12 +28021,20 @@ coordinates:
     sourceLine: 179
   SYM-skillopt-knowledge-state-type:
     identityHash: 7a7e9bdef53baec7ffe227d1e9a153cc58c7d912bd5e2caf765d54118b94b376
-    sourceHash: e7878667b4fe581a869327d4ae97719001dc6c429995965e7102f453610509b7
+    sourceHash: ee6d31c09f7362edf321657fa932f24452cc66be8244af111a05ea55e1274912
     sourceColumn: 12
     sourceEndColumn: 70
     sourceEndLine: 24
     sourceFile: scripts/skillopt-eval/catalog.ts
     sourceLine: 24
+  SYM-skillopt-last-agent-message:
+    identityHash: c1de58d579916bcc63633fa3bba23bc091fbd2ef9cf575de03c46d2975196676
+    sourceHash: 4f78675f36045b1d866c67c2eab7f735e20d18392cecad0a3f1ade51baeeab39
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 123
+    sourceFile: scripts/skillopt-eval/runtime/transcript-evidence.ts
+    sourceLine: 116
   SYM-skillopt-load-canonical-snapshot:
     identityHash: 0890c97446990b1299d6bdb8c840acc3bc80b645a7ec201c68d9f4751ee419a5
     sourceHash: 23943cdbec5914537eeff7754ea1b28769302338e51ced2dba1db6c50bdef80a
@@ -27429,12 +28053,12 @@ coordinates:
     sourceLine: 220
   SYM-skillopt-load-seed-candidate:
     identityHash: c212b33d1c5fc48b911859d8cd62edd1da27d1bb543b67be79baf15eaaa36fb3
-    sourceHash: 6cb49dc37ac055874a3147a9bf71b5ab0777c219df76a3d26c3aa098aaac6208
+    sourceHash: 37158957873face5a672dd02293b0bdbf97dfc688e3444466ec0f8d8578e059d
     sourceColumn: 15
     sourceEndColumn: 1
-    sourceEndLine: 211
+    sourceEndLine: 243
     sourceFile: scripts/skillopt-eval/real-workflow.ts
-    sourceLine: 192
+    sourceLine: 224
   SYM-skillopt-lock-dispatch-throw-if-directory-inode-drift:
     identityHash: dfd081472ed825120ebc1902347b41ebabde6701bbf46cb1afc7f8cc0b4e1a91
     sourceHash: 8ce11dc1bfc338ce7230261c073cf5a75984483452748bdec7e2bb1b2cffbef6
@@ -27453,7 +28077,7 @@ coordinates:
     sourceLine: 363
   SYM-skillopt-max-candidate-body-bytes:
     identityHash: 95e2774c1aa2d1409033cce31d61d1ebb8f4394c1b79c388b279f7949453bab7
-    sourceHash: 19d696f4b2641e1fea7c14a7902c7c273d5a033c00265b1a0181f9aa9395630c
+    sourceHash: 84c0667e91dcb63f5e03dd7edc1a081a41bd2a2f6522e6deab740403bfd50ceb
     sourceColumn: 13
     sourceEndColumn: 47
     sourceEndLine: 7
@@ -27461,28 +28085,60 @@ coordinates:
     sourceLine: 7
   SYM-skillopt-mcp-broker-error:
     identityHash: 386deedd43d4f9c640e6df9de10f9525ef5d18e85a7a1763c507762ef9899bc9
-    sourceHash: 366e8b3a1f80c3a00ec9520f187f5bc7b07e309d7ec0169c53233b18b4539d43
+    sourceHash: 4f5622136dd39317dfec9c93d42276fb96bd2745493a062156865bff9b6c26fa
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 90
-    sourceFile: scripts/skillopt-eval/runtime/mcp-broker.ts
-    sourceLine: 82
-  SYM-skillopt-mcp-broker-error-name:
-    identityHash: c51a7ee1f3ca329c4d3a938c3329c188d46e3b3a05dbc17699eafe3e902c65c2
-    sourceHash: 366e8b3a1f80c3a00ec9520f187f5bc7b07e309d7ec0169c53233b18b4539d43
-    sourceColumn: 11
-    sourceEndColumn: 35
-    sourceEndLine: 83
+    sourceEndLine: 91
     sourceFile: scripts/skillopt-eval/runtime/mcp-broker.ts
     sourceLine: 83
+  SYM-skillopt-mcp-broker-error-name:
+    identityHash: c51a7ee1f3ca329c4d3a938c3329c188d46e3b3a05dbc17699eafe3e902c65c2
+    sourceHash: 4f5622136dd39317dfec9c93d42276fb96bd2745493a062156865bff9b6c26fa
+    sourceColumn: 11
+    sourceEndColumn: 35
+    sourceEndLine: 84
+    sourceFile: scripts/skillopt-eval/runtime/mcp-broker.ts
+    sourceLine: 84
   SYM-skillopt-mcp-broker-tests:
     identityHash: 6b2ed137912c1241f61f99ac440b434e1bd9ed41077b7eecd21eab9494d8429c
-    sourceHash: a5b33eff6442bd1ac085d1cac5d2a085b5d0ecfcce955924a954e603ef2889ba
+    sourceHash: 94f744027adb2466d6f0c3cc939aef68a11a94af2db5524072a0bb909523ad10
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 377
+    sourceEndLine: 499
     sourceFile: scripts/skillopt-eval/tests/mcp-broker.test.ts
     sourceLine: 1
+  SYM-skillopt-mcp-call-arguments:
+    identityHash: becc5360af31fe1b7af8c7fe2e4f161893534a9c45ee3866e3bf10899749ae0e
+    sourceHash: 8eb8082c6537caa4e7af22e8546dcacacd07ce42d74a6e2697d02128efa2e787
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 46
+    sourceFile: scripts/skillopt-eval/runtime/mcp-tool-names.ts
+    sourceLine: 43
+  SYM-skillopt-mcp-model-modes:
+    identityHash: 87d91c324af902dcad346eaf3f080649716dcec0f80e94bcfbe2e7e00f79c552
+    sourceHash: 8eb8082c6537caa4e7af22e8546dcacacd07ce42d74a6e2697d02128efa2e787
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 16
+    sourceFile: scripts/skillopt-eval/runtime/mcp-tool-names.ts
+    sourceLine: 12
+  SYM-skillopt-mcp-operation-tool:
+    identityHash: 8882d9c04d86fef00e9e568c4f1000f97f9f14651ca50e2ee10cf6f2a0842698
+    sourceHash: 8eb8082c6537caa4e7af22e8546dcacacd07ce42d74a6e2697d02128efa2e787
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 62
+    sourceFile: scripts/skillopt-eval/runtime/mcp-tool-names.ts
+    sourceLine: 60
+  SYM-skillopt-mcp-routed-operation:
+    identityHash: 2065d83bfd8ad9d5df76090886e6e942bd0bc789c506958b8c78aa86867c3f2f
+    sourceHash: 8eb8082c6537caa4e7af22e8546dcacacd07ce42d74a6e2697d02128efa2e787
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 39
+    sourceFile: scripts/skillopt-eval/runtime/mcp-tool-names.ts
+    sourceLine: 23
   SYM-skillopt-mcp-startup-probe-tests:
     identityHash: a598711745ef51321876b0b5bc12872ca3e8c7f59470a95b784a4da5807853e5
     sourceHash: db0d40a00923975a711fbc5edd0523c3b5f77544978d1c2d74686fbe357148c2
@@ -27501,12 +28157,12 @@ coordinates:
     sourceLine: 63
   SYM-skillopt-migration-apply-objectives:
     identityHash: c89989859374db26f216078e6dc56ba32d7e4235a5318d3c54296c87f3d719ca
-    sourceHash: e76e455ca73883d77b62a19a81518770bce2f3cd7aeafd591428b5f5495445d7
+    sourceHash: d7268a1e638818fe9861af7a65b4fc8a84ac76490b8eb2e8f6cbc0bfa847615d
     sourceColumn: 13
     sourceEndColumn: 2
-    sourceEndLine: 903
+    sourceEndLine: 915
     sourceFile: scripts/skillopt-eval/fixtures/objective-expectations.ts
-    sourceLine: 894
+    sourceLine: 906
   SYM-skillopt-model-gateway-security-tests:
     identityHash: bb7280eea11e9fe16a0694c67c433f067767ee6d64ad7e94182faf5eecb3bc1b
     sourceHash: 0305939aaecf3d150bd6f656e269aeb5a3eb51c32fbac555f807c17c9692acb8
@@ -27541,15 +28197,15 @@ coordinates:
     sourceLine: 50
   SYM-skillopt-normalize-codex-jsonl:
     identityHash: a3bcda45b7473c5bf5c7389b3dcc3d670b72ccf8ec41a0bdd29e6a863576a706
-    sourceHash: 7c30455fd193204891a8f690d40cc95540d49a9a79b967e771db20bc159cf93f
+    sourceHash: 880ea4cb0cfcc895b16c8b90cc9ec7c99c2596765b27d8a366569ca2d3b1eb7a
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 272
+    sourceEndLine: 326
     sourceFile: scripts/skillopt-eval/runtime/codex-events.ts
-    sourceLine: 222
+    sourceLine: 276
   SYM-skillopt-normalized-codex-event-type:
     identityHash: 520b5bfa8cf1ce277e4b559e95b8ec76efb336f249737942c63abc08871ae106
-    sourceHash: 7c30455fd193204891a8f690d40cc95540d49a9a79b967e771db20bc159cf93f
+    sourceHash: 880ea4cb0cfcc895b16c8b90cc9ec7c99c2596765b27d8a366569ca2d3b1eb7a
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 26
@@ -27557,7 +28213,7 @@ coordinates:
     sourceLine: 22
   SYM-skillopt-objective-workflow-shape:
     identityHash: 74b4604189bb8bc62f719a4e1e20ee2ebf763a0c9e1f8f51c9f1e7598aadaa13
-    sourceHash: e76e455ca73883d77b62a19a81518770bce2f3cd7aeafd591428b5f5495445d7
+    sourceHash: d7268a1e638818fe9861af7a65b4fc8a84ac76490b8eb2e8f6cbc0bfa847615d
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 33
@@ -27565,10 +28221,10 @@ coordinates:
     sourceLine: 12
   SYM-skillopt-objective-workflows:
     identityHash: a24aa4fbf3570818c49db9e834f105fdfb13e3abecd073ec2c517a2e723f81b0
-    sourceHash: e76e455ca73883d77b62a19a81518770bce2f3cd7aeafd591428b5f5495445d7
+    sourceHash: d7268a1e638818fe9861af7a65b4fc8a84ac76490b8eb2e8f6cbc0bfa847615d
     sourceColumn: 13
     sourceEndColumn: 3
-    sourceEndLine: 880
+    sourceEndLine: 892
     sourceFile: scripts/skillopt-eval/fixtures/objective-expectations.ts
     sourceLine: 44
   SYM-skillopt-offline-review-artifacts:
@@ -27587,30 +28243,46 @@ coordinates:
     sourceEndLine: 151
     sourceFile: scripts/skillopt-eval/orchestration.ts
     sourceLine: 147
+  SYM-skillopt-onboarding-review-evidence:
+    identityHash: eb1e2539a84fd82c71228542e97310c556c2b755aa4bfe58110c3be99d758cac
+    sourceHash: 4b2c14a35e41a7022839cd947a2eca3753937d0f5f8c2b1cc82f35f9dc4575c5
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 58
+    sourceFile: scripts/skillopt-eval/fixtures/onboarding-review.ts
+    sourceLine: 3
+  SYM-skillopt-onboarding-review-matches:
+    identityHash: 00c48944a66138a7dfb81b7891ee64382c60f5cf54498804fc79e3a2f1a8fbba
+    sourceHash: c48e905e555e2c6d79968bbaa910a57d6facd8f3976053dc79db9e738b87ffa3
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 91
+    sourceFile: scripts/skillopt-eval/runtime/onboarding-review.ts
+    sourceLine: 28
   SYM-skillopt-one-shot-optimizer:
     identityHash: 21242d197a62d251dec1c367fb8a95c281e6704431a157bea42bebee9a7a67de
-    sourceHash: 19d696f4b2641e1fea7c14a7902c7c273d5a033c00265b1a0181f9aa9395630c
+    sourceHash: 84c0667e91dcb63f5e03dd7edc1a081a41bd2a2f6522e6deab740403bfd50ceb
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 44
+    sourceEndLine: 51
     sourceFile: scripts/skillopt-eval/variants.ts
-    sourceLine: 42
+    sourceLine: 49
   SYM-skillopt-one-shot-request:
     identityHash: 6167f96ac3564ee5d9b5b3e4039659ddb53ca4094973f789dbd9747ce08e7ece
-    sourceHash: 19d696f4b2641e1fea7c14a7902c7c273d5a033c00265b1a0181f9aa9395630c
+    sourceHash: 84c0667e91dcb63f5e03dd7edc1a081a41bd2a2f6522e6deab740403bfd50ceb
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 40
+    sourceEndLine: 47
     sourceFile: scripts/skillopt-eval/variants.ts
-    sourceLine: 34
+    sourceLine: 41
   SYM-skillopt-one-shot-result:
     identityHash: 421280e5c2e39c4eda3589a0b1b52b884dc7f44310fe671e3f98df017db8dec2
-    sourceHash: 19d696f4b2641e1fea7c14a7902c7c273d5a033c00265b1a0181f9aa9395630c
+    sourceHash: 84c0667e91dcb63f5e03dd7edc1a081a41bd2a2f6522e6deab740403bfd50ceb
     sourceColumn: 12
     sourceEndColumn: 7
-    sourceEndLine: 60
+    sourceEndLine: 67
     sourceFile: scripts/skillopt-eval/variants.ts
-    sourceLine: 46
+    sourceLine: 53
   SYM-skillopt-one-shot-variant:
     identityHash: 1066eace8a45f9b0dacbbe2ad3ba8af2900d1446aff34c49c2da3eb0e9c79cc8
     sourceHash: 9fb6d63b9dc582807702994a7274ac2b6298b26a62a1c4dc7b638fb3ff11c051
@@ -27771,22 +28443,38 @@ coordinates:
     sourceEndLine: 364
     sourceFile: scripts/skillopt-eval/optimize.ts
     sourceLine: 212
+  SYM-skillopt-ordering-contract:
+    identityHash: c1cf481c596f7e547f75587f3da6d9f367eb507435e9872d3c4253c4899ed264
+    sourceHash: 4f78675f36045b1d866c67c2eab7f735e20d18392cecad0a3f1ade51baeeab39
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 55
+    sourceFile: scripts/skillopt-eval/runtime/transcript-evidence.ts
+    sourceLine: 46
   SYM-skillopt-paid-launch-evidence-tests:
     identityHash: 6bd883a4ddd6c1a74bc9ad095e92050a2eb445aa4fb3ffdfc1a15e1e56970bef
-    sourceHash: 70c04c10172ff6e6d77145c587e808da10e03164c536b5a0dbe74f01ec01845a
+    sourceHash: 327301cad47a11c9ded67d753a7395adf0161a5356c7679679cc8391f6bd6824
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 76
+    sourceEndLine: 77
     sourceFile: scripts/skillopt-eval/tests/paid-launch-evidence.test.ts
     sourceLine: 1
   SYM-skillopt-paid-launch-receipt-tests:
     identityHash: 6bb88bf40db6ac835b28a64dd378ae6c318370dc356311f41af64f2410c35a7e
-    sourceHash: c5575f3dba4f3a3570d10e4674bc982df64fc990fb9bfc701a57f42677784e40
+    sourceHash: 034cd8a66176ca8614aa8f09b5476f8d6a477db317acfb4161dfbbcaaf3b8ca6
     sourceColumn: 10
     sourceEndColumn: 47
-    sourceEndLine: 14
+    sourceEndLine: 15
     sourceFile: scripts/skillopt-eval/tests/paid-launch-receipts.test.ts
-    sourceLine: 14
+    sourceLine: 15
+  SYM-skillopt-parse-answer:
+    identityHash: 2d9e247445fd4f134d8c63861d96f5fec72b543e6aed17bfc987922fe2d8c7a1
+    sourceHash: 4f78675f36045b1d866c67c2eab7f735e20d18392cecad0a3f1ade51baeeab39
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 230
+    sourceFile: scripts/skillopt-eval/runtime/transcript-evidence.ts
+    sourceLine: 228
   SYM-skillopt-parse-debit-subentry-receipt:
     identityHash: 7052aed628882db595a1c13e2c0a9280cda3ba62cb15778fca54800406d00938
     sourceHash: f15073bae892ef8a2021b19620af3c02ba53bbb14206cf7bc91a63a226113e82
@@ -27885,12 +28573,12 @@ coordinates:
     sourceLine: 51
   SYM-skillopt-passes-development-gate:
     identityHash: 22043776c9fed45cc94183ff36f9a4846288d8404ee8eb85252e8cb657aa5eb4
-    sourceHash: 6cb49dc37ac055874a3147a9bf71b5ab0777c219df76a3d26c3aa098aaac6208
+    sourceHash: 37158957873face5a672dd02293b0bdbf97dfc688e3444466ec0f8d8578e059d
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 233
+    sourceEndLine: 265
     sourceFile: scripts/skillopt-eval/real-workflow.ts
-    sourceLine: 215
+    sourceLine: 247
   SYM-skillopt-persist-artifacts:
     identityHash: 2d387400faed0b9703e3a60801a9894911eec38f1fe8f4c0262107cc0996b699
     sourceHash: 6a8379e3c077dc6a0bda12629cd63d8f70e178a8e288aaf237228fb908df1e5d
@@ -28125,7 +28813,7 @@ coordinates:
     sourceLine: 154
   SYM-skillopt-predicate-objective-prefix:
     identityHash: a662d849b6a9379732da38f30c4e3c573f5047a454b93f237cf80548ccb93e64
-    sourceHash: e76e455ca73883d77b62a19a81518770bce2f3cd7aeafd591428b5f5495445d7
+    sourceHash: d7268a1e638818fe9861af7a65b4fc8a84ac76490b8eb2e8f6cbc0bfa847615d
     sourceColumn: 13
     sourceEndColumn: 60
     sourceEndLine: 36
@@ -28205,12 +28893,12 @@ coordinates:
     sourceLine: 113
   SYM-skillopt-predicate-write-claim:
     identityHash: 8fe773a443c81d61ae84d911d1aed2ac9c8074d49b4122e12c8e4ede68e96b9f
-    sourceHash: bde937bd5711da7713382a8a89e4e9c69da7e3e788a6f4ab7b79991167c5a2cd
+    sourceHash: 7580c172e9231093c5cafc03a227b8efe3b32b6c369f7d79836651fea5d8785b
     sourceColumn: 9
     sourceEndColumn: 1
-    sourceEndLine: 176
+    sourceEndLine: 218
     sourceFile: scripts/skillopt-eval/fixtures/workspace.ts
-    sourceLine: 166
+    sourceLine: 208
   SYM-skillopt-preflight-check:
     identityHash: 6f11cfc25ccf911104a98800e2fb36d11da8a20ea3fb3900d784872ec1b53e47
     sourceHash: d8edadb7ea907eebbc2d55227878ba864ed79f7a4e0ac7661caefcc11b5ce4ef
@@ -28621,7 +29309,7 @@ coordinates:
     sourceLine: 82
   SYM-skillopt-prepared-login-type:
     identityHash: 6bc1dc4bf89086464c00ae44e864828d0e2432cb7c9a961dec739d369d0f9e0b
-    sourceHash: 87b13a54742f7f0d7c76c66ca16bd98ce60d888482213a6367f2eb6e00baf632
+    sourceHash: 37f871add3752aff757ab9a0ff0247e73f1a9cea723e55cc4f05afb6b6546eb7
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 17
@@ -29043,14 +29731,22 @@ coordinates:
     sourceEndLine: 107
     sourceFile: scripts/skillopt-eval/adoption-durable.ts
     sourceLine: 82
-  SYM-skillopt-real-optimization-run:
-    identityHash: 055b7f8b0fba999acc9995cb6b853811fbc4122cb9a96c929d12394938b93750
-    sourceHash: 6cb49dc37ac055874a3147a9bf71b5ab0777c219df76a3d26c3aa098aaac6208
+  SYM-skillopt-read-workspace-sources:
+    identityHash: 50319966c8a48fc7cc35a8d06a202c2bbe73872b03a635a114089e51513c88e9
+    sourceHash: 3846328d8ecd0e5236f1990d6d801b9d7649b5050729afebf7b652fbc93a505a
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 670
+    sourceEndLine: 131
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-runner.ts
+    sourceLine: 96
+  SYM-skillopt-real-optimization-run:
+    identityHash: 055b7f8b0fba999acc9995cb6b853811fbc4122cb9a96c929d12394938b93750
+    sourceHash: 37158957873face5a672dd02293b0bdbf97dfc688e3444466ec0f8d8578e059d
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 702
     sourceFile: scripts/skillopt-eval/real-workflow.ts
-    sourceLine: 237
+    sourceLine: 269
   SYM-skillopt-real-workflow-types-canonical-hash:
     identityHash: b07e07d2d77596c9e60930c12db1b1155fb4e7eacedb6fe7a858948abe194521
     sourceHash: 96b9561257c75d40cf3d59cc19a32aace6798ef099259c7e6a975070d760936e
@@ -29141,20 +29837,20 @@ coordinates:
     sourceLine: 147
   SYM-skillopt-receipt-ingest-objectives:
     identityHash: c7c4fa611a2dfffaa277537c1c1cfb751a39e844221aa69abc4b6a12fd131e6b
-    sourceHash: e76e455ca73883d77b62a19a81518770bce2f3cd7aeafd591428b5f5495445d7
+    sourceHash: d7268a1e638818fe9861af7a65b4fc8a84ac76490b8eb2e8f6cbc0bfa847615d
     sourceColumn: 13
     sourceEndColumn: 2
-    sourceEndLine: 911
+    sourceEndLine: 923
     sourceFile: scripts/skillopt-eval/fixtures/objective-expectations.ts
-    sourceLine: 907
+    sourceLine: 919
   SYM-skillopt-receipt-inspect-objectives:
     identityHash: fcb24cf555d85e2d78dfadc22312ddc075563b214ef8b4198f4dba5b905b2938
-    sourceHash: e76e455ca73883d77b62a19a81518770bce2f3cd7aeafd591428b5f5495445d7
+    sourceHash: d7268a1e638818fe9861af7a65b4fc8a84ac76490b8eb2e8f6cbc0bfa847615d
     sourceColumn: 13
     sourceEndColumn: 2
-    sourceEndLine: 919
+    sourceEndLine: 931
     sourceFile: scripts/skillopt-eval/fixtures/objective-expectations.ts
-    sourceLine: 915
+    sourceLine: 927
   SYM-skillopt-receipt-path:
     identityHash: 375bdc007a5df68e2892640af1e12a749b5c3ef19c2679f45254df2389800b24
     sourceHash: 43e9fe169bba40377f90741464c1484cc6938bba769d57cf394d493627b1c3fa
@@ -29195,6 +29891,22 @@ coordinates:
     sourceEndLine: 162
     sourceFile: scripts/skillopt-eval/report.ts
     sourceLine: 142
+  SYM-skillopt-replace-body-and-description:
+    identityHash: b5b637cd17c7d22feda7ea23ddf5b74eab4bf271908d31f6c1aba6749cf23a7c
+    sourceHash: 908c4d39b63933ae51b9f13354db6f1b3c9b5597b4ed3d481a7d9b476679c758
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 469
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    sourceLine: 438
+  SYM-skillopt-replace-campaign-body:
+    identityHash: 2168db2d1494b64e710cb150f3eb815f6bcb28f354885fdbebf9b1d4d08be24e
+    sourceHash: 908c4d39b63933ae51b9f13354db6f1b3c9b5597b4ed3d481a7d9b476679c758
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 370
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    sourceLine: 347
   SYM-skillopt-replay-codex-episode:
     identityHash: c7f07c22dbf57677070bde95762b20547632a30bd5fd9f59ea757c098acf9107
     sourceHash: 20b22b7af499c2b019d7a4b0a6b20419385baf036fbb2aee1c8ad645f1422a14
@@ -29229,7 +29941,7 @@ coordinates:
     sourceLine: 1
   SYM-skillopt-repository-state-type:
     identityHash: 8f3494bf02c5bde5976ff37b438cf3f2d58fdfe388f6d587e8a61481e61cceae
-    sourceHash: e7878667b4fe581a869327d4ae97719001dc6c429995965e7102f453610509b7
+    sourceHash: ee6d31c09f7362edf321657fa932f24452cc66be8244af111a05ea55e1274912
     sourceColumn: 12
     sourceEndColumn: 75
     sourceEndLine: 23
@@ -29245,7 +29957,7 @@ coordinates:
     sourceLine: 30
   SYM-skillopt-required-kibi-tools:
     identityHash: d6af87f5e5b192af229fa32f834323c6025c2fd56674cfa702eff06e26f56b66
-    sourceHash: 366e8b3a1f80c3a00ec9520f187f5bc7b07e309d7ec0169c53233b18b4539d43
+    sourceHash: 4f5622136dd39317dfec9c93d42276fb96bd2745493a062156865bff9b6c26fa
     sourceColumn: 13
     sourceEndColumn: 10
     sourceEndLine: 22
@@ -29293,7 +30005,7 @@ coordinates:
     sourceLine: 61
   SYM-skillopt-run-cli-with-retry:
     identityHash: c653fa89eb32db05cf163506a19965eadf8306c2116c6bcfe8791f57fc9b550f
-    sourceHash: 56692ab08ddfccb5841d567f40fe93573d1a5a5122a4492187a2b7af6e5d5ea6
+    sourceHash: 3e11dee128f03976db849cb8b454f6f34dbcd9171556e2383a5671ebab824973
     sourceColumn: 22
     sourceEndColumn: 1
     sourceEndLine: 142
@@ -29301,12 +30013,20 @@ coordinates:
     sourceLine: 115
   SYM-skillopt-run-codex-cell:
     identityHash: 0760ed0f8df794e2f364975492d941e9a1c7fb5e885b9323b0d9b9c7e9301a74
-    sourceHash: a9b1f6864b235a6fa524c7219e468d36c4aa7f4137fb95f0288d8dab3dae6037
+    sourceHash: 3846328d8ecd0e5236f1990d6d801b9d7649b5050729afebf7b652fbc93a505a
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 431
+    sourceEndLine: 542
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-runner.ts
-    sourceLine: 161
+    sourceLine: 251
+  SYM-skillopt-run-compose-campaign:
+    identityHash: 8b490bf9fc71353d6945947f659f5dc182f3b18d83225bee138ca3a12f240d9d
+    sourceHash: 7bdc3035063b4ffd046f22425f7928d8c9691e7cc72aa5b387ffc35ab90159b7
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 2017
+    sourceFile: scripts/skillopt-eval/campaign-workflow.ts
+    sourceLine: 1942
   SYM-skillopt-run-independent-final-state:
     identityHash: de7cb5183ed0c4b6a90b4906247fcf68d12c6c30bab55779e40dfc591dd49c6f
     sourceHash: f50520f772b666fe6dd300ac30e73f1d638a73fb42a949bf572081ca584f0ca7
@@ -29317,12 +30037,12 @@ coordinates:
     sourceLine: 352
   SYM-skillopt-run-mcp-broker:
     identityHash: 6b2ec4da64bb8ba36776fb9af7aca43f5fb74b96508b70063a77b615235976e5
-    sourceHash: 02d47b25924dd26bbcff3584560fbac0ab1a954408998517424007e1d9db8e9c
+    sourceHash: 714f30e4299de4cbe81d38646104577b0d9b756e14bc3a0f18a47d06ccb1298b
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 275
+    sourceEndLine: 366
     sourceFile: scripts/skillopt-eval/runtime/mcp-broker-process.ts
-    sourceLine: 62
+    sourceLine: 71
   SYM-skillopt-run-mirror-sync:
     identityHash: 03f56bbaa4c0e0b3ebb8f2262b5a6ccea0a3bb182dd7d40bbd09231ea820cd29
     sourceHash: 5fdc3feb189db0b97791c40c3eb532f0ebe5080b40d428c7a6cc350d27a02ddf
@@ -29397,12 +30117,12 @@ coordinates:
     sourceLine: 136
   SYM-skillopt-run-workflow-command:
     identityHash: 303e9192bf604a15e4f362455cb74aada7de03bbfd59a27618188af9387cf150
-    sourceHash: 0c38d4b29e43f89689606c5b60b6f5004d969bac989d6142f75740bcdc99e77b
+    sourceHash: 607f37e39238272532052af225082f9670403124f99eff309d4420e287a7d87e
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 180
+    sourceEndLine: 196
     sourceFile: scripts/skillopt-eval/cli-workflow.ts
-    sourceLine: 139
+    sourceLine: 155
   SYM-skillopt-runtime-assert-existing-login:
     identityHash: 91fc210edfde5216135914660fc262b2a1d716a369a43c8214d0e0dc5411c8d7
     sourceHash: 47b251d4143ba1fd43000f7c6de6167d746409c150d17cafed97fe8dfdc758f1
@@ -29547,6 +30267,62 @@ coordinates:
     sourceEndLine: 35
     sourceFile: scripts/skillopt-eval/runtime/canary-evidence.ts
     sourceLine: 30
+  SYM-skillopt-runtime-case-signals-caseforbiddenobserved-234fccfd:
+    identityHash: 1e8a181721c4dfc66d82ccd138b314a4480836070429237431fce829cc3a5a15
+    sourceHash: 63c4fe3317e72bad214b8525608dbf0a234e7d597c5033269caa37dcab778784
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 443
+    sourceFile: scripts/skillopt-eval/runtime/case-signals.ts
+    sourceLine: 396
+  SYM-skillopt-runtime-case-signals-casesignalcontext-904a60d2:
+    identityHash: 936ff850989f4505607e674e033022fe74a2a5fb1de64767aea6c66a66176fd5
+    sourceHash: 63c4fe3317e72bad214b8525608dbf0a234e7d597c5033269caa37dcab778784
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 31
+    sourceFile: scripts/skillopt-eval/runtime/case-signals.ts
+    sourceLine: 23
+  SYM-skillopt-runtime-case-signals-casesignalobserved-d745b2c6:
+    identityHash: 566aa388ebae36bf9a31d0d354681c96e2ffd0c605439b6bd77377f54d513637
+    sourceHash: 63c4fe3317e72bad214b8525608dbf0a234e7d597c5033269caa37dcab778784
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 392
+    sourceFile: scripts/skillopt-eval/runtime/case-signals.ts
+    sourceLine: 283
+  SYM-skillopt-runtime-case-signals-currentrequirementids-1d9d987c:
+    identityHash: 9e85a287878d372671e54c5c44f291acfacecd822acd81de12fa5a51591161a1
+    sourceHash: 63c4fe3317e72bad214b8525608dbf0a234e7d597c5033269caa37dcab778784
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 142
+    sourceFile: scripts/skillopt-eval/runtime/case-signals.ts
+    sourceLine: 133
+  SYM-skillopt-runtime-case-signals-relationshiptargets-d2f98993:
+    identityHash: bf5e516a1aae8b11c64e59476c03cf2298fa39bccb654b01d18b67ca53b75d93
+    sourceHash: 63c4fe3317e72bad214b8525608dbf0a234e7d597c5033269caa37dcab778784
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 103
+    sourceFile: scripts/skillopt-eval/runtime/case-signals.ts
+    sourceLine: 96
+  SYM-skillopt-runtime-case-signals-supersededrequirementids-338b9306:
+    identityHash: 922de65a723ea31aaf742ba2fd29de96a84492cccfb17c811f3b7a0c64431455
+    sourceHash: 63c4fe3317e72bad214b8525608dbf0a234e7d597c5033269caa37dcab778784
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 129
+    sourceFile: scripts/skillopt-eval/runtime/case-signals.ts
+    sourceLine: 115
+  SYM-skillopt-runtime-case-signals-workspaceassertionpasses-6844a097:
+    identityHash: 72d6b2cecfa7f33601ea4d745420678662985e6311f586593b1da5947632c119
+    sourceHash: 63c4fe3317e72bad214b8525608dbf0a234e7d597c5033269caa37dcab778784
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 191
+    sourceFile: scripts/skillopt-eval/runtime/case-signals.ts
+    sourceLine: 176
   SYM-skillopt-runtime-code-mode-host-path:
     identityHash: 271b09999fb1b9a53a4e912cfa006ea9c363522c6546c8d0baea39833264286c
     sourceHash: 9efd187c701df8e18dd25e36b1a73adad0d974361fb81562800c119c04f012a8
@@ -29555,6 +30331,14 @@ coordinates:
     sourceEndLine: 96
     sourceFile: scripts/skillopt-eval/runtime/permissions.ts
     sourceLine: 94
+  SYM-skillopt-runtime-codex-cell-runner-readworkspacesources-18d23e22:
+    identityHash: 553a03b826b4e8cf97664cc5969d0cfae088fbe296cd3ce8b113b6043d13a28e
+    sourceHash: 3846328d8ecd0e5236f1990d6d801b9d7649b5050729afebf7b652fbc93a505a
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 131
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-runner.ts
+    sourceLine: 96
   SYM-skillopt-runtime-codex-optimizer-tests:
     identityHash: 11a62739a6ad2b4662a74ec46053ba71abe9204bf7c327083651867788d954bf
     sourceHash: 8afe7017088f12f06359eed3177ab5ba6f78443273572245220232b59d497a3d
@@ -29595,6 +30379,46 @@ coordinates:
     sourceEndLine: 21
     sourceFile: scripts/skillopt-eval/runtime/permissions.ts
     sourceLine: 21
+  SYM-skillopt-runtime-fixture-kb-setup-semanticledger-236a7fda:
+    identityHash: e6f9ca408106b9312544c04c39667e3a9ca2fdc5d201a72749c8b76dce1a2824
+    sourceHash: 3e11dee128f03976db849cb8b454f6f34dbcd9171556e2383a5671ebab824973
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 820
+    sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
+    sourceLine: 780
+  SYM-skillopt-runtime-fixture-kb-setup-setupseededconsistencykb-6edad3d3:
+    identityHash: 26f155e97fb5a63d0f0dab65ff0cf168fe81b6686ccdd494e0f3b94b9450022a
+    sourceHash: 3e11dee128f03976db849cb8b454f6f34dbcd9171556e2383a5671ebab824973
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 996
+    sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
+    sourceLine: 905
+  SYM-skillopt-runtime-fixture-kb-setup-setupseededgovernedareakb-0b4488e6:
+    identityHash: 672aab6252e9c1514eeb55646043e62f032285c9fedcb89a3d6b6816012fd1fa
+    sourceHash: 3e11dee128f03976db849cb8b454f6f34dbcd9171556e2383a5671ebab824973
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 843
+    sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
+    sourceLine: 830
+  SYM-skillopt-runtime-fixture-kb-setup-setupseededpartialkb-6a846f9e:
+    identityHash: f0bfa78d2a0d048ab237313a4e9798ac62ccba652e36da6a4f62088229201457
+    sourceHash: 3e11dee128f03976db849cb8b454f6f34dbcd9171556e2383a5671ebab824973
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 659
+    sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
+    sourceLine: 652
+  SYM-skillopt-runtime-fixture-kb-setup-setupseededpreconditionkb-403f2dec:
+    identityHash: a86f95096646b6680f4662d02fa88c94e9721f346cf89f48e62493c688bfd9c8
+    sourceHash: 3e11dee128f03976db849cb8b454f6f34dbcd9171556e2383a5671ebab824973
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 895
+    sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
+    sourceLine: 854
   SYM-skillopt-runtime-isolated-env:
     identityHash: b3b824290820eca0f82568ab27390248443fd52b2c49e55221c6e54464fea343
     sourceHash: 47b251d4143ba1fd43000f7c6de6167d746409c150d17cafed97fe8dfdc758f1
@@ -29677,7 +30501,7 @@ coordinates:
     sourceLine: 23
   SYM-skillopt-runtime-model-canary-context:
     identityHash: 0b92389be72d7bb4fe3836690bcb2762a800bc3553b4fbca7fdba1ad3c356b5b
-    sourceHash: fa541baf748b8cfbba0cfa0ca2883f319cc94ffa95686fd5a2bef43fa96e5d4c
+    sourceHash: 63a037a45712c269c3f9d1805d4481f70852abab36a4097509f42cfeac8de1af
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 70
@@ -29685,7 +30509,7 @@ coordinates:
     sourceLine: 59
   SYM-skillopt-runtime-model-canary-result:
     identityHash: 3b521a2acad6481d26e5622b8636ea93a09ac976da80065559f304c71f795437
-    sourceHash: fa541baf748b8cfbba0cfa0ca2883f319cc94ffa95686fd5a2bef43fa96e5d4c
+    sourceHash: 63a037a45712c269c3f9d1805d4481f70852abab36a4097509f42cfeac8de1af
     sourceColumn: 12
     sourceEndColumn: 7
     sourceEndLine: 57
@@ -29765,28 +30589,28 @@ coordinates:
     sourceLine: 119
   SYM-skillopt-runtime-prerequisite-error:
     identityHash: 831169b68ea9863bbd747bf747629a2e9d36bd23895c0ab01cabfac0b2cee029
-    sourceHash: 4731f59294faf0bc867f288b883ac3e944929b432542c98d74429e0055c08876
+    sourceHash: 2d4420fb48b36e2553b876409a69f58a8342d31c0e09cafc10a15c82de3bc521
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 18
+    sourceEndLine: 20
     sourceFile: scripts/skillopt-eval/runtime/canary-errors.ts
-    sourceLine: 12
+    sourceLine: 14
   SYM-skillopt-runtime-prerequisite-error-name:
     identityHash: fa4c27e3ce93f880bf6e0fa7e19bef8659f31533fc5321e4bbaed5f24ac70ba6
-    sourceHash: 4731f59294faf0bc867f288b883ac3e944929b432542c98d74429e0055c08876
+    sourceHash: 2d4420fb48b36e2553b876409a69f58a8342d31c0e09cafc10a15c82de3bc521
     sourceColumn: 11
     sourceEndColumn: 45
-    sourceEndLine: 13
+    sourceEndLine: 15
     sourceFile: scripts/skillopt-eval/runtime/canary-errors.ts
-    sourceLine: 13
+    sourceLine: 15
   SYM-skillopt-runtime-prerequisite-kind:
     identityHash: aba3f3feb6f145c2d994b94ca5853f015959d2b0067c9238e99e70c25213433a
-    sourceHash: 4731f59294faf0bc867f288b883ac3e944929b432542c98d74429e0055c08876
+    sourceHash: 2d4420fb48b36e2553b876409a69f58a8342d31c0e09cafc10a15c82de3bc521
     sourceColumn: 12
     sourceEndColumn: 72
-    sourceEndLine: 10
+    sourceEndLine: 12
     sourceFile: scripts/skillopt-eval/runtime/canary-errors.ts
-    sourceLine: 10
+    sourceLine: 12
   SYM-skillopt-runtime-probe-required-mcp:
     identityHash: 71ea3c020d920ceefc1a225b7bbe2b431640ea18a0e6a670a414566ac495318b
     sourceHash: 9aa3bbc7a70a3361b7e1fdcfb2d479687587ad7bfeacfb9010a8bf504a99d7d7
@@ -29845,20 +30669,20 @@ coordinates:
     sourceLine: 170
   SYM-skillopt-runtime-required-mcp-error:
     identityHash: aa465c2c8196388488063f9a9be4b99e59c035be9ab6f5e40d40c0b12da51bf9
-    sourceHash: 4731f59294faf0bc867f288b883ac3e944929b432542c98d74429e0055c08876
+    sourceHash: 2d4420fb48b36e2553b876409a69f58a8342d31c0e09cafc10a15c82de3bc521
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 29
+    sourceEndLine: 31
     sourceFile: scripts/skillopt-eval/runtime/canary-errors.ts
-    sourceLine: 20
+    sourceLine: 22
   SYM-skillopt-runtime-required-mcp-error-name:
     identityHash: a5bde37a7e757a35719cf866792bf826a29446550ed24f34c16cfcefd52a2216
-    sourceHash: 4731f59294faf0bc867f288b883ac3e944929b432542c98d74429e0055c08876
+    sourceHash: 2d4420fb48b36e2553b876409a69f58a8342d31c0e09cafc10a15c82de3bc521
     sourceColumn: 11
     sourceEndColumn: 44
-    sourceEndLine: 21
+    sourceEndLine: 23
     sourceFile: scripts/skillopt-eval/runtime/canary-errors.ts
-    sourceLine: 21
+    sourceLine: 23
   SYM-skillopt-runtime-ReusableCodexRuntime:
     identityHash: ffcdd9417b56259e67faec9fa4ed47d6958bbae6ee8b7b7841484c8c3a738fd0
     sourceHash: 9aa3bbc7a70a3361b7e1fdcfb2d479687587ad7bfeacfb9010a8bf504a99d7d7
@@ -29877,10 +30701,10 @@ coordinates:
     sourceLine: 78
   SYM-skillopt-runtime-run-model-canary:
     identityHash: 106fb022bb130ebc2a844a9334a8dc3ca84254158078e9659ff05d4aff848029
-    sourceHash: fa541baf748b8cfbba0cfa0ca2883f319cc94ffa95686fd5a2bef43fa96e5d4c
+    sourceHash: 63a037a45712c269c3f9d1805d4481f70852abab36a4097509f42cfeac8de1af
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 398
+    sourceEndLine: 410
     sourceFile: scripts/skillopt-eval/runtime/canary-run.ts
     sourceLine: 145
   SYM-skillopt-runtime-run-process:
@@ -29925,10 +30749,10 @@ coordinates:
     sourceLine: 52
   SYM-skillopt-runtime-stage-kibi-mcp:
     identityHash: 6555a76f4b91494d40ac1b2d39d26193a7008ec4489539685552ea469aed7846
-    sourceHash: 5a874103d3efabd7692aa93d77eeec116fbb5c13640d5fb455e0a4535baee287
+    sourceHash: 355a25d4403bcd1665518cc19bb04626cfc0147be1818afbe374dac4987920e1
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 169
+    sourceEndLine: 178
     sourceFile: scripts/skillopt-eval/runtime/staged-mcp.ts
     sourceLine: 120
   SYM-skillopt-runtime-staged-canary:
@@ -29941,7 +30765,7 @@ coordinates:
     sourceLine: 40
   SYM-skillopt-runtime-staged-mcp-launch:
     identityHash: 0b80fc5dd4b40c9c6de861d48a3a1e386c27cf6ca3f4093d57b62e6d268de01b
-    sourceHash: 5a874103d3efabd7692aa93d77eeec116fbb5c13640d5fb455e0a4535baee287
+    sourceHash: 355a25d4403bcd1665518cc19bb04626cfc0147be1818afbe374dac4987920e1
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 19
@@ -30221,15 +31045,15 @@ coordinates:
     sourceLine: 43
   SYM-skillopt-seal-default-cell-evidence:
     identityHash: 4b713da6922b684796f66439de6fee1a620168b39a15d9651b11c341fadcb46c
-    sourceHash: 8c6eadc081f9c791ef873a20479374512d5fde997121b6543e2cdf5f67de2324
+    sourceHash: ae4ff0dad4f1810d0e8a473fa23012b90bf4ec2f2d4326a8e3c70ebac76c86c3
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 1017
+    sourceEndLine: 1046
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-defaults.ts
-    sourceLine: 990
+    sourceLine: 1019
   SYM-skillopt-sealed-cell-evidence:
     identityHash: 74b93307a6ad5fa62f78b585732daff2570b96fb635cb7cac846fb29563c440e
-    sourceHash: 87b13a54742f7f0d7c76c66ca16bd98ce60d888482213a6367f2eb6e00baf632
+    sourceHash: 37f871add3752aff757ab9a0ff0247e73f1a9cea723e55cc4f05afb6b6546eb7
     sourceColumn: 12
     sourceEndColumn: 2
     sourceEndLine: 32
@@ -30237,7 +31061,7 @@ coordinates:
     sourceLine: 28
   SYM-skillopt-sealed-cell-evidence-context:
     identityHash: e099132c19f7aa2459a16d5e4f8d7d067bbb6ec14ee7f8e44e91f78bfd799c16
-    sourceHash: 87b13a54742f7f0d7c76c66ca16bd98ce60d888482213a6367f2eb6e00baf632
+    sourceHash: 37f871add3752aff757ab9a0ff0247e73f1a9cea723e55cc4f05afb6b6546eb7
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 42
@@ -30251,9 +31075,17 @@ coordinates:
     sourceEndLine: 104
     sourceFile: scripts/skillopt-eval/training-setup.ts
     sourceLine: 90
+  SYM-skillopt-selected-host-choice:
+    identityHash: a0da17b995f0561268a0f4b91ff4f79cb40367117b225af47918a8a03809b282
+    sourceHash: ec592828fcff8c7cb01b908244221438884e901693ca3199be3c30d7d9f67958
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 86
+    sourceFile: scripts/skillopt-eval/runtime/claude-code-host.ts
+    sourceLine: 77
   SYM-skillopt-setup-seeded-fresh-kb:
     identityHash: b8db9433d18b88347c42ad5503368e973ec214f915acf1a483db2e4ba24b509f
-    sourceHash: 56692ab08ddfccb5841d567f40fe93573d1a5a5122a4492187a2b7af6e5d5ea6
+    sourceHash: 3e11dee128f03976db849cb8b454f6f34dbcd9171556e2383a5671ebab824973
     sourceColumn: 22
     sourceEndColumn: 1
     sourceEndLine: 621
@@ -30261,7 +31093,7 @@ coordinates:
     sourceLine: 508
   SYM-skillopt-setup-seeded-stale-kb:
     identityHash: eee836bd33313a88763ab3379a3339a2df4b1f1917dd50ea9660968e8771e7de
-    sourceHash: 56692ab08ddfccb5841d567f40fe93573d1a5a5122a4492187a2b7af6e5d5ea6
+    sourceHash: 3e11dee128f03976db849cb8b454f6f34dbcd9171556e2383a5671ebab824973
     sourceColumn: 22
     sourceEndColumn: 1
     sourceEndLine: 648
@@ -30269,7 +31101,7 @@ coordinates:
     sourceLine: 630
   SYM-skillopt-setup-thin-root-kb:
     identityHash: 99e7db4327cd21d94caba079e834be10fa3ebeb487a73599ec1909027c4f7812
-    sourceHash: 56692ab08ddfccb5841d567f40fe93573d1a5a5122a4492187a2b7af6e5d5ea6
+    sourceHash: 3e11dee128f03976db849cb8b454f6f34dbcd9171556e2383a5671ebab824973
     sourceColumn: 22
     sourceEndColumn: 1
     sourceEndLine: 456
@@ -30277,28 +31109,28 @@ coordinates:
     sourceLine: 439
   SYM-skillopt-skill-assembly-receipt-type:
     identityHash: 904107e6382c8a3fb23fd98477cc4e4a020264d9ebacb913c1a602f1b624ecde
-    sourceHash: 6d8ad0bd7faf324a2adcd693d5b89ae9e4565950f0898ce218a8b703109b4c1a
+    sourceHash: cc964c3a2d9ff6e9a921662407c45fd29f686d7eed10c7c23cc41c571b74a4bf
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 35
+    sourceEndLine: 46
     sourceFile: scripts/skillopt-eval/runtime/skill-assembly.ts
-    sourceLine: 27
+    sourceLine: 36
   SYM-skillopt-skill-assembly-tests:
     identityHash: dcfdeded00691fc2134dcf8139fc5c01d593bf6c1ed3f4ea591e8614cd529944
-    sourceHash: 4cf18a72af606cd1b96c3ce9ec97f07942d71dc4ca244cb398683160dfa8f028
+    sourceHash: 86bfa1be3874f4bd1b10935f56c1743a70aaf60b54d243546bd66264062d2897
     sourceColumn: 10
     sourceEndColumn: 34
-    sourceEndLine: 28
+    sourceEndLine: 30
     sourceFile: scripts/skillopt-eval/tests/skill-assembly.test.ts
-    sourceLine: 28
+    sourceLine: 30
   SYM-skillopt-skill-candidate-surface-type:
     identityHash: c231a47a802f9cfee8be8267ea25f15db94cd1f95408bc1cc891b326302b5987
-    sourceHash: 6d8ad0bd7faf324a2adcd693d5b89ae9e4565950f0898ce218a8b703109b4c1a
+    sourceHash: cc964c3a2d9ff6e9a921662407c45fd29f686d7eed10c7c23cc41c571b74a4bf
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 25
+    sourceEndLine: 34
     sourceFile: scripts/skillopt-eval/runtime/skill-assembly.ts
-    sourceLine: 19
+    sourceLine: 23
   SYM-skillopt-skill-reader-lock-tests:
     identityHash: 0ef1e3e823d0ed09038efca5b74bd224aec423a2114a23c4b2f2e754812393a6
     sourceHash: cfa0a8e91598a4a59c1c864e69360e4ce3975870c552d5130da2668870b36570
@@ -30333,20 +31165,20 @@ coordinates:
     sourceLine: 47
   SYM-skillopt-stage-kibi-mcp-broker:
     identityHash: 5d05a703d2d4b4240d97be6bffa74949668ac550e1cc4a8b3ddd85ffd5757186
-    sourceHash: 8caadac0d16b6930d8cd4539fbd654a8bbf4be215b597d106b135ec8655695db
+    sourceHash: a3979136c29c4d550e5d8b9ba1755ecab6f14ffcf1662de5446fa9a7f64da4be
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 109
+    sourceEndLine: 117
     sourceFile: scripts/skillopt-eval/runtime/mcp-broker-stage.ts
-    sourceLine: 22
+    sourceLine: 23
   SYM-skillopt-staged-broker-launch:
     identityHash: 7b06d6d587a96e01c4df97bfd99640fdc2dda16b03338fdcba094279015bcc7d
-    sourceHash: 8caadac0d16b6930d8cd4539fbd654a8bbf4be215b597d106b135ec8655695db
+    sourceHash: a3979136c29c4d550e5d8b9ba1755ecab6f14ffcf1662de5446fa9a7f64da4be
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 15
+    sourceEndLine: 16
     sourceFile: scripts/skillopt-eval/runtime/mcp-broker-stage.ts
-    sourceLine: 8
+    sourceLine: 9
   SYM-skillopt-staged-codex-runtime:
     identityHash: d9f0cd39408ecc0172a1808ca603b0a622e483faea97d1ab794504d53a08dd9a
     sourceHash: 8cbbf008b2a72612c4d8b7d112e5579676ffb66ef9ca6f5703358e0e2fa9d6bf
@@ -30357,7 +31189,7 @@ coordinates:
     sourceLine: 14
   SYM-skillopt-staged-mcp-options:
     identityHash: 29e024efbab88f7a7533a206e7a1a2193b787f9af83e19a440de2e55e3043db7
-    sourceHash: 5a874103d3efabd7692aa93d77eeec116fbb5c13640d5fb455e0a4535baee287
+    sourceHash: 355a25d4403bcd1665518cc19bb04626cfc0147be1818afbe374dac4987920e1
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 24
@@ -30389,12 +31221,12 @@ coordinates:
     sourceLine: 67
   SYM-skillopt-stop-fixture-engine:
     identityHash: a4ec664e43b52fd83da13e20b709f910fcf129bb4ea3654de64f013311353c86
-    sourceHash: 56692ab08ddfccb5841d567f40fe93573d1a5a5122a4492187a2b7af6e5d5ea6
+    sourceHash: 3e11dee128f03976db849cb8b454f6f34dbcd9171556e2383a5671ebab824973
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 671
+    sourceEndLine: 682
     sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
-    sourceLine: 657
+    sourceLine: 668
   SYM-skillopt-supervisor-parent-fixture:
     identityHash: 5bc5af6142422819870fb2de5bff68d148f0d06b571daf6300c05105046139af
     sourceHash: d0055ff5699a8d5ceb28f30cddc640f31a6fd2ce7f63a973e5c606a5fe12a782
@@ -30405,7 +31237,7 @@ coordinates:
     sourceLine: 25
   SYM-skillopt-task-spec-type:
     identityHash: a9642366e66da54634e461068b1112ace93dd7be3e249a9fd4434d9e9ec64296
-    sourceHash: e7878667b4fe581a869327d4ae97719001dc6c429995965e7102f453610509b7
+    sourceHash: ee6d31c09f7362edf321657fa932f24452cc66be8244af111a05ea55e1274912
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 59
@@ -30413,7 +31245,7 @@ coordinates:
     sourceLine: 36
   SYM-skillopt-task-split-type:
     identityHash: 6eee3dfae03d1c193b95e0bffa8ce8829f03e4ce76d8655d37c4d0ab86a80b6c
-    sourceHash: e7878667b4fe581a869327d4ae97719001dc6c429995965e7102f453610509b7
+    sourceHash: ee6d31c09f7362edf321657fa932f24452cc66be8244af111a05ea55e1274912
     sourceColumn: 12
     sourceEndColumn: 61
     sourceEndLine: 17
@@ -30491,6 +31323,102 @@ coordinates:
     sourceEndLine: 268
     sourceFile: scripts/skillopt-eval/tests/training-setup.test.ts
     sourceLine: 1
+  SYM-skillopt-transcript-ordering:
+    identityHash: 7abaf354b1ff134bc7ab253cb179fade559b873e5446dd4beafcc5ab58055e8b
+    sourceHash: 4f78675f36045b1d866c67c2eab7f735e20d18392cecad0a3f1ade51baeeab39
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 360
+    sourceFile: scripts/skillopt-eval/runtime/transcript-evidence.ts
+    sourceLine: 314
+  SYM-skillopt-user-answer:
+    identityHash: bb062af48995bc4bf1d552035f3040c42ab0953225a75a9c49298b7916b63a42
+    sourceHash: 11fd490716fecfe2434453f2e81c9613011c52d9e4c10c0c412df50aae5f0643
+    sourceColumn: 2
+    sourceEndColumn: 3
+    sourceEndLine: 222
+    sourceFile: scripts/skillopt-eval/runtime/scripted-user.ts
+    sourceLine: 165
+  SYM-skillopt-user-context:
+    identityHash: 868bb32e27bbb26a10e8daa8066f682ab4f9d54dc4c45ac4def1c57496d13da2
+    sourceHash: a191be675796f8783f9431c9d324ab2c1a276f36c9d9cf4154735117fb61f8b4
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 21
+    sourceFile: scripts/skillopt-eval/fixtures/bootstrap-user.ts
+    sourceLine: 3
+  SYM-skillopt-user-instruction:
+    identityHash: 9ccbf6c3c606d70eb5f5350cba52d96e514ebbd2200872e26a4ea56cd1df3750
+    sourceHash: a191be675796f8783f9431c9d324ab2c1a276f36c9d9cf4154735117fb61f8b4
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 65
+    sourceFile: scripts/skillopt-eval/fixtures/bootstrap-user.ts
+    sourceLine: 49
+  SYM-skillopt-user-mode:
+    identityHash: b7241ce6b6edc10994b8ac8e7b95f28c82b220232cd64a3090a28c4fa7849bb7
+    sourceHash: a191be675796f8783f9431c9d324ab2c1a276f36c9d9cf4154735117fb61f8b4
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 46
+    sourceFile: scripts/skillopt-eval/fixtures/bootstrap-user.ts
+    sourceLine: 34
+  SYM-skillopt-user-permission:
+    identityHash: e03940ade9fbb49581e8e8e381413736a0ba7ff85a1cbe761a4af0d9d5b10c5a
+    sourceHash: 11fd490716fecfe2434453f2e81c9613011c52d9e4c10c0c412df50aae5f0643
+    sourceColumn: 2
+    sourceEndColumn: 3
+    sourceEndLine: 237
+    sourceFile: scripts/skillopt-eval/runtime/scripted-user.ts
+    sourceLine: 224
+  SYM-skillopt-user-plan-generation:
+    identityHash: 29a4e54586ffb4e7d885d01642d17df53da1b40f9adc7cfec7a6cfe240e135dc
+    sourceHash: 11fd490716fecfe2434453f2e81c9613011c52d9e4c10c0c412df50aae5f0643
+    sourceColumn: 2
+    sourceEndColumn: 3
+    sourceEndLine: 81
+    sourceFile: scripts/skillopt-eval/runtime/scripted-user.ts
+    sourceLine: 76
+  SYM-skillopt-user-preview:
+    identityHash: 81a003645a1ee8dc1dc3008e0062df42d683618fcb9e9673fcab5bd51a087fa8
+    sourceHash: 11fd490716fecfe2434453f2e81c9613011c52d9e4c10c0c412df50aae5f0643
+    sourceColumn: 2
+    sourceEndColumn: 3
+    sourceEndLine: 163
+    sourceFile: scripts/skillopt-eval/runtime/scripted-user.ts
+    sourceLine: 83
+  SYM-skillopt-user-profile:
+    identityHash: 4d6f8e3e6b615b6ab3463c6dfbd8b546c7c9d26df64587c2c91dd73bf2b3b33c
+    sourceHash: a191be675796f8783f9431c9d324ab2c1a276f36c9d9cf4154735117fb61f8b4
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 31
+    sourceFile: scripts/skillopt-eval/fixtures/bootstrap-user.ts
+    sourceLine: 24
+  SYM-skillopt-user-profile-schema:
+    identityHash: 75b31c04146d41ba33609e8f36300d959e69124f77759014113cf2671db4a73f
+    sourceHash: 11fd490716fecfe2434453f2e81c9613011c52d9e4c10c0c412df50aae5f0643
+    sourceColumn: 13
+    sourceEndColumn: 11
+    sourceEndLine: 40
+    sourceFile: scripts/skillopt-eval/runtime/scripted-user.ts
+    sourceLine: 6
+  SYM-skillopt-user-state:
+    identityHash: ffdb8fc75ed5989795c99c6ce67eec9fff6f072f8d0ea74b76acb0e0aad5325d
+    sourceHash: 11fd490716fecfe2434453f2e81c9613011c52d9e4c10c0c412df50aae5f0643
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 238
+    sourceFile: scripts/skillopt-eval/runtime/scripted-user.ts
+    sourceLine: 65
+  SYM-skillopt-user-tool:
+    identityHash: 222709a148e2ccafcf9f936e24a9a1afc6dcbf3d50023ca78e4bb6004f2a5ae7
+    sourceHash: 11fd490716fecfe2434453f2e81c9613011c52d9e4c10c0c412df50aae5f0643
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 57
+    sourceFile: scripts/skillopt-eval/runtime/scripted-user.ts
+    sourceLine: 43
   SYM-skillopt-validate-approval:
     identityHash: d88517a3ef0d60236dfe57d03f058afb9afb07fb71d0f130d68f9a13d7f7847c
     sourceHash: e7149e229f2be769a72b893da8ff850a3596c963819b2b8ea5edc07cc60476aa
@@ -30507,22 +31435,38 @@ coordinates:
     sourceEndLine: 28
     sourceFile: scripts/skillopt-eval/approval.ts
     sourceLine: 22
+  SYM-skillopt-validate-campaign-manifest-against-surface:
+    identityHash: 0d1258f6232c0aecb4baa59ba25b447cff9b896da0eb498a82b1e21636c8fde2
+    sourceHash: 908c4d39b63933ae51b9f13354db6f1b3c9b5597b4ed3d481a7d9b476679c758
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 343
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    sourceLine: 306
   SYM-skillopt-validate-candidate-body:
     identityHash: 5fbd56bf02b5b2ba8aedecd68c5520d7dd75236ed2b3622b1b2af0f3a04251be
-    sourceHash: 19d696f4b2641e1fea7c14a7902c7c273d5a033c00265b1a0181f9aa9395630c
+    sourceHash: 84c0667e91dcb63f5e03dd7edc1a081a41bd2a2f6522e6deab740403bfd50ceb
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 120
+    sourceEndLine: 131
     sourceFile: scripts/skillopt-eval/variants.ts
-    sourceLine: 102
+    sourceLine: 113
+  SYM-skillopt-validate-candidate-description:
+    identityHash: 2e3c6fe8747891663db2a75fda547df993c52d61686567008187981a7ed4573d
+    sourceHash: 84c0667e91dcb63f5e03dd7edc1a081a41bd2a2f6522e6deab740403bfd50ceb
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 166
+    sourceFile: scripts/skillopt-eval/variants.ts
+    sourceLine: 140
   SYM-skillopt-validate-catalog:
     identityHash: 144d369ec5dd2ed22a8c0bf0a497deaadaa49b5787d2edca4283dd646a4a997d
-    sourceHash: e7878667b4fe581a869327d4ae97719001dc6c429995965e7102f453610509b7
+    sourceHash: ee6d31c09f7362edf321657fa932f24452cc66be8244af111a05ea55e1274912
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 277
+    sourceEndLine: 278
     sourceFile: scripts/skillopt-eval/catalog.ts
-    sourceLine: 230
+    sourceLine: 231
   SYM-skillopt-validate-predicate-eligibility:
     identityHash: 670ee95ba356e4fa8a5c57a9f6202432a7f17c15fbf39c02673c16d8326fd091
     sourceHash: 23943cdbec5914537eeff7754ea1b28769302338e51ced2dba1db6c50bdef80a
@@ -30533,28 +31477,28 @@ coordinates:
     sourceLine: 66
   SYM-skillopt-variant-schema:
     identityHash: 412253ccfb921d9ae125a20f2bb9e72806298007a9bc1eaf8c990cbcd395f190
-    sourceHash: 19d696f4b2641e1fea7c14a7902c7c273d5a033c00265b1a0181f9aa9395630c
+    sourceHash: 84c0667e91dcb63f5e03dd7edc1a081a41bd2a2f6522e6deab740403bfd50ceb
     sourceColumn: 13
     sourceEndColumn: 73
-    sourceEndLine: 9
+    sourceEndLine: 11
     sourceFile: scripts/skillopt-eval/variants.ts
-    sourceLine: 9
+    sourceLine: 11
   SYM-skillopt-variant-surface:
     identityHash: 2449f3a6bc87dba82f69bdbc45ced80a9becdc92179c50d799e04ca393fc36d0
-    sourceHash: 19d696f4b2641e1fea7c14a7902c7c273d5a033c00265b1a0181f9aa9395630c
+    sourceHash: 84c0667e91dcb63f5e03dd7edc1a081a41bd2a2f6522e6deab740403bfd50ceb
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 15
+    sourceEndLine: 17
     sourceFile: scripts/skillopt-eval/variants.ts
-    sourceLine: 12
+    sourceLine: 14
   SYM-skillopt-variant-type:
     identityHash: 4a6d4b682043b2dff7681a977cc65c046454289eaca124f313bdadfe707f32ef
-    sourceHash: 19d696f4b2641e1fea7c14a7902c7c273d5a033c00265b1a0181f9aa9395630c
+    sourceHash: 84c0667e91dcb63f5e03dd7edc1a081a41bd2a2f6522e6deab740403bfd50ceb
     sourceColumn: 12
     sourceEndColumn: 52
-    sourceEndLine: 10
+    sourceEndLine: 12
     sourceFile: scripts/skillopt-eval/variants.ts
-    sourceLine: 10
+    sourceLine: 12
   SYM-skillopt-verify-harness-main:
     identityHash: d72614d69722795eca8682880613dc9467e73e2a66e0b17cbd3162c4bee7ec4c
     sourceHash: 2c54c91f14fa67bba3bf25964d26efd4183a061acbe9053116d84a266193ac3c
@@ -30637,7 +31581,7 @@ coordinates:
     sourceLine: 1
   SYM-skillopt-worktree-state-type:
     identityHash: 3c713e70e1779dc2f504b4ff016233baf753713374eaa54857fd2fac400fc224
-    sourceHash: e7878667b4fe581a869327d4ae97719001dc6c429995965e7102f453610509b7
+    sourceHash: ee6d31c09f7362edf321657fa932f24452cc66be8244af111a05ea55e1274912
     sourceColumn: 12
     sourceEndColumn: 46
     sourceEndLine: 25
@@ -30669,12 +31613,12 @@ coordinates:
     sourceLine: 195
   SYM-skillopt-write-safe-mutation-evidence:
     identityHash: 4e48f79ef6b81254e024e3743e75cd082974d4986f02c019ce98f2f0486eecd5
-    sourceHash: bde937bd5711da7713382a8a89e4e9c69da7e3e788a6f4ab7b79991167c5a2cd
+    sourceHash: 7580c172e9231093c5cafc03a227b8efe3b32b6c369f7d79836651fea5d8785b
     sourceColumn: 9
     sourceEndColumn: 1
-    sourceEndLine: 163
+    sourceEndLine: 205
     sourceFile: scripts/skillopt-eval/fixtures/workspace.ts
-    sourceLine: 137
+    sourceLine: 179
   SYM-SkillOversizeError:
     identityHash: aebc78cb1148a7ca0c855de1987c3bdee1b4507b5d3e5f7eb8f045bf3ac18d61
     sourceHash: 3dd7db72d64c4ae0ce5c42b82a547fdeeab1ea321600142cf46cdb617a8be9fb
@@ -31485,7 +32429,7 @@ coordinates:
     sourceLine: 22
   SYM-stripSymbolCoordinates:
     identityHash: 6f7d8d4bb4027aed7e894d0c1ed91ada8cc2f423ba53e6a8ec0703bce684dccd
-    sourceHash: 56692ab08ddfccb5841d567f40fe93573d1a5a5122a4492187a2b7af6e5d5ea6
+    sourceHash: 3e11dee128f03976db849cb8b454f6f34dbcd9171556e2383a5671ebab824973
     sourceColumn: 22
     sourceEndColumn: 1
     sourceEndLine: 383
@@ -31565,12 +32509,12 @@ coordinates:
     sourceLine: 300
   SYM-surface:
     identityHash: e67a190f6c70bb6c7e0f27bfccbd48c5446dc8158b88509c9a5e4d739cd86ef1
-    sourceHash: 6cb49dc37ac055874a3147a9bf71b5ab0777c219df76a3d26c3aa098aaac6208
+    sourceHash: 37158957873face5a672dd02293b0bdbf97dfc688e3444466ec0f8d8578e059d
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 79
+    sourceEndLine: 64
     sourceFile: scripts/skillopt-eval/real-workflow.ts
-    sourceLine: 49
+    sourceLine: 51
   SYM-sweep-runtime-sockets:
     identityHash: 7a7b9ccc0acac7c5e92aecadb63b480490771275ca68328ef12550976381b8b7
     sourceHash: 13403a0137fc6bec47dcd2bed4ea577f863c4d971eb6a04bd58ec7514cdbdcff
@@ -32205,10 +33149,10 @@ coordinates:
     sourceLine: 1
   SYM-test-cli-init-github-flags:
     identityHash: b6799680f1d29dccdebfb621a5fd5c6284b3c3f9630527c08b94fd7603e01ea9
-    sourceHash: 541efbe029aae71f5b733fa6db3b2d4ca56271fbfc3166de9ee48802cca8cbc1
+    sourceHash: 8c806505cb6b0c9929188b2f57e338d7e2d95cfad242775d928b7cb1b6f20fa8
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 460
+    sourceEndLine: 546
     sourceFile: packages/cli/tests/commands/init.test.ts
     sourceLine: 1
   SYM-test-cli-kb-merge-driver:
@@ -33165,12 +34109,12 @@ coordinates:
     sourceLine: 45
   SYM-updateGitIgnore:
     identityHash: b9d10bf438a59b7341334176ea0cedbc826d1d705c0d1e11a39daf6232d2b37a
-    sourceHash: 0818910cdaf9598851148c732b95967fd3bec6b1ab27327832adce2df67bdab6
+    sourceHash: 8409a1db22d9dacd2803be19b6f7dcfc30574ab7fb04f93a4c6af527b76b554e
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 200
+    sourceEndLine: 220
     sourceFile: packages/cli/src/commands/init-helpers.ts
-    sourceLine: 171
+    sourceLine: 191
   SYM-upsert-execution-options:
     identityHash: ce7c5f6ff4b5176a3c19de6b4361c68c2bcbb82ba8d5fc8b41497c180dc771bd
     sourceHash: 271928c24854e76d7c308ac6815ab23192be6126c6c77e8ccdd71cbba94ff5c6
@@ -33501,12 +34445,12 @@ coordinates:
     sourceLine: 22
   SYM-WorkflowDependencies:
     identityHash: 663b03e5cca7a142f8812d76ad9e3ce2ecddeaab6be011db90533bea739b0228
-    sourceHash: 0c38d4b29e43f89689606c5b60b6f5004d969bac989d6142f75740bcdc99e77b
+    sourceHash: 607f37e39238272532052af225082f9670403124f99eff309d4420e287a7d87e
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 70
+    sourceEndLine: 71
     sourceFile: scripts/skillopt-eval/cli-workflow.ts
-    sourceLine: 60
+    sourceLine: 61
   SYM-WorkspaceMutationLockError:
     identityHash: aa26714e47bf8cee359dae3940ce0b9fd27785a8a3adc838cad8495b940c2505
     sourceHash: c16686b4cb0190fbd676df730ede1590e3e93b483288cf9769544b13b69f718b
@@ -33741,34 +34685,34 @@ coordinates:
     sourceLine: 11
   SYM-zcode-case-advisory-hooks:
     identityHash: 9f0ab2d8b7f70f6c3f5a630e213488dd0556bbafa55951a938543e82fa32aed3
-    sourceHash: 672d0590807170676d86f5796ca520497ab1163432b7635a3d17d227c0d3f15a
+    sourceHash: f7a467feb093ea7ebbbfeef82d97a8a00d1ee3cb0291ceb74500587088a9bcca
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 1574
+    sourceEndLine: 1575
     sourceFile: packages/zcode/tests/hook-runner.test.ts
     sourceLine: 1
   SYM-zcode-case-canonicalize-check-source-files:
     identityHash: 16c1211147647c78ef96ecb3e2102a8910719d83deb3117064b2abe0378baa19
-    sourceHash: 672d0590807170676d86f5796ca520497ab1163432b7635a3d17d227c0d3f15a
+    sourceHash: f7a467feb093ea7ebbbfeef82d97a8a00d1ee3cb0291ceb74500587088a9bcca
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 1574
+    sourceEndLine: 1575
     sourceFile: packages/zcode/tests/hook-runner.test.ts
     sourceLine: 1
   SYM-zcode-case-canonicalize-workspace-path:
     identityHash: 07d297e416e44c811ecf74e52fb351d7660dd296ff12eed7b6bf2f60e0db025f
-    sourceHash: 672d0590807170676d86f5796ca520497ab1163432b7635a3d17d227c0d3f15a
+    sourceHash: f7a467feb093ea7ebbbfeef82d97a8a00d1ee3cb0291ceb74500587088a9bcca
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 1574
+    sourceEndLine: 1575
     sourceFile: packages/zcode/tests/hook-runner.test.ts
     sourceLine: 1
   SYM-zcode-case-hooks-no-kb-mutation:
     identityHash: 5d9e2043dddbf562b8407de4cb12680a3e4632f5089349ac6353b0c7388e1863
-    sourceHash: 672d0590807170676d86f5796ca520497ab1163432b7635a3d17d227c0d3f15a
+    sourceHash: f7a467feb093ea7ebbbfeef82d97a8a00d1ee3cb0291ceb74500587088a9bcca
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 1574
+    sourceEndLine: 1575
     sourceFile: packages/zcode/tests/hook-runner.test.ts
     sourceLine: 1
   SYM-zcode-case-manual-mcp-fallback:
@@ -33781,10 +34725,10 @@ coordinates:
     sourceLine: 1
   SYM-zcode-case-mutated-workspace-paths:
     identityHash: 4fcb8d0af7920970b8a9ce6e449f4b209a81b7f6f339cb2f647c7ca6b34bd25d
-    sourceHash: 672d0590807170676d86f5796ca520497ab1163432b7635a3d17d227c0d3f15a
+    sourceHash: f7a467feb093ea7ebbbfeef82d97a8a00d1ee3cb0291ceb74500587088a9bcca
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 1574
+    sourceEndLine: 1575
     sourceFile: packages/zcode/tests/hook-runner.test.ts
     sourceLine: 1
   SYM-zcode-case-optional-package-contract:
@@ -33813,10 +34757,10 @@ coordinates:
     sourceLine: 79
   SYM-zcode-case-session-state-isolation:
     identityHash: afc8a36af5ece6a2dd080a6b8004103b5bf4f517d388440e5beb4a8d0b2c24d3
-    sourceHash: 672d0590807170676d86f5796ca520497ab1163432b7635a3d17d227c0d3f15a
+    sourceHash: f7a467feb093ea7ebbbfeef82d97a8a00d1ee3cb0291ceb74500587088a9bcca
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 1574
+    sourceEndLine: 1575
     sourceFile: packages/zcode/tests/hook-runner.test.ts
     sourceLine: 1
   SYM-zcode-case-shipped-plugin-payload:
@@ -33829,10 +34773,10 @@ coordinates:
     sourceLine: 1
   SYM-zcode-case-unconfigured-workspace-silent:
     identityHash: f7e9b01fe9520f4fc007ed237f221cbe847c8fa8cb3c5c921b527b6ece858818
-    sourceHash: 672d0590807170676d86f5796ca520497ab1163432b7635a3d17d227c0d3f15a
+    sourceHash: f7a467feb093ea7ebbbfeef82d97a8a00d1ee3cb0291ceb74500587088a9bcca
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 1574
+    sourceEndLine: 1575
     sourceFile: packages/zcode/tests/hook-runner.test.ts
     sourceLine: 1
   SYM-zcode-clearDirtyPaths:
@@ -34021,7 +34965,7 @@ coordinates:
     sourceLine: 1
   SYM-zcode-mcp-registration-config:
     identityHash: a49902dfe1abb97958a5441b1232d9235135aea24308be1265c4be0c751661e5
-    sourceHash: d43504340f7f947daebb0246e7a4aafc66f0498950cce0a28c650abebcdc0953
+    sourceHash: eebcbb5ee4e8e4e7354b51097d02a26fcd246788ed831a024db68baffb809703
     sourceColumn: 0
     sourceEndColumn: 0
     sourceEndLine: 22

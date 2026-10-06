@@ -1,3 +1,4 @@
+import "../offline-test-preload";
 import { afterEach, describe, expect, test } from "bun:test";
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";

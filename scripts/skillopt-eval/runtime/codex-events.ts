@@ -90,6 +90,52 @@ const GLOB_OPTION_PATTERN =
   /(?:^|\s)(?:-g|--glob)(?:=|\s+)(?:'"'([^']*)'"'|(?:"([^"]*)"|'([^']*)'|([^\s]+)))/g;
 const UNSAFE_GLOB_CONTENT = /[\0\r\n$`;&|<>(){}\\]/;
 
+/** Decode only literal shell words, without evaluating expansions or operators. */
+// implements REQ-skillopt-codex-optimization
+function literalShellWords(command: string): string[] | null {
+  const words: string[] = [];
+  let word = "";
+  let active = false;
+  let quote: "single" | "double" | null = null;
+  for (let index = 0; index < command.length; index++) {
+    const character = command[index];
+    if (quote === "single") {
+      if (character === "'") quote = null;
+      else word += character;
+      continue;
+    }
+    if (character === '"') {
+      quote = quote === "double" ? null : "double";
+      active = true;
+    } else if (character === "'" && quote === null) {
+      quote = "single";
+      active = true;
+    } else if (character === "\\") {
+      const next = command[++index];
+      if (next === undefined || next === "\n") return null;
+      word +=
+        quote === "double" && !['"', "\\", "$", "`"].includes(next)
+          ? `\\${next}`
+          : next;
+      active = true;
+    } else if (character === "$" || character === "`") {
+      return null;
+    } else if (quote === null && /[;&|<>()]/.test(character ?? "")) {
+      return null;
+    } else if (quote === null && /\s/.test(character ?? "")) {
+      if (active) words.push(word);
+      word = "";
+      active = false;
+    } else {
+      word += character;
+      active = true;
+    }
+  }
+  if (quote !== null) return null;
+  if (active) words.push(word);
+  return words;
+}
+
 /**
  * A command is allowed to exclude the private KB tree while enumerating a
  * workspace.  Treat only actual `.kb` path operands as access; otherwise a
@@ -98,6 +144,14 @@ const UNSAFE_GLOB_CONTENT = /[\0\r\n$`;&|<>(){}\\]/;
  */
 // implements REQ-skillopt-codex-optimization
 function commandReferencesKb(command: string): boolean {
+  const words = literalShellWords(command);
+  if (
+    words?.length === 3 &&
+    /^(?:\/bin\/)?(?:bash|sh)$/.test(words[0] ?? "") &&
+    (words[1] === "-c" || words[1] === "-lc")
+  ) {
+    command = words[2] ?? command;
+  }
   // Codex's shell serializer represents an embedded quote as `'"'`.  Remove
   // only complete safe option ranges before checking operands; the path itself
   // remains preserved for the access check below.
@@ -107,7 +161,7 @@ function commandReferencesKb(command: string): boolean {
     if (
       glob.startsWith("!") &&
       KB_PATH_PATTERN.test(glob) &&
-      !UNSAFE_GLOB_CONTENT.test(glob)
+      !UNSAFE_GLOB_CONTENT.test(glob.replace(/\\(?:\\|\.)/g, ""))
     ) {
       const start = match.index ?? 0;
       excludedRanges.push([start, start + match[0].length]);

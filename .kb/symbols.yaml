@@ -5739,11 +5739,18 @@ symbols:
   - id: SYM-copySchemaFiles
     title: copySchemaFiles
     sourceFile: packages/cli/src/commands/init-helpers.ts
+    status: active
+    symbol_role: behavioral
+    text_ref: docs-site/content/quick-start.md
     relationships:
-      - type: implements
-        target: REQ-cli-init
       - type: covered_by
         target: TEST-001
+      - type: covered_by
+        target: TEST-cli-canonical-init
+      - type: implements
+        target: REQ-cli-init
+      - type: implements
+        target: REQ-cli-init-canonical
   - id: SYM-core-derived-chr
     title: derived_chr Prolog module derives bounded validation facts
     sourceFile: packages/core/src/derived_chr.pl
@@ -5862,11 +5869,18 @@ symbols:
   - id: SYM-createKbDirectoryStructure
     title: createKbDirectoryStructure
     sourceFile: packages/cli/src/commands/init-helpers.ts
+    status: active
+    symbol_role: behavioral
+    text_ref: docs-site/content/quick-start.md
     relationships:
-      - type: implements
-        target: REQ-cli-init
       - type: covered_by
         target: TEST-001
+      - type: covered_by
+        target: TEST-cli-canonical-init
+      - type: implements
+        target: REQ-cli-init
+      - type: implements
+        target: REQ-cli-init-canonical
   - id: SYM-createKbFreshnessEvidenceStore
     title: createKbFreshnessEvidenceStore
     status: active
@@ -32705,6 +32719,7 @@ symbols:
     sourceFile: scripts/skillopt-eval/fixtures/objective-expectations.ts
     granularity_reason: config-artifact
     symbol_role: config
+    text_ref: docs/skillopt-campaign.md#evaluate-a-reviewed-full-body-revision
     relationships:
       - type: covered_by
         target: TEST-skillopt-codex-optimization
@@ -48540,3 +48555,1579 @@ symbols:
         target: REQ-root-suite-batch-diagnostics
       - type: implements
         target: REQ-test-journaled-engine-harness
+  - id: SYM-skillopt-replace-campaign-body
+    title: replaceCampaignBody
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:01:50.125Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-onboarding-review-evidence
+    title: onboardingReviewEvidence
+    status: active
+    sourceFile: scripts/skillopt-eval/fixtures/onboarding-review.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:01:55.118Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-onboarding-review-matches
+    title: onboardingReviewMatches
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/onboarding-review.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:01:59.943Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-validate-campaign-manifest-against-surface
+    title: validateCampaignManifestAgainstSurface
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:02:04.720Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-campaign-manifest-schema
+    title: CampaignManifestSchema
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:02:39.328Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-run-compose-campaign
+    title: runComposeCampaign
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-workflow.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:02:45.477Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-campaign-main
+    title: campaignMain
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:02:50.793Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-campaign-artifacts-sha256text-cf05d14e
+    title: sha256Text
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:19:52.887Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-campaign-artifacts-manifesthash-a6d98f85
+    title: manifestHash
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:19:56.992Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-campaign-artifacts-composecampaignmanifest-a6b0744d
+    title: composeCampaignManifest
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:20:00.982Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-campaign-artifacts-readcampaignmanifest-9709fde8
+    title: readCampaignManifest
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:20:05.187Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-campaign-artifacts-readbundlecandidatemanifest-de3d79e5
+    title: readBundleCandidateManifest
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:20:09.356Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-campaign-artifacts-readbundlemanifest-89f928ea
+    title: readBundleManifest
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:20:13.201Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-campaign-artifacts-resolvebundlecampaignmanifestpath-5c688987
+    title: resolveBundleCampaignManifestPath
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:20:17.015Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-campaign-artifacts-parsepublicfeedback-c07709d1
+    title: parsePublicFeedback
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:20:20.604Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-campaign-artifacts-readpublicfeedback-2d59d416
+    title: readPublicFeedback
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:20:24.886Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-campaign-artifacts-feedbacktrajectories-f37a1639
+    title: feedbackTrajectories
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:20:28.738Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-campaign-artifacts-defaultsourcefence-efc6036d
+    title: defaultSourceFence
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:20:32.436Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-campaign-artifacts-campaignartifacterror-782da37c
+    title: CampaignArtifactError
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:20:36.014Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-campaign-artifacts-campaignartifacterror-name-14622f09
+    title: CampaignArtifactError.name
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:20:39.460Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-campaign-artifacts-campaignartifactstore-42509001
+    title: CampaignArtifactStore
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:20:42.099Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-campaign-artifacts-campaignartifactstore-open-eddd058c
+    title: CampaignArtifactStore.open
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:20:45.743Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-campaign-artifacts-campaignartifactstore-writejson-c2c8ffd9
+    title: CampaignArtifactStore.writeJson
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:20:48.883Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-campaign-artifacts-campaignartifactstore-writetext-a0eeecf6
+    title: CampaignArtifactStore.writeText
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:20:52.236Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-campaign-artifacts-campaignartifactstore-close-998268d4
+    title: CampaignArtifactStore.close
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:20:55.460Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-campaign-artifacts-campaignartifactstore-root-93504e43
+    title: CampaignArtifactStore.root
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:20:58.313Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-campaign-artifacts-campaigninsertion-2882fd8f
+    title: CampaignInsertion
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:21:01.361Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-campaign-artifacts-campaignmanifest-45267817
+    title: CampaignManifest
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:21:05.520Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-campaign-artifacts-campaignmodelprovenance-f489f4b8
+    title: CampaignModelProvenance
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:21:09.475Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-campaign-artifacts-campaignsourcesurface-98d09abf
+    title: CampaignSourceSurface
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:21:13.413Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-campaign-artifacts-bundlemanifest-871598d9
+    title: BundleManifest
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:21:17.589Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-campaign-artifacts-bundlecandidatemanifest-8e7ca250
+    title: BundleCandidateManifest
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:21:21.498Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-campaign-artifacts-publicfeedback-27f8da4c
+    title: PublicFeedback
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:21:25.505Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-campaign-artifacts-sourcefence-aa02ce67
+    title: SourceFence
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:21:29.044Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-campaign-artifacts-bundlemanifestschema-779d52f8
+    title: BundleManifestSchema
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    symbol_role: unknown
+    granularity_reason: extractor-miss
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:23:03.735Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-campaign-artifacts-publicfeedbackschema-31665c30
+    title: PublicFeedbackSchema
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    symbol_role: unknown
+    granularity_reason: extractor-miss
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:23:08.484Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-campaign-workflow-campaignmodelprofile-77a90067
+    title: campaignModelProfile
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-workflow.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:23:13.565Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-campaign-workflow-parsecompletecampaignevaluation-e4f544e4
+    title: parseCompleteCampaignEvaluation
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-workflow.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:23:18.051Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-campaign-workflow-readcompletecampaignevaluation-de3f402c
+    title: readCompleteCampaignEvaluation
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-workflow.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:23:22.891Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-campaign-workflow-loadverifiedcampaignevaluation-63ad6370
+    title: loadVerifiedCampaignEvaluation
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-workflow.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:23:28.067Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-campaign-workflow-runrevisecampaign-65760487
+    title: runReviseCampaign
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-workflow.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:23:32.452Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-campaign-workflow-runevaluatecampaign-59b34950
+    title: runEvaluateCampaign
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-workflow.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:23:37.325Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-campaign-workflow-runconfirmcampaign-aedd45f6
+    title: runConfirmCampaign
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-workflow.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:23:41.599Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-campaign-workflow-runpackagecampaign-5dd2d3a5
+    title: runPackageCampaign
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-workflow.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:23:45.964Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-campaign-workflow-campaigncell-f64e00ff
+    title: CampaignCell
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-workflow.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:23:50.476Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-campaign-workflow-campaignevaluation-7845dd95
+    title: CampaignEvaluation
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-workflow.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:23:55.090Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-campaign-workflow-campaignruntime-aa661724
+    title: CampaignRuntime
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-workflow.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:23:59.791Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-campaign-workflow-campaigndependencies-fb8ccf38
+    title: CampaignDependencies
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-workflow.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:24:04.760Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-campaign-workflow-defaultcampaigndependencies-e89d5e0d
+    title: defaultCampaignDependencies
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-workflow.ts
+    symbol_role: unknown
+    granularity_reason: config-artifact
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:24:08.554Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-campaign-campaignclierror-bf31157b
+    title: CampaignCliError
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:24:14.220Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-campaign-campaignclierror-name-403c8361
+    title: CampaignCliError.name
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:24:18.691Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-fixtures-case-contracts-answerscoredobjective-8df4e0d3
+    title: answerScoredObjective
+    status: active
+    sourceFile: scripts/skillopt-eval/fixtures/case-contracts.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:24:22.242Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-fixtures-case-contracts-fixturesetupmode-6e8842e1
+    title: FixtureSetupMode
+    status: active
+    sourceFile: scripts/skillopt-eval/fixtures/case-contracts.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:24:26.219Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-fixtures-case-contracts-workspaceassertion-ef52433e
+    title: WorkspaceAssertion
+    status: active
+    sourceFile: scripts/skillopt-eval/fixtures/case-contracts.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:24:29.711Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-fixtures-case-contracts-requiredcall-0d6de131
+    title: RequiredCall
+    status: active
+    sourceFile: scripts/skillopt-eval/fixtures/case-contracts.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:24:33.424Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-fixtures-case-contracts-casecontract-5089d1a6
+    title: CaseContract
+    status: active
+    sourceFile: scripts/skillopt-eval/fixtures/case-contracts.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:24:36.702Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-fixtures-case-contracts-kibi-answer-format-instruction-12b5bc5a
+    title: KIBI_ANSWER_FORMAT_INSTRUCTION
+    status: active
+    sourceFile: scripts/skillopt-eval/fixtures/case-contracts.ts
+    symbol_role: unknown
+    granularity_reason: config-artifact
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:24:39.230Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-fixtures-case-contracts-objective-case-contracts-8e9355e2
+    title: OBJECTIVE_CASE_CONTRACTS
+    status: active
+    sourceFile: scripts/skillopt-eval/fixtures/case-contracts.ts
+    symbol_role: unknown
+    granularity_reason: config-artifact
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:24:42.070Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-fixtures-task-definitions-supplemental-dogfoodcase-62f8db0b
+    title: DogfoodCase
+    status: active
+    sourceFile: scripts/skillopt-eval/fixtures/task-definitions-supplemental.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:24:45.928Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-fixtures-task-definitions-supplemental-supplemental-definitions-97a1cd74
+    title: SUPPLEMENTAL_DEFINITIONS
+    status: active
+    sourceFile: scripts/skillopt-eval/fixtures/task-definitions-supplemental.ts
+    symbol_role: unknown
+    granularity_reason: config-artifact
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:24:48.341Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-fixtures-task-definitions-supplemental-supplemental-cases-8e8546d2
+    title: SUPPLEMENTAL_CASES
+    status: active
+    sourceFile: scripts/skillopt-eval/fixtures/task-definitions-supplemental.ts
+    symbol_role: unknown
+    granularity_reason: config-artifact
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:24:50.995Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-runtime-case-signals-relationshiptargets-d2f98993
+    title: relationshipTargets
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/case-signals.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:24:54.801Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-runtime-case-signals-supersededrequirementids-338b9306
+    title: supersededRequirementIds
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/case-signals.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:24:57.791Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-runtime-case-signals-currentrequirementids-1d9d987c
+    title: currentRequirementIds
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/case-signals.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:25:00.799Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-runtime-case-signals-workspaceassertionpasses-6844a097
+    title: workspaceAssertionPasses
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/case-signals.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:25:03.782Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-runtime-case-signals-casesignalobserved-d745b2c6
+    title: caseSignalObserved
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/case-signals.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:25:07.004Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-runtime-case-signals-caseforbiddenobserved-234fccfd
+    title: caseForbiddenObserved
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/case-signals.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:25:10.576Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-runtime-case-signals-casesignalcontext-904a60d2
+    title: CaseSignalContext
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/case-signals.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:25:13.762Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-runtime-codex-cell-runner-readworkspacesources-18d23e22
+    title: readWorkspaceSources
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-runner.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T12:25:16.923Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-runtime-fixture-kb-setup-setupseededpartialkb-6a846f9e
+    title: setupSeededPartialKb
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T13:18:12.103Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-runtime-fixture-kb-setup-semanticledger-236a7fda
+    title: semanticLedger
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T13:18:23.705Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-runtime-fixture-kb-setup-setupseededgovernedareakb-0b4488e6
+    title: setupSeededGovernedAreaKb
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T13:18:32.149Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-runtime-fixture-kb-setup-setupseededpreconditionkb-403f2dec
+    title: setupSeededPreconditionKb
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T13:18:38.774Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-runtime-fixture-kb-setup-setupseededconsistencykb-6edad3d3
+    title: setupSeededConsistencyKb
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T13:18:45.116Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-mcp-model-modes
+    title: MODEL_MODE_OPERATIONS
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/mcp-tool-names.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T12:15:17.280Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-mcp-routed-operation
+    title: routedOperationName
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/mcp-tool-names.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T12:20:31.949Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-mcp-call-arguments
+    title: toolCallArguments
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/mcp-tool-names.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T12:20:52.940Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-mcp-operation-tool
+    title: mcpToolForOperation
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/mcp-tool-names.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T12:21:14.729Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-answer-contract
+    title: KibiAnswer
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/transcript-evidence.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T12:49:54.051Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-answer-verdicts
+    title: KIBI_ANSWER_VERDICTS
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/transcript-evidence.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T12:50:00.447Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-final-answer-contract
+    title: FinalAnswerEvidence
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/transcript-evidence.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T12:50:06.431Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-final-answer
+    title: finalAnswerEvidence
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/transcript-evidence.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T12:50:11.977Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-last-agent-message
+    title: lastAgentMessage
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/transcript-evidence.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T12:50:17.236Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-ordering-contract
+    title: TranscriptOrdering
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/transcript-evidence.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T12:50:22.453Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-parse-answer
+    title: parseKibiAnswer
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/transcript-evidence.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T12:50:27.668Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-transcript-ordering
+    title: transcriptOrdering
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/transcript-evidence.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T12:50:32.658Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-read-workspace-sources
+    title: readWorkspaceSources
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-runner.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-04T15:40:56.357Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-user-answer
+    title: ScriptedUser.answer
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/scripted-user.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T16:55:23.053Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-user-context
+    title: BOOTSTRAP_USER_CONTEXT
+    status: active
+    sourceFile: scripts/skillopt-eval/fixtures/bootstrap-user.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T16:55:30.454Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-user-instruction
+    title: bootstrapDialogueInstruction
+    status: active
+    sourceFile: scripts/skillopt-eval/fixtures/bootstrap-user.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T16:55:39.520Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-user-mode
+    title: bootstrapUserMode
+    status: active
+    sourceFile: scripts/skillopt-eval/fixtures/bootstrap-user.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T16:55:47.103Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-user-permission
+    title: ScriptedUser.permits
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/scripted-user.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T16:55:56.710Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-user-plan-generation
+    title: ScriptedUser.beginPlan
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/scripted-user.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T16:56:06.810Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-user-preview
+    title: ScriptedUser.observePlan
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/scripted-user.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T16:56:17.034Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-user-profile-schema
+    title: ScriptedUserProfileSchema
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/scripted-user.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T16:56:26.613Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-user-profile
+    title: bootstrapUserProfile
+    status: active
+    sourceFile: scripts/skillopt-eval/fixtures/bootstrap-user.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T16:56:35.436Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-user-tool
+    title: SCRIPTED_USER_TOOL
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/scripted-user.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T16:56:56.052Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-broker-terminate-group
+    title: terminateGroup
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/mcp-broker-process.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T17:22:00.839Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-bootstrap-acceptance-protocol
+    title: bootstrap-acceptance-protocol.md
+    status: active
+    sourceFile: documentation/evaluations/skillopt/bootstrap-acceptance-protocol.md
+    symbol_role: module
+    granularity_reason: module-level-behavior
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T17:24:19.769Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-user-state
+    title: ScriptedUser
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/scripted-user.ts
+    symbol_role: behavioral
+    granularity_reason: module-level-behavior
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T17:55:47.313Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-claude-code-host-tests
+    title: Claude Code SkillOpt host tests
+    status: active
+    sourceFile: scripts/skillopt-eval/tests/claude-code-host.test.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    origin:
+      kind: agent
+      recorded_at: 2026-10-05T21:21:37.193Z
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-claude-code-host
+  - id: SYM-e2e-skillopt-claude-code-host
+    title: skillopt-claude-code-host.e2e
+    status: active
+    sourceFile: documentation/tests/e2e/skillopt-claude-code-host.e2e.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      ref: 'Piotr thread 2026-10-05: continue PR 331 with Claude Code CLI after Codex usage ran out'
+      recorded_at: 2026-10-05T22:05:48.622Z
+    relationships:
+      - type: executable_for
+        target: TEST-e2e-skillopt-claude-code-host
+  - id: SYM-skillopt-claude-code-target-host
+    title: claudeCodeTargetHost
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/claude-code-host.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Piotr thread 2026-10-05: continue PR 331 with Claude Code CLI after Codex usage ran out'
+      recorded_at: 2026-10-05T22:05:55.669Z
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-claude-code-host
+      - type: covered_by
+        target: TEST-skillopt-claude-code-host
+      - type: implements
+        target: REQ-skillopt-claude-code-host
+  - id: SYM-skillopt-claude-target-settings
+    title: claudeTargetSettings
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/claude-code-host.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Piotr thread 2026-10-05: continue PR 331 with Claude Code CLI after Codex usage ran out'
+      recorded_at: 2026-10-05T22:06:02.962Z
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-claude-code-host
+      - type: covered_by
+        target: TEST-skillopt-claude-code-host
+      - type: implements
+        target: REQ-skillopt-claude-code-host
+  - id: SYM-skillopt-claude-target-env
+    title: claudeTargetEnv
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/claude-code-host.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Piotr thread 2026-10-05: continue PR 331 with Claude Code CLI after Codex usage ran out'
+      recorded_at: 2026-10-05T22:06:10.428Z
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-claude-code-host
+      - type: covered_by
+        target: TEST-skillopt-claude-code-host
+      - type: implements
+        target: REQ-skillopt-claude-code-host
+  - id: SYM-skillopt-claude-session-login
+    title: openClaudeSession
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/claude-code-host.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Piotr thread 2026-10-05: continue PR 331 with Claude Code CLI after Codex usage ran out'
+      recorded_at: 2026-10-05T22:06:17.441Z
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-claude-code-host
+      - type: covered_by
+        target: TEST-skillopt-claude-code-host
+      - type: implements
+        target: REQ-skillopt-claude-code-host
+  - id: SYM-skillopt-claude-skill-mirror
+    title: mirrorSkillsForClaude
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/claude-code-host.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Piotr thread 2026-10-05: continue PR 331 with Claude Code CLI after Codex usage ran out'
+      recorded_at: 2026-10-05T22:06:24.411Z
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-claude-code-host
+      - type: covered_by
+        target: TEST-skillopt-claude-code-host
+      - type: implements
+        target: REQ-skillopt-claude-code-host
+  - id: SYM-skillopt-claude-stream-to-codex-jsonl
+    title: claudeStreamToCodexJsonl
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/claude-code-host.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Piotr thread 2026-10-05: continue PR 331 with Claude Code CLI after Codex usage ran out'
+      recorded_at: 2026-10-05T22:06:31.215Z
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-claude-code-host
+      - type: covered_by
+        target: TEST-skillopt-claude-code-host
+      - type: implements
+        target: REQ-skillopt-claude-code-host
+  - id: SYM-skillopt-claude-host-campaign-dependencies
+    title: hostCampaignDependencies
+    status: active
+    sourceFile: scripts/skillopt-eval/claude-code-campaign.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Piotr thread 2026-10-05: continue PR 331 with Claude Code CLI after Codex usage ran out'
+      recorded_at: 2026-10-05T22:06:38.330Z
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-claude-code-host
+      - type: covered_by
+        target: TEST-skillopt-claude-code-host
+      - type: implements
+        target: REQ-skillopt-claude-code-host
+  - id: SYM-skillopt-claude-host-cell-smoke
+    title: hostCellSmokeMain
+    status: active
+    sourceFile: scripts/skillopt-eval/host-cell-smoke.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Piotr thread 2026-10-05: continue PR 331 with Claude Code CLI after Codex usage ran out'
+      recorded_at: 2026-10-05T22:06:44.589Z
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-claude-code-host
+      - type: covered_by
+        target: TEST-skillopt-claude-code-host
+      - type: implements
+        target: REQ-skillopt-claude-code-host
+  - id: SYM-skillopt-selected-host-choice
+    title: selectedSkillOptHost
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/claude-code-host.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Piotr thread 2026-10-05: supersede the Codex-only rule; support different harnesses and run what the operator asks'
+      recorded_at: 2026-10-05T23:49:05.551Z
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-claude-code-host
+      - type: covered_by
+        target: TEST-skillopt-claude-code-host
+      - type: implements
+        target: REQ-skillopt-operator-selected-harness
+  - id: SYM-e2e-skillopt-description-candidates
+    title: skillopt-description-candidates.e2e
+    status: active
+    sourceFile: documentation/tests/e2e/skillopt-description-candidates.e2e.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      ref: 'Piotr thread 2026-10-06: let SkillOpt optimize the skill description, not just the body'
+      recorded_at: 2026-10-06T00:22:46.550Z
+    relationships:
+      - type: executable_for
+        target: TEST-e2e-skillopt-description-candidates
+  - id: SYM-skillopt-validate-candidate-description
+    title: validateCandidateDescription
+    status: active
+    sourceFile: scripts/skillopt-eval/variants.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Piotr thread 2026-10-06: let SkillOpt optimize the skill description, not just the body'
+      recorded_at: 2026-10-06T00:22:52.206Z
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-description-candidates
+      - type: implements
+        target: REQ-skillopt-description-candidates
+  - id: SYM-skillopt-campaign-surface
+    title: campaignSurface
+    status: active
+    sourceFile: scripts/skillopt-eval/real-workflow.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Piotr thread 2026-10-06: let SkillOpt optimize the skill description, not just the body'
+      recorded_at: 2026-10-06T00:22:57.435Z
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-description-candidates
+      - type: implements
+        target: REQ-skillopt-description-candidates
+  - id: SYM-skillopt-candidate-frontmatter-hash
+    title: candidateFrontmatterHash
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Piotr thread 2026-10-06: let SkillOpt optimize the skill description, not just the body'
+      recorded_at: 2026-10-06T00:23:03.655Z
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-description-candidates
+      - type: implements
+        target: REQ-skillopt-description-candidates
+  - id: SYM-skillopt-replace-body-and-description
+    title: replaceCampaignBodyAndDescription
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Piotr thread 2026-10-06: let SkillOpt optimize the skill description, not just the body'
+      recorded_at: 2026-10-06T00:23:09.932Z
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-description-candidates
+      - type: implements
+        target: REQ-skillopt-description-candidates
+  - id: SYM-skillopt-campaign-candidate-hash
+    title: campaignCandidateHash
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Piotr thread 2026-10-06: let SkillOpt optimize the skill description, not just the body'
+      recorded_at: 2026-10-06T00:23:15.811Z
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-description-candidates
+      - type: implements
+        target: REQ-skillopt-description-candidates
+  - id: SYM-skillopt-campaign-candidate-surface
+    title: campaignCandidateSurface
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Piotr thread 2026-10-06: let SkillOpt optimize the skill description, not just the body'
+      recorded_at: 2026-10-06T00:23:21.964Z
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-description-candidates
+      - type: implements
+        target: REQ-skillopt-description-candidates

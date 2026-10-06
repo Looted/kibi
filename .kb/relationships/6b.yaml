@@ -258,3 +258,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d493adb62130
+  - type: implements
+    from: SYM-skillopt-onboarding-review-evidence
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-10-05T12:01:56.010Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-54523188409e
+  - type: covered_by
+    from: SYM-skillopt-onboarding-review-evidence
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-10-05T12:01:56.028Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4ff5467608e2
+  - type: implements
+    from: SYM-skillopt-campaign-campaignclierror-name-403c8361
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-10-05T12:24:19.654Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2b924841ef60
+  - type: covered_by
+    from: SYM-skillopt-campaign-campaignclierror-name-403c8361
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-10-05T12:24:19.676Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-49d612b9b796
+  - type: implements
+    from: SYM-skillopt-claude-stream-to-codex-jsonl
+    to: REQ-skillopt-claude-code-host
+    created_at: 2026-10-05T22:06:32.577Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1e760e55b79b
+  - type: covered_by
+    from: SYM-skillopt-claude-stream-to-codex-jsonl
+    to: TEST-skillopt-claude-code-host
+    created_at: 2026-10-05T22:06:32.601Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5b2f2db3b7f6
+  - type: covered_by
+    from: SYM-skillopt-claude-stream-to-codex-jsonl
+    to: TEST-e2e-skillopt-claude-code-host
+    created_at: 2026-10-05T22:06:32.622Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4762eb719028

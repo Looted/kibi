@@ -328,3 +328,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ede8e010f8f5
+  - type: implements
+    from: SYM-copySchemaFiles
+    to: REQ-cli-init-canonical
+    created_at: 2026-10-05T13:20:38.824Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0fd0ec15818c
+  - type: covered_by
+    from: SYM-copySchemaFiles
+    to: TEST-cli-canonical-init
+    created_at: 2026-10-05T13:20:38.877Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-083df009a15a

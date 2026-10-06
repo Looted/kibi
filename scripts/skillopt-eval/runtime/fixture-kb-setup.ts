@@ -1,6 +1,6 @@
 import { execFile } from "node:child_process";
 import { writeFileSync } from "node:fs";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rmdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { promisify } from "node:util";
 import { EngineClient } from "../../../packages/cli/src/engine";
@@ -645,6 +645,17 @@ export async function setupSeededStaleKb(
     "utf8",
   );
   await stageCommitAll(workspaceTarget);
+}
+
+/** A deliberately incomplete layout for the read-only operator-repair task. */
+// implements REQ-skillopt-codex-optimization
+export async function setupSeededPartialKb(
+  workspaceTarget: string,
+  cliRoot: string,
+): Promise<void> {
+  await setupSeededStaleKb(workspaceTarget, cliRoot);
+  // This lane is empty: remove infrastructure, never authored fixture knowledge.
+  await rmdir(join(workspaceTarget, ".kb", "flags"));
 }
 
 /**

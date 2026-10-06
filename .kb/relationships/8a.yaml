@@ -174,3 +174,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-632ed8fcb3ee
+  - type: implements
+    from: SYM-skillopt-campaign-workflow-loadverifiedcampaignevaluation-63ad6370
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-10-05T12:23:28.946Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c736cfa5a112
+  - type: covered_by
+    from: SYM-skillopt-campaign-workflow-loadverifiedcampaignevaluation-63ad6370
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-10-05T12:23:28.961Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a2d3a911813b

@@ -160,3 +160,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a1ad870b31d1
+  - type: implements
+    from: SYM-skillopt-runtime-fixture-kb-setup-setupseededpreconditionkb-403f2dec
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-10-05T13:18:40.305Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-93c075320704
+  - type: covered_by
+    from: SYM-skillopt-runtime-fixture-kb-setup-setupseededpreconditionkb-403f2dec
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-10-05T13:18:40.324Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-89c8558d683b

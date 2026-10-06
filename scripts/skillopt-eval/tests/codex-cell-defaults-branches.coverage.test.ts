@@ -247,6 +247,54 @@ describe("sealDefaultCellEvidence remaining closeout and broker branches", () =>
     expect(complete.finalState.closeout.taskOutcome).toBe("complete");
     expect(complete.finalState.closeout.kbState).toBe("clean_fresh");
 
+    // A successful query/check cannot clear a genuine infrastructure blocker.
+    // Ordinary staleness remains a different condition (freshness tasks can
+    // correctly finish by reporting it without modifying the KB).
+    for (const activationState of ["root_partial", "root_active_seeded"]) {
+      const sealed = sealDefaultCellEvidence(
+        {
+          evaluatorManifest: {
+            ...completeManifest(),
+            expectedFinalState: [
+              ...completeManifest().expectedFinalState,
+              {
+                key: "inspection-complete",
+                query: "state://inspection",
+                expected: true,
+                critical: true,
+              },
+            ],
+          },
+          finalStateRequests: requests(),
+        },
+        {
+          finalState: receipt({
+            query,
+            check,
+            status: {
+              structuredContent: {
+                syncState: "stale",
+                dirty: false,
+                bootstrap: { activationState },
+              },
+            },
+          }),
+          brokerTrace: "",
+          diagnosticReceipt: "",
+        },
+      );
+      expect(sealed.finalState.closeout.taskOutcome).toBe(
+        activationState === "root_partial" ? "blocked" : "complete",
+      );
+      expect(sealed.finalState.claims).toContainEqual({
+        key: "inspection-complete",
+        value: true,
+      });
+      expect(sealed.finalState.closeout.limitationDisposition).toBe(
+        activationState === "root_partial" ? "unaccepted" : "not_applicable",
+      );
+    }
+
     const missingEntities = sealDefaultCellEvidence(
       { evaluatorManifest: completeManifest(), finalStateRequests: requests() },
       {

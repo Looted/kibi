@@ -259,6 +259,80 @@ async function findProofRun(
   return response.workflow_runs as ProofRun[];
 }
 
+/**
+ * A develop push and the master PR it updates start their proof runs within
+ * seconds of each other, so the reuse check usually looks before develop's
+ * proof has finished. Returns the develop push runs for `sha` that are still
+ * queued or running; the caller waits on them instead of re-proving.
+ */
+// implements REQ-kibi-verification-evidence-contract
+export function pendingDevelopProofRuns(
+  response: unknown,
+  sha: string,
+): ProofRun[] {
+  if (
+    !isRecord(response) ||
+    !Array.isArray(response.workflow_runs) ||
+    response.total_count !== response.workflow_runs.length
+  )
+    throw new Error("develop proof run lookup is incomplete or malformed");
+  return (response.workflow_runs as ProofRun[]).filter(
+    (run) =>
+      isRecord(run) &&
+      run.head_sha === sha &&
+      run.head_branch === "develop" &&
+      run.event === "push" &&
+      run.status !== "completed",
+  );
+}
+
+function secondsFromEnv(name: string, fallback: number): number {
+  const raw = process.env[name];
+  if (raw === undefined || raw === "") return fallback;
+  const value = Number(raw);
+  if (!Number.isFinite(value) || value < 0)
+    throw new Error(`${name} must be a non-negative number of seconds`);
+  return value;
+}
+
+/** Wait (bounded) for develop's own proof of `sha` to finish before deciding. */
+async function waitForDevelopProof(
+  repository: string,
+  sha: string,
+): Promise<void> {
+  const maxWait = secondsFromEnv("KIBI_PROOF_REUSE_WAIT_SECONDS", 3600);
+  // A push run is normally created before the PR run; allow a short grace for
+  // it to appear, but never wait the full budget on a run that does not exist.
+  const appearGrace = Math.min(maxWait, 300);
+  const poll = secondsFromEnv("KIBI_PROOF_REUSE_POLL_SECONDS", 30);
+  const started = Date.now();
+  const query = new URLSearchParams({
+    branch: "develop",
+    event: "push",
+    head_sha: sha,
+    per_page: "100",
+  });
+  for (;;) {
+    const response = await ghApi(
+      `repos/${repository}/actions/workflows/proof.yml/runs?${query}`,
+    );
+    const pending = pendingDevelopProofRuns(response, sha);
+    const seen =
+      isRecord(response) && Array.isArray(response.workflow_runs)
+        ? response.workflow_runs.length
+        : 0;
+    const waited = (Date.now() - started) / 1000;
+    if (pending.length === 0 && seen > 0) return;
+    if (waited >= (seen === 0 ? appearGrace : maxWait)) return;
+    console.log(
+      seen === 0
+        ? `Waiting for the develop proof run of ${sha} to appear (${Math.round(waited)}s)`
+        : `Waiting for develop proof ${pending.map((run) => run.html_url).join(", ")} to finish (${Math.round(waited)}s)`,
+    );
+    await new Promise((resolve) => setTimeout(resolve, poll * 1000));
+  }
+}
+
 async function downloadAttestation(
   repository: string,
   run: ProofRun,
@@ -385,6 +459,7 @@ async function decide(outputPath: string): Promise<void> {
     const mergeParents = (await git("show", "-s", "--format=%P", "HEAD"))
       .split(" ")
       .filter(Boolean);
+    await waitForDevelopProof(repository, headSha);
     const developHeadBefore = await developHead(repository);
     const runs = await findProofRun(repository, headSha);
     const onlyRun = runs.length === 1 ? runs[0] : undefined;

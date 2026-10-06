@@ -132,3 +132,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-791d2feaf4bc
+  - type: implements
+    from: SYM-skillopt-user-profile
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-10-05T16:56:37.409Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-302a3cdb7a89
+  - type: covered_by
+    from: SYM-skillopt-user-profile
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-10-05T16:56:37.433Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-294b541d0976
+  - type: executable_for
+    from: SYM-e2e-skillopt-description-candidates
+    to: TEST-e2e-skillopt-description-candidates
+    created_at: 2026-10-06T00:22:47.762Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fcf6f95d0edc

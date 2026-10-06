@@ -6,12 +6,17 @@ import {
   mkdtemp,
   readFile,
   rm,
+  symlink,
   writeFile,
 } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+import { createInterface } from "node:readline";
 import { PassThrough } from "node:stream";
+import { Client } from "../../../packages/mcp/node_modules/@modelcontextprotocol/sdk/dist/esm/client/index.js";
+import { StdioClientTransport } from "../../../packages/mcp/node_modules/@modelcontextprotocol/sdk/dist/esm/client/stdio.js";
 import { runIndependentFinalState } from "../runtime/final-state";
+import { stopFixtureEngine } from "../runtime/fixture-kb-setup";
 import { createIsolationWorkspace } from "../runtime/isolation-workspace";
 import {
   appendTraceReceipt,
@@ -42,6 +47,57 @@ async function temporaryRoot(prefix: string): Promise<string> {
 }
 
 describe("evaluator-owned Kibi MCP evidence", () => {
+  test("staged MCP hosts the real engine without Node on PATH", async () => {
+    const root = await temporaryRoot("skillopt-staged-node-");
+    const workspace = await createIsolationWorkspace({
+      artifactRoot: root,
+      runId: "staged-node",
+      role: "optimizer",
+    });
+    const client = new Client({ name: "staged-node-regression", version: "1" });
+    try {
+      const isolatedPath = join(root, "bin");
+      await mkdir(isolatedPath);
+      const gitPath = Bun.which("git");
+      if (gitPath === null) throw new Error("The engine fixture requires Git.");
+      await symlink(gitPath, join(isolatedPath, "git"));
+      const staged = await stageKibiMcpBroker(workspace, process.cwd());
+      const transport = new StdioClientTransport({
+        command: staged.command,
+        args: [...staged.args],
+        cwd: staged.cwd,
+        env: {
+          HOME: workspace.sandboxHome,
+          PATH: isolatedPath,
+          KIBI_BRANCH: "skillopt-eval",
+          KIBI_SWIPL: Bun.which("swipl") ?? "",
+        },
+        stderr: "pipe",
+      });
+      await client.connect(transport);
+      const result = await client.callTool({
+        name: "kb_model",
+        arguments: {
+          mode: "analyze",
+          text: "A session timeout must be 30 minutes.",
+          _diagnostic_telemetry: {
+            is_autonomous: true,
+            reasoning: "Verify the isolated engine runtime.",
+            confidence_score: 1,
+            attempt_number: 1,
+            missing_context: "",
+          },
+        },
+      });
+      if (result.isError) throw new Error(JSON.stringify(result));
+      expect(result.structuredContent).toMatchObject({ status: "success" });
+    } finally {
+      await client.close();
+      await stopFixtureEngine(workspace.target);
+      await workspace.cleanup();
+    }
+  });
+
   test("redacts nested secrets while preserving unknown JSON-RPC fields", () => {
     // Given
     const message = {
@@ -224,6 +280,72 @@ await new Promise(() => {});
     const childPid = Number.parseInt(await readFile(pidPath, "utf8"), 10);
     expect(() => process.kill(-childPid, 0)).toThrow();
     expect(await readFile(tracePath, "utf8")).toContain('"kind":"startup"');
+  });
+
+  test("relays a target response to a server request without arming a tool timeout", async () => {
+    // Given a server that asks the client for roots before answering a call
+    const root = await temporaryRoot("skillopt-broker-roots-");
+    const serverPath = join(root, "roots.ts");
+    const tracePath = join(root, "trace.jsonl");
+    await writeFile(
+      serverPath,
+      `import { createInterface } from "node:readline";
+const send = (m) => console.log(JSON.stringify(m));
+for await (const line of createInterface({ input: process.stdin })) {
+  const m = JSON.parse(line);
+  if (m.method === "initialize") send({jsonrpc:"2.0",id:m.id,result:{protocolVersion:"2025-11-25",capabilities:{tools:{}},serverInfo:{name:"fake",version:"1"}}});
+  else if (m.method === "ping") { send({jsonrpc:"2.0",id:0,method:"roots/list"}); }
+  else if (m.id === 0 && m.method === undefined) send({jsonrpc:"2.0",id:7,result:{rootsSeen:true}});
+}
+`,
+      { mode: 0o700 },
+    );
+    const input = new PassThrough();
+    const output = new PassThrough();
+    const lines = createInterface({ input: output });
+    const received: Record<string, unknown>[] = [];
+    lines.on("line", (line) => received.push(JSON.parse(line)));
+    const attempt = runMcpBroker(
+      {
+        downstream: {
+          command: process.execPath,
+          args: [serverPath],
+          cwd: root,
+        },
+        tracePath,
+        startupTimeoutMs: 5_000,
+        toolTimeoutMs: 150,
+        killGraceMs: 25,
+      },
+      { input, output, error: new PassThrough() },
+    );
+    const until = async (predicate: () => boolean) => {
+      for (let tries = 0; tries < 200 && !predicate(); tries += 1)
+        await new Promise((resolveWait) => setTimeout(resolveWait, 10));
+    };
+    input.write(
+      `${JSON.stringify({ jsonrpc: "2.0", id: 1, method: "initialize", params: {} })}\n`,
+    );
+    await until(() => received.some((m) => m.id === 1));
+    input.write(
+      `${JSON.stringify({ jsonrpc: "2.0", id: 7, method: "ping" })}\n`,
+    );
+    await until(() => received.some((m) => m.method === "roots/list"));
+
+    // When the target answers the server request and stays idle past the timeout
+    input.write(
+      `${JSON.stringify({ jsonrpc: "2.0", id: 0, result: { roots: [] } })}\n`,
+    );
+    await until(() => received.some((m) => m.id === 7));
+    await new Promise((resolveWait) => setTimeout(resolveWait, 400));
+    input.end();
+
+    // Then the broker shut down normally instead of failing with a timeout
+    await attempt;
+    expect(received.find((m) => m.id === 7)).toMatchObject({
+      result: { rootsSeen: true },
+    });
+    expect(await readFile(tracePath, "utf8")).not.toContain('"kind":"timeout"');
   });
 
   test("reaps an unresponsive downstream group when the target transport closes", async () => {

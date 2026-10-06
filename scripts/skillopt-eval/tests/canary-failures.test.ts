@@ -1,3 +1,4 @@
+// implements REQ-skillopt-codex-optimization
 import {
   afterAll,
   afterEach,
@@ -23,6 +24,7 @@ import {
   RequiredMcpStartupError,
   RuntimePrerequisiteError,
 } from "../runtime/canary-runtime";
+import { runModelCanary } from "../runtime/canary-run";
 import { createIsolationWorkspace } from "../runtime/isolation-workspace";
 import { ProcessControlError, type ProcessResult } from "../runtime/process";
 import { runCapabilityCanary as baseRunCapabilityCanary } from "../runtime/workspace";
@@ -716,5 +718,180 @@ describe("Codex capability canary failures", () => {
     // Then
     expect(receipt.verdict).toBe("pass");
     expect(productionProbeCalls).toBe(2);
+  });
+});
+
+async function preparedModelCanary() {
+  const fixture = await authEnvironment();
+  const sourceWorktree = process.cwd();
+  return {
+    options: {
+      runId: "00000000-0000-4000-8000-000000000701",
+      sourceWorktree,
+      artifactRoot: fixture.artifactRoot,
+    },
+    role: "target" as const,
+    sourceWorktree,
+    artifactRoot: fixture.artifactRoot,
+    env: fixture.env,
+    probeSandbox: async () => {},
+    probeMcp: async () => {},
+    stageDependencies: {
+      stagedRuntime: {
+        codexExecutable: "/bin/true",
+        bwrapExecutable: "/bin/true",
+      },
+    },
+  };
+}
+
+function jsonl(events: readonly Readonly<Record<string, unknown>>[]): string {
+  return `${events.map((event) => JSON.stringify(event)).join("\n")}\n`;
+}
+
+describe("model canary execution evidence and IO failures", () => {
+  test.each(["target", "optimizer"] as const)(
+    "%s canary requests one probe through the available executor",
+    async (role) => {
+      const context = await preparedModelCanary();
+      let prompt = "";
+      const result = await runModelCanary({
+        ...context,
+        role,
+        run: async (argv, _cwd, _env, _timeout, stdin) => {
+          if (argv.join(" ") === "codex login status")
+            return fakeRunner("")(argv);
+          prompt = stdin ?? "";
+          return {
+            argv,
+            stdout: jsonl([{ type: "turn.completed" }]),
+            stderr: "",
+            exitCode: 0,
+            signal: null,
+          };
+        },
+      });
+      expect(prompt).toContain("exec_command, through code mode when required");
+      expect(prompt).toContain(
+        "exactly once to execute ./.runtime/canary-probe",
+      );
+      if (role === "optimizer") {
+        const payload = prompt.match(
+          /with these JSON arguments: (\{.+\})\. Wait/,
+        );
+        expect(JSON.parse(payload?.[1] ?? "null")).toEqual({
+          mode: "analyze",
+          text: "A session timeout must be 30 minutes.",
+          _diagnostic_telemetry: {
+            is_autonomous: true,
+            reasoning: expect.any(String),
+            confidence_score: 1,
+            attempt_number: 1,
+            missing_context: "",
+          },
+        });
+      }
+      // Naming the current executor must never admit a final success claim
+      // when the model supplied no completed command evidence.
+      expect(result).toMatchObject({
+        kind: "no-go",
+        reason: "missing_probe_execution",
+        paidModelCalls: 1,
+      });
+    },
+  );
+
+  test("returns no-go when Codex emits an error event after a zero exit", async () => {
+    const context = await preparedModelCanary();
+    const result = await runModelCanary({
+      ...context,
+      run: async (argv) => {
+        if (argv.join(" ") === "codex login status") return fakeRunner("")(argv);
+        return {
+          argv,
+          stdout: jsonl([{ type: "error", message: "turn exploded" }]),
+          stderr: "",
+          exitCode: 0,
+          signal: null,
+        };
+      },
+    });
+    expect(result).toMatchObject({
+      kind: "no-go",
+      reason: "codex_event_failure",
+      paidModelCalls: 1,
+    });
+  });
+
+  test("classifies a non-ENOENT broker-trace read as canary infrastructure", async () => {
+    const context = await preparedModelCanary();
+    const result = await runModelCanary({
+      ...context,
+      run: async (argv, cwd) => {
+        if (argv.join(" ") === "codex login status") return fakeRunner("")(argv);
+        await mkdir(join(cwd, "..", "private-evidence", "broker-trace.jsonl"), {
+          recursive: true,
+        });
+        return {
+          argv,
+          stdout: jsonl([{ type: "turn.completed" }]),
+          stderr: "",
+          exitCode: 0,
+          signal: null,
+        };
+      },
+    });
+    expect(result.kind).toBe("no-go");
+    if (result.kind !== "no-go") throw new Error("expected no-go");
+    expect(result.reason).toContain("canary_infrastructure:");
+    expect(result.paidModelCalls).toBe(1);
+    expect(result.run).toBeDefined();
+  });
+
+  test("classifies a non-ENOENT usage.log read as canary infrastructure", async () => {
+    const context = await preparedModelCanary();
+    const result = await runModelCanary({
+      ...context,
+      run: async (argv, cwd) => {
+        if (argv.join(" ") === "codex login status") return fakeRunner("")(argv);
+        await mkdir(join(cwd, ".kb", "usage.log"), { recursive: true });
+        return {
+          argv,
+          stdout: jsonl([{ type: "turn.completed" }]),
+          stderr: "",
+          exitCode: 0,
+          signal: null,
+        };
+      },
+    });
+    expect(result.kind).toBe("no-go");
+    if (result.kind !== "no-go") throw new Error("expected no-go");
+    expect(result.reason).toContain("canary_infrastructure:");
+    expect(result.paidModelCalls).toBe(1);
+  });
+
+  test("wraps unknown thrown values after a paid model call", async () => {
+    const context = await preparedModelCanary();
+    const result = await runModelCanary({
+      ...context,
+      run: async (argv) => {
+        if (argv.join(" ") === "codex login status") return fakeRunner("")(argv);
+        return {
+          argv,
+          stdout: jsonl([{ type: "turn.completed" }]),
+          stderr: "",
+          exitCode: 0,
+          signal: null,
+        };
+      },
+      verifyEvidence: async () => {
+        throw "bare-string";
+      },
+    });
+    expect(result).toMatchObject({
+      kind: "no-go",
+      reason: "canary_infrastructure:UnknownError",
+      paidModelCalls: 1,
+    });
   });
 });

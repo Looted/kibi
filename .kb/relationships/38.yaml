@@ -171,3 +171,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b91f23d39d4d
+  - type: implements
+    from: SYM-skillopt-runtime-case-signals-caseforbiddenobserved-234fccfd
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-10-05T12:25:11.363Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b725d956107f
+  - type: covered_by
+    from: SYM-skillopt-runtime-case-signals-caseforbiddenobserved-234fccfd
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-10-05T12:25:11.379Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c9c5339a3028

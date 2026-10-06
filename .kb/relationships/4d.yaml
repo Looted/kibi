@@ -174,3 +174,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b7ad12217cc0
+  - type: implements
+    from: SYM-skillopt-campaign-workflow-readcompletecampaignevaluation-de3f402c
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-10-05T12:23:24.130Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c3ade9f4ae7a
+  - type: covered_by
+    from: SYM-skillopt-campaign-workflow-readcompletecampaignevaluation-de3f402c
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-10-05T12:23:24.147Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-37859621cf94

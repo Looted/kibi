@@ -13,6 +13,8 @@ import {
 } from "./bundle-workflow";
 import {
   CampaignArtifactError,
+  type CampaignSourceSurface,
+  campaignCandidateSurface,
   readBundleCandidateManifest,
   sha256Text,
   validateCampaignManifestAgainstSurface,
@@ -32,7 +34,7 @@ import {
 import { RunStore, runOfflineWorkflow } from "./orchestration";
 import { runCapabilityCanary, runPreflight } from "./preflight";
 import { prepareArtifact } from "./prepared-root";
-import { runRealOptimization, surface } from "./real-workflow";
+import { campaignSurface, runRealOptimization } from "./real-workflow";
 import type { HeldOutCellRunner } from "./real-workflow-types";
 import { runCodexCell } from "./runtime/codex-cell-runner";
 import {
@@ -40,7 +42,6 @@ import {
   createCodexRuntimeLease,
 } from "./runtime/codex-runtime";
 import { assertSkillOptModelsReadyForPaidWork } from "./runtime/models";
-import type { SkillSurface } from "./runtime/skill-assembly";
 import {
   TargetEpisodeBudgetError,
   initializeTargetEpisodeBudget,
@@ -88,9 +89,19 @@ export async function resolveBundleSurfaces(
   bundleManifestPath: string,
 ): Promise<BundleSurfaceSet> {
   const bundle = await readBundleCandidateManifest(bundleManifestPath);
+  const sourceSurfaces = new Map<
+    (typeof CANONICAL_SKILLS)[number],
+    CampaignSourceSurface
+  >();
   const baselineEntries = await Promise.all(
     CANONICAL_SKILLS.map(async (skill) => {
-      const current = await surface(sourceRoot, skill);
+      // The parsed frontmatter only validates described manifests; the gate's
+      // surfaces (and its verdict report) keep their hash-only shape.
+      const { manifest: frontmatter, ...current } = await campaignSurface(
+        sourceRoot,
+        skill,
+      );
+      sourceSurfaces.set(skill, { ...current, manifest: frontmatter });
       return [skill, current] as const;
     }),
   );
@@ -107,20 +118,25 @@ export async function resolveBundleSurfaces(
     const manifest = bundle.candidates.get(entry.skill);
     if (manifest === undefined)
       throw new CampaignArtifactError("bundle_candidate_manifest_missing");
-    const current = baselineSurfaces[entry.skill];
+    const current = sourceSurfaces.get(entry.skill);
+    if (current === undefined)
+      throw new CampaignArtifactError("bundle_candidate_manifest_missing");
     validateCampaignManifestAgainstSurface(manifest, current);
+    const { description } = campaignCandidateSurface(manifest);
     candidateSurfaces[entry.skill] = {
       body: manifest.frozenBody,
       frontmatterHash: manifest.frontmatterHash,
       resourcesHash: manifest.resourcesHash,
-    } satisfies SkillSurface;
+      ...(description === undefined ? {} : { description }),
+    } satisfies BundleSurface;
   }
 
   if (
     !CANONICAL_SKILLS.some(
       (skill) =>
         sha256Text(baselineSurfaces[skill].body) !==
-        sha256Text(candidateSurfaces[skill].body),
+          sha256Text(candidateSurfaces[skill].body) ||
+        candidateSurfaces[skill].description !== undefined,
     )
   ) {
     throw new CampaignArtifactError("bundle_no_improvement");

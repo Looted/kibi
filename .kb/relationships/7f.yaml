@@ -181,3 +181,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-77d080cc3542
+  - type: implements
+    from: SYM-skillopt-campaign-workflow-campaignruntime-aa661724
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-10-05T12:24:00.787Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-990182caf18c
+  - type: covered_by
+    from: SYM-skillopt-campaign-workflow-campaignruntime-aa661724
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-10-05T12:24:00.808Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b876b89517d3
+  - type: supersedes
+    from: REQ-skillopt-operator-selected-harness
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-10-05T23:49:00.439Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0003b893e68a
+  - type: constrains
+    from: REQ-skillopt-operator-selected-harness
+    to: FACT-subject-skillopt-harness-selection
+    created_at: 2026-10-05T23:49:00.469Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e9784570c124
+  - type: requires_property
+    from: REQ-skillopt-operator-selected-harness
+    to: FACT-prop-skillopt-harness-selection-c01
+    created_at: 2026-10-05T23:49:00.487Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-414e802ea534
+  - type: requires_property
+    from: REQ-skillopt-operator-selected-harness
+    to: FACT-prop-skillopt-harness-selection-c02
+    created_at: 2026-10-05T23:49:00.514Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e8c41706f3d9
+  - type: requires_property
+    from: REQ-skillopt-operator-selected-harness
+    to: FACT-prop-skillopt-harness-selection-c03
+    created_at: 2026-10-05T23:49:00.534Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fc625cdfe86f
+  - type: requires_property
+    from: REQ-skillopt-operator-selected-harness
+    to: FACT-prop-skillopt-harness-selection-c04
+    created_at: 2026-10-05T23:49:00.549Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2a9635400f82
+  - type: requires_property
+    from: REQ-skillopt-operator-selected-harness
+    to: FACT-prop-skillopt-harness-selection-c05
+    created_at: 2026-10-05T23:49:00.577Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-128e1baba7b0
+  - type: specified_by
+    from: REQ-skillopt-operator-selected-harness
+    to: SCEN-skillopt-claude-code-host
+    created_at: 2026-10-05T23:49:00.590Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8582cb13f378

@@ -328,3 +328,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1096accd7a10
+  - type: implements
+    from: SYM-skillopt-runtime-case-signals-supersededrequirementids-338b9306
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-10-05T12:24:58.440Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-79e7774ffd14
+  - type: covered_by
+    from: SYM-skillopt-runtime-case-signals-supersededrequirementids-338b9306
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-10-05T12:24:58.459Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0ead97121a06

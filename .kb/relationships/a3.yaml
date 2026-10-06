@@ -181,3 +181,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-426e944c5f12
+  - type: implements
+    from: SYM-skillopt-campaign-artifacts-defaultsourcefence-efc6036d
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-10-05T12:20:33.224Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7417f660cb36
+  - type: covered_by
+    from: SYM-skillopt-campaign-artifacts-defaultsourcefence-efc6036d
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-10-05T12:20:33.237Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6d89d7ebc20e

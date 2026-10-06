@@ -57,8 +57,12 @@ jobs:
         id: reuse
         if: ${{ github.event_name == 'pull_request' && github.base_ref == 'master' && github.head_ref == 'develop' && github.event.pull_request.head.repo.full_name == github.repository }}
         continue-on-error: true
+        # Waits for develop's own proof of this head (started by the same push)
+        # instead of re-proving it; falls back to full proof after the budget.
+        timeout-minutes: 75
         env:
           GH_TOKEN: ${{ github.token }}
+          KIBI_PROOF_REUSE_WAIT_SECONDS: "3600"
           PR_HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
           PR_HEAD_BRANCH: ${{ github.head_ref }}
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}

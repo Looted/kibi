@@ -84,7 +84,7 @@ export const BOOTSTRAP_DEFINITIONS: Readonly<Record<string, Definition>> = {
   },
   "approval-plan-apply": {
     instruction:
-      "Apply the explicitly approved bootstrap plan through kb_apply_plan and finish with validation.",
+      "Apply the bootstrap plan for the confirmed context in approval-state.json through kb_apply_plan and finish with validation. The operator explicitly delegates plan approval to you only within the scope recorded in that file.",
     objectiveCode: "approved_plan_apply",
     sourceFile: "approval-state.json",
     mutation: "write",

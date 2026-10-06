@@ -195,3 +195,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-909a422e9989
+  - type: implements
+    from: SYM-skillopt-user-tool
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-10-05T16:56:57.745Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-555c0c2347a2
+  - type: covered_by
+    from: SYM-skillopt-user-tool
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-10-05T16:56:57.787Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-29292eca8b8b

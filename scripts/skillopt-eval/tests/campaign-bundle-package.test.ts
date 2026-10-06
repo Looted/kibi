@@ -2,10 +2,14 @@ import { describe, expect, test } from "bun:test";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { composeCampaignManifest, sha256Text } from "../campaign-artifacts";
+import {
+  composeCampaignManifest,
+  replaceCampaignBodyAndDescription,
+  sha256Text,
+} from "../campaign-artifacts";
 import { runBundlePackageCampaign } from "../campaign-bundle-package";
 import { CANONICAL_SKILLS, type CanonicalSkill } from "../catalog";
-import { surface } from "../real-workflow";
+import { campaignSurface, surface } from "../real-workflow";
 
 async function writeCandidate(
   root: string,
@@ -199,6 +203,60 @@ describe("bundle campaign package", () => {
           bundleManifestPath: bundlePath,
         }),
       ).rejects.toThrow("manifest_body_hash_mismatch");
+    } finally {
+      await rm(parent, { recursive: true, force: true });
+    }
+  });
+
+  test("assembles a described candidate whose only change is its frontmatter description", async () => {
+    const parent = await mkdtemp(join(tmpdir(), "campaign-bundle-described-"));
+    try {
+      const current = await campaignSurface(process.cwd(), "kibi-bootstrap");
+      const description =
+        "Use first when a repository has no Kibi store, to bootstrap it from sources.";
+      const manifest = replaceCampaignBodyAndDescription({
+        skill: "kibi-bootstrap",
+        surface: current,
+        body: current.body,
+        description,
+      });
+      const manifestPath = join(parent, "kibi-bootstrap.json");
+      await writeFile(manifestPath, `${JSON.stringify(manifest)}\n`, "utf8");
+      const bundlePath = await writeBundle(
+        parent,
+        new Map([["kibi-bootstrap", manifestPath]]),
+      );
+      const artifactRoot = join(parent, "artifacts");
+
+      const receipt = await runBundlePackageCampaign({
+        sourceRoot: process.cwd(),
+        artifactRoot,
+        bundleManifestPath: bundlePath,
+      });
+
+      expect(
+        receipt.skills.find((entry) => entry.id === "kibi-bootstrap"),
+      ).toMatchObject({
+        bodyChanged: false,
+        descriptionChanged: true,
+        frontmatterHash: manifest.candidateFrontmatterHash,
+      });
+      const packageReceipt = JSON.parse(
+        await readFile(join(artifactRoot, "package-receipt.json"), "utf8"),
+      );
+      expect(packageReceipt.manifestReadiness).toMatchObject({
+        onlyCandidateBodiesChanged: [],
+        candidateDescriptionsChanged: ["kibi-bootstrap"],
+      });
+      expect(
+        packageReceipt.selection.find(
+          (entry: { skill: string }) => entry.skill === "kibi-bootstrap",
+        ),
+      ).toMatchObject({
+        frozenDescription: description,
+        frozenDescriptionHash: sha256Text(description),
+        candidateFrontmatterHash: manifest.candidateFrontmatterHash,
+      });
     } finally {
       await rm(parent, { recursive: true, force: true });
     }

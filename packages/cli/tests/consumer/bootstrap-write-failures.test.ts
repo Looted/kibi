@@ -1,22 +1,44 @@
 // executable_for TEST-KIBI-BOOTSTRAP-PLAN-APPLY
 import { afterEach, describe, expect, test } from "bun:test";
-import {
-  createConsumerWorkspace,
-  type ConsumerWorkspace,
-  type Json,
-} from "./workspace.js";
-import type { UpsertInput } from "../../src/operations/mutation/types.js";
-import { validateUpsertInput } from "../../src/operations/mutation/validation.js";
 import { dump as dumpYaml } from "js-yaml";
 import { bootstrapPlanHash } from "../../src/operations/bootstrap/types.js";
+import type { UpsertInput } from "../../src/operations/mutation/types.js";
+import { validateUpsertInput } from "../../src/operations/mutation/validation.js";
+import {
+  type ConsumerWorkspace,
+  type Json,
+  createConsumerWorkspace,
+} from "./workspace.js";
 
 let ws: ConsumerWorkspace | undefined;
 afterEach(() => {
   ws?.cleanup();
   ws = undefined;
 });
-function planClaims(statements: string[]): Json {
+function workspace(): ConsumerWorkspace {
+  if (!ws) throw new Error("Consumer workspace has not been initialized");
+  return ws;
+}
+function planClaims(statements: string[], syncFirst = false): Json {
   ws = createConsumerWorkspace("kibi-bootstrap-writes-");
+  if (syncFirst) {
+    ws.write(
+      "src/library.ts",
+      "export const libraryName = 'Fictional library';\n",
+    );
+    ws.git("add", ".");
+    ws.git("commit", "-m", "Initialize consumer source snapshot");
+    ws.sync();
+    ws.json(["upsert"], {
+      type: "fact",
+      id: "FACT-existing-observation",
+      properties: {
+        title: "Existing library observation",
+        status: "active",
+        fact_kind: "observation",
+      },
+    });
+  }
   return (
     ws.json(["plan-bootstrap"], {
       bootstrapContext: {
@@ -56,21 +78,60 @@ describe("bootstrap writes through the real CLI and Prolog engine", () => {
       expect(() =>
         validateUpsertInput(action.payload, new Date()),
       ).not.toThrow();
-    const applied = ws!.json(["apply-plan"], {
+    const applied = workspace().json(["apply-plan"], {
       plan,
       approvedPlanHash: plan.planHash,
     });
     expect(applied.status).toBe("success");
     expect((applied.data as Json).outcome).toBe("applied");
     expect((applied.data as Json).changedEntities).toBe(12);
-    ws!.sync();
-    const check = ws!.json(["check"], {
+    workspace().sync();
+    const check = workspace().json(["check"], {
       rules: ["strict-fact-shape", "domain-contradictions", "no-dangling-refs"],
     });
     expect((check.data as Json).violations).toEqual([]);
-    const status = ws!.json(["status"], {});
+    const status = workspace().json(["status"], {});
     expect(status.status).toBe("success");
     expect((status.data as Json).syncState).toBe("fresh");
+  }, 120_000);
+
+  test("a plan bound to a synced journal snapshot applies without weakening freshness", () => {
+    const plan = planClaims(["Loans must retain a due date."], true);
+    expect((plan.expected as Json).kbSnapshotId).toMatch(
+      /^generation-[0-9-]+:[0-9]+$/,
+    );
+    const applied = workspace().json(["apply-plan"], {
+      plan,
+      approvedPlanHash: plan.planHash,
+    });
+    expect(applied.status).toBe("success");
+    const rows = (workspace().json(["query"], { type: "req" }).data as Json)
+      .entities as Json[];
+    expect(rows.some((row) => row.text_ref === "spec:claim:1")).toBe(true);
+  }, 120_000);
+
+  test("a journal revision changed after planning still rejects the original plan", () => {
+    const plan = planClaims(["Loans must retain a due date."], true);
+    workspace().json(["upsert"], {
+      type: "fact",
+      id: "FACT-lending-observation",
+      properties: {
+        title: "Lending desk observation",
+        status: "active",
+        fact_kind: "observation",
+      },
+    });
+    const applied = workspace().json(["apply-plan"], {
+      plan,
+      approvedPlanHash: plan.planHash,
+    });
+    expect(applied.status).toBe("error");
+    expect((applied.error as Json).message).toContain(
+      "KB snapshot changed since planning",
+    );
+    expect(
+      (workspace().json(["query"], { type: "req" }).data as Json).entities,
+    ).toEqual([]);
   }, 120_000);
 
   test("model-requirement returns writable and applicable polarity claims", () => {
@@ -111,7 +172,7 @@ describe("bootstrap writes through the real CLI and Prolog engine", () => {
     };
     const serializable = JSON.parse(JSON.stringify(broken));
     const plan = { ...serializable, planHash: bootstrapPlanHash(serializable) };
-    const result = ws!.json(["apply-plan"], {
+    const result = workspace().json(["apply-plan"], {
       plan,
       approvedPlanHash: plan.planHash,
     });
@@ -120,7 +181,7 @@ describe("bootstrap writes through the real CLI and Prolog engine", () => {
       code: "BOOTSTRAP_PLAN_INVALID",
       retryable: false,
     });
-    expect(ws!.json(["query"], { type: "fact" }).data).toMatchObject({
+    expect(workspace().json(["query"], { type: "fact" }).data).toMatchObject({
       entities: [],
     });
   }, 120_000);
@@ -132,14 +193,14 @@ test("require and forbid on one property are detected as a polarity contradictio
     "Exports must include headers.",
     "Exports must not include headers.",
   ]);
-  const applied = ws!.json(["apply-plan"], {
+  const applied = workspace().json(["apply-plan"], {
     plan,
     approvedPlanHash: plan.planHash,
   });
   expect(applied.status).toBe("error");
   expect((applied.data as Json).outcome).toBe("rejected");
   expect(JSON.stringify(applied)).toContain("Polarity conflict");
-  const status = ws!.json(["status"], {});
+  const status = workspace().json(["status"], {});
   expect(
     ((status.data as Json).bootstrap as Json).incompleteApplications,
   ).toContainEqual(
@@ -154,19 +215,22 @@ test("require and forbid on one property are detected as a polarity contradictio
   const requirement = (plan.actions as { payload: UpsertInput }[])
     .map((row) => row.payload)
     .filter((row) => row.type === "req")
-    .at(-1)!;
+    .at(-1);
+  if (!requirement) throw new Error("Expected a planned requirement");
   const edges = {
     links: (requirement.relationships ?? []).map((edge) => ({
       type: edge.type,
       target: edge.to,
     })),
   };
-  ws!.write(
+  workspace().write(
     `.kb/requirements/${requirement.id}.md`,
     `---\n${dumpYaml({ id: requirement.id, type: "req", ...requirement.properties, ...edges })}---\n`,
   );
-  ws!.sync();
-  const check = ws!.json(["check"], { rules: ["domain-contradictions"] });
+  workspace().sync();
+  const check = workspace().json(["check"], {
+    rules: ["domain-contradictions"],
+  });
 
   expect((check.data as Json).violations).not.toEqual([]);
 }, 120_000);
@@ -199,7 +263,7 @@ test("schema 6 polarity-only facts migrate strictly without changing IDs or bodi
     const entity = (
       (ws.json(["query"], { id: `FACT-${polarity}` }).data as Json)
         .entities as Json[]
-    )[0]!;
+    )[0];
     expect(entity).toMatchObject({
       id: `FACT-${polarity}`,
       polarity,

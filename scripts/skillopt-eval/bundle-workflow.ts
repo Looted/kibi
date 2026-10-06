@@ -21,7 +21,8 @@ export const BUNDLE_EVALUATION_BRANCH = SKILLOPT_EVALUATION_BRANCH;
 const DEFAULT_BUNDLE_CELL_TIMEOUT_MS = 600_000;
 
 export type BundleArm = "baseline" | "skillopt";
-export type BundleSurface = SkillSurface;
+/** A described (1.2.0) candidate also carries its replacement description. */
+export type BundleSurface = SkillSurface & Readonly<{ description?: string }>;
 export type BundleSurfaces = Readonly<Record<CanonicalSkill, BundleSurface>>;
 
 export type BundleCellSummary = Readonly<{
@@ -151,7 +152,9 @@ export async function runPaidBundleGate(
   ) as Record<CanonicalSkill, string>;
   if (
     !CANONICAL_SKILLS.some(
-      (skill) => baselineBodyHashes[skill] !== candidateBodyHashes[skill],
+      (skill) =>
+        baselineBodyHashes[skill] !== candidateBodyHashes[skill] ||
+        options.candidateSurfaces[skill].description !== undefined,
     )
   ) {
     throw new BundleGateInputError("bundle:no-improvement");
@@ -189,6 +192,9 @@ export async function runPaidBundleGate(
             body: surface.body,
             frontmatterHash: surface.frontmatterHash,
             resourcesHash: surface.resourcesHash,
+            ...(surface.description === undefined
+              ? {}
+              : { description: surface.description }),
           };
           return [skill, candidate];
         }),

@@ -1,6 +1,6 @@
 ---
 id: TEST-skillopt-codex-optimization
-title: Codex SkillOpt contract rejects stale hosts and gates
+title: Codex SkillOpt permits supplied-source reading and preserves exact-plan approval across identical re-previews
 type: test
 status: passing
 created_at: 2026-07-21T00:00:00.000Z
@@ -13,6 +13,8 @@ tags:
   - evaluation
   - integration
   - security
+  - scripted-user
+  - document-intake
 verification_scope: integration
 verification_perspective: internal
 links:
