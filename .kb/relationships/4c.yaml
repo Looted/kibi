@@ -251,3 +251,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e37e384e4f6c
+  - type: implements
+    from: SYM-kb-entity-body-context-evaluateentitycontext
+    to: REQ-kb-entity-body-context
+    created_at: 2026-10-06T19:39:51.877Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c6e8fafc980b
+  - type: covered_by
+    from: SYM-kb-entity-body-context-evaluateentitycontext
+    to: TEST-kb-entity-body-context
+    created_at: 2026-10-06T19:39:51.905Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7f98725dedc8

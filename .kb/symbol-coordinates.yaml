@@ -14163,6 +14163,38 @@ coordinates:
     sourceEndLine: 28
     sourceFile: packages/vscode/src/shared/rdf-parser.ts
     sourceLine: 15
+  SYM-kb-entity-body-context-applycontextmissingtags:
+    identityHash: 49d61243cb7f4089b215f36e4bc3d0d3ab38ad602fba0ad48ad8e6cc49df003d
+    sourceHash: 1b526705a852a7200f517b71fd8e906b34a7b6b53cf982d32f656d064d20dd66
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 280
+    sourceFile: packages/cli/src/operations/migration/entity-body-context.ts
+    sourceLine: 275
+  SYM-kb-entity-body-context-contextfinding:
+    identityHash: 1052a3e2ba7140d347e970760963994d76200d60eaa0a86dcbe58203d4d2792a
+    sourceHash: 7d0307ca3a595f1af78ddb34251a7699efd47123d100b0e04a0b17d3032065c4
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 327
+    sourceFile: packages/cli/src/entity-body-context.ts
+    sourceLine: 309
+  SYM-kb-entity-body-context-evaluateentitycontext:
+    identityHash: 79e95e9e91c171896e005ba5a6f589f129680f6318b8ecfe67b2e499d113962d
+    sourceHash: 3e26a3b339acab21a2d0759fc2e410d08d4aaa7493a9b77e4489a2e4c07ccb30
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 288
+    sourceFile: packages/cli/src/public/operations/entity-context.ts
+    sourceLine: 230
+  SYM-kb-entity-body-context-reviserequirementbody:
+    identityHash: 911e7de75e3b8c7b907ed1b17d345721dda475064509d16c4627677f57aa2b39
+    sourceHash: 7d0307ca3a595f1af78ddb34251a7699efd47123d100b0e04a0b17d3032065c4
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 480
+    sourceFile: packages/cli/src/entity-body-context.ts
+    sourceLine: 428
   SYM-kb-status-json:
     identityHash: 694af4207781bb7c1e1715a608758e5407401c960e971371235dea4ad7b20f6b
     sourceHash: 55f5d9ee703a9d227a15115708d1ee11ccccdfb6b8a7aa5df6e74c02c20432c8
@@ -33339,6 +33371,14 @@ coordinates:
     sourceEndLine: 119
     sourceFile: documentation/tests/benchmarks/journaled-engine.bench.mjs
     sourceLine: 57
+  SYM-test-kb-entity-body-context:
+    identityHash: fc6762784b29539d1822da10588f75b1c01d5e5c76fbcc8518a23832e565a4c3
+    sourceHash: c2f3d42b8eb830d7175eefd25a843e7a50a9b7b9a2bf62e1fc052552b4f0098a
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 164
+    sourceFile: packages/cli/tests/commands/check-entity-context.test.ts
+    sourceLine: 1
   SYM-test-kibi-bootstrap-knowledge-sources:
     identityHash: 98b8eacd93562c93a36b49942df040bd7ae66567f314301c8d28046de5b065c7
     sourceHash: f7682c04d4f0d800f12b9574e95c605bc0b8bfd69f365f448748f047f7ba5f7e

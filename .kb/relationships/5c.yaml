@@ -335,3 +335,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-dc7b3ca430d9
+  - type: constrains
+    from: REQ-kb-entity-body-context
+    to: FACT-SUBJECT-KIBI-ENTITY-BODY-CONTEXT
+    created_at: 2026-10-06T19:39:24.660Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ead8bf85887f
+  - type: requires_property
+    from: REQ-kb-entity-body-context
+    to: FACT-kb-entity-body-context-missing-context-reported
+    created_at: 2026-10-06T19:39:24.719Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d38e26c2947e
+  - type: requires_property
+    from: REQ-kb-entity-body-context
+    to: FACT-kb-entity-body-context-check-limited-to-context-types
+    created_at: 2026-10-06T19:39:24.746Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4b8bb4e94560
+  - type: requires_property
+    from: REQ-kb-entity-body-context
+    to: FACT-kb-entity-body-context-tag-honored-only-for-migrated-ids
+    created_at: 2026-10-06T19:39:24.779Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2068f0f4bd82
+  - type: requires_property
+    from: REQ-kb-entity-body-context
+    to: FACT-kb-entity-body-context-migrations-preserve-bodies
+    created_at: 2026-10-06T19:39:24.799Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8670c00c23e2
+  - type: verified_by
+    from: REQ-kb-entity-body-context
+    to: TEST-kb-entity-body-context
+    created_at: 2026-10-06T19:40:36.870Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0297beb8400d

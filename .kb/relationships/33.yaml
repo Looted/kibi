@@ -160,3 +160,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-632a4333c7af
+  - type: implements
+    from: SYM-kb-entity-body-context-applycontextmissingtags
+    to: REQ-kb-entity-body-context
+    created_at: 2026-10-06T19:40:06.001Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f6ab23c88f4c
+  - type: covered_by
+    from: SYM-kb-entity-body-context-applycontextmissingtags
+    to: TEST-kb-entity-body-context
+    created_at: 2026-10-06T19:40:06.018Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-675cda34ff99
