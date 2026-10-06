@@ -24,16 +24,18 @@ import {
   contextFinding,
   isContextAcknowledged,
 } from "../../entity-body-context.js";
-import { inferTypeFromPath } from "../../extractors/markdown.js";
+import {
+  inferTypeFromPath,
+  legacyRequirementSemanticText,
+} from "../../extractors/markdown.js";
 import { requirementSemanticText } from "../../extractors/markdown.js";
 import {
   listLaneMarkdownFiles,
   readText,
   sliceFrontmatter,
 } from "../../operations/migration/kb-sources.js";
-import { parseListOfLists, parsePrologValue } from "../../prolog/codec.js";
+import { readAllShards } from "../../relationships/shards.js";
 import type { Violation } from "../../utils/rule-registry.js";
-import type { PrologPort } from "./runtime-types.js";
 
 /** A current entity must carry body context (blocking). */
 // implements REQ-kb-entity-body-context
@@ -105,6 +107,26 @@ export function readAuthoredEntity(
   };
 }
 
+/**
+ * The checked meaning a requirement's context is compared against. A
+ * `semantic_text` that schema 8 pinned from the old derivation (statement plus
+ * context sections) is the body's derivation, not a statement of its own, so
+ * it is replaced by the statement-only derivation; an authored value stands.
+ */
+// implements REQ-kb-entity-body-context
+export function contextStatementOf(entity: AuthoredEntity): string | undefined {
+  if (entity.type !== "req") return undefined;
+  const pinned = entity.data.semantic_text;
+  if (
+    typeof pinned === "string" &&
+    pinned.trim() !== "" &&
+    pinned.trim() !== legacyRequirementSemanticText(entity.body)
+  ) {
+    return pinned;
+  }
+  return requirementSemanticText(entity.body);
+}
+
 /** The entity fields the context rules read, with the derived meaning. */
 // implements REQ-kb-entity-body-context
 export function contextEntityOf(entity: AuthoredEntity): {
@@ -113,15 +135,9 @@ export function contextEntityOf(entity: AuthoredEntity): {
   fact_kind: unknown;
   tags: unknown;
 } {
-  const pinned = entity.data.semantic_text;
   return {
     title: entity.data.title,
-    semantic_text:
-      typeof pinned === "string" && pinned.trim() !== ""
-        ? pinned
-        : entity.type === "req"
-          ? requirementSemanticText(entity.body)
-          : undefined,
+    semantic_text: contextStatementOf(entity),
     fact_kind: entity.data.fact_kind,
     tags: entity.data.tags,
   };
@@ -168,23 +184,38 @@ export function listContextAuthoredEntities(
   return entities;
 }
 
-/** Sources of ids some other entity supersedes, from the compiled store. */
-async function supersededIds(
-  prolog: Pick<PrologPort, "query">,
-): Promise<Set<string>> {
-  const result = await prolog.query(
-    "findall([To], kb_relationship(supersedes, _From, To), Rows)",
-  );
-  if (!result.success) {
-    throw new Error(
-      `Unable to read supersedes relationships: ${result.error ?? "query failed"}`,
-    );
+/**
+ * Ids some other entity supersedes, read from authored `links` and the
+ * relationship shards so the check and the migration agree before a sync.
+ */
+// implements REQ-kb-entity-body-context
+export function authoredSupersededIds(
+  workspaceRoot: string,
+  entities: readonly AuthoredEntity[],
+): Set<string> {
+  const superseded = new Set<string>();
+  for (const entity of entities) {
+    const links = entity.data.links;
+    if (!Array.isArray(links)) continue;
+    for (const link of links) {
+      if (
+        link !== null &&
+        typeof link === "object" &&
+        (link as { type?: unknown }).type === "supersedes" &&
+        typeof (link as { target?: unknown }).target === "string"
+      ) {
+        superseded.add((link as { target: string }).target);
+      }
+    }
   }
-  return new Set(
-    parseListOfLists(result.bindings.Rows ?? "[]").map(([to]) =>
-      String(parsePrologValue(to ?? "")),
-    ),
-  );
+  try {
+    for (const relationship of readAllShards(path.join(workspaceRoot, ".kb"))) {
+      if (relationship.type === "supersedes") superseded.add(relationship.to);
+    }
+  } catch {
+    // Malformed shards fail sync with their own diagnostic.
+  }
+  return superseded;
 }
 
 /**
@@ -249,17 +280,17 @@ export function evaluateEntityContext(
   return findings;
 }
 
-/** Read authored entities and the supersedes edges once, then evaluate. */
+/** Read the authored entities once and evaluate the selected rules. */
 // implements REQ-kb-entity-body-context
-export async function collectEntityContextViolations(
-  prolog: Pick<PrologPort, "query">,
+export function collectEntityContextViolations(
   rules: ReadonlySet<string>,
   workspaceRoot: string,
-): Promise<Violation[]> {
+): Violation[] {
   if (!ENTITY_CONTEXT_RULES.some((rule) => rules.has(rule))) return [];
+  const entities = listContextAuthoredEntities(workspaceRoot);
   return evaluateEntityContext(
-    listContextAuthoredEntities(workspaceRoot),
-    await supersededIds(prolog),
+    entities,
+    authoredSupersededIds(workspaceRoot, entities),
     rules,
   );
 }

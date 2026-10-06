@@ -225,8 +225,7 @@ export async function executeCheck(
       rulesAllowlist,
       workspaceRoot,
     );
-    const entityContextFindings = await collectEntityContextViolations(
-      prolog,
+    const entityContextFindings = collectEntityContextViolations(
       rulesAllowlist,
       workspaceRoot,
     );
