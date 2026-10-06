@@ -12,10 +12,14 @@
   },
   "license": "BSD-2-Clause AND Apache-2.0 AND BSD-3-Clause AND Zlib",
   "author": "Piotr Franczyk",
+  "homepage": "https://looted.github.io/kibi/",
   "repository": {
     "type": "git",
     "url": "https://github.com/Looted/kibi.git",
     "directory": "packages/swipl-linux-arm64-gnu"
+  },
+  "bugs": {
+    "url": "https://github.com/Looted/kibi/issues"
   },
   "publishConfig": {
     "access": "public"

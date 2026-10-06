@@ -21,10 +21,14 @@
   },
   "license": "AGPL-3.0-or-later",
   "author": "Piotr Franczyk",
+  "homepage": "https://looted.github.io/kibi/",
   "repository": {
     "type": "git",
     "url": "https://github.com/Looted/kibi.git",
     "directory": "packages/swipl"
+  },
+  "bugs": {
+    "url": "https://github.com/Looted/kibi/issues"
   },
   "publishConfig": {
     "access": "public"

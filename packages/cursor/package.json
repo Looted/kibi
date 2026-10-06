@@ -28,9 +28,14 @@
     "node": ">=18"
   },
   "license": "AGPL-3.0-or-later",
+  "homepage": "https://looted.github.io/kibi/",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Looted/kibi.git"
+    "url": "https://github.com/Looted/kibi.git",
+    "directory": "packages/cursor"
+  },
+  "bugs": {
+    "url": "https://github.com/Looted/kibi/issues"
   },
   "publishConfig": {
     "access": "public"
