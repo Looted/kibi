@@ -1,0 +1,125 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="820" height="264" viewBox="0 0 820 264" role="img" aria-label="Animated terminal: Kibi refuses a contradicting requirement, flags an impossible scenario, an unproven requirement and untraced code, answers a knowledge-base search, and reminds the agent of a requirement before an edit">
+<style>
+.ln,.tab{opacity:0;animation-duration:73388ms;animation-iteration-count:infinite;animation-timing-function:step-end}
+.t0{animation-name:t0}
+.t1{animation-name:t1}
+.t2{animation-name:t2}
+.t3{animation-name:t3}
+.t4{animation-name:t4}
+.t5{animation-name:t5}
+.ln{font:13px ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,'Liberation Mono',monospace;white-space:pre}
+.tab{fill:none;stroke:#a2d3f4;stroke-opacity:.5}
+.tabtext{font:600 11.5px -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;fill:#aab8c2}
+@keyframes t0{0%,0.000%{opacity:0}0.001%,18.508%{opacity:1}18.510%,100%{opacity:0}}
+@keyframes t1{0%,18.510%{opacity:0}18.511%,35.465%{opacity:1}35.466%,100%{opacity:0}}
+@keyframes t2{0%,35.466%{opacity:0}35.468%,52.738%{opacity:1}52.739%,100%{opacity:0}}
+@keyframes t3{0%,52.739%{opacity:0}52.740%,68.108%{opacity:1}68.109%,100%{opacity:0}}
+@keyframes t4{0%,68.109%{opacity:0}68.111%,83.862%{opacity:1}83.864%,100%{opacity:0}}
+@keyframes t5{0%,83.864%{opacity:0}83.865%,99.999%{opacity:1}100.000%,100%{opacity:0}}
+@keyframes l0_0{0%,2.330%{opacity:0}2.331%,18.508%{opacity:1}18.510%,100%{opacity:0}}
+@keyframes l0_1{0%,2.875%{opacity:0}2.876%,18.508%{opacity:1}18.510%,100%{opacity:0}}
+@keyframes l0_2{0%,6.996%{opacity:0}6.997%,18.508%{opacity:1}18.510%,100%{opacity:0}}
+@keyframes l0_3{0%,7.541%{opacity:0}7.542%,18.508%{opacity:1}18.510%,100%{opacity:0}}
+@keyframes l0_4{0%,8.222%{opacity:0}8.223%,18.508%{opacity:1}18.510%,100%{opacity:0}}
+@keyframes l0_5{0%,8.426%{opacity:0}8.428%,18.508%{opacity:1}18.510%,100%{opacity:0}}
+@keyframes l0_6{0%,9.653%{opacity:0}9.654%,18.508%{opacity:1}18.510%,100%{opacity:0}}
+@keyframes l1_0{0%,20.063%{opacity:0}20.065%,35.465%{opacity:1}35.466%,100%{opacity:0}}
+@keyframes l1_1{0%,20.608%{opacity:0}20.610%,35.465%{opacity:1}35.466%,100%{opacity:0}}
+@keyframes l1_2{0%,23.680%{opacity:0}23.681%,35.465%{opacity:1}35.466%,100%{opacity:0}}
+@keyframes l1_3{0%,24.225%{opacity:0}24.226%,35.465%{opacity:1}35.466%,100%{opacity:0}}
+@keyframes l1_4{0%,25.451%{opacity:0}25.452%,35.465%{opacity:1}35.466%,100%{opacity:0}}
+@keyframes l1_5{0%,26.405%{opacity:0}26.406%,35.465%{opacity:1}35.466%,100%{opacity:0}}
+@keyframes l1_6{0%,26.609%{opacity:0}26.611%,35.465%{opacity:1}35.466%,100%{opacity:0}}
+@keyframes l2_0{0%,36.864%{opacity:0}36.866%,52.738%{opacity:1}52.739%,100%{opacity:0}}
+@keyframes l2_1{0%,37.409%{opacity:0}37.411%,52.738%{opacity:1}52.739%,100%{opacity:0}}
+@keyframes l2_2{0%,38.363%{opacity:0}38.365%,52.738%{opacity:1}52.739%,100%{opacity:0}}
+@keyframes l2_3{0%,39.590%{opacity:0}39.591%,52.738%{opacity:1}52.739%,100%{opacity:0}}
+@keyframes l2_4{0%,40.543%{opacity:0}40.545%,52.738%{opacity:1}52.739%,100%{opacity:0}}
+@keyframes l2_5{0%,40.748%{opacity:0}40.749%,52.738%{opacity:1}52.739%,100%{opacity:0}}
+@keyframes l2_6{0%,42.655%{opacity:0}42.657%,52.738%{opacity:1}52.739%,100%{opacity:0}}
+@keyframes l2_7{0%,43.882%{opacity:0}43.883%,52.738%{opacity:1}52.739%,100%{opacity:0}}
+@keyframes l3_0{0%,54.551%{opacity:0}54.553%,68.108%{opacity:1}68.109%,100%{opacity:0}}
+@keyframes l3_1{0%,55.096%{opacity:0}55.098%,68.108%{opacity:1}68.109%,100%{opacity:0}}
+@keyframes l3_2{0%,56.050%{opacity:0}56.051%,68.108%{opacity:1}68.109%,100%{opacity:0}}
+@keyframes l3_3{0%,56.459%{opacity:0}56.460%,68.108%{opacity:1}68.109%,100%{opacity:0}}
+@keyframes l3_4{0%,57.413%{opacity:0}57.414%,68.108%{opacity:1}68.109%,100%{opacity:0}}
+@keyframes l3_5{0%,57.617%{opacity:0}57.618%,68.108%{opacity:1}68.109%,100%{opacity:0}}
+@keyframes l3_6{0%,59.252%{opacity:0}59.254%,68.108%{opacity:1}68.109%,100%{opacity:0}}
+@keyframes l4_0{0%,71.164%{opacity:0}71.166%,83.862%{opacity:1}83.864%,100%{opacity:0}}
+@keyframes l4_1{0%,71.709%{opacity:0}71.711%,83.862%{opacity:1}83.864%,100%{opacity:0}}
+@keyframes l4_2{0%,72.799%{opacity:0}72.801%,83.862%{opacity:1}83.864%,100%{opacity:0}}
+@keyframes l4_3{0%,72.963%{opacity:0}72.964%,83.862%{opacity:1}83.864%,100%{opacity:0}}
+@keyframes l4_4{0%,73.099%{opacity:0}73.101%,83.862%{opacity:1}83.864%,100%{opacity:0}}
+@keyframes l4_5{0%,73.235%{opacity:0}73.237%,83.862%{opacity:1}83.864%,100%{opacity:0}}
+@keyframes l4_6{0%,75.007%{opacity:0}75.008%,83.862%{opacity:1}83.864%,100%{opacity:0}}
+@keyframes l5_0{0%,86.919%{opacity:0}86.920%,99.999%{opacity:1}100.000%,100%{opacity:0}}
+@keyframes l5_1{0%,87.464%{opacity:0}87.465%,99.999%{opacity:1}100.000%,100%{opacity:0}}
+@keyframes l5_2{0%,88.281%{opacity:0}88.283%,99.999%{opacity:1}100.000%,100%{opacity:0}}
+@keyframes l5_3{0%,88.418%{opacity:0}88.419%,99.999%{opacity:1}100.000%,100%{opacity:0}}
+@keyframes l5_4{0%,88.554%{opacity:0}88.555%,99.999%{opacity:1}100.000%,100%{opacity:0}}
+@keyframes l5_5{0%,88.690%{opacity:0}88.692%,99.999%{opacity:1}100.000%,100%{opacity:0}}
+@keyframes l5_6{0%,90.734%{opacity:0}90.736%,99.999%{opacity:1}100.000%,100%{opacity:0}}
+@keyframes l5_7{0%,91.143%{opacity:0}91.144%,99.999%{opacity:1}100.000%,100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.ln,.tab{animation:none!important}.s0,.t0{opacity:1}}
+</style>
+<rect x="0.5" y="0.5" width="819" height="263" rx="10" fill="#191c22" stroke="#34434f"/>
+<path d="M0.5 42V10.5a10 10 0 0 1 10-10h799a10 10 0 0 1 10 10V42z" fill="#1d1e23"/>
+<line x1="0" y1="42" x2="820" y2="42" stroke="#34434f"/>
+<circle cx="20" cy="21" r="4.5" fill="#34434f"/><circle cx="35" cy="21" r="4.5" fill="#34434f"/><circle cx="50" cy="21" r="4.5" fill="#34434f"/>
+<rect class="tab t0" x="70" y="11" width="112" height="20" rx="5"/>
+<text class="tabtext" x="126" y="25" text-anchor="middle">Contradiction</text>
+<rect class="tab t1" x="186" y="11" width="155" height="20" rx="5"/>
+<text class="tabtext" x="263.5" y="25" text-anchor="middle">Impossible scenario</text>
+<rect class="tab t2" x="345" y="11" width="112" height="20" rx="5"/>
+<text class="tabtext" x="401" y="25" text-anchor="middle">Missing proof</text>
+<rect class="tab t3" x="461" y="11" width="112" height="20" rx="5"/>
+<text class="tabtext" x="517" y="25" text-anchor="middle">Untraced code</text>
+<rect class="tab t4" x="577" y="11" width="90" height="20" rx="5"/>
+<text class="tabtext" x="622" y="25" text-anchor="middle">Ask the KB</text>
+<rect class="tab t5" x="671" y="11" width="104" height="20" rx="5"/>
+<text class="tabtext" x="723" y="25" text-anchor="middle">Context hook</text>
+<text class="ln s0" style="animation-name:l0_0" x="18" y="74" xml:space="preserve"><tspan fill="#a2d3f4">› Sessions must expire after 30 minutes idle.</tspan></text>
+<text class="ln s0" style="animation-name:l0_1" x="18" y="95" xml:space="preserve"><tspan fill="#aab8c2">  </tspan><tspan fill="#3e8ed6" font-weight="600">kb_upsert</tspan><tspan fill="#aab8c2"> REQ-session-idle-timeout</tspan><tspan fill="#aab8c2">  </tspan><tspan fill="#a2d3f4">✓ saved</tspan></text>
+<text class="ln s0" style="animation-name:l0_2" x="18" y="116" xml:space="preserve"><tspan fill="#a2d3f4">› Remember me keeps users signed in for 30 days.</tspan></text>
+<text class="ln s0" style="animation-name:l0_3" x="18" y="137" xml:space="preserve"><tspan fill="#aab8c2">  </tspan><tspan fill="#3e8ed6" font-weight="600">kb_upsert</tspan><tspan fill="#aab8c2"> REQ-session-remember-me</tspan><tspan fill="#aab8c2">  </tspan><tspan fill="#f07178">✗ refused</tspan></text>
+<text class="ln s0" style="animation-name:l0_4" x="18" y="158" xml:space="preserve"><tspan fill="#f07178">  Contradicts REQ-session-idle-timeout</tspan></text>
+<text class="ln s0" style="animation-name:l0_5" x="18" y="179" xml:space="preserve"><tspan fill="#f07178">  session idle timeout: ≤ 30 min vs ≥ 30 days</tspan></text>
+<text class="ln s0" style="animation-name:l0_6" x="18" y="200" xml:space="preserve"><tspan fill="#aab8c2">  Nothing was written. A person decides which rule wins.</tspan></text>
+<text class="ln s1" style="animation-name:l1_0" x="18" y="74" xml:space="preserve"><tspan fill="#a2d3f4">› Uploads are capped at 10 MB.</tspan></text>
+<text class="ln s1" style="animation-name:l1_1" x="18" y="95" xml:space="preserve"><tspan fill="#aab8c2">  </tspan><tspan fill="#3e8ed6" font-weight="600">kb_upsert</tspan><tspan fill="#aab8c2"> REQ-upload-size-limit</tspan><tspan fill="#aab8c2">  </tspan><tspan fill="#a2d3f4">✓ saved</tspan></text>
+<text class="ln s1" style="animation-name:l1_2" x="18" y="116" xml:space="preserve"><tspan fill="#a2d3f4">› Users can upload a 25 MB video.</tspan></text>
+<text class="ln s1" style="animation-name:l1_3" x="18" y="137" xml:space="preserve"><tspan fill="#aab8c2">  </tspan><tspan fill="#3e8ed6" font-weight="600">kb_upsert</tspan><tspan fill="#aab8c2"> SCEN-upload-video</tspan><tspan fill="#aab8c2">  </tspan><tspan fill="#a2d3f4">✓ saved</tspan></text>
+<text class="ln s1" style="animation-name:l1_4" x="18" y="158" xml:space="preserve"><tspan fill="#aab8c2">  </tspan><tspan fill="#3e8ed6" font-weight="600">kb_check</tspan></text>
+<text class="ln s1" style="animation-name:l1_5" x="18" y="179" xml:space="preserve"><tspan fill="#f07178">  ✗ SCEN-upload-video can never succeed:</tspan></text>
+<text class="ln s1" style="animation-name:l1_6" x="18" y="200" xml:space="preserve"><tspan fill="#f07178">    it uploads 25 MB, REQ-upload-size-limit allows ≤ 10 MB</tspan></text>
+<text class="ln s2" style="animation-name:l2_0" x="18" y="74" xml:space="preserve"><tspan fill="#a2d3f4">› Enforce the upload limit.</tspan></text>
+<text class="ln s2" style="animation-name:l2_1" x="18" y="95" xml:space="preserve"><tspan fill="#aab8c2">  </tspan><tspan fill="#3e8ed6" font-weight="600">edit</tspan><tspan fill="#aab8c2"> src/upload.ts  validateUpload()</tspan></text>
+<text class="ln s2" style="animation-name:l2_2" x="18" y="116" xml:space="preserve"><tspan fill="#aab8c2">  agent: Done. TEST-upload-photo is passing.</tspan></text>
+<text class="ln s2" style="animation-name:l2_3" x="18" y="137" xml:space="preserve"><tspan fill="#aab8c2">  </tspan><tspan fill="#3e8ed6" font-weight="600">kb_check</tspan></text>
+<text class="ln s2" style="animation-name:l2_4" x="18" y="158" xml:space="preserve"><tspan fill="#f2b84b">  ! REQ-upload-size-limit is unproven:</tspan></text>
+<text class="ln s2" style="animation-name:l2_5" x="18" y="179" xml:space="preserve"><tspan fill="#f2b84b">    &quot;passing&quot; is a claim; no test run backs it for this commit</tspan></text>
+<text class="ln s2" style="animation-name:l2_6" x="18" y="200" xml:space="preserve"><tspan fill="#aab8c2">  </tspan><tspan fill="#3e8ed6" font-weight="600">kibi prove</tspan><tspan fill="#aab8c2"> --test TEST-upload-photo</tspan></text>
+<text class="ln s2" style="animation-name:l2_7" x="18" y="221" xml:space="preserve"><tspan fill="#63c99a">  ✓ REQ-upload-size-limit proven at this commit</tspan></text>
+<text class="ln s3" style="animation-name:l3_0" x="18" y="74" xml:space="preserve"><tspan fill="#a2d3f4">› Also resize photos before upload.</tspan></text>
+<text class="ln s3" style="animation-name:l3_1" x="18" y="95" xml:space="preserve"><tspan fill="#aab8c2">  </tspan><tspan fill="#3e8ed6" font-weight="600">edit</tspan><tspan fill="#aab8c2"> src/resize.ts  resizeImage()</tspan></text>
+<text class="ln s3" style="animation-name:l3_2" x="18" y="116" xml:space="preserve"><tspan fill="#aab8c2">  </tspan><tspan fill="#3e8ed6" font-weight="600">git commit</tspan></text>
+<text class="ln s3" style="animation-name:l3_3" x="18" y="137" xml:space="preserve"><tspan fill="#aab8c2">  pre-commit: kibi check --staged</tspan></text>
+<text class="ln s3" style="animation-name:l3_4" x="18" y="158" xml:space="preserve"><tspan fill="#f07178">  ✗ resizeImage implements no requirement</tspan></text>
+<text class="ln s3" style="animation-name:l3_5" x="18" y="179" xml:space="preserve"><tspan fill="#f07178">  Commit blocked.</tspan></text>
+<text class="ln s3" style="animation-name:l3_6" x="18" y="200" xml:space="preserve"><tspan fill="#aab8c2">  The agent asks you why it exists, then links it.</tspan></text>
+<text class="ln s4" style="animation-name:l4_0" x="18" y="74" xml:space="preserve"><tspan fill="#a2d3f4">› How big can uploads be? Check before you change anything.</tspan></text>
+<text class="ln s4" style="animation-name:l4_1" x="18" y="95" xml:space="preserve"><tspan fill="#aab8c2">  </tspan><tspan fill="#3e8ed6" font-weight="600">kb_search</tspan><tspan fill="#aab8c2"> &quot;upload size limit&quot;</tspan></text>
+<text class="ln s4" style="animation-name:l4_2" x="18" y="116" xml:space="preserve"><tspan fill="#a2d3f4">  REQ-upload-size-limit  Uploaded files must be at most 10 MB</tspan></text>
+<text class="ln s4" style="animation-name:l4_3" x="18" y="137" xml:space="preserve"><tspan fill="#aab8c2">    must stay true: upload file size ≤ 10 MB</tspan></text>
+<text class="ln s4" style="animation-name:l4_4" x="18" y="158" xml:space="preserve"><tspan fill="#aab8c2">    implemented by: validateUpload  src/upload.ts</tspan></text>
+<text class="ln s4" style="animation-name:l4_5" x="18" y="179" xml:space="preserve"><tspan fill="#aab8c2">    verified by: TEST-upload-photo</tspan></text>
+<text class="ln s4" style="animation-name:l4_6" x="18" y="200" xml:space="preserve"><tspan fill="#aab8c2">  agent: The cap is 10 MB, and it's a requirement, not a guess.</tspan></text>
+<text class="ln s5" style="animation-name:l5_0" x="18" y="74" xml:space="preserve"><tspan fill="#a2d3f4">› Users keep getting logged out. Make sessions last longer.</tspan></text>
+<text class="ln s5" style="animation-name:l5_1" x="18" y="95" xml:space="preserve"><tspan fill="#aab8c2">  </tspan><tspan fill="#3e8ed6" font-weight="600">edit</tspan><tspan fill="#aab8c2"> src/session.ts  refreshSession()</tspan></text>
+<text class="ln s5" style="animation-name:l5_2" x="18" y="116" xml:space="preserve"><tspan fill="#a2d3f4">  ↳ Kibi: this edit is inside refreshSession,</tspan></text>
+<text class="ln s5" style="animation-name:l5_3" x="18" y="137" xml:space="preserve"><tspan fill="#a2d3f4">    which implements REQ-session-idle-timeout</tspan></text>
+<text class="ln s5" style="animation-name:l5_4" x="18" y="158" xml:space="preserve"><tspan fill="#a2d3f4">    must keep true: idle timeout ≤ 30 min</tspan></text>
+<text class="ln s5" style="animation-name:l5_5" x="18" y="179" xml:space="preserve"><tspan fill="#a2d3f4">    covered by TEST-session-idle-expiry</tspan></text>
+<text class="ln s5" style="animation-name:l5_6" x="18" y="200" xml:space="preserve"><tspan fill="#aab8c2">  agent: That would break a security rule (≤ 30 min idle).</tspan></text>
+<text class="ln s5" style="animation-name:l5_7" x="18" y="221" xml:space="preserve"><tspan fill="#aab8c2">         Replace the rule, or add &quot;remember me&quot; instead?</tspan></text>
+</svg>

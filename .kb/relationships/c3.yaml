@@ -293,3 +293,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-45c0e9b5add8
+  - type: implements
+    from: SYM-docs-site-terminal-demo-TERMINAL_SCENES
+    to: REQ-docs-site-terminal-demo
+    created_at: 2026-10-06T21:26:48.974Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e3b2aff830e5
+  - type: covered_by
+    from: SYM-docs-site-terminal-demo-TERMINAL_SCENES
+    to: TEST-docs-site-pages
+    created_at: 2026-10-06T21:26:49.005Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4aa291b600e4

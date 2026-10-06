@@ -272,3 +272,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-82b13cd6ae30
+  - type: constrains
+    from: REQ-docs-site-terminal-demo
+    to: FACT-docs-site-subject
+    created_at: 2026-10-06T21:26:34.232Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-72da7d11e79e
+  - type: requires_property
+    from: REQ-docs-site-terminal-demo
+    to: FACT-docs-site-terminal-demo-shared
+    created_at: 2026-10-06T21:26:34.272Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fc9ef5a6bbfd
+  - type: requires_property
+    from: REQ-docs-site-terminal-demo
+    to: FACT-docs-site-terminal-demo-generated
+    created_at: 2026-10-06T21:26:34.294Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a5a20a10d639
+  - type: specified_by
+    from: REQ-docs-site-terminal-demo
+    to: SCEN-docs-site-terminal-demo
+    created_at: 2026-10-06T21:26:34.310Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-90dde2dd0c2a
+  - type: relates_to
+    from: REQ-docs-site-terminal-demo
+    to: REQ-docs-site-root-pages
+    created_at: 2026-10-06T21:26:34.326Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b2ba108e6a66
