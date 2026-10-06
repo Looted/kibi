@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 160,
-  "proofProven": 160,
+  "currentRequirements": 161,
+  "proofProven": 161,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -802,6 +802,11 @@
       "uncoveredSymbols": []
     },
     "REQ-skillopt-operator-selected-harness": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-skillopt-description-candidates": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []
