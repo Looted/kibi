@@ -1925,12 +1925,12 @@ coordinates:
     sourceLine: 4
   SYM-bootstrap-suppression-counts:
     identityHash: 6c3c9ef9ee85c6a56332716e6d44daa2883e01fb69d21aefde285ef3a671a24b
-    sourceHash: 79362354c938865167b4133f074a2ea601a79a0495288200f19416b776c89ce0
+    sourceHash: ec05c334cc3b2050a345d7e49bc5fe353d17e49005d3abf9cd321a3466b8ed21
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 136
+    sourceEndLine: 170
     sourceFile: packages/cli/src/operations/bootstrap/presentation.ts
-    sourceLine: 122
+    sourceLine: 156
   SYM-bootstrap-validate-payload:
     identityHash: 120acd6f436d6c006c75ba605a9c5af68e664a147d75c85db6495e9e027ce38d
     sourceHash: b25d0f08013a546deb7328634de45eeeb773e8b18f4988760b3da3d86adaed4e
@@ -11037,7 +11037,7 @@ coordinates:
     sourceLine: 20
   SYM-docs-site-theme-clientScript:
     identityHash: 9acb31c4882a74eebacdedcdfb99a244027ce506609e7120e80eadac0f712254
-    sourceHash: 40f7b0fdd3641db4f73ed6264d036280200191de275a9a5b8da1521f07896cba
+    sourceHash: 3ff718348404ce3aa50574599568615512688ea84645c5e1e559c8eeb75d6321
     sourceColumn: 13
     sourceEndColumn: 1
     sourceEndLine: 875
@@ -11045,7 +11045,7 @@ coordinates:
     sourceLine: 619
   SYM-docs-site-theme-escapeHtml:
     identityHash: fe4622310b1a494331981c56d10258475cb947b7660510e07058ef0e11eb7e73
-    sourceHash: 40f7b0fdd3641db4f73ed6264d036280200191de275a9a5b8da1521f07896cba
+    sourceHash: 3ff718348404ce3aa50574599568615512688ea84645c5e1e559c8eeb75d6321
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 51
@@ -11053,7 +11053,7 @@ coordinates:
     sourceLine: 44
   SYM-docs-site-theme-landingContent:
     identityHash: adf8ffc4f6b9b108709ed71aad0f34409685b053bb0ab2445c63b41ff1680f09
-    sourceHash: 40f7b0fdd3641db4f73ed6264d036280200191de275a9a5b8da1521f07896cba
+    sourceHash: 3ff718348404ce3aa50574599568615512688ea84645c5e1e559c8eeb75d6321
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 1089
@@ -11061,7 +11061,7 @@ coordinates:
     sourceLine: 878
   SYM-docs-site-theme-layout:
     identityHash: 8f7eb6acde5c1a0e7ac594bae9fa218221b88622c0cb1d3bb2127d8709f234c5
-    sourceHash: 40f7b0fdd3641db4f73ed6264d036280200191de275a9a5b8da1521f07896cba
+    sourceHash: 3ff718348404ce3aa50574599568615512688ea84645c5e1e559c8eeb75d6321
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 1201
@@ -11069,7 +11069,7 @@ coordinates:
     sourceLine: 1092
   SYM-docs-site-theme-PageShell:
     identityHash: 3cefed9b17f02db1f6fe7c1db6dafa60647efd2ca63b9cd39b4f06cb8ab06fff
-    sourceHash: 40f7b0fdd3641db4f73ed6264d036280200191de275a9a5b8da1521f07896cba
+    sourceHash: 3ff718348404ce3aa50574599568615512688ea84645c5e1e559c8eeb75d6321
     sourceColumn: 12
     sourceEndColumn: 2
     sourceEndLine: 41
@@ -11077,7 +11077,7 @@ coordinates:
     sourceLine: 23
   SYM-docs-site-theme-prepareMark:
     identityHash: cafe5d90179472d5b9daf522f003cd4bbebad7d4ae07d5b9f406343c31997e29
-    sourceHash: 40f7b0fdd3641db4f73ed6264d036280200191de275a9a5b8da1521f07896cba
+    sourceHash: 3ff718348404ce3aa50574599568615512688ea84645c5e1e559c8eeb75d6321
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 63
@@ -11085,7 +11085,7 @@ coordinates:
     sourceLine: 55
   SYM-docs-site-theme-Section:
     identityHash: c867c4a996aa91c8751252c1d2b8581d852416758a52001e58ccea035425f7f0
-    sourceHash: 40f7b0fdd3641db4f73ed6264d036280200191de275a9a5b8da1521f07896cba
+    sourceHash: 3ff718348404ce3aa50574599568615512688ea84645c5e1e559c8eeb75d6321
     sourceColumn: 12
     sourceEndColumn: 44
     sourceEndLine: 20
@@ -11093,7 +11093,7 @@ coordinates:
     sourceLine: 20
   SYM-docs-site-theme-styles:
     identityHash: dfde36e536915eaefe0a7bb28016beb69109cd7951088a468d01ee730af2d8a3
-    sourceHash: 40f7b0fdd3641db4f73ed6264d036280200191de275a9a5b8da1521f07896cba
+    sourceHash: 3ff718348404ce3aa50574599568615512688ea84645c5e1e559c8eeb75d6321
     sourceColumn: 13
     sourceEndColumn: 1
     sourceEndLine: 616
@@ -14237,12 +14237,12 @@ coordinates:
     sourceLine: 1
   SYM-kibi-bootstrap-cli-spec:
     identityHash: 22448ce5fb26ea477367d7fb4c8cbdc669d11416d589d6145b9155d554344a16
-    sourceHash: 90d79ed8c1cae86d293cd8edda6c2ce3f671992fdf8cd46b1222d11016323bd4
+    sourceHash: e12ef185ab1054c1f331aca71f97f2240317104edbb01ee093d67e7145b6a6b6
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 172
+    sourceEndLine: 213
     sourceFile: packages/cli/src/public/operations/specs/bootstrap.ts
-    sourceLine: 18
+    sourceLine: 19
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-activation-classifyactivation:
     identityHash: 6198afbf019942e03b2af6f6d8793517fd711f8983b304c2b270b7b1daa077af
     sourceHash: d90e870d71dccc8c4c505a001fc74b2d2be59c16ae4225448e12345eda09ab9f
@@ -14341,20 +14341,20 @@ coordinates:
     sourceLine: 171
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-intent-claims-buildintentclaimcandidates:
     identityHash: 58cb833a1d17b46ae03a564c79dfd639fa3555aad081a66aef731d466cbcf1df
-    sourceHash: c85d9305a1df328bb8b4a7a3bbad41096d7ce0f695b8c0e9a3ac150f33c7c569
+    sourceHash: 584e8bd39ce36fc70719caa01e82bf6b63b1da1ce21cdb4167dcc9b98e61d609
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 148
+    sourceEndLine: 330
     sourceFile: packages/cli/src/operations/bootstrap/intent-claims.ts
-    sourceLine: 46
+    sourceLine: 200
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-intent-claims-intentclaimbuildresult:
     identityHash: 3990baac88ac55dca3cbfb9f7368af929fcd06f1b4fa63c715600bd269416b7f
-    sourceHash: c85d9305a1df328bb8b4a7a3bbad41096d7ce0f695b8c0e9a3ac150f33c7c569
+    sourceHash: 584e8bd39ce36fc70719caa01e82bf6b63b1da1ce21cdb4167dcc9b98e61d609
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 23
+    sourceEndLine: 24
     sourceFile: packages/cli/src/operations/bootstrap/intent-claims.ts
-    sourceLine: 18
+    sourceLine: 19
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-markdown-candidates-candidatebuildresult:
     identityHash: fec41f81615e0896b15768c64c2475e577aa1c669b11a1ec272ef8994e7114bf
     sourceHash: 6e83c461f44cbce07fdab6f010c14172a22232afb78c872239d7e4e2b4988e31
@@ -14373,12 +14373,12 @@ coordinates:
     sourceLine: 146
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-presentation-normalizebootstrapcontext:
     identityHash: b5f823edd9d5aa20a926923e86665ae6601bd69464fb64277ffb565d32b559c5
-    sourceHash: 79362354c938865167b4133f074a2ea601a79a0495288200f19416b776c89ce0
+    sourceHash: ec05c334cc3b2050a345d7e49bc5fe353d17e49005d3abf9cd321a3466b8ed21
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 101
+    sourceEndLine: 135
     sourceFile: packages/cli/src/operations/bootstrap/presentation.ts
-    sourceLine: 86
+    sourceLine: 118
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-requirement-claims-claimfor:
     identityHash: cd1f5d3020dd7bf7e65068afacee974e628b5d3430f4bc37c410b8800233da18
     sourceHash: 39ee2dcb12336edca5425ab3740101eef167da6d449f021de1aae2d146c5e2bd
@@ -14389,71 +14389,71 @@ coordinates:
     sourceLine: 11
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-activationmode:
     identityHash: 0a3d145d3df623c0a86cc9896395b5ec49d6626c21f45fa44219c70b013c6dc6
-    sourceHash: c190381d9261b42b718051f634700a9ae873346a953c41ac31803b185ff72ab0
+    sourceHash: 86f78d2d82515e9f4c3306341febbbd44033aaa9ca2de920d6f590ec07314825
     sourceColumn: 12
     sourceEndColumn: 23
-    sourceEndLine: 135
-    sourceFile: packages/cli/src/operations/bootstrap/types.ts
-    sourceLine: 129
-  SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-activationpolicy:
-    identityHash: 02682cbf3e5efa3321013a2319be33d5723900ff63f6a9858404d1f272cf2a07
-    sourceHash: c190381d9261b42b718051f634700a9ae873346a953c41ac31803b185ff72ab0
-    sourceColumn: 12
-    sourceEndColumn: 2
     sourceEndLine: 163
     sourceFile: packages/cli/src/operations/bootstrap/types.ts
-    sourceLine: 156
+    sourceLine: 157
+  SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-activationpolicy:
+    identityHash: 02682cbf3e5efa3321013a2319be33d5723900ff63f6a9858404d1f272cf2a07
+    sourceHash: 86f78d2d82515e9f4c3306341febbbd44033aaa9ca2de920d6f590ec07314825
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 191
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    sourceLine: 184
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-activationstate:
     identityHash: cdad36b8c0c684c2af3f7417c3fa5977c7ff2e300ae9f6038315d71cfdc54cc5
-    sourceHash: c190381d9261b42b718051f634700a9ae873346a953c41ac31803b185ff72ab0
+    sourceHash: 86f78d2d82515e9f4c3306341febbbd44033aaa9ca2de920d6f590ec07314825
     sourceColumn: 12
     sourceEndColumn: 25
-    sourceEndLine: 127
+    sourceEndLine: 155
     sourceFile: packages/cli/src/operations/bootstrap/types.ts
-    sourceLine: 122
+    sourceLine: 150
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrap-provider-order:
     identityHash: 776165a450364598fe0e9be9f1b8a2ab0c3663da6511b4924e25ac7b57d4d81b
-    sourceHash: c190381d9261b42b718051f634700a9ae873346a953c41ac31803b185ff72ab0
+    sourceHash: 86f78d2d82515e9f4c3306341febbbd44033aaa9ca2de920d6f590ec07314825
     sourceColumn: 13
     sourceEndColumn: 10
-    sourceEndLine: 144
+    sourceEndLine: 172
     sourceFile: packages/cli/src/operations/bootstrap/types.ts
-    sourceLine: 137
+    sourceLine: 165
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapaction:
     identityHash: 36e298575e2bb1176dfaec46089c17f81829a06abcc98ad34b224ea147abc802
-    sourceHash: c190381d9261b42b718051f634700a9ae873346a953c41ac31803b185ff72ab0
+    sourceHash: 86f78d2d82515e9f4c3306341febbbd44033aaa9ca2de920d6f590ec07314825
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 222
+    sourceEndLine: 250
     sourceFile: packages/cli/src/operations/bootstrap/types.ts
-    sourceLine: 216
+    sourceLine: 244
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapconfidence:
     identityHash: 1de1ce5e43af3877594dc0b2cf0ce201117b4b8cee89e4d2379702df69e09bc7
-    sourceHash: c190381d9261b42b718051f634700a9ae873346a953c41ac31803b185ff72ab0
+    sourceHash: 86f78d2d82515e9f4c3306341febbbd44033aaa9ca2de920d6f590ec07314825
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 101
+    sourceEndLine: 128
     sourceFile: packages/cli/src/operations/bootstrap/types.ts
-    sourceLine: 96
+    sourceLine: 123
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapcontext:
     identityHash: 53032c5f2c90db2d8192d962f9366cb7222f6f33a001a632b52c39801d289741
-    sourceHash: c190381d9261b42b718051f634700a9ae873346a953c41ac31803b185ff72ab0
+    sourceHash: 86f78d2d82515e9f4c3306341febbbd44033aaa9ca2de920d6f590ec07314825
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 79
+    sourceEndLine: 106
     sourceFile: packages/cli/src/operations/bootstrap/types.ts
-    sourceLine: 71
+    sourceLine: 97
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapdeclaredcontext:
     identityHash: 1bd5af18414a5780f85e6da080af29d282c58861b6193d77f31a1d38e458433d
-    sourceHash: c190381d9261b42b718051f634700a9ae873346a953c41ac31803b185ff72ab0
+    sourceHash: 86f78d2d82515e9f4c3306341febbbd44033aaa9ca2de920d6f590ec07314825
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 120
+    sourceEndLine: 148
     sourceFile: packages/cli/src/operations/bootstrap/types.ts
-    sourceLine: 110
+    sourceLine: 137
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapemptykbsnapshotid:
     identityHash: 16c9bcb4bd475a553c1f8ae023e88d6dc2e3dab3f63f3cc308e987b5be817f57
-    sourceHash: c190381d9261b42b718051f634700a9ae873346a953c41ac31803b185ff72ab0
+    sourceHash: 86f78d2d82515e9f4c3306341febbbd44033aaa9ca2de920d6f590ec07314825
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 28
@@ -14461,23 +14461,23 @@ coordinates:
     sourceLine: 13
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapevidence:
     identityHash: 0db0b08c9631fae4dce5c0c5d0c520c6dde9d8beddfbe65f4704c1f778a26f35
-    sourceHash: c190381d9261b42b718051f634700a9ae873346a953c41ac31803b185ff72ab0
+    sourceHash: 86f78d2d82515e9f4c3306341febbbd44033aaa9ca2de920d6f590ec07314825
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 173
+    sourceEndLine: 201
     sourceFile: packages/cli/src/operations/bootstrap/types.ts
-    sourceLine: 165
+    sourceLine: 193
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapintentclaim:
     identityHash: c3357c96a8e1879ef05f6c8128412e8f50467f50bb829dc9d54a4c374f0c6458
-    sourceHash: c190381d9261b42b718051f634700a9ae873346a953c41ac31803b185ff72ab0
+    sourceHash: 86f78d2d82515e9f4c3306341febbbd44033aaa9ca2de920d6f590ec07314825
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 69
+    sourceEndLine: 83
     sourceFile: packages/cli/src/operations/bootstrap/types.ts
-    sourceLine: 64
+    sourceLine: 76
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapknowledgesource:
     identityHash: 0c6bcab71bd268bf3736331c75b1dc69c18a1f0b6b811a30b333f46dd2a7cb4e
-    sourceHash: c190381d9261b42b718051f634700a9ae873346a953c41ac31803b185ff72ab0
+    sourceHash: 86f78d2d82515e9f4c3306341febbbd44033aaa9ca2de920d6f590ec07314825
     sourceColumn: 12
     sourceEndColumn: 2
     sourceEndLine: 61
@@ -14485,7 +14485,7 @@ coordinates:
     sourceLine: 53
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapplanhash:
     identityHash: f7bfa1bf2722d9683a565bebf19809ea20381c0d58f7a14aaf43cc0ab05194f2
-    sourceHash: c190381d9261b42b718051f634700a9ae873346a953c41ac31803b185ff72ab0
+    sourceHash: 86f78d2d82515e9f4c3306341febbbd44033aaa9ca2de920d6f590ec07314825
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 10
@@ -14493,71 +14493,71 @@ coordinates:
     sourceLine: 5
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapplanv1:
     identityHash: 8e9d85d41ed18aaeed92daeddb14c314eed626c029b0822b24b91f456f9e93b9
-    sourceHash: c190381d9261b42b718051f634700a9ae873346a953c41ac31803b185ff72ab0
+    sourceHash: 86f78d2d82515e9f4c3306341febbbd44033aaa9ca2de920d6f590ec07314825
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 250
+    sourceEndLine: 278
     sourceFile: packages/cli/src/operations/bootstrap/types.ts
-    sourceLine: 224
+    sourceLine: 252
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstraprecommendedaction:
     identityHash: bb1b6d8c6445c2726dd6ff7ebd9e2e93df73799492bc4edf11dbab20f4fa7e59
-    sourceHash: c190381d9261b42b718051f634700a9ae873346a953c41ac31803b185ff72ab0
+    sourceHash: 86f78d2d82515e9f4c3306341febbbd44033aaa9ca2de920d6f590ec07314825
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 108
+    sourceEndLine: 135
     sourceFile: packages/cli/src/operations/bootstrap/types.ts
-    sourceLine: 103
+    sourceLine: 130
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapstructuredcontent:
     identityHash: eeb90445f53627d13cb3f919f258ebb7a6f46a4fc79af95658063a3f212bfc9a
-    sourceHash: c190381d9261b42b718051f634700a9ae873346a953c41ac31803b185ff72ab0
+    sourceHash: 86f78d2d82515e9f4c3306341febbbd44033aaa9ca2de920d6f590ec07314825
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 272
+    sourceEndLine: 300
     sourceFile: packages/cli/src/operations/bootstrap/types.ts
-    sourceLine: 260
+    sourceLine: 288
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-candidate:
     identityHash: 4db9fb7f0ea849b5832f2d12ce1d0ee988982aabe9835f4cd3f635358dd2749f
-    sourceHash: c190381d9261b42b718051f634700a9ae873346a953c41ac31803b185ff72ab0
+    sourceHash: 86f78d2d82515e9f4c3306341febbbd44033aaa9ca2de920d6f590ec07314825
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 214
+    sourceEndLine: 242
     sourceFile: packages/cli/src/operations/bootstrap/types.ts
-    sourceLine: 199
+    sourceLine: 227
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-discoveryresult:
     identityHash: 2f7a511907f060ab23f66a3ea58be227e02706e3438332b34ee559995f964291
-    sourceHash: c190381d9261b42b718051f634700a9ae873346a953c41ac31803b185ff72ab0
+    sourceHash: 86f78d2d82515e9f4c3306341febbbd44033aaa9ca2de920d6f590ec07314825
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 197
+    sourceEndLine: 225
     sourceFile: packages/cli/src/operations/bootstrap/types.ts
-    sourceLine: 191
+    sourceLine: 219
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-discoverysummary:
     identityHash: ecd796adadb18f5c8fd8f34adf84787d2b5a11db10fa78700d2bdbbc29d7b54b
-    sourceHash: c190381d9261b42b718051f634700a9ae873346a953c41ac31803b185ff72ab0
+    sourceHash: 86f78d2d82515e9f4c3306341febbbd44033aaa9ca2de920d6f590ec07314825
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 189
+    sourceEndLine: 217
     sourceFile: packages/cli/src/operations/bootstrap/types.ts
-    sourceLine: 175
+    sourceLine: 203
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-evidencekind:
     identityHash: ba5f369a1c7963c8526d3479eccc888bcc6abb474a4b5ebcbf2f1c0646c2fd3a
-    sourceHash: c190381d9261b42b718051f634700a9ae873346a953c41ac31803b185ff72ab0
+    sourceHash: 86f78d2d82515e9f4c3306341febbbd44033aaa9ca2de920d6f590ec07314825
     sourceColumn: 12
     sourceEndColumn: 21
-    sourceEndLine: 154
+    sourceEndLine: 182
     sourceFile: packages/cli/src/operations/bootstrap/types.ts
-    sourceLine: 147
+    sourceLine: 175
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-evidenceprovidername:
     identityHash: f0e83fc993c384210d145e28e579bd3abe2ab4ffbcbf1c7dd32e16a4ae1e8f75
-    sourceHash: c190381d9261b42b718051f634700a9ae873346a953c41ac31803b185ff72ab0
+    sourceHash: 86f78d2d82515e9f4c3306341febbbd44033aaa9ca2de920d6f590ec07314825
     sourceColumn: 12
     sourceEndColumn: 77
-    sourceEndLine: 146
+    sourceEndLine: 174
     sourceFile: packages/cli/src/operations/bootstrap/types.ts
-    sourceLine: 146
+    sourceLine: 174
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-knowledge-source-authorities:
     identityHash: 603ab9e0ceabcd2be687ded92b0cfe3c653d1d7133c0bf3554794962d4440577
-    sourceHash: c190381d9261b42b718051f634700a9ae873346a953c41ac31803b185ff72ab0
+    sourceHash: 86f78d2d82515e9f4c3306341febbbd44033aaa9ca2de920d6f590ec07314825
     sourceColumn: 13
     sourceEndColumn: 10
     sourceEndLine: 45
@@ -14565,7 +14565,7 @@ coordinates:
     sourceLine: 41
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-knowledge-source-kinds:
     identityHash: cbb683ab6387bd8720469a0be7a1876d9706baa10fd7ff480ff4a180e1b6ab25
-    sourceHash: c190381d9261b42b718051f634700a9ae873346a953c41ac31803b185ff72ab0
+    sourceHash: 86f78d2d82515e9f4c3306341febbbd44033aaa9ca2de920d6f590ec07314825
     sourceColumn: 13
     sourceEndColumn: 10
     sourceEndLine: 40
@@ -14573,28 +14573,28 @@ coordinates:
     sourceLine: 30
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-planbootstrapargs:
     identityHash: f3c5db8e62fdfd7f64ac381010ed9c8257a6dd67a03ca94f1dcdfea7e810bded
-    sourceHash: c190381d9261b42b718051f634700a9ae873346a953c41ac31803b185ff72ab0
+    sourceHash: 86f78d2d82515e9f4c3306341febbbd44033aaa9ca2de920d6f590ec07314825
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 94
+    sourceEndLine: 121
     sourceFile: packages/cli/src/operations/bootstrap/types.ts
-    sourceLine: 81
+    sourceLine: 108
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-planbootstrapresult:
     identityHash: 61781578d17c324ffa4bc93c91093b11d50b332dbc079426af7f9b140274ba21
-    sourceHash: c190381d9261b42b718051f634700a9ae873346a953c41ac31803b185ff72ab0
+    sourceHash: 86f78d2d82515e9f4c3306341febbbd44033aaa9ca2de920d6f590ec07314825
     sourceColumn: 12
     sourceEndColumn: 4
-    sourceEndLine: 277
+    sourceEndLine: 305
     sourceFile: packages/cli/src/operations/bootstrap/types.ts
-    sourceLine: 274
+    sourceLine: 302
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-sourceonlysignal:
     identityHash: f52fd6ab9570d0e9f922f8baf7b61bef4d6a4ae54d0f7ee8c484fd58ce370c56
-    sourceHash: c190381d9261b42b718051f634700a9ae873346a953c41ac31803b185ff72ab0
+    sourceHash: 86f78d2d82515e9f4c3306341febbbd44033aaa9ca2de920d6f590ec07314825
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 258
+    sourceEndLine: 286
     sourceFile: packages/cli/src/operations/bootstrap/types.ts
-    sourceLine: 252
+    sourceLine: 280
   SYM-kibi-bootstrap-cli-src-operations-planning-apply-plan-orderbootstrapactions:
     identityHash: 38e0dd2bbeb1710b91d6f83dbc7bce04aca2bec5bcb3b9526ff0ff489673fe70
     sourceHash: aaf49fa69feb4bad8f9f6e1c8522c2e65c576953ba2bd1b9d799bc9111f7621d
@@ -14749,12 +14749,12 @@ coordinates:
     sourceLine: 276
   SYM-kibi-bootstrap-plan-presentation:
     identityHash: 5bf4b5e692ad58338b92c51383eb8c62b29514fd53cdd84c141f2ffe334f6409
-    sourceHash: 79362354c938865167b4133f074a2ea601a79a0495288200f19416b776c89ce0
+    sourceHash: ec05c334cc3b2050a345d7e49bc5fe353d17e49005d3abf9cd321a3466b8ed21
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 402
+    sourceEndLine: 436
     sourceFile: packages/cli/src/operations/bootstrap/presentation.ts
-    sourceLine: 178
+    sourceLine: 212
   SYM-kibi-check-build-structured-content:
     identityHash: a1f773dcdca8e9c92b724a17ec7ebed0d55adae92f8fdeed46c7b5b4a9038c0d
     sourceHash: dd88dd7841bbcaf56934e551932be7519376017ce343a0a540458b00f37a0b1c
@@ -16893,18 +16893,18 @@ coordinates:
     sourceLine: 1
   SYM-mcp-tools-list-base-contract:
     identityHash: 9073f98551866a5ff683b3bca2e5236aca8bd1f04902812cd6544f3653119f74
-    sourceHash: 0965a3bd8cd20f3c7515a062f9dbeae3199a302afee4ae8aba35c2ce7e526c6b
+    sourceHash: 7678fd618a7926c4402111ccfd0a581734456b60d4d577f8336ae52fa2f14454
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 7298
+    sourceEndLine: 7352
     sourceFile: packages/mcp/tests/fixtures/contracts/tools-list.base.json
     sourceLine: 1
   SYM-mcp-tools-list-diagnostic-contract:
     identityHash: d7a4de20871928a9cd2c9a71f45020a705571669957562a00e355e78ee5ba841
-    sourceHash: 6453c6d4eb84893bad09d82d7ab3fe5461a6c9da5acbdf40db7fa619cac1e150
+    sourceHash: 4a00d8dd4118ade52a7b5a1738d66d1c326b17c0f8533305708e294a5f412b67
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 7890
+    sourceEndLine: 7944
     sourceFile: packages/mcp/tests/fixtures/contracts/tools-list.diagnostic.json
     sourceLine: 1
   SYM-mcp-withWorkspaceRootSchema:
@@ -33341,10 +33341,10 @@ coordinates:
     sourceLine: 57
   SYM-test-kibi-bootstrap-knowledge-sources:
     identityHash: 98b8eacd93562c93a36b49942df040bd7ae66567f314301c8d28046de5b065c7
-    sourceHash: 3d0b3b6397bab9bd7a1f4e71605e8e1ab1b083e15dce8f2e44cdf00a9b81a2fc
+    sourceHash: 1df7874641aecd9aac5c73d153d758d0c9d5b1f55855871e35c1963bb627fc3b
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 221
+    sourceEndLine: 384
     sourceFile: packages/cli/tests/operations/bootstrap-intent-claims.test.ts
     sourceLine: 1
   SYM-test-kibi-change-to-proof-evaluation:

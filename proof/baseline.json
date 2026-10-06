@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 163,
-  "proofProven": 163,
+  "currentRequirements": 164,
+  "proofProven": 164,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -817,6 +817,11 @@
       "uncoveredSymbols": []
     },
     "REQ-bootstrap-discovered-candidate-budget": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-bootstrap-claim-kinds-and-conflicts": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []

@@ -32013,9 +32013,13 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-kibi-bootstrap-knowledge-sources
+      - type: covered_by
         target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-bootstrap-claim-kinds-and-conflicts
       - type: implements
         target: REQ-KIBI-BOOTSTRAP-PLAN
   - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-activationmode
@@ -46760,6 +46764,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-bootstrap-knowledge-sources
+      - type: implements
+        target: REQ-bootstrap-claim-kinds-and-conflicts
       - type: implements
         target: REQ-kibi-bootstrap-knowledge-sources
   - id: SYM-test-kibi-bootstrap-knowledge-sources

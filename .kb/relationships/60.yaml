@@ -195,3 +195,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-14b074bb3530
+  - type: implements
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-intent-claims-buildintentclaimcandidates
+    to: REQ-bootstrap-claim-kinds-and-conflicts
+    created_at: 2026-10-06T15:50:38.358Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7b997a27a443

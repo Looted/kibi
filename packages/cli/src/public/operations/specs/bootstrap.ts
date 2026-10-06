@@ -1,5 +1,6 @@
 import { executePlanBootstrap } from "../../../operations/bootstrap/generate.js";
 import {
+  INTENT_CLAIM_KINDS,
   KNOWLEDGE_SOURCE_AUTHORITIES,
   KNOWLEDGE_SOURCE_KINDS,
   type PlanBootstrapArgs,
@@ -130,7 +131,7 @@ export const planBootstrapSpec = {
             type: "array",
             maxItems: 200,
             description:
-              "Statements of product intent the agent harvested from knowledgeSources, each citing its source. Normative claims the strict modeler can ground become cited req candidates; the rest become explicit authoring follow-ups. Bound into the plan hash.",
+              "Statements the agent harvested from knowledgeSources, each citing its source. Intent claims (the default kind) that the strict modeler can ground become cited req candidates; the rest become explicit authoring follow-ups. Observation and open_question claims never become requirements: they become cited fact candidates with fact_kind observation, open questions tagged review:open-question. Bound into the plan hash.",
             items: {
               type: "object",
               required: ["statement", "sourceId", "reference"],
@@ -155,6 +156,46 @@ export const planBootstrapSpec = {
                 excerpt: {
                   type: "string",
                   description: "Optional short quote supporting the claim.",
+                },
+                kind: {
+                  type: "string",
+                  enum: [...INTENT_CLAIM_KINDS],
+                  default: "intent",
+                  description:
+                    "intent: intended behavior (may become a req). observation: how things are today, without stating intent. open_question: something the sources leave undecided. Default: intent.",
+                },
+              },
+            },
+          },
+          conflicts: {
+            type: "array",
+            maxItems: 50,
+            description:
+              "Contradictions the agent found between declared intentClaims and leaves for the human to resolve. Each becomes a cited fact candidate with fact_kind observation tagged review:conflict. Every claimReference must match a declared claim's sourceId and reference. Bound into the plan hash.",
+            items: {
+              type: "object",
+              required: ["claimReferences", "note"],
+              additionalProperties: false,
+              properties: {
+                claimReferences: {
+                  type: "array",
+                  minItems: 2,
+                  maxItems: 10,
+                  items: {
+                    type: "object",
+                    required: ["sourceId", "reference"],
+                    additionalProperties: false,
+                    properties: {
+                      sourceId: { type: "string", minLength: 1 },
+                      reference: { type: "string", minLength: 1 },
+                    },
+                  },
+                },
+                note: {
+                  type: "string",
+                  minLength: 1,
+                  description:
+                    "What disagrees, in one sentence, without resolving it.",
                 },
               },
             },
