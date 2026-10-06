@@ -91,11 +91,11 @@ export type OriginReviewInput = Readonly<{
   hasRationaleSection?: (entity: Entity) => boolean;
 }>;
 
-const RATIONALE_HEADING = /^#{1,6}[ \t]+(?:rationale|why)\b/im;
+const RATIONALE_HEADING = /^#{1,6}[ \t]+(?:rationale|why|context)\b/im;
 
 /**
  * True when a Markdown document (frontmatter ignored) has a heading that
- * starts with "Rationale" or "Why", at any level.
+ * starts with "Rationale", "Why" or "Context", at any level.
  */
 // implements REQ-kibi-entity-origin
 export function markdownHasRationaleSection(content: string): boolean {
