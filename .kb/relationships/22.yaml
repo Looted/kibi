@@ -279,3 +279,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9547240e3479
+  - type: implements
+    from: SYM-checkCommand
+    to: REQ-cli-staged-consistency
+    created_at: 2026-10-06T19:12:00.905Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2299a75da708
+  - type: covered_by
+    from: SYM-checkCommand
+    to: TEST-cli-staged-consistency
+    created_at: 2026-10-06T19:12:00.926Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fdf7e559c00f
