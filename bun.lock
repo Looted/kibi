@@ -123,7 +123,7 @@
     },
     "packages/mcp": {
       "name": "kibi-mcp",
-      "version": "3.1.0",
+      "version": "3.1.1",
       "bin": {
         "kibi-mcp": "bin/kibi-mcp",
       },
