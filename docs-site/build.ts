@@ -92,6 +92,25 @@ const outDir = path.resolve(REPO_ROOT, flags.out ?? "docs-site/dist");
 const branch = flags.branch ?? "develop";
 const reportUrlFlag = flags["report-url"] ?? DEFAULT_REPORT_URL;
 const reportUrl = reportUrlFlag === "none" ? null : reportUrlFlag;
+// implements REQ-docs-site-analytics
+const analyticsId = parseAnalyticsId(
+  flags["umami-website-id"] ?? process.env.KIBI_UMAMI_WEBSITE_ID,
+);
+
+// implements REQ-docs-site-analytics
+function parseAnalyticsId(raw: string | undefined): string | null {
+  const value = raw?.trim();
+  if (!value) return null;
+  if (
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+      value,
+    )
+  ) {
+    console.error(`Invalid Umami website ID: ${JSON.stringify(value)}`);
+    process.exit(1);
+  }
+  return value.toLowerCase();
+}
 
 function parseOriginUrl(raw: string): string | null {
   const trimmed = raw.trim();
@@ -532,6 +551,7 @@ function main(): void {
     wordmarkSvg,
     commit,
     branch,
+    analyticsId,
   };
 
   const written: string[] = [];
@@ -563,6 +583,7 @@ function main(): void {
       wordmarkSvg,
       commit,
       branch,
+      analyticsId,
     };
     const file = path.join(outDir, page.url);
     mkdirSync(path.dirname(file), { recursive: true });
