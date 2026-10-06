@@ -16509,10 +16509,10 @@ coordinates:
     sourceLine: 27
   SYM-mcp-release-package-metadata:
     identityHash: 240336405ff91215ab2edd07d6f820210720d29abbb8cb1622c6097a330b8fa9
-    sourceHash: 0c10f869447aacdc388a980b19c131c64d7a565bd4351c5aafb4f5b46c4e2450
+    sourceHash: c5455e90bf24c9ba0229e8cbe5f8b3dee803c4ea8a9a9cd1b3ec85e1bff825dd
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 58
+    sourceEndLine: 57
     sourceFile: packages/mcp/package.json
     sourceLine: 1
   SYM-mcp-release-registry-metadata:
