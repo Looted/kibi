@@ -50203,3 +50203,91 @@ symbols:
         target: TEST-docs-site-pages
       - type: implements
         target: REQ-docs-site-analytics
+  - id: SYM-test-kibi-upsert-review-lanes
+    title: kb_upsert review lanes consumer suite
+    status: active
+    sourceFile: packages/cli/tests/consumer/upsert-review-lanes.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      ref: 'Piotr thread 2026-10-06: test project onboarding round 3 (advisor roles, relationship upserts, review observations)'
+      recorded_at: 2026-10-06T20:41:54.053Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-upsert-review-lanes
+  - id: SYM-cli-proposition-role-advisorPropositionRole
+    title: advisorPropositionRole
+    status: active
+    sourceFile: packages/cli/src/operations/semantic-advisor/proposition-role.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Piotr thread 2026-10-06: test project onboarding round 3 (advisor roles, relationship upserts, review observations)'
+      recorded_at: 2026-10-06T20:44:20.161Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-bootstrap-knowledge-sources
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-bootstrap-advisor-proposition-roles
+  - id: SYM-cli-proposition-role-isDefinitionShape
+    title: isDefinitionShape
+    status: active
+    sourceFile: packages/cli/src/operations/semantic-advisor/proposition-role.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Piotr thread 2026-10-06: test project onboarding round 3 (advisor roles, relationship upserts, review observations)'
+      recorded_at: 2026-10-06T20:44:28.035Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-bootstrap-knowledge-sources
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-bootstrap-advisor-proposition-roles
+  - id: SYM-cli-proposition-role-legacyPropositionRoles
+    title: legacyPropositionRoles
+    status: active
+    sourceFile: packages/cli/src/operations/semantic-advisor/proposition-role.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Piotr thread 2026-10-06: test project onboarding round 3 (advisor roles, relationship upserts, review observations)'
+      recorded_at: 2026-10-06T20:44:35.219Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-bootstrap-knowledge-sources
+      - type: implements
+        target: REQ-bootstrap-advisor-proposition-roles
+  - id: SYM-cli-requirement-semantics-withStoredRequirementSemantics
+    title: withStoredRequirementSemantics
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/requirement-semantics.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Piotr thread 2026-10-06: test project onboarding round 3 (advisor roles, relationship upserts, review observations)'
+      recorded_at: 2026-10-06T20:44:41.464Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-upsert-review-lanes
+      - type: implements
+        target: REQ-kibi-upsert-preserves-requirement-semantics
+  - id: SYM-core-valid-claim-provenance
+    title: valid_claim_provenance
+    status: active
+    sourceFile: packages/core/schema/validation.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Piotr thread 2026-10-06: test project onboarding round 3 (advisor roles, relationship upserts, review observations)'
+      recorded_at: 2026-10-06T20:44:47.862Z
+    granularity_reason: extractor-miss
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-upsert-review-lanes
+      - type: implements
+        target: REQ-kibi-review-observation-claim-text

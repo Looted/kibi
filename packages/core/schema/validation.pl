@@ -225,14 +225,26 @@ valid_strict_polarity_in_props(Props) :-
 valid_predicate_polarity_in_props(Props) :-
     ( memberchk(polarity=P, Props) -> valid_predicate_polarity(P) ; true ).
 
-% claim_key and claim_text form one auditable provenance pair.
+% claim_key and claim_text form one auditable provenance pair. An observation
+% or meta fact is a non-grounding review note: it may quote the claim it is
+% about in claim_text without claiming that claim's key.
 valid_claim_provenance(Props) :-
     (   memberchk(claim_key=Key, Props)
     ->  memberchk(claim_text=Text, Props),
         nonempty_claim_value(Key),
         nonempty_claim_value(Text)
-    ;   \+ memberchk(claim_text=_, Props)
+    ;   memberchk(claim_text=Text, Props)
+    ->  review_note_fact(Props),
+        nonempty_claim_value(Text)
+    ;   true
     ).
+
+review_note_fact(Props) :-
+    memberchk(fact_kind=RawKind, Props),
+    (   atom(RawKind) -> Kind = RawKind
+    ;   string(RawKind) -> atom_string(Kind, RawKind)
+    ),
+    memberchk(Kind, [observation, meta]).
 
 nonempty_claim_value(Value) :- string(Value), Value \= "", !.
 nonempty_claim_value(Value) :- atom(Value), Value \= '', !.

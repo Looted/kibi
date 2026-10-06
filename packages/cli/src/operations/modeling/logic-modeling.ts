@@ -10,6 +10,7 @@ import {
   normalizeSemanticClause,
   semanticClaimKey,
 } from "../semantic-advisor/clauses.js";
+import { advisorPropositionRole } from "../semantic-advisor/proposition-role.js";
 import { semanticSourceHash } from "../semantic-advisor/shared.js";
 
 export interface LogicApplyPlanInput {
@@ -143,7 +144,9 @@ export function buildLogicApplyPlan(
             {
               claim_key: claimKey,
               claim_text: claimText,
-              role: modeledClaimRole(claimText, validation.normalized.modality),
+              role:
+                advisorPropositionRole(input.text.trim(), claimKey) ??
+                modeledClaimRole(claimText, validation.normalized.modality),
               status: "modeled",
               span,
               semantic_key: semanticKey,

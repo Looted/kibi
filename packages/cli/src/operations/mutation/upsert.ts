@@ -39,6 +39,7 @@ import {
   validateStrictLanePairing,
   validateSupersedesSourceHistory,
 } from "./relationships.js";
+import { withStoredRequirementSemantics } from "./requirement-semantics.js";
 import { MutationRollbackFailureError, MutationSaga } from "./saga.js";
 import {
   writePendingSourceReceipt,
@@ -285,12 +286,13 @@ export type UpsertValidation = Readonly<{
  * passing the earlier steps' writes as `staged`.
  */
 export async function validateUpsertForCommit(
-  input: UpsertInput,
+  payload: UpsertInput,
   context: OperationContext,
   options: UpsertValidationOptions = {},
 ): Promise<UpsertValidation> {
   const prolog = requireProlog(context);
   const staged = options.staged;
+  const input = await withStoredRequirementSemantics(payload, prolog, staged);
   const validated = validateUpsertInput(input, context.clock());
   if (options.allowReceiptsPrune !== true) {
     await validateAppendOnlyProofReceipts(validated.entity, context, staged);

@@ -306,6 +306,84 @@ describe("semantic advisor operation", () => {
     }
   });
 
+  // implements REQ-kibi-proposition-complete-ingestion
+  test("reads a definition only from a main predicate that asserts no obligation", () => {
+    for (const [text, role] of [
+      [
+        "Deleting an annotation must clear any active, editing, or draft state that refers to it.",
+        "normative",
+      ],
+      [
+        "If microphone access fails, the editor must present an error instead of silently pretending to record.",
+        "condition",
+      ],
+      [
+        "An annotation refers to a highlighted span of a recording.",
+        "definition",
+      ],
+      [
+        "A stale draft means a draft without edits for seven days.",
+        "definition",
+      ],
+      ["The editor lists every note that refers to the clip.", "descriptive"],
+      [
+        "A session where the user is idle means a paused session.",
+        "definition",
+      ],
+    ] as const) {
+      const receipt = analyzeSemanticAdvisorInput({
+        payload: {
+          type: "req",
+          id: "REQ-ROLE",
+          properties: { title: "Role", status: "open", semantic_text: text },
+          relationships: [],
+        },
+      }).receipt;
+      expect([text, receipt.propositions[0]?.role]).toEqual([text, role]);
+    }
+  });
+
+  // implements REQ-kibi-proposition-complete-ingestion
+  test("keeps validating inventories that stored the earlier definition role", () => {
+    const text =
+      "Deleting an annotation must clear any active, editing, or draft state that refers to it.";
+    const base = {
+      type: "req",
+      id: "REQ-LEGACY-DEFINITION",
+      properties: { title: "Delete", status: "open", semantic_text: text },
+      relationships: [],
+    };
+    const semantic = analyzeSemanticAdvisorInput({ payload: base });
+    const contract = semantic.receipt.inventory_contract;
+    const payloadWithRole = (role: string) => ({
+      ...base,
+      properties: {
+        ...base.properties,
+        logic_claims: semantic.receipt.logic_coverage.expected_claim_keys,
+        semantic_inventory_version: contract.version,
+        semantic_source_field: contract.source_field,
+        semantic_source_hash: contract.source_hash,
+        semantic_inventory: semantic.receipt.propositions.map(
+          (proposition) => ({ ...proposition, role, status: "ontology_gap" }),
+        ),
+      },
+    });
+    const errorsFor = (role: string) => {
+      const payload = payloadWithRole(role);
+      return validateSemanticInventoryBoundary(
+        payload,
+        payload.relationships,
+        analyzeSemanticAdvisorInput({ payload }).receipt,
+      ).errors;
+    };
+
+    expect(errorsFor("normative")).toEqual([]);
+    expect(errorsFor("definition")).toEqual([]);
+    expect(errorsFor("condition").join(" ")).toContain(
+      "does not match advisor proposition",
+    );
+  });
+
   // implements REQ-kibi-truthful-consistency
   test("routes only-when and must-not-unless prose to one forbid-unless rule", () => {
     const suggestionsFor = (text: string) =>

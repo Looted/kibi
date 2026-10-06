@@ -8,6 +8,7 @@ import type {
   Candidate,
 } from "../../src/operations/bootstrap/types.js";
 import { bootstrapPlanHash } from "../../src/operations/bootstrap/types.js";
+import { validateBootstrapPayload } from "../../src/operations/bootstrap/validation.js";
 import type { UpsertInput } from "../../src/operations/mutation/types.js";
 import { validateUpsertInput } from "../../src/operations/mutation/validation.js";
 import {
@@ -152,6 +153,49 @@ describe("bootstrap from declared knowledge sources", () => {
       title: "Refunds must not exceed the original charge.",
       text_ref: "jira-billing:BILL-142",
     });
+  });
+
+  test("plans conditional claims and obligations naming a referent with the advisor's roles", async () => {
+    const statements = [
+      "Deleting an annotation must clear any active, editing, or draft state that refers to it.",
+      "If microphone access fails, the editor must present an error instead of silently pretending to record.",
+    ];
+    const result = await planBootstrapSpec.execute(
+      {
+        bootstrapContext: {
+          ...interview,
+          intentClaims: statements.map((statement, index) => ({
+            statement,
+            sourceId: "jira-billing",
+            reference: `BILL-${200 + index}`,
+          })),
+        },
+      },
+      context(thinRepository()),
+    );
+    const plan = result.structuredContent.plan;
+
+    expect(plan.suppressedCandidates).toEqual([]);
+    expect(plan.candidates.map((candidate) => candidate.title).sort()).toEqual(
+      [...statements].sort(),
+    );
+    const requirements = plan.actions.filter(
+      (action) => action.payload.type === "req",
+    );
+    for (const action of plan.actions)
+      expect(() =>
+        validateBootstrapPayload(action.payload, new Date()),
+      ).not.toThrow();
+    expect(
+      requirements.map(
+        (action) =>
+          (
+            action.payload.properties as {
+              semantic_inventory: { role: string }[];
+            }
+          ).semantic_inventory[0]?.role,
+      ),
+    ).toEqual(["normative", "condition"]);
   });
 
   test("keeps unmodelable, stale, and uncited claims out of the write set and says why", async () => {

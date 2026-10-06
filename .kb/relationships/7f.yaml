@@ -251,3 +251,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8582cb13f378
+  - type: implements
+    from: SYM-cli-requirement-semantics-withStoredRequirementSemantics
+    to: REQ-kibi-upsert-preserves-requirement-semantics
+    created_at: 2026-10-06T20:44:43.286Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dc50869383a5
+  - type: covered_by
+    from: SYM-cli-requirement-semantics-withStoredRequirementSemantics
+    to: TEST-kibi-upsert-review-lanes
+    created_at: 2026-10-06T20:44:43.303Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aae6d1394c64
