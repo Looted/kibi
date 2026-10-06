@@ -19,11 +19,19 @@ export const ENTITY_TYPES = [
   "fact",
 ] as const;
 
+// An observation or meta fact may quote a claim in claim_text alone: it is a
+// non-grounding review note, so it does not claim the clause's key.
 const CLAIM_PROVENANCE_CONDITIONAL = JSON.parse(`{
   "if": {
     "anyOf": [
       { "required": ["claim_key"] },
-      { "required": ["claim_text"] }
+      {
+        "required": ["claim_text"],
+        "not": {
+          "properties": { "fact_kind": { "enum": ["observation", "meta"] } },
+          "required": ["fact_kind"]
+        }
+      }
     ]
   },
   "then": { "required": ["claim_key", "claim_text"] }
@@ -290,7 +298,7 @@ export const ENTITY_PROPERTIES_SCHEMA = {
     claim_text: {
       type: "string",
       description:
-        "Exact atomic requirement clause represented by this fact, retained for human audit.",
+        "Exact atomic requirement clause represented by this fact, retained for human audit. Requires claim_key, except on an observation or meta fact, which may quote the clause it is about without claim_key.",
     },
     predicate_name: {
       type: "string",

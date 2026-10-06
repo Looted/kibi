@@ -1865,6 +1865,18 @@
     ]
   },
   {
+    "test_id": "TEST-kibi-upsert-review-lanes",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/cli/tests/consumer/upsert-review-lanes.test.ts"
+      ]
+    ]
+  },
+  {
     "test_id": "TEST-kibi-schema6-migration-cli",
     "steps": [
       [

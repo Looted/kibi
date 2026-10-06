@@ -45,7 +45,13 @@ const factConditionals = JSON.parse(`[
     "if": {
       "anyOf": [
         { "required": ["claim_key"] },
-        { "required": ["claim_text"] }
+        {
+          "required": ["claim_text"],
+          "not": {
+            "properties": { "fact_kind": { "enum": ["observation", "meta"] } },
+            "required": ["fact_kind"]
+          }
+        }
       ]
     },
     "then": { "required": ["claim_key", "claim_text"] }

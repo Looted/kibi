@@ -199,3 +199,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ff89f21b273f
+  - type: implements
+    from: SYM-cli-proposition-role-advisorPropositionRole
+    to: REQ-bootstrap-advisor-proposition-roles
+    created_at: 2026-10-06T20:44:21.170Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d219e5d6588e
+  - type: covered_by
+    from: SYM-cli-proposition-role-advisorPropositionRole
+    to: TEST-kibi-bootstrap-knowledge-sources
+    created_at: 2026-10-06T20:44:21.188Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9229fa4d67d0
+  - type: covered_by
+    from: SYM-cli-proposition-role-advisorPropositionRole
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-10-06T20:44:21.199Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2d0b143ba0f

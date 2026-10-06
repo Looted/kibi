@@ -335,3 +335,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-729fa05ad04e
+  - type: implements
+    from: SYM-core-valid-claim-provenance
+    to: REQ-kibi-review-observation-claim-text
+    created_at: 2026-10-06T20:44:48.998Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8b1c8931ef5b
+  - type: covered_by
+    from: SYM-core-valid-claim-provenance
+    to: TEST-kibi-upsert-review-lanes
+    created_at: 2026-10-06T20:44:49.023Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5eac2a014b97

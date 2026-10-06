@@ -2792,6 +2792,14 @@
                       "required": ["claim_key"]
                     },
                     {
+                      "not": {
+                        "properties": {
+                          "fact_kind": {
+                            "enum": ["observation", "meta"]
+                          }
+                        },
+                        "required": ["fact_kind"]
+                      },
                       "required": ["claim_text"]
                     }
                   ]
@@ -2881,7 +2889,7 @@
                 "type": "integer"
               },
               "claim_text": {
-                "description": "Exact atomic requirement clause represented by this fact, retained for human audit.",
+                "description": "Exact atomic requirement clause represented by this fact, retained for human audit. Requires claim_key, except on an observation or meta fact, which may quote the clause it is about without claim_key.",
                 "type": "string"
               },
               "closed_world": {

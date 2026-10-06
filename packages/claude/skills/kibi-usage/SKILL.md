@@ -5,7 +5,7 @@ license: AGPL-3.0-or-later
 metadata:
   displayName: Kibi Usage
   id: kibi-usage
-  version: 2.3.1
+  version: 2.3.2
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -222,6 +222,27 @@ Use `kb_model` with `mode: "requirement"` for strict scalar clauses. Use
 grounding: run `logic-coverage` so each key binds to one ground fact.
 Relationship direction is fixed, and every `from` in a relationship batch
 must equal the upserted entity ID.
+
+Worked example. `recommendedAction: "provide_argument_bindings"` means a
+schema fits but `unbound_arguments` lists roles Kibi could not read from the
+prose. Bind them from the claim's own words and call again with the same
+`text` and `requirementId`, plus `schemaId` and `argumentBindings` keyed by
+`argument_names` (reuse `argument_constants` values when the schema has them):
+
+```json
+{"mode":"predicates","text":"Only an annotation owner may delete an annotation.","requirementId":"REQ-annotation-delete-owner","schemaId":"FACT-SCHEMA-PERMISSION-RULE","argumentBindings":{"actor":"annotation_owner","action":"delete","resource":"annotation","decision":"allow"}}
+```
+
+When the retry returns `apply_requires_predicate`, write its `applyPlan` fact,
+then the `relationshipPlan` `requires_predicate` row. Record an ontology gap
+only when no returned schema fits the claim, not because bindings were missing.
+A review note is an observation that quotes its claim without `claim_key`:
+`{"type":"fact","id":"FACT-review-<area>-<behavior>","properties":{"title":"Review: ...","status":"active","fact_kind":"observation","text_ref":"<sourceId>:<reference>","tags":["review:invalid-write"],"claim_text":"<the claim>"}}`.
+
+To add `specified_by` (or another relationship) to an existing requirement,
+upsert it with its stored `title`, a `status` and the relationship only; Kibi
+keeps the stored proposition ledger when no `semantic_*` or `logic_claims`
+field is sent and `title`/`text_ref` are unchanged.
 
 For conditional relational claims, after the initial `kb_model` predicates call and before any `kb_upsert`—including one needed for a missing schema—call read-only `kb_model` with `mode: "requirement"` to preview suitable scalar or typed-rule modeling. Treat the preview as advisory: do not apply an irrelevant result or create unrequested facts, and retain an approved ground-predicate plan when it captures the whole claim. Preserve supplied arity, ordered argument roles, polarity, bound values, and one claim key per actual assertion; never split arguments across clauses or schemas or alter values to force uniqueness.
 
