@@ -91,7 +91,7 @@ Discover existing repository evidence and return a deterministic, snapshot-bound
 **Parameters:**
 - `includeGenericMarkdown` (optional): Include generic Markdown content as candidate evidence.
 - `minConfidence` (optional): Minimum confidence threshold for generated candidates.
-- `maxCandidates` (optional): Maximum number of candidates to return.
+- `maxCandidates` (optional): Maximum number of discovered candidates to return. Declared `intentClaims` are never capped and do not count against it.
 - `entityTypes` (optional): Limit generation to selected entity types.
 - `bootstrapContext` (optional): Declared project summary, source-of-truth paths/notes, priority roots, verification anchors, and the outcome of the source interview:
   - `knowledgeSources`: sources outside the code the human confirmed, each with `id`, `kind` (`issue_tracker`, `wiki`, `specification`, `design`, `decision_log`, `support`, `chat`, `repository_docs`, `other`), `title`, `locator`, `authority` (`authoritative`, `supporting`, `stale`), and an optional `connector`.

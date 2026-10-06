@@ -796,6 +796,11 @@
       "gaps": [],
       "uncoveredSymbols": []
     },
+    "REQ-bootstrap-intent-claim-accounting": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
     "REQ-skillopt-claude-code-host": {
       "proofStatus": "proven",
       "gaps": [],

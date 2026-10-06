@@ -5,17 +5,21 @@ import { loadEntityIds } from "../../public/operations/discovery-entities.js";
 import { executeStatus } from "../../public/operations/discovery-executors.js";
 import type { OperationContext } from "../../public/operations/runtime-types.js";
 import { readWorkspaceSnapshot } from "../../public/operations/workspace-snapshot.js";
+import {
+  type SemanticRelationship,
+  stagedLogicalGroundingError,
+} from "../semantic-advisor/ingestion-boundary.js";
 import { buildBootstrapCandidates } from "./candidates.js";
 import { discoverBootstrap } from "./discovery.js";
 import { buildIntentClaimCandidates } from "./intent-claims.js";
 import { normalizeBootstrapContext, presentBootstrap } from "./presentation.js";
-import { validateBootstrapPayload } from "./validation.js";
 import type {
   Candidate,
   PlanBootstrapArgs,
   PlanBootstrapResult,
   SourceOnlySignal,
 } from "./types.js";
+import { validateBootstrapPayload } from "./validation.js";
 
 export function filterSourceOnlySignals(
   signals: readonly SourceOnlySignal[],
@@ -54,6 +58,7 @@ function sha256(value: string): string {
   return createHash("sha256").update(value).digest("hex");
 }
 
+// implements REQ-bootstrap-write-safety, REQ-bootstrap-intent-claim-accounting
 export function selectBootstrapCandidates(
   input: readonly Candidate[],
   existingIds: ReadonlySet<string>,
@@ -141,15 +146,111 @@ export function selectBootstrapCandidates(
       suppress(candidate, "duplicate_title");
     } else selected.set(key, candidate);
   }
-  const unique = [...selected.values()];
-  for (const candidate of unique.slice(maximum))
-    suppress(candidate, "over_limit");
+  // Declared intent claims are never capped: they are what the human pointed
+  // at, and the schema already bounds them. maxCandidates only limits the
+  // candidates Kibi discovers itself, in the slots the claims leave free.
+  const claimCount = [...selected.values()].filter(
+    (candidate) => candidate.sourceKind === "intent_claim",
+  ).length;
+  const discoveredCapacity = Math.max(0, maximum - claimCount);
+  if (claimCount > maximum)
+    diagnostics.push(
+      `${claimCount} declared intent claim(s) exceed maxCandidates ${maximum}; all are kept and discovered candidates get no slots.`,
+    );
+  const written = new Map<string, string>();
+  const staged = new Map<string, Readonly<Record<string, unknown>>>();
+  const candidates: Candidate[] = [];
+  let discoveredCount = 0;
+  for (const candidate of selected.values()) {
+    const discovered = candidate.sourceKind !== "intent_claim";
+    if (discovered && discoveredCount >= discoveredCapacity) {
+      suppress(candidate, "over_limit");
+      continue;
+    }
+    // Two candidates that write one entity ID with different content would
+    // overwrite each other mid-apply and break the earlier one's grounding.
+    const conflict = candidate.applyPlan.find((payload) => {
+      const id = payloadId(payload);
+      const previous = id ? written.get(id) : undefined;
+      return previous !== undefined && previous !== JSON.stringify(payload);
+    });
+    if (conflict) {
+      suppress(
+        candidate,
+        "duplicate_entity",
+        `Entity ${payloadId(conflict)} is already written by another candidate with different content.`,
+      );
+      continue;
+    }
+    const groundingError = stagedGroundingError(candidate, staged);
+    if (groundingError) {
+      suppress(candidate, "invalid_write", groundingError);
+      diagnostics.push(
+        `Invalid bootstrap candidate at ${candidate.sourcePath}: ${groundingError}`,
+      );
+      continue;
+    }
+    for (const payload of candidate.applyPlan) {
+      const id = payloadId(payload);
+      if (!id) continue;
+      written.set(id, JSON.stringify(payload));
+      staged.set(id, stagedEntity(payload));
+    }
+    if (discovered) discoveredCount += 1;
+    candidates.push(candidate);
+  }
   return {
-    candidates: unique.slice(0, maximum),
+    candidates,
     suppressed,
     sourceOnlySignals,
     diagnostics,
   };
+}
+
+function payloadId(payload: Readonly<Record<string, unknown>>): string {
+  if (typeof payload.id === "string") return payload.id;
+  const properties = payload.properties;
+  return properties !== null &&
+    typeof properties === "object" &&
+    "id" in properties &&
+    typeof properties.id === "string"
+    ? properties.id
+    : "";
+}
+
+function stagedEntity(
+  payload: Readonly<Record<string, unknown>>,
+): Readonly<Record<string, unknown>> {
+  const properties =
+    payload.properties !== null && typeof payload.properties === "object"
+      ? (payload.properties as Readonly<Record<string, unknown>>)
+      : {};
+  return { ...properties, id: payloadId(payload), type: payload.type };
+}
+
+/**
+ * Run the write-time claim_key grounding check against the plan's own
+ * earlier writes, so a mismatch is a suppressed candidate at plan time rather
+ * than a terminal partial apply. Targets outside the plan are left to apply.
+ */
+// implements REQ-bootstrap-intent-claim-accounting
+function stagedGroundingError(
+  candidate: Candidate,
+  planned: ReadonlyMap<string, Readonly<Record<string, unknown>>>,
+): string | null {
+  const local = new Map(planned);
+  for (const payload of candidate.applyPlan) {
+    const id = payloadId(payload);
+    if (id) local.set(id, stagedEntity(payload));
+  }
+  for (const payload of candidate.applyPlan) {
+    const relationships = Array.isArray(payload.relationships)
+      ? (payload.relationships as readonly SemanticRelationship[])
+      : [];
+    const error = stagedLogicalGroundingError(payload, relationships, local);
+    if (error) return error;
+  }
+  return null;
 }
 
 async function existingEntityIds(

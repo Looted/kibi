@@ -242,7 +242,7 @@
         },
         "maxCandidates": {
           "default": 50,
-          "description": "Maximum number of candidates to return. Clamped to [1, 200]. Default: 50.",
+          "description": "Maximum number of discovered candidates to return. Declared intentClaims are never capped and do not count against it. Clamped to [1, 200]. Default: 50.",
           "maximum": 200,
           "minimum": 1,
           "type": "integer"

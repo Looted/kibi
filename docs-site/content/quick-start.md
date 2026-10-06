@@ -52,7 +52,7 @@ Then [connect your coding agent](connect-an-agent.md) and ask it:
 
 </details>
 
-Bootstrap validates every candidate before offering write actions. Claims that cannot be grounded stay cited authoring follow-ups; product intent takes priority over repository observations, and candidates beyond the limit are reported. Invalid approved plans are refused before any bootstrap write. Deterministic failures are terminal and require a corrected plan; interrupted writes and derived effects retain journal recovery.
+Bootstrap validates every candidate before offering write actions. Claims that cannot be grounded stay cited authoring follow-ups; every intent claim you declare is planned and counted per source, discovered candidates beyond the limit are reported, and candidates that would overwrite each other's entities are dropped before review. Invalid approved plans are refused before any bootstrap write. Deterministic failures are terminal and require a corrected plan; interrupted writes and derived effects retain journal recovery.
 
 Existing KBs upgrade to schema 7 with `kibi migrate --yes` followed by `kibi sync`. The migration preserves fact IDs and bodies while encoding legacy polarity-only facts as typed booleans; malformed strict facts now fail `kibi check`.
 

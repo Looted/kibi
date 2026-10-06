@@ -114,6 +114,40 @@ function payoff(
   };
 }
 
+type ClaimAccounting = {
+  readonly source: BootstrapKnowledgeSource;
+  readonly declared: number;
+  readonly planned: number;
+  readonly existing: number;
+};
+
+/** Declared claims per knowledge source against what the plan writes. */
+// implements REQ-bootstrap-intent-claim-accounting
+function claimAccounting(
+  declared: BootstrapDeclaredContext,
+  candidates: readonly Candidate[],
+  suppressed: readonly Readonly<Record<string, unknown>>[],
+): readonly ClaimAccounting[] {
+  return (declared.knowledgeSources ?? []).flatMap((source) => {
+    const count = (declared.intentClaims ?? []).filter(
+      (claim) => claim.sourceId === source.id,
+    ).length;
+    if (count === 0) return [];
+    const prefix = `claim:${source.id}:`;
+    const planned = candidates.filter(
+      (candidate) =>
+        candidate.sourceKind === "intent_claim" &&
+        candidate.candidateId.startsWith(prefix),
+    ).length;
+    const existing = suppressed.filter(
+      (row) =>
+        row.reason === "entity_exists" &&
+        String(row.candidateId).startsWith(prefix),
+    ).length;
+    return [{ source, declared: count, planned, existing }];
+  });
+}
+
 // implements REQ-KIBI-BOOTSTRAP-PLAN
 export function presentBootstrap(input: {
   readonly root: string;
@@ -160,7 +194,7 @@ export function presentBootstrap(input: {
   ).length;
   const limitSummary =
     overLimitCount > 0
-      ? ` ${overLimitCount} candidate(s) exceeded maxCandidates; raise the limit or narrow entityTypes.`
+      ? ` ${overLimitCount} discovered candidate(s) exceeded maxCandidates; raise the limit or narrow entityTypes. Declared intent claims are never capped.`
       : "";
   const tldr =
     (confidenceLevel === "low" && !input.activation.applyBlocked
@@ -207,16 +241,32 @@ export function presentBootstrap(input: {
       };
     },
   );
+  const accounting = claimAccounting(
+    declaredContext,
+    input.candidates,
+    input.suppressedCandidates,
+  );
+  const droppedAuthoritative = accounting.filter(
+    (row) =>
+      row.source.authority === "authoritative" &&
+      row.planned + row.existing === 0,
+  );
   const status: BootstrapPlanV1["status"] =
     input.activation.activationState === "root_active_seeded"
       ? "handoff"
       : applyBlocked
         ? "blocked"
-        : confidenceLevel === "high" && actions.length > 0
+        : confidenceLevel === "high" &&
+            actions.length > 0 &&
+            droppedAuthoritative.length === 0
           ? "ready"
           : "needs_context";
   const contextQuestions: string[] = [];
   if (status === "needs_context") {
+    for (const row of droppedAuthoritative)
+      contextQuestions.push(
+        `None of the ${row.declared} claim(s) declared from authoritative source "${row.source.title}" could be planned; how should they be restated or authored before bootstrap applies?`,
+      );
     if (!declaredContext.projectSummary)
       contextQuestions.push(
         "What is the one-sentence purpose of this repository?",
@@ -247,6 +297,10 @@ export function presentBootstrap(input: {
     ...input.discoverySummary.scanWarnings,
     ...bindingDiagnostics,
     ...strings(input.contextDiagnostics),
+    ...accounting.map(
+      (row) =>
+        `Knowledge source ${row.source.id} (${row.source.authority}): ${row.declared} declared claim(s), ${row.planned} planned, ${row.existing} already in the KB, ${row.declared - row.planned - row.existing} not planned (see suppressedCandidates and source-only follow-ups).`,
+    ),
   ];
   const planBody = {
     version: "kibi.bootstrap-plan.v1" as const,

@@ -153,3 +153,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3faa437b3e65
+  - type: specified_by
+    from: REQ-bootstrap-intent-claim-accounting
+    to: SCEN-bootstrap-intent-claim-accounting
+    created_at: 2026-10-06T10:57:44.699Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5eb154c28c87
+  - type: relates_to
+    from: REQ-bootstrap-intent-claim-accounting
+    to: REQ-bootstrap-write-safety
+    created_at: 2026-10-06T10:57:44.728Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-59fd11dc15c2
+  - type: relates_to
+    from: REQ-bootstrap-intent-claim-accounting
+    to: REQ-kibi-bootstrap-knowledge-sources
+    created_at: 2026-10-06T10:57:44.746Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1d3121725818
