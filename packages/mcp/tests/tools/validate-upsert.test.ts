@@ -77,6 +77,9 @@ describe("kb_validate_upsert", () => {
           to: "FACT-TIMEOUT",
         },
       ],
+      document: {
+        body: "Session timeout must equal 30 minutes.\n\n## Context\n\nSecurity asked for a fixed timeout after an audit found idle sessions left open overnight on shared kiosks.\n",
+      },
     });
 
     const structured =
