@@ -1,6 +1,8 @@
 import { escapeAtom } from "../../prolog/codec.js";
 import { loadEntities } from "../../public/operations/discovery-entities.js";
 import type { PrologPort } from "../../public/operations/runtime-types.js";
+import { analyzeSemanticAdvisorInput } from "../semantic-advisor/analyze-prose.js";
+import { validateSemanticInventoryBoundary } from "../semantic-advisor/ingestion-boundary.js";
 import type { StagedUpsertState, UpsertInput } from "./types.js";
 
 /** The fields that make up a requirement's proposition ledger. */
@@ -17,8 +19,8 @@ const SEMANTIC_CONTRACT_FIELDS = [
 /** Prose a requirement's semantic source can be read from besides semantic_text. */
 const PROSE_FIELDS = ["title", "text_ref"] as const;
 
-/** Stored fields a relationship-only update may leave out. */
-const PRESERVED_IDENTITY_FIELDS = ["title", "status", "text_ref"] as const;
+/** Stored prose a relationship-only update may leave out. */
+const PRESERVED_PROSE_FIELDS = ["text_ref"] as const;
 
 function suppliesSemanticContract(
   properties: Readonly<Record<string, unknown>>,
@@ -37,12 +39,27 @@ async function storedRequirement(
   const planned = staged?.entities.get(id);
   if (planned !== undefined)
     return planned.type === "req" ? planned : undefined;
+  // The same existence probe the rest of the upsert uses.
   const exists = await prolog.query(
-    `once(kb_entity('${escapeAtom(id)}', req, _))`,
+    `once(kb_entity('${escapeAtom(id)}', _, _))`,
   );
   if (!exists.success) return undefined;
-  const [existing] = await loadEntities(prolog, { id, type: "req" });
-  return existing;
+  try {
+    const [existing] = await loadEntities(prolog, { id, type: "req" });
+    return existing;
+  } catch {
+    return undefined;
+  }
+}
+
+function meetsIngestionBoundary(input: UpsertInput): boolean {
+  const relationships = input.relationships ?? [];
+  const payload = { ...input, relationships };
+  const { receipt } = analyzeSemanticAdvisorInput({ payload });
+  return (
+    validateSemanticInventoryBoundary(payload, relationships, receipt).errors
+      .length === 0
+  );
 }
 
 // implements REQ-kibi-upsert-preserves-requirement-semantics
@@ -52,7 +69,7 @@ async function storedRequirement(
  * relationship (for example `specified_by`) and carries no `semantic_*` or
  * `logic_claims` field, and no `title` or `text_ref` that differs from the
  * stored value, is merged over the stored semantic contract (and the stored
- * `title`, `status` and `text_ref` it omits) before validation. The
+ * `text_ref` it omits) before validation. The
  * proposition-complete check then runs against the merged requirement, which
  * is also what the write records. A payload that supplies any ledger field or
  * changes the prose is validated exactly as given.
@@ -65,6 +82,9 @@ export async function withStoredRequirementSemantics(
   if (input.type !== "req") return input;
   const properties = input.properties ?? {};
   if (suppliesSemanticContract(properties)) return input;
+  // Only a payload the ingestion boundary would reject on its own needs the
+  // stored ledger, so every other upsert reads nothing extra from the store.
+  if (meetsIngestionBoundary(input)) return input;
   const stored = await storedRequirement(input.id, prolog, staged);
   if (stored === undefined) return input;
   if (
@@ -77,7 +97,7 @@ export async function withStoredRequirementSemantics(
   const preserved: Record<string, unknown> = {};
   for (const field of [
     ...SEMANTIC_CONTRACT_FIELDS,
-    ...PRESERVED_IDENTITY_FIELDS,
+    ...PRESERVED_PROSE_FIELDS,
   ]) {
     if (stored[field] !== undefined) preserved[field] = stored[field];
   }

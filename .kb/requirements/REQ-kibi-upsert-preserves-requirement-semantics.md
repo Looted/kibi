@@ -40,3 +40,7 @@ id: REQ-kibi-upsert-preserves-requirement-semantics
 type: req
 ---
 A requirement upsert without semantic ledger fields and with unchanged prose must keep the stored proposition ledger. A requirement upsert that supplies semantic ledger fields or changes the prose must be checked exactly as sent.
+
+## Context
+
+Linking scenarios to requirements after bootstrap is a relationship-only change: the agent sends `specified_by` and nothing about the prose. Before this, `kb_upsert` validated the payload as if it were the whole requirement, so every link had to resend the full semantic inventory, hash and claim list, and a test project's onboarding stalled on 96 such links. The stored ledger is now merged only when the payload would fail the ingestion boundary on its own and does not touch the ledger or the prose, so any change to meaning is still checked as sent.

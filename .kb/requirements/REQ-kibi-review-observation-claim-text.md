@@ -40,3 +40,7 @@ id: REQ-kibi-review-observation-claim-text
 type: req
 ---
 Kibi must accept an observation or meta fact that quotes a claim in claim_text without claim_key. Kibi must reject any other fact that carries claim_text without claim_key.
+
+## Context
+
+Agents record review notes such as `review:invalid-write` or `review:open-question` as observation facts, and the clearest note quotes the clause it is about. The schema required `claim_key` beside every `claim_text`, but a review note is not grounding a claim and has no key to give, so agents dropped the quote or invented a key. Grounding facts still need the pair, because the proposition-complete check matches them to the requirement inventory by key.

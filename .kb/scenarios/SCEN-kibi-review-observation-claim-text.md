@@ -13,3 +13,4 @@ origin:
 id: SCEN-kibi-review-observation-claim-text
 type: scenario
 ---
+An agent writes an observation fact tagged for review that quotes a requirement clause in `claim_text` with no `claim_key`, and the write succeeds. The same quote on a `property_value` fact without a key is rejected by both the JSON schema and the Prolog shape check.

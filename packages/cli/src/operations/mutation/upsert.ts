@@ -292,12 +292,15 @@ export async function validateUpsertForCommit(
 ): Promise<UpsertValidation> {
   const prolog = requireProlog(context);
   const staged = options.staged;
+  // The payload must be valid on its own before the store is read.
+  const checked = validateUpsertInput(payload, context.clock());
+  validateRelationshipSources(payload.id, checked.relationships);
   const input = await withStoredRequirementSemantics(payload, prolog, staged);
-  const validated = validateUpsertInput(input, context.clock());
+  const validated =
+    input === payload ? checked : validateUpsertInput(input, context.clock());
   if (options.allowReceiptsPrune !== true) {
     await validateAppendOnlyProofReceipts(validated.entity, context, staged);
   }
-  validateRelationshipSources(input.id, validated.relationships);
   await validateSymbolGranularity(
     validated.entity,
     validated.relationships,

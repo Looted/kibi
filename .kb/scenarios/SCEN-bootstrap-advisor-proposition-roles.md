@@ -13,3 +13,4 @@ origin:
 id: SCEN-bootstrap-advisor-proposition-roles
 type: scenario
 ---
+Given a source document with a conditional claim and an obligation whose subject uses "refers to" in a relative clause, when the agent plans a bootstrap, both candidates are ready with the advisor's condition and normative roles, `validateBootstrapPayload` accepts them, and applying the plan writes requirements that pass sync and check.

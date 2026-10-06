@@ -49,3 +49,7 @@ id: REQ-bootstrap-advisor-proposition-roles
 type: req
 ---
 Bootstrap requirement candidates must take each semantic inventory role from the semantic advisor. The semantic advisor must classify an obligation with a definition verb inside a relative clause as normative. Proposition-complete ingestion must keep accepting stored inventories that recorded the earlier definition role.
+
+## Context
+
+During onboarding of a test project, `kb_plan_bootstrap` recorded a modality-only role for each claim, while the write-time ingestion boundary compared that role with the advisor's own classification. Conditional claims ("If the export fails, the system must retry") were stored as normative but the advisor read them as condition, and obligations that name a referent ("The panel that refers to the order must show its status") were read as definitions. Both shapes were refused as `invalid_write` during apply. Bootstrap, `kb_model` and typed logic plans now ask the advisor for the role, and the boundary still accepts inventories written with the older definition role so existing knowledge bases keep validating.

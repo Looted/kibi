@@ -13,3 +13,4 @@ origin:
 id: SCEN-kibi-upsert-preserves-requirement-semantics
 type: scenario
 ---
+An agent upserts an existing modeled requirement with only its stored title, a status and a new `specified_by` relationship. The write succeeds and the stored inventory, hash and claim list are unchanged; a payload that changes the title or sends a partial ledger is still validated as sent and refused.

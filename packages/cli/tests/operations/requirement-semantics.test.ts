@@ -44,9 +44,9 @@ function link(properties: Record<string, unknown>): UpsertInput {
 }
 
 describe("relationship-only requirement updates", () => {
-  test("merge the stored proposition ledger and identity under the payload", async () => {
+  test("merge the stored proposition ledger and text_ref under the payload", async () => {
     const merged = await withStoredRequirementSemantics(
-      link({ status: "in_progress" }),
+      link({ title: STORED.title, status: "in_progress" }),
       emptyStore,
       staged(),
     );
@@ -76,6 +76,19 @@ describe("relationship-only requirement updates", () => {
         await withStoredRequirementSemantics(input, emptyStore, staged()),
       ).toBe(input);
     }
+  });
+
+  test("leave a payload that meets the ingestion boundary on its own unread", async () => {
+    let queries = 0;
+    const counting = {
+      query: async () => {
+        queries += 1;
+        return { success: true };
+      },
+    } as never;
+    const input = link({ title: "Export", status: "open" });
+    expect(await withStoredRequirementSemantics(input, counting)).toBe(input);
+    expect(queries).toBe(0);
   });
 
   test("leave new requirements, other types and ledger-free requirements alone", async () => {
