@@ -16509,7 +16509,7 @@ coordinates:
     sourceLine: 27
   SYM-mcp-release-package-metadata:
     identityHash: 240336405ff91215ab2edd07d6f820210720d29abbb8cb1622c6097a330b8fa9
-    sourceHash: c5455e90bf24c9ba0229e8cbe5f8b3dee803c4ea8a9a9cd1b3ec85e1bff825dd
+    sourceHash: fbf3830418a93a52fad672a5105fdde18385cf6ff70585ce5e1ceea26e83c175
     sourceColumn: 0
     sourceEndColumn: 0
     sourceEndLine: 57
@@ -16517,7 +16517,7 @@ coordinates:
     sourceLine: 1
   SYM-mcp-release-registry-metadata:
     identityHash: 243381a6fc622289060ae9fc50ab65b559c478b15c309c3e7e4cf730e442d06a
-    sourceHash: 020908dd5837a9303a619023ba7b2a1efbfcc35f36d95d45e1f4691e5603659c
+    sourceHash: cc5c417bd90cc10382794677657d711dfb825c29a997039a9462c3d4e2a5eb89
     sourceColumn: 0
     sourceEndColumn: 0
     sourceEndLine: 21
@@ -23157,7 +23157,7 @@ coordinates:
     sourceLine: 240
   SYM-runtime-packed-daemon-build:
     identityHash: 0b663b050962de77e0604feaa0dd61916f1e00fcc990f11723d8321a0b856ede
-    sourceHash: 76969eaeb8257628e4104f82e0198d4e61fb7e4cd0eee584d40728410c4165db
+    sourceHash: 8c6d7c58cf74665514308c791913fb464f4a0898665345f86c516981a51913a2
     sourceColumn: 0
     sourceEndColumn: 0
     sourceEndLine: 43
@@ -31973,7 +31973,7 @@ coordinates:
     sourceLine: 161
   SYM-source-analysis-v2-qualifiedsourceanalyzers:
     identityHash: 961e6b9ac12f4abfcb555c93e6609590e7fbc2e6f0146830c8e25db86527637b
-    sourceHash: e71b8a4446b8e1c24afe418af9ed565977235b2cb0cdb788333df35537fd33a8
+    sourceHash: 0eefb64be2089857890a5cdb27d093fa643ea34876449c581be594184faf34f1
     sourceColumn: 13
     sourceEndColumn: 10
     sourceEndLine: 135
@@ -33757,10 +33757,10 @@ coordinates:
     sourceLine: 1
   SYM-test-publish-metadata-verifier:
     identityHash: 77e0bc68bd3fbdb65448bce75a071032dd16bb664c04bd4eb8d70bc5fddf7609
-    sourceHash: fa9bba69426bb5437f26e224e20336d3d43c47513e6216b97a7a617ef744a4fa
+    sourceHash: fa68299875090ed5302557bb3fcf4a34ba59ca2fc18ca76a01ee4c421a8b4e1c
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 379
+    sourceEndLine: 383
     sourceFile: scripts/tests/verify-publish-metadata.test.ts
     sourceLine: 1
   SYM-test-release-pack-workflow-contract:
@@ -34973,7 +34973,7 @@ coordinates:
     sourceLine: 1
   SYM-zcode-mcp-registration-config:
     identityHash: a49902dfe1abb97958a5441b1232d9235135aea24308be1265c4be0c751661e5
-    sourceHash: eebcbb5ee4e8e4e7354b51097d02a26fcd246788ed831a024db68baffb809703
+    sourceHash: c1d6922548473f3dded064b80130d8082d59fe426918ec6d2fcf716c055f593d
     sourceColumn: 0
     sourceEndColumn: 0
     sourceEndLine: 22

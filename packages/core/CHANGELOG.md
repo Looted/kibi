@@ -1,5 +1,17 @@
 # kibi-core
 
+## 0.15.1
+
+### Patch Changes
+
+- 2a2b2db: Every Kibi package page on npm now has a README that says what the package is for and how to install it, and links to the documentation site. Package metadata now points npm's "Homepage" link at the documentation site, its "Repository" link at the package's own folder on GitHub, and adds an "Issues" link.
+
+  Adds READMEs to `kibi-cli`, `kibi-mcp`, `kibi-core`, `kibi-runtime`, `kibi-agent-core`, `kibi-codex`, `kibi-plugin-builtin` and `kibi-plugin-sdk`. Sets `homepage` to https://looted.github.io/kibi/, adds `repository.directory` and `bugs` to every package, and refreshes the `kibi-plugin-treesitter` integrity manifest and source-analyzer approval for its changed `package.json`.
+
+- 2c6ce25: `kb_search` with `sourceLocations` no longer reads complete entities for every entity in the given files. Results and rankings are unchanged; a file covered by many tests with long proof receipt histories now costs a fraction of the engine output it used to.
+
+  Source-located intent candidates use the projected search-candidate rows through the new `kb_list_search_candidates/6` (type, source filter, limit, offset), which applies the same source filter as `kb_query_entities/8`. The separate full-entity source lookup used when a host lacks paged entity queries is removed, so every host loads the same candidate set.
+
 ## 0.15.0
 
 ### Minor Changes
@@ -11,7 +23,6 @@
   Migration: KB schema 7 makes `strict-fact-shape` a blocking canonical check. Run `kibi migrate --yes`, then `kibi sync`. The migration rewrites legacy polarity-only property facts to the typed boolean encoding while preserving IDs, polarity, relationships, and document bodies. Other malformed strict facts require explicit correction; they are not treated as proof.
 
 - 9ab84a4: Conditional requirements are now checked against scenarios. Write "checkout may happen only when the cart total is positive" (or "checkout must not happen unless ...") and `kb_compile_intent` compiles it to a typed rule; a checkout scenario that assumes a zero cart total is then infeasible and blocks proof, exactly as a property requirement would. A requirement only governs scenarios in its scope and inside the validity window of its facts, an approved exception can waive a single clause, and a conditional Kibi cannot translate stays an open gap instead of being stored as a note that looks modeled.
-
   - Rule-lane feasibility: a current requirement's `requires_rule` rule whose body reads subject properties (`namespace:name(Entity, Value)`) contributes constraints in the same form as `requires_property` facts. A `forbid`/`deny` rule with one condition on one property contributes the negated condition; a `permit`/`oblige` rule of kind `constraint` contributes each condition. A rule restricts only scenarios that perform its action (`specified_by` the requirement or an exception to it, or assuming a predicate fact naming the action). Other restricting rules are decided on their own (entailed blocks, refuted is irrelevant, otherwise unknown). `logic_rule_property_form/2` folds comparison exceptions into the body and reads property keys from every nested atom.
   - Validity windows: requirement constraints apply over their grounding fact's `valid_from`/`valid_to` (a rule IR's `validFrom`/`validTo` take precedence). The scenario's time is the intersection of its assumed facts' windows; a bounded constraint at an unspecified or partly overlapping time is undetermined.
   - New outcome `not_applicable` (`disjoint_scope`, `outside_validity`) when no current requirement governs any assumption, and new unknown reasons `undecided_rule` and `undetermined_validity`, reported by `scenario-feasibility-unknown` and the proof ladder's `unknownFeasibility`.
@@ -22,7 +33,6 @@
   - Rule facts that `kb_compile_intent` and `kb_model` create are titled `Rule: <clause>` instead of `rule rule SEM-…`.
 
 - 352d5a0: Kibi's contradiction and feasibility verdicts no longer overclaim. Two rules over a predicate that can hold several values (several readings per sensor) are now `unresolved` instead of `disjoint`, identical rules whose condition can never hold are `disjoint` rather than a `contradiction`, a rule body with a comparison Kibi cannot read never yields a `contradiction`, and integer properties are compared as integers, so `> 0` conflicts with `< 1`. A success scenario is now also blocked when its assumptions only conflict with a requirement in combination (`>= 5` and `!= 5` against `<= 5`), an exception requirement only exempts a scenario once a human approved it, and a success scenario Kibi cannot check is flagged as unknown instead of silently passing. `kb_apply_plan` refuses a plan before its first write when any step would fail the same validation `kb_upsert` runs.
-
   - New optional `predicate_schema` field `key_arguments` (argument names that determine the rest). Rule comparison identifies two atoms of a predicate only through it; without it, opposing rules stay `unresolved`. Comparisons of a variable with itself are decided exactly, and `int`/`integer` rule variables range over the integers.
   - Identical (alpha-renamed) opposing rules are a `contradiction` only when their shared condition provably holds: every comparison translated, the functional closure consistent, no negation, disjunction, count or temporal relation, and the constraints satisfiable. A condition that cannot hold (`X > 0, X < 0`, `X < X`, two values of a keyed predicate) makes them `disjoint`; one Kibi cannot read keeps them `unresolved`.
   - A rule variable shared by both rules counts as an integer for a `disjoint` verdict only when every declaration of it is `int`/`integer` (`N: int, N > 0` against `N: number, N < 1` is no longer `disjoint`); a `contradiction` witness must satisfy every declaration.
@@ -36,7 +46,6 @@
   - `kb_apply_plan` runs every step through the extracted `kb_upsert` validation chain (`validateUpsertForCommit`: schema, proof receipts, relationship sources and targets, strict-lane pairing, supersedes direction, proposition-complete ingestion, grounding claim keys, predicate argument vocabulary) before the first write, treating entities and relationships created by earlier steps as present, and refuses a plan that introduces a contradiction or infeasible scenario.
 
 - a037b53: Every entity can now record who wrote it and who approved it, and `kibi migrate` brings existing knowledge bases to KB schema 6. Requirements your agent writes through `kb_upsert` are marked as agent-authored, and new advisory checks list exceptions nobody approved, exception approvals only an agent recorded, agent-written requirements no person has reviewed, and requirements that do not say why they exist; Kibi cannot verify a person's approval, so these checks show what is still waiting for one. `kibi check` now blocks superseded requirements that are still open and `source` fields that point at nothing, and `kibi migrate` closes the requirements and repairs the source fields for you (Kibi always compiles `source` from the entity's own file, so it removes leftover values that name that file or nothing), leaving only supersession cycles and source fields it cannot edit safely for review. When an upgraded semantic advisor reads existing prose differently, `kibi sync` lists every affected requirement at once and `kibi migrate` re-derives their inventories without dropping grounding.
-
   - New optional `origin` field on every entity type (optional on symbols): `{kind: human | agent | migration | import, ref?, approved_by?, recorded_at?}`. It is validated in the Markdown extractor, the symbol manifest, the Prolog schema (`entities.pl`, `validation.pl`), the generated entity JSON schema and the `kb_upsert` input schema, and stored as a JSON object like `proof_contract`. Unknown kinds and unknown fields are rejected.
   - `kb_upsert` and `kb_apply_plan` record `{kind: agent, recorded_at: <write time>}` on a new entity written without `origin`, and never change a stored origin when `origin` is omitted. An entity without an origin stays without one when updated. A supplied origin is written as given, with `recorded_at` filled in when missing.
   - New advisory check rules (non-blocking `qualityDiagnostics`, run by default): `exception-unapproved` (an exception that `exempts` a requirement but has no `approved_by`, so it exempts nothing), `exception-approval-self-attested` (an agent-authored exception with `approved_by` but no `origin.approved_by` or `approval_ref`) and `agent-requirement-unapproved` (info; agent-authored current requirements without `origin.approved_by`, at most 25 per check plus one summary finding).
@@ -53,7 +62,6 @@
   - New optional requirement field `rationale` (a non-empty string): why the requirement exists. It is explanation only and never part of the checked meaning or the semantic fingerprint.
 
   ## Migrating
-
   1. Update `kibi-core`, `kibi-cli` and `kibi-mcp` together.
   2. Run `kibi migrate --format json > plan.json` and review it. Expect one `entity_origin_backfill` action (its evidence counts the entities per type), one `semantic_inventory_rederive` per drifted requirement, one `close_superseded_requirements` action listing the superseded requirements that are still open, one `source_path_rewrite` action listing the source values it will rewrite or remove, and review actions for anything you must decide. A KB already at schema 6 still gets the two lifecycle actions, because their findings now block `kibi check`.
   3. Apply the automatic actions: `kibi migrate --apply-safe --approved-plan-hash "$(jq -r .planHash plan.json)"`. This stamps origins, re-derives inventories, closes superseded requirements, repairs redundant or dead `source` fields, writes schema 6 to `.kb/manifest.json` and syncs. `kibi migrate --yes` does the same without a plan.
@@ -61,14 +69,12 @@
   5. Commit the rewritten `.kb/` files. The origin backfill touches every entity file once; rerunning `kibi migrate` changes nothing.
 
 - 1012d1c: Scenarios can now say what outcome they expect and what they assume, and Kibi checks that against your requirements. A scenario that expects success while assuming a value a current requirement forbids (for example a zero-quota call when calls need remaining quota) is reported by `kb_check` and blocks proof of the requirements it specifies. An intended exception is recorded as an approved exception requirement instead of weakening or editing the rule.
-
   - New scenario property `expects` (`success`, `rejection`, `error`), new relationships `assumes` (scenario → `property_value` fact) and `exempts` (exception req → base req).
   - New canonical `kb_check` rule `scenario-feasibility` with witnesses naming the scenario, requirement and both facts. An exception applies when a current requirement `exempts` the base requirement and is `specified_by` the scenario.
   - The proof ladder's scenario stage reports `infeasibleScenarios`, sets status `blocked`, and adds the `infeasible_scenario` gap; coverage repair plans map it to the scenario phase.
   - Scenarios without `assumes`, or that expect rejection or error, are not checked; no violation is not proof of feasibility.
 
 - 1012d1c: `kb_search` now answers questions. Ask it "how should Kibi handle a detached HEAD?" and it returns the current requirements that govern the topic, what they require to stay true, the decisions behind them and what verifies them, with superseded requirements listed separately so they are never read as current policy. Each governing requirement also says what the existing checks report about it (contradictions, infeasible scenarios, approved exceptions and what is still undecided), and the answer names the KB snapshot it came from. A warm `kibi search`, CLI start-up included, now takes about 2 seconds instead of 4 to 6 on the KBs we measured (Kibi's own and a 110-requirement application KB).
-
   - The default `rankingMode` is `intent-v1`; pass `rankingMode: "legacy"` for the previous lexical ranking. Question words, including the frame of "what governs X?" and "what must stay true when X?", are ignored, terms are stemmed and weighted by rarity, and superseded, deprecated or rejected entities are ranked lower with a `demoted:` reason. Results flag `ambiguous` when the top matches are too close to call and report `truncated`.
   - New `answer` input (default true) adds `data.answer` (`kibi.search-answer.v1`): `governing` requirements with `via`, linked `facts`, `scenarios`, `tests` (direct or reached through a scenario, marked by `via`) and `adrs`; `rationale`; `notGoverning` with `supersededBy`; `observations`; a `note` that absence is not evidence. It follows `supersedes` chains to the current requirement and stays under 16 KB, clipping titles and dropping lower-ranked entries when needed.
   - Each governing requirement carries a `verdict` (`contradiction`, `infeasible`, `unknown` or `none`) with the domain-contradiction and scenario-feasibility `witnesses` that name it, `exceptions` (requirements that `exempts` it, with `approvedBy`) and `unknowns` (unresolved rule overlaps, scenarios of unknown feasibility, ambiguous or ontology-gap clauses, a missing clause ledger, or checks that could not run). `rationale` ADRs carry their `source` path and a decision `excerpt`. The answer-level `scope` gives `branch`, `snapshotId` and `syncedAt`. Under the byte ceiling, excerpts are dropped before any governing requirement and a verdict keeps its status when its witnesses are dropped.
@@ -77,7 +83,6 @@
   - Graph links in the answer are discovery, not proof, and a `none` verdict means no check named the requirement; use `kb_check` and `kb_coverage` for full consistency and proof status.
 
 - 1012d1c: Kibi no longer says "no conflict" when it could not tell. Numeric requirements are compared exactly, so "the total must be greater than 0" now conflicts with "the total is 0", and a requirement whose clauses are not all modeled is reported as an incomplete analysis instead of a clean pass. Rules written as typed logic are compared three-valued: contradiction, disjoint or unresolved.
-
   - New `intervals.pl` decides one-variable numeric constraints exactly, including strict `gt`/`lt` bounds; `values_conflict/5` uses it for every operator pair.
   - The proof ladder's contradiction stage returns `status: unresolved`, `outcome: analysis_incomplete` (reason `unresolved_propositions`) when the semantic inventory has unresolved propositions.
   - `kb_model_requirement` and the strict-claim schema accept `gt` and `lt`.
@@ -88,7 +93,6 @@
 ### Patch Changes
 
 - 555cf95: Kibi's Prolog coverage runner now runs every test file named by `--test`. A failure in a later file fails validation, and its directory appears in annotated coverage output. This improves pre-release verification; the installed `kibi-core` Prolog modules are unchanged, and the SWI-Prolog bundle has not shipped yet.
-
   - kibi-core: add a regression for repeated test files and distinct coverage roots.
   - Coverage runner: enumerate all requested test files and their directories.
 
@@ -106,7 +110,6 @@
   When you model a new requirement, Kibi now ranks the subjects that already exist and either reuses one or explicitly declares a new one. It also flags claims that look like possible duplicates. An intentional restatement can be recorded with the new `restates` relationship. Skills and docs now recommend naming entities by the behavior they govern (`REQ-cli-gc`) instead of a sequence number (`REQ-042`). Existing numbered IDs stay valid.
 
   Predicate schemas can now declare the allowed values for an argument, plus the old spellings that map onto them. New facts must use those values. `kibi check` reports predicate facts that don't match any schema, and `kibi migrate` can fix the mechanical cases after you approve the plan hash. It moves a fact to the only namespace whose schema matches, and rewrites old spellings to the declared value. Everything that needs judgment stays a review item.
-
   - core: new `semantic_quality.pl` (`entity-id-style`, `domain-redundancy`, `domain-implication`, `subject-key-identity`, `subject-key-shape`, `ontology-quality`) and `units.pl`. Unit canonicalization is used for comparison only, and unknown or ambiguous units such as `KB` are never equated. Adds the `restates` req→req relationship and an optional `diagnosticSeverity` in the rule registry. Adds `:- encoding(utf8)` to modules that contain non-ASCII text.
   - cli/mcp: `restates` is wired through the extractors, schemas, and mutation paths. `entity-id-style` warnings are reported on `kb_upsert` creates and on staged added or renamed entity files. `kb_model_requirement` returns `vocabularyAlignment` (subject decision, candidates, redundancy candidates, stamps, `fallbackUsed`). Ontology-quality thresholds can be set with `KIBI_ONTOLOGY_QUALITY_MAX_SINGLETON_RATIO` / `KIBI_ONTOLOGY_QUALITY_MIN_FACTS`. `kb_compile_intent` create mode now keeps a caller-supplied `requirementId`. `kibi check --staged` now also prints its pass line when metadata-only staged changes have only advisory findings, matching the staged-symbol path.
   - cli/mcp: `predicate_schema` facts accept `argument_constants` and `argument_aliases`, stored like `rule_ir` as JSON. `kb_upsert` / `kb_validate_upsert` reject malformed vocabularies and predicate facts that use undeclared values or aliases. `kb_suggest_predicates` binds aliases to their constant and leaves undeclared values unbound. The new advisory TypeScript rule `predicate-schema-conformance` checks predicate facts against project schemas and the built-in catalog. Its mechanical repairs become automatic `predicate_schema_alignment` migration actions that carry the exact `kb_upsert` input and re-read the fact before writing.
@@ -119,7 +122,6 @@
 ### Patch Changes
 
 - 173ed66: `kibi coverage`, `kibi proof impact`, and requirement health reports no longer break with "Predicate or file not found" once a project's proof receipt history grows large. Per-contract proof binding used to load every test together with its full receipt history in a single answer. Past the 8 MiB output cap, that answer terminated the engine's Prolog session, and later queries quietly ran in throwaway processes without the attached KB. The engine now reads only the small per-test data it needs, and it restarts and reattaches its session if a query ever overflows or times out. Failures are reported instead of being hidden behind stale results.
-
   - Engine daemon: a lost interactive SWI session (output overflow, timeout, crash) is recycled before the next request. Recycling restarts the process, reattaches the branch store, and reloads the preloaded and client-loaded modules. The overflowing request still fails with the explicit ENOBUFS error.
   - `PrologProcess`: once started, a lost process never falls back to one-shot execution; queries raise `PrologProcessTerminatedError` with the cause. New `oneShotMode`/`needsRestart()` accessors and an injectable `maxOutputBytes` cap.
   - `runOperationJsonQuery`: isolated (one-shot or unstarted) ports report `oneShotMode` and receive the combined module-load + call goal.
@@ -130,7 +132,6 @@
 - f7c2d56: A full proof campaign spends much less time repeating the same packed test and rewriting the knowledge base once per receipt. Contracts that declare the identical command now share one execution, and the receipt campaign commits in batches instead of flushing the journal after every test. Selecting which tests to prove no longer loads every receipt history up front.
 
   Receipt source documents stay protected through the batched commit, and a failed batch restores every uncommitted document while preserving earlier committed batches.
-
   - Run each distinct proof-step command once and record that attempt on every contract that declared it.
   - Honor `KIBI_PROOF_STEP_CONCURRENCY` (default 1) when distinct commands can run together.
   - Reuse one snapshot-keyed compilation of the packed end-to-end suite across proof steps.
@@ -142,7 +143,6 @@
   this repository, `kibi status` for a fresh KB drops from about 3 seconds to
   about 1.7, and a command that needs neither schema validation nor symbol
   extraction starts about 0.5 seconds sooner.
-
   - `kb_status_json` skips the full-entity stale-reason scan when the KB is
     fresh, because a fresh verdict already rules out every stale reason.
   - `kibi-plugin-builtin` loads ts-morph (the TypeScript compiler) on first
@@ -150,13 +150,11 @@
   - The CLI compiles its entity and relationship JSON schemas on first use.
 
 - 0d161a7: Kibi no longer fails to save anything when a workspace sits deep in a directory tree. In a repository whose path was around 150 characters or longer, every `kb_upsert` and other write died with "invalid term_t … out of range" and no hint about the cause. Writes now work at any path length. Two smaller rough edges are fixed as well: `kibi init` no longer blames `core.hooksPath` when it refuses a hooks directory that escapes the repository through a symlink, and the "Pending source is missing" error now says how to recover.
-
   - kibi-core: SWI-Prolog's `rdf_db` cannot write a journal for a graph whose URI is roughly 230 characters or longer. Journaled stores whose `file://` graph URI would exceed 200 characters now use a short digest-based `urn:kibi:store:<sha1>` graph URI; shorter paths keep their existing URI, so existing stores are unaffected.
   - kibi-cli: `init` reports "The Git hooks directory resolves outside this repository" unless `core.hooksPath` is actually configured.
   - kibi-cli: `Pending source is missing` errors (sync and discovery) point to `kibi branch recover --apply` for deliberately deleted sources.
 
 - 6513324: Proof reporting does far less work, and large coverage reports can no longer overflow the engine. On this repository, evaluating requirement proof coverage against the live snapshot took about 132M Prolog inferences per run. It now takes about 43M on a cold engine and about 15M on a warm one. That's the evaluation behind `kibi coverage`, `kibi proof impact`, the proof baseline check, and the requirement health report. Whole-KB coverage reports are now read in small pages. The unpaged report was already 5.7 MB of the engine's 8 MiB output cap and grew with every requirement and proof run. Report contents are unchanged.
-
   - kibi-core: `kb_entity/3` memoizes each entity's decoded property list per graph and `rdf_generation/1`. The memo is invalidated by any RDF change, including inside transactions and on rollback. Coverage previously re-materialized and re-decoded every property, receipt histories included, about 100k times per report.
   - kibi-core: receipt-history parsing and receipt-shape validation are memoized by content (`variant_sha1/2`) and bounded to 4,096 entries. They previously re-parsed and re-validated every stored receipt on every evaluation.
   - kibi-core: `kb_ensure_indexes` skips its full type-triple recount while its inputs (graph, RDF generation, legacy fact count, index entity count) are unchanged.
@@ -220,7 +218,6 @@
   current passing end-to-end evidence. Missing, stale, failed, malformed, or
   contract-mismatched evidence remains visible as a blocking proof gap, while
   unit and integration helpers remain nonblocking ancillary evidence.
-
   - Evaluate receipt obligations per scenario and expose their diagnostics in
     `proofStages.passingE2e.scenarioObligations`.
   - Isolate the core Prolog fixture store per test process and verify two
@@ -242,7 +239,6 @@
 - 7654339: Predicate suggestions now abstain more safely when relevance is weak or bindings are unreviewed, while explaining candidate eligibility and rejection reasons.
 
   When a genuine ontology gap remains, agents receive a reviewable schema draft instead of an empty recommendation. Reusable launcher schemas and regression coverage improve guidance for consumer-local package resolution and process execution.
-
   - Add public applicability, binding-provenance, score diagnostics, abstention, and recommended-schema draft fields.
   - Add five launcher-oriented schemas, Cursor launcher coverage, MCP assertions, and reference documentation.
   - Preserve `requires_rule` relationship shards during source-first extraction and sync.
@@ -271,7 +267,6 @@
 ### Patch Changes
 
 - de7b85a: Verification contracts can now evolve without forcing projects to erase valid historical test evidence. Kibi preserves every earlier receipt, accepts a newly appended receipt for the current contract, and only treats evidence matching both the current contract and live code snapshot as proof.
-
   - Separate immutable receipt-history validation from current-contract binding during verification ingest.
   - Report `verification_contract_mismatch` as an explicit proof gap until current-contract evidence is appended.
   - Teach the usage skill and SkillOpt evaluator to preserve older-contract receipts and forbid history rewrites.
@@ -288,7 +283,6 @@
 ### Patch Changes
 
 - Dogfood projects now get branch-local knowledge bases that follow the exact Git ref, actionable stale-source diagnostics, and a sanctioned relationship cleanup path. Verification receipts and packed package provenance are stricter and reproducible, while agents receive conservative symbol-recovery guidance and explicit interim-state signals. This prevents silent `master`/`main` drift and makes passing E2E evidence distinguishable from complete semantic proof.
-
   - Remove implicit branch-name normalization and add previewed legacy branch migration.
   - Add exact relationship deletion, v2 receipt/schema parity, status diagnostics, dogfood package manifests, and SkillOpt cases.
 
@@ -341,7 +335,6 @@
   Diagnostic workflows now produce correlated evidence through both CLI JSON and MCP surfaces. Operators can run a read-only versioned remediation report that points to exact unmatched log events, preserves explicit missing-coverage work, and prevents advisor or preflight evidence from a different identified session or actor from counting as proof.
 
   Legacy prose can now be inspected one requirement at a time through a deterministic migration preview. The preview preserves existing code evidence, binds every extracted proposition to exact authored source, ranks project-local ontology candidates, and never emits an auto-applicable write.
-
   - Add the shared `kibi.requirement-proof.v2` Prolog evaluator and expose its rows, fresh receipt evidence, and summary counts through CLI and MCP coverage.
   - Persist generated symbol coordinates and symbol metadata into normal and staged RDF projections.
   - Preserve semantic-inventory JSON through mutation, sync, RDF storage, and query round trips, and refresh coordinates before extracting their manifest overlay.
@@ -406,7 +399,6 @@
 - f1db710: Coverage reports now explain how deep each requirement's test evidence goes without changing existing covered/uncovered semantics. CLI users and MCP clients can distinguish direct passing e2e evidence, scenario-backed e2e evidence, unit-only evidence, nonpassing test evidence, scenario-only coverage, and no evidence at all. Typed test verification fields are honored before legacy e2e tag/path heuristics, so modern test metadata produces more reliable coverage labels.
 
   Technical summary:
-
   - Add additive `coverageDepth` / `coverage_depth` fields and coverage evidence lists to requirement coverage rows.
   - Classify coverage depth from direct requirement tests, scenario tests, test statuses, and typed `verification_scope` values.
   - Surface coverage depth in CLI table output and MCP structured coverage results while preserving existing summary and `coverageStatus` fields.
@@ -417,7 +409,6 @@
 - 439cb2e: Kibi now makes semantic Prolog adoption easier to measure and debug. Diagnostic usage logs expose semantic advisor readiness, predicate suggestion outcomes, upsert semantic readiness, and contradiction failures as structured fields instead of generic success/error text. Operators can opt into predicate-link audits and get Prolog validation query-plan safety checked by default, with normal `.kb/config.json` overrides available when needed.
 
   Technical summary:
-
   - Add `predicate-verifiability` as a default-off KB check rule that flags `requires_predicate` targets whose `fact_kind` is not `predicate`.
   - Add `query-plan-safety` as a default-enabled KB check rule that flags Prolog validation clauses that place negation before later generator calls.
   - Enrich MCP diagnostic usage fields for `kb_semantic_advisor`, `kb_suggest_predicates`, and `kb_upsert`.
@@ -438,7 +429,6 @@
 - Symbol metadata writes now work consistently through MCP and the underlying Prolog schema. Agents can create source-linked symbol entities with `symbol_role` and `granularity_reason` metadata without hitting a transaction failure after JSON validation succeeds. This keeps behavioral-anchor traceability usable from the MCP-first workflow.
 
   Technical summary:
-
   - Add `symbol_role` and `granularity_reason` to the Prolog entity schema copies shipped by `kibi-core` and `kibi-cli`.
   - Serialize `granularity_reason` as a Prolog atom in `kb_upsert` transactions.
   - Add Prolog and MCP regression coverage for symbol metadata fields.
@@ -460,7 +450,6 @@
   Previously, querying a relationship with a bound target ID but an unbound source ID (for example, "which requirement does this test verify?") could fail silently. That broke traceability paths that rely on `verified_by` edges — symbol coverage checks and MCP reverse relationship queries could miss valid links even when the data was present.
 
   **Changes:**
-
   - **`packages/core/src/kb.pl`**: Add shared `entity_id_to_uri/2` and `entity_uri_to_id/2` helpers; rewrite `kb_relationship/3` to branch on bound source/target IDs (forward, reverse, exact, and enumerate modes); align relationship assert and entity URI builders to the same canonical prefix notation.
   - **`packages/core/tests/kb.plt`**: Add reverse `verified_by` lookup and `production_symbol_covered_for_requirement` coverage tests for the `verified_by`-only path.
 
@@ -471,7 +460,6 @@
 - c810f5f: Symbol-coverage violations now explain that direct `verified_by(Req,Test)` and `validates(Test,Req)` relationships may be blocked when a requirement uses scenarios. The diagnostics now tell you to use `verified_by(Scenario,Test)` or `validates(Test,Scenario)` instead, depending on your test graph.
 
   This change improves check clarity when requirements are tied to scenarios, and it shortens the fix cycle for missing or blocked coverage.
-
   - `kibi-core`: improved symbol-coverage diagnostics in `checks.pl` to reflect scenario-aware coverage rules.
   - Added regression coverage in tests for direct requirement-to-test coverage checks with scenarios.
 
@@ -515,7 +503,6 @@
 - 0ec1cb1: Realign release metadata with the traceability schema update so all publishable packages carry the same patch release notes.
 - 3a11e57: Fix `kibi status` JSON serialization before first sync and add `kibi-mcp --help` output
 - 0ec1cb1: Accept `sourceFile` as an optional entity property during `kb_upsert`.
-
   - Allows symbol (and other) entities to include `sourceFile` in `properties` without triggering JSON schema validation errors.
   - Adds `sourceFile` to the JSON entity schema and the Prolog entity schema.
   - Adds regression test for symbol upsert with `sourceFile`.
@@ -538,7 +525,6 @@
 
 - 6cdf9f5: Realign release metadata with the traceability schema update so all publishable packages carry the same patch release notes.
 - 7111197: Accept `sourceFile` as an optional entity property during `kb_upsert`.
-
   - Allows symbol (and other) entities to include `sourceFile` in `properties` without triggering JSON schema validation errors.
   - Adds `sourceFile` to the JSON entity schema and the Prolog entity schema.
   - Adds regression test for symbol upsert with `sourceFile`.

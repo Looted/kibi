@@ -288,16 +288,20 @@ describe("kibi-swipl family release invariants", () => {
   });
 
   test("a platform package that drifts from the fixed group version is refused", () => {
+    const committed = JSON.parse(
+      readFileSync(join(packagesRoot, "swipl", "package.json"), "utf8"),
+    ).version as string;
+    const drifted = `${committed}-drift`;
     const problems = problemsOf(
       familyRoot((manifests) => {
-        manifests["swipl-darwin-arm64"].version = "1.0.1";
+        manifests["swipl-darwin-arm64"].version = drifted;
       }),
     );
     expect(problems).toContain(
-      "swipl-darwin-arm64: version '1.0.1' must match kibi-swipl 1.0.0 (fixed group)",
+      `swipl-darwin-arm64: version '${drifted}' must match kibi-swipl ${committed} (fixed group)`,
     );
     expect(problems).toContain(
-      "swipl-darwin-arm64: kibi-swipl must depend on kibi-swipl-darwin-arm64 at exactly 1.0.1",
+      `swipl-darwin-arm64: kibi-swipl must depend on kibi-swipl-darwin-arm64 at exactly ${drifted}`,
     );
   });
 
