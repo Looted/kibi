@@ -293,3 +293,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1d951958f911
+  - type: implements
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-generate-selectbootstrapcandidates
+    to: REQ-bootstrap-intent-claim-accounting
+    created_at: 2026-10-06T11:21:36.599Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1b060c0c25ad

@@ -120,6 +120,13 @@ export function buildIntentClaimCandidates(
       });
       continue;
     }
+    if (writeSet?.isStrict && confidence < minConfidence)
+      suppressed.push({
+        candidateId: `claim:${source.id}:${writeSet.req.id.toLowerCase()}`,
+        reason: "below_min_confidence",
+        sourcePath: claim.reference,
+        entityType: "req",
+      });
     if (writeSet?.isStrict && existingIds.has(writeSet.req.id)) {
       suppressed.push({
         candidateId: `claim:${source.id}:${writeSet.req.id.toLowerCase()}`,

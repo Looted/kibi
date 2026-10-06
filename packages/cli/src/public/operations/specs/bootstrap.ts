@@ -43,7 +43,7 @@ export const planBootstrapSpec = {
         minimum: 1,
         maximum: 200,
         description:
-          "Maximum number of candidates to return. Clamped to [1, 200]. Default: 50.",
+          "Maximum number of discovered candidates to return. Declared intentClaims are never capped and do not count against it. Clamped to [1, 200]. Default: 50.",
       },
       entityTypes: {
         type: "array",
