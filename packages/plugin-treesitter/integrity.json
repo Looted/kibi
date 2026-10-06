@@ -316,8 +316,8 @@
     },
     {
       "path": "package.json",
-      "bytes": 1345,
-      "sha256": "433313c71ef7951eb8cb58d855089f08ccab583405ab85d6a417d9309782356c"
+      "bytes": 1461,
+      "sha256": "3e2f6e2869c5e70404acad1abc1f9551ac1dbd0012310f0f74441f3b7728ec7c"
     }
   ]
 }

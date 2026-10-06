@@ -11,9 +11,7 @@
       "default": "./dist/index.js"
     }
   },
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "scripts": {
     "build": "tsc -p tsconfig.json && bun build src/index.ts --outfile dist/index.js --target node --format esm --packages bundle --external kibi-core --external kibi-plugin-builtin --external kibi-swipl --external 'kibi-swipl-*' && bun build ../cli/src/engine-daemon.ts --outfile dist/engine-daemon.js --target node --format esm --packages bundle --external kibi-core --external kibi-swipl --external 'kibi-swipl-*' && rm -rf dist/skills && mkdir -p dist/skills && cp -r src/skills/. dist/skills/",
     "typecheck": "tsc -p tsconfig.json --noEmit"
@@ -32,8 +30,13 @@
   },
   "license": "AGPL-3.0-or-later",
   "author": "Piotr Franczyk",
+  "homepage": "https://looted.github.io/kibi/",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Looted/kibi.git"
+    "url": "https://github.com/Looted/kibi.git",
+    "directory": "packages/runtime"
+  },
+  "bugs": {
+    "url": "https://github.com/Looted/kibi/issues"
   }
 }

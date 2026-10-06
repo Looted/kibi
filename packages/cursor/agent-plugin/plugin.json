@@ -4,7 +4,7 @@
   "version": "2.3.1",
   "description": "Repo-local, per-branch, queryable knowledge base. Portable Agent Plugin packaging Kibi's Agent Skills and MCP server.",
   "author": { "name": "Kibi" },
-  "homepage": "https://github.com/Looted/kibi/blob/develop/docs/install.md",
+  "homepage": "https://looted.github.io/kibi/",
   "repository": "https://github.com/Looted/kibi.git",
   "license": "AGPL-3.0-or-later",
   "keywords": ["kibi", "mcp", "knowledge-base", "traceability", "swi-prolog"]

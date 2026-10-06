@@ -8,14 +8,16 @@
     "node": ">=18"
   },
   "main": "./src/kb.pl",
-  "files": [
-    "src/**/*.pl",
-    "schema/**/*.pl"
-  ],
+  "files": ["src/**/*.pl", "schema/**/*.pl"],
   "license": "AGPL-3.0-or-later",
   "author": "Piotr Franczyk",
+  "homepage": "https://looted.github.io/kibi/",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Looted/kibi.git"
+    "url": "https://github.com/Looted/kibi.git",
+    "directory": "packages/core"
+  },
+  "bugs": {
+    "url": "https://github.com/Looted/kibi/issues"
   }
 }
