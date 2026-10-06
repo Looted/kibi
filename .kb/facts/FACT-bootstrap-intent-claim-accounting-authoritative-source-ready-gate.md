@@ -11,8 +11,8 @@ claim_key: CLAIM-99C795E50A85B421
 claim_text: The bootstrap planner must not mark a plan ready when an authoritative knowledge source has no planned or existing claims
 origin:
   kind: agent
-  ref: 'Piotr thread 2026-10-06: fix bootstrap truncation after the Align onboarding rerun'
-  recorded_at: '2026-10-06T11:20:28.149Z'
+  ref: 'Piotr thread 2026-10-06: fix bootstrap truncation after a test project onboarding rerun'
+  recorded_at: '2026-10-06T11:35:47.391Z'
 id: FACT-bootstrap-intent-claim-accounting-authoritative-source-ready-gate
 type: fact
 ---

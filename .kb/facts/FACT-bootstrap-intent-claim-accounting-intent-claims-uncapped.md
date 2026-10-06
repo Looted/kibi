@@ -11,8 +11,8 @@ claim_key: CLAIM-0D8D71DB60BC0D38
 claim_text: The bootstrap planner must keep every declared intent claim regardless of maxCandidates and apply maxCandidates only to discovered candidates
 origin:
   kind: agent
-  ref: 'Piotr thread 2026-10-06: fix bootstrap truncation after the Align onboarding rerun'
-  recorded_at: '2026-10-06T11:20:23.353Z'
+  ref: 'Piotr thread 2026-10-06: fix bootstrap truncation after a test project onboarding rerun'
+  recorded_at: '2026-10-06T11:35:42.084Z'
 id: FACT-bootstrap-intent-claim-accounting-intent-claims-uncapped
 type: fact
 ---

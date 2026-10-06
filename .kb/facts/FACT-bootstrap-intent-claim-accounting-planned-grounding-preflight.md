@@ -11,8 +11,8 @@ claim_key: CLAIM-298CB83398C39343
 claim_text: The bootstrap planner must run the claim key grounding check against planned writes before offering write actions
 origin:
   kind: agent
-  ref: 'Piotr thread 2026-10-06: fix bootstrap truncation after the Align onboarding rerun'
-  recorded_at: '2026-10-06T11:20:25.802Z'
+  ref: 'Piotr thread 2026-10-06: fix bootstrap truncation after a test project onboarding rerun'
+  recorded_at: '2026-10-06T11:35:44.697Z'
 id: FACT-bootstrap-intent-claim-accounting-planned-grounding-preflight
 type: fact
 ---
