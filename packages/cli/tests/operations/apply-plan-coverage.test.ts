@@ -65,6 +65,8 @@ function compileBody(
     },
     target: {
       mode: "create",
+      context:
+        "The fixture requester gave this reason so the plan carries context for the test.",
       requirementId: "REQ-apply",
       selectionReason: "test",
     },

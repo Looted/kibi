@@ -860,6 +860,8 @@ export async function setupSeededPreconditionKb(
   const compiled = await jsonRoute(cliRoot, workspaceTarget, "compile-intent", {
     intent: PRECONDITION_INTENT,
     mode: "create",
+    context:
+      "Fixture base requirement for the precondition scenario; reason not stated.",
     requirementId: PRECONDITION_IDS.base,
   });
   const plan = recordField(compiled, "data", "compile-intent");

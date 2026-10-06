@@ -76,6 +76,8 @@ function compilePlan(ws: ConsumerWorkspace): CompilePlan {
   const result = ws.json(["compile-intent"], {
     intent: "Checkout may happen only when the cart total is positive.",
     mode: "create",
+    context:
+      "The fixture requester gave this reason so the plan carries context for the test.",
     requirementId: REQ,
     sourceLocations: [{ path: DOC }],
     scenarioDrafts: [
@@ -107,7 +109,7 @@ function compilePlan(ws: ConsumerWorkspace): CompilePlan {
   const requirement = plan.steps.find((step) => step.id === REQ);
   expect(requirement?.document).toEqual({
     path: DOC,
-    body: "Checkout may happen only when the cart total is positive.\n",
+    body: "Checkout may happen only when the cart total is positive.\n\n## Context\n\nThe fixture requester gave this reason so the plan carries context for the test.\n",
   });
   for (const step of plan.steps)
     if (step.id !== REQ)

@@ -63,6 +63,8 @@ const basePlan = {
   },
   target: {
     mode: "create" as const,
+    context:
+      "The fixture requester gave this reason so the plan carries context for the test.",
     requirementId: "REQ-apply",
     selectionReason: "test",
   },
@@ -777,7 +779,9 @@ describe("bootstrap deterministic write failures", () => {
         retryable: false,
       });
       expect(existsSync(path.join(root, ".kb/recovery"))).toBe(false);
-      expect(existsSync(path.join(root, ".kb/facts/FACT-valid.md"))).toBe(false);
+      expect(existsSync(path.join(root, ".kb/facts/FACT-valid.md"))).toBe(
+        false,
+      );
     } finally {
       rmSync(root, { recursive: true, force: true });
     }
@@ -962,6 +966,8 @@ describe("apply plan source recovery and migration", () => {
       },
       target: {
         mode: "create",
+        context:
+          "The fixture requester gave this reason so the plan carries context for the test.",
         requirementId: "REQ-apply",
         selectionReason: "test",
       },
