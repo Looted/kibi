@@ -63,7 +63,7 @@ describe("SkillOpt fixture catalog", () => {
     expect(development).toHaveLength(5);
     expect(skillFamilies("kibi-usage")).toHaveLength(5);
     expect(skillFamilies("kibi-usage").at(-1)).toBe("intent-consult");
-    expect(skillFamilies("kibi-bootstrap")).toHaveLength(4);
+    expect(skillFamilies("kibi-bootstrap")).toHaveLength(5);
     expect(
       development.filter(({ family }) => family === "intent-consult"),
     ).toHaveLength(1);
@@ -112,8 +112,8 @@ describe("SkillOpt fixture catalog", () => {
   test("encodes explicit state, scorer reference, and family task data", () => {
     const tasks = [...buildPublicCatalog(), ...buildHeldOutCatalog()];
 
-    // 3 skills x 5 families + 1 skill x 4 families, 7 tasks each, + 8 bundles.
-    expect(tasks).toHaveLength(141);
+    // 4 skills x 5 families, 7 tasks each, + 8 bundles.
+    expect(tasks).toHaveLength(148);
     expect(
       tasks.every(
         (task) =>
@@ -216,7 +216,7 @@ describe("predicate corpus materializes stable authorized roots", () => {
     expect(buildCoreSkillCatalog("kibi-usage")).toHaveLength(28);
     expect(() => validateSkillCatalog(usage, "kibi-usage")).not.toThrow();
     const total = [...buildPublicCatalog(), ...buildHeldOutCatalog()];
-    expect(total).toHaveLength(141);
+    expect(total).toHaveLength(148);
     const usagePublic = buildPublicCatalog().filter(
       (task) => task.skill === "kibi-usage",
     );
@@ -231,7 +231,7 @@ describe("predicate corpus materializes stable authorized roots", () => {
       CANONICAL_SKILLS.length * 28 +
         supplementalFamilies * 7 +
         buildBundleCatalog().length,
-    ).toBe(141);
+    ).toBe(148);
   });
 
   test("unsigned roots cannot authorize training or evaluation", () => {
@@ -341,7 +341,7 @@ describe("SkillOpt corpus executability invariants", () => {
   }
 
   test("every task carries an objective-specific expectation", () => {
-    expect(allTasks).toHaveLength(141);
+    expect(allTasks).toHaveLength(148);
     const uncovered = allTasks.filter((task) => {
       const manifest = manifestFor(task);
       return (

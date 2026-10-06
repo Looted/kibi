@@ -3,10 +3,12 @@ import type { ArtifactPath } from "./artifact-path";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import {
+  type SkillManifest,
   loadBundledSkillFrom,
   readBundledSkillResourceFrom,
 } from "../../packages/cli/src/public/skills";
 import { withSharedAdoptionLock } from "./adoption-lock";
+import type { CampaignSourceSurface } from "./campaign-artifacts";
 import { validateCompleteCandidateBody } from "./candidate-body";
 import type { CanonicalSkill } from "./catalog";
 import { defaultEvaluateHeldOut } from "./held-out-evaluation";
@@ -54,6 +56,35 @@ export async function surface(
   readonly frontmatterHash: string;
   readonly resourcesHash: string;
 }> {
+  const { manifest: _manifest, ...current } = await readSkillSurface(
+    sourceRepoRoot,
+    skill,
+  );
+  return current;
+}
+
+/**
+ * The campaign surface: the hashed baseline plus its parsed frontmatter, read
+ * under one shared adoption lock so a described (1.2.0) candidate can be
+ * validated against exactly the frontmatter its hash names.
+ */
+// implements REQ-skillopt-description-candidates
+export async function campaignSurface(
+  sourceRepoRoot: string,
+  skill: CanonicalSkill,
+): Promise<CampaignSourceSurface> {
+  return readSkillSurface(sourceRepoRoot, skill);
+}
+
+async function readSkillSurface(
+  sourceRepoRoot: string,
+  skill: CanonicalSkill,
+): Promise<{
+  readonly body: string;
+  readonly frontmatterHash: string;
+  readonly resourcesHash: string;
+  readonly manifest: Readonly<SkillManifest>;
+}> {
   return withSharedAdoptionLock(sourceRepoRoot, async () => {
     const skillsDir = join(
       resolve(sourceRepoRoot),
@@ -74,6 +105,7 @@ export async function surface(
       body: bundle.body,
       frontmatterHash: canonicalHash(bundle.manifest),
       resourcesHash: canonicalHash(resources),
+      manifest: bundle.manifest,
     };
   });
 }

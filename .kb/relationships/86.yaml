@@ -174,3 +174,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-60db7a75d4ed
+  - type: implements
+    from: SYM-skillopt-fixtures-case-contracts-kibi-answer-format-instruction-12b5bc5a
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-10-05T12:24:40.118Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-be1afea20ad2
+  - type: covered_by
+    from: SYM-skillopt-fixtures-case-contracts-kibi-answer-format-instruction-12b5bc5a
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-10-05T12:24:40.130Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-47d1ddea473f

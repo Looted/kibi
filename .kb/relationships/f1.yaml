@@ -209,3 +209,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2c7048c84cd2
+  - type: implements
+    from: SYM-skillopt-campaign-artifacts-campaignartifactstore-open-eddd058c
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-10-05T12:20:46.637Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-930bd761d03d
+  - type: covered_by
+    from: SYM-skillopt-campaign-artifacts-campaignartifactstore-open-eddd058c
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-10-05T12:20:46.653Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-30045bcd10f7

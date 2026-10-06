@@ -146,3 +146,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d34cca2d54f1
+  - type: implements
+    from: SYM-skillopt-campaign-artifacts-resolvebundlecampaignmanifestpath-5c688987
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-10-05T12:20:17.748Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f597b574d568
+  - type: covered_by
+    from: SYM-skillopt-campaign-artifacts-resolvebundlecampaignmanifestpath-5c688987
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-10-05T12:20:17.758Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-12de18c85bb6

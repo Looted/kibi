@@ -325,7 +325,8 @@ export function transcriptOrdering(transcript: string): TranscriptOrdering {
     const item = eventItem(event);
     const tool = mcpToolName(item);
     if (tool?.startsWith("kb_")) {
-      if (tool !== "kb_skills") kibiCalls += 1;
+      if (tool !== "kb_skills" && !tool.startsWith("kb_skills_"))
+        kibiCalls += 1;
       if (tool === "kb_search" && firstKbSearchIndex === null) {
         firstKbSearchIndex = index;
       }

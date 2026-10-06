@@ -219,24 +219,20 @@ export async function initCommand(
   currentBranch = result.kbBranch;
 
   try {
-    if (!kbExists) {
-      createKbDirectoryStructure(kbDir, currentBranch);
-      createManifestFile(kbDir);
-      updateGitIgnore(projectRoot);
-
-      const schemaSourceDir = path.resolve(__dirname, "..", "..", "schema");
-
-      await copySchemaFiles(kbDir, schemaSourceDir);
-    } else {
-      console.log("✓ .kb/ directory already exists, skipping creation");
-      // An orphan branch can legitimately remove tracked `.kb/manifest.json`
-      // while the ignored branch stores remain on disk. Recreate the
-      // lifecycle manifest so status/doctor stay coherent; entity paths are
-      // canonical and require no per-repository configuration.
-      if (!existsSync(path.join(kbDir, "manifest.json"))) {
-        createManifestFile(kbDir);
-      }
+    if (kbExists) {
+      console.log(
+        "✓ .kb/ directory already exists; completing missing infrastructure",
+      );
     }
+    // A directory left by a tool or interrupted setup is not a complete KB.
+    // Reconcile missing infrastructure on every invocation, preserving sources.
+    createKbDirectoryStructure(kbDir, currentBranch);
+    if (!existsSync(path.join(kbDir, "manifest.json"))) {
+      createManifestFile(kbDir);
+    }
+    updateGitIgnore(projectRoot);
+    const schemaSourceDir = path.resolve(__dirname, "..", "..", "schema");
+    await copySchemaFiles(kbDir, schemaSourceDir);
 
     ensureSymbolsManifestFile(projectRoot);
 

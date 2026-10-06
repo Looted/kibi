@@ -102,6 +102,7 @@ const SUPPLEMENTAL_FAMILY_BY_SKILL: Readonly<
   "kibi-usage": "intent-consult",
   "kibi-freshness": "consistency-report",
   "kibi-traceability": "scenario-feasibility",
+  "kibi-bootstrap": "onboarding-review",
 };
 
 const CORE_FAMILIES_PER_SKILL = 4;

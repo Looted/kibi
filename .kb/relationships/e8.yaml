@@ -307,3 +307,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-af727136d9e2
+  - type: implements
+    from: SYM-skillopt-campaign-artifacts-manifesthash-a6d98f85
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-10-05T12:19:57.769Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-136cdcd08e3e
+  - type: covered_by
+    from: SYM-skillopt-campaign-artifacts-manifesthash-a6d98f85
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-10-05T12:19:57.793Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fb34763839e6

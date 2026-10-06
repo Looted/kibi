@@ -318,3 +318,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b8c56c49745e
+  - type: implements
+    from: SYM-skillopt-campaign-artifacts-campaignartifacterror-name-14622f09
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-10-05T12:20:40.159Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ea0b773a6431
+  - type: covered_by
+    from: SYM-skillopt-campaign-artifacts-campaignartifacterror-name-14622f09
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-10-05T12:20:40.176Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5cbee88cb86f

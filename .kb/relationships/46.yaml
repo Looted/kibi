@@ -265,3 +265,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f420456297f2
+  - type: validates
+    from: TEST-e2e-skillopt-description-candidates
+    to: SCEN-skillopt-description-candidates
+    created_at: 2026-10-06T00:22:45.356Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-694924c5aaee

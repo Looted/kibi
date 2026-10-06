@@ -97,3 +97,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1d76d1499b7a
+  - type: implements
+    from: SYM-skillopt-campaign-artifacts-publicfeedback-27f8da4c
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-10-05T12:21:26.208Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1edc2d843cc0
+  - type: covered_by
+    from: SYM-skillopt-campaign-artifacts-publicfeedback-27f8da4c
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-10-05T12:21:26.217Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4867b0d4c1c8

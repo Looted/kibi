@@ -98,11 +98,15 @@ export function validateScreenPlan(options: {
     throw new Error("screen_variant_set_invalid");
   if (new Set(variants.map((v) => v.bodyHash)).size !== variants.length)
     throw new Error("screen_duplicate_body");
+  // Only a described candidate may carry its own (description-replaced)
+  // frontmatter hash; the baseline and body-only candidates share baseline's.
   if (
+    variants[0]?.description !== undefined ||
     variants.some(
       (v) =>
         v.skill !== variants[0]?.skill ||
-        v.frontmatterHash !== variants[0]?.frontmatterHash ||
+        (v.description === undefined &&
+          v.frontmatterHash !== variants[0]?.frontmatterHash) ||
         v.resourcesHash !== variants[0]?.resourcesHash,
     )
   )

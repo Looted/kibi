@@ -40,7 +40,7 @@ describe("generated_only_symbol_coordinate_repair held-out task", () => {
     expect(TASK.taskData.mutation).toBe("write");
     expect(TASK.taskData.approvalPhase).toBe("post-approval");
     const total = [...buildPublicCatalog(), ...buildHeldOutCatalog()];
-    expect(total).toHaveLength(141);
+    expect(total).toHaveLength(148);
     const family = total.filter(
       (task) => task.family === "symbol-impact-granularity",
     );

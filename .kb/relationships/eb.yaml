@@ -167,3 +167,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ce98eb8efa00
+  - type: implements
+    from: SYM-skillopt-runtime-case-signals-casesignalcontext-904a60d2
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-10-05T12:25:14.531Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-766db109c0ec
+  - type: covered_by
+    from: SYM-skillopt-runtime-case-signals-casesignalcontext-904a60d2
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-10-05T12:25:14.541Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b5531488a654

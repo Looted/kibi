@@ -1,3 +1,4 @@
+import "../offline-test-preload";
 import { afterEach, expect, test } from "bun:test";
 import { createHash } from "node:crypto";
 import {

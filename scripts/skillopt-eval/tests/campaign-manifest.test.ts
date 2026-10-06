@@ -12,12 +12,19 @@ import { join } from "node:path";
 import {
   CampaignArtifactError,
   CampaignArtifactStore,
+  CampaignManifestSchema,
+  campaignCandidateHash,
+  campaignCandidateSurface,
+  candidateFrontmatterHash,
   composeCampaignManifest,
   defaultSourceFence,
   parsePublicFeedback,
+  replaceCampaignBody,
+  replaceCampaignBodyAndDescription,
   sha256Text,
   validateCampaignManifestAgainstSurface,
 } from "../campaign-artifacts";
+import { JsonValueSchema, contractHash } from "../contracts/common";
 import { runBoundedProcess } from "../runtime/process";
 
 const surface = {
@@ -180,5 +187,191 @@ describe("campaign manifests", () => {
     } finally {
       await rm(parent, { recursive: true, force: true });
     }
+  });
+});
+
+test("full-body revisions retain baseline and resource fences without fabricated optimizer provenance", () => {
+  const manifest = replaceCampaignBody({
+    skill: "kibi-bootstrap",
+    surface,
+    body: "## Reorganized workflow\nRead sources, review coverage, apply the approved plan, and verify results.\n",
+  });
+  expect(manifest.schemaVersion).toBe("1.1.0");
+  expect(manifest.insertions).toEqual([]);
+  expect(() =>
+    validateCampaignManifestAgainstSurface(manifest, surface),
+  ).not.toThrow();
+  expect(() =>
+    validateCampaignManifestAgainstSurface(manifest, {
+      ...surface,
+      resourcesHash: "c".repeat(64),
+    }),
+  ).toThrow("manifest_surface_mismatch");
+  expect(() =>
+    validateCampaignManifestAgainstSurface(
+      { ...manifest, frozenBody: "tampered" },
+      surface,
+    ),
+  ).toThrow("manifest_body_hash_mismatch");
+  expect(
+    CampaignManifestSchema.safeParse({ ...manifest, revisionMode: undefined })
+      .success,
+  ).toBe(false);
+  expect(
+    CampaignManifestSchema.safeParse({
+      ...manifest,
+      insertions: [insertion("## Discovery", "mixed")],
+    }).success,
+  ).toBe(false);
+});
+
+describe("body-and-description revisions", () => {
+  const frontmatter = {
+    id: "kibi-bootstrap",
+    name: "kibi-bootstrap",
+    description: "Bootstrap Kibi from the current checkout.",
+    version: "3.1.1",
+    kibiCompatibility: ">=1.0.0",
+    tags: ["kibi", "bootstrap"],
+    resources: ["resources/bootstrap.md"],
+  };
+  const described = {
+    ...surface,
+    frontmatterHash: contractHash(JsonValueSchema.parse(frontmatter)),
+    manifest: frontmatter,
+  };
+  const description =
+    'Use when a repository has no Kibi store yet: "bootstrap", sources, intent.';
+
+  test("composes a 1.2.0 manifest that survives a JSON round trip and binds only the description", () => {
+    const manifest = replaceCampaignBodyAndDescription({
+      skill: "kibi-bootstrap",
+      surface: described,
+      body: surface.body,
+      description,
+    });
+    expect(manifest).toMatchObject({
+      schemaVersion: "1.2.0",
+      revisionMode: "body-and-description-replacement",
+      insertions: [],
+      frontmatterHash: described.frontmatterHash,
+      frozenDescription: description,
+      frozenDescriptionHash: sha256Text(description),
+      provenance: { kind: "host-composed", modelSource: "none" },
+    });
+    expect(manifest.candidateFrontmatterHash).toBe(
+      contractHash(JsonValueSchema.parse({ ...frontmatter, description })),
+    );
+    const reparsed = CampaignManifestSchema.parse(
+      JSON.parse(JSON.stringify(manifest)),
+    );
+    expect(reparsed).toEqual(manifest);
+    expect(() =>
+      validateCampaignManifestAgainstSurface(reparsed, described),
+    ).not.toThrow();
+    expect(campaignCandidateSurface(reparsed)).toEqual({
+      body: surface.body,
+      description,
+    });
+    // A description-only candidate must never share the baseline arm's hash.
+    expect(campaignCandidateHash(reparsed)).not.toBe(sha256Text(surface.body));
+  });
+
+  test("rejects descriptions a skill loader could not read back unchanged", () => {
+    const compose = (candidate: string, body: string = surface.body) =>
+      replaceCampaignBodyAndDescription({
+        skill: "kibi-bootstrap",
+        surface: described,
+        body,
+        description: candidate,
+      });
+    expect(() => compose("   ")).toThrow("candidate_description_empty");
+    expect(() => compose("First line.\nversion: 9.9.9")).toThrow(
+      "candidate_description_multiline",
+    );
+    expect(() => compose("First line.\r")).toThrow(
+      "candidate_description_multiline",
+    );
+    expect(() => compose("Use <skill> for bootstrap.")).toThrow(
+      "candidate_description_angle_bracket",
+    );
+    expect(() => compose("a".repeat(1_025))).toThrow(
+      "candidate_description_too_long",
+    );
+    expect(() => compose("a".repeat(1_024))).not.toThrow();
+    expect(() => compose(frontmatter.description)).toThrow(
+      "replacement_unchanged",
+    );
+    expect(() =>
+      compose(frontmatter.description, "## Changed\nRead the sources.\n"),
+    ).not.toThrow();
+  });
+
+  test("rejects a tampered description, frontmatter binding, or missing baseline frontmatter", () => {
+    const manifest = replaceCampaignBodyAndDescription({
+      skill: "kibi-bootstrap",
+      surface: described,
+      body: surface.body,
+      description,
+    });
+    expect(
+      CampaignManifestSchema.safeParse({
+        ...manifest,
+        frozenDescription: "Another description.",
+      }).success,
+    ).toBe(false);
+    const rehashed = {
+      ...manifest,
+      frozenDescription: "Another description.",
+      frozenDescriptionHash: sha256Text("Another description."),
+    };
+    expect(() =>
+      validateCampaignManifestAgainstSurface(rehashed, described),
+    ).toThrow("manifest_candidate_frontmatter_mismatch");
+    expect(() =>
+      validateCampaignManifestAgainstSurface(
+        {
+          ...rehashed,
+          candidateFrontmatterHash: candidateFrontmatterHash(
+            { ...frontmatter, version: "9.9.9" },
+            "Another description.",
+          ),
+        },
+        described,
+      ),
+    ).toThrow("manifest_candidate_frontmatter_mismatch");
+    expect(() =>
+      validateCampaignManifestAgainstSurface(manifest, {
+        body: described.body,
+        frontmatterHash: described.frontmatterHash,
+        resourcesHash: described.resourcesHash,
+      }),
+    ).toThrow("manifest_surface_frontmatter_unavailable");
+    expect(
+      CampaignManifestSchema.safeParse({
+        ...manifest,
+        insertions: [insertion("## Discovery", "mixed")],
+      }).success,
+    ).toBe(false);
+  });
+
+  test("keeps 1.1.0 body-only manifests exactly as before", () => {
+    const manifest = replaceCampaignBody({
+      skill: "kibi-bootstrap",
+      surface,
+      body: "## Reorganized workflow\nRead sources and verify results.\n",
+    });
+    expect(Object.keys(manifest)).not.toContain("frozenDescription");
+    expect(campaignCandidateHash(manifest)).toBe(manifest.frozenBodyHash);
+    expect(campaignCandidateSurface(manifest)).toEqual({
+      body: manifest.frozenBody,
+    });
+    expect(
+      CampaignManifestSchema.safeParse({
+        ...manifest,
+        frozenDescription: description,
+        frozenDescriptionHash: sha256Text(description),
+      }).success,
+    ).toBe(false);
   });
 });

@@ -262,3 +262,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f213a6e240d9
+  - type: implements
+    from: SYM-skillopt-campaign-artifacts-campaignartifactstore-writetext-a0eeecf6
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-10-05T12:20:53.153Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-38d07e37bde2
+  - type: covered_by
+    from: SYM-skillopt-campaign-artifacts-campaignartifactstore-writetext-a0eeecf6
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-10-05T12:20:53.171Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-05e207d3c800
+  - type: implements
+    from: SYM-skillopt-fixtures-case-contracts-fixturesetupmode-6e8842e1
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-10-05T12:24:27.046Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1b9deb21585e
+  - type: covered_by
+    from: SYM-skillopt-fixtures-case-contracts-fixturesetupmode-6e8842e1
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-10-05T12:24:27.062Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-16e52f6b242b

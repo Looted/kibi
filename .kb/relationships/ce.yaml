@@ -433,3 +433,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c2fef00d5fce
+  - type: implements
+    from: SYM-skillopt-campaign-artifacts-bundlecandidatemanifest-8e7ca250
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-10-05T12:21:22.290Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-87d13e2ebd8c
+  - type: covered_by
+    from: SYM-skillopt-campaign-artifacts-bundlecandidatemanifest-8e7ca250
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-10-05T12:21:22.312Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8d61e31c9129
+  - type: implements
+    from: SYM-skillopt-replace-body-and-description
+    to: REQ-skillopt-description-candidates
+    created_at: 2026-10-06T00:23:11.171Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-946559bad97c
+  - type: covered_by
+    from: SYM-skillopt-replace-body-and-description
+    to: TEST-e2e-skillopt-description-candidates
+    created_at: 2026-10-06T00:23:11.199Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-320b6fb958c8

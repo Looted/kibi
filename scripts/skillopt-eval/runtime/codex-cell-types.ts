@@ -63,7 +63,49 @@ export type CodexCellOptions = Readonly<{
   timeoutMs: number;
 }>;
 
+/** Host process state for one target cell (login, private roots). */
+// implements REQ-skillopt-claude-code-host
+export type TargetHostSession = Readonly<{
+  env: NodeJS.ProcessEnv;
+  /** Real host credential roots the target must never reference. */
+  privateRoots: readonly string[];
+  finalize: () => Promise<void>;
+}>;
+
+// implements REQ-skillopt-claude-code-host
+export type TargetHostLaunch = Readonly<{
+  argv: readonly [string, ...string[]];
+  /**
+   * Converts raw host stdout into Codex-shaped JSONL so evidence replay and
+   * scoring stay host-independent. Absent for Codex itself.
+   */
+  normalizeTranscript?: (stdout: string) => string;
+}>;
+
+/** The agent host that executes target cells (Codex by default). */
+// implements REQ-skillopt-claude-code-host
+export type TargetHost = Readonly<{
+  id: "codex" | "claude-code";
+  withLease: <T>(
+    env: NodeJS.ProcessEnv,
+    operation: () => Promise<T>,
+  ) => Promise<T>;
+  openSession: (input: {
+    readonly workspace: IsolationWorkspace;
+    readonly env: NodeJS.ProcessEnv;
+  }) => Promise<TargetHostSession>;
+  prepareLaunch: (input: {
+    readonly options: CodexCellOptions;
+    readonly workspace: IsolationWorkspace;
+    readonly broker: StagedBrokerLaunch;
+    readonly outputSchemaPath: string;
+    readonly session: TargetHostSession;
+  }) => Promise<TargetHostLaunch>;
+}>;
+
 export type CodexCellDependencies = Readonly<{
+  /** Overrides the target host; defaults to Codex. */
+  targetHost?: TargetHost;
   prepareLogin: (input: {
     readonly privateCodexHome: string;
     readonly sandboxHome: string;

@@ -26,6 +26,7 @@ import {
 import { parseTraceReceipts, verifyTraceChain } from "./jsonrpc";
 import { stageKibiMcpBroker } from "./mcp-broker-stage";
 import { routedOperationName, toolCallArguments } from "./mcp-tool-names";
+import { onboardingReviewMatches } from "./onboarding-review";
 import type { CanaryRunner } from "./permissions";
 import { runBoundedProcess } from "./process";
 import {
@@ -165,6 +166,12 @@ function workflowSignalObserved(
   const status = latestContent(results, "kb_status");
   const hasBrokerTool = (tool: string): boolean => brokerTools.includes(tool);
   switch (signal) {
+    case "onboarding evidence reconciled":
+      return onboardingReviewMatches(
+        context.answer.text,
+        context.workspaceFiles["src/onboarding-review.json"],
+        context.taskId,
+      );
     case "discovery search executed":
       return hasBrokerTool("kb_search");
     case "source-linked query executed":
@@ -667,6 +674,14 @@ function sealedFinalState(
       const actual = receipt.requests[index];
       return actual !== undefined && sameRequest(actual, request);
     });
+  const requests = receipt.requests.map(({ tool, result }) => ({
+    tool,
+    result,
+  }));
+  const status = latestContent(requests, "kb_status");
+  const infrastructureBlocked =
+    isRecord(status?.bootstrap) &&
+    status.bootstrap.activationState === "root_partial";
   const taskComplete =
     complete &&
     receipt.requests.some(
@@ -678,11 +693,6 @@ function sealedFinalState(
         request.tool === "kb_check" && cleanCheckResult(request.result),
     ) &&
     safeMutationComplete(receipt, options.evaluatorManifest.taskId);
-  const requests = receipt.requests.map(({ tool, result }) => ({
-    tool,
-    result,
-  }));
-  const status = latestContent(requests, "kb_status");
   const attachment = status?.branchAttachment;
   const kbState =
     isRecord(attachment) && attachment.migrationRequired === true
@@ -708,6 +718,7 @@ function sealedFinalState(
   const workspaceAssertions =
     options.evaluatorManifest.workspaceAssertions ?? [];
   const signalContext: CaseSignalContext = {
+    taskId: options.evaluatorManifest.taskId,
     results: requests,
     brokerTools,
     answer: lanes.answer,
@@ -722,7 +733,11 @@ function sealedFinalState(
     expectedWorkflow?.expectedProofState === "not_evaluated"
       ? "not_evaluated"
       : proofStateFromCoverage(latestContent(requests, "kb_coverage"));
-  const taskOutcome = taskComplete ? "complete" : "blocked";
+  // Successful inspection and a usable infrastructure are separate outcomes.
+  // A read-only repair task can finish inspecting while correctly reporting
+  // that product work remains blocked on operator action.
+  const taskOutcome =
+    taskComplete && !infrastructureBlocked ? "complete" : "blocked";
   // Pre-approval phases expect the agent to stop before any write; when it
   // does, that is the sanctioned "interim" outcome rather than "blocked".
   const stoppedBeforeWrites = !brokerTools.some(
@@ -739,7 +754,8 @@ function sealedFinalState(
         status.operatorAcceptance !== undefined)) ||
     JSON.stringify(requests).includes('"disposition":"accepted"')
       ? "accepted"
-      : JSON.stringify(requests).includes('"disposition":"deferred"')
+      : infrastructureBlocked ||
+          JSON.stringify(requests).includes('"disposition":"deferred"')
         ? "unaccepted"
         : "not_applicable";
   const closeout: WorkflowCloseout = {
@@ -858,6 +874,7 @@ function sealedBroker(brokerTrace: string) {
         receipt.direction === "target_to_server" &&
         receipt.kind === "request" &&
         receipt.method === "tools/call" &&
+        receipt.toolName !== "skillopt_ask_user" &&
         receipt.toolName !== undefined,
     )
     .map((receipt, index) => ({
@@ -895,6 +912,7 @@ function sealedBroker(brokerTrace: string) {
         receipt.direction === "target_to_server" &&
         receipt.kind === "request" &&
         receipt.method === "tools/call" &&
+        receipt.toolName !== "skillopt_ask_user" &&
         receipt.toolName !== undefined,
     )
     .map((receipt) => {
@@ -939,6 +957,17 @@ function sealedBroker(brokerTrace: string) {
       rawCalls,
     },
     successfulTools,
+    violations: receipts.flatMap((receipt) => {
+      const payload = receipt.payload;
+      const error = isRecord(payload) ? payload.error : undefined;
+      const data = isRecord(error) ? error.data : undefined;
+      return receipt.direction === "broker" &&
+        receipt.kind === "error" &&
+        isRecord(data) &&
+        data.skilloptViolation === "forbidden_write"
+        ? ["forbidden_write"]
+        : [];
+    }),
   };
 }
 
@@ -1012,7 +1041,7 @@ export function sealDefaultCellEvidence(
       broker.successfulTools,
     ),
     codex: { complete: true, integrityValid: true, claims: [] },
-    isolation: { observedSentinels: [], violations: [] },
+    isolation: { observedSentinels: [], violations: broker.violations },
   };
 }
 

@@ -244,3 +244,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-965ba152d706
+  - type: implements
+    from: SYM-skillopt-bootstrap-acceptance-protocol
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-10-05T17:24:25.112Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-df4d8981851f
+  - type: covered_by
+    from: SYM-skillopt-bootstrap-acceptance-protocol
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-10-05T17:24:25.239Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3cdd8aa80da6

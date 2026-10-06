@@ -213,3 +213,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9436bcd99f82
+  - type: implements
+    from: SYM-skillopt-campaign-artifacts-campaignsourcesurface-98d09abf
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-10-05T12:21:14.230Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-93424ecb336c
+  - type: covered_by
+    from: SYM-skillopt-campaign-artifacts-campaignsourcesurface-98d09abf
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-10-05T12:21:14.244Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-32042599ac39
+  - type: implements
+    from: SYM-skillopt-runtime-fixture-kb-setup-setupseededpartialkb-6a846f9e
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-10-05T13:18:14.213Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-84da26e295c8
+  - type: covered_by
+    from: SYM-skillopt-runtime-fixture-kb-setup-setupseededpartialkb-6a846f9e
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-10-05T13:18:14.257Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d805a06c24f6
+  - type: implements
+    from: SYM-skillopt-runtime-fixture-kb-setup-semanticledger-236a7fda
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-10-05T13:18:25.590Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-12bf87eabd11
+  - type: covered_by
+    from: SYM-skillopt-runtime-fixture-kb-setup-semanticledger-236a7fda
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-10-05T13:18:25.636Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ac8529131d63

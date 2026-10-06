@@ -1,4 +1,5 @@
 import { chmod, mkdir, readFile, realpath, writeFile } from "node:fs/promises";
+import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { IsolationWorkspace } from "./isolation-workspace";
@@ -42,6 +43,7 @@ export async function stageKibiMcpBroker(
     ...downstream.args,
     downstream.cwd,
     tracePath,
+    resolve(workspace.privateEvidence, "scripted-user.json"),
   ];
   const stagedPathTokens = stagedPaths.map(
     (_, index) => `__SKILLOPT_STAGED_PATH_${index}__`,
@@ -59,9 +61,15 @@ export async function stageKibiMcpBroker(
     cwd: pathToken(),
   };
   const traceToken = pathToken();
+  const scriptedUserToken = pathToken();
+  const scriptedUser = existsSync(
+    resolve(workspace.privateEvidence, "scripted-user.json"),
+  )
+    ? { scriptedUserPath: scriptedUserToken }
+    : {};
   await writeFile(
     entryPath,
-    `import { runMcpBroker } from ${JSON.stringify(fileURLToPath(new URL("./mcp-broker-process.ts", import.meta.url)))};\nawait runMcpBroker(${JSON.stringify({ downstream: downstreamForBundle, tracePath: traceToken, startupTimeoutMs: 15_000, toolTimeoutMs: 120_000, killGraceMs: 2_000 })});\n`,
+    `import { runMcpBroker } from ${JSON.stringify(fileURLToPath(new URL("./mcp-broker-process.ts", import.meta.url)))};\nawait runMcpBroker(${JSON.stringify({ downstream: downstreamForBundle, tracePath: traceToken, ...scriptedUser, startupTimeoutMs: 15_000, toolTimeoutMs: 120_000, killGraceMs: 2_000 })});\n`,
     { encoding: "utf8", mode: 0o600 },
   );
   const build = await Bun.build({

@@ -6,7 +6,13 @@ import {
   loadBundledSkillFrom,
   readBundledSkillResourceFrom,
 } from "../../../packages/cli/src/public/skills";
-import { composeCampaignManifest, sha256Text } from "../campaign-artifacts";
+import {
+  campaignCandidateHash,
+  candidateFrontmatterHash,
+  composeCampaignManifest,
+  replaceCampaignBodyAndDescription,
+  sha256Text,
+} from "../campaign-artifacts";
 import {
   type CampaignDependencies,
   runConfirmCampaign,
@@ -16,13 +22,14 @@ import {
 } from "../campaign-workflow";
 import { CANONICAL_SKILLS } from "../catalog";
 import { JsonValueSchema, contractHash } from "../contracts/common";
-import { surface } from "../real-workflow";
+import { campaignSurface, surface } from "../real-workflow";
 import {
   type PublicTaskDescriptor,
   canonicalHash,
 } from "../real-workflow-types";
 import { replayCodexEpisode } from "../runtime/codex-episode";
 import { normalizeCodexJsonl } from "../runtime/codex-events";
+import { assembleCanonicalSkills } from "../runtime/skill-assembly";
 import type { CellReceipt } from "../scoring/cell";
 
 const sourceSurface = {
@@ -657,6 +664,20 @@ describe("campaign confirmation", () => {
       expect(saved.status).toBe("complete");
       expect(saved.cells).toHaveLength(20);
       expect(saved.aggregate.noRegression).toBe(false);
+      const failedState = JSON.parse(
+        await readFile(join(second.root, "campaign-state.json"), "utf8"),
+      );
+      expect(failedState.status).toBe("failed");
+      expect(failedState.attemptedCells).toBe(10);
+      expect(failedState.cells).toHaveLength(10);
+      expect(
+        new Set(failedState.cells.map((cell: { runId: string }) => cell.runId)),
+      ).toEqual(new Set([saved.runId]));
+      expect(failedState.cells).toEqual(
+        saved.cells.filter(
+          (cell: { runId: string }) => cell.runId === saved.runId,
+        ),
+      );
       expect(
         JSON.parse(await readFile(join(second.root, "campaign.json"), "utf8"))
           .status,
@@ -1130,6 +1151,250 @@ describe("campaign revise/package boundaries", () => {
     } finally {
       await rm(evaluationOutput.parent, { recursive: true, force: true });
       await rm(packageOutput.parent, { recursive: true, force: true });
+    }
+  });
+});
+
+describe("campaign described candidates", () => {
+  async function describedManifest(
+    skill: "kibi-usage" | "kibi-bootstrap",
+    description: string,
+  ) {
+    const current = await campaignSurface(process.cwd(), skill);
+    return replaceCampaignBodyAndDescription({
+      skill,
+      surface: current,
+      body: current.body,
+      description,
+    });
+  }
+
+  function reseal<T extends { contentHash: string }>(
+    evaluation: T,
+    patch: (body: Omit<T, "contentHash">) => Omit<T, "contentHash">,
+  ): T {
+    const { contentHash: _contentHash, ...body } = evaluation;
+    const patched = patch(body);
+    return {
+      ...patched,
+      contentHash: contractHash(JsonValueSchema.parse(patched)),
+    } as T;
+  }
+
+  test("evaluates same-body candidates with different descriptions as distinct arms and confirms only the evaluated descriptions", async () => {
+    const first = await tempArtifact("described-evaluate");
+    const second = await tempArtifact("described-confirm");
+    const third = await tempArtifact("described-tamper");
+    const fake = dependencies();
+    const candidates: unknown[] = [];
+    const deps: Partial<CampaignDependencies> = {
+      ...defaultCellDependencies(fake.deps, { surface: campaignSurface }),
+      runCell: async (input) => {
+        candidates.push(input.candidate);
+        return writeTrustedCell(input);
+      },
+    };
+    try {
+      const manifests = [
+        await describedManifest(
+          "kibi-usage",
+          "Use for every Kibi lookup, mutation, and validation task.",
+        ),
+        await describedManifest(
+          "kibi-usage",
+          "Load before touching requirements, scenarios, tests, or symbols.",
+        ),
+      ];
+      expect(manifests[0]?.frozenBodyHash).toBe(manifests[1]?.frozenBodyHash);
+      const prior = await runEvaluateCampaign({
+        sourceRoot: process.cwd(),
+        artifactRoot: first.root,
+        skill: "kibi-usage",
+        manifests,
+        repeats: 1,
+        maxTargetEpisodes: 15,
+        allowPaid: true,
+        runId: "00000000-0000-4000-8000-000000000011",
+        dependencies: deps,
+      });
+      const armHashes = [
+        prior.aggregate.baseline.bodyHash,
+        ...prior.aggregate.candidates.map((arm) => arm.bodyHash),
+      ];
+      expect(new Set(armHashes).size).toBe(3);
+      expect(prior.aggregate.candidates.map((arm) => arm.bodyHash)).toEqual(
+        manifests.map(campaignCandidateHash),
+      );
+      expect(prior.aggregate.candidates.map((arm) => arm.cells)).toEqual([
+        5, 5,
+      ]);
+      // Each cell assembles exactly the description its arm names.
+      expect(new Set(candidates.map((entry) => JSON.stringify(entry)))).toEqual(
+        new Set([
+          JSON.stringify({ body: manifests[0]?.frozenBody }),
+          ...manifests.map((manifest) =>
+            JSON.stringify({
+              body: manifest.frozenBody,
+              description: manifest.frozenDescription,
+            }),
+          ),
+        ]),
+      );
+
+      const confirmed = await runConfirmCampaign({
+        sourceRoot: process.cwd(),
+        artifactRoot: second.root,
+        previousEvaluation: prior,
+        repeats: 1,
+        maxTargetEpisodes: 15,
+        allowPaid: true,
+        runId: "00000000-0000-4000-8000-000000000012",
+        dependencies: deps,
+      });
+      expect(confirmed.cells).toHaveLength(30);
+
+      const swapped = "Use when an agent must prove Kibi traceability.";
+      const tampered = reseal(prior, (body) => ({
+        ...body,
+        candidates: body.candidates.map((candidate, index) =>
+          index === 0
+            ? {
+                ...candidate,
+                frozenDescription: swapped,
+                frozenDescriptionHash: sha256Text(swapped),
+                candidateFrontmatterHash: candidateFrontmatterHash(
+                  loadBundledSkillFrom(
+                    join(process.cwd(), "packages/cli/src/public/skills"),
+                    "kibi-usage",
+                  ).manifest,
+                  swapped,
+                ),
+              }
+            : candidate,
+        ),
+      }));
+      fake.calls.length = 0;
+      await expect(
+        runConfirmCampaign({
+          sourceRoot: process.cwd(),
+          artifactRoot: third.root,
+          previousEvaluation: tampered,
+          repeats: 1,
+          maxTargetEpisodes: 15,
+          allowPaid: true,
+          runId: "00000000-0000-4000-8000-000000000013",
+          dependencies: deps,
+        }),
+      ).rejects.toThrow("prior_cohort_binding_mismatch");
+      expect(fake.calls).not.toContain("canary");
+    } finally {
+      await rm(first.parent, { recursive: true, force: true });
+      await rm(second.parent, { recursive: true, force: true });
+      await rm(third.parent, { recursive: true, force: true });
+    }
+  });
+
+  test("packages a described candidate with evidence and records the description change", async () => {
+    const evaluationOutput = await tempArtifact("described-package-eval");
+    const packageOutput = await tempArtifact("described-package");
+    const fake = dependencies();
+    const deps = defaultCellDependencies(fake.deps, {
+      surface: campaignSurface,
+    });
+    const description =
+      "Use for any Kibi read, write, or proof step; start here before other Kibi skills.";
+    try {
+      const manifest = await describedManifest("kibi-usage", description);
+      const evaluation = await runEvaluateCampaign({
+        sourceRoot: process.cwd(),
+        artifactRoot: evaluationOutput.root,
+        skill: "kibi-usage",
+        manifests: [manifest],
+        repeats: 1,
+        maxTargetEpisodes: 10,
+        allowPaid: true,
+        runId: "00000000-0000-4000-8000-000000000014",
+        dependencies: deps,
+      });
+      const receipt = await runPackageCampaign({
+        sourceRoot: process.cwd(),
+        artifactRoot: packageOutput.root,
+        manifests: [manifest],
+        evaluation,
+        dependencies: deps,
+      });
+      expect(
+        receipt.skills.find((entry) => entry.id === "kibi-usage"),
+      ).toMatchObject({
+        bodyChanged: false,
+        descriptionChanged: true,
+        frontmatterHash: manifest.candidateFrontmatterHash,
+      });
+      const packageReceipt = JSON.parse(
+        await readFile(
+          join(packageOutput.root, "package-receipt.json"),
+          "utf8",
+        ),
+      );
+      expect(packageReceipt.evidenceValid).toBe(true);
+      expect(packageReceipt.manifestReadiness).toMatchObject({
+        onlyCandidateBodiesChanged: [],
+        candidateDescriptionChanges: [
+          {
+            skill: "kibi-usage",
+            baselineFrontmatterHash: manifest.frontmatterHash,
+            candidateFrontmatterHash: manifest.candidateFrontmatterHash,
+            frozenDescriptionHash: sha256Text(description),
+            frozenDescription: description,
+          },
+        ],
+      });
+    } finally {
+      await rm(evaluationOutput.parent, { recursive: true, force: true });
+      await rm(packageOutput.parent, { recursive: true, force: true });
+    }
+  });
+
+  test("package rejects an assembled described skill whose other frontmatter drifts", async () => {
+    const manifest = await describedManifest(
+      "kibi-bootstrap",
+      "Use first in a repository without a Kibi store to bootstrap it from sources.",
+    );
+    const cases = [
+      {
+        name: "version drift",
+        assemble: async (
+          input: Parameters<CampaignDependencies["assemble"]>[0],
+        ) => {
+          const receipt = await assembleCanonicalSkills(input);
+          const path = join(
+            input.workspace,
+            ".agents/skills/kibi-bootstrap/SKILL.md",
+          );
+          const markdown = await readFile(path, "utf8");
+          await writeFile(
+            path,
+            markdown.replace(/^version: .*$/m, "version: 9.9.9"),
+          );
+          return receipt;
+        },
+      },
+      { name: "description dropped", assemble: writeAssembledSkills },
+    ];
+    for (const testCase of cases) {
+      const output = await tempArtifact(`described-${testCase.name}`);
+      try {
+        await expect(
+          runPackageCampaign({
+            sourceRoot: process.cwd(),
+            artifactRoot: output.root,
+            manifests: [manifest],
+            dependencies: { assemble: testCase.assemble },
+          }),
+        ).rejects.toThrow("package_assembled_surface_mismatch");
+      } finally {
+        await rm(output.parent, { recursive: true, force: true });
+      }
     }
   });
 });

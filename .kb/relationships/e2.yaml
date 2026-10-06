@@ -174,3 +174,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e1486cf300f8
+  - type: implements
+    from: SYM-skillopt-runtime-codex-cell-runner-readworkspacesources-18d23e22
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-10-05T12:25:17.604Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fcaa8af2704b
+  - type: covered_by
+    from: SYM-skillopt-runtime-codex-cell-runner-readworkspacesources-18d23e22
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-10-05T12:25:17.615Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fce220f9a371

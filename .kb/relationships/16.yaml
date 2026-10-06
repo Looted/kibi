@@ -188,3 +188,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ee9f070b7354
+  - type: implements
+    from: SYM-skillopt-claude-session-login
+    to: REQ-skillopt-claude-code-host
+    created_at: 2026-10-05T22:06:18.977Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8e347488452b
+  - type: covered_by
+    from: SYM-skillopt-claude-session-login
+    to: TEST-skillopt-claude-code-host
+    created_at: 2026-10-05T22:06:18.997Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-33b67d2ac575
+  - type: covered_by
+    from: SYM-skillopt-claude-session-login
+    to: TEST-e2e-skillopt-claude-code-host
+    created_at: 2026-10-05T22:06:19.013Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-880439262416

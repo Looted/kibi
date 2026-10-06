@@ -248,6 +248,7 @@ const PrivateEvaluatorManifestSchema = z
         "none",
         "generated_coordinate_divergence",
         "seeded_fresh_kb",
+        "seeded_partial_kb",
         "seeded_stale_kb",
         "thin_root_kb",
         "seeded_governed_area_kb",

@@ -104,3 +104,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0204379e3591
+  - type: implements
+    from: SYM-skillopt-campaign-artifacts-sha256text-cf05d14e
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-10-05T12:19:53.641Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8a5eac74da53
+  - type: covered_by
+    from: SYM-skillopt-campaign-artifacts-sha256text-cf05d14e
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-10-05T12:19:53.651Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ee4f7fa55684
