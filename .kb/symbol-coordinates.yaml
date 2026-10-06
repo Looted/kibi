@@ -16893,18 +16893,18 @@ coordinates:
     sourceLine: 1
   SYM-mcp-tools-list-base-contract:
     identityHash: 9073f98551866a5ff683b3bca2e5236aca8bd1f04902812cd6544f3653119f74
-    sourceHash: bcd9fe87253616dc21e5e3765b42181ca124de843277f3e95f4b0c6c1bb13326
+    sourceHash: 410ba119ec9969d0f26bfe476ebdd0d53b7c95e6d54d02343b66b5d339a9f89a
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 7375
+    sourceEndLine: 7376
     sourceFile: packages/mcp/tests/fixtures/contracts/tools-list.base.json
     sourceLine: 1
   SYM-mcp-tools-list-diagnostic-contract:
     identityHash: d7a4de20871928a9cd2c9a71f45020a705571669957562a00e355e78ee5ba841
-    sourceHash: 72895f6414eb6a678028da691894f7e2a36a5d92e8b0eab1362cdc1792012d4d
+    sourceHash: df36b23e6a513bd1e147fe087cdde521c603c38ca542952646b102d11070e354
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 7967
+    sourceEndLine: 7968
     sourceFile: packages/mcp/tests/fixtures/contracts/tools-list.diagnostic.json
     sourceLine: 1
   SYM-mcp-withWorkspaceRootSchema:
@@ -21685,10 +21685,10 @@ coordinates:
     sourceLine: 155
   SYM-quality-suite-cli-check-integrity:
     identityHash: 59cbf6da4b29ed23e193f9701bb2cd75b0efd02902ef04c34b4c462067f39857
-    sourceHash: ad072a9e4b861d6898814711ce4c9020d95cd7a75f8f19940b8a622a5415c65f
+    sourceHash: ef3943511a4f79d55a1219a13d4e566203ea1bebe4279bb1103f516cda6cc94b
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 3413
+    sourceEndLine: 3423
     sourceFile: packages/cli/tests/commands/check.test.ts
     sourceLine: 1
   SYM-quality-suite-mcp-schema-adapter:
