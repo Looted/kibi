@@ -61,6 +61,13 @@ jobs:
           bun install --frozen-lockfile
           cd .opencode && bun install --frozen-lockfile
 
+      # Snyk's GitHub import cannot read bun.lock, so bun.lock is audited here.
+      # Every ignore needs a reason; drop it once a fixed version ships.
+      # GHSA-vfj7-8cjw-p6xm: braces <=3.0.3 has no fixed release; kibi-cli only
+      # expands glob patterns from the local project config, never remote input.
+      - name: Audit JS dependencies
+        run: bun audit --audit-level=high --ignore GHSA-vfj7-8cjw-p6xm
+
       - name: Check Codex hook bundle drift
         run: bun run --filter kibi-codex check:hook-bundle
 
