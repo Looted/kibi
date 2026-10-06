@@ -378,10 +378,11 @@ function writeCoverageDepthFixture(
 }
 
 /**
- * These fixtures exercise other rules with bare entities. Tag each one as
+ * These fixtures exercise other rules with bare entities. Tag and record each one as
  * acknowledged legacy so entity-context-missing does not mask what they test.
  */
 function acknowledgeLegacyContext(root: string): void {
+  const ids: string[] = [];
   for (const lane of ["requirements", "scenarios", "tests"]) {
     const dir = path.join(root, ".kb", lane);
     if (!existsSync(dir)) continue;
@@ -389,6 +390,8 @@ function acknowledgeLegacyContext(root: string): void {
       if (!name.endsWith(".md")) continue;
       const file = path.join(dir, name);
       const raw = readFileSync(file, "utf8");
+      const id = /^id:[ \t]*(\S+)/m.exec(raw)?.[1];
+      if (id !== undefined) ids.push(id);
       if (raw.includes("review:context-missing")) continue;
       const end = raw.indexOf("\n---", 4);
       if (!raw.startsWith("---") || end < 0) continue;
@@ -410,6 +413,13 @@ function acknowledgeLegacyContext(root: string): void {
       writeFileSync(file, front + raw.slice(end));
     }
   }
+  // Only ids recorded in the manifest (as the schema 8 migration does) count.
+  const manifestPath = path.join(root, ".kb", "manifest.json");
+  const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
+  writeFileSync(
+    manifestPath,
+    `${JSON.stringify({ ...manifest, contextAcknowledged: ids }, null, 2)}\n`,
+  );
 }
 
 describe("kibi check", () => {
