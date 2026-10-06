@@ -37,7 +37,7 @@
     },
     "packages/claude": {
       "name": "kibi-claude",
-      "version": "0.4.2",
+      "version": "0.5.0",
       "devDependencies": {
         "@types/node": "latest",
         "kibi-agent-core": "^0.2.0",
@@ -55,7 +55,7 @@
     },
     "packages/cli": {
       "name": "kibi-cli",
-      "version": "2.5.2",
+      "version": "2.6.0",
       "bin": {
         "kibi": "bin/kibi",
       },
@@ -83,7 +83,7 @@
     },
     "packages/codex": {
       "name": "kibi-codex",
-      "version": "2.2.2",
+      "version": "2.3.0",
       "devDependencies": {
         "@types/node": "latest",
         "kibi-agent-core": "^0.2.0",
@@ -104,7 +104,7 @@
     },
     "packages/cursor": {
       "name": "kibi-cursor",
-      "version": "2.3.2",
+      "version": "2.4.0",
       "dependencies": {
         "kibi-agent-core": "^0.2.0",
       },
@@ -123,7 +123,7 @@
     },
     "packages/mcp": {
       "name": "kibi-mcp",
-      "version": "3.0.2",
+      "version": "3.1.0",
       "bin": {
         "kibi-mcp": "bin/kibi-mcp",
       },
@@ -149,7 +149,7 @@
     },
     "packages/opencode": {
       "name": "kibi-opencode",
-      "version": "2.1.2",
+      "version": "2.2.0",
       "dependencies": {
         "@opencode-ai/plugin": "^1.4.7",
         "@opentui/core": "^0.1.99",
@@ -211,7 +211,7 @@
     },
     "packages/runtime": {
       "name": "kibi-runtime",
-      "version": "2.3.2",
+      "version": "2.4.0",
       "dependencies": {
         "gray-matter": "^4.0.3",
         "kibi-core": "^0.15.0",
@@ -226,10 +226,10 @@
       "name": "kibi-swipl",
       "version": "1.0.1",
       "optionalDependencies": {
-        "kibi-swipl-darwin-arm64": "1.0.0",
-        "kibi-swipl-darwin-x64": "1.0.0",
-        "kibi-swipl-linux-arm64-gnu": "1.0.0",
-        "kibi-swipl-linux-x64-gnu": "1.0.0",
+        "kibi-swipl-darwin-arm64": "1.0.1",
+        "kibi-swipl-darwin-x64": "1.0.1",
+        "kibi-swipl-linux-arm64-gnu": "1.0.1",
+        "kibi-swipl-linux-x64-gnu": "1.0.1",
       },
     },
     "packages/swipl-darwin-arm64": {
@@ -266,7 +266,7 @@
     },
     "packages/zcode": {
       "name": "kibi-zcode",
-      "version": "0.4.2",
+      "version": "0.5.0",
       "devDependencies": {
         "@types/node": "latest",
         "kibi-agent-core": "^0.2.0",

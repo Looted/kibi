@@ -1,6 +1,6 @@
 {
   "name": "kibi-runtime",
-  "version": "2.3.2",
+  "version": "2.4.0",
   "description": "Narrow first-party runtime contracts and adapters for Kibi operations.",
   "type": "module",
   "main": "./dist/index.js",
