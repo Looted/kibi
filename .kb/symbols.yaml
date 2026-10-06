@@ -50346,3 +50346,17 @@ symbols:
         target: TEST-kibi-upsert-review-lanes
       - type: implements
         target: REQ-kibi-review-observation-claim-text
+  - id: SYM-cli-stored-entity-storedEntityLookup
+    title: storedEntityLookup
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/stored-entity.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Piotr thread 2026-10-06: test project onboarding round 3 (advisor roles, relationship upserts, review observations)'
+      recorded_at: 2026-10-06T22:18:56.380Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-upsert-review-lanes
+      - type: implements
+        target: REQ-kibi-upsert-preserves-requirement-semantics

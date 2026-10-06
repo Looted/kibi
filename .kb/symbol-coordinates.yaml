@@ -1253,12 +1253,12 @@ coordinates:
     sourceLine: 56
   SYM-auto-5E0D46927248:
     identityHash: 11a4843c20b738551ff8963027f959992bbf2730a514c506516a189d98bd7afd
-    sourceHash: 94dcbffdf2af49eabdadee26bde870d63b6828bd9edd0e602dcf58e27dea9242
+    sourceHash: ff1c6ed91d0b7747120b5e06da10978e58c028544b98a98383cabf90fc974048
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 187
+    sourceEndLine: 191
     sourceFile: packages/cli/src/operations/mutation/upsert.ts
-    sourceLine: 162
+    sourceLine: 166
   SYM-auto-5EDA4085C185:
     identityHash: e9f0b06f263fd40cecf2dbe795b7926bb9813ab11da6b8f77559e267b324c4ee
     sourceHash: fde0ba74a0abbcc8016c05d22a77ee7633afd894dba3be926689b0a796e3c9cb
@@ -5557,12 +5557,12 @@ coordinates:
     sourceLine: 32
   SYM-cli-dry-run-upsert:
     identityHash: f0258924b3e538ece124abc0a047652661d1df553d05c5e277f864d34ae189ff
-    sourceHash: 94dcbffdf2af49eabdadee26bde870d63b6828bd9edd0e602dcf58e27dea9242
+    sourceHash: ff1c6ed91d0b7747120b5e06da10978e58c028544b98a98383cabf90fc974048
     sourceColumn: 15
     sourceEndColumn: 1
-    sourceEndLine: 410
+    sourceEndLine: 425
     sourceFile: packages/cli/src/operations/mutation/upsert.ts
-    sourceLine: 395
+    sourceLine: 410
   SYM-cli-engine-attachment-identity:
     identityHash: f8a1fc2fc1f80db08779be5847a9dc77de8b7c393ef3d26a166c466d62ce0b71
     sourceHash: f5958e7e57219a7d4cbab0f15e0f78a2ba9d76a27d06e9008c50f0cf6b4e880d
@@ -8037,12 +8037,12 @@ coordinates:
     sourceLine: 89
   SYM-cli-requirement-semantics-withStoredRequirementSemantics:
     identityHash: 83956ad266d72ded004f9fc58fc43c69bd6dd97bf91856803dcef6d0a51ec6be
-    sourceHash: d79e96cd11040021298ace1dc78cd55d5b2842d89718e5442155d8f1e984853e
+    sourceHash: 39b5db496fc7808e43a9a3952747c69e8517ba605e65e4d69c2d31d4a9077078
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 107
+    sourceEndLine: 91
     sourceFile: packages/cli/src/operations/mutation/requirement-semantics.ts
-    sourceLine: 77
+    sourceLine: 57
   SYM-cli-rule-registry-ChecksConfig:
     identityHash: 2870af6c1eb5aec3e2827ecd478197c3381a73961eba51a997d43a52285968dd
     sourceHash: e0d37bdca81dc8ed958a04509f0b014fec90d97cdbc621a98719d22e52318850
@@ -8379,6 +8379,14 @@ coordinates:
     sourceEndLine: 85
     sourceFile: packages/cli/src/commands/engine.ts
     sourceLine: 83
+  SYM-cli-stored-entity-storedEntityLookup:
+    identityHash: 4041bba0718262ba63d8628d392f508b19922ab3769772c29e4b2c2019b830b0
+    sourceHash: be360b94e41338f364dadabe13fcf906be0005f6f7656a0265d1eb183d3301dc
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 69
+    sourceFile: packages/cli/src/operations/mutation/stored-entity.ts
+    sourceLine: 43
   SYM-cli-strip-sync-builtin-ontology-suggestions:
     identityHash: 62782519fa981c66c093aa197719ca4974f8a65631f7d21fe1ce3a5de01bf7c2
     sourceHash: cd4ac95db5e77ba39982fb9227577d9fc445b2994070c23ba17f1fd08bff316c
@@ -11933,12 +11941,12 @@ coordinates:
     sourceLine: 177
   SYM-effective-requirement-relationships:
     identityHash: 33e4d255941e33285c1e1dc5ec85249c91ab9ac5f03dd3408b3acbaae7952657
-    sourceHash: 94dcbffdf2af49eabdadee26bde870d63b6828bd9edd0e602dcf58e27dea9242
+    sourceHash: ff1c6ed91d0b7747120b5e06da10978e58c028544b98a98383cabf90fc974048
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 225
+    sourceEndLine: 230
     sourceFile: packages/cli/src/operations/mutation/upsert.ts
-    sourceLine: 189
+    sourceLine: 193
   SYM-EnforcementLifecycleEvent:
     identityHash: c68c51f468d87570ac8fe7e51c810795d7c4905693b13149cf700380632d6abc
     sourceHash: 23388d0e0b235e362625731e07ab221d1955c01d684020e67197f63eb5f98a29
@@ -12069,12 +12077,12 @@ coordinates:
     sourceLine: 110
   SYM-entity-origin-resolveUpsertOrigin:
     identityHash: 1b107083d845cb4bc16269b7235554218ef2f1a76443fe7dcf634a3361f07312
-    sourceHash: 46fb152effec5532c4f2f8303fa71d05becb134eef5969dc3795fa54b95d9f7e
+    sourceHash: 849b81ec9f7b4973783bc1f3fed094df04279e3845f211b47d52b054902d06e4
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 89
+    sourceEndLine: 83
     sourceFile: packages/cli/src/operations/mutation/origin.ts
-    sourceLine: 51
+    sourceLine: 53
   SYM-EntityChangeItem:
     identityHash: ffed32372254d1258ab247dcd20a9471863ae68c4d0a3cd87bb401248ee01d0d
     sourceHash: 3b9b8dc91a69da3fa0ca7347101960020654c8a960bf5f8674a30c198e4b9139
@@ -12397,12 +12405,12 @@ coordinates:
     sourceLine: 68
   SYM-executeUpsert:
     identityHash: 613959bfd20a567412ab7b43b4493186cfcc57e0fa137a625784eec03f858cc6
-    sourceHash: 94dcbffdf2af49eabdadee26bde870d63b6828bd9edd0e602dcf58e27dea9242
+    sourceHash: ff1c6ed91d0b7747120b5e06da10978e58c028544b98a98383cabf90fc974048
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 928
+    sourceEndLine: 943
     sourceFile: packages/cli/src/operations/mutation/upsert.ts
-    sourceLine: 412
+    sourceLine: 427
   SYM-executeValidateUpsert:
     identityHash: f950a818136c6603aefd9f38455d7fe70a33a8059b27d55a07bd7896e794432a
     sourceHash: e304e7e6d6c72728bce57c8910fe366a668a39235937a8bc145675c6851fd1bc
@@ -33557,10 +33565,10 @@ coordinates:
     sourceLine: 1
   SYM-test-kibi-upsert-review-lanes:
     identityHash: 38e19a182125d205c4b24601c2547b7362054cb53c085ad734f500ee1b8a5b30
-    sourceHash: 85093866e6b579640cfabe1f875027f28fbe89c3297aa94b51d5d8300edf8c1f
+    sourceHash: a1ff04904660395b0ecac137976cbd3fa8c1f2fc3fc3f313955a54ba3e2f5274
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 144
+    sourceEndLine: 149
     sourceFile: packages/cli/tests/consumer/upsert-review-lanes.test.ts
     sourceLine: 1
   SYM-test-mcp-workspace-routing:
@@ -34229,12 +34237,12 @@ coordinates:
     sourceLine: 191
   SYM-upsert-execution-options:
     identityHash: ce7c5f6ff4b5176a3c19de6b4361c68c2bcbb82ba8d5fc8b41497c180dc771bd
-    sourceHash: 94dcbffdf2af49eabdadee26bde870d63b6828bd9edd0e602dcf58e27dea9242
+    sourceHash: ff1c6ed91d0b7747120b5e06da10978e58c028544b98a98383cabf90fc974048
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 387
+    sourceEndLine: 402
     sourceFile: packages/cli/src/operations/mutation/upsert.ts
-    sourceLine: 365
+    sourceLine: 380
   SYM-UpsertArgs:
     identityHash: 859e4746a3fa989115183f3885b3d35d88c5184d33dee4f0e2d83f70f722e4f0
     sourceHash: af74a8b4c33671a9112c05e5b41380534a859bd0f66a77c860fa6375cc7b5ed2

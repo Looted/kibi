@@ -78,19 +78,6 @@ describe("relationship-only requirement updates", () => {
     }
   });
 
-  test("leave a payload that meets the ingestion boundary on its own unread", async () => {
-    let queries = 0;
-    const counting = {
-      query: async () => {
-        queries += 1;
-        return { success: true };
-      },
-    } as never;
-    const input = link({ title: "Export", status: "open" });
-    expect(await withStoredRequirementSemantics(input, counting)).toBe(input);
-    expect(queries).toBe(0);
-  });
-
   test("leave new requirements, other types and ledger-free requirements alone", async () => {
     const created = link({ title: STORED.title, status: "open" });
     expect(await withStoredRequirementSemantics(created, emptyStore)).toBe(
@@ -112,6 +99,21 @@ describe("relationship-only requirement updates", () => {
         staged({ id: STORED.id, type: "req", title: "Plain", status: "open" }),
       ),
     ).toBe(plain);
+    // A semantic_text derived from the body at sync is not a ledger.
+    const derived = link({ title: "Plain", status: "open" });
+    expect(
+      await withStoredRequirementSemantics(
+        derived,
+        emptyStore,
+        staged({
+          id: STORED.id,
+          type: "req",
+          title: "Plain",
+          status: "open",
+          semantic_text: "Fixture only; nothing is declared here.",
+        }),
+      ),
+    ).toBe(derived);
   });
 });
 

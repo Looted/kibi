@@ -707,8 +707,9 @@ export function greet() {
       ],
     });
 
-    // Includes the existence read that decides the new entity's origin.
-    expect(query).toHaveBeenCalledTimes(12);
+    // One existence read, shared by the stored relationships and the new
+    // entity's origin.
+    expect(query).toHaveBeenCalledTimes(11);
     expect(invalidateCache).toHaveBeenCalledTimes(1);
     expect(result.structuredContent).toMatchObject({
       created: 1,

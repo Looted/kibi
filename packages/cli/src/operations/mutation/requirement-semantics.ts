@@ -1,8 +1,8 @@
-import { escapeAtom } from "../../prolog/codec.js";
-import { loadEntities } from "../../public/operations/discovery-entities.js";
 import type { PrologPort } from "../../public/operations/runtime-types.js";
-import { analyzeSemanticAdvisorInput } from "../semantic-advisor/analyze-prose.js";
-import { validateSemanticInventoryBoundary } from "../semantic-advisor/ingestion-boundary.js";
+import {
+  type StoredEntityLookup,
+  storedEntityLookup,
+} from "./stored-entity.js";
 import type { StagedUpsertState, UpsertInput } from "./types.js";
 
 /** The fields that make up a requirement's proposition ledger. */
@@ -32,34 +32,14 @@ function suppliesSemanticContract(
 
 async function storedRequirement(
   id: string,
-  prolog: Pick<PrologPort, "query">,
+  lookup: StoredEntityLookup,
   staged: StagedUpsertState | undefined,
 ): Promise<Readonly<Record<string, unknown>> | undefined> {
   // An earlier step of the same plan that writes this entity is its history.
   const planned = staged?.entities.get(id);
   if (planned !== undefined)
     return planned.type === "req" ? planned : undefined;
-  // The same existence probe the rest of the upsert uses.
-  const exists = await prolog.query(
-    `once(kb_entity('${escapeAtom(id)}', _, _))`,
-  );
-  if (!exists.success) return undefined;
-  try {
-    const [existing] = await loadEntities(prolog, { id, type: "req" });
-    return existing;
-  } catch {
-    return undefined;
-  }
-}
-
-function meetsIngestionBoundary(input: UpsertInput): boolean {
-  const relationships = input.relationships ?? [];
-  const payload = { ...input, relationships };
-  const { receipt } = analyzeSemanticAdvisorInput({ payload });
-  return (
-    validateSemanticInventoryBoundary(payload, relationships, receipt).errors
-      .length === 0
-  );
+  return (await lookup.entity()) ?? undefined;
 }
 
 // implements REQ-kibi-upsert-preserves-requirement-semantics
@@ -78,14 +58,12 @@ export async function withStoredRequirementSemantics(
   input: UpsertInput,
   prolog: Pick<PrologPort, "query">,
   staged?: StagedUpsertState,
+  lookup: StoredEntityLookup = storedEntityLookup(prolog, input.id, input.type),
 ): Promise<UpsertInput> {
   if (input.type !== "req") return input;
   const properties = input.properties ?? {};
   if (suppliesSemanticContract(properties)) return input;
-  // Only a payload the ingestion boundary would reject on its own needs the
-  // stored ledger, so every other upsert reads nothing extra from the store.
-  if (meetsIngestionBoundary(input)) return input;
-  const stored = await storedRequirement(input.id, prolog, staged);
+  const stored = await storedRequirement(input.id, lookup, staged);
   if (stored === undefined) return input;
   if (
     PROSE_FIELDS.some(
@@ -101,7 +79,13 @@ export async function withStoredRequirementSemantics(
   ]) {
     if (stored[field] !== undefined) preserved[field] = stored[field];
   }
-  if (!SEMANTIC_CONTRACT_FIELDS.some((field) => field in preserved))
+  // Only a recorded ledger is kept. A stored `semantic_text` alone (derived
+  // from the body at sync) is not one, and merging it would turn a payload
+  // that is valid as sent into one the ingestion boundary rejects.
+  if (
+    stored.semantic_inventory_version === undefined ||
+    !Array.isArray(stored.semantic_inventory)
+  )
     return input;
   return { ...input, properties: { ...preserved, ...properties } };
 }

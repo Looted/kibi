@@ -73,6 +73,11 @@ describe("kb_upsert review lanes through the real CLI", () => {
       ],
     });
     expect(linked).toMatchObject({ status: "success" });
+    // The compiled store keeps the ledger right away, not only after a sync.
+    const [afterLink] = (workspace.json(["query"], { id: reqId }).data as Json)
+      .entities as Json[];
+    expect(afterLink?.semantic_inventory).toEqual(req.semantic_inventory);
+    expect(afterLink?.logic_claims).toEqual(req.logic_claims);
 
     // Changing the prose without a new ledger is still rejected.
     const retitled = workspace.json(["upsert"], {
