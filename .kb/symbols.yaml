@@ -31833,6 +31833,8 @@ symbols:
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
+        target: REQ-bootstrap-discovered-candidate-budget
+      - type: implements
         target: REQ-KIBI-BOOTSTRAP-PLAN
   - id: SYM-kibi-bootstrap-apply-tests
     title: bootstrap apply recovery scenarios
@@ -31971,6 +31973,8 @@ symbols:
         target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-bootstrap-discovered-candidate-budget
       - type: implements
         target: REQ-bootstrap-intent-claim-accounting
       - type: implements
@@ -50148,3 +50152,16 @@ symbols:
         target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
       - type: implements
         target: REQ-bootstrap-intent-claim-accounting
+  - id: SYM-bootstrap-suppression-counts
+    title: suppressionCounts
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/presentation.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-06T15:37:00.283Z
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-bootstrap-discovered-candidate-budget

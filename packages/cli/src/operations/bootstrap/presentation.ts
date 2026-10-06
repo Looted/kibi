@@ -114,6 +114,27 @@ function payoff(
   };
 }
 
+/**
+ * Suppressions per reason, most frequent first, so a plan with hundreds of
+ * suppressed rows still reads as a handful of lines.
+ */
+// implements REQ-bootstrap-discovered-candidate-budget
+export function suppressionCounts(
+  rows: readonly Readonly<Record<string, unknown>>[],
+): readonly { readonly reason: string; readonly count: number }[] {
+  const counts = new Map<string, number>();
+  for (const row of rows) {
+    const reason = String(row.reason ?? "unspecified");
+    counts.set(reason, (counts.get(reason) ?? 0) + 1);
+  }
+  return [...counts]
+    .map(([reason, count]) => ({ reason, count }))
+    .sort(
+      (left, right) =>
+        right.count - left.count || left.reason.localeCompare(right.reason),
+    );
+}
+
 type ClaimAccounting = {
   readonly source: BootstrapKnowledgeSource;
   readonly declared: number;
@@ -153,7 +174,7 @@ function claimAccounting(
   });
 }
 
-// implements REQ-KIBI-BOOTSTRAP-PLAN
+// implements REQ-KIBI-BOOTSTRAP-PLAN, REQ-bootstrap-discovered-candidate-budget
 export function presentBootstrap(input: {
   readonly root: string;
   readonly activation: ActivationPolicy;
@@ -194,17 +215,21 @@ export function presentBootstrap(input: {
     input.candidates.length + input.sourceOnlySignals.length > 0
       ? `Bootstrap plan is ready for review with ${input.candidates.length} safe candidate(s) and ${input.sourceOnlySignals.length} source-only authoring follow-up(s).`
       : (input.activation.handoffMessage ?? blockedFallback);
-  const overLimitCount = input.suppressedCandidates.filter(
-    (row) => row.reason === "over_limit",
-  ).length;
-  const limitSummary =
-    overLimitCount > 0
-      ? ` ${overLimitCount} discovered candidate(s) exceeded maxCandidates; raise the limit or narrow entityTypes. Declared intent claims are never capped.`
+  const suppression = suppressionCounts(input.suppressedCandidates);
+  const suppressedTotal = suppression.reduce((sum, row) => sum + row.count, 0);
+  const suppressionSummary =
+    suppressedTotal > 0
+      ? ` Suppressed ${suppressedTotal} candidate(s) by reason: ${suppression.map((row) => `${row.reason} ${row.count}`).join(", ")}.`
       : "";
+  const limitSummary = suppression.some((row) => row.reason === "over_limit")
+    ? " Discovered candidates over maxCandidates are over_limit; raise the limit or narrow entityTypes. Declared intent claims do not count against it."
+    : "";
   const tldr =
     (confidenceLevel === "low" && !input.activation.applyBlocked
       ? `Low-confidence bootstrap (${String(guidance.confidence.score)}): review diagnostics before proceeding. ${baseTldr}`
-      : baseTldr) + limitSummary;
+      : baseTldr) +
+    suppressionSummary +
+    limitSummary;
   const rawActions = input.candidates.flatMap((candidate) =>
     candidate.applyPlan.map((payload) => ({ candidate, payload })),
   );
@@ -302,6 +327,11 @@ export function presentBootstrap(input: {
     ...input.discoverySummary.scanWarnings,
     ...bindingDiagnostics,
     ...strings(input.contextDiagnostics),
+    ...(suppressedTotal > 0
+      ? [
+          `Suppressed candidates by reason: ${suppression.map((row) => `${row.reason} ${row.count}`).join(", ")} (rows in suppressedCandidates).`,
+        ]
+      : []),
     ...accounting.map(
       (row) =>
         `Knowledge source ${row.source.id} (${row.source.authority}): ${row.declared} declared claim(s), ${row.planned} planned, ${row.existing} already in the KB, ${row.filtered} filtered out, ${row.declared - row.planned - row.existing - row.filtered} not planned (see suppressedCandidates and source-only follow-ups).`,

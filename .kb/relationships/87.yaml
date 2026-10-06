@@ -342,3 +342,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-105f76a21302
+  - type: constrains
+    from: REQ-bootstrap-discovered-candidate-budget
+    to: FACT-bootstrap-intent-claim-accounting-subject
+    created_at: 2026-10-06T15:22:14.009Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-68676cbc87aa
+  - type: requires_property
+    from: REQ-bootstrap-discovered-candidate-budget
+    to: FACT-bootstrap-discovered-candidate-budget-independent-budget
+    created_at: 2026-10-06T15:22:14.054Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9cbe67bb1713
+  - type: requires_property
+    from: REQ-bootstrap-discovered-candidate-budget
+    to: FACT-bootstrap-discovered-candidate-budget-generic-markdown-default
+    created_at: 2026-10-06T15:22:14.072Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-06b08e7774e1
+  - type: requires_property
+    from: REQ-bootstrap-discovered-candidate-budget
+    to: FACT-bootstrap-discovered-candidate-budget-suppression-summary
+    created_at: 2026-10-06T15:22:14.103Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-99d26d4809bf
+  - type: relates_to
+    from: REQ-bootstrap-discovered-candidate-budget
+    to: REQ-bootstrap-intent-claim-accounting
+    created_at: 2026-10-06T15:22:14.114Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8c0a4944e681
+  - type: specified_by
+    from: REQ-bootstrap-discovered-candidate-budget
+    to: SCEN-bootstrap-discovered-candidate-budget
+    created_at: 2026-10-06T15:22:14.130Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-572448178d0c
+  - type: verified_by
+    from: REQ-bootstrap-discovered-candidate-budget
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-10-06T15:22:14.147Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-81d444014311
