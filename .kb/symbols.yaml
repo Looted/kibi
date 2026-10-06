@@ -31972,6 +31972,8 @@ symbols:
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
+        target: REQ-bootstrap-intent-claim-accounting
+      - type: implements
         target: REQ-KIBI-BOOTSTRAP-PLAN
   - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-guidance-buildguidance
     title: buildGuidance
@@ -32444,6 +32446,8 @@ symbols:
         target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-bootstrap-intent-claim-accounting
       - type: implements
         target: REQ-KIBI-BOOTSTRAP-PLAN
   - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-guidance-actions-buildactions
@@ -50131,3 +50135,16 @@ symbols:
         target: TEST-e2e-skillopt-description-candidates
       - type: implements
         target: REQ-skillopt-description-candidates
+  - id: SYM-semantic-staged-logical-grounding-error
+    title: stagedLogicalGroundingError
+    status: active
+    sourceFile: packages/cli/src/operations/semantic-advisor/ingestion-boundary.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-06T11:21:11.976Z
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-bootstrap-intent-claim-accounting

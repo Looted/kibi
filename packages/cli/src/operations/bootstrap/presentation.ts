@@ -119,6 +119,7 @@ type ClaimAccounting = {
   readonly declared: number;
   readonly planned: number;
   readonly existing: number;
+  readonly filtered: number;
 };
 
 /** Declared claims per knowledge source against what the plan writes. */
@@ -139,12 +140,16 @@ function claimAccounting(
         candidate.sourceKind === "intent_claim" &&
         candidate.candidateId.startsWith(prefix),
     ).length;
-    const existing = suppressed.filter(
-      (row) =>
-        row.reason === "entity_exists" &&
-        String(row.candidateId).startsWith(prefix),
-    ).length;
-    return [{ source, declared: count, planned, existing }];
+    const rows = (reasons: readonly string[]): number =>
+      suppressed.filter(
+        (row) =>
+          reasons.includes(String(row.reason)) &&
+          String(row.candidateId).startsWith(prefix),
+      ).length;
+    const existing = rows(["entity_exists"]);
+    // Claims the caller filtered out (entityTypes, minConfidence) are not lost.
+    const filtered = rows(["filtered_by_entity_type", "below_min_confidence"]);
+    return [{ source, declared: count, planned, existing, filtered }];
   });
 }
 
@@ -249,7 +254,7 @@ export function presentBootstrap(input: {
   const droppedAuthoritative = accounting.filter(
     (row) =>
       row.source.authority === "authoritative" &&
-      row.planned + row.existing === 0,
+      row.planned + row.existing + row.filtered === 0,
   );
   const status: BootstrapPlanV1["status"] =
     input.activation.activationState === "root_active_seeded"
@@ -263,9 +268,9 @@ export function presentBootstrap(input: {
           : "needs_context";
   const contextQuestions: string[] = [];
   if (status === "needs_context") {
-    for (const row of droppedAuthoritative)
+    if (droppedAuthoritative.length > 0)
       contextQuestions.push(
-        `None of the ${row.declared} claim(s) declared from authoritative source "${row.source.title}" could be planned; how should they be restated or authored before bootstrap applies?`,
+        `No declared claim from authoritative source(s) ${droppedAuthoritative.map((row) => `"${row.source.title}"`).join(", ")} could be planned; how should those claims be restated or authored before bootstrap applies?`,
       );
     if (!declaredContext.projectSummary)
       contextQuestions.push(
@@ -299,7 +304,7 @@ export function presentBootstrap(input: {
     ...strings(input.contextDiagnostics),
     ...accounting.map(
       (row) =>
-        `Knowledge source ${row.source.id} (${row.source.authority}): ${row.declared} declared claim(s), ${row.planned} planned, ${row.existing} already in the KB, ${row.declared - row.planned - row.existing} not planned (see suppressedCandidates and source-only follow-ups).`,
+        `Knowledge source ${row.source.id} (${row.source.authority}): ${row.declared} declared claim(s), ${row.planned} planned, ${row.existing} already in the KB, ${row.filtered} filtered out, ${row.declared - row.planned - row.existing - row.filtered} not planned (see suppressedCandidates and source-only follow-ups).`,
     ),
   ];
   const planBody = {

@@ -124,11 +124,18 @@ describe("bootstrap write safety and evidence accounting", () => {
     expect(
       result.suppressed.filter((row) => row.reason === "over_limit"),
     ).toHaveLength(100);
+    const factsOnly = selectBootstrapCandidates(
+      [...observations.slice(0, 3), ...claims.slice(0, 2)],
+      new Set(),
+      ["fact"],
+      50,
+    );
+    expect(factsOnly.candidates).toHaveLength(3);
     expect(
-      result.suppressed
-        .filter((row) => row.reason === "over_limit")
-        .every((row) => String(row.candidateId) !== "candidate:0"),
-    ).toBe(true);
+      factsOnly.suppressed.filter(
+        (row) => row.reason === "filtered_by_entity_type",
+      ),
+    ).toHaveLength(2);
     expect(result.diagnostics).toContainEqual(
       expect.stringContaining(
         "59 declared intent claim(s) exceed maxCandidates 50",
@@ -328,7 +335,11 @@ describe("bootstrap write safety and evidence accounting", () => {
       new Set(),
       0.8,
     ).candidates;
-    const present = (candidates: readonly Candidate[]) =>
+    const present = (
+      candidates: readonly Candidate[],
+      suppressedCandidates: readonly Readonly<Record<string, unknown>>[] = [],
+      context: typeof bootstrapContext = bootstrapContext,
+    ) =>
       presentBootstrap({
         root: "/tmp/repo",
         activation: {
@@ -352,10 +363,10 @@ describe("bootstrap write safety and evidence accounting", () => {
           scanWarnings: [],
         },
         migrationWarning: null,
-        bootstrapContext,
+        bootstrapContext: context,
         candidates,
         sourceOnlySignals: [],
-        suppressedCandidates: [],
+        suppressedCandidates,
         expected: {
           branch: "main",
           kbSnapshotId: "snap",
@@ -369,13 +380,38 @@ describe("bootstrap write safety and evidence accounting", () => {
     ).structuredContent.plan;
     expect(plan.status).toBe("needs_context");
     expect(plan.diagnostics).toContain(
-      "Knowledge source tracker (authoritative): 1 declared claim(s), 0 planned, 0 already in the KB, 1 not planned (see suppressedCandidates and source-only follow-ups).",
+      "Knowledge source tracker (authoritative): 1 declared claim(s), 0 planned, 0 already in the KB, 0 filtered out, 1 not planned (see suppressedCandidates and source-only follow-ups).",
     );
     expect(plan.diagnostics).toContain(
-      "Knowledge source spec (authoritative): 1 declared claim(s), 1 planned, 0 already in the KB, 0 not planned (see suppressedCandidates and source-only follow-ups).",
+      "Knowledge source spec (authoritative): 1 declared claim(s), 1 planned, 0 already in the KB, 0 filtered out, 0 not planned (see suppressedCandidates and source-only follow-ups).",
     );
-    expect(plan.contextQuestions[0]).toContain(
-      'authoritative source "Tracker"',
+    expect(plan.contextQuestions[0]).toContain('"Tracker"');
+    const spec = claimed.filter((row) =>
+      row.candidateId.startsWith("claim:spec:"),
+    );
+    const tracker = claimed.filter((row) =>
+      row.candidateId.startsWith("claim:tracker:"),
+    );
+    // Claims already in the KB or excluded by the caller's filters are not lost.
+    for (const reason of ["entity_exists", "filtered_by_entity_type"]) {
+      const accounted = present(
+        spec,
+        tracker.map((row) => ({ candidateId: row.candidateId, reason })),
+      ).structuredContent.plan;
+      expect(accounted.status).toBe("ready");
+    }
+    // A supporting source that plans nothing is reported but does not block.
+    const supporting = present(spec, [], {
+      ...bootstrapContext,
+      knowledgeSources: sources.map((source) =>
+        source.id === "tracker"
+          ? { ...source, authority: "supporting" as const }
+          : source,
+      ),
+    }).structuredContent.plan;
+    expect(supporting.status).toBe("ready");
+    expect(supporting.diagnostics).toContain(
+      "Knowledge source tracker (supporting): 1 declared claim(s), 0 planned, 0 already in the KB, 0 filtered out, 1 not planned (see suppressedCandidates and source-only follow-ups).",
     );
   });
   test("task markers are stripped and questions and invalid keys remain line-cited follow-ups", () => {

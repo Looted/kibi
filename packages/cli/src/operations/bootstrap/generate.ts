@@ -98,7 +98,12 @@ export function selectBootstrapCandidates(
   };
   const writable = input
     .filter((candidate) => {
-      if (allowed && !allowed.has(candidate.entityType)) return false;
+      if (allowed && !allowed.has(candidate.entityType)) {
+        // A filtered claim is the caller's choice, not a dropped claim.
+        if (candidate.sourceKind === "intent_claim")
+          suppress(candidate, "filtered_by_entity_type");
+        return false;
+      }
       if (existingIds.has(firstUpsertId(candidate))) {
         suppress(candidate, "entity_exists");
         return false;
@@ -149,21 +154,16 @@ export function selectBootstrapCandidates(
   // Declared intent claims are never capped: they are what the human pointed
   // at, and the schema already bounds them. maxCandidates only limits the
   // candidates Kibi discovers itself, in the slots the claims leave free.
-  const claimCount = [...selected.values()].filter(
-    (candidate) => candidate.sourceKind === "intent_claim",
-  ).length;
-  const discoveredCapacity = Math.max(0, maximum - claimCount);
-  if (claimCount > maximum)
-    diagnostics.push(
-      `${claimCount} declared intent claim(s) exceed maxCandidates ${maximum}; all are kept and discovered candidates get no slots.`,
-    );
   const written = new Map<string, string>();
   const staged = new Map<string, Readonly<Record<string, unknown>>>();
   const candidates: Candidate[] = [];
+  let claimCount = 0;
   let discoveredCount = 0;
+  // Claims sort first, so every claim is settled before any discovered
+  // candidate asks for one of the slots the accepted claims leave free.
   for (const candidate of selected.values()) {
     const discovered = candidate.sourceKind !== "intent_claim";
-    if (discovered && discoveredCount >= discoveredCapacity) {
+    if (discovered && discoveredCount >= Math.max(0, maximum - claimCount)) {
       suppress(candidate, "over_limit");
       continue;
     }
@@ -197,8 +197,13 @@ export function selectBootstrapCandidates(
       staged.set(id, stagedEntity(payload));
     }
     if (discovered) discoveredCount += 1;
+    else claimCount += 1;
     candidates.push(candidate);
   }
+  if (claimCount > maximum)
+    diagnostics.push(
+      `${claimCount} declared intent claim(s) exceed maxCandidates ${maximum}; all are planned and discovered candidates get no slots.`,
+    );
   return {
     candidates,
     suppressed,
