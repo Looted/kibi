@@ -119,6 +119,7 @@ function writeAdversarialFiles(input: WorkspaceInput): void {
                   sourceId: "library-policy",
                   reference: "loan-due-date",
                   statement: "Loans must retain a due date.",
+                  excerpt: "Loans must retain a due date.",
                 },
               ],
             },

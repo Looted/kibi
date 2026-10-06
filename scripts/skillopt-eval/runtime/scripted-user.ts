@@ -30,6 +30,7 @@ export const ScriptedUserProfileSchema = z
                 sourceId: z.string(),
                 reference: z.string(),
                 statement: z.string().min(1),
+                excerpt: z.string().min(1).optional(),
               })
               .strict(),
           )

@@ -181,6 +181,7 @@ test.each([
                     sourceId: "operator-document",
                     reference: "loan-due-date",
                     statement,
+                    excerpt: statement,
                   },
                 ],
               };
