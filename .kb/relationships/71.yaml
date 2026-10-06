@@ -139,3 +139,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-be204332a90c
+  - type: constrains
+    from: REQ-bootstrap-claim-kinds-and-conflicts
+    to: FACT-SUBJECT-KIBI-BOOTSTRAP-KNOWLEDGE-SOURCES
+    created_at: 2026-10-06T15:48:20.716Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e5ce6107ac66
+  - type: requires_property
+    from: REQ-bootstrap-claim-kinds-and-conflicts
+    to: FACT-bootstrap-claim-kinds-and-conflicts-no-requirements
+    created_at: 2026-10-06T15:48:20.750Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-36a5a8473bee
+  - type: requires_property
+    from: REQ-bootstrap-claim-kinds-and-conflicts
+    to: FACT-bootstrap-claim-kinds-and-conflicts-observation-facts
+    created_at: 2026-10-06T15:48:20.761Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a07b8ec9d26e
+  - type: requires_property
+    from: REQ-bootstrap-claim-kinds-and-conflicts
+    to: FACT-bootstrap-claim-kinds-and-conflicts-conflict-facts
+    created_at: 2026-10-06T15:48:20.769Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-781b487fe9e4
+  - type: requires_property
+    from: REQ-bootstrap-claim-kinds-and-conflicts
+    to: FACT-bootstrap-claim-kinds-and-conflicts-hash-bound
+    created_at: 2026-10-06T15:48:20.778Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-40cafbb95271
+  - type: relates_to
+    from: REQ-bootstrap-claim-kinds-and-conflicts
+    to: REQ-kibi-bootstrap-knowledge-sources
+    created_at: 2026-10-06T15:48:20.796Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a1820b06d952
+  - type: specified_by
+    from: REQ-bootstrap-claim-kinds-and-conflicts
+    to: SCEN-bootstrap-claim-kinds-and-conflicts
+    created_at: 2026-10-06T15:48:20.804Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-009dc41f1fb9
+  - type: verified_by
+    from: REQ-bootstrap-claim-kinds-and-conflicts
+    to: TEST-kibi-bootstrap-knowledge-sources
+    created_at: 2026-10-06T15:48:20.811Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a5bc31dfbae2

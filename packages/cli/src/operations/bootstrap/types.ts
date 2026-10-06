@@ -60,12 +60,38 @@ export type BootstrapKnowledgeSource = {
   readonly notes?: string;
 };
 
+/**
+ * What a harvested claim is: intended behavior, an observation about how
+ * things are today, or a question the sources leave open. Only intent can
+ * become a requirement; the others stay explicit review facts.
+ */
+export const INTENT_CLAIM_KINDS = [
+  "intent",
+  "observation",
+  "open_question",
+] as const;
+export type BootstrapIntentClaimKind = (typeof INTENT_CLAIM_KINDS)[number];
+
 /** One statement of intent the agent harvested from a declared source. */
 export type BootstrapIntentClaim = {
   readonly statement: string;
   readonly sourceId: string;
   readonly reference: string;
   readonly excerpt?: string;
+  /** Defaults to intent; normalization omits the default. */
+  readonly kind?: BootstrapIntentClaimKind;
+};
+
+/** Identifies one declared claim by its source and exact citation. */
+export type BootstrapClaimReference = {
+  readonly sourceId: string;
+  readonly reference: string;
+};
+
+/** Claims the agent found contradicting each other, left for the human. */
+export type BootstrapClaimConflict = {
+  readonly claimReferences: readonly BootstrapClaimReference[];
+  readonly note: string;
 };
 
 export type BootstrapContext = {
@@ -76,6 +102,7 @@ export type BootstrapContext = {
   readonly verificationAnchors?: readonly string[];
   readonly knowledgeSources?: readonly BootstrapKnowledgeSource[];
   readonly intentClaims?: readonly BootstrapIntentClaim[];
+  readonly conflicts?: readonly BootstrapClaimConflict[];
 };
 
 export type PlanBootstrapArgs = {
@@ -117,6 +144,7 @@ export type BootstrapDeclaredContext = {
   // their established shape and hash.
   readonly knowledgeSources?: readonly BootstrapKnowledgeSource[];
   readonly intentClaims?: readonly BootstrapIntentClaim[];
+  readonly conflicts?: readonly BootstrapClaimConflict[];
 };
 
 export type ActivationState =

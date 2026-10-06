@@ -31833,6 +31833,8 @@ symbols:
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
+        target: REQ-bootstrap-discovered-candidate-budget
+      - type: implements
         target: REQ-KIBI-BOOTSTRAP-PLAN
   - id: SYM-kibi-bootstrap-apply-tests
     title: bootstrap apply recovery scenarios
@@ -31972,6 +31974,8 @@ symbols:
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
+        target: REQ-bootstrap-discovered-candidate-budget
+      - type: implements
         target: REQ-bootstrap-intent-claim-accounting
       - type: implements
         target: REQ-KIBI-BOOTSTRAP-PLAN
@@ -32009,9 +32013,13 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-kibi-bootstrap-knowledge-sources
+      - type: covered_by
         target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-bootstrap-claim-kinds-and-conflicts
       - type: implements
         target: REQ-KIBI-BOOTSTRAP-PLAN
   - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-activationmode
@@ -46757,6 +46765,8 @@ symbols:
       - type: covered_by
         target: TEST-kibi-bootstrap-knowledge-sources
       - type: implements
+        target: REQ-bootstrap-claim-kinds-and-conflicts
+      - type: implements
         target: REQ-kibi-bootstrap-knowledge-sources
   - id: SYM-test-kibi-bootstrap-knowledge-sources
     title: Bootstrap knowledge sources suite
@@ -50148,3 +50158,16 @@ symbols:
         target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
       - type: implements
         target: REQ-bootstrap-intent-claim-accounting
+  - id: SYM-bootstrap-suppression-counts
+    title: suppressionCounts
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/presentation.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-06T15:37:00.283Z
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-bootstrap-discovered-candidate-budget

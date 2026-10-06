@@ -3,10 +3,13 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-import type { BootstrapContext } from "../../src/operations/bootstrap/types.js";
+import type {
+  BootstrapContext,
+  Candidate,
+} from "../../src/operations/bootstrap/types.js";
 import { bootstrapPlanHash } from "../../src/operations/bootstrap/types.js";
-import { validateUpsertInput } from "../../src/operations/mutation/validation.js";
 import type { UpsertInput } from "../../src/operations/mutation/types.js";
+import { validateUpsertInput } from "../../src/operations/mutation/validation.js";
 import {
   nodeFilesystem,
   nodeGit,
@@ -216,5 +219,165 @@ describe("bootstrap from declared knowledge sources", () => {
       expect.stringContaining("knowledge sources outside the code"),
     );
     expect(plan.declaredContext).not.toHaveProperty("knowledgeSources");
+  });
+});
+
+describe("claim kinds and declared conflicts", () => {
+  const source = interview.knowledgeSources?.[0];
+  const kinds: BootstrapContext = {
+    ...interview,
+    knowledgeSources: source ? [source] : [],
+    intentClaims: [
+      {
+        statement: "Refunds must not exceed the original charge.",
+        sourceId: "jira-billing",
+        reference: "BILL-142",
+      },
+      {
+        statement: "Exports must be signed.",
+        sourceId: "jira-billing",
+        reference: "BILL-9",
+        kind: "observation",
+        excerpt: "Today every export is signed by the batch job.",
+      },
+      {
+        statement: "Refunds must include tax.",
+        sourceId: "jira-billing",
+        reference: "BILL-10",
+        kind: "open_question",
+      },
+    ],
+    conflicts: [
+      {
+        claimReferences: [
+          { sourceId: "jira-billing", reference: "BILL-142" },
+          { sourceId: "jira-billing", reference: "BILL-10" },
+        ],
+        note: "BILL-10 asks for tax on refunds that BILL-142 caps at the charge.",
+      },
+      {
+        claimReferences: [
+          { sourceId: "jira-billing", reference: "BILL-142" },
+          { sourceId: "jira-billing", reference: "BILL-999" },
+        ],
+        note: "Cites a claim that was never declared.",
+      },
+    ],
+  };
+
+  test("observations and open questions become cited observation facts, never requirements", async () => {
+    const plan = (
+      await planBootstrapSpec.execute(
+        { bootstrapContext: kinds },
+        context(thinRepository()),
+      )
+    ).structuredContent.plan;
+    for (const action of plan.actions)
+      expect(() =>
+        validateUpsertInput(action.payload as UpsertInput, new Date()),
+      ).not.toThrow();
+    const reqTitles = plan.actions
+      .filter((action) => action.payload.type === "req")
+      .map((action) => (action.payload.properties as { title: string }).title);
+    expect(reqTitles).toEqual(["Refunds must not exceed the original charge."]);
+
+    const fact = (title: string) =>
+      plan.actions.find(
+        (action) =>
+          action.payload.type === "fact" &&
+          (action.payload.properties as { title: string }).title === title,
+      )?.payload.properties as Record<string, unknown> | undefined;
+    expect(fact("Exports must be signed.")).toMatchObject({
+      fact_kind: "observation",
+      text_ref: "jira-billing:BILL-9",
+      tags: expect.arrayContaining(["claim:observation"]),
+    });
+    expect(fact("Refunds must include tax.")).toMatchObject({
+      fact_kind: "observation",
+      text_ref: "jira-billing:BILL-10",
+      tags: expect.arrayContaining(["review:open-question"]),
+    });
+    const observation = plan.candidates.find(
+      (candidate) => candidate.title === "Exports must be signed.",
+    );
+    expect(observation?.evidence).toEqual(
+      expect.arrayContaining([
+        "intent_claim:jira-billing:BILL-9",
+        "source_authority:authoritative",
+        "claim_kind:observation",
+        "excerpt:Today every export is signed by the batch job.",
+      ]),
+    );
+    // Every kind counts as planned for its source.
+    expect(plan.diagnostics).toContainEqual(
+      expect.stringContaining(
+        "Knowledge source jira-billing (authoritative): 3 declared claim(s), 3 planned",
+      ),
+    );
+  });
+
+  test("a declared conflict becomes a review:conflict fact citing every claim, and is hash-bound", async () => {
+    const root = thinRepository();
+    const plan = (
+      await planBootstrapSpec.execute(
+        { bootstrapContext: kinds },
+        context(root),
+      )
+    ).structuredContent.plan;
+    // Checked first: Bun's toMatchObject can rewrite matched values in place.
+    expect(bootstrapPlanHash(plan)).toBe(plan.planHash);
+    const conflicts = (plan.candidates as readonly Candidate[]).filter(
+      (candidate) => candidate.candidateId.startsWith("conflict:"),
+    );
+    expect(conflicts).toHaveLength(1);
+    expect(conflicts[0]?.evidence).toEqual(
+      expect.arrayContaining([
+        "intent_claim:jira-billing:BILL-142",
+        "intent_claim:jira-billing:BILL-10",
+      ]),
+    );
+    expect(conflicts[0]?.applyPlan[0]?.properties).toMatchObject({
+      fact_kind: "observation",
+      text_ref: "jira-billing:BILL-142; jira-billing:BILL-10",
+      tags: expect.arrayContaining(["review:conflict"]),
+      title:
+        "Conflict between jira-billing:BILL-142 and jira-billing:BILL-10: BILL-10 asks for tax on refunds that BILL-142 caps at the charge.",
+    });
+    // A conflict citing an undeclared claim is reported, not written.
+    expect(plan.diagnostics).toContainEqual(
+      expect.stringContaining(
+        "cites claim(s) not declared in intentClaims: jira-billing:BILL-999",
+      ),
+    );
+    expect(plan.declaredContext.conflicts).toHaveLength(2);
+    // The default kind stays implicit, so plans without kinds keep their hash.
+    expect(plan.declaredContext.intentClaims?.[0]).not.toHaveProperty("kind");
+    expect(plan.declaredContext.intentClaims?.[2]?.kind).toBe("open_question");
+
+    const withoutConflicts = await planBootstrapSpec.execute(
+      { bootstrapContext: { ...kinds, conflicts: [] } },
+      context(root),
+    );
+    const asIntent = await planBootstrapSpec.execute(
+      {
+        bootstrapContext: {
+          ...kinds,
+          intentClaims: kinds.intentClaims?.map(
+            ({ kind: _kind, ...claim }) => claim,
+          ),
+        },
+      },
+      context(root),
+    );
+    expect(withoutConflicts.structuredContent.planHash).not.toBe(plan.planHash);
+    expect(asIntent.structuredContent.planHash).not.toBe(plan.planHash);
+    // As intent, the observed "must" statement is a requirement candidate again.
+    expect(
+      asIntent.structuredContent.plan.candidates.some(
+        (candidate) =>
+          candidate.entityType === "req" &&
+          candidate.title === "Exports must be signed.",
+      ),
+    ).toBe(true);
   });
 });

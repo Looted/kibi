@@ -307,3 +307,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-03eab337d84e
+  - type: implements
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-presentation-normalizebootstrapcontext
+    to: REQ-bootstrap-claim-kinds-and-conflicts
+    created_at: 2026-10-06T15:50:42.730Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2fa77ab0776d
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-presentation-normalizebootstrapcontext
+    to: TEST-kibi-bootstrap-knowledge-sources
+    created_at: 2026-10-06T15:50:42.742Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2c64c4976408

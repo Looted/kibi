@@ -89,19 +89,23 @@ Discover existing repository evidence and return a deterministic, snapshot-bound
 `/kibi-bootstrap` onboarding workflow. It never mutates the KB.
 
 **Parameters:**
-- `includeGenericMarkdown` (optional): Include generic Markdown content as candidate evidence.
+- `includeGenericMarkdown` (optional): Include generic Markdown content as candidate evidence. Defaults to `true`, or to `false` when `bootstrapContext` declares `intentClaims` (a diagnostic says so); set it explicitly to override.
 - `minConfidence` (optional): Minimum confidence threshold for generated candidates.
-- `maxCandidates` (optional): Maximum number of discovered candidates to return. Declared `intentClaims` are never capped and do not count against it.
+- `maxCandidates` (optional): Budget for candidates Kibi discovers itself (symbols, tests, repository documents), default 50. Declared `intentClaims` sit outside it: they are never capped and never use its slots, so a long claim list still leaves the full budget for discovered candidates.
 - `entityTypes` (optional): Limit generation to selected entity types.
 - `bootstrapContext` (optional): Declared project summary, source-of-truth paths/notes, priority roots, verification anchors, and the outcome of the source interview:
   - `knowledgeSources`: sources outside the code the human confirmed, each with `id`, `kind` (`issue_tracker`, `wiki`, `specification`, `design`, `decision_log`, `support`, `chat`, `repository_docs`, `other`), `title`, `locator`, `authority` (`authoritative`, `supporting`, `stale`), and an optional `connector`.
-  - `intentClaims`: normative statements the agent read in those sources, each with `statement`, `sourceId`, an exact `reference` (ticket key, page URL, section), and an optional `excerpt`.
+  - `intentClaims`: statements the agent read in those sources, each with `statement`, `sourceId`, an exact `reference` (ticket key, page URL, section), an optional `excerpt`, and an optional `kind`: `intent` (default, intended behavior), `observation` (how things are today, without stating intent) or `open_question` (something the sources leave undecided).
+  - `conflicts`: contradictions between declared claims that the agent leaves for the human, each with `claimReferences` (two to ten `{ sourceId, reference }` pairs that must match declared claims) and a one-sentence `note`.
 
-  Kibi never contacts the declared sources. Both lists are part of `declaredContext` and so of `planHash`. A grounded claim from an authoritative or supporting source becomes a `req` candidate with `sourceKind: intent_claim`, citation evidence, and `text_ref: <sourceId>:<reference>`. A claim the strict modeler cannot ground becomes an authoring follow-up. Stale sources produce no candidates, and claims citing an undeclared source are reported in `diagnostics`. When no sources were declared, a `needs_context` plan asks for them.
+  Kibi never contacts the declared sources. All three lists are part of `declaredContext` and so of `planHash`; `kind` is omitted there when it is `intent`. A grounded `intent` claim from an authoritative or supporting source becomes a `req` candidate with `sourceKind: intent_claim`, citation evidence, and `text_ref: <sourceId>:<reference>`. A claim the strict modeler cannot ground becomes an authoring follow-up. An `observation` or `open_question` claim never becomes a requirement: it becomes a `fact_kind: observation` candidate with the same citation evidence and `text_ref`, and open questions are tagged `review:open-question`. Each conflict becomes a `fact_kind: observation` candidate tagged `review:conflict` that cites every referenced claim; a conflict citing an undeclared claim is reported in `diagnostics` and not planned. These facts pass the same write validation as every other candidate. Stale sources produce no candidates, and claims citing an undeclared source are reported in `diagnostics`. When no sources were declared, a `needs_context` plan asks for them.
 
 **Returns:**
 Evidence, bounded context questions, dependency-ordered actions, expected
-snapshots/source hashes, payoff summary, diagnostics, and `planHash`. Only a
+snapshots/source hashes, payoff summary, diagnostics, and `planHash`. Every
+suppressed candidate stays in `suppressedCandidates`; `tldr` and one diagnostic
+summarize them as a count per reason (for example `over_limit 290,
+duplicate_title 75`). Only a
 `ready` plan may be approved. Apply it with `kb_apply_plan`; do not replay raw
 `kb_upsert` payloads.
 

@@ -58,7 +58,7 @@ function sha256(value: string): string {
   return createHash("sha256").update(value).digest("hex");
 }
 
-// implements REQ-bootstrap-write-safety, REQ-bootstrap-intent-claim-accounting
+// implements REQ-bootstrap-write-safety, REQ-bootstrap-intent-claim-accounting, REQ-bootstrap-discovered-candidate-budget
 export function selectBootstrapCandidates(
   input: readonly Candidate[],
   existingIds: ReadonlySet<string>,
@@ -151,20 +151,21 @@ export function selectBootstrapCandidates(
       suppress(candidate, "duplicate_title");
     } else selected.set(key, candidate);
   }
-  // Declared intent claims are never capped: they are what the human pointed
-  // at, and the schema already bounds them. maxCandidates only limits the
-  // candidates Kibi discovers itself, in the slots the claims leave free.
+  // Declared intent claims are never capped and sit outside the arithmetic:
+  // they are what the human pointed at, and the schema already bounds them.
+  // maxCandidates is the budget for candidates Kibi discovers itself, so a
+  // long list of declared intent never starves the code, test and document
+  // evidence that bootstrap is meant to link it to.
   const written = new Map<string, string>();
   const staged = new Map<string, Readonly<Record<string, unknown>>>();
   const candidates: Candidate[] = [];
-  let claimCount = 0;
   let discoveredCount = 0;
-  // Claims sort first, so every claim is settled before any discovered
-  // candidate asks for one of the slots the accepted claims leave free.
+  let overLimit = 0;
   for (const candidate of selected.values()) {
     const discovered = candidate.sourceKind !== "intent_claim";
-    if (discovered && discoveredCount >= Math.max(0, maximum - claimCount)) {
+    if (discovered && discoveredCount >= maximum) {
       suppress(candidate, "over_limit");
+      overLimit += 1;
       continue;
     }
     // Two candidates that write one entity ID with different content would
@@ -197,12 +198,11 @@ export function selectBootstrapCandidates(
       staged.set(id, stagedEntity(payload));
     }
     if (discovered) discoveredCount += 1;
-    else claimCount += 1;
     candidates.push(candidate);
   }
-  if (claimCount > maximum)
+  if (overLimit > 0)
     diagnostics.push(
-      `${claimCount} declared intent claim(s) exceed maxCandidates ${maximum}; all are planned and discovered candidates get no slots.`,
+      `${overLimit} discovered candidate(s) exceeded maxCandidates ${maximum} and are suppressed as over_limit; declared intent claims do not count against it.`,
     );
   return {
     candidates,
@@ -367,13 +367,20 @@ async function expectedSnapshots(
   }
 }
 
-// implements REQ-KIBI-BOOTSTRAP-PLAN, REQ-kibi-operation-interface-parity
+// implements REQ-KIBI-BOOTSTRAP-PLAN, REQ-kibi-operation-interface-parity, REQ-bootstrap-discovered-candidate-budget
 // implements REQ-KIBI-BOOTSTRAP-PLAN
 export async function executePlanBootstrap(
   args: PlanBootstrapArgs,
   context: OperationContext,
 ): Promise<PlanBootstrapResult> {
-  const includeGenericMarkdown = args.includeGenericMarkdown ?? true;
+  const declared = normalizeBootstrapContext(args.bootstrapContext);
+  // Declared intent claims already carry the human's sources of truth, so
+  // generic Markdown would mostly restate them as duplicate_title noise.
+  const genericMarkdownDefaultOff =
+    args.includeGenericMarkdown === undefined &&
+    (declared.intentClaims?.length ?? 0) > 0;
+  const includeGenericMarkdown =
+    args.includeGenericMarkdown ?? !genericMarkdownDefaultOff;
   const minConfidence = clamp(args.minConfidence ?? 0.8, 0.6, 0.95);
   const maxCandidates = clamp(Math.trunc(args.maxCandidates ?? 50), 1, 200);
   const entityBindingDiagnostics: string[] = [];
@@ -408,11 +415,7 @@ export async function executePlanBootstrap(
   // Intent harvested from declared knowledge sources joins the repository
   // evidence under the same activation policy, filters, and selection.
   const claimed = discovery.activation.allowCandidateGeneration
-    ? buildIntentClaimCandidates(
-        normalizeBootstrapContext(args.bootstrapContext),
-        existingIds,
-        minConfidence,
-      )
+    ? buildIntentClaimCandidates(declared, existingIds, minConfidence)
     : {
         candidates: [],
         sourceOnlySignals: [],
@@ -460,6 +463,11 @@ export async function executePlanBootstrap(
     expected,
     bindingDiagnostics: [...bindingDiagnostics, ...entityBindingDiagnostics],
     contextDiagnostics: [
+      ...(genericMarkdownDefaultOff
+        ? [
+            "Generic Markdown candidates are off by default because intent claims were declared; pass includeGenericMarkdown: true to include them.",
+          ]
+        : []),
       ...claimed.diagnostics,
       ...built.diagnostics,
       ...selected.diagnostics,
