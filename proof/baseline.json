@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 162,
-  "proofProven": 162,
+  "currentRequirements": 164,
+  "proofProven": 164,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -812,6 +812,16 @@
       "uncoveredSymbols": []
     },
     "REQ-skillopt-description-candidates": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-bootstrap-discovered-candidate-budget": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-bootstrap-claim-kinds-and-conflicts": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []
