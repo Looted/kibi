@@ -10,10 +10,10 @@ import {
 import path from "node:path";
 import { CANONICAL_SKILLS } from "../catalog";
 import { PRECONDITION_APPROVED_EXCEPTION } from "../runtime/fixture-seeds";
+import { bootstrapUserMode } from "./bootstrap-user";
 import type { parseTaskSpec } from "./contracts";
 import { onboardingReviewEvidence } from "./onboarding-review";
 import { predicateCaseById } from "./predicate-cases";
-import { bootstrapUserMode } from "./bootstrap-user";
 
 type FixtureTaskSpec = ReturnType<typeof parseTaskSpec>;
 type WorkspaceInput = Readonly<{

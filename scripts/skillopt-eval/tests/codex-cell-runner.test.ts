@@ -3,12 +3,12 @@ import { existsSync } from "node:fs";
 import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import { hashWorkspace, writePublicWorkspace } from "../fixtures/workspace";
-import { buildPublicCatalog } from "../catalog";
-import { parsePublicTaskSpec } from "../fixtures/contracts";
-import { RequiredMcpStartupError } from "../runtime/canary-runtime";
 import { Client } from "../../../packages/mcp/node_modules/@modelcontextprotocol/sdk/dist/esm/client/index.js";
 import { StdioClientTransport } from "../../../packages/mcp/node_modules/@modelcontextprotocol/sdk/dist/esm/client/stdio.js";
+import { buildPublicCatalog } from "../catalog";
+import { parsePublicTaskSpec } from "../fixtures/contracts";
+import { hashWorkspace, writePublicWorkspace } from "../fixtures/workspace";
+import { RequiredMcpStartupError } from "../runtime/canary-runtime";
 import { defaultCodexCellDependencies } from "../runtime/codex-cell-defaults";
 import {
   EPISODE_OUTPUT_SCHEMA,

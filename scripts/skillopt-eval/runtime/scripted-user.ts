@@ -1,6 +1,6 @@
 import { isDeepStrictEqual } from "node:util";
-import { bootstrapPlanHash } from "../../../packages/cli/src/operations/bootstrap/types";
 import { z } from "zod";
+import { bootstrapPlanHash } from "../../../packages/cli/src/operations/bootstrap/types";
 
 // implements REQ-skillopt-codex-optimization
 export const ScriptedUserProfileSchema = z

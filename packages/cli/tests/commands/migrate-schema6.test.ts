@@ -260,7 +260,11 @@ describe("kibi migrate to schema 6", () => {
         fromVersion: 5,
         toVersion: 8,
         entityOriginBackfill: 4,
-        steps: ["entity-origin-v6", "polarity-values-v7", "entity-body-context-v8"],
+        steps: [
+          "entity-origin-v6",
+          "polarity-values-v7",
+          "entity-body-context-v8",
+        ],
       });
 
       // The unsafe requirement still blocks sync, with every failure listed.

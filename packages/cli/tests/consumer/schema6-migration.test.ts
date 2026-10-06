@@ -1,6 +1,6 @@
+import { afterEach, describe, expect, test } from "bun:test";
 // implements REQ-kibi-schema6-migration
 import { LATEST_KB_SCHEMA_VERSION } from "../../src/utils/schema-version.js";
-import { afterEach, describe, expect, test } from "bun:test";
 import {
   type ConsumerWorkspace,
   type Json,

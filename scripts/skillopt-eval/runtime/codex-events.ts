@@ -143,8 +143,9 @@ function literalShellWords(command: string): string[] | null {
  * the model can use the public Kibi surface.
  */
 // implements REQ-skillopt-codex-optimization
-function commandReferencesKb(command: string): boolean {
-  const words = literalShellWords(command);
+function commandReferencesKb(rawCommand: string): boolean {
+  let command = rawCommand;
+  const words = literalShellWords(rawCommand);
   if (
     words?.length === 3 &&
     /^(?:\/bin\/)?(?:bash|sh)$/.test(words[0] ?? "") &&

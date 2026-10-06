@@ -2,20 +2,20 @@ import { afterEach, expect, test } from "bun:test";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { PassThrough } from "node:stream";
 import { createInterface } from "node:readline";
+import { PassThrough } from "node:stream";
 import { bootstrapPlanHash } from "../../../packages/cli/src/operations/bootstrap/types";
+import { buildPublicCatalog } from "../catalog";
 import {
   BOOTSTRAP_USER_CONTEXT,
   bootstrapUserMode,
   bootstrapUserProfile,
 } from "../fixtures/bootstrap-user";
-import { buildPublicCatalog } from "../catalog";
+import { sealDefaultCellEvidence } from "../runtime/codex-cell-defaults";
 import { parseTraceReceipts, verifyTraceChain } from "../runtime/jsonrpc";
 import { REQUIRED_KIBI_TOOLS } from "../runtime/mcp-broker";
 import { runMcpBroker } from "../runtime/mcp-broker-process";
 import { ScriptedUser } from "../runtime/scripted-user";
-import { sealDefaultCellEvidence } from "../runtime/codex-cell-defaults";
 import { predicateFinalState } from "./fixtures/codex-cell-runner-fixtures";
 import { evaluatorManifest } from "./fixtures/evaluator-authority-fixtures";
 
