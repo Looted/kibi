@@ -10,6 +10,7 @@ import {
 } from "../../src/operations/bootstrap/presentation.js";
 import type {
   BootstrapEvidence,
+  BootstrapKnowledgeSource,
   Candidate,
 } from "../../src/operations/bootstrap/types.js";
 import { validateBootstrapPayload } from "../../src/operations/bootstrap/validation.js";
@@ -296,20 +297,20 @@ describe("bootstrap write safety and evidence accounting", () => {
     );
   });
   test("the plan reports declared claims per source and is not ready when an authoritative source plans nothing", () => {
-    const sources = [
+    const sources: readonly BootstrapKnowledgeSource[] = [
       {
         id: "tracker",
         title: "Tracker",
         locator: "tracker",
-        kind: "issue_tracker" as const,
-        authority: "authoritative" as const,
+        kind: "issue_tracker",
+        authority: "authoritative",
       },
       {
         id: "spec",
         title: "Spec",
         locator: "spec",
-        kind: "specification" as const,
-        authority: "authoritative" as const,
+        kind: "specification",
+        authority: "authoritative",
       },
     ];
     const bootstrapContext = {
@@ -405,7 +406,7 @@ describe("bootstrap write safety and evidence accounting", () => {
       ...bootstrapContext,
       knowledgeSources: sources.map((source) =>
         source.id === "tracker"
-          ? { ...source, authority: "supporting" as const }
+          ? { ...source, authority: "supporting" }
           : source,
       ),
     }).structuredContent.plan;
