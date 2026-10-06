@@ -2,10 +2,14 @@ import path from "node:path";
 
 import { buildStrictWriteSet } from "../../utils/strict-modeling.js";
 import {
+  bootstrapProvenance,
   confidenceBand,
+  provenanceBody,
+  provenanceRequirementBody,
   slug,
   strictPlan,
   upsert,
+  withDocumentBody,
 } from "./candidate-helpers.js";
 import { claimFor, normalizeClaimStatement } from "./requirement-claims.js";
 import type {
@@ -84,7 +88,19 @@ function genericHeadingCandidate(
       confidence >= 0.95 ? "high" : confidence >= 0.8 ? "medium" : "low",
     evidence: [`generic_heading:${relativePath}#L${line}`],
     relationships: [],
-    applyPlan: [upsert(entity)],
+    applyPlan: [
+      withDocumentBody(
+        upsert(entity),
+        provenanceBody(
+          heading,
+          bootstrapProvenance(
+            "generic markdown",
+            `${relativePath} line ${line}`,
+            confidence,
+          ),
+        ),
+      ),
+    ],
   };
 }
 
@@ -138,7 +154,22 @@ function requirementCandidate(
       from,
       to,
     })),
-    applyPlan: strictPlan(writeSet),
+    applyPlan: strictPlan(writeSet).map((step) =>
+      step.type === "req"
+        ? withDocumentBody(
+            step,
+            provenanceRequirementBody(
+              statement,
+              bootstrapProvenance(
+                "generic markdown",
+                `${relativePath} line ${line}${heading ? ` under the heading "${heading}"` : ""}`,
+                confidence,
+              ),
+              `${relativePath}#L${line}`,
+            ),
+          )
+        : step,
+    ),
   };
 }
 
