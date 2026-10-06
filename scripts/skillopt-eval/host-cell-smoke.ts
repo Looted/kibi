@@ -19,6 +19,7 @@ import { taskFinalStateRequests } from "./runtime/final-state-requests";
 import { assertSkillOptModelsReadyForPaidWork } from "./runtime/models";
 import { resolveTaskFixture } from "./runtime/task-fixture";
 import { initializeTargetEpisodeBudget } from "./target-episode-budget";
+import { validateCandidateDescription } from "./variants";
 
 /**
  * Paid single-cell smoke: one development task, one variant, one target
@@ -28,9 +29,11 @@ import { initializeTargetEpisodeBudget } from "./target-episode-budget";
  *
  * bun scripts/skillopt-eval/host-cell-smoke.ts --artifact-root DIR \
  *   --skill kibi-bootstrap --family approval-plan-apply \
- *   [--body-file candidate.md] [--timeout-ms 600000] --allow-paid
+ *   [--body-file candidate.md [--description-file description.txt]] \
+ *   [--timeout-ms 600000] --allow-paid
  */
 // implements REQ-skillopt-claude-code-host
+// implements REQ-skillopt-description-candidates
 export async function hostCellSmokeMain(
   argv: readonly string[],
 ): Promise<number> {
@@ -41,6 +44,7 @@ export async function hostCellSmokeMain(
       skill: { type: "string", default: "kibi-bootstrap" },
       family: { type: "string" },
       "body-file": { type: "string" },
+      "description-file": { type: "string" },
       "timeout-ms": { type: "string", default: "600000" },
       "allow-paid": { type: "boolean", default: false },
     },
@@ -61,6 +65,21 @@ export async function hostCellSmokeMain(
     process.stderr.write("--artifact-root and --family are required\n");
     return 2;
   }
+  if (
+    values["description-file"] !== undefined &&
+    values["body-file"] === undefined
+  ) {
+    process.stderr.write("--description-file requires --body-file\n");
+    return 2;
+  }
+  const description =
+    values["description-file"] === undefined
+      ? undefined
+      : (await readFile(resolve(values["description-file"]), "utf8")).replace(
+          /\r?\n$/,
+          "",
+        );
+  if (description !== undefined) validateCandidateDescription(description);
   assertSkillOptModelsReadyForPaidWork();
   const sourceRoot = process.cwd();
   const artifactRoot = resolve(values["artifact-root"]);
@@ -128,7 +147,12 @@ export async function hostCellSmokeMain(
       sourceWorktree: sourceRoot,
       artifactRoot,
       targetSkill: skill,
-      ...(body === undefined ? {} : { candidate: { body } }),
+      ...(body === undefined
+        ? {}
+        : {
+            candidate:
+              description === undefined ? { body } : { body, description },
+          }),
       codexExecutable: lease.codexExecutable,
       bwrapExecutable: lease.bwrapExecutable,
       env,
@@ -156,6 +180,10 @@ export async function hostCellSmokeMain(
         body === undefined
           ? null
           : createHash("sha256").update(body).digest("hex"),
+      descriptionSha256:
+        description === undefined
+          ? null
+          : createHash("sha256").update(description).digest("hex"),
       status: completed.receipt.result.status,
       score: completed.receipt.result.score,
       hardPass: completed.receipt.result.hardPass,

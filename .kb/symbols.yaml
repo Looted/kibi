@@ -50034,3 +50034,100 @@ symbols:
         target: TEST-skillopt-claude-code-host
       - type: implements
         target: REQ-skillopt-operator-selected-harness
+  - id: SYM-e2e-skillopt-description-candidates
+    title: skillopt-description-candidates.e2e
+    status: active
+    sourceFile: documentation/tests/e2e/skillopt-description-candidates.e2e.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      ref: 'Piotr thread 2026-10-06: let SkillOpt optimize the skill description, not just the body'
+      recorded_at: 2026-10-06T00:22:46.550Z
+    relationships:
+      - type: executable_for
+        target: TEST-e2e-skillopt-description-candidates
+  - id: SYM-skillopt-validate-candidate-description
+    title: validateCandidateDescription
+    status: active
+    sourceFile: scripts/skillopt-eval/variants.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Piotr thread 2026-10-06: let SkillOpt optimize the skill description, not just the body'
+      recorded_at: 2026-10-06T00:22:52.206Z
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-description-candidates
+      - type: implements
+        target: REQ-skillopt-description-candidates
+  - id: SYM-skillopt-campaign-surface
+    title: campaignSurface
+    status: active
+    sourceFile: scripts/skillopt-eval/real-workflow.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Piotr thread 2026-10-06: let SkillOpt optimize the skill description, not just the body'
+      recorded_at: 2026-10-06T00:22:57.435Z
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-description-candidates
+      - type: implements
+        target: REQ-skillopt-description-candidates
+  - id: SYM-skillopt-candidate-frontmatter-hash
+    title: candidateFrontmatterHash
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Piotr thread 2026-10-06: let SkillOpt optimize the skill description, not just the body'
+      recorded_at: 2026-10-06T00:23:03.655Z
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-description-candidates
+      - type: implements
+        target: REQ-skillopt-description-candidates
+  - id: SYM-skillopt-replace-body-and-description
+    title: replaceCampaignBodyAndDescription
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Piotr thread 2026-10-06: let SkillOpt optimize the skill description, not just the body'
+      recorded_at: 2026-10-06T00:23:09.932Z
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-description-candidates
+      - type: implements
+        target: REQ-skillopt-description-candidates
+  - id: SYM-skillopt-campaign-candidate-hash
+    title: campaignCandidateHash
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Piotr thread 2026-10-06: let SkillOpt optimize the skill description, not just the body'
+      recorded_at: 2026-10-06T00:23:15.811Z
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-description-candidates
+      - type: implements
+        target: REQ-skillopt-description-candidates
+  - id: SYM-skillopt-campaign-candidate-surface
+    title: campaignCandidateSurface
+    status: active
+    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Piotr thread 2026-10-06: let SkillOpt optimize the skill description, not just the body'
+      recorded_at: 2026-10-06T00:23:21.964Z
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-description-candidates
+      - type: implements
+        target: REQ-skillopt-description-candidates

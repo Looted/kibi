@@ -202,3 +202,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4802129ff595
+  - type: implements
+    from: SYM-skillopt-validate-candidate-description
+    to: REQ-skillopt-description-candidates
+    created_at: 2026-10-06T00:22:53.415Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-046995dc93ac
+  - type: covered_by
+    from: SYM-skillopt-validate-candidate-description
+    to: TEST-e2e-skillopt-description-candidates
+    created_at: 2026-10-06T00:22:53.433Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dba0a21f84ae

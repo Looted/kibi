@@ -2029,5 +2029,15 @@
         "documentation/tests/e2e/skillopt-claude-code-host.e2e.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-e2e-skillopt-description-candidates",
+    "steps": [
+      [
+        "bun",
+        "run",
+        "documentation/tests/e2e/skillopt-description-candidates.e2e.ts"
+      ]
+    ]
   }
 ]
