@@ -11,13 +11,14 @@ import {
   CampaignArtifactStore,
   type CampaignSourceSurface,
   type SourceFence,
+  campaignCandidateSurface,
   defaultSourceFence,
   readBundleCandidateManifest,
   sha256Text,
   validateCampaignManifestAgainstSurface,
 } from "./campaign-artifacts";
 import { CANONICAL_SKILLS, type CanonicalSkill } from "./catalog";
-import { surface } from "./real-workflow";
+import { campaignSurface } from "./real-workflow";
 import { canonicalHash } from "./real-workflow-types";
 import {
   type SkillAssemblyReceipt,
@@ -27,13 +28,13 @@ import {
 
 export type BundlePackageDependencies = Readonly<{
   sourceFence: (root: string) => Promise<SourceFence>;
-  surface: typeof surface;
+  surface: typeof campaignSurface;
   assemble: typeof assembleCanonicalSkills;
 }>;
 
 export const defaultBundlePackageDependencies = {
   sourceFence: defaultSourceFence,
-  surface,
+  surface: campaignSurface,
   assemble: assembleCanonicalSkills,
 } satisfies BundlePackageDependencies;
 
@@ -41,8 +42,13 @@ type SelectedSurface = Readonly<{
   arm: "baseline" | "candidate";
   body: string;
   bodyHash: string;
+  /** Baseline frontmatter the selection was composed against. */
   frontmatterHash: string;
   resourcesHash: string;
+  /** 1.2.0 candidates only: the replacement description and its frontmatter. */
+  description?: string;
+  frozenDescriptionHash?: string;
+  candidateFrontmatterHash?: string;
 }>;
 
 function sameFence(left: SourceFence, right: SourceFence): boolean {
@@ -95,15 +101,44 @@ function selectedSurfaces(
     if (manifest === undefined)
       throw new CampaignArtifactError("bundle_candidate_manifest_missing");
     validateCampaignManifestAgainstSurface(manifest, baseline);
+    const { description } = campaignCandidateSurface(manifest);
     selected[entry.skill] = {
       arm: "candidate",
       body: manifest.frozenBody,
       bodyHash: manifest.frozenBodyHash,
       frontmatterHash: manifest.frontmatterHash,
       resourcesHash: manifest.resourcesHash,
+      ...(description === undefined ||
+      manifest.frozenDescriptionHash === undefined ||
+      manifest.candidateFrontmatterHash === undefined
+        ? {}
+        : {
+            description,
+            frozenDescriptionHash: manifest.frozenDescriptionHash,
+            candidateFrontmatterHash: manifest.candidateFrontmatterHash,
+          }),
     };
   }
   return selected;
+}
+
+function assembledFrontmatterHash(
+  selected: SelectedSurface,
+  baseline: CampaignSourceSurface,
+): string {
+  return selected.candidateFrontmatterHash ?? baseline.frontmatterHash;
+}
+
+function changedSkills(
+  selected: Readonly<Record<CanonicalSkill, SelectedSurface>>,
+  current: Readonly<Record<CanonicalSkill, CampaignSourceSurface>>,
+): CanonicalSkill[] {
+  return CANONICAL_SKILLS.filter(
+    (skill) =>
+      selected[skill].bodyHash !== sha256Text(current[skill].body) ||
+      assembledFrontmatterHash(selected[skill], current[skill]) !==
+        current[skill].frontmatterHash,
+  );
 }
 
 function verifyAssembly(
@@ -131,7 +166,7 @@ function verifyAssembly(
     if (
       actual.body !== expected.body ||
       sha256Text(actual.body) !== expected.bodyHash ||
-      actual.frontmatterHash !== baseline.frontmatterHash ||
+      actual.frontmatterHash !== assembledFrontmatterHash(expected, baseline) ||
       actual.resourcesHash !== baseline.resourcesHash ||
       entry.bodyHash !== expected.bodyHash ||
       entry.frontmatterHash !== actual.frontmatterHash ||
@@ -205,11 +240,7 @@ export async function runBundlePackageCampaign(
       CampaignSourceSurface
     >;
     const selected = selectedSurfaces(bundle, current);
-    if (
-      !CANONICAL_SKILLS.some(
-        (skill) => selected[skill].bodyHash !== sha256Text(current[skill].body),
-      )
-    ) {
+    if (changedSkills(selected, current).length === 0) {
       throw new CampaignArtifactError("bundle_no_improvement");
     }
 
@@ -220,10 +251,12 @@ export async function runBundlePackageCampaign(
     await mkdir(workspace, { recursive: true, mode: 0o700 });
     const candidates = {} as Record<CanonicalSkill, SkillCandidateSurface>;
     for (const skill of CANONICAL_SKILLS) {
+      const description = selected[skill].description;
       candidates[skill] = {
         body: selected[skill].body,
         frontmatterHash: selected[skill].frontmatterHash,
         resourcesHash: selected[skill].resourcesHash,
+        ...(description === undefined ? {} : { description }),
       };
     }
     const receipt = await dependencies.assemble({
@@ -257,6 +290,18 @@ export async function runBundlePackageCampaign(
           (skill) =>
             selected[skill].bodyHash !== sha256Text(current[skill].body),
         ),
+        ...(CANONICAL_SKILLS.some(
+          (skill) => selected[skill].description !== undefined,
+        )
+          ? {
+              candidateDescriptionsChanged: CANONICAL_SKILLS.filter(
+                (skill) =>
+                  selected[skill].description !== undefined &&
+                  selected[skill].description !==
+                    current[skill].manifest?.description,
+              ),
+            }
+          : {}),
       },
       selection: CANONICAL_SKILLS.map((skill) => ({
         skill,
@@ -265,6 +310,14 @@ export async function runBundlePackageCampaign(
         baselineBodyHash: sha256Text(current[skill].body),
         frontmatterHash: selected[skill].frontmatterHash,
         resourcesHash: selected[skill].resourcesHash,
+        ...(selected[skill].description === undefined
+          ? {}
+          : {
+              frozenDescription: selected[skill].description,
+              frozenDescriptionHash: selected[skill].frozenDescriptionHash,
+              candidateFrontmatterHash:
+                selected[skill].candidateFrontmatterHash,
+            }),
       })),
       evidenceValid: false,
       bundleEvaluation: "not-performed",

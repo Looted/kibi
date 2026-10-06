@@ -5,6 +5,8 @@ import { contractHash } from "./contracts/common";
 import { type SkillOptModelId, modelForRole } from "./runtime/models";
 
 export const MAX_CANDIDATE_BODY_BYTES = 100_000;
+/** Claude skill loaders cap the frontmatter `description` at 1024 characters. */
+export const MAX_CANDIDATE_DESCRIPTION_CHARS = 1_024;
 
 export const VariantSchema = z.enum(["baseline", "one-shot", "skillopt"]);
 export type Variant = z.infer<typeof VariantSchema>;
@@ -29,6 +31,11 @@ export type FrozenVariant = VariantSurface &
       | "codex-one-shot-unavailable"
       | "skillopt";
     sourceRequestHash?: string;
+    /**
+     * Candidate frontmatter `description` that replaces the baseline value at
+     * assembly. Absent for every body-only variant.
+     */
+    description?: string;
   }>;
 
 export type OneShotRequest = Readonly<{
@@ -75,7 +82,11 @@ export type CandidateValidationErrorCode =
   | "frontmatter_changed"
   | "resources_changed"
   | "direct_kb_guidance"
-  | "prohibited_host_or_provider_claim";
+  | "prohibited_host_or_provider_claim"
+  | "description_empty"
+  | "description_multiline"
+  | "description_too_long"
+  | "description_angle_bracket";
 
 export function sha256Text(value: string): string {
   return createHash("sha256").update(value, "utf8").digest("hex");
@@ -115,6 +126,41 @@ export function validateCandidateBody(body: string): void {
     throw new CandidateValidationError("prohibited_host_or_provider_claim");
   }
   if (body.split(/\r?\n/).some(hasDirectKbGuidance)) {
+    throw new CandidateValidationError("direct_kb_guidance");
+  }
+}
+
+/**
+ * A candidate `description` is the text agents read to decide whether to load
+ * the skill, so it must survive every skill loader unchanged: one non-empty
+ * line of at most 1024 characters without angle brackets, and it follows the
+ * same host-neutral content policy as candidate bodies.
+ */
+// implements REQ-skillopt-description-candidates
+export function validateCandidateDescription(description: string): void {
+  if (typeof description !== "string" || description.trim().length === 0) {
+    throw new CandidateValidationError("description_empty");
+  }
+  // CR/LF plus the other characters YAML or JSON readers may treat as a line
+  // break or reject outright inside a scalar.
+  // biome-ignore lint/suspicious/noControlCharactersInRegex: rejecting controls is the point.
+  if (/[\u0000-\u001f\u007f\u0085\u2028\u2029]/.test(description)) {
+    throw new CandidateValidationError("description_multiline");
+  }
+  if ([...description].length > MAX_CANDIDATE_DESCRIPTION_CHARS) {
+    throw new CandidateValidationError("description_too_long");
+  }
+  if (/[<>]/.test(description)) {
+    throw new CandidateValidationError("description_angle_bracket");
+  }
+  if (
+    /\b(?:OpenCode|Cursor)\b|(?:OPENAI|CODEX)_API_KEY|provider\s+(?:SDK|API)/i.test(
+      description,
+    )
+  ) {
+    throw new CandidateValidationError("prohibited_host_or_provider_claim");
+  }
+  if (hasDirectKbGuidance(description)) {
     throw new CandidateValidationError("direct_kb_guidance");
   }
 }

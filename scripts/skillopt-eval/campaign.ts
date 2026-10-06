@@ -40,6 +40,7 @@ const VALUE_FLAGS = new Set([
   "--feedback",
   "--insertion-file",
   "--body-file",
+  "--description-file",
   "--candidate-manifest",
   "--previous-evaluation",
   "--evaluation",
@@ -67,7 +68,7 @@ function usage(): string {
     "Usage: campaign.ts <revise|compose|evaluate|confirm|package> --artifact-root PATH [options]",
     "Common: --source-root PATH",
     "revise: --skill SKILL --objective-file FILE --heading HEADING --allow-paid [--feedback FILE]",
-    "compose: --skill SKILL (--body-file FILE | --insertion-file FILE [--insertion-file FILE ...])",
+    "compose: --skill SKILL (--body-file FILE [--description-file FILE] | --insertion-file FILE [--insertion-file FILE ...])",
     "evaluate: --skill SKILL --candidate-manifest FILE [1..3] --max-target-episodes N --repeats 1..3 --allow-paid",
     "confirm: --previous-evaluation FILE --max-target-episodes N --repeats 1..3 --allow-paid",
     "package: --candidate-manifest FILE [1..4] [--evaluation FILE] OR --candidate-manifest <bundle-manifest>",
@@ -215,6 +216,12 @@ async function packageSelection(args: ParsedArgs): Promise<
   return { kind: "individual", manifests: await manifests(args) };
 }
 
+/** A description file holds one line; drop only the editor's final newline. */
+async function readDescriptionFile(path: string): Promise<string> {
+  const text = await readFile(resolve(path), "utf8");
+  return text.replace(/\r?\n$/, "");
+}
+
 async function composeInsertions(args: ParsedArgs) {
   const paths = repeated(args, "--insertion-file");
   if (paths.length < 1 || paths.length > 4)
@@ -272,6 +279,7 @@ export async function campaignMain(
     }
     if (args.command === "compose") {
       const bodyFile = optionalValue(args, "--body-file");
+      const descriptionFile = optionalValue(args, "--description-file");
       if (
         bodyFile !== undefined &&
         repeated(args, "--insertion-file").length > 0
@@ -279,6 +287,8 @@ export async function campaignMain(
         throw new CampaignCliError(
           "--body-file and --insertion-file are mutually exclusive",
         );
+      if (descriptionFile !== undefined && bodyFile === undefined)
+        throw new CampaignCliError("--description-file requires --body-file");
       const manifest = await runComposeCampaign({
         sourceRoot: source,
         artifactRoot: artifact,
@@ -287,10 +297,24 @@ export async function campaignMain(
         ...(bodyFile === undefined
           ? {}
           : { replacementBody: await readFile(resolve(bodyFile), "utf8") }),
+        ...(descriptionFile === undefined
+          ? {}
+          : {
+              replacementDescription:
+                await readDescriptionFile(descriptionFile),
+            }),
         dependencies,
       });
       process.stdout.write(
-        `${JSON.stringify({ command: args.command, status: "complete", skill: manifest.skill, frozenBodyHash: manifest.frozenBodyHash })}\n`,
+        `${JSON.stringify({
+          command: args.command,
+          status: "complete",
+          skill: manifest.skill,
+          frozenBodyHash: manifest.frozenBodyHash,
+          ...(manifest.frozenDescriptionHash === undefined
+            ? {}
+            : { frozenDescriptionHash: manifest.frozenDescriptionHash }),
+        })}\n`,
       );
       return 0;
     }
@@ -367,7 +391,7 @@ export async function campaignMain(
           command: args.command,
           status: "ready-for-review",
           skills: receipt.skills
-            .filter((entry) => entry.bodyChanged)
+            .filter((entry) => entry.bodyChanged || entry.descriptionChanged)
             .map((entry) => entry.id)
             .sort(),
         })}\n`,
@@ -388,7 +412,7 @@ export async function campaignMain(
         command: args.command,
         status: "ready-for-review",
         skills: receipt.skills
-          .filter((entry) => entry.bodyChanged)
+          .filter((entry) => entry.bodyChanged || entry.descriptionChanged)
           .map((entry) => entry.id)
           .sort(),
       })}\n`,
