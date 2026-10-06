@@ -84,6 +84,7 @@
     "test:skillopt": "bun test --preload ./scripts/skillopt-eval/offline-test-preload.ts --timeout 15000 ./scripts/skillopt-eval/tests",
     "benchmark:journaled-engine": "node documentation/tests/benchmarks/journaled-engine.bench.mjs",
     "docs:site": "bun docs-site/build.ts",
+    "docs:terminal-demo": "bun docs-site/terminal-demo.ts",
     "sync:cursor-plugin-local": "./scripts/sync-cursor-plugin-local.sh",
     "build": "bun run build:plugin-sdk && bun run build:agent-core && bun run build:plugin-builtin && bun run build:plugin-treesitter && bun run build:plugin-jev && bun run build:cli && bun run build:runtime && bun run build:mcp && bun run build:opencode && bun run build:codex && bun run build:cursor && bun run build:zcode && bun run build:claude",
     "typecheck:plugin-sdk": "tsc -p packages/plugin-sdk/tsconfig.json --noEmit",

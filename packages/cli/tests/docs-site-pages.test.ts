@@ -40,6 +40,42 @@ describe("documentation site pages", () => {
     }
   });
 
+  test("the landing page and README play the same terminal scenes", async () => {
+    // Loaded at runtime: docs-site/ sits outside this package's tsconfig rootDir.
+    const { TERMINAL_SCENES, TERMINAL_SVG_PATH, terminalDemoSvg } =
+      (await import(path.join(repoRoot, "docs-site/terminal-demo.ts"))) as {
+        TERMINAL_SCENES: ReadonlyArray<{ name: string }>;
+        TERMINAL_SVG_PATH: string;
+        terminalDemoSvg: () => string;
+      };
+    // The README cannot run scripts, so it shows a committed animated SVG.
+    // Regenerate it with `bun run docs:terminal-demo` after editing a scene.
+    expect(readFileSync(path.join(repoRoot, TERMINAL_SVG_PATH), "utf8")).toBe(
+      terminalDemoSvg(),
+    );
+    expect(readFileSync(path.join(repoRoot, "README.md"), "utf8")).toContain(
+      `<img src="${TERMINAL_SVG_PATH}"`,
+    );
+
+    const out = mkdtempSync(path.join(tmpdir(), "kibi-docs-site-demo-"));
+    try {
+      expect(runDocsSite(out).status).toBe(0);
+      const index = readFileSync(path.join(out, "index.html"), "utf8");
+      expect(index).toContain("data-terminal-demo");
+      const tabs = [...index.matchAll(/class="kd-tab"[^>]*>([^<]+)</g)];
+      expect(tabs.map((match) => match[1])).toEqual(
+        TERMINAL_SCENES.map((scene) => scene.name),
+      );
+      // The hero links the live report; the invented example ledger is gone.
+      expect(index).toContain(
+        'href="kibi-report/" data-umami-event="cta-click" data-umami-event-target="hero-live-report">See Kibi&rsquo;s live report</a>',
+      );
+      expect(index).not.toContain('class="ledger"');
+    } finally {
+      rmSync(out, { recursive: true, force: true });
+    }
+  });
+
   test("renders repository docs beside the health report and fails on a broken internal link", () => {
     const out = mkdtempSync(path.join(tmpdir(), "kibi-docs-site-"));
     try {
