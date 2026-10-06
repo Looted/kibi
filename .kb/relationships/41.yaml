@@ -251,3 +251,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d2df7fccac3d
+  - type: implements
+    from: SYM-docs-site-catalog-UMAMI_WEBSITE_ID
+    to: REQ-docs-site-analytics
+    created_at: 2026-10-06T17:53:55.703Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-74d993462c22
+  - type: covered_by
+    from: SYM-docs-site-catalog-UMAMI_WEBSITE_ID
+    to: TEST-docs-site-pages
+    created_at: 2026-10-06T17:53:55.725Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bfc5998c39af

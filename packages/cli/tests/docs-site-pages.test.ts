@@ -89,4 +89,31 @@ describe("documentation site pages", () => {
       rmSync(brokenOut, { recursive: true, force: true });
     }
   });
+
+  test("every page loads Umami analytics scoped to the published host and tags the key calls to action", () => {
+    const out = mkdtempSync(path.join(tmpdir(), "kibi-docs-site-analytics-"));
+    try {
+      expect(runDocsSite(out).status).toBe(0);
+      const tag =
+        '<script defer src="https://cloud.umami.is/script.js" data-website-id="197fb489-cdd4-4d95-ae8a-119dc6422a45" data-domains="looted.github.io"></script>';
+      for (const page of [
+        "index.html",
+        "guide/quick-start.html",
+        "reference/cli.html",
+      ]) {
+        const html = readFileSync(path.join(out, page), "utf8");
+        expect(html.split(tag).length - 1, page).toBe(1);
+        expect(html, page).toContain('data-umami-event="github-click"');
+      }
+      const index = readFileSync(path.join(out, "index.html"), "utf8");
+      expect(index).toContain(
+        'href="guide/quick-start.html" data-umami-event="cta-click" data-umami-event-target="install"',
+      );
+      // Copy and tab clicks report through the client script, which stays a no-op without Umami.
+      expect(index).toContain('track("install-copy", { method: panel })');
+      expect(index).toContain('track("install-tab"');
+    } finally {
+      rmSync(out, { recursive: true, force: true });
+    }
+  });
 });

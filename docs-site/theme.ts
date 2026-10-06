@@ -5,6 +5,8 @@
  * system, the client script (search, copy buttons, scrollspy, mobile nav),
  * and the landing page. Output must stay self-contained per docs/brand-guide.md:
  * inline styles and scripts only, platform font stacks, no network assets.
+ * The one exception is the deferred Umami analytics script in the page head;
+ * the site works unchanged when it is blocked.
  *
  * Colors are the brand tokens from docs/brand-guide.md. Do not introduce
  * other hues; proven green stays reserved for complete proof.
@@ -13,6 +15,9 @@
 import {
   AGENT_SETUP_PROMPT,
   SITE_TAGLINE,
+  UMAMI_DOMAINS,
+  UMAMI_SCRIPT_SRC,
+  UMAMI_WEBSITE_ID,
   publishedLlmsIndexHref,
 } from "./catalog.js";
 
@@ -622,6 +627,14 @@ export const clientScript = String.raw`
   var cfg = window.KIBI_DOCS || { root: "" };
   var root = cfg.root || "";
 
+  /* ----- Analytics (no-op when Umami is blocked or absent) ----- */
+  function track(name, data) {
+    var u = window.umami;
+    if (u && typeof u.track === "function") {
+      try { u.track(name, data); } catch (err) { /* never break the page */ }
+    }
+  }
+
   /* ----- Mobile navigation ----- */
   var toggle = document.querySelector(".nav-toggle");
   var backdrop = document.querySelector(".backdrop");
@@ -650,6 +663,12 @@ export const clientScript = String.raw`
     var code = figure ? figure.querySelector("pre code") : null;
     if (!code) return;
     var text = code.textContent || "";
+    var panel = figure.getAttribute("data-pm-panel");
+    if (panel) track("install-copy", { method: panel });
+    else {
+      var lang = figure.querySelector(".code-lang");
+      track("code-copy", { lang: lang ? lang.textContent : "", page: location.pathname });
+    }
     function done(ok) {
       btn.classList.add("copied");
       btn.textContent = ok ? "Copied" : "Failed";
@@ -696,7 +715,9 @@ export const clientScript = String.raw`
   }
   document.addEventListener("click", function (e) {
     var tab = e.target.closest ? e.target.closest(".pm-tab") : null;
-    if (tab) selectPm(tab);
+    if (!tab) return;
+    selectPm(tab);
+    track("install-tab", { method: tab.getAttribute("data-pm") });
   });
   document.addEventListener("keydown", function (e) {
     var tab = e.target.closest ? e.target.closest(".pm-tab") : null;
@@ -938,7 +959,9 @@ export function landingContent(args: {
 </figure>`;
     })
     .join("\n");
-  const liveReport = reportUrl ? `<a href="${reportUrl}">Live report</a>` : "";
+  const liveReport = reportUrl
+    ? `<a href="${reportUrl}" data-umami-event="cta-click" data-umami-event-target="ledger-report">Live report</a>`
+    : "";
   const reportStrip = reportUrl
     ? `<section class="report-strip">
   <div>
@@ -946,7 +969,7 @@ export function landingContent(args: {
     <p>Every push to the default branch republishes requirement health for Kibi itself: how many current requirements are fully proven, which ones contradict each other, and which evidence has gone stale.</p>
     <div class="report-note"><span class="dot proven"></span>Proven means fresh end-to-end evidence on the current code snapshot.</div>
   </div>
-  <a class="btn btn-ghost" href="${reportUrl}">Open the live report</a>
+  <a class="btn btn-ghost" href="${reportUrl}" data-umami-event="cta-click" data-umami-event-target="live-report">Open the live report</a>
 </section>`
     : "";
   return `<div class="prose landing">
@@ -960,8 +983,8 @@ export function landingContent(args: {
       <div>
       <p class="hero-sub">You keep prompting your coding agent. Kibi writes that intent down beside the code, carries it onto every branch, and treats &ldquo;done&rdquo; as a claim that needs fresh evidence.</p>
       <div class="hero-actions">
-        <a class="btn btn-primary" href="${root}guide/quick-start.html">Install Kibi</a>
-        <a class="btn btn-ghost" href="${root}guide/reading-the-report.html">Read a health report</a>
+        <a class="btn btn-primary" href="${root}guide/quick-start.html" data-umami-event="cta-click" data-umami-event-target="install">Install Kibi</a>
+        <a class="btn btn-ghost" href="${root}guide/reading-the-report.html" data-umami-event="cta-click" data-umami-event-target="read-report">Read a health report</a>
       </div>
       <p class="hero-canon">${escapeHtml(SITE_TAGLINE)}</p>
     </div>
@@ -1120,7 +1143,7 @@ export function layout(page: PageShell): string {
   <a href="${root}guide/welcome.html"${section === "guide" ? ' aria-current="page"' : ""}>Guide</a>
   <a href="${root}reference/cli.html"${section === "reference" ? ' aria-current="page"' : ""}>Reference</a>
   ${reportHref ? `<a href="${reportHref}">Report</a>` : ""}
-  <a class="external" href="${githubUrl}" target="_blank" rel="noopener noreferrer">GitHub</a>
+  <a class="external" href="${githubUrl}" target="_blank" rel="noopener noreferrer" data-umami-event="github-click" data-umami-event-location="topbar">GitHub</a>
 </nav>`;
 
   const tocBlock = tocHtml
@@ -1148,6 +1171,7 @@ export function layout(page: PageShell): string {
 <meta property="og:title" content="${title}">
 <meta property="og:description" content="${description}">
 <link rel="icon" href="${favicon}">
+<script defer src="${UMAMI_SCRIPT_SRC}" data-website-id="${UMAMI_WEBSITE_ID}" data-domains="${UMAMI_DOMAINS}"></script>
 <style>${styles}</style>
 </head>
 <body${section === null ? ' class="page-home"' : ""}>
@@ -1184,9 +1208,9 @@ ${pagerHtml}
 ${tocBlock}
 </div>
 <footer class="footer">
-  <span>Kibi documentation &mdash; built from the repository <code style="font-family:var(--mono)">docs/</code> sources. ${editLink}</span>
+  <span>Kibi documentation &mdash; built from the repository <code style="font-family:var(--mono)">docs/</code> sources. Visits are counted with cookieless Umami analytics; the Kibi packages send none. ${editLink}</span>
   <nav aria-label="Footer">
-    <a class="external" href="${githubUrl}" target="_blank" rel="noopener noreferrer">GitHub</a>
+    <a class="external" href="${githubUrl}" target="_blank" rel="noopener noreferrer" data-umami-event="github-click" data-umami-event-location="footer">GitHub</a>
     ${reportHref ? `<a href="${reportHref}">Requirement health</a>` : ""}
     <a class="external" href="${githubUrl}/blob/${branch}/LICENSE.md" target="_blank" rel="noopener noreferrer">AGPL-3.0</a>
     ${commitLink}

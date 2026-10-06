@@ -321,3 +321,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2c64c4976408
+  - type: implements
+    from: SYM-docs-site-theme-clientScript
+    to: REQ-docs-site-analytics
+    created_at: 2026-10-06T17:54:10.769Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f0c4ba4daf98
