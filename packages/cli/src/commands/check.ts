@@ -72,6 +72,11 @@ import { IMPACT_REVIEW_PATH } from "../traceability/impact-review.js";
 import { validateStagedMarkdown } from "../traceability/markdown-validate.js";
 import { readSnapshotKnowledge } from "../traceability/snapshot-knowledge.js";
 import {
+  collectIntroducedConsistencyViolations,
+  formatConsistencyViolations,
+  stagesKnowledge,
+} from "../traceability/staged-consistency.js";
+import {
   type KibiImpactDiagnostic,
   collectStagedKibiDiagnostics,
 } from "../traceability/staged-diagnostics.js";
@@ -831,6 +836,23 @@ export async function checkCommand(
           snapshot.headTree,
           snapshot.readBlobs,
         );
+        // A commit must not introduce a contradiction or an infeasible
+        // scenario that full `kibi check` would report on the same tree.
+        if (stagesKnowledge(stagedInventory.map((file) => file.path))) {
+          const consistency = await collectIntroducedConsistencyViolations(
+            snapshot,
+            snapshotEntities,
+          );
+          if (consistency.length > 0) {
+            printSnapshotResult({
+              format: options.format,
+              coverage: stagedCoverage,
+              violations: consistency,
+              messages: formatConsistencyViolations(consistency),
+            });
+            return { exitCode: options.dryRun ? 0 : 1 };
+          }
+        }
         const snapshotRequirementIds = new Set(
           snapshotEntities
             .filter((row) => row.entity.type === "req")
