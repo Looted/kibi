@@ -33757,10 +33757,10 @@ coordinates:
     sourceLine: 1
   SYM-test-publish-metadata-verifier:
     identityHash: 77e0bc68bd3fbdb65448bce75a071032dd16bb664c04bd4eb8d70bc5fddf7609
-    sourceHash: fa9bba69426bb5437f26e224e20336d3d43c47513e6216b97a7a617ef744a4fa
+    sourceHash: fa68299875090ed5302557bb3fcf4a34ba59ca2fc18ca76a01ee4c421a8b4e1c
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 379
+    sourceEndLine: 383
     sourceFile: scripts/tests/verify-publish-metadata.test.ts
     sourceLine: 1
   SYM-test-release-pack-workflow-contract:
