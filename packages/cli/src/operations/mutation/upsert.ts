@@ -24,6 +24,7 @@ import {
   assertSemanticInventoryBoundary,
 } from "../semantic-advisor/ingestion-boundary.js";
 import type { SemanticAdvisorReceipt } from "../semantic-advisor/types.js";
+import { entityContextWarnings } from "./context-warning.js";
 import { buildUpsertCommitGoal, formatUpsertError } from "./contradictions.js";
 import { resolveUpsertOrigin } from "./origin.js";
 import {
@@ -769,6 +770,12 @@ export async function executeUpsert(
         ...semantic.warnings,
         ...coverage,
         ...idStyleWarnings,
+        ...entityContextWarnings(
+          input,
+          commitEntity ?? validated.entity,
+          context.workspaceRoot,
+          sourceWrite?.receipt.path,
+        ),
         ...shardWarnings,
       ],
       semanticAdvisor: semantic.receipt,

@@ -280,6 +280,57 @@ export function hasContext(
   return assessContext(type, body, entity).ok;
 }
 
+const TYPE_LABEL: Record<string, string> = {
+  req: "requirement",
+  scenario: "scenario",
+  test: "test",
+  adr: "ADR",
+  fact: "observation fact",
+};
+
+// implements REQ-kb-entity-body-context
+export type ContextFinding = Readonly<{
+  type: string;
+  id: string;
+  reason: NonNullable<ContextAssessment["reason"]>;
+  words: number;
+  description: string;
+  suggestion: string;
+}>;
+
+/**
+ * The finding for an entity whose body lacks context, or null when it has
+ * context, is exempt, or is tagged review:context-missing. The strict check
+ * and the kb_upsert warning share it.
+ */
+// implements REQ-kb-entity-body-context
+export function contextFinding(
+  type: string,
+  id: string,
+  body: string,
+  entity: ContextEntity & Readonly<{ tags?: unknown }>,
+): ContextFinding | null {
+  const assessment = assessContext(type, body, entity);
+  if (assessment.ok || assessment.reason === undefined) return null;
+  if (Array.isArray(entity.tags) && entity.tags.includes(CONTEXT_MISSING_TAG)) {
+    return null;
+  }
+  return {
+    type,
+    id,
+    reason: assessment.reason,
+    words: assessment.words,
+    description: `${TYPE_LABEL[type] ?? type} ${id} has no body context: ${missingContextDescription(type, assessment.reason)}`,
+    suggestion: CONTEXT_MISSING_HINT,
+  };
+}
+
+/** True when the entity's tags acknowledge missing context as legacy. */
+// implements REQ-kb-entity-body-context
+export function isContextAcknowledged(tags: unknown): boolean {
+  return Array.isArray(tags) && tags.includes(CONTEXT_MISSING_TAG);
+}
+
 /** What is missing for a type, in the words the check and warnings use. */
 // implements REQ-kb-entity-body-context
 export function missingContextDescription(

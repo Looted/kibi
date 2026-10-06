@@ -297,4 +297,19 @@ export const GENERATED_RULES = [
     enforcementClass: "advisory",
     category: "integrity",
   },
+  {
+    name: "entity-context-missing",
+    description:
+      "A current requirement, scenario, test, ADR or observation/meta fact must carry body context: at least 12 words of prose (requirements: under a Context, Rationale, Why, Background, Source, Notes or Evidence heading) that do not restate the title or semantic_text; entities tagged review:context-missing are acknowledged legacy and exempt",
+    enforcementClass: "canonical",
+    category: "integrity",
+  },
+  {
+    name: "entity-context-acknowledged",
+    description:
+      "Informational: how many current entities carry the review:context-missing tag, so the legacy context backlog stays visible; one summary finding per check",
+    enforcementClass: "advisory",
+    category: "lifecycle",
+    diagnosticSeverity: "info",
+  },
 ] as const;
