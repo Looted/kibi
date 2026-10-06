@@ -72,8 +72,6 @@ function compilePlan(overrides: Partial<CompilePlanV1> = {}): CompilePlanV1 {
     },
     target: {
       mode: "create",
-      context:
-        "The fixture requester gave this reason so the plan carries context for the test.",
       requirementId: "REQ-atomic-a",
       selectionReason: "test",
     },

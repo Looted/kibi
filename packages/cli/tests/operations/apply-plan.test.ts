@@ -63,8 +63,6 @@ const basePlan = {
   },
   target: {
     mode: "create" as const,
-    context:
-      "The fixture requester gave this reason so the plan carries context for the test.",
     requirementId: "REQ-apply",
     selectionReason: "test",
   },
@@ -968,8 +966,6 @@ describe("apply plan source recovery and migration", () => {
       },
       target: {
         mode: "create",
-        context:
-          "The fixture requester gave this reason so the plan carries context for the test.",
         requirementId: "REQ-apply",
         selectionReason: "test",
       },
