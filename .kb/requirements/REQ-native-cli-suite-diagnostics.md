@@ -7,6 +7,7 @@ tags:
   - spike
   - linux
   - diagnostics
+  - review:context-missing
 text_ref: scripts/swipl-spike.py
 semantic_text: On Linux, native CLI diagnostics must preserve the monitored command exit code and stdout and stderr. On Linux, native CLI diagnostics must observe descendants launched by background threads while sampling at most 256 processes and 256 tasks per process. Native CLI diagnostic samples must omit command arguments and environment variables. An unavailable native CLI diagnostic output must preserve a successful monitored command result and stdout and stderr.
 semantic_clauses:

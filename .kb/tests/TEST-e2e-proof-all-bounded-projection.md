@@ -6,6 +6,7 @@ tags:
   - consumer
   - projection
   - e2e
+  - review:context-missing
 text_ref: documentation/tests/e2e/packed/proof-all-bounded-projection.test.ts
 verification_scope: end_to_end
 verification_perspective: consumer

@@ -9,6 +9,7 @@ tags:
   - plugin
   - mcp
   - consumer-local
+  - review:context-missing
 semantic_text: The kibi-codex plugin registers consumer-local MCP startup behavior for Codex.
 logic_claims:
   - CLAIM-387DE160D72D606F

@@ -8,6 +8,7 @@ tags:
   - mcp
   - consumer-local
   - launcher
+  - review:context-missing
 priority: must
 id: SCEN-cursor-consumer-local-mcp-launcher-v1
 type: scenario

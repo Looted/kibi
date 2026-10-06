@@ -12,6 +12,7 @@ tags:
   - prolog
   - rdf
   - persistence
+  - review:context-missing
 semantic_text: |-
   Kibi MUST run one Node.js 18+ single-writer engine for each canonical workspace and branch
 

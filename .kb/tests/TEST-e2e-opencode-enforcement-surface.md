@@ -50,6 +50,8 @@ origin:
   kind: migration
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
+tags:
+  - review:context-missing
 ---
 
 Packed end-to-end regression for installed opencode plugin enforcement surface.

@@ -7,6 +7,7 @@ tags:
   - git
   - merge
   - lane:strict
+  - review:context-missing
 text_ref: packages/cli/src/commands/merge-driver.ts
 semantic_text: Kibi merge-driver must keep every record that either side of a merge added to the symbols manifest or a relationship shard. Kibi merge-driver must apply a record edit or deletion made on a single side. Kibi merge-driver must union the relationships and links that both sides added to the same symbol. Kibi merge-driver must report each field that both sides changed differently, leave conflict markers, and exit non-zero. Kibi merge-driver must reproduce the current manifest byte for byte if the other side changed nothing
 semantic_source_field: semantic_text

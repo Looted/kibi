@@ -6,6 +6,7 @@ tags:
   - bundle
   - release
   - lane:strict
+  - review:context-missing
 priority: must
 text_ref: scripts/populate-swipl-platform-packages.mjs
 semantic_text: Release packaging must populate each kibi-swipl platform package only from a SWI-Prolog archive whose SHA-256 sidecar, pinned provenance, and binary SHA-256 all verify. Release packaging must ship each platform package payload as regular files with no symbolic links. The release dry-run workflow must not be able to publish.

@@ -7,6 +7,7 @@ tags:
   - v2
   - e2e
   - consumer
+  - review:context-missing
 text_ref: documentation/tests/e2e/packed/multilingual-source-analysis.test.ts; packages/plugin-sdk/tests/sdk.test.ts; packages/plugin-builtin/tests/builtin.test.ts; packages/cli/tests/plugins/source-analysis-v2.test.ts; packages/plugin-treesitter/tests/plugin.test.js
 verification_scope: end_to_end
 verification_perspective: consumer

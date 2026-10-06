@@ -321,3 +321,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2c64c4976408
+  - type: specified_by
+    from: REQ-kb-entity-body-context
+    to: SCEN-kb-entity-body-context
+    created_at: 2026-10-06T18:33:08.839Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1ee6a43cc24b
+  - type: relates_to
+    from: REQ-kb-entity-body-context
+    to: REQ-cli-schema-migration
+    created_at: 2026-10-06T18:33:08.891Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dc7b3ca430d9

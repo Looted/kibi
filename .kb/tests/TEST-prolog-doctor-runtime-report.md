@@ -6,6 +6,7 @@ verification_perspective: internal
 tags:
   - prolog
   - bundle
+  - review:context-missing
 proof_contract:
   version: kibi.proof-contract.v1
   integration: self-proof

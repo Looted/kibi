@@ -4,6 +4,7 @@ status: passing
 verification_scope: integration
 tags:
   - vocabulary-convergence
+  - review:context-missing
 id: TEST-kibi-vocabulary-convergence-harness
 type: test
 origin:

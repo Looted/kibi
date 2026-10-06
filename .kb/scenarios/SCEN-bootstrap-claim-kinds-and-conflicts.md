@@ -6,6 +6,7 @@ tags:
   - intent-claims
   - knowledge-sources
   - review
+  - review:context-missing
 expects: success
 origin:
   kind: agent

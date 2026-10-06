@@ -6,6 +6,7 @@ tags:
   - naming
   - validation
   - vocabulary-convergence
+  - review:context-missing
 id: SCEN-kibi-entity-id-style
 type: scenario
 origin:

@@ -6,6 +6,7 @@ tags:
   - cli
   - init
   - canonical-layout
+  - review:context-missing
 semantic_text: 'kibi init must create the canonical .kb/ knowledge namespace: entity lanes under .kb/requirements, .kb/scenarios, .kb/tests, .kb/facts, .kb/adr, .kb/flags, and .kb/events, plus .kb/symbols.yaml, .kb/symbol-coordinates.yaml, and Kibi-owned .kb/manifest.json lifecycle metadata. It must not write user-configurable .kb/config.json, entity path overrides, or persistent check-disabling policy. Git hooks may be installed. Gitignore must track authored .kb/ knowledge lanes and ignore derived .kb/branches, .kb/recovery, .kb/verification, and .kb/briefs trees.'
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text

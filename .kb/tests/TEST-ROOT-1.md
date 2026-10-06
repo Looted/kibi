@@ -3,7 +3,7 @@ id: TEST-ROOT-1
 title: Feature Test
 type: test
 status: passing
-tags: [test]
+tags: [test, review:context-missing]
 origin:
   kind: migration
   ref: kibi migrate v5->v6

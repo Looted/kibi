@@ -5,6 +5,7 @@ tags:
   - prolog
   - bundle
   - ci
+  - review:context-missing
 text_ref: scripts/simulate-readme-quickstart.mjs
 id: SCEN-prolog-bundled-quickstart
 type: scenario

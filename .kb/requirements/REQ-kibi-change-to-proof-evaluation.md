@@ -6,7 +6,7 @@ created_at: 2026-08-13T00:00:00Z
 updated_at: 2026-08-13T00:00:00Z
 priority: should
 owner: platform-team
-tags: [evaluation, search, planning, dogfood]
+tags: [evaluation, search, planning, dogfood, review:context-missing]
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
 semantic_source_hash: ed3c6c2ee05785273f1379355d2f61048fba541068e532c35469a5a08c2ec4dd
@@ -25,6 +25,7 @@ origin:
   kind: migration
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
+semantic_text: Kibi must ship deterministic, reviewable evaluation fixtures for intent search and change-to-proof planning so dogfood projects can compare source-linked retrieval, clause disposition, abstention, and plan quality before and after a KB migration.
 ---
 
 Kibi must ship deterministic, reviewable evaluation fixtures for intent search and change-to-proof planning so dogfood projects can compare source-linked retrieval, clause disposition, abstention, and plan quality before and after a KB migration.

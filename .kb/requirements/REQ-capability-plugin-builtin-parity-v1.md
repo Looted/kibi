@@ -3,6 +3,7 @@ title: Builtin capability parity
 status: open
 tags:
   - plugins
+  - review:context-missing
 semantic_text: When kibi.plugins is absent, the host must use only automatically registered kibi-plugin-builtin providers. Builtin providers must be allowed to keep historical deterministic semantic ontology and TypeScript symbol analysis.
 logic_claims:
   - CLAIM-C03388C2E2F780AC

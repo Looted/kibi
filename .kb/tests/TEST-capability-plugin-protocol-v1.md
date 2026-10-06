@@ -4,6 +4,7 @@ status: passing
 tags:
   - plugins
   - protocol
+  - review:context-missing
 verification_scope: unit
 verification_perspective: internal
 id: TEST-capability-plugin-protocol-v1

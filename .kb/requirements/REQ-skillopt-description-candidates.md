@@ -5,6 +5,7 @@ priority: must
 tags:
   - skillopt
   - evaluation
+  - review:context-missing
 semantic_text: SkillOpt must let a candidate replace the skill frontmatter description together with the skill body. Every other frontmatter field must stay frozen. A replacement description must be one non-empty line of at most 1024 characters without angle brackets and must follow the candidate content policy. The candidate manifest must record the replacement description and its hash. Every scored cell, cohort binding and package must use the exact recorded description. A replacement description without a replacement body must be refused.
 logic_claims:
   - CLAIM-DA8D366AE8B1C620

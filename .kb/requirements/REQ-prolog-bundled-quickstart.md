@@ -6,6 +6,7 @@ tags:
   - bundle
   - ci
   - lane:strict
+  - review:context-missing
 priority: must
 text_ref: docs/install.md
 semantic_text: Published installation guidance must state that no SWI-Prolog install is needed on the supported Linux and macOS platforms. Published installation guidance must document the KIBI_SWIPL override, the lookup order, and the doctor source report. The README quick start must reach a bootstrapped project from the packed release tarballs on every launch platform with no SWI-Prolog installed.

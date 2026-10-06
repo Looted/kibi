@@ -10,6 +10,7 @@ tags:
   - mcp
   - kibi
   - query
+  - review:context-missing
 links:
   - type: specified_by
     target: SCEN-mcp-tool-query

@@ -8,6 +8,7 @@ tags:
   - badge
   - init
   - e2e
+  - review:context-missing
 text_ref: documentation/tests/e2e/packed/github-report-integration.test.ts
 verification_scope: end_to_end
 verification_perspective: consumer

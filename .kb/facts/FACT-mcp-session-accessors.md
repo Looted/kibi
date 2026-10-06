@@ -5,6 +5,7 @@ fact_kind: meta
 tags:
   - refactor
   - mcp-session
+  - review:context-missing
 id: FACT-mcp-session-accessors
 type: fact
 origin:

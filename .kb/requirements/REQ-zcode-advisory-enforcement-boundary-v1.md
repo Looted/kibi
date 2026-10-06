@@ -6,6 +6,7 @@ tags:
   - zcode
   - enforcement
   - boundary
+  - review:context-missing
 semantic_text: |-
   The kibi-zcode adapter's asset scope is declarative plugin assets.
 

@@ -6,6 +6,7 @@ tags:
   - ontology
   - validation
   - vocabulary-convergence
+  - review:context-missing
 id: SCEN-kibi-predicate-schema-conformance
 type: scenario
 origin:

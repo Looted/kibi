@@ -7,6 +7,7 @@ tags:
   - engine
   - daemon
   - lane:strict
+  - review:context-missing
 text_ref: packages/cli/src/engine.ts
 semantic_text: The engine daemon handshake must report the resolved SWI-Prolog executable and version. The engine daemon must reject a request from a client whose resolved SWI-Prolog differs from its own. The engine client must replace a daemon whose resolved SWI-Prolog differs instead of reusing it
 semantic_source_field: semantic_text

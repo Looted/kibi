@@ -7,6 +7,7 @@ tags:
   - skillopt
   - paid-launch
   - external-boundary
+  - review:context-missing
 semantic_text: The held-out evaluation matrix, fake-provider gateway ledger, paid-launch receipt chain, and mirror-adoption transaction machinery execute only under external supervisor launches with an installed external trust plane. Repository proof runs execute these paths only through fixture-level integration contracts with deterministic-test-fixture signatures (signatureProvenance deterministic-test-fixture and externallySigned false), because the full paths require paid model launches, root-installed verifier infrastructure, and supervisor parent processes. The repository-provable fail-closed boundaries are owned by REQ-skillopt-external-adoption-verdict and REQ-skillopt-paid-launch-accounting.
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text

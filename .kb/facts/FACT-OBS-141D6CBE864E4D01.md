@@ -6,6 +6,7 @@ tags:
   - review:ontology-gap
   - needs_schema_extension
   - lane:observation
+  - review:context-missing
 text_ref: .kb/requirements/REQ-source-analysis-v2.md
 claim_key: CLAIM-1F9EAB867F99F3A0
 claim_text: Source analysis v2 must preserve an explicit completeness status

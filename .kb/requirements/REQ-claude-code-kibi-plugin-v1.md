@@ -7,6 +7,7 @@ tags:
   - plugin
   - hooks
   - progressive-disclosure
+  - review:context-missing
 semantic_text: |-
   The kibi-claude package must remain optional.
 

@@ -6,6 +6,7 @@ tags:
   - skillopt
   - claude-code
   - integration
+  - review:context-missing
 verification_scope: integration
 verification_perspective: internal
 origin:

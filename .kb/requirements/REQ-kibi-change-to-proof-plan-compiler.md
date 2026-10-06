@@ -55,6 +55,7 @@ origin:
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
 type: req
+semantic_text: Kibi must compile a natural-language change request into a deterministic, read-only plan containing a clause-complete proposition ledger, requirement/scenario/test drafts, traceability proposals, contradiction witnesses, and explicit abstentions for ambiguity or ontology gaps. Applying a plan must require the returned plan hash and execute approved mutations sequentially with a structured result.
 ---
 
 Kibi must compile a natural-language change request into a deterministic, read-only plan containing a clause-complete proposition ledger, requirement/scenario/test drafts, traceability proposals, contradiction witnesses, and explicit abstentions for ambiguity or ontology gaps. Applying a plan must require the returned plan hash and execute approved mutations sequentially with a structured result.

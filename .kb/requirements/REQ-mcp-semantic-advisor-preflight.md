@@ -9,6 +9,7 @@ tags:
   - mcp
   - semantic-advisor
   - modeling
+  - review:context-missing
 links:
   - type: specified_by
     target: SCEN-mcp-semantic-advisor-preflight

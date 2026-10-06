@@ -8,6 +8,7 @@ tags:
   - spike
   - build
   - validation
+  - review:context-missing
 semantic_text: The SWI-Prolog spike configuration check must accept the pinned source manifest for linux-x64-gnu and darwin-arm64. The configuration check must reject malformed source metadata. The configuration check must reject unsupported targets. The configuration check must report the pinned SWI-Prolog version, dependency versions, and required library list. The configuration check must not start a native build.
 semantic_clauses:
   - The SWI-Prolog spike configuration check must accept the pinned source manifest for linux-x64-gnu and darwin-arm64

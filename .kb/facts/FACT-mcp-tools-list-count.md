@@ -5,6 +5,7 @@ fact_kind: observation
 tags:
   - mcp
   - test-fix
+  - review:context-missing
 id: FACT-mcp-tools-list-count
 type: fact
 origin:

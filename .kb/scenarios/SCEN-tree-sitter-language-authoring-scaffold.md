@@ -6,6 +6,7 @@ tags:
   - multilingual
   - tree-sitter
   - language-authoring
+  - review:context-missing
 id: SCEN-tree-sitter-language-authoring-scaffold
 type: scenario
 origin:

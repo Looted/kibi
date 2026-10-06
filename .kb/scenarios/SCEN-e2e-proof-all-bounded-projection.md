@@ -5,6 +5,7 @@ tags:
   - proof
   - consumer
   - projection
+  - review:context-missing
 id: SCEN-e2e-proof-all-bounded-projection
 type: scenario
 origin:

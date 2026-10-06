@@ -12,6 +12,7 @@ tags:
   - mcp
   - cli
   - policy
+  - review:context-missing
 links:
   - type: supersedes
     target: REQ-opencode-agent-mcp-only

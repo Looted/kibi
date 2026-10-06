@@ -10,6 +10,7 @@ tags:
   - opencode
   - kibi
   - guidance
+  - review:context-missing
 links:
   - type: specified_by
     target: SCEN-opencode-guidance-injection

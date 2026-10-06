@@ -6,6 +6,7 @@ tags:
   - git
   - hooks
   - worktree
+  - review:context-missing
 semantic_text: '`kibi init` and `kibi doctor` must resolve Git''s effective hooks directory with `git rev-parse --git-path hooks` and install or diagnose hooks there instead of assuming `.git/hooks` under the current directory. `kibi init` must succeed inside a linked worktree and from a subdirectory, must derive all project state from the repository root, and must install hooks into the repository-managed hooks directory. `kibi init` must report a per-hook installation result and must not announce success for a foreign hook that it left untouched.'
 semantic_clauses:
   - '`kibi init` and `kibi doctor` must resolve Git''s effective hooks directory with `git rev-parse --git-path hooks` and install or diagnose hooks there instead of assuming `.git/hooks` under the current directory. `kibi init` must succeed inside a linked worktree'

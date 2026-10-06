@@ -3,6 +3,7 @@ title: Observable capability plugin behavior
 status: open
 tags:
   - plugins
+  - review:context-missing
 semantic_text: Undeclared, path, and global plugin package names are invalid resolution inputs and must fail closed. When an installed capability plugin is not activated, the host must not import that package. An external capability provider must not run during a maintenance operation. Optional Jev must be absent from the default CLI, MCP, and runtime dependency graphs. An SDK-only third-party plugin must be allowed through the host capability seam as a provider operation. An external semantic classifier must be allowed only for kb_semantic_advisor. An external semantic classifier must be allowed only for kb_compile_intent.
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text

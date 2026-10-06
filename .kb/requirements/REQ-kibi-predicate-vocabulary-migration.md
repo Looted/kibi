@@ -6,6 +6,7 @@ tags:
   - migration
   - ontology
   - vocabulary-convergence
+  - review:context-missing
 semantic_text: Kibi migrate must plan an automatic action that moves a predicate fact to the only namespace whose schema matches its name and arity. Kibi migrate must plan an automatic action that rewrites an argument alias to its declared constant. Ambiguous namespaces and undeclared argument values must remain review actions. Applying a predicate repair must fail when the fact changed since planning.
 semantic_clauses:
   - Kibi migrate must plan an automatic action that moves a predicate fact to the only namespace whose schema matches its name and arity.

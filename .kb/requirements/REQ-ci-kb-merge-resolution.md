@@ -7,6 +7,7 @@ tags:
   - merge
   - proof
   - kb
+  - review:context-missing
 semantic_text: |-
   The Kibi KB merge workflow must build the merge driver from the base branch.
 

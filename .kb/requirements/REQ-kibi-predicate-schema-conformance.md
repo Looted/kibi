@@ -6,6 +6,7 @@ tags:
   - ontology
   - validation
   - vocabulary-convergence
+  - review:context-missing
 semantic_text: Kibi check must report a predicate fact with no schema for its namespace, name, and arity as a predicate-schema-conformance warning. Kibi check must report a predicate fact that uses an undeclared argument constant as a predicate-schema-conformance warning. Predicate facts in the default namespace that match the built-in predicate catalog must not be reported by predicate-schema-conformance.
 semantic_clauses:
   - Kibi check must report a predicate fact with no schema for its namespace, name, and arity as a predicate-schema-conformance warning.

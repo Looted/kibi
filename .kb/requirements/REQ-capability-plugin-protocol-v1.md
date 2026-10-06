@@ -3,6 +3,7 @@ title: Capability plugin protocol safety
 status: open
 tags:
   - plugins
+  - review:context-missing
 semantic_text: An activated capability plugin must export validated protocol kibi.plugin.v1 from the named export kibiPlugin. The exported provider version must reference an existing resolved package version.
 logic_claims:
   - CLAIM-63FDA15E922B547A

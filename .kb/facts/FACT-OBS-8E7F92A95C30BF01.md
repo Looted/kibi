@@ -6,6 +6,7 @@ tags:
   - review:ontology-gap
   - needs_schema_extension
   - lane:observation
+  - review:context-missing
 text_ref: .kb/requirements/REQ-source-analysis-v2.md
 claim_key: CLAIM-2AC9D8566EC69A11
 claim_text: Source analysis v2 must preserve authored symbol identity when declaration locators are unambiguous

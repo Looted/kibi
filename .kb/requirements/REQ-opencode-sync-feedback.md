@@ -10,6 +10,7 @@ tags:
   - opencode
   - kibi
   - ux
+  - review:context-missing
 links:
   - type: specified_by
     target: SCEN-opencode-sync-feedback
