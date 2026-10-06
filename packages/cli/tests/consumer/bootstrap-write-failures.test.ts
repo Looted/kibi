@@ -57,6 +57,7 @@ function planClaims(statements: string[], syncFirst = false): Json {
           statement,
           sourceId: "spec",
           reference: `claim:${index + 1}`,
+          excerpt: `The spec says: ${statement}`,
         })),
       },
     }).data as Json

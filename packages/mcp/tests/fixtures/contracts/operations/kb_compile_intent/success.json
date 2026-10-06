@@ -20,6 +20,11 @@
           "maxItems": 64,
           "type": "array"
         },
+        "context": {
+          "description": "Why the requirement exists, who asked and anything that does not fit its checked meaning. Required when mode is create (validation error naming this field otherwise); rendered as a '## Context' section of the requirement document, never as part of the checked meaning. Never invent a reason: write 'Reason not stated' when the requester gave none. An update keeps the existing document body unless context is supplied.",
+          "maxLength": 10000,
+          "type": "string"
+        },
         "intent": {
           "description": "Complete post-change normative intent. Send the desired behavior, not a patch fragment.",
           "maxLength": 10000,
@@ -146,6 +151,11 @@
           },
           "type": "object"
         },
+        "sourceExcerpt": {
+          "description": "Optional verbatim text the intent came from (a ticket, a message, a document passage). Rendered as a blockquote in the requirement's '## Source' section; requires context.",
+          "maxLength": 10000,
+          "type": "string"
+        },
         "sourceLocations": {
           "description": "Workspace-relative source coordinates used for discovery and before-hash binding.",
           "items": {
@@ -173,6 +183,11 @@
           },
           "maxItems": 20,
           "type": "array"
+        },
+        "sourceReference": {
+          "description": "Optional locator of the source text (ticket id, URL, path). Rendered in the requirement's '## Source' section; requires context.",
+          "maxLength": 2000,
+          "type": "string"
         },
         "testDrafts": {
           "description": "Optional test drafts. Tests are attached to scenarios with verified_by; direct req -> test proof links are not emitted.",

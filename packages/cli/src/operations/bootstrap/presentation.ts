@@ -329,7 +329,7 @@ export function presentBootstrap(input: {
   if (status === "needs_context") {
     if (droppedAuthoritative.length > 0)
       contextQuestions.push(
-        `No declared claim from authoritative source(s) ${droppedAuthoritative.map((row) => `"${row.source.title}"`).join(", ")} could be planned; how should those claims be restated or authored before bootstrap applies?`,
+        `No declared claim from authoritative source(s) ${droppedAuthoritative.map((row) => `"${row.source.title}"`).join(", ")} could be planned; how should those claims be restated or authored before bootstrap applies? Intent and observation claims also need an excerpt (the verbatim source passage), which Kibi keeps in the entity's Source section.`,
       );
     if (!declaredContext.projectSummary)
       contextQuestions.push(
