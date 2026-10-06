@@ -28,6 +28,18 @@ export type DocPage = {
 export const PUBLISHED_SITE_ORIGIN = "https://looted.github.io/kibi";
 
 /**
+ * Cookieless Umami page analytics for the published documentation site. The
+ * site build emits the script only when given a website ID (the Pages build
+ * passes KIBI_UMAMI_WEBSITE_ID), so default builds stay self-contained, and
+ * the script only reports on the published host. Generated `kibi report`
+ * pages never load it.
+ */
+// implements REQ-docs-site-analytics
+export const UMAMI_SCRIPT_SRC = "https://cloud.umami.is/script.js";
+// implements REQ-docs-site-analytics
+export const UMAMI_DOMAINS = new URL(PUBLISHED_SITE_ORIGIN).hostname;
+
+/**
  * The one public tagline. The landing page, page metadata, and llms.txt all
  * read it, so the site cannot publish competing variants.
  */

@@ -297,3 +297,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-73d3a7ce7062
+  - type: verified_by
+    from: SCEN-docs-site-analytics
+    to: TEST-docs-site-pages
+    created_at: 2026-10-06T17:52:54.886Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-66b1280f7a68
