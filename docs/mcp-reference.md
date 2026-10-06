@@ -89,9 +89,9 @@ Discover existing repository evidence and return a deterministic, snapshot-bound
 `/kibi-bootstrap` onboarding workflow. It never mutates the KB.
 
 **Parameters:**
-- `includeGenericMarkdown` (optional): Include generic Markdown content as candidate evidence.
+- `includeGenericMarkdown` (optional): Include generic Markdown content as candidate evidence. Defaults to `true`, or to `false` when `bootstrapContext` declares `intentClaims` (a diagnostic says so); set it explicitly to override.
 - `minConfidence` (optional): Minimum confidence threshold for generated candidates.
-- `maxCandidates` (optional): Maximum number of discovered candidates to return. Declared `intentClaims` are never capped and do not count against it.
+- `maxCandidates` (optional): Budget for candidates Kibi discovers itself (symbols, tests, repository documents), default 50. Declared `intentClaims` sit outside it: they are never capped and never use its slots, so a long claim list still leaves the full budget for discovered candidates.
 - `entityTypes` (optional): Limit generation to selected entity types.
 - `bootstrapContext` (optional): Declared project summary, source-of-truth paths/notes, priority roots, verification anchors, and the outcome of the source interview:
   - `knowledgeSources`: sources outside the code the human confirmed, each with `id`, `kind` (`issue_tracker`, `wiki`, `specification`, `design`, `decision_log`, `support`, `chat`, `repository_docs`, `other`), `title`, `locator`, `authority` (`authoritative`, `supporting`, `stale`), and an optional `connector`.
@@ -101,7 +101,10 @@ Discover existing repository evidence and return a deterministic, snapshot-bound
 
 **Returns:**
 Evidence, bounded context questions, dependency-ordered actions, expected
-snapshots/source hashes, payoff summary, diagnostics, and `planHash`. Only a
+snapshots/source hashes, payoff summary, diagnostics, and `planHash`. Every
+suppressed candidate stays in `suppressedCandidates`; `tldr` and one diagnostic
+summarize them as a count per reason (for example `over_limit 290,
+duplicate_title 75`). Only a
 `ready` plan may be approved. Apply it with `kb_apply_plan`; do not replay raw
 `kb_upsert` payloads.
 

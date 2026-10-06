@@ -7,6 +7,7 @@ import { markdownCandidates } from "../../src/operations/bootstrap/markdown-cand
 import {
   normalizeBootstrapContext,
   presentBootstrap,
+  suppressionCounts,
 } from "../../src/operations/bootstrap/presentation.js";
 import type {
   BootstrapEvidence,
@@ -107,7 +108,7 @@ describe("bootstrap write safety and evidence accounting", () => {
       evidence: ["citation:1"],
     });
   });
-  test("declared claims are never capped; maxCandidates limits only discovered candidates", () => {
+  test("declared claims are never capped and discovered candidates keep their own maxCandidates budget", () => {
     const claims = Array.from({ length: 60 }, (_, index) => candidate(index));
     const observations = Array.from({ length: 100 }, (_, index) =>
       candidate(index + 100, "source_symbols"),
@@ -118,13 +119,17 @@ describe("bootstrap write safety and evidence accounting", () => {
       undefined,
       50,
     );
-    expect(result.candidates).toHaveLength(59);
+    // 59 claims (one exists, one is a duplicate) plus a full discovered budget.
+    expect(result.candidates).toHaveLength(109);
     expect(
-      result.candidates.every((row) => row.sourceKind === "intent_claim"),
-    ).toBe(true);
+      result.candidates.filter((row) => row.sourceKind === "intent_claim"),
+    ).toHaveLength(59);
+    expect(
+      result.candidates.filter((row) => row.sourceKind === "source_symbols"),
+    ).toHaveLength(50);
     expect(
       result.suppressed.filter((row) => row.reason === "over_limit"),
-    ).toHaveLength(100);
+    ).toHaveLength(50);
     const factsOnly = selectBootstrapCandidates(
       [...observations.slice(0, 3), ...claims.slice(0, 2)],
       new Set(),
@@ -137,11 +142,10 @@ describe("bootstrap write safety and evidence accounting", () => {
         (row) => row.reason === "filtered_by_entity_type",
       ),
     ).toHaveLength(2);
-    expect(result.diagnostics).toContainEqual(
-      expect.stringContaining(
-        "59 declared intent claim(s) exceed maxCandidates 50",
-      ),
+    expect(result.diagnostics).toContain(
+      "50 discovered candidate(s) exceeded maxCandidates 50 and are suppressed as over_limit; declared intent claims do not count against it.",
     );
+    expect(result.diagnostics.join(" ")).not.toContain("no slots");
     expect(result.suppressed).toContainEqual(
       expect.objectContaining({ reason: "entity_exists" }),
     );
@@ -154,7 +158,7 @@ describe("bootstrap write safety and evidence accounting", () => {
       undefined,
       50,
     );
-    expect(mixed.candidates).toHaveLength(50);
+    expect(mixed.candidates).toHaveLength(60);
     expect(
       mixed.candidates.filter((row) => row.sourceKind === "intent_claim"),
     ).toHaveLength(10);
@@ -414,6 +418,69 @@ describe("bootstrap write safety and evidence accounting", () => {
     expect(supporting.diagnostics).toContain(
       "Knowledge source tracker (supporting): 1 declared claim(s), 0 planned, 0 already in the KB, 0 filtered out, 1 not planned (see suppressedCandidates and source-only follow-ups).",
     );
+  });
+  test("hundreds of suppressions read as one count per reason in the tldr and diagnostics", () => {
+    const rows = [
+      ...Array.from({ length: 290 }, (_, index) => ({
+        candidateId: `symbol:${index}`,
+        reason: "over_limit",
+      })),
+      ...Array.from({ length: 75 }, (_, index) => ({
+        candidateId: `doc:${index}`,
+        reason: "duplicate_title",
+      })),
+      { candidateId: "claim:a", reason: "invalid_write" },
+      { candidateId: "claim:b", reason: "invalid_write" },
+    ];
+    expect(suppressionCounts(rows)).toEqual([
+      { reason: "over_limit", count: 290 },
+      { reason: "duplicate_title", count: 75 },
+      { reason: "invalid_write", count: 2 },
+    ]);
+    const result = presentBootstrap({
+      root: "/tmp/repo",
+      activation: {
+        activationState: "root_uninitialized",
+        activationMode: "cold_start_bootstrap",
+        applyBlocked: false,
+        allowCandidateGeneration: true,
+        reason: "cold start",
+      },
+      discoverySummary: {
+        activationState: "root_uninitialized",
+        activationMode: "cold_start_bootstrap",
+        applyBlocked: false,
+        reason: "cold start",
+        providersRun: [],
+        providerCounts: {},
+        detectedLanguages: [],
+        detectedTestFrameworks: [],
+        excludedRoots: [],
+        truncated: false,
+        scanWarnings: [],
+      },
+      migrationWarning: null,
+      candidates: [candidate(1)],
+      sourceOnlySignals: [],
+      suppressedCandidates: rows,
+      expected: {
+        branch: "main",
+        kbSnapshotId: "snap",
+        workspaceSnapshot: "ws",
+        sourceHashes: {},
+      },
+    }).structuredContent;
+    expect(result.tldr).toContain(
+      "Suppressed 367 candidate(s) by reason: over_limit 290, duplicate_title 75, invalid_write 2.",
+    );
+    expect(result.tldr).toContain(
+      "Declared intent claims do not count against it.",
+    );
+    expect(result.plan.diagnostics).toContain(
+      "Suppressed candidates by reason: over_limit 290, duplicate_title 75, invalid_write 2 (rows in suppressedCandidates).",
+    );
+    // The full rows stay in the plan for review; only the summary is aggregated.
+    expect(result.plan.suppressedCandidates).toHaveLength(367);
   });
   test("task markers are stripped and questions and invalid keys remain line-cited follow-ups", () => {
     const result = markdownCandidates(

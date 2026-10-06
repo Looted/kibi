@@ -246,3 +246,69 @@ test("existing entity enumeration failure blocks binding instead of disabling su
     rmSync(root, { recursive: true, force: true });
   }
 });
+
+// executable_for TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+test("declared intent claims turn generic Markdown off unless the caller sets it", async () => {
+  const root = mkdtempSync(
+    path.join(os.tmpdir(), "kibi-bootstrap-generic-default-"),
+  );
+  try {
+    writeRootManifest(root);
+    for (const lane of ["requirements", "scenarios", "tests", "facts"])
+      mkdirSync(path.join(root, ".kb", lane), { recursive: true });
+    writeFileSync(path.join(root, ".kb", "symbols.yaml"), "symbols: []\n");
+    mkdirSync(path.join(root, "docs"), { recursive: true });
+    writeFileSync(
+      path.join(root, "docs", "requirements.md"),
+      "# Exports\n\n- Exports must be signed.\n- Telemetry must be disabled.\n",
+    );
+    const bootstrapContext = {
+      projectSummary: "An exporter",
+      knowledgeSources: [
+        {
+          id: "tracker",
+          kind: "issue_tracker" as const,
+          title: "Tracker",
+          locator: "TRK",
+          authority: "authoritative" as const,
+        },
+      ],
+      intentClaims: [
+        {
+          sourceId: "tracker",
+          reference: "TRK-1",
+          statement: "Refunds must not exceed the original charge.",
+        },
+      ],
+    };
+    const generic = (
+      result: Awaited<ReturnType<typeof planBootstrapSpec.execute>>,
+    ) =>
+      result.structuredContent.plan.candidates.filter(
+        (row) => row.sourceKind === "generic_markdown",
+      ).length;
+    const withoutClaims = await planBootstrapSpec.execute(
+      {},
+      planningContext(root),
+    );
+    const withClaims = await planBootstrapSpec.execute(
+      { bootstrapContext },
+      planningContext(root),
+    );
+    const explicit = await planBootstrapSpec.execute(
+      { bootstrapContext, includeGenericMarkdown: true },
+      planningContext(root),
+    );
+    expect(generic(withoutClaims)).toBeGreaterThan(0);
+    expect(generic(withClaims)).toBe(0);
+    expect(generic(explicit)).toBe(generic(withoutClaims));
+    expect(withClaims.structuredContent.plan.diagnostics).toContain(
+      "Generic Markdown candidates are off by default because intent claims were declared; pass includeGenericMarkdown: true to include them.",
+    );
+    expect(
+      explicit.structuredContent.plan.diagnostics.join("\n"),
+    ).not.toContain("off by default");
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});

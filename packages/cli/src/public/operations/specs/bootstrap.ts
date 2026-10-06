@@ -25,9 +25,8 @@ export const planBootstrapSpec = {
     properties: {
       includeGenericMarkdown: {
         type: "boolean",
-        default: true,
         description:
-          "Whether to include generic markdown file content as candidate facts. Default: true.",
+          "Whether to include generic markdown file content as candidate facts. Default: true, or false when bootstrapContext declares intentClaims (the declared sources already carry the intent); set it explicitly to override.",
       },
       minConfidence: {
         type: "number",
@@ -43,7 +42,7 @@ export const planBootstrapSpec = {
         minimum: 1,
         maximum: 200,
         description:
-          "Maximum number of discovered candidates to return. Declared intentClaims are never capped and do not count against it. Clamped to [1, 200]. Default: 50.",
+          "Budget for candidates Kibi discovers itself (symbols, tests, repository documents). Declared intentClaims sit outside it: they are never capped and never use its slots. Clamped to [1, 200]. Default: 50.",
       },
       entityTypes: {
         type: "array",

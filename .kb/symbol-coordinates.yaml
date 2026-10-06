@@ -1901,7 +1901,7 @@ coordinates:
     sourceLine: 102
   SYM-bootstrap-filterSourceOnlySignals:
     identityHash: 8cbbcff9fc1b83c1468e9060a2995acbb1c470b92d855bef34ee16b5e8163472
-    sourceHash: 7df887676ffdd9f4dfd32cb75cfe7bd23aff6d5b1798e477ce8719277972973b
+    sourceHash: f02d89e6b31df1e7000566d159006fdbfc9329b7a5faf9395b0fa5de076d74ff
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 31
@@ -1923,6 +1923,14 @@ coordinates:
     sourceEndLine: 9
     sourceFile: packages/cli/src/operations/bootstrap/requirement-claims.ts
     sourceLine: 4
+  SYM-bootstrap-suppression-counts:
+    identityHash: 6c3c9ef9ee85c6a56332716e6d44daa2883e01fb69d21aefde285ef3a671a24b
+    sourceHash: 79362354c938865167b4133f074a2ea601a79a0495288200f19416b776c89ce0
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 136
+    sourceFile: packages/cli/src/operations/bootstrap/presentation.ts
+    sourceLine: 122
   SYM-bootstrap-validate-payload:
     identityHash: 120acd6f436d6c006c75ba605a9c5af68e664a147d75c85db6495e9e027ce38d
     sourceHash: b25d0f08013a546deb7328634de45eeeb773e8b18f4988760b3da3d86adaed4e
@@ -11029,7 +11037,7 @@ coordinates:
     sourceLine: 20
   SYM-docs-site-theme-clientScript:
     identityHash: 9acb31c4882a74eebacdedcdfb99a244027ce506609e7120e80eadac0f712254
-    sourceHash: 1075586829e3675659f456801162d0e64d85437f7eb2a977c1fabf4e203d0dc2
+    sourceHash: 40f7b0fdd3641db4f73ed6264d036280200191de275a9a5b8da1521f07896cba
     sourceColumn: 13
     sourceEndColumn: 1
     sourceEndLine: 875
@@ -11037,7 +11045,7 @@ coordinates:
     sourceLine: 619
   SYM-docs-site-theme-escapeHtml:
     identityHash: fe4622310b1a494331981c56d10258475cb947b7660510e07058ef0e11eb7e73
-    sourceHash: 1075586829e3675659f456801162d0e64d85437f7eb2a977c1fabf4e203d0dc2
+    sourceHash: 40f7b0fdd3641db4f73ed6264d036280200191de275a9a5b8da1521f07896cba
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 51
@@ -11045,7 +11053,7 @@ coordinates:
     sourceLine: 44
   SYM-docs-site-theme-landingContent:
     identityHash: adf8ffc4f6b9b108709ed71aad0f34409685b053bb0ab2445c63b41ff1680f09
-    sourceHash: 1075586829e3675659f456801162d0e64d85437f7eb2a977c1fabf4e203d0dc2
+    sourceHash: 40f7b0fdd3641db4f73ed6264d036280200191de275a9a5b8da1521f07896cba
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 1089
@@ -11053,7 +11061,7 @@ coordinates:
     sourceLine: 878
   SYM-docs-site-theme-layout:
     identityHash: 8f7eb6acde5c1a0e7ac594bae9fa218221b88622c0cb1d3bb2127d8709f234c5
-    sourceHash: 1075586829e3675659f456801162d0e64d85437f7eb2a977c1fabf4e203d0dc2
+    sourceHash: 40f7b0fdd3641db4f73ed6264d036280200191de275a9a5b8da1521f07896cba
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 1201
@@ -11061,7 +11069,7 @@ coordinates:
     sourceLine: 1092
   SYM-docs-site-theme-PageShell:
     identityHash: 3cefed9b17f02db1f6fe7c1db6dafa60647efd2ca63b9cd39b4f06cb8ab06fff
-    sourceHash: 1075586829e3675659f456801162d0e64d85437f7eb2a977c1fabf4e203d0dc2
+    sourceHash: 40f7b0fdd3641db4f73ed6264d036280200191de275a9a5b8da1521f07896cba
     sourceColumn: 12
     sourceEndColumn: 2
     sourceEndLine: 41
@@ -11069,7 +11077,7 @@ coordinates:
     sourceLine: 23
   SYM-docs-site-theme-prepareMark:
     identityHash: cafe5d90179472d5b9daf522f003cd4bbebad7d4ae07d5b9f406343c31997e29
-    sourceHash: 1075586829e3675659f456801162d0e64d85437f7eb2a977c1fabf4e203d0dc2
+    sourceHash: 40f7b0fdd3641db4f73ed6264d036280200191de275a9a5b8da1521f07896cba
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 63
@@ -11077,7 +11085,7 @@ coordinates:
     sourceLine: 55
   SYM-docs-site-theme-Section:
     identityHash: c867c4a996aa91c8751252c1d2b8581d852416758a52001e58ccea035425f7f0
-    sourceHash: 1075586829e3675659f456801162d0e64d85437f7eb2a977c1fabf4e203d0dc2
+    sourceHash: 40f7b0fdd3641db4f73ed6264d036280200191de275a9a5b8da1521f07896cba
     sourceColumn: 12
     sourceEndColumn: 44
     sourceEndLine: 20
@@ -11085,7 +11093,7 @@ coordinates:
     sourceLine: 20
   SYM-docs-site-theme-styles:
     identityHash: dfde36e536915eaefe0a7bb28016beb69109cd7951088a468d01ee730af2d8a3
-    sourceHash: 1075586829e3675659f456801162d0e64d85437f7eb2a977c1fabf4e203d0dc2
+    sourceHash: 40f7b0fdd3641db4f73ed6264d036280200191de275a9a5b8da1521f07896cba
     sourceColumn: 13
     sourceEndColumn: 1
     sourceEndLine: 616
@@ -14229,10 +14237,10 @@ coordinates:
     sourceLine: 1
   SYM-kibi-bootstrap-cli-spec:
     identityHash: 22448ce5fb26ea477367d7fb4c8cbdc669d11416d589d6145b9155d554344a16
-    sourceHash: 24f391b6e58bae13b19e9cd44b5821cb4f02264251709a2fe7618b72f414a1cd
+    sourceHash: 90d79ed8c1cae86d293cd8edda6c2ce3f671992fdf8cd46b1222d11016323bd4
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 173
+    sourceEndLine: 172
     sourceFile: packages/cli/src/public/operations/specs/bootstrap.ts
     sourceLine: 18
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-activation-classifyactivation:
@@ -14309,7 +14317,7 @@ coordinates:
     sourceLine: 208
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-generate-selectbootstrapcandidates:
     identityHash: f5ef6ff83d5efd054ece6d8f1f45dced25acbec327c5c45b92c7373b5a26324d
-    sourceHash: 7df887676ffdd9f4dfd32cb75cfe7bd23aff6d5b1798e477ce8719277972973b
+    sourceHash: f02d89e6b31df1e7000566d159006fdbfc9329b7a5faf9395b0fa5de076d74ff
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 213
@@ -14365,7 +14373,7 @@ coordinates:
     sourceLine: 146
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-presentation-normalizebootstrapcontext:
     identityHash: b5f823edd9d5aa20a926923e86665ae6601bd69464fb64277ffb565d32b559c5
-    sourceHash: d6f80badd8f5b6889e6c41d99a6d434654979857c8b35431ee7fab6f13cc3f02
+    sourceHash: 79362354c938865167b4133f074a2ea601a79a0495288200f19416b776c89ce0
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 101
@@ -14725,15 +14733,15 @@ coordinates:
     sourceLine: 329
   SYM-kibi-bootstrap-plan-executor:
     identityHash: 8b252ffaf52ece4454dfee9317f81eb9090d64fa027a1abbb21d2217383cebb2
-    sourceHash: 7df887676ffdd9f4dfd32cb75cfe7bd23aff6d5b1798e477ce8719277972973b
+    sourceHash: f02d89e6b31df1e7000566d159006fdbfc9329b7a5faf9395b0fa5de076d74ff
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 468
+    sourceEndLine: 476
     sourceFile: packages/cli/src/operations/bootstrap/generate.ts
     sourceLine: 372
   SYM-kibi-bootstrap-plan-expected-snapshots:
     identityHash: 7650a8e4ec4ba7beeb0070b89cd524f35b463e25c8d01a317b68ee1d4a380d98
-    sourceHash: 7df887676ffdd9f4dfd32cb75cfe7bd23aff6d5b1798e477ce8719277972973b
+    sourceHash: f02d89e6b31df1e7000566d159006fdbfc9329b7a5faf9395b0fa5de076d74ff
     sourceColumn: 15
     sourceEndColumn: 1
     sourceEndLine: 368
@@ -14741,12 +14749,12 @@ coordinates:
     sourceLine: 276
   SYM-kibi-bootstrap-plan-presentation:
     identityHash: 5bf4b5e692ad58338b92c51383eb8c62b29514fd53cdd84c141f2ffe334f6409
-    sourceHash: d6f80badd8f5b6889e6c41d99a6d434654979857c8b35431ee7fab6f13cc3f02
+    sourceHash: 79362354c938865167b4133f074a2ea601a79a0495288200f19416b776c89ce0
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 372
+    sourceEndLine: 402
     sourceFile: packages/cli/src/operations/bootstrap/presentation.ts
-    sourceLine: 157
+    sourceLine: 178
   SYM-kibi-check-build-structured-content:
     identityHash: a1f773dcdca8e9c92b724a17ec7ebed0d55adae92f8fdeed46c7b5b4a9038c0d
     sourceHash: dd88dd7841bbcaf56934e551932be7519376017ce343a0a540458b00f37a0b1c
@@ -16885,7 +16893,7 @@ coordinates:
     sourceLine: 1
   SYM-mcp-tools-list-base-contract:
     identityHash: 9073f98551866a5ff683b3bca2e5236aca8bd1f04902812cd6544f3653119f74
-    sourceHash: 9d85fcab80f7832a89871eafad6da1ca09db00b7b2146546319283c8f9a16574
+    sourceHash: 0965a3bd8cd20f3c7515a062f9dbeae3199a302afee4ae8aba35c2ce7e526c6b
     sourceColumn: 0
     sourceEndColumn: 0
     sourceEndLine: 7298
@@ -16893,7 +16901,7 @@ coordinates:
     sourceLine: 1
   SYM-mcp-tools-list-diagnostic-contract:
     identityHash: d7a4de20871928a9cd2c9a71f45020a705571669957562a00e355e78ee5ba841
-    sourceHash: 8af246314ce0df2b9a5088a64fcd61e5474ed6490279aa0f7a7dc13d89a6fca8
+    sourceHash: 6453c6d4eb84893bad09d82d7ab3fe5461a6c9da5acbdf40db7fa619cac1e150
     sourceColumn: 0
     sourceEndColumn: 0
     sourceEndLine: 7890
