@@ -1,5 +1,27 @@
 # kibi-mcp
 
+## 3.5.0
+
+### Minor Changes
+
+- be5d25e: A `kb_apply_plan` call with a plan but no `approvedPlanHash` (or a malformed or mismatched one) now fails the call itself over MCP, also with `async: true`. Before, MCP accepted it, returned a job receipt, and the error appeared only when polling `kb_job_status`. `kb_delete` likewise rejects a call that names both or neither of `ids` and `relationships`, as the CLI already did.
+
+  The MCP JSON Schema to Zod converter now enforces a `oneOf` whose branches are only `required`/`not`/`anyOf`/`allOf` key guards (exactly one branch must match) with the same condition matcher as `if`/`then`; the published input schema gains no top-level `oneOf`. In async mode the server runs the new `preflightApplyPlan` (exported from the CLI operations and kibi-runtime) before returning the receipt: it checks the approved hash, the plan shape and canonical hash, and for a bootstrap plan the branch, KB, workspace and source snapshots. The job repeats every check under the workspace lock.
+
+- be5d25e: `kb_model` with `mode: "predicates"` now tells you what to do with a requirement that is already grounded, instead of answering `already_grounded` for all of them. A grounded claim with no fitting schema gets `record_ontology_gap` and the `review:ontology-gap` observation plan again, one whose schema needs exact values gets `provide_argument_bindings` with the missing arguments, and one with a complete predicate gets the new `replace_grounding` action with its `replacementPlan`. After a bootstrap, which grounds every requirement, the ontology-gap lane is no longer silently skipped.
+
+  `recommendedAction` drops `already_grounded` and adds `replace_grounding`; `existingGrounding` remains the "already grounded" signal. An already grounded claim still gets no predicate `applyPlan` or `relationshipPlan` (a second grounding link fails the proposition-complete rule), but the ontology-gap observation plan and `recommendedPredicateSchema` are returned because an observation is not a grounding relationship. The warning that points at `replacementPlan` appears only when a replacement plan exists. kibi-usage 2.6.0 and kibi-bootstrap 3.6.0 describe the new actions; `docs/mcp-reference.md` documents them.
+
+### Patch Changes
+
+- be5d25e: Bootstrap plans no longer write subject keys that Kibi's own `subject-key-shape` rule flags. Declare the component a knowledge source or an intent claim is about (`component: "recorder"`) and the plan uses keys such as `recorder.beginning_to_record_while_idle`; a claim Kibi cannot place is reported in the plan diagnostics and left as an authoring follow-up instead. Intent claims can also carry the `rationale` the source or the human gave, which becomes the requirement's `rationale` and `## Context`.
+
+  `bootstrapContext.knowledgeSources[].component`, `intentClaims[].component` and `intentClaims[].rationale` are new optional fields bound into the plan hash only when declared. Subject keys keep an already dotted subject, use a one-word subject as the component with the constrained property as the aspect, and otherwise prefix the declared component; repository Markdown takes its component from the file or directory name. The kibi-bootstrap skill (3.6.0) asks the human for the reason behind a requirement whose source states none, and sets scenario `expects` only when the scenario links `assumes` facts, so draft scenarios tagged `needs-human-review` no longer raise `scenario-feasibility-unknown`. The kibi-usage skill (2.6.0) and `docs/modeling-cheatsheet.md` match.
+
+- Updated dependencies [be5d25e]
+- Updated dependencies [be5d25e]
+  - kibi-runtime@2.8.0
+
 ## 3.4.0
 
 ### Minor Changes
