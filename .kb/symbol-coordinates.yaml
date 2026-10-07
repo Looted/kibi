@@ -8333,7 +8333,7 @@ coordinates:
     sourceLine: 1
   SYM-cli-skills-mirror-parity-tests:
     identityHash: 4dec812b98b2ef0f1d9dec6055548d3bdcfb6a4e2a12689d99e39c25465c6263
-    sourceHash: ff07d46694d562cb887c0d08bd148919b4834279494fad708b631593782874b8
+    sourceHash: 45e6c4efeb23bc93a7190a58c459317004e2e0834db9383e597ebef86a92f0ad
     sourceColumn: 0
     sourceEndColumn: 0
     sourceEndLine: 40
