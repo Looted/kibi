@@ -130,6 +130,21 @@ When a claim cannot be written yet (an `invalid_write`, an ontology gap, an open
 
 Every other fact kind that carries `claim_text` also needs the matching `claim_key`.
 
+## Writing a scenario
+
+Scenario prose goes in `document.body`, never in `properties` (a `body`, `text` or `description` property is rejected as an unknown property that names `document.body`). `expects` is `success`, `rejection` or `error`:
+
+```json
+{
+  "type": "scenario",
+  "id": "SCEN-editor-mic-failure-error",
+  "properties": { "title": "Microphone failure shows an error", "status": "active", "expects": "error" },
+  "document": {
+    "body": "Given microphone access is denied, when the user starts recording, then the editor shows an error and records nothing.\n\nSupport asked for this after users lost takes they believed were recorded; ticket ED-88.\n"
+  }
+}
+```
+
 ## Linking a scenario to an existing requirement
 
 To add `specified_by` to a requirement that already has a proposition ledger, upsert the requirement with its stored `title`, a `status`, and the relationship only. Kibi keeps the stored ledger when the payload has no `semantic_*` or `logic_claims` field and does not change `title` or `text_ref`:

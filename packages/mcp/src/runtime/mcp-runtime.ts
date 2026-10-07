@@ -127,6 +127,7 @@ export function createMcpRuntime<TProlog = PrologPort>(
         ...(fs ? { sourceFirst: true } : {}),
         ...(git ? { git } : {}),
         ...(net ? { net } : {}),
+        ...(options.onProgress ? { onProgress: options.onProgress } : {}),
       };
       const resolved = resolveMcpAttachment(context.workspaceRoot, spec);
       const attachment =

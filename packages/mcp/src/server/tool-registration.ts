@@ -283,10 +283,40 @@ export function registerConfiguredTools<TProlog>(
   });
   register({
     name: "kb_apply_plan",
-    execute: async (context, args) =>
-      runtime.handleKbApplyPlan
-        ? runtime.handleKbApplyPlan(args, context)
-        : executeApplyPlan(args as never, context as never),
+    execute: async (context, args) => {
+      const { async: asyncMode, ...applyArgs } = args as Record<
+        string,
+        unknown
+      > & { async?: boolean };
+      const apply = (applyContext: OperationContext) =>
+        runtime.handleKbApplyPlan
+          ? runtime.handleKbApplyPlan(applyArgs, applyContext)
+          : executeApplyPlan(applyArgs as never, applyContext as never);
+      // Without a registered kb_job_status nothing could poll the receipt,
+      // so async falls back to a synchronous apply (which still reports
+      // progress when the request carries a progressToken).
+      if (asyncMode !== true || !enabledOptionalTools().has("kb_job_status")) {
+        return apply(context);
+      }
+      // A large bootstrap plan can outlast any client request timeout.
+      // Detach it into a job and return the kibi.job.v1 receipt; the agent
+      // polls kb_job_status. The request is over once the receipt returns,
+      // so the job reports no progress and refreshes the branch stamp itself.
+      const { onProgress: _requestProgress, ...jobContext } = context;
+      return startJob("kb_apply_plan", async () => {
+        const result = await apply(jobContext);
+        await runtime.operationRuntime.afterSuccess(
+          {
+            name: "kb_apply_plan",
+            effects: getSpec("kb_apply_plan").effects,
+            requiresProlog: true,
+            execute: async () => undefined,
+          },
+          jobContext,
+        );
+        return result;
+      });
+    },
   });
   register({
     name: "kb_ingest_proof",

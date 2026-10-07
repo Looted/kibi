@@ -185,6 +185,16 @@ export interface NetworkPort {
 
 export type Clock = () => Date;
 
+/** One progress report from a long-running operation (for example one applied plan action). */
+export type OperationProgress = Readonly<{
+  progress: number;
+  total?: number;
+  message?: string;
+}>;
+
+/** Host callback for progress reports; MCP forwards them as notifications/progress. */
+export type ProgressReporter = (progress: OperationProgress) => void;
+
 export type RuntimeOptions = {
   readonly workspaceRoot?: string;
   readonly signal?: AbortSignal;
@@ -195,6 +205,8 @@ export type RuntimeOptions = {
   readonly net?: NetworkPort;
   /** Optional injectable capability registry (or lazy factory). */
   readonly plugins?: OperationPlugins;
+  /** Optional progress sink for long-running operations. */
+  readonly onProgress?: ProgressReporter;
 };
 
 export type OperationContext = {
@@ -219,6 +231,8 @@ export type OperationContext = {
   readonly plugins?: OperationPlugins;
   /** Lazily materialize the workspace capability registry. */
   readonly ensurePlugins?: () => Promise<CapabilityRegistry>;
+  /** Progress sink a long-running operation reports to; absent when the host does not listen. */
+  readonly onProgress?: ProgressReporter;
 };
 export interface RuntimeOperationSpec<TInput = unknown, TResult = unknown> {
   readonly name: string;

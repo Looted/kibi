@@ -23282,6 +23282,8 @@ symbols:
         target: TEST-kibi-predicate-suggestion-relevance-v1
       - type: covered_by
         target: TEST-kibi-proposition-complete-ingestion
+      - type: covered_by
+        target: TEST-model-predicates-grounding-aware
       - type: implements
         target: REQ-kibi-logical-requirement-coverage
       - type: implements
@@ -23290,6 +23292,8 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: implements
         target: REQ-kibi-predicate-suggestion-relevance-v1
+      - type: implements
+        target: REQ-model-predicates-grounding-aware
   - id: SYM-SuggestPredicatesArgs
     title: SuggestPredicatesArgs
     status: active
@@ -24278,10 +24282,14 @@ symbols:
         target: TEST-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-proposition-complete-ingestion
+      - type: covered_by
+        target: TEST-upsert-unknown-field-guidance
       - type: implements
         target: REQ-kibi-logical-requirement-coverage
       - type: implements
         target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-upsert-unknown-field-guidance
   - id: SYM-ValidateUpsertResult
     title: ValidateUpsertResult
     sourceFile: packages/mcp/src/tools/validate-upsert.ts
@@ -50502,3 +50510,77 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-kibi-upsert-review-lanes
+  - id: SYM-test-mcp-conditional-input-validation
+    title: MCP conditional input validation suite
+    status: active
+    sourceFile: packages/mcp/tests/server/kb-upsert-claim-conditional.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-07T12:27:25.112Z
+    relationships:
+      - type: executable_for
+        target: TEST-mcp-conditional-input-validation
+  - id: SYM-mcp-conditional-input-validation-matchesjsonschemacondition
+    title: matchesJsonSchemaCondition
+    status: active
+    sourceFile: packages/mcp/src/server/json-schema-to-zod.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-07T12:27:33.719Z
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-conditional-input-validation
+      - type: implements
+        target: REQ-mcp-conditional-input-validation
+  - id: SYM-test-bootstrap-apply-long-running
+    title: Bootstrap apply long-running suite
+    status: active
+    sourceFile: packages/cli/tests/operations/apply-plan-interrupted-recovery.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-07T12:28:02.675Z
+    relationships:
+      - type: executable_for
+        target: TEST-bootstrap-apply-long-running
+  - id: SYM-bootstrap-apply-long-running-progressreporter
+    title: progressReporter
+    status: active
+    sourceFile: packages/mcp/src/server/tools.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-07T12:28:11.951Z
+    relationships:
+      - type: covered_by
+        target: TEST-bootstrap-apply-long-running
+      - type: implements
+        target: REQ-bootstrap-apply-long-running
+  - id: SYM-test-upsert-unknown-field-guidance
+    title: Upsert unknown field guidance suite
+    status: active
+    sourceFile: packages/cli/tests/operations/upsert-unknown-property-guidance.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-07T12:28:32.710Z
+    relationships:
+      - type: executable_for
+        target: TEST-upsert-unknown-field-guidance
+  - id: SYM-test-model-predicates-grounding-aware
+    title: Predicate modeling existing grounding suite
+    status: active
+    sourceFile: packages/cli/tests/operations/suggest-predicates-existing-grounding.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-07T12:28:57.343Z
+    relationships:
+      - type: executable_for
+        target: TEST-model-predicates-grounding-aware

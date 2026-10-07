@@ -174,3 +174,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-86008c5c58a5
+  - type: implements
+    from: SYM-validateUpsertInput
+    to: REQ-upsert-unknown-field-guidance
+    created_at: 2026-10-07T12:28:40.039Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9b21a4b52def
+  - type: covered_by
+    from: SYM-validateUpsertInput
+    to: TEST-upsert-unknown-field-guidance
+    created_at: 2026-10-07T12:28:40.056Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c3cde7c5ed2e

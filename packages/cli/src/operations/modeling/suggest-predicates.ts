@@ -1,7 +1,9 @@
+import { escapeAtom } from "../../prolog/codec.js";
 import type {
   OperationContext,
   PrologPort,
 } from "../../public/operations/runtime-types.js";
+import { parsePrologList } from "../mutation/serialization.js";
 import { analyzeSemanticAdvisorInput } from "../semantic-advisor/analyze-prose.js";
 import { semanticClaimKey } from "../semantic-advisor/clauses.js";
 import { composeOntologyCatalogForOperation } from "../semantic-advisor/plugin-orchestration.js";
@@ -22,6 +24,7 @@ import { inferSubject } from "./predicate-inference.js";
 import { loadExistingPredicateSchemas } from "./predicate-loader.js";
 import { rankSchema } from "./predicate-ranker.js";
 import type {
+  ExistingClaimGrounding,
   PredicateSchemaCandidate,
   PredicateSuggestion,
   SuggestPredicatesArgs,
@@ -220,6 +223,59 @@ function withMarginRejection(
   });
 }
 
+const GROUNDING_RELATIONSHIP_TYPES = [
+  "requires_property",
+  "requires_predicate",
+  "requires_rule",
+] as const;
+
+function unquoted(value: unknown): string {
+  return typeof value === "string" ? value.replace(/^['"]|['"]$/g, "") : "";
+}
+
+/**
+ * The logical grounding relationships an existing requirement already has for
+ * this claim. A modeled claim takes exactly one grounding relationship, so a
+ * second link (for example requires_predicate beside a bootstrap
+ * requires_property) fails the proposition-complete rule.
+ */
+// implements REQ-model-predicates-grounding-aware
+async function existingClaimGrounding(
+  prolog: PrologPort | null,
+  requirementId: string | undefined,
+  claimKey: string,
+  warnings: string[],
+): Promise<ExistingClaimGrounding[]> {
+  if (prolog === null || !requirementId) return [];
+  const found: ExistingClaimGrounding[] = [];
+  try {
+    for (const type of GROUNDING_RELATIONSHIP_TYPES) {
+      const targets = await prolog.query(
+        `findall(To, kb_relationship(${type}, '${escapeAtom(requirementId)}', To), Targets)`,
+      );
+      if (!targets.success) continue;
+      for (const target of parsePrologList(targets.bindings.Targets ?? "[]")) {
+        const fact = await prolog.query(
+          `once((kb_entity('${escapeAtom(target)}', fact, _GroundProps), memberchk(claim_key=_GroundClaimRaw, _GroundProps), normalize_term_atom(_GroundClaimRaw, ClaimKey), (memberchk(fact_kind=_GroundKindRaw, _GroundProps) -> normalize_term_atom(_GroundKindRaw, FactKind) ; FactKind = '')))`,
+        );
+        if (!fact.success) continue;
+        if (unquoted(fact.bindings.ClaimKey) !== claimKey) continue;
+        found.push({
+          relationship: { type, from: requirementId, to: target },
+          factId: target,
+          factKind: unquoted(fact.bindings.FactKind) || null,
+          claimKey,
+        });
+      }
+    }
+  } catch (error) {
+    warnings.push(
+      `Existing grounding of ${requirementId} could not be read (${error instanceof Error ? error.message : String(error)}); check its requires_property, requires_predicate and requires_rule links before linking a predicate.`,
+    );
+  }
+  return found;
+}
+
 // implements REQ-mcp-suggest-predicates
 export async function handleKbSuggestPredicates(
   prolog: PrologPort | null,
@@ -359,41 +415,82 @@ export async function handleKbSuggestPredicates(
   const unavailableSchema = Boolean(
     args.schemaId && selectedSchemas.length === 0,
   );
-  const recommendedAction = !recommendedCandidate
-    ? unavailableSchema
-      ? "resolve_schema_reference"
-      : "record_ontology_gap"
-    : recommendedCandidate.binding_status === "complete"
-      ? "apply_requires_predicate"
-      : "provide_argument_bindings";
-  const applyPlan =
+  const claimKey = semanticClaimKey(text);
+  const existingGrounding = await existingClaimGrounding(
+    prolog,
+    args.requirementId,
+    claimKey,
+    warnings,
+  );
+  const alreadyGrounded = existingGrounding.length > 0;
+  const completeCandidate =
     recommendedCandidate && recommendedCandidate.binding_status === "complete"
-      ? buildPredicateApplyPlan(recommendedCandidate, args)
+      ? recommendedCandidate
+      : undefined;
+  const recommendedAction = alreadyGrounded
+    ? "already_grounded"
+    : !recommendedCandidate
+      ? unavailableSchema
+        ? "resolve_schema_reference"
+        : "record_ontology_gap"
+      : completeCandidate
+        ? "apply_requires_predicate"
+        : "provide_argument_bindings";
+  const predicatePlan = completeCandidate
+    ? buildPredicateApplyPlan(completeCandidate, args)
+    : [];
+  // An already grounded claim gets no write plan: a second grounding link
+  // would fail the proposition-complete rule. The replacement plan below
+  // swaps the grounding instead.
+  const applyPlan = alreadyGrounded
+    ? []
+    : completeCandidate
+      ? predicatePlan
       : !recommendedCandidate && !unavailableSchema
         ? buildGapApplyPlan(text, args)
         : [];
+  const plannedFactId =
+    typeof predicatePlan[0]?.id === "string" ? predicatePlan[0].id : null;
   const relationshipPlan =
-    recommendedCandidate && recommendedCandidate.binding_status === "complete"
+    completeCandidate && !alreadyGrounded
       ? buildRelationshipPlan(
-          String(applyPlan[0]?.id ?? ""),
+          plannedFactId ?? "",
           args.requirementId,
           text,
           args.existingLogicClaims,
         )
       : null;
+  const replacementPlan =
+    alreadyGrounded && plannedFactId !== null && args.requirementId
+      ? buildGroundingReplacementPlan(
+          args.requirementId,
+          plannedFactId,
+          predicatePlan,
+          existingGrounding,
+        )
+      : null;
+  const relationshipTarget =
+    relationshipPlan !== null || replacementPlan !== null
+      ? plannedFactId
+      : null;
+  if (alreadyGrounded) {
+    warnings.push(
+      `${args.requirementId} already grounds this claim (${claimKey}) through ${existingGrounding.map((row) => `${row.relationship.type} -> ${row.factId}`).join(", ")}. A modeled claim takes exactly one logical grounding relationship, so adding requires_predicate beside it fails the proposition-complete rule. Keep the existing grounding, or follow replacementPlan to swap it for the predicate.`,
+    );
+  }
   const recommendedPredicateSchema =
-    !recommendedCandidate && !unavailableSchema
+    !recommendedCandidate && !unavailableSchema && !alreadyGrounded
       ? buildPredicateSchemaDraft(text, subject)
       : null;
-  const textSummary =
-    recommendedCandidate && recommendedCandidate.binding_status === "complete"
-      ? `Suggested ${candidates.length} predicate candidate(s). Top applicable match: ${recommendedCandidate.predicate_name}. Apply structured predicate facts before falling back to prose.`
+  const textSummary = alreadyGrounded
+    ? `${args.requirementId} already grounds this claim through ${existingGrounding.map((row) => `${row.relationship.type} -> ${row.factId}`).join(", ")}; no write plan was generated.${replacementPlan ? ` To use ${completeCandidate?.predicate_name} instead, follow replacementPlan and link requires_predicate to ${plannedFactId}.` : ""}`
+    : completeCandidate
+      ? `Suggested ${candidates.length} predicate candidate(s). Top applicable match: ${completeCandidate.predicate_name}. Apply the predicate fact ${plannedFactId}, then link requires_predicate to that fact id (not a candidate id).`
       : recommendedCandidate
         ? `Matched ${recommendedCandidate.predicate_name}, but exact reviewed values are still required for: ${recommendedCandidate.unbound_arguments.join(", ")}. No apply plan was generated.`
         : unavailableSchema
           ? `Requested predicate schema ${args.schemaId} is unavailable or semantically inapplicable. No apply plan was generated.`
           : "No predicate candidate passed the semantic applicability gate; record an ontology gap and review the generated schema draft instead of silently writing prose.";
-  const claimKey = semanticClaimKey(text);
   const logicClaims = Array.from(
     new Set([...(args.existingLogicClaims ?? []), claimKey]),
   );
@@ -412,9 +509,56 @@ export async function handleKbSuggestPredicates(
       recommendedPredicateSchema,
       applyPlan,
       relationshipPlan,
+      relationshipTarget,
+      existingGrounding,
+      replacementPlan,
       warnings,
     },
     applyPlan,
+  };
+}
+
+/**
+ * Ordered steps that swap an existing grounding for the planned predicate
+ * fact while keeping one grounding relationship per modeled claim: write the
+ * fact, retract the old grounding link, then link requires_predicate.
+ */
+// implements REQ-model-predicates-grounding-aware
+function buildGroundingReplacementPlan(
+  requirementId: string,
+  factId: string,
+  predicatePlan: ReadonlyArray<Record<string, unknown>>,
+  existing: readonly ExistingClaimGrounding[],
+): Record<string, unknown> {
+  return {
+    relationshipTarget: factId,
+    steps: [
+      {
+        operation: "kb_upsert",
+        input: predicatePlan[0],
+        reason: "Write the predicate fact that will ground the claim.",
+      },
+      {
+        operation: "kb_delete",
+        input: {
+          relationships: existing.map((row) => row.relationship),
+        },
+        reason:
+          "Retract the existing grounding link so the claim keeps exactly one logical grounding relationship.",
+      },
+      {
+        operation: "kb_upsert",
+        input: {
+          type: "req",
+          id: requirementId,
+          relationships: [
+            { type: "requires_predicate", from: requirementId, to: factId },
+          ],
+        },
+        reason: `Link requires_predicate to ${factId}; upsert the requirement with its stored title and status and this relationship only.`,
+      },
+    ],
+    instructions: `Only replace the grounding when the predicate states the claim at least as precisely as ${existing.map((row) => row.factId).join(", ")}. Run kb_check after the last step.`,
   };
 }
 

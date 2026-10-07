@@ -230,3 +230,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-08783f248f39
+  - type: implements
+    from: SYM-bootstrap-apply-long-running-progressreporter
+    to: REQ-bootstrap-apply-long-running
+    created_at: 2026-10-07T12:28:13.564Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dc0ca48d882f
+  - type: covered_by
+    from: SYM-bootstrap-apply-long-running-progressreporter
+    to: TEST-bootstrap-apply-long-running
+    created_at: 2026-10-07T12:28:13.582Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-98ac257d65ec

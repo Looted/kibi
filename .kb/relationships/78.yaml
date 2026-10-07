@@ -216,3 +216,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-40a8972951c8
+  - type: validates
+    from: TEST-mcp-conditional-input-validation
+    to: REQ-mcp-conditional-input-validation
+    created_at: 2026-10-07T12:27:20.583Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-203bda2a30fa
+  - type: validates
+    from: TEST-mcp-conditional-input-validation
+    to: SCEN-mcp-conditional-input-validation
+    created_at: 2026-10-07T12:27:20.615Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-963a7058aed2
