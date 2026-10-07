@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 171,
-  "proofProven": 171,
+  "currentRequirements": 172,
+  "proofProven": 172,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -857,6 +857,11 @@
       "uncoveredSymbols": []
     },
     "REQ-docs-site-terminal-demo": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-check-related-requirement-unmodeled": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []

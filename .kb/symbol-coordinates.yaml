@@ -9219,6 +9219,14 @@ coordinates:
     sourceEndLine: 32
     sourceFile: packages/core/src/semantic_quality.pl
     sourceLine: 32
+  SYM-core-check-related-requirement-unmodeled:
+    identityHash: 16653358e52f3d585319b5226e061cd643fd22a6ecff605804f4e74ed6d2dac1
+    sourceHash: f764c1938145fef087e319c101f27457d7677fc91b51f4b4d6dd867c4be92256
+    sourceColumn: 4
+    sourceEndColumn: 39
+    sourceEndLine: 44
+    sourceFile: packages/core/src/checks.pl
+    sourceLine: 44
   SYM-core-check-scenario-feasibility:
     identityHash: 1c956040cf963424dc47f7c9188dc861354db4962d57d686c3126007751887e0
     sourceHash: f764c1938145fef087e319c101f27457d7677fc91b51f4b4d6dd867c4be92256

@@ -2356,6 +2356,20 @@ symbols:
         target: REQ-kibi-logical-requirement-coverage
       - type: implements
         target: REQ-kibi-proposition-complete-ingestion
+  - id: SYM-core-check-related-requirement-unmodeled
+    title: check_related_requirement_unmodeled
+    status: active
+    sourceFile: packages/core/src/checks.pl
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    origin:
+      kind: agent
+      recorded_at: 2026-10-07T13:40:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-related-requirement-unmodeled
+      - type: implements
+        target: REQ-check-related-requirement-unmodeled
   - id: SYM-core-check-logic-coverage
     title: check_logic_coverage
     status: active
