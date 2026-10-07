@@ -55,6 +55,11 @@ consolidated routes `kibi skill` and `kibi model` match the MCP tools
 - `kibi upsert` accepts `"dryRun": true`: it runs the `validate-upsert`
   checks, writes nothing, and returns the validation payload plus
   `dryRun: true` and `skippedEffects`.
+- `kibi apply-plan` with `"recoveryJournalId": "bootstrap-…"` resumes a
+  bootstrap plan whose process died mid-action without journal edits: the
+  interrupted action is re-applied and a source lock left by the dead process
+  is reclaimed and recorded in the journal. The MCP-only `async` field is
+  ignored; the CLI always applies synchronously.
 
 ```bash
 printf '%s\n' '{"action":"load","id":"kibi-usage"}' | kibi skill --input -

@@ -195,3 +195,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-097840d98de5
+  - type: validates
+    from: TEST-upsert-unknown-field-guidance
+    to: REQ-upsert-unknown-field-guidance
+    created_at: 2026-10-07T12:28:27.445Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-33cb04edcc27
+  - type: validates
+    from: TEST-upsert-unknown-field-guidance
+    to: SCEN-upsert-unknown-field-guidance
+    created_at: 2026-10-07T12:28:27.480Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d21f30eeabee

@@ -203,8 +203,7 @@ export function buildRelationshipPlan(
           logicClaims,
         }
       : {}),
-    instructions:
-      "Apply the predicate fact first, update the requirement with the returned merged logicClaims manifest, then attach this relationship without overwriting other requirement metadata.",
+    instructions: `Apply the predicate fact ${factId} first, update the requirement with the returned merged logicClaims manifest, then attach this relationship without overwriting other requirement metadata. The relationship target is the planned fact id ${factId}, never a candidates[].id (SUGGEST-...).`,
   };
 }
 

@@ -22,9 +22,9 @@ Two more tools are opt-in. Set `KIBI_MCP_OPTIONAL_TOOLS` in the server
 environment to a comma-separated list of names, or `all`:
 
 - `kb_sparql_remote`: remote SPARQL `SELECT` queries ([below](#kb_sparql_remote)).
-- `kb_job_status`: polls `kb_check` jobs started with `async: true`
-  ([below](#kb_job_status)). Without it, `kb_check` ignores `async: true` and
-  runs synchronously.
+- `kb_job_status`: polls `kb_check` and `kb_apply_plan` jobs started with
+  `async: true` ([below](#kb_job_status)). Without it, both tools ignore
+  `async: true` and run synchronously.
 
 ### Catalog operations, MCP calls, and CLI routes
 
@@ -221,9 +221,9 @@ Candidate diagnostics are additive: each candidate may report `eligibility` (`el
 
 **Returns:**
 - `candidates`: Ranked predicate suggestions with schema signature, usage hints, ordered `predicate_args`, `binding_status`, `unbound_arguments`, `canonical_key`, score, and rationale.
-- `recommendedAction`: `apply_requires_predicate` when the top or explicitly selected candidate fits and every argument is bound, `provide_argument_bindings` when its schema fits but exact values are missing, `resolve_schema_reference` when an explicitly selected schema is unavailable, `review_nonlogical` when the semantic advisor classifies the input as nonlogical (rationale, example, or subjective context), otherwise `record_ontology_gap`.
+- `recommendedAction`: `apply_requires_predicate` when the top or explicitly selected candidate fits and every argument is bound, `provide_argument_bindings` when its schema fits but exact values are missing, `resolve_schema_reference` when an explicitly selected schema is unavailable, `review_nonlogical` when the semantic advisor classifies the input as nonlogical (rationale, example, or subjective context), `already_grounded` when `requirementId` already grounds this claim (same `claim_key`) through `requires_property`, `requires_predicate` or `requires_rule`, otherwise `record_ontology_gap`. An `already_grounded` result has an empty `applyPlan` and no `relationshipPlan`, because a modeled claim takes exactly one grounding relationship and a second link fails the proposition-complete rule; `existingGrounding` lists the links found, and `replacementPlan` (when a predicate fits) gives the ordered swap: upsert the predicate fact, `kb_delete` the old grounding relationship, then upsert the requirement with the `requires_predicate` link.
 - `structuredContent.actions`: A ready-to-apply `kb_upsert` payload for a completely bound top predicate fact, an empty list for an incomplete binding, or an explicit `fact_kind: observation` tagged `review:ontology-gap` and `needs_schema_extension`, with a `relates_to` review anchor.
-- `structuredContent.relationshipPlan`: When `requirementId` is supplied and a predicate fits, the req -> fact `requires_predicate` link plus the merged `logicClaims` manifest to apply after querying/preserving the existing requirement entity. This is separate from `applyPlan` so the tool never emits a foreign-source relationship that `kb_upsert` would reject.
+- `structuredContent.relationshipPlan`: When `requirementId` is supplied and a predicate fits, the req -> fact `requires_predicate` link plus the merged `logicClaims` manifest to apply after querying/preserving the existing requirement entity. This is separate from `applyPlan` so the tool never emits a foreign-source relationship that `kb_upsert` would reject. `structuredContent.relationshipTarget` names the planned predicate fact id (`FACT-PRED-…`) that the `requires_predicate` link must target; `candidates[].id` (`SUGGEST-…`) values are never relationship targets.
 
 **Example:**
 ```json
@@ -374,10 +374,17 @@ A compile plan then applies all-or-nothing:
 
 Any failure before the commit restores every file from the journal and leaves the store untouched; the error says `no change was applied` and the plan can be applied again. If the process dies mid-application, the next `kb_apply_plan`, `kb_upsert` or `kb_delete` call (or `kb_apply_plan` with that `recoveryJournalId`) finishes the journal before doing anything else. A journal interrupted before the store commit was submitted is rolled back. One interrupted during the commit is decided by the store fingerprint: unchanged means roll back, changed means complete. One whose commit was accepted is completed. Recovery is idempotent, and it refuses (`PARTIAL_COMMIT_REPAIR_REQUIRED`), changing nothing, when a journaled file holds neither its journaled before nor after bytes. Mutating calls on that branch then fail until an operator resolves it. `kibi sync` does not yet settle pending plan journals; run a mutating call or the explicit recovery first.
 
+A bootstrap plan (`kibi.bootstrap-plan.v1`) applies its actions one at a time, checkpointing each in a `bootstrap-<hash>` journal under `.kb/recovery/`. Large bootstrap plans take a while (a few hundred actions can run past a minute), so:
+
+- A synchronous apply sends MCP `notifications/progress` after each action when the request carries a `progressToken`. Clients that reset their request timeout on progress (the MCP SDK's `resetTimeoutOnProgress`) keep waiting, and the server's own `KIBI_MCP_TOOL_TIMEOUT_MS` then bounds the time between progress reports rather than the whole apply.
+- `async: true` returns a `kibi.job.v1` receipt immediately and runs the apply as a background job; poll [`kb_job_status`](#kb_job_status) for the result. This needs `KIBI_MCP_OPTIONAL_TOOLS=kb_job_status`; without it the apply runs synchronously.
+- If the server dies mid-apply, call `kb_apply_plan` with the journal's `recoveryJournalId`. A journal still `applying` whose active action has no checkpoint is resumed without edits: the drift since the last checkpoint is attributed to that action, which is re-applied, and the result notes it. A source lock left by the dead process is reclaimed and recorded in the journal (`lockReclaims`); a lock whose holder is still alive keeps blocking. Any other drift since the last checkpoint is still refused. Never edit the journal by hand.
+
 **Parameters:**
 - `plan` (required): Complete plan returned by `kb_compile_intent`.
 - `approvedPlanHash` (required): Exact reviewed `planHash`.
 - `recoveryJournalId` (instead of `plan`): A `plan-apply-*` journal to complete or roll back, or another typed recovery journal returned by a `committed_with_repairs` result. Recovery never replays the original plan request.
+- `async` (optional, default `false`): Start the apply as a background job and return a `kibi.job.v1` receipt; see above. The CLI ignores it.
 
 **Returns:**
 `kibi.plan-apply-result.v1` with entity/relationship counts, final snapshots, validation counts, changed paths (every source write and entity document the plan wrote), `recoveryJournalId`, and notes. `outcome` is `applied` when this call committed the plan, or `replayed` / `rolled_back` when a recovery completed or rolled back an interrupted application. Recoveries a call performed before its own work are listed in `validationSummary.recoveredJournals` and in the text content. If the call then fails, its error text ends with `[settled before this failure: ...]`. A store that reports a failure but shows the batch committed yields `committed_with_repairs` with `STORE_COMMIT_REPORTED_FAILURE`. A pending-source receipt failure after the commit yields `committed_with_repairs` with `PENDING_SOURCE_RECEIPT_FAILED` and a `kb_apply_plan` recovery next action; further writes fail with `PLAN_APPLY_RECOVERY_REQUIRED` until that journal is recovered. Re-applying a committed plan fails with `MUTATION_ALREADY_COMMITTED`. It also accepts `kibi.migration-plan.v2`; migration application requires `approvedActionIds`, an exact `approvedPlanHash`, and rejects blocked or non-automatic actions. Migration results report per-action outcomes and reconciliation failures.
@@ -696,7 +703,7 @@ with an explicit hash/action approval through `kb_apply_plan`.
 Registered only when `KIBI_MCP_OPTIONAL_TOOLS` names it (or is `all`).
 
 Poll a background job started by a long-running operation called with
-`async: true` (currently `kb_check`). This tool is MCP-server-native: jobs
+`async: true` (`kb_check` and `kb_apply_plan`). This tool is MCP-server-native: jobs
 live in the server process, so there is no CLI counterpart and no persistence
 across restarts.
 
@@ -712,6 +719,8 @@ envelope under `result`), `failed` (error message under `error`), or
 ```json
 { "kb_check": { "async": true } }
 { "kb_job_status": { "jobId": "job-kb_check-1-9f2a" } }
+{ "kb_apply_plan": { "plan": { "...": "..." }, "approvedPlanHash": "<64 hex>", "async": true } }
+{ "kb_job_status": { "jobId": "job-kb_apply_plan-2-4c1d" } }
 ```
 
 ## Usage Telemetry (opt-in)

@@ -21,6 +21,7 @@ import type { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import {
   type DetachedReadOnlyDiagnostic,
   type OperationRuntime,
+  type ProgressReporter,
   QUERY_LIMIT_EXCEEDED_CODE,
   type RuntimeOperationSpec,
   detachedReadOnlyDiagnostic,
@@ -138,18 +139,28 @@ function isToolTimeoutError(value: unknown): value is Error & {
   );
 }
 
+/**
+ * Lets an operation that reports progress push its tool timeout back: the
+ * timeout then bounds inactivity rather than total duration, matching MCP
+ * clients that reset their own request timeout on progress notifications.
+ */
+type ToolTimeoutActivity = { touch: () => void };
+
 // implements REQ-002
 async function withToolTimeout<T>(
   toolName: string,
   operation: Promise<T>,
   onTimeout: (error: Error, timeoutMs: number) => Promise<void>,
+  activity?: ToolTimeoutActivity,
 ): Promise<T> {
   const timeoutMs = getToolTimeoutMs();
   let timeout: ReturnType<typeof setTimeout> | undefined;
+  let fired = false;
 
   try {
     const timeoutPromise = new Promise<never>((_, reject) => {
-      timeout = setTimeout(() => {
+      const fire = () => {
+        fired = true;
         const error = createToolTimeoutError(toolName, timeoutMs);
         // Do not report the timeout until cancellation/reset has completed
         // and the original request has reached a terminal state. This is
@@ -169,7 +180,15 @@ async function withToolTimeout<T>(
             ]);
           })
           .finally(() => reject(error));
-      }, timeoutMs);
+      };
+      timeout = setTimeout(fire, timeoutMs);
+      if (activity) {
+        activity.touch = () => {
+          if (fired) return;
+          if (timeout) clearTimeout(timeout);
+          timeout = setTimeout(fire, timeoutMs);
+        };
+      }
     });
     // When abort settles `operation` before this timeout promise rejects,
     // the late reject must not become an unhandled rejection.
@@ -180,6 +199,55 @@ async function withToolTimeout<T>(
       clearTimeout(timeout);
     }
   }
+}
+
+/** The parts of the MCP SDK request context a tool handler uses. */
+type ToolRequestExtra = {
+  readonly _meta?: { readonly progressToken?: string | number };
+  readonly sendNotification?: (notification: {
+    method: "notifications/progress";
+    params: {
+      progressToken: string | number;
+      progress: number;
+      total?: number;
+      message?: string;
+    };
+  }) => Promise<void>;
+};
+
+/**
+ * Forward operation progress as MCP notifications/progress when the request
+ * carries a progressToken, and push the server-side tool timeout back on each
+ * report. Progress values must increase, so repeats are nudged forward.
+ */
+// implements REQ-bootstrap-apply-long-running
+export function progressReporter(
+  extra: ToolRequestExtra | undefined,
+  activity: ToolTimeoutActivity,
+): ProgressReporter | undefined {
+  const token = extra?._meta?.progressToken;
+  const send = extra?.sendNotification;
+  if (token === undefined || typeof send !== "function") return undefined;
+  let last = -1;
+  return ({ progress, total, message }) => {
+    activity.touch();
+    const value = progress > last ? progress : last + 0.001;
+    last = value;
+    void send({
+      method: "notifications/progress",
+      params: {
+        progressToken: token,
+        progress: value,
+        ...(total === undefined ? {} : { total }),
+        ...(message === undefined ? {} : { message }),
+      },
+    }).catch((error: unknown) => {
+      debugLog(
+        "[KIBI-MCP] progress notification failed:",
+        error instanceof Error ? error.message : String(error),
+      );
+    });
+  };
 }
 
 /**
@@ -263,7 +331,10 @@ export function addTool<TProlog>(
   annotations?: ToolAnnotations,
   outputSchema?: object,
 ): void {
-  const wrappedHandler: ToolHandler = async (rawArgs) => {
+  const wrappedHandler = async (
+    rawArgs: Record<string, unknown>,
+    extra?: ToolRequestExtra,
+  ): Promise<unknown> => {
     const startedAt = new Date();
     const diagnosticModeEnabled = runtime.diagnosticModeEnabled();
     let args = rawArgs;
@@ -327,11 +398,16 @@ export function addTool<TProlog>(
         execute: async (input, _context) => handler(input),
       };
       const observed = observeDetachedReads(runtime.operationRuntime);
+      const activity: ToolTimeoutActivity = { touch: () => undefined };
+      const onProgress = progressReporter(extra, activity);
       const handlerPromise = executeOperation(
         observed.runtime,
         operationSpec,
         businessArgs,
-        { signal: controller.signal },
+        {
+          signal: controller.signal,
+          ...(onProgress ? { onProgress } : {}),
+        },
       );
       trackedRequests.set(requestId, handlerPromise);
       let resetAttempted = false;
@@ -374,6 +450,7 @@ export function addTool<TProlog>(
                   : String(resetFailure);
             }
           },
+          activity,
         );
 
         const data = operationData(result);
@@ -549,7 +626,10 @@ export function addTool<TProlog>(
           outputSchema?: z.ZodTypeAny;
           annotations?: ToolAnnotations;
         },
-        h: ToolHandler,
+        h: (
+          args: Record<string, unknown>,
+          extra?: ToolRequestExtra,
+        ) => Promise<unknown>,
       ) => void;
     }
   ).registerTool(
@@ -578,7 +658,7 @@ export function registerAllTools<TProlog>(
 
 /**
  * kb_job_status polls background jobs started by long-running operations
- * (currently `kb_check` with `async: true`). This is an MCP-server-native
+ * (`kb_check` and `kb_apply_plan` with `async: true`). This is an MCP-server-native
  * companion to the job receipts, not part of the canonical CLI operation
  * catalog: jobs live in the server process and have no CLI counterpart.
  */
@@ -586,7 +666,7 @@ function registerJobStatusTool(server: McpServer): void {
   addTool(
     server,
     "kb_job_status",
-    "Poll a background job started with async:true (e.g. kb_check async jobs). Returns the kibi.job.v1 state: running, succeeded (with the full result), or failed (with the error).",
+    "Poll a background job started with async:true (kb_check or kb_apply_plan async jobs). Returns the kibi.job.v1 state: running, succeeded (with the full result), or failed (with the error).",
     {
       type: "object",
       properties: {

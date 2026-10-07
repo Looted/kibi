@@ -1,6 +1,7 @@
 import {
   mkdirSync,
   readFileSync,
+  renameSync,
   rmdirSync,
   unlinkSync,
   writeFileSync,
@@ -40,6 +41,8 @@ export interface WorkspaceMutationLockFileSystem {
   ) => void;
   readonly unlinkSync: (target: string) => void;
   readonly rmdirSync: (target: string) => void;
+  /** Atomic rename; required to reclaim a lock from a dead holder. */
+  readonly renameSync?: (from: string, to: string) => void;
 }
 
 const NODE_FILE_SYSTEM: WorkspaceMutationLockFileSystem = {
@@ -52,6 +55,7 @@ const NODE_FILE_SYSTEM: WorkspaceMutationLockFileSystem = {
   },
   unlinkSync: (target) => unlinkSync(target),
   rmdirSync: (target) => rmdirSync(target),
+  renameSync: (from, to) => renameSync(from, to),
 };
 
 // implements REQ-generated-coordinate-persistence
@@ -62,6 +66,28 @@ export interface WorkspaceMutationLockOptions {
   readonly sleep?: (ms: number) => Promise<void>;
   readonly fileSystem?: WorkspaceMutationLockFileSystem;
   readonly isProcessAlive?: (pid: number) => boolean;
+  /**
+   * Decide whether a lock whose holder pid is verifiably not alive may be
+   * reclaimed instead of failing closed with operator recovery. Called only
+   * for a readable owner record whose pid is dead; a live, unverifiable,
+   * corrupt or missing owner always keeps the fail-closed refusal.
+   */
+  readonly reclaimDeadHolder?: (holder: DeadLockHolder) => boolean;
+}
+
+/** The owner record of a lock whose holder process is no longer alive. */
+// implements REQ-bootstrap-apply-long-running
+export interface DeadLockHolder {
+  readonly pid: number;
+  readonly token: string;
+  readonly acquiredAt: number;
+}
+
+/** A dead holder's lock this acquisition reclaimed. */
+// implements REQ-bootstrap-apply-long-running
+export interface WorkspaceMutationLockReclaim extends DeadLockHolder {
+  readonly reclaimedAt: number;
+  readonly reclaimedByPid: number;
 }
 
 // implements REQ-generated-coordinate-persistence
@@ -190,7 +216,12 @@ function removeLockOwner(
 type LockObservation =
   | { readonly kind: "live"; readonly description: string }
   | { readonly kind: "missing"; readonly description: string }
-  | { readonly kind: "recovery"; readonly description: string };
+  | {
+      readonly kind: "recovery";
+      readonly description: string;
+      /** Set only when the owner metadata is readable and its pid is dead. */
+      readonly deadHolder?: LockRecord;
+    };
 
 function observeExistingLock(
   fileSystem: WorkspaceMutationLockFileSystem,
@@ -244,7 +275,61 @@ function observeExistingLock(
   return {
     kind: "recovery",
     description: `holder pid ${record.pid} is not live`,
+    // Legacy file locks are never reclaimed automatically.
+    ...(source === "lock owner metadata" ? { deadHolder: record } : {}),
   };
+}
+
+type ReclaimOutcome = "reclaimed" | "changed";
+
+/**
+ * Move a dead holder's lock directory aside atomically, confirm the moved
+ * owner is still that dead holder, then delete it. A concurrent reclaimer
+ * loses the rename and simply retries acquisition. If another writer replaced
+ * the lock between observation and rename, the lock is put back and the
+ * acquisition fails closed.
+ */
+function reclaimDeadLock(
+  fileSystem: WorkspaceMutationLockFileSystem,
+  target: string,
+  holder: LockRecord,
+  token: string,
+): ReclaimOutcome {
+  const rename = fileSystem.renameSync;
+  if (rename === undefined) return "changed";
+  const tombstone = `${target}.reclaimed-${token}`;
+  try {
+    rename(target, tombstone);
+  } catch (error) {
+    const code = errorCode(error);
+    if (code === "ENOENT" || code === "EEXIST" || code === "ENOTEMPTY")
+      return "changed";
+    throw new WorkspaceMutationLockError(
+      `failed to reclaim workspace mutation lock at ${target} from dead pid ${holder.pid}: ${errorDetail(error)}`,
+    );
+  }
+  const tombstoneOwner = path.join(tombstone, OWNER_FILE);
+  let moved: LockRecord | null = null;
+  try {
+    moved = readLockRecord(fileSystem.readFileSync(tombstoneOwner));
+  } catch {
+    moved = null;
+  }
+  if (moved === null || moved.token !== holder.token) {
+    try {
+      rename(tombstone, target);
+    } catch {
+      // The original path was taken again; the tombstone stays for an operator.
+    }
+    throw new OperationError(
+      "SOURCE_MUTATION_LOCK_RECOVERY_REQUIRED",
+      `workspace mutation lock at ${target} changed owner while it was reclaimed from dead pid ${holder.pid}. Quiesce all Kibi and source-mutating writers, then verify ${target} and ${tombstone} before removing either`,
+      false,
+    );
+  }
+  removeLockOwner(fileSystem, tombstone, tombstoneOwner, true);
+  removeLockDirectory(fileSystem, tombstone);
+  return "reclaimed";
 }
 
 function defaultIsProcessAlive(pid: number): boolean {
@@ -276,6 +361,8 @@ export interface WorkspaceMutationLockHandle {
    * removes a different owner token.
    */
   readonly release: () => void;
+  /** Dead holders this acquisition reclaimed the lock from, oldest first. */
+  readonly reclaimed?: readonly WorkspaceMutationLockReclaim[];
 }
 
 // implements REQ-generated-coordinate-persistence
@@ -363,6 +450,7 @@ export async function acquireWorkspaceMutationLock(
   }
 
   let acquired = false;
+  const reclaimed: WorkspaceMutationLockReclaim[] = [];
   let lastBlocker = "unknown";
   let lastObservationMissing = false;
   let missingOwnerRereads = 0;
@@ -402,6 +490,26 @@ export async function acquireWorkspaceMutationLock(
         `workspace mutation lock at ${target} requires operator recovery: ${observation.description} after ${missingOwnerRereads} reread(s). Quiesce all Kibi and source-mutating writers, then manually verify the owner metadata and remove the lock only after confirming no operation is active`,
         false,
       );
+    }
+    if (
+      observation.kind === "recovery" &&
+      observation.deadHolder !== undefined &&
+      fileSystem.renameSync !== undefined &&
+      options.reclaimDeadHolder?.(observation.deadHolder) === true
+    ) {
+      const holder = observation.deadHolder;
+      if (reclaimDeadLock(fileSystem, target, holder, token) === "reclaimed") {
+        reclaimed.push({
+          pid: holder.pid,
+          token: holder.token,
+          acquiredAt: holder.acquiredAt,
+          reclaimedAt: now(),
+          reclaimedByPid: process.pid,
+        });
+      } else {
+        await sleep(RETRY_INTERVAL_MS);
+      }
+      continue;
     }
     if (observation.kind === "recovery") {
       throw new OperationError(
@@ -477,6 +585,7 @@ export async function acquireWorkspaceMutationLock(
 
   let releaseState: "owned" | "owner-removed" | "released" = "owned";
   return {
+    ...(reclaimed.length > 0 ? { reclaimed } : {}),
     release: () => {
       if (releaseState === "released") return;
 

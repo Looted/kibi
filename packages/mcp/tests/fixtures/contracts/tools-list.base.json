@@ -2514,6 +2514,14 @@
                   "claimKey": {
                     "type": "string"
                   },
+                  "existingGrounding": {
+                    "items": {
+                      "additionalProperties": {},
+                      "properties": {},
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
                   "logicClaims": {
                     "items": {
                       "type": "string"
@@ -2541,6 +2549,14 @@
                       {
                         "const": "record_ontology_gap",
                         "type": "string"
+                      },
+                      {
+                        "const": "review_nonlogical",
+                        "type": "string"
+                      },
+                      {
+                        "const": "already_grounded",
+                        "type": "string"
                       }
                     ]
                   },
@@ -2557,6 +2573,30 @@
                     ]
                   },
                   "relationshipPlan": {
+                    "anyOf": [
+                      {
+                        "additionalProperties": {},
+                        "properties": {},
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "relationshipTarget": {
+                    "anyOf": [
+                      {
+                        "description": "The planned predicate fact id (FACT-PRED-...) that a requires_predicate link must target. Candidate ids (SUGGEST-...) are never relationship targets.",
+                        "type": "string"
+                      },
+                      {
+                        "description": "The planned predicate fact id (FACT-PRED-...) that a requires_predicate link must target. Candidate ids (SUGGEST-...) are never relationship targets.",
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "replacementPlan": {
                     "anyOf": [
                       {
                         "additionalProperties": {},
@@ -6611,6 +6651,10 @@
             "pattern": "^[a-fA-F0-9]{64}$",
             "type": "string"
           },
+          "async": {
+            "description": "MCP only. When true, start the apply as a background job and return a kibi.job.v1 receipt immediately instead of holding the request open; poll kb_job_status with the returned jobId for the final result. Use for large bootstrap plans (hundreds of actions) that can outlast a client's request timeout. The MCP server registers kb_job_status only when KIBI_MCP_OPTIONAL_TOOLS includes it; otherwise async applies synchronously. A synchronous apply sends notifications/progress after each bootstrap action when the request carries a progressToken. The CLI ignores this field.",
+            "type": "boolean"
+          },
           "plan": {
             "additionalProperties": {},
             "description": "The complete kibi.bootstrap-plan.v1, kibi.compile-plan.v1, kibi.migration-plan.v2, or hash-bound kibi.entity-deletion-plan.v1 object. Migration plans require approvedActionIds and reject blocked/non-automatic actions.",
@@ -6618,7 +6662,7 @@
             "type": "object"
           },
           "recoveryJournalId": {
-            "description": "Typed recovery journal identifier returned by a committed_with_repairs result or a PLAN_APPLY_RECOVERY_REQUIRED error. Recovery replays only the immutable journal and never the original plan request; a compile-plan journal (plan-apply-*) is completed or rolled back deterministically and reports which.",
+            "description": "Typed recovery journal identifier returned by a committed_with_repairs result or a PLAN_APPLY_RECOVERY_REQUIRED error. Recovery replays only the immutable journal and never the original plan request; a compile-plan journal (plan-apply-*) is completed or rolled back deterministically and reports which. A bootstrap journal left `applying` by a process that died mid-action is resumed without edits: the interrupted action is re-applied and a source lock held by the dead process is reclaimed and recorded in the journal.",
             "pattern": "^[A-Za-z0-9._-]+$",
             "type": "string"
           },
@@ -6635,102 +6679,142 @@
         "additionalProperties": false,
         "properties": {
           "data": {
-            "additionalProperties": false,
-            "properties": {
-              "actionResults": {
-                "items": {
-                  "additionalProperties": {},
-                  "properties": {},
-                  "type": "object"
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "actionResults": {
+                    "items": {
+                      "additionalProperties": {},
+                      "properties": {},
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "changedEntities": {
+                    "maximum": 9007199254740991,
+                    "minimum": -9007199254740991,
+                    "type": "integer"
+                  },
+                  "changedPaths": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "changedRelationships": {
+                    "maximum": 9007199254740991,
+                    "minimum": -9007199254740991,
+                    "type": "integer"
+                  },
+                  "closeout": {
+                    "additionalProperties": {},
+                    "properties": {},
+                    "type": "object"
+                  },
+                  "deleted": {
+                    "maximum": 9007199254740991,
+                    "minimum": -9007199254740991,
+                    "type": "integer"
+                  },
+                  "effectFailures": {
+                    "items": {
+                      "additionalProperties": {},
+                      "properties": {},
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "finalSnapshots": {
+                    "additionalProperties": {},
+                    "properties": {},
+                    "type": "object"
+                  },
+                  "nextActions": {
+                    "items": {
+                      "additionalProperties": {},
+                      "properties": {},
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "notes": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "outcome": {
+                    "type": "string"
+                  },
+                  "planHash": {
+                    "type": "string"
+                  },
+                  "recoveryJournalId": {
+                    "type": ["string", "null"]
+                  },
+                  "remainingPlan": {
+                    "additionalProperties": {},
+                    "properties": {},
+                    "type": "object"
+                  },
+                  "sourcePaths": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "status": {
+                    "type": "string"
+                  },
+                  "validationSummary": {
+                    "additionalProperties": {},
+                    "properties": {},
+                    "type": "object"
+                  },
+                  "version": {
+                    "type": "string"
+                  }
                 },
-                "type": "array"
-              },
-              "changedEntities": {
-                "maximum": 9007199254740991,
-                "minimum": -9007199254740991,
-                "type": "integer"
-              },
-              "changedPaths": {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              "changedRelationships": {
-                "maximum": 9007199254740991,
-                "minimum": -9007199254740991,
-                "type": "integer"
-              },
-              "closeout": {
-                "additionalProperties": {},
-                "properties": {},
                 "type": "object"
               },
-              "deleted": {
-                "maximum": 9007199254740991,
-                "minimum": -9007199254740991,
-                "type": "integer"
-              },
-              "effectFailures": {
-                "items": {
-                  "additionalProperties": {},
-                  "properties": {},
-                  "type": "object"
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "jobId": {
+                    "type": "string"
+                  },
+                  "jobVersion": {
+                    "const": "kibi.job.v1",
+                    "type": "string"
+                  },
+                  "kibiProtocol": {
+                    "const": 1,
+                    "type": "number"
+                  },
+                  "pollWith": {
+                    "const": "kb_job_status",
+                    "type": "string"
+                  },
+                  "status": {
+                    "type": "string"
+                  },
+                  "tool": {
+                    "type": "string"
+                  }
                 },
-                "type": "array"
-              },
-              "finalSnapshots": {
-                "additionalProperties": {},
-                "properties": {},
+                "required": [
+                  "kibiProtocol",
+                  "jobVersion",
+                  "jobId",
+                  "tool",
+                  "status",
+                  "pollWith"
+                ],
                 "type": "object"
-              },
-              "nextActions": {
-                "items": {
-                  "additionalProperties": {},
-                  "properties": {},
-                  "type": "object"
-                },
-                "type": "array"
-              },
-              "notes": {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              "outcome": {
-                "type": "string"
-              },
-              "planHash": {
-                "type": "string"
-              },
-              "recoveryJournalId": {
-                "type": ["string", "null"]
-              },
-              "remainingPlan": {
-                "additionalProperties": {},
-                "properties": {},
-                "type": "object"
-              },
-              "sourcePaths": {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              "status": {
-                "type": "string"
-              },
-              "validationSummary": {
-                "additionalProperties": {},
-                "properties": {},
-                "type": "object"
-              },
-              "version": {
-                "type": "string"
               }
-            },
-            "type": "object"
+            ],
+            "description": "Synchronous apply result, or a kibi.job.v1 receipt when async:true detached the apply into a background job (poll kb_job_status with the jobId)."
           },
           "diagnostics": {
             "items": {

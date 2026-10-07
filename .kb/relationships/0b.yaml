@@ -195,3 +195,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4b1ff2427e7a
+  - type: executable_for
+    from: SYM-test-bootstrap-apply-long-running
+    to: TEST-bootstrap-apply-long-running
+    created_at: 2026-10-07T12:28:04.271Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5391d9801090

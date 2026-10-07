@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 172,
-  "proofProven": 172,
+  "currentRequirements": 176,
+  "proofProven": 176,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -857,6 +857,26 @@
       "uncoveredSymbols": []
     },
     "REQ-docs-site-terminal-demo": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-mcp-conditional-input-validation": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-bootstrap-apply-long-running": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-upsert-unknown-field-guidance": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-model-predicates-grounding-aware": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []

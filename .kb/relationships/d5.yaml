@@ -125,3 +125,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-17653eaeb51b
+  - type: verified_by
+    from: SCEN-model-predicates-grounding-aware
+    to: TEST-model-predicates-grounding-aware
+    created_at: 2026-10-07T12:28:56.013Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ef116b472d11

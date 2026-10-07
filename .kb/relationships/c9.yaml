@@ -195,3 +195,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6b9925563696
+  - type: constrains
+    from: REQ-bootstrap-apply-long-running
+    to: FACT-SUBJECT-KIBI-BOOTSTRAP-APPLY
+    created_at: 2026-10-07T12:27:55.028Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d495f5cae552
+  - type: requires_property
+    from: REQ-bootstrap-apply-long-running
+    to: FACT-bootstrap-apply-long-running-progress
+    created_at: 2026-10-07T12:27:55.064Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d05b7a1aa93c
+  - type: requires_property
+    from: REQ-bootstrap-apply-long-running
+    to: FACT-bootstrap-apply-long-running-progress-notifications
+    created_at: 2026-10-07T12:27:55.088Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6a2b8d8f0d20
+  - type: requires_property
+    from: REQ-bootstrap-apply-long-running
+    to: FACT-bootstrap-apply-long-running-async-receipt
+    created_at: 2026-10-07T12:27:55.100Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-75a0d4a73b5d
+  - type: requires_property
+    from: REQ-bootstrap-apply-long-running
+    to: FACT-bootstrap-apply-long-running-interrupted-action
+    created_at: 2026-10-07T12:27:55.118Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-815b1ba6b493
+  - type: requires_property
+    from: REQ-bootstrap-apply-long-running
+    to: FACT-bootstrap-apply-long-running-dead-lock-reclaimed
+    created_at: 2026-10-07T12:27:55.137Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-56b0737ff5ce
+  - type: requires_property
+    from: REQ-bootstrap-apply-long-running
+    to: FACT-bootstrap-apply-long-running-live-lock-blocks
+    created_at: 2026-10-07T12:27:55.154Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ba37967d20b4
+  - type: relates_to
+    from: REQ-bootstrap-apply-long-running
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-10-07T12:27:55.169Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d56b65a22aae
+  - type: specified_by
+    from: REQ-bootstrap-apply-long-running
+    to: SCEN-bootstrap-apply-long-running
+    created_at: 2026-10-07T12:27:59.532Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d4e3d3fe4af7
+  - type: verified_by
+    from: REQ-bootstrap-apply-long-running
+    to: TEST-bootstrap-apply-long-running
+    created_at: 2026-10-07T12:27:59.583Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e57d2d5ee8a6
