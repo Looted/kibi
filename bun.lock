@@ -55,7 +55,7 @@
     },
     "packages/cli": {
       "name": "kibi-cli",
-      "version": "2.8.0",
+      "version": "2.9.0",
       "bin": {
         "kibi": "bin/kibi",
       },
@@ -100,7 +100,7 @@
     },
     "packages/core": {
       "name": "kibi-core",
-      "version": "0.16.0",
+      "version": "0.17.0",
     },
     "packages/cursor": {
       "name": "kibi-cursor",
@@ -123,7 +123,7 @@
     },
     "packages/mcp": {
       "name": "kibi-mcp",
-      "version": "3.3.0",
+      "version": "3.4.0",
       "bin": {
         "kibi-mcp": "bin/kibi-mcp",
       },
@@ -211,7 +211,7 @@
     },
     "packages/runtime": {
       "name": "kibi-runtime",
-      "version": "2.6.0",
+      "version": "2.7.0",
       "dependencies": {
         "gray-matter": "^4.0.3",
         "kibi-core": "^0.16.0",
