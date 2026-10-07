@@ -33653,10 +33653,10 @@ coordinates:
     sourceLine: 1
   SYM-test-kibi-upsert-review-lanes:
     identityHash: 38e19a182125d205c4b24601c2547b7362054cb53c085ad734f500ee1b8a5b30
-    sourceHash: a1ff04904660395b0ecac137976cbd3fa8c1f2fc3fc3f313955a54ba3e2f5274
+    sourceHash: 9c090b73a722c9f03a9453744aa6ec11e53371fe65a30d9123df0bd7dd54757e
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 149
+    sourceEndLine: 154
     sourceFile: packages/cli/tests/consumer/upsert-review-lanes.test.ts
     sourceLine: 1
   SYM-test-mcp-workspace-routing:

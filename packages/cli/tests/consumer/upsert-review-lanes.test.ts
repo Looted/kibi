@@ -34,7 +34,12 @@ function bootstrappedRequirement(): { ws: ConsumerWorkspace; req: Json } {
           },
         ],
         intentClaims: [
-          { statement: STATEMENT, sourceId: "spec", reference: "claim:1" },
+          {
+            statement: STATEMENT,
+            sourceId: "spec",
+            reference: "claim:1",
+            excerpt: "Users need to export their reports as CSV.",
+          },
         ],
       },
     }).data as Json
