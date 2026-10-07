@@ -5,6 +5,7 @@ tags:
   - docs
   - site
   - pages
+  - review:context-missing
 verification_scope: end_to_end
 verification_perspective: consumer
 proof_contract:
@@ -18,17 +19,17 @@ id: TEST-docs-site-pages
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v1
-    receipt_id: PR-59899e82f82ea76dffb79ff7
+    receipt_id: PR-be90a4b36f0dd453cd86236d
     test_id: TEST-docs-site-pages
     scope: end_to_end
     outcome: passed
-    code_snapshot: 1d442bd07788e49f01747ce90fcac74ae56fd006d23b7e6912f021fb0809ca83
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-10-04T21:14:16.353Z'
-    finished_at: '2026-10-04T22:06:01.024Z'
-    artifact_digest: 9c5d99e7639c043a2240c0d58f9e934f6a75ac252c6f7774a6667b697f58a8d4
+    code_snapshot: 95ff653237ded263cb0f1e188fc84a6be9cae5e0918532ed37f1b9e3d33a1ed0
+    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
+    started_at: '2026-10-06T21:50:32.069Z'
+    finished_at: '2026-10-06T21:50:33.229Z'
+    artifact_digest: cc7b9cc60f17515af6e19220334f59cd9ea46cdda00cace4d5393a43f781b465
     contract_hash: 0028e51ff52651edcf95da47a23b761ac6e5f78b9a7bd46229aa1fcef068c2c2
-    binding_hash: 530d9782aee92072050439fb117a49b59d046e0968a238342bffba65218f6fe9
+    binding_hash: 0acd74fd35590946f853142dd7b0d3b4842521c7281c31c7527f3dc033fe69ce
     fingerprint: 1b2d9390342d5aa3032922ebd9029e138c9573297cdcf75eb6ef8268a7a578dc
     fingerprint_components:
       contract: 0028e51ff52651edcf95da47a23b761ac6e5f78b9a7bd46229aa1fcef068c2c2

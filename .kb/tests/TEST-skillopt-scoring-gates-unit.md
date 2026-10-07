@@ -5,6 +5,7 @@ tags:
   - skillopt
   - unit
   - structural-contract
+  - review:context-missing
 verification_scope: unit
 id: TEST-skillopt-scoring-gates-unit
 type: test

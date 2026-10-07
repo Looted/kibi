@@ -12,6 +12,7 @@ tags:
   - evidence
   - feedback
   - umbrella
+  - review:context-missing
 semantic_text: "Final-state property evidence must preserve the stored property_key without deriving a namespace from subject_key. Exact entity queries must preserve every target when a relationship type occurs more than once. Safe-mutation evaluation fixtures must expose the requested typed relationships and the real test evidence needed to close symbol coverage. Safe-mutation final-state scoring must verify the exact requested ownership and coverage relationships. Provider credit or usage exhaustion must terminate paid optimization as budget-exhausted infrastructure evidence. Behavioral failures without critical failures must retain a structured feedback category for the optimizer. Semantic-advisor readiness must remain partial until every normative claim has a distinct logical grounding edge."
 logic_claims:
   - CLAIM-D593FEA65D7C463C

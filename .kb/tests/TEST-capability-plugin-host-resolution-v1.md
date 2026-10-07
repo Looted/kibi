@@ -3,6 +3,7 @@ title: Capability plugin host resolution tests
 status: passing
 tags:
   - plugins
+  - review:context-missing
 verification_scope: unit
 verification_perspective: internal
 id: TEST-capability-plugin-host-resolution-v1

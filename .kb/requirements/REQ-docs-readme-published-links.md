@@ -5,6 +5,7 @@ tags:
   - docs
   - readme
   - site
+  - review:context-missing
 priority: should
 semantic_text: The repository README must link a documentation source that the documentation site publishes to that page's published URL, not to the GitHub rendering of the source. The published documentation site must include an llms.txt index whose page links are exactly the documentation catalog. The documentation landing page must link to that index so a language model can continue from the main page into the deeper documentation.
 logic_claims:

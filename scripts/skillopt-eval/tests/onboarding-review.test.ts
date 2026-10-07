@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
+import { buildPublicCatalog } from "../catalog";
 import { onboardingReviewEvidence } from "../fixtures/onboarding-review";
 import { onboardingReviewMatches } from "../runtime/onboarding-review";
-import { buildPublicCatalog } from "../catalog";
 
 test("supplied-source review permits reading its evidence file without authorizing writes", () => {
   const tasks = buildPublicCatalog().filter(

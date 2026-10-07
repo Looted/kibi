@@ -7,6 +7,7 @@ tags:
   - worktree
   - routing
   - search
+  - review:context-missing
 semantic_text: |-
   When a Kibi MCP tool call carries a workspaceRoot argument, the Kibi MCP server must answer the call from the Kibi workspace that owns that directory.
 

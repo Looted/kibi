@@ -11,6 +11,7 @@ tags:
   - cursor
   - plugin
   - hooks
+  - review:context-missing
 links:
   - type: relates_to
     target: REQ-cursor-kibi-plugin-v1

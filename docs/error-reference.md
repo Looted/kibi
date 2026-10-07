@@ -46,7 +46,9 @@ Call `kb_model` with `mode: "predicates"` before hand-writing ontology predicate
 
 ## Incomplete logical claim provenance
 
-`claim_key` and `claim_text` are an auditable pair. If either is present on a fact, supply both. Use the stable key returned by `kb_model` with `mode: "analyze"` for that exact atomic clause; do not invent or reuse a key for different prose.
+`claim_key` and `claim_text` are an auditable pair. If `claim_key` is present on a fact, supply both, and supply both on every grounding fact (`property_value`, `predicate`, `rule`). Use the stable key returned by `kb_model` with `mode: "analyze"` for that exact atomic clause; do not invent or reuse a key for different prose.
+
+An `observation` or `meta` fact is a non-grounding review note, so it may quote the claim it is about in `claim_text` alone. The error `/properties must have required property 'claim_key'` on such a fact came from older releases; on any other fact kind, either add the `claim_key` returned for that clause or drop `claim_text`.
 
 If `kb_check` reports `logic-coverage`, compare the requirement `logic_claims` manifest with its linked `property_value` and `predicate` facts. Ground every missing key, add any omitted linked key to the manifest, and keep ambiguity or ontology gaps explicitly unresolved rather than satisfying the check with an observation.
 
@@ -55,6 +57,10 @@ If `kb_coverage.repairPlan.status` is `partial`, do not execute it as a complete
 ## Invalid entity origin
 
 `origin` is an object with a required `kind` (`human`, `agent`, `migration` or `import`) and optional `ref`, `approved_by` and `recorded_at` (ISO 8601). Unknown kinds and unknown fields are rejected by `kb_upsert` and, in Markdown frontmatter, by `kibi sync` (classification `Invalid Entity Origin`). To keep a stored origin, omit `origin` from the upsert instead of copying it.
+
+## Proposition-complete ingestion failed on a relationship update
+
+`kb_upsert` on an existing requirement that only adds relationships (for example `specified_by` to a new scenario) keeps the stored proposition ledger: when the payload has no `semantic_*` or `logic_claims` field and its `title` and `text_ref` (if given) equal the stored values, Kibi merges the stored `semantic_text`, `semantic_inventory`, `semantic_inventory_version`, `semantic_source_field`, `semantic_source_hash`, `semantic_clauses` and `logic_claims` (and the stored `text_ref` when the payload omits it) under the payload, and checks the merged requirement. If you still see `semantic_inventory_version must be 'kibi.semantic-inventory.v1' ... received 0`, the payload changed the prose or supplied part of the ledger: either send only `title`, `status` and the relationships, or send the complete ledger returned by `kb_model` with `mode: "analyze"` for the new prose.
 
 ## Semantic inventory no longer matches the advisor
 
@@ -90,6 +96,10 @@ Create an append-only replacement requirement and add `supersedes`, or deprecate
 ## Superseded requirement still open (`superseded-requirement-open`)
 
 `kibi check` blocks a requirement that another requirement `supersedes` while its status is not `closed`. Upsert it with `status: closed`, or run `kibi migrate` (action `close_superseded_requirements`), which edits only the status line. If the requirement still states current intent, delete the `supersedes` link instead. A finding that starts with `Supersession cycle:` names requirements that supersede each other; nothing closes them automatically. Decide which one is current, delete the `supersedes` link that points at it, then close the others.
+
+## Entity has no body context (`entity-context-missing`)
+
+`kibi check` blocks a current `req`, `scenario`, `test`, `adr` or observation/meta `fact` whose body has fewer than 12 words of context, or whose context only restates the title (for a requirement, also `semantic_text`). For a requirement only text under a `Context`, `Rationale`, `Why`, `Background`, `Source`, `Notes` or `Evidence` heading counts. Add a `## Context` section (requirement) or prose body stating why, who asked, the source and anything that does not fit front matter, and pass it as `document.body` to `kb_upsert`; the upsert result and dryRun warn about the same finding. Never invent a reason the requester did not give: write "Reason not stated". Entities the schema 8 `kibi migrate` acknowledged (tagged `review:context-missing` and listed in `.kb/manifest.json` under `contextAcknowledged`) do not block and are counted by the advisory `entity-context-acknowledged` diagnostic. The tag is reserved for them: on any other entity `kibi check` still blocks with "review:context-missing is reserved for entities acknowledged by the schema 8 migration; add context instead". Do not tag an entity to clear the finding; write who asked, the source and "Reason not stated" in the Context section. Remove the tag once real context is added.
 
 ## Dangling source (`source-path-dangling`)
 

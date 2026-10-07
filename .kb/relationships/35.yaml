@@ -237,3 +237,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4cd92c461256
+  - type: implements
+    from: SYM-cli-proposition-role-isDefinitionShape
+    to: REQ-bootstrap-advisor-proposition-roles
+    created_at: 2026-10-06T20:44:28.918Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-375a2e16054d
+  - type: covered_by
+    from: SYM-cli-proposition-role-isDefinitionShape
+    to: TEST-kibi-bootstrap-knowledge-sources
+    created_at: 2026-10-06T20:44:28.931Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e54f9507a18c
+  - type: covered_by
+    from: SYM-cli-proposition-role-isDefinitionShape
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-10-06T20:44:28.942Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d3e9665144d8

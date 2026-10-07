@@ -6,6 +6,7 @@ tags:
   - plugins
   - modeling
   - vocabulary-convergence
+  - review:context-missing
 semantic_text: The builtin vocabulary-alignment provider must produce complete subject rankings and claim comparisons without network access. An activated vocabulary-alignment provider may run from kb_model_requirement. kb_check must never call a vocabulary-alignment provider. A failed replace-mode vocabulary-alignment provider must fall back to the builtin provider with fallbackUsed stamped.
 semantic_clauses:
   - The builtin vocabulary-alignment provider must produce complete subject rankings and claim comparisons without network access.

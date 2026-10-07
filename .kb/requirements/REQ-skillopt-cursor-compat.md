@@ -5,6 +5,7 @@ tags:
   - skillopt
   - cursor
   - compatibility
+  - review:context-missing
 semantic_text: The SkillOpt cursor operator must parse its qualify and compat commands strictly and must run the cursor compatibility lane before any paid evaluation cells are spent. The lane must gate evaluation on a passing cursor qualification check, summarize per-variant cell outcomes with absolute floors, and persist a compatibility report without recording account data. When arguments or gates are invalid, the operator fails closed with a usage error instead of launching cells.
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text

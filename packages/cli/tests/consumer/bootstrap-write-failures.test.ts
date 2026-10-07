@@ -4,6 +4,7 @@ import { dump as dumpYaml } from "js-yaml";
 import { bootstrapPlanHash } from "../../src/operations/bootstrap/types.js";
 import type { UpsertInput } from "../../src/operations/mutation/types.js";
 import { validateUpsertInput } from "../../src/operations/mutation/validation.js";
+import { LATEST_KB_SCHEMA_VERSION } from "../../src/utils/schema-version.js";
 import {
   type ConsumerWorkspace,
   type Json,
@@ -57,6 +58,7 @@ function planClaims(statements: string[], syncFirst = false): Json {
           statement,
           sourceId: "spec",
           reference: `claim:${index + 1}`,
+          excerpt: `The spec says: ${statement}`,
         })),
       },
     }).data as Json
@@ -93,6 +95,40 @@ describe("bootstrap writes through the real CLI and Prolog engine", () => {
     const status = workspace().json(["status"], {});
     expect(status.status).toBe("success");
     expect((status.data as Json).syncState).toBe("fresh");
+  }, 120_000);
+
+  test("conditional claims and obligations naming a referent apply with the advisor's roles", () => {
+    const plan = planClaims([
+      "Deleting an annotation must clear any active, editing, or draft state that refers to it.",
+      "If microphone access fails, the editor must present an error instead of silently pretending to record.",
+    ]);
+    expect(plan.status).toBe("ready");
+    expect(plan.suppressedCandidates).toEqual([]);
+    const roles = (plan.actions as { payload: UpsertInput }[])
+      .filter((action) => action.payload.type === "req")
+      .map(
+        (action) =>
+          (
+            action.payload.properties as {
+              semantic_inventory: { role: string }[];
+            }
+          ).semantic_inventory[0]?.role,
+      );
+    expect(roles.sort()).toEqual(["condition", "normative"]);
+    const applied = workspace().json(["apply-plan"], {
+      plan,
+      approvedPlanHash: plan.planHash,
+    });
+    expect(applied.status).toBe("success");
+    expect((applied.data as Json).outcome).toBe("applied");
+    workspace().sync();
+    const check = workspace().json(["check"], {
+      rules: ["strict-fact-shape", "domain-contradictions", "no-dangling-refs"],
+    });
+    expect((check.data as Json).violations).toEqual([]);
+    expect(
+      (workspace().json(["query"], { type: "req" }).data as Json).entities,
+    ).toHaveLength(2);
   }, 120_000);
 
   test("a plan bound to a synced journal snapshot applies without weakening freshness", () => {
@@ -255,7 +291,9 @@ test("schema 6 polarity-only facts migrate strictly without changing IDs or bodi
   expect(before.stderr).toContain("missing value field");
   ws.text(["migrate", "--yes"]);
   ws.sync();
-  expect(JSON.parse(ws.read(".kb/manifest.json")).schemaVersion).toBe(7);
+  expect(JSON.parse(ws.read(".kb/manifest.json")).schemaVersion).toBe(
+    LATEST_KB_SCHEMA_VERSION,
+  );
   for (const polarity of ["require", "forbid"]) {
     const source = ws.read(`.kb/facts/FACT-${polarity}.md`);
     expect(source.endsWith(`---${body}`)).toBe(true);

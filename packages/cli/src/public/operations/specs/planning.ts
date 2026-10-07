@@ -50,6 +50,24 @@ export const compileIntentSpec = {
         description:
           "Create a new requirement or update an existing one. Update auto-selection is allowed only with a high-confidence, well-separated candidate.",
       },
+      context: {
+        type: "string",
+        maxLength: 10000,
+        description:
+          "Why the requirement exists, who asked and anything that does not fit its checked meaning. Required when mode is create (validation error naming this field otherwise); rendered as a '## Context' section of the requirement document, never as part of the checked meaning. Never invent a reason: write 'Reason not stated' when the requester gave none. An update keeps the existing document body unless context is supplied.",
+      },
+      sourceExcerpt: {
+        type: "string",
+        maxLength: 10000,
+        description:
+          "Optional verbatim text the intent came from (a ticket, a message, a document passage). Rendered as a blockquote in the requirement's '## Source' section; requires context.",
+      },
+      sourceReference: {
+        type: "string",
+        maxLength: 2000,
+        description:
+          "Optional locator of the source text (ticket id, URL, path). Rendered in the requirement's '## Source' section; requires context.",
+      },
       requirementId: {
         type: "string",
         description:

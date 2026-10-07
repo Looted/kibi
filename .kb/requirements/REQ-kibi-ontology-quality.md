@@ -5,6 +5,7 @@ priority: must
 tags:
   - ontology
   - vocabulary-convergence
+  - review:context-missing
 semantic_text: Kibi check must report a predicate whose argument values mostly occur in only one fact as informational ontology-quality. Ontology-quality must not report predicates with fewer facts than the configured minimum.
 semantic_clauses:
   - Kibi check must report a predicate whose argument values mostly occur in only one fact as informational ontology-quality.

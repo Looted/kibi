@@ -1,3 +1,4 @@
+import { renderRequirementBody } from "../../entity-body-context.js";
 import type { StrictWriteSet } from "../../utils/strict-modeling.js";
 import { annotateModelRequirementStep } from "../modeling/model-requirement.js";
 import { semanticClaimKey } from "../semantic-advisor/clauses.js";
@@ -77,4 +78,53 @@ export function strictPlan(
       logicClaims: [claimKey],
     }),
   );
+}
+
+/**
+ * Attach an authored body to an upsert step so the entity document carries
+ * more than its front matter.
+ */
+// implements REQ-kb-entity-body-context
+export function withDocumentBody(
+  step: Readonly<Record<string, unknown>>,
+  body: string,
+): Readonly<Record<string, unknown>> {
+  return { ...step, document: { body } };
+}
+
+/**
+ * Where a deterministic bootstrap provider found an entry. No reason was
+ * stated in the source, so the sentence records provenance instead of
+ * inventing one; later schema versions and reviewers keep the origin.
+ */
+// implements REQ-kb-entity-body-context
+export function bootstrapProvenance(
+  provider: string,
+  location: string,
+  confidence: number,
+): string {
+  return `Recorded deterministically by the ${provider} bootstrap provider from ${location} (confidence ${confidence.toFixed(2)}). The source states no reason for this entry, so it preserves where the knowledge came from for later schema versions and reviewers.`;
+}
+
+/** Body for a non-requirement entity: its title, then its provenance. */
+// implements REQ-kb-entity-body-context
+export function provenanceBody(title: string, provenance: string): string {
+  return `${title.trim()}\n\n${provenance}\n`;
+}
+
+/**
+ * Body for a requirement found in prose: the statement, the provenance as
+ * its Context and the quoted statement with its location as its Source.
+ */
+// implements REQ-kb-entity-body-context
+export function provenanceRequirementBody(
+  statement: string,
+  provenance: string,
+  reference: string,
+): string {
+  return renderRequirementBody({
+    statement,
+    context: provenance,
+    source: { excerpt: statement, reference },
+  });
 }

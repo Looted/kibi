@@ -8,6 +8,7 @@ tags:
   - confidence-band:high
   - provenance:kb-requirements-req-cli-staged-complete-inventory-v1-md
   - lane:strict
+  - review:context-missing
 semantic_text: The staged check must inventory every path in the Git index before filtering.
 logic_claims:
   - CLAIM-F51B8CA6D6AB3904

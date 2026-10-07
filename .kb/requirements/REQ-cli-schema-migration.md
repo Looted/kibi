@@ -10,6 +10,7 @@ tags:
   - cli
   - migration
   - schema
+  - review:context-missing
 links:
   - type: specified_by
     target: SCEN-cli-migrate

@@ -53,10 +53,12 @@ export function planPolarityValueBackfill(
         `Cannot migrate polarity fact ${file.relativePath}: subject_key and property_key are required`,
       );
     const after = `${slice.prefix}${slice.text}operator: eq${slice.eol}value_type: bool${slice.eol}value_bool: true${slice.eol}${slice.suffix}`;
-    const parsed = loadYaml(sliceFrontmatter(after)!.text) as Record<
-      string,
-      unknown
-    >;
+    const afterFrontmatter = sliceFrontmatter(after);
+    if (!afterFrontmatter)
+      throw new Error(
+        `Polarity migration could not verify ${file.relativePath}`,
+      );
+    const parsed = loadYaml(afterFrontmatter.text) as Record<string, unknown>;
     if (
       parsed.operator !== "eq" ||
       parsed.value_type !== "bool" ||
@@ -69,7 +71,7 @@ export function planPolarityValueBackfill(
       id:
         typeof data.id === "string"
           ? data.id
-          : file.relativePath.split("/").at(-1)!.slice(0, -3),
+          : (file.relativePath.split("/").at(-1) ?? "").slice(0, -3),
       path: file.relativePath,
       before,
       after,

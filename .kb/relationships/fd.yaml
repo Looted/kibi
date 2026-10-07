@@ -202,3 +202,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-39ca7b52e787
+  - type: implements
+    from: SYM-cli-proposition-role-legacyPropositionRoles
+    to: REQ-bootstrap-advisor-proposition-roles
+    created_at: 2026-10-06T20:44:36.159Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8ca6ca5ac03a
+  - type: covered_by
+    from: SYM-cli-proposition-role-legacyPropositionRoles
+    to: TEST-kibi-bootstrap-knowledge-sources
+    created_at: 2026-10-06T20:44:36.175Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-84ffaae9d438

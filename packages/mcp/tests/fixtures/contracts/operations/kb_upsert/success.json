@@ -56,12 +56,12 @@
     "warnings": []
   },
   "tool": {
-    "description": "Create or update one entity and optional relationships. Use for KB mutations after validating intent; prefer a dryRun:true call first because it validates without writing and returns semantic advisor receipts for prose-heavy requirements. Use kb_model (mode requirement) before hand-writing strict property facts from prose, and kb_model (mode predicates) before hand-writing ontology predicate facts. Use the `relationships` array for batch creation of multiple links in a single call (e.g., linking a requirement to multiple tests or facts). Prefer modeling requirements as reusable fact links (`constrains`, `requires_property`, or `requires_predicate`) so consistency and contradiction checks remain queryable. Relationship endpoints must already exist in KB. For requirements, the write will be rejected if it contradicts existing current requirements that constrain the same subject with incompatible properties. To replace a conflicting requirement, include a `supersedes` relationship from the new requirement to the old one in the same request, then upsert the old requirement with status closed (kb_check blocks a superseded requirement that is not closed). Successful writes may return non-blocking semantic advisor warnings; inspect and repair those warnings before treating prose as contradiction-checkable. Do not use for read-only inspection. Side effects: writes KB, may refresh symbol coordinates; dryRun:true writes nothing.",
+    "description": "Create or update one entity and optional relationships. Use for KB mutations after validating intent; prefer a dryRun:true call first because it validates without writing and returns semantic advisor receipts for prose-heavy requirements. Use kb_model (mode requirement) before hand-writing strict property facts from prose, and kb_model (mode predicates) before hand-writing ontology predicate facts. Use the `relationships` array for batch creation of multiple links in a single call (e.g., linking a requirement to multiple tests or facts). Prefer modeling requirements as reusable fact links (`constrains`, `requires_property`, or `requires_predicate`) so consistency and contradiction checks remain queryable. Relationship endpoints must already exist in KB. For requirements, the write will be rejected if it contradicts existing current requirements that constrain the same subject with incompatible properties. To replace a conflicting requirement, include a `supersedes` relationship from the new requirement to the old one in the same request, then upsert the old requirement with status closed (kb_check blocks a superseded requirement that is not closed). Successful writes may return non-blocking semantic advisor warnings; inspect and repair those warnings before treating prose as contradiction-checkable. Pass a sectioned `document.body` when creating a requirement (the statement, then `## Context` stating why it exists, who asked and the source, then `## Source` with the verbatim excerpt) and a prose body for scenarios, tests, ADRs and observation facts; a result warning reports an entity whose body lacks context, and kb_check blocks it under entity-context-missing. Never invent a reason the requester did not give: write 'Reason not stated'. Do not use for read-only inspection. Side effects: writes KB, may refresh symbol coordinates; dryRun:true writes nothing.",
     "inputSchema": {
       "properties": {
         "document": {
           "additionalProperties": false,
-          "description": "Optional source-first document write. Paths are workspace-relative; omit body when updating to preserve the existing body bytes.",
+          "description": "Optional source-first document write. Paths are workspace-relative; omit body when updating to preserve the existing body bytes. For a new requirement pass a sectioned body: statement, '## Context' (why, who asked, constraints), '## Source' (blockquoted excerpt and reference); context never changes the checked meaning, which stays in semantic_text.",
           "properties": {
             "body": {
               "type": "string"
@@ -91,6 +91,14 @@
                     "required": ["claim_key"]
                   },
                   {
+                    "not": {
+                      "properties": {
+                        "fact_kind": {
+                          "enum": ["observation", "meta"]
+                        }
+                      },
+                      "required": ["fact_kind"]
+                    },
                     "required": ["claim_text"]
                   }
                 ]
@@ -189,7 +197,7 @@
               "type": "integer"
             },
             "claim_text": {
-              "description": "Exact atomic requirement clause represented by this fact, retained for human audit.",
+              "description": "Exact atomic requirement clause represented by this fact, retained for human audit. Requires claim_key, except on an observation or meta fact, which may quote the clause it is about without claim_key.",
               "type": "string"
             },
             "closed_world": {

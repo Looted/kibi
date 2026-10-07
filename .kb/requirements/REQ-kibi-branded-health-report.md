@@ -9,6 +9,7 @@ tags:
   - brand
   - proof
   - accessibility
+  - review:context-missing
 semantic_text: The Kibi HTML requirement-health report and generated badge must use the canonical Kibi logo, wordmark, and proof-rail visual system. The report must show the exact proven numerator and current-requirement denominator beside the percentage. The report must show sequential semantic-model, scenario, implementation, end-to-end, and evidence gate counts. Each requirement drop must be assigned to the earliest unmet gate. The report and badge must remain self-contained and use no network assets. The report must meet WCAG AA contrast and communicate status without color alone. The report must remain responsive and printable.
 semantic_clauses:
   - The Kibi HTML requirement-health report and generated badge must use the canonical Kibi logo, wordmark, and proof-rail visual system

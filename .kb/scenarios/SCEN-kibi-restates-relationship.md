@@ -6,6 +6,7 @@ tags:
   - relationships
   - redundancy
   - vocabulary-convergence
+  - review:context-missing
 id: SCEN-kibi-restates-relationship
 type: scenario
 origin:

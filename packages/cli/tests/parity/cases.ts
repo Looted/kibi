@@ -74,6 +74,7 @@ const SEED_INPUTS = {
   kb_compile_intent: {
     intent: "Customer data must be retained for 7 years.",
     mode: "create",
+    context: "Legal asked for seven year retention after an audit finding.",
   },
   kb_apply_plan: {
     plan: {

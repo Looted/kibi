@@ -4,6 +4,7 @@ status: passing
 verification_scope: end_to_end
 tags:
   - vocabulary-convergence
+  - review:context-missing
 id: TEST-kibi-vocabulary-convergence-e2e
 type: test
 proof_contract:

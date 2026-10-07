@@ -1,6 +1,6 @@
+import { afterEach, describe, expect, test } from "bun:test";
 // implements REQ-kibi-schema6-migration
 import { LATEST_KB_SCHEMA_VERSION } from "../../src/utils/schema-version.js";
-import { afterEach, describe, expect, test } from "bun:test";
 import {
   type ConsumerWorkspace,
   type Json,
@@ -288,10 +288,15 @@ links:
         ref: MIGRATION_REF,
         recorded_at: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T/),
       });
-    // The origin is the last frontmatter key; every other byte is kept.
+    // The origin is the last frontmatter key; every other byte is kept, apart
+    // from the schema 8 tag that acknowledges the test's missing body context.
     const testAfter = ws.read(TEST_PATH);
     expect(testAfter).toMatch(new RegExp(`\\n${ORIGIN_BLOCK.source}---\\n`));
-    expect(testAfter.replace(ORIGIN_BLOCK, "")).toBe(testBefore);
+    expect(
+      testAfter
+        .replace(ORIGIN_BLOCK, "")
+        .replace("tags:\n  - review:context-missing\n", ""),
+    ).toBe(testBefore);
 
     // The grounded clause stays modeled and keeps its fact; the reclassified
     // clause is unresolved, never modeled.

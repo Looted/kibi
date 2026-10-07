@@ -9,6 +9,7 @@ priority: must
 tags:
   - cli
   - query
+  - review:context-missing
 links:
   - type: supersedes
     target: REQ-003

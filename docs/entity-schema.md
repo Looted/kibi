@@ -596,7 +596,7 @@ Facts support two authoring lanes:
 
 Legacy prose facts without `fact_kind` remain readable during migration, but new requirements should prefer the strict lane when the fact expresses a rule that should block contradictions.
 
-`fact` entities represent atomic domain concepts and invariants (for example domain nouns, cardinalities, property values, ontology predicates, and safe rules). Requirements can link to strict facts using `constrains` and `requires_property`, ontology predicate facts using `requires_predicate`, or safe Logic IR rules using `requires_rule`, so domain claims become structural and queryable. When either `claim_key` or `claim_text` is supplied, both are required.
+`fact` entities represent atomic domain concepts and invariants (for example domain nouns, cardinalities, property values, ontology predicates, and safe rules). Requirements can link to strict facts using `constrains` and `requires_property`, ontology predicate facts using `requires_predicate`, or safe Logic IR rules using `requires_rule`, so domain claims become structural and queryable. When `claim_key` is supplied, `claim_text` is required too, and a fact of any other kind that supplies `claim_text` must also supply `claim_key`. An `observation` or `meta` fact is a non-grounding review note and may quote the claim it is about in `claim_text` without `claim_key`.
 
 **Migration note:** schema v4 adds `semantic_inventory`, its source-binding contract, `rule_schema`, `rule`, and `requires_rule` additively. Existing Markdown requirements receive a one-time semantic-hash baseline; the next semantic edit, or any newly added requirement after that baseline, must carry a complete ledger. Projects can adopt the logic lane incrementally by preserving advisor proposition ledgers, adding rule schemas, then linking modeled requirements to safe facts while leaving unresolved states explicit.
 
@@ -908,6 +908,21 @@ links:
 ```
 
 ---
+
+## Body contract
+
+The Markdown body is where context lives; front matter is the checked meaning. Sections are split by ATX headings. The context headings are `Context`, `Rationale`, `Why`, `Background`, `Source`, `Notes` and `Evidence` (case-insensitive prefix match); a context section runs to the next heading of the same or higher level.
+
+| Type | What counts as context | Body should carry |
+| --- | --- | --- |
+| `req` | Only text under context headings | The statement, `## Context` (why, who asked, constraints), `## Source` (blockquoted excerpt and reference) |
+| `scenario` | All non-heading prose | Given/When/Then prose and the assumptions it depends on |
+| `test` | All non-heading prose | What it asserts, how (fixture, entry point), what would make it a false pass |
+| `adr` | All non-heading prose | Context, Decision, Consequences |
+| `fact` (`observation`, `meta`) | All non-heading prose | What was seen, where, when, how confirmed |
+| `symbol`, `flag`, `event`, other fact kinds | Exempt | Front matter is the content |
+
+The blocking `entity-context-missing` check requires at least 12 words of context that are not a restatement of the title (normalized token-set Jaccard below 0.8; a requirement is also compared with `semantic_text`). Never invent a reason: write "Reason not stated" and the source. Context sections of a requirement are excluded when `semantic_text` is derived from the body, and Kibi writes `semantic_text` explicitly in front matter on every requirement it authors, so adding context never changes claim spans or hashes. Entities that predate the rule are tagged `review:context-missing` by the schema 8 migration (see `kibi migrate`), which records their ids in `.kb/manifest.json`; those are counted by the advisory `entity-context-acknowledged` diagnostic instead of blocking. The tag is reserved for them: on any other entity it is still a violation, so add context (who asked, the source, or "Reason not stated") instead of tagging.
 
 ## Notes
 - The schema is the eight entity types and the relationship catalog in this document.

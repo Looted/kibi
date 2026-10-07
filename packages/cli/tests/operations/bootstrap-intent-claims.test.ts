@@ -3,11 +3,15 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
+import { prepareOperationInput } from "../../src/cli-validate.js";
+import { buildIntentClaimCandidates } from "../../src/operations/bootstrap/intent-claims.js";
+import { normalizeBootstrapContext } from "../../src/operations/bootstrap/presentation.js";
 import type {
   BootstrapContext,
   Candidate,
 } from "../../src/operations/bootstrap/types.js";
 import { bootstrapPlanHash } from "../../src/operations/bootstrap/types.js";
+import { validateBootstrapPayload } from "../../src/operations/bootstrap/validation.js";
 import type { UpsertInput } from "../../src/operations/mutation/types.js";
 import { validateUpsertInput } from "../../src/operations/mutation/validation.js";
 import {
@@ -100,6 +104,8 @@ const interview: BootstrapContext = {
     },
     {
       statement: "Customers like getting invoices on time.",
+      excerpt:
+        "The source states this verbatim so the entity can keep the passage.",
       sourceId: "jira-billing",
       reference: "BILL-7",
     },
@@ -152,6 +158,171 @@ describe("bootstrap from declared knowledge sources", () => {
       title: "Refunds must not exceed the original charge.",
       text_ref: "jira-billing:BILL-142",
     });
+  });
+
+  test("persists the statement, excerpt, source title and reference in the entity body", async () => {
+    const result = await planBootstrapSpec.execute(
+      { bootstrapContext: interview },
+      context(thinRepository()),
+    );
+    const requirement = result.structuredContent.plan.actions.find(
+      (action) => action.payload.type === "req",
+    );
+    const document = requirement?.payload.document as
+      | { body?: string }
+      | undefined;
+    expect(document?.body).toBe(
+      "Refunds must not exceed the original charge.\n\n## Source\n\n> Never refund more than was charged.\n\nSource: Jira BILL project - BILL-142\n",
+    );
+  });
+
+  test("a claim whose source text states no reason is not tagged as acknowledged legacy", () => {
+    const source = interview.knowledgeSources?.[0];
+    if (!source) throw new Error("fixture source missing");
+    const result = buildIntentClaimCandidates(
+      normalizeBootstrapContext({
+        knowledgeSources: [source],
+        intentClaims: [
+          {
+            statement: "Refunds must not exceed the original charge.",
+            sourceId: "jira-billing",
+            reference: "BILL-1",
+            excerpt: "Cap refunds.",
+          },
+        ],
+      }),
+      new Set(),
+      0.8,
+    );
+    const requirement = result.candidates[0]?.applyPlan.find(
+      (step) => step.type === "req",
+    );
+    expect(
+      (requirement?.properties as { tags?: string[] }).tags ?? [],
+    ).not.toContain("review:context-missing");
+  });
+
+  test("a source passage with real context leaves the entity untagged", () => {
+    const source = interview.knowledgeSources?.[0];
+    if (!source) throw new Error("fixture source missing");
+    const result = buildIntentClaimCandidates(
+      normalizeBootstrapContext({
+        knowledgeSources: [source],
+        intentClaims: [
+          {
+            statement: "Refunds must not exceed the original charge.",
+            sourceId: "jira-billing",
+            reference: "BILL-142",
+            excerpt:
+              "Finance found refunds above the charge during the March audit, so the payment service must never refund more than the customer was originally charged.",
+          },
+        ],
+      }),
+      new Set(),
+      0.8,
+    );
+    const requirement = result.candidates[0]?.applyPlan.find(
+      (step) => step.type === "req",
+    );
+    expect((requirement?.properties as { tags?: string[] }).tags).not.toContain(
+      "review:context-missing",
+    );
+  });
+
+  test("an intent or observation claim without an excerpt is suppressed and explained; an open question may omit it", () => {
+    const source = interview.knowledgeSources?.[0];
+    if (!source) throw new Error("fixture source missing");
+    const result = buildIntentClaimCandidates(
+      normalizeBootstrapContext({
+        knowledgeSources: [source],
+        intentClaims: [
+          {
+            statement: "Refunds must not exceed the original charge.",
+            sourceId: "jira-billing",
+            reference: "BILL-1",
+          },
+          {
+            statement: "Exports are signed today.",
+            sourceId: "jira-billing",
+            reference: "BILL-2",
+            kind: "observation",
+          },
+          {
+            statement: "Should refunds include tax?",
+            sourceId: "jira-billing",
+            reference: "BILL-3",
+            kind: "open_question",
+          },
+        ],
+      }),
+      new Set(),
+      0.8,
+    );
+    expect(result.suppressed.map((row) => row.reason)).toEqual([
+      "missing_excerpt",
+      "missing_excerpt",
+    ]);
+    expect(result.diagnostics.join("\n")).toContain("BILL-1");
+    expect(result.diagnostics.join("\n")).toContain("without an excerpt");
+    expect(result.candidates).toHaveLength(1);
+    expect(result.candidates[0]?.title).toBe("Should refunds include tax?");
+  });
+
+  test("the plan schema requires an excerpt unless the claim is an open question", () => {
+    const valid = (items: unknown[]) =>
+      prepareOperationInput(
+        { bootstrapContext: { intentClaims: items } },
+        planBootstrapSpec.businessInputSchema,
+      ).valid;
+    const base = { statement: "S must hold.", sourceId: "a", reference: "r" };
+    expect(valid([base])).toBe(false);
+    expect(valid([{ ...base, kind: "observation" }])).toBe(false);
+    expect(valid([{ ...base, excerpt: "quoted" }])).toBe(true);
+    expect(valid([{ ...base, kind: "open_question" }])).toBe(true);
+  });
+
+  test("plans conditional claims and obligations naming a referent with the advisor's roles", async () => {
+    const statements = [
+      "Deleting an annotation must clear any active, editing, or draft state that refers to it.",
+      "If microphone access fails, the editor must present an error instead of silently pretending to record.",
+    ];
+    const result = await planBootstrapSpec.execute(
+      {
+        bootstrapContext: {
+          ...interview,
+          intentClaims: statements.map((statement, index) => ({
+            statement,
+            sourceId: "jira-billing",
+            reference: `BILL-${200 + index}`,
+            excerpt: statement,
+          })),
+        },
+      },
+      context(thinRepository()),
+    );
+    const plan = result.structuredContent.plan;
+
+    expect(plan.suppressedCandidates).toEqual([]);
+    expect(plan.candidates.map((candidate) => candidate.title).sort()).toEqual(
+      [...statements].sort(),
+    );
+    const requirements = plan.actions.filter(
+      (action) => action.payload.type === "req",
+    );
+    for (const action of plan.actions)
+      expect(() =>
+        validateBootstrapPayload(action.payload, new Date()),
+      ).not.toThrow();
+    expect(
+      requirements.map(
+        (action) =>
+          (
+            action.payload.properties as {
+              semantic_inventory: { role: string }[];
+            }
+          ).semantic_inventory[0]?.role,
+      ),
+    ).toEqual(["normative", "condition"]);
   });
 
   test("keeps unmodelable, stale, and uncited claims out of the write set and says why", async () => {
@@ -230,6 +401,8 @@ describe("claim kinds and declared conflicts", () => {
     intentClaims: [
       {
         statement: "Refunds must not exceed the original charge.",
+        excerpt:
+          "The source states this verbatim so the entity can keep the passage.",
         sourceId: "jira-billing",
         reference: "BILL-142",
       },

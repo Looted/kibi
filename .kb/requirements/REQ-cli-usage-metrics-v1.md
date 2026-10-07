@@ -9,6 +9,7 @@ priority: should
 tags:
   - cli
   - usage-metrics
+  - review:context-missing
 links:
   - type: specified_by
     target: SCEN-cli-usage-metrics-v1

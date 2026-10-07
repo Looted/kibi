@@ -5,6 +5,7 @@ tags:
   - multilingual
   - language-catalog
   - source-classification
+  - review:context-missing
 text_ref: docs/architecture/multilingual-language-catalog.md
 id: SCEN-multilingual-language-catalog
 type: scenario

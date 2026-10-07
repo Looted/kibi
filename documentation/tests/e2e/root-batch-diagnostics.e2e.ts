@@ -7,7 +7,13 @@
  * failure. Run via `bun run documentation/tests/e2e/root-batch-diagnostics.e2e.ts`.
  */
 import { spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, relative } from "node:path";
 import { COVERAGE_SHARDS } from "../../../scripts/run-unit-coverage.ts";
@@ -189,25 +195,36 @@ test("discovered file receives an isolated runtime", () => {
     );
   }
   writeFileSync(join(discoveryRoot, "README.md"), "No executable test here.");
-  const discovered = createCliUnitBatches(relative(process.cwd(), discoveryRoot));
-  assert(discovered.length === 2, "discovery must select exactly the two test files");
+  const discovered = createCliUnitBatches(
+    relative(process.cwd(), discoveryRoot),
+  );
+  assert(
+    discovered.length === 2,
+    "discovery must select exactly the two test files",
+  );
   for (const batch of discovered) {
     const summary = await runBatch(batch);
-    assert(summary.pass === 1 && summary.fail === 0, "each discovered file must run once and pass");
+    assert(
+      summary.pass === 1 && summary.fail === 0,
+      "each discovered file must run once and pass",
+    );
   }
   const records = readFileSync(executions, "utf8")
     .trim()
     .split("\n")
-    .map((line) => JSON.parse(line) as {file: string; runtime: string});
+    .map((line) => JSON.parse(line) as { file: string; runtime: string });
   assert(
-    records.length === 2 && new Set(records.map((record) => record.file)).size === 2,
+    records.length === 2 &&
+      new Set(records.map((record) => record.file)).size === 2,
     "every discovered file must execute exactly once",
   );
   assert(
     new Set(records.map((record) => record.runtime)).size === 2,
     "discovered files must use distinct runtime directories",
   );
-  console.log("root-batch-diagnostics e2e: passed (discovery and process isolation)");
+  console.log(
+    "root-batch-diagnostics e2e: passed (discovery and process isolation)",
+  );
 } finally {
   rmSync(fixtureDir, { recursive: true, force: true });
 }

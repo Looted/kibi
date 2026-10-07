@@ -7,6 +7,7 @@ tags:
   - hooks
   - sync
   - exact-branch
+  - review:context-missing
 semantic_text: '`kibi init` must install the `post-checkout` and `post-merge` Git hooks by default. Those hooks must synchronize the branch-local KB with the working tree after checkout and merge.'
 semantic_clauses:
   - '`kibi init` must install the `post-checkout` and `post-merge` Git hooks by default.'

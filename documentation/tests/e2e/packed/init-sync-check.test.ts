@@ -106,7 +106,7 @@ if (RUN_NODE_TEST_SUITE) {
           tags: ["auth", "security"],
           owner: "alice",
         },
-        "System must authenticate users via OAuth2.",
+        "System must authenticate users via OAuth2.\n\n## Context\n\nFixture requirement for the packed init, sync and check test; it exists only to exercise the CLI and no further reason is stated.",
       );
 
       createMarkdownFile(
@@ -118,7 +118,7 @@ if (RUN_NODE_TEST_SUITE) {
           status: "active",
           tags: ["auth"],
         },
-        "User clicks login button and authenticates with provider.",
+        "A user clicks the login button on the sign in page and authenticates with the identity provider, then lands back in the application signed in.",
       );
 
       const { stdout } = await kibi(sandbox, ["sync"]);
@@ -180,7 +180,7 @@ if (RUN_NODE_TEST_SUITE) {
             status: "open",
             tags: ["security"],
           },
-          "All API endpoints require authentication.",
+          "All API endpoints require authentication.\n\n## Context\n\nFixture requirement for the packed init, sync and check test; it exists only to exercise the CLI and no further reason is stated.",
         );
 
         await kibi(sandbox, ["sync"]);
@@ -213,7 +213,7 @@ if (RUN_NODE_TEST_SUITE) {
             tags: ["feature"],
             owner: "bob",
           },
-          "This requirement has all required fields.",
+          "This requirement has all required fields.\n\n## Context\n\nFixture requirement for the packed init, sync and check test; it exists only to exercise the CLI and no further reason is stated.",
         );
 
         await kibi(sandbox, ["sync"]);
@@ -245,7 +245,7 @@ if (RUN_NODE_TEST_SUITE) {
           type: "req",
           status: "open",
         },
-        "Content.",
+        "Content.\n\n## Context\n\nFixture requirement for the packed init, sync and check test; it exists only to exercise the CLI and no further reason is stated.",
       );
 
       const firstSync = await kibi(sandbox, ["sync"]);
@@ -287,7 +287,7 @@ if (RUN_NODE_TEST_SUITE) {
             status: "open",
             tags: ["auth", "security"],
           },
-          "# Auth",
+          "# Auth\n\n## Context\n\nFixture requirement for the packed init, sync and check test; it exists only to exercise the CLI and no further reason is stated.",
         );
 
         createMarkdownFile(
@@ -300,7 +300,7 @@ if (RUN_NODE_TEST_SUITE) {
             status: "open",
             tags: ["performance"],
           },
-          "# Performance",
+          "# Performance\n\n## Context\n\nFixture requirement for the packed init, sync and check test; it exists only to exercise the CLI and no further reason is stated.",
         );
 
         await kibi(sandbox, ["sync"]);

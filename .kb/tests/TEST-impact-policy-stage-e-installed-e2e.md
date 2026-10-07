@@ -7,6 +7,7 @@ tags:
   - stage-e
   - e2e
   - consumer
+  - review:context-missing
 text_ref: documentation/tests/e2e/packed/impact-review-stage-e.test.ts
 verification_scope: end_to_end
 verification_perspective: consumer

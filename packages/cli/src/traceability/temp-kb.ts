@@ -247,6 +247,11 @@ function buildEntityAssertionGoal(
       `exempts_claims=[${entity.exempts_claims.map(toPrologAtom).join(",")}]`,
     );
   }
+  // implements REQ-cli-staged-consistency
+  // Scenario feasibility reads the intended outcome.
+  if (entity.type === "scenario" && entity.expects !== undefined) {
+    props.push(`expects=${toPrologAtom(entity.expects)}`);
+  }
   if (entity.origin !== undefined) {
     props.push(`origin=${toPrologString(JSON.stringify(entity.origin))}`);
   }

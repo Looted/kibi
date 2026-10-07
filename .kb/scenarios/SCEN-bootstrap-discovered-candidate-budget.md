@@ -5,6 +5,7 @@ tags:
   - bootstrap
   - intent-claims
   - candidate-budget
+  - review:context-missing
 expects: success
 origin:
   kind: agent

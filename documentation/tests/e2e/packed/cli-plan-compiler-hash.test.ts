@@ -81,6 +81,8 @@ if (RUN_NODE_TEST_SUITE) {
           intent:
             "Audit logs must be retained for 2 years. Invoices must be retained for 10 years.",
           mode: "create",
+          context:
+            "Fixture retention rules for the packed compile and apply test; no further reason is stated.",
         });
         const compile = await kibi(sandbox, [
           "compile-intent",
@@ -147,6 +149,8 @@ if (RUN_NODE_TEST_SUITE) {
         const compileInput = writeInput(sandbox, "compile-input.json", {
           intent: "Customer data must be retained for 7 years.",
           mode: "create",
+          context:
+            "Fixture retention rule for the packed compile test; no further reason is stated.",
         });
         const compile = await kibi(sandbox, [
           "compile-intent",

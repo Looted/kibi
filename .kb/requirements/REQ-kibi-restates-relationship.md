@@ -6,6 +6,7 @@ tags:
   - relationships
   - redundancy
   - vocabulary-convergence
+  - review:context-missing
 semantic_text: Kibi must accept restates as a relationship from one requirement to another requirement. A restates link must keep both linked requirements current.
 semantic_clauses:
   - Kibi must accept restates as a relationship from one requirement to another requirement.

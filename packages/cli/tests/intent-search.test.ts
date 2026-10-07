@@ -1,4 +1,7 @@
 import { describe, expect, test } from "bun:test";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import {
   executeIntentSearch,
   rankIntentEntities,
@@ -282,5 +285,47 @@ describe("intent-v1 input validation", () => {
         sourceLocations: [{ path: "src/billing.ts", line: 0 }],
       }),
     ).toThrow("positive integer");
+  });
+});
+
+describe("intent-v1 search snippets", () => {
+  function workspaceWith(files: Record<string, string>): string {
+    const root = mkdtempSync(path.join(tmpdir(), "kibi-intent-snippet-"));
+    for (const [relative, content] of Object.entries(files)) {
+      const absolute = path.join(root, relative);
+      mkdirSync(path.dirname(absolute), { recursive: true });
+      writeFileSync(absolute, content);
+    }
+    return root;
+  }
+
+  test("shows the first context prose instead of repeating the statement", async () => {
+    const root = workspaceWith({
+      ".kb/requirements/REQ-EXPORT-SIGN.md":
+        "---\nid: REQ-EXPORT-SIGN\ntitle: Exports are signed\n---\nExports must be signed.\n\n## Context\n\nSecurity asked for signatures after an audit found unsigned exports.\n",
+      ".kb/requirements/REQ-EXPORT-FLAT.md":
+        "---\nid: REQ-EXPORT-FLAT\ntitle: Exports are archived\n---\nExports must be archived.\n",
+    });
+    try {
+      const result = await rankIntentEntities(
+        [
+          entity("REQ-EXPORT-SIGN", "Exports are signed"),
+          entity("REQ-EXPORT-FLAT", "Exports are archived"),
+        ],
+        { query: "exports" },
+        root,
+        [],
+      );
+      const snippets = Object.fromEntries(
+        result.matches.map((match) => [match.entity.id, match.snippet]),
+      );
+      expect(snippets["REQ-EXPORT-SIGN"]).toBe(
+        "Security asked for signatures after an audit found unsigned exports.",
+      );
+      // No context prose: the first body line, as before.
+      expect(snippets["REQ-EXPORT-FLAT"]).toBe("Exports must be archived.");
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
   });
 });

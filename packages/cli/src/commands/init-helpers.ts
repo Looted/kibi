@@ -17,9 +17,9 @@
 */
 
 import {
+  constants,
   type Stats,
   chmodSync,
-  constants,
   copyFileSync,
   existsSync,
   lstatSync,

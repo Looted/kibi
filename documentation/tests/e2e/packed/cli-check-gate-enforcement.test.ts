@@ -59,6 +59,10 @@ links:
 ---
 
 Covered gate fixture.
+
+## Context
+
+Fixture requirement for the packed check gate test: it has a full scenario chain so the gate treats it as covered. No further reason is stated.
 `,
         );
         writeFileSync(
@@ -72,7 +76,7 @@ links:
     target: TEST-GATE-COVERED
 ---
 
-Covered gate fixture scenario.
+Covered gate fixture scenario linked to a passing end-to-end test, so the check gate sees a complete chain for the covered requirement in this fixture.
 `,
         );
         writeFileSync(
@@ -89,7 +93,7 @@ links:
     target: SCEN-GATE-COVERED
 ---
 
-Covered gate fixture test.
+Covered gate fixture test that validates the covered scenario end to end, so the gate counts the requirement as proven in this packed test.
 `,
         );
         mkdirSync(join(sandbox.repoDir, "src"), { recursive: true });
@@ -108,6 +112,10 @@ priority: must
 ---
 
 Uncovered gate fixture.
+
+## Context
+
+Fixture requirement for the packed check gate test: it deliberately has no scenario link so the gate must block it. No further reason is stated.
 `,
         );
         for (const sourcePath of [
@@ -169,7 +177,7 @@ links:
     target: TEST-GATE-BARE
 ---
 
-Bare fixture scenario.
+Bare fixture scenario added later in the packed gate test so the previously uncovered requirement gains a complete chain and the gate passes.
 `,
           "utf8",
         );
@@ -187,7 +195,7 @@ links:
     target: SCEN-GATE-BARE
 ---
 
-Bare gate fixture test.
+Bare gate fixture test that validates the added scenario end to end, so the check gate finds proof for the formerly uncovered requirement.
 `,
           "utf8",
         );

@@ -9,6 +9,7 @@ tags:
   - consumer-local
   - launcher
   - verification
+  - review:context-missing
 priority: must
 id: TEST-cursor-consumer-local-mcp-launcher-v1
 type: test

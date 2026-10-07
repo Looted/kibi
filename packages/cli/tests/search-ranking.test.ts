@@ -429,6 +429,31 @@ describe("rankEntities — markdown body integration", () => {
     readFileSpy.mockRestore();
   });
 
+  test("the snippet falls back to the context prose when no line matches the phrase", async () => {
+    const entity = makeEntity({
+      title: "Irrelevant title",
+      source: "docs/REQ-300.md",
+      type: "req",
+    });
+    const mdContent =
+      "---\ntitle: REQ-300\n---\nAuthentication and authorization are handled separately.\n\n## Context\n\nSecurity asked for the split after an incident.\n";
+
+    const readFileSpy = spyOn(fs, "readFile").mockResolvedValue(mdContent);
+    try {
+      const result = await rankEntities(
+        [entity],
+        "auth separate",
+        "/workspace",
+      );
+      expect(result[0].reasons).toContain("markdown body token coverage");
+      expect(result[0].snippet).toBe(
+        "Security asked for the split after an incident.",
+      );
+    } finally {
+      readFileSpy.mockRestore();
+    }
+  });
+
   test("does not add body score when markdown body is null", async () => {
     const entity = makeEntity({
       title: "Auth system",

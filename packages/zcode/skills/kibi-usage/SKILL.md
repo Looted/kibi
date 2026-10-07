@@ -4,7 +4,7 @@ description: Use Kibi's source-first, exact-Git, migration-aware, proof-aware op
 license: AGPL-3.0-or-later
 metadata:
   id: kibi-usage
-  version: 2.3.1
+  version: 2.4.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -156,11 +156,43 @@ execute each required repair action in order, and never retry the original
 operation. Record effect failures, followed actions, and unsafe retries in
 diagnostic telemetry.
 
+## Entity body contract
+
+The body is where context lives; front matter is the checked meaning.
+`kb_check` rule `entity-context-missing` blocks a current `req`, `scenario`,
+`test`, `adr` or observation/meta `fact` whose body carries no context: at
+least 12 words that are not a restatement of the title (for a requirement, also
+not of `semantic_text`). Symbols, flags, events and every other fact kind are
+exempt. `kb_upsert` returns the same finding as a warning, including on dryRun.
+
+- `req`: the statement, then `## Context` (why, who asked, constraints) and
+  `## Source` (blockquoted excerpt plus reference). Only text under context
+  headings (Context, Rationale, Why, Background, Source, Notes, Evidence)
+  counts for a requirement, and it never changes the checked meaning:
+  `semantic_text` is written explicitly and context sections are excluded.
+- `scenario`: Given/When/Then prose plus the assumptions it depends on.
+- `test`: what it asserts, how (fixture, entry point), what would make it a
+  false pass.
+- `fact` (`observation`/`meta`): what was seen, where, when, how confirmed.
+- Never invent a reason the requester did not give. Write "Reason not stated"
+  and the source instead.
+- The tag `review:context-missing` is reserved for entities the schema 8
+  migration (`kibi migrate`) acknowledged and recorded in the manifest; it is
+  counted by the advisory `entity-context-acknowledged`. Never add it yourself:
+  on any other entity it is still a violation. Write who asked, the source and
+  "Reason not stated" in the Context section instead.
+- `kb_plan_compile_intent` requires `context` when the plan creates a
+  requirement, and accepts `sourceExcerpt` and `sourceReference`. On update it
+  rewrites the statement and keeps the existing context sections unless you
+  supply new `context` or source.
+
 ## Source-first mutation
 
 Use `document.path` when a new entity has no single configured writable target.
-Existing entities preserve body bytes when `document.body` is omitted; new
-requirements default their body to `semantic_text`. Relationship mutations
+Existing entities preserve body bytes when `document.body` is omitted; a new
+requirement without `document.body` gets `semantic_text` as its body, and
+`kb_check` then blocks it with `entity-context-missing`, so always pass a
+sectioned `document.body` (see Entity body contract). Relationship mutations
 patch canonical shards while preserving unrelated records. Authored entity
 deletion returns a hash-bound approval plan; requirements normally evolve via a
 new entity linked with `supersedes`; set the replaced requirement to
@@ -221,6 +253,27 @@ Use `kb_model` with `mode: "requirement"` for strict scalar clauses. Use
 grounding: run `logic-coverage` so each key binds to one ground fact.
 Relationship direction is fixed, and every `from` in a relationship batch
 must equal the upserted entity ID.
+
+Worked example. `recommendedAction: "provide_argument_bindings"` means a
+schema fits but `unbound_arguments` lists roles Kibi could not read from the
+prose. Bind them from the claim's own words and call again with the same
+`text` and `requirementId`, plus `schemaId` and `argumentBindings` keyed by
+`argument_names` (reuse `argument_constants` values when the schema has them):
+
+```json
+{"mode":"predicates","text":"Only an annotation owner may delete an annotation.","requirementId":"REQ-annotation-delete-owner","schemaId":"FACT-SCHEMA-PERMISSION-RULE","argumentBindings":{"actor":"annotation_owner","action":"delete","resource":"annotation","decision":"allow"}}
+```
+
+When the retry returns `apply_requires_predicate`, write its `applyPlan` fact,
+then the `relationshipPlan` `requires_predicate` row. Record an ontology gap
+only when no returned schema fits the claim, not because bindings were missing.
+A review note is an observation that quotes its claim without `claim_key`:
+`{"type":"fact","id":"FACT-review-<area>-<behavior>","properties":{"title":"Review: ...","status":"active","fact_kind":"observation","text_ref":"<sourceId>:<reference>","tags":["review:invalid-write"],"claim_text":"<the claim>"}}`.
+
+To add `specified_by` (or another relationship) to an existing requirement,
+upsert it with its stored `title`, a `status` and the relationship only; Kibi
+keeps the stored proposition ledger when no `semantic_*` or `logic_claims`
+field is sent and `title`/`text_ref` are unchanged.
 
 For conditional relational claims, after the initial `kb_model` predicates call and before any `kb_upsert`—including one needed for a missing schema—call read-only `kb_model` with `mode: "requirement"` to preview suitable scalar or typed-rule modeling. Treat the preview as advisory: do not apply an irrelevant result or create unrequested facts, and retain an approved ground-predicate plan when it captures the whole claim. Preserve supplied arity, ordered argument roles, polarity, bound values, and one claim key per actual assertion; never split arguments across clauses or schemas or alter values to force uniqueness.
 

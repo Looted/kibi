@@ -5,7 +5,7 @@ status: open
 created_at: 2026-08-10T00:00:00Z
 updated_at: 2026-08-10T00:00:00Z
 priority: must
-tags: [telemetry, diagnostics, remediation, correlation, cli, mcp]
+tags: [telemetry, diagnostics, remediation, correlation, cli, mcp, review:context-missing]
 logic_claims:
   - CLAIM-0C5979325EE650A4
   - CLAIM-B6D1D0E8523E8A43
@@ -122,6 +122,7 @@ origin:
   kind: migration
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
+semantic_text: CLI JSON operations must append usage records whenever diagnostic mode is enabled. MCP operations must append semantically equivalent usage records whenever diagnostic mode is enabled. Every usage record must preserve a supplied opaque session identifier. Every usage record must preserve a supplied opaque actor identifier. Correlation for advisor evidence must require matching session and actor identifiers when both records expose them. Correlation for preflight evidence must require matching session and actor identifiers when both records expose them. A versioned kibi.telemetry-remediation.v1 report must enumerate every unmatched event behind failed or insufficient acceptance evidence. Every event remediation must identify its log line, request identifier, timestamp, tool, target, reason, repair action, session identifier, and actor identifier when available. Report items must use deterministic ordering. The usage-remediation command must render the report as machine-readable JSON or a compact table without mutating the knowledge base. Missing complete coverage evidence must remain an explicit report-level remediation instead of an empty event list.
 ---
 
 CLI JSON operations must append usage records whenever diagnostic mode is enabled. MCP operations must append semantically equivalent usage records whenever diagnostic mode is enabled. Every usage record must preserve a supplied opaque session identifier. Every usage record must preserve a supplied opaque actor identifier. Correlation for advisor evidence must require matching session and actor identifiers when both records expose them. Correlation for preflight evidence must require matching session and actor identifiers when both records expose them. A versioned kibi.telemetry-remediation.v1 report must enumerate every unmatched event behind failed or insufficient acceptance evidence. Every event remediation must identify its log line, request identifier, timestamp, tool, target, reason, repair action, session identifier, and actor identifier when available. Report items must use deterministic ordering. The usage-remediation command must render the report as machine-readable JSON or a compact table without mutating the knowledge base. Missing complete coverage evidence must remain an explicit report-level remediation instead of an empty event list.

@@ -230,3 +230,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-18ad7d770992
+  - type: verified_by
+    from: SCEN-kibi-upsert-preserves-requirement-semantics
+    to: TEST-kibi-upsert-review-lanes
+    created_at: 2026-10-06T20:46:13.791Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-430b4e41637d

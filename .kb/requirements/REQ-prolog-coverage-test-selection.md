@@ -7,6 +7,7 @@ tags:
   - prolog
   - coverage
   - testing
+  - review:context-missing
 semantic_text: The Prolog coverage runner must load every test file supplied by repeated --test options. The Prolog coverage runner must fail when any selected test file contains a failing test. The Prolog coverage runner must include each selected test file in annotated coverage artifacts.
 semantic_clauses:
   - The Prolog coverage runner must load every test file supplied by repeated --test options

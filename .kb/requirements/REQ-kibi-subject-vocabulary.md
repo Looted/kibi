@@ -5,6 +5,7 @@ priority: must
 tags:
   - modeling
   - vocabulary-convergence
+  - review:context-missing
 semantic_text: Kibi check must report a subject key derived from a requirement ID as a subject-key-identity warning. Kibi check must report a subject key that is not dotted lowercase snake segments as a subject-key-shape warning. kb_model_requirement must reuse the existing subject fact when the ranked vocabulary matches the clause. kb_model_requirement must explicitly declare a new subject when no existing subject matches the clause.
 semantic_clauses:
   - Kibi check must report a subject key derived from a requirement ID as a subject-key-identity warning.

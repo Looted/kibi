@@ -6,6 +6,7 @@ tags:
   - naming
   - validation
   - vocabulary-convergence
+  - review:context-missing
 semantic_text: Kibi must report an entity whose Markdown filename stem differs from its frontmatter id as an entity-id-style warning. Kibi must report a purely numeric entity ID as an entity-id-style warning where the entity is created. Committed legacy numbered entities must not be reported by entity-id-style.
 semantic_clauses:
   - Kibi must report an entity whose Markdown filename stem differs from its frontmatter id as an entity-id-style warning.

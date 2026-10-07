@@ -51,6 +51,11 @@ export interface KbManifest {
   schemaVersion: number;
   /** Retroactive semantic-advisor backfill review state. */
   semanticAdvisorBackfill: SemanticAdvisorBackfill;
+  /**
+   * Entity ids the schema 8 migration acknowledged as lacking body context.
+   * Only these ids may carry `review:context-missing` without a violation.
+   */
+  contextAcknowledged?: string[];
 }
 
 export function defaultKbManifest(): KbManifest {
@@ -108,10 +113,18 @@ function validateManifest(parsed: unknown): KbManifest | null {
   ) {
     return null;
   }
+  const acknowledged = parsed.contextAcknowledged;
   return {
     manifestVersion,
     schemaVersion,
     semanticAdvisorBackfill: backfill,
+    ...(Array.isArray(acknowledged)
+      ? {
+          contextAcknowledged: acknowledged.filter(
+            (id): id is string => typeof id === "string",
+          ),
+        }
+      : {}),
   };
 }
 

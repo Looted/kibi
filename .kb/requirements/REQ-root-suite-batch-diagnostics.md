@@ -9,6 +9,7 @@ tags:
   - testing
   - diagnostics
   - root-suite
+  - review:context-missing
 links:
   - type: specified_by
     target: SCEN-root-suite-batch-diagnostics

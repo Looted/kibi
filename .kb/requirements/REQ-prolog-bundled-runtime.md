@@ -7,6 +7,7 @@ tags:
   - bundle
   - resolver
   - lane:strict
+  - review:context-missing
 text_ref: packages/cli/src/prolog/swipl-resolver.ts
 semantic_text: Kibi must resolve SWI-Prolog from KIBI_SWIPL first, then from the verified bundled platform package, then from swipl on PATH. Kibi must skip the bundled platform package when KIBI_SWIPL is system. Kibi must refuse a bundled platform package whose manifest is malformed or whose binary checksum differs from the manifest. Kibi must reject a swipl on PATH older than version 9.0. Kibi must fail with the detected platform, the covering platform package, and the operating-system install command when no usable SWI-Prolog is found. Kibi must set SWI_HOME_DIR for the SWI-Prolog child process when the bundled build is used
 semantic_source_field: semantic_text

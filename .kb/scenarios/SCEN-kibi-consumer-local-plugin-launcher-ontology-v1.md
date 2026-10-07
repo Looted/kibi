@@ -9,6 +9,7 @@ tags:
   - consumer-local
   - plugin
   - predicates
+  - review:context-missing
 id: SCEN-kibi-consumer-local-plugin-launcher-ontology-v1
 type: scenario
 origin:

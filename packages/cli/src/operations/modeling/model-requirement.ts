@@ -8,7 +8,6 @@ import {
   isConventionalSubjectKey,
   normalizeSubjectKey,
 } from "../../utils/strict-modeling.js";
-import { propositionRole } from "../semantic-advisor/analyze-prose.js";
 import {
   extractSemanticClauses,
   modeledClaimRole,
@@ -16,6 +15,7 @@ import {
   semanticClaimKey,
 } from "../semantic-advisor/clauses.js";
 import { detectConditionalRule } from "../semantic-advisor/conditional-rules.js";
+import { advisorPropositionRole } from "../semantic-advisor/proposition-role.js";
 import { semanticSourceHash } from "../semantic-advisor/shared.js";
 import { buildLogicApplyPlan } from "./logic-modeling.js";
 import {
@@ -300,7 +300,10 @@ export function annotateModelRequirementStep(
           {
             claim_key: context.claimKey,
             claim_text: normalizedClaimText,
-            role: modeledClaimRole(claimText),
+            role:
+              advisorPropositionRole(claimText, context.claimKey, [
+                claimText,
+              ]) ?? modeledClaimRole(claimText),
             status: "modeled",
             span: {
               start: 0,
@@ -349,13 +352,6 @@ function unresolvedObservationStep(
 // ingestion compares the persisted inventory with it. A rule modality alone
 // would call "X must not happen unless C" normative where the advisor reads an
 // exception, so the role comes from the advisor's own clause analysis.
-function advisorRole(semanticText: string, claimKey: string): string | null {
-  const clause = extractSemanticClauses(semanticText).find(
-    (entry) => entry.claim_key === claimKey,
-  );
-  return clause ? propositionRole(clause.text, clause.normative) : null;
-}
-
 function withAdvisorRoles(
   plan: Array<Record<string, unknown>>,
 ): Array<Record<string, unknown>> {
@@ -375,7 +371,7 @@ function withAdvisorRoles(
           const row = entry as Record<string, unknown>;
           const role =
             typeof row.claim_key === "string"
-              ? advisorRole(semanticText, row.claim_key)
+              ? advisorPropositionRole(semanticText, row.claim_key)
               : null;
           return role === null ? row : { ...row, role };
         }),
@@ -489,7 +485,7 @@ async function unresolvedConditionalResult(
                   claim_key: claimKey,
                   claim_text: claimText,
                   role:
-                    advisorRole(semanticText, claimKey) ??
+                    advisorPropositionRole(semanticText, claimKey) ??
                     modeledClaimRole(claimText),
                   status: "ontology_gap",
                   span: {

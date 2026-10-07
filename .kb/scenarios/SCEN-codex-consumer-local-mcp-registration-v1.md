@@ -7,6 +7,7 @@ tags:
   - plugin
   - mcp
   - consumer-local
+  - review:context-missing
 id: SCEN-codex-consumer-local-mcp-registration-v1
 type: scenario
 origin:

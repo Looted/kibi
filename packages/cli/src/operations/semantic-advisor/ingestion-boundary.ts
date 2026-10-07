@@ -1,6 +1,7 @@
 import { escapeAtom } from "../../prolog/codec.js";
 import type { PrologPort } from "../../public/operations/runtime-types.js";
 import { semanticClaimKey } from "./clauses.js";
+import { legacyPropositionRoles } from "./proposition-role.js";
 import {
   type Payload,
   SEMANTIC_INVENTORY_VERSION,
@@ -37,6 +38,21 @@ export type SemanticRelationship = Readonly<{
   from?: unknown;
   to?: unknown;
 }>;
+
+// A stored role matches when it is the advisor's current role or, for an
+// assertive proposition, a role an earlier advisor assigned to the same text.
+function roleMatchesAdvisor(
+  role: string,
+  expected: SemanticProposition,
+): boolean {
+  if (role === expected.role) return true;
+  return (
+    !CONTEXT_ROLES.has(expected.role) &&
+    (legacyPropositionRoles(expected.claim_text) as readonly string[]).includes(
+      role,
+    )
+  );
+}
 
 function inventoryOf(payload: Payload): readonly Record<string, unknown>[] {
   const raw = propertiesOf(payload).semantic_inventory;
@@ -152,7 +168,7 @@ export function validateSemanticInventoryBoundary(
       expected &&
       (claimKey !== expected.claim_key ||
         claimText !== expected.claim_text ||
-        role !== expected.role ||
+        !roleMatchesAdvisor(role, expected) ||
         start !== expected.span.start ||
         end !== expected.span.end)
     ) {

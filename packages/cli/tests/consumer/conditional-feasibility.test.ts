@@ -84,6 +84,8 @@ function compileAndApply(
   const plan = ws.json(["compile-intent"], {
     intent,
     mode: "create",
+    context:
+      "The fixture requester gave this reason so the plan carries context for the test.",
     requirementId,
     scenarioDrafts: scenarios.map(({ id, title }) => ({
       id,
@@ -437,6 +439,8 @@ links:
     const gapPlan = ws.json(["compile-intent"], {
       intent: untranslatable,
       mode: "create",
+      context:
+        "The fixture requester gave this reason so the plan carries context for the test.",
       requirementId: "REQ-checkout-verified-positive",
     }).data as Json;
     expect(gapPlan.status).toBe("needs_resolution");

@@ -193,6 +193,8 @@ jobs:
 
       - name: Build documentation site at the Pages root
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' && !cancelled() && steps.integrity.outcome == 'success' }}
+        env:
+          KIBI_UMAMI_WEBSITE_ID: 197fb489-cdd4-4d95-ae8a-119dc6422a45
         run: bun run docs:site -- --out pages
 
       - name: Namespace the proof report under /kibi-report/

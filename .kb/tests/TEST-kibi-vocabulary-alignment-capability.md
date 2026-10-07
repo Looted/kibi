@@ -4,6 +4,7 @@ status: passing
 verification_scope: unit
 tags:
   - vocabulary-convergence
+  - review:context-missing
 id: TEST-kibi-vocabulary-alignment-capability
 type: test
 origin:

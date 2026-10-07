@@ -13,7 +13,6 @@ import { buildAdvisorResult } from "./analysis-receipt.js";
 import {
   type SemanticClause,
   extractSemanticClauses,
-  hasNormativeAssertion,
   semanticClaimKey,
 } from "./clauses.js";
 import {
@@ -21,6 +20,7 @@ import {
   detectConditionalRule,
 } from "./conditional-rules.js";
 import { observationPlan } from "./observation-plan.js";
+import { propositionRole } from "./proposition-role.js";
 import {
   type Payload,
   type SemanticSourceField,
@@ -578,66 +578,7 @@ function unmatchedClauseSuggestion(
   );
 }
 
-// implements REQ-kibi-conditional-requirement-authoring
-export function propositionRole(
-  statement: string,
-  normative: boolean,
-): SemanticPropositionRole {
-  // Explicit context labels may quote obligations. Incidental explanatory
-  // words within an asserted obligation must not exempt it from grounding.
-  const assertedNormative = normative && hasNormativeAssertion(statement);
-  // A bare desired impression is subjective, even when phrased with should.
-  // Keep concrete actions, quantitative conditions and any independent
-  // obligation assertive instead of exempting them through subjective words.
-  const impression =
-    /\bshould\s+(?:feel\s+(?:welcoming|comfortable|energetic)(?:\s+and\s+(?:welcoming|comfortable|energetic))*|(?:look|seem)\s+complete)\b/i.exec(
-      statement,
-    );
-  const impressionTail = impression
-    ? statement.slice(impression.index + impression[0].length).trim()
-    : "";
-  const subjectiveAspiration =
-    impression !== null &&
-    (impressionTail.length === 0 ||
-      /^(?:to|for)\s+[^,;.!?]+$/i.test(impressionTail)) &&
-    !/\b(?:and|or)\b/i.test(impressionTail) &&
-    !/\d|\b(?:at least|at most|exactly|within|no more than)\b/i.test(
-      statement,
-    ) &&
-    !hasNormativeAssertion(statement.replace(impression[0], ""));
-  if (
-    /^\s*(?:for example\b|e\.g\.|(?:example|illustrative(?: example)?)\s*:)/i.test(
-      statement,
-    ) ||
-    (!assertedNormative &&
-      /\b(?:for example|e\.g\.|such as|illustrative)\b/i.test(statement))
-  )
-    return "example";
-  if (
-    /^\s*rationale\s*:/i.test(statement) ||
-    (!assertedNormative &&
-      /\b(?:because|so that|in order to| rationale|therefore)\b/i.test(
-        statement,
-      ))
-  )
-    return "rationale";
-  if (
-    subjectiveAspiration ||
-    (!assertedNormative &&
-      /\b(?:feel|comfortable|looks complete|seems complete|subjective|prefer)\b/i.test(
-        statement,
-      ))
-  )
-    return "subjective";
-  if (/\b(?:means|defined as|refers to|is called)\b/i.test(statement))
-    return "definition";
-  if (/^\s*(?:if|when|whenever|provided that|only if)\b/i.test(statement))
-    return "condition";
-  if (/\b(?:unless|except|exempt|apart from)\b/i.test(statement))
-    return "exception";
-  if (normative) return "normative";
-  return "descriptive";
-}
+export { propositionRole };
 
 function shadowAnalysis(
   text: string,

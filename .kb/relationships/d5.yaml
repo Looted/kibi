@@ -118,3 +118,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ee4f7fa55684
+  - type: verified_by
+    from: SCEN-kb-entity-body-context
+    to: TEST-kb-entity-body-context
+    created_at: 2026-10-06T18:33:12.232Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-17653eaeb51b

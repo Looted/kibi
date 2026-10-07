@@ -5,6 +5,7 @@ tags:
   - multilingual
   - impact-policy
   - public-preparation
+  - review:context-missing
 text_ref: documentation/impact-review-stage-e.md
 id: SCEN-impact-review-public-preparation
 type: scenario

@@ -1,5 +1,6 @@
 import path from "node:path";
 
+import { bodySnippetLine } from "./entity-body-context.js";
 import { escapeAtom, normalizeEntityId, parseTriples } from "./prolog/codec.js";
 import {
   type VALID_ENTITY_TYPES,
@@ -616,10 +617,10 @@ export async function rankIntentEntities(
       supersededIds.has(entityId),
     );
     if (scored.score < minScore) continue;
-    const snippet = body
-      ?.split(/\r?\n/)
-      .map((line) => line.trim())
-      .find(Boolean);
+    const snippet =
+      body === null
+        ? undefined
+        : bodySnippetLine(String(entity.type ?? ""), body, entity);
     ranked.push({
       entity,
       score: scored.score,

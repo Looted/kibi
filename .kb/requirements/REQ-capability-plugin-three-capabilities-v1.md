@@ -3,6 +3,7 @@ title: Three replaceable capabilities
 status: open
 tags:
   - plugins
+  - review:context-missing
 semantic_text: Allowed capability states are one of kibi.semantic-classifier.v1, kibi.ontology-pack.v1, and kibi.symbol-extractor.v1. Each capability must have at most one replace provider per capability. Shadow mode must leave canonical capability results unchanged. Augment mode must add capability results beside builtin providers.
 logic_claims:
   - CLAIM-E6E0E9DF0A44A625

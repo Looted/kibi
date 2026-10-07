@@ -5,7 +5,7 @@ status: open
 created_at: 2026-08-10T00:00:00Z
 updated_at: 2026-08-10T00:00:00Z
 priority: must
-tags: [requirements, proof, prolog, coverage, e2e, traceability]
+tags: [requirements, proof, prolog, coverage, e2e, traceability, review:context-missing]
 logic_claims:
   - CLAIM-4C1ABF87560ED8A7
   - CLAIM-FA450AC4EF93F78C
@@ -106,6 +106,7 @@ origin:
   kind: migration
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
+semantic_text: Coverage reports must publish a proof outcome separately from structural coverage. A proven requirement must have a complete proposition ledger with no unresolved assertive entries. Every modeled proposition must have exactly one valid logical grounding. Contradiction analysis must not report a clear outcome while logical grounding is incomplete. Every detected contradiction must block proof. Proof requires a requirement-specified scenario with passing end-to-end test evidence. Every qualifying end-to-end test must have executable test symbols linked through executable_for. Every proof-bearing production symbol must implement the requirement. Every proof-bearing production symbol must be covered by a qualifying end-to-end test. Every proof-bearing symbol must resolve to exact current source coordinates. Missing or unresolved evidence must produce explicit ranked repair guidance.
 ---
 
 Coverage reports must publish a proof outcome separately from structural coverage. A proven requirement must have a complete proposition ledger with no unresolved assertive entries. Every modeled proposition must have exactly one valid logical grounding. Contradiction analysis must not report a clear outcome while logical grounding is incomplete. Every detected contradiction must block proof. Proof requires a requirement-specified scenario with passing end-to-end test evidence. Every qualifying end-to-end test must have executable test symbols linked through executable_for. Every proof-bearing production symbol must implement the requirement. Every proof-bearing production symbol must be covered by a qualifying end-to-end test. Every proof-bearing symbol must resolve to exact current source coordinates. Missing or unresolved evidence must produce explicit ranked repair guidance.

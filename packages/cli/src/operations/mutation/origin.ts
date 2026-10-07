@@ -16,10 +16,12 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { escapeAtom } from "../../prolog/codec.js";
 import { readEntityOrigin } from "../../public/entity-origin.js";
-import { loadEntities } from "../../public/operations/discovery-entities.js";
 import type { PrologPort } from "../../public/operations/runtime-types.js";
+import {
+  type StoredEntityLookup,
+  storedEntityLookup,
+} from "./stored-entity.js";
 import type { StagedUpsertState, UpsertInput } from "./types.js";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -53,6 +55,7 @@ export async function resolveUpsertOrigin(
   prolog: Pick<PrologPort, "query"> | undefined,
   now: Date,
   staged?: StagedUpsertState,
+  lookup?: StoredEntityLookup,
 ): Promise<UpsertInput> {
   const supplied = input.properties.origin;
   if (supplied !== undefined) {
@@ -67,23 +70,14 @@ export async function resolveUpsertOrigin(
     const stored = readEntityOrigin(planned.origin);
     return stored === null ? input : withOrigin(input, stored);
   }
-  // The same existence probe the rest of the upsert uses.
-  const exists = await prolog.query(
-    `once(kb_entity('${escapeAtom(input.id)}', _, _))`,
-  );
-  if (!exists.success) {
+  const existing = await (
+    lookup ?? storedEntityLookup(prolog, input.id, input.type)
+  ).entity();
+  if (existing === undefined) {
     return withOrigin(input, { kind: "agent", recorded_at: now.toISOString() });
   }
-  let stored: ReturnType<typeof readEntityOrigin> = null;
-  try {
-    const [existing] = await loadEntities(prolog, {
-      id: input.id,
-      type: input.type,
-    });
-    stored = readEntityOrigin(existing?.origin);
-  } catch {
-    // Unreadable: leave origin out. The source-first write merges the
-    // authored frontmatter, so a stored origin there survives either way.
-  }
+  // Unreadable (null): leave origin out. The source-first write merges the
+  // authored frontmatter, so a stored origin there survives either way.
+  const stored = readEntityOrigin(existing?.origin);
   return stored === null ? input : withOrigin(input, stored);
 }

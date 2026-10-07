@@ -7,6 +7,7 @@ tags:
   - prolog
   - requirement-proof
   - truthful-consistency
+  - review:context-missing
 semantic_text: Contradiction checking must decide numeric comparisons exactly, including strict greater-than and less-than bounds. Rule-versus-rule conflict checking must classify each rule pair as contradiction, disjoint, or unresolved. The proof ladder contradiction stage must report analysis incomplete instead of no conflict found for a requirement with unmodeled propositions.
 semantic_clauses:
   - Contradiction checking must decide numeric comparisons exactly, including strict greater-than and less-than bounds.

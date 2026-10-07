@@ -2,6 +2,10 @@ import { createHash } from "node:crypto";
 import path from "node:path";
 
 import {
+  renderRequirementBody,
+  reviseRequirementBody,
+} from "../../entity-body-context.js";
+import {
   type IntentSearchFacets,
   type IntentSearchMatch,
   type SourceLocation,
@@ -11,6 +15,7 @@ import { publicCapabilityStamp } from "../../plugins/compose-semantic-classifier
 import { normalizeEntityId, parseTriples } from "../../prolog/codec.js";
 import { loadEntities } from "../../public/operations/discovery-entities.js";
 import { executeStatus } from "../../public/operations/discovery-executors.js";
+import { readAuthoredEntity } from "../../public/operations/entity-context.js";
 import type {
   OperationContext,
   WorkspaceSnapshot,
@@ -43,6 +48,15 @@ export type CompileIntentArgs = Readonly<{
   scenarioDrafts?: readonly ScenarioDraft[];
   testDrafts?: readonly TestDraft[];
   proposalDecisions?: readonly ProposalDecision[];
+  /**
+   * Why the requirement exists, who asked and what does not fit its checked
+   * meaning. Required when mode is create; rendered as `## Context`.
+   */
+  context?: string;
+  /** Verbatim text the intent came from; rendered as a blockquote in `## Source`. */
+  sourceExcerpt?: string;
+  /** Locator of that text (ticket, URL, path); rendered in `## Source`. */
+  sourceReference?: string;
 }>;
 
 // implements REQ-kibi-change-to-proof-plan-compiler-v2
@@ -252,6 +266,19 @@ function requiredIntent(args: CompileIntentArgs): string {
   ) {
     throw new Error(
       "Compile intent failed: requirementId must be non-empty when supplied",
+    );
+  }
+  if (args.mode === "create" && !text(args.context)) {
+    throw new Error(
+      "Compile intent failed: context must be non-empty when mode is create; state why the requirement exists, who asked and the source, or write 'Reason not stated' when the requester gave no reason",
+    );
+  }
+  if (
+    !text(args.context) &&
+    (text(args.sourceExcerpt) !== "" || text(args.sourceReference) !== "")
+  ) {
+    throw new Error(
+      "Compile intent failed: sourceExcerpt and sourceReference need context; supply context or drop them",
     );
   }
   return intent;
@@ -486,7 +513,7 @@ async function withDocumentTargets(
   context: OperationContext,
   prolog: NonNullable<OperationContext["prolog"]>,
   steps: readonly PlanStep[],
-  requirement: Readonly<{ id: string; body: string; path?: string }>,
+  requirement: Readonly<{ id: string; body?: string; path?: string }>,
   now: Date,
 ): Promise<PlanStep[]> {
   if (!context.fs) return [...steps];
@@ -503,7 +530,9 @@ async function withDocumentTargets(
     const document: { path?: string; body?: string } =
       type === "req" && id === requirement.id
         ? {
-            body: requirement.body,
+            ...(requirement.body !== undefined
+              ? { body: requirement.body }
+              : {}),
             ...(requirement.path !== undefined
               ? { path: requirement.path }
               : {}),
@@ -535,6 +564,22 @@ async function withDocumentTargets(
     });
   }
   return targeted;
+}
+
+/** Body of the requirement's existing authored document, when readable. */
+async function existingRequirementBody(
+  context: OperationContext,
+  source: string,
+): Promise<string | undefined> {
+  if (!context.fs || !source.endsWith(".md")) return undefined;
+  try {
+    const raw = await context.fs.readFile(
+      path.join(context.workspaceRoot, source),
+    );
+    return readAuthoredEntity(String(raw), source)?.body ?? undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 function generatedRequirementId(intent: string): string {
@@ -1248,6 +1293,35 @@ export async function executeCompileIntent(
   // A step whose entity or document cannot be rendered would fail the apply,
   // so it makes the plan need resolution instead of reporting it ready.
   let planSteps = stepsWithAcceptedProposals;
+  // A create always carries context. An update replaces the non-context part
+  // of the existing body with the new intent and keeps its context sections
+  // byte for byte; supplied context or source replaces those sections too.
+  const sourceInput = {
+    excerpt: args.sourceExcerpt,
+    reference: args.sourceReference,
+  };
+  const existingBody =
+    args.mode === "update"
+      ? await existingRequirementBody(
+          context,
+          requirementDocument ?? text(existingEntity.source),
+        )
+      : undefined;
+  const requirementBody =
+    existingBody !== undefined
+      ? reviseRequirementBody({
+          existingBody,
+          statement: intent,
+          context: args.context,
+          source: sourceInput,
+        })
+      : text(args.context) !== ""
+        ? renderRequirementBody({
+            statement: intent,
+            context: args.context,
+            source: sourceInput,
+          })
+        : undefined;
   if (statusValue === "ready") {
     try {
       planSteps = await withDocumentTargets(
@@ -1256,7 +1330,7 @@ export async function executeCompileIntent(
         stepsWithAcceptedProposals,
         {
           id: requirementId,
-          body: `${intent.trim()}\n`,
+          ...(requirementBody !== undefined ? { body: requirementBody } : {}),
           ...(requirementDocument !== undefined
             ? { path: requirementDocument }
             : {}),

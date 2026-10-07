@@ -8,6 +8,7 @@ tags:
   - mcp
   - consumer-local
   - launcher
+  - review:context-missing
 owner: cursor-team
 priority: must
 semantic_text: 'The published kibi-cursor plugin must resolve and execute the consumer project''s project-local kibi-mcp package without downloading packages or using a global or plugin-local runtime. It must resolve the consumer workspace in deterministic order: explicit workspace argument, WORKSPACE_FOLDER_PATHS, KIBI_WORKSPACE, CURSOR_WORKSPACE, then cwd only when cwd demonstrably contains project-local kibi-mcp; unresolved placeholders are invalid and ambiguous multiple usable roots fail clearly. The launcher must resolve kibi-mcp through consumer-scoped Node package semantics including exports-restricted and pnpm-style layouts, and reject packages outside consumer scope unless active package-manager semantics authorize it. It must spawn the declared kibi-mcp bin with cwd and KIBI_WORKSPACE set to the consumer workspace, preserve stdio, and propagate child exit codes and termination signals. Missing project-local kibi-mcp must produce a concise actionable error.'

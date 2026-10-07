@@ -7,6 +7,7 @@ tags:
   - tree-sitter
   - language-authoring
   - scaffold
+  - review:context-missing
 verification_scope: unit
 verification_perspective: internal
 id: TEST-tree-sitter-language-authoring-scaffold-draft-output

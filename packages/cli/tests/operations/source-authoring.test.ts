@@ -94,6 +94,39 @@ describe("source-first authoring", () => {
     expect(await readFile(target, "utf8")).toContain("exact body");
   });
 
+  test("pins semantic_text from the statement when a sectioned body is authored", async () => {
+    const workspace = await mkdtemp(path.join(tmpdir(), "kibi-source-"));
+    workspaces.push(workspace);
+    const result = await writeSourceForUpsert(
+      {
+        type: "req",
+        id: "REQ-ctx",
+        properties: { title: "Sign in" },
+        document: {
+          body: "Users must sign in.\n\n## Context\n\nSecurity asked for this after an incident.\n",
+        },
+      },
+      {
+        id: "REQ-ctx",
+        type: "req",
+        title: "Sign in",
+        status: "open",
+      },
+      undefined,
+      context(workspace),
+    );
+    const written = await readFile(
+      path.join(workspace, result?.receipt.path ?? ""),
+      "utf8",
+    );
+    const frontmatter = loadYaml(written.split("---")[1] ?? "") as Record<
+      string,
+      unknown
+    >;
+    expect(frontmatter.semantic_text).toBe("Users must sign in.");
+    expect(written).toContain("Security asked for this after an incident.");
+  });
+
   test("preserves repeated and unrelated Markdown relationships on a partial upsert", async () => {
     const workspace = await mkdtemp(path.join(tmpdir(), "kibi-source-"));
     workspaces.push(workspace);

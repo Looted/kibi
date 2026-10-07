@@ -174,6 +174,13 @@ const SCHEMA_MIGRATION_STEPS: readonly SchemaMigrationStep[] = [
     description:
       "Encode legacy polarity-only property facts as eq boolean true with require/forbid polarity; strict fact shapes are blocking.",
   },
+  {
+    id: "entity-body-context-v8",
+    from: 7,
+    to: 8,
+    description:
+      "Pin semantic_text on requirements that lack it (computed from the body before context sections stop counting), and tag current entities without body context review:context-missing; front matter only, bodies are preserved.",
+  },
 ];
 
 function migrationStepsFor(
@@ -770,12 +777,41 @@ export async function migrateCommand(
   const { planPolarityValueBackfill, applyPolarityValueBackfill } =
     await import("../operations/migration/polarity-values.js");
   const polarityBackfill = planPolarityValueBackfill(cwd);
+  const bodyContextStep = migrationSteps.some(
+    (step) => step.id === "entity-body-context-v8",
+  );
+  const {
+    acknowledgedContextIds,
+    applyContextMissingTags,
+    applySemanticTextPins,
+    countByType,
+    planContextMissingTags,
+    planSemanticTextPins,
+  } = await import("../operations/migration/entity-body-context.js");
 
   if (options.dryRun) {
     if (polarityBackfill.length > 0)
       console.log(
         `dry run: would encode ${polarityBackfill.length} legacy polarity-only fact(s) as typed booleans.`,
       );
+    if (bodyContextStep) {
+      const pins = planSemanticTextPins(cwd);
+      if (pins.targets.length > 0)
+        console.log(
+          `dry run: would pin semantic_text on ${pins.targets.length} requirement(s) that lack it (front matter only; bodies are preserved).`,
+        );
+      const tags = planContextMissingTags(cwd);
+      if (tags.targets.length > 0)
+        console.log(
+          `dry run: would tag ${tags.targets.length} current entit(ies) without body context review:context-missing (${Object.entries(
+            countByType(tags.targets),
+          )
+            .map(([type, count]) => `${count} ${type}`)
+            .join(", ")}); no prose is written.`,
+        );
+      for (const skip of [...pins.skipped, ...tags.skipped])
+        printWarning(`Cannot edit ${skip.path}: ${skip.reason}.`);
+    }
     if (storagePlan.moves.length > 0) {
       console.log(
         `dry run: would move ${storagePlan.moves.length} legacy knowledge file(s) into .kb/:`,
@@ -860,6 +896,25 @@ export async function migrateCommand(
     console.log(
       `Encoded ${polarityValuesRewritten} legacy polarity-only fact(s) as typed booleans.`,
     );
+  // Pin before tagging: the pin reads the body as the old derivation did, and
+  // tagging then judges context against the statement-only derivation.
+  const semanticTextPinned = bodyContextStep ? applySemanticTextPins(cwd) : 0;
+  if (semanticTextPinned > 0)
+    console.log(
+      `Pinned semantic_text on ${semanticTextPinned} requirement(s) that lacked it.`,
+    );
+  const contextPlan = bodyContextStep ? planContextMissingTags(cwd) : null;
+  const contextTagged = bodyContextStep ? applyContextMissingTags(cwd) : 0;
+  if (contextPlan !== null && contextTagged > 0)
+    console.log(
+      `Tagged ${contextTagged} current entit(ies) without body context review:context-missing (${Object.entries(
+        countByType(contextPlan.targets),
+      )
+        .map(([type, count]) => `${count} ${type}`)
+        .join(", ")}); no prose was written.`,
+    );
+  for (const skip of contextPlan?.skipped ?? [])
+    printWarning(`Cannot tag ${skip.path}: ${skip.reason}.`);
   // Source rewrites run before the manifest records the new schema, so an
   // interrupted run is retried by the next 'kibi migrate --yes'; both are
   // idempotent.
@@ -874,6 +929,16 @@ export async function migrateCommand(
     ...existingManifest,
     schemaVersion: LATEST_KB_SCHEMA_VERSION,
     semanticAdvisorBackfill,
+    ...(contextPlan !== null
+      ? {
+          contextAcknowledged: [
+            ...new Set([
+              ...(existingManifest.contextAcknowledged ?? []),
+              ...acknowledgedContextIds(contextPlan),
+            ]),
+          ].sort(),
+        }
+      : {}),
   });
 
   writeJsonAtomically(

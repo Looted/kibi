@@ -4,6 +4,7 @@ import {
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  readdirSync,
   rmSync,
   statSync,
   writeFileSync,
@@ -376,6 +377,51 @@ function writeCoverageDepthFixture(
   execSync("git add .kb", { cwd: root, stdio: "pipe" });
 }
 
+/**
+ * These fixtures exercise other rules with bare entities. Tag and record each one as
+ * acknowledged legacy so entity-context-missing does not mask what they test.
+ */
+function acknowledgeLegacyContext(root: string): void {
+  const ids: string[] = [];
+  for (const lane of ["requirements", "scenarios", "tests"]) {
+    const dir = path.join(root, ".kb", lane);
+    if (!existsSync(dir)) continue;
+    for (const name of readdirSync(dir)) {
+      if (!name.endsWith(".md")) continue;
+      const file = path.join(dir, name);
+      const raw = readFileSync(file, "utf8");
+      const id = /^id:[ \t]*(\S+)/m.exec(raw)?.[1];
+      if (id !== undefined) ids.push(id);
+      if (raw.includes("review:context-missing")) continue;
+      const end = raw.indexOf("\n---", 4);
+      if (!raw.startsWith("---") || end < 0) continue;
+      let front = raw.slice(0, end);
+      if (/^tags:[ \t]*\[/m.test(front)) {
+        front = front.replace(
+          /^tags:[ \t]*\[(.*)\]/m,
+          (_m, items: string) =>
+            `tags: [${items ? `${items}, ` : ""}review:context-missing]`,
+        );
+      } else if (/^tags:[ \t]*$/m.test(front)) {
+        front = front.replace(
+          /^tags:[ \t]*$/m,
+          "tags:\n  - review:context-missing",
+        );
+      } else {
+        front = `${front}\ntags:\n  - review:context-missing`;
+      }
+      writeFileSync(file, front + raw.slice(end));
+    }
+  }
+  // Only ids recorded in the manifest (as the schema 8 migration does) count.
+  const manifestPath = path.join(root, ".kb", "manifest.json");
+  const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
+  writeFileSync(
+    manifestPath,
+    `${JSON.stringify({ ...manifest, contextAcknowledged: ids }, null, 2)}\n`,
+  );
+}
+
 describe("kibi check", () => {
   const TEST_TIMEOUT_MS = 30000;
   let tmpDir: string;
@@ -419,6 +465,7 @@ describe("kibi check", () => {
     "prints advisory quality diagnostics for broad requirements without failing",
     async () => {
       writeBroadRequirementFixture(tmpDir);
+      acknowledgeLegacyContext(tmpDir);
       execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
       const { status, stdout, stderr } = runKibi(kibiBin, ["check"], tmpDir);
@@ -436,6 +483,7 @@ describe("kibi check", () => {
     "emits structured quality diagnostics with json format",
     async () => {
       writeBroadRequirementFixture(tmpDir);
+      acknowledgeLegacyContext(tmpDir);
       execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
       const { status, stdout } = runKibi(
@@ -499,6 +547,7 @@ describe("kibi check", () => {
     "does not emit broad requirement diagnostics for explicit umbrella requirements",
     async () => {
       writeUmbrellaBroadRequirementFixture(tmpDir);
+      acknowledgeLegacyContext(tmpDir);
       execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
       const { status, stdout } = runKibi(
@@ -523,6 +572,7 @@ describe("kibi check", () => {
     "prints advisory coverage depth diagnostics for unit-only requirements without failing",
     async () => {
       writeCoverageDepthFixture(tmpDir, "unit_only");
+      acknowledgeLegacyContext(tmpDir);
       execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
       const { status, stdout, stderr } = runKibi(kibiBin, ["check"], tmpDir);
@@ -542,6 +592,7 @@ describe("kibi check", () => {
       writeCoverageDepthFixture(tmpDir, "open_or_nonpassing_tests_only");
       writeCoverageDepthFixture(tmpDir, "scenario_only_no_test");
       writeCoverageDepthFixture(tmpDir, "no_test_evidence");
+      acknowledgeLegacyContext(tmpDir);
       execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
       const { status, stdout } = runKibi(
@@ -582,6 +633,7 @@ describe("kibi check", () => {
     async () => {
       writeCoverageDepthFixture(tmpDir, "direct_passing_e2e");
       writeCoverageDepthFixture(tmpDir, "scenario_passing_e2e");
+      acknowledgeLegacyContext(tmpDir);
       execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
       const { status, stdout } = runKibi(
@@ -607,6 +659,7 @@ describe("kibi check", () => {
     async () => {
       writeCoverageDepthFixture(tmpDir, "direct_passing_integration");
       writeCoverageDepthFixture(tmpDir, "scenario_passing_integration");
+      acknowledgeLegacyContext(tmpDir);
       execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
       const { status, stdout } = runKibi(
@@ -856,6 +909,7 @@ links:
 
       // Sync first
       execSync("git add .kb", { cwd: tmpDir, stdio: "pipe" });
+      acknowledgeLegacyContext(tmpDir);
       execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
       // Check should pass
@@ -924,6 +978,7 @@ links:
       );
 
       execSync("git add .kb", { cwd: tmpDir, stdio: "pipe" });
+      acknowledgeLegacyContext(tmpDir);
       execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
       const rdfPath = path.join(
@@ -1121,6 +1176,7 @@ links:
       );
 
       execSync("git add .kb", { cwd: tmpDir, stdio: "pipe" });
+      acknowledgeLegacyContext(tmpDir);
       execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
       const { status, stdout, stderr } = runKibi(kibiBin, ["check"], tmpDir);
@@ -1816,6 +1872,7 @@ links:
       );
 
       execSync("git add .kb", { cwd: tmpDir, stdio: "pipe" });
+      acknowledgeLegacyContext(tmpDir);
       execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
       const { status, stdout, stderr } = runKibi(kibiBin, ["check"], tmpDir);

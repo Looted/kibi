@@ -777,7 +777,9 @@ describe("bootstrap deterministic write failures", () => {
         retryable: false,
       });
       expect(existsSync(path.join(root, ".kb/recovery"))).toBe(false);
-      expect(existsSync(path.join(root, ".kb/facts/FACT-valid.md"))).toBe(false);
+      expect(existsSync(path.join(root, ".kb/facts/FACT-valid.md"))).toBe(
+        false,
+      );
     } finally {
       rmSync(root, { recursive: true, force: true });
     }
@@ -842,14 +844,16 @@ describe("bootstrap deterministic write failures", () => {
       const plan = bootstrapPlan(actions);
       let commits = 0;
       const baseContext = filesystemContext(root);
+      const baseProlog = baseContext.prolog;
+      if (!baseProlog) throw new Error("filesystem context has no prolog");
       const prolog = {
-        ...baseContext.prolog!,
+        ...baseProlog,
         query: async (goal: string): Promise<PrologQueryResult> => {
           if (goal.includes("kb_commit_upsert") && ++commits === 2)
             throw new Error(
               "Entity validation failed: injected deterministic failure",
             );
-          return baseContext.prolog!.query(goal);
+          return baseProlog.query(goal);
         },
       };
       const result = await executeApplyPlan(

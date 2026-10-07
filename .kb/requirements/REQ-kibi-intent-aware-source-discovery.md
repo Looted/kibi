@@ -6,7 +6,7 @@ created_at: 2026-08-13T00:00:00Z
 updated_at: 2026-08-13T00:00:00Z
 priority: must
 owner: platform-team
-tags: [search, intent, source, traceability]
+tags: [search, intent, source, traceability, review:context-missing]
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
 semantic_source_hash: 6f8bed2f8c48b59a26ffbef1506663730f2789149afe8aad06cc1d296d58682f
@@ -27,6 +27,7 @@ origin:
   kind: migration
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
+semantic_text: Given a natural-language functionality request, Kibi must rank matching requirements, scenarios, tests, facts, and implementation symbols using lexical, semantic, relationship, and source-location evidence. The result must expose deterministic scores, evidence paths, source locations, and explicit zero-result or ambiguity states rather than presenting an unsupported match as proof.
 ---
 
 Given a natural-language functionality request, Kibi must rank matching requirements, scenarios, tests, facts, and implementation symbols using lexical, semantic, relationship, and source-location evidence. The result must expose deterministic scores, evidence paths, source locations, and explicit zero-result or ambiguity states rather than presenting an unsupported match as proof.

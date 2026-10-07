@@ -10,6 +10,7 @@ tags:
   - cli
   - discovery
   - search
+  - review:context-missing
 links:
   - type: specified_by
     target: SCEN-mcp-search-discovery

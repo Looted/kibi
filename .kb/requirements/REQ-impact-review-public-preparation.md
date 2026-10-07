@@ -5,6 +5,7 @@ tags:
   - multilingual
   - impact-policy
   - public-preparation
+  - review:context-missing
 text_ref: documentation/impact-review-stage-e.md
 semantic_text: Kibi must expose strict public impact review preparation through the installed CLI and MCP for the complete staged scope or two explicitly selected immutable commits. Kibi must return the captured inventory, snapshot, trusted base policy, provider and evaluator bindings, per-file analysis, requirement scopes and residual review obligations. Kibi must return an initially invalid review template with no reviewer identity, review time, decisions, generated rationale, signature or proof. Kibi must preserve authored source and knowledge-document contents and the Git index while preparing a review without approving a review or creating proof. Kibi must return deterministic equivalent preparation data through the installed CLI and MCP for the same captured scope. Kibi must reject snapshot or trusted provider and evaluator closure drift after completing context projection and before returning preparation data. Kibi must reject review preparation when trusted base policy is missing or malformed or trusted provider and evaluator closures are unavailable or changed. Kibi must retain failed and partial source-analysis evidence and its review obligations without generating an acceptance decision. Kibi must prevent caller filters, file caps or configuration overrides from narrowing the captured review inventory.
 logic_claims:

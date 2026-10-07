@@ -10,6 +10,7 @@ tags:
   - cli
   - check
   - traceability
+  - review:context-missing
 links:
   - type: specified_by
     target: SCEN-cli-staged-impact-enforcement

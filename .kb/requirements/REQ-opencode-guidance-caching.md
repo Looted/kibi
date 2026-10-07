@@ -10,6 +10,7 @@ tags:
   - opencode
   - kibi
   - cache
+  - review:context-missing
 links:
   - type: specified_by
     target: SCEN-opencode-guidance-caching

@@ -9,6 +9,7 @@ tags:
   - mcp
   - relationships
   - validation
+  - review:context-missing
 links:
   - type: specified_by
     target: SCEN-mcp-relationship-preflight

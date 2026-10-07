@@ -9,6 +9,7 @@ priority: must
 tags:
   - core
   - validation
+  - review:context-missing
 links:
   - type: supersedes
     target: REQ-006

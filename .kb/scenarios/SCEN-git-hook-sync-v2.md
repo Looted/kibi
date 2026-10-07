@@ -7,6 +7,7 @@ tags:
   - hooks
   - sync
   - exact-branch
+  - review:context-missing
 id: SCEN-git-hook-sync-v2
 type: scenario
 origin:

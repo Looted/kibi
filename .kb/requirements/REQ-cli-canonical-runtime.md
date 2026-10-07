@@ -6,6 +6,7 @@ tags:
   - cli
   - sync
   - canonical-layout
+  - review:context-missing
 semantic_text: After init, runtime operations honor the canonical .kb/ contract. kibi sync extracts Markdown and YAML metadata from discovered files and upserts the results into the branch Prolog KB. kibi sync must discover tracked Markdown and the symbols manifest from the canonical .kb knowledge lanes under .kb/requirements, .kb/scenarios, .kb/tests, .kb/facts, .kb/adr, .kb/flags, .kb/events, and .kb/symbols.yaml. kibi sync must not honor leftover .kb/config.json path overrides. README.md files under entity directories must be ignored by sync discovery. Untracked knowledge files must not be ingested unless a pending source receipt recovers them. kb_upsert source authoring must write markdown entities into the matching canonical .kb lane and symbols into .kb/symbols.yaml. document.path may target authored .kb knowledge lanes and must reject derived .kb trees including branches, recovery, verification, briefs, and migrations. createRepoIgnorePolicy must hard-deny derived .kb runtime trees including .kb/migrations and must not ignore authored knowledge lanes. MCP workspace activation and Cursor hook readiness must treat .kb/manifest.json as the initialized project signal, not leftover .kb/config.json.
 logic_claims:
   - CLAIM-5C2F95488F59C332

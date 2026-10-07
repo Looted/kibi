@@ -17,8 +17,9 @@
  */
 
 // implements REQ-003
-// Schema 7 requires strict fact shapes and encodes legacy polarity values.
-export const LATEST_KB_SCHEMA_VERSION = 7;
+// Schema 8 requires body context on current entities and pins requirement
+// semantic_text so context sections never change a requirement's meaning.
+export const LATEST_KB_SCHEMA_VERSION = 8;
 
 export interface SchemaVersionStatus {
   status: "missing" | "invalid" | "older" | "current" | "newer";

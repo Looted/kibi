@@ -13,6 +13,7 @@ tags:
   - opencode
   - vscode
   - historical-status:archived
+  - review:context-missing
 links:
   - type: supersedes
     target: REQ-opencode-kibi-briefing-v6
