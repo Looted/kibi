@@ -174,3 +174,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6434463c31df
+  - type: constrains
+    from: REQ-check-related-requirement-unmodeled
+    to: FACT-SUBJECT-KIBI-RELATED-REQUIREMENT-UNMODELED
+    created_at: 2026-10-07T13:24:03.869Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6208d34c1cf8
+  - type: requires_property
+    from: REQ-check-related-requirement-unmodeled
+    to: FACT-check-related-requirement-unmodeled-reported
+    created_at: 2026-10-07T13:24:03.910Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1be153ba0035
+  - type: requires_property
+    from: REQ-check-related-requirement-unmodeled
+    to: FACT-check-related-requirement-unmodeled-blocking
+    created_at: 2026-10-07T13:24:03.926Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a74568f65e42
+  - type: requires_property
+    from: REQ-check-related-requirement-unmodeled
+    to: FACT-check-related-requirement-unmodeled-names-modeled-keys
+    created_at: 2026-10-07T13:24:03.940Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a937b00852c9
+  - type: requires_property
+    from: REQ-check-related-requirement-unmodeled
+    to: FACT-check-related-requirement-unmodeled-ledgerless-and-superseded-skipped
+    created_at: 2026-10-07T13:24:03.959Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7bc4b4da24cf
+  - type: specified_by
+    from: REQ-check-related-requirement-unmodeled
+    to: SCEN-check-related-requirement-unmodeled
+    created_at: 2026-10-07T13:24:03.969Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3f7a0f103b41
+  - type: verified_by
+    from: REQ-check-related-requirement-unmodeled
+    to: TEST-check-related-requirement-unmodeled
+    created_at: 2026-10-07T13:24:05.547Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f87b84b6520f

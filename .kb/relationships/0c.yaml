@@ -223,3 +223,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8aada7626a60
+  - type: constrains
+    from: REQ-mcp-conditional-input-validation
+    to: FACT-SUBJECT-KIBI-MCP-INPUT-VALIDATION
+    created_at: 2026-10-07T12:27:17.545Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3fa67a2622c7
+  - type: requires_property
+    from: REQ-mcp-conditional-input-validation
+    to: FACT-mcp-conditional-input-validation-review-note-accepted
+    created_at: 2026-10-07T12:27:17.594Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9cad343f4791
+  - type: requires_property
+    from: REQ-mcp-conditional-input-validation
+    to: FACT-mcp-conditional-input-validation-claim-key-required
+    created_at: 2026-10-07T12:27:17.623Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-94f903ffc5ed
+  - type: requires_property
+    from: REQ-mcp-conditional-input-validation
+    to: FACT-mcp-conditional-input-validation-matches-cli
+    created_at: 2026-10-07T12:27:17.643Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b59e288d7980
+  - type: specified_by
+    from: REQ-mcp-conditional-input-validation
+    to: SCEN-mcp-conditional-input-validation
+    created_at: 2026-10-07T12:27:21.985Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1979a4965efc
+  - type: verified_by
+    from: REQ-mcp-conditional-input-validation
+    to: TEST-mcp-conditional-input-validation
+    created_at: 2026-10-07T12:27:22.023Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6d972af5de9e

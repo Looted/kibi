@@ -393,8 +393,8 @@ const impactReviewAuthorship = objectData(
 );
 
 /**
- * kibi.job.v1 receipt returned by async-mode operations (kb_check with
- * `async: true`) instead of the synchronous payload. Agents poll
+ * kibi.job.v1 receipt returned by async-mode operations (kb_check and
+ * kb_apply_plan with `async: true`) instead of the synchronous payload. Agents poll
  * kb_job_status with the jobId. Declared as a union member of the operation
  * data contract so hosts validating tool output against the declared schema
  * accept the receipt without weakening the synchronous payload contract.
@@ -562,11 +562,20 @@ const BASE_DATA_SCHEMAS: Readonly<
         "provide_argument_bindings",
         "resolve_schema_reference",
         "record_ontology_gap",
+        "review_nonlogical",
+        "already_grounded",
       ],
     },
     recommendedPredicateSchema: { type: ["object", "null"] },
     applyPlan: recordArray,
     relationshipPlan: { type: ["object", "null"] },
+    relationshipTarget: {
+      type: ["string", "null"],
+      description:
+        "The planned predicate fact id (FACT-PRED-...) that a requires_predicate link must target. Candidate ids (SUGGEST-...) are never relationship targets.",
+    },
+    existingGrounding: recordArray,
+    replacementPlan: { type: ["object", "null"] },
     warnings: stringArray,
   }),
   kb_plan_bootstrap: objectData(
@@ -712,26 +721,33 @@ const BASE_DATA_SCHEMAS: Readonly<
     diagnostics: stringArray,
     capabilityPlugins: recordValue,
   }),
-  kb_apply_plan: objectData({
-    version: stringValue,
-    outcome: stringValue,
-    planHash: stringValue,
-    changedEntities: integerValue,
-    changedRelationships: integerValue,
-    changedPaths: stringArray,
-    finalSnapshots: recordValue,
-    validationSummary: recordValue,
-    recoveryJournalId: { type: ["string", "null"] },
-    deleted: integerValue,
-    sourcePaths: stringArray,
-    actionResults: recordArray,
-    notes: stringArray,
-    remainingPlan: recordValue,
-    closeout: recordValue,
-    status: stringValue,
-    effectFailures: recordArray,
-    nextActions: recordArray,
-  }),
+  kb_apply_plan: {
+    description:
+      "Synchronous apply result, or a kibi.job.v1 receipt when async:true detached the apply into a background job (poll kb_job_status with the jobId).",
+    anyOf: [
+      objectData({
+        version: stringValue,
+        outcome: stringValue,
+        planHash: stringValue,
+        changedEntities: integerValue,
+        changedRelationships: integerValue,
+        changedPaths: stringArray,
+        finalSnapshots: recordValue,
+        validationSummary: recordValue,
+        recoveryJournalId: { type: ["string", "null"] },
+        deleted: integerValue,
+        sourcePaths: stringArray,
+        actionResults: recordArray,
+        notes: stringArray,
+        remainingPlan: recordValue,
+        closeout: recordValue,
+        status: stringValue,
+        effectFailures: recordArray,
+        nextActions: recordArray,
+      }),
+      jobReceiptData,
+    ],
+  },
   kb_ingest_proof: objectData({
     artifactDigest: stringValue,
     environmentHash: stringValue,

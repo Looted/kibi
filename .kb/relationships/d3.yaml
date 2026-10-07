@@ -216,3 +216,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0f8d83662ee9
+  - type: executable_for
+    from: SYM-test-model-predicates-grounding-aware
+    to: TEST-model-predicates-grounding-aware
+    created_at: 2026-10-07T12:28:58.929Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3628b53041ef

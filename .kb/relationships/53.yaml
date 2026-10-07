@@ -202,3 +202,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-098471d136ab
+  - type: constrains
+    from: REQ-model-predicates-grounding-aware
+    to: FACT-SUBJECT-KIBI-PREDICATE-MODELING-GROUNDING
+    created_at: 2026-10-07T12:28:50.084Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4b077fca197f
+  - type: requires_property
+    from: REQ-model-predicates-grounding-aware
+    to: FACT-model-predicates-grounding-aware-already-grounded
+    created_at: 2026-10-07T12:28:50.118Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a3c13419f2fc
+  - type: requires_property
+    from: REQ-model-predicates-grounding-aware
+    to: FACT-model-predicates-grounding-aware-replacement
+    created_at: 2026-10-07T12:28:50.138Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e49c73a01d32
+  - type: requires_property
+    from: REQ-model-predicates-grounding-aware
+    to: FACT-model-predicates-grounding-aware-target
+    created_at: 2026-10-07T12:28:50.152Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4efb3a3a2910
+  - type: specified_by
+    from: REQ-model-predicates-grounding-aware
+    to: SCEN-model-predicates-grounding-aware
+    created_at: 2026-10-07T12:28:54.516Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1a5dfcc0c6c6
+  - type: verified_by
+    from: REQ-model-predicates-grounding-aware
+    to: TEST-model-predicates-grounding-aware
+    created_at: 2026-10-07T12:28:54.559Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ca5dd5bc5ba0

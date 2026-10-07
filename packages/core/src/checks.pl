@@ -41,6 +41,7 @@
     check_rule_safety/1,
     check_rule_verifiability/1,
     check_semantic_completeness/1,
+    check_related_requirement_unmodeled/1,
     check_req_status_vocabulary/1,
     check_entity_id_style/1,
     check_domain_redundancy/1,
@@ -114,6 +115,7 @@ check_all(ViolationsDict) :-
     check_rule_safety(RuleSafety),
     check_rule_verifiability(RuleVerifiability),
     check_semantic_completeness(SemanticCompleteness),
+    check_related_requirement_unmodeled(RelatedRequirementUnmodeled),
     check_req_status_vocabulary(ReqStatusVocabulary),
     check_proof_contract_symbols(ProofContractSymbols),
     check_entity_id_style(EntityIdStyle),
@@ -148,6 +150,7 @@ check_all(ViolationsDict) :-
         rule_safety: RuleSafety,
         rule_verifiability: RuleVerifiability,
         semantic_completeness: SemanticCompleteness,
+        related_requirement_unmodeled: RelatedRequirementUnmodeled,
         req_status_vocabulary: ReqStatusVocabulary,
         proof_contract_symbols: ProofContractSymbols,
         entity_id_style: EntityIdStyle,
@@ -3332,6 +3335,89 @@ inventory_entry_status(Entry, Status) :-
 inventory_entry_status(Entry, Status) :-
     is_list(Entry), memberchk(status=Raw, Entry), normalize_term_atom(Raw, Status).
 
+%% check_related_requirement_unmodeled(-Violations)
+% implements REQ-check-related-requirement-unmodeled
+% domain-contradictions compares grounded facts only. A current requirement
+% whose proposition ledger still carries `missing` entries contributes no
+% facts, so when it relates_to a current requirement that is modeled (strict
+% subject/property facts or ground predicate facts) its claims are never
+% compared with that requirement: it can describe behavior the modeled one
+% forbids and `kb_check` stays clean. The relates_to edge says the author knew
+% the two overlap, so the gap is blocking: model the missing propositions
+% against the same subject keys or predicates, or supersede the older
+% requirement. Requirements without a ledger stay in the strict-readiness
+% migration lane and are not reported here.
+check_related_requirement_unmodeled(Violations) :-
+    findall(Violation, related_requirement_unmodeled_violation(Violation), Raw),
+    sort(Raw, Violations).
+
+related_requirement_unmodeled_violation(violation(
+    'related-requirement-unmodeled',
+    ReqId,
+    Description,
+    Suggestion,
+    Source
+)) :-
+    kb:current_req(ReqId),
+    requirement_missing_proposition_count(ReqId, MissingCount),
+    MissingCount > 0,
+    related_current_requirement(ReqId, OtherId),
+    modeled_requirement_summary(OtherId, Summary),
+    format(
+        string(Description),
+        "Requirement ~w leaves ~w proposition(s) unmodeled (status missing) while it relates_to ~w, which models ~w; domain-contradictions compares grounded facts only, so these claims are never checked against ~w",
+        [ReqId, MissingCount, OtherId, Summary, OtherId]
+    ),
+    format(
+        string(Suggestion),
+        "Model the missing propositions of ~w against ~w (a subject fact via constrains and property_value facts via requires_property on the same subject_key, or ground predicate facts via requires_predicate), or record that ~w supersedes ~w if it replaces that requirement",
+        [ReqId, Summary, ReqId, OtherId]
+    ),
+    violation_source(ReqId, req, Source).
+
+requirement_missing_proposition_count(ReqId, Count) :-
+    kb_entity(ReqId, req, Props),
+    memberchk(semantic_inventory=RawInventory, Props),
+    inventory_entries(RawInventory, Entries),
+    aggregate_all(
+        count,
+        ( member(Entry, Entries), inventory_entry_status(Entry, missing) ),
+        Count
+    ).
+
+related_current_requirement(ReqId, OtherId) :-
+    (   kb_relationship(relates_to, ReqId, OtherId)
+    ;   kb_relationship(relates_to, OtherId, ReqId)
+    ),
+    OtherId \== ReqId,
+    kb:current_req(OtherId).
+
+%% modeled_requirement_summary(+ReqId, -Summary)
+% Comma-separated list of the subject.property keys the requirement constrains
+% through contradiction-ready strict facts and the canonical keys of the ground
+% predicate facts it requires. Fails when the requirement models nothing.
+modeled_requirement_summary(ReqId, Summary) :-
+    setof(Key, modeled_requirement_key(ReqId, Key), Keys),
+    atomic_list_concat(Keys, ', ', Summary).
+
+modeled_requirement_key(ReqId, Key) :-
+    kb:effective_req_property_fact(
+        ReqId, SubjectKey, _FactId, PropertyKey,
+        _Operator, _ValueType, _Value, _Unit, _Scope, _Polarity, _ValidFrom, _ValidTo
+    ),
+    normalize_term_atom(SubjectKey, SubjectAtom),
+    normalize_term_atom(PropertyKey, PropertyAtom),
+    format(atom(Key), "~w.~w", [SubjectAtom, PropertyAtom]).
+modeled_requirement_key(ReqId, Key) :-
+    kb_relationship(requires_predicate, ReqId, FactId),
+    kb_entity(FactId, fact, Props),
+    predicate_verifiability_fact_kind(Props, predicate),
+    (   memberchk(canonical_key=RawKey, Props)
+    ->  normalize_term_atom(RawKey, Key)
+    ;   memberchk(predicate_name=RawName, Props),
+        normalize_term_atom(RawName, Key)
+    ).
+
 strict_readiness_has_fact_link(ReqId) :-
     kb_relationship(constrains, ReqId, FactId),
     kb_entity(FactId, fact, _),
@@ -3427,6 +3513,7 @@ check_selected_dispatch(Rules, _{
     rule_safety: RuleSafety,
     rule_verifiability: RuleVerifiability,
     semantic_completeness: SemanticCompleteness,
+    related_requirement_unmodeled: RelatedRequirementUnmodeled,
     req_status_vocabulary: ReqStatusVocabulary,
     proof_contract_symbols: ProofContractSymbols,
     entity_id_style: EntityIdStyle,
@@ -3461,6 +3548,7 @@ check_selected_dispatch(Rules, _{
     selected_rule(Rules, 'rule-safety', check_rule_safety, RuleSafety),
     selected_rule(Rules, 'rule-verifiability', check_rule_verifiability, RuleVerifiability),
     selected_rule(Rules, 'semantic-completeness', check_semantic_completeness, SemanticCompleteness),
+    selected_rule(Rules, 'related-requirement-unmodeled', check_related_requirement_unmodeled, RelatedRequirementUnmodeled),
     selected_rule(Rules, 'req-status-vocabulary', check_req_status_vocabulary, ReqStatusVocabulary),
     selected_rule(Rules, 'proof-contract-symbols', check_proof_contract_symbols, ProofContractSymbols),
     selected_rule(Rules, 'entity-id-style', check_entity_id_style, EntityIdStyle),

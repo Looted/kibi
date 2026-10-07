@@ -5291,6 +5291,101 @@ test(adr_unlinked_and_adr_proposed_report_drifting_decisions, [setup(setup_kb), 
     findall(Id, member(violation('adr-proposed', Id, _, _, _), Proposed), ProposedIds),
     assertion(ProposedIds == ['ADR-PENDING']).
 
+% implements REQ-check-related-requirement-unmodeled
+related_unmodeled_fixture_modeled_req(ReqId) :-
+    assert_fixture_entity(req, ReqId, "Grouped notification per item", open, []),
+    assert_fixture_entity(fact, 'FACT-NOTIFY-SUBJECT', "Notification system", active, [
+        fact_kind=subject,
+        subject_key="notification.system"
+    ]),
+    assert_fixture_entity(fact, 'FACT-NOTIFY-GROUPING', "Grouping policy", active, [
+        fact_kind=property_value,
+        subject_key="notification.system",
+        property_key="message_grouping_policy",
+        operator=eq,
+        value_type=string,
+        value_string="per_item_recipient_group"
+    ]),
+    kb_assert_relationship(constrains, ReqId, 'FACT-NOTIFY-SUBJECT', []),
+    kb_assert_relationship(requires_property, ReqId, 'FACT-NOTIFY-GROUPING', []).
+
+related_unmodeled_fixture_unresolved_req(ReqId) :-
+    Inventory = [
+        _{claim_key: 'CLAIM-AAAAAAAA11111111', claim_text: "Messages belong to one conversation per pair of users", role: normative, status: missing, span: _{start: 0, end: 52}},
+        _{claim_key: 'CLAIM-BBBBBBBB22222222', claim_text: "A message notification opens the conversation", role: normative, status: missing, span: _{start: 54, end: 99}},
+        _{claim_key: 'CLAIM-CCCCCCCC33333333', claim_text: "This keeps the inbox short", role: rationale, status: nonlogical, span: _{start: 101, end: 127}}
+    ],
+    assert_fixture_entity(req, ReqId, "Conversations per pair of users", open, [
+        semantic_inventory=Inventory
+    ]).
+
+test(related_requirement_unmodeled_reports_unresolved_ledger_linked_to_modeled_requirement, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    related_unmodeled_fixture_modeled_req('REQ-NOTIFY-GROUPED'),
+    related_unmodeled_fixture_unresolved_req('REQ-CONVERSATIONS'),
+    kb_assert_relationship(relates_to, 'REQ-CONVERSATIONS', 'REQ-NOTIFY-GROUPED', []),
+    check_related_requirement_unmodeled(Violations),
+    findall(Id, member(violation('related-requirement-unmodeled', Id, _, _, _), Violations), Ids),
+    assertion(Ids == ['REQ-CONVERSATIONS']),
+    member(violation('related-requirement-unmodeled', 'REQ-CONVERSATIONS', Description, Suggestion, _), Violations),
+    assertion(sub_string(Description, _, _, _, "2 proposition(s)")),
+    assertion(sub_string(Description, _, _, _, "REQ-NOTIFY-GROUPED")),
+    assertion(sub_string(Description, _, _, _, "notification.system.message_grouping_policy")),
+    assertion(sub_string(Suggestion, _, _, _, "supersedes REQ-NOTIFY-GROUPED")).
+
+test(related_requirement_unmodeled_follows_relates_to_in_either_direction, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    related_unmodeled_fixture_modeled_req('REQ-NOTIFY-GROUPED'),
+    related_unmodeled_fixture_unresolved_req('REQ-CONVERSATIONS'),
+    kb_assert_relationship(relates_to, 'REQ-NOTIFY-GROUPED', 'REQ-CONVERSATIONS', []),
+    check_related_requirement_unmodeled(Violations),
+    findall(Id, member(violation('related-requirement-unmodeled', Id, _, _, _), Violations), Ids),
+    assertion(Ids == ['REQ-CONVERSATIONS']).
+
+test(related_requirement_unmodeled_names_ground_predicate_keys, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-READ-STATE', "Read state per participant", open, []),
+    assert_fixture_entity(fact, 'FACT-READ-STATE-RULE', "Cursor model invariant", active, [
+        fact_kind=predicate,
+        predicate_name="schema_invariant_rule",
+        predicate_args=["data", "cursor_model_per_participant"],
+        polarity=assert,
+        canonical_key="schema_invariant_rule(data,cursor_model_per_participant)"
+    ]),
+    kb_assert_relationship(requires_predicate, 'REQ-READ-STATE', 'FACT-READ-STATE-RULE', []),
+    related_unmodeled_fixture_unresolved_req('REQ-CONVERSATIONS'),
+    kb_assert_relationship(relates_to, 'REQ-CONVERSATIONS', 'REQ-READ-STATE', []),
+    check_related_requirement_unmodeled(Violations),
+    member(violation('related-requirement-unmodeled', 'REQ-CONVERSATIONS', Description, _, _), Violations),
+    assertion(sub_string(Description, _, _, _, "schema_invariant_rule(data,cursor_model_per_participant)")).
+
+test(related_requirement_unmodeled_skips_prose_only_modeled_and_superseded_neighbours, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    related_unmodeled_fixture_modeled_req('REQ-NOTIFY-GROUPED'),
+    % No ledger at all: strict-readiness owns that lane.
+    assert_fixture_entity(req, 'REQ-PROSE-ONLY', "Prose only", open, []),
+    kb_assert_relationship(relates_to, 'REQ-PROSE-ONLY', 'REQ-NOTIFY-GROUPED', []),
+    % Every assertive proposition modeled or explicitly classified.
+    assert_fixture_entity(req, 'REQ-CLASSIFIED', "Classified ledger", open, [
+        semantic_inventory=[
+            _{claim_key: 'CLAIM-DDDDDDDD44444444', claim_text: "Grouping stays per item", role: normative, status: modeled, span: _{start: 0, end: 23}},
+            _{claim_key: 'CLAIM-EEEEEEEE55555555', claim_text: "Nobody knows yet", role: normative, status: ontology_gap, span: _{start: 25, end: 41}}
+        ]
+    ]),
+    kb_assert_relationship(relates_to, 'REQ-CLASSIFIED', 'REQ-NOTIFY-GROUPED', []),
+    % The neighbour is itself unmodeled, so there is nothing to compare with.
+    assert_fixture_entity(req, 'REQ-UNMODELED-NEIGHBOUR', "Unmodeled neighbour", open, []),
+    related_unmodeled_fixture_unresolved_req('REQ-NEXT-TO-UNMODELED'),
+    kb_assert_relationship(relates_to, 'REQ-NEXT-TO-UNMODELED', 'REQ-UNMODELED-NEIGHBOUR', []),
+    check_related_requirement_unmodeled(Before),
+    assertion(Before == []),
+    % Once the unresolved requirement supersedes the modeled one, the decision
+    % is recorded and the older requirement is no longer current.
+    related_unmodeled_fixture_unresolved_req('REQ-CONVERSATIONS'),
+    kb_assert_relationship(relates_to, 'REQ-CONVERSATIONS', 'REQ-NOTIFY-GROUPED', []),
+    check_related_requirement_unmodeled(Linked),
+    findall(Id, member(violation('related-requirement-unmodeled', Id, _, _, _), Linked), LinkedIds),
+    assertion(LinkedIds == ['REQ-CONVERSATIONS']),
+    kb_assert_relationship(supersedes, 'REQ-CONVERSATIONS', 'REQ-NOTIFY-GROUPED', []),
+    check_related_requirement_unmodeled(After),
+    assertion(After == []).
+
 :- end_tests(checks_coverage_gaps).
 
 :- begin_tests(kb_wrapper_coverage_gaps).

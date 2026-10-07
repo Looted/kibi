@@ -189,6 +189,13 @@ export const GENERATED_RULES = [
     category: "integrity",
   },
   {
+    name: "related-requirement-unmodeled",
+    description:
+      "A current requirement with unresolved (missing) propositions that relates_to a current requirement modeled with strict property or ground predicate facts; its claims are never compared by domain-contradictions until they are modeled against the same subject or predicates, or it supersedes that requirement",
+    enforcementClass: "canonical",
+    category: "integrity",
+  },
+  {
     name: "proof-contract-symbols",
     description:
       "Detect unresolved required_proofs.symbol_id values, type-shape required proofs, and proof_bindings.source_file disagreement with the named symbol sourceFile",

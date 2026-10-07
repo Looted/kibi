@@ -85,6 +85,7 @@ import {
 } from "../mutation/upsert.js";
 import {
   type WorkspaceMutationLockHandle,
+  type WorkspaceMutationLockReclaim,
   acquireWorkspaceMutationLock,
   releaseWorkspaceMutationLock,
 } from "../mutation/workspace-mutation-lock.js";
@@ -1069,6 +1070,17 @@ async function executeSourceRecovery(
   };
 }
 
+/**
+ * Recovery facts a bootstrap journal keeps across resumptions: the dead lock
+ * holders a recovery reclaimed from and the actions an interrupted process
+ * left without a checkpoint, plus the notes the result reports for them.
+ */
+type BootstrapJournalCarry = Readonly<{
+  notes?: readonly string[];
+  lockReclaims?: readonly Readonly<Record<string, unknown>>[];
+  interruptedActions?: readonly Readonly<Record<string, unknown>>[];
+}>;
+
 async function executeBootstrapPlan(
   args: Extract<ApplyPlanArgs, { plan: BootstrapPlanV1 }>,
   context: OperationContext,
@@ -1076,6 +1088,7 @@ async function executeBootstrapPlan(
   remainingActions?: readonly BootstrapAction[],
   priorResults: readonly BootstrapActionResult[] = [],
   onCommitted: () => void = () => undefined,
+  carry: BootstrapJournalCarry = {},
 ): Promise<{
   content: Array<{ type: "text"; text: string }>;
   structuredContent: ApplyPlanResult;
@@ -1183,10 +1196,43 @@ async function executeBootstrapPlan(
     await context.fs.mkdir(path.dirname(journalPath));
     await context.fs.writeFile(
       journalPath,
-      `${JSON.stringify({ version: 2, kind: "bootstrap", plan: args.plan, state, checkpoint: currentCheckpoint, ...(activeActionId ? { activeActionId } : {}), results }, null, 2)}\n`,
+      `${JSON.stringify(
+        {
+          version: 2,
+          kind: "bootstrap",
+          plan: args.plan,
+          state,
+          checkpoint: currentCheckpoint,
+          ...(activeActionId ? { activeActionId } : {}),
+          results,
+          ...(carry.lockReclaims?.length
+            ? { lockReclaims: carry.lockReclaims }
+            : {}),
+          ...(carry.interruptedActions?.length
+            ? { interruptedActions: carry.interruptedActions }
+            : {}),
+        },
+        null,
+        2,
+      )}\n`,
     );
   };
   await writeJournal("applying", undefined, initialCheckpoint);
+  const totalActions = priorResults.length + actions.length;
+  const reportProgress = (message: string): void => {
+    try {
+      context.onProgress?.({
+        progress: results.filter((row) => row.outcome === "applied").length,
+        total: totalActions,
+        message,
+      });
+    } catch {
+      // Progress is advisory: a failing listener never stops the apply.
+    }
+  };
+  reportProgress(
+    `Bootstrap plan ${args.plan.planHash.slice(0, 12)}: applying ${actions.length} of ${totalActions} action(s).`,
+  );
   try {
     for (const action of actions) {
       try {
@@ -1270,6 +1316,7 @@ async function executeBootstrapPlan(
                     args.plan.expected.sourceHashes,
                   ).length,
                   notes: [
+                    ...(carry.notes ?? []),
                     "Bootstrap stopped after an authoritative action committed with derived repair effects.",
                   ],
                 },
@@ -1297,6 +1344,7 @@ async function executeBootstrapPlan(
         lastCheckpoint = await checkpoint();
         activeActionId = undefined;
         await writeJournal("applying", undefined, lastCheckpoint);
+        reportProgress(`Applied ${action.id}.`);
       } catch (error) {
         const detail = error instanceof Error ? error.message : String(error);
         const deterministic = isDeterministicBootstrapFailure(error);
@@ -1337,6 +1385,7 @@ async function executeBootstrapPlan(
               sourceHashesChecked: Object.keys(args.plan.expected.sourceHashes)
                 .length,
               notes: [
+                ...(carry.notes ?? []),
                 deterministic
                   ? "Bootstrap stopped at a deterministic action failure; the journal is terminal. Re-plan from the current state."
                   : "Bootstrap application stopped at a repairable action failure.",
@@ -1394,6 +1443,7 @@ async function executeBootstrapPlan(
           sourceHashesChecked: Object.keys(args.plan.expected.sourceHashes)
             .length,
           notes: [
+            ...(carry.notes ?? []),
             "Bootstrap application stopped before its full action graph completed.",
           ],
         },
@@ -1444,6 +1494,7 @@ async function executeBootstrapPlan(
         sourceHashesChecked: Object.keys(args.plan.expected.sourceHashes)
           .length,
         notes: [
+          ...(carry.notes ?? []),
           "Bootstrap actions applied sequentially through the shared plan executor.",
         ],
       },
@@ -1476,6 +1527,30 @@ async function executeApplyPlanUnlocked(
     throw withPlanRecoveryNotes(error, planRecoveryNotes(recovered));
   }
   return withRecoveryReport(result, recovered);
+}
+
+/**
+ * The action a bootstrap process was executing when it died: the journal is
+ * still `applying`, names that action as active, and holds no result for it.
+ * Only then may recovery attribute drift since the last checkpoint to the
+ * action and re-apply it; every other drift stays a refusal.
+ */
+// implements REQ-bootstrap-apply-long-running
+function interruptedBootstrapAction(
+  journal: Readonly<{
+    state?: string;
+    activeActionId?: unknown;
+    results?: readonly { actionId?: unknown }[];
+  }>,
+  actionIds: ReadonlySet<string>,
+): string | undefined {
+  const active = journal.activeActionId;
+  if (journal.state !== "applying" || typeof active !== "string")
+    return undefined;
+  if (!actionIds.has(active)) return undefined;
+  if ((journal.results ?? []).some((row) => row.actionId === active))
+    return undefined;
+  return active;
 }
 
 // implements REQ-kibi-change-to-proof-plan-compiler-v2, REQ-agent-guided-migration-orchestration
@@ -1518,11 +1593,14 @@ async function dispatchApplyPlan(
           kbSnapshotId?: string;
           workspaceSnapshot?: string;
         };
+        activeActionId?: unknown;
         results?: readonly {
           actionId?: unknown;
           outcome?: unknown;
           detail?: unknown;
         }[];
+        lockReclaims?: unknown;
+        interruptedActions?: unknown;
       };
       if (
         journal.version !== 2 ||
@@ -1579,16 +1657,53 @@ async function dispatchApplyPlan(
           ? recoveryWorkspace.snapshot.hash
           : "unavailable",
       };
-      if (
+      const actionIds = new Set(ordered.map((action) => action.id));
+      const drifted =
         liveCheckpoint.branch !== journal.checkpoint.branch ||
         liveCheckpoint.kbSnapshotId !== journal.checkpoint.kbSnapshotId ||
         liveCheckpoint.workspaceSnapshot !==
-          journal.checkpoint.workspaceSnapshot
+          journal.checkpoint.workspaceSnapshot;
+      const interruptedActionId = drifted
+        ? interruptedBootstrapAction(journal, actionIds)
+        : undefined;
+      if (
+        drifted &&
+        (interruptedActionId === undefined ||
+          liveCheckpoint.branch !== journal.checkpoint.branch)
       )
         throw new Error(
           "Bootstrap recovery refused: repository state changed since the last action checkpoint",
         );
-      const actionIds = new Set(ordered.map((action) => action.id));
+      const recordsOf = (value: unknown) =>
+        Array.isArray(value)
+          ? value.filter(
+              (row): row is Readonly<Record<string, unknown>> =>
+                row !== null && typeof row === "object" && !Array.isArray(row),
+            )
+          : [];
+      const interruptedActions = [
+        ...recordsOf(journal.interruptedActions),
+        ...(interruptedActionId === undefined
+          ? []
+          : [
+              {
+                actionId: interruptedActionId,
+                recoveredAt: context.clock().toISOString(),
+                checkpoint: journal.checkpoint,
+                liveCheckpoint,
+              },
+            ]),
+      ];
+      const carry: BootstrapJournalCarry = {
+        lockReclaims: recordsOf(journal.lockReclaims),
+        interruptedActions,
+        notes:
+          interruptedActionId === undefined
+            ? []
+            : [
+                `Action ${interruptedActionId} was interrupted before its checkpoint; the state drift since the last checkpoint is attributed to it and the action was re-applied idempotently.`,
+              ],
+      };
       const applied = new Set<string>();
       for (const row of journal.results ?? []) {
         if (typeof row.actionId !== "string" || !actionIds.has(row.actionId))
@@ -1626,6 +1741,7 @@ async function dispatchApplyPlan(
             : [],
         ),
         onCommitted,
+        carry,
       );
     }
     return executeSourceRecovery(args, context, onCommitted);
@@ -2629,6 +2745,74 @@ function withRecoveryReport(
   return { content, structuredContent: result.structuredContent };
 }
 
+/**
+ * The journal path of the bootstrap recovery this call requests, when that
+ * journal is still `applying` (its process died mid-plan). Only such a
+ * recovery may reclaim a lock whose holder process is dead.
+ */
+// implements REQ-bootstrap-apply-long-running
+async function applyingBootstrapJournal(
+  args: ApplyPlanArgs,
+  context: OperationContext,
+): Promise<string | undefined> {
+  if (!context.fs || !("recoveryJournalId" in args)) return undefined;
+  if (!/^bootstrap-[a-f0-9]{16}$/.test(args.recoveryJournalId))
+    return undefined;
+  const journalPath = path.join(
+    context.workspaceRoot,
+    ".kb",
+    "recovery",
+    `${args.recoveryJournalId}.json`,
+  );
+  try {
+    const journal = JSON.parse(await context.fs.readFile(journalPath)) as {
+      kind?: unknown;
+      state?: unknown;
+    };
+    return journal.kind === "bootstrap" && journal.state === "applying"
+      ? journalPath
+      : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/** Record reclaimed dead lock holders in the bootstrap journal. */
+// implements REQ-bootstrap-apply-long-running
+async function recordBootstrapLockReclaims(
+  context: OperationContext,
+  journalPath: string,
+  reclaimed: readonly WorkspaceMutationLockReclaim[],
+): Promise<void> {
+  if (!context.fs) return;
+  const journal = JSON.parse(await context.fs.readFile(journalPath)) as Record<
+    string,
+    unknown
+  >;
+  const earlier = Array.isArray(journal.lockReclaims)
+    ? journal.lockReclaims
+    : [];
+  await context.fs.writeFile(
+    journalPath,
+    `${JSON.stringify(
+      {
+        ...journal,
+        lockReclaims: [
+          ...earlier,
+          ...reclaimed.map((row) => ({
+            holderPid: row.pid,
+            holderAcquiredAt: new Date(row.acquiredAt).toISOString(),
+            reclaimedAt: new Date(row.reclaimedAt).toISOString(),
+            reclaimedByPid: row.reclaimedByPid,
+          })),
+        ],
+      },
+      null,
+      2,
+    )}\n`,
+  );
+}
+
 // implements REQ-agent-guided-migration-orchestration, REQ-cli-canonical-runtime, REQ-KIBI-BOOTSTRAP-PLAN, REQ-kibi-change-to-proof-plan-compiler-v2, REQ-kibi-predicate-vocabulary-migration
 export async function executeApplyPlan(
   args: ApplyPlanArgs,
@@ -2641,9 +2825,30 @@ export async function executeApplyPlan(
     preflightBootstrapActions(validateBootstrapPlanShape(args), context);
   if (!context.fs || context.sourceMutationLockHeld === true)
     return executeApplyPlanUnlocked(args, context);
+  const applyingJournal = await applyingBootstrapJournal(args, context);
   const lock: WorkspaceMutationLockHandle = await acquireWorkspaceMutationLock(
     context.workspaceRoot,
+    applyingJournal === undefined
+      ? {}
+      : {
+          // The interrupted bootstrap this call recovers left its lock
+          // behind; a dead holder's lock is reclaimed and recorded instead
+          // of demanding operator recovery. A live holder still blocks.
+          reclaimDeadHolder: () => true,
+        },
   );
+  if (applyingJournal !== undefined && lock.reclaimed !== undefined) {
+    try {
+      await recordBootstrapLockReclaims(
+        context,
+        applyingJournal,
+        lock.reclaimed,
+      );
+    } catch (error) {
+      releaseWorkspaceMutationLock(lock, { error });
+      throw error;
+    }
+  }
   let operationFailure: { readonly error: unknown } | undefined;
   let committed = false;
   try {

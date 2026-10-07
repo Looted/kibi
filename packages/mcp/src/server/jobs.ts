@@ -21,8 +21,9 @@ import process from "node:process";
 /**
  * Process-local background jobs for long-running MCP operations.
  *
- * `kb_check` on a large KB can exceed the 90s tool timeout. Supported tools
- * accept `async: true`: the handler starts the operation in a detached job
+ * `kb_check` on a large KB, or `kb_apply_plan` of a large bootstrap plan,
+ * can exceed the 90s tool timeout. Supported tools accept `async: true`: the
+ * handler starts the operation in a detached job
  * and returns a `kibi.job.v1` receipt immediately. Agents poll
  * `kb_job_status` with the returned id until the job reaches a terminal
  * state.

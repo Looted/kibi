@@ -314,3 +314,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-224f3f40dd7b
+  - type: validates
+    from: TEST-model-predicates-grounding-aware
+    to: REQ-model-predicates-grounding-aware
+    created_at: 2026-10-07T12:28:53.078Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4fa96645cad6
+  - type: validates
+    from: TEST-model-predicates-grounding-aware
+    to: SCEN-model-predicates-grounding-aware
+    created_at: 2026-10-07T12:28:53.126Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a8dbc22a2092

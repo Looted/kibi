@@ -9,6 +9,8 @@ export type {
   OperationContext,
   OperationPlugins,
   OperationRuntime,
+  OperationProgress,
+  ProgressReporter,
   RuntimeOptions,
   RuntimeOperationSpec,
   PrologPort,

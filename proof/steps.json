@@ -2082,5 +2082,77 @@
         "./packages/cli/tests/operations/migration/body-preservation.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-mcp-conditional-input-validation",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "30000",
+        "--isolate",
+        "--max-concurrency=1",
+        "./packages/mcp/tests/server/kb-upsert-claim-conditional.test.ts",
+        "./packages/mcp/tests/server/json-schema-to-zod-remaining.coverage.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-bootstrap-apply-long-running",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "30000",
+        "--isolate",
+        "--max-concurrency=1",
+        "./packages/cli/tests/operations/apply-plan-interrupted-recovery.test.ts",
+        "./packages/mcp/tests/server/kb-apply-plan-progress.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-upsert-unknown-field-guidance",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "30000",
+        "--isolate",
+        "--max-concurrency=1",
+        "./packages/cli/tests/operations/upsert-unknown-property-guidance.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-model-predicates-grounding-aware",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "30000",
+        "--isolate",
+        "--max-concurrency=1",
+        "./packages/cli/tests/operations/suggest-predicates-existing-grounding.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-check-related-requirement-unmodeled",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "--isolate",
+        "--max-concurrency=1",
+        "./packages/cli/tests/consumer/related-requirement-unmodeled.test.ts"
+      ]
+    ]
   }
 ]

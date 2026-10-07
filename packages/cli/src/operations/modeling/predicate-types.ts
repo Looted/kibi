@@ -103,6 +103,15 @@ export interface RecommendedPredicateSchema {
   reuse_scope: string;
 }
 
+/** A logical grounding relationship an existing requirement has for a claim. */
+// implements REQ-model-predicates-grounding-aware
+export interface ExistingClaimGrounding {
+  relationship: { type: string; from: string; to: string };
+  factId: string;
+  factKind: string | null;
+  claimKey: string;
+}
+
 // implements REQ-mcp-suggest-predicates
 export interface SuggestPredicatesResult {
   content: Array<{ type: "text"; text: string }>;
@@ -119,10 +128,15 @@ export interface SuggestPredicatesResult {
       | "provide_argument_bindings"
       | "resolve_schema_reference"
       | "record_ontology_gap"
-      | "review_nonlogical";
+      | "review_nonlogical"
+      | "already_grounded";
     recommendedPredicateSchema: RecommendedPredicateSchema | null;
     applyPlan: Array<Record<string, unknown>>;
     relationshipPlan: Record<string, unknown> | null;
+    /** The planned predicate fact id a requires_predicate link must target (never a candidate id). */
+    relationshipTarget?: string | null;
+    existingGrounding?: ExistingClaimGrounding[];
+    replacementPlan?: Record<string, unknown> | null;
     warnings: string[];
   };
   applyPlan: Array<Record<string, unknown>>;

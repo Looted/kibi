@@ -433,3 +433,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d3b4b9756bef
+  - type: implements
+    from: SYM-mcp-conditional-input-validation-matchesjsonschemacondition
+    to: REQ-mcp-conditional-input-validation
+    created_at: 2026-10-07T12:27:35.131Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0739d4847cdb
+  - type: covered_by
+    from: SYM-mcp-conditional-input-validation-matchesjsonschemacondition
+    to: TEST-mcp-conditional-input-validation
+    created_at: 2026-10-07T12:27:35.175Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-142e84801564

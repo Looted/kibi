@@ -1,5 +1,30 @@
 # kibi-cli
 
+## 2.9.0
+
+### Minor Changes
+
+- b3eef89: `kibi check` now blocks a requirement whose advisor ledger still has unmodeled (`missing`) propositions when it `relates_to` a requirement that is modeled with strict property or ground predicate facts. Until now such a requirement passed clean: `domain-contradictions` compares grounded facts only, so a new requirement that quietly described different behavior for the same subject was never compared with the modeled one it linked to. The finding names the modeled subject and property keys (or predicate keys) and asks for the missing propositions to be modeled against them, or for a `supersedes` decision.
+
+  New canonical rule `related-requirement-unmodeled` (Prolog, `check_related_requirement_unmodeled/1`) is registered in `rule-registry.json` and runs by default. It follows `relates_to` in either direction, counts only `status: missing` inventory entries, and reports nothing for requirements without a ledger (strict-readiness lane), for ledgers whose assertive propositions are modeled or explicitly classified, for neighbours that model nothing, and once the older requirement is superseded.
+
+### Patch Changes
+
+- Updated dependencies [b3eef89]
+  - kibi-core@0.17.0
+
+## 2.8.0
+
+### Minor Changes
+
+- 393f492: Large bootstrap plans no longer fall over when they take longer than the agent's MCP client is willing to wait. `kb_apply_plan` reports progress after every bootstrap action, so clients that reset their timeout on progress keep waiting, and `async: true` returns a `kibi.job.v1` receipt to poll with `kb_job_status` instead of holding the request open. If an apply is still cut off mid-action, `kb_apply_plan` with the journal's `recoveryJournalId` resumes it without hand-editing the journal and reclaims a source lock left behind by the dead process.
+
+  `OperationContext` and `RuntimeOptions` gain an optional `onProgress` reporter (`OperationProgress`, `ProgressReporter` are exported from `kibi-runtime`). The bootstrap executor reports after each applied action; the MCP server forwards reports as `notifications/progress` when the request carries `_meta.progressToken`, and each report also pushes back the server's `KIBI_MCP_TOOL_TIMEOUT_MS`, which then bounds inactivity rather than the whole apply. `kb_apply_plan` accepts `async` (MCP only; it falls back to a synchronous apply when `kb_job_status` is not enabled) and its output contract admits the job receipt. Bootstrap recovery now accepts drift since the last checkpoint only when the journal is still `applying` with an active action that has no result: that action is re-applied, the result notes it, and the journal records it under `interruptedActions`; any other drift is still refused. `acquireWorkspaceMutationLock` takes a `reclaimDeadHolder` option; `kb_apply_plan` grants it only for a bootstrap recovery whose journal is `applying`, moves a dead holder's lock aside atomically, records it under `lockReclaims` in the journal, and keeps failing closed for live, unverifiable, corrupt or legacy owners. Bundled skills `kibi-bootstrap` 3.5.0 and `kibi-usage` 2.5.0 describe progress, async apply and journal recovery, and say never to edit `.kb/recovery`.
+
+- 393f492: `kb_model` with `mode: "predicates"` no longer proposes a second grounding for a claim the requirement already grounds, which used to fail the proposition-complete rule on every link. It now answers `already_grounded` with the existing links and, when a predicate fits, an ordered `replacementPlan` that swaps the grounding; every result also names the planned predicate fact id to link in `relationshipTarget`. Upsert validation errors now name every unknown property and point entity prose placed in `properties` (`body`, `text`, `description`, …) to `document.body`.
+
+  Predicate suggestion reads the requirement's `requires_property`, `requires_predicate` and `requires_rule` targets and their `claim_key` when `requirementId` is given; a match yields an empty `applyPlan`, no `relationshipPlan`, `existingGrounding`, and a `replacementPlan` of predicate-fact upsert, `kb_delete` of the old relationship, and a relationship-only requirement upsert. The output contract adds `already_grounded` and `review_nonlogical` to `recommendedAction`, plus `relationshipTarget`, `existingGrounding` and `replacementPlan`. The relationship plan instructions name the planned fact id. Root-level `additionalProperties` errors list all unknown keys and keep the `must NOT have additional properties` text. The kibi-bootstrap scenario example now carries a `document.body`, and `docs/modeling-cheatsheet.md` shows a scenario upsert.
+
 ## 2.7.0
 
 ### Minor Changes

@@ -293,3 +293,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4ee0946e63b3
+  - type: verified_by
+    from: SCEN-check-related-requirement-unmodeled
+    to: TEST-check-related-requirement-unmodeled
+    created_at: 2026-10-07T13:24:06.407Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7b6c15ef2b60
