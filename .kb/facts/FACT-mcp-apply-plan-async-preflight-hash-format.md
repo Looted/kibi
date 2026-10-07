@@ -1,5 +1,5 @@
 ---
-title: An asynchronous plan apply must reject a missing or malformed approved plan hash before it returns a job receipt
+title: An asynchronous kb_apply_plan call must fail as a call error when the approved hash is missing or malformed
 status: active
 fact_kind: property_value
 subject_key: kibi.bootstrap_apply
@@ -7,8 +7,8 @@ property_key: async_apply_hash_format_checked_before_receipt
 operator: eq
 value_type: bool
 value_bool: true
-claim_key: CLAIM-608397CB34D0BA5C
-claim_text: An asynchronous plan apply must reject a missing or malformed approved plan hash before it returns a job receipt
+claim_key: CLAIM-051CCCDDCC8AB3E4
+claim_text: An asynchronous kb_apply_plan call must fail as a call error when the approved hash is missing or malformed
 text_ref: REQ-mcp-apply-plan-async-preflight
 tags:
   - strict-modeling
@@ -21,6 +21,6 @@ origin:
 id: FACT-mcp-apply-plan-async-preflight-hash-format
 type: fact
 ---
-An asynchronous plan apply must reject a missing or malformed approved plan hash before it returns a job receipt.
+An asynchronous kb_apply_plan call must fail as a call error when the approved hash is missing or malformed.
 
 Recorded as a strict boolean property of `kibi.bootstrap_apply` so REQ-mcp-apply-plan-async-preflight can be checked for contradictions.

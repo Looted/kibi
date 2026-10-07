@@ -1,5 +1,5 @@
 ---
-title: Bootstrap planning must report an intent claim whose subject names no component instead of writing a malformed subject key
+title: Bootstrap planning must report an intent claim it cannot place under a component instead of planning it
 status: active
 fact_kind: property_value
 subject_key: kibi.bootstrap.plan
@@ -7,8 +7,8 @@ property_key: componentless_subject_reported
 operator: eq
 value_type: bool
 value_bool: true
-claim_key: CLAIM-CFB9362C9653280F
-claim_text: Bootstrap planning must report an intent claim whose subject names no component instead of writing a malformed subject key
+claim_key: CLAIM-25BE94E1EFE8773C
+claim_text: Bootstrap planning must report an intent claim it cannot place under a component instead of planning it
 text_ref: REQ-bootstrap-subject-key-shape
 tags:
   - strict-modeling
@@ -21,6 +21,6 @@ origin:
 id: FACT-bootstrap-subject-key-shape-unresolved-reported
 type: fact
 ---
-Bootstrap planning must report an intent claim whose subject names no component instead of writing a malformed subject key.
+Bootstrap planning must report an intent claim it cannot place under a component instead of planning it.
 
 Recorded as a strict boolean property of `kibi.bootstrap.plan` so REQ-bootstrap-subject-key-shape can be checked for contradictions.

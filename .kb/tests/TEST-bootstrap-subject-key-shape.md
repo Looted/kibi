@@ -1,11 +1,11 @@
 ---
-title: Bootstrap subject key shape tests
+title: Bootstrap claim naming tests
 status: active
 priority: must
 tags:
   - bootstrap
   - modeling
-  - subject-keys
+  - naming
 verification_scope: end_to_end
 verification_perspective: internal
 proof_contract:
@@ -55,4 +55,4 @@ proof_receipts:
         attempts:
           status: unavailable
 ---
-Runs `packages/cli/tests/operations/bootstrap-subject-key-shape.test.ts`, which resolves subject keys with and without a declared component, plans intent claims from a declared source, and checks the planned subject keys, the diagnostic for a component-less claim, and the carried rationale.
+Runs `packages/cli/tests/operations/bootstrap-subject-key-shape.test.ts`, which resolves claim names with and without a declared component, plans intent claims from a declared source, and checks the planned names, the diagnostic for a component-less claim, and the carried rationale.

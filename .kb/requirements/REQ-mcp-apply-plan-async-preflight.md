@@ -1,47 +1,47 @@
 ---
-title: Asynchronous plan applies reject input errors before the job receipt
+title: Async kb_apply_plan calls report hash errors as call errors
 status: open
 priority: must
 tags:
   - mcp
   - bootstrap
   - apply
-semantic_text: An asynchronous plan apply must reject a missing or malformed approved plan hash before it returns a job receipt. An asynchronous plan apply must reject an approved plan hash that differs from the plan before it returns a job receipt.
+semantic_text: An asynchronous kb_apply_plan call must fail as a call error when the approved hash is missing or malformed. An asynchronous kb_apply_plan call must fail as a call error when the approved hash differs from the plan hash.
 semantic_clauses:
-  - An asynchronous plan apply must reject a missing or malformed approved plan hash before it returns a job receipt.
-  - An asynchronous plan apply must reject an approved plan hash that differs from the plan before it returns a job receipt.
+  - An asynchronous kb_apply_plan call must fail as a call error when the approved hash is missing or malformed.
+  - An asynchronous kb_apply_plan call must fail as a call error when the approved hash differs from the plan hash.
 logic_claims:
-  - CLAIM-608397CB34D0BA5C
-  - CLAIM-1C7040E31515284C
+  - CLAIM-051CCCDDCC8AB3E4
+  - CLAIM-62B606DFCF9EC375
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
-semantic_source_hash: 8f80deaf409a3b384b85515e4f40d6757e636afdf7eac192731ef9cdc4a4b839
+semantic_source_hash: 949d9a0a83a6982712f2bc19717114843d48fb1ead0ad79a12fdbff8d2766cc0
 semantic_inventory:
-  - claim_key: CLAIM-608397CB34D0BA5C
-    claim_text: An asynchronous plan apply must reject a missing or malformed approved plan hash before it returns a job receipt
+  - claim_key: CLAIM-051CCCDDCC8AB3E4
+    claim_text: An asynchronous kb_apply_plan call must fail as a call error when the approved hash is missing or malformed
     role: normative
     status: modeled
     span:
       start: 0
-      end: 112
-  - claim_key: CLAIM-1C7040E31515284C
-    claim_text: An asynchronous plan apply must reject an approved plan hash that differs from the plan before it returns a job receipt
+      end: 107
+  - claim_key: CLAIM-62B606DFCF9EC375
+    claim_text: An asynchronous kb_apply_plan call must fail as a call error when the approved hash differs from the plan hash
     role: normative
     status: modeled
     span:
-      start: 114
-      end: 233
+      start: 109
+      end: 219
 origin:
   kind: agent
   recorded_at: '2026-10-07T19:01:23.987Z'
 id: REQ-mcp-apply-plan-async-preflight
 type: req
 ---
-An asynchronous plan apply must reject a missing or malformed approved plan hash before it returns a job receipt. An asynchronous plan apply must reject an approved plan hash that differs from the plan before it returns a job receipt.
+An asynchronous kb_apply_plan call must fail as a call error when the approved hash is missing or malformed. An asynchronous kb_apply_plan call must fail as a call error when the approved hash differs from the plan hash.
 
 ## Context
 
-With `async: true`, `kb_apply_plan` returned a job receipt immediately and ran every check inside the job, so an input error such as a missing `approvedPlanHash` ("approvedPlanHash must be SHA-256") surfaced only when the agent polled `kb_job_status`. Input errors should fail the call itself. The pre-apply checks (approved hash, plan shape and canonical hash, and for a bootstrap plan its branch, KB, workspace and source snapshots) now run before the receipt; the job repeats them under the workspace lock.
+With `async: true`, `kb_apply_plan` returned a job receipt immediately and ran every check inside the job, so an input error such as a missing `approvedPlanHash` ("approvedPlanHash must be SHA-256") surfaced only when the agent polled `kb_job_status`. Input errors should fail the call itself. The MCP server now runs the hash, shape and snapshot checks synchronously and returns the receipt only when they pass; the job repeats them under the workspace lock.
 
 ## Source
 
