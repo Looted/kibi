@@ -181,3 +181,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3a6cf9cc3b05
+  - type: validates
+    from: TEST-bootstrap-apply-long-running
+    to: REQ-bootstrap-apply-long-running
+    created_at: 2026-10-07T12:27:57.918Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6956c9bb2cd3
+  - type: validates
+    from: TEST-bootstrap-apply-long-running
+    to: SCEN-bootstrap-apply-long-running
+    created_at: 2026-10-07T12:27:57.950Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-70cd0cb05bcc

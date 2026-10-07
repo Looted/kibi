@@ -209,3 +209,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d8a59be2292d
+  - type: constrains
+    from: REQ-upsert-unknown-field-guidance
+    to: FACT-SUBJECT-KIBI-UPSERT-FIELD-GUIDANCE
+    created_at: 2026-10-07T12:28:24.064Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7db4f63538bc
+  - type: requires_property
+    from: REQ-upsert-unknown-field-guidance
+    to: FACT-upsert-unknown-field-guidance-properties-named
+    created_at: 2026-10-07T12:28:24.105Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cb6a6859118f
+  - type: requires_property
+    from: REQ-upsert-unknown-field-guidance
+    to: FACT-upsert-unknown-field-guidance-prose-hint
+    created_at: 2026-10-07T12:28:24.135Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1cea8893ffa6
+  - type: requires_property
+    from: REQ-upsert-unknown-field-guidance
+    to: FACT-upsert-unknown-field-guidance-skill-example
+    created_at: 2026-10-07T12:28:24.158Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d46aa16afcff
+  - type: specified_by
+    from: REQ-upsert-unknown-field-guidance
+    to: SCEN-upsert-unknown-field-guidance
+    created_at: 2026-10-07T12:28:29.126Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8fa2862ff4b6
+  - type: verified_by
+    from: REQ-upsert-unknown-field-guidance
+    to: TEST-upsert-unknown-field-guidance
+    created_at: 2026-10-07T12:28:29.182Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f2f4122db17f

@@ -377,3 +377,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5cc2952be1ac
+  - type: verified_by
+    from: SCEN-mcp-conditional-input-validation
+    to: TEST-mcp-conditional-input-validation
+    created_at: 2026-10-07T12:27:23.523Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-294cb74c70f0

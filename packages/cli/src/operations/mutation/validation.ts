@@ -60,6 +60,29 @@ const ALIASES = new Map([
   ["closedWorld", "closed_world"],
 ]);
 
+/** Property names agents use for entity prose that belongs in document.body. */
+const DOCUMENT_TEXT_PROPERTIES = new Set([
+  "body",
+  "text",
+  "description",
+  "content",
+  "markdown",
+  "prose",
+  "summary",
+  "details",
+]);
+
+/** Every top-level entity key the upsert entity schema does not define. */
+function unknownEntityProperties(
+  entity: Readonly<Record<string, unknown>>,
+): string[] {
+  const known = upsertEntitySchema.properties as Readonly<
+    Record<string, unknown>
+  >;
+  return Object.keys(entity).filter((key) => !Object.hasOwn(known, key));
+}
+
+// implements REQ-upsert-unknown-field-guidance
 function formatEntityErrors(
   entity: Readonly<Record<string, unknown>>,
   errors: readonly ErrorObject[],
@@ -79,6 +102,23 @@ function formatEntityErrors(
       if (canonical) {
         return `${path}: unknown property '${property}'. Did you mean '${canonical}'? kb_upsert.properties uses snake_case typed fact fields.`;
       }
+      if (path === "root" && DOCUMENT_TEXT_PROPERTIES.has(property)) {
+        const others = unknownEntityProperties(entity).filter(
+          (key) => key !== property,
+        );
+        return `${path}: unknown property '${property}' (${error.message}). Entity prose (scenario, requirement, test, ADR or observation text) belongs in kb_upsert.document.body, not in kb_upsert.properties.${others.length > 0 ? ` Other unknown properties: ${others.map((key) => `'${key}'`).join(", ")}.` : ""}`;
+      }
+      if (path === "root") {
+        const unknown = unknownEntityProperties(entity);
+        const listed = unknown.length > 0 ? unknown : [property];
+        const proseHint = listed.some((key) =>
+          DOCUMENT_TEXT_PROPERTIES.has(key),
+        )
+          ? " Entity prose belongs in kb_upsert.document.body."
+          : "";
+        return `${path}: unknown propert${listed.length === 1 ? "y" : "ies"} ${listed.map((key) => `'${key}'`).join(", ")} (${error.message}). Remove ${listed.length === 1 ? "it" : "them"} from kb_upsert.properties or use fields the ${String(entity.type ?? "entity")} schema defines.${proseHint}`;
+      }
+      return `${path}: unknown property '${property}' (${error.message}).`;
     }
     if (error.keyword === "enum" && params.allowedValues) {
       return `${path}: ${error.message}. Allowed values: ${params.allowedValues.map(String).join(", ")}`;

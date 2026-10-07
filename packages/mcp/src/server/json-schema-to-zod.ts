@@ -23,29 +23,113 @@ export function singleLiteralOrAny(
   return description ? single.describe(description) : single;
 }
 
-function hasRequiredProperties(value: JsonRecord, schema: unknown): boolean {
-  if (schema === null || typeof schema !== "object") return false;
+function matchesJsonType(value: unknown, type: string): boolean {
+  switch (type) {
+    case "object":
+      return (
+        value !== null && typeof value === "object" && !Array.isArray(value)
+      );
+    case "array":
+      return Array.isArray(value);
+    case "string":
+      return typeof value === "string";
+    case "number":
+      return typeof value === "number" && Number.isFinite(value);
+    case "integer":
+      return typeof value === "number" && Number.isInteger(value);
+    case "boolean":
+      return typeof value === "boolean";
+    case "null":
+      return value === null;
+    default:
+      return true;
+  }
+}
+
+function sameJsonValue(left: unknown, right: unknown): boolean {
+  return JSON.stringify(left) === JSON.stringify(right);
+}
+
+// Evaluates a JSON Schema `if` condition the way a JSON Schema validator
+// would for the keywords Kibi's operation schemas use in conditionals:
+// boolean schemas, type, const, enum, required, properties (applied only to
+// present keys), not, anyOf, allOf and oneOf. Keywords outside this set do not
+// constrain the condition. The CLI validates the same schemas with ajv, so
+// this must stay faithful: a mismatch makes MCP reject payloads the CLI
+// accepts (or the reverse).
+// implements REQ-002, REQ-mcp-conditional-input-validation
+export function matchesJsonSchemaCondition(
+  value: unknown,
+  schema: unknown,
+): boolean {
+  if (schema === true || schema === undefined) return true;
+  if (schema === false) return false;
+  if (schema === null || typeof schema !== "object") return true;
   const condition = schema as JsonRecord;
-  const required = Array.isArray(condition.required)
-    ? condition.required.filter(
-        (key): key is string => typeof key === "string" && key.length > 0,
+  const types = Array.isArray(condition.type)
+    ? condition.type.filter(
+        (entry): entry is string => typeof entry === "string",
       )
-    : [];
+    : typeof condition.type === "string"
+      ? [condition.type]
+      : [];
+  if (types.length > 0 && !types.some((type) => matchesJsonType(value, type))) {
+    return false;
+  }
   if (
-    required.length > 0 &&
-    !required.every((key) => Object.hasOwn(value, key))
+    Object.hasOwn(condition, "const") &&
+    !sameJsonValue(value, condition.const)
   ) {
     return false;
   }
   if (
+    Array.isArray(condition.enum) &&
+    !condition.enum.some((entry) => sameJsonValue(value, entry))
+  ) {
+    return false;
+  }
+  const isObject =
+    value !== null && typeof value === "object" && !Array.isArray(value);
+  if (isObject) {
+    const record = value as JsonRecord;
+    const required = Array.isArray(condition.required)
+      ? condition.required.filter(
+          (key): key is string => typeof key === "string" && key.length > 0,
+        )
+      : [];
+    if (!required.every((key) => Object.hasOwn(record, key))) return false;
+    if (condition.properties && typeof condition.properties === "object") {
+      for (const [key, propertySchema] of Object.entries(
+        condition.properties as JsonRecord,
+      )) {
+        if (
+          Object.hasOwn(record, key) &&
+          !matchesJsonSchemaCondition(record[key], propertySchema)
+        ) {
+          return false;
+        }
+      }
+    }
+  }
+  if ("not" in condition && matchesJsonSchemaCondition(value, condition.not)) {
+    return false;
+  }
+  if (
     Array.isArray(condition.anyOf) &&
-    !condition.anyOf.some((entry) => hasRequiredProperties(value, entry))
+    !condition.anyOf.some((entry) => matchesJsonSchemaCondition(value, entry))
   ) {
     return false;
   }
   if (
     Array.isArray(condition.allOf) &&
-    !condition.allOf.every((entry) => hasRequiredProperties(value, entry))
+    !condition.allOf.every((entry) => matchesJsonSchemaCondition(value, entry))
+  ) {
+    return false;
+  }
+  if (
+    Array.isArray(condition.oneOf) &&
+    condition.oneOf.filter((entry) => matchesJsonSchemaCondition(value, entry))
+      .length !== 1
   ) {
     return false;
   }
@@ -59,7 +143,7 @@ function conditionalRequiredKeys(
   if (condition === null || typeof condition !== "object") return [];
   const rule = condition as JsonRecord;
   if (!("if" in rule) || !("then" in rule)) return [];
-  if (!hasRequiredProperties(value, rule.if)) return [];
+  if (!matchesJsonSchemaCondition(value, rule.if)) return [];
   if (rule.then === null || typeof rule.then !== "object") return [];
   const required = (rule.then as JsonRecord).required;
   return Array.isArray(required)
