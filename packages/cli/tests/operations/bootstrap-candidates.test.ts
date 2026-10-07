@@ -629,7 +629,7 @@ describe("bootstrap candidates", () => {
   });
 
   test("normative requirement scanning ignores fenced code before modeling candidates", async () => {
-    const readmePath = path.join(tmp, "README.md");
+    const readmePath = path.join(tmp, "retention.md");
     await fs.writeFile(
       readmePath,
       [
@@ -654,15 +654,15 @@ describe("bootstrap candidates", () => {
       title: "Customer data should be retained for 7 years.",
       confidenceBand: "medium",
       evidence: [
-        "normative_statement:README.md#L5",
-        "generic_heading:README.md#L1",
+        "normative_statement:retention.md#L5",
+        "generic_heading:retention.md#L1",
       ],
     });
     expect(candidates[0]?.title).not.toContain("must be retained");
   });
 
   test("normative requirement candidates report low confidence for weak statements outside tilde fences", async () => {
-    const readmePath = path.join(tmp, "README.md");
+    const readmePath = path.join(tmp, "retention.md");
     await fs.writeFile(
       readmePath,
       [
@@ -687,8 +687,8 @@ describe("bootstrap candidates", () => {
       title: "System logs should be stored for 90 days.",
       confidenceBand: "low",
       evidence: [
-        "normative_statement:README.md#L5",
-        "generic_heading:README.md#L1",
+        "normative_statement:retention.md#L5",
+        "generic_heading:retention.md#L1",
       ],
     });
   });

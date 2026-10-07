@@ -203,9 +203,13 @@ describe("bootstrap write safety and evidence accounting", () => {
   test("restated markdown lines that share entity IDs plan one candidate, not a partial apply", () => {
     const built = buildBootstrapCandidates(
       [
-        evidence(
-          "# Testing\n- **New code:** Must achieve 100% coverage\n\n# Rules\nNew code must achieve 100% coverage.\n",
-        ),
+        {
+          ...evidence(
+            "# Testing\n- **New code:** Must achieve 100% coverage\n\n# Rules\nNew code must achieve 100% coverage.\n",
+          ),
+          label: "docs/testing.md",
+          relativePath: "docs/testing.md",
+        },
       ],
       new Set(),
       0.8,
@@ -503,9 +507,12 @@ describe("bootstrap write safety and evidence accounting", () => {
       .flatMap((row) => row.applyPlan)
       .map((row) => (row.properties as Record<string, unknown>).subject_key)
       .filter(Boolean);
-    expect(subjects).toContain("system");
-    expect(subjects).toContain("admins");
-    expect(subjects).not.toContain("x_admins");
+    // A one-word subject is the component; the property is the aspect.
+    expect(subjects).toContain("system.support_sso");
+    expect(subjects).toContain("admins.review_access");
+    expect(subjects.some((key) => String(key).includes("x_admins"))).toBe(
+      false,
+    );
     expect(result.sourceOnlySignals.map((row) => row.sourcePath)).toEqual(
       expect.arrayContaining(["requirements.md#L4", "requirements.md#L5"]),
     );

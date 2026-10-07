@@ -295,6 +295,7 @@ describe("bootstrap from declared knowledge sources", () => {
             sourceId: "jira-billing",
             reference: `BILL-${200 + index}`,
             excerpt: statement,
+            component: index === 0 ? "annotation" : "editor",
           })),
         },
       },

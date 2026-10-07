@@ -58,6 +58,8 @@ export type BootstrapKnowledgeSource = {
   readonly authority: (typeof KNOWLEDGE_SOURCE_AUTHORITIES)[number];
   readonly connector?: string;
   readonly notes?: string;
+  /** Component the source's claims are about, the first subject_key segment. */
+  readonly component?: string;
 };
 
 /**
@@ -80,6 +82,10 @@ export type BootstrapIntentClaim = {
   readonly excerpt?: string;
   /** Defaults to intent; normalization omits the default. */
   readonly kind?: BootstrapIntentClaimKind;
+  /** Component the claim is about; overrides the knowledge source's. */
+  readonly component?: string;
+  /** Why the requirement exists, as the source or the human stated it. */
+  readonly rationale?: string;
 };
 
 /** Identifies one declared claim by its source and exact citation. */

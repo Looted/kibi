@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 176,
-  "proofProven": 176,
+  "currentRequirements": 179,
+  "proofProven": 179,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -876,12 +876,27 @@
       "gaps": [],
       "uncoveredSymbols": []
     },
-    "REQ-model-predicates-grounding-aware": {
+    "REQ-check-related-requirement-unmodeled": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []
     },
-    "REQ-check-related-requirement-unmodeled": {
+    "REQ-model-predicates-grounding-aware-v2": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-mcp-oneof-guard-input-validation": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-mcp-apply-plan-async-preflight": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-bootstrap-subject-key-shape": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []

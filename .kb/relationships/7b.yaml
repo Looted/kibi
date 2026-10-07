@@ -202,3 +202,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-76d97ae4d3bf
+  - type: constrains
+    from: REQ-bootstrap-subject-key-shape
+    to: FACT-KIBI-BOOTSTRAP-SUBJECT
+    created_at: 2026-10-07T19:01:48.460Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d7147c6f1246
+  - type: requires_property
+    from: REQ-bootstrap-subject-key-shape
+    to: FACT-bootstrap-subject-key-shape-generated
+    created_at: 2026-10-07T19:01:48.489Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f53818e5fee1
+  - type: requires_property
+    from: REQ-bootstrap-subject-key-shape
+    to: FACT-bootstrap-subject-key-shape-unresolved-reported
+    created_at: 2026-10-07T19:01:48.505Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c11279cc27f4
+  - type: requires_property
+    from: REQ-bootstrap-subject-key-shape
+    to: FACT-bootstrap-subject-key-shape-rationale-carried
+    created_at: 2026-10-07T19:01:48.518Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c731f818db75
+  - type: specified_by
+    from: REQ-bootstrap-subject-key-shape
+    to: SCEN-bootstrap-subject-key-shape
+    created_at: 2026-10-07T19:01:51.252Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dd0cf5122f63

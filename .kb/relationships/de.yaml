@@ -248,13 +248,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7873f2403c17
-  - type: implements
-    from: SYM-suggest-predicates-core-handler
-    to: REQ-model-predicates-grounding-aware
-    created_at: 2026-10-07T12:29:04.993Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-fe5b5e0050b0
   - type: covered_by
     from: SYM-suggest-predicates-core-handler
     to: TEST-model-predicates-grounding-aware
@@ -262,3 +255,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5f668371a963
+  - type: implements
+    from: SYM-suggest-predicates-core-handler
+    to: REQ-model-predicates-grounding-aware-v2
+    created_at: 2026-10-07T19:07:20.115Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2765165aa0a3

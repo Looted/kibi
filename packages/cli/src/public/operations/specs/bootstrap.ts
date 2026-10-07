@@ -124,6 +124,12 @@ export const planBootstrapSpec = {
                     "Optional name of the MCP server or tool the agent used to read the source.",
                 },
                 notes: { type: "string" },
+                component: {
+                  type: "string",
+                  minLength: 1,
+                  description:
+                    "Optional component this source's claims are about (for example recorder). It becomes the first segment of each generated subject_key (component.aspect); a claim's own component overrides it.",
+                },
               },
             },
           },
@@ -163,6 +169,18 @@ export const planBootstrapSpec = {
                   minLength: 1,
                   description:
                     "Verbatim passage from the source the claim came from. Required for intent and observation claims (optional for open_question): Kibi persists it with the knowledge source title and reference in the created entity's '## Source' section, because the ticket or page may be gone by the next migration.",
+                },
+                component: {
+                  type: "string",
+                  minLength: 1,
+                  description:
+                    "Optional component the claim is about (for example recorder). Generated subject keys take the shape component.aspect with the aspect from the claim's subject. Without a component on the claim or its knowledge source, a claim whose subject is not a single word or already dotted becomes an authoring follow-up with a diagnostic instead of a malformed subject key.",
+                },
+                rationale: {
+                  type: "string",
+                  minLength: 1,
+                  description:
+                    "Optional reason the requirement exists, as the source states it or the human answered when asked. It becomes the requirement's rationale and its body's '## Context' section. Never invent one.",
                 },
                 kind: {
                   type: "string",

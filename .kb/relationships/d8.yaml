@@ -384,3 +384,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-294cb74c70f0
+  - type: executable_for
+    from: SYM-test-mcp-apply-plan-async-preflight
+    to: TEST-mcp-apply-plan-async-preflight
+    created_at: 2026-10-07T19:01:33.067Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ba36bd6c2c82

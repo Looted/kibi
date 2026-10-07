@@ -23307,7 +23307,7 @@ symbols:
       - type: implements
         target: REQ-kibi-predicate-suggestion-relevance-v1
       - type: implements
-        target: REQ-model-predicates-grounding-aware
+        target: REQ-model-predicates-grounding-aware-v2
   - id: SYM-SuggestPredicatesArgs
     title: SuggestPredicatesArgs
     status: active
@@ -50610,3 +50610,78 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-model-predicates-grounding-aware
+  - id: SYM-test-mcp-oneof-guard-input-validation
+    title: MCP oneOf guard input validation suite
+    status: active
+    sourceFile: packages/mcp/tests/server/oneof-guard-input-validation.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-07T19:01:09.727Z
+    relationships:
+      - type: executable_for
+        target: TEST-mcp-oneof-guard-input-validation
+  - id: SYM-mcp-oneof-guard-input-validation-jsonschematozod
+    title: jsonSchemaToZod
+    status: active
+    sourceFile: packages/mcp/src/server/json-schema-to-zod.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-07T19:01:16.540Z
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-oneof-guard-input-validation
+      - type: implements
+        target: REQ-mcp-oneof-guard-input-validation
+  - id: SYM-test-mcp-apply-plan-async-preflight
+    title: Asynchronous plan apply preflight suite
+    status: active
+    sourceFile: packages/mcp/tests/server/kb-apply-plan-async-preflight.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-07T19:01:31.509Z
+    relationships:
+      - type: executable_for
+        target: TEST-mcp-apply-plan-async-preflight
+  - id: SYM-mcp-apply-plan-async-preflight-preflightapplyplan
+    title: preflightApplyPlan
+    status: active
+    sourceFile: packages/cli/src/operations/planning/apply-plan.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-07T19:01:39.057Z
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-apply-plan-async-preflight
+      - type: implements
+        target: REQ-mcp-apply-plan-async-preflight
+  - id: SYM-test-bootstrap-subject-key-shape
+    title: Bootstrap subject key shape suite
+    status: active
+    sourceFile: packages/cli/tests/operations/bootstrap-subject-key-shape.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-07T19:01:55.701Z
+    relationships:
+      - type: executable_for
+        target: TEST-bootstrap-subject-key-shape
+  - id: SYM-bootstrap-subject-key-shape-resolvebootstrapsubjectkey
+    title: resolveBootstrapSubjectKey
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/requirement-claims.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-07T19:02:02.721Z
+    relationships:
+      - type: covered_by
+        target: TEST-bootstrap-subject-key-shape
+      - type: implements
+        target: REQ-bootstrap-subject-key-shape

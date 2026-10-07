@@ -52,6 +52,7 @@ function planClaims(statements: string[], syncFirst = false): Json {
             kind: "specification",
             locator: "https://example.com/spec",
             authority: "authoritative",
+            component: "editor",
           },
         ],
         intentClaims: statements.map((statement, index) => ({

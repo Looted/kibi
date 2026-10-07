@@ -209,3 +209,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1e7b5a5b4f45
+  - type: validates
+    from: TEST-mcp-apply-plan-async-preflight
+    to: REQ-mcp-apply-plan-async-preflight
+    created_at: 2026-10-07T19:01:28.661Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb8bcc39e333

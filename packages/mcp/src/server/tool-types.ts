@@ -112,6 +112,10 @@ export interface ToolsRuntime<TProlog = DefaultRuntimeProlog> {
     args: Record<string, unknown>,
     context: OperationContext,
   ) => Promise<unknown>;
+  preflightApplyPlan?: (
+    args: Record<string, unknown>,
+    context: OperationContext,
+  ) => Promise<void>;
   handleKbIngestProof?: (
     args: Record<string, unknown>,
     context: OperationContext,

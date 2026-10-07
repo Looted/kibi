@@ -24,7 +24,10 @@ export type {
   ApplyPlanResult,
 } from "../../../operations/planning/apply-plan.js";
 export type { MigrationPlan } from "../migration-plan.js";
-export { executeApplyPlan } from "../../../operations/planning/apply-plan.js";
+export {
+  executeApplyPlan,
+  preflightApplyPlan,
+} from "../../../operations/planning/apply-plan.js";
 export { executeCompileIntent } from "../../../operations/planning/compile-intent.js";
 
 // implements REQ-kibi-change-to-proof-plan-compiler-v2

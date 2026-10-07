@@ -11,7 +11,11 @@ import {
   upsert,
   withDocumentBody,
 } from "./candidate-helpers.js";
-import { claimFor, normalizeClaimStatement } from "./requirement-claims.js";
+import {
+  claimFor,
+  normalizeClaimStatement,
+  resolveBootstrapSubjectKey,
+} from "./requirement-claims.js";
 import type {
   BootstrapEvidence,
   Candidate,
@@ -104,6 +108,52 @@ function genericHeadingCandidate(
   };
 }
 
+/** File and directory names that say what a document is, not what it covers. */
+const GENERIC_DOCUMENT_NAMES = new Set([
+  "readme",
+  "index",
+  "overview",
+  "requirements",
+  "requirement",
+  "spec",
+  "specs",
+  "specification",
+  "notes",
+  "changelog",
+  "contributing",
+  "agents",
+  "claude",
+  "todo",
+  "docs",
+  "doc",
+  "documentation",
+  "src",
+  "packages",
+  "github",
+]);
+
+/**
+ * The component a repository document covers, from its file name or, for a
+ * generic name such as README.md, its directory (packages/recorder/README.md
+ * covers recorder). A root README names no component.
+ */
+// implements REQ-bootstrap-subject-key-shape
+export function markdownComponentHint(
+  relativePath: string,
+): string | undefined {
+  const segments = relativePath
+    .split(/[\\/]+/)
+    .filter((segment) => segment.length > 0);
+  const stem = (segments.pop() ?? "").replace(/\.[^.]*$/, "");
+  for (const name of [stem, ...segments.reverse()]) {
+    const normalized = name.toLowerCase().replace(/^[._-]+/, "");
+    if (!/^[a-z]/.test(normalized)) continue;
+    if (GENERIC_DOCUMENT_NAMES.has(normalized)) continue;
+    return normalized;
+  }
+  return undefined;
+}
+
 function requirementCandidate(
   item: BootstrapEvidence,
   statement: string,
@@ -135,7 +185,21 @@ function requirementCandidate(
     `${relativePath}#L${line}`,
   );
   if (!claim) return null;
-  const writeSet = buildStrictWriteSet({ claim, statement });
+  const subjectKey = resolveBootstrapSubjectKey(
+    claim.subjectKey,
+    claim.propertyKey,
+    markdownComponentHint(relativePath),
+  );
+  // Reported by the caller as an extraction failure with this reason,
+  // instead of writing a subject key outside component.aspect[.sub].
+  if (!subjectKey.ok)
+    throw new Error(
+      `${subjectKey.reason}; author it with kb_model and a component.aspect subjectKey`,
+    );
+  const writeSet = buildStrictWriteSet({
+    claim: { ...claim, subjectKey: subjectKey.subjectKey },
+    statement,
+  });
   if (!writeSet.isStrict) return null;
   return {
     candidateId: `norm:${writeSet.req.id.toLowerCase()}`,
