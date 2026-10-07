@@ -1,5 +1,20 @@
 # kibi-cli
 
+## 2.6.1
+
+### Patch Changes
+
+- 7f08632: Bootstrap no longer drops conditional claims ("If microphone access fails, the editor must ...") or obligations that mention a referent ("... any draft state that refers to it") as `invalid_write`; they become ready requirement candidates. Linking a scenario to an existing requirement with `kb_upsert` no longer requires resending its whole semantic inventory, and a review observation can quote the claim it is about without a `claim_key`. The bundled skills now show how to answer `provide_argument_bindings` from `kb_model` predicates and how to write scenarios from acceptance criteria.
+
+  Technical summary: requirement steps built by `kb_plan_bootstrap`, the `kb_model` requirement path and typed logic plans take each inventory role from the semantic advisor (`advisorPropositionRole`), so the write-time proposition-complete check accepts what Kibi itself generated. The advisor classifies a clause as `definition` only when "means / is defined as / refers to / is called" is the main predicate of a sentence that asserts no obligation; inventories stored with the earlier `definition` role for such clauses still validate. `kb_upsert` on an existing `req` whose payload carries no `semantic_*` or `logic_claims` field and keeps the stored `title` and `text_ref` merges the stored ledger (and the stored `text_ref` when the payload omits it) before validation and writing; a payload that supplies ledger fields or changes the prose is checked as sent. The entity schema, the `kb_upsert` input schema and the Prolog shape check now let an `observation` or `meta` fact carry `claim_text` without `claim_key`; every other fact still needs both. `kibi-usage` 2.3.2 adds a predicate-binding retry example and a review observation payload; `kibi-bootstrap` 3.3.1 makes step 11 write scenarios from acceptance criteria with `assumes` links.
+
+- 21b889a: The pre-commit hook now stops a commit that makes the knowledge base contradict itself. Before, `kibi check --staged` (what the hook runs) only checked symbol traceability, so a commit could add a success scenario that a current requirement forbids, such as a free order checking out under "checkout only when the cart total is positive", while a full `kibi check` on the same tree failed. A violation that was already committed still does not block unrelated commits.
+
+  When the staged change touches entity documents or relationship shards under `.kb/`, `kibi check --staged` now runs the `domain-contradictions`, `scenario-feasibility` and `exception-claim-keys` rules on a temporary KB projected from the staged tree. Code symbols are left out of that projection, since these rules never read them, which keeps the added hook time to seconds on a large KB. Only violations missing from the base commit's tree block; the base tree is analyzed only when the staged tree has violations. The staged projection also carries a scenario's `expects` outcome, which it previously dropped, so feasibility rules saw no success scenarios.
+
+- Updated dependencies [7f08632]
+  - kibi-core@0.15.2
+
 ## 2.6.0
 
 ### Minor Changes

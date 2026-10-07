@@ -1684,7 +1684,20 @@
           {
             "required": [
               "claim_text"
-            ]
+            ],
+            "not": {
+              "properties": {
+                "fact_kind": {
+                  "enum": [
+                    "observation",
+                    "meta"
+                  ]
+                }
+              },
+              "required": [
+                "fact_kind"
+              ]
+            }
           }
         ]
       },

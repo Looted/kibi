@@ -109,6 +109,42 @@ This lane is optional; a non-UI project simply never models UI subjects. See
 }
 ```
 
+### Review observation for a claim Kibi could not write
+
+When a claim cannot be written yet (an `invalid_write`, an ontology gap, an open question), record it as a review observation. Quote the claim in `claim_text`; an observation is a non-grounding note, so it takes no `claim_key` and no `requires_*` link:
+
+```json
+{
+  "type": "fact",
+  "id": "FACT-review-mic-failure-error",
+  "properties": {
+    "title": "Review: microphone failure claim needs a rule",
+    "status": "active",
+    "fact_kind": "observation",
+    "text_ref": "tracker:ED-12",
+    "tags": ["review:invalid-write"],
+    "claim_text": "If microphone access fails, the editor must present an error instead of silently pretending to record."
+  }
+}
+```
+
+Every other fact kind that carries `claim_text` also needs the matching `claim_key`.
+
+## Linking a scenario to an existing requirement
+
+To add `specified_by` to a requirement that already has a proposition ledger, upsert the requirement with its stored `title`, a `status`, and the relationship only. Kibi keeps the stored ledger when the payload has no `semantic_*` or `logic_claims` field and does not change `title` or `text_ref`:
+
+```json
+{
+  "type": "req",
+  "id": "REQ-editor-mic-failure-error",
+  "properties": { "title": "<stored title>", "status": "open" },
+  "relationships": [
+    { "type": "specified_by", "from": "REQ-editor-mic-failure-error", "to": "SCEN-editor-mic-failure-error" }
+  ]
+}
+```
+
 ## Body context example
 
 Front matter holds the checked meaning; the body holds the reasons. A requirement body needs a `## Context` section that is not a restatement of the title.

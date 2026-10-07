@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 168,
-  "proofProven": 168,
+  "currentRequirements": 171,
+  "proofProven": 171,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -822,6 +822,21 @@
       "uncoveredSymbols": []
     },
     "REQ-bootstrap-claim-kinds-and-conflicts": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-bootstrap-advisor-proposition-roles": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-upsert-preserves-requirement-semantics": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-review-observation-claim-text": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []

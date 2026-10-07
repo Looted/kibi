@@ -40,11 +40,16 @@ import {
   validateStrictLanePairing,
   validateSupersedesSourceHistory,
 } from "./relationships.js";
+import { withStoredRequirementSemantics } from "./requirement-semantics.js";
 import { MutationRollbackFailureError, MutationSaga } from "./saga.js";
 import {
   writePendingSourceReceipt,
   writeSourceForUpsert,
 } from "./source-authoring.js";
+import {
+  type StoredEntityLookup,
+  storedEntityLookup,
+} from "./stored-entity.js";
 import {
   type SymbolCompilerLockHandle,
   acquireSymbolCompilerLock,
@@ -192,6 +197,7 @@ export async function effectiveRelationships(
   relationships: readonly RelationshipInput[],
   context: OperationContext,
   staged?: StagedUpsertState,
+  lookup?: StoredEntityLookup,
 ): Promise<readonly RelationshipInput[]> {
   const prolog = requireProlog(context);
   // Relationships an earlier plan step adds from this entity will exist when
@@ -199,12 +205,12 @@ export async function effectiveRelationships(
   const plannedOwn = (staged?.relationships ?? []).filter(
     (relationship) => relationship.from === input.id,
   );
-  const exists = await prolog.query(
-    `once(kb_entity('${escapeAtom(input.id)}', _, _))`,
-  );
-  if (!exists.success && plannedOwn.length === 0) return relationships;
+  const exists = await (
+    lookup ?? storedEntityLookup(prolog, input.id, input.type)
+  ).exists();
+  if (!exists && plannedOwn.length === 0) return relationships;
   try {
-    const current = exists.success
+    const current = exists
       ? (await existingRelationships(prolog, String(entity.id)))
           // An upsert owns only relationships whose source is the upserted
           // entity. Incoming relationships must not be copied into its
@@ -286,17 +292,29 @@ export type UpsertValidation = Readonly<{
  * passing the earlier steps' writes as `staged`.
  */
 export async function validateUpsertForCommit(
-  input: UpsertInput,
+  payload: UpsertInput,
   context: OperationContext,
   options: UpsertValidationOptions = {},
 ): Promise<UpsertValidation> {
   const prolog = requireProlog(context);
   const staged = options.staged;
-  const validated = validateUpsertInput(input, context.clock());
+  // The payload must be valid on its own before the store is read.
+  const checked = validateUpsertInput(payload, context.clock());
+  validateRelationshipSources(payload.id, checked.relationships);
+  // One read of the entity this upsert replaces, shared by the ledger merge
+  // and the stored origin below.
+  const lookup = storedEntityLookup(prolog, payload.id, payload.type);
+  const input = await withStoredRequirementSemantics(
+    payload,
+    prolog,
+    staged,
+    lookup,
+  );
+  const validated =
+    input === payload ? checked : validateUpsertInput(input, context.clock());
   if (options.allowReceiptsPrune !== true) {
     await validateAppendOnlyProofReceipts(validated.entity, context, staged);
   }
-  validateRelationshipSources(input.id, validated.relationships);
   await validateSymbolGranularity(
     validated.entity,
     validated.relationships,
@@ -308,6 +326,7 @@ export async function validateUpsertForCommit(
     validated.relationships,
     context,
     staged,
+    lookup,
   );
   await validateStrictLanePairing(prolog, validated.relationships, staged);
   await validateLiveRelationshipTargets(
@@ -346,6 +365,7 @@ export async function validateUpsertForCommit(
     prolog,
     context.clock(),
     staged,
+    lookup,
   );
   return {
     validated:
