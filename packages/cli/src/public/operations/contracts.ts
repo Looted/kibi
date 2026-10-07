@@ -563,7 +563,7 @@ const BASE_DATA_SCHEMAS: Readonly<
         "resolve_schema_reference",
         "record_ontology_gap",
         "review_nonlogical",
-        "already_grounded",
+        "replace_grounding",
       ],
     },
     recommendedPredicateSchema: { type: ["object", "null"] },

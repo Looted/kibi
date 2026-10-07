@@ -328,3 +328,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a8dbc22a2092
+  - type: validates
+    from: TEST-model-predicates-grounding-aware
+    to: REQ-model-predicates-grounding-aware-v2
+    created_at: 2026-10-07T19:00:50.544Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0d7ae60bc4a0

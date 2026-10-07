@@ -307,3 +307,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c70cb7be7bb9
+  - type: executable_for
+    from: SYM-test-bootstrap-subject-key-shape
+    to: TEST-bootstrap-subject-key-shape
+    created_at: 2026-10-07T19:01:57.027Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-016ab70fa5b9

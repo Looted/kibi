@@ -216,3 +216,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a51b4750c64f
+  - type: implements
+    from: SYM-bootstrap-subject-key-shape-resolvebootstrapsubjectkey
+    to: REQ-bootstrap-subject-key-shape
+    created_at: 2026-10-07T19:02:04.122Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2d00e979d6a5
+  - type: covered_by
+    from: SYM-bootstrap-subject-key-shape-resolvebootstrapsubjectkey
+    to: TEST-bootstrap-subject-key-shape
+    created_at: 2026-10-07T19:02:04.141Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f69bfa657469

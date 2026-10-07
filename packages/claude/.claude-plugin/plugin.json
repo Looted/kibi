@@ -1,6 +1,6 @@
 {
   "name": "kibi-claude",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Kibi for Claude Code: requirement and test context surfaced before reads and edits, advisory KB freshness reminders, bundled Kibi skills, and the workspace-gated Kibi MCP server. Silent in workspaces without Kibi.",
   "author": {
     "name": "Piotr Franczyk"

@@ -1,4 +1,4 @@
-// implements REQ-model-predicates-grounding-aware
+// implements REQ-model-predicates-grounding-aware-v2
 import { describe, expect, test } from "bun:test";
 import { handleKbSuggestPredicates } from "../../src/operations/modeling/suggest-predicates.js";
 import { semanticClaimKey } from "../../src/operations/semantic-advisor/clauses.js";
@@ -45,10 +45,10 @@ const ARGS = {
 };
 
 describe("kb_model predicates on an already grounded requirement", () => {
-  test("returns already_grounded with no write plan and a consistent replacement plan", async () => {
+  test("grounded claim with a complete candidate answers replace_grounding with no write plan and a consistent replacement plan", async () => {
     const result = await handleKbSuggestPredicates(groundedKb(TEXT), ARGS);
     const data = result.structuredContent;
-    expect(data.recommendedAction).toBe("already_grounded");
+    expect(data.recommendedAction).toBe("replace_grounding");
     expect(data.applyPlan).toEqual([]);
     expect(data.relationshipPlan).toBeNull();
     expect(data.existingGrounding).toEqual([
@@ -90,6 +90,56 @@ describe("kb_model predicates on an already grounded requirement", () => {
       { type: "requires_predicate", from: REQ, to: factId },
     ]);
     expect(data.warnings.join(" ")).toContain("proposition-complete");
+    expect(data.warnings.join(" ")).toContain("follow replacementPlan");
+    expect(data.recommendedPredicateSchema).toBeNull();
+  });
+
+  test("grounded claim with no fitting schema still records the ontology gap", async () => {
+    const text =
+      "The editor must render the toolbar in the preferred colour scheme.";
+    const result = await handleKbSuggestPredicates(groundedKb(text), {
+      ...ARGS,
+      text,
+    });
+    const data = result.structuredContent;
+    expect(data.existingGrounding).toHaveLength(1);
+    expect(data.recommendedAction).toBe("record_ontology_gap");
+    expect(data.candidates).toEqual([]);
+    expect(data.applyPlan).toHaveLength(1);
+    expect(data.applyPlan[0]?.properties).toMatchObject({
+      fact_kind: "observation",
+      tags: ["review:ontology-gap", "needs_schema_extension"],
+      claim_text: text,
+    });
+    // The observation is not a grounding link for the requirement.
+    expect(JSON.stringify(data.applyPlan)).not.toContain("requires_");
+    expect(data.recommendedPredicateSchema).not.toBeNull();
+    expect(data.replacementPlan).toBeNull();
+    expect(data.relationshipPlan).toBeNull();
+    expect(data.relationshipTarget).toBeNull();
+    const warnings = data.warnings.join(" ");
+    expect(warnings).toContain("already grounds this claim");
+    expect(warnings).not.toContain("follow replacementPlan");
+  });
+
+  test("grounded claim whose candidate lacks values asks for argument bindings", async () => {
+    const text = "Request timeout must not exceed 30 seconds.";
+    const result = await handleKbSuggestPredicates(groundedKb(text), {
+      ...ARGS,
+      text,
+    });
+    const data = result.structuredContent;
+    expect(data.existingGrounding).toHaveLength(1);
+    expect(data.recommendedAction).toBe("provide_argument_bindings");
+    expect(data.candidates[0]?.binding_status).toBe("incomplete");
+    expect(data.candidates[0]?.unbound_arguments.length).toBeGreaterThan(0);
+    expect(data.applyPlan).toEqual([]);
+    expect(data.replacementPlan).toBeNull();
+    expect(data.relationshipTarget).toBeNull();
+    expect(result.content[0]?.text).toContain(
+      data.candidates[0]?.unbound_arguments.join(", "),
+    );
+    expect(data.warnings.join(" ")).not.toContain("follow replacementPlan");
   });
 
   test("an ungrounded claim still gets a predicate plan whose relationship targets the planned fact, not a candidate", async () => {

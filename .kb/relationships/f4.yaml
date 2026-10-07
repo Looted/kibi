@@ -447,3 +447,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-142e84801564
+  - type: verified_by
+    from: SCEN-mcp-apply-plan-async-preflight
+    to: TEST-mcp-apply-plan-async-preflight
+    created_at: 2026-10-07T19:01:30.186Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-12d89a177917
