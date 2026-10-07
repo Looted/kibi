@@ -50181,6 +50181,18 @@ symbols:
         target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
       - type: implements
         target: REQ-bootstrap-discovered-candidate-budget
+  - id: SYM-test-check-related-requirement-unmodeled
+    title: related-requirement-unmodeled consumer suite
+    status: active
+    sourceFile: packages/cli/tests/consumer/related-requirement-unmodeled.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-07T13:40:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-check-related-requirement-unmodeled
   - id: SYM-test-kb-entity-body-context
     title: Entity body context suite
     status: active
