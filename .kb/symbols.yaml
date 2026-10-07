@@ -2356,6 +2356,20 @@ symbols:
         target: REQ-kibi-logical-requirement-coverage
       - type: implements
         target: REQ-kibi-proposition-complete-ingestion
+  - id: SYM-core-check-related-requirement-unmodeled
+    title: check_related_requirement_unmodeled
+    status: active
+    sourceFile: packages/core/src/checks.pl
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    origin:
+      kind: agent
+      recorded_at: 2026-10-07T13:40:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-related-requirement-unmodeled
+      - type: implements
+        target: REQ-check-related-requirement-unmodeled
   - id: SYM-core-check-logic-coverage
     title: check_logic_coverage
     status: active
@@ -50189,6 +50203,18 @@ symbols:
         target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
       - type: implements
         target: REQ-bootstrap-discovered-candidate-budget
+  - id: SYM-test-check-related-requirement-unmodeled
+    title: related-requirement-unmodeled consumer suite
+    status: active
+    sourceFile: packages/cli/tests/consumer/related-requirement-unmodeled.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-07T13:40:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-check-related-requirement-unmodeled
   - id: SYM-test-kb-entity-body-context
     title: Entity body context suite
     status: active

@@ -2140,5 +2140,19 @@
         "./packages/cli/tests/operations/suggest-predicates-existing-grounding.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-check-related-requirement-unmodeled",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "--isolate",
+        "--max-concurrency=1",
+        "./packages/cli/tests/consumer/related-requirement-unmodeled.test.ts"
+      ]
+    ]
   }
 ]
