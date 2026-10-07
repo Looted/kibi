@@ -50181,6 +50181,70 @@ symbols:
         target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
       - type: implements
         target: REQ-bootstrap-discovered-candidate-budget
+  - id: SYM-test-kb-entity-body-context
+    title: Entity body context suite
+    status: active
+    sourceFile: packages/cli/tests/commands/check-entity-context.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-06T19:39:43.033Z
+    relationships:
+      - type: executable_for
+        target: TEST-kb-entity-body-context
+  - id: SYM-kb-entity-body-context-evaluateentitycontext
+    title: evaluateEntityContext
+    status: active
+    sourceFile: packages/cli/src/public/operations/entity-context.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-06T19:39:50.370Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-entity-body-context
+      - type: implements
+        target: REQ-kb-entity-body-context
+  - id: SYM-kb-entity-body-context-contextfinding
+    title: contextFinding
+    status: active
+    sourceFile: packages/cli/src/entity-body-context.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-06T19:39:57.753Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-entity-body-context
+      - type: implements
+        target: REQ-kb-entity-body-context
+  - id: SYM-kb-entity-body-context-applycontextmissingtags
+    title: applyContextMissingTags
+    status: active
+    sourceFile: packages/cli/src/operations/migration/entity-body-context.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-06T19:40:04.509Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-entity-body-context
+      - type: implements
+        target: REQ-kb-entity-body-context
+  - id: SYM-kb-entity-body-context-reviserequirementbody
+    title: reviseRequirementBody
+    status: active
+    sourceFile: packages/cli/src/entity-body-context.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-06T19:40:11.387Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-entity-body-context
+      - type: implements
+        target: REQ-kb-entity-body-context
   - id: SYM-test-cli-staged-consistency
     title: Staged consistency consumer suite
     status: active

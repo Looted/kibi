@@ -5,6 +5,7 @@ tags:
   - multilingual
   - source-analysis
   - v2
+  - review:context-missing
 text_ref: docs/architecture/multilingual-source-analysis.md
 semantic_text: Source analysis v2 must preserve an explicit completeness status. Source analysis v2 must validate UTF-16 source ranges against the supplied snapshot content. Source analysis v2 must preserve authored symbol identity when declaration locators are unambiguous.
 logic_claims:

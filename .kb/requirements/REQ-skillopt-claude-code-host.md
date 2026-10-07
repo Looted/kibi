@@ -7,6 +7,7 @@ tags:
   - claude-code
   - evaluation
   - host
+  - review:context-missing
 rationale: Codex usage ran out mid-campaign; the operator asked to continue the bootstrap measurement with Claude Code CLI models instead.
 semantic_text: When the operator sets KIBI_SKILLOPT_HOST to claude-code, SkillOpt compose, evaluate and confirm must run their preflight, target-model canary and target cells through the Claude Code CLI, Codex must remain the default host, and revise must be refused before any paid preparation. A Claude Code target cell must expose only the evaluator broker as its MCP server and must have no shell or web tools. It must allow file tools only inside its workspace and must deny the private KB, private evaluator roots, the artifact root and the operator home. It must use a private config directory and home, and must write a refreshed login back only when it is valid. Its stream output, including host tool output, must be converted into Codex-shaped events so evidence replay, leak scans and scoring stay unchanged.
 origin:

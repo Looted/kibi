@@ -8,6 +8,7 @@ tags:
   - mcp
   - cli
   - help
+  - review:context-missing
 links:
   - type: depends_on
     target: REQ-002

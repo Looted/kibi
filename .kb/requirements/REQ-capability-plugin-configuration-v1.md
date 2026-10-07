@@ -3,6 +3,7 @@ title: Capability plugin configuration
 status: open
 tags:
   - plugins
+  - review:context-missing
 semantic_text: package.json kibi.plugins must be the canonical v1 capability plugin activation and mode surface. Plugin secrets must be supplied from the process environment outside repository plugin configuration. The TYPESAFE_API_KEY provider setting must come from the process environment source when a real TypeSafe client is required. The Jev model must default to jev-latest. A blank KIBI_JEV_MODEL provider setting from the environment source must remain unset. KIBI_JEV_MODEL must optionally select the Jev model as a provider setting from the process environment source. The Jev timeout must be at least 1 millisecond. The Jev timeout must be at most 120000 milliseconds. A malformed KIBI_JEV_TIMEOUT_MS value is an invalid timeout input and must fail closed before any network call. Explicit programmatic Jev options must override environment defaults. Effective provider model identity must be exposed in plugin provenance. kibi doctor must report configured plugin package, capability, mode, and declared dependency status as a provider diagnostic without importing the plugin package. kibi doctor must fail the provider diagnostic when a configured plugin package is not a declared dependency. A generic executable kibi.config.ts file must be absent from v1. A generic arbitrary plugin-options bag must be absent from v1.
 semantic_clauses:
   - package.json kibi.plugins must be the canonical v1 capability plugin activation and mode surface.

@@ -5,6 +5,7 @@ tags:
   - prolog
   - bundle
   - release
+  - review:context-missing
 text_ref: scripts/populate-swipl-platform-packages.mjs
 id: SCEN-prolog-bundled-release
 type: scenario

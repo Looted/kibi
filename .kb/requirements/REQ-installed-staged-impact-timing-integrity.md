@@ -7,6 +7,7 @@ tags:
   - benchmark
   - timing-integrity
   - lane:strict
+  - review:context-missing
 semantic_text: The installed staged-impact benchmark must record bounded timing and cache observations without weakening failures or claiming unavailable evidence.
 logic_claims:
   - CLAIM-6C792A2AEEBB048C

@@ -20,11 +20,11 @@ import { tmpdir } from "node:os";
 import { dirname, isAbsolute, join, relative } from "node:path";
 import { verifyProbeEvidence } from "../runtime/canary-evidence";
 import { writeCapabilityProbe } from "../runtime/canary-probes";
+import { runModelCanary } from "../runtime/canary-run";
 import {
   RequiredMcpStartupError,
   RuntimePrerequisiteError,
 } from "../runtime/canary-runtime";
-import { runModelCanary } from "../runtime/canary-run";
 import { createIsolationWorkspace } from "../runtime/isolation-workspace";
 import { ProcessControlError, type ProcessResult } from "../runtime/process";
 import { runCapabilityCanary as baseRunCapabilityCanary } from "../runtime/workspace";
@@ -806,7 +806,8 @@ describe("model canary execution evidence and IO failures", () => {
     const result = await runModelCanary({
       ...context,
       run: async (argv) => {
-        if (argv.join(" ") === "codex login status") return fakeRunner("")(argv);
+        if (argv.join(" ") === "codex login status")
+          return fakeRunner("")(argv);
         return {
           argv,
           stdout: jsonl([{ type: "error", message: "turn exploded" }]),
@@ -828,7 +829,8 @@ describe("model canary execution evidence and IO failures", () => {
     const result = await runModelCanary({
       ...context,
       run: async (argv, cwd) => {
-        if (argv.join(" ") === "codex login status") return fakeRunner("")(argv);
+        if (argv.join(" ") === "codex login status")
+          return fakeRunner("")(argv);
         await mkdir(join(cwd, "..", "private-evidence", "broker-trace.jsonl"), {
           recursive: true,
         });
@@ -853,7 +855,8 @@ describe("model canary execution evidence and IO failures", () => {
     const result = await runModelCanary({
       ...context,
       run: async (argv, cwd) => {
-        if (argv.join(" ") === "codex login status") return fakeRunner("")(argv);
+        if (argv.join(" ") === "codex login status")
+          return fakeRunner("")(argv);
         await mkdir(join(cwd, ".kb", "usage.log"), { recursive: true });
         return {
           argv,
@@ -875,7 +878,8 @@ describe("model canary execution evidence and IO failures", () => {
     const result = await runModelCanary({
       ...context,
       run: async (argv) => {
-        if (argv.join(" ") === "codex login status") return fakeRunner("")(argv);
+        if (argv.join(" ") === "codex login status")
+          return fakeRunner("")(argv);
         return {
           argv,
           stdout: jsonl([{ type: "turn.completed" }]),

@@ -96,5 +96,7 @@ origin:
   kind: migration
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
+tags:
+  - review:context-missing
 ---
 The bootstrap workflow must produce a read-only deterministic plan and apply only an explicitly approved exact plan through kb_apply_plan.

@@ -10,6 +10,7 @@ tags:
   - opencode
   - kibi
   - sync
+  - review:context-missing
 links:
   - type: specified_by
     target: SCEN-opencode-background-sync

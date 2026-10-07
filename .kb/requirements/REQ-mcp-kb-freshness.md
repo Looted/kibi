@@ -10,6 +10,7 @@ tags:
   - branch
   - freshness
   - prolog
+  - review:context-missing
 links:
   - type: specified_by
     target: SCEN-mcp-kb-freshness

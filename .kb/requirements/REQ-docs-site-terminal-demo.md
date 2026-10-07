@@ -43,3 +43,7 @@ id: REQ-docs-site-terminal-demo
 type: req
 ---
 The documentation landing page and the README show the same animated terminal scenes of Kibi use cases. The README terminal image is generated from the landing page terminal scenes.
+
+## Context
+
+Evaluators decide quickly whether Kibi is worth trying, so the landing page and the README show what Kibi catches (contradictions, impossible scenarios, missing proof, untraced code) as one short animated terminal. The README image is generated from the landing page scenes so the two copies cannot drift apart. The requester did not state a further reason.

@@ -6,6 +6,7 @@ tags:
   - bundle
   - ci
   - lane:strict
+  - review:context-missing
 priority: must
 text_ref: .github/workflows/swipl-ci-bundle.yml
 semantic_text: Kibi's own CI Prolog jobs must run the bundled SWI-Prolog archive built by the release pipeline after re-verifying its checksum, pins, and binary hash. Kibi's own CI must keep one job that runs a system SWI-Prolog selected with KIBI_SWIPL=system. A cached CI archive must skip the commit and run binding only through the explicit cached-build flag. Release workflows must never use the cached-build flag.

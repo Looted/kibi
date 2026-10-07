@@ -6,6 +6,7 @@ tags:
   - source-analysis
   - e2e
   - consumer
+  - review:context-missing
 text_ref: documentation/tests/e2e/packed/installed-sdk-source-analysis-input-limits.test.ts
 verification_scope: end_to_end
 verification_perspective: consumer

@@ -11,6 +11,7 @@ tags:
   - opencode
   - kibi
   - enforcement
+  - review:context-missing
 links:
   - type: specified_by
     target: SCEN-opencode-smart-enforcement-v1-coverage

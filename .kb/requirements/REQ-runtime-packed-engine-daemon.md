@@ -7,6 +7,7 @@ tags:
   - engine
   - packed
   - distribution
+  - review:context-missing
 semantic_text: The published kibi-runtime package MUST ship a self-contained engine daemon entry point that the runtime engine client resolves without a nested kibi-cli install. A consumer installing only published kibi packages MUST be able to start the Kibi engine and serve typed queries from the installed runtime.
 logic_claims:
   - CLAIM-DBB35C0D294764B4

@@ -5,6 +5,7 @@ tags:
   - doctor
   - packaging
   - provenance
+  - review:context-missing
 priority: must
 semantic_text: When kibi doctor runs with JSON output on an installed consumer workspace, it must report the installed kibi-mcp package version by resolving the package entrypoint whenever the package does not export its package.json subpath. The doctor must not emit the package-provenance-unresolved migration action when every probed Kibi package resolves to an installed manifest. The package-provenance-unresolved migration action is reserved for packages that are genuinely absent from the install graph.
 logic_claims:

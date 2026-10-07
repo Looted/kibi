@@ -5,6 +5,7 @@ priority: must
 tags:
   - bootstrap
   - write-safety
+  - review:context-missing
 semantic_text: The bootstrap planner must validate candidate entity fields, relationships and semantic inventories before offering write actions. The bootstrap planner must preserve an invalid or ungroundable claim as a cited requirement authoring follow-up. The bootstrap apply operation must validate every remaining payload before creating a journal or writing an entity. The bootstrap apply operation must reject deterministic failures terminally and report every previously committed action. The bootstrap recovery operation must refuse to replay a terminally rejected journal. The bootstrap planner must strip task list markers and continue after an individual claim extraction failure. The bootstrap planner must prioritize cited intent and typed requirements before provider observations after deduplication and existing entity suppression. The bootstrap planner must report every over limit candidate and every source extraction failure. The bootstrap planner must block plan binding when existing entity identifiers cannot be read. The KB migration must preserve fact identifiers and bodies while encoding legacy polarity only property facts as typed booleans. The strict fact shape check must reject malformed strict facts.
 semantic_clauses:
   - The bootstrap planner must validate candidate entity fields, relationships and semantic inventories before offering write actions.

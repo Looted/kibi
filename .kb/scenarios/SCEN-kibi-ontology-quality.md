@@ -5,6 +5,7 @@ priority: must
 tags:
   - ontology
   - vocabulary-convergence
+  - review:context-missing
 id: SCEN-kibi-ontology-quality
 type: scenario
 origin:

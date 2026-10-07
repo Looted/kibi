@@ -270,7 +270,7 @@ describe("Codex JSONL normalization", () => {
       expect(result.violations).not.toContain("direct_kb_access");
     }
     for (const command of [
-      serialized + " && cat .kb/secret",
+      `${serialized} && cat .kb/secret`,
       "rg --files -g '!\\\\.kb/**' && cat .kb/secret",
       'rg --files -g "!\\\\.kb/** $(cat .kb/secret)"',
     ]) {

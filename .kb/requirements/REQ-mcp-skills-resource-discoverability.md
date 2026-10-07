@@ -9,6 +9,7 @@ tags:
   - mcp
   - skills
   - discoverability
+  - review:context-missing
 links:
   - type: specified_by
     target: SCEN-mcp-skills-resource-discoverability

@@ -8,6 +8,7 @@ tags:
   - cli
   - discovery
   - status
+  - review:context-missing
 links:
   - type: depends_on
     target: REQ-mcp-search-discovery

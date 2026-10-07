@@ -67,18 +67,20 @@ describe("kibi check --staged consistency", () => {
       intent: "Checkout may happen only when the cart total is positive.",
       mode: "create",
       requirementId: "REQ-checkout-positive-total",
+      context:
+        "Fixture rule for the staged consistency test: checkout needs a positive cart total; no further reason is stated.",
       scenarioDrafts: [
         {
           id: SCENARIO,
           title: "A 100%-discounted order checks out for free",
-          body: "A 100%-discounted order checks out for free.",
+          body: "A customer applies a full discount so the cart total falls to zero and then tries to check out, which the rule must reject.",
         },
       ],
       testDrafts: [
         {
           id: "TEST-checkout-free-order",
           title: "Verify: a 100%-discounted order checks out",
-          body: "Checks the free order.",
+          body: "Submits the zero total order through checkout and asserts the rule rejects it, so a false pass needs the cart total fact to be missing.",
           scenarioIds: [SCENARIO],
         },
       ],

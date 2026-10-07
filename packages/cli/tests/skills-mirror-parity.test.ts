@@ -34,6 +34,6 @@ describe("bundled skill parity", () => {
         readBundledSkillResourceFrom(runtimeRoot, "kibi-usage", resource),
       ).toBe(readBundledSkillResource("kibi-usage", resource));
     }
-    expect(canonical.manifest.version).toBe("2.3.2");
+    expect(canonical.manifest.version).toBe("2.4.0");
   });
 });

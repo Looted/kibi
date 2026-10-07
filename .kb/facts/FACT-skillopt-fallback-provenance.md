@@ -5,6 +5,7 @@ fact_kind: meta
 tags:
   - skillopt
   - fail-open
+  - review:context-missing
 id: FACT-skillopt-fallback-provenance
 type: fact
 origin:

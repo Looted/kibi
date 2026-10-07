@@ -34,6 +34,7 @@ import {
   stagedEntityIdStyleDiagnostics,
 } from "./check-helpers.js";
 import { executeStatus } from "./discovery-executors.js";
+import { collectEntityContextViolations } from "./entity-context.js";
 import {
   buildActionsFromCheck,
   buildMigrationPlan,
@@ -224,6 +225,10 @@ export async function executeCheck(
       rulesAllowlist,
       workspaceRoot,
     );
+    const entityContextFindings = collectEntityContextViolations(
+      rulesAllowlist,
+      workspaceRoot,
+    );
     const partitioned = partitionCheckFindings([
       ...aggregatedFindings,
       ...queryPlanViolations,
@@ -231,6 +236,7 @@ export async function executeCheck(
       ...sourcePathFindings,
       ...predicateConformanceFindings,
       ...originReviewFindings,
+      ...entityContextFindings,
     ]);
     const violations: Violation[] = partitioned.violations;
 

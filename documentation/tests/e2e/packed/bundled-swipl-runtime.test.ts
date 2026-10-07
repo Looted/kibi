@@ -192,6 +192,10 @@ status: open
 ---
 
 The bundled runtime compiles this requirement.
+
+## Context
+
+This requirement exists only so the packed smoke test has one authored entity to sync, check and query through the bundled SWI-Prolog runtime without a system install.
 `,
       );
       stageSourceFile(sandbox, ".kb/requirements/REQ-BUNDLED-SMOKE.md");

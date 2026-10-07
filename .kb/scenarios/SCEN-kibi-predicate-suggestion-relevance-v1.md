@@ -8,6 +8,7 @@ tags:
   - predicates
   - relevance
   - abstention
+  - review:context-missing
 priority: must
 id: SCEN-kibi-predicate-suggestion-relevance-v1
 type: scenario

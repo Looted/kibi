@@ -6,6 +6,7 @@ tags:
   - skillopt
   - harness
   - evaluation
+  - review:context-missing
 semantic_text: SkillOpt must support more than one agent harness for target cells and must run the harness, models and efforts the operator selects for a run. Codex is the default harness when the operator selects none. An unknown harness selection must be refused before any cell work. A command that the selected harness cannot execute must be refused before paid preparation instead of silently switching harness. Every supported harness must feed the same scorers, evidence replay and leak scans.
 logic_claims:
   - CLAIM-4E4DAF500121AA55

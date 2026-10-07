@@ -20,6 +20,7 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import Ajv, { type ValidateFunction } from "ajv";
 import { load as yamlLoad } from "js-yaml";
+import { withoutContextSections } from "../entity-body-context.js";
 import { semanticClaimKey } from "../operations/semantic-advisor/clauses.js";
 import {
   type EntityOrigin,
@@ -482,8 +483,14 @@ function parseFrontmatter(content: string): {
   };
 }
 
-// implements REQ-kibi-legacy-migration-preview-v2
-export function requirementSemanticText(body: string): string {
+/**
+ * The checked meaning derived from a requirement body before schema 8: every
+ * line except headings, with list and quote markers removed. Context
+ * sections were part of it. Schema 8 pins this value as `semantic_text` for
+ * requirements that never stated one, so claim spans and hashes do not move.
+ */
+// implements REQ-kibi-legacy-migration-preview-v2, REQ-kb-entity-body-context
+export function legacyRequirementSemanticText(body: string): string {
   return body
     .replace(/\r\n?/g, "\n")
     .split("\n")
@@ -491,6 +498,17 @@ export function requirementSemanticText(body: string): string {
     .map((line) => line.replace(/^\s*(?:(?:[-*+]|\d+[.)])\s+|>\s*)/, ""))
     .join("\n")
     .trim();
+}
+
+/**
+ * The checked meaning derived from a requirement body: the legacy derivation
+ * over the body with its context sections (Context, Rationale, Why,
+ * Background, Source, Notes, Evidence) removed, so context never changes
+ * what a requirement means.
+ */
+// implements REQ-kibi-legacy-migration-preview-v2, REQ-kb-entity-body-context
+export function requirementSemanticText(body: string): string {
+  return legacyRequirementSemanticText(withoutContextSections(body));
 }
 
 function hasLikelyUnquotedColonInTitle(content: string): boolean {

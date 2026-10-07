@@ -2,7 +2,7 @@
 id: kibi-usage
 name: Kibi Usage
 description: Use Kibi's source-first, exact-Git, migration-aware, proof-aware operations safely across MCP or the trusted local CLI, including partial completion repair.
-version: 2.3.2
+version: 2.4.0
 kibiCompatibility: ">=1.0.0"
 tags:
   - kibi
@@ -154,11 +154,43 @@ execute each required repair action in order, and never retry the original
 operation. Record effect failures, followed actions, and unsafe retries in
 diagnostic telemetry.
 
+## Entity body contract
+
+The body is where context lives; front matter is the checked meaning.
+`kb_check` rule `entity-context-missing` blocks a current `req`, `scenario`,
+`test`, `adr` or observation/meta `fact` whose body carries no context: at
+least 12 words that are not a restatement of the title (for a requirement, also
+not of `semantic_text`). Symbols, flags, events and every other fact kind are
+exempt. `kb_upsert` returns the same finding as a warning, including on dryRun.
+
+- `req`: the statement, then `## Context` (why, who asked, constraints) and
+  `## Source` (blockquoted excerpt plus reference). Only text under context
+  headings (Context, Rationale, Why, Background, Source, Notes, Evidence)
+  counts for a requirement, and it never changes the checked meaning:
+  `semantic_text` is written explicitly and context sections are excluded.
+- `scenario`: Given/When/Then prose plus the assumptions it depends on.
+- `test`: what it asserts, how (fixture, entry point), what would make it a
+  false pass.
+- `fact` (`observation`/`meta`): what was seen, where, when, how confirmed.
+- Never invent a reason the requester did not give. Write "Reason not stated"
+  and the source instead.
+- The tag `review:context-missing` is reserved for entities the schema 8
+  migration (`kibi migrate`) acknowledged and recorded in the manifest; it is
+  counted by the advisory `entity-context-acknowledged`. Never add it yourself:
+  on any other entity it is still a violation. Write who asked, the source and
+  "Reason not stated" in the Context section instead.
+- `kb_plan_compile_intent` requires `context` when the plan creates a
+  requirement, and accepts `sourceExcerpt` and `sourceReference`. On update it
+  rewrites the statement and keeps the existing context sections unless you
+  supply new `context` or source.
+
 ## Source-first mutation
 
 Use `document.path` when a new entity has no single configured writable target.
-Existing entities preserve body bytes when `document.body` is omitted; new
-requirements default their body to `semantic_text`. Relationship mutations
+Existing entities preserve body bytes when `document.body` is omitted; a new
+requirement without `document.body` gets `semantic_text` as its body, and
+`kb_check` then blocks it with `entity-context-missing`, so always pass a
+sectioned `document.body` (see Entity body contract). Relationship mutations
 patch canonical shards while preserving unrelated records. Authored entity
 deletion returns a hash-bound approval plan; requirements normally evolve via a
 new entity linked with `supersedes`; set the replaced requirement to

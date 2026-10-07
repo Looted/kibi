@@ -5,6 +5,7 @@ tags:
   - multilingual
   - impact-policy
   - stage-e
+  - review:context-missing
 text_ref: documentation/impact-review-stage-e.md
 id: SCEN-impact-policy-stage-e-installed-consumer
 type: scenario

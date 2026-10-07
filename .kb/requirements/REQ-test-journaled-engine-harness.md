@@ -11,6 +11,7 @@ tags:
   - engine
   - performance
   - isolation
+  - review:context-missing
 semantic_text: |-
   Test harnesses MUST assign spawned engines to private runtime directories and durably terminate every owned engine before deleting fixture state
 

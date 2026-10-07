@@ -6,6 +6,7 @@ tags:
   - prolog
   - doctor
   - lane:strict
+  - review:context-missing
 text_ref: packages/cli/src/commands/doctor.ts
 semantic_text: kibi doctor must report the SWI-Prolog source, executable path, and version. kibi doctor must fail when the resolved SWI-Prolog cannot load a required library. kibi doctor must name the platform package to add when no bundled or system SWI-Prolog is found
 semantic_clauses:

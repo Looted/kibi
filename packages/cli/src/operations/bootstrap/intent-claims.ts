@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { renderRequirementBody } from "../../entity-body-context.js";
 import { buildStrictWriteSet } from "../../utils/strict-modeling.js";
 import { confidenceBand, strictPlan, upsert } from "./candidate-helpers.js";
 import { claimFor } from "./requirement-claims.js";
@@ -44,6 +45,40 @@ function digest(...parts: readonly string[]): string {
 }
 
 /**
+ * The entity body a claim persists: the statement, then a `## Source`
+ * section with the verbatim excerpt, the knowledge source title and the
+ * claim's reference. The external source (a ticket, a page) may be gone by the
+ * next migration; the body is what remains.
+ */
+// implements REQ-kb-entity-body-context
+function claimBody(
+  source: BootstrapKnowledgeSource,
+  claim: BootstrapIntentClaim,
+): string {
+  return renderRequirementBody({
+    statement: claim.statement,
+    source: {
+      excerpt: claim.excerpt,
+      title: source.title,
+      reference: claim.reference,
+    },
+  });
+}
+
+/**
+ * Attach the claim body to an upsert step. The body is the statement plus the
+ * cited source; no context tag is added, so a claim whose source states no
+ * reason is reported by entity-context-missing instead of being acknowledged.
+ */
+// implements REQ-kb-entity-body-context
+function withClaimBody(
+  step: Readonly<Record<string, unknown>>,
+  body: string,
+): Readonly<Record<string, unknown>> {
+  return { ...step, document: { body } };
+}
+
+/**
  * An observation or open question from a declared source is evidence for the
  * human, not a requirement: it becomes a cited, non-blocking observation fact
  * so the plan keeps it without entering the contradiction lane.
@@ -84,7 +119,7 @@ function reviewClaimCandidate(
       ...(claim.excerpt ? [`excerpt:${claim.excerpt}`] : []),
     ],
     relationships: [],
-    applyPlan: [upsert(entity)],
+    applyPlan: [withClaimBody(upsert(entity), claimBody(source, claim))],
   };
 }
 
@@ -143,6 +178,20 @@ function conflictCandidates(
       continue;
     }
     const title = `Conflict between ${refs.join(" and ")}: ${conflict.note}`;
+    const evidenceLines = conflict.claimReferences.map((ref) => {
+      const source = sources.get(ref.sourceId);
+      const claim = (declared.intentClaims ?? []).find(
+        (row) =>
+          row.sourceId === ref.sourceId && row.reference === ref.reference,
+      );
+      return [
+        `- ${[source?.title, ref.reference].filter(Boolean).join(" - ")}${claim ? `: ${claim.statement}` : ""}`,
+        ...(claim?.excerpt
+          ? [`  > ${claim.excerpt.replace(/\s*\n\s*/g, " ")}`]
+          : []),
+      ].join("\n");
+    });
+    const conflictBody = `${conflict.note}\n\n## Evidence\n\n${evidenceLines.join("\n")}\n`;
     candidates.push({
       candidateId,
       entityType: "fact",
@@ -162,26 +211,29 @@ function conflictCandidates(
       }),
       relationships: [],
       applyPlan: [
-        upsert({
-          type: "fact",
-          id,
-          title,
-          status: "active",
-          fact_kind: "observation",
-          source: "bootstrap:declared-conflict",
-          text_ref: refs.join("; "),
-          tags: [
-            "bootstrap",
-            "review:conflict",
-            ...[
-              ...new Set(
-                conflict.claimReferences.map(
-                  (ref) => `knowledge-source:${ref.sourceId}`,
+        withClaimBody(
+          upsert({
+            type: "fact",
+            id,
+            title,
+            status: "active",
+            fact_kind: "observation",
+            source: "bootstrap:declared-conflict",
+            text_ref: refs.join("; "),
+            tags: [
+              "bootstrap",
+              "review:conflict",
+              ...[
+                ...new Set(
+                  conflict.claimReferences.map(
+                    (ref) => `knowledge-source:${ref.sourceId}`,
+                  ),
                 ),
-              ),
+              ],
             ],
-          ],
-        }),
+          }),
+          conflictBody,
+        ),
       ],
     });
   }
@@ -227,6 +279,23 @@ export function buildIntentClaimCandidates(
         statement: claim.statement,
         sourceId: source.id,
       });
+      continue;
+    }
+    // The excerpt is the only verbatim quote from the source; without it an
+    // intent or observation would persist as a bare sentence. Only an open
+    // question may omit it.
+    if (kind !== "open_question" && !claim.excerpt) {
+      suppressed.push({
+        candidateId: "",
+        reason: "missing_excerpt",
+        sourcePath: claim.reference,
+        entityType: kind === "intent" ? "req" : "fact",
+        statement: claim.statement,
+        sourceId: source.id,
+      });
+      diagnostics.push(
+        `Claim at ${source.id}:${claim.reference} is an ${kind === "intent" ? "intent" : "observation"} claim without an excerpt; quote the passage it came from in excerpt so the entity keeps it, then re-plan.`,
+      );
       continue;
     }
     const confidence = AUTHORITY_CONFIDENCE[source.authority];
@@ -287,7 +356,11 @@ export function buildIntentClaimCandidates(
           from,
           to,
         })),
-        applyPlan: strictPlan(writeSet),
+        applyPlan: strictPlan(writeSet).map((step) =>
+          step.type === "req"
+            ? withClaimBody(step, claimBody(source, claim))
+            : step,
+        ),
       });
       continue;
     }

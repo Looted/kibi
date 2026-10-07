@@ -7,6 +7,7 @@ tags:
   - testing
   - scripts
   - ci
+  - review:context-missing
 text_ref: scripts/run-unit-coverage.ts
 semantic_text: For the scripts coverage shard, the runner must list every recursively discovered scripts/tests path matching the test/spec filename pattern. The scripts coverage shard must include test/root-summary.test.ts exactly once after those paths. The scripts coverage shard must request process-per-file isolation.
 semantic_inventory_version: kibi.semantic-inventory.v1

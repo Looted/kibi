@@ -7,6 +7,7 @@ tags:
   - tree-sitter
   - language-authoring
   - lane:strict
+  - review:context-missing
 semantic_text: The Tree-sitter language authoring scaffold must create an unqualified disconnected draft without modifying live language support.
 logic_claims:
   - CLAIM-D79EE778B5393174

@@ -6,6 +6,7 @@ tags:
   - mcp
   - worktree
   - routing
+  - review:context-missing
 verification_scope: end_to_end
 verification_perspective: consumer
 proof_contract:

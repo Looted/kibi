@@ -211,12 +211,15 @@ describe("rationale sections", () => {
     }
   });
 
-  test("recognizes Rationale and Why headings in the body only", () => {
+  test("recognizes Rationale, Why and Context headings in the body only", () => {
     expect(
       markdownHasRationaleSection("# Title\n\n## Rationale\nBecause."),
     ).toBe(true);
     expect(markdownHasRationaleSection("### Why this exists\n")).toBe(true);
     expect(markdownHasRationaleSection("## Why\r\nBecause.")).toBe(true);
+    expect(
+      markdownHasRationaleSection("Statement.\n\n## Context\nAsked."),
+    ).toBe(true);
     expect(
       markdownHasRationaleSection(
         '---\nid: REQ-x\ntitle: "# Why"\n---\n\nNo reason given.',

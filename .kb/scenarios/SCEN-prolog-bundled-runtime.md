@@ -4,6 +4,7 @@ status: active
 tags:
   - prolog
   - bundle
+  - review:context-missing
 id: SCEN-prolog-bundled-runtime
 type: scenario
 origin:

@@ -41,6 +41,15 @@ import {
 } from "../../public/operations/schema6-check-actions.js";
 import { readAllShards } from "../../relationships/shards.js";
 import {
+  CONTEXT_MISSING_TAG_CODE,
+  SEMANTIC_TEXT_PIN_CODE,
+  applyContextMissingTags,
+  applySemanticTextPins,
+  countByType,
+  planContextMissingTags,
+  planSemanticTextPins,
+} from "./entity-body-context.js";
+import {
   type InventoryRederivation,
   applyInventoryRederivation,
   planInventoryRederivation,
@@ -68,6 +77,10 @@ import {
 /** The KB schema generation that introduced entity `origin`. */
 // implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export const ORIGIN_SCHEMA_VERSION = 6;
+
+/** The KB schema generation that requires body context on current entities. */
+// implements REQ-kb-entity-body-context, REQ-cli-schema-migration
+export const BODY_CONTEXT_SCHEMA_VERSION = 8;
 
 /** Automatic: re-derive a drifted inventory with the current advisor. */
 // implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
@@ -264,6 +277,69 @@ export function buildSchema6MigrationFragment(input: {
       }),
     );
   }
+  // Schema 8: pin the checked meaning, then acknowledge missing context. A
+  // missing or invalid version upgrades through every step, so it is planned.
+  if (
+    input.currentSchemaVersion === null ||
+    input.currentSchemaVersion < BODY_CONTEXT_SCHEMA_VERSION
+  ) {
+    const pins = planSemanticTextPins(input.workspaceRoot);
+    if (pins.targets.length > 0) {
+      const id = "semantic-text-pin";
+      sourceRewriteActionIds.push(id);
+      actions.push(
+        migrationAction({
+          id,
+          code: SEMANTIC_TEXT_PIN_CODE,
+          category: "schema",
+          safety: "automatic",
+          autoApplicable: true,
+          invocation: {
+            kind: "cli",
+            command_argv: ["kibi", "migrate", "--yes"],
+          },
+          affectedEntityIds: pins.targets.map((row) => row.id),
+          affectedFiles: pins.targets.map((row) => row.path),
+          postconditions: [{ requirementsWithoutSemanticText: 0 }],
+          evidence: {
+            reason:
+              "Schema 8 stops reading context sections (Context, Rationale, Why, Background, Source, Notes, Evidence) as part of a requirement's meaning. Requirements that never stated semantic_text get the value the old derivation produced, so claim spans and hashes do not move.",
+            count: pins.targets.length,
+            preserves: "every other front matter key and the body bytes",
+          },
+        }),
+      );
+    }
+    const tags = planContextMissingTags(input.workspaceRoot);
+    if (tags.targets.length > 0) {
+      const id = "context-missing-tag";
+      sourceRewriteActionIds.push(id);
+      actions.push(
+        migrationAction({
+          id,
+          code: CONTEXT_MISSING_TAG_CODE,
+          category: "schema",
+          safety: "automatic",
+          autoApplicable: true,
+          invocation: {
+            kind: "cli",
+            command_argv: ["kibi", "migrate", "--yes"],
+          },
+          dependsOn: pins.targets.length > 0 ? ["semantic-text-pin"] : [],
+          affectedEntityIds: tags.targets.map((row) => row.id),
+          affectedFiles: tags.targets.map((row) => row.path),
+          postconditions: [{ rule: "entity-context-missing", findings: 0 }],
+          evidence: {
+            reason:
+              "Schema 8 blocks current requirements, scenarios, tests, ADRs and observation facts whose body states no context. Existing ones are tagged review:context-missing (acknowledged legacy, counted by entity-context-acknowledged); no prose is written and no reason is invented.",
+            count: tags.targets.length,
+            byType: countByType(tags.targets),
+            preserves: "every other front matter key and the body bytes",
+          },
+        }),
+      );
+    }
+  }
   const drift = planInventoryRederivation(input.workspaceRoot);
   for (const plan of drift) {
     const action = plan.safe ? rederiveAction(plan) : reviewAction(plan);
@@ -446,6 +522,14 @@ export async function applySchema6MigrationAction(
       applyPolarityValueBackfill(context.workspaceRoot);
       return;
     }
+    case SEMANTIC_TEXT_PIN_CODE: {
+      applySemanticTextPins(context.workspaceRoot);
+      return;
+    }
+    case CONTEXT_MISSING_TAG_CODE: {
+      applyContextMissingTags(context.workspaceRoot);
+      return;
+    }
     case SEMANTIC_INVENTORY_REDERIVE_CODE: {
       const requirementId = action.affectedEntityIds[0];
       if (requirementId === undefined)
@@ -507,6 +591,8 @@ export async function applySchema6MigrationAction(
 // implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export const SCHEMA6_AUTOMATIC_CODES: ReadonlySet<string> = new Set([
   POLARITY_VALUE_BACKFILL_CODE,
+  SEMANTIC_TEXT_PIN_CODE,
+  CONTEXT_MISSING_TAG_CODE,
   SEMANTIC_INVENTORY_REDERIVE_CODE,
   ENTITY_ORIGIN_BACKFILL_CODE,
   CLOSE_SUPERSEDED_REQUIREMENTS_CODE,

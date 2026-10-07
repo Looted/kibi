@@ -5,7 +5,11 @@
 therefore of the plan hash; a candidate built from a claim has `sourceKind:
 intent_claim` and evidence rows `intent_claim:<sourceId>:<reference>`,
 `knowledge_source:<kind>:<locator>`, and `source_authority:<authority>`. Its
-requirement keeps the citation as `text_ref: <sourceId>:<reference>`. Review
+requirement keeps the citation as `text_ref: <sourceId>:<reference>` and its
+body persists the claim: the statement, then a `## Source` section with the
+blockquoted verbatim `excerpt`, the knowledge source title and the reference.
+`excerpt` is required for `intent` and `observation` claims; quote the source,
+never paraphrase or invent it. Review
 candidate evidence, exact actions, dependencies, expected snapshots, source
 hashes, bounded questions, diagnostics, and the canonical `planHash` before
 approving. A preview does not authorize source edits. After approval, pass the

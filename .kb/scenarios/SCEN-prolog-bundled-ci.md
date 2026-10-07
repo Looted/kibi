@@ -5,6 +5,7 @@ tags:
   - prolog
   - bundle
   - ci
+  - review:context-missing
 text_ref: .github/workflows/swipl-ci-bundle.yml
 id: SCEN-prolog-bundled-ci
 type: scenario

@@ -7,7 +7,11 @@ commits them; ordinary Git workflows remain responsible for review and merge.
 
 `kb_upsert` accepts `document.path` and `document.body`. Existing entities use
 their authored source by default and preserve body bytes when `body` is omitted.
-New requirements use `semantic_text` as their body. If a new entity has zero or
+A new requirement without `body` uses `semantic_text` as its body, which
+`entity-context-missing` blocks; pass a sectioned body (statement, `## Context`,
+`## Source`) and the written `semantic_text` stays the checked meaning, since
+context sections are excluded from it. Source-first requirement writes pin
+`semantic_text` in front matter. If a new entity has zero or
 multiple configured writable targets, provide an explicit workspace-relative
 `document.path`; absolute, traversal, and symlink escapes are rejected.
 

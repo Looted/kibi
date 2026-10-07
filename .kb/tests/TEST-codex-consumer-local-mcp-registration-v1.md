@@ -11,6 +11,7 @@ tags:
   - plugin
   - mcp
   - consumer-local
+  - review:context-missing
 id: TEST-codex-consumer-local-mcp-registration-v1
 type: test
 verification_scope: end_to_end

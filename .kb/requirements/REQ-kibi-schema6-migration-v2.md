@@ -7,6 +7,7 @@ tags:
   - origin
   - semantic-inventory
   - cli
+  - review:context-missing
 title: Current schema migration preserves origins and grounding
 semantic_text: kibi init must start a new knowledge base at KB schema 7. kibi migrate must append a migration origin as the last frontmatter key of every authored entity without an origin and leave every other byte unchanged. kibi migrate must never overwrite an existing origin. kibi migrate must re-derive a drifted semantic inventory with the current advisor, keeping the status and grounding of every claim whose claim key and claim text still match. A new or reclassified claim in a re-derived inventory must become unresolved and never modeled. kibi migrate must refuse to write a re-derived inventory when the requirement changed after planning. kibi migrate must list an inventory that cannot be re-derived safely as a review action with the exact kibi model command that resolves it. kibi migrate must list an exception that exempts a requirement without approved_by as a review action that requires a disposition. kibi sync must check every requirement before failing proposition-complete ingestion and name every failing requirement in one error that points to kibi migrate. A kibi migrate run after an applied schema 7 migration must find nothing left to migrate.
 semantic_clauses:

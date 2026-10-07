@@ -86,7 +86,12 @@ describe("kb_compile_intent", () => {
     });
 
     const result = await compileIntentSpec.execute(
-      { intent: "Customer data must be retained for 7 years.", mode: "create" },
+      {
+        intent: "Customer data must be retained for 7 years.",
+        mode: "create",
+        context:
+          "The fixture requester gave this reason so the plan carries context for the test.",
+      },
       contextFor(query),
     );
     const plan = result.structuredContent;
@@ -106,6 +111,8 @@ describe("kb_compile_intent", () => {
           {
             intent: "Customer data must be retained for 7 years.",
             mode: "create",
+            context:
+              "The fixture requester gave this reason so the plan carries context for the test.",
           },
           contextFor(query),
         )
@@ -130,6 +137,8 @@ describe("kb_compile_intent", () => {
           {
             intent,
             mode: "create",
+            context:
+              "The fixture requester gave this reason so the plan carries context for the test.",
             requirementId: "REQ-checkout-positive-total",
           },
           contextFor(query),
@@ -208,6 +217,8 @@ describe("kb_compile_intent", () => {
         {
           intent: "Customer data must be retained for 7 years.",
           mode: "create",
+          context:
+            "The fixture requester gave this reason so the plan carries context for the test.",
           requirementId: "REQ-customer-data-retention",
         },
         contextFor(query),
@@ -277,6 +288,8 @@ describe("kb_compile_intent", () => {
         {
           intent: "Customer data must be retained for 1 day.",
           mode: "create",
+          context:
+            "The fixture requester gave this reason so the plan carries context for the test.",
           requirementId: "REQ-RETAIN",
         },
         contextFor(query),
@@ -300,6 +313,8 @@ describe("kb_compile_intent", () => {
           intent:
             "Customer data must be retained for 7 years. Audit logs must be retained for 2 years.",
           mode: "create",
+          context:
+            "The fixture requester gave this reason so the plan carries context for the test.",
         },
         contextFor(query),
       )
@@ -414,6 +429,8 @@ describe("kb_compile_intent", () => {
         {
           intent: "Customer data must be retained for 7 years.",
           mode: "create",
+          context:
+            "The fixture requester gave this reason so the plan carries context for the test.",
           requirementId: "REQ-RETAIN",
         },
         contextFor(query),
@@ -460,6 +477,8 @@ describe("kb_compile_intent", () => {
         {
           intent: "Customer data must be retained for 7 years.",
           mode: "create",
+          context:
+            "The fixture requester gave this reason so the plan carries context for the test.",
           requirementId: "REQ-RETAIN",
         },
         contextFor(query),
@@ -584,6 +603,8 @@ describe("kb_compile_intent", () => {
           intent:
             "Operators should feel that the workspace is pleasantly fast.",
           mode: "create",
+          context:
+            "The fixture requester gave this reason so the plan carries context for the test.",
         },
         {
           ...contextFor(query),

@@ -131,11 +131,16 @@ export const planBootstrapSpec = {
             type: "array",
             maxItems: 200,
             description:
-              "Statements the agent harvested from knowledgeSources, each citing its source. Intent claims (the default kind) that the strict modeler can ground become cited req candidates; the rest become explicit authoring follow-ups. Observation and open_question claims never become requirements: they become cited fact candidates with fact_kind observation, open questions tagged review:open-question. Bound into the plan hash.",
+              "Statements the agent harvested from knowledgeSources, each citing its source. Intent claims (the default kind) that the strict modeler can ground become cited req candidates; the rest become explicit authoring follow-ups. Observation and open_question claims never become requirements: they become cited fact candidates with fact_kind observation, open questions tagged review:open-question. Every intent and observation claim needs an excerpt: the created entity's body keeps the statement, then a '## Source' section with the blockquoted excerpt, the source title and the reference. Bound into the plan hash.",
             items: {
               type: "object",
               required: ["statement", "sourceId", "reference"],
               additionalProperties: false,
+              if: {
+                properties: { kind: { const: "open_question" } },
+                required: ["kind"],
+              },
+              else: { required: ["excerpt"] },
               properties: {
                 statement: {
                   type: "string",
@@ -155,7 +160,9 @@ export const planBootstrapSpec = {
                 },
                 excerpt: {
                   type: "string",
-                  description: "Optional short quote supporting the claim.",
+                  minLength: 1,
+                  description:
+                    "Verbatim passage from the source the claim came from. Required for intent and observation claims (optional for open_question): Kibi persists it with the knowledge source title and reference in the created entity's '## Source' section, because the ticket or page may be gone by the next migration.",
                 },
                 kind: {
                   type: "string",

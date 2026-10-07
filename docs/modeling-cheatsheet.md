@@ -145,6 +145,24 @@ To add `specified_by` to a requirement that already has a proposition ledger, up
 }
 ```
 
+## Body context example
+
+Front matter holds the checked meaning; the body holds the reasons. A requirement body needs a `## Context` section that is not a restatement of the title.
+
+```markdown
+Refunds above 500 EUR require a second approver.
+
+## Context
+Finance asked for this after the March audit found two unreviewed large refunds. The 500 EUR threshold was their number; the requester gave no reason for it.
+
+## Source
+> Refunds over 500 EUR need a second approver.
+
+Finance audit follow-up, ticket FIN-212.
+```
+
+Scenarios and tests keep Given/When/Then prose, assumptions, what is asserted and what would make it a false pass. When the reason was not given, write "Reason not stated"; never invent one. `entity-context-missing` blocks entities without context; `review:context-missing` is reserved for entities the schema 8 migration acknowledged and is not honored on any other entity; write who asked, the source and "Reason not stated" instead.
+
 ## Common field-name mistakes
 
 The claim keys above are illustrative. Always use the stable key returned for the exact clause text. Store every returned normative key in the requirement-only `logic_claims` array, merge rather than replace existing keys, and preserve `claim_key` plus `claim_text` together on every ground `property_value`, `predicate`, or `rule` fact. Preserve the full `semantic_inventory` proposition ledger; an observation does not ground a claim.

@@ -88,7 +88,15 @@ describe("compile-intent validation and source planning", () => {
     workspaces.push(root);
     const ctx = contextFor(root, quietQuery());
     await expect(
-      executeCompileIntent({ intent: "   ", mode: "create" }, ctx),
+      executeCompileIntent(
+        {
+          intent: "   ",
+          mode: "create",
+          context:
+            "The fixture requester gave this reason so the plan carries context for the test.",
+        },
+        ctx,
+      ),
     ).rejects.toThrow(/intent must be non-empty/);
     await expect(
       executeCompileIntent(
@@ -107,6 +115,8 @@ describe("compile-intent validation and source planning", () => {
         {
           intent: "Keep data.",
           mode: "create",
+          context:
+            "The fixture requester gave this reason so the plan carries context for the test.",
           sourceLocations: [{ path: "/etc/passwd" }],
         },
         ctx,
@@ -117,6 +127,8 @@ describe("compile-intent validation and source planning", () => {
         {
           intent: "Keep data.",
           mode: "create",
+          context:
+            "The fixture requester gave this reason so the plan carries context for the test.",
           sourceLocations: [{ path: "../outside.md" }],
         },
         ctx,
@@ -129,7 +141,12 @@ describe("compile-intent validation and source planning", () => {
     workspaces.push(root);
     await expect(
       executeCompileIntent(
-        { intent: "Keep data.", mode: "create" },
+        {
+          intent: "Keep data.",
+          mode: "create",
+          context:
+            "The fixture requester gave this reason so the plan carries context for the test.",
+        },
         {
           workspaceRoot: root,
           signal: new AbortController().signal,
@@ -149,6 +166,8 @@ describe("compile-intent validation and source planning", () => {
         {
           intent: "Customer data must be retained for 7 years.",
           mode: "create",
+          context:
+            "The fixture requester gave this reason so the plan carries context for the test.",
           sourceLocations: [
             { path: "docs/present.md" },
             { path: "docs/missing.md" },
@@ -168,6 +187,120 @@ describe("compile-intent validation and source planning", () => {
       plan.steps.find((step) => step.id === plan.target.requirementId)
         ?.document,
     ).toMatchObject({ path: "docs/present.md" });
+  });
+
+  test("a create without context is a validation error naming the field", async () => {
+    const root = await mkdtemp(path.join(tmpdir(), "kibi-compile-ctx-"));
+    workspaces.push(root);
+    await expect(
+      executeCompileIntent(
+        {
+          intent: "Customer data must be retained for 7 years.",
+          mode: "create",
+        },
+        contextFor(root, quietQuery()),
+      ),
+    ).rejects.toThrow(/context must be non-empty/);
+    await expect(
+      executeCompileIntent(
+        {
+          intent: "Customer data must be retained for 7 years.",
+          mode: "create",
+          context: "   ",
+        },
+        contextFor(root, quietQuery()),
+      ),
+    ).rejects.toThrow(/context must be non-empty/);
+    await expect(
+      executeCompileIntent(
+        {
+          intent: "Customer data must be retained for 7 years.",
+          mode: "update",
+          requirementId: "REQ-x",
+          sourceExcerpt: "quoted",
+        },
+        contextFor(root, quietQuery()),
+      ),
+    ).rejects.toThrow(/sourceExcerpt and sourceReference need context/);
+  });
+
+  test("renders the requirement body as statement, context and source", async () => {
+    const root = await mkdtemp(path.join(tmpdir(), "kibi-compile-body-"));
+    workspaces.push(root);
+    const plan = (
+      await executeCompileIntent(
+        {
+          intent: "Customer data must be retained for 7 years.",
+          mode: "create",
+          context: "Legal asked after an audit found data deleted too early.",
+          sourceExcerpt: "Keep customer records seven years.\nNo exceptions.",
+          sourceReference: "TICKET-42",
+        },
+        contextFor(root, quietQuery()),
+      )
+    ).structuredContent;
+    const document = plan.steps.find(
+      (step) => step.id === plan.target.requirementId,
+    )?.document as { body?: string } | undefined;
+    expect(document?.body).toBe(
+      "Customer data must be retained for 7 years.\n\n## Context\n\nLegal asked after an audit found data deleted too early.\n\n## Source\n\n> Keep customer records seven years.\n> No exceptions.\n\nSource: TICKET-42\n",
+    );
+  });
+
+  test("an update rewrites the statement and keeps or replaces context sections", async () => {
+    const root = await mkdtemp(path.join(tmpdir(), "kibi-compile-revise-"));
+    workspaces.push(root);
+    const relative = ".kb/requirements/REQ-keep.md";
+    const contextBlock =
+      "## Context\n\nLegal asked after an audit found data deleted too early.\n";
+    const sourceBlock = "## Source\n\n> Keep records.\n\nSource: TICKET-1\n";
+    await mkdir(path.join(root, ".kb/requirements"), { recursive: true });
+    await writeFile(
+      path.join(root, relative),
+      `---\nid: REQ-keep\ntitle: Retention\nstatus: open\n---\nCustomer data must be retained for 5 years.\n\n${contextBlock}\n${sourceBlock}`,
+    );
+    const query = mock(async (goal: string): Promise<PrologQueryResult> => {
+      if (goal.includes("checks:what_if_analysis_json("))
+        return { success: true, bindings: { JsonString: "[]" } };
+      if (goal.includes("kb_relationship"))
+        return { success: true, bindings: { Edges: "[]" } };
+      if (goal.includes("kb_entity('REQ-keep'"))
+        return {
+          success: true,
+          bindings: {
+            Results: `[[REQ-keep,req,[title="Retention",status=open,source="${relative}"]]]`,
+          },
+        };
+      return { success: true, bindings: { Results: "[]" } };
+    });
+    const bodyOf = async (extra: Record<string, unknown>) => {
+      const plan = (
+        await executeCompileIntent(
+          {
+            intent: "Customer data must be retained for 7 years.",
+            mode: "update",
+            requirementId: "REQ-keep",
+            ...extra,
+          },
+          contextFor(root, query),
+        )
+      ).structuredContent;
+      return (
+        plan.steps.find((step) => step.id === "REQ-keep")?.document as
+          | { body?: string }
+          | undefined
+      )?.body;
+    };
+    // No context supplied: the statement changes, context sections survive.
+    expect(await bodyOf({})).toBe(
+      `Customer data must be retained for 7 years.\n\n${contextBlock}\n${sourceBlock}`,
+    );
+    // Supplied context replaces the Context section and keeps Source.
+    expect(
+      await bodyOf({ context: "Compliance moved the limit to seven years." }),
+    ).toBe(
+      `Customer data must be retained for 7 years.\n\n## Context\n\nCompliance moved the limit to seven years.\n\n${sourceBlock}`,
+    );
   });
 
   test("auto-selects a high-confidence update target and applies drafts plus proposals", async () => {
@@ -246,7 +379,12 @@ describe("compile-intent validation and source planning", () => {
       return { success: true, bindings: { Results: "[]" } };
     });
     const first = await executeCompileIntent(
-      { intent: "Customer data must be retained for 7 years.", mode: "create" },
+      {
+        intent: "Customer data must be retained for 7 years.",
+        mode: "create",
+        context:
+          "The fixture requester gave this reason so the plan carries context for the test.",
+      },
       contextFor(root, quietQuery()),
     );
     const id = first.structuredContent.target.requirementId;
@@ -267,6 +405,8 @@ describe("compile-intent validation and source planning", () => {
         {
           intent: "Customer data must be retained for 7 years.",
           mode: "create",
+          context:
+            "The fixture requester gave this reason so the plan carries context for the test.",
         },
         contextFor(root, dup),
       )
@@ -381,6 +521,8 @@ describe("compile-intent validation and source planning", () => {
         {
           intent: "Customer data must be retained for 7 years.",
           mode: "create",
+          context:
+            "The fixture requester gave this reason so the plan carries context for the test.",
           sourceLocations: [{ path: "docs/present.md" }],
         },
         contextFor(root, quietQuery(), { fs: undefined }),
@@ -399,6 +541,8 @@ describe("compile-intent validation and source planning", () => {
         {
           intent: "Customer data must be retained for 7 years.",
           mode: "create",
+          context:
+            "The fixture requester gave this reason so the plan carries context for the test.",
           scenarioDrafts: [
             { id: "SCEN-A", title: "A", body: "Given A." },
             { id: "SCEN-B", title: "B", body: "Given B." },
@@ -476,6 +620,8 @@ describe("compile-intent validation and source planning", () => {
         {
           intent: "Customer data must be retained for 7 years.",
           mode: "create",
+          context:
+            "The fixture requester gave this reason so the plan carries context for the test.",
           scenarioDrafts: [
             { id: "SCEN-A", title: "A", body: "Given A." },
             { id: "SCEN-B", title: "B", body: "Given B." },

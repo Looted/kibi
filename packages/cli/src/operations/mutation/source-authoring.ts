@@ -6,6 +6,7 @@ import { isDeepStrictEqual } from "node:util";
 import { dump as dumpYaml, load as loadYaml } from "js-yaml";
 import { parseDocument, stringify } from "yaml";
 import { OperationError } from "../../cli-errors.js";
+import { requirementSemanticText } from "../../extractors/markdown.js";
 import type { OperationContext } from "../../public/operations/runtime-types.js";
 import { canonicalFilesystemPath } from "../../utils/canonical-path.js";
 import {
@@ -292,6 +293,16 @@ function renderEntityDocument(
   frontmatter.id = entity.id;
   frontmatter.title ??= entity.id;
   frontmatter.type = entity.type;
+  // The checked meaning is always stated, never derived from a body that now
+  // also carries context sections.
+  if (
+    entity.type === "req" &&
+    (typeof frontmatter.semantic_text !== "string" ||
+      frontmatter.semantic_text.trim() === "")
+  ) {
+    const derived = requirementSemanticText(body);
+    if (derived !== "") frontmatter.semantic_text = derived;
+  }
   return `---\n${dumpYaml(frontmatter, { noRefs: true, lineWidth: -1, sortKeys: false })}---${body.startsWith("\n") ? "" : "\n"}${body}`;
 }
 

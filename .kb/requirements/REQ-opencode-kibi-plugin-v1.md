@@ -11,6 +11,7 @@ tags:
   - opencode
   - kibi
   - plugin
+  - review:context-missing
 links:
   - type: specified_by
     target: SCEN-opencode-kibi-plugin-v1-coverage

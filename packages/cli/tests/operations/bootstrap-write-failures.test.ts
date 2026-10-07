@@ -240,11 +240,15 @@ describe("bootstrap write safety and evidence accounting", () => {
             sourceId: "spec",
             reference: "line:1",
             statement: "Telemetry must be disabled.",
+            excerpt:
+              "The source states this verbatim so the entity can keep the passage.",
           },
           {
             sourceId: "spec",
             reference: "line:2",
             statement: "Exports must be signed.",
+            excerpt:
+              "The source states this verbatim so the entity can keep the passage.",
           },
         ],
       }),
@@ -327,11 +331,15 @@ describe("bootstrap write safety and evidence accounting", () => {
           sourceId: "tracker",
           reference: "T-1",
           statement: "Exports must be signed.",
+          excerpt:
+            "The source states this verbatim so the entity can keep the passage.",
         },
         {
           sourceId: "spec",
           reference: "§1",
           statement: "Telemetry must be disabled.",
+          excerpt:
+            "The source states this verbatim so the entity can keep the passage.",
         },
       ],
     };
@@ -515,11 +523,19 @@ describe("bootstrap write safety and evidence accounting", () => {
         },
       ],
       intentClaims: [
-        { sourceId: "spec", reference: "line:1", statement: "🚀 must 🚀" },
+        {
+          sourceId: "spec",
+          reference: "line:1",
+          statement: "🚀 must 🚀",
+          excerpt:
+            "The source states this verbatim so the entity can keep the passage.",
+        },
         {
           sourceId: "spec",
           reference: "line:2",
           statement: "Telemetry must be disabled.",
+          excerpt:
+            "The source states this verbatim so the entity can keep the passage.",
         },
       ],
     });

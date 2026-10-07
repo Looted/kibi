@@ -8,6 +8,7 @@ import type { OperationResult } from "../../public/operations/types.js";
 import { entityIdStyleWarnings } from "../../utils/entity-id-style.js";
 import { analyzeSemanticAdvisorInput } from "../semantic-advisor/analyze-prose.js";
 import { assertSemanticInventoryBoundary } from "../semantic-advisor/ingestion-boundary.js";
+import { entityContextWarnings } from "./context-warning.js";
 import { validateRelationshipSources } from "./relationships.js";
 import { validateSymbolGranularity } from "./symbol-granularity.js";
 import type { UpsertInput, ValidateUpsertPayload } from "./types.js";
@@ -90,7 +91,11 @@ export async function executeValidateUpsert(
     const payload: ValidateUpsertPayload = {
       valid: true,
       errors: [],
-      warnings: [...semantic.warnings, ...idStyleWarnings],
+      warnings: [
+        ...semantic.warnings,
+        ...idStyleWarnings,
+        ...entityContextWarnings(input, entity, context.workspaceRoot),
+      ],
       semanticAdvisor: semantic.receipt,
       normalizedPreview: entity,
     };

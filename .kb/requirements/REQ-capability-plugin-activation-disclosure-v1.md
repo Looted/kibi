@@ -3,6 +3,7 @@ title: Explicit activation and network disclosure
 status: open
 tags:
   - plugins
+  - review:context-missing
 semantic_text: A capability plugin must be activated only from explicit package.json kibi.plugins configuration. A capability plugin package must resolve from the project-local dependency graph and must not use a global installation. Plugin permission metadata must not be an allowed provider operation for sandbox enforcement.
 logic_claims:
   - CLAIM-2F275AF8F97A7F6E

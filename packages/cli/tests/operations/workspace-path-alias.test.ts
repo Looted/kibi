@@ -91,6 +91,8 @@ function sourcePlan(relative: string, body: string) {
     },
     target: {
       mode: "create" as const,
+      context:
+        "The fixture requester gave this reason so the plan carries context for the test.",
       requirementId: "REQ-alias",
       selectionReason: "alias regression",
     },

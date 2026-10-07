@@ -2,7 +2,14 @@ import path from "node:path";
 
 import { extractFromManifestString } from "../../extractors/manifest.js";
 import { extractFromMarkdownString } from "../../extractors/markdown.js";
-import { confidenceBand, slug, upsert } from "./candidate-helpers.js";
+import {
+  bootstrapProvenance,
+  confidenceBand,
+  provenanceBody,
+  slug,
+  upsert,
+  withDocumentBody,
+} from "./candidate-helpers.js";
 import {
   type CandidateBuildResult,
   markdownCandidates,
@@ -115,7 +122,15 @@ function providerCandidate(
       confidenceBand: confidenceBand(confidence),
       evidence,
       relationships: [],
-      applyPlan: [upsert(entity)],
+      applyPlan: [
+        withDocumentBody(
+          upsert(entity),
+          provenanceBody(
+            title,
+            `${bootstrapProvenance(item.provider, relativePath, confidence)}${evidence.length > 0 ? ` Evidence: ${evidence.join("; ")}.` : ""}`,
+          ),
+        ),
+      ],
     },
   ];
 }

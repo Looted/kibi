@@ -5,7 +5,7 @@ status: open
 created_at: 2026-08-04T00:00:00Z
 updated_at: 2026-08-04T00:00:00Z
 priority: must
-tags: [requirements, prolog, predicates, contradictions, semantic-advisor, umbrella]
+tags: [requirements, prolog, predicates, contradictions, semantic-advisor, umbrella, review:context-missing]
 semantic_text: "Every atomic normative clause in a requirement must have a stable claim key and a linked ground property or predicate fact. Current requirements with opposite polarities over the same ground predicate term must produce a blocking contradiction. Every current requirement without a logic_claims manifest must receive a non-blocking logical-coverage debt diagnostic. The logic-coverage rule must run by default for explicitly manifested requirements while requirements without manifests remain gradual-backfill debt. Kibi must reject a ground fact when its claim_key is not the stable key derived from claim_text. MCP tool schemas must preserve claim-key patterns. MCP tool schemas must preserve logic-claim uniqueness constraints. MCP tool schemas must preserve conditional claim provenance requirements. Staged validation overlays must preserve requirement logic_claims manifests. Staged validation overlays must preserve every typed predicate fact field. Staged validation overlays must preserve typed test verification metadata."
 logic_claims:
   - CLAIM-B7EDA6002F1B38E1

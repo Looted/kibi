@@ -6,6 +6,7 @@ tags:
   - ontology
   - modeling
   - vocabulary-convergence
+  - review:context-missing
 semantic_text: kb_upsert must reject a predicate fact whose argument value is not a declared constant of its schema. kb_upsert must reject a predicate fact that uses an argument alias and name the declared constant to use. kb_suggest_predicates must bind an argument alias to its declared constant. kb_suggest_predicates must leave an argument with an undeclared value unbound.
 semantic_clauses:
   - kb_upsert must reject a predicate fact whose argument value is not a declared constant of its schema.

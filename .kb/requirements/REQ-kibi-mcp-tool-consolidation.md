@@ -7,6 +7,7 @@ tags:
   - tool-surface
   - composite-tools
   - parity
+  - review:context-missing
 semantic_text: The Kibi MCP server must expose 16 agent-facing tools, with composite kb_skills and kb_model tools returning the routed catalog operation payload plus the selector. kb_upsert with dryRun true must write nothing and report both write effects as skipped in place of kb_validate_upsert. kb_sparql_remote and kb_job_status must register only when KIBI_MCP_OPTIONAL_TOOLS names them.
 semantic_clauses:
   - The Kibi MCP server must expose 16 agent-facing tools, with composite kb_skills and kb_model tools returning the routed catalog operation payload plus the selector.

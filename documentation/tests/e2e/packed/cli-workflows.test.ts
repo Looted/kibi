@@ -488,7 +488,13 @@ if (RUN_NODE_TEST_SUITE) {
           status: "open",
           tags: ["test"],
         },
-        "This is a test requirement for E2E validation.",
+        [
+          "This is a test requirement for E2E validation.",
+          "",
+          "## Context",
+          "",
+          "The packed CLI workflow suite needs one requirement whose body carries real context, so the sync, query and check steps run against an entity that satisfies the entity-context-missing rule.",
+        ].join("\n"),
       );
 
       createMarkdownFile(
@@ -499,7 +505,13 @@ if (RUN_NODE_TEST_SUITE) {
           title: "Test scenario",
           status: "draft",
         },
-        "Given a test setup\nWhen something happens\nThen result occurs",
+        [
+          "Given a test setup",
+          "When something happens",
+          "Then result occurs",
+          "",
+          "This scenario backs the packed CLI workflow suite and states its steps as prose so the body is real context for the entity-context-missing rule.",
+        ].join("\n"),
       );
 
       // Run sync

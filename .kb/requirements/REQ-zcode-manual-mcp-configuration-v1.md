@@ -6,6 +6,7 @@ tags:
   - zcode
   - documentation
   - mcp
+  - review:context-missing
 semantic_text: |-
   Documentation must identify the kibi-zcode adapter as optional.
 

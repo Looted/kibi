@@ -657,6 +657,8 @@ function compilePlan(overrides: Partial<CompilePlanV1> = {}): CompilePlanV1 {
     },
     target: {
       mode: "create" as const,
+      context:
+        "The fixture requester gave this reason so the plan carries context for the test.",
       requirementId: "REQ-compile",
       selectionReason: "test",
     },

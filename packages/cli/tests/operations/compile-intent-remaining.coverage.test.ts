@@ -99,6 +99,8 @@ describe("executeCompileIntent leftover planning branches", () => {
         {
           intent: "!!!",
           mode: "create",
+          context:
+            "The fixture requester gave this reason so the plan carries context for the test.",
           sourceLocations: [{ path: ".kb/requirements/REQ.md" }],
         },
         contextFor(root, quietQuery()),
@@ -111,7 +113,7 @@ describe("executeCompileIntent leftover planning branches", () => {
       plan.steps.find((step) => step.id === plan.target.requirementId)
         ?.document,
     ).toEqual({
-      body: "!!!\n",
+      body: "!!!\n\n## Context\n\nThe fixture requester gave this reason so the plan carries context for the test.\n",
       path: `.kb/requirements/${plan.target.requirementId}.md`,
     });
   });
@@ -226,6 +228,8 @@ describe("executeCompileIntent leftover planning branches", () => {
         {
           intent: "Customer data must be retained for 7 years.",
           mode: "create",
+          context:
+            "The fixture requester gave this reason so the plan carries context for the test.",
           sourceLocations: [{ path: "docs/present.md" }],
         },
         contextFor(root, quietQuery()),
@@ -239,7 +243,7 @@ describe("executeCompileIntent leftover planning branches", () => {
       plan.steps.find((step) => step.id === plan.target.requirementId)
         ?.document,
     ).toEqual({
-      body: "Customer data must be retained for 7 years.\n",
+      body: "Customer data must be retained for 7 years.\n\n## Context\n\nThe fixture requester gave this reason so the plan carries context for the test.\n",
       path: "docs/present.md",
     });
   });
@@ -254,6 +258,8 @@ describe("executeCompileIntent leftover planning branches", () => {
         {
           intent: "Customer data must be retained for 7 years.",
           mode: "create",
+          context:
+            "The fixture requester gave this reason so the plan carries context for the test.",
           testDrafts: [
             { title: "Only test", body: "it retains", id: "TEST-ONLY" },
             { title: "Second test", body: "it also retains" },
@@ -314,6 +320,8 @@ describe("executeCompileIntent leftover planning branches", () => {
           intent:
             "The editor must persist drafts. This exists because operators asked for it. For example, a mid-edit crash. Reviewers prefer the current layout.",
           mode: "create",
+          context:
+            "The fixture requester gave this reason so the plan carries context for the test.",
           clauses: [
             "This exists because operators asked for it.",
             "For example, a mid-edit crash.",
@@ -509,6 +517,8 @@ describe("executeCompileIntent leftover planning branches", () => {
         {
           intent: "Customer data must be retained for 7 years.",
           mode: "create",
+          context:
+            "The fixture requester gave this reason so the plan carries context for the test.",
         },
         contextFor(root, quietQuery()),
       )
@@ -572,6 +582,8 @@ describe("executeCompileIntent leftover planning branches", () => {
         {
           intent: "Customer data must be retained for 7 years.",
           mode: "create",
+          context:
+            "The fixture requester gave this reason so the plan carries context for the test.",
         },
         contextFor(root, quietQuery()),
       )

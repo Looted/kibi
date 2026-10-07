@@ -3,6 +3,7 @@ title: Jev classifier optional fallback
 status: open
 tags:
   - plugins
+  - review:context-missing
 semantic_text: A TypeSafe client or network call must be absent when kibi-plugin-jev is imported or the registry is inactive. When the Jev semantic classifier is unavailable, classification must fall back to builtin analysis. Plugin diagnostics must not expose credentials.
 logic_claims:
   - CLAIM-303792FABB5EDCA6

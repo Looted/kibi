@@ -20,6 +20,7 @@ tags:
   - coordinates
   - sync
   - proof
+  - review:context-missing
 priority: must
 id: REQ-generated-coordinate-persistence
 type: req

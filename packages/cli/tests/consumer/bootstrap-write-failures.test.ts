@@ -4,6 +4,7 @@ import { dump as dumpYaml } from "js-yaml";
 import { bootstrapPlanHash } from "../../src/operations/bootstrap/types.js";
 import type { UpsertInput } from "../../src/operations/mutation/types.js";
 import { validateUpsertInput } from "../../src/operations/mutation/validation.js";
+import { LATEST_KB_SCHEMA_VERSION } from "../../src/utils/schema-version.js";
 import {
   type ConsumerWorkspace,
   type Json,
@@ -57,6 +58,7 @@ function planClaims(statements: string[], syncFirst = false): Json {
           statement,
           sourceId: "spec",
           reference: `claim:${index + 1}`,
+          excerpt: `The spec says: ${statement}`,
         })),
       },
     }).data as Json
@@ -289,7 +291,9 @@ test("schema 6 polarity-only facts migrate strictly without changing IDs or bodi
   expect(before.stderr).toContain("missing value field");
   ws.text(["migrate", "--yes"]);
   ws.sync();
-  expect(JSON.parse(ws.read(".kb/manifest.json")).schemaVersion).toBe(7);
+  expect(JSON.parse(ws.read(".kb/manifest.json")).schemaVersion).toBe(
+    LATEST_KB_SCHEMA_VERSION,
+  );
   for (const polarity of ["require", "forbid"]) {
     const source = ws.read(`.kb/facts/FACT-${polarity}.md`);
     expect(source.endsWith(`---${body}`)).toBe(true);

@@ -6,6 +6,7 @@ tags:
   - validation
   - redundancy
   - vocabulary-convergence
+  - review:context-missing
 semantic_text: Kibi check must report two distinct current requirements that ground the identical logical term as a domain-redundancy warning with exact witnesses. Requirement pairs linked by supersedes must be exempt from domain-redundancy. Requirement pairs linked by restates must be exempt from domain-redundancy. Kibi check must report a numeric bound that strictly implies another bound on the same subject and property as informational domain-implication.
 semantic_clauses:
   - Kibi check must report two distinct current requirements that ground the identical logical term as a domain-redundancy warning with exact witnesses.

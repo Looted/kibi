@@ -278,6 +278,8 @@ test("declared intent claims turn generic Markdown off unless the caller sets it
           sourceId: "tracker",
           reference: "TRK-1",
           statement: "Refunds must not exceed the original charge.",
+          excerpt:
+            "The source states this verbatim so the entity can keep the passage.",
         },
       ],
     };

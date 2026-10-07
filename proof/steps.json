@@ -2063,5 +2063,24 @@
         "documentation/tests/e2e/skillopt-description-candidates.e2e.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-kb-entity-body-context",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "30000",
+        "--isolate",
+        "--max-concurrency=1",
+        "./packages/cli/tests/entity-body-context.test.ts",
+        "./packages/cli/tests/public/entity-context.test.ts",
+        "./packages/cli/tests/commands/check-entity-context.test.ts",
+        "./packages/cli/tests/operations/context-warning.test.ts",
+        "./packages/cli/tests/operations/migration/entity-body-context.test.ts",
+        "./packages/cli/tests/operations/migration/body-preservation.test.ts"
+      ]
+    ]
   }
 ]
