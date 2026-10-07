@@ -2,7 +2,7 @@
 id: kibi-usage
 name: Kibi Usage
 description: Use Kibi's source-first, exact-Git, migration-aware, proof-aware operations safely across MCP or the trusted local CLI, including partial completion repair.
-version: 2.5.0
+version: 2.6.0
 kibiCompatibility: ">=1.0.0"
 tags:
   - kibi
@@ -265,10 +265,14 @@ prose. Bind them from the claim's own words and call again with the same
 When the retry returns `apply_requires_predicate`, write its `applyPlan` fact,
 then the `relationshipPlan` `requires_predicate` row; its target is
 `relationshipTarget` (the planned `FACT-PRED-…` id), never a candidate's
-`SUGGEST-…` id. `already_grounded` means the requirement already grounds the
-claim (for example a bootstrap `requires_property` fact): a second grounding
-link would fail, so keep it or follow `replacementPlan`. Record an ontology gap
-only when no returned schema fits the claim, not because bindings were missing.
+`SUGGEST-…` id. A non-empty `existingGrounding` means the requirement already
+grounds the claim (for example a bootstrap `requires_property` fact); the action
+still names the predicate state. `replace_grounding` means a predicate fits but
+a second grounding link would fail, so keep the existing link or follow
+`replacementPlan`; `provide_argument_bindings` and `record_ontology_gap` mean
+the same as for an ungrounded claim, and the gap observation is not a grounding
+link, so write it. Record an ontology gap only when no returned schema fits the
+claim, not because bindings were missing.
 A review note is an observation that quotes its claim without `claim_key`, with
 its prose in `document.body`:
 `{"type":"fact","id":"FACT-review-<area>-<behavior>","properties":{"title":"Review: ...","status":"active","fact_kind":"observation","text_ref":"<sourceId>:<reference>","tags":["review:invalid-write"],"claim_text":"<the claim>"},"document":{"body":"<why it needs review, who raised it, the source>"}}`.

@@ -132,7 +132,7 @@ Every other fact kind that carries `claim_text` also needs the matching `claim_k
 
 ## Writing a scenario
 
-Scenario prose goes in `document.body`, never in `properties` (a `body`, `text` or `description` property is rejected as an unknown property that names `document.body`). `expects` is `success`, `rejection` or `error`:
+Scenario prose goes in `document.body`, never in `properties` (a `body`, `text` or `description` property is rejected as an unknown property that names `document.body`). `expects` is `success`, `rejection` or `error`. Set it only when the scenario also links `assumes` facts (the `property_value` facts whose values it relies on): Kibi checks feasibility from those values, and `expects` without `assumes` only yields a `scenario-feasibility-unknown` warning. A draft scenario tagged `needs-human-review` omits `expects`:
 
 ```json
 {
@@ -141,7 +141,10 @@ Scenario prose goes in `document.body`, never in `properties` (a `body`, `text` 
   "properties": { "title": "Microphone failure shows an error", "status": "active", "expects": "error" },
   "document": {
     "body": "Given microphone access is denied, when the user starts recording, then the editor shows an error and records nothing.\n\nSupport asked for this after users lost takes they believed were recorded; ticket ED-88.\n"
-  }
+  },
+  "relationships": [
+    { "type": "assumes", "from": "SCEN-editor-mic-failure-error", "to": "FACT-editor-mic-permission-denied" }
+  ]
 }
 ```
 

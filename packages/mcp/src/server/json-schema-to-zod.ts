@@ -153,7 +153,65 @@ function conditionalRequiredKeys(
     : [];
 }
 
-// implements REQ-002
+const GUARD_KEYWORDS = new Set([
+  "required",
+  "not",
+  "anyOf",
+  "allOf",
+  "description",
+]);
+
+// A guard branch only states which keys must or must not be present
+// (required/not/anyOf/allOf of such conditions). It carries no property
+// schemas, so enforcing a oneOf of guard branches can only tighten
+// validation, never loosen it.
+function isGuardBranch(branch: unknown): boolean {
+  if (branch === null || typeof branch !== "object" || Array.isArray(branch))
+    return false;
+  const record = branch as JsonRecord;
+  const keys = Object.keys(record);
+  if (keys.length === 0) return false;
+  return keys.every((key) => {
+    if (!GUARD_KEYWORDS.has(key)) return false;
+    const entry = record[key];
+    if (key === "required")
+      return (
+        Array.isArray(entry) && entry.every((item) => typeof item === "string")
+      );
+    if (key === "not") return isGuardBranch(entry);
+    if (key === "anyOf" || key === "allOf")
+      return Array.isArray(entry) && entry.every(isGuardBranch);
+    return true;
+  });
+}
+
+function guardOneOfBranches(obj: JsonRecord): readonly JsonRecord[] {
+  if (!Array.isArray(obj.oneOf) || obj.oneOf.length < 2) return [];
+  return obj.oneOf.every(isGuardBranch) ? (obj.oneOf as JsonRecord[]) : [];
+}
+
+function describeGuardBranch(branch: JsonRecord): string {
+  const required = Array.isArray(branch.required)
+    ? (branch.required as string[])
+    : [];
+  const forbidden = new Set<string>();
+  const collect = (entry: unknown) => {
+    if (entry === null || typeof entry !== "object") return;
+    const record = entry as JsonRecord;
+    if (Array.isArray(record.required))
+      for (const key of record.required as string[]) forbidden.add(key);
+    if (Array.isArray(record.anyOf))
+      for (const item of record.anyOf) collect(item);
+    if (Array.isArray(record.allOf))
+      for (const item of record.allOf) collect(item);
+  };
+  collect(branch.not);
+  const parts = [`{${required.join(", ")}}`];
+  if (forbidden.size > 0) parts.push(`without ${[...forbidden].join(", ")}`);
+  return parts.join(" ");
+}
+
+// implements REQ-002, REQ-mcp-oneof-guard-input-validation
 export function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
   if (!schema || typeof schema !== "object") {
     return z.any();
@@ -212,9 +270,10 @@ export function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
   // JSON Schema anyOf unions become real Zod unions so MCP output
   // validation enforces the declared alternatives instead of silently
   // degrading to z.any() — e.g. kb_check's synchronous payload versus its
-  // kibi.job.v1 async receipt. oneOf is intentionally left degrading: its
-  // required-guard branches carry no properties and would loosen input
-  // validation instead of tightening it.
+  // kibi.job.v1 async receipt. oneOf is not turned into a union: its
+  // required-guard branches carry no properties and a union would loosen
+  // input validation. Guard oneOf branches on an object are enforced as a
+  // refinement in the object case below instead.
   const anyOfVariants = Array.isArray(obj.anyOf) ? obj.anyOf : [];
   if (anyOfVariants.length > 0) {
     const variants = anyOfVariants.map((variant) =>
@@ -287,6 +346,27 @@ export function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
             }
           })
           .meta({ allOf: obj.allOf });
+      }
+      // A top-level oneOf of guard branches (for example "plan with
+      // approvedPlanHash, or recoveryJournalId alone") is enforced with the
+      // same condition matcher as if/then: exactly one branch must match.
+      // It is not republished as JSON Schema metadata, because hosts reject
+      // a top-level oneOf in a tool input schema; the CLI enforces the same
+      // rule with ajv.
+      const guardBranches = guardOneOfBranches(obj);
+      if (guardBranches.length > 0) {
+        result = result.superRefine((value, context) => {
+          if (value === null || typeof value !== "object") return;
+          const matches = guardBranches.filter((branch) =>
+            matchesJsonSchemaCondition(value, branch),
+          ).length;
+          if (matches === 1) return;
+          context.addIssue({
+            code: "custom",
+            path: [],
+            message: `Input must match exactly one of: ${guardBranches.map(describeGuardBranch).join("; ")} (matched ${matches}).`,
+          });
+        });
       }
       return result;
     }

@@ -1081,6 +1081,99 @@ type BootstrapJournalCarry = Readonly<{
   interruptedActions?: readonly Readonly<Record<string, unknown>>[];
 }>;
 
+/**
+ * The bootstrap plan's live-state checks: branch, KB snapshot, workspace
+ * snapshot and declared source hashes must still match the plan.
+ */
+// implements REQ-bootstrap-apply-long-running
+async function assertBootstrapPlanCurrent(
+  args: Extract<ApplyPlanArgs, { plan: BootstrapPlanV1 }>,
+  operationContext: OperationContext,
+): Promise<
+  NonNullable<Awaited<ReturnType<typeof executeStatus>>["structuredContent"]>
+> {
+  const statusResult = await executeStatus({}, operationContext);
+  const status = statusResult.structuredContent;
+  if (!status)
+    throw new Error("Bootstrap apply failed: status returned no payload");
+  const workspace = await readWorkspaceSnapshot(operationContext);
+  const boundLiveKbSnapshot =
+    status.snapshotId === "missing" &&
+    workspace.available &&
+    /^[a-f0-9]{64}$/i.test(workspace.snapshot.hash)
+      ? bootstrapEmptyKbSnapshotId({
+          branch: status.branch,
+          workspaceSnapshot: workspace.snapshot.hash,
+          sourceHashes: args.plan.expected.sourceHashes,
+        })
+      : status.snapshotId;
+  if (
+    args.plan.expected.branch !== "unknown" &&
+    status.branch !== args.plan.expected.branch
+  )
+    throw new Error("Bootstrap apply failed: branch changed since planning");
+  if (boundLiveKbSnapshot !== args.plan.expected.kbSnapshotId)
+    throw new Error(
+      "Bootstrap apply failed: KB snapshot changed since planning",
+    );
+  if (
+    args.plan.expected.workspaceSnapshot !== "unknown" &&
+    (!workspace.available ||
+      workspace.snapshot.hash !== args.plan.expected.workspaceSnapshot)
+  )
+    throw new Error(
+      "Bootstrap apply failed: workspace snapshot changed since planning",
+    );
+  await validateSources(operationContext, args.plan.expected.sourceHashes);
+  return status;
+}
+
+/**
+ * Checks a plan-bearing kb_apply_plan call can start: the approved hash, the
+ * plan shape and canonical hash, and for a bootstrap plan its live snapshots.
+ * Writes nothing. An MCP async apply runs it before returning the job
+ * receipt, so input and stale-plan errors fail the call instead of the job.
+ * The apply itself repeats every check under the workspace lock.
+ */
+// implements REQ-mcp-apply-plan-async-preflight
+export async function preflightApplyPlan(
+  args: ApplyPlanArgs,
+  context: OperationContext,
+): Promise<void> {
+  if (!("plan" in args)) return;
+  if (!isRecord(args.plan))
+    throw new Error("Apply plan failed: plan must be an object");
+  if (
+    typeof args.approvedPlanHash !== "string" ||
+    !/^[a-f0-9]{64}$/i.test(args.approvedPlanHash)
+  )
+    throw new Error(
+      "Apply plan failed: approvedPlanHash must be the SHA-256 planHash returned with the plan",
+    );
+  if (isBootstrapApplyArgs(args)) {
+    preflightBootstrapActions(validateBootstrapPlanShape(args), context);
+    const prolog = context.prolog ?? (await context.ensureProlog?.());
+    if (!prolog) throw new Error("Bootstrap apply requires a Prolog runtime");
+    await assertBootstrapPlanCurrent(args, {
+      ...context,
+      prolog,
+      sourceFirst: true as const,
+    });
+    return;
+  }
+  if (isMigrationApplyArgs(args)) {
+    validateMigrationPlanShape(args);
+    return;
+  }
+  if (isEntityDeletionApplyArgs(args)) {
+    validateEntityDeletionPlan(args);
+    return;
+  }
+  validateCompilePlanShape(
+    args as Extract<ApplyPlanArgs, { plan: CompilePlanV1 }>,
+  );
+}
+
 async function executeBootstrapPlan(
   args: Extract<ApplyPlanArgs, { plan: BootstrapPlanV1 }>,
   context: OperationContext,
@@ -1100,41 +1193,11 @@ async function executeBootstrapPlan(
   const prolog = context.prolog ?? (await context.ensureProlog?.());
   if (!prolog) throw new Error("Bootstrap apply requires a Prolog runtime");
   const operationContext = { ...context, prolog, sourceFirst: true as const };
-  const statusResult = await executeStatus({}, operationContext);
-  const status = statusResult.structuredContent;
+  const status = recovery
+    ? (await executeStatus({}, operationContext)).structuredContent
+    : await assertBootstrapPlanCurrent(args, operationContext);
   if (!status)
     throw new Error("Bootstrap apply failed: status returned no payload");
-  const workspace = await readWorkspaceSnapshot(operationContext);
-  const boundLiveKbSnapshot =
-    status.snapshotId === "missing" &&
-    workspace.available &&
-    /^[a-f0-9]{64}$/i.test(workspace.snapshot.hash)
-      ? bootstrapEmptyKbSnapshotId({
-          branch: status.branch,
-          workspaceSnapshot: workspace.snapshot.hash,
-          sourceHashes: args.plan.expected.sourceHashes,
-        })
-      : status.snapshotId;
-  if (!recovery) {
-    if (
-      args.plan.expected.branch !== "unknown" &&
-      status.branch !== args.plan.expected.branch
-    )
-      throw new Error("Bootstrap apply failed: branch changed since planning");
-    if (boundLiveKbSnapshot !== args.plan.expected.kbSnapshotId)
-      throw new Error(
-        "Bootstrap apply failed: KB snapshot changed since planning",
-      );
-    if (
-      args.plan.expected.workspaceSnapshot !== "unknown" &&
-      (!workspace.available ||
-        workspace.snapshot.hash !== args.plan.expected.workspaceSnapshot)
-    )
-      throw new Error(
-        "Bootstrap apply failed: workspace snapshot changed since planning",
-      );
-    await validateSources(operationContext, args.plan.expected.sourceHashes);
-  }
   const journalId = `bootstrap-${args.plan.planHash.slice(0, 16)}`;
   const journalPath = path.join(
     context.workspaceRoot,

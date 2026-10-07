@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { renderRequirementBody } from "../../entity-body-context.js";
 import { buildStrictWriteSet } from "../../utils/strict-modeling.js";
 import { confidenceBand, strictPlan, upsert } from "./candidate-helpers.js";
-import { claimFor } from "./requirement-claims.js";
+import { claimFor, resolveBootstrapSubjectKey } from "./requirement-claims.js";
 import type {
   BootstrapDeclaredContext,
   BootstrapIntentClaim,
@@ -57,6 +57,7 @@ function claimBody(
 ): string {
   return renderRequirementBody({
     statement: claim.statement,
+    context: claim.rationale,
     source: {
       excerpt: claim.excerpt,
       title: source.title,
@@ -76,6 +77,20 @@ function withClaimBody(
   body: string,
 ): Readonly<Record<string, unknown>> {
   return { ...step, document: { body } };
+}
+
+/** Carry the claim's stated rationale onto the requirement step. */
+// implements REQ-bootstrap-subject-key-shape
+function withRationale(
+  step: Readonly<Record<string, unknown>>,
+  rationale: string | undefined,
+): Readonly<Record<string, unknown>> {
+  if (!rationale) return step;
+  const properties =
+    step.properties !== null && typeof step.properties === "object"
+      ? (step.properties as Record<string, unknown>)
+      : {};
+  return { ...step, properties: { ...properties, rationale } };
 }
 
 /**
@@ -325,12 +340,27 @@ export function buildIntentClaimCandidates(
         confidence,
         provenance,
       );
-      writeSet = modeled
-        ? buildStrictWriteSet({ claim: modeled, statement: claim.statement })
+      const subjectKey = modeled
+        ? resolveBootstrapSubjectKey(
+            modeled.subjectKey,
+            modeled.propertyKey,
+            claim.component ?? source.component,
+          )
         : null;
+      writeSet =
+        modeled && subjectKey?.ok
+          ? buildStrictWriteSet({
+              claim: { ...modeled, subjectKey: subjectKey.subjectKey },
+              statement: claim.statement,
+            })
+          : null;
       if (!modeled)
         diagnostics.push(
           `Intent claim needs authoring at ${source.id}:${claim.reference}: ${claim.statement}`,
+        );
+      else if (subjectKey && !subjectKey.ok)
+        diagnostics.push(
+          `Intent claim at ${source.id}:${claim.reference} was not planned as a requirement: its ${subjectKey.reason}. Declare component on the claim or on knowledge source ${source.id} and re-plan, or author it with kb_model: ${claim.statement}`,
         );
     } catch (error) {
       diagnostics.push(
@@ -358,7 +388,10 @@ export function buildIntentClaimCandidates(
         })),
         applyPlan: strictPlan(writeSet).map((step) =>
           step.type === "req"
-            ? withClaimBody(step, claimBody(source, claim))
+            ? withClaimBody(
+                withRationale(step, claim.rationale),
+                claimBody(source, claim),
+              )
             : step,
         ),
       });

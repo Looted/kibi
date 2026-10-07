@@ -1,6 +1,6 @@
 ---
 title: Predicate modeling respects a requirement's existing grounding
-status: open
+status: closed
 priority: must
 tags:
   - modeling

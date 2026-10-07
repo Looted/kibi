@@ -79,6 +79,11 @@
                   "required": ["kind"]
                 },
                 "properties": {
+                  "component": {
+                    "description": "Optional component the claim is about (for example recorder). Generated subject keys take the shape component.aspect with the aspect from the claim's subject. Without a component on the claim or its knowledge source, a claim whose subject is not a single word or already dotted becomes an authoring follow-up with a diagnostic instead of a malformed subject key.",
+                    "minLength": 1,
+                    "type": "string"
+                  },
                   "excerpt": {
                     "description": "Verbatim passage from the source the claim came from. Required for intent and observation claims (optional for open_question): Kibi persists it with the knowledge source title and reference in the created entity's '## Source' section, because the ticket or page may be gone by the next migration.",
                     "minLength": 1,
@@ -88,6 +93,11 @@
                     "default": "intent",
                     "description": "intent: intended behavior (may become a req). observation: how things are today, without stating intent. open_question: something the sources leave undecided. Default: intent.",
                     "enum": ["intent", "observation", "open_question"],
+                    "type": "string"
+                  },
+                  "rationale": {
+                    "description": "Optional reason the requirement exists, as the source states it or the human answered when asked. It becomes the requirement's rationale and its body's '## Context' section. Never invent one.",
+                    "minLength": 1,
                     "type": "string"
                   },
                   "reference": {
@@ -119,6 +129,11 @@
                   "authority": {
                     "description": "The human's call: authoritative claims become higher-confidence candidates, supporting claims lower ones, and stale sources are cited but never produce candidates.",
                     "enum": ["authoritative", "supporting", "stale"],
+                    "type": "string"
+                  },
+                  "component": {
+                    "description": "Optional component this source's claims are about (for example recorder). It becomes the first segment of each generated subject_key (component.aspect); a claim's own component overrides it.",
+                    "minLength": 1,
                     "type": "string"
                   },
                   "connector": {

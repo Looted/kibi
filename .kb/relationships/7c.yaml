@@ -195,3 +195,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fce41ae7bbfb
+  - type: implements
+    from: SYM-mcp-apply-plan-async-preflight-preflightapplyplan
+    to: REQ-mcp-apply-plan-async-preflight
+    created_at: 2026-10-07T19:01:40.483Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-708654a6c0dd
+  - type: covered_by
+    from: SYM-mcp-apply-plan-async-preflight-preflightapplyplan
+    to: TEST-mcp-apply-plan-async-preflight
+    created_at: 2026-10-07T19:01:40.503Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-45ac7c014a06

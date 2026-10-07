@@ -50,6 +50,7 @@ export {
   deleteSpec,
   dedupeEntities,
   executeApplyPlan,
+  preflightApplyPlan,
   executePlanBootstrap,
   executeCompileIntent,
   executeCoverage,

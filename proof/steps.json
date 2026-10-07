@@ -2154,5 +2154,47 @@
         "./packages/cli/tests/consumer/related-requirement-unmodeled.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-mcp-oneof-guard-input-validation",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "30000",
+        "--isolate",
+        "--max-concurrency=1",
+        "./packages/mcp/tests/server/oneof-guard-input-validation.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-mcp-apply-plan-async-preflight",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "30000",
+        "--isolate",
+        "--max-concurrency=1",
+        "./packages/mcp/tests/server/kb-apply-plan-async-preflight.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-bootstrap-subject-key-shape",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "30000",
+        "--isolate",
+        "--max-concurrency=1",
+        "./packages/cli/tests/operations/bootstrap-subject-key-shape.test.ts"
+      ]
+    ]
   }
 ]

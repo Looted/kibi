@@ -195,3 +195,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c4044d105c78
+  - type: validates
+    from: TEST-bootstrap-subject-key-shape
+    to: REQ-bootstrap-subject-key-shape
+    created_at: 2026-10-07T19:01:52.743Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-05ae7d0eb4c4

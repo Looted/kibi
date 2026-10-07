@@ -10,6 +10,7 @@ import {
   executeDelete,
   executeIngestProof,
   executeUpsert,
+  preflightApplyPlan,
 } from "kibi-runtime";
 import type { OperationContext, RuntimeOperationSpec } from "kibi-runtime";
 
@@ -302,6 +303,13 @@ export function registerConfiguredTools<TProlog>(
       // Detach it into a job and return the kibi.job.v1 receipt; the agent
       // polls kb_job_status. The request is over once the receipt returns,
       // so the job reports no progress and refreshes the branch stamp itself.
+      // Input and stale-plan errors (missing or wrong approvedPlanHash, a
+      // changed snapshot) fail this call rather than the job; the apply
+      // repeats every check under the workspace lock.
+      await (runtime.preflightApplyPlan ?? preflightApplyPlan)(
+        applyArgs as never,
+        context as never,
+      );
       const { onProgress: _requestProgress, ...jobContext } = context;
       return startJob("kb_apply_plan", async () => {
         const result = await apply(jobContext);

@@ -104,7 +104,7 @@ export interface RecommendedPredicateSchema {
 }
 
 /** A logical grounding relationship an existing requirement has for a claim. */
-// implements REQ-model-predicates-grounding-aware
+// implements REQ-model-predicates-grounding-aware-v2
 export interface ExistingClaimGrounding {
   relationship: { type: string; from: string; to: string };
   factId: string;
@@ -129,7 +129,7 @@ export interface SuggestPredicatesResult {
       | "resolve_schema_reference"
       | "record_ontology_gap"
       | "review_nonlogical"
-      | "already_grounded";
+      | "replace_grounding";
     recommendedPredicateSchema: RecommendedPredicateSchema | null;
     applyPlan: Array<Record<string, unknown>>;
     relationshipPlan: Record<string, unknown> | null;

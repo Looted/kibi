@@ -300,3 +300,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b34040fa8b08
+  - type: executable_for
+    from: SYM-test-mcp-oneof-guard-input-validation
+    to: TEST-mcp-oneof-guard-input-validation
+    created_at: 2026-10-07T19:01:11.284Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b2ae32af8c59

@@ -48,6 +48,7 @@ function knowledgeSources(
     seen.add(id);
     const connector = value.connector?.trim();
     const notes = value.notes?.trim();
+    const component = value.component?.trim();
     result.push({
       id,
       kind: value.kind,
@@ -56,6 +57,7 @@ function knowledgeSources(
       authority: value.authority,
       ...(connector ? { connector } : {}),
       ...(notes ? { notes } : {}),
+      ...(component ? { component } : {}),
     });
   }
   return result;
@@ -77,11 +79,15 @@ function intentClaims(
     if (seen.has(key)) continue;
     seen.add(key);
     const excerpt = value.excerpt?.trim();
+    const component = value.component?.trim();
+    const rationale = value.rationale?.trim().replace(/\s+/g, " ");
     result.push({
       statement,
       sourceId,
       reference,
       ...(excerpt ? { excerpt } : {}),
+      ...(component ? { component } : {}),
+      ...(rationale ? { rationale } : {}),
       // The default stays implicit so plans that declare no kinds keep
       // their established shape and hash.
       ...(kind !== "intent" ? { kind } : {}),
