@@ -1,6 +1,6 @@
 {
   "name": "kibi-mcp",
-  "version": "3.2.0",
+  "version": "3.3.0",
   "mcpName": "io.github.Looted/kibi-mcp",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.1",
@@ -10,7 +10,7 @@
     "fast-glob": "^3.2.12",
     "gray-matter": "^4.0.3",
     "js-yaml": "^4.1.0",
-    "kibi-runtime": "^2.5.0",
+    "kibi-runtime": "^2.6.0",
     "kibi-core": "^0.16.0",
     "zod": "^4.3.6"
   },

@@ -1,6 +1,6 @@
 {
   "name": "kibi-cli",
-  "version": "2.7.0",
+  "version": "2.8.0",
   "type": "module",
   "description": "Kibi CLI for knowledge base management",
   "engines": {
