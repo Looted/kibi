@@ -32,8 +32,8 @@ Strict pairing checks must accept a requirement that constrains a subject fact a
 
 ## Context
 
-After an agent applied a `replace_grounding` plan from `kb_model` mode `predicates` on a test project, `kb_check` reported `strict-req-fact-pairing` on every replaced requirement: the rule only counted a `requires_property` fact as the partner of a `constrains` subject fact, while the replacement plan deliberately removes that link. Following the rule's suggestion would restore the double grounding that `proposition-complete` rejects, so two Kibi rules contradicted each other. The `strict-readiness` migration diagnostic had the same gap and also reported every requirement at every lower level.
+After an agent applied a `replace_grounding` plan from `kb_model` mode `predicates` on a test project, `kb_check` reported `strict-req-fact-pairing` on every replaced requirement: the rule only counted a `requires_property` fact as the partner of a `constrains` subject fact, while the replacement plan deliberately removes that link. Following the rule's suggestion would restore the double grounding that `proposition-complete` rejects, so the pairing rule and `proposition-complete` gave opposite advice. The `strict-readiness` migration diagnostic had the same gap and also reported every requirement at every lower level.
 
 ## Source
 
-Onboarding evaluation round 7 analysis (2026-10-08), finding K11.
+Onboarding evaluation round 7 analysis (2026-10-08), finding K11. The claim is modeled as semantic facts through the strict lane.

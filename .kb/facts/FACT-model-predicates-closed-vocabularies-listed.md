@@ -23,4 +23,4 @@ type: fact
 ---
 Predicate modeling must list the allowed constants of an unbound argument with a closed vocabulary.
 
-Recorded as a strict boolean property of `kibi.predicate_suggestion.plan` so REQ-model-predicates-closed-vocabularies can be checked for contradictions.
+Recorded as a strict boolean semantic fact about `kibi.predicate_suggestion.plan` so REQ-model-predicates-closed-vocabularies can be checked for contradictions.

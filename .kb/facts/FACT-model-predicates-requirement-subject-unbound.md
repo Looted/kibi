@@ -23,4 +23,4 @@ type: fact
 ---
 Predicate modeling must leave the subject argument unbound for a requirement without a subject fact.
 
-Recorded as a strict boolean property of `kibi.predicate_suggestion.plan` so REQ-model-predicates-requirement-subject can be checked for contradictions.
+Recorded as a strict boolean semantic fact about `kibi.predicate_suggestion.plan` so REQ-model-predicates-requirement-subject can be checked for contradictions.

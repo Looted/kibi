@@ -45,4 +45,4 @@ On a test project, `kb_model` mode `predicates` was called with a `requirementId
 
 ## Source
 
-Onboarding evaluation round 7 analysis (2026-10-08), finding K13.
+Onboarding evaluation round 7 analysis (2026-10-08), finding K13. The claim is modeled as semantic facts through the strict lane.

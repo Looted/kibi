@@ -41,8 +41,8 @@ Bootstrap planning must write one subject fact for each subject key and link eve
 
 ## Context
 
-A bootstrap plan for a test project held 95 subject facts for 93 subject keys: two subjects were named by claims from two sources each (a handoff document and a ticket, or two tickets), and the subject key registry correctly gave both claims the same key, but the plan still minted one subject fact per claim. `kb_check` then reported `subject-key-identity` and asked the operator to merge the facts by hand. The plan now writes the subject fact once, links each requirement to it, and keeps every source's provenance on it.
+A bootstrap plan for a test project held 95 subject facts for 93 distinct subject key values: two subjects were named by claims from two sources each (a handoff document and a ticket, or two tickets), and the subject key registry correctly gave both claims the same key, but the plan still minted one subject fact per claim. `kb_check` then reported `subject-key-identity` and asked the operator to merge the facts by hand. The plan now writes the subject fact once, links each requirement to it, and keeps every source's provenance on it.
 
 ## Source
 
-Onboarding evaluation round 7 analysis (2026-10-08), finding K12.
+Onboarding evaluation round 7 analysis (2026-10-08), finding K12. The claim is modeled as semantic facts through the strict lane.

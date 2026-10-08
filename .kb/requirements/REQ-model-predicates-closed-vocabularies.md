@@ -45,4 +45,4 @@ In an onboarding run on a test project none of 33 binding hints carried `allowed
 
 ## Source
 
-Onboarding evaluation round 7 analysis (2026-10-08), finding K15.
+Onboarding evaluation round 7 analysis (2026-10-08), finding K15. The claim is modeled as semantic facts through the strict lane.

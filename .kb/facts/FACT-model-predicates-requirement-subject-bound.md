@@ -23,4 +23,4 @@ type: fact
 ---
 Predicate modeling must bind the subject argument to the subject key of the subject fact that the requirement constrains.
 
-Recorded as a strict boolean property of `kibi.predicate_suggestion.plan` so REQ-model-predicates-requirement-subject can be checked for contradictions.
+Recorded as a strict boolean semantic fact about `kibi.predicate_suggestion.plan` so REQ-model-predicates-requirement-subject can be checked for contradictions.

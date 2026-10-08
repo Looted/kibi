@@ -23,4 +23,4 @@ type: fact
 ---
 Strict pairing checks must accept a requirement that constrains a subject fact and requires a predicate fact whose first argument is that subject key.
 
-Recorded as a strict boolean property of `kibi.check` so REQ-check-strict-pairing-predicate-grounding can be checked for contradictions.
+Recorded as a strict boolean semantic fact about `kibi.check` so REQ-check-strict-pairing-predicate-grounding can be checked for contradictions.

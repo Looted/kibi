@@ -12,6 +12,6 @@ origin:
 id: SCEN-model-predicates-requirement-subject
 type: scenario
 ---
-Given a requirement that constrains a subject fact keyed `x.y`, when the agent calls `kb_model` mode `predicates` with its `requirementId` and no `subjectHint`, the candidate predicate's first argument is `x.y` with provenance `requirement`, and no `bindingHints` entry asks for the subject. An explicit `subjectHint` still wins; a requirement with several subject facts gets their keys first in the subject's binding examples; a requirement with no subject fact leaves `subject` unbound instead of guessing `editor.annotation`.
+Given a requirement that constrains a semantic subject fact keyed `x.y`, when the agent calls `kb_model` mode `predicates` with its `requirementId` and no `subjectHint`, the candidate predicate's first argument is `x.y` with provenance `requirement`, and no `bindingHints` entry asks for the subject. An explicit `subjectHint` still wins; a requirement with several subject facts gets each subject key first in the subject's binding examples; a requirement with no subject fact leaves `subject` unbound instead of guessing `editor.annotation`.
 
-An onboarding evaluation found predicates and subject facts naming one subject with different keys.
+An onboarding evaluation found predicates and subject facts naming one subject with a different key each.

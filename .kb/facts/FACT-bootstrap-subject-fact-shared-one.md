@@ -23,4 +23,4 @@ type: fact
 ---
 Bootstrap planning must write one subject fact for each subject key and link every requirement about that subject to it.
 
-Recorded as a strict boolean property of `kibi.bootstrap.plan` so REQ-bootstrap-subject-fact-shared can be checked for contradictions.
+Recorded as a strict boolean semantic fact about `kibi.bootstrap.plan` so REQ-bootstrap-subject-fact-shared can be checked for contradictions.
