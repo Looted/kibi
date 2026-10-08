@@ -68,7 +68,7 @@ export function hashId(prefix: string, parts: string[]): string {
  * requirement without a subject fact the subject stays a placeholder, so the
  * agent binds it instead of getting a demo subject such as editor.annotation.
  */
-// implements REQ-mcp-suggest-predicates, REQ-model-predicates-requirement-subject
+// implements REQ-mcp-suggest-predicates, REQ-model-predicates-requirement-subject-v2
 export function inferSubject(
   text: string,
   subjectHint: string | undefined,

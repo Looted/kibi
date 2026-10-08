@@ -328,3 +328,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-79c527dc2d7b
+  - type: implements
+    from: SYM-model-predicates-bindings-clausebindingreason
+    to: REQ-model-predicates-binding-clauses
+    created_at: 2026-10-08T21:27:22.160Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f0d7ea739734
+  - type: covered_by
+    from: SYM-model-predicates-bindings-clausebindingreason
+    to: TEST-model-predicates-binding-clauses
+    created_at: 2026-10-08T21:27:22.187Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6bcd5ab1aa4c

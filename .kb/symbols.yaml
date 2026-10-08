@@ -240,6 +240,8 @@ symbols:
         target: TEST-e2e-capability-plugins
       - type: covered_by
         target: TEST-e2e-kibi-env-bootstrap
+      - type: covered_by
+        target: TEST-engine-daemon-package-versions
       - type: implements
         target: REQ-agent-guided-migration-orchestration
       - type: implements
@@ -248,6 +250,8 @@ symbols:
         target: REQ-cli-doctor
       - type: implements
         target: REQ-cli-doctor-packed-provenance
+      - type: implements
+        target: REQ-engine-daemon-package-versions
       - type: implements
         target: REQ-kibi-env-bootstrap
   - id: SYM-kibi-check-diagnostic
@@ -1600,9 +1604,9 @@ symbols:
       - type: implements
         target: REQ-core-journaled-engine-persistence
   - id: SYM-cli-engine-package-versions
-    title: ENGINE_PACKAGE_VERSIONS
+    title: enginePackageVersions
     sourceFile: packages/cli/src/engine.ts
-    symbol_role: config
+    symbol_role: behavioral
     status: active
     granularity_reason: legacy-link
     relationships:
@@ -1610,8 +1614,12 @@ symbols:
         target: TEST-core-journaled-engine-delta-sync
       - type: covered_by
         target: TEST-core-journaled-engine-lifecycle
+      - type: covered_by
+        target: TEST-engine-daemon-package-versions
       - type: implements
         target: REQ-core-journaled-engine-persistence
+      - type: implements
+        target: REQ-engine-daemon-package-versions
   - id: SYM-cli-engine-client-start
     title: EngineClient.start
     sourceFile: packages/cli/src/engine.ts
@@ -2041,8 +2049,12 @@ symbols:
         target: TEST-core-journaled-engine-lifecycle
       - type: covered_by
         target: TEST-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-engine-daemon-package-versions
       - type: implements
         target: REQ-core-journaled-engine-persistence
+      - type: implements
+        target: REQ-engine-daemon-package-versions
   - id: SYM-cli-engine-daemon
     title: runEngineDaemon
     sourceFile: packages/cli/src/engine.ts
@@ -2055,9 +2067,13 @@ symbols:
       - type: covered_by
         target: TEST-core-journaled-engine-lifecycle
       - type: covered_by
+        target: TEST-engine-daemon-package-versions
+      - type: covered_by
         target: TEST-test-journaled-engine-harness
       - type: implements
         target: REQ-core-journaled-engine-persistence
+      - type: implements
+        target: REQ-engine-daemon-package-versions
       - type: implements
         target: REQ-test-journaled-engine-harness
   - id: SYM-cli-engine-attachment-identity
@@ -11679,7 +11695,7 @@ symbols:
       - type: implements
         target: REQ-mcp-suggest-predicates
       - type: implements
-        target: REQ-model-predicates-requirement-subject
+        target: REQ-model-predicates-requirement-subject-v2
   - id: SYM-modeling-predicate-utils-inferTrigger
     title: inferTrigger
     sourceFile: packages/cli/src/operations/modeling/predicate-utils.ts
@@ -13151,6 +13167,8 @@ symbols:
       - type: covered_by
         target: TEST-mcp-suggest-predicates
       - type: covered_by
+        target: TEST-model-predicates-binding-clauses
+      - type: covered_by
         target: TEST-model-predicates-requirement-subject
       - type: implements
         target: REQ-kibi-ontology-convergence-witnesses
@@ -13159,7 +13177,9 @@ symbols:
       - type: implements
         target: REQ-mcp-suggest-predicates
       - type: implements
-        target: REQ-model-predicates-requirement-subject
+        target: REQ-model-predicates-binding-clauses
+      - type: implements
+        target: REQ-model-predicates-requirement-subject-v2
   - id: SYM-predicate-catalog-part-1
     title: PREDICATE_CATALOG_1
     sourceFile: packages/cli/src/operations/modeling/predicate-catalog-1.ts
@@ -23339,7 +23359,7 @@ symbols:
       - type: implements
         target: REQ-model-predicates-plan-roundtrip
       - type: implements
-        target: REQ-model-predicates-requirement-subject
+        target: REQ-model-predicates-requirement-subject-v2
   - id: SYM-SuggestPredicatesArgs
     title: SuggestPredicatesArgs
     status: active
@@ -31736,9 +31756,13 @@ symbols:
       - type: covered_by
         target: TEST-kibi-predicate-suggestion-relevance-v1
       - type: covered_by
+        target: TEST-model-predicates-binding-clauses
+      - type: covered_by
         target: TEST-model-predicates-binding-placeholders
       - type: implements
         target: REQ-kibi-predicate-suggestion-relevance-v1
+      - type: implements
+        target: REQ-model-predicates-binding-clauses
       - type: implements
         target: REQ-model-predicates-binding-placeholders
   - id: 3ddd3dd671e3f236
@@ -31797,7 +31821,7 @@ symbols:
       - type: implements
         target: REQ-kibi-predicate-suggestion-relevance-v1
       - type: implements
-        target: REQ-model-predicates-requirement-subject
+        target: REQ-model-predicates-requirement-subject-v2
   - id: 7580de62d3ca1d60
     title: usageHintsForSchema
     sourceFile: packages/cli/src/operations/modeling/predicate-ranker.ts
@@ -50767,17 +50791,21 @@ symbols:
       recorded_at: 2026-10-08T08:35:10.211Z
     relationships:
       - type: covered_by
+        target: TEST-model-predicates-binding-clauses
+      - type: covered_by
         target: TEST-model-predicates-binding-placeholders
       - type: covered_by
         target: TEST-model-predicates-closed-vocabularies
       - type: covered_by
         target: TEST-model-predicates-requirement-subject
       - type: implements
+        target: REQ-model-predicates-binding-clauses
+      - type: implements
         target: REQ-model-predicates-binding-placeholders
       - type: implements
         target: REQ-model-predicates-closed-vocabularies
       - type: implements
-        target: REQ-model-predicates-requirement-subject
+        target: REQ-model-predicates-requirement-subject-v2
   - id: SYM-model-predicates-binding-hints-describebindinghints
     title: describeBindingHints
     status: active
@@ -50929,7 +50957,7 @@ symbols:
       - type: covered_by
         target: TEST-check-strict-pairing-predicate-grounding
       - type: implements
-        target: REQ-check-strict-pairing-predicate-grounding
+        target: REQ-check-strict-pairing-predicate-grounding-v2
   - id: SYM-bootstrap-subject-fact-shared-sharesubjectfacts
     title: shareSubjectFacts
     status: active
@@ -50956,3 +50984,53 @@ symbols:
         target: TEST-model-predicates-closed-vocabularies
       - type: implements
         target: REQ-model-predicates-closed-vocabularies
+  - id: SYM-test-model-predicates-binding-clauses
+    title: Predicate binding placeholder suite (participant clauses)
+    status: active
+    sourceFile: packages/cli/tests/operations/predicate-binding-placeholders.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-08T21:05:42.813Z
+    relationships:
+      - type: executable_for
+        target: TEST-model-predicates-binding-clauses
+  - id: SYM-test-engine-daemon-package-versions
+    title: Engine daemon identity suite (package versions)
+    status: active
+    sourceFile: packages/cli/tests/engine-runtime-identity.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-08T21:05:53.943Z
+    relationships:
+      - type: executable_for
+        target: TEST-engine-daemon-package-versions
+  - id: SYM-model-predicates-bindings-clausebindingreason
+    title: clauseBindingReason
+    status: active
+    sourceFile: packages/cli/src/operations/modeling/predicate-bindings.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-08T21:27:20.595Z
+    relationships:
+      - type: covered_by
+        target: TEST-model-predicates-binding-clauses
+      - type: implements
+        target: REQ-model-predicates-binding-clauses
+  - id: SYM-cli-kibi-package-versions
+    title: kibiPackageVersions
+    status: active
+    sourceFile: packages/cli/src/package-versions.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-08T21:27:35.095Z
+    relationships:
+      - type: covered_by
+        target: TEST-engine-daemon-package-versions
+      - type: implements
+        target: REQ-engine-daemon-package-versions

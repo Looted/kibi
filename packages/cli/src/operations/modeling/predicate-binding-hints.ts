@@ -1,4 +1,6 @@
 import {
+  bindingCanBeApplied,
+  clauseBindingReason,
   isGenericPlaceholder,
   nameOrStopWordReason,
 } from "./predicate-bindings.js";
@@ -45,6 +47,12 @@ function unboundReason(
   });
   if (nameReason !== null)
     return `The value "${value}" is not a binding: ${nameReason}.`;
+  const clauseReason = clauseBindingReason(value, {
+    argumentType: schema.argument_types[schema.argument_names.indexOf(name)],
+    constants: schema.argument_constants?.[name],
+  });
+  if (clauseReason !== null)
+    return `The value "${value}" is not a binding: ${clauseReason}. Bind a noun of at most 3 words, or the requirement's subject key.`;
   if (!value.trim() || isGenericPlaceholder(value))
     return "The claim text names no value for this argument.";
   if (provenance === "inferred")
@@ -60,7 +68,7 @@ function unboundReason(
  * current value was not accepted, so the agent binds from the claim text
  * instead of guessing.
  */
-// implements REQ-model-predicates-binding-placeholders, REQ-model-predicates-requirement-subject
+// implements REQ-model-predicates-binding-placeholders, REQ-model-predicates-requirement-subject-v2, REQ-model-predicates-binding-clauses
 export function buildBindingHints(
   candidate: PredicateSuggestion,
   text: string,
@@ -68,7 +76,22 @@ export function buildBindingHints(
 ): BindingHint[] {
   const schema = candidate.schema;
   const parsedExamples = schema.examples.map(exampleArguments);
+  const namesSubject = schema.argument_names.includes("subject");
   return candidate.unbound_arguments.map((name) => {
+    // A schema without a subject argument records the requirement's subject
+    // as the predicate fact's subject_key instead.
+    if (name === "subject_key" && !namesSubject)
+      return {
+        argument: name,
+        position: -1,
+        type: "subject_key",
+        description:
+          "The subject the predicate fact is about; recorded as its subject_key because the schema names no subject argument.",
+        examples: requirementSubjects.slice(0, MAX_EXAMPLES),
+        currentValue: candidate.subject_key ?? "",
+        provenance: "placeholder",
+        reason: `The ${schema.predicate_name} schema does not name the requirement's subject, so kb_check pairs the predicate with the subject fact only through subject_key. Pass subjectHint with one of the subjects the requirement constrains.`,
+      };
     const position = schema.argument_names.indexOf(name);
     const constants = schema.argument_constants?.[name];
     const exampleValues = parsedExamples
@@ -78,7 +101,13 @@ export function buildBindingHints(
     // the predicate and the subject fact use one identifier for the subject.
     const examples = Array.from(
       new Set([
-        ...(name === "subject" ? requirementSubjects : []),
+        ...(name === "subject" ||
+        (!namesSubject &&
+          clauseBindingReason(candidate.predicate_args[position] ?? "", {
+            argumentType: schema.argument_types[position],
+          }) !== null)
+          ? requirementSubjects
+          : []),
         ...(constants ?? []),
         ...exampleValues,
       ]),
@@ -95,7 +124,14 @@ export function buildBindingHints(
       currentValue: current,
       provenance:
         candidate.binding_provenance_by_argument[name] ?? "placeholder",
-      reason: unboundReason(candidate, name, current, text),
+      reason:
+        name === "subject" &&
+        candidate.subject_pairing === "unpaired" &&
+        bindingCanBeApplied(
+          candidate.binding_provenance_by_argument[name] ?? "placeholder",
+        )
+          ? `The value "${current}" is not a subject the requirement constrains (${requirementSubjects.join(", ")}), so kb_check would not pair the predicate with the subject fact. Bind one of them.`
+          : unboundReason(candidate, name, current, text),
     };
   });
 }

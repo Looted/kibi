@@ -44,6 +44,7 @@ import type {
   EngineCommandV1,
   EngineRequest,
 } from "./engine-types.js";
+import { kibiPackageVersions } from "./package-versions.js";
 import { writePerformanceTraceEvent } from "./performance-trace.js";
 import { PrologProcess, resolveKbPlPath } from "./prolog.js";
 import { parseEntityFromList, parseListOfLists } from "./prolog/codec.js";
@@ -89,8 +90,20 @@ const READ_LIMITED_METHODS: ReadonlySet<EngineRequest["method"]> = new Set([
 
 export const ENGINE_PROTOCOL_VERSION = 1;
 export const ENGINE_IDLE_TIMEOUT_MS = 10 * 60 * 1000;
-export const ENGINE_PACKAGE_VERSIONS =
-  process.env.KIBI_PACKAGE_VERSIONS ?? "unknown";
+
+/**
+ * Package versions this engine build carries (KIBI_PACKAGE_VERSIONS when
+ * set). The client sends them on every request and the daemon reports its
+ * own in the handshake; a daemon with other versions is replaced, never
+ * reused.
+ */
+// implements REQ-engine-daemon-package-versions
+export function enginePackageVersions(): string {
+  return kibiPackageVersions();
+}
+
+/** @deprecated The versions at module load; call enginePackageVersions(). */
+export const ENGINE_PACKAGE_VERSIONS = kibiPackageVersions();
 
 /**
  * Identity of the SWI-Prolog this process would launch (`<bin>@<version>`).
@@ -878,6 +891,12 @@ async function connectWithRetry(
   );
 }
 
+/** What a live daemon reports in its handshake. */
+export type EngineDaemonIdentity = Readonly<{
+  prologIdentity: string | null;
+  packageVersions: string | null;
+}>;
+
 export type EngineClientOptions = {
   readonly workspaceRoot: string;
   readonly branch: string;
@@ -1036,6 +1055,10 @@ export class EngineClient {
                 env: {
                   ...process.env,
                   KIBI_ENGINE_PROTOCOL: String(ENGINE_PROTOCOL_VERSION),
+                  // The daemon reports the versions of the client that
+                  // started it, so this client and its own daemon agree even
+                  // when the daemon entry is resolved from a bundled host.
+                  KIBI_PACKAGE_VERSIONS: enginePackageVersions(),
                 },
               },
             );
@@ -1159,7 +1182,7 @@ export class EngineClient {
               ...limits,
               id,
               protocolVersion: ENGINE_PROTOCOL_VERSION,
-              packageVersions: ENGINE_PACKAGE_VERSIONS,
+              packageVersions: enginePackageVersions(),
               prologIdentity: engineSwiplIdentity(),
               workspaceRoot: this.workspaceRoot,
               branch: this.branch,
@@ -1305,7 +1328,7 @@ export class EngineClient {
         method: "cancel",
         cancelOf: requestId,
         protocolVersion: ENGINE_PROTOCOL_VERSION,
-        packageVersions: ENGINE_PACKAGE_VERSIONS,
+        packageVersions: enginePackageVersions(),
         prologIdentity: engineSwiplIdentity(),
         workspaceRoot: this.workspaceRoot,
         branch: this.branch,
@@ -1364,30 +1387,70 @@ export class EngineClient {
     return parseEngineAttachmentIdentity(status.bindings.JsonString);
   }
 
-  private async daemonRuntimeMatches(): Promise<boolean> {
-    const reply = await this.request<{ prologIdentity?: string } | undefined>({
+  /** The live daemon's handshake: its SWI-Prolog and package versions. */
+  private async daemonHandshake(): Promise<EngineDaemonIdentity> {
+    const reply = await this.request<
+      { prologIdentity?: unknown; packageVersions?: unknown } | undefined
+    >({
       method: "handshake",
     });
-    return reply?.prologIdentity === engineSwiplIdentity();
+    return {
+      prologIdentity:
+        typeof reply?.prologIdentity === "string" ? reply.prologIdentity : null,
+      packageVersions:
+        typeof reply?.packageVersions === "string"
+          ? reply.packageVersions
+          : null,
+    };
   }
 
   /**
-   * A live daemon keeps the SWI-Prolog it was started with. When this client
-   * resolves a different executable or version (KIBI_SWIPL changed, the
-   * bundled package was upgraded, a pre-handshake daemon), the daemon is
+   * The identity a live daemon reports, without starting one; null when no
+   * daemon serves this workspace and branch. The connection is closed again.
+   */
+  // implements REQ-engine-daemon-package-versions
+  async inspectLiveDaemon(): Promise<EngineDaemonIdentity | null> {
+    const wasConnected = this.isRunning();
+    if (!wasConnected) await this.connect(false);
+    if (!this.isRunning()) return null;
+    try {
+      return await this.daemonHandshake();
+    } finally {
+      if (!wasConnected) await this.terminate();
+    }
+  }
+
+  /** Why the live daemon may not serve this client, or null when it may. */
+  private async daemonRuntimeMismatch(): Promise<string | null> {
+    const daemon = await this.daemonHandshake();
+    const packageVersions = enginePackageVersions();
+    if (daemon.packageVersions !== packageVersions)
+      return `Kibi engine is running other package versions (${daemon.packageVersions ?? "not reported"}) than this client (${packageVersions})`;
+    if (daemon.prologIdentity !== engineSwiplIdentity())
+      return `Kibi engine is running a different SWI-Prolog than this client resolved (${engineSwiplIdentity()})`;
+    return null;
+  }
+
+  /**
+   * A live daemon keeps the SWI-Prolog and the package versions it was
+   * started with. When this client resolves a different executable or
+   * version (KIBI_SWIPL changed, the bundled package was upgraded, a
+   * pre-handshake daemon) or carries other package versions (a daemon left
+   * by another install, for example one a git hook started), the daemon is
    * stopped and replaced; it is never reused.
    */
-  // implements REQ-prolog-daemon-runtime-identity
+  // implements REQ-prolog-daemon-runtime-identity, REQ-engine-daemon-package-versions
   private async reconcileRuntime(): Promise<void> {
     if (this.replacingStaleDaemon || this.socket === null) return;
-    if (await this.daemonRuntimeMatches()) return;
+    if ((await this.daemonRuntimeMismatch()) === null) return;
     this.replacingStaleDaemon = true;
     try {
       await this.shutdownConnectedDaemon();
       await this.connect(true);
-      if (!(await this.daemonRuntimeMatches())) {
+      const mismatch = await this.daemonRuntimeMismatch();
+      if (mismatch !== null) {
         throw new Error(
-          `Kibi engine is running a different SWI-Prolog than this client resolved (${engineSwiplIdentity()}); run 'kibi engine stop' and retry`,
+          `${mismatch} after replacing it; run 'kibi engine stop' and retry`,
         );
       }
     } finally {
@@ -1876,6 +1939,7 @@ export async function runEngineDaemon(requestedOptions: {
   await session.boot();
   let attachedIdentity = readEngineAttachmentIdentity(branchPath);
   const serverPrologIdentity = engineSwiplIdentity();
+  const serverPackageVersions = enginePackageVersions();
 
   mkdirSync(path.dirname(options.socketPath), { recursive: true, mode: 0o700 });
   if (existsSync(options.socketPath)) {
@@ -2059,15 +2123,6 @@ export async function runEngineDaemon(requestedOptions: {
         `Kibi engine protocol mismatch: client=${request.protocolVersion ?? "missing"}, server=${ENGINE_PROTOCOL_VERSION}`,
       );
     }
-    const expectedPackages = process.env.KIBI_PACKAGE_VERSIONS;
-    if (
-      expectedPackages !== undefined &&
-      request.packageVersions !== expectedPackages
-    ) {
-      throw new Error(
-        `Kibi engine package-version mismatch: client=${request.packageVersions ?? "missing"}, server=${expectedPackages}`,
-      );
-    }
     if (
       canonicalFilesystemPath(request.workspaceRoot ?? "") !==
         options.workspaceRoot ||
@@ -2075,17 +2130,21 @@ export async function runEngineDaemon(requestedOptions: {
     ) {
       throw new Error("Kibi engine workspace identity mismatch");
     }
-    // A client that resolved a different Prolog must not be served by this
-    // daemon. Handshake reports the identity and stop must still work so the
+    // A client from another install (other package versions) or one that
+    // resolved a different Prolog must not be served by this daemon.
+    // Handshake reports both identities and stop must still work so the
     // client can replace the daemon.
-    if (
-      request.method !== "handshake" &&
-      request.method !== "stop" &&
-      request.prologIdentity !== serverPrologIdentity
-    ) {
-      throw new Error(
-        `Kibi engine SWI-Prolog mismatch: client=${request.prologIdentity ?? "missing"}, server=${serverPrologIdentity}`,
-      );
+    if (request.method !== "handshake" && request.method !== "stop") {
+      if (request.packageVersions !== serverPackageVersions) {
+        throw new Error(
+          `Kibi engine package-version mismatch: client=${request.packageVersions ?? "missing"}, server=${serverPackageVersions}`,
+        );
+      }
+      if (request.prologIdentity !== serverPrologIdentity) {
+        throw new Error(
+          `Kibi engine SWI-Prolog mismatch: client=${request.prologIdentity ?? "missing"}, server=${serverPrologIdentity}`,
+        );
+      }
     }
     if (!isEngineLifecycleRequest(request) && (await session.ensureLive())) {
       // A recycled session re-read the store; nothing cached from the lost
@@ -2422,7 +2481,10 @@ export async function runEngineDaemon(requestedOptions: {
           `kb_storage_export('${quoteProlog(request.targetDirectory)}')`,
         );
       case "handshake":
-        return { prologIdentity: serverPrologIdentity };
+        return {
+          prologIdentity: serverPrologIdentity,
+          packageVersions: serverPackageVersions,
+        };
       case "stop":
         setImmediate(() => void shutdown());
         return { stopped: true };
@@ -2519,7 +2581,7 @@ export async function runEngineDaemon(requestedOptions: {
                 id: request.id,
                 ok: false,
                 error: "Kibi engine is shutting down; request was not executed",
-                serverPackageVersions: ENGINE_PACKAGE_VERSIONS,
+                serverPackageVersions,
               } satisfies EngineResponse);
               return;
             }
@@ -2536,7 +2598,7 @@ export async function runEngineDaemon(requestedOptions: {
                     id: request.id,
                     ok: false,
                     error: "Kibi engine request cancelled",
-                    serverPackageVersions: ENGINE_PACKAGE_VERSIONS,
+                    serverPackageVersions,
                   } satisfies EngineResponse);
                   return;
                 }
@@ -2546,7 +2608,7 @@ export async function runEngineDaemon(requestedOptions: {
                     id: request.id,
                     ok: true,
                     result,
-                    serverPackageVersions: ENGINE_PACKAGE_VERSIONS,
+                    serverPackageVersions,
                   } satisfies EngineResponse);
                 } catch (error) {
                   writeSocketFrame(socket, {
@@ -2554,7 +2616,7 @@ export async function runEngineDaemon(requestedOptions: {
                     ok: false,
                     error:
                       error instanceof Error ? error.message : String(error),
-                    serverPackageVersions: ENGINE_PACKAGE_VERSIONS,
+                    serverPackageVersions,
                   } satisfies EngineResponse);
                 } finally {
                   // Drop stale cancel marks for in-flight goals that still ran

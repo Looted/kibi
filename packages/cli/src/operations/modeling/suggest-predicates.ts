@@ -291,7 +291,7 @@ function hasSubjectHint(value: string | undefined): boolean {
  * contradiction checks by subject see the predicate and the subject fact as
  * one subject.
  */
-// implements REQ-model-predicates-requirement-subject
+// implements REQ-model-predicates-requirement-subject-v2
 async function constrainedSubjectKeys(
   prolog: PrologPort | null,
   requirementId: string | undefined,
@@ -326,13 +326,17 @@ export async function handleKbSuggestPredicates(
 ): Promise<SuggestPredicatesResult> {
   const text = normalizeText(args.text);
   const warnings: string[] = [];
-  const requirementSubjects = hasSubjectHint(args.subjectHint)
-    ? []
-    : await constrainedSubjectKeys(prolog, args.requirementId, warnings);
+  const requirementSubjects = await constrainedSubjectKeys(
+    prolog,
+    args.requirementId,
+    warnings,
+  );
   // One constrained subject is the requirement's subject; with several the
-  // agent picks one, so they are offered as binding examples instead.
+  // agent picks one (subjectHint), so they are offered as binding examples.
   const requirementSubject =
-    requirementSubjects.length === 1 ? requirementSubjects[0] : undefined;
+    !hasSubjectHint(args.subjectHint) && requirementSubjects.length === 1
+      ? requirementSubjects[0]
+      : undefined;
   const subject = inferSubject(text, args.subjectHint, {
     requirementId: args.requirementId,
     subjectKey: requirementSubject,
@@ -430,6 +434,7 @@ export async function handleKbSuggestPredicates(
         scoreComponents: ranked.components,
         explicitSubject: Boolean(args.subjectHint?.trim()),
         ...(requirementSubject ? { requirementSubject } : {}),
+        constrainedSubjects: requirementSubjects,
       },
     );
   });
@@ -547,6 +552,11 @@ export async function handleKbSuggestPredicates(
     recommendedAction === "provide_argument_bindings" && recommendedCandidate
       ? buildBindingHints(recommendedCandidate, text, requirementSubjects)
       : [];
+  if (recommendedCandidate?.subject_pairing === "unpaired") {
+    warnings.push(
+      unpairedSubjectWarning(recommendedCandidate, args, requirementSubjects),
+    );
+  }
   const recommendedPredicateSchema =
     !recommendedCandidate && !unavailableSchema
       ? buildPredicateSchemaDraft(text, subject)
@@ -593,6 +603,26 @@ export async function handleKbSuggestPredicates(
     },
     applyPlan,
   };
+}
+
+/**
+ * Why the recommended predicate is not offered for grounding: it is not about
+ * a subject the requirement constrains, so kb_check would keep reporting
+ * strict-req-fact-pairing after the link.
+ */
+// implements REQ-model-predicates-requirement-subject-v2
+function unpairedSubjectWarning(
+  candidate: PredicateSuggestion,
+  args: SuggestPredicatesArgs,
+  constrainedSubjects: readonly string[],
+): string {
+  const subjects = constrainedSubjects.join(", ");
+  const schemaNamesSubject =
+    candidate.schema.argument_names.includes("subject");
+  const cause = schemaNamesSubject
+    ? `its subject argument is ${candidate.subject_key ?? "unbound"}, not a subject ${args.requirementId} constrains (${subjects})`
+    : `the ${candidate.predicate_name} schema does not name the requirement's subject (its arguments are ${candidate.schema.argument_names.join(", ")}) and its subject_key ${candidate.subject_key === null ? "cannot be chosen" : `${candidate.subject_key} is not`} one of the subjects ${args.requirementId} constrains (${subjects})`;
+  return `${candidate.predicate_name} is not offered for grounding because ${cause}, so kb_check would report strict-req-fact-pairing after the link. Pass subjectHint with one of ${subjects} and retry.`;
 }
 
 /** Stored requirement fields a relationship-only update must restate. */

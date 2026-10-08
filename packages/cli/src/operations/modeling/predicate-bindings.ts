@@ -202,6 +202,8 @@ export type BindingContext = Readonly<{
   argumentNames?: readonly string[];
   /** Declared constants of this argument: always valid when matched. */
   constants?: readonly string[] | undefined;
+  /** The argument's declared type (`entity`, `actor`, `resource`, ...). */
+  argumentType?: string | undefined;
   /**
    * The claim text. A value that repeats an argument name is still a real
    * binding when the claim itself names it (a `launcher` argument bound to
@@ -248,7 +250,45 @@ export function nameOrStopWordReason(
   return null;
 }
 
-// implements REQ-mcp-suggest-predicates, REQ-model-predicates-binding-placeholders
+/**
+ * Argument types that name a participant (who or what), so a value is a
+ * short noun or a subject key, never a clause of the claim.
+ */
+const NAMING_ARGUMENT_TYPES = new Set([
+  "entity",
+  "actor",
+  "actor_scope",
+  "resource",
+  "owner",
+  "role",
+  "component",
+]);
+
+/** The most words a value of a naming argument may have. */
+export const MAX_NAMING_BINDING_WORDS = 3;
+
+/**
+ * Why a value taken from the claim text cannot name a participant, or null
+ * when it can: a value of an entity-, actor- or resource-like argument with
+ * more than MAX_NAMING_BINDING_WORDS words is a clause of the claim (for
+ * example everything before the modal verb), not the participant's name.
+ * Explicit bindings, requirement subjects and declared constants are not
+ * judged here.
+ */
+// implements REQ-model-predicates-binding-clauses
+export function clauseBindingReason(
+  value: string,
+  context: BindingContext = {},
+): string | null {
+  const type = context.argumentType ? bindingToken(context.argumentType) : "";
+  if (!NAMING_ARGUMENT_TYPES.has(type)) return null;
+  if (matchesConstant(value, context)) return null;
+  const words = bindingToken(value).split("_").filter(Boolean);
+  if (words.length <= MAX_NAMING_BINDING_WORDS) return null;
+  return `it is a ${words.length}-word clause of the claim, not a short name for this ${type}`;
+}
+
+// implements REQ-mcp-suggest-predicates, REQ-model-predicates-binding-placeholders, REQ-model-predicates-binding-clauses
 export function classifyBinding(
   value: string,
   text: string,
@@ -272,6 +312,9 @@ export function classifyBinding(
   )
     return "explicit";
   if (!normalized || isGenericPlaceholder(normalized)) return "placeholder";
+  // A clause lifted from the claim names no participant: it stays unbound
+  // like a placeholder so the agent binds a short noun or the subject key.
+  if (clauseBindingReason(normalized, context) !== null) return "placeholder";
   if (textContainsValue(text, normalized)) return "extracted";
   return "inferred";
 }

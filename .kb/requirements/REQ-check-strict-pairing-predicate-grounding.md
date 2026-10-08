@@ -1,6 +1,6 @@
 ---
 title: Strict pairing accepts a predicate about the constrained subject
-status: open
+status: closed
 priority: must
 tags:
   - check

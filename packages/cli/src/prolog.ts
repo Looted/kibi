@@ -23,6 +23,7 @@ import path from "node:path";
 import { performance } from "node:perf_hooks";
 import { fileURLToPath } from "node:url";
 import { getKbPlPathOverride, isPrologDebugEnabled } from "./env.js";
+import { kibiPackageVersions } from "./package-versions.js";
 import { writePerformanceTraceEvent } from "./performance-trace.js";
 import {
   type PrologErrorRecord,
@@ -41,23 +42,6 @@ const PROLOG_OUTPUT_OVERFLOW_ERROR =
 const INTERACTIVE_QUERY_FRAME_END = "__KIBI_QUERY_FRAME_END__";
 
 const require = createRequire(import.meta.url);
-
-function packageVersion(packagePath: string): string {
-  try {
-    const packageJson = require(packagePath) as { version?: unknown };
-    return typeof packageJson.version === "string"
-      ? packageJson.version
-      : "unknown";
-  } catch {
-    return "unknown";
-  }
-}
-
-const KIBI_PACKAGE_VERSIONS = [
-  `kibi-cli@${packageVersion(path.join(importMetaDir, "..", "package.json"))}`,
-  `kibi-core@${packageVersion(path.join(importMetaDir, "..", "..", "core", "package.json"))}`,
-  `kibi-mcp@${packageVersion(path.join(importMetaDir, "..", "..", "mcp", "package.json"))}`,
-].join(",");
 
 export function resolveKbPlPath(): string {
   // implements REQ-009
@@ -293,8 +277,7 @@ export class PrologProcess {
             process.versions.bun !== undefined ? "bun" : "node",
           KIBI_RUNTIME_VERSION:
             process.versions.bun ?? process.versions.node ?? "unknown",
-          KIBI_PACKAGE_VERSIONS:
-            process.env.KIBI_PACKAGE_VERSIONS ?? KIBI_PACKAGE_VERSIONS,
+          KIBI_PACKAGE_VERSIONS: kibiPackageVersions(),
         },
       },
     );
@@ -488,7 +471,7 @@ export class PrologProcess {
               .split("\n")
               .find((line) => line.includes("__KIBI_RUNTIME__"));
             console.error(
-              `[prolog debug] runtime=${runtime ?? "unknown"} packages=${process.env.KIBI_PACKAGE_VERSIONS ?? KIBI_PACKAGE_VERSIONS}`,
+              `[prolog debug] runtime=${runtime ?? "unknown"} packages=${kibiPackageVersions()}`,
             );
           }
           settle();
@@ -784,8 +767,7 @@ export class PrologProcess {
     const runtimeName = process.versions.bun !== undefined ? "bun" : "node";
     const runtimeVersion =
       process.versions.bun ?? process.versions.node ?? "unknown";
-    const packageVersions =
-      process.env.KIBI_PACKAGE_VERSIONS ?? KIBI_PACKAGE_VERSIONS;
+    const packageVersions = kibiPackageVersions();
 
     let child: ChildProcess;
     try {

@@ -1,4 +1,4 @@
-// implements REQ-model-predicates-grounding-aware-v2, REQ-model-predicates-requirement-subject
+// implements REQ-model-predicates-grounding-aware-v2, REQ-model-predicates-requirement-subject-v2
 import { describe, expect, test } from "bun:test";
 import { handleKbSuggestPredicates } from "../../src/operations/modeling/suggest-predicates.js";
 import { semanticClaimKey } from "../../src/operations/semantic-advisor/clauses.js";
@@ -237,7 +237,7 @@ describe("kb_model predicates on an already grounded requirement", () => {
     });
   });
 
-  test("subjectHint still wins over the constrained subject", async () => {
+  test("subjectHint wins over the constrained subject, but a predicate about another subject is not offered for grounding", async () => {
     const result = await handleKbSuggestPredicates(
       groundedKb("A different claim must hold.", ["x.y"]),
       { ...ARGS, subjectHint: "editor.session" },
@@ -248,6 +248,13 @@ describe("kb_model predicates on an already grounded requirement", () => {
     expect(data.candidates[0]?.binding_provenance_by_argument.subject).toBe(
       "explicit",
     );
+    expect(data.candidates[0]?.subject_pairing).toBe("unpaired");
+    expect(data.candidates[0]?.binding_status).toBe("incomplete");
+    expect(data.recommendedAction).toBe("provide_argument_bindings");
+    expect(data.applyPlan).toEqual([]);
+    const hint = data.bindingHints?.find((row) => row.argument === "subject");
+    expect(hint?.reason).toContain("not a subject the requirement constrains");
+    expect(hint?.examples[0]).toBe("x.y");
   });
 
   test("a requirement with no subject fact leaves the subject for the agent instead of a demo subject", async () => {
@@ -273,5 +280,92 @@ describe("kb_model predicates on an already grounded requirement", () => {
     expect(data.recommendedAction).toBe("provide_argument_bindings");
     const hint = data.bindingHints?.find((row) => row.argument === "subject");
     expect(hint?.examples.slice(0, 2)).toEqual(["x.y", "x.z"]);
+  });
+});
+
+describe("kb_model predicates pair the predicate with the requirement's subject by name, not position", () => {
+  const PERMISSION = "Guests must not delete archived pages.";
+  const PERMISSION_ARGS = { ...ARGS, text: PERMISSION };
+
+  test("a schema without a subject argument records the requirement's subject as the fact's subject_key", async () => {
+    const result = await handleKbSuggestPredicates(
+      groundedKb(PERMISSION, ["pages.archive"]),
+      PERMISSION_ARGS,
+    );
+    const data = result.structuredContent;
+    expect(data.recommendedAction).toBe("replace_grounding");
+    const [candidate] = data.candidates;
+    expect(candidate).toMatchObject({
+      predicate_name: "permission_rule",
+      predicate_args: ["guest", "delete", "archived_pages", "deny"],
+      binding_status: "complete",
+      subject_key: "pages.archive",
+      subject_pairing: "paired",
+    });
+    const replacement = data.replacementPlan as {
+      steps: Array<{ input: { properties: Record<string, unknown> } }>;
+    };
+    expect(replacement.steps[0]?.input.properties).toMatchObject({
+      fact_kind: "predicate",
+      subject_key: "pages.archive",
+      predicate_args: ["guest", "delete", "archived_pages", "deny"],
+    });
+  });
+
+  test("a schema without a subject argument and no single subject is not offered for grounding", async () => {
+    const result = await handleKbSuggestPredicates(
+      groundedKb(PERMISSION, ["pages.archive", "pages.trash"]),
+      PERMISSION_ARGS,
+    );
+    const data = result.structuredContent;
+    const [candidate] = data.candidates;
+    expect(candidate?.predicate_name).toBe("permission_rule");
+    expect(candidate?.subject_key).toBeNull();
+    expect(candidate?.subject_pairing).toBe("unpaired");
+    expect(candidate?.binding_status).toBe("incomplete");
+    expect(candidate?.unbound_arguments).toEqual(["subject_key"]);
+    expect(data.recommendedAction).toBe("provide_argument_bindings");
+    expect(data.applyPlan).toEqual([]);
+    expect(data.replacementPlan).toBeNull();
+    expect(data.relationshipTarget).toBeNull();
+    expect(data.bindingHints).toEqual([
+      expect.objectContaining({
+        argument: "subject_key",
+        position: -1,
+        examples: ["pages.archive", "pages.trash"],
+      }),
+    ]);
+    expect(data.bindingHints?.[0]?.reason).toContain(
+      "does not name the requirement's subject",
+    );
+    expect(data.warnings.join(" ")).toContain(
+      "permission_rule schema does not name the requirement's subject",
+    );
+  });
+
+  test("subjectHint naming one of the constrained subjects pairs the predicate", async () => {
+    const result = await handleKbSuggestPredicates(
+      groundedKb(PERMISSION, ["pages.archive", "pages.trash"]),
+      { ...PERMISSION_ARGS, subjectHint: "pages.trash" },
+    );
+    const data = result.structuredContent;
+    expect(data.recommendedAction).toBe("replace_grounding");
+    expect(data.candidates[0]).toMatchObject({
+      subject_key: "pages.trash",
+      subject_pairing: "paired",
+      predicate_args: ["guest", "delete", "archived_pages", "deny"],
+    });
+  });
+
+  test("a free-text claim with no requirement keeps its plan without a subject_key", async () => {
+    const result = await handleKbSuggestPredicates(null, {
+      text: PERMISSION,
+      includeExistingSchemas: false,
+      maxCandidates: 1,
+    });
+    const data = result.structuredContent;
+    expect(data.recommendedAction).toBe("apply_requires_predicate");
+    expect(data.candidates[0]?.subject_pairing).toBe("not_required");
+    expect(data.applyPlan[0]?.properties).not.toHaveProperty("subject_key");
   });
 });
