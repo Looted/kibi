@@ -105,7 +105,12 @@ Evidence, bounded context questions, dependency-ordered actions, expected
 snapshots/source hashes, payoff summary, diagnostics, and `planHash`. Every
 suppressed candidate stays in `suppressedCandidates`; `tldr` and one diagnostic
 summarize them as a count per reason (for example `over_limit 290,
-duplicate_title 75`). Only a
+duplicate_title 75`). Each candidate's writes are validated before it is
+offered, with the same checks and semantic advisor the apply uses, so a
+conditional claim ("If microphone access fails, the editor must …") is planned
+like any other intent claim; a candidate that fails is suppressed as
+`invalid_write`, and one that would write an entity another candidate already
+writes with different content is suppressed as `duplicate_entity`. Only a
 `ready` plan may be approved. Apply it with `kb_apply_plan`; do not replay raw
 `kb_upsert` payloads.
 
@@ -378,6 +383,7 @@ A bootstrap plan (`kibi.bootstrap-plan.v1`) applies its actions one at a time, c
 
 - A synchronous apply sends MCP `notifications/progress` after each action when the request carries a `progressToken`. Clients that reset their request timeout on progress (the MCP SDK's `resetTimeoutOnProgress`) keep waiting, and the server's own `KIBI_MCP_TOOL_TIMEOUT_MS` then bounds the time between progress reports rather than the whole apply.
 - `async: true` returns a `kibi.job.v1` receipt immediately and runs the apply as a background job; poll [`kb_job_status`](#kb_job_status) for the result. This needs `KIBI_MCP_OPTIONAL_TOOLS=kb_job_status`; without it the apply runs synchronously.
+- The plan is checked before any action runs. An invalid plan, or a missing or wrong `approvedPlanHash`, fails the call itself (also with `async: true`) instead of surfacing later in the job, and approval stays bound to the exact KB snapshot, including the journal generation and revision. A deterministic failure after application began (`BOOTSTRAP_PLAN_REJECTED`) is terminal and needs a corrected plan.
 - If the server dies mid-apply, call `kb_apply_plan` with the journal's `recoveryJournalId`. A journal still `applying` whose active action has no checkpoint is resumed without edits: the drift since the last checkpoint is attributed to that action, which is re-applied, and the result notes it. A source lock left by the dead process is reclaimed and recorded in the journal (`lockReclaims`); a lock whose holder is still alive keeps blocking. Any other drift since the last checkpoint is still refused. Never edit the journal by hand.
 
 **Parameters:**
