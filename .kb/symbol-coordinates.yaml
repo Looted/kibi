@@ -33677,10 +33677,10 @@ coordinates:
     sourceLine: 1
   SYM-test-engine-daemon-package-versions:
     identityHash: 5c496319f198c7d21adc9bb105f4b690270609cec50d151be91428dd292d5cab
-    sourceHash: b85044b3e3c5439f315ba12c66169891026f0f6d6454e70d511016802edddc8d
+    sourceHash: 51b024632b01c68786865bfa410a7e000e7076a17808053e74062319c8c33145
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 324
+    sourceEndLine: 331
     sourceFile: packages/cli/tests/engine-runtime-identity.test.ts
     sourceLine: 1
   SYM-test-helper-fake-swipl-spec:
@@ -34181,10 +34181,10 @@ coordinates:
     sourceLine: 1
   SYM-test-prolog-daemon-runtime-identity:
     identityHash: c349334fa4b29a7c2f078b5805e3dcc6e0c9f99fdb5e2e62c7b7c736407d3d2e
-    sourceHash: b85044b3e3c5439f315ba12c66169891026f0f6d6454e70d511016802edddc8d
+    sourceHash: 51b024632b01c68786865bfa410a7e000e7076a17808053e74062319c8c33145
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 324
+    sourceEndLine: 331
     sourceFile: packages/cli/tests/engine-runtime-identity.test.ts
     sourceLine: 1
   SYM-test-prolog-doctor-runtime-report:
