@@ -1,6 +1,6 @@
 {
   "name": "kibi-runtime",
-  "version": "2.10.0",
+  "version": "2.11.0",
   "description": "Narrow first-party runtime contracts and adapters for Kibi operations.",
   "type": "module",
   "main": "./dist/index.js",
@@ -13,12 +13,12 @@
   },
   "files": ["dist"],
   "scripts": {
-    "build": "tsc -p tsconfig.json && bun build src/index.ts --outfile dist/index.js --target node --format esm --packages bundle --external kibi-core --external kibi-plugin-builtin --external kibi-swipl --external 'kibi-swipl-*' && bun build ../cli/src/engine-daemon.ts --outfile dist/engine-daemon.js --target node --format esm --packages bundle --external kibi-core --external kibi-swipl --external 'kibi-swipl-*' && rm -rf dist/skills && mkdir -p dist/skills && cp -r src/skills/. dist/skills/",
+    "build": "tsc -p tsconfig.json && bun build src/index.ts --outfile dist/index.js --target node --format esm --packages bundle --define \"$(node scripts/cli-version-define.mjs)\" --external kibi-core --external kibi-plugin-builtin --external kibi-swipl --external 'kibi-swipl-*' && bun build ../cli/src/engine-daemon.ts --outfile dist/engine-daemon.js --target node --format esm --packages bundle --define \"$(node scripts/cli-version-define.mjs)\" --external kibi-core --external kibi-swipl --external 'kibi-swipl-*' && rm -rf dist/skills && mkdir -p dist/skills && cp -r src/skills/. dist/skills/",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "gray-matter": "^4.0.3",
-    "kibi-core": "^0.17.1",
+    "kibi-core": "^0.17.2",
     "kibi-plugin-builtin": "^0.4.2",
     "kibi-swipl": "^1.0.1"
   },

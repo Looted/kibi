@@ -27,6 +27,7 @@ import {
   bootstrapKibiEnvironment,
   secretSourceFromBootstrap,
 } from "../env/bootstrap.js";
+import { kibiPackageVersions } from "../package-versions.js";
 import {
   describeConfiguredCapabilityPlugins,
   readProjectKibiConfig,
@@ -42,6 +43,7 @@ import {
   buildMigrationPlan,
   migrationAction,
 } from "../public/operations/migration-plan.js";
+import { resolveReadBranchAttachment } from "../utils/branch-resolver.js";
 import {
   type GitRepositoryContext,
   resolveGitRepository,
@@ -129,6 +131,10 @@ export async function doctorCommand(
     {
       name: "Capability plugins",
       check: checkCapabilityPlugins,
+    },
+    {
+      name: "Engine daemon",
+      check: checkEngineDaemon,
     },
   ];
 
@@ -311,7 +317,7 @@ async function runtimeProvenance(): Promise<Record<string, unknown>> {
     mcpCliRange: mcp.dependencies?.["kibi-cli"] ?? "unknown",
     executeApplyPlanExported,
     entrypoint: process.argv[1] ?? "unknown",
-    packageVersions: process.env.KIBI_PACKAGE_VERSIONS ?? "unknown",
+    packageVersions: kibiPackageVersions(),
     locations: {
       cli: packagePath,
       cliEntrypoint: process.argv[1] ?? "unknown",
@@ -635,6 +641,76 @@ function formatJevStaticConfigParts(
     return [`jev.model=${model}`, "jev.timeoutMs=invalid"];
   }
   return [`jev.model=${model}`, `jev.timeoutMs=${String(timeoutMs)}`];
+}
+
+/**
+ * The package versions and SWI-Prolog of the engine daemon serving this
+ * workspace and branch, read through its handshake without starting one. A
+ * daemon with other versions is replaced by the next Kibi command, so it is
+ * reported, not failed.
+ */
+// implements REQ-engine-daemon-package-versions
+async function checkEngineDaemon(): Promise<DoctorCheckResult> {
+  const workspaceRoot = path.resolve(
+    process.env.KIBI_WORKSPACE ??
+      process.env.KIBI_PROJECT_ROOT ??
+      process.env.KIBI_ROOT ??
+      process.cwd(),
+  );
+  const expected = kibiPackageVersions();
+  const attachment = resolveReadBranchAttachment(workspaceRoot);
+  if ("error" in attachment) {
+    return {
+      passed: true,
+      message: "Not checked: no branch to address the engine daemon",
+      details: { running: false, expectedPackageVersions: expected },
+    };
+  }
+  const { EngineClient } = await import("../engine.js");
+  const client = new EngineClient({
+    workspaceRoot,
+    branch: attachment.kbBranch,
+  });
+  let daemon: Awaited<ReturnType<typeof client.inspectLiveDaemon>> = null;
+  try {
+    daemon = await client.inspectLiveDaemon();
+  } catch (error) {
+    return {
+      passed: true,
+      message: `Not reachable: ${error instanceof Error ? error.message : String(error)}`,
+      details: { running: false, expectedPackageVersions: expected },
+    };
+  } finally {
+    await client.terminate();
+  }
+  if (daemon === null) {
+    return {
+      passed: true,
+      message: "Not running",
+      details: { running: false, expectedPackageVersions: expected },
+    };
+  }
+  const details = {
+    running: true,
+    pid: client.getPid(),
+    branch: attachment.kbBranch,
+    packageVersions: daemon.packageVersions,
+    prologIdentity: daemon.prologIdentity,
+    expectedPackageVersions: expected,
+  };
+  if (daemon.packageVersions === expected) {
+    return {
+      passed: true,
+      message: `Running ${daemon.packageVersions}`,
+      details,
+    };
+  }
+  return {
+    passed: true,
+    message: `Running ${daemon.packageVersions ?? "a daemon that reports no package versions"}, not this CLI's ${expected}; the next Kibi command replaces it`,
+    remediation: "Run: kibi engine stop",
+    details,
+  };
 }
 
 function checkKbDirectory(): {

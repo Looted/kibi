@@ -2766,7 +2766,7 @@ strict_req_fact_pairing_violation(violation(
 strict_req_fact_pairing_issue(
     ReqId,
     Description,
-    "Add a property_value fact via requires_property for the same subject_key, or link requires_predicate to a fact_kind: predicate fact whose first argument is that subject_key"
+    "Add a property_value fact via requires_property for the same subject_key, or link requires_predicate to a fact_kind: predicate fact about that subject_key (its subject argument or its subject_key)"
 ) :-
     kb:current_req(ReqId),
     kb_relationship(constrains, ReqId, SubjectFactId),
@@ -2874,14 +2874,33 @@ strict_req_fact_pairing_fact_kind(FactId, Kind) :-
 %% strict_req_predicate_grounds_subject(+ReqId, +SubjectKey)
 % A requirement that constrains a subject fact may ground its claim through
 % requires_predicate instead of requires_property (kb_model's replacementPlan
-% swaps one for the other). The predicate pairs with the subject when its
-% first argument is the subject_key, the argument position built-in and
-% project-local schemas use for the governed subject.
-% implements REQ-check-strict-pairing-predicate-grounding
+% swaps one for the other). The predicate pairs with the subject when it is
+% about that subject_key: its own subject_key names it (kb_model sets it for
+% schemas whose arguments name no subject), or the argument its schema names
+% `subject` holds it, wherever that argument sits. A predicate without a
+% project-local schema and without subject_key keeps the catalog convention
+% of the subject as its first argument.
+% implements REQ-check-strict-pairing-predicate-grounding-v2
 strict_req_predicate_grounds_subject(ReqId, SubjectKey) :-
-    kb:effective_req_predicate(ReqId, _FactId, _Namespace, _Name, [First|_], _Polarity),
-    First == SubjectKey,
+    kb:effective_req_predicate(ReqId, FactId, Namespace, Name, Args, _Polarity),
+    predicate_fact_subject_key(FactId, Namespace, Name, Args, PredicateSubject),
+    PredicateSubject == SubjectKey,
     !.
+
+%% predicate_fact_subject_key(+FactId, +Namespace, +Name, +Args, -SubjectKey)
+% The subject a predicate fact is about; at most one answer per fact.
+predicate_fact_subject_key(FactId, _Namespace, _Name, _Args, SubjectKey) :-
+    kb_entity(FactId, fact, Props),
+    memberchk(subject_key=Raw, Props),
+    !,
+    normalize_term_atom(Raw, SubjectKey).
+predicate_fact_subject_key(_FactId, Namespace, Name, Args, SubjectKey) :-
+    length(Args, Arity),
+    kb:predicate_schema(_SchemaId, Namespace, Name, Arity, ArgumentNames, _Types),
+    !,
+    nth1(Position, ArgumentNames, subject),
+    nth1(Position, Args, SubjectKey).
+predicate_fact_subject_key(_FactId, _Namespace, _Name, [SubjectKey|_], SubjectKey).
 
 strict_req_fact_pairing_kind_label(legacy, "a legacy fact without fact_kind").
 strict_req_fact_pairing_kind_label(Kind, Label) :-
@@ -2932,7 +2951,7 @@ strict_readiness_issue(
 strict_readiness_issue(
     ReqId,
     Description,
-    "Add a matching property_value fact via requires_property for the same subject_key, or link requires_predicate to a predicate fact whose first argument is that subject_key"
+    "Add a matching property_value fact via requires_property for the same subject_key, or link requires_predicate to a predicate fact about that subject_key (its subject argument or its subject_key)"
 ) :-
     kb_entity(ReqId, req, _),
     strict_readiness_level(ReqId, Level),

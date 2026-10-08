@@ -22,7 +22,7 @@ import {
   predicateArgumentConformance,
 } from "./predicate-vocabulary.js";
 
-// implements REQ-mcp-suggest-predicates
+// implements REQ-mcp-suggest-predicates, REQ-model-predicates-requirement-subject-v2, REQ-model-predicates-binding-clauses
 export function buildSuggestion(
   schema: PredicateSchemaCandidate,
   text: string,
@@ -42,6 +42,13 @@ export function buildSuggestion(
      * the caller bound that argument or passed subjectHint.
      */
     requirementSubject?: string;
+    /**
+     * Every subject_key the requirement constrains. When there are any, the
+     * predicate must be about one of them (its `subject` argument or, for a
+     * schema without one, its subject_key) or kb_check reports
+     * strict-req-fact-pairing; an unpaired candidate stays incomplete.
+     */
+    constrainedSubjects?: readonly string[];
   },
 ): PredicateSuggestion {
   const inferredArgs = inferArgs(schema, text, subject);
@@ -52,16 +59,22 @@ export function buildSuggestion(
   const hasExactBinding = (name: string): boolean =>
     typeof argumentBindings[name] === "string" &&
     argumentBindings[name].trim().length > 0;
-  const requirementSubjectArgument =
-    diagnostics?.requirementSubject &&
-    diagnostics.explicitSubject !== true &&
-    !hasExactBinding("subject")
-      ? schema.argument_names.indexOf("subject")
+  // The argument the schema names `subject`, wherever it sits; -1 when the
+  // schema names no subject (permission_rule(actor, action, resource, ...)).
+  const subjectArgument = schema.argument_names.indexOf("subject");
+  const explicitSubject = diagnostics?.explicitSubject === true;
+  // The reviewed subject: subjectHint, else the requirement's constrained
+  // subject. It binds the `subject` argument unless that argument is bound.
+  const reviewedSubject = explicitSubject
+    ? subject
+    : diagnostics?.requirementSubject;
+  const reviewedSubjectArgument =
+    reviewedSubject !== undefined && !hasExactBinding("subject")
+      ? subjectArgument
       : -1;
   const boundArgs = schema.argument_names.map((name, index) => {
     const exactBinding = argumentBindings[name];
-    if (index === requirementSubjectArgument)
-      return diagnostics?.requirementSubject ?? "unknown";
+    if (index === reviewedSubjectArgument) return reviewedSubject ?? "unknown";
     return typeof exactBinding === "string" && exactBinding.trim().length > 0
       ? exactBinding.trim()
       : (inferredArgs[index] ?? "unknown");
@@ -82,38 +95,61 @@ export function buildSuggestion(
   const undeclaredArguments = new Set(
     conformance.undeclared.map((value) => value.argumentName),
   );
+  // A schema without a `subject` argument may still lead with the hinted
+  // subject (inference put it there): that value is the agent's reviewed
+  // value, even when the schema names its first argument after it.
+  const hintedFirstArgument =
+    explicitSubject &&
+    subjectArgument < 0 &&
+    !hasExactBinding(schema.argument_names[0] ?? "") &&
+    predicateArgs[0] === subject
+      ? 0
+      : -1;
   const bindingProvenanceByArgument = Object.fromEntries(
     schema.argument_names.map((name, index) => [
       name,
-      index === requirementSubjectArgument && !undeclaredArguments.has(name)
-        ? "requirement"
+      index === reviewedSubjectArgument && !undeclaredArguments.has(name)
+        ? explicitSubject
+          ? classifyBinding(predicateArgs[index] ?? "unknown", text, true)
+          : "requirement"
         : classifyBinding(
             predicateArgs[index] ?? "unknown",
             text,
-            (typeof argumentBindings[name] === "string" &&
-              argumentBindings[name].trim().length > 0) ||
-              (diagnostics?.explicitSubject === true && index === 0),
+            hasExactBinding(name) || index === hintedFirstArgument,
             canonicalLauncherArgs?.[index] === predicateArgs[index] &&
               !(
                 index === 0 &&
                 predicateArgs[index] === "launcher" &&
-                diagnostics?.explicitSubject !== true &&
+                !explicitSubject &&
                 typeof argumentBindings[name] !== "string"
               ),
-            // A subject named through subjectHint is the agent's reviewed
-            // subject, even when the schema names its first argument after it.
-            index === 0 &&
-              diagnostics?.explicitSubject === true &&
-              typeof argumentBindings[name] !== "string"
+            index === hintedFirstArgument
               ? { constants: schema.argument_constants?.[name] }
               : {
                   argumentName: name,
                   argumentNames: schema.argument_names,
+                  argumentType: schema.argument_types[index],
                   constants: schema.argument_constants?.[name],
                 },
           ),
     ]),
   ) as Record<string, BindingProvenance>;
+  // The subject the planned predicate fact is about, when the requirement
+  // constrains subjects: the `subject` argument's value, or for a schema
+  // without one the reviewed subject, recorded as the fact's subject_key.
+  const constrainedSubjects = diagnostics?.constrainedSubjects ?? [];
+  const subjectKey =
+    constrainedSubjects.length === 0
+      ? null
+      : subjectArgument >= 0
+        ? (predicateArgs[subjectArgument] ?? null)
+        : (reviewedSubject ?? null);
+  const subjectPairing: PredicateSuggestion["subject_pairing"] =
+    constrainedSubjects.length === 0
+      ? "not_required"
+      : subjectKey !== null && constrainedSubjects.includes(subjectKey)
+        ? "paired"
+        : "unpaired";
   const bindingProvenance = aggregateBindingProvenance(
     Object.values(bindingProvenanceByArgument),
   );
@@ -122,6 +158,13 @@ export function buildSuggestion(
       undeclaredArguments.has(name) ||
       !bindingCanBeApplied(bindingProvenanceByArgument[name] ?? "placeholder"),
   );
+  // An unpaired predicate would leave kb_check's strict-req-fact-pairing on
+  // the requirement, so the subject still needs a binding: the `subject`
+  // argument, or the fact's subject_key for a schema without one.
+  if (subjectPairing === "unpaired") {
+    const missing = subjectArgument >= 0 ? "subject" : "subject_key";
+    if (!unboundArguments.includes(missing)) unboundArguments.push(missing);
+  }
   const canonicalKey = `${schema.predicate_name}(${predicateArgs.join(",")})`;
   // Permission-style inference carries the deontic decision as its final
   // argument. Preserve that polarity in the typed suggestion instead of
@@ -144,6 +187,8 @@ export function buildSuggestion(
     unbound_arguments: unboundArguments,
     binding_provenance: bindingProvenance,
     binding_provenance_by_argument: bindingProvenanceByArgument,
+    subject_key: subjectKey,
+    subject_pairing: subjectPairing,
     eligibility: diagnostics?.eligibility ?? "eligible",
     rejection_reasons: [...(diagnostics?.rejectionReasons ?? [])],
     applicability_score: diagnostics?.applicabilityScore ?? score,
@@ -163,7 +208,7 @@ export function buildSuggestion(
   };
 }
 
-// implements REQ-mcp-suggest-predicates
+// implements REQ-mcp-suggest-predicates, REQ-model-predicates-requirement-subject-v2
 export function buildPredicateApplyPlan(
   suggestion: PredicateSuggestion,
   args: SuggestPredicatesArgs,
@@ -194,6 +239,11 @@ export function buildPredicateApplyPlan(
           ...suggestion.schema.tags.map((tag) => `predicate:${tag}`),
         ],
         fact_kind: "predicate",
+        // The subject the predicate is about, so kb_check pairs it with the
+        // requirement's subject fact whatever argument holds the subject.
+        ...(suggestion.subject_key
+          ? { subject_key: suggestion.subject_key }
+          : {}),
         predicate_name: suggestion.predicate_name,
         predicate_args: suggestion.predicate_args,
         canonical_key: suggestion.canonical_key,

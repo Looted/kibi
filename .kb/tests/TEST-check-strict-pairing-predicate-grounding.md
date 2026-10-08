@@ -22,17 +22,17 @@ id: TEST-check-strict-pairing-predicate-grounding
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v1
-    receipt_id: PR-92793e6326cd227762c1d3dd
+    receipt_id: PR-d9da54393bfdad470801368a
     test_id: TEST-check-strict-pairing-predicate-grounding
     scope: end_to_end
     outcome: passed
-    code_snapshot: 6cca97613441c1fbaabc1ae371ee3f303736b4d4b1a0c6d7c908439c9eabb06d
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-10-08T16:06:20.763Z'
-    finished_at: '2026-10-08T16:06:25.295Z'
-    artifact_digest: 098b5b89b3ee2fb4d6877bb5c5721896c443ad7ebacd81b855dd2b756023c0f7
+    code_snapshot: 3464ae42f083c2b6e9ed9b482fa7e54f58e94f0d5628e4ace6c2f8d99ecacd37
+    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
+    started_at: '2026-10-08T21:30:46.081Z'
+    finished_at: '2026-10-08T21:30:52.229Z'
+    artifact_digest: e3e67400745b385faef1d540ddb8cf48f7886d2b4c68975dba9fd2545e1a68b1
     contract_hash: a69786424a2d829b18cd840d70e1e27b51dbb0867f3d5b69e275ca5b142ec37f
-    binding_hash: 9e371bec08e62c9235f4abf40132c6b4b5b9031f7fa3e0c6b6b8e4851bbc1a1e
+    binding_hash: 57f48dd2edec26dcba3139d123025eaf16cacd7fadc0ab792529ac9d45e6f3e2
     fingerprint: 0fc9e2b31aa9d580a01a5e4aa04ea56d5e71cc57f6692737ade4813ebe68b120
     fingerprint_components:
       contract: a69786424a2d829b18cd840d70e1e27b51dbb0867f3d5b69e275ca5b142ec37f

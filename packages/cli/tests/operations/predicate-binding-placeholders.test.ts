@@ -1,4 +1,4 @@
-// implements REQ-model-predicates-binding-placeholders, REQ-model-predicates-closed-vocabularies
+// implements REQ-model-predicates-binding-placeholders, REQ-model-predicates-closed-vocabularies, REQ-model-predicates-binding-clauses
 import { describe, expect, test } from "bun:test";
 import {
   buildBindingHints,
@@ -6,6 +6,7 @@ import {
 } from "../../src/operations/modeling/predicate-binding-hints.js";
 import {
   classifyBinding,
+  clauseBindingReason,
   nameOrStopWordReason,
 } from "../../src/operations/modeling/predicate-bindings.js";
 import { BUILT_IN_PREDICATE_SCHEMAS } from "../../src/operations/modeling/predicate-catalog.js";
@@ -173,6 +174,71 @@ describe("argument bindings that only repeat a name or a stop word stay unbound"
     expect(data.applyPlan[0]?.properties).toMatchObject({
       predicate_args: ["billing.saved_invoices", "reload", "remain_visible"],
     });
+  });
+});
+
+describe("a clause of the claim does not name a participant", () => {
+  const CLAIM =
+    "Archiving a page while publishing a revision must not delete previously approved comments.";
+
+  test("an extracted actor longer than three words is unbound with a hint", async () => {
+    const result = await handleKbSuggestPredicates(null, {
+      text: CLAIM,
+      includeExistingSchemas: false,
+    });
+    const data = result.structuredContent;
+    const permission = data.candidates.find(
+      (candidate) => candidate.predicate_name === "permission_rule",
+    );
+    expect(permission?.predicate_args[0]).toBe(
+      "archiving_a_page_while_publishing_a_revision",
+    );
+    expect(permission?.binding_status).toBe("incomplete");
+    expect(permission?.unbound_arguments).toEqual(["actor"]);
+    expect(permission?.binding_provenance_by_argument.actor).toBe(
+      "placeholder",
+    );
+    // A three-word resource taken from the claim stays a binding.
+    expect(permission?.binding_provenance_by_argument.resource).toBe(
+      "extracted",
+    );
+    expect(data.recommendedAction).toBe("provide_argument_bindings");
+    expect(data.applyPlan).toEqual([]);
+    const [hint] = data.bindingHints ?? [];
+    expect(hint?.argument).toBe("actor");
+    expect(hint?.reason).toContain("7-word clause of the claim");
+    expect(hint?.reason).toContain("at most 3 words");
+  });
+
+  test("a short extracted noun still binds the actor", async () => {
+    const result = await handleKbSuggestPredicates(null, {
+      text: "Guests must not delete archived pages.",
+      includeExistingSchemas: false,
+    });
+    const data = result.structuredContent;
+    expect(data.recommendedAction).toBe("apply_requires_predicate");
+    expect(data.candidates[0]).toMatchObject({
+      predicate_name: "permission_rule",
+      predicate_args: ["guest", "delete", "archived_pages", "deny"],
+      binding_status: "complete",
+    });
+  });
+
+  test("only entity-, actor- and resource-like arguments are judged, and an explicit binding is kept", () => {
+    const long = "pages_archived_while_a_revision_is_published";
+    expect(clauseBindingReason(long, { argumentType: "actor" })).toContain(
+      "clause of the claim",
+    );
+    expect(clauseBindingReason(long, { argumentType: "condition" })).toBeNull();
+    expect(
+      clauseBindingReason("archived_page_owner", { argumentType: "entity" }),
+    ).toBeNull();
+    expect(
+      classifyBinding(long, long.replace(/_/g, " "), true, false, {
+        argumentName: "actor",
+        argumentType: "actor",
+      }),
+    ).toBe("explicit");
   });
 });
 

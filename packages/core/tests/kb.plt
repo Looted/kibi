@@ -5031,7 +5031,7 @@ test(check_strict_req_fact_pairing_reports_missing_property_counterpart, [setup(
     kb_assert_relationship(constrains, 'REQ-SUBJECT-ONLY', 'FACT-SUBJECT-ONLY', []),
     check_strict_req_fact_pairing([violation('strict-req-fact-pairing', 'REQ-SUBJECT-ONLY', Description, Suggestion, 'kb.plt')]),
     assertion(sub_string(Description, _, _, _, "has no matching strict requires_property fact")),
-    assertion(Suggestion == "Add a property_value fact via requires_property for the same subject_key, or link requires_predicate to a fact_kind: predicate fact whose first argument is that subject_key").
+    assertion(Suggestion == "Add a property_value fact via requires_property for the same subject_key, or link requires_predicate to a fact_kind: predicate fact about that subject_key (its subject argument or its subject_key)").
 
 test(check_strict_req_fact_pairing_accepts_predicate_about_the_subject, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
     assert_fixture_entity(fact, 'FACT-SUBJECT-PRED', "Autosave subject", active, [fact_kind=subject, subject_key="editor.autosave"]),
@@ -5056,6 +5056,52 @@ test(check_strict_req_fact_pairing_reports_predicate_about_another_subject, [set
     check_strict_readiness(Readiness),
     findall(D, member(violation('strict-readiness', 'REQ-SUBJECT-OTHER', D, _, _), Readiness), [ReadinessDescription]),
     assertion(sub_string(ReadinessDescription, _, _, _, "not-ready (has-subject)")).
+
+% implements REQ-check-strict-pairing-predicate-grounding-v2
+test(check_strict_req_fact_pairing_accepts_predicate_subject_key, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    assert_fixture_entity(fact, 'FACT-SUBJECT-PERM', "Archive subject", active, [fact_kind=subject, subject_key="pages.archive"]),
+    assert_fixture_entity(fact, 'FACT-PRED-PERM', "Guests may not delete pages", active, [fact_kind=predicate, predicate_name="permission_rule", predicate_namespace="default", predicate_args=["guest", "delete", "page", "deny"], polarity=deny, canonical_key="permission_rule(guest,delete,page,deny)", subject_key="pages.archive"]),
+    assert_fixture_entity(req, 'REQ-SUBJECT-PERM', "Archive req", open, []),
+    kb_assert_relationship(constrains, 'REQ-SUBJECT-PERM', 'FACT-SUBJECT-PERM', []),
+    kb_assert_relationship(requires_predicate, 'REQ-SUBJECT-PERM', 'FACT-PRED-PERM', []),
+    check_strict_req_fact_pairing(Violations),
+    assertion(\+ member(violation('strict-req-fact-pairing', 'REQ-SUBJECT-PERM', _, _, _), Violations)),
+    check_strict_readiness(Readiness),
+    assertion(\+ member(violation('strict-readiness', 'REQ-SUBJECT-PERM', _, _, _), Readiness)).
+
+test(check_strict_req_fact_pairing_reads_subject_key_before_first_argument, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    assert_fixture_entity(fact, 'FACT-SUBJECT-KEYED', "Autosave subject", active, [fact_kind=subject, subject_key="editor.autosave"]),
+    assert_fixture_entity(fact, 'FACT-PRED-KEYED', "Commit on navigation", active, [fact_kind=predicate, predicate_name="commit_action", predicate_namespace="default", predicate_args=["editor.autosave", "navigation", "changes"], polarity=assert, canonical_key="commit_action(editor.autosave,navigation,changes)", subject_key="editor.toolbar"]),
+    assert_fixture_entity(req, 'REQ-SUBJECT-KEYED', "Autosave req", open, []),
+    kb_assert_relationship(constrains, 'REQ-SUBJECT-KEYED', 'FACT-SUBJECT-KEYED', []),
+    kb_assert_relationship(requires_predicate, 'REQ-SUBJECT-KEYED', 'FACT-PRED-KEYED', []),
+    check_strict_req_fact_pairing(Violations),
+    member(violation('strict-req-fact-pairing', 'REQ-SUBJECT-KEYED', Description, _, _), Violations),
+    assertion(sub_string(Description, _, _, _, "no requires_predicate fact about that subject")).
+
+test(check_strict_req_fact_pairing_accepts_named_subject_argument, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    assert_fixture_entity(fact, 'FACT-SCHEMA-FALLBACK', "Predicate schema: fallback/3", active, [
+        fact_kind=predicate_schema,
+        predicate_name="fallback_to",
+        predicate_namespace="default",
+        predicate_arity=3,
+        argument_names=["condition", "subject", "fallback"],
+        argument_types=["condition", "entity", "behavior"]
+    ]),
+    assert_fixture_entity(fact, 'FACT-SUBJECT-FALLBACK', "Cache subject", active, [fact_kind=subject, subject_key="pages.cache"]),
+    assert_fixture_entity(fact, 'FACT-PRED-FALLBACK', "Cache falls back", active, [fact_kind=predicate, predicate_name="fallback_to", predicate_namespace="default", predicate_args=["offline", "pages.cache", "stored_copy"], polarity=assert, canonical_key="fallback_to(offline,pages.cache,stored_copy)"]),
+    assert_fixture_entity(fact, 'FACT-PRED-FALLBACK-FIRST', "Offline falls back", active, [fact_kind=predicate, predicate_name="fallback_to", predicate_namespace="default", predicate_args=["pages.cache", "offline", "stored_copy"], polarity=assert, canonical_key="fallback_to(pages.cache,offline,stored_copy)"]),
+    assert_fixture_entity(req, 'REQ-SUBJECT-FALLBACK', "Cache req", open, []),
+    assert_fixture_entity(req, 'REQ-SUBJECT-FALLBACK-FIRST', "Cache req first", open, []),
+    kb_assert_relationship(constrains, 'REQ-SUBJECT-FALLBACK', 'FACT-SUBJECT-FALLBACK', []),
+    kb_assert_relationship(requires_predicate, 'REQ-SUBJECT-FALLBACK', 'FACT-PRED-FALLBACK', []),
+    kb_assert_relationship(constrains, 'REQ-SUBJECT-FALLBACK-FIRST', 'FACT-SUBJECT-FALLBACK', []),
+    kb_assert_relationship(requires_predicate, 'REQ-SUBJECT-FALLBACK-FIRST', 'FACT-PRED-FALLBACK-FIRST', []),
+    check_strict_req_fact_pairing(Violations),
+    assertion(\+ member(violation('strict-req-fact-pairing', 'REQ-SUBJECT-FALLBACK', _, _, _), Violations)),
+    assertion(member(violation('strict-req-fact-pairing', 'REQ-SUBJECT-FALLBACK-FIRST', _, _, _), Violations)),
+    check_strict_readiness(Readiness),
+    assertion(\+ member(violation('strict-readiness', 'REQ-SUBJECT-FALLBACK', _, _, _), Readiness)).
 
 test(check_strict_req_fact_pairing_reports_missing_subject_counterpart, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
     assert_fixture_entity(fact, 'FACT-PROP-ONLY', "Property only", active, [fact_kind=property_value, subject_key="checkout", property_key="currency", operator=eq, value_type=string, value_string="usd"]),

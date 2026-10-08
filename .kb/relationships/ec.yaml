@@ -76,3 +76,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2ce9e7816c1f
+  - type: implements
+    from: SYM-cli-engine-client
+    to: REQ-engine-daemon-package-versions
+    created_at: 2026-10-08T21:26:59.356Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-42650e4f803e
+  - type: covered_by
+    from: SYM-cli-engine-client
+    to: TEST-engine-daemon-package-versions
+    created_at: 2026-10-08T21:26:59.371Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0ebf91bb5178

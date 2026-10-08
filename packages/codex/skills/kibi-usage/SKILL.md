@@ -2,7 +2,7 @@
 id: kibi-usage
 name: Kibi Usage
 description: Use Kibi's source-first, exact-Git, migration-aware, proof-aware operations safely across MCP or the trusted local CLI, including partial completion repair.
-version: 2.8.0
+version: 2.9.0
 kibiCompatibility: ">=1.0.0"
 tags:
   - kibi
@@ -260,7 +260,11 @@ constants) or `examples`, and why the current value was refused. With a
 `requirementId` whose requirement `constrains` one subject fact, the `subject`
 argument is already bound to that fact's `subject_key` (provenance
 `requirement`); keep it, so the predicate and the subject fact name one
-subject. Bind them
+subject. A schema without a `subject` argument (`permission_rule`) records
+that key as the planned fact's `subject_key` instead; when the requirement
+constrains several subjects, an unbound `subject_key` asks you to pass
+`subjectHint` with one of them. A participant (`actor`, `resource`, entity)
+is a short noun, never a clause of the claim. Bind them
 from the claim's own words and call again with the same `text` and
 `requirementId`, plus `schemaId` and `argumentBindings` keyed by
 `argument_names` (reuse `argument_constants` values when the schema has them).

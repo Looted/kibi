@@ -377,13 +377,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-423a8cd0606c
-  - type: implements
-    from: SYM-core-strict-req-predicate-grounds-subject
-    to: REQ-check-strict-pairing-predicate-grounding
-    created_at: 2026-10-08T15:36:35.899Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-79477126cd9c
   - type: covered_by
     from: SYM-core-strict-req-predicate-grounds-subject
     to: TEST-check-strict-pairing-predicate-grounding
@@ -391,3 +384,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e914b88ce622
+  - type: implements
+    from: SYM-core-strict-req-predicate-grounds-subject
+    to: REQ-check-strict-pairing-predicate-grounding-v2
+    created_at: 2026-10-08T21:25:57.323Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c5dc206ff3a

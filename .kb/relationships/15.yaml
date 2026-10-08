@@ -188,3 +188,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3c4cc4d74cdb
+  - type: constrains
+    from: REQ-model-predicates-requirement-subject-v2
+    to: FACT-SUBJ-PREDICATE-SUGGESTION-PLAN
+    created_at: 2026-10-08T21:05:28.032Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6ba508be78cd
+  - type: requires_property
+    from: REQ-model-predicates-requirement-subject-v2
+    to: FACT-model-predicates-requirement-subject-v2-named-argument-bound
+    created_at: 2026-10-08T21:05:28.066Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c30f0dfb11f4
+  - type: requires_property
+    from: REQ-model-predicates-requirement-subject-v2
+    to: FACT-model-predicates-requirement-subject-v2-subject-key-recorded
+    created_at: 2026-10-08T21:05:28.085Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-53151b3187ce
+  - type: requires_property
+    from: REQ-model-predicates-requirement-subject-v2
+    to: FACT-model-predicates-requirement-subject-v2-paired-plan-only
+    created_at: 2026-10-08T21:05:28.099Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4193625f6797
+  - type: requires_property
+    from: REQ-model-predicates-requirement-subject-v2
+    to: FACT-model-predicates-requirement-subject-unbound
+    created_at: 2026-10-08T21:05:28.119Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-776891a680fa
+  - type: specified_by
+    from: REQ-model-predicates-requirement-subject-v2
+    to: SCEN-model-predicates-requirement-subject
+    created_at: 2026-10-08T21:05:28.138Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-47f75feef7dc
+  - type: supersedes
+    from: REQ-model-predicates-requirement-subject-v2
+    to: REQ-model-predicates-requirement-subject
+    created_at: 2026-10-08T21:05:28.149Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-10f382f502fc
+  - type: verified_by
+    from: SCEN-model-predicates-binding-clauses
+    to: TEST-model-predicates-binding-clauses
+    created_at: 2026-10-08T21:05:41.411Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4aad07ddd8e3

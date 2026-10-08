@@ -14,6 +14,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import {
   EngineClient,
+  enginePackageVersions,
   enginePidPath,
   engineSocketPath,
   engineSwiplIdentity,
@@ -864,11 +865,14 @@ describe("runEngineDaemon in-process", () => {
             JSON.stringify({
               id: request.id,
               ok: true,
-              // A live daemon reports the SWI-Prolog it runs on before the
-              // attachment status handshake.
+              // A live daemon reports the SWI-Prolog and package versions it
+              // runs with before the attachment status handshake.
               result:
                 request.method === "handshake"
-                  ? { prologIdentity: engineSwiplIdentity() }
+                  ? {
+                      prologIdentity: engineSwiplIdentity(),
+                      packageVersions: enginePackageVersions(),
+                    }
                   : { success: true, bindings: statusBindings },
             }),
           );

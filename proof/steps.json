@@ -2250,7 +2250,7 @@
         "-s",
         "packages/core/tests/kb.plt",
         "-g",
-        "run_tests(checks_coverage_gaps:[check_strict_req_fact_pairing_reports_missing_property_counterpart,check_strict_req_fact_pairing_accepts_predicate_about_the_subject,check_strict_req_fact_pairing_reports_predicate_about_another_subject])",
+        "run_tests(checks_coverage_gaps:[check_strict_req_fact_pairing_reports_missing_property_counterpart,check_strict_req_fact_pairing_accepts_predicate_about_the_subject,check_strict_req_fact_pairing_reports_predicate_about_another_subject,check_strict_req_fact_pairing_accepts_predicate_subject_key,check_strict_req_fact_pairing_reads_subject_key_before_first_argument,check_strict_req_fact_pairing_accepts_named_subject_argument])",
         "-t",
         "halt"
       ],
@@ -2303,6 +2303,30 @@
         "--isolate",
         "--max-concurrency=1",
         "./packages/cli/tests/operations/predicate-binding-placeholders.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-model-predicates-binding-clauses",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/operations/predicate-binding-placeholders.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-engine-daemon-package-versions",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/engine-runtime-identity.test.ts"
       ]
     ]
   }
