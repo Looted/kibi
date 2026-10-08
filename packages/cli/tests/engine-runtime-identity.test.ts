@@ -166,8 +166,12 @@ describe("engine daemon SWI-Prolog identity", () => {
 async function doctorEngineDaemon(
   root: string,
 ): Promise<{ message: string; details: Record<string, unknown> }> {
+  // CI exports KIBI_BRANCH for the checkout under test; doctor must address
+  // the daemon this test started on the fixture's main branch.
   const previous = process.env.KIBI_WORKSPACE;
+  const previousBranch = process.env.KIBI_BRANCH;
   process.env.KIBI_WORKSPACE = root;
+  process.env.KIBI_BRANCH = "main";
   const lines: string[] = [];
   const log = spyOn(console, "log").mockImplementation((line: unknown) => {
     lines.push(String(line));
@@ -179,6 +183,9 @@ async function doctorEngineDaemon(
     if (previous === undefined)
       Reflect.deleteProperty(process.env, "KIBI_WORKSPACE");
     else process.env.KIBI_WORKSPACE = previous;
+    if (previousBranch === undefined)
+      Reflect.deleteProperty(process.env, "KIBI_BRANCH");
+    else process.env.KIBI_BRANCH = previousBranch;
   }
   const report = JSON.parse(lines.join("\n")) as {
     checks: Array<{
