@@ -95,12 +95,10 @@ describe("semantic advisor prose analysis", () => {
       recommendedPredicateSchema: null,
       applyPlan: [
         expect.objectContaining({
-          relationships: [
-            expect.objectContaining({
-              type: "relates_to",
-              to: "review:ontology-gap",
-            }),
-          ],
+          relationships: [],
+          properties: expect.objectContaining({
+            tags: expect.arrayContaining(["review:ontology-gap"]),
+          }),
         }),
       ],
     });
@@ -592,12 +590,10 @@ describe("semantic advisor prose analysis", () => {
       ambiguity: expect.arrayContaining(["exactly", "at_most", "at_least"]),
       applyPlan: [
         expect.objectContaining({
-          relationships: [
-            expect.objectContaining({
-              type: "relates_to",
-              to: "review:ambiguous-claim",
-            }),
-          ],
+          relationships: [],
+          properties: expect.objectContaining({
+            tags: expect.arrayContaining(["review:ambiguity"]),
+          }),
         }),
       ],
     });

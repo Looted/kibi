@@ -2799,6 +2799,15 @@
                     },
                     "type": "array"
                   },
+                  "bindingHints": {
+                    "description": "On provide_argument_bindings: one entry per unbound argument of the recommended candidate with its type, declared constants (allowedValues) when the vocabulary is closed, schema example values and the reason the current value was not accepted. Empty otherwise.",
+                    "items": {
+                      "additionalProperties": {},
+                      "properties": {},
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
                   "candidates": {
                     "items": {
                       "additionalProperties": {},

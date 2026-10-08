@@ -230,3 +230,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3e4f3b7e7bcf
+  - type: validates
+    from: TEST-model-predicates-binding-placeholders
+    to: REQ-model-predicates-binding-placeholders
+    created_at: 2026-10-08T08:34:29.635Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-56539abfae15

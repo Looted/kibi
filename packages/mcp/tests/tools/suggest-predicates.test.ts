@@ -198,12 +198,7 @@ describe("kb_suggest_predicates", () => {
         fact_kind: "observation",
         tags: expect.arrayContaining(["review:ontology-gap"]),
       },
-      relationships: [
-        {
-          type: "relates_to",
-          to: "review:ontology-gap",
-        },
-      ],
+      relationships: [],
     });
   });
 
@@ -320,12 +315,7 @@ describe("kb_suggest_predicates", () => {
     expect(applyPlan).toHaveLength(1);
     expect(applyPlan[0]).toMatchObject({
       type: "fact",
-      relationships: [
-        {
-          type: "relates_to",
-          to: "review:ontology-gap",
-        },
-      ],
+      relationships: [],
       properties: {
         fact_kind: "observation",
         tags: expect.arrayContaining([

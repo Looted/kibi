@@ -216,3 +216,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-363d18da80f6
+  - type: constrains
+    from: REQ-bootstrap-claim-name-length
+    to: FACT-KIBI-BOOTSTRAP-SUBJECT
+    created_at: 2026-10-08T09:14:16.487Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8fe8551b50d4
+  - type: requires_property
+    from: REQ-bootstrap-claim-name-length
+    to: FACT-bootstrap-claim-name-length-shortened
+    created_at: 2026-10-08T09:14:16.524Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d978552c4330
+  - type: requires_property
+    from: REQ-bootstrap-claim-name-length
+    to: FACT-bootstrap-claim-name-length-distinct
+    created_at: 2026-10-08T09:14:16.547Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aec9bcbd7c37
+  - type: specified_by
+    from: REQ-bootstrap-claim-name-length
+    to: SCEN-bootstrap-claim-name-length
+    created_at: 2026-10-08T09:14:16.565Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-794f23eb53b5
+  - type: supersedes
+    from: REQ-bootstrap-claim-name-length
+    to: REQ-bootstrap-subject-key-aspect-length
+    created_at: 2026-10-08T09:18:30.125Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-39ac492d6836

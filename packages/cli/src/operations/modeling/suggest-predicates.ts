@@ -1,4 +1,5 @@
 import { escapeAtom } from "../../prolog/codec.js";
+import { loadEntities } from "../../public/operations/discovery-entities.js";
 import type {
   OperationContext,
   PrologPort,
@@ -19,6 +20,10 @@ import {
   buildRelationshipPlan,
   buildSuggestion,
 } from "./predicate-applyplan.js";
+import {
+  buildBindingHints,
+  describeBindingHints,
+} from "./predicate-binding-hints.js";
 import { BUILT_IN_PREDICATE_SCHEMAS } from "./predicate-catalog.js";
 import { inferSubject } from "./predicate-inference.js";
 import { loadExistingPredicateSchemas } from "./predicate-loader.js";
@@ -471,6 +476,11 @@ export async function handleKbSuggestPredicates(
           plannedFactId,
           predicatePlan,
           existingGrounding,
+          await storedRequirementProperties(
+            prolog,
+            args.requirementId,
+            warnings,
+          ),
         )
       : null;
   const relationshipTarget =
@@ -485,6 +495,10 @@ export async function handleKbSuggestPredicates(
       `${args.requirementId} already grounds this claim (${claimKey}) through ${groundingSummary}. A modeled claim takes exactly one logical grounding relationship, so adding requires_predicate beside it fails the proposition-complete rule. ${replacementPlan ? "Keep the existing grounding, or follow replacementPlan to swap it for the predicate." : "Keep the existing grounding; no predicate replacement is available yet."}`,
     );
   }
+  const bindingHints =
+    recommendedAction === "provide_argument_bindings" && recommendedCandidate
+      ? buildBindingHints(recommendedCandidate, text)
+      : [];
   const recommendedPredicateSchema =
     !recommendedCandidate && !unavailableSchema
       ? buildPredicateSchemaDraft(text, subject)
@@ -499,7 +513,7 @@ export async function handleKbSuggestPredicates(
       : completeCandidate
         ? `Suggested ${candidates.length} predicate candidate(s). Top applicable match: ${completeCandidate.predicate_name}. Apply the predicate fact ${plannedFactId}, then link requires_predicate to that fact id (not a candidate id).`
         : recommendedCandidate
-          ? `Matched ${recommendedCandidate.predicate_name}, but exact reviewed values are still required for: ${recommendedCandidate.unbound_arguments.join(", ")}. No apply plan was generated.`
+          ? `Matched ${recommendedCandidate.predicate_name}, but exact reviewed values are still required for: ${recommendedCandidate.unbound_arguments.join(", ")}. Bind them from the claim text: ${describeBindingHints(bindingHints)}. A value that repeats an argument name or a stop word stays unbound. No apply plan was generated.`
           : unavailableSchema
             ? `Requested predicate schema ${args.schemaId} is unavailable or semantically inapplicable. No apply plan was generated.`
             : alreadyGrounded
@@ -526,24 +540,87 @@ export async function handleKbSuggestPredicates(
       relationshipTarget,
       existingGrounding,
       replacementPlan,
+      bindingHints,
       warnings,
     },
     applyPlan,
   };
 }
 
+/** Stored requirement fields a relationship-only update must restate. */
+const RESTATED_REQUIREMENT_FIELDS = [
+  "title",
+  "status",
+  "priority",
+  "owner",
+  "tags",
+] as const;
+
+/**
+ * The requirement fields the replacement's requirement upsert restates, so
+ * the step is a complete kb_upsert payload (title and status are required)
+ * that keeps the stored metadata. The stored proposition ledger and text_ref
+ * are merged by kb_upsert itself.
+ */
+// implements REQ-model-predicates-plan-roundtrip
+async function storedRequirementProperties(
+  prolog: PrologPort | null,
+  requirementId: string,
+  warnings: string[],
+): Promise<Record<string, unknown> | null> {
+  if (prolog === null) return null;
+  try {
+    const [stored] = await loadEntities(prolog, {
+      id: requirementId,
+      type: "req",
+    });
+    if (stored === undefined) return null;
+    const restated: Record<string, unknown> = {};
+    for (const field of RESTATED_REQUIREMENT_FIELDS)
+      if (stored[field] !== undefined && stored[field] !== null)
+        restated[field] = stored[field];
+    return typeof restated.title === "string" &&
+      typeof restated.status === "string"
+      ? restated
+      : null;
+  } catch (error) {
+    warnings.push(
+      `Requirement ${requirementId} could not be read (${error instanceof Error ? error.message : String(error)}); add its stored title and status to the last replacementPlan step before applying it.`,
+    );
+    return null;
+  }
+}
+
 /**
  * Ordered steps that swap an existing grounding for the planned predicate
  * fact while keeping one grounding relationship per modeled claim: write the
- * fact, retract the old grounding link, then link requires_predicate.
+ * fact, retract the old grounding link, then link requires_predicate. The
+ * order is forced: kb_upsert merges a requirement's relationships, so linking
+ * first would give the claim two groundings and be rejected. Between the
+ * retraction and the link the claim is ungrounded (kb_check reports
+ * logic-coverage), so the steps run back to back and `rollback` restores the
+ * old link if the last step fails.
  */
-// implements REQ-model-predicates-grounding-aware-v2
+// implements REQ-model-predicates-grounding-aware-v2, REQ-model-predicates-plan-roundtrip
 function buildGroundingReplacementPlan(
   requirementId: string,
   factId: string,
   predicatePlan: ReadonlyArray<Record<string, unknown>>,
   existing: readonly ExistingClaimGrounding[],
+  stored: Record<string, unknown> | null,
 ): Record<string, unknown> {
+  const requirementUpsert = (
+    relationships: ReadonlyArray<Record<string, unknown>>,
+  ): Record<string, unknown> => ({
+    type: "req",
+    id: requirementId,
+    ...(stored === null ? {} : { properties: stored }),
+    relationships,
+  });
+  const restate =
+    stored === null
+      ? `add the requirement's stored title and status as properties (they could not be read), keep this relationship only`
+      : "the properties restate the stored title, status and metadata; kb_upsert keeps the stored proposition ledger";
   return {
     relationshipTarget: factId,
     steps: [
@@ -562,17 +639,19 @@ function buildGroundingReplacementPlan(
       },
       {
         operation: "kb_upsert",
-        input: {
-          type: "req",
-          id: requirementId,
-          relationships: [
-            { type: "requires_predicate", from: requirementId, to: factId },
-          ],
-        },
-        reason: `Link requires_predicate to ${factId}; upsert the requirement with its stored title and status and this relationship only.`,
+        input: requirementUpsert([
+          { type: "requires_predicate", from: requirementId, to: factId },
+        ]),
+        reason: `Link requires_predicate to ${factId}; ${restate}.`,
       },
     ],
-    instructions: `Only replace the grounding when the predicate states the claim at least as precisely as ${existing.map((row) => row.factId).join(", ")}. Run kb_check after the last step.`,
+    rollback: {
+      operation: "kb_upsert",
+      input: requirementUpsert(existing.map((row) => row.relationship)),
+      reason:
+        "Only if the last step fails: restore the retracted grounding link so the claim is grounded again.",
+    },
+    instructions: `Only replace the grounding when the predicate states the claim at least as precisely as ${existing.map((row) => row.factId).join(", ")}. Apply the steps unchanged, in order and back to back: linking requires_predicate before the retraction is rejected because the claim would have two groundings, and between the retraction and the link the claim is ungrounded, so kb_check reports logic-coverage for ${requirementId} until the last step lands. If the last step fails, apply rollback. Run kb_check after the last step.`,
   };
 }
 

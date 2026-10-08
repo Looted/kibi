@@ -57,7 +57,8 @@ describe("bootstrap subject keys follow component.aspect[.sub]", () => {
       ),
     ).toEqual({
       ok: true,
-      subjectKey: "recorder.beginning_to_record_while_idle",
+      subjectKey: "recorder.beginning_to_record",
+      shortenedFrom: "recorder.beginning_to_record_while_idle",
     });
   });
 
@@ -100,9 +101,7 @@ describe("bootstrap subject keys follow component.aspect[.sub]", () => {
     const result = plan({}, { component: "recorder" });
     const keys = subjectKeys(result);
     expect(keys.length).toBeGreaterThan(0);
-    expect(new Set(keys)).toEqual(
-      new Set(["recorder.beginning_to_record_while_idle"]),
-    );
+    expect(new Set(keys)).toEqual(new Set(["recorder.beginning_to_record"]));
     expect(keys.every(isConventionalSubjectKey)).toBe(true);
     for (const step of result.candidates[0]?.applyPlan ?? [])
       expect(() => validateBootstrapPayload(step, new Date())).not.toThrow();
@@ -112,9 +111,7 @@ describe("bootstrap subject keys follow component.aspect[.sub]", () => {
     const keys = subjectKeys(
       plan({ component: "studio" }, { component: "recorder" }),
     );
-    expect(new Set(keys)).toEqual(
-      new Set(["studio.beginning_to_record_while_idle"]),
-    );
+    expect(new Set(keys)).toEqual(new Set(["studio.beginning_to_record"]));
   });
 
   test("without a component the claim is reported, not written with a malformed key", () => {

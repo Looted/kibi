@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 179,
-  "proofProven": 179,
+  "currentRequirements": 182,
+  "proofProven": 182,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -897,6 +897,21 @@
       "uncoveredSymbols": []
     },
     "REQ-bootstrap-subject-key-shape": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-bootstrap-claim-name-length": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-model-predicates-binding-placeholders": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-model-predicates-plan-roundtrip": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []

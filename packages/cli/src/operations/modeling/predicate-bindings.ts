@@ -109,17 +109,151 @@ export function isGenericPlaceholder(value: string): boolean {
   );
 }
 
+/**
+ * Words that carry no domain meaning on their own: auxiliary and trivial
+ * verbs, articles, pronouns and filler. A binding made of one of them names
+ * no reviewed value, so it stays unbound.
+ */
+const STOP_WORD_BINDINGS = new Set([
+  "a",
+  "an",
+  "the",
+  "be",
+  "is",
+  "are",
+  "was",
+  "were",
+  "been",
+  "being",
+  "am",
+  "do",
+  "does",
+  "did",
+  "done",
+  "have",
+  "has",
+  "had",
+  "it",
+  "its",
+  "this",
+  "that",
+  "these",
+  "those",
+  "they",
+  "them",
+  "there",
+  "thing",
+  "something",
+  "anything",
+  "some",
+  "any",
+  "of",
+  "to",
+  "in",
+  "at",
+  "by",
+  "for",
+  "with",
+  "and",
+  "or",
+  "not",
+  "null",
+  "nil",
+  "n_a",
+  "na",
+  "tbd",
+  "todo",
+  "x",
+  "xxx",
+  "foo",
+  "bar",
+  "example",
+  "placeholder",
+]);
+
+/** A binding value in the snake_case form argument names use. */
+export function bindingToken(value: string): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+}
+
+/** The schema context a binding is judged against. */
+export type BindingContext = Readonly<{
+  /** The argument this value binds. */
+  argumentName?: string;
+  /** Every argument name of the schema. */
+  argumentNames?: readonly string[];
+  /** Declared constants of this argument: always valid when matched. */
+  constants?: readonly string[] | undefined;
+  /**
+   * The claim text. A value that repeats an argument name is still a real
+   * binding when the claim itself names it (a `launcher` argument bound to
+   * "launcher" in "The launcher must ...").
+   */
+  text?: string | undefined;
+}>;
+
+function claimNames(text: string | undefined, token: string): boolean {
+  if (!text || !token) return false;
+  const words = token.split("_").filter(Boolean);
+  if (words.length === 0) return false;
+  return new RegExp(`\\b${words.join("[\\s_-]+")}\\b`, "i").test(text);
+}
+
+function matchesConstant(value: string, context: BindingContext): boolean {
+  const token = bindingToken(value);
+  return (
+    context.constants?.some((constant) => bindingToken(constant) === token) ??
+    false
+  );
+}
+
+/**
+ * Why a value only stands in for a binding, or null when it can be a reviewed
+ * value: it repeats its own or another argument's name, or it is a bare stop
+ * word. Declared constants and the booleans `true`/`false` always pass.
+ */
+// implements REQ-model-predicates-binding-placeholders
+export function nameOrStopWordReason(
+  value: string,
+  context: BindingContext = {},
+): string | null {
+  const token = bindingToken(value);
+  if (token === "true" || token === "false") return null;
+  if (matchesConstant(value, context)) return null;
+  if (STOP_WORD_BINDINGS.has(token)) return `"${token}" is a stop word`;
+  const own = context.argumentName ? bindingToken(context.argumentName) : "";
+  const repeatsName =
+    (own !== "" && token === own) ||
+    (context.argumentNames ?? []).some((name) => bindingToken(name) === token);
+  if (repeatsName && !claimNames(context.text, token))
+    return `it repeats the argument name ${token} and the claim does not name it`;
+  return null;
+}
+
+// implements REQ-mcp-suggest-predicates, REQ-model-predicates-binding-placeholders
 export function classifyBinding(
   value: string,
   text: string,
   explicit: boolean,
   canonical = false,
+  context: BindingContext = {},
 ): BindingProvenance {
   const normalized = value.trim();
-  if (canonical && !isGenericPlaceholder(normalized)) return "extracted";
+  // A value that only repeats an argument name or a stop word is unbound
+  // however it was supplied or extracted.
+  if (nameOrStopWordReason(normalized, { ...context, text }) !== null)
+    return "placeholder";
+  const constant = matchesConstant(normalized, context);
+  if (canonical && (constant || !isGenericPlaceholder(normalized)))
+    return "extracted";
   if (
     explicit &&
-    (!isGenericPlaceholder(normalized) ||
+    (constant ||
+      !isGenericPlaceholder(normalized) ||
       ["true", "false"].includes(normalized.toLowerCase()))
   )
     return "explicit";

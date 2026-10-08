@@ -2,7 +2,11 @@ import { createHash } from "node:crypto";
 import { renderRequirementBody } from "../../entity-body-context.js";
 import { buildStrictWriteSet } from "../../utils/strict-modeling.js";
 import { confidenceBand, strictPlan, upsert } from "./candidate-helpers.js";
-import { claimFor, resolveBootstrapSubjectKey } from "./requirement-claims.js";
+import {
+  type SubjectKeyRegistry,
+  claimFor,
+  planSubjectKey,
+} from "./requirement-claims.js";
 import type {
   BootstrapDeclaredContext,
   BootstrapIntentClaim,
@@ -268,6 +272,7 @@ export function buildIntentClaimCandidates(
   declared: BootstrapDeclaredContext,
   existingIds: ReadonlySet<string>,
   minConfidence: number,
+  subjectKeys?: SubjectKeyRegistry,
 ): IntentClaimBuildResult {
   const sources = new Map(
     (declared.knowledgeSources ?? []).map((source) => [source.id, source]),
@@ -340,13 +345,17 @@ export function buildIntentClaimCandidates(
         confidence,
         provenance,
       );
-      const subjectKey = modeled
-        ? resolveBootstrapSubjectKey(
+      const planned = modeled
+        ? planSubjectKey(
             modeled.subjectKey,
             modeled.propertyKey,
             claim.component ?? source.component,
+            subjectKeys,
+            `${source.id}:${claim.reference}`,
           )
         : null;
+      const subjectKey = planned?.resolution ?? null;
+      diagnostics.push(...(planned?.diagnostics ?? []));
       writeSet =
         modeled && subjectKey?.ok
           ? buildStrictWriteSet({

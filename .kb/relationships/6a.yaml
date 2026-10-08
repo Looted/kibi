@@ -146,3 +146,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-aef4a39bbcc4
+  - type: specified_by
+    from: REQ-bootstrap-subject-key-aspect-length
+    to: SCEN-bootstrap-claim-name-length
+    created_at: 2026-10-08T09:20:38.616Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1db023e5b5ad
