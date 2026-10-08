@@ -1,5 +1,26 @@
 # kibi-runtime
 
+## 2.11.0
+
+### Minor Changes
+
+- 89d8b8e: `kb_model` mode `predicates` no longer offers a predicate plan that `kb_check` would then reject. The requirement's subject now binds the argument a schema names `subject` wherever it sits, and for a schema without one (such as `permission_rule`) it is recorded as the planned predicate fact's `subject_key`; a predicate that is not about a subject the requirement constrains stays `provide_argument_bindings` with a hint instead of `replace_grounding` or `apply_requires_predicate`. A value taken from the claim for an actor, resource or other participant that is a long clause (more than three words) is no longer accepted as a binding.
+
+  Technical summary: `buildSuggestion` binds `subjectHint` or the single constrained subject into `argument_names.indexOf("subject")` and adds `subject_key` and `subject_pairing` (`paired`, `unpaired`, `not_required`) to each candidate; an unpaired candidate gets `subject` or `subject_key` in `unbound_arguments`, a `bindingHints` entry (position -1 for `subject_key`) and a warning naming the schema. `buildPredicateApplyPlan` writes `subject_key` on the planned fact when it is known, so `replacementPlan` step 1 carries it. `classifyBinding` treats an extracted value of an `entity`, `actor`, `actor_scope`, `resource`, `owner`, `role` or `component` argument with more than three snake-case words as a placeholder (`clauseBindingReason`), and the hint says why. The constrained subjects are now read even when `subjectHint` is passed. The kibi-usage skill (2.9.0) describes `subject_key` and short participant bindings.
+
+### Patch Changes
+
+- 89d8b8e: `kb_check` now pairs a requirement's subject fact with a predicate that is about that subject wherever the predicate keeps it. Until now `strict-req-fact-pairing` only accepted a predicate whose first argument was the subject key, so a permission rule (`permission_rule(actor, action, resource, decision)`) or any schema with its subject elsewhere was reported even after following a `kb_model` replacement plan exactly. A predicate fact can now say which subject it is about with its own `subject_key`.
+
+  Technical summary: `strict_req_predicate_grounds_subject/2` reads the subject of a `requires_predicate` fact through `predicate_fact_subject_key/5`: the fact's `subject_key` when present, else the argument its project-local `predicate_schema` names `subject` (any position), else the first argument when neither is declared. The `strict-readiness` `contradiction_ready` level uses the same rule, and the pairing suggestions name both options.
+
+- 89d8b8e: An engine daemon left running by another Kibi install, for example one an older `kibi` started from a git hook, no longer serves a newer client. The client now compares the daemon's package versions on connect and stops and replaces a daemon that differs, the same way it already does for a different SWI-Prolog. `kibi doctor` reports the package versions of the running daemon.
+
+  Technical summary: the built version string (`kibi-cli@…,kibi-core@…`, shared from the new `package-versions.ts`; `KIBI_PACKAGE_VERSIONS` still overrides it) is sent by the client on every request and passed to the daemon it spawns. The daemon reports its versions in the `handshake` reply and refuses every other request except `stop` from a client with other versions; `reconcileRuntime` replaces a daemon whose handshake reports other versions (or none, as a pre-change daemon does) and fails with a clear error if the replacement still differs. kibi-runtime bakes the bundled kibi-cli version into its bundles at build time, so a runtime-hosted client and a kibi-cli daemon of the same release agree. `EngineClient.inspectLiveDaemon()` reads a live daemon's handshake without starting one, and `kibi doctor` uses it for the new "Engine daemon" check.
+
+- Updated dependencies [89d8b8e]
+  - kibi-core@0.17.2
+
 ## 2.10.0
 
 ### Minor Changes
