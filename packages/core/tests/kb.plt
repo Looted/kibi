@@ -5031,7 +5031,31 @@ test(check_strict_req_fact_pairing_reports_missing_property_counterpart, [setup(
     kb_assert_relationship(constrains, 'REQ-SUBJECT-ONLY', 'FACT-SUBJECT-ONLY', []),
     check_strict_req_fact_pairing([violation('strict-req-fact-pairing', 'REQ-SUBJECT-ONLY', Description, Suggestion, 'kb.plt')]),
     assertion(sub_string(Description, _, _, _, "has no matching strict requires_property fact")),
-    assertion(Suggestion == "Add a property_value fact via requires_property for the same subject_key").
+    assertion(Suggestion == "Add a property_value fact via requires_property for the same subject_key, or link requires_predicate to a fact_kind: predicate fact whose first argument is that subject_key").
+
+test(check_strict_req_fact_pairing_accepts_predicate_about_the_subject, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    assert_fixture_entity(fact, 'FACT-SUBJECT-PRED', "Autosave subject", active, [fact_kind=subject, subject_key="editor.autosave"]),
+    assert_fixture_entity(fact, 'FACT-PRED-AUTOSAVE', "Commit on navigation", active, [fact_kind=predicate, predicate_name="commit_action", predicate_namespace="default", predicate_args=["editor.autosave", "navigation", "changes"], polarity=assert, canonical_key="commit_action(editor.autosave,navigation,changes)"]),
+    assert_fixture_entity(req, 'REQ-SUBJECT-PRED', "Autosave req", open, []),
+    kb_assert_relationship(constrains, 'REQ-SUBJECT-PRED', 'FACT-SUBJECT-PRED', []),
+    kb_assert_relationship(requires_predicate, 'REQ-SUBJECT-PRED', 'FACT-PRED-AUTOSAVE', []),
+    check_strict_req_fact_pairing(Violations),
+    assertion(\+ member(violation('strict-req-fact-pairing', 'REQ-SUBJECT-PRED', _, _, _), Violations)),
+    check_strict_readiness(Readiness),
+    assertion(\+ member(violation('strict-readiness', 'REQ-SUBJECT-PRED', _, _, _), Readiness)).
+
+test(check_strict_req_fact_pairing_reports_predicate_about_another_subject, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    assert_fixture_entity(fact, 'FACT-SUBJECT-OTHER', "Autosave subject", active, [fact_kind=subject, subject_key="editor.autosave"]),
+    assert_fixture_entity(fact, 'FACT-PRED-OTHER', "Commit on navigation", active, [fact_kind=predicate, predicate_name="commit_action", predicate_namespace="default", predicate_args=["editor", "navigation", "changes"], polarity=assert, canonical_key="commit_action(editor,navigation,changes)"]),
+    assert_fixture_entity(req, 'REQ-SUBJECT-OTHER', "Autosave req", open, []),
+    kb_assert_relationship(constrains, 'REQ-SUBJECT-OTHER', 'FACT-SUBJECT-OTHER', []),
+    kb_assert_relationship(requires_predicate, 'REQ-SUBJECT-OTHER', 'FACT-PRED-OTHER', []),
+    check_strict_req_fact_pairing(Violations),
+    member(violation('strict-req-fact-pairing', 'REQ-SUBJECT-OTHER', Description, _, _), Violations),
+    assertion(sub_string(Description, _, _, _, "no requires_predicate fact about that subject")),
+    check_strict_readiness(Readiness),
+    findall(D, member(violation('strict-readiness', 'REQ-SUBJECT-OTHER', D, _, _), Readiness), [ReadinessDescription]),
+    assertion(sub_string(ReadinessDescription, _, _, _, "not-ready (has-subject)")).
 
 test(check_strict_req_fact_pairing_reports_missing_subject_counterpart, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
     assert_fixture_entity(fact, 'FACT-PROP-ONLY', "Property only", active, [fact_kind=property_value, subject_key="checkout", property_key="currency", operator=eq, value_type=string, value_string="usd"]),

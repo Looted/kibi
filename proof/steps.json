@@ -2240,5 +2240,70 @@
         "./packages/cli/tests/operations/bootstrap-claim-name-length.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-check-strict-pairing-predicate-grounding",
+    "steps": [
+      [
+        "swipl",
+        "-q",
+        "-s",
+        "packages/core/tests/kb.plt",
+        "-g",
+        "run_tests(checks_coverage_gaps:[check_strict_req_fact_pairing_reports_missing_property_counterpart,check_strict_req_fact_pairing_accepts_predicate_about_the_subject,check_strict_req_fact_pairing_reports_predicate_about_another_subject])",
+        "-t",
+        "halt"
+      ],
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "300000",
+        "--isolate",
+        "--max-concurrency=1",
+        "./packages/mcp/tests/predicate-plan-roundtrip.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-bootstrap-subject-fact-shared",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/consumer/bootstrap-write-failures.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-model-predicates-requirement-subject",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "300000",
+        "--isolate",
+        "--max-concurrency=1",
+        "./packages/cli/tests/operations/suggest-predicates-existing-grounding.test.ts",
+        "./packages/mcp/tests/predicate-plan-roundtrip.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-model-predicates-closed-vocabularies",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "30000",
+        "--isolate",
+        "--max-concurrency=1",
+        "./packages/cli/tests/operations/predicate-binding-placeholders.test.ts"
+      ]
+    ]
   }
 ]

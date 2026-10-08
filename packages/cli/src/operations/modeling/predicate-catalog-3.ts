@@ -1,3 +1,11 @@
+import {
+  DECISION_VOCABULARY,
+  OPERATOR_VOCABULARY,
+  REFRESH_POLICY_VOCABULARY,
+  RETENTION_UNIT_VOCABULARY,
+  TRIGGER_VOCABULARY,
+  closedArguments,
+} from "./predicate-closed-vocabularies.js";
 import type { PredicateSchemaCandidate } from "./predicate-types.js";
 
 // implements REQ-mcp-suggest-predicates
@@ -23,6 +31,7 @@ export const PREDICATE_CATALOG_3: PredicateSchemaCandidate[] = [
       "A subject refreshes a target automatically or by a named policy.",
     argument_names: ["subject", "target", "policy"],
     argument_types: ["entity", "target", "policy"],
+    ...closedArguments({ policy: REFRESH_POLICY_VOCABULARY }),
     keywords: ["automatically refresh", "manual page reload", "refresh"],
     examples: ["refresh_policy_rule(dashboard, processing_videos, automatic)"],
     tags: ["refresh", "ui"],
@@ -35,6 +44,7 @@ export const PREDICATE_CATALOG_3: PredicateSchemaCandidate[] = [
       "A scoped actor is allowed or denied an action because of assignment, ownership, or membership.",
     argument_names: ["actor_scope", "action", "decision"],
     argument_types: ["actor_scope", "action", "decision"],
+    ...closedArguments({ decision: DECISION_VOCABULARY }),
     keywords: ["unassigned", "assigned", "denied", "scoped"],
     examples: [
       "scoped_authorization_rule(unassigned_instructors, signed_url_generation, deny)",
@@ -141,6 +151,7 @@ export const PREDICATE_CATALOG_3: PredicateSchemaCandidate[] = [
       "A trigger commits, saves, or persists a subject within a scope.",
     argument_names: ["subject", "trigger", "scope"],
     argument_types: ["entity", "trigger", "scope"],
+    ...closedArguments({ trigger: TRIGGER_VOCABULARY }),
     keywords: [
       "save",
       "saves",
@@ -164,6 +175,7 @@ export const PREDICATE_CATALOG_3: PredicateSchemaCandidate[] = [
       "A trigger discards or cancels changes for a subject within a scope.",
     argument_names: ["subject", "trigger", "scope"],
     argument_types: ["entity", "trigger", "scope"],
+    ...closedArguments({ trigger: TRIGGER_VOCABULARY }),
     keywords: ["discard", "cancel", "escape", "revert", "without save"],
     examples: ["discard_action(editor.annotation, escape, active_annotation)"],
     tags: ["persistence", "workflow"],
@@ -187,6 +199,7 @@ export const PREDICATE_CATALOG_3: PredicateSchemaCandidate[] = [
     description: "A subject is retained for a bounded duration.",
     argument_names: ["subject", "duration", "unit"],
     argument_types: ["entity", "number", "unit"],
+    ...closedArguments({ unit: RETENTION_UNIT_VOCABULARY }),
     keywords: ["retain", "retained", "retention", "days", "months", "years"],
     examples: ["retention_policy(customer.data, 7, years)"],
     tags: ["data", "policy"],
@@ -199,6 +212,7 @@ export const PREDICATE_CATALOG_3: PredicateSchemaCandidate[] = [
       "A subject constrains a resource by operator, threshold, and unit.",
     argument_names: ["subject", "resource", "operator", "threshold", "unit"],
     argument_types: ["entity", "resource", "operator", "number", "unit"],
+    ...closedArguments({ operator: OPERATOR_VOCABULARY }),
     keywords: [
       "limit",
       "maximum",

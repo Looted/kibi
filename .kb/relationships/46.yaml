@@ -272,3 +272,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-694924c5aaee
+  - type: validates
+    from: TEST-bootstrap-subject-fact-shared
+    to: REQ-bootstrap-subject-fact-shared
+    created_at: 2026-10-08T15:34:36.770Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0cd8e2b2a2bc

@@ -125,3 +125,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b2793f0e9213
+  - type: implements
+    from: SYM-kibi-bootstrap-plan-executor
+    to: REQ-bootstrap-subject-fact-shared
+    created_at: 2026-10-08T15:36:49.839Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2fe151225d6f
+  - type: covered_by
+    from: SYM-kibi-bootstrap-plan-executor
+    to: TEST-bootstrap-subject-fact-shared
+    created_at: 2026-10-08T15:36:49.850Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-84e5dbd84018

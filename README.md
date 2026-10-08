@@ -249,7 +249,7 @@ That makes questions answerable in both directions: which requirement owns this 
 
 Suppose the product defines exactly three user roles. Once that constraint is encoded as a strict property or predicate, an agent cannot quietly invent a fourth role and treat it as established intent: Kibi can surface the contradiction or missing authorization deterministically.
 
-Kibi does not report "no conflict" when it could not tell. Numeric constraints are compared exactly ("greater than 0" conflicts with "equals 0"), and a requirement with clauses that are not yet modeled is reported as an incomplete analysis rather than a clean pass. Two opposing rules that Kibi cannot decide stay `unresolved`; when the only missing piece is a `key_arguments` declaration on a predicate, an advisory check names that predicate.
+Kibi does not report "no conflict" when it could not tell. Numeric constraints are compared exactly ("greater than 0" conflicts with "equals 0"), and a requirement with clauses that are not yet modeled is reported as an incomplete analysis rather than a clean pass. Two opposing rules that Kibi cannot decide stay `unresolved`; when the only missing piece is a `key_arguments` declaration on a predicate, an advisory check names that predicate. A predicate the agent models for a requirement takes the subject key the requirement already constrains, so the predicate and the requirement's other facts are checked as one subject.
 
 Prolog does not decide whether the original human intent was correct. It verifies the knowledge that was encoded, while Kibi keeps ambiguity, missing ontology, incomplete grounding, and stale evidence explicit instead of calling them proof.
 

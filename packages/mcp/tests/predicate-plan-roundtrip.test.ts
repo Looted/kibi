@@ -1,4 +1,4 @@
-// implements REQ-model-predicates-plan-roundtrip
+// implements REQ-model-predicates-plan-roundtrip, REQ-check-strict-pairing-predicate-grounding, REQ-model-predicates-requirement-subject
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { type ChildProcess, spawn, spawnSync } from "node:child_process";
 import { mkdtempSync, rmSync } from "node:fs";
@@ -141,6 +141,20 @@ async function groundRequirement(
     });
   }
   return requirementId;
+}
+
+/** Rules reported for an entity in both the blocking and the advisory lane. */
+function findingsFor(check: Json, entityId: string): string[] {
+  const findings = [
+    ...((check.violations ?? []) as Json[]),
+    ...((check.qualityDiagnostics ?? []) as Json[]),
+  ];
+  return findings
+    .filter((finding) => finding.entityId === entityId)
+    .map((finding) =>
+      // Quality diagnostics name their rule as `rule.<name>`.
+      String(finding.rule ?? finding.id).replace(/^rule\./, ""),
+    );
 }
 
 function violationsFor(check: Json, entityId: string): string[] {
@@ -290,14 +304,24 @@ describe("kb_model predicate plans apply through the MCP server unchanged", () =
     expect(String(after.requires_predicate)).toContain(factId);
     expect(after.requires_property).toBeUndefined();
     expect(grounding?.factId).not.toBe(factId);
+    // The predicate's subject is the subject_key the requirement constrains,
+    // so the strict lane pairs the subject fact with the predicate.
     const predicate = await entity(client, factId);
     expect(predicate).toMatchObject({
       fact_kind: "predicate",
       predicate_name: "commit_action",
       claim_key: suggestion.claimKey,
     });
+    expect((predicate.predicate_args as string[])[0]).toBe("editor.autosave");
     const check = await client.ok("kb_check", {});
     expect(violationsFor(check, requirementId)).toEqual([]);
     expect(violationsFor(check, factId)).toEqual([]);
+    const findings = findingsFor(check, requirementId);
+    for (const rule of [
+      "proposition-complete",
+      "logic-coverage",
+      "strict-req-fact-pairing",
+    ])
+      expect(findings).not.toContain(rule);
   }, 180_000);
 });

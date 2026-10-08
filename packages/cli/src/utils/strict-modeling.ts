@@ -318,7 +318,7 @@ function buildEntityId(prefix: string, value: string): string {
   return `${prefix}-${hash.digest("hex").substring(0, 16).toUpperCase()}`;
 }
 
-function normalizeSourceKey(value: string): string {
+export function normalizeSourceKey(value: string): string {
   const normalized = value
     .trim()
     .toLowerCase()

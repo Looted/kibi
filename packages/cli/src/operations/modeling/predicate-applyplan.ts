@@ -36,6 +36,12 @@ export function buildSuggestion(
     applicabilityScore?: number;
     scoreComponents?: PredicateScoreComponents;
     explicitSubject?: boolean;
+    /**
+     * The subject_key of the subject fact the requirement constrains. It
+     * binds the schema's `subject` argument (provenance `requirement`) unless
+     * the caller bound that argument or passed subjectHint.
+     */
+    requirementSubject?: string;
   },
 ): PredicateSuggestion {
   const inferredArgs = inferArgs(schema, text, subject);
@@ -43,8 +49,19 @@ export function buildSuggestion(
     schema.predicate_name,
     text,
   );
+  const hasExactBinding = (name: string): boolean =>
+    typeof argumentBindings[name] === "string" &&
+    argumentBindings[name].trim().length > 0;
+  const requirementSubjectArgument =
+    diagnostics?.requirementSubject &&
+    diagnostics.explicitSubject !== true &&
+    !hasExactBinding("subject")
+      ? schema.argument_names.indexOf("subject")
+      : -1;
   const boundArgs = schema.argument_names.map((name, index) => {
     const exactBinding = argumentBindings[name];
+    if (index === requirementSubjectArgument)
+      return diagnostics?.requirementSubject ?? "unknown";
     return typeof exactBinding === "string" && exactBinding.trim().length > 0
       ? exactBinding.trim()
       : (inferredArgs[index] ?? "unknown");
@@ -68,31 +85,33 @@ export function buildSuggestion(
   const bindingProvenanceByArgument = Object.fromEntries(
     schema.argument_names.map((name, index) => [
       name,
-      classifyBinding(
-        predicateArgs[index] ?? "unknown",
-        text,
-        (typeof argumentBindings[name] === "string" &&
-          argumentBindings[name].trim().length > 0) ||
-          (diagnostics?.explicitSubject === true && index === 0),
-        canonicalLauncherArgs?.[index] === predicateArgs[index] &&
-          !(
+      index === requirementSubjectArgument && !undeclaredArguments.has(name)
+        ? "requirement"
+        : classifyBinding(
+            predicateArgs[index] ?? "unknown",
+            text,
+            (typeof argumentBindings[name] === "string" &&
+              argumentBindings[name].trim().length > 0) ||
+              (diagnostics?.explicitSubject === true && index === 0),
+            canonicalLauncherArgs?.[index] === predicateArgs[index] &&
+              !(
+                index === 0 &&
+                predicateArgs[index] === "launcher" &&
+                diagnostics?.explicitSubject !== true &&
+                typeof argumentBindings[name] !== "string"
+              ),
+            // A subject named through subjectHint is the agent's reviewed
+            // subject, even when the schema names its first argument after it.
             index === 0 &&
-            predicateArgs[index] === "launcher" &&
-            diagnostics?.explicitSubject !== true &&
-            typeof argumentBindings[name] !== "string"
+              diagnostics?.explicitSubject === true &&
+              typeof argumentBindings[name] !== "string"
+              ? { constants: schema.argument_constants?.[name] }
+              : {
+                  argumentName: name,
+                  argumentNames: schema.argument_names,
+                  constants: schema.argument_constants?.[name],
+                },
           ),
-        // A subject named through subjectHint is the agent's reviewed
-        // subject, even when the schema names its first argument after it.
-        index === 0 &&
-          diagnostics?.explicitSubject === true &&
-          typeof argumentBindings[name] !== "string"
-          ? { constants: schema.argument_constants?.[name] }
-          : {
-              argumentName: name,
-              argumentNames: schema.argument_names,
-              constants: schema.argument_constants?.[name],
-            },
-      ),
     ]),
   ) as Record<string, BindingProvenance>;
   const bindingProvenance = aggregateBindingProvenance(

@@ -263,7 +263,8 @@ describe("coverage gap branches", () => {
       "editor",
       "delete",
       "locked_records",
-      "assert",
+      // The decision is a closed vocabulary: a granted permission is `allow`.
+      "allow",
     ]);
 
     const conditional = await handleKbSuggestPredicates(null, {

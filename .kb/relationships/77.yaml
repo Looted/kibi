@@ -328,3 +328,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5dbc968cefd2
+  - type: validates
+    from: TEST-model-predicates-closed-vocabularies
+    to: REQ-model-predicates-closed-vocabularies
+    created_at: 2026-10-08T15:34:59.712Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-236148a32605

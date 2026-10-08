@@ -321,3 +321,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-82dc25d2faed
+  - type: executable_for
+    from: SYM-test-model-predicates-closed-vocabularies
+    to: TEST-model-predicates-closed-vocabularies
+    created_at: 2026-10-08T15:34:53.760Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d57189011b17

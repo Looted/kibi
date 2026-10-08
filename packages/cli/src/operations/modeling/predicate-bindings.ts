@@ -70,6 +70,20 @@ const DERIVED_CUE_ALIASES: Readonly<Record<string, readonly string[]>> = {
   ],
   actionable_error: ["actionable", "clear error", "report", "error"],
   exception: ["exception", "except", "package-manager", "package manager"],
+  // Wording that names a closed-vocabulary constant without spelling it.
+  deny: [
+    "denied",
+    "must not",
+    "must never",
+    "forbidden",
+    "prohibited",
+    "not allowed",
+    "not be allowed",
+  ],
+  allow: ["is allowed", "are allowed", "permitted"],
+  on_demand: ["on demand", "on request"],
+  timeout: ["times out", "timed out", "time out"],
+  submit: ["submission", "submits", "submitted"],
 };
 
 function textContainsValue(text: string, value: string): boolean {
@@ -264,6 +278,7 @@ export function classifyBinding(
 
 const PROVENANCE_ORDER: readonly BindingProvenance[] = [
   "explicit",
+  "requirement",
   "extracted",
   "inferred",
   "placeholder",
@@ -282,5 +297,7 @@ export function aggregateBindingProvenance(
 }
 
 export function bindingCanBeApplied(value: BindingProvenance): boolean {
-  return value === "explicit" || value === "extracted";
+  return (
+    value === "explicit" || value === "requirement" || value === "extracted"
+  );
 }

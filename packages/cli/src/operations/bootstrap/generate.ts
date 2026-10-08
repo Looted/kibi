@@ -13,7 +13,7 @@ import { buildBootstrapCandidates } from "./candidates.js";
 import { discoverBootstrap } from "./discovery.js";
 import { buildIntentClaimCandidates } from "./intent-claims.js";
 import { normalizeBootstrapContext, presentBootstrap } from "./presentation.js";
-import { SubjectKeyRegistry } from "./requirement-claims.js";
+import { SubjectKeyRegistry, shareSubjectFacts } from "./requirement-claims.js";
 import type {
   Candidate,
   PlanBootstrapArgs,
@@ -444,6 +444,8 @@ export async function executePlanBootstrap(
     args.entityTypes,
     maxCandidates,
   );
+  // Claims about the same subject share one subject fact.
+  const shared = shareSubjectFacts(selected.candidates);
   const ignored = discovery.ignoredSources.map((sourcePath) => ({
     candidateId: "",
     reason: "ignored_source",
@@ -459,7 +461,7 @@ export async function executePlanBootstrap(
     ...(args.bootstrapContext
       ? { bootstrapContext: args.bootstrapContext }
       : {}),
-    candidates: selected.candidates,
+    candidates: shared.candidates,
     sourceOnlySignals: [
       ...filteredSignals,
       ...filterSourceOnlySignals(selected.sourceOnlySignals, args.entityTypes),
@@ -481,6 +483,7 @@ export async function executePlanBootstrap(
       ...claimed.diagnostics,
       ...built.diagnostics,
       ...selected.diagnostics,
+      ...shared.diagnostics,
     ],
   });
 }

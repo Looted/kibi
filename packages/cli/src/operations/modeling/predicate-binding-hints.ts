@@ -60,10 +60,11 @@ function unboundReason(
  * current value was not accepted, so the agent binds from the claim text
  * instead of guessing.
  */
-// implements REQ-model-predicates-binding-placeholders
+// implements REQ-model-predicates-binding-placeholders, REQ-model-predicates-requirement-subject
 export function buildBindingHints(
   candidate: PredicateSuggestion,
   text: string,
+  requirementSubjects: readonly string[] = [],
 ): BindingHint[] {
   const schema = candidate.schema;
   const parsedExamples = schema.examples.map(exampleArguments);
@@ -73,8 +74,14 @@ export function buildBindingHints(
     const exampleValues = parsedExamples
       .map((args) => args[position])
       .filter((value): value is string => typeof value === "string");
+    // The subject keys the requirement already constrains come first, so
+    // the predicate and the subject fact use one identifier for the subject.
     const examples = Array.from(
-      new Set([...(constants ?? []), ...exampleValues]),
+      new Set([
+        ...(name === "subject" ? requirementSubjects : []),
+        ...(constants ?? []),
+        ...exampleValues,
+      ]),
     ).slice(0, MAX_EXAMPLES);
     const current = candidate.predicate_args[position] ?? "";
     const description = schema.argument_descriptions?.[position];
