@@ -307,3 +307,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2ca876cde355
+  - type: implements
+    from: SYM-modeling-predicate-utils-inferSubject
+    to: REQ-model-predicates-requirement-subject
+    created_at: 2026-10-08T15:36:55.930Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9dbfe231e38e
+  - type: covered_by
+    from: SYM-modeling-predicate-utils-inferSubject
+    to: TEST-model-predicates-requirement-subject
+    created_at: 2026-10-08T15:36:55.962Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-27bba3d6b579

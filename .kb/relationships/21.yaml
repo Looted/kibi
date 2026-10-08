@@ -209,3 +209,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d21f30eeabee
+  - type: implements
+    from: SYM-bootstrap-subject-fact-shared-sharesubjectfacts
+    to: REQ-bootstrap-subject-fact-shared
+    created_at: 2026-10-08T15:36:40.145Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-57ffc360c58e
+  - type: covered_by
+    from: SYM-bootstrap-subject-fact-shared-sharesubjectfacts
+    to: TEST-bootstrap-subject-fact-shared
+    created_at: 2026-10-08T15:36:40.161Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-db1b71e5263f
+  - type: implements
+    from: 76bad0a66461775e
+    to: REQ-model-predicates-requirement-subject
+    created_at: 2026-10-08T15:37:19.237Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3cbf600176f1
+  - type: covered_by
+    from: 76bad0a66461775e
+    to: TEST-model-predicates-requirement-subject
+    created_at: 2026-10-08T15:37:19.252Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-654d094c4dc8

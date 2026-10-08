@@ -1,3 +1,7 @@
+import {
+  DECISION_VOCABULARY,
+  closedArguments,
+} from "./predicate-closed-vocabularies.js";
 import type { PredicateSchemaCandidate } from "./predicate-types.js";
 
 // implements REQ-mcp-suggest-predicates
@@ -208,6 +212,7 @@ export const PREDICATE_CATALOG_4: PredicateSchemaCandidate[] = [
     description: "An actor is allowed or denied an action against a resource.",
     argument_names: ["actor", "action", "resource", "decision"],
     argument_types: ["actor", "action", "resource", "decision"],
+    ...closedArguments({ decision: DECISION_VOCABULARY }),
     keywords: [
       "may",
       "can",

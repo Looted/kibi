@@ -11674,8 +11674,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-mcp-suggest-predicates
+      - type: covered_by
+        target: TEST-model-predicates-requirement-subject
       - type: implements
         target: REQ-mcp-suggest-predicates
+      - type: implements
+        target: REQ-model-predicates-requirement-subject
   - id: SYM-modeling-predicate-utils-inferTrigger
     title: inferTrigger
     sourceFile: packages/cli/src/operations/modeling/predicate-utils.ts
@@ -11685,8 +11689,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-mcp-suggest-predicates
+      - type: covered_by
+        target: TEST-model-predicates-closed-vocabularies
       - type: implements
         target: REQ-mcp-suggest-predicates
+      - type: implements
+        target: REQ-model-predicates-closed-vocabularies
   - id: SYM-modeling-predicate-utils-inferUnit
     title: inferUnit
     sourceFile: packages/cli/src/operations/modeling/predicate-utils.ts
@@ -13142,12 +13150,16 @@ symbols:
         target: TEST-kibi-predicate-suggestion-relevance-v1
       - type: covered_by
         target: TEST-mcp-suggest-predicates
+      - type: covered_by
+        target: TEST-model-predicates-requirement-subject
       - type: implements
         target: REQ-kibi-ontology-convergence-witnesses
       - type: implements
         target: REQ-kibi-predicate-suggestion-relevance-v1
       - type: implements
         target: REQ-mcp-suggest-predicates
+      - type: implements
+        target: REQ-model-predicates-requirement-subject
   - id: SYM-predicate-catalog-part-1
     title: PREDICATE_CATALOG_1
     sourceFile: packages/cli/src/operations/modeling/predicate-catalog-1.ts
@@ -23310,6 +23322,8 @@ symbols:
         target: TEST-model-predicates-grounding-aware
       - type: covered_by
         target: TEST-model-predicates-plan-roundtrip
+      - type: covered_by
+        target: TEST-model-predicates-requirement-subject
       - type: implements
         target: REQ-kibi-logical-requirement-coverage
       - type: implements
@@ -23324,6 +23338,8 @@ symbols:
         target: REQ-model-predicates-grounding-aware-v2
       - type: implements
         target: REQ-model-predicates-plan-roundtrip
+      - type: implements
+        target: REQ-model-predicates-requirement-subject
   - id: SYM-SuggestPredicatesArgs
     title: SuggestPredicatesArgs
     status: active
@@ -31776,8 +31792,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-predicate-suggestion-relevance-v1
+      - type: covered_by
+        target: TEST-model-predicates-requirement-subject
       - type: implements
         target: REQ-kibi-predicate-suggestion-relevance-v1
+      - type: implements
+        target: REQ-model-predicates-requirement-subject
   - id: 7580de62d3ca1d60
     title: usageHintsForSchema
     sourceFile: packages/cli/src/operations/modeling/predicate-ranker.ts
@@ -31875,11 +31895,15 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-bootstrap-subject-fact-shared
+      - type: covered_by
         target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
         target: REQ-bootstrap-discovered-candidate-budget
+      - type: implements
+        target: REQ-bootstrap-subject-fact-shared
       - type: implements
         target: REQ-KIBI-BOOTSTRAP-PLAN
   - id: SYM-kibi-bootstrap-apply-tests
@@ -50744,8 +50768,16 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-model-predicates-binding-placeholders
+      - type: covered_by
+        target: TEST-model-predicates-closed-vocabularies
+      - type: covered_by
+        target: TEST-model-predicates-requirement-subject
       - type: implements
         target: REQ-model-predicates-binding-placeholders
+      - type: implements
+        target: REQ-model-predicates-closed-vocabularies
+      - type: implements
+        target: REQ-model-predicates-requirement-subject
   - id: SYM-model-predicates-binding-hints-describebindinghints
     title: describeBindingHints
     status: active
@@ -50836,3 +50868,91 @@ symbols:
         target: TEST-bootstrap-claim-name-length
       - type: implements
         target: REQ-bootstrap-claim-name-length
+  - id: SYM-test-check-strict-pairing-predicate-grounding
+    title: Predicate plan round-trip suite (strict pairing)
+    status: active
+    sourceFile: packages/mcp/tests/predicate-plan-roundtrip.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-08T15:33:59.285Z
+    relationships:
+      - type: executable_for
+        target: TEST-check-strict-pairing-predicate-grounding
+  - id: SYM-test-bootstrap-subject-fact-shared
+    title: Bootstrap consumer write suite (shared subject)
+    status: active
+    sourceFile: packages/cli/tests/consumer/bootstrap-write-failures.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-08T15:34:29.720Z
+    relationships:
+      - type: executable_for
+        target: TEST-bootstrap-subject-fact-shared
+  - id: SYM-test-model-predicates-requirement-subject
+    title: Predicate existing grounding suite (requirement subject)
+    status: active
+    sourceFile: packages/cli/tests/operations/suggest-predicates-existing-grounding.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-08T15:34:41.143Z
+    relationships:
+      - type: executable_for
+        target: TEST-model-predicates-requirement-subject
+  - id: SYM-test-model-predicates-closed-vocabularies
+    title: Predicate binding placeholder suite (closed vocabularies)
+    status: active
+    sourceFile: packages/cli/tests/operations/predicate-binding-placeholders.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-08T15:34:52.565Z
+    relationships:
+      - type: executable_for
+        target: TEST-model-predicates-closed-vocabularies
+  - id: SYM-core-strict-req-predicate-grounds-subject
+    title: strict_req_predicate_grounds_subject
+    status: active
+    sourceFile: packages/core/src/checks.pl
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    origin:
+      kind: agent
+      recorded_at: 2026-10-08T15:36:34.746Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-strict-pairing-predicate-grounding
+      - type: implements
+        target: REQ-check-strict-pairing-predicate-grounding
+  - id: SYM-bootstrap-subject-fact-shared-sharesubjectfacts
+    title: shareSubjectFacts
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/requirement-claims.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-08T15:36:38.851Z
+    relationships:
+      - type: covered_by
+        target: TEST-bootstrap-subject-fact-shared
+      - type: implements
+        target: REQ-bootstrap-subject-fact-shared
+  - id: SYM-model-predicates-closed-vocabularies-closedarguments
+    title: closedArguments
+    status: active
+    sourceFile: packages/cli/src/operations/modeling/predicate-closed-vocabularies.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-08T15:36:44.096Z
+    relationships:
+      - type: covered_by
+        target: TEST-model-predicates-closed-vocabularies
+      - type: implements
+        target: REQ-model-predicates-closed-vocabularies

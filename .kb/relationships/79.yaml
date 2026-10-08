@@ -202,3 +202,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-05ae7d0eb4c4
+  - type: constrains
+    from: REQ-check-strict-pairing-predicate-grounding
+    to: FACT-SUBJECT-KIBI-CHECK
+    created_at: 2026-10-08T15:34:23.514Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9aff683c8527
+  - type: requires_property
+    from: REQ-check-strict-pairing-predicate-grounding
+    to: FACT-check-strict-pairing-predicate-grounding-accepted
+    created_at: 2026-10-08T15:34:23.543Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fd6fee263cfd
+  - type: specified_by
+    from: REQ-check-strict-pairing-predicate-grounding
+    to: SCEN-check-strict-pairing-predicate-grounding
+    created_at: 2026-10-08T15:34:23.559Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-40f8485e3a4e

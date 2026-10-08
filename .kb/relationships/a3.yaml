@@ -209,3 +209,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-01be1239d220
+  - type: implements
+    from: SYM-model-predicates-binding-hints-buildbindinghints
+    to: REQ-model-predicates-requirement-subject
+    created_at: 2026-10-08T15:37:13.633Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b655dac2450e
+  - type: covered_by
+    from: SYM-model-predicates-binding-hints-buildbindinghints
+    to: TEST-model-predicates-requirement-subject
+    created_at: 2026-10-08T15:37:13.651Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9dc519d62768
+  - type: implements
+    from: SYM-model-predicates-binding-hints-buildbindinghints
+    to: REQ-model-predicates-closed-vocabularies
+    created_at: 2026-10-08T15:37:13.664Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3b18bab21856
+  - type: covered_by
+    from: SYM-model-predicates-binding-hints-buildbindinghints
+    to: TEST-model-predicates-closed-vocabularies
+    created_at: 2026-10-08T15:37:13.677Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b9caa014029a

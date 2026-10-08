@@ -281,6 +281,43 @@ async function existingClaimGrounding(
   return found;
 }
 
+function hasSubjectHint(value: string | undefined): boolean {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+/**
+ * The subject_key of every subject fact the requirement constrains, sorted.
+ * A predicate about that requirement binds the same key as its subject, so
+ * contradiction checks by subject see the predicate and the subject fact as
+ * one subject.
+ */
+// implements REQ-model-predicates-requirement-subject
+async function constrainedSubjectKeys(
+  prolog: PrologPort | null,
+  requirementId: string | undefined,
+  warnings: string[],
+): Promise<string[]> {
+  if (prolog === null || !requirementId?.trim()) return [];
+  try {
+    const result = await prolog.query(
+      `findall(Key, (kb_relationship(constrains, '${escapeAtom(requirementId.trim())}', _SubjectFact), kb:fact_subject_key(_SubjectFact, Key)), Keys)`,
+    );
+    if (!result.success) return [];
+    return Array.from(
+      new Set(
+        parsePrologList(result.bindings.Keys ?? "[]")
+          .map(unquoted)
+          .filter((key) => key.length > 0),
+      ),
+    ).sort();
+  } catch (error) {
+    warnings.push(
+      `The subject facts ${requirementId} constrains could not be read (${error instanceof Error ? error.message : String(error)}); pass subjectHint with the requirement's subject_key.`,
+    );
+    return [];
+  }
+}
+
 // implements REQ-mcp-suggest-predicates
 export async function handleKbSuggestPredicates(
   prolog: PrologPort | null,
@@ -288,7 +325,18 @@ export async function handleKbSuggestPredicates(
   context?: OperationContext,
 ): Promise<SuggestPredicatesResult> {
   const text = normalizeText(args.text);
-  const subject = inferSubject(text, args.subjectHint);
+  const warnings: string[] = [];
+  const requirementSubjects = hasSubjectHint(args.subjectHint)
+    ? []
+    : await constrainedSubjectKeys(prolog, args.requirementId, warnings);
+  // One constrained subject is the requirement's subject; with several the
+  // agent picks one, so they are offered as binding examples instead.
+  const requirementSubject =
+    requirementSubjects.length === 1 ? requirementSubjects[0] : undefined;
+  const subject = inferSubject(text, args.subjectHint, {
+    requirementId: args.requirementId,
+    subjectKey: requirementSubject,
+  });
   const propositions = analyzeInputPropositions(text);
   const assertivePropositionCount = propositions.filter(
     (proposition) => !NON_ASSERTIVE_PROPOSITION_ROLES.has(proposition.role),
@@ -311,7 +359,6 @@ export async function handleKbSuggestPredicates(
     20,
   );
   const minScore = clampScore(args.minScore ?? DEFAULT_MIN_SCORE);
-  const warnings: string[] = [];
   const existingSchemas = await loadExistingPredicateSchemas(
     prolog,
     args.includeExistingSchemas ?? true,
@@ -382,6 +429,7 @@ export async function handleKbSuggestPredicates(
         applicabilityScore: applicability.applicabilityScore,
         scoreComponents: ranked.components,
         explicitSubject: Boolean(args.subjectHint?.trim()),
+        ...(requirementSubject ? { requirementSubject } : {}),
       },
     );
   });
@@ -497,7 +545,7 @@ export async function handleKbSuggestPredicates(
   }
   const bindingHints =
     recommendedAction === "provide_argument_bindings" && recommendedCandidate
-      ? buildBindingHints(recommendedCandidate, text)
+      ? buildBindingHints(recommendedCandidate, text, requirementSubjects)
       : [];
   const recommendedPredicateSchema =
     !recommendedCandidate && !unavailableSchema

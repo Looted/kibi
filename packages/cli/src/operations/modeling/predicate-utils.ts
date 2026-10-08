@@ -61,13 +61,28 @@ export function hashId(prefix: string, parts: string[]): string {
   return `${prefix}-${digest}`;
 }
 
-// implements REQ-mcp-suggest-predicates
+/**
+ * The subject a predicate binds when the caller names none. An explicit
+ * subjectHint wins, then the subject_key of the subject fact the requirement
+ * already constrains. The keyword heuristics only apply to free text: for a
+ * requirement without a subject fact the subject stays a placeholder, so the
+ * agent binds it instead of getting a demo subject such as editor.annotation.
+ */
+// implements REQ-mcp-suggest-predicates, REQ-model-predicates-requirement-subject
 export function inferSubject(
   text: string,
   subjectHint: string | undefined,
+  requirement?: Readonly<{
+    requirementId?: string | undefined;
+    subjectKey?: string | undefined;
+  }>,
 ): string {
   const explicit = normalizeOptionalString(subjectHint);
   if (explicit) return explicit;
+  const grounded = normalizeOptionalString(requirement?.subjectKey);
+  if (grounded) return grounded;
+  if (normalizeOptionalString(requirement?.requirementId))
+    return "requirement.subject";
 
   const lower = text.toLowerCase();
   if (lower.includes("annotation")) return "editor.annotation";
@@ -78,13 +93,15 @@ export function inferSubject(
   return "requirement.subject";
 }
 
-// implements REQ-mcp-suggest-predicates
+// implements REQ-mcp-suggest-predicates, REQ-model-predicates-closed-vocabularies
 export function inferTrigger(text: string): string {
   const lower = text.toLowerCase();
   if (lower.includes("navigate")) return "navigation";
   if (lower.includes("escape")) return "escape";
   if (lower.includes("cancel")) return "cancel";
   if (lower.includes("submit")) return "submit";
+  if (/\bclick/.test(lower)) return "click";
+  if (/\b(?:times?|timed)[\s-]?out\b/.test(lower)) return "timeout";
   return "unspecified_trigger";
 }
 

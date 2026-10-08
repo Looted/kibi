@@ -2,7 +2,7 @@
 id: kibi-usage
 name: Kibi Usage
 description: Use Kibi's source-first, exact-Git, migration-aware, proof-aware operations safely across MCP or the trusted local CLI, including partial completion repair.
-version: 2.7.0
+version: 2.8.0
 kibiCompatibility: ">=1.0.0"
 tags:
   - kibi
@@ -254,8 +254,13 @@ must equal the upserted entity ID.
 
 Worked example. `recommendedAction: "provide_argument_bindings"` means a
 schema fits but `unbound_arguments` lists roles Kibi could not read from the
-prose; `bindingHints` gives each one's `type`, `allowedValues` (declared
-constants) or `examples`, and why the current value was refused. Bind them
+prose; `bindingHints` (on MCP at `structuredContent.data.bindingHints`, like
+every result field) gives each one's `type`, `allowedValues` (declared
+constants) or `examples`, and why the current value was refused. With a
+`requirementId` whose requirement `constrains` one subject fact, the `subject`
+argument is already bound to that fact's `subject_key` (provenance
+`requirement`); keep it, so the predicate and the subject fact name one
+subject. Bind them
 from the claim's own words and call again with the same `text` and
 `requirementId`, plus `schemaId` and `argumentBindings` keyed by
 `argument_names` (reuse `argument_constants` values when the schema has them).

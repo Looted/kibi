@@ -1,4 +1,4 @@
-// implements REQ-model-predicates-binding-placeholders
+// implements REQ-model-predicates-binding-placeholders, REQ-model-predicates-closed-vocabularies
 import { describe, expect, test } from "bun:test";
 import {
   buildBindingHints,
@@ -8,7 +8,9 @@ import {
   classifyBinding,
   nameOrStopWordReason,
 } from "../../src/operations/modeling/predicate-bindings.js";
+import { BUILT_IN_PREDICATE_SCHEMAS } from "../../src/operations/modeling/predicate-catalog.js";
 import type { PredicateSuggestion } from "../../src/operations/modeling/predicate-types.js";
+import { predicateVocabularyErrors } from "../../src/operations/modeling/predicate-vocabulary.js";
 import { handleKbSuggestPredicates } from "../../src/operations/modeling/suggest-predicates.js";
 
 const TEMPORAL = {
@@ -227,5 +229,105 @@ describe("binding hints for unbound arguments", () => {
     expect(describeBindingHints(hints)).toBe(
       "format (file_format, one of csv, json); action (action, e.g. archive, send(email))",
     );
+  });
+});
+
+describe("built-in schemas close arguments with a natural vocabulary", () => {
+  test("declared vocabularies are valid and the schema examples use them", () => {
+    const closed = BUILT_IN_PREDICATE_SCHEMAS.filter(
+      (schema) => schema.argument_constants !== undefined,
+    );
+    expect(closed.map((schema) => schema.predicate_name)).toEqual(
+      expect.arrayContaining([
+        "commit_action",
+        "discard_action",
+        "transition",
+        "scoped_authorization_rule",
+        "permission_rule",
+        "refresh_policy_rule",
+      ]),
+    );
+    for (const schema of closed) {
+      expect(
+        predicateVocabularyErrors({ ...schema, fact_kind: "predicate_schema" }),
+      ).toEqual([]);
+      for (const [name, constants] of Object.entries(
+        schema.argument_constants ?? {},
+      )) {
+        const position = schema.argument_names.indexOf(name);
+        for (const example of schema.examples) {
+          const args = example
+            .slice(example.indexOf("(") + 1, example.lastIndexOf(")"))
+            .split(",")
+            .map((value) => value.trim());
+          expect(constants).toContain(args[position]);
+        }
+      }
+    }
+  });
+
+  test("an unbound trigger lists the trigger constants as allowedValues", async () => {
+    const result = await handleKbSuggestPredicates(null, {
+      text: "The editor must save the draft when the user leaves.",
+      subjectHint: "editor.draft",
+      includeExistingSchemas: false,
+      schemaId: "FACT-SCHEMA-COMMIT-ACTION",
+    });
+    const data = result.structuredContent;
+    expect(data.recommendedAction).toBe("provide_argument_bindings");
+    const trigger = data.bindingHints?.find(
+      (hint) => hint.argument === "trigger",
+    );
+    expect(trigger?.allowedValues).toEqual([
+      "escape",
+      "cancel",
+      "submit",
+      "navigation",
+      "click",
+      "timeout",
+    ]);
+    expect(result.content[0]?.text).toContain(
+      "trigger (trigger, one of escape, cancel, submit, navigation, click, timeout)",
+    );
+  });
+
+  test("a constant the claim names in other words is bound", async () => {
+    const bound = async (text: string, schemaId: string) => {
+      const result = await handleKbSuggestPredicates(null, {
+        text,
+        subjectHint: "editor.draft",
+        includeExistingSchemas: false,
+        schemaId,
+      });
+      return result.structuredContent.candidates[0];
+    };
+    const timeout = await bound(
+      "The editor must save the draft when the session times out.",
+      "FACT-SCHEMA-COMMIT-ACTION",
+    );
+    expect(timeout?.predicate_args[1]).toBe("timeout");
+    expect(timeout?.binding_status).toBe("complete");
+    const denied = await bound(
+      "Unassigned instructors must be denied signed URL generation.",
+      "FACT-SCHEMA-SCOPED-AUTHORIZATION-RULE",
+    );
+    expect(denied?.predicate_args[2]).toBe("deny");
+    expect(denied?.binding_provenance_by_argument.decision).toBe("extracted");
+    // An explicit alias converges onto its declared constant.
+    const result = await handleKbSuggestPredicates(null, {
+      text: "The editor must save the draft when the user navigates away.",
+      includeExistingSchemas: false,
+      schemaId: "FACT-SCHEMA-COMMIT-ACTION",
+      argumentBindings: {
+        subject: "editor.draft",
+        trigger: "navigate",
+        scope: "draft",
+      },
+    });
+    expect(result.structuredContent.candidates[0]?.predicate_args).toEqual([
+      "editor.draft",
+      "navigation",
+      "draft",
+    ]);
   });
 });

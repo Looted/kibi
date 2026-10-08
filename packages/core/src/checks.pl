@@ -2766,7 +2766,7 @@ strict_req_fact_pairing_violation(violation(
 strict_req_fact_pairing_issue(
     ReqId,
     Description,
-    "Add a property_value fact via requires_property for the same subject_key"
+    "Add a property_value fact via requires_property for the same subject_key, or link requires_predicate to a fact_kind: predicate fact whose first argument is that subject_key"
 ) :-
     kb:current_req(ReqId),
     kb_relationship(constrains, ReqId, SubjectFactId),
@@ -2786,9 +2786,10 @@ strict_req_fact_pairing_issue(
         _ValidFrom,
         _ValidTo
     ),
+    \+ strict_req_predicate_grounds_subject(ReqId, SubjectKey),
     format(
         string(Description),
-        "Requirement constrains ~w (~w) but has no matching strict requires_property fact",
+        "Requirement constrains ~w (~w) but has no matching strict requires_property fact and no requires_predicate fact about that subject",
         [SubjectFactId, SubjectKey]
     ).
 
@@ -2870,13 +2871,27 @@ strict_req_fact_pairing_fact_kind(FactId, Kind) :-
     ;   Kind = legacy
     ).
 
+%% strict_req_predicate_grounds_subject(+ReqId, +SubjectKey)
+% A requirement that constrains a subject fact may ground its claim through
+% requires_predicate instead of requires_property (kb_model's replacementPlan
+% swaps one for the other). The predicate pairs with the subject when its
+% first argument is the subject_key, the argument position built-in and
+% project-local schemas use for the governed subject.
+% implements REQ-check-strict-pairing-predicate-grounding
+strict_req_predicate_grounds_subject(ReqId, SubjectKey) :-
+    kb:effective_req_predicate(ReqId, _FactId, _Namespace, _Name, [First|_], _Polarity),
+    First == SubjectKey,
+    !.
+
 strict_req_fact_pairing_kind_label(legacy, "a legacy fact without fact_kind").
 strict_req_fact_pairing_kind_label(Kind, Label) :-
     format(string(Label), "a fact_kind=~w fact", [Kind]).
 
 %% check_strict_readiness(-Violations)
 % Reports current strict-readiness levels for requirements that are still not
-% contradiction-ready. Legacy and prose-only requirements remain audit-only and
+% contradiction-ready. Each requirement has exactly one level: the first
+% strict_readiness_level/2 clause that holds, so the level is computed before
+% it is compared. Legacy and prose-only requirements remain audit-only and
 % are intentionally not treated as contradictions.
 check_strict_readiness(Violations) :-
     findall(
@@ -2902,7 +2917,8 @@ strict_readiness_issue(
     "Add a subject fact via constrains and a property_value fact via requires_property to model contradiction-safe semantics"
 ) :-
     kb_entity(ReqId, req, _),
-    strict_readiness_level(ReqId, prose_only).
+    strict_readiness_level(ReqId, Level),
+    Level == prose_only.
 
 strict_readiness_issue(
     ReqId,
@@ -2910,19 +2926,21 @@ strict_readiness_issue(
     "Replace prose or legacy fact links with a subject fact via constrains and a property_value fact via requires_property"
 ) :-
     kb_entity(ReqId, req, _),
-    strict_readiness_level(ReqId, traceable).
+    strict_readiness_level(ReqId, Level),
+    Level == traceable.
 
 strict_readiness_issue(
     ReqId,
     Description,
-    "Add a matching property_value fact via requires_property for the same subject_key"
+    "Add a matching property_value fact via requires_property for the same subject_key, or link requires_predicate to a predicate fact whose first argument is that subject_key"
 ) :-
     kb_entity(ReqId, req, _),
-    strict_readiness_level(ReqId, has_subject),
+    strict_readiness_level(ReqId, Level),
+    Level == has_subject,
     strict_readiness_primary_subject(ReqId, SubjectFactId, SubjectKey),
     format(
         string(Description),
-        "Strict readiness: not-ready (has-subject). Requirement constrains ~w (~w) but has no matching strict requires_property fact, so contradiction checks skip it.",
+        "Strict readiness: not-ready (has-subject). Requirement constrains ~w (~w) but has no matching strict requires_property fact and no requires_predicate fact about that subject, so contradiction checks skip it.",
         [SubjectFactId, SubjectKey]
     ).
 
@@ -2932,7 +2950,8 @@ strict_readiness_issue(
     "Ensure constrains and requires_property use the same subject_key, and keep the requirement current if it should participate in contradiction checks"
 ) :-
     kb_entity(ReqId, req, _),
-    strict_readiness_level(ReqId, strict_ready).
+    strict_readiness_level(ReqId, Level),
+    Level == strict_ready.
 
 strict_readiness_level(ReqId, contradiction_ready) :-
     kb:current_req(ReqId),
@@ -2950,6 +2969,11 @@ strict_readiness_level(ReqId, contradiction_ready) :-
         _ValidFrom,
         _ValidTo
     ),
+    !.
+strict_readiness_level(ReqId, contradiction_ready) :-
+    kb:current_req(ReqId),
+    strict_readiness_primary_subject(ReqId, _SubjectFactId, SubjectKey),
+    strict_req_predicate_grounds_subject(ReqId, SubjectKey),
     !.
 strict_readiness_level(ReqId, strict_ready) :-
     strict_readiness_has_strict_subject(ReqId),
