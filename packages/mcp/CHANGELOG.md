@@ -1,5 +1,32 @@
 # kibi-mcp
 
+## 3.5.2
+
+### Patch Changes
+
+- c9dd5f9: Bootstrap plans now write one subject fact per subject key. When claims from different sources (a handoff document and a ticket, say) name the same subject, every requirement links to that one fact instead of each getting its own copy, so `kb_check` no longer reports `subject-key-identity` right after an applied bootstrap and nobody has to merge the facts by hand. The plan lists each shared key in a `subject-key-shared:` diagnostic naming its sources.
+
+  Technical summary: after candidate selection `kb_plan_bootstrap` keeps the first selected subject fact for each `subject_key`, drops the later ones, retargets their requirements' `constrains` links (and the candidates' `relationships`) to the kept fact, and adds every source's `provenance:` tag and a `document.body` listing the sources to it. The transformation depends only on the candidate order, so `planHash` stays deterministic; action `dependsOn` follows the retargeted links. The kibi-bootstrap skill (3.8.0) and `docs/mcp-reference.md` describe the diagnostic.
+
+- c9dd5f9: `kb_check` no longer reports `strict-req-fact-pairing` on a requirement that constrains a subject fact and grounds its claim through a predicate fact about that subject. Until now the rule only accepted a `requires_property` partner, so every requirement that followed a `kb_model` `replace_grounding` plan was told to add the property back, which would have broken `proposition-complete`. The `strict-readiness` migration diagnostic now reports one readiness level per requirement instead of every lower level as well.
+
+  Technical summary: `strict_req_fact_pairing_issue/3` and the `has_subject` readiness level accept a `requires_predicate` link to a ground `fact_kind: predicate` fact whose first argument equals the constrained `subject_key` (`strict_req_predicate_grounds_subject/2`, the position built-in and project-local schemas use for the governed subject); a predicate about another subject is still reported. Such a requirement counts as `contradiction_ready`. `strict_readiness_issue/3` computes a requirement's level once and compares it, fixing the unbound-level match that also returned `prose-only` and `traceable` for every requirement. Suggestions and messages name both pairing options.
+
+- c9dd5f9: Built-in predicate schemas now declare the allowed values of arguments with a natural closed vocabulary, so `kb_model` mode `predicates` lists them as `allowedValues` when the claim does not name one and binds them when it does in other words. For example the `trigger` of `commit_action`, `discard_action` and `transition` is one of `escape`, `cancel`, `submit`, `navigation`, `click`, `timeout`, "when the session times out" binds `timeout`, and "must be denied" binds the decision `deny`. A granted permission in a `permission_rule` suggestion is now spelled `allow` (it was `assert`, the polarity, which stays `assert`). Existing predicate facts are unaffected: built-in vocabularies guide suggestions and are not enforced on stored facts.
+
+  Technical summary: new `predicate-closed-vocabularies.ts` declares `argument_constants` and `argument_aliases` for `trigger` (commit_action, discard_action, transition), `decision` (permission_rule, scoped_authorization_rule: allow, deny; `assert` is an alias of `allow`), `policy` (refresh_policy_rule: automatic, manual, on_demand), `decision` (environment_safety_rule: allowed, forbidden, read-only), `operator` (resource_constraint), `unit` (retention_policy: days, months, years) and `action` (coding_standard_rule: use, avoid; lifecycle_rule: archived, deleted, expired). Schema examples use the declared constants. Binding cues map wording such as "denied", "must not", "times out" and "on demand" to their constant, and `inferTrigger` recognizes clicks and timeouts.
+
+- c9dd5f9: `kb_model` mode `predicates` now takes the predicate's subject from the requirement: when `requirementId` names a requirement that constrains a subject fact, the predicate uses that fact's `subject_key`, so the predicate and the subject fact name one subject and contradiction checks see them together. Demo guesses such as `editor.annotation` are no longer applied to a requirement; a requirement without a subject fact leaves `subject` for the agent to bind. `docs/mcp-reference.md` now says that `structuredContent.<field>` paths are shorthand for `structuredContent.data.<field>` inside the protocol envelope.
+
+  Technical summary: `handleKbSuggestPredicates` reads the `subject_key` of every subject fact the requirement `constrains`. With exactly one, it binds the schema's `subject` argument with the new binding provenance `requirement` (applicable like `explicit`); with several, they come first in the subject's `bindingHints[].examples`. `subjectHint` and an explicit `argumentBindings.subject` still win. `inferSubject` takes the requirement context and keeps its keyword heuristics for free text without `requirementId`. The kibi-usage skill (2.8.0) names the `structuredContent.data.bindingHints` path and the requirement-bound subject.
+
+- Updated dependencies [c9dd5f9]
+- Updated dependencies [c9dd5f9]
+- Updated dependencies [c9dd5f9]
+- Updated dependencies [c9dd5f9]
+  - kibi-runtime@2.10.0
+  - kibi-core@0.17.1
+
 ## 3.5.1
 
 ### Patch Changes
