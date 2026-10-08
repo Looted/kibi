@@ -13,20 +13,20 @@ coordinates:
     sourceLine: 171
   26e0fdf782563d2c:
     identityHash: c12ea2884995608cb3d5a215435b9e24938f0ceaa73850d9d0c05a3ed10ba54f
-    sourceHash: ac2f50ad395c3e03ffdc2f0358895554d7132603d6b2f8981ac9be220ac46541
+    sourceHash: 53e79efeb4cc008e1c578a6587bc7b191bcb036693df4efe84267a2185d87fbb
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 282
+    sourceEndLine: 297
     sourceFile: packages/cli/src/operations/modeling/predicate-bindings.ts
-    sourceLine: 272
+    sourceLine: 287
   28f7e953a0a87fbb:
     identityHash: c88614aa74d06613bc873ad0ee6d49e4ebd2ab346e131ae77cc406700817e981
-    sourceHash: 0776955d48d5fbf6e9d5fa928071da107334485a9ac41a8cc80c607279b5f33b
+    sourceHash: 5b8a64c94bd367f7f0bcfee67018f8807f5a167fbd079238921de086039eaab4
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 91
+    sourceEndLine: 92
     sourceFile: packages/cli/src/operations/modeling/predicate-types.ts
-    sourceLine: 82
+    sourceLine: 83
   36ec3bc91de13ec6:
     identityHash: c6cd13847cc80aa79dcc633f496415ad43936a2f558e861e5319b894032edf3a
     sourceHash: 494c9ac05200eaebd39cb336edc9379a7780ef0597b6cb15a8e39dd6834b1b14
@@ -61,12 +61,12 @@ coordinates:
     sourceLine: 116
   6bbf244479d3b27f:
     identityHash: 3cefdbb344c7d1888d9cc50981a4eb06acae39e62fbda147bb54a5365d2ebd39
-    sourceHash: 0776955d48d5fbf6e9d5fa928071da107334485a9ac41a8cc80c607279b5f33b
+    sourceHash: 5b8a64c94bd367f7f0bcfee67018f8807f5a167fbd079238921de086039eaab4
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 104
+    sourceEndLine: 105
     sourceFile: packages/cli/src/operations/modeling/predicate-types.ts
-    sourceLine: 93
+    sourceLine: 94
   7580de62d3ca1d60:
     identityHash: 5305c23e59614dea531c67295dca5d77ec6cc4b39164bcf66b47c44702d3581f
     sourceHash: 06e61a9867b35cf976d59f7eb90c53f0739bc0aa557309d44de06515a25292ea
@@ -101,28 +101,28 @@ coordinates:
     sourceLine: 299
   7d817470d43bd8f1:
     identityHash: 1f40f2062018d90011b1b887b0e7c00e459218a7a7db8fbcf81e31b0cd26d1b8
-    sourceHash: 0776955d48d5fbf6e9d5fa928071da107334485a9ac41a8cc80c607279b5f33b
+    sourceHash: 5b8a64c94bd367f7f0bcfee67018f8807f5a167fbd079238921de086039eaab4
     sourceColumn: 12
     sourceEndColumn: 18
-    sourceEndLine: 80
+    sourceEndLine: 81
     sourceFile: packages/cli/src/operations/modeling/predicate-types.ts
     sourceLine: 76
   7e908d2d61025d58:
     identityHash: 1e64e12e94b21e038839b047d883d2e34d9df3e9bae07ff304cd2f403522cd98
-    sourceHash: ac2f50ad395c3e03ffdc2f0358895554d7132603d6b2f8981ac9be220ac46541
+    sourceHash: 53e79efeb4cc008e1c578a6587bc7b191bcb036693df4efe84267a2185d87fbb
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 110
+    sourceEndLine: 124
     sourceFile: packages/cli/src/operations/modeling/predicate-bindings.ts
-    sourceLine: 99
+    sourceLine: 113
   86c21fecd3d7b203:
     identityHash: 223229da16fa60ff664a67bc17c39436b7d8c56b3438e07ac14ee78bc82a750d
-    sourceHash: ac2f50ad395c3e03ffdc2f0358895554d7132603d6b2f8981ac9be220ac46541
+    sourceHash: 53e79efeb4cc008e1c578a6587bc7b191bcb036693df4efe84267a2185d87fbb
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 263
+    sourceEndLine: 277
     sourceFile: packages/cli/src/operations/modeling/predicate-bindings.ts
-    sourceLine: 238
+    sourceLine: 252
   8bec915de42a76db:
     identityHash: cfe14bd172b0d5393995864847915b1862f3fdb207907e1d5a0d3cd5871216aa
     sourceHash: be38ddb0e1dba4139a7111753fc7285ee9dc1626d8b5a1eeefb6c5150bf350b7
@@ -1909,31 +1909,31 @@ coordinates:
     sourceLine: 224
   SYM-bootstrap-claim-name-length-plansubjectkey:
     identityHash: e761cb1f00ff7056af953d33dd295a9407d0679b97560df014d163f8709a756c
-    sourceHash: e36728022a5df20b5e6b639edc154f4a5692f21e0eda38d31c5fa13c9b5ff634
+    sourceHash: 14a48533dbd665e96d49949904699d9319fd933c409d5895b793a69c1d8cba07
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 390
+    sourceEndLine: 392
     sourceFile: packages/cli/src/operations/bootstrap/requirement-claims.ts
-    sourceLine: 356
+    sourceLine: 358
   SYM-bootstrap-claim-name-length-shortensubjectaspect:
     identityHash: 248b6574da26cf38318e82c13c809c3105bcabff990687f2dbabb7e6cf90167e
-    sourceHash: e36728022a5df20b5e6b639edc154f4a5692f21e0eda38d31c5fa13c9b5ff634
+    sourceHash: 14a48533dbd665e96d49949904699d9319fd933c409d5895b793a69c1d8cba07
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 241
+    sourceEndLine: 243
     sourceFile: packages/cli/src/operations/bootstrap/requirement-claims.ts
-    sourceLine: 213
+    sourceLine: 215
   SYM-bootstrap-claim-name-length-subjectkeyregistry:
     identityHash: f6bec6def4111ca4c26ea1d449e171436fbceb2f9feebadc1c8d6ed0037aec8a
-    sourceHash: e36728022a5df20b5e6b639edc154f4a5692f21e0eda38d31c5fa13c9b5ff634
+    sourceHash: 14a48533dbd665e96d49949904699d9319fd933c409d5895b793a69c1d8cba07
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 345
+    sourceEndLine: 347
     sourceFile: packages/cli/src/operations/bootstrap/requirement-claims.ts
-    sourceLine: 312
+    sourceLine: 314
   SYM-bootstrap-filterSourceOnlySignals:
     identityHash: 8cbbcff9fc1b83c1468e9060a2995acbb1c470b92d855bef34ee16b5e8163472
-    sourceHash: 3b7b3f7feebd03449552cb688848ff0db7f8bd768cf6503c8c25c50537824f3a
+    sourceHash: fb7bcda1167060d4417f2a032bf662974f228d2bab798c7266a82a1ca9260259
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 32
@@ -1949,12 +1949,12 @@ coordinates:
     sourceLine: 97
   SYM-bootstrap-normalize-claim:
     identityHash: d464041ef32aa7d49746bfddd6604c38cb2716e5c042e8837c2c8d986c6675f4
-    sourceHash: e36728022a5df20b5e6b639edc154f4a5692f21e0eda38d31c5fa13c9b5ff634
+    sourceHash: 14a48533dbd665e96d49949904699d9319fd933c409d5895b793a69c1d8cba07
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 14
+    sourceEndLine: 16
     sourceFile: packages/cli/src/operations/bootstrap/requirement-claims.ts
-    sourceLine: 9
+    sourceLine: 11
   SYM-bootstrap-subject-fact-shared-sharesubjectfacts:
     identityHash: dd9d23bd513a10e02ef67f3fa0cef0d28c2a58f23255f01e4c07d24d7bf8c618
     sourceHash: 14a48533dbd665e96d49949904699d9319fd933c409d5895b793a69c1d8cba07
@@ -1965,12 +1965,12 @@ coordinates:
     sourceLine: 442
   SYM-bootstrap-subject-key-shape-resolvebootstrapsubjectkey:
     identityHash: 2db3dbadbc8662c88c846c7124f35ae06c4343c759e7025e2977858fd31a8307
-    sourceHash: e36728022a5df20b5e6b639edc154f4a5692f21e0eda38d31c5fa13c9b5ff634
+    sourceHash: 14a48533dbd665e96d49949904699d9319fd933c409d5895b793a69c1d8cba07
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 303
+    sourceEndLine: 305
     sourceFile: packages/cli/src/operations/bootstrap/requirement-claims.ts
-    sourceLine: 272
+    sourceLine: 274
   SYM-bootstrap-suppression-counts:
     identityHash: 6c3c9ef9ee85c6a56332716e6d44daa2883e01fb69d21aefde285ef3a671a24b
     sourceHash: bbabf88e45891e8568d4901274488f8f0e9721210e92161e4c852db41d84935d
@@ -2197,7 +2197,7 @@ coordinates:
     sourceLine: 646
   SYM-buildStableRequirementIds:
     identityHash: 6f29259a2488b585d7a8ddbc4cf2b4f8ca8ba3b7a572986b3f8dc1e5ab95a94d
-    sourceHash: 32b248d28f21faf9f309257297f83e871d92b613e01ba72dbbd847d8c02fd359
+    sourceHash: 89d8dd97a54ed0024aaf014bed1df4b92e17ef3fe6a405e66fa2bc34fefee27a
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 171
@@ -2205,7 +2205,7 @@ coordinates:
     sourceLine: 145
   SYM-buildStrictWriteSet:
     identityHash: 585619b44965235e3dfb89e3f275e26a724124b713a6d2cdaf5477c06f7aeb05
-    sourceHash: 32b248d28f21faf9f309257297f83e871d92b613e01ba72dbbd847d8c02fd359
+    sourceHash: 89d8dd97a54ed0024aaf014bed1df4b92e17ef3fe6a405e66fa2bc34fefee27a
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 291
@@ -3189,7 +3189,7 @@ coordinates:
     sourceLine: 54
   SYM-cap-plugin-compareeligiblebyapplicabilityscorethenname-23b39448:
     identityHash: 3a674d07446180dcd0ca82fc9318afca242f8877804ab9909d461638c763b45f
-    sourceHash: 3b32c3710d1e4910ba93c22ab5682427ce15e22c7c6db7d99ae8205d585014cc
+    sourceHash: a4a63c866a67e9fb4d24744d3a86b052275d951291ead1ce930d04fbdf5d87b0
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 195
@@ -3197,7 +3197,7 @@ coordinates:
     sourceLine: 181
   SYM-cap-plugin-compareeligiblebyapplicabilitythenname-ddb324b4:
     identityHash: 8ebd4daacb108af5eda0911ce9cb2208ad34d9e99c0b6ecb5677c01d726913cb
-    sourceHash: 3b32c3710d1e4910ba93c22ab5682427ce15e22c7c6db7d99ae8205d585014cc
+    sourceHash: a4a63c866a67e9fb4d24744d3a86b052275d951291ead1ce930d04fbdf5d87b0
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 179
@@ -8373,7 +8373,7 @@ coordinates:
     sourceLine: 1
   SYM-cli-skills-mirror-parity-tests:
     identityHash: 4dec812b98b2ef0f1d9dec6055548d3bdcfb6a4e2a12689d99e39c25465c6263
-    sourceHash: 19315c2a0bec2be317b6cb9bf34c848239ca86a803e8ccfdfeda3cd7593fbc07
+    sourceHash: 1143d0dd249112e4698dafba809beb56b0aed7e94cbfcbf9e2ce99df0f8e8fc2
     sourceColumn: 0
     sourceEndColumn: 0
     sourceEndLine: 40
@@ -9253,7 +9253,7 @@ coordinates:
     sourceLine: 25
   SYM-core-check-logic-coverage:
     identityHash: 7edaa0ca4741f3c87af436f228970ea7884ee9db9d085ff5519e3837d24d4fc6
-    sourceHash: f764c1938145fef087e319c101f27457d7677fc91b51f4b4d6dd867c4be92256
+    sourceHash: ccc2847ca20b52c4dee661cf1068721b370f4b9062fd4c7ac52262801f04cf54
     sourceColumn: 4
     sourceEndColumn: 24
     sourceEndLine: 40
@@ -9269,7 +9269,7 @@ coordinates:
     sourceLine: 32
   SYM-core-check-related-requirement-unmodeled:
     identityHash: 16653358e52f3d585319b5226e061cd643fd22a6ecff605804f4e74ed6d2dac1
-    sourceHash: f764c1938145fef087e319c101f27457d7677fc91b51f4b4d6dd867c4be92256
+    sourceHash: ccc2847ca20b52c4dee661cf1068721b370f4b9062fd4c7ac52262801f04cf54
     sourceColumn: 4
     sourceEndColumn: 39
     sourceEndLine: 44
@@ -9277,7 +9277,7 @@ coordinates:
     sourceLine: 44
   SYM-core-check-scenario-feasibility:
     identityHash: 1c956040cf963424dc47f7c9188dc861354db4962d57d686c3126007751887e0
-    sourceHash: f764c1938145fef087e319c101f27457d7677fc91b51f4b4d6dd867c4be92256
+    sourceHash: ccc2847ca20b52c4dee661cf1068721b370f4b9062fd4c7ac52262801f04cf54
     sourceColumn: 4
     sourceEndColumn: 30
     sourceEndLine: 22
@@ -9285,7 +9285,7 @@ coordinates:
     sourceLine: 22
   SYM-core-check-selected-json:
     identityHash: c807dd22aed58d2f33db66b50550f7642ac22a341ef2beb7a53228741a76d7a7
-    sourceHash: f764c1938145fef087e319c101f27457d7677fc91b51f4b4d6dd867c4be92256
+    sourceHash: ccc2847ca20b52c4dee661cf1068721b370f4b9062fd4c7ac52262801f04cf54
     sourceColumn: 4
     sourceEndColumn: 23
     sourceEndLine: 9
@@ -9365,7 +9365,7 @@ coordinates:
     sourceLine: 513
   SYM-core-domain-contradiction-witnesses:
     identityHash: f278d76085427cd73c6a226059d2e1c71fd57017ba36138a8a9bf65a226b3031
-    sourceHash: f764c1938145fef087e319c101f27457d7677fc91b51f4b4d6dd867c4be92256
+    sourceHash: ccc2847ca20b52c4dee661cf1068721b370f4b9062fd4c7ac52262801f04cf54
     sourceColumn: 4
     sourceEndColumn: 40
     sourceEndLine: 31
@@ -9413,12 +9413,12 @@ coordinates:
     sourceLine: 1191
   SYM-core-grounded-requirement-claim-fact:
     identityHash: 92a025b07d51902993f2c5c35f76ebea849a7f5b70fa7bc420223b2028e4ef86
-    sourceHash: f764c1938145fef087e319c101f27457d7677fc91b51f4b4d6dd867c4be92256
+    sourceHash: ccc2847ca20b52c4dee661cf1068721b370f4b9062fd4c7ac52262801f04cf54
     sourceColumn: 4
     sourceEndColumn: 35
-    sourceEndLine: 3064
+    sourceEndLine: 3088
     sourceFile: packages/core/src/checks.pl
-    sourceLine: 3064
+    sourceLine: 3088
   SYM-core-intervals-numeric-satisfiable:
     identityHash: 35a38a233b82f0bc362189eb1b21e02cf4a6ae5e9c49a10894539fb1ed8f7fd1
     sourceHash: 2c146cd6af0d0b8ad9396b8a0909ec8e5e89e42ab4c5ea18923947dd86bed2ae
@@ -9501,10 +9501,10 @@ coordinates:
     sourceLine: 1472
   SYM-core-kb-logic-coverage-tests:
     identityHash: 11b11beec10035274866acda204caee4174bf3ea9e5e624faa1965ed869847d3
-    sourceHash: fc23382b469fa886dc6359ec9afb182bc3cb1e09531aff8fa890d53f5aa1a5b8
+    sourceHash: 62759356e3407999ed49350a720814cbab291f586cb5c30d41dae14b9d67b308
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 6761
+    sourceEndLine: 6785
     sourceFile: packages/core/tests/kb.plt
     sourceLine: 1
   SYM-core-kb-query-proof-contracts:
@@ -9613,7 +9613,7 @@ coordinates:
     sourceLine: 181
   SYM-core-rule-contradiction-witness:
     identityHash: 2f01dd6c5e47703ac9f7253ebe3bca6344375c6d2de7b839a94b44c949ec5bce
-    sourceHash: f764c1938145fef087e319c101f27457d7677fc91b51f4b4d6dd867c4be92256
+    sourceHash: ccc2847ca20b52c4dee661cf1068721b370f4b9062fd4c7ac52262801f04cf54
     sourceColumn: 21
     sourceEndColumn: 47
     sourceEndLine: 2423
@@ -12205,7 +12205,7 @@ coordinates:
     sourceLine: 18
   SYM-EntitySpec:
     identityHash: 96ab76cd6382398b13148d26d8f366f2ba1baf9aaae9b3adaef89cb3e45e087e
-    sourceHash: 32b248d28f21faf9f309257297f83e871d92b613e01ba72dbbd847d8c02fd359
+    sourceHash: 89d8dd97a54ed0024aaf014bed1df4b92e17ef3fe6a405e66fa2bc34fefee27a
     sourceColumn: 17
     sourceEndColumn: 1
     sourceEndLine: 58
@@ -12461,12 +12461,12 @@ coordinates:
     sourceLine: 677
   SYM-execute-suggest-predicates:
     identityHash: 719b30fb6857dbc580562e57f40db9155fbd1f95d88c4536744d9cd0649fca88
-    sourceHash: 3b32c3710d1e4910ba93c22ab5682427ce15e22c7c6db7d99ae8205d585014cc
+    sourceHash: a4a63c866a67e9fb4d24744d3a86b052275d951291ead1ce930d04fbdf5d87b0
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 663
+    sourceEndLine: 711
     sourceFile: packages/cli/src/operations/modeling/suggest-predicates.ts
-    sourceLine: 658
+    sourceLine: 706
   SYM-executeIngestProof:
     identityHash: a070b8dea1c3bf11901912befd1138f0a58d9b6d4c9a5be007dfed588c085121
     sourceHash: 50c4903b7f6d1b6bfdc91e34f53af3c458b7f8adf5c246821a22a9bf6cd93f27
@@ -14549,7 +14549,7 @@ coordinates:
     sourceLine: 208
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-generate-selectbootstrapcandidates:
     identityHash: f5ef6ff83d5efd054ece6d8f1f45dced25acbec327c5c45b92c7373b5a26324d
-    sourceHash: 3b7b3f7feebd03449552cb688848ff0db7f8bd768cf6503c8c25c50537824f3a
+    sourceHash: fb7bcda1167060d4417f2a032bf662974f228d2bab798c7266a82a1ca9260259
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 214
@@ -14613,12 +14613,12 @@ coordinates:
     sourceLine: 124
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-requirement-claims-claimfor:
     identityHash: cd1f5d3020dd7bf7e65068afacee974e628b5d3430f4bc37c410b8800233da18
-    sourceHash: e36728022a5df20b5e6b639edc154f4a5692f21e0eda38d31c5fa13c9b5ff634
+    sourceHash: 14a48533dbd665e96d49949904699d9319fd933c409d5895b793a69c1d8cba07
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 79
+    sourceEndLine: 81
     sourceFile: packages/cli/src/operations/bootstrap/requirement-claims.ts
-    sourceLine: 16
+    sourceLine: 18
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-activationmode:
     identityHash: 0a3d145d3df623c0a86cc9896395b5ec49d6626c21f45fa44219c70b013c6dc6
     sourceHash: 592601134e7fdf2afb68a24b6f4f94ab733170de7e8a6354a4e4a6569a50d44e
@@ -14973,7 +14973,7 @@ coordinates:
     sourceLine: 373
   SYM-kibi-bootstrap-plan-expected-snapshots:
     identityHash: 7650a8e4ec4ba7beeb0070b89cd524f35b463e25c8d01a317b68ee1d4a380d98
-    sourceHash: 3b7b3f7feebd03449552cb688848ff0db7f8bd768cf6503c8c25c50537824f3a
+    sourceHash: fb7bcda1167060d4417f2a032bf662974f228d2bab798c7266a82a1ca9260259
     sourceColumn: 15
     sourceEndColumn: 1
     sourceEndLine: 369
@@ -15613,20 +15613,20 @@ coordinates:
     sourceLine: 18
   SYM-kibi-predicate-binding-provenance:
     identityHash: fc341716b4428210ec94e807bef3d9219b579113f1f06f210386a3db9c39cfd9
-    sourceHash: ac2f50ad395c3e03ffdc2f0358895554d7132603d6b2f8981ac9be220ac46541
+    sourceHash: 53e79efeb4cc008e1c578a6587bc7b191bcb036693df4efe84267a2185d87fbb
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 287
+    sourceEndLine: 304
     sourceFile: packages/cli/src/operations/modeling/predicate-bindings.ts
     sourceLine: 1
   SYM-kibi-predicate-schema-draft:
     identityHash: df21743f070b8291a9af24ece96f791473ef55ed578e0151bfdee554764c81d6
-    sourceHash: a294fcc5008f4ac5d7ec9622c251783f859f1a1c06ababca384e0d426a775774
+    sourceHash: 07826bd7f140d1a0fceae603e66f208c5147eedc31cfc2e41234d7041efe6da0
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 350
+    sourceEndLine: 369
     sourceFile: packages/cli/src/operations/modeling/predicate-applyplan.ts
-    sourceLine: 279
+    sourceLine: 298
   SYM-kibi-predicate-semantic-applicability:
     identityHash: 9c5610d4c2b3a796b6c1299dceed894eb781949c9d8b3d9bf36acf9e65d861ee
     sourceHash: 5fc39ccd5d03080a50468d79185543b51c2f27394d19387ed2ff5f25b01bbf87
@@ -15765,7 +15765,7 @@ coordinates:
     sourceLine: 1
   SYM-kibi-usage-skill-guidance:
     identityHash: 4596b4770fa6eca3c0b31b8c58f21cc8c076ffe4dc4e76b6252e9984eb6c5857
-    sourceHash: aa47221cc86719efea87edb26751be095e6790b308704b8a8e7b45af933fcb6e
+    sourceHash: 91688060880c219a867e995571d869fc7f9ddd5a952d2c780af1f9759c61cc49
     sourceColumn: 6
     sourceEndColumn: 16
     sourceEndLine: 3
@@ -17429,28 +17429,28 @@ coordinates:
     sourceLine: 64
   SYM-model-predicates-binding-hints-describebindinghints:
     identityHash: ee939ba5cded8329712b56e1bddff99064b0387706963698ec6074b4fbe1d682
-    sourceHash: 52f3ff624102f811742725995c76114847e90414215cc8f827f77fc5c2e53814
+    sourceHash: 04fb2300e07868f9d999de63ba2ae3a5ce2d5d3dc9dc9503f345f719be141b22
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 108
+    sourceEndLine: 115
     sourceFile: packages/cli/src/operations/modeling/predicate-binding-hints.ts
-    sourceLine: 97
+    sourceLine: 104
   SYM-model-predicates-bindings-bindingtoken:
     identityHash: 8745d1356a5cc40e714e9b273134c4a483d1f204e92170c828a00872d362e05c
-    sourceHash: ac2f50ad395c3e03ffdc2f0358895554d7132603d6b2f8981ac9be220ac46541
+    sourceHash: 53e79efeb4cc008e1c578a6587bc7b191bcb036693df4efe84267a2185d87fbb
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 181
+    sourceEndLine: 195
     sourceFile: packages/cli/src/operations/modeling/predicate-bindings.ts
-    sourceLine: 175
+    sourceLine: 189
   SYM-model-predicates-bindings-nameorstopwordreason:
     identityHash: 3e9fbcb847f49a4295bdba01461144c2656fb24217780514215a4d2df220798a
-    sourceHash: ac2f50ad395c3e03ffdc2f0358895554d7132603d6b2f8981ac9be220ac46541
+    sourceHash: 53e79efeb4cc008e1c578a6587bc7b191bcb036693df4efe84267a2185d87fbb
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 235
+    sourceEndLine: 249
     sourceFile: packages/cli/src/operations/modeling/predicate-bindings.ts
-    sourceLine: 220
+    sourceLine: 234
   SYM-model-predicates-closed-vocabularies-closedarguments:
     identityHash: 2bfeaf8452b8e753b253fac7ae3c4f166657b8a1582dcf84e8848d89981494f5
     sourceHash: d957cf2f0cfad4f3bb1631a2cf0d100bbab8bc7d2d037a4ef4288ea6a5a1625a
@@ -17469,28 +17469,28 @@ coordinates:
     sourceLine: 558
   SYM-modeling-predicate-applyplan-buildGapApplyPlan:
     identityHash: e9084093b2fdc4d1b8bff5f27804996e2b53f4249c1474636432a77623ba7903
-    sourceHash: a294fcc5008f4ac5d7ec9622c251783f859f1a1c06ababca384e0d426a775774
+    sourceHash: 07826bd7f140d1a0fceae603e66f208c5147eedc31cfc2e41234d7041efe6da0
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 273
+    sourceEndLine: 292
     sourceFile: packages/cli/src/operations/modeling/predicate-applyplan.ts
-    sourceLine: 246
+    sourceLine: 265
   SYM-modeling-predicate-applyplan-buildPredicateApplyPlan:
     identityHash: 6f1fc1401cf2c99dc8aaf44cf59405169a684debc8c61dcfc8e614bd89c0c1a4
-    sourceHash: a294fcc5008f4ac5d7ec9622c251783f859f1a1c06ababca384e0d426a775774
+    sourceHash: 07826bd7f140d1a0fceae603e66f208c5147eedc31cfc2e41234d7041efe6da0
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 188
+    sourceEndLine: 207
     sourceFile: packages/cli/src/operations/modeling/predicate-applyplan.ts
-    sourceLine: 148
+    sourceLine: 167
   SYM-modeling-predicate-applyplan-buildRelationshipPlan:
     identityHash: 9d3de3dfe639ccd5de86f0db60bfca26367f8dd0e7c3009ae609d1087333fc6b
-    sourceHash: a294fcc5008f4ac5d7ec9622c251783f859f1a1c06ababca384e0d426a775774
+    sourceHash: 07826bd7f140d1a0fceae603e66f208c5147eedc31cfc2e41234d7041efe6da0
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 219
+    sourceEndLine: 238
     sourceFile: packages/cli/src/operations/modeling/predicate-applyplan.ts
-    sourceLine: 191
+    sourceLine: 210
   SYM-modeling-predicate-inference-1-inferAuditEventRuleArgs:
     identityHash: 1fcd8d0948da429b6fedc1f0d88e17f7197b1043c4916177e794f5ad06301727
     sourceHash: 672a1732339a98f568655abcbf35ccc97e53bcbf38ff529ab5c0b1d46d92a2ab
@@ -17877,7 +17877,7 @@ coordinates:
     sourceLine: 147
   SYM-modeling-predicate-utils-clampInteger:
     identityHash: d333f38a62755a74bf75cc8dfeb1f269379937558581398361b145d0a97c3b52
-    sourceHash: 0920e98814d16fae727f244faa0fb8636b0f2120658eb5a62c9f83f4b63b8d76
+    sourceHash: e06003890d48352dbe3ba0c41328c5d36331f5b4643bd4ac15cf87fd33ec285d
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 34
@@ -17885,7 +17885,7 @@ coordinates:
     sourceLine: 25
   SYM-modeling-predicate-utils-clampScore:
     identityHash: 57bf8d0ed8841bee154fb6ffdf58f4791fceb4f3a62b2ea31ee8fcbc25a82965
-    sourceHash: 0920e98814d16fae727f244faa0fb8636b0f2120658eb5a62c9f83f4b63b8d76
+    sourceHash: e06003890d48352dbe3ba0c41328c5d36331f5b4643bd4ac15cf87fd33ec285d
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 43
@@ -17893,76 +17893,76 @@ coordinates:
     sourceLine: 37
   SYM-modeling-predicate-utils-escapeRegExp:
     identityHash: 63a2d5e8b4277ab7f8ac47a2087a335d054e36f2cffd155308163641af8024be
-    sourceHash: 0920e98814d16fae727f244faa0fb8636b0f2120658eb5a62c9f83f4b63b8d76
+    sourceHash: e06003890d48352dbe3ba0c41328c5d36331f5b4643bd4ac15cf87fd33ec285d
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 126
+    sourceEndLine: 143
     sourceFile: packages/cli/src/operations/modeling/predicate-utils.ts
-    sourceLine: 124
+    sourceLine: 141
   SYM-modeling-predicate-utils-inferDuration:
     identityHash: 7171d0aea029e4b0f6cb682dc884a23bfc6ba036fdf8d4e5c0d91f5067ca2fbd
-    sourceHash: 0920e98814d16fae727f244faa0fb8636b0f2120658eb5a62c9f83f4b63b8d76
+    sourceHash: e06003890d48352dbe3ba0c41328c5d36331f5b4643bd4ac15cf87fd33ec285d
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 145
+    sourceEndLine: 162
     sourceFile: packages/cli/src/operations/modeling/predicate-utils.ts
-    sourceLine: 143
+    sourceLine: 160
   SYM-modeling-predicate-utils-inferDurationUnit:
     identityHash: 0075784aac954f0b8a385d471c791107b1165bb9c6a7d4141db06c5e9f9d9012
-    sourceHash: 0920e98814d16fae727f244faa0fb8636b0f2120658eb5a62c9f83f4b63b8d76
+    sourceHash: e06003890d48352dbe3ba0c41328c5d36331f5b4643bd4ac15cf87fd33ec285d
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 154
+    sourceEndLine: 171
     sourceFile: packages/cli/src/operations/modeling/predicate-utils.ts
-    sourceLine: 148
+    sourceLine: 165
   SYM-modeling-predicate-utils-inferEvent:
     identityHash: 321f9046b70a5f42841c0fb8ee73884764f5e5d84ac355f5f2fce75e313c544f
-    sourceHash: 0920e98814d16fae727f244faa0fb8636b0f2120658eb5a62c9f83f4b63b8d76
+    sourceHash: e06003890d48352dbe3ba0c41328c5d36331f5b4643bd4ac15cf87fd33ec285d
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 207
+    sourceEndLine: 224
     sourceFile: packages/cli/src/operations/modeling/predicate-utils.ts
-    sourceLine: 204
+    sourceLine: 221
   SYM-modeling-predicate-utils-inferGate:
     identityHash: 0036216533b570b12bfdfeea2d8f659317b5ff78e221b704d93b031c04f02ce2
-    sourceHash: 0920e98814d16fae727f244faa0fb8636b0f2120658eb5a62c9f83f4b63b8d76
+    sourceHash: e06003890d48352dbe3ba0c41328c5d36331f5b4643bd4ac15cf87fd33ec285d
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 201
+    sourceEndLine: 218
     sourceFile: packages/cli/src/operations/modeling/predicate-utils.ts
-    sourceLine: 197
+    sourceLine: 214
   SYM-modeling-predicate-utils-inferNumber:
     identityHash: f8328ca081109e70b9095ff4cc410f89edbec3e654c1bf587b959298698e50a5
-    sourceHash: 0920e98814d16fae727f244faa0fb8636b0f2120658eb5a62c9f83f4b63b8d76
+    sourceHash: e06003890d48352dbe3ba0c41328c5d36331f5b4643bd4ac15cf87fd33ec285d
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 185
+    sourceEndLine: 202
     sourceFile: packages/cli/src/operations/modeling/predicate-utils.ts
-    sourceLine: 183
+    sourceLine: 200
   SYM-modeling-predicate-utils-inferOperator:
     identityHash: e5972549b52989b0f59d80e4f887fa8c8e2e17a769d399afa251817c4a8629f9
-    sourceHash: 0920e98814d16fae727f244faa0fb8636b0f2120658eb5a62c9f83f4b63b8d76
+    sourceHash: e06003890d48352dbe3ba0c41328c5d36331f5b4643bd4ac15cf87fd33ec285d
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 197
+    sourceFile: packages/cli/src/operations/modeling/predicate-utils.ts
+    sourceLine: 183
+  SYM-modeling-predicate-utils-inferResource:
+    identityHash: ec9e73b830ab859246c7f8fae89d29dad2ae1560de8ef5ea2f6fbec31cebd9fb
+    sourceHash: e06003890d48352dbe3ba0c41328c5d36331f5b4643bd4ac15cf87fd33ec285d
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 180
     sourceFile: packages/cli/src/operations/modeling/predicate-utils.ts
-    sourceLine: 166
-  SYM-modeling-predicate-utils-inferResource:
-    identityHash: ec9e73b830ab859246c7f8fae89d29dad2ae1560de8ef5ea2f6fbec31cebd9fb
-    sourceHash: 0920e98814d16fae727f244faa0fb8636b0f2120658eb5a62c9f83f4b63b8d76
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 163
-    sourceFile: packages/cli/src/operations/modeling/predicate-utils.ts
-    sourceLine: 157
+    sourceLine: 174
   SYM-modeling-predicate-utils-inferScope:
     identityHash: 320f9f375a68f25c57399e24aa58ae3fe3a3bacb52db74cbd805980ccd5b0904
-    sourceHash: 0920e98814d16fae727f244faa0fb8636b0f2120658eb5a62c9f83f4b63b8d76
+    sourceHash: e06003890d48352dbe3ba0c41328c5d36331f5b4643bd4ac15cf87fd33ec285d
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 99
+    sourceEndLine: 116
     sourceFile: packages/cli/src/operations/modeling/predicate-utils.ts
-    sourceLine: 92
+    sourceLine: 109
   SYM-modeling-predicate-utils-inferSubject:
     identityHash: 0682939f5ffeec9f7185dec5bb8e949639c376c2ee92ac8742a646e227bb70a0
     sourceHash: e06003890d48352dbe3ba0c41328c5d36331f5b4643bd4ac15cf87fd33ec285d
@@ -17981,23 +17981,23 @@ coordinates:
     sourceLine: 97
   SYM-modeling-predicate-utils-inferUnit:
     identityHash: 854f434b02ce54ade877754446750d7a69cc1d4a8a694c2ac09cdbc10708a657
-    sourceHash: 0920e98814d16fae727f244faa0fb8636b0f2120658eb5a62c9f83f4b63b8d76
+    sourceHash: e06003890d48352dbe3ba0c41328c5d36331f5b4643bd4ac15cf87fd33ec285d
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 194
+    sourceEndLine: 211
     sourceFile: packages/cli/src/operations/modeling/predicate-utils.ts
-    sourceLine: 188
+    sourceLine: 205
   SYM-modeling-predicate-utils-matchesKeyword:
     identityHash: fe6290e3131e7d23953fb5b005fa5a526ec2940bc7cd50c1f3d20f2d0670a840
-    sourceHash: 0920e98814d16fae727f244faa0fb8636b0f2120658eb5a62c9f83f4b63b8d76
+    sourceHash: e06003890d48352dbe3ba0c41328c5d36331f5b4643bd4ac15cf87fd33ec285d
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 140
+    sourceEndLine: 157
     sourceFile: packages/cli/src/operations/modeling/predicate-utils.ts
-    sourceLine: 129
+    sourceLine: 146
   SYM-modeling-predicate-utils-normalizeOptionalString:
     identityHash: c60cdedafd3f7896da9a2c65f4e9897e1c64a94b207cbfbc85d55d0bce079667
-    sourceHash: 0920e98814d16fae727f244faa0fb8636b0f2120658eb5a62c9f83f4b63b8d76
+    sourceHash: e06003890d48352dbe3ba0c41328c5d36331f5b4643bd4ac15cf87fd33ec285d
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 22
@@ -18005,23 +18005,23 @@ coordinates:
     sourceLine: 17
   SYM-modeling-predicate-utils-normalizePredicateToken:
     identityHash: 42f61f983469d491f0319bfa401209729afc6f34c00794df03c0fc2c0549c668
-    sourceHash: 0920e98814d16fae727f244faa0fb8636b0f2120658eb5a62c9f83f4b63b8d76
+    sourceHash: e06003890d48352dbe3ba0c41328c5d36331f5b4643bd4ac15cf87fd33ec285d
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 110
-    sourceFile: packages/cli/src/operations/modeling/predicate-utils.ts
-    sourceLine: 102
-  SYM-modeling-predicate-utils-normalizeSubjectKey:
-    identityHash: d7dfc2ee49068758a81a51ce4cbefeb209304972012d7b237813045857d314df
-    sourceHash: 0920e98814d16fae727f244faa0fb8636b0f2120658eb5a62c9f83f4b63b8d76
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 121
+    sourceEndLine: 127
     sourceFile: packages/cli/src/operations/modeling/predicate-utils.ts
     sourceLine: 119
+  SYM-modeling-predicate-utils-normalizeSubjectKey:
+    identityHash: d7dfc2ee49068758a81a51ce4cbefeb209304972012d7b237813045857d314df
+    sourceHash: e06003890d48352dbe3ba0c41328c5d36331f5b4643bd4ac15cf87fd33ec285d
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 138
+    sourceFile: packages/cli/src/operations/modeling/predicate-utils.ts
+    sourceLine: 136
   SYM-modeling-predicate-utils-normalizeText:
     identityHash: eea6a36a1c627570c038dab00c78b95401b8cf5c7c874b3664e5f4e1513797c2
-    sourceHash: 0920e98814d16fae727f244faa0fb8636b0f2120658eb5a62c9f83f4b63b8d76
+    sourceHash: e06003890d48352dbe3ba0c41328c5d36331f5b4643bd4ac15cf87fd33ec285d
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 14
@@ -18029,15 +18029,15 @@ coordinates:
     sourceLine: 6
   SYM-modeling-predicate-utils-singularize:
     identityHash: 89465783f08b285ce9d367a28e237f26e749c42430aa9ad102dba79cbfda4e2f
-    sourceHash: 0920e98814d16fae727f244faa0fb8636b0f2120658eb5a62c9f83f4b63b8d76
+    sourceHash: e06003890d48352dbe3ba0c41328c5d36331f5b4643bd4ac15cf87fd33ec285d
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 116
+    sourceEndLine: 133
     sourceFile: packages/cli/src/operations/modeling/predicate-utils.ts
-    sourceLine: 113
+    sourceLine: 130
   SYM-modeling-predicate-utils-slug:
     identityHash: d20a1c0c0605e87651db631f7b9f398409fda994ee28b9f1490ad80633e1c883
-    sourceHash: 0920e98814d16fae727f244faa0fb8636b0f2120658eb5a62c9f83f4b63b8d76
+    sourceHash: e06003890d48352dbe3ba0c41328c5d36331f5b4643bd4ac15cf87fd33ec285d
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 52
@@ -18125,7 +18125,7 @@ coordinates:
     sourceLine: 9
   SYM-modelRequirementClaims:
     identityHash: 4899dd139bbffc7c5c4216807f8d1b5ccbcaddf6fbcf3e0add118e7922ad1c2e
-    sourceHash: 32b248d28f21faf9f309257297f83e871d92b613e01ba72dbbd847d8c02fd359
+    sourceHash: 89d8dd97a54ed0024aaf014bed1df4b92e17ef3fe6a405e66fa2bc34fefee27a
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 313
@@ -18221,7 +18221,7 @@ coordinates:
     sourceLine: 248
   SYM-normalizePropertyKey:
     identityHash: f21ea55b5766f8f3059fce6b19faa5f85abebdc0a30ca71c96b03aa696143579
-    sourceHash: 32b248d28f21faf9f309257297f83e871d92b613e01ba72dbbd847d8c02fd359
+    sourceHash: 89d8dd97a54ed0024aaf014bed1df4b92e17ef3fe6a405e66fa2bc34fefee27a
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 143
@@ -18277,7 +18277,7 @@ coordinates:
     sourceLine: 38
   SYM-normalizeSubjectKey:
     identityHash: f8ea192cde22440c1dc2164d2c05008d7f0102f4cdfc05c9cdc1c89c465ceac9
-    sourceHash: 32b248d28f21faf9f309257297f83e871d92b613e01ba72dbbd847d8c02fd359
+    sourceHash: 89d8dd97a54ed0024aaf014bed1df4b92e17ef3fe6a405e66fa2bc34fefee27a
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 112
@@ -19669,36 +19669,36 @@ coordinates:
     sourceLine: 26
   SYM-predicate-catalog-part-1:
     identityHash: 2e782b1089b9bb53bf55dcb167af8b5cd682cef874e3ed1c16568af3829e6261
-    sourceHash: 0aa7772f4cfa9a6eb9b2d8cb147994b89ceb4b446c1bb92d7735d6ac14c4541b
-    sourceColumn: 13
-    sourceEndColumn: 1
-    sourceEndLine: 215
-    sourceFile: packages/cli/src/operations/modeling/predicate-catalog-1.ts
-    sourceLine: 4
-  SYM-predicate-catalog-part-2:
-    identityHash: dd67dbe24db322f5303009dab611f2120312b64ac6b001f8d53b4a2054adaba1
-    sourceHash: 663fb5f706b87316b336fb126c11de4e0d15aeeb3ede63655fc5bd6c1bef7b79
-    sourceColumn: 13
-    sourceEndColumn: 1
-    sourceEndLine: 230
-    sourceFile: packages/cli/src/operations/modeling/predicate-catalog-2.ts
-    sourceLine: 4
-  SYM-predicate-catalog-part-3:
-    identityHash: 5d1f1528a542f8316bbc1f845ed9580561a5846727869a7b4e020064f7dcf73f
-    sourceHash: 92b6860d29cd0e7f6f0dfd86f731fead56f4f0eb26aea35086f0a1b71d110584
+    sourceHash: c67df477b2f3c3ab2217403f086eff3bc346f1ae36e8509a5c7ffd9020b3d72d
     sourceColumn: 13
     sourceEndColumn: 1
     sourceEndLine: 222
-    sourceFile: packages/cli/src/operations/modeling/predicate-catalog-3.ts
-    sourceLine: 4
-  SYM-predicate-catalog-part-4:
-    identityHash: 619a76e6f0dc4214a45fcac9dd7cae8bd3c65585f8f2b1630e413ffa2fc321ff
-    sourceHash: fbceeea81e642d570016b379f30047b409842a1b495d0b37782f13d62c9a79e5
+    sourceFile: packages/cli/src/operations/modeling/predicate-catalog-1.ts
+    sourceLine: 9
+  SYM-predicate-catalog-part-2:
+    identityHash: dd67dbe24db322f5303009dab611f2120312b64ac6b001f8d53b4a2054adaba1
+    sourceHash: a7203a38469439a60c0688aa4d4fecda9c878f1e1a4101479f131dd41676afc6
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 312
+    sourceEndLine: 237
+    sourceFile: packages/cli/src/operations/modeling/predicate-catalog-2.ts
+    sourceLine: 9
+  SYM-predicate-catalog-part-3:
+    identityHash: 5d1f1528a542f8316bbc1f845ed9580561a5846727869a7b4e020064f7dcf73f
+    sourceHash: e4c4bfc4f809398e2d575bfe4d727b7a7ae99872c3581cbac6f429cea4d4ee89
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 236
+    sourceFile: packages/cli/src/operations/modeling/predicate-catalog-3.ts
+    sourceLine: 12
+  SYM-predicate-catalog-part-4:
+    identityHash: 619a76e6f0dc4214a45fcac9dd7cae8bd3c65585f8f2b1630e413ffa2fc321ff
+    sourceHash: 6499e37bd49091db5fb9f2483a96a6ae385ee00543b4572d4382a92b42c74c49
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 317
     sourceFile: packages/cli/src/operations/modeling/predicate-catalog-4.ts
-    sourceLine: 4
+    sourceLine: 8
   SYM-predicate-catalog-part-5:
     identityHash: e0a3f1419ad78de76bbcee7a1ba64c95850feb453923764cbf6e0c365b9c9c70
     sourceHash: 9a11ce7b4f1709a49b41c3f64524b27e6fb58aad30895e5686ec6a9a80a1ad93
@@ -19717,7 +19717,7 @@ coordinates:
     sourceLine: 16
   SYM-predicate-hash-id:
     identityHash: 21a438fcf06525d68fe27e0722afbd598f9be8e9f7049549a776c45e28e9f0af
-    sourceHash: 0920e98814d16fae727f244faa0fb8636b0f2120658eb5a62c9f83f4b63b8d76
+    sourceHash: e06003890d48352dbe3ba0c41328c5d36331f5b4643bd4ac15cf87fd33ec285d
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 62
@@ -19869,7 +19869,7 @@ coordinates:
     sourceLine: 80
   SYM-PredicatePolarity:
     identityHash: b5b667acd8988afb077d76b3e086ebdf62a17f6ef05bc62b6ff3132ffea90c95
-    sourceHash: 0776955d48d5fbf6e9d5fa928071da107334485a9ac41a8cc80c607279b5f33b
+    sourceHash: 5b8a64c94bd367f7f0bcfee67018f8807f5a167fbd079238921de086039eaab4
     sourceColumn: 12
     sourceEndColumn: 50
     sourceEndLine: 2
@@ -19901,7 +19901,7 @@ coordinates:
     sourceLine: 93
   SYM-PredicateSchemaCandidate:
     identityHash: f9078bbceb326e5441f9a92a5f51a4f20f71725290957756a6e9c2644037d457
-    sourceHash: 0776955d48d5fbf6e9d5fa928071da107334485a9ac41a8cc80c607279b5f33b
+    sourceHash: 5b8a64c94bd367f7f0bcfee67018f8807f5a167fbd079238921de086039eaab4
     sourceColumn: 17
     sourceEndColumn: 1
     sourceEndLine: 31
@@ -19909,7 +19909,7 @@ coordinates:
     sourceLine: 11
   SYM-PredicateSuggestion:
     identityHash: 4fe996831167d1c39b9e639cc952964485c0a0dcca42a582d956b2e29f57bb75
-    sourceHash: 0776955d48d5fbf6e9d5fa928071da107334485a9ac41a8cc80c607279b5f33b
+    sourceHash: 5b8a64c94bd367f7f0bcfee67018f8807f5a167fbd079238921de086039eaab4
     sourceColumn: 17
     sourceEndColumn: 1
     sourceEndLine: 74
@@ -19917,7 +19917,7 @@ coordinates:
     sourceLine: 53
   SYM-PredicateUsageHints:
     identityHash: 198b7bd217e8affd05c783b6444e7ff5b83c3fb92956b1561816a64ceead683f
-    sourceHash: 0776955d48d5fbf6e9d5fa928071da107334485a9ac41a8cc80c607279b5f33b
+    sourceHash: 5b8a64c94bd367f7f0bcfee67018f8807f5a167fbd079238921de086039eaab4
     sourceColumn: 17
     sourceEndColumn: 1
     sourceEndLine: 8
@@ -22293,7 +22293,7 @@ coordinates:
     sourceLine: 12
   SYM-RelationshipSpec:
     identityHash: 6f7d2abd80d70ae6d2941c60685abcb0334779bc72ae39ff2725d51f9b40228f
-    sourceHash: 32b248d28f21faf9f309257297f83e871d92b613e01ba72dbbd847d8c02fd359
+    sourceHash: 89d8dd97a54ed0024aaf014bed1df4b92e17ef3fe6a405e66fa2bc34fefee27a
     sourceColumn: 12
     sourceEndColumn: 2
     sourceEndLine: 63
@@ -24069,7 +24069,7 @@ coordinates:
     sourceLine: 108
   SYM-SemanticClaim:
     identityHash: fc8bc2df68c66fd280d44cf1b1e0df724de221b361ecae65275b5ad983a0437e
-    sourceHash: 32b248d28f21faf9f309257297f83e871d92b613e01ba72dbbd847d8c02fd359
+    sourceHash: 89d8dd97a54ed0024aaf014bed1df4b92e17ef3fe6a405e66fa2bc34fefee27a
     sourceColumn: 17
     sourceEndColumn: 1
     sourceEndLine: 35
@@ -32557,7 +32557,7 @@ coordinates:
     sourceLine: 10
   SYM-StableRequirementIds:
     identityHash: 6cc519a782e38a8e2b09ea1aa2c41fed1bff9a7650e6ac2ed3ee54ccfb8c5081
-    sourceHash: 32b248d28f21faf9f309257297f83e871d92b613e01ba72dbbd847d8c02fd359
+    sourceHash: 89d8dd97a54ed0024aaf014bed1df4b92e17ef3fe6a405e66fa2bc34fefee27a
     sourceColumn: 17
     sourceEndColumn: 1
     sourceEndLine: 75
@@ -32709,7 +32709,7 @@ coordinates:
     sourceLine: 26
   SYM-StrictModelInput:
     identityHash: 6425fe6062390d84f16b20cd634c11c9d033724747e6099eb8851ffd4b064c46
-    sourceHash: 32b248d28f21faf9f309257297f83e871d92b613e01ba72dbbd847d8c02fd359
+    sourceHash: 89d8dd97a54ed0024aaf014bed1df4b92e17ef3fe6a405e66fa2bc34fefee27a
     sourceColumn: 17
     sourceEndColumn: 1
     sourceEndLine: 40
@@ -32717,7 +32717,7 @@ coordinates:
     sourceLine: 37
   SYM-StrictWriteSet:
     identityHash: 2ed1979f9802581ecd0aa010646a880006cbce27017f0e2cf7cf337c6c533a47
-    sourceHash: 32b248d28f21faf9f309257297f83e871d92b613e01ba72dbbd847d8c02fd359
+    sourceHash: 89d8dd97a54ed0024aaf014bed1df4b92e17ef3fe6a405e66fa2bc34fefee27a
     sourceColumn: 12
     sourceEndColumn: 77
     sourceEndLine: 93
@@ -32765,7 +32765,7 @@ coordinates:
     sourceLine: 27
   SYM-suggest-predicates-core-handler:
     identityHash: ef5f36ebc42c1180bf4364917a205fdd21b73e2067e906aee3d8d43202c0361c
-    sourceHash: 0076281e36ca08e721732694e7dd20b27f3bc6a66fbde039e6c143a124aec1d0
+    sourceHash: a4a63c866a67e9fb4d24744d3a86b052275d951291ead1ce930d04fbdf5d87b0
     sourceColumn: 22
     sourceEndColumn: 1
     sourceEndLine: 596
@@ -32773,7 +32773,7 @@ coordinates:
     sourceLine: 322
   SYM-SuggestPredicatesArgs:
     identityHash: 00be7d7c3eed677d120425c6089cd5cdf08421e8083c42b160f2cb935b6c15fb
-    sourceHash: 0776955d48d5fbf6e9d5fa928071da107334485a9ac41a8cc80c607279b5f33b
+    sourceHash: 5b8a64c94bd367f7f0bcfee67018f8807f5a167fbd079238921de086039eaab4
     sourceColumn: 12
     sourceEndColumn: 2
     sourceEndLine: 50
@@ -32781,12 +32781,12 @@ coordinates:
     sourceLine: 34
   SYM-SuggestPredicatesResult:
     identityHash: b7df533181dcbc7dc0d33f3b80118e6d90fe193bf814603f244be70d9b4dbc71
-    sourceHash: 0776955d48d5fbf6e9d5fa928071da107334485a9ac41a8cc80c607279b5f33b
+    sourceHash: 5b8a64c94bd367f7f0bcfee67018f8807f5a167fbd079238921de086039eaab4
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 163
+    sourceEndLine: 164
     sourceFile: packages/cli/src/operations/modeling/predicate-types.ts
-    sourceLine: 134
+    sourceLine: 135
   SYM-summarizeBranchCoverage:
     identityHash: 1b99a988acb5005575bb981240a5dcdd3e13acd92fb43a7ed4f0d1422d9088bf
     sourceHash: 0e4207a0ef7f1d3d9049e23251a360c0e8ca53db4463e9f39c58a85c620ea83e
@@ -33397,7 +33397,7 @@ coordinates:
     sourceLine: 1
   SYM-test-bootstrap-subject-fact-shared:
     identityHash: 659f599d52528458e73f88dd488a944223973dcd34e9f9141fbf0efb0650b38c
-    sourceHash: b3d9b1ae5a79b923007228d5ad084b95e5bd57e95c27bf206ee070322c661568
+    sourceHash: b98037c411a67d0fa17be6beef0c050472f29fbfa2e73274ba691cbe2b60e8ac
     sourceColumn: 0
     sourceEndColumn: 0
     sourceEndLine: 408
@@ -33565,7 +33565,7 @@ coordinates:
     sourceLine: 1
   SYM-test-conservative-requirement-proof-chain:
     identityHash: 0a99c173fa30d2ad57d5cbdc502eb8dcd0d1a2f50e86f381c06b2c25dfb79f91
-    sourceHash: fc23382b469fa886dc6359ec9afb182bc3cb1e09531aff8fa890d53f5aa1a5b8
+    sourceHash: 62759356e3407999ed49350a720814cbab291f586cb5c30d41dae14b9d67b308
     sourceColumn: 5
     sourceEndColumn: 79
     sourceEndLine: 2095
@@ -33581,12 +33581,12 @@ coordinates:
     sourceLine: 183
   SYM-test-core-adr-supersession:
     identityHash: 2d2229dd7624aed8e431f0b93da271a86a8689e2ab48fd8791fd6804ff477ff1
-    sourceHash: fc23382b469fa886dc6359ec9afb182bc3cb1e09531aff8fa890d53f5aa1a5b8
+    sourceHash: 62759356e3407999ed49350a720814cbab291f586cb5c30d41dae14b9d67b308
     sourceColumn: 5
     sourceEndColumn: 50
-    sourceEndLine: 5056
+    sourceEndLine: 5080
     sourceFile: packages/core/tests/kb.plt
-    sourceLine: 5056
+    sourceLine: 5080
   SYM-test-core-engine-read-limits-cli:
     identityHash: 95a81e8a5ed192ed2d6a5e483687e9da4c6dacfefc62e6d7d8b48ba95c89d39c
     sourceHash: c5ed49d1f5a3e53ef2360ddf46cf7a50d078b3d9b07e18786d4743c66922c270
@@ -33597,12 +33597,12 @@ coordinates:
     sourceLine: 1
   SYM-test-core-fixed-timestamp-file:
     identityHash: 10a5d02437a93cb7743e80a199022fe9913e597be5f2dfa3623fb0234e1c01b9
-    sourceHash: fc23382b469fa886dc6359ec9afb182bc3cb1e09531aff8fa890d53f5aa1a5b8
+    sourceHash: 62759356e3407999ed49350a720814cbab291f586cb5c30d41dae14b9d67b308
     sourceColumn: 8
     sourceEndColumn: 35
-    sourceEndLine: 6556
+    sourceEndLine: 6580
     sourceFile: packages/core/tests/kb.plt
-    sourceLine: 6556
+    sourceLine: 6580
   SYM-test-core-journaled-engine-delta-sync:
     identityHash: a8e2250c6d86ce6f0bb4f55c684bcd6b8fa3dd6657db6033ec92d4504db337c2
     sourceHash: be97a93f3331b9e6fadd1f64b7c4eb6c0695df4338e3bfaf9533779089996073
@@ -33629,28 +33629,28 @@ coordinates:
     sourceLine: 93
   SYM-test-core-lock-owner-timezone-child:
     identityHash: 5ca9e0d48119427dba470b72d4780abfec130360ea45b41cb0d9e2bc09782a89
-    sourceHash: fc23382b469fa886dc6359ec9afb182bc3cb1e09531aff8fa890d53f5aa1a5b8
+    sourceHash: 62759356e3407999ed49350a720814cbab291f586cb5c30d41dae14b9d67b308
     sourceColumn: 29
     sourceEndColumn: 50
-    sourceEndLine: 6569
+    sourceEndLine: 6593
     sourceFile: packages/core/tests/kb.plt
-    sourceLine: 6569
+    sourceLine: 6593
   SYM-test-core-lock-owner-utc:
     identityHash: a2c207b14c924390273ffa133663db2787d44f83ab639a4d017e045fbe82bd06
-    sourceHash: fc23382b469fa886dc6359ec9afb182bc3cb1e09531aff8fa890d53f5aa1a5b8
+    sourceHash: 62759356e3407999ed49350a720814cbab291f586cb5c30d41dae14b9d67b308
     sourceColumn: 5
     sourceEndColumn: 58
-    sourceEndLine: 6563
+    sourceEndLine: 6587
     sourceFile: packages/core/tests/kb.plt
-    sourceLine: 6563
+    sourceLine: 6587
   SYM-test-core-status-timezone-child:
     identityHash: 3b3b746bb6043f06af5c0343de3585fc80379c479e8ee7091ccc34c2b77c1236
-    sourceHash: fc23382b469fa886dc6359ec9afb182bc3cb1e09531aff8fa890d53f5aa1a5b8
+    sourceHash: 62759356e3407999ed49350a720814cbab291f586cb5c30d41dae14b9d67b308
     sourceColumn: 29
     sourceEndColumn: 51
-    sourceEndLine: 6557
+    sourceEndLine: 6581
     sourceFile: packages/core/tests/kb.plt
-    sourceLine: 6557
+    sourceLine: 6581
   SYM-test-cursor-edit-snippet-hook:
     identityHash: 11f0cc076c025c1f16a0e4280f4fb2bef5370abe96ca6c732752dc5daec6d0b7
     sourceHash: 7fe30ad88f6824afe1d468d20490cb13ecc95d2f9b60c01eedc0a917aa9716a8
@@ -33869,10 +33869,10 @@ coordinates:
     sourceLine: 1
   SYM-test-model-predicates-binding-placeholders:
     identityHash: 49abb5667e351dbf4248b3ea74980e342eba1930236d61e7ab5ac5b60da25d7c
-    sourceHash: 12a5f4832db33e2f431b08364813d2273682014b58745e8e5a9385ae427a76b4
+    sourceHash: 583f887c5d3869bfae36c153ba5c78f916418b130cce4b00263a9365ddb58d93
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 232
+    sourceEndLine: 334
     sourceFile: packages/cli/tests/operations/predicate-binding-placeholders.test.ts
     sourceLine: 1
   SYM-test-model-predicates-closed-vocabularies:
@@ -33885,18 +33885,18 @@ coordinates:
     sourceLine: 1
   SYM-test-model-predicates-grounding-aware:
     identityHash: e2cb2205579461f148399c478a823b5206e6532a8b4a265d1cb10a328ea0a86b
-    sourceHash: 484a2d23457b66674c5818f210a0d245b90015c9aed06e5e23d36b466ff44ea9
+    sourceHash: 880e4cfa953cbb1adf6ac8a57ce368f7a33181ea55d8dd057b6ec44582e38557
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 206
+    sourceEndLine: 278
     sourceFile: packages/cli/tests/operations/suggest-predicates-existing-grounding.test.ts
     sourceLine: 1
   SYM-test-model-predicates-plan-roundtrip:
     identityHash: 2c17f4a2439096c7ca5b616a4b60fd7139b6b8364fd111c671a38b69179025cb
-    sourceHash: 43c69628bae156b1d70b974e0ffd6afe1633410e58fa19852431e648a72f9f20
+    sourceHash: 55ae8e87b2a8838e5bc1a4b04dc167a17cb4264b9a3684913a8d7d22d879b047
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 304
+    sourceEndLine: 328
     sourceFile: packages/mcp/tests/predicate-plan-roundtrip.test.ts
     sourceLine: 1
   SYM-test-model-predicates-requirement-subject:
@@ -34309,7 +34309,7 @@ coordinates:
     sourceLine: 1
   SYM-test-rule-contradiction-witness-proof:
     identityHash: 416e1f9df65dad7253f3fb0966166d25453441fe22fbb39e763362585af757a9
-    sourceHash: fc23382b469fa886dc6359ec9afb182bc3cb1e09531aff8fa890d53f5aa1a5b8
+    sourceHash: 62759356e3407999ed49350a720814cbab291f586cb5c30d41dae14b9d67b308
     sourceColumn: 5
     sourceEndColumn: 64
     sourceEndLine: 4993
@@ -34317,7 +34317,7 @@ coordinates:
     sourceLine: 4993
   SYM-test-rule-overlap-witness-proof:
     identityHash: 3d30fbc2441ff42be8709237965f0c2333f5ade8ee2665025b40acdbb961aa1c
-    sourceHash: fc23382b469fa886dc6359ec9afb182bc3cb1e09531aff8fa890d53f5aa1a5b8
+    sourceHash: 62759356e3407999ed49350a720814cbab291f586cb5c30d41dae14b9d67b308
     sourceColumn: 5
     sourceEndColumn: 65
     sourceEndLine: 5013
