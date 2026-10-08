@@ -1,4 +1,4 @@
-// implements REQ-model-predicates-grounding-aware-v2
+// implements REQ-model-predicates-grounding-aware-v2, REQ-model-predicates-requirement-subject
 import { describe, expect, test } from "bun:test";
 import { handleKbSuggestPredicates } from "../../src/operations/modeling/suggest-predicates.js";
 import { semanticClaimKey } from "../../src/operations/semantic-advisor/clauses.js";
@@ -11,12 +11,25 @@ const TEXT =
   "The editor must save changes automatically when the user navigates away.";
 const REQ = "REQ-editor-autosave";
 
-/** A KB where REQ grounds its claim through one requires_property fact. */
-function groundedKb(groundingClaimText: string | null): PrologPort {
+/**
+ * A KB where REQ constrains subject facts with the given subject keys and
+ * grounds its claim through one requires_property fact.
+ */
+function groundedKb(
+  groundingClaimText: string | null,
+  subjectKeys: readonly string[] = ["editor.autosave"],
+): PrologPort {
   const claimKey =
     groundingClaimText === null ? null : semanticClaimKey(groundingClaimText);
   return {
     query: async (goal: string): Promise<PrologQueryResult> => {
+      if (goal.includes(`kb_relationship(constrains, '${REQ}'`))
+        return {
+          success: true,
+          bindings: {
+            Keys: `[${subjectKeys.map((key) => `'${key}'`).join(",")}]`,
+          },
+        };
       if (goal.includes(`kb_relationship(requires_property, '${REQ}'`))
         return {
           success: true,
@@ -201,5 +214,64 @@ describe("kb_model predicates on an already grounded requirement", () => {
     );
     expect(plan.instructions).toContain(factId);
     expect(data.replacementPlan).toBeNull();
+  });
+
+  test("the predicate's subject is the subject_key of the fact the requirement constrains", async () => {
+    const result = await handleKbSuggestPredicates(
+      groundedKb("A different claim must hold.", ["x.y"]),
+      ARGS,
+    );
+    const data = result.structuredContent;
+    expect(data.subject).toBe("x.y");
+    const [candidate] = data.candidates;
+    expect(candidate?.predicate_args[0]).toBe("x.y");
+    expect(candidate?.binding_provenance_by_argument.subject).toBe(
+      "requirement",
+    );
+    expect(candidate?.unbound_arguments).not.toContain("subject");
+    expect(
+      data.bindingHints?.some((hint) => hint.argument === "subject") ?? false,
+    ).toBe(false);
+    expect(data.applyPlan[0]?.properties).toMatchObject({
+      predicate_args: ["x.y", "navigation", "changes"],
+    });
+  });
+
+  test("subjectHint still wins over the constrained subject", async () => {
+    const result = await handleKbSuggestPredicates(
+      groundedKb("A different claim must hold.", ["x.y"]),
+      { ...ARGS, subjectHint: "editor.session" },
+    );
+    const data = result.structuredContent;
+    expect(data.subject).toBe("editor.session");
+    expect(data.candidates[0]?.predicate_args[0]).toBe("editor.session");
+    expect(data.candidates[0]?.binding_provenance_by_argument.subject).toBe(
+      "explicit",
+    );
+  });
+
+  test("a requirement with no subject fact leaves the subject for the agent instead of a demo subject", async () => {
+    const text =
+      "The annotation editor must save changes automatically when the user navigates away.";
+    const result = await handleKbSuggestPredicates(
+      groundedKb("A different claim must hold.", []),
+      { ...ARGS, text },
+    );
+    const data = result.structuredContent;
+    expect(data.subject).toBe("requirement.subject");
+    expect(data.recommendedAction).toBe("provide_argument_bindings");
+    expect(data.candidates[0]?.unbound_arguments).toEqual(["subject"]);
+    expect(data.candidates[0]?.predicate_args[0]).toBe("requirement.subject");
+  });
+
+  test("several constrained subjects are offered first as subject examples", async () => {
+    const result = await handleKbSuggestPredicates(
+      groundedKb("A different claim must hold.", ["x.z", "x.y"]),
+      ARGS,
+    );
+    const data = result.structuredContent;
+    expect(data.recommendedAction).toBe("provide_argument_bindings");
+    const hint = data.bindingHints?.find((row) => row.argument === "subject");
+    expect(hint?.examples.slice(0, 2)).toEqual(["x.y", "x.z"]);
   });
 });

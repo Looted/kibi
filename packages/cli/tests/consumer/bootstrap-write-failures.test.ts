@@ -1,4 +1,5 @@
 // executable_for TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+// implements REQ-bootstrap-subject-fact-shared
 import { afterEach, describe, expect, test } from "bun:test";
 import { dump as dumpYaml } from "js-yaml";
 import { bootstrapPlanHash } from "../../src/operations/bootstrap/types.js";
@@ -243,7 +244,9 @@ test("require and forbid on one property are detected as a polarity contradictio
   ).toContainEqual(
     expect.objectContaining({
       state: "rejected",
-      appliedActions: 5,
+      // Both claims constrain one shared subject fact, so the second
+      // requirement is rejected after four writes.
+      appliedActions: 4,
       nextOperation: "kb_plan_bootstrap",
     }),
   );
@@ -317,4 +320,88 @@ test("schema 6 polarity-only facts migrate strictly without changing IDs or bodi
   const first = ws.read(".kb/facts/FACT-require.md");
   ws.text(["migrate", "--yes"]);
   expect(ws.read(".kb/facts/FACT-require.md")).toBe(first);
+}, 120_000);
+
+test("claims about one subject from two sources share one subject fact", () => {
+  ws = createConsumerWorkspace("kibi-bootstrap-shared-subject-");
+  const sources = ["handoff", "ticket"].map((id) => ({
+    id,
+    title: `Report exporter ${id}`,
+    kind: "specification",
+    locator: `https://example.com/${id}`,
+    authority: "authoritative",
+    component: "exporter",
+  }));
+  const claims = [
+    ["handoff", "Exporting a report must keep the active filters."],
+    ["ticket", "Exporting a report must show the saved file."],
+  ].map(([sourceId, statement]) => ({
+    sourceId,
+    statement,
+    reference: `${sourceId}-1`,
+    excerpt: statement,
+  }));
+  const planned = () =>
+    (
+      workspace().json(["plan-bootstrap"], {
+        bootstrapContext: {
+          projectSummary: "A report exporter.",
+          verificationAnchors: ["bun test"],
+          knowledgeSources: sources,
+          intentClaims: claims,
+        },
+      }).data as Json
+    ).plan as Json;
+  const plan = planned();
+  expect(plan.status).toBe("ready");
+  const payloads = (plan.actions as { payload: Json }[]).map(
+    (action) => action.payload,
+  );
+  const props = (payload: Json) => payload.properties as Json;
+  const subjects = payloads.filter(
+    (payload) => props(payload).fact_kind === "subject",
+  );
+  expect(subjects).toHaveLength(1);
+  const [subject] = subjects;
+  expect(props(subject as Json).subject_key).toBe(
+    "exporter.exporting_a_report",
+  );
+  expect(props(subject as Json).tags).toEqual(
+    expect.arrayContaining([
+      "provenance:handoff-handoff-1",
+      "provenance:ticket-ticket-1",
+    ]),
+  );
+  const constrains = payloads
+    .filter((payload) => payload.type === "req")
+    .flatMap((payload) => payload.relationships as Json[])
+    .filter((relationship) => relationship.type === "constrains");
+  expect(constrains).toHaveLength(2);
+  expect(new Set(constrains.map((relationship) => relationship.to))).toEqual(
+    new Set([(subject as Json).id]),
+  );
+  const shared = (plan.diagnostics as string[]).filter((line) =>
+    line.startsWith("subject-key-shared:"),
+  );
+  expect(shared).toHaveLength(1);
+  expect(shared[0]).toContain("exporter.exporting_a_report");
+  expect(shared[0]).toContain("handoff:handoff-1");
+  expect(shared[0]).toContain("ticket:ticket-1");
+  // Planning the same context again yields the same plan.
+  expect(planned().planHash).toBe(plan.planHash);
+
+  const applied = workspace().json(["apply-plan"], {
+    plan,
+    approvedPlanHash: plan.planHash,
+  });
+  expect((applied.data as Json).outcome).toBe("applied");
+  workspace().sync();
+  const check = workspace().json(["check"], {}).data as Json;
+  const rules = [
+    ...((check.violations ?? []) as Json[]),
+    ...((check.qualityDiagnostics ?? []) as Json[]),
+  ].map((finding) => String(finding.rule ?? finding.id));
+  expect(rules.filter((rule) => rule.includes("subject-key-identity"))).toEqual(
+    [],
+  );
 }, 120_000);

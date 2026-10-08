@@ -2,8 +2,10 @@ import { createHash } from "node:crypto";
 import {
   type SemanticClaim,
   isConventionalSubjectKey,
+  normalizeSourceKey,
   normalizeSubjectKey,
 } from "../../utils/strict-modeling.js";
+import type { Candidate } from "./types.js";
 
 // implements REQ-KIBI-BOOTSTRAP-PLAN
 export function normalizeClaimStatement(statement: string): string {
@@ -386,5 +388,130 @@ export function planSubjectKey(
         : {}),
     },
     diagnostics,
+  };
+}
+
+type PlanStep = Readonly<Record<string, unknown>>;
+
+function stepProperties(step: PlanStep): Readonly<Record<string, unknown>> {
+  return step.properties !== null && typeof step.properties === "object"
+    ? (step.properties as Record<string, unknown>)
+    : {};
+}
+
+function subjectStepKey(step: PlanStep): string | null {
+  const properties = stepProperties(step);
+  return step.type === "fact" &&
+    properties.fact_kind === "subject" &&
+    typeof properties.subject_key === "string" &&
+    typeof step.id === "string"
+    ? properties.subject_key
+    : null;
+}
+
+function retarget<T extends { readonly to: string }>(
+  relationships: readonly T[],
+  renamed: ReadonlyMap<string, string>,
+): T[] {
+  return relationships.map((relationship) => {
+    const to = renamed.get(relationship.to);
+    return to === undefined ? relationship : { ...relationship, to };
+  });
+}
+
+function retargetStep(
+  step: PlanStep,
+  renamed: ReadonlyMap<string, string>,
+): PlanStep {
+  if (!Array.isArray(step.relationships)) return step;
+  const relationships = step.relationships as { readonly to: string }[];
+  return { ...step, relationships: retarget(relationships, renamed) };
+}
+
+/**
+ * One subject fact per subject_key in a bootstrap plan. The registry keeps
+ * different subjects on different keys, so claims that share a key name the
+ * same subject: the first selected claim's subject fact is kept, every later
+ * requirement links to it through constrains instead of minting another
+ * subject fact (which subject-key-identity would report), and the later
+ * sources' provenance is added to the kept fact's tags and body. Each shared
+ * key is reported as a subject-key-shared diagnostic. The result depends only
+ * on the candidate order, so the plan hash stays deterministic.
+ */
+// implements REQ-bootstrap-subject-fact-shared
+export function shareSubjectFacts(candidates: readonly Candidate[]): {
+  readonly candidates: Candidate[];
+  readonly diagnostics: string[];
+} {
+  const owners = new Map<
+    string,
+    { factId: string; candidateIndex: number; sources: string[] }
+  >();
+  const renamed = new Map<string, string>();
+  candidates.forEach((candidate, candidateIndex) => {
+    for (const step of candidate.applyPlan) {
+      const key = subjectStepKey(step);
+      if (key === null) continue;
+      const factId = String(step.id);
+      const source = String(
+        stepProperties(step).text_ref ?? candidate.sourcePath,
+      );
+      const owner = owners.get(key);
+      if (owner === undefined) {
+        owners.set(key, { factId, candidateIndex, sources: [source] });
+        continue;
+      }
+      if (owner.factId === factId) continue;
+      renamed.set(factId, owner.factId);
+      if (!owner.sources.includes(source)) owner.sources.push(source);
+    }
+  });
+  if (renamed.size === 0)
+    return { candidates: [...candidates], diagnostics: [] };
+  const shared = [...owners.entries()].filter(
+    ([, owner]) => owner.sources.length > 1,
+  );
+  const sharedFacts = new Map(
+    shared.map(([key, owner]) => [owner.factId, { key, owner }]),
+  );
+  const result = candidates.map((candidate) => ({
+    ...candidate,
+    relationships: retarget(candidate.relationships, renamed),
+    applyPlan: candidate.applyPlan
+      .filter((step) => !renamed.has(String(step.id)))
+      .map((step) => {
+        const sharing = sharedFacts.get(String(step.id));
+        const retargeted = retargetStep(step, renamed);
+        if (sharing === undefined || subjectStepKey(step) === null)
+          return retargeted;
+        const properties = stepProperties(step);
+        const tags = Array.isArray(properties.tags)
+          ? properties.tags.map(String)
+          : [];
+        return {
+          ...retargeted,
+          properties: {
+            ...properties,
+            tags: [
+              ...new Set([
+                ...tags,
+                ...sharing.owner.sources.map(
+                  (source) => `provenance:${normalizeSourceKey(source)}`,
+                ),
+              ]),
+            ],
+          },
+          document: {
+            body: `Subject ${sharing.key}, shared by the requirements bootstrap planned from ${sharing.owner.sources.join(", ")}. Each of them links to this fact through constrains.\n`,
+          },
+        };
+      }),
+  }));
+  return {
+    candidates: result,
+    diagnostics: shared.map(
+      ([key, owner]) =>
+        `subject-key-shared: claims at ${owner.sources.join(", ")} name the same subject ${key}, so the plan writes one subject fact ${owner.factId} and links every requirement to it through constrains.`,
+    ),
   };
 }

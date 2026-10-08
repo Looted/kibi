@@ -1,3 +1,8 @@
+import {
+  LIFECYCLE_ACTION_VOCABULARY,
+  TRIGGER_VOCABULARY,
+  closedArguments,
+} from "./predicate-closed-vocabularies.js";
 import type { PredicateSchemaCandidate } from "./predicate-types.js";
 
 // implements REQ-mcp-suggest-predicates
@@ -20,6 +25,7 @@ export const PREDICATE_CATALOG_1: PredicateSchemaCandidate[] = [
     description: "A subject transitions between states because of a trigger.",
     argument_names: ["subject", "from_state", "to_state", "trigger"],
     argument_types: ["entity", "state", "state", "trigger"],
+    ...closedArguments({ trigger: TRIGGER_VOCABULARY }),
     keywords: [
       "transition",
       "enter",
@@ -208,6 +214,7 @@ export const PREDICATE_CATALOG_1: PredicateSchemaCandidate[] = [
       "An entity must be archived, deleted, expired, or lifecycle-transitioned after a duration.",
     argument_names: ["subject", "action", "duration", "unit"],
     argument_types: ["entity", "action", "number", "unit"],
+    ...closedArguments({ action: LIFECYCLE_ACTION_VOCABULARY }),
     keywords: ["archive", "archived", "delete", "deleted", "expire", "after"],
     examples: ["lifecycle_rule(expired_sessions, archived, 30, days)"],
     tags: ["lifecycle", "retention"],

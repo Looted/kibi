@@ -75,6 +75,7 @@ export interface PredicateSuggestion {
 
 export type BindingProvenance =
   | "explicit"
+  | "requirement"
   | "extracted"
   | "inferred"
   | "placeholder";

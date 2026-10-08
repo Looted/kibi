@@ -1,3 +1,8 @@
+import {
+  CODING_STANDARD_ACTION_VOCABULARY,
+  ENVIRONMENT_DECISION_VOCABULARY,
+  closedArguments,
+} from "./predicate-closed-vocabularies.js";
 import type { PredicateSchemaCandidate } from "./predicate-types.js";
 
 // implements REQ-mcp-suggest-predicates
@@ -74,6 +79,7 @@ export const PREDICATE_CATALOG_2: PredicateSchemaCandidate[] = [
       "A named action is allowed or forbidden in a deployment environment.",
     argument_names: ["action", "decision", "environment"],
     argument_types: ["action", "decision", "environment"],
+    ...closedArguments({ decision: ENVIRONMENT_DECISION_VOCABULARY }),
     keywords: ["production", "staging", "forbidden", "destructive"],
     examples: [
       "environment_safety_rule(destructive_operations, forbidden, production)",
@@ -100,6 +106,7 @@ export const PREDICATE_CATALOG_2: PredicateSchemaCandidate[] = [
       "Developer-facing code must use or avoid a framework API, pattern, or documentation practice.",
     argument_names: ["subject", "action", "target"],
     argument_types: ["entity", "action", "api"],
+    ...closedArguments({ action: CODING_STANDARD_ACTION_VOCABULARY }),
     keywords: ["computed", "signals", "must use", "must not use"],
     examples: ["coding_standard_rule(derived_state, use, computed_signals)"],
     tags: ["coding-standard", "agent-guidance"],

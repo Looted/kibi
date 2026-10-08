@@ -381,7 +381,7 @@ describe("kb_suggest_predicates", () => {
     const cases = [
       { text: "Users must never export customer data.", decision: "deny" },
       { text: "Users never export customer data.", decision: "deny" },
-      { text: "Users may export customer data.", decision: "assert" },
+      { text: "Users may export customer data.", decision: "allow" },
     ] as const;
 
     for (const testCase of cases) {
@@ -397,7 +397,9 @@ describe("kb_suggest_predicates", () => {
       expect(candidates[0]).toMatchObject({
         predicate_name: "permission_rule",
         predicate_args: ["user", "export", "customer_data", testCase.decision],
-        polarity: testCase.decision,
+        // The decision argument uses the closed allow/deny vocabulary; the
+        // polarity of a granted permission stays `assert`.
+        polarity: testCase.decision === "allow" ? "assert" : testCase.decision,
       });
     }
   });

@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 182,
-  "proofProven": 182,
+  "currentRequirements": 186,
+  "proofProven": 186,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -912,6 +912,26 @@
       "uncoveredSymbols": []
     },
     "REQ-model-predicates-plan-roundtrip": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-check-strict-pairing-predicate-grounding": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-bootstrap-subject-fact-shared": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-model-predicates-requirement-subject": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-model-predicates-closed-vocabularies": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []
