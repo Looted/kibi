@@ -293,3 +293,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fdf7e559c00f
+  - type: verified_by
+    from: SCEN-engine-daemon-package-versions
+    to: TEST-engine-daemon-package-versions
+    created_at: 2026-10-08T21:05:52.195Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2f200395fd55

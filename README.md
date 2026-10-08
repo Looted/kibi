@@ -71,7 +71,7 @@ npm exec -- kibi init
 
 > **Bootstrap Kibi for this repository.**
 
-pnpm, Yarn, and Bun work the same way through their local runners; the [installation guide](https://looted.github.io/kibi/guide/install.html) has the equivalents, and `npm exec -- kibi doctor` reports which SWI-Prolog Kibi is using. A system SWI-Prolog is only a fallback: Kibi uses `KIBI_SWIPL` if set, then the bundled runtime, then `swipl` on `PATH`. Set `KIBI_SWIPL=system` to prefer your own install. Do not install with `--omit=optional` (or pnpm `supportedArchitectures` that exclude your platform): the bundled runtime is an optional dependency.
+pnpm, Yarn, and Bun work the same way through their local runners; the [installation guide](https://looted.github.io/kibi/guide/install.html) has the equivalents, and `npm exec -- kibi doctor` reports which SWI-Prolog Kibi is using and the package versions of the running engine daemon (a daemon left by another install is replaced by the next Kibi command). A system SWI-Prolog is only a fallback: Kibi uses `KIBI_SWIPL` if set, then the bundled runtime, then `swipl` on `PATH`. Set `KIBI_SWIPL=system` to prefer your own install. Do not install with `--omit=optional` (or pnpm `supportedArchitectures` that exclude your platform): the bundled runtime is an optional dependency.
 
 </details>
 
@@ -249,7 +249,7 @@ That makes questions answerable in both directions: which requirement owns this 
 
 Suppose the product defines exactly three user roles. Once that constraint is encoded as a strict property or predicate, an agent cannot quietly invent a fourth role and treat it as established intent: Kibi can surface the contradiction or missing authorization deterministically.
 
-Kibi does not report "no conflict" when it could not tell. Numeric constraints are compared exactly ("greater than 0" conflicts with "equals 0"), and a requirement with clauses that are not yet modeled is reported as an incomplete analysis rather than a clean pass. Two opposing rules that Kibi cannot decide stay `unresolved`; when the only missing piece is a `key_arguments` declaration on a predicate, an advisory check names that predicate. A predicate the agent models for a requirement takes the subject key the requirement already constrains, so the predicate and the requirement's other facts are checked as one subject.
+Kibi does not report "no conflict" when it could not tell. Numeric constraints are compared exactly ("greater than 0" conflicts with "equals 0"), and a requirement with clauses that are not yet modeled is reported as an incomplete analysis rather than a clean pass. Two opposing rules that Kibi cannot decide stay `unresolved`; when the only missing piece is a `key_arguments` declaration on a predicate, an advisory check names that predicate. A predicate the agent models for a requirement takes the subject key the requirement already constrains, in the argument its schema names `subject` or, for a schema without one such as a permission rule, as the predicate fact's own subject key, so the predicate and the requirement's other facts are checked as one subject; a predicate about another subject is not offered as the requirement's grounding.
 
 Prolog does not decide whether the original human intent was correct. It verifies the knowledge that was encoded, while Kibi keeps ambiguity, missing ontology, incomplete grounding, and stale evidence explicit instead of calling them proof.
 

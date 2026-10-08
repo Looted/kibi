@@ -1,4 +1,4 @@
-// implements REQ-model-predicates-plan-roundtrip, REQ-check-strict-pairing-predicate-grounding, REQ-model-predicates-requirement-subject
+// implements REQ-model-predicates-plan-roundtrip, REQ-check-strict-pairing-predicate-grounding-v2, REQ-model-predicates-requirement-subject-v2
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { type ChildProcess, spawn, spawnSync } from "node:child_process";
 import { mkdtempSync, rmSync } from "node:fs";
@@ -20,6 +20,8 @@ const mcpPath = path.join(repoRoot, "packages/mcp/bin/kibi-mcp");
 /** Has a complete commit_action predicate candidate. */
 const PREDICATE_CLAIM =
   "The editor must save changes automatically when the user navigates away.";
+/** Has a complete permission_rule candidate, a schema with no subject argument. */
+const PERMISSION_CLAIM = "Guests must not delete archived pages.";
 /** Has no fitting predicate schema: an ontology gap. */
 const GAP_CLAIM =
   "The editor must render the toolbar in the preferred colour scheme.";
@@ -321,6 +323,61 @@ describe("kb_model predicate plans apply through the MCP server unchanged", () =
       "proposition-complete",
       "logic-coverage",
       "strict-req-fact-pairing",
+    ])
+      expect(findings).not.toContain(rule);
+  }, 180_000);
+
+  test("replace_grounding with a schema that names no subject pairs through subject_key", async () => {
+    // Given a requirement grounded through requires_property whose claim
+    // fits permission_rule(actor, action, resource, decision).
+    const requirementId = await groundRequirement(
+      client,
+      PERMISSION_CLAIM,
+      "pages.archive",
+      "guest_delete_denied",
+    );
+    const suggestion = await client.ok("kb_model", {
+      mode: "predicates",
+      text: PERMISSION_CLAIM,
+      requirementId,
+    });
+    expect(suggestion.recommendedAction).toBe("replace_grounding");
+    const [candidate] = suggestion.candidates as Json[];
+    expect(candidate).toMatchObject({
+      predicate_name: "permission_rule",
+      subject_key: "pages.archive",
+      subject_pairing: "paired",
+    });
+    const replacement = suggestion.replacementPlan as {
+      relationshipTarget: string;
+      steps: Array<{ operation: string; input: Json }>;
+    };
+
+    // When the replacement steps are applied unchanged, in order.
+    for (const step of replacement.steps) {
+      const result = await client.call(step.operation, step.input);
+      expect(result.isError).not.toBe(true);
+    }
+
+    // Then the predicate records the requirement's subject and kb_check
+    // pairs it with the subject fact.
+    const factId = replacement.relationshipTarget;
+    const predicate = await entity(client, factId);
+    expect(predicate).toMatchObject({
+      fact_kind: "predicate",
+      predicate_name: "permission_rule",
+      subject_key: "pages.archive",
+    });
+    expect((predicate.predicate_args as string[])[0]).toBe("guest");
+    const check = await client.ok("kb_check", {});
+    expect(violationsFor(check, requirementId)).toEqual([]);
+    expect(violationsFor(check, factId)).toEqual([]);
+    const findings = findingsFor(check, requirementId);
+    for (const rule of [
+      "proposition-complete",
+      "logic-coverage",
+      "strict-req-fact-pairing",
+      "strict-readiness",
     ])
       expect(findings).not.toContain(rule);
   }, 180_000);

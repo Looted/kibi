@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 186,
-  "proofProven": 186,
+  "currentRequirements": 188,
+  "proofProven": 188,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -916,7 +916,7 @@
       "gaps": [],
       "uncoveredSymbols": []
     },
-    "REQ-check-strict-pairing-predicate-grounding": {
+    "REQ-check-strict-pairing-predicate-grounding-v2": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []
@@ -926,12 +926,22 @@
       "gaps": [],
       "uncoveredSymbols": []
     },
-    "REQ-model-predicates-requirement-subject": {
+    "REQ-model-predicates-requirement-subject-v2": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []
     },
     "REQ-model-predicates-closed-vocabularies": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-model-predicates-binding-clauses": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-engine-daemon-package-versions": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []

@@ -62,6 +62,18 @@ export interface PredicateSuggestion {
   binding_provenance: BindingProvenance;
   /** Per-argument provenance retained for review and deterministic diagnostics. */
   binding_provenance_by_argument: Record<string, BindingProvenance>;
+  /**
+   * The subject_key the planned predicate fact is about when the requirement
+   * constrains subjects: the value of the argument named `subject`, or for a
+   * schema without one the requirement's subject. Null otherwise.
+   */
+  subject_key: string | null;
+  /**
+   * Whether the predicate is about a subject the requirement constrains, so
+   * kb_check pairs it with the subject fact. `unpaired` keeps the candidate
+   * incomplete; `not_required` when the requirement constrains no subject.
+   */
+  subject_pairing: "paired" | "unpaired" | "not_required";
   eligibility: "eligible" | "rejected";
   rejection_reasons: string[];
   applicability_score: number;

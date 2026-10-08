@@ -426,3 +426,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3e6e35b6b56a
+  - type: executable_for
+    from: SYM-test-model-predicates-binding-clauses
+    to: TEST-model-predicates-binding-clauses
+    created_at: 2026-10-08T21:05:44.321Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9ec6eee7b431

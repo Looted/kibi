@@ -269,3 +269,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c8394ce51d7f
+  - type: implements
+    from: 86c21fecd3d7b203
+    to: REQ-model-predicates-binding-clauses
+    created_at: 2026-10-08T21:26:41.686Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-300a16c0e48b
+  - type: covered_by
+    from: 86c21fecd3d7b203
+    to: TEST-model-predicates-binding-clauses
+    created_at: 2026-10-08T21:26:41.710Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fb9ee06e4d49

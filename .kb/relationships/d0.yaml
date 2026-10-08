@@ -202,3 +202,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d7ae859bd391
+  - type: constrains
+    from: REQ-check-strict-pairing-predicate-grounding-v2
+    to: FACT-SUBJECT-KIBI-CHECK
+    created_at: 2026-10-08T21:05:24.878Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-10941362d551
+  - type: requires_property
+    from: REQ-check-strict-pairing-predicate-grounding-v2
+    to: FACT-check-strict-pairing-predicate-grounding-v2-named-argument
+    created_at: 2026-10-08T21:05:24.918Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1c17044e917f
+  - type: requires_property
+    from: REQ-check-strict-pairing-predicate-grounding-v2
+    to: FACT-check-strict-pairing-predicate-grounding-v2-subject-key
+    created_at: 2026-10-08T21:05:24.939Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1c25f8b13154
+  - type: specified_by
+    from: REQ-check-strict-pairing-predicate-grounding-v2
+    to: SCEN-check-strict-pairing-predicate-grounding
+    created_at: 2026-10-08T21:05:24.961Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-184768015536
+  - type: supersedes
+    from: REQ-check-strict-pairing-predicate-grounding-v2
+    to: REQ-check-strict-pairing-predicate-grounding
+    created_at: 2026-10-08T21:05:24.975Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-97982c494c5f

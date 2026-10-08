@@ -1,6 +1,6 @@
 ---
 title: Predicate subjects come from the requirement's subject fact
-status: open
+status: closed
 priority: must
 tags:
   - modeling

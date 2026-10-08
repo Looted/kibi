@@ -244,3 +244,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fb434be200c3
+  - type: constrains
+    from: REQ-engine-daemon-package-versions
+    to: FACT-engine-daemon-package-versions-subject
+    created_at: 2026-10-08T21:05:34.293Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0d4db4d0a61c
+  - type: requires_property
+    from: REQ-engine-daemon-package-versions
+    to: FACT-engine-daemon-package-versions-handshake-reports
+    created_at: 2026-10-08T21:05:34.343Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b231b47ffb4d
+  - type: requires_property
+    from: REQ-engine-daemon-package-versions
+    to: FACT-engine-daemon-package-versions-rejects-other-client
+    created_at: 2026-10-08T21:05:34.373Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-064a688c2860
+  - type: requires_property
+    from: REQ-engine-daemon-package-versions
+    to: FACT-engine-daemon-package-versions-replaces-daemon
+    created_at: 2026-10-08T21:05:34.400Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-03341199c36f
+  - type: requires_property
+    from: REQ-engine-daemon-package-versions
+    to: FACT-engine-daemon-package-versions-doctor-reports
+    created_at: 2026-10-08T21:05:34.425Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b75dc814f4ae
+  - type: specified_by
+    from: REQ-engine-daemon-package-versions
+    to: SCEN-engine-daemon-package-versions
+    created_at: 2026-10-08T21:05:34.441Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dca28a1c7090

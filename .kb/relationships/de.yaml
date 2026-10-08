@@ -290,13 +290,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1489c10459cf
-  - type: implements
-    from: SYM-suggest-predicates-core-handler
-    to: REQ-model-predicates-requirement-subject
-    created_at: 2026-10-08T15:37:01.453Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d64dc562dc34
   - type: covered_by
     from: SYM-suggest-predicates-core-handler
     to: TEST-model-predicates-requirement-subject
@@ -304,3 +297,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-541aa4e04201
+  - type: implements
+    from: SYM-suggest-predicates-core-handler
+    to: REQ-model-predicates-requirement-subject-v2
+    created_at: 2026-10-08T21:26:33.708Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2f256bec07e4
