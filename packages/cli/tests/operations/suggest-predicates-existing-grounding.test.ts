@@ -24,6 +24,13 @@ function groundedKb(groundingClaimText: string | null): PrologPort {
         };
       if (goal.includes("kb_relationship("))
         return { success: true, bindings: { Targets: "[]" } };
+      if (goal.includes(`findall(['${REQ}','req',Props]`))
+        return {
+          success: true,
+          bindings: {
+            Results: `[['${REQ}',req,[title="Editor autosave",status=open,priority=must,tags=[editor,autosave],semantic_text="${TEXT}"]]]`,
+          },
+        };
       if (
         goal.includes("kb_entity('FACT-editor-autosave-on-leave'") &&
         claimKey !== null
@@ -89,6 +96,34 @@ describe("kb_model predicates on an already grounded requirement", () => {
     expect(replacement.steps[2]?.input.relationships).toEqual([
       { type: "requires_predicate", from: REQ, to: factId },
     ]);
+    // The requirement step is a complete kb_upsert payload: it restates the
+    // stored title, status and metadata (the ledger is merged by kb_upsert).
+    expect(replacement.steps[2]?.input.properties).toEqual({
+      title: "Editor autosave",
+      status: "open",
+      priority: "must",
+      tags: ["editor", "autosave"],
+    });
+    const rollback = (
+      data.replacementPlan as { rollback: { input: Record<string, unknown> } }
+    ).rollback;
+    expect(rollback.input).toEqual({
+      type: "req",
+      id: REQ,
+      properties: replacement.steps[2]?.input.properties,
+      relationships: [
+        {
+          type: "requires_property",
+          from: REQ,
+          to: "FACT-editor-autosave-on-leave",
+        },
+      ],
+    });
+    const instructions = String(
+      (data.replacementPlan as { instructions: string }).instructions,
+    );
+    expect(instructions).toContain("in order and back to back");
+    expect(instructions).toContain("logic-coverage");
     expect(data.warnings.join(" ")).toContain("proposition-complete");
     expect(data.warnings.join(" ")).toContain("follow replacementPlan");
     expect(data.recommendedPredicateSchema).toBeNull();
@@ -133,6 +168,9 @@ describe("kb_model predicates on an already grounded requirement", () => {
     expect(data.recommendedAction).toBe("provide_argument_bindings");
     expect(data.candidates[0]?.binding_status).toBe("incomplete");
     expect(data.candidates[0]?.unbound_arguments.length).toBeGreaterThan(0);
+    expect(data.bindingHints?.map((hint) => hint.argument)).toEqual(
+      data.candidates[0]?.unbound_arguments,
+    );
     expect(data.applyPlan).toEqual([]);
     expect(data.replacementPlan).toBeNull();
     expect(data.relationshipTarget).toBeNull();

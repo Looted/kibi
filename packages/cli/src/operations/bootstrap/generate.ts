@@ -13,6 +13,7 @@ import { buildBootstrapCandidates } from "./candidates.js";
 import { discoverBootstrap } from "./discovery.js";
 import { buildIntentClaimCandidates } from "./intent-claims.js";
 import { normalizeBootstrapContext, presentBootstrap } from "./presentation.js";
+import { SubjectKeyRegistry } from "./requirement-claims.js";
 import type {
   Candidate,
   PlanBootstrapArgs,
@@ -399,12 +400,16 @@ export async function executePlanBootstrap(
       .map((evidence) => evidence.relativePath)
       .filter((value): value is string => Boolean(value)),
   );
+  // One registry per plan keeps subject keys distinct across repository
+  // documents and declared intent claims.
+  const subjectKeys = new SubjectKeyRegistry();
   const built = discovery.activation.allowCandidateGeneration
     ? buildBootstrapCandidates(
         discovery.evidence,
         new Set<string>(),
         minConfidence,
         includeGenericMarkdown,
+        subjectKeys,
       )
     : {
         candidates: [],
@@ -415,7 +420,12 @@ export async function executePlanBootstrap(
   // Intent harvested from declared knowledge sources joins the repository
   // evidence under the same activation policy, filters, and selection.
   const claimed = discovery.activation.allowCandidateGeneration
-    ? buildIntentClaimCandidates(declared, existingIds, minConfidence)
+    ? buildIntentClaimCandidates(
+        declared,
+        existingIds,
+        minConfidence,
+        subjectKeys,
+      )
     : {
         candidates: [],
         sourceOnlySignals: [],

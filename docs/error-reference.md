@@ -109,6 +109,8 @@ An authored `source` frontmatter field must name an existing workspace path (a `
 
 `Audit journal is locked by another Kibi runtime; restart the stale MCP/CLI session before retrying` means an older engine still owns the branch's journal lock. Kibi does not terminate unrelated sessions; use `kibi engine status`/`kibi engine stop` for the current workspace, or restart the stale MCP/CLI process, then retry the validated upsert.
 
+A `rdf/lock` file present after an MCP session ended is usually not stale. Calls such as `kb_apply_plan` run in the workspace's detached engine daemon, which keeps the lock while it serves later MCP and CLI sessions and exits after 10 idle minutes (`KIBI_ENGINE_IDLE_TIMEOUT_MS`). `kibi engine status` shows the live daemon; a lock whose process no longer exists is reclaimed when the next engine starts. Only stop the daemon (`kibi engine stop`) when you need the lock released now.
+
 `KB snapshot is stale; reattach or refresh the runtime before retrying` means another current runtime published the branch after this process attached. Reattach the branch (or restart the runtime) and rerun the read/preflight/mutation sequence.
 
 Timeout diagnostics include `stage=<name>` and the child PID. The stage is one of the bounded commit markers (`runtime`, `lock`, `rdf_mutation`, `contradiction_check`, `entity_audit`, `relationship_audit`, `snapshot_save`, or `audit_sync`); use it to distinguish a stale lock from a filesystem or Prolog failure without relying on entity payload logging.

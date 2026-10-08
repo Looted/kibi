@@ -146,3 +146,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-158c03e3ca50
+  - type: implements
+    from: SYM-model-predicates-binding-hints-describebindinghints
+    to: REQ-model-predicates-binding-placeholders
+    created_at: 2026-10-08T08:35:16.580Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c8a9b40ec195
+  - type: covered_by
+    from: SYM-model-predicates-binding-hints-describebindinghints
+    to: TEST-model-predicates-binding-placeholders
+    created_at: 2026-10-08T08:35:16.600Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a66c0930ebc5

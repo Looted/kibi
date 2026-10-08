@@ -262,3 +262,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2765165aa0a3
+  - type: implements
+    from: SYM-suggest-predicates-core-handler
+    to: REQ-model-predicates-plan-roundtrip
+    created_at: 2026-10-08T08:35:43.971Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9ac4a593edf5
+  - type: covered_by
+    from: SYM-suggest-predicates-core-handler
+    to: TEST-model-predicates-plan-roundtrip
+    created_at: 2026-10-08T08:35:43.991Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d207bd59ec9d
+  - type: implements
+    from: SYM-suggest-predicates-core-handler
+    to: REQ-model-predicates-binding-placeholders
+    created_at: 2026-10-08T08:35:44.003Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ab3927887c20
+  - type: covered_by
+    from: SYM-suggest-predicates-core-handler
+    to: TEST-model-predicates-binding-placeholders
+    created_at: 2026-10-08T08:35:44.016Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1489c10459cf

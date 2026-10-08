@@ -230,3 +230,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f69bfa657469
+  - type: implements
+    from: SYM-bootstrap-subject-key-shape-resolvebootstrapsubjectkey
+    to: REQ-bootstrap-claim-name-length
+    created_at: 2026-10-08T09:15:27.538Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c64436f15a82
+  - type: covered_by
+    from: SYM-bootstrap-subject-key-shape-resolvebootstrapsubjectkey
+    to: TEST-bootstrap-claim-name-length
+    created_at: 2026-10-08T09:15:27.558Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-36785840d07a

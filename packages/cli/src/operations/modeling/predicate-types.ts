@@ -103,6 +103,24 @@ export interface RecommendedPredicateSchema {
   reuse_scope: string;
 }
 
+/**
+ * What an agent needs to bind one unbound predicate argument: its type, the
+ * declared constants of a closed vocabulary, schema example values and why
+ * the current value was not accepted.
+ */
+// implements REQ-model-predicates-binding-placeholders
+export interface BindingHint {
+  argument: string;
+  position: number;
+  type: string;
+  description?: string;
+  allowedValues?: string[];
+  examples: string[];
+  currentValue: string;
+  provenance: BindingProvenance;
+  reason: string;
+}
+
 /** A logical grounding relationship an existing requirement has for a claim. */
 // implements REQ-model-predicates-grounding-aware-v2
 export interface ExistingClaimGrounding {
@@ -137,6 +155,8 @@ export interface SuggestPredicatesResult {
     relationshipTarget?: string | null;
     existingGrounding?: ExistingClaimGrounding[];
     replacementPlan?: Record<string, unknown> | null;
+    /** On provide_argument_bindings: one hint per unbound argument of the recommended candidate. */
+    bindingHints?: BindingHint[];
     warnings: string[];
   };
   applyPlan: Array<Record<string, unknown>>;

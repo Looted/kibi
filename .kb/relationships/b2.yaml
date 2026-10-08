@@ -251,3 +251,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-40c3e9276dcc
+  - type: executable_for
+    from: SYM-test-model-predicates-binding-placeholders
+    to: TEST-model-predicates-binding-placeholders
+    created_at: 2026-10-08T08:34:22.558Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-06db9d08c3ea

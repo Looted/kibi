@@ -265,3 +265,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f9dc2cd51e19
+  - type: verified_by
+    from: SCEN-model-predicates-plan-roundtrip
+    to: TEST-model-predicates-plan-roundtrip
+    created_at: 2026-10-08T08:34:12.152Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-be11a18a5ca6

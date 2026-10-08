@@ -10970,10 +10970,14 @@ symbols:
         target: TEST-kibi-proposition-complete-ingestion
       - type: covered_by
         target: TEST-mcp-suggest-predicates
+      - type: covered_by
+        target: TEST-model-predicates-plan-roundtrip
       - type: implements
         target: REQ-kibi-logical-requirement-coverage
       - type: implements
         target: REQ-mcp-suggest-predicates
+      - type: implements
+        target: REQ-model-predicates-plan-roundtrip
   - id: SYM-modeling-predicate-applyplan-buildPredicateApplyPlan
     title: buildPredicateApplyPlan
     status: active
@@ -14996,8 +15000,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-model-predicates-plan-roundtrip
       - type: implements
         target: REQ-mcp-semantic-advisor-preflight
+      - type: implements
+        target: REQ-model-predicates-plan-roundtrip
   - id: SYM-semantic-advisor-Payload
     title: Payload
     sourceFile: packages/cli/src/operations/semantic-advisor/shared.ts
@@ -23297,7 +23305,11 @@ symbols:
       - type: covered_by
         target: TEST-kibi-proposition-complete-ingestion
       - type: covered_by
+        target: TEST-model-predicates-binding-placeholders
+      - type: covered_by
         target: TEST-model-predicates-grounding-aware
+      - type: covered_by
+        target: TEST-model-predicates-plan-roundtrip
       - type: implements
         target: REQ-kibi-logical-requirement-coverage
       - type: implements
@@ -23307,7 +23319,11 @@ symbols:
       - type: implements
         target: REQ-kibi-predicate-suggestion-relevance-v1
       - type: implements
+        target: REQ-model-predicates-binding-placeholders
+      - type: implements
         target: REQ-model-predicates-grounding-aware-v2
+      - type: implements
+        target: REQ-model-predicates-plan-roundtrip
   - id: SYM-SuggestPredicatesArgs
     title: SuggestPredicatesArgs
     status: active
@@ -31703,8 +31719,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-predicate-suggestion-relevance-v1
+      - type: covered_by
+        target: TEST-model-predicates-binding-placeholders
       - type: implements
         target: REQ-kibi-predicate-suggestion-relevance-v1
+      - type: implements
+        target: REQ-model-predicates-binding-placeholders
   - id: 3ddd3dd671e3f236
     title: MIN_APPLICABILITY_SCORE
     sourceFile: packages/cli/src/operations/modeling/predicate-applicability.ts
@@ -50682,6 +50702,137 @@ symbols:
       recorded_at: 2026-10-07T19:02:02.721Z
     relationships:
       - type: covered_by
+        target: TEST-bootstrap-claim-name-length
+      - type: covered_by
         target: TEST-bootstrap-subject-key-shape
       - type: implements
+        target: REQ-bootstrap-claim-name-length
+      - type: implements
         target: REQ-bootstrap-subject-key-shape
+  - id: SYM-test-model-predicates-plan-roundtrip
+    title: Predicate plan round-trip suite
+    status: active
+    sourceFile: packages/mcp/tests/predicate-plan-roundtrip.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-08T08:33:08.641Z
+    relationships:
+      - type: executable_for
+        target: TEST-model-predicates-plan-roundtrip
+  - id: SYM-test-model-predicates-binding-placeholders
+    title: Predicate binding placeholder suite
+    status: active
+    sourceFile: packages/cli/tests/operations/predicate-binding-placeholders.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-08T08:34:21.172Z
+    relationships:
+      - type: executable_for
+        target: TEST-model-predicates-binding-placeholders
+  - id: SYM-model-predicates-binding-hints-buildbindinghints
+    title: buildBindingHints
+    status: active
+    sourceFile: packages/cli/src/operations/modeling/predicate-binding-hints.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-08T08:35:10.211Z
+    relationships:
+      - type: covered_by
+        target: TEST-model-predicates-binding-placeholders
+      - type: implements
+        target: REQ-model-predicates-binding-placeholders
+  - id: SYM-model-predicates-binding-hints-describebindinghints
+    title: describeBindingHints
+    status: active
+    sourceFile: packages/cli/src/operations/modeling/predicate-binding-hints.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-08T08:35:15.411Z
+    relationships:
+      - type: covered_by
+        target: TEST-model-predicates-binding-placeholders
+      - type: implements
+        target: REQ-model-predicates-binding-placeholders
+  - id: SYM-model-predicates-bindings-nameorstopwordreason
+    title: nameOrStopWordReason
+    status: active
+    sourceFile: packages/cli/src/operations/modeling/predicate-bindings.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-08T08:35:20.226Z
+    relationships:
+      - type: covered_by
+        target: TEST-model-predicates-binding-placeholders
+      - type: implements
+        target: REQ-model-predicates-binding-placeholders
+  - id: SYM-model-predicates-bindings-bindingtoken
+    title: bindingToken
+    status: active
+    sourceFile: packages/cli/src/operations/modeling/predicate-bindings.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-08T08:35:25.231Z
+    relationships:
+      - type: covered_by
+        target: TEST-model-predicates-binding-placeholders
+      - type: implements
+        target: REQ-model-predicates-binding-placeholders
+  - id: SYM-test-bootstrap-claim-name-length
+    title: Bootstrap claim name length suite
+    status: active
+    sourceFile: packages/cli/tests/operations/bootstrap-claim-name-length.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-08T09:14:10.964Z
+    relationships:
+      - type: executable_for
+        target: TEST-bootstrap-claim-name-length
+  - id: SYM-bootstrap-claim-name-length-shortensubjectaspect
+    title: shortenSubjectAspect
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/requirement-claims.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-08T09:15:07.902Z
+    relationships:
+      - type: covered_by
+        target: TEST-bootstrap-claim-name-length
+      - type: implements
+        target: REQ-bootstrap-claim-name-length
+  - id: SYM-bootstrap-claim-name-length-subjectkeyregistry
+    title: SubjectKeyRegistry
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/requirement-claims.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-08T09:15:13.718Z
+    relationships:
+      - type: covered_by
+        target: TEST-bootstrap-claim-name-length
+      - type: implements
+        target: REQ-bootstrap-claim-name-length
+  - id: SYM-bootstrap-claim-name-length-plansubjectkey
+    title: planSubjectKey
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/requirement-claims.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-08T09:15:19.624Z
+    relationships:
+      - type: covered_by
+        target: TEST-bootstrap-claim-name-length
+      - type: implements
+        target: REQ-bootstrap-claim-name-length
