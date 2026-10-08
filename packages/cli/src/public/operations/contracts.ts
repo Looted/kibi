@@ -576,6 +576,11 @@ const BASE_DATA_SCHEMAS: Readonly<
     },
     existingGrounding: recordArray,
     replacementPlan: { type: ["object", "null"] },
+    bindingHints: {
+      ...recordArray,
+      description:
+        "On provide_argument_bindings: one entry per unbound argument of the recommended candidate with its type, declared constants (allowedValues) when the vocabulary is closed, schema example values and the reason the current value was not accepted. Empty otherwise.",
+    },
     warnings: stringArray,
   }),
   kb_plan_bootstrap: objectData(

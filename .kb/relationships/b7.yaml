@@ -181,3 +181,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d3cac326c3ec
+  - type: implements
+    from: SYM-model-predicates-bindings-nameorstopwordreason
+    to: REQ-model-predicates-binding-placeholders
+    created_at: 2026-10-08T08:35:21.280Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5621fdb254d0
+  - type: covered_by
+    from: SYM-model-predicates-bindings-nameorstopwordreason
+    to: TEST-model-predicates-binding-placeholders
+    created_at: 2026-10-08T08:35:21.295Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ed136c333b7a

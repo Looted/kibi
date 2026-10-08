@@ -12,9 +12,10 @@ import {
   withDocumentBody,
 } from "./candidate-helpers.js";
 import {
+  type SubjectKeyRegistry,
   claimFor,
   normalizeClaimStatement,
-  resolveBootstrapSubjectKey,
+  planSubjectKey,
 } from "./requirement-claims.js";
 import type {
   BootstrapEvidence,
@@ -162,6 +163,8 @@ function requirementCandidate(
   headingLine: number,
   existingIds: ReadonlySet<string>,
   minConfidence: number,
+  subjectKeys: SubjectKeyRegistry | undefined,
+  diagnostics: string[],
 ): Candidate | null {
   const relativePath = item.relativePath ?? item.label;
   const base = /\bshall\b/i.test(statement)
@@ -185,11 +188,14 @@ function requirementCandidate(
     `${relativePath}#L${line}`,
   );
   if (!claim) return null;
-  const subjectKey = resolveBootstrapSubjectKey(
+  const planned = planSubjectKey(
     claim.subjectKey,
     claim.propertyKey,
     markdownComponentHint(relativePath),
+    subjectKeys,
+    `${relativePath}#L${line}`,
   );
+  const subjectKey = planned.resolution;
   // Reported by the caller as an extraction failure with this reason,
   // instead of writing a subject key outside component.aspect[.sub].
   if (!subjectKey.ok)
@@ -201,6 +207,7 @@ function requirementCandidate(
     statement,
   });
   if (!writeSet.isStrict) return null;
+  diagnostics.push(...planned.diagnostics);
   return {
     candidateId: `norm:${writeSet.req.id.toLowerCase()}`,
     entityType: "req",
@@ -242,6 +249,7 @@ export function markdownCandidates(
   item: BootstrapEvidence,
   existingIds: ReadonlySet<string>,
   minConfidence: number,
+  subjectKeys?: SubjectKeyRegistry,
 ): CandidateBuildResult {
   const candidates: Candidate[] = [];
   const sourceOnlySignals: SourceOnlySignal[] = [];
@@ -289,6 +297,8 @@ export function markdownCandidates(
         headingLine,
         existingIds,
         minConfidence,
+        subjectKeys,
+        diagnostics,
       );
       if (candidate) {
         if (

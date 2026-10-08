@@ -4,7 +4,7 @@ description: Use Kibi's source-first, exact-Git, migration-aware, proof-aware op
 license: AGPL-3.0-or-later
 metadata:
   id: kibi-usage
-  version: 2.6.0
+  version: 2.7.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -256,9 +256,13 @@ must equal the upserted entity ID.
 
 Worked example. `recommendedAction: "provide_argument_bindings"` means a
 schema fits but `unbound_arguments` lists roles Kibi could not read from the
-prose. Bind them from the claim's own words and call again with the same
-`text` and `requirementId`, plus `schemaId` and `argumentBindings` keyed by
-`argument_names` (reuse `argument_constants` values when the schema has them):
+prose; `bindingHints` gives each one's `type`, `allowedValues` (declared
+constants) or `examples`, and why the current value was refused. Bind them
+from the claim's own words and call again with the same `text` and
+`requirementId`, plus `schemaId` and `argumentBindings` keyed by
+`argument_names` (reuse `argument_constants` values when the schema has them).
+A value that repeats an argument name (`"before_event": "before_event"`) or is
+a bare stop word (`be`, `is`, `the`) stays unbound; never copy field names:
 
 ```json
 {"mode":"predicates","text":"Only an annotation owner may delete an annotation.","requirementId":"REQ-annotation-delete-owner","schemaId":"FACT-SCHEMA-PERMISSION-RULE","argumentBindings":{"actor":"annotation_owner","action":"delete","resource":"annotation","decision":"allow"}}
@@ -270,10 +274,14 @@ then the `relationshipPlan` `requires_predicate` row; its target is
 `SUGGEST-…` id. A non-empty `existingGrounding` means the requirement already
 grounds the claim (for example a bootstrap `requires_property` fact); the action
 still names the predicate state. `replace_grounding` means a predicate fits but
-a second grounding link would fail, so keep the existing link or follow
-`replacementPlan`; `provide_argument_bindings` and `record_ontology_gap` mean
+a second grounding link would fail, so keep the existing link or apply the
+`replacementPlan` steps unchanged, in order and back to back (predicate fact,
+`kb_delete` of the old link, requirement link; `kb_check` reports
+`logic-coverage` only between the last two; on a failed last step apply
+`rollback`); `provide_argument_bindings` and `record_ontology_gap` mean
 the same as for an ungrounded claim, and the gap observation is not a grounding
-link, so write it. Record an ontology gap only when no returned schema fits the
+link, so write it exactly as returned (tags, `claim_text`, `document.body`, no
+`claim_key`, no relationships). Record an ontology gap only when no returned schema fits the
 claim, not because bindings were missing.
 A review note is an observation that quotes its claim without `claim_key`, with
 its prose in `document.body`:

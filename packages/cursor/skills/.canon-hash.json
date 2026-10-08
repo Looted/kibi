@@ -1,5 +1,5 @@
 {
-  "kibi-bootstrap/SKILL.md": "da62fa8b12fe66d9e9a4d404d6446fc176081c8d42b5b5cd1154567dfd4a8c28",
+  "kibi-bootstrap/SKILL.md": "7da32de2bb62ecb2fae32579cfe1b20fe05a6b6be12a4aee3cf08d87055345ac",
   "kibi-bootstrap/resources/bootstrap.md": "e93fae88a6853d0092cde7eee33f7d4943a8141e3841bfe3f64ab73247867b6a",
   "kibi-bootstrap/resources/branch-lifecycle.md": "c854264ce888439140883a3fc636db5e522f020dd27b30a5c1ecc4105b64ed13",
   "kibi-bootstrap/resources/operation-access.md": "b5a6a59e72d800c376e7fad79132897623c32a0ce152a1e8d73f9628b444db51",
@@ -13,7 +13,7 @@
   "kibi-traceability/resources/operation-access.md": "39f7972ab7f4ae7479e78f7072bb50e8e6c4cdf4f857425f69d2522d37db437c",
   "kibi-traceability/resources/source-authoring.md": "408c6ee2bef1b84e0194c0538ef929c26a0a617e631b2234247388140dbbdd08",
   "kibi-traceability/resources/traceability.md": "38c290a0bc71bd1692e115f22694743946e2f69630e134acfd43cee5f613fb88",
-  "kibi-usage/SKILL.md": "450c8bd682f09398040293dc504a1bca15ccf434a82438df4eb2f10073f1e7f5",
+  "kibi-usage/SKILL.md": "aa47221cc86719efea87edb26751be095e6790b308704b8a8e7b45af933fcb6e",
   "kibi-usage/resources/branch-lifecycle.md": "f1bf359e9826e83c548f3cd0287f8175a62456527b0132b06b3f9f74aa59b7d6",
   "kibi-usage/resources/fact-lanes.md": "97f5a9aaa331835018312d6684038c2b2a0c383827716fb7c9de3faedbee622b",
   "kibi-usage/resources/kb-improvement.md": "a8408fce27342bdce6415a6718599e53fe00bb33aa1fd3dc42353ec6f61adcd7",
@@ -23,5 +23,5 @@
   "kibi-usage/resources/relationship-directions.md": "0fdd67032c2d15299f772845fc4f807eb9435b09507bd87a5911ab33db2f143d",
   "kibi-usage/resources/source-authoring.md": "a29d411fe86e6e29ce364e4ad5925bda40127c4b328a4c657d5b5f0d9fe98ff1",
   "kibi-usage/resources/ui-requirements.md": "ea8e8a4c546acb668963ec354cd31711152c3ca3bc7d3078d2252ff9e2cd44a3",
-  "kibi-usage/resources/workflows.md": "bde1cc6f1aaba6cbc1db59cfe23f01986bf95e02e471f2d066ce428d5a81e1f0"
+  "kibi-usage/resources/workflows.md": "bbc63bc5fb9d2fa0900f5b1be91558abe2ef4fe4c32d90204f09f03e3ffd6e4a"
 }

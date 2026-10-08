@@ -81,6 +81,17 @@ export function buildSuggestion(
             diagnostics?.explicitSubject !== true &&
             typeof argumentBindings[name] !== "string"
           ),
+        // A subject named through subjectHint is the agent's reviewed
+        // subject, even when the schema names its first argument after it.
+        index === 0 &&
+          diagnostics?.explicitSubject === true &&
+          typeof argumentBindings[name] !== "string"
+          ? { constants: schema.argument_constants?.[name] }
+          : {
+              argumentName: name,
+              argumentNames: schema.argument_names,
+              constants: schema.argument_constants?.[name],
+            },
       ),
     ]),
   ) as Record<string, BindingProvenance>;
@@ -207,12 +218,35 @@ export function buildRelationshipPlan(
   };
 }
 
-// implements REQ-mcp-suggest-predicates
+/**
+ * The prose an ontology-gap observation carries in `document.body`. Schema 8
+ * blocks an observation without body context (entity-context-missing), so the
+ * body says why the note exists and quotes the claim it is about.
+ */
+function gapObservationBody(text: string, args: SuggestPredicatesArgs): string {
+  const origin = [
+    args.requirementId ? `requirement ${args.requirementId}` : null,
+    args.source ? `source ${args.source}` : null,
+  ].filter((value): value is string => value !== null);
+  return [
+    "No available predicate schema fits this claim, so kb_model mode predicates recorded it as an open ontology gap. The observation does not ground the claim; it stays visible for review until a reviewed predicate_schema covers this kind of statement.",
+    ...(origin.length > 0 ? [`Claim from ${origin.join(", ")}:`] : ["Claim:"]),
+    `> ${text.trim().replace(/\n/g, "\n> ")}`,
+  ].join("\n\n");
+}
+
+// implements REQ-mcp-suggest-predicates, REQ-model-predicates-plan-roundtrip
+/**
+ * The ontology-gap observation plan. It is a review note, not a semantic
+ * claim: it quotes the claim in claim_text without a claim_key, carries the
+ * review tags in `tags` only (a tag is not an entity, so no relationship
+ * targets it) and explains itself in `document.body`, so kb_upsert accepts
+ * it unchanged.
+ */
 export function buildGapApplyPlan(
   text: string,
   args: SuggestPredicatesArgs,
 ): Array<Record<string, unknown>> {
-  const claimKey = semanticClaimKey(text);
   const factId = hashId("FACT-ONTOLOGY-GAP", [
     args.requirementId ?? "",
     args.source ?? "",
@@ -226,20 +260,14 @@ export function buildGapApplyPlan(
         title: "Ontology gap: predicate schema needed",
         status: "active",
         source: args.source ?? "mcp://kibi/suggest-predicates",
-        text_ref: args.source,
+        ...(args.source ? { text_ref: args.source } : {}),
         tags: ["review:ontology-gap", "needs_schema_extension"],
         fact_kind: "observation",
         value_string: text,
-        claim_key: claimKey,
         claim_text: text,
       },
-      relationships: [
-        {
-          type: "relates_to",
-          from: factId,
-          to: "review:ontology-gap",
-        },
-      ],
+      document: { body: gapObservationBody(text, args) },
+      relationships: [],
     },
   ];
 }

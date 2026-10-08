@@ -237,3 +237,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a30fedd0356f
+  - type: executable_for
+    from: SYM-test-model-predicates-plan-roundtrip
+    to: TEST-model-predicates-plan-roundtrip
+    created_at: 2026-10-08T08:33:10.031Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b47dbfd15e7b

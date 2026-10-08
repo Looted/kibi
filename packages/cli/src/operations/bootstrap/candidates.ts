@@ -14,6 +14,7 @@ import {
   type CandidateBuildResult,
   markdownCandidates,
 } from "./markdown-candidates.js";
+import type { SubjectKeyRegistry } from "./requirement-claims.js";
 import type {
   BootstrapEvidence,
   Candidate,
@@ -142,6 +143,7 @@ export function buildBootstrapCandidates(
   existingIds: ReadonlySet<string>,
   minConfidence: number,
   includeGenericMarkdown: boolean,
+  subjectKeys?: SubjectKeyRegistry,
 ): CandidateBuildResult {
   const candidates: Candidate[] = [];
   const sourceOnlySignals: SourceOnlySignal[] = [];
@@ -167,7 +169,12 @@ export function buildBootstrapCandidates(
       }
     }
     if (item.kind === "generic_markdown" && includeGenericMarkdown) {
-      const built = markdownCandidates(item, existingIds, minConfidence);
+      const built = markdownCandidates(
+        item,
+        existingIds,
+        minConfidence,
+        subjectKeys,
+      );
       candidates.push(...built.candidates);
       sourceOnlySignals.push(...built.sourceOnlySignals);
       diagnostics.push(...built.diagnostics);

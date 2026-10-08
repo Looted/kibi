@@ -206,3 +206,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fe9ff030d55f
+  - type: constrains
+    from: REQ-model-predicates-binding-placeholders
+    to: FACT-SUBJ-PREDICATE-SUGGESTION-PLAN
+    created_at: 2026-10-08T08:34:26.748Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-19b511890cd1
+  - type: requires_property
+    from: REQ-model-predicates-binding-placeholders
+    to: FACT-model-predicates-binding-placeholders-unbound
+    created_at: 2026-10-08T08:34:26.776Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-59bb465dcc36
+  - type: requires_property
+    from: REQ-model-predicates-binding-placeholders
+    to: FACT-model-predicates-binding-placeholders-hints
+    created_at: 2026-10-08T08:34:26.794Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c4d315b6530d
+  - type: specified_by
+    from: REQ-model-predicates-binding-placeholders
+    to: SCEN-model-predicates-binding-placeholders
+    created_at: 2026-10-08T08:34:26.806Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b508a529f83a
