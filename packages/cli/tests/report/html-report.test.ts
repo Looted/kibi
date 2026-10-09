@@ -304,6 +304,44 @@ describe("renderHtmlReport", () => {
     expect(html).toContain("1 non-current requirement excluded");
   });
 
+  test("shows a component test as the proving test only where its scenario accepts that scope", () => {
+    const fixture = coverageFixture();
+    const row = (id: string, state: string) => ({
+      ...fixture.requirements.rows[0],
+      id,
+      title: id,
+      proofStatus: state === "passed" ? "proven" : "missing",
+      proofGaps: state === "passed" ? [] : ["missing_passing_e2e"],
+      proofAdvisories: [],
+      proofStages: provenStages({
+        passingE2e: stage(state === "passed" ? "passed" : "missing", {
+          receiptEvidence: [{ state, scope: "unit", testId: `TEST-${id}` }],
+        }),
+      }),
+    });
+    const html = renderHtmlReport({
+      ...fixture,
+      requirements: {
+        ...fixture.requirements,
+        rows: [
+          row("REQ-UI-PATTERN", "passed"),
+          row("REQ-UI-LAYOUT", "not_end_to_end"),
+        ],
+      },
+      branch: "main",
+      generatedAt: new Date("2026-08-15T12:00:00.000Z"),
+    });
+    const e2eStage = (id: string) =>
+      [...html.matchAll(/<article[\s\S]*?<\/article>/g)]
+        .map((match) => match[0])
+        .find((card) => card.includes(id))
+        ?.match(
+          /<li class="stage stage--(\w+)">\s*<span[^>]*>[^<]*<\/span>\s*<span class="stage__label">E2E test/,
+        )?.[1];
+    expect(e2eStage("REQ-UI-PATTERN")).toBe("passed");
+    expect(e2eStage("REQ-UI-LAYOUT")).toBe("failed");
+  });
+
   test("assigns each requirement to its earliest unmet proof gate", () => {
     const completeBeforeEvidence = {
       id: "REQ-EVIDENCE",

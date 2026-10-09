@@ -209,6 +209,17 @@
         "kibi-plugin-sdk": "^0.4.0",
       },
     },
+    "packages/plugin-ui": {
+      "name": "kibi-plugin-ui",
+      "version": "0.1.0",
+      "dependencies": {
+        "kibi-plugin-sdk": "^0.4.1",
+      },
+      "devDependencies": {
+        "@types/node": "latest",
+        "typescript": "^5.7.0",
+      },
+    },
     "packages/runtime": {
       "name": "kibi-runtime",
       "version": "2.12.0",
@@ -1233,6 +1244,8 @@
 
     "kibi-plugin-treesitter": ["kibi-plugin-treesitter@workspace:packages/plugin-treesitter"],
 
+    "kibi-plugin-ui": ["kibi-plugin-ui@workspace:packages/plugin-ui"],
+
     "kibi-runtime": ["kibi-runtime@workspace:packages/runtime"],
 
     "kibi-swipl": ["kibi-swipl@workspace:packages/swipl"],
@@ -1983,6 +1996,8 @@
 
     "kibi-plugin-sdk/@types/node": ["@types/node@26.6.4", "", { "dependencies": { "undici-types": "~8.9.0" } }, "sha512-ldVPDCzj7fsaGZrLB0NuHuTvJcsNasysBAqMolr/cgxrLd1xbqxIr3XJiPnHHJUCxj5sNF1vnRj9aWnrVh5Jcg=="],
 
+    "kibi-plugin-ui/@types/node": ["@types/node@26.6.4", "", { "dependencies": { "undici-types": "~8.9.0" } }, "sha512-ldVPDCzj7fsaGZrLB0NuHuTvJcsNasysBAqMolr/cgxrLd1xbqxIr3XJiPnHHJUCxj5sNF1vnRj9aWnrVh5Jcg=="],
+
     "kibi-vscode/@types/node": ["@types/node@20.19.33", "", { "dependencies": { "undici-types": "~6.21.0" } }, "sha512-Rs1bVAIdBs5gbTIKza/tgpMuG1k3U/UMJLWecIMxNdJFDMzcM5LOiLVRYh3PilWEYDIeUDv7bpiHPLPsbydGcw=="],
 
     "kibi-zcode/@types/node": ["@types/node@26.6.4", "", { "dependencies": { "undici-types": "~8.9.0" } }, "sha512-ldVPDCzj7fsaGZrLB0NuHuTvJcsNasysBAqMolr/cgxrLd1xbqxIr3XJiPnHHJUCxj5sNF1vnRj9aWnrVh5Jcg=="],
@@ -2270,6 +2285,8 @@
     "kibi-plugin-jev/@types/node/undici-types": ["undici-types@8.9.0", "", {}, "sha512-KTDyRTYX8sWmKXAikPHHSyc63CRPETMctyjKFupcC6OBLXT3xsN0e9aF7m+mIXutFWpUXuedtowG7iLOzp0kQg=="],
 
     "kibi-plugin-sdk/@types/node/undici-types": ["undici-types@8.9.0", "", {}, "sha512-KTDyRTYX8sWmKXAikPHHSyc63CRPETMctyjKFupcC6OBLXT3xsN0e9aF7m+mIXutFWpUXuedtowG7iLOzp0kQg=="],
+
+    "kibi-plugin-ui/@types/node/undici-types": ["undici-types@8.9.0", "", {}, "sha512-KTDyRTYX8sWmKXAikPHHSyc63CRPETMctyjKFupcC6OBLXT3xsN0e9aF7m+mIXutFWpUXuedtowG7iLOzp0kQg=="],
 
     "kibi-vscode/@types/node/undici-types": ["undici-types@6.21.0", "", {}, "sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ=="],
 

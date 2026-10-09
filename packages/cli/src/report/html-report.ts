@@ -197,9 +197,21 @@ function stagePassed(stages: UnknownRecord, name: string): boolean {
   return stageStatus(stages[name]) === "passed";
 }
 
+/**
+ * A test whose scope its scenario accepts: end-to-end everywhere, plus unit and
+ * integration tests for component-scope UI pattern scenarios. Other tests carry
+ * the `not_end_to_end` state.
+ */
+// implements REQ-ui-pattern-component-proof
+function isProofScopeEvidence(item: UnknownRecord): boolean {
+  return item.state !== undefined
+    ? item.state !== "not_end_to_end"
+    : item.scope === "end_to_end";
+}
+
 function hasEndToEndTest(stages: UnknownRecord): boolean {
   const evidence = records(record(stages.passingE2e).receiptEvidence);
-  return evidence.some((item) => item.scope === "end_to_end");
+  return evidence.some(isProofScopeEvidence);
 }
 
 function implementationOwned(stages: UnknownRecord): boolean {
@@ -376,7 +388,7 @@ function requirementStages(
   const implementationSymbols = strings(productionSymbols.symbols);
   const missingCoordinates = strings(sourceCoordinatesStage.missingSymbols);
   const receiptEvidence = records(passingE2e.receiptEvidence);
-  const hasE2e = receiptEvidence.some((item) => item.scope === "end_to_end");
+  const hasE2e = receiptEvidence.some(isProofScopeEvidence);
   const factSources = sourceCoordinates(record(stages.logicGrounding).sources);
   const scenarioSources = sourceCoordinates(record(stages.scenarios).sources);
   const testSources = sourceCoordinates(record(stages.scenarioTests).sources);

@@ -244,3 +244,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4aad07ddd8e3
+  - type: executable_for
+    from: SYM-test-bootstrap-ui-plugin-offer
+    to: TEST-bootstrap-ui-plugin-offer
+    created_at: 2026-10-09T12:14:10.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3a9328f6046b

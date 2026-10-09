@@ -17,7 +17,10 @@
 */
 
 import {
+  CHECK_POLICY_CAPABILITY_ID,
+  CHECK_POLICY_CONTRACT_VERSION,
   type CapabilityId,
+  type CheckPolicyV1,
   KIBI_PLUGIN_API_VERSION,
   type KibiPluginV1,
   ONTOLOGY_PACK_CAPABILITY_ID,
@@ -92,7 +95,8 @@ type CapabilitySlot =
   | "ontologyPack"
   | "symbolExtractor"
   | "symbolExtractorV2"
-  | "vocabularyAlignment";
+  | "vocabularyAlignment"
+  | "checkPolicy";
 
 const CAPABILITY_SLOT: Record<CapabilityId, CapabilitySlot> = {
   [SEMANTIC_CLASSIFIER_CAPABILITY_ID]: "semanticClassifier",
@@ -100,6 +104,7 @@ const CAPABILITY_SLOT: Record<CapabilityId, CapabilitySlot> = {
   [SYMBOL_EXTRACTOR_CAPABILITY_ID]: "symbolExtractor",
   [SYMBOL_EXTRACTOR_V2_CAPABILITY_ID]: "symbolExtractorV2",
   [VOCABULARY_ALIGNMENT_CAPABILITY_ID]: "vocabularyAlignment",
+  [CHECK_POLICY_CAPABILITY_ID]: "checkPolicy",
 };
 
 /**
@@ -159,6 +164,14 @@ export function createStubBuiltinPlugin(): KibiPluginV1 {
               confidence: 0,
             })),
           }),
+        },
+        checkPolicy: {
+          id: "kibi-plugin-builtin-stub.check-policy",
+          document: {
+            contractVersion: CHECK_POLICY_CONTRACT_VERSION,
+            id: "builtin-stub",
+            title: "Builtin stub check policy",
+          },
         },
       },
     }),
@@ -265,6 +278,7 @@ function capabilityFromPlugin(
   | SymbolExtractorV1
   | SymbolExtractorV2
   | VocabularyAlignmentV1
+  | CheckPolicyV1
   | undefined {
   const slot = CAPABILITY_SLOT[capabilityId];
   return plugin.capabilities[slot];

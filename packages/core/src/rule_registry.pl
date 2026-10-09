@@ -58,6 +58,8 @@ known_rule('adr-proposed').
 known_rule('predicate-schema-conformance').
 known_rule('entity-context-missing').
 known_rule('entity-context-acknowledged').
+known_rule('policy-ownership').
+known_rule('policy-markers').
 
 rule_enforcement_class('must-priority-coverage', canonical).
 rule_enforcement_class('symbol-coverage', canonical).
@@ -103,6 +105,8 @@ rule_enforcement_class('adr-proposed', advisory).
 rule_enforcement_class('predicate-schema-conformance', advisory).
 rule_enforcement_class('entity-context-missing', canonical).
 rule_enforcement_class('entity-context-acknowledged', advisory).
+rule_enforcement_class('policy-ownership', canonical).
+rule_enforcement_class('policy-markers', canonical).
 
 rule_implementation('must-priority-coverage', prolog).
 rule_implementation('symbol-coverage', prolog).
@@ -148,6 +152,8 @@ rule_implementation('adr-proposed', prolog).
 rule_implementation('predicate-schema-conformance', typescript).
 rule_implementation('entity-context-missing', typescript).
 rule_implementation('entity-context-acknowledged', typescript).
+rule_implementation('policy-ownership', typescript).
+rule_implementation('policy-markers', typescript).
 
 rule_predicate('must-priority-coverage', check_must_priority_coverage).
 rule_predicate('symbol-coverage', check_symbol_coverage).
@@ -263,3 +269,5 @@ rule_description('adr-proposed', 'Informational: an ADR that is still proposed a
 rule_description('predicate-schema-conformance', 'Predicate facts match a predicate_schema (project-local, or the built-in catalog in the default namespace) and use its declared argument constants').
 rule_description('entity-context-missing', 'A current requirement, scenario, test, ADR or observation/meta fact must carry body context: at least 12 words of prose (requirements: under a Context, Rationale, Why, Background, Source, Notes or Evidence heading) that do not restate the title or semantic_text; entities tagged review:context-missing are acknowledged legacy and exempt').
 rule_description('entity-context-acknowledged', 'Informational: how many current entities carry the review:context-missing tag, so the legacy context backlog stays visible; one summary finding per check').
+rule_description('policy-ownership', 'When a plugin activated for kibi.check-policy.v1 declares ownership rules, every production symbol in a rule\'s file set must implement a current requirement grounded (requires_predicate) in one of the rule\'s predicates; projects without an activated check policy are unaffected').
+rule_description('policy-markers', 'When a plugin activated for kibi.check-policy.v1 declares marker rules, every file implementing a requirement grounded in the rule\'s pattern predicate (with its declared sibling files) must contain each marker the KB declares for that pattern').

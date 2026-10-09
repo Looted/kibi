@@ -83,4 +83,36 @@ export const PREDICATE_USAGE_HINTS_4: Record<string, PredicateUsageHints> = {
     ],
     // implements REQ-mcp-suggest-predicates
   },
+  ui_pattern: {
+    use_when: [
+      "Use when a UI concept must be presented with a named visual pattern that other screens or variants must not replace.",
+    ],
+    do_not_use_when: [
+      "Do not use for alignment between two elements (visual_layout_rule) or for colours and spacing a linter can check.",
+    ],
+  },
+  same_pattern: {
+    use_when: [
+      "Use when two variants of one UI concept, such as roles or presentations, must render the same visual pattern.",
+    ],
+    do_not_use_when: [
+      "Do not use when the variants are intentionally different; record that difference in the requirement instead.",
+    ],
+  },
+  pattern_marker: {
+    use_when: [
+      "Use to name a stable class or test id that every implementation of a visual pattern contains.",
+    ],
+    do_not_use_when: [
+      "Do not use for markers that change with content or styling, such as generated class names.",
+    ],
+  },
+  ui_container: {
+    use_when: [
+      "Use when a UI region must sit in a container of a named size with a named overflow behaviour, such as a half-page scroll panel.",
+    ],
+    do_not_use_when: [
+      "Do not use for exact pixel sizes or brand tokens a linter or stylesheet already enforces.",
+    ],
+  },
 };

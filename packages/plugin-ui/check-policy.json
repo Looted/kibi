@@ -1,0 +1,64 @@
+{
+  "contractVersion": "kibi.check-policy.v1",
+  "id": "ui-design",
+  "title": "UI design coverage",
+  "ownership": [
+    {
+      "id": "ui-component-ownership",
+      "description": "Every UI component implements a current requirement grounded in UI design vocabulary (ui_pattern, same_pattern, ui_container or visual_layout_rule), or carries review:ui-unconstrained.",
+      "include": ["**/*.tsx", "**/*.jsx"],
+      "exclude": [
+        "**/*.test.*",
+        "**/*.spec.*",
+        "**/*.stories.*",
+        "**/__tests__/**",
+        "**/tests/**",
+        "**/e2e/**",
+        "**/dist/**",
+        "**/build/**",
+        "**/node_modules/**"
+      ],
+      "symbolTitlePattern": "^(?![A-Za-z0-9]*(Props|State|Context|Variants?|Types?)$)[A-Z][A-Za-z0-9]*$",
+      "requirePredicates": [
+        "ui_pattern",
+        "same_pattern",
+        "ui_container",
+        "visual_layout_rule"
+      ],
+      "exemptTag": "review:ui-unconstrained"
+    },
+    {
+      "id": "ui-angular-component-ownership",
+      "description": "Every Angular component class implements a current requirement grounded in UI design vocabulary, or carries review:ui-unconstrained.",
+      "include": ["**/*.component.ts"],
+      "exclude": [
+        "**/*.spec.ts",
+        "**/__tests__/**",
+        "**/tests/**",
+        "**/e2e/**",
+        "**/dist/**",
+        "**/node_modules/**"
+      ],
+      "symbolTitlePattern": "^[A-Za-z0-9]+Component$",
+      "requirePredicates": [
+        "ui_pattern",
+        "same_pattern",
+        "ui_container",
+        "visual_layout_rule"
+      ],
+      "exemptTag": "review:ui-unconstrained"
+    }
+  ],
+  "markers": [
+    {
+      "id": "ui-pattern-markers",
+      "description": "A component implementing a requirement that names a ui_pattern keeps every pattern_marker of that pattern in its source or its .html template.",
+      "patternPredicate": "ui_pattern",
+      "patternArgument": 1,
+      "markerPredicate": "pattern_marker",
+      "markerPatternArgument": 0,
+      "markerArgument": 1,
+      "siblingExtensions": [".html"]
+    }
+  ]
+}

@@ -258,3 +258,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d3e9665144d8
+  - type: implements
+    from: SYM-core-component-scope-requirement
+    to: REQ-ui-pattern-component-proof
+    created_at: 2026-10-09T12:13:42.325Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1c7871317552
+  - type: covered_by
+    from: SYM-core-component-scope-requirement
+    to: TEST-ui-pattern-component-proof
+    created_at: 2026-10-09T12:13:42.339Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d1ce78dfeb59

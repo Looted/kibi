@@ -142,6 +142,7 @@ if (fixtureChild) {
       "plugin-sdk": archive("plugin-sdk"),
       "plugin-builtin": archive("plugin-builtin"),
       "plugin-jev": archive("plugin-jev"),
+      "plugin-ui": archive("plugin-ui"),
       "plugin-treesitter": archive("plugin-treesitter"),
       swipl: archive("swipl"),
     };

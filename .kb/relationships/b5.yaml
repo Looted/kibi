@@ -426,3 +426,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-200d9561e2d7
+  - type: validates
+    from: TEST-bootstrap-ui-plugin-offer
+    to: SCEN-bootstrap-ui-plugin-offer
+    created_at: 2026-10-09T12:14:07.147Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-28fcf892ae6e
