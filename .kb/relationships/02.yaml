@@ -188,3 +188,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c3cde7c5ed2e
+  - type: executable_for
+    from: SYM-test-ui-pattern-vocabulary
+    to: TEST-ui-pattern-vocabulary
+    created_at: 2026-10-09T12:13:26.179Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5c60a22bd95c

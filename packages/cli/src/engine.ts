@@ -2431,10 +2431,13 @@ export async function runEngineDaemon(requestedOptions: {
           }
         }
         // Writes and module loads always run to completion; a limit may
-        // only stop a read.
+        // only stop a read. The dry-run contradiction preview stages a
+        // write in a rolled-back transaction, so it runs to completion too:
+        // a limit stopping it mid-transaction would report a verdict the
+        // commit never gives.
         const boundable =
           !mutatingEngineGoal(request.goal) &&
-          !/\b(?:use_module|consult|load_files|ensure_loaded)\s*\(/.test(
+          !/\b(?:use_module|consult|load_files|ensure_loaded|kb_preview_upsert_contradiction)\s*\(/.test(
             request.goal,
           );
         const result = boundable

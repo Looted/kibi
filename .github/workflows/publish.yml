@@ -152,6 +152,7 @@ jobs:
             packages/agent-core/*.tgz
             packages/plugin-builtin/*.tgz
             packages/plugin-jev/*.tgz
+            packages/plugin-ui/*.tgz
             packages/swipl-linux-x64-gnu/*.tgz
             packages/swipl-linux-arm64-gnu/*.tgz
             packages/swipl-darwin-arm64/*.tgz
@@ -247,6 +248,7 @@ jobs:
           npm install ${{ github.workspace }}/packages/codex/kibi-codex-*.tgz
           # Assert optional Jev/TypeSafe stay out of the default tree.
           test ! -d ./node_modules/kibi-plugin-jev
+          test ! -d ./node_modules/kibi-plugin-ui
           test ! -d ./node_modules/@typesafe-ai
           # /tmp/kibi-smoke-test is intentionally not a git repository;
           # standalone workspaces must declare their branch identity.

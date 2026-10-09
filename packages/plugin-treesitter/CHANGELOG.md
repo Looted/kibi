@@ -1,5 +1,12 @@
 # kibi-plugin-treesitter
 
+## 2.0.0
+
+### Patch Changes
+
+- Updated dependencies [ee91b85]
+  - kibi-plugin-sdk@0.5.0
+
 ## 1.0.1
 
 ### Patch Changes

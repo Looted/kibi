@@ -2,9 +2,12 @@
 
 Use this guide when a project must record **what the screen should look like** so that
 agents building or editing a UI can discover the expectation and cannot silently drift
-from it. This lane is entirely optional: it applies only to projects with a UI, and no
-validation rule requires it. A non-UI project simply never models UI subjects, and its
-bootstrap context can declare `has_ui: false` so no UI entities are proposed.
+from it. This lane is entirely optional: it applies only to projects with a UI. Without the
+experimental `kibi-plugin-ui` no validation rule requires it; with that plugin active,
+`kb_check` blocks components that lack a design requirement (`policy-ownership`) and
+implementations that lose their pattern markers (`policy-markers`). A non-UI project simply
+never models UI subjects, and its bootstrap context can declare `has_ui: false` so no UI
+entities are proposed.
 
 ## What this lane stores
 
@@ -227,6 +230,40 @@ An `assert` and `deny` requirement over the same predicate namespace, name, and 
 arguments is a blocking `domain-contradictions` conflict, so equivalent layout claims must
 reuse the same canonical schema and argument vocabulary.
 
+### Patterns, variants and markers
+
+Kibi also ships the vocabulary for "which visual pattern does this concept use", which
+catches a rewrite to a different pattern (a line-and-dots timeline redone as cards) that
+no layout property would:
+
+| Predicate | Arguments | Example |
+| --- | --- | --- |
+| `ui_pattern` | subject, pattern | `ui_pattern(activity_feed, line_dots_timeline)` |
+| `same_pattern` | subject, variant, other_variant | `same_pattern(activity_feed, editor_view, read_only_view)` |
+| `pattern_marker` | pattern, marker | `pattern_marker(line_dots_timeline, timeline_dot)` |
+| `ui_container` | subject, size, overflow | `ui_container(review_panel, half_page, scroll)` |
+
+Link `ui_pattern` and `same_pattern` facts from the requirement with `requires_predicate`.
+A `pattern_marker` names a literal class name or test id that every implementation of the
+pattern contains; it belongs to the pattern, so it can stay standalone. With
+`kibi-plugin-ui` active, each component implementing a requirement that names a
+`ui_pattern` must contain every marker of that pattern in its source file or its `.html`
+template (`timeline_dot` and `timeline-dot` both match). A component with no design
+constraint carries the tag `review:ui-unconstrained` instead.
+
+A requirement grounded only in `ui_pattern`, `same_pattern` and `pattern_marker` is proved by
+component tests: a test with `verification_scope: unit` or `integration` and a fresh passing
+proof receipt satisfies its scenarios (see [proof-ladder.md](./proof-ladder.md)). Write one
+component test per variant named in `same_pattern`; that catches a divergent branch inside
+one template, which the static marker check cannot see. Adding `ui_container`, a strict
+property or a logic rule to the requirement brings back the end-to-end requirement.
+
+When enabling the plugin on an existing UI, capture the inventory first: list the patterns
+each screen uses, ask the human which one is intended wherever two variants of one concept
+differ, and record each answer as a requirement. Record an undecided divergence as an
+`observation` fact tagged `review:ui-divergence` citing both files. Colours, spacing and
+component-library choices stay in a linter.
+
 ### Project-local layout schema
 
 When no built-in predicate fits (for example a placement rule like "button in the
@@ -291,5 +328,6 @@ relationships:
 ## Non-UI projects
 
 Nothing here is required when a project has no UI. No check rule demands `visual_layout_rule`
-or UI subject facts; they exist only if the project creates them. Declare the project as
+or UI subject facts unless `kibi-plugin-ui` is activated; they exist only if the project
+creates them. `/kibi-bootstrap` offers the plugin only when it finds component files. Declare the project as
 non-UI during bootstrap (`has_ui: false`) and no UI entities are proposed.

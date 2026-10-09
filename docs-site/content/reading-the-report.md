@@ -30,7 +30,7 @@ The percentage is that fraction. The numerator is requirements with fresh end-to
 
 Each requirement sits on a ladder. The report names the earliest thing still missing, and it totals these across the branch:
 
-- **Fully proven** — a test that claims this requirement has fresh end-to-end evidence for the current code snapshot.
+- **Fully proven** — a test that claims this requirement has fresh end-to-end evidence for the current code snapshot. A requirement that only names a UI pattern counts as proven with a fresh isolated component test instead.
 - **Proof gap** — the chain is incomplete. Typical gaps are a missing scenario, incomplete semantics, or evidence that was never recorded.
 - **Stale evidence** — a receipt exists, and the code has moved since. It stops counting as proof until the test is run again.
 - **Contradiction** — two encoded claims about the same behavior disagree. Kibi will not pick a winner.

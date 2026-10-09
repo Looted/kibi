@@ -24,6 +24,7 @@ describe("canonical package catalog", () => {
       "agent-core",
       "plugin-builtin",
       "plugin-jev",
+      "plugin-ui",
       "swipl-linux-x64-gnu",
       "swipl-linux-arm64-gnu",
       "swipl-darwin-arm64",

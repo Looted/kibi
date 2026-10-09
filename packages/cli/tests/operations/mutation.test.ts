@@ -365,11 +365,13 @@ describe("shared mutation operation specs", () => {
   });
 
   test("validate-upsert returns a normalized preview without mutation", async () => {
-    // Given
-    const { context, query, save } = createContext(() => ({
-      success: false,
-      bindings: {},
-    }));
+    // Given: every read is empty and the rolled-back contradiction preview
+    // passes (it is not a write; writeGoals below still forbids any commit).
+    const { context, query, save } = createContext((goal) =>
+      goal.startsWith("kb_preview_upsert_contradiction(")
+        ? { success: true, bindings: {} }
+        : { success: false, bindings: {} },
+    );
 
     // When
     const result = await validateUpsertSpec.execute(payload, context);
@@ -456,10 +458,11 @@ describe("shared mutation operation specs", () => {
   });
 
   test("validate-upsert accepts explicit ontology gaps without claiming consistency", async () => {
-    const { context, save } = createContext(() => ({
-      success: false,
-      bindings: {},
-    }));
+    const { context, save } = createContext((goal) =>
+      goal.startsWith("kb_preview_upsert_contradiction(")
+        ? { success: true, bindings: {} }
+        : { success: false, bindings: {} },
+    );
     const text = "System must support OAuth2 authentication.";
     const base = {
       type: "req",

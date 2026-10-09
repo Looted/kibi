@@ -1,5 +1,12 @@
 # kibi-plugin-jev
 
+## 0.3.3
+
+### Patch Changes
+
+- Updated dependencies [ee91b85]
+  - kibi-plugin-sdk@0.5.0
+
 ## 0.3.2
 
 ### Patch Changes

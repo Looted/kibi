@@ -4,6 +4,7 @@ import type { OperationContext } from "../../public/operations/runtime-types.js"
 import { readKbManifestStatus } from "../../utils/kb-manifest.js";
 import { classifyActivation } from "./activation.js";
 import { scanEvidence } from "./discovery-evidence.js";
+import { pluginOffers } from "./plugin-offers.js";
 import {
   BOOTSTRAP_PROVIDER_ORDER,
   type BootstrapEvidence,
@@ -92,10 +93,8 @@ export async function discoverBootstrap(
 ): Promise<DiscoveryResult> {
   const scan = await scanEvidence(context);
   const ignored = new Set(scan.ignoredSources);
-  const activation = await classifyActivation(
-    context,
-    scan.files.filter((file) => !ignored.has(file)),
-  );
+  const trackedFiles = scan.files.filter((file) => !ignored.has(file));
+  const activation = await classifyActivation(context, trackedFiles);
   const evidence = activation.allowCandidateGeneration
     ? [...scan.evidence]
     : [];
@@ -116,6 +115,9 @@ export async function discoverBootstrap(
   );
   return {
     activation,
+    // Offers do not depend on activation: a project already using Kibi is
+    // as likely to want an optional plugin as a fresh one.
+    pluginOffers: await pluginOffers(context, trackedFiles),
     evidence,
     ignoredSources: scan.ignoredSources,
     migrationWarning: await migrationWarning(context),

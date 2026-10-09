@@ -90,6 +90,7 @@ describe("opencode packed utility helpers", () => {
       "plugin-sdk": "/tmp/kibi/plugin-sdk.tgz",
       "plugin-builtin": "/tmp/kibi/plugin-builtin.tgz",
       "plugin-jev": "/tmp/kibi/plugin-jev.tgz",
+      "plugin-ui": "/tmp/kibi/plugin-ui.tgz",
       "plugin-treesitter": "/tmp/kibi/plugin-treesitter.tgz",
       swipl: "/tmp/kibi/swipl.tgz",
     };

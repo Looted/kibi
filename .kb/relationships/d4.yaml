@@ -216,3 +216,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-abb673230f73
+  - type: validates
+    from: TEST-ui-pattern-vocabulary
+    to: SCEN-ui-pattern-vocabulary
+    created_at: 2026-10-09T12:13:23.414Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-919e8e5c60be

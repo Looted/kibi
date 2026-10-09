@@ -1,5 +1,6 @@
 import { isProvenanceStubCandidate } from "./candidates.js";
 import { buildGuidance } from "./guidance.js";
+import type { PluginOffer } from "./plugin-offers.js";
 import type {
   ActivationPolicy,
   BootstrapAction,
@@ -221,6 +222,7 @@ export function presentBootstrap(input: {
   readonly activation: ActivationPolicy;
   readonly discoverySummary: DiscoverySummary;
   readonly migrationWarning: string | null;
+  readonly pluginOffers?: readonly PluginOffer[];
   readonly bootstrapContext?: BootstrapContext;
   readonly candidates: readonly Candidate[];
   readonly sourceOnlySignals: readonly SourceOnlySignal[];
@@ -238,6 +240,7 @@ export function presentBootstrap(input: {
     candidates: input.candidates,
     signals: input.sourceOnlySignals,
     warnings: input.discoverySummary.scanWarnings,
+    offers: input.pluginOffers ?? [],
   });
   const confidenceLevel = String(guidance.confidence.level);
   const bindingDiagnostics = strings(input.bindingDiagnostics);
@@ -439,6 +442,7 @@ export function presentBootstrap(input: {
     tldr,
     promptBlock: guidance.promptBlock,
     recommendedActions: guidance.actions,
+    pluginOffers: input.pluginOffers ?? [],
     declaredContext,
     discoverySummary,
     candidates: input.candidates,

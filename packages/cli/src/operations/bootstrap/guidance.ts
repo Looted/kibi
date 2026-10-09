@@ -1,6 +1,7 @@
 import path from "node:path";
 
 import { buildActions } from "./guidance-actions.js";
+import type { PluginOffer } from "./plugin-offers.js";
 import type {
   ActivationPolicy,
   BootstrapDeclaredContext,
@@ -175,6 +176,7 @@ export function buildGuidance(input: {
   readonly candidates: readonly Candidate[];
   readonly signals: readonly SourceOnlySignal[];
   readonly warnings: readonly string[];
+  readonly offers?: readonly PluginOffer[];
 }): {
   readonly promptBlock: string;
   readonly confidence: Readonly<Record<string, unknown>>;
@@ -203,6 +205,7 @@ export function buildGuidance(input: {
       input.declared,
       input.candidates,
       input.signals,
+      input.offers ?? [],
     ),
   };
 }

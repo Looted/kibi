@@ -23,13 +23,17 @@ export const SYMBOL_EXTRACTOR_V2_CAPABILITY_ID =
 export const VOCABULARY_ALIGNMENT_CAPABILITY_ID =
   "kibi.vocabulary-alignment.v1" as const;
 
+// implements REQ-capability-check-policy
+export const CHECK_POLICY_CAPABILITY_ID = "kibi.check-policy.v1" as const;
+
 // implements REQ-capability-plugin-protocol-v1
 export type CapabilityId =
   | typeof SEMANTIC_CLASSIFIER_CAPABILITY_ID
   | typeof ONTOLOGY_PACK_CAPABILITY_ID
   | typeof SYMBOL_EXTRACTOR_CAPABILITY_ID
   | typeof SYMBOL_EXTRACTOR_V2_CAPABILITY_ID
-  | typeof VOCABULARY_ALIGNMENT_CAPABILITY_ID;
+  | typeof VOCABULARY_ALIGNMENT_CAPABILITY_ID
+  | typeof CHECK_POLICY_CAPABILITY_ID;
 
 // implements REQ-capability-plugin-protocol-v1
 export const PLUGIN_MODES = ["replace", "augment", "shadow"] as const;
@@ -57,6 +61,7 @@ export interface PluginProviderStamp {
   readonly model?: string;
 }
 
+import type { CheckPolicyV1 } from "./capabilities/check-policy.js";
 import type { OntologyPackV1 } from "./capabilities/ontology-pack.js";
 import type { SemanticClassifierV1 } from "./capabilities/semantic-classifier.js";
 import type {
@@ -73,6 +78,8 @@ export interface KibiPluginCapabilities {
   readonly symbolExtractorV2?: SymbolExtractorV2;
   /** Optional; plugins without it keep working unchanged. */
   readonly vocabularyAlignment?: VocabularyAlignmentV1;
+  /** Declarative check policy; Kibi evaluates it, never runs it. */
+  readonly checkPolicy?: CheckPolicyV1;
 }
 
 // implements REQ-capability-plugin-protocol-v1
@@ -100,4 +107,6 @@ export type ProjectPluginEntry = Readonly<{
 // implements REQ-capability-plugin-protocol-v1
 export type ProjectKibiConfig = Readonly<{
   plugins?: readonly ProjectPluginEntry[];
+  /** Plugins the project declined when bootstrap offered them. */
+  declinedPlugins?: readonly string[];
 }>;

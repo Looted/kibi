@@ -15,6 +15,7 @@
     kb_assert_entity_no_audit/2,
     kb_commit_upsert/5,
     kb_commit_upsert_batch/2,
+    kb_preview_upsert_contradiction/3,
     kb_log_entity_upsert/3,
     kb_retract_entity/1,
     kb_retract_entity/3,
@@ -1135,6 +1136,36 @@ kb_stage_upsert(Type, Props, Relationships, SkipContradiction, ChangeKind) :-
     kb_maybe_check_req_contradiction(Type, Id, SkipContradiction),
     kb_log_entity_upsert(ChangeKind, Type, Props),
     kb_commit_relationship_audits(Relationships).
+
+%% kb_preview_upsert_contradiction(+Type, +Properties, +Relationships)
+% implements REQ-kibi-operation-interface-parity
+% Stage one upsert in a transaction that is always rolled back and run the
+% commit-time requirement contradiction check against the staged KB, so a
+% kb_upsert dry run refuses exactly what the commit would refuse. Nothing is
+% written and nothing marks the branch dirty: the no-audit assertions only
+% touch the RDF store, which the transaction rolls back, and no audit entry,
+% snapshot save or journal flush follows. The entity index is not
+% transactional, so the staged id is re-indexed from the restored store.
+kb_preview_upsert_contradiction(Type, Props, Relationships) :-
+    memberchk(id=Id, Props),
+    with_kb_mutex(
+        call_cleanup(
+            catch(
+                rdf_transaction((
+                    kb_assert_entity_no_audit(Type, Props),
+                    kb_commit_relationships_no_audit(Relationships),
+                    kb_maybe_check_req_contradiction(Type, Id, false),
+                    throw(kibi_preview_rolled_back)
+                )),
+                Caught,
+                (   Caught == kibi_preview_rolled_back
+                ->  true
+                ;   throw(Caught)
+                )
+            ),
+            kb_refresh_entity_index(Id)
+        )
+    ).
 
 kb_stage_upserts([], []).
 kb_stage_upserts([

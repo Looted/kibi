@@ -3,6 +3,7 @@ import { PREDICATE_CATALOG_2 } from "./predicate-catalog-2.js";
 import { PREDICATE_CATALOG_3 } from "./predicate-catalog-3.js";
 import { PREDICATE_CATALOG_4 } from "./predicate-catalog-4.js";
 import { PREDICATE_CATALOG_5 } from "./predicate-catalog-5.js";
+import { PREDICATE_CATALOG_6 } from "./predicate-catalog-6.js";
 import type {
   PredicateSchemaCandidate,
   PredicateUsageHints,
@@ -37,4 +38,5 @@ export const BUILT_IN_PREDICATE_SCHEMAS: PredicateSchemaCandidate[] = [
   ...PREDICATE_CATALOG_3,
   ...PREDICATE_CATALOG_4,
   ...PREDICATE_CATALOG_5,
+  ...PREDICATE_CATALOG_6,
 ];

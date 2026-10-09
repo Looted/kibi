@@ -1,5 +1,6 @@
 import path from "node:path";
 
+import type { PluginOffer } from "./plugin-offers.js";
 import type {
   ActivationPolicy,
   BootstrapDeclaredContext,
@@ -29,6 +30,7 @@ export function buildActions(
   declared: BootstrapDeclaredContext,
   candidates: readonly Candidate[],
   signals: readonly SourceOnlySignal[],
+  offers: readonly PluginOffer[] = [],
 ): readonly Readonly<Record<string, unknown>>[] {
   const result: Record<string, unknown>[] = [];
   let order = 1;
@@ -90,6 +92,15 @@ export function buildActions(
       order: order++,
       kind: "handoff",
       description: `Author ${[...new Set(signals.map((signal) => signal.kind.toUpperCase()))].join("/")} entities manually from source-only evidence.`,
+    });
+  for (const offer of offers)
+    result.push({
+      order: order++,
+      kind: "plugin_offer",
+      package: offer.package,
+      capability: offer.capability,
+      evidence: offer.evidence,
+      description: `${offer.reason} (${summary(offer.evidence)}). Ask the operator whether to enable the experimental ${offer.package}; on yes, install it as a dev dependency and add it to package.json kibi.plugins with "${offer.capability}": { "mode": "augment" }; on no, add "${offer.package}" to kibi.declinedPlugins so bootstrap stops offering it.`,
     });
   result.push({
     order,

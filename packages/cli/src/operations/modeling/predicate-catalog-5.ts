@@ -1,8 +1,8 @@
 import type { PredicateSchemaCandidate } from "./predicate-types.js";
 
 /**
- * Predicate families added from consumer escalation evidence (Align
- * dogfooding, 2026-08/09): fail-closed authorization, deployment
+ * Predicate families added from consumer escalation evidence (test
+ * project dogfooding, 2026-08/09): fail-closed authorization, deployment
  * preconditions, migration sequencing, diagnostic visibility, mutation
  * authority, request deduplication, async boundaries, canonical
  * identifiers, responsive breakpoints, and operational pauses.

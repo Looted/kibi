@@ -300,3 +300,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7ecd39d6ad54
+  - type: implements
+    from: SYM-cli-check-policy-rules-collectcheckpolicyviolations
+    to: REQ-capability-check-policy
+    created_at: 2026-10-09T12:13:12.900Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8c0733cbcb89
+  - type: covered_by
+    from: SYM-cli-check-policy-rules-collectcheckpolicyviolations
+    to: TEST-capability-check-policy
+    created_at: 2026-10-09T12:13:12.915Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1ef12473283a

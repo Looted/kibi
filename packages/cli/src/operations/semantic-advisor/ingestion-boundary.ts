@@ -79,6 +79,30 @@ function exactSpanText(
   return bytes.subarray(start, end).toString("utf8");
 }
 
+/**
+ * Why Kibi reads the requirement prose from `field`, so a payload that
+ * declared no (or an unknown) `semantic_source_field` can be fixed in one
+ * try: the rule is `semantic_text` when set, else `text_ref`, else `title`,
+ * and a declared field among those three is honored as given.
+ */
+// implements REQ-kibi-proposition-complete-ingestion
+function semanticSourceDerivation(
+  properties: Readonly<Record<string, unknown>>,
+  field: string,
+): string {
+  const declared = stringValue(properties.semantic_source_field);
+  const declaredNote = declared
+    ? `'${declared}' is not a semantic source field; `
+    : "no semantic_source_field was sent; ";
+  const derived =
+    field === "semantic_text"
+      ? "the prose comes from semantic_text because it is set"
+      : field === "text_ref"
+        ? "the prose comes from text_ref because semantic_text is unset"
+        : "the prose comes from title because semantic_text and text_ref are unset";
+  return `${declaredNote}${derived}. Set semantic_source_field to '${field}' and hash that field's text, or declare one of semantic_text, text_ref or title explicitly`;
+}
+
 function propositionIsAssertive(proposition: SemanticProposition): boolean {
   return !CONTEXT_ROLES.has(proposition.role);
 }
@@ -111,7 +135,7 @@ export function validateSemanticInventoryBoundary(
   }
   if (properties.semantic_source_field !== semanticSource.field) {
     errors.push(
-      `semantic_source_field must be '${semanticSource.field}' for the current requirement prose`,
+      `semantic_source_field must be '${semanticSource.field}' for the current requirement prose (${semanticSourceDerivation(properties, semanticSource.field)})`,
     );
   }
   if (properties.semantic_source_hash !== sourceHash) {

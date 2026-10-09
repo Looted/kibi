@@ -656,6 +656,9 @@ export class PrologProcess {
       trimmed.startsWith("kb_storage_export") ||
       trimmed.startsWith("status:") ||
       trimmed.startsWith("kb_commit_upsert(") ||
+      // The preview stages a write in a rolled-back transaction: never
+      // answer it from the cache of an earlier payload.
+      trimmed.startsWith("kb_preview_upsert_contradiction(") ||
       trimmed.startsWith("kb_assert_") ||
       trimmed.startsWith("kb_delete_") ||
       trimmed.startsWith("kb_retract_")
@@ -1008,7 +1011,14 @@ export class PrologProcess {
     goal: string,
     diagnostics: string,
   ): string {
-    if (this.goalLabel(goal) !== "kb_commit_upsert") return message;
+    // The dry-run contradiction preview reports the same stages as the
+    // commit it previews, so its refusal reads exactly like the commit's.
+    const label = this.goalLabel(goal);
+    if (
+      label !== "kb_commit_upsert" &&
+      label !== "kb_preview_upsert_contradiction"
+    )
+      return message;
     const stage = this.lastDiagnosticStage(diagnostics);
     return stage === null ? message : `${message} (stage=${stage})`;
   }

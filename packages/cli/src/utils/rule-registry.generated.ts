@@ -319,4 +319,18 @@ export const GENERATED_RULES = [
     category: "lifecycle",
     diagnosticSeverity: "info",
   },
+  {
+    name: "policy-ownership",
+    description:
+      "When a plugin activated for kibi.check-policy.v1 declares ownership rules, every production symbol in a rule's file set must implement a current requirement grounded (requires_predicate) in one of the rule's predicates; projects without an activated check policy are unaffected",
+    enforcementClass: "canonical",
+    category: "traceability",
+  },
+  {
+    name: "policy-markers",
+    description:
+      "When a plugin activated for kibi.check-policy.v1 declares marker rules, every file implementing a requirement grounded in the rule's pattern predicate (with its declared sibling files) must contain each marker the KB declares for that pattern",
+    enforcementClass: "canonical",
+    category: "traceability",
+  },
 ] as const;

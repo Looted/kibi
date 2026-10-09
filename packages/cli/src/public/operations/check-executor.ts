@@ -33,6 +33,7 @@ import {
   resolveCheckRules,
   stagedEntityIdStyleDiagnostics,
 } from "./check-helpers.js";
+import { collectCheckPolicyViolations } from "./check-policy-rules.js";
 import { executeStatus } from "./discovery-executors.js";
 import { collectEntityContextViolations } from "./entity-context.js";
 import {
@@ -229,6 +230,11 @@ export async function executeCheck(
       rulesAllowlist,
       workspaceRoot,
     );
+    const checkPolicyFindings = await collectCheckPolicyViolations(
+      prolog,
+      rulesAllowlist,
+      workspaceRoot,
+    );
     const partitioned = partitionCheckFindings([
       ...aggregatedFindings,
       ...queryPlanViolations,
@@ -237,6 +243,7 @@ export async function executeCheck(
       ...predicateConformanceFindings,
       ...originReviewFindings,
       ...entityContextFindings,
+      ...checkPolicyFindings,
     ]);
     const violations: Violation[] = partitioned.violations;
 
