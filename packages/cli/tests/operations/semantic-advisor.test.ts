@@ -799,6 +799,53 @@ describe("semantic advisor operation", () => {
     ).toEqual([]);
   });
 
+  // implements REQ-kibi-proposition-complete-ingestion
+  test("a missing or unknown semantic_source_field says which field was derived and why", () => {
+    const text = "System must support OAuth2 authentication.";
+    const errorsFor = (properties: Record<string, unknown>) => {
+      const payload = {
+        type: "req",
+        id: "REQ-SOURCE-FIELD",
+        properties: { title: "OAuth", status: "open", ...properties },
+        relationships: [],
+      };
+      return validateSemanticInventoryBoundary(
+        payload,
+        payload.relationships,
+        analyzeSemanticAdvisorInput({ payload }).receipt,
+      ).errors.filter((error) => error.startsWith("semantic_source_field"));
+    };
+    // The rule is fixed: semantic_text when set, else text_ref, else title.
+    expect(errorsFor({ text_ref: text })).toEqual([
+      "semantic_source_field must be 'text_ref' for the current requirement prose (no semantic_source_field was sent; the prose comes from text_ref because semantic_text is unset. Set semantic_source_field to 'text_ref' and hash that field's text, or declare one of semantic_text, text_ref or title explicitly)",
+    ]);
+    expect(errorsFor({ text_ref: text, semantic_text: text })[0]).toContain(
+      "comes from semantic_text because it is set",
+    );
+    expect(
+      errorsFor({ title: "System must support OAuth2 authentication." })[0],
+    ).toContain(
+      "comes from title because semantic_text and text_ref are unset",
+    );
+    // An unknown declared field is named as such.
+    expect(
+      errorsFor({ text_ref: text, semantic_source_field: "body" })[0],
+    ).toContain(
+      "'body' is not a semantic source field; the prose comes from text_ref",
+    );
+    // A declared field among the three is honored, so no error flips.
+    expect(
+      errorsFor({ text_ref: text, semantic_source_field: "text_ref" }),
+    ).toEqual([]);
+    expect(
+      errorsFor({
+        text_ref: text,
+        semantic_text: text,
+        semantic_source_field: "text_ref",
+      }),
+    ).toEqual([]);
+  });
+
   test("names stale grounding targets when proposition counts disagree", () => {
     const text = "System must support OAuth2 authentication.";
     const base = {

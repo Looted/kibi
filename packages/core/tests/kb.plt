@@ -4879,10 +4879,20 @@ test(gap_rows_skip_provenance_stubs_unless_the_tag_is_requested, [setup(setup_kb
     findall(Id, (member(Row, Json.rows), get_dict(id, Row, Id)), Ids),
     assertion(Ids == ["FACT-STUB-NOTE"]),
     assertion(Json.count == 1),
+    % The skipped stubs are still counted apart in the summary.
+    assertion(Json.summary.total == 1),
+    assertion(Json.summary.provenanceStubs == 1),
     discovery:find_gaps_json(fact, [], [], ['bootstrap:provenance-stub'], none, 100, 0, TaggedJsonString),
     atom_json_dict(TaggedJsonString, TaggedJson, []),
     findall(Id, (member(Row, TaggedJson.rows), get_dict(id, Row, Id)), TaggedIds),
-    assertion(TaggedIds == ["FACT-GEN-SOURCE-SYMBOLS-SRC-STUB-TS"]).
+    assertion(TaggedIds == ["FACT-GEN-SOURCE-SYMBOLS-SRC-STUB-TS"]),
+    assertion(TaggedJson.summary.total == 1),
+    assertion(TaggedJson.summary.provenanceStubs == 1),
+    % A requirement query sees no stubs at all.
+    discovery:find_gaps_json(req, [], [], [], none, 100, 0, ReqJsonString),
+    atom_json_dict(ReqJsonString, ReqJson, []),
+    assertion(ReqJson.summary.total == 0),
+    assertion(ReqJson.summary.provenanceStubs == 0).
 
 % implements REQ-bootstrap-provenance-stubs
 test(type_coverage_counts_provenance_stubs_apart_from_facts, [setup(setup_kb), cleanup(cleanup_kb)]) :-
@@ -5626,6 +5636,37 @@ test(check_req_contradiction_throws_actionable_error, [setup(setup_kb), cleanup(
         ( assertion(Pairs \= []),
           assertion(sub_string(Message, _, _, _, "Conflicts with REQ-CHK-B")) )
     ).
+
+% implements REQ-kibi-operation-interface-parity
+test(preview_upsert_contradiction_refuses_like_the_commit_and_writes_nothing, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    assert_contradicting_requirement_pair('REQ-PREVIEW-A', 5, 'REQ-PREVIEW-B', 6),
+    % The staged requirement links the fact that conflicts with REQ-PREVIEW-A.
+    Props = [id='REQ-PREVIEW-C', title="Previewed conflicting req", status=open,
+             created_at="2026-05-01T00:00:00Z", updated_at="2026-05-01T00:00:00Z",
+             source="test://kb.plt"],
+    Rels = [rel(constrains, 'REQ-PREVIEW-C', 'FACT-CONFLICT-SUBJECT', []),
+            rel(requires_property, 'REQ-PREVIEW-C', 'FACT-CONFLICT-B', [])],
+    catch(
+        (kb_preview_upsert_contradiction(req, Props, Rels), Caught = false),
+        error(kb_contradiction(Pairs), Message),
+        (assertion(Pairs \= []),
+         assertion(sub_string(Message, _, _, _, "Conflicts with REQ-PREVIEW-A")),
+         Caught = true)
+    ),
+    assertion(Caught == true),
+    % Rolled back: the staged requirement and its links do not exist.
+    assertion(\+ kb_entity('REQ-PREVIEW-C', _, _)),
+    assertion(\+ kb_relationship(requires_property, 'REQ-PREVIEW-C', _)),
+    % A supersedes edge to the conflicting requirement passes the preview,
+    % exactly as it passes the commit, and still writes nothing.
+    kb_preview_upsert_contradiction(req, Props,
+        [rel(supersedes, 'REQ-PREVIEW-C', 'REQ-PREVIEW-A', [])|Rels]),
+    assertion(\+ kb_entity('REQ-PREVIEW-C', _, _)),
+    % Non-requirement entities never run the check.
+    kb_preview_upsert_contradiction(fact, [id='FACT-PREVIEW-NOTE', title="Note", status=active,
+        fact_kind=observation, created_at="2026-05-01T00:00:00Z",
+        updated_at="2026-05-01T00:00:00Z", source="test://kb.plt"], []),
+    assertion(\+ kb_entity('FACT-PREVIEW-NOTE', _, _)).
 
 test(check_req_contradiction_allows_direct_supersession, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
     assert_contradicting_requirement_pair('REQ-SUPERSEDES-A', 5, 'REQ-SUPERSEDES-B', 6),

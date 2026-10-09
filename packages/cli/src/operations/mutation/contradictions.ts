@@ -26,6 +26,25 @@ export function buildUpsertCommitGoal(input: TransactionInput): string {
   return `kb_commit_upsert(${type}, ${buildPropertyList(input.entity)}, [${relationships.join(", ")}], ${input.skipContradictionCheck ? "true" : "false"}, ChangeKind)`;
 }
 
+// implements REQ-kibi-operation-interface-parity
+/**
+ * Goal that stages the same entity and relationships the commit goal would
+ * and runs the commit-time contradiction check inside a transaction that is
+ * always rolled back (kb_preview_upsert_contradiction/3). It succeeds when
+ * the commit would pass the check and fails with the commit's error when it
+ * would not; it never writes.
+ */
+export function buildUpsertContradictionPreviewGoal(
+  input: TransactionInput,
+): string {
+  const type = String(input.entity.type);
+  const relationships = input.relationships.map(
+    (relationship) =>
+      `rel(${String(relationship.type)}, '${escapeAtom(String(relationship.from))}', '${escapeAtom(String(relationship.to))}', ${buildRelationshipMetadata(relationship)})`,
+  );
+  return `kb_preview_upsert_contradiction(${type}, ${buildPropertyList(input.entity)}, [${relationships.join(", ")}])`;
+}
+
 function upsertBatchEntry(input: TransactionInput): string {
   const type = String(input.entity.type);
   const relationships = input.relationships.map(

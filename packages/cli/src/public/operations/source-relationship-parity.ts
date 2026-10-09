@@ -160,6 +160,22 @@ function authoredRelationship(
   };
 }
 
+/**
+ * The repair that works for a source-discovery failure. There is no separate
+ * receipt repair tool: a rewrite through kb_upsert republishes a receipt,
+ * and `kibi branch recover` retires receipts of files removed on purpose.
+ */
+// implements REQ-kibi-source-relationship-parity
+function sourceDiscoverySuggestion(message: string): string {
+  if (/Pending source hash drift/.test(message)) {
+    return "A pending-source receipt no longer matches its untracked file. Rewrite that entity with kb_upsert (its current title and status are enough) so the receipt is republished against the file's current bytes, or 'git add' the file to retire the receipt; then rerun kb_check. Do not ignore missing authored inputs.";
+  }
+  if (/Pending source is missing/.test(message)) {
+    return "A pending-source receipt binds an untracked file that no longer exists. If the file was deleted on purpose, run 'kibi branch recover --apply' to rebuild the branch KB from the sources that remain; otherwise restore the file (or rewrite the entity with kb_upsert); then rerun kb_check.";
+  }
+  return "Repair the authored sources named in the message (restore or rewrite the entity with kb_upsert, or run 'kibi branch recover --apply' for sources removed on purpose), then rerun kb_check; do not ignore missing authored inputs.";
+}
+
 // implements REQ-kibi-source-relationship-parity
 export async function collectSourceRelationshipParityViolations(
   workspaceRoot: string,
@@ -179,8 +195,7 @@ export async function collectSourceRelationshipParityViolations(
         rule: "source-relationship-parity",
         entityId: "source-discovery",
         description: `Authored relationship parity could not establish a complete source view: ${message}`,
-        suggestion:
-          "Repair the pending-source receipt through Kibi recovery, then rerun kb_check; do not ignore missing authored inputs.",
+        suggestion: sourceDiscoverySuggestion(message),
         evidence: {
           direction: "source_discovery",
           message,

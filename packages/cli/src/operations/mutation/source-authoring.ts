@@ -63,6 +63,50 @@ export function writePendingSourceReceipt(
   );
 }
 
+type FileTimes = Readonly<{ atime: Date; mtime: Date }>;
+
+/** The access and modification times of a file, or `null` when unreadable. */
+// implements REQ-core-atomic-upsert-persistence
+export function readFileTimes(absolutePath: string): FileTimes | null {
+  try {
+    const stat = fs.statSync(absolutePath);
+    return { atime: stat.atime, mtime: stat.mtime };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Put a restored file's times back so freshness checks, which compare file
+ * times with the compiled snapshot, do not report a rolled-back write as a
+ * newer source. Best effort: a port without a host file is left alone.
+ */
+// implements REQ-core-atomic-upsert-persistence
+export function restoreFileTimes(
+  absolutePath: string,
+  times: FileTimes | null,
+): void {
+  if (times === null) return;
+  try {
+    fs.utimesSync(absolutePath, times.atime, times.mtime);
+  } catch {
+    // The bytes are restored; a failed time reset only costs a sync.
+  }
+}
+
+/**
+ * Snapshot a pending-source receipt's bytes, or `null` when none exists, so a
+ * rolled-back write can restore the receipt exactly as it found it.
+ */
+// implements REQ-core-atomic-upsert-persistence
+function readPendingSourceReceiptBytes(receiptPath: string): string | null {
+  try {
+    return fs.readFileSync(receiptPath, "utf8");
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Retire the pending receipt of a source that a committed plan deleted. A
  * receipt binds untracked input to exact bytes, so one left behind for a
@@ -913,6 +957,10 @@ export async function writeSourceForUpsert(
   } catch {
     before = undefined;
   }
+  // Freshness compares file times with the compiled snapshot, so restoring
+  // the bytes alone would still make an untouched entity read as stale after
+  // a rolled-back write. Snapshot the times before the publication below.
+  const priorTimes = before === undefined ? null : readFileTimes(absolute);
   // Proof-receipt ingest supplies pre-patched bytes so unrelated frontmatter
   // keeps its authored formatting (and the workspace snapshot stays stable).
   // Only valid when the document already exists; a new document still needs
@@ -944,6 +992,12 @@ export async function writeSourceForUpsert(
     afterHash: digest(after),
     created: before === undefined,
   };
+  const pendingReceipt = pendingReceiptPath(context.workspaceRoot, relative);
+  // Snapshot the pending-source receipt before this write republishes it. A
+  // commit-time refusal restores the authored bytes, so the receipt must go
+  // back to the hash it bound before the write (or disappear again) or the
+  // next sync reports hash drift against a file that never changed.
+  const priorReceiptBytes = readPendingSourceReceiptBytes(pendingReceipt);
   const rollback = async (): Promise<void> => {
     const fsPort = context.fs;
     if (fsPort === undefined) return;
@@ -970,8 +1024,13 @@ export async function writeSourceForUpsert(
     if (before === undefined) {
       if (fsPort.unlink) await fsPort.unlink(absolute);
       else await fsPort.writeFile(absolute, "");
+      // implements REQ-core-atomic-upsert-persistence
+      // A receipt that predates this write (its file was removed outside
+      // Kibi) keeps binding the missing source so sync still reports it.
       try {
-        fs.unlinkSync(pendingReceiptPath(context.workspaceRoot, relative));
+        if (priorReceiptBytes === null) fs.unlinkSync(pendingReceipt);
+        else
+          fs.writeFileSync(pendingReceipt, priorReceiptBytes, { mode: 0o600 });
       } catch {
         // The pending receipt is advisory recovery metadata.
       }
@@ -988,9 +1047,19 @@ export async function writeSourceForUpsert(
         await fsPort.unlink?.(rollbackTemp).catch(() => undefined);
         throw error;
       }
+      // implements REQ-core-atomic-upsert-persistence
+      // The authored bytes are back to `before`; rebind the pending receipt
+      // and the file times to the same state they had before this write.
+      try {
+        if (priorReceiptBytes === null) fs.unlinkSync(pendingReceipt);
+        else
+          fs.writeFileSync(pendingReceipt, priorReceiptBytes, { mode: 0o600 });
+      } catch {
+        // The pending receipt is advisory recovery metadata.
+      }
+      restoreFileTimes(absolute, priorTimes);
     }
   };
-  const pendingReceipt = pendingReceiptPath(context.workspaceRoot, relative);
   try {
     if (
       receipt.afterHash !== null &&

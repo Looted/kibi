@@ -209,6 +209,71 @@ An interrupted plan is settled by the next `kb_apply_plan`, `kb_upsert`, or
 re-apply the original plan. On a detached HEAD, reads answer from a read-only
 snapshot and writes are refused; check out a branch before mutating.
 
+## Second-agent edits
+
+Recipes for an agent changing a knowledge base another agent or person
+authored. Each one is the order the write path accepts.
+
+1. **New strict requirement with a predicate grounding.** `kb_model` mode
+   `analyze` with the complete prose; copy `inventory_contract` into
+   `semantic_inventory_version`, `semantic_source_field` and
+   `semantic_source_hash`, the prose into `semantic_text`, `propositions`
+   into `semantic_inventory` and the assertive `claim_key`s into
+   `logic_claims`. `kb_model` mode `predicates` per clause; `kb_upsert` the
+   returned `applyPlan` fact first (it carries the clause's `claim_key`).
+   Then write the requirement in one `kb_upsert` with the ledger (that
+   clause `status: modeled`), a sectioned `document.body`, `constrains` to
+   the subject fact and `requires_predicate` to `relationshipTarget`. A
+   `modeled` entry and its grounding link must arrive in the same write
+   (`modeled semantic_inventory entries (n) must equal logical grounding
+   relationships (m)`); a clause not grounded yet stays `status: missing`
+   and is switched to `modeled` together with its link later. A partial
+   `{title, status}` upsert (plus relationships) is enough only for an
+   existing entity, whose stored ledger Kibi keeps.
+2. **Changing the text of a grounded requirement.** New prose means new
+   claim keys, so a bare rewrite is refused with `modeled proposition
+   claim_keys must match logical grounding target claim_keys exactly`.
+   Prefer supersession for a change of meaning: analyze the new prose,
+   write its facts, write the new requirement (`-v2`) with `supersedes` to
+   the old one, then set the old one to `status: closed`. For a wording fix
+   that keeps the meaning, re-ground in place: analyze the new prose,
+   `kb_upsert` each grounding fact with the new `claim_key`/`claim_text`
+   (same fact id), then `kb_upsert` the requirement with the new ledger,
+   `semantic_text` and the same grounding links in one write. The requirement
+   write checks the targets' stored claim keys, so the facts go first;
+   between the two writes `kb_check` reports the requirement until the
+   second lands.
+3. **Deleting authored entities.** `kb_delete` on an authored entity that
+   is not a requirement (scenario, test, fact, ADR, …) returns a hash-bound
+   `kibi.entity-deletion-plan.v1` in `deletionPlan`; apply it unchanged with
+   `kb_apply_plan` (`plan` plus `approvedPlanHash: plan.planHash`). For an
+   authored requirement the plan carries `supersessionRequired: true` and
+   `kb_apply_plan` refuses it (`REQUIREMENT_SUPERSESSION_REQUIRED`): Kibi
+   never deletes an authored requirement. Evolve it instead with a new
+   requirement linked by `supersedes` and close the old one, or, for an
+   agent-origin requirement nobody approved and nothing links to, upsert it
+   with `status: closed` (keep its `title`); it stays on disk as history. A
+   person may remove the file in Git and run `kibi sync`; agents do not edit
+   `.kb/` directly.
+4. **After a commit-time refusal** (`Contradiction detected …
+   (stage=contradiction_check)`, strict-lane pairing, proposition-complete
+   ingestion): the result is `status: error` and nothing was written. The
+   authored file, the relationship shards, the pending-source receipt of an
+   untracked file and the file times are restored, so `kb_check` (including
+   `source-relationship-parity`) stays clean and `kb_status` stays `fresh`;
+   verify both, fix the cause (supersede, pair the lane, re-ground), and
+   resend the whole payload. A `committed_with_repairs` result is the
+   opposite case: the commit stands and only its repair actions are run.
+5. **What `dryRun: true` does and does not check.** It runs every
+   pre-commit validation and, for a `req`, the commit-time contradiction
+   check against a staged, rolled-back copy of the store, so `valid: true`
+   means the commit would accept the payload as far as the store can tell.
+   It writes nothing, so it cannot report what only a write reveals:
+   `DOCUMENT_PATH_REQUIRED` for a new entity with no single writable target,
+   filesystem, lock and receipt failures, a concurrent writer, or
+   `kb_check`-only rules such as `logic-coverage` and `scenario-feasibility`
+   (`entity-context-missing` is returned as a warning).
+
 ## Origin and approvals
 
 Entities record `origin` (`kind`: `human`, `agent`, `migration`, or `import`,
@@ -267,8 +332,14 @@ constrains several subjects, an unbound `subject_key` asks you to pass
 is a short noun, never a clause of the claim, and an `actor`, `role` or
 `owner` is never the requirement's subject key: the planned fact already
 carries that key as `subject_key`, so `actor = <subject key>` stays unbound
-with a reason. If the claim names no actor, the schema does not fit the
-claim: record the ontology gap instead of inventing a participant. Bind them
+with a reason. When the claim names no participant for such an argument (the
+value is empty, the subject key or a clause that opens with a gerund such as
+"Discarding a draft while …", and none of the schema's constants or example
+values occurs in the claim), the schema does
+not fit the claim and Kibi answers `record_ontology_gap` with the gap
+observation in `applyPlan`; the candidate stays listed as `incomplete` with
+its `bindingHints`. Write the observation instead of inventing a participant.
+For every other unbound argument, bind it
 from the claim's own words and call again with the same `text` and
 `requirementId`, plus `schemaId` and `argumentBindings` keyed by
 `argument_names` (reuse `argument_constants` values when the schema has them).
