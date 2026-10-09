@@ -5952,6 +5952,15 @@
               "planHash": {
                 "type": "string"
               },
+              "pluginOffers": {
+                "description": "Optional plugins that fit this workspace and that the project has neither activated nor declined. Ask the operator; on yes install and activate the package, on no add it to package.json kibi.declinedPlugins.",
+                "items": {
+                  "additionalProperties": {},
+                  "properties": {},
+                  "type": "object"
+                },
+                "type": "array"
+              },
               "promptBlock": {
                 "type": "string"
               },
