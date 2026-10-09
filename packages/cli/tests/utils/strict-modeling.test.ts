@@ -193,6 +193,30 @@ describe("strict-modeling", () => {
     expect(modeled[0]).toEqual(firstWriteSet);
   });
 
+  test("a named requirement id replaces the minted REQ-AUTO id and keeps the claim ids", () => {
+    const minted = buildStrictWriteSet({
+      claim: CUSTOMER_RETENTION_CLAIM,
+      statement: CUSTOMER_RETENTION_STATEMENT,
+    });
+    const named = buildStrictWriteSet({
+      claim: CUSTOMER_RETENTION_CLAIM,
+      statement: CUSTOMER_RETENTION_STATEMENT,
+      requirementId: "REQ-customer-data-retention",
+    });
+    if (!minted.isStrict || !named.isStrict) throw new Error("expected strict");
+    expect(named.req.id).toBe("REQ-customer-data-retention");
+    expect(named.req.properties.id).toBe("REQ-customer-data-retention");
+    expect(named.req.properties.source).toBe(
+      ".kb/requirements/REQ-customer-data-retention.md",
+    );
+    expect(
+      named.relationships.map((relationship) => relationship.from),
+    ).toEqual(["REQ-customer-data-retention", "REQ-customer-data-retention"]);
+    // Fact ids, subject_key and the claim stay derived from the claim.
+    expect(named.subjectFact).toEqual(minted.subjectFact);
+    expect(named.propertyFact).toEqual(minted.propertyFact);
+  });
+
   test("downgrades low-confidence claims into a single observation artifact", () => {
     const writeSet = buildStrictWriteSet({
       claim: {

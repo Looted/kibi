@@ -5,6 +5,7 @@ import {
 import type { OperationContext } from "../../public/operations/runtime-types.js";
 import { readKbManifestStatus } from "../../utils/kb-manifest.js";
 import {
+  factSourcePath,
   isConventionalSubjectKey,
   normalizeSubjectKey,
 } from "../../utils/strict-modeling.js";
@@ -62,7 +63,10 @@ type AlignedWriteSet = Readonly<{
 
 const NEW_SUBJECT_REVIEW_SCORE = 0.3;
 
-function reuseExistingSubject(
+// implements REQ-kibi-subject-vocabulary
+// The write set describes the existing subject fact, so its id and its source
+// both name that fact; the minted fact (and its file) is never created.
+export function reuseExistingSubject(
   writeSet: StrictWriteSet,
   existingFactId: string,
 ): { writeSet: StrictWriteSet; replacedSubjectId: string | null } {
@@ -75,7 +79,11 @@ function reuseExistingSubject(
       subjectFact: {
         ...writeSet.subjectFact,
         id: existingFactId,
-        properties: { ...writeSet.subjectFact.properties, id: existingFactId },
+        properties: {
+          ...writeSet.subjectFact.properties,
+          id: existingFactId,
+          source: factSourcePath(existingFactId),
+        },
       },
       relationships: writeSet.relationships.map((relationship) =>
         relationship.type === "constrains"
@@ -123,10 +131,12 @@ async function applyVocabularyAlignment(
   context: OperationContext | undefined,
   extracted: ExtractedClaim,
   claimKey: string,
+  requirementId: string | undefined,
 ): Promise<AlignedWriteSet> {
   const initial = buildStrictWriteSet({
     claim: extracted.claim,
     statement: extracted.statement,
+    ...(requirementId !== undefined ? { requirementId } : {}),
   });
   const unchanged: AlignedWriteSet = {
     writeSet: initial,
@@ -158,6 +168,7 @@ async function applyVocabularyAlignment(
       const rebuilt = buildStrictWriteSet({
         claim: { ...extracted.claim, subjectKey: subject.subjectKey },
         statement: extracted.statement,
+        ...(requirementId !== undefined ? { requirementId } : {}),
       });
       ({ writeSet, replacedSubjectId } = reuseExistingSubject(
         rebuilt,
@@ -601,7 +612,15 @@ export async function handleKbModelRequirement(
       workspaceRoot,
     );
   const claimKey = semanticClaimKey(extracted.statement);
-  const aligned = await applyVocabularyAlignment(context, extracted, claimKey);
+  // implements REQ-kibi-subject-vocabulary
+  // A caller-named requirement keeps its id: the strict write set updates it
+  // instead of minting REQ-AUTO-<hash>.
+  const aligned = await applyVocabularyAlignment(
+    context,
+    extracted,
+    claimKey,
+    normalizeOptionalString(args.requirementId),
+  );
   const writeSet = aligned.writeSet;
   const logicClaims = Array.from(
     new Set([...(args.existingLogicClaims ?? []), claimKey]),
