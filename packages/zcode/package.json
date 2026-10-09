@@ -1,6 +1,6 @@
 {
   "name": "kibi-zcode",
-  "version": "0.7.6",
+  "version": "0.7.7",
   "description": "Kibi ZCode plugin - thin adapter for ZCode MCP integration",
   "type": "module",
   "main": "dist/index.js",
