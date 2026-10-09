@@ -5,7 +5,7 @@ license: AGPL-3.0-or-later
 metadata:
   displayName: Kibi Usage
   id: kibi-usage
-  version: 2.11.0
+  version: 2.12.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -222,11 +222,19 @@ authored. Each one is the order the write path accepts.
    `semantic_inventory_version`, `semantic_source_field` and
    `semantic_source_hash`, the prose into `semantic_text`, `propositions`
    into `semantic_inventory` and the assertive `claim_key`s into
-   `logic_claims`. `kb_model` mode `predicates` per clause; `kb_upsert` the
-   returned `applyPlan` fact first (it carries the clause's `claim_key`).
-   Then write the requirement in one `kb_upsert` with the ledger (that
-   clause `status: modeled`), a sectioned `document.body`, `constrains` to
-   the subject fact and `requires_predicate` to `relationshipTarget`. A
+   `logic_claims`. Reuse (or `kb_upsert`) the subject fact, then call
+   `kb_model` mode `predicates` per clause with `subjectHint` set to that
+   subject fact's `subject_key`: the requirement constrains nothing yet, so
+   the hint is the planned subject and the planned fact gets its
+   `subject_key` (`subjectKey` is a mode `requirement` parameter; mode
+   `predicates` ignores it and warns). `kb_upsert` the returned `applyPlan`
+   fact first (it carries the clause's `claim_key`). Then write the
+   requirement in one `kb_upsert` with the ledger (that clause `status:
+   modeled`), a sectioned `document.body`, `constrains` to the subject
+   fact, `requires_predicate` to `relationshipTarget` and `specified_by` to
+   its scenario: `specified_by` (req → scenario) is sent in the
+   requirement's write, never in the scenario's, so create the scenario
+   first. A
    `modeled` entry and its grounding link must arrive in the same write
    (`modeled semantic_inventory entries (n) must equal logical grounding
    relationships (m)`); a clause not grounded yet stays `status: missing`

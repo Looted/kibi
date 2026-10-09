@@ -1247,7 +1247,11 @@ export async function checkCommand(
           save: () => activeProlog.query("kb_save"),
         },
       },
-      { collectFullQualityDiagnosticsForExplicitRules: true },
+      {
+        collectFullQualityDiagnosticsForExplicitRules: true,
+        // The engine reads the branch store; an explicit --kb-path does not.
+        branchStoreAttached: options.kbPath === undefined,
+      },
     );
     const violations = result.structuredContent?.violations ?? [];
     const qualityDiagnostics =

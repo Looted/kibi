@@ -29,17 +29,76 @@ function requiredFields(spec: {
   return Array.isArray(required) ? (required as string[]) : [];
 }
 
+type CompositeRoute = {
+  readonly name?: string;
+  readonly execute: Executor;
+  readonly businessInputSchema: Readonly<Record<string, unknown>>;
+};
+
+/**
+ * Per route, the parameters another route of the same composite owns that
+ * mean the same thing here under another name. kb_model mode requirement
+ * takes the claim's subject as subjectKey; mode predicates takes it as
+ * subjectHint.
+ */
+const EQUIVALENT_PARAMETERS: Readonly<
+  Record<string, Readonly<Record<string, string>>>
+> = {
+  kb_suggest_predicates: { subjectKey: "subjectHint" },
+  kb_model_requirement: { subjectHint: "subjectKey" },
+};
+
+/** Routed operations whose `warnings` are `{ kind, message, nextAction }`. */
+const RECORD_WARNING_OPERATIONS = new Set(["kb_model_requirement"]);
+
+// implements REQ-kibi-mcp-tool-consolidation
+/**
+ * A composite accepts every route's parameters, so a parameter of another
+ * route passes schema validation and the chosen route silently ignores it.
+ * Name each one instead, with the parameter this route uses for the same
+ * thing when there is one.
+ */
+export function foreignParameterWarnings(
+  selector: "action" | "mode",
+  choice: string,
+  routes: Readonly<Record<string, CompositeRoute>>,
+  rest: Readonly<Record<string, unknown>>,
+): Array<{ parameter: string; message: string; nextAction: string }> {
+  const route = routes[choice];
+  if (route === undefined) return [];
+  const own = new Set(Object.keys(properties(route)));
+  const equivalents =
+    route.name === undefined ? {} : (EQUIVALENT_PARAMETERS[route.name] ?? {});
+  const warnings: Array<{
+    parameter: string;
+    message: string;
+    nextAction: string;
+  }> = [];
+  for (const parameter of Object.keys(rest)) {
+    if (own.has(parameter) || rest[parameter] === undefined) continue;
+    const owners = Object.entries(routes)
+      .filter(
+        ([other, otherRoute]) =>
+          other !== choice && parameter in properties(otherRoute),
+      )
+      .map(([other]) => `${selector}: ${other}`);
+    if (owners.length === 0) continue;
+    const equivalent = equivalents[parameter];
+    warnings.push({
+      parameter,
+      message: `${parameter} is a ${owners.join(" / ")} argument; ${selector}: ${choice} ignored it.`,
+      nextAction:
+        equivalent !== undefined
+          ? `Use ${equivalent} in ${selector}: ${choice}.`
+          : `Drop ${parameter}, or switch to ${owners.join(" / ")} if that is what you meant.`,
+    });
+  }
+  return warnings;
+}
+
 export async function dispatchComposite(
   selector: "action" | "mode",
-  routes: Readonly<
-    Record<
-      string,
-      {
-        readonly execute: Executor;
-        readonly businessInputSchema: Readonly<Record<string, unknown>>;
-      }
-    >
-  >,
+  routes: Readonly<Record<string, CompositeRoute>>,
   input: Readonly<Record<string, unknown>>,
   context: OperationContext,
 ): Promise<OperationResult<Record<string, unknown>>> {
@@ -69,9 +128,49 @@ export async function dispatchComposite(
     wrapped && Array.isArray(result.content)
       ? (result.content as OperationResult["content"])
       : [{ type: "text", text: `${selector} ${String(choice)} completed` }];
+  const ignored = foreignParameterWarnings(
+    selector,
+    String(choice),
+    routes,
+    rest,
+  );
+  if (ignored.length === 0) {
+    return {
+      content,
+      structuredContent: { [selector]: choice, ...payload },
+    };
+  }
+  // The routed payload's own warnings list carries them, in its own shape;
+  // a payload without one gets them in the text content only.
+  const asRecords =
+    route.name !== undefined && RECORD_WARNING_OPERATIONS.has(route.name);
+  const routedWarnings = Array.isArray(payload.warnings)
+    ? {
+        warnings: [
+          ...payload.warnings,
+          ...ignored.map((warning) =>
+            asRecords
+              ? {
+                  kind: "parameter_ignored",
+                  message: warning.message,
+                  nextAction: warning.nextAction,
+                }
+              : `${warning.message} ${warning.nextAction}`,
+          ),
+        ],
+      }
+    : {};
   return {
-    content,
-    structuredContent: { [selector]: choice, ...payload },
+    content: [
+      ...content,
+      {
+        type: "text",
+        text: ignored
+          .map((warning) => `${warning.message} ${warning.nextAction}`)
+          .join("\n"),
+      },
+    ],
+    structuredContent: { [selector]: choice, ...payload, ...routedWarnings },
   };
 }
 

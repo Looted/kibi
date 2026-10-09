@@ -140,19 +140,30 @@ export function buildSuggestion(
           ),
     ]),
   ) as Record<string, BindingProvenance>;
-  // The subject the planned predicate fact is about, when the requirement
-  // constrains subjects: the `subject` argument's value, or for a schema
-  // without one the reviewed subject, recorded as the fact's subject_key.
+  // The subjects the planned predicate must be about: those the requirement
+  // constrains, or, for a requirement that is not written yet or constrains
+  // nothing, the explicit subjectHint. The hint is then the subject fact the
+  // agent is about to link, so the planned fact carries its subject_key and
+  // kb_check pairs the two once the requirement is written.
+  const plannedSubjects =
+    constrainedSubjects.length > 0
+      ? constrainedSubjects
+      : explicitSubject
+        ? [subject]
+        : [];
+  // The subject the planned predicate fact is about: the `subject`
+  // argument's value, or for a schema without one the reviewed subject,
+  // recorded as the fact's subject_key.
   const subjectKey =
-    constrainedSubjects.length === 0
+    plannedSubjects.length === 0
       ? null
       : subjectArgument >= 0
         ? (predicateArgs[subjectArgument] ?? null)
         : (reviewedSubject ?? null);
   const subjectPairing: PredicateSuggestion["subject_pairing"] =
-    constrainedSubjects.length === 0
+    plannedSubjects.length === 0
       ? "not_required"
-      : subjectKey !== null && constrainedSubjects.includes(subjectKey)
+      : subjectKey !== null && plannedSubjects.includes(subjectKey)
         ? "paired"
         : "unpaired";
   const bindingProvenance = aggregateBindingProvenance(

@@ -218,10 +218,19 @@ report the run is evaluated as one unit (`attribution: "aggregate"`, with an
 
 Detects languages, build systems, test frameworks, CI workflows, configured
 integrations, and the recommended integration level. Deterministic output for
-agents; bootstrap consumes this instead of reinventing detection.
+agents. While `.kb/proof/integrations.json` does not exist and a test runner
+is detected, the JSON also carries `proposedIntegration` (a `command`
+integration running the `package.json` `test` script, or the detected
+runner), `contractDefaults` for a test's `proof_contract`, and
+`integrationPlan`: a hash-bound `kibi.migration-plan.v2` that writes the file
+when applied with `kb_apply_plan` or `kibi apply-plan --input -` (pass
+`plan`, `approvedPlanHash` and `approvedActionIds`). `integrationPlanReason`
+says why there is no plan. `--update <id>` plans adding or replacing one
+named integration in an existing file.
 
 ```bash
 kibi proof inspect --json
+kibi proof inspect --update e2e --json
 ```
 
 ### `kibi proof explain`
@@ -408,6 +417,18 @@ Status does not initialise a missing branch store or repair a damaged one. It
 instead returns `branchStore` (`missing`, `incomplete`, or `unreadable`) with a
 recovery-oriented stale reason. Use the explicit branch commands below after
 reviewing that diagnosis.
+
+Kibi compiles one store per branch and never copies another branch's, so a
+branch created without the `post-checkout` hook starts with no store (and the
+first engine attach creates an empty one, `generation-1:0`). While `.kb/` holds
+authored sources, status reports that state as one blocking stale reason,
+`branch_store_not_compiled`, whose remediation is `kibi sync` (an empty store
+also reads `syncState: "stale"`), and the migration plan carries an automatic
+`branch-store-compile` action (`kibi sync`) that runs after
+`branch-store-ensure` and any schema upgrade. `kibi check` reports the same
+state once, as the canonical `branch-store-not-compiled` violation, instead of
+running rules against an empty KB (which used to report every authored
+relationship as a `source-relationship-parity` violation).
 
 When migration is needed, JSON status also returns `schemaStatus` and a
 `kibi.migration-plan.v2` `migrationPlan`. Actions are typed with a canonical
@@ -626,7 +647,7 @@ also needs the built-in predicate catalog); none calls a plugin or the network.
 | --- | --- | --- |
 | `domain-redundancy` | warning | Two distinct current requirements ground the identical logical term (same predicate/property signature after unit canonicalization, same polarity) or link the same ground fact via `requires_property`, `requires_predicate`, or `requires_rule`. Pairs linked by `supersedes` or `restates` (either direction) are exempt. Evidence carries both requirement IDs, both fact IDs, and the signature. Links are grouped by signature once, so cost grows with the number of links, not with requirement pairs. |
 | `domain-implication` | info | Same subject and property, comparable numeric operators, and one bound strictly implies the other (`lte 30 min` implies `lte 3600 s`). Reported as "Implied by", never as a duplicate. |
-| `subject-key-identity` | warning | A subject key of the form `req.<segment>[.…]` where `<segment>` is a normalized existing requirement ID (`req.req_cli_gc` for `REQ-cli-gc`, or without the `req_` prefix). Every requirement becoming its own subject makes cross-requirement checks impossible. Also reports one subject or claim minted as several facts: more than one active `subject` fact with the same `subject_key`, and more than one active `property_value` fact with the same `subject_key`, `property_key`, `operator`, typed value and `unit` (facts that differ in operator, such as the two bounds of a range, or in value, such as two requirements bounding the same property differently, are distinct claims that `domain-contradictions` and `domain-implication` compare). Each group is reported once, on its first fact id, with every fact id in the evidence. |
+| `subject-key-identity` | warning | A subject key of the form `req.<segment>[.…]` where `<segment>` is a normalized existing requirement ID (`req.req_cli_gc` for `REQ-cli-gc`, or without the `req_` prefix). Every requirement becoming its own subject makes cross-requirement checks impossible. Also reports one subject or claim minted as several facts: more than one active `subject` fact with the same `subject_key`, and more than one active `property_value` fact with the same `subject_key`, `property_key`, `operator`, `polarity` (absent means `require`), typed value and `unit` (a `forbid` fact states the opposite of its `require` twin, so the pair is never reported; facts linked only by superseded or deprecated requirements are history, not live duplicates; facts that differ in operator, such as the two bounds of a range, or in value, such as two requirements bounding the same property differently, are distinct claims that `domain-contradictions` and `domain-implication` compare). Each group is reported once, on its first fact id, with every fact id in the evidence. |
 | `subject-key-shape` | warning | Subject facts whose key is not dotted `component.aspect[.sub]` with lowercase snake segments (`kibi.cli.check.staged`), and `property_value` facts whose `property_key` numbers a clause (`clause_03_must_refresh_...`, `contract_clause_2`) instead of naming a property other requirements can share. |
 | `ontology-quality` | info | A predicate (namespace, name, arity) with at least `KIBI_ONTOLOGY_QUALITY_MIN_FACTS` facts (default 8) where the share of argument slots holding a value that occurs in only one fact is at least `KIBI_ONTOLOGY_QUALITY_MAX_SINGLETON_RATIO` (default 0.6): prose is being compressed into atoms. The message names each argument whose own singleton share reaches the threshold. Both variables are read from the invoking `kibi`/MCP process. |
 | `predicate-schema-conformance` | warning | A predicate fact with no `predicate_schema` for its namespace, name, and arity (project-local, or the built-in catalog in the `default` namespace), a fact using a value outside a declared argument vocabulary, or a schema whose `argument_constants`/`argument_aliases` are malformed. When the repair is mechanical, the finding carries it and `kibi migrate` offers it as an automatic action (see below). |
@@ -673,7 +694,8 @@ Verifies environment setup and diagnostics.
 - Validates `.kb/manifest.json` syntax
 - Recognizes leftover `.kb/config.json` and recommends `kibi migrate --yes`
 - Checks git repository presence
-- Verifies git hooks are installed and executable, reading them from the directory Git uses (`git rev-parse --git-path hooks`)
+- Checks the current branch's KB store ("Branch store"): it fails when `.kb/` holds authored sources but the store is missing or empty (journal sequence 0, nothing compiled), naming `kibi sync`; an incomplete or unreadable store points at `kibi branch recover`
+- Verifies git hooks are installed and executable, reading them from the directory Git uses (`git rev-parse --git-path hooks`). Missing hooks are a warning (`!`, `"warning": true` in JSON, counted in the top-level `warnings`), not a failure: without them a new branch is not compiled on checkout and commits skip `kibi check --staged`
 - Fails when an installed kibi-managed hook section differs from what the running CLI installs ("Kibi-managed hook sections"), for example a pre-commit hook written before the generated-manifest gate
 - Reports the engine daemon serving this workspace and branch ("Engine daemon"), without starting one: its package versions and SWI-Prolog from the daemon handshake. A daemon with other package versions than this CLI is reported, not failed; the next Kibi command stops and replaces it
 - Reports issues with remediation suggestions
@@ -691,7 +713,8 @@ artifacts are executing.
 **Common Issues Found:**
 - SWI-Prolog not found → Add the platform package it names, or see the [install guide](install.md#which-swi-prolog-kibi-uses)
 - `.kb/` missing → Run `kibi init`
-- Git hooks missing → Run `kibi init`
+- Git hooks missing (warning) → Run `kibi init`
+- Branch store not compiled → Run `kibi sync`
 - Git hooks use the legacy template without kibi CLI resolution → Run `kibi init` to regenerate them
 - Kibi-managed hook sections outdated for this CLI → Run `kibi init` to refresh them (hooks are shared by every worktree of the repository)
 - Config invalid → Check `.kb/manifest.json` syntax; leftover `.kb/config.json` is retired with `kibi migrate --yes`

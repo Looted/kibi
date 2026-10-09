@@ -82,6 +82,22 @@ If `kibi check` fails with `no-dangling-refs` violations:
    kibi check
    ```
 
+## New Branch Reports an Empty KB
+
+Kibi compiles one store per branch and never copies another branch's. A branch
+created without the `post-checkout` hook (or checked out before `kibi init`
+installed it) has no compiled store, so `kibi check` reports a single
+`branch-store-not-compiled` violation, `kibi status` reports the
+`branch_store_not_compiled` stale reason and `kibi doctor` fails its "Branch
+store" check. Compile the branch:
+
+```bash
+kibi sync
+```
+
+Run `kibi init` once to install the hooks so later branches compile on
+checkout.
+
 ## Git Hook Issues
 
 ### Hooks Not Installing

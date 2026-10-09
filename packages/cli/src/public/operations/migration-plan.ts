@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import * as path from "node:path";
+import { BRANCH_STORE_NOT_COMPILED } from "../../utils/branch-store.js";
 import { legacyConfigExists } from "../../utils/config.js";
 import { readKbManifestStatus } from "../../utils/kb-manifest.js";
 import {
@@ -744,8 +745,42 @@ export function buildActionsFromStatus(input: {
     );
   }
 
+  // implements REQ-cli-status-pre-first-sync
+  // A branch store that was never compiled while .kb/ holds authored sources
+  // is fixed only by compiling it: `kibi branch ensure` alone leaves an empty
+  // manifest. The compile step runs after the store exists and after any
+  // schema migration, so it compiles the migrated sources.
+  const uncompiled = (input.staleReasons ?? []).find(
+    (reason) => reason.code === BRANCH_STORE_NOT_COMPILED,
+  );
+  if (uncompiled !== undefined) {
+    actions.push(
+      migrationAction({
+        id: "branch-store-compile",
+        code: BRANCH_STORE_NOT_COMPILED,
+        category: "storage",
+        safety: "automatic",
+        invocation: { kind: "cli", command_argv: ["kibi", "sync"] },
+        affectedFiles: [
+          typeof store?.path === "string" ? store.path : ".kb/branches",
+        ],
+        evidence: { reason: uncompiled },
+        dependsOn: actions
+          .map((action) => action.id)
+          .filter(
+            (id) =>
+              id === "branch-store-ensure" || id === "schema-config-upgrade",
+          ),
+        postconditions: [{ branchStore: "compiled" }],
+        autoApplicable: true,
+      }),
+    );
+  }
+
   for (const reason of input.staleReasons ?? []) {
     const code = typeof reason.code === "string" ? reason.code : "stale_source";
+    // Planned above as an automatic compile step, not a review.
+    if (code === BRANCH_STORE_NOT_COMPILED) continue;
     const file = typeof reason.path === "string" ? reason.path : "";
     actions.push(
       migrationAction({

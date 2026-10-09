@@ -118,7 +118,7 @@ export function loadProofIntegrations(
   if (!existsSync(filePath)) {
     return {
       available: false,
-      error: `No proof integration configuration at ${PROOF_INTEGRATIONS_PATH}. Run bootstrap for this repository to configure proof producers.`,
+      error: `No proof integration configuration at ${PROOF_INTEGRATIONS_PATH}. Run kibi proof inspect --json and apply its integrationPlan with kb_apply_plan to configure one.`,
     };
   }
   let parsed: unknown;

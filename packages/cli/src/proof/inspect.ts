@@ -1,7 +1,15 @@
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 
-import { loadProofIntegrations } from "./integrations.js";
+import type { MigrationPlan } from "../public/operations/migration-plan.js";
+import {
+  type ProposedIntegration,
+  buildProofIntegrationPlan,
+} from "./integration-plan.js";
+import {
+  PROOF_INTEGRATIONS_PATH,
+  loadProofIntegrations,
+} from "./integrations.js";
 
 export type ProofInspection = Readonly<{
   languages: readonly string[];
@@ -11,6 +19,22 @@ export type ProofInspection = Readonly<{
   currentIntegration: string | null;
   recommendation: string;
   missing: readonly string[];
+  /** The integration Kibi proposes for the detected runner, if any. */
+  proposedIntegration: ProposedIntegration["integration"] | null;
+  /** What a proof-bearing test's proof_contract names for that integration. */
+  contractDefaults: ProposedIntegration["contractDefaults"] | null;
+  /**
+   * Hash-bound kibi.migration-plan.v2 that writes the integrations file;
+   * review it, then apply it with kb_apply_plan / `kibi apply-plan`.
+   */
+  integrationPlan: MigrationPlan | null;
+  /** Why there is no plan, or what applying it does. */
+  integrationPlanReason: string;
+}>;
+
+export type ProofInspectionOptions = Readonly<{
+  /** Plan a replacement of this existing integration id. */
+  update?: string;
 }>;
 
 type Detector = Readonly<{
@@ -183,7 +207,10 @@ function directoryExists(root: string, relative: string): boolean {
 }
 
 // implements REQ-kibi-verification-evidence-contract
-export function inspectProofEnvironment(root: string): ProofInspection {
+export function inspectProofEnvironment(
+  root: string,
+  options: ProofInspectionOptions = {},
+): ProofInspection {
   const languages = new Set<string>();
   const buildSystems = new Set<string>();
   const runners: string[] = [];
@@ -242,16 +269,24 @@ export function inspectProofEnvironment(root: string): ProofInspection {
     ? integrations.integrations.integrations.map((entry) => entry.id).join(", ")
     : null;
 
+  const planned = buildProofIntegrationPlan(root, options);
+  const applyHint =
+    "review integrationPlan, then apply it with kb_apply_plan (or `kibi apply-plan --input -`) passing plan, approvedPlanHash = plan.planHash and approvedActionIds";
   let recommendation: string;
-  if (!integrations.available) {
-    if (runners.length === 0) {
+  if (planned.plan !== null && options.update !== undefined) {
+    recommendation = `To replace integration '${options.update}', ${applyHint}.`;
+  } else if (!integrations.available) {
+    if (planned.plan === null) {
       recommendation =
         "No test harness detected. Proof integration is deferred until the first proof-bearing test introduces one; command proof can prove any command.";
-      missing.push(".kb/proof/integrations.json (created by bootstrap)");
+      missing.push(
+        `${PROOF_INTEGRATIONS_PATH} (written by applying the plan from kibi proof inspect --json)`,
+      );
     } else {
-      recommendation =
-        "Run bootstrap to configure proof integrations: native producers or standard-format adapters for detected runners, or command proof as the universal fallback.";
-      missing.push(".kb/proof/integrations.json (created by bootstrap)");
+      recommendation = `Kibi proposes a command integration for the detected runner. To configure it, ${applyHint}. Proof-bearing tests then name it in proof_contract.integration and kibi prove runs it.`;
+      missing.push(
+        `${PROOF_INTEGRATIONS_PATH} (written by applying integrationPlan)`,
+      );
     }
   } else {
     recommendation =
@@ -266,5 +301,9 @@ export function inspectProofEnvironment(root: string): ProofInspection {
     currentIntegration,
     recommendation,
     missing,
+    proposedIntegration: planned.proposal?.integration ?? null,
+    contractDefaults: planned.proposal?.contractDefaults ?? null,
+    integrationPlan: planned.plan,
+    integrationPlanReason: planned.reason,
   };
 }

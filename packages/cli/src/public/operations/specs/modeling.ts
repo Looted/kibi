@@ -78,7 +78,7 @@ export const modelRequirementSpec = {
       requirementId: {
         type: "string",
         description:
-          "Optional existing requirement ID to receive the requires_rule relationship.",
+          "Optional requirement ID. The strict write set updates this requirement instead of minting a REQ-AUTO id, and a typed logic rule attaches its requires_rule relationship to it.",
       },
       claimKey: {
         type: "string",
