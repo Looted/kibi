@@ -210,6 +210,13 @@ export type BindingContext = Readonly<{
    * "launcher" in "The launcher must ...").
    */
   text?: string | undefined;
+  /**
+   * The subject keys the requirement constrains. A participant argument
+   * (`actor`, `actor_scope`, `role`, `owner`) bound to one of them names no
+   * participant: the predicate fact already carries that key as its
+   * subject_key, so the binding would be vacuous.
+   */
+  constrainedSubjects?: readonly string[] | undefined;
 }>;
 
 function claimNames(text: string | undefined, token: string): boolean {
@@ -264,6 +271,45 @@ const NAMING_ARGUMENT_TYPES = new Set([
   "component",
 ]);
 
+/**
+ * Argument types that name who acts or owns. The requirement's subject key
+ * is what the claim is about, not a participant, so it never binds them.
+ */
+const PARTICIPANT_ARGUMENT_TYPES = new Set([
+  "actor",
+  "actor_scope",
+  "role",
+  "owner",
+]);
+
+/** Whether an argument type names a participant (who acts or owns). */
+// implements REQ-model-predicates-participant-not-subject
+export function isParticipantArgumentType(type: string | undefined): boolean {
+  return PARTICIPANT_ARGUMENT_TYPES.has(type ? bindingToken(type) : "");
+}
+
+/**
+ * Why a value bound to a participant argument is the requirement's subject
+ * key rather than a participant, or null. Explicit bindings are judged too:
+ * `actor = <subject key>` would complete a predicate whose actor says
+ * nothing the fact's subject_key does not already say.
+ */
+// implements REQ-model-predicates-participant-not-subject
+export function subjectKeyParticipantReason(
+  value: string,
+  context: BindingContext = {},
+): string | null {
+  if (!isParticipantArgumentType(context.argumentType)) return null;
+  if (matchesConstant(value, context)) return null;
+  const token = bindingToken(value);
+  if (token === "") return null;
+  const subject = (context.constrainedSubjects ?? []).find(
+    (key) => bindingToken(key) === token,
+  );
+  if (subject === undefined) return null;
+  return `"${value}" is the requirement's subject key ${subject}, which the predicate fact already carries as its subject_key, so it names no ${bindingToken(context.argumentType ?? "")}`;
+}
+
 /** The most words a value of a naming argument may have. */
 export const MAX_NAMING_BINDING_WORDS = 3;
 
@@ -288,7 +334,7 @@ export function clauseBindingReason(
   return `it is a ${words.length}-word clause of the claim, not a short name for this ${type}`;
 }
 
-// implements REQ-mcp-suggest-predicates, REQ-model-predicates-binding-placeholders, REQ-model-predicates-binding-clauses
+// implements REQ-mcp-suggest-predicates, REQ-model-predicates-binding-placeholders, REQ-model-predicates-binding-clauses, REQ-model-predicates-participant-not-subject
 export function classifyBinding(
   value: string,
   text: string,
@@ -300,6 +346,10 @@ export function classifyBinding(
   // A value that only repeats an argument name or a stop word is unbound
   // however it was supplied or extracted.
   if (nameOrStopWordReason(normalized, { ...context, text }) !== null)
+    return "placeholder";
+  // The subject key is what the claim is about; as an actor, role or owner
+  // it is a vacuous binding, explicit or not.
+  if (subjectKeyParticipantReason(normalized, context) !== null)
     return "placeholder";
   const constant = matchesConstant(normalized, context);
   if (canonical && (constant || !isGenericPlaceholder(normalized)))

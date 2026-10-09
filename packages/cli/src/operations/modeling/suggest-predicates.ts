@@ -675,11 +675,13 @@ async function storedRequirementProperties(
  * fact, retract the old grounding link, then link requires_predicate. The
  * order is forced: kb_upsert merges a requirement's relationships, so linking
  * first would give the claim two groundings and be rejected. Between the
- * retraction and the link the claim is ungrounded (kb_check reports
- * logic-coverage), so the steps run back to back and `rollback` restores the
- * old link if the last step fails.
+ * retraction and the link the claim is ungrounded and its subject fact is
+ * unpaired (kb_check reports logic-coverage and strict-req-fact-pairing for
+ * the requirement), so the steps run back to back; `expected` states those
+ * transient diagnostics and `rollback` restores the old link when kb_check
+ * after the last step is not clean.
  */
-// implements REQ-model-predicates-grounding-aware-v2, REQ-model-predicates-plan-roundtrip
+// implements REQ-model-predicates-grounding-aware-v2, REQ-model-predicates-plan-roundtrip, REQ-model-predicates-replacement-diagnostics
 function buildGroundingReplacementPlan(
   requirementId: string,
   factId: string,
@@ -699,8 +701,16 @@ function buildGroundingReplacementPlan(
     stored === null
       ? `add the requirement's stored title and status as properties (they could not be read), keep this relationship only`
       : "the properties restate the stored title, status and metadata; kb_upsert keeps the stored proposition ledger";
+  const transientRules = ["logic-coverage", "strict-req-fact-pairing"];
   return {
     relationshipTarget: factId,
+    expected: {
+      // kb_check findings for the requirement after each step, by rule name
+      // (violations carry `rule`, quality diagnostics `rule.<name>`).
+      kbCheckAfterStep: [[], transientRules, []],
+      kbCheckAfterLastStep: [],
+      rollbackWhen: "kb_check after the last step is not clean",
+    },
     steps: [
       {
         operation: "kb_upsert",
@@ -726,10 +736,9 @@ function buildGroundingReplacementPlan(
     rollback: {
       operation: "kb_upsert",
       input: requirementUpsert(existing.map((row) => row.relationship)),
-      reason:
-        "Only if the last step fails: restore the retracted grounding link so the claim is grounded again.",
+      reason: `Only if kb_check after the last step is not clean (it still reports ${transientRules.join(" or ")} for ${requirementId}, or the step failed): restore the retracted grounding link so the claim is grounded again.`,
     },
-    instructions: `Only replace the grounding when the predicate states the claim at least as precisely as ${existing.map((row) => row.factId).join(", ")}. Apply the steps unchanged, in order and back to back: linking requires_predicate before the retraction is rejected because the claim would have two groundings, and between the retraction and the link the claim is ungrounded, so kb_check reports logic-coverage for ${requirementId} until the last step lands. If the last step fails, apply rollback. Run kb_check after the last step.`,
+    instructions: `Only replace the grounding when the predicate states the claim at least as precisely as ${existing.map((row) => row.factId).join(", ")}. Apply the steps unchanged, in order and back to back: linking requires_predicate before the retraction is rejected because the claim would have two groundings, and between the retraction and the link the claim is ungrounded and its subject unpaired, so kb_check reports both ${transientRules.join(" and ")} for ${requirementId} until the last step lands (see expected.kbCheckAfterStep). Run kb_check after the last step; if it is not clean, apply rollback.`,
   };
 }
 

@@ -2,7 +2,9 @@ import {
   bindingCanBeApplied,
   clauseBindingReason,
   isGenericPlaceholder,
+  isParticipantArgumentType,
   nameOrStopWordReason,
+  subjectKeyParticipantReason,
 } from "./predicate-bindings.js";
 import type { BindingHint, PredicateSuggestion } from "./predicate-types.js";
 
@@ -31,14 +33,28 @@ function exampleArguments(example: string): string[] {
   return args.filter(Boolean);
 }
 
+/**
+ * What to do when the claim names no participant for an actor-like argument:
+ * the requirement's subject key is not a participant, and a schema whose
+ * actor the claim never names does not fit the claim.
+ */
+// implements REQ-model-predicates-participant-not-subject
+function noParticipantGuidance(type: string): string {
+  return `The claim names no ${type}. Bind the participant the claim names (a noun of at most 3 words), never the requirement's subject key; if the claim names no ${type}, this schema does not fit the claim: record_ontology_gap instead.`;
+}
+
+// implements REQ-model-predicates-participant-not-subject
 function unboundReason(
   candidate: PredicateSuggestion,
   name: string,
   value: string,
   text: string,
+  requirementSubjects: readonly string[],
 ): string {
   const schema = candidate.schema;
   const provenance = candidate.binding_provenance_by_argument[name];
+  const type = schema.argument_types[schema.argument_names.indexOf(name)];
+  const participant = isParticipantArgumentType(type);
   const nameReason = nameOrStopWordReason(value, {
     argumentName: name,
     argumentNames: schema.argument_names,
@@ -47,14 +63,25 @@ function unboundReason(
   });
   if (nameReason !== null)
     return `The value "${value}" is not a binding: ${nameReason}.`;
+  const subjectReason = subjectKeyParticipantReason(value, {
+    argumentType: type,
+    constants: schema.argument_constants?.[name],
+    constrainedSubjects: requirementSubjects,
+  });
+  if (subjectReason !== null)
+    return `The value "${value}" is not a binding: ${subjectReason}. ${noParticipantGuidance(String(type))}`;
   const clauseReason = clauseBindingReason(value, {
-    argumentType: schema.argument_types[schema.argument_names.indexOf(name)],
+    argumentType: type,
     constants: schema.argument_constants?.[name],
   });
   if (clauseReason !== null)
-    return `The value "${value}" is not a binding: ${clauseReason}. Bind a noun of at most 3 words, or the requirement's subject key.`;
+    return participant
+      ? `The value "${value}" is not a binding: ${clauseReason}. Bind a noun of at most 3 words. ${noParticipantGuidance(String(type))}`
+      : `The value "${value}" is not a binding: ${clauseReason}. Bind a noun of at most 3 words, or the requirement's subject key.`;
   if (!value.trim() || isGenericPlaceholder(value))
-    return "The claim text names no value for this argument.";
+    return participant
+      ? noParticipantGuidance(String(type))
+      : "The claim text names no value for this argument.";
   if (provenance === "inferred")
     return `The value "${value}" was inferred and does not appear in the claim text; confirm it or pass the exact value.`;
   if (schema.argument_constants?.[name])
@@ -68,7 +95,7 @@ function unboundReason(
  * current value was not accepted, so the agent binds from the claim text
  * instead of guessing.
  */
-// implements REQ-model-predicates-binding-placeholders, REQ-model-predicates-requirement-subject-v2, REQ-model-predicates-binding-clauses
+// implements REQ-model-predicates-binding-placeholders, REQ-model-predicates-requirement-subject-v2, REQ-model-predicates-binding-clauses, REQ-model-predicates-participant-not-subject
 export function buildBindingHints(
   candidate: PredicateSuggestion,
   text: string,
@@ -97,17 +124,17 @@ export function buildBindingHints(
     const exampleValues = parsedExamples
       .map((args) => args[position])
       .filter((value): value is string => typeof value === "string");
-    // The subject keys the requirement already constrains come first, so
-    // the predicate and the subject fact use one identifier for the subject.
+    // The subject keys the requirement already constrains come first for
+    // the subject argument, and for an entity argument of a schema without
+    // one, so the predicate and the subject fact use one identifier for the
+    // subject. A participant argument (actor, role, owner) never gets them:
+    // the subject is what the claim is about, not who acts on it.
+    const offersSubjects =
+      name === "subject" ||
+      (!namesSubject && schema.argument_types[position] === "entity");
     const examples = Array.from(
       new Set([
-        ...(name === "subject" ||
-        (!namesSubject &&
-          clauseBindingReason(candidate.predicate_args[position] ?? "", {
-            argumentType: schema.argument_types[position],
-          }) !== null)
-          ? requirementSubjects
-          : []),
+        ...(offersSubjects ? requirementSubjects : []),
         ...(constants ?? []),
         ...exampleValues,
       ]),
@@ -131,7 +158,7 @@ export function buildBindingHints(
           candidate.binding_provenance_by_argument[name] ?? "placeholder",
         )
           ? `The value "${current}" is not a subject the requirement constrains (${requirementSubjects.join(", ")}), so kb_check would not pair the predicate with the subject fact. Bind one of them.`
-          : unboundReason(candidate, name, current, text),
+          : unboundReason(candidate, name, current, text, requirementSubjects),
     };
   });
 }

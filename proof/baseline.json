@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 188,
-  "proofProven": 188,
+  "currentRequirements": 191,
+  "proofProven": 191,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -942,6 +942,21 @@
       "uncoveredSymbols": []
     },
     "REQ-engine-daemon-package-versions": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-bootstrap-provenance-stubs": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-model-predicates-participant-not-subject": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-model-predicates-replacement-diagnostics": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []

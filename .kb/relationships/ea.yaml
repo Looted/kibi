@@ -153,3 +153,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e60dc86dc953
+  - type: validates
+    from: TEST-model-predicates-participant-not-subject
+    to: SCEN-model-predicates-participant-not-subject
+    created_at: 2026-10-09T07:21:44.965Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-851ee2b1c6f2

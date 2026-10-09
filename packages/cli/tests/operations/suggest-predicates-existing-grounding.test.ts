@@ -118,7 +118,9 @@ describe("kb_model predicates on an already grounded requirement", () => {
       tags: ["editor", "autosave"],
     });
     const rollback = (
-      data.replacementPlan as { rollback: { input: Record<string, unknown> } }
+      data.replacementPlan as {
+        rollback: { input: Record<string, unknown>; reason: string };
+      }
     ).rollback;
     expect(rollback.input).toEqual({
       type: "req",
@@ -136,7 +138,23 @@ describe("kb_model predicates on an already grounded requirement", () => {
       (data.replacementPlan as { instructions: string }).instructions,
     );
     expect(instructions).toContain("in order and back to back");
-    expect(instructions).toContain("logic-coverage");
+    // Between the retraction and the link the claim is ungrounded and its
+    // subject fact unpaired: both transient diagnostics are named, and the
+    // rollback condition is a kb_check that is not clean after the last step.
+    expect(instructions).toContain(
+      "kb_check reports both logic-coverage and strict-req-fact-pairing for REQ-editor-autosave until the last step lands",
+    );
+    expect(instructions).toContain(
+      "Run kb_check after the last step; if it is not clean, apply rollback.",
+    );
+    expect((data.replacementPlan as { expected: unknown }).expected).toEqual({
+      kbCheckAfterStep: [[], ["logic-coverage", "strict-req-fact-pairing"], []],
+      kbCheckAfterLastStep: [],
+      rollbackWhen: "kb_check after the last step is not clean",
+    });
+    expect(rollback.reason).toContain(
+      "Only if kb_check after the last step is not clean",
+    );
     expect(data.warnings.join(" ")).toContain("proposition-complete");
     expect(data.warnings.join(" ")).toContain("follow replacementPlan");
     expect(data.recommendedPredicateSchema).toBeNull();

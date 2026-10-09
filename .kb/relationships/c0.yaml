@@ -216,3 +216,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bb8bcc39e333
+  - type: constrains
+    from: REQ-bootstrap-provenance-stubs
+    to: FACT-bootstrap-provenance-stubs-subject
+    created_at: 2026-10-09T07:23:17.047Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1e96fcf8d42a
+  - type: requires_property
+    from: REQ-bootstrap-provenance-stubs
+    to: FACT-bootstrap-provenance-stubs-meta-tagged
+    created_at: 2026-10-09T07:23:17.080Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f736659e9dc3
+  - type: requires_property
+    from: REQ-bootstrap-provenance-stubs
+    to: FACT-bootstrap-provenance-stubs-selected-last
+    created_at: 2026-10-09T07:23:17.099Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aa42fa3f8e07
+  - type: requires_property
+    from: REQ-bootstrap-provenance-stubs
+    to: FACT-bootstrap-provenance-stubs-reported-separately
+    created_at: 2026-10-09T07:23:17.120Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-65e5982d7ac4
+  - type: requires_property
+    from: REQ-bootstrap-provenance-stubs
+    to: FACT-bootstrap-provenance-stubs-search-ranked-last
+    created_at: 2026-10-09T07:23:17.132Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5a8c974435db
+  - type: requires_property
+    from: REQ-bootstrap-provenance-stubs
+    to: FACT-bootstrap-provenance-stubs-answer-excludes
+    created_at: 2026-10-09T07:23:17.142Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-41d212e482d0
+  - type: requires_property
+    from: REQ-bootstrap-provenance-stubs
+    to: FACT-bootstrap-provenance-stubs-not-counted
+    created_at: 2026-10-09T07:23:17.158Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-057b8cb8df94
+  - type: relates_to
+    from: REQ-bootstrap-provenance-stubs
+    to: REQ-bootstrap-discovered-candidate-budget
+    created_at: 2026-10-09T07:23:17.171Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6432a2afad55
+  - type: specified_by
+    from: REQ-bootstrap-provenance-stubs
+    to: SCEN-bootstrap-provenance-stubs
+    created_at: 2026-10-09T07:23:17.193Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b9cc52eeac77
+  - type: verified_by
+    from: REQ-bootstrap-provenance-stubs
+    to: TEST-bootstrap-provenance-stubs
+    created_at: 2026-10-09T07:23:17.206Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7944639eecd2

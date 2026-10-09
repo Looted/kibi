@@ -461,6 +461,7 @@ matching_gap_row(TypeFilter, MissingRelationships, PresentRelationships, Tags, S
     kb_entity(Id, Type, Props),
     matches_type(TypeFilter, Type),
     matches_tags(Tags, Props),
+    \+ hidden_provenance_stub(Tags, Type, Props),
     matches_source(SourceFilter, Props),
     relationships_missing(Id, MissingRelationships),
     relationships_present(Id, PresentRelationships),
@@ -476,6 +477,22 @@ matching_gap_row(TypeFilter, MissingRelationships, PresentRelationships, Tags, S
         relationshipCounts: Counts,
         source: Source
     }.
+
+%% provenance_stub_props(+Type, +Props)
+% A bootstrap provider fact that records only where an entry came from
+% (tagged bootstrap:provenance-stub). It is not knowledge: gap rows and
+% type coverage counts leave it out unless the caller asks for the tag.
+% implements REQ-bootstrap-provenance-stubs
+provenance_stub_props(fact, Props) :-
+    memberchk(tags=Tags, Props),
+    is_list(Tags),
+    member(Tag, Tags),
+    kb:normalize_term_atom(Tag, 'bootstrap:provenance-stub'),
+    !.
+
+hidden_provenance_stub(RequestedTags, Type, Props) :-
+    \+ memberchk('bootstrap:provenance-stub', RequestedTags),
+    provenance_stub_props(Type, Props).
 
 relationships_missing(_Id, []).
 relationships_missing(Id, [Relationship|Rest]) :-
@@ -537,7 +554,8 @@ coverage_rows(type, _Tags, _IncludePassing, _IncludeTransitive, _VerificationSna
         Pairs),
     maplist(type_pair_row, Pairs, Rows),
     length(Rows, Total),
-    Summary = _{total: Total}.
+    aggregate_all(count, provenance_stub_entity(_), StubCount),
+    Summary = _{total: Total, provenanceStubs: StubCount}.
 
 coverage_rows(req, Tags, IncludePassing, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, Rows, Summary) :-
     !,
@@ -890,9 +908,15 @@ must_priority(Priority) :-
     downcase_atom(Priority, Lowercase),
     sub_atom(Lowercase, _, 4, 0, must).
 
+% Provenance stubs are counted apart (summary.provenanceStubs), never as facts.
+% implements REQ-bootstrap-provenance-stubs
 type_entity_count(Type, Count) :-
-    setof(Id, Props^kb_entity(Id, Type, Props), Ids),
+    setof(Id, Props^(kb_entity(Id, Type, Props), \+ provenance_stub_props(Type, Props)), Ids),
     length(Ids, Count).
+
+provenance_stub_entity(Id) :-
+    kb_entity(Id, fact, Props),
+    provenance_stub_props(fact, Props).
 
 type_pair_row(Type-Count, _{id: Type, type: Type, count: Count}).
 

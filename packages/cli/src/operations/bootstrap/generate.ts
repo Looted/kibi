@@ -9,7 +9,10 @@ import {
   type SemanticRelationship,
   stagedLogicalGroundingError,
 } from "../semantic-advisor/ingestion-boundary.js";
-import { buildBootstrapCandidates } from "./candidates.js";
+import {
+  buildBootstrapCandidates,
+  isProvenanceStubCandidate,
+} from "./candidates.js";
 import { discoverBootstrap } from "./discovery.js";
 import { buildIntentClaimCandidates } from "./intent-claims.js";
 import { normalizeBootstrapContext, presentBootstrap } from "./presentation.js";
@@ -59,7 +62,7 @@ function sha256(value: string): string {
   return createHash("sha256").update(value).digest("hex");
 }
 
-// implements REQ-bootstrap-write-safety, REQ-bootstrap-intent-claim-accounting, REQ-bootstrap-discovered-candidate-budget
+// implements REQ-bootstrap-write-safety, REQ-bootstrap-intent-claim-accounting, REQ-bootstrap-discovered-candidate-budget, REQ-bootstrap-provenance-stubs
 export function selectBootstrapCandidates(
   input: readonly Candidate[],
   existingIds: ReadonlySet<string>,
@@ -79,7 +82,9 @@ export function selectBootstrapCandidates(
       ["typed_markdown", "generic_markdown"].includes(candidate.sourceKind)
     )
       return 1;
-    return 2;
+    // Provenance stubs state no claim, so they take the budget last: a
+    // candidate with a claim is never suppressed as over_limit by a stub.
+    return isProvenanceStubCandidate(candidate) ? 3 : 2;
   };
   const suppressed: Readonly<Record<string, unknown>>[] = [];
   const sourceOnlySignals: SourceOnlySignal[] = [];
@@ -162,11 +167,20 @@ export function selectBootstrapCandidates(
   const candidates: Candidate[] = [];
   let discoveredCount = 0;
   let overLimit = 0;
+  let overLimitStubs = 0;
   for (const candidate of selected.values()) {
     const discovered = candidate.sourceKind !== "intent_claim";
     if (discovered && discoveredCount >= maximum) {
-      suppress(candidate, "over_limit");
+      const stub = isProvenanceStubCandidate(candidate);
+      suppressed.push({
+        candidateId: candidate.candidateId,
+        reason: "over_limit",
+        sourcePath: candidate.sourcePath,
+        entityType: candidate.entityType,
+        provenanceStub: stub,
+      });
       overLimit += 1;
+      if (stub) overLimitStubs += 1;
       continue;
     }
     // Two candidates that write one entity ID with different content would
@@ -203,7 +217,7 @@ export function selectBootstrapCandidates(
   }
   if (overLimit > 0)
     diagnostics.push(
-      `${overLimit} discovered candidate(s) exceeded maxCandidates ${maximum} and are suppressed as over_limit; declared intent claims do not count against it.`,
+      `${overLimit} discovered candidate(s) exceeded maxCandidates ${maximum} and are suppressed as over_limit, ${overLimitStubs} of them provenance stubs that state no claim (raise the limit only for the ${overLimit - overLimitStubs} with a claim); declared intent claims do not count against it.`,
     );
   return {
     candidates,

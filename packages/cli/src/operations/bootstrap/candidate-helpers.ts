@@ -113,6 +113,15 @@ export function provenanceBody(title: string, provenance: string): string {
 }
 
 /**
+ * Body for a provenance stub: the title, the provenance, and a sentence that
+ * says the entry is a stub so a reader never mistakes it for a claim.
+ */
+// implements REQ-bootstrap-provenance-stubs
+export function provenanceStubBody(title: string, provenance: string): string {
+  return `${title.trim()}\n\n${provenance} This entry is a provenance stub: the provider found the source but no claim about it, so it is tagged bootstrap:provenance-stub, ranked after every other search match and not counted as knowledge by gap or coverage reports.\n`;
+}
+
+/**
  * Body for a requirement found in prose: the statement, the provenance as
  * its Context and the quoted statement with its location as its Source.
  */

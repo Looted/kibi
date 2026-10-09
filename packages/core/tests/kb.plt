@@ -4782,6 +4782,42 @@ test(relationship_count_counts_both_directions, [setup(setup_kb), cleanup(cleanu
 
 :- end_tests(discovery_aggregate_counts).
 
+:- begin_tests(discovery_provenance_stubs).
+
+% implements REQ-bootstrap-provenance-stubs
+test(gap_rows_skip_provenance_stubs_unless_the_tag_is_requested, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(fact, 'FACT-GEN-SOURCE-SYMBOLS-SRC-STUB-TS', "Source module: stub", active,
+        [fact_kind=meta, tags=['bootstrap:provenance-stub']]),
+    assert_fixture_entity(fact, 'FACT-STUB-NOTE', "Uploads retry three times", active,
+        [fact_kind=observation, tags=[uploads]]),
+    discovery:find_gaps_json(fact, [], [], [], none, 100, 0, JsonString),
+    atom_json_dict(JsonString, Json, []),
+    findall(Id, (member(Row, Json.rows), get_dict(id, Row, Id)), Ids),
+    assertion(Ids == ["FACT-STUB-NOTE"]),
+    assertion(Json.count == 1),
+    discovery:find_gaps_json(fact, [], [], ['bootstrap:provenance-stub'], none, 100, 0, TaggedJsonString),
+    atom_json_dict(TaggedJsonString, TaggedJson, []),
+    findall(Id, (member(Row, TaggedJson.rows), get_dict(id, Row, Id)), TaggedIds),
+    assertion(TaggedIds == ["FACT-GEN-SOURCE-SYMBOLS-SRC-STUB-TS"]).
+
+% implements REQ-bootstrap-provenance-stubs
+test(type_coverage_counts_provenance_stubs_apart_from_facts, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(fact, 'FACT-GEN-SOURCE-SYMBOLS-SRC-STUB-TS', "Source module: stub", active,
+        [fact_kind=meta, tags=['bootstrap:provenance-stub']]),
+    assert_fixture_entity(fact, 'FACT-GEN-REPO-LAYOUT-SRC', "Repository layout: src directory", active,
+        [fact_kind=meta, tags=['bootstrap:provenance-stub']]),
+    assert_fixture_entity(fact, 'FACT-STUB-NOTE', "Uploads retry three times", active,
+        [fact_kind=observation, tags=[uploads]]),
+    assert_fixture_entity(req, 'REQ-STUB-UPLOAD', "Uploads retry", open, []),
+    coverage_report_json(type, [], true, true, 100, 0, JsonString),
+    atom_json_dict(JsonString, Json, []),
+    member(FactRow, Json.rows),
+    FactRow.get(type) == "fact",
+    assertion(FactRow.get(count) == 1),
+    assertion(Json.summary.get(provenanceStubs) == 2).
+
+:- end_tests(discovery_provenance_stubs).
+
 :- begin_tests(discovery_search_answer_verdicts).
 
 search_answer_verdict_for(ReqId, Verdict, Scope) :-
