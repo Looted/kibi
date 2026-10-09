@@ -705,13 +705,22 @@ unique_evidence_by_test(Evidence0, Evidence) :-
     sort(TestIds0, TestIds),
     maplist(first_evidence_for_test(Evidence0), TestIds, Evidence).
 
+% A test shared by scenarios with different accepted scopes keeps its receipt
+% state from any scenario that accepts its scope, independent of scenario order.
+% implements REQ-ui-pattern-component-proof
+first_evidence_for_test(Evidence, TestId, Item) :-
+    member(Item, Evidence),
+    Item.testId == TestId,
+    Item.state \== not_end_to_end,
+    !.
 first_evidence_for_test(Evidence, TestId, Item) :-
     member(Item, Evidence),
     Item.testId == TestId,
     !.
 
 scenario_passing_e2e_obligation(Context, TestObligation, Obligation) :-
-    maplist(test_receipt_evidence(Context), TestObligation.tests, Evidence),
+    scenario_accepted_scopes(TestObligation.scenarioId, AcceptedScopes),
+    maplist(test_receipt_evidence(Context, AcceptedScopes), TestObligation.tests, Evidence),
     include(e2e_evidence, Evidence, E2eEvidence),
     include(non_e2e_evidence, Evidence, NonEndToEndEvidence),
     evidence_tests_with_state(E2eEvidence, passed, PassingE2eTests),
@@ -734,6 +743,7 @@ scenario_passing_e2e_obligation(Context, TestObligation, Obligation) :-
         scenarioTestTargets: TestObligation.scenarioTestTargets,
         invalidScenarioTestTargets: TestObligation.invalidScenarioTestTargets,
         tests: TestObligation.tests,
+        acceptedScopes: AcceptedScopes,
         e2eTests: E2eTests,
         nonEndToEndTests: NonEndToEndTests,
         evidence: Evidence,
@@ -746,6 +756,42 @@ scenario_passing_e2e_obligation(Context, TestObligation, Obligation) :-
         contractMismatchReceiptTests: ContractMismatchReceiptTests,
         snapshotUnavailableTests: SnapshotUnavailableTests
     }.
+
+%% scenario_accepted_scopes(+ScenarioId, -Scopes)
+% End-to-end evidence proves every scenario. A scenario whose specifying
+% requirements are all grounded only in component-scope UI pattern predicates
+% may also be proven by a unit or integration test that renders the component
+% in isolation, with the same receipt rules (valid, fresh, passing).
+% implements REQ-ui-pattern-component-proof
+scenario_accepted_scopes(ScenarioId, [unit, integration, end_to_end]) :-
+    component_scope_scenario(ScenarioId),
+    !.
+scenario_accepted_scopes(_ScenarioId, [end_to_end]).
+
+%% component_scope_predicate(?Name)
+% Built-in UI pattern predicates a component rendered in isolation can prove:
+% the pattern, its markers and variant parity are visible in the rendered
+% markup. Layout claims (ui_container, visual_layout_rule) depend on real
+% rendering and keep the end-to-end requirement.
+component_scope_predicate(ui_pattern).
+component_scope_predicate(same_pattern).
+component_scope_predicate(pattern_marker).
+
+component_scope_scenario(ScenarioId) :-
+    findall(ReqId, kb_relationship(specified_by, ReqId, ScenarioId), ReqIds0),
+    sort(ReqIds0, ReqIds),
+    ReqIds \= [],
+    forall(member(ReqId, ReqIds), component_scope_requirement(ReqId)).
+
+component_scope_requirement(ReqId) :-
+    findall(FactId, kb_relationship(requires_predicate, ReqId, FactId), FactIds),
+    FactIds \= [],
+    forall(member(FactId, FactIds),
+        (   predicate_fact(FactId, _Namespace, Name, _Args, _Polarity),
+            component_scope_predicate(Name)
+        )),
+    \+ kb_relationship(requires_property, ReqId, _),
+    \+ kb_relationship(requires_rule, ReqId, _).
 
 e2e_evidence(Item) :- Item.state \= not_end_to_end.
 non_e2e_evidence(Item) :- Item.state == not_end_to_end.
@@ -799,9 +845,15 @@ evidence_tests_with_state(Evidence, State, TestIds) :-
     sort(TestIds0, TestIds).
 
 test_receipt_evidence(Context, TestId, Evidence) :-
+    test_receipt_evidence(Context, [end_to_end], TestId, Evidence).
+
+% implements REQ-ui-pattern-component-proof
+% AcceptedScopes lists the verification scopes whose receipts count for the
+% scenario. Tests outside them keep the nonblocking not_end_to_end state.
+test_receipt_evidence(Context, AcceptedScopes, TestId, Evidence) :-
     kb_entity(TestId, test, Props),
     test_scope(Props, Scope),
-    (   Scope \= end_to_end
+    (   \+ memberchk(Scope, AcceptedScopes)
     ->  Evidence = _{testId: TestId, state: not_end_to_end, scope: Scope}
     ;   Context.proofSnapshot == unknown
     ->  Evidence = _{testId: TestId, state: snapshot_unavailable, scope: Scope}
@@ -1216,7 +1268,7 @@ type_shape_symbol_with_structural_contract(SymbolId) :-
     memberchk(Status, [active, passing]).
 
 % Stage status plus a typed reason, from a single total clause so status and
-% reason can never disagree (the Align stale-receipts case reported `blocked`
+% reason can never disagree (a test project's stale-receipts case reported `blocked`
 % with no indication that fresh receipts were the unblock). Clause order keeps
 % the historical precedence: no production symbols at all is `missing` even
 % when E2E evidence is also absent; only then does absent E2E evidence read

@@ -78,10 +78,27 @@ pass):
 | `contradictions` | No other current requirement contradicts this one over shared facts. Check completeness itself is visible. | `passed`, `blocked`, `unresolved` |
 | `scenarios` | At least one scenario specifies the requirement (`specified_by`). | `passed`, `missing` |
 | `scenarioTests` | Each scenario is validated by at least one test (`verified_by`/`validates`). | `passed`, `missing` |
-| `passingE2E` | Every linked scenario has at least one end-to-end test, and every linked E2E proof-bearing test carries a valid, fresh, passing `kibi.proof-receipt.v1` bound to the current snapshot, contract hash, and fingerprint. Per-scenario results are exposed in `scenarioObligations`; unit/integration-only ancillary tests remain nonblocking. | `passed`, `missing`, `unresolved` |
+| `passingE2E` | Every linked scenario has at least one end-to-end test, and every linked E2E proof-bearing test carries a valid, fresh, passing `kibi.proof-receipt.v1` bound to the current snapshot, contract hash, and fingerprint. Per-scenario results are exposed in `scenarioObligations`, each with the `acceptedScopes` it allows; unit/integration-only ancillary tests remain nonblocking. A UI pattern scenario also accepts component tests (see [Component-scope proof](#component-scope-proof-for-ui-patterns)). | `passed`, `missing`, `unresolved` |
 | `executableSymbols` | Each qualifying E2E test is linked to executable test code via `executable_for`. | `passed`, `missing` |
 | `productionSymbols` | Production symbols implementing the requirement are covered by those passing E2E tests (`covered_by`). Additive `explanations[]` (still `kibi.requirement-proof.v3`) give each symbol a rollup reason and per-candidate primary plus optional secondary rejection codes. | `passed`, `missing`, `blocked` |
 | `sourceCoordinates` | The requirement source and all linked symbols carry exact published coordinates. | `passed`, `missing`, `blocked` |
+
+### Component-scope proof for UI patterns
+
+A scenario whose specifying requirements are all grounded only in the built-in UI pattern
+predicates (`ui_pattern`, `same_pattern`, `pattern_marker`, each linked with
+`requires_predicate`, and no `requires_property` or `requires_rule`) accepts tests with
+`verification_scope` `unit` or `integration` as well as `end_to_end`. Such a test still
+needs a valid, fresh, passing receipt, `executable_for` code, and `covered_by` links for the
+production symbols it proves. Its obligation reports
+`acceptedScopes: [unit, integration, end_to_end]`; every other scenario reports
+`[end_to_end]`.
+
+The reason is cost, not leniency: a pattern ("this list is a line-and-dots timeline in
+both variants") is fully observable by rendering one component in isolation, so demanding a
+browser test per pattern would make E2E suites heavy for no extra evidence. The moment the
+requirement also carries a layout fact such as `ui_container`, a strict property or a logic
+rule, the scenario goes back to end-to-end proof. See [ui-requirements.md](./ui-requirements.md).
 
 ### Stage statuses, precisely
 

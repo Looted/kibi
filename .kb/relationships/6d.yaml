@@ -321,3 +321,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-762bdd5e7d2a
+  - type: implements
+    from: SYM-plugin-ui-kibiplugin
+    to: REQ-ui-plugin-design-policy
+    created_at: 2026-10-09T12:13:57.560Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3f9ebf0437b7
+  - type: covered_by
+    from: SYM-plugin-ui-kibiplugin
+    to: TEST-ui-plugin-design-policy
+    created_at: 2026-10-09T12:13:57.577Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b0b8600cda60

@@ -300,3 +300,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3961cf3ff724
+  - type: constrains
+    from: REQ-ui-pattern-component-proof
+    to: FACT-requirement-proof-component-scope-subject
+    created_at: 2026-10-09T12:13:35.281Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cc980cebdd00
+  - type: requires_property
+    from: REQ-ui-pattern-component-proof
+    to: FACT-requirement-proof-component-tests-prove-patterns
+    created_at: 2026-10-09T12:13:35.328Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cb9918afa814
+  - type: requires_property
+    from: REQ-ui-pattern-component-proof
+    to: FACT-requirement-proof-other-scenarios-end-to-end
+    created_at: 2026-10-09T12:13:35.341Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-57117b7ef8e4
+  - type: specified_by
+    from: REQ-ui-pattern-component-proof
+    to: SCEN-ui-pattern-component-proof
+    created_at: 2026-10-09T12:13:35.351Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d8d32a434eb8

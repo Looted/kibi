@@ -5,3 +5,4 @@ export * from "./capabilities/semantic-classifier.js";
 export * from "./capabilities/ontology-pack.js";
 export * from "./capabilities/symbol-extractor.js";
 export * from "./capabilities/vocabulary-alignment.js";
+export * from "./capabilities/check-policy.js";

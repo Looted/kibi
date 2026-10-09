@@ -251,3 +251,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-dea324086dfc
+  - type: constrains
+    from: REQ-ui-plugin-design-policy
+    to: FACT-ui-plugin-design-policy-subject
+    created_at: 2026-10-09T12:13:47.958Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-af48ebaa6047
+  - type: requires_property
+    from: REQ-ui-plugin-design-policy
+    to: FACT-ui-plugin-requires-design-ownership
+    created_at: 2026-10-09T12:13:47.992Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e998adf51e1d
+  - type: requires_property
+    from: REQ-ui-plugin-design-policy
+    to: FACT-ui-plugin-requires-pattern-markers
+    created_at: 2026-10-09T12:13:48.008Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-df6ecb608f00
+  - type: requires_property
+    from: REQ-ui-plugin-design-policy
+    to: FACT-ui-plugin-declares-no-permissions
+    created_at: 2026-10-09T12:13:48.017Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-067ebad6ac0e
+  - type: specified_by
+    from: REQ-ui-plugin-design-policy
+    to: SCEN-ui-plugin-design-policy
+    created_at: 2026-10-09T12:13:48.026Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8e96a02e2a70

@@ -1,0 +1,50 @@
+{
+  "name": "kibi-plugin-ui",
+  "version": "0.0.0",
+  "description": "Experimental Kibi check policy that keeps UI components on their agreed design patterns",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./check-policy.json": "./check-policy.json"
+  },
+  "files": ["dist", "check-policy.json", "CHANGELOG.md", "README.md"],
+  "kibi": {
+    "checkPolicy": "check-policy.json"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "bun test --timeout 15000 .",
+    "prepack": "npm run build && node ../../scripts/verify-package-contract.mjs kibi-plugin-ui"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "AGPL-3.0-or-later",
+  "author": "Piotr Franczyk",
+  "homepage": "https://looted.github.io/kibi/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Looted/kibi.git",
+    "directory": "packages/plugin-ui"
+  },
+  "bugs": {
+    "url": "https://github.com/Looted/kibi/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": ["kibi", "kibi-plugin", "design-system", "ui"],
+  "dependencies": {
+    "kibi-plugin-sdk": "^0.4.1"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "typescript": "^5.7.0"
+  }
+}

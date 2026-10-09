@@ -17,7 +17,11 @@
 */
 
 import { createRequire } from "node:module";
-import { KIBI_PLUGIN_API_VERSION, defineKibiPlugin } from "kibi-plugin-sdk";
+import {
+  CHECK_POLICY_CONTRACT_VERSION,
+  KIBI_PLUGIN_API_VERSION,
+  defineKibiPlugin,
+} from "kibi-plugin-sdk";
 import { createBuiltinOntologyPack } from "./ontology/builtin-ontology-pack.js";
 import { createBuiltinSemanticClassifier } from "./semantic/builtin-classifier.js";
 import {
@@ -126,6 +130,15 @@ export const kibiPlugin = defineKibiPlugin({
     symbolExtractor: createBuiltinTsMorphSymbolExtractor(),
     symbolExtractorV2: createBuiltinTsMorphSymbolExtractorV2(),
     vocabularyAlignment: createBuiltinVocabularyAlignment(),
+    // Kibi's own rules live in core; the builtin adds no check policy.
+    checkPolicy: {
+      id: "kibi-plugin-builtin.check-policy",
+      document: {
+        contractVersion: CHECK_POLICY_CONTRACT_VERSION,
+        id: "builtin",
+        title: "Builtin (no additional rules)",
+      },
+    },
   },
 });
 

@@ -60,6 +60,7 @@ export function writePackedInstallManifest(
     ...(options.includeCompleteInventory
       ? {
           "kibi-plugin-jev": `file:${tarballs["plugin-jev"]}`,
+          "kibi-plugin-ui": `file:${tarballs["plugin-ui"]}`,
           "kibi-plugin-treesitter": `file:${tarballs["plugin-treesitter"]}`,
         }
       : {}),
