@@ -6243,6 +6243,34 @@ test(subject_key_identity_reports_one_claim_minted_as_several_facts, [setup(setu
     assertion(Evidence.operator == eq),
     assertion(sub_string(Description, _, _, _, "so one claim is minted as several facts")).
 
+test(subject_key_identity_keeps_opposite_polarity_facts_apart, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    sq_subject_fact('FACT-SUBJ-UPLOAD', "web.upload"),
+    % Same subject, property, operator and value: one requires, one forbids.
+    sq_property_fact('FACT-UPLOAD-EXE-REQUIRE', "web.upload", accepts_executable, eq, bool, true, ''),
+    sq_property_fact('FACT-UPLOAD-EXE-FORBID', "web.upload", accepts_executable, eq, bool, true, '', [polarity=forbid]),
+    check_subject_key_identity(NoViolations),
+    assertion(NoViolations == []),
+    % An explicit require is the same claim as an absent polarity.
+    sq_property_fact('FACT-UPLOAD-EXE-REQUIRE-2', "web.upload", accepts_executable, eq, bool, true, '', [polarity=require]),
+    check_subject_key_identity(Violations),
+    Violations = [violation('subject-key-identity', 'FACT-UPLOAD-EXE-REQUIRE', Description, _, _, Evidence)],
+    assertion(Evidence.facts == ['FACT-UPLOAD-EXE-REQUIRE', 'FACT-UPLOAD-EXE-REQUIRE-2']),
+    assertion(Evidence.polarity == require),
+    assertion(sub_string(Description, _, _, _, "polarity require")).
+
+test(subject_key_identity_ignores_facts_linked_only_by_superseded_requirements, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    sq_subject_fact('FACT-SUBJ-RETRY', "http.retry"),
+    sq_property_fact('FACT-RETRY-V1', "http.retry", max_attempts, lte, int, 3, ''),
+    sq_property_fact('FACT-RETRY-V2', "http.retry", max_attempts, lte, int, 3, ''),
+    sq_strict_req('REQ-http-retry', 'FACT-SUBJ-RETRY', 'FACT-RETRY-V1'),
+    sq_strict_req('REQ-http-retry-v2', 'FACT-SUBJ-RETRY', 'FACT-RETRY-V2'),
+    check_subject_key_identity(Before),
+    assertion(Before = [violation('subject-key-identity', 'FACT-RETRY-V1', _, _, _, _)]),
+    % Once v2 supersedes v1, the v1 fact is history, not a live duplicate.
+    kb_assert_relationship(supersedes, 'REQ-http-retry-v2', 'REQ-http-retry', []),
+    check_subject_key_identity(After),
+    assertion(After == []).
+
 test(subject_key_shape_reports_clause_numbered_property_keys, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     sq_subject_fact('FACT-SUBJ-ATTACH', "mcp.branch_attachment"),
     sq_property_fact('FACT-PROP-CLAUSE', "mcp.branch_attachment", clause_01_mcp_must_refresh, eq, bool, true, ''),
@@ -6299,6 +6327,9 @@ sq_subject_fact(Id, SubjectKey) :-
     ]).
 
 sq_property_fact(Id, SubjectKey, PropertyKey0, Operator, ValueType, Value, Unit0) :-
+    sq_property_fact(Id, SubjectKey, PropertyKey0, Operator, ValueType, Value, Unit0, []).
+
+sq_property_fact(Id, SubjectKey, PropertyKey0, Operator, ValueType, Value, Unit0, ExtraFields) :-
     atom_string(PropertyKey0, PropertyKey),
     sq_value_field(ValueType, Value, ValueField),
     (   Unit0 == ''
@@ -6319,7 +6350,8 @@ sq_property_fact(Id, SubjectKey, PropertyKey0, Operator, ValueType, Value, Unit0
         operator=Operator,
         value_type=ValueType,
         ValueField
-    ], UnitFields, Props),
+    ], UnitFields, Props0),
+    append(Props0, ExtraFields, Props),
     kb_assert_entity(fact, Props).
 
 sq_value_field(int, Value, value_int=Value).
