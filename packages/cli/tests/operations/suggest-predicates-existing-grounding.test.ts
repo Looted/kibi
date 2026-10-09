@@ -3,9 +3,11 @@ import { describe, expect, test } from "bun:test";
 import { handleKbSuggestPredicates } from "../../src/operations/modeling/suggest-predicates.js";
 import { semanticClaimKey } from "../../src/operations/semantic-advisor/clauses.js";
 import type {
+  OperationContext,
   PrologPort,
   PrologQueryResult,
 } from "../../src/public/operations/runtime-types.js";
+import { modelSpec } from "../../src/public/operations/specs/composite.js";
 
 const TEXT =
   "The editor must save changes automatically when the user navigates away.";
@@ -375,6 +377,47 @@ describe("kb_model predicates pair the predicate with the requirement's subject 
     });
   });
 
+  test("for a requirement not written yet, subjectHint is the planned subject of a schema without a subject argument", async () => {
+    const result = await handleKbSuggestPredicates(groundedKb(null, []), {
+      ...PERMISSION_ARGS,
+      requirementId: "REQ-pages-archive-guest-delete",
+      subjectHint: "pages.archive",
+    });
+    const data = result.structuredContent;
+    expect(data.recommendedAction).toBe("apply_requires_predicate");
+    expect(data.candidates[0]).toMatchObject({
+      predicate_name: "permission_rule",
+      predicate_args: ["guest", "delete", "archived_pages", "deny"],
+      binding_status: "complete",
+      subject_key: "pages.archive",
+      subject_pairing: "paired",
+    });
+    // The planned fact carries the hint as its subject_key, so once the
+    // requirement constrains the pages.archive subject fact, kb_check pairs
+    // the two instead of reporting strict-req-fact-pairing.
+    expect(data.applyPlan[0]?.properties).toMatchObject({
+      fact_kind: "predicate",
+      subject_key: "pages.archive",
+    });
+  });
+
+  test("for a requirement that constrains nothing, subjectHint binds and pairs the subject argument", async () => {
+    const result = await handleKbSuggestPredicates(groundedKb(null, []), {
+      ...ARGS,
+      subjectHint: "editor.autosave",
+    });
+    const data = result.structuredContent;
+    const [candidate] = data.candidates;
+    expect(candidate?.subject_key).toBe("editor.autosave");
+    expect(candidate?.subject_pairing).toBe("paired");
+    expect(candidate?.predicate_args).toContain("editor.autosave");
+    expect(candidate?.predicate_args).not.toContain("requirement.subject");
+    expect(data.recommendedAction).toBe("apply_requires_predicate");
+    expect(data.applyPlan[0]?.properties).toMatchObject({
+      subject_key: "editor.autosave",
+    });
+  });
+
   test("a free-text claim with no requirement keeps its plan without a subject_key", async () => {
     const result = await handleKbSuggestPredicates(null, {
       text: PERMISSION,
@@ -385,5 +428,71 @@ describe("kb_model predicates pair the predicate with the requirement's subject 
     expect(data.recommendedAction).toBe("apply_requires_predicate");
     expect(data.candidates[0]?.subject_pairing).toBe("not_required");
     expect(data.applyPlan[0]?.properties).not.toHaveProperty("subject_key");
+  });
+});
+
+describe("kb_model names a parameter that belongs to another mode", () => {
+  function context(prolog?: PrologPort): OperationContext {
+    return {
+      workspaceRoot: process.cwd(),
+      signal: new AbortController().signal,
+      clock: () => new Date(0),
+      ...(prolog ? { prolog } : {}),
+    };
+  }
+
+  test("subjectKey in mode predicates is reported, with subjectHint as the parameter to use", async () => {
+    const result = await modelSpec.execute(
+      {
+        mode: "predicates",
+        text: "Guests must not delete archived pages.",
+        subjectKey: "pages.archive",
+        includeExistingSchemas: false,
+        maxCandidates: 1,
+      },
+      context(groundedKb(null, [])),
+    );
+    const data = result.structuredContent as { warnings: string[] };
+    expect(data.warnings).toContain(
+      "subjectKey is a mode: requirement argument; mode: predicates ignored it. Use subjectHint in mode: predicates.",
+    );
+    expect(result.content.map((item) => item.text).join("\n")).toContain(
+      "subjectKey is a mode: requirement argument",
+    );
+  });
+
+  test("subjectHint in mode requirement is reported as a typed warning naming subjectKey", async () => {
+    const result = await modelSpec.execute(
+      {
+        mode: "requirement",
+        text: "Archived pages must be retained for 30 days.",
+        subjectHint: "pages.archive",
+      },
+      context(),
+    );
+    const data = result.structuredContent as {
+      warnings: Array<{ kind: string; message: string; nextAction: string }>;
+    };
+    expect(data.warnings).toContainEqual({
+      kind: "parameter_ignored",
+      message:
+        "subjectHint is a mode: predicates argument; mode: requirement ignored it.",
+      nextAction: "Use subjectKey in mode: requirement.",
+    });
+  });
+
+  test("the mode's own parameters produce no warning", async () => {
+    const result = await modelSpec.execute(
+      {
+        mode: "predicates",
+        text: "Guests must not delete archived pages.",
+        subjectHint: "pages.archive",
+        includeExistingSchemas: false,
+        maxCandidates: 1,
+      },
+      context(groundedKb(null, [])),
+    );
+    const data = result.structuredContent as { warnings: string[] };
+    expect(data.warnings.join(" ")).not.toContain("ignored it");
   });
 });
