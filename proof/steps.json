@@ -2329,5 +2329,55 @@
         "./packages/cli/tests/engine-runtime-identity.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-bootstrap-provenance-stubs",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/operations/bootstrap-provenance-stubs.test.ts",
+        "./packages/cli/tests/search-provenance-stubs.test.ts"
+      ],
+      [
+        "swipl",
+        "-q",
+        "-s",
+        "packages/core/tests/kb.plt",
+        "-g",
+        "run_tests(discovery_provenance_stubs)",
+        "-t",
+        "halt"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-model-predicates-participant-not-subject",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/operations/predicate-participant-subject.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-model-predicates-replacement-diagnostics",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "300000",
+        "--isolate",
+        "--max-concurrency=1",
+        "./packages/cli/tests/operations/suggest-predicates-existing-grounding.test.ts",
+        "./packages/mcp/tests/predicate-plan-roundtrip.test.ts"
+      ]
+    ]
   }
 ]

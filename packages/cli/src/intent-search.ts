@@ -2,6 +2,7 @@ import path from "node:path";
 
 import { bodySnippetLine } from "./entity-body-context.js";
 import { escapeAtom, normalizeEntityId, parseTriples } from "./prolog/codec.js";
+import { isProvenanceStub } from "./provenance-stub.js";
 import {
   type VALID_ENTITY_TYPES,
   listSearchCandidates,
@@ -201,6 +202,9 @@ const NON_GOVERNING_STATUSES = new Set([
   "archived",
 ]);
 const NON_GOVERNING_FACTOR = 0.5;
+// A bootstrap provenance stub states no claim: it is demoted and, whatever
+// its score, sorted after every match that is not a stub.
+const PROVENANCE_STUB_FACTOR = 0.25;
 const AMBIGUOUS_MARGIN = 0.05;
 
 const MAX_CANDIDATES = 10_000;
@@ -426,6 +430,7 @@ function scoreEntity(
   documentCount: number,
   body: string | null,
   superseded = false,
+  provenanceStub = false,
 ): { score: number; reasons: string[]; matchedFacets: string[] } {
   const {
     title: titleTokens,
@@ -496,10 +501,13 @@ function scoreEntity(
         facetScore * 0.17 +
         sourceScore * 0.2 +
         graphScore * 0.05,
-    ) * (nonGoverning ? NON_GOVERNING_FACTOR : 1);
+    ) *
+    (nonGoverning ? NON_GOVERNING_FACTOR : 1) *
+    (provenanceStub ? PROVENANCE_STUB_FACTOR : 1);
   const reasons: string[] = [];
   if (nonGoverning)
     reasons.push(superseded ? "demoted: superseded" : `demoted: ${status}`);
+  if (provenanceStub) reasons.push("demoted: provenance stub");
   if (lexicalScore > 0) reasons.push("intent token match");
   if (matchedFacets.length > 0) reasons.push("semantic facet match");
   if (sourceEvidence.length > 0) reasons.push("source location match");
@@ -558,7 +566,7 @@ async function readBodies(
   );
 }
 
-// implements REQ-kibi-intent-aware-source-discovery
+// implements REQ-kibi-intent-aware-source-discovery, REQ-bootstrap-provenance-stubs
 export async function rankIntentEntities(
   entities: readonly Record<string, unknown>[],
   options: IntentSearchOptions,
@@ -615,6 +623,7 @@ export async function rankIntentEntities(
       entities.length,
       body,
       supersededIds.has(entityId),
+      isProvenanceStub(entity),
     );
     if (scored.score < minScore) continue;
     const snippet =
@@ -638,6 +647,10 @@ export async function rankIntentEntities(
     });
   }
   ranked.sort((left, right) => {
+    const stubOrder =
+      Number(isProvenanceStub(left.entity)) -
+      Number(isProvenanceStub(right.entity));
+    if (stubOrder !== 0) return stubOrder;
     if (right.score !== left.score) return right.score - left.score;
     const typeOrder = String(left.entity.type ?? "").localeCompare(
       String(right.entity.type ?? ""),

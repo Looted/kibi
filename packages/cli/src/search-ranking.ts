@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { bodySnippetLine } from "./entity-body-context.js";
+import { isProvenanceStub } from "./provenance-stub.js";
 
 export interface SearchMatch {
   entity: Record<string, unknown>;
@@ -54,7 +55,7 @@ const SEARCH_STOP_WORDS = new Set([
   "not",
 ]);
 
-// implements REQ-mcp-search-discovery, REQ-002, REQ-003
+// implements REQ-mcp-search-discovery, REQ-002, REQ-003, REQ-bootstrap-provenance-stubs
 export async function rankEntities(
   entities: Record<string, unknown>[],
   query: string,
@@ -70,11 +71,18 @@ export async function rankEntities(
   for (const entity of entities) {
     const match = await rankEntity(entity, queryContext, workspaceRoot);
     if (match) {
+      if (isProvenanceStub(entity))
+        match.reasons.push("demoted: provenance stub");
       matches.push(match);
     }
   }
 
   matches.sort((left, right) => {
+    // A provenance stub states no claim and sorts after every other match.
+    const stubOrder =
+      Number(isProvenanceStub(left.entity)) -
+      Number(isProvenanceStub(right.entity));
+    if (stubOrder !== 0) return stubOrder;
     if (right.score !== left.score) {
       return right.score - left.score;
     }

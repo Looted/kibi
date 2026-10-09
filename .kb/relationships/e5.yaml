@@ -230,3 +230,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f4db9fadadab
+  - type: covered_by
+    from: SYM-model-predicates-suggest-buildgroundingreplacementplan
+    to: TEST-model-predicates-replacement-diagnostics
+    created_at: 2026-10-09T07:31:30.251Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cff0d9b80b63
+  - type: implements
+    from: SYM-model-predicates-suggest-buildgroundingreplacementplan
+    to: REQ-model-predicates-replacement-diagnostics
+    created_at: 2026-10-09T07:31:30.257Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-375b6ac825b8

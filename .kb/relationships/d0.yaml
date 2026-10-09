@@ -237,3 +237,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-97982c494c5f
+  - type: constrains
+    from: REQ-model-predicates-participant-not-subject
+    to: FACT-SUBJ-PREDICATE-SUGGESTION-PLAN
+    created_at: 2026-10-09T07:23:35.049Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bf66e241204e
+  - type: requires_property
+    from: REQ-model-predicates-participant-not-subject
+    to: FACT-model-predicates-participant-not-subject-unbound
+    created_at: 2026-10-09T07:23:35.060Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-14fcdf868da1
+  - type: requires_property
+    from: REQ-model-predicates-participant-not-subject
+    to: FACT-model-predicates-participant-not-subject-hint-scope
+    created_at: 2026-10-09T07:23:35.074Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b9106eb68403
+  - type: requires_property
+    from: REQ-model-predicates-participant-not-subject
+    to: FACT-model-predicates-participant-not-subject-no-participant
+    created_at: 2026-10-09T07:23:35.085Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e7a2cc2eb4f1
+  - type: relates_to
+    from: REQ-model-predicates-participant-not-subject
+    to: REQ-model-predicates-binding-clauses
+    created_at: 2026-10-09T07:23:35.095Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ade73e286652
+  - type: specified_by
+    from: REQ-model-predicates-participant-not-subject
+    to: SCEN-model-predicates-participant-not-subject
+    created_at: 2026-10-09T07:23:35.105Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5ea0da8ee929
+  - type: verified_by
+    from: REQ-model-predicates-participant-not-subject
+    to: TEST-model-predicates-participant-not-subject
+    created_at: 2026-10-09T07:23:35.121Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-81b15d24df05

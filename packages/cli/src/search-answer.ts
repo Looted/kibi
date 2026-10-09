@@ -6,6 +6,7 @@ import {
   parseListOfLists,
   parseTriples,
 } from "./prolog/codec.js";
+import { isProvenanceStub } from "./provenance-stub.js";
 import { entityRowsGoal } from "./public/operations/discovery-entities.js";
 import { runOperationJsonQuery } from "./public/operations/prolog-json.js";
 import type {
@@ -655,6 +656,7 @@ async function fetchVerdicts(
   }
 }
 
+// implements REQ-bootstrap-provenance-stubs
 export async function buildSearchAnswer(
   prolog: Pick<PrologPort, "query">,
   matches: readonly IntentSearchMatch[],
@@ -702,6 +704,10 @@ export async function buildSearchAnswer(
       continue;
     }
     if (type === "fact") {
+      // A bootstrap provenance stub records only where an entry came from;
+      // it is not a note about the topic. The tag sits on the search row
+      // (the projected row carries no tags).
+      if (isProvenanceStub(match.entity)) continue;
       const kind = text(entity.fact_kind);
       if (kind === "observation" || kind === "meta") {
         observations.push(brief(entity));

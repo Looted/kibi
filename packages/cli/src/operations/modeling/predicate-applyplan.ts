@@ -5,6 +5,7 @@ import {
   bindingCanBeApplied,
   classifyBinding,
   isGenericPlaceholder,
+  isParticipantArgumentType,
 } from "./predicate-bindings.js";
 import { inferArgs } from "./predicate-inference.js";
 import { schemaForCandidate } from "./predicate-loader.js";
@@ -22,7 +23,7 @@ import {
   predicateArgumentConformance,
 } from "./predicate-vocabulary.js";
 
-// implements REQ-mcp-suggest-predicates, REQ-model-predicates-requirement-subject-v2, REQ-model-predicates-binding-clauses
+// implements REQ-mcp-suggest-predicates, REQ-model-predicates-requirement-subject-v2, REQ-model-predicates-binding-clauses, REQ-model-predicates-participant-not-subject
 export function buildSuggestion(
   schema: PredicateSchemaCandidate,
   text: string,
@@ -97,14 +98,18 @@ export function buildSuggestion(
   );
   // A schema without a `subject` argument may still lead with the hinted
   // subject (inference put it there): that value is the agent's reviewed
-  // value, even when the schema names its first argument after it.
+  // value, even when the schema names its first argument after it. A
+  // participant argument (actor, role, owner) is the exception: the subject
+  // is what the claim is about, never who acts on it.
   const hintedFirstArgument =
     explicitSubject &&
     subjectArgument < 0 &&
     !hasExactBinding(schema.argument_names[0] ?? "") &&
-    predicateArgs[0] === subject
+    predicateArgs[0] === subject &&
+    !isParticipantArgumentType(schema.argument_types[0])
       ? 0
       : -1;
+  const constrainedSubjects = diagnostics?.constrainedSubjects ?? [];
   const bindingProvenanceByArgument = Object.fromEntries(
     schema.argument_names.map((name, index) => [
       name,
@@ -130,6 +135,7 @@ export function buildSuggestion(
                   argumentNames: schema.argument_names,
                   argumentType: schema.argument_types[index],
                   constants: schema.argument_constants?.[name],
+                  constrainedSubjects,
                 },
           ),
     ]),
@@ -137,7 +143,6 @@ export function buildSuggestion(
   // The subject the planned predicate fact is about, when the requirement
   // constrains subjects: the `subject` argument's value, or for a schema
   // without one the reviewed subject, recorded as the fact's subject_key.
-  const constrainedSubjects = diagnostics?.constrainedSubjects ?? [];
   const subjectKey =
     constrainedSubjects.length === 0
       ? null

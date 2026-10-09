@@ -4,7 +4,7 @@ description: Use Kibi's source-first, exact-Git, migration-aware, proof-aware op
 license: AGPL-3.0-or-later
 metadata:
   id: kibi-usage
-  version: 2.9.0
+  version: 2.10.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -266,7 +266,11 @@ subject. A schema without a `subject` argument (`permission_rule`) records
 that key as the planned fact's `subject_key` instead; when the requirement
 constrains several subjects, an unbound `subject_key` asks you to pass
 `subjectHint` with one of them. A participant (`actor`, `resource`, entity)
-is a short noun, never a clause of the claim. Bind them
+is a short noun, never a clause of the claim, and an `actor`, `role` or
+`owner` is never the requirement's subject key: the planned fact already
+carries that key as `subject_key`, so `actor = <subject key>` stays unbound
+with a reason. If the claim names no actor, the schema does not fit the
+claim: record the ontology gap instead of inventing a participant. Bind them
 from the claim's own words and call again with the same `text` and
 `requirementId`, plus `schemaId` and `argumentBindings` keyed by
 `argument_names` (reuse `argument_constants` values when the schema has them).
@@ -285,9 +289,10 @@ grounds the claim (for example a bootstrap `requires_property` fact); the action
 still names the predicate state. `replace_grounding` means a predicate fits but
 a second grounding link would fail, so keep the existing link or apply the
 `replacementPlan` steps unchanged, in order and back to back (predicate fact,
-`kb_delete` of the old link, requirement link; `kb_check` reports
-`logic-coverage` only between the last two; on a failed last step apply
-`rollback`); `provide_argument_bindings` and `record_ontology_gap` mean
+`kb_delete` of the old link, requirement link; between the last two `kb_check`
+reports both `logic-coverage` and `strict-req-fact-pairing` for the
+requirement, as `expected.kbCheckAfterStep` states; run `kb_check` after the
+last step and apply `rollback` if it is not clean); `provide_argument_bindings` and `record_ontology_gap` mean
 the same as for an ungrounded claim, and the gap observation is not a grounding
 link, so write it exactly as returned (tags, `claim_text`, `document.body`, no
 `claim_key`, no relationships). Record an ontology gap only when no returned schema fits the

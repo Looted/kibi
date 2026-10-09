@@ -220,6 +220,12 @@ export type DiscoverySummary = {
   readonly excludedRoots: readonly string[];
   readonly truncated: boolean;
   readonly scanWarnings: readonly string[];
+  /** Planned discovered or declared candidates that state a claim. */
+  readonly candidatesWithClaims?: number;
+  /** Planned provider facts that only record provenance (no claim). */
+  readonly provenanceStubs?: number;
+  /** Provenance stubs suppressed as over_limit; no reason to raise the cap. */
+  readonly suppressedProvenanceStubs?: number;
 };
 
 export type DiscoveryResult = {

@@ -273,6 +273,11 @@ describe("kb_model predicate plans apply through the MCP server unchanged", () =
     const replacement = suggestion.replacementPlan as {
       relationshipTarget: string;
       steps: Array<{ operation: string; input: Json }>;
+      expected: {
+        kbCheckAfterStep: string[][];
+        kbCheckAfterLastStep: string[];
+        rollbackWhen: string;
+      };
     };
     expect(replacement.steps.map((step) => step.operation)).toEqual([
       "kb_upsert",
@@ -281,18 +286,39 @@ describe("kb_model predicate plans apply through the MCP server unchanged", () =
     ]);
     const factId = replacement.relationshipTarget;
     const before = await entity(client, requirementId);
+    // Findings the requirement carries before the swap (advisory lifecycle
+    // notes) are not transient diagnostics of the plan.
+    const standing = new Set(
+      findingsFor(await client.ok("kb_check", {}), requirementId),
+    );
 
     // When each step is applied unchanged, in order; the claim is
-    // ungrounded only between the retraction and the new link.
-    const ruleAfterStep: string[][] = [];
+    // ungrounded and its subject unpaired only between the retraction and
+    // the new link, exactly as the plan's `expected` diagnostics state.
+    const findingsAfterStep: string[][] = [];
     for (const step of replacement.steps) {
       const result = await client.call(step.operation, step.input);
       expect(result.isError).not.toBe(true);
-      ruleAfterStep.push(
-        violationsFor(await client.ok("kb_check", {}), requirementId),
+      findingsAfterStep.push(
+        [
+          ...new Set(
+            findingsFor(await client.ok("kb_check", {}), requirementId),
+          ),
+        ]
+          .filter((rule) => !standing.has(rule))
+          .sort(),
       );
     }
-    expect(ruleAfterStep).toEqual([[], ["logic-coverage"], []]);
+    expect(findingsAfterStep).toEqual([
+      [],
+      ["logic-coverage", "strict-req-fact-pairing"],
+      [],
+    ]);
+    expect(replacement.expected).toEqual({
+      kbCheckAfterStep: findingsAfterStep,
+      kbCheckAfterLastStep: [],
+      rollbackWhen: "kb_check after the last step is not clean",
+    });
 
     // Then the requirement grounds its claim through the predicate only and
     // keeps its stored title, status and tags.

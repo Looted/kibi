@@ -51034,3 +51034,104 @@ symbols:
         target: TEST-engine-daemon-package-versions
       - type: implements
         target: REQ-engine-daemon-package-versions
+  - id: SYM-test-bootstrap-provenance-stubs
+    title: Bootstrap provenance stub suite
+    status: active
+    sourceFile: packages/cli/tests/operations/bootstrap-provenance-stubs.test.ts
+    granularity_reason: test-suite
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-09T07:22:09.434Z
+    relationships:
+      - type: executable_for
+        target: TEST-bootstrap-provenance-stubs
+  - id: SYM-test-search-provenance-stubs
+    title: Search provenance stub suite
+    status: active
+    sourceFile: packages/cli/tests/search-provenance-stubs.test.ts
+    granularity_reason: test-suite
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-09T07:22:16.911Z
+    relationships:
+      - type: executable_for
+        target: TEST-bootstrap-provenance-stubs
+  - id: SYM-test-model-predicates-participant-not-subject
+    title: Predicate participant subject key suite
+    status: active
+    sourceFile: packages/cli/tests/operations/predicate-participant-subject.test.ts
+    granularity_reason: test-suite
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-09T07:22:22.223Z
+    relationships:
+      - type: executable_for
+        target: TEST-model-predicates-participant-not-subject
+  - id: SYM-test-model-predicates-replacement-diagnostics
+    title: Predicate plan round-trip suite (replacement diagnostics)
+    status: active
+    sourceFile: packages/mcp/tests/predicate-plan-roundtrip.test.ts
+    granularity_reason: test-suite
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-09T07:22:26.903Z
+    relationships:
+      - type: executable_for
+        target: TEST-model-predicates-replacement-diagnostics
+  - id: SYM-provenance-stub-isprovenancestub
+    title: isProvenanceStub
+    status: active
+    sourceFile: packages/cli/src/provenance-stub.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-09T07:31:05.061Z
+    relationships:
+      - type: covered_by
+        target: TEST-bootstrap-provenance-stubs
+      - type: implements
+        target: REQ-bootstrap-provenance-stubs
+  - id: SYM-bootstrap-candidates-providerclaim
+    title: providerClaim
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/candidates.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-09T07:31:10.236Z
+    relationships:
+      - type: covered_by
+        target: TEST-bootstrap-provenance-stubs
+      - type: implements
+        target: REQ-bootstrap-provenance-stubs
+  - id: SYM-model-predicates-bindings-subjectkeyparticipantreason
+    title: subjectKeyParticipantReason
+    status: active
+    sourceFile: packages/cli/src/operations/modeling/predicate-bindings.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-09T07:31:15.510Z
+    relationships:
+      - type: covered_by
+        target: TEST-model-predicates-participant-not-subject
+      - type: implements
+        target: REQ-model-predicates-participant-not-subject
+  - id: SYM-model-predicates-suggest-buildgroundingreplacementplan
+    title: buildGroundingReplacementPlan
+    status: active
+    sourceFile: packages/cli/src/operations/modeling/suggest-predicates.ts
+    granularity_reason: extractor-miss
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-09T07:31:29.292Z
+    relationships:
+      - type: covered_by
+        target: TEST-model-predicates-replacement-diagnostics
+      - type: implements
+        target: REQ-model-predicates-replacement-diagnostics

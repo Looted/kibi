@@ -314,3 +314,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bb467a6b7552
+  - type: executable_for
+    from: SYM-test-search-provenance-stubs
+    to: TEST-bootstrap-provenance-stubs
+    created_at: 2026-10-09T07:22:17.975Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-183ea0b8658c
