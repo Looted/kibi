@@ -16837,7 +16837,7 @@ coordinates:
     sourceLine: 27
   SYM-mcp-release-package-metadata:
     identityHash: 240336405ff91215ab2edd07d6f820210720d29abbb8cb1622c6097a330b8fa9
-    sourceHash: 873684df2e4c513b2b3f9b34661b1529ebba812bb04a76606954744f50344cd3
+    sourceHash: 73d13a99bdcac0bf1c49057bf321bd7761882e88ac835f5ac0213a5d0ce44258
     sourceColumn: 0
     sourceEndColumn: 0
     sourceEndLine: 57
@@ -16845,7 +16845,7 @@ coordinates:
     sourceLine: 1
   SYM-mcp-release-registry-metadata:
     identityHash: 243381a6fc622289060ae9fc50ab65b559c478b15c309c3e7e4cf730e442d06a
-    sourceHash: e4876fb87b2f9dcc0908a80a5a9caee99b57ef1dbebe2b79a7d9b63777cb4bfa
+    sourceHash: 84609af7153101f6204d1941bf737cedc61d72a671b226265ef7e7294899d568
     sourceColumn: 0
     sourceEndColumn: 0
     sourceEndLine: 21
@@ -23589,7 +23589,7 @@ coordinates:
     sourceLine: 254
   SYM-runtime-packed-daemon-build:
     identityHash: 0b663b050962de77e0604feaa0dd61916f1e00fcc990f11723d8321a0b856ede
-    sourceHash: c4d24b32fb8d5711663811125b040515786d27a37b14502059a8b316a624d7f4
+    sourceHash: e0e3a9600e57cea522f3bd6e9328991146dc6664e4e3a99e62c6762ce24017ef
     sourceColumn: 0
     sourceEndColumn: 0
     sourceEndLine: 43
@@ -32405,7 +32405,7 @@ coordinates:
     sourceLine: 161
   SYM-source-analysis-v2-qualifiedsourceanalyzers:
     identityHash: 961e6b9ac12f4abfcb555c93e6609590e7fbc2e6f0146830c8e25db86527637b
-    sourceHash: 0eefb64be2089857890a5cdb27d093fa643ea34876449c581be594184faf34f1
+    sourceHash: 84d4dbaaa61e2fa274a974023be2af1c402929d653153620df405c80393602f4
     sourceColumn: 13
     sourceEndColumn: 10
     sourceEndLine: 135
@@ -35653,7 +35653,7 @@ coordinates:
     sourceLine: 1
   SYM-zcode-mcp-registration-config:
     identityHash: a49902dfe1abb97958a5441b1232d9235135aea24308be1265c4be0c751661e5
-    sourceHash: 8ec773051a21e04610cce8ce3ee7f8df31325c4a681f3dc8e926d45015b177ff
+    sourceHash: e91f433c652cb9abfec5267c301752c301f95d7d7b7c7baacb781a224edd4a55
     sourceColumn: 0
     sourceEndColumn: 0
     sourceEndLine: 22
