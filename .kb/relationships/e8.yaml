@@ -349,3 +349,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f7ab37b78325
+  - type: verified_by
+    from: SCEN-bootstrap-provenance-stubs
+    to: TEST-bootstrap-provenance-stubs
+    created_at: 2026-10-09T07:22:01.606Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a9c447a0a1d0

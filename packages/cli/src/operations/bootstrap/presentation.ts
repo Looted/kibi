@@ -1,3 +1,4 @@
+import { isProvenanceStubCandidate } from "./candidates.js";
 import { buildGuidance } from "./guidance.js";
 import type {
   ActivationPolicy,
@@ -214,7 +215,7 @@ function claimAccounting(
   });
 }
 
-// implements REQ-KIBI-BOOTSTRAP-PLAN, REQ-bootstrap-discovered-candidate-budget
+// implements REQ-KIBI-BOOTSTRAP-PLAN, REQ-bootstrap-discovered-candidate-budget, REQ-bootstrap-provenance-stubs
 export function presentBootstrap(input: {
   readonly root: string;
   readonly activation: ActivationPolicy;
@@ -261,9 +262,25 @@ export function presentBootstrap(input: {
     suppressedTotal > 0
       ? ` Suppressed ${suppressedTotal} candidate(s) by reason: ${suppression.map((row) => `${row.reason} ${row.count}`).join(", ")}.`
       : "";
-  const limitSummary = suppression.some((row) => row.reason === "over_limit")
-    ? " Discovered candidates over maxCandidates are over_limit; raise the limit or narrow entityTypes. Declared intent claims do not count against it."
-    : "";
+  // Stubs are counted apart from candidates with a claim so nobody raises
+  // maxCandidates to admit entries that state nothing.
+  const provenanceStubs = input.candidates.filter(isProvenanceStubCandidate);
+  const overLimitRows = input.suppressedCandidates.filter(
+    (row) => row.reason === "over_limit",
+  );
+  const overLimitStubs = overLimitRows.filter(
+    (row) => row.provenanceStub === true,
+  ).length;
+  const limitSummary =
+    overLimitRows.length > 0
+      ? ` Discovered candidates over maxCandidates are over_limit (${overLimitStubs} of ${overLimitRows.length} are provenance stubs that state no claim); raise the limit only for the ${overLimitRows.length - overLimitStubs} with a claim, or narrow entityTypes. Declared intent claims do not count against it.`
+      : "";
+  const discoverySummary: DiscoverySummary = {
+    ...input.discoverySummary,
+    candidatesWithClaims: input.candidates.length - provenanceStubs.length,
+    provenanceStubs: provenanceStubs.length,
+    suppressedProvenanceStubs: overLimitStubs,
+  };
   const tldr =
     (confidenceLevel === "low" && !input.activation.applyBlocked
       ? `Low-confidence bootstrap (${String(guidance.confidence.score)}): review diagnostics before proceeding. ${baseTldr}`
@@ -390,7 +407,7 @@ export function presentBootstrap(input: {
     declaredContext,
     contextQuestions: contextQuestions.slice(0, 4),
     confidence: guidance.confidence,
-    discoverySummary: input.discoverySummary,
+    discoverySummary,
     candidates: input.candidates,
     actions,
     sourceWrites: [],
@@ -423,7 +440,7 @@ export function presentBootstrap(input: {
     promptBlock: guidance.promptBlock,
     recommendedActions: guidance.actions,
     declaredContext,
-    discoverySummary: input.discoverySummary,
+    discoverySummary,
     candidates: input.candidates,
     actions,
     sourceWrites: [],

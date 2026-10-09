@@ -7,7 +7,7 @@ Use this one-page guide when deciding how to model knowledge through peer MCP to
 1. **Starting from raw normative prose?** Call `kb_model` with `mode: "analyze"` and the complete body. Audit its clause split and supply `clauses` when needed so every atomic obligation, prohibition, exception, condition, and threshold has a stable claim key.
 2. **About to write/update a normative requirement?** Run `kb_upsert` with `dryRun: true` first and inspect `semanticAdvisor`. If it reports `needs_modeling`, repair the payload before treating the requirement as Prolog-checkable.
 3. **Runtime/config gate?** Use `flag`, then link with `guards`.
-4. **Bug, incident, workaround, audit note, or migration evidence?** Use `fact` with `fact_kind: observation` or `fact_kind: meta`.
+4. **Bug, incident, workaround, audit note, or migration evidence?** Use `fact` with `fact_kind: observation` or `fact_kind: meta`. A bootstrap provider entry with no claim is a `meta` fact tagged `bootstrap:provenance-stub`; never add such a tag to a fact that states something, and never treat a stub as evidence for a requirement.
 5. **For each normative property/value/limit clause?** Use a requirement plus strict facts:
    - `fact_kind: subject` with `subject_key`, linked from the requirement by `constrains`.
    - `fact_kind: property_value` with `subject_key`, `property_key`, `operator`, `value_type`, and exactly one `value_*`, linked by `requires_property`.

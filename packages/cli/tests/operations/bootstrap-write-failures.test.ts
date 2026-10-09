@@ -143,7 +143,7 @@ describe("bootstrap write safety and evidence accounting", () => {
       ),
     ).toHaveLength(2);
     expect(result.diagnostics).toContain(
-      "50 discovered candidate(s) exceeded maxCandidates 50 and are suppressed as over_limit; declared intent claims do not count against it.",
+      "50 discovered candidate(s) exceeded maxCandidates 50 and are suppressed as over_limit, 0 of them provenance stubs that state no claim (raise the limit only for the 50 with a claim); declared intent claims do not count against it.",
     );
     expect(result.diagnostics.join(" ")).not.toContain("no slots");
     expect(result.suppressed).toContainEqual(

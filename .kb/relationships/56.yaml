@@ -258,3 +258,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fed6bc1a94f6
+  - type: covered_by
+    from: SYM-model-predicates-bindings-subjectkeyparticipantreason
+    to: TEST-model-predicates-participant-not-subject
+    created_at: 2026-10-09T07:31:16.532Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e98d178c9bcc
+  - type: implements
+    from: SYM-model-predicates-bindings-subjectkeyparticipantreason
+    to: REQ-model-predicates-participant-not-subject
+    created_at: 2026-10-09T07:31:16.538Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0886268bdf20

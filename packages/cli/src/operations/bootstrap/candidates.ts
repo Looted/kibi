@@ -2,10 +2,12 @@ import path from "node:path";
 
 import { extractFromManifestString } from "../../extractors/manifest.js";
 import { extractFromMarkdownString } from "../../extractors/markdown.js";
+import { PROVENANCE_STUB_TAG } from "../../provenance-stub.js";
 import {
   bootstrapProvenance,
   confidenceBand,
   provenanceBody,
+  provenanceStubBody,
   slug,
   upsert,
   withDocumentBody,
@@ -65,6 +67,33 @@ function typedCandidates(
   });
 }
 
+/**
+ * The claim a provider states about its source, or undefined when the
+ * provider found only that the file exists. A provider candidate without a
+ * claim is a provenance stub: its body would be nothing but the provenance
+ * template, so it is written as a `meta` fact tagged
+ * `bootstrap:provenance-stub` instead of an observation that search, gap and
+ * coverage reports would otherwise read as knowledge.
+ */
+// implements REQ-bootstrap-provenance-stubs
+export function providerClaim(item: BootstrapEvidence): string | undefined {
+  const claim =
+    typeof item.data.claim === "string" ? item.data.claim.trim() : "";
+  return claim.length > 0 ? claim : undefined;
+}
+
+/** Whether a planned candidate writes a provenance stub. */
+// implements REQ-bootstrap-provenance-stubs
+export function isProvenanceStubCandidate(candidate: Candidate): boolean {
+  return candidate.applyPlan.some((payload) => {
+    const properties = payload.properties;
+    if (properties === null || typeof properties !== "object") return false;
+    const tags = (properties as Readonly<Record<string, unknown>>).tags;
+    return Array.isArray(tags) && tags.includes(PROVENANCE_STUB_TAG);
+  });
+}
+
+// implements REQ-bootstrap-provenance-stubs
 function providerCandidate(
   item: BootstrapEvidence,
   existingIds: ReadonlySet<string>,
@@ -93,25 +122,30 @@ function providerCandidate(
     (typeof item.data.title === "string" ? item.data.title : undefined) ??
     symbolTitle ??
     `Bootstrap evidence from ${relativePath}`;
+  const claim = providerClaim(item);
+  const stub = claim === undefined;
   const entity = {
     type: "fact",
     id,
     title,
     status: "active",
-    fact_kind:
-      typeof item.data.factKind === "string"
+    fact_kind: stub
+      ? "meta"
+      : typeof item.data.factKind === "string"
         ? item.data.factKind
         : item.kind === "repo_metadata"
           ? "meta"
           : "observation",
     source: `bootstrap:${item.provider}:${relativePath}`,
     text_ref: relativePath,
+    ...(stub ? { tags: [PROVENANCE_STUB_TAG] } : {}),
   };
   const evidence = Array.isArray(item.data.evidence)
     ? item.data.evidence.filter(
         (value): value is string => typeof value === "string",
       )
     : [`provider:${item.provider}`, `${item.provider}:${relativePath}`];
+  const provenance = `${bootstrapProvenance(item.provider, relativePath, confidence)}${evidence.length > 0 ? ` Evidence: ${evidence.join("; ")}.` : ""}`;
   return [
     {
       candidateId: `prov:${item.kind}:${slug(relativePath, 96) || "evidence"}`,
@@ -126,10 +160,9 @@ function providerCandidate(
       applyPlan: [
         withDocumentBody(
           upsert(entity),
-          provenanceBody(
-            title,
-            `${bootstrapProvenance(item.provider, relativePath, confidence)}${evidence.length > 0 ? ` Evidence: ${evidence.join("; ")}.` : ""}`,
-          ),
+          stub
+            ? provenanceStubBody(title, provenance)
+            : provenanceBody(`${title.trim()}\n\n${claim}`, provenance),
         ),
       ],
     },

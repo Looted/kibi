@@ -237,3 +237,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0bfeebd8c9bc
+  - type: executable_for
+    from: SYM-test-model-predicates-replacement-diagnostics
+    to: TEST-model-predicates-replacement-diagnostics
+    created_at: 2026-10-09T07:22:28.004Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb031f7c2758

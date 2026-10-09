@@ -802,7 +802,7 @@ describe("bootstrap candidates", () => {
     });
   });
 
-  test("provider evidence defaults source module facts to observations", () => {
+  test("provider evidence without a claim is a provenance stub (meta, tagged)", () => {
     const candidates = buildProviderEvidenceCandidates(
       {
         evidence: [
@@ -830,7 +830,8 @@ describe("bootstrap candidates", () => {
           type: "fact",
           id: "FACT-GEN-SOURCE-SYMBOLS-SRC-SERVICE-TS",
           properties: {
-            fact_kind: "observation",
+            fact_kind: "meta",
+            tags: ["bootstrap:provenance-stub"],
             source: "bootstrap:source_symbols:src/service.ts",
             text_ref: "src/service.ts",
           },
@@ -840,7 +841,7 @@ describe("bootstrap candidates", () => {
     });
   });
 
-  test("provider evidence defaults source symbol facts to observations", () => {
+  test("provider evidence for a symbol entry without a claim is a provenance stub", () => {
     const candidates = buildProviderEvidenceCandidates(
       {
         evidence: [
@@ -877,7 +878,8 @@ describe("bootstrap candidates", () => {
           properties: {
             title: "Service symbol inventory",
             status: "active",
-            fact_kind: "observation",
+            fact_kind: "meta",
+            tags: ["bootstrap:provenance-stub"],
             source: "bootstrap:source_symbols:src/service.ts#Service",
             text_ref: "src/service.ts#Service",
           },
@@ -887,7 +889,7 @@ describe("bootstrap candidates", () => {
     });
   });
 
-  test("provider evidence defaults non-metadata facts to observations with low confidence", () => {
+  test("provider evidence with a claim stays an observation", () => {
     const candidates = buildProviderEvidenceCandidates(
       {
         evidence: [
@@ -896,7 +898,11 @@ describe("bootstrap candidates", () => {
             kind: "source_symbols",
             label: "src/index.ts",
             relativePath: "src/index.ts#exports",
-            data: { confidence: 0.79, title: "Source symbol inventory" },
+            data: {
+              confidence: 0.79,
+              title: "Source symbol inventory",
+              claim: "src/index.ts re-exports the public service API.",
+            },
           },
         ],
       },
@@ -932,5 +938,10 @@ describe("bootstrap candidates", () => {
         },
       ],
     });
+    const [plan] = candidates[0]?.applyPlan ?? [];
+    expect(plan?.properties).not.toHaveProperty("tags");
+    expect((plan?.document as { body: string }).body).toContain(
+      "src/index.ts re-exports the public service API.",
+    );
   });
 });

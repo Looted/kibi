@@ -147,6 +147,9 @@ function evidenceData(
       content.includes("vitest") ? "vitest" : "",
       content.includes("node:test") ? "node:test" : "",
     ].filter(Boolean);
+    // A recognized framework is a claim about the file (it is a test that
+    // runs under that framework); without one the provider only found the
+    // file, and the candidate becomes a provenance stub.
     return {
       title: `Test topology: ${frameworks.join(", ") || relativePath}`,
       factKind: "observation",
@@ -156,6 +159,11 @@ function evidenceData(
         ...frameworks.map((item) => `framework:${item}`),
       ],
       frameworks,
+      ...(frameworks.length > 0
+        ? {
+            claim: `${relativePath} is a test file that runs under ${frameworks.join(", ")}.`,
+          }
+        : {}),
     };
   }
   if (provider === "source_symbols") {
