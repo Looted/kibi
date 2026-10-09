@@ -179,7 +179,11 @@ describe("doctorCommand", () => {
     restores.push(io.restore);
     const result = await withCwd(cwd, () => doctorCommand({ format: "table" }));
     expect(result.exitCode).toBe(0);
-    expect(io.logText()).toContain("All checks passed");
+    // initCommand({}) installs no hooks: doctor passes and warns about them.
+    expect(io.logText()).toContain("! Git hooks: Not installed");
+    expect(io.logText()).toContain(
+      "All required checks passed, with 1 warning(s) above (marked !).",
+    );
   });
 
   test("detects malformed legacy config, missing git, and unparseable swipl", async () => {

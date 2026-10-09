@@ -29,6 +29,7 @@ import {
   computeShardPath,
   renderShardWithRelationship,
 } from "../../relationships/shards.js";
+import { BRANCH_STORE_NOT_COMPILED } from "../../utils/branch-store.js";
 import { canonicalFilesystemPath } from "../../utils/canonical-path.js";
 import { isDerivedKbPath } from "../../utils/kb-paths.js";
 import {
@@ -3164,6 +3165,15 @@ async function applyMigrationAction(
     case "missing_exact_branch_store":
       await branchEnsureCommand({ workspaceRoot: context.workspaceRoot });
       return;
+    // implements REQ-cli-status-pre-first-sync
+    case BRANCH_STORE_NOT_COMPILED: {
+      const result = await syncCommand({ workspaceRoot: context.workspaceRoot });
+      if (!result.success)
+        throw new Error(
+          "Compiling the branch store (kibi sync) did not complete successfully.",
+        );
+      return;
+    }
     case "damaged_exact_branch_store":
       await branchRecoverCommand({
         apply: true,

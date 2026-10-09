@@ -173,7 +173,7 @@ describe("doctor effective hooks context", () => {
     const io = await doctorAt(cwd);
     const check = checkByName(hookChecks(io), "Git hooks");
     expect(check.passed).toBe(true);
-    expect(check.message).toContain("Not installed (optional)");
+    expect(check.message).toContain("Not installed:");
     expect(check.message).toContain("core.hooksPath=.githooks");
   });
 

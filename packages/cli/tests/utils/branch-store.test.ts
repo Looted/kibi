@@ -8,8 +8,10 @@ import {
   ensureBranchStoreManifest,
 } from "../../src/utils/branch-store-locator.js";
 import {
+  branchStoreCompilation,
   inspectBranchStore,
   storeLockJournalReason,
+  uncompiledBranchStoreReason,
 } from "../../src/utils/branch-store.js";
 
 describe("inspectBranchStore", () => {
@@ -42,6 +44,61 @@ describe("inspectBranchStore", () => {
       errorCode: "branch_store_invalid_current",
       recoveryRequired: true,
     });
+  });
+});
+
+describe("branchStoreCompilation", () => {
+  const roots: string[] = [];
+
+  afterEach(() => {
+    for (const root of roots.splice(0)) {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  function journaledStore(current: string, graphDirectory?: string) {
+    const root = mkdtempSync(path.join(os.tmpdir(), "kibi-branch-compiled-"));
+    roots.push(root);
+    const store = branchStorePath(root, "feature");
+    ensureBranchStoreManifest(root, "feature");
+    mkdirSync(path.join(store, "rdf"), { recursive: true });
+    writeFileSync(path.join(store, "rdf", "lock"), "");
+    if (graphDirectory !== undefined)
+      mkdirSync(path.join(store, "rdf", graphDirectory), { recursive: true });
+    writeFileSync(
+      path.join(store, "storage.json"),
+      '{"format":"kibi.rdf-journal.v1","schemaVersion":1}\n',
+    );
+    writeFileSync(path.join(store, "CURRENT"), `${current}\n`);
+    mkdirSync(path.join(root, ".kb", "requirements"), { recursive: true });
+    writeFileSync(path.join(root, ".kb", "requirements", "REQ-a.md"), "---\n");
+    return root;
+  }
+
+  test("an attached-but-never-written store is not compiled and is reported once", () => {
+    const root = journaledStore("generation-1:0");
+    const store = inspectBranchStore(root, "feature");
+    expect(branchStoreCompilation(store)).toEqual({
+      compiled: false,
+      generation: "generation-1:0",
+    });
+    expect(uncompiledBranchStoreReason(root, store, "feature")).toMatchObject({
+      code: "branch_store_not_compiled",
+      authoredSources: 1,
+      remediation: { command_argv: ["kibi", "sync"] },
+    });
+  });
+
+  test("a committed store, or one migrated from kb.rdf with its graph at sequence 0, is compiled", () => {
+    const committed = journaledStore("generation-1:4");
+    expect(
+      branchStoreCompilation(inspectBranchStore(committed, "feature")).compiled,
+    ).toBe(true);
+
+    const migrated = journaledStore("generation-77-1700000000000:0", "ab");
+    const store = inspectBranchStore(migrated, "feature");
+    expect(branchStoreCompilation(store).compiled).toBe(true);
+    expect(uncompiledBranchStoreReason(migrated, store, "feature")).toBeNull();
   });
 });
 

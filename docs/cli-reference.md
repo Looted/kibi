@@ -409,6 +409,18 @@ instead returns `branchStore` (`missing`, `incomplete`, or `unreadable`) with a
 recovery-oriented stale reason. Use the explicit branch commands below after
 reviewing that diagnosis.
 
+Kibi compiles one store per branch and never copies another branch's, so a
+branch created without the `post-checkout` hook starts with no store (and the
+first engine attach creates an empty one, `generation-1:0`). While `.kb/` holds
+authored sources, status reports that state as one blocking stale reason,
+`branch_store_not_compiled`, whose remediation is `kibi sync` (an empty store
+also reads `syncState: "stale"`), and the migration plan carries an automatic
+`branch-store-compile` action (`kibi sync`) that runs after
+`branch-store-ensure` and any schema upgrade. `kibi check` reports the same
+state once, as the canonical `branch-store-not-compiled` violation, instead of
+running rules against an empty KB (which used to report every authored
+relationship as a `source-relationship-parity` violation).
+
 When migration is needed, JSON status also returns `schemaStatus` and a
 `kibi.migration-plan.v2` `migrationPlan`. Actions are typed with a canonical
 `planHash`, dependencies, safety class, preconditions, postconditions, and
@@ -673,7 +685,8 @@ Verifies environment setup and diagnostics.
 - Validates `.kb/manifest.json` syntax
 - Recognizes leftover `.kb/config.json` and recommends `kibi migrate --yes`
 - Checks git repository presence
-- Verifies git hooks are installed and executable, reading them from the directory Git uses (`git rev-parse --git-path hooks`)
+- Checks the current branch's KB store ("Branch store"): it fails when `.kb/` holds authored sources but the store is missing or empty (journal sequence 0, nothing compiled), naming `kibi sync`; an incomplete or unreadable store points at `kibi branch recover`
+- Verifies git hooks are installed and executable, reading them from the directory Git uses (`git rev-parse --git-path hooks`). Missing hooks are a warning (`!`, `"warning": true` in JSON, counted in the top-level `warnings`), not a failure: without them a new branch is not compiled on checkout and commits skip `kibi check --staged`
 - Fails when an installed kibi-managed hook section differs from what the running CLI installs ("Kibi-managed hook sections"), for example a pre-commit hook written before the generated-manifest gate
 - Reports the engine daemon serving this workspace and branch ("Engine daemon"), without starting one: its package versions and SWI-Prolog from the daemon handshake. A daemon with other package versions than this CLI is reported, not failed; the next Kibi command stops and replaces it
 - Reports issues with remediation suggestions
@@ -691,7 +704,8 @@ artifacts are executing.
 **Common Issues Found:**
 - SWI-Prolog not found → Add the platform package it names, or see the [install guide](install.md#which-swi-prolog-kibi-uses)
 - `.kb/` missing → Run `kibi init`
-- Git hooks missing → Run `kibi init`
+- Git hooks missing (warning) → Run `kibi init`
+- Branch store not compiled → Run `kibi sync`
 - Git hooks use the legacy template without kibi CLI resolution → Run `kibi init` to regenerate them
 - Kibi-managed hook sections outdated for this CLI → Run `kibi init` to refresh them (hooks are shared by every worktree of the repository)
 - Config invalid → Check `.kb/manifest.json` syntax; leftover `.kb/config.json` is retired with `kibi migrate --yes`

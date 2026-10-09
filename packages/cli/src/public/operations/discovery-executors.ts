@@ -16,10 +16,12 @@ import { rankEntities } from "../../search-ranking.js";
 import type { SearchMatch } from "../../search-ranking.js";
 import { resolveBranchAttachment } from "../../utils/branch-resolver.js";
 import {
+  BRANCH_STORE_NOT_COMPILED,
   type BranchStoreInspection,
   branchStoreReason,
   inspectBranchStore,
   storeLockJournalReason,
+  uncompiledBranchStoreReason,
 } from "../../utils/branch-store.js";
 import {
   loadEntities,
@@ -459,7 +461,17 @@ export async function executeStatus(
       }
     const snapshotEvidence = await readWorkspaceSnapshot(context);
     const existingReasons = payload.staleReasons ?? [];
-    const storeReason = branchStoreReason(store);
+    // implements REQ-cli-status-pre-first-sync
+    // A missing or empty store beside authored sources gets the one reason
+    // whose remediation works (kibi sync); `kibi branch ensure` alone would
+    // leave the store empty.
+    const storeReason =
+      uncompiledBranchStoreReason(
+        context.workspaceRoot,
+        store,
+        attachment.kbBranch,
+      ) ?? branchStoreReason(store);
+    const storeUncompiled = storeReason?.code === BRANCH_STORE_NOT_COMPILED;
     const lockReason = storeLockJournalReason(store.path);
     const compilerReason = compilerFingerprintReason(store.path);
     const engineReason = engineStatus
@@ -495,6 +507,11 @@ export async function executeStatus(
       // Source hashes can all match while the compilation itself is lossy, so
       // a compiler contract change alone makes the store stale.
       ...(compilerReason ? { syncState: "stale", dirty: true } : {}),
+      // An empty store has no stale file to report, yet nothing in it is
+      // current: the authored sources were never compiled.
+      ...(storeUncompiled && store.state === "healthy"
+        ? { syncState: "stale", dirty: true }
+        : {}),
       branchAttachment: attachment,
       branchStore: store,
       ...(engineStatus ? { engineStatus } : {}),
@@ -644,7 +661,7 @@ export async function executeStatus(
       content: [
         {
           type: "text",
-          text: `Branch ${payload.branch} is ${payload.syncState} (snapshot ${payload.snapshotId}, dirty=${payload.dirty}, proofSnapshot=${enrichedPayload.proofSnapshot})`,
+          text: `Branch ${payload.branch} is ${enrichedPayload.syncState} (snapshot ${payload.snapshotId}, dirty=${enrichedPayload.dirty}, proofSnapshot=${enrichedPayload.proofSnapshot})${storeUncompiled ? `. Blocking: ${String(storeReason?.detail)} Run kibi sync.` : ""}`,
         },
       ],
       structuredContent: statusWithPlan,

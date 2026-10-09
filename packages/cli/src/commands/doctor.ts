@@ -43,7 +43,15 @@ import {
   buildMigrationPlan,
   migrationAction,
 } from "../public/operations/migration-plan.js";
-import { resolveReadBranchAttachment } from "../utils/branch-resolver.js";
+import {
+  resolveBranchAttachment,
+  resolveReadBranchAttachment,
+} from "../utils/branch-resolver.js";
+import {
+  branchStoreCompilation,
+  inspectBranchStore,
+  uncompiledBranchStoreReason,
+} from "../utils/branch-store.js";
 import {
   type GitRepositoryContext,
   resolveGitRepository,
@@ -68,6 +76,8 @@ const JEV_MAX_TIMEOUT_MS = 120_000;
 
 interface DoctorCheckResult {
   passed: boolean;
+  /** Passed, but something the operator should fix (shown with "!"). */
+  warning?: boolean;
   message: string;
   remediation?: string;
   /** Structured facts for JSON consumers (for example SWI-Prolog source/path/version). */
@@ -113,6 +123,10 @@ export async function doctorCommand(
       check: checkGitRepository,
     },
     {
+      name: "Branch store",
+      check: checkBranchStore,
+    },
+    {
       name: "Git hooks",
       check: checkGitHooks,
     },
@@ -143,6 +157,9 @@ export async function doctorCommand(
     results.push({ name, ...(await check()) });
   }
   const allPassed = results.every((result) => result.passed);
+  const warnings = results.filter(
+    (result) => result.passed && result.warning === true,
+  ).length;
   const runtime = await runtimeProvenance();
   const packageActions = await packageMigrationActions(runtime);
   const migrationPlan = buildMigrationPlan({
@@ -160,6 +177,7 @@ export async function doctorCommand(
         {
           version: "kibi.doctor.v1",
           passed: allPassed,
+          warnings,
           runtime,
           checks: results,
           migrationPlan,
@@ -173,13 +191,20 @@ export async function doctorCommand(
 
   console.log("Kibi Environment Diagnostics\n");
   for (const result of results) {
-    const status = result.passed ? "✓" : "✗";
+    const warned = result.passed && result.warning === true;
+    const status = !result.passed ? "✗" : warned ? "!" : "✓";
     console.log(`${status} ${result.name}: ${result.message}`);
-    if (!result.passed && result.remediation)
+    if ((!result.passed || warned) && result.remediation)
       console.log(`  → ${result.remediation}`);
   }
   console.log();
 
+  if (allPassed && warnings > 0) {
+    console.log(
+      `All required checks passed, with ${warnings} warning(s) above (marked !).`,
+    );
+    return { exitCode: 0 };
+  }
   if (allPassed) {
     console.log("All checks passed! Your environment is ready.");
     return { exitCode: 0 };
@@ -819,6 +844,68 @@ function checkGitRepository(): {
   }
 }
 
+/**
+ * The current branch's KB store: it must exist and hold a compilation
+ * (journal sequence above 0) when .kb/ has authored sources. Kibi stores are
+ * per branch and never copied, so a branch created without the post-checkout
+ * hook starts empty until `kibi sync`.
+ */
+// implements REQ-cli-doctor
+function checkBranchStore(): DoctorCheckResult {
+  const workspaceRoot = process.cwd();
+  let attachment: ReturnType<typeof resolveBranchAttachment>;
+  try {
+    attachment = resolveBranchAttachment(workspaceRoot);
+  } catch (error) {
+    attachment = {
+      error: error instanceof Error ? error.message : String(error),
+    } as ReturnType<typeof resolveBranchAttachment>;
+  }
+  if ("error" in attachment) {
+    return {
+      passed: true,
+      message: `Not checked: no current Git branch (${attachment.error})`,
+    };
+  }
+  const branch = attachment.kbBranch;
+  const store = inspectBranchStore(workspaceRoot, branch);
+  const details = { branch, path: store.path, state: store.state };
+  if (store.state === "incomplete" || store.state === "unreadable") {
+    return {
+      passed: false,
+      message: `Store for ${branch} is ${store.state}: ${store.detail ?? store.errorCode ?? "requires recovery"}`,
+      remediation: "Run: kibi branch recover, then kibi branch recover --apply",
+      details,
+    };
+  }
+  const compilation = branchStoreCompilation(store);
+  if (compilation.compiled) {
+    return {
+      passed: true,
+      message: `Compiled for ${branch}${compilation.generation ? ` (${compilation.generation})` : ""}`,
+      details: { ...details, generation: compilation.generation },
+    };
+  }
+  const reason = uncompiledBranchStoreReason(workspaceRoot, store, branch);
+  if (reason === null) {
+    return {
+      passed: true,
+      message: `Not compiled yet for ${branch}; .kb/ holds no authored sources`,
+      details,
+    };
+  }
+  return {
+    passed: false,
+    message: String(reason.detail),
+    remediation: "Run: kibi sync",
+    details: {
+      ...details,
+      generation: compilation.generation,
+      authoredSources: reason.authoredSources,
+    },
+  };
+}
+
 // Hook health must be diagnosed against the hooks directory Git actually
 // executes (resolved via git rev-parse --git-path hooks, honoring
 // core.hooksPath and linked worktrees), not against <cwd>/.git/hooks.
@@ -900,11 +987,7 @@ function checkManagedHookSections(): {
   return { passed: true, message: "Current for this Kibi CLI" };
 }
 
-function checkGitHooks(): {
-  passed: boolean;
-  message: string;
-  remediation?: string;
-} {
+function checkGitHooks(): DoctorCheckResult {
   const postCheckoutPath = path.join(effectiveHooksDir(), "post-checkout");
   const postMergePath = path.join(effectiveHooksDir(), "post-merge");
   const preCommitPath = path.join(effectiveHooksDir(), "pre-commit");
@@ -914,10 +997,15 @@ function checkGitHooks(): {
 
   // An existing pre-commit is hard enforcement; the companions being absent
   // must not downgrade the summary to "optional".
+  // implements REQ-cli-doctor
+  // Without the hooks kibi init installs, a new branch starts with an empty
+  // store (post-checkout compiles it) and commits skip kibi check --staged.
   if (!postCheckoutExists && !postMergeExists && !existsSync(preCommitPath)) {
     return {
       passed: true,
-      message: `Not installed (optional)${hooksPathSuffix()}`,
+      warning: true,
+      message: `Not installed: a new branch is not compiled on checkout and commits skip 'kibi check --staged'${hooksPathSuffix()}`,
+      remediation: "Run: kibi init (installs the git hooks)",
     };
   }
 

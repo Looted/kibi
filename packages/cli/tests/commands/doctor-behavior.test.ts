@@ -9,6 +9,7 @@ import { doctorCommand } from "../../src/commands/doctor.js";
 import { engineStopCommand } from "../../src/commands/engine.js";
 import { installGitHooks } from "../../src/commands/init-helpers.js";
 import { resetKibiEnvironmentBootstrapStateForTests } from "../../src/env/bootstrap.js";
+import { ensureBranchStoreManifest } from "../../src/utils/branch-store-locator.js";
 import { type FakeSwiplSpec, installFakeSwipl } from "../helpers/fake-swipl.js";
 import {
   captureIo,
@@ -165,14 +166,23 @@ describe("doctorCommand rendered report", () => {
     mockSwipl("SWI-Prolog version 9.2 (threaded, 64 bits)\n");
     const { exitCode, text } = await runDoctorTable(cwd);
     expect(exitCode).toBe(0);
-    expect(text).toContain("All checks passed! Your environment is ready.");
+    expect(text).toContain(
+      "All required checks passed, with 1 warning(s) above (marked !).",
+    );
+    expect(text).not.toContain("All checks passed! Your environment is ready.");
     expect(text).toContain("✓ SWI-Prolog: Version 9.2 from KIBI_SWIPL at ");
     expect(text).toContain("required libraries load");
     expect(text).toContain("✓ .kb/ directory: Found");
     expect(text).toContain("✓ .kb/ manifest: schemaVersion 5");
     expect(text).toContain("✓ Canonical storage: Canonical .kb/ layout");
     expect(text).toContain("✓ Git repository: Found");
-    expect(text).toContain("✓ Git hooks: Not installed (optional)");
+    expect(text).toContain(
+      "✓ Branch store: Not compiled yet for main; .kb/ holds no authored sources",
+    );
+    expect(text).toContain(
+      "! Git hooks: Not installed: a new branch is not compiled on checkout and commits skip 'kibi check --staged'",
+    );
+    expect(text).toContain("  → Run: kibi init (installs the git hooks)");
     expect(text).toContain("✓ pre-commit hook: Not installed (optional)");
     expect(text).toContain("✓ post-rewrite hook: Not installed (optional)");
     expect(text).not.toContain("✗");
@@ -1000,5 +1010,82 @@ describe("doctorCommand kibi-managed hook sections", () => {
     expect(outdated.remediation).toBe(
       "Run: kibi init to refresh the kibi-managed hook sections",
     );
+  });
+});
+
+/** A journaled branch store for main whose CURRENT pointer is `current`. */
+function writeBranchStore(cwd: string, current: string): string {
+  const storePath = ensureBranchStoreManifest(cwd, "main");
+  mkdirSync(path.join(storePath, "rdf"), { recursive: true });
+  writeFileSync(
+    path.join(storePath, "storage.json"),
+    '{"format":"kibi.rdf-journal.v1","schemaVersion":1}\n',
+  );
+  writeFileSync(path.join(storePath, "CURRENT"), `${current}\n`);
+  return storePath;
+}
+
+function writeAuthoredRequirement(cwd: string): void {
+  mkdirSync(path.join(cwd, ".kb", "requirements"), { recursive: true });
+  writeFileSync(
+    path.join(cwd, ".kb", "requirements", "REQ-demo-login.md"),
+    "---\nid: REQ-demo-login\ntitle: Login\nstatus: open\n---\nUsers must log in.\n",
+  );
+}
+
+// implements REQ-cli-doctor
+describe("doctorCommand branch store", () => {
+  test("fails with kibi sync when authored sources exist and the branch has no store", async () => {
+    const cwd = preparedWorkspace();
+    writeOkManifest(cwd);
+    writeAuthoredRequirement(cwd);
+    const { exitCode, payload } = await runDoctorJson(cwd);
+    expect(exitCode).toBe(1);
+    const check = namedCheck(payload, "Branch store");
+    expect(check.passed).toBe(false);
+    expect(check.message).toContain(
+      "The KB store for branch main does not exist yet, while .kb/ holds 1 authored source file(s).",
+    );
+    expect(check.remediation).toBe("Run: kibi sync");
+  });
+
+  test("fails on an empty store (generation 0) beside authored sources", async () => {
+    const cwd = preparedWorkspace();
+    writeOkManifest(cwd);
+    writeAuthoredRequirement(cwd);
+    writeBranchStore(cwd, "generation-1:0");
+    const { exitCode, text } = await runDoctorTable(cwd);
+    expect(exitCode).toBe(1);
+    expect(text).toContain(
+      "✗ Branch store: The KB store for branch main is empty (generation-1:0: nothing compiled)",
+    );
+    expect(text).toContain("  → Run: kibi sync");
+    expect(text).not.toContain("All checks passed");
+  });
+
+  test("passes a compiled store and reports its generation", async () => {
+    const cwd = preparedWorkspace();
+    writeOkManifest(cwd);
+    writeAuthoredRequirement(cwd);
+    writeBranchStore(cwd, "generation-1:4");
+    const { payload } = await runDoctorJson(cwd);
+    const check = namedCheck(payload, "Branch store");
+    expect(check.passed).toBe(true);
+    expect(check.message).toBe("Compiled for main (generation-1:4)");
+  });
+
+  test("warns, without failing, when the git hooks kibi init installs are missing", async () => {
+    const cwd = preparedWorkspace();
+    writeOkManifest(cwd);
+    const { exitCode, payload } = await runDoctorJson(cwd);
+    expect(exitCode).toBe(0);
+    expect(payload.passed).toBe(true);
+    expect((payload as unknown as { warnings: number }).warnings).toBe(1);
+    const hooks = namedCheck(payload, "Git hooks") as DoctorCheckResult & {
+      warning?: boolean;
+    };
+    expect(hooks.passed).toBe(true);
+    expect(hooks.warning).toBe(true);
+    expect(hooks.remediation).toBe("Run: kibi init (installs the git hooks)");
   });
 });
