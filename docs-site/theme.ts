@@ -1121,6 +1121,10 @@ export function landingContent(args: {
       <p>TypeScript and JavaScript work out of the box. Add the optional <code>kibi-plugin-treesitter</code> package for Python, Go, Rust, Java, C#, PHP, C, C++, Bash, Ruby, and Terraform/HCL. It runs offline with pinned grammars. Setup is in the <a href="${root}reference/plugins.html">plugin reference</a>.</p>
     </details>
     <details>
+      <summary>Can Kibi stop agents drifting from our UI design?</summary>
+      <p>Partly, and only if you opt in. The experimental <code>kibi-plugin-ui</code> package, which <code>/kibi-bootstrap</code> offers when it finds React or Angular components, makes <code>kb_check</code> require every component to implement a design requirement, and flags a component that loses the class names or test ids that mark its agreed pattern. That catches an agent rewriting a timeline as cards. It cannot see pixels, colours or spacing; those stay with your linter. Details are in the <a href="${root}reference/plugins.html#optional-ui-design-plugin">plugin reference</a>.</p>
+    </details>
+    <details>
       <summary>Can my agent ask Kibi what governs a change?</summary>
       <p>Yes. <code>kb_search</code> accepts a plain question and, alongside ranked matches, returns the current requirements that govern the topic with their linked facts, scenarios, tests, and ADRs (with an excerpt of each decision). For each requirement it also reports any contradiction or infeasible-scenario finding that names it, the approved exceptions that exempt it, and what the checks could not decide, and it names the KB snapshot the answer came from. Superseded requirements are listed separately so they are not read as current policy. No finding is not proof: full consistency and proof status still come from <code>kb_check</code> and <code>kb_coverage</code>.</p>
     </details>
@@ -1138,7 +1142,7 @@ export function landingContent(args: {
     </details>
     <details>
       <summary>What counts as proven?</summary>
-      <p>A requirement is proven only when a test that claims to verify it has fresh end-to-end evidence for the current code. A passing unit test, a coverage percentage, or an old receipt does not count. Freshness is computed from repository-relative paths and file contents, so CI and your own checkout of the same commit agree on what is proven.</p>
+      <p>A requirement is proven only when a test that claims to verify it has fresh end-to-end evidence for the current code. A passing unit test, a coverage percentage, or an old receipt does not count. The one exception is a requirement that only names a UI pattern, such as "this list is a line-and-dots timeline in both views": an isolated component test with a fresh receipt proves it, because rendering the component shows everything the requirement says. Freshness is computed from repository-relative paths and file contents, so CI and your own checkout of the same commit agree on what is proven.</p>
     </details>
     <details>
       <summary>Will Kibi decide the product for me?</summary>

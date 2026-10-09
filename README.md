@@ -29,6 +29,7 @@ Most project knowledge is scattered across prompts, tickets, code, and conversat
 - **E2E behavior is traceable** — Kibi records what an end-to-end test proves, not merely which lines it happened to execute. You can navigate from a symbol to its requirement or from a test to the scenario and intent it verifies.
 - **Intent survives branch changes** — Each Git branch has its own KB snapshot, keeping feature context isolated and available when you return. A detached checkout of a commit no single branch points at (a CI checkout of a SHA, a bisect) still answers reads from a read-only snapshot of that checkout and says so; writes wait until a branch is checked out.
 - **Works across languages** — TypeScript and JavaScript symbols are built in. The optional [`kibi-plugin-treesitter`](https://looted.github.io/kibi/reference/plugins.html) adds offline symbol extraction for Python, Go, Rust, Java, C#, PHP, C, C++, Bash, Ruby, and Terraform/HCL using pinned WASM grammars.
+- **Optional UI design guard (experimental)** — [`kibi-plugin-ui`](https://looted.github.io/kibi/reference/plugins.html#optional-ui-design-plugin), offered by `/kibi-bootstrap` when it finds React or Angular components, makes `kb_check` require each component to implement a design requirement and flags a component that loses the markers of its agreed pattern (a timeline rewritten as cards). Pixels, colours and spacing stay with your linter.
 - **Keep knowledge local** — KB state lives in your repository's `.kb/` directory; the Kibi packages send no external telemetry or analytics. Only the documentation website counts visits, with cookieless [Umami](https://umami.is) analytics.
 
 ## Quick start
@@ -241,7 +242,7 @@ For a requirement to be proven rather than merely documented:
 - Requirements must be specified by scenarios, and tests must verify those scenarios. A scenario that expects success while assuming values a current requirement forbids, alone or only in combination, is reported and blocks proof. That holds for conditional requirements too: "checkout may happen only when the cart total is positive" compiles to a typed rule, so a checkout scenario that assumes a zero cart total is infeasible. A requirement only governs scenarios inside its scope and the validity window of its facts. An intended exception is recorded as an exception requirement (`exempts`) that a human approved (`approved_by`), not by editing the rule, and `exempts_claims` can limit it to one clause. An exception without `approved_by` exempts nothing, and an advisory check says so. A success scenario whose feasibility cannot be decided (for example it assumes a "basket amount" where the rule reads the "cart total") is flagged as unknown, never counted as feasible.
 - Executable test symbols must identify the code that actually performs the verification.
 - Proof-bearing production symbols must be covered by qualifying tests.
-- End-to-end evidence must be fresh and bound to the current code snapshot. Freshness uses repository-relative paths and file contents, so CI and a local checkout of the same commit agree. When the proof command reports results per test, a failing step fails only the tests that own it. Receipt history keeps only the receipts that can still decide proof; `kibi proof compact` trims stores written before that.
+- End-to-end evidence must be fresh and bound to the current code snapshot. The one exception is a requirement that only names a UI pattern (`ui_pattern`, `same_pattern`, `pattern_marker`): a fresh isolated component test proves it, so pattern rules do not need browser tests. Freshness uses repository-relative paths and file contents, so CI and a local checkout of the same commit agree. When the proof command reports results per test, a failing step fails only the tests that own it. Receipt history keeps only the receipts that can still decide proof; `kibi proof compact` trims stores written before that.
 
 That makes questions answerable in both directions: which requirement owns this symbol, what this E2E test actually verifies, which requirements lack a scenario or current evidence, and whether two current requirements contradict each other. Code coverage alone cannot answer them: it shows that a test touched a line, not which product behavior was exercised.
 
@@ -292,6 +293,7 @@ Install `kibi-core`, `kibi-cli`, and `kibi-mcp` in the project. Everything else 
 | `kibi-plugin-builtin` | Default semantic, ontology, and TypeScript symbol capabilities |
 | `kibi-plugin-jev` | Optional TypeSafe Jev semantic classifier |
 | `kibi-plugin-treesitter` | Optional offline multi-language symbol extraction (tree-sitter WASM grammars) |
+| `kibi-plugin-ui` | Experimental check policy keeping UI components on their agreed design patterns |
 | `kibi-swipl` | Bundled SWI-Prolog runtime; the matching platform build installs automatically |
 
 ## Documentation

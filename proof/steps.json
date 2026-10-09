@@ -2379,5 +2379,89 @@
         "./packages/mcp/tests/predicate-plan-roundtrip.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-capability-check-policy",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/plugin-sdk/tests/check-policy.test.ts",
+        "./packages/cli/tests/public/check-policy-rules.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "300000",
+        "./packages/cli/tests/commands/check.test.ts",
+        "-t",
+        "an activated check policy"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-ui-pattern-vocabulary",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/operations/ui-pattern-vocabulary.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-ui-pattern-component-proof",
+    "steps": [
+      [
+        "swipl",
+        "-q",
+        "-s",
+        "packages/core/tests/kb.plt",
+        "-g",
+        "run_tests(ui_pattern_component_proof)",
+        "-t",
+        "halt"
+      ],
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/report/html-report.test.ts",
+        "-t",
+        "where its scenario accepts that scope"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-ui-plugin-design-policy",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/plugin-ui/tests/plugin.test.ts",
+        "./packages/cli/tests/public/check-policy-rules.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-bootstrap-ui-plugin-offer",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/operations/bootstrap-plugin-offers.test.ts",
+        "./packages/plugin-sdk/tests/check-policy.test.ts"
+      ]
+    ]
   }
 ]

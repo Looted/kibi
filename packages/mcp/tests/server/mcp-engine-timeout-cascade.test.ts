@@ -22,7 +22,7 @@ import {
 import { addTool } from "../../src/server/tools.js";
 
 /**
- * Regression for the Align/Cursor cascade:
+ * Regression for a test project's Cursor cascade:
  * MCP timeout must abort via AbortSignal through adaptProlog → EngineClient
  * without resetProlog()/terminate(), so siblings do not see
  * "Kibi engine connection closed".

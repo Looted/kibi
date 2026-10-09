@@ -1,4 +1,11 @@
 import {
+  CHECK_POLICY_CONTRACT_VERSION,
+  type CheckPolicyDocument,
+  type CheckPolicyMarkerRule,
+  type CheckPolicyOwnershipRule,
+  type CheckPolicyV1,
+} from "./capabilities/check-policy.js";
+import {
   ONTOLOGY_POLARITIES,
   type OntologyMatchCandidate,
   type OntologyPackV1,
@@ -34,6 +41,7 @@ import {
   type VocabularyAlignmentV1,
 } from "./capabilities/vocabulary-alignment.js";
 import {
+  CHECK_POLICY_CAPABILITY_ID,
   type CapabilityId,
   KIBI_PLUGIN_API_VERSION,
   type KibiPluginV1,
@@ -118,7 +126,8 @@ export function isCapabilityId(value: string): value is CapabilityId {
     value === ONTOLOGY_PACK_CAPABILITY_ID ||
     value === SYMBOL_EXTRACTOR_CAPABILITY_ID ||
     value === SYMBOL_EXTRACTOR_V2_CAPABILITY_ID ||
-    value === VOCABULARY_ALIGNMENT_CAPABILITY_ID
+    value === VOCABULARY_ALIGNMENT_CAPABILITY_ID ||
+    value === CHECK_POLICY_CAPABILITY_ID
   );
 }
 
@@ -331,12 +340,19 @@ export function validateKibiPlugin(value: unknown): KibiPluginV1 {
     });
   }
 
+  if (value.capabilities.checkPolicy !== undefined) {
+    Object.assign(capabilities, {
+      checkPolicy: validateCheckPolicy(value.capabilities.checkPolicy),
+    });
+  }
+
   if (
     capabilities.semanticClassifier === undefined &&
     capabilities.ontologyPack === undefined &&
     capabilities.symbolExtractor === undefined &&
     capabilities.symbolExtractorV2 === undefined &&
-    capabilities.vocabularyAlignment === undefined
+    capabilities.vocabularyAlignment === undefined &&
+    capabilities.checkPolicy === undefined
   ) {
     throw new PluginValidationError(
       "INVALID_CAPABILITY",
@@ -350,6 +366,7 @@ export function validateKibiPlugin(value: unknown): KibiPluginV1 {
     capabilities.symbolExtractor?.id,
     capabilities.symbolExtractorV2?.id,
     capabilities.vocabularyAlignment?.id,
+    capabilities.checkPolicy?.id,
   ].filter((entry): entry is string => typeof entry === "string");
   if (new Set(capabilityIds).size !== capabilityIds.length) {
     throw new PluginValidationError(
@@ -376,7 +393,10 @@ export function validateProjectKibiConfig(value: unknown): ProjectKibiConfig {
       "package.json kibi field must be an object",
     );
   }
-  if (value.plugins === undefined) return {};
+  const declinedPlugins = validateDeclinedPlugins(value.declinedPlugins);
+  const declined =
+    declinedPlugins !== undefined ? { declinedPlugins } : ({} as const);
+  if (value.plugins === undefined) return declined;
   if (!Array.isArray(value.plugins)) {
     throw new PluginValidationError(
       "INVALID_PROJECT_CONFIG",
@@ -433,6 +453,16 @@ export function validateProjectKibiConfig(value: unknown): ProjectKibiConfig {
           `Unsupported mode '${config.mode}' for ${capabilityId}`,
         );
       }
+      // A check policy only adds rules; it cannot replace or shadow Kibi's.
+      if (
+        capabilityId === CHECK_POLICY_CAPABILITY_ID &&
+        config.mode !== "augment"
+      ) {
+        throw new PluginValidationError(
+          "INVALID_MODE",
+          `${capabilityId} supports only mode 'augment'`,
+        );
+      }
       Object.assign(capabilities, {
         [capabilityId]: { mode: config.mode },
       });
@@ -473,7 +503,40 @@ export function validateProjectKibiConfig(value: unknown): ProjectKibiConfig {
     }
   }
 
-  return { plugins };
+  return { plugins, ...declined };
+}
+
+function isBarePackageName(name: string): boolean {
+  return !(
+    name.startsWith(".") ||
+    name.startsWith("/") ||
+    name.includes(":") ||
+    name.includes("\\")
+  );
+}
+
+function validateDeclinedPlugins(value: unknown): string[] | undefined {
+  if (value === undefined) return undefined;
+  if (!Array.isArray(value)) {
+    throw new PluginValidationError(
+      "INVALID_PROJECT_CONFIG",
+      "kibi.declinedPlugins must be an array of package names",
+    );
+  }
+  return value.map((entry, index) => {
+    const name = requireString(
+      entry,
+      `kibi.declinedPlugins[${index}]`,
+      "INVALID_PROJECT_CONFIG",
+    );
+    if (!isBarePackageName(name)) {
+      throw new PluginValidationError(
+        "INVALID_PACKAGE_REFERENCE",
+        `kibi.declinedPlugins[${index}] must be a bare package name`,
+      );
+    }
+    return name;
+  });
 }
 
 // implements REQ-capability-plugin-protocol-v1
@@ -1500,5 +1563,225 @@ export function validateSourceAnalysisResultV2(
     symbols,
     diagnostics,
     uncoveredRanges,
+  };
+}
+
+const CHECK_POLICY_ID_PATTERN = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/;
+const PREDICATE_NAME_PATTERN = /^[a-z][a-z0-9_]*$/;
+
+function invalidPolicy(message: string): PluginValidationError {
+  return new PluginValidationError("INVALID_CHECK_POLICY", message);
+}
+
+function policyString(value: unknown, field: string): string {
+  return requireString(value, field, "INVALID_CHECK_POLICY");
+}
+
+function policyId(value: unknown, field: string): string {
+  const id = policyString(value, field);
+  if (!CHECK_POLICY_ID_PATTERN.test(id)) {
+    throw invalidPolicy(`${field} must be kebab-case`);
+  }
+  return id;
+}
+
+function policyStringList(
+  value: unknown,
+  field: string,
+  { nonEmpty }: { nonEmpty: boolean },
+): string[] {
+  if (!Array.isArray(value) || (nonEmpty && value.length === 0)) {
+    throw invalidPolicy(
+      `${field} must be ${nonEmpty ? "a non-empty" : "an"} array of strings`,
+    );
+  }
+  return value.map((entry, index) => policyString(entry, `${field}[${index}]`));
+}
+
+function policyPredicateNames(value: unknown, field: string): string[] {
+  const names = policyStringList(value, field, { nonEmpty: true });
+  for (const [index, name] of names.entries()) {
+    if (!PREDICATE_NAME_PATTERN.test(name)) {
+      throw invalidPolicy(`${field}[${index}] must be a snake_case name`);
+    }
+  }
+  return names;
+}
+
+function policyPredicateName(value: unknown, field: string): string {
+  return policyPredicateNames([value], field)[0] as string;
+}
+
+function policyArgumentIndex(value: unknown, field: string): number {
+  if (typeof value !== "number" || !Number.isInteger(value) || value < 0) {
+    throw invalidPolicy(`${field} must be a non-negative integer`);
+  }
+  return value;
+}
+
+function policyRegex(value: unknown, field: string): string {
+  const pattern = policyString(value, field);
+  try {
+    new RegExp(pattern);
+  } catch {
+    throw invalidPolicy(`${field} must be a valid regular expression`);
+  }
+  return pattern;
+}
+
+function validateOwnershipRule(
+  value: unknown,
+  field: string,
+): CheckPolicyOwnershipRule {
+  if (!isRecord(value)) throw invalidPolicy(`${field} must be an object`);
+  return {
+    id: policyId(value.id, `${field}.id`),
+    description: policyString(value.description, `${field}.description`),
+    include: policyStringList(value.include, `${field}.include`, {
+      nonEmpty: true,
+    }),
+    ...(value.exclude !== undefined
+      ? {
+          exclude: policyStringList(value.exclude, `${field}.exclude`, {
+            nonEmpty: false,
+          }),
+        }
+      : {}),
+    ...(value.symbolTitlePattern !== undefined
+      ? {
+          symbolTitlePattern: policyRegex(
+            value.symbolTitlePattern,
+            `${field}.symbolTitlePattern`,
+          ),
+        }
+      : {}),
+    requirePredicates: policyPredicateNames(
+      value.requirePredicates,
+      `${field}.requirePredicates`,
+    ),
+    ...(value.exemptTag !== undefined
+      ? { exemptTag: policyString(value.exemptTag, `${field}.exemptTag`) }
+      : {}),
+  };
+}
+
+function validateMarkerRule(
+  value: unknown,
+  field: string,
+): CheckPolicyMarkerRule {
+  if (!isRecord(value)) throw invalidPolicy(`${field} must be an object`);
+  const siblingExtensions =
+    value.siblingExtensions !== undefined
+      ? policyStringList(
+          value.siblingExtensions,
+          `${field}.siblingExtensions`,
+          { nonEmpty: false },
+        )
+      : undefined;
+  for (const [index, extension] of (siblingExtensions ?? []).entries()) {
+    if (!/^\.[a-z0-9]+$/.test(extension)) {
+      throw invalidPolicy(
+        `${field}.siblingExtensions[${index}] must look like '.html'`,
+      );
+    }
+  }
+  return {
+    id: policyId(value.id, `${field}.id`),
+    description: policyString(value.description, `${field}.description`),
+    patternPredicate: policyPredicateName(
+      value.patternPredicate,
+      `${field}.patternPredicate`,
+    ),
+    patternArgument: policyArgumentIndex(
+      value.patternArgument,
+      `${field}.patternArgument`,
+    ),
+    markerPredicate: policyPredicateName(
+      value.markerPredicate,
+      `${field}.markerPredicate`,
+    ),
+    markerPatternArgument: policyArgumentIndex(
+      value.markerPatternArgument,
+      `${field}.markerPatternArgument`,
+    ),
+    markerArgument: policyArgumentIndex(
+      value.markerArgument,
+      `${field}.markerArgument`,
+    ),
+    ...(siblingExtensions !== undefined ? { siblingExtensions } : {}),
+  };
+}
+
+function uniqueRuleIds(
+  rules: readonly { readonly id: string }[],
+  field: string,
+): void {
+  const seen = new Set<string>();
+  for (const rule of rules) {
+    if (seen.has(rule.id)) {
+      throw invalidPolicy(`${field} repeats rule id '${rule.id}'`);
+    }
+    seen.add(rule.id);
+  }
+}
+
+/**
+ * Validate a `kibi.check-policy.v1` document. Kibi runs this on the data it
+ * reads from a plugin package before any rule uses it.
+ */
+// implements REQ-capability-check-policy
+export function validateCheckPolicyDocument(
+  value: unknown,
+): CheckPolicyDocument {
+  if (!isRecord(value)) {
+    throw invalidPolicy("check policy document must be an object");
+  }
+  if (value.contractVersion !== CHECK_POLICY_CONTRACT_VERSION) {
+    throw invalidPolicy(
+      `check policy contractVersion must be '${CHECK_POLICY_CONTRACT_VERSION}'`,
+    );
+  }
+  const ownership =
+    value.ownership !== undefined
+      ? (() => {
+          if (!Array.isArray(value.ownership)) {
+            throw invalidPolicy("ownership must be an array");
+          }
+          return value.ownership.map((rule, index) =>
+            validateOwnershipRule(rule, `ownership[${index}]`),
+          );
+        })()
+      : [];
+  const markers =
+    value.markers !== undefined
+      ? (() => {
+          if (!Array.isArray(value.markers)) {
+            throw invalidPolicy("markers must be an array");
+          }
+          return value.markers.map((rule, index) =>
+            validateMarkerRule(rule, `markers[${index}]`),
+          );
+        })()
+      : [];
+  uniqueRuleIds([...ownership, ...markers], "check policy");
+  return {
+    contractVersion: CHECK_POLICY_CONTRACT_VERSION,
+    id: policyId(value.id, "id"),
+    title: policyString(value.title, "title"),
+    ...(value.ownership !== undefined ? { ownership } : {}),
+    ...(value.markers !== undefined ? { markers } : {}),
+  };
+}
+
+function validateCheckPolicy(value: unknown): CheckPolicyV1 {
+  if (!isRecord(value)) {
+    throw new PluginValidationError(
+      "INVALID_CAPABILITY",
+      "checkPolicy must be an object with id and document",
+    );
+  }
+  return {
+    id: requireString(value.id, "checkPolicy.id", "INVALID_CAPABILITY"),
+    document: validateCheckPolicyDocument(value.document),
   };
 }

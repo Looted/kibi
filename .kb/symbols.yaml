@@ -51135,3 +51135,238 @@ symbols:
         target: TEST-model-predicates-replacement-diagnostics
       - type: implements
         target: REQ-model-predicates-replacement-diagnostics
+  - id: SYM-test-check-policy-sdk
+    title: Plugin SDK check policy suite
+    status: active
+    sourceFile: packages/plugin-sdk/tests/check-policy.test.ts
+    granularity_reason: test-suite
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      recorded_at: 2026-10-09T12:14:12.292Z
+    relationships:
+      - type: executable_for
+        target: TEST-bootstrap-ui-plugin-offer
+      - type: executable_for
+        target: TEST-capability-check-policy
+  - id: SYM-test-check-policy-rules
+    title: Check policy rules suite
+    status: active
+    sourceFile: packages/cli/tests/public/check-policy-rules.test.ts
+    granularity_reason: test-suite
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      recorded_at: 2026-10-09T12:13:51.996Z
+    relationships:
+      - type: executable_for
+        target: TEST-capability-check-policy
+      - type: executable_for
+        target: TEST-ui-plugin-design-policy
+  - id: SYM-test-check-policy-cli
+    title: kibi check check policy case
+    status: active
+    sourceFile: packages/cli/tests/commands/check.test.ts
+    granularity_reason: test-suite
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      recorded_at: 2026-10-09T12:12:56.709Z
+    relationships:
+      - type: executable_for
+        target: TEST-capability-check-policy
+  - id: SYM-plugin-sdk-validatecheckpolicydocument
+    title: validateCheckPolicyDocument
+    status: active
+    sourceFile: packages/plugin-sdk/src/validate.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      recorded_at: 2026-10-09T12:12:59.818Z
+    relationships:
+      - type: covered_by
+        target: TEST-capability-check-policy
+      - type: implements
+        target: REQ-capability-check-policy
+  - id: SYM-cli-plugins-readactivecheckpolicies
+    title: readActiveCheckPolicies
+    status: active
+    sourceFile: packages/cli/src/plugins/check-policies.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      recorded_at: 2026-10-09T12:13:03.255Z
+    relationships:
+      - type: covered_by
+        target: TEST-capability-check-policy
+      - type: implements
+        target: REQ-capability-check-policy
+  - id: SYM-cli-check-policy-rules-evaluatecheckpolicies
+    title: evaluateCheckPolicies
+    status: active
+    sourceFile: packages/cli/src/public/operations/check-policy-rules.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      recorded_at: 2026-10-09T12:13:06.670Z
+    relationships:
+      - type: covered_by
+        target: TEST-capability-check-policy
+      - type: implements
+        target: REQ-capability-check-policy
+  - id: SYM-cli-check-policy-rules-collectcheckpolicyviolations
+    title: collectCheckPolicyViolations
+    status: active
+    sourceFile: packages/cli/src/public/operations/check-policy-rules.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      recorded_at: 2026-10-09T12:13:10.485Z
+    relationships:
+      - type: covered_by
+        target: TEST-capability-check-policy
+      - type: implements
+        target: REQ-capability-check-policy
+  - id: SYM-test-ui-pattern-vocabulary
+    title: UI pattern vocabulary suite
+    status: active
+    sourceFile: packages/cli/tests/operations/ui-pattern-vocabulary.test.ts
+    granularity_reason: test-suite
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      recorded_at: 2026-10-09T12:13:24.666Z
+    relationships:
+      - type: executable_for
+        target: TEST-ui-pattern-vocabulary
+  - id: SYM-modeling-predicate-catalog-6
+    title: PREDICATE_CATALOG_6
+    status: active
+    sourceFile: packages/cli/src/operations/modeling/predicate-catalog-6.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      recorded_at: 2026-10-09T12:13:28.085Z
+    relationships:
+      - type: covered_by
+        target: TEST-ui-pattern-vocabulary
+      - type: implements
+        target: REQ-ui-pattern-vocabulary
+  - id: SYM-test-ui-pattern-component-proof
+    title: requirement_proof_accepts_component_scope_only_for_ui_pattern_scenarios
+    status: active
+    sourceFile: packages/core/tests/kb.plt
+    granularity_reason: test-suite
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      recorded_at: 2026-10-09T12:13:35.942Z
+    relationships:
+      - type: executable_for
+        target: TEST-ui-pattern-component-proof
+  - id: SYM-core-scenario-accepted-scopes
+    title: scenario_accepted_scopes
+    status: active
+    sourceFile: packages/core/src/requirement_proof.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      recorded_at: 2026-10-09T12:13:38.086Z
+    relationships:
+      - type: covered_by
+        target: TEST-ui-pattern-component-proof
+      - type: implements
+        target: REQ-ui-pattern-component-proof
+  - id: SYM-core-component-scope-requirement
+    title: component_scope_requirement
+    status: active
+    sourceFile: packages/core/src/requirement_proof.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      recorded_at: 2026-10-09T12:13:40.574Z
+    relationships:
+      - type: covered_by
+        target: TEST-ui-pattern-component-proof
+      - type: implements
+        target: REQ-ui-pattern-component-proof
+  - id: SYM-test-ui-plugin-design-policy
+    title: kibi-plugin-ui suite
+    status: active
+    sourceFile: packages/plugin-ui/tests/plugin.test.ts
+    granularity_reason: test-suite
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      recorded_at: 2026-10-09T12:13:48.596Z
+    relationships:
+      - type: executable_for
+        target: TEST-ui-plugin-design-policy
+  - id: SYM-plugin-ui-kibiplugin
+    title: kibiPlugin
+    status: active
+    sourceFile: packages/plugin-ui/src/index.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      recorded_at: 2026-10-09T12:13:55.064Z
+    relationships:
+      - type: covered_by
+        target: TEST-ui-plugin-design-policy
+      - type: implements
+        target: REQ-ui-plugin-design-policy
+  - id: SYM-plugin-ui-ui-check-policy
+    title: UI_CHECK_POLICY
+    status: active
+    sourceFile: packages/plugin-ui/src/index.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      recorded_at: 2026-10-09T12:13:58.722Z
+    relationships:
+      - type: covered_by
+        target: TEST-ui-plugin-design-policy
+      - type: implements
+        target: REQ-ui-plugin-design-policy
+  - id: SYM-test-bootstrap-ui-plugin-offer
+    title: Bootstrap plugin offers suite
+    status: active
+    sourceFile: packages/cli/tests/operations/bootstrap-plugin-offers.test.ts
+    granularity_reason: test-suite
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      recorded_at: 2026-10-09T12:14:08.483Z
+    relationships:
+      - type: executable_for
+        target: TEST-bootstrap-ui-plugin-offer
+  - id: SYM-bootstrap-plugin-offers-pluginoffers
+    title: pluginOffers
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/plugin-offers.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'Piotr thread 2026-10-09: UI design plugin'
+      recorded_at: 2026-10-09T12:14:15.195Z
+    relationships:
+      - type: covered_by
+        target: TEST-bootstrap-ui-plugin-offer
+      - type: implements
+        target: REQ-bootstrap-ui-plugin-offer

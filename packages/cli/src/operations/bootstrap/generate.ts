@@ -472,6 +472,7 @@ export async function executePlanBootstrap(
     activation: discovery.activation,
     discoverySummary: discovery.summary,
     migrationWarning: discovery.migrationWarning,
+    pluginOffers: discovery.pluginOffers,
     ...(args.bootstrapContext
       ? { bootstrapContext: args.bootstrapContext }
       : {}),

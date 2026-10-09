@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import type { OperationResult } from "../../public/operations/types.js";
 import { canonicalize } from "../semantic-advisor/shared.js";
+import type { PluginOffer } from "./plugin-offers.js";
 
 export function bootstrapPlanHash(
   plan: Readonly<Record<string, unknown>>,
@@ -230,6 +231,7 @@ export type DiscoverySummary = {
 
 export type DiscoveryResult = {
   readonly activation: ActivationPolicy;
+  readonly pluginOffers: readonly PluginOffer[];
   readonly evidence: readonly BootstrapEvidence[];
   readonly ignoredSources: readonly string[];
   readonly summary: DiscoverySummary;

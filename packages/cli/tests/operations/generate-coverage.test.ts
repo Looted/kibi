@@ -235,6 +235,7 @@ describe("executePlanBootstrap", () => {
         scanWarnings: [],
       },
       migrationWarning: null,
+      pluginOffers: [],
     });
     try {
       const result = await executePlanBootstrap(
@@ -296,6 +297,7 @@ describe("executePlanBootstrap", () => {
         scanWarnings: [],
       },
       migrationWarning: "legacy",
+      pluginOffers: [],
     });
     try {
       const { fs: _fs, ...noFs } = context(root);
@@ -335,6 +337,7 @@ describe("executePlanBootstrap", () => {
         scanWarnings: [],
       },
       migrationWarning: null,
+      pluginOffers: [],
     });
     try {
       const result = await executePlanBootstrap(
@@ -394,6 +397,7 @@ describe("executePlanBootstrap", () => {
         scanWarnings: [],
       },
       migrationWarning: null,
+      pluginOffers: [],
     });
     const statusSpy = spyOn(executors, "executeStatus").mockResolvedValue({
       content: [{ type: "text", text: "status" }],

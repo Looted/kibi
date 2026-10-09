@@ -2789,6 +2789,90 @@ test(missing_single_coordinate_blocks_proof_until_all_four_persist, [setup(setup
 
 :- end_tests(kb_coverage_depth).
 
+:- begin_tests(ui_pattern_component_proof).
+
+% implements REQ-ui-pattern-component-proof
+test(requirement_proof_accepts_component_scope_only_for_ui_pattern_scenarios, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    Snapshot = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    proof_receipt_json_scoped('PR-TEST000000001', 'TEST-UI-LIST-VARIANTS', unit, Snapshot, passed,
+        '2026-08-10T11:55:00Z', '2026-08-10T12:00:00Z', UnitJson),
+    assert_fixture_entity(req, 'REQ-UI-LIST-PATTERN', "List uses the timeline pattern", active, [priority=must]),
+    assert_fixture_entity(scenario, 'SCEN-UI-LIST-PATTERN', "Both list variants render the timeline", active, []),
+    assert_fixture_entity(test, 'TEST-UI-LIST-VARIANTS', "List variants component test", passing,
+        [verification_scope=unit, proof_receipts=UnitJson]),
+    assert_fixture_entity(fact, 'FACT-UI-LIST-PATTERN', "List uses the timeline pattern", active, [
+        fact_kind=predicate, predicate_name="ui_pattern",
+        predicate_args=["item_list", "line_dots_timeline"], polarity=assert,
+        canonical_key="ui_pattern(item_list,line_dots_timeline)"
+    ]),
+    assert_fixture_entity(fact, 'FACT-UI-LIST-SAME', "Both variants share the pattern", active, [
+        fact_kind=predicate, predicate_name="same_pattern",
+        predicate_args=["item_list", "editor_view", "read_only_view"], polarity=assert,
+        canonical_key="same_pattern(item_list,editor_view,read_only_view)"
+    ]),
+    kb_assert_relationship(specified_by, 'REQ-UI-LIST-PATTERN', 'SCEN-UI-LIST-PATTERN', []),
+    kb_assert_relationship(verified_by, 'SCEN-UI-LIST-PATTERN', 'TEST-UI-LIST-VARIANTS', []),
+    kb_assert_relationship(requires_predicate, 'REQ-UI-LIST-PATTERN', 'FACT-UI-LIST-PATTERN', []),
+    kb_assert_relationship(requires_predicate, 'REQ-UI-LIST-PATTERN', 'FACT-UI-LIST-SAME', []),
+    coverage_report_json(req, [], true, true, 100, 0, Snapshot, '2026-08-10T12:05:00Z', 604800, PatternJson),
+    json_string_dict(PatternJson, PatternReport),
+    coverage_row(PatternReport.rows, 'REQ-UI-LIST-PATTERN', PatternRow),
+    assertion(PatternRow.proofStages.passingE2e.tests == ['TEST-UI-LIST-VARIANTS']),
+    assertion(PatternRow.proofStages.passingE2e.status == passed),
+    [PatternObligation] = PatternRow.proofStages.passingE2e.scenarioObligations,
+    assertion(PatternObligation.acceptedScopes == [unit, integration, end_to_end]),
+
+    % A layout claim needs real rendering, so the same unit test no longer proves it.
+    assert_fixture_entity(fact, 'FACT-UI-LIST-CONTAINER', "List scrolls in a half-page panel", active, [
+        fact_kind=predicate, predicate_name="ui_container",
+        predicate_args=["item_list", "half_page", "scroll"], polarity=assert,
+        canonical_key="ui_container(item_list,half_page,scroll)"
+    ]),
+    kb_assert_relationship(requires_predicate, 'REQ-UI-LIST-PATTERN', 'FACT-UI-LIST-CONTAINER', []),
+    coverage_report_json(req, [], true, true, 100, 0, Snapshot, '2026-08-10T12:05:00Z', 604800, LayoutJson),
+    json_string_dict(LayoutJson, LayoutReport),
+    coverage_row(LayoutReport.rows, 'REQ-UI-LIST-PATTERN', LayoutRow),
+    assertion(LayoutRow.proofStages.passingE2e.tests == []),
+    assertion(LayoutRow.proofStages.passingE2e.nonEndToEndTests == ['TEST-UI-LIST-VARIANTS']),
+    assertion(memberchk(missing_passing_e2e, LayoutRow.proofGaps)),
+    [LayoutObligation] = LayoutRow.proofStages.passingE2e.scenarioObligations,
+    assertion(LayoutObligation.acceptedScopes == [end_to_end]).
+
+% implements REQ-ui-pattern-component-proof
+test(shared_component_test_counts_whatever_the_scenario_order, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    Snapshot = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    proof_receipt_json_scoped('PR-TEST000000002', 'TEST-UI-LIST-VARIANTS', unit, Snapshot, passed,
+        '2026-08-10T11:55:00Z', '2026-08-10T12:00:00Z', UnitJson),
+    assert_fixture_entity(req, 'REQ-UI-LIST-PATTERN', "List uses the timeline pattern", active, [priority=must]),
+    assert_fixture_entity(req, 'REQ-LIST-EXPORT', "List can be exported", active, [priority=must]),
+    % Sorts first and is shared with a requirement that is not UI-only, so it
+    % accepts only end-to-end evidence for the same unit test.
+    assert_fixture_entity(scenario, 'SCEN-UI-A-SHARED', "List renders and exports", active, []),
+    assert_fixture_entity(scenario, 'SCEN-UI-LIST-PATTERN', "Both list variants render the timeline", active, []),
+    assert_fixture_entity(test, 'TEST-UI-LIST-VARIANTS', "List variants component test", passing,
+        [verification_scope=unit, proof_receipts=UnitJson]),
+    assert_fixture_entity(fact, 'FACT-UI-LIST-PATTERN', "List uses the timeline pattern", active, [
+        fact_kind=predicate, predicate_name="ui_pattern",
+        predicate_args=["item_list", "line_dots_timeline"], polarity=assert,
+        canonical_key="ui_pattern(item_list,line_dots_timeline)"
+    ]),
+    kb_assert_relationship(requires_predicate, 'REQ-UI-LIST-PATTERN', 'FACT-UI-LIST-PATTERN', []),
+    kb_assert_relationship(specified_by, 'REQ-UI-LIST-PATTERN', 'SCEN-UI-A-SHARED', []),
+    kb_assert_relationship(specified_by, 'REQ-LIST-EXPORT', 'SCEN-UI-A-SHARED', []),
+    kb_assert_relationship(specified_by, 'REQ-UI-LIST-PATTERN', 'SCEN-UI-LIST-PATTERN', []),
+    kb_assert_relationship(verified_by, 'SCEN-UI-A-SHARED', 'TEST-UI-LIST-VARIANTS', []),
+    kb_assert_relationship(verified_by, 'SCEN-UI-LIST-PATTERN', 'TEST-UI-LIST-VARIANTS', []),
+    coverage_report_json(req, [], true, true, 100, 0, Snapshot, '2026-08-10T12:05:00Z', 604800, Json),
+    json_string_dict(Json, Report),
+    coverage_row(Report.rows, 'REQ-UI-LIST-PATTERN', Row),
+    Obligations = Row.proofStages.passingE2e.scenarioObligations,
+    findall(Id-Scopes, (member(O, Obligations), Id = O.scenarioId, Scopes = O.acceptedScopes), Pairs),
+    assertion(memberchk('SCEN-UI-A-SHARED'-[end_to_end], Pairs)),
+    assertion(memberchk('SCEN-UI-LIST-PATTERN'-[unit, integration, end_to_end], Pairs)),
+    assertion(Row.proofStages.passingE2e.tests == ['TEST-UI-LIST-VARIANTS']).
+
+:- end_tests(ui_pattern_component_proof).
+
 % Semantic contradiction tests using typed facts (Task 4)
 :- begin_tests(kb_semantic_contradictions).
 
@@ -6282,11 +6366,14 @@ proof_receipt_json(TestId, Snapshot, Outcome, StartedAt, FinishedAt, Json) :-
     proof_receipt_json_with_id('PR-TEST000000001', TestId, Snapshot, Outcome, StartedAt, FinishedAt, Json).
 
 proof_receipt_json_with_id(ReceiptId, TestId, Snapshot, Outcome, StartedAt, FinishedAt, Json) :-
+    proof_receipt_json_scoped(ReceiptId, TestId, end_to_end, Snapshot, Outcome, StartedAt, FinishedAt, Json).
+
+proof_receipt_json_scoped(ReceiptId, TestId, Scope, Snapshot, Outcome, StartedAt, FinishedAt, Json) :-
     Receipt = _{
         version: 'kibi.proof-receipt.v1',
         receipt_id: ReceiptId,
         test_id: TestId,
-        scope: end_to_end,
+        scope: Scope,
         outcome: Outcome,
         code_snapshot: Snapshot,
         environment_hash: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',

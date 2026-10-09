@@ -706,6 +706,7 @@ export interface Tarballs {
   "plugin-sdk": string;
   "plugin-builtin": string;
   "plugin-jev": string;
+  "plugin-ui": string;
   "plugin-treesitter": string;
   swipl: string;
   /**
@@ -1047,6 +1048,7 @@ export function createSandbox(options: SandboxOptions = {}): TestSandbox {
         tarballs["agent-core"],
         tarballs["plugin-builtin"],
         tarballs["plugin-jev"],
+        tarballs["plugin-ui"],
         tarballs["plugin-treesitter"],
         tarballs.swipl,
         tarballs.swiplPlatform ?? "",

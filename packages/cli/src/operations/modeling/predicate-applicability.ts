@@ -178,7 +178,11 @@ const INTENT_RULES: Readonly<Record<string, IntentRule>> = {
       [/use|avoid/i],
       [/api|apis|code|framework|hook|pattern|signal|schema|type|computed/i],
     ],
-    prohibited: [/user|admin|access|permission|mfa|customer/i],
+    // On-screen views and visual patterns are UI design claims (ui_pattern,
+    // same_pattern), not developer coding standards.
+    prohibited: [
+      /user|admin|access|permission|mfa|customer|\bviews?\b|screens?|timeline/i,
+    ],
   },
   release_gate_rule: {
     allOf: [
@@ -277,6 +281,28 @@ const INTENT_RULES: Readonly<Record<string, IntentRule>> = {
       [/block|new|preserve|existing|resumable|continue/i],
     ],
     prohibited: [/deletion|soft\s+delete/i],
+  },
+  ui_pattern: {
+    allOf: [
+      [/pattern|timeline|card|list|grid|carousel|table|layout|design/i],
+      [/use|show|present|render|display|design/i],
+    ],
+    prohibited: [/aligned\s+with|colou?r|hex|font/i],
+  },
+  same_pattern: {
+    allOf: [
+      [/same|consistent|match|identical|one\s+\w+\s+for/i],
+      [/both|each|every|variant|role|view|presentation/i],
+    ],
+  },
+  pattern_marker: {
+    allOf: [[/marker|marked|class|test\s*id|data-testid|selector/i]],
+  },
+  ui_container: {
+    allOf: [
+      [/container|panel|sheet|pane|region/i],
+      [/scroll|overflow|half[- ]page|full[- ]height|clip/i],
+    ],
   },
 };
 

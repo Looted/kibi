@@ -1,6 +1,6 @@
 # Developing Kibi capability plugins
 
-Kibi capability plugins extend five host-owned seams without taking over
+Kibi capability plugins extend six host-owned seams without taking over
 validation, Prolog, mutation, or proof:
 
 1. `kibi.semantic-classifier.v1` — lane / ambiguity classification over host
@@ -11,10 +11,13 @@ validation, Prolog, mutation, or proof:
 5. `kibi.vocabulary-alignment.v1` — modeling-time vocabulary convergence:
    `rankSubjects` (reuse an existing subject or declare `new_subject`) and
    `compareClaims` (possible-duplicate candidates for review)
+6. `kibi.check-policy.v1` — data-only `kb_check` policy: ownership and
+   pattern-marker rules evaluated by Kibi (see [Check policy](#check-policy))
 
 Every capability is optional for third-party plugins: a plugin declares only
 the capabilities it provides, and plugins written before a capability existed
-keep validating and loading unchanged. The builtin plugin provides all five.
+keep validating and loading unchanged. The builtin plugin provides all six
+(its check policy is empty).
 
 This is distinct from **host plugins** such as `kibi-cursor`, `kibi-opencode`,
 `kibi-codex`, `kibi-zcode`, and `kibi-claude`, which adapt an IDE or agent host to Kibi's
@@ -107,9 +110,11 @@ comparison metadata only.
 Sync maintenance paths (`sync`, `check`, `kb_upsert`, `status`, proof, and
 related) keep deterministic builtin analysis for every capability and must
 never invoke external semantic classifiers, ontology packs, symbol extractors,
-or vocabulary-alignment providers. `kb_check` in particular never resolves
-plugins: `domain-redundancy`, `subject-key-identity`, and the other Prolog
-checks remain the only pass/fail authority. Async advisor / compile-intent / staged-symbol paths compose the
+or vocabulary-alignment providers. `kb_check` in particular never imports
+plugin code: `domain-redundancy`, `subject-key-identity`, and the other Prolog
+checks remain the pass/fail authority, and an activated check policy is read
+as JSON data and evaluated by Kibi's own `policy-ownership` and
+`policy-markers` rules. Async advisor / compile-intent / staged-symbol paths compose the
 registry (replace / augment / shadow); replace mode strips or overrides any
 sync-path builtin suggestions before results are returned.
 
@@ -226,6 +231,56 @@ check.
 Results are validated by `validateRankSubjectsResult` and
 `validateCompareClaimsResult`: foreign keys, duplicate keys, invented subjects,
 and out-of-range confidences are rejected before they reach the plan.
+
+## Check policy
+
+`kibi.check-policy.v1` lets a plugin turn on stricter `kb_check` rules for the
+projects that activate it, without running plugin code during checks. The
+plugin's `package.json` names a JSON document:
+
+```json
+{ "name": "my-policy", "kibi": { "checkPolicy": "check-policy.json" } }
+```
+
+During `kb_check`, Kibi resolves each package activated for
+`kibi.check-policy.v1` (only `augment` is accepted), reads that file from
+inside the package root, and validates it with `validateCheckPolicyDocument`.
+It never imports the module. A policy that is missing, escapes the package
+root or fails validation blocks the check rather than silently switching off.
+The plugin should also export the same document as `capabilities.checkPolicy`
+so `validateKibiPlugin` and tooling can see it.
+
+A document has a `contractVersion` (`kibi.check-policy.v1`), a kebab-case
+`id`, a `title`, and two optional rule lists:
+
+- **`ownership`** (rule `policy-ownership`): symbols whose `sourceFile`
+  matches `include` (gitignore-style globs, minus `exclude`) and whose title
+  matches `symbolTitlePattern` must implement a current requirement linked
+  `requires_predicate` to an asserted fact of one of `requirePredicates`.
+  Symbols tagged `exemptTag` and executable test symbols are skipped.
+- **`markers`** (rule `policy-markers`): for every current requirement grounded
+  in `patternPredicate`, the pattern is the fact argument at
+  `patternArgument`. Each asserted `markerPredicate` fact whose
+  `markerPatternArgument` names that pattern contributes the literal at
+  `markerArgument`. Every source file implementing the requirement, plus its
+  sibling files with the same stem and a `siblingExtensions` extension, must
+  contain each marker (`_` and `-` spellings both match).
+
+Rule ids must be unique across both lists, predicate names are snake_case and
+argument indexes are zero-based. `kibi-plugin-ui` is the first-party policy.
+
+## Optional UI design plugin
+
+`kibi-plugin-ui` (experimental) ships a check policy that keeps React and
+Angular components on their agreed design patterns. `/kibi-bootstrap` offers it
+when `kb_plan_bootstrap` finds production `*.tsx`, `*.jsx` or `*.component.ts`
+files (`pluginOffers`), unless the project already activated it or listed it
+under `package.json` `kibi.declinedPlugins`. It declares no permissions and has
+no runtime code path. The UI vocabulary it relies on (`ui_pattern`,
+`same_pattern`, `pattern_marker`, `ui_container`) and component-scope proof for
+pattern requirements are part of Kibi core. See
+[packages/plugin-ui/README.md](../packages/plugin-ui/README.md) and
+[ui-requirements.md](./ui-requirements.md).
 
 ## Optional Jev provider
 

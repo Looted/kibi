@@ -603,6 +603,11 @@ const BASE_DATA_SCHEMAS: Readonly<
       tldr: stringValue,
       promptBlock: stringValue,
       recommendedActions: recordArray,
+      pluginOffers: {
+        ...recordArray,
+        description:
+          "Optional plugins that fit this workspace and that the project has neither activated nor declined. Ask the operator; on yes install and activate the package, on no add it to package.json kibi.declinedPlugins.",
+      },
       declaredContext: recordValue,
       discoverySummary: recordValue,
       candidates: recordArray,

@@ -4,7 +4,7 @@ description: Use Kibi's source-first, exact-Git, migration-aware, proof-aware op
 license: AGPL-3.0-or-later
 metadata:
   id: kibi-usage
-  version: 2.10.0
+  version: 2.11.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi

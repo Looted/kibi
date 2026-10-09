@@ -1188,6 +1188,187 @@ links:
   );
 
   test(
+    "an activated check policy enforces design ownership and pattern markers",
+    async () => {
+      // executable_for TEST-capability-check-policy
+      writeFileSync(
+        path.join(tmpDir, "package.json"),
+        JSON.stringify({
+          name: "consumer",
+          devDependencies: { "ui-policy-plugin": "0.1.0" },
+          kibi: {
+            plugins: [
+              {
+                package: "ui-policy-plugin",
+                capabilities: { "kibi.check-policy.v1": { mode: "augment" } },
+              },
+            ],
+          },
+        }),
+      );
+      const pluginRoot = path.join(tmpDir, "node_modules", "ui-policy-plugin");
+      mkdirSync(pluginRoot, { recursive: true });
+      writeFileSync(
+        path.join(pluginRoot, "package.json"),
+        JSON.stringify({
+          name: "ui-policy-plugin",
+          version: "0.1.0",
+          main: "index.js",
+          kibi: { checkPolicy: "check-policy.json" },
+        }),
+      );
+      writeFileSync(
+        path.join(pluginRoot, "index.js"),
+        'throw new Error("plugin module imported");\n',
+      );
+      writeFileSync(
+        path.join(pluginRoot, "check-policy.json"),
+        JSON.stringify({
+          contractVersion: "kibi.check-policy.v1",
+          id: "ui-design",
+          title: "UI design coverage",
+          ownership: [
+            {
+              id: "ui-component-ownership",
+              description: "UI components implement a design requirement",
+              include: ["src/**/*.component.ts"],
+              requirePredicates: ["ui_pattern"],
+            },
+          ],
+          markers: [
+            {
+              id: "ui-pattern-markers",
+              description: "Pattern markers stay in implementing files",
+              patternPredicate: "ui_pattern",
+              patternArgument: 1,
+              markerPredicate: "pattern_marker",
+              markerPatternArgument: 0,
+              markerArgument: 1,
+              siblingExtensions: [".html"],
+            },
+          ],
+        }),
+      );
+      mkdirSync(path.join(tmpDir, "src/list"), { recursive: true });
+      writeFileSync(
+        path.join(tmpDir, "src/list/item-list.component.ts"),
+        "export class ItemListComponent {}\n",
+      );
+      writeFileSync(
+        path.join(tmpDir, "src/list/item-list.component.html"),
+        '<ol><li class="timeline-dot"></li></ol>\n',
+      );
+      writeFileSync(
+        path.join(tmpDir, "src/list/item-card.component.ts"),
+        "export class ItemCardComponent {}\n",
+      );
+      const factDir = path.join(tmpDir, ".kb/facts");
+      const reqDir = path.join(tmpDir, ".kb/requirements");
+      mkdirSync(factDir, { recursive: true });
+      mkdirSync(reqDir, { recursive: true });
+      const predicate = (id: string, name: string, args: string[]) =>
+        yamlDoc([
+          `id: ${id}`,
+          `title: ${name}`,
+          "type: fact",
+          "status: active",
+          "fact_kind: predicate",
+          `predicate_name: ${name}`,
+          `predicate_args: [${args.join(", ")}]`,
+          "polarity: assert",
+          `canonical_key: ${name}(${args.join(",")})`,
+        ]);
+      writeFileSync(
+        path.join(factDir, "FACT-LIST-PATTERN.md"),
+        predicate("FACT-LIST-PATTERN", "ui_pattern", [
+          "item_list",
+          "line_dots_timeline",
+        ]),
+      );
+      writeFileSync(
+        path.join(factDir, "FACT-LIST-DOT.md"),
+        predicate("FACT-LIST-DOT", "pattern_marker", [
+          "line_dots_timeline",
+          "timeline-dot",
+        ]),
+      );
+      writeFileSync(
+        path.join(factDir, "FACT-LIST-CONNECTOR.md"),
+        predicate("FACT-LIST-CONNECTOR", "pattern_marker", [
+          "line_dots_timeline",
+          "timeline-connector",
+        ]),
+      );
+      writeFileSync(
+        path.join(reqDir, "REQ-LIST-PATTERN.md"),
+        yamlDoc([
+          "id: REQ-LIST-PATTERN",
+          "title: Item list uses the line-and-dots timeline",
+          "type: req",
+          "status: open",
+          "priority: should",
+          "links:",
+          "  - type: requires_predicate",
+          "    target: FACT-LIST-PATTERN",
+        ]),
+      );
+      writeFileSync(
+        path.join(tmpDir, ".kb/symbols.yaml"),
+        `symbols:
+  - id: SYM-ITEM-LIST
+    title: ItemListComponent
+    status: active
+    sourceFile: src/list/item-list.component.ts
+    links:
+      - type: implements
+        target: REQ-LIST-PATTERN
+  - id: SYM-ITEM-CARD
+    title: ItemCardComponent
+    status: active
+    sourceFile: src/list/item-card.component.ts
+`,
+      );
+      execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
+      execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+
+      const { status, stdout } = runKibi(
+        kibiBin,
+        [
+          "check",
+          "--rules",
+          "policy-ownership,policy-markers",
+          "--format",
+          "json",
+        ],
+        tmpDir,
+      );
+      expect(status).toBe(1);
+      const { violations } = (
+        JSON.parse(stdout) as {
+          structuredContent: {
+            violations: Array<{
+              rule: string;
+              entityId: string;
+              evidence?: Record<string, unknown>;
+            }>;
+          };
+        }
+      ).structuredContent;
+      expect(
+        violations.map((violation) => [
+          violation.rule,
+          violation.entityId,
+          violation.evidence?.marker,
+        ]),
+      ).toEqual([
+        ["policy-ownership", "SYM-ITEM-CARD", undefined],
+        ["policy-markers", "SYM-ITEM-LIST", "timeline-connector"],
+      ]);
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
     "reports each uncovered symbol once",
     async () => {
       const symbolsDir = path.join(tmpDir, ".kb");

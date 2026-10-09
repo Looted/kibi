@@ -321,3 +321,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-183ea0b8658c
+  - type: validates
+    from: TEST-capability-check-policy
+    to: SCEN-capability-check-policy
+    created_at: 2026-10-09T12:12:48.322Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-544b12055539
