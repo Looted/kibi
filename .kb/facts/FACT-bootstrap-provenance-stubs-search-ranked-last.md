@@ -21,3 +21,6 @@ origin:
 id: FACT-bootstrap-provenance-stubs-search-ranked-last
 type: fact
 ---
+Search ranking must sort a provenance stub after every match that is not a provenance stub.
+
+Recorded as a strict boolean semantic fact about `bootstrap.provenance_stubs` so REQ-bootstrap-provenance-stubs can be checked for contradictions.

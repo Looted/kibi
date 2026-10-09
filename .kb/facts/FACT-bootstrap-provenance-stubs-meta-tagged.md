@@ -21,3 +21,6 @@ origin:
 id: FACT-bootstrap-provenance-stubs-meta-tagged
 type: fact
 ---
+The bootstrap planner must write a discovered provider candidate that states no claim as a meta fact tagged bootstrap:provenance-stub.
+
+Recorded as a strict boolean semantic fact about `bootstrap.provenance_stubs` so REQ-bootstrap-provenance-stubs can be checked for contradictions.

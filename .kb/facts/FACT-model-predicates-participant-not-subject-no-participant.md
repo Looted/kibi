@@ -21,3 +21,6 @@ origin:
 id: FACT-model-predicates-participant-not-subject-no-participant
 type: fact
 ---
+Predicate binding hints must say that the schema does not fit the claim when the claim names no participant.
+
+Recorded as a strict boolean semantic fact about `kibi.predicate_suggestion.plan` so REQ-model-predicates-participant-not-subject can be checked for contradictions.

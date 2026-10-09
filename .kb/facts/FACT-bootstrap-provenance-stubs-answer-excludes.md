@@ -21,3 +21,6 @@ origin:
 id: FACT-bootstrap-provenance-stubs-answer-excludes
 type: fact
 ---
+The search answer layer must not list a provenance stub as a note.
+
+Recorded as a strict boolean semantic fact about `bootstrap.provenance_stubs` so REQ-bootstrap-provenance-stubs can be checked for contradictions.

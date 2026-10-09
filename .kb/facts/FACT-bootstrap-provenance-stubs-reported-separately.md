@@ -21,3 +21,6 @@ origin:
 id: FACT-bootstrap-provenance-stubs-reported-separately
 type: fact
 ---
+The bootstrap plan must report planned provenance stubs separately from candidates with claims.
+
+Recorded as a strict boolean semantic fact about `bootstrap.provenance_stubs` so REQ-bootstrap-provenance-stubs can be checked for contradictions.

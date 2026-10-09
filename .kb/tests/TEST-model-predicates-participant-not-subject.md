@@ -1,5 +1,5 @@
 ---
-title: Predicate participant subject key tests
+title: Predicate participant binding tests
 status: active
 tags:
   - modeling
@@ -56,4 +56,4 @@ proof_receipts:
         attempts:
           status: unavailable
 ---
-Runs the predicate participant subject suite, which models a claim without an actor against a requirement that constrains a subject key and checks that the actor stays unbound with a hint naming the missing participant and record_ontology_gap, that an explicit actor binding equal to the subject key is rejected with that reason, that a claim naming the actor in a short noun still binds, and that subject keys are offered as examples only for the subject argument and for entity arguments.
+Runs the predicate participant binding suite, which models a claim without an actor against a requirement that constrains a component identifier and checks that the actor stays unbound with a hint naming the missing participant and record_ontology_gap, that an explicit actor binding equal to that identifier is rejected with that reason, that a claim naming the actor in a short noun still binds, and that the constrained identifiers are offered as examples only for the argument that names what the claim is about and for entity arguments.

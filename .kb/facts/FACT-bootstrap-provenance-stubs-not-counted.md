@@ -21,3 +21,6 @@ origin:
 id: FACT-bootstrap-provenance-stubs-not-counted
 type: fact
 ---
+Gap and type coverage reports must not count a provenance stub as a fact.
+
+Recorded as a strict boolean semantic fact about `bootstrap.provenance_stubs` so REQ-bootstrap-provenance-stubs can be checked for contradictions.

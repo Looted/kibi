@@ -21,3 +21,6 @@ origin:
 id: FACT-bootstrap-provenance-stubs-selected-last
 type: fact
 ---
+The bootstrap planner must select provenance stubs after every discovered candidate that states a claim.
+
+Recorded as a strict boolean semantic fact about `bootstrap.provenance_stubs` so REQ-bootstrap-provenance-stubs can be checked for contradictions.

@@ -21,3 +21,6 @@ origin:
 id: FACT-model-predicates-replacement-diagnostics-rollback
 type: fact
 ---
+A grounding replacement plan must state rollback as the response to a kb_check that is not clean after the last step.
+
+Recorded as a strict boolean semantic fact about `kibi.predicate_suggestion.plan` so REQ-model-predicates-replacement-diagnostics can be checked for contradictions.

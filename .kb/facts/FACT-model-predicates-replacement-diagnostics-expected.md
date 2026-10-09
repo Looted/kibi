@@ -21,3 +21,6 @@ origin:
 id: FACT-model-predicates-replacement-diagnostics-expected
 type: fact
 ---
+A grounding replacement plan must list logic-coverage and strict-req-fact-pairing as the expected kb_check findings between the retraction and the link.
+
+Recorded as a strict boolean semantic fact about `kibi.predicate_suggestion.plan` so REQ-model-predicates-replacement-diagnostics can be checked for contradictions.
