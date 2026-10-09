@@ -218,10 +218,19 @@ report the run is evaluated as one unit (`attribution: "aggregate"`, with an
 
 Detects languages, build systems, test frameworks, CI workflows, configured
 integrations, and the recommended integration level. Deterministic output for
-agents; bootstrap consumes this instead of reinventing detection.
+agents. While `.kb/proof/integrations.json` does not exist and a test runner
+is detected, the JSON also carries `proposedIntegration` (a `command`
+integration running the `package.json` `test` script, or the detected
+runner), `contractDefaults` for a test's `proof_contract`, and
+`integrationPlan`: a hash-bound `kibi.migration-plan.v2` that writes the file
+when applied with `kb_apply_plan` or `kibi apply-plan --input -` (pass
+`plan`, `approvedPlanHash` and `approvedActionIds`). `integrationPlanReason`
+says why there is no plan. `--update <id>` plans adding or replacing one
+named integration in an existing file.
 
 ```bash
 kibi proof inspect --json
+kibi proof inspect --update e2e --json
 ```
 
 ### `kibi proof explain`

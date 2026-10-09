@@ -54,7 +54,16 @@ Provenance lives in `proof_bindings`; the contract stays semantic.
 ## Integration configuration
 
 `.kb/proof/integrations.json` (`kibi.proof-integration.v1`) is tracked,
-Kibi-managed configuration describing evidence production only:
+Kibi-managed configuration describing evidence production only. Never
+hand-write it: `kibi proof inspect --json` proposes a `command` integration
+for the detected test runner (the `package.json` `test` script first) and
+returns `integrationPlan`, a hash-bound `kibi.migration-plan.v2`, plus the
+`contractDefaults` a proof-bearing test's `proof_contract` uses. Show the
+proposal to the human, then apply the plan with `kb_apply_plan` (or
+`kibi apply-plan --input -`) passing `plan`, `approvedPlanHash` (the plan's
+`planHash`) and `approvedActionIds`. Once the file exists, a create plan is
+refused; `kibi proof inspect --update <id> --json` plans adding or replacing
+one named integration.
 
 - `producer: command` — Kibi synthesizes the envelope from the process
   outcome; obligations are bound with `aggregate_run` provenance and the
@@ -82,8 +91,11 @@ effective fingerprint and do.
 
 ## Common rejections
 
-- `No proof integration configuration` — bootstrap has not configured proof
-  for this repository yet; do not hand-wave, run the bootstrap proof step.
+- `No proof integration configuration` — proof is not configured for this
+  repository yet; run `kibi proof inspect --json`, review its
+  `integrationPlan` and apply it with `kb_apply_plan`.
+- `integration '<id>' ... is not configured` — the test names an integration
+  the file lacks; plan it with `kibi proof inspect --update <id> --json`.
 - `captured snapshot is not the live workspace snapshot` — the tree changed
   between capture and ingest; re-run `kibi prove`.
 - `artifact command_argv does not match the configured command` — the

@@ -29,8 +29,10 @@ describe("inspectProofEnvironment", () => {
     expect(inspection.languages).toEqual([]);
     expect(inspection.recommendation).toContain("No test harness detected");
     expect(inspection.missing).toEqual([
-      ".kb/proof/integrations.json (created by bootstrap)",
+      ".kb/proof/integrations.json (written by applying the plan from kibi proof inspect --json)",
     ]);
+    expect(inspection.integrationPlan).toBeNull();
+    expect(inspection.integrationPlanReason).toContain("No test runner detected");
   });
 
   test("detects package.json scripts, bun lockfile, and npm test runner", () => {
@@ -50,7 +52,15 @@ describe("inspectProofEnvironment", () => {
       expect.arrayContaining(["bun", "npm"]),
     );
     expect(inspection.detectedRunners).toContain("npm test");
-    expect(inspection.recommendation).toContain("Run bootstrap");
+    expect(inspection.recommendation).toContain("kb_apply_plan");
+    expect(inspection.proposedIntegration).toMatchObject({
+      id: "unit",
+      producer: "command",
+      command: ["bun", "run", "test"],
+    });
+    expect(inspection.integrationPlan?.actions.map((a) => a.id)).toEqual([
+      "proof-integration-unit",
+    ]);
   });
 
   test("detects language runners, CI workflows, and configured integrations", () => {

@@ -388,7 +388,7 @@ export async function proveCommand(
       );
       if (!integration) {
         failures.push(
-          `integration '${integrationId}' (required by ${tests.map((t) => t.id).join(", ")}) is not configured in .kb/proof/integrations.json`,
+          `integration '${integrationId}' (required by ${tests.map((t) => t.id).join(", ")}) is not configured in .kb/proof/integrations.json; plan it with kibi proof inspect --update ${integrationId} --json and apply the plan with kb_apply_plan`,
         );
         continue;
       }
