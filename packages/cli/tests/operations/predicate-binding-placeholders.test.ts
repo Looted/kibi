@@ -202,8 +202,10 @@ describe("a clause of the claim does not name a participant", () => {
     expect(permission?.binding_provenance_by_argument.resource).toBe(
       "extracted",
     );
-    expect(data.recommendedAction).toBe("provide_argument_bindings");
-    expect(data.applyPlan).toEqual([]);
+    // The clause names no actor, so the schema does not fit the claim: the
+    // gap observation is planned and the hint explains the unbound actor.
+    expect(data.recommendedAction).toBe("record_ontology_gap");
+    expect(data.applyPlan).toHaveLength(1);
     const [hint] = data.bindingHints ?? [];
     expect(hint?.argument).toBe("actor");
     expect(hint?.reason).toContain("7-word clause of the claim");

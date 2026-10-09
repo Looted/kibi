@@ -7,6 +7,7 @@ import {
   subjectKeyParticipantReason,
 } from "./predicate-bindings.js";
 import type { BindingHint, PredicateSuggestion } from "./predicate-types.js";
+import { escapeRegExp } from "./predicate-utils.js";
 
 const MAX_EXAMPLES = 5;
 
@@ -160,6 +161,87 @@ export function buildBindingHints(
           ? `The value "${current}" is not a subject the requirement constrains (${requirementSubjects.join(", ")}), so kb_check would not pair the predicate with the subject fact. Bind one of them.`
           : unboundReason(candidate, name, current, text, requirementSubjects),
     };
+  });
+}
+
+/**
+ * Whether the claim text names `value`: its words in order, any separator,
+ * with a plural ending allowed on the last word (`guest` names `guests`).
+ */
+// implements REQ-model-predicates-participant-not-subject
+function claimNamesValue(text: string, value: string): boolean {
+  const words = value
+    .toLowerCase()
+    .split(/[\s_.-]+/)
+    .filter(Boolean);
+  if (words.length === 0) return false;
+  // Lookarounds instead of \b: a value may start or end with a symbol
+  // (`svc(ci)`, `c++`), where a word boundary never matches.
+  return new RegExp(
+    `(?<!\\w)${words.map(escapeRegExp).join("[\\s_-]+")}(?:e?s)?(?!\\w)`,
+    "i",
+  ).test(text);
+}
+
+/**
+ * Whether a clause lifted from the claim describes an action rather than a
+ * participant: it opens with a gerund ("Discarding a draft while …"). A
+ * clause that opens with a noun ("Administrators who were granted …") may
+ * still name the participant in its first words, so it is left to the agent.
+ */
+// implements REQ-model-predicates-participant-not-subject
+function clauseIsActivity(clause: string): boolean {
+  const head =
+    clause
+      .toLowerCase()
+      .split(/[\s_-]+/)
+      .find(Boolean) ?? "";
+  return head.length > 4 && head.endsWith("ing");
+}
+
+/**
+ * The unbound participant arguments (`actor`, `actor_scope`, `role`,
+ * `owner`) of a candidate that the claim names no participant for: the
+ * current value is empty or a placeholder, the requirement's subject key, or
+ * a clause of the claim that opens with a gerund (an activity, not a
+ * participant), and none of the argument's declared constants or schema
+ * example values occurs in the claim text. The agent cannot bind such an
+ * argument from the claim, so the schema does not fit the claim.
+ */
+// implements REQ-model-predicates-participant-not-subject
+export function unnamedParticipantArguments(
+  candidate: PredicateSuggestion,
+  text: string,
+  requirementSubjects: readonly string[] = [],
+): string[] {
+  const schema = candidate.schema;
+  const parsedExamples = schema.examples.map(exampleArguments);
+  return candidate.unbound_arguments.filter((name) => {
+    const position = schema.argument_names.indexOf(name);
+    if (position < 0) return false;
+    const type = schema.argument_types[position];
+    if (!isParticipantArgumentType(type)) return false;
+    const constants = schema.argument_constants?.[name];
+    const current = candidate.predicate_args[position] ?? "";
+    const unnamed =
+      !current.trim() ||
+      isGenericPlaceholder(current) ||
+      subjectKeyParticipantReason(current, {
+        argumentType: type,
+        constants,
+        constrainedSubjects: requirementSubjects,
+      }) !== null ||
+      (clauseBindingReason(current, { argumentType: type, constants }) !==
+        null &&
+        clauseIsActivity(current));
+    if (!unnamed) return false;
+    const known = [
+      ...(constants ?? []),
+      ...parsedExamples
+        .map((args) => args[position])
+        .filter((value): value is string => typeof value === "string"),
+    ];
+    return !known.some((value) => claimNamesValue(text, value));
   });
 }
 

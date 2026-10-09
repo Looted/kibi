@@ -23,6 +23,7 @@ import {
 import {
   buildBindingHints,
   describeBindingHints,
+  unnamedParticipantArguments,
 } from "./predicate-binding-hints.js";
 import { BUILT_IN_PREDICATE_SCHEMAS } from "./predicate-catalog.js";
 import { inferSubject } from "./predicate-inference.js";
@@ -485,6 +486,26 @@ export async function handleKbSuggestPredicates(
     recommendedCandidate && recommendedCandidate.binding_status === "complete"
       ? recommendedCandidate
       : undefined;
+  // implements REQ-model-predicates-participant-not-subject
+  // A schema whose participant argument (actor, role, owner) the claim never
+  // names does not fit the claim: no binding the agent could supply would be
+  // read from the claim. When every unbound argument of the recommended
+  // candidate is such a participant, the claim is an ontology gap, not a
+  // binding request. An argument unbound for another reason (a value the
+  // claim does name but in other words, a closed vocabulary) still asks for
+  // bindings.
+  const unnamedParticipants =
+    recommendedCandidate && !completeCandidate
+      ? unnamedParticipantArguments(
+          recommendedCandidate,
+          text,
+          requirementSubjects,
+        )
+      : [];
+  const schemaDoesNotFit =
+    unnamedParticipants.length > 0 &&
+    unnamedParticipants.length ===
+      (recommendedCandidate?.unbound_arguments.length ?? 0);
   // The action names the predicate state; existingGrounding (non-empty) is
   // the separate "already grounded" signal. A complete candidate for a claim
   // that is already grounded becomes a replacement, never a second link.
@@ -496,7 +517,9 @@ export async function handleKbSuggestPredicates(
       ? alreadyGrounded
         ? "replace_grounding"
         : "apply_requires_predicate"
-      : "provide_argument_bindings";
+      : schemaDoesNotFit
+        ? "record_ontology_gap"
+        : "provide_argument_bindings";
   const predicatePlan = completeCandidate
     ? buildPredicateApplyPlan(completeCandidate, args)
     : [];
@@ -508,7 +531,7 @@ export async function handleKbSuggestPredicates(
     ? alreadyGrounded
       ? []
       : predicatePlan
-    : !recommendedCandidate && !unavailableSchema
+    : (!recommendedCandidate && !unavailableSchema) || schemaDoesNotFit
       ? buildGapApplyPlan(text, args)
       : [];
   const plannedFactId =
@@ -548,8 +571,11 @@ export async function handleKbSuggestPredicates(
       `${args.requirementId} already grounds this claim (${claimKey}) through ${groundingSummary}. A modeled claim takes exactly one logical grounding relationship, so adding requires_predicate beside it fails the proposition-complete rule. ${replacementPlan ? "Keep the existing grounding, or follow replacementPlan to swap it for the predicate." : "Keep the existing grounding; no predicate replacement is available yet."}`,
     );
   }
+  // The hints stay on a schema that does not fit, so the agent can see which
+  // participant the claim would have to name.
   const bindingHints =
-    recommendedAction === "provide_argument_bindings" && recommendedCandidate
+    (recommendedAction === "provide_argument_bindings" || schemaDoesNotFit) &&
+    recommendedCandidate
       ? buildBindingHints(recommendedCandidate, text, requirementSubjects)
       : [];
   if (recommendedCandidate?.subject_pairing === "unpaired") {
@@ -570,13 +596,15 @@ export async function handleKbSuggestPredicates(
       ? `To use ${completeCandidate?.predicate_name} instead, follow replacementPlan and link requires_predicate to ${plannedFactId}; otherwise keep the existing grounding.`
       : completeCandidate
         ? `Suggested ${candidates.length} predicate candidate(s). Top applicable match: ${completeCandidate.predicate_name}. Apply the predicate fact ${plannedFactId}, then link requires_predicate to that fact id (not a candidate id).`
-        : recommendedCandidate
-          ? `Matched ${recommendedCandidate.predicate_name}, but exact reviewed values are still required for: ${recommendedCandidate.unbound_arguments.join(", ")}. Bind them from the claim text: ${describeBindingHints(bindingHints)}. A value that repeats an argument name or a stop word stays unbound. No apply plan was generated.`
-          : unavailableSchema
-            ? `Requested predicate schema ${args.schemaId} is unavailable or semantically inapplicable. No apply plan was generated.`
-            : alreadyGrounded
-              ? "No predicate candidate passed the semantic applicability gate; keep the existing grounding and record the ontology-gap observation in applyPlan so the missing schema stays visible."
-              : "No predicate candidate passed the semantic applicability gate; record an ontology gap and review the generated schema draft instead of silently writing prose.");
+        : schemaDoesNotFit && recommendedCandidate
+          ? `Matched ${recommendedCandidate.predicate_name}, but the claim names no ${unnamedParticipants.join(" or ")} (${describeBindingHints(bindingHints)}), so this schema does not fit the claim. Record the ontology-gap observation in applyPlan instead of inventing a participant; a predicate_schema whose arguments the claim names would fit.`
+          : recommendedCandidate
+            ? `Matched ${recommendedCandidate.predicate_name}, but exact reviewed values are still required for: ${recommendedCandidate.unbound_arguments.join(", ")}. Bind them from the claim text: ${describeBindingHints(bindingHints)}. A value that repeats an argument name or a stop word stays unbound. No apply plan was generated.`
+            : unavailableSchema
+              ? `Requested predicate schema ${args.schemaId} is unavailable or semantically inapplicable. No apply plan was generated.`
+              : alreadyGrounded
+                ? "No predicate candidate passed the semantic applicability gate; keep the existing grounding and record the ontology-gap observation in applyPlan so the missing schema stays visible."
+                : "No predicate candidate passed the semantic applicability gate; record an ontology gap and review the generated schema draft instead of silently writing prose.");
   const logicClaims = Array.from(
     new Set([...(args.existingLogicClaims ?? []), claimKey]),
   );

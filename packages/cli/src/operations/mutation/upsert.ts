@@ -43,6 +43,8 @@ import {
 import { withStoredRequirementSemantics } from "./requirement-semantics.js";
 import { MutationRollbackFailureError, MutationSaga } from "./saga.js";
 import {
+  readFileTimes,
+  restoreFileTimes,
   writePendingSourceReceipt,
   writeSourceForUpsert,
 } from "./source-authoring.js";
@@ -135,6 +137,7 @@ function restoreRelationshipShard(
   shardPath: string,
   before: string | null,
   expectedAfterHash: string | null,
+  beforeTimes: ReturnType<typeof readFileTimes> = null,
 ): void {
   // Compare before restore: a concurrent writer may have replaced the shard
   // after our append. Never clobber newer bytes; the next check/sync reports
@@ -162,6 +165,10 @@ function restoreRelationshipShard(
     return;
   }
   writeFileSync(shardPath, before, "utf8");
+  // implements REQ-core-atomic-upsert-persistence
+  // Freshness compares file times with the compiled snapshot; a restored
+  // shard with a new time would read as a newer source after a refusal.
+  restoreFileTimes(shardPath, beforeTimes);
 }
 
 export async function validateAppendOnlyProofReceipts(
@@ -459,6 +466,10 @@ export async function executeUpsert(
   let sourceMutationLock: WorkspaceMutationLockHandle | undefined;
   let operationFailure: { readonly error: unknown } | undefined;
   const relationshipShardBefore = new Map<string, string | null>();
+  const relationshipShardBeforeTimes = new Map<
+    string,
+    ReturnType<typeof readFileTimes>
+  >();
   const relationshipShardAfterHash = new Map<string, string | null>();
   let planRecoveryWarnings: string[] = [];
   const holdsSymbolCompilerLock =
@@ -560,6 +571,7 @@ export async function executeUpsert(
               shardPath,
               before,
               relationshipShardAfterHash.get(shardPath) ?? null,
+              relationshipShardBeforeTimes.get(shardPath) ?? null,
             );
           }
         },
@@ -581,6 +593,7 @@ export async function executeUpsert(
             shardPath,
             existsSync(shardPath) ? readFileSync(shardPath, "utf8") : null,
           );
+          relationshipShardBeforeTimes.set(shardPath, readFileTimes(shardPath));
         }
         appendRelationship(path.join(context.workspaceRoot, ".kb"), {
           type,

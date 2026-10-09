@@ -62,6 +62,10 @@ If `kb_coverage.repairPlan.status` is `partial`, do not execute it as a complete
 
 `kb_upsert` on an existing requirement that only adds relationships (for example `specified_by` to a new scenario) keeps the stored proposition ledger: when the payload has no `semantic_*` or `logic_claims` field and its `title` and `text_ref` (if given) equal the stored values, Kibi merges the stored `semantic_text`, `semantic_inventory`, `semantic_inventory_version`, `semantic_source_field`, `semantic_source_hash`, `semantic_clauses` and `logic_claims` (and the stored `text_ref` when the payload omits it) under the payload, and checks the merged requirement. If you still see `semantic_inventory_version must be 'kibi.semantic-inventory.v1' ... received 0`, the payload changed the prose or supplied part of the ledger: either send only `title`, `status` and the relationships, or send the complete ledger returned by `kb_model` with `mode: "analyze"` for the new prose.
 
+## `semantic_source_field must be '<field>' for the current requirement prose`
+
+The payload declared no `semantic_source_field`, or one that is not `semantic_text`, `text_ref` or `title`. Kibi then derives the prose field by a fixed rule, `semantic_text` when it is set, else `text_ref`, else `title`, and the message says which field it derived and why (for example "no semantic_source_field was sent; the prose comes from text_ref because semantic_text is unset"). Set `semantic_source_field` to that field and make `semantic_source_hash` the SHA-256 of that field's text, or declare one of the three fields explicitly; a declared field among those three is honored as given, so the expected field never flips between calls that send the same properties.
+
 ## Semantic inventory no longer matches the advisor
 
 If `kibi sync` reports `N requirement(s) failed proposition-complete ingestion` after an upgrade, the stored `semantic_inventory` of each listed requirement was written by an older semantic advisor. Run `kibi migrate`: its `semantic_inventory_rederive` actions rewrite the inventories that can be re-derived without losing grounding, and its `semantic_inventory_review` actions give the exact commands for the rest.
@@ -92,6 +96,12 @@ Legacy prose facts may remain readable during migration, but they do not provide
 ## Contradiction detected
 
 Create an append-only replacement requirement and add `supersedes`, or deprecate the conflicting requirement before writing the new one. Then set the replaced requirement to `status: closed`.
+
+The check runs at commit time (`stage=contradiction_check`), after every validation passed, and `kb_upsert` with `dryRun: true` previews the same check for a `req` against a staged, rolled-back copy of the store, so a dry run refuses what the commit would refuse. A refused commit rolls back the authored file, the relationship shards and, for an untracked file written by an earlier `kb_upsert`, its pending-source receipt, so `kb_check` and `kb_status` stay clean afterwards; verify with both before retrying with the supersession in place.
+
+## Pending source hash drift (`source-relationship-parity`, `SYNC_ERROR`)
+
+`Pending source hash drift blocks sync for .kb/<lane>/<id>.md; expected <hash>, found <hash>` means the pending-source receipt that binds an untracked file written by `kb_upsert` no longer matches the file's bytes (for example after an edit outside Kibi). There is no separate repair tool: rewrite the entity with `kb_upsert` (its current `title` and `status` are enough for an existing entity) and the receipt is republished against the current bytes; `git add` the file to retire the receipt for good. `Pending source is missing` means the untracked file was deleted: run `kibi branch recover --apply` if that was intended. A refused `kb_upsert` restores the receipt it found, so a commit-time refusal alone does not cause this finding.
 
 ## Superseded requirement still open (`superseded-requirement-open`)
 

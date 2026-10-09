@@ -32,17 +32,31 @@
 :- use_module('../schema/relationships.pl', [relationship_type/1]).
 
 find_gaps_json(TypeFilter, MissingRelationships, PresentRelationships, Tags, SourceFilter, Limit, Offset, JsonString) :-
+    % One pass over the entities: every candidate carries whether it is a
+    % provenance stub, so the rows and the stub count share the enumeration.
     findall(
-        Row,
-        matching_gap_row(TypeFilter, MissingRelationships, PresentRelationships, Tags, SourceFilter, Row),
-        Rows0
+        Row-Stub,
+        matching_gap_candidate(TypeFilter, MissingRelationships, PresentRelationships, Tags, SourceFilter, Row, Stub),
+        Candidates
     ),
+    findall(Row, (member(Row-Stub, Candidates), gap_row_visible(Tags, Stub)), Rows0),
     sort_dict_rows(Rows0, SortedRows),
     paginate_rows(SortedRows, Offset, Limit, Rows),
     length(SortedRows, Count),
+    % Provenance stubs that match the same filters are counted apart
+    % (summary.provenanceStubs) whether or not the requested tags let them
+    % into the rows, so a caller can tell "no gaps" from "only stubs".
+    % implements REQ-bootstrap-provenance-stubs
+    aggregate_all(count, member(_-true, Candidates), StubCount),
+    Summary = _{total: Count, provenanceStubs: StubCount},
     status_meta_dict(Meta),
-    Response = _{rows: Rows, count: Count, meta: Meta},
+    Response = _{rows: Rows, count: Count, summary: Summary, meta: Meta},
     dict_json_string(Response, JsonString).
+
+% A stub enters the rows only when the caller asked for its tag.
+gap_row_visible(_Tags, false).
+gap_row_visible(Tags, true) :-
+    memberchk('bootstrap:provenance-stub', Tags).
 
 coverage_report_json(By, Tags, IncludePassing, IncludeTransitive, Limit, Offset, JsonString) :-
     coverage_report_json(By, Tags, IncludePassing, IncludeTransitive, Limit, Offset, unknown, '1970-01-01T00:00:00Z', 604800, JsonString).
@@ -458,10 +472,15 @@ graph_expand_json(SeedIds, Relationships, Direction, Depth, EntityTypes, MaxNode
     dict_json_string(Response, JsonString).
 
 matching_gap_row(TypeFilter, MissingRelationships, PresentRelationships, Tags, SourceFilter, Row) :-
+    matching_gap_candidate(TypeFilter, MissingRelationships, PresentRelationships, Tags, SourceFilter, Row, Stub),
+    gap_row_visible(Tags, Stub).
+
+% implements REQ-bootstrap-provenance-stubs
+matching_gap_candidate(TypeFilter, MissingRelationships, PresentRelationships, Tags, SourceFilter, Row, Stub) :-
     kb_entity(Id, Type, Props),
     matches_type(TypeFilter, Type),
     matches_tags(Tags, Props),
-    \+ hidden_provenance_stub(Tags, Type, Props),
+    (provenance_stub_props(Type, Props) -> Stub = true ; Stub = false),
     matches_source(SourceFilter, Props),
     relationships_missing(Id, MissingRelationships),
     relationships_present(Id, PresentRelationships),

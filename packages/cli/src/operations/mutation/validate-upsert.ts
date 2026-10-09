@@ -9,9 +9,17 @@ import { entityIdStyleWarnings } from "../../utils/entity-id-style.js";
 import { analyzeSemanticAdvisorInput } from "../semantic-advisor/analyze-prose.js";
 import { assertSemanticInventoryBoundary } from "../semantic-advisor/ingestion-boundary.js";
 import { entityContextWarnings } from "./context-warning.js";
+import {
+  buildUpsertContradictionPreviewGoal,
+  formatUpsertError,
+} from "./contradictions.js";
 import { validateRelationshipSources } from "./relationships.js";
 import { validateSymbolGranularity } from "./symbol-granularity.js";
-import type { UpsertInput, ValidateUpsertPayload } from "./types.js";
+import type {
+  RelationshipInput,
+  UpsertInput,
+  ValidateUpsertPayload,
+} from "./types.js";
 import {
   validateAppendOnlyProofReceipts,
   validateUpsertForCommit,
@@ -24,6 +32,34 @@ async function entityExists(prolog: PrologPort, id: string): Promise<boolean> {
     `once(kb_entity('${escapeAtom(id)}', _Type, _Props))`,
   );
   return result.success;
+}
+
+// implements REQ-kibi-operation-interface-parity, REQ-kibi-truthful-consistency
+/**
+ * The commit-time contradiction check, run against a staged and rolled-back
+ * copy of the store. Only a `req` commit runs it (facts and scenarios never
+ * do), and `_skipContradictionCheck` skips it at commit, so the preview skips
+ * it too. A refusal carries the same message the commit would raise.
+ */
+async function previewContradictions(
+  prolog: PrologPort,
+  input: UpsertInput,
+  entity: Readonly<Record<string, unknown>>,
+  relationships: readonly RelationshipInput[],
+): Promise<void> {
+  if (input.type !== "req" || input._skipContradictionCheck === true) return;
+  const preview = await prolog.query(
+    buildUpsertContradictionPreviewGoal({
+      entity,
+      relationships,
+      skipContradictionCheck: false,
+    }),
+  );
+  if (!preview.success) {
+    throw new Error(
+      formatUpsertError(input.id, preview.error, preview.errorRecord),
+    );
+  }
 }
 
 /**
@@ -71,10 +107,21 @@ export async function executeValidateUpsert(
   try {
     const { entity, semantic } =
       context.prolog !== undefined
-        ? await validateUpsertForCommit(input, context).then((result) => ({
-            entity: result.validated.entity,
-            semantic: result.semantic,
-          }))
+        ? await validateUpsertForCommit(input, context).then(async (result) => {
+            // The commit goal checks requirement contradictions after the
+            // validations above; a dry run previews that stage as well, so
+            // "valid" means the commit would not refuse the write.
+            await previewContradictions(
+              context.prolog as PrologPort,
+              input,
+              result.validated.entity,
+              result.validated.relationships,
+            );
+            return {
+              entity: result.validated.entity,
+              semantic: result.semantic,
+            };
+          })
         : await validateWithoutStore(input, context);
     // Style warnings apply only to entities this upsert would create, so the
     // existence read happens only when the ID actually has a style issue.

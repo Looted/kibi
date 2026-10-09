@@ -49,6 +49,12 @@ export type FindGapsInput = {
 export type FindGapsPayload = {
   readonly rows: readonly Readonly<Record<string, unknown>>[];
   readonly count: number;
+  /**
+   * `total` matching rows before pagination and the `provenanceStubs`
+   * (bootstrap facts tagged `bootstrap:provenance-stub`) that match the same
+   * filters but are counted apart from knowledge.
+   */
+  readonly summary?: Readonly<{ total: number; provenanceStubs: number }>;
   readonly meta?: Readonly<Record<string, unknown>>;
 };
 
@@ -139,14 +145,19 @@ export async function executeFindGaps(
       "Find-gaps execution",
     );
     const rows = payload.rows ?? [];
+    const stubs = payload.summary?.provenanceStubs ?? 0;
+    const stubNote =
+      stubs > 0
+        ? ` ${stubs} provenance stub(s) matched the filters and are counted apart (summary.provenanceStubs).`
+        : "";
     return {
       content: [
         {
           type: "text",
           text:
             rows.length === 0
-              ? "No matching gaps found."
-              : `Found ${payload.count ?? rows.length} gap rows. Showing ${rows.length}: ${rows.map((row) => row.id).join(", ")}`,
+              ? `No matching gaps found.${stubNote}`
+              : `Found ${payload.count ?? rows.length} gap rows. Showing ${rows.length}: ${rows.map((row) => row.id).join(", ")}.${stubNote}`,
         },
       ],
       structuredContent: payload,

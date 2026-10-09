@@ -1504,6 +1504,11 @@
                   "type": "object"
                 },
                 "type": "array"
+              },
+              "summary": {
+                "additionalProperties": {},
+                "properties": {},
+                "type": "object"
               }
             },
             "type": "object"

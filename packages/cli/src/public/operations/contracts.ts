@@ -489,6 +489,7 @@ const BASE_DATA_SCHEMAS: Readonly<
   kb_find_gaps: objectData({
     rows: recordArray,
     count: integerValue,
+    summary: recordValue,
     meta: recordValue,
   }),
   kb_coverage: objectData({
