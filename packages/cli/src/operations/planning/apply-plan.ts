@@ -9,6 +9,10 @@ import {
 } from "../../commands/branch.js";
 import { migrateCommand } from "../../commands/migrate.js";
 import { syncCommand } from "../../commands/sync.js";
+import {
+  PROOF_INTEGRATION_CONFIGURE,
+  applyProofIntegrationAction,
+} from "../../proof/integration-plan.js";
 import { loadEntities } from "../../public/operations/discovery-entities.js";
 import { executeStatus } from "../../public/operations/discovery-executors.js";
 import {
@@ -29,6 +33,7 @@ import {
   computeShardPath,
   renderShardWithRelationship,
 } from "../../relationships/shards.js";
+import { BRANCH_STORE_NOT_COMPILED } from "../../utils/branch-store.js";
 import { canonicalFilesystemPath } from "../../utils/canonical-path.js";
 import { isDerivedKbPath } from "../../utils/kb-paths.js";
 import {
@@ -3164,6 +3169,17 @@ async function applyMigrationAction(
     case "missing_exact_branch_store":
       await branchEnsureCommand({ workspaceRoot: context.workspaceRoot });
       return;
+    // implements REQ-cli-status-pre-first-sync
+    case BRANCH_STORE_NOT_COMPILED: {
+      const result = await syncCommand({
+        workspaceRoot: context.workspaceRoot,
+      });
+      if (!result.success)
+        throw new Error(
+          "Compiling the branch store (kibi sync) did not complete successfully.",
+        );
+      return;
+    }
     case "damaged_exact_branch_store":
       await branchRecoverCommand({
         apply: true,
@@ -3196,6 +3212,10 @@ async function applyMigrationAction(
     }
     case PREDICATE_SCHEMA_ALIGNMENT_CODE:
       await applyPredicateSchemaAlignment(action, context);
+      return;
+    // implements REQ-kibi-verification-evidence-contract
+    case PROOF_INTEGRATION_CONFIGURE:
+      applyProofIntegrationAction(action, context.workspaceRoot);
       return;
     default:
       if (SCHEMA6_AUTOMATIC_CODES.has(action.code)) {

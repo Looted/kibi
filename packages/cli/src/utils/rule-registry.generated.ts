@@ -44,6 +44,13 @@ export const GENERATED_RULES = [
     category: "integrity",
   },
   {
+    name: "branch-store-not-compiled",
+    description:
+      "The current branch's KB store must be compiled from the authored .kb/ sources; a missing or empty store is reported once, naming kibi sync, instead of every store-backed rule reading an empty KB",
+    enforcementClass: "canonical",
+    category: "integrity",
+  },
+  {
     name: "source-path-dangling",
     description:
       "An authored entity's source field must name an existing workspace path (a #anchor suffix is ignored), an existing entity id, or an http(s) URL; a missing source is allowed",

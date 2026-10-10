@@ -19,6 +19,7 @@ known_rule('symbol-coverage').
 known_rule('symbol-traceability').
 known_rule('no-dangling-refs').
 known_rule('source-relationship-parity').
+known_rule('branch-store-not-compiled').
 known_rule('source-path-dangling').
 known_rule('no-cycles').
 known_rule('required-fields').
@@ -66,6 +67,7 @@ rule_enforcement_class('symbol-coverage', canonical).
 rule_enforcement_class('symbol-traceability', canonical).
 rule_enforcement_class('no-dangling-refs', canonical).
 rule_enforcement_class('source-relationship-parity', canonical).
+rule_enforcement_class('branch-store-not-compiled', canonical).
 rule_enforcement_class('source-path-dangling', canonical).
 rule_enforcement_class('no-cycles', canonical).
 rule_enforcement_class('required-fields', canonical).
@@ -113,6 +115,7 @@ rule_implementation('symbol-coverage', prolog).
 rule_implementation('symbol-traceability', prolog).
 rule_implementation('no-dangling-refs', prolog).
 rule_implementation('source-relationship-parity', typescript).
+rule_implementation('branch-store-not-compiled', typescript).
 rule_implementation('source-path-dangling', typescript).
 rule_implementation('no-cycles', prolog).
 rule_implementation('required-fields', prolog).
@@ -230,6 +233,7 @@ rule_description('symbol-coverage', 'Production symbols need qualifying coverage
 rule_description('symbol-traceability', 'Production symbols must directly implement requirements for ownership; covered_by is coverage only and executable_for is test identity only').
 rule_description('no-dangling-refs', 'All relationship targets must exist in the KB').
 rule_description('source-relationship-parity', 'Authored Markdown and relationship-shard edges must exactly match the compiled KB').
+rule_description('branch-store-not-compiled', 'The current branch\'s KB store must be compiled from the authored .kb/ sources; a missing or empty store is reported once, naming kibi sync, instead of every store-backed rule reading an empty KB').
 rule_description('source-path-dangling', 'An authored entity\'s source field must name an existing workspace path (a #anchor suffix is ignored), an existing entity id, or an http(s) URL; a missing source is allowed').
 rule_description('no-cycles', 'No circular dependency chains in requirements').
 rule_description('required-fields', 'All entities must have required fields').

@@ -68,14 +68,21 @@ export function registerProofCommand(program: Command): void {
   proof
     .command("inspect")
     .description(
-      "Detect test infrastructure and recommend the strongest available proof integration",
+      "Detect test infrastructure, propose a proof integration and return the reviewed plan that writes .kb/proof/integrations.json",
+    )
+    .option(
+      "--update <id>",
+      "Plan adding or replacing this integration in an existing .kb/proof/integrations.json",
     )
     .option("--json", "Emit structured JSON", false)
     .action(
-      withExitCode(async (options: { json?: boolean }) => {
+      withExitCode(async (options: { json?: boolean; update?: string }) => {
         const result = await (
           await import("./proof/inspect.js")
-        ).inspectProofEnvironment(process.cwd());
+        ).inspectProofEnvironment(
+          process.cwd(),
+          options.update === undefined ? {} : { update: options.update },
+        );
         if (options.json) {
           process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
           return undefined;
@@ -195,6 +202,13 @@ function renderInspection(result: unknown): string {
     currentIntegration: string | null;
     recommendation: string;
     missing: string[];
+    proposedIntegration?: {
+      id: string;
+      producer: string;
+      command: string[];
+    } | null;
+    integrationPlan?: { planHash: string; actions: { id: string }[] } | null;
+    integrationPlanReason?: string;
   };
   const lines: string[] = ["Proof environment", ""];
   if (inspection.languages.length > 0)
@@ -219,6 +233,22 @@ function renderInspection(result: unknown): string {
     lines.push("");
     lines.push("Missing:");
     for (const entry of inspection.missing) lines.push(`  - ${entry}`);
+  }
+  if (inspection.proposedIntegration) {
+    const proposed = inspection.proposedIntegration;
+    lines.push("");
+    lines.push(
+      `Proposed integration: ${proposed.id} (${proposed.producer}: ${proposed.command.join(" ")})`,
+    );
+  }
+  if (inspection.integrationPlan) {
+    const plan = inspection.integrationPlan;
+    lines.push(
+      `Integration plan: ${plan.planHash.slice(0, 12)} (actions: ${plan.actions.map((action) => action.id).join(", ")}); rerun with --json for the plan to pass to kb_apply_plan.`,
+    );
+  } else if (inspection.integrationPlanReason) {
+    lines.push("");
+    lines.push(`Integration plan: none. ${inspection.integrationPlanReason}`);
   }
   return `${lines.join("\n")}\n`;
 }

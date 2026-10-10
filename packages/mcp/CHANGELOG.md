@@ -1,5 +1,32 @@
 # kibi-mcp
 
+## 3.6.1
+
+### Patch Changes
+
+- c841267: `kb_model` `mode: "predicates"` now treats an explicit `subjectHint` as the planned subject when the requirement is not written yet or constrains nothing: the candidate gets that `subject_key`, `subject_pairing` is computed against it, and the planned predicate fact carries it, so after the requirement is written with `constrains` to that subject fact `kb_check` no longer reports `strict-req-fact-pairing` (previously the plan fell back to the `requirement.subject` placeholder). A `kb_model` parameter that belongs to another mode is no longer silently ignored: the result's `warnings` name it and the parameter to use instead (for example `subjectKey` in mode `predicates` points to `subjectHint`). The kibi-usage skill (2.12.0) updates the "new strict requirement with a predicate grounding" recipe: pass `subjectHint` with the subject fact's key, and send `specified_by` (requirement → scenario) in the requirement's write, not the scenario's.
+
+  Technical summary: `buildSuggestion` (`predicate-applyplan.ts`) computes `subject_key`/`subject_pairing` against `plannedSubjects` (the constrained subjects, else `[subjectHint]` when explicit, else none). `dispatchComposite` calls the new `foreignParameterWarnings`, which lists input keys another route of the composite declares but the chosen route does not, with per-operation equivalents (`subjectKey` ↔ `subjectHint`); they are appended to the routed payload's own `warnings` (strings, or `{ kind: "parameter_ignored", message, nextAction }` for `kb_model_requirement`) and to the text content. Skill mirrors regenerated.
+
+- 31f8469: `kb_model` `mode: "requirement"` now honours `requirementId` for an ordinary strict claim: the returned write set and `applyPlan` update that requirement instead of minting a separate `REQ-AUTO-<hash>` requirement beside it, so applying the plan no longer leaves a second requirement behind. When the plan reuses an existing subject fact, `writeSet.subjectFact.source` now names that fact's own file instead of the file of the subject fact that is never created.
+
+  Technical summary: `buildStrictWriteSet` takes an optional `requirementId` that replaces the minted `reqId` (the `req` step, its `source` and the `constrains`/`requires_property` relationships); fact ids, `subject_key` and the claim key stay derived from the claim. `applyVocabularyAlignment` threads `args.requirementId` into both write-set builds. `reuseExistingSubject` rewrites `properties.source` to `factSourcePath(existingFactId)` (`.kb/facts/<id>.md`, where Kibi stores every authored fact); the reused subject step stays out of `applyPlan` as before. The `requirementId` input description and the frozen MCP contract fixtures say what the field now does.
+
+- e0fdbbd: Agents can now configure proof without hand-writing `.kb/proof/integrations.json`. `kibi proof inspect --json` proposes a command integration for the detected test runner and returns a reviewed, hash-bound plan that `kb_apply_plan` (or `kibi apply-plan`) applies; `kibi prove` then runs it. Proof errors no longer point at a bootstrap step that never wrote the file.
+
+  `kibi proof inspect` adds `proposedIntegration`, `contractDefaults`, `integrationPlan` (`kibi.migration-plan.v2` with one `proof_integration_configure` action) and `integrationPlanReason`, and a new `--update <id>` option plans adding or replacing one named integration. The migration applier gains a `proof_integration_configure` executor: it refuses a create once the file exists, refuses an update when the file's hash changed, refuses either when `package.json`, a lockfile or a runner config changed since planning, and validates the result against `kibi.proof-integration.v1` before an atomic write. The `No proof integration configuration` and `integration … is not configured` messages, the `kibi-usage` proof resource and the `kibi-bootstrap` skill (3.11.0, new step 11 proof-integration item) name this route.
+
+- 218e55d: A new branch whose KB store was never compiled (Kibi keeps one store per branch and never copies another branch's, so a branch created without the `post-checkout` hook starts empty) is now reported once, with the fix that works. `kb_check` returns a single blocking `branch-store-not-compiled` violation naming `kibi sync` instead of one `source-relationship-parity` violation per authored relationship; `kb_status` reports one blocking `branch_store_not_compiled` stale reason (and `syncState: "stale"` for an empty store) instead of `branch_store_missing` with a `kibi branch ensure` remediation that left the store empty; and the migration plan gains an automatic `branch-store-compile` action (`kibi sync`) that runs after `branch-store-ensure`, so applying the plan now compiles the branch. `kibi doctor` checks the current branch store (fails when `.kb/` holds authored sources and the store is missing or empty) and warns, without failing, when the git hooks `kibi init` installs are missing, instead of saying "All checks passed! Your environment is ready." with an empty store and no hooks.
+
+  Technical summary: `branchStoreCompilation` (journal `CURRENT` sequence above 0, or a legacy `kb.rdf` store), `countAuthoredKbSources` (entity lane Markdown plus relationship shards) and `uncompiledBranchStoreReason` live in `utils/branch-store.ts`. `executeStatus` uses that reason in place of `branchStoreReason` when it applies; `executeCheck` short-circuits through `uncompiledBranchStoreViolation` (skipped for `kibi check --kb-path`). `buildActionsFromStatus` adds `branch-store-compile` (code `branch_store_not_compiled`, `dependsOn` the `branch-store-ensure` and `schema-config-upgrade` actions present in the plan) and no longer adds a review action for that reason; `applyMigrationAction` runs `syncCommand` for it. The rule registry gains the canonical TypeScript rule `branch-store-not-compiled` (kb_check input enum and MCP contract fixtures regenerated). `kibi doctor` adds the "Branch store" check, a `warning` flag on check results, a top-level `warnings` count in `kibi.doctor.v1` JSON, and a `!` row plus "All required checks passed, with N warning(s)" in the table.
+
+- Updated dependencies [c841267]
+- Updated dependencies [e0fdbbd]
+- Updated dependencies [ae54c20]
+- Updated dependencies [218e55d]
+  - kibi-runtime@2.13.1
+  - kibi-core@0.18.1
+
 ## 3.6.0
 
 ### Minor Changes

@@ -160,8 +160,9 @@ maps to `proofStatus: unresolved`, not `proven`.
   `not_applicable`) — enumerate exactly one proof-status slice; N/A rows
   include their applicability reason. The summary always reflects the whole
   KB.
-- `kibi proof inspect` — detect test infrastructure and pick a proof
-  integration.
+- `kibi proof inspect` — detect test infrastructure, propose a proof
+  integration, and return the reviewed plan that writes
+  `.kb/proof/integrations.json` through `kb_apply_plan`.
 - `kibi proof explain REQ-*` / `kibi proof explain SYM-*` — project the same
   Proof, labeling `required_proofs`, `executable_for`, and `covered_by`
   separately.

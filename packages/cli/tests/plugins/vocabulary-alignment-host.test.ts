@@ -424,6 +424,42 @@ describe("kb_model_requirement subject reuse", () => {
     ]);
   });
 
+  test("a named requirement keeps its id and the reused subject names the existing fact file", async () => {
+    restores.push(isolateKibiEnv());
+    const { context } = modelingContext();
+    const result = await executeModelRequirement(
+      {
+        text: "Session lifetime must expire after 30 minutes of idle time.",
+        source: ".kb/requirements/REQ-session-idle-expiry.md",
+        requirementId: "REQ-session-idle-expiry",
+      },
+      context,
+    );
+    const data = result.structuredContent as unknown as ModelData & {
+      writeSet: {
+        req: { id: string; properties: { id: string } };
+        subjectFact: { id: string; properties: { source: string } };
+        relationships: Array<{ type: string; from: string; to: string }>;
+      };
+    };
+    // The strict write set updates the named requirement; nothing mints a
+    // REQ-AUTO id beside it.
+    expect(data.writeSet.req.id).toBe("REQ-session-idle-expiry");
+    expect(data.writeSet.req.properties.id).toBe("REQ-session-idle-expiry");
+    expect(
+      data.writeSet.relationships.map((relationship) => relationship.from),
+    ).toEqual(["REQ-session-idle-expiry", "REQ-session-idle-expiry"]);
+    const req = data.applyPlan.find((step) => step.type === "req");
+    expect(req?.id).toBe("REQ-session-idle-expiry");
+    expect(JSON.stringify(data.applyPlan)).not.toContain("REQ-AUTO-");
+    // The reused subject fact points at its own file, not at the file of the
+    // subject fact that was never created.
+    expect(data.writeSet.subjectFact.id).toBe("FACT-SUBJ-SESSION-LIFETIME");
+    expect(data.writeSet.subjectFact.properties.source).toBe(
+      ".kb/facts/FACT-SUBJ-SESSION-LIFETIME.md",
+    );
+  });
+
   test("a proposed key that already exists is reused even outside the top candidates", async () => {
     restores.push(isolateKibiEnv());
     const crowded = [

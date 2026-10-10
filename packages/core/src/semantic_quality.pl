@@ -363,7 +363,10 @@ implication_witness_violation(Witness, violation(
 % was minted as several facts so requirements about it never meet: more than
 % one active subject fact for the same subject_key, and more than one active
 % property_value fact stating the same claim: the same subject_key,
-% property_key, operator, typed value and unit.  Facts that differ in operator
+% property_key, operator, polarity (absent = require), typed value and unit.
+% A `forbid` fact states the opposite of its `require` twin, so the pair is
+% never one claim.  Facts linked only by superseded or deprecated requirements
+% are history, not live duplicates.  Facts that differ in operator
 % (the two bounds of a range) or in value (two requirements bounding the same
 % property differently) are distinct claims, which domain-contradictions and
 % domain-implication compare.  Each group is reported once, on its first fact
@@ -390,7 +393,8 @@ duplicate_subject_fact_violations(Violations) :-
     findall(
         SubjectKey-FactId,
         (   fact_subject_key_of_kind(FactId, subject, SubjectKey),
-            active_fact(FactId)
+            active_fact(FactId),
+            identity_live_fact(FactId)
         ),
         Pairs0
     ),
@@ -423,15 +427,17 @@ duplicate_subject_fact_violations(Violations) :-
 %% duplicate_property_fact_violations(-Violations)
 duplicate_property_fact_violations(Violations) :-
     findall(
-        key(SubjectKey, PropertyKey, Operator, Value)-FactId,
+        key(SubjectKey, PropertyKey, Operator, Polarity, Value)-FactId,
         (   fact_subject_key_of_kind(FactId, property_value, SubjectKey),
             kb_entity(FactId, fact, Props),
             memberchk(property_key=RawProperty, Props),
             normalize_term_atom(RawProperty, PropertyKey),
             memberchk(operator=RawOperator, Props),
             normalize_term_atom(RawOperator, Operator),
+            property_value_polarity(Props, Polarity),
             property_value_signature(Props, Value),
-            active_fact(FactId)
+            active_fact(FactId),
+            identity_live_fact(FactId)
         ),
         Pairs0
     ),
@@ -444,18 +450,53 @@ duplicate_property_fact_violations(Violations) :-
             Description,
             "Link every requirement to one shared fact and remove the duplicates (kb_delete) once nothing links them",
             Source,
-            _{subjectKey: SubjectKey, propertyKey: PropertyKey, operator: Operator, facts: FactIds}
+            _{subjectKey: SubjectKey, propertyKey: PropertyKey, operator: Operator, polarity: Polarity, facts: FactIds}
         ),
-        (   member(key(SubjectKey, PropertyKey, Operator, _)-FactIds, Groups),
+        (   member(key(SubjectKey, PropertyKey, Operator, Polarity, _)-FactIds, Groups),
             FactIds = [FirstId, _|_],
             length(FactIds, Count),
             atomic_list_concat(FactIds, ', ', FactText),
             format(string(Description),
-                "~w active property_value facts state the same claim on ~w ~w (operator ~w, same value) (~w), so one claim is minted as several facts",
-                [Count, SubjectKey, PropertyKey, Operator, FactText]),
+                "~w active property_value facts state the same claim on ~w ~w (operator ~w, polarity ~w, same value) (~w), so one claim is minted as several facts",
+                [Count, SubjectKey, PropertyKey, Operator, Polarity, FactText]),
             entity_text(FirstId, fact, source, Source)
         ),
         Violations
+    ).
+
+%% property_value_polarity(+Props, -Polarity)
+% The polarity of a property_value fact; an absent polarity means require.
+% `forbid` states the opposite claim of `require` on the same tuple, so the
+% two never count as one claim minted twice.
+% implements REQ-kibi-subject-vocabulary
+property_value_polarity(Props, Polarity) :-
+    (   memberchk(polarity=Raw, Props),
+        normalize_term_atom(Raw, Polarity0),
+        Polarity0 \== ''
+    ->  Polarity = Polarity0
+    ;   Polarity = require
+    ).
+
+%% identity_live_fact(+FactId)
+% A fact still carried by the current requirement set: no requirement links
+% it (an orphan duplicate stays visible), or at least one current requirement
+% links it. A fact linked only by superseded or deprecated requirements is
+% history kept for the append-only supersedes chain, not a live duplicate.
+% `closed` means done, not retired, so a closed requirement still counts.
+% implements REQ-kibi-subject-vocabulary
+identity_live_fact(FactId) :-
+    findall(
+        ReqId,
+        (   member(LinkType, [constrains, requires_property, requires_predicate, requires_rule]),
+            kb_relationship(LinkType, ReqId, FactId)
+        ),
+        Linkers
+    ),
+    (   Linkers == []
+    ->  true
+    ;   member(ReqId, Linkers),
+        kb:current_req(ReqId)
+    ->  true
     ).
 
 %% property_value_signature(+Props, -Signature)

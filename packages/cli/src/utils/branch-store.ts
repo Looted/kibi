@@ -3,7 +3,13 @@
  Copyright (C) 2026 Piotr Franczyk
 */
 
-import { existsSync, readFileSync, statSync } from "node:fs";
+import {
+  type Dirent,
+  existsSync,
+  readFileSync,
+  readdirSync,
+  statSync,
+} from "node:fs";
 import * as path from "node:path";
 import {
   classifyStoreLockHolder,
@@ -14,6 +20,12 @@ import {
   branchStorePath,
   legacyBranchStorePath,
 } from "./branch-store-locator.js";
+import { ENTITY_LANES, KB_ROOT } from "./kb-paths.js";
+
+/** Stale-reason code of a branch store that was never compiled. */
+export const BRANCH_STORE_NOT_COMPILED = "branch_store_not_compiled";
+/** The kb_check rule that reports it. */
+export const BRANCH_STORE_NOT_COMPILED_RULE = "branch-store-not-compiled";
 
 export type BranchStoreState =
   | "healthy"
@@ -183,5 +195,144 @@ export function branchStoreReason(
     remediation: inspection.recoveryRequired
       ? { command_argv: ["kibi", "branch", "recover"], applyRequired: true }
       : { command_argv: ["kibi", "branch", "ensure"], applyRequired: false },
+  };
+}
+
+/** Directories under .kb/ that hold authored, Git-tracked entity sources. */
+const AUTHORED_SOURCE_DIRECTORIES: ReadonlyArray<
+  readonly [directory: string, extension: string]
+> = [
+  ...ENTITY_LANES.map((lane) => [lane, ".md"] as const),
+  ["adrs", ".md"],
+  ["relationships", ".yaml"],
+];
+
+function countFiles(directory: string, extension: string): number {
+  let count = 0;
+  let entries: Dirent[];
+  try {
+    entries = readdirSync(directory, { withFileTypes: true });
+  } catch {
+    return 0;
+  }
+  for (const entry of entries) {
+    if (entry.isDirectory()) {
+      count += countFiles(path.join(directory, entry.name), extension);
+    } else if (entry.isFile() && entry.name.endsWith(extension)) {
+      count += 1;
+    }
+  }
+  return count;
+}
+
+/**
+ * The number of authored source files under `.kb/`: entity Markdown in the
+ * entity lanes plus relationship shards. Filesystem only, like
+ * inspectBranchStore, so a status read never compiles anything.
+ */
+// implements REQ-cli-status-pre-first-sync
+export function countAuthoredKbSources(workspaceRoot: string): number {
+  const kbRoot = path.join(workspaceRoot, KB_ROOT);
+  return AUTHORED_SOURCE_DIRECTORIES.reduce(
+    (total, [directory, extension]) =>
+      total + countFiles(path.join(kbRoot, directory), extension),
+    0,
+  );
+}
+
+export type BranchStoreCompilation = Readonly<{
+  /** True once a sync (or any write) has committed into the store. */
+  compiled: boolean;
+  /** The journal CURRENT pointer (`generation-<id>:<sequence>`), if any. */
+  generation: string | null;
+}>;
+
+/**
+ * Whether the branch store holds a compilation. A missing store holds none;
+ * a journaled store whose CURRENT sequence is still 0 and whose journal holds
+ * no graph data was created (by `kibi branch ensure` or by an engine
+ * attaching to a new branch) but nothing was ever committed into it, so it is
+ * empty. A legacy kb.rdf store counts as compiled.
+ */
+// implements REQ-cli-status-pre-first-sync
+export function branchStoreCompilation(
+  inspection: BranchStoreInspection,
+): BranchStoreCompilation {
+  if (inspection.state === "missing") {
+    return { compiled: false, generation: null };
+  }
+  const currentPath = path.join(inspection.path, "CURRENT");
+  let current = "";
+  try {
+    current = existsSync(currentPath)
+      ? readFileSync(currentPath, "utf8").trim()
+      : "";
+  } catch {
+    current = "";
+  }
+  if (current === "") {
+    // A healthy store without CURRENT is a legacy kb.rdf store.
+    return { compiled: inspection.state === "healthy", generation: null };
+  }
+  const sequence = Number(current.split(":").at(-1));
+  return {
+    compiled:
+      (Number.isFinite(sequence) && sequence > 0) ||
+      journalHoldsGraphData(inspection.path),
+    generation: current,
+  };
+}
+
+/**
+ * Whether the journal directory holds persisted graph data. An empty store
+ * has only `rdf/lock`; a store migrated from a legacy kb.rdf holds the
+ * imported graph under a fresh `generation-…:0` pointer, so it is compiled
+ * although its sequence is still 0.
+ */
+function journalHoldsGraphData(storePath: string): boolean {
+  try {
+    return readdirSync(path.join(storePath, "rdf")).some(
+      (entry) => entry !== "lock" && !entry.startsWith("."),
+    );
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * The single blocking reason for a branch whose store was never compiled
+ * while `.kb/` holds authored sources: Kibi stores are per branch and never
+ * copied, so a fresh branch (no post-checkout hook) starts empty. Every
+ * check against that store would report each authored relationship as
+ * missing; the one fix is `kibi sync`.
+ */
+// implements REQ-cli-status-pre-first-sync
+export function uncompiledBranchStoreReason(
+  workspaceRoot: string,
+  inspection: BranchStoreInspection,
+  branch: string,
+): Record<string, unknown> | null {
+  if (inspection.state !== "healthy" && inspection.state !== "missing") {
+    return null;
+  }
+  const compilation = branchStoreCompilation(inspection);
+  if (compilation.compiled) return null;
+  const authoredSources = countAuthoredKbSources(workspaceRoot);
+  if (authoredSources === 0) return null;
+  const storeState =
+    inspection.state === "missing"
+      ? "does not exist yet"
+      : `is empty (${compilation.generation ?? "no generation"}: nothing compiled)`;
+  return {
+    code: BRANCH_STORE_NOT_COMPILED,
+    path: inspection.path,
+    entityIds: [],
+    detail: `The KB store for branch ${branch} ${storeState}, while .kb/ holds ${authoredSources} authored source file(s). Kibi compiles one store per branch and never copies another branch's, so every query and check reads an empty KB until this branch is compiled.`,
+    remediation: { command_argv: ["kibi", "sync"], applyRequired: false },
+    blocking: true,
+    authoredSources,
+    ...(compilation.generation !== null
+      ? { generation: compilation.generation }
+      : {}),
   };
 }

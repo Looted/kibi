@@ -28,6 +28,10 @@ describe("cli-register-proof remaining runner listing", () => {
       currentIntegration: null,
       recommendation: "none",
       missing: [],
+      proposedIntegration: null,
+      contractDefaults: null,
+      integrationPlan: null,
+      integrationPlanReason: "none",
     });
     spies.push(inspectSpy);
     const chunks: string[] = [];

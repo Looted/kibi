@@ -37,6 +37,12 @@ export interface SemanticClaim {
 export interface StrictModelInput {
   claim: SemanticClaim;
   statement: string;
+  /**
+   * The requirement the write set updates. When set it replaces the minted
+   * REQ-AUTO-<hash> id; fact ids, subject_key and the claim stay derived from
+   * the claim.
+   */
+  requirementId?: string;
 }
 
 type EntityProperties = Partial<
@@ -173,7 +179,9 @@ export function buildStableRequirementIds(
 export function buildStrictWriteSet(input: StrictModelInput): StrictWriteSet {
   const statement = normalizeStatement(input.statement);
   const confidence = normalizeConfidence(input.claim.confidence);
-  const ids = buildStableRequirementIds(input.claim);
+  const minted = buildStableRequirementIds(input.claim);
+  const requirementId = input.requirementId?.trim();
+  const ids = requirementId ? { ...minted, reqId: requirementId } : minted;
   const textRef = normalizeTextRef(input.claim.provenance, input.claim.source);
   const metadataTags = buildMetadataTags({
     confidence,
@@ -580,4 +588,14 @@ function normalizeEntityDirectory(directory: string): string {
 
 function buildEntitySourcePath(directory: string, entityId: string): string {
   return `${directory}/${entityId}.md`;
+}
+
+/**
+ * The file an authored fact lives in: `.kb/facts/<id>.md`. Kibi writes every
+ * fact there (the filename stem equals the id), so a plan that points at an
+ * existing fact names this path.
+ */
+// implements REQ-kibi-subject-vocabulary
+export function factSourcePath(factId: string): string {
+  return buildEntitySourcePath(resolveEntitySourcePaths().facts, factId);
 }

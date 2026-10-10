@@ -1,4 +1,10 @@
 import { runAggregatedChecks } from "../../commands/aggregated-checks.js";
+import { resolveBranchAttachment } from "../../utils/branch-resolver.js";
+import {
+  BRANCH_STORE_NOT_COMPILED_RULE,
+  inspectBranchStore,
+  uncompiledBranchStoreReason,
+} from "../../utils/branch-store.js";
 /*
  Kibi — repo-local, per-branch, queryable long-term memory for software projects
  Copyright (C) 2026 Piotr Franczyk
@@ -74,6 +80,14 @@ export {
 
 export type CheckExecutionOptions = {
   readonly collectFullQualityDiagnosticsForExplicitRules?: boolean;
+  /**
+   * The engine reads the current branch's store although the context carries
+   * no branch attachment (the `kibi check` engine path). A context with a
+   * branch attachment (the CLI and MCP runtimes) implies it; without either,
+   * the attached store is unknown (an explicit --kb-path store or an injected
+   * test store) and the branch-store compilation check is skipped.
+   */
+  readonly branchStoreAttached?: boolean;
 };
 
 function requireProlog(context: OperationContext): PrologPort {
@@ -126,6 +140,50 @@ async function readStatusMigrationPlan(
   }
 }
 
+/**
+ * The one finding for a branch whose store was never compiled while .kb/
+ * holds authored sources. Every store-backed rule would read an empty KB
+ * (source-relationship-parity alone reports each authored relationship as
+ * missing), so kb_check reports this instead of any of them.
+ */
+// implements REQ-cli-status-pre-first-sync
+export function uncompiledBranchStoreViolation(
+  context: OperationContext,
+  workspaceRoot: string,
+): Violation | null {
+  let attachment: ReturnType<typeof resolveBranchAttachment>;
+  try {
+    attachment =
+      context.branchAttachment ?? resolveBranchAttachment(workspaceRoot);
+  } catch {
+    return null;
+  }
+  if ("error" in attachment) return null;
+  const store = inspectBranchStore(workspaceRoot, attachment.kbBranch);
+  const reason = uncompiledBranchStoreReason(
+    workspaceRoot,
+    store,
+    attachment.kbBranch,
+  );
+  if (reason === null) return null;
+  return {
+    rule: BRANCH_STORE_NOT_COMPILED_RULE,
+    entityId: attachment.kbBranch,
+    description: String(reason.detail),
+    suggestion:
+      "Run kibi sync to compile this branch's store from the authored .kb/ sources (or apply the branch-store-compile action of the returned migrationPlan with kb_apply_plan), then rerun kb_check. Run kibi init once to install the git hooks that compile a new branch on checkout.",
+    source: store.path,
+    evidence: {
+      store: { state: store.state, path: store.path },
+      authoredSources: reason.authoredSources,
+      ...(reason.generation !== undefined
+        ? { generation: reason.generation }
+        : {}),
+      remediation: reason.remediation,
+    },
+  };
+}
+
 // implements REQ-kibi-operation-interface-parity, REQ-002
 export async function executeCheck(
   args: CheckInput,
@@ -153,6 +211,53 @@ export async function executeCheck(
       args.maxDiagnostics !== undefined
         ? { maxDiagnostics: args.maxDiagnostics }
         : {};
+
+    const uncompiled =
+      context.branchAttachment !== undefined ||
+      options.branchStoreAttached === true
+        ? uncompiledBranchStoreViolation(context, workspaceRoot)
+        : null;
+    if (uncompiled !== null) {
+      const violations = [uncompiled];
+      const statusPlan = await readStatusMigrationPlan(context);
+      const migrationPlan = await migrationPlanForCheck(
+        context,
+        violations,
+        [],
+        statusPlan,
+      );
+      return {
+        content: [
+          {
+            type: "text",
+            text: buildSummary({
+              violations,
+              impactResult,
+              qualityDiagnostics: [],
+            }),
+          },
+        ],
+        structuredContent: buildStructuredContent({
+          violations,
+          diagnostics: [
+            {
+              category: "SYNC_ERROR",
+              severity: "error",
+              message: uncompiled.description,
+              ...(uncompiled.source !== undefined
+                ? { file: uncompiled.source }
+                : {}),
+              ...(uncompiled.suggestion !== undefined
+                ? { suggestion: uncompiled.suggestion }
+                : {}),
+            },
+          ],
+          qualityDiagnostics: [],
+          impactResult,
+          migrationPlan,
+        }),
+      };
+    }
 
     if (rulesAllowlist.size === 0) {
       const qualityDiagnostics =

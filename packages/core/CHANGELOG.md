@@ -1,5 +1,17 @@
 # kibi-core
 
+## 0.18.1
+
+### Patch Changes
+
+- ae54c20: `subject-key-identity` no longer reports a `forbid` fact and its `require` twin as "the same claim minted as several facts": the two state opposite claims, so the check now keeps them apart (an absent `polarity` still counts as `require`). Facts that only superseded or deprecated requirements still link are treated as history kept for the append-only `supersedes` chain and no longer count as live duplicates; a `closed` requirement still counts, because `closed` means done, not retired.
+
+  Technical summary: `duplicate_property_fact_violations/1` (`semantic_quality.pl`) groups by `key(SubjectKey, PropertyKey, Operator, Polarity, Value)` through the new `property_value_polarity/2`, and the evidence carries `polarity`. `identity_live_fact/1` keeps a fact when no requirement links it through `constrains`, `requires_property`, `requires_predicate` or `requires_rule`, or when at least one linking requirement is `kb:current_req/1`; both the subject and the property duplicate groups use it. New `kb.plt` tests cover the require/forbid pair and the superseded-only case.
+
+- 218e55d: A new branch whose KB store was never compiled (Kibi keeps one store per branch and never copies another branch's, so a branch created without the `post-checkout` hook starts empty) is now reported once, with the fix that works. `kb_check` returns a single blocking `branch-store-not-compiled` violation naming `kibi sync` instead of one `source-relationship-parity` violation per authored relationship; `kb_status` reports one blocking `branch_store_not_compiled` stale reason (and `syncState: "stale"` for an empty store) instead of `branch_store_missing` with a `kibi branch ensure` remediation that left the store empty; and the migration plan gains an automatic `branch-store-compile` action (`kibi sync`) that runs after `branch-store-ensure`, so applying the plan now compiles the branch. `kibi doctor` checks the current branch store (fails when `.kb/` holds authored sources and the store is missing or empty) and warns, without failing, when the git hooks `kibi init` installs are missing, instead of saying "All checks passed! Your environment is ready." with an empty store and no hooks.
+
+  Technical summary: `branchStoreCompilation` (journal `CURRENT` sequence above 0, or a legacy `kb.rdf` store), `countAuthoredKbSources` (entity lane Markdown plus relationship shards) and `uncompiledBranchStoreReason` live in `utils/branch-store.ts`. `executeStatus` uses that reason in place of `branchStoreReason` when it applies; `executeCheck` short-circuits through `uncompiledBranchStoreViolation` (skipped for `kibi check --kb-path`). `buildActionsFromStatus` adds `branch-store-compile` (code `branch_store_not_compiled`, `dependsOn` the `branch-store-ensure` and `schema-config-upgrade` actions present in the plan) and no longer adds a review action for that reason; `applyMigrationAction` runs `syncCommand` for it. The rule registry gains the canonical TypeScript rule `branch-store-not-compiled` (kb_check input enum and MCP contract fixtures regenerated). `kibi doctor` adds the "Branch store" check, a `warning` flag on check results, a top-level `warnings` count in `kibi.doctor.v1` JSON, and a `!` row plus "All required checks passed, with N warning(s)" in the table.
+
 ## 0.18.0
 
 ### Minor Changes

@@ -171,10 +171,30 @@ Evidence production is configured in tracked, Kibi-managed
   options, bindings, contract) change the effective execution fingerprint and
   stale prior evidence.
 
-`kibi init` never creates this file. Bootstrap authors it after repository
-inspection and a reviewed plan. Greenfield repositories without a harness
-record proof integration as **deferred** — Kibi does not install test
-frameworks.
+`kibi init` never creates this file, and agents never hand-write it.
+`kibi proof inspect --json` proposes a `command` integration for the
+detected test runner (the `package.json` `test` script when there is one)
+and returns `integrationPlan`, a hash-bound `kibi.migration-plan.v2` with one
+`proof_integration_configure` action, plus the `contractDefaults` a
+proof-bearing test's `proof_contract` uses. Review it, then apply it through
+Kibi:
+
+```bash
+kibi proof inspect --json > inspection.json
+jq '{plan: .integrationPlan, approvedPlanHash: .integrationPlan.planHash,
+     approvedActionIds: [.integrationPlan.actions[].id]}' inspection.json \
+  | kibi apply-plan --input -
+```
+
+MCP hosts pass the same three fields to `kb_apply_plan`. The plan binds the
+hashes of the files the proposal came from (`package.json`, lockfiles,
+runner configs) and is refused once one changed. A create plan is refused
+once the file exists; `kibi proof inspect --update <id> --json` plans adding
+or replacing one named integration and is bound to the file's current hash.
+A `command` integration judges each selected test by the exit code; replace
+it with a native producer through an update plan when you need per-test
+results. Greenfield repositories without a harness record proof integration
+as **deferred** — Kibi does not install test frameworks.
 
 ## The canonical artifact: `kibi.proof-run.v1`
 
@@ -393,7 +413,8 @@ against the schema in CI.
 
 | Error | Cause | Fix |
 | --- | --- | --- |
-| `No proof integration configuration at .kb/proof/integrations.json` | Bootstrap has not configured proof | Run bootstrap; or author integrations with a reviewed plan |
+| `No proof integration configuration at .kb/proof/integrations.json` | Proof is not configured for this repository yet | Run `kibi proof inspect --json` and apply its `integrationPlan` with `kb_apply_plan` / `kibi apply-plan` |
+| `integration '<id>' … is not configured in .kb/proof/integrations.json` | A test names an integration the file lacks | Run `kibi proof inspect --update <id> --json` and apply the plan |
 | `artifact command_argv does not match the configured command` | Command drift | Run through `kibi prove` so the configured command executes |
 | `captured snapshot is not the live workspace snapshot` | Tracked files changed between capture and ingest | Re-run `kibi prove`; do not edit the tree mid-proof |
 | `run did not pass (outcome: …)` | Run-level failure despite passing results | Fix the run (setup/teardown/infrastructure); rerun |
