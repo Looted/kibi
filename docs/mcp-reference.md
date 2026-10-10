@@ -477,15 +477,23 @@ missing or damaged stores.
 
 `kb_status` remains diagnostic when the branch store is missing, incomplete,
 or unreadable: it reports `branchStore` and a structured stale reason instead
-of initialising or repairing storage. A missing store is created only by
-`kibi branch ensure`; an incomplete or unreadable exact store is rebuilt only
-through the previewed `kibi branch recover --apply` workflow. A store that is
-missing or empty (journal sequence 0) while `.kb/` holds authored sources,
-the state of a new branch created without the `post-checkout` hook, is one
-blocking stale reason, `branch_store_not_compiled` (`blocking: true`,
-`authoredSources`, remediation `kibi sync`), and the `migrationPlan` adds the
-automatic `branch-store-compile` action (`kibi sync`) after
-`branch-store-ensure`; an empty store reports `syncState: "stale"`.
+of initialising or repairing storage. Status itself never creates a store,
+but a call that attaches the engine does (`kb_check` and other tools that
+need the engine over MCP, `kibi check` on the CLI, and `kibi branch ensure`),
+and that store stays empty until `kibi sync` compiles it. An incomplete or unreadable exact store is rebuilt only through the
+previewed `kibi branch recover --apply` workflow. A store that is missing or
+empty (journal sequence 0) while `.kb/` holds authored sources, the state of
+a new branch created without the `post-checkout` hook, is one blocking stale
+reason, `branch_store_not_compiled` (`blocking: true`, `authoredSources`,
+remediation `kibi sync`), and the `migrationPlan` adds the automatic
+`branch-store-compile` action (`kibi sync`) after `branch-store-ensure`;
+`syncState` is then `"stale"`, whether the store is missing or empty. A
+missing store with no authored sources, and an incomplete or unreadable one,
+report `syncState: "unknown"`. `kb_check` over MCP and `kibi check` alike then
+return the single `branch-store-not-compiled` violation (MCP uses the
+runtime's branch attachment, including a `KIBI_BRANCH` override), and
+`kb_apply_plan`'s `closeout.kbState` reads `stale` (not `not_evaluated`)
+while the store stays uncompiled.
 
 **Example:**
 ```json

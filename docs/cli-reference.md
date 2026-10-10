@@ -432,8 +432,8 @@ Kibi compiles one store per branch and never copies another branch's, so a
 branch created without the `post-checkout` hook starts with no store (and the
 first engine attach creates an empty one, `generation-1:0`). While `.kb/` holds
 authored sources, status reports that state as one blocking stale reason,
-`branch_store_not_compiled`, whose remediation is `kibi sync` (an empty store
-also reads `syncState: "stale"`), and the migration plan carries an automatic
+`branch_store_not_compiled`, whose remediation is `kibi sync` (the missing or
+empty store also reads `syncState: "stale"`), and the migration plan carries an automatic
 `branch-store-compile` action (`kibi sync`) that runs after
 `branch-store-ensure` and any schema upgrade. `kibi check` reports the same
 state once, as the canonical `branch-store-not-compiled` violation, instead of

@@ -94,6 +94,8 @@ describe("a new branch whose store was never compiled", () => {
       "The KB store for branch feature/login does not exist yet, while .kb/ holds 2 authored source file(s).",
     );
     expect(reason?.remediation.command_argv).toEqual(["kibi", "sync"]);
+    // A missing store beside authored sources is stale, not unknown.
+    expect(before.syncState).toBe("stale");
     expect(before.staleReasons.map((row) => row.code)).not.toContain(
       "branch_store_missing",
     );

@@ -62,7 +62,7 @@ Prolog verifies the knowledge that was encoded. It does not decide whether the o
 
 ## Knowledge that follows your branch
 
-The model lives in your repository under `.kb/`, and each Git branch carries its own snapshot. Feature work gets its own isolated project state; switching branches switches context with it. Kibi compiles each branch's snapshot from that branch's own files and never copies another branch's; a branch created without Kibi's Git hooks starts uncompiled, and `kibi status`, `kibi check` and `kibi doctor` say so once and point at `kibi sync`. Because the model is reviewed and committed like code, its history is your project's history.
+The model lives in your repository under `.kb/`, and each Git branch carries its own snapshot. Feature work gets its own isolated project state; switching branches switches context with it. Kibi compiles each branch's snapshot from that branch's own files and never copies another branch's; a branch created without Kibi's Git hooks starts uncompiled, and `kibi status`, `kibi check` and `kibi doctor` (and `kb_status` and `kb_check` over MCP) say so once and point at `kibi sync`. Because the model is reviewed and committed like code, its history is your project's history.
 
 ## Go deeper
 
