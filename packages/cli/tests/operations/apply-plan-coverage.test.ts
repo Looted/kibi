@@ -937,7 +937,7 @@ describe("migration plan application", () => {
     ).rejects.toThrow(/requires approved dependency/);
   });
 
-  test("applies unknown automatic actions as a failed closeout and skips dependents", async () => {
+  test("refuses unknown automatic actions without changes and skips dependents", async () => {
     const root = makeTempDir();
     const plan = buildMigrationPlan({
       actions: [
@@ -955,7 +955,8 @@ describe("migration plan application", () => {
     );
     expect(result.structuredContent).toMatchObject({
       version: "kibi.migration-apply-result.v1",
-      outcome: "reconciliation_required",
+      outcome: "refused",
+      closeout: { taskOutcome: "blocked" },
     });
     const rows = (
       result.structuredContent as unknown as {

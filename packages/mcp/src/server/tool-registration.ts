@@ -129,7 +129,11 @@ export function registerConfiguredTools<TProlog>(
   register({
     name: "kb_search",
     execute: async (context, args) =>
-      runtime.handleKbSearch(prologFor(context), args as unknown as SearchArgs),
+      runtime.handleKbSearch(
+        prologFor(context),
+        args as unknown as SearchArgs,
+        context,
+      ),
   });
   register({
     name: "kb_status",
@@ -249,15 +253,18 @@ export function registerConfiguredTools<TProlog>(
         return runtime.handleKbCheck(
           prologFor(context),
           args as unknown as CheckArgs,
+          context,
         );
       }
       // Long-KB full checks can exceed the tool timeout. Detach into a job
       // and return the kibi.job.v1 receipt immediately; the agent polls
-      // kb_job_status for the terminal state and full result.
+      // kb_job_status for the terminal state and full result. The job
+      // outlives the request, so it gets its own signal.
       return startJob("kb_check", () =>
         runtime.handleKbCheck(
           prologFor(context),
           checkArgs as unknown as CheckArgs,
+          { ...context, signal: new AbortController().signal },
         ),
       );
     },

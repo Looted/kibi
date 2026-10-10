@@ -111,7 +111,13 @@ const INTENT_RULES: Readonly<Record<string, IntentRule>> = {
   permission_rule: {
     allOf: [
       [/only|may|can|allowed|denied|forbidden|must\s+not|cannot/i],
-      [/delete|export|access|read|write|update|remove|manage|permission/i],
+      [
+        /delete|export|access|read|write|update|remove|manage|permission/i,
+        // A common action verb counts only right after the permission modal
+        // ("must not publish", "may approve"), so a quota such as "uploads
+        // must not exceed 10 MB" does not read as a permission.
+        /\b(?:may|can|cannot|can't|must\s+(?:not|never)|never|(?:is|are)\s+(?:not\s+)?(?:allowed|permitted|forbidden)\s+to)\s+(?:only\s+)?(?:publish|unpublish|approve|assign|view|see|edit|modify|create|submit|share|invite|upload|download|comment|post|complete|archive|restore|grant|revoke|purchase|cancel|execute|invoke|configure|moderate|ban|join|book|reserve|transfer|close|reopen|merge)\b/i,
+      ],
     ],
   },
   resource_constraint: {

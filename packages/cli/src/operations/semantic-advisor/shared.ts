@@ -125,10 +125,33 @@ export function normalizePredicateToken(value: string): string {
     .replace(/^_+|_+$/g, "");
 }
 
+const ES_PLURAL_SUFFIXES = ["ches", "shes", "sses", "xes"] as const;
+
+/**
+ * Singularize one lowercase key token: `-ches`/`-shes`/`-sses`/`-xes` drop
+ * "es", `-ies` becomes "y", and any other trailing "s" is dropped unless the
+ * token ends in "ss", "us" or "is" ("access", "status", "analysis"). Tokens of
+ * three letters or fewer and the `keep` exceptions are returned unchanged.
+ */
+// implements REQ-mcp-semantic-advisor-preflight
+export function singularizeToken(
+  value: string,
+  keep: readonly string[] = [],
+): string {
+  if (value.length <= 3 || keep.includes(value)) return value;
+  if (value.endsWith("ies") && value.length > 4) {
+    return `${value.slice(0, -3)}y`;
+  }
+  if (ES_PLURAL_SUFFIXES.some((suffix) => value.endsWith(suffix))) {
+    return value.slice(0, -2);
+  }
+  if (!value.endsWith("s") || /(?:ss|us|is)$/.test(value)) return value;
+  return value.slice(0, -1);
+}
+
 // implements REQ-mcp-semantic-advisor-preflight
 export function singularize(value: string): string {
-  if (["status", "results"].includes(value)) return value;
-  return value.endsWith("s") && value.length > 3 ? value.slice(0, -1) : value;
+  return singularizeToken(value, ["status", "results"]);
 }
 
 // implements REQ-mcp-semantic-advisor-preflight

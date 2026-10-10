@@ -2,7 +2,7 @@
 id: kibi-usage
 name: Kibi Usage
 description: Use Kibi's source-first, exact-Git, migration-aware, proof-aware operations safely across MCP or the trusted local CLI, including partial completion repair.
-version: 2.12.0
+version: 2.13.0
 kibiCompatibility: ">=1.0.0"
 tags:
   - kibi
@@ -148,7 +148,13 @@ error `BOOTSTRAP_PLAN_REJECTED` can follow earlier committed actions: inspect
 `data.actionResults` and `data.applied`, then re-plan from the current state.
 Its journal is terminal; never recover or replay it. `BOOTSTRAP_PLAN_INVALID`
 fails preflight before bootstrap writes or a new journal; obtain a corrected
-plan. If the status is
+plan. A migration plan whose actions were refused before changing anything
+returns `status: error`, `MIGRATION_PLAN_REFUSED` and `data.outcome:
+refused`: nothing changed, so read the action `detail` and get a new plan.
+`data.outcome: reconciliation_required` (status success) means an action
+failed mid-way: inspect its effect before retrying. `kb_delete` of an
+authored entity returns status success with `deleted: 0`; its `errors` say
+why nothing was deleted. If the status is
 `committed_with_repairs`, the mutation already committed: inspect failed effects,
 execute each required repair action in order, and never retry the original
 operation. Record effect failures, followed actions, and unsafe retries in

@@ -88,3 +88,48 @@ describe("result envelope effect statuses", () => {
     });
   });
 });
+
+// implements REQ-kibi-change-to-proof-plan-compiler-v2
+describe("refused migration plans", () => {
+  const applySpec = {
+    name: "kb_apply_plan",
+    effects: ["kb-write", "workspace-write"] as const,
+  };
+  const migrationResult = (outcome: string) => ({
+    version: "kibi.migration-apply-result.v1",
+    outcome,
+    actionResults: [
+      {
+        actionId: "proof-integration-configure",
+        outcome: "failed",
+        detail: "Proof integration plan refused: the file already exists.",
+      },
+    ],
+  });
+
+  test("a refused migration plan is an error that changed nothing", () => {
+    const envelope = toKibiResult(applySpec, migrationResult("refused"));
+
+    expect(envelope.status).toBe("error");
+    expect(envelope.error).toMatchObject({
+      code: "MIGRATION_PLAN_REFUSED",
+      retryable: false,
+    });
+    expect(envelope.error?.message).toContain("nothing was changed");
+    expect(envelope.error?.message).toContain("already exists");
+    expect(envelope.effects).toEqual([
+      { kind: "kb-write", status: "not_applicable" },
+      { kind: "workspace-write", status: "not_applicable" },
+    ]);
+  });
+
+  test("a failure that needs reconciliation keeps a success envelope", () => {
+    const envelope = toKibiResult(
+      applySpec,
+      migrationResult("reconciliation_required"),
+    );
+
+    expect(envelope.status).toBe("success");
+    expect(envelope.error).toBeUndefined();
+  });
+});

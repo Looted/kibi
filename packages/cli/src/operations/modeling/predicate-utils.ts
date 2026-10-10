@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { singularizeToken } from "../semantic-advisor/shared.js";
 
 const DEFAULT_MIN_SCORE = 0.35;
 
@@ -128,8 +129,7 @@ export function normalizePredicateToken(value: string): string {
 
 // implements REQ-mcp-suggest-predicates
 export function singularize(value: string): string {
-  if (["changes", "status", "results"].includes(value)) return value;
-  return value.endsWith("s") && value.length > 3 ? value.slice(0, -1) : value;
+  return singularizeToken(value, ["changes", "status", "results"]);
 }
 
 // implements REQ-mcp-suggest-predicates

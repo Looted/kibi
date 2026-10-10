@@ -57,7 +57,11 @@ export interface ToolsRuntime<TProlog = DefaultRuntimeProlog> {
   isShuttingDown: () => Awaitable<boolean>;
   prologProcess: () => Awaitable<{ getPid: () => number } | null>;
   operationRuntime: McpOperationRuntime<TProlog>;
-  handleKbCheck: (prolog: TProlog, args: CheckArgs) => Promise<unknown>;
+  handleKbCheck: (
+    prolog: TProlog,
+    args: CheckArgs,
+    context?: OperationContext,
+  ) => Promise<unknown>;
   handleKbCoverage: (
     prolog: TProlog,
     args: CoverageArgs,
@@ -71,7 +75,11 @@ export interface ToolsRuntime<TProlog = DefaultRuntimeProlog> {
     context: OperationContext,
   ) => Promise<unknown>;
   handleKbQuery: (prolog: TProlog, args: QueryArgs) => Promise<unknown>;
-  handleKbSearch: (prolog: TProlog, args: SearchArgs) => Promise<unknown>;
+  handleKbSearch: (
+    prolog: TProlog,
+    args: SearchArgs,
+    context?: OperationContext,
+  ) => Promise<unknown>;
   handleKbStatus: (
     prolog: TProlog,
     args: StatusArgs,

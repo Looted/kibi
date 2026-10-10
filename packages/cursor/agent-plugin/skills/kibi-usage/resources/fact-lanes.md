@@ -61,16 +61,16 @@ A schema can close an argument with `argument_constants` (allowed values keyed b
 
 ### Deny predicate
 
-Claim: “Suspended users must not publish articles.” When `permission_rule` fits, preserve its positive schema name and encode prohibition as polarity:
+Claim: “Suspended users must not publish articles.” When `permission_rule` fits, preserve its positive schema name and encode prohibition as polarity. `kb_model` (`mode: "predicates"`) plans this fact for the claim; the built-in schema's fourth argument, `decision`, repeats the polarity:
 
 ```yaml
 id: FACT-SUSPENDED-PUBLISH-DENIED
 status: active
 fact_kind: predicate
 predicate_name: permission_rule
-predicate_args: [suspended_user, publish, article]
+predicate_args: [suspended_user, publish, articles, deny]
 polarity: deny
-canonical_key: permission_rule(suspended_user,publish,article)
+canonical_key: permission_rule(suspended_user,publish,articles,deny)
 claim_key: <advisor-issued key for this exact clause>
 claim_text: Suspended users must not publish articles.
 relationship: { type: requires_predicate, from: REQ-SUSPENDED-PUBLISH-DENIED, to: FACT-SUSPENDED-PUBLISH-DENIED }

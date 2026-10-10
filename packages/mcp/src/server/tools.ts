@@ -500,11 +500,13 @@ export function addTool<TProlog>(
             ...(result as Record<string, unknown>),
             content,
             structuredContent: envelope,
+            ...(envelope.status === "error" ? { isError: true } : {}),
           };
         }
         return {
           content: [{ type: "text", text: JSON.stringify(envelope) }],
           structuredContent: envelope,
+          ...(envelope.status === "error" ? { isError: true } : {}),
         };
       } catch (error) {
         // Log error in diagnostic mode
