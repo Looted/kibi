@@ -119,6 +119,17 @@ function packageTestCommand(root: string): readonly string[] | null {
   return ["npm", "test"];
 }
 
+const PACKAGE_TEST_SCRIPT_RUNNER = "package.json test script";
+
+/**
+ * A command integration is judged as one run. When it runs the package's
+ * whole test script, say so: any failing test fails every obligation.
+ */
+function wholeRunNote(proposal: ProposedIntegration): string {
+  if (!proposal.runner.startsWith(PACKAGE_TEST_SCRIPT_RUNNER)) return "";
+  return ` Kibi judges this run as a whole: a failing test anywhere in the package's test script fails every proof obligation that names '${proposal.integration.id}', so unrelated failures prove nothing. To narrow it, pass --command with a command that runs only the proof-bearing tests (kibi proof inspect --update ${proposal.integration.id} --command "<command>" --json once the file exists), or have the command write a kibi.proof-test-report.v1 to the path in KIBI_PROOF_TEST_REPORT so each test is judged by its own steps.`;
+}
+
 /** Ordered: the first runner whose marker file exists wins. */
 const RUNNER_COMMANDS: ReadonlyArray<
   Readonly<{
@@ -200,18 +211,25 @@ const RUNNER_COMMANDS: ReadonlyArray<
 export function proposeProofIntegration(
   root: string,
   overrideId?: string,
+  overrideCommand?: readonly string[],
 ): ProposedIntegration | null {
   const npmCommand = packageTestCommand(root);
   const detected =
-    npmCommand !== null
+    overrideCommand !== undefined && overrideCommand.length > 0
       ? {
-          runner: `package.json test script (${npmCommand.join(" ")})`,
+          runner: `--command (${overrideCommand.join(" ")})`,
           id: "unit",
-          command: npmCommand,
+          command: overrideCommand,
         }
-      : RUNNER_COMMANDS.find((entry) =>
-          entry.files.some((file) => existsSync(path.join(root, file))),
-        );
+      : npmCommand !== null
+        ? {
+            runner: `${PACKAGE_TEST_SCRIPT_RUNNER} (${npmCommand.join(" ")})`,
+            id: "unit",
+            command: npmCommand,
+          }
+        : RUNNER_COMMANDS.find((entry) =>
+            entry.files.some((file) => existsSync(path.join(root, file))),
+          );
   if (detected === undefined) return null;
   const id = overrideId ?? detected.id;
   return {
@@ -279,7 +297,7 @@ function readIntegrationsFile(root: string): {
 // implements REQ-kibi-verification-evidence-contract
 export function buildProofIntegrationPlan(
   root: string,
-  options: Readonly<{ update?: string }> = {},
+  options: Readonly<{ update?: string; command?: readonly string[] }> = {},
 ): ProofIntegrationPlanResult {
   const filePath = integrationsPath(root);
   const exists = existsSync(filePath);
@@ -304,7 +322,7 @@ export function buildProofIntegrationPlan(
         proposal: null,
         reason: `${PROOF_INTEGRATIONS_PATH} is not a valid ${PROOF_INTEGRATION_VERSION} file, so Kibi cannot update one integration in it. Run kibi prove for the validation error.`,
       };
-  const proposal = proposeProofIntegration(root, update);
+  const proposal = proposeProofIntegration(root, update, options.command);
   if (proposal === null) {
     return {
       plan: null,
@@ -343,7 +361,7 @@ export function buildProofIntegrationPlan(
       actions: [action],
     }),
     proposal,
-    reason: `Applying the plan ${update === undefined ? "creates" : "updates"} ${PROOF_INTEGRATIONS_PATH} with the ${proposal.integration.producer} integration '${proposal.integration.id}' (${proposal.integration.command.join(" ")}). Proof-bearing tests then name it in proof_contract.integration and kibi prove runs it.`,
+    reason: `Applying the plan ${update === undefined ? "creates" : "updates"} ${PROOF_INTEGRATIONS_PATH} with the ${proposal.integration.producer} integration '${proposal.integration.id}' (${proposal.integration.command.join(" ")}). Proof-bearing tests then name it in proof_contract.integration and kibi prove runs it.${wholeRunNote(proposal)}`,
   };
 }
 

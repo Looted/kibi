@@ -191,9 +191,14 @@ hashes of the files the proposal came from (`package.json`, lockfiles,
 runner configs) and is refused once one changed. A create plan is refused
 once the file exists; `kibi proof inspect --update <id> --json` plans adding
 or replacing one named integration and is bound to the file's current hash.
-A `command` integration judges each selected test by the exit code; replace
-it with a native producer through an update plan when you need per-test
-results. Greenfield repositories without a harness record proof integration
+`--command "<command>"` (space-separated words or a JSON argv array)
+proposes that command instead of the detected one, on a create or an update
+plan. A `command` integration judges each selected test by the exit code of
+the whole run, so when it runs the package's whole `test` script, any failing
+test anywhere fails every proof obligation that names it and a suite with
+unrelated failures proves nothing; `integrationPlanReason` says so. Narrow the
+command to the proof-bearing tests (`kibi proof inspect --update <id>
+--command "<command>" --json`) or have it write a per-test report (below). Greenfield repositories without a harness record proof integration
 as **deferred** — Kibi does not install test frameworks.
 
 ## The canonical artifact: `kibi.proof-run.v1`

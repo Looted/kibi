@@ -14117,12 +14117,12 @@ coordinates:
     sourceLine: 5
   SYM-inspect-proof-environment:
     identityHash: 4bd9cb5253871792605756c9f31fbe965efff978aa798a9138c47c08ea5f393a
-    sourceHash: 3779acebfc50d9f281539cf536a1ed76b24996497f38a6884e0384c0f0ed607d
+    sourceHash: bde292b8927e4c1161163f9d7663fc170e774716a16e6053045b0b6c2439978b
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 309
+    sourceEndLine: 311
     sourceFile: packages/cli/src/proof/inspect.ts
-    sourceLine: 210
+    sourceLine: 212
   SYM-inspectBranchStore:
     identityHash: 48aef7e83b422af9baf3c3f02098665170a52b106f0dfafc81c702bb32df2fd7
     sourceHash: ad4161d3b9167e188c3825c2ed055ee33ef0f0cb79297697a693e3f3f7d69baf
@@ -21117,7 +21117,7 @@ coordinates:
     sourceLine: 8
   SYM-proof-inspection:
     identityHash: a45a89175658d396a57762d52a55e0468d3f9b909fdf7dfd727754cf508d7dae
-    sourceHash: 3779acebfc50d9f281539cf536a1ed76b24996497f38a6884e0384c0f0ed607d
+    sourceHash: bde292b8927e4c1161163f9d7663fc170e774716a16e6053045b0b6c2439978b
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 33
@@ -22365,10 +22365,10 @@ coordinates:
     sourceLine: 386
   SYM-register-proof-command:
     identityHash: d40e9ff664a78995816106dada7cd9b6fc65928aa6d5fd6b0c1692571d75d12e
-    sourceHash: 76610b17eef344f5a162ae207b0190433224a5d88bac86a5dfc1cd8242554074
+    sourceHash: a26fc8c72521900caff1afaaa178d0922cf34482ee34c33079879093e626518c
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 194
+    sourceEndLine: 208
     sourceFile: packages/cli/src/cli-register-proof.ts
     sourceLine: 5
   SYM-registerAllTools:

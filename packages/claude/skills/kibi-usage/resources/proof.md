@@ -51,6 +51,15 @@ proof_bindings:                 # optional provenance metadata
 
 Provenance lives in `proof_bindings`; the contract stays semantic.
 
+- Every `required_proofs[].symbol_id` must name an existing `symbol` entity,
+  or `kb_check` reports `proof-contract-symbols`. Create the symbols first
+  (`kb_upsert`, narrow method-level granularity, never a `type-shape`
+  symbol): a production symbol `implements` the requirement and is
+  `covered_by` the test; an executable test symbol is `executable_for` it.
+- `proof_bindings[].source_file`, when set, must equal the named symbol's
+  `sourceFile`: for a production symbol that is the production file, not the
+  spec file that exercises it. Omit it when unsure.
+
 ## Integration configuration
 
 `.kb/proof/integrations.json` (`kibi.proof-integration.v1`) is tracked,
@@ -68,7 +77,15 @@ replacing one named integration.
 
 - `producer: command` — Kibi synthesizes the envelope from the process
   outcome; obligations are bound with `aggregate_run` provenance and the
-  single process invocation counts as the known first attempt.
+  single process invocation counts as the known first attempt. The run is
+  judged as a whole: any failing test in it fails every obligation of every
+  test that names the integration, so a suite with unrelated failures proves
+  nothing. Narrow the command to the proof-bearing tests with
+  `kibi proof inspect --update <id> --command "<command>" --json` (without
+  `--command` the proposal is the `package.json` `test` script or the
+  detected runner again), or make the run attributable per test: have the
+  command write a `kibi.proof-test-report.v1` to the path in
+  `KIBI_PROOF_TEST_REPORT` so each test is judged by its own steps.
 - `producer: playwright` (or custom) — the child emits `kibi.proof-run.v1`
   itself (bundled reporter: `kibi-cli/playwright-reporter`).
 - `producer: junit` / `tap` — Kibi converts the native report at `artifact`
