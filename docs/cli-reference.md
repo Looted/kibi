@@ -453,6 +453,8 @@ kibi find-gaps req --missing-rel specified_by,verified_by --format table
 kibi gaps req --source src/auth --missing-rel verified_by --format table
 ```
 
+`--missing-rel` and `--present-rel` count a relationship in either direction and treat `verified_by` and its documented inverse `validates` as satisfying each other, so a requirement whose test `validates` it is not reported missing `verified_by`; `relationshipCounts` keeps one count per relationship name.
+
 `find-gaps` is the canonical command name and dedicated JSON route. `gaps` is a true Commander alias for the same action, so flag and `--input` behavior are identical under either spelling.
 
 The JSON payload carries `rows` (the current page), `count` (matching rows before pagination), `summary` (`total`, the same number, and `provenanceStubs`, the bootstrap facts tagged `bootstrap:provenance-stub` that match the filters but are counted apart from knowledge; they enter `rows` only when `--tag` names that tag) and `meta`.

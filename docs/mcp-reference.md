@@ -553,7 +553,7 @@ Run curated missing/present relationship analysis over KB entities.
 **Parameters:**
 - `type` (optional): Entity type filter
 - `missingRelationships` (optional): Required-to-be-absent relationship types
-- `presentRelationships` (optional): Required-to-be-present relationship types
+- `presentRelationships` (optional): Required-to-be-present relationship types. In both lists a relationship counts in either direction, and `verified_by` and `validates` (its documented inverse for req/scenario ↔ test links) satisfy each other: a requirement whose test `validates` it is not a `verified_by` gap. `relationshipCounts` still counts each relationship name separately.
 - `tags` (optional): Tag filter
 - `sourceFile` (optional): Source-file substring filter
 - `limit` / `offset` (optional): Pagination controls
