@@ -301,4 +301,35 @@ describe("createCoverageDepthQualityDiagnostics", () => {
       expect.objectContaining({ directTests: ["TEST-DUP"] }),
     );
   });
+
+  it("reviews only current requirements: retired closed, deprecated and superseded ones are skipped", () => {
+    const diagnostics = createCoverageDepthQualityDiagnostics([
+      result({ id: "REQ-OPEN", type: "req", status: "open" }),
+      result({ id: "REQ-IN-PROGRESS", type: "req", status: "in_progress" }),
+      result({ id: "REQ-CLOSED", type: "req", status: "closed" }),
+      result({
+        id: "REQ-CLOSED-IMPLEMENTED",
+        type: "req",
+        status: "closed",
+        tags: ["implemented"],
+      }),
+      result({ id: "REQ-DEPRECATED", type: "req", status: "deprecated" }),
+      result({
+        id: "REQ-SUPERSEDED-STATUS",
+        type: "req",
+        status: "superseded",
+      }),
+      result({ id: "REQ-OLD", type: "req", status: "open" }),
+      result({ id: "REQ-NEW", type: "req", status: "open" }, [
+        { type: "supersedes", from: "REQ-NEW", to: "REQ-OLD" },
+      ]),
+    ]);
+
+    expect(diagnostics.map((diagnostic) => diagnostic.entityId)).toEqual([
+      "REQ-CLOSED-IMPLEMENTED",
+      "REQ-IN-PROGRESS",
+      "REQ-NEW",
+      "REQ-OPEN",
+    ]);
+  });
 });

@@ -6493,12 +6493,12 @@ coordinates:
     sourceLine: 116
   SYM-cli-impact-createCoverageDepthQualityDiagnostics:
     identityHash: 45c11ded43ef05654afd2882756c858055c5c1b0c40bb638c566960f99751e43
-    sourceHash: fdeb0d2de8f775731ad0816ca1c909c53dad2e799ea96463f2d504292487acda
+    sourceHash: d467a179e10048bb8704fa01856fc515fddfe0a5f6800de5810cf92c81060b73
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 304
+    sourceEndLine: 349
     sourceFile: packages/cli/src/public/impact/coverage-depth-quality.ts
-    sourceLine: 279
+    sourceLine: 319
   SYM-cli-impact-createImpactManifestLookup:
     identityHash: 4c3dc17c58285efcbc8c5aa962f8378c7c5650d08305a4fc9a2ea278d008e163
     sourceHash: 7f1269460053365c03849330e51f20a5e44b90a0379b8f64bc8b26d9efb18034
