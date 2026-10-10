@@ -169,11 +169,34 @@ describe("proof integration configured through a reviewed plan", () => {
     expect(summary).toMatchObject({ proved: 1, failed: 0 });
 
     // The same plan only creates the file; it is refused once it exists,
-    // and a fresh inspection offers no create plan.
+    // and a fresh inspection offers no create plan. The refusal changed
+    // nothing, so it is an error result with outcome refused, not a success
+    // that needs reconciliation.
+    const before2 = ws.read(".kb/proof/integrations.json");
     const again = applyPlan(ws, plan);
+    expect(again.status).toBe(1);
     expect(`${again.stdout}${again.stderr}`).toContain(
       "already exists and this plan only creates it",
     );
+    const refused = JSON.parse(again.stdout) as {
+      status: string;
+      error: { code: string; message: string };
+      data: {
+        outcome: string;
+        closeout: { taskOutcome: string };
+        actionResults: Array<{ outcome: string }>;
+      };
+    };
+    expect(refused).toMatchObject({
+      status: "error",
+      error: { code: "MIGRATION_PLAN_REFUSED" },
+      data: {
+        outcome: "refused",
+        closeout: { taskOutcome: "blocked" },
+        actionResults: [{ outcome: "failed" }],
+      },
+    });
+    expect(ws.read(".kb/proof/integrations.json")).toBe(before2);
     expect(inspect(ws).integrationPlan).toBeNull();
   });
 });

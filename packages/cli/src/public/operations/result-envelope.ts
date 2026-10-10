@@ -1,3 +1,4 @@
+import { MIGRATION_PLAN_REFUSED } from "../../operations/planning/migration-refusal.js";
 import type { KibiResult, OperationEffect, OperationName } from "./types.js";
 
 export const KIBI_PROTOCOL_VERSION = 1 as const;
@@ -139,6 +140,16 @@ export function resultVersion(spec: {
   return spec.resultVersion ?? `kibi.${spec.name}.v1`;
 }
 
+function refusalDetail(row: Record<string, unknown>): string {
+  const results = Array.isArray(row.actionResults) ? row.actionResults : [];
+  const failure = results.find(
+    (entry) => record(entry) && entry.outcome === "failed",
+  );
+  return record(failure) && typeof failure.detail === "string"
+    ? failure.detail
+    : "";
+}
+
 export function toKibiResult<T>(
   spec: {
     readonly name: OperationName | string;
@@ -158,12 +169,17 @@ export function toKibiResult<T>(
   } = {},
 ): KibiResult<T> {
   const row = record(data) ? data : undefined;
+  // A migration plan whose actions were all refused changed nothing: it is
+  // an error, not a success that needs reconciliation.
+  const migrationRefused =
+    row?.version === "kibi.migration-apply-result.v1" &&
+    row.outcome === "refused";
   let status = options.status;
   if (!status) {
     status = "success";
     if (row?.status === "committed_with_repairs")
       status = "committed_with_repairs";
-    if (row?.status === "rejected") status = "error";
+    if (row?.status === "rejected" || migrationRefused) status = "error";
   }
   const terminalError =
     row?.status === "rejected"
@@ -173,9 +189,21 @@ export function toKibiResult<T>(
             "Bootstrap stopped at a deterministic failure. Inspect actionResults for committed actions and re-plan from the current state.",
           retryable: false,
         }
-      : undefined;
+      : migrationRefused
+        ? {
+            code: MIGRATION_PLAN_REFUSED,
+            message:
+              `Migration plan refused; nothing was changed. ${refusalDetail(row)}`.trim(),
+            retryable: false,
+          }
+        : undefined;
   const resultError = options.error ?? terminalError;
-  const outcome = effectOutcome(status, options);
+  const outcome = effectOutcome(
+    status,
+    migrationRefused && options.attempted === undefined
+      ? { ...options, attempted: false }
+      : options,
+  );
   return {
     kibiProtocol: KIBI_PROTOCOL_VERSION,
     operation: spec.name as OperationName,

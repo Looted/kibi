@@ -165,6 +165,19 @@ export async function executeOperation(
         spec,
       );
     }
+    // A result the operation itself reports as an error (a rejected
+    // bootstrap, a refused migration plan) exits non-zero like any other.
+    if (envelope.status === "error") {
+      return {
+        exitCode: 1,
+        stdout: `${JSON.stringify(envelope)}\n`,
+        ...(envelope.error
+          ? {
+              stderr: `Error [${envelope.error.code}]: ${envelope.error.message}\n`,
+            }
+          : {}),
+      };
+    }
     return { exitCode: 0, stdout: `${JSON.stringify(envelope)}\n` };
   } catch (error) {
     if (error instanceof InputError || error instanceof OperationError) {

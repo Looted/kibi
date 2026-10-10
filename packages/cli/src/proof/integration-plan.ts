@@ -7,6 +7,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import path from "node:path";
+import { MigrationActionRefusedError } from "../operations/planning/migration-refusal.js";
 
 import {
   type MigrationAction,
@@ -371,7 +372,7 @@ export function applyProofIntegrationAction(
     !isRecord(integration) ||
     typeof integration.id !== "string"
   )
-    throw new Error(
+    throw new MigrationActionRefusedError(
       `Proof integration action '${action.id}' is malformed; rerun kibi proof inspect for a new plan.`,
     );
   const planned = isRecord(evidence.sourceHashes) ? evidence.sourceHashes : {};
@@ -380,25 +381,25 @@ export function applyProofIntegrationAction(
     ...new Set([...Object.keys(planned), ...Object.keys(live)]),
   ].filter((file) => planned[file] !== live[file]);
   if (changed.length > 0)
-    throw new Error(
+    throw new MigrationActionRefusedError(
       `Proof integration plan refused: ${changed.join(", ")} changed since planning; rerun kibi proof inspect and review the new plan.`,
     );
   const filePath = integrationsPath(root);
   let integrations: unknown[];
   if (evidence.mode === "create") {
     if (existsSync(filePath))
-      throw new Error(
+      throw new MigrationActionRefusedError(
         `Proof integration plan refused: ${PROOF_INTEGRATIONS_PATH} already exists and this plan only creates it. Run kibi proof inspect --update <integration id> for a plan that adds or replaces one named integration.`,
       );
     integrations = [integration];
   } else {
     if (fileHash(filePath) !== evidence.previousFileHash)
-      throw new Error(
+      throw new MigrationActionRefusedError(
         `Proof integration plan refused: ${PROOF_INTEGRATIONS_PATH} changed since planning; rerun kibi proof inspect --update ${integration.id}.`,
       );
     const current = readIntegrationsFile(root);
     if (current === null)
-      throw new Error(
+      throw new MigrationActionRefusedError(
         `Proof integration plan refused: ${PROOF_INTEGRATIONS_PATH} is not a valid ${PROOF_INTEGRATION_VERSION} file.`,
       );
     integrations = current.integrations.some(
@@ -412,7 +413,7 @@ export function applyProofIntegrationAction(
   const file = { version: PROOF_INTEGRATION_VERSION, integrations };
   const errors = proofIntegrationErrors(file);
   if (errors.length > 0)
-    throw new Error(
+    throw new MigrationActionRefusedError(
       `Proof integration plan refused: the result would be invalid (${errors.join("; ")}).`,
     );
   mkdirSync(path.dirname(filePath), { recursive: true });

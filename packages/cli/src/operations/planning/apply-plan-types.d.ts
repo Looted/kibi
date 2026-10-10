@@ -110,10 +110,20 @@ export type ApplyPlanResult =
     }>
   | Readonly<{
       version: "kibi.migration-apply-result.v1";
+      /**
+       * applied: every approved action applied. partially_applied: some
+       * actions applied before one failed. refused: nothing was applied and
+       * every failure was a refusal (a precondition failed before the action
+       * changed anything; the detail says why), so there is nothing to
+       * reconcile; the envelope is an error (MIGRATION_PLAN_REFUSED).
+       * reconciliation_required: nothing was applied but an action failed
+       * without being refused, so its effect must be inspected.
+       */
       outcome:
         | "applied"
         | "partially_applied"
         | "replayed"
+        | "refused"
         | "reconciliation_required";
       planHash: string;
       actionResults: readonly Readonly<{

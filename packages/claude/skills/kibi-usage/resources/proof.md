@@ -62,8 +62,9 @@ returns `integrationPlan`, a hash-bound `kibi.migration-plan.v2`, plus the
 proposal to the human, then apply the plan with `kb_apply_plan` (or
 `kibi apply-plan --input -`) passing `plan`, `approvedPlanHash` (the plan's
 `planHash`) and `approvedActionIds`. Once the file exists, a create plan is
-refused; `kibi proof inspect --update <id> --json` plans adding or replacing
-one named integration.
+refused (`status: error`, `MIGRATION_PLAN_REFUSED`, `data.outcome: refused`;
+nothing is written); `kibi proof inspect --update <id> --json` plans adding or
+replacing one named integration.
 
 - `producer: command` — Kibi synthesizes the envelope from the process
   outcome; obligations are bound with `aggregate_run` provenance and the
