@@ -513,16 +513,33 @@ hidden_provenance_stub(RequestedTags, Type, Props) :-
     \+ memberchk('bootstrap:provenance-stub', RequestedTags),
     provenance_stub_props(Type, Props).
 
+% A requested missing/present relationship is satisfied by its documented
+% inverse as well (docs/entity-schema.md: `validates` is the inverse edge of
+% `verified_by` for req/scenario <-> test links), so a requirement whose test
+% `validates` it is not a `verified_by` gap. relationshipCounts stay per name.
+% implements REQ-mcp-search-discovery
 relationships_missing(_Id, []).
 relationships_missing(Id, [Relationship|Rest]) :-
-    relationship_count(Id, Relationship, 0),
+    linked_relationship_count(Id, Relationship, 0),
     relationships_missing(Id, Rest).
 
+% implements REQ-mcp-search-discovery
 relationships_present(_Id, []).
 relationships_present(Id, [Relationship|Rest]) :-
-    relationship_count(Id, Relationship, Count),
+    linked_relationship_count(Id, Relationship, Count),
     Count > 0,
     relationships_present(Id, Rest).
+
+inverse_relationship(verified_by, validates).
+inverse_relationship(validates, verified_by).
+
+linked_relationship_count(Id, Relationship, Count) :-
+    relationship_count(Id, Relationship, Direct),
+    (   inverse_relationship(Relationship, Inverse)
+    ->  relationship_count(Id, Inverse, Reverse)
+    ;   Reverse = 0
+    ),
+    Count is Direct + Reverse.
 
 relationship_counts(Id, CountsDict) :-
     findall(Relationship-Count,

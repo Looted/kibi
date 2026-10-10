@@ -103,6 +103,7 @@ import {
   parseWhatIfAnalysis,
   planWhatIfGoal,
 } from "./compile-intent.js";
+import { MigrationActionRefusedError } from "./migration-refusal.js";
 
 import type {
   ApplyPlanArgs,
@@ -2992,6 +2993,9 @@ async function applyMigrationPlan(
     detail: string;
   }> = [];
   let failed = false;
+  // Failures that changed nothing (a precondition refused the action).
+  let refusals = 0;
+  let failures = 0;
   for (const action of actions) {
     if (failed) {
       results.push({
@@ -3011,6 +3015,8 @@ async function applyMigrationPlan(
       });
     } catch (error) {
       failed = true;
+      failures += 1;
+      if (error instanceof MigrationActionRefusedError) refusals += 1;
       results.push({
         actionId: action.id,
         outcome: "failed",
@@ -3068,10 +3074,15 @@ async function applyMigrationPlan(
       });
     }
   }
+  // refused: nothing was applied and every failure was a refusal, so the
+  // workspace is as it was; reconciliation_required: an action failed
+  // without being refused, so its effect must be inspected.
   const outcome = failed
     ? results.some((result) => result.outcome === "applied")
       ? "partially_applied"
-      : "reconciliation_required"
+      : failures > 0 && refusals === failures
+        ? "refused"
+        : "reconciliation_required"
     : "applied";
   const kbState = finalStatus.branchAttachment?.migrationRequired
     ? "legacy_compat"
@@ -3118,7 +3129,7 @@ async function applyMigrationPlan(
       taskOutcome:
         outcome === "applied"
           ? "complete"
-          : outcome === "reconciliation_required"
+          : outcome === "reconciliation_required" || outcome === "refused"
             ? "blocked"
             : "interim",
       kbState,
@@ -3131,7 +3142,12 @@ async function applyMigrationPlan(
     content: [
       {
         type: "text",
-        text: `${outcome === "applied" ? "Applied" : "Stopped after"} migration plan ${args.plan.planHash.slice(0, 12)}.`,
+        text:
+          outcome === "applied"
+            ? `Applied migration plan ${args.plan.planHash.slice(0, 12)}.`
+            : outcome === "refused"
+              ? `Refused migration plan ${args.plan.planHash.slice(0, 12)}; nothing was changed.`
+              : `Stopped after migration plan ${args.plan.planHash.slice(0, 12)}.`,
       },
     ],
     structuredContent: payload,
@@ -3222,7 +3238,7 @@ async function applyMigrationAction(
         await applySchema6MigrationAction(action, context);
         return;
       }
-      throw new Error(
+      throw new MigrationActionRefusedError(
         `Migration action '${action.code}' has no automatic executor.`,
       );
   }
@@ -3239,12 +3255,14 @@ async function applyPredicateSchemaAlignment(
 ): Promise<void> {
   const invocation = action.invocation;
   if (invocation.kind !== "operation" || invocation.name !== "kb_upsert")
-    throw new Error(
+    throw new MigrationActionRefusedError(
       "Predicate schema alignment requires its planned kb_upsert invocation.",
     );
   const input = asUpsert(invocation.input as PlanStep);
   if (input.type !== "fact")
-    throw new Error("Predicate schema alignment only rewrites fact entities.");
+    throw new MigrationActionRefusedError(
+      "Predicate schema alignment only rewrites fact entities.",
+    );
   const prolog = context.prolog ?? (await context.ensureProlog?.());
   if (!prolog)
     throw new Error("Predicate schema alignment requires a Prolog runtime.");
@@ -3271,7 +3289,7 @@ async function applyPredicateSchemaAlignment(
         currentArgs[rewrite.index] === rewrite.from,
     );
   if (!unchanged)
-    throw new Error(
+    throw new MigrationActionRefusedError(
       `Predicate fact ${input.id} changed since planning; rerun kibi check and approve the new plan.`,
     );
   await executeUpsert(input, operationContext);

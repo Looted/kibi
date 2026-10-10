@@ -507,11 +507,11 @@ export async function executeStatus(
       // Source hashes can all match while the compilation itself is lossy, so
       // a compiler contract change alone makes the store stale.
       ...(compilerReason ? { syncState: "stale", dirty: true } : {}),
-      // An empty store has no stale file to report, yet nothing in it is
-      // current: the authored sources were never compiled.
-      ...(storeUncompiled && store.state === "healthy"
-        ? { syncState: "stale", dirty: true }
-        : {}),
+      // A missing or empty store has no stale file to report, yet nothing in
+      // it is current: the authored sources were never compiled. (A missing
+      // store without authored sources, and an unreadable or incomplete one,
+      // stay "unknown".)
+      ...(storeUncompiled ? { syncState: "stale", dirty: true } : {}),
       branchAttachment: attachment,
       branchStore: store,
       ...(engineStatus ? { engineStatus } : {}),

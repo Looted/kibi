@@ -225,12 +225,22 @@ runner), `contractDefaults` for a test's `proof_contract`, and
 `integrationPlan`: a hash-bound `kibi.migration-plan.v2` that writes the file
 when applied with `kb_apply_plan` or `kibi apply-plan --input -` (pass
 `plan`, `approvedPlanHash` and `approvedActionIds`). `integrationPlanReason`
-says why there is no plan. `--update <id>` plans adding or replacing one
-named integration in an existing file.
+says why there is no plan, or what applying it does. `--update <id>` plans
+adding or replacing one named integration in an existing file. `--command`
+proposes that command instead of the detected one (space-separated words, or
+a JSON array of argv strings; no shell quoting).
+
+A `command` integration is judged as one run: any failing test in it fails
+every proof obligation that names the integration. When the proposal runs the
+package's whole `test` script, `integrationPlanReason` says so and points at
+`--command` (with `--update <id>` once the file exists) to run only the
+proof-bearing tests, or at a `kibi.proof-test-report.v1` written to
+`KIBI_PROOF_TEST_REPORT` for per-test results.
 
 ```bash
 kibi proof inspect --json
 kibi proof inspect --update e2e --json
+kibi proof inspect --update unit --command "npx vitest run tests/e2e" --json
 ```
 
 ### `kibi proof explain`
@@ -422,8 +432,8 @@ Kibi compiles one store per branch and never copies another branch's, so a
 branch created without the `post-checkout` hook starts with no store (and the
 first engine attach creates an empty one, `generation-1:0`). While `.kb/` holds
 authored sources, status reports that state as one blocking stale reason,
-`branch_store_not_compiled`, whose remediation is `kibi sync` (an empty store
-also reads `syncState: "stale"`), and the migration plan carries an automatic
+`branch_store_not_compiled`, whose remediation is `kibi sync` (the missing or
+empty store also reads `syncState: "stale"`), and the migration plan carries an automatic
 `branch-store-compile` action (`kibi sync`) that runs after
 `branch-store-ensure` and any schema upgrade. `kibi check` reports the same
 state once, as the canonical `branch-store-not-compiled` violation, instead of
@@ -452,6 +462,8 @@ kibi find-gaps req --missing-rel specified_by,verified_by --format table
 # Source-linked gap analysis
 kibi gaps req --source src/auth --missing-rel verified_by --format table
 ```
+
+`--missing-rel` and `--present-rel` count a relationship in either direction and treat `verified_by` and its documented inverse `validates` as satisfying each other, so a requirement whose test `validates` it is not reported missing `verified_by`; `relationshipCounts` keeps one count per relationship name.
 
 `find-gaps` is the canonical command name and dedicated JSON route. `gaps` is a true Commander alias for the same action, so flag and `--input` behavior are identical under either spelling.
 

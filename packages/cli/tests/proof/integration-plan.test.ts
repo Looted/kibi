@@ -6,6 +6,7 @@ import {
   buildProofIntegrationPlan,
   proposeProofIntegration,
 } from "../../src/proof/integration-plan.js";
+import { parseCommandOption } from "../../src/cli-register-proof.js";
 import { loadProofIntegrations } from "../../src/proof/integrations.js";
 import {
   createTempDir,
@@ -136,5 +137,49 @@ describe("proof integration plan", () => {
     const result = buildProofIntegrationPlan(root, { update: "unit" });
     expect(result.plan).toBeNull();
     expect(result.reason).toContain("does not exist yet");
+  });
+
+  test("a plan for the package's whole test script says the run is judged as a whole and how to narrow it", () => {
+    const root = workspace({ test: "node --test" });
+    const { reason } = buildProofIntegrationPlan(root);
+    expect(reason).toContain("judges this run as a whole");
+    expect(reason).toContain("fails every proof obligation that names 'unit'");
+    expect(reason).toContain("--update unit --command");
+    expect(reason).toContain("kibi.proof-test-report.v1");
+  });
+
+  test("--command replaces the detected command and drops the whole-run note", () => {
+    const root = workspace({ test: "node --test" });
+    const narrowed = ["npx", "vitest", "run", "tests/e2e"];
+    const created = buildProofIntegrationPlan(root, { command: narrowed });
+    expect(created.proposal?.integration.command).toEqual(narrowed);
+    expect(created.reason).not.toContain("judges this run as a whole");
+    const { action } = onlyAction(root);
+    applyProofIntegrationAction(action, root);
+    const updated = buildProofIntegrationPlan(root, {
+      update: "unit",
+      command: narrowed,
+    });
+    expect(updated.plan?.actions[0]?.evidence).toMatchObject({
+      mode: "update",
+      integration: { id: "unit", command: narrowed },
+    });
+  });
+
+  test("parses --command as space-separated words or a JSON argv array", () => {
+    expect(parseCommandOption("npx vitest  run tests/e2e")).toEqual([
+      "npx",
+      "vitest",
+      "run",
+      "tests/e2e",
+    ]);
+    expect(parseCommandOption('["bun","test","tests/e2e dir"]')).toEqual([
+      "bun",
+      "test",
+      "tests/e2e dir",
+    ]);
+    expect(() => parseCommandOption("   ")).toThrow(/must not be empty/);
+    expect(() => parseCommandOption("[1]")).toThrow(/argv strings/);
+    expect(() => parseCommandOption("[oops")).toThrow(/JSON array/);
   });
 });

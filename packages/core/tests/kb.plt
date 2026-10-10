@@ -4864,6 +4864,31 @@ test(relationship_count_counts_both_directions, [setup(setup_kb), cleanup(cleanu
     assertion(Row.get(id) == "REQ-AGG-A"),
     assertion(Row.get(relationshipCounts).get(verified_by) == 2).
 
+% implements REQ-mcp-search-discovery
+test(verified_by_gap_is_satisfied_by_an_inverse_validates_link, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-INV-VALIDATED', "Validated by a test", open, []),
+    assert_fixture_entity(req, 'REQ-INV-UNTESTED', "No test at all", open, []),
+    assert_fixture_entity(test, 'TEST-INV-A', "Inverse test", passing, []),
+    kb_assert_relationship(validates, 'TEST-INV-A', 'REQ-INV-VALIDATED', []),
+    discovery:find_gaps_json(req, [verified_by], [], [], none, 100, 0, MissingJson),
+    atom_json_dict(MissingJson, Missing, []),
+    findall(Id, (member(Row, Missing.rows), get_dict(id, Row, Id)), MissingIds),
+    assertion(MissingIds == ["REQ-INV-UNTESTED"]),
+    discovery:find_gaps_json(req, [], [verified_by], [], none, 100, 0, PresentJson),
+    atom_json_dict(PresentJson, Present, []),
+    findall(Id, (member(Row, Present.rows), get_dict(id, Row, Id)), PresentIds),
+    assertion(PresentIds == ["REQ-INV-VALIDATED"]),
+    % Counts stay per relationship name.
+    member(PresentRow, Present.rows),
+    assertion(PresentRow.get(relationshipCounts).get(verified_by) == 0),
+    assertion(PresentRow.get(relationshipCounts).get(validates) == 1),
+    % A test linked only by verified_by is not a validates gap either.
+    assert_fixture_entity(test, 'TEST-INV-B', "Forward test", passing, []),
+    kb_assert_relationship(verified_by, 'REQ-INV-UNTESTED', 'TEST-INV-B', []),
+    discovery:find_gaps_json(test, [validates], [], [], none, 100, 0, TestJson),
+    atom_json_dict(TestJson, TestGaps, []),
+    assertion(TestGaps.rows == []).
+
 :- end_tests(discovery_aggregate_counts).
 
 :- begin_tests(discovery_provenance_stubs).

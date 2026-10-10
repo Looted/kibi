@@ -16,7 +16,7 @@ import { checkSpec } from "kibi-runtime";
  You should have received a copy of the GNU Affero General Public License
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-import type { PrologProcess } from "kibi-runtime";
+import type { OperationContext, PrologProcess } from "kibi-runtime";
 import { resolveWorkspaceRoot } from "../workspace.js";
 import type { CheckArgs, CheckResult } from "./check-types.js";
 
@@ -24,20 +24,28 @@ export type { CheckArgs, CheckResult } from "./check-types.js";
 
 /**
  * Handle kb_check tool calls - run validation rules on the KB
- * Reuses validation logic from CLI check command
+ * Reuses validation logic from CLI check command.
+ *
+ * The MCP runtime's operation context carries the branch attachment (the
+ * Git branch, or a KIBI_BRANCH override), so an uncompiled branch store is
+ * reported once as branch-store-not-compiled, as in the CLI; it also carries
+ * the host fs/git ports, signal and clock.
  */
-// implements REQ-002
+// implements REQ-002, REQ-cli-status-pre-first-sync
 export async function handleKbCheck(
   prolog: PrologProcess,
   args: CheckArgs,
+  context?: OperationContext,
 ): Promise<CheckResult> {
-  const workspaceRoot = args.workspaceRoot ?? resolveWorkspaceRoot();
+  const workspaceRoot =
+    args.workspaceRoot ?? context?.workspaceRoot ?? resolveWorkspaceRoot();
   return checkSpec.execute(
     { ...args },
     {
+      ...(context ?? {}),
       workspaceRoot,
-      signal: new AbortController().signal,
-      clock: () => new Date(),
+      signal: context?.signal ?? new AbortController().signal,
+      clock: context?.clock ?? (() => new Date()),
       prolog: {
         query: (goal) => prolog.query(goal),
         nextSolution: async () => null,

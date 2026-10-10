@@ -74,22 +74,36 @@ export function registerProofCommand(program: Command): void {
       "--update <id>",
       "Plan adding or replacing this integration in an existing .kb/proof/integrations.json",
     )
+    .option(
+      "--command <command>",
+      'Command the proposed integration runs instead of the detected one: space-separated words, or a JSON array of argv strings (e.g. \'["npx","vitest","run","tests/e2e"]\')',
+    )
     .option("--json", "Emit structured JSON", false)
     .action(
-      withExitCode(async (options: { json?: boolean; update?: string }) => {
-        const result = await (
-          await import("./proof/inspect.js")
-        ).inspectProofEnvironment(
-          process.cwd(),
-          options.update === undefined ? {} : { update: options.update },
-        );
-        if (options.json) {
-          process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+      withExitCode(
+        async (options: {
+          json?: boolean;
+          update?: string;
+          command?: string;
+        }) => {
+          const command =
+            options.command === undefined
+              ? undefined
+              : parseCommandOption(options.command);
+          const result = await (
+            await import("./proof/inspect.js")
+          ).inspectProofEnvironment(process.cwd(), {
+            ...(options.update === undefined ? {} : { update: options.update }),
+            ...(command === undefined ? {} : { command }),
+          });
+          if (options.json) {
+            process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+            return undefined;
+          }
+          process.stdout.write(renderInspection(result));
           return undefined;
-        }
-        process.stdout.write(renderInspection(result));
-        return undefined;
-      }),
+        },
+      ),
     );
   proof
     .command("explain")
@@ -193,6 +207,38 @@ export function registerProofCommand(program: Command): void {
     );
 }
 
+/**
+ * `--command` for `kibi proof inspect`: a JSON array of argv strings, or
+ * space-separated words (no shell quoting; Kibi runs integrations with
+ * `shell: false`).
+ */
+// implements REQ-kibi-verification-evidence-contract
+export function parseCommandOption(value: string): readonly string[] {
+  const trimmed = value.trim();
+  if (trimmed.startsWith("[")) {
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(trimmed);
+    } catch {
+      throw new Error(
+        "--command must be a JSON array of argv strings or space-separated words.",
+      );
+    }
+    if (
+      !Array.isArray(parsed) ||
+      parsed.length === 0 ||
+      !parsed.every((entry) => typeof entry === "string" && entry !== "")
+    )
+      throw new Error(
+        "--command must be a JSON array of non-empty argv strings.",
+      );
+    return parsed as string[];
+  }
+  const words = trimmed.split(/\s+/).filter((word) => word !== "");
+  if (words.length === 0) throw new Error("--command must not be empty.");
+  return words;
+}
+
 function renderInspection(result: unknown): string {
   const inspection = result as {
     languages: string[];
@@ -246,6 +292,8 @@ function renderInspection(result: unknown): string {
     lines.push(
       `Integration plan: ${plan.planHash.slice(0, 12)} (actions: ${plan.actions.map((action) => action.id).join(", ")}); rerun with --json for the plan to pass to kb_apply_plan.`,
     );
+    if (inspection.integrationPlanReason)
+      lines.push(inspection.integrationPlanReason);
   } else if (inspection.integrationPlanReason) {
     lines.push("");
     lines.push(`Integration plan: none. ${inspection.integrationPlanReason}`);

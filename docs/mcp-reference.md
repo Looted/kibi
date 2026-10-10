@@ -436,7 +436,12 @@ A bootstrap plan (`kibi.bootstrap-plan.v1`) applies its actions one at a time, c
 - `async` (optional, default `false`): Start the apply as a background job and return a `kibi.job.v1` receipt; see above. The CLI ignores it.
 
 **Returns:**
-`kibi.plan-apply-result.v1` with entity/relationship counts, final snapshots, validation counts, changed paths (every source write and entity document the plan wrote), `recoveryJournalId`, and notes. `outcome` is `applied` when this call committed the plan, or `replayed` / `rolled_back` when a recovery completed or rolled back an interrupted application. Recoveries a call performed before its own work are listed in `validationSummary.recoveredJournals` and in the text content. If the call then fails, its error text ends with `[settled before this failure: ...]`. A store that reports a failure but shows the batch committed yields `committed_with_repairs` with `STORE_COMMIT_REPORTED_FAILURE`. A pending-source receipt failure after the commit yields `committed_with_repairs` with `PENDING_SOURCE_RECEIPT_FAILED` and a `kb_apply_plan` recovery next action; further writes fail with `PLAN_APPLY_RECOVERY_REQUIRED` until that journal is recovered. Re-applying a committed plan fails with `MUTATION_ALREADY_COMMITTED`. It also accepts `kibi.migration-plan.v2`; migration application requires `approvedActionIds`, an exact `approvedPlanHash`, and rejects blocked or non-automatic actions. The `integrationPlan` from `kibi proof inspect --json` is such a plan: its `proof_integration_configure` action writes `.kb/proof/integrations.json`, refusing a create once the file exists and any plan whose source files (`package.json`, lockfiles, runner configs) changed since planning. Migration results report per-action outcomes and reconciliation failures.
+`kibi.plan-apply-result.v1` with entity/relationship counts, final snapshots, validation counts, changed paths (every source write and entity document the plan wrote), `recoveryJournalId`, and notes. `outcome` is `applied` when this call committed the plan, or `replayed` / `rolled_back` when a recovery completed or rolled back an interrupted application. Recoveries a call performed before its own work are listed in `validationSummary.recoveredJournals` and in the text content. If the call then fails, its error text ends with `[settled before this failure: ...]`. A store that reports a failure but shows the batch committed yields `committed_with_repairs` with `STORE_COMMIT_REPORTED_FAILURE`. A pending-source receipt failure after the commit yields `committed_with_repairs` with `PENDING_SOURCE_RECEIPT_FAILED` and a `kb_apply_plan` recovery next action; further writes fail with `PLAN_APPLY_RECOVERY_REQUIRED` until that journal is recovered. Re-applying a committed plan fails with `MUTATION_ALREADY_COMMITTED`. It also accepts `kibi.migration-plan.v2`; migration application requires `approvedActionIds`, an exact `approvedPlanHash`, and rejects blocked or non-automatic actions. The `integrationPlan` from `kibi proof inspect --json` is such a plan: its `proof_integration_configure` action writes `.kb/proof/integrations.json`, refusing a create once the file exists and any plan whose source files (`package.json`, lockfiles, runner configs) changed since planning. Migration results (`kibi.migration-apply-result.v1`) report per-action outcomes (`applied`, `failed`, `skipped`, each with a `detail`) and an overall `outcome`:
+
+- `applied`: every approved action applied (`closeout.taskOutcome: complete`).
+- `partially_applied`: some actions applied before one failed; the rest were skipped (`closeout.taskOutcome: interim`).
+- `refused`: nothing was applied and every failure was a refusal, a precondition that failed before the action changed anything (for example a proof-integration create plan whose file already exists, a source that changed since planning, or an action with no automatic executor). The workspace is unchanged, so there is nothing to reconcile: obtain a new plan. The envelope is an error (`status: "error"`, MCP `isError: true`, CLI exit code 1) with code `MIGRATION_PLAN_REFUSED` whose message carries the refused action's `detail`; `closeout.taskOutcome` is `blocked`.
+- `reconciliation_required`: nothing was applied but an action failed without being refused, so its partial effect must be inspected before retrying (`closeout.taskOutcome: blocked`).
 
 **Engine daemon after a session.** MCP calls that use the branch store (for example `kb_apply_plan`, `kb_upsert`, `kb_check`) run in the workspace's engine daemon, a detached `engine-daemon` process with its own SWI-Prolog child that holds the branch store's `rdf/lock`. It is shared: later MCP sessions and CLI calls for the same workspace and branch reuse it. After the MCP server exits, the daemon and its lock stay until the daemon has been idle for 10 minutes (`KIBI_ENGINE_IDLE_TIMEOUT_MS` overrides this), then it exits and releases the lock. A lock held by a live daemon is expected, not a stale lock: `kibi engine status` shows it and `kibi engine stop` ends it early. A lock whose process is gone is reclaimed automatically when the next engine starts. A client only uses a daemon started with the same Kibi package versions (`kibi-cli@…,kibi-core@…`) and SWI-Prolog as its own: the daemon reports both in its handshake and refuses other requests from a client that differs, and the client stops such a daemon (for example one an older install started from a git hook) and starts its own. `kibi doctor` reports the package versions of the daemon that is running.
 
@@ -472,15 +477,23 @@ missing or damaged stores.
 
 `kb_status` remains diagnostic when the branch store is missing, incomplete,
 or unreadable: it reports `branchStore` and a structured stale reason instead
-of initialising or repairing storage. A missing store is created only by
-`kibi branch ensure`; an incomplete or unreadable exact store is rebuilt only
-through the previewed `kibi branch recover --apply` workflow. A store that is
-missing or empty (journal sequence 0) while `.kb/` holds authored sources,
-the state of a new branch created without the `post-checkout` hook, is one
-blocking stale reason, `branch_store_not_compiled` (`blocking: true`,
-`authoredSources`, remediation `kibi sync`), and the `migrationPlan` adds the
-automatic `branch-store-compile` action (`kibi sync`) after
-`branch-store-ensure`; an empty store reports `syncState: "stale"`.
+of initialising or repairing storage. Status itself never creates a store,
+but a call that attaches the engine does (`kb_check` and other tools that
+need the engine over MCP, `kibi check` on the CLI, and `kibi branch ensure`),
+and that store stays empty until `kibi sync` compiles it. An incomplete or unreadable exact store is rebuilt only through the
+previewed `kibi branch recover --apply` workflow. A store that is missing or
+empty (journal sequence 0) while `.kb/` holds authored sources, the state of
+a new branch created without the `post-checkout` hook, is one blocking stale
+reason, `branch_store_not_compiled` (`blocking: true`, `authoredSources`,
+remediation `kibi sync`), and the `migrationPlan` adds the automatic
+`branch-store-compile` action (`kibi sync`) after `branch-store-ensure`;
+`syncState` is then `"stale"`, whether the store is missing or empty. A
+missing store with no authored sources, and an incomplete or unreadable one,
+report `syncState: "unknown"`. `kb_check` over MCP and `kibi check` alike then
+return the single `branch-store-not-compiled` violation (MCP uses the
+runtime's branch attachment, including a `KIBI_BRANCH` override), and
+`kb_apply_plan`'s `closeout.kbState` reads `stale` (not `not_evaluated`)
+while the store stays uncompiled.
 
 **Example:**
 ```json
@@ -553,7 +566,7 @@ Run curated missing/present relationship analysis over KB entities.
 **Parameters:**
 - `type` (optional): Entity type filter
 - `missingRelationships` (optional): Required-to-be-absent relationship types
-- `presentRelationships` (optional): Required-to-be-present relationship types
+- `presentRelationships` (optional): Required-to-be-present relationship types. In both lists a relationship counts in either direction, and `verified_by` and `validates` (its documented inverse for req/scenario ↔ test links) satisfy each other: a requirement whose test `validates` it is not a `verified_by` gap. `relationshipCounts` still counts each relationship name separately.
 - `tags` (optional): Tag filter
 - `sourceFile` (optional): Source-file substring filter
 - `limit` / `offset` (optional): Pagination controls
@@ -716,6 +729,16 @@ returns a hash-bound `kibi.entity-deletion-plan.v1`; apply that plan through
 `kb_apply_plan` after approval. Requirements normally return a `supersedes`
 evolution plan instead of destructive deletion. Never edit `.kb/relationships`
 directly.
+
+Authored entity deletion deletes nothing in the `kb_delete` call itself and
+still returns `status: "success"`, because the call worked: it returned a
+plan. Read the counts and `errors`, not the status: `deleted: 0` with
+`skipped` above zero means nothing was removed, and `errors` carries the
+reason. For other entities it says the plan must be applied through
+`kb_apply_plan`; for an authored requirement it is the refusal ("Authored
+requirements require an explicit supersession plan…"), and the returned
+`deletionPlan` carries `supersessionRequired: true`, which `kb_apply_plan`
+refuses with `REQUIREMENT_SUPERSESSION_REQUIRED`.
 
 ### `kb_check`
 

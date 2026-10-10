@@ -35,6 +35,8 @@ export type ProofInspection = Readonly<{
 export type ProofInspectionOptions = Readonly<{
   /** Plan a replacement of this existing integration id. */
   update?: string;
+  /** Command (argv) the proposed integration runs instead of the detected one. */
+  command?: readonly string[];
 }>;
 
 type Detector = Readonly<{

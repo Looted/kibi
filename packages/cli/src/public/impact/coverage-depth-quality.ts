@@ -276,6 +276,46 @@ function coverageForRequirement(
   };
 }
 
+/**
+ * Requirement statuses that keep a requirement in the coverage-depth review.
+ * `closed` is reviewed only when tagged `implemented` (the documented
+ * "done, with evidence" shape); a plain closed, deprecated or superseded
+ * requirement is retired history, not a coverage gap.
+ */
+const REVIEWED_REQUIREMENT_STATUSES = new Set([
+  "open",
+  "in_progress",
+  "active",
+  "approved",
+]);
+
+function supersededRequirementIds(
+  manifestResults: readonly ExtractionResult[],
+): ReadonlySet<string> {
+  return new Set(
+    manifestResults.flatMap((result) =>
+      result.entity.type === "req"
+        ? result.relationships.flatMap((relationship) =>
+            relationship.type === "supersedes" ? [relationship.to] : [],
+          )
+        : [],
+    ),
+  );
+}
+
+// implements REQ-audit-quality-diagnostics-v1
+function isReviewableRequirement(
+  requirement: ExtractedEntity,
+  superseded: ReadonlySet<string>,
+): boolean {
+  if (superseded.has(requirement.id)) return false;
+  const status = requirement.status.trim().toLowerCase();
+  if (REVIEWED_REQUIREMENT_STATUSES.has(status)) return true;
+  return (
+    status === "closed" && (requirement.tags ?? []).includes("implemented")
+  );
+}
+
 export function createCoverageDepthQualityDiagnostics(
   manifestResults: readonly ExtractionResult[],
   proofByRequirement: ReadonlyMap<
@@ -289,8 +329,13 @@ export function createCoverageDepthQualityDiagnostics(
   > = new Map(),
 ): readonly QualityDiagnostic[] {
   const entities = entitiesById(manifestResults);
+  const superseded = supersededRequirementIds(manifestResults);
   return manifestResults
-    .filter((result) => result.entity.type === "req")
+    .filter(
+      (result) =>
+        result.entity.type === "req" &&
+        isReviewableRequirement(result.entity, superseded),
+    )
     .flatMap((result) => {
       const diagnostic = createDiagnostic(
         coverageForRequirement(result, manifestResults, entities),
