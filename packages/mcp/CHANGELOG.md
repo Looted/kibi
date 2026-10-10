@@ -1,5 +1,24 @@
 # kibi-mcp
 
+## 3.6.2
+
+### Patch Changes
+
+- 57333ea: `kb_check` over MCP now reports a branch whose store was never compiled the same way `kibi check` does: one blocking `branch-store-not-compiled` violation naming `kibi sync`, instead of one `source-relationship-parity` violation per authored relationship (hundreds on a real knowledge base). `kb_status` (MCP and CLI) reports `syncState: "stale"` instead of `"unknown"` when the store is missing while `.kb/` holds authored sources, and `kb_search` over MCP now names the attached branch in its answer scope.
+
+  Technical summary: the MCP `kb_check` registration passes the runtime operation context to `handleKbCheck`, which spreads it (branch attachment including a `KIBI_BRANCH` override, `fs`, `git`, `signal`, `clock`, `workspaceRoot`) into the check context, so `executeCheck` evaluates `uncompiledBranchStoreViolation`; an async (`kb_job_status`) check keeps its own abort signal. `handleKbSearch` likewise receives the context, so `buildSearchAnswer` gets `branchAttachment.kbBranch`. `executeStatus` sets `syncState: "stale"` for any `branch_store_not_compiled` reason, missing or empty store alike (a missing store without authored sources and an unreadable or incomplete store stay `unknown`); `kb_apply_plan`'s `closeout.kbState` follows (`stale` instead of `not_evaluated`). `docs/mcp-reference.md` no longer claims only `kibi branch ensure` creates a missing store.
+
+- 95d4a9e: A migration plan that `kb_apply_plan` refuses no longer looks like a success. Re-applying a proof-integration plan whose `.kb/proof/integrations.json` already exists (or one whose runner config changed since planning) used to return `status: "success"` with `outcome: "reconciliation_required"`, so an agent reading only the status thought it had worked. It now returns an error result (`status: "error"`, MCP `isError: true`, CLI exit code 1) with code `MIGRATION_PLAN_REFUSED`, `data.outcome: "refused"` and the refusal reason in the message; nothing was changed and nothing needs reconciling.
+
+  Technical summary: `kibi.migration-apply-result.v1` gains `outcome: "refused"` (with `closeout.taskOutcome: "blocked"`) for an application that applied no action and whose every failure was a `MigrationActionRefusedError`: the proof-integration executor's refusals, predicate-schema-alignment drift and malformed invocations, and an action code with no automatic executor. `reconciliation_required` keeps meaning an action failed without being refused. `toKibiResult` turns a refused migration result into an error envelope with effects `not_applicable`; the CLI JSON route now exits 1 for any error envelope it returns (also a rejected bootstrap plan), and the MCP tool wrapper sets `isError: true` for one. `docs/mcp-reference.md` documents each migration outcome and how `kb_delete` reports an authored-entity refusal (status success, `deleted: 0`, the reason in `errors`); `docs/error-reference.md` adds `MIGRATION_PLAN_REFUSED`; kibi-usage describes both.
+
+- Updated dependencies [8599f27]
+- Updated dependencies [95d4a9e]
+- Updated dependencies [2e54379]
+- Updated dependencies [f4cc71c]
+  - kibi-core@0.18.2
+  - kibi-runtime@2.13.2
+
 ## 3.6.1
 
 ### Patch Changes
