@@ -349,3 +349,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5eac2a014b97
+  - type: specified_by
+    from: REQ-kibi-query-fact-filters
+    to: SCEN-kibi-query-fact-filters
+    created_at: 2026-10-11T14:55:13.191Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c9ebac8ece3

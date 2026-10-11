@@ -18,9 +18,34 @@
     ]
   },
   "tool": {
-    "description": "Read entities from the KB with filters. Use for discovery and lookup before edits. Do not use for writes. No mutation side effects. Tags filter by metadata tags only, not entity IDs.",
+    "description": "Read entities from the KB with exact filters, or ask typed fact questions. Use for lookup by id, type, tags or sourceFile, and for precise questions about modeled facts: predicate facts by name with named arguments (predicate + where), property facts of a subject (subjectKey + propertyKey), or the catalog of facts of one kind (factKind; 'predicate_schema' lists the predicates you can ask about with their argument names and constants). Typed answers return matching fact rows plus factQuery: the schema used, distinct counts, values that do exist when nothing matched, warnings about the question and the next call to make. Read-only. Tags filter by metadata tags only, not entity IDs.",
     "inputSchema": {
       "properties": {
+        "args": {
+          "description": "Positional argument values for predicate when it has no schema; null matches any value. Example: ['admin', null, null, 'allow']. Prefer where.",
+          "items": {
+            "type": ["string", "null"]
+          },
+          "type": "array"
+        },
+        "distinct": {
+          "description": "Optional argument name to count distinct values of across the matching predicate facts, e.g. distinct: 'role' with predicate 'has_role' and where {user: 'alice'} answers how many roles alice has.",
+          "type": "string"
+        },
+        "factKind": {
+          "description": "Typed fact filter: list facts of one kind with their typed fields. 'predicate_schema' returns the catalog of askable predicates (argument names, constants, fact counts). Example: 'predicate_schema'.",
+          "enum": [
+            "subject",
+            "property_value",
+            "predicate",
+            "predicate_schema",
+            "observation",
+            "meta",
+            "rule",
+            "rule_schema"
+          ],
+          "type": "string"
+        },
         "id": {
           "description": "Optional exact entity ID. Example: 'REQ-cli-gc'. If omitted, returns matching entities by other filters.",
           "type": "string"
@@ -30,13 +55,40 @@
           "description": "Optional max rows to return after filtering. Default: 100 when omitted. Example: 25.",
           "type": "number"
         },
+        "namespace": {
+          "description": "Optional predicate namespace when the same name exists in several. Default: any namespace.",
+          "type": "string"
+        },
         "offset": {
           "default": 0,
           "description": "Optional zero-based pagination offset. Default: 0. Example: 50 to skip first 50 rows.",
           "type": "number"
         },
+        "polarity": {
+          "description": "Optional polarity filter for predicate facts. Default: both.",
+          "enum": ["assert", "deny"],
+          "type": "string"
+        },
+        "predicate": {
+          "description": "Typed fact filter: predicate name to ask about, e.g. 'has_role' or 'permission_rule'. Combine with where for named arguments. Returns every stored fact of that predicate with its arguments, polarity and allow/deny effect.",
+          "type": "string"
+        },
+        "propertyKey": {
+          "description": "Optional property key under subjectKey, e.g. 'max_roles'. Returns operator, value and unit of each fact.",
+          "type": "string"
+        },
+        "scope": {
+          "default": "all",
+          "description": "Optional: 'current_requirements' keeps only facts a current (not superseded or retired) requirement requires.",
+          "enum": ["all", "current_requirements"],
+          "type": "string"
+        },
         "sourceFile": {
           "description": "Optional source-file substring filter. Example: 'src/auth/login.ts'. Uses KB source linkage, not file-system scanning.",
+          "type": "string"
+        },
+        "subjectKey": {
+          "description": "Typed fact filter: dotted subject key whose property facts to list, e.g. 'user.role_assignment'. Combine with propertyKey for one property.",
           "type": "string"
         },
         "tags": {
@@ -59,6 +111,13 @@
             "fact"
           ],
           "type": "string"
+        },
+        "where": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Named argument values for predicate, order-free, using the argument names from the predicate's schema. Example: {actor: 'admin', decision: 'allow'}. An unknown name returns a warning with the declared names; no match returns the values that do exist.",
+          "type": "object"
         },
         "workspaceRoot": {
           "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",

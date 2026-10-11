@@ -24,11 +24,22 @@ const ENTITY_TYPES = [
   "fact",
 ] as const;
 
+const FACT_KINDS = [
+  "subject",
+  "property_value",
+  "predicate",
+  "predicate_schema",
+  "observation",
+  "meta",
+  "rule",
+  "rule_schema",
+] as const;
+
 export const querySpec = {
   name: "kb_query",
   cliName: "query",
   description:
-    "Read entities from the KB with filters. Use for discovery and lookup before edits. Do not use for writes. No mutation side effects. Tags filter by metadata tags only, not entity IDs.",
+    "Read entities from the KB with exact filters, or ask typed fact questions. Use for lookup by id, type, tags or sourceFile, and for precise questions about modeled facts: predicate facts by name with named arguments (predicate + where), property facts of a subject (subjectKey + propertyKey), or the catalog of facts of one kind (factKind; 'predicate_schema' lists the predicates you can ask about with their argument names and constants). Typed answers return matching fact rows plus factQuery: the schema used, distinct counts, values that do exist when nothing matched, warnings about the question and the next call to make. Read-only. Tags filter by metadata tags only, not entity IDs.",
   businessInputSchema: {
     type: "object",
     properties: {
@@ -53,6 +64,62 @@ export const querySpec = {
         type: "string",
         description:
           "Optional source-file substring filter. Example: 'src/auth/login.ts'. Uses KB source linkage, not file-system scanning.",
+      },
+      factKind: {
+        type: "string",
+        enum: FACT_KINDS,
+        description:
+          "Typed fact filter: list facts of one kind with their typed fields. 'predicate_schema' returns the catalog of askable predicates (argument names, constants, fact counts). Example: 'predicate_schema'.",
+      },
+      predicate: {
+        type: "string",
+        description:
+          "Typed fact filter: predicate name to ask about, e.g. 'has_role' or 'permission_rule'. Combine with where for named arguments. Returns every stored fact of that predicate with its arguments, polarity and allow/deny effect.",
+      },
+      namespace: {
+        type: "string",
+        description:
+          "Optional predicate namespace when the same name exists in several. Default: any namespace.",
+      },
+      where: {
+        type: "object",
+        additionalProperties: { type: "string" },
+        description:
+          "Named argument values for predicate, order-free, using the argument names from the predicate's schema. Example: {actor: 'admin', decision: 'allow'}. An unknown name returns a warning with the declared names; no match returns the values that do exist.",
+      },
+      args: {
+        type: "array",
+        items: { type: ["string", "null"] },
+        description:
+          "Positional argument values for predicate when it has no schema; null matches any value. Example: ['admin', null, null, 'allow']. Prefer where.",
+      },
+      polarity: {
+        type: "string",
+        enum: ["assert", "deny"],
+        description:
+          "Optional polarity filter for predicate facts. Default: both.",
+      },
+      scope: {
+        type: "string",
+        enum: ["all", "current_requirements"],
+        default: "all",
+        description:
+          "Optional: 'current_requirements' keeps only facts a current (not superseded or retired) requirement requires.",
+      },
+      distinct: {
+        type: "string",
+        description:
+          "Optional argument name to count distinct values of across the matching predicate facts, e.g. distinct: 'role' with predicate 'has_role' and where {user: 'alice'} answers how many roles alice has.",
+      },
+      subjectKey: {
+        type: "string",
+        description:
+          "Typed fact filter: dotted subject key whose property facts to list, e.g. 'user.role_assignment'. Combine with propertyKey for one property.",
+      },
+      propertyKey: {
+        type: "string",
+        description:
+          "Optional property key under subjectKey, e.g. 'max_roles'. Returns operator, value and unit of each fact.",
       },
       limit: {
         type: "number",

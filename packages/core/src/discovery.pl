@@ -12,7 +12,11 @@
     requirement_proof_json/7,
     symbol_proof_json/7,
     graph_expand_json/8,
-    search_answer_verdicts_json/2
+    search_answer_verdicts_json/2,
+    ask_predicate_json/9,
+    ask_property_json/6,
+    ask_schemas_json/5,
+    ask_fact_kind_json/4
 ]).
 
 % Source contains non-ASCII text; do not depend on the host locale.
@@ -470,6 +474,436 @@ graph_expand_json(SeedIds, Relationships, Direction, Depth, EntityTypes, MaxNode
     status_meta_dict(Meta),
     Response = _{nodes: Nodes, edges: Edges, truncated: Truncated, meta: Meta},
     dict_json_string(Response, JsonString).
+
+%% ask_predicate_json(+Namespace, +Name, +ArgSpec, +PolarityFilter, +Scope, +DistinctArg, +Limit, +Offset, -JsonString)
+% Typed query over ontology predicate facts (fact_kind: predicate). Namespace
+% `none` matches any namespace. ArgSpec is either a positional list of
+% constants where the atom '$any' is a wildcard ([] matches any arguments),
+% or where(Pairs) with Name=Value entries resolved through the predicate's
+% declared argument names (schema or built-in signature). PolarityFilter is
+% `none`, assert or deny; Scope `current_requirements` keeps only facts that a
+% current requirement requires; DistinctArg names a declared argument whose
+% distinct values are counted. Rows carry the effective allow/deny decision
+% when the predicate is a decision predicate. An empty answer lists, per
+% bound argument, the values that do exist (suggestions). Read-only.
+% implements REQ-kibi-query-fact-filters
+ask_predicate_json(Namespace, Name, ArgSpec, PolarityFilter, Scope, DistinctArg, Limit, Offset, JsonString) :-
+    ask_namespace(Namespace, NamespaceMatch),
+    ask_schema_dict(NamespaceMatch, Name, SchemaDict, ArgumentNames),
+    ask_arg_pattern(ArgSpec, ArgumentNames, ArgPattern, PatternWarnings),
+    (   PatternWarnings == []
+    ->  findall(Row,
+                ask_predicate_row(NamespaceMatch, Name, ArgPattern, PolarityFilter, Scope, ArgumentNames, Row),
+                Rows0)
+    ;   Rows0 = []
+    ),
+    sort_dict_rows(Rows0, SortedRows),
+    length(SortedRows, Count),
+    paginate_rows(SortedRows, Offset, Limit, Rows),
+    ask_distinct(DistinctArg, ArgumentNames, SortedRows, Distinct, DistinctWarnings),
+    append(PatternWarnings, DistinctWarnings, Warnings),
+    ask_suggestions(Count, NamespaceMatch, Name, ArgSpec, ArgumentNames, Suggestions),
+    ask_spec_json(ArgSpec, ArgPattern, SpecJson),
+    ask_optional_atom(Namespace, NamespaceJson),
+    status_meta_dict(Meta),
+    Response = _{
+        mode: predicate,
+        predicate: _{namespace: NamespaceJson, name: Name, args: SpecJson},
+        schema: SchemaDict,
+        count: Count,
+        rows: Rows,
+        distinct: Distinct,
+        suggestions: Suggestions,
+        warnings: Warnings,
+        meta: Meta
+    },
+    dict_json_string(Response, JsonString).
+
+%% ask_arg_pattern(+ArgSpec, +ArgumentNames, -ArgPattern, -Warnings)
+% A positional spec is used as is. A where(Pairs) spec becomes a positional
+% pattern over the declared argument names; an undeclared name yields a
+% warning that lists the declared names and no rows.
+ask_arg_pattern(where(Pairs), ArgumentNames, ArgPattern, Warnings) :-
+    !,
+    (   is_list(ArgumentNames)
+    ->  findall(Warning,
+                (   member(Key=_, Pairs),
+                    \+ memberchk(Key, ArgumentNames),
+                    atomic_list_concat(ArgumentNames, ', ', Declared),
+                    format(atom(Warning), "'~w' is not an argument of this predicate; declared arguments: ~w", [Key, Declared])
+                ),
+                Warnings),
+        findall(Entry,
+                (   member(ArgName, ArgumentNames),
+                    (   memberchk(ArgName=Value, Pairs)
+                    ->  Entry = Value
+                    ;   Entry = '$any'
+                    )
+                ),
+                ArgPattern)
+    ;   Pairs == []
+    ->  ArgPattern = [],
+        Warnings = []
+    ;   ArgPattern = [],
+        Warnings = ["named arguments need a predicate schema; none declares this predicate, so pass positional args instead"]
+    ).
+ask_arg_pattern(ArgPattern, _ArgumentNames, ArgPattern, []).
+
+ask_spec_json(where(Pairs), _ArgPattern, Json) :-
+    !,
+    findall(Key-Value, member(Key=Value, Pairs), KeyValues),
+    dict_pairs(Json, _, KeyValues).
+ask_spec_json(_ArgSpec, ArgPattern, Json) :-
+    ask_pattern_json(ArgPattern, Json).
+
+%% ask_suggestions(+Count, +Namespace, +Name, +ArgSpec, +ArgumentNames, -Suggestions)
+% When nothing matched a where(...) spec, list for each bound argument the
+% values that do exist for this predicate so the caller can correct the
+% question instead of reading "no results".
+ask_suggestions(0, Namespace, Name, where(Pairs), ArgumentNames, Suggestions) :-
+    is_list(ArgumentNames),
+    Pairs \== [],
+    !,
+    findall(Key-Values,
+            (   member(Key=_, Pairs),
+                nth1(Position, ArgumentNames, Key),
+                findall(Value,
+                        (   kb:predicate_fact(_, Namespace, Name, Args, _),
+                            nth1(Position, Args, Value)
+                        ),
+                        Values0),
+                sort(Values0, Values)
+            ),
+            Entries),
+    dict_pairs(Suggestions, _, Entries).
+ask_suggestions(_Count, _Namespace, _Name, _ArgSpec, _ArgumentNames, null).
+
+ask_namespace(none, _) :- !.
+ask_namespace(Namespace, Namespace).
+
+ask_optional_atom(none, null) :- !.
+ask_optional_atom(Atom, Atom).
+
+ask_pattern_json([], []) :- !.
+ask_pattern_json(Pattern, Json) :-
+    maplist(ask_pattern_entry_json, Pattern, Json).
+
+ask_pattern_entry_json('$any', null) :- !.
+ask_pattern_entry_json(Value, Value).
+
+% Arguments of a stored fact unify with the requested pattern; '$any' entries
+% become fresh variables and an empty pattern accepts any arity.
+ask_pattern_args([], _Args) :- !.
+ask_pattern_args(Pattern, Args) :-
+    maplist(ask_pattern_arg, Pattern, Args).
+
+ask_pattern_arg('$any', _) :- !.
+ask_pattern_arg(Value, Arg) :-
+    kb:normalize_term_atom(Value, Arg).
+
+ask_polarity_match(none, _) :- !.
+ask_polarity_match(Polarity, Polarity).
+
+% implements REQ-kibi-query-fact-filters
+ask_predicate_row(Namespace, Name, ArgPattern, PolarityFilter, Scope, ArgumentNames, Row) :-
+    kb:predicate_fact(FactId, Namespace, Name, Args, Polarity),
+    ask_pattern_args(ArgPattern, Args),
+    ask_polarity_match(PolarityFilter, Polarity),
+    ask_fact_requirements(FactId, requires_predicate, Requirements, HasCurrent),
+    ask_scope_match(Scope, HasCurrent),
+    ask_fact_text(FactId, Title, Status, ClaimText, CanonicalKey),
+    ask_named_arguments(ArgumentNames, Args, NamedArguments),
+    ask_effect(Namespace, Name, Args, Polarity, Effect),
+    Row = _{
+        id: FactId,
+        type: fact,
+        title: Title,
+        status: Status,
+        namespace: Namespace,
+        name: Name,
+        args: Args,
+        arguments: NamedArguments,
+        polarity: Polarity,
+        effect: Effect,
+        canonicalKey: CanonicalKey,
+        claimText: ClaimText,
+        requirements: Requirements
+    }.
+
+ask_scope_match(current_requirements, true) :- !.
+ask_scope_match(current_requirements, _) :- !, fail.
+ask_scope_match(_Scope, _HasCurrent).
+
+%% ask_fact_requirements(+FactId, +Relationship, -Requirements, -HasCurrent)
+% Requirements linked to the fact through Relationship, each with whether it
+% is current (kb:current_req/1); HasCurrent is true when at least one is.
+ask_fact_requirements(FactId, Relationship, Requirements, HasCurrent) :-
+    findall(ReqId, kb_relationship(Relationship, ReqId, FactId), ReqIds0),
+    sort(ReqIds0, ReqIds),
+    maplist(ask_requirement_dict, ReqIds, Requirements),
+    (   member(Dict, Requirements), Dict.current == true
+    ->  HasCurrent = true
+    ;   HasCurrent = false
+    ).
+
+ask_requirement_dict(ReqId, _{id: ReqId, status: Status, current: Current}) :-
+    (   kb_entity(ReqId, req, Props), memberchk(status=StatusRaw, Props)
+    ->  source_value_atom(StatusRaw, Status)
+    ;   Status = ''
+    ),
+    (   kb:current_req(ReqId) -> Current = true ; Current = false ).
+
+ask_fact_text(FactId, Title, Status, ClaimText, CanonicalKey) :-
+    kb_entity(FactId, fact, Props),
+    (   memberchk(title=TitleRaw, Props) -> source_value_atom(TitleRaw, Title) ; Title = '' ),
+    (   memberchk(status=StatusRaw, Props) -> source_value_atom(StatusRaw, Status) ; Status = '' ),
+    (   memberchk(claim_text=ClaimRaw, Props) -> source_value_atom(ClaimRaw, ClaimText) ; ClaimText = '' ),
+    (   memberchk(canonical_key=KeyRaw, Props) -> source_value_atom(KeyRaw, CanonicalKey) ; CanonicalKey = '' ).
+
+% Named arguments follow the schema when it exists and has the same arity;
+% otherwise the row carries only the positional list.
+ask_named_arguments(ArgumentNames, Args, Named) :-
+    is_list(ArgumentNames),
+    same_length(ArgumentNames, Args),
+    !,
+    pairs_keys_values(Pairs, ArgumentNames, Args),
+    dict_pairs(Named, _, Pairs).
+ask_named_arguments(_ArgumentNames, _Args, null).
+
+% The effective allow/deny decision of a decision predicate (a schema with
+% key_arguments and a decision argument, or the built-in permission_rule).
+ask_effect(Namespace, Name, Args, Polarity, Effect) :-
+    length(Args, Arity),
+    kb:decision_predicate(Namespace, Name, Arity, _KeyPositions, DecisionPosition),
+    nth1(DecisionPosition, Args, Decision),
+    kb:effective_decision(Decision, Polarity, Effect0),
+    !,
+    Effect = Effect0.
+ask_effect(_Namespace, _Name, _Args, _Polarity, null).
+
+%% ask_schema_dict(?Namespace, +Name, -SchemaDict, -ArgumentNames)
+% The project predicate_schema for the predicate, the built-in decision
+% signature, or null when neither exists.
+ask_schema_dict(Namespace, Name, SchemaDict, ArgumentNames) :-
+    kb:predicate_schema(SchemaId, Namespace, Name, Arity, ArgumentNames, ArgumentTypes),
+    !,
+    ask_schema_row(SchemaId, Namespace, Name, Arity, ArgumentNames, ArgumentTypes, SchemaDict).
+ask_schema_dict(Namespace, Name, SchemaDict, ArgumentNames) :-
+    kb:builtin_decision_predicate(Namespace, Name, Arity, KeyPositions, DecisionPosition),
+    !,
+    ask_builtin_schema_row(Namespace, Name, Arity, KeyPositions, DecisionPosition, SchemaDict),
+    ArgumentNames = SchemaDict.argumentNames.
+ask_schema_dict(_Namespace, _Name, null, none).
+
+ask_builtin_schema_row(Namespace, Name, Arity, KeyPositions, DecisionPosition, Row) :-
+    builtin_argument_names(Name, Names),
+    findall(Key, (member(P, KeyPositions), nth1(P, Names, Key)), KeyArguments),
+    nth1(DecisionPosition, Names, DecisionArgument),
+    aggregate_all(count, kb:predicate_fact(_, Namespace, Name, _, _), FactCount),
+    Row = _{
+        id: null,
+        builtin: true,
+        namespace: Namespace,
+        name: Name,
+        arity: Arity,
+        argumentNames: Names,
+        argumentTypes: Names,
+        keyArguments: KeyArguments,
+        decisionArgument: DecisionArgument,
+        argumentConstants: null,
+        examples: [],
+        factCount: FactCount
+    }.
+
+% Keep in step with builtin_decision_predicate/5 in kb.pl.
+builtin_argument_names(permission_rule, [actor, action, resource, decision]).
+
+ask_schema_row(SchemaId, Namespace, Name, Arity, ArgumentNames, ArgumentTypes, Row) :-
+    kb_entity(SchemaId, fact, Props),
+    (   memberchk(key_arguments=KeysRaw, Props)
+    ->  kb:normalize_term_atom_list(KeysRaw, KeyArguments)
+    ;   KeyArguments = []
+    ),
+    (   kb:decision_predicate(Namespace, Name, Arity, _, DecisionPosition),
+        nth1(DecisionPosition, ArgumentNames, DecisionArgument0)
+    ->  DecisionArgument = DecisionArgument0
+    ;   DecisionArgument = null
+    ),
+    (   memberchk(argument_constants=ConstantsRaw, Props),
+        ask_json_value(ConstantsRaw, Constants0)
+    ->  Constants = Constants0
+    ;   Constants = null
+    ),
+    (   memberchk(examples=ExamplesRaw, Props), is_list(ExamplesRaw)
+    ->  maplist(source_value_atom, ExamplesRaw, Examples)
+    ;   Examples = []
+    ),
+    aggregate_all(count, kb:predicate_fact(_, Namespace, Name, _, _), FactCount),
+    Row = _{
+        id: SchemaId,
+        builtin: false,
+        namespace: Namespace,
+        name: Name,
+        arity: Arity,
+        argumentNames: ArgumentNames,
+        argumentTypes: ArgumentTypes,
+        keyArguments: KeyArguments,
+        decisionArgument: DecisionArgument,
+        argumentConstants: Constants,
+        examples: Examples,
+        factCount: FactCount
+    }.
+
+ask_json_value(^^(Value, _Type), Parsed) :- !, ask_json_value(Value, Parsed).
+ask_json_value(literal(Value), Parsed) :- !, ask_json_value(Value, Parsed).
+ask_json_value(Dict, Dict) :- is_dict(Dict), !.
+ask_json_value(Raw, Parsed) :-
+    (atom(Raw) ; string(Raw)),
+    catch(atom_json_dict(Raw, Parsed, [value_string_as(string)]), _, fail).
+
+%% ask_distinct(+DistinctArg, +ArgumentNames, +Rows, -Distinct, -Warnings)
+ask_distinct(none, _ArgumentNames, _Rows, null, []) :- !.
+ask_distinct(DistinctArg, ArgumentNames, Rows, Distinct, []) :-
+    is_list(ArgumentNames),
+    nth1(Position, ArgumentNames, DistinctArg),
+    !,
+    findall(Value, (member(Row, Rows), nth1(Position, Row.args, Value)), Values0),
+    msort(Values0, Values),
+    clumped(Values, Clumps),
+    findall(_{value: Value, count: Count}, member(Value-Count, Clumps), Entries),
+    Distinct = _{argument: DistinctArg, values: Entries}.
+ask_distinct(DistinctArg, _ArgumentNames, _Rows, null, [Warning]) :-
+    format(atom(Warning), "distinct argument '~w' is not a declared argument of this predicate; no schema names it", [DistinctArg]).
+
+%% ask_property_json(+SubjectKey, +PropertyKey, +Scope, +Limit, +Offset, -JsonString)
+% Typed query over strict property_value facts of one subject key.
+% PropertyKey `none` matches every property of the subject.
+% implements REQ-kibi-query-fact-filters
+ask_property_json(SubjectKey, PropertyKey, Scope, Limit, Offset, JsonString) :-
+    kb:normalize_term_atom(SubjectKey, Subject),
+    ask_namespace(PropertyKey, PropertyMatch),
+    findall(Row, ask_property_row(Subject, PropertyMatch, Scope, Row), Rows0),
+    sort_dict_rows(Rows0, SortedRows),
+    length(SortedRows, Count),
+    paginate_rows(SortedRows, Offset, Limit, Rows),
+    findall(SubjectId, kb:fact_subject_key(SubjectId, Subject), SubjectIds),
+    ask_optional_atom(PropertyKey, PropertyJson),
+    status_meta_dict(Meta),
+    Response = _{
+        mode: property,
+        property: _{subjectKey: Subject, propertyKey: PropertyJson},
+        subjectFacts: SubjectIds,
+        count: Count,
+        rows: Rows,
+        warnings: [],
+        meta: Meta
+    },
+    dict_json_string(Response, JsonString).
+
+ask_property_row(Subject, PropertyMatch, Scope, Row) :-
+    kb:fact_property_tuple(FactId, Subject, Property, Op, ValType, Value, Unit, PropScope, Polarity),
+    (   PropertyMatch == Property -> true ; var(PropertyMatch) ),
+    ask_fact_requirements(FactId, requires_property, Requirements, HasCurrent),
+    ask_scope_match(Scope, HasCurrent),
+    ask_fact_text(FactId, Title, Status, ClaimText, CanonicalKey),
+    ask_property_value_json(Value, ValueJson),
+    Row = _{
+        id: FactId,
+        type: fact,
+        title: Title,
+        status: Status,
+        subjectKey: Subject,
+        propertyKey: Property,
+        operator: Op,
+        valueType: ValType,
+        value: ValueJson,
+        unit: Unit,
+        scope: PropScope,
+        polarity: Polarity,
+        canonicalKey: CanonicalKey,
+        claimText: ClaimText,
+        requirements: Requirements
+    }.
+
+ask_property_value_json(Value, Value) :- number(Value), !.
+ask_property_value_json(Value, Json) :- source_value_atom(Value, Json).
+
+%% ask_schemas_json(+Namespace, +Name, +Limit, +Offset, -JsonString)
+% Catalog of the predicates an agent can ask about: every project
+% predicate_schema fact plus built-in decision predicates without a project
+% schema, with argument names, constants, key arguments and fact counts.
+% implements REQ-kibi-query-fact-filters
+ask_schemas_json(Namespace, Name, Limit, Offset, JsonString) :-
+    ask_namespace(Namespace, NamespaceMatch),
+    ask_namespace(Name, NameMatch),
+    findall(Row,
+            (   kb:predicate_schema(SchemaId, NamespaceMatch, NameMatch, Arity, ArgumentNames, ArgumentTypes),
+                ask_schema_row(SchemaId, NamespaceMatch, NameMatch, Arity, ArgumentNames, ArgumentTypes, Row)
+            ),
+            SchemaRows),
+    findall(Row,
+            (   kb:builtin_decision_predicate(NamespaceMatch, NameMatch, Arity, KeyPositions, DecisionPosition),
+                \+ kb:predicate_schema(_, NamespaceMatch, NameMatch, Arity, _, _),
+                ask_builtin_schema_row(NamespaceMatch, NameMatch, Arity, KeyPositions, DecisionPosition, Row)
+            ),
+            BuiltinRows),
+    append(SchemaRows, BuiltinRows, Rows0),
+    map_list_to_pairs(ask_schema_sort_key, Rows0, Pairs),
+    keysort(Pairs, SortedPairs),
+    pairs_values(SortedPairs, SortedRows),
+    length(SortedRows, Count),
+    paginate_rows(SortedRows, Offset, Limit, Rows),
+    status_meta_dict(Meta),
+    Response = _{mode: schemas, count: Count, rows: Rows, warnings: [], meta: Meta},
+    dict_json_string(Response, JsonString).
+
+ask_schema_sort_key(Row, Key) :-
+    format(atom(Key), '~w:~w/~w', [Row.namespace, Row.name, Row.arity]).
+
+%% ask_fact_kind_json(+Kind, +Limit, +Offset, -JsonString)
+% Facts of one fact_kind (subject, property_value, predicate, observation,
+% meta, rule, rule_schema) with their identifying typed fields only, so a
+% caller can see what is modeled without paging full entities.
+% implements REQ-kibi-query-fact-filters
+ask_fact_kind_json(Kind, Limit, Offset, JsonString) :-
+    findall(Row, ask_fact_kind_row(Kind, Row), Rows0),
+    sort_dict_rows(Rows0, SortedRows),
+    length(SortedRows, Count),
+    paginate_rows(SortedRows, Offset, Limit, Rows),
+    status_meta_dict(Meta),
+    Response = _{mode: fact_kind, factKind: Kind, count: Count, rows: Rows, warnings: [], meta: Meta},
+    dict_json_string(Response, JsonString).
+
+ask_fact_kind_row(Kind, Row) :-
+    kb_entity(FactId, fact, Props),
+    memberchk(fact_kind=KindRaw, Props),
+    kb:normalize_term_atom(KindRaw, Kind),
+    ask_fact_text(FactId, Title, Status, ClaimText, CanonicalKey),
+    findall(Key-Value,
+            (   member(Key, [subject_key, property_key, operator, value_type, unit, predicate_namespace, predicate_name, predicate_args, polarity]),
+                memberchk(Key=Raw, Props),
+                ask_typed_value(Raw, Value)
+            ),
+            Typed),
+    (   Kind == property_value
+    ->  (   memberchk(value_type=ValTypeRaw, Props)
+        ->  kb:normalize_term_atom(ValTypeRaw, ValType)
+        ;   ValType = string
+        ),
+        kb:value_from_props(Props, ValType, Value0),
+        ask_property_value_json(Value0, PropertyValue),
+        ValuePairs = [value-PropertyValue]
+    ;   ValuePairs = []
+    ),
+    append(Typed, ValuePairs, Fields),
+    dict_pairs(Row, _, [id-FactId, type-fact, title-Title, status-Status, factKind-Kind, canonicalKey-CanonicalKey, claimText-ClaimText | Fields]).
+
+ask_typed_value(Raw, Value) :-
+    is_list(Raw),
+    !,
+    kb:normalize_term_atom_list(Raw, Value).
+ask_typed_value(Raw, Value) :-
+    source_value_atom(Raw, Value).
 
 matching_gap_row(TypeFilter, MissingRelationships, PresentRelationships, Tags, SourceFilter, Row) :-
     matching_gap_candidate(TypeFilter, MissingRelationships, PresentRelationships, Tags, SourceFilter, Row, Stub),

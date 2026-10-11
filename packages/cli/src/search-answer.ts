@@ -95,12 +95,22 @@ export type SearchAnswerVerdict = Readonly<{
 export type SearchAnswerException = SearchAnswerEntity &
   Readonly<{ approvedBy?: string }>;
 
+/**
+ * A linked fact says what it states in its typed form, so an agent can read
+ * `has_role(alice, admin)` or `user.role_assignment max_roles lte 2` without
+ * opening the entity, and `ask` is the exact kb_query that answers precise
+ * questions about the same predicate or subject.
+ */
+// implements REQ-kibi-query-fact-filters
+export type SearchAnswerFact = SearchAnswerEntity &
+  Readonly<{ factKind?: string; claim?: string; ask?: string }>;
+
 // implements REQ-kibi-search-answer-layer-v2
 export type SearchAnswerRequirement = SearchAnswerEntity &
   Readonly<{
     score: number;
     via: string;
-    facts: readonly (SearchAnswerEntity & { factKind?: string })[];
+    facts: readonly SearchAnswerFact[];
     scenarios: readonly SearchAnswerEntity[];
     tests: readonly SearchAnswerTest[];
     adrs: readonly SearchAnswerEntity[];
@@ -177,6 +187,19 @@ const ROW_KEYS = [
   "approved_by",
   "source",
   "sourceFile",
+  "predicate_namespace",
+  "predicate_name",
+  "predicate_args",
+  "polarity",
+  "subject_key",
+  "property_key",
+  "operator",
+  "value_type",
+  "value_string",
+  "value_int",
+  "value_number",
+  "value_bool",
+  "unit",
 ] as const;
 
 // implements REQ-kibi-search-answer-layer-v2
@@ -216,6 +239,44 @@ function brief(entity: Row): SearchAnswerEntity {
     title: text(entity.title),
     ...(status ? { status } : {}),
   };
+}
+
+function queryCall(args: Record<string, string>): string {
+  return `kb_query(${JSON.stringify(args)})`;
+}
+
+/** Typed statement and follow-up query of a linked fact, by fact kind. */
+// implements REQ-kibi-query-fact-filters
+function factDetail(
+  fact: Row,
+): Omit<SearchAnswerFact, keyof SearchAnswerEntity> {
+  const factKind = text(fact.fact_kind);
+  const base = factKind ? { factKind } : {};
+  const predicate = text(fact.predicate_name);
+  if (factKind === "predicate" && predicate) {
+    const args = Array.isArray(fact.predicate_args)
+      ? fact.predicate_args.map(text).join(", ")
+      : text(fact.predicate_args);
+    const polarity = text(fact.polarity) === "deny" ? " [deny]" : "";
+    return {
+      ...base,
+      claim: `${predicate}(${args})${polarity}`,
+      ask: queryCall({ predicate }),
+    };
+  }
+  const subjectKey = text(fact.subject_key);
+  const propertyKey = text(fact.property_key);
+  if (factKind === "property_value" && subjectKey && propertyKey) {
+    const unit = text(fact.unit);
+    const valueType = text(fact.value_type) || "string";
+    const value = text(fact[`value_${valueType}`]);
+    const claim = `${subjectKey} ${propertyKey} ${text(fact.operator)} ${value}${unit ? ` ${unit}` : ""}`;
+    return { ...base, claim, ask: queryCall({ subjectKey, propertyKey }) };
+  }
+  if (factKind === "subject" && subjectKey) {
+    return { ...base, claim: subjectKey, ask: queryCall({ subjectKey }) };
+  }
+  return base;
 }
 
 function edgesGoal(ids: readonly string[]): string {
@@ -901,10 +962,10 @@ export async function buildSearchAnswer(
       ...brief(req.entity),
       score: req.score,
       via: req.via,
-      facts: rowsOf(plan.facts).map((fact) => {
-        const factKind = text(fact.fact_kind);
-        return { ...brief(fact), ...(factKind ? { factKind } : {}) };
-      }),
+      facts: rowsOf(plan.facts).map((fact) => ({
+        ...brief(fact),
+        ...factDetail(fact),
+      })),
       scenarios: rowsOf(plan.scenarios).map(brief),
       tests: rowsOf(testIds[index] ?? []).map((row) => ({
         ...brief(row),

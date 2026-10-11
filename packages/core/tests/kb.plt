@@ -4940,6 +4940,197 @@ test(prolog_literal_type_unwrap) :-
 
 :- end_tests(violation_id_text_regression).
 
+:- begin_tests(discovery_ask).
+
+% implements REQ-kibi-query-fact-filters
+ask_permission_fixture(FactId, ReqId, ClaimKey, Args, Polarity) :-
+    atomic_list_concat(Args, ',', ArgsText),
+    format(string(CanonicalKey), "permission_rule(~w)", [ArgsText]),
+    assert_fixture_entity(fact, FactId, "Permission rule", active, [
+        fact_kind=predicate, predicate_name="permission_rule", predicate_namespace="default",
+        predicate_args=Args, polarity=Polarity, canonical_key=CanonicalKey,
+        claim_key=ClaimKey, claim_text="Permission rule claim"
+    ]),
+    assert_fixture_entity(req, ReqId, "Permission requirement", open, [logic_claims=[ClaimKey]]),
+    kb_assert_relationship(requires_predicate, ReqId, FactId, []).
+
+ask_fixture :-
+    ask_permission_fixture('FACT-ASK-ADMIN-READ', 'REQ-ASK-ADMIN', "CLAIM-AAAA000000000001",
+        ["admin", "read", "analysis_request", "allow"], assert),
+    assert_fixture_entity(fact, 'FACT-ASK-ADMIN-DELETE', "Admin deletes", active, [
+        fact_kind=predicate, predicate_name="permission_rule", predicate_namespace="default",
+        predicate_args=["admin", "delete", "analysis_request", "allow"], polarity=assert,
+        canonical_key="permission_rule(admin,delete,analysis_request,allow)",
+        claim_key="CLAIM-AAAA000000000009", claim_text="An admin deletes any analysis request"
+    ]),
+    kb_assert_relationship(requires_predicate, 'REQ-ASK-ADMIN', 'FACT-ASK-ADMIN-DELETE', []),
+    ask_permission_fixture('FACT-ASK-VIEWER-DELETE', 'REQ-ASK-VIEWER', "CLAIM-AAAA000000000002",
+        ["viewer", "delete", "analysis_request", "deny"], deny),
+    % A superseded requirement: its fact is not current.
+    ask_permission_fixture('FACT-ASK-OLD-VIEWER', 'REQ-ASK-VIEWER-OLD', "CLAIM-AAAA000000000003",
+        ["viewer", "export", "report", "allow"], assert),
+    kb_assert_relationship(supersedes, 'REQ-ASK-VIEWER', 'REQ-ASK-VIEWER-OLD', []),
+    assert_fixture_entity(fact, 'FACT-SCHEMA-ASK-HAS-ROLE', "has_role schema", active, [
+        fact_kind=predicate_schema, predicate_name="has_role", predicate_namespace="access",
+        predicate_arity=2, argument_names=["user", "role"], argument_types=["user", "role"],
+        argument_constants="{\"role\":[\"admin\",\"auditor\"]}", examples=["has_role(alice,admin)"]
+    ]),
+    assert_fixture_entity(fact, 'FACT-ASK-ALICE-ADMIN', "alice is admin", active, [
+        fact_kind=predicate, predicate_name="has_role", predicate_namespace="access",
+        predicate_args=["alice", "admin"], polarity=assert, canonical_key="has_role(alice,admin)"
+    ]),
+    assert_fixture_entity(fact, 'FACT-ASK-ALICE-AUDITOR', "alice is auditor", active, [
+        fact_kind=predicate, predicate_name="has_role", predicate_namespace="access",
+        predicate_args=["alice", "auditor"], polarity=assert, canonical_key="has_role(alice,auditor)"
+    ]),
+    assert_fixture_entity(fact, 'FACT-ASK-ROLE-SUBJECT', "Role assignment", active, [
+        fact_kind=subject, subject_key="user.role_assignment"
+    ]),
+    assert_fixture_entity(fact, 'FACT-ASK-ROLE-LIMIT', "At most two roles", active, [
+        fact_kind=property_value, subject_key="user.role_assignment", property_key="max_roles",
+        operator=lte, value_type=int, value_int=2,
+        claim_key="CLAIM-AAAA000000000010", claim_text="A user holds at most two roles"
+    ]),
+    assert_fixture_entity(req, 'REQ-ASK-ROLE-LIMIT', "Role limit", open, []),
+    kb_assert_relationship(requires_property, 'REQ-ASK-ROLE-LIMIT', 'FACT-ASK-ROLE-LIMIT', []).
+
+ask_rows(JsonString, Rows, Json) :-
+    atom_json_dict(JsonString, Json, []),
+    Rows = Json.rows.
+
+test(predicate_query_binds_a_pattern_and_names_arguments, [setup((setup_kb, ask_fixture)), cleanup(cleanup_kb)]) :-
+    discovery:ask_predicate_json(none, permission_rule, [admin, '$any', '$any', '$any'], none, all, none, 100, 0, JsonString),
+    ask_rows(JsonString, Rows, Json),
+    assertion(Json.count == 2),
+    findall(Id, (member(Row, Rows), get_dict(id, Row, Id)), Ids),
+    assertion(Ids == ["FACT-ASK-ADMIN-DELETE", "FACT-ASK-ADMIN-READ"]),
+    member(Read, Rows), Read.id == "FACT-ASK-ADMIN-READ",
+    assertion(Read.arguments.actor == "admin"),
+    assertion(Read.arguments.action == "read"),
+    assertion(Read.effect == "allow"),
+    Read.requirements = [ReadReq],
+    assertion(ReadReq.id == "REQ-ASK-ADMIN"),
+    assertion(ReadReq.status == "open"),
+    assertion(ReadReq.current == true),
+    assertion(Json.schema.builtin == true),
+    assertion(Json.schema.keyArguments == ["actor", "action", "resource"]),
+    assertion(Json.predicate.args == ["admin", null, null, null]).
+
+test(predicate_query_reports_the_effective_decision_of_a_denial, [setup((setup_kb, ask_fixture)), cleanup(cleanup_kb)]) :-
+    discovery:ask_predicate_json(default, permission_rule, [viewer, delete, analysis_request, '$any'], none, all, none, 100, 0, JsonString),
+    ask_rows(JsonString, [Row], _),
+    assertion(Row.polarity == "deny"),
+    assertion(Row.effect == "deny"),
+    assertion(Row.canonicalKey == "permission_rule(viewer,delete,analysis_request,deny)").
+
+test(current_requirement_scope_drops_superseded_facts, [setup((setup_kb, ask_fixture)), cleanup(cleanup_kb)]) :-
+    discovery:ask_predicate_json(none, permission_rule, [viewer, '$any', '$any', '$any'], none, all, none, 100, 0, AllJson),
+    ask_rows(AllJson, AllRows, _),
+    assertion(length(AllRows, 2)),
+    discovery:ask_predicate_json(none, permission_rule, [viewer, '$any', '$any', '$any'], none, current_requirements, none, 100, 0, CurrentJson),
+    ask_rows(CurrentJson, [Current], _),
+    assertion(Current.id == "FACT-ASK-VIEWER-DELETE").
+
+test(distinct_counts_argument_values_through_the_schema, [setup((setup_kb, ask_fixture)), cleanup(cleanup_kb)]) :-
+    discovery:ask_predicate_json(access, has_role, [alice, '$any'], none, all, role, 100, 0, JsonString),
+    ask_rows(JsonString, Rows, Json),
+    assertion(length(Rows, 2)),
+    assertion(Json.distinct.argument == "role"),
+    findall(V-C, (member(Entry, Json.distinct.values), get_dict(value, Entry, V), get_dict(count, Entry, C)), DistinctPairs),
+    assertion(DistinctPairs == ["admin"-1, "auditor"-1]),
+    assertion(Json.schema.argumentConstants.role == ["admin", "auditor"]),
+    assertion(Json.warnings == []),
+    discovery:ask_predicate_json(access, has_role, [], none, all, colour, 100, 0, BadJson),
+    atom_json_dict(BadJson, Bad, []),
+    assertion(Bad.distinct == null),
+    assertion(Bad.warnings = [_]).
+
+test(unknown_predicate_returns_no_rows_and_no_schema, [setup((setup_kb, ask_fixture)), cleanup(cleanup_kb)]) :-
+    discovery:ask_predicate_json(none, no_such_predicate, [], none, all, none, 100, 0, JsonString),
+    ask_rows(JsonString, Rows, Json),
+    assertion(Rows == []),
+    assertion(Json.schema == null),
+    assertion(Json.count == 0).
+
+test(property_query_returns_typed_values_and_subject_facts, [setup((setup_kb, ask_fixture)), cleanup(cleanup_kb)]) :-
+    discovery:ask_property_json('user.role_assignment', none, all, 100, 0, JsonString),
+    ask_rows(JsonString, [Row], Json),
+    assertion(Row.id == "FACT-ASK-ROLE-LIMIT"),
+    assertion(Row.operator == "lte"),
+    assertion(Row.value == 2),
+    assertion(Row.valueType == "int"),
+    Row.requirements = [LimitReq],
+    assertion(LimitReq.id == "REQ-ASK-ROLE-LIMIT"),
+    assertion(LimitReq.current == true),
+    assertion(Json.subjectFacts == ["FACT-ASK-ROLE-SUBJECT"]),
+    discovery:ask_property_json('user.role_assignment', other_property, all, 100, 0, EmptyJson),
+    ask_rows(EmptyJson, Empty, _),
+    assertion(Empty == []).
+
+test(schema_catalog_lists_project_schemas_and_builtins, [setup((setup_kb, ask_fixture)), cleanup(cleanup_kb)]) :-
+    discovery:ask_schemas_json(none, none, 100, 0, JsonString),
+    ask_rows(JsonString, Rows, _),
+    findall(Name-Builtin-Count, (member(Row, Rows), get_dict(name, Row, Name), get_dict(builtin, Row, Builtin), get_dict(factCount, Row, Count)), Summary),
+    assertion(Summary == ["has_role"-false-2, "permission_rule"-true-4]),
+    discovery:ask_schemas_json(access, none, 100, 0, AccessJson),
+    ask_rows(AccessJson, [Access], _),
+    assertion(Access.id == "FACT-SCHEMA-ASK-HAS-ROLE"),
+    assertion(Access.argumentNames == ["user", "role"]).
+
+test(named_arguments_resolve_through_the_schema_in_any_order, [setup((setup_kb, ask_fixture)), cleanup(cleanup_kb)]) :-
+    discovery:ask_predicate_json(none, permission_rule, where([decision=allow, actor=admin]), none, all, none, 100, 0, JsonString),
+    ask_rows(JsonString, Rows, Json),
+    assertion(Json.count == 2),
+    findall(Action, (member(Row, Rows), get_dict(arguments, Row, Arguments), get_dict(action, Arguments, Action)), Actions),
+    assertion(Actions == ["delete", "read"]),
+    assertion(Json.predicate.args.actor == "admin"),
+    assertion(Json.suggestions == null),
+    assertion(Json.warnings == []).
+
+test(unknown_named_argument_warns_and_lists_declared_names, [setup((setup_kb, ask_fixture)), cleanup(cleanup_kb)]) :-
+    discovery:ask_predicate_json(none, permission_rule, where([who=admin]), none, all, none, 100, 0, JsonString),
+    ask_rows(JsonString, Rows, Json),
+    assertion(Rows == []),
+    Json.warnings = [Warning],
+    assertion(sub_string(Warning, _, _, _, "'who' is not an argument")),
+    assertion(sub_string(Warning, _, _, _, "actor, action, resource, decision")),
+    discovery:ask_predicate_json(none, no_such_predicate, where([x=y]), none, all, none, 100, 0, NoSchemaJson),
+    atom_json_dict(NoSchemaJson, NoSchema, []),
+    NoSchema.warnings = [NoSchemaWarning],
+    assertion(sub_string(NoSchemaWarning, _, _, _, "need a predicate schema")).
+
+test(empty_named_answer_lists_the_values_that_exist, [setup((setup_kb, ask_fixture)), cleanup(cleanup_kb)]) :-
+    discovery:ask_predicate_json(none, permission_rule, where([actor=superuser, action=read]), none, all, none, 100, 0, JsonString),
+    ask_rows(JsonString, Rows, Json),
+    assertion(Rows == []),
+    assertion(Json.suggestions.actor == ["admin", "viewer"]),
+    assertion(Json.suggestions.action == ["delete", "export", "read"]).
+
+test(fact_kind_listing_carries_typed_fields_only, [setup((setup_kb, ask_fixture)), cleanup(cleanup_kb)]) :-
+    discovery:ask_fact_kind_json(property_value, 100, 0, JsonString),
+    ask_rows(JsonString, [Row], Json),
+    assertion(Json.factKind == "property_value"),
+    assertion(Row.id == "FACT-ASK-ROLE-LIMIT"),
+    assertion(Row.subject_key == "user.role_assignment"),
+    assertion(Row.property_key == "max_roles"),
+    assertion(Row.operator == "lte"),
+    assertion(Row.value == 2),
+    assertion(\+ get_dict(predicate_name, Row, _)),
+    discovery:ask_fact_kind_json(predicate, 2, 0, PredicateJson),
+    ask_rows(PredicateJson, PredicateRows, Predicate),
+    assertion(Predicate.count == 6),
+    assertion(length(PredicateRows, 2)),
+    PredicateRows = [First|_],
+    assertion(First.id == "FACT-ASK-ADMIN-DELETE"),
+    assertion(First.predicate_name == "permission_rule"),
+    assertion(First.predicate_args == ["admin", "delete", "analysis_request", "allow"]),
+    assertion(First.polarity == "assert"),
+    discovery:ask_fact_kind_json(meta, 100, 0, MetaJson),
+    ask_rows(MetaJson, MetaRows, _),
+    assertion(MetaRows == []).
+
+:- end_tests(discovery_ask).
+
 :- begin_tests(discovery_aggregate_counts).
 
 test(relationship_count_counts_both_directions, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-

@@ -283,3 +283,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4af8595e3a14
+  - type: verified_by
+    from: SCEN-kibi-query-fact-filters
+    to: TEST-kibi-query-fact-filters
+    created_at: 2026-10-11T14:55:12.546Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-959d601b4775

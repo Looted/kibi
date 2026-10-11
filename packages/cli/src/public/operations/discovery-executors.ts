@@ -42,6 +42,7 @@ import {
 import {
   OperationJsonDecodeError,
   runOperationJsonQuery,
+  toPrologAtom,
 } from "./prolog-json.js";
 import type { OperationContext, PrologPort } from "./runtime-types.js";
 import type { OperationResult } from "./types.js";
@@ -54,12 +55,70 @@ export type QueryInput = {
   readonly sourceFile?: string;
   readonly limit?: number;
   readonly offset?: number;
+  /** Typed fact filters (fact entities only); see `FACT_KINDS`. */
+  readonly factKind?: string;
+  readonly predicate?: string;
+  readonly namespace?: string;
+  readonly where?: Readonly<Record<string, string>>;
+  readonly args?: readonly (string | null)[];
+  readonly polarity?: "assert" | "deny";
+  readonly scope?: "all" | "current_requirements";
+  readonly distinct?: string;
+  readonly subjectKey?: string;
+  readonly propertyKey?: string;
 };
+
+/** A ready-to-run follow-up call the query suggests. */
+export type QueryNextCall = Readonly<{ call: string; why: string }>;
+
+/**
+ * Typed-fact view of a kb_query answer: which predicate, property or fact
+ * kind was asked, the schema that names its arguments, distinct value counts,
+ * the values that do exist when nothing matched, warnings about the question
+ * itself and the follow-up calls that make sense next.
+ */
+export type FactQueryPayload = Readonly<{
+  mode: "predicate" | "property" | "schemas" | "fact_kind";
+  predicate?: Record<string, unknown>;
+  property?: Record<string, unknown>;
+  factKind?: string;
+  schema?: Record<string, unknown> | null;
+  subjectFacts?: readonly string[];
+  distinct?: Record<string, unknown> | null;
+  suggestions?: Record<string, unknown> | null;
+  warnings: readonly string[];
+  next: readonly QueryNextCall[];
+}>;
 
 export type QueryPayload = {
   readonly entities: readonly Record<string, unknown>[];
   readonly count: number;
+  readonly factQuery?: FactQueryPayload;
 };
+
+export const FACT_KINDS = [
+  "subject",
+  "property_value",
+  "predicate",
+  "predicate_schema",
+  "observation",
+  "meta",
+  "rule",
+  "rule_schema",
+] as const;
+
+const TYPED_FACT_FILTERS = [
+  "factKind",
+  "predicate",
+  "namespace",
+  "where",
+  "args",
+  "polarity",
+  "scope",
+  "distinct",
+  "subjectKey",
+  "propertyKey",
+] as const satisfies readonly (keyof QueryInput)[];
 
 export type SearchInput = {
   readonly query: string;
@@ -195,6 +254,343 @@ function isStatusPayload(value: unknown): value is StatusPayload {
   );
 }
 
+function hasTypedFactFilters(input: QueryInput): boolean {
+  return TYPED_FACT_FILTERS.some((key) => input[key] !== undefined);
+}
+
+function requireAtomString(value: unknown, field: string): string {
+  if (typeof value !== "string" || value.trim() === "") {
+    throw new Error(`${field} must be a non-empty string.`);
+  }
+  return value.trim();
+}
+
+function requireEnum<T extends string>(
+  value: unknown,
+  field: string,
+  allowed: readonly T[],
+): T {
+  if (typeof value !== "string" || !allowed.includes(value as T)) {
+    throw new Error(`${field} must be one of: ${allowed.join(", ")}.`);
+  }
+  return value as T;
+}
+
+/**
+ * Builds the Prolog argument spec of a predicate question. Named `where`
+ * entries are resolved against the predicate's declared argument names in
+ * Prolog; positional `args` use `null` as a wildcard.
+ */
+// implements REQ-kibi-query-fact-filters
+function predicateArgSpec(input: QueryInput): string {
+  if (input.where !== undefined && input.args !== undefined) {
+    throw new Error(
+      "Use either where (named arguments) or args (positional), not both.",
+    );
+  }
+  if (input.where !== undefined) {
+    if (
+      input.where === null ||
+      typeof input.where !== "object" ||
+      Array.isArray(input.where)
+    ) {
+      throw new Error("where must be an object of argument name to value.");
+    }
+    const pairs = Object.entries(input.where).map(([key, value]) => {
+      const name = requireAtomString(key, "where argument name");
+      const atom = requireAtomString(value, `where.${key}`);
+      return `${toPrologAtom(name)}=${toPrologAtom(atom)}`;
+    });
+    return `where([${pairs.join(",")}])`;
+  }
+  if (input.args !== undefined) {
+    if (!Array.isArray(input.args)) {
+      throw new Error("args must be an array of constants (null = any).");
+    }
+    const entries = input.args.map((value, index) =>
+      value === null || value === "*"
+        ? "'$any'"
+        : toPrologAtom(requireAtomString(value, `args[${index}]`)),
+    );
+    return `[${entries.join(",")}]`;
+  }
+  return "[]";
+}
+
+type FactQueryResponse = Readonly<{
+  mode: FactQueryPayload["mode"];
+  rows: readonly Record<string, unknown>[];
+  count: number;
+  warnings?: readonly string[];
+  predicate?: Record<string, unknown>;
+  property?: Record<string, unknown>;
+  factKind?: string;
+  schema?: Record<string, unknown> | null;
+  subjectFacts?: readonly string[];
+  distinct?: Record<string, unknown> | null;
+  suggestions?: Record<string, unknown> | null;
+}>;
+
+function callText(args: Record<string, unknown>): string {
+  return `kb_query(${JSON.stringify(args)})`;
+}
+
+/**
+ * Every typed answer names the exact call that makes sense next, so an
+ * agent never has to guess the follow-up from the shape of the data.
+ */
+// implements REQ-kibi-query-fact-filters
+function factQueryNext(
+  input: QueryInput,
+  response: FactQueryResponse,
+): QueryNextCall[] {
+  const next: QueryNextCall[] = [];
+  const first = response.rows[0];
+  const firstId = typeof first?.id === "string" ? first.id : undefined;
+  switch (response.mode) {
+    case "predicate": {
+      if (firstId !== undefined) {
+        next.push({
+          call: callText({ id: firstId }),
+          why: "full fact text and relationships of one row",
+        });
+      }
+      const names = Array.isArray(
+        (response.schema as { argumentNames?: unknown } | null)?.argumentNames,
+      )
+        ? ((
+            response.schema as { argumentNames: unknown[] }
+          ).argumentNames.filter(
+            (name): name is string => typeof name === "string",
+          ) as string[])
+        : [];
+      if (input.distinct === undefined && names.length > 0) {
+        const argument = names[names.length - 1] ?? names[0];
+        next.push({
+          call: callText({ predicate: input.predicate, distinct: argument }),
+          why: `count the distinct values of '${argument}' across matching facts`,
+        });
+      }
+      if (
+        response.count === 0 &&
+        response.suggestions &&
+        typeof response.suggestions === "object"
+      ) {
+        for (const [key, values] of Object.entries(response.suggestions)) {
+          const value = Array.isArray(values) ? values[0] : undefined;
+          if (typeof value === "string") {
+            next.push({
+              call: callText({
+                predicate: input.predicate,
+                where: { ...(input.where ?? {}), [key]: value },
+              }),
+              why: `'${key}' has no fact with that value; '${value}' is one that exists`,
+            });
+            break;
+          }
+        }
+      }
+      if (next.length === 0) {
+        next.push({
+          call: callText({ factKind: "predicate_schema" }),
+          why: "list the predicates this KB can answer about and their argument names",
+        });
+      }
+      break;
+    }
+    case "property": {
+      if (firstId !== undefined) {
+        next.push({
+          call: callText({ id: firstId }),
+          why: "full fact text and relationships of one row",
+        });
+      }
+      if (input.propertyKey !== undefined) {
+        next.push({
+          call: callText({ subjectKey: input.subjectKey }),
+          why: "every property stated about this subject",
+        });
+      } else if (response.count === 0) {
+        next.push({
+          call: callText({ factKind: "subject" }),
+          why: "list the subject keys that exist",
+        });
+      }
+      break;
+    }
+    case "schemas": {
+      const name = typeof first?.name === "string" ? first.name : undefined;
+      if (name !== undefined) {
+        next.push({
+          call: callText({ predicate: name }),
+          why: "every stored fact of the first listed predicate",
+        });
+      }
+      break;
+    }
+    case "fact_kind": {
+      if (input.factKind === "predicate") {
+        next.push({
+          call: callText({ factKind: "predicate_schema" }),
+          why: "argument names and constants for asking by name",
+        });
+      } else if (input.factKind === "property_value" && first) {
+        const subjectKey =
+          typeof first.subject_key === "string" ? first.subject_key : undefined;
+        if (subjectKey !== undefined) {
+          next.push({
+            call: callText({ subjectKey }),
+            why: "the properties of the first listed subject",
+          });
+        }
+      } else if (firstId !== undefined) {
+        next.push({
+          call: callText({ id: firstId }),
+          why: "full fact text of one row",
+        });
+      }
+      break;
+    }
+  }
+  return next;
+}
+
+function factRowSummary(row: Record<string, unknown>): string {
+  const id = String(row.id ?? "");
+  if (typeof row.name === "string" && Array.isArray(row.args)) {
+    const effect = typeof row.effect === "string" ? ` -> ${row.effect}` : "";
+    const polarity = row.polarity === "deny" ? " [deny]" : "";
+    return `${id}: ${row.name}(${row.args.map(String).join(", ")})${effect}${polarity}`;
+  }
+  if (
+    typeof row.subjectKey === "string" &&
+    typeof row.propertyKey === "string"
+  ) {
+    const unit = typeof row.unit === "string" && row.unit ? ` ${row.unit}` : "";
+    return `${id}: ${row.subjectKey} ${row.propertyKey} ${String(row.operator ?? "")} ${String(row.value ?? "")}${unit}`;
+  }
+  if (typeof row.name === "string" && typeof row.arity === "number") {
+    const names = Array.isArray(row.argumentNames)
+      ? row.argumentNames.map(String).join(", ")
+      : "";
+    return `${row.name}(${names})`;
+  }
+  return `${id} (${String(row.title ?? "")})`;
+}
+
+/**
+ * Typed fact questions run as validated Prolog goals in the discovery module;
+ * the executor never forwards caller-written Prolog.
+ */
+// implements REQ-kibi-query-fact-filters
+async function executeFactQuery(
+  input: QueryInput,
+  context: OperationContext,
+  limit: number,
+  offset: number,
+): Promise<OperationResult<QueryPayload>> {
+  if (input.type !== undefined && input.type !== "fact") {
+    throw new Error(
+      "Typed fact filters (factKind, predicate, subjectKey, ...) apply to type 'fact' only.",
+    );
+  }
+  for (const key of ["id", "tags", "sourceFile"] as const) {
+    if (input[key] !== undefined) {
+      throw new Error(
+        `${key} cannot be combined with typed fact filters; run a separate kb_query.`,
+      );
+    }
+  }
+  const prolog = requireProlog(context);
+  const page = `${Math.trunc(limit)}, ${Math.trunc(offset)}`;
+  const scope =
+    input.scope === undefined
+      ? "all"
+      : requireEnum(input.scope, "scope", ["all", "current_requirements"]);
+  const factKind =
+    input.factKind === undefined
+      ? undefined
+      : requireEnum(input.factKind, "factKind", FACT_KINDS);
+  let goal: string;
+  if (factKind === "predicate_schema") {
+    goal = `discovery:ask_schemas_json(${toPrologAtom(input.namespace)}, ${toPrologAtom(input.predicate)}, ${page}, JsonString)`;
+  } else if (input.predicate !== undefined) {
+    const name = requireAtomString(input.predicate, "predicate");
+    const polarity =
+      input.polarity === undefined
+        ? "none"
+        : toPrologAtom(
+            requireEnum(input.polarity, "polarity", ["assert", "deny"]),
+          );
+    const distinct =
+      input.distinct === undefined
+        ? "none"
+        : toPrologAtom(requireAtomString(input.distinct, "distinct"));
+    goal = `discovery:ask_predicate_json(${toPrologAtom(input.namespace)}, ${toPrologAtom(name)}, ${predicateArgSpec(input)}, ${polarity}, ${scope}, ${distinct}, ${page}, JsonString)`;
+  } else if (input.subjectKey !== undefined) {
+    const subject = requireAtomString(input.subjectKey, "subjectKey");
+    goal = `discovery:ask_property_json(${toPrologAtom(subject)}, ${toPrologAtom(input.propertyKey)}, ${scope}, ${page}, JsonString)`;
+  } else if (factKind !== undefined) {
+    goal = `discovery:ask_fact_kind_json(${toPrologAtom(factKind)}, ${page}, JsonString)`;
+  } else {
+    throw new Error(
+      "Typed fact filters need a predicate, a subjectKey or a factKind; where/args/polarity/distinct/propertyKey refine one of those.",
+    );
+  }
+  const response = await runOperationJsonQuery<FactQueryResponse>(
+    prolog,
+    "discovery.pl",
+    goal,
+    "Query execution",
+    context.signal,
+  );
+  const rows = Array.isArray(response.rows) ? response.rows : [];
+  const count =
+    typeof response.count === "number" ? response.count : rows.length;
+  const warnings = Array.isArray(response.warnings) ? response.warnings : [];
+  const factQuery: FactQueryPayload = {
+    mode: response.mode,
+    ...(response.predicate ? { predicate: response.predicate } : {}),
+    ...(response.property ? { property: response.property } : {}),
+    ...(response.factKind ? { factKind: response.factKind } : {}),
+    ...(response.schema !== undefined ? { schema: response.schema } : {}),
+    ...(response.subjectFacts ? { subjectFacts: response.subjectFacts } : {}),
+    ...(response.distinct !== undefined ? { distinct: response.distinct } : {}),
+    ...(response.suggestions !== undefined
+      ? { suggestions: response.suggestions }
+      : {}),
+    warnings,
+    next: factQueryNext(input, { ...response, rows, count }),
+  };
+  const subject =
+    response.mode === "predicate"
+      ? `${String(input.predicate)} facts`
+      : response.mode === "property"
+        ? `properties of ${String(input.subjectKey)}`
+        : response.mode === "schemas"
+          ? "predicate schemas"
+          : `${String(factKind)} facts`;
+  const lines = [
+    count === 0
+      ? `No ${subject} matched.`
+      : `${count} ${subject}. Showing ${rows.length} (offset ${offset}, limit ${limit}): ${rows.map(factRowSummary).join("; ")}`,
+    ...(factQuery.distinct && typeof factQuery.distinct === "object"
+      ? [
+          `Distinct ${String((factQuery.distinct as { argument?: unknown }).argument)}: ${JSON.stringify((factQuery.distinct as { values?: unknown }).values ?? [])}`,
+        ]
+      : []),
+    ...(factQuery.suggestions && typeof factQuery.suggestions === "object"
+      ? [`Values that exist: ${JSON.stringify(factQuery.suggestions)}`]
+      : []),
+    ...warnings.map((warning) => `Warning: ${warning}`),
+    ...factQuery.next.map((entry) => `Next: ${entry.call} (${entry.why})`),
+  ];
+  return {
+    content: [{ type: "text", text: lines.join("\n") }],
+    structuredContent: { entities: rows, count, factQuery },
+  };
+}
+
 export async function executeQuery(
   input: QueryInput,
   context: OperationContext,
@@ -203,6 +599,9 @@ export async function executeQuery(
   const { type, id, tags, sourceFile, limit = 100, offset = 0 } = input;
   try {
     validateEntityType(type);
+    if (hasTypedFactFilters(input)) {
+      return await executeFactQuery(input, context, limit, offset);
+    }
     const prolog = requireProlog(context);
     const signal = context.signal;
     const pageInput = {
