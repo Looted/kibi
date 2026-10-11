@@ -1,5 +1,36 @@
 # kibi-runtime
 
+## 2.13.3
+
+### Patch Changes
+
+- 50b7a65: `kb_status` no longer reports a freshly cloned or checked-out workspace as stale just because every file got a new modification time. A source is only reported as newer than the compiled store when its content differs from what the last `kibi sync` compiled, and sources that really changed now come with one automatic `freshness-resync` action (`kibi sync`) that `kb_apply_plan` can run, instead of one review-only action per file with no executor.
+
+  Technical summary: `executeStatus` confirms each `indexed_source_newer`, `knowledge_source_newer` and `documentation_source_newer` reason against recorded content hashes (the store's `sync-cache.json` source hashes, a symbol manifest's composite hash of its referenced sources, or the coordinate artifact's per-symbol `sourceHash`), drops reasons whose sha256 matches and recomputes `syncState`/`dirty` when nothing else remains. `buildActionsFromStatus` maps the remaining reasons to a single automatic `freshness-resync` action (code `freshness_resync`, `kibi sync`), and `applyMigrationAction` runs it through `syncCommand`. The Prolog status module is unchanged.
+
+- 50b7a65: Stopping the engine daemon now releases the branch store cleanly, so `rdf/lock` and `.kibi-lock-owner.json` no longer stay behind after every stop or idle exit, and the idle exit happens on time even after the machine or VM was suspended. When Kibi does take over a lock whose holder died, `kb_status` and `kibi doctor` now say so instead of the takeover being visible only in a detached process's discarded output.
+
+  Technical summary: daemon shutdown runs `kb_detach` after a successful `kb_save` and fsync, then signals the SWI-Prolog child; when the detach did not complete it first gives the child up to 1 s to halt on stdin EOF and run its at_halt cleanup (`PrologProcess.terminate({ graceMs })`, which returns as soon as the child exits). Idle exit uses a wall-clock check (`lastActivityAt`, updated on every request and client close) on an unref'd interval of min(idle timeout, 30 s) instead of a one-shot timer. Before breaking a stale lock, `retryAttachAfterBreakingStaleLock` writes `<store>/.kibi-lock-takeover.json` (`brokenPid`, `reason`, `at`); `kb_status` lists it for 24 hours as a non-blocking `store_lock_taken_over` entry in the new `notices` field, and `kibi doctor`'s branch-store check reports it.
+
+- 50b7a65: Permission statements written with a plain "can", "may" or "are permitted to" ("Coaches can read analysis requests that are not assigned to them.") are now modelled as `permission_rule` facts instead of being rejected as non-normative prose. And an allow and a deny for the same actor, action and resource now contradict: `kb_check` (`domain-contradictions`) and the commit-time check of `kb_upsert` (including `dryRun`) report "Decision conflict on default:permission_rule(coach,read,…)" for the pair.
+
+  Technical summary: the predicate applicability gate accepts bare `can`/`may` modals, `is/are (not) allowed/permitted to` and `permitted`; the semantic advisor's normative-assertion detector accepts only the explicit grant forms (`is/are (not) allowed/permitted to`, `permitted`), so descriptive "can" sentences in existing requirements are not reclassified; the `permission_rule` intent cue, catalog keywords and exact-pattern scorer accept `permitted` and plural `are … to` forms. The built-in `permission_rule` schema declares `key_arguments: [actor, action, resource]`, and kibi-core adds a `req_conflict_witness/3` clause: two `requires_predicate` facts of a decision predicate (the built-in `permission_rule`, or a project schema that declares `key_arguments` and a non-key `decision` argument) that agree on every key argument but whose decisions resolve to allow and deny (a deny decision counts as a denial whatever its polarity) are a contradiction. `docs/inference-rules.md` documents the rule.
+
+- 50b7a65: The kibi-usage skill (2.14.0) now says plainly what moves `proofProven`: only an end-to-end test (by its `verification_scope`) with a fresh passing receipt; unit receipts are recorded but leave the `missing_passing_e2e` gap. Its second-agent recipes now create scenarios with `assumes` links to the facts they rely on, so a new or superseding requirement no longer leaves a "Scenario expects success but assumes nothing" warning. `kibi proof inspect` shows the command each configured integration runs.
+
+  Technical summary: kibi-usage `resources/proof.md` gains a "What counts toward proofProven" section (scope source, unit/integration receipts, the component-scope UI exception, `coverage_depth` following authored status); recipes 1 and 2 of "Second-agent edits" add `assumes` (sent in the scenario's own write) and `expects` only with `assumes`, and re-pointing or closing the old scenario. `kibi proof inspect --json` adds `currentIntegrations: [{ id, producer, command }]` beside the compatible `currentIntegration`, and the text output lists each integration's command. Host skill copies are regenerated.
+
+- 50b7a65: `kb_search` now says when it searched a branch store that was never compiled. On a new branch created without the post-checkout hook, a search used to return only "No intent search results … (abstained)" while the authored requirements sat uncompiled in `.kb/`; it now names the branch, reports the uncompiled store and tells the agent to run `kibi sync` first, the same diagnosis `kb_status` and `kb_check` already gave.
+
+  Technical summary: the `kb_search` payload gains `branch` (the attached Kibi branch or `null`, present whatever the result count) and, when `uncompiledBranchStoreReason` fires, `branchStore: { state: "not_compiled", code: "branch_store_not_compiled", path, detail, remediation }`; the text output appends the same note. The `kb_search` data contract and `docs/mcp-reference.md` list both fields.
+
+- 50b7a65: Symbols that `kb_upsert` adds to the `.kb/symbols.yaml` created by `kibi init` now survive the first compile of a new branch. Before, that file was untracked and had no pending-source receipt, so sync never read it: the branch that wrote the symbols kept them, but a new branch store compiled their `implements`/`covered_by` edges without the symbols, warned about dangling relationships and failed `kb_check` with `source-relationship-parity` violations. The symbols manifest is also written as block YAML instead of one `symbols: [ { … } ]` line.
+
+  Technical summary: `writeSourceForUpsert` now writes the pending-source receipt whenever Git does not track the target file (`git ls-files --error-unmatch`), not only for new or already-receipted files, mirroring relationship shards. Sync's dangling-relationship warning names each missing endpoint and, when the endpoint is declared in an untracked file with no receipt (markdown or symbol manifest), names the file and the `git add` / `kb_upsert` fix; `kb_check`'s `source-relationship-parity` findings carry the same cause in `suggestion` and `evidence.untrackedSources`. Appending to a flow-style `symbols` sequence converts it to block style.
+
+- Updated dependencies [50b7a65]
+  - kibi-core@0.19.0
+
 ## 2.13.2
 
 ### Patch Changes
