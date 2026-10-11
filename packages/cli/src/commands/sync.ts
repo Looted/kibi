@@ -114,7 +114,10 @@ import {
   createUniqueStagingPath,
   prepareStagingEnvironment,
 } from "./sync/staging.js";
-import { findUntrackedDocumentMatches } from "./sync/untracked-targets.js";
+import {
+  adoptUpsertOnlySymbolManifest,
+  findUntrackedDocumentMatches,
+} from "./sync/untracked-targets.js";
 
 // Manual deletion of a written-but-unstaged source leaves a recovery receipt
 // behind; sync refuses to guess, so the error must name the way out.
@@ -316,6 +319,34 @@ async function checkpointNoopSync(
         `Failed to publish the no-op sync checkpoint: ${checkpoint.error ?? "Unknown error"}`,
       );
     }
+  } finally {
+    await engine.terminate();
+  }
+}
+
+/** Whether the branch's compiled store already holds any of `ids`. */
+// implements REQ-cli-status-pre-first-sync
+async function storeHoldsAnyEntity(
+  workspaceRoot: string,
+  branch: string,
+  ids: readonly string[],
+): Promise<boolean> {
+  const engine = new EngineClient({
+    workspaceRoot,
+    branch,
+    timeout: 120_000,
+  });
+  try {
+    await engine.start();
+    for (const id of ids) {
+      const found = await engine.queryEntities({ id, limit: 1, offset: 0 });
+      if (found.count > 0 || found.entities.length > 0) return true;
+    }
+    return false;
+  } catch {
+    // Adoption is best effort: an unreadable store adopts nothing and the
+    // compile below reports the store itself.
+    return false;
   } finally {
     await engine.terminate();
   }
@@ -596,6 +627,22 @@ export async function syncCommand(
     if (!validateOnly && recoveryBackupPath === undefined) {
       ensureBranchStoreManifest(workspaceRoot, currentBranch);
       await ensureJournaledBranchStoreAsync(livePathForEngine);
+    }
+    // implements REQ-cli-status-pre-first-sync
+    // An untracked symbol manifest that only kb_upsert ever wrote (older Kibi
+    // left it without a pending-source receipt) gets the receipt here, so
+    // this sync compiles it and records its content hash. Without it the
+    // sources its symbols reference read as newer after every clone.
+    if (
+      !validateOnly &&
+      recoveryBackupPath === undefined &&
+      options.detachedSnapshot === undefined &&
+      runtime.createProlog === undefined
+    ) {
+      const branch = currentBranch;
+      await adoptUpsertOnlySymbolManifest(workspaceRoot, (ids) =>
+        storeHoldsAnyEntity(workspaceRoot, branch, ids),
+      );
     }
     const needsExclusiveGenerationPublish =
       !validateOnly && (rebuild || recoveryBackupPath !== undefined);

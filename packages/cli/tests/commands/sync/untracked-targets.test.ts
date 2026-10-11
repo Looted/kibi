@@ -1,8 +1,11 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { createHash } from "node:crypto";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import * as path from "node:path";
-import { findUntrackedDocumentMatches } from "../../../src/commands/sync/untracked-targets.js";
+import {
+  adoptUpsertOnlySymbolManifest,
+  findUntrackedDocumentMatches,
+} from "../../../src/commands/sync/untracked-targets.js";
 import {
   createGitWorkspace,
   createTempDir,
@@ -296,5 +299,82 @@ describe("findUntrackedDocumentMatches and symbol manifests", () => {
       "SYM-export-report",
     ]);
     expect(matches.size).toBe(0);
+  });
+});
+
+// implements REQ-cli-status-pre-first-sync
+describe("adoptUpsertOnlySymbolManifest", () => {
+  const MANIFEST =
+    "symbols:\n  - id: SYM-export-report\n    title: exportReport\n  - id: SYM-export-csv\n    title: exportCsv\n";
+
+  function receiptFile(workspace: string): string {
+    return path.join(
+      workspace,
+      ".kb",
+      "recovery",
+      "pending-sources",
+      `${createHash("sha256").update(".kb/symbols.yaml").digest("hex")}.json`,
+    );
+  }
+
+  function manifestWorkspace(): string {
+    const workspace = createGitWorkspace();
+    tempDirs.push(workspace);
+    mkdirSync(path.join(workspace, ".kb"), { recursive: true });
+    writeFileSync(path.join(workspace, ".kb", "symbols.yaml"), MANIFEST);
+    return workspace;
+  }
+
+  test("receipts an untracked manifest whose symbols the store already holds", async () => {
+    const workspace = manifestWorkspace();
+    const asked: string[][] = [];
+    const adopted = await adoptUpsertOnlySymbolManifest(
+      workspace,
+      async (ids) => {
+        asked.push([...ids]);
+        return true;
+      },
+    );
+    expect(adopted).toBe(true);
+    expect(asked).toEqual([["SYM-export-report", "SYM-export-csv"]]);
+    const receipt = JSON.parse(readFileSync(receiptFile(workspace), "utf8"));
+    expect(receipt).toMatchObject({
+      version: 1,
+      path: ".kb/symbols.yaml",
+      afterHash: createHash("sha256").update(MANIFEST).digest("hex"),
+    });
+  });
+
+  test("leaves a hand-written manifest the store never saw outside the sync boundary", async () => {
+    const workspace = manifestWorkspace();
+    expect(
+      await adoptUpsertOnlySymbolManifest(workspace, async () => false),
+    ).toBe(false);
+    expect(existsSync(receiptFile(workspace))).toBe(false);
+  });
+
+  test("never consults the store for a tracked, receipted or empty manifest", async () => {
+    const refuse = async (): Promise<boolean> => {
+      throw new Error("the store must not be consulted");
+    };
+
+    const tracked = manifestWorkspace();
+    git(tracked, "add .kb/symbols.yaml");
+    expect(await adoptUpsertOnlySymbolManifest(tracked, refuse)).toBe(false);
+    expect(existsSync(receiptFile(tracked))).toBe(false);
+
+    const receipted = manifestWorkspace();
+    mkdirSync(path.dirname(receiptFile(receipted)), { recursive: true });
+    writeFileSync(receiptFile(receipted), "{}\n");
+    expect(await adoptUpsertOnlySymbolManifest(receipted, refuse)).toBe(false);
+    expect(readFileSync(receiptFile(receipted), "utf8")).toBe("{}\n");
+
+    const empty = manifestWorkspace();
+    writeFileSync(path.join(empty, ".kb", "symbols.yaml"), "symbols: []\n");
+    expect(await adoptUpsertOnlySymbolManifest(empty, refuse)).toBe(false);
+
+    const missing = createGitWorkspace();
+    tempDirs.push(missing);
+    expect(await adoptUpsertOnlySymbolManifest(missing, refuse)).toBe(false);
   });
 });

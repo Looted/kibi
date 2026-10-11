@@ -8,7 +8,7 @@ import { existsSync, readFileSync } from "node:fs";
 import * as path from "node:path";
 import { load as parseYAML } from "js-yaml";
 import { hashManifestWithCoordinates } from "../commands/sync/cache.js";
-import { isSymbolsManifestPath } from "./kb-paths.js";
+import { KB_PATHS, isSymbolsManifestPath } from "./kb-paths.js";
 
 /** Stale-reason codes that compare file times only. */
 export const MTIME_SOURCE_REASON_CODES: ReadonlySet<string> = new Set([
@@ -42,6 +42,7 @@ function record(value: unknown): Record<string, unknown> | null {
  * source hashes, and the per-symbol `sourceHash` of the generated coordinate
  * artifact. A file whose bytes match that evidence has not changed since it
  * was compiled, however new its mtime (a fresh clone, a checkout, a touch).
+ * Without either kind of evidence a reason is kept.
  */
 class CompiledContentEvidence {
   private readonly hashes: Record<string, string>;
@@ -105,14 +106,25 @@ class CompiledContentEvidence {
   private coordinates(): Map<string, Set<string>> {
     if (this.coordinateHashes) return this.coordinateHashes;
     const byFile = new Map<string, Set<string>>();
+    // The coordinate artifact is content evidence in its own right: kb_upsert
+    // and sync record each symbol's source hash there. Consult the canonical
+    // artifact even when its manifest was never hashed (an untracked,
+    // upsert-only `.kb/symbols.yaml` that sync could not see).
+    const artifacts = new Set<string>([
+      path.resolve(this.workspaceRoot, KB_PATHS.symbolCoordinates),
+    ]);
     for (const key of Object.keys(this.hashes)) {
       if (!isSymbolsManifestPath(key) || !key.endsWith("symbols.yaml"))
         continue;
-      const artifact = path.resolve(
-        this.workspaceRoot,
-        path.dirname(key),
-        "symbol-coordinates.yaml",
+      artifacts.add(
+        path.resolve(
+          this.workspaceRoot,
+          path.dirname(key),
+          "symbol-coordinates.yaml",
+        ),
       );
+    }
+    for (const artifact of artifacts) {
       if (!existsSync(artifact)) continue;
       try {
         const parsed = record(parseYAML(readFileSync(artifact, "utf8")));

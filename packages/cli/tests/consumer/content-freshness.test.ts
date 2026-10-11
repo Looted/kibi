@@ -1,10 +1,22 @@
 // implements REQ-cli-status-pre-first-sync
 import { afterEach, describe, expect, test } from "bun:test";
-import { utimesSync } from "node:fs";
+import { createHash } from "node:crypto";
+import {
+  cpSync,
+  existsSync,
+  mkdtempSync,
+  realpathSync,
+  rmSync,
+  unlinkSync,
+  utimesSync,
+} from "node:fs";
+import os from "node:os";
 import path from "node:path";
+import { spawnSync } from "../helpers/isolated-env.js";
 import {
   type ConsumerWorkspace,
   type Json,
+  KIBI_CLI,
   createConsumerWorkspace,
   doc,
 } from "./workspace.js";
@@ -18,10 +30,19 @@ import {
  */
 
 let workspace: ConsumerWorkspace | undefined;
+const copies: string[] = [];
 
 afterEach(() => {
   workspace?.cleanup();
   workspace = undefined;
+  for (const copy of copies.splice(0)) {
+    spawnSync("node", [KIBI_CLI, "engine", "stop"], {
+      cwd: copy,
+      encoding: "utf8",
+      timeout: 120_000,
+    });
+    rmSync(copy, { recursive: true, force: true });
+  }
 });
 
 type StatusData = {
@@ -48,6 +69,16 @@ const SOURCE_NEWER = new Set([
 
 function status(ws: ConsumerWorkspace): StatusData {
   return (ws.json(["status"], {}) as { data: StatusData }).data;
+}
+
+function receiptPath(root: string, relative: string): string {
+  return path.join(
+    root,
+    ".kb",
+    "recovery",
+    "pending-sources",
+    `${createHash("sha256").update(relative).digest("hex")}.json`,
+  );
 }
 
 function requirement(body: string): string {
@@ -106,4 +137,87 @@ describe("kb_status confirms newer sources by content", () => {
     expect(applied.data.outcome).toBe("applied");
     expect(status(ws).syncState).toBe("fresh");
   }, 240_000);
+
+  test("symbols an older upsert left in an untracked manifest without a receipt stay fresh after a clone", () => {
+    const ws = createConsumerWorkspace("kibi-content-freshness-upsert-only-");
+    workspace = ws;
+    const requirementPath = ".kb/requirements/REQ-demo-export.md";
+    const sourcePath = "src/export.ts";
+    const manifest = ".kb/symbols.yaml";
+    ws.write(requirementPath, requirement("## Context\n\nReports export.\n"));
+    ws.write(
+      sourcePath,
+      "export function exportReport() {\n  return 'csv';\n}\n",
+    );
+    ws.git("add", ".kb/requirements", sourcePath);
+    ws.text(["sync"]);
+    const upserted = ws.json(["upsert"], {
+      type: "symbol",
+      id: "SYM-demo-export-report",
+      properties: {
+        title: "exportReport",
+        status: "active",
+        sourceFile: sourcePath,
+      },
+      relationships: [
+        {
+          type: "implements",
+          from: "SYM-demo-export-report",
+          to: "REQ-demo-export",
+        },
+      ],
+    });
+    expect(upserted, JSON.stringify(upserted.error)).toMatchObject({
+      status: "success",
+    });
+    // The state an older Kibi left: the manifest is untracked and no
+    // pending-source receipt covers it, so sync never hashed it.
+    const receipt = receiptPath(ws.root, manifest);
+    unlinkSync(receipt);
+    expect(ws.git("status", "--porcelain", "--", manifest)).toBe(
+      `?? ${manifest}`,
+    );
+
+    // A clone or checkout rewrites every mtime without changing a byte.
+    const touchAll = (root: string) => {
+      const future = new Date(Date.now() + 120_000);
+      for (const relative of [requirementPath, sourcePath, manifest]) {
+        utimesSync(path.join(root, relative), future, future);
+      }
+    };
+    touchAll(ws.root);
+    const touched = status(ws);
+    expect(
+      touched.staleReasons.filter((reason) => SOURCE_NEWER.has(reason.code)),
+    ).toEqual([]);
+    expect(touched.syncState).toBe("fresh");
+
+    // The automatic resync compiles the upsert-only manifest so the store
+    // records its content hash and every later clone stays fresh too.
+    ws.text(["sync"]);
+    expect(existsSync(receipt)).toBe(true);
+    expect(status(ws).syncState).toBe("fresh");
+    ws.kibi(["engine", "stop"]);
+
+    const clone = realpathSync(
+      mkdtempSync(path.join(os.tmpdir(), "kibi-content-freshness-clone-")),
+    );
+    copies.push(clone);
+    cpSync(ws.root, clone, { recursive: true });
+    touchAll(clone);
+    const cloned = spawnSync("node", [KIBI_CLI, "status", "--input", "-"], {
+      cwd: clone,
+      encoding: "utf8",
+      input: "{}\n",
+      timeout: 120_000,
+    });
+    const clonedStatus = (JSON.parse(cloned.stdout) as { data: StatusData })
+      .data;
+    expect(
+      clonedStatus.staleReasons.filter((reason) =>
+        SOURCE_NEWER.has(reason.code),
+      ),
+    ).toEqual([]);
+    expect(clonedStatus.syncState).toBe("fresh");
+  }, 300_000);
 });
