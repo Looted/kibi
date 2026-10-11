@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 197,
-  "proofProven": 197,
+  "currentRequirements": 198,
+  "proofProven": 198,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
