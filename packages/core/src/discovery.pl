@@ -489,7 +489,10 @@ graph_expand_json(SeedIds, Relationships, Direction, Depth, EntityTypes, MaxNode
 % implements REQ-kibi-query-fact-filters
 ask_predicate_json(Namespace, Name, ArgSpec, PolarityFilter, Scope, DistinctArg, Limit, Offset, JsonString) :-
     ask_namespace(Namespace, NamespaceMatch),
-    ask_schema_dict(NamespaceMatch, Name, SchemaDict, ArgumentNames),
+    % The schema lookup may bind a namespace; an unnamed namespace must keep
+    % matching facts in every namespace, so the schema sees a copy.
+    copy_term(NamespaceMatch, SchemaNamespace),
+    ask_schema_dict(SchemaNamespace, Name, SchemaDict, ArgumentNames),
     ask_arg_pattern(ArgSpec, ArgumentNames, ArgPattern, PatternWarnings),
     (   PatternWarnings == []
     ->  findall(Row,
@@ -547,7 +550,16 @@ ask_arg_pattern(where(Pairs), ArgumentNames, ArgPattern, Warnings) :-
     ;   ArgPattern = [],
         Warnings = ["named arguments need a predicate schema; none declares this predicate, so pass positional args instead"]
     ).
-ask_arg_pattern(ArgPattern, _ArgumentNames, ArgPattern, []).
+ask_arg_pattern(ArgPattern, ArgumentNames, ArgPattern, Warnings) :-
+    (   is_list(ArgumentNames),
+        ArgPattern \== [],
+        length(ArgPattern, Given),
+        length(ArgumentNames, Arity),
+        Given =\= Arity
+    ->  format(atom(Warning), "positional args need one entry per argument (~w declared, ~w given); use null for any value or name them with where", [Arity, Given]),
+        Warnings = [Warning]
+    ;   Warnings = []
+    ).
 
 ask_spec_json(where(Pairs), _ArgPattern, Json) :-
     !,
@@ -563,7 +575,6 @@ ask_spec_json(_ArgSpec, ArgPattern, Json) :-
 ask_suggestions(0, Namespace, Name, where(Pairs), ArgumentNames, Suggestions) :-
     is_list(ArgumentNames),
     Pairs \== [],
-    !,
     findall(Key-Values,
             (   member(Key=_, Pairs),
                 nth1(Position, ArgumentNames, Key),
@@ -575,6 +586,8 @@ ask_suggestions(0, Namespace, Name, where(Pairs), ArgumentNames, Suggestions) :-
                 sort(Values0, Values)
             ),
             Entries),
+    Entries \== [],
+    !,
     dict_pairs(Suggestions, _, Entries).
 ask_suggestions(_Count, _Namespace, _Name, _ArgSpec, _ArgumentNames, null).
 
@@ -786,7 +799,8 @@ ask_property_json(SubjectKey, PropertyKey, Scope, Limit, Offset, JsonString) :-
     sort_dict_rows(Rows0, SortedRows),
     length(SortedRows, Count),
     paginate_rows(SortedRows, Offset, Limit, Rows),
-    findall(SubjectId, kb:fact_subject_key(SubjectId, Subject), SubjectIds),
+    findall(SubjectId, kb:fact_subject_key(SubjectId, Subject), SubjectIds0),
+    sort(SubjectIds0, SubjectIds),
     ask_optional_atom(PropertyKey, PropertyJson),
     status_meta_dict(Meta),
     Response = _{

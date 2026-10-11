@@ -102,7 +102,6 @@ export const querySpec = {
       scope: {
         type: "string",
         enum: ["all", "current_requirements"],
-        default: "all",
         description:
           "Optional: 'current_requirements' keeps only facts a current (not superseded or retired) requirement requires.",
       },

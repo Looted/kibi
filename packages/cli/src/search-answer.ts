@@ -270,7 +270,7 @@ function factDetail(
     const unit = text(fact.unit);
     const valueType = text(fact.value_type) || "string";
     const value = text(fact[`value_${valueType}`]);
-    const claim = `${subjectKey} ${propertyKey} ${text(fact.operator)} ${value}${unit ? ` ${unit}` : ""}`;
+    const claim = `${subjectKey} ${propertyKey} ${text(fact.operator) || "eq"} ${value}${unit ? ` ${unit}` : ""}`;
     return { ...base, claim, ask: queryCall({ subjectKey, propertyKey }) };
   }
   if (factKind === "subject" && subjectKey) {

@@ -213,7 +213,7 @@ describe("shared discovery operation executors", () => {
     expect(payload.factQuery.warnings).toEqual([]);
     expect(payload.factQuery.next.map((entry) => entry.call)).toEqual([
       'kb_query({"id":"FACT-role-alice-admin"})',
-      'kb_query({"predicate":"has_role","distinct":"role"})',
+      'kb_query({"predicate":"has_role","where":{"user":"alice"},"distinct":"role"})',
     ]);
     const text = (result.content[0] as { text: string }).text;
     expect(text).toContain("2 has_role facts");
@@ -337,7 +337,7 @@ describe("shared discovery operation executors", () => {
     expect(nextOf(catalog)).toEqual(['kb_query({"predicate":"has_role"})']);
     expect(nextOf(kind)).toEqual(['kb_query({"factKind":"predicate_schema"})']);
     expect(nextOf(miss)).toEqual([
-      'kb_query({"predicate":"permission_rule","where":{"actor":"admin"}})',
+      'kb_query({"predicate":"permission_rule","where":{"actor":"admin"},"polarity":"assert"})',
     ]);
     expect((miss.content[0] as { text: string }).text).toContain(
       'Values that exist: {"actor":["admin","coach"]}',

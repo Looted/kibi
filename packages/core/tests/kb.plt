@@ -5129,6 +5129,28 @@ test(fact_kind_listing_carries_typed_fields_only, [setup((setup_kb, ask_fixture)
     ask_rows(MetaJson, MetaRows, _),
     assertion(MetaRows == []).
 
+test(unnamed_namespace_matches_facts_in_every_namespace, [setup((setup_kb, ask_fixture)), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(fact, 'FACT-ASK-CAROL-VIEWER', "carol is viewer", active, [
+        fact_kind=predicate, predicate_name="has_role", predicate_args=["carol", "viewer"],
+        polarity=assert, canonical_key="has_role(carol,viewer)"
+    ]),
+    discovery:ask_predicate_json(none, has_role, [], none, all, none, 100, 0, JsonString),
+    ask_rows(JsonString, Rows, Json),
+    assertion(Json.count == 3),
+    findall(Ns, (member(Row, Rows), get_dict(namespace, Row, Ns)), Namespaces),
+    assertion(Namespaces == ["access", "access", "default"]),
+    assertion(Json.schema.id == "FACT-SCHEMA-ASK-HAS-ROLE"),
+    discovery:ask_predicate_json(access, has_role, [], none, all, none, 100, 0, AccessJson),
+    atom_json_dict(AccessJson, Access, []),
+    assertion(Access.count == 2).
+
+test(positional_args_must_cover_the_declared_arity, [setup((setup_kb, ask_fixture)), cleanup(cleanup_kb)]) :-
+    discovery:ask_predicate_json(none, permission_rule, [admin], none, all, none, 100, 0, JsonString),
+    ask_rows(JsonString, Rows, Json),
+    assertion(Rows == []),
+    Json.warnings = [Warning],
+    assertion(sub_string(Warning, _, _, _, "4 declared, 1 given")).
+
 :- end_tests(discovery_ask).
 
 :- begin_tests(discovery_aggregate_counts).

@@ -107,6 +107,22 @@ export const FACT_KINDS = [
   "rule_schema",
 ] as const;
 
+/** Which typed filters each question mode reads; any other is refused. */
+const MODE_FILTERS: Record<FactQueryPayload["mode"], ReadonlySet<string>> = {
+  schemas: new Set(["factKind", "predicate", "namespace"]),
+  predicate: new Set([
+    "predicate",
+    "namespace",
+    "where",
+    "args",
+    "polarity",
+    "scope",
+    "distinct",
+  ]),
+  property: new Set(["subjectKey", "propertyKey", "scope"]),
+  fact_kind: new Set(["factKind"]),
+};
+
 const TYPED_FACT_FILTERS = [
   "factKind",
   "predicate",
@@ -355,33 +371,55 @@ function factQueryNext(
           why: "full fact text and relationships of one row",
         });
       }
+      const filters = {
+        predicate: input.predicate,
+        ...(input.namespace !== undefined
+          ? { namespace: input.namespace }
+          : {}),
+        ...(input.where !== undefined ? { where: input.where } : {}),
+        ...(input.args !== undefined ? { args: input.args } : {}),
+        ...(input.polarity !== undefined ? { polarity: input.polarity } : {}),
+        ...(input.scope !== undefined ? { scope: input.scope } : {}),
+      };
       const names = Array.isArray(
         (response.schema as { argumentNames?: unknown } | null)?.argumentNames,
       )
-        ? ((
+        ? (
             response.schema as { argumentNames: unknown[] }
           ).argumentNames.filter(
             (name): name is string => typeof name === "string",
-          ) as string[])
+          )
         : [];
-      if (input.distinct === undefined && names.length > 0) {
-        const argument = names[names.length - 1] ?? names[0];
+      const bound = new Set(Object.keys(input.where ?? {}));
+      const free = names.filter((name) => !bound.has(name));
+      if (
+        input.distinct === undefined &&
+        response.count > 0 &&
+        free.length > 0
+      ) {
+        const argument = free[free.length - 1] ?? free[0];
         next.push({
-          call: callText({ predicate: input.predicate, distinct: argument }),
-          why: `count the distinct values of '${argument}' across matching facts`,
+          call: callText({ ...filters, distinct: argument }),
+          why: `count the distinct values of '${argument}' across these facts`,
         });
       }
       if (
         response.count === 0 &&
         response.suggestions &&
-        typeof response.suggestions === "object"
+        typeof response.suggestions === "object" &&
+        (response.warnings ?? []).length === 0
       ) {
+        // Suggest a correction only for an argument whose requested value
+        // does not exist; a key whose value exists is not the cause.
         for (const [key, values] of Object.entries(response.suggestions)) {
-          const value = Array.isArray(values) ? values[0] : undefined;
+          if (!Array.isArray(values)) continue;
+          const requested = input.where?.[key];
+          if (requested !== undefined && values.includes(requested)) continue;
+          const value = values[0];
           if (typeof value === "string") {
             next.push({
               call: callText({
-                predicate: input.predicate,
+                ...filters,
                 where: { ...(input.where ?? {}), [key]: value },
               }),
               why: `'${key}' has no fact with that value; '${value}' is one that exists`,
@@ -502,7 +540,42 @@ async function executeFactQuery(
     }
   }
   const prolog = requireProlog(context);
+  if (
+    !Number.isFinite(limit) ||
+    !Number.isFinite(offset) ||
+    limit < 0 ||
+    offset < 0
+  ) {
+    throw new Error("limit and offset must be non-negative numbers.");
+  }
   const page = `${Math.trunc(limit)}, ${Math.trunc(offset)}`;
+  const namespace =
+    input.namespace === undefined
+      ? "none"
+      : toPrologAtom(requireAtomString(input.namespace, "namespace"));
+  const mode =
+    input.factKind === "predicate_schema"
+      ? "schemas"
+      : input.predicate !== undefined
+        ? "predicate"
+        : input.subjectKey !== undefined
+          ? "property"
+          : input.factKind !== undefined
+            ? "fact_kind"
+            : undefined;
+  if (mode === undefined) {
+    throw new Error(
+      "Typed fact filters need a predicate, a subjectKey or a factKind; where/args/polarity/distinct/propertyKey refine one of those.",
+    );
+  }
+  const unused = TYPED_FACT_FILTERS.filter(
+    (key) => input[key] !== undefined && !MODE_FILTERS[mode].has(key),
+  );
+  if (unused.length > 0) {
+    throw new Error(
+      `${unused.join(", ")} do${unused.length === 1 ? "es" : ""} not apply to a ${mode} question; allowed with it: ${[...MODE_FILTERS[mode]].join(", ")}.`,
+    );
+  }
   const scope =
     input.scope === undefined
       ? "all"
@@ -512,9 +585,9 @@ async function executeFactQuery(
       ? undefined
       : requireEnum(input.factKind, "factKind", FACT_KINDS);
   let goal: string;
-  if (factKind === "predicate_schema") {
-    goal = `discovery:ask_schemas_json(${toPrologAtom(input.namespace)}, ${toPrologAtom(input.predicate)}, ${page}, JsonString)`;
-  } else if (input.predicate !== undefined) {
+  if (mode === "schemas") {
+    goal = `discovery:ask_schemas_json(${namespace}, ${input.predicate === undefined ? "none" : toPrologAtom(requireAtomString(input.predicate, "predicate"))}, ${page}, JsonString)`;
+  } else if (mode === "predicate") {
     const name = requireAtomString(input.predicate, "predicate");
     const polarity =
       input.polarity === undefined
@@ -526,16 +599,16 @@ async function executeFactQuery(
       input.distinct === undefined
         ? "none"
         : toPrologAtom(requireAtomString(input.distinct, "distinct"));
-    goal = `discovery:ask_predicate_json(${toPrologAtom(input.namespace)}, ${toPrologAtom(name)}, ${predicateArgSpec(input)}, ${polarity}, ${scope}, ${distinct}, ${page}, JsonString)`;
-  } else if (input.subjectKey !== undefined) {
+    goal = `discovery:ask_predicate_json(${namespace}, ${toPrologAtom(name)}, ${predicateArgSpec(input)}, ${polarity}, ${scope}, ${distinct}, ${page}, JsonString)`;
+  } else if (mode === "property") {
     const subject = requireAtomString(input.subjectKey, "subjectKey");
-    goal = `discovery:ask_property_json(${toPrologAtom(subject)}, ${toPrologAtom(input.propertyKey)}, ${scope}, ${page}, JsonString)`;
-  } else if (factKind !== undefined) {
-    goal = `discovery:ask_fact_kind_json(${toPrologAtom(factKind)}, ${page}, JsonString)`;
+    const property =
+      input.propertyKey === undefined
+        ? "none"
+        : toPrologAtom(requireAtomString(input.propertyKey, "propertyKey"));
+    goal = `discovery:ask_property_json(${toPrologAtom(subject)}, ${property}, ${scope}, ${page}, JsonString)`;
   } else {
-    throw new Error(
-      "Typed fact filters need a predicate, a subjectKey or a factKind; where/args/polarity/distinct/propertyKey refine one of those.",
-    );
+    goal = `discovery:ask_fact_kind_json(${toPrologAtom(factKind)}, ${page}, JsonString)`;
   }
   const response = await runOperationJsonQuery<FactQueryResponse>(
     prolog,
