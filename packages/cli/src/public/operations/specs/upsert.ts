@@ -38,6 +38,21 @@ export const upsertSpec = {
         description:
           "Validate the payload and return schema/modeling errors, a normalized preview and the semantic advisor receipt without writing the KB or workspace. Use it as the preflight before the real write.",
       },
+      plannedFacts: {
+        type: "array",
+        description:
+          "dryRun only. Fact upsert payloads (type, id, properties, optional relationships) that will be written before this payload, typically the applyPlan entries kb_model returned. They are validated in order and staged with the payload, so a requires_predicate or requires_property target that does not exist yet resolves, its claim_key is read from the plan, and the contradiction preview runs against the KB as it would be after the whole batch (result: stagedFacts, whatIf). A conflict the batch would introduce, such as an allow and a deny permission_rule on the same key, is refused as the commit would refuse it. Rejected without dryRun: write the facts first.",
+        items: {
+          type: "object",
+          required: ["type", "id", "properties"],
+          properties: {
+            type: { type: "string", const: "fact" },
+            id: { type: "string", minLength: 1 },
+            properties: { type: "object" },
+            relationships: RELATIONSHIPS_SCHEMA,
+          },
+        },
+      },
       document: {
         type: "object",
         additionalProperties: false,

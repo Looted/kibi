@@ -2663,6 +2663,20 @@
                     "const": "predicates",
                     "type": "string"
                   },
+                  "plan": {
+                    "anyOf": [
+                      {
+                        "additionalProperties": {},
+                        "description": "With requirementId and a complete candidate: the hash-bound kibi.compile-plan.v1 that writes the predicate fact and links requires_predicate in one kb_apply_plan call (approvedPlanHash = plan.planHash). Its contradictionAnalysis is the what-if over the current KB plus the plan; a conflict leaves the plan blocked. Null when no plan applies.",
+                        "properties": {},
+                        "type": "object"
+                      },
+                      {
+                        "description": "With requirementId and a complete candidate: the hash-bound kibi.compile-plan.v1 that writes the predicate fact and links requires_predicate in one kb_apply_plan call (approvedPlanHash = plan.planHash). Its contradictionAnalysis is the what-if over the current KB plus the plan; a conflict leaves the plan blocked. Null when no plan applies.",
+                        "type": "null"
+                      }
+                    ]
+                  },
                   "recommendedAction": {
                     "anyOf": [
                       {
@@ -2952,6 +2966,134 @@
           "id": {
             "description": "Unique entity ID (string). Example: 'REQ-cli-gc'. Name entities by the behavior they govern (<TYPE>-<area>-<behavior>), never by the next free number. Existing ID updates the entity; new ID creates it.",
             "type": "string"
+          },
+          "plannedFacts": {
+            "description": "dryRun only. Fact upsert payloads (type, id, properties, optional relationships) that will be written before this payload, typically the applyPlan entries kb_model returned. They are validated in order and staged with the payload, so a requires_predicate or requires_property target that does not exist yet resolves, its claim_key is read from the plan, and the contradiction preview runs against the KB as it would be after the whole batch (result: stagedFacts, whatIf). A conflict the batch would introduce, such as an allow and a deny permission_rule on the same key, is refused as the commit would refuse it. Rejected without dryRun: write the facts first.",
+            "items": {
+              "additionalProperties": {},
+              "properties": {
+                "id": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "properties": {
+                  "additionalProperties": {},
+                  "properties": {},
+                  "type": "object"
+                },
+                "relationships": {
+                  "description": "Optional relationship rows to create in the same call. For requirement encoding, prefer `constrains` + `requires_property` for strict property facts or `requires_predicate` for ontology predicate facts. Side effect: asserts edges in KB.",
+                  "items": {
+                    "additionalProperties": {},
+                    "properties": {
+                      "from": {
+                        "description": "Source entity ID (must exist). Example: 'SYM-login-handler'.",
+                        "type": "string"
+                      },
+                      "to": {
+                        "description": "Target entity ID (must exist). Example: 'REQ-cli-gc'.",
+                        "type": "string"
+                      },
+                      "type": {
+                        "anyOf": [
+                          {
+                            "const": "depends_on",
+                            "type": "string"
+                          },
+                          {
+                            "const": "specified_by",
+                            "type": "string"
+                          },
+                          {
+                            "const": "verified_by",
+                            "type": "string"
+                          },
+                          {
+                            "const": "validates",
+                            "type": "string"
+                          },
+                          {
+                            "const": "implements",
+                            "type": "string"
+                          },
+                          {
+                            "const": "covered_by",
+                            "type": "string"
+                          },
+                          {
+                            "const": "executable_for",
+                            "type": "string"
+                          },
+                          {
+                            "const": "constrained_by",
+                            "type": "string"
+                          },
+                          {
+                            "const": "constrains",
+                            "type": "string"
+                          },
+                          {
+                            "const": "requires_property",
+                            "type": "string"
+                          },
+                          {
+                            "const": "requires_predicate",
+                            "type": "string"
+                          },
+                          {
+                            "const": "requires_rule",
+                            "type": "string"
+                          },
+                          {
+                            "const": "guards",
+                            "type": "string"
+                          },
+                          {
+                            "const": "publishes",
+                            "type": "string"
+                          },
+                          {
+                            "const": "consumes",
+                            "type": "string"
+                          },
+                          {
+                            "const": "supersedes",
+                            "type": "string"
+                          },
+                          {
+                            "const": "restates",
+                            "type": "string"
+                          },
+                          {
+                            "const": "assumes",
+                            "type": "string"
+                          },
+                          {
+                            "const": "exempts",
+                            "type": "string"
+                          },
+                          {
+                            "const": "relates_to",
+                            "type": "string"
+                          }
+                        ],
+                        "description": "Relationship type enum. Use only supported values. Direction semantics follow KB model (e.g., implements symbol->req, verified_by req/scenario->test, executable_for symbol->test)."
+                      }
+                    },
+                    "required": ["type", "from", "to"],
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "type": {
+                  "const": "fact",
+                  "type": "string"
+                }
+              },
+              "required": ["type", "id", "properties"],
+              "type": "object"
+            },
+            "type": "array"
           },
           "properties": {
             "additionalProperties": {},
@@ -4175,12 +4317,23 @@
                     },
                     "type": "array"
                   },
+                  "stagedFacts": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
                   "valid": {
                     "type": "boolean"
                   },
                   "warnings": {
                     "items": {},
                     "type": "array"
+                  },
+                  "whatIf": {
+                    "additionalProperties": {},
+                    "properties": {},
+                    "type": "object"
                   }
                 },
                 "required": ["valid", "dryRun", "skippedEffects"],
