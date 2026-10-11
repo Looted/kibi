@@ -146,6 +146,240 @@ describe("shared discovery operation executors", () => {
     );
   });
 
+  // implements REQ-kibi-query-fact-filters
+  test("kb_query asks predicate facts by name with order-free named arguments", async () => {
+    // Given: the discovery module answers a typed predicate question.
+    const response = {
+      mode: "predicate",
+      predicate: { namespace: null, name: "has_role", args: { user: "alice" } },
+      schema: {
+        id: "FACT-SCHEMA-has-role",
+        argumentNames: ["user", "role"],
+        argumentConstants: { role: ["admin", "coach"] },
+      },
+      count: 2,
+      rows: [
+        {
+          id: "FACT-role-alice-admin",
+          type: "fact",
+          title: "alice is admin",
+          status: "open",
+          name: "has_role",
+          args: ["alice", "admin"],
+          arguments: { user: "alice", role: "admin" },
+          polarity: "assert",
+          effect: null,
+        },
+        {
+          id: "FACT-role-alice-auditor",
+          type: "fact",
+          title: "alice is auditor",
+          status: "open",
+          name: "has_role",
+          args: ["alice", "auditor"],
+          arguments: { user: "alice", role: "auditor" },
+          polarity: "assert",
+          effect: null,
+        },
+      ],
+      distinct: null,
+      suggestions: null,
+      warnings: [],
+      meta: { branch: "main" },
+    };
+    const query = mock(async (_goal: string) => ({
+      success: true,
+      bindings: { JsonString: JSON.stringify(response) },
+    }));
+
+    // When
+    const result = await querySpec.execute(
+      { predicate: "has_role", where: { user: "alice" }, limit: 10 },
+      createContext(query),
+    );
+
+    // Then: the goal is built from validated JSON, never caller Prolog.
+    expect(query.mock.calls.at(-1)?.[0]).toContain(
+      "discovery:ask_predicate_json(none, 'has_role', where(['user'='alice']), none, all, none, 10, 0, JsonString)",
+    );
+    const payload = result.structuredContent as unknown as {
+      entities: unknown[];
+      count: number;
+      factQuery: { mode: string; next: { call: string }[]; warnings: string[] };
+    };
+    expect(payload.count).toBe(2);
+    expect(payload.entities).toEqual(response.rows);
+    expect(payload.factQuery.mode).toBe("predicate");
+    expect(payload.factQuery.warnings).toEqual([]);
+    expect(payload.factQuery.next.map((entry) => entry.call)).toEqual([
+      'kb_query({"id":"FACT-role-alice-admin"})',
+      'kb_query({"predicate":"has_role","where":{"user":"alice"},"distinct":"role"})',
+    ]);
+    const text = (result.content[0] as { text: string }).text;
+    expect(text).toContain("2 has_role facts");
+    expect(text).toContain("has_role(alice, admin)");
+  });
+
+  // implements REQ-kibi-query-fact-filters
+  test("kb_query routes property, catalog and fact-kind questions and relays suggestions", async () => {
+    // Given
+    const calls: string[] = [];
+    const responses: Record<string, unknown>[] = [
+      {
+        mode: "property",
+        property: {
+          subjectKey: "user.role_assignment",
+          propertyKey: "max_roles",
+        },
+        subjectFacts: ["FACT-subject-user-role-assignment"],
+        count: 1,
+        rows: [
+          {
+            id: "FACT-role-limit",
+            type: "fact",
+            subjectKey: "user.role_assignment",
+            propertyKey: "max_roles",
+            operator: "lte",
+            value: 2,
+            unit: "",
+          },
+        ],
+        warnings: [],
+      },
+      {
+        mode: "schemas",
+        count: 1,
+        rows: [{ name: "has_role", arity: 2, argumentNames: ["user", "role"] }],
+        warnings: [],
+      },
+      {
+        mode: "fact_kind",
+        factKind: "predicate",
+        count: 0,
+        rows: [],
+        warnings: [],
+      },
+      {
+        mode: "predicate",
+        predicate: {
+          namespace: null,
+          name: "permission_rule",
+          args: { actor: "superuser" },
+        },
+        schema: {
+          builtin: true,
+          argumentNames: ["actor", "action", "resource", "decision"],
+        },
+        count: 0,
+        rows: [],
+        distinct: null,
+        suggestions: { actor: ["admin", "coach"] },
+        warnings: [],
+      },
+    ];
+    const query = mock(async (goal: string): Promise<PrologQueryResult> => {
+      calls.push(goal);
+      if (goal.startsWith("use_module")) return { success: true, bindings: {} };
+      const next = responses.shift();
+      return { success: true, bindings: { JsonString: JSON.stringify(next) } };
+    });
+    const context = createContext(query);
+
+    // When
+    const property = await querySpec.execute(
+      {
+        subjectKey: "user.role_assignment",
+        propertyKey: "max_roles",
+        scope: "current_requirements",
+      },
+      context,
+    );
+    const catalog = await querySpec.execute(
+      { factKind: "predicate_schema" },
+      context,
+    );
+    const kind = await querySpec.execute(
+      { factKind: "predicate", limit: 5, offset: 5 },
+      context,
+    );
+    const miss = await querySpec.execute(
+      {
+        predicate: "permission_rule",
+        where: { actor: "superuser" },
+        polarity: "assert",
+        distinct: "action",
+      },
+      context,
+    );
+
+    // Then
+    const goals = calls.filter((goal) => goal.includes("discovery:ask_"));
+    expect(goals[0]).toContain(
+      "discovery:ask_property_json('user.role_assignment', 'max_roles', current_requirements, 100, 0, JsonString)",
+    );
+    expect(goals[1]).toContain(
+      "discovery:ask_schemas_json(none, none, 100, 0, JsonString)",
+    );
+    expect(goals[2]).toContain(
+      "discovery:ask_fact_kind_json('predicate', 5, 5, JsonString)",
+    );
+    expect(goals[3]).toContain(
+      "discovery:ask_predicate_json(none, 'permission_rule', where(['actor'='superuser']), 'assert', all, 'action', 100, 0, JsonString)",
+    );
+    const nextOf = (result: { structuredContent?: unknown }) =>
+      (
+        result.structuredContent as { factQuery: { next: { call: string }[] } }
+      ).factQuery.next.map((entry) => entry.call);
+    expect(nextOf(property)).toEqual([
+      'kb_query({"id":"FACT-role-limit"})',
+      'kb_query({"subjectKey":"user.role_assignment"})',
+    ]);
+    expect(nextOf(catalog)).toEqual(['kb_query({"predicate":"has_role"})']);
+    expect(nextOf(kind)).toEqual(['kb_query({"factKind":"predicate_schema"})']);
+    expect(nextOf(miss)).toEqual([
+      'kb_query({"predicate":"permission_rule","where":{"actor":"admin"},"polarity":"assert"})',
+    ]);
+    expect((miss.content[0] as { text: string }).text).toContain(
+      'Values that exist: {"actor":["admin","coach"]}',
+    );
+    expect((property.content[0] as { text: string }).text).toContain(
+      "user.role_assignment max_roles lte 2",
+    );
+  });
+
+  // implements REQ-kibi-query-fact-filters
+  test("kb_query rejects malformed typed fact questions before touching Prolog", async () => {
+    const query = mock(async (_goal: string) => ({
+      success: true,
+      bindings: {},
+    }));
+    const context = createContext(query);
+    const cases: [Record<string, unknown>, string][] = [
+      [
+        { where: { actor: "admin" } },
+        "need a predicate, a subjectKey or a factKind",
+      ],
+      [{ predicate: "has_role", type: "req" }, "apply to type 'fact' only"],
+      [{ predicate: "has_role", id: "FACT-x" }, "id cannot be combined"],
+      [
+        { predicate: "has_role", where: { user: "a" }, args: ["a"] },
+        "either where",
+      ],
+      [{ predicate: "has_role", polarity: "maybe" }, "polarity must be one of"],
+      [{ factKind: "unknown" }, "factKind must be one of"],
+      [
+        { predicate: "has_role", where: { user: "" } },
+        "where.user must be a non-empty string",
+      ],
+    ];
+    for (const [input, message] of cases) {
+      await expect(querySpec.execute(input as never, context)).rejects.toThrow(
+        message,
+      );
+    }
+    expect(query).not.toHaveBeenCalled();
+  });
+
   test("kb_search trims the query and preserves ranked pagination", async () => {
     // Given
     const query = mock(async (_goal: string) => ({

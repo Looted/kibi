@@ -151,6 +151,35 @@ describe("inspectProofEnvironment", () => {
     expect(inspection.missing).toEqual([]);
   });
 
+  test("says add for an integration id the file does not have yet and replace for an existing one", () => {
+    const root = workspace();
+    writeFileSync(
+      path.join(root, "package.json"),
+      JSON.stringify({ name: "demo", scripts: { test: "bun test" } }),
+    );
+    mkdirSync(path.join(root, ".kb", "proof"), { recursive: true });
+    writeFileSync(
+      path.join(root, ".kb", "proof", "integrations.json"),
+      JSON.stringify({
+        version: "kibi.proof-integration.v1",
+        integrations: [
+          { id: "unit", producer: "command", command: ["bun", "test"] },
+        ],
+      }),
+    );
+
+    const added = inspectProofEnvironment(root, { update: "e2e" });
+    expect(added.integrationPlan).not.toBeNull();
+    expect(added.recommendation).toStartWith("To add integration 'e2e', ");
+    expect(added.recommendation).not.toContain("replace");
+
+    const replaced = inspectProofEnvironment(root, { update: "unit" });
+    expect(replaced.integrationPlan).not.toBeNull();
+    expect(replaced.recommendation).toStartWith(
+      "To replace integration 'unit', ",
+    );
+  });
+
   test("treats invalid package.json as absent scripts", () => {
     const root = workspace();
     writeFileSync(path.join(root, "package.json"), "{not json");

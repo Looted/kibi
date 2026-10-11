@@ -7233,8 +7233,92 @@ symbols:
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-query-fact-filters
       - type: implements
         target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-query-fact-filters
+  - id: SYM-discovery-execute-fact-query
+    title: executeFactQuery
+    status: active
+    sourceFile: packages/cli/src/public/operations/discovery-executors.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-query-fact-filters
+      - type: implements
+        target: REQ-kibi-query-fact-filters
+  - id: SYM-discovery-fact-query-next
+    title: factQueryNext
+    status: active
+    sourceFile: packages/cli/src/public/operations/discovery-executors.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-query-fact-filters
+      - type: implements
+        target: REQ-kibi-query-fact-filters
+  - id: SYM-discovery-predicate-arg-spec
+    title: predicateArgSpec
+    status: active
+    sourceFile: packages/cli/src/public/operations/discovery-executors.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-query-fact-filters
+      - type: implements
+        target: REQ-kibi-query-fact-filters
+  - id: SYM-core-discovery-askPredicateJson
+    title: ask_predicate_json
+    status: active
+    sourceFile: packages/core/src/discovery.pl
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-query-fact-filters
+      - type: implements
+        target: REQ-kibi-query-fact-filters
+  - id: SYM-core-discovery-askPropertyJson
+    title: ask_property_json
+    status: active
+    sourceFile: packages/core/src/discovery.pl
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-query-fact-filters
+      - type: implements
+        target: REQ-kibi-query-fact-filters
+  - id: SYM-core-discovery-askSchemasJson
+    title: ask_schemas_json
+    status: active
+    sourceFile: packages/core/src/discovery.pl
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-query-fact-filters
+      - type: implements
+        target: REQ-kibi-query-fact-filters
+  - id: SYM-core-discovery-askFactKindJson
+    title: ask_fact_kind_json
+    status: active
+    sourceFile: packages/core/src/discovery.pl
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-query-fact-filters
+      - type: implements
+        target: REQ-kibi-query-fact-filters
+  - id: SYM-cli-search-answer-fact-detail
+    title: factDetail
+    status: active
+    sourceFile: packages/cli/src/search-answer.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-query-fact-filters
+      - type: implements
+        target: REQ-kibi-query-fact-filters
   - id: SYM-discovery-execute-search
     title: executeSearch
     status: active
@@ -47569,6 +47653,15 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-kibi-search-answer-layer
+  - id: SYM-test-kibi-query-fact-filters
+    title: Typed fact questions consumer suite
+    status: active
+    sourceFile: packages/cli/tests/consumer/query-fact-filters.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-query-fact-filters
   - id: SYM-test-kibi-mcp-tool-consolidation
     title: Consolidated MCP tool surface consumer suite
     status: active
@@ -51370,3 +51463,62 @@ symbols:
         target: TEST-bootstrap-ui-plugin-offer
       - type: implements
         target: REQ-bootstrap-ui-plugin-offer
+  - id: SYM-agent-core-parseFlow
+    title: parseFlow
+    status: active
+    sourceFile: packages/agent-core/src/knowledge-index.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-hooks-flow-manifest
+      - type: implements
+        target: REQ-kibi-hooks-flow-manifest
+  - id: SYM-agent-core-scanFlowSection
+    title: scanFlowSection
+    status: active
+    sourceFile: packages/agent-core/src/knowledge-index.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-hooks-flow-manifest
+      - type: implements
+        target: REQ-kibi-hooks-flow-manifest
+  - id: SYM-agent-core-manifestStateOf
+    title: manifestStateOf
+    status: active
+    sourceFile: packages/agent-core/src/knowledge-index.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-hooks-flow-manifest
+      - type: implements
+        target: REQ-kibi-hooks-flow-manifest
+  - id: SYM-claude-unreadableManifestNote
+    title: unreadableManifestNote
+    status: active
+    sourceFile: packages/claude/src/snippets.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-hooks-flow-manifest
+      - type: implements
+        target: REQ-kibi-hooks-flow-manifest
+  - id: SYM-cli-sync-normalizeManifestLayout
+    title: normalizeManifestLayout
+    status: active
+    sourceFile: packages/cli/src/commands/sync/manifest.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-hooks-flow-manifest
+      - type: implements
+        target: REQ-kibi-hooks-flow-manifest
+  - id: SYM-test-kibi-hooks-flow-manifest
+    title: Flow-layout manifest hooks consumer suite
+    status: active
+    sourceFile: packages/cli/tests/consumer/flow-manifest-hooks.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-hooks-flow-manifest

@@ -37,6 +37,7 @@ argument_constants:
     - kibi.cli.doctor
     - kibi.cli.query
     - kibi.cli.startup
+    - kibi.cli.sync
     - kibi.coverage.repair_plan
     - kibi.coverage.requirement
     - kibi.discovery.search
@@ -46,6 +47,7 @@ argument_constants:
     - kibi.engine.read_limits
     - kibi.entity.origin
     - kibi.host.edit_snippets
+    - kibi.host.knowledge_index
     - kibi.kb.lifecycle
     - kibi.logic.coverage
     - kibi.mcp.tool_schema

@@ -48,7 +48,14 @@ import { kibiPackageVersions } from "./package-versions.js";
 import { writePerformanceTraceEvent } from "./performance-trace.js";
 import { PrologProcess, resolveKbPlPath } from "./prolog.js";
 import { parseEntityFromList, parseListOfLists } from "./prolog/codec.js";
-import { retryAttachAfterBreakingStaleLock } from "./prolog/store-lock.js";
+import {
+  decideStoreLockTakeover,
+  isProcessAlive,
+  noteDeadHolderBeforeAttach,
+  readRdfLockPid,
+  recordStoreLockTakeover,
+  retryAttachAfterBreakingStaleLock,
+} from "./prolog/store-lock.js";
 import { resolveSwipl, swiplIdentity } from "./prolog/swipl-resolver.js";
 import { queryEntityChunks } from "./public/operations/discovery-entities.js";
 import type { PrologQueryResult } from "./public/operations/runtime-types.js";
@@ -772,26 +779,21 @@ function releaseStartLock(lockPath: string, descriptor: number | null): void {
 function recoverStaleJournalLock(branchPath: string): void {
   const lockPath = path.join(branchPath, "rdf", "lock");
   if (!existsSync(lockPath)) return;
-  let contents = "";
+  const pid = readRdfLockPid(lockPath);
+  if (pid === null || pid === process.pid || isProcessAlive(pid)) return;
+  // implements REQ-core-journaled-engine-persistence
+  // Breaking a dead holder's lock is a takeover; record it for kb_status and
+  // kibi doctor instead of healing silently.
+  recordStoreLockTakeover(
+    branchPath,
+    pid,
+    decideStoreLockTakeover({ pid }).reason,
+  );
   try {
-    contents = readFileSync(lockPath, "utf8");
+    rmSync(lockPath, { force: true });
   } catch {
-    return;
-  }
-  const match = /pid\((\d+)\)/.exec(contents);
-  if (!match) return;
-  const pid = Number.parseInt(match[1] ?? "", 10);
-  if (!Number.isFinite(pid) || pid <= 0 || pid === process.pid) return;
-  try {
-    process.kill(pid, 0);
-    return;
-  } catch {
-    try {
-      rmSync(lockPath, { force: true });
-    } catch {
-      // Let rdf_attach_db report the lock error if another process wins the
-      // race between the liveness probe and removal.
-    }
+    // Let rdf_attach_db report the lock error if another process wins the
+    // race between the liveness probe and removal.
   }
 }
 
@@ -1848,10 +1850,14 @@ export class EngineSession {
 
   async boot(): Promise<void> {
     await this.prolog.start();
+    // A killed holder never makes kb_attach fail (its OS lock died with it),
+    // so a dead-holder takeover must be noted before the attach succeeds.
+    const recordTakeover = noteDeadHolderBeforeAttach(this.branchPath);
     const attached = await this.prolog.query(
       `kb_attach('${quoteProlog(this.branchPath)}')`,
     );
-    if (!attached.success) {
+    if (attached.success) recordTakeover();
+    else {
       // The daemon hosts the branch store for every later request, so a
       // store-locked startup with a provably dead holder is auto-healed here
       // exactly like the CLI runtime path; live holders abort the startup

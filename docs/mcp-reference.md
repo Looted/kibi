@@ -309,9 +309,9 @@ For exact predicate suggestions, the receipt `candidate_lane` and `suggested_nex
 
 ### `kb_query`
 
-Retrieve entities by `type`, `id`, `tags`, or `sourceFile`. Supports limit and offset pagination.
+Retrieve entities by `type`, `id`, `tags`, or `sourceFile`, or ask typed questions about modeled facts. Supports limit and offset pagination.
 
-**Parameters:**
+**Entity filters:**
 - `type` (optional): Entity type (`req`, `scenario`, `test`, `adr`, `flag`, `event`, `symbol`, `fact`)
 - `id` (optional): Entity ID (exact match)
 - `tags` (optional): Tag list for filtering
@@ -320,7 +320,7 @@ Retrieve entities by `type`, `id`, `tags`, or `sourceFile`. Supports limit and o
 - `offset` (optional): Number of results to skip
 
 **Returns:**
-Array of matching entities with deterministic ordering.
+Array of matching entities (`entities`) with deterministic ordering and the total `count`.
 
 **Example:**
 ```json
@@ -330,6 +330,27 @@ Array of matching entities with deterministic ordering.
   "limit": 20
 }
 ```
+
+**Typed fact questions:** instead of searching prose, ask the KB about the facts it models. These filters apply to `fact` entities only and cannot be combined with `id`, `tags` or `sourceFile`.
+
+- `factKind`: list facts of one kind (`subject`, `property_value`, `predicate`, `predicate_schema`, `observation`, `meta`, `rule`, `rule_schema`) with their typed fields. `factKind: "predicate_schema"` is the catalog of askable predicates: each row names the predicate, its argument names and types, declared `argumentConstants`, key arguments, examples and how many facts use it. Built-in decision predicates such as `permission_rule(actor, action, resource, decision)` appear with `builtin: true`.
+- `predicate` (+ optional `namespace`): every stored fact of that predicate. Narrow it with `where`, an order-free object of argument name to value resolved through the schema (`{"actor": "admin", "decision": "allow"}`), or with positional `args` where `null` matches anything. `polarity` keeps `assert` or `deny` facts, `scope: "current_requirements"` keeps only facts a current requirement requires, and `distinct` names an argument whose distinct values are counted. Rows carry `arguments` (named), `polarity`, the effective `effect` (`allow`/`deny`) for decision predicates, the `canonicalKey`, `claimText` and the requirements that require the fact with their current/superseded status.
+- `subjectKey` (+ optional `propertyKey`): the strict property facts stated about a subject, each with `operator`, `valueType`, `value`, `unit` and the requirements that require it; `subjectFacts` names the subject fact itself.
+
+`where`, `args`, `polarity`, `distinct`, `namespace` and `propertyKey` refine one of those three questions and are refused with a message when sent without one or with the wrong one, and `kb_query` rejects positional `args` that do not cover the predicate's full arity. Every typed answer returns the rows in `entities` plus `factQuery`: the `mode`, the question as understood, the `schema` used, `distinct` counts, `suggestions` (when nothing matched a `where`, the values that do exist per bound argument), `warnings` (an argument name the schema does not declare, with the declared names) and `next`, the exact follow-up `kb_query` calls that make sense, so the agent never has to guess the next step.
+
+```json
+{ "predicate": "has_role", "where": { "user": "alice" }, "distinct": "role" }
+```
+answers "how many roles does alice have?" with the facts and `factQuery.distinct.values`;
+```json
+{ "predicate": "permission_rule", "where": { "actor": "admin" } }
+```
+answers "what may an admin do?" with each rule's `effect`;
+```json
+{ "subjectKey": "user.role_assignment", "propertyKey": "max_roles" }
+```
+answers "what is the role limit?" with the operator and value. Start from `{ "factKind": "predicate_schema" }` when you do not know the predicate names. `kb_search` answers already point here: each linked fact in the answer layer carries its typed `claim` (`has_role(alice, admin)`, `user.role_assignment max_roles lte 2`) and the `ask` call that queries the same predicate or subject.
 
 ### `kb_search`
 
@@ -360,7 +381,7 @@ Every response carries `branch`, the Kibi branch whose store was searched (`null
 
 On the first intent-mode page, `data.answer` (`kibi.search-answer.v1`) turns the matches into what an agent asking "what governs this?" needs:
 
-- `governing`: current requirements matched by the query or linked to a matched entity. Each has `score`, `via` (how it was reached), and its linked `facts` (with `factKind`), `scenarios`, `tests`, and `adrs`. Tests include those that verify the requirement's scenarios; each test's `via` is `direct` or the scenario it was reached through. Each requirement also carries:
+- `governing`: current requirements matched by the query or linked to a matched entity. Each has `score`, `via` (how it was reached), and its linked `facts` (with `factKind`, and for typed facts the `claim` they state and the `kb_query` call in `ask` that asks about the same predicate or subject), `scenarios`, `tests`, and `adrs`. Tests include those that verify the requirement's scenarios; each test's `via` is `direct` or the scenario it was reached through. Each requirement also carries:
   - `verdict`: what the existing checks report about it. `status` is `contradiction` (a domain-contradiction witness names it), `infeasible` (a scenario-feasibility witness: a success scenario it specifies assumes a value a current requirement forbids, or it forbids another requirement's scenario), `unknown` (only `unknowns` below), or `none`. `witnesses` lists each blocking finding with its `check`, `status`, the other requirement (`with`), the `scenario`, the `facts` involved and a `detail`. `none` means no check named the requirement, not that it is proven; proof-ladder status stays in `kb_coverage`.
   - `exceptions`: requirements that `exempts` it, each with `approvedBy` when a human approved the exception.
   - `unknowns`: what the checks could not decide, each with a `kind` and `detail`: `contradiction_unresolved` (a rule overlap the checks could not classify), `feasibility_unknown` (a success scenario whose assumptions no current requirement constrains), `unresolved_proposition` (a clause still `ambiguous` or an `ontology_gap`), `analysis_incomplete` (no complete clause ledger), or `verdict_unavailable` (the checks could not run).
@@ -503,11 +524,18 @@ changing content, so before reporting `indexed_source_newer`,
 `knowledge_source_newer` or `documentation_source_newer`, `kb_status`
 compares the file's sha256 with the hashes the last compilation recorded (the
 store's `sync-cache.json`, a symbol manifest's composite hash of the sources
-it references, or the coordinate artifact's per-symbol `sourceHash`). A file
-whose content matches is dropped, and when nothing else remains the branch is
-`fresh`. Sources whose content did change become one automatic
+it references, or the per-symbol `sourceHash` in
+`.kb/symbol-coordinates.yaml`). The coordinate artifact counts as evidence on
+its own, so code files referenced only by symbols that `kb_upsert` wrote into
+an untracked `.kb/symbols.yaml` are confirmed even though sync never hashed
+that manifest. A file whose content matches is dropped, and when nothing else
+remains the branch is `fresh`. A file with no recorded evidence keeps its
+reason. Sources whose content did change become one automatic
 `freshness-resync` action (`kibi sync`) in the `migrationPlan`, which
-`kb_apply_plan` runs.
+`kb_apply_plan` runs. When an untracked `.kb/symbols.yaml` has no
+pending-source receipt (as older Kibi versions left it) but declares symbols
+the branch store already holds, `kibi sync` writes the receipt `kb_upsert`
+would have written, compiles the manifest and records its content hash.
 
 `notices` lists informational, non-blocking observations that never make the
 KB stale. `store_lock_taken_over` (with `brokenPid`, `reason` and `at`)

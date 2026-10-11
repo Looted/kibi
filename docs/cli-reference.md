@@ -122,6 +122,7 @@ Extracts entities and relationships from project documents and updates the knowl
 **Behavior:**
 - Extracts entities from Markdown files with frontmatter
 - Imports symbols from YAML manifests
+- Rewrites a `.kb/symbols.yaml` whose `symbols` sequence is still in YAML flow layout (`symbols: [ { id: … }, … ]`, what kibi-cli before 2.18.0 produced by appending to the `symbols: []` that `kibi init` writes) in block layout once, keeping comments and order, so hook scanners and reviewers can read it; the summary line `Rewrote .kb/symbols.yaml in block layout` reports it
 - Updates KB for the current git branch
 - Runs validation rules on the updated KB
 
@@ -370,6 +371,13 @@ kibi query --relationships REQ-cli-gc
 # Get paginated results
 kibi query scenario --limit 10 --offset 0
 kibi query scenario --limit 10 --offset 10
+```
+
+**Typed fact questions** use the JSON route (`kibi query --input -`) with the same fields as the `kb_query` MCP tool: `factKind` (`predicate_schema` lists the askable predicates), `predicate` with order-free `where` arguments, `polarity`, `scope`, `distinct`, or `subjectKey` with `propertyKey`. The answer carries the matching fact rows and a `factQuery` block with the schema, distinct counts, values that exist when nothing matched, warnings and the next call to run.
+
+```bash
+printf '%s\n' '{"predicate":"permission_rule","where":{"actor":"admin"}}' | kibi query --input -
+printf '%s\n' '{"subjectKey":"user.role_assignment","propertyKey":"max_roles"}' | kibi query --input -
 ```
 
 **Notes:**

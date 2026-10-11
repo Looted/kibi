@@ -14,6 +14,7 @@ import {
   CANONICAL_ENTITY_PATHS,
   isDerivedKbPath,
 } from "../../utils/kb-paths.js";
+import { blockifySymbolManifest } from "../../utils/symbol-manifest-layout.js";
 import type { RelationshipInput, UpsertInput } from "./types.js";
 
 export type SourceWriteReceipt = Readonly<{
@@ -660,18 +661,10 @@ function renderSymbolManifest(
     );
   }
   // implements REQ-core-persistence
-  // `kibi init` writes `symbols: []`, a flow sequence; appending to it kept
-  // every symbol on one line. Render the list (and the entries that were
-  // written inside it) as block YAML so diffs stay reviewable.
-  const sequence = symbols as { flow?: boolean; items: unknown[] };
-  if (sequence.flow === true) {
-    sequence.flow = false;
-    for (const item of sequence.items) {
-      if (item && typeof item === "object" && "flow" in item)
-        (item as { flow?: boolean }).flow = false;
-    }
-  }
-  const items = sequence.items;
+  // Render the list (and the entries that were written inside it) as block
+  // YAML so diffs stay reviewable.
+  blockifySymbolManifest(doc);
+  const items = (symbols as { items: unknown[] }).items;
   const id = String(entity.id);
   const indices = items.flatMap((item, index) => {
     if (!item || typeof item !== "object" || !("get" in item)) return [];

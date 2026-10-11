@@ -30,12 +30,21 @@ function referenceIndex(symbolsText: string, coordinatesText: string) {
   const rawCoordinates =
     (parse(coordinatesText) as { coordinates?: Record<string, never> })
       ?.coordinates ?? {};
-  const coordinates: Record<string, { line?: number; endLine?: number }> = {};
+  const coordinates: Record<
+    string,
+    { line?: number; endLine?: number; sourceFile?: string }
+  > = {};
   for (const [id, value] of Object.entries(rawCoordinates) as [
     string,
-    { sourceLine?: number; sourceEndLine?: number },
+    { sourceLine?: number; sourceEndLine?: number; sourceFile?: string },
   ][]) {
-    coordinates[id] = { line: value.sourceLine, endLine: value.sourceEndLine };
+    coordinates[id] = {
+      line: value.sourceLine,
+      endLine: value.sourceEndLine,
+      ...(value.sourceFile === undefined
+        ? {}
+        : { sourceFile: value.sourceFile }),
+    };
   }
   return buildKnowledgeIndex(records as Record<string, unknown>[], coordinates);
 }
@@ -149,7 +158,13 @@ describe("knowledge index cache", () => {
 
   test("an absent manifest yields an empty index", () => {
     const root = tempDir("kibi-claude-empty-");
-    expect(loadKnowledgeIndex(root)).toEqual({ files: {}, symbolCount: 0 });
+    expect(loadKnowledgeIndex(root)).toEqual({
+      files: {},
+      symbolCount: 0,
+      manifest: "missing",
+      coordinateFiles: [],
+      unlinkedFiles: [],
+    });
   });
 });
 

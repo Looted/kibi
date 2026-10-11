@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 196,
-  "proofProven": 196,
+  "currentRequirements": 198,
+  "proofProven": 198,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -982,6 +982,16 @@
       "uncoveredSymbols": []
     },
     "REQ-bootstrap-ui-plugin-offer": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-query-fact-filters": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-hooks-flow-manifest": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []

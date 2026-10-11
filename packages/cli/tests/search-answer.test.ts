@@ -13,7 +13,7 @@ import {
   projectVerdict,
 } from "../src/search-answer.js";
 
-type Row = Record<string, string>;
+type Row = Record<string, string | readonly string[]>;
 
 type FakeKbOptions = Readonly<{
   /** Raw verdict rows by requirement id; others get an empty verdict. */
@@ -237,6 +237,88 @@ describe("search answer layer", () => {
     ]);
     expect(answer.governing).toEqual([]);
     expect(answer.note).toContain("not evidence");
+  });
+
+  // implements REQ-kibi-query-fact-filters
+  test("linked typed facts state their claim and the kb_query that asks about them", async () => {
+    const entities: Record<string, Row> = {
+      "REQ-ROLES": {
+        id: "REQ-ROLES",
+        type: "req",
+        title: "Admins hold at most two roles",
+        status: "open",
+      },
+      "FACT-ROLE": {
+        id: "FACT-ROLE",
+        type: "fact",
+        title: "alice has the admin role",
+        status: "active",
+        fact_kind: "predicate",
+        predicate_name: "has_role",
+        predicate_args: ["alice", "admin"],
+        polarity: "assert",
+      },
+      "FACT-DENY": {
+        id: "FACT-DENY",
+        type: "fact",
+        title: "viewers cannot export",
+        status: "active",
+        fact_kind: "predicate",
+        predicate_name: "permission_rule",
+        predicate_args: ["viewer", "export", "report", "deny"],
+        polarity: "deny",
+      },
+      "FACT-LIMIT": {
+        id: "FACT-LIMIT",
+        type: "fact",
+        title: "at most two roles per user",
+        status: "active",
+        fact_kind: "property_value",
+        subject_key: "user.role_assignment",
+        property_key: "max_roles",
+        operator: "lte",
+        value_type: "int",
+        value_int: "2",
+        unit: "",
+      },
+      "FACT-SUBJECT": {
+        id: "FACT-SUBJECT",
+        type: "fact",
+        title: "user role assignment",
+        status: "active",
+        fact_kind: "subject",
+        subject_key: "user.role_assignment",
+      },
+    };
+    const kb = fakeKb(entities, [
+      ["requires_predicate", "REQ-ROLES", "FACT-ROLE"],
+      ["requires_predicate", "REQ-ROLES", "FACT-DENY"],
+      ["requires_property", "REQ-ROLES", "FACT-LIMIT"],
+      ["constrains", "REQ-ROLES", "FACT-SUBJECT"],
+    ]);
+    const answer = await buildSearchAnswer(kb, [
+      match(entities["REQ-ROLES"] as Row, 0.9),
+    ]);
+    const facts = answer.governing[0]?.facts ?? [];
+    const byId = Object.fromEntries(facts.map((fact) => [fact.id, fact]));
+    expect(byId["FACT-ROLE"]).toMatchObject({
+      factKind: "predicate",
+      claim: "has_role(alice, admin)",
+      ask: 'kb_query({"predicate":"has_role"})',
+    });
+    expect(byId["FACT-DENY"]?.claim).toBe(
+      "permission_rule(viewer, export, report, deny) [deny]",
+    );
+    expect(byId["FACT-LIMIT"]).toMatchObject({
+      factKind: "property_value",
+      claim: "user.role_assignment max_roles lte 2",
+      ask: 'kb_query({"subjectKey":"user.role_assignment","propertyKey":"max_roles"})',
+    });
+    expect(byId["FACT-SUBJECT"]).toMatchObject({
+      claim: "user.role_assignment",
+      ask: 'kb_query({"subjectKey":"user.role_assignment"})',
+    });
+    expect(answer.truncated).toBe(false);
   });
 
   test("answering costs a few engine round trips however many entities are linked", async () => {

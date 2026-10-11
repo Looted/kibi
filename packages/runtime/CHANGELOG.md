@@ -1,5 +1,34 @@
 # kibi-runtime
 
+## 2.14.0
+
+### Minor Changes
+
+- 78e561d: Agents can now ask Kibi precise questions about modeled facts through `kb_query` instead of reading through search results: which permission rules apply to an actor, how many roles a user holds, or what limit a subject property has, with the answer coming from the typed facts the requirements require. The schema catalog (`factKind: "predicate_schema"`), named `where` arguments, suggestions when nothing matches and a `next` call on every answer mean an agent does not need to know the predicate vocabulary or any Prolog up front. `kb_search` answers now show each linked fact's typed claim and the `kb_query` call that asks about it.
+
+  Technical summary: `kb_query` (CLI `query`) accepts `factKind`, `predicate`, `namespace`, `where`, `args`, `polarity`, `scope`, `distinct`, `subjectKey` and `propertyKey`; typed answers return fact rows in `entities` plus a `factQuery` block (mode, schema, distinct, suggestions, warnings, next). The discovery Prolog module gains `ask_predicate_json/9`, `ask_property_json/6`, `ask_schemas_json/5` and `ask_fact_kind_json/4`, invoked only through validated goals. The search answer layer adds `claim` and `ask` to linked predicate, property and subject facts.
+
+### Patch Changes
+
+- fa208f1: When an engine or a `kibi prove` run is killed while it holds the branch store, the next attach now records the takeover, so `kb_status` lists the `store_lock_taken_over` notice and `kibi doctor` reports it. Before, the notice never appeared in practice: the operating system releases a dead holder's lock, so the attach that the takeover record depended on never failed. `kibi doctor` now also reports a takeover on a branch store that is not compiled yet.
+
+  Technical summary: the new `noteDeadHolderBeforeAttach(kbPath)` in `prolog/store-lock.ts` reads the `rdf/lock` file a holder leaves only when it crashes or is killed (SWI deletes it on every detach and halt), classifies its holder (the ownership journal when it names the same pid, else the lock file's pid) with `decideStoreLockTakeover`, and returns a step that writes `<store>/.kibi-lock-takeover.json`; `EngineSession.boot` and the CLI runtime run it only after `kb_attach` succeeds. `recoverStaleJournalLock`, which the daemon and sync run before attaching, records the takeover before it removes a dead holder's `rdf/lock` and now treats an `EPERM` liveness probe as a live holder. `retryAttachAfterBreakingStaleLock` keeps its record for the `store_locked` path.
+
+- 1cee3b0: `kibi proof inspect --update <id>` now says "To add integration '<id>'" when the integrations file does not have that id yet, instead of claiming it would replace an integration that does not exist. An existing id still reads "To replace integration '<id>'".
+
+  Technical summary: `inspectProofEnvironment` picks the verb from `currentIntegrations` and uses the trimmed `--update` id, matching the create-or-update choice `buildProofIntegrationPlan` already makes.
+
+- d973759: The kibi-usage skill (2.15.0) now tells agents to title a symbol after the behavioral member the extractor can find (`ClassName.methodName`, an exported function, or a class). It also explains that linking a coarse file- or module-level symbol to a requirement is refused when the file already has granular behavioral symbols, unless the symbol sets `granularity_reason`, so agents stop retrying refused symbol writes.
+
+  Technical summary: the "Symbol-First Traceability" section of `kibi-usage/SKILL.md` gains one paragraph on `title` and the granularity gate, listing the allowed `granularity_reason` values (`config-artifact`, `module-level-behavior`, `extractor-miss`, `legacy-link`, `test-suite`). Host skill copies are regenerated.
+
+- 1b8d532: A fresh clone with a restored `.kb/` no longer reports every source file stale when its symbols were written by `kb_upsert` into an untracked `.kb/symbols.yaml` that an older Kibi left without a pending-source receipt. `kb_status` now confirms those files against the per-symbol source hashes recorded in `.kb/symbol-coordinates.yaml`, and the next `kibi sync` (including the automatic `freshness-resync` action) compiles that manifest so the store records its content hash for every later clone.
+
+  Technical summary: `confirmSourceNewerReasons` reads the canonical `.kb/symbol-coordinates.yaml` (plus the artifact beside every hashed manifest) even when the manifest's composite hash is absent from `sync-cache.json`; a file with neither cache nor coordinate evidence keeps its reason. Before discovery, `syncCommand` calls the new `adoptUpsertOnlySymbolManifest`: when `.kb/symbols.yaml` is untracked by Git, has no pending-source receipt, declares symbols, and at least one of them is already in the compiled branch store (one entity lookup per id through the engine, stopping at the first hit), it writes the receipt `kb_upsert` writes, so tracked-only discovery includes the manifest. A hand-written untracked manifest whose symbols the store never saw keeps the tracked-only boundary and sync's "stage this file" note.
+
+- Updated dependencies [78e561d]
+  - kibi-core@0.20.0
+
 ## 2.13.3
 
 ### Patch Changes

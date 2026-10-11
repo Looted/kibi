@@ -441,10 +441,10 @@ const BASE_DATA_SCHEMAS: Readonly<
     sourceType: stringValue,
   }),
   kb_skills_read: objectData({ content: stringValue }, ["content"]),
-  kb_query: objectData({ entities: recordArray, count: integerValue }, [
-    "entities",
-    "count",
-  ]),
+  kb_query: objectData(
+    { entities: recordArray, count: integerValue, factQuery: recordValue },
+    ["entities", "count"],
+  ),
   kb_search: objectData(
     {
       results: valueArray,

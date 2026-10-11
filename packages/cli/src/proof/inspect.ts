@@ -40,7 +40,7 @@ export type ProofInspection = Readonly<{
 }>;
 
 export type ProofInspectionOptions = Readonly<{
-  /** Plan a replacement of this existing integration id. */
+  /** Plan adding this integration id, or replacing it when it exists. */
   update?: string;
   /** Command (argv) the proposed integration runs instead of the detected one. */
   command?: readonly string[];
@@ -290,9 +290,16 @@ export function inspectProofEnvironment(
   const planned = buildProofIntegrationPlan(root, options);
   const applyHint =
     "review integrationPlan, then apply it with kb_apply_plan (or `kibi apply-plan --input -`) passing plan, approvedPlanHash = plan.planHash and approvedActionIds";
+  const updateId = options.update?.trim() || undefined;
   let recommendation: string;
-  if (planned.plan !== null && options.update !== undefined) {
-    recommendation = `To replace integration '${options.update}', ${applyHint}.`;
+  if (planned.plan !== null && updateId !== undefined) {
+    // implements REQ-kibi-verification-evidence-contract
+    // The plan adds an id the file does not have yet; only an existing one is
+    // replaced.
+    const verb = currentIntegrations.some((entry) => entry.id === updateId)
+      ? "replace"
+      : "add";
+    recommendation = `To ${verb} integration '${updateId}', ${applyHint}.`;
   } else if (!integrations.available) {
     if (planned.plan === null) {
       recommendation =

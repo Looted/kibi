@@ -14,15 +14,18 @@ import path from "node:path";
  * file plus a JSON parse.
  *
  * The scanner understands the subset the Kibi writer emits (block mappings and
- * sequences, quoted scalars, no line folding) plus hand-authored flow lists
- * such as `links: [REQ-001]`. The manifest is a hint for progressive
- * disclosure, not the source of truth: snippets always point at kb_query for
- * the authoritative view.
+ * sequences, quoted scalars, no line folding), flow collections wherever a
+ * value starts with `[` or `{` (hand-authored `links: [REQ-001]`, typed
+ * `relationships: [{type: implements, target: REQ-1}]`), and a whole manifest
+ * written as one flow sequence: kibi-cli before 2.18.0 appended to the
+ * `symbols: []` that `kibi init` writes and kept every symbol on that line.
+ * The manifest is a hint for progressive disclosure, not the source of truth:
+ * snippets always point at kb_query for the authoritative view.
  */
 
 const SYMBOLS_MANIFEST = ".kb/symbols.yaml";
 const SYMBOL_COORDINATES = ".kb/symbol-coordinates.yaml";
-const INDEX_FORMAT = "kibi-agent-core.knowledge-index.v1";
+const INDEX_FORMAT = "kibi-agent-core.knowledge-index.v2";
 const CACHE_FILE = "knowledge-index.json";
 
 export type KnowledgeIndexOptions = {
@@ -42,10 +45,31 @@ export type IndexedSymbol = {
   executableFor: string[];
 };
 
+/**
+ * What the scanner made of `.kb/symbols.yaml`: `missing` (no file), `empty`
+ * (no symbol records, such as the `symbols: []` that `kibi init` writes),
+ * `indexed` (records were read) or `unreadable` (the file has content the
+ * line scanner could not turn into a single record, so an empty index must
+ * not be read as "nothing is linked").
+ */
+export type ManifestState = "missing" | "empty" | "indexed" | "unreadable";
+
 export type KnowledgeIndex = {
   /** Workspace-relative source file -> symbols with at least one relationship. */
   files: Record<string, IndexedSymbol[]>;
   symbolCount: number;
+  manifest: ManifestState;
+  /**
+   * Workspace-relative source files that `.kb/symbol-coordinates.yaml` binds
+   * a symbol to, whether or not the manifest record for it could be indexed.
+   */
+  coordinateFiles: string[];
+  /**
+   * Workspace-relative source files that have a manifest record but no
+   * symbol with a relationship, so an edit hook can tell "not linked yet"
+   * from "the record could not be read".
+   */
+  unlinkedFiles: string[];
 };
 
 type RawRecord = Record<string, unknown>;
@@ -67,22 +91,158 @@ function unquote(raw: string): string {
   return comment >= 0 ? value.slice(0, comment).trimEnd() : value;
 }
 
-function parseFlowList(raw: string): string[] | undefined {
+/**
+ * Minimal YAML flow-collection reader: `[a, "b", {k: v}]` and `{k: v}` with
+ * nesting, quoted or plain scalars and `#` comments. It is only ever handed
+ * text whose first non-blank character is `[` or `{`, and it reports where
+ * the collection ended so a caller can tell a balanced value from one that
+ * continues on later lines.
+ */
+type FlowParse = { value: unknown; end: number } | undefined;
+
+// implements REQ-kibi-hooks-flow-manifest
+function parseFlow(text: string, start = 0): FlowParse {
+  let pos = start;
+
+  const skip = () => {
+    while (pos < text.length) {
+      const char = text[pos];
+      if (char === "#") {
+        while (pos < text.length && text[pos] !== "\n") pos += 1;
+      } else if (
+        char === " " ||
+        char === "\t" ||
+        char === "\n" ||
+        char === "\r"
+      ) {
+        pos += 1;
+      } else {
+        break;
+      }
+    }
+  };
+
+  const scalar = (stops: string): string | undefined => {
+    const quote = text[pos];
+    if (quote === '"' || quote === "'") {
+      let cursor = pos + 1;
+      while (cursor < text.length) {
+        if (quote === '"' && text[cursor] === "\\") cursor += 2;
+        else if (text[cursor] === quote) {
+          if (quote === "'" && text[cursor + 1] === "'") cursor += 2;
+          else break;
+        } else cursor += 1;
+      }
+      if (cursor >= text.length) return undefined;
+      const raw = text.slice(pos, cursor + 1);
+      pos = cursor + 1;
+      return unquote(raw);
+    }
+    let cursor = pos;
+    while (cursor < text.length) {
+      const char = text[cursor] ?? "";
+      if (
+        (stops.includes(char) && char !== ":") ||
+        char === "\n" ||
+        char === "\r"
+      )
+        break;
+      // A plain mapping key ends at the first `: ` (or `:` before a stop).
+      if (
+        stops.includes(":") &&
+        char === ":" &&
+        (cursor + 1 >= text.length || /[\s,\]}]/.test(text[cursor + 1] ?? ""))
+      )
+        break;
+      if (char === "#" && /\s/.test(text[cursor - 1] ?? "")) break;
+      cursor += 1;
+    }
+    const raw = text.slice(pos, cursor).trim();
+    pos = cursor;
+    return raw;
+  };
+
+  const value = (): unknown => {
+    skip();
+    const open = text[pos];
+    if (open === "[") {
+      pos += 1;
+      const items: unknown[] = [];
+      for (;;) {
+        skip();
+        if (text[pos] === "]") {
+          pos += 1;
+          return items;
+        }
+        if (pos >= text.length)
+          throw new SyntaxError("unterminated flow sequence");
+        const item = value();
+        if (item !== undefined) items.push(item);
+        skip();
+        if (text[pos] === ",") pos += 1;
+        else if (text[pos] !== "]") throw new SyntaxError("expected , or ]");
+      }
+    }
+    if (open === "{") {
+      pos += 1;
+      const record: RawRecord = {};
+      for (;;) {
+        skip();
+        if (text[pos] === "}") {
+          pos += 1;
+          return record;
+        }
+        if (pos >= text.length)
+          throw new SyntaxError("unterminated flow mapping");
+        const key = scalar(":,}");
+        if (key === undefined) throw new SyntaxError("unterminated key");
+        skip();
+        let entry: unknown;
+        if (text[pos] === ":") {
+          pos += 1;
+          skip();
+          entry = text[pos] === "," || text[pos] === "}" ? undefined : value();
+        }
+        if (key.length > 0) record[key] = entry;
+        skip();
+        if (text[pos] === ",") pos += 1;
+        else if (text[pos] !== "}") throw new SyntaxError("expected , or }");
+      }
+    }
+    const raw = scalar(",]}");
+    if (raw === undefined) throw new SyntaxError("unterminated scalar");
+    return raw;
+  };
+
+  try {
+    const parsed = value();
+    return { value: parsed, end: pos };
+  } catch {
+    return undefined;
+  }
+}
+
+/** True when `raw` opens a flow collection the rest of the line does not close. */
+function opensFlow(raw: string): boolean {
   const value = raw.trim();
-  if (!value.startsWith("[") || !value.endsWith("]")) return undefined;
-  const inner = value.slice(1, -1).trim();
-  if (inner.length === 0) return [];
-  return inner
-    .split(",")
-    .map(unquote)
-    .filter((item) => item.length > 0);
+  return value.startsWith("[") || value.startsWith("{");
 }
 
 const keyValue = /^([A-Za-z0-9_"'-][^:]*?):(?:\s+(.*))?$/;
 
+/** The flow value `raw` holds, or undefined when it is not a complete one. */
+function completeFlowValue(raw: string): FlowParse {
+  if (!opensFlow(raw)) return undefined;
+  const parsed = parseFlow(raw);
+  if (parsed === undefined) return undefined;
+  const rest = raw.slice(parsed.end).trim();
+  // `[WIP] fix rounding` is a plain scalar that merely starts with `[`.
+  return rest.length === 0 || rest.startsWith("#") ? parsed : undefined;
+}
+
 function parseScalarOrFlow(raw: string | undefined): unknown {
   if (raw === undefined || raw.trim().length === 0) return undefined;
-  return parseFlowList(raw) ?? unquote(raw);
+  return completeFlowValue(raw)?.value ?? unquote(raw);
 }
 
 /**
@@ -93,11 +253,72 @@ export function scanSymbolsManifest(text: string): RawRecord[] {
   return scanRecordSequence(text, "symbols");
 }
 
+function unbalancedFlow(raw: string): boolean {
+  return opensFlow(raw) && parseFlow(raw) === undefined;
+}
+
+/** Records of a manifest whose `<sectionKey>:` value (or whole root) is a flow sequence. */
+function flowRecords(text: string, start: number): RawRecord[] | undefined {
+  const parsed = parseFlow(text, start);
+  if (!Array.isArray(parsed?.value)) return undefined;
+  return parsed.value.filter(
+    (item): item is RawRecord =>
+      item !== null && typeof item === "object" && !Array.isArray(item),
+  );
+}
+
+/**
+ * Records of a manifest whose `<sectionKey>:` value (or whole root) is a flow
+ * sequence, possibly spanning several lines; undefined when the section is
+ * block-style or absent.
+ */
+// implements REQ-kibi-hooks-flow-manifest
+function scanFlowSection(
+  text: string,
+  sectionKey: string,
+): RawRecord[] | undefined {
+  const escapedKey = sectionKey.replaceAll(/[.*+?^$(){}|[\]\\]/g, "\\$&");
+  const header = new RegExp(`^${escapedKey}:[ \\t]*(\\[)?`);
+  let offset = 0;
+  let first = true;
+  let afterHeader = false;
+  // Keep the separators so offsets stay exact for CRLF files.
+  for (const piece of text.split(/(\r?\n)/)) {
+    const content = piece.trim();
+    const indent = piece.length - piece.trimStart().length;
+    if (content.length > 0 && !content.startsWith("#")) {
+      if (afterHeader) {
+        // `symbols:` with its value on a later line: flow only when that
+        // line opens the sequence.
+        return content.startsWith("[")
+          ? flowRecords(text, offset + piece.indexOf("["))
+          : undefined;
+      }
+      if (first && content.startsWith("[")) {
+        return flowRecords(text, offset + piece.indexOf("["));
+      }
+      first = false;
+      if (indent === 0) {
+        const match = header.exec(piece);
+        if (match) {
+          if (match[1] !== undefined)
+            return flowRecords(text, offset + piece.indexOf("["));
+          afterHeader = true;
+        }
+      }
+    }
+    offset += piece.length;
+  }
+  return undefined;
+}
+
 /**
  * Scan the block sequence under top-level `sectionKey` (or a bare root
  * sequence) into raw records.
  */
 function scanRecordSequence(text: string, sectionKey: string): RawRecord[] {
+  const flowSection = scanFlowSection(text, sectionKey);
+  if (flowSection !== undefined) return flowSection;
   const records: RawRecord[] = [];
   let itemIndent: number | undefined;
   let keyIndent = 0;
@@ -108,11 +329,33 @@ function scanRecordSequence(text: string, sectionKey: string): RawRecord[] {
   // root sequence; sequences under any other top-level key are ignored.
   let section: "root" | "records" | "other" = "root";
 
+  // A flow value (`relationships: [` …) that the writer wrapped over several
+  // lines is collected until its brackets balance, then parsed as one value.
+  let pendingFlow:
+    | { key: string; first: string; text: string; onListItem: boolean }
+    | undefined;
+
   for (const rawLine of text.split(/\r?\n/)) {
     const content = rawLine.trim();
     if (content.length === 0 || content.startsWith("#")) continue;
     const indent = rawLine.length - rawLine.trimStart().length;
     const dash = /^(\s*)-(\s+)(.*)$/.exec(rawLine);
+    if (pendingFlow !== undefined && current !== undefined) {
+      const target =
+        pendingFlow.onListItem && listItem !== undefined ? listItem : current;
+      if (indent > (itemIndent ?? 0) && !(dash && indent === itemIndent)) {
+        pendingFlow.text += `\n${content}`;
+        const parsed = parseFlow(pendingFlow.text);
+        if (parsed === undefined) continue;
+        target[pendingFlow.key] = parsed.value;
+        pendingFlow = undefined;
+        continue;
+      }
+      // The next record or section started before the brackets balanced:
+      // keep the opening line as a plain scalar and read on.
+      target[pendingFlow.key] = unquote(pendingFlow.first);
+      pendingFlow = undefined;
+    }
 
     if (indent === 0 && !dash) {
       const pair = keyValue.exec(content);
@@ -135,9 +378,19 @@ function scanRecordSequence(text: string, sectionKey: string): RawRecord[] {
       listItem = undefined;
       const pair = keyValue.exec(dash[3] ?? "");
       if (pair?.[1] !== undefined) {
+        const key = unquote(pair[1]);
+        if (pair[2] !== undefined && unbalancedFlow(pair[2])) {
+          pendingFlow = {
+            key,
+            first: pair[2],
+            text: pair[2],
+            onListItem: false,
+          };
+          continue;
+        }
         const value = parseScalarOrFlow(pair[2]);
-        if (value !== undefined) current[unquote(pair[1])] = value;
-        else listKey = unquote(pair[1]);
+        if (value !== undefined) current[key] = value;
+        else listKey = key;
       }
       continue;
     }
@@ -151,13 +404,19 @@ function scanRecordSequence(text: string, sectionKey: string): RawRecord[] {
         ? (current[listKey] as unknown[])
         : [];
       current[listKey] = list;
-      const pair = keyValue.exec(dash[3] ?? "");
-      if (pair?.[1] !== undefined && pair[2] !== undefined) {
-        listItem = { [unquote(pair[1])]: unquote(pair[2]) };
+      const item = dash[3] ?? "";
+      const flowItem = completeFlowValue(item);
+      const pair = flowItem === undefined ? keyValue.exec(item) : null;
+      if (flowItem !== undefined) {
+        // `- { type: implements, target: REQ-1 }`
+        listItem = undefined;
+        list.push(flowItem.value);
+      } else if (pair?.[1] !== undefined && pair[2] !== undefined) {
+        listItem = { [unquote(pair[1])]: parseScalarOrFlow(pair[2]) };
         list.push(listItem);
       } else {
         listItem = undefined;
-        list.push(unquote(dash[3] ?? ""));
+        list.push(unquote(item));
       }
       continue;
     }
@@ -167,6 +426,16 @@ function scanRecordSequence(text: string, sectionKey: string): RawRecord[] {
     const key = unquote(pair[1]);
     if (indent === keyIndent) {
       listItem = undefined;
+      if (pair[2] !== undefined && unbalancedFlow(pair[2])) {
+        pendingFlow = {
+          key,
+          first: pair[2],
+          text: pair[2],
+          onListItem: false,
+        };
+        listKey = undefined;
+        continue;
+      }
       const value = parseScalarOrFlow(pair[2]);
       if (value === undefined) {
         listKey = key;
@@ -175,16 +444,23 @@ function scanRecordSequence(text: string, sectionKey: string): RawRecord[] {
         listKey = undefined;
       }
     } else if (listItem !== undefined && pair[2] !== undefined) {
-      listItem[key] = unquote(pair[2]);
+      if (unbalancedFlow(pair[2])) {
+        pendingFlow = { key, first: pair[2], text: pair[2], onListItem: true };
+        continue;
+      }
+      listItem[key] = parseScalarOrFlow(pair[2]);
     }
   }
 
   return records;
 }
 
-export type Coordinates = Record<string, { line?: number; endLine?: number }>;
+export type Coordinates = Record<
+  string,
+  { line?: number; endLine?: number; sourceFile?: string }
+>;
 
-/** Scan `coordinates:` -> `<symbol id>:` -> `sourceLine` / `sourceEndLine`. */
+/** Scan `coordinates:` -> `<symbol id>:` -> `sourceLine` / `sourceEndLine` / `sourceFile`. */
 export function scanSymbolCoordinates(text: string): Coordinates {
   const coordinates: Coordinates = {};
   let inCoordinates = false;
@@ -216,6 +492,12 @@ export function scanSymbolCoordinates(text: string): Coordinates {
     if (currentId === undefined || indent < idIndent) continue;
 
     const entry = coordinates[currentId] ?? {};
+    if (key === "sourceFile") {
+      const sourceFile = normalizeSourceFile(unquote(pair[2] ?? ""));
+      if (sourceFile.length > 0) entry.sourceFile = sourceFile;
+      coordinates[currentId] = entry;
+      continue;
+    }
     const numeric = Number.parseInt(unquote(pair[2] ?? ""), 10);
     if (!Number.isFinite(numeric)) continue;
     if (key === "sourceLine") entry.line = numeric;
@@ -236,23 +518,58 @@ function pushUnique(list: string[], value: string): void {
   if (!list.includes(value)) list.push(value);
 }
 
+function normalizeSourceFile(value: string): string {
+  return value.replaceAll("\\", "/").replace(/^\.\//, "");
+}
+
+/**
+ * Manifest state for a scan result: `unreadable` when the file holds content
+ * beyond comments and an empty `symbols` value yet yielded no record.
+ */
+// implements REQ-kibi-hooks-flow-manifest
+export function manifestStateOf(
+  text: string | undefined,
+  recordCount: number,
+): ManifestState {
+  if (text === undefined) return "missing";
+  if (recordCount > 0) return "indexed";
+  const meaningful = text
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0 && !line.startsWith("#"))
+    .filter((line) => !/^symbols:\s*(\[\s*\])?$/.test(line))
+    .filter((line) => line !== "[]")
+    // Document markers and a version stamp do not make a manifest unreadable.
+    .filter((line) => !/^(?:---|\.\.\.|%\S.*|version:\s*\S+)$/.test(line));
+  return meaningful.length === 0 ? "empty" : "unreadable";
+}
+
 /** Collapse raw manifest records and coordinates into the file-keyed index. */
 export function buildKnowledgeIndex(
   records: readonly RawRecord[],
   coordinates: Coordinates = {},
   options: KnowledgeIndexOptions = {},
+  manifest: ManifestState = records.length > 0 ? "indexed" : "empty",
 ): KnowledgeIndex {
   const files: Record<string, IndexedSymbol[]> = {};
   let symbolCount = 0;
+  const recordedFiles = new Set<string>();
+  const coordinateFiles: string[] = [];
+  for (const entry of Object.values(coordinates)) {
+    if (entry.sourceFile !== undefined)
+      pushUnique(coordinateFiles, entry.sourceFile);
+  }
+  coordinateFiles.sort();
 
   for (const record of records) {
     const id = typeof record.id === "string" ? record.id : undefined;
     const sourceFile =
       typeof record.sourceFile === "string"
-        ? record.sourceFile.replaceAll("\\", "/").replace(/^\.\//, "")
+        ? normalizeSourceFile(record.sourceFile)
         : undefined;
     if (!id || !sourceFile) continue;
     symbolCount += 1;
+    recordedFiles.add(sourceFile);
 
     const symbol: IndexedSymbol = {
       id,
@@ -319,7 +636,10 @@ export function buildKnowledgeIndex(
     files[sourceFile] = bucket;
   }
 
-  return { files, symbolCount };
+  const unlinkedFiles = [...recordedFiles]
+    .filter((file) => files[file] === undefined)
+    .sort();
+  return { files, symbolCount, manifest, coordinateFiles, unlinkedFiles };
 }
 
 function fileSignature(filePath: string): string {
@@ -384,14 +704,14 @@ export function loadKnowledgeIndex(
   }
 
   const symbolsText = readText(symbolsPath);
-  const index =
-    symbolsText === undefined
-      ? { files: {}, symbolCount: 0 }
-      : buildKnowledgeIndex(
-          scanSymbolsManifest(symbolsText),
-          scanSymbolCoordinates(readText(coordinatesPath) ?? ""),
-          options,
-        );
+  const records =
+    symbolsText === undefined ? [] : scanSymbolsManifest(symbolsText);
+  const index = buildKnowledgeIndex(
+    records,
+    scanSymbolCoordinates(readText(coordinatesPath) ?? ""),
+    options,
+    manifestStateOf(symbolsText, records.length),
+  );
 
   if (cachePath) {
     writeCacheAtomically(cachePath, JSON.stringify({ signature, index }));

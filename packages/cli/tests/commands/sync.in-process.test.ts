@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { engineStopCommand } from "../../src/commands/engine.js";
 import { initCommand } from "../../src/commands/init.js";
@@ -122,6 +122,43 @@ describe("syncCommand error and option paths", () => {
       workspaceRoot: cwd,
     });
     expect(typeof result.success).toBe("boolean");
+  });
+
+  test("a flow-style symbol manifest is rewritten in block layout", async () => {
+    // implements REQ-kibi-hooks-flow-manifest
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    const cwd = createGitWorkspace();
+    roots.push(cwd);
+    const io = captureIo();
+    restores.push(io.restore);
+    await withCwd(cwd, () => initCommand({}));
+    const manifestPath = path.join(cwd, ".kb", "symbols.yaml");
+    mkdirSync(path.join(cwd, "src"), { recursive: true });
+    writeFileSync(
+      path.join(cwd, "src", "auth.ts"),
+      "export function toggle() {}\n",
+    );
+    // What kibi-cli before 2.18.0 produced by appending to `symbols: []`.
+    writeFileSync(
+      manifestPath,
+      "# symbols.yaml\nsymbols: [ { id: SYM-auth-toggle, title: toggle, sourceFile: src/auth.ts, relationships: [ { type: implements, target: REQ-001 } ] } ]\n",
+    );
+    git(cwd, "add -A");
+    git(cwd, "commit -q -m manifest");
+    const result = await syncCommand({ workspaceRoot: cwd });
+    expect(result.success).toBe(true);
+    const rewritten = readFileSync(manifestPath, "utf8");
+    expect(rewritten.startsWith("# symbols.yaml\n")).toBe(true);
+    expect(rewritten).toContain("symbols:\n  - id: SYM-auth-toggle\n");
+    expect(rewritten).toContain(
+      "    relationships:\n      - type: implements\n        target: REQ-001\n",
+    );
+    expect(rewritten).not.toContain("[ {");
+    // A second sync leaves the block manifest alone.
+    const before = readFileSync(manifestPath, "utf8");
+    await syncCommand({ workspaceRoot: cwd });
+    expect(readFileSync(manifestPath, "utf8")).toBe(before);
   });
 
   test("validate-only rebuild inspects an initialized store", async () => {
