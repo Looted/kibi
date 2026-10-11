@@ -2671,18 +2671,21 @@ req_conflict_witness(ReqA, ReqB, Witness) :-
 % permission_rule(coach, read, x, deny).  kb_model writes a denial as
 % decision deny with polarity deny, so a deny decision counts as a denial
 % whatever its polarity; an allow decision counts only when asserted.
+%
+% Goal order matters: coverage asks for the witnesses of every requirement,
+% so the decision-predicate filter runs once per fact of ReqA, before any
+% pairing, and ReqB's arguments are pre-bound on the key positions.
 req_conflict_witness(ReqA, ReqB, Witness) :-
     current_req(ReqA),
+    effective_req_predicate(ReqA, FactA, Namespace, Name, ArgsA, PolarityA),
+    length(ArgsA, Arity),
+    decision_predicate(Namespace, Name, Arity, KeyPositions, DecisionPosition),
+    length(ArgsB, Arity),
+    bind_key_arguments(KeyPositions, ArgsA, ArgsB),
     current_req(ReqB),
     ReqA @< ReqB,
-    effective_req_predicate(ReqA, FactA, Namespace, Name, ArgsA, PolarityA),
     effective_req_predicate(ReqB, FactB, Namespace, Name, ArgsB, PolarityB),
     FactA \= FactB,
-    length(ArgsA, Arity),
-    length(ArgsB, Arity),
-    decision_predicate(Namespace, Name, Arity, KeyPositions, DecisionPosition),
-    forall(member(Position, KeyPositions),
-           ( nth1(Position, ArgsA, Value), nth1(Position, ArgsB, Value) )),
     nth1(DecisionPosition, ArgsA, DecisionA),
     nth1(DecisionPosition, ArgsB, DecisionB),
     DecisionA \== DecisionB,
@@ -2730,6 +2733,14 @@ decision_predicate(Namespace, Name, Arity, KeyPositions, DecisionPosition) :-
     !.
 decision_predicate(Namespace, Name, Arity, KeyPositions, DecisionPosition) :-
     builtin_decision_predicate(Namespace, Name, Arity, KeyPositions, DecisionPosition).
+
+%% bind_key_arguments(+KeyPositions, +ArgsA, ?ArgsB)
+% Unify ArgsB with ArgsA on every key position.
+bind_key_arguments([], _ArgsA, _ArgsB).
+bind_key_arguments([Position|Positions], ArgsA, ArgsB) :-
+    nth1(Position, ArgsA, Value),
+    nth1(Position, ArgsB, Value),
+    bind_key_arguments(Positions, ArgsA, ArgsB).
 
 %% builtin_decision_predicate(?Namespace, ?Name, ?Arity, ?KeyPositions, ?DecisionPosition)
 % Built-in catalog predicates with a closed allow/deny decision.  Keep in
