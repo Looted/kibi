@@ -127,13 +127,25 @@ export type SearchAnswerScope = Readonly<{
   syncedAt: string | null;
 }>;
 
-// implements REQ-kibi-search-answer-layer-v2
+/**
+ * A matched fact, scenario, test or symbol that no requirement owns, with
+ * its 1-based `rank` in the search results. When the top-ranked match is
+ * here, the governing list was reached through lower-ranked matches, and
+ * the answer says so instead of presenting those requirements as the top
+ * match's.
+ */
+// implements REQ-search-answer-hygiene
+export type SearchAnswerUngoverned = SearchAnswerFact &
+  Readonly<{ type: string; rank: number }>;
+
+// implements REQ-kibi-search-answer-layer-v2, REQ-search-answer-hygiene
 export type SearchAnswer = Readonly<{
   version: "kibi.search-answer.v1";
   governing: readonly SearchAnswerRequirement[];
   rationale: readonly SearchAnswerRationale[];
   notGoverning: readonly (SearchAnswerEntity & { supersededBy?: string })[];
   observations: readonly SearchAnswerEntity[];
+  ungoverned: readonly SearchAnswerUngoverned[];
   scope: SearchAnswerScope;
   truncated: boolean;
   note: string;
@@ -210,6 +222,7 @@ export const SEARCH_ANSWER_LIMITS = {
   rationale: 3,
   notGoverning: 5,
   observations: 3,
+  ungoverned: 5,
   /** Entity rows loaded per answer, the matched seeds included. */
   entityLoads: 70,
   maxBytes: 16_384,
@@ -746,11 +759,12 @@ export async function buildSearchAnswer(
       candidates.set(owner, { score, via });
   };
   const observations: SearchAnswerEntity[] = [];
+  const ungoverned: SearchAnswerUngoverned[] = [];
   const rationaleRows = new Map<string, Row>();
   // A matched test may verify a scenario rather than a requirement; its
   // targets are resolved to their governing requirements after the loop.
   const testTargets: { id: string; score: number; targets: string[] }[] = [];
-  for (const match of seeds) {
+  for (const [index, match] of seeds.entries()) {
     const id = text(match.entity.id);
     const entity = graph.row(id) ?? match.entity;
     const type = text(entity.type || match.entity.type);
@@ -780,6 +794,17 @@ export async function buildSearchAnswer(
       testTargets.push({ id, score: match.score, targets: owners });
       continue;
     }
+    if (owners.length === 0 && ["fact", "scenario", "symbol"].includes(type)) {
+      if (ungoverned.length < limits.ungoverned)
+        ungoverned.push({
+          ...brief(entity),
+          ...(type === "fact" ? factDetail(entity) : {}),
+          type,
+          rank: index + 1,
+        });
+      else truncated = true;
+      continue;
+    }
     for (const owner of owners)
       propose(owner, match.score * 0.9, `${type} ${id}`);
   }
@@ -795,6 +820,14 @@ export async function buildSearchAnswer(
   });
   const targetEdges = graph.edgesOf(targetIds);
   for (const test of testTargets) {
+    if (test.targets.length === 0) {
+      const row = graph.row(test.id);
+      const rank = seedIds.indexOf(test.id) + 1;
+      if (row !== null && ungoverned.length < limits.ungoverned)
+        ungoverned.push({ ...brief(row), type: "test", rank });
+      else if (row !== null) truncated = true;
+      continue;
+    }
     for (const target of test.targets) {
       // A target that some requirement specifies is a scenario: lift the
       // test to that requirement. Anything else is a directly verified
@@ -997,20 +1030,42 @@ export async function buildSearchAnswer(
         ? verdicts.scope.syncedAt
         : null,
   };
+  ungoverned.sort((left, right) => left.rank - right.rank);
   const answer: SearchAnswer = {
     version: "kibi.search-answer.v1",
     governing,
     rationale,
     notGoverning,
     observations: observations.slice(0, limits.observations),
+    ungoverned,
     scope,
     truncated: truncated || graph.truncated,
-    note:
-      governing.length === 0
-        ? "No current requirement matched or owns a matched entity. Absence here is not evidence that nothing governs the change; refine the query or pass sourceLocations."
-        : "Governing requirements are current requirements matched by the query or linked to a matched entity. Links are discovery, not proof. A verdict lists the contradiction and scenario-feasibility witnesses that name the requirement; none means no check named it, not that it is proven. Use kb_check and kb_coverage for consistency and proof status.",
+    note: answerNote(governing.length, ungoverned),
   };
   return fitSearchAnswer(answer, limits.maxBytes);
+}
+
+// implements REQ-search-answer-hygiene
+/**
+ * How to read the layer. When the top-ranked match is owned by no
+ * requirement, the note says so first: the governing list, if any, came from
+ * lower-ranked matches and is not the top match's requirement.
+ */
+function answerNote(
+  governingCount: number,
+  ungoverned: readonly SearchAnswerUngoverned[],
+): string {
+  const top = ungoverned.find((entry) => entry.rank === 1);
+  const lead =
+    top === undefined
+      ? ""
+      : `The top-ranked match ${top.id} (${top.type}) is linked to no requirement${governingCount === 0 ? "" : "; the governing requirements below were reached through lower-ranked matches"}. `;
+  return (
+    lead +
+    (governingCount === 0
+      ? "No current requirement matched or owns a matched entity. Absence here is not evidence that nothing governs the change; refine the query or pass sourceLocations."
+      : "Governing requirements are current requirements matched by the query or linked to a matched entity. Links are discovery, not proof. A verdict lists the contradiction and scenario-feasibility witnesses that name the requirement; none means no check named it, not that it is proven. Use kb_check and kb_coverage for consistency and proof status.")
+  );
 }
 
 function byteSize(value: unknown): number {
@@ -1043,6 +1098,7 @@ function withoutExcerpt<T extends SearchAnswerRationale>(entity: T): T {
 const ANSWER_TRIM_ORDER = [
   "observations",
   "notGoverning",
+  "ungoverned",
   "rationale",
 ] as const;
 const REQUIREMENT_TRIM_ORDER = [
@@ -1101,6 +1157,7 @@ export function fitSearchAnswer(
     rationale: current.rationale.map((adr) => clipRationale(adr, titleChars)),
     notGoverning: clipAll(current.notGoverning),
     observations: clipAll(current.observations),
+    ungoverned: clipAll(current.ungoverned),
   };
 
   // Excerpts are the most expendable text: drop them before any entry.

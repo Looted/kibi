@@ -78,6 +78,13 @@ export type IntentSearchAnalysis = Readonly<{
   acceptedCount: number;
   topScore: number | null;
   topTwoMargin: number | null;
+  /**
+   * Margin between the top match and the best match it is not linked to in
+   * the traceability graph. A requirement and its own scenario, facts or
+   * tests tie without competing, so `ambiguous` reads this margin, not
+   * `topTwoMargin`.
+   */
+  topRivalMargin: number | null;
   abstained: boolean;
   ambiguous: boolean;
 }>;
@@ -606,9 +613,19 @@ export async function rankIntentEntities(
     graphByEntity.set(edge.to, toPaths);
   }
 
+  const inheritedSource = inheritedSourceMatches(
+    entities,
+    options.sourceLocations ?? [],
+    graphEdges,
+  );
+
   for (const entity of entities) {
-    const sourceEvidence = sourceMatches(entity, options.sourceLocations ?? []);
     const entityId = String(entity.id ?? "");
+    const ownSource = sourceMatches(entity, options.sourceLocations ?? []);
+    const sourceEvidence =
+      ownSource.length > 0
+        ? ownSource
+        : (inheritedSource.get(entityId) ?? ownSource);
     // Keep evidence useful for agents and bounded for transport. The score is
     // already capped; unbounded parallel paths only add noise to receipts.
     const graphEvidence = (graphByEntity.get(entityId) ?? []).slice(0, 8);
@@ -630,10 +647,17 @@ export async function rankIntentEntities(
       body === null
         ? undefined
         : bodySnippetLine(String(entity.type ?? ""), body, entity);
+    // Inherited source evidence says so, instead of claiming the entity
+    // itself sits at the location.
+    const reasons = scored.reasons.map((reason) =>
+      reason === "source location match" && ownSource.length === 0
+        ? "implemented at the source location"
+        : reason,
+    );
     ranked.push({
       entity,
       score: scored.score,
-      reasons: Array.from(new Set(scored.reasons)),
+      reasons: Array.from(new Set(reasons)),
       ...(snippet !== undefined ? { snippet } : {}),
       evidence: {
         normalizedScore: scored.score,
@@ -667,6 +691,22 @@ export async function rankIntentEntities(
     first !== undefined && second !== undefined
       ? first.score - second.score
       : null;
+  // A requirement and its own scenario, facts or tests score alike on the
+  // same words without being rival answers: the rival is the best match the
+  // top match is not linked to.
+  const topId = String(first?.entity.id ?? "");
+  const linkedToTop = new Set<string>();
+  for (const edge of graphEdges) {
+    if (edge.from === topId) linkedToTop.add(edge.to);
+    if (edge.to === topId) linkedToTop.add(edge.from);
+  }
+  const rival = ranked
+    .slice(1)
+    .find((match) => !linkedToTop.has(String(match.entity.id ?? "")));
+  const topRivalMargin =
+    first !== undefined && rival !== undefined
+      ? first.score - rival.score
+      : null;
   return {
     matches: ranked,
     analysis: {
@@ -675,11 +715,47 @@ export async function rankIntentEntities(
       acceptedCount: ranked.length,
       topScore,
       topTwoMargin,
+      topRivalMargin,
       abstained: ranked.length === 0,
-      // Two leading matches this close are not a confident single answer.
-      ambiguous: topTwoMargin !== null && topTwoMargin < AMBIGUOUS_MARGIN,
+      // Two leading rival matches this close are not a confident single
+      // answer.
+      ambiguous: topRivalMargin !== null && topRivalMargin < AMBIGUOUS_MARGIN,
     },
   };
+}
+
+// implements REQ-kibi-intent-aware-source-discovery
+/**
+ * Source evidence a requirement inherits from the symbols that implement it:
+ * a changed file's symbols are source matches, and the requirements they
+ * `implements` are what that file is for, even when the question shares no
+ * word with them. Each inherited match names the implementing symbol.
+ */
+function inheritedSourceMatches(
+  entities: readonly Record<string, unknown>[],
+  locations: readonly SourceLocation[],
+  graphEdges: readonly GraphEdge[],
+): Map<string, IntentSourceMatch[]> {
+  const inherited = new Map<string, IntentSourceMatch[]>();
+  if (locations.length === 0 || graphEdges.length === 0) return inherited;
+  const matchedSymbols = new Map<string, IntentSourceMatch[]>();
+  for (const entity of entities) {
+    if (String(entity.type ?? "") !== "symbol") continue;
+    const matches = sourceMatches(entity, locations);
+    if (matches.length > 0)
+      matchedSymbols.set(String(entity.id ?? ""), matches);
+  }
+  if (matchedSymbols.size === 0) return inherited;
+  for (const edge of graphEdges) {
+    if (edge.relationship !== "implements") continue;
+    const matches = matchedSymbols.get(edge.from);
+    if (matches === undefined) continue;
+    const rows = inherited.get(edge.to) ?? [];
+    for (const match of matches)
+      rows.push({ path: match.path, symbolId: edge.from, distance: 3 });
+    inherited.set(edge.to, rows);
+  }
+  return inherited;
 }
 
 export function graphGoal(seedIds: readonly string[], depth: 1 | 2): string {

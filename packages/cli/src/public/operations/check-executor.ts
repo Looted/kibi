@@ -26,6 +26,7 @@ import type { Violation } from "../check-types.js";
 import { collectFullKbQualityDiagnostics } from "../impact-diagnostics.js";
 import {
   type CheckDiagnostic,
+  type CheckEvaluated,
   type CheckStructuredContent,
   buildStructuredContent,
   buildSummary,
@@ -70,7 +71,7 @@ export type CheckInput = {
 };
 
 export type CheckPayload = CheckStructuredContent;
-export type { CheckDiagnostic, CheckStructuredContent };
+export type { CheckDiagnostic, CheckEvaluated, CheckStructuredContent };
 export {
   buildStructuredContent,
   buildSummary,
@@ -89,6 +90,38 @@ export type CheckExecutionOptions = {
    */
   readonly branchStoreAttached?: boolean;
 };
+
+// implements REQ-search-answer-hygiene
+/**
+ * What this run evaluated: the rules that ran, in registry order, and for
+ * `domain-contradictions` the number of requirement fact pairs the rule
+ * compared, read from the engine after the rules ran on the same store. A
+ * count the engine cannot give (an older engine) is left out rather than
+ * reported as zero.
+ */
+async function describeEvaluation(
+  prolog: PrologPort,
+  rules: ReadonlySet<string>,
+): Promise<CheckEvaluated> {
+  const evaluated: {
+    rules: string[];
+    domainContradictions?: { factPairsExamined: number };
+  } = {
+    rules: [...rules],
+  };
+  if (!rules.has("domain-contradictions")) return evaluated;
+  try {
+    const result = await prolog.query(
+      "kb_domain_contradiction_pairs_examined(Count)",
+    );
+    const count = Number(result.bindings.Count);
+    if (result.success && Number.isInteger(count) && count >= 0)
+      evaluated.domainContradictions = { factPairsExamined: count };
+  } catch {
+    // An engine without the predicate leaves the count out.
+  }
+  return evaluated;
+}
 
 function requireProlog(context: OperationContext): PrologPort {
   if (context.prolog === undefined) {
@@ -226,12 +259,15 @@ export async function executeCheck(
         [],
         statusPlan,
       );
+      // Every store-backed rule was skipped: only this one was evaluated.
+      const evaluated = { rules: [BRANCH_STORE_NOT_COMPILED_RULE] };
       return {
         content: [
           {
             type: "text",
             text: buildSummary({
               violations,
+              evaluated,
               impactResult,
               qualityDiagnostics: [],
             }),
@@ -239,6 +275,7 @@ export async function executeCheck(
         ],
         structuredContent: buildStructuredContent({
           violations,
+          evaluated,
           diagnostics: [
             {
               category: "SYNC_ERROR",
@@ -283,12 +320,14 @@ export async function executeCheck(
         >[],
         statusPlan,
       );
+      const evaluated = { rules: [] };
       return {
         content: [
           {
             type: "text",
             text: buildSummary({
               violations: [],
+              evaluated,
               impactResult,
               qualityDiagnostics,
             }),
@@ -296,6 +335,7 @@ export async function executeCheck(
         ],
         structuredContent: buildStructuredContent({
           violations: [],
+          evaluated,
           diagnostics: [],
           qualityDiagnostics,
           impactResult,
@@ -351,6 +391,7 @@ export async function executeCheck(
       ...checkPolicyFindings,
     ]);
     const violations: Violation[] = partitioned.violations;
+    const evaluated = await describeEvaluation(prolog, rulesAllowlist);
 
     const diagnostics: CheckDiagnostic[] = violations.map((v) => ({
       category: "SYNC_ERROR",
@@ -396,6 +437,7 @@ export async function executeCheck(
           type: "text",
           text: buildSummary({
             violations,
+            evaluated,
             impactResult,
             qualityDiagnostics,
           }),
@@ -403,6 +445,7 @@ export async function executeCheck(
       ],
       structuredContent: buildStructuredContent({
         violations,
+        evaluated,
         diagnostics,
         qualityDiagnostics,
         impactResult,

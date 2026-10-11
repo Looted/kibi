@@ -38,6 +38,7 @@
     kb_log_relationship_upsert/4,
     kb_relationship/3,
     symbol_owns_requirement/2,
+    kb_domain_contradiction_pairs_examined/1,
     scenario_verified_by_test/2,
     requirement_test_fallback_allowed/1,
     test_satisfies_requirement_semantics/2,
@@ -2716,6 +2717,43 @@ req_conflict_witness(ReqA, ReqB, Witness) :-
         left: Left,
         right: Right
     }.
+
+%% kb_domain_contradiction_pairs_examined(-Count)
+% implements REQ-search-answer-hygiene
+% How many distinct pairs of requirement facts the domain-contradictions
+% rule compared on the current KB: strict property facts of two current
+% requirements constraining the same subject and property, predicate facts
+% of two current requirements with the same namespace, name and ordered
+% arguments, and decision-predicate facts agreeing on every key argument.
+% A check that found no contradiction over zero pairs evaluated nothing, and
+% kb_check says so; the count never implies the pairs are consistent.
+kb_domain_contradiction_pairs_examined(Count) :-
+    findall(FactA-FactB, domain_contradiction_candidate_pair(FactA, FactB), Pairs0),
+    sort(Pairs0, Pairs),
+    length(Pairs, Count).
+
+domain_contradiction_candidate_pair(FactA, FactB) :-
+    current_req(ReqA),
+    current_req(ReqB),
+    ReqA @< ReqB,
+    kb_relationship(constrains, ReqA, SubjectFactA),
+    kb_relationship(constrains, ReqB, SubjectFactB),
+    fact_subject_key(SubjectFactA, SubjectKey),
+    fact_subject_key(SubjectFactB, SubjectKey),
+    effective_req_property_fact(ReqA, SubjectKey, FactA, PropertyKey, _, _, _, _, _, _, _, _),
+    effective_req_property_fact(ReqB, SubjectKey, FactB, PropertyKey, _, _, _, _, _, _, _, _),
+    FactA \= FactB.
+domain_contradiction_candidate_pair(FactA, FactB) :-
+    current_req(ReqA),
+    current_req(ReqB),
+    ReqA @< ReqB,
+    effective_req_predicate(ReqA, FactA, Namespace, Name, Args, _),
+    effective_req_predicate(ReqB, FactB, Namespace, Name, Args, _),
+    FactA \= FactB.
+domain_contradiction_candidate_pair(FactA, FactB) :-
+    decision_signatures(Signatures),
+    Signatures \== [],
+    decision_conflict_pair(Signatures, _, _, FactA, FactB, _, _, _, _, _, _, _, _).
 
 %% decision_conflict_pair(+Signatures, ?ReqA, ?ReqB, -FactA, -FactB, -Namespace, -Name, -ArgsA, -ArgsB, -PolarityA, -PolarityB, -KeyPositions, -DecisionPosition)
 % Two decision-predicate facts of current requirements ReqA @< ReqB that

@@ -51522,3 +51522,62 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-kibi-hooks-flow-manifest
+  - id: SYM-intent-search-inheritedSourceMatches
+    title: inheritedSourceMatches
+    status: active
+    sourceFile: packages/cli/src/intent-search.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-hygiene
+      - type: implements
+        target: REQ-search-answer-hygiene
+  - id: SYM-search-answer-answerNote
+    title: answerNote
+    status: active
+    sourceFile: packages/cli/src/search-answer.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-hygiene
+      - type: implements
+        target: REQ-search-answer-hygiene
+  - id: SYM-operation-check-describeEvaluation
+    title: describeEvaluation
+    status: active
+    sourceFile: packages/cli/src/public/operations/check-executor.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-hygiene
+      - type: implements
+        target: REQ-search-answer-hygiene
+  - id: SYM-operation-check-formatEvaluatedText
+    title: formatEvaluatedText
+    status: active
+    sourceFile: packages/cli/src/public/operations/check-format-shared.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-hygiene
+      - type: implements
+        target: REQ-search-answer-hygiene
+  - id: SYM-core-domain-contradiction-pairs-examined
+    title: kb_domain_contradiction_pairs_examined
+    status: active
+    sourceFile: packages/core/src/kb.pl
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-hygiene
+      - type: implements
+        target: REQ-search-answer-hygiene
+  - id: SYM-test-search-answer-hygiene
+    title: Answer-layer hygiene consumer and unit suites
+    status: active
+    sourceFile: packages/cli/tests/consumer/check-evaluated.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-search-answer-hygiene

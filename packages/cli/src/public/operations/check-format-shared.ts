@@ -29,10 +29,22 @@ export interface CheckDiagnostic {
   readonly suggestion?: string;
 }
 
-// implements REQ-mcp-tool-check
+/**
+ * What a check run evaluated, so "no violations" can be told apart from
+ * "nothing evaluated": the rules that ran, and for `domain-contradictions`
+ * how many pairs of requirement facts it compared.
+ */
+// implements REQ-search-answer-hygiene
+export interface CheckEvaluated {
+  readonly rules: readonly string[];
+  readonly domainContradictions?: Readonly<{ factPairsExamined: number }>;
+}
+
+// implements REQ-mcp-tool-check, REQ-search-answer-hygiene
 export interface CheckStructuredContent {
   readonly violations: readonly Violation[];
   readonly count: number;
+  readonly evaluated: CheckEvaluated;
   readonly diagnostics: readonly CheckDiagnostic[];
   readonly qualityDiagnostics?: readonly QualityDiagnostic[];
   readonly impactDiagnostics?: ChangedFileImpactResult["impactDiagnostics"];
@@ -139,6 +151,7 @@ export function formatViolationText(violations: readonly Violation[]): string {
 // implements REQ-mcp-tool-check
 export function buildStructuredContent(input: {
   violations: readonly Violation[];
+  evaluated: CheckEvaluated;
   diagnostics: readonly CheckDiagnostic[];
   qualityDiagnostics?: readonly QualityDiagnostic[];
   impactResult: ChangedFileImpactResult | undefined;
@@ -148,6 +161,12 @@ export function buildStructuredContent(input: {
   return {
     violations: [...input.violations],
     count: input.violations.length,
+    evaluated: {
+      rules: [...input.evaluated.rules],
+      ...(input.evaluated.domainContradictions !== undefined
+        ? { domainContradictions: input.evaluated.domainContradictions }
+        : {}),
+    },
     diagnostics: formatDiagnostics(input.diagnostics),
     ...(qualityDiagnostics.length > 0
       ? { qualityDiagnostics: [...qualityDiagnostics] }
@@ -168,12 +187,27 @@ export function buildStructuredContent(input: {
 }
 
 // implements REQ-mcp-tool-check
+// implements REQ-search-answer-hygiene
+/** One line saying what the check evaluated, so a clean result is readable. */
+export function formatEvaluatedText(evaluated: CheckEvaluated): string {
+  const rules =
+    evaluated.rules.length === 0
+      ? "Evaluated no rules"
+      : `Evaluated ${evaluated.rules.length} rule${evaluated.rules.length === 1 ? "" : "s"}`;
+  const pairs = evaluated.domainContradictions;
+  if (pairs === undefined) return `${rules}.`;
+  return `${rules}; domain-contradictions compared ${pairs.factPairsExamined} fact pair${pairs.factPairsExamined === 1 ? "" : "s"}${pairs.factPairsExamined === 0 ? " (no two current requirements constrain the same subject or predicate case)" : ""}.`;
+}
+
 export function buildSummary(input: {
   readonly violations: readonly Violation[];
+  readonly evaluated?: CheckEvaluated;
   readonly impactResult: ChangedFileImpactResult | undefined;
   readonly qualityDiagnostics: readonly QualityDiagnostic[];
 }): string {
   const sections = [formatViolationText(input.violations)];
+  if (input.evaluated !== undefined)
+    sections.push(formatEvaluatedText(input.evaluated));
   if (input.impactResult !== undefined) {
     sections.push(formatImpactText(input.impactResult));
   }

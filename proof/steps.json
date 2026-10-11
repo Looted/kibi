@@ -2487,5 +2487,19 @@
         "./packages/cli/tests/consumer/flow-manifest-hooks.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-search-answer-hygiene",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/cli/tests/consumer/check-evaluated.test.ts",
+        "./packages/cli/tests/search-answer.test.ts",
+        "./packages/cli/tests/intent-search.test.ts"
+      ]
+    ]
   }
 ]

@@ -449,6 +449,7 @@ const BASE_DATA_SCHEMAS: Readonly<
     {
       results: valueArray,
       count: integerValue,
+      returned: integerValue,
       truncated: booleanValue,
       queryAnalysis: recordValue,
       answer: recordValue,
@@ -683,6 +684,7 @@ const BASE_DATA_SCHEMAS: Readonly<
       objectData({
         violations: valueArray,
         count: integerValue,
+        evaluated: recordValue,
         diagnostics: recordArray,
         qualityDiagnostics: recordArray,
         impactDiagnostics: recordArray,
