@@ -372,6 +372,13 @@ kibi query scenario --limit 10 --offset 0
 kibi query scenario --limit 10 --offset 10
 ```
 
+**Typed fact questions** use the JSON route (`kibi query --input -`) with the same fields as the `kb_query` MCP tool: `factKind` (`predicate_schema` lists the askable predicates), `predicate` with order-free `where` arguments, `polarity`, `scope`, `distinct`, or `subjectKey` with `propertyKey`. The answer carries the matching fact rows and a `factQuery` block with the schema, distinct counts, values that exist when nothing matched, warnings and the next call to run.
+
+```bash
+printf '%s\n' '{"predicate":"permission_rule","where":{"actor":"admin"}}' | kibi query --input -
+printf '%s\n' '{"subjectKey":"user.role_assignment","propertyKey":"max_roles"}' | kibi query --input -
+```
+
 **Notes:**
 - Returns "No entities found" if query produces no results
 - Results are deterministically ordered

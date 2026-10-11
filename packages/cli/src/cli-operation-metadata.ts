@@ -38,7 +38,7 @@ export const CLI_OPERATION_METADATA = [
     name: "kb_query",
     cliName: "query",
     description:
-      "Read entities from the KB with filters. Use for discovery and lookup before edits. Do not use for writes. No mutation side effects. Tags filter by metadata tags only, not entity IDs.",
+      "Read entities from the KB with exact filters, or ask typed fact questions. Use for lookup by id, type, tags or sourceFile, and for precise questions about modeled facts: predicate facts by name with named arguments (predicate + where), property facts of a subject (subjectKey + propertyKey), or the catalog of facts of one kind (factKind; 'predicate_schema' lists the predicates you can ask about with their argument names and constants). Typed answers return matching fact rows plus factQuery: the schema used, distinct counts, values that do exist when nothing matched, warnings about the question and the next call to make. Read-only. Tags filter by metadata tags only, not entity IDs.",
   },
   {
     name: "kb_search",
