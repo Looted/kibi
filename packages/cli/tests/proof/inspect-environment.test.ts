@@ -139,6 +139,14 @@ describe("inspectProofEnvironment", () => {
     );
     expect(inspection.ciWorkflows).toEqual(["ci.yml"]);
     expect(inspection.currentIntegration).toContain("playwright");
+    expect(inspection.currentIntegrations).toEqual([
+      {
+        id: "playwright",
+        producer: "playwright",
+        command: ["npx", "playwright", "test"],
+      },
+      { id: "command", producer: "command", command: ["bun", "test"] },
+    ]);
     expect(inspection.recommendation).toContain("kibi prove --all");
     expect(inspection.missing).toEqual([]);
   });

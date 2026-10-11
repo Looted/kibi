@@ -16,7 +16,14 @@ export type ProofInspection = Readonly<{
   buildSystems: readonly string[];
   detectedRunners: readonly string[];
   ciWorkflows: readonly string[];
+  /** Comma-joined ids of the configured integrations (kept for compatibility). */
   currentIntegration: string | null;
+  /** Each configured integration with the producer and command it runs. */
+  currentIntegrations: readonly Readonly<{
+    id: string;
+    producer: string;
+    command: readonly string[];
+  }>[];
   recommendation: string;
   missing: readonly string[];
   /** The integration Kibi proposes for the detected runner, if any. */
@@ -270,6 +277,15 @@ export function inspectProofEnvironment(
   const currentIntegration = integrations.available
     ? integrations.integrations.integrations.map((entry) => entry.id).join(", ")
     : null;
+  // implements REQ-kibi-verification-evidence-contract
+  // The id alone does not say what `kibi prove` will run; expose the command.
+  const currentIntegrations = integrations.available
+    ? integrations.integrations.integrations.map((entry) => ({
+        id: entry.id,
+        producer: entry.producer,
+        command: [...entry.command],
+      }))
+    : [];
 
   const planned = buildProofIntegrationPlan(root, options);
   const applyHint =
@@ -301,6 +317,7 @@ export function inspectProofEnvironment(
     detectedRunners: runners,
     ciWorkflows,
     currentIntegration,
+    currentIntegrations,
     recommendation,
     missing,
     proposedIntegration: planned.proposal?.integration ?? null,

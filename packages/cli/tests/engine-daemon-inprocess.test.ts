@@ -446,8 +446,60 @@ describe("runEngineDaemon in-process", () => {
         setTimeout(() => reject(new Error("idle daemon did not exit")), 8_000),
       ),
     ]);
+    // The daemon schedules its final process.exit 50 ms after shutdown.
+    await new Promise((resolve) => setTimeout(resolve, 100));
     expect(exitSpy).toHaveBeenCalled();
   }, 20_000);
+
+  // implements REQ-core-journaled-engine-persistence
+  test("a stopped daemon leaves no rdf lock or ownership journal behind", async () => {
+    const previousIdle = process.env.KIBI_ENGINE_IDLE_TIMEOUT_MS;
+    process.env.KIBI_ENGINE_IDLE_TIMEOUT_MS = "60000";
+    restores.push(() => {
+      if (previousIdle === undefined) {
+        Reflect.deleteProperty(process.env, "KIBI_ENGINE_IDLE_TIMEOUT_MS");
+      } else {
+        process.env.KIBI_ENGINE_IDLE_TIMEOUT_MS = previousIdle;
+      }
+    });
+    const lockArtifacts = (root: string): string[] =>
+      (
+        readdirSync(path.join(root, ".kb"), {
+          recursive: true,
+          encoding: "utf8",
+        }) as string[]
+      ).filter(
+        (entry) =>
+          path.basename(entry) === "lock" ||
+          path.basename(entry) === ".kibi-lock-owner.json",
+      );
+
+    const root = tempRoot();
+    ensureBranchStoreManifest(root, "main");
+    const socketPath = engineSocketPath(root, "main");
+    const daemon = runEngineDaemon({
+      workspaceRoot: root,
+      branch: "main",
+      socketPath,
+    });
+    await waitForSocket(socketPath);
+    const client = new EngineClient({
+      workspaceRoot: root,
+      branch: "main",
+      timeout: 20_000,
+    });
+    try {
+      await client.start(false);
+      await client.query("true");
+      // The attached store is locked while the daemon serves it.
+      expect(lockArtifacts(root).length).toBeGreaterThan(0);
+      await client.stop(false);
+    } finally {
+      await client.terminate();
+    }
+    await daemon;
+    expect(lockArtifacts(root)).toEqual([]);
+  }, 90_000);
 
   // Regression for Looted/kibi#285: an output overflow used to terminate the
   // daemon's SWI child and leave the port silently falling back to isolated

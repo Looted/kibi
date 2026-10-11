@@ -980,6 +980,74 @@ test(opposite_ground_predicate_polarities_contradict, [setup(setup_kb), cleanup(
     assertion(Witness.right.term.polarity == deny),
     assertion(Witness.predicateArgs == [suspended_user, publish, article]).
 
+assert_permission_decision_fixture(FactId, ReqId, ClaimKey, Args, Polarity) :-
+    atomic_list_concat(Args, ',', ArgsText),
+    format(string(CanonicalKey), "permission_rule(~w)", [ArgsText]),
+    assert_fixture_entity(fact, FactId, "Coach reading unassigned requests", active, [
+        fact_kind=predicate,
+        predicate_name="permission_rule",
+        predicate_namespace="default",
+        predicate_args=Args,
+        polarity=Polarity,
+        canonical_key=CanonicalKey,
+        claim_key=ClaimKey,
+        claim_text="Coaches read analysis requests that are not assigned to them"
+    ]),
+    assert_fixture_entity(req, ReqId, "Coach access to unassigned requests", open, [
+        logic_claims=[ClaimKey]
+    ]),
+    kb_assert_relationship(requires_predicate, ReqId, FactId, []).
+
+test(allow_and_deny_decisions_on_the_same_permission_contradict, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_permission_decision_fixture('FACT-COACH-READ-ALLOW', 'REQ-COACH-READ-ALLOW', "CLAIM-5555555555555555",
+        ["coach", "read", "unassigned_analysis_request", "allow"], assert),
+    % kb_model writes a denial as decision deny with polarity deny.
+    assert_permission_decision_fixture('FACT-COACH-READ-DENY', 'REQ-COACH-READ-DENY', "CLAIM-6666666666666666",
+        ["coach", "read", "unassigned_analysis_request", "deny"], deny),
+    contradicting_reqs('REQ-COACH-READ-ALLOW', 'REQ-COACH-READ-DENY', Reason),
+    sub_string(Reason, _, _, _, "Decision conflict on default:permission_rule(coach,read,unassigned_analysis_request)"),
+    req_conflict_witness('REQ-COACH-READ-ALLOW', 'REQ-COACH-READ-DENY', Witness),
+    assertion(Witness.kind == predicate),
+    assertion(Witness.keyArguments == [coach, read, unassigned_analysis_request]),
+    assertion(Witness.left.term.args == [coach, read, unassigned_analysis_request, allow]),
+    assertion(Witness.right.term.args == [coach, read, unassigned_analysis_request, deny]),
+    check_domain_contradictions(Violations),
+    assertion(memberchk(violation('domain-contradictions', "REQ-COACH-READ-ALLOW/REQ-COACH-READ-DENY", _, _, _), Violations)).
+
+test(asserted_allow_and_deny_decisions_contradict, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_permission_decision_fixture('FACT-COACH-READ-ALLOW', 'REQ-COACH-READ-ALLOW', "CLAIM-5555555555555555",
+        ["coach", "read", "unassigned_analysis_request", "allow"], assert),
+    assert_permission_decision_fixture('FACT-COACH-READ-DENY', 'REQ-COACH-READ-DENY', "CLAIM-6666666666666666",
+        ["coach", "read", "unassigned_analysis_request", "deny"], assert),
+    contradicting_reqs('REQ-COACH-READ-ALLOW', 'REQ-COACH-READ-DENY', _).
+
+test(decisions_on_different_permission_keys_do_not_contradict, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_permission_decision_fixture('FACT-COACH-READ-ALLOW', 'REQ-COACH-READ-ALLOW', "CLAIM-5555555555555555",
+        ["coach", "read", "unassigned_analysis_request", "allow"], assert),
+    assert_permission_decision_fixture('FACT-COACH-WRITE-DENY', 'REQ-COACH-WRITE-DENY', "CLAIM-7777777777777777",
+        ["coach", "write", "unassigned_analysis_request", "deny"], deny),
+    % "not allowed" against "denied" is the same decision.
+    assert_permission_decision_fixture('FACT-GUEST-READ-NOT-ALLOWED', 'REQ-GUEST-READ-NOT-ALLOWED', "CLAIM-8888888888888888",
+        ["guest", "read", "unassigned_analysis_request", "allow"], deny),
+    assert_permission_decision_fixture('FACT-GUEST-READ-DENY', 'REQ-GUEST-READ-DENY', "CLAIM-9999999999999999",
+        ["guest", "read", "unassigned_analysis_request", "deny"], assert),
+    assertion(\+ contradicting_reqs(_, _, _)).
+
+test(project_schema_without_key_arguments_keeps_decisions_multivalued, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(fact, 'FACT-SCHEMA-PERMISSION-RULE-LOCAL', "Permission rule", active, [
+        fact_kind=predicate_schema,
+        predicate_name="permission_rule",
+        predicate_namespace="default",
+        predicate_arity=4,
+        argument_names=["actor", "action", "resource", "decision"],
+        argument_types=["actor", "action", "resource", "decision"]
+    ]),
+    assert_permission_decision_fixture('FACT-COACH-READ-ALLOW', 'REQ-COACH-READ-ALLOW', "CLAIM-5555555555555555",
+        ["coach", "read", "unassigned_analysis_request", "allow"], assert),
+    assert_permission_decision_fixture('FACT-COACH-READ-DENY', 'REQ-COACH-READ-DENY', "CLAIM-6666666666666666",
+        ["coach", "read", "unassigned_analysis_request", "deny"], assert),
+    assertion(\+ contradicting_reqs(_, _, _)).
+
 test(logic_coverage_requires_every_declared_claim_to_be_grounded, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     assert_fixture_entity(req, 'REQ-LOGIC-COVERAGE', "Compound requirement", open, [
         logic_claims=["CLAIM-3333333333333333", "CLAIM-4444444444444444"]

@@ -2662,6 +2662,86 @@ req_conflict_witness(ReqA, ReqB, Witness) :-
         right: Right
     }.
 
+% implements REQ-kibi-truthful-consistency
+% Opposite decisions on the same case: two asserted facts of a predicate
+% whose key arguments determine a closed allow/deny decision argument (the
+% built-in permission_rule, or a project schema that declares key_arguments
+% and a `decision` argument) agree on every key argument but decide
+% differently, e.g. permission_rule(coach, read, x, allow) against
+% permission_rule(coach, read, x, deny).  kb_model writes a denial as
+% decision deny with polarity deny, so a deny decision counts as a denial
+% whatever its polarity; an allow decision counts only when asserted.
+req_conflict_witness(ReqA, ReqB, Witness) :-
+    current_req(ReqA),
+    current_req(ReqB),
+    ReqA @< ReqB,
+    effective_req_predicate(ReqA, FactA, Namespace, Name, ArgsA, PolarityA),
+    effective_req_predicate(ReqB, FactB, Namespace, Name, ArgsB, PolarityB),
+    FactA \= FactB,
+    length(ArgsA, Arity),
+    length(ArgsB, Arity),
+    decision_predicate(Namespace, Name, Arity, KeyPositions, DecisionPosition),
+    forall(member(Position, KeyPositions),
+           ( nth1(Position, ArgsA, Value), nth1(Position, ArgsB, Value) )),
+    nth1(DecisionPosition, ArgsA, DecisionA),
+    nth1(DecisionPosition, ArgsB, DecisionB),
+    DecisionA \== DecisionB,
+    effective_decision(DecisionA, PolarityA, EffectA),
+    effective_decision(DecisionB, PolarityB, EffectB),
+    EffectA \== EffectB,
+    findall(KeyValue, (member(Position, KeyPositions), nth1(Position, ArgsA, KeyValue)), KeyValues),
+    atomic_list_concat(KeyValues, ',', KeyText),
+    format(
+        string(Reason),
+        "Decision conflict on ~w:~w(~w): ~w decides ~w while ~w decides ~w",
+        [Namespace, Name, KeyText, ReqA, EffectA, ReqB, EffectB]
+    ),
+    predicate_conflict_side(ReqA, FactA, Namespace, Name, ArgsA, PolarityA, Left),
+    predicate_conflict_side(ReqB, FactB, Namespace, Name, ArgsB, PolarityB, Right),
+    findall(SchemaId, predicate_schema(SchemaId, Namespace, Name, Arity, _Names, _Types), SchemaIds0),
+    sort(SchemaIds0, SchemaIds),
+    Witness = _{
+        kind: predicate,
+        status: contradiction,
+        requirements: [ReqA, ReqB],
+        reason: Reason,
+        predicateNamespace: Namespace,
+        predicateName: Name,
+        predicateArgs: ArgsA,
+        keyArguments: KeyValues,
+        schemaIds: SchemaIds,
+        left: Left,
+        right: Right
+    }.
+
+%% decision_predicate(?Namespace, ?Name, ?Arity, -KeyPositions, -DecisionPosition)
+% A predicate whose key arguments (1-based KeyPositions) determine one
+% allow/deny decision argument.  A project-local predicate_schema decides
+% this for its own signature: it must declare key_arguments and name a
+% non-key argument `decision`.  Without a project schema the built-in
+% catalog entry applies.
+decision_predicate(Namespace, Name, Arity, KeyPositions, DecisionPosition) :-
+    predicate_schema(_SchemaId, Namespace, Name, Arity, _AnyNames, _AnyTypes),
+    !,
+    predicate_schema_keys(Namespace, Name, Arity, KeyPositions),
+    predicate_schema(_, Namespace, Name, Arity, ArgumentNames, _ArgumentTypes),
+    nth1(DecisionPosition, ArgumentNames, decision),
+    \+ memberchk(DecisionPosition, KeyPositions),
+    !.
+decision_predicate(Namespace, Name, Arity, KeyPositions, DecisionPosition) :-
+    builtin_decision_predicate(Namespace, Name, Arity, KeyPositions, DecisionPosition).
+
+%% builtin_decision_predicate(?Namespace, ?Name, ?Arity, ?KeyPositions, ?DecisionPosition)
+% Built-in catalog predicates with a closed allow/deny decision.  Keep in
+% step with key_arguments in packages/cli/src/operations/modeling/
+% predicate-catalog-4.ts (permission_rule: actor, action, resource).
+builtin_decision_predicate(default, permission_rule, 4, [1, 2, 3], 4).
+
+%% effective_decision(+Decision, +Polarity, -Effect)
+effective_decision(allow, assert, allow).
+effective_decision(allow, deny, deny).
+effective_decision(deny, _Polarity, deny).
+
 property_conflict_side(ReqId, FactId, SubjectKey, PropertyKey, Operator, ValueType, Value, Unit, Scope, Polarity, ValidFrom, ValidTo, Side) :-
     entity_evidence_source(ReqId, req, RequirementSource),
     fact_evidence_fields(FactId, FactSource, ClaimKey, ClaimText, _CanonicalKey),

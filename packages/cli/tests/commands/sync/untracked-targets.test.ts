@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
+import { createHash } from "node:crypto";
 import { mkdirSync, writeFileSync } from "node:fs";
 import * as path from "node:path";
 import { findUntrackedDocumentMatches } from "../../../src/commands/sync/untracked-targets.js";
@@ -249,6 +250,51 @@ describe("findUntrackedDocumentMatches against a real git workspace", () => {
     mkdirSync(oddDir, { recursive: true });
 
     const matches = findUntrackedDocumentMatches(workspace, ["REQ-REAL"]);
+    expect(matches.size).toBe(0);
+  });
+});
+
+describe("findUntrackedDocumentMatches and symbol manifests", () => {
+  test("matches a symbol declared in an untracked .kb/symbols.yaml", () => {
+    const workspace = createGitWorkspace();
+    tempDirs.push(workspace);
+    mkdirSync(path.join(workspace, ".kb"), { recursive: true });
+    writeFileSync(
+      path.join(workspace, ".kb", "symbols.yaml"),
+      "symbols:\n  - id: SYM-export-report\n    title: exportReport\n",
+      "utf8",
+    );
+    const matches = findUntrackedDocumentMatches(workspace, [
+      "SYM-export-report",
+    ]);
+    expect(matches.get("SYM-export-report")).toBe(".kb/symbols.yaml");
+  });
+
+  test("skips an untracked file a pending-source receipt makes visible to sync", () => {
+    const workspace = createGitWorkspace();
+    tempDirs.push(workspace);
+    mkdirSync(path.join(workspace, ".kb", "recovery", "pending-sources"), {
+      recursive: true,
+    });
+    writeFileSync(
+      path.join(workspace, ".kb", "symbols.yaml"),
+      "symbols:\n  - id: SYM-export-report\n",
+      "utf8",
+    );
+    writeFileSync(
+      path.join(
+        workspace,
+        ".kb",
+        "recovery",
+        "pending-sources",
+        `${createHash("sha256").update(".kb/symbols.yaml").digest("hex")}.json`,
+      ),
+      '{"path":".kb/symbols.yaml"}\n',
+      "utf8",
+    );
+    const matches = findUntrackedDocumentMatches(workspace, [
+      "SYM-export-report",
+    ]);
     expect(matches.size).toBe(0);
   });
 });

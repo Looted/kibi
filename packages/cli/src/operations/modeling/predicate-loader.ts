@@ -38,6 +38,7 @@ export function schemaForCandidate(schema: PredicateSchemaCandidate): Omit<
     ...(schema.argument_aliases
       ? { argument_aliases: schema.argument_aliases }
       : {}),
+    ...(schema.key_arguments ? { key_arguments: schema.key_arguments } : {}),
     ...(schema.aliases ? { aliases: schema.aliases } : {}),
     ...(schema.paraphrase_templates
       ? { paraphrase_templates: schema.paraphrase_templates }
@@ -93,6 +94,7 @@ export function predicateSchemaFromEntity(
   if (!predicateName) return [];
   const usageHints = usageHintsFromEntity(entity);
   const argumentDescriptions = stringArray(entity.argument_descriptions);
+  const keyArguments = stringArray(entity.key_arguments);
   const vocabulary = predicateVocabularyFromEntity(entity);
 
   return [
@@ -129,6 +131,7 @@ export function predicateSchemaFromEntity(
             ),
           }
         : {}),
+      ...(keyArguments.length > 0 ? { key_arguments: keyArguments } : {}),
       keywords: [
         predicateName,
         ...stringArray(entity.aliases),

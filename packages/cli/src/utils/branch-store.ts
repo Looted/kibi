@@ -12,8 +12,10 @@ import {
 } from "node:fs";
 import * as path from "node:path";
 import {
+  STORE_LOCK_TAKEOVER_VISIBLE_MS,
   classifyStoreLockHolder,
   readStoreLockOwner,
+  readStoreLockTakeover,
 } from "../prolog/store-lock.js";
 import {
   branchStoreManifestMatches,
@@ -180,6 +182,34 @@ export function storeLockJournalReason(
       command_argv: ["kibi", "engine", "janitor", "--apply"],
       applyRequired: false,
     },
+  };
+}
+
+/**
+ * An informational notice that this branch store's lock was taken over from
+ * a dead holder. The takeover itself is safe and automatic; it is reported
+ * because it means an engine or prove run crashed or was killed while it
+ * held the store, which nothing else shows once the new holder rewrites the
+ * ownership journal. Visible for STORE_LOCK_TAKEOVER_VISIBLE_MS.
+ */
+// implements REQ-core-journaled-engine-persistence
+export function storeLockTakeoverReason(
+  storePath: string,
+  now: Date = new Date(),
+): Record<string, unknown> | null {
+  const record = readStoreLockTakeover(storePath);
+  if (record === null) return null;
+  const age = now.getTime() - Date.parse(record.at);
+  if (age < 0 || age > STORE_LOCK_TAKEOVER_VISIBLE_MS) return null;
+  return {
+    code: "store_lock_taken_over",
+    path: record.path,
+    entityIds: [],
+    blocking: false,
+    brokenPid: record.brokenPid,
+    reason: record.reason,
+    at: record.at,
+    detail: `Kibi broke a stale branch-store lock at ${record.at} (${record.reason || "holder no longer running"}) and reattached. Nothing needs repair; a holder that died while it held the store usually means an engine or kibi prove run crashed or was killed.`,
   };
 }
 

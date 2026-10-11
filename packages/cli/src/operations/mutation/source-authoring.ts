@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { randomUUID } from "node:crypto";
 import fs from "node:fs";
@@ -658,7 +659,19 @@ function renderSymbolManifest(
       "Symbol manifest must contain a symbols array",
     );
   }
-  const items = (symbols as { items: unknown[] }).items;
+  // implements REQ-core-persistence
+  // `kibi init` writes `symbols: []`, a flow sequence; appending to it kept
+  // every symbol on one line. Render the list (and the entries that were
+  // written inside it) as block YAML so diffs stay reviewable.
+  const sequence = symbols as { flow?: boolean; items: unknown[] };
+  if (sequence.flow === true) {
+    sequence.flow = false;
+    for (const item of sequence.items) {
+      if (item && typeof item === "object" && "flow" in item)
+        (item as { flow?: boolean }).flow = false;
+    }
+  }
+  const items = sequence.items;
   const id = String(entity.id);
   const indices = items.flatMap((item, index) => {
     if (!item || typeof item !== "object" || !("get" in item)) return [];
@@ -936,6 +949,31 @@ export function renderSourceDocument(
   return renderEntityDocument(input, entity, existingContent);
 }
 
+/**
+ * Whether Git definitely does not track `relative`. Sync reads only tracked
+ * sources plus pending-source receipts, so an untracked file (for example the
+ * `.kb/symbols.yaml` that `kibi init` creates) needs a receipt on every
+ * write, or a new branch store compiles relationships without the entities
+ * they connect. Any other Git outcome (not a repository, git missing) is
+ * "unknown" and keeps the previous behaviour.
+ */
+// implements REQ-core-persistence
+export function isUntrackedByGit(
+  workspaceRoot: string,
+  relative: string,
+): boolean {
+  try {
+    execFileSync(
+      "git",
+      ["-C", workspaceRoot, "ls-files", "--error-unmatch", "--", relative],
+      { stdio: "ignore" },
+    );
+    return false;
+  } catch (error) {
+    return (error as { status?: unknown }).status === 1;
+  }
+}
+
 export async function writeSourceForUpsert(
   input: UpsertInput,
   entity: Readonly<Record<string, unknown>>,
@@ -1063,7 +1101,9 @@ export async function writeSourceForUpsert(
   try {
     if (
       receipt.afterHash !== null &&
-      (before === undefined || fs.existsSync(pendingReceipt))
+      (before === undefined ||
+        fs.existsSync(pendingReceipt) ||
+        isUntrackedByGit(context.workspaceRoot, relative))
     ) {
       writePendingSourceReceipt(
         context.workspaceRoot,

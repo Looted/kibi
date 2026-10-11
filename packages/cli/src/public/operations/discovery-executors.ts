@@ -21,8 +21,10 @@ import {
   branchStoreReason,
   inspectBranchStore,
   storeLockJournalReason,
+  storeLockTakeoverReason,
   uncompiledBranchStoreReason,
 } from "../../utils/branch-store.js";
+import { confirmSourceNewerReasons } from "../../utils/content-freshness.js";
 import {
   loadEntities,
   loadSearchCandidates,
@@ -78,7 +80,46 @@ export type SearchPayload = {
   readonly truncated?: boolean;
   readonly queryAnalysis?: IntentSearchAnalysis;
   readonly answer?: SearchAnswer;
+  /** The Kibi branch whose store was searched, when the runtime attached one. */
+  readonly branch?: string | null;
+  /** Present when the searched store was never compiled for this branch. */
+  readonly branchStore?: SearchBranchStoreNotice;
 };
+
+export type SearchBranchStoreNotice = {
+  readonly state: "not_compiled";
+  readonly code: typeof BRANCH_STORE_NOT_COMPILED;
+  readonly path: string;
+  readonly detail: string;
+  readonly remediation: Readonly<Record<string, unknown>>;
+};
+
+/**
+ * An empty result from a store that was never compiled says nothing about
+ * the authored requirements, so search reports the store state itself (the
+ * same reason kb_status and kb_check use) instead of a bare "no results".
+ */
+// implements REQ-cli-status-pre-first-sync, REQ-mcp-search-discovery
+function uncompiledSearchNotice(
+  context: OperationContext,
+): SearchBranchStoreNotice | null {
+  const attachment = context.branchAttachment;
+  if (attachment === undefined) return null;
+  const store = inspectBranchStore(context.workspaceRoot, attachment.kbBranch);
+  const reason = uncompiledBranchStoreReason(
+    context.workspaceRoot,
+    store,
+    attachment.kbBranch,
+  );
+  if (reason === null) return null;
+  return {
+    state: "not_compiled",
+    code: BRANCH_STORE_NOT_COMPILED,
+    path: store.path,
+    detail: String(reason.detail),
+    remediation: reason.remediation as Readonly<Record<string, unknown>>,
+  };
+}
 
 export type StatusInput = Readonly<Record<string, never>>;
 
@@ -99,6 +140,8 @@ export type StatusPayload = {
   readonly staleReasons?: readonly Record<string, unknown>[];
   readonly staleReasonCount?: number;
   readonly staleReasonsTruncated?: boolean;
+  /** Informational, non-blocking observations (never make the KB stale). */
+  readonly notices?: readonly Record<string, unknown>[];
   readonly branchAttachment?: {
     readonly gitBranch: string;
     readonly kbBranch: string;
@@ -275,6 +318,15 @@ export async function executeSearch(
   validateEntityType(type);
   try {
     const prolog = requireProlog(context);
+    const branch = context.branchAttachment?.kbBranch ?? null;
+    const storeNotice = uncompiledSearchNotice(context);
+    const branchFields = {
+      branch,
+      ...(storeNotice ? { branchStore: storeNotice } : {}),
+    };
+    const storeNote = storeNotice
+      ? ` Note: ${storeNotice.detail} Run kibi sync before relying on search results.`
+      : "";
     const intentMode =
       rankingMode === "intent-v1" ||
       semanticFacets !== undefined ||
@@ -305,7 +357,7 @@ export async function executeSearch(
           : undefined;
       // The structured payload carries every row; the text is a short
       // human-readable digest instead of a second copy of the results.
-      const text =
+      const text = `${
         intentResult.matches.length === 0
           ? `No intent search results for '${trimmedQuery}' (abstained).`
           : `Found ${intentResult.matches.length} intent search results for '${trimmedQuery}'${intentResult.analysis.ambiguous ? " (top matches are close; confirm before relying on one)" : ""}. Top: ${paginated
@@ -313,7 +365,8 @@ export async function executeSearch(
               .map((match) => String(match.entity.id ?? ""))
               .join(
                 ", ",
-              )}${answerLayer ? `. Governing: ${answerLayer.governing.map((req) => req.id).join(", ") || "none found"}` : ""}.`;
+              )}${answerLayer ? `. Governing: ${answerLayer.governing.map((req) => req.id).join(", ") || "none found"}` : ""}.`
+      }${storeNote}`;
       return {
         content: [{ type: "text", text }],
         structuredContent: {
@@ -322,6 +375,7 @@ export async function executeSearch(
           truncated: offset + paginated.length < intentResult.matches.length,
           queryAnalysis: intentResult.analysis,
           ...(answerLayer ? { answer: answerLayer } : {}),
+          ...branchFields,
         },
       };
     }
@@ -342,7 +396,7 @@ export async function executeSearch(
       context.workspaceRoot,
     );
     const paginated = paginateResults(matches, limit, offset);
-    const text =
+    const text = `${
       matches.length === 0
         ? `No search results for '${trimmedQuery}'.`
         : `Found ${matches.length} search results for '${trimmedQuery}'. Showing ${paginated.length} (offset ${offset}, limit ${limit}): ${paginated
@@ -350,13 +404,15 @@ export async function executeSearch(
               (match) =>
                 `${String(match.entity.id ?? "")} [${match.reasons.join(", ")}]`,
             )
-            .join(", ")}`;
+            .join(", ")}`
+    }${storeNote}`;
     return {
       content: [{ type: "text", text }],
       structuredContent: {
         results: await projectMatches(prolog, paginated, fields),
         count: matches.length,
         truncated: offset + paginated.length < matches.length,
+        ...branchFields,
       },
     };
   } catch (error) {
@@ -460,7 +516,25 @@ export async function executeStatus(
         await ownedEngine?.terminate();
       }
     const snapshotEvidence = await readWorkspaceSnapshot(context);
-    const existingReasons = payload.staleReasons ?? [];
+    // implements REQ-cli-status-pre-first-sync
+    // Prolog compares file times only. A fresh clone or a checkout rewrites
+    // every mtime without changing a byte, so confirm each "newer" source
+    // against the content hashes the last compilation recorded.
+    const prologReasons = payload.staleReasons ?? [];
+    const confirmed = confirmSourceNewerReasons(
+      context.workspaceRoot,
+      store.path,
+      prologReasons,
+    );
+    const existingReasons = confirmed.kept;
+    if (
+      confirmed.dropped.length > 0 &&
+      confirmed.kept.length === 0 &&
+      payload.staleReasonsTruncated !== true &&
+      payload.syncState === "stale"
+    ) {
+      payload = { ...payload, syncState: "fresh", dirty: false };
+    }
     // implements REQ-cli-status-pre-first-sync
     // A missing or empty store beside authored sources gets the one reason
     // whose remediation works (kibi sync); `kibi branch ensure` alone would
@@ -473,6 +547,9 @@ export async function executeStatus(
       ) ?? branchStoreReason(store);
     const storeUncompiled = storeReason?.code === BRANCH_STORE_NOT_COMPILED;
     const lockReason = storeLockJournalReason(store.path);
+    // implements REQ-core-journaled-engine-persistence
+    // A stale-lock takeover heals itself; report it without making the KB stale.
+    const takeoverNotice = storeLockTakeoverReason(store.path);
     const compilerReason = compilerFingerprintReason(store.path);
     const engineReason = engineStatus
       ? {
@@ -514,6 +591,7 @@ export async function executeStatus(
       ...(storeUncompiled ? { syncState: "stale", dirty: true } : {}),
       branchAttachment: attachment,
       branchStore: store,
+      ...(takeoverNotice ? { notices: [takeoverNotice] } : {}),
       ...(engineStatus ? { engineStatus } : {}),
       staleReasons,
       staleReasonCount: staleReasons.length,
@@ -661,7 +739,7 @@ export async function executeStatus(
       content: [
         {
           type: "text",
-          text: `Branch ${payload.branch} is ${enrichedPayload.syncState} (snapshot ${payload.snapshotId}, dirty=${enrichedPayload.dirty}, proofSnapshot=${enrichedPayload.proofSnapshot})${storeUncompiled ? `. Blocking: ${String(storeReason?.detail)} Run kibi sync.` : ""}`,
+          text: `Branch ${payload.branch} is ${enrichedPayload.syncState} (snapshot ${payload.snapshotId}, dirty=${enrichedPayload.dirty}, proofSnapshot=${enrichedPayload.proofSnapshot})${storeUncompiled ? `. Blocking: ${String(storeReason?.detail)} Run kibi sync.` : ""}${takeoverNotice ? `. Note: ${String(takeoverNotice.detail)}` : ""}`,
         },
       ],
       structuredContent: statusWithPlan,

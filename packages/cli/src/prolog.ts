@@ -1046,7 +1046,10 @@ export class PrologProcess {
     }
   }
 
-  private async terminateProcessTree(child: ChildProcess): Promise<void> {
+  private async terminateProcessTree(
+    child: ChildProcess,
+    graceMs = 0,
+  ): Promise<void> {
     let closed = false;
     const exited = new Promise<void>((resolve) => {
       const markExited = () => {
@@ -1056,6 +1059,18 @@ export class PrologProcess {
       child.once("close", markExited);
       child.once("error", markExited);
     });
+    if (graceMs > 0 && child.exitCode === null && child.signalCode === null) {
+      // implements REQ-core-journaled-engine-persistence
+      let graceTimer: NodeJS.Timeout | undefined;
+      await Promise.race([
+        exited,
+        new Promise<void>((resolve) => {
+          graceTimer = setTimeout(resolve, graceMs);
+        }),
+      ]);
+      if (graceTimer) clearTimeout(graceTimer);
+      if (closed) return;
+    }
     if (child.exitCode === null) this.signalProcessTree(child, "SIGTERM");
     await Promise.race([
       exited,
@@ -1250,7 +1265,11 @@ export class PrologProcess {
     );
   }
 
-  async terminate(): Promise<void> {
+  /**
+   * Stop the Prolog child. `graceMs` lets the interactive toplevel halt on
+   * stdin EOF (running its at_halt hooks) before it is signalled.
+   */
+  async terminate(options: { graceMs?: number } = {}): Promise<void> {
     if (this.interactiveStarted) {
       this.terminationReason ??= "terminated";
     }
@@ -1273,7 +1292,7 @@ export class PrologProcess {
       this.terminationPromise = (async () => {
         if (current) {
           current.stdin?.end();
-          await this.terminateProcessTree(current);
+          await this.terminateProcessTree(current, options.graceMs ?? 0);
         }
         await Promise.all(
           oneShots.map((child) => this.terminateProcessTree(child)),

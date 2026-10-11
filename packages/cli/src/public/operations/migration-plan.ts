@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import * as path from "node:path";
 import { BRANCH_STORE_NOT_COMPILED } from "../../utils/branch-store.js";
 import { legacyConfigExists } from "../../utils/config.js";
+import { MTIME_SOURCE_REASON_CODES } from "../../utils/content-freshness.js";
 import { readKbManifestStatus } from "../../utils/kb-manifest.js";
 import {
   getSchemaVersionStatus,
@@ -616,6 +617,9 @@ function readLegacySchemaVersion(
 }
 
 // implements REQ-agent-guided-migration-orchestration
+/** Migration action code of the automatic recompile of changed sources. */
+export const FRESHNESS_RESYNC = "freshness_resync";
+
 export function buildActionsFromStatus(input: {
   workspaceRoot: string;
   branchAttachment?: Readonly<Record<string, unknown>>;
@@ -777,10 +781,50 @@ export function buildActionsFromStatus(input: {
     );
   }
 
+  // implements REQ-cli-status-pre-first-sync
+  // Sources whose content changed since the last compilation (kb_status has
+  // already dropped mtime-only reasons) are fixed by recompiling them: one
+  // automatic `kibi sync`, not a review per file. An uncompiled store is
+  // compiled by the step above, which also covers these files.
+  const resyncReasons = (input.staleReasons ?? []).filter(
+    (reason) =>
+      typeof reason.code === "string" &&
+      MTIME_SOURCE_REASON_CODES.has(reason.code),
+  );
+  if (resyncReasons.length > 0 && uncompiled === undefined) {
+    actions.push(
+      migrationAction({
+        id: "freshness-resync",
+        code: FRESHNESS_RESYNC,
+        category: "freshness",
+        safety: "automatic",
+        invocation: { kind: "cli", command_argv: ["kibi", "sync"] },
+        affectedFiles: [
+          ...new Set(
+            resyncReasons.flatMap((reason) =>
+              typeof reason.path === "string" ? [reason.path] : [],
+            ),
+          ),
+        ].sort(),
+        evidence: { reasons: resyncReasons },
+        dependsOn: actions
+          .map((action) => action.id)
+          .filter(
+            (id) =>
+              id === "branch-store-ensure" || id === "schema-config-upgrade",
+          ),
+        postconditions: [{ syncState: "fresh" }],
+        autoApplicable: true,
+      }),
+    );
+  }
+
   for (const reason of input.staleReasons ?? []) {
     const code = typeof reason.code === "string" ? reason.code : "stale_source";
     // Planned above as an automatic compile step, not a review.
     if (code === BRANCH_STORE_NOT_COMPILED) continue;
+    // Planned above as one automatic resync (or covered by the compile).
+    if (MTIME_SOURCE_REASON_CODES.has(code)) continue;
     const file = typeof reason.path === "string" ? reason.path : "";
     actions.push(
       migrationAction({
