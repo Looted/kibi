@@ -211,7 +211,7 @@ describe("agent-core knowledge index", () => {
   test("the line scanner matches a full YAML parse and ignores non-symbol sequences", () => {
     const parsed = parse(SYMBOLS) as { symbols: Record<string, unknown>[] };
     const coordinates = {
-      "SYM-compute": { line: 3, endLine: 7 },
+      "SYM-compute": { line: 3, endLine: 7, sourceFile: "src/checkout.ts" },
     };
     expect(
       buildKnowledgeIndex(
@@ -270,7 +270,103 @@ describe("agent-core knowledge index", () => {
     expect(loadKnowledgeIndex(tempDir("kibi-agent-core-empty-"))).toEqual({
       files: {},
       symbolCount: 0,
+      manifest: "missing",
+      coordinateFiles: [],
+      unlinkedFiles: [],
     });
+  });
+
+  test("a manifest written as one flow sequence indexes like its block form", () => {
+    // kibi-cli before 2.18.0 appended to the `symbols: []` that `kibi init`
+    // writes, so every symbol of such a project sits on this one line.
+    const oneLine =
+      "# symbols.yaml\nsymbols: [ { id: SYM-seek, title: seekTo, sourceFile: src/app/services/playback.service.ts, relationships: [ { type: covered_by, target: TEST-seek }, { type: implements, target: REQ-seek } ] }, { id: SYM-auth, title: 'toggle', sourceFile: ./src/app/services/auth.service.ts, links: [REQ-auth], tags: [a, b] } ]\n";
+    const wrapped =
+      "symbols:\r\n  [\r\n    { id: SYM-seek, sourceFile: src/app/services/playback.service.ts,\r\n      relationships: [ { type: implements, target: REQ-seek } ] },\r\n    { id: SYM-auth, sourceFile: src/app/services/auth.service.ts, links: [REQ-auth] }\r\n  ]\r\n";
+    const blockWithFlowValues =
+      "symbols:\n  - id: SYM-seek\n    sourceFile: src/app/services/playback.service.ts\n    relationships: [{type: implements,\n      target: REQ-seek}, {type: covered_by, target: TEST-seek}]\n  - id: SYM-auth\n    sourceFile: src/app/services/auth.service.ts\n    links: [REQ-auth]\n";
+    for (const text of [oneLine, wrapped, blockWithFlowValues]) {
+      const reference = (parse(text) as { symbols: Record<string, unknown>[] })
+        .symbols;
+      expect(buildKnowledgeIndex(scanSymbolsManifest(text))).toEqual(
+        buildKnowledgeIndex(reference),
+      );
+      const index = buildKnowledgeIndex(scanSymbolsManifest(text));
+      expect(index.symbolCount).toBe(2);
+      expect(
+        index.files["src/app/services/auth.service.ts"]?.[0]?.implements,
+      ).toEqual(["REQ-auth"]);
+      expect(
+        index.files["src/app/services/playback.service.ts"]?.[0]?.implements,
+      ).toEqual(["REQ-seek"]);
+    }
+  });
+
+  test("flow reading stays conservative on scalars, broken brackets and later sections", () => {
+    const variants = [
+      // A plain scalar that merely starts with `[` stays a string.
+      "symbols:\n  - id: SYM-a\n    title: '[WIP] fix rounding'\n    sourceFile: src/a.ts\n    links: [REQ-1]\n",
+      // A flow `symbols:` section after another top-level key.
+      "version: 1\nsymbols: [ { id: S1, sourceFile: src/a.ts, links: [REQ-1] } ]\n",
+      // Flow mappings as block list items.
+      "symbols:\n  - id: SYM-a\n    sourceFile: src/a.ts\n    relationships:\n      - { type: implements, target: REQ-1 }\n      - type: covered_by\n        target: TEST-1\n",
+    ];
+    for (const text of variants) {
+      const reference = (parse(text) as { symbols: Record<string, unknown>[] })
+        .symbols;
+      expect(buildKnowledgeIndex(scanSymbolsManifest(text))).toEqual(
+        buildKnowledgeIndex(reference),
+      );
+    }
+    // A bracket that never closes keeps that one value as text and does not
+    // swallow the records after it.
+    const broken =
+      "symbols:\n  - id: SYM-a\n    sourceFile: src/a.ts\n    links: [REQ-1\n  - id: SYM-b\n    sourceFile: src/b.ts\n    links: [REQ-2]\n";
+    const records = scanSymbolsManifest(broken);
+    expect(records.map((record) => record.id)).toEqual(["SYM-a", "SYM-b"]);
+    expect(records[0]?.links).toBe("[REQ-1");
+    expect(
+      buildKnowledgeIndex(records).files["src/b.ts"]?.[0]?.implements,
+    ).toEqual(["REQ-2"]);
+  });
+
+  test("files with a record but no link are listed separately from linked files", () => {
+    const index = buildKnowledgeIndex(
+      scanSymbolsManifest(
+        "symbols:\n  - id: S\n    sourceFile: ./src/u.ts\n  - id: T\n    sourceFile: src/l.ts\n    links: [REQ-1]\n",
+      ),
+    );
+    expect(Object.keys(index.files)).toEqual(["src/l.ts"]);
+    expect(index.unlinkedFiles).toEqual(["src/u.ts"]);
+  });
+
+  test("the index says whether the manifest was missing, empty, read or unreadable", () => {
+    const root = tempDir("kibi-agent-core-state-");
+    expect(loadKnowledgeIndex(root).manifest).toBe("missing");
+    write(root, ".kb/symbols.yaml", "# symbols.yaml\nsymbols: []\n");
+    expect(loadKnowledgeIndex(root).manifest).toBe("empty");
+    write(root, ".kb/symbols.yaml", "---\nversion: 1\nsymbols: []\n");
+    expect(loadKnowledgeIndex(root).manifest).toBe("empty");
+    write(root, ".kb/symbols.yaml", SYMBOLS);
+    expect(loadKnowledgeIndex(root).manifest).toBe("indexed");
+    write(
+      root,
+      ".kb/symbols.yaml",
+      "symbols: [ { id: SYM-broken, sourceFile: src/x.ts\n",
+    );
+    const unreadable = loadKnowledgeIndex(root);
+    expect(unreadable.manifest).toBe("unreadable");
+    expect(unreadable.symbolCount).toBe(0);
+    // Coordinates still name the files that carry symbols.
+    write(
+      root,
+      ".kb/symbol-coordinates.yaml",
+      "version: 2\ncoordinates:\n  abc:\n    sourceFile: ./src/x.ts\n    sourceLine: 1\n  def:\n    sourceFile: src/y.ts\n",
+    );
+    expect(loadKnowledgeIndex(root).coordinateFiles).toEqual([
+      "src/x.ts",
+      "src/y.ts",
+    ]);
   });
 
   test("entity summaries read the canonical lane document and cannot escape it", () => {

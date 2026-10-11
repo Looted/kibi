@@ -98,7 +98,10 @@ import {
   normalizeExtractionSources,
   processExtractions,
 } from "./sync/extraction.js";
-import { refreshManifestCoordinates } from "./sync/manifest.js";
+import {
+  normalizeManifestLayout,
+  refreshManifestCoordinates,
+} from "./sync/manifest.js";
 import {
   persistEntities,
   persistRelationships,
@@ -730,6 +733,20 @@ export async function syncCommand(
           recoveredPendingReceiptPaths,
         )
       : [];
+
+    // A manifest an older writer left in flow layout is rewritten as block
+    // YAML before anything hashes it, ahead of the no-op fast path below, so
+    // a project whose cache is already fresh still gets it on the next sync.
+    if (!validateOnly) {
+      for (const file of manifestFiles) {
+        const normalized = normalizeManifestLayout(file);
+        if (normalized !== null) {
+          console.log(
+            `\u2713 Rewrote ${path.relative(workspaceRoot, file)} in block layout (${normalized} symbol${normalized === 1 ? "" : "s"})`,
+          );
+        }
+      }
+    }
 
     // No-op is a first-class compiler result. Hashing the configured inputs is
     // sufficient when normalized entity/shard inventories are already fresh;

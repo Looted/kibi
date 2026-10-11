@@ -8,6 +8,7 @@ import path from "node:path";
 import { type HookOutput, runHook } from "../src/hook-runner";
 import { MAX_SNIPPET_CHARS } from "../src/snippets";
 import {
+  COORDINATES_YAML,
   type Fixture,
   cleanupTempDirs,
   createKibiWorkspace,
@@ -335,6 +336,74 @@ describe("pre-edit snippets", () => {
     expect(
       await pre("Write", { file_path: "tests/new.test.ts", content: "" }),
     ).toBeUndefined();
+  });
+
+  test("a manifest written as one flow sequence still yields edit snippets", async () => {
+    const fixture = createKibiWorkspace();
+    // The pre-2.18.0 writer appended to `symbols: []`, so every symbol sat
+    // on this one line and the hook announced the files as unowned.
+    const flow =
+      "# symbols.yaml\nsymbols: [ { id: SYM-computeTotal, title: computeTotal, sourceFile: src/checkout.ts, relationships: [ { type: implements, target: REQ-checkout-rounding }, { type: covered_by, target: TEST-checkout-rounding } ] }, { id: SYM-formatTotal, title: formatTotal, sourceFile: src/checkout.ts, links: [REQ-currency-display] } ]\n";
+    fs.writeFileSync(path.join(fixture.root, ".kb/symbols.yaml"), flow);
+    const { pre } = session(fixture);
+    const text = await pre("Edit", {
+      file_path: "src/checkout.ts",
+      old_string: "let total = 0;",
+      new_string: "let total = 1;",
+    });
+    expect(text).toContain("REQ-checkout-rounding");
+    expect(text).not.toContain("no symbol in src/checkout.ts is linked");
+  });
+
+  test("an unreadable manifest is reported once instead of calling files unowned", async () => {
+    const fixture = createKibiWorkspace();
+    fs.writeFileSync(
+      path.join(fixture.root, ".kb/symbols.yaml"),
+      "symbols: [ { id: SYM-computeTotal, sourceFile: src/checkout.ts\n",
+    );
+    const { pre } = session(fixture);
+    const text = await pre("Edit", {
+      file_path: "src/checkout.ts",
+      old_string: "let total = 0;",
+      new_string: "let total = 1;",
+    });
+    expect(text).toContain("could not read .kb/symbols.yaml");
+    expect(text).toContain('kb_query({sourceFile:"src/checkout.ts"})');
+    expect(text).not.toContain("is linked to a requirement yet");
+    // Once per session, whatever file is edited next.
+    expect(
+      await pre("Write", { file_path: "src/new-feature.ts", content: "" }),
+    ).toBeUndefined();
+  });
+
+  test("a coordinate-bound file whose record was not indexed is not called unowned", async () => {
+    const fixture = createKibiWorkspace();
+    // helper.ts has a manifest record without a link and a coordinate entry:
+    // the discovery note is right. sealed.ts has a coordinate entry but no
+    // readable record: the manifest, not the file, is the problem.
+    fs.writeFileSync(
+      path.join(fixture.root, ".kb/symbol-coordinates.yaml"),
+      `${COORDINATES_YAML}  SYM-unlinked:\n    sourceFile: src/helper.ts\n    sourceLine: 1\n  SYM-sealed:\n    sourceFile: src/sealed.ts\n    sourceLine: 1\n`,
+    );
+    write(fixture.root, "src/sealed.ts", "export const sealed = 1;\n");
+    const { pre } = session(fixture);
+    expect(
+      await pre("Edit", {
+        file_path: "src/helper.ts",
+        old_string: "helper = 1",
+        new_string: "helper = 2",
+      }),
+    ).toContain("no symbol in src/helper.ts is linked");
+    const sealed = await pre("Edit", {
+      file_path: "src/sealed.ts",
+      old_string: "sealed = 1",
+      new_string: "sealed = 2",
+    });
+    expect(sealed).toContain("could not read .kb/symbols.yaml");
+    expect(sealed).not.toContain("is linked to a requirement yet");
+    expect(
+      await pre("Write", { file_path: "src/new-feature.ts", content: "" }),
+    ).toContain("no symbol in src/new-feature.ts is linked");
   });
 
   test("direct .kb access gets one note per session", async () => {

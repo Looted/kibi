@@ -51463,3 +51463,62 @@ symbols:
         target: TEST-bootstrap-ui-plugin-offer
       - type: implements
         target: REQ-bootstrap-ui-plugin-offer
+  - id: SYM-agent-core-parseFlow
+    title: parseFlow
+    status: active
+    sourceFile: packages/agent-core/src/knowledge-index.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-hooks-flow-manifest
+      - type: implements
+        target: REQ-kibi-hooks-flow-manifest
+  - id: SYM-agent-core-scanFlowSection
+    title: scanFlowSection
+    status: active
+    sourceFile: packages/agent-core/src/knowledge-index.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-hooks-flow-manifest
+      - type: implements
+        target: REQ-kibi-hooks-flow-manifest
+  - id: SYM-agent-core-manifestStateOf
+    title: manifestStateOf
+    status: active
+    sourceFile: packages/agent-core/src/knowledge-index.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-hooks-flow-manifest
+      - type: implements
+        target: REQ-kibi-hooks-flow-manifest
+  - id: SYM-claude-unreadableManifestNote
+    title: unreadableManifestNote
+    status: active
+    sourceFile: packages/claude/src/snippets.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-hooks-flow-manifest
+      - type: implements
+        target: REQ-kibi-hooks-flow-manifest
+  - id: SYM-cli-sync-normalizeManifestLayout
+    title: normalizeManifestLayout
+    status: active
+    sourceFile: packages/cli/src/commands/sync/manifest.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-hooks-flow-manifest
+      - type: implements
+        target: REQ-kibi-hooks-flow-manifest
+  - id: SYM-test-kibi-hooks-flow-manifest
+    title: Flow-layout manifest hooks consumer suite
+    status: active
+    sourceFile: packages/cli/tests/consumer/flow-manifest-hooks.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-hooks-flow-manifest

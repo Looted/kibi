@@ -136,3 +136,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4d103252faec
+  - type: validates
+    from: TEST-kibi-hooks-flow-manifest
+    to: SCEN-kibi-hooks-flow-manifest
+    created_at: 2026-10-11T16:20:25.522Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e06464461f10
