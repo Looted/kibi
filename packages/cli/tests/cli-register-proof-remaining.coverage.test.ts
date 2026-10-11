@@ -25,7 +25,10 @@ describe("cli-register-proof remaining runner listing", () => {
       buildSystems: ["bun"],
       detectedRunners: ["playwright", "vitest"],
       ciWorkflows: [],
-      currentIntegration: null,
+      currentIntegration: "unit",
+      currentIntegrations: [
+        { id: "unit", producer: "command", command: ["bun", "test"] },
+      ],
       recommendation: "none",
       missing: [],
       proposedIntegration: null,
@@ -49,5 +52,8 @@ describe("cli-register-proof remaining runner listing", () => {
     const text = chunks.join("");
     expect(text).toContain("  ✓ playwright");
     expect(text).toContain("  ✓ vitest");
+    // The configured integration names the command kibi prove runs.
+    expect(text).toContain("Current integrations:");
+    expect(text).toContain("  unit (command: bun test)");
   });
 });

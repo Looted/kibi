@@ -16,7 +16,7 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { existsSync, rmSync } from "node:fs";
+import { existsSync, rmSync, writeFileSync } from "node:fs";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import type { QueryResult } from "../prolog.js";
@@ -140,6 +140,71 @@ export function breakStoreLock(rdfDirectory: string): void {
   }
 }
 
+/** Store-root record of the last stale-lock takeover (see below). */
+export const STORE_LOCK_TAKEOVER_FILE = ".kibi-lock-takeover.json";
+
+/**
+ * How long a takeover stays visible in kb_status and kibi doctor. A takeover
+ * happens inside a detached engine whose output nobody reads, so the record
+ * outlives that engine (which may idle out within minutes) long enough to be
+ * seen on the next working session; the next takeover replaces it.
+ */
+export const STORE_LOCK_TAKEOVER_VISIBLE_MS = 24 * 60 * 60 * 1000;
+
+export type StoreLockTakeoverRecord = Readonly<{
+  brokenPid: number | null;
+  reason: string;
+  at: string;
+  path: string;
+}>;
+
+/**
+ * Record that a stale branch-store lock is about to be broken. Best effort:
+ * the record is diagnostic and must never block the takeover itself.
+ */
+// implements REQ-core-journaled-engine-persistence
+export function recordStoreLockTakeover(
+  storePath: string,
+  brokenPid: number | null,
+  reason: string,
+  at: Date = new Date(),
+): void {
+  try {
+    writeFileSync(
+      join(storePath, STORE_LOCK_TAKEOVER_FILE),
+      `${JSON.stringify({ brokenPid, reason, at: at.toISOString() })}\n`,
+      { mode: 0o600 },
+    );
+  } catch {
+    // A read-only or vanished store still gets its lock broken.
+  }
+}
+
+/** The last takeover record of a branch store, or null when none is readable. */
+// implements REQ-core-journaled-engine-persistence
+export function readStoreLockTakeover(
+  storePath: string,
+): StoreLockTakeoverRecord | null {
+  const recordPath = join(storePath, STORE_LOCK_TAKEOVER_FILE);
+  if (!existsSync(recordPath)) return null;
+  try {
+    const parsed = JSON.parse(readFileSync(recordPath, "utf8")) as Record<
+      string,
+      unknown
+    >;
+    if (typeof parsed.at !== "string" || Number.isNaN(Date.parse(parsed.at)))
+      return null;
+    return {
+      brokenPid: typeof parsed.brokenPid === "number" ? parsed.brokenPid : null,
+      reason: typeof parsed.reason === "string" ? parsed.reason : "",
+      at: parsed.at,
+      path: recordPath,
+    };
+  } catch {
+    return null;
+  }
+}
+
 export interface StoreLockTakeoverDecision {
   readonly action: "break" | "surface";
   readonly reason: string;
@@ -210,6 +275,11 @@ Store lock holder: ${holderSummary}. Close that session, or run 'kibi engine sto
     storeLocked.lockDirectory !== ""
       ? storeLocked.lockDirectory
       : join(kbPath, "rdf");
+  recordStoreLockTakeover(
+    kbPath,
+    storeLocked.owner?.pid ?? null,
+    decision.reason,
+  );
   breakStoreLock(lockDirectory);
   const retried = await prolog.query(`kb_attach('${escapeAtom(kbPath)}')`);
   if (retried.success) {

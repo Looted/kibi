@@ -222,6 +222,7 @@ describe("unit coverage runner contract", () => {
       "cli.sync-command",
       "cli.sync-coverage",
       "cli.doctor",
+      "cli.operations",
       "cli.support.staged-symbols-manifest",
       "cli.support.traceability",
       "cli.engine-live-socket",
@@ -232,6 +233,18 @@ describe("unit coverage runner contract", () => {
         COVERAGE_SHARDS.find((shard) => shard.label === label)?.isolation,
       ).toBe("process-per-file");
     }
+    const operations = COVERAGE_SHARDS.find(
+      (shard) => shard.label === "cli.operations",
+    );
+    expect(operations?.paths).toContain(
+      "./packages/cli/tests/operations/apply-plan.test.ts",
+    );
+    expect(operations?.paths).toContain(
+      "./packages/cli/tests/operations/migration/origin-backfill.test.ts",
+    );
+    expect(operations?.paths).not.toContain(
+      "./packages/cli/tests/operations/bootstrap-workspace-fixture.ts",
+    );
     expect(runnerSource).not.toContain("25 * 60 * 1000");
     expect(runnerSource).toContain("allowEmpty: result.exitCode === 0");
     expect(runnerSource).toContain("recording an empty coverage artifact");

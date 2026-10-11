@@ -17,8 +17,11 @@
  */
 
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import * as path from "node:path";
+import { load as parseYAML } from "js-yaml";
+import { isSymbolsManifestPath } from "../../utils/kb-paths.js";
 
 interface UntrackedTargetsDeps {
   execFileSync: (
@@ -80,28 +83,61 @@ export function findUntrackedDocumentMatches(
   const remaining = new Set(missingIds);
   for (const relative of untracked) {
     if (remaining.size === 0) break;
-    if (!relative.endsWith(".md")) continue;
-    const absolute = path.resolve(
-      workspaceRoot,
-      relative.replaceAll("\\", "/"),
-    );
+    const normalized = relative.replaceAll("\\", "/");
+    const manifest = isSymbolsManifestPath(normalized);
+    if (!normalized.endsWith(".md") && !manifest) continue;
+    const absolute = path.resolve(workspaceRoot, normalized);
     if (!resolved.existsSync(absolute)) continue;
+    const workspaceRelative = path
+      .relative(workspaceRoot, absolute)
+      .replaceAll("\\", "/");
+    // A pending-source receipt makes an untracked file visible to sync, so
+    // the file cannot be why an id is missing.
+    if (existsSync(pendingReceiptFor(workspaceRoot, workspaceRelative)))
+      continue;
     let content: string;
     try {
       content = resolved.readFileSync(absolute, "utf8");
     } catch {
       continue;
     }
-    const id = frontmatterId(content);
-    if (id !== null && remaining.has(id)) {
-      const workspaceRelative = path
-        .relative(workspaceRoot, absolute)
-        .replaceAll("\\", "/");
-      matches.set(id, workspaceRelative);
-      remaining.delete(id);
+    const ids = manifest ? manifestIds(content) : [frontmatterId(content)];
+    for (const id of ids) {
+      if (id !== null && remaining.has(id)) {
+        matches.set(id, workspaceRelative);
+        remaining.delete(id);
+      }
     }
   }
   return matches;
+}
+
+/** Where kb_upsert records the pending-source receipt of `relative`. */
+function pendingReceiptFor(workspaceRoot: string, relative: string): string {
+  return path.join(
+    workspaceRoot,
+    ".kb",
+    "recovery",
+    "pending-sources",
+    `${createHash("sha256").update(relative).digest("hex")}.json`,
+  );
+}
+
+/** Symbol ids declared by an untracked symbols manifest. */
+function manifestIds(content: string): string[] {
+  try {
+    const parsed = parseYAML(content) as { symbols?: unknown } | null;
+    const symbols = Array.isArray(parsed?.symbols) ? parsed.symbols : [];
+    return symbols.flatMap((symbol) =>
+      symbol !== null &&
+      typeof symbol === "object" &&
+      typeof (symbol as { id?: unknown }).id === "string"
+        ? [(symbol as { id: string }).id]
+        : [],
+    );
+  } catch {
+    return [];
+  }
 }
 
 /**

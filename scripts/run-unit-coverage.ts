@@ -128,6 +128,14 @@ const CLI_SUPPORT_TRACEABILITY_TESTS = readdirSync(
   .map((entry) => `${CLI_SUPPORT_TRACEABILITY_TEST_DIRECTORY}/${entry.name}`)
   .filter((path) => path !== CLI_SUPPORT_STAGED_SYMBOLS_MANIFEST_TEST)
   .sort();
+const CLI_OPERATIONS_DIR = "./packages/cli/tests/operations";
+const CLI_OPERATIONS_TESTS = readdirSync(CLI_OPERATIONS_DIR, {
+  recursive: true,
+  encoding: "utf8",
+})
+  .filter((entry) => /\.(?:test|spec)\.ts$/.test(entry))
+  .map((entry) => `${CLI_OPERATIONS_DIR}/${entry}`)
+  .sort();
 const CLI_COMMAND_TESTS = readdirSync(CLI_COMMANDS_DIR)
   .filter((entry) => /\.(?:test|spec)\.ts$/.test(entry))
   .map((entry) => `${CLI_COMMANDS_DIR}/${entry}`);
@@ -192,9 +200,14 @@ export const COVERAGE_SHARDS: readonly {
     isolation: "process-per-file",
   },
   {
+    // The operations suite builds Git and engine fixtures across ~110 files.
+    // Twice the shared Bun 1.4 coverage process stalled with no test output
+    // until the 15-minute bound and dropped its LCOV, so every file runs in
+    // its own process like the other fixture-heavy CLI shards.
     label: "cli.operations",
-    paths: ["./packages/cli/tests/operations"],
+    paths: CLI_OPERATIONS_TESTS,
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
+    isolation: "process-per-file",
   },
   {
     label: "cli.public",

@@ -246,6 +246,11 @@ function renderInspection(result: unknown): string {
     detectedRunners: string[];
     ciWorkflows: string[];
     currentIntegration: string | null;
+    currentIntegrations?: {
+      id: string;
+      producer: string;
+      command: string[];
+    }[];
     recommendation: string;
     missing: string[];
     proposedIntegration?: {
@@ -272,7 +277,18 @@ function renderInspection(result: unknown): string {
   if (inspection.ciWorkflows.length > 0)
     lines.push(`CI workflows: ${inspection.ciWorkflows.join(", ")}`);
   lines.push("");
-  lines.push(`Current integration: ${inspection.currentIntegration ?? "none"}`);
+  const configured = inspection.currentIntegrations ?? [];
+  if (configured.length === 0) {
+    lines.push(
+      `Current integration: ${inspection.currentIntegration ?? "none"}`,
+    );
+  } else {
+    lines.push("Current integrations:");
+    for (const entry of configured)
+      lines.push(
+        `  ${entry.id} (${entry.producer}: ${entry.command.join(" ")})`,
+      );
+  }
   lines.push("");
   lines.push(`Recommendation: ${inspection.recommendation}`);
   if (inspection.missing.length > 0) {

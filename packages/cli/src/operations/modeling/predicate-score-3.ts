@@ -83,7 +83,7 @@ export function scoreExactPredicates3(
   }
   if (schema.predicate_name === "permission_rule") {
     if (
-      /^(?:only\s+)?[a-z][a-z\s_-]*\s+(?:may|can|is\s+allowed\s+to|must\s+not|cannot|can't|is\s+forbidden\s+to)\s+.+?\.?$/i.test(
+      /^(?:only\s+)?[a-z][a-z\s_-]*\s+(?:may|can|(?:is|are)\s+(?:not\s+)?(?:allowed|permitted|forbidden)\s+to|must\s+not|cannot|can't)\s+.+?\.?$/i.test(
         text,
       )
     ) {

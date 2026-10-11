@@ -16,6 +16,7 @@ import {
 import { loadEntities } from "../../public/operations/discovery-entities.js";
 import { executeStatus } from "../../public/operations/discovery-executors.js";
 import {
+  FRESHNESS_RESYNC,
   type MigrationAction,
   type MigrationPlan,
   PREDICATE_SCHEMA_ALIGNMENT_CODE,
@@ -3193,6 +3194,17 @@ async function applyMigrationAction(
       if (!result.success)
         throw new Error(
           "Compiling the branch store (kibi sync) did not complete successfully.",
+        );
+      return;
+    }
+    // implements REQ-cli-status-pre-first-sync
+    case FRESHNESS_RESYNC: {
+      const result = await syncCommand({
+        workspaceRoot: context.workspaceRoot,
+      });
+      if (!result.success)
+        throw new Error(
+          "Recompiling changed sources (kibi sync) did not complete successfully.",
         );
       return;
     }

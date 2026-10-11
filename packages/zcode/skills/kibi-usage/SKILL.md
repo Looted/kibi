@@ -4,7 +4,7 @@ description: Use Kibi's source-first, exact-Git, migration-aware, proof-aware op
 license: AGPL-3.0-or-later
 metadata:
   id: kibi-usage
-  version: 2.13.0
+  version: 2.14.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -239,7 +239,11 @@ authored. Each one is the order the write path accepts.
    fact, `requires_predicate` to `relationshipTarget` and `specified_by` to
    its scenario: `specified_by` (req → scenario) is sent in the
    requirement's write, never in the scenario's, so create the scenario
-   first. A
+   first, with `assumes` links (scenario → `property_value` fact, sent in
+   the scenario's own write) to the values its outcome relies on. Set
+   `expects` only on a scenario that has `assumes` links; `expects: success`
+   without them only yields `scenario-feasibility-unknown` ("assumes
+   nothing"). A
    `modeled` entry and its grounding link must arrive in the same write
    (`modeled semantic_inventory entries (n) must equal logical grounding
    relationships (m)`); a clause not grounded yet stays `status: missing`
@@ -251,7 +255,12 @@ authored. Each one is the order the write path accepts.
    claim_keys must match logical grounding target claim_keys exactly`.
    Prefer supersession for a change of meaning: analyze the new prose,
    write its facts, write the new requirement (`-v2`) with `supersedes` to
-   the old one, then set the old one to `status: closed`. For a wording fix
+   the old one, then set the old one to `status: closed`. Its scenario
+   follows the same rule as in recipe 1: create the new scenario (with
+   `assumes` to the `property_value` facts it relies on, and `expects` only
+   when it has them) before the `-v2` write that sends `specified_by`, then
+   re-point the old scenario (its `assumes` go in its own write) or close
+   it. For a wording fix
    that keeps the meaning, re-ground in place: analyze the new prose,
    `kb_upsert` each grounding fact with the new `claim_key`/`claim_text`
    (same fact id), then `kb_upsert` the requirement with the new ledger,

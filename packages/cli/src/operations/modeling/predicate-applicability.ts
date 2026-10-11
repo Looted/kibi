@@ -14,8 +14,11 @@ type IntentRule = {
   readonly prohibited?: readonly RegExp[];
 };
 
+// A bare permission modal ("coaches can read", "users may export", "are
+// permitted to") states a permission as much as "allowed" does, so it must
+// reach the permission_rule intent rule instead of being rejected here.
 const NORMATIVE_OR_VALIDITY_PATTERN =
-  /\b(?:must|shall|should|required|requires?|may\s+only|only\s+.+?\s+(?:may|can)|must\s+not|shall\s+not|cannot|can't|allowed|denied|forbidden|prohibited|invalid|unresolved|reject(?:s|ed|ion)?|fail(?:s|ed|ure)?\s+(?:clearly|explicitly|with)|defaults?\s+to|states?\s+are|owned\s+by|initializes?\s+after|before|unless|when|if|(?:exception|exempt)\s+(?:to|from|when|if|unless))\b/i;
+  /\b(?:must|shall|should|required|requires?|may\s+only|only\s+.+?\s+(?:may|can)|(?:can|may)\s+(?:not\s+)?(?:only\s+)?\w+|(?:is|are)\s+(?:not\s+)?(?:allowed|permitted)\s+to|permitted|must\s+not|shall\s+not|cannot|can't|allowed|denied|forbidden|prohibited|invalid|unresolved|reject(?:s|ed|ion)?|fail(?:s|ed|ure)?\s+(?:clearly|explicitly|with)|defaults?\s+to|states?\s+are|owned\s+by|initializes?\s+after|before|unless|when|if|(?:exception|exempt)\s+(?:to|from|when|if|unless))\b/i;
 
 function expressesNormativeOrValidityIntent(text: string): boolean {
   return /^\s*no\b/i.test(text) || NORMATIVE_OR_VALIDITY_PATTERN.test(text);
@@ -110,7 +113,7 @@ const INTENT_RULES: Readonly<Record<string, IntentRule>> = {
   },
   permission_rule: {
     allOf: [
-      [/only|may|can|allowed|denied|forbidden|must\s+not|cannot/i],
+      [/only|may|can|allowed|permitted|denied|forbidden|must\s+not|cannot/i],
       [
         /delete|export|access|read|write|update|remove|manage|permission/i,
         // A common action verb counts only right after the permission modal

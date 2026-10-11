@@ -114,6 +114,7 @@ import {
   createUniqueStagingPath,
   prepareStagingEnvironment,
 } from "./sync/staging.js";
+import { findUntrackedDocumentMatches } from "./sync/untracked-targets.js";
 
 // Manual deletion of a written-but-unstaged source leaves a recovery receipt
 // behind; sync refuses to guess, so the error must name the way out.
@@ -346,6 +347,40 @@ function compilerCacheHasEntityDelta(cache: SyncCache): boolean {
   return (
     cache.entityHashes !== undefined && cache.sourceEntityIds !== undefined
   );
+}
+
+/**
+ * Name every dangling relationship and its missing endpoint, and say when an
+ * endpoint is declared in a source sync cannot see (untracked by Git and
+ * without a pending-source receipt): staging that file is the fix.
+ */
+// implements REQ-core-persistence
+function reportDanglingRelationships(
+  workspaceRoot: string,
+  validationErrors: ReturnType<typeof validateRelationships>,
+): void {
+  console.warn(
+    `Warning: ${validationErrors.length} dangling relationship(s) found`,
+  );
+  const missing = new Set<string>();
+  for (const { relationship, error } of validationErrors) {
+    const endpoint =
+      error === "missing_from" ? relationship.from : relationship.to;
+    missing.add(endpoint);
+    console.warn(
+      `  - ${error}: ${relationship.type} ${relationship.from} -> ${relationship.to} (${endpoint} is not in this branch's sources)`,
+    );
+  }
+  const untracked = findUntrackedDocumentMatches(workspaceRoot, [...missing]);
+  const byFile = new Map<string, string[]>();
+  for (const [id, file] of untracked) {
+    byFile.set(file, [...(byFile.get(file) ?? []), id]);
+  }
+  for (const [file, ids] of byFile) {
+    console.warn(
+      `  Note: ${ids.sort().join(", ")} ${ids.length === 1 ? "is" : "are"} declared in ${file}, which Git does not track and no pending-source receipt covers, so sync ignores it. Run \`git add ${file}\` (staging is enough) or rewrite the entity with kb_upsert, then sync again.`,
+    );
+  }
 }
 
 function compilerCacheIsFresh(
@@ -1240,9 +1275,7 @@ export async function syncCommand(
           ? []
           : validateRelationships(allRelationships, entityIds);
         if (validationErrors.length > 0) {
-          console.warn(
-            `Warning: ${validationErrors.length} dangling relationship(s) found`,
-          );
+          reportDanglingRelationships(workspaceRoot, validationErrors);
         }
         const danglingKeys = new Set(
           validationErrors.map(
@@ -1425,14 +1458,7 @@ export async function syncCommand(
         entityIds,
       );
       if (validationErrors.length > 0) {
-        console.warn(
-          `Warning: ${validationErrors.length} dangling relationship(s) found`,
-        );
-        for (const { relationship, error } of validationErrors) {
-          console.warn(
-            `  - ${error}: ${relationship.type} ${relationship.from} -> ${relationship.to}`,
-          );
-        }
+        reportDanglingRelationships(workspaceRoot, validationErrors);
       }
       const danglingKeys = new Set(
         validationErrors.map(
