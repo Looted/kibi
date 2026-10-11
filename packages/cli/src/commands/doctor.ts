@@ -882,14 +882,22 @@ function checkBranchStore(): DoctorCheckResult {
   const compilation = branchStoreCompilation(store);
   // implements REQ-core-journaled-engine-persistence
   const takeover = storeLockTakeoverReason(store.path);
+  // A takeover is reported whether or not the store holds a compilation yet.
+  const withTakeover = (message: string): string =>
+    takeover
+      ? `${message}${message.endsWith(".") ? "" : "."} ${String(takeover.detail)}`
+      : message;
+  const takeoverDetails = takeover ? { lockTakeover: takeover } : {};
   if (compilation.compiled) {
     return {
       passed: true,
-      message: `Compiled for ${branch}${compilation.generation ? ` (${compilation.generation})` : ""}${takeover ? `. ${String(takeover.detail)}` : ""}`,
+      message: withTakeover(
+        `Compiled for ${branch}${compilation.generation ? ` (${compilation.generation})` : ""}`,
+      ),
       details: {
         ...details,
         generation: compilation.generation,
-        ...(takeover ? { lockTakeover: takeover } : {}),
+        ...takeoverDetails,
       },
     };
   }
@@ -897,18 +905,21 @@ function checkBranchStore(): DoctorCheckResult {
   if (reason === null) {
     return {
       passed: true,
-      message: `Not compiled yet for ${branch}; .kb/ holds no authored sources`,
-      details,
+      message: withTakeover(
+        `Not compiled yet for ${branch}; .kb/ holds no authored sources`,
+      ),
+      details: { ...details, ...takeoverDetails },
     };
   }
   return {
     passed: false,
-    message: String(reason.detail),
+    message: withTakeover(String(reason.detail)),
     remediation: "Run: kibi sync",
     details: {
       ...details,
       generation: compilation.generation,
       authoredSources: reason.authoredSources,
+      ...takeoverDetails,
     },
   };
 }

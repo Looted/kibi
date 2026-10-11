@@ -1,6 +1,9 @@
 import path from "node:path";
 
-import { retryAttachAfterBreakingStaleLock } from "../prolog/store-lock.js";
+import {
+  noteDeadHolderBeforeAttach,
+  retryAttachAfterBreakingStaleLock,
+} from "../prolog/store-lock.js";
 
 import { EngineClient } from "../engine.js";
 import {
@@ -257,10 +260,14 @@ export function createCliRuntime(
         await prolog.start?.();
         const kbPath = attachment.storePath;
         if (!usesEngine) {
+          // implements REQ-core-journaled-engine-persistence
+          // A killed holder never makes kb_attach fail, so note it first.
+          const recordTakeover = noteDeadHolderBeforeAttach(kbPath);
           let attached = await prolog.query(
             `kb_attach('${quoteProlog(kbPath)}')`,
           );
-          if (!attached.success) {
+          if (attached.success) recordTakeover();
+          else {
             attached = await retryAttachAfterBreakingStaleLock(
               prolog,
               kbPath,
