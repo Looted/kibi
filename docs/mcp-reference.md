@@ -356,6 +356,8 @@ Candidate retrieval is paged internally, so a large KB no longer serializes its 
 
 Intent-mode results additionally carry `evidence` for matched facets, source locations, graph paths, and normalized score. The payload includes `queryAnalysis` with candidate/accepted counts, top score, top-two margin, ranking mode, and `abstained`, plus `truncated`. An abstention is an explicit no-answer signal, not a successful empty lexical search.
 
+Every response carries `branch`, the Kibi branch whose store was searched (`null` when the runtime attached none), whatever the result count. When that store was never compiled for the branch (a new branch created without the `post-checkout` hook) while `.kb/` holds authored sources, the response also carries `branchStore` (`state: "not_compiled"`, `code: "branch_store_not_compiled"`, `path`, `detail`, `remediation.command_argv: ["kibi", "sync"]`) and the text says to run `kibi sync` before relying on the results: an empty result from that store says nothing about the authored requirements.
+
 On the first intent-mode page, `data.answer` (`kibi.search-answer.v1`) turns the matches into what an agent asking "what governs this?" needs:
 
 - `governing`: current requirements matched by the query or linked to a matched entity. Each has `score`, `via` (how it was reached), and its linked `facts` (with `factKind`), `scenarios`, `tests`, and `adrs`. Tests include those that verify the requirement's scenarios; each test's `via` is `direct` or the scenario it was reached through. Each requirement also carries:
@@ -443,7 +445,7 @@ A bootstrap plan (`kibi.bootstrap-plan.v1`) applies its actions one at a time, c
 - `refused`: nothing was applied and every failure was a refusal, a precondition that failed before the action changed anything (for example a proof-integration create plan whose file already exists, a source that changed since planning, or an action with no automatic executor). The workspace is unchanged, so there is nothing to reconcile: obtain a new plan. The envelope is an error (`status: "error"`, MCP `isError: true`, CLI exit code 1) with code `MIGRATION_PLAN_REFUSED` whose message carries the refused action's `detail`; `closeout.taskOutcome` is `blocked`.
 - `reconciliation_required`: nothing was applied but an action failed without being refused, so its partial effect must be inspected before retrying (`closeout.taskOutcome: blocked`).
 
-**Engine daemon after a session.** MCP calls that use the branch store (for example `kb_apply_plan`, `kb_upsert`, `kb_check`) run in the workspace's engine daemon, a detached `engine-daemon` process with its own SWI-Prolog child that holds the branch store's `rdf/lock`. It is shared: later MCP sessions and CLI calls for the same workspace and branch reuse it. After the MCP server exits, the daemon and its lock stay until the daemon has been idle for 10 minutes (`KIBI_ENGINE_IDLE_TIMEOUT_MS` overrides this), then it exits and releases the lock. A lock held by a live daemon is expected, not a stale lock: `kibi engine status` shows it and `kibi engine stop` ends it early. A lock whose process is gone is reclaimed automatically when the next engine starts. A client only uses a daemon started with the same Kibi package versions (`kibi-cli@…,kibi-core@…`) and SWI-Prolog as its own: the daemon reports both in its handshake and refuses other requests from a client that differs, and the client stops such a daemon (for example one an older install started from a git hook) and starts its own. `kibi doctor` reports the package versions of the daemon that is running.
+**Engine daemon after a session.** MCP calls that use the branch store (for example `kb_apply_plan`, `kb_upsert`, `kb_check`) run in the workspace's engine daemon, a detached `engine-daemon` process with its own SWI-Prolog child that holds the branch store's `rdf/lock`. It is shared: later MCP sessions and CLI calls for the same workspace and branch reuse it. After the MCP server exits, the daemon and its lock stay until the daemon has been idle for 10 minutes (`KIBI_ENGINE_IDLE_TIMEOUT_MS` overrides this), then it exits and releases the lock (idle time is measured on the wall clock, so time the host spent suspended counts). A stopping daemon saves the store and detaches it, which removes `rdf/lock` and the ownership journal, before its SWI-Prolog child exits. A lock held by a live daemon is expected, not a stale lock: `kibi engine status` shows it and `kibi engine stop` ends it early. A lock whose process is gone is reclaimed automatically when the next engine starts, and `kb_status` reports the takeover in `notices` (`store_lock_taken_over`). A client only uses a daemon started with the same Kibi package versions (`kibi-cli@…,kibi-core@…`) and SWI-Prolog as its own: the daemon reports both in its handshake and refuses other requests from a client that differs, and the client stops such a daemon (for example one an older install started from a git hook) and starts its own. `kibi doctor` reports the package versions of the daemon that is running.
 
 ### `kb_ingest_proof`
 
@@ -494,6 +496,26 @@ return the single `branch-store-not-compiled` violation (MCP uses the
 runtime's branch attachment, including a `KIBI_BRANCH` override), and
 `kb_apply_plan`'s `closeout.kbState` reads `stale` (not `not_evaluated`)
 while the store stays uncompiled.
+
+The Prolog freshness check compares file modification times with the
+compiled snapshot. A fresh clone or a checkout rewrites every mtime without
+changing content, so before reporting `indexed_source_newer`,
+`knowledge_source_newer` or `documentation_source_newer`, `kb_status`
+compares the file's sha256 with the hashes the last compilation recorded (the
+store's `sync-cache.json`, a symbol manifest's composite hash of the sources
+it references, or the coordinate artifact's per-symbol `sourceHash`). A file
+whose content matches is dropped, and when nothing else remains the branch is
+`fresh`. Sources whose content did change become one automatic
+`freshness-resync` action (`kibi sync`) in the `migrationPlan`, which
+`kb_apply_plan` runs.
+
+`notices` lists informational, non-blocking observations that never make the
+KB stale. `store_lock_taken_over` (with `brokenPid`, `reason` and `at`)
+reports that Kibi broke a branch-store lock whose holder was no longer
+running and reattached: a crashed or killed engine or `kibi prove` run held
+the store. It is recorded in `<store>/.kibi-lock-takeover.json`, shown for
+24 hours (and by `kibi doctor`'s branch-store check), and replaced by the
+next takeover.
 
 **Example:**
 ```json

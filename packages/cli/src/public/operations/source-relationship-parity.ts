@@ -2,6 +2,7 @@ import { execFileSync } from "node:child_process";
 import path from "node:path";
 import { discoverSourceFiles } from "../../commands/sync/discovery.js";
 import { processExtractions } from "../../commands/sync/extraction.js";
+import { findUntrackedDocumentMatches } from "../../commands/sync/untracked-targets.js";
 import type { ExtractedRelationship } from "../../extractors/markdown.js";
 import { RELATIONSHIP_TYPES } from "../../operations/mutation/relationships.js";
 import { parseListOfLists, parsePrologValue } from "../../prolog/codec.js";
@@ -234,8 +235,64 @@ export async function collectSourceRelationshipParityViolations(
     });
   }
 
-  return compareRelationshipParity(
-    authored,
-    await compiledRelationships(prolog),
+  return explainUntrackedEndpoints(
+    workspaceRoot,
+    compareRelationshipParity(authored, await compiledRelationships(prolog)),
   );
+}
+
+/**
+ * An authored relationship is missing from the compiled KB most often
+ * because an endpoint is declared in a file sync cannot see: one Git does not
+ * track and no pending-source receipt covers (for example a `.kb/symbols.yaml`
+ * that `kibi init` created and kb_upsert appended to before receipts covered
+ * existing untracked files). Name that file and the fix.
+ */
+// implements REQ-kibi-source-relationship-parity
+function explainUntrackedEndpoints(
+  workspaceRoot: string,
+  violations: Violation[],
+): Violation[] {
+  const endpoints = new Set<string>();
+  for (const violation of violations) {
+    const relationship = authoredToCompiledRelationship(violation);
+    if (relationship === null) continue;
+    endpoints.add(relationship.from);
+    endpoints.add(relationship.to);
+  }
+  if (endpoints.size === 0) return violations;
+  const untracked = findUntrackedDocumentMatches(workspaceRoot, [...endpoints]);
+  if (untracked.size === 0) return violations;
+  return violations.map((violation) => {
+    const relationship = authoredToCompiledRelationship(violation);
+    if (relationship === null) return violation;
+    const sources = [relationship.from, relationship.to].flatMap((id) => {
+      const file = untracked.get(id);
+      return file === undefined ? [] : [{ entityId: id, file }];
+    });
+    if (sources.length === 0) return violation;
+    const files = [...new Set(sources.map((source) => source.file))];
+    return {
+      ...violation,
+      suggestion: `${sources.map((source) => source.entityId).join(" and ")} ${sources.length === 1 ? "is" : "are"} declared in ${files.join(", ")}, which Git does not track and no pending-source receipt covers, so sync never compiles it. Run 'git add ${files.join(" ")}' (staging is enough) or rewrite the entity with kb_upsert, then run kibi sync and rerun kb_check.`,
+      evidence: {
+        ...(violation.evidence ?? {}),
+        untrackedSources: sources,
+      },
+    };
+  });
+}
+
+function authoredToCompiledRelationship(
+  violation: Violation,
+): { from: string; to: string } | null {
+  const evidence = violation.evidence as
+    | { direction?: unknown; relationship?: { from?: unknown; to?: unknown } }
+    | undefined;
+  if (evidence?.direction !== "authored_to_compiled") return null;
+  const from = evidence.relationship?.from;
+  const to = evidence.relationship?.to;
+  return typeof from === "string" && typeof to === "string"
+    ? { from, to }
+    : null;
 }

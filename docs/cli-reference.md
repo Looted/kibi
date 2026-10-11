@@ -228,7 +228,13 @@ when applied with `kb_apply_plan` or `kibi apply-plan --input -` (pass
 says why there is no plan, or what applying it does. `--update <id>` plans
 adding or replacing one named integration in an existing file. `--command`
 proposes that command instead of the detected one (space-separated words, or
-a JSON array of argv strings; no shell quoting).
+a JSON array of argv strings; no shell quoting). Once the file exists,
+`currentIntegrations` lists each configured integration as `{ id, producer,
+command }` (the text output prints the command); `currentIntegration` keeps
+the comma-joined ids for older consumers. The integration only says how
+evidence is produced: whether a receipt counts toward `proofProven` depends
+on the test's `verification_scope` (see
+[proving requirements](proving-requirements.md)).
 
 A `command` integration is judged as one run: any failing test in it fails
 every proof obligation that names the integration. When the proposal runs the

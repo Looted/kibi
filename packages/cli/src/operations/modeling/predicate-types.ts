@@ -21,6 +21,11 @@ export interface PredicateSchemaCandidate {
   argument_constants?: Record<string, string[]>;
   /** Legacy spellings keyed by argument name, each mapped to a constant. */
   argument_aliases?: Record<string, Record<string, string>>;
+  /**
+   * Argument names that determine the remaining arguments (a functional
+   * dependency). Two facts that agree on them describe the same case.
+   */
+  key_arguments?: string[];
   keywords: string[];
   /** Human-language aliases and controlled paraphrase templates used for deterministic retrieval. */
   aliases?: string[];

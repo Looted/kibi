@@ -164,7 +164,7 @@ type StatusData = {
 type CheckData = { violations: Array<{ rule: string; suggestion: string }> };
 
 describe("kibi-mcp on a new branch whose store was never compiled", () => {
-  test("kb_status is stale, kb_check reports one branch-store-not-compiled, and kb_apply_plan compiles the store", async () => {
+  test("kb_status is stale, kb_search and kb_check name the uncompiled store, and kb_apply_plan compiles the store", async () => {
     const workspace = freshBranchWorkspace();
     const client = await connect(workspace);
 
@@ -173,6 +173,38 @@ describe("kibi-mcp on a new branch whose store was never compiled", () => {
       "branch_store_not_compiled",
     );
     expect(before.syncState).toBe("stale");
+
+    // kb_search reads the same empty store: it names the branch and the
+    // uncompiled store instead of a bare "no results".
+    type SearchData = {
+      count: number;
+      branch: string | null;
+      branchStore?: {
+        state: string;
+        code: string;
+        remediation: { command_argv: string[] };
+      };
+    };
+    const emptySearch = await client.callTool({
+      name: "kb_search",
+      arguments: { query: "Can users log in?" },
+    });
+    expect(emptySearch.isError ?? false).toBe(false);
+    const emptyEnvelope = emptySearch.structuredContent as Json;
+    const empty = (emptyEnvelope.data ?? emptyEnvelope) as SearchData;
+    expect(empty.count).toBe(0);
+    expect(empty.branch).toBe("feature/login");
+    expect(empty.branchStore).toMatchObject({
+      state: "not_compiled",
+      code: "branch_store_not_compiled",
+      remediation: { command_argv: ["kibi", "sync"] },
+    });
+    const emptyText = (emptySearch.content as Array<{ text: string }>)
+      .map((item) => item.text)
+      .join("\n");
+    expect(emptyText).toContain(
+      "Run kibi sync before relying on search results",
+    );
 
     const check = (await call(client, "kb_check", {})) as CheckData;
     expect(check.violations.map((violation) => violation.rule)).toEqual([
@@ -206,7 +238,13 @@ describe("kibi-mcp on a new branch whose store was never compiled", () => {
     // kb_search also receives the attachment: its answer names the branch.
     const search = (await call(client, "kb_search", {
       query: "Can users log in?",
-    })) as { answer?: { scope?: { branch: string | null } } };
+    })) as {
+      answer?: { scope?: { branch: string | null } };
+      branch?: string | null;
+      branchStore?: unknown;
+    };
     expect(search.answer?.scope?.branch).toBe("feature/login");
+    expect(search.branch).toBe("feature/login");
+    expect(search.branchStore).toBeUndefined();
   }, 240_000);
 });

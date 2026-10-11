@@ -213,10 +213,14 @@ export const PREDICATE_CATALOG_4: PredicateSchemaCandidate[] = [
     argument_names: ["actor", "action", "resource", "decision"],
     argument_types: ["actor", "action", "resource", "decision"],
     ...closedArguments({ decision: DECISION_VOCABULARY }),
+    // One decision per actor, action and resource: an allow and a deny for
+    // the same three contradict (kb.pl builtin_decision_predicate/5).
+    key_arguments: ["actor", "action", "resource"],
     keywords: [
       "may",
       "can",
       "allowed",
+      "permitted",
       "denied",
       "forbidden",
       "must not",

@@ -97,6 +97,29 @@ Cosmetic edits (descriptions, labels) never stale proof. Execution-relevant
 edits (command, artifact, targets, options, bindings, contract) change the
 effective fingerprint and do.
 
+## What counts toward proofProven
+
+A requirement is proven only by its scenarios' tests, and a scenario test
+counts only when it is an **end-to-end** test with a valid, fresh, passing
+receipt for the current snapshot.
+
+- The scope comes from the test entity's `verification_scope`
+  (`end_to_end`, `integration`, `unit`), never from the integration id or the
+  producer. Without `verification_scope`, a test tagged `e2e` (or whose
+  `source` path contains `e2e`) counts as end-to-end; anything else is
+  `unknown` scope.
+- A `unit` or `integration` receipt is still recorded on the test entity, but
+  it does not move `proofProven` for a behavioural requirement: the
+  requirement keeps the `missing_passing_e2e` gap in `proofGaps`. The one
+  exception is a scenario whose specifying requirements are all grounded only
+  in component-scope UI predicates (`ui_pattern`, `same_pattern`,
+  `pattern_marker`); a unit or integration test that renders the component
+  may prove it.
+- `coverage_depth` (`kb_coverage`, `kb_find_gaps`) follows the test's
+  authored `status` (`passing`) and scope, not its receipts: a passing
+  receipt does not change it, and a `passing` status without a fresh receipt
+  proves nothing.
+
 ## Attempt semantics (factual, never optimistic)
 
 - `attempts: {status: "complete", entries: [...]}` — known history; the

@@ -96,6 +96,8 @@ The ontology lane encodes project-local domain predicates:
 - Requirements link to ground predicate facts with `requires_predicate`.
 - `predicate_schema/6` and `predicate_fact/5` are read-only helpers for querying stored ontology data.
 
+Two current requirements contradict through ground predicate facts when they link the same predicate with identical arguments and opposite polarity (`Predicate conflict …`), or when they decide the same case differently (`Decision conflict …`): the predicate's key arguments agree, and its closed `decision` argument is `allow` on one side and `deny` on the other. The built-in `permission_rule(actor, action, resource, decision)` is keyed by `actor`, `action` and `resource`, so `permission_rule(coach, read, unassigned_analysis_request, allow)` contradicts `permission_rule(coach, read, unassigned_analysis_request, deny)`. A deny decision counts as a denial whatever its polarity (kb_model writes "cannot" as decision `deny`, polarity `deny`); an allow decision counts only when asserted. A project-local `predicate_schema` for the same signature replaces the built-in keys: it takes part only when it declares `key_arguments` and names a non-key argument `decision`. The check runs in `kb_check` (`domain-contradictions`) and in the commit-time contradiction check of `kb_upsert` (including `dryRun`).
+
 Stored `rule` facts use the versioned `kibi.logic.v1` JSON IR. The interpreter decodes only allowlisted terms and evaluates finite closure under resource bounds; it never calls `consult/1`, `assertz/1`, or source-string evaluation. Negation-as-failure requires an explicit closed-world atom and stratified dependencies. Opposing modalities are checked extensionally over known facts and conservatively symbolically: `contradiction`, `disjoint`, or `unresolved` are distinct outcomes, and incomplete analysis is never treated as consistency. Proof consumers should preserve the rule IDs, claim spans, normalized formula, substitutions, and contributing fact chain.
 
 The proposition ledger is the completeness boundary: `semantic-completeness` rejects silently missing assertive spans, while `ambiguous`, `ontology_gap`, and `nonlogical` entries remain visible without pretending to prove a rule. Because `domain-contradictions` compares grounded facts only, `related-requirement-unmodeled` blocks a current requirement that still carries `missing` propositions while it `relates_to` a current requirement modeled with strict property or ground predicate facts: the link says the two overlap, so the unmodeled claims must be modeled against the same subject or predicates, or the older requirement superseded, before the check can mean anything for that pair.
@@ -122,7 +124,7 @@ These predicates remain useful for product features, automation, and future inte
 
 - `domain-contradictions`
   - checks for logical conflicts between requirements based on shared strict facts
-  - **strict-lane only:** does not promise contradiction detection over all facts; only those explicitly modeled as `subject` + `property_value` participation rules
+  - **strict-lane only:** does not promise contradiction detection over all facts; only those explicitly modeled as `subject` + `property_value` participation rules, ground predicate facts (opposite polarity, or opposite allow/deny decisions on the same key arguments), and typed rules
   - is **enabled by default** for immediate value on normalized data
 
 ### Bug and Workaround Documentation (Non-Blocking Lane)

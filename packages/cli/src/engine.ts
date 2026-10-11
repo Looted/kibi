@@ -90,6 +90,10 @@ const READ_LIMITED_METHODS: ReadonlySet<EngineRequest["method"]> = new Set([
 
 export const ENGINE_PROTOCOL_VERSION = 1;
 export const ENGINE_IDLE_TIMEOUT_MS = 10 * 60 * 1000;
+/** Upper bound between two wall-clock idle checks of the engine daemon. */
+export const ENGINE_IDLE_CHECK_INTERVAL_MS = 30 * 1000;
+/** How long a stopping daemon waits for SWI to halt on stdin EOF. */
+export const ENGINE_PROLOG_EXIT_GRACE_MS = 1000;
 
 /**
  * Package versions this engine build carries (KIBI_PACKAGE_VERSIONS when
@@ -2006,7 +2010,12 @@ export async function runEngineDaemon(requestedOptions: {
   );
   const server = net.createServer();
   let activeClients = 0;
-  let idleTimer: NodeJS.Timeout | null = null;
+  // implements REQ-core-journaled-engine-persistence
+  // Idle exit compares wall-clock time: a one-shot timer does not advance
+  // while the host (a VM, a laptop) is suspended, so a daemon would outlive
+  // its idle budget by the whole suspension.
+  let lastActivityAt = Date.now();
+  let idleWatch: NodeJS.Timeout | null = null;
   let queue: Promise<void> = Promise.resolve();
   let idleCompactionQueued = false;
   const queryCache = new Map<string, PrologQueryResult>();
@@ -2108,10 +2117,21 @@ export async function runEngineDaemon(requestedOptions: {
           idleCompactionQueued = false;
         });
     }
-    if (idleTimer) clearTimeout(idleTimer);
-    idleTimer = setTimeout(() => {
-      if (activeClients === 0) void shutdown();
-    }, engineIdleTimeoutMs());
+    lastActivityAt = Date.now();
+    if (idleWatch) return;
+    const idleMs = engineIdleTimeoutMs();
+    idleWatch = setInterval(
+      () => {
+        if (
+          !shuttingDown &&
+          activeClients === 0 &&
+          Date.now() - lastActivityAt >= idleMs
+        )
+          void shutdown();
+      },
+      Math.min(idleMs, ENGINE_IDLE_CHECK_INTERVAL_MS),
+    );
+    idleWatch.unref();
   };
 
   const handle = async (
@@ -2511,7 +2531,7 @@ export async function runEngineDaemon(requestedOptions: {
     shuttingDown = true;
     process.off("SIGTERM", requestSignalShutdown);
     process.off("SIGINT", requestSignalShutdown);
-    if (idleTimer) clearTimeout(idleTimer);
+    if (idleWatch) clearInterval(idleWatch);
     clearInterval(workspaceWatchdog);
     // Stop accepting clients before the first asynchronous durability step.
     // Keep the PID published until Prolog releases the branch-store lock.
@@ -2520,6 +2540,7 @@ export async function runEngineDaemon(requestedOptions: {
     const saved = session.needsRecycle()
       ? null
       : await prolog.query("kb_save").catch(() => null);
+    let detached = false;
     if (saved?.success) {
       try {
         fsyncJournaledBranchStore(branchPath);
@@ -2527,8 +2548,22 @@ export async function runEngineDaemon(requestedOptions: {
         // Shutdown remains best effort. Request-time writes fail closed if
         // their durability barrier cannot complete.
       }
+      // implements REQ-core-journaled-engine-persistence
+      // Release the store the way the one-shot path does: kb_detach removes
+      // rdf/lock and the ownership journal. A SIGTERM'd SWI process never
+      // runs its at_halt cleanup, so skipping this left a dead lock behind
+      // on every stop.
+      detached = await prolog
+        .query("kb_detach")
+        .then((result) => result.success)
+        .catch(() => false);
     }
-    await prolog.terminate().catch(() => undefined);
+    // Once kb_detach released the store, nothing in at_halt is needed and the
+    // child is signalled at once. Otherwise let SWI halt on stdin EOF (running
+    // its at_halt cleanup) for a bounded moment; the wait ends on exit.
+    await prolog
+      .terminate({ graceMs: detached ? 0 : ENGINE_PROLOG_EXIT_GRACE_MS })
+      .catch(() => undefined);
     for (const client of clients) client.destroy();
     // A close callback can remain pending on older Node releases when a
     // client disconnects during `server.close()`. The daemon has already
@@ -2579,6 +2614,7 @@ export async function runEngineDaemon(requestedOptions: {
           Buffer.concat([buffer, bytes]) as Buffer<ArrayBufferLike>,
           (value) => {
             const request = value as EngineRequest;
+            lastActivityAt = Date.now();
             if (shuttingDown) {
               writeSocketFrame(socket, {
                 id: request.id,

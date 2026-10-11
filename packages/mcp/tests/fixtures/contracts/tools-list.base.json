@@ -458,6 +458,14 @@
                 "properties": {},
                 "type": "object"
               },
+              "branch": {
+                "type": ["string", "null"]
+              },
+              "branchStore": {
+                "additionalProperties": {},
+                "properties": {},
+                "type": "object"
+              },
               "count": {
                 "maximum": 9007199254740991,
                 "minimum": -9007199254740991,
@@ -714,6 +722,14 @@
                 "additionalProperties": {},
                 "properties": {},
                 "type": "object"
+              },
+              "notices": {
+                "items": {
+                  "additionalProperties": {},
+                  "properties": {},
+                  "type": "object"
+                },
+                "type": "array"
               },
               "proofSnapshot": {
                 "type": "string"

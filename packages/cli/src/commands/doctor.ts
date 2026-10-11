@@ -50,6 +50,7 @@ import {
 import {
   branchStoreCompilation,
   inspectBranchStore,
+  storeLockTakeoverReason,
   uncompiledBranchStoreReason,
 } from "../utils/branch-store.js";
 import {
@@ -879,11 +880,17 @@ function checkBranchStore(): DoctorCheckResult {
     };
   }
   const compilation = branchStoreCompilation(store);
+  // implements REQ-core-journaled-engine-persistence
+  const takeover = storeLockTakeoverReason(store.path);
   if (compilation.compiled) {
     return {
       passed: true,
-      message: `Compiled for ${branch}${compilation.generation ? ` (${compilation.generation})` : ""}`,
-      details: { ...details, generation: compilation.generation },
+      message: `Compiled for ${branch}${compilation.generation ? ` (${compilation.generation})` : ""}${takeover ? `. ${String(takeover.detail)}` : ""}`,
+      details: {
+        ...details,
+        generation: compilation.generation,
+        ...(takeover ? { lockTakeover: takeover } : {}),
+      },
     };
   }
   const reason = uncompiledBranchStoreReason(workspaceRoot, store, branch);

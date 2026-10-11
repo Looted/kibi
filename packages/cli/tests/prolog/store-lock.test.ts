@@ -26,12 +26,18 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import type { QueryResult } from "../../src/prolog.js";
 import {
+  STORE_LOCK_TAKEOVER_FILE,
+  STORE_LOCK_TAKEOVER_VISIBLE_MS,
   breakStoreLock,
   classifyStoreLockHolder,
   decideStoreLockTakeover,
   isProcessAlive,
+  readStoreLockTakeover,
+  retryAttachAfterBreakingStaleLock,
 } from "../../src/prolog/store-lock.js";
+import { storeLockTakeoverReason } from "../../src/utils/branch-store.js";
 
 describe("classifyStoreLockHolder", () => {
   test("reports a live pid as alive", () => {
@@ -128,5 +134,102 @@ describe("breakStoreLock", () => {
     breakStoreLock(rdf);
     expect(existsSync(join(rdf, "lock"))).toBe(false);
     expect(existsSync(join(store, ".kibi-lock-owner.json"))).toBe(false);
+  });
+});
+
+describe("stale-lock takeover record", () => {
+  const tempDirs: string[] = [];
+
+  afterEach(() => {
+    for (const dir of tempDirs.splice(0)) {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  test("breaking a dead holder's lock leaves a takeover record that kb_status reports as a non-blocking notice", async () => {
+    const store = mkdtempSync(join(tmpdir(), "kibi-store-takeover-"));
+    tempDirs.push(store);
+    const rdf = join(store, "rdf");
+    mkdirSync(rdf, { recursive: true });
+    writeFileSync(join(rdf, "lock"), "stale");
+    const deadPid = 2_147_000_001;
+    const goals: string[] = [];
+    const warn = console.warn;
+    console.warn = () => undefined;
+    try {
+      const result = await retryAttachAfterBreakingStaleLock(
+        {
+          query: async (goal: string) => {
+            goals.push(goal);
+            return { success: true, bindings: {} };
+          },
+        },
+        store,
+        {
+          success: false,
+          bindings: {},
+          error: "store locked",
+          errorRecord: {
+            storeLocked: {
+              owner: { pid: deadPid },
+              lockDirectory: rdf,
+            },
+          },
+        } as unknown as QueryResult,
+      );
+      expect(result.success).toBe(true);
+    } finally {
+      console.warn = warn;
+    }
+    expect(goals).toEqual([`kb_attach('${store}')`]);
+    expect(existsSync(join(rdf, "lock"))).toBe(false);
+
+    const record = readStoreLockTakeover(store);
+    expect(record).toMatchObject({
+      brokenPid: deadPid,
+      reason: `recorded holder pid ${deadPid} is no longer running`,
+      path: join(store, STORE_LOCK_TAKEOVER_FILE),
+    });
+    const at = Date.parse(record?.at ?? "");
+    expect(storeLockTakeoverReason(store, new Date(at + 1000))).toMatchObject({
+      code: "store_lock_taken_over",
+      blocking: false,
+      brokenPid: deadPid,
+    });
+    // The notice expires; the next takeover replaces the record.
+    expect(
+      storeLockTakeoverReason(
+        store,
+        new Date(at + STORE_LOCK_TAKEOVER_VISIBLE_MS + 1),
+      ),
+    ).toBeNull();
+  });
+
+  test("a live holder's lock is surfaced, not taken over, and leaves no record", async () => {
+    const store = mkdtempSync(join(tmpdir(), "kibi-store-takeover-live-"));
+    tempDirs.push(store);
+    const rdf = join(store, "rdf");
+    mkdirSync(rdf, { recursive: true });
+    writeFileSync(join(rdf, "lock"), "held");
+    const result = await retryAttachAfterBreakingStaleLock(
+      {
+        query: async () => {
+          throw new Error("must not reattach");
+        },
+      },
+      store,
+      {
+        success: false,
+        bindings: {},
+        error: "store locked",
+        errorRecord: {
+          storeLocked: { owner: { pid: process.ppid }, lockDirectory: rdf },
+        },
+      } as unknown as QueryResult,
+    );
+    expect(result.success).toBe(false);
+    expect(existsSync(join(rdf, "lock"))).toBe(true);
+    expect(readStoreLockTakeover(store)).toBeNull();
+    expect(storeLockTakeoverReason(store)).toBeNull();
   });
 });
