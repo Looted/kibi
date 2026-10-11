@@ -21,7 +21,11 @@ import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import * as path from "node:path";
 import { load as parseYAML } from "js-yaml";
-import { isSymbolsManifestPath } from "../../utils/kb-paths.js";
+import {
+  isUntrackedByGit,
+  writePendingSourceReceipt,
+} from "../../operations/mutation/source-authoring.js";
+import { KB_PATHS, isSymbolsManifestPath } from "../../utils/kb-paths.js";
 
 interface UntrackedTargetsDeps {
   execFileSync: (
@@ -110,6 +114,49 @@ export function findUntrackedDocumentMatches(
     }
   }
   return matches;
+}
+
+/**
+ * Give an upsert-only symbol manifest the pending-source receipt kb_upsert
+ * writes since it learned to (`writeSourceForUpsert`).
+ *
+ * Older Kibi appended symbols to the untracked `.kb/symbols.yaml` that
+ * `kibi init` creates without a receipt. The upsert wrote those symbols into
+ * the store directly, but sync never saw the manifest, so the store recorded
+ * no content hash for it and every source its symbols reference stayed
+ * "newer" after a clone or checkout, however many times sync ran.
+ *
+ * The manifest is adopted only when Git does not track it, no receipt covers
+ * it, and at least one symbol it declares is already in the compiled store
+ * (`isStored`): Kibi wrote it. A hand-written untracked manifest whose
+ * symbols the store never saw keeps the tracked-only boundary and sync's
+ * "stage this file" note. Returns whether a receipt was written.
+ */
+// implements REQ-cli-status-pre-first-sync, REQ-core-persistence
+export async function adoptUpsertOnlySymbolManifest(
+  workspaceRoot: string,
+  isStored: (ids: readonly string[]) => Promise<boolean>,
+): Promise<boolean> {
+  const relative = KB_PATHS.symbolsManifest;
+  const absolute = path.resolve(workspaceRoot, relative);
+  if (!existsSync(absolute)) return false;
+  if (existsSync(pendingReceiptFor(workspaceRoot, relative))) return false;
+  let bytes: Buffer;
+  try {
+    bytes = readFileSync(absolute);
+  } catch {
+    return false;
+  }
+  const ids = manifestIds(bytes.toString("utf8"));
+  if (ids.length === 0) return false;
+  if (!isUntrackedByGit(workspaceRoot, relative)) return false;
+  if (!(await isStored(ids))) return false;
+  writePendingSourceReceipt(
+    workspaceRoot,
+    relative,
+    createHash("sha256").update(bytes).digest("hex"),
+  );
+  return true;
 }
 
 /** Where kb_upsert records the pending-source receipt of `relative`. */

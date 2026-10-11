@@ -503,11 +503,18 @@ changing content, so before reporting `indexed_source_newer`,
 `knowledge_source_newer` or `documentation_source_newer`, `kb_status`
 compares the file's sha256 with the hashes the last compilation recorded (the
 store's `sync-cache.json`, a symbol manifest's composite hash of the sources
-it references, or the coordinate artifact's per-symbol `sourceHash`). A file
-whose content matches is dropped, and when nothing else remains the branch is
-`fresh`. Sources whose content did change become one automatic
+it references, or the per-symbol `sourceHash` in
+`.kb/symbol-coordinates.yaml`). The coordinate artifact counts as evidence on
+its own, so code files referenced only by symbols that `kb_upsert` wrote into
+an untracked `.kb/symbols.yaml` are confirmed even though sync never hashed
+that manifest. A file whose content matches is dropped, and when nothing else
+remains the branch is `fresh`. A file with no recorded evidence keeps its
+reason. Sources whose content did change become one automatic
 `freshness-resync` action (`kibi sync`) in the `migrationPlan`, which
-`kb_apply_plan` runs.
+`kb_apply_plan` runs. When an untracked `.kb/symbols.yaml` has no
+pending-source receipt (as older Kibi versions left it) but declares symbols
+the branch store already holds, `kibi sync` writes the receipt `kb_upsert`
+would have written, compiles the manifest and records its content hash.
 
 `notices` lists informational, non-blocking observations that never make the
 KB stale. `store_lock_taken_over` (with `brokenPid`, `reason` and `at`)

@@ -205,6 +205,52 @@ export function readStoreLockTakeover(
   }
 }
 
+/** The holder pid an rdf_persistency `lock` file records, or null. */
+// implements REQ-core-journaled-engine-persistence
+export function readRdfLockPid(lockPath: string): number | null {
+  try {
+    const match = /pid\((\d+)\)/.exec(readFileSync(lockPath, "utf8"));
+    const pid = Number.parseInt(match?.[1] ?? "", 10);
+    return Number.isInteger(pid) && pid > 0 ? pid : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Note, before `kb_attach`, whether a dead holder left this branch store
+ * locked, and return the step that records the takeover once the attach has
+ * succeeded.
+ *
+ * rdf_persistency locks the store with an OS advisory lock that the kernel
+ * releases when its holder dies, so a killed engine never makes the next
+ * attach fail with `store_locked`: the attach simply takes the store over.
+ * The only trace is the `rdf/lock` file, which SWI deletes on every detach
+ * and halt; one that is still present was left by a holder that crashed or
+ * was killed. Its holder (the ownership journal when it names the same
+ * process, which adds the boot id, else the lock file's pid) is classified
+ * the same way a `store_locked` failure is. The returned step is a no-op
+ * unless that holder is provably dead; callers run it only after a
+ * successful attach, which proves the holder no longer held the lock.
+ */
+// implements REQ-core-journaled-engine-persistence
+export function noteDeadHolderBeforeAttach(kbPath: string): () => void {
+  const lockPath = join(kbPath, "rdf", "lock");
+  if (!existsSync(lockPath)) return () => undefined;
+  const lockPid = readRdfLockPid(lockPath);
+  const journal = readStoreLockOwner(kbPath)?.owner ?? null;
+  const owner: PrologStoreLockOwner | null =
+    journal !== null && (lockPid === null || journal.pid === lockPid)
+      ? journal
+      : lockPid !== null
+        ? { pid: lockPid }
+        : null;
+  const decision = decideStoreLockTakeover(owner);
+  if (decision.action !== "break") return () => undefined;
+  const brokenPid = owner?.pid ?? null;
+  return () => recordStoreLockTakeover(kbPath, brokenPid, decision.reason);
+}
+
 export interface StoreLockTakeoverDecision {
   readonly action: "break" | "surface";
   readonly reason: string;

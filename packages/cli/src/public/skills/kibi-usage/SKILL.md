@@ -2,7 +2,7 @@
 id: kibi-usage
 name: Kibi Usage
 description: Use Kibi's source-first, exact-Git, migration-aware, proof-aware operations safely across MCP or the trusted local CLI, including partial completion repair.
-version: 2.14.0
+version: 2.15.0
 kibiCompatibility: ">=1.0.0"
 tags:
   - kibi
@@ -408,6 +408,14 @@ Prolog `symbol-coverage` also requires the test to `validates` the requirement
 (or the requirement `verified_by` the test). `covered_by` alone is not
 enough. Do not rely on legacy `// implements REQ-<area>-<behavior>` comments as the
 traceability record.
+
+Set the symbol's `title` to the behavioral member the extractor can locate in
+`sourceFile`: `ClassName.methodName`, an exported function, or a class, not a
+file or module name. A traceability link (`implements`, `covered_by`, …) from
+a symbol whose `title` names no such member is refused by the granularity gate
+when the file already has granular behavioral symbols, unless the symbol sets
+`granularity_reason` to `config-artifact`, `module-level-behavior`,
+`extractor-miss`, `legacy-link` or `test-suite`.
 
 ## Complete Logical Coverage
 
