@@ -5,27 +5,59 @@ import {
   slug,
 } from "./predicate-utils.js";
 
-// implements REQ-mcp-suggest-predicates
+// Determiners that open an actor or resource phrase ("an admin", "any
+// analysis request", "their own reports") name no participant themselves.
+const LEADING_DETERMINER =
+  /^(?:(?:a|an|the|any|all|every|each|only|its|own|their|his|her)\s+)+/i;
+
+// implements REQ-model-predicates-permission-grants
+function permissionActor(value: string): string {
+  return singularize(slug(value.replace(LEADING_DETERMINER, "")) || "actor");
+}
+
+// implements REQ-model-predicates-permission-grants
+// A resource is one noun phrase in its singular form so "analysis requests"
+// and "any analysis request" bind the same permission_rule argument.
+function permissionResource(value: string): string {
+  const token = normalizePredicateToken(
+    value
+      .replace(LEADING_DETERMINER, "")
+      .replace(/\s+(?:when|if|unless)\s+.+$/i, ""),
+  );
+  if (token.length === 0) return "resource";
+  const parts = token.split("_");
+  const last = parts.length - 1;
+  parts[last] = singularize(parts[last] ?? "");
+  return parts.join("_");
+}
+
+// implements REQ-mcp-suggest-predicates, REQ-model-predicates-permission-grants
 export function inferPermissionRuleArgs(text: string): string[] {
   const prohibition = text.match(
-    /^(?<actor>[a-z][a-z\s_-]*?)\s+(?:must\s+not|must\s+never|never|cannot|can't|is\s+forbidden\s+to)\s+(?<action>[a-z][a-z_-]*)\s+(?<resource>.+?)\.?$/i,
+    /^(?<actor>[a-z][a-z\s_-]*?)\s+(?:(?:must|shall|should)\s+not\s+be\s+able\s+to|must\s+not|must\s+never|never|cannot|can't|is\s+forbidden\s+to|(?:is|are)\s+not\s+(?:allowed|permitted|entitled|able)\s+to|ha(?:s|ve)\s+no\s+permission\s+to)\s+(?<action>[a-z][a-z_-]*)\s+(?<resource>.+?)\.?$/i,
   );
   if (prohibition?.groups) {
     return [
-      singularize(slug(prohibition.groups.actor ?? "actor")),
+      permissionActor(prohibition.groups.actor ?? "actor"),
       normalizePredicateToken(prohibition.groups.action ?? "action"),
-      normalizePredicateToken(prohibition.groups.resource ?? "resource"),
+      permissionResource(prohibition.groups.resource ?? "resource"),
       "deny",
     ];
   }
 
+  // Grants: "may", "can", "is allowed/permitted/entitled/able to", "must be
+  // able to" and "has permission to" all bind the same allow rule.
   const permission = text.match(
-    /^(?:only\s+)?(?<actor>[a-z][a-z\s_-]*?)\s+(?:may|can|is\s+allowed\s+to)\s+(?<action>[a-z][a-z_-]*)\s+(?<resource>.+?)(?:\s+when\s+.+)?\.?$/i,
+    /^(?:only\s+)?(?<actor>[a-z][a-z\s_-]*?)\s+(?:may|can|(?:is|are)\s+(?:allowed|permitted|entitled|able)\s+to|(?:must|shall|should)\s+be\s+able\s+to|ha(?:s|ve)\s+permission\s+to)\s+(?<action>[a-z][a-z_-]*)\s+(?<resource>.+?)(?:\s+when\s+.+)?\.?$/i,
   );
   return [
-    singularize(slug(permission?.groups?.actor ?? "actor")),
+    permission?.groups?.actor
+      ? permissionActor(permission.groups.actor)
+      : "actor",
     normalizePredicateToken(permission?.groups?.action ?? "action"),
-    normalizePredicateToken(permission?.groups?.resource ?? "resource"),
+    permission?.groups?.resource
+      ? permissionResource(permission.groups.resource)
+      : "resource",
     "assert",
   ];
 }

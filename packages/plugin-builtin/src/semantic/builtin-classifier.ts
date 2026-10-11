@@ -58,8 +58,10 @@ const SIGNAL_PATTERNS = [
     kind: "permission",
     candidateLane: "predicate",
     confidence: 0.8,
+    // Grants ("permitted", "able to", "entitled to", "permission to") are
+    // permissions as much as "allowed" and the prohibition cues are.
     pattern:
-      /\b(?:only|may|can|allowed|denied|forbidden|must\s+not|cannot|can't)\b/i,
+      /\b(?:only|may|can|allowed|permitted|denied|forbidden|must\s+not|cannot|can't|able\s+to|entitled\s+to|permission\s+to)\b/i,
   },
   {
     kind: "state_or_default",

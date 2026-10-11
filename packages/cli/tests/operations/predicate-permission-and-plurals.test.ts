@@ -18,7 +18,7 @@ describe("permission_rule accepts common action verbs after the modal", () => {
     expect(data.recommendedAction).toBe("apply_requires_predicate");
     expect(data.candidates[0]).toMatchObject({
       predicate_name: "permission_rule",
-      predicate_args: ["suspended_user", "publish", "articles", "deny"],
+      predicate_args: ["suspended_user", "publish", "article", "deny"],
       polarity: "deny",
       eligibility: "eligible",
       binding_status: "complete",

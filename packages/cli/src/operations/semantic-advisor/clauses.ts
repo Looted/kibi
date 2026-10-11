@@ -8,14 +8,15 @@ export type SemanticClause = Readonly<{
   source: "detected" | "supplied";
 }>;
 
-// An explicit grant ("are allowed to", "is permitted to") asserts a
-// permission just as "denied"/"forbidden" assert a prohibition. Bare "can" and
-// "may" are accepted by the predicate applicability gate but not here: stored
-// clause roles are derived from this pattern, and "it can be restricted to …"
-// style capability prose would turn existing descriptive inventories into
-// unmodeled normative clauses.
+// An explicit grant ("are allowed to", "is permitted to", "have permission
+// to", "are entitled to") asserts a permission just as "denied"/"forbidden"
+// assert a prohibition. Bare "can", "may" and "are able to" are accepted by
+// the predicate applicability gate but not here: stored clause roles are
+// derived from this pattern, and "it can be restricted to …" style capability
+// prose would turn existing descriptive inventories into unmodeled normative
+// clauses ("must be able to" is already normative through "must").
 const NORMATIVE_ASSERTION_PATTERN =
-  /\b(?:must|shall|should|required|requires?|may\s+only|(?:is|are)\s+(?:not\s+)?(?:allowed|permitted)\s+to|permitted|may\s+(?:not\s+)?(?:be\s+)?\w+\s+only\b|may\s+(?:have\s+)?(?:at\s+most|at\s+least|exactly|no\s+more\s+than|up\s+to)|only\s+.+?\s+(?:may|can)|must\s+not|shall\s+not|cannot|can't|denied|forbidden|prohibited|(?:is|are|be|become|becomes|remain|remains)\s+(?:invalid|rejected|prohibited|forbidden)|(?:reject|rejects|rejected|rejection)\s+(?:invalid|unresolved|ambiguous)|fail(?:s|ed)?\s+(?:clearly|explicitly|with)|expires?\s+(?:after|within|in)|failure\s+(?:behavior|policy|outcome)|error\s+(?:handling|behavior|policy|outcome)|required\s+outcome|defaults?\s+to)\b/i;
+  /\b(?:must|shall|should|required|requires?|may\s+only|(?:is|are)\s+(?:not\s+)?(?:allowed|permitted|entitled)\s+to|ha(?:s|ve)\s+(?:no\s+)?permission\s+to|permitted|may\s+(?:not\s+)?(?:be\s+)?\w+\s+only\b|may\s+(?:have\s+)?(?:at\s+most|at\s+least|exactly|no\s+more\s+than|up\s+to)|only\s+.+?\s+(?:may|can)|must\s+not|shall\s+not|cannot|can't|denied|forbidden|prohibited|(?:is|are|be|become|becomes|remain|remains)\s+(?:invalid|rejected|prohibited|forbidden)|(?:reject|rejects|rejected|rejection)\s+(?:invalid|unresolved|ambiguous)|fail(?:s|ed)?\s+(?:clearly|explicitly|with)|expires?\s+(?:after|within|in)|failure\s+(?:behavior|policy|outcome)|error\s+(?:handling|behavior|policy|outcome)|required\s+outcome|defaults?\s+to)\b/i;
 
 // Conditional/temporal cues help discover clauses but do not by themselves
 // turn explanatory or subjective context into an asserted obligation.
