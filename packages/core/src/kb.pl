@@ -135,6 +135,7 @@ kb_uri('urn-kibi:').
 % the memo never serves a property list the store no longer holds.
 :- dynamic kb_entity_props_memo/2.
 :- dynamic kb_entity_props_memo_key/1.
+:- dynamic kb_decision_signature_memo/2.
 :- dynamic kb_index_verified_key/1.
 :- dynamic entity/4.  % Support legacy .pl file format (Type, Id, Title, Props)
 
@@ -361,6 +362,7 @@ kb_detach :-
             retractall(kb_index_verified_key(_)),
             retractall(kb_entity_props_memo(_, _)),
             retractall(kb_entity_props_memo_key(_)),
+            retractall(kb_decision_signature_memo(_, _)),
             retractall(kb_index_entity(_, _)),
             retractall(kb_index_type(_, _)),
             retractall(kb_index_tag(_, _)),
@@ -2672,20 +2674,18 @@ req_conflict_witness(ReqA, ReqB, Witness) :-
 % decision deny with polarity deny, so a deny decision counts as a denial
 % whatever its polarity; an allow decision counts only when asserted.
 %
-% Goal order matters: coverage asks for the witnesses of every requirement,
-% so the decision-predicate filter runs once per fact of ReqA, before any
-% pairing, and ReqB's arguments are pre-bound on the key positions.
+% Cost: the search answer layer and coverage ask for the witnesses of each
+% requirement with the other side unbound.  The pairing therefore starts
+% from whichever requirement is bound, filters its facts against the
+% decision signatures (memoized per KB generation, so the project schemas
+% are read once rather than once per fact), and pre-binds the partner's key
+% arguments before enumerating partner requirements.
 req_conflict_witness(ReqA, ReqB, Witness) :-
-    current_req(ReqA),
-    effective_req_predicate(ReqA, FactA, Namespace, Name, ArgsA, PolarityA),
+    decision_signatures(Signatures),
+    Signatures \== [],
+    decision_conflict_pair(Signatures, ReqA, ReqB, FactA, FactB, Namespace, Name,
+                           ArgsA, ArgsB, PolarityA, PolarityB, KeyPositions, DecisionPosition),
     length(ArgsA, Arity),
-    decision_predicate(Namespace, Name, Arity, KeyPositions, DecisionPosition),
-    length(ArgsB, Arity),
-    bind_key_arguments(KeyPositions, ArgsA, ArgsB),
-    current_req(ReqB),
-    ReqA @< ReqB,
-    effective_req_predicate(ReqB, FactB, Namespace, Name, ArgsB, PolarityB),
-    FactA \= FactB,
     nth1(DecisionPosition, ArgsA, DecisionA),
     nth1(DecisionPosition, ArgsB, DecisionB),
     DecisionA \== DecisionB,
@@ -2717,6 +2717,35 @@ req_conflict_witness(ReqA, ReqB, Witness) :-
         right: Right
     }.
 
+%% decision_conflict_pair(+Signatures, ?ReqA, ?ReqB, -FactA, -FactB, -Namespace, -Name, -ArgsA, -ArgsB, -PolarityA, -PolarityB, -KeyPositions, -DecisionPosition)
+% Two decision-predicate facts of current requirements ReqA @< ReqB that
+% agree on every key argument.  Starts from the bound requirement.
+decision_conflict_pair(Signatures, ReqA, ReqB, FactA, FactB, Namespace, Name,
+                       ArgsA, ArgsB, PolarityA, PolarityB, KeyPositions, DecisionPosition) :-
+    (   var(ReqA), nonvar(ReqB)
+    ->  decision_req_fact(Signatures, ReqB, FactB, Namespace, Name, ArgsB, PolarityB, KeyPositions, DecisionPosition),
+        length(ArgsB, Arity),
+        length(ArgsA, Arity),
+        bind_key_arguments(KeyPositions, ArgsB, ArgsA),
+        current_req(ReqA),
+        ReqA @< ReqB,
+        effective_req_predicate(ReqA, FactA, Namespace, Name, ArgsA, PolarityA)
+    ;   decision_req_fact(Signatures, ReqA, FactA, Namespace, Name, ArgsA, PolarityA, KeyPositions, DecisionPosition),
+        length(ArgsA, Arity),
+        length(ArgsB, Arity),
+        bind_key_arguments(KeyPositions, ArgsA, ArgsB),
+        current_req(ReqB),
+        ReqA @< ReqB,
+        effective_req_predicate(ReqB, FactB, Namespace, Name, ArgsB, PolarityB)
+    ),
+    FactA \= FactB.
+
+decision_req_fact(Signatures, ReqId, FactId, Namespace, Name, Args, Polarity, KeyPositions, DecisionPosition) :-
+    current_req(ReqId),
+    effective_req_predicate(ReqId, FactId, Namespace, Name, Args, Polarity),
+    length(Args, Arity),
+    memberchk(decision_signature(Namespace, Name, Arity, KeyPositions, DecisionPosition), Signatures).
+
 %% decision_predicate(?Namespace, ?Name, ?Arity, -KeyPositions, -DecisionPosition)
 % A predicate whose key arguments (1-based KeyPositions) determine one
 % allow/deny decision argument.  A project-local predicate_schema decides
@@ -2724,15 +2753,45 @@ req_conflict_witness(ReqA, ReqB, Witness) :-
 % non-key argument `decision`.  Without a project schema the built-in
 % catalog entry applies.
 decision_predicate(Namespace, Name, Arity, KeyPositions, DecisionPosition) :-
-    predicate_schema(_SchemaId, Namespace, Name, Arity, _AnyNames, _AnyTypes),
-    !,
+    decision_signatures(Signatures),
+    member(decision_signature(Namespace, Name, Arity, KeyPositions, DecisionPosition), Signatures).
+
+%% decision_signatures(-Signatures)
+% All decision predicates of the current KB, memoized per graph, RDF
+% generation and legacy fact count like the entity property memo.
+decision_signatures(Signatures) :-
+    index_verification_key(decision_signatures, Key),
+    (   kb_decision_signature_memo(Key, Cached)
+    ->  Signatures = Cached
+    ;   compute_decision_signatures(Computed),
+        retractall(kb_decision_signature_memo(_, _)),
+        assertz(kb_decision_signature_memo(Key, Computed)),
+        Signatures = Computed
+    ).
+
+compute_decision_signatures(Signatures) :-
+    findall(Namespace-Name-Arity,
+            predicate_schema(_SchemaId, Namespace, Name, Arity, _Names, _Types),
+            SchemaSignatures0),
+    sort(SchemaSignatures0, SchemaSignatures),
+    findall(decision_signature(Namespace, Name, Arity, KeyPositions, DecisionPosition),
+            (   member(Namespace-Name-Arity, SchemaSignatures),
+                schema_decision_positions(Namespace, Name, Arity, KeyPositions, DecisionPosition)
+            ),
+            FromSchemas),
+    findall(decision_signature(Namespace, Name, Arity, KeyPositions, DecisionPosition),
+            (   builtin_decision_predicate(Namespace, Name, Arity, KeyPositions, DecisionPosition),
+                \+ memberchk(Namespace-Name-Arity, SchemaSignatures)
+            ),
+            Builtins),
+    append(FromSchemas, Builtins, Signatures).
+
+schema_decision_positions(Namespace, Name, Arity, KeyPositions, DecisionPosition) :-
     predicate_schema_keys(Namespace, Name, Arity, KeyPositions),
-    predicate_schema(_, Namespace, Name, Arity, ArgumentNames, _ArgumentTypes),
+    predicate_schema(_SchemaId, Namespace, Name, Arity, ArgumentNames, _ArgumentTypes),
     nth1(DecisionPosition, ArgumentNames, decision),
     \+ memberchk(DecisionPosition, KeyPositions),
     !.
-decision_predicate(Namespace, Name, Arity, KeyPositions, DecisionPosition) :-
-    builtin_decision_predicate(Namespace, Name, Arity, KeyPositions, DecisionPosition).
 
 %% bind_key_arguments(+KeyPositions, +ArgsA, ?ArgsB)
 % Unify ArgsB with ArgsA on every key position.

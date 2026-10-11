@@ -966,7 +966,9 @@ export function isUntrackedByGit(
     execFileSync(
       "git",
       ["-C", workspaceRoot, "ls-files", "--error-unmatch", "--", relative],
-      { stdio: "ignore" },
+      // Bounded: a write must never wait on Git. A timeout reads as
+      // "tracked", the pre-receipt behaviour.
+      { stdio: "ignore", timeout: 10_000 },
     );
     return false;
   } catch (error) {

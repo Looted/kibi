@@ -93,7 +93,7 @@ export const ENGINE_IDLE_TIMEOUT_MS = 10 * 60 * 1000;
 /** Upper bound between two wall-clock idle checks of the engine daemon. */
 export const ENGINE_IDLE_CHECK_INTERVAL_MS = 30 * 1000;
 /** How long a stopping daemon waits for SWI to halt on stdin EOF. */
-export const ENGINE_PROLOG_EXIT_GRACE_MS = 2000;
+export const ENGINE_PROLOG_EXIT_GRACE_MS = 1000;
 
 /**
  * Package versions this engine build carries (KIBI_PACKAGE_VERSIONS when
@@ -2540,6 +2540,7 @@ export async function runEngineDaemon(requestedOptions: {
     const saved = session.needsRecycle()
       ? null
       : await prolog.query("kb_save").catch(() => null);
+    let detached = false;
     if (saved?.success) {
       try {
         fsyncJournaledBranchStore(branchPath);
@@ -2552,11 +2553,16 @@ export async function runEngineDaemon(requestedOptions: {
       // rdf/lock and the ownership journal. A SIGTERM'd SWI process never
       // runs its at_halt cleanup, so skipping this left a dead lock behind
       // on every stop.
-      await prolog.query("kb_detach").catch(() => undefined);
+      detached = await prolog
+        .query("kb_detach")
+        .then((result) => result.success)
+        .catch(() => false);
     }
-    // Let SWI halt on stdin EOF (running at_halt) before signals are sent.
+    // Once kb_detach released the store, nothing in at_halt is needed and the
+    // child is signalled at once. Otherwise let SWI halt on stdin EOF (running
+    // its at_halt cleanup) for a bounded moment; the wait ends on exit.
     await prolog
-      .terminate({ graceMs: ENGINE_PROLOG_EXIT_GRACE_MS })
+      .terminate({ graceMs: detached ? 0 : ENGINE_PROLOG_EXIT_GRACE_MS })
       .catch(() => undefined);
     for (const client of clients) client.destroy();
     // A close callback can remain pending on older Node releases when a

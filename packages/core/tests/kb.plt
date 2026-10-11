@@ -1033,6 +1033,28 @@ test(decisions_on_different_permission_keys_do_not_contradict, [setup(setup_kb),
         ["guest", "read", "unassigned_analysis_request", "deny"], assert),
     assertion(\+ contradicting_reqs(_, _, _)).
 
+test(decision_conflicts_resolve_from_either_bound_requirement_and_follow_schema_changes, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_permission_decision_fixture('FACT-COACH-READ-ALLOW', 'REQ-COACH-READ-ALLOW', "CLAIM-5555555555555555",
+        ["coach", "read", "unassigned_analysis_request", "allow"], assert),
+    assert_permission_decision_fixture('FACT-COACH-READ-DENY', 'REQ-COACH-READ-DENY', "CLAIM-6666666666666666",
+        ["coach", "read", "unassigned_analysis_request", "deny"], deny),
+    % The search answer layer asks with one side bound, in both orders.
+    once(req_conflict_witness('REQ-COACH-READ-ALLOW', OtherOfAllow, _)),
+    assertion(OtherOfAllow == 'REQ-COACH-READ-DENY'),
+    once(req_conflict_witness(OtherOfDeny, 'REQ-COACH-READ-DENY', _)),
+    assertion(OtherOfDeny == 'REQ-COACH-READ-ALLOW'),
+    % A project schema added afterwards replaces the built-in signature: the
+    % memoized decision signatures must not outlive the KB change.
+    assert_fixture_entity(fact, 'FACT-SCHEMA-PERMISSION-RULE-LOCAL', "Permission rule", active, [
+        fact_kind=predicate_schema,
+        predicate_name="permission_rule",
+        predicate_namespace="default",
+        predicate_arity=4,
+        argument_names=["actor", "action", "resource", "decision"],
+        argument_types=["actor", "action", "resource", "decision"]
+    ]),
+    assertion(\+ req_conflict_witness('REQ-COACH-READ-ALLOW', _, _)).
+
 test(project_schema_without_key_arguments_keeps_decisions_multivalued, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     assert_fixture_entity(fact, 'FACT-SCHEMA-PERMISSION-RULE-LOCAL', "Permission rule", active, [
         fact_kind=predicate_schema,
