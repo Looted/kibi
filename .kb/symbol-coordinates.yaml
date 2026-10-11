@@ -34019,6 +34019,14 @@ coordinates:
     sourceEndLine: 519
     sourceFile: packages/cli/tests/consumer/proof-receipt-compaction.test.ts
     sourceLine: 1
+  SYM-test-kibi-query-fact-filters:
+    identityHash: ad4ff78f733bd411b8c146eed18838359e6c54dbb6a16edb4ab8bd28f35866b6
+    sourceHash: dbc00c2058a5b97294a36140f2874c5a0b7208345df255eeb3be3cdcaced76e0
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 312
+    sourceFile: packages/cli/tests/consumer/query-fact-filters.test.ts
+    sourceLine: 1
   SYM-test-kibi-scenario-feasibility:
     identityHash: 5787ec7d5a1248f63be46d767657847608d04490c9c5ae7ebc0733c60dc4a9de
     sourceHash: 4525ebc798be756f8749bf7687b9dcf2379b771e616b0d53b063bb542bbdf65f

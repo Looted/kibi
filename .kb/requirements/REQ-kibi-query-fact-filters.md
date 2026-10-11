@@ -24,32 +24,32 @@ semantic_inventory:
     span:
       start: 0
       end: 265
-    status: ontology_gap
-    reason: No declared predicate grounds this tooling clause yet; kept unresolved rather than treated as logic-complete.
+    status: modeled
+    reason: Grounded by a logical_requirement_rule predicate fact over the reviewed project-local logical_requirement_rule schema.
   - claim_key: CLAIM-D8380B9B3A13AC50
     claim_text: Every typed kb_query answer must return the matching fact rows and a factQuery block with the schema used, distinct value counts, the values that exist when nothing matched, warnings for undeclared argument names and the next kb_query call to make
     role: normative
     span:
       start: 267
       end: 514
-    status: ontology_gap
-    reason: No declared predicate grounds this tooling clause yet; kept unresolved rather than treated as logic-complete.
+    status: modeled
+    reason: Grounded by a logical_requirement_rule predicate fact over the reviewed project-local logical_requirement_rule schema.
   - claim_key: CLAIM-2F5C790FBAC7D572
     claim_text: Typed kb_query goals must be built from validated JSON input and never from caller-written Prolog
     role: normative
     span:
       start: 516
       end: 613
-    status: ontology_gap
-    reason: No declared predicate grounds this tooling clause yet; kept unresolved rather than treated as logic-complete.
+    status: modeled
+    reason: Grounded by a logical_requirement_rule predicate fact over the reviewed project-local logical_requirement_rule schema.
   - claim_key: CLAIM-1C1A8782A49CDAB5
     claim_text: Each linked predicate, property or subject fact in a kb_search answer must carry its typed claim and the kb_query call that asks about it
     role: normative
     span:
       start: 615
       end: 752
-    status: ontology_gap
-    reason: No declared predicate grounds this tooling clause yet; kept unresolved rather than treated as logic-complete.
+    status: modeled
+    reason: Grounded by a logical_requirement_rule predicate fact over the reviewed project-local logical_requirement_rule schema.
 logic_claims:
   - CLAIM-864657F88BEA7174
   - CLAIM-D8380B9B3A13AC50

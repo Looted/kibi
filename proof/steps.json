@@ -2463,5 +2463,17 @@
         "./packages/plugin-sdk/tests/check-policy.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-kibi-query-fact-filters",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/cli/tests/consumer/query-fact-filters.test.ts"
+      ]
+    ]
   }
 ]

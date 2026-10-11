@@ -47653,6 +47653,15 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-kibi-search-answer-layer
+  - id: SYM-test-kibi-query-fact-filters
+    title: Typed fact questions consumer suite
+    status: active
+    sourceFile: packages/cli/tests/consumer/query-fact-filters.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-query-fact-filters
   - id: SYM-test-kibi-mcp-tool-consolidation
     title: Consolidated MCP tool surface consumer suite
     status: active
