@@ -392,7 +392,7 @@
             "description": "Optional result detail. 'summary' returns identifying metadata plus the match snippet for discovery. Use 'full' to include complete entity bodies, or follow up with kb_query for the exact entities you need."
           },
           "limit": {
-            "description": "Optional max rows to return after ranking. Default: 20.",
+            "description": "Optional max rows to return after ranking. Default: 10; raise it or page with offset when the answer layer is not enough.",
             "maximum": 9007199254740991,
             "minimum": 0,
             "type": "integer"

@@ -14,6 +14,7 @@ import {
   _resetSessionModulePromise,
   _setToolsServerDepsForTests,
   addTool,
+  embedsStructuredText,
   registerAllTools,
 } from "../../src/server/tools.js";
 import {
@@ -1289,6 +1290,75 @@ describe.serial("server tools coverage", () => {
     )) as ToolResponse;
     expect(ordinary.content?.[0]?.text).toBe("plain summary only");
     expect(ordinary.content?.[0]?.text).not.toContain("should-not-duplicate");
+  });
+
+  test("addTool sends the data once to a host that reads structuredContent", async () => {
+    const originalHost = process.env.KIBI_MCP_HOST;
+    const originalMode = process.env.KIBI_MCP_STRUCTURED_TEXT;
+    const { runtime } = createRuntime();
+    const { server, registered } = createCapturingServer();
+    const execute = async () => ({
+      content: [{ type: "text", text: "Found 1 entities: REQ-1" }],
+      structuredContent: { entities: [{ id: "REQ-1" }], count: 1 },
+    });
+    addTool(server, "query_like", "query like", {}, execute, runtime, {
+      name: "kb_query",
+      effects: ["kb-read"],
+      requiresProlog: false,
+      agentVisibleStructuredData: true,
+      execute,
+    });
+    const textOf = async (): Promise<string> =>
+      (
+        (await invokeTool(
+          getRegisteredTool(registered, "query_like"),
+          {},
+        )) as ToolResponse
+      ).content?.[0]?.text ?? "";
+    try {
+      // Claude Code shows structuredContent, so the text is the summary alone.
+      process.env.KIBI_MCP_HOST = "claude-code";
+      Reflect.deleteProperty(process.env, "KIBI_MCP_STRUCTURED_TEXT");
+      expect(await textOf()).toBe("Found 1 entities: REQ-1");
+      process.env.KIBI_MCP_STRUCTURED_TEXT = "embed";
+      expect(await textOf()).toContain('"count":1');
+      // A host that may hide structuredContent keeps the JSON copy.
+      process.env.KIBI_MCP_HOST = "codex";
+      Reflect.deleteProperty(process.env, "KIBI_MCP_STRUCTURED_TEXT");
+      expect(await textOf()).toContain('"count":1');
+      process.env.KIBI_MCP_STRUCTURED_TEXT = "omit";
+      expect(await textOf()).toBe("Found 1 entities: REQ-1");
+    } finally {
+      if (originalHost === undefined)
+        Reflect.deleteProperty(process.env, "KIBI_MCP_HOST");
+      else process.env.KIBI_MCP_HOST = originalHost;
+      if (originalMode === undefined)
+        Reflect.deleteProperty(process.env, "KIBI_MCP_STRUCTURED_TEXT");
+      else process.env.KIBI_MCP_STRUCTURED_TEXT = originalMode;
+    }
+  });
+
+  test("embedsStructuredText reads the client's initialize name when no host is set", () => {
+    const client = (name: string | undefined): McpServer =>
+      ({
+        server: {
+          getClientVersion: () =>
+            name === undefined ? undefined : { name, version: "1.0.0" },
+        },
+      }) as unknown as McpServer;
+    expect(embedsStructuredText(client("Claude-Code"), {})).toBe(false);
+    expect(embedsStructuredText(client("Claude Code"), {})).toBe(false);
+    expect(embedsStructuredText(client("cursor"), {})).toBe(true);
+    expect(embedsStructuredText(client(undefined), {})).toBe(true);
+    expect(embedsStructuredText(undefined, {})).toBe(true);
+    expect(
+      embedsStructuredText(client("claude-code"), {
+        KIBI_MCP_STRUCTURED_TEXT: "embed",
+      }),
+    ).toBe(true);
+    expect(
+      embedsStructuredText(client("cursor"), { KIBI_MCP_HOST: "claude-code" }),
+    ).toBe(false);
   });
 
   test("addTool returns MUTATION_OUTCOME_UNKNOWN when a write tool times out", async () => {

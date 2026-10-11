@@ -353,3 +353,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-76e5f334e74a
+  - type: verified_by
+    from: SCEN-mcp-structured-text-per-host
+    to: TEST-mcp-structured-text-per-host
+    created_at: 2026-10-11T20:40:09.013Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1037be4e8489

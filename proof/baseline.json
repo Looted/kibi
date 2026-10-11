@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 198,
-  "proofProven": 198,
+  "currentRequirements": 199,
+  "proofProven": 199,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -992,6 +992,11 @@
       "uncoveredSymbols": []
     },
     "REQ-kibi-hooks-flow-manifest": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-mcp-structured-text-per-host": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []
