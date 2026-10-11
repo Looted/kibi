@@ -181,6 +181,10 @@ Finance audit follow-up, ticket FIN-212.
 
 Scenarios and tests keep Given/When/Then prose, assumptions, what is asserted and what would make it a false pass. When the reason was not given, write "Reason not stated"; never invent one. `entity-context-missing` blocks entities without context; `review:context-missing` is reserved for entities the schema 8 migration acknowledged and is not honored on any other entity; write who asked, the source and "Reason not stated" instead.
 
+## Claim keys
+
+`claim_key` is `CLAIM-` plus sixteen hex digits, a stable hash of the exact `claim_text`. Kibi derives it; agents copy it. `kb_model` `mode: "analyze"` lists every proposition's `claim_key` with its `claim_text`, and `mode: "requirement"` and `mode: "predicates"` put the pair on each planned fact in `applyPlan`, so apply those entries unchanged. A ground fact (`property_value`, `predicate`, `rule`) carries both fields or neither: `claim_text` without `claim_key` is refused on those kinds, and a key that does not match its text is refused with the expected key in the message (`claim_key must equal the stable key derived from claim_text (expected 'CLAIM-…')`). Repair a mismatch by copying that value, never by editing `claim_text` to fit. A `requires_predicate`, `requires_property` or `requires_rule` target without a `claim_key` fails proposition-complete ingestion (`logical grounding target … must declare a claim_key`), and the same key must appear in the requirement's `semantic_inventory` entry with `status: modeled`. Observation and meta facts quote the clause in `claim_text` without a key.
+
 ## Common field-name mistakes
 
 The claim keys above are illustrative. Always use the stable key returned for the exact clause text. Store every returned normative key in the requirement-only `logic_claims` array, merge rather than replace existing keys, and preserve `claim_key` plus `claim_text` together on every ground `property_value`, `predicate`, or `rule` fact. Preserve the full `semantic_inventory` proposition ledger; an observation does not ground a claim.

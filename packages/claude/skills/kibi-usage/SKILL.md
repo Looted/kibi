@@ -5,7 +5,7 @@ license: AGPL-3.0-or-later
 metadata:
   displayName: Kibi Usage
   id: kibi-usage
-  version: 2.15.1
+  version: 2.15.2
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -84,6 +84,41 @@ If a result carries a `workspace_mismatch` diagnostic, the answer came from a
 different workspace than the one you asked for; its `detail.reason` says why.
 Use the CLI from your working directory instead: `npx --no-install kibi ...`
 runs where you are and needs no `workspaceRoot`.
+
+## Reading a hook snippet
+
+On hosts with Kibi hooks (Claude Code, Codex, Cursor, zcode) a short block
+arrives before you read or edit a file whose symbols are linked to
+requirements. It is projected from `.kb/symbols.yaml`, not from the store, so
+it is a pointer to the knowledge, never proof. Each line answers one question:
+
+- `Kibi knowledge for <path> (symbol manifest):` and the `- REQ-… — <symbol
+  titles>` rows: the requirements the file's symbols implement, lead
+  requirement first. Read the lead requirement with `kb_query({id})` before
+  changing behavior.
+- `REQ-… must keep true: FACT-…` (edit only): the ground facts the lead
+  requirement requires. An edit that breaks one of them is a requirement
+  change: supersede and remodel the requirement, do not code around the fact.
+- `Decision: ADR-…` (edit only): the decision behind the lead requirement.
+- `Covered by: TEST-…` and `Test code for: …`: the tests that prove the
+  file's symbols; run or update them with the edit.
+- `The edit is inside <symbol>, which implements REQ-…`: the symbol the edit
+  lands in.
+- `Next layer: …`: the exact `kb_query` and `kb_search(... sourceLocations)`
+  calls that return the full detail.
+- The `kb_check({sourceFiles:[…], includeImpactDiagnostics:true,
+  includeWorkingTreeDiff:true})` line (edit only): run it after the edit. The
+  Stop hook reminds you once per session of files edited without it.
+
+A file already shown this session gets only the one-line `Kibi: this edit to
+<path> is inside <symbol>` update; the facts and tests from its first snippet
+still apply. `Kibi: no symbol in <path> is linked to a requirement yet` means
+the file is unowned: find the governing requirement with `kb_search` and
+`sourceLocations`, then link a symbol to it with `implements` through
+`kb_upsert`. `Kibi: the hook could not read .kb/symbols.yaml` means snippets
+are off for this session; `kb_query({sourceFile})` still answers and `kibi
+sync` rewrites the manifest. The search tip and the `.kb/` note appear once per
+session and need no action.
 
 ## Safe workflow
 
