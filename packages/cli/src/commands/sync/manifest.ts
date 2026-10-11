@@ -25,6 +25,7 @@ import {
 } from "node:fs";
 import * as path from "node:path";
 import { dump as dumpYAML, load as parseYAML } from "js-yaml";
+import { isSeq, parseDocument } from "yaml";
 import {
   type SymbolCoordinatesRecord,
   coarseCoordinateSpan,
@@ -43,6 +44,7 @@ import {
   isCoarseGranularityReason,
 } from "../../public/symbol-granularity.js";
 import { resolveSymbolsManifestPaths } from "../../utils/manifest-paths.js";
+import { blockifySymbolManifest } from "../../utils/symbol-manifest-layout.js";
 
 interface ManifestDeps {
   dumpYAML: typeof dumpYAML;
@@ -441,6 +443,32 @@ export async function refreshManifestCoordinates(
       );
     }
   }
+}
+
+/**
+ * Rewrite a symbol manifest whose `symbols` sequence is in YAML flow layout
+ * (`symbols: [ { id: … }, … ]`) as block YAML, keeping comments and entry
+ * order. kibi-cli before 2.18.0 appended to the `symbols: []` that
+ * `kibi init` writes and kept every symbol on that one line; the hook
+ * scanners of older adapters cannot read it and diffs of it are unreviewable,
+ * so plain `kibi sync` normalises it once. Returns the number of symbols
+ * when the file was rewritten, otherwise null.
+ */
+// implements REQ-kibi-hooks-flow-manifest
+export function normalizeManifestLayout(
+  manifestPath: string,
+  deps?: Partial<ManifestDeps>,
+): number | null {
+  const resolved = resolveDeps(deps);
+  const rawContent = String(resolved.readFileSync(manifestPath, "utf8"));
+  const doc = parseDocument(rawContent);
+  const symbols = doc.get("symbols", true);
+  if (!isSeq(symbols) || symbols.items.length === 0) return null;
+  if (!blockifySymbolManifest(doc)) return null;
+  const nextContent = doc.toString({ lineWidth: 0 });
+  if (nextContent === rawContent) return null;
+  publishAtomically(manifestPath, nextContent, resolved);
+  return symbols.items.length;
 }
 
 export function hasAllGeneratedCoordinates(

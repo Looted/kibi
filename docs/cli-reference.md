@@ -122,6 +122,7 @@ Extracts entities and relationships from project documents and updates the knowl
 **Behavior:**
 - Extracts entities from Markdown files with frontmatter
 - Imports symbols from YAML manifests
+- Rewrites a `.kb/symbols.yaml` whose `symbols` sequence is still in YAML flow layout (`symbols: [ { id: … }, … ]`, what kibi-cli before 2.18.0 produced by appending to the `symbols: []` that `kibi init` writes) in block layout once, keeping comments and order, so hook scanners and reviewers can read it; the summary line `Rewrote .kb/symbols.yaml in block layout` reports it
 - Updates KB for the current git branch
 - Runs validation rules on the updated KB
 

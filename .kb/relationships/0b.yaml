@@ -202,3 +202,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5391d9801090
+  - type: requires_predicate
+    from: REQ-kibi-hooks-flow-manifest
+    to: FACT-HOOKS-FLOW-MANIFEST-INDEXED
+    created_at: 2026-10-11T16:20:18.526Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-61a6b5d07e75
+  - type: requires_predicate
+    from: REQ-kibi-hooks-flow-manifest
+    to: FACT-HOOKS-MANIFEST-STATE-REPORTED
+    created_at: 2026-10-11T16:20:18.563Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2607a43b2017
+  - type: requires_predicate
+    from: REQ-kibi-hooks-flow-manifest
+    to: FACT-HOOKS-UNOWNED-NOTE-GUARD
+    created_at: 2026-10-11T16:20:18.577Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e7e2c6ae4abf
+  - type: requires_predicate
+    from: REQ-kibi-hooks-flow-manifest
+    to: FACT-SYNC-FLOW-MANIFEST-REWRITTEN
+    created_at: 2026-10-11T16:20:18.584Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d50d46e68501
+  - type: specified_by
+    from: REQ-kibi-hooks-flow-manifest
+    to: SCEN-kibi-hooks-flow-manifest
+    created_at: 2026-10-11T16:20:18.595Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-41ea1d308164
+  - type: verified_by
+    from: REQ-kibi-hooks-flow-manifest
+    to: TEST-kibi-hooks-flow-manifest
+    created_at: 2026-10-11T16:20:18.603Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-16aee59e3d67

@@ -103,7 +103,7 @@ import fs from "node:fs";
 import path from "node:path";
 var SYMBOLS_MANIFEST = ".kb/symbols.yaml";
 var SYMBOL_COORDINATES = ".kb/symbol-coordinates.yaml";
-var INDEX_FORMAT = "kibi-agent-core.knowledge-index.v1";
+var INDEX_FORMAT = "kibi-agent-core.knowledge-index.v2";
 var CACHE_FILE = "knowledge-index.json";
 function unquote(raw) {
   const value = raw.trim();
@@ -120,25 +120,191 @@ function unquote(raw) {
   const comment = value.search(/\s#/);
   return comment >= 0 ? value.slice(0, comment).trimEnd() : value;
 }
-function parseFlowList(raw) {
-  const value = raw.trim();
-  if (!value.startsWith("[") || !value.endsWith("]"))
+function parseFlow(text, start = 0) {
+  let pos = start;
+  const skip = () => {
+    while (pos < text.length) {
+      const char = text[pos];
+      if (char === "#") {
+        while (pos < text.length && text[pos] !== `
+`)
+          pos += 1;
+      } else if (char === " " || char === "\t" || char === `
+` || char === "\r") {
+        pos += 1;
+      } else {
+        break;
+      }
+    }
+  };
+  const scalar = (stops) => {
+    const quote = text[pos];
+    if (quote === '"' || quote === "'") {
+      let cursor = pos + 1;
+      while (cursor < text.length) {
+        if (quote === '"' && text[cursor] === "\\")
+          cursor += 2;
+        else if (text[cursor] === quote) {
+          if (quote === "'" && text[cursor + 1] === "'")
+            cursor += 2;
+          else
+            break;
+        } else
+          cursor += 1;
+      }
+      if (cursor >= text.length)
+        return;
+      const raw = text.slice(pos, cursor + 1);
+      pos = cursor + 1;
+      return unquote(raw);
+    }
+    let cursor = pos;
+    while (cursor < text.length) {
+      const char = text[cursor] ?? "";
+      if (stops.includes(char) && char !== ":" || char === `
+` || char === "\r")
+        break;
+      if (stops.includes(":") && char === ":" && (cursor + 1 >= text.length || /[\s,\]}]/.test(text[cursor + 1] ?? "")))
+        break;
+      if (char === "#" && /\s/.test(text[cursor - 1] ?? ""))
+        break;
+      cursor += 1;
+    }
+    const raw = text.slice(pos, cursor).trim();
+    pos = cursor;
+    return raw;
+  };
+  const value = () => {
+    skip();
+    const open = text[pos];
+    if (open === "[") {
+      pos += 1;
+      const items = [];
+      for (;; ) {
+        skip();
+        if (text[pos] === "]") {
+          pos += 1;
+          return items;
+        }
+        if (pos >= text.length)
+          throw new SyntaxError("unterminated flow sequence");
+        const item = value();
+        if (item !== undefined)
+          items.push(item);
+        skip();
+        if (text[pos] === ",")
+          pos += 1;
+        else if (text[pos] !== "]")
+          throw new SyntaxError("expected , or ]");
+      }
+    }
+    if (open === "{") {
+      pos += 1;
+      const record = {};
+      for (;; ) {
+        skip();
+        if (text[pos] === "}") {
+          pos += 1;
+          return record;
+        }
+        if (pos >= text.length)
+          throw new SyntaxError("unterminated flow mapping");
+        const key = scalar(":,}");
+        if (key === undefined)
+          throw new SyntaxError("unterminated key");
+        skip();
+        let entry;
+        if (text[pos] === ":") {
+          pos += 1;
+          skip();
+          entry = text[pos] === "," || text[pos] === "}" ? undefined : value();
+        }
+        if (key.length > 0)
+          record[key] = entry;
+        skip();
+        if (text[pos] === ",")
+          pos += 1;
+        else if (text[pos] !== "}")
+          throw new SyntaxError("expected , or }");
+      }
+    }
+    const raw = scalar(",]}");
+    if (raw === undefined)
+      throw new SyntaxError("unterminated scalar");
+    return raw;
+  };
+  try {
+    const parsed = value();
+    return { value: parsed, end: pos };
+  } catch {
     return;
-  const inner = value.slice(1, -1).trim();
-  if (inner.length === 0)
-    return [];
-  return inner.split(",").map(unquote).filter((item) => item.length > 0);
+  }
+}
+function opensFlow(raw) {
+  const value = raw.trim();
+  return value.startsWith("[") || value.startsWith("{");
 }
 var keyValue = /^([A-Za-z0-9_"'-][^:]*?):(?:\s+(.*))?$/;
+function completeFlowValue(raw) {
+  if (!opensFlow(raw))
+    return;
+  const parsed = parseFlow(raw);
+  if (parsed === undefined)
+    return;
+  const rest = raw.slice(parsed.end).trim();
+  return rest.length === 0 || rest.startsWith("#") ? parsed : undefined;
+}
 function parseScalarOrFlow(raw) {
   if (raw === undefined || raw.trim().length === 0)
     return;
-  return parseFlowList(raw) ?? unquote(raw);
+  return completeFlowValue(raw)?.value ?? unquote(raw);
 }
 function scanSymbolsManifest(text) {
   return scanRecordSequence(text, "symbols");
 }
+function unbalancedFlow(raw) {
+  return opensFlow(raw) && parseFlow(raw) === undefined;
+}
+function flowRecords(text, start) {
+  const parsed = parseFlow(text, start);
+  if (!Array.isArray(parsed?.value))
+    return;
+  return parsed.value.filter((item) => item !== null && typeof item === "object" && !Array.isArray(item));
+}
+function scanFlowSection(text, sectionKey) {
+  const escapedKey = sectionKey.replaceAll(/[.*+?^$(){}|[\]\\]/g, "\\$&");
+  const header = new RegExp(`^${escapedKey}:[ \\t]*(\\[)?`);
+  let offset = 0;
+  let first = true;
+  let afterHeader = false;
+  for (const piece of text.split(/(\r?\n)/)) {
+    const content = piece.trim();
+    const indent = piece.length - piece.trimStart().length;
+    if (content.length > 0 && !content.startsWith("#")) {
+      if (afterHeader) {
+        return content.startsWith("[") ? flowRecords(text, offset + piece.indexOf("[")) : undefined;
+      }
+      if (first && content.startsWith("[")) {
+        return flowRecords(text, offset + piece.indexOf("["));
+      }
+      first = false;
+      if (indent === 0) {
+        const match = header.exec(piece);
+        if (match) {
+          if (match[1] !== undefined)
+            return flowRecords(text, offset + piece.indexOf("["));
+          afterHeader = true;
+        }
+      }
+    }
+    offset += piece.length;
+  }
+  return;
+}
 function scanRecordSequence(text, sectionKey) {
+  const flowSection = scanFlowSection(text, sectionKey);
+  if (flowSection !== undefined)
+    return flowSection;
   const records = [];
   let itemIndent;
   let keyIndent = 0;
@@ -146,12 +312,28 @@ function scanRecordSequence(text, sectionKey) {
   let listKey;
   let listItem;
   let section = "root";
+  let pendingFlow;
   for (const rawLine of text.split(/\r?\n/)) {
     const content = rawLine.trim();
     if (content.length === 0 || content.startsWith("#"))
       continue;
     const indent = rawLine.length - rawLine.trimStart().length;
     const dash = /^(\s*)-(\s+)(.*)$/.exec(rawLine);
+    if (pendingFlow !== undefined && current !== undefined) {
+      const target = pendingFlow.onListItem && listItem !== undefined ? listItem : current;
+      if (indent > (itemIndent ?? 0) && !(dash && indent === itemIndent)) {
+        pendingFlow.text += `
+${content}`;
+        const parsed = parseFlow(pendingFlow.text);
+        if (parsed === undefined)
+          continue;
+        target[pendingFlow.key] = parsed.value;
+        pendingFlow = undefined;
+        continue;
+      }
+      target[pendingFlow.key] = unquote(pendingFlow.first);
+      pendingFlow = undefined;
+    }
     if (indent === 0 && !dash) {
       const pair = keyValue.exec(content);
       section = pair?.[1] !== undefined && unquote(pair[1]) === sectionKey ? "records" : "other";
@@ -170,11 +352,21 @@ function scanRecordSequence(text, sectionKey) {
       listItem = undefined;
       const pair = keyValue.exec(dash[3] ?? "");
       if (pair?.[1] !== undefined) {
+        const key = unquote(pair[1]);
+        if (pair[2] !== undefined && unbalancedFlow(pair[2])) {
+          pendingFlow = {
+            key,
+            first: pair[2],
+            text: pair[2],
+            onListItem: false
+          };
+          continue;
+        }
         const value = parseScalarOrFlow(pair[2]);
         if (value !== undefined)
-          current[unquote(pair[1])] = value;
+          current[key] = value;
         else
-          listKey = unquote(pair[1]);
+          listKey = key;
       }
       continue;
     }
@@ -187,13 +379,18 @@ function scanRecordSequence(text, sectionKey) {
         continue;
       const list = Array.isArray(current[listKey]) ? current[listKey] : [];
       current[listKey] = list;
-      const pair = keyValue.exec(dash[3] ?? "");
-      if (pair?.[1] !== undefined && pair[2] !== undefined) {
-        listItem = { [unquote(pair[1])]: unquote(pair[2]) };
+      const item = dash[3] ?? "";
+      const flowItem = completeFlowValue(item);
+      const pair = flowItem === undefined ? keyValue.exec(item) : null;
+      if (flowItem !== undefined) {
+        listItem = undefined;
+        list.push(flowItem.value);
+      } else if (pair?.[1] !== undefined && pair[2] !== undefined) {
+        listItem = { [unquote(pair[1])]: parseScalarOrFlow(pair[2]) };
         list.push(listItem);
       } else {
         listItem = undefined;
-        list.push(unquote(dash[3] ?? ""));
+        list.push(unquote(item));
       }
       continue;
     }
@@ -203,6 +400,16 @@ function scanRecordSequence(text, sectionKey) {
     const key = unquote(pair[1]);
     if (indent === keyIndent) {
       listItem = undefined;
+      if (pair[2] !== undefined && unbalancedFlow(pair[2])) {
+        pendingFlow = {
+          key,
+          first: pair[2],
+          text: pair[2],
+          onListItem: false
+        };
+        listKey = undefined;
+        continue;
+      }
       const value = parseScalarOrFlow(pair[2]);
       if (value === undefined) {
         listKey = key;
@@ -211,7 +418,11 @@ function scanRecordSequence(text, sectionKey) {
         listKey = undefined;
       }
     } else if (listItem !== undefined && pair[2] !== undefined) {
-      listItem[key] = unquote(pair[2]);
+      if (unbalancedFlow(pair[2])) {
+        pendingFlow = { key, first: pair[2], text: pair[2], onListItem: true };
+        continue;
+      }
+      listItem[key] = parseScalarOrFlow(pair[2]);
     }
   }
   return records;
@@ -247,6 +458,13 @@ function scanSymbolCoordinates(text) {
     if (currentId === undefined || indent < idIndent)
       continue;
     const entry = coordinates[currentId] ?? {};
+    if (key === "sourceFile") {
+      const sourceFile = normalizeSourceFile(unquote(pair[2] ?? ""));
+      if (sourceFile.length > 0)
+        entry.sourceFile = sourceFile;
+      coordinates[currentId] = entry;
+      continue;
+    }
     const numeric = Number.parseInt(unquote(pair[2] ?? ""), 10);
     if (!Number.isFinite(numeric))
       continue;
@@ -266,15 +484,34 @@ function pushUnique(list, value) {
   if (!list.includes(value))
     list.push(value);
 }
-function buildKnowledgeIndex(records, coordinates = {}, options = {}) {
+function normalizeSourceFile(value) {
+  return value.replaceAll("\\", "/").replace(/^\.\//, "");
+}
+function manifestStateOf(text, recordCount) {
+  if (text === undefined)
+    return "missing";
+  if (recordCount > 0)
+    return "indexed";
+  const meaningful = text.split(/\r?\n/).map((line) => line.trim()).filter((line) => line.length > 0 && !line.startsWith("#")).filter((line) => !/^symbols:\s*(\[\s*\])?$/.test(line)).filter((line) => line !== "[]").filter((line) => !/^(?:---|\.\.\.|%\S.*|version:\s*\S+)$/.test(line));
+  return meaningful.length === 0 ? "empty" : "unreadable";
+}
+function buildKnowledgeIndex(records, coordinates = {}, options = {}, manifest = records.length > 0 ? "indexed" : "empty") {
   const files = {};
   let symbolCount = 0;
+  const recordedFiles = new Set;
+  const coordinateFiles = [];
+  for (const entry of Object.values(coordinates)) {
+    if (entry.sourceFile !== undefined)
+      pushUnique(coordinateFiles, entry.sourceFile);
+  }
+  coordinateFiles.sort();
   for (const record of records) {
     const id = typeof record.id === "string" ? record.id : undefined;
-    const sourceFile = typeof record.sourceFile === "string" ? record.sourceFile.replaceAll("\\", "/").replace(/^\.\//, "") : undefined;
+    const sourceFile = typeof record.sourceFile === "string" ? normalizeSourceFile(record.sourceFile) : undefined;
     if (!id || !sourceFile)
       continue;
     symbolCount += 1;
+    recordedFiles.add(sourceFile);
     const symbol = {
       id,
       title: typeof record.title === "string" ? record.title : id,
@@ -328,7 +565,8 @@ function buildKnowledgeIndex(records, coordinates = {}, options = {}) {
     bucket.push(symbol);
     files[sourceFile] = bucket;
   }
-  return { files, symbolCount };
+  const unlinkedFiles = [...recordedFiles].filter((file) => files[file] === undefined).sort();
+  return { files, symbolCount, manifest, coordinateFiles, unlinkedFiles };
 }
 function fileSignature(filePath) {
   try {
@@ -370,7 +608,8 @@ function loadKnowledgeIndex(workspaceRoot, cacheDir, options = {}) {
     }
   }
   const symbolsText = readText(symbolsPath);
-  const index = symbolsText === undefined ? { files: {}, symbolCount: 0 } : buildKnowledgeIndex(scanSymbolsManifest(symbolsText), scanSymbolCoordinates(readText(coordinatesPath) ?? ""), options);
+  const records = symbolsText === undefined ? [] : scanSymbolsManifest(symbolsText);
+  const index = buildKnowledgeIndex(records, scanSymbolCoordinates(readText(coordinatesPath) ?? ""), options, manifestStateOf(symbolsText, records.length));
   if (cachePath) {
     writeCacheAtomically(cachePath, JSON.stringify({ signature, index }));
   }
@@ -1023,6 +1262,13 @@ function unownedSourceNote(relativePath) {
   ].join(`
 `);
 }
+function unreadableManifestNote(relativePath) {
+  return [
+    "Kibi: the hook could not read .kb/symbols.yaml, so requirement snippets are unavailable this session.",
+    `kb_query({sourceFile:${jsonString2(relativePath)}}) still lists what ${relativePath} implements; \`kibi sync\` rewrites the manifest in the canonical block layout.`
+  ].join(`
+`);
+}
 function searchTip(linkedFileCount) {
   return `Kibi tip: this repository records requirements, scenarios, decisions, and code ownership in a Kibi knowledge base (${linkedFileCount} source files have requirement-linked symbols). For intent questions — why code exists, what it must do — kb_search answers from that knowledge, naming the governing requirements, facts, decisions and tests; kb_query({sourceFile:"<path>"}) lists what a file implements.`;
 }
@@ -1310,7 +1556,15 @@ function preToolUse(input, workspace, trace = {}) {
   if (snippet)
     return emit(snippet, "edit_snippet");
   if (kind === "source") {
-    return emit(unownedSourceNote(relativePath), "edit_unowned_note");
+    const index = workspace.index();
+    const unread = index.manifest === "unreadable" || index.coordinateFiles.includes(relativePath) && !index.unlinkedFiles.includes(relativePath);
+    if (!unread) {
+      return emit(unownedSourceNote(relativePath), "edit_unowned_note");
+    }
+    if (!state.notices.has("manifest-unreadable")) {
+      events.push({ kind: "notice", name: "manifest-unreadable" });
+      return emit(unreadableManifestNote(relativePath), "edit_manifest_note");
+    }
   }
   appendSessionEvents(workspace.stateDir, events);
   return {};

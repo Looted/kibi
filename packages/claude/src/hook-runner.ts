@@ -46,6 +46,7 @@ import {
   editFocus as sharedEditFocus,
   stopReminder,
   unownedSourceNote,
+  unreadableManifestNote,
 } from "./snippets.js";
 import {
   type HookTrace,
@@ -273,7 +274,21 @@ function preToolUse(
   if (snippet) return emit(snippet, "edit_snippet");
 
   if (kind === "source") {
-    return emit(unownedSourceNote(relativePath), "edit_unowned_note");
+    const index = workspace.index();
+    // A manifest the scanner could not read, in whole or for this file (the
+    // coordinate artifact binds a symbol here but no record was indexed), is
+    // not evidence that nothing is linked; say so once per session instead.
+    const unread =
+      index.manifest === "unreadable" ||
+      (index.coordinateFiles.includes(relativePath) &&
+        !index.unlinkedFiles.includes(relativePath));
+    if (!unread) {
+      return emit(unownedSourceNote(relativePath), "edit_unowned_note");
+    }
+    if (!state.notices.has("manifest-unreadable")) {
+      events.push({ kind: "notice", name: "manifest-unreadable" });
+      return emit(unreadableManifestNote(relativePath), "edit_manifest_note");
+    }
   }
   appendSessionEvents(workspace.stateDir, events);
   return {};
