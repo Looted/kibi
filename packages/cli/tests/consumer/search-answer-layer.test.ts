@@ -29,6 +29,7 @@ type Brief = {
   title?: string;
   status?: string;
   supersededBy?: string;
+  firmness?: string;
 };
 
 describe("search answer layer through the kibi CLI", () => {
