@@ -221,7 +221,7 @@ describe("a clause of the claim does not name a participant", () => {
     expect(data.recommendedAction).toBe("apply_requires_predicate");
     expect(data.candidates[0]).toMatchObject({
       predicate_name: "permission_rule",
-      predicate_args: ["guest", "delete", "archived_pages", "deny"],
+      predicate_args: ["guest", "delete", "archived_page", "deny"],
       binding_status: "complete",
     });
   });

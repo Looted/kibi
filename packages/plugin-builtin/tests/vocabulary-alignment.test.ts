@@ -4,6 +4,7 @@ import {
   BUILTIN_SUBJECT_REUSE_THRESHOLD,
   claimSimilarity,
   createBuiltinVocabularyAlignment,
+  detectSignals,
   kibiPlugin,
   rankSubjectCandidates,
   vocabularyTokens,
@@ -142,5 +143,20 @@ describe("builtin vocabulary alignment", () => {
       ["same", true],
       ["paraphrase", false],
     ]);
+  });
+});
+
+describe("builtin classifier permission signals", () => {
+  test.each([
+    "Auditors are permitted to export reports.",
+    "An admin must be able to read any analysis request.",
+    "Viewers are entitled to view their own reports.",
+    "Admins have permission to delete analysis requests.",
+  ])("%s routes to the predicate lane as a permission", (prose) => {
+    const signals = detectSignals(prose);
+    expect(signals.map((signal) => signal.kind)).toContain("permission");
+    expect(
+      signals.find((signal) => signal.kind === "permission")?.candidateLane,
+    ).toBe("predicate");
   });
 });
