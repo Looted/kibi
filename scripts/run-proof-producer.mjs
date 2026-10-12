@@ -5,8 +5,16 @@
 // aggregate exit code against each selected test's proof contract. Every
 // declared step runs once; a passing retry must never hide a failed attempt.
 
-import { spawn } from "node:child_process";
-import { mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import { execFileSync, spawn } from "node:child_process";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  renameSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
@@ -274,6 +282,204 @@ export function groupProofSteps(selected) {
   return { pending, groups };
 }
 
+const UNIT_TEST_RESULTS_VERSION = "kibi.unit-test-results.v1";
+const DEFAULT_UNIT_RESULTS_WAIT_MS = 20 * 60_000;
+const UNIT_RESULTS_POLL_MS = 2_000;
+const TEST_FILE_PATTERN = /[._](?:test|spec)\.[cm]?[jt]sx?$/;
+const REUSABLE_BUN_FLAGS = new Set([
+  "--isolate",
+  "--max-concurrency=1",
+  "--retry=0",
+]);
+
+function testFilesUnder(workspaceRoot, relative) {
+  const absolute = path.join(workspaceRoot, relative);
+  if (!existsSync(absolute)) return null;
+  if (statSync(absolute).isFile()) return [relative];
+  return readdirSync(absolute, { recursive: true, encoding: "utf8" })
+    .map((entry) => entry.split(path.sep).join("/"))
+    .filter(
+      (entry) =>
+        !entry.split("/").includes("node_modules") &&
+        TEST_FILE_PATTERN.test(entry),
+    )
+    .map((entry) => path.posix.join(relative, entry))
+    .sort();
+}
+
+/**
+ * The test files a `bun test` step runs, when the step is nothing more than
+ * whole files under the allowed flags. Name filters, other flags or a missing
+ * path make the step non-reusable (null). Directories expand to every file a
+ * test runner could pick up there, so reuse can only ever ask for more
+ * evidence than the step itself would produce, never less.
+ */
+// implements REQ-kibi-verification-evidence-contract
+export function reusableBunTestFiles(argv, workspaceRoot = process.cwd()) {
+  if (argv[0] !== "bun" || argv[1] !== "test") return null;
+  const files = new Set();
+  for (let index = 2; index < argv.length; index += 1) {
+    const arg = argv[index];
+    if (arg === "--timeout" && /^\d+$/.test(argv[index + 1] ?? "")) {
+      index += 1;
+      continue;
+    }
+    if (REUSABLE_BUN_FLAGS.has(arg)) continue;
+    if (!arg.startsWith("./") || arg.includes("..")) return null;
+    const expanded = testFilesUnder(
+      workspaceRoot,
+      path.posix.normalize(arg.slice(2)).replace(/\/$/, ""),
+    );
+    if (expanded === null) return null;
+    for (const file of expanded) files.add(file);
+  }
+  return files.size > 0 ? [...files].sort() : null;
+}
+
+function gitOutput(workspaceRoot, args) {
+  return execFileSync("git", args, {
+    cwd: workspaceRoot,
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "ignore"],
+  });
+}
+
+/**
+ * Accept a unit test results ledger only for the exact commit being proven on
+ * a clean tracked tree. Returns the clean files, or a reason it was rejected.
+ */
+// implements REQ-kibi-verification-evidence-contract
+export function acceptUnitResultsLedger(ledger, identity) {
+  if (ledger === null || typeof ledger !== "object" || Array.isArray(ledger))
+    return { files: null, reason: "unit results are malformed" };
+  if (typeof ledger.unavailable === "string")
+    return {
+      files: null,
+      reason: `unit results unavailable: ${ledger.unavailable}`,
+    };
+  if (ledger.version !== UNIT_TEST_RESULTS_VERSION)
+    return { files: null, reason: "unit results have an unknown version" };
+  if (typeof ledger.commit !== "string" || ledger.commit === "")
+    return {
+      files: null,
+      reason: "unit results are not bound to a clean commit",
+    };
+  if (identity.commit !== ledger.commit)
+    return {
+      files: null,
+      reason: `unit results are for ${ledger.commit}, not ${identity.commit ?? "an unknown commit"}`,
+    };
+  if (identity.dirty)
+    return { files: null, reason: "tracked files differ from the commit" };
+  if (ledger.files === null || typeof ledger.files !== "object")
+    return { files: null, reason: "unit results list no files" };
+  const files = new Set();
+  for (const [file, result] of Object.entries(ledger.files)) {
+    if (
+      result !== null &&
+      typeof result === "object" &&
+      Number.isSafeInteger(result.tests) &&
+      result.tests > 0 &&
+      result.failures === 0 &&
+      result.skipped === 0
+    )
+      files.add(file);
+  }
+  return { files, reason: null };
+}
+
+function workspaceIdentity(workspaceRoot) {
+  try {
+    const commit = gitOutput(workspaceRoot, ["rev-parse", "HEAD"]).trim();
+    const status = gitOutput(workspaceRoot, [
+      "status",
+      "--porcelain",
+      "--untracked-files=no",
+    ]);
+    return { commit, dirty: status.trim() !== "" };
+  } catch {
+    return { commit: null, dirty: true };
+  }
+}
+
+function nonNegativeMs(value, fallback) {
+  const parsed = Number(value);
+  return value !== undefined &&
+    value !== "" &&
+    Number.isFinite(parsed) &&
+    parsed >= 0
+    ? parsed
+    : fallback;
+}
+
+/**
+ * Reuse of test-file evidence for `bun test` steps: a file counts as verified
+ * when the unit results ledger for this commit recorded it clean, or when a
+ * step of this run already ran it and passed. The ledger is read once, after
+ * waiting (bounded) for it to appear when KIBI_PROOF_UNIT_RESULTS names a path.
+ */
+// implements REQ-kibi-verification-evidence-contract
+export function createTestFileReuse(options = {}) {
+  const env = options.env ?? process.env;
+  const workspaceRoot = options.workspaceRoot ?? process.cwd();
+  const write = options.write ?? (() => {});
+  const identity = options.identity ?? (() => workspaceIdentity(workspaceRoot));
+  const sleep =
+    options.sleep ??
+    ((ms) => new Promise((resolve) => setTimeout(resolve, ms)));
+  const ledgerPath = env.KIBI_PROOF_UNIT_RESULTS;
+  const waitMs = nonNegativeMs(
+    env.KIBI_PROOF_UNIT_RESULTS_WAIT_MS,
+    DEFAULT_UNIT_RESULTS_WAIT_MS,
+  );
+  const passedInRun = new Set();
+  let ledgerFiles;
+
+  async function readLedger() {
+    if (typeof ledgerPath !== "string" || ledgerPath.trim() === "") return null;
+    const resolved = path.resolve(workspaceRoot, ledgerPath);
+    const deadline = Date.now() + waitMs;
+    while (!existsSync(resolved)) {
+      if (Date.now() >= deadline) {
+        write(`[proof] unit results not reused: ${resolved} did not appear`);
+        return null;
+      }
+      await sleep(UNIT_RESULTS_POLL_MS);
+    }
+    let ledger;
+    try {
+      ledger = JSON.parse(readFileSync(resolved, "utf8"));
+    } catch {
+      ledger = null;
+    }
+    const accepted = acceptUnitResultsLedger(ledger, identity());
+    write(
+      accepted.files === null
+        ? `[proof] unit results not reused: ${accepted.reason}`
+        : `[proof] unit results accepted for ${ledger.commit}: ${accepted.files.size} clean test file(s)`,
+    );
+    return accepted.files;
+  }
+
+  return {
+    /** Where the evidence for every file comes from, or null to run the step. */
+    async source(files) {
+      if (files.every((file) => passedInRun.has(file))) return "this-run";
+      ledgerFiles ??= readLedger();
+      const ledger = await ledgerFiles;
+      if (
+        ledger !== null &&
+        files.every((file) => passedInRun.has(file) || ledger.has(file))
+      )
+        return "unit-coverage";
+      return null;
+    },
+    recordPassed(files) {
+      for (const file of files) passedInRun.add(file);
+    },
+  };
+}
+
 async function mapPool(items, limit, fn) {
   const results = new Array(items.length);
   let next = 0;
@@ -309,23 +515,54 @@ export async function runProofProducer(options = {}) {
     proofStepConcurrency(env),
     options.concurrency ?? Number.POSITIVE_INFINITY,
   );
+  const reuse =
+    options.reuse ?? createTestFileReuse({ env, workspaceRoot, write });
+  for (const group of groups) {
+    group.files = reusableBunTestFiles(group.command, workspaceRoot);
+  }
+  // Steps whose evidence may be reused go last, so the evidence they can
+  // reuse (the unit results ledger, or earlier steps of this run) is ready.
+  const ordered = [
+    ...groups.filter((group) => group.files === null),
+    // Wider steps first, so a later narrower step can reuse their pass.
+    ...groups
+      .filter((group) => group.files !== null)
+      .sort((a, b) => b.files.length - a.files.length),
+  ];
 
-  const executed = await mapPool(groups, concurrency, async (group) => {
+  const executed = await mapPool(ordered, concurrency, async (group) => {
     const shared =
       group.slots.length > 1 ? ` (shared by ${group.slots.length} tests)` : "";
     const first = group.slots[0];
-    write(
-      `[proof] ${first.test_id} step ${first.step_index}: ${group.command.join(" ")}${shared}`,
-    );
-    return runProofStep(group.command, {
+    const label = `[proof] ${first.test_id} step ${first.step_index}: ${group.command.join(" ")}${shared}`;
+    const source =
+      group.files === null ? null : await reuse.source(group.files);
+    if (source !== null) {
+      write(`${label} reused (${source})`);
+      return {
+        outcome: "passed",
+        exit_code: 0,
+        signal: null,
+        error: null,
+        timed_out: false,
+        duration_ms: 0,
+        reused: source,
+      };
+    }
+    write(label);
+    const result = await runProofStep(group.command, {
       ...options,
       cwd: workspaceRoot,
       env,
     });
+    if (group.files !== null && result.outcome === "passed") {
+      reuse.recordPassed(group.files);
+    }
+    return result;
   });
 
   const resultByKey = new Map(
-    groups.map((group, index) => [group.key, executed[index]]),
+    ordered.map((group, index) => [group.key, executed[index]]),
   );
   const attempts = [];
   let failed = 0;
@@ -357,6 +594,11 @@ export async function runProofProducer(options = {}) {
       `[proof] ${failed} step(s) failed in ${failing.length} of ${selected.length} test(s): ${failing.map((entry) => entry.test_id).join(", ")}`,
     );
   } else write(`[proof] all steps passed for ${selected.length} test(s)`);
+  const reusedSteps = executed.filter((result) => result.reused).length;
+  if (reusedSteps > 0)
+    write(
+      `[proof] ${reusedSteps} of ${ordered.length} distinct step(s) reused test file results`,
+    );
   return { exitCode: failed > 0 ? 1 : 0, selected, attempts, report };
 }
 
