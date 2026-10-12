@@ -1001,7 +1001,7 @@ symbols:
         target: REQ-kibi-change-to-proof-plan-compiler-v2
   - id: SYM-kibi-cli-src-operations-planning-compile-intent-ts-contradictionwitness
     title: ContradictionWitness
-    sourceFile: packages/cli/src/operations/planning/compile-intent.ts
+    sourceFile: packages/cli/src/operations/mutation/what-if.ts
     symbol_role: type-shape
     status: active
     relationships:
@@ -51546,6 +51546,65 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-kibi-hooks-flow-manifest
+  - id: SYM-mutation-validate-upsert-stagePlannedFacts
+    title: stagePlannedFacts
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/validate-upsert.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-model-what-if-planned-facts
+      - type: implements
+        target: REQ-model-what-if-planned-facts
+  - id: SYM-mutation-validate-upsert-previewStagedContradictions
+    title: previewStagedContradictions
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/validate-upsert.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-model-what-if-planned-facts
+      - type: implements
+        target: REQ-model-what-if-planned-facts
+  - id: SYM-planning-compile-intent-compileGroundingPlan
+    title: compileGroundingPlan
+    status: active
+    sourceFile: packages/cli/src/operations/planning/compile-intent.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-model-what-if-planned-facts
+      - type: implements
+        target: REQ-model-what-if-planned-facts
+  - id: SYM-modeling-suggest-predicates-groundingPlan
+    title: groundingPlan
+    status: active
+    sourceFile: packages/cli/src/operations/modeling/suggest-predicates.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-model-what-if-planned-facts
+      - type: implements
+        target: REQ-model-what-if-planned-facts
+  - id: SYM-modeling-suggest-predicates-storedRequirementContract
+    title: storedRequirementContract
+    status: active
+    sourceFile: packages/cli/src/operations/modeling/suggest-predicates.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-model-what-if-planned-facts
+      - type: implements
+        target: REQ-model-what-if-planned-facts
+  - id: SYM-test-model-what-if-planned-facts
+    title: Planned facts what-if consumer suite
+    status: active
+    sourceFile: packages/cli/tests/consumer/planned-facts-what-if.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-model-what-if-planned-facts
   - id: SYM-test-model-predicates-permission-grants
     title: Permission grant modeling suite
     status: active

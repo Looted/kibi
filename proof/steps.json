@@ -2489,6 +2489,18 @@
     ]
   },
   {
+    "test_id": "TEST-model-what-if-planned-facts",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/cli/tests/consumer/planned-facts-what-if.test.ts"
+      ]
+    ]
+  },
+  {
     "test_id": "TEST-model-predicates-permission-grants",
     "steps": [
       [

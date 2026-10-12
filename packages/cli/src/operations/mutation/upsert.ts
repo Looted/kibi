@@ -438,6 +438,11 @@ export async function executeUpsert(
   options: UpsertExecutionOptions = {},
 ): Promise<OperationResult<UpsertPayload>> {
   if (input.dryRun === true) return dryRunUpsert(input, context);
+  // implements REQ-model-what-if-planned-facts
+  if (input.plannedFacts !== undefined)
+    throw new Error(
+      `Upsert of ${input.id} rejected: plannedFacts is a dryRun-only input. Write the planned facts first (kb_upsert each, or kb_apply_plan with the kb_model plan), then upsert ${input.id} without plannedFacts.`,
+    );
   const branchAttachment =
     context.branchAttachment ?? resolveBranchAttachment(context.workspaceRoot);
   if ("error" in branchAttachment) {
