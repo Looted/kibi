@@ -87,7 +87,9 @@ describe("kb_check error and edge branches", () => {
     );
 
     expect(result.structuredContent?.count).toBe(0);
-    expect(query).toHaveBeenCalledTimes(25);
+    // The rules, the fact-pair count of domain-contradictions and the
+    // quality scan each read the engine.
+    expect(query).toHaveBeenCalledTimes(26);
   });
 
   test("returns early when all requested rules are invalid", async () => {
@@ -105,10 +107,13 @@ describe("kb_check error and edge branches", () => {
       },
     );
 
-    expect(result.content[0]?.text).toBe("No violations found");
+    expect(result.content[0]?.text).toBe(
+      "No violations found\nEvaluated no rules.",
+    );
     expect(result.structuredContent).toMatchObject({
       violations: [],
       count: 0,
+      evaluated: { rules: [] },
       diagnostics: [],
       migrationPlan: { version: "kibi.migration-plan.v2" },
     });

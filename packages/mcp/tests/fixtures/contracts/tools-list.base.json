@@ -581,6 +581,11 @@
                 "items": {},
                 "type": "array"
               },
+              "returned": {
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "type": "integer"
+              },
               "truncated": {
                 "type": "boolean"
               }
@@ -5064,6 +5069,11 @@
                       "type": "object"
                     },
                     "type": "array"
+                  },
+                  "evaluated": {
+                    "additionalProperties": {},
+                    "properties": {},
+                    "type": "object"
                   },
                   "extractedSymbols": {
                     "items": {

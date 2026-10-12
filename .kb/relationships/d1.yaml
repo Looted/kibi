@@ -293,3 +293,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c2b775502796
+  - type: requires_predicate
+    from: REQ-search-answer-hygiene
+    to: FACT-SEARCH-ANSWER-UNGOVERNED
+    created_at: 2026-10-11T19:54:22.924Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a1de77a764e8
+  - type: requires_predicate
+    from: REQ-search-answer-hygiene
+    to: FACT-SEARCH-AMBIGUITY-LINKED-TIE
+    created_at: 2026-10-11T19:54:22.949Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb3a594e776a
+  - type: requires_predicate
+    from: REQ-search-answer-hygiene
+    to: FACT-SEARCH-SOURCE-LOCATION-OWNERS
+    created_at: 2026-10-11T19:54:22.963Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f14d98844c96
+  - type: requires_predicate
+    from: REQ-search-answer-hygiene
+    to: FACT-CHECK-EVALUATED-REPORT
+    created_at: 2026-10-11T19:54:22.990Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-97950955c282
+  - type: specified_by
+    from: REQ-search-answer-hygiene
+    to: SCEN-search-answer-hygiene
+    created_at: 2026-10-11T19:54:22.998Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f7e635578805

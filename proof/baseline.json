@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 200,
-  "proofProven": 200,
+  "currentRequirements": 201,
+  "proofProven": 201,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -1002,6 +1002,11 @@
       "uncoveredSymbols": []
     },
     "REQ-model-what-if-planned-facts": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-search-answer-hygiene": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []

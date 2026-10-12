@@ -107,6 +107,105 @@ describe("intent-v1 search ranking", () => {
     expect(result.analysis.ambiguous).toBe(true);
   });
 
+  // implements REQ-search-answer-hygiene
+  test("a requirement tying with its own scenario is not ambiguous; a tie with another requirement is", async () => {
+    const requirement = entity("REQ-A", "Invoice retention period");
+    const scenario = {
+      ...entity("SCEN-A", "Invoice retention period"),
+      type: "scenario",
+      source: ".kb/scenarios/SCEN-A.md",
+    };
+    const edges = [
+      { relationship: "specified_by", from: "REQ-A", to: "SCEN-A" },
+    ];
+    const kin = await rankIntentEntities(
+      [requirement, scenario],
+      { query: "invoice retention" },
+      workspaceRoot,
+      edges,
+    );
+    expect(kin.matches.map((match) => match.entity.id)).toEqual([
+      "REQ-A",
+      "SCEN-A",
+    ]);
+    expect(kin.analysis.topTwoMargin).toBeLessThan(0.05);
+    expect(kin.analysis.topRivalMargin).toBeNull();
+    expect(kin.analysis.ambiguous).toBe(false);
+
+    const rival = await rankIntentEntities(
+      [requirement, scenario, entity("REQ-B", "Invoice retention period")],
+      { query: "invoice retention" },
+      workspaceRoot,
+      edges,
+    );
+    expect(rival.analysis.topRivalMargin).toBeLessThan(0.05);
+    expect(rival.analysis.ambiguous).toBe(true);
+  });
+
+  // implements REQ-search-answer-hygiene
+  test("a requirement implemented by a source-located symbol surfaces without lexical overlap", async () => {
+    const symbol = {
+      id: "SYM-CAN-EXPORT",
+      type: "symbol",
+      title: "canExport",
+      status: "active",
+      source: ".kb/symbols/SYM-CAN-EXPORT.md",
+      sourceFile: "src/app/services/auth.service.ts",
+      sourceLine: 10,
+      sourceEndLine: 20,
+    };
+    const owner = entity("REQ-EXPORT-GUARD", "Exports are limited to auditors");
+    const bystander = entity("REQ-OTHER", "Unrelated behavior");
+    const edges = [
+      {
+        relationship: "implements",
+        from: "SYM-CAN-EXPORT",
+        to: "REQ-EXPORT-GUARD",
+      },
+    ];
+    const options = {
+      query: "which rule does this helper enforce",
+      sourceLocations: [
+        { path: "src/app/services/auth.service.ts", symbol: "canExport" },
+      ],
+    };
+    const result = await rankIntentEntities(
+      [symbol, owner, bystander],
+      options,
+      workspaceRoot,
+      edges,
+    );
+    const ids = result.matches.map((match) => match.entity.id);
+    expect(ids).toContain("SYM-CAN-EXPORT");
+    expect(ids).toContain("REQ-EXPORT-GUARD");
+    expect(ids).not.toContain("REQ-OTHER");
+    const requirement = result.matches.find(
+      (match) => match.entity.id === "REQ-EXPORT-GUARD",
+    );
+    expect(requirement?.evidence.sourceMatches).toEqual([
+      {
+        path: "src/app/services/auth.service.ts",
+        symbolId: "SYM-CAN-EXPORT",
+        distance: 3,
+      },
+    ]);
+    expect(requirement?.reasons).toContain(
+      "implemented at the source location",
+    );
+    expect(requirement?.reasons).not.toContain("source location match");
+    // Without the implements edge (the first ranking pass) nothing is
+    // inherited: only the graph says what the symbol is for.
+    const firstPass = await rankIntentEntities(
+      [symbol, owner, bystander],
+      options,
+      workspaceRoot,
+      [],
+    );
+    expect(firstPass.matches.map((match) => match.entity.id)).toEqual([
+      "SYM-CAN-EXPORT",
+    ]);
+  });
+
   test("recovers functionality through host-agent semantic facets", async () => {
     const result = await rankIntentEntities(
       [
