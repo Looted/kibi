@@ -2528,6 +2528,18 @@
     ]
   },
   {
+    "test_id": "TEST-model-predicates-grounding-guards",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/cli/tests/consumer/predicate-grounding-guards.test.ts"
+      ]
+    ]
+  },
+  {
     "test_id": "TEST-model-predicates-permission-grants",
     "steps": [
       [

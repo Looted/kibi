@@ -51705,6 +51705,78 @@ symbols:
         target: TEST-kibi-upsert-review-lanes
       - type: implements
         target: REQ-kibi-review-observation-claim-text-v2
+  - id: SYM-test-model-predicates-grounding-guards
+    title: Predicate grounding guards consumer suite
+    status: active
+    sourceFile: packages/cli/tests/consumer/predicate-grounding-guards.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-12T18:56:17.574Z
+    relationships:
+      - type: executable_for
+        target: TEST-model-predicates-grounding-guards
+  - id: SYM-modeling-suggest-predicates-existingClaimGrounding
+    title: existingClaimGrounding
+    status: active
+    sourceFile: packages/cli/src/operations/modeling/suggest-predicates.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    origin:
+      kind: agent
+      recorded_at: 2026-10-12T19:24:21.806Z
+    relationships:
+      - type: covered_by
+        target: TEST-model-predicates-grounding-aware
+      - type: covered_by
+        target: TEST-model-predicates-grounding-guards
+      - type: implements
+        target: REQ-model-predicates-grounding-aware-v2
+      - type: implements
+        target: REQ-model-predicates-grounding-guards
+  - id: SYM-modeling-suggest-predicates-ledgerState
+    title: ledgerState
+    status: active
+    sourceFile: packages/cli/src/operations/modeling/suggest-predicates.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    origin:
+      kind: agent
+      recorded_at: 2026-10-12T19:24:26.301Z
+    relationships:
+      - type: covered_by
+        target: TEST-model-predicates-grounding-guards
+      - type: implements
+        target: REQ-model-predicates-grounding-guards
+  - id: SYM-modeling-suggest-predicates-candidateDecisionConflicts
+    title: candidateDecisionConflicts
+    status: active
+    sourceFile: packages/cli/src/operations/modeling/suggest-predicates.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    origin:
+      kind: agent
+      recorded_at: 2026-10-12T19:24:30.588Z
+    relationships:
+      - type: covered_by
+        target: TEST-model-predicates-grounding-guards
+      - type: implements
+        target: REQ-model-predicates-grounding-guards
+  - id: SYM-mutation-upsert-storedClaimKey
+    title: storedClaimKey
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/upsert.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    origin:
+      kind: agent
+      recorded_at: 2026-10-12T19:24:34.820Z
+    relationships:
+      - type: covered_by
+        target: TEST-model-predicates-grounding-guards
+      - type: implements
+        target: REQ-upsert-committed-claim-key
   - id: SYM-agent-core-editKnowledgeUpdate
     title: editKnowledgeUpdate
     status: active

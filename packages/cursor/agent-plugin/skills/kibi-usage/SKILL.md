@@ -2,7 +2,7 @@
 id: kibi-usage
 name: Kibi Usage
 description: Use Kibi's source-first, exact-Git, migration-aware, proof-aware operations safely across MCP or the trusted local CLI, including partial completion repair.
-version: 2.15.3
+version: 2.15.4
 kibiCompatibility: ">=1.0.0"
 tags:
   - kibi
@@ -421,7 +421,17 @@ a second grounding link would fail, so keep the existing link or apply the
 `kb_delete` of the old link, requirement link; between the last two `kb_check`
 reports both `logic-coverage` and `strict-req-fact-pairing` for the
 requirement, as `expected.kbCheckAfterStep` states; run `kb_check` after the
-last step and apply `rollback` if it is not clean); `provide_argument_bindings` and `record_ontology_gap` mean
+last step and apply `rollback` if it is not clean). `keep_existing_grounding`
+means the requirement already links a predicate fact with the candidate's
+`canonical_key` (`existingGrounding[].matchedBy` is `canonical_key` when the
+claim was worded differently), so write nothing. `extend_requirement` means
+the requirement's proposition ledger has no entry for this text, so a link
+cannot be made and no fact is planned: add the clause to the requirement's
+prose (`mode: "requirement"`, or `kb_upsert` with the extended `semantic_text`
+and the ledger `mode: "analyze"` returns) and call `mode: "predicates"` again.
+Read `decisionConflicts` and its warnings whenever `plan` is null: they name
+the stored decision facts the candidate would contradict and the requirements
+that own them. `provide_argument_bindings` and `record_ontology_gap` mean
 the same as for an ungrounded claim, and the gap observation is not a grounding
 link, so write it exactly as returned (tags, `claim_text`, `document.body`, no
 `claim_key`, no relationships). Record an ontology gap only when no returned schema fits the

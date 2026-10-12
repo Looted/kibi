@@ -314,3 +314,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1ef12473283a
+  - type: specified_by
+    from: REQ-model-predicates-grounding-guards
+    to: SCEN-model-predicates-grounding-guards
+    created_at: 2026-10-12T18:49:37.128Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d44418191e49
+  - type: requires_predicate
+    from: REQ-model-predicates-grounding-guards
+    to: FACT-PRED-ED0A499237AA
+    created_at: 2026-10-12T18:53:19.254Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-83ce9abc3fe1
+  - type: requires_predicate
+    from: REQ-model-predicates-grounding-guards
+    to: FACT-PRED-C30D862B1B1C
+    created_at: 2026-10-12T18:53:52.716Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ba432d71622e
+  - type: requires_predicate
+    from: REQ-model-predicates-grounding-guards
+    to: FACT-PRED-5FAA2BAEE02D
+    created_at: 2026-10-12T18:54:28.109Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1b6af99fab63

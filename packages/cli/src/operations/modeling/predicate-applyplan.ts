@@ -1,4 +1,7 @@
-import { semanticClaimKey } from "../semantic-advisor/clauses.js";
+import {
+  normalizeSemanticClause,
+  semanticClaimKey,
+} from "../semantic-advisor/clauses.js";
 import { exactLauncherPredicateArgs } from "../semantic-advisor/predicate-rules-launcher.js";
 import {
   aggregateBindingProvenance,
@@ -273,11 +276,19 @@ export function buildPredicateApplyPlan(
           ? { subject_key: suggestion.subject_key }
           : {}),
         predicate_name: suggestion.predicate_name,
+        // The schema's namespace, so the fact conforms to the project
+        // schema it was planned from rather than to default:<name>.
+        ...(suggestion.schema.predicate_namespace
+          ? { predicate_namespace: suggestion.schema.predicate_namespace }
+          : {}),
         predicate_args: suggestion.predicate_args,
         canonical_key: suggestion.canonical_key,
         polarity: suggestion.polarity,
         claim_key: claimKey,
-        claim_text: args.text.trim(),
+        // The ledger stores the clause without its sentence punctuation, and
+        // the proof compares the fact's claim_text with the ledger entry
+        // verbatim, so the fact quotes the same normalised clause.
+        claim_text: normalizeSemanticClause(args.text),
       },
       relationships: [],
     },

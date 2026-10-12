@@ -103,6 +103,20 @@ function parseChangeKind(
     : null;
 }
 
+/**
+ * The claim_key a written fact carries, derived from claim_text at
+ * validation when the payload did not supply it, echoed so the writer
+ * knows the grounding key without a kb_query.
+ */
+// implements REQ-upsert-committed-claim-key
+function storedClaimKey(
+  entity: Readonly<Record<string, unknown>>,
+): { claimKey: string } | Record<string, never> {
+  return entity.type === "fact" && typeof entity.claim_key === "string"
+    ? { claimKey: entity.claim_key }
+    : {};
+}
+
 function fileHash(pathname: string): string | null {
   if (!existsSync(pathname)) return null;
   return createHash("sha256").update(readFileSync(pathname)).digest("hex");
@@ -720,6 +734,7 @@ export async function executeUpsert(
           relationships_created: validated.relationships.length,
           warnings: [...planRecoveryWarnings, ...semantic.warnings],
           semanticAdvisor: semantic.receipt,
+          ...storedClaimKey(commitEntity ?? validated.entity),
           deferredCommit,
           ...(sourceWrite ? { sourceWrites: [sourceWrite.receipt] } : {}),
         },
@@ -828,6 +843,7 @@ export async function executeUpsert(
         ...shardWarnings,
       ],
       semanticAdvisor: semantic.receipt,
+      ...storedClaimKey(commitEntity ?? validated.entity),
       ...(shardWarnings.length > 0
         ? {
             status: "committed_with_repairs" as const,

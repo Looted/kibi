@@ -1087,10 +1087,10 @@ describe("kb_suggest_predicates", () => {
 
   test("uses project-local predicate schemas when Prolog returns predicate_schema facts", async () => {
     const { handleKbSuggestPredicates } = await loadModule();
-    let capturedGoal = "";
+    const capturedGoals: string[] = [];
     const prolog = {
       query: async (goal: string) => {
-        capturedGoal = goal;
+        capturedGoals.push(goal);
         return {
           success: true,
           bindings: {
@@ -1139,7 +1139,7 @@ describe("kb_suggest_predicates", () => {
         denied.structuredContent.candidates as Array<Record<string, unknown>>
       )[0],
     ).toMatchObject({ polarity: "deny" });
-    expect(capturedGoal).toContain("kb:predicate_schema");
+    expect(capturedGoals.join("\n")).toContain("kb:predicate_schema");
   });
 
   test("withholds apply plans until project-local schema arguments are exactly bound", async () => {
