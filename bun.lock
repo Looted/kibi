@@ -55,7 +55,7 @@
     },
     "packages/cli": {
       "name": "kibi-cli",
-      "version": "2.20.0",
+      "version": "2.21.0",
       "bin": {
         "kibi": "bin/kibi",
       },
@@ -123,7 +123,7 @@
     },
     "packages/mcp": {
       "name": "kibi-mcp",
-      "version": "3.8.0",
+      "version": "3.9.0",
       "bin": {
         "kibi-mcp": "bin/kibi-mcp",
       },

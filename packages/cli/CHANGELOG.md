@@ -1,5 +1,19 @@
 # kibi-cli
 
+## 2.21.0
+
+### Minor Changes
+
+- 87747be: A grounding fact (`property_value`, `predicate`, `rule`) no longer has to carry a `claim_key`: send the exact atomic clause as `claim_text` and Kibi derives the key on `kb_upsert`, `kb_apply_plan`, `plannedFacts` and `kibi sync`. A key that is sent must still equal the one derived from the text, so a copied pair keeps its integrity check and a guessed key is refused with the expected value, and a `claim_key` without `claim_text` is refused. Observation and meta facts keep quoting a claim without a key. An evaluation on a test project ended a modeling trace on `claim_key must equal the stable key derived from claim_text` after guessing the key; that failure mode is gone.
+
+  Technical summary: the entity schema and the `kb_upsert` properties schema replace the "claim_text on a non-observation fact requires claim_key" conditional with "claim_key requires claim_text"; `deriveFactClaimKey` in `semantic-advisor/clauses.ts` fills the key in `validateUpsertInput` and in the Markdown extractor before the existing mismatch check. The kibi-usage skill (2.15.3), the modeling cheatsheet and the error reference describe the derived key. Requirement REQ-kibi-review-observation-claim-text is superseded by REQ-kibi-review-observation-claim-text-v2.
+
+### Patch Changes
+
+- f9a8414: `kibi migrate --apply-safe --approved-action <ids>` now applies only the approved actions; before, the id list was ignored and every automatic action of the plan ran, including source rewrites nobody approved. A migration that rewrites an untracked `.kb/` source (re-derived semantic inventory, source path repair, lifecycle repair) now rebinds the file's pending-source receipt, so the next `kibi sync` or `kb_apply_plan` compile no longer refuses it as "Pending source hash drift"; `git add` of such a file now retires its receipt as the docs said it would. A legacy `.kb/config.json` cutover that cannot move its files (a destination such as `.kb/symbols.yaml` already exists) is planned as a blocked operator action with the conflict in its evidence instead of a ready automatic step that fails and takes `branch-store-compile` with it. `kibi migrate --yes --format json` applies every ready automatic action of the printed plan instead of printing it and writing nothing.
+
+  Technical summary: `migrateCommand` reads the Commander option `approvedAction` as well as `approvedActionIds`; `writeFileAtomically` (migration helper) locates the workspace from the `.kb/` segment and calls the new `republishPendingSourceReceipt`; `discoverSourceFiles` skips receipts of Git-tracked paths before the hash check so the existing consume step retires them; `buildActionsFromStatus` plans the legacy storage cutover from `planLegacyStorageMigration` blockers and the compile action depends only on ready predecessors.
+
 ## 2.20.0
 
 ### Minor Changes
