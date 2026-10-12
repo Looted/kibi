@@ -128,7 +128,7 @@ When a claim cannot be written yet (an `invalid_write`, an ontology gap, an open
 }
 ```
 
-Every other fact kind that carries `claim_text` also needs the matching `claim_key`.
+Every other fact kind that carries `claim_text` gets the matching `claim_key` derived from it; sending the key is optional, and a sent key must match.
 
 ## Writing a scenario
 
@@ -183,7 +183,7 @@ Scenarios and tests keep Given/When/Then prose, assumptions, what is asserted an
 
 ## Claim keys
 
-`claim_key` is `CLAIM-` plus sixteen hex digits, a stable hash of the exact `claim_text`. Kibi derives it; agents copy it. `kb_model` `mode: "analyze"` lists every proposition's `claim_key` with its `claim_text`, and `mode: "requirement"` and `mode: "predicates"` put the pair on each planned fact in `applyPlan`, so apply those entries unchanged. A ground fact (`property_value`, `predicate`, `rule`) carries both fields or neither: `claim_text` without `claim_key` is refused on those kinds, and a key that does not match its text is refused with the expected key in the message (`claim_key must equal the stable key derived from claim_text (expected 'CLAIM-…')`). Repair a mismatch by copying that value, never by editing `claim_text` to fit. A `requires_predicate`, `requires_property` or `requires_rule` target without a `claim_key` fails proposition-complete ingestion (`logical grounding target … must declare a claim_key`), and the same key must appear in the requirement's `semantic_inventory` entry with `status: modeled`. Observation and meta facts quote the clause in `claim_text` without a key.
+`claim_key` is `CLAIM-` plus sixteen hex digits, a stable hash of the exact `claim_text`. Kibi derives it: a ground fact (`property_value`, `predicate`, `rule`) that sends `claim_text` alone gets its `claim_key` filled in on `kb_upsert` and on `kibi sync`. `kb_model` `mode: "analyze"` lists every proposition's `claim_key` with its `claim_text`, and `mode: "requirement"` and `mode: "predicates"` put the pair on each planned fact in `applyPlan`, so apply those entries unchanged; a sent key that does not match its text is refused with the expected key in the message (`claim_key must equal the stable key derived from claim_text (expected 'CLAIM-…')`), and a `claim_key` without `claim_text` is refused. Repair a mismatch by copying that value or dropping the key, never by editing `claim_text` to fit. The stored key of a `requires_predicate`, `requires_property` or `requires_rule` target must appear in the requirement's `semantic_inventory` entry with `status: modeled`, so the fact's `claim_text` must be that exact clause. Observation and meta facts quote the clause in `claim_text` without a key.
 
 ## Common field-name mistakes
 

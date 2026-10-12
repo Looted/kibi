@@ -21,7 +21,10 @@ import { readFileSync } from "node:fs";
 import Ajv, { type ValidateFunction } from "ajv";
 import { load as yamlLoad } from "js-yaml";
 import { withoutContextSections } from "../entity-body-context.js";
-import { semanticClaimKey } from "../operations/semantic-advisor/clauses.js";
+import {
+  deriveFactClaimKey,
+  semanticClaimKey,
+} from "../operations/semantic-advisor/clauses.js";
 import {
   type EntityOrigin,
   normalizeEntityOrigin,
@@ -1043,6 +1046,7 @@ function extractFromMarkdownContent(
       );
     }
 
+    deriveFactClaimKey(entity as unknown as Record<string, unknown>);
     if (
       entity.type === "fact" &&
       entity.claim_key !== undefined &&

@@ -151,25 +151,10 @@
           "allOf": [
             {
               "if": {
-                "anyOf": [
-                  {
-                    "required": ["claim_key"]
-                  },
-                  {
-                    "not": {
-                      "properties": {
-                        "fact_kind": {
-                          "enum": ["observation", "meta"]
-                        }
-                      },
-                      "required": ["fact_kind"]
-                    },
-                    "required": ["claim_text"]
-                  }
-                ]
+                "required": ["claim_key"]
               },
               "then": {
-                "required": ["claim_key", "claim_text"]
+                "required": ["claim_text"]
               }
             },
             {
@@ -249,7 +234,7 @@
               "type": "string"
             },
             "claim_key": {
-              "description": "Stable semantic-advisor key for the atomic prose clause grounded by this fact.",
+              "description": "Stable key of the atomic prose clause grounded by this fact, derived from claim_text. Optional: when omitted, Kibi derives it; when sent, it must equal the derived key.",
               "pattern": "^CLAIM-[A-F0-9]{16}$",
               "type": "string"
             },
@@ -262,7 +247,7 @@
               "type": "integer"
             },
             "claim_text": {
-              "description": "Exact atomic requirement clause represented by this fact, retained for human audit. Requires claim_key, except on an observation or meta fact, which may quote the clause it is about without claim_key.",
+              "description": "Exact atomic requirement clause represented by this fact, retained for human audit. On a grounding fact Kibi derives claim_key from it; an observation or meta fact quotes the clause it is about without a key.",
               "type": "string"
             },
             "closed_world": {

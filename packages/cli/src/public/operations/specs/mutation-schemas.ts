@@ -19,22 +19,13 @@ export const ENTITY_TYPES = [
   "fact",
 ] as const;
 
-// An observation or meta fact may quote a claim in claim_text alone: it is a
-// non-grounding review note, so it does not claim the clause's key.
+// A claim_key names the clause in claim_text, so it never travels alone. The
+// reverse is open: Kibi derives a missing claim_key from claim_text on a
+// grounding fact, and an observation or meta fact quotes a claim without one.
+// implements REQ-kibi-review-observation-claim-text-v2
 const CLAIM_PROVENANCE_CONDITIONAL = JSON.parse(`{
-  "if": {
-    "anyOf": [
-      { "required": ["claim_key"] },
-      {
-        "required": ["claim_text"],
-        "not": {
-          "properties": { "fact_kind": { "enum": ["observation", "meta"] } },
-          "required": ["fact_kind"]
-        }
-      }
-    ]
-  },
-  "then": { "required": ["claim_key", "claim_text"] }
+  "if": { "required": ["claim_key"] },
+  "then": { "required": ["claim_text"] }
 }`) as Record<string, unknown>;
 
 export const ENTITY_PROPERTIES_SCHEMA = {
@@ -293,12 +284,12 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       type: "string",
       pattern: "^CLAIM-[A-F0-9]{16}$",
       description:
-        "Stable semantic-advisor key for the atomic prose clause grounded by this fact.",
+        "Stable key of the atomic prose clause grounded by this fact, derived from claim_text. Optional: when omitted, Kibi derives it; when sent, it must equal the derived key.",
     },
     claim_text: {
       type: "string",
       description:
-        "Exact atomic requirement clause represented by this fact, retained for human audit. Requires claim_key, except on an observation or meta fact, which may quote the clause it is about without claim_key.",
+        "Exact atomic requirement clause represented by this fact, retained for human audit. On a grounding fact Kibi derives claim_key from it; an observation or meta fact quotes the clause it is about without a key.",
     },
     predicate_name: {
       type: "string",
