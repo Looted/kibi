@@ -2,9 +2,11 @@ name: Kibi strict requirement proof
 
 concurrency:
   group: kibi-proof-${{ github.ref }}
-  # A proof run writes snapshot-bound receipts for every contract. Let a run
-  # finish instead of cancelling it when another develop commit arrives.
-  cancel-in-progress: false
+  # A develop proof run writes snapshot-bound receipts for every contract and
+  # the attestation master PRs reuse, so let it finish instead of cancelling
+  # it when another develop commit arrives. A pull request run proves only its
+  # head; a newer push supersedes it, so the stale run is cancelled.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
