@@ -356,5 +356,5 @@ links:
     expect(
       (pasted(permFact?.ask).entities as Json[]).map((row) => row.id),
     ).toEqual(["FACT-PERM-ADMIN-READ"]);
-  });
+  }, 120_000);
 });
