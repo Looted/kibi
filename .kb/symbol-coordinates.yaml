@@ -4493,20 +4493,20 @@ coordinates:
     sourceLine: 22
   SYM-CI-PROOF-REUSE-DECISION:
     identityHash: e3e3131040a5420f7b5b4daa95df4b382733a3fe2782deb396895b5311d8efac
-    sourceHash: 35bf5b4fa43284f582d532a3a3055759591c40eeec29aa07c954170055dde77b
+    sourceHash: a6405d85b4879825bfbc522bc68a088f2ecc1353e7acad2c8d937549f11b1ee1
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 199
+    sourceEndLine: 208
     sourceFile: scripts/ci-proof-reuse.ts
-    sourceLine: 81
+    sourceLine: 87
   SYM-CI-PROOF-REUSE-TYPE:
     identityHash: 16020a28e3596dea566a529334d84fbf7ed136957b6407105f9f2c69931b6aa4
-    sourceHash: 35bf5b4fa43284f582d532a3a3055759591c40eeec29aa07c954170055dde77b
+    sourceHash: a6405d85b4879825bfbc522bc68a088f2ecc1353e7acad2c8d937549f11b1ee1
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 66
+    sourceEndLine: 72
     sourceFile: scripts/ci-proof-reuse.ts
-    sourceLine: 59
+    sourceLine: 65
   SYM-classify-source-language:
     identityHash: 7d7e5842dc8d8e99f28388b4281497af859cc5194f4fa1c3214758c699dd0468
     sourceHash: 6ba917a90aeb4e0298933673679667ff8c65691f5caeee937e99aed70bfff01a
@@ -22781,7 +22781,7 @@ coordinates:
     sourceLine: 508
   SYM-replaySteps:
     identityHash: dac93aa36d2bf45004f98685ba083f892089c838c14a5746c598734efd3a0224
-    sourceHash: 595acfb7b8bbc87d534e04470787d1880795d6dc93f3e4f355d792a20d51d1f2
+    sourceHash: 018263132b2588c4b3df47b4f570060063058db82a7b3e2faa4b00b75bf6edbc
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 101
