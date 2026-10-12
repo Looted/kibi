@@ -27,6 +27,14 @@ import { isolatedUnitBatchEnv, stopTestEngines } from "../test/root.test.js";
 import { writeCoverageManifestAudit } from "./coverage-manifest";
 import { finalizeLcov } from "./finalize-lcov";
 import { mergeLcovContentsWithDiagnostics } from "./merge-lcov";
+import {
+  type FileTestResult,
+  type ShardTestResults,
+  gitIdentity,
+  mergeShardTestResults,
+  parseJunitFileResults,
+  shardTestResults,
+} from "./unit-test-results";
 
 const COVERAGE_DIR = "coverage/unit";
 // Bun 1.3.10 ignores --coverage-dir for LCOV and writes here instead. This
@@ -708,12 +716,16 @@ async function runBunTest(
   setup?: readonly string[],
   processTimeoutMs = SHARD_PROCESS_TIMEOUT_MS,
   captureOutput = false,
+  junitPath?: string,
 ): Promise<BunTestRunResult> {
   const args: string[] = [...COVERAGE_ARGS];
   const coverageDirIndex = args.indexOf("--coverage-dir");
   args[coverageDirIndex + 1] = coverageDir;
   const timeoutIndex = args.indexOf("--timeout");
   args[timeoutIndex + 1] = String(timeoutMs);
+  if (junitPath !== undefined) {
+    args.push("--reporter=junit", "--reporter-outfile", junitPath);
+  }
   const runtimeDirectory = mkdtempSync(
     join(tmpdir(), "kibi-unit-coverage-runtime-"),
   );
@@ -993,8 +1005,10 @@ export async function runUnitCoverage(
   // Never clear the whole shard base: a nested runner can share it with an
   // outer runner. Each invocation owns only this private run directory.
   const runShardDir = mkdtempSync(join(shardDir, "run-"));
+  const identityBefore = gitIdentity();
 
   try {
+    const shardResults: ShardTestResults[] = [];
     const shardFiles: string[] = [];
     const shardArtifacts: Array<Readonly<{ label: string; path: string }>> = [];
     const failedShards: string[] = [];
@@ -1054,6 +1068,10 @@ export async function runUnitCoverage(
               file: path,
               paths: [path],
               coverageDir: join(shardCoverageDir, shardUnitName(path, index)),
+              junitPath: join(
+                shardCoverageDir,
+                `${shardUnitName(path, index)}.junit.xml`,
+              ),
               processTimeoutMs: FILE_PROCESS_TIMEOUT_MS,
               setup: index === 0 ? shard.setup : undefined,
               captureOutput: true,
@@ -1064,6 +1082,7 @@ export async function runUnitCoverage(
                 file: undefined,
                 paths: shard.paths,
                 coverageDir: shardCoverageDir,
+                junitPath: `${shardCoverageDir}.junit.xml`,
                 processTimeoutMs:
                   shard.processTimeoutMs ?? SHARD_PROCESS_TIMEOUT_MS,
                 setup: shard.setup,
@@ -1071,6 +1090,7 @@ export async function runUnitCoverage(
               },
             ];
       const unitLcovs: string[] = [];
+      const fileResults = new Map<string, FileTestResult>();
       console.info(
         `Starting unit coverage shard ${shard.label} (${units.length} ${isolation === "process-per-file" ? "file" : "path group"}${units.length === 1 ? "" : "s"}, isolation=${isolation})...`,
       );
@@ -1088,7 +1108,21 @@ export async function runUnitCoverage(
           unit.setup,
           unit.processTimeoutMs,
           unit.captureOutput,
+          unit.junitPath,
         );
+        // Only a passing unit's files are recorded; a failed or timed-out
+        // unit leaves its files absent, so nothing about them is reusable.
+        if (
+          result.exitCode === 0 &&
+          !result.timedOut &&
+          existsSync(unit.junitPath)
+        ) {
+          for (const [file, fileResult] of parseJunitFileResults(
+            readFileSync(unit.junitPath, "utf8"),
+          )) {
+            fileResults.set(file, fileResult);
+          }
+        }
         console.info(
           `Finished unit coverage ${unit.label} (exit ${result.exitCode}, ${result.durationMs}ms${result.timedOut ? ", timedOut" : ""}).`,
         );
@@ -1130,6 +1164,9 @@ export async function runUnitCoverage(
           console.error(error);
         }
       }
+      shardResults.push(
+        shardTestResults(shard.label, identityBefore, fileResults),
+      );
       if (unitLcovs.length === 0) continue;
       const shardPath = join(shardCoverageDir, "lcov.info");
       const firstUnit = unitLcovs[0];
@@ -1151,6 +1188,13 @@ export async function runUnitCoverage(
     // honoring neither its --coverage-dir nor its caller's lifecycle. Recreate
     // the published directory only after all child processes have finished.
     const skipRepoGates = options.skipRepoGates === true;
+    writeUnitTestResults({
+      coverageDir,
+      shardResults,
+      identityBefore,
+      writeLedger:
+        options.partition === undefined && options.shardLabels === undefined,
+    });
     publishUnitCoverage({
       coverageDir,
       mergedShardPaths: shardFiles,
@@ -1164,7 +1208,45 @@ export async function runUnitCoverage(
   }
 }
 
+/**
+ * Publish each shard's per-file test results as `results.<label>.json`, and
+ * for a complete run the combined `test-results.json` ledger. A run whose
+ * commit or tracked files changed while it ran is recorded as dirty.
+ */
+// implements REQ-kibi-verification-evidence-contract
+function writeUnitTestResults(
+  input: Readonly<{
+    coverageDir: string;
+    shardResults: readonly ShardTestResults[];
+    identityBefore: Readonly<{ commit: string | null; dirty: boolean }>;
+    writeLedger: boolean;
+  }>,
+): void {
+  const after = gitIdentity();
+  const changed = after.dirty || after.commit !== input.identityBefore.commit;
+  mkdirSync(input.coverageDir, { recursive: true });
+  const published = input.shardResults.map((results) =>
+    changed ? { ...results, dirty: true } : results,
+  );
+  for (const results of published) {
+    writeFileSync(
+      join(input.coverageDir, `results.${results.shard}.json`),
+      `${JSON.stringify(results, null, 2)}\n`,
+      "utf8",
+    );
+  }
+  if (input.writeLedger) {
+    writeFileSync(
+      join(input.coverageDir, UNIT_TEST_RESULTS_LEDGER),
+      `${JSON.stringify(mergeShardTestResults(published), null, 2)}\n`,
+      "utf8",
+    );
+  }
+}
+
 const SHARD_SNAPSHOT_PATTERN = /^lcov\.(.+)\.info$/;
+const SHARD_RESULTS_PATTERN = /^results\.(.+)\.json$/;
+const UNIT_TEST_RESULTS_LEDGER = "test-results.json";
 
 function listFilesRecursive(root: string): string[] {
   return readdirSync(root, { recursive: true, encoding: "utf8" })
@@ -1185,8 +1267,18 @@ export function mergeUnitCoveragePartitions(
   const coverageDir = options.coverageDir ?? COVERAGE_DIR;
   const snapshots = new Map<string, string[]>();
   const failedShards: string[] = [];
+  const shardResults: unknown[] = [];
   for (const path of listFilesRecursive(options.fromDir)) {
     const name = path.split("/").pop() ?? "";
+    if (SHARD_RESULTS_PATTERN.test(name)) {
+      try {
+        shardResults.push(JSON.parse(readFileSync(path, "utf8")));
+      } catch {
+        // An unreadable results file makes the ledger name no commit.
+        shardResults.push(null);
+      }
+      continue;
+    }
     if (name === "failed-shards.txt") {
       failedShards.push(
         ...readFileSync(path, "utf8")
@@ -1225,6 +1317,12 @@ export function mergeUnitCoveragePartitions(
     throw new UnitCoverageFailure(message);
   }
   rmSync(coverageDir, { recursive: true, force: true });
+  mkdirSync(coverageDir, { recursive: true });
+  writeFileSync(
+    join(coverageDir, UNIT_TEST_RESULTS_LEDGER),
+    `${JSON.stringify(mergeShardTestResults(shardResults), null, 2)}\n`,
+    "utf8",
+  );
   publishUnitCoverage({
     coverageDir,
     mergedShardPaths,

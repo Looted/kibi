@@ -53,7 +53,10 @@ describe("local proof CI replay", () => {
     const prove = replaySteps(proofWorkflow).find(
       (step) => step.name === "Prove every contracted test through Kibi",
     );
-    expect(prove?.env?.KIBI_PROOF_STEP_CONCURRENCY).toBe("3");
+    expect(prove?.env?.KIBI_PROOF_STEP_CONCURRENCY).toBe("4");
+    // GitHub-only expressions stay unset locally instead of becoming literals.
+    expect(prove?.env).not.toHaveProperty("GH_TOKEN");
+    expect(prove?.env).not.toHaveProperty("CI_HEAD_SHA");
     const baseline = replaySteps(proofWorkflow).find(
       (step) => step.name === FINAL_GATE_STEP,
     );

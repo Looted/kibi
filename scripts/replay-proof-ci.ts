@@ -68,8 +68,12 @@ function stepEnv(env: unknown): Readonly<Record<string, string>> | undefined {
   if (env === null || typeof env !== "object" || Array.isArray(env)) {
     return undefined;
   }
+  // A `${{ ... }}` expression only has a value on GitHub; locally the key is
+  // left unset, exactly as an unavailable context would leave it.
   return Object.fromEntries(
-    Object.entries(env).map(([key, value]) => [key, String(value)]),
+    Object.entries(env)
+      .map(([key, value]) => [key, String(value)])
+      .filter(([, value]) => !value.includes("${{")),
   );
 }
 

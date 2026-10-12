@@ -150,10 +150,25 @@ jobs:
       - name: Prove every contracted test through Kibi
         if: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}
         env:
-          # Distinct proof commands run three at a time on the 4-vCPU runner.
-          # Every declared step still runs once and is recorded per contract.
-          KIBI_PROOF_STEP_CONCURRENCY: "3"
-        run: bun packages/cli/bin/kibi prove --all
+          # Distinct proof commands run four at a time on the 4-vCPU runner.
+          # Every declared step is recorded per contract.
+          KIBI_PROOF_STEP_CONCURRENCY: "4"
+          # A `bun test` step made only of whole test files reuses the per-file
+          # results the CI unit run published for this same commit, or a pass
+          # of the same files earlier in this run, instead of running again.
+          # The fetcher writes either the results or why they are unavailable.
+          GH_TOKEN: ${{ github.token }}
+          CI_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          PR_HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+        run: |
+          results="${RUNNER_TEMP:-${TMPDIR:-/tmp}}/kibi-unit-test-results.json"
+          rm -f "$results"
+          bun scripts/ci-unit-results.ts fetch "$results" &
+          fetcher=$!
+          status=0
+          KIBI_PROOF_UNIT_RESULTS="$results" bun packages/cli/bin/kibi prove --all || status=$?
+          kill "$fetcher" 2>/dev/null || true
+          exit "$status"
 
       - name: Enforce proof baseline and clean snapshot
         if: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}

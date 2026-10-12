@@ -167,6 +167,7 @@ jobs:
           name: unit-coverage-partition-${{ matrix.partition }}
           path: |
             coverage/unit/lcov.*.info
+            coverage/unit/results.*.json
             coverage/unit/failed-shards.txt
           if-no-files-found: error
           retention-days: 1
@@ -209,6 +210,17 @@ jobs:
 
       - name: Merge unit coverage and enforce repository gates
         run: bun run test:coverage:unit --merge="$RUNNER_TEMP/unit-coverage-partitions"
+
+      # Per-file results bound to this commit. The proof workflow for the same
+      # commit reuses clean files instead of running them a second time.
+      - name: Upload unit test results
+        if: ${{ !cancelled() && hashFiles('coverage/unit/test-results.json') != '' }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: unit-test-results
+          path: coverage/unit/test-results.json
+          if-no-files-found: error
+          retention-days: 3
 
       - name: Upload unit coverage artifact
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' }}
@@ -280,8 +292,13 @@ jobs:
       - name: Build CLI package
         run: bun run build:cli-stack
 
-      - name: Run integration tests
-        run: bash ./scripts/run-integration-tests.sh
+      # Exercises the PATH route end to end: doctor must report the system
+      # install, and the repository's own KB must check on it.
+      - name: Run Kibi on the system SWI-Prolog
+        run: |
+          bun packages/cli/bin/kibi doctor | tee "$RUNNER_TEMP/doctor.txt"
+          grep -q "SWI-Prolog: .* from PATH" "$RUNNER_TEMP/doctor.txt"
+          bun packages/cli/bin/kibi check
 
   ci-package-contract:
     runs-on: ubuntu-latest

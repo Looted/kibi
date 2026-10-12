@@ -2,6 +2,7 @@
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import * as childProcess from "node:child_process";
 import {
+  existsSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
@@ -387,12 +388,39 @@ describe("runUnitCoverage mocked shards", () => {
         path.join(coverageDir, "lcov.info"),
         lcovRecord("packages/demo/src/main.ts", 1),
       );
+      const outfile = list[list.indexOf("--reporter-outfile") + 1];
+      if (outfile !== undefined) {
+        const suites = list
+          .filter((value) => value.startsWith("./"))
+          .map(
+            (file) =>
+              `<testsuite file="${file.slice(2)}" tests="1" failures="0" skipped="0" />`,
+          );
+        writeFileSync(outfile, `<testsuites>${suites.join("")}</testsuites>`);
+      }
       return { status: 0 } as ReturnType<typeof childProcess.spawnSync>;
     }) as typeof childProcess.spawnSync);
     const options = isolatedCoverageOptions(root);
     process.chdir(root);
     try {
       await runUnitCoverageIfMain(true, options, ["--partition=3/30"]);
+      // Each shard publishes its per-file results; outside a git checkout
+      // they bind to no commit, and a partition leaves the ledger to --merge.
+      for (const shard of partitionShards({ index: 3, count: 30 })) {
+        if (shard.runtime === "node-parser") continue;
+        const results = JSON.parse(
+          readFileSync(
+            path.join(options.coverageDir, `results.${shard.label}.json`),
+            "utf8",
+          ),
+        );
+        expect(results.commit).toBeNull();
+        expect(results.dirty).toBe(true);
+        expect(Object.keys(results.files).length).toBeGreaterThan(0);
+      }
+      expect(
+        existsSync(path.join(options.coverageDir, "test-results.json")),
+      ).toBe(false);
       expect(errors.join("\n")).not.toContain("Coverage manifest audit failed");
       expect(process.exitCode ?? 0).not.toBe(1);
       const published = readdirSync(options.coverageDir)
@@ -440,6 +468,18 @@ describe("mergeUnitCoveragePartitions", () => {
         lcovRecord(file, 1),
       );
       writeFileSync(path.join(dir, "failed-shards.txt"), "");
+      writeFileSync(
+        path.join(dir, `results.${shard.label}.json`),
+        JSON.stringify({
+          version: "kibi.unit-test-results.v1",
+          shard: shard.label,
+          commit: "c".repeat(40),
+          dirty: false,
+          files: {
+            [`${shard.label}.test.ts`]: { tests: 1, failures: 0, skipped: 0 },
+          },
+        }),
+      );
     });
     return { root, fromDir, coverageDir: path.join(root, "coverage", "unit") };
   }
@@ -476,6 +516,16 @@ describe("mergeUnitCoveragePartitions", () => {
     );
     expect(merged).toContain("SF:packages/demo/src/main.ts");
     expect(merged).toContain("SF:packages/demo/src/other.ts");
+    const ledger = JSON.parse(
+      readFileSync(path.join(fixture.coverageDir, "test-results.json"), "utf8"),
+    );
+    expect(ledger.commit).toBe("c".repeat(40));
+    expect(ledger.shards).toHaveLength(COVERAGE_SHARDS.length);
+    expect(ledger.files["mcp.test.ts"]).toEqual({
+      tests: 1,
+      failures: 0,
+      skipped: 0,
+    });
     expect(
       readFileSync(
         path.join(fixture.coverageDir, "coverage-summary.txt"),
