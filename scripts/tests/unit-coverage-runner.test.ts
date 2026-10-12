@@ -4,6 +4,9 @@ import { join } from "node:path";
 import {
   COVERAGE_SHARDS,
   formatCoverageFailure,
+  mergeDirFromArgv,
+  partitionFromArgv,
+  partitionShards,
   selectedShards,
   shardLabelsFromArgv,
 } from "../run-unit-coverage";
@@ -29,6 +32,7 @@ describe("unit coverage runner contract", () => {
   test("owns SkillOpt and scripts tests in dedicated coverage shards", () => {
     expect(COVERAGE_SHARDS).toContainEqual({
       label: "skillopt",
+      costSeconds: 60,
       paths: ["./scripts/skillopt-eval/tests"],
       timeoutMs: 120_000,
     });
@@ -197,6 +201,72 @@ describe("unit coverage runner contract", () => {
       shardLabelsFromArgv([], { KIBI_COVERAGE_SHARDS: " cli.sync-command " }),
     ).toEqual(["cli.sync-command"]);
     expect(shardLabelsFromArgv([])).toBeUndefined();
+  });
+
+  test("partitionShards assigns every shard to exactly one partition", () => {
+    for (let count = 1; count <= 6; count += 1) {
+      const labels = Array.from({ length: count }, (_, index) =>
+        partitionShards({ index: index + 1, count }).map(
+          (shard) => shard.label,
+        ),
+      );
+      expect(labels.every((partition) => partition.length > 0)).toBe(true);
+      expect(labels.flat().sort()).toEqual(
+        COVERAGE_SHARDS.map((shard) => shard.label).sort(),
+      );
+    }
+  });
+
+  test("partitionShards balances known shard costs and is deterministic", () => {
+    const count = 4;
+    const loads = Array.from({ length: count }, (_, index) =>
+      partitionShards({ index: index + 1, count }).reduce(
+        (total, shard) => total + (shard.costSeconds ?? 2),
+        0,
+      ),
+    );
+    const heaviest = Math.max(
+      ...COVERAGE_SHARDS.map((shard) => shard.costSeconds ?? 2),
+    );
+    // Longest-processing-time first stays within one shard of the lightest.
+    expect(Math.max(...loads) - Math.min(...loads)).toBeLessThanOrEqual(
+      heaviest,
+    );
+    expect(partitionShards({ index: 2, count })).toEqual(
+      partitionShards({ index: 2, count }),
+    );
+    expect(() =>
+      partitionShards({ index: 1, count: COVERAGE_SHARDS.length + 1 }),
+    ).toThrow("Cannot split");
+  });
+
+  test("partitionFromArgv reads --partition, equals form, then env", () => {
+    expect(partitionFromArgv(["--partition", "2/4"])).toEqual({
+      index: 2,
+      count: 4,
+    });
+    expect(partitionFromArgv(["--partition=4/4"])).toEqual({
+      index: 4,
+      count: 4,
+    });
+    expect(partitionFromArgv([], { KIBI_COVERAGE_PARTITION: " 1/3 " })).toEqual(
+      { index: 1, count: 3 },
+    );
+    expect(partitionFromArgv([], {})).toBeUndefined();
+    for (const bad of ["0/4", "5/4", "2", "a/b", "1/0"]) {
+      expect(() => partitionFromArgv([`--partition=${bad}`])).toThrow(
+        "Invalid unit coverage partition",
+      );
+    }
+  });
+
+  test("mergeDirFromArgv reads --merge, equals form, then env", () => {
+    expect(mergeDirFromArgv(["--merge", "coverage/partitions"])).toBe(
+      "coverage/partitions",
+    );
+    expect(mergeDirFromArgv(["--merge=out"])).toBe("out");
+    expect(mergeDirFromArgv([], { KIBI_COVERAGE_MERGE_FROM: "dl" })).toBe("dl");
+    expect(mergeDirFromArgv([], {})).toBeUndefined();
   });
 
   test("formatCoverageFailure names the exact file, timeout, and last output", () => {

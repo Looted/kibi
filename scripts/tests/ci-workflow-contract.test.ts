@@ -337,6 +337,9 @@ describe("Kibi's own CI runs the Prolog that ships", () => {
     expect(block).toContain("bash scripts/ci-install-swi-prolog.sh");
     expect(block).toContain("KIBI_SWIPL: system");
     expect(block).not.toContain(ACTION_REF);
+    // The job must run Kibi on that install, not just provision it.
+    expect(block).toContain('grep -q "SWI-Prolog: .* from PATH"');
+    expect(block).toContain("bun packages/cli/bin/kibi check");
     expect(
       ci.split("run: bash scripts/ci-install-swi-prolog.sh").length - 1,
     ).toBe(1);
