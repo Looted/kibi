@@ -8461,7 +8461,7 @@ coordinates:
     sourceLine: 1
   SYM-cli-skills-mirror-parity-tests:
     identityHash: 4dec812b98b2ef0f1d9dec6055548d3bdcfb6a4e2a12689d99e39c25465c6263
-    sourceHash: 35006b09a392ad1d9f7e8e1c6ae0c7ac9b4047f6aff300da086afbe28d8b7ee4
+    sourceHash: 61a0e07636883d77db4d00cd3159cd01dcd8968e482c3ef17c4f7a4adf95cc5e
     sourceColumn: 0
     sourceEndColumn: 0
     sourceEndLine: 40
@@ -15949,7 +15949,7 @@ coordinates:
     sourceLine: 1
   SYM-kibi-usage-skill-guidance:
     identityHash: 4596b4770fa6eca3c0b31b8c58f21cc8c076ffe4dc4e76b6252e9984eb6c5857
-    sourceHash: 6a0fac5618ac08a4f786841d6abd3dad05819d7c92bc39f8f1a1fd12f91c3323
+    sourceHash: a00b79d3af925c9881c33465a769081b584246a32aa9a55b4e7743d7d6e12064
     sourceColumn: 6
     sourceEndColumn: 16
     sourceEndLine: 3
