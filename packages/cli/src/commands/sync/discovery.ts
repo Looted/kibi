@@ -70,10 +70,10 @@ async function gitTrackedPaths(cwd: string): Promise<Set<string>> {
 }
 
 /**
- * The untracked sources bound by pending receipts. A receipt whose file Git
- * now tracks is skipped here, whatever its hash says: the tracked bytes are
- * the authored input, and the caller retires that receipt. Only a receipt for
- * a still-untracked file can refuse the sync on hash drift.
+ * The sources bound by pending receipts. A receipt whose file Git now tracks
+ * is kept as an input but not compared, whatever its hash says: the tracked
+ * bytes are the authored input, and the caller retires that receipt. Only a
+ * receipt for a still-untracked file can refuse the sync on hash drift.
  */
 // implements REQ-core-atomic-upsert-persistence
 function pendingSourcePaths(
@@ -106,7 +106,11 @@ function pendingSourcePaths(
         /^[a-f0-9]{64}$/i.test(receipt.afterHash)
       ) {
         const relative = receipt.path.replaceAll("\\", "/");
-        if (tracked.has(relative)) continue;
+        if (tracked.has(relative)) {
+          // Still an authored input; only the stale hash is ignored.
+          paths.set(relative, receipt.afterHash);
+          continue;
+        }
         const absolute = path.resolve(cwd, relative);
         if (!absolute.startsWith(`${path.resolve(cwd)}${path.sep}`)) {
           throw new Error(

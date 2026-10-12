@@ -2317,12 +2317,12 @@ coordinates:
     sourceLine: 96
   SYM-canonical-clearRecoveredPendingSourceReceipts:
     identityHash: e878161478929f6d05e1074ebcedf7799f4c26857b3163ffab8332046ea5115a
-    sourceHash: 93829a214af825193f025d94dd20ec20ca5a0a3a0f25c35862f5602effa32e14
+    sourceHash: 0435b35f88b9751a728e850a0714b11e4df978b2a841b3edddb8cc7f1466479e
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 235
+    sourceEndLine: 239
     sourceFile: packages/cli/src/commands/sync/discovery.ts
-    sourceLine: 187
+    sourceLine: 191
   SYM-canonical-collectQueryPlanSafetyViolations:
     identityHash: 5c2ca7c52c6d2015d95cf9fa28313251c8e8a0a465dca01a6dfb87a67143152e
     sourceHash: 0dd52049644c78d14173baf46301f7d7b7ab7e935699b77f541ab821cc75e09d
@@ -2365,7 +2365,7 @@ coordinates:
     sourceLine: 76
   SYM-canonical-DiscoveryOptions:
     identityHash: d83b4ba9183768756dc84089cb78429d6cc5a649c62f99bec47c891ff3e432aa
-    sourceHash: 93829a214af825193f025d94dd20ec20ca5a0a3a0f25c35862f5602effa32e14
+    sourceHash: 0435b35f88b9751a728e850a0714b11e4df978b2a841b3edddb8cc7f1466479e
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 40
@@ -2709,7 +2709,7 @@ coordinates:
     sourceLine: 4
   SYM-canonical-PendingSourceReceiptSnapshot:
     identityHash: 04d34149b068a584a3be930052767bd315e8ca7353382ca6ea0b06ec67cd2d29
-    sourceHash: 93829a214af825193f025d94dd20ec20ca5a0a3a0f25c35862f5602effa32e14
+    sourceHash: 0435b35f88b9751a728e850a0714b11e4df978b2a841b3edddb8cc7f1466479e
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 55
@@ -11029,12 +11029,12 @@ coordinates:
     sourceLine: 412
   SYM-discoverSourceFiles:
     identityHash: 695c38767117f37c878bf9a1a0116aca64e2dfefbecf0889a4cef9c27a08da6f
-    sourceHash: 93829a214af825193f025d94dd20ec20ca5a0a3a0f25c35862f5602effa32e14
+    sourceHash: 0435b35f88b9751a728e850a0714b11e4df978b2a841b3edddb8cc7f1466479e
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 369
+    sourceEndLine: 373
     sourceFile: packages/cli/src/commands/sync/discovery.ts
-    sourceLine: 265
+    sourceLine: 269
   SYM-discovery-execute-fact-query:
     identityHash: 05ca4ef39f8d3ab4f75e70f12cf0d96947bb3587737ef6bfe49f3b9e83db5e27
     sourceHash: 0119bb0322b6be3821a6ddba128e93f5d4c7b63e99dbbf385dbd8c52c6877050
@@ -18469,12 +18469,12 @@ coordinates:
     sourceLine: 231
   SYM-normalizeMarkdownPath:
     identityHash: f2516d4f8a14c86c460e763f372939b93b28370251282ddce1d299c12bee25c8
-    sourceHash: 93829a214af825193f025d94dd20ec20ca5a0a3a0f25c35862f5602effa32e14
+    sourceHash: 0435b35f88b9751a728e850a0714b11e4df978b2a841b3edddb8cc7f1466479e
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 263
+    sourceEndLine: 267
     sourceFile: packages/cli/src/commands/sync/discovery.ts
-    sourceLine: 257
+    sourceLine: 261
   SYM-normalizePropertyKey:
     identityHash: f21ea55b5766f8f3059fce6b19faa5f85abebdc0a30ca71c96b03aa696143579
     sourceHash: 01f9b3821f9dbc59c359528d84f45bd37f5ed23ca520547688dda5812ac3abde
