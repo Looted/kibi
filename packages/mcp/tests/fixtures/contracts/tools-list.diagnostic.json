@@ -2946,7 +2946,17 @@
                   "claimKey": {
                     "type": "string"
                   },
+                  "decisionConflicts": {
+                    "description": "When no hash-bound plan ran the contradiction analysis: stored decision facts of current requirements that agree with the complete candidate on its key arguments and decide the opposite (requirementId, factId, effect, proposedEffect, canonicalKey). A warning repeats each one.",
+                    "items": {
+                      "additionalProperties": {},
+                      "properties": {},
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
                   "existingGrounding": {
+                    "description": "The grounding links requirementId already has for this claim: matched by claim_key (the same proposition text) or, for a predicate fact, by the recommended candidate's canonical_key (the same predicate tuple in other words; matchedBy says which).",
                     "items": {
                       "additionalProperties": {},
                       "properties": {},
@@ -3002,6 +3012,14 @@
                       },
                       {
                         "const": "replace_grounding",
+                        "type": "string"
+                      },
+                      {
+                        "const": "extend_requirement",
+                        "type": "string"
+                      },
+                      {
+                        "const": "keep_existing_grounding",
                         "type": "string"
                       }
                     ]
@@ -4540,6 +4558,10 @@
               {
                 "additionalProperties": false,
                 "properties": {
+                  "claimKey": {
+                    "description": "For a fact with claim_text: the stored claim_key, derived from claim_text when the payload did not supply it.",
+                    "type": "string"
+                  },
                   "contradictionCheck": {
                     "additionalProperties": {},
                     "properties": {},

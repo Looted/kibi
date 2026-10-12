@@ -26,7 +26,12 @@ export type SessionEvent =
   /** A check acknowledged pending edits (all of them when `all`). */
   | { kind: "checked"; paths: string[]; all: boolean }
   /** A Stop reminder named these paths. */
-  | { kind: "reminded"; paths: string[] };
+  | { kind: "reminded"; paths: string[] }
+  /**
+   * The host dropped the conversation context (SessionStart after a compact
+   * or clear), so everything shown so far is gone from the model's view.
+   */
+  | { kind: "context_reset" };
 
 export type SessionState = {
   shownRead: Set<string>;
@@ -113,6 +118,16 @@ export function applyEvent(state: SessionState, event: SessionEvent): void {
       return;
     case "reminded":
       for (const reminded of event.paths) state.reminded.add(reminded);
+      return;
+    case "context_reset":
+      // Snippets, notices and Kibi lookups shown before the reset are no
+      // longer in context, so they may be shown again. Pending edits and
+      // their reminders describe work done, not context, and are kept.
+      state.shownRead.clear();
+      state.shownEdit.clear();
+      state.notices.clear();
+      state.exploredPaths.clear();
+      state.exploredIds.clear();
       return;
   }
 }

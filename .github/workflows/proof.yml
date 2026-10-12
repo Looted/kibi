@@ -55,16 +55,21 @@ jobs:
       - name: Install dependencies for canonical snapshot
         run: bun install --frozen-lockfile
 
-      - name: Check whether master PR can reuse develop proof
+      # A master PR from develop reuses develop's proof of its head. A PR into
+      # develop reuses develop's proof of its base when the merge leaves the
+      # Kibi proof snapshot unchanged (it excludes docs/ and .changeset/).
+      - name: Check whether the PR can reuse develop proof
         id: reuse
-        if: ${{ github.event_name == 'pull_request' && github.base_ref == 'master' && github.head_ref == 'develop' && github.event.pull_request.head.repo.full_name == github.repository }}
+        if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && ((github.base_ref == 'master' && github.head_ref == 'develop') || github.base_ref == 'develop') }}
         continue-on-error: true
-        # Waits for develop's own proof of this head (started by the same push)
-        # instead of re-proving it; falls back to full proof after the budget.
+        # Waits for develop's own proof of that commit (a master PR's head is
+        # usually still proving) instead of re-proving it; falls back to full
+        # proof after the budget.
         timeout-minutes: 75
         env:
           GH_TOKEN: ${{ github.token }}
-          KIBI_PROOF_REUSE_WAIT_SECONDS: "3600"
+          KIBI_PROOF_REUSE_WAIT_SECONDS: ${{ github.base_ref == 'master' && '3600' || '900' }}
+          PR_BASE_REF: ${{ github.base_ref }}
           PR_HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
           PR_HEAD_BRANCH: ${{ github.head_ref }}
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
@@ -72,7 +77,7 @@ jobs:
         run: bun scripts/ci-proof-reuse.ts decide "$RUNNER_TEMP/kibi-proof-decision.json"
 
       - name: Upload proof reuse decision
-        if: ${{ github.event_name == 'pull_request' && github.base_ref == 'master' && steps.reuse.outcome == 'success' }}
+        if: ${{ github.event_name == 'pull_request' && steps.reuse.outcome == 'success' }}
         continue-on-error: true
         uses: actions/upload-artifact@v5
         with:

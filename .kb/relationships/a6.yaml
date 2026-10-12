@@ -209,3 +209,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d1114d7d8f26
+  - type: implements
+    from: SYM-mutation-upsert-storedClaimKey
+    to: REQ-upsert-committed-claim-key
+    created_at: 2026-10-12T19:24:35.867Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e21eed4ac519
+  - type: covered_by
+    from: SYM-mutation-upsert-storedClaimKey
+    to: TEST-model-predicates-grounding-guards
+    created_at: 2026-10-12T19:24:35.881Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e8245536b43c

@@ -1,6 +1,6 @@
 # kibi-codex
 
-Optional Codex plugin for [Kibi](https://looted.github.io/kibi/). It bundles Kibi's skills, MCP configuration and warning-only lifecycle hooks. Before `apply_patch` changes code linked to a requirement, the hook adds that requirement, what it must keep true, its decision and its tests to the agent's context.
+Optional Codex plugin for [Kibi](https://looted.github.io/kibi/). It bundles Kibi's skills, MCP configuration and warning-only lifecycle hooks. Before `apply_patch` changes code linked to a requirement, the hook adds that requirement, what it must keep true, its decision and its tests to the agent's context. Before it changes a source file no symbol links to a requirement, the hook adds a one-time note with the `kb_search` call that finds requirements which may already describe that behavior (docs, tests and `.kb/` get no note). When the turn ends after source edits that no impact check covered, the Stop hook names the edited files and the exact `kb_check` call, once.
 
 The plugin is optional and builds on `kibi-core`, `kibi-cli` and `kibi-mcp`, which you install in the project first. It does not replace them.
 

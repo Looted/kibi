@@ -25,6 +25,9 @@ export function schemaForCandidate(schema: PredicateSchemaCandidate): Omit<
   return {
     id: schema.id,
     predicate_name: schema.predicate_name,
+    ...(schema.predicate_namespace
+      ? { predicate_namespace: schema.predicate_namespace }
+      : {}),
     title: schema.title,
     description: schema.description,
     argument_names: schema.argument_names,
@@ -96,11 +99,21 @@ export function predicateSchemaFromEntity(
   const argumentDescriptions = stringArray(entity.argument_descriptions);
   const keyArguments = stringArray(entity.key_arguments);
   const vocabulary = predicateVocabularyFromEntity(entity);
+  // A project schema's namespace is part of the predicate signature the
+  // conformance rule checks, so a planned fact has to carry it.
+  const predicateNamespace = normalizeOptionalString(
+    typeof entity.predicate_namespace === "string"
+      ? entity.predicate_namespace
+      : undefined,
+  );
 
   return [
     {
       id: String(entity.id ?? hashId("FACT-SCHEMA", [predicateName])),
       predicate_name: predicateName,
+      ...(predicateNamespace && predicateNamespace !== "default"
+        ? { predicate_namespace: predicateNamespace }
+        : {}),
       title: String(entity.title ?? predicateName),
       description: String(
         entity.description ??

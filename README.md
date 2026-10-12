@@ -130,7 +130,7 @@ The optional `kibi-cursor` plugin adds rules, bundled skills, commands, and advi
 codex mcp add kibi -- npx --no-install kibi-mcp
 ```
 
-The optional `kibi-codex` plugin bundles Kibi skills, MCP configuration, and warning-only lifecycle hooks; before `apply_patch` changes linked code, the hook adds the requirement, what it must keep true, and its decision to the agent's context. Add the Kibi repository marketplace, open Codex, then run `/plugins`, choose **Kibi Plugins**, and install `kibi-codex`:
+The optional `kibi-codex` plugin bundles Kibi skills, MCP configuration, and warning-only lifecycle hooks; before `apply_patch` changes linked code, the hook adds the requirement, what it must keep true, and its decision to the agent's context; an edit to unlinked source code gets a note with the `kb_search` call that finds requirements for it, and a turn that ends after unchecked source edits gets the `kb_check` call. Add the Kibi repository marketplace, open Codex, then run `/plugins`, choose **Kibi Plugins**, and install `kibi-codex`:
 
 ```bash
 codex plugin marketplace add Looted/kibi

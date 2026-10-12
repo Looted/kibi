@@ -514,7 +514,13 @@ function factRowSummary(row: Record<string, unknown>): string {
     const names = Array.isArray(row.argumentNames)
       ? row.argumentNames.map(String).join(", ")
       : "";
-    return `${row.name}(${names})`;
+    // A built-in schema is no stored entity: its id is for kb_model's
+    // schemaId, not for a kb_query by id.
+    const builtin =
+      row.builtin === true
+        ? ` [builtin${id ? ` ${id}` : ""}, not a stored entity]`
+        : "";
+    return `${row.name}(${names})${builtin}`;
   }
   return `${id} (${String(row.title ?? "")})`;
 }

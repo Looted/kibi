@@ -113,6 +113,42 @@ describe("kibi init", () => {
     expect(content).toContain("symbols: []");
   });
 
+  test("leaves the manifest and symbols manifest of a legacy layout to kibi migrate", () => {
+    execSync("git init -b main", { cwd: tmpDir });
+    mkdirSync(path.join(tmpDir, ".kb"));
+    writeFileSync(
+      path.join(tmpDir, ".kb", "config.json"),
+      JSON.stringify({
+        schemaVersion: 4,
+        paths: { requirements: "kibi-docs/requirements" },
+      }),
+    );
+    mkdirSync(path.join(tmpDir, "kibi-docs", "requirements"), {
+      recursive: true,
+    });
+    writeFileSync(
+      path.join(tmpDir, "kibi-docs", "requirements", "REQ-1.md"),
+      "---\nid: REQ-1\ntitle: Auth\nstatus: open\n---\n",
+    );
+
+    const output = execSync(`bun ${kibiBin} init --no-hooks`, {
+      cwd: tmpDir,
+      encoding: "utf8",
+    });
+    expect(output).toContain("kibi migrate --yes");
+    expect(existsSync(path.join(tmpDir, ".kb", "manifest.json"))).toBe(false);
+    expect(existsSync(path.join(tmpDir, ".kb", "symbols.yaml"))).toBe(false);
+
+    const migrated = execSync(`bun ${kibiBin} migrate --yes`, {
+      cwd: tmpDir,
+      encoding: "utf8",
+    });
+    expect(migrated).toContain("(was 4)");
+    expect(
+      existsSync(path.join(tmpDir, ".kb", "requirements", "REQ-1.md")),
+    ).toBe(true);
+  });
+
   test("ignores derived .kb/ state while keeping knowledge tracked", () => {
     execSync("git init -b main", { cwd: tmpDir });
     execSync("git config user.email 'test@test.com'", { cwd: tmpDir });

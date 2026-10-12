@@ -118,23 +118,33 @@ describe("Codex hook runner workspace opt-in", () => {
     expect(result.systemMessage).toContain("Avoid direct edits to .kb/");
   });
 
-  test("PreToolUse ignores non-KB edits in opted-in workspaces", async () => {
+  test("PreToolUse notes a source edit no symbol links, once, and ignores other edits", async () => {
     const cwd = createTempRoot("kibi-codex-cwd-");
     optInWorkspace(cwd);
     const pluginData = createTempRoot("kibi-codex-data-");
     tempRoots.push(cwd, pluginData);
-
-    expect(
-      await runHook(
+    const write = (file_path: string) =>
+      runHook(
         {
           event: "PreToolUse",
+          session_id: "s1",
           cwd,
           toolName: "Write",
-          toolInput: { file_path: "src/hook-runner.ts" },
+          toolInput: { file_path },
         },
         { pluginData },
-      ),
-    ).toEqual({ continue: true });
+      );
+
+    const first = await write("src/hook-runner.ts");
+    expect(first.systemMessage).toBeUndefined();
+    expect(JSON.stringify(first)).toContain(
+      "no symbol in src/hook-runner.ts is linked to a requirement yet",
+    );
+    expect(await write("src/hook-runner.ts")).toEqual({ continue: true });
+    expect(await write("docs/guide.md")).toEqual({ continue: true });
+    expect(await write("tests/hook-runner.test.ts")).toEqual({
+      continue: true,
+    });
   });
 
   test("PostToolUse tracks explicit meaningful paths in opted-in workspaces", async () => {
@@ -538,21 +548,141 @@ describe("Codex pre-edit knowledge", () => {
     expect(context).not.toContain("Decision:");
   });
 
-  test("unlinked files stay silent", async () => {
+  test("an unlinked source file gets the discovery note once per session", async () => {
     const cwd = linkedWorkspace();
     const pluginData = createTempRoot("kibi-codex-data-");
     tempRoots.push(pluginData);
-    expect(
-      await runHook(
+    const write = (sessionId: string) =>
+      runHook(
         {
           hook_event_name: "PreToolUse",
+          session_id: sessionId,
           cwd,
           tool_name: "Write",
           tool_input: { file_path: "src/other.ts" },
         },
         { pluginData },
-      ),
+      );
+    const first = await write("s1");
+    expect(first.hookSpecificOutput).toEqual({
+      hookEventName: "PreToolUse",
+      additionalContext: [
+        "Kibi: no symbol in src/other.ts is linked to a requirement yet.",
+        'kb_search({query:"<behavior being changed>", sourceLocations:[{path:"src/other.ts"}]}) surfaces requirements that may already describe it; new behavior is recorded with kb_upsert (requirement + symbol implements link).',
+      ].join("\n"),
+    });
+    expect(await write("s1")).toEqual({ continue: true });
+    expect((await write("s2")).hookSpecificOutput).toBeDefined();
+  });
+
+  test("an unreadable manifest is reported once instead of calling files unlinked", async () => {
+    const cwd = linkedWorkspace();
+    const pluginData = createTempRoot("kibi-codex-data-");
+    tempRoots.push(pluginData);
+    writeFile(
+      cwd,
+      ".kb/symbols.yaml",
+      "symbols: [ { id: SYM-computeTotal, sourceFile: src/checkout.ts\n",
+    );
+    const write = (file_path: string) =>
+      runHook(
+        {
+          hook_event_name: "PreToolUse",
+          session_id: "s1",
+          cwd,
+          tool_name: "Write",
+          tool_input: { file_path },
+        },
+        { pluginData },
+      );
+    const first = JSON.stringify(await write("src/checkout.ts"));
+    expect(first).toContain("could not read .kb/symbols.yaml");
+    expect(first).not.toContain("is linked to a requirement yet");
+    expect(await write("src/other.ts")).toEqual({ continue: true });
+  });
+});
+
+/**
+ * Replay of a hook trace recorded on a test project during an evaluation,
+ * with the project's paths rewritten to this fixture.
+ */
+describe("Codex evaluation trace replay", () => {
+  const UNLINKED_PATCH = [
+    "*** Begin Patch",
+    "*** Update File: src/guard.ts",
+    "@@",
+    "-export const guard = () => true;",
+    "+export const guard = () => true; // probe",
+    "*** End Patch",
+  ].join("\n");
+
+  test("an apply_patch to an unlinked file gets the note, and Stop reminds of the impact check once", async () => {
+    const cwd = linkedWorkspace();
+    writeFile(cwd, "src/guard.ts", "export const guard = () => true;\n");
+    const pluginData = createTempRoot("kibi-codex-data-");
+    tempRoots.push(pluginData);
+    const event = (payload: Record<string, unknown>) =>
+      runHook({ session_id: "b4", cwd, ...payload }, { pluginData });
+
+    expect(
+      await event({ hook_event_name: "SessionStart", source: "startup" }),
     ).toEqual({ continue: true });
+    const linkedEdit = await event({
+      hook_event_name: "PreToolUse",
+      tool_name: "apply_patch",
+      tool_input: { input: CHECKOUT_PATCH },
+    });
+    expect(JSON.stringify(linkedEdit)).toContain("must keep true");
+
+    const unlinkedEdit = await event({
+      hook_event_name: "PreToolUse",
+      tool_name: "apply_patch",
+      tool_input: { input: UNLINKED_PATCH },
+    });
+    expect(unlinkedEdit.hookSpecificOutput).toMatchObject({
+      hookEventName: "PreToolUse",
+      additionalContext: expect.stringContaining(
+        "Kibi: no symbol in src/guard.ts is linked to a requirement yet.\nkb_search(",
+      ),
+    });
+    expect(
+      await event({
+        hook_event_name: "PostToolUse",
+        tool_name: "apply_patch",
+        tool_input: { input: UNLINKED_PATCH },
+      }),
+    ).toEqual({ continue: true });
+
+    const stop = await event({
+      hook_event_name: "Stop",
+      stop_hook_active: false,
+    });
+    expect(stop.continue).toBe(true);
+    expect(stop.systemMessage).toContain(
+      'kb_check({sourceFiles:["src/guard.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true})',
+    );
+    expect(
+      await event({ hook_event_name: "Stop", stop_hook_active: false }),
+    ).toEqual({ continue: true });
+  });
+
+  test("an apply_patch to .kb/ gets the direct-edit warning", async () => {
+    const cwd = linkedWorkspace();
+    const pluginData = createTempRoot("kibi-codex-data-");
+    tempRoots.push(pluginData);
+    const result = await runHook(
+      {
+        hook_event_name: "PreToolUse",
+        cwd,
+        tool_name: "apply_patch",
+        tool_input: {
+          input:
+            "*** Begin Patch\n*** Update File: .kb/requirements/REQ-checkout-rounding.md\n@@\n-a\n+b\n*** End Patch",
+        },
+      },
+      { pluginData },
+    );
+    expect(result.systemMessage).toContain("Avoid direct edits to .kb/");
   });
 });
 

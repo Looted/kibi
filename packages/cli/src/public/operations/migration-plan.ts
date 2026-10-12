@@ -750,7 +750,7 @@ export function buildActionsFromStatus(input: {
         invocation: legacyStorageBlocked
           ? {
               kind: "review",
-              instruction: `The legacy .kb/config.json still names knowledge files outside .kb/ and Kibi cannot move them: ${legacyStorage?.blockers.join(" ")} Keep one copy of each conflicting file (the .kb/ one is what Kibi compiles), remove or git-rm the legacy copy, then run 'kibi migrate --yes' to retire .kb/config.json.`,
+              instruction: `The legacy .kb/config.json still names knowledge files outside .kb/ and Kibi cannot move them: ${legacyStorage?.blockers.join(" ")} Compare each legacy copy with its .kb/ copy and keep the current one: replace the .kb/ copy when the legacy one is newer, or remove (git rm) the legacy copy when it is a stale duplicate. Then run 'kibi migrate --yes' to retire .kb/config.json.`,
             }
           : { kind: "cli", command_argv: ["kibi", "migrate", "--yes"] },
         affectedFiles: [

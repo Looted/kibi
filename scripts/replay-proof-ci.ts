@@ -33,7 +33,7 @@ const FINAL_GATE_STEP = "Enforce proof baseline and clean snapshot";
  * not the repository, so a local replay checks for their tools instead.
  */
 const HOST_PROVISIONING_STEPS = Object.freeze([
-  "Check whether master PR can reuse develop proof",
+  "Check whether the PR can reuse develop proof",
   "Bootstrap Ubuntu packages",
   "Install SWI-Prolog",
   "Provision strict-proof host prerequisites",

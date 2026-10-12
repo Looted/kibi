@@ -768,10 +768,16 @@ function checkKbManifest(): {
   const status = readKbManifestStatus(process.cwd());
 
   if (status.state === "missing") {
+    // 'kibi init' on a legacy layout would claim the latest schema and skip
+    // the legacy migration steps; migrate writes the manifest itself.
+    const legacy = planLegacyStorageMigration(process.cwd());
     return {
       passed: false,
       message: "Not found",
-      remediation: "Run: kibi init",
+      remediation:
+        legacy.legacyConfig === "absent"
+          ? "Run: kibi init"
+          : "Run: kibi migrate --yes (it creates the manifest from the legacy .kb/config.json; do not run kibi init first)",
     };
   }
 
@@ -804,6 +810,14 @@ function checkLegacyStorage(): {
       remediation:
         plan.legacyConfigError ??
         "Repair or remove the legacy .kb/config.json, then run: kibi migrate --yes",
+    };
+  }
+
+  if (plan.blockers.length > 0) {
+    return {
+      passed: false,
+      message: `${plan.moves.length} legacy knowledge file(s) outside .kb/ cannot be moved automatically`,
+      remediation: `${plan.blockers.join(" ")} Compare each legacy copy with its .kb/ copy and keep the current one: replace the .kb/ copy when the legacy one is newer, or remove (git rm) the legacy copy when it is a stale duplicate. Then run: kibi migrate --yes`,
     };
   }
 
