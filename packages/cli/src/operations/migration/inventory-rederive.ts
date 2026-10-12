@@ -536,6 +536,14 @@ function readShardRelationships(
 export function planInventoryRederivation(
   workspaceRoot: string,
   onlyId?: string,
+  options: Readonly<{
+    /**
+     * Plan as if the requirement had this status: a requirement whose status
+     * is outside the current vocabulary is not validated, so its drift only
+     * shows once the status is mapped.
+     */
+    status?: string;
+  }> = {},
 ): InventoryRederivation[] {
   const shards = readShardRelationships(workspaceRoot);
   const facts = new FactClaimIndex(workspaceRoot);
@@ -559,7 +567,9 @@ export function planInventoryRederivation(
     const plan = planOne(
       workspaceRoot,
       file.relativePath,
-      result.entity,
+      options.status === undefined
+        ? result.entity
+        : { ...result.entity, status: options.status },
       result.relationships,
       shards,
       facts,

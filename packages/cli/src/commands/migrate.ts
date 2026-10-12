@@ -940,12 +940,16 @@ async function buildWorkspaceMigrationPlan(
   if (checkable && storeSynced) {
     const checkResult = await executeOperation(runtime, checkSpec, {});
     if (checkResult.structuredContent?.migrationPlan !== undefined) {
-      // Lifecycle repairs and their sync are planned above from authored
-      // sources, which may be newer than the compiled store.
+      // Lifecycle repairs, their sync and requirement status mappings are
+      // planned above from authored sources, which may be newer than the
+      // compiled store.
       plans.push(
         withoutActionCodes(
           checkResult.structuredContent.migrationPlan,
-          SOURCE_PLANNED_LIFECYCLE_CODES,
+          new Set([
+            ...SOURCE_PLANNED_LIFECYCLE_CODES,
+            "check_req-status-vocabulary",
+          ]),
         ),
       );
     }
