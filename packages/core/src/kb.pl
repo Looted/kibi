@@ -2845,6 +2845,15 @@ bind_key_arguments([Position|Positions], ArgsA, ArgsB) :-
 % predicate-catalog-4.ts (permission_rule: actor, action, resource).
 builtin_decision_predicate(default, permission_rule, 4, [1, 2, 3], 4).
 
+%% builtin_predicate_signature(?Name, ?SchemaId, ?ArgumentNames)
+% implements REQ-kibi-query-fact-filters
+% The catalog id and argument names of a built-in decision predicate.  The
+% id is the one kb_model accepts as schemaId; no entity with that id is
+% stored, so a kb_query by id finds nothing.  Keep in step with
+% builtin_decision_predicate/5 and the catalog entry in
+% packages/cli/src/operations/modeling/predicate-catalog-4.ts.
+builtin_predicate_signature(permission_rule, 'FACT-SCHEMA-PERMISSION-RULE', [actor, action, resource, decision]).
+
 %% effective_decision(+Decision, +Polarity, -Effect)
 effective_decision(allow, assert, allow).
 effective_decision(allow, deny, deny).

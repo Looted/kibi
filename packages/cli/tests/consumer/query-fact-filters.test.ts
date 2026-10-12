@@ -281,6 +281,36 @@ links:
     expect(names).toContain("has_role");
     expect(names).toContain("permission_rule");
     expect((catalog.factQuery as FactQuery).mode).toBe("schemas");
+    // A project schema is a stored entity; the built-in one is not, but its
+    // row carries the id kb_model accepts as schemaId.
+    const rows = catalog.entities as Json[];
+    expect(rows.find((row) => row.name === "has_role")).toMatchObject({
+      id: "FACT-SCHEMA-HAS-ROLE",
+      builtin: false,
+      stored: true,
+    });
+    expect(rows.find((row) => row.name === "permission_rule")).toMatchObject({
+      id: "FACT-SCHEMA-PERMISSION-RULE",
+      builtin: true,
+      stored: false,
+      keyArguments: ["actor", "action", "resource"],
+    });
+    expect(
+      payload(ws.json(["query"], { id: "FACT-SCHEMA-PERMISSION-RULE" })).count,
+    ).toBe(0);
+    const modeled = ws.json(["model"], {
+      mode: "predicates",
+      text: "An admin may read analysis requests.",
+      requirementId: "REQ-ROLE-LIMIT",
+      schemaId: "FACT-SCHEMA-PERMISSION-RULE",
+      argumentBindings: {
+        actor: "admin",
+        action: "read",
+        resource: "analysis_request",
+        decision: "allow",
+      },
+    });
+    expect(JSON.stringify(modeled)).toContain("FACT-SCHEMA-PERMISSION-RULE");
 
     // The plain lookup path is unchanged.
     const exact = payload(ws.json(["query"], { id: "REQ-ROLE-LIMIT" }));
@@ -302,10 +332,29 @@ links:
       claim: "user.role_assignment max_roles lte 2",
       ask: 'kb_query({"subjectKey":"user.role_assignment","propertyKey":"max_roles"})',
     });
+    // A predicate fact's ask reproduces its own tuple: pasted, it returns
+    // alice's roles and not bob's, and the permission rule's decision.
     const roleFact = facts.find((fact) => fact.id === "FACT-ROLE-ALICE-ADMIN");
     expect(roleFact).toMatchObject({
       claim: "has_role(alice, admin)",
-      ask: 'kb_query({"predicate":"has_role"})',
+      ask: 'kb_query({"predicate":"has_role","namespace":"access","where":{"user":"alice"}})',
     });
+    const permFact = facts.find((fact) => fact.id === "FACT-PERM-ADMIN-READ");
+    expect(permFact?.ask).toBe(
+      'kb_query({"predicate":"permission_rule","where":{"actor":"admin","action":"read","resource":"analysis_request"}})',
+    );
+    const pasted = (ask: unknown) =>
+      payload(
+        ws.json(
+          ["query"],
+          JSON.parse(String(ask).slice("kb_query(".length, -1)) as Json,
+        ),
+      );
+    expect(
+      (pasted(roleFact?.ask).entities as Json[]).map((row) => row.id).sort(),
+    ).toEqual(["FACT-ROLE-ALICE-ADMIN", "FACT-ROLE-ALICE-AUDITOR"]);
+    expect(
+      (pasted(permFact?.ask).entities as Json[]).map((row) => row.id),
+    ).toEqual(["FACT-PERM-ADMIN-READ"]);
   });
 });

@@ -5075,7 +5075,15 @@ test(schema_catalog_lists_project_schemas_and_builtins, [setup((setup_kb, ask_fi
     discovery:ask_schemas_json(access, none, 100, 0, AccessJson),
     ask_rows(AccessJson, [Access], _),
     assertion(Access.id == "FACT-SCHEMA-ASK-HAS-ROLE"),
-    assertion(Access.argumentNames == ["user", "role"]).
+    assertion(Access.stored == true),
+    assertion(Access.argumentNames == ["user", "role"]),
+    % The built-in row carries the catalog id kb_model accepts as schemaId
+    % and says that no stored entity has it.
+    member(Builtin, Rows),
+    get_dict(name, Builtin, "permission_rule"),
+    assertion(Builtin.id == "FACT-SCHEMA-PERMISSION-RULE"),
+    assertion(Builtin.stored == false),
+    assertion(Builtin.keyArguments == ["actor", "action", "resource"]).
 
 test(named_arguments_resolve_through_the_schema_in_any_order, [setup((setup_kb, ask_fixture)), cleanup(cleanup_kb)]) :-
     discovery:ask_predicate_json(none, permission_rule, where([decision=allow, actor=admin]), none, all, none, 100, 0, JsonString),
