@@ -203,10 +203,12 @@ jobs:
         uses: actions/download-artifact@v5
         with:
           pattern: unit-coverage-partition-*
-          path: coverage/partitions
+          # Outside coverage/ so Codecov's file search does not upload the
+          # per-partition copies alongside the merged report.
+          path: ${{ runner.temp }}/unit-coverage-partitions
 
       - name: Merge unit coverage and enforce repository gates
-        run: bun run test:coverage:unit --merge=coverage/partitions
+        run: bun run test:coverage:unit --merge="$RUNNER_TEMP/unit-coverage-partitions"
 
       - name: Upload unit coverage artifact
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' }}
