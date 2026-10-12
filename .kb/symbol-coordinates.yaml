@@ -22741,12 +22741,12 @@ coordinates:
     sourceLine: 508
   SYM-replaySteps:
     identityHash: dac93aa36d2bf45004f98685ba083f892089c838c14a5746c598734efd3a0224
-    sourceHash: 595acfb7b8bbc87d534e04470787d1880795d6dc93f3e4f355d792a20d51d1f2
+    sourceHash: 45b6a1d763eff34bd735e3a7294fbd4d7b115abb6c4b6f5ff83da3a8237830a6
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 101
+    sourceEndLine: 125
     sourceFile: scripts/replay-proof-ci.ts
-    sourceLine: 70
+    sourceLine: 89
   SYM-repoRootFromScript:
     identityHash: 5fd10db76dfe977139050b9457c0a09d1bad8078d7618b1b2fbedf294ab12cb9
     sourceHash: 93877ea4ea69deb89df43b2d75025ffd9fc021ec6d15408ad87ae5e057763ea3

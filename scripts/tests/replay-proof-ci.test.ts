@@ -49,6 +49,17 @@ describe("local proof CI replay", () => {
     expect(local?.run).not.toContain("curl");
   });
 
+  test("replays a step with its own env block, like CI", () => {
+    const prove = replaySteps(proofWorkflow).find(
+      (step) => step.name === "Prove every contracted test through Kibi",
+    );
+    expect(prove?.env?.KIBI_PROOF_STEP_CONCURRENCY).toBe("3");
+    const baseline = replaySteps(proofWorkflow).find(
+      (step) => step.name === FINAL_GATE_STEP,
+    );
+    expect(baseline?.env).toBeUndefined();
+  });
+
   test("fails loudly when a skipped step is renamed in the workflow", () => {
     const renamed = proofWorkflow.replace(
       "name: Install SWI-Prolog",

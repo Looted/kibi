@@ -149,6 +149,10 @@ jobs:
 
       - name: Prove every contracted test through Kibi
         if: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}
+        env:
+          # Distinct proof commands run three at a time on the 4-vCPU runner.
+          # Every declared step still runs once and is recorded per contract.
+          KIBI_PROOF_STEP_CONCURRENCY: "3"
         run: bun packages/cli/bin/kibi prove --all
 
       - name: Enforce proof baseline and clean snapshot
