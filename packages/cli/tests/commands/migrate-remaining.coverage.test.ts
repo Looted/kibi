@@ -189,7 +189,7 @@ describe("migrateCommand remaining runtime branches", () => {
     expect(symbols).toContain("granularity_reason: legacy-link");
   });
 
-  test("initializeMissingConfig writes a baseline then continues when legacy files exist", async () => {
+  test("initializeMissingConfig keeps the legacy schema generation so every legacy step runs", async () => {
     const cwd = preparedWorkspace();
     mkdirSync(path.join(cwd, ".kb"), { recursive: true });
     writeFileSync(
@@ -207,6 +207,38 @@ describe("migrateCommand remaining runtime branches", () => {
     expect(result.exitCode).toBe(0);
     expect(existsSync(path.join(cwd, ".kb", "manifest.json"))).toBe(true);
     expect(io.logText()).toContain("Migrated the KB");
+    expect(io.logText()).toContain("(was 4)");
+    const audit = JSON.parse(
+      readFileSync(path.join(cwd, ".kb", "migrations", "main.json"), "utf8"),
+    ) as { fromVersion: number; steps: string[] };
+    expect(audit.fromVersion).toBe(4);
+    expect(audit.steps).toContain("entity-body-context-v8");
+  });
+
+  test("a manifest written beside a legacy config does not skip the legacy steps", async () => {
+    const cwd = preparedWorkspace();
+    // An older 'kibi init' seeded a latest-schema manifest and an empty
+    // symbols manifest next to the legacy layout.
+    writeManifest(cwd, 8);
+    writeFileSync(
+      path.join(cwd, ".kb", "config.json"),
+      JSON.stringify({ schemaVersion: 4 }),
+    );
+    writeFileSync(
+      path.join(cwd, ".kb", "symbols.yaml"),
+      "# symbols.yaml\n# seeded by kibi init\nsymbols: []\n",
+    );
+    writeLegacyKnowledge(cwd);
+    const io = captureIo();
+    restores.push(io.restore);
+    const result = await migrateCommand({ yes: true, workspaceRoot: cwd });
+    expect(result.exitCode).toBe(0);
+    expect(io.logText()).toContain("(was 4)");
+    expect(
+      readFileSync(path.join(cwd, ".kb", "symbols.yaml"), "utf8"),
+    ).toContain("SYM-auth");
+    // The moved files are untracked, and sync compiles tracked sources only.
+    expect(io.logText()).toContain("not tracked by Git yet");
   });
 
   test("treats a missing schemaVersion as missing and upgrades it", async () => {
@@ -342,7 +374,20 @@ describe("migrateCommand remaining runtime branches", () => {
         return { content: [], structuredContent: { migrationPlan: plan } };
       }
       if (spec.name === "kb_apply_plan") {
-        return { content: [], structuredContent: { outcome: "blocked" } };
+        return {
+          content: [],
+          structuredContent: {
+            outcome: "reconciliation_required",
+            actionResults: [
+              {
+                actionId: "schema-ready",
+                outcome: "failed",
+                detail: "kibi sync failed",
+              },
+            ],
+            remainingPlan: plan,
+          },
+        };
       }
       return { content: [], structuredContent: {} };
     }) as never);
@@ -354,6 +399,10 @@ describe("migrateCommand remaining runtime branches", () => {
     });
     expect(blocked.exitCode).toBe(1);
     expect(io.logText()).toContain("Migration applied.");
+    // Table output summarizes the result instead of dumping its JSON.
+    expect(io.logText()).toContain("- failed schema-ready: kibi sync failed");
+    expect(io.logText()).toContain(`Remaining plan ${plan.planHash}`);
+    expect(io.logText()).not.toContain('"remainingPlan"');
   });
 
   test("assembles a fallback plan when status cannot provide downstream domains", async () => {

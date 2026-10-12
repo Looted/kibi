@@ -43,6 +43,12 @@ type Attestation = {
 };
 type ReuseInput = {
   repository: string;
+  /**
+   * The PR's base branch. A master PR from develop reuses develop's proof of
+   * its head; a develop PR reuses develop's proof of its base when the merge
+   * changes nothing the proof snapshot covers (for example only docs/).
+   */
+  baseRef?: string;
   headRepository: string;
   headBranch: string;
   headSha: string;
@@ -80,13 +86,15 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 // implements REQ-kibi-verification-evidence-contract
 export function assessProofReuse(input: ReuseInput): ReuseDecision {
   const mergeSnapshot = input.snapshot.hash;
-  if (
-    input.headBranch !== "develop" ||
-    input.headRepository.toLowerCase() !== input.repository.toLowerCase()
-  )
+  const intoDevelop = input.baseRef === "develop";
+  if (input.headRepository.toLowerCase() !== input.repository.toLowerCase())
+    return execute("PR source is not this repository", { mergeSnapshot });
+  if (!intoDevelop && input.headBranch !== "develop")
     return execute("PR source is not this repository's develop branch", {
       mergeSnapshot,
     });
+  // The develop commit whose successful proof this PR may reuse.
+  const provenSha = intoDevelop ? input.baseSha : input.headSha;
   if (
     ![input.headSha, input.baseSha, input.mergeSha, input.checkoutSha].every(
       (sha) => SHA.test(sha),
@@ -103,8 +111,9 @@ export function assessProofReuse(input: ReuseInput): ReuseDecision {
       mergeSnapshot,
     });
   if (
-    input.developHeadBefore !== input.headSha ||
-    input.developHeadAfter !== input.headSha
+    !intoDevelop &&
+    (input.developHeadBefore !== input.headSha ||
+      input.developHeadAfter !== input.headSha)
   )
     return execute("develop moved or no longer matches the PR head", {
       mergeSnapshot,
@@ -132,7 +141,7 @@ export function assessProofReuse(input: ReuseInput): ReuseDecision {
     run.id <= 0 ||
     !Number.isSafeInteger(run.run_attempt) ||
     run.run_attempt <= 0 ||
-    run.head_sha !== input.headSha ||
+    run.head_sha !== provenSha ||
     run.head_branch !== "develop" ||
     run.event !== "push" ||
     run.status !== "completed" ||
@@ -167,7 +176,7 @@ export function assessProofReuse(input: ReuseInput): ReuseDecision {
     attestation.source.repository.toLowerCase() !==
       input.repository.toLowerCase() ||
     attestation.source.branch !== "develop" ||
-    attestation.source.sha !== input.headSha ||
+    attestation.source.sha !== provenSha ||
     attestation.source.event !== "push" ||
     attestation.run.id !== run.id ||
     attestation.run.attempt !== run.run_attempt ||
@@ -454,14 +463,17 @@ async function decide(outputPath: string): Promise<void> {
   try {
     const repository = requiredEnv("GITHUB_REPOSITORY");
     const headSha = requiredEnv("PR_HEAD_SHA");
+    const baseSha = requiredEnv("PR_BASE_SHA");
+    const baseRef = process.env.PR_BASE_REF ?? "master";
+    const provenSha = baseRef === "develop" ? baseSha : headSha;
     const snapshot = await currentSnapshot();
     const checkoutSha = await git("rev-parse", "HEAD");
     const mergeParents = (await git("show", "-s", "--format=%P", "HEAD"))
       .split(" ")
       .filter(Boolean);
-    await waitForDevelopProof(repository, headSha);
+    await waitForDevelopProof(repository, provenSha);
     const developHeadBefore = await developHead(repository);
-    const runs = await findProofRun(repository, headSha);
+    const runs = await findProofRun(repository, provenSha);
     const onlyRun = runs.length === 1 ? runs[0] : undefined;
     const attestation = onlyRun
       ? await downloadAttestation(repository, onlyRun)
@@ -469,10 +481,11 @@ async function decide(outputPath: string): Promise<void> {
     const developHeadAfter = await developHead(repository);
     decision = assessProofReuse({
       repository,
+      baseRef,
       headRepository: requiredEnv("PR_HEAD_REPOSITORY"),
       headBranch: requiredEnv("PR_HEAD_BRANCH"),
       headSha,
-      baseSha: requiredEnv("PR_BASE_SHA"),
+      baseSha,
       mergeSha: requiredEnv("GITHUB_SHA"),
       checkoutSha,
       mergeParents,
@@ -496,7 +509,7 @@ async function decide(outputPath: string): Promise<void> {
   const detail = [
     "Kibi proof reuse:",
     `  develop proof snapshot: ${decision.developSnapshot ?? "unavailable"}`,
-    `  master merge snapshot:  ${decision.mergeSnapshot ?? "unavailable"}`,
+    `  PR merge snapshot:      ${decision.mergeSnapshot ?? "unavailable"}`,
     `  result: ${decision.reason}`,
     decision.mode === "reused"
       ? `  full proof skipped; reusing successful develop proof ${decision.sourceRun}`

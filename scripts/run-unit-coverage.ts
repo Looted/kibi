@@ -27,6 +27,14 @@ import { isolatedUnitBatchEnv, stopTestEngines } from "../test/root.test.js";
 import { writeCoverageManifestAudit } from "./coverage-manifest";
 import { finalizeLcov } from "./finalize-lcov";
 import { mergeLcovContentsWithDiagnostics } from "./merge-lcov";
+import {
+  type FileTestResult,
+  type ShardTestResults,
+  gitIdentity,
+  mergeShardTestResults,
+  parseJunitFileResults,
+  shardTestResults,
+} from "./unit-test-results";
 
 const COVERAGE_DIR = "coverage/unit";
 // Bun 1.3.10 ignores --coverage-dir for LCOV and writes here instead. This
@@ -153,6 +161,12 @@ export const COVERAGE_SHARDS: readonly {
   /** Query-string `?case=` imports poison Bun's line map; still run the tests. */
   readonly mergeLcov?: boolean;
   /**
+   * Approximate CI wall time of the shard, used only to balance `--partition`
+   * runs across parallel jobs. Unlisted shards count as a few seconds; a stale
+   * estimate can only unbalance the partitions, never drop a shard.
+   */
+  readonly costSeconds?: number;
+  /**
    * batch: one Bun process for the shard (default).
    * process-per-file: one Bun process per test file so a poisoned process
    * cannot take down later files in the same shard.
@@ -161,6 +175,7 @@ export const COVERAGE_SHARDS: readonly {
 }[] = [
   {
     label: "cli.commands",
+    costSeconds: 185,
     // Process-per-file: Bun 1.4 + coverage can hang a shared commands process
     // (dangling engine / spawnSync ETIMEDOUT cascade). Isolation replaces the
     // former 25-minute shared-process bound.
@@ -175,18 +190,21 @@ export const COVERAGE_SHARDS: readonly {
   },
   {
     label: "cli.check-command",
+    costSeconds: 105,
     paths: CLI_CHECK_COMMAND_TESTS,
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
     isolation: "process-per-file",
   },
   {
     label: "cli.sync-command",
+    costSeconds: 35,
     paths: [CLI_SYNC_COMMAND_TEST],
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
     isolation: "process-per-file",
   },
   {
     label: "cli.sync-coverage",
+    costSeconds: 20,
     paths: CLI_SYNC_COMMAND_TESTS.filter(
       (path) => path !== CLI_SYNC_COMMAND_TEST,
     ),
@@ -195,6 +213,7 @@ export const COVERAGE_SHARDS: readonly {
   },
   {
     label: "cli.doctor",
+    costSeconds: 40,
     paths: CLI_DOCTOR_COMMAND_TESTS,
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
     isolation: "process-per-file",
@@ -205,6 +224,7 @@ export const COVERAGE_SHARDS: readonly {
     // until the 15-minute bound and dropped its LCOV, so every file runs in
     // its own process like the other fixture-heavy CLI shards.
     label: "cli.operations",
+    costSeconds: 30,
     paths: CLI_OPERATIONS_TESTS,
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
     isolation: "process-per-file",
@@ -228,12 +248,14 @@ export const COVERAGE_SHARDS: readonly {
     // shared Bun 1.4 coverage process an exited Git child can hang the file
     // indefinitely, so every traceability test runs in its own process.
     label: "cli.support.traceability",
+    costSeconds: 40,
     paths: CLI_SUPPORT_TRACEABILITY_TESTS,
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
     isolation: "process-per-file",
   },
   {
     label: "cli.support",
+    costSeconds: 35,
     paths: [
       "./packages/cli/tests/extractors",
       "./packages/cli/tests/utils",
@@ -279,6 +301,7 @@ export const COVERAGE_SHARDS: readonly {
   },
   {
     label: "cli.engine",
+    costSeconds: 60,
     paths: CLI_ROOT_TESTS.filter((path) => {
       const name = path.split("/").pop() ?? "";
       return (
@@ -302,6 +325,7 @@ export const COVERAGE_SHARDS: readonly {
   },
   {
     label: "cli.root",
+    costSeconds: 8,
     paths: CLI_ROOT_TESTS.filter((path) => {
       const name = path.split("/").pop() ?? "";
       return (
@@ -344,6 +368,7 @@ export const COVERAGE_SHARDS: readonly {
   },
   {
     label: "cli.parity",
+    costSeconds: 60,
     paths: ["./packages/cli/tests/parity"],
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
   },
@@ -362,10 +387,11 @@ export const COVERAGE_SHARDS: readonly {
   },
   {
     label: "mcp",
+    costSeconds: 90,
     paths: ["./packages/mcp"],
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
   },
-  { label: "opencode", paths: ["./packages/opencode"] },
+  { label: "opencode", costSeconds: 12, paths: ["./packages/opencode"] },
   { label: "codex", paths: ["./packages/codex"] },
   { label: "cursor", paths: ["./packages/cursor"] },
   { label: "runtime", paths: ["./packages/runtime"] },
@@ -378,6 +404,7 @@ export const COVERAGE_SHARDS: readonly {
   { label: "claude", paths: ["./packages/claude"] },
   {
     label: "skillopt",
+    costSeconds: 60,
     paths: ["./scripts/skillopt-eval/tests"],
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
   },
@@ -419,6 +446,7 @@ export const COVERAGE_SHARDS: readonly {
   },
   {
     label: "scripts",
+    costSeconds: 55,
     // CI saw unrelated shell and Node subprocess tests hit the same 15s Bun
     // timeout with empty output after earlier files ran in this coverage VM.
     // A process per file keeps each child-process test's Bun state private.
@@ -501,6 +529,12 @@ type UnitCoverageOptions = Readonly<{
    * pipeline e2e) must omit this so a partial shard still fail-closes.
    */
   readonly skipRepoGates?: boolean;
+  /**
+   * Run only this cost-balanced slice of the selected shards. CI runs every
+   * partition in its own job with `skipRepoGates`, then `--merge` combines
+   * the published shard LCOV and applies the repository gates once.
+   */
+  readonly partition?: CoveragePartition;
 }>;
 
 /**
@@ -558,6 +592,92 @@ export function selectedShards(labels: readonly string[] | undefined) {
   return selected;
 }
 
+export type CoveragePartition = Readonly<{ index: number; count: number }>;
+
+const DEFAULT_SHARD_COST_SECONDS = 2;
+
+/**
+ * Parse `--partition K/N` / `--partition=K/N` (1-based), then
+ * `KIBI_COVERAGE_PARTITION`. CI runs one partition per parallel job.
+ */
+// implements REQ-root-suite-batch-diagnostics
+export function partitionFromArgv(
+  argv: readonly string[],
+  env: NodeJS.ProcessEnv = process.env,
+): CoveragePartition | undefined {
+  const eq = argv.find((arg) => arg.startsWith("--partition="));
+  const flagIndex = argv.indexOf("--partition");
+  const raw =
+    eq !== undefined
+      ? eq.slice("--partition=".length)
+      : flagIndex >= 0
+        ? argv[flagIndex + 1]
+        : env.KIBI_COVERAGE_PARTITION;
+  if (raw === undefined || raw.trim() === "") return undefined;
+  const match = /^(\d+)\/(\d+)$/.exec(raw.trim());
+  const index = Number(match?.[1]);
+  const count = Number(match?.[2]);
+  if (match === null || count < 1 || index < 1 || index > count) {
+    throw new Error(
+      `Invalid unit coverage partition ${JSON.stringify(raw)}; expected K/N with 1 <= K <= N`,
+    );
+  }
+  return { index, count };
+}
+
+/**
+ * Deterministically split the shard list into `count` partitions balanced by
+ * `costSeconds` (longest-processing-time first) and return partition `index`
+ * in shard order. Every shard lands in exactly one partition.
+ */
+// implements REQ-root-suite-batch-diagnostics
+export function partitionShards(
+  partition: CoveragePartition,
+  shards: typeof COVERAGE_SHARDS = COVERAGE_SHARDS,
+): typeof COVERAGE_SHARDS {
+  if (partition.count > shards.length) {
+    throw new Error(
+      `Cannot split ${shards.length} unit coverage shards into ${partition.count} partitions`,
+    );
+  }
+  const loads = Array.from({ length: partition.count }, () => 0);
+  const owner = new Map<string, number>();
+  const byCost = shards
+    .map((shard, order) => ({
+      shard,
+      order,
+      cost: shard.costSeconds ?? DEFAULT_SHARD_COST_SECONDS,
+    }))
+    .sort((a, b) => b.cost - a.cost || a.order - b.order);
+  for (const { shard, cost } of byCost) {
+    let lightest = 0;
+    for (let bin = 1; bin < loads.length; bin += 1) {
+      if ((loads[bin] ?? 0) < (loads[lightest] ?? 0)) lightest = bin;
+    }
+    loads[lightest] = (loads[lightest] ?? 0) + cost;
+    owner.set(shard.label, lightest);
+  }
+  return shards.filter(
+    (shard) => owner.get(shard.label) === partition.index - 1,
+  );
+}
+
+/** Parse `--merge DIR` / `--merge=DIR`, then `KIBI_COVERAGE_MERGE_FROM`. */
+export function mergeDirFromArgv(
+  argv: readonly string[],
+  env: NodeJS.ProcessEnv = process.env,
+): string | undefined {
+  const eq = argv.find((arg) => arg.startsWith("--merge="));
+  const flagIndex = argv.indexOf("--merge");
+  const raw =
+    eq !== undefined
+      ? eq.slice("--merge=".length)
+      : flagIndex >= 0
+        ? argv[flagIndex + 1]
+        : env.KIBI_COVERAGE_MERGE_FROM;
+  return raw !== undefined && raw.trim() !== "" ? raw : undefined;
+}
+
 type BunTestRunResult = Readonly<{
   exitCode: number;
   timedOut: boolean;
@@ -596,12 +716,16 @@ async function runBunTest(
   setup?: readonly string[],
   processTimeoutMs = SHARD_PROCESS_TIMEOUT_MS,
   captureOutput = false,
+  junitPath?: string,
 ): Promise<BunTestRunResult> {
   const args: string[] = [...COVERAGE_ARGS];
   const coverageDirIndex = args.indexOf("--coverage-dir");
   args[coverageDirIndex + 1] = coverageDir;
   const timeoutIndex = args.indexOf("--timeout");
   args[timeoutIndex + 1] = String(timeoutMs);
+  if (junitPath !== undefined) {
+    args.push("--reporter=junit", "--reporter-outfile", junitPath);
+  }
   const runtimeDirectory = mkdtempSync(
     join(tmpdir(), "kibi-unit-coverage-runtime-"),
   );
@@ -769,6 +893,98 @@ export function summarizeBranchCoverage(lcov: string): BranchCoverageSummary {
   return { available: found > 0, found, hit };
 }
 
+/**
+ * Merge shard LCOV into the published report, apply the repository gates and
+ * publish per-shard snapshots plus the failed-shard list.
+ */
+// implements REQ-014
+function publishUnitCoverage(
+  input: Readonly<{
+    coverageDir: string;
+    /** Shard LCOV files merged into lcov.info, in shard order. */
+    mergedShardPaths: readonly string[];
+    shardArtifacts: readonly Readonly<{ label: string; path: string }>[];
+    failedShards: readonly string[];
+    enforceFloor: boolean;
+    enforceManifestAudit: boolean;
+  }>,
+): void {
+  mkdirSync(input.coverageDir, { recursive: true });
+  const mergeResult = mergeLcovContentsWithDiagnostics(
+    input.mergedShardPaths.map((filePath) => readFileSync(filePath, "utf8")),
+  );
+  writeFileSync(join(input.coverageDir, "lcov.info"), mergeResult.lcov, "utf8");
+  writeFileSync(
+    join(input.coverageDir, "lcov-conflicts.txt"),
+    mergeResult.diagnostics.length > 0
+      ? `${mergeResult.diagnostics.join("\n")}\n`
+      : "",
+    "utf8",
+  );
+  if (mergeResult.diagnostics.length > 0) {
+    console.warn(
+      `Coverage merger reported ${mergeResult.diagnostics.length} source-map conflict(s); see ${join(input.coverageDir, "lcov-conflicts.txt")}`,
+    );
+  }
+  const mergedLcov = mergeResult.lcov;
+  const lineCoverage = lineCoveragePercent(mergedLcov);
+  const branchCoverage = summarizeBranchCoverage(mergedLcov);
+  const branchSummary = branchCoverage.available
+    ? `Merged unit branch coverage: ${((branchCoverage.hit / branchCoverage.found) * 100).toFixed(2)}% (${branchCoverage.hit}/${branchCoverage.found} branches)`
+    : "Merged unit branch coverage: unavailable (LCOV contains no BRDA records)";
+  console.log(
+    `Merged unit line coverage: ${lineCoverage.toFixed(2)}% (floor ${UNIT_LINE_COVERAGE_FLOOR}%)`,
+  );
+  console.log(branchSummary);
+  writeFileSync(
+    join(input.coverageDir, "coverage-summary.txt"),
+    `${[
+      `Merged unit line coverage: ${lineCoverage.toFixed(2)}%`,
+      branchSummary,
+    ].join("\n")}\n`,
+    "utf8",
+  );
+  const failures: string[] = [];
+  if (input.enforceFloor && lineCoverage < UNIT_LINE_COVERAGE_FLOOR) {
+    failures.push(
+      `Unit line coverage ${lineCoverage.toFixed(2)}% is below the ${UNIT_LINE_COVERAGE_FLOOR}% floor.`,
+    );
+  }
+  if (input.enforceManifestAudit) {
+    const missingFiles = writeCoverageManifestAudit(
+      process.cwd(),
+      input.coverageDir,
+      mergedLcov,
+    );
+    if (missingFiles.length > 0) {
+      failures.push(
+        `Coverage manifest audit failed: ${missingFiles.length} production source files are absent from LCOV.`,
+      );
+    }
+  }
+  // Publish per-shard snapshots only after all child and nested runners are
+  // done, so Bun's fallback cleanup cannot erase the outer artifacts.
+  for (const artifact of input.shardArtifacts) {
+    cpSync(
+      artifact.path,
+      join(input.coverageDir, `lcov.${artifact.label}.info`),
+    );
+  }
+  writeFileSync(
+    join(input.coverageDir, "failed-shards.txt"),
+    input.failedShards.length > 0 ? `${input.failedShards.join("\n")}\n` : "",
+    "utf8",
+  );
+  if (input.failedShards.length > 0) {
+    failures.push(`Coverage shards failed:\n${input.failedShards.join("\n")}`);
+  }
+  if (failures.length > 0) {
+    const message = failures.join("\n");
+    console.error(message);
+    throw new UnitCoverageFailure(message);
+  }
+}
+
 // implements REQ-014
 export async function runUnitCoverage(
   options: UnitCoverageOptions = {},
@@ -777,7 +993,11 @@ export async function runUnitCoverage(
   const shardDir = options.shardDir ?? SHARD_DIR;
   // Validate the shard selection before touching any directory so a rejected
   // run leaves the workspace exactly as it was.
-  const shards = selectedShards(options.shardLabels);
+  const selected = selectedShards(options.shardLabels);
+  const shards =
+    options.partition === undefined
+      ? selected
+      : partitionShards(options.partition, selected);
   const coverageLcovPath = join(coverageDir, "lcov.info");
   rmSync(coverageDir, { recursive: true, force: true });
   mkdirSync(coverageDir, { recursive: true });
@@ -785,8 +1005,10 @@ export async function runUnitCoverage(
   // Never clear the whole shard base: a nested runner can share it with an
   // outer runner. Each invocation owns only this private run directory.
   const runShardDir = mkdtempSync(join(shardDir, "run-"));
+  const identityBefore = gitIdentity();
 
   try {
+    const shardResults: ShardTestResults[] = [];
     const shardFiles: string[] = [];
     const shardArtifacts: Array<Readonly<{ label: string; path: string }>> = [];
     const failedShards: string[] = [];
@@ -846,6 +1068,10 @@ export async function runUnitCoverage(
               file: path,
               paths: [path],
               coverageDir: join(shardCoverageDir, shardUnitName(path, index)),
+              junitPath: join(
+                shardCoverageDir,
+                `${shardUnitName(path, index)}.junit.xml`,
+              ),
               processTimeoutMs: FILE_PROCESS_TIMEOUT_MS,
               setup: index === 0 ? shard.setup : undefined,
               captureOutput: true,
@@ -856,6 +1082,7 @@ export async function runUnitCoverage(
                 file: undefined,
                 paths: shard.paths,
                 coverageDir: shardCoverageDir,
+                junitPath: `${shardCoverageDir}.junit.xml`,
                 processTimeoutMs:
                   shard.processTimeoutMs ?? SHARD_PROCESS_TIMEOUT_MS,
                 setup: shard.setup,
@@ -863,6 +1090,7 @@ export async function runUnitCoverage(
               },
             ];
       const unitLcovs: string[] = [];
+      const fileResults = new Map<string, FileTestResult>();
       console.info(
         `Starting unit coverage shard ${shard.label} (${units.length} ${isolation === "process-per-file" ? "file" : "path group"}${units.length === 1 ? "" : "s"}, isolation=${isolation})...`,
       );
@@ -880,7 +1108,21 @@ export async function runUnitCoverage(
           unit.setup,
           unit.processTimeoutMs,
           unit.captureOutput,
+          unit.junitPath,
         );
+        // Only a passing unit's files are recorded; a failed or timed-out
+        // unit leaves its files absent, so nothing about them is reusable.
+        if (
+          result.exitCode === 0 &&
+          !result.timedOut &&
+          existsSync(unit.junitPath)
+        ) {
+          for (const [file, fileResult] of parseJunitFileResults(
+            readFileSync(unit.junitPath, "utf8"),
+          )) {
+            fileResults.set(file, fileResult);
+          }
+        }
         console.info(
           `Finished unit coverage ${unit.label} (exit ${result.exitCode}, ${result.durationMs}ms${result.timedOut ? ", timedOut" : ""}).`,
         );
@@ -922,6 +1164,9 @@ export async function runUnitCoverage(
           console.error(error);
         }
       }
+      shardResults.push(
+        shardTestResults(shard.label, identityBefore, fileResults),
+      );
       if (unitLcovs.length === 0) continue;
       const shardPath = join(shardCoverageDir, "lcov.info");
       const firstUnit = unitLcovs[0];
@@ -942,85 +1187,150 @@ export async function runUnitCoverage(
     // A nested Bun process may clear the requested coverage directory while
     // honoring neither its --coverage-dir nor its caller's lifecycle. Recreate
     // the published directory only after all child processes have finished.
-    mkdirSync(coverageDir, { recursive: true });
-    const mergeResult = mergeLcovContentsWithDiagnostics(
-      shardFiles.map((filePath) => readFileSync(filePath, "utf8")),
-    );
-    writeFileSync(coverageLcovPath, mergeResult.lcov, "utf8");
-    writeFileSync(
-      join(coverageDir, "lcov-conflicts.txt"),
-      mergeResult.diagnostics.length > 0
-        ? `${mergeResult.diagnostics.join("\n")}\n`
-        : "",
-      "utf8",
-    );
-    if (mergeResult.diagnostics.length > 0) {
-      console.warn(
-        `Coverage merger reported ${mergeResult.diagnostics.length} source-map conflict(s); see ${join(coverageDir, "lcov-conflicts.txt")}`,
-      );
-    }
-    const mergedLcov = mergeResult.lcov;
-    const lineCoverage = lineCoveragePercent(mergedLcov);
-    const branchCoverage = summarizeBranchCoverage(mergedLcov);
-    const branchSummary = branchCoverage.available
-      ? `Merged unit branch coverage: ${((branchCoverage.hit / branchCoverage.found) * 100).toFixed(2)}% (${branchCoverage.hit}/${branchCoverage.found} branches)`
-      : "Merged unit branch coverage: unavailable (LCOV contains no BRDA records)";
-    console.log(
-      `Merged unit line coverage: ${lineCoverage.toFixed(2)}% (floor ${UNIT_LINE_COVERAGE_FLOOR}%)`,
-    );
-    console.log(branchSummary);
-    writeFileSync(
-      join(coverageDir, "coverage-summary.txt"),
-      `${[
-        `Merged unit line coverage: ${lineCoverage.toFixed(2)}%`,
-        branchSummary,
-      ].join("\n")}\n`,
-      "utf8",
-    );
-    const failures: string[] = [];
     const skipRepoGates = options.skipRepoGates === true;
-    if (
-      !skipRepoGates &&
-      options.shardLabels === undefined &&
-      lineCoverage < UNIT_LINE_COVERAGE_FLOOR
-    ) {
-      failures.push(
-        `Unit line coverage ${lineCoverage.toFixed(2)}% is below the ${UNIT_LINE_COVERAGE_FLOOR}% floor.`,
-      );
-    }
-    if (!skipRepoGates) {
-      const missingFiles = writeCoverageManifestAudit(
-        process.cwd(),
-        coverageDir,
-        mergedLcov,
-      );
-      if (missingFiles.length > 0) {
-        failures.push(
-          `Coverage manifest audit failed: ${missingFiles.length} production source files are absent from LCOV.`,
-        );
-      }
-    }
-    // Publish per-shard snapshots only after all child and nested runners are
-    // done, so Bun's fallback cleanup cannot erase the outer artifacts.
-    for (const artifact of shardArtifacts) {
-      cpSync(artifact.path, join(coverageDir, `lcov.${artifact.label}.info`));
-    }
-    writeFileSync(
-      join(coverageDir, "failed-shards.txt"),
-      failedShards.length > 0 ? `${failedShards.join("\n")}\n` : "",
-      "utf8",
-    );
-    if (failedShards.length > 0) {
-      failures.push(`Coverage shards failed:\n${failedShards.join("\n")}`);
-    }
-    if (failures.length > 0) {
-      const message = failures.join("\n");
-      console.error(message);
-      throw new UnitCoverageFailure(message);
-    }
+    writeUnitTestResults({
+      coverageDir,
+      shardResults,
+      identityBefore,
+      writeLedger:
+        options.partition === undefined && options.shardLabels === undefined,
+    });
+    publishUnitCoverage({
+      coverageDir,
+      mergedShardPaths: shardFiles,
+      shardArtifacts,
+      failedShards,
+      enforceFloor: !skipRepoGates && options.shardLabels === undefined,
+      enforceManifestAudit: !skipRepoGates,
+    });
   } finally {
     rmSync(runShardDir, { recursive: true, force: true });
   }
+}
+
+/**
+ * Publish each shard's per-file test results as `results.<label>.json`, and
+ * for a complete run the combined `test-results.json` ledger. A run whose
+ * commit or tracked files changed while it ran is recorded as dirty.
+ */
+// implements REQ-kibi-verification-evidence-contract
+function writeUnitTestResults(
+  input: Readonly<{
+    coverageDir: string;
+    shardResults: readonly ShardTestResults[];
+    identityBefore: Readonly<{ commit: string | null; dirty: boolean }>;
+    writeLedger: boolean;
+  }>,
+): void {
+  const after = gitIdentity();
+  const changed = after.dirty || after.commit !== input.identityBefore.commit;
+  mkdirSync(input.coverageDir, { recursive: true });
+  const published = input.shardResults.map((results) =>
+    changed ? { ...results, dirty: true } : results,
+  );
+  for (const results of published) {
+    writeFileSync(
+      join(input.coverageDir, `results.${results.shard}.json`),
+      `${JSON.stringify(results, null, 2)}\n`,
+      "utf8",
+    );
+  }
+  if (input.writeLedger) {
+    writeFileSync(
+      join(input.coverageDir, UNIT_TEST_RESULTS_LEDGER),
+      `${JSON.stringify(mergeShardTestResults(published), null, 2)}\n`,
+      "utf8",
+    );
+  }
+}
+
+const SHARD_SNAPSHOT_PATTERN = /^lcov\.(.+)\.info$/;
+const SHARD_RESULTS_PATTERN = /^results\.(.+)\.json$/;
+const UNIT_TEST_RESULTS_LEDGER = "test-results.json";
+
+function listFilesRecursive(root: string): string[] {
+  return readdirSync(root, { recursive: true, encoding: "utf8" })
+    .map((entry) => join(root, entry))
+    .filter((path) => statSync(path).isFile())
+    .sort();
+}
+
+/**
+ * Combine the per-shard snapshots that `--partition` jobs published under
+ * `fromDir` into one report and apply the repository gates. Fails closed when
+ * any shard is missing, published twice, or unknown to this checkout.
+ */
+// implements REQ-014
+export function mergeUnitCoveragePartitions(
+  options: Readonly<{ fromDir: string; coverageDir?: string }>,
+): void {
+  const coverageDir = options.coverageDir ?? COVERAGE_DIR;
+  const snapshots = new Map<string, string[]>();
+  const failedShards: string[] = [];
+  const shardResults: unknown[] = [];
+  for (const path of listFilesRecursive(options.fromDir)) {
+    const name = path.split("/").pop() ?? "";
+    if (SHARD_RESULTS_PATTERN.test(name)) {
+      try {
+        shardResults.push(JSON.parse(readFileSync(path, "utf8")));
+      } catch {
+        // An unreadable results file makes the ledger name no commit.
+        shardResults.push(null);
+      }
+      continue;
+    }
+    if (name === "failed-shards.txt") {
+      failedShards.push(
+        ...readFileSync(path, "utf8")
+          .split("\n")
+          .filter((line) => line.trim().length > 0),
+      );
+      continue;
+    }
+    const label = SHARD_SNAPSHOT_PATTERN.exec(name)?.[1];
+    if (label === undefined) continue;
+    snapshots.set(label, [...(snapshots.get(label) ?? []), path]);
+  }
+  const problems: string[] = [];
+  const known = new Set(COVERAGE_SHARDS.map((shard) => shard.label));
+  for (const label of snapshots.keys()) {
+    if (!known.has(label)) problems.push(`unknown shard snapshot ${label}`);
+  }
+  const mergedShardPaths: string[] = [];
+  const shardArtifacts: Array<Readonly<{ label: string; path: string }>> = [];
+  for (const shard of COVERAGE_SHARDS) {
+    const paths = snapshots.get(shard.label) ?? [];
+    const path = paths[0];
+    if (path === undefined) {
+      problems.push(`missing shard snapshot ${shard.label}`);
+      continue;
+    }
+    if (paths.length > 1) {
+      problems.push(`shard ${shard.label} was published ${paths.length} times`);
+    }
+    shardArtifacts.push({ label: shard.label, path });
+    if (shard.mergeLcov !== false) mergedShardPaths.push(path);
+  }
+  if (problems.length > 0) {
+    const message = `Unit coverage partitions are incomplete:\n${problems.join("\n")}`;
+    console.error(message);
+    throw new UnitCoverageFailure(message);
+  }
+  rmSync(coverageDir, { recursive: true, force: true });
+  mkdirSync(coverageDir, { recursive: true });
+  writeFileSync(
+    join(coverageDir, UNIT_TEST_RESULTS_LEDGER),
+    `${JSON.stringify(mergeShardTestResults(shardResults), null, 2)}\n`,
+    "utf8",
+  );
+  publishUnitCoverage({
+    coverageDir,
+    mergedShardPaths,
+    shardArtifacts,
+    failedShards,
+    enforceFloor: true,
+    enforceManifestAudit: true,
+  });
 }
 
 export async function runUnitCoverageIfMain(
@@ -1029,13 +1339,30 @@ export async function runUnitCoverageIfMain(
   argv: readonly string[] = process.argv.slice(2),
 ): Promise<void> {
   if (!isMain) return;
-  const argvLabels = shardLabelsFromArgv(argv);
-  const shardLabels = options.shardLabels ?? argvLabels;
-  const skipRepoGates =
-    options.skipRepoGates ??
-    (options.shardLabels === undefined && argvLabels !== undefined);
   try {
-    await runUnitCoverage({ ...options, shardLabels, skipRepoGates });
+    const mergeFrom = mergeDirFromArgv(argv);
+    if (mergeFrom !== undefined) {
+      mergeUnitCoveragePartitions({
+        fromDir: mergeFrom,
+        coverageDir: options.coverageDir,
+      });
+      return;
+    }
+    const argvLabels = shardLabelsFromArgv(argv);
+    const shardLabels = options.shardLabels ?? argvLabels;
+    const partition = options.partition ?? partitionFromArgv(argv);
+    // A partial CLI run (--shards or --partition) leaves the repository gates
+    // to the full run or to the --merge step that combines every partition.
+    const skipRepoGates =
+      options.skipRepoGates ??
+      ((options.shardLabels === undefined && argvLabels !== undefined) ||
+        partition !== undefined);
+    await runUnitCoverage({
+      ...options,
+      shardLabels,
+      skipRepoGates,
+      partition,
+    });
   } catch (error) {
     if (error instanceof UnitCoverageFailure) {
       process.exitCode = 1;

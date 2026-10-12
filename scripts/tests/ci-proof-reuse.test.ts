@@ -152,6 +152,54 @@ describe("CI proof attestation reuse", () => {
   });
 });
 
+describe("CI proof reuse for PRs into develop", () => {
+  // A feature PR reuses develop's proof of its base commit, not of its head.
+  const baseRun = { ...run, head_sha: baseSha };
+  const baseAttestation = {
+    ...attestation,
+    source: { ...attestation.source, sha: baseSha },
+  };
+  function intoDevelop(overrides: Record<string, unknown> = {}) {
+    return candidate({
+      baseRef: "develop",
+      headBranch: "feature/docs",
+      developHeadBefore: "f".repeat(40),
+      developHeadAfter: "e".repeat(40),
+      runs: [baseRun],
+      attestation: baseAttestation,
+      ...overrides,
+    });
+  }
+
+  test("an unchanged snapshot reuses the base commit's develop proof", () => {
+    expect(assessProofReuse(intoDevelop())).toMatchObject({
+      mode: "reused",
+      mergeSnapshot: snapshotHash,
+      developSnapshot: snapshotHash,
+      sourceRun: run.html_url,
+    });
+  });
+
+  test("a changed snapshot, the head's proof, or a fork requires full proof", () => {
+    for (const overrides of [
+      {
+        snapshot: {
+          version: "kibi.workspace-snapshot.v2",
+          hash: "e".repeat(64),
+          dirty: false,
+        },
+      },
+      { runs: [run], attestation },
+      { attestation },
+      { headRepository: "someone/fork" },
+      { mergeParents: [headSha, baseSha] },
+      { runs: [] },
+    ]) {
+      expect(assessProofReuse(intoDevelop(overrides)).mode).toBe("execute");
+    }
+  });
+});
+
 describe("waiting for the in-flight develop proof", () => {
   const listing = (runs: unknown[]) => ({
     total_count: runs.length,

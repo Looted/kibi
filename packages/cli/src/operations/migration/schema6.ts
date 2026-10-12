@@ -146,7 +146,7 @@ function reviewAction(plan: InventoryRederivation): MigrationAction {
     safety: "review",
     invocation: {
       kind: "review",
-      instruction: `${plan.requirementId} (${plan.path}) no longer matches the current semantic advisor and cannot be re-derived automatically: ${plan.reasons.join("; ")}. Fix it by hand: run \`kibi model --input -\` with {"mode":"analyze","payload":{"type":"req","id":"${plan.requirementId}","properties":<the requirement's current properties>}} to get the current inventory; re-ground or remove each listed grounding link (kb_delete with the relationship) so modeled claims and requires_* links match one to one; kb_upsert the requirement with the returned semantic_inventory, logic_claims and semantic_source_hash (keep modeled only for claims that still have a grounding fact with the same claim_key); then run kibi sync.`,
+      instruction: `${plan.requirementId} (${plan.path}) no longer matches the current semantic advisor and cannot be re-derived automatically: ${plan.reasons.join("; ")}. Fix it in ${plan.path} itself: kibi sync rejects this requirement, so store-backed tools (kb_upsert, kb_delete) cannot see it until it compiles. In its front matter, write the re-derived contract from this action's evidence.contract (semantic_inventory, logic_claims, semantic_source_hash and their version fields), then make modeled claims and requires_* links match one to one: re-ground or remove each listed grounding link, and keep a claim modeled only while a grounding fact with the same claim_key remains. Run kibi sync to confirm. To see how the advisor reads the prose, run \`kibi model --input -\` with {"mode":"analyze","type":"req","id":"${plan.requirementId}","text":<the requirement's semantic_text, or its statement when it has none>}.`,
     },
     affectedEntityIds: [plan.requirementId],
     affectedFiles: [plan.path],
@@ -157,6 +157,8 @@ function reviewAction(plan: InventoryRederivation): MigrationAction {
       reasons: plan.reasons,
       summary: plan.summary,
       changes: plan.changes.filter((change) => change.change !== "kept"),
+      contract: plan.contract,
+      contractHash: plan.contractHash,
     },
   });
 }

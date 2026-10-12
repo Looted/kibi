@@ -194,7 +194,7 @@ status: open
     });
     expect(applied.exitCode).toBe(0);
     expect(io.logText()).toMatch(
-      /No approved automatic migration actions|Migration applied|outcome/,
+      /No approved automatic migration actions|Migration applied|Outcome/,
     );
   });
 
