@@ -16,14 +16,23 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { existsSync, readFileSync, readdirSync, rmSync } from "node:fs";
+import {
+  existsSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  statSync,
+} from "node:fs";
 import { join } from "node:path";
 import {
+  STORE_LOCK_TAKEOVER_FILE,
+  STORE_LOCK_TAKEOVER_VISIBLE_MS,
   type StoreLockHolderState,
   breakStoreLock,
   classifyStoreLockHolder,
   isProcessAlive,
   readStoreLockOwner,
+  readStoreLockTakeover,
 } from "./store-lock.js";
 
 /**
@@ -56,7 +65,24 @@ export interface SocketFinding {
   readonly action: "clean" | "keep";
 }
 
-export type JanitorFinding = StoreLockFinding | SocketFinding;
+/**
+ * A stale-lock takeover record past its visibility window: kb_status no
+ * longer reports it, so it is only clutter in the branch store.
+ */
+export interface TakeoverRecordFinding {
+  readonly kind: "takeover-record";
+  readonly storePath: string;
+  readonly recordPath: string;
+  /** When the takeover happened (the file's mtime for an unreadable record). */
+  readonly at: string;
+  readonly brokenPid?: number;
+  readonly action: "clean";
+}
+
+export type JanitorFinding =
+  | StoreLockFinding
+  | SocketFinding
+  | TakeoverRecordFinding;
 
 export interface JanitorOptions {
   /** Branch stores live under <workspaceRoot>/.kb/branches. */
@@ -67,6 +93,8 @@ export interface JanitorOptions {
   readonly all?: boolean;
   /** Execute cleanups; when false the scan only reports (dry run). */
   readonly apply?: boolean;
+  /** Clock for the takeover-record age; defaults to the current time. */
+  readonly now?: Date;
 }
 
 /** Scan one branch store's ownership journal and clean stale artifacts. */
@@ -145,6 +173,51 @@ export function sweepWorkspaceStoreLocks(
 }
 
 /**
+ * Report, and with apply delete, the stale-lock takeover records under
+ * <workspaceRoot>/.kb/branches that are older than the window kb_status
+ * shows them for. Fresh records are kept and not reported.
+ */
+// implements REQ-core-journaled-engine-persistence
+export function sweepStoreLockTakeoverRecords(
+  options: JanitorOptions,
+): TakeoverRecordFinding[] {
+  const branchesDir = join(options.workspaceRoot, ".kb", "branches");
+  if (!existsSync(branchesDir)) return [];
+  const now = (options.now ?? new Date()).getTime();
+  const findings: TakeoverRecordFinding[] = [];
+  for (const entry of readdirSync(branchesDir)) {
+    const storePath = join(branchesDir, entry);
+    const recordPath = join(storePath, STORE_LOCK_TAKEOVER_FILE);
+    let at: string;
+    let brokenPid: number | null = null;
+    try {
+      const record = readStoreLockTakeover(storePath);
+      if (record !== null) {
+        at = record.at;
+        brokenPid = record.brokenPid;
+      } else if (existsSync(recordPath)) {
+        at = statSync(recordPath).mtime.toISOString();
+      } else {
+        continue;
+      }
+    } catch {
+      continue;
+    }
+    if (now - Date.parse(at) <= STORE_LOCK_TAKEOVER_VISIBLE_MS) continue;
+    if (options.apply === true) rmSync(recordPath, { force: true });
+    findings.push({
+      kind: "takeover-record",
+      storePath,
+      recordPath,
+      at,
+      ...(brokenPid !== null ? { brokenPid } : {}),
+      action: "clean",
+    });
+  }
+  return findings;
+}
+
+/**
  * Sweep runtime-directory daemon sockets. A socket is stale when its pid
  * file records a dead process or a connect attempt is refused.
  */
@@ -197,11 +270,15 @@ export function sweepRuntimeSockets(options: JanitorOptions): SocketFinding[] {
   return findings;
 }
 
-/** Full janitor sweep across branch stores and (optionally) runtime sockets. */
+/**
+ * Full janitor sweep across branch stores, expired takeover records and
+ * (optionally) runtime sockets.
+ */
 // implements REQ-core-journaled-engine-persistence
 export function runJanitor(options: JanitorOptions): JanitorFinding[] {
   return [
     ...sweepWorkspaceStoreLocks(options),
+    ...sweepStoreLockTakeoverRecords(options),
     ...sweepRuntimeSockets(options),
   ];
 }

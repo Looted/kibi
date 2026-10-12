@@ -93,7 +93,8 @@ export interface EngineJanitorOptions {
 /**
  * Classify and (optionally) clean stale engine daemons and branch-store
  * locks: crashed engines leave ownership journals behind, worktree removals
- * strand live daemons, dead daemons leave sockets. Report-only by default;
+ * strand live daemons, dead daemons leave sockets, and stale-lock takeover
+ * records outlive the window kb_status reports them for. Report-only by default;
  `--apply` executes the clean actions.
  */
 // implements REQ-core-journaled-engine-persistence
@@ -121,6 +122,12 @@ export async function engineJanitorCommand(
     return;
   }
   for (const finding of findings) {
+    if (finding.kind === "takeover-record") {
+      console.log(
+        `[${finding.action}] takeover record ${finding.recordPath} at=${finding.at} (past the kb_status notice window)`,
+      );
+      continue;
+    }
     const holder =
       "pid" in finding && finding.pid !== undefined
         ? ` pid=${finding.pid}`

@@ -16,9 +16,15 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { existsSync, rmSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  realpathSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import { readFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { basename, dirname, join } from "node:path";
 import type { QueryResult } from "../prolog.js";
 import { escapeAtom } from "./codec.js";
 import type { PrologErrorRecord, PrologStoreLockOwner } from "./error-terms.js";
@@ -245,7 +251,7 @@ export function noteDeadHolderBeforeAttach(kbPath: string): () => void {
       : lockPid !== null
         ? { pid: lockPid }
         : null;
-  const decision = decideStoreLockTakeover(owner);
+  const decision = decideStoreLockTakeover(owner, { storePath: kbPath });
   if (decision.action !== "break") return () => undefined;
   const brokenPid = owner?.pid ?? null;
   return () => recordStoreLockTakeover(kbPath, brokenPid, decision.reason);
@@ -256,21 +262,112 @@ export interface StoreLockTakeoverDecision {
   readonly reason: string;
 }
 
+/** Reason prefix of a takeover that removed lock artifacts copied in. */
+export const FOREIGN_STORE_LOCK_REASON_PREFIX =
+  "journal belongs to another workspace";
+
+function existingRealPath(pathname: string): string | null {
+  try {
+    return realpathSync(pathname);
+  } catch {
+    return null;
+  }
+}
+
+function sameDirectory(left: string, right: string): boolean {
+  try {
+    const a = statSync(left);
+    const b = statSync(right);
+    return a.dev === b.dev && a.ino === b.ino;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * The workspace that owns a branch store: `<root>/.kb/branches/<key>` (a
+ * legacy key may span several segments) is owned by `<root>`. Null for a
+ * path outside that layout.
+ */
+function owningWorkspaceRoot(storePath: string): string | null {
+  let current = storePath;
+  for (;;) {
+    const parent = dirname(current);
+    if (parent === current) return null;
+    if (basename(parent) === "branches" && basename(dirname(parent)) === ".kb")
+      return dirname(dirname(parent));
+    current = parent;
+  }
+}
+
+/**
+ * The recorded root of an ownership journal that another workspace wrote,
+ * or null when the journal belongs to this store (or cannot be judged).
+ *
+ * kb.pl records the attached store directory as `workspaceRoot`; a journal
+ * may also name a workspace root. Either way it is foreign only when the
+ * workspace it names differs from the one that owns `storePath`, which
+ * happens when a `.kb` was copied (`cp -a`, a backup restore) while another
+ * workspace's engine held its store. An advisory lock is never inherited by
+ * a copied file, so nobody holds this store on the journal's behalf.
+ *
+ * The journal is judged only when that is safe: when the store's `rdf/lock`
+ * names a different pid than the journal, a process of this workspace has
+ * locked the store since the copy; when the recorded path no longer exists,
+ * the store may have been moved here while its holder still runs; and a
+ * recorded path that is this very directory (a bind mount) is not another
+ * workspace. Each of those returns null.
+ */
+// implements REQ-core-journaled-engine-persistence
+export function foreignStoreLockJournalRoot(
+  owner: PrologStoreLockOwner | null,
+  storePath: string,
+): string | null {
+  const recorded = owner?.workspaceRoot;
+  if (recorded === undefined || recorded === "") return null;
+  const store = existingRealPath(storePath);
+  if (store === null) return null;
+  const ownWorkspace = owningWorkspaceRoot(store);
+  if (ownWorkspace === null) return null;
+  const lockPid = readRdfLockPid(join(storePath, "rdf", "lock"));
+  if (lockPid !== null && lockPid !== owner?.pid) return null;
+  const recordedPath = existingRealPath(recorded);
+  if (recordedPath === null || recordedPath === store) return null;
+  if (sameDirectory(recordedPath, store)) return null;
+  const recordedWorkspace = owningWorkspaceRoot(recordedPath) ?? recordedPath;
+  return recordedWorkspace === ownWorkspace ? null : recorded;
+}
+
 /**
  * Decide whether a store-locked failure may be auto-healed. Only a provably
- * dead holder (or a holder from a previous boot) is broken; live or unknown
- * holders are surfaced so the operator can close the real session.
+ * dead holder (or a holder from a previous boot) is broken, and, when the
+ * caller names the store being attached, a journal copied in from another
+ * workspace; live or unknown holders are surfaced so the operator can close
+ * the real session.
  */
+// implements REQ-core-journaled-engine-persistence
 export function decideStoreLockTakeover(
   owner: PrologStoreLockOwner | null,
+  options: { readonly storePath?: string } = {},
 ): StoreLockTakeoverDecision {
   const state = classifyStoreLockHolder(owner);
+  if (state === "dead") {
+    return {
+      action: "break",
+      reason: `recorded holder pid ${owner?.pid ?? "?"} is no longer running`,
+    };
+  }
+  const foreignRoot =
+    options.storePath === undefined
+      ? null
+      : foreignStoreLockJournalRoot(owner, options.storePath);
+  if (foreignRoot !== null) {
+    return {
+      action: "break",
+      reason: `${FOREIGN_STORE_LOCK_REASON_PREFIX} ${foreignRoot}`,
+    };
+  }
   switch (state) {
-    case "dead":
-      return {
-        action: "break",
-        reason: `recorded holder pid ${owner?.pid ?? "?"} is no longer running`,
-      };
     case "unknown":
       return {
         action: "surface",
@@ -305,7 +402,9 @@ export async function retryAttachAfterBreakingStaleLock(
   const record: PrologErrorRecord | undefined = failed.errorRecord;
   const storeLocked = record?.storeLocked;
   if (storeLocked === undefined) return failed;
-  const decision = decideStoreLockTakeover(storeLocked.owner);
+  const decision = decideStoreLockTakeover(storeLocked.owner, {
+    storePath: kbPath,
+  });
   if (decision.action !== "break") {
     const holderSummary =
       storeLocked.owner === null

@@ -550,9 +550,13 @@ would have written, compiles the manifest and records its content hash.
 KB stale. `store_lock_taken_over` (with `brokenPid`, `reason` and `at`)
 reports that Kibi broke a branch-store lock whose holder was no longer
 running and reattached: a crashed or killed engine or `kibi prove` run held
-the store. It is recorded in `<store>/.kibi-lock-takeover.json`, shown for
-24 hours (and by `kibi doctor`'s branch-store check), and replaced by the
-next takeover.
+the store. A lock and ownership journal copied in with the `.kb` directory
+(for example by `cp -a` while another workspace's engine held its own store)
+is taken over the same way, with `reason` `journal belongs to another
+workspace <path>`, because a copied file never carries its advisory lock.
+It is recorded in `<store>/.kibi-lock-takeover.json`, shown for 24 hours
+(and by `kibi doctor`'s branch-store check), replaced by the next takeover,
+and deleted by `kibi engine janitor --apply` once it is older than that.
 
 **Example:**
 ```json
@@ -758,7 +762,7 @@ working-tree files for Git.
 For current requirement writes with assertive prose, mutation fails closed unless the payload preserves the complete advisor ledger and source contract. A relationship-only update of an existing requirement does not need to resend the ledger: when the payload carries no `semantic_*` or `logic_claims` field and any `title` or `text_ref` it sends equals the stored value, Kibi merges the stored ledger (`semantic_text`, `semantic_clauses`, `semantic_inventory`, `semantic_inventory_version`, `semantic_source_field`, `semantic_source_hash`, `logic_claims`) and the stored `text_ref` when the payload omits it under the payload, then runs the proposition-complete check on the merged requirement. For example, `{"type":"req","id":"REQ-x","properties":{"title":"<stored title>","status":"open"},"relationships":[{"type":"specified_by","from":"REQ-x","to":"SCEN-x"}]}` links a scenario and keeps the ledger. A payload that supplies any ledger field, or changes `title` or `text_ref`, is checked exactly as sent. Every assertive claim key must appear exactly once in `logic_claims`; every `modeled` entry must have exactly one logical relationship whose target fact carries that same key. Explicit unresolved statuses are accepted as honest inventory states but do not make the requirement proof-complete.
 
 **Returns:**
-Confirmation of entity creation/update and relationship creation counts. Successful responses may also include `structuredContent.semanticAdvisor` and `structuredContent.warnings`. Modeling suggestions remain reviewable, while proposition accounting and source/grounding integrity are blocking for applicable requirement writes.
+Confirmation of entity creation/update and relationship creation counts. Successful responses may also include `structuredContent.semanticAdvisor` and `structuredContent.warnings`. Modeling suggestions remain reviewable, while proposition accounting and source/grounding integrity are blocking for applicable requirement writes. A `symbol` payload with an `implements` edge but neither `covered_by` nor `executable_for` (and no `covered_by` edge already stored for that symbol) returns a warning, on `dryRun` and on the write, that `kb_check` will report `symbol-coverage` until the symbol gets `covered_by` to a test that covers the requirement.
 
 ### Dry run validation
 
