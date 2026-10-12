@@ -231,6 +231,76 @@ describe("search answer layer", () => {
     ]);
   });
 
+  // implements REQ-search-answer-hygiene
+  test("a top-ranked fact no requirement owns is named instead of passing lower hits off as its requirement", async () => {
+    const entities: Record<string, Row> = {
+      ...ENTITIES,
+      "FACT-ALICE": {
+        id: "FACT-ALICE",
+        type: "fact",
+        title: "alice holds the admin role",
+        status: "active",
+        fact_kind: "predicate",
+        predicate_name: "has_role",
+        predicate_args: ["alice", "admin"],
+      },
+    };
+    const answer = await buildSearchAnswer(fakeKb(entities, EDGES), [
+      match(entities["FACT-ALICE"] as Row, 0.58),
+      match(entities["SCEN-FREE"] as Row, 0.46),
+    ]);
+    expect(answer.ungoverned).toEqual([
+      {
+        id: "FACT-ALICE",
+        title: "alice holds the admin role",
+        status: "active",
+        type: "fact",
+        rank: 1,
+        factKind: "predicate",
+        claim: "has_role(alice, admin)",
+        ask: 'kb_query({"predicate":"has_role"})',
+      },
+    ]);
+    expect(answer.governing).toEqual([
+      expect.objectContaining({ id: "REQ-NEW", via: "scenario SCEN-FREE" }),
+    ]);
+    expect(answer.note).toMatch(
+      /^The top-ranked match FACT-ALICE \(fact\) is linked to no requirement; the governing requirements below were reached through lower-ranked matches\. /,
+    );
+
+    // Alone, the fact leaves no governing requirement and the note says
+    // both: the top match is unowned, and absence is not evidence.
+    const alone = await buildSearchAnswer(fakeKb(entities, EDGES), [
+      match(entities["FACT-ALICE"] as Row, 0.58),
+    ]);
+    expect(alone.governing).toEqual([]);
+    expect(alone.ungoverned.map((row) => row.id)).toEqual(["FACT-ALICE"]);
+    expect(alone.note).toMatch(
+      /^The top-ranked match FACT-ALICE \(fact\) is linked to no requirement\. No current requirement matched/,
+    );
+    expect(alone.note).toContain("not evidence");
+
+    // An owned match at the top keeps the plain note; an unowned test or
+    // scenario lower down is still listed with its rank.
+    const lower = await buildSearchAnswer(fakeKb(entities, EDGES), [
+      match(entities["REQ-NEW"] as Row, 0.7),
+      match(
+        { id: "TEST-LOOSE", type: "test", title: "Unlinked test", status: "x" },
+        0.3,
+      ),
+    ]);
+    expect(lower.note.startsWith("Governing requirements are")).toBe(true);
+    expect(lower.ungoverned).toEqual([
+      {
+        id: "TEST-LOOSE",
+        title: "Unlinked test",
+        status: "x",
+        type: "test",
+        rank: 2,
+      },
+    ]);
+  });
+
   test("says that finding nothing is not evidence that nothing governs", async () => {
     const answer = await buildSearchAnswer(fakeKb(ENTITIES, EDGES), [
       match(ENTITIES["FACT-NOTE"] as Row, 0.4),
@@ -946,6 +1016,7 @@ describe("search answer byte ceiling", () => {
         rationale: [],
         notGoverning: [],
         observations: [],
+        ungoverned: [],
         scope,
         truncated: false,
         note: "n",
@@ -999,6 +1070,7 @@ describe("search answer byte ceiling", () => {
       rationale: [entity("ADR", 0)],
       notGoverning: [entity("REQ", 9)],
       observations: [entity("FACT-NOTE", 0)],
+      ungoverned: [{ ...entity("FACT-LOOSE", 0), type: "fact", rank: 2 }],
       scope,
       truncated: false,
       note: "n",
@@ -1009,6 +1081,7 @@ describe("search answer byte ceiling", () => {
     expect(answer.governing[0]?.id).toBe(long("REQ", 0));
     expect(answer.observations).toEqual([]);
     expect(answer.notGoverning).toEqual([]);
+    expect(answer.ungoverned).toEqual([]);
     expect(answer.rationale).toEqual([]);
     expect(answer.governing[0]?.unknowns).toEqual([]);
     expect(answer.governing[0]?.exceptions).toEqual([]);

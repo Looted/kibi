@@ -151,7 +151,10 @@ export type SearchInput = {
 
 export type SearchPayload = {
   readonly results: readonly (SearchMatch | IntentSearchMatch)[];
+  /** Matches in the whole ranking, before `limit` and `offset`. */
   readonly count: number;
+  /** Rows in `results`: the page this call returned. */
+  readonly returned: number;
   readonly truncated?: boolean;
   readonly queryAnalysis?: IntentSearchAnalysis;
   readonly answer?: SearchAnswer;
@@ -829,6 +832,11 @@ export async function executeSearch(
           : undefined;
       // The structured payload carries every row; the text is a short
       // human-readable digest instead of a second copy of the results.
+      // A top match no requirement owns is said in the digest too, so the
+      // governing list is never read as the top match's requirement.
+      const topUngoverned = answerLayer?.ungoverned.find(
+        (entry) => entry.rank === 1,
+      );
       const text = `${
         intentResult.matches.length === 0
           ? `No intent search results for '${trimmedQuery}' (abstained).`
@@ -837,13 +845,14 @@ export async function executeSearch(
               .map((match) => String(match.entity.id ?? ""))
               .join(
                 ", ",
-              )}${answerLayer ? `. Governing: ${answerLayer.governing.map((req) => req.id).join(", ") || "none found"}` : ""}.`
+              )}${answerLayer ? `. Governing: ${answerLayer.governing.map((req) => req.id).join(", ") || "none found"}` : ""}${topUngoverned ? ` (the top match ${topUngoverned.id} is linked to no requirement)` : ""}.`
       }${storeNote}`;
       return {
         content: [{ type: "text", text }],
         structuredContent: {
           results: await projectMatches(prolog, paginated, fields),
           count: intentResult.matches.length,
+          returned: paginated.length,
           truncated: offset + paginated.length < intentResult.matches.length,
           queryAnalysis: intentResult.analysis,
           ...(answerLayer ? { answer: answerLayer } : {}),
@@ -883,6 +892,7 @@ export async function executeSearch(
       structuredContent: {
         results: await projectMatches(prolog, paginated, fields),
         count: matches.length,
+        returned: paginated.length,
         truncated: offset + paginated.length < matches.length,
         ...branchFields,
       },

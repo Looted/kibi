@@ -169,6 +169,12 @@ export interface SuggestPredicatesResult {
     recommendedPredicateSchema: RecommendedPredicateSchema | null;
     applyPlan: Array<Record<string, unknown>>;
     relationshipPlan: Record<string, unknown> | null;
+    /**
+     * Hash-bound kibi.compile-plan.v1 for applyPlan plus the requires_predicate
+     * link, for kb_apply_plan; null when no complete grounding is planned or
+     * the plan could not be compiled (a warning says why).
+     */
+    plan: Record<string, unknown> | null;
     /** The planned predicate fact id a requires_predicate link must target (never a candidate id). */
     relationshipTarget?: string | null;
     existingGrounding?: ExistingClaimGrounding[];

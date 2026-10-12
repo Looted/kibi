@@ -307,3 +307,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b2ae32af8c59
+  - type: requires_predicate
+    from: REQ-model-what-if-planned-facts
+    to: FACT-UPSERT-DRY-RUN-PLANNED-FACTS
+    created_at: 2026-10-11T19:12:01.482Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2d05d920cd87
+  - type: requires_predicate
+    from: REQ-model-what-if-planned-facts
+    to: FACT-MODEL-GROUNDING-PLAN-HASHED
+    created_at: 2026-10-11T19:12:01.530Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-289e352ac263
+  - type: requires_predicate
+    from: REQ-model-what-if-planned-facts
+    to: FACT-MODEL-GROUNDING-PLAN-BLOCKED
+    created_at: 2026-10-11T19:12:01.564Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d9043803fbb1
+  - type: specified_by
+    from: REQ-model-what-if-planned-facts
+    to: SCEN-model-what-if-planned-facts
+    created_at: 2026-10-11T19:12:39.868Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4596969d24a0

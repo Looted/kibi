@@ -54,7 +54,11 @@ consolidated routes `kibi skill` and `kibi model` match the MCP tools
   `mode`.
 - `kibi upsert` accepts `"dryRun": true`: it runs the `validate-upsert`
   checks, writes nothing, and returns the validation payload plus
-  `dryRun: true` and `skippedEffects`.
+  `dryRun: true` and `skippedEffects`. With `"plannedFacts": [...]` (the
+  `applyPlan` entries of `kibi model`) the dry run stages those fact writes
+  first, so a grounding link to a fact that does not exist yet validates and
+  the contradiction preview sees the KB as it would be after the batch
+  (`stagedFacts`, `whatIf`). `plannedFacts` without `dryRun` is rejected.
 - `kibi apply-plan` with `"recoveryJournalId": "bootstrap-…"` resumes a
   bootstrap plan whose process died mid-action without journal edits: the
   interrupted action is re-applied and a source lock left by the dead process
@@ -409,9 +413,9 @@ printf '%s\n' '{
 }' | kibi search --input -
 ```
 
-Intent results include `queryAnalysis`, matched semantic facets, source-location evidence, bounded traceability graph paths, `truncated`, and `abstained: true` when no result reaches `minScore` (default `0.18`). Superseded and deprecated entities are demoted. Source paths must be workspace-relative. The host agent supplies facets; Kibi does not call a model.
+Intent results include `queryAnalysis` (with `ambiguous` read from `topRivalMargin`, the margin to the best match the top match is not linked to), matched semantic facets, source-location evidence (the requirements a located symbol `implements` match too), bounded traceability graph paths, `count` (the whole ranking), `returned` (this page), `truncated`, and `abstained: true` when no result reaches `minScore` (default `0.18`). Superseded and deprecated entities are demoted. Source paths must be workspace-relative. The host agent supplies facets; Kibi does not call a model.
 
-On the first page, `data.answer` (`kibi.search-answer.v1`, on by default; `"answer": false` turns it off) lists the current `governing` requirements with `via` and their linked `facts`, `scenarios`, `tests` (including scenario-backed tests, each with `via`), and `adrs`, plus each requirement's `verdict` (`contradiction`, `infeasible`, `unknown` or `none`, with the contradiction and scenario-feasibility `witnesses` that name it), `exceptions` (requirements that exempt it, with `approvedBy`) and `unknowns`; `rationale` ADRs with their `source` and a decision `excerpt`; `notGoverning` superseded or deprecated requirements with `supersededBy`; `observations` (notes, not rules); `scope` (`branch`, `snapshotId`, `syncedAt`); `truncated`; and a `note`. The layer follows graph links and runs the existing checks for the governing requirements only: it is discovery, not proof, and a `none` verdict means no check named the requirement. See the [MCP reference](mcp-reference.md#kb_search) for details.
+On the first page, `data.answer` (`kibi.search-answer.v1`, on by default; `"answer": false` turns it off) lists the current `governing` requirements with `via` and their linked `facts`, `scenarios`, `tests` (including scenario-backed tests, each with `via`), and `adrs`, plus each requirement's `verdict` (`contradiction`, `infeasible`, `unknown` or `none`, with the contradiction and scenario-feasibility `witnesses` that name it), `exceptions` (requirements that exempt it, with `approvedBy`) and `unknowns`; `rationale` ADRs with their `source` and a decision `excerpt`; `notGoverning` superseded or deprecated requirements with `supersededBy`; `observations` (notes, not rules); `ungoverned` matched facts, scenarios, symbols and tests no requirement owns, with their `rank` (when the top match is one, the `note` says the governing list came from lower-ranked matches); `scope` (`branch`, `snapshotId`, `syncedAt`); `truncated`; and a `note`. The layer follows graph links and runs the existing checks for the governing requirements only: it is discovery, not proof, and a `none` verdict means no check named the requirement. See the [MCP reference](mcp-reference.md#kb_search) for details.
 
 ## `kibi status`
 

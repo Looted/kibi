@@ -68,13 +68,15 @@ id: FACT-SUSPENDED-PUBLISH-DENIED
 status: active
 fact_kind: predicate
 predicate_name: permission_rule
-predicate_args: [suspended_user, publish, articles, deny]
+predicate_args: [suspended_user, publish, article, deny]
 polarity: deny
-canonical_key: permission_rule(suspended_user,publish,articles,deny)
+canonical_key: permission_rule(suspended_user,publish,article,deny)
 claim_key: <advisor-issued key for this exact clause>
 claim_text: Suspended users must not publish articles.
 relationship: { type: requires_predicate, from: REQ-SUSPENDED-PUBLISH-DENIED, to: FACT-SUSPENDED-PUBLISH-DENIED }
 ```
+
+Inferred bindings drop the article and singularise the resource (`articles` becomes `article`, `any analysis request` and `analysis requests` both become `analysis_request`), so an allow and a deny on the same actor, action and resource share one key. Grants read the same as `allowed`: `may`, `can`, `is allowed to`, `are permitted to`, `must be able to`, `are able to`, `have permission to` and `are entitled to` all select `permission_rule` with `polarity: assert`.
 
 If another current requirement links an `assert` fact with the same predicate namespace, name, and ordered arguments, `domain-contradictions` reports the pair. More complex semantic conflicts require a shared canonical schema and arguments; do not assume Kibi can prove arbitrary equivalence between differently shaped predicates.
 

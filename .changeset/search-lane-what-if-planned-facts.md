@@ -1,0 +1,8 @@
+---
+"kibi-cli": minor
+"kibi-mcp": minor
+---
+
+An agent can now ask "what happens if I write this?" before any fact exists. `kb_upsert` with `dryRun: true` accepts `plannedFacts`, the fact writes `kb_model` planned, stages them with the requirement and previews the batch: the grounding link resolves, the claim key is read from the plan, and a decision conflict with a stored permission rule is refused the way the commit would refuse it, with the witness in the error. `kb_model` (mode predicates) also returns the grounding as a hash-bound `kibi.compile-plan.v1`, so the fact and the `requires_predicate` link land through one `kb_apply_plan` call, all or nothing, and its `contradictionAnalysis` names a conflict with the current KB before anything is written. Previously the fact had to be written first to learn about the conflict, and the `applyPlan` array carried no hash `kb_apply_plan` could accept.
+
+Technical summary: `UpsertInput.plannedFacts` (dry run only; validated in order through `validateUpsertForCommit` with the staged state kb_apply_plan uses, then `checks:what_if_analysis_json` over facts plus payload); `ValidateUpsertPayload.stagedFacts` and `whatIf`; a non-dry-run write with `plannedFacts` is rejected. `compileGroundingPlan` in `compile-intent.ts` builds the plan for `kb_model` (`structuredContent.plan`, status `blocked` on conflict, a warning naming the witnesses); the what-if parsers move to `operations/mutation/what-if.ts` and stay re-exported from `compile-intent.ts`. Tool descriptions, `docs/mcp-reference.md`, `docs/cli-reference.md` and the README describe the route.

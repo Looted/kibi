@@ -184,15 +184,27 @@ export function buildSuggestion(
   const canonicalKey = `${schema.predicate_name}(${predicateArgs.join(",")})`;
   // Permission-style inference carries the deontic decision as its final
   // argument. Preserve that polarity in the typed suggestion instead of
-  // silently turning a prohibition into an assertion.
+  // silently turning a prohibition into an assertion. A reviewed decision
+  // binding is the authority over the prose: "must be able to read … and
+  // must not delete" grounds an allow fact for read and a deny fact for
+  // delete from the same sentence.
+  const decisionArgument = schema.argument_names.indexOf("decision");
+  const reviewedDecision =
+    decisionArgument >= 0 && bindingProvenanceByArgument.decision === "explicit"
+      ? predicateArgs[decisionArgument]
+      : undefined;
   const polarity =
     polarityHint ??
-    (predicateArgs.at(-1) === "deny" ||
-    /\b(?:must\s+not|shall\s+not|never|cannot|can't|forbidden|prohibited)\b/i.test(
-      text,
-    )
-      ? "deny"
-      : "assert");
+    (reviewedDecision !== undefined
+      ? reviewedDecision === "deny"
+        ? "deny"
+        : "assert"
+      : predicateArgs.at(-1) === "deny" ||
+          /\b(?:must\s+not|shall\s+not|never|cannot|can't|forbidden|prohibited)\b/i.test(
+            text,
+          )
+        ? "deny"
+        : "assert");
   return {
     id: hashId("SUGGEST", [schema.id, canonicalKey, text]),
     predicate_name: schema.predicate_name,
