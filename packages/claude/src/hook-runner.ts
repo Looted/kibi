@@ -38,6 +38,7 @@ import {
 import {
   DIRECT_KB_ACCESS_NOTE,
   type LineRange,
+  editKnowledgeUpdate,
   fileKnowledgeSnippet,
   focusUpdate,
   focusedSymbols,
@@ -258,8 +259,17 @@ function preToolUse(
   events.push({ kind: "shown", surface: "edit", path: relativePath });
 
   if (alreadyKnown) {
-    const update = focusUpdate(relativePath, symbols, focus);
-    if (update) return emit(update, "edit_focus_update");
+    // The read snippet already described the file (requirements, symbols,
+    // tests, next layer); the first edit still has to say what must stay
+    // true and name the impact check, which the read never showed.
+    const update = editKnowledgeUpdate({
+      relativePath,
+      symbols,
+      surface: "edit",
+      focus,
+      summarize: workspace.summarize,
+    });
+    if (update) return emit(update, "edit_update_snippet");
     appendSessionEvents(workspace.stateDir, events);
     return {};
   }
@@ -471,6 +481,12 @@ function dispatchHook(
   switch (input.event) {
     case "SessionStart":
       trace.action = "session_start";
+      // A compact or clear drops the conversation context, so the snippets
+      // this session already showed are gone from the model's view and may be
+      // shown again; a resume restores the transcript and keeps them.
+      if (input.source === "compact" || input.source === "clear") {
+        appendSessionEvents(workspace.stateDir, [{ kind: "context_reset" }]);
+      }
       return context(
         "SessionStart",
         sessionStartContext(linkedFileCount(workspace.index())),
