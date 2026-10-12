@@ -37,7 +37,7 @@
     },
     "packages/claude": {
       "name": "kibi-claude",
-      "version": "0.7.10",
+      "version": "0.7.11",
       "devDependencies": {
         "@types/node": "latest",
         "kibi-agent-core": "^0.3.0",
@@ -55,7 +55,7 @@
     },
     "packages/cli": {
       "name": "kibi-cli",
-      "version": "2.19.0",
+      "version": "2.20.0",
       "bin": {
         "kibi": "bin/kibi",
       },
@@ -67,8 +67,8 @@
         "gray-matter": "^4.0.3",
         "ignore": "^5.3.0",
         "js-yaml": "^4.1.0",
-        "kibi-core": "^0.20.0",
-        "kibi-plugin-builtin": "^0.5.0",
+        "kibi-core": "^0.21.0",
+        "kibi-plugin-builtin": "^0.5.1",
         "kibi-plugin-sdk": "^0.5.0",
         "kibi-swipl": "^1.0.1",
         "saxes": "^6.0.0",
@@ -83,7 +83,7 @@
     },
     "packages/codex": {
       "name": "kibi-codex",
-      "version": "2.5.10",
+      "version": "2.5.11",
       "devDependencies": {
         "@types/node": "latest",
         "kibi-agent-core": "^0.3.0",
@@ -100,11 +100,11 @@
     },
     "packages/core": {
       "name": "kibi-core",
-      "version": "0.20.0",
+      "version": "0.21.0",
     },
     "packages/cursor": {
       "name": "kibi-cursor",
-      "version": "2.6.10",
+      "version": "2.6.11",
       "dependencies": {
         "kibi-agent-core": "^0.3.0",
       },
@@ -123,7 +123,7 @@
     },
     "packages/mcp": {
       "name": "kibi-mcp",
-      "version": "3.7.0",
+      "version": "3.8.0",
       "bin": {
         "kibi-mcp": "bin/kibi-mcp",
       },
@@ -135,8 +135,8 @@
         "fast-glob": "^3.2.12",
         "gray-matter": "^4.0.3",
         "js-yaml": "^4.1.0",
-        "kibi-core": "^0.20.0",
-        "kibi-runtime": "^2.14.0",
+        "kibi-core": "^0.21.0",
+        "kibi-runtime": "^2.14.1",
         "zod": "^4.3.6",
       },
       "devDependencies": {
@@ -164,7 +164,7 @@
     },
     "packages/plugin-builtin": {
       "name": "kibi-plugin-builtin",
-      "version": "0.5.0",
+      "version": "0.5.1",
       "dependencies": {
         "kibi-plugin-sdk": "^0.5.0",
         "ts-morph": "^23.0.0",
@@ -222,11 +222,11 @@
     },
     "packages/runtime": {
       "name": "kibi-runtime",
-      "version": "2.14.0",
+      "version": "2.14.1",
       "dependencies": {
         "gray-matter": "^4.0.3",
-        "kibi-core": "^0.20.0",
-        "kibi-plugin-builtin": "^0.5.0",
+        "kibi-core": "^0.21.0",
+        "kibi-plugin-builtin": "^0.5.1",
         "kibi-swipl": "^1.0.1",
       },
       "devDependencies": {
@@ -277,7 +277,7 @@
     },
     "packages/zcode": {
       "name": "kibi-zcode",
-      "version": "0.7.10",
+      "version": "0.7.11",
       "devDependencies": {
         "@types/node": "latest",
         "kibi-agent-core": "^0.3.0",
@@ -718,7 +718,7 @@
 
     "@ts-morph/common": ["@ts-morph/common@0.24.0", "", { "dependencies": { "fast-glob": "^3.3.2", "minimatch": "^9.0.4", "mkdirp": "^3.0.1", "path-browserify": "^1.0.1" } }, "sha512-c1xMmNHWpNselmpIqursHeOHHBTIsJLbB+NuovbTTRCNiTLEr/U9dbJ8qy0jd/O2x5pc3seWuOUN5R2IoOTp8A=="],
 
-    "@types/bun": ["@types/bun@1.4.2", "", { "dependencies": { "bun-types": "1.4.2" } }, "sha512-GimotNn7+ZV0uVArItBbriZsR1oNf0+WTzPkdcFrzShI7k2norL0uzEaJT8T33dWr7O/c9ZDuAFQrctKCi72oQ=="],
+    "@types/bun": ["@types/bun@1.4.3", "", { "dependencies": { "bun-types": "1.4.3" } }, "sha512-N67Pqy8JXbAY/j0tNraS3V5mubGvc6rrrNDmDCtZLlFzccbUJPDb0tvgUBC5q4m8ybkP93Jcn1QB+RYQ6PvBhw=="],
 
     "@types/gensync": ["@types/gensync@1.0.5", "", {}, "sha512-MbsRCT7mTikHwKZ0X+LVUTLRrZZRLipTuXEO9qOYO+zmjMVk81axyClMROf6uoPD9MRVu46bx8zoR0Ad9q3NAg=="],
 
@@ -1930,6 +1930,8 @@
 
     "@ts-morph/common/minimatch": ["minimatch@9.0.7", "", { "dependencies": { "brace-expansion": "^5.0.2" } }, "sha512-MOwgjc8tfrpn5QQEvjijjmDVtMw2oL88ugTevzxQnzRLm6l3fVEF2gzU0kYeYYKD8C66+IdGX6peJ4MyUlUnPg=="],
 
+    "@types/bun/bun-types": ["bun-types@1.4.3", "", { "dependencies": { "@types/node": "*", "undici-types": "*" } }, "sha512-tinRJNGOmUN+tEAsn2y2e942n9JHRHR42iUYzDH75NmhJqVBokGSQkkfSFdNWwsANIdrK6ACH9t01M452YyTwg=="],
+
     "@vscode/vsce/chalk": ["chalk@4.1.2", "", { "dependencies": { "ansi-styles": "^4.1.0", "supports-color": "^7.1.0" } }, "sha512-oKnbhFyRIXpUuez8iBMmyEa4nbj4IOQyuhc/wy9kY7/WVPcwIO9VA668Pu8RkO7+0G76SLROeyw9CpQ061i4mA=="],
 
     "@vscode/vsce/commander": ["commander@12.1.0", "", {}, "sha512-Vw8qHK3bZM9y/P10u3Vib8o/DdkvA2OtPtZvD871QKjy74Wj1WSKFILMPRPSdUSx5RFK1arlJzEtA4PkFgnbuA=="],
@@ -1997,6 +1999,8 @@
     "kibi-plugin-sdk/@types/node": ["@types/node@26.6.5", "", { "dependencies": { "undici-types": "~8.9.0" } }, "sha512-uMzsv9stDdofIZBx4UGh4Z9ZgXnGC9seRDscilBcTHAeOFk67MZg/k9bWVfO+bk4qZmG+l52hRnLwUiH2LnJTg=="],
 
     "kibi-plugin-ui/@types/node": ["@types/node@26.6.5", "", { "dependencies": { "undici-types": "~8.9.0" } }, "sha512-uMzsv9stDdofIZBx4UGh4Z9ZgXnGC9seRDscilBcTHAeOFk67MZg/k9bWVfO+bk4qZmG+l52hRnLwUiH2LnJTg=="],
+
+    "kibi-vscode/@types/bun": ["@types/bun@1.4.2", "", { "dependencies": { "bun-types": "1.4.2" } }, "sha512-GimotNn7+ZV0uVArItBbriZsR1oNf0+WTzPkdcFrzShI7k2norL0uzEaJT8T33dWr7O/c9ZDuAFQrctKCi72oQ=="],
 
     "kibi-vscode/@types/node": ["@types/node@20.19.33", "", { "dependencies": { "undici-types": "~6.21.0" } }, "sha512-Rs1bVAIdBs5gbTIKza/tgpMuG1k3U/UMJLWecIMxNdJFDMzcM5LOiLVRYh3PilWEYDIeUDv7bpiHPLPsbydGcw=="],
 
@@ -2251,6 +2255,10 @@
     "@stryker-mutator/instrumenter/@babel/preset-typescript/@babel/plugin-transform-typescript": ["@babel/plugin-transform-typescript@8.0.5", "", { "dependencies": { "@babel/helper-annotate-as-pure": "^8.0.0", "@babel/helper-create-class-features-plugin": "^8.0.5", "@babel/helper-plugin-utils": "^8.0.1", "@babel/helper-skip-transparent-expression-wrappers": "^8.0.0", "@babel/plugin-syntax-typescript": "^8.0.3" }, "peerDependencies": { "@babel/core": "^8.0.0" } }, "sha512-o6XW6OngFfpEQat3J1MxUDEd94Rjh80BZQqWmOXa9YTtoyDnk8Zim3NXcx3RTgGiOgkoayCMYp+Xk5NxEmzoMg=="],
 
     "@textlint/linter-formatter/strip-ansi/ansi-regex": ["ansi-regex@5.0.1", "", {}, "sha512-quJQXlTSUGL2LH9SUXo8VwsY4soanhgo6LNSm84E1LBcE8s3O0wpdiRzyR9z/ZZJMlMWv37qOOb9pdJlMUEKFQ=="],
+
+    "@types/bun/bun-types/@types/node": ["@types/node@26.6.5", "", { "dependencies": { "undici-types": "~8.9.0" } }, "sha512-uMzsv9stDdofIZBx4UGh4Z9ZgXnGC9seRDscilBcTHAeOFk67MZg/k9bWVfO+bk4qZmG+l52hRnLwUiH2LnJTg=="],
+
+    "@types/bun/bun-types/undici-types": ["undici-types@8.9.0", "", {}, "sha512-KTDyRTYX8sWmKXAikPHHSyc63CRPETMctyjKFupcC6OBLXT3xsN0e9aF7m+mIXutFWpUXuedtowG7iLOzp0kQg=="],
 
     "@vscode/vsce/minimatch/brace-expansion": ["brace-expansion@1.1.21", "", { "dependencies": { "balanced-match": "^1.0.0", "concat-map": "0.0.1" } }, "sha512-9zeA+KLZNNzglF2TPKRQEDyx6Yby7daAkuy8MiPzpXPsYDWi/DRM8jmwUDxokQjYqBpv5DgPiwD4h4ZZSy1Ujw=="],
 

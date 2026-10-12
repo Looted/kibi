@@ -1,5 +1,49 @@
 # kibi-cli
 
+## 2.20.0
+
+### Minor Changes
+
+- 1c7ffc3: `kb_search` and `kb_check` now say what they did not find as plainly as what they found. A search whose top match is a fact, scenario or test no requirement owns reports it in `answer.ungoverned` and in the note instead of presenting requirements reached through lower-ranked matches as the top match's; a requirement tying with its own scenario or facts no longer counts as ambiguous; a changed file's requirements surface through the symbols that implement them even when the question shares no word with them; and every page says how many rows it `returned` next to the ranking's total `count`. A check reports `evaluated.rules` and, for `domain-contradictions`, the number of requirement fact pairs it compared, so "no violations" on a KB with nothing to compare is never read as a consistency result.
+  - `intent-search.ts`: `queryAnalysis.topRivalMargin` is the margin between the top match and the best match it is not linked to; `ambiguous` reads it. A requirement that a source-located symbol `implements` inherits that symbol's source evidence (`distance: 3`, reason `implemented at the source location`).
+  - `search-answer.ts`: `answer.ungoverned` lists matched facts, scenarios, symbols and tests with no owning requirement, with their `rank` and, for typed facts, their `claim` and `ask`; the note leads with the top match when it is one of them.
+  - `kb_search`: `returned` (rows on this page) beside `count` (matches in the whole ranking).
+  - `kb_check`: `evaluated: { rules, domainContradictions?: { factPairsExamined } }` in the payload and a summary line; `kb_domain_contradiction_pairs_examined/1` in `kibi-core`.
+
+- d316f01: Discovery results on Claude Code are now sent once: `kb_search`, `kb_query`, `kb_status` and `kb_prepare_impact_review` return their structured payload with a short text summary instead of repeating the whole `data` JSON in the text part, which doubled the bytes of every search answer on that host. Other hosts keep the JSON copy because they may hide `structuredContent`, and `KIBI_MCP_STRUCTURED_TEXT=omit` or `embed` overrides the choice on any host. `kb_search` and `kibi search` return 10 ranked rows by default instead of 20; `count` and `truncated` still say how many matches there are and whether to page.
+
+  Technical summary: `embedsStructuredText` in the MCP tool wrapper reads `KIBI_MCP_STRUCTURED_TEXT`, then `KIBI_MCP_HOST` (set by the host launchers), then the client's initialize name, and only hosts known to show `structuredContent` (`claude-code`) drop the embedded JSON. The `kb_search` schema default and executor default are 10.
+
+- 8cc15e7: An agent can now ask "what happens if I write this?" before any fact exists. `kb_upsert` with `dryRun: true` accepts `plannedFacts`, the fact writes `kb_model` planned, stages them with the requirement and previews the batch: the grounding link resolves, the claim key is read from the plan, and a decision conflict with a stored permission rule is refused the way the commit would refuse it, with the witness in the error. `kb_model` (mode predicates) also returns the grounding as a hash-bound `kibi.compile-plan.v1`, so the fact and the `requires_predicate` link land through one `kb_apply_plan` call, all or nothing, and its `contradictionAnalysis` names a conflict with the current KB before anything is written. Previously the fact had to be written first to learn about the conflict, and the `applyPlan` array carried no hash `kb_apply_plan` could accept.
+
+  Technical summary: `UpsertInput.plannedFacts` (dry run only; validated in order through `validateUpsertForCommit` with the staged state kb_apply_plan uses, then `checks:what_if_analysis_json` over facts plus payload); `ValidateUpsertPayload.stagedFacts` and `whatIf`; a non-dry-run write with `plannedFacts` is rejected. `compileGroundingPlan` in `compile-intent.ts` builds the plan for `kb_model` (`structuredContent.plan`, status `blocked` on conflict, a warning naming the witnesses); the what-if parsers move to `operations/mutation/what-if.ts` and stay re-exported from `compile-intent.ts`. Tool descriptions, `docs/mcp-reference.md`, `docs/cli-reference.md` and the README describe the route.
+
+### Patch Changes
+
+- d668d4c: A workspace copied with its `.kb` directory while another workspace's engine held its store no longer treats that engine as the holder of the copy. The copy carried the `rdf/lock` file and the ownership journal of the original engine, whose pid is still running, so the attach path classified the lock as held by a live process for another workspace. Kibi now recognises a journal written for a different workspace as a copied artifact, breaks it like a dead holder's lock and reports the takeover in `kb_status` notices with the reason `journal belongs to another workspace <path>`. `kibi engine janitor` also reports takeover records older than the 24-hour notice window, and `--apply` deletes them.
+
+  Technical summary: `foreignStoreLockJournalRoot` in `prolog/store-lock.ts` compares the journal's recorded `workspaceRoot` (kb.pl records the attached store directory) with the store being attached, both `realpath`-normalised and reduced to the workspace that owns `.kb/branches/<key>`. It is conservative: a lock file whose pid differs from the journal's, a recorded path that no longer exists (the store may have moved with its holder) or that is the same directory leaves today's behaviour in place. `decideStoreLockTakeover(owner, { storePath })` breaks a foreign journal, and `noteDeadHolderBeforeAttach`, `retryAttachAfterBreakingStaleLock` and the engine's `recoverStaleJournalLock` pass the store path; `classifyStoreLockHolder` and the `store_lock_stale` status reason are unchanged. `sweepStoreLockTakeoverRecords` adds `takeover-record` findings to `runJanitor`.
+
+- b1d003a: Agents working under the Kibi host hooks now have a guide to the snippet that arrives before a read or edit: which line names the governing requirements, which lists the facts the edit must keep true, which tests prove the file, what the one-line follow-up and the unowned-file and unreadable-manifest notes mean, and which `kb_check` call to run afterwards. The modeling cheatsheet also explains where a `claim_key` comes from and how to repair a mismatch instead of editing the clause text.
+
+  Technical summary: kibi-usage 2.15.2 gains a "Reading a hook snippet" section describing the lines `kibi-agent-core/snippets` renders (`Kibi knowledge for …`, `must keep true`, `Decision`, `Covered by`, `Next layer`, the `kb_check` line, `focusUpdate`, `unownedSourceNote`, `unreadableManifestNote`); host skill mirrors are regenerated. `docs/modeling-cheatsheet.md` gains a "Claim keys" section covering derivation from `claim_text`, the `kb_model` sources of the key, the mismatch error and the grounding-target rule.
+
+- 8f3f586: Permission grants written the way product owners write them now model as permission rules. `kb_model` (mode predicates) accepted "may", "can", "is allowed to" and "are permitted to" but rejected "must be able to", "are able to", "have permission to" and "are entitled to" with "required semantic cue absent", so a requirement such as "An admin must be able to read any analysis request" ended as an ontology gap even with complete argument bindings. The semantic advisor now also treats "have permission to" and "are entitled to" as normative clauses, and inferred permission bindings drop the leading article and singularise the resource, so "any analysis request" and "analysis requests" bind the same actor, action and resource key that the allow/deny contradiction check compares.
+  - `predicate-applicability.ts`: the permission_rule cue and the normative-intent gate accept `must/shall/should be able to`, `is/are able to`, `is/are entitled to` and `has/have permission to`, including the common-verb form right after the grant.
+  - `clauses.ts`: `has/have (no) permission to` and `is/are (not) entitled to` are normative assertions; bare `is/are able to` stays descriptive so stored inventories keep their roles.
+  - `predicate-inference-1.ts`: grant and prohibition forms of the new cues bind actor, action, resource and decision; actors and resources lose their determiner and resources are singular.
+  - The builtin semantic classifier's permission signal recognises `permitted`, `able to`, `entitled to` and `permission to`.
+  - kibi-usage 2.15.1: the deny example shows the singular resource and lists the grant wordings `permission_rule` accepts.
+
+- 5c287fd: `kb_upsert` now tells an agent up front when a production symbol will fail `symbol-coverage`. A symbol upserted with `implements` but neither `covered_by` nor `executable_for` used to come back `valid: true` with no warnings, and the agent only learned from the next `kb_check` that the symbol lacks requirement coverage. The dry run and the write now return a non-blocking warning naming the missing `covered_by` edge, so the agent can add it in the same step; a symbol that already has a stored `covered_by` edge is not warned about.
+
+  Technical summary: `symbolCoverageWarnings` in `operations/mutation/warnings.ts` warns for `type: symbol` payloads whose own relationships include `implements` and neither `covered_by` nor `executable_for`, unless `once((kb_relationship(covered_by, Id, _) ; kb_relationship(executable_for, Id, _)))` succeeds. It runs after the commit in `executeUpsert` (next to `scenarioCoverageWarnings`) and in `executeValidateUpsert` on the validated relationships, so `dryRun: true` and `kibi validate-upsert` return it too. No Prolog rule changes.
+
+- Updated dependencies [1c7ffc3]
+- Updated dependencies [8f3f586]
+  - kibi-core@0.21.0
+  - kibi-plugin-builtin@0.5.1
+
 ## 2.19.0
 
 ### Minor Changes
