@@ -1,5 +1,5 @@
 ---
-title: Kibi must report a current superseding requirement or ADR without a Why this changed section as a supersedes-reason-missing violation
+title: 'Decision firmness: supersede needs a reason'
 status: active
 fact_kind: property_value
 subject_key: kibi.decision_firmness

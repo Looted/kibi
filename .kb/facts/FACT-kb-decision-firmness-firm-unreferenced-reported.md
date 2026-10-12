@@ -1,5 +1,5 @@
 ---
-title: Kibi must report a current firm requirement or ADR that names no human reference as a decision-firm-unreferenced violation
+title: 'Decision firmness: unreferenced firm decision blocked'
 status: active
 fact_kind: property_value
 subject_key: kibi.decision_firmness

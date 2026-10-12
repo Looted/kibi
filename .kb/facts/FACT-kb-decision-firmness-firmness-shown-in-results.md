@@ -1,5 +1,5 @@
 ---
-title: Kibi must show the effective firmness of requirements and ADRs in search and query results
+title: 'Decision firmness: effective firmness labelled on decisions'
 status: active
 fact_kind: property_value
 subject_key: kibi.decision_firmness

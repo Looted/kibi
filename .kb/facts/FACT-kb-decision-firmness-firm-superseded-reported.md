@@ -1,5 +1,5 @@
 ---
-title: Kibi must report a current decision that is not firm and supersedes a firm decision as a decision-firm-superseded violation
+title: 'Decision firmness: firm decision replaced only by a firm one'
 status: active
 fact_kind: property_value
 subject_key: kibi.decision_firmness

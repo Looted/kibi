@@ -1,5 +1,5 @@
 ---
-title: Kibi must honor the supersedes reason acknowledgement only for entity ids the schema 9 migration recorded
+title: 'Decision firmness: acknowledgement limited to migrated edges'
 status: active
 fact_kind: property_value
 subject_key: kibi.decision_firmness
