@@ -46,9 +46,9 @@ Call `kb_model` with `mode: "predicates"` before hand-writing ontology predicate
 
 ## Incomplete logical claim provenance
 
-`claim_key` and `claim_text` are an auditable pair. If `claim_key` is present on a fact, supply both, and supply both on every grounding fact (`property_value`, `predicate`, `rule`). Use the stable key returned by `kb_model` with `mode: "analyze"` for that exact atomic clause; do not invent or reuse a key for different prose.
+`claim_key` is derived from `claim_text`, so a grounding fact (`property_value`, `predicate`, `rule`) only has to send the exact atomic clause as `claim_text`: Kibi fills in the key on `kb_upsert` and on `kibi sync`. A `claim_key` sent with the text must equal the derived key (`kb_model` with `mode: "analyze"` returns it for that clause); a `claim_key` without `claim_text` is rejected. Do not invent or reuse a key for different prose.
 
-An `observation` or `meta` fact is a non-grounding review note, so it may quote the claim it is about in `claim_text` alone. The error `/properties must have required property 'claim_key'` on such a fact came from older releases; on any other fact kind, either add the `claim_key` returned for that clause or drop `claim_text`.
+An `observation` or `meta` fact is a non-grounding review note, so it quotes the claim it is about in `claim_text` alone and gets no key. The error `/properties must have required property 'claim_key'` came from releases before the key was derived; upgrade, or send the pair `kb_model` returned.
 
 If `kb_check` reports `logic-coverage`, compare the requirement `logic_claims` manifest with its linked `property_value` and `predicate` facts. Ground every missing key, add any omitted linked key to the manifest, and keep ambiguity or ontology gaps explicitly unresolved rather than satisfying the check with an observation.
 

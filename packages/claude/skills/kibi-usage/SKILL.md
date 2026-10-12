@@ -5,7 +5,7 @@ license: AGPL-3.0-or-later
 metadata:
   displayName: Kibi Usage
   id: kibi-usage
-  version: 2.15.2
+  version: 2.15.3
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -372,6 +372,8 @@ For each relational clause, call `kb_model` with `mode: "predicates"`, that clau
 reviewed `schemaId`. If `binding_status` is `incomplete`, supply
 `argumentBindings` and retry. Persist `fact_kind: predicate` with the same
 `claim_key` / `claim_text`, then link `REQ -> fact` with `requires_predicate`.
+`claim_key` is derived from `claim_text`, so a ground fact may send the exact
+clause alone and Kibi fills the key in; a sent key must equal the derived one.
 Use `kb_model` with `mode: "requirement"` for strict scalar clauses. Use
 `fact_kind: observation` only for a true ontology gap. The manifest is not
 grounding: run `logic-coverage` so each key binds to one ground fact.

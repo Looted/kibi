@@ -1675,35 +1675,12 @@
     },
     {
       "if": {
-        "anyOf": [
-          {
-            "required": [
-              "claim_key"
-            ]
-          },
-          {
-            "required": [
-              "claim_text"
-            ],
-            "not": {
-              "properties": {
-                "fact_kind": {
-                  "enum": [
-                    "observation",
-                    "meta"
-                  ]
-                }
-              },
-              "required": [
-                "fact_kind"
-              ]
-            }
-          }
+        "required": [
+          "claim_key"
         ]
       },
       "then": {
         "required": [
-          "claim_key",
           "claim_text"
         ]
       }

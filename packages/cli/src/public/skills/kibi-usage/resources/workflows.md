@@ -203,7 +203,7 @@ Optional per-project workflow for recording what the screen should look like. No
 2. Run `kb_model` with `mode: "analyze"` on the description; audit or supply `clauses`.
 3. For relational layout clauses ("X must remain visually aligned with Y"), call `kb_model` with `mode: "predicates"`, apply the returned `fact_kind: predicate` plan with `predicate_name: visual_layout_rule` and `requires_predicate`.
 4. For scalar placement, alignment, and ordering clauses, call `kb_model` with `mode: "requirement"` and apply strict `fact_kind: subject` / `fact_kind: property_value` facts linked with `constrains` / `requires_property`. Model header order as indexed property keys (`nav_order_1`, `nav_order_2`, ...) against one subject region.
-5. Preserve `claim_key` / `claim_text` on every ground fact and merge every key into the requirement `logic_claims` manifest.
+5. Preserve `claim_key` / `claim_text` on every ground fact (a missing `claim_key` is derived from `claim_text`) and merge every key into the requirement `logic_claims` manifest.
 6. Model UI components as `symbol` entities with `sourceFile` and `symbol_role: behavioral`, linked `implements` to the requirement.
 7. `kb_upsert` with `dryRun: true`, create endpoints first, then sequential `kb_upsert`. Run `kb_check` with `logic-coverage`, `predicate-verifiability`, and `domain-contradictions`, then a final unfiltered `kb_check`.
 

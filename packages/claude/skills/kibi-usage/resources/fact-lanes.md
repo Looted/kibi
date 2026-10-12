@@ -6,7 +6,7 @@ Requirement prose remains the human-readable source. Facts add queryable semanti
 
 Logical coverage is clause-based, not entity-based. Give `kb_model` (`mode: "analyze"`) the complete requirement body and verify that its `clauses` list contains every atomic obligation. Supply the `clauses` input yourself when automatic splitting would combine or omit obligations. For every normative clause:
 
-- preserve the returned stable key as `claim_key` and the exact clause as `claim_text` on its ground fact;
+- put the exact clause as `claim_text` on its ground fact, with the returned stable key as `claim_key` or none (Kibi derives a missing key; a sent key must match);
 - add the key to the exact current `logic_claims` set, removing only stale keys whose propositions no longer exist in the source;
 - link it through exactly one `requires_property` for `property_value`, one `requires_predicate` for `predicate`, or one `requires_rule` for a safe `rule` fact;
 - leave ambiguity and ontology gaps visibly unresolved—observations do not satisfy `logic-coverage`.

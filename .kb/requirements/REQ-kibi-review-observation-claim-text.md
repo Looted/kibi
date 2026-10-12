@@ -1,6 +1,6 @@
 ---
 title: Review observation facts may quote a claim without its claim key
-status: open
+status: closed
 priority: must
 tags:
   - facts

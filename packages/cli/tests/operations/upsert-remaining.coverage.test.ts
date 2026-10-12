@@ -367,6 +367,41 @@ describe("validateUpsertInput remaining branches", () => {
       new Date(),
     );
     expect(matched.entity.claim_key).toBe(semanticClaimKey(claimText));
+
+    const derived = validateUpsertInput(
+      {
+        type: "fact",
+        id: "FACT-CLAIM-DERIVED",
+        properties: {
+          title: "Claim derived",
+          status: "active",
+          fact_kind: "property_value",
+          subject_key: "checkout.flow",
+          property_key: "payment_before_submission",
+          operator: "eq",
+          value_type: "bool",
+          value_bool: true,
+          claim_text: claimText,
+        },
+      },
+      new Date(),
+    );
+    expect(derived.entity.claim_key).toBe(semanticClaimKey(claimText));
+
+    const note = validateUpsertInput(
+      {
+        type: "fact",
+        id: "FACT-CLAIM-NOTE",
+        properties: {
+          title: "Claim note",
+          status: "active",
+          fact_kind: "observation",
+          claim_text: claimText,
+        },
+      },
+      new Date(),
+    );
+    expect(note.entity.claim_key).toBeUndefined();
   });
 
   test("rejects invalid relationships and re-exports granularity reasons", () => {

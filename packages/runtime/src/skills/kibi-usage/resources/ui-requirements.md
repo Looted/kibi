@@ -126,8 +126,8 @@ diagnostics (`symbol_semantic_review_needed`).
    `requires_predicate`.
 3. Scalar placement/alignment/order clauses: `kb_model` (`mode: "requirement"`), apply the strict
    subject/property plan and `constrains` / `requires_property`.
-4. Preserve `claim_key` / `claim_text`; merge every key into the requirement
-   `logic_claims` manifest.
+4. Preserve `claim_key` / `claim_text` (a missing key is derived from the
+   text); merge every key into the requirement `logic_claims` manifest.
 5. `kb_upsert` with `dryRun: true`, create endpoints first, then sequential `kb_upsert`.
 6. `kb_check` with `logic-coverage`, `predicate-verifiability`, `domain-contradictions`,
    then a final unfiltered `kb_check`.
