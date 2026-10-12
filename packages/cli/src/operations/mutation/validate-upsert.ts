@@ -28,6 +28,7 @@ import {
   validateUpsertForCommit,
 } from "./upsert.js";
 import { validateUpsertInput } from "./validation.js";
+import { symbolCoverageWarnings } from "./warnings.js";
 import { isBlockingWitness, parseWhatIfAnalysis } from "./what-if.js";
 
 // implements REQ-kibi-entity-id-style
@@ -241,6 +242,7 @@ export async function executeValidateUpsert(
       );
     let whatIf: ValidateUpsertPayload["whatIf"];
     let stagedFacts: readonly string[] | undefined;
+    let relationships: readonly RelationshipInput[] = input.relationships ?? [];
     const { entity, semantic } =
       context.prolog !== undefined
         ? await stagePlannedFacts(input, context).then(async (facts) => {
@@ -269,6 +271,7 @@ export async function executeValidateUpsert(
                 facts,
               );
             }
+            relationships = result.validated.relationships;
             return {
               entity: result.validated.entity,
               semantic: result.semantic,
@@ -287,11 +290,22 @@ export async function executeValidateUpsert(
       !(await entityExists(context.prolog, input.id))
         ? candidateIdStyleWarnings
         : [];
+    // The same symbol-coverage warning the write returns, so the dry run
+    // tells the agent before the write that kb_check will flag it.
+    const coverageWarnings = context.prolog
+      ? await symbolCoverageWarnings(
+          context.prolog,
+          relationships,
+          input.type,
+          input.id,
+        )
+      : [];
     const payload: ValidateUpsertPayload = {
       valid: true,
       errors: [],
       warnings: [
         ...semantic.warnings,
+        ...coverageWarnings,
         ...idStyleWarnings,
         ...entityContextWarnings(input, entity, context.workspaceRoot),
       ],

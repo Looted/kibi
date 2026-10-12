@@ -67,7 +67,10 @@ import type {
   ValidatedUpsert,
 } from "./types.js";
 import { validateUpsertInput } from "./validation.js";
-import { scenarioCoverageWarnings } from "./warnings.js";
+import {
+  scenarioCoverageWarnings,
+  symbolCoverageWarnings,
+} from "./warnings.js";
 import {
   type WorkspaceMutationLockHandle,
   acquireWorkspaceMutationLock,
@@ -744,12 +747,20 @@ export async function executeUpsert(
         `Upsert commit completed without a created/updated result for ${input.id}`,
       );
     }
-    const coverage = await scenarioCoverageWarnings(
-      prolog,
-      validated.relationships,
-      input.type,
-      input.id,
-    );
+    const coverage = [
+      ...(await scenarioCoverageWarnings(
+        prolog,
+        validated.relationships,
+        input.type,
+        input.id,
+      )),
+      ...(await symbolCoverageWarnings(
+        prolog,
+        validated.relationships,
+        input.type,
+        input.id,
+      )),
+    ];
     const created = changeKind === "created" ? 1 : 0;
     const idStyleWarnings =
       created === 1
