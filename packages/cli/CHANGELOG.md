@@ -1,5 +1,13 @@
 # kibi-cli
 
+## 2.21.2
+
+### Patch Changes
+
+- 38a6051: Upgrading a knowledge base that still has a legacy `.kb/config.json` no longer loses migration steps. Before, `kibi init` on such a repository (which `kibi doctor` recommended) and the plan path `kibi migrate` → `--apply-safe` both wrote a latest-schema manifest first, so migrate reported "was 8", skipped every legacy step (including the schema 8 `context_missing_tag` acknowledgement and the legacy-link marking) and left `kibi check` blocked on missing context; init also seeded an empty `.kb/symbols.yaml` that then blocked the move with "destination exists". Now init leaves the manifest and symbols manifest to `kibi migrate --yes`, migrate starts from the legacy version, and doctor sends you to migrate instead of init. `--apply-safe` no longer fails a resync on the requirement an inventory re-derivation in the same plan would fix, the manual inventory review gives an input that `kibi model` accepts, and the apply result prints as a short summary unless you ask for JSON.
+
+  Technical summary: `kibi init` skips `createManifestFile` and `ensureSymbolsManifestFile` when `readLegacyKbConfig` finds a config. `kibi migrate` writes the baseline manifest for `initializeMissingConfig` only without a legacy config or moves, and starts from the lower of the manifest and legacy `schemaVersion` while the legacy config is present. `applyLegacyStorageMigration` records the source schema version (raised to the latest after the schema steps) and treats an empty `symbols: []` stub destination as replaceable. After a move, migrate warns when moved files are untracked by Git, since sync compiles tracked sources only. The workspace migration plan makes `freshness-resync` and `branch-store-compile` depend on the source-rewrite actions, and blocks them (evidence `blockedBy`) while a `semantic_inventory_review` is open. That review now carries the re-derived `contract`/`contractHash` in its evidence and tells the operator to fix the requirement file directly, with a `{mode, type, id, text}` analyze input that passes the `kb_model` schema. Doctor recommends `kibi migrate --yes` for a missing manifest beside a legacy config and prints legacy-storage blockers with a keep-the-current-copy resolution; the plan's blocked storage instruction no longer tells you to keep the `.kb/` copy unconditionally. Table-mode `--apply-safe` prints the outcome, one line per action and a remaining-plan summary instead of the full JSON.
+
 ## 2.21.1
 
 ### Patch Changes
