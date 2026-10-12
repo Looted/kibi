@@ -13285,10 +13285,10 @@ coordinates:
     sourceLine: 1
   SYM-git-hook-effective-install-init-context-verifier:
     identityHash: b6123753240e7228f428f0af504606306149475033a068c245e230a7405dcc43
-    sourceHash: e432752d33d51abedb2b09fb9b304ef1c684d1b24cb4f5c0fd5703ec47b2dc26
+    sourceHash: 91a50ffd2c7193e4477c14cf63b0834fab66d9dc6fcdd177232ffdbb4feda873
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 676
+    sourceEndLine: 679
     sourceFile: packages/cli/tests/commands/init-git-context.test.ts
     sourceLine: 1
   SYM-git-hook-effective-install-installer-verifier:
@@ -33925,10 +33925,10 @@ coordinates:
     sourceLine: 1
   SYM-test-cli-github-init:
     identityHash: f42bedc7ffd4616bdfe3efe7ae5409adf323bc4606bae9a5b296d0f5f0de6716
-    sourceHash: 414a3f968803a99be7494d9760d8f98e2dc78d8b28e892959ab7360de195ab43
+    sourceHash: 20a5e8308bd8386215ac33bc3dca6ed5d65aace32955b334b31805060923eccc
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 603
+    sourceEndLine: 605
     sourceFile: packages/cli/tests/commands/github-init.test.ts
     sourceLine: 1
   SYM-test-cli-init-github-flags:
