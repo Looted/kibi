@@ -17,7 +17,7 @@ afterEach(() => {
   if (process.exitCode === 1) process.exitCode = 0;
 });
 
-describe("staged-diagnostics remaining coordinate derivation and empty override", () => {
+describe("collectStagedKibiDiagnostics symbols_manifest_stale and override rendering", () => {
   test("derives coordinates from the symbols manifest path and returns early for empty overrides", () => {
     restores.push(isolateKibiEnv());
     const derived = collectStagedKibiDiagnostics(
@@ -151,5 +151,59 @@ describe("staged-diagnostics remaining coordinate derivation and empty override"
     expect(stale?.suggestion).toContain(
       "Run kibi sync --refresh-symbol-coordinates",
     );
+  });
+  test("renders an accurate overflow count in text and full name lists in JSON evidence", () => {
+    restores.push(isolateKibiEnv());
+    const extra = Array.from({ length: 9 }, (_, index) => `ghost${index + 1}`);
+    const missing = Array.from({ length: 8 }, (_, index) => ({
+      title: `symFn${index + 1}`,
+      line: index * 3 + 1,
+    }));
+    const derived = collectStagedKibiDiagnostics({
+      sourceChanges: [{ path: "src/app.ts", kind: "behavior_source_edit" }],
+      symbolsManifest: {
+        path: ".kb/symbol-coordinates.yaml",
+        state: "stale",
+        sourcePaths: ["src/app.ts"],
+        fileDetails: [
+          {
+            path: "src/app.ts",
+            expectedCount: 10,
+            coveredCount: 2,
+            missing,
+            extra,
+          },
+        ],
+      },
+      mode: { kind: "missing" },
+    });
+
+    const stale = derived.find((row) => row.id === "symbols_manifest_stale");
+    const text = stale?.details?.join("\n") ?? "";
+    expect(text).toContain(
+      "Evidence without a matching symbol: ghost1, ghost2, ghost3, ghost4, ghost5, ghost6 … and 3 more",
+    );
+    expect(text).toContain("symFn6 (line 16) … and 2 more");
+    expect(stale?.evidence).toEqual({
+      symbolsManifest: [
+        {
+          path: "src/app.ts",
+          expectedCount: 10,
+          coveredCount: 2,
+          missing,
+          extra,
+        },
+      ],
+    });
+
+    const uncovered = derived.find(
+      (row) => row.id === "kibi_impact_evidence_missing",
+    );
+    expect(uncovered?.details?.join("\n")).toContain("symFn6 … and 2 more");
+    expect(uncovered?.evidence).toEqual({
+      uncoveredSymbols: [
+        { path: "src/app.ts", titles: missing.map((entry) => entry.title) },
+      ],
+    });
   });
 });

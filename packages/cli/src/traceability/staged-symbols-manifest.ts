@@ -449,9 +449,7 @@ function getEffectiveManifestRecords(options: {
   };
 }
 
-/** Max missing/extra symbol titles surfaced per file before "+N more". */
-const MAX_DETAIL_ITEMS = 6;
-
+// implements REQ-cli-staged-impact-enforcement
 function diffSymbolEvidence(
   sourcePath: string,
   expectedSymbols: NormalizedManifestSymbol[],
@@ -472,12 +470,14 @@ function diffSymbolEvidence(
   if (missing.length === 0 && extra.length === 0) {
     return null;
   }
+  // Keep the complete lists: human-facing renderers truncate (with an
+  // accurate "… and N more"), while JSON evidence carries every name.
   return {
     path: sourcePath,
     expectedCount: expectedSymbols.length,
-    coveredCount: stagedSymbols.length,
-    missing: missing.slice(0, MAX_DETAIL_ITEMS),
-    extra: extra.slice(0, MAX_DETAIL_ITEMS),
+    coveredCount: expectedSymbols.length - missing.length,
+    missing,
+    extra,
   };
 }
 
