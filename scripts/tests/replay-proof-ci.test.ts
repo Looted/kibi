@@ -6,7 +6,7 @@ import { replaySteps } from "../replay-proof-ci.ts";
 
 const FINAL_GATE_STEP = "Enforce proof baseline and clean snapshot";
 const HOST_PROVISIONING_STEPS = [
-  "Check whether master PR can reuse develop proof",
+  "Check whether the PR can reuse develop proof",
   "Bootstrap Ubuntu packages",
   "Install SWI-Prolog",
   "Provision strict-proof host prerequisites",
