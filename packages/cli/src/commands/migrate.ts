@@ -70,6 +70,8 @@ interface MigrateOptions {
   applySafe?: boolean;
   approvedPlanHash?: string;
   approvedActionIds?: string[];
+  /** `--approved-action <id>` as the CLI parser spells it; same as approvedActionIds. */
+  approvedAction?: string[];
   workspaceRoot?: string;
   /** Internal migration-plan executor: create only the canonical baseline manifest. */
   initializeMissingConfig?: boolean;
@@ -1157,25 +1159,54 @@ async function buildWorkspaceMigrationPlan(
   return mergeMigrationPlans(plans);
 }
 
+/**
+ * The action ids approved on the command line. The CLI parser stores
+ * `--approved-action` as `approvedAction`; in-process callers pass
+ * `approvedActionIds`. Either spelling limits `--apply-safe` to those ids.
+ */
+// implements REQ-cli-schema-migration
+function approvedActionIdsOf(options: MigrateOptions): string[] {
+  const ids = [
+    ...(options.approvedActionIds ?? []),
+    ...(options.approvedAction ?? []),
+  ]
+    .map((id) => id.trim())
+    .filter((id) => id.length > 0);
+  return [...new Set(ids)];
+}
+
 async function migratePlanCommand(
   options: MigrateOptions,
 ): Promise<{ exitCode: number }> {
   const workspaceRoot = path.resolve(options.workspaceRoot ?? process.cwd());
   const plan = await buildWorkspaceMigrationPlan(workspaceRoot);
-  if (options.applySafe === true) {
-    if (!options.approvedPlanHash) {
+  // `--yes` with JSON output applies every ready automatic action of the plan
+  // it would otherwise only print; `--dry-run` still only prints it.
+  const approveWholePlan =
+    options.applySafe !== true &&
+    options.yes === true &&
+    options.dryRun !== true &&
+    options.format === "json";
+  if (options.applySafe === true || approveWholePlan) {
+    const approvedPlanHash = approveWholePlan
+      ? plan.planHash
+      : options.approvedPlanHash;
+    if (!approvedPlanHash) {
       console.error("--apply-safe requires --approved-plan-hash <sha256>.");
       return { exitCode: 2 };
     }
-    if (options.approvedPlanHash !== plan.planHash) {
+    if (approvedPlanHash !== plan.planHash) {
       console.error(
         "Migration plan changed; regenerate the plan and approve its current hash.",
       );
       return { exitCode: 2 };
     }
+    const explicitActionIds = approveWholePlan
+      ? []
+      : approvedActionIdsOf(options);
     const approvedActionIds =
-      options.approvedActionIds && options.approvedActionIds.length > 0
-        ? options.approvedActionIds
+      explicitActionIds.length > 0
+        ? explicitActionIds
         : plan.actions
             .filter(
               (action) => action.state === "ready" && action.autoApplicable,
@@ -1196,7 +1227,6 @@ async function migratePlanCommand(
       import("../public/operations/specs/planning.js"),
       import("../cli-json-command.js"),
     ]);
-    const approvedPlanHash = options.approvedPlanHash;
     const execute = () =>
       executeOperation(createCliRuntime({ workspaceRoot }), applyPlanSpec, {
         plan,
