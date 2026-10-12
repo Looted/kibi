@@ -12,7 +12,7 @@ import {
   executeIntentSearch,
 } from "../../intent-search.js";
 import { publicCapabilityStamp } from "../../plugins/compose-semantic-classifier.js";
-import { normalizeEntityId, parseTriples } from "../../prolog/codec.js";
+import { parseTriples } from "../../prolog/codec.js";
 import { loadEntities } from "../../public/operations/discovery-entities.js";
 import { executeStatus } from "../../public/operations/discovery-executors.js";
 import { readAuthoredEntity } from "../../public/operations/entity-context.js";
@@ -24,6 +24,11 @@ import { buildWhatIfAnalysisGoal } from "../mutation/contradictions.js";
 import { canonicalSourcePath } from "../mutation/source-authoring.js";
 import type { RelationshipInput, UpsertInput } from "../mutation/types.js";
 import { validateUpsertInput } from "../mutation/validation.js";
+import {
+  type ContradictionWitness,
+  isBlockingWitness,
+  parseWhatIfAnalysis,
+} from "../mutation/what-if.js";
 import { analyzeSemanticAdvisorInputWithPlugins } from "../semantic-advisor/plugin-orchestration.js";
 import { canonicalize } from "../semantic-advisor/shared.js";
 import type {
@@ -89,15 +94,11 @@ export type ProposalDecision = Readonly<{
  * (sides, facts, scenario, comparison) is kept alongside these normalized
  * fields so callers can act on more than requirement ids.
  */
-export type ContradictionWitness = Readonly<
-  {
-    requirements: readonly string[];
-    reason: string;
-    status?: string;
-    /** property | predicate | rule | scenario_feasibility */
-    kind?: string;
-  } & Record<string, unknown>
->;
+export type {
+  ContradictionWitness,
+  WhatIfAnalysis,
+} from "../mutation/what-if.js";
+export { isBlockingWitness, parseWhatIfAnalysis } from "../mutation/what-if.js";
 
 // implements REQ-kibi-change-to-proof-plan-compiler-v2
 export type TraceabilityProposal = Readonly<{
@@ -628,68 +629,6 @@ export function planWhatIfGoal(steps: readonly PlanStep[], now: Date): string {
 }
 
 // implements REQ-kibi-truthful-consistency
-export type WhatIfAnalysis = Readonly<{
-  after: readonly ContradictionWitness[];
-  introduced: readonly ContradictionWitness[];
-  removed: readonly ContradictionWitness[];
-  unchanged: readonly ContradictionWitness[];
-}>;
-
-function whatIfWitness(witness: Record<string, unknown>): ContradictionWitness {
-  return {
-    ...witness,
-    requirements: Array.isArray(witness.requirements)
-      ? witness.requirements.map((id) => normalizeEntityId(String(id)))
-      : [],
-    reason: text(witness.reason),
-    status: text(witness.status) || "contradiction",
-    ...(typeof witness.kind === "string" ? { kind: witness.kind } : {}),
-  };
-}
-
-function whatIfWitnesses(value: unknown): ContradictionWitness[] {
-  return (Array.isArray(value) ? value.filter(isRecord) : []).map(
-    whatIfWitness,
-  );
-}
-
-// implements REQ-kibi-truthful-consistency
-/**
- * Parse checks:what_if_analysis_json/2 output. The binding is a quoted Prolog
- * string, so the JSON may arrive encoded once more as a JSON string. A bare
- * witness array (the what_if_contradiction_witnesses_json/2 shape) carries no
- * current-KB baseline, so every witness in it is treated as introduced.
- * Returns null when the output cannot be read.
- */
-export function parseWhatIfAnalysis(raw: unknown): WhatIfAnalysis | null {
-  if (typeof raw !== "string") return null;
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(raw);
-    if (typeof parsed === "string") parsed = JSON.parse(parsed);
-  } catch {
-    return null;
-  }
-  if (Array.isArray(parsed)) {
-    const after = whatIfWitnesses(parsed);
-    return { after, introduced: after, removed: [], unchanged: [] };
-  }
-  if (!isRecord(parsed)) return null;
-  return {
-    after: whatIfWitnesses(parsed.after),
-    introduced: whatIfWitnesses(parsed.introduced),
-    removed: whatIfWitnesses(parsed.removed),
-    unchanged: whatIfWitnesses(parsed.unchanged),
-  };
-}
-
-// implements REQ-kibi-truthful-consistency
-/** Blocking: a proven contradiction or an infeasible success scenario. */
-export function isBlockingWitness(witness: ContradictionWitness): boolean {
-  return witness.status === "contradiction" || witness.status === "infeasible";
-}
-
-// implements REQ-kibi-truthful-consistency
 // Check the KB as it would be after this plan, not the KB as it is: stage every
 // planned step in a rolled-back transaction and compare its contradiction and
 // scenario-feasibility witnesses with the current KB's. Any witness the plan
@@ -945,6 +884,97 @@ function draftSteps(
     });
   }
   return { steps, diagnostics };
+}
+
+// implements REQ-model-what-if-planned-facts
+export type GroundingPlanInput = Readonly<{
+  requirementId: string;
+  claimKey: string;
+  text: string;
+  /** The fact write(s), then the requirement upsert that links them. */
+  steps: readonly PlanStep[];
+}>;
+
+// implements REQ-model-what-if-planned-facts
+/**
+ * A hash-bound compile plan for a grounding kb_model planned: the predicate
+ * fact and the requirement upsert that links it, validated and applied
+ * together by kb_apply_plan. Its contradiction analysis is the what-if over
+ * the current KB plus these steps, so a decision conflict with a fact that is
+ * already stored is reported here, before any write, and blocks the plan.
+ */
+export async function compileGroundingPlan(
+  context: OperationContext,
+  prolog: NonNullable<OperationContext["prolog"]>,
+  input: GroundingPlanInput,
+): Promise<CompilePlanV1> {
+  const now = context.clock();
+  const statusResult = await executeStatus({}, context);
+  const status = statusResult.structuredContent;
+  if (!status)
+    throw new Error("Grounding plan failed: status query returned no payload");
+  const contradictions = await contradictionAnalysis(
+    prolog,
+    input.requirementId,
+    input.steps,
+    now,
+  );
+  const diagnostics: string[] = [];
+  let statusValue: CompilePlanV1["status"] =
+    contradictions.outcome === "conflict" ? "blocked" : "ready";
+  let planSteps = [...input.steps];
+  if (statusValue === "ready") {
+    try {
+      planSteps = await withDocumentTargets(
+        context,
+        prolog,
+        input.steps,
+        { id: input.requirementId },
+        now,
+      );
+    } catch (error) {
+      statusValue = "needs_resolution";
+      diagnostics.push(
+        `A plan step cannot be applied as written: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
+  // The hash binds the plan as it travels: a step field left undefined
+  // (kb_model's optional source) is absent on the wire, so it is absent here.
+  const planBody: Omit<CompilePlanV1, "planHash"> = JSON.parse(
+    JSON.stringify({
+      version: COMPILE_PLAN_VERSION,
+      status: statusValue,
+      expected: {
+        branch: status.branch,
+        kbSnapshotId: status.snapshotId,
+        workspaceSnapshot: status.proofSnapshot ?? "unknown",
+        sourceHashes: {},
+      },
+      target: {
+        mode: "update" as const,
+        requirementId: input.requirementId,
+        selectionReason: `kb_model mode predicates grounds claim ${input.claimKey} of the supplied requirementId.`,
+      },
+      discovery: { candidates: [], abstained: true },
+      propositions: [
+        {
+          claimKey: input.claimKey,
+          text: input.text,
+          span: { start: 0, end: Buffer.byteLength(input.text, "utf8") },
+          disposition: "predicate" as const,
+          status: "modeled" as const,
+          origin: "deterministic" as const,
+        },
+      ],
+      contradictionAnalysis: contradictions,
+      proposals: [],
+      steps: planSteps,
+      sourceWrites: [],
+      diagnostics,
+    }),
+  );
+  return { ...planBody, planHash: compilePlanHash(planBody) };
 }
 
 // implements REQ-kibi-change-to-proof-plan-compiler-v2

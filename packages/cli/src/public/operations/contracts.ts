@@ -574,6 +574,11 @@ const BASE_DATA_SCHEMAS: Readonly<
     recommendedPredicateSchema: { type: ["object", "null"] },
     applyPlan: recordArray,
     relationshipPlan: { type: ["object", "null"] },
+    plan: {
+      type: ["object", "null"],
+      description:
+        "With requirementId and a complete candidate: the hash-bound kibi.compile-plan.v1 that writes the predicate fact and links requires_predicate in one kb_apply_plan call (approvedPlanHash = plan.planHash). Its contradictionAnalysis is the what-if over the current KB plus the plan; a conflict leaves the plan blocked. Null when no plan applies.",
+    },
     relationshipTarget: {
       type: ["string", "null"],
       description:
@@ -630,6 +635,8 @@ const BASE_DATA_SCHEMAS: Readonly<
     warnings: valueArray,
     semanticAdvisor: nullableJsonSchema(recordValue),
     normalizedPreview: nullableJsonSchema(recordValue),
+    stagedFacts: stringArray,
+    whatIf: recordValue,
   }),
   kb_upsert: {
     description:
@@ -654,6 +661,8 @@ const BASE_DATA_SCHEMAS: Readonly<
           warnings: valueArray,
           semanticAdvisor: nullableJsonSchema(recordValue),
           normalizedPreview: nullableJsonSchema(recordValue),
+          stagedFacts: stringArray,
+          whatIf: recordValue,
           dryRun: { const: true },
           skippedEffects: stringArray,
         },

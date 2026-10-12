@@ -54,7 +54,11 @@ consolidated routes `kibi skill` and `kibi model` match the MCP tools
   `mode`.
 - `kibi upsert` accepts `"dryRun": true`: it runs the `validate-upsert`
   checks, writes nothing, and returns the validation payload plus
-  `dryRun: true` and `skippedEffects`.
+  `dryRun: true` and `skippedEffects`. With `"plannedFacts": [...]` (the
+  `applyPlan` entries of `kibi model`) the dry run stages those fact writes
+  first, so a grounding link to a fact that does not exist yet validates and
+  the contradiction preview sees the KB as it would be after the batch
+  (`stagedFacts`, `whatIf`). `plannedFacts` without `dryRun` is rejected.
 - `kibi apply-plan` with `"recoveryJournalId": "bootstrap-…"` resumes a
   bootstrap plan whose process died mid-action without journal edits: the
   interrupted action is re-applied and a source lock left by the dead process

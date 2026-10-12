@@ -18,8 +18,24 @@ export type UpsertInput = {
   };
   /** Validate and preview the write without mutating the KB. */
   readonly dryRun?: boolean;
+  /**
+   * Dry run only: fact upserts an earlier step will write before this one
+   * (the kb_model applyPlan entries). They are validated in order and staged
+   * with the payload, so grounding targets resolve and the contradiction
+   * preview sees the KB as it would be after the whole batch.
+   */
+  readonly plannedFacts?: readonly PlannedFactInput[];
   readonly _skipContradictionCheck?: boolean;
   readonly _requestId?: string;
+};
+
+// implements REQ-model-what-if-planned-facts
+/** One planned fact write staged ahead of a dry run. */
+export type PlannedFactInput = {
+  readonly type: string;
+  readonly id: string;
+  readonly properties: Readonly<Record<string, unknown>>;
+  readonly relationships?: readonly RelationshipInput[];
 };
 
 // implements REQ-kibi-truthful-consistency
@@ -97,6 +113,18 @@ export type ValidateUpsertPayload = {
   readonly warnings: readonly string[];
   readonly semanticAdvisor: SemanticAdvisorReceipt | null;
   readonly normalizedPreview: Readonly<Record<string, unknown>> | null;
+  /** Planned fact ids staged ahead of the payload, in order. */
+  readonly stagedFacts?: readonly string[];
+  /**
+   * With plannedFacts: the contradiction and scenario-feasibility witnesses
+   * the KB would hold after the planned facts and this payload, split into
+   * what the batch introduces, removes and leaves unchanged.
+   */
+  readonly whatIf?: Readonly<{
+    introduced: readonly Readonly<Record<string, unknown>>[];
+    removed: readonly Readonly<Record<string, unknown>>[];
+    unchanged: readonly Readonly<Record<string, unknown>>[];
+  }>;
 };
 
 export type DeleteInput = {
