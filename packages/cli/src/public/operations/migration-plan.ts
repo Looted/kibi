@@ -749,17 +749,20 @@ export function buildActionsFromStatus(input: {
   }
 
   const storeState = typeof store?.state === "string" ? store.state : null;
-  const legacyStorageMigrationRequired = legacyConfigExists(
-    input.workspaceRoot,
-  );
+  // Legacy storage is evaluated whether or not the legacy config survives:
+  // legacy copies left beside a migrated .kb/ (moved, identical or stale)
+  // are the same finding 'kibi doctor' and 'kibi migrate' report.
+  // implements REQ-cli-schema-migration
+  const legacyStorage = planLegacyStorageMigration(input.workspaceRoot);
+  const legacyStorageMigrationRequired =
+    legacyConfigExists(input.workspaceRoot) ||
+    legacyStorage.moves.length > 0 ||
+    legacyStorage.removals.length > 0 ||
+    legacyStorage.blockers.length > 0;
   // A legacy cutover that cannot move its files (a destination already
   // exists, a malformed config) is an operator decision, not an automatic
   // step that fails when applied and takes the compile with it.
-  const legacyStorage = legacyStorageMigrationRequired
-    ? planLegacyStorageMigration(input.workspaceRoot)
-    : null;
-  const legacyStorageBlocked =
-    legacyStorage !== null && legacyStorage.blockers.length > 0;
+  const legacyStorageBlocked = legacyStorage.blockers.length > 0;
   if (storeState === "missing") {
     actions.push(
       migrationAction({
@@ -813,26 +816,29 @@ export function buildActionsFromStatus(input: {
         invocation: legacyStorageBlocked
           ? {
               kind: "review",
-              instruction: `The legacy .kb/config.json still names knowledge files outside .kb/ and Kibi cannot move them: ${legacyStorage?.blockers.join(" ")} Compare each legacy copy with its .kb/ copy and keep the current one: replace the .kb/ copy when the legacy one is newer, or remove (git rm) the legacy copy when it is a stale duplicate. Then run 'kibi migrate --yes' to retire .kb/config.json.`,
+              instruction: `Legacy knowledge files outside .kb/ cannot be migrated automatically: ${legacyStorage.blockers.join(" ")} Then run 'kibi migrate --yes'.`,
             }
           : { kind: "cli", command_argv: ["kibi", "migrate", "--yes"] },
         affectedFiles: [
           ".kb/manifest.json",
           ".kb/migrations",
           ".kb/config.json",
-          ...(legacyStorage?.moves.map((move) => move.from) ?? []),
+          ...legacyStorage.moves.map((move) => move.from),
+          ...legacyStorage.removals.map((removal) => removal.path),
         ],
         evidence: {
           configStatus,
-          ...(legacyStorage === null
-            ? {}
-            : {
+          ...(legacyStorageMigrationRequired
+            ? {
                 legacyStorage: {
                   moves: legacyStorage.moves,
+                  removals: legacyStorage.removals,
+                  conflicts: legacyStorage.conflicts,
                   blockers: legacyStorage.blockers,
                   legacyConfig: legacyStorage.legacyConfig,
                 },
-              }),
+              }
+            : {}),
         },
         dependsOn: storeState === "missing" ? ["branch-store-ensure"] : [],
         autoApplicable: !operatorOnly,

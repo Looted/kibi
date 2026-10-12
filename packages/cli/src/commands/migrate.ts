@@ -544,7 +544,9 @@ export async function migrateCommand(
       : { schemaVersion: normalizedVersion },
   );
   const needsStorageMigration =
-    storagePlan.moves.length > 0 || storagePlan.legacyConfig !== "absent";
+    storagePlan.moves.length > 0 ||
+    storagePlan.removals.length > 0 ||
+    storagePlan.legacyConfig !== "absent";
   const needsSchemaUpgrade =
     configStatus.needsMigration || normalizedVersion === null;
   const migrationWarning =
@@ -677,6 +679,14 @@ export async function migrateCommand(
         console.log(`  ${move.from} -> ${move.to}`);
       }
     }
+    if (storagePlan.removals.length > 0) {
+      console.log(
+        `dry run: would remove ${storagePlan.removals.length} legacy cop(ies) identical to their .kb/ file:`,
+      );
+      for (const removal of storagePlan.removals) {
+        console.log(`  ${removal.path} (same as ${removal.duplicateOf})`);
+      }
+    }
     if (storagePlan.legacyConfig !== "absent") {
       console.log(
         "dry run: would retire legacy .kb/config.json after moving knowledge into .kb/.",
@@ -722,6 +732,11 @@ export async function migrateCommand(
         printWarning(
           `${untracked} moved file(s) are not tracked by Git yet. Kibi recorded a pending-source receipt for each, so kibi sync compiles them now; stage them before you commit (git add .kb, plus the removals under the legacy folders). Each receipt retires once Git tracks its file.`,
         );
+    }
+    if (storageResult.removedFiles.length > 0) {
+      console.log(
+        `Removed ${storageResult.removedFiles.length} legacy cop(ies) identical to their .kb/ file: ${storageResult.removedFiles.join(", ")}.`,
+      );
     }
     if (storageResult.retiredLegacyConfig) {
       console.log("Retired legacy .kb/config.json.");
