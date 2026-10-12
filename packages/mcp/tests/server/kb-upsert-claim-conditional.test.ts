@@ -46,23 +46,26 @@ describe("kb_upsert claim provenance conditional over MCP", () => {
     });
   }
 
+  // A grounding fact may send the clause alone: the CLI derives claim_key
+  // from claim_text, so the input schema no longer demands the key.
   for (const factKind of ["subject", "property_value", "predicate"]) {
-    test(`still requires claim_key for a ${factKind} fact with claim_text`, () => {
+    test(`accepts a ${factKind} fact with claim_text and no claim_key`, () => {
       const result = kbUpsertInput().safeParse(
         fact({
           fact_kind: factKind,
           claim_text: "The operator must approve the export.",
         }),
       );
-      expect(claimKeyIssue(result)).toBe(true);
+      expect(result.success).toBe(true);
+      expect(claimKeyIssue(result)).toBe(false);
     });
   }
 
-  test("still requires claim_key when claim_text has no fact_kind", () => {
+  test("accepts claim_text without claim_key when fact_kind is absent", () => {
     const result = kbUpsertInput().safeParse(
       fact({ claim_text: "The operator must approve the export." }),
     );
-    expect(claimKeyIssue(result)).toBe(true);
+    expect(result.success).toBe(true);
   });
 
   test("still requires claim_text when claim_key is present, whatever the kind", () => {

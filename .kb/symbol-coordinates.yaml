@@ -34253,10 +34253,10 @@ coordinates:
     sourceLine: 1
   SYM-test-mcp-conditional-input-validation:
     identityHash: ac10b582e3d0b58bddd5beadb1942d27ffada902e93e8aa4b401fcd0946b463b
-    sourceHash: 8ab071bfcb715be4f4f8629b250e7e5944a4d4b32417f44ebd9448229a2f81ab
+    sourceHash: 2e68e09600aa08ac6d52dc7d07a0f78a066362b9d0737ae88dfe65d2a15faea6
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 142
+    sourceEndLine: 145
     sourceFile: packages/mcp/tests/server/kb-upsert-claim-conditional.test.ts
     sourceLine: 1
   SYM-test-mcp-oneof-guard-input-validation:
