@@ -1,5 +1,18 @@
 # kibi-opencode
 
+## 2.4.1
+
+### Patch Changes
+
+- Updated dependencies [e00adf2]
+- Updated dependencies [78e561d]
+- Updated dependencies [fa208f1]
+- Updated dependencies [1cee3b0]
+- Updated dependencies [d973759]
+- Updated dependencies [1b8d532]
+  - kibi-agent-core@0.3.0
+  - kibi-runtime@2.14.0
+
 ## 2.4.0
 
 ### Minor Changes

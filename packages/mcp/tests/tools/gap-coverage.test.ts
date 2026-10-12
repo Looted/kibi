@@ -262,7 +262,9 @@ describe("coverage gap branches", () => {
     expect(permission?.predicate_args).toEqual([
       "editor",
       "delete",
-      "locked_records",
+      // A resource binds as one singular noun phrase, so "locked records"
+      // and "a locked record" share the same permission_rule argument.
+      "locked_record",
       // The decision is a closed vocabulary: a granted permission is `allow`.
       "allow",
     ]);

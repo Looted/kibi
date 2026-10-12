@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 199,
-  "proofProven": 199,
+  "currentRequirements": 200,
+  "proofProven": 200,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -992,6 +992,11 @@
       "uncoveredSymbols": []
     },
     "REQ-kibi-hooks-flow-manifest": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-model-predicates-permission-grants": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []

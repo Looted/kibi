@@ -13374,6 +13374,30 @@ symbols:
         target: TEST-mcp-suggest-predicates
       - type: implements
         target: REQ-mcp-suggest-predicates
+      - type: covered_by
+        target: TEST-model-predicates-permission-grants
+      - type: implements
+        target: REQ-model-predicates-permission-grants
+  - id: SYM-predicate-infer-permission-actor
+    title: permissionActor
+    sourceFile: packages/cli/src/operations/modeling/predicate-inference-1.ts
+    symbol_role: behavioral
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-model-predicates-permission-grants
+      - type: implements
+        target: REQ-model-predicates-permission-grants
+  - id: SYM-predicate-infer-permission-resource
+    title: permissionResource
+    sourceFile: packages/cli/src/operations/modeling/predicate-inference-1.ts
+    symbol_role: behavioral
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-model-predicates-permission-grants
+      - type: implements
+        target: REQ-model-predicates-permission-grants
   - id: SYM-predicate-infer-scoped-authorization
     title: inferScopedAuthorizationRuleArgs
     sourceFile: packages/cli/src/operations/modeling/predicate-inference-3.ts
@@ -51581,3 +51605,12 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-model-what-if-planned-facts
+  - id: SYM-test-model-predicates-permission-grants
+    title: Permission grant modeling suite
+    status: active
+    sourceFile: packages/cli/tests/operations/predicate-permission-modals.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-model-predicates-permission-grants

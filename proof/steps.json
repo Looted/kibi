@@ -2499,5 +2499,18 @@
         "./packages/cli/tests/consumer/planned-facts-what-if.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-model-predicates-permission-grants",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/cli/tests/operations/predicate-permission-modals.test.ts",
+        "./packages/plugin-builtin/tests/vocabulary-alignment.test.ts"
+      ]
+    ]
   }
 ]
