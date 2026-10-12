@@ -45,6 +45,7 @@ import {
 } from "../bootstrap/types.js";
 import { validateBootstrapPayload } from "../bootstrap/validation.js";
 import {
+  SCHEMA6_APPROVABLE_REVIEW_CODES,
   SCHEMA6_AUTOMATIC_CODES,
   applySchema6MigrationAction,
 } from "../migration/schema6.js";
@@ -491,7 +492,10 @@ function validateMigrationPlanShape(
       throw new Error(
         `Migration apply failed: action '${action.id}' is blocked`,
       );
-    if (action.safety !== "automatic" || action.autoApplicable !== true)
+    if (
+      !(action.safety === "automatic" && action.autoApplicable === true) &&
+      !isApprovableReviewAction(action)
+    )
       throw new Error(
         `Migration apply failed: action '${action.id}' is not automatic`,
       );
@@ -503,6 +507,22 @@ function validateMigrationPlanShape(
     }
   }
   return actions;
+}
+
+/**
+ * A review action Kibi can execute once a person approves it by id. Callers
+ * pass the approved ids explicitly; `kibi migrate --apply-safe` without
+ * `--approved-action` selects only automatic actions, so these never run on
+ * their own.
+ */
+// implements REQ-agent-guided-migration-orchestration, REQ-cli-schema-migration
+function isApprovableReviewAction(action: MigrationAction): boolean {
+  return (
+    action.safety === "review" &&
+    action.autoApplicable === false &&
+    action.invocation.kind === "cli" &&
+    SCHEMA6_APPROVABLE_REVIEW_CODES.has(action.code)
+  );
 }
 
 function topologicalActions(
@@ -3246,7 +3266,10 @@ async function applyMigrationAction(
       applyProofIntegrationAction(action, context.workspaceRoot);
       return;
     default:
-      if (SCHEMA6_AUTOMATIC_CODES.has(action.code)) {
+      if (
+        SCHEMA6_AUTOMATIC_CODES.has(action.code) ||
+        SCHEMA6_APPROVABLE_REVIEW_CODES.has(action.code)
+      ) {
         await applySchema6MigrationAction(action, context);
         return;
       }

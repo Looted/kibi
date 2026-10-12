@@ -328,7 +328,7 @@ function describeRederivation(plan: InventoryRederivation): string {
 function printManualRederivations(plans: readonly InventoryRederivation[]) {
   for (const plan of plans) {
     printWarning(
-      `${plan.requirementId} (${plan.path}) no longer matches the current semantic advisor and needs a manual fix: ${plan.reasons.join("; ")}. Run 'kibi migrate --format json' for the exact repair steps.`,
+      `${plan.requirementId} (${plan.path}) no longer matches the current semantic advisor and needs a manual fix: ${plan.reasons.join("; ")}. Run 'kibi migrate --format json' for the exact repair steps.${plan.rederivableByDroppingGrounding ? ` Or approve semantic-inventory-rederive-drop-grounding-${plan.requirementId} with --apply-safe --approved-action to drop the ${plan.orphanedGrounding.length} orphaned grounding link(s).` : ""}`,
     );
   }
 }

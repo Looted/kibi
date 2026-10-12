@@ -52,6 +52,7 @@ import {
 import {
   type InventoryRederivation,
   applyInventoryRederivation,
+  applyInventoryRederivationDroppingGrounding,
   planInventoryRederivation,
 } from "./inventory-rederive.js";
 import { listLaneMarkdownFiles } from "./kb-sources.js";
@@ -94,6 +95,13 @@ export const SEMANTIC_INVENTORY_REDERIVE_CODE = "semantic_inventory_rederive";
 /** Review: a drifted inventory Kibi cannot re-derive safely. */
 // implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export const SEMANTIC_INVENTORY_REVIEW_CODE = "semantic_inventory_review";
+/**
+ * Review, applied only when approved by id: re-derive a drifted inventory and
+ * drop the grounding links that no longer ground a modeled claim.
+ */
+// implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
+export const SEMANTIC_INVENTORY_REDERIVE_DROP_GROUNDING_CODE =
+  "semantic_inventory_rederive_drop_grounding";
 /** Automatic: stamp `origin: {kind: migration}` on authored entities. */
 // implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export const ENTITY_ORIGIN_BACKFILL_CODE = "entity_origin_backfill";
@@ -152,7 +160,7 @@ function reviewAction(plan: InventoryRederivation): MigrationAction {
     safety: "review",
     invocation: {
       kind: "review",
-      instruction: `${plan.requirementId} (${plan.path}) no longer matches the current semantic advisor and cannot be re-derived automatically: ${plan.reasons.join("; ")}. Fix it in ${plan.path} itself: kibi sync rejects this requirement, so store-backed tools (kb_upsert, kb_delete) cannot see it until it compiles. In its front matter, write the re-derived contract from this action's evidence.contract (semantic_inventory, logic_claims, semantic_source_hash and their version fields), then make modeled claims and requires_* links match one to one: re-ground or remove each listed grounding link, and keep a claim modeled only while a grounding fact with the same claim_key remains. Run kibi sync to confirm. To see how the advisor reads the prose, run \`kibi model --input -\` with {"mode":"analyze","type":"req","id":"${plan.requirementId}","text":<the requirement's semantic_text, or its statement when it has none>}.`,
+      instruction: `${plan.requirementId} (${plan.path}) no longer matches the current semantic advisor and cannot be re-derived automatically: ${plan.reasons.join("; ")}. Fix it in ${plan.path} itself: kibi sync rejects this requirement, so store-backed tools (kb_upsert, kb_delete) cannot see it until it compiles. In its front matter, write the re-derived contract from this action's evidence.contract (semantic_inventory, logic_claims, semantic_source_hash and their version fields), then make modeled claims and requires_* links match one to one: re-ground or remove each listed grounding link, and keep a claim modeled only while a grounding fact with the same claim_key remains. Run kibi sync to confirm.${plan.rederivableByDroppingGrounding ? ` Or approve semantic-inventory-rederive-drop-grounding-${plan.requirementId}, which writes that contract and removes exactly the listed orphaned grounding links.` : ""} To see how the advisor reads the prose, run \`kibi model --input -\` with {"mode":"analyze","type":"req","id":"${plan.requirementId}","text":<the requirement's semantic_text, or its statement when it has none>}.`,
     },
     affectedEntityIds: [plan.requirementId],
     affectedFiles: [plan.path],
@@ -167,6 +175,71 @@ function reviewAction(plan: InventoryRederivation): MigrationAction {
       contractHash: plan.contractHash,
     },
   });
+}
+
+/**
+ * The explicit alternative to a manual inventory fix: write the re-derived
+ * contract and remove the orphaned grounding links from the requirement's
+ * front matter. It drops modeled logic, so it is a review action that
+ * `--apply-safe` never selects on its own; approving its id runs it.
+ */
+function dropGroundingAction(plan: InventoryRederivation): MigrationAction {
+  const id = `semantic-inventory-rederive-drop-grounding-${plan.requirementId}`;
+  const drops = plan.orphanedGrounding.map(({ type, target, claimKey }) => ({
+    type,
+    target,
+    claimKey,
+  }));
+  return migrationAction({
+    id,
+    code: SEMANTIC_INVENTORY_REDERIVE_DROP_GROUNDING_CODE,
+    category: "semantic",
+    safety: "review",
+    autoApplicable: false,
+    invocation: {
+      kind: "cli",
+      command_argv: [
+        "kibi",
+        "migrate",
+        "--apply-safe",
+        "--approved-action",
+        id,
+      ],
+    },
+    affectedEntityIds: [plan.requirementId],
+    affectedFiles: [plan.path],
+    postconditions: [
+      {
+        check: "proposition-complete-ingestion",
+        entityId: plan.requirementId,
+        errors: 0,
+      },
+    ],
+    dispositionRequired: true,
+    allowedDispositions: ["fixed", "deferred"],
+    evidence: {
+      reason: `Re-derive the semantic inventory of ${plan.requirementId} and drop the ${drops.length} grounding link(s) that no longer ground a modeled claim, so kibi sync accepts it. The modeled logic those links carried is removed from the requirement (the facts themselves stay); re-ground the claims later with kibi model if they still matter.`,
+      approve: `kibi migrate --apply-safe --approved-plan-hash <this plan's planHash> --approved-action ${id}`,
+      droppedGrounding: drops,
+      summary: plan.summary,
+      changes: plan.changes.filter((change) => change.change !== "kept"),
+      contract: plan.contract,
+      contractHash: plan.contractHash,
+      alternativeTo: `semantic-inventory-review-${plan.requirementId}`,
+    },
+  });
+}
+
+/** The grounding links an approved drop-grounding action lists. */
+function plannedDrops(
+  action: MigrationAction,
+): Array<{ type: string; target: string }> {
+  return plannedRecords(action.evidence.droppedGrounding).flatMap(
+    ({ type, target }) =>
+      typeof type === "string" && typeof target === "string"
+        ? [{ type, target }]
+        : [],
+  );
 }
 
 type SourceRequirement = {
@@ -353,6 +426,8 @@ export function buildSchema6MigrationFragment(input: {
     const action = plan.safe ? rederiveAction(plan) : reviewAction(plan);
     actions.push(action);
     if (plan.safe) sourceRewriteActionIds.push(action.id);
+    if (!plan.safe && plan.rederivableByDroppingGrounding)
+      actions.push(dropGroundingAction(plan));
   }
   if (drift.some((plan) => !plan.safe)) {
     diagnostics.push(
@@ -590,6 +665,21 @@ export async function applySchema6MigrationAction(
       );
       return;
     }
+    case SEMANTIC_INVENTORY_REDERIVE_DROP_GROUNDING_CODE: {
+      const requirementId = action.affectedEntityIds[0];
+      const contractHash = action.evidence.contractHash;
+      if (requirementId === undefined || typeof contractHash !== "string")
+        throw new Error(
+          "Inventory re-derivation names no requirement or contract hash.",
+        );
+      applyInventoryRederivationDroppingGrounding(
+        context.workspaceRoot,
+        requirementId,
+        contractHash,
+        plannedDrops(action),
+      );
+      return;
+    }
     case ENTITY_ORIGIN_BACKFILL_CODE:
       applyOriginBackfill(context.workspaceRoot, context.clock().toISOString());
       return;
@@ -645,6 +735,15 @@ export async function applySchema6MigrationAction(
       );
   }
 }
+
+/**
+ * Review actions Kibi can execute, but only when a person approves them by
+ * id (`--approved-action`): `--apply-safe` selects automatic actions alone.
+ */
+// implements REQ-kibi-schema6-migration, REQ-cli-schema-migration, REQ-agent-guided-migration-orchestration
+export const SCHEMA6_APPROVABLE_REVIEW_CODES: ReadonlySet<string> = new Set([
+  SEMANTIC_INVENTORY_REDERIVE_DROP_GROUNDING_CODE,
+]);
 
 // implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export const SCHEMA6_AUTOMATIC_CODES: ReadonlySet<string> = new Set([

@@ -133,6 +133,28 @@ export type InventoryRederivation = Readonly<{
   contract: InventoryContract;
   /** SHA-256 of the canonical re-derived contract; the apply step re-checks it. */
   contractHash: string;
+  /**
+   * Grounding links (requires_*) whose target no longer grounds a modeled
+   * claim of the re-derived inventory. Empty for a safe re-derivation.
+   */
+  orphanedGrounding: readonly OrphanedGroundingLink[];
+  /**
+   * True when an unsafe re-derivation passes ingestion once exactly the
+   * orphaned grounding links are removed from the requirement's front
+   * matter. A person approves that explicitly; it is never automatic.
+   */
+  rederivableByDroppingGrounding: boolean;
+}>;
+
+/** A grounding link the re-derived inventory no longer supports. */
+// implements REQ-kibi-proposition-complete-ingestion, REQ-cli-schema-migration
+export type OrphanedGroundingLink = Readonly<{
+  type: string;
+  target: string;
+  /** The target fact's claim_key; null when it declares none. */
+  claimKey: string | null;
+  /** Declared in the requirement's front matter `links` (not a shard). */
+  inFrontMatter: boolean;
 }>;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -226,10 +248,7 @@ function relationshipsFor(
   const unique = new Map<string, ExtractedRelationship>();
   for (const relationship of [...extracted, ...shards]) {
     if (relationship.from !== id) continue;
-    unique.set(
-      `${relationship.type}\u0000${relationship.from}\u0000${relationship.to}`,
-      relationship,
-    );
+    unique.set(relationshipKey(relationship), relationship);
   }
   return [...unique.values()];
 }
@@ -395,10 +414,27 @@ function planOne(
     );
   }
 
+  const modeledKeys = inventory
+    .filter((entry) => entry.status === "modeled")
+    .map((entry) => entry.claim_key);
+  const declared = new Set(
+    extracted
+      .filter((relationship) => relationship.from === entity.id)
+      .map(relationshipKey),
+  );
   const groundingKeys: string[] = [];
+  const orphanedGrounding: OrphanedGroundingLink[] = [];
   for (const relationship of relationships) {
     if (!GROUNDING_RELATIONSHIPS.has(relationship.type)) continue;
     const claimKey = facts.claimKey(relationship.to);
+    if (claimKey === undefined || !modeledKeys.includes(claimKey)) {
+      orphanedGrounding.push({
+        type: relationship.type,
+        target: relationship.to,
+        claimKey: claimKey ?? null,
+        inFrontMatter: declared.has(relationshipKey(relationship)),
+      });
+    }
     if (claimKey === undefined) {
       reasons.push(
         `grounding target ${relationship.to} (${relationship.type}) declares no claim_key`,
@@ -407,9 +443,6 @@ function planOne(
     }
     groundingKeys.push(claimKey);
   }
-  const modeledKeys = inventory
-    .filter((entry) => entry.status === "modeled")
-    .map((entry) => entry.claim_key);
   for (const claimKey of new Set(groundingKeys)) {
     if (modeledKeys.includes(claimKey)) continue;
     const dropped = changes.find(
@@ -435,6 +468,27 @@ function planOne(
   for (const error of after.errors) {
     reasons.push(`re-derived inventory would still fail ingestion: ${error}`);
   }
+  const orphaned = new Set(
+    orphanedGrounding.map((link) =>
+      relationshipKey({ type: link.type, from: entity.id, to: link.target }),
+    ),
+  );
+  const rederivableByDroppingGrounding =
+    reasons.length > 0 &&
+    orphanedGrounding.length > 0 &&
+    // A target without claim_key may ground something else (a property
+    // value, for example); only links to a claim that is no longer modeled
+    // are dropped, and only from the requirement's own front matter.
+    orphanedGrounding.every(
+      (link) => link.inFrontMatter && link.claimKey !== null,
+    ) &&
+    validateSemanticInventoryBoundary(
+      nextPayload,
+      relationships.filter(
+        (relationship) => !orphaned.has(relationshipKey(relationship)),
+      ),
+      analyzeSemanticAdvisorInput({ payload: nextPayload }).receipt,
+    ).errors.length === 0;
 
   return {
     requirementId: entity.id,
@@ -448,7 +502,15 @@ function planOne(
     contractHash: createHash("sha256")
       .update(canonicalJson(contract))
       .digest("hex"),
+    orphanedGrounding,
+    rederivableByDroppingGrounding,
   };
+}
+
+function relationshipKey(
+  relationship: Pick<ExtractedRelationship, "type" | "from" | "to">,
+): string {
+  return `${relationship.type}\u0000${relationship.from}\u0000${relationship.to}`;
 }
 
 function readShardRelationships(
@@ -514,12 +576,33 @@ export function planInventoryRederivation(
 function rewriteContract(
   content: string,
   contract: InventoryContract,
+  dropLinks: readonly Readonly<{ type: string; target: string }>[] = [],
 ): string | null {
   const slice = sliceFrontmatter(content);
   if (slice === null) return null;
   const document = parseDocument(slice.text);
   if (document.errors.length > 0) return null;
   const current = document.toJS() as Record<string, unknown>;
+  const dropped = (link: unknown): boolean =>
+    isRecord(link) &&
+    dropLinks.some(
+      (drop) => drop.type === link.type && drop.target === link.target,
+    );
+  const keptLinks = Array.isArray(current.links)
+    ? current.links.filter((link) => !dropped(link))
+    : current.links;
+  if (dropLinks.length > 0) {
+    if (!Array.isArray(current.links)) return null;
+    if (
+      current.links.length - (keptLinks as unknown[]).length !==
+      dropLinks.length
+    )
+      return null;
+    for (let index = current.links.length - 1; index >= 0; index--) {
+      if (dropped(current.links[index])) document.deleteIn(["links", index]);
+    }
+    if ((keptLinks as unknown[]).length === 0) document.delete("links");
+  }
   const flowSpan = (span: InventoryEntry["span"]) => {
     const node = document.createNode(span) as { flow?: boolean };
     node.flow = true;
@@ -585,7 +668,11 @@ function rewriteContract(
       const expected =
         key in contract
           ? (contract as Record<string, unknown>)[key]
-          : before[key];
+          : key === "links" && dropLinks.length > 0
+            ? (keptLinks as unknown[]).length > 0
+              ? keptLinks
+              : undefined
+            : before[key];
       if (!isDeepStrictEqual(after[key], expected)) return null;
     }
   } catch {
@@ -648,6 +735,77 @@ export function applyInventoryRederivation(
     throw new Error(
       `Requirement ${requirementId}: re-derived inventory did not read back.`,
     );
+  writeFileAtomically(absolute, next);
+  return {
+    requirementId,
+    path: plan.path,
+    outcome: "rederived",
+    summary: plan.summary,
+  };
+}
+
+function linkKeys(
+  links: readonly Readonly<{ type: string; target: string }>[],
+): string {
+  return JSON.stringify(
+    links.map((link) => `${link.type}\u0000${link.target}`).sort(),
+  );
+}
+
+/**
+ * Apply an unsafe re-derivation a person approved: write the re-derived
+ * contract and remove exactly `expectedDrops`, the orphaned grounding links
+ * the plan listed, from the requirement's front matter. The current plan must
+ * still produce the approved contract hash and the same orphaned links, and
+ * the rewritten requirement must pass ingestion before anything is written;
+ * the grounding facts themselves are left alone.
+ */
+// implements REQ-kibi-proposition-complete-ingestion, REQ-cli-schema-migration
+export function applyInventoryRederivationDroppingGrounding(
+  workspaceRoot: string,
+  requirementId: string,
+  expectedContractHash: string,
+  expectedDrops: readonly Readonly<{ type: string; target: string }>[],
+): InventoryRederivationOutcome {
+  const plan = planInventoryRederivation(workspaceRoot, requirementId).find(
+    (candidate) => candidate.requirementId === requirementId,
+  );
+  if (
+    plan === undefined ||
+    !plan.rederivableByDroppingGrounding ||
+    plan.contractHash !== expectedContractHash ||
+    linkKeys(plan.orphanedGrounding) !== linkKeys(expectedDrops)
+  ) {
+    throw new Error(
+      `Requirement ${requirementId} changed since planning; rerun kibi migrate and approve the new plan.`,
+    );
+  }
+  const absolute = path.join(workspaceRoot, plan.path);
+  const content = readText(absolute);
+  const next =
+    content === null
+      ? null
+      : rewriteContract(content, plan.contract, plan.orphanedGrounding);
+  if (next === null) {
+    throw new Error(
+      `Requirement ${requirementId}: the re-derived inventory and the dropped grounding links could not be written without changing other frontmatter fields.`,
+    );
+  }
+  // Fail closed: the rewritten requirement must pass ingestion as sync sees it.
+  const reread = extractFromMarkdownString(next, absolute);
+  const remaining = planOne(
+    workspaceRoot,
+    plan.path,
+    reread.entity,
+    reread.relationships,
+    readShardRelationships(workspaceRoot),
+    new FactClaimIndex(workspaceRoot),
+  );
+  if (remaining !== null) {
+    throw new Error(
+      `Requirement ${requirementId}: the rewrite would still fail ingestion (${remaining.errors.join("; ")}); nothing was written.`,
+    );
+  }
   writeFileAtomically(absolute, next);
   return {
     requirementId,

@@ -68,7 +68,7 @@ The payload declared no `semantic_source_field`, or one that is not `semantic_te
 
 ## Semantic inventory no longer matches the advisor
 
-If `kibi sync` reports `N requirement(s) failed proposition-complete ingestion` after an upgrade, the stored `semantic_inventory` of each listed requirement was written by an older semantic advisor. Run `kibi migrate`: its `semantic_inventory_rederive` actions rewrite the inventories that can be re-derived without losing grounding, and its `semantic_inventory_review` actions carry the re-derived contract for the rest. Fix those in the requirement file itself (sync rejects them, so `kb_upsert` and `kb_delete` cannot reach them), then run `kibi sync`.
+If `kibi sync` reports `N requirement(s) failed proposition-complete ingestion` after an upgrade, the stored `semantic_inventory` of each listed requirement was written by an older semantic advisor. Run `kibi migrate`: its `semantic_inventory_rederive` actions rewrite the inventories that can be re-derived without losing grounding, and its `semantic_inventory_review` actions carry the re-derived contract for the rest. Fix those in the requirement file itself (sync rejects them, so `kb_upsert` and `kb_delete` cannot reach them), then run `kibi sync`. When a review exists only because some grounding links point at claims that are no longer modeled, the plan also lists a `semantic-inventory-rederive-drop-grounding-<REQ>` action; approve it by id (`kibi migrate --apply-safe --approved-plan-hash <hash> --approved-action <id>`) to write the re-derived contract and remove exactly those links, then run `kibi sync`.
 
 ## Unsafe or unverifiable rule fact
 

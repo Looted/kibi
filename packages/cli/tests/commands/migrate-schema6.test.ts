@@ -307,6 +307,67 @@ describe("kibi migrate to schema 6", () => {
   );
 
   test(
+    "drops orphaned grounding only when the review action is approved by id",
+    () => {
+      writeCurrentRequirement(root, "REQ-upload-base", UPLOAD_TEXT);
+      git(root, "add", "--all");
+      git(root, "commit", "-m", "base");
+      expect(runKibi(["sync"], root).status).toBe(0);
+      const { factId } = writeDriftedRequirement(root, "REQ-upload-unsafe", 1);
+      git(root, "add", "--all");
+      git(root, "commit", "-m", "drift");
+      const file = path.join(root, ".kb/requirements/REQ-upload-unsafe.md");
+      const before = readFileSync(file, "utf8");
+
+      const plan = readPlan(root);
+      const id = "semantic-inventory-rederive-drop-grounding-REQ-upload-unsafe";
+      expect(action(plan, id)).toMatchObject({
+        code: "semantic_inventory_rederive_drop_grounding",
+        safety: "review",
+        state: "ready",
+        autoApplicable: false,
+        invocation: { kind: "cli" },
+        evidence: {
+          droppedGrounding: [
+            expect.objectContaining({
+              type: "requires_predicate",
+              target: factId,
+            }),
+          ],
+          contractHash: expect.stringMatching(/^[0-9a-f]{64}$/),
+        },
+      });
+
+      // --apply-safe alone never selects a review action.
+      const unattended = runKibi(
+        ["migrate", "--apply-safe", "--approved-plan-hash", plan.planHash],
+        root,
+      );
+      expect(unattended.status, unattended.stderr).toBe(0);
+      expect(readFileSync(file, "utf8")).toBe(before);
+
+      const approved = runKibi(
+        [
+          "migrate",
+          "--apply-safe",
+          "--approved-plan-hash",
+          plan.planHash,
+          "--approved-action",
+          id,
+        ],
+        root,
+      );
+      expect(approved.status, `${approved.stdout}\n${approved.stderr}`).toBe(0);
+      expect(approved.stdout).toContain(`- applied ${id}`);
+      expect(frontmatter(file).links).toBeUndefined();
+      // Sync stays fail-closed, and now accepts the requirement.
+      const synced = runKibi(["sync"], root);
+      expect(synced.status, `${synced.stdout}\n${synced.stderr}`).toBe(0);
+    },
+    TIMEOUT_MS,
+  );
+
+  test(
     "kibi migrate --yes upgrades directly and records the backfill in the audit",
     () => {
       writeManifest(root, 5);
