@@ -164,7 +164,9 @@ workspace path and branch and exits after ten minutes without clients.
 `engine janitor` classifies stale engine daemons and branch-store locks left by
 crashed engines or removed worktrees. It only reports by default; `--apply`
 performs the cleanup, `--all` also sweeps daemon sockets from other workspaces,
-and `--format json|table` selects the output.
+and `--format json|table` selects the output. It also reports stale-lock
+takeover records (`.kibi-lock-takeover.json`, kind `takeover-record`) older than
+the 24 hours `kb_status` shows them for, and `--apply` deletes them.
 
 ## `kibi storage status|compact|export`
 

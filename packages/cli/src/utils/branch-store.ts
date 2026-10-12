@@ -12,6 +12,7 @@ import {
 } from "node:fs";
 import * as path from "node:path";
 import {
+  FOREIGN_STORE_LOCK_REASON_PREFIX,
   STORE_LOCK_TAKEOVER_VISIBLE_MS,
   classifyStoreLockHolder,
   readStoreLockOwner,
@@ -209,7 +210,11 @@ export function storeLockTakeoverReason(
     brokenPid: record.brokenPid,
     reason: record.reason,
     at: record.at,
-    detail: `Kibi broke a stale branch-store lock at ${record.at} (${record.reason || "holder no longer running"}) and reattached. Nothing needs repair; a holder that died while it held the store usually means an engine or kibi prove run crashed or was killed.`,
+    detail: `Kibi broke a stale branch-store lock at ${record.at} (${record.reason || "holder no longer running"}) and reattached. Nothing needs repair; ${
+      record.reason.startsWith(FOREIGN_STORE_LOCK_REASON_PREFIX)
+        ? "the lock files were copied with the .kb directory (for example by cp -a) while another workspace's engine held its own store."
+        : "a holder that died while it held the store usually means an engine or kibi prove run crashed or was killed."
+    }`,
   };
 }
 

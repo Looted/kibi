@@ -53,6 +53,7 @@ import {
   isProcessAlive,
   noteDeadHolderBeforeAttach,
   readRdfLockPid,
+  readStoreLockOwner,
   recordStoreLockTakeover,
   retryAttachAfterBreakingStaleLock,
 } from "./prolog/store-lock.js";
@@ -776,19 +777,30 @@ function releaseStartLock(lockPath: string, descriptor: number | null): void {
   }
 }
 
+// implements REQ-core-journaled-engine-persistence
 function recoverStaleJournalLock(branchPath: string): void {
   const lockPath = path.join(branchPath, "rdf", "lock");
   if (!existsSync(lockPath)) return;
   const pid = readRdfLockPid(lockPath);
-  if (pid === null || pid === process.pid || isProcessAlive(pid)) return;
-  // implements REQ-core-journaled-engine-persistence
-  // Breaking a dead holder's lock is a takeover; record it for kb_status and
-  // kibi doctor instead of healing silently.
-  recordStoreLockTakeover(
-    branchPath,
-    pid,
-    decideStoreLockTakeover({ pid }).reason,
-  );
+  if (pid === null || pid === process.pid) return;
+  let reason: string;
+  if (!isProcessAlive(pid)) {
+    reason = decideStoreLockTakeover({ pid }).reason;
+  } else {
+    // A live pid still loses the lock when the lock and its journal were
+    // copied in from another workspace: that pid holds the original store,
+    // never this copy.
+    const journal = readStoreLockOwner(branchPath)?.owner ?? null;
+    if (journal === null || journal.pid !== pid) return;
+    const decision = decideStoreLockTakeover(journal, {
+      storePath: branchPath,
+    });
+    if (decision.action !== "break") return;
+    reason = decision.reason;
+  }
+  // Breaking a stale holder's lock is a takeover; record it for kb_status
+  // and kibi doctor instead of healing silently.
+  recordStoreLockTakeover(branchPath, pid, reason);
   try {
     rmSync(lockPath, { force: true });
   } catch {

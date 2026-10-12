@@ -23,7 +23,7 @@ export function registerMaintenanceCommands(program: Command): void {
   engine
     .command("janitor")
     .description(
-      "Classify and clean stale engine daemons and branch-store locks (crashed engines, removed worktrees)",
+      "Classify and clean stale engine daemons, branch-store locks and expired lock-takeover records (crashed engines, removed worktrees)",
     )
     .option(
       "--all",

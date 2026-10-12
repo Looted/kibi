@@ -542,9 +542,13 @@ would have written, compiles the manifest and records its content hash.
 KB stale. `store_lock_taken_over` (with `brokenPid`, `reason` and `at`)
 reports that Kibi broke a branch-store lock whose holder was no longer
 running and reattached: a crashed or killed engine or `kibi prove` run held
-the store. It is recorded in `<store>/.kibi-lock-takeover.json`, shown for
-24 hours (and by `kibi doctor`'s branch-store check), and replaced by the
-next takeover.
+the store. A lock and ownership journal copied in with the `.kb` directory
+(for example by `cp -a` while another workspace's engine held its own store)
+is taken over the same way, with `reason` `journal belongs to another
+workspace <path>`, because a copied file never carries its advisory lock.
+It is recorded in `<store>/.kibi-lock-takeover.json`, shown for 24 hours
+(and by `kibi doctor`'s branch-store check), replaced by the next takeover,
+and deleted by `kibi engine janitor --apply` once it is older than that.
 
 **Example:**
 ```json

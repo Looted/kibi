@@ -18,7 +18,7 @@
 
 // implements REQ-core-journaled-engine-persistence
 import { afterEach, describe, expect, test } from "bun:test";
-import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
@@ -30,7 +30,10 @@ import {
   isProcessAlive,
   readStoreLockTakeover,
 } from "../../src/prolog/store-lock.js";
-import { ensureBranchStoreManifest } from "../../src/utils/branch-store-locator.js";
+import {
+  branchStorePath,
+  ensureBranchStoreManifest,
+} from "../../src/utils/branch-store-locator.js";
 import { storeLockTakeoverReason } from "../../src/utils/branch-store.js";
 
 /**
@@ -58,6 +61,22 @@ async function journaledStore(): Promise<string> {
   const branchPath = ensureBranchStoreManifest(root, "main");
   await ensureJournaledBranchStoreAsync(branchPath);
   return branchPath;
+}
+
+/**
+ * Copy a workspace whose engine still holds its store, the way `cp -a` of a
+ * repository does: the copy carries the rdf lock and the ownership journal
+ * of the original holder, which still runs for the original workspace.
+ */
+function copyWorkspaceOf(branchPath: string): string {
+  const original = join(branchPath, "..", "..", "..");
+  const copy = mkdtempSync(join(tmpdir(), "kibi-attach-takeover-copy-"));
+  roots.push(copy);
+  cpSync(original, copy, { recursive: true });
+  const copied = branchStorePath(copy, "main");
+  expect(existsSync(join(copied, "rdf", "lock"))).toBe(true);
+  expect(existsSync(join(copied, ".kibi-lock-owner.json"))).toBe(true);
+  return copied;
 }
 
 async function attach(branchPath: string): Promise<PrologProcess> {
@@ -117,6 +136,52 @@ describe.skipIf(process.platform === "win32")(
 
       await attach(branchPath);
       expect(readStoreLockTakeover(branchPath)).toBeNull();
+    }, 120_000);
+  },
+);
+
+describe.skipIf(process.platform === "win32")(
+  "attaching a copy of a store another workspace's engine holds",
+  () => {
+    test("a copy of a store whose holder still runs for the original is taken over with the another-workspace reason", async () => {
+      const original = await journaledStore();
+      await attach(original);
+      const pid = holderPid(original);
+      expect(isProcessAlive(pid)).toBe(true);
+      const copy = copyWorkspaceOf(original);
+
+      // The engine daemon path: the store is prepared, then attached.
+      await ensureJournaledBranchStoreAsync(copy);
+      await attach(copy);
+      expect(readStoreLockTakeover(copy)).toMatchObject({
+        brokenPid: pid,
+        reason: `journal belongs to another workspace ${original}`,
+      });
+      expect(storeLockTakeoverReason(copy)).toMatchObject({
+        code: "store_lock_taken_over",
+        blocking: false,
+        brokenPid: pid,
+      });
+      // The copy now records its own holder; the original is untouched.
+      expect(holderPid(copy)).not.toBe(pid);
+      expect(isProcessAlive(pid)).toBe(true);
+      expect(holderPid(original)).toBe(pid);
+      expect(existsSync(join(original, "rdf", "lock"))).toBe(true);
+      expect(readStoreLockTakeover(original)).toBeNull();
+    }, 120_000);
+
+    test("the attach itself takes over a copied lock the store preparation did not see", async () => {
+      const original = await journaledStore();
+      await attach(original);
+      const pid = holderPid(original);
+      const copy = copyWorkspaceOf(original);
+
+      await attach(copy);
+      expect(readStoreLockTakeover(copy)).toMatchObject({
+        brokenPid: pid,
+        reason: `journal belongs to another workspace ${original}`,
+      });
+      expect(isProcessAlive(pid)).toBe(true);
     }, 120_000);
   },
 );

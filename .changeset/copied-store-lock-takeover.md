@@ -1,0 +1,8 @@
+---
+"kibi-cli": patch
+"kibi-runtime": patch
+---
+
+A workspace copied with its `.kb` directory while another workspace's engine held its store no longer treats that engine as the holder of the copy. The copy carried the `rdf/lock` file and the ownership journal of the original engine, whose pid is still running, so the attach path classified the lock as held by a live process for another workspace. Kibi now recognises a journal written for a different workspace as a copied artifact, breaks it like a dead holder's lock and reports the takeover in `kb_status` notices with the reason `journal belongs to another workspace <path>`. `kibi engine janitor` also reports takeover records older than the 24-hour notice window, and `--apply` deletes them.
+
+Technical summary: `foreignStoreLockJournalRoot` in `prolog/store-lock.ts` compares the journal's recorded `workspaceRoot` (kb.pl records the attached store directory) with the store being attached, both `realpath`-normalised and reduced to the workspace that owns `.kb/branches/<key>`. It is conservative: a lock file whose pid differs from the journal's, a recorded path that no longer exists (the store may have moved with its holder) or that is the same directory leaves today's behaviour in place. `decideStoreLockTakeover(owner, { storePath })` breaks a foreign journal, and `noteDeadHolderBeforeAttach`, `retryAttachAfterBreakingStaleLock` and the engine's `recoverStaleJournalLock` pass the store path; `classifyStoreLockHolder` and the `store_lock_stale` status reason are unchanged. `sweepStoreLockTakeoverRecords` adds `takeover-record` findings to `runJanitor`.
