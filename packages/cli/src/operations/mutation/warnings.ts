@@ -25,3 +25,41 @@ export async function scenarioCoverageWarnings(
   }
   return [];
 }
+
+// implements REQ-kibi-operation-interface-parity
+export function symbolCoverageWarning(entityId: string): readonly string[] {
+  return [
+    `Production symbol ${entityId} has implements but no covered_by: kb_check will report symbol-coverage. Add covered_by: TEST-<area>-<behavior> to a test that validates the requirement's scenario (or verified_by(req,test) when the requirement has no scenario).`,
+  ];
+}
+
+// implements REQ-kibi-operation-interface-parity
+/**
+ * A production symbol (one that implements a requirement) needs a covered_by
+ * edge to a test that covers that requirement, or kb_check reports
+ * symbol-coverage once it is written. Warn before and after the write so the
+ * agent learns it from the upsert, not from the next check. An executable
+ * test symbol (executable_for) is not production code, and a symbol that
+ * already has a stored covered_by edge is left for kb_check to judge.
+ */
+export async function symbolCoverageWarnings(
+  prolog: PrologPort,
+  relationships: readonly RelationshipInput[],
+  entityType: string,
+  entityId: string,
+): Promise<readonly string[]> {
+  if (entityType !== "symbol") return [];
+  const own = relationships.filter(
+    (relationship) =>
+      relationship.from === undefined || relationship.from === entityId,
+  );
+  const has = (type: string) =>
+    own.some((relationship) => relationship.type === type);
+  if (!has("implements") || has("covered_by") || has("executable_for"))
+    return [];
+  const id = escapeAtom(entityId);
+  const stored = await prolog.query(
+    `once((kb_relationship(covered_by, '${id}', _) ; kb_relationship(executable_for, '${id}', _)))`,
+  );
+  return stored.success ? [] : symbolCoverageWarning(entityId);
+}

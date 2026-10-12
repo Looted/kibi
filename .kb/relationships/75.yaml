@@ -307,3 +307,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1cdbe337b9a6
+  - type: verified_by
+    from: SCEN-model-predicates-permission-grants
+    to: TEST-model-predicates-permission-grants
+    created_at: 2026-10-11T18:46:07.381Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0093679e813e

@@ -2487,5 +2487,57 @@
         "./packages/cli/tests/consumer/flow-manifest-hooks.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-mcp-structured-text-per-host",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/mcp/tests/server/structured-text-host.test.ts",
+        "./packages/mcp/tests/server/tools-coverage.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-search-answer-hygiene",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/cli/tests/consumer/check-evaluated.test.ts",
+        "./packages/cli/tests/search-answer.test.ts",
+        "./packages/cli/tests/intent-search.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-model-what-if-planned-facts",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/cli/tests/consumer/planned-facts-what-if.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-model-predicates-permission-grants",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/cli/tests/operations/predicate-permission-modals.test.ts",
+        "./packages/plugin-builtin/tests/vocabulary-alignment.test.ts"
+      ]
+    ]
   }
 ]

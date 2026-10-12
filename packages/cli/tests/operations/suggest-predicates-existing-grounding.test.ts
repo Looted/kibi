@@ -317,7 +317,7 @@ describe("kb_model predicates pair the predicate with the requirement's subject 
     const [candidate] = data.candidates;
     expect(candidate).toMatchObject({
       predicate_name: "permission_rule",
-      predicate_args: ["guest", "delete", "archived_pages", "deny"],
+      predicate_args: ["guest", "delete", "archived_page", "deny"],
       binding_status: "complete",
       subject_key: "pages.archive",
       subject_pairing: "paired",
@@ -328,7 +328,7 @@ describe("kb_model predicates pair the predicate with the requirement's subject 
     expect(replacement.steps[0]?.input.properties).toMatchObject({
       fact_kind: "predicate",
       subject_key: "pages.archive",
-      predicate_args: ["guest", "delete", "archived_pages", "deny"],
+      predicate_args: ["guest", "delete", "archived_page", "deny"],
     });
   });
 
@@ -373,7 +373,7 @@ describe("kb_model predicates pair the predicate with the requirement's subject 
     expect(data.candidates[0]).toMatchObject({
       subject_key: "pages.trash",
       subject_pairing: "paired",
-      predicate_args: ["guest", "delete", "archived_pages", "deny"],
+      predicate_args: ["guest", "delete", "archived_page", "deny"],
     });
   });
 
@@ -387,7 +387,7 @@ describe("kb_model predicates pair the predicate with the requirement's subject 
     expect(data.recommendedAction).toBe("apply_requires_predicate");
     expect(data.candidates[0]).toMatchObject({
       predicate_name: "permission_rule",
-      predicate_args: ["guest", "delete", "archived_pages", "deny"],
+      predicate_args: ["guest", "delete", "archived_page", "deny"],
       binding_status: "complete",
       subject_key: "pages.archive",
       subject_pairing: "paired",

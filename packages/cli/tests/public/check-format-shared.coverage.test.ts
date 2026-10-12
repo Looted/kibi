@@ -104,6 +104,10 @@ describe("check-format-shared formatters", () => {
 
     const structured = buildStructuredContent({
       violations,
+      evaluated: {
+        rules: ["required-fields", "domain-contradictions"],
+        domainContradictions: { factPairsExamined: 3 },
+      },
       diagnostics: [
         {
           category: "schema",
@@ -123,12 +127,18 @@ describe("check-format-shared formatters", () => {
     expect(structured.migrationPlan).toBeDefined();
     expect(structured.diagnostics[0]?.file).toBe("a.md");
 
+    expect(structured.evaluated).toEqual({
+      rules: ["required-fields", "domain-contradictions"],
+      domainContradictions: { factPairsExamined: 3 },
+    });
     const thin = buildStructuredContent({
       violations: [],
+      evaluated: { rules: [] },
       diagnostics: [],
       impactResult: undefined,
     });
     expect(thin.count).toBe(0);
+    expect(thin.evaluated).toEqual({ rules: [] });
     expect(thin.qualityDiagnostics).toBeUndefined();
     expect(thin.impactDiagnostics).toBeUndefined();
 
@@ -139,12 +149,34 @@ describe("check-format-shared formatters", () => {
         qualityDiagnostics: [],
       }),
     ).toBe("No violations found");
+    // A clean check says what it evaluated, so "no violations" is never
+    // mistaken for "nothing evaluated".
+    expect(
+      buildSummary({
+        violations: [],
+        evaluated: {
+          rules: ["domain-contradictions"],
+          domainContradictions: { factPairsExamined: 0 },
+        },
+        impactResult: undefined,
+        qualityDiagnostics: [],
+      }),
+    ).toBe(
+      "No violations found\nEvaluated 1 rule; domain-contradictions compared 0 fact pairs (no two current requirements constrain the same subject or predicate case).",
+    );
     const summary = buildSummary({
       violations,
+      evaluated: {
+        rules: ["required-fields", "domain-contradictions"],
+        domainContradictions: { factPairsExamined: 3 },
+      },
       impactResult: impact,
       qualityDiagnostics: quality,
     });
     expect(summary).toContain("violations found");
+    expect(summary).toContain(
+      "Evaluated 2 rules; domain-contradictions compared 3 fact pairs.",
+    );
     expect(summary).toContain("impact diagnostics found");
     expect(summary).toContain("quality diagnostic");
   });

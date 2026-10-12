@@ -160,3 +160,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4e9c60e5739c
+  - type: requires_predicate
+    from: REQ-mcp-structured-text-per-host
+    to: FACT-MCP-STRUCTURED-TEXT-OMITTED
+    created_at: 2026-10-11T20:40:57.793Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-04292200f160
+  - type: requires_predicate
+    from: REQ-mcp-structured-text-per-host
+    to: FACT-MCP-STRUCTURED-TEXT-EMBEDDED
+    created_at: 2026-10-11T20:40:57.799Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a8d535e4ec4d
+  - type: requires_predicate
+    from: REQ-mcp-structured-text-per-host
+    to: FACT-SEARCH-DEFAULT-LIMIT-TEN
+    created_at: 2026-10-11T20:40:57.804Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8d29a1e928c9
+  - type: specified_by
+    from: REQ-mcp-structured-text-per-host
+    to: SCEN-mcp-structured-text-per-host
+    created_at: 2026-10-11T20:40:57.808Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8dabae9bdaf4

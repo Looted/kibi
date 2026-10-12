@@ -1,5 +1,33 @@
 # kibi-mcp
 
+## 3.8.0
+
+### Minor Changes
+
+- 1c7ffc3: `kb_search` and `kb_check` now say what they did not find as plainly as what they found. A search whose top match is a fact, scenario or test no requirement owns reports it in `answer.ungoverned` and in the note instead of presenting requirements reached through lower-ranked matches as the top match's; a requirement tying with its own scenario or facts no longer counts as ambiguous; a changed file's requirements surface through the symbols that implement them even when the question shares no word with them; and every page says how many rows it `returned` next to the ranking's total `count`. A check reports `evaluated.rules` and, for `domain-contradictions`, the number of requirement fact pairs it compared, so "no violations" on a KB with nothing to compare is never read as a consistency result.
+  - `intent-search.ts`: `queryAnalysis.topRivalMargin` is the margin between the top match and the best match it is not linked to; `ambiguous` reads it. A requirement that a source-located symbol `implements` inherits that symbol's source evidence (`distance: 3`, reason `implemented at the source location`).
+  - `search-answer.ts`: `answer.ungoverned` lists matched facts, scenarios, symbols and tests with no owning requirement, with their `rank` and, for typed facts, their `claim` and `ask`; the note leads with the top match when it is one of them.
+  - `kb_search`: `returned` (rows on this page) beside `count` (matches in the whole ranking).
+  - `kb_check`: `evaluated: { rules, domainContradictions?: { factPairsExamined } }` in the payload and a summary line; `kb_domain_contradiction_pairs_examined/1` in `kibi-core`.
+
+- d316f01: Discovery results on Claude Code are now sent once: `kb_search`, `kb_query`, `kb_status` and `kb_prepare_impact_review` return their structured payload with a short text summary instead of repeating the whole `data` JSON in the text part, which doubled the bytes of every search answer on that host. Other hosts keep the JSON copy because they may hide `structuredContent`, and `KIBI_MCP_STRUCTURED_TEXT=omit` or `embed` overrides the choice on any host. `kb_search` and `kibi search` return 10 ranked rows by default instead of 20; `count` and `truncated` still say how many matches there are and whether to page.
+
+  Technical summary: `embedsStructuredText` in the MCP tool wrapper reads `KIBI_MCP_STRUCTURED_TEXT`, then `KIBI_MCP_HOST` (set by the host launchers), then the client's initialize name, and only hosts known to show `structuredContent` (`claude-code`) drop the embedded JSON. The `kb_search` schema default and executor default are 10.
+
+- 8cc15e7: An agent can now ask "what happens if I write this?" before any fact exists. `kb_upsert` with `dryRun: true` accepts `plannedFacts`, the fact writes `kb_model` planned, stages them with the requirement and previews the batch: the grounding link resolves, the claim key is read from the plan, and a decision conflict with a stored permission rule is refused the way the commit would refuse it, with the witness in the error. `kb_model` (mode predicates) also returns the grounding as a hash-bound `kibi.compile-plan.v1`, so the fact and the `requires_predicate` link land through one `kb_apply_plan` call, all or nothing, and its `contradictionAnalysis` names a conflict with the current KB before anything is written. Previously the fact had to be written first to learn about the conflict, and the `applyPlan` array carried no hash `kb_apply_plan` could accept.
+
+  Technical summary: `UpsertInput.plannedFacts` (dry run only; validated in order through `validateUpsertForCommit` with the staged state kb_apply_plan uses, then `checks:what_if_analysis_json` over facts plus payload); `ValidateUpsertPayload.stagedFacts` and `whatIf`; a non-dry-run write with `plannedFacts` is rejected. `compileGroundingPlan` in `compile-intent.ts` builds the plan for `kb_model` (`structuredContent.plan`, status `blocked` on conflict, a warning naming the witnesses); the what-if parsers move to `operations/mutation/what-if.ts` and stay re-exported from `compile-intent.ts`. Tool descriptions, `docs/mcp-reference.md`, `docs/cli-reference.md` and the README describe the route.
+
+### Patch Changes
+
+- Updated dependencies [d668d4c]
+- Updated dependencies [1c7ffc3]
+- Updated dependencies [b1d003a]
+- Updated dependencies [8f3f586]
+- Updated dependencies [5c287fd]
+  - kibi-runtime@2.14.1
+  - kibi-core@0.21.0
+
 ## 3.7.0
 
 ### Minor Changes

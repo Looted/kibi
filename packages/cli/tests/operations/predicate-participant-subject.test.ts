@@ -275,7 +275,7 @@ describe("a participant argument is never the requirement's subject key", () => 
     const data = result.structuredContent;
     expect(data.recommendedAction).toBe("apply_requires_predicate");
     expect(data.candidates[0]).toMatchObject({
-      predicate_args: ["guest", "delete", "archived_pages", "deny"],
+      predicate_args: ["guest", "delete", "archived_page", "deny"],
       binding_status: "complete",
       subject_key: SUBJECT,
       subject_pairing: "paired",

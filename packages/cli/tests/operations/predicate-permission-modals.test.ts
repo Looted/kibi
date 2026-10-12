@@ -1,5 +1,6 @@
-// implements REQ-mcp-suggest-predicates
+// implements REQ-mcp-suggest-predicates, REQ-model-predicates-permission-grants
 import { describe, expect, test } from "bun:test";
+import { inferPermissionRuleArgs } from "../../src/operations/modeling/predicate-inference-1.js";
 import { handleKbSuggestPredicates } from "../../src/operations/modeling/suggest-predicates.js";
 import { hasNormativeAssertion } from "../../src/operations/semantic-advisor/clauses.js";
 import type {
@@ -87,5 +88,120 @@ describe("bare permission modals express permission intent", () => {
       eligibility: "eligible",
     });
     expect(data.recommendedAction).toBe("apply_requires_predicate");
+  });
+});
+
+describe("capability grants express permission intent", () => {
+  // The three sentences a product owner wrote for the search-lane fixture;
+  // each binding set is one of the facts they expect.
+  test.each([
+    [
+      "An admin must be able to read, update and delete any analysis request.",
+      { actor: "admin", action: "update", resource: "analysis_request" },
+    ],
+    [
+      "A viewer must be able to read analysis requests and must not update or delete them.",
+      { actor: "viewer", action: "read", resource: "analysis_request" },
+    ],
+    [
+      "An auditor must be able to export reports.",
+      { actor: "auditor", action: "export", resource: "report" },
+    ],
+    [
+      "Auditors are able to export reports.",
+      { actor: "auditor", action: "export", resource: "report" },
+    ],
+    [
+      "Admins have permission to delete analysis requests.",
+      { actor: "admin", action: "delete", resource: "analysis_request" },
+    ],
+    [
+      "Viewers are entitled to view their own reports.",
+      { actor: "viewer", action: "view", resource: "report" },
+    ],
+  ])(
+    "%s grounds an allow permission_rule with reviewed bindings",
+    async (text, bindings) => {
+      const result = await handleKbSuggestPredicates(emptyKb, {
+        text,
+        requirementId: "REQ-analysis-request-access",
+        schemaId: "FACT-SCHEMA-PERMISSION-RULE",
+        includeExistingSchemas: false,
+        maxCandidates: 1,
+        argumentBindings: { ...bindings, decision: "allow" },
+      });
+      const data = result.structuredContent;
+      const [candidate] = data.candidates;
+      expect(candidate?.rejection_reasons).toEqual([]);
+      expect(candidate).toMatchObject({
+        predicate_name: "permission_rule",
+        predicate_args: [
+          bindings.actor,
+          bindings.action,
+          bindings.resource,
+          "allow",
+        ],
+        polarity: "assert",
+        binding_status: "complete",
+        eligibility: "eligible",
+      });
+      expect(data.recommendedAction).toBe("apply_requires_predicate");
+    },
+  );
+
+  test.each([
+    [
+      "An auditor must be able to export reports.",
+      ["auditor", "export", "report", "assert"],
+    ],
+    [
+      "Viewers are allowed to read any analysis request.",
+      ["viewer", "read", "analysis_request", "assert"],
+    ],
+    [
+      "Admins have permission to delete analysis requests.",
+      ["admin", "delete", "analysis_request", "assert"],
+    ],
+    [
+      "A viewer is not allowed to delete analysis requests.",
+      ["viewer", "delete", "analysis_request", "deny"],
+    ],
+    [
+      "Guests must not be able to export their own reports.",
+      ["guest", "export", "report", "deny"],
+    ],
+  ])("%s infers singular actor and resource bindings", (text, expected) => {
+    expect(inferPermissionRuleArgs(text)).toEqual(expected);
+  });
+
+  test("a grant with no reviewed bindings offers the inferred ones instead of placeholders", async () => {
+    const result = await handleKbSuggestPredicates(emptyKb, {
+      text: "An auditor must be able to export reports.",
+      schemaId: "FACT-SCHEMA-PERMISSION-RULE",
+      includeExistingSchemas: false,
+      maxCandidates: 1,
+    });
+    const [candidate] = result.structuredContent.candidates;
+    expect(candidate).toMatchObject({
+      predicate_name: "permission_rule",
+      predicate_args: ["auditor", "export", "report", "allow"],
+      eligibility: "eligible",
+    });
+  });
+
+  test("the semantic advisor treats permission and entitlement grants as normative", () => {
+    expect(
+      hasNormativeAssertion(
+        "Admins have permission to delete analysis requests.",
+      ),
+    ).toBe(true);
+    expect(
+      hasNormativeAssertion("Viewers are entitled to view their own reports."),
+    ).toBe(true);
+    // Bare ability stays descriptive so stored inventories keep their roles;
+    // "must be able to" is normative through "must" already.
+    expect(hasNormativeAssertion("Editors are able to update drafts.")).toBe(
+      false,
+    );
   });
 });

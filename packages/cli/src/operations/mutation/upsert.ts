@@ -67,7 +67,10 @@ import type {
   ValidatedUpsert,
 } from "./types.js";
 import { validateUpsertInput } from "./validation.js";
-import { scenarioCoverageWarnings } from "./warnings.js";
+import {
+  scenarioCoverageWarnings,
+  symbolCoverageWarnings,
+} from "./warnings.js";
 import {
   type WorkspaceMutationLockHandle,
   acquireWorkspaceMutationLock,
@@ -438,6 +441,11 @@ export async function executeUpsert(
   options: UpsertExecutionOptions = {},
 ): Promise<OperationResult<UpsertPayload>> {
   if (input.dryRun === true) return dryRunUpsert(input, context);
+  // implements REQ-model-what-if-planned-facts
+  if (input.plannedFacts !== undefined)
+    throw new Error(
+      `Upsert of ${input.id} rejected: plannedFacts is a dryRun-only input. Write the planned facts first (kb_upsert each, or kb_apply_plan with the kb_model plan), then upsert ${input.id} without plannedFacts.`,
+    );
   const branchAttachment =
     context.branchAttachment ?? resolveBranchAttachment(context.workspaceRoot);
   if ("error" in branchAttachment) {
@@ -739,12 +747,20 @@ export async function executeUpsert(
         `Upsert commit completed without a created/updated result for ${input.id}`,
       );
     }
-    const coverage = await scenarioCoverageWarnings(
-      prolog,
-      validated.relationships,
-      input.type,
-      input.id,
-    );
+    const coverage = [
+      ...(await scenarioCoverageWarnings(
+        prolog,
+        validated.relationships,
+        input.type,
+        input.id,
+      )),
+      ...(await symbolCoverageWarnings(
+        prolog,
+        validated.relationships,
+        input.type,
+        input.id,
+      )),
+    ];
     const created = changeKind === "created" ? 1 : 0;
     const idStyleWarnings =
       created === 1

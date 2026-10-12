@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 198,
-  "proofProven": 198,
+  "currentRequirements": 202,
+  "proofProven": 202,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -992,6 +992,26 @@
       "uncoveredSymbols": []
     },
     "REQ-kibi-hooks-flow-manifest": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-model-predicates-permission-grants": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-model-what-if-planned-facts": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-search-answer-hygiene": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-mcp-structured-text-per-host": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []

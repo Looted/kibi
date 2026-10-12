@@ -26,8 +26,8 @@
           "type": "string"
         },
         "limit": {
-          "default": 20,
-          "description": "Optional max rows to return after ranking. Default: 20.",
+          "default": 10,
+          "description": "Optional max rows to return after ranking. Default: 10; raise it or page with offset when the answer layer is not enough.",
           "minimum": 0,
           "type": "integer"
         },

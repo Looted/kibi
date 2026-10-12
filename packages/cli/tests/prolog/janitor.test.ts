@@ -16,15 +16,26 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { describe, expect, test } from "bun:test";
-import { existsSync, mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { afterEach, describe, expect, test } from "bun:test";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
   runJanitor,
   sweepRuntimeSockets,
   sweepStoreLock,
+  sweepStoreLockTakeoverRecords,
 } from "../../src/prolog/janitor.js";
+import {
+  STORE_LOCK_TAKEOVER_FILE,
+  recordStoreLockTakeover,
+} from "../../src/prolog/store-lock.js";
 
 function makeStore(options: {
   holderPid?: number;
@@ -115,7 +126,7 @@ describe("sweepStoreLock", () => {
 
   test("returns null for stores without a lock journal", () => {
     const { store } = makeStore({});
-    require("node:fs").rmSync(join(store, ".kibi-lock-owner.json"));
+    rmSync(join(store, ".kibi-lock-owner.json"));
     expect(sweepStoreLock(store, true)).toBeNull();
   });
 });
@@ -134,6 +145,86 @@ describe("runJanitor", () => {
       storePath: store,
       action: "clean",
     });
+  });
+});
+
+describe("sweepStoreLockTakeoverRecords", () => {
+  const HOUR = 60 * 60 * 1000;
+  const roots: string[] = [];
+
+  afterEach(() => {
+    for (const root of roots.splice(0)) {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  function storeWithTakeover(ageMs: number): {
+    root: string;
+    store: string;
+    record: string;
+    now: Date;
+  } {
+    const root = mkdtempSync(join(tmpdir(), "kibi-janitor-takeover-"));
+    roots.push(root);
+    const store = join(root, ".kb", "branches", "abc123");
+    mkdirSync(join(store, "rdf"), { recursive: true });
+    writeFileSync(join(store, "storage.json"), "{}");
+    const now = new Date("2026-10-12T12:00:00.000Z");
+    recordStoreLockTakeover(
+      store,
+      4242,
+      "recorded holder pid 4242 is no longer running",
+      new Date(now.getTime() - ageMs),
+    );
+    return { root, store, record: join(store, STORE_LOCK_TAKEOVER_FILE), now };
+  }
+
+  test("reports a takeover record older than 24h and keeps it without --apply", () => {
+    const { root, store, record, now } = storeWithTakeover(25 * HOUR);
+    const findings = sweepStoreLockTakeoverRecords({
+      workspaceRoot: root,
+      runtimeDirectory: join(root, "runtime"),
+      now,
+    });
+    expect(findings).toEqual([
+      {
+        kind: "takeover-record",
+        storePath: store,
+        recordPath: record,
+        at: "2026-10-11T11:00:00.000Z",
+        brokenPid: 4242,
+        action: "clean",
+      },
+    ]);
+    expect(existsSync(record)).toBe(true);
+  });
+
+  test("deletes a takeover record older than 24h with --apply", () => {
+    const { root, record, now } = storeWithTakeover(25 * HOUR);
+    const findings = runJanitor({
+      workspaceRoot: root,
+      runtimeDirectory: join(root, "runtime"),
+      apply: true,
+      now,
+    });
+    expect(findings).toHaveLength(1);
+    expect(findings[0]).toMatchObject({
+      kind: "takeover-record",
+      action: "clean",
+    });
+    expect(existsSync(record)).toBe(false);
+  });
+
+  test("keeps a fresh takeover record and does not report it", () => {
+    const { root, record, now } = storeWithTakeover(1 * HOUR);
+    const findings = runJanitor({
+      workspaceRoot: root,
+      runtimeDirectory: join(root, "runtime"),
+      apply: true,
+      now,
+    });
+    expect(findings).toEqual([]);
+    expect(existsSync(record)).toBe(true);
   });
 });
 
