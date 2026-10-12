@@ -342,3 +342,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e7b38c58f7b0
+  - type: implements
+    from: SYM-claude-unreadableManifestNote
+    to: REQ-kibi-hooks-flow-manifest
+    created_at: 2026-10-12T18:43:39.668Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3b96e3a3db0c
+  - type: covered_by
+    from: SYM-claude-unreadableManifestNote
+    to: TEST-kibi-hooks-flow-manifest
+    created_at: 2026-10-12T18:43:39.688Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-37518245f814

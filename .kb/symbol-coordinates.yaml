@@ -283,6 +283,14 @@ coordinates:
     sourceEndLine: 458
     sourceFile: packages/agent-core/src/snippets.ts
     sourceLine: 433
+  SYM-agent-core-editKnowledgeUpdate:
+    identityHash: 9eb1973b702df73fba0fa71e11562e5c29b4a297cc1a2cd7050eedbabad5a90e
+    sourceHash: ab9bf79f99c5240d5f5d04b70716e473a7bd795552f7250383622ecb44d755c1
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 382
+    sourceFile: packages/agent-core/src/snippets.ts
+    sourceLine: 364
   SYM-agent-core-EntitySummary:
     identityHash: 683861820acd6cbd9b42ff70370ef1ba002dc9d2c8b0039dc73c290601ac3fdd
     sourceHash: 5a55b84e8e060be52f080e486a237cfcd117b5e5294b76bd3a1559a349155511
@@ -5171,6 +5179,22 @@ coordinates:
     sourceEndLine: 159
     sourceFile: scripts/sync-agent-skills.ts
     sourceLine: 157
+  SYM-claude-unownedSourceNote:
+    identityHash: ac4f4245339ae352d3f9e7ca6066cc5bded7debf9a5bacfa8eeec810b0b01896
+    sourceHash: ab9bf79f99c5240d5f5d04b70716e473a7bd795552f7250383622ecb44d755c1
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 159
+    sourceFile: packages/agent-core/src/snippets.ts
+    sourceLine: 154
+  SYM-claude-unreadableManifestNote:
+    identityHash: e978a1b92d227df77d632781896a9600222c3cf63362825736fa36be5e69f315
+    sourceHash: ab9bf79f99c5240d5f5d04b70716e473a7bd795552f7250383622ecb44d755c1
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 168
+    sourceFile: packages/agent-core/src/snippets.ts
+    sourceLine: 163
   SYM-claude-workspaceDataDir:
     identityHash: 8f20bdab15f104cdbf932436da2c07b097026a6807a39135005ad2e42fe7a11f
     sourceHash: 4211bd3f7f29336efa794bc7813efcbb38f6f8da67b5080fd61ea17c91f1c112
