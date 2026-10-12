@@ -127,6 +127,50 @@ export function retirePendingSourceReceipt(
 }
 
 /**
+ * Rebind the pending receipt of an untracked source that a migration rewrote
+ * in place. A receipt pins the file to exact bytes; a rewrite that leaves the
+ * old hash behind makes every later sync refuse the file as "hash drift", so
+ * a migration republishes the receipt it finds, and leaves a file without
+ * one alone (tracked sources carry no receipt). Returns whether one existed.
+ */
+// implements REQ-cli-schema-migration, REQ-core-atomic-upsert-persistence
+export function republishPendingSourceReceipt(
+  workspaceRoot: string,
+  relativePath: string,
+  afterHash: string,
+): boolean {
+  const receiptPath = pendingReceiptPath(workspaceRoot, relativePath);
+  const raw = readPendingSourceReceiptBytes(receiptPath);
+  if (raw === null) return false;
+  let receipt: Record<string, unknown>;
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    receipt =
+      parsed !== null && typeof parsed === "object"
+        ? (parsed as Record<string, unknown>)
+        : {};
+  } catch {
+    receipt = {};
+  }
+  fs.writeFileSync(
+    receiptPath,
+    `${JSON.stringify(
+      {
+        version: 1,
+        ...receipt,
+        path: relativePath,
+        afterHash,
+        rebasedAt: new Date().toISOString(),
+      },
+      null,
+      2,
+    )}\n`,
+    { mode: 0o600 },
+  );
+  return true;
+}
+
+/**
  * Authored YAML round-trips keep long scalars on one line, matching sync and
  * coordinate refresh output, so editing one entry never refolds the others.
  */

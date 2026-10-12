@@ -16,6 +16,7 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { createHash } from "node:crypto";
 import {
   type Dirent,
   existsSync,
@@ -33,6 +34,7 @@ import {
   type EntityLane,
   KB_PATHS,
 } from "../../utils/kb-paths.js";
+import { republishPendingSourceReceipt } from "../mutation/source-authoring.js";
 
 /** One authored Markdown entity file under a canonical `.kb/<lane>/`. */
 // implements REQ-cli-schema-migration
@@ -248,13 +250,44 @@ export function withoutTopLevelField(
   return match === null ? content : `${slice.prefix}${text}${slice.suffix}`;
 }
 
-/** Replace a file's bytes atomically. */
+const KB_ROOT_DIRNAME = ".kb";
+
+/**
+ * Replace a file's bytes atomically. A migration rewrite of an untracked
+ * `.kb/` source also rebinds its pending-source receipt, so the next sync
+ * reads the rewritten file instead of refusing it as hash drift.
+ */
 // implements REQ-cli-schema-migration
 export function writeFileAtomically(filePath: string, content: string): void {
   mkdirSync(path.dirname(filePath), { recursive: true });
   const tempPath = `${filePath}.kibi-migrate-${process.pid}-${Date.now()}`;
   writeFileSync(tempPath, content, "utf8");
   renameSync(tempPath, filePath);
+  const source = kbSourceLocation(filePath);
+  if (source === null) return;
+  republishPendingSourceReceipt(
+    source.workspaceRoot,
+    source.relativePath,
+    createHash("sha256").update(content, "utf8").digest("hex"),
+  );
+}
+
+/**
+ * The workspace root and workspace-relative path of a file under `.kb/`, or
+ * `null` for a file outside any knowledge root.
+ */
+function kbSourceLocation(
+  filePath: string,
+): { workspaceRoot: string; relativePath: string } | null {
+  const absolute = path.resolve(filePath);
+  const segments = absolute.split(path.sep);
+  const index = segments.lastIndexOf(KB_ROOT_DIRNAME);
+  if (index <= 0) return null;
+  const workspaceRoot = segments.slice(0, index).join(path.sep) || path.sep;
+  return {
+    workspaceRoot,
+    relativePath: segments.slice(index).join("/"),
+  };
 }
 
 // implements REQ-cli-schema-migration

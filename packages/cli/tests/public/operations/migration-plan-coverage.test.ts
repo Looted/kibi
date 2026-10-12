@@ -209,6 +209,71 @@ describe("migration plan builders and config status", () => {
     expect(merged.scope.evaluatedDomains).toEqual(["quality", "schema"]);
   });
 
+  test("a legacy cutover blocked by a destination conflict waits on an operator and no longer gates the compile", () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "kibi-mig-status-"));
+    tempDirs.push(root);
+    mkdirSync(path.join(root, ".kb"), { recursive: true });
+    mkdirSync(path.join(root, "docs"), { recursive: true });
+    writeFileSync(
+      path.join(root, ".kb", "config.json"),
+      JSON.stringify({ paths: { symbols: "docs/symbols.yaml" } }),
+    );
+    writeFileSync(path.join(root, "docs", "symbols.yaml"), "symbols: []\n");
+    writeFileSync(
+      path.join(root, ".kb", "symbols.yaml"),
+      "symbols:\n  - id: SYM-a\n",
+    );
+    const current = {
+      status: "current" as const,
+      currentVersion: 8,
+      latestVersion: 8,
+      needsMigration: false,
+      warning: null,
+      configHash: "abc",
+    };
+    const plan = buildActionsFromStatus({
+      workspaceRoot: root,
+      branchStore: { state: "healthy", path: ".kb/branches/x" },
+      staleReasons: [{ code: "branch_store_not_compiled" }],
+      configStatus: current,
+    });
+    const cutover = plan.actions.find(
+      (action) => action.id === "schema-config-upgrade",
+    );
+    expect(cutover).toMatchObject({
+      code: "legacy_storage_migration",
+      state: "blocked",
+      safety: "operator",
+      autoApplicable: false,
+    });
+    expect(cutover?.invocation.kind).toBe("review");
+    expect(
+      (cutover?.evidence.legacyStorage as { blockers: string[] }).blockers,
+    ).toHaveLength(1);
+    expect(cutover?.affectedFiles).toContain("docs/symbols.yaml");
+    const compile = plan.actions.find(
+      (action) => action.id === "branch-store-compile",
+    );
+    expect(compile?.state).toBe("ready");
+    expect(compile?.dependsOn).not.toContain("schema-config-upgrade");
+
+    // Without the conflict the cutover stays an automatic step the compile waits on.
+    rmSync(path.join(root, ".kb", "symbols.yaml"));
+    const movable = buildActionsFromStatus({
+      workspaceRoot: root,
+      branchStore: { state: "healthy", path: ".kb/branches/x" },
+      staleReasons: [{ code: "branch_store_not_compiled" }],
+      configStatus: current,
+    });
+    expect(
+      movable.actions.find((action) => action.id === "schema-config-upgrade"),
+    ).toMatchObject({ state: "ready", safety: "automatic" });
+    expect(
+      movable.actions.find((action) => action.id === "branch-store-compile")
+        ?.dependsOn,
+    ).toContain("schema-config-upgrade");
+  });
+
   test("readMigrationConfigStatus reads ok, missing, and malformed legacy config", () => {
     const root = mkdtempSync(path.join(os.tmpdir(), "kibi-mig-cfg-"));
     tempDirs.push(root);

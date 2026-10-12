@@ -595,6 +595,35 @@ describe("source-first authoring", () => {
     ).rejects.toThrow("Pending source hash drift");
   });
 
+  test("retires the receipt of a file Git tracks without comparing its hash", async () => {
+    const workspace = await mkdtemp(path.join(tmpdir(), "kibi-source-"));
+    workspaces.push(workspace);
+    execFileSync("git", ["init", "-b", "main"], { cwd: workspace });
+    const relative = ".kb/requirements/REQ-PENDING.md";
+    const target = path.join(workspace, relative);
+    await mkdir(path.dirname(target), { recursive: true });
+    const body = "---\nid: REQ-PENDING\ntype: req\ntitle: Pending\n---\n";
+    await writeFile(target, `${body}drift\n`);
+    writePendingSourceReceipt(
+      workspace,
+      relative,
+      createHash("sha256").update(body).digest("hex"),
+    );
+    const receiptPath = path.join(
+      workspace,
+      ".kb/recovery/pending-sources",
+      `${createHash("sha256").update(relative).digest("hex")}.json`,
+    );
+    await expect(
+      discoverSourceFiles(workspace, { trackedOnly: true }),
+    ).rejects.toThrow("Pending source hash drift");
+
+    execFileSync("git", ["add", relative], { cwd: workspace });
+    const paths = await discoverSourceFiles(workspace, { trackedOnly: true });
+    expect(paths.markdownFiles).toEqual([target]);
+    await expect(readFile(receiptPath, "utf8")).rejects.toThrow();
+  });
+
   test("does not treat pending relationship shards as symbol manifests", async () => {
     const workspace = await mkdtemp(path.join(tmpdir(), "kibi-source-"));
     workspaces.push(workspace);
