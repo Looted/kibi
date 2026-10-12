@@ -87,7 +87,7 @@ runs where you are and needs no `workspaceRoot`.
 
 ## Reading a hook snippet
 
-On hosts with Kibi hooks (Claude Code, Codex, Cursor, zcode) a short block
+On hosts where Kibi hooks are installed, a short block
 arrives before you read or edit a file whose symbols are linked to
 requirements. It is projected from `.kb/symbols.yaml`, not from the store, so
 it is a pointer to the knowledge, never proof. Each line answers one question:
@@ -115,10 +115,10 @@ A file already shown this session gets only the one-line `Kibi: this edit to
 still apply. `Kibi: no symbol in <path> is linked to a requirement yet` means
 the file is unowned: find the governing requirement with `kb_search` and
 `sourceLocations`, then link a symbol to it with `implements` through
-`kb_upsert`. `Kibi: the hook could not read .kb/symbols.yaml` means snippets
-are off for this session; `kb_query({sourceFile})` still answers and `kibi
-sync` rewrites the manifest. The search tip and the `.kb/` note appear once per
-session and need no action.
+`kb_upsert`. Without a readable manifest (`Kibi: the hook could not read
+.kb/symbols.yaml`) snippets are off for this session; `kb_query({sourceFile})`
+still answers and `kibi sync` regenerates the manifest. The search tip and the
+`.kb/` note appear once per session and need no action.
 
 ## Safe workflow
 
