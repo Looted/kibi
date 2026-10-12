@@ -34325,10 +34325,10 @@ coordinates:
     sourceLine: 1
   SYM-test-kibi-search-answer-layer:
     identityHash: ac862c520bef8554cc5ad1d1c367582df51708ba005db2b88bb44f74306c1e98
-    sourceHash: 5fb98d1d1a6a5b09cb6c348fb8434a1722a8921ee510e844f164f07df589ad2e
+    sourceHash: 8d5f7105a910a23f0b4b926654ac1cebef4f1f53c9fc340ee733a94ee8b0cbfc
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 581
+    sourceEndLine: 582
     sourceFile: packages/cli/tests/consumer/search-answer-layer.test.ts
     sourceLine: 1
   SYM-test-kibi-search-gold-set-gate-cli:
