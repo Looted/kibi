@@ -290,7 +290,7 @@ describe("pre-edit snippets", () => {
     expect(text).not.toContain("Decision:");
   });
 
-  test("after a read, edits add only new focus facts", async () => {
+  test("after a read, the first edit adds what must stay true and the impact check without repeating the read", async () => {
     const fixture = createKibiWorkspace();
     const { pre } = session(fixture);
     await pre("Read", { file_path: "src/checkout.ts" });
@@ -300,9 +300,12 @@ describe("pre-edit snippets", () => {
       old_string: "let total = 0;",
       new_string: "let total = 1;",
     });
-    expect(first).toBe(
+    expect(first?.split("\n")).toEqual([
       "Kibi: this edit to src/checkout.ts is inside computeTotal, which implements REQ-checkout-rounding.",
-    );
+      "REQ-checkout-rounding must keep true: FACT-checkout-total; FACT-total-rounding-cents: Totals round half up to two decimals.",
+      "Decision: ADR-money-as-decimal: Money is computed as decimal cents.",
+      'Behavior changes here are traced to these requirements; kb_check({sourceFiles:["src/checkout.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) reports ownership drift after the edit.',
+    ]);
     // Same symbol again: nothing new to say.
     expect(
       await pre("Edit", {
@@ -318,6 +321,22 @@ describe("pre-edit snippets", () => {
         edits: [{ old_string: "toFixed(2)", new_string: "toFixed(3)" }],
       }),
     ).toContain("inside formatTotal");
+  });
+
+  test("after a read, a whole-file write still names what must stay true", async () => {
+    const fixture = createKibiWorkspace();
+    const { pre } = session(fixture);
+    await pre("Read", { file_path: "src/checkout.ts" });
+    const text = await pre("Write", {
+      file_path: "src/checkout.ts",
+      content: "export {};\n",
+    });
+    expect(text).toStartWith(
+      "Kibi: this edit to src/checkout.ts changes code that implements REQ-checkout-rounding, REQ-currency-display.",
+    );
+    expect(text).toContain("REQ-checkout-rounding must keep true:");
+    expect(text).toContain('kb_check({sourceFiles:["src/checkout.ts"]');
+    expect(text).not.toContain("Kibi knowledge for");
   });
 
   test("an unowned source file gets one discovery note", async () => {
@@ -417,6 +436,91 @@ describe("pre-edit snippets", () => {
     expect(
       await pre("Edit", { file_path: ".kb/symbols.yaml", old_string: "a" }),
     ).toBeUndefined();
+  });
+});
+
+/**
+ * Replays of hook traces recorded on a test project during an evaluation,
+ * with the project's paths rewritten to this fixture. Each asserts the
+ * observable output the evaluation found missing.
+ */
+describe("evaluation trace replays", () => {
+  const linked = (fixture: Fixture) =>
+    path.join(fixture.root, "src/checkout.ts");
+
+  test("Read, then Edit of the same linked file: the edit names what must stay true and the impact check", async () => {
+    const fixture = createKibiWorkspace();
+    const { call, pre, post } = session(fixture, "b1");
+    await call({ hook_event_name: "SessionStart", source: "startup" });
+    await pre("Grep", { pattern: "total" });
+    const read = await pre("Read", { file_path: linked(fixture) });
+    expect(read).toContain("Covered by: TEST-checkout-rounding.");
+    expect(read).toContain("Next layer:");
+    expect(read).not.toContain("must keep true");
+
+    const edit = await pre("Edit", {
+      file_path: linked(fixture),
+      old_string: "  return Math.round(total * 100) / 100;",
+      new_string: "  return Math.round(total * 100) / 100; // probe",
+    });
+    expect(edit).toContain(
+      "this edit to src/checkout.ts is inside computeTotal, which implements REQ-checkout-rounding.",
+    );
+    expect(edit).toContain("REQ-checkout-rounding must keep true: ");
+    expect(edit).toContain(
+      'kb_check({sourceFiles:["src/checkout.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true})',
+    );
+    // What the Read already showed is not repeated.
+    expect(edit).not.toContain("Kibi knowledge for");
+    expect(edit).not.toContain("Covered by");
+    expect(edit).not.toContain("Next layer");
+    expect(await post("Edit", { file_path: linked(fixture) })).toEqual({});
+
+    // A later edit of the same symbol has nothing new to add.
+    expect(
+      await pre("Edit", {
+        file_path: linked(fixture),
+        old_string: "let total = 0;",
+        new_string: "let total = 1;",
+      }),
+    ).toBeUndefined();
+  });
+
+  test("a SessionStart after compaction shows the linked file's snippet again", async () => {
+    const fixture = createKibiWorkspace();
+    const { call, pre } = session(fixture, "b1");
+    await call({ hook_event_name: "SessionStart", source: "startup" });
+    expect(await pre("Read", { file_path: linked(fixture) })).toContain(
+      "Kibi knowledge for src/checkout.ts",
+    );
+    expect(await pre("Read", { file_path: linked(fixture) })).toBeUndefined();
+
+    const compact = contextOf(
+      await call({ hook_event_name: "SessionStart", source: "compact" }),
+      "SessionStart",
+    );
+    expect(compact).toContain("1 source files have requirement-linked symbols");
+    const again = await pre("Read", { file_path: linked(fixture) });
+    expect(again).toContain("Kibi knowledge for src/checkout.ts");
+    expect(again).toContain("Covered by: TEST-checkout-rounding.");
+    // Deduplication resumes from the reset.
+    expect(await pre("Read", { file_path: linked(fixture) })).toBeUndefined();
+  });
+
+  test("a resume keeps the transcript, so nothing is shown twice", async () => {
+    const fixture = createKibiWorkspace();
+    const { call, pre, post } = session(fixture, "b1");
+    await pre("Read", { file_path: linked(fixture) });
+    await pre("Grep", { pattern: "total" });
+    await call({ hook_event_name: "SessionStart", source: "resume" });
+    expect(await pre("Read", { file_path: linked(fixture) })).toBeUndefined();
+    expect(await pre("Grep", { pattern: "total" })).toBeUndefined();
+
+    // Pending edits survive a reset: the Stop reminder is about work, not context.
+    await post("Edit", { file_path: linked(fixture) });
+    await call({ hook_event_name: "SessionStart", source: "compact" });
+    expect(await pre("Grep", { pattern: "total" })).toContain("Kibi tip");
+    expect(await session(fixture, "b1").stop()).toContain("src/checkout.ts");
   });
 });
 

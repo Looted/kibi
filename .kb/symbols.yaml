@@ -42804,7 +42804,7 @@ symbols:
   - id: SYM-claude-unownedSourceNote
     title: unownedSourceNote
     status: active
-    sourceFile: packages/claude/src/snippets.ts
+    sourceFile: packages/agent-core/src/snippets.ts
     symbol_role: behavioral
     relationships:
       - type: covered_by
@@ -51520,7 +51520,7 @@ symbols:
   - id: SYM-claude-unreadableManifestNote
     title: unreadableManifestNote
     status: active
-    sourceFile: packages/claude/src/snippets.ts
+    sourceFile: packages/agent-core/src/snippets.ts
     symbol_role: behavioral
     relationships:
       - type: covered_by
@@ -51777,3 +51777,16 @@ symbols:
         target: TEST-model-predicates-grounding-guards
       - type: implements
         target: REQ-upsert-committed-claim-key
+  - id: SYM-agent-core-editKnowledgeUpdate
+    title: editKnowledgeUpdate
+    status: active
+    sourceFile: packages/agent-core/src/snippets.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-12T18:43:42.702Z
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1

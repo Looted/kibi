@@ -12,29 +12,13 @@ export {
   MAX_SNIPPET_CHARS,
   type SnippetInput,
   editFocus,
+  editKnowledgeUpdate,
   fileKnowledgeSnippet,
   focusUpdate,
   focusedSymbols,
+  unownedSourceNote,
+  unreadableManifestNote,
 } from "kibi-agent-core/snippets";
-
-function jsonString(value: string): string {
-  return JSON.stringify(value);
-}
-
-export function unownedSourceNote(relativePath: string): string {
-  return [
-    `Kibi: no symbol in ${relativePath} is linked to a requirement yet.`,
-    `kb_search({query:"<behavior being changed>", sourceLocations:[{path:${jsonString(relativePath)}}]}) surfaces requirements that may already describe it; new behavior is recorded with kb_upsert (requirement + symbol implements link).`,
-  ].join("\n");
-}
-
-// implements REQ-kibi-hooks-flow-manifest
-export function unreadableManifestNote(relativePath: string): string {
-  return [
-    "Kibi: the hook could not read .kb/symbols.yaml, so requirement snippets are unavailable this session.",
-    `kb_query({sourceFile:${jsonString(relativePath)}}) still lists what ${relativePath} implements; \`kibi sync\` rewrites the manifest in the canonical block layout.`,
-  ].join("\n");
-}
 
 export function searchTip(linkedFileCount: number): string {
   return `Kibi tip: this repository records requirements, scenarios, decisions, and code ownership in a Kibi knowledge base (${linkedFileCount} source files have requirement-linked symbols). For intent questions — why code exists, what it must do — kb_search answers from that knowledge, naming the governing requirements, facts, decisions and tests; kb_query({sourceFile:"<path>"}) lists what a file implements.`;
