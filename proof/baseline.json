@@ -836,11 +836,6 @@
       "gaps": [],
       "uncoveredSymbols": []
     },
-    "REQ-kibi-review-observation-claim-text": {
-      "proofStatus": "proven",
-      "gaps": [],
-      "uncoveredSymbols": []
-    },
     "REQ-docs-site-analytics": {
       "proofStatus": "proven",
       "gaps": [],
@@ -1012,6 +1007,11 @@
       "uncoveredSymbols": []
     },
     "REQ-mcp-structured-text-per-host": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-review-observation-claim-text-v2": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []

@@ -51692,3 +51692,16 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-model-predicates-permission-grants
+  - id: SYM-deriveFactClaimKey
+    title: deriveFactClaimKey
+    status: active
+    sourceFile: packages/cli/src/operations/semantic-advisor/clauses.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-12T10:47:27.991Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-upsert-review-lanes
+      - type: implements
+        target: REQ-kibi-review-observation-claim-text-v2

@@ -62,6 +62,31 @@ export function semanticClaimKey(text: string): string {
   return `CLAIM-${digest.slice(0, 16).toUpperCase()}`;
 }
 
+/** Fact kinds that quote a claim as a review note and never ground it. */
+const NON_GROUNDING_FACT_KINDS = new Set(["observation", "meta"]);
+
+/**
+ * Fill `claim_key` from `claim_text` on a fact that may ground a claim.
+ *
+ * The key is a pure function of the text, so a caller that sends the text
+ * alone has given Kibi everything it needs; a supplied key is still checked
+ * against the derived one by the entity validators. Observation and meta
+ * facts quote a claim without owning it, so they stay keyless.
+ */
+// implements REQ-kibi-review-observation-claim-text-v2
+export function deriveFactClaimKey(entity: Record<string, unknown>): void {
+  if (entity.type !== "fact") return;
+  if (entity.claim_key !== undefined) return;
+  if (typeof entity.claim_text !== "string") return;
+  if (
+    typeof entity.fact_kind === "string" &&
+    NON_GROUNDING_FACT_KINDS.has(entity.fact_kind)
+  ) {
+    return;
+  }
+  entity.claim_key = semanticClaimKey(entity.claim_text);
+}
+
 function detectedClauses(text: string): string[] {
   return text
     .split(/(?:\r?\n)+|;|(?<=[.!?])\s+(?=[A-Z0-9])/)

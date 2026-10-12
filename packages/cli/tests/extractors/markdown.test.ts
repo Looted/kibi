@@ -367,6 +367,36 @@ examples: [dependency_rule(checkout,payment,submission)]
     });
   });
 
+  test("derives the claim key of a grounding fact that quotes its clause without one", () => {
+    const predicate = extractFromMarkdownString(
+      `---
+id: FACT-LOGICAL-DERIVED
+title: Ground logical claim without a key
+type: fact
+fact_kind: predicate
+predicate_name: dependency_rule
+predicate_args: [checkout, payment, submission]
+canonical_key: dependency_rule(checkout,payment,submission)
+polarity: assert
+claim_text: Checkout requires payment before submission.
+---`,
+      "/tmp/facts/FACT-LOGICAL-DERIVED.md",
+    );
+    expect(predicate.entity.claim_key).toBe("CLAIM-87B598CE58A963BC");
+
+    const note = extractFromMarkdownString(
+      `---
+id: FACT-LOGICAL-NOTE
+title: Review note quoting the claim
+type: fact
+fact_kind: observation
+claim_text: Checkout requires payment before submission.
+---`,
+      "/tmp/facts/FACT-LOGICAL-NOTE.md",
+    );
+    expect(note.entity.claim_key).toBeUndefined();
+  });
+
   test("rejects claim provenance whose key does not match its atomic clause", () => {
     expect(() =>
       extractFromMarkdownString(

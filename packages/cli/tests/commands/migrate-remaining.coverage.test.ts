@@ -398,6 +398,104 @@ describe("migrateCommand remaining runtime branches", () => {
     expect(formatSchemaVersion(4, 4)).toBe("4");
   });
 
+  test("apply-safe limits the apply to --approved-action ids as the CLI spells them", async () => {
+    const cwd = preparedWorkspace();
+    writeManifest(cwd, 5);
+    const plan = buildMigrationPlan({
+      evaluatedDomains: ["schema"],
+      actions: [
+        migrationAction({
+          id: "schema-ready",
+          code: "schema_upgrade",
+          category: "schema",
+          state: "ready",
+          safety: "automatic",
+          autoApplicable: true,
+          invocation: {
+            kind: "cli",
+            command_argv: ["kibi", "migrate", "--yes"],
+          },
+        }),
+        migrationAction({
+          id: "source-path-rewrite",
+          code: "source_path_rewrite",
+          category: "quality",
+          state: "ready",
+          safety: "automatic",
+          autoApplicable: true,
+          invocation: {
+            kind: "cli",
+            command_argv: ["kibi", "migrate", "--yes"],
+          },
+        }),
+      ],
+    });
+    const applyInputs: Array<Record<string, unknown>> = [];
+    const exec = spyOn(runtimeTypes, "executeOperation").mockImplementation(
+      (async (_runtime: unknown, spec: { name?: string }, input?: unknown) => {
+        if (spec.name === "kb_status") {
+          return {
+            content: [],
+            structuredContent: {
+              migrationPlan: plan,
+              branchStore: { state: "healthy" },
+              schemaStatus: { needsMigration: false },
+              branchAttachment: { kind: "exact" },
+            },
+          };
+        }
+        if (spec.name === "kb_check" || spec.name === "kb_coverage") {
+          return { content: [], structuredContent: { migrationPlan: plan } };
+        }
+        if (spec.name === "kb_apply_plan") {
+          applyInputs.push(input as Record<string, unknown>);
+          return {
+            content: [{ type: "text", text: "Migration applied." }],
+            structuredContent: { outcome: "applied" },
+          };
+        }
+        return { content: [], structuredContent: {} };
+      }) as never,
+    );
+    restores.push(() => exec.mockRestore());
+    const io = captureIo();
+    restores.push(io.restore);
+
+    const limited = await migrateCommand({
+      applySafe: true,
+      approvedPlanHash: plan.planHash,
+      approvedAction: ["schema-ready"],
+      format: "json",
+      workspaceRoot: cwd,
+    });
+    expect(limited.exitCode).toBe(0);
+    expect(applyInputs).toHaveLength(1);
+    expect(applyInputs[0]?.approvedActionIds).toEqual(["schema-ready"]);
+
+    // --yes with JSON output applies the whole plan it would otherwise print.
+    const whole = await migrateCommand({
+      yes: true,
+      format: "json",
+      workspaceRoot: cwd,
+    });
+    expect(whole.exitCode).toBe(0);
+    expect(applyInputs).toHaveLength(2);
+    expect(applyInputs[1]?.approvedPlanHash).toBe(plan.planHash);
+    expect([...(applyInputs[1]?.approvedActionIds as string[])].sort()).toEqual(
+      ["schema-ready", "source-path-rewrite"],
+    );
+
+    // --dry-run keeps the JSON plan read-only.
+    const dry = await migrateCommand({
+      yes: true,
+      dryRun: true,
+      format: "json",
+      workspaceRoot: cwd,
+    });
+    expect(dry.exitCode).toBe(0);
+    expect(applyInputs).toHaveLength(2);
+  });
+
   test("apply-safe reports when no automatic actions are ready", async () => {
     const cwd = preparedWorkspace();
     writeManifest(cwd, 5);

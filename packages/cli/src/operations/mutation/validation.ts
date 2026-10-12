@@ -7,7 +7,10 @@ import {
   SYMBOL_ROLES,
   isAllowedGranularityReason,
 } from "../../public/symbol-granularity.js";
-import { semanticClaimKey } from "../semantic-advisor/clauses.js";
+import {
+  deriveFactClaimKey,
+  semanticClaimKey,
+} from "../semantic-advisor/clauses.js";
 import {
   factKindShapeHints,
   validateFactModelingShape,
@@ -167,6 +170,7 @@ export function validateUpsertInput(
       `Entity validation failed: ${formatEntityErrors(entity, validateEntity.errors ?? [])}`,
     );
   }
+  deriveFactClaimKey(entity);
   validateSymbolSourceFile(entity);
   validateProofExemptionPairing(entity);
   if (entity.type === "test" && Array.isArray(entity.proof_receipts)) {

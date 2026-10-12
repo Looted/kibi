@@ -188,3 +188,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-37859621cf94
+  - type: implements
+    from: SYM-deriveFactClaimKey
+    to: REQ-kibi-review-observation-claim-text-v2
+    created_at: 2026-10-12T10:47:29.096Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b79f2d81c59e
+  - type: covered_by
+    from: SYM-deriveFactClaimKey
+    to: TEST-kibi-upsert-review-lanes
+    created_at: 2026-10-12T10:47:29.117Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0dcebd815cce

@@ -1,14 +1,24 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
+import {
+  existsSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { load as loadYaml } from "js-yaml";
+import { discoverSourceFiles } from "../../../src/commands/sync/discovery.js";
 import { extractFromMarkdown } from "../../../src/extractors/markdown.js";
 import {
   applyInventoryRederivation,
   applySafeInventoryRederivations,
   planInventoryRederivation,
 } from "../../../src/operations/migration/inventory-rederive.js";
+import { writePendingSourceReceipt } from "../../../src/operations/mutation/source-authoring.js";
 import { analyzeSemanticAdvisorInput } from "../../../src/operations/semantic-advisor/analyze-prose.js";
 import { validateSemanticInventoryBoundary } from "../../../src/operations/semantic-advisor/ingestion-boundary.js";
 import {
@@ -123,6 +133,67 @@ describe("semantic inventory re-derivation", () => {
         Object.entries(data).filter(([key]) => !contractKeys.includes(key)),
       );
     expect(strip(frontmatter(after))).toEqual(strip(frontmatter(before)));
+  });
+
+  test("rebinds the pending-source receipt of a rewritten untracked requirement", () => {
+    writeDriftedRequirement(root, "REQ-upload-resume", 0);
+    const relative = ".kb/requirements/REQ-upload-resume.md";
+    const file = path.join(root, relative);
+    const before = readFileSync(file);
+    writePendingSourceReceipt(
+      root,
+      relative,
+      createHash("sha256").update(before).digest("hex"),
+    );
+    const receiptPath = path.join(
+      root,
+      ".kb/recovery/pending-sources",
+      `${createHash("sha256").update(relative).digest("hex")}.json`,
+    );
+
+    expect(applyInventoryRederivation(root, "REQ-upload-resume").outcome).toBe(
+      "rederived",
+    );
+
+    const receipt = JSON.parse(readFileSync(receiptPath, "utf8")) as {
+      path: string;
+      afterHash: string;
+    };
+    expect(receipt.path).toBe(relative);
+    expect(receipt.afterHash).toBe(
+      createHash("sha256").update(readFileSync(file)).digest("hex"),
+    );
+    expect(receipt.afterHash).not.toBe(
+      createHash("sha256").update(before).digest("hex"),
+    );
+  });
+
+  test("a re-derived untracked requirement passes sync source discovery (round-2 evidence replay)", async () => {
+    // Replays the eval checkout: .kb/ restored from a tarball, never tracked,
+    // every file bound by a kb_upsert receipt, then a migrate re-derivation.
+    execFileSync("git", ["init", "-q", "-b", "main"], { cwd: root });
+    writeDriftedRequirement(root, "REQ-upload-resume", 0);
+    const relative = ".kb/requirements/REQ-upload-resume.md";
+    writePendingSourceReceipt(
+      root,
+      relative,
+      createHash("sha256")
+        .update(readFileSync(path.join(root, relative)))
+        .digest("hex"),
+    );
+
+    expect(applySafeInventoryRederivations(root).rederived).toHaveLength(1);
+
+    const discovered = await discoverSourceFiles(root, { trackedOnly: true });
+    expect(discovered.markdownFiles).toContain(path.join(root, relative));
+  });
+
+  test("writes no receipt for a rewritten requirement that had none", () => {
+    writeDriftedRequirement(root, "REQ-upload-resume", 0);
+    applyInventoryRederivation(root, "REQ-upload-resume");
+    expect(existsSync(path.join(root, ".kb/recovery/pending-sources"))).toBe(
+      false,
+    );
   });
 
   test("is idempotent: a second run finds nothing to re-derive", () => {

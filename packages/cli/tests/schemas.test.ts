@@ -433,6 +433,32 @@ describe("Typed Fact Schema", () => {
     expect(validate(predicateFact)).toBe(true);
   });
 
+  test("accepts a grounding fact that sends claim_text without claim_key", () => {
+    const ajv = new Ajv({ strict: false, allErrors: true });
+    addFormats(ajv);
+    const validate = ajv.compile(entitySchema as AnySchema);
+    const propertyFact = {
+      id: "FACT-SESSION-TIMEOUT-30",
+      title: "Session timeout is 30 minutes",
+      status: "active",
+      created_at: "2026-08-04T00:00:00Z",
+      updated_at: "2026-08-04T00:00:00Z",
+      source: "facts/FACT-SESSION-TIMEOUT-30.md",
+      type: "fact",
+      fact_kind: "property_value",
+      subject_key: "user.session",
+      property_key: "timeout_minutes",
+      operator: "eq",
+      value_type: "int",
+      value_int: 30,
+      polarity: "require",
+      canonical_key: "user.session.timeout_minutes.eq.30",
+      claim_text: "Sessions time out after 30 minutes.",
+    };
+
+    expect(validate(propertyFact)).toBe(true);
+  });
+
   test("rejects incomplete logical-claim provenance", () => {
     const ajv = new Ajv({ strict: false, allErrors: true });
     addFormats(ajv);

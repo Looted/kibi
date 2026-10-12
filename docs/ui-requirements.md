@@ -319,7 +319,7 @@ relationships:
    predicate `applyPlan` + `requires_predicate` link.
 3. For each scalar placement/alignment/order clause, call `kb_model` with `mode: "requirement"` and apply
    the strict subject/property plan + `constrains` / `requires_property` links.
-4. Preserve `claim_key` / `claim_text` on every ground fact and merge every key into the
+4. Preserve `claim_key` / `claim_text` on every ground fact (a missing key is derived from the text) and merge every key into the
    requirement `logic_claims` manifest.
 5. `kb_upsert` with `dryRun: true` for every payload, create endpoints first, then `kb_upsert` sequentially.
 6. Run `kb_check` with `logic-coverage`, `predicate-verifiability`, and

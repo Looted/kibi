@@ -1,5 +1,5 @@
 // executable_for TEST-kibi-upsert-review-lanes
-// implements REQ-kibi-upsert-preserves-requirement-semantics, REQ-kibi-review-observation-claim-text
+// implements REQ-kibi-upsert-preserves-requirement-semantics, REQ-kibi-review-observation-claim-text-v2
 import { afterEach, describe, expect, test } from "bun:test";
 import {
   type ConsumerWorkspace,
@@ -112,24 +112,48 @@ describe("kb_upsert review lanes through the real CLI", () => {
     });
     expect(observation).toMatchObject({ status: "success" });
 
-    // A grounding fact still needs both halves of the provenance pair.
+    // A grounding fact may send the claim text alone: Kibi derives the key.
+    const groundingProperties = {
+      title: "Exports are CSV",
+      status: "active",
+      fact_kind: "property_value",
+      subject_key: "report.export",
+      property_key: "format",
+      operator: "eq",
+      value_type: "string",
+      value_string: "csv",
+      claim_text: STATEMENT,
+    };
     const grounding = workspace.json(["upsert"], {
       type: "fact",
       id: "FACT-export-csv-value",
+      properties: groundingProperties,
+    });
+    expect(grounding).toMatchObject({ status: "success" });
+    const [inventoryEntry] = req.semantic_inventory as Json[];
+    const [storedGrounding] = (
+      workspace.json(["query"], { id: "FACT-export-csv-value" }).data as Json
+    ).entities as Json[];
+    expect(storedGrounding?.claim_key).toBe(inventoryEntry?.claim_key);
+    expect(storedGrounding?.claim_text).toBe(STATEMENT);
+    // A key that does not belong to the text is still refused.
+    const mismatched = workspace.json(["upsert"], {
+      type: "fact",
+      id: "FACT-export-csv-value",
       properties: {
-        title: "Exports are CSV",
-        status: "active",
-        fact_kind: "property_value",
-        subject_key: "report.export",
-        property_key: "format",
-        operator: "eq",
-        value_type: "string",
-        value_string: "csv",
-        claim_text: STATEMENT,
+        ...groundingProperties,
+        claim_key: "CLAIM-AAAAAAAAAAAAAAAA",
       },
     });
-    expect(grounding.status).toBe("error");
-    expect(JSON.stringify(grounding.error)).toContain("claim_key");
+    expect(mismatched.status).toBe("error");
+    expect(JSON.stringify(mismatched.error)).toContain(
+      "claim_key must equal the stable key derived from claim_text",
+    );
+    // The observation stays a keyless review note.
+    const [storedObservation] = (
+      workspace.json(["query"], { id: "FACT-review-export-csv" }).data as Json
+    ).entities as Json[];
+    expect(storedObservation?.claim_key).toBeUndefined();
 
     workspace.sync();
     const [stored] = (workspace.json(["query"], { id: reqId }).data as Json)

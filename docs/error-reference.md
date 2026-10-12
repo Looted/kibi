@@ -46,9 +46,9 @@ Call `kb_model` with `mode: "predicates"` before hand-writing ontology predicate
 
 ## Incomplete logical claim provenance
 
-`claim_key` and `claim_text` are an auditable pair. If `claim_key` is present on a fact, supply both, and supply both on every grounding fact (`property_value`, `predicate`, `rule`). Use the stable key returned by `kb_model` with `mode: "analyze"` for that exact atomic clause; do not invent or reuse a key for different prose.
+`claim_key` is derived from `claim_text`, so a grounding fact (`property_value`, `predicate`, `rule`) only has to send the exact atomic clause as `claim_text`: Kibi fills in the key on `kb_upsert` and on `kibi sync`. A `claim_key` sent with the text must equal the derived key (`kb_model` with `mode: "analyze"` returns it for that clause); a `claim_key` without `claim_text` is rejected. Do not invent or reuse a key for different prose.
 
-An `observation` or `meta` fact is a non-grounding review note, so it may quote the claim it is about in `claim_text` alone. The error `/properties must have required property 'claim_key'` on such a fact came from older releases; on any other fact kind, either add the `claim_key` returned for that clause or drop `claim_text`.
+An `observation` or `meta` fact is a non-grounding review note, so it quotes the claim it is about in `claim_text` alone and gets no key. The error `/properties must have required property 'claim_key'` came from releases before the key was derived; upgrade, or send the pair `kb_model` returned.
 
 If `kb_check` reports `logic-coverage`, compare the requirement `logic_claims` manifest with its linked `property_value` and `predicate` facts. Ground every missing key, add any omitted linked key to the manifest, and keep ambiguity or ontology gaps explicitly unresolved rather than satisfying the check with an observation.
 
@@ -101,7 +101,7 @@ The check runs at commit time (`stage=contradiction_check`), after every validat
 
 ## Pending source hash drift (`source-relationship-parity`, `SYNC_ERROR`)
 
-`Pending source hash drift blocks sync for .kb/<lane>/<id>.md; expected <hash>, found <hash>` means the pending-source receipt that binds an untracked file written by `kb_upsert` no longer matches the file's bytes (for example after an edit outside Kibi). There is no separate repair tool: rewrite the entity with `kb_upsert` (its current `title` and `status` are enough for an existing entity) and the receipt is republished against the current bytes; `git add` the file to retire the receipt for good. `Pending source is missing` means the untracked file was deleted: run `kibi branch recover --apply` if that was intended. A refused `kb_upsert` restores the receipt it found, so a commit-time refusal alone does not cause this finding.
+`Pending source hash drift blocks sync for .kb/<lane>/<id>.md; expected <hash>, found <hash>` means the pending-source receipt that binds an untracked file written by `kb_upsert` no longer matches the file's bytes (for example after an edit outside Kibi). There is no separate repair tool: rewrite the entity with `kb_upsert` (its current `title` and `status` are enough for an existing entity) and the receipt is republished against the current bytes, or `git add` the file: the next sync retires the receipt of a tracked file without comparing its hash. A `kibi migrate` rewrite (re-derived inventory, source path repair, lifecycle repair) republishes the receipt itself. The `kb_upsert` repair needs a compiled branch store: before the first compile the entity is not stored yet, so `kb_upsert` treats the payload as a new requirement and asks for its full semantic contract; `git add` the file instead. `Pending source is missing` means the untracked file was deleted: run `kibi branch recover --apply` if that was intended. A refused `kb_upsert` restores the receipt it found, so a commit-time refusal alone does not cause this finding.
 
 ## Branch store not compiled (`branch-store-not-compiled`, `branch_store_not_compiled`)
 

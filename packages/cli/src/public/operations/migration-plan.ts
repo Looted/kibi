@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import * as path from "node:path";
+import { planLegacyStorageMigration } from "../../commands/legacy-storage-migration.js";
 import { BRANCH_STORE_NOT_COMPILED } from "../../utils/branch-store.js";
 import { legacyConfigExists } from "../../utils/config.js";
 import { MTIME_SOURCE_REASON_CODES } from "../../utils/content-freshness.js";
@@ -688,6 +689,14 @@ export function buildActionsFromStatus(input: {
   const legacyStorageMigrationRequired = legacyConfigExists(
     input.workspaceRoot,
   );
+  // A legacy cutover that cannot move its files (a destination already
+  // exists, a malformed config) is an operator decision, not an automatic
+  // step that fails when applied and takes the compile with it.
+  const legacyStorage = legacyStorageMigrationRequired
+    ? planLegacyStorageMigration(input.workspaceRoot)
+    : null;
+  const legacyStorageBlocked =
+    legacyStorage !== null && legacyStorage.blockers.length > 0;
   if (storeState === "missing") {
     actions.push(
       migrationAction({
@@ -724,6 +733,8 @@ export function buildActionsFromStatus(input: {
   }
 
   if (configStatus.needsMigration || legacyStorageMigrationRequired) {
+    const operatorOnly =
+      configStatus.status === "newer" || legacyStorageBlocked;
     actions.push(
       migrationAction({
         id: "schema-config-upgrade",
@@ -734,17 +745,34 @@ export function buildActionsFromStatus(input: {
               ? "legacy_storage_migration"
               : "schema_version_upgrade",
         category: "schema",
-        state: configStatus.status === "newer" ? "blocked" : "ready",
-        safety: configStatus.status === "newer" ? "operator" : "automatic",
-        invocation: { kind: "cli", command_argv: ["kibi", "migrate", "--yes"] },
+        state: operatorOnly ? "blocked" : "ready",
+        safety: operatorOnly ? "operator" : "automatic",
+        invocation: legacyStorageBlocked
+          ? {
+              kind: "review",
+              instruction: `The legacy .kb/config.json still names knowledge files outside .kb/ and Kibi cannot move them: ${legacyStorage?.blockers.join(" ")} Keep one copy of each conflicting file (the .kb/ one is what Kibi compiles), remove or git-rm the legacy copy, then run 'kibi migrate --yes' to retire .kb/config.json.`,
+            }
+          : { kind: "cli", command_argv: ["kibi", "migrate", "--yes"] },
         affectedFiles: [
           ".kb/manifest.json",
           ".kb/migrations",
           ".kb/config.json",
+          ...(legacyStorage?.moves.map((move) => move.from) ?? []),
         ],
-        evidence: { configStatus },
+        evidence: {
+          configStatus,
+          ...(legacyStorage === null
+            ? {}
+            : {
+                legacyStorage: {
+                  moves: legacyStorage.moves,
+                  blockers: legacyStorage.blockers,
+                  legacyConfig: legacyStorage.legacyConfig,
+                },
+              }),
+        },
         dependsOn: storeState === "missing" ? ["branch-store-ensure"] : [],
-        autoApplicable: configStatus.status !== "newer",
+        autoApplicable: !operatorOnly,
       }),
     );
   }
@@ -769,12 +797,16 @@ export function buildActionsFromStatus(input: {
           typeof store?.path === "string" ? store.path : ".kb/branches",
         ],
         evidence: { reason: uncompiled },
+        // A blocked schema step waits on an operator; the compile still runs
+        // from the .kb/ sources Kibi already reads.
         dependsOn: actions
-          .map((action) => action.id)
           .filter(
-            (id) =>
-              id === "branch-store-ensure" || id === "schema-config-upgrade",
-          ),
+            (action) =>
+              action.state === "ready" &&
+              (action.id === "branch-store-ensure" ||
+                action.id === "schema-config-upgrade"),
+          )
+          .map((action) => action.id),
         postconditions: [{ branchStore: "compiled" }],
         autoApplicable: true,
       }),
