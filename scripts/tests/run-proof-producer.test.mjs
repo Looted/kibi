@@ -574,7 +574,11 @@ test("proof producer runs a test file once and reuses it for later steps", async
       },
       { test_id: "TEST-NODE", steps: [["node", "-e", "0"]] },
     ],
-    env: { ...process.env, KIBI_PROOF_UNIT_RESULTS: "" },
+    env: {
+      ...process.env,
+      KIBI_PROOF_UNIT_RESULTS: "",
+      KIBI_PROOF_STEP_CONCURRENCY: "1",
+    },
     spawnProcess: (command, args) => {
       spawned.push([command, ...args].join(" "));
       const child = new EventEmitter();
@@ -630,7 +634,11 @@ test("proof producer never reuses a failed run of the same files", async () => {
         steps: [["bun", "test", "./pkg/tests/a.test.ts"]],
       },
     ],
-    env: { ...process.env, KIBI_PROOF_UNIT_RESULTS: "" },
+    env: {
+      ...process.env,
+      KIBI_PROOF_UNIT_RESULTS: "",
+      KIBI_PROOF_STEP_CONCURRENCY: "1",
+    },
     spawnProcess: () => {
       spawns += 1;
       const child = new EventEmitter();

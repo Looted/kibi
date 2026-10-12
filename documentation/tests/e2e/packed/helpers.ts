@@ -269,6 +269,55 @@ export function claimSharedPackCache(): SharedPackCachePlan {
   };
 }
 
+const SHARED_PACK_LOCK_WAIT_MS = 20 * 60 * 1000;
+const SHARED_PACK_LOCK_POLL_MS = 500;
+
+/**
+ * Wait for this process's turn to populate the shared pack cache. `npm pack`
+ * runs each package's prepack build in the shared source tree, so two
+ * processes packing at once race on the same build outputs. One process holds
+ * `<area>.lock` while it packs and publishes; the others wait until the area
+ * is complete and then reuse it. A lock whose owner has exited is taken over.
+ * Returns the release function when this process must populate the cache, or
+ * null when the cache is disabled, already complete, or the wait ran out.
+ */
+// implements REQ-test-journaled-engine-harness
+export async function awaitSharedPackCacheTurn(
+  waitMs = SHARED_PACK_LOCK_WAIT_MS,
+): Promise<(() => void) | null> {
+  const config = sharedPackCacheConfig();
+  if (!config) return null;
+  const area = sharedPackCacheArea(config);
+  const lock = `${area}.lock`;
+  const owner = join(lock, "pid");
+  mkdirSync(dirname(area), { recursive: true });
+  const deadline = Date.now() + waitMs;
+  for (;;) {
+    if (sharedPackCacheComplete(area)) return null;
+    try {
+      mkdirSync(lock);
+      writeFileSync(owner, String(process.pid));
+      return () => rmSync(lock, { recursive: true, force: true });
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
+    }
+    let holder = Number.NaN;
+    try {
+      holder = Number(readFileSync(owner, "utf8"));
+    } catch {
+      // The holder has created the lock but not yet recorded its PID.
+    }
+    if (Number.isInteger(holder) && holder > 0 && !isProcessRunning(holder)) {
+      rmSync(lock, { recursive: true, force: true });
+      continue;
+    }
+    if (Date.now() >= deadline) return null;
+    await new Promise((resolve) =>
+      setTimeout(resolve, SHARED_PACK_LOCK_POLL_MS),
+    );
+  }
+}
+
 /**
  * Publish a claimed staging tree; returns the paths the process should use,
  * or null when a sibling published first (the staging tree remains complete
@@ -555,6 +604,18 @@ async function bootstrapSharedInstall(
   // populate a staging tree and hand it over with one atomic rename. Explicit
   // KIBI_TEST_TARBALLS always wins: external artifact roots are not owned by
   // this process, so they must never be cached into a shared area.
+  const releaseTurn =
+    source.externalRoot === null ? await awaitSharedPackCacheTurn() : null;
+  try {
+    return await bootstrapSharedInstallInTurn(source);
+  } finally {
+    releaseTurn?.();
+  }
+}
+
+async function bootstrapSharedInstallInTurn(
+  source: PackSource,
+): Promise<SharedPackedEnvironment> {
   const cache =
     source.externalRoot === null
       ? claimSharedPackCache()

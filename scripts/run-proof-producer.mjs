@@ -524,7 +524,10 @@ export async function runProofProducer(options = {}) {
   // reuse (the unit results ledger, or earlier steps of this run) is ready.
   const ordered = [
     ...groups.filter((group) => group.files === null),
-    ...groups.filter((group) => group.files !== null),
+    // Wider steps first, so a later narrower step can reuse their pass.
+    ...groups
+      .filter((group) => group.files !== null)
+      .sort((a, b) => b.files.length - a.files.length),
   ];
 
   const executed = await mapPool(ordered, concurrency, async (group) => {
