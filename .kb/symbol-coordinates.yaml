@@ -10899,6 +10899,14 @@ coordinates:
     sourceEndLine: 65
     sourceFile: packages/mcp/src/diagnostics-helpers.ts
     sourceLine: 55
+  SYM-deriveFactClaimKey:
+    identityHash: 6da6b135938a2dd697a95d3bc5adf0607d879c54047930d1043d884c8b212d08
+    sourceHash: 8b90f55b543753e0ef724a39921886dea20a79f1965f4cfdcb62bb94ce9ad9c3
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 88
+    sourceFile: packages/cli/src/operations/semantic-advisor/clauses.ts
+    sourceLine: 77
   SYM-deriveFileOperationReminder:
     identityHash: a7abcf46f7d2724eadfe45e993c75c60ed72ff33639515d5c483b557be65c413
     sourceHash: b5afcaac487b513801e59ff340d15713c0eafe559fd058154ee6b21033313d5d
