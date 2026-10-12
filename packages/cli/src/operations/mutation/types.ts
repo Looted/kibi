@@ -65,6 +65,12 @@ export type UpsertPayload = {
   readonly relationships_created: number;
   readonly warnings: readonly string[];
   readonly semanticAdvisor: SemanticAdvisorReceipt;
+  /**
+   * For a fact that carries claim_text: the stored claim_key, derived from
+   * claim_text when the payload did not supply it, so the writer learns the
+   * grounding key without a kb_query.
+   */
+  readonly claimKey?: string;
   readonly status?: "committed_with_repairs";
   readonly effectFailures?: readonly {
     readonly kind: string;

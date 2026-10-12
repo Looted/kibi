@@ -11,6 +11,8 @@ export interface PredicateUsageHints {
 export interface PredicateSchemaCandidate {
   id: string;
   predicate_name: string;
+  /** The schema's predicate_namespace; absent for the default namespace. */
+  predicate_namespace?: string;
   title: string;
   description: string;
   argument_names: string[];
@@ -145,7 +147,32 @@ export interface ExistingClaimGrounding {
   relationship: { type: string; from: string; to: string };
   factId: string;
   factKind: string | null;
+  /** The stored claim_key of the grounding fact. */
   claimKey: string;
+  /** The stored canonical_key of the grounding fact (predicate facts), else null. */
+  canonicalKey: string | null;
+  /**
+   * How the fact was recognised as grounding this claim: the same claim_key
+   * (the same proposition text), or the same canonical_key as the recommended
+   * candidate (the same predicate tuple stated in other words).
+   */
+  matchedBy: "claim_key" | "canonical_key";
+}
+
+/**
+ * A stored decision-predicate fact of a current requirement that agrees with
+ * the recommended candidate on every key argument and decides the opposite,
+ * found when no hash-bound plan carried the contradiction analysis.
+ */
+// implements REQ-model-predicates-grounding-guards
+export interface CandidateDecisionConflict {
+  requirementId: string;
+  factId: string;
+  /** The stored fact's effective decision. */
+  effect: string;
+  /** The candidate's effective decision. */
+  proposedEffect: string;
+  canonicalKey: string;
 }
 
 // implements REQ-mcp-suggest-predicates
@@ -165,7 +192,9 @@ export interface SuggestPredicatesResult {
       | "resolve_schema_reference"
       | "record_ontology_gap"
       | "review_nonlogical"
-      | "replace_grounding";
+      | "replace_grounding"
+      | "extend_requirement"
+      | "keep_existing_grounding";
     recommendedPredicateSchema: RecommendedPredicateSchema | null;
     applyPlan: Array<Record<string, unknown>>;
     relationshipPlan: Record<string, unknown> | null;
@@ -178,6 +207,12 @@ export interface SuggestPredicatesResult {
     /** The planned predicate fact id a requires_predicate link must target (never a candidate id). */
     relationshipTarget?: string | null;
     existingGrounding?: ExistingClaimGrounding[];
+    /**
+     * Stored decision facts of current requirements that contradict the
+     * recommended candidate on its key arguments; empty when a plan carried
+     * the contradiction analysis or no complete candidate was found.
+     */
+    decisionConflicts?: CandidateDecisionConflict[];
     replacementPlan?: Record<string, unknown> | null;
     /** On provide_argument_bindings: one hint per unbound argument of the recommended candidate. */
     bindingHints?: BindingHint[];

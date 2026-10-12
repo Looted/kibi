@@ -31,6 +31,7 @@ import { inferSubject } from "./predicate-inference.js";
 import { loadExistingPredicateSchemas } from "./predicate-loader.js";
 import { rankSchema } from "./predicate-ranker.js";
 import type {
+  CandidateDecisionConflict,
   ExistingClaimGrounding,
   PredicateSchemaCandidate,
   PredicateSuggestion,
@@ -246,13 +247,17 @@ function unquoted(value: unknown): string {
  * The logical grounding relationships an existing requirement already has for
  * this claim. A modeled claim takes exactly one grounding relationship, so a
  * second link (for example requires_predicate beside a bootstrap
- * requires_property) fails the proposition-complete rule.
+ * requires_property) fails the proposition-complete rule. A grounding fact is
+ * recognised by the claim's key (the same proposition text) or, for a
+ * predicate fact, by the recommended candidate's canonical_key (the same
+ * predicate tuple stated in other words).
  */
-// implements REQ-model-predicates-grounding-aware-v2
+// implements REQ-model-predicates-grounding-aware-v2, REQ-model-predicates-grounding-guards
 async function existingClaimGrounding(
   prolog: PrologPort | null,
   requirementId: string | undefined,
   claimKey: string,
+  canonicalKey: string | null,
   warnings: string[],
 ): Promise<ExistingClaimGrounding[]> {
   if (prolog === null || !requirementId) return [];
@@ -265,15 +270,27 @@ async function existingClaimGrounding(
       if (!targets.success) continue;
       for (const target of parsePrologList(targets.bindings.Targets ?? "[]")) {
         const fact = await prolog.query(
-          `once((kb_entity('${escapeAtom(target)}', fact, _GroundProps), memberchk(claim_key=_GroundClaimRaw, _GroundProps), normalize_term_atom(_GroundClaimRaw, ClaimKey), (memberchk(fact_kind=_GroundKindRaw, _GroundProps) -> normalize_term_atom(_GroundKindRaw, FactKind) ; FactKind = '')))`,
+          `once((kb_entity('${escapeAtom(target)}', fact, _GroundProps), memberchk(claim_key=_GroundClaimRaw, _GroundProps), normalize_term_atom(_GroundClaimRaw, ClaimKey), (memberchk(fact_kind=_GroundKindRaw, _GroundProps) -> normalize_term_atom(_GroundKindRaw, FactKind) ; FactKind = ''), (memberchk(canonical_key=_GroundCanonicalRaw, _GroundProps) -> normalize_term_atom(_GroundCanonicalRaw, CanonicalKey) ; CanonicalKey = '')))`,
         );
         if (!fact.success) continue;
-        if (unquoted(fact.bindings.ClaimKey) !== claimKey) continue;
+        const storedClaimKey = unquoted(fact.bindings.ClaimKey);
+        const storedCanonicalKey = unquoted(fact.bindings.CanonicalKey);
+        const matchedBy =
+          storedClaimKey === claimKey
+            ? "claim_key"
+            : canonicalKey !== null &&
+                storedCanonicalKey !== "" &&
+                storedCanonicalKey === canonicalKey
+              ? "canonical_key"
+              : null;
+        if (matchedBy === null) continue;
         found.push({
           relationship: { type, from: requirementId, to: target },
           factId: target,
           factKind: unquoted(fact.bindings.FactKind) || null,
-          claimKey,
+          claimKey: storedClaimKey,
+          canonicalKey: storedCanonicalKey || null,
+          matchedBy,
         });
       }
     }
@@ -482,13 +499,38 @@ export async function handleKbSuggestPredicates(
     prolog,
     args.requirementId,
     claimKey,
+    recommendedCandidate?.canonical_key ?? null,
     warnings,
   );
   const alreadyGrounded = existingGrounding.length > 0;
+  // implements REQ-model-predicates-grounding-guards
+  // The requirement already grounds the very predicate tuple the candidate
+  // names (in other words, or the same text again): nothing to write or
+  // swap, whatever the candidate's binding status.
+  const sameTupleGrounding = existingGrounding.filter(
+    (row) =>
+      recommendedCandidate !== undefined &&
+      row.canonicalKey !== null &&
+      row.canonicalKey === recommendedCandidate.canonical_key,
+  );
+  const keepExistingGrounding = sameTupleGrounding.length > 0;
   const completeCandidate =
     recommendedCandidate && recommendedCandidate.binding_status === "complete"
       ? recommendedCandidate
       : undefined;
+  // The stored requirement and its proposition ledger, read once for the
+  // ledger guard, the replacement plan and the hash-bound plan.
+  const storedRequirement =
+    prolog !== null && context !== undefined && args.requirementId
+      ? await storedRequirementContract(prolog, args.requirementId, warnings)
+      : null;
+  const ledger = ledgerState(storedRequirement, claimKey);
+  // A requirement grounds only the propositions its prose states, so a
+  // claim its ledger does not carry cannot be linked to it: the predicate
+  // fact would be written and stay unlinked. The requirement's prose has to
+  // be extended first.
+  const ledgerMissing =
+    ledger === "missing" && completeCandidate !== undefined && !alreadyGrounded;
   // implements REQ-model-predicates-participant-not-subject
   // A schema whose participant argument (actor, role, owner) the claim never
   // names does not fit the claim: no binding the agent could supply would be
@@ -516,13 +558,17 @@ export async function handleKbSuggestPredicates(
     ? unavailableSchema
       ? "resolve_schema_reference"
       : "record_ontology_gap"
-    : completeCandidate
-      ? alreadyGrounded
-        ? "replace_grounding"
-        : "apply_requires_predicate"
-      : schemaDoesNotFit
-        ? "record_ontology_gap"
-        : "provide_argument_bindings";
+    : keepExistingGrounding
+      ? "keep_existing_grounding"
+      : completeCandidate
+        ? alreadyGrounded
+          ? "replace_grounding"
+          : ledgerMissing
+            ? "extend_requirement"
+            : "apply_requires_predicate"
+        : schemaDoesNotFit
+          ? "record_ontology_gap"
+          : "provide_argument_bindings";
   const predicatePlan = completeCandidate
     ? buildPredicateApplyPlan(completeCandidate, args)
     : [];
@@ -531,7 +577,7 @@ export async function handleKbSuggestPredicates(
   // replacement plan below swaps the grounding instead. The ontology-gap
   // observation is not a grounding relationship, so it is planned either way.
   const applyPlan = completeCandidate
-    ? alreadyGrounded
+    ? alreadyGrounded || ledgerMissing
       ? []
       : predicatePlan
     : (!recommendedCandidate && !unavailableSchema) || schemaDoesNotFit
@@ -540,7 +586,7 @@ export async function handleKbSuggestPredicates(
   const plannedFactId =
     typeof predicatePlan[0]?.id === "string" ? predicatePlan[0].id : null;
   const relationshipPlan =
-    completeCandidate && !alreadyGrounded
+    completeCandidate && !alreadyGrounded && !ledgerMissing
       ? buildRelationshipPlan(
           plannedFactId ?? "",
           args.requirementId,
@@ -549,17 +595,22 @@ export async function handleKbSuggestPredicates(
         )
       : null;
   const replacementPlan =
-    alreadyGrounded && plannedFactId !== null && args.requirementId
+    alreadyGrounded &&
+    !keepExistingGrounding &&
+    plannedFactId !== null &&
+    args.requirementId
       ? buildGroundingReplacementPlan(
           args.requirementId,
           plannedFactId,
           predicatePlan,
           existingGrounding,
-          await storedRequirementProperties(
-            prolog,
-            args.requirementId,
-            warnings,
-          ),
+          storedRequirement !== null
+            ? restatedRequirementFields(storedRequirement)
+            : await storedRequirementProperties(
+                prolog,
+                args.requirementId,
+                warnings,
+              ),
         )
       : null;
   const relationshipTarget =
@@ -569,9 +620,24 @@ export async function handleKbSuggestPredicates(
   const groundingSummary = existingGrounding
     .map((row) => `${row.relationship.type} -> ${row.factId}`)
     .join(", ");
-  if (alreadyGrounded) {
+  const sameTupleSummary = sameTupleGrounding
+    .map(
+      (row) =>
+        `${row.relationship.type} -> ${row.factId}${row.matchedBy === "canonical_key" ? ` (matched by canonical_key; its claim_key ${row.claimKey} differs from this text's ${claimKey})` : ""}`,
+    )
+    .join(", ");
+  if (keepExistingGrounding) {
+    warnings.push(
+      `${args.requirementId} already grounds the predicate ${recommendedCandidate?.canonical_key} through ${sameTupleSummary}. Keep that grounding: no fact or link is needed. If this text is a further proposition of the requirement, extend its prose and run kb_model mode analyze before grounding it separately.`,
+    );
+  } else if (alreadyGrounded) {
     warnings.push(
       `${args.requirementId} already grounds this claim (${claimKey}) through ${groundingSummary}. A modeled claim takes exactly one logical grounding relationship, so adding requires_predicate beside it fails the proposition-complete rule. ${replacementPlan ? "Keep the existing grounding, or follow replacementPlan to swap it for the predicate." : "Keep the existing grounding; no predicate replacement is available yet."}`,
+    );
+  }
+  if (ledger === "missing" && !alreadyGrounded && recommendedCandidate) {
+    warnings.push(
+      `The proposition ledger of ${args.requirementId} has no claim ${claimKey} for this text, so the requirement cannot ground it: a requirement grounds only the propositions its prose states. ${ledgerMissing ? "No fact was planned, because it would be written without a link. " : ""}Extend the requirement's prose with this clause (kb_model mode requirement, or kb_upsert with the extended semantic_text and the ledger kb_model mode analyze returns), then call mode predicates again.`,
     );
   }
   // The hints stay on a schema that does not fit, so the agent can see which
@@ -590,24 +656,29 @@ export async function handleKbSuggestPredicates(
     !recommendedCandidate && !unavailableSchema
       ? buildPredicateSchemaDraft(text, subject)
       : null;
-  const groundedPrefix = alreadyGrounded
-    ? `${args.requirementId} already grounds this claim through ${groundingSummary}. `
-    : "";
+  const groundedPrefix =
+    alreadyGrounded && !keepExistingGrounding
+      ? `${args.requirementId} already grounds this claim through ${groundingSummary}. `
+      : "";
   const textSummary =
     groundedPrefix +
-    (replacementPlan
-      ? `To use ${completeCandidate?.predicate_name} instead, follow replacementPlan and link requires_predicate to ${plannedFactId}; otherwise keep the existing grounding.`
-      : completeCandidate
-        ? `Suggested ${candidates.length} predicate candidate(s). Top applicable match: ${completeCandidate.predicate_name}. Apply the predicate fact ${plannedFactId}, then link requires_predicate to that fact id (not a candidate id).`
-        : schemaDoesNotFit && recommendedCandidate
-          ? `Matched ${recommendedCandidate.predicate_name}, but the claim names no ${unnamedParticipants.join(" or ")} (${describeBindingHints(bindingHints)}), so this schema does not fit the claim. Record the ontology-gap observation in applyPlan instead of inventing a participant; a predicate_schema whose arguments the claim names would fit.`
-          : recommendedCandidate
-            ? `Matched ${recommendedCandidate.predicate_name}, but exact reviewed values are still required for: ${recommendedCandidate.unbound_arguments.join(", ")}. Bind them from the claim text: ${describeBindingHints(bindingHints)}. A value that repeats an argument name or a stop word stays unbound. No apply plan was generated.`
-            : unavailableSchema
-              ? `Requested predicate schema ${args.schemaId} is unavailable or semantically inapplicable. No apply plan was generated.`
-              : alreadyGrounded
-                ? "No predicate candidate passed the semantic applicability gate; keep the existing grounding and record the ontology-gap observation in applyPlan so the missing schema stays visible."
-                : "No predicate candidate passed the semantic applicability gate; record an ontology gap and review the generated schema draft instead of silently writing prose.");
+    (keepExistingGrounding
+      ? `${args.requirementId} already grounds ${recommendedCandidate?.canonical_key} through ${sameTupleSummary}. Nothing to apply; keep that grounding.`
+      : replacementPlan
+        ? `To use ${completeCandidate?.predicate_name} instead, follow replacementPlan and link requires_predicate to ${plannedFactId}; otherwise keep the existing grounding.`
+        : ledgerMissing && completeCandidate
+          ? `Matched ${completeCandidate.predicate_name} as ${completeCandidate.canonical_key}, but ${args.requirementId} does not state this claim (its ledger has no ${claimKey}). Extend the requirement's prose with this clause first; no fact or link was planned.`
+          : completeCandidate
+            ? `Suggested ${candidates.length} predicate candidate(s). Top applicable match: ${completeCandidate.predicate_name}. Apply the predicate fact ${plannedFactId}, then link requires_predicate to that fact id (not a candidate id).`
+            : schemaDoesNotFit && recommendedCandidate
+              ? `Matched ${recommendedCandidate.predicate_name}, but the claim names no ${unnamedParticipants.join(" or ")} (${describeBindingHints(bindingHints)}), so this schema does not fit the claim. Record the ontology-gap observation in applyPlan instead of inventing a participant; a predicate_schema whose arguments the claim names would fit.`
+              : recommendedCandidate
+                ? `Matched ${recommendedCandidate.predicate_name}, but exact reviewed values are still required for: ${recommendedCandidate.unbound_arguments.join(", ")}. Bind them from the claim text: ${describeBindingHints(bindingHints)}. A value that repeats an argument name or a stop word stays unbound. No apply plan was generated.`
+                : unavailableSchema
+                  ? `Requested predicate schema ${args.schemaId} is unavailable or semantically inapplicable. No apply plan was generated.`
+                  : alreadyGrounded
+                    ? "No predicate candidate passed the semantic applicability gate; keep the existing grounding and record the ontology-gap observation in applyPlan so the missing schema stays visible."
+                    : "No predicate candidate passed the semantic applicability gate; record an ontology gap and review the generated schema draft instead of silently writing prose.");
   const logicClaims = Array.from(
     new Set([...(args.existingLogicClaims ?? []), claimKey]),
   );
@@ -623,9 +694,24 @@ export async function handleKbSuggestPredicates(
             unknown
           >,
           logicClaims,
+          stored: storedRequirement,
           warnings,
         })
       : null;
+  // Without a plan nothing ran the contradiction analysis, so the decision
+  // conflicts a complete candidate would introduce are looked up directly.
+  const decisionConflicts =
+    plan === null &&
+    completeCandidate !== undefined &&
+    !keepExistingGrounding &&
+    args.requirementId
+      ? await candidateDecisionConflicts(prolog, completeCandidate, warnings)
+      : [];
+  for (const conflict of decisionConflicts) {
+    warnings.push(
+      `The proposed ${conflict.canonicalKey} (${conflict.proposedEffect}) contradicts ${conflict.factId} (${conflict.effect}) under ${conflict.requirementId}${conflict.requirementId === args.requirementId ? ", the requirement this claim would ground" : ""}: both decide ${completeCandidate?.predicate_name} on the same key arguments. kb_upsert refuses a grounding link that introduces this conflict; supersede or close the conflicting requirement, or correct the decision, before applying.`,
+    );
+  }
 
   return {
     content: [{ type: "text", text: textSummary }],
@@ -644,12 +730,95 @@ export async function handleKbSuggestPredicates(
       plan,
       relationshipTarget,
       existingGrounding,
+      decisionConflicts,
       replacementPlan,
       bindingHints,
       warnings,
     },
     applyPlan,
   };
+}
+
+/**
+ * Whether the stored requirement's proposition ledger carries the claim:
+ * "unknown" when the requirement or its ledger is not readable.
+ */
+// implements REQ-model-predicates-grounding-guards
+function ledgerState(
+  stored: Record<string, unknown> | null,
+  claimKey: string,
+): "present" | "missing" | "unknown" {
+  if (stored === null || !Array.isArray(stored.semantic_inventory))
+    return "unknown";
+  return stored.semantic_inventory.some(
+    (row) =>
+      row !== null &&
+      typeof row === "object" &&
+      (row as Record<string, unknown>).claim_key === claimKey,
+  )
+    ? "present"
+    : "missing";
+}
+
+/**
+ * Stored decision-predicate facts of current requirements that agree with
+ * the candidate on every key argument and decide the opposite: the pairs
+ * the domain-contradictions rule would report once the candidate is linked.
+ */
+// implements REQ-model-predicates-grounding-guards
+async function candidateDecisionConflicts(
+  prolog: PrologPort | null,
+  candidate: PredicateSuggestion,
+  warnings: string[],
+): Promise<CandidateDecisionConflict[]> {
+  if (prolog === null) return [];
+  if (
+    candidate.predicate_args.length === 0 ||
+    candidate.predicate_args.some((value) => !value)
+  )
+    return [];
+  const candidateArgs = `[${candidate.predicate_args
+    .map((value) => `'${escapeAtom(value)}'`)
+    .join(",")}]`;
+  try {
+    const result = await prolog.query(
+      `findall(Row, (kb:decision_signatures(_Signatures), memberchk(decision_signature(${candidate.schema.predicate_namespace ? `'${escapeAtom(candidate.schema.predicate_namespace)}'` : "_Namespace"}, '${escapeAtom(candidate.predicate_name)}', ${candidate.predicate_args.length}, _KeyPositions, _DecisionPosition), _Signatures), nth1(_DecisionPosition, ${candidateArgs}, _ProposedDecision), kb:effective_decision(_ProposedDecision, ${candidate.polarity}, _ProposedEffect), kb:decision_req_fact(_Signatures, _Req, _Fact, ${candidate.schema.predicate_namespace ? `'${escapeAtom(candidate.schema.predicate_namespace)}'` : "_Namespace"}, '${escapeAtom(candidate.predicate_name)}', _Args, _Polarity, _KeyPositions, _DecisionPosition), kb:bind_key_arguments(_KeyPositions, ${candidateArgs}, _Args), nth1(_DecisionPosition, _Args, _Decision), kb:effective_decision(_Decision, _Polarity, _Effect), _Effect \\== _ProposedEffect, atomic_list_concat([_Req, _Fact, _Effect, _ProposedEffect], '|', Row)), Rows)`,
+    );
+    if (!result.success) return [];
+    const conflicts: CandidateDecisionConflict[] = [];
+    for (const row of parsePrologList(result.bindings.Rows ?? "[]")) {
+      const [requirementId, factId, effect, proposedEffect] = row.split("|");
+      if (!requirementId || !factId || !effect || !proposedEffect) continue;
+      conflicts.push({
+        requirementId,
+        factId,
+        effect,
+        proposedEffect,
+        canonicalKey: candidate.canonical_key,
+      });
+    }
+    return conflicts.sort((left, right) =>
+      `${left.requirementId}|${left.factId}`.localeCompare(
+        `${right.requirementId}|${right.factId}`,
+      ),
+    );
+  } catch (error) {
+    warnings.push(
+      `Decision conflicts for ${candidate.canonical_key} could not be read (${error instanceof Error ? error.message : String(error)}); preview the grounding with kb_upsert dryRun and plannedFacts before applying.`,
+    );
+    return [];
+  }
+}
+
+/** The stored requirement fields a relationship-only update must restate. */
+function restatedRequirementFields(
+  stored: Record<string, unknown>,
+): Record<string, unknown> {
+  const restated: Record<string, unknown> = {};
+  for (const field of RESTATED_REQUIREMENT_FIELDS)
+    if (stored[field] !== undefined && stored[field] !== null)
+      restated[field] = stored[field];
+  return restated;
 }
 
 /**
@@ -698,15 +867,12 @@ async function groundingPlan(
     factStep: Record<string, unknown>;
     relationship: Record<string, unknown>;
     logicClaims: readonly string[];
+    stored: Record<string, unknown> | null;
     warnings: string[];
   }>,
 ): Promise<Record<string, unknown> | null> {
   if (prolog === null || context === undefined) return null;
-  const stored = await storedRequirementContract(
-    prolog,
-    input.requirementId,
-    input.warnings,
-  );
+  const stored = input.stored === null ? null : { ...input.stored };
   if (stored === null) {
     input.warnings.push(
       `No hash-bound plan: requirement ${input.requirementId} is not stored, so its upsert step cannot restate the stored title and status. Apply applyPlan and relationshipPlan with kb_upsert.`,
@@ -752,7 +918,21 @@ async function groundingPlan(
         {
           type: "req",
           id: input.requirementId,
-          properties: { ...stored, logic_claims: [...input.logicClaims] },
+          // The manifest must name every assertive ledger claim, so the
+          // stored manifest is kept and this claim merged into it.
+          properties: {
+            ...stored,
+            logic_claims: Array.from(
+              new Set([
+                ...(Array.isArray(stored.logic_claims)
+                  ? stored.logic_claims.filter(
+                      (claim): claim is string => typeof claim === "string",
+                    )
+                  : []),
+                ...input.logicClaims,
+              ]),
+            ),
+          },
           relationships: [input.relationship],
         },
       ],
@@ -786,6 +966,7 @@ const STORED_LEDGER_FIELDS = [
   "semantic_inventory_version",
   "semantic_source_field",
   "semantic_source_hash",
+  "logic_claims",
 ] as const;
 
 // implements REQ-model-what-if-planned-facts

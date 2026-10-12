@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 202,
-  "proofProven": 202,
+  "currentRequirements": 204,
+  "proofProven": 204,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -997,6 +997,16 @@
       "uncoveredSymbols": []
     },
     "REQ-model-what-if-planned-facts": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-model-predicates-grounding-guards": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-upsert-committed-claim-key": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []

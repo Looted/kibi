@@ -262,3 +262,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c1663a4c1ef6
+  - type: executable_for
+    from: SYM-test-model-predicates-grounding-guards
+    to: TEST-model-predicates-grounding-guards
+    created_at: 2026-10-12T18:56:18.582Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b2dacc0ee11d
