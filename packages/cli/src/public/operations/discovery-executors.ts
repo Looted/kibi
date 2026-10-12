@@ -775,7 +775,7 @@ export async function executeSearch(
   const {
     query,
     type,
-    limit = 20,
+    limit = 10,
     offset = 0,
     rankingMode = "intent-v1",
     semanticFacets,

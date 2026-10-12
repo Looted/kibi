@@ -51546,6 +51546,25 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-kibi-hooks-flow-manifest
+  - id: SYM-mcp-tools-embedsStructuredText
+    title: embedsStructuredText
+    status: active
+    sourceFile: packages/mcp/src/server/tools.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-structured-text-per-host
+      - type: implements
+        target: REQ-mcp-structured-text-per-host
+  - id: SYM-test-mcp-structured-text-per-host
+    title: Structured text per host stdio suite
+    status: active
+    sourceFile: packages/mcp/tests/server/structured-text-host.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-mcp-structured-text-per-host
   - id: SYM-intent-search-inheritedSourceMatches
     title: inheritedSourceMatches
     status: active

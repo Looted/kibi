@@ -18,6 +18,13 @@ reference (`structuredContent.bindingHints`, `structuredContent.actions`,
 `structuredContent.qualityDiagnostics[]`, ...) are shorthand for
 `structuredContent.data.<field>`. The CLI JSON routes print the same envelope.
 
+The discovery tools (`kb_query`, `kb_search`, `kb_status`,
+`kb_prepare_impact_review`) also put the `data` JSON in front of their text
+summary, for hosts that hide `structuredContent` from the agent. On Claude
+Code, which shows `structuredContent`, the text is the summary alone, so each
+result is sent once. `KIBI_MCP_STRUCTURED_TEXT=omit` or `embed` overrides that
+choice for any host (see [Usage Telemetry](#usage-telemetry-opt-in)).
+
 ### Tool list
 
 The server registers 16 tools by default:
@@ -360,7 +367,7 @@ Ask the KB a question or search it. The default `intent-v1` ranking accepts natu
 **Parameters:**
 - `query` (required): Free-text query
 - `type` (optional): Entity type filter
-- `limit` (optional): Maximum number of ranked results
+- `limit` (optional, default `10`): Maximum number of ranked results per page; `count` and `truncated` say when to page with `offset` or raise it
 - `offset` (optional): Number of results to skip
 - `rankingMode` (optional): `intent-v1` (default) or `legacy`
 - `answer` (optional, default `true`): Intent mode, first page only. Adds the answer layer described below.
@@ -879,7 +886,12 @@ Opting out is removing the signal; no other state persists.
 While opted in, every row carries `interface`, `host`, `package_version`, and
 `workspace_root` so rows stay attributable across worktrees, hosts, and Kibi
 versions. Host plugins set `KIBI_MCP_HOST` for attribution only; it is not an
-opt-in signal and never enables logging on its own. CLI rows take `host` from
+opt-in signal and never enables logging on its own. The same value decides
+whether the discovery tools repeat their `data` JSON in the text part:
+`claude-code` (or a client that calls itself `claude-code` on initialize) gets
+the text summary alone because the host shows `structuredContent`, and every
+other host keeps the JSON copy. `KIBI_MCP_STRUCTURED_TEXT=omit` or `embed`
+overrides that for any host. CLI rows take `host` from
 `KIBI_HOST` (or `KIBI_MCP_HOST`) and recognize Claude Code shells; otherwise
 they record `unknown`. Rows record business arguments and agent-supplied
 telemetry metadata, and the log stays local to the workspace under

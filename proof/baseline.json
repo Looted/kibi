@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 201,
-  "proofProven": 201,
+  "currentRequirements": 202,
+  "proofProven": 202,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -1007,6 +1007,11 @@
       "uncoveredSymbols": []
     },
     "REQ-search-answer-hygiene": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-mcp-structured-text-per-host": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []
