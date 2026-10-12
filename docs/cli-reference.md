@@ -829,7 +829,7 @@ flags, it is a read-only preview; `--format json` returns the complete
 
 **Behavior:**
 - Upgrades entity schemas and internal storage formats
-- Marks pre-existing coarse symbol links with `granularity_reason: legacy-link` when narrower exported symbols or class methods (`ClassName.methodName`) are already available
+- Marks pre-existing coarse symbol links with `granularity_reason: legacy-link` at any schema version, using the same rule as the staged granularity gate (`kibi check --staged`): a traceability link is coarse when the source declares narrower behavioral symbols, such as the methods of a linked class (`ClassName.methodName`) or other exported functions when the linked title is not declared at all. The pass is idempotent; the plan offers it as the automatic `symbol_legacy_link_mark` action (id `symbol-legacy-link-mark`), bound to the hash of `.kb/symbols.yaml` it was planned from and listing each symbol with the narrower symbols that make it coarse
 - Fixes legacy requirement modeling to follow strict fact-pairing rules
 - Moves legacy `documentation/` knowledge lanes and leftover `.kb/config.json` into the canonical `.kb/` layout
 - Replaces the pre-canonical blanket `.kb/` gitignore stanza with derived-runtime ignores so migrated `.kb/<lane>/` files are trackable

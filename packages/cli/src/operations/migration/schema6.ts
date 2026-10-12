@@ -73,6 +73,12 @@ import {
   applySupersededClosures,
   planSupersededClosures,
 } from "./superseded-closure.js";
+import {
+  SYMBOL_LEGACY_LINK_MARK_ACTION_ID,
+  SYMBOL_LEGACY_LINK_MARK_CODE,
+  applySymbolLegacyLinks,
+  planSymbolLegacyLinks,
+} from "./symbol-legacy-links.js";
 
 /** The KB schema generation that introduced entity `origin`. */
 // implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
@@ -408,6 +414,13 @@ export function buildSchema6MigrationFragment(input: {
   const lifecycle = buildLifecycleRepairActions(input.workspaceRoot);
   actions.push(...lifecycle.actions);
   sourceRewriteActionIds.push(...lifecycle.sourceRewriteActionIds);
+  // Coarse symbol links the staged gate would block are marked at any schema
+  // version, by the gate's own rule.
+  const legacyLinks = symbolLegacyLinkAction(input.workspaceRoot);
+  if (legacyLinks !== null) {
+    actions.push(legacyLinks);
+    sourceRewriteActionIds.push(legacyLinks.id);
+  }
   return { actions, sourceRewriteActionIds, diagnostics };
 }
 
@@ -458,6 +471,36 @@ export function buildLifecycleRepairActions(workspaceRoot: string): {
     sourceRewriteActionIds.push(SOURCE_PATH_REWRITE_ACTION_ID);
   }
   return { actions, sourceRewriteActionIds };
+}
+
+/**
+ * The automatic legacy-link pass over `.kb/symbols.yaml`, bound to the
+ * manifest bytes it was planned from; null when no link needs a mark.
+ */
+// implements REQ-cli-schema-migration, REQ-symbol-behavioral-anchors
+export function symbolLegacyLinkAction(
+  workspaceRoot: string,
+): MigrationAction | null {
+  const plan = planSymbolLegacyLinks(workspaceRoot);
+  if (plan.targets.length === 0) return null;
+  return migrationAction({
+    id: SYMBOL_LEGACY_LINK_MARK_ACTION_ID,
+    code: SYMBOL_LEGACY_LINK_MARK_CODE,
+    category: "symbol",
+    safety: "automatic",
+    autoApplicable: true,
+    invocation: { kind: "cli", command_argv: ["kibi", "migrate", "--yes"] },
+    affectedEntityIds: plan.targets.map((target) => target.id),
+    affectedFiles: [plan.manifestPath],
+    postconditions: [{ rule: "symbol_granularity_violation", findings: 0 }],
+    evidence: {
+      reason:
+        "These symbols link a source file coarsely while it declares narrower behavioral symbols, so the staged check (kibi check --staged) blocks the next commit that touches them. Each gets granularity_reason: legacy-link (accepted legacy granularity); no link moves and no other field changes.",
+      count: plan.targets.length,
+      manifestHash: plan.manifestHash,
+      symbols: plan.targets,
+    },
+  });
 }
 
 /** The sync that recompiles sources rewritten by earlier actions. */
@@ -550,6 +593,19 @@ export async function applySchema6MigrationAction(
     case ENTITY_ORIGIN_BACKFILL_CODE:
       applyOriginBackfill(context.workspaceRoot, context.clock().toISOString());
       return;
+    case SYMBOL_LEGACY_LINK_MARK_CODE: {
+      const result = applySymbolLegacyLinks(context.workspaceRoot, {
+        ...(typeof action.evidence.manifestHash === "string"
+          ? { expectedHash: action.evidence.manifestHash }
+          : {}),
+        expectedIds: action.affectedEntityIds,
+      });
+      if (result.unmarked.length > 0)
+        throw new Error(
+          `Could not mark ${result.unmarked.join(", ")} as legacy-link in place; add granularity_reason: legacy-link to them by hand.`,
+        );
+      return;
+    }
     case CLOSE_SUPERSEDED_REQUIREMENTS_CODE: {
       const result = applySupersededClosures(
         context.workspaceRoot,
@@ -599,5 +655,6 @@ export const SCHEMA6_AUTOMATIC_CODES: ReadonlySet<string> = new Set([
   ENTITY_ORIGIN_BACKFILL_CODE,
   CLOSE_SUPERSEDED_REQUIREMENTS_CODE,
   SOURCE_PATH_REWRITE_CODE,
+  SYMBOL_LEGACY_LINK_MARK_CODE,
   MIGRATION_SYNC_CODE,
 ]);
