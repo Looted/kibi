@@ -150,9 +150,10 @@ jobs:
       - name: Prove every contracted test through Kibi
         if: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}
         env:
-          # Distinct proof commands run four at a time on the 4-vCPU runner.
+          # Distinct proof commands run three at a time on the 4-vCPU runner; at four,
+          # CPU contention made every step slower and the whole run longer.
           # Every declared step is recorded per contract.
-          KIBI_PROOF_STEP_CONCURRENCY: "4"
+          KIBI_PROOF_STEP_CONCURRENCY: "3"
           # A `bun test` step made only of whole test files reuses the per-file
           # results the CI unit run published for this same commit, or a pass
           # of the same files earlier in this run, instead of running again.
