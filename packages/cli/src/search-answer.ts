@@ -1,3 +1,4 @@
+import { type Firmness, effectiveFirmness } from "./decision-firmness.js";
 import type { IntentSearchMatch } from "./intent-search.js";
 import {
   escapeAtom,
@@ -36,6 +37,12 @@ export type SearchAnswerEntity = Readonly<{
   id: string;
   title: string;
   status?: string;
+  /**
+   * Requirements and ADRs: how firmly the decision was made. `firm` (a human
+   * stated it; ask before changing), `default` (supersede it with evidence),
+   * `exploratory` (a guess to revisit).
+   */
+  firmness?: Firmness;
 }>;
 
 /**
@@ -203,6 +210,7 @@ const ROW_KEYS = [
   "status",
   "fact_kind",
   "approved_by",
+  "firmness",
   "source",
   "sourceFile",
   "predicate_namespace",
@@ -253,10 +261,12 @@ function unique(ids: readonly string[]): string[] {
 
 function brief(entity: Row): SearchAnswerEntity {
   const status = text(entity.status);
+  const firmness = effectiveFirmness(entity.type, entity.firmness);
   return {
     id: text(entity.id),
     title: text(entity.title),
     ...(status ? { status } : {}),
+    ...(firmness ? { firmness } : {}),
   };
 }
 

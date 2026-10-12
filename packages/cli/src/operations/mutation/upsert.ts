@@ -2,6 +2,12 @@ import { createHash } from "node:crypto";
 import { existsSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { OperationError } from "../../cli-errors.js";
+import {
+  DEFAULT_FIRMNESS,
+  carriesFirmness,
+  firmnessRef,
+  isFirmness,
+} from "../../decision-firmness.js";
 import { readManifestWithCoordinateOverlay } from "../../extractors/manifest.js";
 import { extractManifestSymbolRecords } from "../../extractors/manifest.js";
 import { escapeAtom } from "../../prolog/codec.js";
@@ -391,14 +397,60 @@ export async function validateUpsertForCommit(
     staged,
     lookup,
   );
+  const decided = await resolveUpsertFirmness(recorded, staged, lookup);
   return {
     validated:
-      recorded === input
+      decided === input
         ? validated
-        : validateUpsertInput(recorded, context.clock()),
+        : validateUpsertInput(decided, context.clock()),
     relationships,
     semantic,
   };
+}
+
+/**
+ * The firmness a requirement or ADR write records. An update that omits
+ * `firmness` keeps the stored value, so the compiled entity matches the
+ * authored front matter. A decision left firm must name the human words it
+ * rests on, so an agent cannot promote its own choice: it is judged as it
+ * will be written, with the origin this write records and the stored
+ * `approval_ref` when the write omits one. kb_check enforces the same rule on
+ * authored sources.
+ */
+// implements REQ-kb-decision-firmness
+async function resolveUpsertFirmness(
+  input: UpsertInput,
+  staged: StagedUpsertState | undefined,
+  lookup: StoredEntityLookup,
+): Promise<UpsertInput> {
+  if (!carriesFirmness(input.type)) return input;
+  const properties = input.properties as Record<string, unknown>;
+  if (properties.firmness !== undefined && properties.firmness !== "firm")
+    return input;
+  const stored =
+    properties.firmness === undefined || properties.approval_ref === undefined
+      ? (staged?.entities.get(input.id) ?? (await lookup.entity()) ?? undefined)
+      : undefined;
+  const firmness = properties.firmness ?? stored?.firmness;
+  if (!isFirmness(firmness) || firmness === DEFAULT_FIRMNESS) return input;
+  if (
+    firmness === "firm" &&
+    firmnessRef({
+      type: input.type,
+      origin: properties.origin,
+      approval_ref: properties.approval_ref ?? stored?.approval_ref,
+    }) === undefined
+  ) {
+    throw new Error(
+      `Entity validation failed: firmness: firm needs origin.ref${input.type === "req" ? " (or approval_ref)" : ""} pointing at the human words that state the rule; use firmness: default for a delegated or agent choice`,
+    );
+  }
+  return properties.firmness === firmness
+    ? input
+    : ({
+        ...input,
+        properties: { ...input.properties, firmness },
+      } as UpsertInput);
 }
 
 // implements REQ-kibi-operation-interface-parity

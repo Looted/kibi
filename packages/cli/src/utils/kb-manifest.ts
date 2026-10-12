@@ -56,6 +56,12 @@ export interface KbManifest {
    * Only these ids may carry `review:context-missing` without a violation.
    */
   contextAcknowledged?: string[];
+  /**
+   * Supersede edges (`FROM -> TO`) the schema 9 migration acknowledged as
+   * lacking a "Why this changed" section. An entity is exempt from
+   * supersedes-reason-missing only while every edge it has is listed here.
+   */
+  supersedesReasonAcknowledged?: string[];
 }
 
 export function defaultKbManifest(): KbManifest {
@@ -114,6 +120,7 @@ function validateManifest(parsed: unknown): KbManifest | null {
     return null;
   }
   const acknowledged = parsed.contextAcknowledged;
+  const supersedesAcknowledged = parsed.supersedesReasonAcknowledged;
   return {
     manifestVersion,
     schemaVersion,
@@ -121,6 +128,13 @@ function validateManifest(parsed: unknown): KbManifest | null {
     ...(Array.isArray(acknowledged)
       ? {
           contextAcknowledged: acknowledged.filter(
+            (id): id is string => typeof id === "string",
+          ),
+        }
+      : {}),
+    ...(Array.isArray(supersedesAcknowledged)
+      ? {
+          supersedesReasonAcknowledged: supersedesAcknowledged.filter(
             (id): id is string => typeof id === "string",
           ),
         }

@@ -358,6 +358,12 @@ const entitySchema: Record<string, unknown> = {
     text_ref: { type: "string" },
     // Provenance of any authored entity: who wrote it and on what authority.
     origin: ENTITY_ORIGIN_SCHEMA,
+    firmness: {
+      type: "string",
+      enum: ["firm", "default", "exploratory"],
+      description:
+        "Requirement and ADR only. How firmly the decision was made. firm: a human stated it as a rule; it needs a ref (origin.ref, or approval_ref on a requirement) to their words, and only a human may change it. default (assumed when absent): a delegated or agent choice; a later agent may supersede it with evidence. exploratory: a flagged guess, expected to be revisited.",
+    },
     expects: {
       type: "string",
       enum: ["success", "rejection", "error"],
@@ -712,6 +718,12 @@ const entitySchema: Record<string, unknown> = {
           ],
         },
       },
+    },
+    {
+      if: {
+        properties: { type: { enum: ["req", "adr"] } },
+      },
+      else: { not: { required: ["firmness"] } },
     },
     {
       if: {
