@@ -1,4 +1,4 @@
-// implements REQ-kibi-upsert-preserves-requirement-semantics, REQ-kibi-review-observation-claim-text
+// implements REQ-kibi-upsert-preserves-requirement-semantics, REQ-kibi-review-observation-claim-text-v2
 import { describe, expect, test } from "bun:test";
 import { withStoredRequirementSemantics } from "../../src/operations/mutation/requirement-semantics.js";
 import type {
@@ -6,6 +6,7 @@ import type {
   UpsertInput,
 } from "../../src/operations/mutation/types.js";
 import { validateUpsertInput } from "../../src/operations/mutation/validation.js";
+import { semanticClaimKey } from "../../src/operations/semantic-advisor/clauses.js";
 
 const STORED = {
   id: "REQ-export-csv",
@@ -137,20 +138,19 @@ describe("review observation facts", () => {
       ).not.toThrow();
   });
 
-  test("any other fact, and a fact naming a claim key, keeps the pair", () => {
-    expect(() =>
-      validateUpsertInput(
-        observation({
-          fact_kind: "property_value",
-          subject_key: "report.export",
-          property_key: "format",
-          operator: "eq",
-          value_type: "string",
-          value_string: "csv",
-        }),
-        new Date(),
-      ),
-    ).toThrow("claim_key");
+  test("any other fact gets its key derived, and a key alone is refused", () => {
+    const grounding = validateUpsertInput(
+      observation({
+        fact_kind: "property_value",
+        subject_key: "report.export",
+        property_key: "format",
+        operator: "eq",
+        value_type: "string",
+        value_string: "csv",
+      }),
+      new Date(),
+    );
+    expect(grounding.entity.claim_key).toBe(semanticClaimKey(STORED.title));
     expect(() =>
       validateUpsertInput(
         {
