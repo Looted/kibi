@@ -16,7 +16,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { execFileSync } from "node:child_process";
 import {
   existsSync,
   mkdirSync,
@@ -718,10 +717,10 @@ export async function migrateCommand(
       console.log(
         `Moved ${storageResult.movedFiles.length} knowledge file(s) into the canonical .kb/ layout.`,
       );
-      const untracked = untrackedFiles(cwd, storageResult.movedFiles);
+      const untracked = storageResult.untrackedMovedFiles.length;
       if (untracked > 0)
         printWarning(
-          `${untracked} moved file(s) are not tracked by Git yet, and kibi sync compiles only tracked sources: until you stage them (git add .kb, plus the removals under the legacy folders) the KB compiles without them and plans report them as missing.`,
+          `${untracked} moved file(s) are not tracked by Git yet. Kibi recorded a pending-source receipt for each, so kibi sync compiles them now; stage them before you commit (git add .kb, plus the removals under the legacy folders). Each receipt retires once Git tracks its file.`,
         );
     }
     if (storageResult.retiredLegacyConfig) {
@@ -1086,26 +1085,6 @@ function approvedActionIdsOf(options: MigrateOptions): string[] {
     .map((id) => id.trim())
     .filter((id) => id.length > 0);
   return [...new Set(ids)];
-}
-
-/** How many of `files` Git does not track; 0 outside a repository. */
-// implements REQ-cli-schema-migration
-function untrackedFiles(cwd: string, files: readonly string[]): number {
-  let tracked: Set<string>;
-  try {
-    tracked = new Set(
-      execFileSync("git", ["-C", cwd, "ls-files", "-z", "--", ".kb"], {
-        encoding: "utf8",
-        stdio: ["ignore", "pipe", "ignore"],
-        timeout: 10_000,
-      })
-        .split("\0")
-        .filter((file) => file.length > 0),
-    );
-  } catch {
-    return 0;
-  }
-  return files.filter((file) => !tracked.has(file)).length;
 }
 
 /** The table rendering of an apply result; --format json prints it whole. */

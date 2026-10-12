@@ -16,6 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
   existsSync,
@@ -29,6 +30,7 @@ import {
 } from "node:fs";
 import * as path from "node:path";
 import fg from "fast-glob";
+import { writePendingSourceReceipt } from "../operations/mutation/source-authoring.js";
 import {
   type LegacyKbConfig,
   readLegacyKbConfig,
@@ -232,6 +234,11 @@ export function planLegacyStorageMigration(cwd: string): StorageMigrationPlan {
 
 export interface StorageMigrationResult {
   movedFiles: string[];
+  /**
+   * Moved files Git does not track yet. Each got a pending-source receipt, so
+   * `kibi sync` compiles them before they are staged; empty outside Git.
+   */
+  untrackedMovedFiles: string[];
   retiredLegacyConfig: boolean;
   manifestPath: string;
   schemaVersion: number;
@@ -293,10 +300,12 @@ export function applyLegacyStorageMigration(
 
   pruneEmptyLegacyDirs(cwd, plan);
   rewritePendingSourceReceiptPaths(cwd, plan.moves);
+  const untrackedMovedFiles = writeMovedSourceReceipts(cwd, plan.moves);
   updateGitIgnore(cwd);
 
   return {
     movedFiles,
+    untrackedMovedFiles,
     retiredLegacyConfig,
     manifestPath: path.relative(cwd, manifestPath).replaceAll(path.sep, "/"),
     schemaVersion: manifest.schemaVersion,
@@ -377,6 +386,61 @@ export function rewritePendingSourceReceiptPaths(
     }
   }
   return rewritten;
+}
+
+/** Workspace-relative paths Git tracks, or null outside a repository. */
+function gitTrackedFiles(cwd: string): Set<string> | null {
+  try {
+    return new Set(
+      execFileSync("git", ["-C", cwd, "ls-files", "--cached", "-z"], {
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"],
+        maxBuffer: 64 * 1024 * 1024,
+        timeout: 30_000,
+      })
+        .split("\0")
+        .filter((file) => file.length > 0)
+        .map((file) => file.replaceAll("\\", "/")),
+    );
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Bind every moved file Git does not track to its bytes with a
+ * pending-source receipt, the record kb_upsert writes for the files it
+ * creates. `kibi sync` compiles tracked sources plus receipted ones, so the
+ * moved knowledge compiles at once; Kibi never stages anything itself, and
+ * each receipt retires when Git starts tracking its file. Later migration
+ * rewrites rebind the receipt they find. Covers files a previous,
+ * interrupted run moved too. Returns the untracked destinations.
+ */
+// implements REQ-cli-schema-migration, REQ-core-atomic-upsert-persistence
+export function writeMovedSourceReceipts(
+  cwd: string,
+  moves: readonly StorageMigrationMove[],
+): string[] {
+  const tracked = gitTrackedFiles(cwd);
+  if (tracked === null) return [];
+  const untracked: string[] = [];
+  for (const move of moves) {
+    if (tracked.has(move.to)) continue;
+    const absolute = path.resolve(cwd, move.to);
+    let bytes: Buffer;
+    try {
+      bytes = readFileSync(absolute);
+    } catch {
+      continue;
+    }
+    writePendingSourceReceipt(
+      cwd,
+      move.to,
+      createHash("sha256").update(bytes).digest("hex"),
+    );
+    untracked.push(move.to);
+  }
+  return untracked;
 }
 
 // implements REQ-cli-schema-migration

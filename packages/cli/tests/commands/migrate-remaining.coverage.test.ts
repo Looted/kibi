@@ -8,6 +8,7 @@ import {
   migrateCommand,
   warnMigrationRequiredWithoutYes,
 } from "../../src/commands/migrate.js";
+import { discoverSourceFiles } from "../../src/commands/sync/discovery.js";
 import {
   buildMigrationPlan,
   migrationAction,
@@ -17,6 +18,7 @@ import * as branchResolver from "../../src/utils/branch-resolver.js";
 import {
   captureIo,
   createGitWorkspace,
+  git,
   isolateKibiEnv,
   removeTempDir,
   restoreWorkspaceCwd,
@@ -237,8 +239,20 @@ describe("migrateCommand remaining runtime branches", () => {
     expect(
       readFileSync(path.join(cwd, ".kb", "symbols.yaml"), "utf8"),
     ).toContain("SYM-auth");
-    // The moved files are untracked, and sync compiles tracked sources only.
+    // The moved files are untracked; pending-source receipts let sync compile
+    // them before they are staged, and the schema steps that rewrote them
+    // afterwards (context tags, legacy-link) rebound those receipts.
     expect(io.logText()).toContain("not tracked by Git yet");
+    expect(io.logText()).toContain("pending-source receipt");
+    const discovered = await discoverSourceFiles(cwd, { trackedOnly: true });
+    expect(
+      [...discovered.markdownFiles, ...discovered.manifestFiles].map((file) =>
+        path.relative(cwd, file).replaceAll(path.sep, "/"),
+      ),
+    ).toEqual(
+      expect.arrayContaining([".kb/requirements/REQ-1.md", ".kb/symbols.yaml"]),
+    );
+    expect(git(cwd, "ls-files -- .kb").trim()).toBe("");
   });
 
   test("treats a missing schemaVersion as missing and upgrades it", async () => {

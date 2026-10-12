@@ -396,6 +396,66 @@ function predicateSchemaAlignmentAction(
 /** Migration code for mechanical predicate namespace/alias repairs. */
 export const PREDICATE_SCHEMA_ALIGNMENT_CODE = "predicate_schema_alignment";
 
+/** Migration code of the grouped untracked-source parity findings. */
+export const UNTRACKED_KNOWLEDGE_SOURCES_CODE = "untracked_knowledge_sources";
+
+/**
+ * Every source-relationship-parity finding explained by untracked files
+ * (evidence `untrackedSources`) has one cause and one fix: the files Git
+ * does not track and no pending-source receipt covers. After a storage move
+ * that can be thousands of relationships, so they become one review action
+ * naming the files instead of one per relationship.
+ */
+// implements REQ-agent-guided-migration-orchestration, REQ-kibi-source-relationship-parity
+function untrackedSourceActionFromViolations(
+  violations: readonly Readonly<Record<string, unknown>>[],
+): { action: MigrationAction; consumed: ReadonlySet<number> } | null {
+  const consumed = new Set<number>();
+  const files = new Set<string>();
+  const entityIds = new Set<string>();
+  const relationships: unknown[] = [];
+  for (const [index, violation] of violations.entries()) {
+    if (violation.rule !== "source-relationship-parity") continue;
+    const evidence = isRecord(violation.evidence) ? violation.evidence : {};
+    const sources = Array.isArray(evidence.untrackedSources)
+      ? evidence.untrackedSources.filter(isRecord)
+      : [];
+    if (sources.length === 0) continue;
+    consumed.add(index);
+    for (const source of sources) {
+      if (typeof source.file === "string") files.add(source.file);
+      if (typeof source.entityId === "string") entityIds.add(source.entityId);
+    }
+    if (evidence.relationship !== undefined)
+      relationships.push(evidence.relationship);
+  }
+  if (consumed.size === 0) return null;
+  const listed = [...files].sort();
+  return {
+    consumed,
+    action: migrationAction({
+      id: "untracked-knowledge-sources",
+      code: UNTRACKED_KNOWLEDGE_SOURCES_CODE,
+      category: "relationship",
+      safety: "review",
+      invocation: {
+        kind: "review",
+        instruction: `${consumed.size} authored relationship(s) are missing from the compiled KB because ${listed.length} file(s) declaring their endpoints are not tracked by Git and no pending-source receipt covers them: ${listed.join(", ")}. Stage them (git add; staging is enough, Kibi never stages files itself) or rewrite the entities with kb_upsert, then run kibi sync and rerun kibi migrate.`,
+      },
+      affectedEntityIds: [...entityIds],
+      affectedFiles: listed,
+      postconditions: [{ rule: "source-relationship-parity", findings: 0 }],
+      evidence: {
+        relationshipCount: consumed.size,
+        files: listed,
+        // A sample; the count above is the full number.
+        relationships: relationships.slice(0, 20),
+      },
+      dispositionRequired: true,
+    }),
+  };
+}
+
 // implements REQ-agent-guided-migration-orchestration, REQ-kibi-predicate-vocabulary-migration, REQ-cli-schema-migration
 export function buildActionsFromCheck(input: {
   violations?: readonly Readonly<Record<string, unknown>>[];
@@ -404,8 +464,11 @@ export function buildActionsFromCheck(input: {
   const actions: MigrationAction[] = [];
   const lifecycle = lifecycleActionsFromViolations(input.violations ?? []);
   actions.push(...lifecycle.actions.map(migrationAction));
+  const untracked = untrackedSourceActionFromViolations(input.violations ?? []);
+  if (untracked !== null) actions.push(untracked.action);
   for (const [index, violation] of (input.violations ?? []).entries()) {
     if (lifecycle.consumed.has(index)) continue;
+    if (untracked?.consumed.has(index)) continue;
     const rule = typeof violation.rule === "string" ? violation.rule : "check";
     const entityId =
       typeof violation.entityId === "string" ? violation.entityId : "";
