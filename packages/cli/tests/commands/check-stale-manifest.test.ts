@@ -85,12 +85,27 @@ status: open
 
 # Greeting behavior
 `,
+    // The requirement has no scenario, so a test that validates it directly
+    // is qualifying symbol coverage for full and staged checks alike.
+    ".kb/tests/TEST-GREET-001.md": `---
+id: TEST-GREET-001
+title: Greeting behavior test
+status: active
+links:
+  - type: validates
+    target: REQ-GREET-001
+---
+
+# Greeting behavior test
+`,
     ".kb/symbols.yaml": `symbols:
   - id: SYM-GREET-001
     title: greet
     sourceFile: src/greet.ts
     links:
       - REQ-GREET-001
+      - type: covered_by
+        target: TEST-GREET-001
     status: active
 `,
     "src/greet.ts": `export function greet() {

@@ -110,6 +110,7 @@ function isChangedBehavioralReviewCandidate(symbol: ExtractedSymbol): boolean {
   return symbol.hunkRanges.length > 0;
 }
 
+// implements REQ-cli-staged-impact-enforcement, REQ-cli-check
 export function createSymbolGranularityDiagnostics(
   options: SymbolGranularityDiagnosticsOptions,
 ): KibiImpactDiagnostic[] {
@@ -146,15 +147,33 @@ export function createSymbolGranularityDiagnostics(
           )}.`
         : "";
 
+    // A title the extractor does not produce (a private class member, a
+    // renamed or removed declaration) can never become granular by refresh:
+    // say so instead of only calling the link coarse.
+    const titleExtracted = sourceSymbols.some(
+      (symbol) => symbol.name === result.entity.title,
+    );
     diagnostics.push({
       id: "symbol_granularity_violation",
       severity: "error",
       blocking: true,
       category: "symbol",
+      entityId: result.entity.id,
+      ...(result.entity.source ? { source: result.entity.source } : {}),
       files: [result.entity.source, result.sourceFile],
       docs: ["docs/symbol-traceability-taxonomy.md"],
-      message: `Symbol ${result.entity.id} links ${result.sourceFile} coarsely while granular symbols are available (behavioral only): ${behavioralNames.join(", ")}`,
-      suggestion: `Move ownership/coverage/test relationships to the narrow behavioral symbol, add a manifest behavioral anchor, or add granularity_reason with ${ALLOWED_GRANULARITY_REASONS_PROSE} when the coarse symbol is intentional.${ignoredSymbolsSuggestion}`,
+      message: titleExtracted
+        ? `Symbol ${result.entity.id} links ${result.sourceFile} coarsely while granular symbols are available (behavioral only): ${behavioralNames.join(", ")}`
+        : `Symbol ${result.entity.id} names '${result.entity.title}', which the source extractor does not produce for ${result.sourceFile} (private class members and removed or renamed declarations are not tracked), so it links ${result.sourceFile} coarsely while granular symbols are available (behavioral only): ${behavioralNames.join(", ")}`,
+      suggestion: titleExtracted
+        ? `Move ownership/coverage/test relationships to the narrow behavioral symbol, add a manifest behavioral anchor, or add granularity_reason with ${ALLOWED_GRANULARITY_REASONS_PROSE} when the coarse symbol is intentional.${ignoredSymbolsSuggestion}`
+        : `Re-point this symbol's relationships to the public declaration that owns the behavior (one of: ${behavioralNames.join(", ")}) or remove the symbol; add granularity_reason with ${ALLOWED_GRANULARITY_REASONS_PROSE} only when coarse ownership is intentional.${ignoredSymbolsSuggestion}`,
+      evidence: {
+        sourceFile: result.sourceFile,
+        title: result.entity.title,
+        titleExtracted,
+        granularSymbols: behavioralNames,
+      },
     });
   }
 

@@ -89,6 +89,34 @@ describe("impact diagnostics", () => {
     expect(hasBlockingImpactDiagnostics(diagnostics)).toBe(true);
   });
 
+  it("names a title the extractor does not produce and points at the public owner", () => {
+    const file = "src/app/pages/upload/upload-page.component.ts";
+    const sourceSymbols = [
+      makeSymbol({ name: "UploadPageComponent", kind: "class" }),
+      makeSymbol(),
+    ];
+    const diagnostics = createSymbolGranularityDiagnostics({
+      // A private member: the extractor never emits it.
+      manifestResults: [makeManifestResult("UploadPageComponent.resetState")],
+      symbolsByFile: new Map(),
+      sourceSymbolsByFile: new Map([[file, sourceSymbols]]),
+    });
+
+    expect(diagnostics).toHaveLength(1);
+    expect(diagnostics[0]).toMatchObject({
+      id: "symbol_granularity_violation",
+      blocking: true,
+      entityId: "SYM-UPLOADPAGECOMPONENT-RESETSTATE",
+      evidence: { titleExtracted: false, sourceFile: file },
+    });
+    expect(diagnostics[0]?.message).toContain(
+      "names 'UploadPageComponent.resetState', which the source extractor does not produce",
+    );
+    expect(diagnostics[0]?.suggestion).toContain(
+      "Re-point this symbol's relationships to the public declaration that owns the behavior",
+    );
+  });
+
   it("keeps intentional module-level ownership from becoming a hard granularity blocker", () => {
     const symbolsByFile = new Map<string, ExtractedSymbol[]>([
       ["src/app/pages/upload/upload-page.component.ts", [makeSymbol()]],

@@ -61,6 +61,7 @@
     adr_chain/2,
     deprecated_no_successor/1,
     symbol_no_req_coverage/2,
+    changed_symbol_no_req_coverage/2,
     predicate_schema/6,
     predicate_schema_keys/4,
     predicate_fact/5,
@@ -3326,6 +3327,23 @@ changed_symbol_missing_req(Symbol, MinLinks, Count) :-
     sort(AllReqs, UniqueReqs),
     length(UniqueReqs, Count),
     Count < MinLinks.
+
+%% changed_symbol_no_req_coverage(+ExtraSymbols, -Symbol)
+% The full-check symbol-coverage rule restricted to a staged change set: the
+% overlay changed_symbol/1 facts plus ExtraSymbols (symbols whose staged
+% manifest entry changed). It reuses symbol_no_req_coverage/2, so the staged
+% gate and `kibi check` judge coverage identically: a direct req->test edge
+% counts only while the requirement has no scenario.
+% implements REQ-014
+changed_symbol_no_req_coverage(ExtraSymbols, Symbol) :-
+    findall(Candidate,
+            (   changed_symbol(Candidate)
+            ;   member(Candidate, ExtraSymbols)
+            ),
+            Candidates0),
+    sort(Candidates0, Candidates),
+    member(Symbol, Candidates),
+    symbol_no_req_coverage(Symbol, _).
 
 %% changed_symbol_violation(+Symbol, +MinLinks, -Count, -File, -Line, -Col, -Name)
 % Full violation record for a changed symbol missing requirements.

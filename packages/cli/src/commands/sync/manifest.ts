@@ -100,6 +100,8 @@ const GENERATED_COORD_FIELDS = [
 const GENERATED_MANIFEST_FIELDS = new Set<string>([
   ...GENERATED_COORD_FIELDS,
   "coordinatesGeneratedAt",
+  // Transient refresh outcome from the coordinate enricher; never authored.
+  "coordinateRefreshFailure",
 ]);
 
 /**
@@ -225,7 +227,14 @@ function manifestEntryIdentity(entry: ManifestSymbolEntry): {
  * granularity_reason (so the whole-file fallback is gated off) or the
  * fallback itself produced no span.
  */
+// implements REQ-generated-coordinate-persistence
 function coarseAnchorFailureReason(entry: ManifestSymbolEntry): string {
+  // The enricher names the cause when the title is a declaration the symbol
+  // extractor never produces (a private class member): no refresh can bind
+  // it, so the remedy is to re-point or remove the symbol.
+  if (typeof entry.coordinateRefreshFailure === "string") {
+    return entry.coordinateRefreshFailure;
+  }
   const reason = entry.granularity_reason;
   if (!isCoarseGranularityReason(reason)) {
     return `extractor produced no coordinates; add symbol_role and granularity_reason ${COARSE_GRANULARITY_REASONS_PARENTHESIZED} to enable the whole-file coarse fallback`;

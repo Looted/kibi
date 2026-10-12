@@ -381,6 +381,29 @@ function writeCoverageDepthFixture(
  * These fixtures exercise other rules with bare entities. Tag and record each one as
  * acknowledged legacy so entity-context-missing does not mask what they test.
  */
+// A test that validates the requirement directly. The requirement has no
+// scenario, so this is qualifying symbol coverage for full and staged checks.
+function writeCoveringTest(
+  root: string,
+  testId: string,
+  requirementId: string,
+): void {
+  const testDir = path.join(root, ".kb", "tests");
+  mkdirSync(testDir, { recursive: true });
+  writeFileSync(
+    path.join(testDir, `${testId}.md`),
+    `---
+id: ${testId}
+title: ${testId} coverage
+status: active
+links:
+  - type: validates
+    target: ${requirementId}
+---
+`,
+  );
+}
+
 function acknowledgeLegacyContext(root: string): void {
   const ids: string[] = [];
   for (const lane of ["requirements", "scenarios", "tests"]) {
@@ -1486,6 +1509,104 @@ links:
   );
 
   test(
+    "symbol-granularity and symbol-title-unextracted judge every symbol against its source file",
+    async () => {
+      mkdirSync(path.join(tmpDir, "src"), { recursive: true });
+      mkdirSync(path.join(tmpDir, ".kb/requirements"), { recursive: true });
+      writeFileSync(
+        path.join(tmpDir, ".kb/requirements/REQ-greet.md"),
+        "---\nid: REQ-greet\ntitle: Greeter greets\nstatus: open\n---\n\nThe greeter says hello.\n",
+      );
+      const greeter = `export class Greeter {
+  greet() {
+    return this.helper();
+  }
+  private helper() {
+    return "hello";
+  }
+}
+`;
+      writeFileSync(path.join(tmpDir, "src/greeter.ts"), greeter);
+      writeFileSync(path.join(tmpDir, "src/module.ts"), greeter);
+      const symbol = (id: string, title: string, file: string, extra = "") =>
+        `  - id: ${id}\n    title: ${title}\n    sourceFile: ${file}\n    status: active\n${extra}    links:\n      - REQ-greet\n`;
+      writeFileSync(
+        path.join(tmpDir, ".kb/symbols.yaml"),
+        `symbols:\n${[
+          // Granular and extracted: clean.
+          symbol("SYM-greeter-greet", "Greeter.greet", "src/greeter.ts"),
+          // The class links the file coarsely while Greeter.greet exists.
+          symbol("SYM-greeter", "Greeter", "src/greeter.ts"),
+          // A private member is never extracted: both rules report it.
+          symbol("SYM-greeter-helper", "Greeter.helper", "src/greeter.ts"),
+          // A documented coarse record is exempt from both rules.
+          symbol(
+            "SYM-module",
+            "Greeter",
+            "src/module.ts",
+            "    granularity_reason: module-level-behavior\n",
+          ),
+        ].join("")}`,
+      );
+
+      const { status, stdout } = runKibi(
+        kibiBin,
+        [
+          "check",
+          "--rules",
+          "symbol-granularity,symbol-title-unextracted",
+          "--format",
+          "json",
+        ],
+        tmpDir,
+      );
+      expect(status).toBe(1);
+      const { violations } = (
+        JSON.parse(stdout) as {
+          structuredContent: {
+            violations: Array<{
+              rule: string;
+              entityId: string;
+              description: string;
+              suggestion?: string;
+              evidence?: Record<string, unknown>;
+            }>;
+          };
+        }
+      ).structuredContent;
+      expect(
+        violations
+          .map((violation) => `${violation.rule} ${violation.entityId}`)
+          .sort(),
+      ).toEqual([
+        "symbol-granularity SYM-greeter",
+        "symbol-granularity SYM-greeter-helper",
+        "symbol-title-unextracted SYM-greeter-helper",
+      ]);
+      const coarse = violations.find(
+        (violation) => violation.entityId === "SYM-greeter",
+      );
+      expect(coarse?.description).toContain(
+        "links src/greeter.ts coarsely while granular symbols are available (behavioral only): Greeter.greet",
+      );
+      expect(coarse?.evidence).toMatchObject({
+        diagnosticId: "symbol_granularity_violation",
+        titleExtracted: true,
+      });
+      const unextracted = violations.find(
+        (violation) => violation.rule === "symbol-title-unextracted",
+      );
+      expect(unextracted?.description).toContain(
+        "names 'Greeter.helper', which the source extractor does not produce for src/greeter.ts",
+      );
+      expect(unextracted?.suggestion).toContain(
+        "Re-point the symbol to the public declaration that owns the behavior",
+      );
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
     "source-path-dangling blocks a dead source field and plans its automatic removal",
     async () => {
       const factDir = path.join(tmpDir, ".kb/facts");
@@ -2103,6 +2224,7 @@ source: .kb/requirements/REQ-STAGED-001.md
 ---
 `,
       );
+      writeCoveringTest(tmpDir, "TEST-STAGED-001", "REQ-STAGED-001");
 
       writeFileSync(
         path.join(docDir, "symbols.yaml"),
@@ -2112,6 +2234,8 @@ source: .kb/requirements/REQ-STAGED-001.md
     sourceFile: src/app.ts
     links:
       - REQ-STAGED-001
+      - type: covered_by
+        target: TEST-STAGED-001
     status: active
 `,
       );
@@ -2331,6 +2455,7 @@ source: .kb/requirements/REQ-CUSTOM-001.md
 ---
 `,
       );
+      writeCoveringTest(tmpDir, "TEST-CUSTOM-001", "REQ-CUSTOM-001");
 
       writeFileSync(
         path.join(customDir, "my-symbols.yaml"),
@@ -2350,6 +2475,8 @@ source: .kb/requirements/REQ-CUSTOM-001.md
     sourceFile: src/app.ts
     links:
       - REQ-CUSTOM-001
+      - type: covered_by
+        target: TEST-CUSTOM-001
     status: active
 `,
       );
@@ -2370,7 +2497,7 @@ source: .kb/requirements/REQ-CUSTOM-001.md
 `,
       );
       execSync(
-        "git add src/app.ts .kb/symbols.yaml .kb/requirements/REQ-CUSTOM-001.md",
+        "git add src/app.ts .kb/symbols.yaml .kb/requirements/REQ-CUSTOM-001.md .kb/tests/TEST-CUSTOM-001.md",
         {
           cwd: tmpDir,
           stdio: "pipe",
@@ -3246,6 +3373,7 @@ source: .kb/requirements/REQ-E2E-DIRECT.md
 ---
 `,
       );
+      writeCoveringTest(tmpDir, "TEST-E2E-DIRECT", "REQ-E2E-DIRECT");
 
       writeFileSync(
         path.join(docDir, "symbols.yaml"),
@@ -3255,6 +3383,8 @@ source: .kb/requirements/REQ-E2E-DIRECT.md
     sourceFile: src/direct.ts
     links:
       - REQ-E2E-DIRECT
+      - type: covered_by
+        target: TEST-E2E-DIRECT
     status: active
 `,
       );
@@ -3318,6 +3448,7 @@ source: .kb/requirements/REQ-E2E-INLINE.md
 ---
 `,
       );
+      writeCoveringTest(tmpDir, "TEST-E2E-INLINE", "REQ-E2E-INLINE");
 
       writeFileSync(
         path.join(srcDir, "inline.ts"),
@@ -3338,6 +3469,8 @@ export function inlineFunc() {}
     sourceEndColumn: 31
     links:
       - REQ-E2E-INLINE
+      - type: covered_by
+        target: TEST-E2E-INLINE
     status: active
 `,
       );

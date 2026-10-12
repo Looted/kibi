@@ -9,7 +9,6 @@ import {
   checkStrictFactShape,
   checkStrictReadiness,
   checkStrictReqFactPairing,
-  checkSymbolCoverage,
 } from "../../src/commands/check.js";
 import type { PrologProcess } from "../../src/prolog.js";
 
@@ -231,18 +230,5 @@ describe("exported check helpers", () => {
     ]);
     expect(pairing).toEqual([]);
     expect(readiness).toEqual([]);
-  });
-
-  test("checkSymbolCoverage reports uncovered quoted symbol ids", async () => {
-    const violations = await checkSymbolCoverage(
-      prolog((goal) => {
-        if (goal.includes("symbol_no_req_coverage")) {
-          return { success: true, bindings: { Symbols: "['SYM-A','SYM-B']" } };
-        }
-        return { success: false, bindings: {} };
-      }),
-    );
-    expect(violations.map((item) => item.entityId)).toEqual(["SYM-A", "SYM-B"]);
-    expect(violations[0]?.rule).toBe("symbol-coverage");
   });
 });

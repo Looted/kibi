@@ -29,6 +29,7 @@ import type {
 import { tsMorph } from "./ts-morph-runtime.js";
 import {
   SUPPORTED_SOURCE_EXTENSIONS,
+  isPrivateClassMember,
   onlyCandidate,
 } from "./ts-morph-shared.js";
 
@@ -52,6 +53,13 @@ export interface ManifestSymbolEntry {
   sourceEndColumn?: number;
   coordinatesGeneratedAt?: string;
   links?: string[];
+  /**
+   * Transient refresh outcome, never authored: why no coordinates were
+   * published for this entry. Set when the title names a declaration the
+   * symbol extractor does not produce (a private class member), so a refresh
+   * reports it instead of binding a span no other Kibi path recognizes.
+   */
+  coordinateRefreshFailure?: string;
   [key: string]: unknown;
 }
 
@@ -115,7 +123,16 @@ export async function enrichSymbolCoordinatesWithTsMorph(
 
       const match = findNamedDeclaration(sourceFile, entry.title);
       if (!match) {
-        enriched.push(entry);
+        enriched.push(
+          namesPrivateClassMember(sourceFile, entry.title)
+            ? {
+                ...entry,
+                coordinateRefreshFailure: privateMemberRefreshFailure(
+                  entry.title,
+                ),
+              }
+            : entry,
+        );
         continue;
       }
 
@@ -337,6 +354,7 @@ function findNamedDeclaration(
 
     for (const cls of sourceFile.getClasses()) {
       for (const method of cls.getMethods()) {
+        if (isPrivateClassMember(method)) continue;
         if (method.getName() !== title) continue;
         const nameNode = method.getNameNode();
         if (!nameNode) continue;
@@ -352,6 +370,7 @@ function findNamedDeclaration(
         );
         if (!classExpression) continue;
         for (const method of classExpression.getMethods()) {
+          if (isPrivateClassMember(method)) continue;
           if (method.getName() !== title) continue;
           const nameNode = method.getNameNode();
           if (!nameNode) continue;
@@ -375,6 +394,7 @@ function findNamedDeclaration(
 
     for (const cls of sourceFile.getClasses()) {
       for (const property of cls.getProperties()) {
+        if (isPrivateClassMember(property)) continue;
         if (property.getName() !== title) continue;
         const nameNode = property.getNameNode();
         if (!nameNode) continue;
@@ -384,6 +404,7 @@ function findNamedDeclaration(
         ...cls.getGetAccessors(),
         ...cls.getSetAccessors(),
       ]) {
+        if (isPrivateClassMember(accessor)) continue;
         if (accessor.getName() !== title) continue;
         const nameNode = accessor.getNameNode();
         if (!nameNode) continue;
@@ -399,6 +420,7 @@ function findNamedDeclaration(
         );
         if (!classExpression) continue;
         for (const property of classExpression.getProperties()) {
+          if (isPrivateClassMember(property)) continue;
           if (property.getName() !== title) continue;
           const nameNode = property.getNameNode();
           if (!nameNode) continue;
@@ -411,6 +433,7 @@ function findNamedDeclaration(
           ...classExpression.getGetAccessors(),
           ...classExpression.getSetAccessors(),
         ]) {
+          if (isPrivateClassMember(accessor)) continue;
           if (accessor.getName() !== title) continue;
           const nameNode = accessor.getNameNode();
           if (!nameNode) continue;
@@ -435,17 +458,24 @@ function findNamedDeclaration(
   return candidates[0] ?? null;
 }
 
+/**
+ * Public members only: the symbol extractor skips private class members, so
+ * a coordinate refresh must not bind a span to one either.
+ */
+// implements REQ-capability-plugin-builtin-parity-v1
 function findClassMember(
   declaration: ClassDeclaration | ClassExpression,
   name: string,
 ): { node: NamedDeclarationCandidate; getNameNode: () => Node } | null {
+  const visible = (member: Parameters<typeof isPrivateClassMember>[0]) =>
+    !isPrivateClassMember(member);
   for (const method of declaration.getMethods()) {
-    if (method.getName() !== name) continue;
+    if (method.getName() !== name || !visible(method)) continue;
     const nameNode = method.getNameNode();
     if (nameNode) return { node: method, getNameNode: () => nameNode };
   }
   for (const property of declaration.getProperties()) {
-    if (property.getName() !== name) continue;
+    if (property.getName() !== name || !visible(property)) continue;
     const nameNode = property.getNameNode();
     if (nameNode) return { node: property, getNameNode: () => nameNode };
   }
@@ -453,11 +483,56 @@ function findClassMember(
     ...declaration.getGetAccessors(),
     ...declaration.getSetAccessors(),
   ]) {
-    if (accessor.getName() !== name) continue;
+    if (accessor.getName() !== name || !visible(accessor)) continue;
     const nameNode = accessor.getNameNode();
     if (nameNode) return { node: accessor, getNameNode: () => nameNode };
   }
   return null;
+}
+
+/**
+ * True when the title names a private member of a class in this file (as
+ * `Class.member` or as a bare member name), which the extractor never emits.
+ */
+// implements REQ-capability-plugin-builtin-parity-v1
+function namesPrivateClassMember(
+  sourceFile: SourceFile,
+  title: string,
+): boolean {
+  const qualified = parseQualifiedMethodTitle(title);
+  const classes: Array<ClassDeclaration | ClassExpression> = [
+    ...sourceFile.getClasses(),
+  ];
+  for (const statement of sourceFile.getVariableStatements()) {
+    for (const declaration of statement.getDeclarations()) {
+      const classExpression = declaration.getInitializerIfKind(
+        tsMorph().SyntaxKind.ClassExpression,
+      );
+      if (classExpression) classes.push(classExpression);
+    }
+  }
+  return classes.some((declaration) => {
+    const className =
+      declaration.getName() ??
+      declaration
+        .getParentIfKind(tsMorph().SyntaxKind.VariableDeclaration)
+        ?.getName();
+    if (qualified && qualified.className !== className) return false;
+    const memberName = qualified ? qualified.methodName : title;
+    return [
+      ...declaration.getMethods(),
+      ...declaration.getProperties(),
+      ...declaration.getGetAccessors(),
+      ...declaration.getSetAccessors(),
+    ].some(
+      (member) =>
+        member.getName() === memberName && isPrivateClassMember(member),
+    );
+  });
+}
+
+function privateMemberRefreshFailure(title: string): string {
+  return `'${title}' is a private class member; the symbol extractor tracks only public declarations, so no coordinates are published. Re-point the symbol to the public member or class that owns the behavior, or remove it`;
 }
 
 function parseQualifiedMethodTitle(

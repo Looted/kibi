@@ -7,6 +7,7 @@ import {
 import { FunctionDeclaration, Project } from "ts-morph";
 import {
   collectGranularityCandidates,
+  createBuiltinTsMorphSourceAnalysisProvider,
   createBuiltinTsMorphSymbolExtractor,
   createBuiltinTsMorphSymbolExtractorV2,
   enrichSymbolCoordinatesWithTsMorph,
@@ -236,6 +237,84 @@ describe("kibi-plugin-builtin", () => {
       );
       expect(enriched[0]?.sourceLine).toBe(1);
       expect(enriched[0]?.coordinatesGeneratedAt).toBeTruthy();
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  // executable_for TEST-capability-plugin-builtin-parity-v1
+  test("coordinate enrichment refuses private class members the extractor never produces", async () => {
+    const { mkdtempSync, mkdirSync, writeFileSync, rmSync } = await import(
+      "node:fs"
+    );
+    const { tmpdir } = await import("node:os");
+    const { join } = await import("node:path");
+    const root = mkdtempSync(join(tmpdir(), "kibi-builtin-enrich-private-"));
+    try {
+      mkdirSync(join(root, "src"), { recursive: true });
+      const source = [
+        "export class Greeter {",
+        "  #secret = 1;",
+        "  greet() {",
+        "    return this.helper();",
+        "  }",
+        "  private helper() {",
+        '    return "hello";',
+        "  }",
+        "}",
+        "",
+      ].join("\n");
+      writeFileSync(join(root, "src", "greeter.ts"), source);
+      const extracted = createBuiltinTsMorphSourceAnalysisProvider()
+        .analyzeText("src/greeter.ts", source)
+        .symbols.map((symbol) => symbol.name);
+      expect(extracted).toContain("Greeter.greet");
+      expect(extracted).not.toContain("Greeter.helper");
+
+      const enriched = await enrichSymbolCoordinatesWithTsMorph(
+        [
+          {
+            id: "SYM-greet",
+            title: "Greeter.greet",
+            sourceFile: "src/greeter.ts",
+          },
+          {
+            id: "SYM-helper",
+            title: "Greeter.helper",
+            sourceFile: "src/greeter.ts",
+          },
+          {
+            id: "SYM-helper-bare",
+            title: "helper",
+            sourceFile: "src/greeter.ts",
+          },
+          {
+            id: "SYM-secret",
+            title: "Greeter.#secret",
+            sourceFile: "src/greeter.ts",
+          },
+          {
+            id: "SYM-gone",
+            title: "Greeter.gone",
+            sourceFile: "src/greeter.ts",
+          },
+        ],
+        root,
+      );
+      expect(enriched[0]).toMatchObject({ sourceLine: 3 });
+      expect(enriched[0]?.coordinateRefreshFailure).toBeUndefined();
+      for (const entry of enriched.slice(1, 4)) {
+        expect(entry.sourceLine).toBeUndefined();
+        expect(entry.coordinateRefreshFailure).toContain(
+          "is a private class member; the symbol extractor tracks only public declarations",
+        );
+      }
+      // A declaration that does not exist at all is a plain miss.
+      expect(enriched[4]).toEqual({
+        id: "SYM-gone",
+        title: "Greeter.gone",
+        sourceFile: "src/greeter.ts",
+      });
     } finally {
       rmSync(root, { recursive: true, force: true });
     }
