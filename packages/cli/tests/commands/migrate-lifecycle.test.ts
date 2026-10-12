@@ -249,7 +249,7 @@ describe("kibi migrate lifecycle repairs", () => {
         root,
       );
       expect(applied.status, `${applied.stdout}\n${applied.stderr}`).toBe(0);
-      expect(applied.stdout).toContain('"outcome": "applied"');
+      expect(applied.stdout).toContain("Outcome: applied");
 
       expect(read(root, OLD)).toBe(
         oldBefore.replace("status: open\n", "status: closed\n"),

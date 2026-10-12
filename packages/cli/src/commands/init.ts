@@ -22,6 +22,7 @@ import { fileURLToPath } from "node:url";
 import { classifyActivation } from "../operations/bootstrap/activation.js";
 import { nodeFilesystem } from "../public/operations/node-ports.js";
 import { resolveBranchAttachment } from "../utils/branch-resolver.js";
+import { readLegacyKbConfig } from "../utils/config.js";
 import {
   type GitRepositoryContext,
   resolveGitRepository,
@@ -226,15 +227,25 @@ export async function initCommand(
     }
     // A directory left by a tool or interrupted setup is not a complete KB.
     // Reconcile missing infrastructure on every invocation, preserving sources.
+    // A legacy .kb/config.json belongs to 'kibi migrate': a fresh manifest
+    // would claim the latest schema (skipping the legacy steps) and a fresh
+    // symbols manifest would block the move of the real one.
+    const legacyConfig = readLegacyKbConfig(projectRoot).kind !== "none";
     createKbDirectoryStructure(kbDir, currentBranch);
-    if (!existsSync(path.join(kbDir, "manifest.json"))) {
+    if (!legacyConfig && !existsSync(path.join(kbDir, "manifest.json"))) {
       createManifestFile(kbDir);
     }
     updateGitIgnore(projectRoot);
     const schemaSourceDir = path.resolve(__dirname, "..", "..", "schema");
     await copySchemaFiles(kbDir, schemaSourceDir);
 
-    ensureSymbolsManifestFile(projectRoot);
+    if (legacyConfig) {
+      console.log(
+        "! Legacy .kb/config.json found; left .kb/manifest.json and .kb/symbols.yaml to 'kibi migrate --yes', which moves the existing knowledge and runs every schema step.",
+      );
+    } else {
+      ensureSymbolsManifestFile(projectRoot);
+    }
 
     if (options.hooks) {
       if (!repoContext) {
@@ -270,7 +281,11 @@ export async function initCommand(
     if (kbExists) {
       console.log("  Existing Kibi source knowledge was preserved.");
     }
-    console.log((await initNextAction(projectRoot)).message);
+    console.log(
+      legacyConfig
+        ? "  Next: run 'kibi migrate --yes' to move the legacy knowledge into .kb/."
+        : (await initNextAction(projectRoot)).message,
+    );
     console.log(
       "  Optional diagnostic: run 'kibi doctor' if setup appears degraded.",
     );

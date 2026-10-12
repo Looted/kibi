@@ -199,6 +199,9 @@ export function planLegacyStorageMigration(cwd: string): StorageMigrationPlan {
   for (const move of moves) {
     const destinationAbsolute = path.resolve(cwd, move.to);
     if (!existsSync(destinationAbsolute)) continue;
+    // 'kibi init' seeds an empty symbols manifest; the legacy one replaces it.
+    if (move.lane === "symbols" && isEmptySymbolsStub(destinationAbsolute))
+      continue;
     blockers.push(
       `Destination ${move.to} already exists; resolve the conflict manually before migrating ${move.from}.`,
     );
@@ -269,10 +272,13 @@ export function applyLegacyStorageMigration(
     plan.semanticAdvisorBackfill ??
     existing?.semanticAdvisorBackfill ??
     "pending";
+  // Record the generation the knowledge was written for, not the latest
+  // one: 'kibi migrate' raises it after the schema steps, so a run
+  // interrupted between the move and those steps still replays them.
   const manifest = {
     ...(existing ?? defaultKbManifest()),
     manifestVersion: defaultKbManifest().manifestVersion,
-    schemaVersion: LATEST_KB_SCHEMA_VERSION,
+    schemaVersion: sourceSchemaVersion(plan.schemaVersion, existing),
     semanticAdvisorBackfill: backfill,
   };
   const manifestPath = writeKbManifest(cwd, manifest);
@@ -371,6 +377,34 @@ export function rewritePendingSourceReceiptPaths(
     }
   }
   return rewritten;
+}
+
+// implements REQ-cli-schema-migration
+function isEmptySymbolsStub(filePath: string): boolean {
+  try {
+    const statements = readFileSync(filePath, "utf8")
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0 && !line.startsWith("#"));
+    return (
+      statements.length === 1 &&
+      /^symbols:\s*\[\s*\]$/.test(statements[0] ?? "")
+    );
+  } catch {
+    return false;
+  }
+}
+
+// implements REQ-cli-schema-migration
+function sourceSchemaVersion(
+  legacyVersion: number | null,
+  existing: { schemaVersion: number } | null,
+): number {
+  const known = [legacyVersion, existing?.schemaVersion].filter(
+    (version): version is number =>
+      typeof version === "number" && Number.isInteger(version) && version > 0,
+  );
+  return known.length > 0 ? Math.min(...known) : LATEST_KB_SCHEMA_VERSION;
 }
 
 /** True when the workspace still needs the legacy storage migration. */
