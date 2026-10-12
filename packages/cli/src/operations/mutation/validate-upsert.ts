@@ -11,12 +11,15 @@ import { assertSemanticInventoryBoundary } from "../semantic-advisor/ingestion-b
 import { entityContextWarnings } from "./context-warning.js";
 import {
   buildUpsertContradictionPreviewGoal,
+  buildWhatIfAnalysisGoal,
   formatUpsertError,
 } from "./contradictions.js";
 import { validateRelationshipSources } from "./relationships.js";
 import { validateSymbolGranularity } from "./symbol-granularity.js";
 import type {
+  PlannedFactInput,
   RelationshipInput,
+  StagedUpsertState,
   UpsertInput,
   ValidateUpsertPayload,
 } from "./types.js";
@@ -25,6 +28,7 @@ import {
   validateUpsertForCommit,
 } from "./upsert.js";
 import { validateUpsertInput } from "./validation.js";
+import { isBlockingWitness, parseWhatIfAnalysis } from "./what-if.js";
 
 // implements REQ-kibi-entity-id-style
 async function entityExists(prolog: PrologPort, id: string): Promise<boolean> {
@@ -60,6 +64,132 @@ async function previewContradictions(
       formatUpsertError(input.id, preview.error, preview.errorRecord),
     );
   }
+}
+
+// implements REQ-model-what-if-planned-facts
+type StagedFacts = Readonly<{
+  staged: StagedUpsertState;
+  steps: readonly {
+    entity: Readonly<Record<string, unknown>>;
+    relationships: readonly RelationshipInput[];
+  }[];
+}>;
+
+// implements REQ-model-what-if-planned-facts
+/**
+ * Validate the planned facts in order, each against the live store plus the
+ * facts before it, exactly as kb_apply_plan validates a plan's steps. The
+ * result is the staged state the payload's own validation reads: a planned
+ * fact counts as a live relationship target and its claim_key is read from
+ * the plan, so a requirement can be previewed before its facts are written.
+ */
+async function stagePlannedFacts(
+  input: UpsertInput,
+  context: OperationContext,
+): Promise<StagedFacts | null> {
+  const planned = input.plannedFacts;
+  if (planned === undefined) return null;
+  if (!Array.isArray(planned))
+    throw new Error("plannedFacts must be an array of fact upsert payloads");
+  const entities = new Map<string, Readonly<Record<string, unknown>>>();
+  const relationships: RelationshipInput[] = [];
+  const steps: {
+    entity: Readonly<Record<string, unknown>>;
+    relationships: readonly RelationshipInput[];
+  }[] = [];
+  for (const [index, fact] of planned.entries()) {
+    const id = typeof fact?.id === "string" ? fact.id : `#${index + 1}`;
+    if (fact?.type !== "fact")
+      throw new Error(
+        `planned fact ${id} is invalid: plannedFacts stages fact entities only (got type '${String(fact?.type)}')`,
+      );
+    if (fact.id === input.id)
+      throw new Error(
+        `planned fact ${id} is invalid: it has the same id as the payload`,
+      );
+    try {
+      const { validated } = await validateUpsertForCommit(
+        plannedFactUpsert(fact),
+        context,
+        { staged: { entities, relationships: [...relationships] } },
+      );
+      entities.set(fact.id, validated.entity);
+      relationships.push(...validated.relationships);
+      steps.push({
+        entity: validated.entity,
+        relationships: validated.relationships,
+      });
+    } catch (error) {
+      throw new Error(
+        `planned fact ${id} is invalid: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
+  return { staged: { entities, relationships }, steps };
+}
+
+function plannedFactUpsert(fact: PlannedFactInput): UpsertInput {
+  return {
+    type: fact.type,
+    id: fact.id,
+    properties: fact.properties,
+    ...(fact.relationships !== undefined
+      ? { relationships: fact.relationships }
+      : {}),
+  };
+}
+
+// implements REQ-model-what-if-planned-facts, REQ-kibi-truthful-consistency
+/**
+ * The contradiction preview for a payload with planned facts: the facts and
+ * the payload are staged together in a rolled-back transaction and the
+ * witnesses the KB would then hold are compared with the current KB's. A
+ * blocking witness the batch introduces refuses the dry run the way the
+ * commit would refuse the last write of the batch; the full split is
+ * returned so an agent sees the conflict before any fact exists.
+ */
+async function previewStagedContradictions(
+  prolog: PrologPort,
+  input: UpsertInput,
+  entity: Readonly<Record<string, unknown>>,
+  relationships: readonly RelationshipInput[],
+  facts: StagedFacts,
+): Promise<NonNullable<ValidateUpsertPayload["whatIf"]>> {
+  const result = await prolog.query(
+    buildWhatIfAnalysisGoal([
+      ...facts.steps.map((step) => ({
+        entity: step.entity,
+        relationships: step.relationships,
+        skipContradictionCheck: true,
+      })),
+      { entity, relationships, skipContradictionCheck: true },
+    ]),
+  );
+  if (!result.success)
+    throw new Error(
+      formatUpsertError(input.id, result.error, result.errorRecord),
+    );
+  const analysis = parseWhatIfAnalysis(result.bindings.JsonString);
+  if (analysis === null)
+    throw new Error(
+      `Failed to preview ${input.id} with planned facts: the staged contradiction analysis could not be read`,
+    );
+  const skip = input.type !== "req" || input._skipContradictionCheck === true;
+  const blocking = skip ? [] : analysis.introduced.filter(isBlockingWitness);
+  if (blocking.length > 0) {
+    const conflicts = blocking.map((witness) => {
+      const others = witness.requirements.filter((id) => id !== input.id);
+      return `  - Conflicts with ${others.join(", ") || witness.requirements.join(", ")}: ${witness.reason}`;
+    });
+    throw new Error(
+      `Contradiction detected for requirement ${input.id} once its planned facts are written:\n${conflicts.join("\n")}\n\nTo resolve:\n  1. Add a supersedes relationship from the new requirement to the conflicting one, OR\n  2. Deprecate the conflicting requirement before creating the new one. (stage=contradiction_check, plannedFacts staged)`,
+    );
+  }
+  return {
+    introduced: analysis.introduced,
+    removed: analysis.removed,
+    unchanged: analysis.unchanged,
+  };
 }
 
 /**
@@ -105,18 +235,40 @@ export async function executeValidateUpsert(
   context: OperationContext,
 ): Promise<OperationResult<ValidateUpsertPayload>> {
   try {
+    if (input.plannedFacts !== undefined && context.prolog === undefined)
+      throw new Error(
+        "plannedFacts needs a KB store: the planned facts are staged against the current KB",
+      );
+    let whatIf: ValidateUpsertPayload["whatIf"];
+    let stagedFacts: readonly string[] | undefined;
     const { entity, semantic } =
       context.prolog !== undefined
-        ? await validateUpsertForCommit(input, context).then(async (result) => {
+        ? await stagePlannedFacts(input, context).then(async (facts) => {
+            const result = await validateUpsertForCommit(
+              input,
+              context,
+              facts === null ? {} : { staged: facts.staged },
+            );
             // The commit goal checks requirement contradictions after the
             // validations above; a dry run previews that stage as well, so
             // "valid" means the commit would not refuse the write.
-            await previewContradictions(
-              context.prolog as PrologPort,
-              input,
-              result.validated.entity,
-              result.validated.relationships,
-            );
+            if (facts === null) {
+              await previewContradictions(
+                context.prolog as PrologPort,
+                input,
+                result.validated.entity,
+                result.validated.relationships,
+              );
+            } else {
+              stagedFacts = [...facts.staged.entities.keys()];
+              whatIf = await previewStagedContradictions(
+                context.prolog as PrologPort,
+                input,
+                result.validated.entity,
+                result.validated.relationships,
+                facts,
+              );
+            }
             return {
               entity: result.validated.entity,
               semantic: result.semantic,
@@ -145,12 +297,18 @@ export async function executeValidateUpsert(
       ],
       semanticAdvisor: semantic.receipt,
       normalizedPreview: entity,
+      ...(stagedFacts !== undefined ? { stagedFacts } : {}),
+      ...(whatIf !== undefined ? { whatIf } : {}),
     };
+    const stagedNote =
+      stagedFacts === undefined
+        ? ""
+        : ` ${stagedFacts.length} planned fact(s) were staged ahead of it (${stagedFacts.join(", ")}); the batch introduces ${whatIf?.introduced.length ?? 0} witness(es).`;
     return {
       content: [
         {
           type: "text",
-          text: "kb_validate_upsert: payload is valid for kb_upsert preflight checks. No mutation was performed.",
+          text: `kb_validate_upsert: payload is valid for kb_upsert preflight checks. No mutation was performed.${stagedNote}`,
         },
       ],
       structuredContent: payload,

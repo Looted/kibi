@@ -1,5 +1,17 @@
 # kibi-claude
 
+## 0.7.10
+
+### Patch Changes
+
+- e00adf2: Projects set up with kibi-cli before 2.18.0 keep every symbol on one flow-sequence line of `.kb/symbols.yaml`, and the host hooks read none of it: the Claude Code hooks told agents that no symbol in a linked file was tied to a requirement, on every edit, when the opposite was true. The shared hook scanner now reads flow-layout manifests like block ones, the Claude Code edit hook no longer calls a file unowned when the manifest is unreadable or when the coordinate artifact binds a symbol to it that the scanner could not read (it says once per session that the manifest could not be read instead), and a plain `kibi sync` rewrites such a manifest in block layout once, keeping comments and order.
+
+  Technical summary: `kibi-agent-core` `knowledge-index` gains a flow-collection reader for `symbols: [ … ]` sections (single or multi-line, CRLF safe) and for flow values inside block records, the index reports `manifest` (`missing` | `empty` | `indexed` | `unreadable`), `coordinateFiles` and `unlinkedFiles`, and the cache format moves to v2 so stale indexes rebuild. `kibi-claude` adds `unreadableManifestNote` (once per session) in place of `unownedSourceNote` for an unreadable manifest or a coordinate-bound file with no indexed record; the Claude and Codex hook bundles are rebuilt. `kibi sync` calls `normalizeManifestLayout` on every tracked symbol manifest ahead of its no-op fast path, through the same `blockifySymbolManifest` helper `kb_upsert`'s manifest writer uses.
+
+- d973759: The kibi-usage skill (2.15.0) now tells agents to title a symbol after the behavioral member the extractor can find (`ClassName.methodName`, an exported function, or a class). It also explains that linking a coarse file- or module-level symbol to a requirement is refused when the file already has granular behavioral symbols, unless the symbol sets `granularity_reason`, so agents stop retrying refused symbol writes.
+
+  Technical summary: the "Symbol-First Traceability" section of `kibi-usage/SKILL.md` gains one paragraph on `title` and the granularity gate, listing the allowed `granularity_reason` values (`config-artifact`, `module-level-behavior`, `extractor-miss`, `legacy-link`, `test-suite`). Host skill copies are regenerated.
+
 ## 0.7.9
 
 ### Patch Changes

@@ -47,6 +47,71 @@
           "description": "Unique entity ID (string). Example: 'REQ-cli-gc'. Name entities by the behavior they govern (<TYPE>-<area>-<behavior>), never by the next free number. Existing ID updates the entity; new ID creates it.",
           "type": "string"
         },
+        "plannedFacts": {
+          "description": "dryRun only. Fact upsert payloads (type, id, properties, optional relationships) that will be written before this payload, typically the applyPlan entries kb_model returned. They are validated in order and staged with the payload, so a requires_predicate or requires_property target that does not exist yet resolves, its claim_key is read from the plan, and the contradiction preview runs against the KB as it would be after the whole batch (result: stagedFacts, whatIf). A conflict the batch would introduce, such as an allow and a deny permission_rule on the same key, is refused as the commit would refuse it. Rejected without dryRun: write the facts first.",
+          "items": {
+            "properties": {
+              "id": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "properties": {
+                "type": "object"
+              },
+              "relationships": {
+                "description": "Optional relationship rows to create in the same call. For requirement encoding, prefer `constrains` + `requires_property` for strict property facts or `requires_predicate` for ontology predicate facts. Side effect: asserts edges in KB.",
+                "items": {
+                  "properties": {
+                    "from": {
+                      "description": "Source entity ID (must exist). Example: 'SYM-login-handler'.",
+                      "type": "string"
+                    },
+                    "to": {
+                      "description": "Target entity ID (must exist). Example: 'REQ-cli-gc'.",
+                      "type": "string"
+                    },
+                    "type": {
+                      "description": "Relationship type enum. Use only supported values. Direction semantics follow KB model (e.g., implements symbol->req, verified_by req/scenario->test, executable_for symbol->test).",
+                      "enum": [
+                        "depends_on",
+                        "specified_by",
+                        "verified_by",
+                        "validates",
+                        "implements",
+                        "covered_by",
+                        "executable_for",
+                        "constrained_by",
+                        "constrains",
+                        "requires_property",
+                        "requires_predicate",
+                        "requires_rule",
+                        "guards",
+                        "publishes",
+                        "consumes",
+                        "supersedes",
+                        "restates",
+                        "assumes",
+                        "exempts",
+                        "relates_to"
+                      ],
+                      "type": "string"
+                    }
+                  },
+                  "required": ["type", "from", "to"],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "type": {
+                "const": "fact",
+                "type": "string"
+              }
+            },
+            "required": ["type", "id", "properties"],
+            "type": "object"
+          },
+          "type": "array"
+        },
         "properties": {
           "allOf": [
             {

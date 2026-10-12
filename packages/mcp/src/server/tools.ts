@@ -101,6 +101,59 @@ function withAgentVisibleText(
   return [{ type: "text", text }, ...nonTextParts];
 }
 
+// implements REQ-mcp-structured-text-per-host
+const STRUCTURED_TEXT_ENV = "KIBI_MCP_STRUCTURED_TEXT";
+/**
+ * Hosts known to show `structuredContent` to the agent. Embedding the data
+ * JSON in the text part would hand them every discovery result twice.
+ */
+const HOSTS_READING_STRUCTURED_CONTENT: ReadonlySet<string> = new Set([
+  "claude-code",
+]);
+
+/** `Claude Code`, `claude_code` and `claude-code` name the same host. */
+function hostKey(name: string): string {
+  return name
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+/** The client name the host sent on initialize, when the server has one. */
+function clientName(server: McpServer | undefined): string | undefined {
+  try {
+    const name = server?.server?.getClientVersion?.()?.name;
+    return typeof name === "string" ? hostKey(name) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+// implements REQ-mcp-structured-text-per-host
+/**
+ * Whether an opted-in tool embeds its data JSON in the text part. The copy
+ * exists for hosts that hide `structuredContent`; a host that reads it gets
+ * the summary alone. `KIBI_MCP_STRUCTURED_TEXT=embed|omit` decides outright;
+ * otherwise the host named by `KIBI_MCP_HOST` (set by the host launchers) or
+ * by the client's initialize name decides, and an unknown host keeps the copy.
+ */
+export function embedsStructuredText(
+  server: McpServer | undefined,
+  env: NodeJS.ProcessEnv = process.env,
+): boolean {
+  const explicit = env[STRUCTURED_TEXT_ENV]?.trim().toLowerCase();
+  if (explicit === "embed") return true;
+  if (explicit === "omit") return false;
+  const host =
+    env.KIBI_MCP_HOST === undefined ? "" : hostKey(env.KIBI_MCP_HOST);
+  if (host !== "" && HOSTS_READING_STRUCTURED_CONTENT.has(host)) return false;
+  const client = clientName(server);
+  return !(
+    client !== undefined && HOSTS_READING_STRUCTURED_CONTENT.has(client)
+  );
+}
+
 // implements REQ-002
 function debugLog(...args: Parameters<typeof console.error>): void {
   if (isMcpDebugEnabled()) {
@@ -493,7 +546,8 @@ export function addTool<TProlog>(
             }[];
           };
           const content =
-            operationSpec.agentVisibleStructuredData === true
+            operationSpec.agentVisibleStructuredData === true &&
+            embedsStructuredText(server)
               ? withAgentVisibleText(withContent.content, data)
               : withContent.content;
           return {

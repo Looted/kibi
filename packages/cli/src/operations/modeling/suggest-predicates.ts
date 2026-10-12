@@ -5,6 +5,7 @@ import type {
   PrologPort,
 } from "../../public/operations/runtime-types.js";
 import { parsePrologList } from "../mutation/serialization.js";
+import { compileGroundingPlan } from "../planning/compile-intent.js";
 import { analyzeSemanticAdvisorInput } from "../semantic-advisor/analyze-prose.js";
 import { semanticClaimKey } from "../semantic-advisor/clauses.js";
 import { composeOntologyCatalogForOperation } from "../semantic-advisor/plugin-orchestration.js";
@@ -93,6 +94,7 @@ function compoundInputAbstention(
       recommendedPredicateSchema: null,
       applyPlan,
       relationshipPlan: null,
+      plan: null,
       warnings: [warning],
     },
     applyPlan,
@@ -127,6 +129,7 @@ function nonlogicalInputRouting(
       recommendedPredicateSchema: null,
       applyPlan,
       relationshipPlan: null,
+      plan: null,
       warnings: [warning],
     },
     applyPlan,
@@ -608,6 +611,21 @@ export async function handleKbSuggestPredicates(
   const logicClaims = Array.from(
     new Set([...(args.existingLogicClaims ?? []), claimKey]),
   );
+  const plan =
+    relationshipPlan !== null && plannedFactId !== null && args.requirementId
+      ? await groundingPlan(prolog, context, {
+          requirementId: args.requirementId,
+          claimKey,
+          text,
+          factStep: predicatePlan[0] ?? {},
+          relationship: relationshipPlan.relationship as Record<
+            string,
+            unknown
+          >,
+          logicClaims,
+          warnings,
+        })
+      : null;
 
   return {
     content: [{ type: "text", text: textSummary }],
@@ -623,6 +641,7 @@ export async function handleKbSuggestPredicates(
       recommendedPredicateSchema,
       applyPlan,
       relationshipPlan,
+      plan,
       relationshipTarget,
       existingGrounding,
       replacementPlan,
@@ -661,6 +680,140 @@ const RESTATED_REQUIREMENT_FIELDS = [
   "owner",
   "tags",
 ] as const;
+
+// implements REQ-model-what-if-planned-facts
+/**
+ * The hash-bound plan behind applyPlan + relationshipPlan: the predicate fact,
+ * then the requirement restated with the merged logic_claims manifest and the
+ * requires_predicate link. kb_apply_plan applies both in one transaction, and
+ * the plan's contradictionAnalysis says what the batch would introduce.
+ */
+async function groundingPlan(
+  prolog: PrologPort | null,
+  context: OperationContext | undefined,
+  input: Readonly<{
+    requirementId: string;
+    claimKey: string;
+    text: string;
+    factStep: Record<string, unknown>;
+    relationship: Record<string, unknown>;
+    logicClaims: readonly string[];
+    warnings: string[];
+  }>,
+): Promise<Record<string, unknown> | null> {
+  if (prolog === null || context === undefined) return null;
+  const stored = await storedRequirementContract(
+    prolog,
+    input.requirementId,
+    input.warnings,
+  );
+  if (stored === null) {
+    input.warnings.push(
+      `No hash-bound plan: requirement ${input.requirementId} is not stored, so its upsert step cannot restate the stored title and status. Apply applyPlan and relationshipPlan with kb_upsert.`,
+    );
+    return null;
+  }
+  // A stored ledger is restated with this claim marked modeled, so the
+  // proposition-complete check sees one modeled entry per grounding link.
+  // A claim the ledger does not carry cannot be grounded by this plan.
+  const inventory = Array.isArray(stored.semantic_inventory)
+    ? (stored.semantic_inventory as unknown[])
+    : null;
+  if (inventory !== null) {
+    const entry = inventory.find(
+      (row): row is Record<string, unknown> =>
+        row !== null &&
+        typeof row === "object" &&
+        (row as Record<string, unknown>).claim_key === input.claimKey,
+    );
+    if (entry === undefined) {
+      input.warnings.push(
+        `No hash-bound plan: the ledger of ${input.requirementId} has no proposition ${input.claimKey} for this text. Run kb_model mode analyze with the requirement's complete prose and pass one of its clauses as text; applyPlan can still be written with kb_upsert.`,
+      );
+      return null;
+    }
+    stored.semantic_inventory = inventory.map((row) =>
+      row === entry
+        ? {
+            ...entry,
+            status: "modeled",
+            reason: `Grounded by the ${String(input.factStep.id)} predicate fact this plan writes.`,
+          }
+        : row,
+    );
+  }
+  try {
+    const plan = await compileGroundingPlan(context, prolog, {
+      requirementId: input.requirementId,
+      claimKey: input.claimKey,
+      text: input.text,
+      steps: [
+        input.factStep,
+        {
+          type: "req",
+          id: input.requirementId,
+          properties: { ...stored, logic_claims: [...input.logicClaims] },
+          relationships: [input.relationship],
+        },
+      ],
+    });
+    if (plan.status === "blocked") {
+      const reasons = plan.contradictionAnalysis.witnesses
+        .map((witness) => witness.reason)
+        .filter(Boolean);
+      input.warnings.push(
+        `Applying this grounding would contradict the current KB, so plan.status is blocked: ${reasons.join("; ")}. Supersede or close the conflicting requirement before grounding this claim.`,
+      );
+    } else if (plan.status !== "ready") {
+      input.warnings.push(
+        `The hash-bound plan needs resolution before kb_apply_plan can run it: ${plan.diagnostics.join("; ")}`,
+      );
+    }
+    return plan as unknown as Record<string, unknown>;
+  } catch (error) {
+    input.warnings.push(
+      `No hash-bound plan could be compiled (${error instanceof Error ? error.message : String(error)}); apply applyPlan and relationshipPlan with kb_upsert.`,
+    );
+    return null;
+  }
+}
+
+const STORED_LEDGER_FIELDS = [
+  "text_ref",
+  "semantic_text",
+  "semantic_clauses",
+  "semantic_inventory",
+  "semantic_inventory_version",
+  "semantic_source_field",
+  "semantic_source_hash",
+] as const;
+
+// implements REQ-model-what-if-planned-facts
+/**
+ * The stored requirement as a plan step restates it: title, status and
+ * metadata plus its proposition ledger, so the upsert kb_apply_plan runs is
+ * validated as given and keeps the ledger instead of replacing it.
+ */
+async function storedRequirementContract(
+  prolog: PrologPort,
+  requirementId: string,
+  warnings: string[],
+): Promise<Record<string, unknown> | null> {
+  const restated = await storedRequirementProperties(
+    prolog,
+    requirementId,
+    warnings,
+  );
+  if (restated === null) return null;
+  const [stored] = await loadEntities(prolog, {
+    id: requirementId,
+    type: "req",
+  });
+  for (const field of STORED_LEDGER_FIELDS)
+    if (stored?.[field] !== undefined && stored[field] !== null)
+      restated[field] = stored[field];
+  return restated;
+}
 
 /**
  * The requirement fields the replacement's requirement upsert restates, so

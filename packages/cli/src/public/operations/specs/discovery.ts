@@ -165,8 +165,9 @@ export const searchSpec = {
       limit: {
         type: "integer",
         minimum: 0,
-        default: 20,
-        description: "Optional max rows to return after ranking. Default: 20.",
+        default: 10,
+        description:
+          "Optional max rows to return after ranking. Default: 10; raise it or page with offset when the answer layer is not enough.",
       },
       offset: {
         type: "integer",
