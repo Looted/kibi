@@ -147,6 +147,23 @@ describe("installGitHooks hook-file write protection", () => {
     ).toBe(false);
   });
 
+  test("skip message for a custom pre-commit names both gates and the snippet command", () => {
+    writeFileSync(preCommitPath(), "#!/bin/sh\necho user hook\n");
+
+    const output = captureConsoleLog(() => {
+      installGitHooks(hooksDir);
+    });
+    const skipLine = output.find((line) => line.startsWith("! pre-commit:"));
+
+    expect(skipLine).toContain("existing non-Kibi hook left untouched");
+    expect(skipLine).toContain(
+      "'kibi check-generated --staged --changed-only' and 'kibi check --staged'",
+    );
+    // A bare `kibi` fails in hooks for project-local installs, so the
+    // message points at the snippet that resolves the CLI.
+    expect(skipLine).toContain("kibi init --print-hook pre-commit");
+  });
+
   test("reports no hooks installed when every hook is skipped", () => {
     writeFileSync(preCommitPath(), "#!/bin/sh\necho user pre-commit\n");
     symlinkSync(

@@ -175,6 +175,127 @@ describe("source-first authoring", () => {
     expect(updated).toContain("exact body");
   });
 
+  test("rewrites only the changed front matter key and keeps every other authored byte", async () => {
+    const workspace = await mkdtemp(path.join(tmpdir(), "kibi-source-"));
+    workspaces.push(workspace);
+    const target = path.join(workspace, ".kb", "requirements", "REQ-hand.md");
+    await mkdir(path.dirname(target), { recursive: true });
+    const original = [
+      "---",
+      "id: REQ-hand",
+      'title: "Exports: kept for 30 days"',
+      "type: req",
+      "status: open",
+      "priority: 'must'",
+      "created_at: 2026-02-20T09:36:22Z",
+      "updated_at: 2026-04-24",
+      "tags: [export, retention]  # reviewed",
+      "semantic_text: Exports are kept for 30 days.",
+      "links:",
+      "    - type: specified_by",
+      "      target: SCEN-hand",
+      "    - type: relates_to",
+      "      target: REQ-other",
+      "owner: data-team",
+      "---",
+      "",
+      "Exports are kept for 30 days.",
+      "",
+      "## Context",
+      "",
+      "Support asked for this.",
+      "",
+    ].join("\n");
+    await writeFile(target, original);
+
+    await writeSourceForUpsert(
+      {
+        type: "req",
+        id: "REQ-hand",
+        properties: { status: "in_progress" },
+      },
+      {
+        id: "REQ-hand",
+        type: "req",
+        title: "Exports: kept for 30 days",
+        status: "in_progress",
+        priority: "must",
+        tags: ["export", "retention"],
+        semantic_text: "Exports are kept for 30 days.",
+        owner: "data-team",
+        created_at: "2026-08-15T00:00:00.000Z",
+        updated_at: "2026-08-15T00:00:00.000Z",
+        source: "mcp://kibi/upsert",
+      },
+      { id: "REQ-hand", source: ".kb/requirements/REQ-hand.md" },
+      context(workspace),
+    );
+
+    const before = original.split("\n");
+    const after = (await readFile(target, "utf8")).split("\n");
+    expect(after).toHaveLength(before.length);
+    for (const [index, line] of before.entries()) {
+      expect(after[index]).toBe(
+        line === "status: open" ? "status: in_progress" : line,
+      );
+    }
+  });
+
+  test("changes a flow list in flow style and appends new keys after the authored ones", async () => {
+    const workspace = await mkdtemp(path.join(tmpdir(), "kibi-source-"));
+    workspaces.push(workspace);
+    const target = path.join(workspace, ".kb", "scenarios", "SCEN-hand.md");
+    await mkdir(path.dirname(target), { recursive: true });
+    await writeFile(
+      target,
+      [
+        "---",
+        "id: SCEN-hand",
+        'title: "Hand scenario"',
+        "type: scenario",
+        "tags: [a, b]",
+        "created_at: 2026-02-20T09:36:22Z",
+        "---",
+        "",
+        "Body.",
+        "",
+      ].join("\n"),
+    );
+
+    await writeSourceForUpsert(
+      {
+        type: "scenario",
+        id: "SCEN-hand",
+        properties: { tags: ["a", "b", "c"], status: "active" },
+      },
+      {
+        id: "SCEN-hand",
+        type: "scenario",
+        title: "Hand scenario",
+        tags: ["a", "b", "c"],
+        status: "active",
+      },
+      { id: "SCEN-hand", source: ".kb/scenarios/SCEN-hand.md" },
+      context(workspace),
+    );
+
+    expect(await readFile(target, "utf8")).toBe(
+      [
+        "---",
+        "id: SCEN-hand",
+        'title: "Hand scenario"',
+        "type: scenario",
+        "tags: [a, b, c]",
+        "created_at: 2026-02-20T09:36:22Z",
+        "status: active",
+        "---",
+        "",
+        "Body.",
+        "",
+      ].join("\n"),
+    );
+  });
+
   test("patches only the selected symbol in a YAML manifest", async () => {
     const workspace = await mkdtemp(path.join(tmpdir(), "kibi-source-"));
     workspaces.push(workspace);

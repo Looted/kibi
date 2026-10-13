@@ -52,6 +52,21 @@ if (packageName === "kibi-cli") {
   }
 }
 
+if (packageName === "kibi-runtime") {
+  // The runtime bundles CLI sources at build time, so a pack without a fresh
+  // build would ship whatever stale dist happened to be on disk.
+  for (const relativePath of [
+    packageJson.main ?? "./dist/index.js",
+    "./dist/engine-daemon.js",
+    "./dist/skills",
+  ]) {
+    const entryPath = resolvePackagePath(relativePath);
+    if (!existsSync(entryPath)) {
+      throw new Error(`Missing packed kibi-runtime artifact: ${entryPath}`);
+    }
+  }
+}
+
 if (packageName === "kibi-mcp") {
   const serverPath = resolvePackagePath(packageJson.main ?? "./dist/server.js");
   if (!existsSync(serverPath)) {

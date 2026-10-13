@@ -753,7 +753,10 @@ working-tree files for Git.
 - `document` (optional): `{ path?, body? }` for an explicit tracked source
   target. Existing entities preserve their current body when `body` is omitted;
   new requirements default the body to `semantic_text`. New entities without a
-  unique configured target must provide `document.path`.
+  unique configured target must provide `document.path`. Updating an existing
+  Markdown document rewrites only the frontmatter keys whose value changes
+  (new keys are appended); every other key keeps its authored bytes, including
+  quoting, unquoted timestamps, flow lists and indentation.
 
 `symbol_role` values are `behavioral`, `structural`, `type-shape`, `config`, `module`, and `unknown`. Use `behavioral` for manual anchors when behavior is hidden inside factory/expression composition and the extractor cannot create a narrower symbol.
 

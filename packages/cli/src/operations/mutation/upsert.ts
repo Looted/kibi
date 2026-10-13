@@ -890,7 +890,7 @@ export async function executeUpsert(
           input,
           commitEntity ?? validated.entity,
           context.workspaceRoot,
-          sourceWrite?.receipt.path,
+          { writtenPath: sourceWrite?.receipt.path },
         ),
         ...shardWarnings,
       ],

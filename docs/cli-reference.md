@@ -105,7 +105,7 @@ not infer or write product knowledge.
 
 **Behavior:**
 - Creates `.kb/` directory structure with canonical knowledge lanes (`requirements/`, `scenarios/`, `tests/`, `facts/`, `adr/`, `flags/`, `events/`)
-- Installs git hooks (pre-commit, post-checkout, post-merge, post-rewrite) by default, into the directory Git reads hooks from (`git rev-parse --git-path hooks`), so linked worktrees and `core.hooksPath` are honored. Re-running `kibi init` refreshes only the kibi-managed section of each hook. Hooks resolve the `kibi` binary at run time (PATH first, then `node_modules/.bin` walking up from the repository root), so they work with both global and project-local installs even though git does not put `node_modules/.bin` on the hook's `PATH`.
+- Installs git hooks (pre-commit, post-checkout, post-merge, post-rewrite) by default, into the directory Git reads hooks from (`git rev-parse --git-path hooks`), so linked worktrees and `core.hooksPath` are honored. Re-running `kibi init` refreshes only the kibi-managed section of each hook. A hook without a kibi-managed section (hand-written, husky, lefthook, ...) is never edited: init reports it as skipped and points at `--print-hook` so you can delegate from it yourself. Hooks resolve the `kibi` binary at run time (PATH first, then `node_modules/.bin` walking up from the repository root), so they work with both global and project-local installs even though git does not put `node_modules/.bin` on the hook's `PATH`.
 - Ignores derived `.kb/` runtime state in `.gitignore` (`.kb/branches/`, `.kb/recovery/`, `.kb/proof/runs/`, `.kb/briefs/`, `.kb/migrations/`, `.kb/usage.log`). Authored knowledge under `.kb/` stays tracked. `kibi migrate` also removes the pre-canonical blanket `.kb/` ignore stanza so migrated knowledge files are not left Git-ignored.
 - Creates Kibi-owned `.kb/manifest.json` (lifecycle metadata only; not a user configuration file)
 - Creates `.kb/symbols.yaml` and `.kb/symbol-coordinates.yaml` when they do not already exist
@@ -115,6 +115,11 @@ not infer or write product knowledge.
 - `--no-hooks` - Skip git hook installation (hooks are installed by default)
 - `--github` - Scaffold the documented GitHub Pages badge + full report integration (workflow, README badge, `kibi-report/` gitignore entry)
 - `--badge-only` - With `--github` only: publish the badge without the HTML report. Rejected if used alone.
+- `--print-hook <hook>` - Print a copy-paste snippet that wires Kibi into an existing hook, then exit without writing anything. `<hook>` is one of `pre-commit`, `post-checkout`, `post-merge`, `post-rewrite`. The snippet resolves the `kibi` binary the same way the managed hooks do (PATH, then `node_modules/.bin`), so it works with project-local installs, and runs the same commands as the managed template with failures propagated. For `pre-commit` that is `kibi check-generated --staged --changed-only` followed by `kibi check --staged`.
+
+```bash
+kibi init --print-hook pre-commit >> .husky/pre-commit
+```
 
 **GitHub integration:**
 - `--github` by itself always means **badge + full report**. It copies the canonical workflow from the `kibi-cli` package (the same file as [docs/examples/github/kibi-report.yml](examples/github/kibi-report.yml)). That workflow generates the report on pull requests (artifact only) and deploys GitHub Pages only from the repository default branch or `workflow_dispatch`.
@@ -645,7 +650,7 @@ Validates knowledge base integrity and runs inference rules.
 
 When `kibi check --staged` reports `kibi_impact_evidence_missing`, first use Kibi discovery (`kb_search`, then `kb_query`) through visible MCP tools or trusted CLI JSON routes to inspect existing requirements, scenarios, tests, facts, and symbols for the edited source file. If the edit changes behavior, update the KB through either peer surface and also stage tracked evidence that the commit can carry: related entity markdown under `.kb/`, authored `.kb/symbols.yaml` entries, or refreshed `.kb/symbol-coordinates.yaml` output.
 
-Both `kibi_impact_evidence_missing` and `symbols_manifest_stale` carry `Detail:` lines that name the cause per file: how many symbols the extractor finds in the staged source content, how many the staged evidence covers, and exactly which symbols are missing from `.kb/symbols.yaml` (with their definition lines). When the Detail lines list uncovered symbols, fix the cause first — author `.kb/symbols.yaml` entries for those symbols (`kibi upsert`, with `implements`/`covered_by` links) — and only then refresh coordinates with `kibi sync --refresh-symbol-coordinates`; the same comparison drives the printed `Suggestion:`. Detail lines cap at six names per list with an `… and N more` marker.
+Both `kibi_impact_evidence_missing` and `symbols_manifest_stale` carry `Detail:` lines that name the cause per file: how many symbols the extractor finds in the staged source content, how many of those the staged evidence covers (evidence-only entries are listed separately and not counted), and exactly which symbols are missing from `.kb/symbols.yaml` (with their definition lines). When the Detail lines list uncovered symbols, fix the cause first — author `.kb/symbols.yaml` entries for those symbols (`kibi upsert`, with `implements`/`covered_by` links) — and only then refresh coordinates with `kibi sync --refresh-symbol-coordinates`; the same comparison drives the printed `Suggestion:`. Detail lines cap at six names per list with an `… and N more` marker that counts the remaining names; the `--json` diagnostic `evidence` (`symbolsManifest[].missing`/`extra`, `uncoveredSymbols[].titles`) always carries the complete lists.
 
 KB writes through MCP or CLI JSON routes update branch state, but they do not automatically stage markdown or manifest files. The staged hook can only accept evidence present in the staged change-set, so run the required sync/authoring step and `git add` the tracked evidence before rerunning `kibi check --staged`.
 
@@ -744,6 +749,7 @@ Verifies environment setup and diagnostics.
 - Checks git repository presence
 - Checks the current branch's KB store ("Branch store"): it fails when `.kb/` holds authored sources but the store is missing or empty (journal sequence 0, nothing compiled), naming `kibi sync`; an incomplete or unreadable store points at `kibi branch recover`
 - Verifies git hooks are installed and executable, reading them from the directory Git uses (`git rev-parse --git-path hooks`). Missing hooks are a warning (`!`, `"warning": true` in JSON, counted in the top-level `warnings`), not a failure: without them a new branch is not compiled on checkout and commits skip `kibi check --staged`
+- Treats a hook without a kibi-managed section as the project's own hook (hand-written, husky, lefthook, ...). A custom pre-commit passes when it runs both `kibi check-generated --staged --changed-only` and `kibi check --staged` (via `kibi`, `npx kibi`, `node_modules/.bin/kibi` or `"$KIBI_BIN"`; commented lines do not count), and a custom post-rewrite passes when it runs `kibi sync`. Otherwise the check fails and the remediation shows what to delegate to and `kibi init --print-hook <hook>`, because `kibi init` never edits a custom hook
 - Fails when an installed kibi-managed hook section differs from what the running CLI installs ("Kibi-managed hook sections"), for example a pre-commit hook written before the generated-manifest gate
 - Reports the engine daemon serving this workspace and branch ("Engine daemon"), without starting one: its package versions and SWI-Prolog from the daemon handshake. A daemon with other package versions than this CLI is reported, not failed; the next Kibi command stops and replaces it
 - Reports issues with remediation suggestions
@@ -763,7 +769,8 @@ artifacts are executing.
 - `.kb/` missing → Run `kibi init`
 - Git hooks missing (warning) → Run `kibi init`
 - Branch store not compiled → Run `kibi sync`
-- Git hooks use the legacy template without kibi CLI resolution → Run `kibi init` to regenerate them
+- Kibi-managed hook section without kibi CLI resolution → Run `kibi init` to regenerate it
+- Custom (non-Kibi) pre-commit hook does not run `kibi check-generated --staged --changed-only` and `kibi check --staged` → Add both to the hook; `kibi init --print-hook pre-commit` prints a ready-to-paste snippet. Re-running `kibi init` does not help, because init never edits a custom hook. An unmarked file that is an old Kibi template can instead be deleted so `kibi init` reinstalls it
 - Kibi-managed hook sections outdated for this CLI → Run `kibi init` to refresh them (hooks are shared by every worktree of the repository)
 - `.kb/manifest.json` missing beside a legacy `.kb/config.json` → Run `kibi migrate --yes` (not `kibi init`)
 - Legacy knowledge files that `kibi migrate` cannot move (a destination already exists) → doctor prints the same resolution `kibi migrate` and the migration plan report (stale symbols subset, generated coordinates, ambiguous symbols manifest, or a conflict to compare), instead of sending you back to `kibi migrate`. Legacy copies identical to their `.kb/` file are counted separately; `kibi migrate --yes` removes them

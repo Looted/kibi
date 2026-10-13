@@ -11,7 +11,7 @@
 
 import { spawnSync } from "node:child_process";
 import { mkdirSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { type PackageCatalogSlice, dirsForSlice } from "./package-catalog";
 
@@ -48,7 +48,12 @@ export function packCatalogPackages(
 ): void {
   const slice = options.slice ?? "ci-pack";
   const repoRoot = options.repoRoot ?? REPO_ROOT;
-  const destination = options.destination;
+  // npm pack runs inside each package directory, so a relative destination
+  // must be anchored to the caller's working directory first.
+  const destination =
+    options.destination === undefined
+      ? undefined
+      : resolve(options.destination);
   if (destination) mkdirSync(destination, { recursive: true });
   for (const dir of dirsForSlice(slice)) {
     const cwd = join(repoRoot, "packages", dir);

@@ -283,7 +283,7 @@ describe("assessStagedSymbolsManifest", () => {
         {
           path: "src/alpha.ts",
           expectedCount: 1,
-          coveredCount: 2,
+          coveredCount: 1,
           missing: [],
           extra: ["ghost"],
         },
@@ -291,7 +291,7 @@ describe("assessStagedSymbolsManifest", () => {
     });
   });
 
-  it("caps missing-symbol details at six titles per file", () => {
+  it("keeps every missing symbol title in the assessment instead of capping the list", () => {
     const sourcePath = "src/many-fns.ts";
     const source = staged(sourcePath, MANY_FN_SOURCE);
 
@@ -330,8 +330,55 @@ describe("assessStagedSymbolsManifest", () => {
           { title: "symFn5", line: 13 },
           { title: "symFn6", line: 16 },
           { title: "symFn7", line: 19 },
+          { title: "symFn8", line: 22 },
         ],
         extra: [],
+      },
+    ]);
+  });
+
+  it("keeps every extra evidence title and counts only matched symbols as covered", () => {
+    const source = staged("src/alpha.ts", ALPHA_SOURCE);
+    const ghostTitles = Array.from(
+      { length: 8 },
+      (_, index) => `ghost${index + 1}`,
+    );
+
+    const result = assess({
+      sourceFiles: [source],
+      stagedFiles: [
+        source,
+        staged(
+          SYMBOLS_PATH,
+          manifestOf([
+            record("SYM-alpha", "alpha", "src/alpha.ts"),
+            ...ghostTitles.map((title) =>
+              record(`SYM-${title}`, title, "src/alpha.ts"),
+            ),
+          ]),
+        ),
+        staged(
+          COORDINATES_PATH,
+          coordinateArtifact(
+            ["alpha", ...ghostTitles].map((title) => ({
+              id: `SYM-${title}`,
+              title,
+              sourceFile: "src/alpha.ts",
+              sourceText: ALPHA_SOURCE,
+            })),
+          ),
+        ),
+      ],
+    });
+
+    expect(result.state).toBe("stale");
+    expect(result.fileDetails).toEqual([
+      {
+        path: "src/alpha.ts",
+        expectedCount: 1,
+        coveredCount: 1,
+        missing: [],
+        extra: ghostTitles,
       },
     ]);
   });
@@ -750,7 +797,7 @@ describe("assessStagedSymbolsManifest", () => {
         {
           path: "src/stale-b.ts",
           expectedCount: 1,
-          coveredCount: 2,
+          coveredCount: 1,
           missing: [],
           extra: ["goneFn"],
         },

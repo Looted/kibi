@@ -132,6 +132,20 @@ yarn add -D kibi-cli kibi-mcp kibi-core
 bun add -d kibi-cli kibi-mcp kibi-core
 ```
 
+**pnpm 11 and release age.** pnpm 11 sets `minimumReleaseAge` to 1440 minutes
+(one day) by default, and refuses to resolve a version that does not meet it when
+you set `minimumReleaseAge` yourself. Kibi packages are released together and
+depend on each other's new versions (`kibi-cli` needs a matching `kibi-core`
+range, and `kibi-swipl` pins its platform packages exactly), so on the day of a
+release the install can fail or resolve an older, mismatched Kibi set. Either
+wait out the window or exempt Kibi in `pnpm-workspace.yaml` (all Kibi packages
+are unscoped `kibi-*` names; patterns need pnpm 10.17 or later):
+
+```yaml
+minimumReleaseAgeExclude:
+  - "kibi-*"
+```
+
 `kibi-mcp` depends on compatible `kibi-cli` and `kibi-core` versions, but
 installing all three explicitly makes version pinning and lockfile review clear.
 
@@ -167,6 +181,31 @@ After installing the packages, use this short path:
 2. Ask your coding agent to “Bootstrap Kibi for this repository.” The agent first asks where product intent lives outside the code (issue trackers, wikis, specs) and which of those sources are authoritative, reads them through its own connectors, and passes cited intent claims to the read-only `kb_plan_bootstrap` planner. After that it asks only questions returned by a `needs_context` result, and shows the exact plan for approval.
 3. After approval, the agent passes the unchanged returned plan to `kb_apply_plan`, then runs `kb_check` and `kb_status`.
 4. Continue normal work with the seeded Kibi context. Use `kibi doctor` only when typed status says infrastructure is degraded.
+
+### Existing Git hooks (husky, lefthook, hand-written)
+
+`kibi init` only manages hooks it wrote (the section between
+`# BEGIN kibi-managed` and `# END kibi-managed`). It never edits a hook that
+already exists without those markers; it reports the hook as skipped instead.
+To keep your hook manager and still get Kibi's commit gate, delegate to Kibi
+from your own hook:
+
+- **husky** (or any hand-written shell hook): append the snippet Kibi prints.
+  It finds a project-local `kibi` even when `node_modules/.bin` is not on the
+  hook's `PATH`, and stops the commit if either check fails.
+
+  ```bash
+  npx --no-install kibi init --print-hook pre-commit >> .husky/pre-commit
+  ```
+
+- **lefthook**: run both checks from a `pre-commit` command through your
+  package manager's local runner, for example
+  `npx --no-install kibi check-generated --staged --changed-only && npx --no-install kibi check --staged`.
+
+`--print-hook` also accepts `post-checkout`, `post-merge` and `post-rewrite`
+(each runs `kibi sync` under the same conditions as the managed hook).
+`kibi doctor` reports a custom pre-commit hook as passing only when it runs
+both `kibi check-generated --staged --changed-only` and `kibi check --staged`.
 
 Avoid auto-install or hot-load commands for MCP startup (`npx -y`, `pnpm dlx` /
 `pnx`, or `yarn dlx`) unless you intentionally

@@ -68,11 +68,11 @@ npm install --save-dev kibi-core kibi-cli kibi-mcp
 npm exec -- kibi init
 ```
 
-`kibi init` creates the `.kb/` layout and installs the Git hooks that keep it in sync. Re-running it completes missing directories and schema files while preserving existing knowledge and schema files. It does not infer product knowledge. [Connect your coding agent](#connect-your-coding-agent), then ask it:
+`kibi init` creates the `.kb/` layout and installs the Git hooks that keep it in sync. Re-running it completes missing directories and schema files while preserving existing knowledge and schema files. It never edits a hook it did not write (husky, lefthook, your own script); `kibi init --print-hook pre-commit` prints a snippet to paste into that hook instead. It does not infer product knowledge. [Connect your coding agent](#connect-your-coding-agent), then ask it:
 
 > **Bootstrap Kibi for this repository.**
 
-pnpm, Yarn, and Bun work the same way through their local runners; the [installation guide](https://looted.github.io/kibi/guide/install.html) has the equivalents, and `npm exec -- kibi doctor` reports which SWI-Prolog Kibi is using and the package versions of the running engine daemon (a daemon left by another install is replaced by the next Kibi command); it also fails on a branch whose authored knowledge was never compiled into its store and warns when Kibi's Git hooks are not installed. A system SWI-Prolog is only a fallback: Kibi uses `KIBI_SWIPL` if set, then the bundled runtime, then `swipl` on `PATH`. Set `KIBI_SWIPL=system` to prefer your own install. Do not install with `--omit=optional` (or pnpm `supportedArchitectures` that exclude your platform): the bundled runtime is an optional dependency.
+pnpm, Yarn, and Bun work the same way through their local runners; the [installation guide](https://looted.github.io/kibi/guide/install.html) has the equivalents (on pnpm 11, whose default `minimumReleaseAge` holds back a same-day Kibi release, add `kibi-*` to `minimumReleaseAgeExclude` in `pnpm-workspace.yaml` or wait a day), and `npm exec -- kibi doctor` reports which SWI-Prolog Kibi is using and the package versions of the running engine daemon (a daemon left by another install is replaced by the next Kibi command); it also fails on a branch whose authored knowledge was never compiled into its store and warns when Kibi's Git hooks are not installed. A system SWI-Prolog is only a fallback: Kibi uses `KIBI_SWIPL` if set, then the bundled runtime, then `swipl` on `PATH`. Set `KIBI_SWIPL=system` to prefer your own install. Do not install with `--omit=optional` (or pnpm `supportedArchitectures` that exclude your platform): the bundled runtime is an optional dependency.
 
 </details>
 
