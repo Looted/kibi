@@ -191,8 +191,9 @@ returns `status: error`, `MIGRATION_PLAN_REFUSED` and `data.outcome:
 refused`: nothing changed, so read the action `detail` and get a new plan.
 `data.outcome: reconciliation_required` (status success) means an action
 failed mid-way: inspect its effect before retrying. `kb_delete` of an
-authored entity returns status success with `deleted: 0`; its `errors` say
-why nothing was deleted. If the status is
+authored entity returns status success with `deleted: 0` and `outcome:
+plan_returned` (or `supersession_required` for a requirement): nothing was
+deleted yet, and `nextActions` names the call that does it. If the status is
 `committed_with_repairs`, the mutation already committed: inspect failed effects,
 execute each required repair action in order, and never retry the original
 operation. Record effect failures, followed actions, and unsafe retries in
@@ -305,12 +306,18 @@ authored. Each one is the order the write path accepts.
    between the two writes `kb_check` reports the requirement until the
    second lands.
 3. **Deleting authored entities.** `kb_delete` on an authored entity that
-   is not a requirement (scenario, test, fact, ADR, …) returns a hash-bound
-   `kibi.entity-deletion-plan.v1` in `deletionPlan`; apply it unchanged with
-   `kb_apply_plan` (`plan` plus `approvedPlanHash: plan.planHash`). For an
-   authored requirement the plan carries `supersessionRequired: true` and
-   `kb_apply_plan` refuses it (`REQUIREMENT_SUPERSESSION_REQUIRED`): Kibi
-   never deletes an authored requirement. Evolve it instead with a new
+   is not a requirement (scenario, test, fact, ADR, …) writes nothing and
+   returns `outcome: plan_returned` with a hash-bound
+   `kibi.entity-deletion-plan.v1` in `deletionPlan`. After review, run
+   `nextActions[0]` unchanged: `kb_apply_plan` with its `input` (`plan` plus
+   `approvedPlanHash: plan.planHash`), or repeat the `kb_delete` call with
+   `approvedPlanHash` to apply the freshly computed plan in one step (a
+   changed source fails with `DELETE_PLAN_HASH_MISMATCH`). `dryRun: true`
+   previews relationship and direct deletes without writing. For an
+   authored requirement the result is `outcome: supersession_required`, the
+   plan carries `supersessionRequired: true` and both routes refuse it
+   (`REQUIREMENT_SUPERSESSION_REQUIRED`): Kibi never deletes an authored
+   requirement. Evolve it instead with a new
    requirement linked by `supersedes` and close the old one, or, for an
    agent-origin requirement nobody approved and nothing links to, upsert it
    with `status: closed` (keep its `title`); it stays on disk as history. A

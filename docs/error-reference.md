@@ -165,6 +165,14 @@ The read ran under `KIBI_ENGINE_READ_TIME_LIMIT_MS` or `KIBI_ENGINE_READ_INFEREN
 
 An error ending in `[settled before this failure: ...]` comes from a mutating call that first completed or rolled back an interrupted plan from its journal, then failed on its own work. The settlement stands; read it to learn which plan was completed or rolled back. A plan compiled before that settlement usually fails its snapshot check and must be compiled again.
 
+## Deletion plan approval (`kb_delete` with `approvedPlanHash`)
+
+`DELETE_PLAN_HASH_MISMATCH` means the `approvedPlanHash` passed to `kb_delete` is not the hash of the deletion plan computed from the current sources: the `ids` differ from the call that returned the plan, or an authored source or relationship shard changed since. Nothing was written. Call `kb_delete` again without `approvedPlanHash`, review the new `deletionPlan`, and approve its `planHash`.
+
+`REQUIREMENT_SUPERSESSION_REQUIRED` from `kb_delete` or `kb_apply_plan` means the plan covers an authored requirement. Requirements are not deleted: upsert a replacement requirement with a `supersedes` relationship and close the old one, as the `supersession_required` result's `nextActions` entry shows.
+
+`VALIDATION_FAILED` from `kb_delete` with `approvedPlanHash` means the approval cannot apply: it was combined with `relationships` or `dryRun: true`, an id was not resolved into the plan (missing, or has dependents), or no id produced an authored-entity plan. Nothing was written.
+
 ## Low-confidence requirement modeling downgrade (`kb_model` mode `requirement`)
 
 When confidence is below `0.70`, Kibi emits a non-blocking `fact_kind: observation`. If the prose is normative, retry with explicit `subjectKey`, `propertyKey`, `operator`, and `value` so the tool can produce strict facts.

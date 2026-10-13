@@ -706,6 +706,22 @@ const BASE_DATA_SCHEMAS: Readonly<
     status: stringValue,
     effectFailures: recordArray,
     nextActions: recordArray,
+    outcome: {
+      type: "string",
+      enum: [
+        "plan_returned",
+        "supersession_required",
+        "plan_applied",
+        "dry_run",
+      ],
+      description:
+        "Absent on a direct delete. plan_returned: deletionPlan was returned and nothing was written; nextActions[0].input is the exact kb_apply_plan input. supersession_required: an authored requirement must be superseded with kb_upsert instead. plan_applied: approvedPlanHash matched and the plan was applied. dry_run: dryRun:true previewed the delete and nothing was written.",
+    },
+    dryRun: { const: true },
+    wouldDelete: recordValue,
+    planHash: stringValue,
+    sourcePaths: stringArray,
+    recoveryJournalId: stringValue,
   }),
   kb_check: {
     description:
