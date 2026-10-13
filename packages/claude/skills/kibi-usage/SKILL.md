@@ -5,7 +5,7 @@ license: AGPL-3.0-or-later
 metadata:
   displayName: Kibi Usage
   id: kibi-usage
-  version: 2.16.0
+  version: 2.16.1
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -289,8 +289,13 @@ authored. Each one is the order the write path accepts.
    existing entity, whose stored ledger Kibi keeps.
 2. **Changing the text of a grounded requirement.** New prose means new
    claim keys, so a bare rewrite is refused with `modeled proposition
-   claim_keys must match logical grounding target claim_keys exactly`.
-   Prefer supersession for a change of meaning: analyze the new prose,
+   claim_keys must match logical grounding target claim_keys exactly`; the
+   error names the modeled keys no fact declares and the facts whose keys
+   the ledger dropped. Analyze the new prose with the requirement's `id`
+   first: the receipt warns `Claim-key drift against the stored ledger`
+   and names the grounded clauses the new wording drops (the title worded
+   differently from the stored `semantic_text` is the usual cause), before
+   any write. Prefer supersession for a change of meaning: analyze the new prose,
    write its facts, write the new requirement (`-v2`) with `supersedes` to
    the old one, then set the old one to `status: closed`. Its scenario
    follows the same rule as in recipe 1: create the new scenario (with
