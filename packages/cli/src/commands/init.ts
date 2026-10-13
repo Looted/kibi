@@ -29,11 +29,14 @@ import {
 } from "../utils/git-repository-context.js";
 import { scaffoldGitHubIntegration } from "./github-init.js";
 import {
+  MANAGED_HOOK_NAMES,
   copySchemaFiles,
   createKbDirectoryStructure,
   createManifestFile,
   ensureSymbolsManifestFile,
+  hookDelegationSnippet,
   installGitHooks,
+  isManagedHookName,
   updateGitIgnore,
 } from "./init-helpers.js";
 
@@ -102,6 +105,7 @@ interface InitOptions {
   hooks?: boolean;
   github?: boolean;
   badgeOnly?: boolean;
+  printHook?: string;
 }
 
 async function initNextAction(projectRoot: string): Promise<{
@@ -157,6 +161,20 @@ async function initNextAction(projectRoot: string): Promise<{
 export async function initCommand(
   options: InitOptions,
 ): Promise<{ exitCode: number }> {
+  if (options.printHook !== undefined) {
+    // Print-only mode: emit a delegation snippet for a hook Kibi does not
+    // own and touch nothing, not even the repository context.
+    // implements REQ-git-hook-effective-install
+    if (!isManagedHookName(options.printHook)) {
+      console.error(
+        `Error: unknown hook '${options.printHook}' for --print-hook. Expected one of: ${MANAGED_HOOK_NAMES.join(", ")}.`,
+      );
+      return { exitCode: 1 };
+    }
+    process.stdout.write(hookDelegationSnippet(options.printHook));
+    return { exitCode: 0 };
+  }
+
   if (options.badgeOnly === true && options.github !== true) {
     console.error(
       "Error: --badge-only requires --github. The recommended integration is `kibi init --github` (badge + full report).",

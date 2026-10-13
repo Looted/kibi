@@ -82,11 +82,15 @@ export interface KibiImpactSymbolsManifestFileDetail {
   path: string;
   /** Symbol count extraction finds in the staged source content. */
   expectedCount: number;
-  /** Symbol count the staged manifest+coordinates evidence covers. */
+  /**
+   * Extracted symbols that have a matching staged manifest+coordinates entry
+   * (`expectedCount - missing.length`); evidence-only entries in `extra` are
+   * not counted.
+   */
   coveredCount: number;
-  /** Extracted symbols with no evidence entry (title + definition line). */
+  /** Every extracted symbol with no evidence entry (title + definition line). */
   missing: Array<{ title: string; line: number }>;
-  /** Evidence entries the extractor no longer finds at the recorded shape. */
+  /** Every evidence entry the extractor no longer finds at the recorded shape. */
   extra: string[];
 }
 

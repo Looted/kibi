@@ -495,7 +495,9 @@ status: open
     restores.push(io.restore);
     const result = await withCwd(cwd, () => doctorCommand({ format: "json" }));
     expect(result.exitCode).toBe(1);
-    expect(io.logText()).toContain("does not invoke kibi");
+    expect(io.logText()).toContain(
+      "Custom pre-commit hook (no kibi-managed section) does not run",
+    );
   });
 
   test("treats an unreadable package.json during provenance walk as absent", async () => {

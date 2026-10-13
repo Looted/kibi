@@ -646,9 +646,12 @@ describe("kibi init hook-path coverage messaging", () => {
     writeFileSync(path.join(hooksDir, "post-merge"), "#!/bin/sh\necho fm\n");
 
     const output = kibi("init", repo);
-    expect(output).toContain(
-      "kibi check-generated --staged --changed-only && kibi check --staged",
-    );
+    const preLine = output
+      .split("\n")
+      .find((line) => line.startsWith("! pre-commit:"));
+    expect(preLine).toContain("'kibi check-generated --staged --changed-only'");
+    expect(preLine).toContain("'kibi check --staged'");
+    expect(preLine).toContain("kibi init --print-hook pre-commit");
     const postLine = output
       .split("\n")
       .find((line) => line.startsWith("! post-merge:"));

@@ -307,7 +307,7 @@ export async function copySchemaFiles(
   console.log(`✓ Ensured ${schemaFiles.length} schema files`);
 }
 
-const KIBI_HOOK_BEGIN = "# BEGIN kibi-managed";
+export const KIBI_HOOK_BEGIN = "# BEGIN kibi-managed";
 const KIBI_HOOK_END = "# END kibi-managed";
 
 function escapeRegex(s: string): string {
@@ -321,21 +321,65 @@ export type InstallHookResult =
   | "skipped-symlink"
   | "skipped-unsupported";
 
-function hookIntegrationRecipe(hook: string): string {
-  // Recipes must reproduce the exact checks the Kibi template runs for that
-  // hook, with failure propagation, or the delegation is weaker than the
-  // template it replaces.
+/** Hook names `kibi init` manages, in install order. */
+export const MANAGED_HOOK_NAMES = [
+  "post-checkout",
+  "post-merge",
+  "post-rewrite",
+  "pre-commit",
+] as const;
+
+export type ManagedHookName = (typeof MANAGED_HOOK_NAMES)[number];
+
+// implements REQ-git-hook-effective-install
+export function isManagedHookName(value: string): value is ManagedHookName {
+  return (MANAGED_HOOK_NAMES as readonly string[]).includes(value);
+}
+
+/**
+ * A copy-paste snippet for wiring Kibi into a hook that Kibi does not own
+ * (hand-written, husky, lefthook, ...). It reuses the managed template's
+ * KIBI_BIN resolution, so a project-local kibi CLI is found even though git
+ * does not put node_modules/.bin on PATH, and every command propagates its
+ * failure so the delegation is never weaker than the template it replaces.
+ */
+// implements REQ-git-hook-effective-install
+export function hookDelegationSnippet(hook: ManagedHookName): string {
+  const header = [
+    `# Kibi ${hook} delegation (printed by 'kibi init --print-hook ${hook}').`,
+    `# Paste into your existing ${hook} hook; it runs the same Kibi commands`,
+    "# as the Kibi-managed template.",
+  ].join("\n");
+  const guarded = (condition: string, commands: string): string => {
+    const body = `${KIBI_BIN_RESOLVER}\n${commands}`.replace(/^(?=.)/gm, "  ");
+    return `${header}\nif ${condition}; then\n${body}\nfi\n`;
+  };
   switch (hook) {
     case "pre-commit":
-      return "delegate from that hook with 'kibi check-generated --staged --changed-only && kibi check --staged' (both commands must succeed; '&&' propagates the first failure)";
+      return `${header}\n${KIBI_BIN_RESOLVER}\n"$KIBI_BIN" check-generated --staged --changed-only || exit $?\n"$KIBI_BIN" check --staged || exit $?\n`;
     case "post-checkout":
-      return "delegate from that hook to 'kibi sync' on branch checkouts (the template skips file checkouts)";
+      // Only branch checkouts refresh the KB; file checkouts are skipped.
+      return guarded('[ "$3" = "1" ]', '"$KIBI_BIN" sync');
     case "post-merge":
-      return "delegate from that hook to 'kibi sync'";
+      return `${header}\n${KIBI_BIN_RESOLVER}\n"$KIBI_BIN" sync\n`;
     case "post-rewrite":
-      return "delegate from that hook to 'kibi sync' after rebase/amend rewrites";
-    default:
-      return "delegate to the matching Kibi template command";
+      return guarded('[ "$1" = "rebase" ]', '"$KIBI_BIN" sync');
+  }
+}
+
+function hookIntegrationRecipe(hook: ManagedHookName): string {
+  // Recipes must name the exact checks the Kibi template runs for that hook;
+  // the printed snippet adds CLI resolution and failure propagation.
+  const printHook = `print a copy-paste snippet that resolves a project-local kibi with 'kibi init --print-hook ${hook}'`;
+  switch (hook) {
+    case "pre-commit":
+      return `delegate from that hook to both 'kibi check-generated --staged --changed-only' and 'kibi check --staged' (both must succeed); ${printHook}`;
+    case "post-checkout":
+      return `delegate from that hook to 'kibi sync' on branch checkouts (the template skips file checkouts); ${printHook}`;
+    case "post-merge":
+      return `delegate from that hook to 'kibi sync'; ${printHook}`;
+    case "post-rewrite":
+      return `delegate from that hook to 'kibi sync' after rebase rewrites; ${printHook}`;
   }
 }
 
@@ -417,7 +461,7 @@ export function installHook(
 }
 
 export interface GitHookInstallResult {
-  hook: "pre-commit" | "post-checkout" | "post-merge" | "post-rewrite";
+  hook: ManagedHookName;
   result: InstallHookResult;
 }
 
