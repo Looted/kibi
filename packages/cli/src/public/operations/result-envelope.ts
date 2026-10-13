@@ -17,6 +17,36 @@ function diagnostics(value: unknown): KibiResult["diagnostics"] {
   });
 }
 
+// Discovery operations whose empty answer may come from an uncompiled store.
+const STORE_READ_OPERATIONS = new Set(["kb_search", "kb_query"]);
+
+/**
+ * A search or query answered from a branch store that was never compiled
+ * reads an empty KB. The payload already names the store state; the envelope
+ * also raises it as a warning, so a caller that reads only `status` and
+ * `diagnostics` does not take the empty answer as "nothing governs this".
+ */
+// implements REQ-cli-status-pre-first-sync, REQ-mcp-search-discovery
+function uncompiledStoreDiagnostics(
+  operation: string,
+  row: Record<string, unknown> | undefined,
+): KibiResult["diagnostics"] {
+  const store = row?.branchStore;
+  if (
+    !STORE_READ_OPERATIONS.has(operation) ||
+    !record(store) ||
+    store.state !== "not_compiled"
+  )
+    return [];
+  return [
+    {
+      ...(typeof store.code === "string" ? { code: store.code } : {}),
+      severity: "warning",
+      message: `${typeof store.detail === "string" ? `${store.detail} ` : ""}An empty answer here does not mean no requirement governs this; run \`kibi sync\` and ask again.`,
+    },
+  ];
+}
+
 function nextActions(value: unknown): KibiResult["nextActions"] {
   if (!Array.isArray(value)) return [];
   return value.flatMap((entry) => {
@@ -214,7 +244,10 @@ export function toKibiResult<T>(
       ...spec.effects.map((effect) => effectStatus(effect, row, outcome)),
       ...extraFailedEffects(spec.effects, row),
     ],
-    diagnostics: options.diagnostics ?? diagnostics(row?.diagnostics),
+    diagnostics: options.diagnostics ?? [
+      ...diagnostics(row?.diagnostics),
+      ...uncompiledStoreDiagnostics(String(spec.name), row),
+    ],
     nextActions: options.nextActions ?? nextActions(row?.nextActions),
     ...(resultError ? { error: resultError } : {}),
   };

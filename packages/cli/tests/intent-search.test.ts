@@ -358,6 +358,53 @@ describe("intent-v1 search ranking", () => {
   });
 });
 
+describe("intent-v1 compound queries", () => {
+  const corpus = [
+    entity("REQ-ROLE-LIMIT", "A user holds at most two roles at the same time"),
+    entity("REQ-EXPORT", "An auditor must be able to export reports"),
+    entity("REQ-UPLOAD", "Video uploads resume after a dropped connection"),
+    entity("REQ-PLAYBACK", "Playback keeps the selected speed"),
+    entity("REQ-BILLING", "Invoices are issued at the end of the month"),
+  ];
+
+  test("a clause that matches is not diluted by the other clauses", async () => {
+    const result = await rankIntentEntities(
+      corpus,
+      {
+        query:
+          "user roles: how many roles can a user have, support team escalation",
+      },
+      workspaceRoot,
+      [],
+    );
+    expect(result.analysis.abstained).toBe(false);
+    expect(result.matches[0]?.entity.id).toBe("REQ-ROLE-LIMIT");
+  });
+
+  test("the same words as one clause still abstain", async () => {
+    const result = await rankIntentEntities(
+      corpus,
+      {
+        query:
+          "user roles how many roles can a user have support team escalation",
+      },
+      workspaceRoot,
+      [],
+    );
+    expect(result.analysis.abstained).toBe(true);
+  });
+
+  test("a one-word clause does not stand in for the question", async () => {
+    const result = await rankIntentEntities(
+      corpus,
+      { query: "roles, quarterly escalation budget forecast" },
+      workspaceRoot,
+      [],
+    );
+    expect(result.analysis.abstained).toBe(true);
+  });
+});
+
 describe("intent-v1 input validation", () => {
   test("rejects absolute and escaping source paths", () => {
     expect(() =>
