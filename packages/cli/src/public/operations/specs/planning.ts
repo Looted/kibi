@@ -86,7 +86,7 @@ export const compileIntentSpec = {
         items: { type: "string", minLength: 1 },
         maxItems: 64,
         description:
-          "Optional complete atomic clause decomposition. Each assertive clause receives independent proposition accounting.",
+          "Optional complete atomic clause decomposition. Each clause must be a verbatim fragment of intent (whitespace may differ); a clause that does not occur in intent fails the call with VALIDATION_FAILED naming it. Each assertive clause receives independent proposition accounting.",
       },
       semanticFacets: {
         type: "object",

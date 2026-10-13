@@ -191,6 +191,30 @@ function asUpsert(step: PlanStep): UpsertInput {
   };
 }
 
+// implements REQ-kibi-change-to-proof-plan-compiler-v2
+/**
+ * Why a plan that is not ready cannot be applied, with the remedy for its
+ * status. The leading sentence stays the same for every status.
+ */
+function notReadyPlanMessage(
+  prefix: "Apply plan failed" | "Bootstrap apply failed",
+  status: unknown,
+): string {
+  const base = `${prefix}: only ready plans may be applied; this plan's status is '${String(status)}'.`;
+  switch (status) {
+    case "needs_resolution":
+      return `${base} Resolve its ontology_gap and missing propositions first (model each with kb_model mode requirement or predicates, then call kb_compile_intent again and apply the ready plan it returns), and fix any step its diagnostics name. Or write the requirement with kb_upsert carrying the plan's inventory contract, with the unmodeled propositions kept as status ontology_gap entries, as the kibi-usage skill describes.`;
+    case "blocked":
+      return prefix === "Apply plan failed"
+        ? `${base} Its contradiction analysis found a conflict with a current requirement: resolve the contradiction first (supersede or change the conflicting requirement, or change the intent), then compile again.`
+        : `${base} Resolve what its diagnostics name, then plan the bootstrap again.`;
+    case "needs_context":
+      return `${base} Supply the bootstrap context it asks for, then plan the bootstrap again.`;
+    default:
+      return `${base} Compile or plan again and apply the plan it returns once its status is 'ready'.`;
+  }
+}
+
 function validateCompilePlanShape(
   args: Extract<ApplyPlanArgs, { plan: CompilePlanV1 }>,
 ): void {
@@ -199,7 +223,7 @@ function validateCompilePlanShape(
   if (args.plan.version !== "kibi.compile-plan.v1")
     throw new Error("Apply plan failed: unsupported plan version");
   if (args.plan.status !== "ready")
-    throw new Error("Apply plan failed: only ready plans may be applied");
+    throw new Error(notReadyPlanMessage("Apply plan failed", args.plan.status));
   if (!/^[a-f0-9]{64}$/i.test(args.approvedPlanHash))
     throw new Error(
       "Apply plan failed: approvedPlanHash must be a SHA-256 hash",
@@ -316,7 +340,7 @@ function validateBootstrapPlanShape(
 ): BootstrapAction[] {
   const { plan } = args;
   if (plan.status !== "ready")
-    throw new Error("Bootstrap apply failed: only ready plans may be applied");
+    throw new Error(notReadyPlanMessage("Bootstrap apply failed", plan.status));
   if (!/^[a-f0-9]{64}$/i.test(args.approvedPlanHash))
     throw new Error("Bootstrap apply failed: approvedPlanHash must be SHA-256");
   if (args.approvedPlanHash !== plan.planHash)

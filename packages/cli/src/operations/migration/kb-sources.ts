@@ -104,19 +104,21 @@ export type FrontmatterSlice = Readonly<{
 }>;
 
 /**
- * Split a document the way the Markdown extractor reads it: the frontmatter
- * ends at the next `---` after the opening delimiter. Returns null when that
- * `---` is not at the start of a line, because an edit there could not be
- * read back.
+ * Split a document around its YAML frontmatter: the opening and the closing
+ * delimiter are each a whole line holding only `---` (trailing whitespace
+ * allowed). A `---` inside a line, such as a Markdown table separator row
+ * in a quoted scalar, never ends the frontmatter. Returns null when there is
+ * no such opening and closing pair.
  */
 // implements REQ-cli-schema-migration
 export function sliceFrontmatter(content: string): FrontmatterSlice | null {
   const leading = content.length - content.trimStart().length;
-  if (!content.startsWith("---", leading)) return null;
-  const openEnd = content.indexOf("\n", leading + 3);
-  if (openEnd < 0) return null;
-  const close = content.indexOf("---", leading + 3);
-  if (close <= openEnd || content[close - 1] !== "\n") return null;
+  const open = /^---[ \t]*\r?\n/.exec(content.slice(leading));
+  if (open === null) return null;
+  const openEnd = leading + open[0].length - 1;
+  const match = /^---[ \t]*\r?$/m.exec(content.slice(openEnd + 1));
+  if (match === null) return null;
+  const close = openEnd + 1 + match.index;
   const text = content.slice(openEnd + 1, close);
   return {
     prefix: content.slice(0, openEnd + 1),
@@ -158,9 +160,23 @@ export function readTopLevelField(frontmatter: string, key: string): unknown {
   }
 }
 
+/**
+ * A YAML double-quoted scalar for `value` with no run of three dashes, so a
+ * reader that splits the document on any `---` still finds the frontmatter
+ * intact. Every second dash of a run is written as the `\x2D` escape, which
+ * YAML reads back as the same dash.
+ */
+function doubleQuotedScalar(value: string): string {
+  return JSON.stringify(value).replace(/-{3,}/g, (run) =>
+    [...run].map((dash, index) => (index % 2 === 1 ? "\\x2D" : dash)).join(""),
+  );
+}
+
 function scalarLine(key: string, value: string, previous: string): string {
+  const quoted = `${key}: ${doubleQuotedScalar(value)}`;
+  if (value.includes("---")) return quoted;
   const raw = previous.slice(previous.indexOf(":") + 1).trim();
-  if (raw.startsWith('"')) return `${key}: ${JSON.stringify(value)}`;
+  if (raw.startsWith('"')) return quoted;
   if (raw.startsWith("'")) return `${key}: '${value.replaceAll("'", "''")}'`;
   try {
     const plain = loadYaml(`${key}: ${value}`);
@@ -168,14 +184,39 @@ function scalarLine(key: string, value: string, previous: string): string {
   } catch {
     // Fall through to a quoted scalar.
   }
-  return `${key}: ${JSON.stringify(value)}`;
+  return quoted;
+}
+
+/**
+ * Whether `document` reads back, through the same frontmatter split, as
+ * exactly `expected` with the closing delimiter and body of `original`
+ * unchanged, and without a new `---` in its frontmatter that a reader
+ * splitting on any `---` would cut on.
+ */
+function readsBackAs(
+  document: string,
+  expected: Record<string, unknown>,
+  original: FrontmatterSlice,
+): boolean {
+  const slice = sliceFrontmatter(document);
+  if (slice === null || slice.suffix !== original.suffix) return false;
+  if (slice.text.includes("---") && !original.text.includes("---")) {
+    return false;
+  }
+  try {
+    return isDeepStrictEqual(loadYaml(slice.text), expected);
+  } catch {
+    return false;
+  }
 }
 
 /**
  * Set one top-level scalar frontmatter key, leaving every other byte of the
  * document unchanged: the key's line is replaced in place, or appended as the
  * last frontmatter key when absent. Returns null when the key spans several
- * lines or the edit would not read back as exactly that change.
+ * lines or the edit would not read back as exactly that change: the written
+ * document is split and parsed again and must yield the same frontmatter and
+ * the same body.
  */
 // implements REQ-cli-schema-migration
 export function withTopLevelField(
@@ -203,10 +244,11 @@ export function withTopLevelField(
     const { [key]: _beforeValue, ...beforeRest } = before;
     const { [key]: _nextValue, ...nextRest } = next;
     if (!isDeepStrictEqual(beforeRest, nextRest)) return null;
+    const document = `${slice.prefix}${text}${slice.suffix}`;
+    return readsBackAs(document, next, slice) ? document : null;
   } catch {
     return null;
   }
-  return `${slice.prefix}${text}${slice.suffix}`;
 }
 
 function frontmatterRecord(text: string): Record<string, unknown> | null {

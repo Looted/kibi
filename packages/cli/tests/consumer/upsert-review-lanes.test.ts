@@ -175,3 +175,85 @@ describe("kb_upsert review lanes through the real CLI", () => {
     expect((status.data as Json).syncState).toBe("fresh");
   }, 120_000);
 });
+
+describe("kb_upsert judges a requirement update as its file will read", () => {
+  const ID = "REQ-export-retention";
+  const PROSE = "Each export must stay downloadable for thirty days.";
+
+  test("refuses making an inventory-less requirement current and accepts it with the inventory", () => {
+    const workspace = createConsumerWorkspace("kibi-upsert-stored-boundary-");
+    ws = workspace;
+    workspace.write(
+      `.kb/requirements/${ID}.md`,
+      `---\nid: ${ID}\ntitle: Export retention\nstatus: draft\npriority: must\n---\n\n${PROSE}\n\n## Context\n\nSupport asked for a retention window after customers could not tell how long an export stays available.\n`,
+    );
+    workspace.sync();
+
+    // The payload alone carries no prose, but the file it leaves is a closed
+    // (current) requirement whose prose has no inventory.
+    const closed = workspace.json(["upsert"], {
+      type: "req",
+      id: ID,
+      properties: { title: "Export retention", status: "closed" },
+    });
+    expect(closed.status).toBe("error");
+    const message = JSON.stringify(closed.error);
+    expect(message).toContain("Proposition-complete ingestion failed");
+    expect(message).toContain(
+      `${ID} would be written as a current requirement`,
+    );
+    expect(message).toContain("semantic_inventory must contain exactly 1");
+    expect(message).toContain(`with id '${ID}'`);
+    expect(workspace.read(`.kb/requirements/${ID}.md`)).toContain(
+      "status: draft",
+    );
+
+    const analysis = workspace.json(["model"], {
+      mode: "analyze",
+      type: "req",
+      id: ID,
+      text: PROSE,
+    });
+    const receipt = (analysis.data as Json).receipt as Json;
+    const contract = receipt.inventory_contract as Json;
+    const propositions = receipt.propositions as Json[];
+    expect(propositions).toHaveLength(1);
+    const accepted = workspace.json(["upsert"], {
+      type: "req",
+      id: ID,
+      properties: {
+        title: "Export retention",
+        status: "closed",
+        semantic_text: PROSE,
+        semantic_inventory_version: contract.version,
+        semantic_source_field: contract.source_field,
+        semantic_source_hash: contract.source_hash,
+        semantic_inventory: propositions.map(
+          ({ claim_key, claim_text, role, status, span }) => ({
+            claim_key,
+            claim_text,
+            role,
+            status,
+            span,
+          }),
+        ),
+        logic_claims: propositions.map(({ claim_key }) => claim_key),
+      },
+    });
+    expect(accepted).toMatchObject({ status: "success" });
+    workspace.sync();
+    const [stored] = (workspace.json(["query"], { id: ID }).data as Json)
+      .entities as Json[];
+    expect(stored?.status).toBe("closed");
+    expect(stored?.semantic_inventory).toHaveLength(1);
+
+    // A later status-only update keeps the stored inventory and passes.
+    expect(
+      workspace.json(["upsert"], {
+        type: "req",
+        id: ID,
+        properties: { title: "Export retention", status: "open" },
+      }),
+    ).toMatchObject({ status: "success" });
+  }, 120_000);
+});

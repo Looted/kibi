@@ -265,7 +265,7 @@ describe("coverage gaps: semantic advisor spec", () => {
     const result = await semanticAdvisorSpec.execute(
       {
         text: "The checkout flow must be retained for 30 days.",
-        clauses: ["keep", 12, "also"],
+        clauses: ["The checkout flow must be retained", 12, "for 30 days"],
         interpretations: [
           {
             claim_key: "CLAIM-1",

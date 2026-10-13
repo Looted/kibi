@@ -2508,7 +2508,7 @@
             "type": "string"
           },
           "clauses": {
-            "description": "Optional complete list of atomic requirement clauses supplied by the caller. Use this for compound prose so every normative clause receives a stable claim key and independent grounding review.",
+            "description": "Optional complete list of atomic requirement clauses supplied by the caller. Each clause must be a verbatim fragment of text (whitespace may differ); a clause that does not occur in text fails the call with VALIDATION_FAILED naming it. Use this for compound prose so every normative clause receives a stable claim key and independent grounding review.",
             "items": {
               "type": "string"
             },
@@ -7072,7 +7072,7 @@
             "type": "object"
           },
           "clauses": {
-            "description": "Optional complete atomic clause decomposition. Each assertive clause receives independent proposition accounting.",
+            "description": "Optional complete atomic clause decomposition. Each clause must be a verbatim fragment of intent (whitespace may differ); a clause that does not occur in intent fails the call with VALIDATION_FAILED naming it. Each assertive clause receives independent proposition accounting.",
             "items": {
               "minLength": 1,
               "type": "string"

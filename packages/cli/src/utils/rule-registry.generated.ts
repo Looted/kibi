@@ -12,7 +12,7 @@ export const GENERATED_RULES = [
   {
     name: "must-priority-coverage",
     description:
-      "Every must-priority requirement must have a scenario and a test",
+      "Every current must-priority requirement (not superseded, retired, or closed without the implemented tag) must have a scenario and a test",
     enforcementClass: "canonical",
     category: "coverage",
   },

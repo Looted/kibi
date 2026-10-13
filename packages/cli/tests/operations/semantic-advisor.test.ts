@@ -1132,3 +1132,63 @@ describe("semantic advisor operation", () => {
     });
   });
 });
+
+describe("caller-supplied clauses", () => {
+  const intent =
+    "Pressing Escape cancels the pending upload. Opening another report keeps its filters while sorting continues.";
+  const payload = {
+    type: "req",
+    id: "REQ-upload-escape",
+    properties: { title: "Escape", status: "open", semantic_text: intent },
+  };
+
+  test("verbatim clauses get the spans and claim text of the prose", () => {
+    const clauses = [
+      "Pressing Escape cancels the pending upload.",
+      "Opening another report keeps its filters",
+      "while sorting continues",
+    ];
+    const { receipt } = analyzeSemanticAdvisorInput({ payload, clauses });
+    const bytes = Buffer.from(intent, "utf8");
+    expect(receipt.propositions.map((p) => p.claim_text)).toEqual([
+      "Pressing Escape cancels the pending upload",
+      "Opening another report keeps its filters",
+      "while sorting continues",
+    ]);
+    for (const proposition of receipt.propositions) {
+      expect(
+        bytes
+          .subarray(proposition.span.start, proposition.span.end)
+          .toString("utf8"),
+      ).toBe(proposition.claim_text);
+    }
+  });
+
+  test("a clause with different whitespace still matches its source text", () => {
+    const { receipt } = analyzeSemanticAdvisorInput({
+      payload,
+      clauses: [
+        "Pressing  Escape\ncancels the pending upload",
+        "Opening another report keeps its filters while sorting continues",
+      ],
+    });
+    expect(receipt.propositions[0]?.claim_text).toBe(
+      "Pressing Escape cancels the pending upload",
+    );
+  });
+
+  test("a paraphrased clause fails naming the clause", () => {
+    const run = () =>
+      analyzeSemanticAdvisorInput({
+        payload,
+        clauses: [
+          "Pressing Escape cancels the pending upload",
+          "Choosing a different report preserves the filters during sorts",
+        ],
+      });
+    expect(run).toThrow(
+      'not occur in it: "Choosing a different report preserves the filters during sorts"',
+    );
+    expect(run).toThrow("must be verbatim fragments of the requirement prose");
+  });
+});
