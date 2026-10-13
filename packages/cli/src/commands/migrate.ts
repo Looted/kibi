@@ -16,6 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { execFileSync } from "node:child_process";
 import {
   existsSync,
   mkdirSync,
@@ -182,6 +183,13 @@ const SCHEMA_MIGRATION_STEPS: readonly SchemaMigrationStep[] = [
     to: 8,
     description:
       "Pin semantic_text on requirements that lack it (computed from the body before context sections stop counting), and tag current entities without body context review:context-missing; front matter only, bodies are preserved.",
+  },
+  {
+    id: "decision-firmness-v9",
+    from: 8,
+    to: 9,
+    description:
+      "Accept firmness on requirements and ADRs, and acknowledge in the manifest the current supersedes recorded without a 'Why this changed' section; no source file is rewritten and no reason is invented.",
   },
 ];
 
@@ -658,10 +666,14 @@ export async function migrateCommand(
   const manifestStatus = readKbManifestStatus(cwd);
   const storagePlan = planLegacyStorageMigration(cwd);
 
-  // Baseline for fresh workspaces driven by the internal plan executor.
+  // Baseline for fresh workspaces driven by the internal plan executor. A
+  // legacy layout carries its own schema generation; a baseline would claim
+  // the latest one and skip every legacy step.
   if (
     options.initializeMissingConfig === true &&
-    manifestStatus.state === "missing"
+    manifestStatus.state === "missing" &&
+    storagePlan.moves.length === 0 &&
+    storagePlan.legacyConfig === "absent"
   ) {
     writeKbManifest(cwd, defaultKbManifest());
   }
@@ -680,7 +692,16 @@ export async function migrateCommand(
   const { branch, warnings: branchWarnings } = branchResult;
   const currentManifest = readKbManifest(cwd);
   const legacySchemaVersion = normalizeSchemaVersion(storagePlan.schemaVersion);
-  const currentVersion = currentManifest?.schemaVersion ?? legacySchemaVersion;
+  // While a legacy config is still present, its schemaVersion is the
+  // generation the knowledge was written for; a manifest created beside it
+  // (by an older 'kibi init') must not skip the steps in between.
+  const currentVersion =
+    storagePlan.legacyConfig !== "absent" && legacySchemaVersion !== null
+      ? Math.min(
+          currentManifest?.schemaVersion ?? legacySchemaVersion,
+          legacySchemaVersion,
+        )
+      : (currentManifest?.schemaVersion ?? legacySchemaVersion);
   const normalizedVersion = normalizeSchemaVersion(currentVersion);
   const configStatus = getSchemaVersionStatus(
     normalizedVersion === null
@@ -782,6 +803,13 @@ export async function migrateCommand(
   const bodyContextStep = migrationSteps.some(
     (step) => step.id === "entity-body-context-v8",
   );
+  const decisionFirmnessStep = migrationSteps.some(
+    (step) => step.id === "decision-firmness-v9",
+  );
+  const {
+    mergeSupersedesAcknowledgements,
+    planSupersedesReasonAcknowledgement,
+  } = await import("../operations/migration/supersedes-reason.js");
   const {
     acknowledgedContextIds,
     applyContextMissingTags,
@@ -813,6 +841,13 @@ export async function migrateCommand(
         );
       for (const skip of [...pins.skipped, ...tags.skipped])
         printWarning(`Cannot edit ${skip.path}: ${skip.reason}.`);
+    }
+    if (decisionFirmnessStep) {
+      const unexplained = planSupersedesReasonAcknowledgement(cwd);
+      if (unexplained.length > 0)
+        console.log(
+          `dry run: would acknowledge ${unexplained.length} supersede(s) recorded without a 'Why this changed' section (manifest only; no reason is written).`,
+        );
     }
     if (storagePlan.moves.length > 0) {
       console.log(
@@ -871,6 +906,11 @@ export async function migrateCommand(
       console.log(
         `Moved ${storageResult.movedFiles.length} knowledge file(s) into the canonical .kb/ layout.`,
       );
+      const untracked = untrackedFiles(cwd, storageResult.movedFiles);
+      if (untracked > 0)
+        printWarning(
+          `${untracked} moved file(s) are not tracked by Git yet, and kibi sync compiles only tracked sources: until you stage them (git add .kb, plus the removals under the legacy folders) the KB compiles without them and plans report them as missing.`,
+        );
     }
     if (storageResult.retiredLegacyConfig) {
       console.log("Retired legacy .kb/config.json.");
@@ -925,6 +965,9 @@ export async function migrateCommand(
     : { written: [], skipped: [], previouslyStamped: 0 };
   rederiveDriftedInventories(cwd, false);
   const lifecycle = repairLifecycleFindings(cwd, false);
+  const supersedesUnexplained = decisionFirmnessStep
+    ? planSupersedesReasonAcknowledgement(cwd)
+    : [];
 
   const existingManifest = readKbManifest(cwd) ?? defaultKbManifest();
   writeKbManifest(cwd, {
@@ -941,7 +984,19 @@ export async function migrateCommand(
           ].sort(),
         }
       : {}),
+    ...(supersedesUnexplained.length > 0
+      ? {
+          supersedesReasonAcknowledged: mergeSupersedesAcknowledgements(
+            existingManifest.supersedesReasonAcknowledged,
+            supersedesUnexplained,
+          ),
+        }
+      : {}),
   });
+  if (supersedesUnexplained.length > 0)
+    console.log(
+      `Acknowledged ${supersedesUnexplained.length} supersede(s) recorded without a 'Why this changed' section; new supersedes must explain themselves.`,
+    );
 
   writeJsonAtomically(
     auditPath,
@@ -1156,7 +1211,74 @@ async function buildWorkspaceMigrationPlan(
       ],
     });
   }
-  return mergeMigrationPlans(plans);
+  return orderStoreSyncAfterSourceRewrites(
+    { buildMigrationPlan, migrationAction },
+    mergeMigrationPlans(plans),
+    fragment.sourceRewriteActionIds,
+    fragment.actions
+      .filter((action) => action.code === "semantic_inventory_review")
+      .map((action) => action.id),
+  );
+}
+
+/** Status actions that run 'kibi sync' over the authored sources. */
+const STORE_SYNC_ACTION_IDS = new Set([
+  "branch-store-compile",
+  "freshness-resync",
+]);
+
+/**
+ * A sync compiles the authored sources, so it must run after the source
+ * rewrites that make them ingestible. While a requirement still needs a
+ * manual inventory review the sync would fail on it, so it waits on that
+ * review just as the migration sync does.
+ */
+// implements REQ-cli-schema-migration
+function orderStoreSyncAfterSourceRewrites(
+  builders: Pick<
+    typeof import("../public/operations/migration-plan.js"),
+    "buildMigrationPlan" | "migrationAction"
+  >,
+  plan: MigrationPlan,
+  rewriteActionIds: readonly string[],
+  reviewActionIds: readonly string[],
+): MigrationPlan {
+  const affected = plan.actions.some(
+    (action) =>
+      STORE_SYNC_ACTION_IDS.has(action.id) && action.state === "ready",
+  );
+  if (
+    !affected ||
+    (rewriteActionIds.length === 0 && reviewActionIds.length === 0)
+  )
+    return plan;
+  const actions = plan.actions.map((action) => {
+    if (!STORE_SYNC_ACTION_IDS.has(action.id) || action.state !== "ready")
+      return action;
+    if (reviewActionIds.length > 0)
+      return builders.migrationAction({
+        ...action,
+        state: "blocked",
+        autoApplicable: false,
+        evidence: {
+          ...action.evidence,
+          blockedBy: [...reviewActionIds],
+          reason:
+            "kibi sync rejects a requirement until its semantic inventory review is fixed; rerun kibi migrate afterwards.",
+        },
+      });
+    return builders.migrationAction({
+      ...action,
+      dependsOn: [...action.dependsOn, ...rewriteActionIds],
+    });
+  });
+  return builders.buildMigrationPlan({
+    expected: plan.expected,
+    evaluatedDomains: plan.scope.evaluatedDomains,
+    incompleteDomains: plan.scope.incompleteDomains,
+    actions,
+    diagnostics: plan.diagnostics,
+  });
 }
 
 /**
@@ -1173,6 +1295,57 @@ function approvedActionIdsOf(options: MigrateOptions): string[] {
     .map((id) => id.trim())
     .filter((id) => id.length > 0);
   return [...new Set(ids)];
+}
+
+/** How many of `files` Git does not track; 0 outside a repository. */
+// implements REQ-cli-schema-migration
+function untrackedFiles(cwd: string, files: readonly string[]): number {
+  let tracked: Set<string>;
+  try {
+    tracked = new Set(
+      execFileSync("git", ["-C", cwd, "ls-files", "-z", "--", ".kb"], {
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"],
+        timeout: 10_000,
+      })
+        .split("\0")
+        .filter((file) => file.length > 0),
+    );
+  } catch {
+    return 0;
+  }
+  return files.filter((file) => !tracked.has(file)).length;
+}
+
+/** The table rendering of an apply result; --format json prints it whole. */
+// implements REQ-cli-schema-migration
+function printApplySummary(content: unknown): void {
+  if (content === null || typeof content !== "object") return;
+  const result = content as {
+    outcome?: string;
+    actionResults?: readonly {
+      actionId: string;
+      outcome: string;
+      detail: string;
+    }[];
+    remainingPlan?: MigrationPlan;
+  };
+  if (result.outcome !== undefined) console.log(`Outcome: ${result.outcome}`);
+  for (const action of result.actionResults ?? []) {
+    console.log(`- ${action.outcome} ${action.actionId}: ${action.detail}`);
+  }
+  const remaining = result.remainingPlan;
+  if (remaining !== undefined) {
+    const ready = remaining.actions.filter(
+      (action) => action.state === "ready" && action.autoApplicable,
+    ).length;
+    console.log(
+      `Remaining plan ${remaining.planHash}: ${remaining.status}; actions: ${remaining.summary.actionCount}; automatic-ready: ${ready}`,
+    );
+  }
+  console.log(
+    "Run 'kibi migrate' for the remaining actions, or add --format json for the full result.",
+  );
 }
 
 async function migratePlanCommand(
@@ -1243,7 +1416,7 @@ async function migratePlanCommand(
       console.log(JSON.stringify(result, null, 2));
     } else {
       console.log(result.content[0]?.text ?? "Migration applied.");
-      console.log(JSON.stringify(result.structuredContent, null, 2));
+      printApplySummary(result.structuredContent);
     }
     return {
       exitCode: result.structuredContent?.outcome === "applied" ? 0 : 1,

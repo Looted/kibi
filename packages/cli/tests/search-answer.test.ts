@@ -21,6 +21,11 @@ type FakeKbOptions = Readonly<{
   scope?: Record<string, unknown>;
   /** Fail the verdict lookup with this engine error. */
   verdictError?: string;
+  /**
+   * Declared argument names and key arguments of the schema behind a
+   * predicate fact, by fact id; a fact without an entry has no schema.
+   */
+  schemas?: Record<string, { names: string[]; keys: string[] }>;
 }>;
 
 function idsIn(goal: string, pattern: RegExp): string[] | undefined {
@@ -68,6 +73,17 @@ function fakeKb(
           return [`['${id}',${entity.type},[${props}]]`];
         });
         bindings.Results = `[${rows.join(",")}]`;
+      }
+      const schemaIds = idsIn(goal, /member\(FactId, \[([^\]]*)\]\)/);
+      if (schemaIds !== undefined) {
+        const rows = schemaIds.flatMap((id) => {
+          const schema = options.schemas?.[id];
+          if (!schema) return [];
+          return [
+            `['${id}',[${schema.names.join(",")}],[${schema.keys.join(",")}]]`,
+          ];
+        });
+        bindings.Schemas = `[${rows.join(",")}]`;
       }
       const verdictIds = idsIn(
         goal,
@@ -258,7 +274,7 @@ describe("search answer layer", () => {
         rank: 1,
         factKind: "predicate",
         claim: "has_role(alice, admin)",
-        ask: 'kb_query({"predicate":"has_role"})',
+        ask: 'kb_query({"predicate":"has_role","args":["alice","admin"]})',
       },
     ]);
     expect(answer.governing).toEqual([
@@ -371,14 +387,16 @@ describe("search answer layer", () => {
     ]);
     const facts = answer.governing[0]?.facts ?? [];
     const byId = Object.fromEntries(facts.map((fact) => [fact.id, fact]));
+    // Without a schema the ask is the fact's own positional tuple.
     expect(byId["FACT-ROLE"]).toMatchObject({
       factKind: "predicate",
       claim: "has_role(alice, admin)",
-      ask: 'kb_query({"predicate":"has_role"})',
+      ask: 'kb_query({"predicate":"has_role","args":["alice","admin"]})',
     });
-    expect(byId["FACT-DENY"]?.claim).toBe(
-      "permission_rule(viewer, export, report, deny) [deny]",
-    );
+    expect(byId["FACT-DENY"]).toMatchObject({
+      claim: "permission_rule(viewer, export, report, deny) [deny]",
+      ask: 'kb_query({"predicate":"permission_rule","args":["viewer","export","report","deny"]})',
+    });
     expect(byId["FACT-LIMIT"]).toMatchObject({
       factKind: "property_value",
       claim: "user.role_assignment max_roles lte 2",
@@ -389,6 +407,152 @@ describe("search answer layer", () => {
       ask: 'kb_query({"subjectKey":"user.role_assignment"})',
     });
     expect(answer.truncated).toBe(false);
+  });
+
+  // implements REQ-kibi-query-fact-filters
+  test("a predicate fact's ask selects by the key arguments its schema declares", async () => {
+    const entities: Record<string, Row> = {
+      "REQ-ROLES": {
+        id: "REQ-ROLES",
+        type: "req",
+        title: "Roles and permissions",
+        status: "open",
+      },
+      "FACT-ALICE-ADMIN": {
+        id: "FACT-ALICE-ADMIN",
+        type: "fact",
+        title: "alice has the admin role",
+        status: "active",
+        fact_kind: "predicate",
+        predicate_namespace: "access",
+        predicate_name: "has_role",
+        predicate_args: ["alice", "admin"],
+        polarity: "assert",
+      },
+      "FACT-OWNS": {
+        id: "FACT-OWNS",
+        type: "fact",
+        title: "the report belongs to alice",
+        status: "active",
+        fact_kind: "predicate",
+        predicate_namespace: "default",
+        predicate_name: "owned_by",
+        predicate_args: ["alice", "report"],
+      },
+      "FACT-VIEWER-DENY": {
+        id: "FACT-VIEWER-DENY",
+        type: "fact",
+        title: "viewers cannot export reports",
+        status: "active",
+        fact_kind: "predicate",
+        predicate_namespace: "default",
+        predicate_name: "permission_rule",
+        predicate_args: ["viewer", "export", "report", "deny"],
+        polarity: "deny",
+      },
+      "FACT-STALE": {
+        id: "FACT-STALE",
+        type: "fact",
+        title: "a fact whose schema no longer fits",
+        status: "active",
+        fact_kind: "predicate",
+        predicate_name: "has_role",
+        predicate_args: ["carol", "coach", "extra"],
+      },
+    };
+    const schemas = {
+      // A project schema without key_arguments: the first argument is the key.
+      "FACT-ALICE-ADMIN": { names: ["user", "role"], keys: [] },
+      // A schema that names a subject argument, in any position.
+      "FACT-OWNS": { names: ["asset", "subject"], keys: [] },
+      // The built-in decision predicate: one decision per key tuple.
+      "FACT-VIEWER-DENY": {
+        names: ["actor", "action", "resource", "decision"],
+        keys: ["actor", "action", "resource"],
+      },
+      "FACT-STALE": { names: ["user", "role"], keys: [] },
+    };
+    const kb = fakeKb(
+      entities,
+      [
+        ["requires_predicate", "REQ-ROLES", "FACT-OWNS"],
+        ["requires_predicate", "REQ-ROLES", "FACT-VIEWER-DENY"],
+        ["requires_predicate", "REQ-ROLES", "FACT-STALE"],
+      ],
+      { schemas },
+    );
+    const answer = await buildSearchAnswer(kb, [
+      match(entities["FACT-ALICE-ADMIN"] as Row, 0.8),
+      match(entities["REQ-ROLES"] as Row, 0.7),
+    ]);
+
+    // The ungoverned fact keeps its namespace and asks by its key argument,
+    // so the pasted call returns alice's roles and nobody else's.
+    expect(answer.ungoverned).toEqual([
+      expect.objectContaining({
+        id: "FACT-ALICE-ADMIN",
+        rank: 1,
+        claim: "has_role(alice, admin)",
+        ask: 'kb_query({"predicate":"has_role","namespace":"access","where":{"user":"alice"}})',
+      }),
+    ]);
+    const facts = answer.governing[0]?.facts ?? [];
+    const byId = Object.fromEntries(facts.map((fact) => [fact.id, fact]));
+    expect(byId["FACT-OWNS"]?.ask).toBe(
+      'kb_query({"predicate":"owned_by","where":{"subject":"report"}})',
+    );
+    expect(byId["FACT-VIEWER-DENY"]?.ask).toBe(
+      'kb_query({"predicate":"permission_rule","where":{"actor":"viewer","action":"export","resource":"report"}})',
+    );
+    // A schema whose arity does not fit the fact cannot name its arguments:
+    // the ask falls back to the positional tuple.
+    expect(byId["FACT-STALE"]?.ask).toBe(
+      'kb_query({"predicate":"has_role","args":["carol","coach","extra"]})',
+    );
+    // The schemas were fetched with the linked rows, not in a round trip of
+    // their own.
+    expect(
+      kb.goals.filter((goal) => goal.includes("member(FactId,")),
+    ).toHaveLength(1);
+  });
+
+  // implements REQ-kibi-query-fact-filters
+  test("a schema lookup the engine cannot run leaves the asks positional", async () => {
+    const entities: Record<string, Row> = {
+      "REQ-ROLES": {
+        id: "REQ-ROLES",
+        type: "req",
+        title: "Roles",
+        status: "open",
+      },
+      "FACT-ROLE": {
+        id: "FACT-ROLE",
+        type: "fact",
+        title: "alice has the admin role",
+        status: "active",
+        fact_kind: "predicate",
+        predicate_name: "has_role",
+        predicate_args: ["alice", "admin"],
+      },
+    };
+    const inner = fakeKb(entities, [
+      ["requires_predicate", "REQ-ROLES", "FACT-ROLE"],
+    ]);
+    const kb = {
+      query: async (goal: string): Promise<PrologQueryResult> =>
+        goal.includes("member(FactId,")
+          ? { success: false, bindings: {}, error: "Unknown procedure" }
+          : inner.query(goal),
+    };
+    const answer = await buildSearchAnswer(kb, [
+      match(entities["REQ-ROLES"] as Row, 0.7),
+    ]);
+    expect(answer.governing[0]?.facts).toEqual([
+      expect.objectContaining({
+        id: "FACT-ROLE",
+        ask: 'kb_query({"predicate":"has_role","args":["alice","admin"]})',
+      }),
+    ]);
   });
 
   test("answering costs a few engine round trips however many entities are linked", async () => {
@@ -654,6 +818,7 @@ describe("search answer verdicts, exceptions and scope", () => {
         id: "REQ-STAFF",
         title: "Staff orders may skip the promotion check",
         status: "open",
+        firmness: "default",
         approvedBy: "finance-lead",
       },
     ]);
@@ -706,6 +871,7 @@ describe("search answer rationale excerpts", () => {
         id: "ADR-PROMO",
         title: "Promotions may zero the payable total",
         status: "accepted",
+        firmness: "default",
         source: ".kb/adr/ADR-PROMO.md",
         excerpt:
           "Allow a valid promotion to bring the payable total to zero. Keep min_total at 0 for Node.js clients.",
@@ -717,8 +883,33 @@ describe("search answer rationale excerpts", () => {
         id: "ADR-PROMO",
         title: "Promotions may zero the payable total",
         status: "accepted",
+        firmness: "default",
       },
     ]);
+  });
+
+  // implements REQ-kb-decision-firmness
+  test("requirements and ADRs say how firmly they were decided; other rows do not", async () => {
+    const answer = await buildSearchAnswer(
+      fakeKb(
+        {
+          ...ENTITIES,
+          "ADR-PROMO": { ...(ENTITIES["ADR-PROMO"] as Row), firmness: "firm" },
+          "REQ-NEW": {
+            ...(ENTITIES["REQ-NEW"] as Row),
+            firmness: "exploratory",
+          },
+        },
+        EDGES,
+      ),
+      [match(ENTITIES["REQ-NEW"] as Row, 0.9)],
+    );
+    const [current] = answer.governing;
+    expect(current?.firmness).toBe("exploratory");
+    expect(current?.adrs[0]?.firmness).toBe("firm");
+    expect(answer.rationale[0]?.firmness).toBe("firm");
+    expect(current?.scenarios[0]?.firmness).toBeUndefined();
+    expect(current?.tests[0]?.firmness).toBeUndefined();
   });
 
   test("an ADR whose source cannot be read keeps its source path without an excerpt", async () => {

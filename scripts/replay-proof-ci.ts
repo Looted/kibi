@@ -33,7 +33,7 @@ const FINAL_GATE_STEP = "Enforce proof baseline and clean snapshot";
  * not the repository, so a local replay checks for their tools instead.
  */
 const HOST_PROVISIONING_STEPS = Object.freeze([
-  "Check whether master PR can reuse develop proof",
+  "Check whether the PR can reuse develop proof",
   "Bootstrap Ubuntu packages",
   "Install SWI-Prolog",
   "Provision strict-proof host prerequisites",
@@ -50,9 +50,32 @@ const REQUIRED_HOST_TOOLS = Object.freeze([
   "bwrap",
 ]);
 
-type ReplayStep = { readonly name: string; readonly run: string };
+type ReplayStep = {
+  readonly name: string;
+  readonly run: string;
+  /** The step's own `env:` block, applied on top of the replay environment. */
+  readonly env?: Readonly<Record<string, string>>;
+};
 
-type WorkflowStep = { name?: unknown; run?: unknown; uses?: unknown };
+type WorkflowStep = {
+  name?: unknown;
+  run?: unknown;
+  uses?: unknown;
+  env?: unknown;
+};
+
+function stepEnv(env: unknown): Readonly<Record<string, string>> | undefined {
+  if (env === null || typeof env !== "object" || Array.isArray(env)) {
+    return undefined;
+  }
+  // A `${{ ... }}` expression only has a value on GitHub; locally the key is
+  // left unset, exactly as an unavailable context would leave it.
+  return Object.fromEntries(
+    Object.entries(env)
+      .map(([key, value]) => [key, String(value)])
+      .filter(([, value]) => !value.includes("${{")),
+  );
+}
 
 /**
  * Repository-local lines of the host provisioning step (`uv sync`, `uv run`).
@@ -92,7 +115,12 @@ export function replaySteps(workflowText: string): ReplayStep[] {
         if (local !== undefined)
           replay.push({ name: `${name} (repository-local part)`, run: local });
       } else {
-        replay.push({ name, run: step.run });
+        const env = stepEnv(step.env);
+        replay.push(
+          env === undefined
+            ? { name, run: step.run }
+            : { name, run: step.run, env },
+        );
       }
     }
     if (name === FINAL_GATE_STEP) break;
@@ -187,7 +215,7 @@ function main(argv: readonly string[]): number {
       console.log(`\n==> ${step.name}`);
       const result = run("bash", ["-e", "-c", step.run], {
         cwd: workspace,
-        env,
+        env: { ...env, ...step.env },
       });
       if (result.status !== 0) {
         console.error(

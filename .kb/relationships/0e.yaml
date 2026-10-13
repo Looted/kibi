@@ -265,3 +265,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-32e175f48bc9
+  - type: implements
+    from: SYM-modeling-suggest-predicates-existingClaimGrounding
+    to: REQ-model-predicates-grounding-aware-v2
+    created_at: 2026-10-12T19:24:22.895Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-64c2f1b966d7
+  - type: implements
+    from: SYM-modeling-suggest-predicates-existingClaimGrounding
+    to: REQ-model-predicates-grounding-guards
+    created_at: 2026-10-12T19:24:22.912Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8d31179945e7
+  - type: covered_by
+    from: SYM-modeling-suggest-predicates-existingClaimGrounding
+    to: TEST-model-predicates-grounding-guards
+    created_at: 2026-10-12T19:24:22.927Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e1d6da17cf47
+  - type: covered_by
+    from: SYM-modeling-suggest-predicates-existingClaimGrounding
+    to: TEST-model-predicates-grounding-aware
+    created_at: 2026-10-12T19:30:49.447Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0374360b9511

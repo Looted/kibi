@@ -16,7 +16,6 @@ import {
   planLegacyStorageMigration,
   rewritePendingSourceReceiptPaths,
 } from "../../src/commands/legacy-storage-migration.js";
-import { LATEST_KB_SCHEMA_VERSION } from "../../src/utils/schema-version.js";
 
 function writeReq(root: string, dir: string, id: string, body = "body"): void {
   mkdirSync(path.join(root, dir), { recursive: true });
@@ -146,7 +145,9 @@ describe("legacy storage migration", () => {
     const manifest = JSON.parse(
       readFileSync(path.join(tmpDir, ".kb/manifest.json"), "utf8"),
     );
-    expect(manifest.schemaVersion).toBe(LATEST_KB_SCHEMA_VERSION);
+    // The move records the legacy generation; kibi migrate raises it to the
+    // latest only after the schema steps, so an interrupted run replays them.
+    expect(manifest.schemaVersion).toBe(4);
     expect(manifest.semanticAdvisorBackfill).toBe("completed");
     expect(needsLegacyStorageMigration(tmpDir)).toBe(false);
   });

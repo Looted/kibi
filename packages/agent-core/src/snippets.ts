@@ -136,10 +136,19 @@ export function isRetiredStatus(status: string | undefined): boolean {
   return status !== undefined && RETIRED_STATUS.test(status);
 }
 
-// implements REQ-agent-core-edit-snippets, REQ-claude-code-kibi-plugin-v1, REQ-opencode-kibi-plugin-v1
-/** `ID (status): title`, with the status shown only when it is retired. */
+// implements REQ-agent-core-edit-snippets, REQ-claude-code-kibi-plugin-v1, REQ-opencode-kibi-plugin-v1, REQ-kb-decision-firmness
+/**
+ * `ID (status) [firmness]: title`, with the status shown only when it is
+ * retired and the firmness only when it is firm or exploratory (unlabeled
+ * decisions are `default`).
+ */
 export function describeEntity(summary: EntitySummary): string {
-  const notable = isRetiredStatus(summary.status) ? ` (${summary.status})` : "";
+  const retired = isRetiredStatus(summary.status) ? ` (${summary.status})` : "";
+  const firmness =
+    summary.firmness === "firm" || summary.firmness === "exploratory"
+      ? ` [${summary.firmness}]`
+      : "";
+  const notable = `${retired}${firmness}`;
   return summary.title
     ? `${summary.id}${notable}: ${truncate(summary.title, MAX_TITLE)}`
     : `${summary.id}${notable}`;
@@ -147,6 +156,29 @@ export function describeEntity(summary: EntitySummary): string {
 
 function jsonString(value: string): string {
   return JSON.stringify(value);
+}
+
+// implements REQ-claude-code-kibi-plugin-v1, REQ-codex-kibi-plugin-v1
+/** Discovery note for a source file none of whose symbols implement a requirement. */
+export function unownedSourceNote(relativePath: string): string {
+  return [
+    `Kibi: no symbol in ${relativePath} is linked to a requirement yet.`,
+    `kb_search({query:"<behavior being changed>", sourceLocations:[{path:${jsonString(relativePath)}}]}) surfaces requirements that may already describe it; new behavior is recorded with kb_upsert (requirement + symbol implements link).`,
+  ].join("\n");
+}
+
+// implements REQ-kibi-hooks-flow-manifest, REQ-claude-code-kibi-plugin-v1, REQ-codex-kibi-plugin-v1
+/** Shown instead of the discovery note when the manifest itself could not be read. */
+export function unreadableManifestNote(relativePath: string): string {
+  return [
+    "Kibi: the hook could not read .kb/symbols.yaml, so requirement snippets are unavailable this session.",
+    `kb_query({sourceFile:${jsonString(relativePath)}}) still lists what ${relativePath} implements; \`kibi sync\` rewrites the manifest in the canonical block layout.`,
+  ].join("\n");
+}
+
+/** The impact-check line that closes every edit snippet. */
+function impactCheckLine(relativePath: string): string {
+  return `Behavior changes here are traced to these requirements; kb_check({sourceFiles:[${jsonString(relativePath)}], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) reports ownership drift after the edit.`;
 }
 
 // implements REQ-agent-core-edit-snippets, REQ-claude-code-kibi-plugin-v1, REQ-opencode-kibi-plugin-v1
@@ -226,16 +258,14 @@ export function createEntitySummarizer(workspaceRoot: string): Summarize {
   };
 }
 
-// implements REQ-agent-core-edit-snippets, REQ-claude-code-kibi-plugin-v1, REQ-cursor-kibi-plugin-v1, REQ-codex-kibi-plugin-v1, REQ-zcode-kibi-plugin-v1
 /**
- * Knowledge snippet for a file with requirement-linked symbols, or undefined
- * when the manifest links nothing to it.
+ * Requirement -> symbol titles, with the requirement IDs ranked so the focus
+ * symbols' owners lead, then the requirements with the most symbols.
  */
-export function fileKnowledgeSnippet(input: SnippetInput): string | undefined {
-  const { relativePath, symbols, surface, summarize } = input;
-  const focus = focusedSymbols(symbols, input.focus);
-
-  // Requirement -> symbol titles, focus symbols first so their owners lead.
+function requirementOwners(
+  symbols: readonly IndexedSymbol[],
+  focus: readonly IndexedSymbol[],
+): { owners: Map<string, string[]>; requirementIds: string[] } {
   const owners = new Map<string, string[]>();
   const ordered = [
     ...focus,
@@ -248,6 +278,26 @@ export function fileKnowledgeSnippet(input: SnippetInput): string | undefined {
       owners.set(requirement, titles);
     }
   }
+  const focusOwners = new Set(focus.flatMap((symbol) => symbol.implements));
+  const requirementIds = [...owners.keys()].sort((left, right) => {
+    const focusOrder =
+      Number(focusOwners.has(right)) - Number(focusOwners.has(left));
+    return focusOrder !== 0
+      ? focusOrder
+      : (owners.get(right)?.length ?? 0) - (owners.get(left)?.length ?? 0);
+  });
+  return { owners, requirementIds };
+}
+
+// implements REQ-agent-core-edit-snippets, REQ-claude-code-kibi-plugin-v1, REQ-cursor-kibi-plugin-v1, REQ-codex-kibi-plugin-v1, REQ-zcode-kibi-plugin-v1
+/**
+ * Knowledge snippet for a file with requirement-linked symbols, or undefined
+ * when the manifest links nothing to it.
+ */
+export function fileKnowledgeSnippet(input: SnippetInput): string | undefined {
+  const { relativePath, symbols, surface, summarize } = input;
+  const focus = focusedSymbols(symbols, input.focus);
+  const { owners, requirementIds } = requirementOwners(symbols, focus);
   const tests = [
     ...new Set(symbols.flatMap((symbol) => symbol.coveredBy)),
   ].sort();
@@ -257,15 +307,6 @@ export function fileKnowledgeSnippet(input: SnippetInput): string | undefined {
   if (owners.size === 0 && tests.length === 0 && executes.length === 0) {
     return undefined;
   }
-
-  const focusOwners = new Set(focus.flatMap((symbol) => symbol.implements));
-  const requirementIds = [...owners.keys()].sort((left, right) => {
-    const focusOrder =
-      Number(focusOwners.has(right)) - Number(focusOwners.has(left));
-    return focusOrder !== 0
-      ? focusOrder
-      : (owners.get(right)?.length ?? 0) - (owners.get(left)?.length ?? 0);
-  });
 
   const lines: string[] = [
     `Kibi knowledge for ${relativePath} (symbol manifest):`,
@@ -315,12 +356,37 @@ export function fileKnowledgeSnippet(input: SnippetInput): string | undefined {
   ].filter((part): part is string => part !== undefined);
   lines.push(`Next layer: ${next.join("; ")}.`);
 
-  if (surface === "edit") {
+  if (surface === "edit") lines.push(impactCheckLine(relativePath));
+
+  return truncate(lines.join("\n"), input.maxChars ?? MAX_SNIPPET_CHARS);
+}
+
+// implements REQ-claude-code-kibi-plugin-v1
+/**
+ * Reduced edit snippet for a file whose descriptive snippet (requirements,
+ * symbols, tests, next-layer calls) was already shown this session: which
+ * symbol the edit lands in, what the lead requirement must keep true and the
+ * decision behind it, and the impact check. The descriptive parts are not
+ * repeated. Undefined when no symbol of the file implements a requirement
+ * and the edit lands in no symbol.
+ */
+export function editKnowledgeUpdate(input: SnippetInput): string | undefined {
+  const { relativePath, symbols, summarize } = input;
+  const focus = focusedSymbols(symbols, input.focus);
+  const { requirementIds } = requirementOwners(symbols, focus);
+  const leadId = requirementIds[0];
+  const lines: string[] = [];
+  const focused = focusUpdate(relativePath, symbols, input.focus);
+  if (focused) {
+    lines.push(focused);
+  } else if (leadId) {
     lines.push(
-      `Behavior changes here are traced to these requirements; kb_check({sourceFiles:[${jsonString(relativePath)}], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) reports ownership drift after the edit.`,
+      `Kibi: this edit to ${relativePath} changes code that implements ${formatList(requirementIds, 2)}.`,
     );
   }
-
+  if (!leadId) return lines[0];
+  lines.push(...requirementGroundingLines(leadId, summarize));
+  lines.push(impactCheckLine(relativePath));
   return truncate(lines.join("\n"), input.maxChars ?? MAX_SNIPPET_CHARS);
 }
 
@@ -359,13 +425,19 @@ export type EditKnowledgeInput = {
   /** Most files described in one call (an `apply_patch` may touch many). */
   maxFiles?: number | undefined;
   maxChars?: number | undefined;
+  /**
+   * Note for a file that gets no snippet (for example an unlinked source
+   * file), shown under the same once-per-file-per-session rule.
+   */
+  noteFor?: ((relativePath: string) => string | undefined) | undefined;
 };
 
 // implements REQ-agent-core-edit-snippets, REQ-codex-kibi-plugin-v1, REQ-zcode-kibi-plugin-v1
 /**
  * Pre-edit context for hosts without their own snippet memory: the shared
- * edit snippet for each linked file the call targets, shown once per file per
- * session, at most `maxFiles` per call.
+ * edit snippet for each linked file the call targets (or `noteFor`'s note for
+ * a file without one), shown once per file per session, at most `maxFiles`
+ * per call.
  */
 export function editKnowledgeContext(
   input: EditKnowledgeInput,
@@ -374,19 +446,22 @@ export function editKnowledgeContext(
   for (const relativePath of new Set(input.relativePaths)) {
     if (snippets.length >= (input.maxFiles ?? 3)) break;
     const symbols = input.symbolsFor(relativePath);
-    if (symbols.length === 0) continue;
-    const snippet = fileKnowledgeSnippet({
-      relativePath,
-      symbols,
-      surface: "edit",
-      focus: input.focusFor?.(relativePath),
-      summarize: input.summarize,
-      maxChars: input.maxChars,
-    });
-    if (!snippet) continue;
+    const snippet =
+      symbols.length > 0
+        ? fileKnowledgeSnippet({
+            relativePath,
+            symbols,
+            surface: "edit",
+            focus: input.focusFor?.(relativePath),
+            summarize: input.summarize,
+            maxChars: input.maxChars,
+          })
+        : undefined;
+    const text = snippet ?? input.noteFor?.(relativePath);
+    if (!text) continue;
     const key = `${input.sessionId ?? ""}\u0000edit\u0000${relativePath}`;
     if (!claimSnippetSlot(input.stateDir, key)) continue;
-    snippets.push(snippet);
+    snippets.push(text);
   }
   return snippets.length > 0 ? snippets.join("\n\n") : undefined;
 }

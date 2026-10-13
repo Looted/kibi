@@ -105,11 +105,20 @@ jobs:
     if: ${{ !inputs.skip_tests }}
     uses: ./.github/workflows/swipl-ci-bundle.yml
 
+  # The unit suite runs as cost-balanced partitions in parallel jobs (see
+  # partitionShards in scripts/run-unit-coverage.ts). Each partition publishes
+  # its per-shard LCOV; ci-unit-coverage-merge combines them and applies the
+  # repository coverage floor and source-manifest audit once.
   ci-unit-coverage:
+    name: ci-unit-coverage (${{ matrix.partition }}/4)
     needs: [swipl-bundle]
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 40
     if: ${{ !inputs.skip_tests }}
+    strategy:
+      fail-fast: false
+      matrix:
+        partition: [1, 2, 3, 4]
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -149,10 +158,72 @@ jobs:
         run: bun run build
 
       - name: Run unit tests with coverage
-        run: bun run test:coverage:unit
+        run: bun run test:coverage:unit --partition=${{ matrix.partition }}/4
+
+      - name: Upload partition shard coverage
+        if: ${{ !cancelled() && github.actor != 'nektos/act' }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: unit-coverage-partition-${{ matrix.partition }}
+          path: |
+            coverage/unit/lcov.*.info
+            coverage/unit/results.*.json
+            coverage/unit/failed-shards.txt
+          if-no-files-found: error
+          retention-days: 1
+
+  ci-unit-coverage-merge:
+    name: ci-unit-coverage
+    needs: [ci-unit-coverage]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Runs even when a partition fails so this check reports the failure
+    # instead of showing as skipped.
+    if: ${{ !cancelled() && !inputs.skip_tests && github.actor != 'nektos/act' }}
+    steps:
+      - name: Require every partition to pass
+        if: ${{ needs.ci-unit-coverage.result != 'success' }}
+        run: |
+          echo "::error::Unit coverage partitions finished with '${{ needs.ci-unit-coverage.result }}'."
+          exit 1
+
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.4.2'
+
+      - name: Install JS deps
+        run: bun install --frozen-lockfile
+
+      - name: Download partition shard coverage
+        uses: actions/download-artifact@v5
+        with:
+          pattern: unit-coverage-partition-*
+          # Outside coverage/ so Codecov's file search does not upload the
+          # per-partition copies alongside the merged report.
+          path: ${{ runner.temp }}/unit-coverage-partitions
+
+      - name: Merge unit coverage and enforce repository gates
+        run: bun run test:coverage:unit --merge="$RUNNER_TEMP/unit-coverage-partitions"
+
+      # Per-file results bound to this commit. The proof workflow for the same
+      # commit reuses clean files instead of running them a second time.
+      - name: Upload unit test results
+        if: ${{ !cancelled() && hashFiles('coverage/unit/test-results.json') != '' }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: unit-test-results
+          path: coverage/unit/test-results.json
+          if-no-files-found: error
+          retention-days: 3
 
       - name: Upload unit coverage artifact
-        if: ${{ github.actor != 'nektos/act' && github.event_name == 'push' && github.ref == 'refs/heads/develop' }}
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' }}
         uses: actions/upload-artifact@v5
         with:
           name: unit-coverage
@@ -221,8 +292,22 @@ jobs:
       - name: Build CLI package
         run: bun run build:cli-stack
 
-      - name: Run integration tests
-        run: bash ./scripts/run-integration-tests.sh
+      # Exercises the PATH route end to end: doctor must report the system
+      # install, and the repository's own KB must compile and check on it.
+      # The checkout has no branch store yet (stores are per branch and never
+      # committed), so sync compiles it first; without that, check reports
+      # branch-store-not-compiled whenever the checkout is on a named branch,
+      # as it is on a push to develop or master. A pull request checks out a
+      # detached merge ref, where sync refuses to pick a branch, so the branch
+      # is named explicitly for both commands.
+      - name: Run Kibi on the system SWI-Prolog
+        env:
+          KIBI_BRANCH: ${{ github.head_ref || github.ref_name }}
+        run: |
+          bun packages/cli/bin/kibi doctor | tee "$RUNNER_TEMP/doctor.txt"
+          grep -q "SWI-Prolog: .* from PATH" "$RUNNER_TEMP/doctor.txt"
+          bun packages/cli/bin/kibi sync
+          bun packages/cli/bin/kibi check
 
   ci-package-contract:
     runs-on: ubuntu-latest

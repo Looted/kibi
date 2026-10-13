@@ -690,11 +690,13 @@ function readEntitySummary(workspaceRoot, entityId) {
   for (const line of lines.slice(1)) {
     if (line.trim() === "---")
       break;
-    const match = /^(title|status):\s*(.*)$/.exec(line);
+    const match = /^(title|status|firmness):\s*(.*)$/.exec(line);
     if (match?.[1] === "title" && match[2])
       summary.title = unquote(match[2]);
     if (match?.[1] === "status" && match[2])
       summary.status = unquote(match[2]);
+    if (match?.[1] === "firmness" && match[2])
+      summary.firmness = unquote(match[2]);
     if (/^\S/.test(line)) {
       flushLink(authored, pending);
       pending = undefined;
@@ -814,11 +816,30 @@ function isRetiredStatus(status) {
   return status !== undefined && RETIRED_STATUS.test(status);
 }
 function describeEntity(summary) {
-  const notable = isRetiredStatus(summary.status) ? ` (${summary.status})` : "";
+  const retired = isRetiredStatus(summary.status) ? ` (${summary.status})` : "";
+  const firmness = summary.firmness === "firm" || summary.firmness === "exploratory" ? ` [${summary.firmness}]` : "";
+  const notable = `${retired}${firmness}`;
   return summary.title ? `${summary.id}${notable}: ${truncate(summary.title, MAX_TITLE)}` : `${summary.id}${notable}`;
 }
 function jsonString(value) {
   return JSON.stringify(value);
+}
+function unownedSourceNote(relativePath) {
+  return [
+    `Kibi: no symbol in ${relativePath} is linked to a requirement yet.`,
+    `kb_search({query:"<behavior being changed>", sourceLocations:[{path:${jsonString(relativePath)}}]}) surfaces requirements that may already describe it; new behavior is recorded with kb_upsert (requirement + symbol implements link).`
+  ].join(`
+`);
+}
+function unreadableManifestNote(relativePath) {
+  return [
+    "Kibi: the hook could not read .kb/symbols.yaml, so requirement snippets are unavailable this session.",
+    `kb_query({sourceFile:${jsonString(relativePath)}}) still lists what ${relativePath} implements; \`kibi sync\` rewrites the manifest in the canonical block layout.`
+  ].join(`
+`);
+}
+function impactCheckLine(relativePath) {
+  return `Behavior changes here are traced to these requirements; kb_check({sourceFiles:[${jsonString(relativePath)}], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) reports ownership drift after the edit.`;
 }
 var GROUNDING_LINK_TYPES = [
   "constrains",
@@ -863,9 +884,7 @@ function createEntitySummarizer(workspaceRoot) {
     return summary;
   };
 }
-function fileKnowledgeSnippet(input) {
-  const { relativePath, symbols, surface, summarize } = input;
-  const focus = focusedSymbols(symbols, input.focus);
+function requirementOwners(symbols, focus) {
   const owners = new Map;
   const ordered = [
     ...focus,
@@ -879,6 +898,17 @@ function fileKnowledgeSnippet(input) {
       owners.set(requirement, titles);
     }
   }
+  const focusOwners = new Set(focus.flatMap((symbol) => symbol.implements));
+  const requirementIds = [...owners.keys()].sort((left, right) => {
+    const focusOrder = Number(focusOwners.has(right)) - Number(focusOwners.has(left));
+    return focusOrder !== 0 ? focusOrder : (owners.get(right)?.length ?? 0) - (owners.get(left)?.length ?? 0);
+  });
+  return { owners, requirementIds };
+}
+function fileKnowledgeSnippet(input) {
+  const { relativePath, symbols, surface, summarize } = input;
+  const focus = focusedSymbols(symbols, input.focus);
+  const { owners, requirementIds } = requirementOwners(symbols, focus);
   const tests = [
     ...new Set(symbols.flatMap((symbol) => symbol.coveredBy))
   ].sort();
@@ -888,11 +918,6 @@ function fileKnowledgeSnippet(input) {
   if (owners.size === 0 && tests.length === 0 && executes.length === 0) {
     return;
   }
-  const focusOwners = new Set(focus.flatMap((symbol) => symbol.implements));
-  const requirementIds = [...owners.keys()].sort((left, right) => {
-    const focusOrder = Number(focusOwners.has(right)) - Number(focusOwners.has(left));
-    return focusOrder !== 0 ? focusOrder : (owners.get(right)?.length ?? 0) - (owners.get(left)?.length ?? 0);
-  });
   const lines = [
     `Kibi knowledge for ${relativePath} (symbol manifest):`
   ];
@@ -925,9 +950,27 @@ function fileKnowledgeSnippet(input) {
     `kb_search({query:"<topic>", sourceLocations:[${location}]}) answers with governing requirements, facts, decisions, and tests`
   ].filter((part) => part !== undefined);
   lines.push(`Next layer: ${next.join("; ")}.`);
-  if (surface === "edit") {
-    lines.push(`Behavior changes here are traced to these requirements; kb_check({sourceFiles:[${jsonString(relativePath)}], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) reports ownership drift after the edit.`);
+  if (surface === "edit")
+    lines.push(impactCheckLine(relativePath));
+  return truncate(lines.join(`
+`), input.maxChars ?? MAX_SNIPPET_CHARS);
+}
+function editKnowledgeUpdate(input) {
+  const { relativePath, symbols, summarize } = input;
+  const focus = focusedSymbols(symbols, input.focus);
+  const { requirementIds } = requirementOwners(symbols, focus);
+  const leadId = requirementIds[0];
+  const lines = [];
+  const focused = focusUpdate(relativePath, symbols, input.focus);
+  if (focused) {
+    lines.push(focused);
+  } else if (leadId) {
+    lines.push(`Kibi: this edit to ${relativePath} changes code that implements ${formatList(requirementIds, 2)}.`);
   }
+  if (!leadId)
+    return lines[0];
+  lines.push(...requirementGroundingLines(leadId, summarize));
+  lines.push(impactCheckLine(relativePath));
   return truncate(lines.join(`
 `), input.maxChars ?? MAX_SNIPPET_CHARS);
 }
@@ -1219,6 +1262,13 @@ function applyEvent(state, event) {
       for (const reminded of event.paths)
         state.reminded.add(reminded);
       return;
+    case "context_reset":
+      state.shownRead.clear();
+      state.shownEdit.clear();
+      state.notices.clear();
+      state.exploredPaths.clear();
+      state.exploredIds.clear();
+      return;
   }
 }
 function loadSessionState(dir) {
@@ -1252,23 +1302,6 @@ function appendSessionEvents(dir, events) {
 }
 
 // src/snippets.ts
-function jsonString2(value) {
-  return JSON.stringify(value);
-}
-function unownedSourceNote(relativePath) {
-  return [
-    `Kibi: no symbol in ${relativePath} is linked to a requirement yet.`,
-    `kb_search({query:"<behavior being changed>", sourceLocations:[{path:${jsonString2(relativePath)}}]}) surfaces requirements that may already describe it; new behavior is recorded with kb_upsert (requirement + symbol implements link).`
-  ].join(`
-`);
-}
-function unreadableManifestNote(relativePath) {
-  return [
-    "Kibi: the hook could not read .kb/symbols.yaml, so requirement snippets are unavailable this session.",
-    `kb_query({sourceFile:${jsonString2(relativePath)}}) still lists what ${relativePath} implements; \`kibi sync\` rewrites the manifest in the canonical block layout.`
-  ].join(`
-`);
-}
 function searchTip(linkedFileCount) {
   return `Kibi tip: this repository records requirements, scenarios, decisions, and code ownership in a Kibi knowledge base (${linkedFileCount} source files have requirement-linked symbols). For intent questions — why code exists, what it must do — kb_search answers from that knowledge, naming the governing requirements, facts, decisions and tests; kb_query({sourceFile:"<path>"}) lists what a file implements.`;
 }
@@ -1540,9 +1573,15 @@ function preToolUse(input, workspace, trace = {}) {
   }
   events.push({ kind: "shown", surface: "edit", path: relativePath });
   if (alreadyKnown) {
-    const update = focusUpdate(relativePath, symbols, focus);
+    const update = editKnowledgeUpdate({
+      relativePath,
+      symbols,
+      surface: "edit",
+      focus,
+      summarize: workspace.summarize
+    });
     if (update)
-      return emit(update, "edit_focus_update");
+      return emit(update, "edit_update_snippet");
     appendSessionEvents(workspace.stateDir, events);
     return {};
   }
@@ -1682,6 +1721,9 @@ function dispatchHook(input, workspace, trace) {
   switch (input.event) {
     case "SessionStart":
       trace.action = "session_start";
+      if (input.source === "compact" || input.source === "clear") {
+        appendSessionEvents(workspace.stateDir, [{ kind: "context_reset" }]);
+      }
       return context("SessionStart", sessionStartContext(linkedFileCount(workspace.index())));
     case "PreToolUse":
       return preToolUse(input, workspace, trace);

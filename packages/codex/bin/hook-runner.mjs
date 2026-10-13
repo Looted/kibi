@@ -1035,11 +1035,13 @@ function readEntitySummary(workspaceRoot, entityId) {
   for (const line of lines.slice(1)) {
     if (line.trim() === "---")
       break;
-    const match = /^(title|status):\s*(.*)$/.exec(line);
+    const match = /^(title|status|firmness):\s*(.*)$/.exec(line);
     if (match?.[1] === "title" && match[2])
       summary.title = unquote(match[2]);
     if (match?.[1] === "status" && match[2])
       summary.status = unquote(match[2]);
+    if (match?.[1] === "firmness" && match[2])
+      summary.firmness = unquote(match[2]);
     if (/^\S/.test(line)) {
       flushLink(authored, pending);
       pending = undefined;
@@ -1162,11 +1164,30 @@ function isRetiredStatus(status) {
   return status !== undefined && RETIRED_STATUS.test(status);
 }
 function describeEntity(summary) {
-  const notable = isRetiredStatus(summary.status) ? ` (${summary.status})` : "";
+  const retired = isRetiredStatus(summary.status) ? ` (${summary.status})` : "";
+  const firmness = summary.firmness === "firm" || summary.firmness === "exploratory" ? ` [${summary.firmness}]` : "";
+  const notable = `${retired}${firmness}`;
   return summary.title ? `${summary.id}${notable}: ${truncate(summary.title, MAX_TITLE)}` : `${summary.id}${notable}`;
 }
 function jsonString(value) {
   return JSON.stringify(value);
+}
+function unownedSourceNote(relativePath) {
+  return [
+    `Kibi: no symbol in ${relativePath} is linked to a requirement yet.`,
+    `kb_search({query:"<behavior being changed>", sourceLocations:[{path:${jsonString(relativePath)}}]}) surfaces requirements that may already describe it; new behavior is recorded with kb_upsert (requirement + symbol implements link).`
+  ].join(`
+`);
+}
+function unreadableManifestNote(relativePath) {
+  return [
+    "Kibi: the hook could not read .kb/symbols.yaml, so requirement snippets are unavailable this session.",
+    `kb_query({sourceFile:${jsonString(relativePath)}}) still lists what ${relativePath} implements; \`kibi sync\` rewrites the manifest in the canonical block layout.`
+  ].join(`
+`);
+}
+function impactCheckLine(relativePath) {
+  return `Behavior changes here are traced to these requirements; kb_check({sourceFiles:[${jsonString(relativePath)}], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) reports ownership drift after the edit.`;
 }
 var GROUNDING_LINK_TYPES = [
   "constrains",
@@ -1211,9 +1232,7 @@ function createEntitySummarizer(workspaceRoot) {
     return summary;
   };
 }
-function fileKnowledgeSnippet(input) {
-  const { relativePath, symbols, surface, summarize } = input;
-  const focus = focusedSymbols(symbols, input.focus);
+function requirementOwners(symbols, focus) {
   const owners = new Map;
   const ordered = [
     ...focus,
@@ -1227,6 +1246,17 @@ function fileKnowledgeSnippet(input) {
       owners.set(requirement, titles);
     }
   }
+  const focusOwners = new Set(focus.flatMap((symbol) => symbol.implements));
+  const requirementIds = [...owners.keys()].sort((left, right) => {
+    const focusOrder = Number(focusOwners.has(right)) - Number(focusOwners.has(left));
+    return focusOrder !== 0 ? focusOrder : (owners.get(right)?.length ?? 0) - (owners.get(left)?.length ?? 0);
+  });
+  return { owners, requirementIds };
+}
+function fileKnowledgeSnippet(input) {
+  const { relativePath, symbols, surface, summarize } = input;
+  const focus = focusedSymbols(symbols, input.focus);
+  const { owners, requirementIds } = requirementOwners(symbols, focus);
   const tests = [
     ...new Set(symbols.flatMap((symbol) => symbol.coveredBy))
   ].sort();
@@ -1236,11 +1266,6 @@ function fileKnowledgeSnippet(input) {
   if (owners.size === 0 && tests.length === 0 && executes.length === 0) {
     return;
   }
-  const focusOwners = new Set(focus.flatMap((symbol) => symbol.implements));
-  const requirementIds = [...owners.keys()].sort((left, right) => {
-    const focusOrder = Number(focusOwners.has(right)) - Number(focusOwners.has(left));
-    return focusOrder !== 0 ? focusOrder : (owners.get(right)?.length ?? 0) - (owners.get(left)?.length ?? 0);
-  });
   const lines = [
     `Kibi knowledge for ${relativePath} (symbol manifest):`
   ];
@@ -1273,9 +1298,8 @@ function fileKnowledgeSnippet(input) {
     `kb_search({query:"<topic>", sourceLocations:[${location}]}) answers with governing requirements, facts, decisions, and tests`
   ].filter((part) => part !== undefined);
   lines.push(`Next layer: ${next.join("; ")}.`);
-  if (surface === "edit") {
-    lines.push(`Behavior changes here are traced to these requirements; kb_check({sourceFiles:[${jsonString(relativePath)}], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) reports ownership drift after the edit.`);
-  }
+  if (surface === "edit")
+    lines.push(impactCheckLine(relativePath));
   return truncate(lines.join(`
 `), input.maxChars ?? MAX_SNIPPET_CHARS);
 }
@@ -1285,22 +1309,21 @@ function editKnowledgeContext(input) {
     if (snippets.length >= (input.maxFiles ?? 3))
       break;
     const symbols = input.symbolsFor(relativePath);
-    if (symbols.length === 0)
-      continue;
-    const snippet = fileKnowledgeSnippet({
+    const snippet = symbols.length > 0 ? fileKnowledgeSnippet({
       relativePath,
       symbols,
       surface: "edit",
       focus: input.focusFor?.(relativePath),
       summarize: input.summarize,
       maxChars: input.maxChars
-    });
-    if (!snippet)
+    }) : undefined;
+    const text = snippet ?? input.noteFor?.(relativePath);
+    if (!text)
       continue;
     const key = `${input.sessionId ?? ""}\x00edit\x00${relativePath}`;
     if (!claimSnippetSlot(input.stateDir, key))
       continue;
-    snippets.push(snippet);
+    snippets.push(text);
   }
   return snippets.length > 0 ? snippets.join(`
 
@@ -1620,9 +1643,6 @@ function impactCheckReminder(sourcePaths) {
 }
 
 // src/path-policy.ts
-function extractExplicitPathFields2(input) {
-  return extractExplicitPathFields(input);
-}
 function isDirectKbPath(candidate) {
   return isKbPath(candidate);
 }
@@ -1698,16 +1718,25 @@ function preEditContext(workspaceRoot, stateDir, input) {
   const targets = editTargets(workspaceRoot, input);
   if (targets.length === 0)
     return;
-  const files = loadKnowledgeIndex(workspaceRoot, stateDir).files;
+  const index = loadKnowledgeIndex(workspaceRoot, stateDir);
   return editKnowledgeContext({
     relativePaths: targets.map((target) => target.relative),
-    symbolsFor: (relativePath) => files[relativePath] ?? [],
+    symbolsFor: (relativePath) => index.files[relativePath] ?? [],
     summarize: createEntitySummarizer(workspaceRoot),
     stateDir,
     sessionId: input.sessionId,
     focusFor: (relativePath) => {
       const target = targets.find((candidate) => candidate.relative === relativePath);
       return target ? editFocus(target.absolute, input.toolInput) : undefined;
+    },
+    noteFor: (relativePath) => {
+      if (!isSourceImpactRelevantPath2(relativePath))
+        return;
+      const unread = index.manifest === "unreadable" || index.coordinateFiles.includes(relativePath) && !index.unlinkedFiles.includes(relativePath);
+      if (!unread)
+        return unownedSourceNote(relativePath);
+      const noticeKey = `${input.sessionId ?? ""}\x00notice\x00manifest-unreadable`;
+      return claimSnippetSlot(stateDir, noticeKey) ? unreadableManifestNote(relativePath) : undefined;
     }
   });
 }
@@ -1761,7 +1790,7 @@ async function runHook(rawInput, environment = {}) {
           }
         };
       }
-      const explicitPaths = extractExplicitPathFields2(input.toolInput);
+      const explicitPaths = extractEditedPaths(input.toolInput);
       const hasDirectKbEdit = isEditLikeTool(input.toolName) && explicitPaths.some(isDirectKbPath);
       if (hasDirectKbEdit) {
         return { continue: true, systemMessage: DIRECT_KB_EDIT_WARNING };
@@ -1794,7 +1823,7 @@ async function runHook(rawInput, environment = {}) {
           sourceFiles: kbToolCall.sourceFiles
         });
       }
-      const dirtyPaths = extractExplicitPathFields2(input.toolInput).filter(isMeaningfulTrackedPath2);
+      const dirtyPaths = extractEditedPaths(input.toolInput).filter(isMeaningfulTrackedPath2);
       if (dirtyPaths.length > 0) {
         addDirtyPaths(stateDir, dirtyPaths);
       }

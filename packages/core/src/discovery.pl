@@ -708,14 +708,18 @@ ask_schema_dict(Namespace, Name, SchemaDict, ArgumentNames) :-
     ArgumentNames = SchemaDict.argumentNames.
 ask_schema_dict(_Namespace, _Name, null, none).
 
+% A built-in row carries the catalog id that kb_model accepts as schemaId;
+% `stored: false` says no entity with that id exists, so it is not a
+% kb_query id.
 ask_builtin_schema_row(Namespace, Name, Arity, KeyPositions, DecisionPosition, Row) :-
-    builtin_argument_names(Name, Names),
+    kb:builtin_predicate_signature(Name, SchemaId, Names),
     findall(Key, (member(P, KeyPositions), nth1(P, Names, Key)), KeyArguments),
     nth1(DecisionPosition, Names, DecisionArgument),
     aggregate_all(count, kb:predicate_fact(_, Namespace, Name, _, _), FactCount),
     Row = _{
-        id: null,
+        id: SchemaId,
         builtin: true,
+        stored: false,
         namespace: Namespace,
         name: Name,
         arity: Arity,
@@ -727,9 +731,6 @@ ask_builtin_schema_row(Namespace, Name, Arity, KeyPositions, DecisionPosition, R
         examples: [],
         factCount: FactCount
     }.
-
-% Keep in step with builtin_decision_predicate/5 in kb.pl.
-builtin_argument_names(permission_rule, [actor, action, resource, decision]).
 
 ask_schema_row(SchemaId, Namespace, Name, Arity, ArgumentNames, ArgumentTypes, Row) :-
     kb_entity(SchemaId, fact, Props),
@@ -755,6 +756,7 @@ ask_schema_row(SchemaId, Namespace, Name, Arity, ArgumentNames, ArgumentTypes, R
     Row = _{
         id: SchemaId,
         builtin: false,
+        stored: true,
         namespace: Namespace,
         name: Name,
         arity: Arity,

@@ -1,7 +1,9 @@
+import { type Firmness, effectiveFirmness } from "./decision-firmness.js";
 import type { IntentSearchMatch } from "./intent-search.js";
 import {
   escapeAtom,
   normalizeEntityId,
+  parseAtomList,
   parseEntityFromList,
   parseListOfLists,
   parseTriples,
@@ -35,6 +37,12 @@ export type SearchAnswerEntity = Readonly<{
   id: string;
   title: string;
   status?: string;
+  /**
+   * Requirements and ADRs: how firmly the decision was made. `firm` (a human
+   * stated it; ask before changing), `default` (supersede it with evidence),
+   * `exploratory` (a guess to revisit).
+   */
+  firmness?: Firmness;
 }>;
 
 /**
@@ -98,8 +106,13 @@ export type SearchAnswerException = SearchAnswerEntity &
 /**
  * A linked fact says what it states in its typed form, so an agent can read
  * `has_role(alice, admin)` or `user.role_assignment max_roles lte 2` without
- * opening the entity, and `ask` is the exact kb_query that answers precise
- * questions about the same predicate or subject.
+ * opening the entity, and `ask` is the kb_query that reproduces the fact's
+ * own tuple as precisely as kb_query supports: a property or subject fact by
+ * its keys; a predicate fact by name plus, when a project `predicate_schema`
+ * or the built-in signature declares its arguments, `where` over the key
+ * arguments (the declared `key_arguments`, else the argument named `subject`,
+ * else the first), otherwise its full positional `args`. Pasted, it returns
+ * the fact and only facts sharing those key arguments.
  */
 // implements REQ-kibi-query-fact-filters
 export type SearchAnswerFact = SearchAnswerEntity &
@@ -197,6 +210,7 @@ const ROW_KEYS = [
   "status",
   "fact_kind",
   "approved_by",
+  "firmness",
   "source",
   "sourceFile",
   "predicate_namespace",
@@ -247,34 +261,85 @@ function unique(ids: readonly string[]): string[] {
 
 function brief(entity: Row): SearchAnswerEntity {
   const status = text(entity.status);
+  const firmness = effectiveFirmness(entity.type, entity.firmness);
   return {
     id: text(entity.id),
     title: text(entity.title),
     ...(status ? { status } : {}),
+    ...(firmness ? { firmness } : {}),
   };
 }
 
-function queryCall(args: Record<string, string>): string {
+function queryCall(args: Record<string, unknown>): string {
   return `kb_query(${JSON.stringify(args)})`;
+}
+
+/**
+ * The declared arguments of a predicate fact's schema: a project
+ * `predicate_schema` or the built-in signature kb_query resolves `where`
+ * names against. `keyArguments` is empty when the schema declares none.
+ */
+// implements REQ-kibi-query-fact-filters
+export type PredicateFactSchema = Readonly<{
+  argumentNames: readonly string[];
+  keyArguments: readonly string[];
+}>;
+
+/**
+ * The `where` filter that selects the facts sharing a predicate fact's key
+ * arguments: the schema's `key_arguments`, else the argument named `subject`,
+ * else the first argument. Undefined when the schema does not fit the fact
+ * (arity) or no key argument has a value, so the caller falls back to
+ * positional args.
+ */
+// implements REQ-kibi-query-fact-filters
+export function predicateKeyFilter(
+  args: readonly string[],
+  schema: PredicateFactSchema,
+): Record<string, string> | undefined {
+  const names = schema.argumentNames;
+  if (names.length === 0 || names.length !== args.length) return undefined;
+  const declared = schema.keyArguments.filter((key) => names.includes(key));
+  const keys =
+    declared.length > 0
+      ? declared
+      : [names.includes("subject") ? "subject" : (names[0] as string)];
+  const where: Record<string, string> = {};
+  for (const key of keys) {
+    const value = args[names.indexOf(key)] ?? "";
+    if (value !== "") where[key] = value;
+  }
+  return Object.keys(where).length > 0 ? where : undefined;
 }
 
 /** Typed statement and follow-up query of a linked fact, by fact kind. */
 // implements REQ-kibi-query-fact-filters
 function factDetail(
   fact: Row,
+  schema?: PredicateFactSchema,
 ): Omit<SearchAnswerFact, keyof SearchAnswerEntity> {
   const factKind = text(fact.fact_kind);
   const base = factKind ? { factKind } : {};
   const predicate = text(fact.predicate_name);
   if (factKind === "predicate" && predicate) {
     const args = Array.isArray(fact.predicate_args)
-      ? fact.predicate_args.map(text).join(", ")
-      : text(fact.predicate_args);
+      ? fact.predicate_args.map(text)
+      : undefined;
     const polarity = text(fact.polarity) === "deny" ? " [deny]" : "";
+    const namespace = text(fact.predicate_namespace);
+    const call: Record<string, unknown> = {
+      predicate,
+      ...(namespace && namespace !== "default" ? { namespace } : {}),
+    };
+    if (args !== undefined && args.length > 0) {
+      const where = schema ? predicateKeyFilter(args, schema) : undefined;
+      if (where) call.where = where;
+      else call.args = args.map((value) => (value === "" ? null : value));
+    }
     return {
       ...base,
-      claim: `${predicate}(${args})${polarity}`,
-      ask: queryCall({ predicate }),
+      claim: `${predicate}(${args?.join(", ") ?? text(fact.predicate_args)})${polarity}`,
+      ask: queryCall(call),
     };
   }
   const subjectKey = text(fact.subject_key);
@@ -295,6 +360,31 @@ function factDetail(
 function edgesGoal(ids: readonly string[]): string {
   const idList = ids.map((id) => `'${escapeAtom(id)}'`).join(",");
   return `findall([Rel,From,To], (member(Rel, [${ANSWER_RELATIONSHIPS.join(",")}]), kb_relationship(Rel, From, To), (member(From, [${idList}]); member(To, [${idList}]))), Edges)`;
+}
+
+/**
+ * For each predicate fact among `ids`, the argument names and key arguments
+ * of the schema kb_query resolves its `where` names against: the project
+ * `predicate_schema` of its namespace and name, else the built-in signature.
+ * Facts of other kinds, and predicates without a schema, yield no row.
+ */
+// implements REQ-kibi-query-fact-filters
+function factSchemasGoal(ids: readonly string[]): string {
+  const idList = ids.map((id) => `'${escapeAtom(id)}'`).join(",");
+  return `findall([FactId,Names,Keys], (member(FactId, [${idList}]), kb:predicate_fact(FactId, Ns, Name, _, _), ((kb:predicate_schema(SchemaId, Ns, Name, _, Names, _) -> ((kb_entity(SchemaId, fact, Props), memberchk(key_arguments=KeysRaw, Props), kb:normalize_term_atom_list(KeysRaw, Keys)) -> true ; Keys = [])) ; (kb:builtin_decision_predicate(Ns, Name, _, KeyPositions, _), kb:builtin_predicate_signature(Name, _, Names), findall(Key, (member(P, KeyPositions), nth1(P, Names, Key)), Keys)))), Schemas)`;
+}
+
+function parseFactSchemas(
+  raw: string | undefined,
+): Map<string, PredicateFactSchema> {
+  const schemas = new Map<string, PredicateFactSchema>();
+  for (const [id, names, keys] of parseTriples(raw ?? "[]")) {
+    schemas.set(normalizeEntityId(id), {
+      argumentNames: parseAtomList(names),
+      keyArguments: parseAtomList(keys),
+    });
+  }
+  return schemas;
 }
 
 /**
@@ -730,6 +820,33 @@ async function fetchVerdicts(
   }
 }
 
+/**
+ * The rows the answer still needs plus the schemas of the predicate facts
+ * among `factIds`, in one round trip. A schema lookup the engine cannot run
+ * leaves the rows loaded and every ask positional.
+ */
+// implements REQ-kibi-query-fact-filters
+async function fetchFactSchemas(
+  graph: AnswerGraph,
+  factIds: readonly string[],
+  request: Readonly<{ edges: readonly string[]; rows: readonly string[] }>,
+): Promise<Map<string, PredicateFactSchema>> {
+  if (factIds.length === 0) {
+    await graph.fetch(request);
+    return new Map();
+  }
+  try {
+    const bindings = await graph.fetch({
+      ...request,
+      alsoGoal: factSchemasGoal(factIds),
+    });
+    return parseFactSchemas(bindings.Schemas);
+  } catch {
+    await graph.fetch(request);
+    return new Map();
+  }
+}
+
 // implements REQ-bootstrap-provenance-stubs
 export async function buildSearchAnswer(
   prolog: Pick<PrologPort, "query">,
@@ -795,13 +912,9 @@ export async function buildSearchAnswer(
       continue;
     }
     if (owners.length === 0 && ["fact", "scenario", "symbol"].includes(type)) {
+      // A fact's claim and ask are filled in once its schema is known.
       if (ungoverned.length < limits.ungoverned)
-        ungoverned.push({
-          ...brief(entity),
-          ...(type === "fact" ? factDetail(entity) : {}),
-          type,
-          rank: index + 1,
-        });
+        ungoverned.push({ ...brief(entity), type, rank: index + 1 });
       else truncated = true;
       continue;
     }
@@ -938,7 +1051,13 @@ export async function buildSearchAnswer(
       exceptions: firstOf(into("exempts")),
     };
   });
-  await graph.fetch({
+  // The schemas of the linked and ungoverned predicate facts share this
+  // round trip, so each fact's ask can name its key arguments.
+  const factIds = unique([
+    ...ungoverned.filter((entry) => entry.type === "fact").map((e) => e.id),
+    ...plans.flatMap((plan) => plan.facts),
+  ]);
+  const schemas = await fetchFactSchemas(graph, factIds, {
     edges: plans.flatMap((plan) => plan.scenarios),
     rows: plans.flatMap((plan) => [
       ...plan.facts,
@@ -947,6 +1066,17 @@ export async function buildSearchAnswer(
       ...plan.exceptions,
       ...plan.directTests.slice(0, limits.perRequirement),
     ]),
+  });
+  const detailedUngoverned = ungoverned.map((entry) => {
+    const row = entry.type === "fact" ? graph.row(entry.id) : null;
+    if (row === null) return entry;
+    const { type, rank } = entry;
+    return {
+      ...brief(row),
+      ...factDetail(row, schemas.get(entry.id)),
+      type,
+      rank,
+    };
   });
   // Tests linked to the requirement itself come first, then tests that
   // verify one of its scenarios; a test reached both ways counts as direct.
@@ -997,7 +1127,7 @@ export async function buildSearchAnswer(
       via: req.via,
       facts: rowsOf(plan.facts).map((fact) => ({
         ...brief(fact),
-        ...factDetail(fact),
+        ...factDetail(fact, schemas.get(text(fact.id))),
       })),
       scenarios: rowsOf(plan.scenarios).map(brief),
       tests: rowsOf(testIds[index] ?? []).map((row) => ({
@@ -1030,17 +1160,17 @@ export async function buildSearchAnswer(
         ? verdicts.scope.syncedAt
         : null,
   };
-  ungoverned.sort((left, right) => left.rank - right.rank);
+  detailedUngoverned.sort((left, right) => left.rank - right.rank);
   const answer: SearchAnswer = {
     version: "kibi.search-answer.v1",
     governing,
     rationale,
     notGoverning,
     observations: observations.slice(0, limits.observations),
-    ungoverned,
+    ungoverned: detailedUngoverned,
     scope,
     truncated: truncated || graph.truncated,
-    note: answerNote(governing.length, ungoverned),
+    note: answerNote(governing.length, detailedUngoverned),
   };
   return fitSearchAnswer(answer, limits.maxBytes);
 }

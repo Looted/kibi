@@ -20,8 +20,10 @@ import {
   createEntitySummarizer,
   editFocus,
   editKnowledgeContext,
+  editKnowledgeUpdate,
   fileKnowledgeSnippet,
   requirementGroundingLines,
+  unownedSourceNote,
 } from "../src/snippets";
 
 const temporaryRoots: string[] = [];
@@ -220,6 +222,59 @@ describe("shared file knowledge snippet", () => {
   });
 });
 
+describe("edit update after a shown snippet", () => {
+  test("names the edited symbol, the lead requirement's grounding and the impact check only", () => {
+    const text = editKnowledgeUpdate({
+      relativePath: "src/checkout.ts",
+      symbols: SYMBOLS,
+      surface: "edit",
+      focus: [{ start: 4, end: 4 }],
+      summarize,
+    });
+    expect(text?.split("\n")).toEqual([
+      "Kibi: this edit to src/checkout.ts is inside computeTotal, which implements REQ-rounding.",
+      "REQ-rounding must keep true: FACT-total; FACT-cents: Totals round half up +1.",
+      "Decision: ADR-decimal: Money is decimal cents.",
+      'Behavior changes here are traced to these requirements; kb_check({sourceFiles:["src/checkout.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) reports ownership drift after the edit.',
+    ]);
+  });
+
+  test("without a located edit it names the requirements the file implements", () => {
+    const text = editKnowledgeUpdate({
+      relativePath: "src/checkout.ts",
+      symbols: SYMBOLS,
+      surface: "edit",
+      summarize,
+    });
+    expect(text).toStartWith(
+      "Kibi: this edit to src/checkout.ts changes code that implements REQ-rounding, REQ-old.",
+    );
+    expect(text).toContain("REQ-rounding must keep true:");
+    expect(text).not.toContain("Kibi knowledge for");
+  });
+
+  test("a file linking no requirement yields nothing, or only the symbol the edit lands in", () => {
+    const unowned = [{ ...SYMBOLS[0], implements: [] } as IndexedSymbol];
+    expect(
+      editKnowledgeUpdate({
+        relativePath: "src/x.ts",
+        symbols: unowned,
+        surface: "edit",
+        summarize,
+      }),
+    ).toBeUndefined();
+    expect(
+      editKnowledgeUpdate({
+        relativePath: "src/x.ts",
+        symbols: unowned,
+        surface: "edit",
+        focus: [{ start: 4, end: 4 }],
+        summarize,
+      }),
+    ).toBe("Kibi: this edit to src/x.ts is inside computeTotal.");
+  });
+});
+
 describe("once-per-session edit context", () => {
   test("a slot is claimed once per key; without state every call is first", () => {
     const stateDir = tempDir("kibi-agent-core-slots-");
@@ -253,6 +308,31 @@ describe("once-per-session edit context", () => {
     expect(editKnowledgeContext({ ...input, sessionId: "s2" })).toContain(
       "Kibi knowledge for src/a.ts",
     );
+  });
+
+  test("a file without a snippet gets the host's note once per session", () => {
+    const stateDir = tempDir("kibi-agent-core-edit-note-");
+    const input = {
+      relativePaths: ["src/unlinked.ts", "src/a.ts"],
+      symbolsFor: (relativePath: string) =>
+        relativePath === "src/a.ts" ? SYMBOLS : [],
+      summarize,
+      stateDir,
+      sessionId: "s1",
+      noteFor: (relativePath: string) =>
+        relativePath.endsWith(".ts")
+          ? unownedSourceNote(relativePath)
+          : undefined,
+    };
+    const first = editKnowledgeContext(input) ?? "";
+    expect(first).toStartWith(
+      "Kibi: no symbol in src/unlinked.ts is linked to a requirement yet.\nkb_search(",
+    );
+    expect(first).toContain("\n\nKibi knowledge for src/a.ts");
+    expect(editKnowledgeContext(input)).toBeUndefined();
+    expect(
+      editKnowledgeContext({ ...input, relativePaths: ["docs/x.md"] }),
+    ).toBeUndefined();
   });
 });
 

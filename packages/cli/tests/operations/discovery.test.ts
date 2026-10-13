@@ -100,6 +100,7 @@ describe("shared discovery operation executors", () => {
           title: "Exact lookup",
           status: "open",
           source: ".kb/requirements/REQ-exact.md",
+          firmness: "default",
         },
       ],
       count: 1,
@@ -136,6 +137,7 @@ describe("shared discovery operation executors", () => {
             title: "Three",
             status: "open",
             tags: ["wanted"],
+            firmness: "default",
           },
         ],
         count: 2,
@@ -248,8 +250,18 @@ describe("shared discovery operation executors", () => {
       },
       {
         mode: "schemas",
-        count: 1,
-        rows: [{ name: "has_role", arity: 2, argumentNames: ["user", "role"] }],
+        count: 2,
+        rows: [
+          { name: "has_role", arity: 2, argumentNames: ["user", "role"] },
+          {
+            id: "FACT-SCHEMA-PERMISSION-RULE",
+            builtin: true,
+            stored: false,
+            name: "permission_rule",
+            arity: 4,
+            argumentNames: ["actor", "action", "resource", "decision"],
+          },
+        ],
         warnings: [],
       },
       {
@@ -335,6 +347,10 @@ describe("shared discovery operation executors", () => {
       'kb_query({"subjectKey":"user.role_assignment"})',
     ]);
     expect(nextOf(catalog)).toEqual(['kb_query({"predicate":"has_role"})']);
+    // A built-in schema row says its id is not a stored entity.
+    expect((catalog.content[0] as { text: string }).text).toContain(
+      "has_role(user, role); permission_rule(actor, action, resource, decision) [builtin FACT-SCHEMA-PERMISSION-RULE, not a stored entity]",
+    );
     expect(nextOf(kind)).toEqual(['kb_query({"factKind":"predicate_schema"})']);
     expect(nextOf(miss)).toEqual([
       'kb_query({"predicate":"permission_rule","where":{"actor":"admin"},"polarity":"assert"})',

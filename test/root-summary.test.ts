@@ -13,6 +13,7 @@ import {
   BATCH_TIMEOUT_MINUTES,
   CLI_ENGINE_BATCH_TIMEOUT_MS,
   type SuiteSummary,
+  batchConcurrency,
   createCliUnitBatches,
   getBatchFailureMessage,
   isCuratedSuiteEntryPoint,
@@ -26,6 +27,16 @@ describe("getBatchFailureMessage", () => {
   it("bounds package-process parallelism", () => {
     expect(BATCH_CONCURRENCY).toBe(2);
     expect(BATCH_TIMEOUT_MINUTES).toBe(25);
+  });
+
+  it("lets KIBI_TEST_CONCURRENCY raise the worker count, ignoring junk", () => {
+    expect(batchConcurrency({})).toBe(BATCH_CONCURRENCY);
+    expect(batchConcurrency({ KIBI_TEST_CONCURRENCY: "6" })).toBe(6);
+    for (const junk of ["0", "-1", "2.5", "many", ""]) {
+      expect(batchConcurrency({ KIBI_TEST_CONCURRENCY: junk })).toBe(
+        BATCH_CONCURRENCY,
+      );
+    }
   });
 
   it("gives journaled-engine and SkillOpt batches 120s isolates", () => {

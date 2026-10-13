@@ -17,10 +17,13 @@ import {
   extractEditedPaths,
 } from "kibi-agent-core/path-policy";
 import {
+  claimSnippetSlot,
   createEntitySummarizer,
   editFocus,
   editKnowledgeContext,
   implementedRequirementIds,
+  unownedSourceNote,
+  unreadableManifestNote,
 } from "kibi-agent-core/snippets";
 import { parseHookInput, parseStdinJson, readStdin } from "./hook-input.js";
 import {
@@ -37,7 +40,6 @@ import {
   impactCheckReminder,
 } from "./messages.js";
 import {
-  extractExplicitPathFields,
   isDirectKbPath,
   isMeaningfulTrackedPath,
   isSourceImpactRelevantPath,
@@ -113,7 +115,10 @@ function editTargets(
 
 /**
  * The shared kibi-agent-core edit snippet for each requirement-linked file
- * the edit targets, shown once per file per Codex session.
+ * the edit targets, shown once per file per Codex session. A source file
+ * without a linked symbol gets the discovery note instead (once per file),
+ * unless the manifest itself could not be read, which is said once per
+ * session rather than calling the file unlinked.
  */
 // implements REQ-codex-kibi-plugin-v1
 function preEditContext(
@@ -123,10 +128,10 @@ function preEditContext(
 ): string | undefined {
   const targets = editTargets(workspaceRoot, input);
   if (targets.length === 0) return undefined;
-  const files = loadKnowledgeIndex(workspaceRoot, stateDir).files;
+  const index = loadKnowledgeIndex(workspaceRoot, stateDir);
   return editKnowledgeContext({
     relativePaths: targets.map((target) => target.relative),
-    symbolsFor: (relativePath) => files[relativePath] ?? [],
+    symbolsFor: (relativePath) => index.files[relativePath] ?? [],
     summarize: createEntitySummarizer(workspaceRoot),
     stateDir,
     sessionId: input.sessionId,
@@ -135,6 +140,21 @@ function preEditContext(
         (candidate) => candidate.relative === relativePath,
       );
       return target ? editFocus(target.absolute, input.toolInput) : undefined;
+    },
+    noteFor: (relativePath) => {
+      if (!isSourceImpactRelevantPath(relativePath)) return undefined;
+      // A manifest the scanner could not read, in whole or for this file (a
+      // coordinate binds a symbol here but no record was indexed), is not
+      // evidence that nothing is linked.
+      const unread =
+        index.manifest === "unreadable" ||
+        (index.coordinateFiles.includes(relativePath) &&
+          !index.unlinkedFiles.includes(relativePath));
+      if (!unread) return unownedSourceNote(relativePath);
+      const noticeKey = `${input.sessionId ?? ""}\u0000notice\u0000manifest-unreadable`;
+      return claimSnippetSlot(stateDir, noticeKey)
+        ? unreadableManifestNote(relativePath)
+        : undefined;
     },
   });
 }
@@ -238,7 +258,9 @@ export async function runHook(
           },
         };
       }
-      const explicitPaths = extractExplicitPathFields(input.toolInput);
+      // Paths come from explicit fields and from `apply_patch` headers, so a
+      // patch to .kb/ is warned about like an explicit-path edit.
+      const explicitPaths = extractEditedPaths(input.toolInput);
       const hasDirectKbEdit =
         isEditLikeTool(input.toolName) && explicitPaths.some(isDirectKbPath);
 
@@ -289,7 +311,10 @@ export async function runHook(
         });
       }
 
-      const dirtyPaths = extractExplicitPathFields(input.toolInput).filter(
+      // `apply_patch` names its files only in the patch text, so the explicit
+      // path fields alone would leave those edits untracked and the Stop
+      // reminder silent.
+      const dirtyPaths = extractEditedPaths(input.toolInput).filter(
         isMeaningfulTrackedPath,
       );
 

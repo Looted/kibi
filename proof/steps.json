@@ -2084,6 +2084,23 @@
     ]
   },
   {
+    "test_id": "TEST-kb-decision-firmness",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "--isolate",
+        "--max-concurrency=1",
+        "./packages/cli/tests/public/decision-firmness.test.ts",
+        "./packages/cli/tests/commands/decision-firmness.test.ts",
+        "./packages/cli/tests/search-answer.test.ts",
+        "./packages/agent-core/tests/agent-core.test.ts"
+      ]
+    ]
+  },
+  {
     "test_id": "TEST-mcp-conditional-input-validation",
     "steps": [
       [
@@ -2524,6 +2541,18 @@
         "--timeout",
         "600000",
         "./packages/cli/tests/consumer/planned-facts-what-if.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-model-predicates-grounding-guards",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/cli/tests/consumer/predicate-grounding-guards.test.ts"
       ]
     ]
   },

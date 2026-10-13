@@ -569,6 +569,8 @@ const BASE_DATA_SCHEMAS: Readonly<
         "record_ontology_gap",
         "review_nonlogical",
         "replace_grounding",
+        "extend_requirement",
+        "keep_existing_grounding",
       ],
     },
     recommendedPredicateSchema: { type: ["object", "null"] },
@@ -584,7 +586,16 @@ const BASE_DATA_SCHEMAS: Readonly<
       description:
         "The planned predicate fact id (FACT-PRED-...) that a requires_predicate link must target. Candidate ids (SUGGEST-...) are never relationship targets.",
     },
-    existingGrounding: recordArray,
+    existingGrounding: {
+      ...recordArray,
+      description:
+        "The grounding links requirementId already has for this claim: matched by claim_key (the same proposition text) or, for a predicate fact, by the recommended candidate's canonical_key (the same predicate tuple in other words; matchedBy says which).",
+    },
+    decisionConflicts: {
+      ...recordArray,
+      description:
+        "When no hash-bound plan ran the contradiction analysis: stored decision facts of current requirements that agree with the complete candidate on its key arguments and decide the opposite (requirementId, factId, effect, proposedEffect, canonicalKey). A warning repeats each one.",
+    },
     replacementPlan: { type: ["object", "null"] },
     bindingHints: {
       ...recordArray,
@@ -648,6 +659,11 @@ const BASE_DATA_SCHEMAS: Readonly<
         relationships_created: integerValue,
         warnings: valueArray,
         semanticAdvisor: recordValue,
+        claimKey: {
+          ...stringValue,
+          description:
+            "For a fact with claim_text: the stored claim_key, derived from claim_text when the payload did not supply it.",
+        },
         status: stringValue,
         effectFailures: recordArray,
         nextActions: recordArray,
@@ -685,6 +701,22 @@ const BASE_DATA_SCHEMAS: Readonly<
     status: stringValue,
     effectFailures: recordArray,
     nextActions: recordArray,
+    outcome: {
+      type: "string",
+      enum: [
+        "plan_returned",
+        "supersession_required",
+        "plan_applied",
+        "dry_run",
+      ],
+      description:
+        "Absent on a direct delete. plan_returned: deletionPlan was returned and nothing was written; nextActions[0].input is the exact kb_apply_plan input. supersession_required: an authored requirement must be superseded with kb_upsert instead. plan_applied: approvedPlanHash matched and the plan was applied. dry_run: dryRun:true previewed the delete and nothing was written.",
+    },
+    dryRun: { const: true },
+    wouldDelete: recordValue,
+    planHash: stringValue,
+    sourcePaths: stringArray,
+    recoveryJournalId: stringValue,
   }),
   kb_check: {
     description:

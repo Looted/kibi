@@ -6,7 +6,7 @@ import { replaySteps } from "../replay-proof-ci.ts";
 
 const FINAL_GATE_STEP = "Enforce proof baseline and clean snapshot";
 const HOST_PROVISIONING_STEPS = [
-  "Check whether master PR can reuse develop proof",
+  "Check whether the PR can reuse develop proof",
   "Bootstrap Ubuntu packages",
   "Install SWI-Prolog",
   "Provision strict-proof host prerequisites",
@@ -47,6 +47,20 @@ describe("local proof CI replay", () => {
     expect(local?.run).toContain("uv sync --project tools/skillopt --frozen");
     expect(local?.run).not.toContain("npm install --global");
     expect(local?.run).not.toContain("curl");
+  });
+
+  test("replays a step with its own env block, like CI", () => {
+    const prove = replaySteps(proofWorkflow).find(
+      (step) => step.name === "Prove every contracted test through Kibi",
+    );
+    expect(prove?.env?.KIBI_PROOF_STEP_CONCURRENCY).toBe("3");
+    // GitHub-only expressions stay unset locally instead of becoming literals.
+    expect(prove?.env).not.toHaveProperty("GH_TOKEN");
+    expect(prove?.env).not.toHaveProperty("CI_HEAD_SHA");
+    const baseline = replaySteps(proofWorkflow).find(
+      (step) => step.name === FINAL_GATE_STEP,
+    );
+    expect(baseline?.env).toBeUndefined();
   });
 
   test("fails loudly when a skipped step is renamed in the workflow", () => {

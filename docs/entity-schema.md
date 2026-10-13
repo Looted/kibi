@@ -73,6 +73,7 @@ This section provides guidance on selecting the appropriate entity type for your
 | links[]      | No       | array[string]  | Array of URLs                                    |
 | text_ref     | No       | string         | Pointer to Markdown/doc blob                     |
 | origin       | No       | object         | Provenance: who authored the entity and on what authority (see [Entity origin](#entity-origin)). Valid on every type; optional on symbols |
+| firmness     | No       | string         | Requirements and ADRs only: `firm`, `default` (assumed when absent) or `exploratory` (see [Decision firmness](#decision-firmness)) |
 
 ### Entity origin
 
@@ -101,6 +102,31 @@ How `kb_upsert` (and `kibi upsert`) sets it:
 - `kibi migrate` (schema 5 to 6) stamps `{kind: migration, ref: "kibi migrate v5->v6", recorded_at}` on every authored entity without an origin.
 
 Kibi cannot verify a person's approval. The advisory checks `exception-unapproved`, `exception-approval-self-attested` and `agent-requirement-unapproved` make missing or agent-recorded approvals visible so a human can confirm them (see `docs/cli-reference.md`).
+
+### Decision firmness
+
+`firmness` (KB schema 9 and later) records how firmly a requirement or ADR was decided, so a later agent knows whether it may rework the decision on evidence or must ask a human first. It is independent of `origin`: a human's "do whatever you think" is as open to rework as an agent's pick.
+
+| Value | Set when | What a later agent may do |
+|---|---|---|
+| `firm` | A human stated it as a rule ("must", "never", "we decided X because Y"). Needs `origin.ref` (or `approval_ref` on a requirement) pointing at their words | Follow it; to change it, ask first |
+| `default` | A human delegated the choice, or an agent chose. Assumed when the field is absent | Follow it unless the task gives evidence against it; then supersede it with a reason |
+| `exploratory` | An agent was unsure and flagged it as a guess | Revisit it when the area is touched |
+
+```yaml
+firmness: firm
+origin:
+  kind: human
+  ref: https://tracker.example/ISSUE-42#comment-7
+```
+
+`kb_search` answers and `kb_query` rows always show the effective firmness of requirements and ADRs (`default` when the field is absent); hook snippets label `[firm]` and `[exploratory]` decisions. Three blocking checks keep it honest:
+
+- `decision-firm-unreferenced`: a current firm decision without `origin.ref` (or `approval_ref` on a requirement). `kb_upsert` rejects such a write up front.
+- `decision-firm-superseded`: a requirement or ADR that supersedes a firm decision without being firm itself. Retired superseders count too, so replacing the non-firm superseder does not clear the finding.
+- `supersedes-reason-missing`: a current requirement or ADR that supersedes another without a `## Why this changed` section of at least 12 words. The section is context, never part of a requirement's checked meaning. Supersede edges recorded before schema 9 are listed in `.kb/manifest.json` as `supersedesReasonAcknowledged` (`FROM -> TO`) by `kibi migrate` and counted by the info diagnostic `supersedes-reason-acknowledged`; no reason is written for them. Only the listed edges are exempt: a new supersede on the same entity must explain itself.
+
+Kibi checks that a firm decision names a reference; it cannot check that the reference is real or that a person wrote it, as with approvals. A reviewer reads the reference.
 
 ---
 

@@ -9,10 +9,12 @@ import {
 import os from "node:os";
 import path from "node:path";
 import { load as loadYaml } from "js-yaml";
+import { prepareOperationInput } from "../../src/cli-validate.js";
 import type {
   MigrationAction,
   MigrationPlan,
 } from "../../src/public/operations/migration-plan.js";
+import { modelSpec } from "../../src/public/operations/specs/composite.js";
 import { spawnSync } from "../helpers/isolated-env.js";
 import {
   UPLOAD_TEXT,
@@ -85,11 +87,11 @@ describe("kibi migrate to schema 6", () => {
     if (existsSync(root)) rmSync(root, { recursive: true, force: true });
   });
 
-  test("kibi init starts new knowledge bases at schema 8", () => {
+  test("kibi init starts new knowledge bases at the latest schema", () => {
     expect(
       JSON.parse(readFileSync(path.join(root, ".kb/manifest.json"), "utf8"))
         .schemaVersion,
-    ).toBe(8);
+    ).toBe(9);
     const result = runKibi(["migrate", "--yes"], root);
     expect(result.status).toBe(0);
     expect(result.stdout).toContain("No migration needed");
@@ -128,11 +130,29 @@ describe("kibi migrate to schema 6", () => {
         "semantic-inventory-review-REQ-upload-unsafe",
       );
       expect(review?.safety).toBe("review");
-      expect(
+      const instruction =
         review?.invocation.kind === "review"
           ? review.invocation.instruction
-          : "",
-      ).toContain('kibi model --input -` with {"mode":"analyze"');
+          : "";
+      // The suggested kb_model input must pass the public contract.
+      const suggested = instruction
+        .slice(instruction.indexOf('{"mode":"analyze"'))
+        .replace(/<[^>]+>\}\.$/, '"The upload must resume."}');
+      expect(
+        prepareOperationInput(
+          JSON.parse(suggested),
+          modelSpec.businessInputSchema,
+        ),
+      ).toEqual(expect.objectContaining({ valid: true }));
+      // The store cannot see the rejected requirement, so the fix names the
+      // file and carries the re-derived contract to write there.
+      expect(instruction).toContain("store-backed tools");
+      expect(review?.evidence).toMatchObject({
+        contract: expect.objectContaining({
+          semantic_inventory: expect.any(Array),
+        }),
+        contractHash: expect.stringMatching(/^[0-9a-f]{64}$/),
+      });
       expect(
         action(plan, "review-exception-unapproved-REQ-upload-exception"),
       ).toMatchObject({ safety: "review", dispositionRequired: true });
@@ -180,12 +200,12 @@ describe("kibi migrate to schema 6", () => {
         root,
       );
       expect(applied.status, `${applied.stdout}\n${applied.stderr}`).toBe(0);
-      expect(applied.stdout).toContain('"outcome": "applied"');
+      expect(applied.stdout).toContain("Outcome: applied");
 
       expect(
         JSON.parse(readFileSync(path.join(root, ".kb/manifest.json"), "utf8"))
           .schemaVersion,
-      ).toBe(8);
+      ).toBe(9);
       const requirement = frontmatter(
         path.join(root, ".kb/requirements/REQ-upload-resume.md"),
       );
@@ -230,6 +250,63 @@ describe("kibi migrate to schema 6", () => {
   );
 
   test(
+    "re-derives a drifted inventory before resyncing a schema 8 store",
+    () => {
+      writeCurrentRequirement(root, "REQ-upload-base", UPLOAD_TEXT);
+      git(root, "add", "--all");
+      git(root, "commit", "-m", "base");
+      expect(runKibi(["sync"], root).status).toBe(0);
+      writeDriftedRequirement(root, "REQ-upload-resume", 0);
+      git(root, "add", "--all");
+      git(root, "commit", "-m", "drift");
+
+      const plan = readPlan(root);
+      const rederive = "semantic-inventory-rederive-REQ-upload-resume";
+      const syncs = plan.actions.filter(
+        (candidate) =>
+          candidate.id === "freshness-resync" ||
+          candidate.id === "branch-store-compile",
+      );
+      expect(syncs.length).toBeGreaterThan(0);
+      for (const sync of syncs) expect(sync.dependsOn).toContain(rederive);
+
+      const applied = runKibi(
+        ["migrate", "--apply-safe", "--approved-plan-hash", plan.planHash],
+        root,
+      );
+      expect(applied.status, `${applied.stdout}\n${applied.stderr}`).toBe(0);
+      expect(applied.stdout).toContain("Outcome: applied");
+    },
+    TIMEOUT_MS,
+  );
+
+  test(
+    "withholds the store resync while a requirement needs a manual inventory review",
+    () => {
+      writeCurrentRequirement(root, "REQ-upload-base", UPLOAD_TEXT);
+      git(root, "add", "--all");
+      git(root, "commit", "-m", "base");
+      expect(runKibi(["sync"], root).status).toBe(0);
+      writeDriftedRequirement(root, "REQ-upload-unsafe", 1);
+      git(root, "add", "--all");
+      git(root, "commit", "-m", "drift");
+
+      const plan = readPlan(root);
+      for (const sync of plan.actions.filter(
+        (candidate) =>
+          candidate.id === "freshness-resync" ||
+          candidate.id === "branch-store-compile",
+      )) {
+        expect(sync).toMatchObject({ state: "blocked", autoApplicable: false });
+        expect(sync.evidence.blockedBy).toEqual([
+          "semantic-inventory-review-REQ-upload-unsafe",
+        ]);
+      }
+    },
+    TIMEOUT_MS,
+  );
+
+  test(
     "kibi migrate --yes upgrades directly and records the backfill in the audit",
     () => {
       writeManifest(root, 5);
@@ -258,12 +335,13 @@ describe("kibi migrate to schema 6", () => {
       );
       expect(audit).toMatchObject({
         fromVersion: 5,
-        toVersion: 8,
+        toVersion: 9,
         entityOriginBackfill: 4,
         steps: [
           "entity-origin-v6",
           "polarity-values-v7",
           "entity-body-context-v8",
+          "decision-firmness-v9",
         ],
       });
 

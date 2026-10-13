@@ -65,6 +65,12 @@ export type UpsertPayload = {
   readonly relationships_created: number;
   readonly warnings: readonly string[];
   readonly semanticAdvisor: SemanticAdvisorReceipt;
+  /**
+   * For a fact that carries claim_text: the stored claim_key, derived from
+   * claim_text when the payload did not supply it, so the writer learns the
+   * grounding key without a kb_query.
+   */
+  readonly claimKey?: string;
   readonly status?: "committed_with_repairs";
   readonly effectFailures?: readonly {
     readonly kind: string;
@@ -135,8 +141,22 @@ export type DeleteInput = {
     readonly to: string;
   }[];
   readonly _requestId?: string;
+  /** Applies the authored-entity deletion plan whose planHash this is. */
   readonly approvedPlanHash?: string;
+  /** Preview the delete without writing sources or the compiled store. */
+  readonly dryRun?: boolean;
 };
+
+/**
+ * What a kb_delete call did when it was not a direct delete: returned an
+ * authored-entity deletion plan, refused a requirement that must be
+ * superseded, applied an approved plan, or previewed a dry run.
+ */
+export type DeleteOutcome =
+  | "plan_returned"
+  | "supersession_required"
+  | "plan_applied"
+  | "dry_run";
 
 export type DeletePayload = {
   readonly deleted: number;
@@ -148,6 +168,28 @@ export type DeletePayload = {
   readonly sync_required?: boolean;
   /** Declared effects this call did not perform, such as a plan-only result. */
   readonly skippedEffects?: readonly string[];
+  /** Absent on a direct delete. */
+  readonly outcome?: DeleteOutcome;
+  readonly dryRun?: true;
+  /** Dry run only: what a commit would delete. */
+  readonly wouldDelete?: Readonly<{
+    readonly entities: number;
+    readonly ids?: readonly string[];
+    readonly relationships?: number;
+    readonly compiledEdges?: number;
+  }>;
+  /** Applied plan only: the plan hash and the source files it changed. */
+  readonly planHash?: string;
+  readonly sourcePaths?: readonly string[];
+  readonly recoveryJournalId?: string;
+  readonly status?: "committed_with_repairs";
+  readonly nextActions?: readonly Readonly<{
+    readonly operation: string;
+    readonly input: unknown;
+    readonly reason: string;
+    readonly required: boolean;
+    readonly detail?: string;
+  }>[];
   readonly sourceWrites?: readonly {
     readonly path: string;
     readonly mode?: "write" | "delete";

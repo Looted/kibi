@@ -223,3 +223,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-abc9967289fb
+  - type: implements
+    from: SYM-agent-core-editKnowledgeUpdate
+    to: REQ-claude-code-kibi-plugin-v1
+    created_at: 2026-10-12T18:43:43.678Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b201ba1b54b4
+  - type: covered_by
+    from: SYM-agent-core-editKnowledgeUpdate
+    to: TEST-claude-code-kibi-plugin-v1
+    created_at: 2026-10-12T18:43:43.693Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-691ef661f815

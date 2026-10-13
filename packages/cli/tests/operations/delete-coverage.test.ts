@@ -318,7 +318,11 @@ describe("executeDelete guards and relationship preflight", () => {
     expect(req.structuredContent?.deletionPlan?.supersessionRequired).toBe(
       true,
     );
-    expect(req.structuredContent?.errors[0]).toContain("supersession");
+    expect(req.structuredContent?.outcome).toBe("supersession_required");
+    expect(req.structuredContent?.errors).toEqual([]);
+    expect(req.structuredContent?.nextActions?.[0]?.operation).toBe(
+      "kb_upsert",
+    );
 
     const factPath = ".kb/facts/FACT-AUTH.md";
     await mkdir(path.join(root, ".kb", "facts"), { recursive: true });
@@ -351,7 +355,138 @@ describe("executeDelete guards and relationship preflight", () => {
     expect(fact.structuredContent?.deletionPlan?.supersessionRequired).toBe(
       false,
     );
+    expect(fact.structuredContent?.outcome).toBe("plan_returned");
+    expect(fact.structuredContent?.errors).toEqual([]);
+    expect(fact.structuredContent?.nextActions?.[0]).toEqual({
+      operation: "kb_apply_plan",
+      input: {
+        plan: fact.structuredContent?.deletionPlan,
+        approvedPlanHash: fact.structuredContent?.deletionPlan?.planHash,
+      },
+      reason: expect.stringContaining("FACT-AUTH"),
+      required: true,
+    });
     expect(fact.content[0]?.text).toContain("kb_apply_plan");
+
+    // Approving a requirement plan is refused before anything is written.
+    const reqHash = req.structuredContent?.deletionPlan?.planHash ?? "";
+    await expect(
+      executeDelete(
+        { ids: ["REQ-AUTH"], approvedPlanHash: reqHash },
+        contextFor(
+          root,
+          (goal) => {
+            if (goal.startsWith("once(kb_entity("))
+              return { success: true, bindings: {} };
+            if (goal.includes("Dependents"))
+              return { success: true, bindings: { Dependents: "[]" } };
+            if (goal.includes("findall(['REQ-AUTH'")) {
+              return {
+                success: true,
+                bindings: {
+                  Results: `[['REQ-AUTH',req,[id='REQ-AUTH',type=req,source="${reqPath}"]]]`,
+                },
+              };
+            }
+            return { success: true, bindings: { Results: "[]" } };
+          },
+          { fs: nodeFilesystem },
+        ),
+      ),
+    ).rejects.toMatchObject({ code: "REQUIREMENT_SUPERSESSION_REQUIRED" });
+    expect(existsSync(path.join(root, reqPath))).toBe(true);
+  });
+
+  test("rejects approvedPlanHash outside an authored-entity plan", async () => {
+    const root = await mkdtemp(path.join(tmpdir(), "kibi-del-approve-"));
+    workspaces.push(root);
+    const hash = "a".repeat(64);
+    const plainEntity = (goal: string): LooseQueryResult => {
+      if (goal.startsWith("once(kb_entity("))
+        return { success: true, bindings: {} };
+      if (goal.includes("Dependents"))
+        return { success: true, bindings: { Dependents: "[]" } };
+      if (goal.includes("findall(['REQ-PLAIN'"))
+        return {
+          success: true,
+          bindings: {
+            Results: "[['REQ-PLAIN',req,[id='REQ-PLAIN',type=req]]]",
+          },
+        };
+      return { success: true, bindings: { Results: "[]" } };
+    };
+    await expect(
+      executeDelete(
+        {
+          relationships: [{ type: "relates_to", from: "A", to: "B" }],
+          approvedPlanHash: hash,
+        },
+        contextFor(root, plainEntity),
+      ),
+    ).rejects.toMatchObject({ code: "VALIDATION_FAILED" });
+    await expect(
+      executeDelete(
+        { ids: ["REQ-PLAIN"], approvedPlanHash: hash, dryRun: true },
+        contextFor(root, plainEntity),
+      ),
+    ).rejects.toThrow(/cannot be combined/);
+    await expect(
+      executeDelete(
+        { ids: ["REQ-PLAIN"], approvedPlanHash: hash },
+        contextFor(root, plainEntity),
+      ),
+    ).rejects.toThrow(/no authored-entity deletion plan/);
+  });
+
+  test("dryRun on a direct entity delete reports the would-be deletion without saving", async () => {
+    const root = await mkdtemp(path.join(tmpdir(), "kibi-del-dry-"));
+    workspaces.push(root);
+    const goals: string[] = [];
+    let saves = 0;
+    const context = contextFor(root, (goal) => {
+      goals.push(goal);
+      if (goal.startsWith("once(kb_entity('REQ-PLAIN'"))
+        return { success: true, bindings: {} };
+      if (goal.startsWith("once(kb_entity("))
+        return { success: false, bindings: {} };
+      if (goal.includes("Dependents"))
+        return { success: true, bindings: { Dependents: "[]" } };
+      if (goal.includes("findall(['REQ-PLAIN'"))
+        return {
+          success: true,
+          bindings: {
+            Results: "[['REQ-PLAIN',req,[id='REQ-PLAIN',type=req]]]",
+          },
+        };
+      return { success: true, bindings: { Results: "[]" } };
+    });
+    const prolog = context.prolog as PrologPort;
+    const result = await executeDelete(
+      { ids: ["REQ-PLAIN", "REQ-GONE"], dryRun: true },
+      {
+        ...context,
+        prolog: {
+          ...prolog,
+          save: async () => {
+            saves += 1;
+            return { success: true, bindings: {} };
+          },
+        },
+      },
+    );
+    expect(result.structuredContent).toEqual({
+      deleted: 0,
+      skipped: 1,
+      errors: ["Entity REQ-GONE does not exist"],
+      wouldDelete: { entities: 1, ids: ["REQ-PLAIN"] },
+      dryRun: true,
+      outcome: "dry_run",
+      skippedEffects: ["kb-write", "workspace-write"],
+    });
+    expect(saves).toBe(0);
+    expect(goals.some((goal) => /retract|kb_save|audit/i.test(goal))).toBe(
+      false,
+    );
   });
 
   test("blocks dependents, skips protocol sources, and reports empty loadEntity rows", async () => {

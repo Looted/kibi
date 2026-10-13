@@ -508,6 +508,12 @@ export async function persistEntities(
       if (entity.type === "req" && entity.proof_exempt !== undefined) {
         props.push(`proof_exempt=${entity.proof_exempt}`);
       }
+      if (
+        (entity.type === "req" || entity.type === "adr") &&
+        entity.firmness !== undefined
+      ) {
+        props.push(`firmness=${toPrologAtom(entity.firmness)}`);
+      }
       if (entity.type === "scenario" && entity.expects !== undefined) {
         props.push(`expects=${toPrologAtom(entity.expects)}`);
       }

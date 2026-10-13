@@ -83,8 +83,11 @@ describe("kb_model predicates on an already grounded requirement", () => {
         factId: "FACT-editor-autosave-on-leave",
         factKind: "property_value",
         claimKey: semanticClaimKey(TEXT),
+        canonicalKey: null,
+        matchedBy: "claim_key",
       },
     ]);
+    expect(data.decisionConflicts).toEqual([]);
     const replacement = data.replacementPlan as {
       relationshipTarget: string;
       steps: Array<{ operation: string; input: Record<string, unknown> }>;
