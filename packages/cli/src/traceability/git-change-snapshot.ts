@@ -2,7 +2,12 @@ import { execFileSync, spawnSync } from "node:child_process";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { isEntityLanePath, isSymbolsManifestPath } from "../utils/kb-paths.js";
+import {
+  ENTITY_LANES,
+  isEntityLanePath,
+  isKbKnowledgePath,
+  isSymbolsManifestPath,
+} from "../utils/kb-paths.js";
 import type {
   HunkRange,
   StagedAnalysisDepth,
@@ -38,6 +43,13 @@ export interface GitChangeSnapshot {
    * edits that differ from every parent).
    */
   mergeInherited?: readonly string[];
+  /**
+   * Staged snapshots only: knowledge files the commit moves into the
+   * canonical `.kb/` layout (for example after `kibi migrate`). `baseTree`
+   * holds each source's committed content at its target path, so the
+   * inventory shows only what the commit changed inside those files.
+   */
+  renameResolved?: ReadonlyArray<{ from: string; to: string }>;
 }
 
 interface TreeEntry {
@@ -580,7 +592,20 @@ export function mergeResolutionBase(
     // Deleted on the merged side and absent from the staged tree.
     if (!present.has(file)) entries.push(`0 ${zero}\t${file}`);
   }
-  const scratch = mkdtempSync(path.join(tmpdir(), "kibi-merge-base-"));
+  return {
+    baseTree: writeTreeWithEntries(root, baseTree, entries, "kibi-merge-base-"),
+    inherited: paths,
+  };
+}
+
+/** Write `baseTree` with `--index-info` entries applied in a scratch index. */
+function writeTreeWithEntries(
+  root: string,
+  baseTree: string,
+  entries: readonly string[],
+  prefix: string,
+): string {
+  const scratch = mkdtempSync(path.join(tmpdir(), prefix));
   const env = { ...process.env, GIT_INDEX_FILE: path.join(scratch, "index") };
   try {
     const git = (args: readonly string[], input?: string) =>
@@ -593,13 +618,91 @@ export function mergeResolutionBase(
       });
     git(["read-tree", baseTree]);
     git(["update-index", "-z", "--index-info"], `${entries.join("\0")}\0`);
-    return {
-      baseTree: git(["write-tree"]).toString("utf8").trim(),
-      inherited: paths,
-    };
+    return git(["write-tree"]).toString("utf8").trim();
   } finally {
     rmSync(scratch, { recursive: true, force: true });
   }
+}
+
+function renamedPaths(
+  root: string,
+  from: string,
+  to: string,
+): Array<{ from: string; to: string }> {
+  return parseNameStatus(
+    runGit(root, [
+      "diff",
+      "--name-status",
+      "-z",
+      "-M",
+      "--diff-filter=R",
+      from,
+      to,
+    ]),
+  ).flatMap((row) =>
+    row.status === "R" && row.oldPath !== undefined
+      ? [{ from: row.oldPath, to: row.path }]
+      : [],
+  );
+}
+
+/**
+ * True when `from -> to` moves one knowledge file from outside the canonical
+ * layout into the same kind of canonical `.kb/` location: an entity lane
+ * file into the same lane, or a symbols manifest / coordinates file onto the
+ * canonical file of the same name (`.yml` and `.yaml` alike).
+ */
+function isKnowledgeRelocation(from: string, to: string): boolean {
+  if (isKbKnowledgePath(from) || !isKbKnowledgePath(to)) return false;
+  if (isSymbolsManifestPath(to)) {
+    const stem = (file: string) =>
+      path.posix.basename(file).replace(/\.ya?ml$/, "");
+    return stem(from) === stem(to);
+  }
+  const lane = to.split("/")[1] ?? "";
+  return (
+    (ENTITY_LANES as readonly string[]).includes(lane) &&
+    `/${from}`.includes(`/${lane}/`)
+  );
+}
+
+/**
+ * For a staged snapshot, the tree a commit that relocates knowledge files
+ * into `.kb/` is judged against: `baseTree` with each relocated file's
+ * committed content placed at its new path and the old path removed.
+ * Diffing it against the staged tree leaves only the edits the commit made
+ * inside those files, so findings that already existed at the old path are
+ * not charged to the move. Every other change, including an edit to a file
+ * that was already canonical, is diffed as before. Null when nothing is
+ * relocated.
+ */
+// implements REQ-014
+export function renameResolutionBase(
+  root: string,
+  baseTree: string,
+  headTree: string,
+): { baseTree: string; renames: Array<{ from: string; to: string }> } | null {
+  const zero = "0".repeat(baseTree.length);
+  const renames: Array<{ from: string; to: string }> = [];
+  const entries: string[] = [];
+  for (const rename of renamedPaths(root, baseTree, headTree)) {
+    if (!isKnowledgeRelocation(rename.from, rename.to)) continue;
+    const source = readTreeEntry(root, baseTree, rename.from);
+    if (source?.type !== "blob") continue;
+    renames.push(rename);
+    entries.push(`0 ${zero}\t${rename.from}`);
+    entries.push(`${source.mode} ${source.oid}\t${rename.to}`);
+  }
+  if (renames.length === 0) return null;
+  return {
+    baseTree: writeTreeWithEntries(
+      root,
+      baseTree,
+      entries,
+      "kibi-rename-base-",
+    ),
+    renames: renames.sort((left, right) => left.to.localeCompare(right.to)),
+  };
 }
 
 /** Capture one immutable tree from the index and inventory only Git objects. */
@@ -618,7 +721,9 @@ export function captureStagedSnapshot(
         pendingMergeParents(workspaceRoot),
       )
     : null;
-  const baseTree = merge?.baseTree ?? commitTree;
+  const mergeTree = merge?.baseTree ?? commitTree;
+  const relocation = renameResolutionBase(workspaceRoot, mergeTree, headTree);
+  const baseTree = relocation?.baseTree ?? mergeTree;
   const readGit = (args: readonly string[]) =>
     translateReadGit(workspaceRoot, args, baseTree, headTree, headCommit);
   const assertUnchanged = () => {
@@ -638,7 +743,11 @@ export function captureStagedSnapshot(
     readGit,
     assertUnchanged,
   );
-  return merge ? { ...snapshot, mergeInherited: merge.inherited } : snapshot;
+  return {
+    ...snapshot,
+    ...(merge ? { mergeInherited: merge.inherited } : {}),
+    ...(relocation ? { renameResolved: relocation.renames } : {}),
+  };
 }
 
 /**
