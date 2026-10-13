@@ -1,7 +1,7 @@
 ---
 title: Incomplete source discovery blocks parity
 status: active
-text_ref: documentation/requirements/REQ-kibi-source-relationship-parity.md
+text_ref: .kb/requirements/REQ-kibi-source-relationship-parity.md
 tags:
   - lane:ontology
   - relationship-parity

@@ -152,7 +152,7 @@ describe("collectStagedKibiDiagnostics symbols_manifest_stale and override rende
       "Run kibi sync --refresh-symbol-coordinates",
     );
   });
-  test("renders an accurate overflow count in text and full name lists in JSON evidence", () => {
+  test("renders every symbol name in text and JSON evidence", () => {
     restores.push(isolateKibiEnv());
     const extra = Array.from({ length: 9 }, (_, index) => `ghost${index + 1}`);
     const missing = Array.from({ length: 8 }, (_, index) => ({
@@ -181,9 +181,12 @@ describe("collectStagedKibiDiagnostics symbols_manifest_stale and override rende
     const stale = derived.find((row) => row.id === "symbols_manifest_stale");
     const text = stale?.details?.join("\n") ?? "";
     expect(text).toContain(
-      "Evidence without a matching symbol: ghost1, ghost2, ghost3, ghost4, ghost5, ghost6 … and 3 more",
+      `Evidence without a matching symbol: ${extra.join(", ")}`,
     );
-    expect(text).toContain("symFn6 (line 16) … and 2 more");
+    expect(text).toContain(
+      "symFn6 (line 16), symFn7 (line 19), symFn8 (line 22)",
+    );
+    expect(text).not.toContain("more");
     expect(stale?.evidence).toEqual({
       symbolsManifest: [
         {
@@ -199,7 +202,9 @@ describe("collectStagedKibiDiagnostics symbols_manifest_stale and override rende
     const uncovered = derived.find(
       (row) => row.id === "kibi_impact_evidence_missing",
     );
-    expect(uncovered?.details?.join("\n")).toContain("symFn6 … and 2 more");
+    expect(uncovered?.details?.join("\n")).toContain(
+      `symbols without authored evidence: ${missing.map((entry) => entry.title).join(", ")}`,
+    );
     expect(uncovered?.evidence).toEqual({
       uncoveredSymbols: [
         { path: "src/app.ts", titles: missing.map((entry) => entry.title) },

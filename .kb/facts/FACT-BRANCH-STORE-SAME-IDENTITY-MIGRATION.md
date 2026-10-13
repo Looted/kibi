@@ -1,7 +1,7 @@
 ---
 title: Branch store migration preserves exact Git identity
 status: active
-text_ref: documentation/requirements/REQ-branch-store-recovery-v3.md
+text_ref: .kb/requirements/REQ-branch-store-recovery-v3.md
 tags:
   - lane:ontology
   - branching

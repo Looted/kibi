@@ -733,6 +733,9 @@ export function buildLifecycleRepairActions(workspaceRoot: string): {
       migrationAction(
         sourcePathReviewActionInput({
           entityId: repair.entityId,
+          ...(repair.field === "text_ref"
+            ? { field: "text_ref" as const }
+            : {}),
           value: repair.value,
           file: repair.file,
           reason: repair.refused,
@@ -799,7 +802,7 @@ function plannedRecords(value: unknown): Record<string, unknown>[] {
 // implements REQ-kibi-schema6-migration
 function plannedRepairs(action: MigrationAction): PlannedSourcePathRepairs {
   const rewrites: SourcePathRewrite[] = [];
-  for (const { entityId, file, from, to } of plannedRecords(
+  for (const { entityId, file, field, from, to } of plannedRecords(
     action.evidence.rewrites,
   )) {
     if (
@@ -808,7 +811,13 @@ function plannedRepairs(action: MigrationAction): PlannedSourcePathRepairs {
       typeof from === "string" &&
       typeof to === "string"
     ) {
-      rewrites.push({ entityId, file, from, to });
+      rewrites.push({
+        entityId,
+        file,
+        ...(field === "text_ref" ? { field } : {}),
+        from,
+        to,
+      });
     }
   }
   const removals: SourcePathRemoval[] = [];

@@ -1,7 +1,7 @@
 ---
 title: Runtime-only edges are exempt from reverse ownership
 status: active
-text_ref: documentation/requirements/REQ-kibi-source-relationship-parity.md
+text_ref: .kb/requirements/REQ-kibi-source-relationship-parity.md
 tags:
   - lane:ontology
   - relationship-parity

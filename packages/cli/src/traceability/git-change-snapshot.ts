@@ -1,4 +1,7 @@
 import { execFileSync, spawnSync } from "node:child_process";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import { isEntityLanePath, isSymbolsManifestPath } from "../utils/kb-paths.js";
 import type {
   HunkRange,
@@ -28,6 +31,13 @@ export interface GitChangeSnapshot {
   /** Reject a changed HEAD or index tree after staged analysis. */
   assertUnchanged(): void;
   inventory: StagedPath[];
+  /**
+   * Staged merge commits only: paths whose staged content is taken unchanged
+   * from a merged parent. They are part of `baseTree`, so the inventory
+   * holds only what the merge itself wrote (its conflict resolutions and
+   * edits that differ from every parent).
+   */
+  mergeInherited?: readonly string[];
 }
 
 interface TreeEntry {
@@ -488,14 +498,127 @@ function snapshotFromTrees(
   };
 }
 
+/** The commits named by MERGE_HEAD while a merge commit is being made. */
+function pendingMergeParents(root: string): string[] {
+  let mergeHeadPath: string;
+  try {
+    mergeHeadPath = gitText(root, ["rev-parse", "--git-path", "MERGE_HEAD"]);
+  } catch {
+    return [];
+  }
+  let text: string;
+  try {
+    text = readFileSync(path.resolve(root, mergeHeadPath), "utf8");
+  } catch {
+    return [];
+  }
+  return text
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => /^[a-f0-9]{40,64}$/.test(line));
+}
+
+function changedPaths(root: string, from: string, to: string): string[] {
+  return runGit(root, ["diff", "--name-only", "-z", "--no-renames", from, to])
+    .toString("utf8")
+    .split("\0")
+    .filter(Boolean);
+}
+
+/**
+ * For a staged merge commit, the tree the merge is judged against: HEAD
+ * with every path the merge takes unchanged from a merged parent replaced
+ * by that staged content. Diffing it against the staged tree leaves only
+ * what the merge itself wrote, so debt inherited from the merged branch is
+ * not charged to the merge. Null when no merge is in progress or nothing
+ * is inherited.
+ */
+// implements REQ-014
+export function mergeResolutionBase(
+  root: string,
+  baseTree: string,
+  headTree: string,
+  parents: readonly string[],
+): { baseTree: string; inherited: string[] } | null {
+  if (parents.length === 0) return null;
+  const changed = changedPaths(root, baseTree, headTree);
+  if (changed.length === 0) return null;
+  const inherited = new Set<string>();
+  for (const parent of parents) {
+    const parentTree = treeForCommit(root, parent);
+    const differs = new Set(changedPaths(root, parentTree, headTree));
+    for (const file of changed) {
+      if (!differs.has(file)) inherited.add(file);
+    }
+  }
+  if (inherited.size === 0) return null;
+  const paths = [...inherited].sort();
+  const listed = runGit(root, [
+    "ls-tree",
+    "-r",
+    "-z",
+    "--full-tree",
+    headTree,
+    "--",
+    ...paths.map(literalPathspec),
+  ])
+    .toString("utf8")
+    .split("\0")
+    .filter(Boolean);
+  const present = new Set<string>();
+  const entries: string[] = [];
+  for (const row of listed) {
+    const tab = row.indexOf("\t");
+    if (tab < 0) continue;
+    const [mode, , oid] = row.slice(0, tab).split(" ");
+    const file = row.slice(tab + 1);
+    present.add(file);
+    entries.push(`${mode} ${oid}\t${file}`);
+  }
+  const zero = "0".repeat(baseTree.length);
+  for (const file of paths) {
+    // Deleted on the merged side and absent from the staged tree.
+    if (!present.has(file)) entries.push(`0 ${zero}\t${file}`);
+  }
+  const scratch = mkdtempSync(path.join(tmpdir(), "kibi-merge-base-"));
+  const env = { ...process.env, GIT_INDEX_FILE: path.join(scratch, "index") };
+  try {
+    const git = (args: readonly string[], input?: string) =>
+      execFileSync("git", [...args], {
+        cwd: root,
+        env,
+        maxBuffer: GIT_EXEC_MAX_BUFFER,
+        ...(input !== undefined ? { input } : {}),
+        stdio: ["pipe", "pipe", "ignore"],
+      });
+    git(["read-tree", baseTree]);
+    git(["update-index", "-z", "--index-info"], `${entries.join("\0")}\0`);
+    return {
+      baseTree: git(["write-tree"]).toString("utf8").trim(),
+      inherited: paths,
+    };
+  } finally {
+    rmSync(scratch, { recursive: true, force: true });
+  }
+}
+
 /** Capture one immutable tree from the index and inventory only Git objects. */
 // implements REQ-014
 export function captureStagedSnapshot(
   workspaceRoot: string,
 ): GitChangeSnapshot {
   const headCommit = resolveHeadCommit(workspaceRoot);
-  const baseTree = treeForCommit(workspaceRoot, headCommit);
   const headTree = gitText(workspaceRoot, ["write-tree"]);
+  const commitTree = treeForCommit(workspaceRoot, headCommit);
+  const merge = headCommit
+    ? mergeResolutionBase(
+        workspaceRoot,
+        commitTree,
+        headTree,
+        pendingMergeParents(workspaceRoot),
+      )
+    : null;
+  const baseTree = merge?.baseTree ?? commitTree;
   const readGit = (args: readonly string[]) =>
     translateReadGit(workspaceRoot, args, baseTree, headTree, headCommit);
   const assertUnchanged = () => {
@@ -507,7 +630,7 @@ export function captureStagedSnapshot(
       );
     }
   };
-  return snapshotFromTrees(
+  const snapshot = snapshotFromTrees(
     workspaceRoot,
     baseTree,
     headTree,
@@ -515,6 +638,7 @@ export function captureStagedSnapshot(
     readGit,
     assertUnchanged,
   );
+  return merge ? { ...snapshot, mergeInherited: merge.inherited } : snapshot;
 }
 
 /**

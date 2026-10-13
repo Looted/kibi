@@ -1,7 +1,6 @@
 ---
 title: The staged check must inventory every path in the Git index before filtering.
 status: open
-text_ref: .kb/requirements/REQ-cli-staged-complete-inventory-v1.md
 tags:
   - strict-modeling
   - confidence:1.00

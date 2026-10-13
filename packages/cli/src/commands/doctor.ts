@@ -58,6 +58,10 @@ import {
   resolveGitRepository,
 } from "../utils/git-repository-context.js";
 import { readKbManifestStatus } from "../utils/kb-manifest.js";
+import {
+  MERGE_DRIVER_SETUP,
+  manifestMergeDriverGaps,
+} from "../utils/merge-driver-setup.js";
 import { LATEST_KB_SCHEMA_VERSION } from "../utils/schema-version.js";
 import {
   KIBI_HOOK_BEGIN,
@@ -147,6 +151,10 @@ export async function doctorCommand(
     {
       name: "Kibi-managed hook sections",
       check: checkManagedHookSections,
+    },
+    {
+      name: "Manifest merge driver",
+      check: checkManifestMergeDriver,
     },
     {
       name: "Capability plugins",
@@ -880,6 +888,29 @@ function checkGitRepository(): {
       remediation: "Run: git init",
     };
   }
+}
+
+/**
+ * `.kb/symbols.yaml` conflicts on nearly every parallel branch; `kibi
+ * merge-driver` resolves them by record id, but only when Git routes the
+ * file to it. A warning, not a failure: merges still work without it.
+ */
+// implements REQ-cli-doctor
+function checkManifestMergeDriver(): DoctorCheckResult {
+  const gaps = manifestMergeDriverGaps(process.cwd());
+  if (gaps === null) {
+    return {
+      passed: true,
+      message: "Not needed yet (no git repository or no symbols)",
+    };
+  }
+  if (gaps.length === 0) return { passed: true, message: "Configured" };
+  return {
+    passed: true,
+    warning: true,
+    message: `Not configured: ${gaps.join("; ")}. Merges of .kb/symbols.yaml fall back to line conflicts.`,
+    remediation: MERGE_DRIVER_SETUP,
+  };
 }
 
 /**

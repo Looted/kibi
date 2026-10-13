@@ -193,6 +193,42 @@ Imported scenario.`,
     }
   });
 
+  test("does not close front matter on a --- glued to the last value", () => {
+    const tempFile = "/tmp/test-glued-closing.md";
+    writeFileSync(
+      tempFile,
+      "---\nid: TEST-glued\ntitle: Glued\ntype: test\npriority: must---\nBody.\n",
+    );
+
+    try {
+      extractFromMarkdown(tempFile);
+      expect(true).toBe(false);
+    } catch (error) {
+      expect(error).toBeInstanceOf(FrontmatterError);
+      expect((error as FrontmatterError).classification).toBe(
+        "Missing closing ---",
+      );
+    } finally {
+      unlinkSync(tempFile);
+    }
+  });
+
+  test("keeps a --- inside a front matter value", () => {
+    const tempFile = "/tmp/test-table-in-value.md";
+    writeFileSync(
+      tempFile,
+      '---\nid: REQ-table\ntitle: Table\ntype: req\nsemantic_text: "| a | b |\\n|---|---|\\n| 1 | 2 |"\n---\nBody --- with a dash run.\n',
+    );
+
+    try {
+      const { entity } = extractFromMarkdown(tempFile);
+      expect(entity.id).toBe("REQ-table");
+      expect(entity.semantic_text).toBe("| a | b |\n|---|---|\n| 1 | 2 |");
+    } finally {
+      unlinkSync(tempFile);
+    }
+  });
+
   test("diagnoses generic YAML mapping error", () => {
     const tempFile = "/tmp/test-mapping-error.md";
     writeFileSync(tempFile, "---\ntitle: Foo\nkey: [unclosed\n---\n# Content");
