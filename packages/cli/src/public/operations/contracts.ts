@@ -442,7 +442,12 @@ const BASE_DATA_SCHEMAS: Readonly<
   }),
   kb_skills_read: objectData({ content: stringValue }, ["content"]),
   kb_query: objectData(
-    { entities: recordArray, count: integerValue, factQuery: recordValue },
+    {
+      entities: recordArray,
+      count: integerValue,
+      factQuery: recordValue,
+      branchStore: recordValue,
+    },
     ["entities", "count"],
   ),
   kb_search: objectData(

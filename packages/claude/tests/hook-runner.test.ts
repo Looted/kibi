@@ -1,6 +1,6 @@
 // implements REQ-claude-code-kibi-plugin-v1
 import { afterEach, describe, expect, test } from "bun:test";
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
@@ -8,6 +8,7 @@ import path from "node:path";
 import { type HookOutput, runHook } from "../src/hook-runner";
 import { MAX_SNIPPET_CHARS } from "../src/snippets";
 import {
+  CHECKOUT_SOURCE,
   COORDINATES_YAML,
   type Fixture,
   cleanupTempDirs,
@@ -631,6 +632,136 @@ describe("stop reminders", () => {
     await session(fixture, "a").post("Edit", { file_path: "src/checkout.ts" });
     expect(await session(fixture, "b").stop()).toBeUndefined();
     expect(await session(fixture, "a").stop()).toContain("src/checkout.ts");
+  });
+});
+
+describe("shell commands", () => {
+  /** Turns the fixture into a real git work tree with everything committed. */
+  function commitAll(fixture: Fixture): void {
+    fs.rmSync(path.join(fixture.root, ".git"), { recursive: true });
+    const git = (...args: string[]) => {
+      const result = spawnSync("git", args, {
+        cwd: fixture.root,
+        encoding: "utf8",
+      });
+      expect(result.status, result.stderr).toBe(0);
+    };
+    write(fixture.root, ".gitignore", ".kb/usage.log\n");
+    git("init", "-q");
+    git("add", "-A");
+    git(
+      "-c",
+      "user.email=dev@example.test",
+      "-c",
+      "user.name=Dev",
+      "commit",
+      "-qm",
+      "fixture",
+    );
+  }
+
+  /** Sets a file's modification time `seconds` in the past. */
+  function age(fixture: Fixture, relativePath: string, seconds: number): void {
+    const past = new Date(Date.now() - seconds * 1000);
+    fs.utimesSync(path.join(fixture.root, relativePath), past, past);
+  }
+
+  test("a command that reads a linked file gets the read snippet once", async () => {
+    const fixture = createKibiWorkspace();
+    const { pre } = session(fixture);
+    const text = await pre("Bash", {
+      command: "cd src && sed -n 1,20p checkout.ts | head",
+    });
+    expect(text).toContain("REQ-checkout-rounding");
+    expect(text).toContain('kb_query({id:"REQ-checkout-rounding"})');
+    expect(await pre("Bash", { command: "cat src/checkout.ts" })).toBe(
+      undefined,
+    );
+    expect(await pre("Read", { file_path: "src/checkout.ts" })).toBe(undefined);
+  });
+
+  test("reading .kb/ or searching the tree from the shell gets the same notes as the tools", async () => {
+    const fixture = createKibiWorkspace();
+    const { pre } = session(fixture);
+    expect(
+      await pre("Bash", {
+        command: "cat .kb/requirements/REQ-checkout-rounding.md",
+      }),
+    ).toContain(".kb/ holds Kibi-managed knowledge");
+    expect(
+      await pre("Bash", { command: "grep -rn 'total' src | head -20" }),
+    ).toContain("Kibi tip");
+    expect(await pre("Grep", { pattern: "total" })).toBeUndefined();
+    expect(await pre("Bash", { command: "ls src" })).toBeUndefined();
+  });
+
+  test("a linked file the command changed gets the edit snippet and a stop reminder", async () => {
+    const fixture = createKibiWorkspace();
+    commitAll(fixture);
+    const { pre, post, stop } = session(fixture);
+    await pre("Bash", { command: "python3 rewrite.py" });
+    write(fixture.root, "src/checkout.ts", `${CHECKOUT_SOURCE}// changed\n`);
+    const text = contextOf(
+      await post("Bash", { command: "python3 rewrite.py" }),
+      "PostToolUse",
+    );
+    expect(text).toContain("REQ-checkout-rounding");
+    expect(text).toContain("must keep true");
+    expect(text).toContain('kb_check({sourceFiles:["src/checkout.ts"]');
+    expect(await stop()).toContain("src/checkout.ts");
+  });
+
+  test("a new or changed source file no requirement owns gets the discovery note", async () => {
+    const fixture = createKibiWorkspace();
+    commitAll(fixture);
+    const { pre, post } = session(fixture);
+    await pre("Bash", { command: "cat > src/report.ts <<'EOF'" });
+    write(fixture.root, "src/report.ts", "export const report = 1;\n");
+    const text = contextOf(
+      await post("Bash", { command: "cat > src/report.ts <<'EOF'" }),
+      "PostToolUse",
+    );
+    expect(text).toContain("no symbol in src/report.ts is linked");
+    // The note is shown once per file.
+    await pre("Bash", { command: "echo more >> src/report.ts" });
+    write(fixture.root, "src/report.ts", "export const report = 2;\n");
+    expect(
+      await post("Bash", { command: "echo more >> src/report.ts" }),
+    ).toEqual({});
+  });
+
+  test("files left dirty before the command are not attributed to it", async () => {
+    const fixture = createKibiWorkspace();
+    commitAll(fixture);
+    write(fixture.root, "src/checkout.ts", `${CHECKOUT_SOURCE}// earlier\n`);
+    age(fixture, "src/checkout.ts", 60);
+    const { pre, post, stop } = session(fixture);
+    await pre("Bash", { command: "npm test" });
+    expect(await post("Bash", { command: "npm test" })).toEqual({});
+    expect(await stop()).toBeUndefined();
+  });
+
+  test("a shell edit of a linked file is an edit row for the lookup-before-edit metric", async () => {
+    const fixture = createKibiWorkspace();
+    commitAll(fixture);
+    const { pre, post } = session(fixture, "s-bash", {
+      KIBI_DIAGNOSTIC_MODE: "1",
+    });
+    await pre("Bash", { command: "sed -i s/total/sum/ src/checkout.ts" });
+    write(fixture.root, "src/checkout.ts", `${CHECKOUT_SOURCE}// sed\n`);
+    await post("Bash", { command: "sed -i s/total/sum/ src/checkout.ts" });
+    const rows = fs
+      .readFileSync(path.join(fixture.root, ".kb", "usage.log"), "utf8")
+      .trim()
+      .split("\n")
+      .map((line) => JSON.parse(line) as Record<string, unknown>);
+    expect(rows.at(-1)).toMatchObject({
+      host_tool: "Bash",
+      hook_action: "edited",
+      path: "src/checkout.ts",
+      requirement_ids: ["REQ-checkout-rounding", "REQ-currency-display"],
+      kb_used_before: false,
+    });
   });
 });
 

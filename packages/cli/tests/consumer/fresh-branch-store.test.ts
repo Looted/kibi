@@ -141,4 +141,39 @@ describe("a new branch whose store was never compiled", () => {
       "branch_store_not_compiled",
     );
   }, 240_000);
+
+  test("search and query say the store is not compiled instead of answering empty", () => {
+    const ws = createConsumerWorkspace("kibi-fresh-branch-search-");
+    workspace = ws;
+    authorLinkedRequirement(ws);
+    ws.sync();
+    ws.git("commit", "-qm", "kb");
+    ws.git("checkout", "-q", "-b", "feature/login");
+
+    type Envelope = {
+      status: string;
+      data: { count: number; branchStore?: { code: string } };
+      diagnostics: Array<{ code?: string; severity?: string; message: string }>;
+    };
+    for (const [route, input] of [
+      ["search", { query: "users log in" }],
+      ["query", { id: "REQ-demo-login" }],
+    ] as const) {
+      const result = ws.json([route], input) as Envelope;
+      expect(result.data.count).toBe(0);
+      expect(result.data.branchStore?.code).toBe("branch_store_not_compiled");
+      expect(result.diagnostics).toContainEqual(
+        expect.objectContaining({
+          code: "branch_store_not_compiled",
+          severity: "warning",
+        }),
+      );
+      expect(result.diagnostics[0]?.message).toContain("run `kibi sync`");
+    }
+
+    ws.sync();
+    const query = ws.json(["query"], { id: "REQ-demo-login" }) as Envelope;
+    expect(query.data.count).toBe(1);
+    expect(query.diagnostics).toEqual([]);
+  }, 240_000);
 });

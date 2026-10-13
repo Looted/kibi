@@ -21,8 +21,10 @@ export type SessionEvent =
   | { kind: "notice"; name: string }
   /** The agent used Kibi; paths/ids it explored. */
   | { kind: "kb"; operation: string; paths: string[]; ids: string[] }
-  /** A file was changed by an edit tool. */
+  /** A file was changed by an edit tool or a shell command. */
   | { kind: "edited"; path: string; pathKind: string }
+  /** A shell command started (epoch milliseconds), to attribute its writes. */
+  | { kind: "command_started"; at: number }
   /** A check acknowledged pending edits (all of them when `all`). */
   | { kind: "checked"; paths: string[]; all: boolean }
   /** A Stop reminder named these paths. */
@@ -43,6 +45,8 @@ export type SessionState = {
   /** Edited source paths not yet acknowledged by a later check. */
   pendingSource: string[];
   reminded: Set<string>;
+  /** Start of the latest shell command, when one was recorded. */
+  commandStartedAt: number | undefined;
 };
 
 const JOURNAL = "session.jsonl";
@@ -82,6 +86,7 @@ export function emptySessionState(): SessionState {
     exploredIds: new Set(),
     pendingSource: [],
     reminded: new Set(),
+    commandStartedAt: undefined,
   };
 }
 
@@ -118,6 +123,9 @@ export function applyEvent(state: SessionState, event: SessionEvent): void {
       return;
     case "reminded":
       for (const reminded of event.paths) state.reminded.add(reminded);
+      return;
+    case "command_started":
+      state.commandStartedAt = Math.max(state.commandStartedAt ?? 0, event.at);
       return;
     case "context_reset":
       // Snippets, notices and Kibi lookups shown before the reset are no
