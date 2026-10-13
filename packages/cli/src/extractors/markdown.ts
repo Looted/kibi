@@ -20,6 +20,12 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import Ajv, { type ValidateFunction } from "ajv";
 import { load as yamlLoad } from "js-yaml";
+import {
+  FIRMNESS_VALUES,
+  type Firmness,
+  carriesFirmness,
+  isFirmness,
+} from "../decision-firmness.js";
 import { withoutContextSections } from "../entity-body-context.js";
 import {
   deriveFactClaimKey,
@@ -123,6 +129,7 @@ export interface ExtractedEntity {
   severity?: string;
   text_ref?: string;
   origin?: EntityOrigin;
+  firmness?: Firmness;
   semantic_text?: string;
   logic_claims?: string[];
   semantic_clauses?: string[];
@@ -813,6 +820,23 @@ function extractFromMarkdownContent(
         );
       }
       entity.rationale = data.rationale;
+    }
+    // implements REQ-kb-decision-firmness
+    // How firmly a requirement or ADR was decided; absent reads as default.
+    if (data.firmness !== undefined) {
+      if (!carriesFirmness(type) || !isFirmness(data.firmness)) {
+        throw new FrontmatterError(
+          carriesFirmness(type)
+            ? `Invalid firmness; expected one of ${FIRMNESS_VALUES.join(", ")}`
+            : "firmness is only allowed on type: req or adr",
+          filePath,
+          {
+            classification: "Invalid Firmness",
+            hint: "Use firm only for a rule a human stated (with origin.ref to their words), default for a delegated or agent choice, exploratory for a flagged guess; remove the field from other entity types.",
+          },
+        );
+      }
+      entity.firmness = data.firmness;
     }
     if (type === "req" && Array.isArray(data.exempts_claims)) {
       entity.exempts_claims = data.exempts_claims.filter(

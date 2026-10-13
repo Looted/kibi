@@ -2907,6 +2907,11 @@ async function recordBootstrapLockReclaims(
 export async function executeApplyPlan(
   args: ApplyPlanArgs,
   context: OperationContext,
+  /**
+   * Called once the plan's commit is authoritative, for a caller that holds
+   * the workspace lock and must classify a later failure as committed.
+   */
+  onCommitted: () => void = () => undefined,
 ): Promise<{
   content: Array<{ type: "text"; text: string }>;
   structuredContent: ApplyPlanResult;
@@ -2914,7 +2919,7 @@ export async function executeApplyPlan(
   if (isBootstrapApplyArgs(args))
     preflightBootstrapActions(validateBootstrapPlanShape(args), context);
   if (!context.fs || context.sourceMutationLockHeld === true)
-    return executeApplyPlanUnlocked(args, context);
+    return executeApplyPlanUnlocked(args, context, onCommitted);
   const applyingJournal = await applyingBootstrapJournal(args, context);
   const lock: WorkspaceMutationLockHandle = await acquireWorkspaceMutationLock(
     context.workspaceRoot,
@@ -2950,6 +2955,7 @@ export async function executeApplyPlan(
       },
       () => {
         committed = true;
+        onCommitted();
       },
     );
     committed = true;

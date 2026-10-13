@@ -68,6 +68,16 @@ export function isolatedUnitBatchEnv(
 // covered_by TEST-root-suite-batch-diagnostics
 export const BATCH_TIMEOUT_MINUTES = 25;
 export const BATCH_CONCURRENCY = 2;
+
+/**
+ * Worker count for the curated suite: `KIBI_TEST_CONCURRENCY` when it is a
+ * positive integer (machines with spare cores), otherwise BATCH_CONCURRENCY.
+ */
+// implements REQ-root-suite-batch-diagnostics
+export function batchConcurrency(env: NodeJS.ProcessEnv = process.env): number {
+  const parsed = Number(env.KIBI_TEST_CONCURRENCY);
+  return Number.isInteger(parsed) && parsed >= 1 ? parsed : BATCH_CONCURRENCY;
+}
 export const TEST_ENGINE_SHUTDOWN_TIMEOUT_MS = 5_000;
 /** Journaled engine and SkillOpt trainer tests exceed Bun's 15s default. */
 // implements REQ-test-journaled-engine-harness
@@ -408,7 +418,7 @@ async function runCuratedUnitSuite(): Promise<number> {
   const summaries = new Array<SuiteSummary & { label: string }>(BATCHES.length);
   let nextBatch = 0;
   const workers = Array.from(
-    { length: Math.min(BATCH_CONCURRENCY, BATCHES.length) },
+    { length: Math.min(batchConcurrency(), BATCHES.length) },
     async () => {
       while (nextBatch < BATCHES.length) {
         const index = nextBatch;

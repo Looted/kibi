@@ -1,5 +1,6 @@
 import path from "node:path";
 import { compilerFingerprintReason } from "../../commands/sync/cache.js";
+import { effectiveFirmness } from "../../decision-firmness.js";
 import { EngineClient } from "../../engine.js";
 import {
   type IntentSearchAnalysis,
@@ -701,7 +702,15 @@ export async function executeQuery(
     const indexedPage = prolog.queryEntities
       ? await prolog.queryEntities(pageInput, signal)
       : await queryEntitiesViaQuery(prolog, pageInput, signal);
-    const paginated = indexedPage.entities;
+    // A requirement or ADR without authored firmness reads as `default`;
+    // the row says so, so a reader never has to know the default.
+    // implements REQ-kb-decision-firmness
+    const paginated = indexedPage.entities.map((entity) => {
+      const firmness = effectiveFirmness(entity.type, entity.firmness);
+      return firmness === undefined || entity.firmness === firmness
+        ? entity
+        : { ...entity, firmness };
+    });
     const text =
       indexedPage.count === 0
         ? `No entities found${type ? ` of type '${type}'` : ""}.`

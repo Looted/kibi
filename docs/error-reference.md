@@ -60,6 +60,14 @@ If `kb_coverage.repairPlan.status` is `partial`, do not execute it as a complete
 
 `origin` is an object with a required `kind` (`human`, `agent`, `migration` or `import`) and optional `ref`, `approved_by` and `recorded_at` (ISO 8601). Unknown kinds and unknown fields are rejected by `kb_upsert` and, in Markdown frontmatter, by `kibi sync` (classification `Invalid Entity Origin`). To keep a stored origin, omit `origin` from the upsert instead of copying it.
 
+## Invalid firmness
+
+`firmness` is allowed only on requirements and ADRs and must be `firm`, `default` or `exploratory` (classification `Invalid Firmness` in `kibi sync`). A `kb_upsert` that sets `firmness: firm` without `origin.ref` (or `approval_ref` on a requirement) fails with `Entity validation failed: firmness: firm needs origin.ref ...`: set the ref to the message, review or ticket where a human stated the rule, or use `firmness: default` for a delegated or agent choice. Kibi only checks that a reference is present, so never mark your own choice firm or cite words a person did not say.
+
+## Supersede without a reason
+
+`supersedes-reason-missing` blocks a current requirement or ADR that supersedes another without a `## Why this changed` section of at least 12 words. Add the section to the new entity's body: name the evidence (a failing test, a measured cost, a constraint the old decision missed, a new requirement) and answer the old decision's reasoning. A preference is not evidence; propose it instead of superseding. `decision-firm-superseded` blocks a replacement of a firm decision that is not firm itself: ask the person who stated the rule, and record their agreement as `firmness: firm` with `origin.ref` to their words.
+
 ## Proposition-complete ingestion failed on a relationship update
 
 `kb_upsert` on an existing requirement that only adds relationships (for example `specified_by` to a new scenario) keeps the stored proposition ledger: when the payload has no `semantic_*` or `logic_claims` field and its `title` and `text_ref` (if given) equal the stored values, Kibi merges the stored `semantic_text`, `semantic_inventory`, `semantic_inventory_version`, `semantic_source_field`, `semantic_source_hash`, `semantic_clauses` and `logic_claims` (and the stored `text_ref` when the payload omits it) under the payload, and checks the merged requirement. If you still see `semantic_inventory_version must be 'kibi.semantic-inventory.v1' ... received 0`, the payload changed the prose or supplied part of the ledger: either send only `title`, `status` and the relationships, or send the complete ledger returned by `kb_model` with `mode: "analyze"` for the new prose.
@@ -158,6 +166,14 @@ The read ran under `KIBI_ENGINE_READ_TIME_LIMIT_MS` or `KIBI_ENGINE_READ_INFEREN
 `MUTATION_ALREADY_COMMITTED` means the plan was already applied. Compile a fresh plan instead.
 
 An error ending in `[settled before this failure: ...]` comes from a mutating call that first completed or rolled back an interrupted plan from its journal, then failed on its own work. The settlement stands; read it to learn which plan was completed or rolled back. A plan compiled before that settlement usually fails its snapshot check and must be compiled again.
+
+## Deletion plan approval (`kb_delete` with `approvedPlanHash`)
+
+`DELETE_PLAN_HASH_MISMATCH` means the `approvedPlanHash` passed to `kb_delete` is not the hash of the deletion plan computed from the current sources: the `ids` differ from the call that returned the plan, or an authored source or relationship shard changed since. Nothing was written. Call `kb_delete` again without `approvedPlanHash`, review the new `deletionPlan`, and approve its `planHash`.
+
+`REQUIREMENT_SUPERSESSION_REQUIRED` from `kb_delete` or `kb_apply_plan` means the plan covers an authored requirement. Requirements are not deleted: upsert a replacement requirement with a `supersedes` relationship and close the old one, as the `supersession_required` result's `nextActions` entry shows.
+
+`VALIDATION_FAILED` from `kb_delete` with `approvedPlanHash` means the approval cannot apply: it was combined with `relationships` or `dryRun: true`, an id was not resolved into the plan (missing, or has dependents), or no id produced an authored-entity plan. Nothing was written.
 
 ## Low-confidence requirement modeling downgrade (`kb_model` mode `requirement`)
 

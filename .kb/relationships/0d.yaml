@@ -174,3 +174,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-89c8558d683b
+  - type: constrains
+    from: REQ-kb-decision-firmness
+    to: FACT-SUBJECT-KIBI-DECISION-FIRMNESS
+    created_at: 2026-10-12T22:24:19.038Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0220069ac1fd
+  - type: requires_property
+    from: REQ-kb-decision-firmness
+    to: FACT-kb-decision-firmness-firm-unreferenced-reported
+    created_at: 2026-10-12T22:24:19.073Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-730868394790
+  - type: requires_property
+    from: REQ-kb-decision-firmness
+    to: FACT-kb-decision-firmness-firm-superseded-reported
+    created_at: 2026-10-12T22:24:19.088Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-949dad7da427
+  - type: requires_property
+    from: REQ-kb-decision-firmness
+    to: FACT-kb-decision-firmness-supersede-reason-missing-reported
+    created_at: 2026-10-12T22:24:19.102Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1fbd12782256
+  - type: requires_property
+    from: REQ-kb-decision-firmness
+    to: FACT-kb-decision-firmness-acknowledgement-only-for-migrated-ids
+    created_at: 2026-10-12T22:24:19.121Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d4dd6a6e242b
+  - type: requires_property
+    from: REQ-kb-decision-firmness
+    to: FACT-kb-decision-firmness-firmness-shown-in-results
+    created_at: 2026-10-12T22:24:19.139Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-52d8f866fa6a
+  - type: relates_to
+    from: REQ-kb-decision-firmness
+    to: REQ-cli-schema-migration
+    created_at: 2026-10-12T22:24:19.151Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-df562d1a11c4
+  - type: specified_by
+    from: REQ-kb-decision-firmness
+    to: SCEN-kb-decision-firmness
+    created_at: 2026-10-12T22:24:36.558Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5014f8d201f9
+  - type: verified_by
+    from: REQ-kb-decision-firmness
+    to: TEST-kb-decision-firmness
+    created_at: 2026-10-12T22:24:36.582Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8d887637c777

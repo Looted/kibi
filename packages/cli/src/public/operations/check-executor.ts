@@ -41,6 +41,7 @@ import {
   stagedEntityIdStyleDiagnostics,
 } from "./check-helpers.js";
 import { collectCheckPolicyViolations } from "./check-policy-rules.js";
+import { collectDecisionFirmnessViolations } from "./decision-firmness.js";
 import { executeStatus } from "./discovery-executors.js";
 import { collectEntityContextViolations } from "./entity-context.js";
 import {
@@ -375,6 +376,10 @@ export async function executeCheck(
       rulesAllowlist,
       workspaceRoot,
     );
+    const decisionFirmnessFindings = collectDecisionFirmnessViolations(
+      rulesAllowlist,
+      workspaceRoot,
+    );
     const checkPolicyFindings = await collectCheckPolicyViolations(
       prolog,
       rulesAllowlist,
@@ -388,6 +393,7 @@ export async function executeCheck(
       ...predicateConformanceFindings,
       ...originReviewFindings,
       ...entityContextFindings,
+      ...decisionFirmnessFindings,
       ...checkPolicyFindings,
     ]);
     const violations: Violation[] = partitioned.violations;

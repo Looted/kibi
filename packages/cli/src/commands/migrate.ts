@@ -170,6 +170,13 @@ const SCHEMA_MIGRATION_STEPS: readonly SchemaMigrationStep[] = [
     description:
       "Pin semantic_text on requirements that lack it (computed from the body before context sections stop counting), and tag current entities without body context review:context-missing; front matter only, bodies are preserved.",
   },
+  {
+    id: "decision-firmness-v9",
+    from: 8,
+    to: 9,
+    description:
+      "Accept firmness on requirements and ADRs, and acknowledge in the manifest the current supersedes recorded without a 'Why this changed' section; no source file is rewritten and no reason is invented.",
+  },
 ];
 
 function migrationStepsFor(
@@ -639,6 +646,13 @@ export async function migrateCommand(
   const bodyContextStep = migrationSteps.some(
     (step) => step.id === "entity-body-context-v8",
   );
+  const decisionFirmnessStep = migrationSteps.some(
+    (step) => step.id === "decision-firmness-v9",
+  );
+  const {
+    mergeSupersedesAcknowledgements,
+    planSupersedesReasonAcknowledgement,
+  } = await import("../operations/migration/supersedes-reason.js");
   const {
     acknowledgedContextIds,
     applyContextMissingTags,
@@ -670,6 +684,13 @@ export async function migrateCommand(
         );
       for (const skip of [...pins.skipped, ...tags.skipped])
         printWarning(`Cannot edit ${skip.path}: ${skip.reason}.`);
+    }
+    if (decisionFirmnessStep) {
+      const unexplained = planSupersedesReasonAcknowledgement(cwd);
+      if (unexplained.length > 0)
+        console.log(
+          `dry run: would acknowledge ${unexplained.length} supersede(s) recorded without a 'Why this changed' section (manifest only; no reason is written).`,
+        );
     }
     if (storagePlan.moves.length > 0) {
       console.log(
@@ -786,6 +807,9 @@ export async function migrateCommand(
     : { written: [], skipped: [], previouslyStamped: 0 };
   rederiveDriftedInventories(cwd, false);
   const lifecycle = repairLifecycleFindings(cwd, false);
+  const supersedesUnexplained = decisionFirmnessStep
+    ? planSupersedesReasonAcknowledgement(cwd)
+    : [];
 
   const existingManifest = readKbManifest(cwd) ?? defaultKbManifest();
   writeKbManifest(cwd, {
@@ -802,7 +826,19 @@ export async function migrateCommand(
           ].sort(),
         }
       : {}),
+    ...(supersedesUnexplained.length > 0
+      ? {
+          supersedesReasonAcknowledged: mergeSupersedesAcknowledgements(
+            existingManifest.supersedesReasonAcknowledged,
+            supersedesUnexplained,
+          ),
+        }
+      : {}),
   });
+  if (supersedesUnexplained.length > 0)
+    console.log(
+      `Acknowledged ${supersedesUnexplained.length} supersede(s) recorded without a 'Why this changed' section; new supersedes must explain themselves.`,
+    );
 
   writeJsonAtomically(
     auditPath,

@@ -55,7 +55,7 @@
     },
     "packages/cli": {
       "name": "kibi-cli",
-      "version": "2.21.1",
+      "version": "2.21.2",
       "bin": {
         "kibi": "bin/kibi",
       },
@@ -222,7 +222,7 @@
     },
     "packages/runtime": {
       "name": "kibi-runtime",
-      "version": "2.14.3",
+      "version": "2.14.4",
       "dependencies": {
         "gray-matter": "^4.0.3",
         "kibi-core": "^0.21.0",

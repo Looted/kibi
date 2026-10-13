@@ -79,6 +79,11 @@ import {
   planSupersededClosures,
 } from "./superseded-closure.js";
 import {
+  SUPERSEDES_REASON_ACKNOWLEDGE_CODE,
+  applySupersedesReasonAcknowledgement,
+  planSupersedesReasonAcknowledgement,
+} from "./supersedes-reason.js";
+import {
   SYMBOL_LEGACY_LINK_MARK_ACTION_ID,
   SYMBOL_LEGACY_LINK_MARK_CODE,
   applySymbolLegacyLinks,
@@ -92,6 +97,10 @@ export const ORIGIN_SCHEMA_VERSION = 6;
 /** The KB schema generation that requires body context on current entities. */
 // implements REQ-kb-entity-body-context, REQ-cli-schema-migration
 export const BODY_CONTEXT_SCHEMA_VERSION = 8;
+
+/** The KB schema generation that adds decision firmness. */
+// implements REQ-kb-decision-firmness, REQ-cli-schema-migration
+export const DECISION_FIRMNESS_SCHEMA_VERSION = 9;
 
 /** Automatic: re-derive a drifted inventory with the current advisor. */
 // implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
@@ -571,6 +580,45 @@ export function buildSchema6MigrationFragment(input: {
       );
     }
   }
+  // Schema 9: acknowledge supersedes recorded before they had to explain
+  // themselves. Manifest only; no source changes and no reason is written.
+  if (
+    input.currentSchemaVersion === null ||
+    input.currentSchemaVersion < DECISION_FIRMNESS_SCHEMA_VERSION
+  ) {
+    const unexplained = planSupersedesReasonAcknowledgement(
+      input.workspaceRoot,
+    );
+    if (unexplained.length > 0) {
+      const id = "supersedes-reason-acknowledge";
+      // Not a source rewrite, but the schema upgrade and the store sync
+      // must wait for it like one: the bumped schema blocks without it.
+      sourceRewriteActionIds.push(id);
+      actions.push(
+        migrationAction({
+          id,
+          code: SUPERSEDES_REASON_ACKNOWLEDGE_CODE,
+          category: "schema",
+          safety: "automatic",
+          autoApplicable: true,
+          invocation: {
+            kind: "cli",
+            command_argv: ["kibi", "migrate", "--yes"],
+          },
+          affectedEntityIds: unexplained.map((row) => row.id),
+          affectedFiles: [".kb/manifest.json"],
+          postconditions: [{ rule: "supersedes-reason-missing", findings: 0 }],
+          evidence: {
+            reason:
+              "Schema 9 blocks a current requirement or ADR that supersedes another without a 'Why this changed' section. Existing ones are acknowledged in the manifest (counted by supersedes-reason-acknowledged); no reason is invented.",
+            count: unexplained.length,
+            byType: countByType(unexplained),
+            preserves: "every authored source file",
+          },
+        }),
+      );
+    }
+  }
   const drift = planInventoryRederivation(input.workspaceRoot);
   for (const plan of drift) {
     const action = plan.safe ? rederiveAction(plan) : reviewAction(plan);
@@ -803,6 +851,10 @@ export async function applySchema6MigrationAction(
       applyContextMissingTags(context.workspaceRoot);
       return;
     }
+    case SUPERSEDES_REASON_ACKNOWLEDGE_CODE: {
+      applySupersedesReasonAcknowledgement(context.workspaceRoot);
+      return;
+    }
     case SEMANTIC_INVENTORY_REDERIVE_CODE: {
       const requirementId = action.affectedEntityIds[0];
       if (requirementId === undefined)
@@ -916,6 +968,7 @@ export const SCHEMA6_AUTOMATIC_CODES: ReadonlySet<string> = new Set([
   POLARITY_VALUE_BACKFILL_CODE,
   SEMANTIC_TEXT_PIN_CODE,
   CONTEXT_MISSING_TAG_CODE,
+  SUPERSEDES_REASON_ACKNOWLEDGE_CODE,
   SEMANTIC_INVENTORY_REDERIVE_CODE,
   ENTITY_ORIGIN_BACKFILL_CODE,
   CLOSE_SUPERSEDED_REQUIREMENTS_CODE,
