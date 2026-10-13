@@ -6146,6 +6146,33 @@ test(kb_internal_helpers_cover_remaining_predicates, [setup(setup_kb), cleanup((
     kb:changed_symbol_missing_req('SYM-CHANGED', 2, 1),
     kb:changed_symbol_violation('SYM-CHANGED', 2, 1, 'src/file.ts', 10, 2, 'changedSymbol').
 
+test(changed_symbol_coverage_matches_full_check_symbol_coverage, [setup(setup_kb), cleanup((retractall(kb:changed_symbol(_)), cleanup_kb))]) :-
+    % A requirement with a scenario: a test verifying the requirement
+    % directly does not cover the symbol, for full check or the staged gate.
+    assert_fixture_entity(req, 'REQ-STAGED-COV', "Staged coverage", open, []),
+    assert_fixture_entity(scenario, 'SCEN-STAGED-COV', "Staged coverage scenario", active, []),
+    assert_fixture_entity(test, 'TEST-STAGED-COV', "Staged coverage test", active, []),
+    assert_fixture_entity(symbol, 'SYM-STAGED-COV', "stagedCoverage", active, []),
+    assert_fixture_entity(symbol, 'SYM-STAGED-UNCHANGED', "untouched", active, []),
+    kb_assert_relationship(specified_by, 'REQ-STAGED-COV', 'SCEN-STAGED-COV', []),
+    kb_assert_relationship(verified_by, 'REQ-STAGED-COV', 'TEST-STAGED-COV', []),
+    kb_assert_relationship(implements, 'SYM-STAGED-COV', 'REQ-STAGED-COV', []),
+    kb_assert_relationship(covered_by, 'SYM-STAGED-COV', 'TEST-STAGED-COV', []),
+    assertz(kb:changed_symbol('SYM-STAGED-COV')),
+    symbol_no_req_coverage('SYM-STAGED-COV', _),
+    findall(S, changed_symbol_no_req_coverage([], S), Changed),
+    assertion(Changed == ['SYM-STAGED-COV']),
+    % Symbols named by a staged manifest edit are judged too.
+    findall(S, changed_symbol_no_req_coverage(['SYM-STAGED-UNCHANGED'], S), WithExtra),
+    assertion(WithExtra == ['SYM-STAGED-COV', 'SYM-STAGED-UNCHANGED']),
+    checks:check_changed_symbol_coverage([], Violations),
+    assertion(Violations = [violation('symbol-coverage', 'SYM-STAGED-COV', _, _, _)]),
+    % The scenario-backed path satisfies both rules.
+    kb_assert_relationship(validates, 'TEST-STAGED-COV', 'SCEN-STAGED-COV', []),
+    \+ symbol_no_req_coverage('SYM-STAGED-COV', _),
+    \+ changed_symbol_no_req_coverage([], _),
+    checks:check_changed_symbol_coverage([], []).
+
 test(legacy_conversion_and_persistent_helpers_are_exercised, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     kb:convert_legacy_props([title("Legacy"), status-active, source="test://legacy", flagged], Props),
     memberchk(title="Legacy", Props),

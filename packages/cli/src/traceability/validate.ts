@@ -1,4 +1,11 @@
-import type { PrologProcess } from "../prolog.js";
+import path from "node:path";
+import { type PrologProcess, resolveKbPlPath } from "../prolog.js";
+import {
+  type ParsedViolation,
+  escapeAtom,
+  parseViolationRows,
+  toPrologAtom,
+} from "../prolog/codec.js";
 
 export interface ValidationOptions {
   minLinks: number;
@@ -176,6 +183,53 @@ export async function validateStagedSymbols(
   }
 
   return violations;
+}
+
+/**
+ * Full-check `symbol-coverage` for the staged change set: the changed source
+ * symbols in the consulted overlay plus `extraSymbolIds` (symbols whose staged
+ * manifest entry changed). The Prolog rule is the one `kibi check` runs, so a
+ * commit cannot pass the staged gate with coverage the full check rejects.
+ */
+// implements REQ-014
+export async function validateStagedSymbolCoverage(options: {
+  prolog: PrologProcess;
+  extraSymbolIds?: readonly string[];
+}): Promise<ParsedViolation[]> {
+  const extra = `[${[...new Set(options.extraSymbolIds ?? [])]
+    .sort()
+    .map(toPrologAtom)
+    .join(",")}]`;
+  const checksPl = escapeAtom(
+    path.join(path.dirname(resolveKbPlPath()), "checks.pl"),
+  );
+  const goal = `(use_module('${checksPl}'), call(checks:check_changed_symbol_coverage(${extra}, Violations)))`;
+  const res = await options.prolog.query(goal);
+  if (!res.success) {
+    throw new Error(
+      `Prolog symbol-coverage query failed: ${res.error || "unknown error"}`,
+    );
+  }
+  return parseViolationRows(res.bindings.Violations ?? "[]");
+}
+
+/** Text lines for staged symbol-coverage violations, in `kibi check` form. */
+// implements REQ-014
+export function formatCoverageViolations(
+  violations: readonly ParsedViolation[],
+): string {
+  if (violations.length === 0) return "";
+  const lines = [
+    `Found ${violations.length} symbol-coverage violation(s) in staged symbols (the same rule kibi check runs):`,
+  ];
+  for (const violation of violations) {
+    lines.push("", `[${violation.rule}] ${violation.entityId}`);
+    if (violation.source) lines.push(`  Source: ${violation.source}`);
+    lines.push(`  ${violation.description}`);
+    if (violation.suggestion)
+      lines.push(`  Suggestion: ${violation.suggestion}`);
+  }
+  return lines.join("\n");
 }
 
 export function formatViolations(violations: Violation[]): string {

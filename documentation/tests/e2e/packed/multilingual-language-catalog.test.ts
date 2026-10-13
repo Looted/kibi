@@ -21,6 +21,8 @@ const RUN_NODE_TEST_SUITE =
 const SETUP_TIMEOUT_MS = 120_000;
 const COMMAND_TIMEOUT_MS = 30_000;
 const HOOK_TIMEOUT_MS = 120_000;
+const CATALOG_REQUIREMENT_ID = "REQ-multilingual-language-catalog";
+const CATALOG_FIXTURE_TEST_ID = "TEST-multilingual-catalog-fixture";
 
 type LanguageFixture = Readonly<{
   language: string;
@@ -339,10 +341,44 @@ function manifestFor(
         : []),
       "    relationships:",
       "      - type: implements",
-      "        target: REQ-multilingual-language-catalog",
+      `        target: ${CATALOG_REQUIREMENT_ID}`,
+      "      - type: covered_by",
+      `        target: ${CATALOG_FIXTURE_TEST_ID}`,
     ]),
     "",
   ].join("\n");
+}
+
+function writeCoverageTest(
+  sandbox: TestSandbox,
+  id: string,
+  requirementId: string,
+  title: string,
+): void {
+  const relativePath = `.kb/tests/${id}.md`;
+  const fullPath = join(sandbox.repoDir, relativePath);
+  mkdirSync(join(fullPath, ".."), { recursive: true });
+  writeFileSync(
+    fullPath,
+    [
+      "---",
+      `id: ${id}`,
+      `title: ${title}`,
+      "status: passing",
+      "created_at: 2026-09-26T00:00:00Z",
+      "updated_at: 2026-09-26T00:00:00Z",
+      `source: ${relativePath}`,
+      "links:",
+      "  - type: validates",
+      `    target: ${requirementId}`,
+      "---",
+      "",
+      "Fixture test that gives the owned declarations production coverage.",
+      "",
+    ].join("\n"),
+    "utf8",
+  );
+  stageSourceFile(sandbox, relativePath);
 }
 
 function createNetworkGuard(sandbox: TestSandbox): string {
@@ -887,6 +923,14 @@ async function runCatalogWorkflow(tarballs: Tarballs): Promise<void> {
         source: ".kb/requirements/REQ-multilingual-language-catalog.md",
       },
       "The approved offline source catalog records qualified declarations for Java, C#, PHP, C, C++, Bash, Ruby, Terraform, and HCL. Ambiguity, unsupported file-level documents, parser damage, and structural HCL remain explicit; no source program is executed.",
+    );
+    // Owned symbols also need production coverage: `kibi check --staged`
+    // runs the same symbol-coverage rule as the full check.
+    writeCoverageTest(
+      sandbox,
+      CATALOG_FIXTURE_TEST_ID,
+      CATALOG_REQUIREMENT_ID,
+      "Catalog fixture declarations are verified",
     );
     for (const fixture of languageFixtures) {
       const fullPath = join(sandbox.repoDir, fixture.sourcePath);

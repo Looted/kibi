@@ -158,6 +158,63 @@ describe("public staged check uses one captured code and knowledge tree", () => 
     );
   }, 30_000);
 
+  test("symbol coverage judges the captured scenario graph, not the worktree", () => {
+    const root = mkdtempSync(join(tmpdir(), "kibi-check-coverage-snapshot-"));
+    roots.push(root);
+    git(root, "init", "-b", "main");
+    git(root, "config", "user.name", "Snapshot Test");
+    git(root, "config", "user.email", "snapshot@example.test");
+    expect(kibi(root, "init").exitCode).toBe(0);
+    write(
+      root,
+      ".kb/requirements/REQ-snapshot.md",
+      "---\nid: REQ-snapshot\ntitle: Snapshot ownership\nstatus: open\nlinks:\n  - type: specified_by\n    target: SCEN-snapshot\n---\n\nThe helper has an owner.\n",
+    );
+    write(
+      root,
+      ".kb/scenarios/SCEN-snapshot.md",
+      "---\nid: SCEN-snapshot\ntitle: Snapshot scenario\nstatus: active\n---\n\nThe helper runs.\n",
+    );
+    const directTest =
+      "---\nid: TEST-snapshot\ntitle: Snapshot test\nstatus: active\nlinks:\n  - type: validates\n    target: REQ-snapshot\n---\n\nChecks the helper.\n";
+    write(root, ".kb/tests/TEST-snapshot.md", directTest);
+    write(root, "src/owned.ts", "export function owned() { return 1; }\n");
+    write(
+      root,
+      ".kb/symbols.yaml",
+      "symbols:\n  - id: SYM-owned\n    title: owned\n    sourceFile: src/owned.ts\n    status: active\n    links:\n      - REQ-snapshot\n",
+    );
+    git(root, "add", ".");
+    git(root, "commit", "-m", "baseline", "--no-verify");
+
+    // Coverage through a test that verifies the requirement directly does
+    // not count while the requirement has a scenario.
+    write(
+      root,
+      ".kb/symbols.yaml",
+      "symbols:\n  - id: SYM-owned\n    title: owned\n    sourceFile: src/owned.ts\n    status: active\n    links:\n      - REQ-snapshot\n      - type: covered_by\n        target: TEST-snapshot\n",
+    );
+    git(root, "add", ".kb/symbols.yaml");
+    const direct = kibi(root, "check", "--staged");
+    expect(direct.exitCode).toBe(1);
+    expect(direct.output).toContain("[symbol-coverage] SYM-owned");
+
+    // A scenario-backed test in the worktree cannot repair the index.
+    write(
+      root,
+      ".kb/tests/TEST-snapshot.md",
+      directTest.replace("target: REQ-snapshot", "target: SCEN-snapshot"),
+    );
+    const worktreeOnly = kibi(root, "check", "--staged");
+    expect(worktreeOnly.exitCode).toBe(1);
+    expect(worktreeOnly.output).toContain("[symbol-coverage] SYM-owned");
+
+    git(root, "add", ".kb/tests/TEST-snapshot.md");
+    const staged = kibi(root, "check", "--staged");
+    expect(staged.output).not.toContain("symbol-coverage");
+    expect(staged.exitCode).toBe(0);
+  }, 30_000);
+
   test("an unborn repository checks the staged tree against an empty base", () => {
     const root = mkdtempSync(join(tmpdir(), "kibi-check-unborn-"));
     roots.push(root);

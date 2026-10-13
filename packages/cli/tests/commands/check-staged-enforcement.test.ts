@@ -86,6 +86,27 @@ function commitRefreshedCoordinates(kibiBin: string, cwd: string): void {
   });
 }
 
+/**
+ * A test that verifies the requirement directly. The requirement has no
+ * scenario, so `covered_by` this test is qualifying symbol coverage for both
+ * full `kibi check` and the staged gate.
+ */
+function coveringTest(testId: string, requirementId: string): FileMap {
+  return {
+    [`.kb/tests/${testId}.md`]: `---
+id: ${testId}
+title: ${testId} coverage
+status: active
+links:
+  - type: validates
+    target: ${requirementId}
+---
+
+# ${testId} coverage
+`,
+  };
+}
+
 function createBehaviorLinkedFixture(): FileMap {
   return {
     ".kb/requirements/REQ-BEHAVIOR-001.md": `---
@@ -96,12 +117,15 @@ status: open
 
 # Greeting behavior
 `,
+    ...coveringTest("TEST-BEHAVIOR-001", "REQ-BEHAVIOR-001"),
     ".kb/symbols.yaml": `symbols:
   - id: SYM-BEHAVIOR-001
     title: greet
     sourceFile: src/greet.ts
     links:
       - REQ-BEHAVIOR-001
+      - type: covered_by
+        target: TEST-BEHAVIOR-001
     status: active
 `,
     "src/greet.ts": `export function greet() {
@@ -188,6 +212,8 @@ function stageAuthoredSymbolsEvidence(root: string): void {
     sourceFile: src/greet.ts
     links:
       - REQ-BEHAVIOR-001
+      - type: covered_by
+        target: TEST-BEHAVIOR-001
     status: deprecated
 `,
   });
@@ -274,7 +300,10 @@ status: open
         target: REQ-MULTI-002
       - type: implements
         target: REQ-MULTI-003
+      - type: covered_by
+        target: TEST-MULTI-001
 `,
+    ...coveringTest("TEST-MULTI-001", "REQ-MULTI-001"),
     "src/multi.ts": `export function multiAction() {
   return "initial";
 }
@@ -377,6 +406,7 @@ export function farewell() {
 
 function createGranularitySourceOnlyFixture(): FileMap {
   return {
+    ...coveringTest("TEST-GRANULAR-001", "REQ-GRANULAR-001"),
     ".kb/requirements/REQ-GRANULAR-001.md": `---
 id: REQ-GRANULAR-001
 title: Granular ownership requirement
@@ -412,6 +442,8 @@ function writeCoarseSymbolsManifest(
     sourceFile: ${sourceFile}
     links:
       - REQ-GRANULAR-001
+      - type: covered_by
+        target: TEST-GRANULAR-001
 ${reasonLine}    status: active
 `,
   });
@@ -419,6 +451,7 @@ ${reasonLine}    status: active
 
 function createInterfaceGranularityFixture(): FileMap {
   return {
+    ...coveringTest("TEST-GRANULAR-001", "REQ-GRANULAR-001"),
     ".kb/requirements/REQ-GRANULAR-001.md": `---
 id: REQ-GRANULAR-001
 title: Granular ownership requirement
@@ -503,7 +536,7 @@ describe("kibi check --staged impact enforcement", () => {
       commitAll(tmpDir, "initial");
 
       writeFiles(tmpDir, createMultiRequirementSymbolFixture());
-      execSync("git add .kb/requirements .kb/symbols.yaml", {
+      execSync("git add .kb/requirements .kb/tests .kb/symbols.yaml", {
         cwd: tmpDir,
         stdio: "pipe",
       });
@@ -706,6 +739,107 @@ describe("kibi check --staged impact enforcement", () => {
       expect(status).toBe(0);
       expect(output).not.toContain("symbols_manifest_stale");
       expect(output).not.toContain("kibi_impact_evidence_missing");
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
+    "rejects a changed symbol whose coverage full check rejects: a direct req test does not count once the requirement has a scenario",
+    async () => {
+      writeFiles(tmpDir, {
+        ...createBehaviorLinkedFixture(),
+        ".kb/scenarios/SCEN-BEHAVIOR-001.md": `---
+id: SCEN-BEHAVIOR-001
+title: Greeting scenario
+status: active
+---
+
+# Greeting scenario
+`,
+      });
+      writeFiles(tmpDir, {
+        ".kb/requirements/REQ-BEHAVIOR-001.md": `---
+id: REQ-BEHAVIOR-001
+title: Greeting behavior
+status: open
+links:
+  - type: specified_by
+    target: SCEN-BEHAVIOR-001
+---
+
+# Greeting behavior
+`,
+      });
+      commitAll(tmpDir, "initial");
+      commitRefreshedCoordinates(kibiBin, tmpDir);
+
+      writeShiftedBehaviorEdit(tmpDir);
+      syncKb(kibiBin, tmpDir, ["--refresh-symbol-coordinates"]);
+      execSync("git add src/greet.ts .kb/symbol-coordinates.yaml", {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+
+      const rejected = runKibi(kibiBin, ["check", "--staged"], tmpDir);
+      const rejectedOutput = stdoutToString(rejected.stdout || rejected.stderr);
+      expect(rejected.status).toBe(1);
+      expect(rejectedOutput).toContain("[symbol-coverage] SYM-BEHAVIOR-001");
+      expect(rejectedOutput).toContain(
+        "Production symbol lacks qualifying requirement coverage.",
+      );
+
+      // The scenario-backed path satisfies the rule in both checks.
+      writeFiles(tmpDir, {
+        ".kb/tests/TEST-BEHAVIOR-001.md": `---
+id: TEST-BEHAVIOR-001
+title: TEST-BEHAVIOR-001 coverage
+status: active
+links:
+  - type: validates
+    target: SCEN-BEHAVIOR-001
+---
+
+# TEST-BEHAVIOR-001 coverage
+`,
+      });
+      execSync("git add .kb/tests/TEST-BEHAVIOR-001.md", {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+      const accepted = runKibi(kibiBin, ["check", "--staged"], tmpDir);
+      const acceptedOutput = stdoutToString(accepted.stdout || accepted.stderr);
+      expect(acceptedOutput).not.toContain("symbol-coverage");
+      expect(accepted.status).toBe(0);
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
+    "rejects a manifest-only edit that drops a symbol's coverage",
+    async () => {
+      writeFiles(tmpDir, createBehaviorLinkedFixture());
+      commitAll(tmpDir, "initial");
+
+      writeFiles(tmpDir, {
+        ".kb/symbols.yaml": `symbols:
+  - id: SYM-BEHAVIOR-001
+    title: greet
+    sourceFile: src/greet.ts
+    links:
+      - REQ-BEHAVIOR-001
+    status: active
+`,
+      });
+      execSync("git add .kb/symbols.yaml", { cwd: tmpDir, stdio: "pipe" });
+
+      const { status, stdout, stderr } = runKibi(
+        kibiBin,
+        ["check", "--staged"],
+        tmpDir,
+      );
+      const output = stdoutToString(stdout || stderr);
+      expect(output).toContain("[symbol-coverage] SYM-BEHAVIOR-001");
+      expect(status).toBe(1);
     },
     TEST_TIMEOUT_MS,
   );

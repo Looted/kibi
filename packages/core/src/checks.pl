@@ -9,6 +9,7 @@
     check_selected_json/2,           % Returns only selected rule violations as JSON
     check_must_priority_coverage/1, % Returns list of must-priority violations
     check_symbol_coverage/1,        % Returns list of uncovered symbols
+    check_changed_symbol_coverage/2, % symbol-coverage restricted to a staged change set
     check_symbol_traceability/2,    % Returns list of symbols lacking requirement traceability (ReqAdr option)
     check_proof_contract_symbols/1, % Returns unresolved or unexpected required_proofs symbol issues
     check_no_dangling_refs/1,       % Returns list of dangling ref violations
@@ -195,6 +196,18 @@ coverage_gap_suggestion(missing_scenario_and_test, "Create scenario that specifi
 % Finds all production symbols lacking qualifying production coverage.
 check_symbol_coverage(Violations) :-
     findall(SymbolId, symbol_no_req_coverage(SymbolId, _), SymbolIds0),
+    sort(SymbolIds0, SymbolIds),
+    maplist(symbol_coverage_violation, SymbolIds, Violations).
+
+%% check_changed_symbol_coverage(+ExtraSymbols, -Violations)
+% The symbol-coverage rule for the staged gate: the same violations
+% check_symbol_coverage/1 reports, restricted to the changed symbols
+% (kb:changed_symbol/1 overlay facts plus ExtraSymbols).
+% implements REQ-014
+check_changed_symbol_coverage(ExtraSymbols, Violations) :-
+    findall(SymbolId,
+            changed_symbol_no_req_coverage(ExtraSymbols, SymbolId),
+            SymbolIds0),
     sort(SymbolIds0, SymbolIds),
     maplist(symbol_coverage_violation, SymbolIds, Violations).
 

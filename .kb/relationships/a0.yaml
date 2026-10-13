@@ -244,3 +244,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2476abecbf9a
+  - type: implements
+    from: SYM-kibi-cli-src-intent-search-ts-rankintententities
+    to: REQ-search-answer-hygiene
+    created_at: 2026-10-12T23:37:24.668Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-428c7ddb4c44
+  - type: covered_by
+    from: SYM-kibi-cli-src-intent-search-ts-rankintententities
+    to: TEST-search-answer-hygiene
+    created_at: 2026-10-12T23:37:24.682Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-99e1108652e0

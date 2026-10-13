@@ -136,9 +136,15 @@ export function createBuiltinTsMorphSymbolExtractor(): SymbolExtractorV1 {
 export function createBuiltinTsMorphSymbolExtractorV2(): SymbolExtractorV2 {
   // Like the v1 extractor, build the project (and load the TypeScript
   // compiler) on the first analysis rather than at plugin registration.
+  // Only syntactic diagnostics are read, so the program needs neither the
+  // default library files nor the file's imports; loading them made every
+  // analysis rebuild a program over the whole lib closure.
   let project: Project | undefined;
   const getProject = (): Project => {
-    project ??= new (tsMorph().Project)({ skipAddingFilesFromTsConfig: true });
+    project ??= new (tsMorph().Project)({
+      skipAddingFilesFromTsConfig: true,
+      compilerOptions: { noLib: true, noResolve: true, types: [] },
+    });
     return project;
   };
 

@@ -276,3 +276,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a54099569092
+  - type: implements
+    from: SYM-cli-build-search-answer
+    to: REQ-kibi-query-fact-filters
+    created_at: 2026-10-12T23:37:10.271Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-308e79cb37d4
+  - type: covered_by
+    from: SYM-cli-build-search-answer
+    to: TEST-kibi-query-fact-filters
+    created_at: 2026-10-12T23:37:10.288Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7655f4a2d404
+  - type: implements
+    from: SYM-cli-build-search-answer
+    to: REQ-search-answer-hygiene
+    created_at: 2026-10-12T23:37:15.294Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e62bfa0ffe1d
+  - type: covered_by
+    from: SYM-cli-build-search-answer
+    to: TEST-search-answer-hygiene
+    created_at: 2026-10-12T23:37:15.309Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b9edba569185

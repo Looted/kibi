@@ -198,6 +198,9 @@ describe("temp-kb", () => {
     await cleanupTempKb(baseKbDir).catch(() => {});
     await rm(baseKbDir, { recursive: true, force: true }).catch(() => {});
     resetModuleState();
+    // Stub factories must not leak into later test files, which would get a
+    // Prolog process whose terminate() throws.
+    _setPrologFactory((opts) => new PrologProcess(opts));
   });
 
   describe("createTempKb", () => {
