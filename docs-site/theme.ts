@@ -1138,7 +1138,7 @@ export function landingContent(args: {
     </details>
     <details>
       <summary>What happens when an agent edits code a requirement owns?</summary>
-      <p>With the Claude Code, Cursor, Codex, ZCode, or OpenCode plugin, the pre-edit hook (OpenCode: the edit prompt) names the requirement the file implements, what it must keep true (from its linked facts), and the decision behind it (its ADR), before the change is made. A superseded or retired requirement is not shown as current. Afterwards <code>kb_check</code> reports conflicts it can decide, such as an allow and a deny for the same actor, action and resource, and says when an analysis is incomplete instead of calling it clean. A scenario that assumes something a current requirement forbids, on its own or only in combination with its other assumptions, is flagged and blocks proof. Conditional requirements count: "checkout may happen only when the cart total is positive" becomes a typed rule, and a checkout scenario with a zero total is flagged unless a human approved an exception for it.</p>
+      <p>With the Claude Code, Cursor, Codex, ZCode, or OpenCode plugin, the pre-edit hook (OpenCode: the edit prompt) names the requirement the file implements, what it must keep true (from its linked facts), and the decision behind it (its ADR), before the change is made. With the Claude Code plugin this also covers edits the agent makes through shell commands, which get the same context right after the command runs. A superseded or retired requirement is not shown as current. Afterwards <code>kb_check</code> reports conflicts it can decide, such as an allow and a deny for the same actor, action and resource, and says when an analysis is incomplete instead of calling it clean. A scenario that assumes something a current requirement forbids, on its own or only in combination with its other assumptions, is flagged and blocks proof. Conditional requirements count: "checkout may happen only when the cart total is positive" becomes a typed rule, and a checkout scenario with a zero total is flagged unless a human approved an exception for it.</p>
     </details>
     <details>
       <summary>Does Kibi work on a CI checkout or a detached commit?</summary>
@@ -1155,7 +1155,7 @@ export function landingContent(args: {
     </details>
     <details>
       <summary>Will Kibi decide the product for me?</summary>
-      <p>No. <code>kibi init</code> creates the directory and the Git hooks. It does not infer behavior. Checks prove what was encoded. Missing knowledge stays visible.</p>
+      <p>No. <code>kibi init</code> creates the directory and the Git hooks; it leaves hooks it did not write alone, and <code>kibi init --print-hook pre-commit</code> prints a snippet you can add to them. It does not infer behavior. Checks prove what was encoded. Missing knowledge stays visible.</p>
     </details>
   </div>
 </section>

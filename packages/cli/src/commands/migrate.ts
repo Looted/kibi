@@ -16,7 +16,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { execFileSync } from "node:child_process";
 import {
   existsSync,
   mkdirSync,
@@ -25,7 +24,6 @@ import {
   writeFileSync,
 } from "node:fs";
 import * as path from "node:path";
-import { load as parseYAML } from "js-yaml";
 import {
   type InventoryRederivation,
   applySafeInventoryRederivations,
@@ -43,8 +41,11 @@ import {
   applySupersededClosures,
   planSupersededClosures,
 } from "../operations/migration/superseded-closure.js";
+import {
+  applySymbolLegacyLinks,
+  planSymbolLegacyLinks,
+} from "../operations/migration/symbol-legacy-links.js";
 import type { MigrationPlan } from "../public/operations/migration-plan.js";
-import { extractSymbolsFromStagedFile } from "../traceability/symbol-extract.js";
 import { resolveBranchAttachment } from "../utils/branch-resolver.js";
 import {
   defaultKbManifest,
@@ -105,21 +106,6 @@ interface SchemaMigrationStep {
   from: number;
   to: number;
   description: string;
-}
-
-interface SymbolRecord {
-  id?: unknown;
-  title?: unknown;
-  sourceFile?: unknown;
-  links?: unknown;
-  relationships?: unknown;
-  granularity_reason?: unknown;
-  [key: string]: unknown;
-}
-
-interface SymbolsManifestDocument {
-  symbols?: unknown;
-  [key: string]: unknown;
 }
 
 interface ResolvedBranch {
@@ -308,179 +294,35 @@ function normalizeSemanticAdvisorBackfill(
     : null;
 }
 
-const TRACEABILITY_RELATIONSHIP_TYPES = new Set([
-  "implements",
-  "covered_by",
-  "executable_for",
-]);
-
-function hasTraceabilityRelationship(symbol: SymbolRecord): boolean {
-  if (Array.isArray(symbol.links) && symbol.links.length > 0) {
-    return true;
+/**
+ * Mark the coarse symbol links the staged granularity gate would block as
+ * legacy-link. Runs at any schema version: the rule can call a link coarse
+ * that an older run (or a KB that skipped the schema 2 step) left unmarked.
+ */
+// implements REQ-cli-schema-migration, REQ-symbol-behavioral-anchors
+function markLegacySymbolLinks(
+  cwd: string,
+  dryRun: boolean,
+  manifestPath?: string,
+): number {
+  if (dryRun) {
+    const count = planSymbolLegacyLinks(cwd, manifestPath).targets.length;
+    if (count > 0)
+      console.log(
+        `dry run: would mark ${count} coarse symbol link(s) as legacy-link (granularity_reason), so the staged check accepts them.`,
+      );
+    return count;
   }
-
-  if (!Array.isArray(symbol.relationships)) {
-    return false;
-  }
-
-  return symbol.relationships.some((relationship) => {
-    if (
-      relationship === null ||
-      typeof relationship !== "object" ||
-      Array.isArray(relationship)
-    ) {
-      return false;
-    }
-
-    const type = (relationship as { type?: unknown }).type;
-    return (
-      typeof type === "string" && TRACEABILITY_RELATIONSHIP_TYPES.has(type)
+  const { marked, unmarked } = applySymbolLegacyLinks(cwd);
+  if (marked.length > 0)
+    console.log(
+      `Marked ${marked.length} existing coarse symbol link(s) as legacy-link.`,
     );
-  });
-}
-
-function getGranularNames(cwd: string, sourceFile: string): Set<string> {
-  const absolutePath = path.isAbsolute(sourceFile)
-    ? sourceFile
-    : path.join(cwd, sourceFile);
-  if (!existsSync(absolutePath)) {
-    return new Set();
-  }
-
-  const symbols = extractSymbolsFromStagedFile({
-    path: sourceFile,
-    status: "M",
-    hunkRanges: [{ start: 1, end: Number.MAX_SAFE_INTEGER }],
-    content: readFileSync(absolutePath, "utf8"),
-  });
-
-  return new Set(symbols.map((symbol) => symbol.name));
-}
-
-function addLegacyReasonsToManifestText(
-  content: string,
-  symbolIds: Set<string>,
-): string {
-  if (symbolIds.size === 0) return content;
-
-  const lines = content.split("\n");
-  const output: string[] = [];
-  let activeId: string | null = null;
-  let activeHasReason = false;
-  let activePropertyIndent = "";
-
-  const flushLegacyReason = (): void => {
-    if (
-      activeId !== null &&
-      symbolIds.has(activeId) &&
-      !activeHasReason &&
-      activePropertyIndent.length > 0
-    ) {
-      output.push(`${activePropertyIndent}granularity_reason: legacy-link`);
-      activeHasReason = true;
-    }
-  };
-
-  for (const line of lines) {
-    const idMatch = line.match(/^(\s*)-\s+id:\s+(.+)\s*$/);
-    if (idMatch) {
-      flushLegacyReason();
-      activeId = idMatch[2]?.trim() ?? null;
-      activeHasReason = false;
-      activePropertyIndent = `${idMatch[1] ?? ""}  `;
-    }
-
-    if (activeId !== null && /^\s+granularity_reason:\s+/.test(line)) {
-      activeHasReason = true;
-    }
-
-    if (
-      activeId !== null &&
-      symbolIds.has(activeId) &&
-      !activeHasReason &&
-      /^\s+status:\s+/.test(line)
-    ) {
-      const indent = line.match(/^\s*/)?.[0] ?? "";
-      output.push(`${indent}granularity_reason: legacy-link`);
-      activeHasReason = true;
-    }
-
-    output.push(line);
-  }
-
-  flushLegacyReason();
-
-  return output.join("\n");
-}
-
-function migrateSymbolGranularity(options: {
-  cwd: string;
-  dryRun: boolean;
-  manifestPath?: string;
-}): { count: number; manifestPath: string | null } {
-  const manifestPath =
-    options.manifestPath ??
-    path.join(options.cwd, CANONICAL_ENTITY_PATHS.symbols);
-  if (!existsSync(manifestPath)) {
-    return { count: 0, manifestPath };
-  }
-
-  const manifestContent = readFileSync(manifestPath, "utf8");
-  const parsed = parseYAML(manifestContent) as unknown;
-  if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) {
-    return { count: 0, manifestPath };
-  }
-
-  const manifest = parsed as SymbolsManifestDocument;
-  if (!Array.isArray(manifest.symbols)) {
-    return { count: 0, manifestPath };
-  }
-
-  let count = 0;
-  const migratedSymbolIds = new Set<string>();
-  const granularNamesByFile = new Map<string, Set<string>>();
-
-  for (const symbol of manifest.symbols) {
-    if (
-      symbol === null ||
-      typeof symbol !== "object" ||
-      Array.isArray(symbol)
-    ) {
-      continue;
-    }
-
-    const record = symbol as SymbolRecord;
-    if (typeof record.sourceFile !== "string") continue;
-    if (typeof record.title !== "string") continue;
-    if (typeof record.id !== "string") continue;
-    if (record.granularity_reason !== undefined) continue;
-    if (!hasTraceabilityRelationship(record)) continue;
-
-    let granularNames = granularNamesByFile.get(record.sourceFile);
-    if (granularNames === undefined) {
-      granularNames = getGranularNames(options.cwd, record.sourceFile);
-      granularNamesByFile.set(record.sourceFile, granularNames);
-    }
-
-    if (granularNames.size === 0 || granularNames.has(record.title)) {
-      continue;
-    }
-
-    count += 1;
-    if (!options.dryRun) {
-      record.granularity_reason = "legacy-link";
-      migratedSymbolIds.add(record.id);
-    }
-  }
-
-  if (count > 0 && !options.dryRun) {
-    writeTextAtomically(
-      manifestPath,
-      addLegacyReasonsToManifestText(manifestContent, migratedSymbolIds),
+  if (unmarked.length > 0)
+    printWarning(
+      `Could not mark ${unmarked.join(", ")} as legacy-link in place; add granularity_reason: legacy-link to them in ${CANONICAL_ENTITY_PATHS.symbols} by hand.`,
     );
-  }
-
-  return { count, manifestPath };
+  return marked.length;
 }
 
 function describeRederivation(plan: InventoryRederivation): string {
@@ -492,7 +334,7 @@ function describeRederivation(plan: InventoryRederivation): string {
 function printManualRederivations(plans: readonly InventoryRederivation[]) {
   for (const plan of plans) {
     printWarning(
-      `${plan.requirementId} (${plan.path}) no longer matches the current semantic advisor and needs a manual fix: ${plan.reasons.join("; ")}. Run 'kibi migrate --format json' for the exact repair steps.`,
+      `${plan.requirementId} (${plan.path}) no longer matches the current semantic advisor and needs a manual fix: ${plan.reasons.join("; ")}. Run 'kibi migrate --format json' for the exact repair steps.${plan.rederivableByDroppingGrounding ? ` Or approve semantic-inventory-rederive-drop-grounding-${plan.requirementId} with --apply-safe --approved-action to drop the ${plan.orphanedGrounding.length} orphaned grounding link(s).` : ""}`,
     );
   }
 }
@@ -709,7 +551,9 @@ export async function migrateCommand(
       : { schemaVersion: normalizedVersion },
   );
   const needsStorageMigration =
-    storagePlan.moves.length > 0 || storagePlan.legacyConfig !== "absent";
+    storagePlan.moves.length > 0 ||
+    storagePlan.removals.length > 0 ||
+    storagePlan.legacyConfig !== "absent";
   const needsSchemaUpgrade =
     configStatus.needsMigration || normalizedVersion === null;
   const migrationWarning =
@@ -753,8 +597,10 @@ export async function migrateCommand(
     // and lifecycle findings block kibi check at any version.
     const drift = rederiveDriftedInventories(cwd, options.dryRun === true);
     const lifecycle = repairLifecycleFindings(cwd, options.dryRun === true);
+    const legacyLinks = markLegacySymbolLinks(cwd, options.dryRun === true);
     const rewroteSources =
       polarityCount > 0 ||
+      legacyLinks > 0 ||
       drift.rederived.length > 0 ||
       lifecycle.closed > 0 ||
       lifecycle.rewritten > 0 ||
@@ -788,9 +634,6 @@ export async function migrateCommand(
     normalizedVersion,
   );
   const migrationSteps = migrationStepsFor(configStatus.currentVersion);
-  const symbolGranularityStep = migrationSteps.some(
-    (step) => step.id === "symbol-granularity-v2",
-  );
   const semanticBackfillStep = migrationSteps.some(
     (step) => step.id === "semantic-backfill-v4",
   );
@@ -857,6 +700,14 @@ export async function migrateCommand(
         console.log(`  ${move.from} -> ${move.to}`);
       }
     }
+    if (storagePlan.removals.length > 0) {
+      console.log(
+        `dry run: would remove ${storagePlan.removals.length} legacy cop(ies) identical to their .kb/ file:`,
+      );
+      for (const removal of storagePlan.removals) {
+        console.log(`  ${removal.path} (same as ${removal.duplicateOf})`);
+      }
+    }
     if (storagePlan.legacyConfig !== "absent") {
       console.log(
         "dry run: would retire legacy .kb/config.json after moving knowledge into .kb/.",
@@ -865,22 +716,13 @@ export async function migrateCommand(
     console.log(
       `dry run: would set schemaVersion from ${fromVersionLabel} to ${LATEST_KB_SCHEMA_VERSION} in .kb/manifest.json.`,
     );
-    if (symbolGranularityStep) {
-      const symbolsSource =
-        storagePlan.moves.find(
-          (move) => move.to === CANONICAL_ENTITY_PATHS.symbols,
-        )?.from ?? CANONICAL_ENTITY_PATHS.symbols;
-      const preview = migrateSymbolGranularity({
-        cwd,
-        dryRun: true,
-        manifestPath: path.join(cwd, symbolsSource),
-      });
-      if (preview.count > 0) {
-        console.log(
-          `dry run: would mark ${preview.count} legacy coarse symbol link(s) as legacy-link.`,
-        );
-      }
-    }
+    markLegacySymbolLinks(
+      cwd,
+      true,
+      storagePlan.moves.find(
+        (move) => move.to === CANONICAL_ENTITY_PATHS.symbols,
+      )?.from,
+    );
     if (originBackfillStep) {
       const backfill = planOriginBackfill(cwd);
       if (backfill.targets.length > 0) {
@@ -906,23 +748,23 @@ export async function migrateCommand(
       console.log(
         `Moved ${storageResult.movedFiles.length} knowledge file(s) into the canonical .kb/ layout.`,
       );
-      const untracked = untrackedFiles(cwd, storageResult.movedFiles);
+      const untracked = storageResult.untrackedMovedFiles.length;
       if (untracked > 0)
         printWarning(
-          `${untracked} moved file(s) are not tracked by Git yet, and kibi sync compiles only tracked sources: until you stage them (git add .kb, plus the removals under the legacy folders) the KB compiles without them and plans report them as missing.`,
+          `${untracked} moved file(s) are not tracked by Git yet. Kibi recorded a pending-source receipt for each, so kibi sync compiles them now; stage them before you commit (git add .kb, plus the removals under the legacy folders). Each receipt retires once Git tracks its file.`,
         );
+    }
+    if (storageResult.removedFiles.length > 0) {
+      console.log(
+        `Removed ${storageResult.removedFiles.length} legacy cop(ies) identical to their .kb/ file: ${storageResult.removedFiles.join(", ")}.`,
+      );
     }
     if (storageResult.retiredLegacyConfig) {
       console.log("Retired legacy .kb/config.json.");
     }
   }
 
-  const symbolGranularityMigration = symbolGranularityStep
-    ? migrateSymbolGranularity({
-        cwd,
-        dryRun: options.yes !== true,
-      })
-    : { count: 0 };
+  const legacyLinksMarked = markLegacySymbolLinks(cwd, false);
   const semanticAdvisorBackfill =
     normalizeSemanticAdvisorBackfill(
       readKbManifest(cwd)?.semanticAdvisorBackfill,
@@ -1006,7 +848,7 @@ export async function migrateCommand(
       fromVersion: configStatus.currentVersion,
       migratedAt,
       semanticAdvisorBackfill,
-      symbolGranularityLegacyLinks: symbolGranularityMigration.count,
+      symbolGranularityLegacyLinks: legacyLinksMarked,
       entityOriginBackfill:
         originBackfill.written.length + originBackfill.previouslyStamped,
       supersededRequirementsClosed: lifecycle.closed,
@@ -1020,11 +862,6 @@ export async function migrateCommand(
   console.log(
     `Migrated the KB to schemaVersion ${LATEST_KB_SCHEMA_VERSION} on the canonical .kb/ layout (was ${fromVersionLabel}).`,
   );
-  if (symbolGranularityMigration.count > 0) {
-    console.log(
-      `Marked ${symbolGranularityMigration.count} existing coarse symbol link(s) as legacy-link.`,
-    );
-  }
   if (semanticAdvisorBackfill === "pending") {
     console.log(
       `Marked semantic advisor backfill as pending in ${KB_MANIFEST_RELATIVE}.`,
@@ -1153,12 +990,16 @@ async function buildWorkspaceMigrationPlan(
   if (checkable && storeSynced) {
     const checkResult = await executeOperation(runtime, checkSpec, {});
     if (checkResult.structuredContent?.migrationPlan !== undefined) {
-      // Lifecycle repairs and their sync are planned above from authored
-      // sources, which may be newer than the compiled store.
+      // Lifecycle repairs, their sync and requirement status mappings are
+      // planned above from authored sources, which may be newer than the
+      // compiled store.
       plans.push(
         withoutActionCodes(
           checkResult.structuredContent.migrationPlan,
-          SOURCE_PLANNED_LIFECYCLE_CODES,
+          new Set([
+            ...SOURCE_PLANNED_LIFECYCLE_CODES,
+            "check_req-status-vocabulary",
+          ]),
         ),
       );
     }
@@ -1295,26 +1136,6 @@ function approvedActionIdsOf(options: MigrateOptions): string[] {
     .map((id) => id.trim())
     .filter((id) => id.length > 0);
   return [...new Set(ids)];
-}
-
-/** How many of `files` Git does not track; 0 outside a repository. */
-// implements REQ-cli-schema-migration
-function untrackedFiles(cwd: string, files: readonly string[]): number {
-  let tracked: Set<string>;
-  try {
-    tracked = new Set(
-      execFileSync("git", ["-C", cwd, "ls-files", "-z", "--", ".kb"], {
-        encoding: "utf8",
-        stdio: ["ignore", "pipe", "ignore"],
-        timeout: 10_000,
-      })
-        .split("\0")
-        .filter((file) => file.length > 0),
-    );
-  } catch {
-    return 0;
-  }
-  return files.filter((file) => !tracked.has(file)).length;
 }
 
 /** The table rendering of an apply result; --format json prints it whole. */

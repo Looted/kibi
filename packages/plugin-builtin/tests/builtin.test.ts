@@ -7,6 +7,7 @@ import {
 import { FunctionDeclaration, Project } from "ts-morph";
 import {
   collectGranularityCandidates,
+  createBuiltinTsMorphSourceAnalysisProvider,
   createBuiltinTsMorphSymbolExtractor,
   createBuiltinTsMorphSymbolExtractorV2,
   enrichSymbolCoordinatesWithTsMorph,
@@ -170,6 +171,36 @@ describe("kibi-plugin-builtin", () => {
     expect(malformed.uncoveredRanges.length).toBeGreaterThan(0);
   });
 
+  test("v2 extractor reports only syntax, independent of imports and library types", async () => {
+    const extractor = createBuiltinTsMorphSymbolExtractorV2();
+    const typedJsInput = {
+      path: "src/typed.js",
+      content:
+        "export function run(value: number): string {\n  return '';\n}\n",
+    };
+    const typedJs = validateSourceAnalysisResultV2(
+      await extractor.analyze(typedJsInput),
+      typedJsInput,
+    );
+    expect(typedJs.status).toBe("partial");
+    expect(typedJs.diagnostics.map((diagnostic) => diagnostic.code)).toContain(
+      "TS8010",
+    );
+
+    const unresolvedInput = {
+      path: "src/unresolved.ts",
+      content:
+        "import { missing } from './missing.js';\nexport const load = (): Promise<Map<string, number>> => missing();\n",
+    };
+    const unresolved = validateSourceAnalysisResultV2(
+      await extractor.analyze(unresolvedInput),
+      unresolvedInput,
+    );
+    expect(unresolved.status).toBe("ok");
+    expect(unresolved.diagnostics).toEqual([]);
+    expect(unresolved.symbols.map((symbol) => symbol.name)).toEqual(["load"]);
+  });
+
   test("v2 exposes declaration extraction errors while v1 preserves legacy recovery", async () => {
     const spy = spyOn(
       FunctionDeclaration.prototype,
@@ -236,6 +267,84 @@ describe("kibi-plugin-builtin", () => {
       );
       expect(enriched[0]?.sourceLine).toBe(1);
       expect(enriched[0]?.coordinatesGeneratedAt).toBeTruthy();
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  // executable_for TEST-capability-plugin-builtin-parity-v1
+  test("coordinate enrichment refuses private class members the extractor never produces", async () => {
+    const { mkdtempSync, mkdirSync, writeFileSync, rmSync } = await import(
+      "node:fs"
+    );
+    const { tmpdir } = await import("node:os");
+    const { join } = await import("node:path");
+    const root = mkdtempSync(join(tmpdir(), "kibi-builtin-enrich-private-"));
+    try {
+      mkdirSync(join(root, "src"), { recursive: true });
+      const source = [
+        "export class Greeter {",
+        "  #secret = 1;",
+        "  greet() {",
+        "    return this.helper();",
+        "  }",
+        "  private helper() {",
+        '    return "hello";',
+        "  }",
+        "}",
+        "",
+      ].join("\n");
+      writeFileSync(join(root, "src", "greeter.ts"), source);
+      const extracted = createBuiltinTsMorphSourceAnalysisProvider()
+        .analyzeText("src/greeter.ts", source)
+        .symbols.map((symbol) => symbol.name);
+      expect(extracted).toContain("Greeter.greet");
+      expect(extracted).not.toContain("Greeter.helper");
+
+      const enriched = await enrichSymbolCoordinatesWithTsMorph(
+        [
+          {
+            id: "SYM-greet",
+            title: "Greeter.greet",
+            sourceFile: "src/greeter.ts",
+          },
+          {
+            id: "SYM-helper",
+            title: "Greeter.helper",
+            sourceFile: "src/greeter.ts",
+          },
+          {
+            id: "SYM-helper-bare",
+            title: "helper",
+            sourceFile: "src/greeter.ts",
+          },
+          {
+            id: "SYM-secret",
+            title: "Greeter.#secret",
+            sourceFile: "src/greeter.ts",
+          },
+          {
+            id: "SYM-gone",
+            title: "Greeter.gone",
+            sourceFile: "src/greeter.ts",
+          },
+        ],
+        root,
+      );
+      expect(enriched[0]).toMatchObject({ sourceLine: 3 });
+      expect(enriched[0]?.coordinateRefreshFailure).toBeUndefined();
+      for (const entry of enriched.slice(1, 4)) {
+        expect(entry.sourceLine).toBeUndefined();
+        expect(entry.coordinateRefreshFailure).toContain(
+          "is a private class member; the symbol extractor tracks only public declarations",
+        );
+      }
+      // A declaration that does not exist at all is a plain miss.
+      expect(enriched[4]).toEqual({
+        id: "SYM-gone",
+        title: "Greeter.gone",
+        sourceFile: "src/greeter.ts",
+      });
     } finally {
       rmSync(root, { recursive: true, force: true });
     }

@@ -9,7 +9,6 @@ import {
   checkStrictFactShape,
   checkStrictReadiness,
   checkStrictReqFactPairing,
-  checkSymbolCoverage,
   findMustPriorityReqs,
   getAllEntityIds,
 } from "../../src/commands/check.js";
@@ -257,25 +256,5 @@ describe("exported check Prolog helpers", () => {
         source: "src.md",
       });
     }
-  });
-
-  test("checkSymbolCoverage extracts uncovered symbol ids", async () => {
-    expect(await checkSymbolCoverage(failUnless([]))).toEqual([]);
-    expect(
-      await checkSymbolCoverage(
-        failUnless([
-          { includes: "symbol_no_req_coverage", bindings: { Symbols: "[]" } },
-        ]),
-      ),
-    ).toEqual([]);
-    const uncovered = await checkSymbolCoverage(
-      failUnless([
-        {
-          includes: "symbol_no_req_coverage",
-          bindings: { Symbols: "['SYM-1','SYM-2']" },
-        },
-      ]),
-    );
-    expect(uncovered.map((item) => item.entityId)).toEqual(["SYM-1", "SYM-2"]);
   });
 });

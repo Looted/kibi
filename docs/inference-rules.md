@@ -29,6 +29,12 @@ Kibi includes deterministic derived predicates for internal analysis and automat
 
 **Scenario-aware coverage**: When a requirement has `specified_by(Req,Scenario)`, direct `verified_by(Req,Test)` or `validates(Test,Req)` does NOT satisfy symbol-coverage. The canonical path requires `verified_by(Scenario,Test)` or `validates(Test,Scenario)`.
 
+**One rule for full and staged checks**: `symbol_no_req_coverage(Symbol, Reason)` decides `symbol-coverage` in `kibi check`. The staged gate evaluates the same predicate through `changed_symbol_no_req_coverage(ExtraSymbols, Symbol)`, restricted to the changed source symbols (the `changed_symbol/1` overlay facts) plus `ExtraSymbols`, the symbols whose staged `.kb/symbols.yaml` entry changed. `checks:check_changed_symbol_coverage(ExtraSymbols, Violations)` renders those as the same `symbol-coverage` violations full check reports. The staged knowledge base projects the requirement, scenario and test graph from the index, so scenario-awareness holds for the commit being made.
+
+## Symbol granularity semantics
+
+`symbol-granularity` (full check) and `symbol_granularity_violation` (staged gate) share one TypeScript predicate: a symbol with an `implements`, `covered_by` or `executable_for` link and no allowed `granularity_reason` violates it when its source file has a narrower behavioral declaration (a member of the symbol's title, or any declaration when the title itself is not extracted). The staged gate judges only declarations a staged hunk touches; full check judges every declaration of the working-tree file, so a clean full check leaves no granularity violation for a later commit to expose.
+
 ## Requirement contradiction semantics
 
 `contradicting_reqs/3` uses strict requirement semantics only for current requirements and **strict domain facts**.

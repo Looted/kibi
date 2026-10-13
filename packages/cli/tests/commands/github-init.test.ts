@@ -306,7 +306,9 @@ describe("kibi init GitHub option registration", () => {
     const help = init?.helpInformation() ?? "";
     expect(help).toContain("--github");
     expect(help).toContain("--badge-only");
-    expect(help).toContain("badge + requirement-health report");
+    expect(help.replace(/\s+/g, " ")).toContain(
+      "badge + requirement-health report",
+    );
   });
 
   test("rejects --badge-only without --github", async () => {

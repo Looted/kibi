@@ -1,13 +1,12 @@
 // implements REQ-kibi-operation-interface-parity
 import { escapeAtom } from "../../prolog/codec.js";
+import { loadEntities } from "../../public/operations/discovery-entities.js";
 import type {
   OperationContext,
   PrologPort,
 } from "../../public/operations/runtime-types.js";
 import type { OperationResult } from "../../public/operations/types.js";
 import { entityIdStyleWarnings } from "../../utils/entity-id-style.js";
-import { analyzeSemanticAdvisorInput } from "../semantic-advisor/analyze-prose.js";
-import { assertSemanticInventoryBoundary } from "../semantic-advisor/ingestion-boundary.js";
 import { entityContextWarnings } from "./context-warning.js";
 import {
   buildUpsertContradictionPreviewGoal,
@@ -15,6 +14,7 @@ import {
   formatUpsertError,
 } from "./contradictions.js";
 import { validateRelationshipSources } from "./relationships.js";
+import { canonicalSourcePath } from "./source-authoring.js";
 import { validateSymbolGranularity } from "./symbol-granularity.js";
 import type {
   PlannedFactInput,
@@ -24,6 +24,8 @@ import type {
   ValidateUpsertPayload,
 } from "./types.js";
 import {
+  type UpsertSemanticAnalysis,
+  analyzeUpsertSemantics,
   validateAppendOnlyProofReceipts,
   validateUpsertForCommit,
 } from "./upsert.js";
@@ -37,6 +39,47 @@ async function entityExists(prolog: PrologPort, id: string): Promise<boolean> {
     `once(kb_entity('${escapeAtom(id)}', _Type, _Props))`,
   );
   return result.success;
+}
+
+// implements REQ-kibi-operation-interface-parity, REQ-kb-entity-body-context
+/**
+ * The authored document a real kb_upsert would update, resolved with the
+ * write's own rules (stored authored source, else the canonical lane path).
+ * The preview entity's `source` is the runtime marker, so without this the
+ * context warning would judge the statement instead of the existing body the
+ * write preserves. Undefined when the write would not touch a document.
+ */
+async function previewDocumentPath(
+  input: UpsertInput,
+  entity: Readonly<Record<string, unknown>>,
+  context: OperationContext,
+): Promise<string | undefined> {
+  if (context.fs === undefined || context.sourceFirst === false) {
+    return undefined;
+  }
+  try {
+    const existing =
+      context.prolog === undefined
+        ? undefined
+        : (
+            await loadEntities(context.prolog, {
+              id: input.id,
+              type: input.type,
+            })
+          )[0];
+    const existingSource =
+      typeof existing?.source === "string" ? existing.source : undefined;
+    if (
+      input.document === undefined &&
+      existing !== undefined &&
+      !existingSource?.match(/\.(?:md|mdx|ya?ml|json)$/i)
+    ) {
+      return undefined;
+    }
+    return canonicalSourcePath(context, input, entity, existing);
+  } catch {
+    return undefined;
+  }
 }
 
 // implements REQ-kibi-operation-interface-parity, REQ-kibi-truthful-consistency
@@ -202,7 +245,7 @@ async function validateWithoutStore(
   context: OperationContext,
 ): Promise<{
   entity: Readonly<Record<string, unknown>>;
-  semantic: ReturnType<typeof analyzeSemanticAdvisorInput>;
+  semantic: UpsertSemanticAnalysis;
 }> {
   const validated = validateUpsertInput(input, context.clock());
   await validateAppendOnlyProofReceipts(validated.entity, context);
@@ -212,15 +255,10 @@ async function validateWithoutStore(
     validated.relationships,
     context,
   );
-  const relationships = validated.relationships;
-  const semantic = analyzeSemanticAdvisorInput({
-    payload: { ...input, relationships },
+  const semantic = analyzeUpsertSemantics({
+    ...input,
+    relationships: validated.relationships,
   });
-  assertSemanticInventoryBoundary(
-    { ...input, relationships },
-    relationships,
-    semantic.receipt,
-  );
   return { entity: validated.entity, semantic };
 }
 
@@ -307,7 +345,9 @@ export async function executeValidateUpsert(
         ...semantic.warnings,
         ...coverageWarnings,
         ...idStyleWarnings,
-        ...entityContextWarnings(input, entity, context.workspaceRoot),
+        ...entityContextWarnings(input, entity, context.workspaceRoot, {
+          targetPath: await previewDocumentPath(input, entity, context),
+        }),
       ],
       semanticAdvisor: semantic.receipt,
       normalizedPreview: entity,

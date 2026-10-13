@@ -1,11 +1,79 @@
 #!/usr/bin/env node
 
 // src/hook-runner.ts
-import fs6 from "node:fs";
+import fs7 from "node:fs";
 import os from "node:os";
-import path7 from "node:path";
+import path8 from "node:path";
 import { pathToFileURL } from "node:url";
+import { spawnSync as spawnSync2 } from "node:child_process";
+
+// src/bash-command.ts
 import { spawnSync } from "node:child_process";
+import fs from "node:fs";
+import path from "node:path";
+var MAX_COMMAND_CHARS = 20000;
+var MAX_CANDIDATES = 200;
+var MTIME_TOLERANCE_MS = 1000;
+var TOKEN_SEPARATOR = /[\s;|&<>()'"`,=[\]{}]+/;
+var PATH_LIKE = /^[\w@.~/+-]*[\w-]\.[A-Za-z0-9]{1,8}$|^[\w@.~+-]*\/[\w@.~/+-]*$/;
+var SEARCH_COMMAND = /(^|[\s;|&(])(grep|egrep|rg|ag|ack|find|fd|git\s+(grep|ls-files))(\s|$)/;
+var CD_TARGET = /(?:^|[\s;&|(])cd\s+("[^"]+"|'[^']+'|[^\s;&|)]+)/g;
+function unquote(value) {
+  return value.replace(/^["']|["']$/g, "");
+}
+function cdTargets(command, cwd) {
+  const targets = [];
+  let base = cwd;
+  for (const match of command.matchAll(CD_TARGET)) {
+    const target = unquote(match[1] ?? "");
+    if (!target || target === "-")
+      continue;
+    base = path.resolve(base, target);
+    targets.push(base);
+  }
+  return targets;
+}
+function commandFilePaths(command, cwd) {
+  const scanned = command.slice(0, MAX_COMMAND_CHARS);
+  const bases = [cwd, ...cdTargets(scanned, cwd)];
+  const found = new Set;
+  let candidates = 0;
+  for (const token of scanned.split(TOKEN_SEPARATOR)) {
+    if (!PATH_LIKE.test(token) || token.startsWith("-"))
+      continue;
+    if (++candidates > MAX_CANDIDATES)
+      break;
+    for (const base of path.isAbsolute(token) ? [""] : bases) {
+      const absolute = path.resolve(base, token);
+      try {
+        if (fs.statSync(absolute).isFile()) {
+          found.add(absolute);
+          break;
+        }
+      } catch {}
+    }
+  }
+  return [...found];
+}
+function isSearchCommand(command) {
+  return SEARCH_COMMAND.test(command.slice(0, MAX_COMMAND_CHARS));
+}
+function filesChangedSince(root, sinceMs) {
+  const listed = spawnSync("git", ["ls-files", "--modified", "--others", "--exclude-standard", "-z"], { cwd: root, encoding: "utf8", timeout: 3000 });
+  if (listed.status !== 0 || typeof listed.stdout !== "string")
+    return [];
+  const changed = new Set;
+  for (const relative of listed.stdout.split("\x00")) {
+    if (relative.length === 0)
+      continue;
+    try {
+      const { mtimeMs } = fs.statSync(path.join(root, relative));
+      if (mtimeMs >= sinceMs - MTIME_TOLERANCE_MS)
+        changed.add(relative);
+    } catch {}
+  }
+  return [...changed];
+}
 
 // src/hook-input.ts
 function isRecord(value) {
@@ -95,17 +163,17 @@ function kibiCliOperation(command) {
 var SHELL_TOOL_NAMES = new Set(["Bash", "bash", "Shell", "shell"]);
 
 // ../agent-core/dist/snippets.js
-import fs2 from "node:fs";
+import fs3 from "node:fs";
 
 // ../agent-core/dist/knowledge-index.js
 import { createHash, randomUUID } from "node:crypto";
-import fs from "node:fs";
-import path from "node:path";
+import fs2 from "node:fs";
+import path2 from "node:path";
 var SYMBOLS_MANIFEST = ".kb/symbols.yaml";
 var SYMBOL_COORDINATES = ".kb/symbol-coordinates.yaml";
 var INDEX_FORMAT = "kibi-agent-core.knowledge-index.v2";
 var CACHE_FILE = "knowledge-index.json";
-function unquote(raw) {
+function unquote2(raw) {
   const value = raw.trim();
   if (value.startsWith('"') && value.endsWith('"') && value.length >= 2) {
     try {
@@ -156,7 +224,7 @@ function parseFlow(text, start = 0) {
         return;
       const raw = text.slice(pos, cursor + 1);
       pos = cursor + 1;
-      return unquote(raw);
+      return unquote2(raw);
     }
     let cursor = pos;
     while (cursor < text.length) {
@@ -257,7 +325,7 @@ function completeFlowValue(raw) {
 function parseScalarOrFlow(raw) {
   if (raw === undefined || raw.trim().length === 0)
     return;
-  return completeFlowValue(raw)?.value ?? unquote(raw);
+  return completeFlowValue(raw)?.value ?? unquote2(raw);
 }
 function scanSymbolsManifest(text) {
   return scanRecordSequence(text, "symbols");
@@ -331,12 +399,12 @@ ${content}`;
         pendingFlow = undefined;
         continue;
       }
-      target[pendingFlow.key] = unquote(pendingFlow.first);
+      target[pendingFlow.key] = unquote2(pendingFlow.first);
       pendingFlow = undefined;
     }
     if (indent === 0 && !dash) {
       const pair = keyValue.exec(content);
-      section = pair?.[1] !== undefined && unquote(pair[1]) === sectionKey ? "records" : "other";
+      section = pair?.[1] !== undefined && unquote2(pair[1]) === sectionKey ? "records" : "other";
       current = undefined;
       itemIndent = undefined;
       continue;
@@ -352,7 +420,7 @@ ${content}`;
       listItem = undefined;
       const pair = keyValue.exec(dash[3] ?? "");
       if (pair?.[1] !== undefined) {
-        const key = unquote(pair[1]);
+        const key = unquote2(pair[1]);
         if (pair[2] !== undefined && unbalancedFlow(pair[2])) {
           pendingFlow = {
             key,
@@ -386,18 +454,18 @@ ${content}`;
         listItem = undefined;
         list.push(flowItem.value);
       } else if (pair?.[1] !== undefined && pair[2] !== undefined) {
-        listItem = { [unquote(pair[1])]: parseScalarOrFlow(pair[2]) };
+        listItem = { [unquote2(pair[1])]: parseScalarOrFlow(pair[2]) };
         list.push(listItem);
       } else {
         listItem = undefined;
-        list.push(unquote(item));
+        list.push(unquote2(item));
       }
       continue;
     }
     const pair = keyValue.exec(content);
     if (pair?.[1] === undefined)
       continue;
-    const key = unquote(pair[1]);
+    const key = unquote2(pair[1]);
     if (indent === keyIndent) {
       listItem = undefined;
       if (pair[2] !== undefined && unbalancedFlow(pair[2])) {
@@ -440,7 +508,7 @@ function scanSymbolCoordinates(text) {
     const pair = keyValue.exec(content);
     if (pair?.[1] === undefined)
       continue;
-    const key = unquote(pair[1]);
+    const key = unquote2(pair[1]);
     if (indent === 0) {
       inCoordinates = key === "coordinates";
       idIndent = undefined;
@@ -459,13 +527,13 @@ function scanSymbolCoordinates(text) {
       continue;
     const entry = coordinates[currentId] ?? {};
     if (key === "sourceFile") {
-      const sourceFile = normalizeSourceFile(unquote(pair[2] ?? ""));
+      const sourceFile = normalizeSourceFile(unquote2(pair[2] ?? ""));
       if (sourceFile.length > 0)
         entry.sourceFile = sourceFile;
       coordinates[currentId] = entry;
       continue;
     }
-    const numeric = Number.parseInt(unquote(pair[2] ?? ""), 10);
+    const numeric = Number.parseInt(unquote2(pair[2] ?? ""), 10);
     if (!Number.isFinite(numeric))
       continue;
     if (key === "sourceLine")
@@ -570,7 +638,7 @@ function buildKnowledgeIndex(records, coordinates = {}, options = {}, manifest =
 }
 function fileSignature(filePath) {
   try {
-    const stats = fs.statSync(filePath);
+    const stats = fs2.statSync(filePath);
     return `${stats.size}:${stats.mtimeMs}`;
   } catch {
     return "missing";
@@ -578,25 +646,25 @@ function fileSignature(filePath) {
 }
 function readText(filePath) {
   try {
-    return fs.readFileSync(filePath, "utf8");
+    return fs2.readFileSync(filePath, "utf8");
   } catch {
     return;
   }
 }
 function writeCacheAtomically(cachePath, payload) {
   try {
-    fs.mkdirSync(path.dirname(cachePath), { recursive: true });
+    fs2.mkdirSync(path2.dirname(cachePath), { recursive: true });
     const temporary = `${cachePath}.${process.pid}.${randomUUID()}.tmp`;
-    fs.writeFileSync(temporary, payload);
-    fs.renameSync(temporary, cachePath);
+    fs2.writeFileSync(temporary, payload);
+    fs2.renameSync(temporary, cachePath);
   } catch {}
 }
 function loadKnowledgeIndex(workspaceRoot, cacheDir, options = {}) {
-  const symbolsPath = path.join(workspaceRoot, SYMBOLS_MANIFEST);
-  const coordinatesPath = path.join(workspaceRoot, SYMBOL_COORDINATES);
+  const symbolsPath = path2.join(workspaceRoot, SYMBOLS_MANIFEST);
+  const coordinatesPath = path2.join(workspaceRoot, SYMBOL_COORDINATES);
   const legacyMode = options.legacyLinksAsImplements === false ? "typed" : "legacy";
   const signature = `${INDEX_FORMAT}|${legacyMode}|${fileSignature(symbolsPath)}|${fileSignature(coordinatesPath)}`;
-  const cachePath = cacheDir ? path.join(cacheDir, options.cacheFileName ?? CACHE_FILE) : undefined;
+  const cachePath = cacheDir ? path2.join(cacheDir, options.cacheFileName ?? CACHE_FILE) : undefined;
   if (cachePath) {
     const cached = readText(cachePath);
     if (cached !== undefined) {
@@ -630,7 +698,7 @@ var RELATIONSHIPS_DIR = ".kb/relationships";
 var shardCache = new Map;
 function shardPathFor(workspaceRoot, entityId) {
   const shard = createHash("sha256").update(entityId).digest("hex");
-  return path.join(workspaceRoot, RELATIONSHIPS_DIR, `${shard.slice(0, 2)}.yaml`);
+  return path2.join(workspaceRoot, RELATIONSHIPS_DIR, `${shard.slice(0, 2)}.yaml`);
 }
 function shardLinksFrom(workspaceRoot, entityId) {
   const shardPath = shardPathFor(workspaceRoot, entityId);
@@ -669,13 +737,13 @@ function readEntitySummary(workspaceRoot, entityId) {
     return { id: entityId };
   let head;
   try {
-    const descriptor = fs.openSync(path.join(workspaceRoot, ".kb", lane[1], `${entityId}.md`), "r");
+    const descriptor = fs2.openSync(path2.join(workspaceRoot, ".kb", lane[1], `${entityId}.md`), "r");
     try {
       const buffer = Buffer.alloc(8192);
-      const bytes = fs.readSync(descriptor, buffer, 0, buffer.length, 0);
+      const bytes = fs2.readSync(descriptor, buffer, 0, buffer.length, 0);
       head = buffer.subarray(0, bytes).toString("utf8");
     } finally {
-      fs.closeSync(descriptor);
+      fs2.closeSync(descriptor);
     }
   } catch {
     return { id: entityId };
@@ -692,11 +760,11 @@ function readEntitySummary(workspaceRoot, entityId) {
       break;
     const match = /^(title|status|firmness):\s*(.*)$/.exec(line);
     if (match?.[1] === "title" && match[2])
-      summary.title = unquote(match[2]);
+      summary.title = unquote2(match[2]);
     if (match?.[1] === "status" && match[2])
-      summary.status = unquote(match[2]);
+      summary.status = unquote2(match[2]);
     if (match?.[1] === "firmness" && match[2])
-      summary.firmness = unquote(match[2]);
+      summary.firmness = unquote2(match[2]);
     if (/^\S/.test(line)) {
       flushLink(authored, pending);
       pending = undefined;
@@ -715,11 +783,11 @@ function readEntitySummary(workspaceRoot, entityId) {
     const body = (entry ? entry[1] ?? "" : line).trim();
     const field = /^(type|target):\s*(.+)$/.exec(body);
     if (field?.[1] === "type")
-      pending.type = unquote(field[2] ?? "");
+      pending.type = unquote2(field[2] ?? "");
     else if (field?.[1] === "target")
-      pending.target = unquote(field[2] ?? "");
-    else if (entry && SAFE_ENTITY_ID.test(unquote(body)))
-      pending.bare = unquote(body);
+      pending.target = unquote2(field[2] ?? "");
+    else if (entry && SAFE_ENTITY_ID.test(unquote2(body)))
+      pending.bare = unquote2(body);
   }
   flushLink(authored, pending);
   const links = [];
@@ -789,9 +857,9 @@ function editFocus(absolutePath, toolInput) {
     return;
   let content;
   try {
-    if (fs2.statSync(absolutePath).size > MAX_FOCUS_SCAN_BYTES)
+    if (fs3.statSync(absolutePath).size > MAX_FOCUS_SCAN_BYTES)
       return;
-    content = fs2.readFileSync(absolutePath, "utf8");
+    content = fs3.readFileSync(absolutePath, "utf8");
   } catch {
     return;
   }
@@ -1064,7 +1132,7 @@ function loadKnowledgeIndex2(workspaceRoot, cacheDir) {
 }
 
 // ../agent-core/dist/path-policy.js
-import path2 from "node:path";
+import path3 from "node:path";
 var codeExtensions = new Set([
   ".c",
   ".cc",
@@ -1160,9 +1228,9 @@ function canonicalizeWorkspacePath(workspaceRoot, options) {
   if (trimmed.length === 0)
     return;
   const base = options.base ?? options.eventCwd ?? workspaceRoot;
-  const absolute = path2.isAbsolute(trimmed) ? path2.resolve(trimmed) : path2.resolve(base, trimmed);
-  const workspaceRelative = path2.relative(workspaceRoot, absolute).replaceAll("\\", "/");
-  if (workspaceRelative.length === 0 || workspaceRelative === ".." || workspaceRelative.startsWith("../") || path2.isAbsolute(workspaceRelative)) {
+  const absolute = path3.isAbsolute(trimmed) ? path3.resolve(trimmed) : path3.resolve(base, trimmed);
+  const workspaceRelative = path3.relative(workspaceRoot, absolute).replaceAll("\\", "/");
+  if (workspaceRelative.length === 0 || workspaceRelative === ".." || workspaceRelative.startsWith("../") || path3.isAbsolute(workspaceRelative)) {
     return;
   }
   return { workspaceRelative, absolute };
@@ -1184,7 +1252,7 @@ function classifyPath(relativePath) {
     return "other";
   }
   const basename = segments.at(-1) ?? "";
-  const extension = path2.extname(basename).toLowerCase();
+  const extension = path3.extname(basename).toLowerCase();
   if (!codeExtensions.has(extension))
     return "other";
   if (testBasename.test(basename) || segments.slice(0, -1).some((segment) => testSegments.has(segment))) {
@@ -1203,21 +1271,21 @@ function classifyPath2(relativePath) {
 
 // src/session-state.ts
 import { createHash as createHash2 } from "node:crypto";
-import fs3 from "node:fs";
-import path3 from "node:path";
+import fs4 from "node:fs";
+import path4 from "node:path";
 var JOURNAL = "session.jsonl";
 function workspaceDataDir(pluginData, workspaceRoot) {
   if (!pluginData)
     return;
-  const key = createHash2("sha256").update(path3.resolve(workspaceRoot)).digest("hex").slice(0, 32);
-  return path3.join(pluginData, "workspaces", key);
+  const key = createHash2("sha256").update(path4.resolve(workspaceRoot)).digest("hex").slice(0, 32);
+  return path4.join(pluginData, "workspaces", key);
 }
 function sessionDir(workspaceDir, sessionId) {
   if (!workspaceDir)
     return;
   const trimmed = sessionId?.trim() ?? "";
   const key = trimmed.length > 0 ? createHash2("sha256").update(trimmed).digest("hex").slice(0, 32) : "unattributed";
-  return path3.join(workspaceDir, "sessions", key);
+  return path4.join(workspaceDir, "sessions", key);
 }
 function emptySessionState() {
   return {
@@ -1228,7 +1296,8 @@ function emptySessionState() {
     exploredPaths: new Set,
     exploredIds: new Set,
     pendingSource: [],
-    reminded: new Set
+    reminded: new Set,
+    commandStartedAt: undefined
   };
 }
 function applyEvent(state, event) {
@@ -1262,6 +1331,9 @@ function applyEvent(state, event) {
       for (const reminded of event.paths)
         state.reminded.add(reminded);
       return;
+    case "command_started":
+      state.commandStartedAt = Math.max(state.commandStartedAt ?? 0, event.at);
+      return;
     case "context_reset":
       state.shownRead.clear();
       state.shownEdit.clear();
@@ -1277,7 +1349,7 @@ function loadSessionState(dir) {
     return state;
   let journal;
   try {
-    journal = fs3.readFileSync(path3.join(dir, JOURNAL), "utf8");
+    journal = fs4.readFileSync(path4.join(dir, JOURNAL), "utf8");
   } catch {
     return state;
   }
@@ -1295,8 +1367,8 @@ function appendSessionEvents(dir, events) {
   if (!dir || events.length === 0)
     return;
   try {
-    fs3.mkdirSync(dir, { recursive: true });
-    fs3.appendFileSync(path3.join(dir, JOURNAL), events.map((event) => `${JSON.stringify(event)}
+    fs4.mkdirSync(dir, { recursive: true });
+    fs4.appendFileSync(path4.join(dir, JOURNAL), events.map((event) => `${JSON.stringify(event)}
 `).join(""));
   } catch {}
 }
@@ -1310,6 +1382,7 @@ function sessionStartContext(linkedFileCount) {
   return [
     `Kibi knowledge base is active in this workspace (${linkedFileCount} source files have requirement-linked symbols).`,
     "Kibi hooks add short requirement/test snippets before reads and edits of linked files, derived from the symbol manifest; kb_query returns the authoritative detail.",
+    "Files with no linked symbols get no snippet, so recorded rules about the behavior they implement (permissions, roles, limits, data handling) surface only through kb_search.",
     "Operations: kb_search (ask it a question; the answer layer names governing requirements, must-stay-true facts, ADRs and tests), kb_query (exact id or sourceFile), kb_check (validation and edit impact), kb_upsert (writes). MCP tool names are host-prefixed (e.g. mcp__plugin_kibi-claude_kibi__kb_query); the project-local CLI (`npx --no-install kibi <route> --input -`) is the peer route.",
     "Workflow guidance lives in the kibi-claude:kibi-usage skill (also served by kb_skills with action load)."
   ].join(`
@@ -1326,13 +1399,13 @@ function stopReminder(paths) {
 }
 
 // src/usage-log.ts
-import path5 from "node:path";
+import path6 from "node:path";
 import { fileURLToPath } from "node:url";
 
 // ../agent-core/dist/hook-usage-log.js
 import { randomUUID as randomUUID2 } from "node:crypto";
-import fs4 from "node:fs";
-import path4 from "node:path";
+import fs5 from "node:fs";
+import path5 from "node:path";
 function hookTelemetryEnabled(env = process.env) {
   const value = env.KIBI_DIAGNOSTIC_MODE?.trim().toLowerCase();
   return value === "1" || value === "true";
@@ -1363,15 +1436,15 @@ function appendHookUsage(row, env = process.env) {
     duration_ms: finishedAt.getTime() - row.startedAt.getTime()
   };
   try {
-    const logPath = path4.join(row.workspaceRoot, ".kb", "usage.log");
-    fs4.mkdirSync(path4.dirname(logPath), { recursive: true });
-    fs4.appendFileSync(logPath, `${JSON.stringify(record)}
+    const logPath = path5.join(row.workspaceRoot, ".kb", "usage.log");
+    fs5.mkdirSync(path5.dirname(logPath), { recursive: true });
+    fs5.appendFileSync(logPath, `${JSON.stringify(record)}
 `, "utf8");
   } catch {}
 }
 function readPackageVersion(packageJsonPath) {
   try {
-    const parsed = JSON.parse(fs4.readFileSync(packageJsonPath, "utf8"));
+    const parsed = JSON.parse(fs5.readFileSync(packageJsonPath, "utf8"));
     if (typeof parsed === "object" && parsed !== null && "version" in parsed && typeof parsed.version === "string") {
       return parsed.version;
     }
@@ -1384,7 +1457,7 @@ var cachedPluginVersion;
 function pluginVersion() {
   if (cachedPluginVersion !== undefined)
     return cachedPluginVersion;
-  cachedPluginVersion = readPackageVersion(path5.join(path5.dirname(fileURLToPath(import.meta.url)), "..", "package.json"));
+  cachedPluginVersion = readPackageVersion(path6.join(path6.dirname(fileURLToPath(import.meta.url)), "..", "package.json"));
   return cachedPluginVersion;
 }
 function appendHookUsage2(row, env = process.env) {
@@ -1394,22 +1467,22 @@ function appendHookUsage2(row, env = process.env) {
 }
 
 // src/workspace-optin.ts
-import fs5 from "node:fs";
-import path6 from "node:path";
+import fs6 from "node:fs";
+import path7 from "node:path";
 var KIBI_WORKSPACE_ENV_KEYS = [
   "KIBI_WORKSPACE",
   "KIBI_PROJECT_ROOT",
   "KIBI_ROOT"
 ];
 function nextAncestorDirectory(current) {
-  const parent = path6.dirname(current);
+  const parent = path7.dirname(current);
   return parent === current ? undefined : parent;
 }
 function hasKibiManifest(directory) {
-  return fs5.existsSync(path6.join(directory, ".kb", "manifest.json"));
+  return fs6.existsSync(path7.join(directory, ".kb", "manifest.json"));
 }
 function hasGitBoundary(directory) {
-  return fs5.existsSync(path6.join(directory, ".git"));
+  return fs6.existsSync(path7.join(directory, ".git"));
 }
 function resolutionFor(root) {
   return { root, optedIn: hasKibiManifest(root) };
@@ -1418,10 +1491,10 @@ function resolveKibiWorkspace(startDir, env = process.env) {
   for (const key of KIBI_WORKSPACE_ENV_KEYS) {
     const value = env[key]?.trim();
     if (value) {
-      return resolutionFor(path6.resolve(value));
+      return resolutionFor(path7.resolve(value));
     }
   }
-  let current = path6.resolve(startDir && startDir.trim().length > 0 ? startDir : process.cwd());
+  let current = path7.resolve(startDir && startDir.trim().length > 0 ? startDir : process.cwd());
   while (current !== undefined) {
     if (hasKibiManifest(current)) {
       return { root: current, optedIn: true };
@@ -1431,7 +1504,7 @@ function resolveKibiWorkspace(startDir, env = process.env) {
     }
     current = nextAncestorDirectory(current);
   }
-  return resolutionFor(path6.resolve(startDir ?? process.cwd()));
+  return resolutionFor(path7.resolve(startDir ?? process.cwd()));
 }
 
 // src/hook-runner.ts
@@ -1451,6 +1524,11 @@ function toolPath(toolInput) {
     return;
   const candidate = toolInput.file_path ?? toolInput.notebook_path;
   return typeof candidate === "string" ? candidate : undefined;
+}
+function bashCommand(toolInput) {
+  if (!isRecord5(toolInput))
+    return "";
+  return typeof toolInput.command === "string" ? toolInput.command : "";
 }
 function linkedFileCount(index) {
   return Object.values(index.files).filter((symbols) => symbols.some((symbol) => symbol.implements.length > 0)).length;
@@ -1493,6 +1571,9 @@ function preToolUse(input, workspace, trace = {}) {
     appendSessionEvents(workspace.stateDir, events);
     return context("PreToolUse", text);
   };
+  if (toolName === "Bash") {
+    return bashPreToolUse(input, workspace, state, trace);
+  }
   if (searchTools.has(toolName)) {
     trace.action = "search_silent";
     if (state.kbUsed || state.notices.has("search-tip"))
@@ -1528,20 +1609,7 @@ function preToolUse(input, workspace, trace = {}) {
   trace.requirementIds = requirementIds(symbols);
   if (isRead) {
     trace.action = "read_silent";
-    if (state.shownRead.has(relativePath) || state.shownEdit.has(relativePath) || isExplored(state, relativePath)) {
-      return {};
-    }
-    const owners = requirementIds(symbols);
-    if (owners.length > 0 && owners.every((id) => state.exploredIds.has(id))) {
-      return {};
-    }
-    const snippet = fileKnowledgeSnippet({
-      relativePath,
-      symbols,
-      surface: "read",
-      focus: readFocus(input.toolInput),
-      summarize: workspace.summarize
-    });
+    const snippet = readSnippet(relativePath, symbols, state, workspace, readFocus(input.toolInput));
     if (!snippet)
       return {};
     events.push({ kind: "shown", surface: "read", path: relativePath });
@@ -1608,6 +1676,109 @@ function preToolUse(input, workspace, trace = {}) {
   appendSessionEvents(workspace.stateDir, events);
   return {};
 }
+function readSnippet(relativePath, symbols, state, workspace, focus) {
+  if (state.shownRead.has(relativePath) || state.shownEdit.has(relativePath) || isExplored(state, relativePath)) {
+    return;
+  }
+  const owners = requirementIds(symbols);
+  if (owners.length > 0 && owners.every((id) => state.exploredIds.has(id))) {
+    return;
+  }
+  return fileKnowledgeSnippet({
+    relativePath,
+    symbols,
+    surface: "read",
+    focus,
+    summarize: workspace.summarize
+  }) ?? undefined;
+}
+function bashPreToolUse(input, workspace, state, trace) {
+  const events = [{ kind: "command_started", at: Date.now() }];
+  const command = bashCommand(input.toolInput);
+  const emit = (text, action) => {
+    trace.action = action;
+    appendSessionEvents(workspace.stateDir, events);
+    return context("PreToolUse", text);
+  };
+  let namesKb = false;
+  for (const absolute of commandFilePaths(command, input.cwd ?? workspace.root)) {
+    const target = toWorkspacePath2(workspace.root, absolute, input.cwd);
+    if (!target)
+      continue;
+    const kind = classifyPath2(target.relative);
+    if (kind === "kb")
+      namesKb = true;
+    if (kind === "kb" || kind === "other")
+      continue;
+    const symbols = workspace.index().files[target.relative] ?? [];
+    const snippet = readSnippet(target.relative, symbols, state, workspace);
+    if (!snippet)
+      continue;
+    trace.path = target.relative;
+    trace.pathKind = kind;
+    trace.requirementIds = requirementIds(symbols);
+    events.push({ kind: "shown", surface: "read", path: target.relative });
+    return emit(snippet, "read_snippet");
+  }
+  if (namesKb && !state.notices.has("kb-direct")) {
+    events.push({ kind: "notice", name: "kb-direct" });
+    return emit(DIRECT_KB_ACCESS_NOTE, "kb_direct_note");
+  }
+  if (isSearchCommand(command) && !state.kbUsed && !state.notices.has("search-tip")) {
+    const linked = linkedFileCount(workspace.index());
+    if (linked > 0) {
+      events.push({ kind: "notice", name: "search-tip" });
+      return emit(searchTip(linked), "search_tip");
+    }
+  }
+  appendSessionEvents(workspace.stateDir, events);
+  return {};
+}
+function bashChanges(workspace, events, trace) {
+  const state = loadSessionState(workspace.stateDir);
+  if (state.commandStartedAt === undefined)
+    return;
+  let note;
+  for (const relative of filesChangedSince(workspace.root, state.commandStartedAt)) {
+    const pathKind = classifyPath2(relative);
+    if (pathKind === "kb" || pathKind === "other")
+      continue;
+    events.push({ kind: "edited", path: relative, pathKind });
+    const index = workspace.index();
+    const symbols = index.files[relative] ?? [];
+    const owners = requirementIds(symbols);
+    if (trace.action === undefined && owners.length > 0) {
+      trace.action = "edited";
+      trace.kbUsedBefore = state.kbUsed;
+      trace.path = relative;
+      trace.pathKind = pathKind;
+      trace.requirementIds = owners;
+    }
+    if (note !== undefined || state.shownEdit.has(relative))
+      continue;
+    const alreadyKnown = state.shownRead.has(relative) || isExplored(state, relative);
+    const snippet = alreadyKnown ? editKnowledgeUpdate({
+      relativePath: relative,
+      symbols,
+      surface: "edit",
+      summarize: workspace.summarize
+    }) : fileKnowledgeSnippet({
+      relativePath: relative,
+      symbols,
+      surface: "edit",
+      summarize: workspace.summarize
+    });
+    if (snippet) {
+      note = snippet;
+    } else if (pathKind === "source" && owners.length === 0 && index.manifest !== "unreadable") {
+      note = unownedSourceNote(relative);
+    }
+    if (note !== undefined) {
+      events.push({ kind: "shown", surface: "edit", path: relative });
+    }
+  }
+  return note;
+}
 function recordKbUsage(usage, workspace, events) {
   const paths = usage.paths.map((candidate) => toWorkspacePath2(workspace.root, candidate, workspace.root)?.relative).filter((candidate) => candidate !== undefined);
   events.push({
@@ -1621,10 +1792,10 @@ function recordKbUsage(usage, workspace, events) {
   }
 }
 function hasKibiPreCommitGate(workspaceRoot) {
-  const resolved = spawnSync("git", ["rev-parse", "--git-path", "hooks/pre-commit"], { cwd: workspaceRoot, encoding: "utf8", timeout: 2000 });
-  const hookPath = resolved.status === 0 && resolved.stdout.trim().length > 0 ? path7.resolve(workspaceRoot, resolved.stdout.trim()) : path7.join(workspaceRoot, ".git", "hooks", "pre-commit");
+  const resolved = spawnSync2("git", ["rev-parse", "--git-path", "hooks/pre-commit"], { cwd: workspaceRoot, encoding: "utf8", timeout: 2000 });
+  const hookPath = resolved.status === 0 && resolved.stdout.trim().length > 0 ? path8.resolve(workspaceRoot, resolved.stdout.trim()) : path8.join(workspaceRoot, ".git", "hooks", "pre-commit");
   try {
-    return /kibi[^\n]*\bcheck\b/.test(fs6.readFileSync(hookPath, "utf8"));
+    return /kibi[^\n]*\bcheck\b/.test(fs7.readFileSync(hookPath, "utf8"));
   } catch {
     return false;
   }
@@ -1656,13 +1827,16 @@ function postToolUse(input, workspace, trace = {}) {
       }
     }
   } else if (toolName === "Bash") {
-    const command = isRecord5(input.toolInput) ? input.toolInput.command : undefined;
+    const command = bashCommand(input.toolInput);
     const usage = extractCliKbUsage(command);
     if (usage)
       recordUsage(usage);
+    const note = bashChanges(workspace, events, trace);
     if (isVerifiedGitCommit(command) && hasKibiPreCommitGate(workspace.root)) {
       events.push({ kind: "checked", paths: [], all: true });
     }
+    appendSessionEvents(workspace.stateDir, events);
+    return note ? context("PostToolUse", note) : {};
   } else {
     const usage = extractMcpKbUsage(toolName, input.toolInput);
     if (usage)
@@ -1688,7 +1862,7 @@ function stop(input, workspace, trace = {}) {
 async function runHook(rawInput, environment = {}) {
   const startedAt = new Date;
   const input = parseHookInput(rawInput);
-  const pluginData = environment.pluginData ?? process.env.CLAUDE_PLUGIN_DATA ?? path7.join(os.tmpdir(), `kibi-claude-${process.getuid?.() ?? "user"}`);
+  const pluginData = environment.pluginData ?? process.env.CLAUDE_PLUGIN_DATA ?? path8.join(os.tmpdir(), `kibi-claude-${process.getuid?.() ?? "user"}`);
   const projectDir = environment.projectDir ?? process.env.CLAUDE_PROJECT_DIR;
   const resolved = resolveKibiWorkspace(input.cwd ?? projectDir ?? process.cwd());
   if (!resolved.optedIn)
@@ -1741,7 +1915,7 @@ async function main() {
 `);
 }
 function isInvokedAsCli(argv1, moduleUrl) {
-  const invokedPath = argv1 ? pathToFileURL(path7.resolve(argv1)).href : "";
+  const invokedPath = argv1 ? pathToFileURL(path8.resolve(argv1)).href : "";
   return moduleUrl === invokedPath;
 }
 async function runHookCli() {

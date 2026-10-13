@@ -8,15 +8,18 @@ import {
   migrateCommand,
   warnMigrationRequiredWithoutYes,
 } from "../../src/commands/migrate.js";
+import { discoverSourceFiles } from "../../src/commands/sync/discovery.js";
 import {
   buildMigrationPlan,
   migrationAction,
 } from "../../src/public/operations/migration-plan.js";
 import * as runtimeTypes from "../../src/public/operations/runtime-types.js";
 import * as branchResolver from "../../src/utils/branch-resolver.js";
+import { LATEST_KB_SCHEMA_VERSION } from "../../src/utils/schema-version.js";
 import {
   captureIo,
   createGitWorkspace,
+  git,
   isolateKibiEnv,
   removeTempDir,
   restoreWorkspaceCwd,
@@ -237,8 +240,67 @@ describe("migrateCommand remaining runtime branches", () => {
     expect(
       readFileSync(path.join(cwd, ".kb", "symbols.yaml"), "utf8"),
     ).toContain("SYM-auth");
-    // The moved files are untracked, and sync compiles tracked sources only.
+    // The moved files are untracked; pending-source receipts let sync compile
+    // them before they are staged, and the schema steps that rewrote them
+    // afterwards (context tags, legacy-link) rebound those receipts.
     expect(io.logText()).toContain("not tracked by Git yet");
+    expect(io.logText()).toContain("pending-source receipt");
+    const discovered = await discoverSourceFiles(cwd, { trackedOnly: true });
+    expect(
+      [...discovered.markdownFiles, ...discovered.manifestFiles].map((file) =>
+        path.relative(cwd, file).replaceAll(path.sep, "/"),
+      ),
+    ).toEqual(
+      expect.arrayContaining([".kb/requirements/REQ-1.md", ".kb/symbols.yaml"]),
+    );
+    expect(git(cwd, "ls-files -- .kb").trim()).toBe("");
+  });
+
+  test("removes legacy copies identical to .kb/ and blocks a stale symbols subset", async () => {
+    const cwd = preparedWorkspace();
+    writeManifest(cwd, LATEST_KB_SCHEMA_VERSION);
+    const req = "---\nid: REQ-1\ntitle: Auth\nstatus: open\n---\n";
+    for (const dir of [".kb/requirements", "documentation/requirements"]) {
+      mkdirSync(path.join(cwd, dir), { recursive: true });
+      writeFileSync(path.join(cwd, dir, "REQ-1.md"), req);
+    }
+    const io = captureIo();
+    restores.push(io.restore);
+    const preview = await migrateCommand({ dryRun: true, workspaceRoot: cwd });
+    expect(preview.exitCode).toBe(0);
+    expect(io.logText()).toContain(
+      "would remove 1 legacy cop(ies) identical to their .kb/ file",
+    );
+    expect(io.logText()).toContain(
+      "documentation/requirements/REQ-1.md (same as .kb/requirements/REQ-1.md)",
+    );
+    const applied = await migrateCommand({ yes: true, workspaceRoot: cwd });
+    expect(applied.exitCode).toBe(0);
+    expect(io.logText()).toContain(
+      "Removed 1 legacy cop(ies) identical to their .kb/ file: documentation/requirements/REQ-1.md.",
+    );
+    expect(existsSync(path.join(cwd, "documentation"))).toBe(false);
+    expect(
+      readFileSync(path.join(cwd, ".kb", "requirements", "REQ-1.md"), "utf8"),
+    ).toBe(req);
+
+    writeFileSync(
+      path.join(cwd, ".kb", "symbols.yaml"),
+      "symbols:\n  - id: SYM-auth\n  - id: SYM-login\n",
+    );
+    mkdirSync(path.join(cwd, "documentation"), { recursive: true });
+    writeFileSync(
+      path.join(cwd, "documentation", "symbols.yaml"),
+      "symbols:\n  - id: SYM-auth\n",
+    );
+    const blocked = await migrateCommand({ yes: true, workspaceRoot: cwd });
+    expect(blocked.exitCode).toBe(1);
+    expect(io.errorText()).toContain(
+      "Blocked: The legacy copy documentation/symbols.yaml is a stale subset of .kb/symbols.yaml",
+    );
+    expect(existsSync(path.join(cwd, "documentation", "symbols.yaml"))).toBe(
+      true,
+    );
   });
 
   test("treats a missing schemaVersion as missing and upgrades it", async () => {

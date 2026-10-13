@@ -209,3 +209,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-880439262416
+  - type: implements
+    from: SYM-operation-execute-check
+    to: REQ-search-answer-hygiene
+    created_at: 2026-10-12T23:37:28.755Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7b06bb1f9e01
+  - type: covered_by
+    from: SYM-operation-execute-check
+    to: TEST-search-answer-hygiene
+    created_at: 2026-10-12T23:37:28.768Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-69d9a0316291

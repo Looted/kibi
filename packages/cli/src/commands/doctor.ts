@@ -58,7 +58,11 @@ import {
   resolveGitRepository,
 } from "../utils/git-repository-context.js";
 import { readKbManifestStatus } from "../utils/kb-manifest.js";
-import { hasManagedHooks, outdatedManagedHooks } from "./init-helpers.js";
+import {
+  KIBI_HOOK_BEGIN,
+  hasManagedHooks,
+  outdatedManagedHooks,
+} from "./init-helpers.js";
 import { planLegacyStorageMigration } from "./legacy-storage-migration.js";
 
 /**
@@ -816,17 +820,22 @@ function checkLegacyStorage(): {
   if (plan.blockers.length > 0) {
     return {
       passed: false,
-      message: `${plan.moves.length} legacy knowledge file(s) outside .kb/ cannot be moved automatically`,
-      remediation: `${plan.blockers.join(" ")} Compare each legacy copy with its .kb/ copy and keep the current one: replace the .kb/ copy when the legacy one is newer, or remove (git rm) the legacy copy when it is a stale duplicate. Then run: kibi migrate --yes`,
+      message: `${plan.blockers.length} legacy knowledge file(s) outside .kb/ cannot be moved automatically`,
+      remediation: `${plan.blockers.join(" ")} Then run: kibi migrate --yes`,
     };
   }
 
-  if (plan.legacyConfig === "present" || plan.moves.length > 0) {
+  if (
+    plan.legacyConfig === "present" ||
+    plan.moves.length > 0 ||
+    plan.removals.length > 0
+  ) {
+    const outside = plan.moves.length + plan.removals.length;
     return {
       passed: false,
       message:
-        plan.moves.length > 0
-          ? `${plan.moves.length} legacy knowledge file(s) still outside .kb/`
+        outside > 0
+          ? `${outside} legacy knowledge file(s) still outside .kb/${plan.removals.length > 0 ? ` (${plan.removals.length} identical to the .kb/ copy, which kibi migrate removes)` : ""}`
           : "Legacy .kb/config.json still present",
       remediation: "Run: kibi migrate --yes",
     };
@@ -1075,6 +1084,82 @@ function checkGitHooks(): DoctorCheckResult {
   };
 }
 
+/**
+ * Individual shell commands of a hook script, ignoring comments. Lines are
+ * split on command separators so `a && b` counts as two commands.
+ */
+// implements REQ-git-hook-effective-install
+function hookCommands(content: string): string[] {
+  return content
+    .split("\n")
+    .filter((line) => !line.trimStart().startsWith("#"))
+    .flatMap((line) => line.split(/&&|\|\||;|\|/))
+    .map((command) => command.trim())
+    .filter((command) => command.length > 0);
+}
+
+// Matches `kibi <sub>`, `npx kibi <sub>`, `node_modules/.bin/kibi <sub>` and
+// the template's `"$KIBI_BIN" <sub>`.
+// implements REQ-git-hook-effective-install
+function invokesKibi(command: string, subcommand: string): boolean {
+  return new RegExp(
+    `(?:\\bkibi|\\bKIBI_BIN)["'}]*\\s+${subcommand}(?=\\s|$)`,
+  ).test(command);
+}
+
+/** The pre-commit gate the managed template runs, as a custom hook must. */
+const PRE_COMMIT_DELEGATIONS: readonly {
+  readonly label: string;
+  readonly matches: (command: string) => boolean;
+}[] = [
+  {
+    label: "kibi check-generated --staged --changed-only",
+    matches: (command) =>
+      invokesKibi(command, "check-generated") &&
+      /\s--staged(?=\s|$)/.test(command) &&
+      /\s--changed-only(?=\s|$)/.test(command),
+  },
+  {
+    label: "kibi check --staged",
+    matches: (command) =>
+      invokesKibi(command, "check") && /\s--staged(?=\s|$)/.test(command),
+  },
+];
+
+// implements REQ-git-hook-effective-install
+function checkCustomPreCommitHook(
+  content: string,
+  executable: boolean,
+): { passed: boolean; message: string; remediation?: string } {
+  const commands = hookCommands(content);
+  const missing = PRE_COMMIT_DELEGATIONS.filter(
+    (delegation) => !commands.some(delegation.matches),
+  ).map((delegation) => `'${delegation.label}'`);
+  if (missing.length > 0) {
+    // An unmarked file that still carries the old template header is a Kibi
+    // hook from before managed sections; removing it lets init reinstall it.
+    const oldTemplate = content.includes("# pre-commit hook for kibi")
+      ? " If this file is an old Kibi template, delete it and run 'kibi init' instead."
+      : "";
+    return {
+      passed: false,
+      message: `Custom pre-commit hook (no kibi-managed section) does not run ${missing.join(" or ")}; commits skip Kibi enforcement${hooksPathSuffix()}`,
+      remediation: `Delegate from your hook to both 'kibi check-generated --staged --changed-only' and 'kibi check --staged'. Print a copy-paste snippet that resolves a project-local kibi with: kibi init --print-hook pre-commit (kibi init never edits a custom hook).${oldTemplate}`,
+    };
+  }
+  if (!executable) {
+    return {
+      passed: false,
+      message: `Installed but not executable${hooksPathSuffix()}`,
+      remediation: remediationHookPaths("pre-commit"),
+    };
+  }
+  return {
+    passed: true,
+    message: `Custom hook delegates to 'kibi check-generated --staged --changed-only' and 'kibi check --staged'${hooksPathSuffix()}`,
+  };
+}
+
 function checkPreCommitHook(): {
   passed: boolean;
   message: string;
@@ -1110,6 +1195,13 @@ function checkPreCommitHook(): {
 
     // Read hook content to determine whether it's using the new staged check
     const content = readFileSync(preCommitPath, "utf-8");
+
+    // A hook without a kibi-managed section is the user's own (hand-written,
+    // husky, lefthook, ...). `kibi init` never edits it, so the only useful
+    // check is whether it delegates to the gate the managed template runs.
+    if (!content.includes(KIBI_HOOK_BEGIN)) {
+      return checkCustomPreCommitHook(content, preCommitExecutable);
+    }
 
     // Current templates resolve the kibi binary into KIBI_BIN before invoking
     // it (git hooks do not get node_modules/.bin on PATH); legacy templates
@@ -1209,6 +1301,29 @@ function checkPostRewriteHook(): {
     // Read hook content to verify it invokes kibi. Current templates invoke
     // the resolved KIBI_BIN; legacy templates invoked bare `kibi sync`.
     const content = readFileSync(postRewritePath, "utf-8");
+
+    // A custom hook (no kibi-managed section) is never edited by init.
+    // implements REQ-git-hook-effective-install
+    if (!content.includes(KIBI_HOOK_BEGIN)) {
+      if (!hookCommands(content).some((cmd) => invokesKibi(cmd, "sync"))) {
+        return {
+          passed: false,
+          message: `Custom post-rewrite hook (no kibi-managed section) does not run 'kibi sync'${hooksPathSuffix()}`,
+          remediation:
+            "Delegate from your hook to 'kibi sync' after rebases. Print a copy-paste snippet that resolves a project-local kibi with: kibi init --print-hook post-rewrite (kibi init never edits a custom hook).",
+        };
+      }
+      return postRewriteExecutable
+        ? {
+            passed: true,
+            message: `Custom hook delegates to 'kibi sync'${hooksPathSuffix()}`,
+          }
+        : {
+            passed: false,
+            message: `Installed but not executable${hooksPathSuffix()}`,
+            remediation: remediationHookPaths("post-rewrite"),
+          };
+    }
 
     const usesKibi =
       content.includes('"$KIBI_BIN" sync') || content.includes("kibi sync");

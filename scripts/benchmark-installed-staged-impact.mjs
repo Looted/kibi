@@ -3318,7 +3318,10 @@ async function runScenario({
             sourceFile: source.relativePath,
             symbol_role: "behavioral",
           },
-          [{ type: "implements", from: id, to: "REQ-BENCH-PARSER-001" }],
+          [
+            { type: "implements", from: id, to: "REQ-BENCH-PARSER-001" },
+            { type: "covered_by", from: id, to: "TEST-BENCH-PARSER-001" },
+          ],
         ),
       );
     }

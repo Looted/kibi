@@ -236,13 +236,13 @@ export const applyPlanSpec = {
         type: "object",
         required: ["version", "planHash"],
         description:
-          "The complete kibi.bootstrap-plan.v1, kibi.compile-plan.v1, kibi.migration-plan.v2, or hash-bound kibi.entity-deletion-plan.v1 object. Migration plans require approvedActionIds and reject blocked/non-automatic actions.",
+          "The complete kibi.bootstrap-plan.v1, kibi.compile-plan.v1, kibi.migration-plan.v2, or hash-bound kibi.entity-deletion-plan.v1 object. Migration plans require approvedActionIds and reject blocked actions and review actions Kibi cannot execute.",
       },
       approvedActionIds: {
         type: "array",
         items: { type: "string", minLength: 1 },
         description:
-          "Required for migration-plan.v2. Exact automatic action IDs explicitly approved for this application.",
+          "Required for migration-plan.v2. Exact action IDs explicitly approved for this application: automatic actions, or review actions with a cli invocation that Kibi executes only when approved by id (for example semantic_inventory_rederive_drop_grounding).",
       },
       recoveryJournalId: {
         type: "string",

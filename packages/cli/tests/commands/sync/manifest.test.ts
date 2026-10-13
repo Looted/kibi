@@ -558,6 +558,42 @@ describe("refreshManifestCoordinates", () => {
     restore();
   });
 
+  test("reports the enricher's reason for a private class member and never authors it", async () => {
+    const entry = makeEntry({
+      id: "SYM-PRIVATE",
+      title: "Greeter.helper",
+      sourceLine: undefined,
+      sourceColumn: undefined,
+      sourceEndLine: undefined,
+      sourceEndColumn: undefined,
+    });
+    const reason =
+      "'Greeter.helper' is a private class member; the symbol extractor tracks only public declarations, so no coordinates are published. Re-point the symbol to the public member or class that owns the behavior, or remove it";
+    mockParseYAML.mockImplementation(() => ({ symbols: [entry] }));
+    mockEnrichSymbolCoordinates.mockImplementation(async (entries) =>
+      entries.map((item) => ({ ...item, coordinateRefreshFailure: reason })),
+    );
+    mockExistsSync.mockImplementation(() => true);
+
+    const { messages, restore } = captureLog();
+    try {
+      await refreshManifestCoordinates(
+        manifestPath,
+        workspaceRoot,
+        manifestDeps(),
+      );
+    } finally {
+      restore();
+    }
+
+    expect(messages[0]).toContain("failed=1");
+    expect(messages[1]).toBe(`  failed SYM-PRIVATE: ${reason}`);
+    const dumped = mockDumpYAML.mock.calls.at(-1)?.[0] as {
+      symbols: Record<string, unknown>[];
+    };
+    expect(dumped.symbols[0]).not.toHaveProperty("coordinateRefreshFailure");
+  });
+
   test("counts coarse-granularity anchors without coordinates as unchanged", async () => {
     const entry = makeEntry({
       sourceLine: undefined,

@@ -7,7 +7,10 @@ import * as nodeModule from "node:module";
 import path from "node:path";
 import { doctorCommand } from "../../src/commands/doctor.js";
 import { engineStopCommand } from "../../src/commands/engine.js";
-import { installGitHooks } from "../../src/commands/init-helpers.js";
+import {
+  hookDelegationSnippet,
+  installGitHooks,
+} from "../../src/commands/init-helpers.js";
 import { resetKibiEnvironmentBootstrapStateForTests } from "../../src/env/bootstrap.js";
 import { ensureBranchStoreManifest } from "../../src/utils/branch-store-locator.js";
 import { type FakeSwiplSpec, installFakeSwipl } from "../helpers/fake-swipl.js";
@@ -87,12 +90,32 @@ function mockSwipl(spec: FakeSwiplSpec): void {
   restores.push(installFakeSwipl(spec));
 }
 
+/** A hook whose body sits inside the kibi-managed markers init writes. */
+function managedHook(body: string): string {
+  return `#!/bin/sh\n# BEGIN kibi-managed\n${body}# END kibi-managed\n`;
+}
+
 function currentPreCommitBody(): string {
-  return '#!/bin/sh\nKIBI_BIN="$(command -v kibi)"\n"$KIBI_BIN" check --staged\n';
+  return managedHook(
+    'KIBI_BIN="$(command -v kibi)"\n"$KIBI_BIN" check --staged\n',
+  );
 }
 
 function currentPostRewriteBody(): string {
-  return '#!/bin/sh\nKIBI_BIN="$(command -v kibi)"\n"$KIBI_BIN" sync\n';
+  return managedHook('KIBI_BIN="$(command -v kibi)"\n"$KIBI_BIN" sync\n');
+}
+
+/** Companion hooks plus an executable pre-commit with the given body. */
+function workspaceWithPreCommit(body: string): string {
+  const cwd = preparedWorkspace();
+  writeOkManifest(cwd);
+  writeHook(cwd, "post-checkout", "#!/bin/sh\nkibi sync\n");
+  writeHook(cwd, "post-merge", "#!/bin/sh\nkibi sync\n");
+  writeHook(cwd, "pre-commit", body);
+  makeExecutable(path.join(cwd, ".git", "hooks", "post-checkout"));
+  makeExecutable(path.join(cwd, ".git", "hooks", "post-merge"));
+  makeExecutable(path.join(cwd, ".git", "hooks", "pre-commit"));
+  return cwd;
 }
 
 async function runDoctorTable(
@@ -276,6 +299,48 @@ describe("doctorCommand legacy storage check", () => {
     expect(check.remediation).toContain("stale duplicate");
   });
 
+  test("tells an identical legacy copy from a stale symbols subset", async () => {
+    const cwd = preparedWorkspace();
+    writeOkManifest(cwd);
+    const req = "---\nid: REQ-1\ntitle: Auth\nstatus: open\n---\n";
+    mkdirSync(path.join(cwd, ".kb", "requirements"), { recursive: true });
+    mkdirSync(path.join(cwd, "documentation", "requirements"), {
+      recursive: true,
+    });
+    writeFileSync(path.join(cwd, ".kb", "requirements", "REQ-1.md"), req);
+    writeFileSync(
+      path.join(cwd, "documentation", "requirements", "REQ-1.md"),
+      req,
+    );
+    const identical = namedCheck(
+      (await runDoctorJson(cwd)).payload,
+      "Canonical storage",
+    );
+    expect(identical.passed).toBe(false);
+    expect(identical.message).toBe(
+      "1 legacy knowledge file(s) still outside .kb/ (1 identical to the .kb/ copy, which kibi migrate removes)",
+    );
+    expect(identical.remediation).toBe("Run: kibi migrate --yes");
+
+    writeFileSync(
+      path.join(cwd, ".kb", "symbols.yaml"),
+      "symbols:\n  - id: SYM-auth\n  - id: SYM-login\n",
+    );
+    writeFileSync(
+      path.join(cwd, "documentation", "symbols.yaml"),
+      "symbols:\n  - id: SYM-auth\n",
+    );
+    const stale = namedCheck(
+      (await runDoctorJson(cwd)).payload,
+      "Canonical storage",
+    );
+    expect(stale.passed).toBe(false);
+    expect(stale.remediation).toContain(
+      "documentation/symbols.yaml is a stale subset of .kb/symbols.yaml",
+    );
+    expect(stale.remediation).toContain("git rm documentation/symbols.yaml");
+  });
+
   test("sends a legacy layout without a manifest to migrate, not init", async () => {
     const cwd = preparedWorkspace();
     mkdirSync(path.join(cwd, ".kb"), { recursive: true });
@@ -434,11 +499,59 @@ describe("doctorCommand pre-commit hook check", () => {
     const check = namedCheck(payload, "pre-commit hook");
     expect(check.passed).toBe(false);
     expect(check.message).toBe(
-      "pre-commit hook installed but does not invoke kibi",
+      "Custom pre-commit hook (no kibi-managed section) does not run 'kibi check-generated --staged --changed-only' or 'kibi check --staged'; commits skip Kibi enforcement",
     );
-    expect(check.remediation).toBe(
-      "Run: kibi init to install recommended hooks",
+    expect(check.remediation).toContain("kibi init --print-hook pre-commit");
+  });
+
+  test("passes a custom hook that delegates to both staged gates", async () => {
+    const cwd = workspaceWithPreCommit(
+      "#!/bin/sh\nnpm run lint\nnpx --no-install kibi check-generated --staged --changed-only && npx --no-install kibi check --staged\n",
     );
+    const { payload } = await runDoctorJson(cwd);
+    const check = namedCheck(payload, "pre-commit hook");
+    expect(check.passed).toBe(true);
+    expect(check.message).toBe(
+      "Custom hook delegates to 'kibi check-generated --staged --changed-only' and 'kibi check --staged'",
+    );
+    expect(check.remediation).toBeUndefined();
+  });
+
+  test("passes a custom hook built from the printed delegation snippet", async () => {
+    const cwd = workspaceWithPreCommit(
+      `#!/bin/sh\nnpm run lint\n${hookDelegationSnippet("pre-commit")}`,
+    );
+    const { payload } = await runDoctorJson(cwd);
+    const check = namedCheck(payload, "pre-commit hook");
+    expect(check.passed).toBe(true);
+    expect(check.message).toContain("Custom hook delegates to");
+  });
+
+  test("fails a custom hook missing check-generated with snippet remediation instead of init", async () => {
+    const cwd = workspaceWithPreCommit(
+      '#!/bin/sh\n. "$(dirname "$0")/_/husky.sh"\nkibi check --staged\n',
+    );
+    const { exitCode, payload } = await runDoctorJson(cwd);
+    expect(exitCode).toBe(1);
+    const check = namedCheck(payload, "pre-commit hook");
+    expect(check.passed).toBe(false);
+    expect(check.message).toBe(
+      "Custom pre-commit hook (no kibi-managed section) does not run 'kibi check-generated --staged --changed-only'; commits skip Kibi enforcement",
+    );
+    expect(check.message).not.toContain("legacy template");
+    expect(check.remediation).toContain(
+      "Delegate from your hook to both 'kibi check-generated --staged --changed-only' and 'kibi check --staged'",
+    );
+    expect(check.remediation).toContain("kibi init --print-hook pre-commit");
+    expect(check.remediation).not.toMatch(/^Run: kibi init/);
+  });
+
+  test("ignores commented-out kibi commands in a custom hook", async () => {
+    const cwd = workspaceWithPreCommit(
+      "#!/bin/sh\n# kibi check-generated --staged --changed-only\n# kibi check --staged\nnpm test\n",
+    );
+    const { payload } = await runDoctorJson(cwd);
+    expect(namedCheck(payload, "pre-commit hook").passed).toBe(false);
   });
 
   test("passes the current template that resolves the kibi CLI and uses --staged", async () => {
@@ -463,7 +576,7 @@ describe("doctorCommand pre-commit hook check", () => {
     writeOkManifest(cwd);
     writeHook(cwd, "post-checkout", "#!/bin/sh\nkibi sync\n");
     writeHook(cwd, "post-merge", "#!/bin/sh\nkibi sync\n");
-    writeHook(cwd, "pre-commit", "#!/bin/sh\nkibi check --staged\n");
+    writeHook(cwd, "pre-commit", managedHook("kibi check --staged\n"));
     makeExecutable(path.join(cwd, ".git", "hooks", "post-checkout"));
     makeExecutable(path.join(cwd, ".git", "hooks", "post-merge"));
     makeExecutable(path.join(cwd, ".git", "hooks", "pre-commit"));
@@ -484,7 +597,7 @@ describe("doctorCommand pre-commit hook check", () => {
     writeOkManifest(cwd);
     writeHook(cwd, "post-checkout", "#!/bin/sh\nkibi sync\n");
     writeHook(cwd, "post-merge", "#!/bin/sh\nkibi sync\n");
-    writeHook(cwd, "pre-commit", "#!/bin/sh\nkibi check\n");
+    writeHook(cwd, "pre-commit", managedHook("kibi check\n"));
     makeExecutable(path.join(cwd, ".git", "hooks", "post-checkout"));
     makeExecutable(path.join(cwd, ".git", "hooks", "post-merge"));
     makeExecutable(path.join(cwd, ".git", "hooks", "pre-commit"));
@@ -552,24 +665,34 @@ describe("doctorCommand post-rewrite hook check", () => {
     const check = namedCheck(payload, "post-rewrite hook");
     expect(check.passed).toBe(false);
     expect(check.message).toBe(
-      "post-rewrite hook installed but does not invoke kibi",
+      "Custom post-rewrite hook (no kibi-managed section) does not run 'kibi sync'",
     );
-    expect(check.remediation).toBe(
-      "Run: kibi init to install recommended hooks",
+    expect(check.remediation).toContain("kibi init --print-hook post-rewrite");
+  });
+
+  test("passes a custom post-rewrite hook that delegates to kibi sync", async () => {
+    const cwd = workspaceWithPreCommit(currentPreCommitBody());
+    writeHook(
+      cwd,
+      "post-rewrite",
+      '#!/bin/sh\nif [ "$1" = "rebase" ]; then npx --no-install kibi sync; fi\n',
     );
+    makeExecutable(path.join(cwd, ".git", "hooks", "post-rewrite"));
+    const { payload } = await runDoctorJson(cwd);
+    const check = namedCheck(payload, "post-rewrite hook");
+    expect(check.passed).toBe(true);
+    expect(check.message).toBe("Custom hook delegates to 'kibi sync'");
   });
 
   test("passes the current template and the whole environment with it", async () => {
     const cwd = preparedWorkspace();
     writeOkManifest(cwd);
-    writeHook(cwd, "post-checkout", "#!/bin/sh\nkibi sync\n");
-    writeHook(cwd, "post-merge", "#!/bin/sh\nkibi sync\n");
-    writeHook(cwd, "pre-commit", currentPreCommitBody());
-    writeHook(cwd, "post-rewrite", currentPostRewriteBody());
-    makeExecutable(path.join(cwd, ".git", "hooks", "post-checkout"));
-    makeExecutable(path.join(cwd, ".git", "hooks", "post-merge"));
-    makeExecutable(path.join(cwd, ".git", "hooks", "pre-commit"));
-    makeExecutable(path.join(cwd, ".git", "hooks", "post-rewrite"));
+    const io = captureIo();
+    try {
+      installGitHooks(path.join(cwd, ".git", "hooks"));
+    } finally {
+      io.restore();
+    }
     mockSwipl("SWI-Prolog version 9.2 (threaded, 64 bits)\n");
     const { exitCode, payload } = await runDoctorJson(cwd);
     expect(exitCode).toBe(0);
@@ -586,7 +709,7 @@ describe("doctorCommand post-rewrite hook check", () => {
     writeHook(cwd, "post-checkout", "#!/bin/sh\nkibi sync\n");
     writeHook(cwd, "post-merge", "#!/bin/sh\nkibi sync\n");
     writeHook(cwd, "pre-commit", currentPreCommitBody());
-    writeHook(cwd, "post-rewrite", "#!/bin/sh\nkibi sync\n");
+    writeHook(cwd, "post-rewrite", managedHook("kibi sync\n"));
     makeExecutable(path.join(cwd, ".git", "hooks", "post-checkout"));
     makeExecutable(path.join(cwd, ".git", "hooks", "post-merge"));
     makeExecutable(path.join(cwd, ".git", "hooks", "pre-commit"));

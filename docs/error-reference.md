@@ -24,6 +24,8 @@ If starting from prose, call `kb_model` with `mode: "requirement"` and apply its
 
 Use the enum values shown in the MCP `inputSchema`. For property facts, common values are `fact_kind: "property_value"`, `operator: "eq"`, and `value_type: "bool" | "int" | "number" | "string"`.
 
+A `req-status-vocabulary` finding on a requirement written with a legacy status (`accepted`, `proposed`, `draft`, `deprecated`, `superseded`, `rejected`) gets a `req_status_vocabulary_map` review action in the `kibi migrate` plan, with the suggested status (`accepted` -> `open`) and any semantic-inventory drift the new status would expose. Approve it by id (`--approved-action req-status-vocabulary-map-<REQ>`); a re-derive planned for that drift depends on it.
+
 ## Incomplete `property_value` fact
 
 `fact_kind: "property_value"` requires:
@@ -76,7 +78,7 @@ The payload declared no `semantic_source_field`, or one that is not `semantic_te
 
 ## Semantic inventory no longer matches the advisor
 
-If `kibi sync` reports `N requirement(s) failed proposition-complete ingestion` after an upgrade, the stored `semantic_inventory` of each listed requirement was written by an older semantic advisor. Run `kibi migrate`: its `semantic_inventory_rederive` actions rewrite the inventories that can be re-derived without losing grounding, and its `semantic_inventory_review` actions carry the re-derived contract for the rest. Fix those in the requirement file itself (sync rejects them, so `kb_upsert` and `kb_delete` cannot reach them), then run `kibi sync`.
+If `kibi sync` reports `N requirement(s) failed proposition-complete ingestion` after an upgrade, the stored `semantic_inventory` of each listed requirement was written by an older semantic advisor. Run `kibi migrate`: its `semantic_inventory_rederive` actions rewrite the inventories that can be re-derived without losing grounding, and its `semantic_inventory_review` actions carry the re-derived contract for the rest. Fix those in the requirement file itself (sync rejects them, so `kb_upsert` and `kb_delete` cannot reach them), then run `kibi sync`. When a review exists only because some grounding links point at claims that are no longer modeled, the plan also lists a `semantic-inventory-rederive-drop-grounding-<REQ>` action; approve it by id (`kibi migrate --apply-safe --approved-plan-hash <hash> --approved-action <id>`) to write the re-derived contract and remove exactly those links, then run `kibi sync`.
 
 ## Unsafe or unverifiable rule fact
 
@@ -134,6 +136,14 @@ Only reported under an activated check policy with marker rules. A file implemen
 ## Dangling source (`source-path-dangling`)
 
 An authored `source` frontmatter field must name an existing workspace path (a `#anchor` suffix is fine), an existing entity id, or an http(s) URL. The field is dead data: the compiled `source` is always the entity's own file, and Kibi never writes the field, so `kb_upsert` cannot fix it and an agent must not hand-edit `.kb/`. Run `kibi migrate` instead; its automatic `source_path_rewrite` action repairs the finding. When the value names another knowledge file by its pre-canonical path (`documentation/<lane>/...`, or `<lane>/...` relative to the knowledge root) and that file exists under `.kb/<lane>/`, the finding carries `evidence.rewrite` and the action points the field there. Otherwise the finding carries `evidence.remove` and the action removes the line: `self` when the value names the entity's own file (in any spelling, compared case-insensitively), `dangling` when it names nothing Kibi can map. Only when the edit is not safe, for example a value spanning several lines, does the finding carry `evidence.refused`; `kibi migrate` then plans a `review_source_path_dangling` action, and a person edits the field by hand.
+
+## Symbol lacks qualifying coverage (`symbol-coverage`)
+
+A production symbol needs `covered_by` a test that covers one of the requirements it implements. When the requirement has a scenario (`specified_by`), the test must verify the scenario (`validates(Test, Scenario)` or `verified_by(Scenario, Test)`); a test that verifies the requirement directly counts only while the requirement has no scenario. `kibi check` reports every uncovered symbol; `kibi check --staged` reports the same rule for the symbols the commit changes (changed source symbols and symbols whose staged `.kb/symbols.yaml` entry changed), so a commit cannot pass the gate with coverage the full check rejects. Link the test to the scenario, or point `covered_by` at a test that already does.
+
+## Coarse symbol link (`symbol-granularity`, `symbol_granularity_violation`)
+
+A symbol with traceability links covers its source file more coarsely than the declarations available there, for example a class symbol `Greeter` while `Greeter.greet` exists. Move the `implements`/`covered_by`/`executable_for` links to the narrow behavioral symbol, or add an allowed `granularity_reason` when the coarse link is intentional. Full `kibi check` reports this for every symbol against its whole working-tree file; `kibi check --staged` reports it as `symbol_granularity_violation` when a staged hunk touches a narrower declaration. When the message says the extractor does not produce the symbol's title, the title names a private class member (`private` or `#private`) or a declaration that was removed, renamed or is not exported: coordinate refresh can never bind it, so re-point the symbol to the public declaration that owns the behavior by changing its `title` with `kb_upsert` (or move its links to an existing symbol for that owner), or delete it. Give it a coarse `granularity_reason` (`module-level-behavior`, `config-artifact`, `extractor-miss`, `test-suite`) only when it intentionally covers the whole file.
 
 ## Audit journal or snapshot lock
 
@@ -211,6 +221,21 @@ Telemetry diagnostics are also advisory in `kb_check`, but `kibi usage-metrics -
 `BOOTSTRAP_PLAN_INVALID` refuses an approved plan before any bootstrap write or journal is created. Re-plan; do not recover the invalid plan. Candidates suppressed as `invalid_write` include the validation message and become cited requirement-authoring follow-ups.
 
 `BOOTSTRAP_PLAN_REJECTED` marks a deterministic failure after application began. Inspect `actionResults` for the actions that committed, then request a corrected plan from the current state. The terminal journal cannot be replayed; `kibi status` lists incomplete bootstrap applications. IO interruptions and derived-effect repairs continue to use `recoveryJournalId`.
+
+## Legacy storage migration blocked
+
+`kibi migrate` prints `Blocked: ...`, `kibi doctor` fails `Canonical storage`, and the plan's `schema-config-upgrade` action (`legacy_storage_migration`) is `blocked` for an `operator` when a legacy knowledge file outside `.kb/` cannot be moved. All three report the same resolution:
+
+- `... is a stale subset of .kb/symbols.yaml`: every symbol of the legacy manifest is already in `.kb/symbols.yaml`. Remove the legacy copy with `git rm`.
+- `... is a generated coordinates file`: keep `.kb/symbol-coordinates.yaml` and remove the legacy copy; `kibi sync --refresh-symbol-coordinates` regenerates coordinates.
+- `... names no symbols manifest`: the legacy config places its lanes under another folder and Kibi cannot tell which symbols manifest is current. Set `paths.symbols` in `.kb/config.json`, or remove the stale copy.
+- `Destination ... already exists with different content`: compare both copies and keep the current one.
+
+Then run `kibi migrate --yes`. A legacy copy identical to its `.kb/` file is not a blocker: `kibi migrate --yes` removes it.
+
+## Untracked knowledge sources (`untracked_knowledge_sources`)
+
+When `kibi check` reports `source-relationship-parity` violations whose evidence names `untrackedSources`, the migration plan collapses them into one `untracked-knowledge-sources` review action listing the files. The relationships are missing because Git does not track those files and they have no pending-source receipt. Stage them (`git add`), then run `kibi sync`. Files moved by `kibi migrate` get a receipt, so sync compiles them before they are staged.
 
 ## Migration plan refusal
 

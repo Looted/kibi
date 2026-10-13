@@ -54,6 +54,38 @@ swipl -g "load_test_files([]),run_tests" -t halt packages/core/tests/kb.plt
 swipl -g "load_test_files([]),run_tests" -t halt packages/core/tests/schema.plt
 ```
 
+## Dogfooding Kibi in another repository
+
+To try unreleased changes in a separate consumer repository, pack the workspace into local tarballs and install those instead of the npm releases. You need Bun for the build and pack steps.
+
+1. Build every package from the Kibi checkout:
+   ```bash
+   bun run build
+   ```
+2. Pack the publishable packages into one directory (each package's `prepack` rebuilds it, so the tarballs carry fresh `dist/` output):
+   ```bash
+   bun run pack:all -- --destination /tmp/kibi-tarballs
+   ```
+3. In the consumer repository, depend on the tarballs and override the transitive Kibi packages so they resolve to the same local builds instead of npm. With npm:
+   ```json
+   {
+     "devDependencies": {
+       "kibi-cli": "file:/tmp/kibi-tarballs/kibi-cli-<version>.tgz",
+       "kibi-mcp": "file:/tmp/kibi-tarballs/kibi-mcp-<version>.tgz"
+     },
+     "overrides": {
+       "kibi-core": "file:/tmp/kibi-tarballs/kibi-core-<version>.tgz",
+       "kibi-runtime": "file:/tmp/kibi-tarballs/kibi-runtime-<version>.tgz",
+       "kibi-plugin-sdk": "file:/tmp/kibi-tarballs/kibi-plugin-sdk-<version>.tgz",
+       "kibi-plugin-builtin": "file:/tmp/kibi-tarballs/kibi-plugin-builtin-<version>.tgz",
+       "kibi-swipl": "file:/tmp/kibi-tarballs/kibi-swipl-<version>.tgz"
+     }
+   }
+   ```
+   Then run `npm install` and check `npx --no-install kibi --version`. Add agent-host packages (`kibi-opencode`, `kibi-codex`, ...) the same way when you need them.
+
+The SWI-Prolog platform packages (`kibi-swipl-linux-x64-gnu`, `kibi-swipl-darwin-arm64`, ...) are not packed: their binaries are only populated at release time. The local `kibi-swipl` tarball pins them to exact versions, which the consumer installs from npm, so the pinned platform version must already be published.
+
 ## Benchmarks
 
 Run performance benchmarks:

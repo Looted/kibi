@@ -16,6 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
   existsSync,
@@ -29,8 +30,11 @@ import {
 } from "node:fs";
 import * as path from "node:path";
 import fg from "fast-glob";
+import { load as parseYaml } from "js-yaml";
+import { writePendingSourceReceipt } from "../operations/mutation/source-authoring.js";
 import {
   type LegacyKbConfig,
+  type LegacyKbConfigPaths,
   readLegacyKbConfig,
   resolveLegacyEntityPaths,
 } from "../utils/config.js";
@@ -45,6 +49,7 @@ import {
   ENTITY_LANES,
   type EntityLane,
   KB_PATHS,
+  LEGACY_DEFAULT_ENTITY_PATHS,
 } from "../utils/kb-paths.js";
 import { LATEST_KB_SCHEMA_VERSION } from "../utils/schema-version.js";
 import { updateGitIgnore } from "./init-helpers.js";
@@ -58,7 +63,10 @@ import { updateGitIgnore } from "./init-helpers.js";
  * - legacy `.kb/config.json` is read (never trusted blindly);
  * - configured or default legacy paths are discovered on disk;
  * - files move into `.kb/<lane>/` without content changes;
- * - destination conflicts abort before any file moves;
+ * - a legacy copy identical to its destination is removed instead of moved;
+ * - other destination conflicts abort before any file moves, each with the
+ *   resolution Kibi can tell (a stale subset of the symbols manifest, a
+ *   generated coordinates file, or a real conflict);
  * - partial migrations resume safely (already-moved files are no-ops);
  * - on success the legacy config is retired.
  */
@@ -72,8 +80,35 @@ export interface StorageMigrationPlan {
   /** Lifecycle state preserved into the canonical manifest. */
   schemaVersion: number | null;
   semanticAdvisorBackfill: SemanticAdvisorBackfill | null;
+  /**
+   * Legacy copies byte-identical to their `.kb/` destination: the migration
+   * removes them instead of moving them.
+   */
+  removals: StorageMigrationRemoval[];
+  /** Existing destinations that block a move, with how to resolve each. */
+  conflicts: StorageMigrationConflict[];
   /** Why the migration cannot proceed automatically, if blocked. */
   blockers: string[];
+}
+
+export interface StorageMigrationRemoval {
+  /** The legacy copy to remove. */
+  path: string;
+  /** The `.kb/` file it duplicates. */
+  duplicateOf: string;
+}
+
+export interface StorageMigrationConflict {
+  from: string;
+  to: string;
+  /**
+   * `stale_subset`: every symbol of the legacy manifest is already in the
+   * `.kb/` one. `generated`: a symbol-coordinates file, which sync
+   * regenerates. `ambiguous`: Kibi cannot tell which legacy file is meant.
+   * `conflict`: different content Kibi cannot classify.
+   */
+  kind: "stale_subset" | "generated" | "ambiguous" | "conflict";
+  resolution: string;
 }
 
 export interface StorageMigrationMove {
@@ -117,6 +152,8 @@ export function planLegacyStorageMigration(cwd: string): StorageMigrationPlan {
       legacyConfigError: legacyConfigResult.error,
       schemaVersion: null,
       semanticAdvisorBackfill: null,
+      removals: [],
+      conflicts: [],
       blockers: [
         `Legacy .kb/config.json is malformed (${legacyConfigResult.error}). Repair the JSON or provide an explicit recovery/migration override; Kibi will not infer default legacy paths.`,
       ],
@@ -163,7 +200,15 @@ export function planLegacyStorageMigration(cwd: string): StorageMigrationPlan {
   }
 
   // Symbols manifest + coordinates.
-  const legacySymbols = legacyPaths.symbols;
+  const conflicts: StorageMigrationConflict[] = [];
+  const symbolsSource = resolveLegacySymbolsSource(
+    cwd,
+    config,
+    legacyPaths.symbols,
+  );
+  if (symbolsSource.conflict !== undefined)
+    conflicts.push(symbolsSource.conflict);
+  const legacySymbols = symbolsSource.path;
   if (typeof legacySymbols === "string" && legacySymbols.trim().length > 0) {
     const legacyManifest = path.resolve(cwd, legacySymbols);
     if (
@@ -194,18 +239,32 @@ export function planLegacyStorageMigration(cwd: string): StorageMigrationPlan {
     }
   }
 
-  // Destination-conflict detection: a move whose destination already exists
-  // with different content requires an operator decision.
+  // Destination classification: an identical legacy copy is removed, an
+  // empty seeded symbols manifest is replaced, and anything else is an
+  // operator decision with the resolution Kibi can tell.
+  const removals: StorageMigrationRemoval[] = [];
+  const pending: StorageMigrationMove[] = [];
   for (const move of moves) {
     const destinationAbsolute = path.resolve(cwd, move.to);
-    if (!existsSync(destinationAbsolute)) continue;
-    // 'kibi init' seeds an empty symbols manifest; the legacy one replaces it.
-    if (move.lane === "symbols" && isEmptySymbolsStub(destinationAbsolute))
+    if (!existsSync(destinationAbsolute)) {
+      pending.push(move);
       continue;
-    blockers.push(
-      `Destination ${move.to} already exists; resolve the conflict manually before migrating ${move.from}.`,
-    );
+    }
+    // 'kibi init' seeds an empty symbols manifest; the legacy one replaces it.
+    if (move.lane === "symbols" && isEmptySymbolsStub(destinationAbsolute)) {
+      pending.push(move);
+      continue;
+    }
+    const conflict = classifyExistingDestination(cwd, move);
+    if (conflict === null) {
+      removals.push({ path: move.from, duplicateOf: move.to });
+      continue;
+    }
+    pending.push(move);
+    conflicts.push(conflict);
   }
+  moves.splice(0, moves.length, ...pending);
+  for (const conflict of conflicts) blockers.push(conflict.resolution);
 
   // Duplicate destinations (two legacy sources collapsing onto one target).
   const destinations = new Map<string, string>();
@@ -226,12 +285,151 @@ export function planLegacyStorageMigration(cwd: string): StorageMigrationPlan {
     schemaVersion:
       typeof config?.schemaVersion === "number" ? config.schemaVersion : null,
     semanticAdvisorBackfill: config?.semanticAdvisorBackfill ?? null,
+    removals,
+    conflicts,
     blockers,
+  };
+}
+
+function hashFile(filePath: string): string | null {
+  try {
+    return createHash("sha256").update(readFileSync(filePath)).digest("hex");
+  } catch {
+    return null;
+  }
+}
+
+/** Symbol ids a manifest declares, or null when it does not parse. */
+function manifestSymbolIds(filePath: string): Set<string> | null {
+  try {
+    const parsed = parseYaml(readFileSync(filePath, "utf8")) as {
+      symbols?: unknown;
+    } | null;
+    if (!Array.isArray(parsed?.symbols)) return null;
+    return new Set(
+      parsed.symbols.flatMap((symbol) =>
+        symbol !== null &&
+        typeof symbol === "object" &&
+        typeof (symbol as { id?: unknown }).id === "string"
+          ? [(symbol as { id: string }).id]
+          : [],
+      ),
+    );
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * How a move whose destination already exists is resolved: null when the
+ * legacy copy is identical (it is removed), otherwise the conflict and the
+ * resolution Kibi can tell.
+ */
+// implements REQ-cli-schema-migration
+function classifyExistingDestination(
+  cwd: string,
+  move: StorageMigrationMove,
+): StorageMigrationConflict | null {
+  const from = path.resolve(cwd, move.from);
+  const to = path.resolve(cwd, move.to);
+  const legacyHash = hashFile(from);
+  if (legacyHash !== null && legacyHash === hashFile(to)) return null;
+  if (move.to === CANONICAL_ENTITY_PATHS.symbols) {
+    const legacyIds = manifestSymbolIds(from);
+    const currentIds = manifestSymbolIds(to);
+    if (
+      legacyIds !== null &&
+      currentIds !== null &&
+      [...legacyIds].every((id) => currentIds.has(id))
+    ) {
+      return {
+        from: move.from,
+        to: move.to,
+        kind: "stale_subset",
+        resolution: `The legacy copy ${move.from} is a stale subset of ${move.to}: every symbol it declares (${legacyIds.size}) is already there. Remove it (git rm ${move.from}); Kibi removes only a copy identical to its destination.`,
+      };
+    }
+  }
+  if (move.to === KB_PATHS.symbolCoordinates) {
+    return {
+      from: move.from,
+      to: move.to,
+      kind: "generated",
+      resolution: `${move.from} is a generated coordinates file and ${move.to} already exists. Keep ${move.to} and remove the legacy copy (git rm ${move.from}); kibi sync --refresh-symbol-coordinates regenerates coordinates.`,
+    };
+  }
+  return {
+    from: move.from,
+    to: move.to,
+    kind: "conflict",
+    resolution: `Destination ${move.to} already exists with different content than ${move.from}. Compare them and keep the current one: replace ${move.to} when the legacy copy is newer, or remove (git rm) ${move.from} when it is a stale duplicate.`,
+  };
+}
+
+/** The parent folders of the lane roots a legacy config names explicitly. */
+function configuredLaneParents(config: LegacyKbConfig | undefined): string[] {
+  const parents = new Set<string>();
+  for (const key of Object.keys(LANE_BY_CONFIG_KEY)) {
+    const value = config?.paths?.[key as keyof LegacyKbConfigPaths];
+    if (typeof value !== "string" || value.trim().length === 0) continue;
+    const { root } = normalizeLegacySource(value.trim());
+    const parent = path.posix.dirname(root.replace(/^\.\//, ""));
+    if (parent !== "." && parent !== "") parents.add(parent);
+  }
+  return [...parents].sort();
+}
+
+/**
+ * The legacy symbols manifest to move. A configured path wins. Without one,
+ * the historical `documentation/symbols.yaml` default applies only when the
+ * config does not place its lanes under another folder: there the manifest
+ * sits beside the lanes, and a `documentation/` copy may be a stale leftover.
+ * When Kibi cannot tell which file is meant, it moves none and reports the
+ * ambiguity instead.
+ */
+// implements REQ-cli-schema-migration
+function resolveLegacySymbolsSource(
+  cwd: string,
+  config: LegacyKbConfig | undefined,
+  resolved: string,
+): { path: string | null; conflict?: StorageMigrationConflict } {
+  const configured = config?.paths?.symbols ?? config?.symbolsManifest;
+  if (typeof configured === "string" && configured.trim().length > 0)
+    return { path: resolved };
+  const parents = configuredLaneParents(config).filter(
+    (parent) =>
+      parent !== path.posix.dirname(LEGACY_DEFAULT_ENTITY_PATHS.symbols),
+  );
+  if (parents.length === 0) return { path: resolved };
+  const candidates = parents
+    .map((parent) => `${parent}/symbols.yaml`)
+    .filter((candidate) => existsSync(path.resolve(cwd, candidate)));
+  const fallback = LEGACY_DEFAULT_ENTITY_PATHS.symbols;
+  const fallbackExists = existsSync(path.resolve(cwd, fallback));
+  if (candidates.length === 1 && !fallbackExists)
+    return { path: candidates[0] ?? null };
+  if (candidates.length === 0 && !fallbackExists) return { path: null };
+  const all = [...candidates, ...(fallbackExists ? [fallback] : [])];
+  return {
+    path: null,
+    conflict: {
+      from: all.join(", "),
+      to: CANONICAL_ENTITY_PATHS.symbols,
+      kind: "ambiguous",
+      resolution: `The legacy .kb/config.json places its lanes under ${parents.join(", ")} but names no symbols manifest, and ${all.length === 1 ? `${all[0]} exists outside that folder` : `${all.join(" and ")} all exist`}; Kibi will not guess which one is current. Set paths.symbols in .kb/config.json to the current manifest, or remove (git rm) the stale one, then run kibi migrate --yes.`,
+    },
   };
 }
 
 export interface StorageMigrationResult {
   movedFiles: string[];
+  /** Legacy copies removed because they were identical to their destination. */
+  removedFiles: string[];
+  /**
+   * Moved files Git does not track yet. Each got a pending-source receipt, so
+   * `kibi sync` compiles them before they are staged; empty outside Git.
+   */
+  untrackedMovedFiles: string[];
   retiredLegacyConfig: boolean;
   manifestPath: string;
   schemaVersion: number;
@@ -251,6 +449,20 @@ export function applyLegacyStorageMigration(
     throw new Error(
       `Legacy storage migration is blocked: ${plan.blockers.join(" ")}`,
     );
+  }
+
+  // A legacy copy identical to its destination carries nothing the
+  // destination lacks; it is removed rather than left to block a later run.
+  const removedFiles: string[] = [];
+  for (const removal of plan.removals) {
+    const absolute = path.resolve(cwd, removal.path);
+    if (!existsSync(absolute)) continue;
+    if (hashFile(absolute) !== hashFile(path.resolve(cwd, removal.duplicateOf)))
+      throw new Error(
+        `Legacy storage migration is blocked: ${removal.path} changed since planning and no longer matches ${removal.duplicateOf}.`,
+      );
+    rmSync(absolute);
+    removedFiles.push(removal.path);
   }
 
   const movedFiles: string[] = [];
@@ -293,10 +505,13 @@ export function applyLegacyStorageMigration(
 
   pruneEmptyLegacyDirs(cwd, plan);
   rewritePendingSourceReceiptPaths(cwd, plan.moves);
+  const untrackedMovedFiles = writeMovedSourceReceipts(cwd, plan.moves);
   updateGitIgnore(cwd);
 
   return {
     movedFiles,
+    removedFiles,
+    untrackedMovedFiles,
     retiredLegacyConfig,
     manifestPath: path.relative(cwd, manifestPath).replaceAll(path.sep, "/"),
     schemaVersion: manifest.schemaVersion,
@@ -306,8 +521,11 @@ export function applyLegacyStorageMigration(
 
 function pruneEmptyLegacyDirs(cwd: string, plan: StorageMigrationPlan): void {
   const roots = new Set<string>();
-  for (const move of plan.moves) {
-    const absolute = path.resolve(cwd, move.from);
+  for (const from of [
+    ...plan.moves.map((move) => move.from),
+    ...plan.removals.map((removal) => removal.path),
+  ]) {
+    const absolute = path.resolve(cwd, from);
     let dir = path.dirname(absolute);
     while (
       dir.startsWith(path.resolve(cwd)) &&
@@ -379,6 +597,61 @@ export function rewritePendingSourceReceiptPaths(
   return rewritten;
 }
 
+/** Workspace-relative paths Git tracks, or null outside a repository. */
+function gitTrackedFiles(cwd: string): Set<string> | null {
+  try {
+    return new Set(
+      execFileSync("git", ["-C", cwd, "ls-files", "--cached", "-z"], {
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"],
+        maxBuffer: 64 * 1024 * 1024,
+        timeout: 30_000,
+      })
+        .split("\0")
+        .filter((file) => file.length > 0)
+        .map((file) => file.replaceAll("\\", "/")),
+    );
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Bind every moved file Git does not track to its bytes with a
+ * pending-source receipt, the record kb_upsert writes for the files it
+ * creates. `kibi sync` compiles tracked sources plus receipted ones, so the
+ * moved knowledge compiles at once; Kibi never stages anything itself, and
+ * each receipt retires when Git starts tracking its file. Later migration
+ * rewrites rebind the receipt they find. Covers files a previous,
+ * interrupted run moved too. Returns the untracked destinations.
+ */
+// implements REQ-cli-schema-migration, REQ-core-atomic-upsert-persistence
+export function writeMovedSourceReceipts(
+  cwd: string,
+  moves: readonly StorageMigrationMove[],
+): string[] {
+  const tracked = gitTrackedFiles(cwd);
+  if (tracked === null) return [];
+  const untracked: string[] = [];
+  for (const move of moves) {
+    if (tracked.has(move.to)) continue;
+    const absolute = path.resolve(cwd, move.to);
+    let bytes: Buffer;
+    try {
+      bytes = readFileSync(absolute);
+    } catch {
+      continue;
+    }
+    writePendingSourceReceipt(
+      cwd,
+      move.to,
+      createHash("sha256").update(bytes).digest("hex"),
+    );
+    untracked.push(move.to);
+  }
+  return untracked;
+}
+
 // implements REQ-cli-schema-migration
 function isEmptySymbolsStub(filePath: string): boolean {
   try {
@@ -412,6 +685,8 @@ export function needsLegacyStorageMigration(cwd: string): boolean {
   const plan = planLegacyStorageMigration(cwd);
   return (
     plan.moves.length > 0 ||
+    plan.removals.length > 0 ||
+    plan.blockers.length > 0 ||
     plan.legacyConfig === "present" ||
     plan.legacyConfig === "malformed"
   );

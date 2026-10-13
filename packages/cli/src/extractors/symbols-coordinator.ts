@@ -347,6 +347,7 @@ function withoutGeneratedCoordinates(
     "sourceEndLine",
     "sourceEndColumn",
     "coordinatesGeneratedAt",
+    "coordinateRefreshFailure",
   ]);
   return Object.fromEntries(
     Object.entries(entry).filter(([field]) => !generatedFields.has(field)),

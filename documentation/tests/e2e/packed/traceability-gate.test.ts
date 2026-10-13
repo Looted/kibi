@@ -26,6 +26,8 @@ type CommandResult = Readonly<{
 }>;
 
 type OwnershipViolation = Readonly<{
+  rule?: string;
+  entityId?: string;
   symbolId: string;
   name: string;
   file: string;
@@ -91,8 +93,23 @@ type SymbolFixture = Readonly<{
   id: string;
   title: string;
   sourceFile: string;
-  relation?: Readonly<{ type: string; target: string }>;
+  relations?: ReadonlyArray<Readonly<{ type: string; target: string }>>;
 }>;
+
+const BASELINE_TEST_ID = "TEST-HELLO-001";
+
+// The baseline symbol carries both authored requirement ownership and
+// production coverage, so it satisfies the minLinks ownership gate and the
+// full-check symbol-coverage rule that `kibi check --staged` also runs.
+const OWNED_HELLO_SYMBOL: SymbolFixture = {
+  id: "SYM-HELLO-001",
+  title: "hello",
+  sourceFile: "src/sample.js",
+  relations: [
+    { type: "implements", target: "REQ-001" },
+    { type: "covered_by", target: BASELINE_TEST_ID },
+  ],
+};
 
 function commandText(result: CommandResult): string {
   return result.stdout + result.stderr;
@@ -281,8 +298,20 @@ function assertIndexMatchesCheck(
 function assertOwnershipViolation(
   check: StagedCheck,
   expected: Readonly<{ symbolId: string; name: string; file: string }>,
+  expectedCoverageGaps: readonly string[] = [],
 ): void {
-  const violations = check.structuredContent.violations;
+  const all = check.structuredContent.violations;
+  const coverageGaps = all.filter(
+    (violation) => violation.rule === "symbol-coverage",
+  );
+  assert.deepEqual(
+    coverageGaps.map((violation) => violation.entityId).sort(),
+    [...expectedCoverageGaps].sort(),
+    "staged symbol-coverage violations differ from the intended coverage gaps",
+  );
+  const violations = all.filter(
+    (violation) => violation.rule !== "symbol-coverage",
+  );
   assert.equal(
     violations.length,
     1,
@@ -313,12 +342,14 @@ function symbolsManifest(entries: readonly SymbolFixture[]): string {
       `    title: ${entry.title}`,
       `    sourceFile: ${entry.sourceFile}`,
     );
-    if (entry.relation) {
-      lines.push(
-        "    links:",
-        `      - type: ${entry.relation.type}`,
-        `        target: ${entry.relation.target}`,
-      );
+    if (entry.relations && entry.relations.length > 0) {
+      lines.push("    links:");
+      for (const relation of entry.relations) {
+        lines.push(
+          `      - type: ${relation.type}`,
+          `        target: ${relation.target}`,
+        );
+      }
     }
     lines.push("    status: active");
   }
@@ -548,20 +579,18 @@ if (RUN_NODE_TEST_SUITE) {
         );
         writeSandboxFile(
           sandbox,
+          `.kb/tests/${BASELINE_TEST_ID}.md`,
+          testMarkdown(BASELINE_TEST_ID, "Baseline hello test"),
+        );
+        writeSandboxFile(
+          sandbox,
           "src/sample.js",
           "export function hello() { return 'ok'; }\n",
         );
         writeSandboxFile(
           sandbox,
           ".kb/symbols.yaml",
-          symbolsManifest([
-            {
-              id: "SYM-HELLO-001",
-              title: "hello",
-              sourceFile: "src/sample.js",
-              relation: { type: "implements", target: "REQ-001" },
-            },
-          ]),
+          symbolsManifest([OWNED_HELLO_SYMBOL]),
         );
         const authoredAdd = await run(
           "git",
@@ -569,6 +598,7 @@ if (RUN_NODE_TEST_SUITE) {
             "add",
             "--",
             ".kb/requirements/REQ-001.md",
+            `.kb/tests/${BASELINE_TEST_ID}.md`,
             ".kb/symbols.yaml",
             "src/sample.js",
           ],
@@ -589,6 +619,7 @@ if (RUN_NODE_TEST_SUITE) {
         baselinePaths = await stageWorkingChanges(sandbox);
         for (const required of [
           ".kb/requirements/REQ-001.md",
+          `.kb/tests/${BASELINE_TEST_ID}.md`,
           ".kb/symbols.yaml",
           ".kb/symbol-coordinates.yaml",
           "src/sample.js",
@@ -679,12 +710,7 @@ if (RUN_NODE_TEST_SUITE) {
         sandbox,
         ".kb/symbols.yaml",
         symbolsManifest([
-          {
-            id: "SYM-HELLO-001",
-            title: "hello",
-            sourceFile: "src/sample.js",
-            relation: { type: "implements", target: "REQ-001" },
-          },
+          OWNED_HELLO_SYMBOL,
           {
             id: "SYM-MISSING-LINK-001",
             title: "missingLink",
@@ -723,11 +749,15 @@ if (RUN_NODE_TEST_SUITE) {
         "staged check for unowned declaration",
       );
       const negativeFiles = assertIndexMatchesCheck(negativePaths, negative);
-      assertOwnershipViolation(negative, {
-        symbolId: "SYM-MISSING-LINK-001",
-        name: "missingLink",
-        file: "src/sample.js",
-      });
+      assertOwnershipViolation(
+        negative,
+        {
+          symbolId: "SYM-MISSING-LINK-001",
+          name: "missingLink",
+          file: "src/sample.js",
+        },
+        ["SYM-MISSING-LINK-001"],
+      );
       const unownedSource = negativeFiles.find(
         (file) => file.path === "src/sample.js",
       );
@@ -741,17 +771,15 @@ if (RUN_NODE_TEST_SUITE) {
         sandbox,
         ".kb/symbols.yaml",
         symbolsManifest([
-          {
-            id: "SYM-HELLO-001",
-            title: "hello",
-            sourceFile: "src/sample.js",
-            relation: { type: "implements", target: "REQ-001" },
-          },
+          OWNED_HELLO_SYMBOL,
           {
             id: "SYM-MISSING-LINK-001",
             title: "missingLink",
             sourceFile: "src/sample.js",
-            relation: { type: "implements", target: "REQ-001" },
+            relations: [
+              { type: "implements", target: "REQ-001" },
+              { type: "covered_by", target: BASELINE_TEST_ID },
+            ],
           },
         ]),
       );
@@ -895,17 +923,12 @@ if (RUN_NODE_TEST_SUITE) {
         sandbox,
         ".kb/symbols.yaml",
         symbolsManifest([
-          {
-            id: "SYM-HELLO-001",
-            title: "hello",
-            sourceFile: "src/sample.js",
-            relation: { type: "implements", target: "REQ-001" },
-          },
+          OWNED_HELLO_SYMBOL,
           {
             id: "SYM-EXE-001",
             title: "testHelper",
             sourceFile: "tests/helper.js",
-            relation: { type: "executable_for", target: "TEST-EXE-001" },
+            relations: [{ type: "executable_for", target: "TEST-EXE-001" }],
           },
         ]),
       );
@@ -983,17 +1006,12 @@ if (RUN_NODE_TEST_SUITE) {
         sandbox,
         ".kb/symbols.yaml",
         symbolsManifest([
-          {
-            id: "SYM-HELLO-001",
-            title: "hello",
-            sourceFile: "src/sample.js",
-            relation: { type: "implements", target: "REQ-001" },
-          },
+          OWNED_HELLO_SYMBOL,
           {
             id: "SYM-COV-001",
             title: "covFunc",
             sourceFile: "src/cov.js",
-            relation: { type: "covered_by", target: "TEST-COV-001" },
+            relations: [{ type: "covered_by", target: "TEST-COV-001" }],
           },
         ]),
       );

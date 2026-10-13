@@ -107,7 +107,9 @@ import {
   projectStagedEntities,
 } from "../traceability/temp-kb.js";
 import {
+  formatCoverageViolations,
   formatViolations as formatStagedViolations,
+  validateStagedSymbolCoverage,
   validateStagedSymbols,
 } from "../traceability/validate.js";
 import { resolveReadBranchAttachment } from "../utils/branch-resolver.js";
@@ -1048,137 +1050,96 @@ export async function checkCommand(
           ...createStagedEntityIdStyleDiagnostics(markdownFiles),
         );
 
-        if (allSymbols.length === 0 && stagedEntityResults.length === 0) {
-          if (stagedKibiDiagnostics.length > 0) {
-            const blocking = hasBlockingImpactDiagnostics(
-              stagedKibiDiagnostics,
-            );
-            printStagedResult({
-              format: options.format,
-              coverage: stagedCoverage,
-              qualityDiagnostics: stagedKibiDiagnostics,
-              messages: [
-                formatStagedKibiDiagnostics(stagedKibiDiagnostics),
-                // Advisory-only findings still pass; say so explicitly.
-                ...(!blocking
-                  ? ["✓ No violations found in staged files."]
-                  : []),
-              ],
-            });
-            if (options.dryRun) {
-              return { exitCode: 0 };
-            }
-            return { exitCode: blocking ? 1 : 0 };
-          }
+        // Run the Prolog rules over the staged knowledge: the minLinks
+        // ownership gate for changed source symbols, and full-check
+        // symbol-coverage for every changed symbol (changed source symbols
+        // plus symbols whose staged manifest entry changed).
+        let violationsRaw: Awaited<ReturnType<typeof validateStagedSymbols>> =
+          [];
+        let coverageViolations: Awaited<
+          ReturnType<typeof validateStagedSymbolCoverage>
+        > = [];
+        if (allSymbols.length > 0 || activeStagedSymbolEntityIds.size > 0) {
+          tempCtx = await createTempKb();
+          await projectStagedEntities(tempCtx.prolog, snapshotEntities);
 
-          printSnapshotResult({
-            format: options.format,
-            coverage: stagedCoverage,
-            messages: [noValidatedSymbolsMessage(sourceAnalysis)],
+          const overlayFacts = createOverlayFacts(allSymbols);
+          const fs = await import("node:fs/promises");
+          await fs.writeFile(tempCtx.overlayPath, overlayFacts, "utf8");
+          await fs.cp(
+            tempCtx.overlayPath,
+            path.join(tempCtx.kbPath, "changed_symbols.pl"),
+          );
+          await consultOverlay(tempCtx);
+
+          violationsRaw = await validateStagedSymbols({
+            minLinks,
+            prolog: tempCtx.prolog,
           });
-          return { exitCode: 0 };
+          coverageViolations = await validateStagedSymbolCoverage({
+            prolog: tempCtx.prolog,
+            extraSymbolIds: [...activeStagedSymbolEntityIds],
+          });
+          await cleanupTempKb(tempCtx.tempDir);
         }
 
-        if (allSymbols.length === 0) {
-          if (stagedKibiDiagnostics.length > 0) {
-            const blocking = hasBlockingImpactDiagnostics(
-              stagedKibiDiagnostics,
-            );
-            printStagedResult({
-              format: options.format,
-              coverage: stagedCoverage,
-              qualityDiagnostics: stagedKibiDiagnostics,
-              messages: [
-                formatStagedKibiDiagnostics(stagedKibiDiagnostics),
-                // Advisory-only findings still pass; say so explicitly.
-                ...(!blocking
-                  ? ["✓ No violations found in staged files."]
-                  : []),
-              ],
-            });
-            if (options.dryRun) {
-              return { exitCode: 0 };
-            }
-            return { exitCode: blocking ? 1 : 0 };
-          }
-          printSnapshotResult({
+        // Without changed source symbols the result was historically printed
+        // without re-asserting the snapshot; keep that behavior.
+        const print =
+          allSymbols.length === 0 ? printStagedResult : printSnapshotResult;
+        const passMessage =
+          allSymbols.length === 0
+            ? "✓ No violations found in staged files."
+            : "✓ No violations found in staged symbols.";
+
+        if (violationsRaw.length > 0 || coverageViolations.length > 0) {
+          print({
             format: options.format,
             coverage: stagedCoverage,
-            messages: ["✓ No violations found in staged files."],
-          });
-          return { exitCode: 0 };
-        }
-
-        // Create temp KB
-        tempCtx = await createTempKb();
-        await projectStagedEntities(tempCtx.prolog, snapshotEntities);
-
-        const overlayFacts = createOverlayFacts(allSymbols);
-        const fs = await import("node:fs/promises");
-        await fs.writeFile(tempCtx.overlayPath, overlayFacts, "utf8");
-        await fs.cp(
-          tempCtx.overlayPath,
-          path.join(tempCtx.kbPath, "changed_symbols.pl"),
-        );
-        await consultOverlay(tempCtx);
-
-        const violationsRaw = await validateStagedSymbols({
-          minLinks,
-          prolog: tempCtx.prolog,
-        });
-        const violationsFormatted = formatStagedViolations(violationsRaw);
-
-        if (violationsRaw && violationsRaw.length > 0) {
-          printSnapshotResult({
-            format: options.format,
-            coverage: stagedCoverage,
-            violations: violationsRaw,
+            violations: [...violationsRaw, ...coverageViolations],
             qualityDiagnostics: stagedKibiDiagnostics,
             messages: [
               ...(stagedKibiDiagnostics.length > 0
                 ? [formatStagedKibiDiagnostics(stagedKibiDiagnostics)]
                 : []),
-              violationsFormatted,
+              ...(coverageViolations.length > 0
+                ? [formatCoverageViolations(coverageViolations)]
+                : []),
+              ...(violationsRaw.length > 0
+                ? [formatStagedViolations(violationsRaw)]
+                : []),
             ],
           });
-          await cleanupTempKb(tempCtx.tempDir);
-          if (options.dryRun) {
-            return { exitCode: 0 };
-          }
-          return { exitCode: 1 };
+          return { exitCode: options.dryRun ? 0 : 1 };
         }
 
         if (stagedKibiDiagnostics.length > 0) {
-          await cleanupTempKb(tempCtx.tempDir);
           const blocking = hasBlockingImpactDiagnostics(stagedKibiDiagnostics);
-          printSnapshotResult({
+          print({
             format: options.format,
             coverage: stagedCoverage,
             qualityDiagnostics: stagedKibiDiagnostics,
             messages: [
               formatStagedKibiDiagnostics(stagedKibiDiagnostics),
-              ...(!blocking
-                ? ["✓ No violations found in staged symbols."]
-                : []),
+              // Advisory-only findings still pass; say so explicitly.
+              ...(!blocking ? [passMessage] : []),
             ],
           });
           if (options.dryRun) {
             return { exitCode: 0 };
           }
-          if (!blocking) {
-            return { exitCode: 0 };
-          }
-          return {
-            exitCode: 1,
-          };
+          return { exitCode: blocking ? 1 : 0 };
         }
 
         printSnapshotResult({
           format: options.format,
           coverage: stagedCoverage,
-          messages: ["✓ No violations found in staged symbols."],
+          messages: [
+            allSymbols.length === 0 && stagedEntityResults.length === 0
+              ? noValidatedSymbolsMessage(sourceAnalysis)
+              : passMessage,
+          ],
         });
-        await cleanupTempKb(tempCtx.tempDir);
         return { exitCode: 0 };
       } catch (err) {
         const message = `Error running staged validation: ${err instanceof Error ? err.message : String(err)}`;
@@ -1777,41 +1738,6 @@ export async function checkStrictReadiness(
   if (violationsStr && violationsStr !== "[]") {
     for (const v of parseViolationRows(violationsStr)) {
       violations.push(v);
-    }
-  }
-
-  return violations;
-}
-
-export async function checkSymbolCoverage(
-  prolog: PrologProcess,
-): Promise<Violation[]> {
-  const violations: Violation[] = [];
-
-  const uncoveredResult = await prolog.query(
-    "setof(Symbol, symbol_no_req_coverage(Symbol, _), Symbols)",
-  );
-
-  if (uncoveredResult.success && uncoveredResult.bindings.Symbols) {
-    const symbolsStr = uncoveredResult.bindings.Symbols;
-    const match = symbolsStr.match(/\[(.*)\]/);
-
-    const content = getMatchGroup(match)?.trim();
-    if (content) {
-      const symbolMatches = content.matchAll(/'([^']+)'/g);
-      for (const symbolMatch of symbolMatches) {
-        const symbolId = getMatchGroup(symbolMatch);
-        if (!symbolId) continue;
-
-        violations.push({
-          rule: "symbol-coverage",
-          entityId: symbolId,
-          description:
-            "Code symbol is not traceable to any functional requirement.",
-          suggestion:
-            "Update symbols.yaml to link this symbol to a related requirement.",
-        });
-      }
     }
   }
 

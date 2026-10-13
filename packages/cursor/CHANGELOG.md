@@ -1,5 +1,24 @@
 # kibi-cursor
 
+## 2.7.0
+
+### Minor Changes
+
+- 5ad4319: Requirements and ADRs can now say how firmly they were decided, so a later agent knows whether it may change a decision on evidence or must ask a human first. Mark a rule a person stated `firmness: firm` (it must cite their words in `origin.ref`, or `approval_ref` on a requirement), a guess `firmness: exploratory`, and leave the rest unset (`default`). `kibi check` now blocks a firm decision without that reference (Kibi checks that it is present, not that it is genuine), a decision that is not firm superseding a firm one, and a current requirement or ADR that supersedes another without a `## Why this changed` section naming the evidence. `kb_search` and `kb_query` show the firmness of each decision; the editor hooks label firm and exploratory ones.
+
+  Migration: this is a hard rollout with KB schema 9. Run `kibi migrate --yes` once; it records every supersede edge that predates the rule in the manifest (`supersedesReasonAcknowledged`, as `FROM -> TO`), so those do not block, and an advisory `supersedes-reason-acknowledged` diagnostic counts them. No source file is rewritten and no reason is invented. New supersedes must explain themselves, including a new one on an acknowledged decision.
+
+  Technical summary: new optional `firmness` property (`firm` | `default` | `exploratory`) on `req` and `adr` in the JSON schema, the `kb_upsert` input schema, the markdown extractor and the Prolog entity schema; the schema rejects it on other types. `kb_upsert` judges firmness as it will be written: an update that omits `firmness` keeps the stored value (also in the compiled store), and a write that leaves a decision firm without a reference is rejected. `decision-firm-superseded` checks every superseder, retired ones included, so a chain cannot launder a firm decision; shard edges from deleted entities are ignored. New rules `decision-firm-unreferenced`, `decision-firm-superseded` and `supersedes-reason-missing` (canonical, blocking) and `supersedes-reason-acknowledged` (info) read authored requirements, ADRs, front-matter `supersedes` links and relationship shards, so they agree before a sync. `LATEST_KB_SCHEMA_VERSION` is 9; the `decision-firmness-v9` migration step and the `supersedes-reason-acknowledge` fragment action write only `.kb/manifest.json`. Search answer rows and `kb_query` results carry the effective firmness of requirements and ADRs; hook snippets append `[firm]` or `[exploratory]`. The `kibi-usage` skill gains a "Decision firmness" section.
+
+### Patch Changes
+
+- adac6d1: `kb_delete` (and `kibi delete`) now treats a returned deletion plan as a result instead of an error. Deleting an entity authored in a Markdown or YAML file returns `outcome: "plan_returned"`, an empty `errors` list and a `nextActions` entry whose `input` is the exact `kb_apply_plan` call (`{plan, approvedPlanHash}`) to run unchanged; an authored requirement returns `outcome: "supersession_required"` with a `kb_upsert` supersession template. The `approvedPlanHash` input now works: repeating the delete with the plan's hash applies the freshly computed plan in one call, and a stale or different hash fails with `DELETE_PLAN_HASH_MISMATCH` without writing. A new `dryRun: true` input previews relationship and direct entity deletes (counts, source writes with hashes, skipped effects) without touching sources or the store.
+
+  Technical summary: `executeDelete` builds `nextActions` for the authored plan path, lists only real per-id failures in `errors` (plus any resolved non-authored id the plan does not cover), and on a matching `approvedPlanHash` delegates to `executeApplyPlan` under the lock it already holds, which gained an optional `onCommitted` callback so a post-commit failure is still classified as committed. Relationship deletes gain a dry-run branch after preflight that renders shard and authored-source patches without writing, using the new `planRelationshipShardRemovals` (which `removeRelationshipsFromShards` now wraps). The `kibi.kb_delete.v1` result adds optional `outcome`, `dryRun`, `wouldDelete`, `planHash`, `sourcePaths` and `recoveryJournalId`; the input schema adds `dryRun` and documents `approvedPlanHash`. MCP contract fixtures, the MCP, CLI and error references, and the bundled kibi-usage and kibi-traceability skills (with their host mirrors) are updated.
+
+- Updated dependencies [5ad4319]
+  - kibi-agent-core@0.4.0
+
 ## 2.6.11
 
 ### Patch Changes

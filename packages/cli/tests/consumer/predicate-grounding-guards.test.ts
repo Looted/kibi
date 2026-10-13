@@ -18,7 +18,9 @@ import {
  * sent back to extend the requirement; and a complete candidate that
  * contradicts a stored decision is warned about even when no hash-bound
  * plan ran the contradiction analysis. kb_upsert echoes the claim_key it
- * derived for a written fact.
+ * derived for a written fact, and reports no semantic advisor receipt for a
+ * fact: the receipt describes requirement prose, and analysing the fact's
+ * title would report a claim key nothing declares.
  */
 
 let workspace: ConsumerWorkspace | undefined;
@@ -302,7 +304,7 @@ describe("grounding guards before a predicate write", () => {
     ).toEqual([]);
   }, 300_000);
 
-  test("kb_upsert returns the claim_key it derived for a written fact", () => {
+  test("kb_upsert returns the claim_key it derived for a written fact, without a requirement advisor receipt", () => {
     const ws = createConsumerWorkspace("kibi-upsert-claim-key-");
     workspace = ws;
     const claimText = "Coaches can export their own analysis requests.";
@@ -323,12 +325,18 @@ describe("grounding guards before a predicate write", () => {
     };
     const preview = ws.json(["upsert"], { ...input, dryRun: true })
       .data as Json;
+    expect(preview.valid).toBe(true);
     const derived = (preview.normalizedPreview as Json).claim_key as string;
     expect(derived).toMatch(/^CLAIM-[0-9A-F]{16}$/);
+    // No receipt minting a claim key from the title, so nothing reports a
+    // missing or unresolved claim key the fact never declared.
+    expect(preview.semanticAdvisor).toBeNull();
+    expect(preview.warnings).toEqual([]);
 
     const written = ws.json(["upsert"], input).data as Json;
     expect(written.created).toBe(1);
     expect(written.claimKey).toBe(derived);
+    expect(written.semanticAdvisor).toBeUndefined();
     const [stored] = (
       ws.json(["query"], { id: input.id }).data as { entities: Json[] }
     ).entities as [Json];
@@ -342,5 +350,9 @@ describe("grounding guards before a predicate write", () => {
     }).data as Json;
     expect(requirement.created).toBe(1);
     expect(requirement.claimKey).toBeUndefined();
+    // A requirement keeps its advisor receipt.
+    expect(requirement.semanticAdvisor).toMatchObject({
+      version: "semantic-advisor-v2",
+    });
   }, 300_000);
 });

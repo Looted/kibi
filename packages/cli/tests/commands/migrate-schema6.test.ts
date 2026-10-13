@@ -5,6 +5,7 @@ import {
   readFileSync,
   realpathSync,
   rmSync,
+  writeFileSync,
 } from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -302,6 +303,161 @@ describe("kibi migrate to schema 6", () => {
           "semantic-inventory-review-REQ-upload-unsafe",
         ]);
       }
+    },
+    TIMEOUT_MS,
+  );
+
+  test(
+    "drops orphaned grounding only when the review action is approved by id",
+    () => {
+      writeCurrentRequirement(root, "REQ-upload-base", UPLOAD_TEXT);
+      git(root, "add", "--all");
+      git(root, "commit", "-m", "base");
+      expect(runKibi(["sync"], root).status).toBe(0);
+      const { factId } = writeDriftedRequirement(root, "REQ-upload-unsafe", 1);
+      git(root, "add", "--all");
+      git(root, "commit", "-m", "drift");
+      const file = path.join(root, ".kb/requirements/REQ-upload-unsafe.md");
+      const before = readFileSync(file, "utf8");
+
+      const plan = readPlan(root);
+      const id = "semantic-inventory-rederive-drop-grounding-REQ-upload-unsafe";
+      expect(action(plan, id)).toMatchObject({
+        code: "semantic_inventory_rederive_drop_grounding",
+        safety: "review",
+        state: "ready",
+        autoApplicable: false,
+        invocation: { kind: "cli" },
+        evidence: {
+          droppedGrounding: [
+            expect.objectContaining({
+              type: "requires_predicate",
+              target: factId,
+            }),
+          ],
+          contractHash: expect.stringMatching(/^[0-9a-f]{64}$/),
+        },
+      });
+
+      // --apply-safe alone never selects a review action.
+      const unattended = runKibi(
+        ["migrate", "--apply-safe", "--approved-plan-hash", plan.planHash],
+        root,
+      );
+      expect(unattended.status, unattended.stderr).toBe(0);
+      expect(readFileSync(file, "utf8")).toBe(before);
+
+      const approved = runKibi(
+        [
+          "migrate",
+          "--apply-safe",
+          "--approved-plan-hash",
+          plan.planHash,
+          "--approved-action",
+          id,
+        ],
+        root,
+      );
+      expect(approved.status, `${approved.stdout}\n${approved.stderr}`).toBe(0);
+      expect(approved.stdout).toContain(`- applied ${id}`);
+      expect(frontmatter(file).links).toBeUndefined();
+      // Sync stays fail-closed, and now accepts the requirement.
+      const synced = runKibi(["sync"], root);
+      expect(synced.status, `${synced.stdout}\n${synced.stderr}`).toBe(0);
+    },
+    TIMEOUT_MS,
+  );
+
+  test(
+    "maps a legacy requirement status and re-derives the drift it was hiding, in order, once both are approved",
+    () => {
+      writeCurrentRequirement(root, "REQ-upload-base", UPLOAD_TEXT);
+      writeDriftedRequirement(root, "REQ-upload-resume", 0);
+      const file = path.join(root, ".kb/requirements/REQ-upload-resume.md");
+      writeFileSync(
+        file,
+        readFileSync(file, "utf8").replace("status: open", "status: accepted"),
+      );
+      git(root, "add", "--all");
+      git(root, "commit", "-m", "accepted");
+      // An `accepted` requirement is not validated, so its drift is hidden.
+      expect(runKibi(["sync"], root).status).toBe(0);
+      git(root, "add", "--all");
+      git(root, "commit", "-m", "synced", "--allow-empty");
+
+      const plan = readPlan(root);
+      const map = "req-status-vocabulary-map-REQ-upload-resume";
+      const rederive = "semantic-inventory-rederive-REQ-upload-resume";
+      expect(action(plan, map)).toMatchObject({
+        code: "req_status_vocabulary_map",
+        safety: "review",
+        autoApplicable: false,
+        invocation: { kind: "cli" },
+        evidence: {
+          status: "accepted",
+          suggestedStatus: "open",
+          latentDrift: expect.objectContaining({
+            safe: true,
+            rederiveAction: rederive,
+            ingestionErrors: expect.arrayContaining([expect.any(String)]),
+          }),
+        },
+      });
+      expect(action(plan, rederive)).toMatchObject({
+        safety: "review",
+        autoApplicable: false,
+        dependsOn: [map],
+        evidence: { afterStatus: "open" },
+      });
+      expect(
+        plan.actions.some((candidate) =>
+          candidate.code.startsWith("check_req-status-vocabulary"),
+        ),
+      ).toBe(false);
+
+      // Neither runs unattended, and the re-derivation needs its mapping.
+      const before = readFileSync(file, "utf8");
+      expect(
+        runKibi(
+          ["migrate", "--apply-safe", "--approved-plan-hash", plan.planHash],
+          root,
+        ).status,
+      ).toBe(0);
+      expect(readFileSync(file, "utf8")).toBe(before);
+      const alone = runKibi(
+        [
+          "migrate",
+          "--apply-safe",
+          "--approved-plan-hash",
+          plan.planHash,
+          "--approved-action",
+          rederive,
+        ],
+        root,
+      );
+      expect(`${alone.stdout}\n${alone.stderr}`).toContain(
+        `requires approved dependency '${map}'`,
+      );
+      expect(readFileSync(file, "utf8")).toBe(before);
+
+      const applied = runKibi(
+        [
+          "migrate",
+          "--apply-safe",
+          "--approved-plan-hash",
+          plan.planHash,
+          "--approved-action",
+          `${rederive},${map}`,
+        ],
+        root,
+      );
+      expect(applied.status, `${applied.stdout}\n${applied.stderr}`).toBe(0);
+      expect(applied.stdout).toMatch(
+        new RegExp(`- applied ${map}[\\s\\S]*- applied ${rederive}`),
+      );
+      expect(frontmatter(file).status).toBe("open");
+      const synced = runKibi(["sync"], root);
+      expect(synced.status, `${synced.stdout}\n${synced.stderr}`).toBe(0);
     },
     TIMEOUT_MS,
   );

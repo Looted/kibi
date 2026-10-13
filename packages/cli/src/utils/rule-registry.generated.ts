@@ -31,6 +31,13 @@ export const GENERATED_RULES = [
     category: "traceability",
   },
   {
+    name: "symbol-granularity",
+    description:
+      "A symbol with traceability relationships must not link its source file coarsely while narrower behavioral symbols are available, unless it carries an allowed granularity_reason; the staged gate's symbol_granularity_violation evaluated KB-wide",
+    enforcementClass: "canonical",
+    category: "traceability",
+  },
+  {
     name: "no-dangling-refs",
     description: "All relationship targets must exist in the KB",
     enforcementClass: "canonical",

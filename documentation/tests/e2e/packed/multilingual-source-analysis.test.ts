@@ -21,6 +21,8 @@ const PYTHON_DECORATED_SYMBOL_ID = "SYM-python-decorated";
 const PYTHON_DECORATED_SOURCE =
   'def baseline():\n    return "baseline"\n\ndef added_unowned():\n    return "new behavior"\n\n@identity\ndef decorated():\n    return "decorated"\n';
 const PYTHON_SYNTAX_ERROR_SOURCE = "@identity\ndef decorated(\n";
+const SOURCE_ANALYSIS_REQUIREMENT_ID = "REQ-source-analysis-v2-contract";
+const SOURCE_ANALYSIS_FIXTURE_TEST_ID = "TEST-source-analysis-fixture";
 
 type LanguageFixture = Readonly<{
   language: "Python" | "Go" | "Rust";
@@ -142,7 +144,9 @@ function symbolsManifest(
       `    sourceFile: ${fixture.sourcePath}`,
       "    relationships:",
       "      - type: implements",
-      "        target: REQ-source-analysis-v2-contract",
+      `        target: ${SOURCE_ANALYSIS_REQUIREMENT_ID}`,
+      "      - type: covered_by",
+      `        target: ${SOURCE_ANALYSIS_FIXTURE_TEST_ID}`,
     ]),
     "",
   ].join("\n");
@@ -301,6 +305,38 @@ async function runPythonDecoratorCoordinateWorkflow(
     manifestSymbolIds(readFileSync(symbolsPath, "utf8")).sort(),
     [...expectedSymbolIds].sort(),
   );
+}
+
+function writeCoverageTest(
+  sandbox: TestSandbox,
+  id: string,
+  requirementId: string,
+  title: string,
+): void {
+  const relativePath = `.kb/tests/${id}.md`;
+  const fullPath = join(sandbox.repoDir, relativePath);
+  mkdirSync(join(fullPath, ".."), { recursive: true });
+  writeFileSync(
+    fullPath,
+    [
+      "---",
+      `id: ${id}`,
+      `title: ${title}`,
+      "status: passing",
+      "created_at: 2026-09-26T00:00:00Z",
+      "updated_at: 2026-09-26T00:00:00Z",
+      `source: ${relativePath}`,
+      "links:",
+      "  - type: validates",
+      `    target: ${requirementId}`,
+      "---",
+      "",
+      "Fixture test that gives the owned declarations production coverage.",
+      "",
+    ].join("\n"),
+    "utf8",
+  );
+  stageSourceFile(sandbox, relativePath);
 }
 
 function createNetworkGuard(sandbox: TestSandbox): string {
@@ -489,6 +525,14 @@ async function runLanguageWorkflow(
         source: ".kb/requirements/REQ-source-analysis-v2-contract.md",
       },
       "Every changed Python, Go, and Rust declaration is analyzed by the approved source provider and receives authored requirement ownership.",
+    );
+    // Owned symbols also need production coverage: `kibi check --staged`
+    // runs the same symbol-coverage rule as the full check.
+    writeCoverageTest(
+      sandbox,
+      SOURCE_ANALYSIS_FIXTURE_TEST_ID,
+      SOURCE_ANALYSIS_REQUIREMENT_ID,
+      "Staged multilingual fixture declarations are verified",
     );
 
     mkdirSync(join(sandbox.repoDir, "src"), { recursive: true });
