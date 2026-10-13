@@ -56,6 +56,10 @@ export function registerFoundationCommands(program: Command): void {
       "Exact migration plan hash approved for --apply-safe",
     )
     .option(
+      "--backlog",
+      "List every quality and coverage backlog action instead of counts per code",
+    )
+    .option(
       "--approved-action <id>",
       "Approve one migration action (repeatable through comma-separated IDs)",
       (value: string, previous: string[] = []) => [

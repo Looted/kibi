@@ -81,6 +81,12 @@ function getGranularSymbolsForSourceFile(
   };
 }
 
+function hasTraceabilityLinks(symbol: ExtractedSymbol): boolean {
+  return (symbol.relationships ?? []).some((relationship) =>
+    isTraceabilityRelationshipType(relationship.type),
+  );
+}
+
 function formatRelationshipTargets(symbol: ExtractedSymbol): string {
   const targets = [
     ...new Set(
@@ -183,15 +189,26 @@ export function createSemanticReviewDiagnostics(
       if (!isChangedBehavioralReviewCandidate(symbol)) continue;
 
       const linkedTargets = formatRelationshipTargets(symbol);
+      const file = symbol.location.file;
+      // In a file no requirement owns at all, the changed behavior has no
+      // recorded intent, so the review is "record it", not "compare it with
+      // its links". Elsewhere a coarser symbol of the file may still own it.
+      const unlinked =
+        !hasTraceabilityLinks(symbol) &&
+        !(options.linkedSourceFiles?.has(file) ?? false);
       diagnostics.push({
         id: "symbol_semantic_review_needed",
         severity: "warning",
         blocking: false,
         category: "symbol",
-        files: [symbol.location.file],
+        files: [file],
         docs: ["docs/symbol-traceability-taxonomy.md"],
-        message: `Changed behavioral symbol ${symbol.name} needs semantic review against linked Kibi coverage: ${linkedTargets}`,
-        suggestion: `Use kb_search and kb_query for ${symbol.location.file}, then verify that ${linkedTargets} actually describe and test the changed behavior or UI copy. Update Kibi links or requirements/tests while the edit context is fresh.`,
+        message: unlinked
+          ? `Changed behavioral symbol ${symbol.name} is in a file no requirement owns, so no recorded intent covers the behavior it has after this change`
+          : `Changed behavioral symbol ${symbol.name} needs semantic review against linked Kibi coverage: ${linkedTargets}`,
+        suggestion: unlinked
+          ? `If the change adds or alters behavior, record it with the change: kb_search({query:"<the behavior>", sourceLocations:[{path:"${file}"}]}) for a requirement that already describes it and link ${symbol.name} to it; if none does, kb_upsert a requirement with a scenario and link the symbol with implements. If behavior is unchanged (a refactor, renaming), say so in the final report instead.`
+          : `Use kb_search and kb_query for ${file}, then verify that ${linkedTargets} actually describe and test the changed behavior or UI copy. Update Kibi links or requirements/tests while the edit context is fresh.`,
       });
     }
   }

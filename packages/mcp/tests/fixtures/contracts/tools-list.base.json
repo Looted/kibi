@@ -65,6 +65,10 @@
             "description": "Optional exact entity ID. Example: 'REQ-cli-gc'. If omitted, returns matching entities by other filters.",
             "type": "string"
           },
+          "includeBody": {
+            "description": "With id only: also return the entity's authored Markdown body (the prose after its front matter) as body {id, path, text}, so a stale statement in it can be corrected; kb_upsert document.body replaces it. Default: false.",
+            "type": "boolean"
+          },
           "limit": {
             "description": "Optional max rows to return after filtering. Default: 100 when omitted. Example: 25.",
             "type": "number"
@@ -184,6 +188,11 @@
           "data": {
             "additionalProperties": false,
             "properties": {
+              "body": {
+                "additionalProperties": {},
+                "properties": {},
+                "type": "object"
+              },
               "branchStore": {
                 "additionalProperties": {},
                 "properties": {},
@@ -2212,7 +2221,7 @@
             "type": "string"
           },
           "clauses": {
-            "description": "Optional complete list of atomic requirement clauses supplied by the caller. Use this for compound prose so every normative clause receives a stable claim key and independent grounding review.",
+            "description": "Optional complete list of atomic requirement clauses supplied by the caller. Each clause must be a verbatim fragment of text (whitespace may differ); a clause that does not occur in text fails the call with VALIDATION_FAILED naming it. Use this for compound prose so every normative clause receives a stable claim key and independent grounding review.",
             "items": {
               "type": "string"
             },
@@ -6554,7 +6563,7 @@
         "additionalProperties": {},
         "properties": {
           "clauses": {
-            "description": "Optional complete atomic clause decomposition. Each assertive clause receives independent proposition accounting.",
+            "description": "Optional complete atomic clause decomposition. Each clause must be a verbatim fragment of intent (whitespace may differ); a clause that does not occur in intent fails the call with VALIDATION_FAILED naming it. Each assertive clause receives independent proposition accounting.",
             "items": {
               "minLength": 1,
               "type": "string"

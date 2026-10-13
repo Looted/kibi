@@ -183,7 +183,18 @@ type ClaimAccounting = {
   readonly planned: number;
   readonly existing: number;
   readonly filtered: number;
+  /** Not planned because the activation mode plans no declared claims. */
+  readonly byActivation: number;
+  /** Not planned, with a row in suppressedCandidates. */
+  readonly suppressed: number;
+  /** Not planned, left as a sourceOnlySignals authoring follow-up. */
+  readonly sourceOnly: number;
+  /** Not planned with no row or follow-up; the reason is in diagnostics. */
+  readonly unattributed: number;
 };
+
+const EXISTING_REASONS = ["entity_exists"];
+const FILTERED_REASONS = ["filtered_by_entity_type", "below_min_confidence"];
 
 /** Declared claims per knowledge source against what the plan writes. */
 // implements REQ-bootstrap-intent-claim-accounting
@@ -191,6 +202,7 @@ function claimAccounting(
   declared: BootstrapDeclaredContext,
   candidates: readonly Candidate[],
   suppressed: readonly Readonly<Record<string, unknown>>[],
+  signals: readonly SourceOnlySignal[],
 ): readonly ClaimAccounting[] {
   return (declared.knowledgeSources ?? []).flatMap((source) => {
     const count = (declared.intentClaims ?? []).filter(
@@ -203,17 +215,95 @@ function claimAccounting(
         candidate.sourceKind === "intent_claim" &&
         candidate.candidateId.startsWith(prefix),
     ).length;
-    const rows = (reasons: readonly string[]): number =>
-      suppressed.filter(
-        (row) =>
-          reasons.includes(String(row.reason)) &&
-          String(row.candidateId).startsWith(prefix),
-      ).length;
-    const existing = rows(["entity_exists"]);
+    // Rows cite their claim by candidate ID, or by sourceId when the claim
+    // never became a candidate (stale source, missing excerpt, activation).
+    const sourceRows = suppressed.filter(
+      (row) =>
+        String(row.candidateId ?? "").startsWith(prefix) ||
+        (!row.candidateId && row.sourceId === source.id),
+    );
+    const rows = (reasons: readonly string[]) =>
+      sourceRows.filter((row) => reasons.includes(String(row.reason)));
+    const existing = rows(EXISTING_REASONS).length;
     // Claims the caller filtered out (entityTypes, minConfidence) are not lost.
-    const filtered = rows(["filtered_by_entity_type", "below_min_confidence"]);
-    return [{ source, declared: count, planned, existing, filtered }];
+    const filteredRows = rows(FILTERED_REASONS);
+    const filtered = filteredRows.length;
+    // The rest is not planned; each claim is attributed to one reason, in
+    // order, so the counts add up to what was declared.
+    let rest = Math.max(0, count - planned - existing - filtered);
+    const take = (value: number): number => {
+      const taken = Math.min(rest, value);
+      rest -= taken;
+      return taken;
+    };
+    const byActivation = take(rows(["suppressed_by_activation"]).length);
+    const otherRows = sourceRows.filter(
+      (row) =>
+        ![
+          ...EXISTING_REASONS,
+          ...FILTERED_REASONS,
+          "suppressed_by_activation",
+        ].includes(String(row.reason)),
+    );
+    const suppressedCount = take(otherRows.length);
+    // A claim below minConfidence or invalid at write time also leaves a
+    // follow-up; it is already counted by its row.
+    const counted = new Set(
+      [...filteredRows, ...otherRows].map((row) => String(row.sourcePath)),
+    );
+    const sourceOnly = take(
+      signals.filter(
+        (signal) =>
+          signal.evidence.some((line) =>
+            line.startsWith(`intent_claim:${source.id}:`),
+          ) && !counted.has(signal.sourcePath),
+      ).length,
+    );
+    return [
+      {
+        source,
+        declared: count,
+        planned,
+        existing,
+        filtered,
+        byActivation,
+        suppressed: suppressedCount,
+        sourceOnly,
+        unattributed: rest,
+      },
+    ];
   });
+}
+
+/** One diagnostic line per source that names why claims were not planned. */
+// implements REQ-bootstrap-intent-claim-accounting
+function accountingLine(
+  row: ClaimAccounting,
+  activation: ActivationPolicy,
+): string {
+  const notPlanned =
+    row.byActivation + row.suppressed + row.sourceOnly + row.unattributed;
+  const reasons = [
+    ...(row.byActivation > 0
+      ? [
+          `${row.byActivation} because bootstrap synthesis is suppressed in ${activation.activationMode}; compile them with kb_compile_intent`,
+        ]
+      : []),
+    ...(row.suppressed > 0
+      ? [`${row.suppressed} suppressed (rows in suppressedCandidates)`]
+      : []),
+    ...(row.sourceOnly > 0
+      ? [
+          `${row.sourceOnly} need authoring (sourceOnlySignals; compile them with kb_compile_intent)`,
+        ]
+      : []),
+    ...(row.unattributed > 0
+      ? [
+          `${row.unattributed} without a suppressedCandidates row or follow-up (see diagnostics)`,
+        ]
+      : []),
+  ];
+  return `Knowledge source ${row.source.id} (${row.source.authority}): ${row.declared} declared claim(s), ${row.planned} planned, ${row.existing} already in the KB, ${row.filtered} filtered out, ${notPlanned} not planned${reasons.length > 0 ? `: ${reasons.join("; ")}` : ""}.`;
 }
 
 // implements REQ-KIBI-BOOTSTRAP-PLAN, REQ-bootstrap-discovered-candidate-budget, REQ-bootstrap-provenance-stubs
@@ -335,6 +425,7 @@ export function presentBootstrap(input: {
     declaredContext,
     input.candidates,
     input.suppressedCandidates,
+    input.sourceOnlySignals,
   );
   const droppedAuthoritative = accounting.filter(
     (row) =>
@@ -342,7 +433,9 @@ export function presentBootstrap(input: {
       row.planned + row.existing + row.filtered === 0,
   );
   const status: BootstrapPlanV1["status"] =
-    input.activation.activationState === "root_active_seeded"
+    // A seeded KB is a handoff unless its plan holds declared claims.
+    input.activation.activationState === "root_active_seeded" &&
+    input.activation.applyBlocked
       ? "handoff"
       : applyBlocked
         ? "blocked"
@@ -392,10 +485,7 @@ export function presentBootstrap(input: {
           `Suppressed candidates by reason: ${suppression.map((row) => `${row.reason} ${row.count}`).join(", ")} (rows in suppressedCandidates).`,
         ]
       : []),
-    ...accounting.map(
-      (row) =>
-        `Knowledge source ${row.source.id} (${row.source.authority}): ${row.declared} declared claim(s), ${row.planned} planned, ${row.existing} already in the KB, ${row.filtered} filtered out, ${row.declared - row.planned - row.existing - row.filtered} not planned (see suppressedCandidates and source-only follow-ups).`,
-    ),
+    ...accounting.map((row) => accountingLine(row, input.activation)),
   ];
   const planBody = {
     version: "kibi.bootstrap-plan.v1" as const,

@@ -1,7 +1,7 @@
 ---
 title: Exact branch identity transformation policy
 status: active
-text_ref: documentation/requirements/REQ-branch-store-recovery-v2.md
+text_ref: .kb/requirements/REQ-branch-store-recovery-v2.md
 tags:
   - lane:ontology
   - branching

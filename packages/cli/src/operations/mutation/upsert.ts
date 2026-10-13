@@ -46,7 +46,10 @@ import {
   validateStrictLanePairing,
   validateSupersedesSourceHistory,
 } from "./relationships.js";
-import { withStoredRequirementSemantics } from "./requirement-semantics.js";
+import {
+  assertStoredRequirementBoundary,
+  withStoredRequirementSemantics,
+} from "./requirement-semantics.js";
 import { MutationRollbackFailureError, MutationSaga } from "./saga.js";
 import {
   readFileTimes,
@@ -412,6 +415,13 @@ export async function validateUpsertForCommit(
     staged,
   );
   const semantic = analyzeUpsertSemantics({ ...input, relationships });
+  await assertStoredRequirementBoundary(
+    input,
+    relationships,
+    prolog,
+    staged,
+    lookup,
+  );
   await assertLogicalGroundingClaimKeys(
     prolog,
     { ...input, relationships },

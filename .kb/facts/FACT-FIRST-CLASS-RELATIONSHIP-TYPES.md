@@ -1,7 +1,7 @@
 ---
 title: Named relationships are first-class
 status: active
-text_ref: documentation/requirements/REQ-005.md
+text_ref: .kb/requirements/REQ-005.md
 tags:
   - lane:ontology
   - strict-semantics

@@ -52071,3 +52071,861 @@ symbols:
         target: TEST-agent-guided-migration-orchestration
       - type: implements
         target: REQ-agent-guided-migration-orchestration
+  - id: SYM-bootstrap-claim-plan-activation
+    title: claimPlanActivation
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/activation.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:38:46.789Z
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-bootstrap-discovered-candidate-budget
+  - id: SYM-migrate-isBacklogAction
+    title: isBacklogAction
+    status: active
+    sourceFile: packages/cli/src/commands/migrate.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-schema6-migration-cli
+      - type: implements
+        target: REQ-cli-schema-migration
+  - id: SYM-schema6-BODY_CONTEXT_SCHEMA_VERSION
+    title: BODY_CONTEXT_SCHEMA_VERSION
+    status: active
+    sourceFile: packages/cli/src/operations/migration/schema6.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-schema6-migration-cli
+      - type: implements
+        target: REQ-cli-schema-migration
+  - id: SYM-schema6-DECISION_FIRMNESS_SCHEMA_VERSION
+    title: DECISION_FIRMNESS_SCHEMA_VERSION
+    status: active
+    sourceFile: packages/cli/src/operations/migration/schema6.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-schema6-migration-cli
+      - type: implements
+        target: REQ-cli-schema-migration
+  - id: SYM-schema6-REQ_STATUS_VOCABULARY_MAP_CODE
+    title: REQ_STATUS_VOCABULARY_MAP_CODE
+    status: active
+    sourceFile: packages/cli/src/operations/migration/schema6.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-schema6-migration-cli
+      - type: implements
+        target: REQ-cli-schema-migration
+  - id: SYM-schema6-requirementStatusActions
+    title: requirementStatusActions
+    status: active
+    sourceFile: packages/cli/src/operations/migration/schema6.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-schema6-migration-cli
+      - type: implements
+        target: REQ-cli-schema-migration
+  - id: SYM-schema6-SCHEMA6_APPROVABLE_REVIEW_CODES
+    title: SCHEMA6_APPROVABLE_REVIEW_CODES
+    status: active
+    sourceFile: packages/cli/src/operations/migration/schema6.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-schema6-migration-cli
+      - type: implements
+        target: REQ-cli-schema-migration
+  - id: SYM-schema6-SEMANTIC_INVENTORY_REDERIVE_DROP_GROUNDING_CODE
+    title: SEMANTIC_INVENTORY_REDERIVE_DROP_GROUNDING_CODE
+    status: active
+    sourceFile: packages/cli/src/operations/migration/schema6.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-schema6-migration-cli
+      - type: implements
+        target: REQ-cli-schema-migration
+  - id: SYM-schema6-symbolLegacyLinkAction
+    title: symbolLegacyLinkAction
+    status: active
+    sourceFile: packages/cli/src/operations/migration/schema6.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-schema6-migration-cli
+      - type: implements
+        target: REQ-cli-schema-migration
+  - id: SYM-source-paths-AuthoredSourceRef
+    title: AuthoredSourceRef
+    status: active
+    sourceFile: packages/cli/src/operations/migration/source-paths.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-source-paths-AuthoredSourceScan
+    title: AuthoredSourceScan
+    status: active
+    sourceFile: packages/cli/src/operations/migration/source-paths.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-source-paths-findDanglingSources
+    title: findDanglingSources
+    status: active
+    sourceFile: packages/cli/src/operations/migration/source-paths.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-source-paths-isPathShapedTextRef
+    title: isPathShapedTextRef
+    status: active
+    sourceFile: packages/cli/src/operations/migration/source-paths.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-source-paths-PlannedSourcePathRepairs
+    title: PlannedSourcePathRepairs
+    status: active
+    sourceFile: packages/cli/src/operations/migration/source-paths.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-source-paths-resolveAuthoredSource
+    title: resolveAuthoredSource
+    status: active
+    sourceFile: packages/cli/src/operations/migration/source-paths.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-source-paths-scanAuthoredSources
+    title: scanAuthoredSources
+    status: active
+    sourceFile: packages/cli/src/operations/migration/source-paths.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-source-paths-shownSourceValue
+    title: shownSourceValue
+    status: active
+    sourceFile: packages/cli/src/operations/migration/source-paths.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-source-paths-SourceField
+    title: SourceField
+    status: active
+    sourceFile: packages/cli/src/operations/migration/source-paths.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-source-paths-SourceFix
+    title: SourceFix
+    status: active
+    sourceFile: packages/cli/src/operations/migration/source-paths.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-source-paths-SourcePathRemoval
+    title: SourcePathRemoval
+    status: active
+    sourceFile: packages/cli/src/operations/migration/source-paths.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-source-paths-SourcePathRepairResult
+    title: SourcePathRepairResult
+    status: active
+    sourceFile: packages/cli/src/operations/migration/source-paths.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-source-paths-SourcePathRewrite
+    title: SourcePathRewrite
+    status: active
+    sourceFile: packages/cli/src/operations/migration/source-paths.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-source-paths-SourceRemovalReason
+    title: SourceRemovalReason
+    status: active
+    sourceFile: packages/cli/src/operations/migration/source-paths.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-source-paths-SourceRepair
+    title: SourceRepair
+    status: active
+    sourceFile: packages/cli/src/operations/migration/source-paths.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-source-paths-SourceResolution
+    title: SourceResolution
+    status: active
+    sourceFile: packages/cli/src/operations/migration/source-paths.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-source-paths-workspacePathExists
+    title: workspacePathExists
+    status: active
+    sourceFile: packages/cli/src/operations/migration/source-paths.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-schema6-check-actions-ADR_PROPOSED_REVIEW_CODE
+    title: ADR_PROPOSED_REVIEW_CODE
+    status: active
+    sourceFile: packages/cli/src/public/operations/schema6-check-actions.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-schema6-check-actions-ADR_UNLINKED_REVIEW_CODE
+    title: ADR_UNLINKED_REVIEW_CODE
+    status: active
+    sourceFile: packages/cli/src/public/operations/schema6-check-actions.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-schema6-check-actions-AGENT_REQUIREMENTS_REVIEW_ACTION_ID
+    title: AGENT_REQUIREMENTS_REVIEW_ACTION_ID
+    status: active
+    sourceFile: packages/cli/src/public/operations/schema6-check-actions.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-schema6-check-actions-AGENT_REQUIREMENTS_REVIEW_CODE
+    title: AGENT_REQUIREMENTS_REVIEW_CODE
+    status: active
+    sourceFile: packages/cli/src/public/operations/schema6-check-actions.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-schema6-check-actions-CLOSE_SUPERSEDED_REQUIREMENTS_ACTION_ID
+    title: CLOSE_SUPERSEDED_REQUIREMENTS_ACTION_ID
+    status: active
+    sourceFile: packages/cli/src/public/operations/schema6-check-actions.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-schema6-check-actions-CLOSE_SUPERSEDED_REQUIREMENTS_CODE
+    title: CLOSE_SUPERSEDED_REQUIREMENTS_CODE
+    status: active
+    sourceFile: packages/cli/src/public/operations/schema6-check-actions.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-schema6-check-actions-EXCEPTION_SELF_ATTESTED_REVIEW_CODE
+    title: EXCEPTION_SELF_ATTESTED_REVIEW_CODE
+    status: active
+    sourceFile: packages/cli/src/public/operations/schema6-check-actions.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-schema6-check-actions-EXCEPTION_UNAPPROVED_REVIEW_CODE
+    title: EXCEPTION_UNAPPROVED_REVIEW_CODE
+    status: active
+    sourceFile: packages/cli/src/public/operations/schema6-check-actions.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-schema6-check-actions-exceptionUnapprovedActionId
+    title: exceptionUnapprovedActionId
+    status: active
+    sourceFile: packages/cli/src/public/operations/schema6-check-actions.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-schema6-check-actions-exceptionUnapprovedActionInput
+    title: exceptionUnapprovedActionInput
+    status: active
+    sourceFile: packages/cli/src/public/operations/schema6-check-actions.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-schema6-check-actions-lifecycleActionsFromViolations
+    title: lifecycleActionsFromViolations
+    status: active
+    sourceFile: packages/cli/src/public/operations/schema6-check-actions.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-schema6-check-actions-MIGRATION_SYNC_ACTION_ID
+    title: MIGRATION_SYNC_ACTION_ID
+    status: active
+    sourceFile: packages/cli/src/public/operations/schema6-check-actions.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-schema6-check-actions-MIGRATION_SYNC_CODE
+    title: MIGRATION_SYNC_CODE
+    status: active
+    sourceFile: packages/cli/src/public/operations/schema6-check-actions.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-schema6-check-actions-MigrationActionInput
+    title: MigrationActionInput
+    status: active
+    sourceFile: packages/cli/src/public/operations/schema6-check-actions.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-schema6-check-actions-migrationSyncActionInput
+    title: migrationSyncActionInput
+    status: active
+    sourceFile: packages/cli/src/public/operations/schema6-check-actions.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-schema6-check-actions-PREDICATE_KEY_ARGUMENTS_REVIEW_CODE
+    title: PREDICATE_KEY_ARGUMENTS_REVIEW_CODE
+    status: active
+    sourceFile: packages/cli/src/public/operations/schema6-check-actions.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-schema6-check-actions-RATIONALE_REVIEW_ACTION_ID
+    title: RATIONALE_REVIEW_ACTION_ID
+    status: active
+    sourceFile: packages/cli/src/public/operations/schema6-check-actions.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-schema6-check-actions-RATIONALE_REVIEW_CODE
+    title: RATIONALE_REVIEW_CODE
+    status: active
+    sourceFile: packages/cli/src/public/operations/schema6-check-actions.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-schema6-check-actions-SCENARIO_FEASIBILITY_REVIEW_CODE
+    title: SCENARIO_FEASIBILITY_REVIEW_CODE
+    status: active
+    sourceFile: packages/cli/src/public/operations/schema6-check-actions.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-schema6-check-actions-schema6ReviewActionsFromCheck
+    title: schema6ReviewActionsFromCheck
+    status: active
+    sourceFile: packages/cli/src/public/operations/schema6-check-actions.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-schema6-check-actions-SOURCE_PATH_REVIEW_CODE
+    title: SOURCE_PATH_REVIEW_CODE
+    status: active
+    sourceFile: packages/cli/src/public/operations/schema6-check-actions.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-schema6-check-actions-SOURCE_PATH_REWRITE_ACTION_ID
+    title: SOURCE_PATH_REWRITE_ACTION_ID
+    status: active
+    sourceFile: packages/cli/src/public/operations/schema6-check-actions.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-schema6-check-actions-SOURCE_PATH_REWRITE_CODE
+    title: SOURCE_PATH_REWRITE_CODE
+    status: active
+    sourceFile: packages/cli/src/public/operations/schema6-check-actions.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-schema6-check-actions-SOURCE_PLANNED_LIFECYCLE_CODES
+    title: SOURCE_PLANNED_LIFECYCLE_CODES
+    status: active
+    sourceFile: packages/cli/src/public/operations/schema6-check-actions.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-schema6-check-actions-SourcePathRemovalInput
+    title: SourcePathRemovalInput
+    status: active
+    sourceFile: packages/cli/src/public/operations/schema6-check-actions.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-schema6-check-actions-SourcePathRewriteInput
+    title: SourcePathRewriteInput
+    status: active
+    sourceFile: packages/cli/src/public/operations/schema6-check-actions.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-schema6-check-actions-SupersededClosureInput
+    title: SupersededClosureInput
+    status: active
+    sourceFile: packages/cli/src/public/operations/schema6-check-actions.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-schema6-check-actions-SUPERSESSION_CYCLE_REVIEW_CODE
+    title: SUPERSESSION_CYCLE_REVIEW_CODE
+    status: active
+    sourceFile: packages/cli/src/public/operations/schema6-check-actions.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-schema6-check-actions-SYMBOL_OWNER_REVIEW_ACTION_ID
+    title: SYMBOL_OWNER_REVIEW_ACTION_ID
+    status: active
+    sourceFile: packages/cli/src/public/operations/schema6-check-actions.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-schema6-check-actions-SYMBOL_OWNER_REVIEW_CODE
+    title: SYMBOL_OWNER_REVIEW_CODE
+    status: active
+    sourceFile: packages/cli/src/public/operations/schema6-check-actions.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-source-path-dangling-SOURCE_PATH_DANGLING_RULE
+    title: SOURCE_PATH_DANGLING_RULE
+    status: active
+    sourceFile: packages/cli/src/public/operations/source-path-dangling.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-source-path-dangling-sourcePathDanglingViolations
+    title: sourcePathDanglingViolations
+    status: active
+    sourceFile: packages/cli/src/public/operations/source-path-dangling.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-kb-lifecycle-integrity
+      - type: implements
+        target: REQ-kibi-kb-lifecycle-integrity
+  - id: SYM-git-change-snapshot-captureStagedSnapshot
+    title: captureStagedSnapshot
+    status: active
+    sourceFile: packages/cli/src/traceability/git-change-snapshot.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-git-change-snapshot-mergeResolutionBase
+    title: mergeResolutionBase
+    status: active
+    sourceFile: packages/cli/src/traceability/git-change-snapshot.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-staged-inventory-drift-STAGED_INVENTORY_DRIFT_RULE
+    title: STAGED_INVENTORY_DRIFT_RULE
+    status: active
+    sourceFile: packages/cli/src/traceability/staged-inventory-drift.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
+  - id: SYM-staged-inventory-drift-StagedInventoryDriftViolation
+    title: StagedInventoryDriftViolation
+    status: active
+    sourceFile: packages/cli/src/traceability/staged-inventory-drift.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
+  - id: SYM-staged-inventory-drift-stagedInventoryDriftViolations
+    title: stagedInventoryDriftViolations
+    status: active
+    sourceFile: packages/cli/src/traceability/staged-inventory-drift.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion
+  - id: SYM-merge-driver-setup-manifestMergeDriverGaps
+    title: manifestMergeDriverGaps
+    status: active
+    sourceFile: packages/cli/src/utils/merge-driver-setup.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-doctor-workflows
+      - type: implements
+        target: REQ-cli-doctor
+  - id: SYM-merge-driver-setup-MERGE_DRIVER_SETUP
+    title: MERGE_DRIVER_SETUP
+    status: active
+    sourceFile: packages/cli/src/utils/merge-driver-setup.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-doctor-workflows
+      - type: implements
+        target: REQ-cli-doctor
+  - id: SYM-git-change-snapshot-renameResolutionBase
+    title: renameResolutionBase
+    status: active
+    sourceFile: packages/cli/src/traceability/git-change-snapshot.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T17:18:31.331Z
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2

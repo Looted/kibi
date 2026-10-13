@@ -90,6 +90,7 @@ import {
   isBehaviorSourceEdit,
   parseKibiImpactOverride,
 } from "../traceability/staged-impact-contract.js";
+import { stagedInventoryDriftViolations } from "../traceability/staged-inventory-drift.js";
 import {
   assessStagedSymbolsManifest,
   collectStagedAuthoredSymbolsManifestEvidence,
@@ -724,11 +725,36 @@ export async function checkCommand(
             file.disposition = "checked";
           }
         }
+        const mergeInherited = snapshot.mergeInherited ?? [];
+        const mergeNote =
+          mergeInherited.length > 0
+            ? `Merge commit: ${mergeInherited.length} staged file(s) are taken unchanged from the merged branch and are not judged here; only what the merge itself changed is checked. Any debt in those files was inherited from that branch.`
+            : undefined;
+        const renameResolved = snapshot.renameResolved ?? [];
+        const renameNote =
+          renameResolved.length > 0
+            ? `Baseline: HEAD with ${renameResolved.length} staged knowledge rename(s) into .kb/ resolved; renamed files are judged only on what this commit changed in them. Run kibi check for the full report.`
+            : undefined;
+        const baselineNotes = [mergeNote, renameNote].filter(
+          (note): note is string => note !== undefined,
+        );
+        const printNotedResult = (
+          input: Parameters<typeof printStagedResult>[0],
+        ): void => {
+          printStagedResult(
+            baselineNotes.length === 0
+              ? input
+              : {
+                  ...input,
+                  messages: [...baselineNotes, ...(input.messages ?? [])],
+                },
+          );
+        };
         const printSnapshotResult = (
           input: Parameters<typeof printStagedResult>[0],
         ): void => {
           snapshot.assertUnchanged();
-          printStagedResult(input);
+          printNotedResult(input);
         };
         stagedCoverage = analyzeStagedFileCoverage(
           stagedInventory,
@@ -790,7 +816,11 @@ export async function checkCommand(
           printSnapshotResult({
             format: options.format,
             coverage: stagedCoverage,
-            messages: ["No staged files found."],
+            messages: [
+              renameResolved.length > 0
+                ? "No staged changes beyond the resolved renames."
+                : "No staged files found.",
+            ],
           });
           return { exitCode: 0 };
         }
@@ -854,6 +884,31 @@ export async function checkCommand(
             });
             return { exitCode: options.dryRun ? 0 : 1 };
           }
+        }
+        const inventoryDrift = stagedInventoryDriftViolations({
+          stagedPaths: new Set(markdownFiles.map((file) => file.path)),
+          snapshotEntities,
+          readBase: (filePath) => {
+            try {
+              return snapshot
+                .readGit(["show", `${snapshot.baseTree}:${filePath}`])
+                .toString("utf8");
+            } catch {
+              return null;
+            }
+          },
+        });
+        if (inventoryDrift.length > 0) {
+          printSnapshotResult({
+            format: options.format,
+            coverage: stagedCoverage,
+            violations: inventoryDrift,
+            messages: [
+              `${inventoryDrift.length} staged requirement(s) have a semantic inventory that no longer matches their prose:`,
+              ...inventoryDrift.map((violation) => `  ${violation.message}`),
+            ],
+          });
+          return { exitCode: options.dryRun ? 0 : 1 };
         }
         const snapshotRequirementIds = new Set(
           snapshotEntities
@@ -1086,7 +1141,7 @@ export async function checkCommand(
         // Without changed source symbols the result was historically printed
         // without re-asserting the snapshot; keep that behavior.
         const print =
-          allSymbols.length === 0 ? printStagedResult : printSnapshotResult;
+          allSymbols.length === 0 ? printNotedResult : printSnapshotResult;
         const passMessage =
           allSymbols.length === 0
             ? "✓ No violations found in staged files."

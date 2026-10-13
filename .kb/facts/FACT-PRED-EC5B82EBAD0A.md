@@ -2,7 +2,7 @@
 title: Requirement health supports responsive and print layouts
 status: active
 source: .kb/requirements/REQ-kibi-branded-health-report.md
-text_ref: documentation/requirements/REQ-kibi-branded-health-report.md
+text_ref: .kb/requirements/REQ-kibi-branded-health-report.md
 tags:
   - lane:ontology
   - predicate-suggestion

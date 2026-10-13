@@ -55,14 +55,12 @@ function formatFileList(paths: string[]): string {
   return paths.join(", ");
 }
 
-/** Max symbol names rendered per detail line before "+N more". */
-const MAX_DETAIL_NAMES = 6;
-
+/**
+ * Every name, in order: the gate output is the list a person works through,
+ * so it is never cut short.
+ */
 function formatNameList(names: readonly string[]): string {
-  const shown = names.slice(0, MAX_DETAIL_NAMES);
-  const overflow = names.length - shown.length;
-  const rendered = shown.join(", ");
-  return overflow > 0 ? `${rendered} … and ${overflow} more` : rendered;
+  return names.join(", ");
 }
 
 function symbolsManifestFileDetails(

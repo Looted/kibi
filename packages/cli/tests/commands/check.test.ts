@@ -1029,6 +1029,74 @@ links:
   );
 
   test(
+    "reports must-priority coverage only for current requirements",
+    async () => {
+      const reqDir = path.join(tmpDir, ".kb/requirements");
+      mkdirSync(reqDir, { recursive: true });
+      const requirement = (id: string, status: string, extra = "") => `---
+id: ${id}
+title: ${id}
+type: req
+status: ${status}
+priority: must
+${extra}---
+
+# ${id}
+`;
+      const files: Record<string, string> = {
+        "REQ-must-open": requirement("REQ-must-open", "open"),
+        "REQ-must-closed": requirement("REQ-must-closed", "closed"),
+        "REQ-must-implemented": requirement(
+          "REQ-must-implemented",
+          "closed",
+          "tags: [implemented]\n",
+        ),
+        "REQ-must-deprecated": requirement("REQ-must-deprecated", "deprecated"),
+        "REQ-must-replaced": requirement("REQ-must-replaced", "open"),
+        "REQ-should-successor": `---
+id: REQ-should-successor
+title: Successor
+type: req
+status: open
+priority: should
+links:
+  - type: supersedes
+    target: REQ-must-replaced
+---
+
+# Successor
+`,
+      };
+      for (const [id, content] of Object.entries(files)) {
+        writeFileSync(path.join(reqDir, `${id}.md`), content);
+      }
+      execSync("git add .kb", { cwd: tmpDir, stdio: "pipe" });
+      execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+
+      const { status, stdout, stderr } = runKibi(
+        kibiBin,
+        ["check", "--rules", "must-priority-coverage"],
+        tmpDir,
+      );
+      // Advisory quality diagnostics follow the violations; only the
+      // violations belong to the rule.
+      const [violations = ""] = stdoutToString(stdout || stderr).split(
+        "Quality diagnostics",
+      );
+      expect(status).toBe(1);
+      expect(violations).toContain("Found 2 violation(s)");
+      expect(violations).toContain("[must-priority-coverage] REQ-must-open");
+      expect(violations).toContain(
+        "[must-priority-coverage] REQ-must-implemented",
+      );
+      expect(violations).not.toContain("REQ-must-closed");
+      expect(violations).not.toContain("REQ-must-deprecated");
+      expect(violations).not.toContain("REQ-must-replaced");
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
     "detects must-priority requirement without scenario",
     async () => {
       const reqDir = path.join(tmpDir, ".kb/requirements");

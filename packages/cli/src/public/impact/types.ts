@@ -49,6 +49,8 @@ export type SymbolGranularityDiagnosticsOptions = {
 
 export type SemanticReviewDiagnosticsOptions = {
   readonly symbolsByFile: SymbolsByFile;
+  /** Source files where some manifest symbol carries a traceability link. */
+  readonly linkedSourceFiles?: ReadonlySet<string>;
 };
 
 export type SymbolQualityDiagnosticsOptions = {

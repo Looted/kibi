@@ -144,7 +144,9 @@ export async function executeSemanticAdvisor(
     content: [
       {
         type: "text",
-        text: `kb_semantic_advisor: ${result.receipt.summary} Suggestions: ${result.receipt.suggestions.map(({ kind }) => kind).join(", ") || "none"}.`,
+        // A drift warning decides whether the analyzed ledger can be
+        // written at all, so the text says it too, not only the warnings.
+        text: `kb_semantic_advisor: ${result.receipt.summary} Suggestions: ${result.receipt.suggestions.map(({ kind }) => kind).join(", ") || "none"}.${ledgerWarnings.map((warning) => ` ${warning}`).join("")}`,
       },
     ],
     structuredContent: {
@@ -211,7 +213,7 @@ export const semanticAdvisorSpec = {
         type: "array",
         items: { type: "string" },
         description:
-          "Optional complete list of atomic requirement clauses supplied by the caller. Use this for compound prose so every normative clause receives a stable claim key and independent grounding review.",
+          "Optional complete list of atomic requirement clauses supplied by the caller. Each clause must be a verbatim fragment of text (whitespace may differ); a clause that does not occur in text fails the call with VALIDATION_FAILED naming it. Use this for compound prose so every normative clause receives a stable claim key and independent grounding review.",
       },
       interpretations: {
         type: "array",

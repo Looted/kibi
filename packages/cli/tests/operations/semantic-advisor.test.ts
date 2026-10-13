@@ -494,6 +494,27 @@ describe("semantic advisor operation", () => {
     ).toEqual({ field: "semantic_text", text: "" });
   });
 
+  test("a text_ref beside semantic_text is a reference, not prose the advisor reads", () => {
+    const signalsOf = (textRef: string) =>
+      analyzeSemanticAdvisorInput({
+        payload: {
+          type: "req",
+          properties: {
+            title: "A viewer must be able to list analysis requests.",
+            semantic_text: "A viewer must be able to list analysis requests.",
+            text_ref: textRef,
+          },
+        },
+      }).receipt.signals.map(({ kind }) => kind);
+    // The batch number in the reference is not a cardinality claim.
+    expect(signalsOf("intake/batch-4-item-6")).not.toContain(
+      "numeric_cardinality",
+    );
+    expect(signalsOf("intake/batch-4-item-6")).toEqual(
+      signalsOf("intake/probe"),
+    );
+  });
+
   test("does not treat error nouns in titles as modal-free requirements", () => {
     for (const title of [
       "Transaction failure",
@@ -1051,6 +1072,10 @@ describe("semantic advisor operation", () => {
         entry.startsWith(`Claim-key drift against the stored ledger of ${id}`),
       );
       expect(warning).toBeDefined();
+      // The text an agent reads first says it too.
+      expect(result.content[0]?.text).toContain(
+        `Claim-key drift against the stored ledger of ${id}`,
+      );
       expect(warning).toContain(
         `'${storedKey}' ("${storedClauseText}"), grounded by FACT-export-csv via requires_predicate`,
       );
@@ -1130,5 +1155,65 @@ describe("semantic advisor operation", () => {
         ),
       ).toBe(false);
     });
+  });
+});
+
+describe("caller-supplied clauses", () => {
+  const intent =
+    "Pressing Escape cancels the pending upload. Opening another report keeps its filters while sorting continues.";
+  const payload = {
+    type: "req",
+    id: "REQ-upload-escape",
+    properties: { title: "Escape", status: "open", semantic_text: intent },
+  };
+
+  test("verbatim clauses get the spans and claim text of the prose", () => {
+    const clauses = [
+      "Pressing Escape cancels the pending upload.",
+      "Opening another report keeps its filters",
+      "while sorting continues",
+    ];
+    const { receipt } = analyzeSemanticAdvisorInput({ payload, clauses });
+    const bytes = Buffer.from(intent, "utf8");
+    expect(receipt.propositions.map((p) => p.claim_text)).toEqual([
+      "Pressing Escape cancels the pending upload",
+      "Opening another report keeps its filters",
+      "while sorting continues",
+    ]);
+    for (const proposition of receipt.propositions) {
+      expect(
+        bytes
+          .subarray(proposition.span.start, proposition.span.end)
+          .toString("utf8"),
+      ).toBe(proposition.claim_text);
+    }
+  });
+
+  test("a clause with different whitespace still matches its source text", () => {
+    const { receipt } = analyzeSemanticAdvisorInput({
+      payload,
+      clauses: [
+        "Pressing  Escape\ncancels the pending upload",
+        "Opening another report keeps its filters while sorting continues",
+      ],
+    });
+    expect(receipt.propositions[0]?.claim_text).toBe(
+      "Pressing Escape cancels the pending upload",
+    );
+  });
+
+  test("a paraphrased clause fails naming the clause", () => {
+    const run = () =>
+      analyzeSemanticAdvisorInput({
+        payload,
+        clauses: [
+          "Pressing Escape cancels the pending upload",
+          "Choosing a different report preserves the filters during sorts",
+        ],
+      });
+    expect(run).toThrow(
+      'not occur in it: "Choosing a different report preserves the filters during sorts"',
+    );
+    expect(run).toThrow("must be verbatim fragments of the requirement prose");
   });
 });

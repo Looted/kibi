@@ -240,12 +240,32 @@ describe("kb_apply_plan", () => {
   test("rejects a plan that has not been approved as ready", async () => {
     const plan = { ...basePlan, status: "needs_resolution" as const };
     const planWithHash = { ...plan, planHash: compilePlanHash(plan) };
+    const apply = executeApplyPlan(
+      { plan: planWithHash, approvedPlanHash: planWithHash.planHash },
+      context(),
+    );
+    await expect(apply).rejects.toThrow(
+      "Apply plan failed: only ready plans may be applied; this plan's status is 'needs_resolution'.",
+    );
+    await expect(apply).rejects.toThrow(
+      "Resolve its ontology_gap and missing propositions first",
+    );
+    await expect(apply).rejects.toThrow(
+      "kb_upsert carrying the plan's inventory contract",
+    );
+  });
+
+  test("names the contradiction as the remedy for a blocked plan", async () => {
+    const plan = { ...basePlan, status: "blocked" as const };
+    const planWithHash = { ...plan, planHash: compilePlanHash(plan) };
     await expect(
       executeApplyPlan(
         { plan: planWithHash, approvedPlanHash: planWithHash.planHash },
         context(),
       ),
-    ).rejects.toThrow("only ready plans");
+    ).rejects.toThrow(
+      "this plan's status is 'blocked'. Its contradiction analysis found a conflict",
+    );
   });
 
   test("rejects an unapproved BootstrapPlanV1 before mutation", async () => {
@@ -274,7 +294,9 @@ describe("kb_apply_plan", () => {
         { plan: unapproved, approvedPlanHash: unapproved.planHash },
         mutationContext,
       ),
-    ).rejects.toThrow("only ready plans");
+    ).rejects.toThrow(
+      "only ready plans may be applied; this plan's status is 'needs_context'. Supply the bootstrap context",
+    );
     expect(mutationCalls).toBe(0);
   });
 

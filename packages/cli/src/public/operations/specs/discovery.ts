@@ -132,6 +132,12 @@ export const querySpec = {
         description:
           "Optional zero-based pagination offset. Default: 0. Example: 50 to skip first 50 rows.",
       },
+      includeBody: {
+        type: "boolean",
+        default: false,
+        description:
+          "With id only: also return the entity's authored Markdown body (the prose after its front matter) as body {id, path, text}, so a stale statement in it can be corrected; kb_upsert document.body replaces it. Default: false.",
+      },
     },
   },
   requiresProlog: true,

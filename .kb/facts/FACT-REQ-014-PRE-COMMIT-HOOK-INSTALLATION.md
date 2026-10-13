@@ -1,7 +1,7 @@
 ---
 title: kibi init installs the pre-commit hook by default
 status: active
-text_ref: documentation/requirements/REQ-014.md
+text_ref: .kb/requirements/REQ-014.md
 tags:
   - lane:ontology
   - strict-semantics
