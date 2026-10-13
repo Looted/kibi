@@ -71,7 +71,7 @@ This section provides guidance on selecting the appropriate entity type for your
 | priority     | No       | string         | Priority level (must, should, could)             |
 | severity     | No       | string         | Severity level                                   |
 | links[]      | No       | array[string]  | Array of URLs                                    |
-| text_ref     | No       | string         | Pointer to Markdown/doc blob                     |
+| text_ref     | No       | string         | Pointer to Markdown/doc blob; a value shaped like one file path must name an existing file (`source-path-dangling`) |
 | origin       | No       | object         | Provenance: who authored the entity and on what authority (see [Entity origin](#entity-origin)). Valid on every type; optional on symbols |
 | firmness     | No       | string         | Requirements and ADRs only: `firm`, `default` (assumed when absent) or `exploratory` (see [Decision firmness](#decision-firmness)) |
 
@@ -149,7 +149,7 @@ Kibi checks that a firm decision names a reference; it cannot check that the ref
 | priority     | No       | string         | must, should, could                              |
 | severity     | No       | string         | Severity level                                   |
 | links[]      | No       | array[string]  | URLs or entity IDs (for relationships)           |
-| text_ref     | No       | string         | Independent code/doc evidence pointer            |
+| text_ref     | No       | string         | Independent code/doc evidence pointer; a value shaped like one file path must name an existing file (`source-path-dangling`) |
 | proof_exempt | No       | boolean        | Marks a current requirement as intentionally outside E2E-proof scope. Requires `proof_exempt_reason`; coverage reports the requirement `not_applicable` with that reason |
 | proof_exempt_reason | No | string        | Required when `proof_exempt` is true — the reviewable justification surfaced in coverage rows |
 | approved_by  | No       | string         | Exception requirements only: the human who approved the exception. An exception that `exempts` a requirement makes its specified success scenarios feasible only when `approved_by` is non-empty; without it the advisory `exception-unapproved` check reports the exception |

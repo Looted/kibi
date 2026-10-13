@@ -1,7 +1,7 @@
 ---
 title: Kibi Cli Check Staged
 status: active
-text_ref: .kb/requirements/REQ-cli-staged-complete-inventory-v1.md
+text_ref: .kb/requirements/REQ-AUTO-941B0CE68BAF3331.md
 tags:
   - strict-modeling
   - confidence:1.00

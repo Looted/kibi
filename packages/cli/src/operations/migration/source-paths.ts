@@ -41,12 +41,27 @@ import {
  * names the entity's own file or nothing Kibi can map is removed. A value
  * naming another existing workspace path, an entity id or an http(s) URL is
  * provenance and stays.
+ *
+ * `text_ref` points at independent evidence, so it is never dead data, but
+ * the same pre-canonical paths survive in it. A `text_ref` value shaped
+ * like one workspace file path (no spaces, a directory and an extension)
+ * that names nothing is dangling too: a moved knowledge file is rewritten
+ * to its `.kb/` path, and anything else needs a person, because Kibi cannot
+ * tell what evidence it meant. Prose, entity ids, URLs and lists in
+ * `text_ref` are not paths and are never judged.
  */
 
-/** One authored `source` value and the entity file that carries it. */
+/** The authored frontmatter fields that name workspace files. */
+// implements REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
+export type SourceField = "source" | "text_ref";
+
+/** One authored `source` or `text_ref` value and the entity file that carries it. */
 // implements REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export type AuthoredSourceRef = Readonly<{
   entityId: string;
+  field: SourceField;
+  /** A `text_ref` that is its requirement's semantic source: rewriting it changes the inventory hash. */
+  semanticSource?: boolean;
   /** Workspace-relative, `/`-separated path of the entity's own file. */
   file: string;
   value: unknown;
@@ -92,6 +107,29 @@ const LEGACY_ROOT = "documentation/";
 const SYMBOL_ID_LINE = /^[ \t]*-?[ \t]*id[ \t]*:[ \t]*(.+?)[ \t]*$/gm;
 const SOURCE_EDIT_REFUSED =
   "the source field spans several lines, or editing it would change other frontmatter fields";
+const TEXT_REF_EDIT_REFUSED =
+  "the text_ref field spans several lines, or editing it would change other frontmatter fields";
+const TEXT_REF_UNMAPPED =
+  "no file under .kb/ matches it, so Kibi cannot tell what evidence it meant";
+const TEXT_REF_SEMANTIC_SOURCE =
+  "text_ref is this requirement's semantic source, so changing it changes its semantic inventory hash; re-derive the inventory after editing it";
+/** One workspace file path: a directory, a file name with an extension, no spaces. */
+const FILE_PATH_SHAPE =
+  /^(?:\.\/)?[^\s;,:]+\/[^\s;,:/]+\.[A-Za-z0-9]+(?:#\S*)?$/;
+
+function editRefusedReason(field: SourceField): string {
+  return field === "text_ref" ? TEXT_REF_EDIT_REFUSED : SOURCE_EDIT_REFUSED;
+}
+
+/** Whether a `text_ref` value reads as one workspace file path. */
+// implements REQ-core-validation-rules, REQ-kibi-kb-lifecycle-integrity
+export function isPathShapedTextRef(value: unknown): boolean {
+  return (
+    typeof value === "string" &&
+    !URL_PATTERN.test(value.trim()) &&
+    FILE_PATH_SHAPE.test(value.trim())
+  );
+}
 
 function scalarText(value: unknown): string | undefined {
   if (typeof value === "string") return value.trim();
@@ -128,9 +166,37 @@ export function scanAuthoredSources(workspaceRoot: string): AuthoredSourceScan {
       path.basename(file.relativePath, ".md");
     entityIds.add(id);
     const value = readTopLevelField(slice.text, "source");
-    if (value === undefined || value === null) continue;
-    if (typeof value === "string" && value.trim() === "") continue;
-    refs.push({ entityId: id, file: file.relativePath, value });
+    if (
+      value !== undefined &&
+      value !== null &&
+      !(typeof value === "string" && value.trim() === "")
+    ) {
+      refs.push({
+        entityId: id,
+        field: "source",
+        file: file.relativePath,
+        value,
+      });
+    }
+    const textRef = readTopLevelField(slice.text, "text_ref");
+    if (isPathShapedTextRef(textRef)) {
+      const declared = readTopLevelField(slice.text, "semantic_source_field");
+      const requirement =
+        readTopLevelField(slice.text, "type") === "req" ||
+        file.relativePath.startsWith(`${KB_PATHS.lanes.requirements}/`);
+      const semanticSource =
+        declared === "text_ref" ||
+        (requirement &&
+          declared === undefined &&
+          readTopLevelField(slice.text, "semantic_text") === undefined);
+      refs.push({
+        entityId: id,
+        field: "text_ref",
+        ...(semanticSource ? { semanticSource } : {}),
+        file: file.relativePath,
+        value: textRef,
+      });
+    }
   }
   const symbols = readText(path.join(workspaceRoot, KB_PATHS.symbolsManifest));
   if (symbols !== null) {
@@ -227,6 +293,35 @@ function repairFor(
   ref: AuthoredSourceRef,
   resolution: SourceResolution,
 ): SourceRepair | undefined {
+  if (ref.field === "text_ref") {
+    // A text_ref naming its own existing file is evidence, not redundancy.
+    if (resolution.kind === "self" && resolution.resolves) return undefined;
+    if (resolution.kind !== "dangling" && resolution.kind !== "self") {
+      return undefined;
+    }
+    // A pre-canonical spelling of the entity's own file moved with it.
+    const rewrite =
+      resolution.kind === "dangling" ? resolution.rewrite : ref.file;
+    if (ref.semanticSource === true) {
+      return {
+        ...ref,
+        dangling: true,
+        fix:
+          rewrite !== undefined
+            ? { kind: "rewrite", to: rewrite }
+            : { kind: "remove", reason: "dangling" },
+        refused: TEXT_REF_SEMANTIC_SOURCE,
+      };
+    }
+    return rewrite !== undefined
+      ? { ...ref, dangling: true, fix: { kind: "rewrite", to: rewrite } }
+      : {
+          ...ref,
+          dangling: true,
+          fix: { kind: "remove", reason: "dangling" },
+          refused: TEXT_REF_UNMAPPED,
+        };
+  }
   if (resolution.kind === "self") {
     return {
       ...ref,
@@ -245,10 +340,14 @@ function repairFor(
   };
 }
 
-function editedContent(content: string, fix: SourceFix): string | null {
+function editedContent(
+  content: string,
+  field: SourceField,
+  fix: SourceFix,
+): string | null {
   return fix.kind === "rewrite"
-    ? withTopLevelField(content, "source", fix.to)
-    : withoutTopLevelField(content, "source");
+    ? withTopLevelField(content, field, fix.to)
+    : withoutTopLevelField(content, field);
 }
 
 /** Every repairable source value, sorted by entity id. Read-only. */
@@ -271,7 +370,8 @@ function classifySources(workspaceRoot: string): SourceRepair[] {
   return repairs.sort(
     (left, right) =>
       left.entityId.localeCompare(right.entityId) ||
-      left.file.localeCompare(right.file),
+      left.file.localeCompare(right.file) ||
+      left.field.localeCompare(right.field),
   );
 }
 
@@ -281,8 +381,12 @@ function withEditability(
   repairs: readonly SourceRepair[],
 ): SourceRepair[] {
   return repairs.map((repair) => {
+    if (repair.refused !== undefined) return repair;
     const content = readText(path.join(workspaceRoot, repair.file));
-    if (content !== null && editedContent(content, repair.fix) !== null) {
+    if (
+      content !== null &&
+      editedContent(content, repair.field, repair.fix) !== null
+    ) {
       return repair;
     }
     return {
@@ -290,7 +394,7 @@ function withEditability(
       refused:
         content === null
           ? "the entity file cannot be read"
-          : SOURCE_EDIT_REFUSED,
+          : editRefusedReason(repair.field),
     };
   });
 }
@@ -322,6 +426,8 @@ export function findSourceRepairs(workspaceRoot: string): SourceRepair[] {
 export type SourcePathRewrite = Readonly<{
   entityId: string;
   file: string;
+  /** The field rewritten; absent means `source`. */
+  field?: "text_ref";
   from: string;
   to: string;
 }>;
@@ -353,6 +459,7 @@ function plannedRepair(repair: SourceRepair): PlannedRepair {
   const base = {
     entityId: repair.entityId,
     file: repair.file,
+    ...(repair.field === "text_ref" ? { field: "text_ref" as const } : {}),
     from: shownSourceValue(repair.value),
   };
   return repair.fix.kind === "rewrite"
@@ -379,8 +486,22 @@ export function plannedSourcePathRepairs(
   return { rewrites, removals };
 }
 
+function plannedField(repair: PlannedRepair): SourceField {
+  return "field" in repair && repair.field === "text_ref"
+    ? "text_ref"
+    : "source";
+}
+
+function plannedKey(file: string, field: SourceField): string {
+  return `${field}\0${file}`;
+}
+
 function samePlannedRepair(left: PlannedRepair, right: PlannedRepair): boolean {
-  if (left.entityId !== right.entityId || left.from !== right.from) {
+  if (
+    left.entityId !== right.entityId ||
+    left.from !== right.from ||
+    plannedField(left) !== plannedField(right)
+  ) {
     return false;
   }
   if ("to" in left) return "to" in right && left.to === right.to;
@@ -405,7 +526,7 @@ export function applySourcePathRepairs(
       ? undefined
       : new Map<string, PlannedRepair>(
           [...planned.rewrites, ...planned.removals].map((repair) => [
-            repair.file,
+            plannedKey(repair.file, plannedField(repair)),
             repair,
           ]),
         );
@@ -413,9 +534,19 @@ export function applySourcePathRepairs(
   const removed: SourcePathRemoval[] = [];
   const skipped: Array<{ file: string; reason: string }> = [];
   for (const repair of classifySources(workspaceRoot)) {
+    // A text_ref Kibi cannot map needs a person; never remove it.
+    if (repair.refused !== undefined) {
+      if (wanted === undefined) {
+        skipped.push({
+          file: repair.file,
+          reason: `text_ref '${shownSourceValue(repair.value)}': ${repair.refused}`,
+        });
+      }
+      continue;
+    }
     const current = plannedRepair(repair);
     if (wanted !== undefined) {
-      const plan = wanted.get(repair.file);
+      const plan = wanted.get(plannedKey(repair.file, repair.field));
       if (plan === undefined) continue;
       if (!samePlannedRepair(plan, current)) {
         skipped.push({
@@ -427,9 +558,15 @@ export function applySourcePathRepairs(
     }
     const absolute = path.join(workspaceRoot, repair.file);
     const content = readText(absolute);
-    const next = content === null ? null : editedContent(content, repair.fix);
+    const next =
+      content === null
+        ? null
+        : editedContent(content, repair.field, repair.fix);
     if (next === null) {
-      skipped.push({ file: repair.file, reason: SOURCE_EDIT_REFUSED });
+      skipped.push({
+        file: repair.file,
+        reason: editRefusedReason(repair.field),
+      });
       continue;
     }
     writeFileAtomically(absolute, next);

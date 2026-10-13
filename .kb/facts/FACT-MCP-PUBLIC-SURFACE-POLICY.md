@@ -1,7 +1,7 @@
 ---
 title: Curated deterministic MCP public surface
 status: active
-text_ref: documentation/requirements/REQ-002.md
+text_ref: .kb/requirements/REQ-002.md
 tags:
   - lane:ontology
   - strict-semantics

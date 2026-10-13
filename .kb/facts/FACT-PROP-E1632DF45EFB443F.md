@@ -1,7 +1,7 @@
 ---
 title: Count = 8
 status: active
-text_ref: documentation/requirements/REQ-004.md
+text_ref: .kb/requirements/REQ-004.md
 tags:
   - strict-modeling
   - confidence:0.90

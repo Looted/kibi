@@ -103,7 +103,7 @@ export function factKindShapeHints(
   if (missing.length !== 0)
     return [
       `fact_kind 'predicate' requires ${missing.join(", ")}.`,
-      "Next action: call kb_suggest_predicates before hand-writing ontology predicate facts.",
+      "Next action: call kb_model with mode predicates (CLI: kibi suggest-predicates) and apply its planned fact instead of hand-writing ontology predicate facts.",
     ];
   return [];
 }

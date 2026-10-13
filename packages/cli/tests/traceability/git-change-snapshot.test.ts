@@ -264,4 +264,59 @@ describe("git change snapshots", () => {
       { path: "note.bin", status: "M", content: "new\n" },
     ]);
   });
+
+  it("judges a staged merge commit only on what the merge itself changed", () => {
+    const root = createRepo();
+    try {
+      writeFileSync(join(root, "shared.txt"), "base\n");
+      writeFileSync(join(root, "theirs.ts"), "export const a = 1;\n");
+      writeFileSync(join(root, "removed.txt"), "gone on develop\n");
+      commitAll(root, "baseline");
+      git(root, ["checkout", "-b", "develop"]);
+      writeFileSync(join(root, "shared.txt"), "develop\n");
+      writeFileSync(
+        join(root, "theirs.ts"),
+        "export const a = 1;\nexport const b = 2;\n",
+      );
+      writeFileSync(join(root, "added.ts"), "export const c = 3;\n");
+      unlinkSync(join(root, "removed.txt"));
+      commitAll(root, "develop work");
+      git(root, ["checkout", "main"]);
+      writeFileSync(join(root, "shared.txt"), "main\n");
+      commitAll(root, "main work");
+      try {
+        git(root, ["merge", "develop"]);
+      } catch {
+        // The shared.txt conflict leaves the merge in progress.
+      }
+      writeFileSync(join(root, "shared.txt"), "resolved\n");
+      git(root, ["add", "shared.txt"]);
+
+      const snapshot = captureStagedSnapshot(root);
+      expect(snapshot.inventory.map((file) => file.path)).toEqual([
+        "shared.txt",
+      ]);
+      expect(snapshot.inventory[0]?.previousContent).toBe("main\n");
+      expect(snapshot.mergeInherited).toEqual([
+        "added.ts",
+        "removed.txt",
+        "theirs.ts",
+      ]);
+      expect(snapshot.headCommit).toBe(gitText(root, ["rev-parse", "HEAD"]));
+      expect(snapshot.baseTree).not.toBe(
+        gitText(root, ["rev-parse", "HEAD^{tree}"]),
+      );
+
+      // Outside a merge the base is the HEAD tree again.
+      git(root, ["commit", "--no-verify", "-m", "merge"]);
+      writeFileSync(join(root, "after.ts"), "export const d = 4;\n");
+      git(root, ["add", "after.ts"]);
+      const plain = captureStagedSnapshot(root);
+      expect(plain.mergeInherited).toBeUndefined();
+      expect(plain.baseTree).toBe(gitText(root, ["rev-parse", "HEAD^{tree}"]));
+      expect(plain.inventory.map((file) => file.path)).toEqual(["after.ts"]);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
 });

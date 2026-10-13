@@ -410,6 +410,71 @@ describe("search answer layer", () => {
   });
 
   // implements REQ-kibi-query-fact-filters
+  test("grounding facts come before the constrained subject, and facts over the limit are counted with the ask that lists them", async () => {
+    const entities: Record<string, Row> = {
+      "REQ-ADMIN": {
+        id: "REQ-ADMIN",
+        type: "req",
+        title: "An admin can read, update, delete and export",
+        status: "open",
+      },
+      "FACT-SUBJECT": {
+        id: "FACT-SUBJECT",
+        type: "fact",
+        title: "analysis request access",
+        status: "active",
+        fact_kind: "subject",
+        subject_key: "access.analysis_request_access",
+      },
+    };
+    // The subject is linked first, as stored; then nine clause facts, one
+    // more than an answer lists, the last of them the one the query matched.
+    const edges: [string, string, string][] = [
+      ["constrains", "REQ-ADMIN", "FACT-SUBJECT"],
+    ];
+    const actions = [
+      "read",
+      "update",
+      "delete",
+      "assign",
+      "close",
+      "reopen",
+      "archive",
+      "restore",
+      "export",
+    ];
+    for (const action of actions) {
+      const id = `FACT-${action.toUpperCase()}`;
+      entities[id] = {
+        id,
+        type: "fact",
+        title: `admin may ${action}`,
+        status: "active",
+        fact_kind: "predicate",
+        predicate_name: "permission_rule",
+        predicate_args: ["admin", action, "report", "allow"],
+        polarity: "assert",
+      };
+      edges.push(["requires_predicate", "REQ-ADMIN", id]);
+    }
+    const answer = await buildSearchAnswer(fakeKb(entities, edges), [
+      match(entities["REQ-ADMIN"] as Row, 0.9),
+      match(entities["FACT-EXPORT"] as Row, 0.8),
+    ]);
+    const [req] = answer.governing;
+    const listed = (req?.facts ?? []).map((fact) => fact.id);
+    expect(listed).toHaveLength(SEARCH_ANSWER_LIMITS.factsPerRequirement);
+    // The matched fact leads; the subject, whose key every clause fact
+    // already states, is the one left out.
+    expect(listed[0]).toBe("FACT-EXPORT");
+    expect(listed).not.toContain("FACT-SUBJECT");
+    expect(req?.moreFacts).toEqual({
+      count: 2,
+      ask: 'kb_query({"id":"REQ-ADMIN"})',
+    });
+    expect(answer.truncated).toBe(true);
+  });
+
   test("a predicate fact's ask selects by the key arguments its schema declares", async () => {
     const entities: Record<string, Row> = {
       "REQ-ROLES": {

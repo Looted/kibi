@@ -1,3 +1,4 @@
+import { confirmMetaFreshness } from "../../../utils/content-freshness.js";
 import { PROOF_RECEIPT_MAX_AGE_SECONDS } from "../../proof-receipt.js";
 import { executeStatus } from "../discovery-executors.js";
 import {
@@ -160,7 +161,7 @@ export async function executeFindGaps(
               : `Found ${payload.count ?? rows.length} gap rows. Showing ${rows.length}: ${rows.map((row) => row.id).join(", ")}.${stubNote}`,
         },
       ],
-      structuredContent: payload,
+      structuredContent: confirmMetaFreshness(payload, context.workspaceRoot),
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -380,15 +381,16 @@ export async function executeCoverage(
     const migrationPlan = statusPlan
       ? mergeMigrationPlans([statusPlan, coveragePlan])
       : coveragePlan;
+    const confirmed = confirmMetaFreshness(payload, context.workspaceRoot);
     const enrichedPayload = {
-      ...payload,
+      ...confirmed,
       rows,
       ...(repairPlan !== undefined ? { repairPlan } : {}),
       ...(legacyMigrationPlan !== undefined ? { legacyMigrationPlan } : {}),
       ...(symbolRepairPlan !== undefined ? { symbolRepairPlan } : {}),
       migrationPlan,
       meta: {
-        ...(payload.meta ?? {}),
+        ...(confirmed.meta ?? {}),
         proofReceiptMaxAgeSeconds: PROOF_RECEIPT_MAX_AGE_SECONDS,
         proofSnapshot: codeSnapshot,
         proofSnapshotAvailable: snapshotEvidence.available,
@@ -512,7 +514,7 @@ export async function executeGraph(
               : `Graph traversal returned ${nodes.length} nodes and ${edges.length} edges from ${input.seedIds.join(", ")}.`,
         },
       ],
-      structuredContent: payload,
+      structuredContent: confirmMetaFreshness(payload, context.workspaceRoot),
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

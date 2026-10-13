@@ -1,7 +1,7 @@
 ---
 title: Every cross-identity branch migration is refused
 status: active
-text_ref: documentation/requirements/REQ-branch-store-recovery-v3.md
+text_ref: .kb/requirements/REQ-branch-store-recovery-v3.md
 tags:
   - strict-modeling
   - branching
