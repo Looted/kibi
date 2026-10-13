@@ -19,7 +19,9 @@
 // implements REQ-003
 // Schema 8 requires body context on current entities and pins requirement
 // semantic_text so context sections never change a requirement's meaning.
-export const LATEST_KB_SCHEMA_VERSION = 8;
+// Schema 9 adds decision firmness on requirements and ADRs and requires a
+// "Why this changed" section on new supersedes.
+export const LATEST_KB_SCHEMA_VERSION = 9;
 
 export interface SchemaVersionStatus {
   status: "missing" | "invalid" | "older" | "current" | "newer";

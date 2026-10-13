@@ -327,6 +327,35 @@ export const GENERATED_RULES = [
     diagnosticSeverity: "info",
   },
   {
+    name: "decision-firm-unreferenced",
+    description:
+      "A requirement or ADR marked firmness: firm must name the human words it rests on: origin.ref (or approval_ref on a requirement); Kibi checks that the reference is present, not that it is genuine",
+    enforcementClass: "canonical",
+    category: "integrity",
+  },
+  {
+    name: "decision-firm-superseded",
+    description:
+      "A requirement or ADR that supersedes a firm decision, retired or not, must itself be firm (and so carry a ref to the human who changed the rule); a default or exploratory replacement cannot overrule a firm decision",
+    enforcementClass: "canonical",
+    category: "lifecycle",
+  },
+  {
+    name: "supersedes-reason-missing",
+    description:
+      "A current requirement or ADR that supersedes another must explain why under a 'Why this changed' heading (at least 12 words of prose naming the evidence and answering the old decision's reasoning); supersede edges recorded before schema 9 are acknowledged in the manifest and exempt",
+    enforcementClass: "canonical",
+    category: "lifecycle",
+  },
+  {
+    name: "supersedes-reason-acknowledged",
+    description:
+      "Informational: how many current superseding requirements and ADRs have only supersede edges the schema 9 migration acknowledged without a 'Why this changed' section; one summary finding per check",
+    enforcementClass: "advisory",
+    category: "lifecycle",
+    diagnosticSeverity: "info",
+  },
+  {
     name: "policy-ownership",
     description:
       "When a plugin activated for kibi.check-policy.v1 declares ownership rules, every production symbol in a rule's file set must implement a current requirement grounded (requires_predicate) in one of the rule's predicates; projects without an activated check policy are unaffected",

@@ -58,6 +58,14 @@ If `kb_coverage.repairPlan.status` is `partial`, do not execute it as a complete
 
 `origin` is an object with a required `kind` (`human`, `agent`, `migration` or `import`) and optional `ref`, `approved_by` and `recorded_at` (ISO 8601). Unknown kinds and unknown fields are rejected by `kb_upsert` and, in Markdown frontmatter, by `kibi sync` (classification `Invalid Entity Origin`). To keep a stored origin, omit `origin` from the upsert instead of copying it.
 
+## Invalid firmness
+
+`firmness` is allowed only on requirements and ADRs and must be `firm`, `default` or `exploratory` (classification `Invalid Firmness` in `kibi sync`). A `kb_upsert` that sets `firmness: firm` without `origin.ref` (or `approval_ref` on a requirement) fails with `Entity validation failed: firmness: firm needs origin.ref ...`: set the ref to the message, review or ticket where a human stated the rule, or use `firmness: default` for a delegated or agent choice. Kibi only checks that a reference is present, so never mark your own choice firm or cite words a person did not say.
+
+## Supersede without a reason
+
+`supersedes-reason-missing` blocks a current requirement or ADR that supersedes another without a `## Why this changed` section of at least 12 words. Add the section to the new entity's body: name the evidence (a failing test, a measured cost, a constraint the old decision missed, a new requirement) and answer the old decision's reasoning. A preference is not evidence; propose it instead of superseding. `decision-firm-superseded` blocks a replacement of a firm decision that is not firm itself: ask the person who stated the rule, and record their agreement as `firmness: firm` with `origin.ref` to their words.
+
 ## Proposition-complete ingestion failed on a relationship update
 
 `kb_upsert` on an existing requirement that only adds relationships (for example `specified_by` to a new scenario) keeps the stored proposition ledger: when the payload has no `semantic_*` or `logic_claims` field and its `title` and `text_ref` (if given) equal the stored values, Kibi merges the stored `semantic_text`, `semantic_inventory`, `semantic_inventory_version`, `semantic_source_field`, `semantic_source_hash`, `semantic_clauses` and `logic_claims` (and the stored `text_ref` when the payload omits it) under the payload, and checks the merged requirement. If you still see `semantic_inventory_version must be 'kibi.semantic-inventory.v1' ... received 0`, the payload changed the prose or supplied part of the ledger: either send only `title`, `status` and the relationships, or send the complete ledger returned by `kb_model` with `mode: "analyze"` for the new prose.

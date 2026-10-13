@@ -3271,6 +3271,23 @@
                 ],
                 "description": "Optional fact lane kind for fact entities. Strict lane uses 'subject' and 'property_value'; context lane uses 'observation' or 'meta'; ontology lane uses 'predicate_schema' or 'predicate'. Use kb_model (mode requirement or predicates) when starting from prose."
               },
+              "firmness": {
+                "anyOf": [
+                  {
+                    "const": "firm",
+                    "type": "string"
+                  },
+                  {
+                    "const": "default",
+                    "type": "string"
+                  },
+                  {
+                    "const": "exploratory",
+                    "type": "string"
+                  }
+                ],
+                "description": "req/adr only. firm = a human stated it as a rule (needs origin.ref to their words); default (when absent) = delegated or agent choice; exploratory = flagged guess."
+              },
               "granularity_reason": {
                 "anyOf": [
                   {
@@ -4841,7 +4858,7 @@
             "type": "integer"
           },
           "rules": {
-            "description": "Optional rule subset. Allowed: must-priority-coverage, symbol-coverage, symbol-traceability, no-dangling-refs, source-relationship-parity, branch-store-not-compiled, source-path-dangling, no-cycles, required-fields, deprecated-adr-no-successor, superseded-requirement-open, scenario-feasibility, scenario-feasibility-unknown, exception-claim-keys, numeric-string-value, rule-key-arguments-missing, domain-contradictions, logic-coverage, rule-safety, rule-verifiability, query-plan-safety, req-status-vocabulary, strict-fact-shape, strict-req-fact-pairing, predicate-verifiability, strict-readiness, semantic-completeness, related-requirement-unmodeled, proof-contract-symbols, entity-id-style, domain-redundancy, domain-implication, subject-key-identity, subject-key-shape, ontology-quality, exception-unapproved, exception-approval-self-attested, agent-requirement-unapproved, requirement-rationale-missing, symbol-owner-superseded, adr-unlinked, adr-proposed, predicate-schema-conformance, entity-context-missing, entity-context-acknowledged, policy-ownership, policy-markers. If omitted, server runs canonical and advisory rules plus the full-KB qualityDiagnostics audit scan, including usage telemetry acceptance when evidence exists; migration rules run only when explicitly selected. Advisory and migration findings are non-blocking qualityDiagnostics. If supplied, server preserves scoped validation and skips the full-KB advisory scan.",
+            "description": "Optional rule subset. Allowed: must-priority-coverage, symbol-coverage, symbol-traceability, no-dangling-refs, source-relationship-parity, branch-store-not-compiled, source-path-dangling, no-cycles, required-fields, deprecated-adr-no-successor, superseded-requirement-open, scenario-feasibility, scenario-feasibility-unknown, exception-claim-keys, numeric-string-value, rule-key-arguments-missing, domain-contradictions, logic-coverage, rule-safety, rule-verifiability, query-plan-safety, req-status-vocabulary, strict-fact-shape, strict-req-fact-pairing, predicate-verifiability, strict-readiness, semantic-completeness, related-requirement-unmodeled, proof-contract-symbols, entity-id-style, domain-redundancy, domain-implication, subject-key-identity, subject-key-shape, ontology-quality, exception-unapproved, exception-approval-self-attested, agent-requirement-unapproved, requirement-rationale-missing, symbol-owner-superseded, adr-unlinked, adr-proposed, predicate-schema-conformance, entity-context-missing, entity-context-acknowledged, decision-firm-unreferenced, decision-firm-superseded, supersedes-reason-missing, supersedes-reason-acknowledged, policy-ownership, policy-markers. If omitted, server runs canonical and advisory rules plus the full-KB qualityDiagnostics audit scan, including usage telemetry acceptance when evidence exists; migration rules run only when explicitly selected. Advisory and migration findings are non-blocking qualityDiagnostics. If supplied, server preserves scoped validation and skips the full-KB advisory scan.",
             "items": {
               "anyOf": [
                 {
@@ -5022,6 +5039,22 @@
                 },
                 {
                   "const": "entity-context-acknowledged",
+                  "type": "string"
+                },
+                {
+                  "const": "decision-firm-unreferenced",
+                  "type": "string"
+                },
+                {
+                  "const": "decision-firm-superseded",
+                  "type": "string"
+                },
+                {
+                  "const": "supersedes-reason-missing",
+                  "type": "string"
+                },
+                {
+                  "const": "supersedes-reason-acknowledged",
                   "type": "string"
                 },
                 {

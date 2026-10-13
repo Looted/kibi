@@ -398,3 +398,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-10013b6a2574
+  - type: implements
+    from: SYM-kb-decision-firmness-evaluatedecisionfirmness
+    to: REQ-kb-decision-firmness
+    created_at: 2026-10-12T22:26:18.538Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1cbeceee8fed
+  - type: covered_by
+    from: SYM-kb-decision-firmness-evaluatedecisionfirmness
+    to: TEST-kb-decision-firmness
+    created_at: 2026-10-12T22:26:18.578Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-48684ad0e143

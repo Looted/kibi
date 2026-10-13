@@ -216,3 +216,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6e0802cffa0f
+  - type: implements
+    from: SYM-kb-decision-firmness-applysupersedesreasonacknowledgement
+    to: REQ-kb-decision-firmness
+    created_at: 2026-10-12T22:26:50.908Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-70b2f060979c
+  - type: covered_by
+    from: SYM-kb-decision-firmness-applysupersedesreasonacknowledgement
+    to: TEST-kb-decision-firmness
+    created_at: 2026-10-12T22:26:50.934Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5a2c9e4cfb96

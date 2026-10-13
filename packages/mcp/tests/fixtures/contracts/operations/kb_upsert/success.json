@@ -285,6 +285,11 @@
               ],
               "type": "string"
             },
+            "firmness": {
+              "description": "req/adr only. firm = a human stated it as a rule (needs origin.ref to their words); default (when absent) = delegated or agent choice; exploratory = flagged guess.",
+              "enum": ["firm", "default", "exploratory"],
+              "type": "string"
+            },
             "granularity_reason": {
               "description": "Optional justification for a coarse file/module-level symbol traceability relationship when narrower function/class/type symbols exist.",
               "enum": [
