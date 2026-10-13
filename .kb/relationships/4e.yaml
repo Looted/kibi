@@ -223,3 +223,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c7cdc671a108
+  - type: validates
+    from: TEST-kb-decision-firmness
+    to: REQ-kb-decision-firmness
+    created_at: 2026-10-12T22:24:34.083Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-87fb47b87573
+  - type: validates
+    from: TEST-kb-decision-firmness
+    to: SCEN-kb-decision-firmness
+    created_at: 2026-10-12T22:24:34.110Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-52c7fd3fa42c

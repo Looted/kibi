@@ -1147,6 +1147,7 @@ export function landingContent(args: {
     <details>
       <summary>How do I tell what the agent wrote from what I approved?</summary>
       <p>Each entity can record its origin: written by a human, an agent, a migration or an import, and who approved it. New entities from your agent are marked as agent-written. <code>kb_check</code> lists agent-written requirements nobody has approved, exceptions whose approval only the agent recorded, and requirements that do not say why they exist. Kibi cannot confirm that a person approved something. It shows you what still needs your review.</p>
+      <p>Requirements and ADRs also record how firmly they were decided. A rule you stated is <code>firm</code> and points at your words; only another firm decision can replace it, so the agent is told to ask you first. Kibi checks that the reference is there, not that you really wrote it. A choice you delegated, or one the agent made, is <code>default</code>: a later agent may replace it when it has evidence, and every replacement must say why it changed. A guess is <code>exploratory</code>. Search results and the edit hooks show which is which.</p>
     </details>
     <details>
       <summary>What counts as proven?</summary>

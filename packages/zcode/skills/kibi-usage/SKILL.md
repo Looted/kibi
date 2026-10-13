@@ -4,7 +4,7 @@ description: Use Kibi's source-first, exact-Git, migration-aware, proof-aware op
 license: AGPL-3.0-or-later
 metadata:
   id: kibi-usage
-  version: 2.15.4
+  version: 2.16.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -343,6 +343,29 @@ An exception (a requirement that `exempts` another) exempts nothing until a
 human sets `approved_by`; `kb_check` flags approvals an agent recorded without
 corroboration. Never fill in an approval yourself. Record why a requirement
 exists in `rationale`, or link the ADR that explains it.
+
+## Decision firmness
+
+Requirements and ADRs carry `firmness`, which says what you may do with them.
+Search answers, `kb_query` rows and hook snippets show it (snippets label only
+`[firm]` and `[exploratory]`; an unlabeled decision is `default`).
+
+- `firm`: a human stated it as a rule. Follow it; to change it, ask first.
+  `kb_check` blocks a firm decision without `origin.ref` to their words, and
+  a replacement of a firm decision that is not itself firm.
+- `default` (when absent): a delegated or agent choice. Follow it unless the
+  task gives evidence against it; then supersede it in the same change and
+  list it under "Decisions I changed" for review, without asking first.
+- `exploratory`: a flagged guess; revisit it when you touch the area.
+
+Set `firmness` from what a human actually said: only their stated rule is
+`firm` (with `origin.ref`); "do whatever" or your own pick is `default`; a
+guess is `exploratory`. A supersede needs `## Why this changed` in the new
+entity's body (at least 12 words): name the evidence (a failing test, a
+measured cost, a constraint the old decision missed, a new requirement) and
+answer the old decision's reasoning; `kb_check` blocks it otherwise. A
+preference is not evidence: propose it instead of superseding. Kibi checks
+only that a firm decision has a reference; never cite words nobody said.
 
 Conditional clauses ("only when", "only if", "must not ... unless") compile
 into typed `forbid` rules linked by `requires_rule`, not property facts; one

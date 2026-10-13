@@ -125,6 +125,12 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       description:
         "Requirement-only. Optional reference to the exception's approval decision record.",
     },
+    firmness: {
+      type: "string",
+      enum: ["firm", "default", "exploratory"],
+      description:
+        "req/adr only. firm = a human stated it as a rule (needs origin.ref to their words); default (when absent) = delegated or agent choice; exploratory = flagged guess.",
+    },
     rationale: {
       type: "string",
       minLength: 1,

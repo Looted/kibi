@@ -738,6 +738,8 @@ export type EntitySummary = {
   id: string;
   title?: string;
   status?: string;
+  /** Requirement or ADR firmness as authored (absent reads as default). */
+  firmness?: string;
   /**
    * Frontmatter `links` (plain string entries read as `relates_to`) merged
    * with canonical relationship-shard records whose `from` is this entity.
@@ -848,9 +850,12 @@ export function readEntitySummary(
   let pending: PendingLink | undefined;
   for (const line of lines.slice(1)) {
     if (line.trim() === "---") break;
-    const match = /^(title|status):\s*(.*)$/.exec(line);
+    const match = /^(title|status|firmness):\s*(.*)$/.exec(line);
     if (match?.[1] === "title" && match[2]) summary.title = unquote(match[2]);
     if (match?.[1] === "status" && match[2]) summary.status = unquote(match[2]);
+    // implements REQ-kb-decision-firmness
+    if (match?.[1] === "firmness" && match[2])
+      summary.firmness = unquote(match[2]);
     if (/^\S/.test(line)) {
       flushLink(authored, pending);
       pending = undefined;

@@ -818,6 +818,7 @@ describe("search answer verdicts, exceptions and scope", () => {
         id: "REQ-STAFF",
         title: "Staff orders may skip the promotion check",
         status: "open",
+        firmness: "default",
         approvedBy: "finance-lead",
       },
     ]);
@@ -870,6 +871,7 @@ describe("search answer rationale excerpts", () => {
         id: "ADR-PROMO",
         title: "Promotions may zero the payable total",
         status: "accepted",
+        firmness: "default",
         source: ".kb/adr/ADR-PROMO.md",
         excerpt:
           "Allow a valid promotion to bring the payable total to zero. Keep min_total at 0 for Node.js clients.",
@@ -881,8 +883,33 @@ describe("search answer rationale excerpts", () => {
         id: "ADR-PROMO",
         title: "Promotions may zero the payable total",
         status: "accepted",
+        firmness: "default",
       },
     ]);
+  });
+
+  // implements REQ-kb-decision-firmness
+  test("requirements and ADRs say how firmly they were decided; other rows do not", async () => {
+    const answer = await buildSearchAnswer(
+      fakeKb(
+        {
+          ...ENTITIES,
+          "ADR-PROMO": { ...(ENTITIES["ADR-PROMO"] as Row), firmness: "firm" },
+          "REQ-NEW": {
+            ...(ENTITIES["REQ-NEW"] as Row),
+            firmness: "exploratory",
+          },
+        },
+        EDGES,
+      ),
+      [match(ENTITIES["REQ-NEW"] as Row, 0.9)],
+    );
+    const [current] = answer.governing;
+    expect(current?.firmness).toBe("exploratory");
+    expect(current?.adrs[0]?.firmness).toBe("firm");
+    expect(answer.rationale[0]?.firmness).toBe("firm");
+    expect(current?.scenarios[0]?.firmness).toBeUndefined();
+    expect(current?.tests[0]?.firmness).toBeUndefined();
   });
 
   test("an ADR whose source cannot be read keeps its source path without an excerpt", async () => {
