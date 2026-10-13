@@ -1,5 +1,13 @@
 # kibi-cursor
 
+## 2.7.1
+
+### Patch Changes
+
+- The bundled `kibi-usage` skill (2.16.1) now tells an agent that changes a grounded requirement's text to analyze the new prose with the requirement's `id` first, so the `Claim-key drift against the stored ledger` warning fires before any write, and it explains the two-sided proposition-complete error. Before, the Codex and Cursor packages would have kept shipping the 2.16.0 skill text after the CLI and MCP server already carried the new behavior.
+
+  Technical summary: the `skills/` mirrors in these packages are regenerated from the runtime skill canon; no code changes.
+
 ## 2.7.0
 
 ### Minor Changes
