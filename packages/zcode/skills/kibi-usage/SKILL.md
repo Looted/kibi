@@ -94,7 +94,8 @@ it is a pointer to the knowledge, never proof. Each line answers one question:
 - `Kibi knowledge for <path> (symbol manifest):` and the `- REQ-… — <symbol
   titles>` rows: the requirements the file's symbols implement, lead
   requirement first. Read the lead requirement with `kb_query({id})` before
-  changing behavior.
+  changing behavior; add `includeBody: true` to see its authored prose, and
+  fix a stale sentence there with `kb_upsert` `document.body`.
 - `REQ-… must keep true: FACT-…` (edit only): the ground facts the lead
   requirement requires. An edit that breaks one of them is a requirement
   change: supersede and remodel the requirement, do not code around the fact.

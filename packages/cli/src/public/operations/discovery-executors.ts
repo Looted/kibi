@@ -1,3 +1,4 @@
+import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { compilerFingerprintReason } from "../../commands/sync/cache.js";
 import { effectiveFirmness } from "../../decision-firmness.js";
@@ -34,6 +35,7 @@ import {
   reloadFullEntities,
   validateEntityType,
 } from "./discovery-entities.js";
+import { readAuthoredEntity } from "./entity-context.js";
 import {
   type MigrationConfigStatus,
   type MigrationPlan,
@@ -67,6 +69,8 @@ export type QueryInput = {
   readonly distinct?: string;
   readonly subjectKey?: string;
   readonly propertyKey?: string;
+  /** With `id`: also return the entity's authored Markdown body. */
+  readonly includeBody?: boolean;
 };
 
 /** A ready-to-run follow-up call the query suggests. */
@@ -97,7 +101,25 @@ export type QueryPayload = {
   readonly factQuery?: FactQueryPayload;
   /** Present when an empty answer came from a store never compiled for this branch. */
   readonly branchStore?: SearchBranchStoreNotice;
+  /** Present when `includeBody` was requested for an `id`. */
+  readonly body?: QueryBody;
 };
+
+/**
+ * The authored Markdown body of the entity a kb_query `id` names: the text
+ * after its front matter, which kb_upsert `document.body` replaces. `text` is
+ * null when the entity has no readable authored document (a symbol, or a
+ * source that is not a workspace Markdown file).
+ */
+export type QueryBody = Readonly<{
+  id: string;
+  path: string | null;
+  text: string | null;
+  truncated?: boolean;
+}>;
+
+/** Bodies longer than this are cut; the file itself stays the full record. */
+export const QUERY_BODY_MAX_CHARS = 32_000;
 
 export const FACT_KINDS = [
   "subject",
@@ -684,6 +706,11 @@ export async function executeQuery(
   const { type, id, tags, sourceFile, limit = 100, offset = 0 } = input;
   try {
     validateEntityType(type);
+    if (input.includeBody === true && (id === undefined || id === "")) {
+      throw new Error(
+        "includeBody needs id: it returns the authored body of one entity. Pass the entity's id.",
+      );
+    }
     if (hasTypedFactFilters(input)) {
       return await executeFactQuery(input, context, limit, offset);
     }
@@ -729,18 +756,78 @@ export async function executeQuery(
               return `${entityId} (${String(entity.title ?? "")}, status=${String(entity.status ?? "")})`;
             })
             .join(", ")}`;
+    const body =
+      input.includeBody === true && id !== undefined
+        ? await readQueryBody(
+            id,
+            paginated.find((entity) => entity.id === id),
+            context,
+          )
+        : undefined;
     return {
-      content: [{ type: "text", text }],
+      content: [
+        { type: "text", text: body ? `${text}\n${queryBodyText(body)}` : text },
+      ],
       structuredContent: {
         entities: paginated,
         count: indexedPage.count,
         ...(storeNotice ? { branchStore: storeNotice } : {}),
+        ...(body ? { body } : {}),
       },
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     throw new Error(`Query execution failed: ${message}`);
   }
+}
+
+// The body is read from the entity's authored document inside the
+// workspace, the same file kb_upsert rewrites; nothing outside it is read.
+// implements REQ-kibi-operation-interface-parity
+async function readQueryBody(
+  id: string,
+  entity: Readonly<Record<string, unknown>> | undefined,
+  context: OperationContext,
+): Promise<QueryBody> {
+  const source = typeof entity?.source === "string" ? entity.source : "";
+  const relative = source.split("#", 1)[0]?.trim() ?? "";
+  const root = path.resolve(context.workspaceRoot);
+  const resolved = path.resolve(root, relative);
+  if (!relative.endsWith(".md") || !resolved.startsWith(root + path.sep)) {
+    return { id, path: null, text: null };
+  }
+  const bodyPath = path.relative(root, resolved).split(path.sep).join("/");
+  let raw: string;
+  try {
+    raw = String(
+      context.fs
+        ? await context.fs.readFile(resolved)
+        : await readFile(resolved, "utf8"),
+    );
+  } catch {
+    return { id, path: bodyPath, text: null };
+  }
+  const authored = readAuthoredEntity(raw, bodyPath)?.body;
+  if (authored === undefined || authored === null) {
+    return { id, path: bodyPath, text: null };
+  }
+  return authored.length > QUERY_BODY_MAX_CHARS
+    ? {
+        id,
+        path: bodyPath,
+        text: authored.slice(0, QUERY_BODY_MAX_CHARS),
+        truncated: true,
+      }
+    : { id, path: bodyPath, text: authored };
+}
+
+function queryBodyText(body: QueryBody): string {
+  if (body.text === null) {
+    return body.path === null
+      ? `No authored document for ${body.id}, so there is no body to return.`
+      : `The authored document ${body.path} of ${body.id} could not be read.`;
+  }
+  return `Body of ${body.id} (${body.path}${body.truncated ? `, first ${QUERY_BODY_MAX_CHARS} characters` : ""}; replace it with kb_upsert document.body):\n${body.text}`;
 }
 
 /**

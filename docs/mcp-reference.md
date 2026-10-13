@@ -326,9 +326,12 @@ Retrieve entities by `type`, `id`, `tags`, or `sourceFile`, or ask typed questio
 - `sourceFile` (optional): Source-file substring filter
 - `limit` (optional): Maximum number of results
 - `offset` (optional): Number of results to skip
+- `includeBody` (optional, default `false`): with `id` only, also return the entity's authored Markdown body
 
 **Returns:**
 Array of matching entities (`entities`) with deterministic ordering and the total `count`.
+
+Entity rows carry front matter only. With `includeBody: true` the answer adds `body: { id, path, text }`: the prose after the front matter of the entity's authored document, so an agent can see and correct a statement the body makes that the fields do not; `kb_upsert` `document.body` replaces it. `text` is `null` when the entity has no authored Markdown document inside the workspace (a symbol, for example), and a body longer than 32 000 characters is cut with `truncated: true`. `includeBody` without `id` is refused.
 
 **Example:**
 ```json
