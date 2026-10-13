@@ -151,7 +151,9 @@ describe("doctorCommand", () => {
     makeExecutable(path.join(cwd, ".git", "hooks", "pre-commit"));
     const noKibi = await withCwd(cwd, () => doctorCommand({ format: "json" }));
     expect(noKibi.exitCode).toBe(1);
-    expect(io.logText()).toContain("does not invoke kibi");
+    expect(io.logText()).toContain(
+      "Custom pre-commit hook (no kibi-managed section) does not run",
+    );
 
     writeHook(cwd, "pre-commit", "#!/bin/sh\nkibi check\n");
     makeExecutable(path.join(cwd, ".git", "hooks", "pre-commit"));
@@ -159,15 +161,22 @@ describe("doctorCommand", () => {
     makeExecutable(path.join(cwd, ".git", "hooks", "post-rewrite"));
     const rewrite = await withCwd(cwd, () => doctorCommand({ format: "json" }));
     expect(rewrite.exitCode).toBe(1);
-    expect(io.logText()).toContain("does not invoke kibi");
+    expect(io.logText()).toContain(
+      "Custom post-rewrite hook (no kibi-managed section) does not run 'kibi sync'",
+    );
 
-    writeHook(cwd, "pre-commit", "#!/bin/sh\nkibi check --staged\n");
+    writeHook(
+      cwd,
+      "pre-commit",
+      "#!/bin/sh\nkibi check-generated --staged --changed-only\nkibi check --staged\n",
+    );
     makeExecutable(path.join(cwd, ".git", "hooks", "pre-commit"));
     writeHook(cwd, "post-rewrite", "#!/bin/sh\nkibi sync\n");
     makeExecutable(path.join(cwd, ".git", "hooks", "post-rewrite"));
     const ready = await withCwd(cwd, () => doctorCommand({ format: "json" }));
     expect(ready.exitCode).toBe(0);
-  });
+    // Five full doctor runs exceed the 5s default on slower machines.
+  }, 20_000);
 
   test("prints the all-checks-passed table after init", async () => {
     const restoreEnv = isolateKibiEnv();
@@ -306,7 +315,7 @@ describe("doctorCommand", () => {
     expect(original).toBeDefined();
   });
 
-  test("passes a legacy pre-commit hook that invokes kibi check without --staged", async () => {
+  test("fails a custom pre-commit hook that runs kibi check without --staged", async () => {
     const restoreEnv = isolateKibiEnv();
     restores.push(restoreEnv);
     const cwd = createGitWorkspace();
@@ -323,8 +332,11 @@ describe("doctorCommand", () => {
     const io = captureIo();
     restores.push(io.restore);
     const result = await withCwd(cwd, () => doctorCommand({ format: "json" }));
-    expect(result.exitCode).toBe(0);
-    expect(io.logText()).toContain("legacy 'kibi check'");
+    // init never edits a hook without kibi-managed markers, so doctor points
+    // at the delegation snippet instead of a re-run of init.
+    expect(result.exitCode).toBe(1);
+    expect(io.logText()).toContain("kibi init --print-hook pre-commit");
+    expect(io.logText()).not.toContain("legacy 'kibi check'");
   });
 
   test("emits package provenance actions when CLI metadata is unknown or mismatched", async () => {

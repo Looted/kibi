@@ -31,6 +31,10 @@ export function registerFoundationCommands(program: Command): void {
       "--badge-only",
       "With --github, publish only the badge (opt out of the full report)",
     )
+    .option(
+      "--print-hook <hook>",
+      "Print a snippet that delegates an existing hook (pre-commit, post-checkout, post-merge, post-rewrite) to kibi, and write nothing",
+    )
     .action(
       withExitCode(async (options: Parameters<typeof initCommand>[0]) =>
         (await import("./commands/init.js")).initCommand(options),

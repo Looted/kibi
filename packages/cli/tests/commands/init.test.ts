@@ -539,6 +539,105 @@ describe("kibi init", () => {
     expect(caught?.stderr ?? "").toContain("--badge-only requires --github");
   });
 
+  describe("--print-hook", () => {
+    function printHook(hook: string): string {
+      return execSync(`bun ${kibiBin} init --print-hook ${hook}`, {
+        cwd: tmpDir,
+        encoding: "utf8",
+        stdio: "pipe",
+      });
+    }
+
+    test("is documented in init --help", () => {
+      const help = execSync(`bun ${kibiBin} init --help`, {
+        cwd: tmpDir,
+        encoding: "utf8",
+      });
+      expect(help).toContain("--print-hook <hook>");
+    });
+
+    test("prints a pre-commit snippet and writes nothing", () => {
+      execSync("git init -b main", { cwd: tmpDir, stdio: "ignore" });
+      const snippet = printHook("pre-commit");
+
+      expect(snippet).toContain(
+        '"$KIBI_BIN" check-generated --staged --changed-only || exit $?',
+      );
+      expect(snippet).toContain('"$KIBI_BIN" check --staged || exit $?');
+      expect(snippet).toContain('KIBI_BIN="$kibi_dir/node_modules/.bin/kibi"');
+      expect(existsSync(path.join(tmpDir, ".kb"))).toBe(false);
+      expect(existsSync(path.join(tmpDir, ".git/hooks/pre-commit"))).toBe(
+        false,
+      );
+    });
+
+    test("the pre-commit snippet runs a project-local kibi without PATH and propagates failures", () => {
+      execSync("git init -b main", { cwd: tmpDir, stdio: "ignore" });
+      const binDir = path.join(tmpDir, "node_modules", ".bin");
+      mkdirSync(binDir, { recursive: true });
+      const callLog = path.join(tmpDir, "calls.log");
+      // A stand-in kibi that records its arguments and fails `check` when
+      // FAIL_CHECK is set, so the hook's failure propagation is observable.
+      writeFileSync(
+        path.join(binDir, "kibi"),
+        `#!/bin/sh\necho "$*" >> "${callLog}"\nif [ "$1" = "check" ] && [ -n "$FAIL_CHECK" ]; then exit 7; fi\nexit 0\n`,
+        { mode: 0o755 },
+      );
+      const hookPath = path.join(tmpDir, "custom-pre-commit");
+      writeFileSync(
+        hookPath,
+        `#!/bin/sh\necho lint\n${printHook("pre-commit")}echo after-kibi\n`,
+        { mode: 0o755 },
+      );
+      const env = { ...process.env, PATH: "/usr/bin:/bin" };
+
+      const ok = execSync(`sh ${hookPath}`, {
+        cwd: tmpDir,
+        encoding: "utf8",
+        env,
+      });
+      expect(ok).toContain("after-kibi");
+      expect(readFileSync(callLog, "utf8")).toBe(
+        "check-generated --staged --changed-only\ncheck --staged\n",
+      );
+
+      let caught: { status?: number | null; stdout?: string } | undefined;
+      try {
+        execSync(`sh ${hookPath}`, {
+          cwd: tmpDir,
+          encoding: "utf8",
+          env: { ...env, FAIL_CHECK: "1" },
+          stdio: "pipe",
+        });
+      } catch (error) {
+        caught = error as { status?: number | null; stdout?: string };
+      }
+      expect(caught?.status).toBe(7);
+      expect(caught?.stdout ?? "").not.toContain("after-kibi");
+    });
+
+    test("guards post-checkout and post-rewrite snippets like the templates", () => {
+      expect(printHook("post-checkout")).toContain('if [ "$3" = "1" ]; then');
+      expect(printHook("post-rewrite")).toContain(
+        'if [ "$1" = "rebase" ]; then',
+      );
+      expect(printHook("post-merge")).toContain('"$KIBI_BIN" sync');
+    });
+
+    test("rejects a hook Kibi does not manage", () => {
+      let caught: { status?: number | null; stderr?: string } | undefined;
+      try {
+        printHook("pre-push");
+      } catch (error) {
+        caught = error as { status?: number | null; stderr?: string };
+      }
+      expect(caught?.status).toBe(1);
+      expect(caught?.stderr ?? "").toContain(
+        "unknown hook 'pre-push' for --print-hook. Expected one of: post-checkout, post-merge, post-rewrite, pre-commit.",
+      );
+    });
+  });
+
   test("init --github scaffolds the documented report workflow", () => {
     execSync("git init -b main", { cwd: tmpDir });
     execSync("git config user.email 'test@test.com'", { cwd: tmpDir });
