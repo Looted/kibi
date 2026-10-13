@@ -52071,6 +52071,19 @@ symbols:
         target: TEST-agent-guided-migration-orchestration
       - type: implements
         target: REQ-agent-guided-migration-orchestration
+  - id: SYM-bootstrap-claim-plan-activation
+    title: claimPlanActivation
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/activation.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T16:38:46.789Z
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-bootstrap-discovered-candidate-budget
   - id: SYM-migrate-isBacklogAction
     title: isBacklogAction
     status: active

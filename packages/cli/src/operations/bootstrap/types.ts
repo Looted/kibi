@@ -193,6 +193,12 @@ export type ActivationPolicy = {
   readonly activationMode: ActivationMode;
   readonly applyBlocked: boolean;
   readonly allowCandidateGeneration: boolean;
+  /**
+   * Whether declared intent claims from bootstrapContext are planned. A
+   * seeded KB turns off discovered candidates but still plans these claims.
+   * Defaults to allowCandidateGeneration when omitted.
+   */
+  readonly allowDeclaredClaims?: boolean;
   readonly reason: string;
   readonly handoffMessage?: string;
 };

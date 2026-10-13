@@ -441,6 +441,20 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-61bb6bd07228
   - type: implements
+    from: SYM-bootstrap-claim-plan-activation
+    to: REQ-bootstrap-discovered-candidate-budget
+    created_at: 2026-10-13T16:38:48.214Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-601bd84dfe12
+  - type: covered_by
+    from: SYM-bootstrap-claim-plan-activation
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-10-13T16:38:48.243Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dc79c3b20004
+  - type: implements
     from: SYM-git-change-snapshot-renameResolutionBase
     to: REQ-source-analysis-v2
     created_at: 2026-10-13T17:18:32.368Z

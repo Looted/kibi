@@ -78,6 +78,13 @@ function prompt(
       `- Verify after kb_check with ${summary(declared.verificationAnchors, 2)}.`,
     );
   if (
+    activation.activationMode === "attached_seeded_handoff" &&
+    !activation.applyBlocked
+  )
+    bullets.push(
+      "- Seeded KB: only declared intent claims are planned; use kb_search or kb_query for existing knowledge.",
+    );
+  else if (
     activation.activationMode === "attached_thin_handoff" ||
     activation.activationMode === "attached_seeded_handoff"
   )
@@ -116,7 +123,8 @@ export function confidence(
     repair_bootstrap: -0.05,
     attached_thin_bootstrap: 0.04,
     attached_thin_handoff: -0.12,
-    attached_seeded_handoff: -0.18,
+    // A seeded plan of declared claims weighs like a thin bootstrap plan.
+    attached_seeded_handoff: activation.applyBlocked ? -0.18 : 0.04,
     vendored_blocked: -0.25,
   }[activation.activationMode];
   reasons.push(

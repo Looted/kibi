@@ -1,9 +1,10 @@
-import { describe, expect, mock, test } from "bun:test";
+import { describe, expect, mock, spyOn, test } from "bun:test";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
 import { buildBootstrapCandidates } from "../../src/operations/bootstrap/candidates.js";
+import * as discovery from "../../src/operations/bootstrap/discovery.js";
 import { discoverBootstrap } from "../../src/operations/bootstrap/discovery.js";
 import { bootstrapPlanHash } from "../../src/operations/bootstrap/types.js";
 import {
@@ -210,11 +211,101 @@ describe("shared bootstrap executor", () => {
       expect(handoff.structuredContent.plan.activation.activationMode).toBe(
         "attached_seeded_handoff",
       );
+      // Without declared claims the handoff names the path for them.
+      expect(handoff.structuredContent.handoffMessage).toContain(
+        "kb_compile_intent",
+      );
     } finally {
       rmSync(blockedRoot, { recursive: true, force: true });
       seeded.cleanup();
     }
   });
+});
+
+// executable_for TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+test("a mode that plans no declared claims accounts for each one as suppressed_by_activation", async () => {
+  const root = mkdtempSync(path.join(os.tmpdir(), "kibi-bootstrap-vendored-"));
+  const reason = "vendored";
+  const spy = spyOn(discovery, "discoverBootstrap").mockResolvedValue({
+    activation: {
+      activationState: "vendored_only",
+      activationMode: "vendored_blocked",
+      applyBlocked: true,
+      allowCandidateGeneration: false,
+      allowDeclaredClaims: false,
+      reason,
+    },
+    evidence: [],
+    ignoredSources: [],
+    summary: {
+      activationState: "vendored_only",
+      activationMode: "vendored_blocked",
+      applyBlocked: true,
+      reason,
+      providersRun: [],
+      providerCounts: {},
+      detectedLanguages: [],
+      detectedTestFrameworks: [],
+      excludedRoots: [],
+      truncated: false,
+      scanWarnings: [],
+    },
+    migrationWarning: null,
+    pluginOffers: [],
+  });
+  try {
+    const result = await planBootstrapSpec.execute(
+      {
+        bootstrapContext: {
+          knowledgeSources: [
+            {
+              id: "spec",
+              title: "Spec",
+              kind: "specification",
+              locator: "spec",
+              authority: "authoritative",
+            },
+          ],
+          intentClaims: [
+            {
+              sourceId: "spec",
+              reference: "S-1",
+              statement: "Telemetry must be disabled.",
+              excerpt: "Telemetry must be disabled.",
+            },
+            {
+              sourceId: "spec",
+              reference: "S-2",
+              statement: "Is telemetry opt-in?",
+              kind: "open_question",
+            },
+          ],
+        },
+      },
+      planningContext(root),
+    );
+    const plan = result.structuredContent.plan;
+    expect(plan.candidates).toEqual([]);
+    expect(
+      plan.suppressedCandidates.filter(
+        (row) => row.reason === "suppressed_by_activation",
+      ),
+    ).toEqual([
+      expect.objectContaining({
+        sourcePath: "S-1",
+        entityType: "req",
+        sourceId: "spec",
+        activationMode: "vendored_blocked",
+      }),
+      expect.objectContaining({ sourcePath: "S-2", entityType: "fact" }),
+    ]);
+    expect(plan.diagnostics).toContain(
+      "Knowledge source spec (authoritative): 2 declared claim(s), 0 planned, 0 already in the KB, 0 filtered out, 2 not planned: 2 because bootstrap synthesis is suppressed in vendored_blocked; compile them with kb_compile_intent.",
+    );
+  } finally {
+    spy.mockRestore();
+    rmSync(root, { recursive: true, force: true });
+  }
 });
 
 // executable_for TEST-KIBI-BOOTSTRAP-PLAN-APPLY
