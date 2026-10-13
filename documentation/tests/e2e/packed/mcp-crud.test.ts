@@ -520,11 +520,17 @@ if (RUN_NODE_TEST_SUITE) {
         );
         assert.match(
           deleteResult.content?.[0]?.text ?? "",
-          /Deletion plan .*kb_apply_plan/,
+          /cannot be deleted: supersede them with kb_upsert/,
         );
         const envelope = deleteResult.structuredContent as
-          | { data?: { deletionPlan?: { supersessionRequired?: boolean } } }
+          | {
+              data?: {
+                outcome?: string;
+                deletionPlan?: { supersessionRequired?: boolean };
+              };
+            }
           | undefined;
+        assert.strictEqual(envelope?.data?.outcome, "supersession_required");
         assert.strictEqual(
           envelope?.data?.deletionPlan?.supersessionRequired,
           true,
