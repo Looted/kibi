@@ -337,11 +337,37 @@ describe("impact diagnostics", () => {
     ).toEqual([]);
   });
 
-  it("uses fallback linked-target wording when changed behavior has no traceability links", () => {
+  it("asks to record the behavior of a changed symbol in a file no requirement owns", () => {
+    const symbol = makeSymbol();
     const diagnostics = createSemanticReviewDiagnostics({
-      symbolsByFile: new Map([["src/upload.ts", [makeSymbol()]]]),
+      symbolsByFile: new Map([[symbol.location.file, [symbol]]]),
     });
 
-    expect(diagnostics[0]?.message).toContain("linked requirements/tests");
+    expect(diagnostics).toEqual([
+      expect.objectContaining({
+        id: "symbol_semantic_review_needed",
+        blocking: false,
+        message: `Changed behavioral symbol ${symbol.name} is in a file no requirement owns, so no recorded intent covers the behavior it has after this change`,
+        suggestion: expect.stringContaining(
+          "kb_upsert a requirement with a scenario and link the symbol with implements",
+        ),
+      }),
+    ]);
+    expect(diagnostics[0]?.suggestion).toContain(
+      `sourceLocations:[{path:"${symbol.location.file}"}]`,
+    );
+    expect(diagnostics[0]?.suggestion).toContain("refactor");
+  });
+
+  it("keeps the linked-coverage review when another symbol of the file is linked", () => {
+    const symbol = makeSymbol();
+    const diagnostics = createSemanticReviewDiagnostics({
+      symbolsByFile: new Map([[symbol.location.file, [symbol]]]),
+      linkedSourceFiles: new Set([symbol.location.file]),
+    });
+
+    expect(diagnostics[0]?.message).toBe(
+      `Changed behavioral symbol ${symbol.name} needs semantic review against linked Kibi coverage: linked requirements/tests`,
+    );
   });
 });

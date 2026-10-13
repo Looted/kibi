@@ -585,13 +585,28 @@ export async function handleKbSuggestPredicates(
       : [];
   const plannedFactId =
     typeof predicatePlan[0]?.id === "string" ? predicatePlan[0].id : null;
+  // The manifest the relationship plan calls "merged" starts from what the
+  // stored requirement already declares, so an agent that passes no
+  // existingLogicClaims is not handed a manifest that drops its other
+  // clauses.
+  const existingLogicClaims = Array.from(
+    new Set([
+      ...(storedRequirement !== null &&
+      Array.isArray(storedRequirement.logic_claims)
+        ? storedRequirement.logic_claims.filter(
+            (claim): claim is string => typeof claim === "string",
+          )
+        : []),
+      ...(args.existingLogicClaims ?? []),
+    ]),
+  );
   const relationshipPlan =
     completeCandidate && !alreadyGrounded && !ledgerMissing
       ? buildRelationshipPlan(
           plannedFactId ?? "",
           args.requirementId,
           text,
-          args.existingLogicClaims,
+          existingLogicClaims,
         )
       : null;
   const replacementPlan =
@@ -679,9 +694,7 @@ export async function handleKbSuggestPredicates(
                   : alreadyGrounded
                     ? "No predicate candidate passed the semantic applicability gate; keep the existing grounding and record the ontology-gap observation in applyPlan so the missing schema stays visible."
                     : "No predicate candidate passed the semantic applicability gate; record an ontology gap and review the generated schema draft instead of silently writing prose.");
-  const logicClaims = Array.from(
-    new Set([...(args.existingLogicClaims ?? []), claimKey]),
-  );
+  const logicClaims = Array.from(new Set([...existingLogicClaims, claimKey]));
   const plan =
     relationshipPlan !== null && plannedFactId !== null && args.requirementId
       ? await groundingPlan(prolog, context, {
@@ -700,11 +713,10 @@ export async function handleKbSuggestPredicates(
       : null;
   // Without a plan nothing ran the contradiction analysis, so the decision
   // conflicts a complete candidate would introduce are looked up directly.
+  // A claim analyzed without a requirement asks the same question ("what
+  // would this decision conflict with?"), so it gets the same lookup.
   const decisionConflicts =
-    plan === null &&
-    completeCandidate !== undefined &&
-    !keepExistingGrounding &&
-    args.requirementId
+    plan === null && completeCandidate !== undefined && !keepExistingGrounding
       ? await candidateDecisionConflicts(prolog, completeCandidate, warnings)
       : [];
   for (const conflict of decisionConflicts) {
@@ -713,8 +725,17 @@ export async function handleKbSuggestPredicates(
     );
   }
 
+  const conflictSummary =
+    decisionConflicts.length > 0
+      ? ` It would contradict ${decisionConflicts
+          .map(
+            (conflict) =>
+              `${conflict.factId} (${conflict.effect}) under ${conflict.requirementId}`,
+          )
+          .join(", ")}: see decisionConflicts before applying anything.`
+      : "";
   return {
-    content: [{ type: "text", text: textSummary }],
+    content: [{ type: "text", text: textSummary + conflictSummary }],
     structuredContent: {
       text,
       claimKey,

@@ -447,6 +447,7 @@ const BASE_DATA_SCHEMAS: Readonly<
       count: integerValue,
       factQuery: recordValue,
       branchStore: recordValue,
+      body: recordValue,
     },
     ["entities", "count"],
   ),

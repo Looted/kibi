@@ -147,7 +147,8 @@ describe("factKindShapeHints", () => {
     ).toEqual(
       expect.arrayContaining([
         expect.stringContaining("requires predicate_name"),
-        expect.stringContaining("kb_suggest_predicates"),
+        // The public tool name, not the operation catalog's.
+        expect.stringContaining("call kb_model with mode predicates"),
       ]),
     );
     expect(

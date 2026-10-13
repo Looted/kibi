@@ -730,6 +730,40 @@ describe("shell commands", () => {
     ).toEqual({});
   });
 
+  test("a command that writes a linked file in place says what must stay true before it runs", async () => {
+    const fixture = createKibiWorkspace();
+    commitAll(fixture);
+    const { pre, post, stop } = session(fixture);
+    const command = "sed -i s/total/sum/ src/checkout.ts";
+    const before = await pre("Bash", { command });
+    expect(before).toContain("REQ-checkout-rounding");
+    expect(before).toContain("must keep true");
+    expect(before).toContain('kb_check({sourceFiles:["src/checkout.ts"]');
+    write(fixture.root, "src/checkout.ts", `${CHECKOUT_SOURCE}// sed\n`);
+    // Already said before the edit: not repeated after it.
+    expect(await post("Bash", { command })).toEqual({});
+    expect(await stop()).toContain("src/checkout.ts");
+  });
+
+  test("an in-place write after a shell read adds what must stay true; a redirect elsewhere stays a read", async () => {
+    const fixture = createKibiWorkspace();
+    commitAll(fixture);
+    const { pre } = session(fixture);
+    // Output redirected away from the linked file: still a read.
+    const read = await pre("Bash", {
+      command: "grep -n total src/checkout.ts > /tmp/kibi-hook-out.txt",
+    });
+    expect(read).toContain("REQ-checkout-rounding");
+    expect(read).not.toContain("must keep true");
+    const edit = await pre("Bash", {
+      command: "cd src && perl -pi -e 's/total/sum/' checkout.ts",
+    });
+    expect(edit).toContain("must keep true");
+    expect(
+      await pre("Bash", { command: "printf '//x\\n' >> src/checkout.ts" }),
+    ).toBeUndefined();
+  });
+
   test("files left dirty before the command are not attributed to it", async () => {
     const fixture = createKibiWorkspace();
     commitAll(fixture);

@@ -17,7 +17,7 @@ Use whichever surface your client can see. You do not configure both unless you 
 
 ## Claude Code
 
-The `kibi-claude` plugin brings the server, the bundled skills, and hooks that show the agent the linked requirements and tests before it reads or edits code, and before an edit, what those requirements must keep true and the decision behind them. The same context reaches reads and writes the agent makes through shell commands such as `cat`, `sed -i` or a script:
+The `kibi-claude` plugin brings the server, the bundled skills, and hooks that show the agent the linked requirements and tests before it reads or edits code, and before an edit, what those requirements must keep true and the decision behind them. The same context reaches reads and writes the agent makes through shell commands such as `cat`, `sed -i` or a script, and an in-place write such as `sed -i` hears what must stay true before it runs:
 
 ```bash
 claude plugin marketplace add Looted/kibi

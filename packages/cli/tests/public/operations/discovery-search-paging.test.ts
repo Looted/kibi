@@ -194,3 +194,49 @@ describe("search candidate paging", () => {
     }
   });
 });
+
+describe("search text for questions search cannot answer", () => {
+  async function searchText(query: string): Promise<string> {
+    const root = mkdtempSync(path.join(os.tmpdir(), "kibi-search-hints-"));
+    mkdirSync(path.join(root, ".kb"), { recursive: true });
+    try {
+      const { fetchPage } = makeFakeSearchIndex(20);
+      const result = await executeSearch(
+        { query },
+        context(root, {
+          prolog: {
+            query: async () => ({ success: true, bindings: {} }),
+            nextSolution: async () => null,
+            save: async () => ({ success: true, bindings: {} }),
+            searchEntities: fetchPage,
+          },
+        }),
+      );
+      return result.content.map((part) => part.text).join("\n");
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  }
+
+  test("an abstention says to ask again in the KB's own words and language", async () => {
+    const text = await searchText("Jakie uprawnienia ma admin?");
+    expect(text).toContain("(abstained)");
+    expect(text).toContain(
+      "ask again in the words and language the KB is written in",
+    );
+  });
+
+  test("a question about contradictions names the check that decides them", async () => {
+    for (const query of [
+      "Are there contradictions among the requirements?",
+      "What would conflict if viewers could delete requirements?",
+    ]) {
+      const text = await searchText(query);
+      expect(text).toContain('kb_check with rules ["domain-contradictions"]');
+      expect(text).toContain("kb_model mode predicates (decisionConflicts)");
+    }
+    expect(await searchText("Which requirement covers 7?")).not.toContain(
+      "domain-contradictions",
+    );
+  });
+});

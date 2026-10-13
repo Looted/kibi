@@ -32,12 +32,14 @@ import {
   buildSummary,
 } from "./check-format-shared.js";
 import {
+  SCOPED_CHECK_OMITTED_ID,
   analyzeKbCheckImpact,
   collectQueryPlanSafetyViolations,
   getEffectiveRules,
   partitionCheckFindings,
   qualityDiagnosticsFromImpact,
   resolveCheckRules,
+  scopeQualityDiagnosticsToImpact,
   stagedEntityIdStyleDiagnostics,
 } from "./check-helpers.js";
 import { collectCheckPolicyViolations } from "./check-policy-rules.js";
@@ -430,8 +432,17 @@ export async function executeCheck(
             now: context.clock(),
             ...maxDiagnosticsOption,
           });
+    // A check scoped to sourceFiles answers about those files; the KB-wide
+    // advisory scan only lists what concerns them.
+    const advisoryQualityDiagnostics =
+      impactResult && args.sourceFiles !== undefined && !hasExplicitRules
+        ? scopeQualityDiagnosticsToImpact(
+            partitioned.qualityDiagnostics,
+            impactResult,
+          )
+        : partitioned.qualityDiagnostics;
     const qualityDiagnostics = [
-      ...partitioned.qualityDiagnostics,
+      ...advisoryQualityDiagnostics,
       ...extraQualityDiagnostics,
     ];
 
@@ -439,9 +450,10 @@ export async function executeCheck(
     const migrationPlan = await migrationPlanForCheck(
       context,
       violations,
-      qualityDiagnostics as unknown as readonly Readonly<
-        Record<string, unknown>
-      >[],
+      // The omitted-findings count is a pointer, not a repair to plan.
+      qualityDiagnostics.filter(
+        (diagnostic) => diagnostic.id !== SCOPED_CHECK_OMITTED_ID,
+      ) as unknown as readonly Readonly<Record<string, unknown>>[],
       statusPlan,
     );
     return {
