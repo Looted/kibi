@@ -494,6 +494,27 @@ describe("semantic advisor operation", () => {
     ).toEqual({ field: "semantic_text", text: "" });
   });
 
+  test("a text_ref beside semantic_text is a reference, not prose the advisor reads", () => {
+    const signalsOf = (textRef: string) =>
+      analyzeSemanticAdvisorInput({
+        payload: {
+          type: "req",
+          properties: {
+            title: "A viewer must be able to list analysis requests.",
+            semantic_text: "A viewer must be able to list analysis requests.",
+            text_ref: textRef,
+          },
+        },
+      }).receipt.signals.map(({ kind }) => kind);
+    // The batch number in the reference is not a cardinality claim.
+    expect(signalsOf("intake/batch-4-item-6")).not.toContain(
+      "numeric_cardinality",
+    );
+    expect(signalsOf("intake/batch-4-item-6")).toEqual(
+      signalsOf("intake/probe"),
+    );
+  });
+
   test("does not treat error nouns in titles as modal-free requirements", () => {
     for (const title of [
       "Transaction failure",
@@ -1051,6 +1072,10 @@ describe("semantic advisor operation", () => {
         entry.startsWith(`Claim-key drift against the stored ledger of ${id}`),
       );
       expect(warning).toBeDefined();
+      // The text an agent reads first says it too.
+      expect(result.content[0]?.text).toContain(
+        `Claim-key drift against the stored ledger of ${id}`,
+      );
       expect(warning).toContain(
         `'${storedKey}' ("${storedClauseText}"), grounded by FACT-export-csv via requires_predicate`,
       );

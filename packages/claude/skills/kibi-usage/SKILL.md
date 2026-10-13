@@ -5,7 +5,7 @@ license: AGPL-3.0-or-later
 metadata:
   displayName: Kibi Usage
   id: kibi-usage
-  version: 2.16.1
+  version: 2.16.2
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -469,7 +469,9 @@ prose (`mode: "requirement"`, or `kb_upsert` with the extended `semantic_text`
 and the ledger `mode: "analyze"` returns) and call `mode: "predicates"` again.
 Read `decisionConflicts` and its warnings whenever `plan` is null: they name
 the stored decision facts the candidate would contradict and the requirements
-that own them. `provide_argument_bindings` and `record_ontology_gap` mean
+that own them. To ask what a proposed rule would conflict with, call
+`mode: "predicates"` with its text and no `requirementId`; nothing is written.
+`provide_argument_bindings` and `record_ontology_gap` mean
 the same as for an ungrounded claim, and the gap observation is not a grounding
 link, so write it exactly as returned (tags, `claim_text`, `document.body`, no
 `claim_key`, no relationships). Record an ontology gap only when no returned schema fits the

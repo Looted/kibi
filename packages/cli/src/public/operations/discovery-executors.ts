@@ -792,6 +792,13 @@ async function projectMatches<
     : matches.map(summarizeMatch);
 }
 
+// A question about contradictions is answered by the check, not by the
+// entities that happen to mention the word.
+const CONTRADICTION_QUESTION =
+  /\b(contradict\w*|conflict\w*|inconsisten\w*)\b/i;
+const CONTRADICTION_HINT =
+  ' Search only finds entities that mention a conflict. Whether current requirements contradict each other is decided by kb_check with rules ["domain-contradictions"]; what a proposed rule would conflict with, by kb_model mode predicates (decisionConflicts) on its text or a kb_upsert dryRun.';
+
 export async function executeSearch(
   input: SearchInput,
   context: OperationContext,
@@ -864,14 +871,14 @@ export async function executeSearch(
       );
       const text = `${
         intentResult.matches.length === 0
-          ? `No intent search results for '${trimmedQuery}' (abstained).`
+          ? `No intent search results for '${trimmedQuery}' (abstained). No entity shares enough of the question's words: ask again in the words and language the KB is written in, or pass sourceLocations.`
           : `Found ${intentResult.matches.length} intent search results for '${trimmedQuery}'${intentResult.analysis.ambiguous ? " (top matches are close; confirm before relying on one)" : ""}. Top: ${paginated
               .slice(0, 5)
               .map((match) => String(match.entity.id ?? ""))
               .join(
                 ", ",
               )}${answerLayer ? `. Governing: ${answerLayer.governing.map((req) => req.id).join(", ") || "none found"}` : ""}${topUngoverned ? ` (the top match ${topUngoverned.id} is linked to no requirement)` : ""}.`
-      }${storeNote}`;
+      }${CONTRADICTION_QUESTION.test(trimmedQuery) ? CONTRADICTION_HINT : ""}${storeNote}`;
       return {
         content: [{ type: "text", text }],
         structuredContent: {

@@ -61,12 +61,17 @@ export function stringLogicClaims(value: unknown): string[] {
     : [];
 }
 
+// implements REQ-mcp-semantic-advisor-preflight
 function proseOf(payload: Payload): string {
   const properties = propertiesOf(payload);
+  // text_ref is the prose only while semantic_text is unset (the ingestion
+  // boundary's fallback); beside semantic_text it is a reference such as
+  // "docs/intake.md#batch-4", whose numbers and words are not claims.
+  const semanticText = stringValue(properties.semantic_text);
   return [
     properties.title,
     properties.semantic_text,
-    properties.text_ref,
+    semanticText ? undefined : properties.text_ref,
     properties.description,
   ]
     .map(stringValue)

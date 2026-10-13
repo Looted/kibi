@@ -85,7 +85,7 @@ The setup prompt above does this step for you. To do it by hand: every client st
 <details>
 <summary>Claude Code</summary>
 
-Install the optional `kibi-claude` plugin from this repository's marketplace. It brings the MCP server, the bundled skills, and advisory hooks that show the agent the linked requirements and tests before it reads or edits code, and before an edit, what the lead requirement must keep true and the decision behind it. Reads and writes the agent makes through shell commands (`cat`, `sed -i`, a heredoc or a script) get the same context: a command that names a linked file gets its snippet before it runs, and a file the command changed gets the edit context, or for unlinked source the `kb_search` call that finds requirements for it, right after:
+Install the optional `kibi-claude` plugin from this repository's marketplace. It brings the MCP server, the bundled skills, and advisory hooks that show the agent the linked requirements and tests before it reads or edits code, and before an edit, what the lead requirement must keep true and the decision behind it. Reads and writes the agent makes through shell commands (`cat`, `sed -i`, a heredoc or a script) get the same context: a command that names a linked file gets its snippet before it runs, one that writes a linked file in place (`sed -i`, `perl -i`, a `>` or `>>` redirect, `tee`) gets the edit context with what must stay true before it runs, and a file the command changed gets the edit context, or for unlinked source the `kb_search` call that finds requirements for it, right after:
 
 ```bash
 claude plugin marketplace add Looted/kibi

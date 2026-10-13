@@ -7,6 +7,7 @@ import { pathToFileURL } from "node:url";
 
 import { spawnSync } from "node:child_process";
 import {
+  commandEditPaths,
   commandFilePaths,
   filesChangedSince,
   isSearchCommand,
@@ -343,10 +344,12 @@ function readSnippet(
 
 /**
  * A shell command reads and writes files without the Read and Edit tools.
- * Before it runs, the first linked file it names gets the read snippet; a
- * command that reads `.kb/` directly or searches the tree gets the notes the
- * Read, Grep and Glob tools would. The start time is recorded so the
- * PostToolUse hook can attribute the files the command changed.
+ * Before it runs, the first linked file it names gets the read snippet, or,
+ * when the command writes that file in place (`sed -i`, `perl -i`, `>`,
+ * `>>`, `tee`), the edit snippet with what must stay true, as an Edit call
+ * would; a command that reads `.kb/` directly or searches the tree gets the
+ * notes the Read, Grep and Glob tools would. The start time is recorded so
+ * the PostToolUse hook can attribute the files the command changed.
  */
 function bashPreToolUse(
   input: HookInput,
@@ -362,16 +365,43 @@ function bashPreToolUse(
     return context("PreToolUse", text);
   };
   let namesKb = false;
-  for (const absolute of commandFilePaths(
-    command,
-    input.cwd ?? workspace.root,
-  )) {
+  const cwd = input.cwd ?? workspace.root;
+  const edited = new Set(commandEditPaths(command, cwd));
+  for (const absolute of commandFilePaths(command, cwd)) {
     const target = toWorkspacePath(workspace.root, absolute, input.cwd);
     if (!target) continue;
     const kind = classifyPath(target.relative);
     if (kind === "kb") namesKb = true;
     if (kind === "kb" || kind === "other") continue;
     const symbols = workspace.index().files[target.relative] ?? [];
+    if (edited.has(absolute)) {
+      // An in-place write is an edit: say what must stay true before it
+      // runs. A file with no linked symbol is left to PostToolUse, which
+      // sees whether the command changed it.
+      if (state.shownEdit.has(target.relative)) continue;
+      const alreadyKnown =
+        state.shownRead.has(target.relative) ||
+        isExplored(state, target.relative);
+      const note = alreadyKnown
+        ? editKnowledgeUpdate({
+            relativePath: target.relative,
+            symbols,
+            surface: "edit",
+            summarize: workspace.summarize,
+          })
+        : fileKnowledgeSnippet({
+            relativePath: target.relative,
+            symbols,
+            surface: "edit",
+            summarize: workspace.summarize,
+          });
+      if (!note) continue;
+      trace.path = target.relative;
+      trace.pathKind = kind;
+      trace.requirementIds = requirementIds(symbols);
+      events.push({ kind: "shown", surface: "edit", path: target.relative });
+      return emit(note, alreadyKnown ? "edit_update_snippet" : "edit_snippet");
+    }
     const snippet = readSnippet(target.relative, symbols, state, workspace);
     if (!snippet) continue;
     trace.path = target.relative;
