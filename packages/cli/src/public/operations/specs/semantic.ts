@@ -144,7 +144,9 @@ export async function executeSemanticAdvisor(
     content: [
       {
         type: "text",
-        text: `kb_semantic_advisor: ${result.receipt.summary} Suggestions: ${result.receipt.suggestions.map(({ kind }) => kind).join(", ") || "none"}.`,
+        // A drift warning decides whether the analyzed ledger can be
+        // written at all, so the text says it too, not only the warnings.
+        text: `kb_semantic_advisor: ${result.receipt.summary} Suggestions: ${result.receipt.suggestions.map(({ kind }) => kind).join(", ") || "none"}.${ledgerWarnings.map((warning) => ` ${warning}`).join("")}`,
       },
     ],
     structuredContent: {

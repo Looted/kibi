@@ -124,6 +124,11 @@ export type SearchAnswerRequirement = SearchAnswerEntity &
     score: number;
     via: string;
     facts: readonly SearchAnswerFact[];
+    /**
+     * Linked facts the answer left out (over the per-requirement limit or
+     * cut to fit the byte budget) and the kb_query that lists them all.
+     */
+    moreFacts?: Readonly<{ count: number; ask: string }>;
     scenarios: readonly SearchAnswerEntity[];
     tests: readonly SearchAnswerTest[];
     adrs: readonly SearchAnswerEntity[];
@@ -233,6 +238,12 @@ export const SEARCH_ANSWER_LIMITS = {
   seeds: 10,
   governing: 5,
   perRequirement: 4,
+  /**
+   * Linked facts listed per governing requirement. Facts are what an answer
+   * states, so a requirement with several clauses keeps more of them than
+   * of its scenarios or tests.
+   */
+  factsPerRequirement: 8,
   rationale: 3,
   notGoverning: 5,
   observations: 3,
@@ -1038,13 +1049,22 @@ export async function buildSearchAnswer(
         .map((edge) => edge.from);
     const scenarioIds = unique(from("specified_by"));
     const traversed = firstOf(scenarioIds);
+    // A fact the question matched comes first, then the facts that ground a
+    // clause (requires_*) before the subject a requirement constrains: the
+    // subject's key is already part of each grounding fact's claim.
+    const linked = unique(
+      edges
+        .filter((edge) => FACT_LINKS.has(edge.rel) && edge.from === req.id)
+        .sort(
+          (left, right) => factRank(left, seedIds) - factRank(right, seedIds),
+        )
+        .map((edge) => edge.to),
+    );
+    if (linked.length > limits.factsPerRequirement) truncated = true;
     return {
       req,
-      facts: firstOf(
-        edges
-          .filter((edge) => FACT_LINKS.has(edge.rel) && edge.from === req.id)
-          .map((edge) => edge.to),
-      ),
+      facts: linked.slice(0, limits.factsPerRequirement),
+      factsOmitted: Math.max(0, linked.length - limits.factsPerRequirement),
       scenarios: traversed,
       directTests: unique([...from("verified_by"), ...into("validates")]),
       related: firstOf([...from("relates_to"), ...into("relates_to")]),
@@ -1129,6 +1149,9 @@ export async function buildSearchAnswer(
         ...brief(fact),
         ...factDetail(fact, schemas.get(text(fact.id))),
       })),
+      ...(plan.factsOmitted > 0
+        ? { moreFacts: moreFactsOf(req.id, plan.factsOmitted) }
+        : {}),
       scenarios: rowsOf(plan.scenarios).map(brief),
       tests: rowsOf(testIds[index] ?? []).map((row) => ({
         ...brief(row),
@@ -1231,6 +1254,21 @@ const ANSWER_TRIM_ORDER = [
   "ungoverned",
   "rationale",
 ] as const;
+/** Where a linked fact of a governing requirement sorts in its list. */
+function factRank(edge: Edge, seedIds: readonly string[]): number {
+  const matched = seedIds.indexOf(edge.to);
+  if (matched >= 0) return matched;
+  return seedIds.length + (edge.rel === "constrains" ? 1 : 0);
+}
+
+/** The facts an answer left out of a governing requirement, and the ask. */
+function moreFactsOf(
+  requirementId: string,
+  count: number,
+): { count: number; ask: string } {
+  return { count, ask: `kb_query(${JSON.stringify({ id: requirementId })})` };
+}
+
 const REQUIREMENT_TRIM_ORDER = [
   "unknowns",
   "exceptions",
@@ -1318,7 +1356,20 @@ export function fitSearchAnswer(
     if (own) {
       current = {
         ...current,
-        governing: [{ ...req, [own]: req[own].slice(0, -1) }],
+        governing: [
+          {
+            ...req,
+            [own]: req[own].slice(0, -1),
+            ...(own === "facts"
+              ? {
+                  moreFacts: moreFactsOf(
+                    req.id,
+                    (req.moreFacts?.count ?? 0) + 1,
+                  ),
+                }
+              : {}),
+          },
+        ],
       };
       continue;
     }

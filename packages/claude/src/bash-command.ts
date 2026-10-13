@@ -103,3 +103,60 @@ export function filesChangedSince(root: string, sinceMs: number): string[] {
   }
   return [...changed];
 }
+
+// Simple commands of a command line: `;`, `&&`, `||`, `|` and newlines end one.
+const SIMPLE_COMMAND_SEPARATOR = /&&|\|\||[;|\n]/;
+// `> file`, `>> file` (not `2>&1`, `&>`, `>&2` or a here-document marker).
+const REDIRECT_TARGET = /(?:^|[^0-9&<>])>>?\s*("[^"]+"|'[^']+'|[^\s;&|<>()]+)/g;
+// sed and perl edit in place with -i (alone, bundled as -pi or -ni, or with a
+// backup suffix as -i.bak) or sed's --in-place.
+const IN_PLACE_FLAG = /^(-[A-Za-z]*i\S*|--in-place(=\S*)?)$/;
+const IN_PLACE_EDITORS = new Set(["sed", "gsed", "perl"]);
+// Words that run the next word as the command.
+const COMMAND_PREFIXES = new Set(["sudo", "env", "command", "exec", "nice"]);
+
+/**
+ * Absolute paths of existing files a command will write in place before it
+ * runs: the files of `sed -i` / `perl -i`, the targets of `>` and `>>`
+ * redirections, and the files `tee` writes. A subset of
+ * {@link commandFilePaths}, so the hook can treat them as edits up front
+ * (what must stay true) instead of reads.
+ */
+// implements REQ-claude-code-kibi-plugin-v1
+export function commandEditPaths(command: string, cwd: string): string[] {
+  const scanned = command.slice(0, MAX_COMMAND_CHARS);
+  const targets: string[] = [];
+  for (const match of scanned.matchAll(REDIRECT_TARGET))
+    targets.push(unquote(match[1] ?? ""));
+  for (const segment of scanned.split(SIMPLE_COMMAND_SEPARATOR)) {
+    const words = segment
+      .trim()
+      .split(/\s+/)
+      .filter((word) => word.length > 0);
+    let start = 0;
+    while (
+      start < words.length &&
+      (COMMAND_PREFIXES.has(words[start] ?? "") ||
+        /^\w+=/.test(words[start] ?? ""))
+    )
+      start += 1;
+    const name = path.basename(words[start] ?? "");
+    const args = words.slice(start + 1);
+    if (IN_PLACE_EDITORS.has(name) && args.some((a) => IN_PLACE_FLAG.test(a)))
+      targets.push(...args.filter((arg) => !arg.startsWith("-")));
+    else if (name === "tee")
+      targets.push(...args.filter((arg) => !arg.startsWith("-")));
+  }
+  if (targets.length === 0) return [];
+  const bases = [cwd, ...cdTargets(scanned, cwd)];
+  const wanted = new Set<string>();
+  for (const target of targets) {
+    const name = unquote(target);
+    if (!name) continue;
+    for (const base of path.isAbsolute(name) ? [""] : bases)
+      wanted.add(path.resolve(base, name));
+  }
+  return commandFilePaths(scanned, cwd).filter((absolute) =>
+    wanted.has(absolute),
+  );
+}

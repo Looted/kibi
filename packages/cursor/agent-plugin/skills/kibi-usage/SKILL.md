@@ -2,7 +2,7 @@
 id: kibi-usage
 name: Kibi Usage
 description: Use Kibi's source-first, exact-Git, migration-aware, proof-aware operations safely across MCP or the trusted local CLI, including partial completion repair.
-version: 2.16.1
+version: 2.16.2
 kibiCompatibility: ">=1.0.0"
 tags:
   - kibi
@@ -92,7 +92,8 @@ it is a pointer to the knowledge, never proof. Each line answers one question:
 - `Kibi knowledge for <path> (symbol manifest):` and the `- REQ-… — <symbol
   titles>` rows: the requirements the file's symbols implement, lead
   requirement first. Read the lead requirement with `kb_query({id})` before
-  changing behavior.
+  changing behavior; add `includeBody: true` to see its authored prose, and
+  fix a stale sentence there with `kb_upsert` `document.body`.
 - `REQ-… must keep true: FACT-…` (edit only): the ground facts the lead
   requirement requires. An edit that breaks one of them is a requirement
   change: supersede and remodel the requirement, do not code around the fact.
@@ -466,7 +467,9 @@ prose (`mode: "requirement"`, or `kb_upsert` with the extended `semantic_text`
 and the ledger `mode: "analyze"` returns) and call `mode: "predicates"` again.
 Read `decisionConflicts` and its warnings whenever `plan` is null: they name
 the stored decision facts the candidate would contradict and the requirements
-that own them. `provide_argument_bindings` and `record_ontology_gap` mean
+that own them. To ask what a proposed rule would conflict with, call
+`mode: "predicates"` with its text and no `requirementId`; nothing is written.
+`provide_argument_bindings` and `record_ontology_gap` mean
 the same as for an ungrounded claim, and the gap observation is not a grounding
 link, so write it exactly as returned (tags, `claim_text`, `document.body`, no
 `claim_key`, no relationships). Record an ontology gap only when no returned schema fits the

@@ -128,14 +128,14 @@ function seed(): ConsumerWorkspace {
 
 function modelPredicates(
   ws: ConsumerWorkspace,
-  requirementId: string,
+  requirementId: string | undefined,
   text: string,
   bindings: Readonly<Record<string, string>>,
 ): Json {
   return ws.json(["model"], {
     mode: "predicates",
     text,
-    requirementId,
+    ...(requirementId === undefined ? {} : { requirementId }),
     schemaId: PERMISSION_SCHEMA,
     argumentBindings: bindings,
   }).data as Json;
@@ -259,6 +259,27 @@ describe("grounding guards before a predicate write", () => {
       "the requirement this claim would ground",
     );
 
+    // Asked without a requirement ("what would this rule conflict
+    // with?"), the stored decision it contradicts is named all the same.
+    const unanchored = modelPredicates(ws, undefined, DENY_PROSE, {
+      ...COACH_READ_UNASSIGNED,
+      decision: "deny",
+    });
+    expect(unanchored.recommendedAction).toBe("apply_requires_predicate");
+    expect(unanchored.plan).toBeNull();
+    expect(unanchored.decisionConflicts).toEqual([
+      {
+        requirementId: ALLOW_REQ,
+        factId: ALLOW_FACT,
+        effect: "allow",
+        proposedEffect: "deny",
+        canonicalKey: DENY_KEY,
+      },
+    ]);
+    expect(JSON.stringify(unanchored.warnings)).toContain(
+      `contradicts ${ALLOW_FACT} (allow) under ${ALLOW_REQ}`,
+    );
+
     // A claim the requirement does state keeps its hash-bound plan, which
     // carries the contradiction analysis itself: no separate conflict list.
     const stated = modelPredicates(ws, ASSIGNED_REQ, ASSIGNED_PROSE, {
@@ -280,6 +301,17 @@ describe("grounding guards before a predicate write", () => {
       decision: "allow",
     });
     expect(twoClause.recommendedAction).toBe("apply_requires_predicate");
+    // The manifest the relationship plan calls merged carries the stored
+    // clause too, though the call passed no existingLogicClaims.
+    const manifest = adviseProse(ws, `${ASSIGNED_PROSE} ${EXPORT_PROSE}`)
+      .propositions.map((claim) => claim.claim_key)
+      .sort();
+    expect([...(twoClause.logicClaims as string[])].sort()).toEqual(manifest);
+    expect(
+      [
+        ...((twoClause.relationshipPlan as Json).logicClaims as string[]),
+      ].sort(),
+    ).toEqual(manifest);
     const plan = twoClause.plan as Json;
     expect(plan.status).toBe("ready");
     const applied = ws.json(["apply-plan"], {

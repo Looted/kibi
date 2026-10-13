@@ -110,6 +110,73 @@ describe("shared discovery operation executors", () => {
     );
   });
 
+  test("kb_query includeBody returns the authored body of the id it names", async () => {
+    // Given: a requirement whose body states something its front matter
+    // does not, and a symbol with no authored document.
+    const workspaceRoot = mkdtempSync(path.join(tmpdir(), "kibi-query-body-"));
+    try {
+      mkdirSync(path.join(workspaceRoot, ".kb", "requirements"), {
+        recursive: true,
+      });
+      writeFileSync(
+        path.join(workspaceRoot, ".kb", "requirements", "REQ-exact.md"),
+        "---\nid: REQ-exact\ntitle: Exact lookup\n---\n# Exact lookup\n\nExports are limited to admins.\n",
+      );
+      const rowFor = (id: string, source: string) =>
+        mock(async (_goal: string) => ({
+          success: true,
+          bindings: {
+            Rows: `[[${id},req,[title="Exact lookup",status=open,source="${source}"]]]`,
+            Count: "1",
+          },
+        }));
+
+      // When
+      const result = await querySpec.execute(
+        { id: "REQ-exact", includeBody: true },
+        createContext(
+          rowFor("REQ-exact", ".kb/requirements/REQ-exact.md"),
+          workspaceRoot,
+        ),
+      );
+      const outside = await querySpec.execute(
+        { id: "REQ-exact", includeBody: true },
+        createContext(
+          rowFor("REQ-exact", "../elsewhere/REQ-exact.md"),
+          workspaceRoot,
+        ),
+      );
+
+      // Then
+      expect(result.structuredContent?.body).toEqual({
+        id: "REQ-exact",
+        path: ".kb/requirements/REQ-exact.md",
+        text: "# Exact lookup\n\nExports are limited to admins.\n",
+      });
+      expect(result.content[0]?.text).toContain(
+        "Exports are limited to admins.",
+      );
+      expect(result.content[0]?.text).toContain("kb_upsert document.body");
+      // A source outside the workspace is never read.
+      expect(outside.structuredContent?.body).toEqual({
+        id: "REQ-exact",
+        path: null,
+        text: null,
+      });
+      await expect(
+        querySpec.execute(
+          { type: "req", includeBody: true },
+          createContext(
+            rowFor("REQ-exact", ".kb/requirements/REQ-exact.md"),
+            workspaceRoot,
+          ),
+        ),
+      ).rejects.toThrow("includeBody needs id");
+    } finally {
+      rmSync(workspaceRoot, { recursive: true, force: true });
+    }
+  });
+
   test("kb_query delegates tag filtering and pagination to the bounded indexed query", async () => {
     // Given: the indexed query filters tags before paging and reports the
     // total match count, so no caller materializes every entity.
