@@ -11501,20 +11501,20 @@ coordinates:
     sourceLine: 174
   SYM-e2e-multilingual-language-catalog:
     identityHash: 32d1d50fae40c5940184440eeaa30c0ee0b0cc7f97e7fe6891baccd25a1a4d09
-    sourceHash: 850dd6f4e9e2537981d07326938695c098ad879b5717e54033d8ab8a3ec53665
+    sourceHash: 001af30d1b99ca9c090c871c9831b5410fb52f14b68051b26624fb1ee454e591
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 1100
+    sourceEndLine: 1144
     sourceFile: documentation/tests/e2e/packed/multilingual-language-catalog.test.ts
-    sourceLine: 1096
+    sourceLine: 1140
   SYM-e2e-multilingual-source-analysis:
     identityHash: c768de50d5f33af6f16317243e684afb5bf25fb25e232e4bee5198f038f9fef3
-    sourceHash: fe1ddebb56cb6518174827991c9239db9c498e1b466d96a0f3b6f89782e282c2
+    sourceHash: 6c2e63e60b613aa1a6996cd6500cfa1ab107f22380061cab02191d1c257ad8c4
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 657
+    sourceEndLine: 701
     sourceFile: documentation/tests/e2e/packed/multilingual-source-analysis.test.ts
-    sourceLine: 651
+    sourceLine: 695
   SYM-e2e-packed-cli-check:
     identityHash: 8d34331ffff99598250fb6d3e6d4559e616aecbb31ff53af9c516a1f7cf61416
     sourceHash: d5740d8b4ee1ff9cc9a1c9592395fa7839ef2a8fb177e0529064caf86067b881
@@ -11629,10 +11629,10 @@ coordinates:
     sourceLine: 1
   SYM-e2e-test-010:
     identityHash: 9e0c536be25e3bb45a147437589946fc8298ec59ae2656a4d8ecaab235461c3a
-    sourceHash: 6a7eeb3da015bb84c082399f21661f432dd61bb948b4eea66a004186be00ed5e
+    sourceHash: 3b55185afd5460d6b39c96ef1d7534ff1552692b975cf3d84647a8e44e3244d8
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 1041
+    sourceEndLine: 1059
     sourceFile: documentation/tests/e2e/packed/traceability-gate.test.ts
     sourceLine: 1
   SYM-e2e-test-011:
@@ -12141,18 +12141,18 @@ coordinates:
     sourceLine: 1
   SYM-e2e-test-vscode-traceability:
     identityHash: f5a9006ef6a26192a8751fdb93c50109edf2b7748f30a1cbc068504c6cb2739f
-    sourceHash: 6a7eeb3da015bb84c082399f21661f432dd61bb948b4eea66a004186be00ed5e
+    sourceHash: 3b55185afd5460d6b39c96ef1d7534ff1552692b975cf3d84647a8e44e3244d8
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 1041
+    sourceEndLine: 1059
     sourceFile: documentation/tests/e2e/packed/traceability-gate.test.ts
     sourceLine: 1
   SYM-e2e-test-vscode-traceability-coverage:
     identityHash: 3a19e5244230237dd515d08bbe63b24f0801ee556f96ec180f5a2b6a3fd6afe6
-    sourceHash: 6a7eeb3da015bb84c082399f21661f432dd61bb948b4eea66a004186be00ed5e
+    sourceHash: 3b55185afd5460d6b39c96ef1d7534ff1552692b975cf3d84647a8e44e3244d8
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 1041
+    sourceEndLine: 1059
     sourceFile: documentation/tests/e2e/packed/traceability-gate.test.ts
     sourceLine: 1
   SYM-e2e-vscode-extension-lifecycle:
