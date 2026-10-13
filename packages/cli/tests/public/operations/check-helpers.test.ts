@@ -1,5 +1,9 @@
 import { describe, expect, test } from "bun:test";
-import { partitionCheckFindings } from "../../../src/public/operations/check-helpers.js";
+import type { ChangedFileImpactResult } from "../../../src/public/impact-diagnostics.js";
+import {
+  partitionCheckFindings,
+  scopeQualityDiagnosticsToImpact,
+} from "../../../src/public/operations/check-helpers.js";
 import type { Violation } from "../../../src/utils/rule-registry.js";
 
 function finding(
@@ -83,5 +87,71 @@ describe("partitionCheckFindings", () => {
       }),
     ]);
     expect(partitioned.qualityDiagnostics).toEqual([]);
+  });
+});
+
+describe("scopeQualityDiagnosticsToImpact", () => {
+  const impact: ChangedFileImpactResult = {
+    impactDiagnostics: [],
+    sourceFiles: ["src/auth.ts"],
+    extractedSymbols: [],
+    linkedEntities: [
+      {
+        id: "REQ-AUTH",
+        relationshipType: "implements",
+        sourceSymbolId: "SYM-AUTH-LOGIN",
+        sourceSymbolName: "login",
+      },
+    ],
+    nextActions: [],
+  };
+
+  test("lists findings about the checked files and counts the KB-wide rest", () => {
+    const { qualityDiagnostics } = partitionCheckFindings([
+      finding("strict-req-fact-pairing", "REQ-AUTH"),
+      finding("predicate-verifiability", "SYM-AUTH-LOGIN"),
+      finding("agent-requirement-unapproved", "REQ-OTHER-1"),
+      finding("agent-requirement-unapproved", "REQ-OTHER-2"),
+      finding("scenario-feasibility-unknown", "SCEN-OTHER"),
+    ]);
+    const onFile = {
+      id: "symbol_semantic_review_needed",
+      severity: "warning" as const,
+      blocking: false,
+      category: "symbol",
+      files: ["./src/auth.ts"],
+      message: "review",
+      suggestion: "",
+    };
+
+    const scoped = scopeQualityDiagnosticsToImpact(
+      [...qualityDiagnostics, onFile],
+      impact,
+    );
+
+    expect(scoped.map((item) => item.entityId ?? item.id)).toEqual([
+      "REQ-AUTH",
+      "SYM-AUTH-LOGIN",
+      "symbol_semantic_review_needed",
+      "scoped_check_omitted_quality",
+    ]);
+    const summary = scoped.at(-1);
+    expect(summary).toMatchObject({ severity: "info", blocking: false });
+    expect(summary?.message).toContain(
+      "3 advisory findings elsewhere in the KB are not listed (agent-requirement-unapproved ×2, scenario-feasibility-unknown ×1)",
+    );
+    expect(summary?.suggestion).toContain("without sourceFiles");
+  });
+
+  test("adds no summary when every finding concerns the checked files", () => {
+    const { qualityDiagnostics } = partitionCheckFindings([
+      finding("strict-req-fact-pairing", "REQ-AUTH"),
+    ]);
+
+    expect(
+      scopeQualityDiagnosticsToImpact(qualityDiagnostics, impact).map(
+        (item) => item.id,
+      ),
+    ).toEqual(["rule.strict-req-fact-pairing"]);
   });
 });
