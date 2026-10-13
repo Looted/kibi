@@ -117,6 +117,14 @@ function storedClaimKey(
     : {};
 }
 
+// implements REQ-mcp-semantic-advisor-preflight
+/** The written result's semantic advisor receipt, omitted for a non-requirement. */
+function advisorReceipt(
+  receipt: SemanticAdvisorReceipt | null,
+): { semanticAdvisor: SemanticAdvisorReceipt } | Record<string, never> {
+  return receipt === null ? {} : { semanticAdvisor: receipt };
+}
+
 function fileHash(pathname: string): string | null {
   if (!existsSync(pathname)) return null;
   return createHash("sha256").update(readFileSync(pathname)).digest("hex");
@@ -297,12 +305,42 @@ export type UpsertValidationOptions = Readonly<{
   readonly staged?: StagedUpsertState;
 }>;
 
+// implements REQ-mcp-semantic-advisor-preflight
+/** The semantic advisor result an upsert reports; no receipt for a non-requirement. */
+export type UpsertSemanticAnalysis = Readonly<{
+  readonly receipt: SemanticAdvisorReceipt | null;
+  readonly warnings: readonly string[];
+}>;
+
+// implements REQ-mcp-semantic-advisor-preflight
+/**
+ * The semantic advisor analyses requirement prose: its propositions, claim
+ * keys and inventory contract describe a requirement. Any other entity has no
+ * prose inventory, so analysing its title (the fallback prose) would report
+ * claim keys nothing declares, for example a fact whose claim_key derives
+ * from claim_text. Its upsert carries no receipt.
+ */
+export function analyzeUpsertSemantics(
+  payload: UpsertInput & {
+    readonly relationships: readonly RelationshipInput[];
+  },
+): UpsertSemanticAnalysis {
+  if (payload.type !== "req") return { receipt: null, warnings: [] };
+  const semantic = analyzeSemanticAdvisorInput({ payload });
+  assertSemanticInventoryBoundary(
+    payload,
+    payload.relationships,
+    semantic.receipt,
+  );
+  return semantic;
+}
+
 // implements REQ-kibi-truthful-consistency
 export type UpsertValidation = Readonly<{
   readonly validated: ValidatedUpsert;
   /** The upsert's relationships merged with the entity's existing ones. */
   readonly relationships: readonly RelationshipInput[];
-  readonly semantic: ReturnType<typeof analyzeSemanticAdvisorInput>;
+  readonly semantic: UpsertSemanticAnalysis;
 }>;
 
 // implements REQ-kibi-truthful-consistency
@@ -367,14 +405,7 @@ export async function validateUpsertForCommit(
     undefined,
     staged,
   );
-  const semantic = analyzeSemanticAdvisorInput({
-    payload: { ...input, relationships },
-  });
-  assertSemanticInventoryBoundary(
-    { ...input, relationships },
-    relationships,
-    semantic.receipt,
-  );
+  const semantic = analyzeUpsertSemantics({ ...input, relationships });
   await assertLogicalGroundingClaimKeys(
     prolog,
     { ...input, relationships },
@@ -483,7 +514,7 @@ export async function executeUpsert(
   let commitEntity: Readonly<Record<string, unknown>> | undefined;
   let relationshipCount = 0;
   let changeKind: "created" | "updated" | null = null;
-  let semanticAdvisor: SemanticAdvisorReceipt | undefined;
+  let semanticAdvisor: SemanticAdvisorReceipt | null = null;
   let compilerLock: SymbolCompilerLockHandle | undefined;
   let sourceMutationLock: WorkspaceMutationLockHandle | undefined;
   let operationFailure: { readonly error: unknown } | undefined;
@@ -733,7 +764,7 @@ export async function executeUpsert(
           updated: 0,
           relationships_created: validated.relationships.length,
           warnings: [...planRecoveryWarnings, ...semantic.warnings],
-          semanticAdvisor: semantic.receipt,
+          ...advisorReceipt(semantic.receipt),
           ...storedClaimKey(commitEntity ?? validated.entity),
           deferredCommit,
           ...(sourceWrite ? { sourceWrites: [sourceWrite.receipt] } : {}),
@@ -842,7 +873,7 @@ export async function executeUpsert(
         ),
         ...shardWarnings,
       ],
-      semanticAdvisor: semantic.receipt,
+      ...advisorReceipt(semantic.receipt),
       ...storedClaimKey(commitEntity ?? validated.entity),
       ...(shardWarnings.length > 0
         ? {
@@ -879,9 +910,9 @@ export async function executeUpsert(
                 : "no-conflict",
               checked_req_id: input.id,
               strict_readiness:
-                semantic.receipt.logic_readiness === "modeled"
+                semantic.receipt?.logic_readiness === "modeled"
                   ? "modeled"
-                  : semantic.receipt.candidate_lane,
+                  : (semantic.receipt?.candidate_lane ?? "none"),
             },
           }
         : {}),
@@ -915,7 +946,7 @@ export async function executeUpsert(
           updated: changeKind === "updated" ? 1 : 0,
           relationships_created: relationshipCount,
           warnings: [...planRecoveryWarnings, detail],
-          semanticAdvisor: semanticAdvisor as SemanticAdvisorReceipt,
+          ...advisorReceipt(semanticAdvisor),
           status: "committed_with_repairs",
           effectFailures: [
             {

@@ -6,8 +6,6 @@ import type {
 } from "../../public/operations/runtime-types.js";
 import type { OperationResult } from "../../public/operations/types.js";
 import { entityIdStyleWarnings } from "../../utils/entity-id-style.js";
-import { analyzeSemanticAdvisorInput } from "../semantic-advisor/analyze-prose.js";
-import { assertSemanticInventoryBoundary } from "../semantic-advisor/ingestion-boundary.js";
 import { entityContextWarnings } from "./context-warning.js";
 import {
   buildUpsertContradictionPreviewGoal,
@@ -24,6 +22,8 @@ import type {
   ValidateUpsertPayload,
 } from "./types.js";
 import {
+  type UpsertSemanticAnalysis,
+  analyzeUpsertSemantics,
   validateAppendOnlyProofReceipts,
   validateUpsertForCommit,
 } from "./upsert.js";
@@ -202,7 +202,7 @@ async function validateWithoutStore(
   context: OperationContext,
 ): Promise<{
   entity: Readonly<Record<string, unknown>>;
-  semantic: ReturnType<typeof analyzeSemanticAdvisorInput>;
+  semantic: UpsertSemanticAnalysis;
 }> {
   const validated = validateUpsertInput(input, context.clock());
   await validateAppendOnlyProofReceipts(validated.entity, context);
@@ -212,15 +212,10 @@ async function validateWithoutStore(
     validated.relationships,
     context,
   );
-  const relationships = validated.relationships;
-  const semantic = analyzeSemanticAdvisorInput({
-    payload: { ...input, relationships },
+  const semantic = analyzeUpsertSemantics({
+    ...input,
+    relationships: validated.relationships,
   });
-  assertSemanticInventoryBoundary(
-    { ...input, relationships },
-    relationships,
-    semantic.receipt,
-  );
   return { entity: validated.entity, semantic };
 }
 

@@ -441,8 +441,12 @@ Sync stamps the compiler contract it used (a hash of the entity property
 schema) into the branch store. When the store was compiled by a CLI build with
 a different contract, for example an older build that dropped properties it
 did not know, status reports `syncState: "stale"` with a `compiler_changed`
-reason even though every source hash still matches. The next `kibi sync`
-re-imports every source once and clears it.
+reason even though every source hash still matches. After upgrading to a CLI
+whose entity schema changed, every branch store compiled by the older CLI
+reports it once. The next `kibi sync` re-imports every source once and clears
+it, and the status migration plan covers it with its automatic
+`freshness-resync` action (`kibi sync`), so applying that action clears it
+too; it gets no review action of its own.
 
 Status does not initialise a missing branch store or repair a damaged one. It
 instead returns `branchStore` (`missing`, `incomplete`, or `unreadable`) with a

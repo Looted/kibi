@@ -5,10 +5,13 @@ import {
   cpSync,
   existsSync,
   mkdtempSync,
+  readFileSync,
+  readdirSync,
   realpathSync,
   rmSync,
   unlinkSync,
   utimesSync,
+  writeFileSync,
 } from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -136,6 +139,56 @@ describe("kb_status confirms newer sources by content", () => {
     }) as { data: { outcome: string } };
     expect(applied.data.outcome).toBe("applied");
     expect(status(ws).syncState).toBe("fresh");
+  }, 240_000);
+
+  test("a store compiled by an older CLI contract is cleared by the plan's automatic resync", () => {
+    const ws = createConsumerWorkspace("kibi-content-freshness-compiler-");
+    workspace = ws;
+    ws.write(
+      ".kb/requirements/REQ-demo-export.md",
+      requirement("## Context\n\nReports export as CSV.\n"),
+    );
+    ws.sync();
+    expect(status(ws).syncState).toBe("fresh");
+
+    // What an older CLI build leaves behind: the store's cache stamped with
+    // another entity-schema contract.
+    const branches = path.join(ws.root, ".kb", "branches");
+    const [cachePath] = readdirSync(branches)
+      .map((name) => path.join(branches, name, "sync-cache.json"))
+      .filter((candidate) => existsSync(candidate));
+    expect(cachePath).toBeDefined();
+    const cache = JSON.parse(readFileSync(cachePath as string, "utf8"));
+    writeFileSync(
+      cachePath as string,
+      JSON.stringify({ ...cache, compilerFingerprint: "an-older-contract" }),
+    );
+
+    const stale = status(ws);
+    expect(stale.syncState).toBe("stale");
+    expect(stale.staleReasons.map((reason) => reason.code)).toEqual([
+      "compiler_changed",
+    ]);
+    const plan = stale.migrationPlan;
+    const freshness = plan.actions.filter((action) =>
+      action.id.startsWith("freshness-"),
+    );
+    expect(freshness).toHaveLength(1);
+    expect(freshness[0]).toMatchObject({
+      id: "freshness-resync",
+      safety: "automatic",
+      autoApplicable: true,
+    });
+
+    const applied = ws.json(["apply-plan"], {
+      plan,
+      approvedPlanHash: plan.planHash,
+      approvedActionIds: ["freshness-resync"],
+    }) as { data: { outcome: string } };
+    expect(applied.data.outcome).toBe("applied");
+    const after = status(ws);
+    expect(after.syncState).toBe("fresh");
+    expect(after.staleReasons).toEqual([]);
   }, 240_000);
 
   test("symbols an older upsert left in an untracked manifest without a receipt stay fresh after a clone", () => {

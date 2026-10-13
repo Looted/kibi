@@ -64,7 +64,8 @@ export type UpsertPayload = {
   readonly updated: number;
   readonly relationships_created: number;
   readonly warnings: readonly string[];
-  readonly semanticAdvisor: SemanticAdvisorReceipt;
+  /** The requirement semantic advisor receipt; absent for other entity types. */
+  readonly semanticAdvisor?: SemanticAdvisorReceipt;
   /**
    * For a fact that carries claim_text: the stored claim_key, derived from
    * claim_text when the payload did not supply it, so the writer learns the

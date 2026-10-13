@@ -621,6 +621,18 @@ function readLegacySchemaVersion(
 /** Migration action code of the automatic recompile of changed sources. */
 export const FRESHNESS_RESYNC = "freshness_resync";
 
+// implements REQ-cli-status-pre-first-sync
+/**
+ * Stale reasons one `kibi sync` clears: sources whose content changed since
+ * the last compilation, and a store compiled under another compiler contract
+ * (the sync discards that cache, re-imports every source and stamps the
+ * current contract).
+ */
+const RESYNC_REASON_CODES: ReadonlySet<string> = new Set([
+  ...MTIME_SOURCE_REASON_CODES,
+  "compiler_changed",
+]);
+
 export function buildActionsFromStatus(input: {
   workspaceRoot: string;
   branchAttachment?: Readonly<Record<string, unknown>>;
@@ -816,12 +828,12 @@ export function buildActionsFromStatus(input: {
   // implements REQ-cli-status-pre-first-sync
   // Sources whose content changed since the last compilation (kb_status has
   // already dropped mtime-only reasons) are fixed by recompiling them: one
-  // automatic `kibi sync`, not a review per file. An uncompiled store is
-  // compiled by the step above, which also covers these files.
+  // automatic `kibi sync`, not a review per file. A store compiled under
+  // another compiler contract is fixed by the same sync. An uncompiled store
+  // is compiled by the step above, which also covers these reasons.
   const resyncReasons = (input.staleReasons ?? []).filter(
     (reason) =>
-      typeof reason.code === "string" &&
-      MTIME_SOURCE_REASON_CODES.has(reason.code),
+      typeof reason.code === "string" && RESYNC_REASON_CODES.has(reason.code),
   );
   if (resyncReasons.length > 0 && uncompiled === undefined) {
     actions.push(
@@ -856,7 +868,7 @@ export function buildActionsFromStatus(input: {
     // Planned above as an automatic compile step, not a review.
     if (code === BRANCH_STORE_NOT_COMPILED) continue;
     // Planned above as one automatic resync (or covered by the compile).
-    if (MTIME_SOURCE_REASON_CODES.has(code)) continue;
+    if (RESYNC_REASON_CODES.has(code)) continue;
     const file = typeof reason.path === "string" ? reason.path : "";
     actions.push(
       migrationAction({
