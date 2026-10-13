@@ -216,7 +216,7 @@ describe("strict proof workflow contract", () => {
       "fetch-depth": 1,
     });
     expect(
-      names.indexOf("Check whether master PR can reuse develop proof"),
+      names.indexOf("Check whether the PR can reuse develop proof"),
     ).toBeLessThan(names.indexOf("Bootstrap Ubuntu packages"));
     expect(names.indexOf("Attest successful develop proof")).toBeGreaterThan(
       names.indexOf("Generate requirement health report"),

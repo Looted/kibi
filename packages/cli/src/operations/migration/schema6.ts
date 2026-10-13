@@ -73,6 +73,11 @@ import {
   applySupersededClosures,
   planSupersededClosures,
 } from "./superseded-closure.js";
+import {
+  SUPERSEDES_REASON_ACKNOWLEDGE_CODE,
+  applySupersedesReasonAcknowledgement,
+  planSupersedesReasonAcknowledgement,
+} from "./supersedes-reason.js";
 
 /** The KB schema generation that introduced entity `origin`. */
 // implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
@@ -81,6 +86,10 @@ export const ORIGIN_SCHEMA_VERSION = 6;
 /** The KB schema generation that requires body context on current entities. */
 // implements REQ-kb-entity-body-context, REQ-cli-schema-migration
 export const BODY_CONTEXT_SCHEMA_VERSION = 8;
+
+/** The KB schema generation that adds decision firmness. */
+// implements REQ-kb-decision-firmness, REQ-cli-schema-migration
+export const DECISION_FIRMNESS_SCHEMA_VERSION = 9;
 
 /** Automatic: re-derive a drifted inventory with the current advisor. */
 // implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
@@ -146,7 +155,7 @@ function reviewAction(plan: InventoryRederivation): MigrationAction {
     safety: "review",
     invocation: {
       kind: "review",
-      instruction: `${plan.requirementId} (${plan.path}) no longer matches the current semantic advisor and cannot be re-derived automatically: ${plan.reasons.join("; ")}. Fix it by hand: run \`kibi model --input -\` with {"mode":"analyze","payload":{"type":"req","id":"${plan.requirementId}","properties":<the requirement's current properties>}} to get the current inventory; re-ground or remove each listed grounding link (kb_delete with the relationship) so modeled claims and requires_* links match one to one; kb_upsert the requirement with the returned semantic_inventory, logic_claims and semantic_source_hash (keep modeled only for claims that still have a grounding fact with the same claim_key); then run kibi sync.`,
+      instruction: `${plan.requirementId} (${plan.path}) no longer matches the current semantic advisor and cannot be re-derived automatically: ${plan.reasons.join("; ")}. Fix it in ${plan.path} itself: kibi sync rejects this requirement, so store-backed tools (kb_upsert, kb_delete) cannot see it until it compiles. In its front matter, write the re-derived contract from this action's evidence.contract (semantic_inventory, logic_claims, semantic_source_hash and their version fields), then make modeled claims and requires_* links match one to one: re-ground or remove each listed grounding link, and keep a claim modeled only while a grounding fact with the same claim_key remains. Run kibi sync to confirm. To see how the advisor reads the prose, run \`kibi model --input -\` with {"mode":"analyze","type":"req","id":"${plan.requirementId}","text":<the requirement's semantic_text, or its statement when it has none>}.`,
     },
     affectedEntityIds: [plan.requirementId],
     affectedFiles: [plan.path],
@@ -157,6 +166,8 @@ function reviewAction(plan: InventoryRederivation): MigrationAction {
       reasons: plan.reasons,
       summary: plan.summary,
       changes: plan.changes.filter((change) => change.change !== "kept"),
+      contract: plan.contract,
+      contractHash: plan.contractHash,
     },
   });
 }
@@ -335,6 +346,45 @@ export function buildSchema6MigrationFragment(input: {
             count: tags.targets.length,
             byType: countByType(tags.targets),
             preserves: "every other front matter key and the body bytes",
+          },
+        }),
+      );
+    }
+  }
+  // Schema 9: acknowledge supersedes recorded before they had to explain
+  // themselves. Manifest only; no source changes and no reason is written.
+  if (
+    input.currentSchemaVersion === null ||
+    input.currentSchemaVersion < DECISION_FIRMNESS_SCHEMA_VERSION
+  ) {
+    const unexplained = planSupersedesReasonAcknowledgement(
+      input.workspaceRoot,
+    );
+    if (unexplained.length > 0) {
+      const id = "supersedes-reason-acknowledge";
+      // Not a source rewrite, but the schema upgrade and the store sync
+      // must wait for it like one: the bumped schema blocks without it.
+      sourceRewriteActionIds.push(id);
+      actions.push(
+        migrationAction({
+          id,
+          code: SUPERSEDES_REASON_ACKNOWLEDGE_CODE,
+          category: "schema",
+          safety: "automatic",
+          autoApplicable: true,
+          invocation: {
+            kind: "cli",
+            command_argv: ["kibi", "migrate", "--yes"],
+          },
+          affectedEntityIds: unexplained.map((row) => row.id),
+          affectedFiles: [".kb/manifest.json"],
+          postconditions: [{ rule: "supersedes-reason-missing", findings: 0 }],
+          evidence: {
+            reason:
+              "Schema 9 blocks a current requirement or ADR that supersedes another without a 'Why this changed' section. Existing ones are acknowledged in the manifest (counted by supersedes-reason-acknowledged); no reason is invented.",
+            count: unexplained.length,
+            byType: countByType(unexplained),
+            preserves: "every authored source file",
           },
         }),
       );
@@ -530,6 +580,10 @@ export async function applySchema6MigrationAction(
       applyContextMissingTags(context.workspaceRoot);
       return;
     }
+    case SUPERSEDES_REASON_ACKNOWLEDGE_CODE: {
+      applySupersedesReasonAcknowledgement(context.workspaceRoot);
+      return;
+    }
     case SEMANTIC_INVENTORY_REDERIVE_CODE: {
       const requirementId = action.affectedEntityIds[0];
       if (requirementId === undefined)
@@ -593,6 +647,7 @@ export const SCHEMA6_AUTOMATIC_CODES: ReadonlySet<string> = new Set([
   POLARITY_VALUE_BACKFILL_CODE,
   SEMANTIC_TEXT_PIN_CODE,
   CONTEXT_MISSING_TAG_CODE,
+  SUPERSEDES_REASON_ACKNOWLEDGE_CODE,
   SEMANTIC_INVENTORY_REDERIVE_CODE,
   ENTITY_ORIGIN_BACKFILL_CODE,
   CLOSE_SUPERSEDED_REQUIREMENTS_CODE,

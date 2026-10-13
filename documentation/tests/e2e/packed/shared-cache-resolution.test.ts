@@ -383,6 +383,54 @@ if (fixtureChild) {
     }
   });
 
+  test("one process populates the shared pack cache while siblings wait", async () => {
+    process.env.KIBI_E2E_PACK_CACHE_KEY = "turns";
+    process.env.KIBI_E2E_PACK_CACHE_ROOT = cacheRoot;
+
+    const release = await helpers.awaitSharedPackCacheTurn();
+    if (release === null) throw new Error("Expected the first turn");
+    // A sibling waits while the turn is held; a bounded wait gives up.
+    if ((await helpers.awaitSharedPackCacheTurn(0)) !== null) {
+      throw new Error("Expected no second turn while the first is held");
+    }
+    let waiterDone = false;
+    const waiter = helpers.awaitSharedPackCacheTurn().then((turn) => {
+      waiterDone = true;
+      return turn;
+    });
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    if (waiterDone) throw new Error("A sibling must wait for the holder");
+
+    const claim = helpers.claimSharedPackCache();
+    if (claim.scratch === null) throw new Error("Expected a staging claim");
+    stageFakeScratch(claim.scratch);
+    if (helpers.publishSharedPackCache(claim) === null) {
+      throw new Error("Expected the holder to publish");
+    }
+    release();
+    // Once the area is complete, waiters reuse it instead of packing.
+    if ((await waiter) !== null) {
+      throw new Error("Expected the waiter to reuse the published area");
+    }
+  });
+
+  test("a turn held by an exited process is taken over", async () => {
+    process.env.KIBI_E2E_PACK_CACHE_KEY = "stale-turn";
+    process.env.KIBI_E2E_PACK_CACHE_ROOT = cacheRoot;
+    const area = helpers.claimSharedPackCache().area;
+    const lock = `${area}.lock`;
+    mkdirSync(lock, { recursive: true });
+    const exited = spawnSync(process.execPath, ["-e", "0"]);
+    writeFileSync(join(lock, "pid"), String(exited.pid));
+    const release = await helpers.awaitSharedPackCacheTurn(5_000);
+    if (release === null) throw new Error("Expected to take over the turn");
+    if (readFileSync(join(lock, "pid"), "utf8") !== String(process.pid)) {
+      throw new Error("Expected this process to own the lock");
+    }
+    release();
+    if (existsSync(lock)) throw new Error("Release must remove the lock");
+  });
+
   function unset(key: string): void {
     Reflect.deleteProperty(process.env, key);
   }

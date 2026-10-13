@@ -253,6 +253,42 @@ describe("doctorCommand legacy storage check", () => {
     expect(check.message).toBe("1 legacy knowledge file(s) still outside .kb/");
     expect(check.remediation).toBe("Run: kibi migrate --yes");
   });
+
+  test("explains a legacy copy that migrate cannot move instead of looping on migrate", async () => {
+    const cwd = preparedWorkspace();
+    writeOkManifest(cwd);
+    writeFileSync(
+      path.join(cwd, ".kb", "symbols.yaml"),
+      "symbols:\n  - id: SYM-auth\n    title: auth\n",
+    );
+    mkdirSync(path.join(cwd, "documentation"), { recursive: true });
+    writeFileSync(
+      path.join(cwd, "documentation", "symbols.yaml"),
+      "symbols:\n  - id: SYM-old\n    title: old\n",
+    );
+    const { payload } = await runDoctorJson(cwd);
+    const check = namedCheck(payload, "Canonical storage");
+    expect(check.passed).toBe(false);
+    expect(check.message).toContain("cannot be moved automatically");
+    expect(check.remediation).toContain(
+      "Destination .kb/symbols.yaml already exists",
+    );
+    expect(check.remediation).toContain("stale duplicate");
+  });
+
+  test("sends a legacy layout without a manifest to migrate, not init", async () => {
+    const cwd = preparedWorkspace();
+    mkdirSync(path.join(cwd, ".kb"), { recursive: true });
+    writeFileSync(
+      path.join(cwd, ".kb", "config.json"),
+      JSON.stringify({ schemaVersion: 4 }),
+    );
+    const { payload } = await runDoctorJson(cwd);
+    const check = namedCheck(payload, ".kb/ manifest");
+    expect(check.passed).toBe(false);
+    expect(check.remediation).toContain("kibi migrate --yes");
+    expect(check.remediation).toContain("do not run kibi init first");
+  });
 });
 
 describe("doctorCommand git repository check", () => {

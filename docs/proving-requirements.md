@@ -64,7 +64,7 @@ For each configured integration, `kibi prove`:
 One suite run can satisfy many TEST contracts; unrelated results are ignored
 per contract.
 
-### CI proof reuse for release PRs
+### CI proof reuse for pull requests
 
 The canonical `kibi.workspace-snapshot.v2` verification snapshot, rather than a
 Git commit or branch name, identifies the source state proven by Kibi. On each
@@ -81,8 +81,16 @@ and whose exact head has one successful `develop` push proof run with a matching
 attestation. If the canonical snapshots match, the workflow records a reused
 proof decision and skips the full proof steps. If lookup, provenance, version,
 or snapshot comparison is uncertain, it runs the full proof on the merge
-checkout using the `master` KB branch identity. Scheduled, manual, and
-`develop` PR proof runs remain full runs.
+checkout using the `master` KB branch identity.
+
+For a same-repository PR targeting `develop`, the workflow compares the merge
+commit's snapshot with the attestation of the PR's base commit instead. The
+snapshot leaves out general `docs/`, release changesets and the derived `.kb/`
+trees, so a PR that only changes those paths has the same snapshot as its
+already proven base and skips the full proof. Any change to code, tests,
+requirements, symbol manifests, `README.md` or the docs site changes the
+snapshot and runs the full proof. Scheduled, manual, fork, and push proof runs
+remain full runs.
 
 Reuse is a CI gate decision only. It does not execute tests again, create new
 proof receipts, or attach `master` to the `develop` KB branch. The decision

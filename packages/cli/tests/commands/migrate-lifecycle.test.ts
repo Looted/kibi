@@ -249,7 +249,7 @@ describe("kibi migrate lifecycle repairs", () => {
         root,
       );
       expect(applied.status, `${applied.stdout}\n${applied.stderr}`).toBe(0);
-      expect(applied.stdout).toContain('"outcome": "applied"');
+      expect(applied.stdout).toContain("Outcome: applied");
 
       expect(read(root, OLD)).toBe(
         oldBefore.replace("status: open\n", "status: closed\n"),
@@ -376,7 +376,7 @@ describe("kibi migrate lifecycle repairs", () => {
       const audit = JSON.parse(read(root, ".kb/migrations/main.json"));
       expect(audit).toMatchObject({
         fromVersion: 5,
-        toVersion: 8,
+        toVersion: 9,
         supersededRequirementsClosed: 1,
         sourcePathsRewritten: 1,
         sourcePathsRemoved: 3,

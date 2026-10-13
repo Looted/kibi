@@ -1,9 +1,0 @@
----
-"kibi-claude": patch
-"kibi-codex": patch
-"kibi-agent-core": patch
----
-
-Claude Code: when the agent reads a requirement-linked file and then edits it, the edit hook now still says what the lead requirement must keep true (its linked facts and decision) and names the `kb_check` impact call, alongside the symbol the edit lands in; before, the earlier read suppressed everything but that one line, so an agent that read first never saw the facts or the check. A `SessionStart` after a compact or clear resets the session's "already shown" memory, so the next read or edit of a linked file shows its snippet again instead of returning nothing into a context that no longer holds it; a resume keeps the memory. Codex: an `apply_patch` (or `Write`/`Edit`) to a source file no symbol links to a requirement now gets the same one-time discovery note as Claude Code, with the `kb_search` call that finds requirements for it (an unreadable manifest is reported once instead), and `Stop` now reminds of the `kb_check` impact call after `apply_patch` edits, which were not tracked because the patch names its files only in the patch text.
-
-Technical summary: `kibi-agent-core/snippets` gains `editKnowledgeUpdate` (focus line, `requirementGroundingLines`, impact-check line), the shared `unownedSourceNote` and `unreadableManifestNote` (re-exported by `kibi-claude`), and an optional `noteFor` callback on `editKnowledgeContext` that claims the same once-per-file slot for a file without a snippet. The Claude session journal gets a `context_reset` event that clears the shown, notice and explored sets but keeps pending edits and their reminders; `dispatchHook` appends it for `source: "compact" | "clear"`. The Codex runner passes `noteFor` from the knowledge index's manifest state and tracks dirty paths (and direct `.kb/` edits) through `extractEditedPaths`, which reads `apply_patch` headers.

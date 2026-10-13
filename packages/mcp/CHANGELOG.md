@@ -1,5 +1,22 @@
 # kibi-mcp
 
+## 3.9.2
+
+### Patch Changes
+
+- c11f6a6: `kb_model` mode `predicates` no longer plans an unlinked predicate fact for a claim the requirement does not state, and it recognises a grounding that was worded differently. When the stored requirement's proposition ledger has no entry for the text, the action is now `extend_requirement` with an empty `applyPlan`, and a warning says to extend the requirement's prose first. When the requirement already links a predicate fact with the recommended candidate's `canonical_key`, the action is `keep_existing_grounding` and `existingGrounding[].matchedBy` reports the match, instead of `provide_argument_bindings` or a pointless `replace_grounding` swap. When no hash-bound plan ran the contradiction analysis, `decisionConflicts` and a warning name the stored decision facts (with their requirements) a complete candidate would contradict, before any write. `kb_upsert` returns the `claimKey` it stored for a written fact that carries `claim_text`, so a writer without a dry run learns the derived key without a `kb_query`. Two further plan defects are fixed on the way: the hash-bound plan of a requirement with several ledger claims now keeps the stored `logic_claims` manifest and merges the new claim into it, where before `kb_apply_plan` refused the plan with a proposition-complete error, and a predicate fact planned from a project `predicate_schema` in a namespace now carries that `predicate_namespace`, where before `kb_check` reported `predicate-schema-conformance` for the written fact.
+
+  Technical summary: `existingClaimGrounding` reads `canonical_key` beside `claim_key` and labels each row with `matchedBy`; the decision block reads the stored requirement contract once, derives a `ledgerState`, and gates `apply_requires_predicate`, `relationshipPlan` and the hash-bound plan on the ledger carrying the claim; `candidateDecisionConflicts` queries the decision-conflict rules (`kb:decision_signatures`, `kb:decision_req_fact`, `kb:bind_key_arguments`, `kb:effective_decision`) for the candidate tuple when `plan` is null; the `kb_suggest_predicates` contract adds the two actions and `decisionConflicts`; `UpsertPayload` adds `claimKey`; the `kibi-usage` skill (2.15.4) explains the new actions; `groundingPlan` merges the stored `logic_claims` into the requirement step; `predicateSchemaFromEntity` and `schemaForCandidate` keep `predicate_namespace`, and `buildPredicateApplyPlan` writes it on the planned fact. kibi-runtime is bumped because it bundles the CLI operations and the skill that kibi-mcp serves.
+
+- e653c1d: The `ask` call on a predicate fact in a `kb_search` answer now reproduces that fact's own tuple instead of naming the predicate alone: pasted, `kb_query` returns the fact and only the facts sharing its key arguments (`has_role(alice, admin)` asks `where: { user: "alice" }`, a `permission_rule` asks by actor, action and resource), where before it returned every fact of the predicate. The `predicate_schema` catalog now gives a built-in schema such as `permission_rule` the id that `kb_model` accepts as `schemaId` (`FACT-SCHEMA-PERMISSION-RULE`) together with `stored: false`, so an agent is no longer told `id: null` and no longer looks up an entity that does not exist; project schemas carry `stored: true`.
+
+  Technical summary: `buildSearchAnswer` resolves the schema of each linked or ungoverned predicate fact (project `predicate_schema` of its namespace and name, else the built-in signature) in the round trip that loads the linked rows, and `factDetail` builds `where` over the schema's `key_arguments`, else the argument named `subject`, else the first argument, with the fact's `namespace` when it is not `default`; a fact without a schema, or whose schema does not fit its arity, gets its full positional `args`. `kb.pl` gains `builtin_predicate_signature/3` (catalog id and argument names of a built-in decision predicate), which `discovery.pl` uses for the catalog row and `ask_schema_dict`; every schema row carries `stored`, and the `kb_query` text summary marks a built-in row as not a stored entity.
+
+- Updated dependencies [c11f6a6]
+- Updated dependencies [e653c1d]
+  - kibi-runtime@2.14.3
+  - kibi-core@0.21.1
+
 ## 3.9.1
 
 ### Patch Changes
