@@ -274,23 +274,35 @@ export function renderShardWithout(
   return document.toString();
 }
 
-export function removeRelationshipsFromShards(
+export type PlannedShardRemovals = Readonly<{
+  removals: RemovedRelationshipRecords[];
+  /** Shard path -> its body without the selected records. */
+  bodies: ReadonlyMap<string, string>;
+}>;
+
+/**
+ * Render every shard that holds a selected relationship without writing it,
+ * so a dry run can report the exact bytes a delete would publish.
+ */
+// implements REQ-kibi-operation-interface-parity
+export function planRelationshipShardRemovals(
   kbRoot: string,
   selectors: readonly RelationshipSelector[],
-): RemovedRelationshipRecords[] {
+): PlannedShardRemovals {
   const wanted = new Set(
     selectors.map(
       (selector) => `${selector.type}\0${selector.from}\0${selector.to}`,
     ),
   );
   const removed = new Map<string, { paths: string[]; sources: string[] }>();
+  const bodies = new Map<string, string>();
   for (const shardPath of listShards(kbRoot)) {
     const records = readShard(shardPath);
     const matching = records.filter((record) =>
       wanted.has(`${record.type}\0${record.from}\0${record.to}`),
     );
     if (matching.length === 0) continue;
-    atomicWriteText(
+    bodies.set(
       shardPath,
       renderShardWithout(
         fs.readFileSync(shardPath, "utf8"),
@@ -306,17 +318,31 @@ export function removeRelationshipsFromShards(
       removed.set(key, entry);
     }
   }
-  return selectors.map((selector) => {
-    const entry = removed.get(
-      `${selector.type}\0${selector.from}\0${selector.to}`,
-    );
-    return {
-      selector,
-      shardPaths: entry?.paths ?? [],
-      sources: entry?.sources ?? [],
-      removed: entry !== undefined,
-    };
-  });
+  return {
+    bodies,
+    removals: selectors.map((selector) => {
+      const entry = removed.get(
+        `${selector.type}\0${selector.from}\0${selector.to}`,
+      );
+      return {
+        selector,
+        shardPaths: entry?.paths ?? [],
+        sources: entry?.sources ?? [],
+        removed: entry !== undefined,
+      };
+    }),
+  };
+}
+
+export function removeRelationshipsFromShards(
+  kbRoot: string,
+  selectors: readonly RelationshipSelector[],
+): RemovedRelationshipRecords[] {
+  const planned = planRelationshipShardRemovals(kbRoot, selectors);
+  for (const [shardPath, body] of planned.bodies) {
+    atomicWriteText(shardPath, body);
+  }
+  return planned.removals;
 }
 
 /**

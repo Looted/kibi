@@ -4534,15 +4534,19 @@
         "readOnlyHint": false,
         "title": "Delete a Kibi entity"
       },
-      "description": "Delete entities by ID. Use only for intentional removals after dependency checks. Do not use as a bulk cleanup shortcut. Side effects: mutates and saves KB; skips entities with dependents.",
+      "description": "Delete entities by ID, or exact relationship triples. Use only for intentional removals after dependency checks. Do not use as a bulk cleanup shortcut. An entity authored in a Markdown or YAML source is not deleted directly: the call writes nothing and returns outcome plan_returned with a hash-bound deletionPlan and a nextActions entry holding the exact kb_apply_plan input ({plan, approvedPlanHash}); apply that unmodified, or repeat this call with approvedPlanHash = deletionPlan.planHash to apply the freshly computed plan in one step (a stale or different hash fails with DELETE_PLAN_HASH_MISMATCH and writes nothing). Authored requirements are never deleted: outcome supersession_required points to kb_upsert with a supersedes relationship. dryRun:true previews any delete and writes nothing. Side effects: mutates and saves KB and authored sources; skips entities with dependents; dryRun and plan_returned write nothing.",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "additionalProperties": {},
         "properties": {
           "approvedPlanHash": {
-            "description": "Exact hash returned by a prior authored-entity deletion plan.",
+            "description": "With ids only: the deletionPlan.planHash a prior call for the same ids returned. The plan is recomputed and applied through kb_apply_plan when its hash still matches; a mismatch fails with DELETE_PLAN_HASH_MISMATCH and writes nothing. Not allowed with relationships or dryRun.",
             "pattern": "^[a-fA-F0-9]{64}$",
             "type": "string"
+          },
+          "dryRun": {
+            "description": "Preview without writing. Relationship and direct entity deletes run their preflight and return outcome dry_run with wouldDelete counts, the sourceWrites (paths and hashes) a commit would make, and skippedEffects. Authored ids return the same deletion plan as without dryRun.",
+            "type": "boolean"
           },
           "ids": {
             "description": "Entity IDs to delete after dependency checks.",
@@ -4601,6 +4605,10 @@
                 "properties": {},
                 "type": "object"
               },
+              "dryRun": {
+                "const": true,
+                "type": "boolean"
+              },
               "effectFailures": {
                 "items": {
                   "additionalProperties": {},
@@ -4624,6 +4632,33 @@
                   "type": "object"
                 },
                 "type": "array"
+              },
+              "outcome": {
+                "anyOf": [
+                  {
+                    "const": "plan_returned",
+                    "type": "string"
+                  },
+                  {
+                    "const": "supersession_required",
+                    "type": "string"
+                  },
+                  {
+                    "const": "plan_applied",
+                    "type": "string"
+                  },
+                  {
+                    "const": "dry_run",
+                    "type": "string"
+                  }
+                ],
+                "description": "Absent on a direct delete. plan_returned: deletionPlan was returned and nothing was written; nextActions[0].input is the exact kb_apply_plan input. supersession_required: an authored requirement must be superseded with kb_upsert instead. plan_applied: approvedPlanHash matched and the plan was applied. dry_run: dryRun:true previewed the delete and nothing was written."
+              },
+              "planHash": {
+                "type": "string"
+              },
+              "recoveryJournalId": {
+                "type": "string"
               },
               "relationship_results": {
                 "items": {
@@ -4649,6 +4684,12 @@
                 },
                 "type": "array"
               },
+              "sourcePaths": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
               "sourceWrites": {
                 "items": {
                   "additionalProperties": {},
@@ -4667,6 +4708,11 @@
               },
               "sync_required": {
                 "type": "boolean"
+              },
+              "wouldDelete": {
+                "additionalProperties": {},
+                "properties": {},
+                "type": "object"
               }
             },
             "type": "object"

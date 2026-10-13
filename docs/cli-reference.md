@@ -59,6 +59,20 @@ consolidated routes `kibi skill` and `kibi model` match the MCP tools
   first, so a grounding link to a fact that does not exist yet validates and
   the contradiction preview sees the KB as it would be after the batch
   (`stagedFacts`, `whatIf`). `plannedFacts` without `dryRun` is rejected.
+- `kibi delete` accepts `"dryRun": true`: a relationship or direct entity
+  delete runs its preflight, writes nothing, and returns `outcome: "dry_run"`
+  with `wouldDelete`, the `sourceWrites` a commit would make, and
+  `skippedEffects`. An id authored in a Markdown or YAML source is never
+  deleted directly: the route writes nothing and returns
+  `outcome: "plan_returned"` with `deletionPlan` and a `nextActions` entry
+  whose `input` is the exact `kibi apply-plan` input
+  (`{"plan": …, "approvedPlanHash": …}`). Pass that unmodified, or rerun
+  `kibi delete` with the same `ids` and `"approvedPlanHash"` set to
+  `deletionPlan.planHash` to apply it in one call (a stale or different hash
+  fails with `DELETE_PLAN_HASH_MISMATCH` and writes nothing). An authored
+  requirement returns `outcome: "supersession_required"` and a `kb_upsert`
+  supersession next action instead. See the
+  [MCP reference](mcp-reference.md#kb_delete) for every field.
 - `kibi apply-plan` with `"recoveryJournalId": "bootstrap-…"` resumes a
   bootstrap plan whose process died mid-action without journal edits: the
   interrupted action is re-applied and a source lock left by the dead process
