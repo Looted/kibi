@@ -51853,6 +51853,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-agent-guided-migration-orchestration
+      - type: covered_by
+        target: TEST-kibi-schema6-migration-cli
       - type: implements
         target: REQ-agent-guided-migration-orchestration
       - type: implements
@@ -52048,6 +52050,8 @@ symbols:
       kind: agent
       recorded_at: 2026-10-13T12:59:02.993Z
     relationships:
+      - type: covered_by
+        target: TEST-agent-guided-migration-orchestration
       - type: covered_by
         target: TEST-cli-status-pre-first-sync
       - type: implements
