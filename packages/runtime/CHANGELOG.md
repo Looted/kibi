@@ -1,5 +1,20 @@
 # kibi-runtime
 
+## 2.15.1
+
+### Patch Changes
+
+- f45465a: `kb_model` mode `analyze` with the `id` of a stored requirement now warns when the analyzed prose drops a clause the stored ledger has grounded. Before, analyzing a requirement's title while its stored `semantic_text` was worded differently returned a clean receipt, and only the `kb_upsert` that followed failed with `modeled proposition claim_keys must match logical grounding target claim_keys exactly`, with no hint which key or fact was involved. Now the receipt's `warnings` carry a `Claim-key drift against the stored ledger` entry naming the stored modeled clauses the analysis no longer states, the facts that ground them, the clauses the analysis adds, and the remedy (keep the stored `semantic_text` wording, re-ground the facts with the new keys first, or supersede). The proposition-complete error itself now lists the modeled keys no grounding fact declares and the grounding facts whose keys the ledger dropped, with the same remedy, so a write refused for this reason explains itself.
+
+  Technical summary: `storedLedgerDriftWarning` (new `semantic-advisor/stored-ledger-drift.ts`) loads the stored requirement through `loadEntities`, compares its `semantic_inventory` entries with `status: modeled` against the receipt's propositions and reads the `requires_property`/`requires_predicate`/`requires_rule` targets with their `claim_key` in one Prolog query; `executeSemanticAdvisor` calls it only when `id` is given for a `req`, over `context.prolog` or the lazy `ensureProlog`, and treats an unreadable store as no warning. `groundingClaimKeyError` appends `claimKeyMismatchDetail` to the exact-match error. The `kibi-usage` skill (2.16.1) recipe for changing a grounded requirement's text says to analyze with the requirement's `id` first. kibi-runtime and kibi-mcp are bumped because they bundle and serve the CLI operations and the skill.
+
+- c533144: The schema upgrade in the `kb_status` / `kibi status` migration plan now declares everything `kibi migrate --yes` writes: coarse symbol links it marks `legacy-link` and the other source rewrites appear as their own actions with their own files, and `.gitignore` is listed on the upgrade itself. Approving the upgrade without those actions is refused instead of rewriting files the plan never named, and the apply result now says what the migration changed. `kb_upsert` of a non-decision entity with `firmness` now names the field, and pre-schema-9 knowledge bases are told that the schema upgrade acknowledges existing supersedes.
+  - `buildActionsFromStatus` takes a `planSchemaUpgradeSources` planner; `kb_status` passes the schema 6 migration fragment (the planner `kibi migrate` uses), so actions such as `symbol-legacy-link-mark` (bound to the `.kb/symbols.yaml` hash), `entity-origin-backfill` and the lifecycle repairs join the plan and `schema-config-upgrade` depends on them. While the upgrade still moves legacy knowledge or waits on an operator, it lists `.kb/` and explains why in `evidence.sourceRewrites`.
+  - `migrateCommand` returns a run summary built from the audit record; `kb_apply_plan` uses it for the upgrade's `actionResults[].detail` (schema versions, legacy-link marks, origin backfill, lifecycle repairs, whether `.gitignore` changed). `updateGitIgnore` reports whether it changed the file.
+  - The migration audit record stores the pre-run schema warning as `preMigrationWarning` instead of `warning`.
+  - The `supersedes-reason-missing` suggestion adds a sentence on KBs whose manifest is below schema 9.
+  - Upsert validation rewrites AJV's `must NOT be valid` for type-restricted fields into `<field> is only valid on <types> entities`.
+
 ## 2.15.0
 
 ### Minor Changes
