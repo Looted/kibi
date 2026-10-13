@@ -3,7 +3,7 @@ import path from "node:path";
 import type { OperationContext } from "../../public/operations/runtime-types.js";
 import { readKbManifestStatus } from "../../utils/kb-manifest.js";
 import { KB_PATHS } from "../../utils/kb-paths.js";
-import type { ActivationPolicy, ActivationState } from "./types.js";
+import type { ActivationPolicy, ActivationState, Candidate } from "./types.js";
 
 // implements REQ-KIBI-BOOTSTRAP-PLAN
 // covered_by TEST-KIBI-BOOTSTRAP-PLAN-APPLY
@@ -26,6 +26,7 @@ function activationFor(state: ActivationState): ActivationPolicy {
         // Discovery remains useful for explaining the next step, but the
         // resulting plan is blocked until `kibi init` establishes the root.
         allowCandidateGeneration: true,
+        allowDeclaredClaims: true,
         reason:
           "Workspace has no attached root KB yet; run `kibi init` before planning bootstrap knowledge.",
         handoffMessage:
@@ -37,6 +38,7 @@ function activationFor(state: ActivationState): ActivationPolicy {
         activationMode: "repair_bootstrap",
         applyBlocked: true,
         allowCandidateGeneration: true,
+        allowDeclaredClaims: true,
         reason:
           "Workspace root is only partially configured; run a repair bootstrap scan and keep apply blocked until the root is repaired.",
       };
@@ -46,6 +48,7 @@ function activationFor(state: ActivationState): ActivationPolicy {
         activationMode: "vendored_blocked",
         applyBlocked: true,
         allowCandidateGeneration: false,
+        allowDeclaredClaims: false,
         reason:
           "Workspace appears to contain vendored Kibi sources only; bootstrap generation is blocked in this posture.",
         handoffMessage:
@@ -57,6 +60,7 @@ function activationFor(state: ActivationState): ActivationPolicy {
         activationMode: "attached_thin_bootstrap",
         applyBlocked: false,
         allowCandidateGeneration: true,
+        allowDeclaredClaims: true,
         reason:
           "Workspace has an attached but unseeded KB; deterministic bootstrap planning is eligible.",
       };
@@ -64,14 +68,43 @@ function activationFor(state: ActivationState): ActivationPolicy {
       return {
         activationState: state,
         activationMode: "attached_seeded_handoff",
+        // Blocked until the plan holds declared claims; see claimPlanActivation.
         applyBlocked: true,
         allowCandidateGeneration: false,
+        allowDeclaredClaims: true,
         reason:
-          "Workspace already has an attached seeded KB; bootstrap synthesis is replaced by an explicit seeded handoff.",
+          "Workspace already has an attached seeded KB; discovered bootstrap candidates are replaced by an explicit seeded handoff, and only declared intent claims are planned against the existing KB.",
         handoffMessage:
-          "Attached seeded KB detected. Use existing KB context instead of generating bootstrap candidates.",
+          "Attached seeded KB detected. Kibi does not generate discovered bootstrap candidates here: use kb_search and kb_query for existing KB context. Declare cited intentClaims in bootstrapContext to plan them against the existing KB, or compile each claim with kb_compile_intent.",
       };
   }
+}
+
+/**
+ * On a seeded KB the plan may hold declared intent claims, already
+ * deduplicated against the existing KB. Such a plan is applicable like a thin
+ * bootstrap plan; a seeded plan holding anything else stays a handoff.
+ */
+// implements REQ-bootstrap-discovered-candidate-budget
+// covered_by TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+export function claimPlanActivation(
+  policy: ActivationPolicy,
+  candidates: readonly Candidate[],
+): ActivationPolicy {
+  if (
+    policy.activationState !== "root_active_seeded" ||
+    candidates.length === 0 ||
+    candidates.some((candidate) => candidate.sourceKind !== "intent_claim")
+  )
+    return policy;
+  return {
+    ...policy,
+    applyBlocked: false,
+    reason:
+      "Workspace already has an attached seeded KB; discovered bootstrap candidates are not generated, and the plan holds only declared intent claims that are not yet in the KB.",
+    handoffMessage:
+      "Attached seeded KB detected. The plan holds only your declared intent claims, deduplicated against the existing KB: review it and call kb_apply_plan after explicit approval. Discovered candidates are not generated here; use kb_search and kb_query for existing knowledge, and compile any claim left in sourceOnlySignals with kb_compile_intent.",
+  };
 }
 
 async function exists(

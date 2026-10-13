@@ -397,10 +397,10 @@ describe("bootstrap write safety and evidence accounting", () => {
     ).structuredContent.plan;
     expect(plan.status).toBe("needs_context");
     expect(plan.diagnostics).toContain(
-      "Knowledge source tracker (authoritative): 1 declared claim(s), 0 planned, 0 already in the KB, 0 filtered out, 1 not planned (see suppressedCandidates and source-only follow-ups).",
+      "Knowledge source tracker (authoritative): 1 declared claim(s), 0 planned, 0 already in the KB, 0 filtered out, 1 not planned: 1 without a suppressedCandidates row or follow-up (see diagnostics).",
     );
     expect(plan.diagnostics).toContain(
-      "Knowledge source spec (authoritative): 1 declared claim(s), 1 planned, 0 already in the KB, 0 filtered out, 0 not planned (see suppressedCandidates and source-only follow-ups).",
+      "Knowledge source spec (authoritative): 1 declared claim(s), 1 planned, 0 already in the KB, 0 filtered out, 0 not planned.",
     );
     expect(plan.contextQuestions[0]).toContain('"Tracker"');
     const spec = claimed.filter((row) =>
@@ -428,7 +428,125 @@ describe("bootstrap write safety and evidence accounting", () => {
     }).structuredContent.plan;
     expect(supporting.status).toBe("ready");
     expect(supporting.diagnostics).toContain(
-      "Knowledge source tracker (supporting): 1 declared claim(s), 0 planned, 0 already in the KB, 0 filtered out, 1 not planned (see suppressedCandidates and source-only follow-ups).",
+      "Knowledge source tracker (supporting): 1 declared claim(s), 0 planned, 0 already in the KB, 0 filtered out, 1 not planned: 1 without a suppressedCandidates row or follow-up (see diagnostics).",
+    );
+  });
+  test("claims not planned are reported with their real reason so the per-source counts add up", () => {
+    const source: BootstrapKnowledgeSource = {
+      id: "handover",
+      title: "Handover",
+      locator: "handover",
+      kind: "specification",
+      authority: "authoritative",
+    };
+    const claim = (reference: string, statement: string) => ({
+      sourceId: source.id,
+      reference,
+      statement,
+      excerpt: `The handover says: ${statement}`,
+    });
+    const bootstrapContext = {
+      knowledgeSources: [source],
+      intentClaims: [
+        claim("H-1", "Exports must be signed."),
+        claim("H-2", "Telemetry must be disabled."),
+        claim("H-3", "People like reports."),
+      ],
+    };
+    const present = (
+      activationMode: "vendored_blocked" | "cold_start_bootstrap",
+      suppressedCandidates: readonly Readonly<Record<string, unknown>>[],
+      sourceOnlySignals: Parameters<
+        typeof presentBootstrap
+      >[0]["sourceOnlySignals"] = [],
+    ) =>
+      presentBootstrap({
+        root: "/tmp/repo",
+        activation: {
+          activationState:
+            activationMode === "vendored_blocked"
+              ? "vendored_only"
+              : "root_uninitialized",
+          activationMode,
+          applyBlocked: activationMode === "vendored_blocked",
+          allowCandidateGeneration: activationMode !== "vendored_blocked",
+          reason: activationMode,
+        },
+        discoverySummary: {
+          activationState: "root_uninitialized",
+          activationMode,
+          applyBlocked: false,
+          reason: activationMode,
+          providersRun: [],
+          providerCounts: {},
+          detectedLanguages: [],
+          detectedTestFrameworks: [],
+          excludedRoots: [],
+          truncated: false,
+          scanWarnings: [],
+        },
+        migrationWarning: null,
+        bootstrapContext,
+        candidates: [],
+        sourceOnlySignals,
+        suppressedCandidates,
+        expected: {
+          branch: "main",
+          kbSnapshotId: "snap",
+          workspaceSnapshot: "ws",
+          sourceHashes: {},
+        },
+      }).structuredContent.plan.diagnostics;
+    // A mode that plans no declared claims says so instead of pointing at
+    // rows that do not exist.
+    expect(
+      present(
+        "vendored_blocked",
+        bootstrapContext.intentClaims.map((row) => ({
+          candidateId: "",
+          reason: "suppressed_by_activation",
+          sourcePath: row.reference,
+          sourceId: source.id,
+        })),
+      ),
+    ).toContain(
+      "Knowledge source handover (authoritative): 3 declared claim(s), 0 planned, 0 already in the KB, 0 filtered out, 3 not planned: 3 because bootstrap synthesis is suppressed in vendored_blocked; compile them with kb_compile_intent.",
+    );
+    // Existing, suppressed and source-only claims are each counted once.
+    expect(
+      present(
+        "cold_start_bootstrap",
+        [
+          {
+            candidateId: "claim:handover:req-exports",
+            reason: "entity_exists",
+            sourcePath: "H-1",
+          },
+          {
+            candidateId: "claim:handover:req-telemetry",
+            reason: "invalid_write",
+            sourcePath: "H-2",
+          },
+        ],
+        [
+          {
+            kind: "req",
+            title: "Author requirement: Telemetry must be disabled.",
+            sourcePath: "H-2",
+            confidence: 0.9,
+            evidence: ["intent_claim:handover:H-2"],
+          },
+          {
+            kind: "req",
+            title: "Author requirement from Handover H-3: People like reports.",
+            sourcePath: "H-3",
+            confidence: 0.9,
+            evidence: ["intent_claim:handover:H-3"],
+          },
+        ],
+      ),
+    ).toContain(
+      "Knowledge source handover (authoritative): 3 declared claim(s), 0 planned, 1 already in the KB, 0 filtered out, 2 not planned: 1 suppressed (rows in suppressedCandidates); 1 need authoring (sourceOnlySignals; compile them with kb_compile_intent).",
     );
   });
   test("hundreds of suppressions read as one count per reason in the tldr and diagnostics", () => {

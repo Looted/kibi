@@ -8,14 +8,14 @@ tags:
   - knowledge-sources
   - review:context-missing
 rationale: An Oct 6 2026 onboarding rerun on a test project lost all 31 tracker claims to the default 50-candidate cap and partially applied a plan whose candidates rewrote each other's entities.
-semantic_text: The bootstrap planner must keep every declared intent claim regardless of maxCandidates and apply maxCandidates only to discovered candidates. The bootstrap planner must suppress a candidate that would rewrite an entity another planned candidate writes with different content. The bootstrap planner must run the claim key grounding check against planned writes before offering write actions. The bootstrap planner must report declared, planned and existing intent claims for each knowledge source. The bootstrap planner must not mark a plan ready when an authoritative knowledge source has no planned or existing claims.
+semantic_text: The bootstrap planner must keep every declared intent claim regardless of maxCandidates and apply maxCandidates only to discovered candidates. The bootstrap planner must suppress a candidate that would rewrite an entity another planned candidate writes with different content. The bootstrap planner must run the claim key grounding check against planned writes before offering write actions. The bootstrap planner must report declared, planned and existing intent claims for each knowledge source. The bootstrap planner must not mark a plan ready when an authoritative knowledge source has no planned or existing claims. The bootstrap planner must report why each declared intent claim was not planned for each knowledge source.
 origin:
   kind: agent
   ref: 'Piotr thread 2026-10-06: fix bootstrap truncation after a test project onboarding rerun'
   recorded_at: '2026-10-06T11:35:48.740Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
-semantic_source_hash: ec730e126dc2403eea666246b45135e432cce477a958cf9132a0861442e5ccc0
+semantic_source_hash: 0f0bb6361bd46d1dcab29d83195a3797ba5730531a9687f868b80381059be8db
 semantic_inventory:
   - claim_key: CLAIM-0D8D71DB60BC0D38
     claim_text: The bootstrap planner must keep every declared intent claim regardless of maxCandidates and apply maxCandidates only to discovered candidates
@@ -52,12 +52,20 @@ semantic_inventory:
     span:
       start: 498
       end: 619
+  - claim_key: CLAIM-FB6460055DA61C1F
+    claim_text: The bootstrap planner must report why each declared intent claim was not planned for each knowledge source
+    role: normative
+    status: modeled
+    span:
+      start: 621
+      end: 727
 logic_claims:
   - CLAIM-0D8D71DB60BC0D38
   - CLAIM-FCC9AC671AF2C35E
   - CLAIM-298CB83398C39343
   - CLAIM-96F8CEA7B9EF97DE
   - CLAIM-99C795E50A85B421
+  - CLAIM-FB6460055DA61C1F
 id: REQ-bootstrap-intent-claim-accounting
 type: req
 semantic_clauses:
@@ -66,5 +74,6 @@ semantic_clauses:
   - The bootstrap planner must run the claim key grounding check against planned writes before offering write actions.
   - The bootstrap planner must report declared, planned and existing intent claims for each knowledge source.
   - The bootstrap planner must not mark a plan ready when an authoritative knowledge source has no planned or existing claims.
+  - The bootstrap planner must report why each declared intent claim was not planned for each knowledge source.
 ---
 The bootstrap planner must keep every declared intent claim regardless of maxCandidates and apply maxCandidates only to discovered candidates. The bootstrap planner must suppress a candidate that would rewrite an entity another planned candidate writes with different content. The bootstrap planner must run the claim key grounding check against planned writes before offering write actions. The bootstrap planner must report declared, planned and existing intent claims for each knowledge source. The bootstrap planner must not mark a plan ready when an authoritative knowledge source has no planned or existing claims.

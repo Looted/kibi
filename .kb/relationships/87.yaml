@@ -433,3 +433,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9ec6eee7b431
+  - type: requires_property
+    from: REQ-bootstrap-discovered-candidate-budget
+    to: FACT-bootstrap-discovered-candidate-budget-seeded-claim-plan
+    created_at: 2026-10-13T16:36:13.953Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0cf161739bc4
+  - type: specified_by
+    from: REQ-bootstrap-discovered-candidate-budget
+    to: SCEN-bootstrap-seeded-claim-plan
+    created_at: 2026-10-13T16:36:53.043Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-992f04822f54

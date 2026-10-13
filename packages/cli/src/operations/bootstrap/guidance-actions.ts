@@ -74,6 +74,8 @@ export function buildActions(
           : "Use kb_coverage to review traceability and identify areas needing attention.",
     });
   }
+  const seeded = activation.activationMode === "attached_seeded_handoff";
+  const declaredClaims = declared.intentClaims?.length ?? 0;
   if (activation.applyBlocked)
     result.push({
       order: order++,
@@ -84,14 +86,25 @@ export function buildActions(
     result.push({
       order: order++,
       kind: "plan",
-      description: `Review the ${candidates.length} safe candidate(s) in the hash-bound plan, then call kb_apply_plan after explicit approval.`,
+      description: seeded
+        ? `Review the ${candidates.length} candidate(s) planned from declared intent claims (discovered candidates are not generated on a seeded KB, and claims already in the KB are not planned again), then call kb_apply_plan after explicit approval.`
+        : `Review the ${candidates.length} safe candidate(s) in the hash-bound plan, then call kb_apply_plan after explicit approval.`,
       candidateIds: candidates.map((candidate) => candidate.candidateId),
+    });
+  // On a seeded KB, declared claims the plan does not write go through the
+  // compile workflow, not a second bootstrap.
+  if (seeded && declaredClaims > 0 && candidates.length === 0)
+    result.push({
+      order: order++,
+      kind: "handoff",
+      description:
+        "No declared intent claim could be planned. Claims already in the KB need nothing; compile each remaining claim with kb_compile_intent, citing its source and reference (see the Knowledge source diagnostics).",
     });
   if (signals.length > 0)
     result.push({
       order: order++,
       kind: "handoff",
-      description: `Author ${[...new Set(signals.map((signal) => signal.kind.toUpperCase()))].join("/")} entities manually from source-only evidence.`,
+      description: `Author ${[...new Set(signals.map((signal) => signal.kind.toUpperCase()))].join("/")} entities manually from source-only evidence${seeded ? "; compile declared claims left there with kb_compile_intent" : ""}.`,
     });
   for (const offer of offers)
     result.push({

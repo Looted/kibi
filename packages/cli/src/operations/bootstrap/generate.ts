@@ -9,6 +9,7 @@ import {
   type SemanticRelationship,
   stagedLogicalGroundingError,
 } from "../semantic-advisor/ingestion-boundary.js";
+import { claimPlanActivation } from "./activation.js";
 import {
   buildBootstrapCandidates,
   isProvenanceStubCandidate,
@@ -18,6 +19,8 @@ import { buildIntentClaimCandidates } from "./intent-claims.js";
 import { normalizeBootstrapContext, presentBootstrap } from "./presentation.js";
 import { SubjectKeyRegistry, shareSubjectFacts } from "./requirement-claims.js";
 import type {
+  ActivationPolicy,
+  BootstrapDeclaredContext,
   Candidate,
   PlanBootstrapArgs,
   PlanBootstrapResult,
@@ -273,14 +276,49 @@ function stagedGroundingError(
   return null;
 }
 
+/**
+ * One suppressedCandidates row per declared claim the activation mode does
+ * not plan, so the per-source accounting names the real reason.
+ */
+// implements REQ-bootstrap-intent-claim-accounting
+function activationSuppressedClaims(
+  declared: BootstrapDeclaredContext,
+  activation: ActivationPolicy,
+): readonly Readonly<Record<string, unknown>>[] {
+  const sources = new Set(
+    (declared.knowledgeSources ?? []).map((source) => source.id),
+  );
+  return (declared.intentClaims ?? [])
+    .filter((claim) => sources.has(claim.sourceId))
+    .map((claim) => ({
+      candidateId: "",
+      reason: "suppressed_by_activation",
+      sourcePath: claim.reference,
+      entityType: (claim.kind ?? "intent") === "intent" ? "req" : "fact",
+      statement: claim.statement,
+      sourceId: claim.sourceId,
+      activationMode: activation.activationMode,
+    }));
+}
+
+/**
+ * IDs already in the KB, so declared claims and discovered candidates that
+ * exist are counted under entity_exists instead of being planned again. An
+ * attached root starts the lazy engine when the host supplied none (the CLI
+ * does so for status anyway); an unattached root never starts one.
+ */
+// implements REQ-bootstrap-intent-claim-accounting
 async function existingEntityIds(
   context: OperationContext,
+  attached: boolean,
 ): Promise<ReadonlySet<string>> {
-  if (!context.prolog) return new Set<string>();
   try {
+    const prolog =
+      context.prolog ?? (attached ? await context.ensureProlog?.() : undefined);
+    if (!prolog) return new Set<string>();
     // Ids only: materializing every entity (receipt histories included)
     // just to build this set exceeds the bounded engine output.
-    return new Set((await loadEntityIds(context.prolog)).filter(Boolean));
+    return new Set((await loadEntityIds(prolog)).filter(Boolean));
   } catch (error) {
     throw new Error(
       `Bootstrap binding could not read existing entity IDs: ${error instanceof Error ? error.message : String(error)}`,
@@ -399,13 +437,15 @@ export async function executePlanBootstrap(
   const minConfidence = clamp(args.minConfidence ?? 0.8, 0.6, 0.95);
   const maxCandidates = clamp(Math.trunc(args.maxCandidates ?? 50), 1, 200);
   const entityBindingDiagnostics: string[] = [];
-  const [discovery, existingIds] = await Promise.all([
-    discoverBootstrap(context),
-    existingEntityIds(context).catch((error: Error) => {
-      entityBindingDiagnostics.push(error.message);
-      return new Set<string>();
-    }),
-  ]);
+  const discovery = await discoverBootstrap(context);
+  const existingIds = await existingEntityIds(
+    context,
+    discovery.activation.activationState === "root_active_thin" ||
+      discovery.activation.activationState === "root_active_seeded",
+  ).catch((error: Error) => {
+    entityBindingDiagnostics.push(error.message);
+    return new Set<string>();
+  });
   // Discovery runs before planning so its evidence paths can be bound into
   // the exact plan rather than leaving the reviewer to reconstruct them.
   const bound = await expectedSnapshots(
@@ -432,8 +472,13 @@ export async function executePlanBootstrap(
         diagnostics: [],
       };
   // Intent harvested from declared knowledge sources joins the repository
-  // evidence under the same activation policy, filters, and selection.
-  const claimed = discovery.activation.allowCandidateGeneration
+  // evidence under the same filters and selection. A seeded KB still plans
+  // declared claims (deduplicated against the existing KB); only discovered
+  // candidates stay off there.
+  const allowDeclaredClaims =
+    discovery.activation.allowDeclaredClaims ??
+    discovery.activation.allowCandidateGeneration;
+  const claimed = allowDeclaredClaims
     ? buildIntentClaimCandidates(
         declared,
         existingIds,
@@ -443,7 +488,7 @@ export async function executePlanBootstrap(
     : {
         candidates: [],
         sourceOnlySignals: [],
-        suppressed: [],
+        suppressed: activationSuppressedClaims(declared, discovery.activation),
         diagnostics: [],
       };
   const filteredSignals = filterSourceOnlySignals(
@@ -467,10 +512,22 @@ export async function executePlanBootstrap(
     entityType: "",
   }));
   const { bindingDiagnostics, ...expected } = bound;
+  // A seeded plan holding only declared claims is applicable.
+  const activation = claimPlanActivation(
+    discovery.activation,
+    shared.candidates,
+  );
   return presentBootstrap({
     root: context.workspaceRoot,
-    activation: discovery.activation,
-    discoverySummary: discovery.summary,
+    activation,
+    discoverySummary: {
+      ...discovery.summary,
+      applyBlocked: activation.applyBlocked,
+      reason: activation.reason,
+      ...(activation.handoffMessage
+        ? { handoffMessage: activation.handoffMessage }
+        : {}),
+    },
     migrationWarning: discovery.migrationWarning,
     pluginOffers: discovery.pluginOffers,
     ...(args.bootstrapContext
