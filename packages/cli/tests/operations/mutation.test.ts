@@ -549,14 +549,30 @@ describe("shared mutation operation specs", () => {
       context,
     );
 
-    expect(result.structuredContent).toMatchObject({
-      valid: false,
-      errors: [
-        expect.stringContaining(
-          "modeled proposition claim_keys must match logical grounding target claim_keys exactly",
-        ),
-      ],
-    });
+    // The error names both sides of the drift and the remedy, so the agent
+    // does not have to diff the stored facts against its ledger by hand.
+    const [reported] = (
+      result.structuredContent as { errors: readonly unknown[] }
+    ).errors;
+    const error =
+      reported instanceof Error ? reported.message : String(reported);
+    const [modeledKey] = semantic.receipt.logic_coverage.expected_claim_keys;
+    expect(error).toContain(
+      "modeled proposition claim_keys must match logical grounding target claim_keys exactly",
+    );
+    expect(error).toContain(
+      `Modeled claims with no grounding fact declaring their claim_key: '${modeledKey}'.`,
+    );
+    expect(error).toContain(
+      "Grounding facts whose claim_key the inventory no longer models: FACT-WRONG-CLAIM ('CLAIM-AAAAAAAAAAAAAAAA').",
+    );
+    expect(error).toContain(
+      "kb_upsert each grounding fact with the new claim_key and claim_text (same fact id)",
+    );
+    expect(result.structuredContent).toMatchObject({ valid: false });
+    expect(
+      (result.structuredContent as { errors: readonly unknown[] }).errors,
+    ).toHaveLength(1);
     expect(save).not.toHaveBeenCalled();
   });
 

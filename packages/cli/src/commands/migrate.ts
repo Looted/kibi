@@ -79,7 +79,7 @@ interface MigrateOptions {
   initializeMissingConfig?: boolean;
 }
 
-interface MigrationAuditRecord {
+export interface MigrationAuditRecord {
   auditVersion: number;
   branch: string;
   manifestPath: string;
@@ -97,8 +97,18 @@ interface MigrationAuditRecord {
   /** Authored source values this run removed: they named the entity's own file or nothing. */
   sourcePathsRemoved: number;
   toVersion: number;
-  warning: string | null;
+  /** The schema warning the KB showed before this run migrated it. */
+  preMigrationWarning: string | null;
   steps: readonly string[];
+}
+
+/** What one applied `kibi migrate --yes` run changed, for plan apply results. */
+export interface MigrationRunSummary {
+  /** Workspace-relative path of the audit record this run wrote. */
+  auditPath: string;
+  audit: MigrationAuditRecord;
+  /** Whether this run added the canonical derived entries to .gitignore. */
+  gitignoreUpdated: boolean;
 }
 
 interface SchemaMigrationStep {
@@ -262,7 +272,7 @@ function buildMigrationAuditRecord(args: {
   supersededRequirementsClosed: number;
   sourcePathsRewritten: number;
   sourcePathsRemoved: number;
-  warning: string | null;
+  preMigrationWarning: string | null;
   steps: readonly string[];
 }): MigrationAuditRecord {
   return {
@@ -279,7 +289,7 @@ function buildMigrationAuditRecord(args: {
     sourcePathsRewritten: args.sourcePathsRewritten,
     sourcePathsRemoved: args.sourcePathsRemoved,
     toVersion: LATEST_KB_SCHEMA_VERSION,
-    warning: args.warning,
+    preMigrationWarning: args.preMigrationWarning,
     steps: args.steps,
   };
 }
@@ -489,7 +499,7 @@ export function warnMigrationRequiredWithoutYes(): { exitCode: number } {
 // implements REQ-003
 export async function migrateCommand(
   options: MigrateOptions = {},
-): Promise<{ exitCode: number }> {
+): Promise<{ exitCode: number; summary?: MigrationRunSummary }> {
   if (
     options.applySafe === true ||
     options.format === "json" ||
@@ -840,24 +850,22 @@ export async function migrateCommand(
       `Acknowledged ${supersedesUnexplained.length} supersede(s) recorded without a 'Why this changed' section; new supersedes must explain themselves.`,
     );
 
-  writeJsonAtomically(
-    auditPath,
-    buildMigrationAuditRecord({
-      branch,
-      manifestPath: KB_MANIFEST_RELATIVE,
-      fromVersion: configStatus.currentVersion,
-      migratedAt,
-      semanticAdvisorBackfill,
-      symbolGranularityLegacyLinks: legacyLinksMarked,
-      entityOriginBackfill:
-        originBackfill.written.length + originBackfill.previouslyStamped,
-      supersededRequirementsClosed: lifecycle.closed,
-      sourcePathsRewritten: lifecycle.rewritten,
-      sourcePathsRemoved: lifecycle.removed,
-      warning: migrationWarning,
-      steps: migrationSteps.map((step) => step.id),
-    }),
-  );
+  const auditRecord = buildMigrationAuditRecord({
+    branch,
+    manifestPath: KB_MANIFEST_RELATIVE,
+    fromVersion: configStatus.currentVersion,
+    migratedAt,
+    semanticAdvisorBackfill,
+    symbolGranularityLegacyLinks: legacyLinksMarked,
+    entityOriginBackfill:
+      originBackfill.written.length + originBackfill.previouslyStamped,
+    supersededRequirementsClosed: lifecycle.closed,
+    sourcePathsRewritten: lifecycle.rewritten,
+    sourcePathsRemoved: lifecycle.removed,
+    preMigrationWarning: migrationWarning,
+    steps: migrationSteps.map((step) => step.id),
+  });
+  writeJsonAtomically(auditPath, auditRecord);
 
   console.log(
     `Migrated the KB to schemaVersion ${LATEST_KB_SCHEMA_VERSION} on the canonical .kb/ layout (was ${fromVersionLabel}).`,
@@ -881,9 +889,27 @@ export async function migrateCommand(
   console.log(
     "Migration complete. Future 'kibi migrate' runs will be a no-op.",
   );
-  updateGitIgnore(cwd);
+  const gitignoreUpdated = updateGitIgnore(cwd);
 
-  return { exitCode: 0 };
+  return {
+    exitCode: 0,
+    summary: {
+      auditPath: toRelativePath(cwd, auditPath),
+      audit: auditRecord,
+      gitignoreUpdated,
+    },
+  };
+}
+
+/**
+ * One line naming what an applied migration run changed, read from the audit
+ * record it wrote: a count of zero shows a pass that had nothing left to do
+ * (for example legacy links an earlier plan action already marked).
+ */
+// implements REQ-agent-guided-migration-orchestration, REQ-cli-schema-migration
+export function describeMigrationRun(summary: MigrationRunSummary): string {
+  const { audit } = summary;
+  return `Migrated schema ${audit.fromVersion ?? "none"} -> ${audit.toVersion} (audit ${summary.auditPath}): legacy-link marks ${audit.symbolGranularityLegacyLinks}, origin backfill ${audit.entityOriginBackfill}, superseded requirements closed ${audit.supersededRequirementsClosed}, source paths rewritten ${audit.sourcePathsRewritten}, source paths removed ${audit.sourcePathsRemoved}; .gitignore ${summary.gitignoreUpdated ? "updated" : "unchanged"}.`;
 }
 
 const KB_MANIFEST_RELATIVE = ".kb/manifest.json";

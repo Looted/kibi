@@ -146,3 +146,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2e327cba4336
+  - type: implements
+    from: SYM-decision-firmness-list-decision-entities
+    to: REQ-kb-decision-firmness
+    created_at: 2026-10-13T12:58:17.709Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-26655410abf2
+  - type: covered_by
+    from: SYM-decision-firmness-list-decision-entities
+    to: TEST-kb-decision-firmness
+    created_at: 2026-10-13T12:58:17.724Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-889258b5b9b8
+  - type: implements
+    from: SYM-migration-plan-untracked-knowledge-sources-code
+    to: REQ-agent-guided-migration-orchestration
+    created_at: 2026-10-13T12:58:58.831Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-73bc7df96d2e
+  - type: covered_by
+    from: SYM-migration-plan-untracked-knowledge-sources-code
+    to: TEST-agent-guided-migration-orchestration
+    created_at: 2026-10-13T12:58:58.845Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-574d62d3152b

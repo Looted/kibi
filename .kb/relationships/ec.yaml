@@ -90,3 +90,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0ebf91bb5178
+  - type: implements
+    from: SYM-migration-plan-predicate-schema-alignment-code
+    to: REQ-kibi-predicate-vocabulary-migration
+    created_at: 2026-10-13T12:58:53.766Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9de08907a2ca
+  - type: covered_by
+    from: SYM-migration-plan-predicate-schema-alignment-code
+    to: TEST-kibi-predicate-vocabulary-migration-e2e
+    created_at: 2026-10-13T12:58:53.776Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-762faf1f29b4

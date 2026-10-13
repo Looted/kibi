@@ -19,6 +19,7 @@ import {
   applySupersedesReasonAcknowledgement,
   planSupersedesReasonAcknowledgement,
 } from "../../src/operations/migration/supersedes-reason.js";
+import { validateUpsertInput } from "../../src/operations/mutation/validation.js";
 import {
   DECISION_FIRM_SUPERSEDED_RULE,
   DECISION_FIRM_UNREFERENCED_RULE,
@@ -281,6 +282,34 @@ describe("decision firmness rules", () => {
     );
   });
 
+  test("a KB older than schema 9 is told the schema upgrade acknowledges its supersedes", () => {
+    const files = {
+      ".kb/requirements/REQ-old.md":
+        "---\nid: REQ-old\ntitle: Old\n---\nOld.\n",
+      ".kb/requirements/REQ-new.md":
+        "---\nid: REQ-new\ntitle: New\nlinks:\n  - type: supersedes\n    target: REQ-old\n---\nNew.\n",
+    };
+    const manifest = (schemaVersion: number) =>
+      JSON.stringify({
+        manifestVersion: 1,
+        schemaVersion,
+        semanticAdvisorBackfill: "not_applicable",
+      });
+    const suggestionAt = (schemaVersion: number) =>
+      collectDecisionFirmnessViolations(
+        new Set([SUPERSEDES_REASON_MISSING_RULE]),
+        workspace({ ...files, ".kb/manifest.json": manifest(schemaVersion) }),
+      )[0]?.suggestion ?? "";
+    const legacy = suggestionAt(8);
+    expect(legacy).toContain("## Why this changed");
+    expect(legacy).toContain(
+      "Supersedes recorded before schema 9 are acknowledged by the plan's schema-config-upgrade (kibi migrate --yes); add the reason only when you next touch the requirement.",
+    );
+    const current = suggestionAt(9);
+    expect(current).toContain("## Why this changed");
+    expect(current).not.toContain("schema-config-upgrade");
+  });
+
   test("a shard edge from a deleted entity does not hide a firm decision", () => {
     const root = workspace({
       ".kb/requirements/REQ-firm.md":
@@ -399,5 +428,24 @@ describe("firmness in authored front matter", () => {
         "/tmp/scenarios/SCEN-f.md",
       ),
     ).toThrow(FrontmatterError);
+  });
+
+  test("kb_upsert names firmness as the field a fact cannot carry", () => {
+    expect(() =>
+      validateUpsertInput(
+        {
+          type: "fact",
+          id: "FACT-firm-observation",
+          properties: {
+            title: "A firm observation",
+            fact_kind: "observation",
+            firmness: "firm",
+          },
+        },
+        new Date("2026-10-12T00:00:00Z"),
+      ),
+    ).toThrow(
+      "Entity validation failed: firmness is only valid on req and adr entities; remove it from this fact",
+    );
   });
 });

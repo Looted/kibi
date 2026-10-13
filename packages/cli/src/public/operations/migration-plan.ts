@@ -616,6 +616,14 @@ export function buildActionsFromCoverage(input: {
   return actions;
 }
 
+/** Source-rewrite actions a schema upgrade performs, as its planner returns them. */
+export type SchemaUpgradeSourceActions = Readonly<{
+  actions: readonly MigrationAction[];
+  /** Automatic actions that rewrite authored sources; the upgrade waits on them. */
+  sourceRewriteActionIds: readonly string[];
+  diagnostics: readonly string[];
+}>;
+
 export type MigrationConfigStatus = Readonly<{
   status: "missing" | "invalid" | "older" | "current" | "newer";
   currentVersion: number | null;
@@ -706,8 +714,17 @@ export function buildActionsFromStatus(input: {
   kbSnapshotId?: string | null;
   workspaceSnapshot?: string | null;
   configStatus?: MigrationConfigStatus;
+  /**
+   * Plans the authored-source rewrites `kibi migrate --yes` performs on its
+   * way to the latest schema (the planner `kibi migrate` itself uses), so
+   * the schema upgrade declares every file it touches. Read-only.
+   */
+  planSchemaUpgradeSources?: (
+    currentSchemaVersion: number | null,
+  ) => SchemaUpgradeSourceActions;
 }): MigrationPlan {
   const actions: MigrationAction[] = [];
+  const diagnostics: string[] = [];
   const attachment = input.branchAttachment;
   const store = input.branchStore;
   const configStatus =
@@ -813,6 +830,21 @@ export function buildActionsFromStatus(input: {
   if (configStatus.needsMigration || legacyStorageMigrationRequired) {
     const operatorOnly =
       configStatus.status === "newer" || legacyStorageBlocked;
+    // implements REQ-agent-guided-migration-orchestration, REQ-cli-schema-migration
+    // The source rewrites the migrate run performs (legacy-link marks, origin
+    // backfill, lifecycle repairs, ...) are planned as their own actions with
+    // their own files, and the upgrade waits on them, so approving it means
+    // approving them. Knowledge still outside .kb/ is planned after it moves.
+    const sources =
+      !operatorOnly &&
+      !legacyStorageMigrationRequired &&
+      input.planSchemaUpgradeSources !== undefined
+        ? input.planSchemaUpgradeSources(configStatus.currentVersion)
+        : null;
+    if (sources !== null) {
+      actions.push(...sources.actions);
+      diagnostics.push(...sources.diagnostics);
+    }
     actions.push(
       migrationAction({
         id: "schema-config-upgrade",
@@ -835,11 +867,21 @@ export function buildActionsFromStatus(input: {
           ".kb/manifest.json",
           ".kb/migrations",
           ".kb/config.json",
+          // The migrate run keeps the canonical derived entries ignored.
+          ".gitignore",
+          // Unplanned source rewrites can touch any authored .kb/ file.
+          ...(sources === null ? [".kb/"] : []),
           ...legacyStorage.moves.map((move) => move.from),
           ...legacyStorage.removals.map((removal) => removal.path),
         ],
         evidence: {
           configStatus,
+          ...(sources === null
+            ? {
+                sourceRewrites:
+                  "Not planned as separate actions: kibi migrate --yes also marks coarse symbol links legacy-link, backfills origin and repairs lifecycle findings in authored .kb/ sources. The plan lists them as their own actions once the upgrade can run automatically on the canonical .kb/ layout.",
+              }
+            : {}),
           ...(legacyStorageMigrationRequired
             ? {
                 legacyStorage: {
@@ -852,7 +894,10 @@ export function buildActionsFromStatus(input: {
               }
             : {}),
         },
-        dependsOn: storeState === "missing" ? ["branch-store-ensure"] : [],
+        dependsOn: [
+          ...(storeState === "missing" ? ["branch-store-ensure"] : []),
+          ...(sources?.sourceRewriteActionIds ?? []),
+        ],
         autoApplicable: !operatorOnly,
       }),
     );
@@ -1021,5 +1066,6 @@ export function buildActionsFromStatus(input: {
     ],
     incompleteDomains,
     actions,
+    diagnostics,
   });
 }

@@ -349,3 +349,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f6f5f579cea4
+  - type: implements
+    from: SYM-discovery-fact-kinds
+    to: REQ-kibi-query-fact-filters
+    created_at: 2026-10-13T12:58:37.046Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-890bed46fdc4
+  - type: covered_by
+    from: SYM-discovery-fact-kinds
+    to: TEST-kibi-query-fact-filters
+    created_at: 2026-10-13T12:58:37.072Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-210846c606bc

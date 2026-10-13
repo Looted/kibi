@@ -1121,6 +1121,13 @@ export async function executeStatus(
         : { proofSnapshotError: snapshotEvidence.error }),
     };
     const schemaStatus = readMigrationConfigStatus(context.workspaceRoot);
+    // implements REQ-agent-guided-migration-orchestration
+    // A schema upgrade plans the source rewrites kibi migrate performs with
+    // it; the planner loads only when an upgrade is due.
+    const sourcePlanner = schemaStatus.needsMigration
+      ? (await import("../../operations/migration/schema6.js"))
+          .buildSchema6MigrationFragment
+      : undefined;
     const migrationPlan = buildActionsFromStatus({
       workspaceRoot: context.workspaceRoot,
       branchAttachment: attachment,
@@ -1135,6 +1142,15 @@ export async function executeStatus(
         ? snapshotEvidence.snapshot.hash
         : null,
       configStatus: schemaStatus,
+      ...(sourcePlanner !== undefined
+        ? {
+            planSchemaUpgradeSources: (currentSchemaVersion: number | null) =>
+              sourcePlanner({
+                workspaceRoot: context.workspaceRoot,
+                currentSchemaVersion,
+              }),
+          }
+        : {}),
     });
     const listed = context.fs?.glob
       ? await context.fs.glob(

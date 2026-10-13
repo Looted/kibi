@@ -181,3 +181,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-38dee1c807e8
+  - type: implements
+    from: SYM-decision-firmness-firm-unreferenced-rule
+    to: REQ-kb-decision-firmness
+    created_at: 2026-10-13T12:57:52.811Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-19824cb506fb
+  - type: covered_by
+    from: SYM-decision-firmness-firm-unreferenced-rule
+    to: TEST-kb-decision-firmness
+    created_at: 2026-10-13T12:57:52.826Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a265c3326e1b

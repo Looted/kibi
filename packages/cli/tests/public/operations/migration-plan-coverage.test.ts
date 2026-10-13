@@ -5,6 +5,10 @@ import os from "node:os";
 import path from "node:path";
 
 import {
+  buildSchema6MigrationFragment,
+  symbolLegacyLinkAction,
+} from "../../../src/operations/migration/schema6.js";
+import {
   buildActionsFromCheck,
   buildActionsFromCoverage,
   buildActionsFromStatus,
@@ -178,6 +182,95 @@ describe("migration plan builders and config status", () => {
     expect(
       newer.actions.find((action) => action.category === "schema")?.state,
     ).toBe("blocked");
+  });
+
+  test("a schema upgrade plans the source rewrites kibi migrate performs with it", () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "kibi-mig-sources-"));
+    tempDirs.push(root);
+    mkdirSync(path.join(root, "src"), { recursive: true });
+    mkdirSync(path.join(root, ".kb", "requirements"), { recursive: true });
+    // A link on the class is coarse: its methods are the behavioral symbols.
+    writeFileSync(
+      path.join(root, "src", "greeter.ts"),
+      "export class Greeter {\n  greet(): string {\n    return 'hi';\n  }\n  wave(): string {\n    return 'wave';\n  }\n}\n",
+    );
+    writeFileSync(
+      path.join(root, ".kb", "requirements", "REQ-greet.md"),
+      "---\nid: REQ-greet\ntitle: Greet\nstatus: open\n---\n\nThe greeter must greet.\n",
+    );
+    writeFileSync(
+      path.join(root, ".kb", "symbols.yaml"),
+      "symbols:\n  - id: SYM-greeter\n    title: Greeter\n    sourceFile: src/greeter.ts\n    status: active\n    relationships:\n      - type: implements\n        target: REQ-greet\n",
+    );
+    writeFileSync(
+      path.join(root, ".kb", "manifest.json"),
+      JSON.stringify({
+        manifestVersion: 1,
+        schemaVersion: 8,
+        semanticAdvisorBackfill: "not_applicable",
+      }),
+    );
+    const configStatus = readMigrationConfigStatus(root);
+    expect(configStatus).toMatchObject({
+      currentVersion: 8,
+      needsMigration: true,
+    });
+    const plan = buildActionsFromStatus({
+      workspaceRoot: root,
+      branchStore: { state: "healthy", path: ".kb/branches/x" },
+      configStatus,
+      planSchemaUpgradeSources: (currentSchemaVersion) =>
+        buildSchema6MigrationFragment({
+          workspaceRoot: root,
+          currentSchemaVersion,
+        }),
+    });
+    const mark = plan.actions.find(
+      (action) => action.id === "symbol-legacy-link-mark",
+    );
+    expect(mark).toMatchObject({
+      code: "symbol_legacy_link_mark",
+      safety: "automatic",
+      affectedEntityIds: ["SYM-greeter"],
+      affectedFiles: [".kb/symbols.yaml"],
+    });
+    // Bound to the same manifest bytes kibi migrate plans from.
+    expect(mark?.evidence.manifestHash).toBe(
+      symbolLegacyLinkAction(root)?.evidence.manifestHash,
+    );
+    const upgrade = plan.actions.find(
+      (action) => action.id === "schema-config-upgrade",
+    );
+    expect(upgrade?.affectedFiles).toEqual(
+      expect.arrayContaining([".gitignore", ".kb/manifest.json"]),
+    );
+    expect(upgrade?.affectedFiles).not.toContain(".kb/");
+    expect(upgrade?.dependsOn).toContain("symbol-legacy-link-mark");
+    // The plan is a pure function of the workspace: replanning keeps its hash.
+    expect(
+      buildActionsFromStatus({
+        workspaceRoot: root,
+        branchStore: { state: "healthy", path: ".kb/branches/x" },
+        configStatus,
+        planSchemaUpgradeSources: (currentSchemaVersion) =>
+          buildSchema6MigrationFragment({
+            workspaceRoot: root,
+            currentSchemaVersion,
+          }),
+      }).planHash,
+    ).toBe(plan.planHash);
+
+    // Without a source planner the upgrade still declares that it may
+    // rewrite authored .kb/ files and .gitignore.
+    const unplanned = buildActionsFromStatus({
+      workspaceRoot: root,
+      branchStore: { state: "healthy", path: ".kb/branches/x" },
+      configStatus,
+    }).actions.find((action) => action.id === "schema-config-upgrade");
+    expect(unplanned?.affectedFiles).toEqual(
+      expect.arrayContaining([".gitignore", ".kb/"]),
+    );
+    expect(unplanned?.evidence.sourceRewrites).toEqual(expect.any(String));
   });
 
   test("mergeMigrationPlans, empty inputs, and cyclic dependency order", () => {

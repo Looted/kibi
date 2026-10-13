@@ -171,6 +171,10 @@ jobs:
             coverage/unit/failed-shards.txt
           if-no-files-found: error
           retention-days: 1
+          # A re-run of a failed partition must replace the artifact its first
+          # attempt uploaded; otherwise the merge job downloads the stale one
+          # (with failed-shards.txt) and fails again on a green re-run.
+          overwrite: true
 
   ci-unit-coverage-merge:
     name: ci-unit-coverage
@@ -221,6 +225,7 @@ jobs:
           path: coverage/unit/test-results.json
           if-no-files-found: error
           retention-days: 3
+          overwrite: true
 
       - name: Upload unit coverage artifact
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' }}
