@@ -6,6 +6,7 @@ import path from "node:path";
 import { doctorCommand } from "../../src/commands/doctor.js";
 import { engineStopCommand } from "../../src/commands/engine.js";
 import { resetKibiEnvironmentBootstrapStateForTests } from "../../src/env/bootstrap.js";
+import { LATEST_KB_SCHEMA_VERSION } from "../../src/utils/schema-version.js";
 import { type FakeSwiplSpec, installFakeSwipl } from "../helpers/fake-swipl.js";
 import {
   captureIo,
@@ -64,7 +65,7 @@ function writeOkManifest(cwd: string): void {
     path.join(cwd, ".kb", "manifest.json"),
     JSON.stringify({
       manifestVersion: 1,
-      schemaVersion: 5,
+      schemaVersion: LATEST_KB_SCHEMA_VERSION,
       semanticAdvisorBackfill: "not_applicable",
     }),
   );

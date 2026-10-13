@@ -124,7 +124,7 @@ export function registerConfiguredTools<TProlog>(
   register({
     name: "kb_query",
     execute: async (context, args) =>
-      runtime.handleKbQuery(prologFor(context), args as QueryArgs),
+      runtime.handleKbQuery(prologFor(context), args as QueryArgs, context),
   });
   register({
     name: "kb_search",

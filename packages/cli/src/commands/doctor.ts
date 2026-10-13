@@ -58,6 +58,7 @@ import {
   resolveGitRepository,
 } from "../utils/git-repository-context.js";
 import { readKbManifestStatus } from "../utils/kb-manifest.js";
+import { LATEST_KB_SCHEMA_VERSION } from "../utils/schema-version.js";
 import {
   KIBI_HOOK_BEGIN,
   hasManagedHooks,
@@ -791,6 +792,19 @@ function checkKbManifest(): {
       message:
         status.state === "invalid" ? "Invalid manifest" : "Future version",
       remediation: `Repair .kb/manifest.json: ${status.warning}`,
+    };
+  }
+
+  // A knowledge base written by an older Kibi keeps reading and checking
+  // until migrated, but the current CLI expects its own schema: say so here,
+  // where the operator looks first, instead of leaving it to the next
+  // failing check. The migration plan below names the actions.
+  if (status.manifest.schemaVersion < LATEST_KB_SCHEMA_VERSION) {
+    return {
+      passed: false,
+      message: `schemaVersion ${status.manifest.schemaVersion} (this Kibi expects ${LATEST_KB_SCHEMA_VERSION})`,
+      remediation:
+        "Run: kibi migrate (previews the plan), then kibi migrate --yes to apply it, or kibi migrate --apply-safe --approved-plan-hash <planHash> --approved-action <id> for selected actions",
     };
   }
 

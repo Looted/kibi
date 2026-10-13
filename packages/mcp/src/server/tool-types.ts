@@ -74,7 +74,11 @@ export interface ToolsRuntime<TProlog = DefaultRuntimeProlog> {
     args: SparqlArgs,
     context: OperationContext,
   ) => Promise<unknown>;
-  handleKbQuery: (prolog: TProlog, args: QueryArgs) => Promise<unknown>;
+  handleKbQuery: (
+    prolog: TProlog,
+    args: QueryArgs,
+    context?: OperationContext,
+  ) => Promise<unknown>;
   handleKbSearch: (
     prolog: TProlog,
     args: SearchArgs,
