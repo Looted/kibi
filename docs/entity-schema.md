@@ -107,6 +107,8 @@ Kibi cannot verify a person's approval. The advisory checks `exception-unapprove
 
 `firmness` (KB schema 9 and later) records how firmly a requirement or ADR was decided, so a later agent knows whether it may rework the decision on evidence or must ask a human first. It is independent of `origin`: a human's "do whatever you think" is as open to rework as an agent's pick.
 
+Other entity types reject the field: `kb_upsert` of, say, a fact with `firmness` fails with `firmness is only valid on req and adr entities; remove it from this fact`.
+
 | Value | Set when | What a later agent may do |
 |---|---|---|
 | `firm` | A human stated it as a rule ("must", "never", "we decided X because Y"). Needs `origin.ref` (or `approval_ref` on a requirement) pointing at their words | Follow it; to change it, ask first |
@@ -124,7 +126,7 @@ origin:
 
 - `decision-firm-unreferenced`: a current firm decision without `origin.ref` (or `approval_ref` on a requirement). `kb_upsert` rejects such a write up front.
 - `decision-firm-superseded`: a requirement or ADR that supersedes a firm decision without being firm itself. Retired superseders count too, so replacing the non-firm superseder does not clear the finding.
-- `supersedes-reason-missing`: a current requirement or ADR that supersedes another without a `## Why this changed` section of at least 12 words. The section is context, never part of a requirement's checked meaning. Supersede edges recorded before schema 9 are listed in `.kb/manifest.json` as `supersedesReasonAcknowledged` (`FROM -> TO`) by `kibi migrate` and counted by the info diagnostic `supersedes-reason-acknowledged`; no reason is written for them. Only the listed edges are exempt: a new supersede on the same entity must explain itself.
+- `supersedes-reason-missing`: a current requirement or ADR that supersedes another without a `## Why this changed` section of at least 12 words. The section is context, never part of a requirement's checked meaning. Supersede edges recorded before schema 9 are listed in `.kb/manifest.json` as `supersedesReasonAcknowledged` (`FROM -> TO`) by `kibi migrate` and counted by the info diagnostic `supersedes-reason-acknowledged`; no reason is written for them. Only the listed edges are exempt: a new supersede on the same entity must explain itself. On a KB whose manifest is still below schema 9, the finding's suggestion adds that the plan's `schema-config-upgrade` (`kibi migrate --yes`) acknowledges such edges without an edit.
 
 Kibi checks that a firm decision names a reference; it cannot check that the reference is real or that a person wrote it, as with approvals. A reviewer reads the reference.
 

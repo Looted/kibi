@@ -505,7 +505,14 @@ When migration is needed, the response includes `schemaStatus` and a typed
 `migrationPlan` (`kibi.migration-plan.v2`) with canonical hash, scope
 completeness, dependencies, safety classes, exact invocations, evidence, and
 postconditions. Status never mutates and remains available without Prolog for
-missing or damaged stores.
+missing or damaged stores. The `schema-config-upgrade` action runs
+`kibi migrate --yes` and lists every file that run writes, `.gitignore`
+included; on the canonical `.kb/` layout the source rewrites it performs
+(such as `symbol-legacy-link-mark` on `.kb/symbols.yaml`, origin backfill and
+lifecycle repairs) are separate actions it depends on, so they must be
+approved with it. `kb_apply_plan` reports the upgrade's `detail` from the
+migration audit record (schema versions, legacy-link marks, origin backfill,
+lifecycle repairs, whether `.gitignore` changed).
 
 `kb_status` remains diagnostic when the branch store is missing, incomplete,
 or unreadable: it reports `branchStore` and a structured stale reason instead

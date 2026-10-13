@@ -223,3 +223,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e8245536b43c
+  - type: implements
+    from: SYM-decision-firmness-firm-superseded-rule
+    to: REQ-kb-decision-firmness
+    created_at: 2026-10-13T12:57:57.650Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2c2c18c5172d
+  - type: covered_by
+    from: SYM-decision-firmness-firm-superseded-rule
+    to: TEST-kb-decision-firmness
+    created_at: 2026-10-13T12:57:57.675Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c8a7ae21edda

@@ -51751,3 +51751,319 @@ symbols:
         target: TEST-kibi-proposition-complete-ingestion
       - type: implements
         target: REQ-kibi-proposition-complete-ingestion
+  - id: SYM-init-helpers-kibi-hook-begin
+    title: KIBI_HOOK_BEGIN
+    status: active
+    sourceFile: packages/cli/src/commands/init-helpers.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T12:57:09.982Z
+    relationships:
+      - type: covered_by
+        target: TEST-git-hook-effective-install
+      - type: implements
+        target: REQ-git-hook-effective-install
+  - id: SYM-init-helpers-managed-hook-names
+    title: MANAGED_HOOK_NAMES
+    status: active
+    sourceFile: packages/cli/src/commands/init-helpers.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T12:57:14.896Z
+    relationships:
+      - type: covered_by
+        target: TEST-git-hook-effective-install
+      - type: implements
+        target: REQ-git-hook-effective-install
+  - id: SYM-init-helpers-managed-hook-name-type
+    title: ManagedHookName
+    status: active
+    sourceFile: packages/cli/src/commands/init-helpers.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T12:57:19.781Z
+    relationships:
+      - type: covered_by
+        target: TEST-git-hook-effective-install
+      - type: implements
+        target: REQ-git-hook-effective-install
+  - id: SYM-init-helpers-is-managed-hook-name
+    title: isManagedHookName
+    status: active
+    sourceFile: packages/cli/src/commands/init-helpers.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T12:57:24.226Z
+    relationships:
+      - type: covered_by
+        target: TEST-git-hook-effective-install
+      - type: implements
+        target: REQ-git-hook-effective-install
+  - id: SYM-init-helpers-hook-delegation-snippet
+    title: hookDelegationSnippet
+    status: active
+    sourceFile: packages/cli/src/commands/init-helpers.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T12:57:28.982Z
+    relationships:
+      - type: covered_by
+        target: TEST-git-hook-effective-install
+      - type: implements
+        target: REQ-git-hook-effective-install
+  - id: SYM-migrate-command-audit-record-type
+    title: MigrationAuditRecord
+    status: active
+    sourceFile: packages/cli/src/commands/migrate.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T12:57:33.894Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-schema6-migration-cli
+      - type: implements
+        target: REQ-cli-schema-migration
+  - id: SYM-migrate-command-run-summary-type
+    title: MigrationRunSummary
+    status: active
+    sourceFile: packages/cli/src/commands/migrate.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T12:57:39.547Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-guided-migration-orchestration
+      - type: implements
+        target: REQ-agent-guided-migration-orchestration
+  - id: SYM-migrate-command-describe-migration-run
+    title: describeMigrationRun
+    status: active
+    sourceFile: packages/cli/src/commands/migrate.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T12:57:46.011Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-guided-migration-orchestration
+      - type: implements
+        target: REQ-agent-guided-migration-orchestration
+      - type: implements
+        target: REQ-cli-schema-migration
+  - id: SYM-decision-firmness-firm-unreferenced-rule
+    title: DECISION_FIRM_UNREFERENCED_RULE
+    status: active
+    sourceFile: packages/cli/src/public/operations/decision-firmness.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T12:57:51.578Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-decision-firmness
+      - type: implements
+        target: REQ-kb-decision-firmness
+  - id: SYM-decision-firmness-firm-superseded-rule
+    title: DECISION_FIRM_SUPERSEDED_RULE
+    status: active
+    sourceFile: packages/cli/src/public/operations/decision-firmness.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T12:57:56.462Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-decision-firmness
+      - type: implements
+        target: REQ-kb-decision-firmness
+  - id: SYM-decision-firmness-supersedes-reason-missing-rule
+    title: SUPERSEDES_REASON_MISSING_RULE
+    status: active
+    sourceFile: packages/cli/src/public/operations/decision-firmness.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T12:58:01.698Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-decision-firmness
+      - type: implements
+        target: REQ-kb-decision-firmness
+  - id: SYM-decision-firmness-supersedes-reason-acknowledged-rule
+    title: SUPERSEDES_REASON_ACKNOWLEDGED_RULE
+    status: active
+    sourceFile: packages/cli/src/public/operations/decision-firmness.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T12:58:06.623Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-decision-firmness
+      - type: implements
+        target: REQ-kb-decision-firmness
+  - id: SYM-decision-firmness-rules
+    title: DECISION_FIRMNESS_RULES
+    status: active
+    sourceFile: packages/cli/src/public/operations/decision-firmness.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T12:58:11.724Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-decision-firmness
+      - type: implements
+        target: REQ-kb-decision-firmness
+  - id: SYM-decision-firmness-list-decision-entities
+    title: listDecisionEntities
+    status: active
+    sourceFile: packages/cli/src/public/operations/decision-firmness.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T12:58:16.694Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-decision-firmness
+      - type: implements
+        target: REQ-kb-decision-firmness
+  - id: SYM-decision-firmness-supersede-acknowledgements
+    title: supersedeAcknowledgements
+    status: active
+    sourceFile: packages/cli/src/public/operations/decision-firmness.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T12:58:21.300Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-decision-firmness
+      - type: implements
+        target: REQ-kb-decision-firmness
+  - id: SYM-discovery-query-next-call-type
+    title: QueryNextCall
+    status: active
+    sourceFile: packages/cli/src/public/operations/discovery-executors.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T12:58:26.018Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-query-fact-filters
+      - type: implements
+        target: REQ-kibi-query-fact-filters
+  - id: SYM-discovery-fact-query-payload-type
+    title: FactQueryPayload
+    status: active
+    sourceFile: packages/cli/src/public/operations/discovery-executors.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T12:58:30.854Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-query-fact-filters
+      - type: implements
+        target: REQ-kibi-query-fact-filters
+  - id: SYM-discovery-fact-kinds
+    title: FACT_KINDS
+    status: active
+    sourceFile: packages/cli/src/public/operations/discovery-executors.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T12:58:35.979Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-query-fact-filters
+      - type: implements
+        target: REQ-kibi-query-fact-filters
+  - id: SYM-discovery-search-branch-store-notice-type
+    title: SearchBranchStoreNotice
+    status: active
+    sourceFile: packages/cli/src/public/operations/discovery-executors.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T12:58:41.356Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-status-pre-first-sync
+      - type: implements
+        target: REQ-cli-status-pre-first-sync
+  - id: SYM-migration-plan-without-action-codes
+    title: withoutActionCodes
+    status: active
+    sourceFile: packages/cli/src/public/operations/migration-plan.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T12:58:46.987Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-guided-migration-orchestration
+      - type: implements
+        target: REQ-agent-guided-migration-orchestration
+  - id: SYM-migration-plan-predicate-schema-alignment-code
+    title: PREDICATE_SCHEMA_ALIGNMENT_CODE
+    status: active
+    sourceFile: packages/cli/src/public/operations/migration-plan.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T12:58:52.658Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-predicate-vocabulary-migration-e2e
+      - type: implements
+        target: REQ-kibi-predicate-vocabulary-migration
+  - id: SYM-migration-plan-untracked-knowledge-sources-code
+    title: UNTRACKED_KNOWLEDGE_SOURCES_CODE
+    status: active
+    sourceFile: packages/cli/src/public/operations/migration-plan.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T12:58:57.753Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-guided-migration-orchestration
+      - type: implements
+        target: REQ-agent-guided-migration-orchestration
+  - id: SYM-migration-plan-freshness-resync
+    title: FRESHNESS_RESYNC
+    status: active
+    sourceFile: packages/cli/src/public/operations/migration-plan.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T12:59:02.993Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-status-pre-first-sync
+      - type: implements
+        target: REQ-agent-guided-migration-orchestration
+      - type: implements
+        target: REQ-cli-status-pre-first-sync
+  - id: SYM-migration-plan-schema-upgrade-source-actions-type
+    title: SchemaUpgradeSourceActions
+    status: active
+    sourceFile: packages/cli/src/public/operations/migration-plan.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T12:59:08.287Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-guided-migration-orchestration
+      - type: implements
+        target: REQ-agent-guided-migration-orchestration

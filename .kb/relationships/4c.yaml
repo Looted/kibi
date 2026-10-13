@@ -265,3 +265,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7f98725dedc8
+  - type: implements
+    from: SYM-discovery-search-branch-store-notice-type
+    to: REQ-cli-status-pre-first-sync
+    created_at: 2026-10-13T12:58:42.490Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1727f8badab8
+  - type: covered_by
+    from: SYM-discovery-search-branch-store-notice-type
+    to: TEST-cli-status-pre-first-sync
+    created_at: 2026-10-13T12:58:42.536Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1de038be2df8

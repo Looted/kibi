@@ -7,7 +7,10 @@ import {
   branchMigrateCommand,
   branchRecoverCommand,
 } from "../../commands/branch.js";
-import { migrateCommand } from "../../commands/migrate.js";
+import {
+  describeMigrationRun,
+  migrateCommand,
+} from "../../commands/migrate.js";
 import { syncCommand } from "../../commands/sync.js";
 import {
   PROOF_INTEGRATION_CONFIGURE,
@@ -3033,12 +3036,12 @@ async function applyMigrationPlan(
       continue;
     }
     try {
-      await applyMigrationAction(action, context);
+      const detail = await applyMigrationAction(action, context);
       onCommitted();
       results.push({
         actionId: action.id,
         outcome: "applied",
-        detail: `Applied ${action.code}.`,
+        detail: detail ?? `Applied ${action.code}.`,
       });
     } catch (error) {
       failed = true;
@@ -3181,10 +3184,14 @@ async function applyMigrationPlan(
   };
 }
 
+/**
+ * Run one approved migration action. Returns a detail line for the action
+ * result when the executor reports what it changed.
+ */
 async function applyMigrationAction(
   action: MigrationAction,
   context: OperationContext,
-): Promise<void> {
+): Promise<string | undefined> {
   switch (action.code) {
     case "legacy_branch_storage":
       if (action.invocation.kind !== "cli")
@@ -3242,18 +3249,19 @@ async function applyMigrationAction(
       return;
     case "schema_version_upgrade":
     case "invalid_schema_version":
-    case "legacy_storage_migration":
-      if (
-        (
-          await migrateCommand({
-            yes: true,
-            workspaceRoot: context.workspaceRoot,
-            initializeMissingConfig: true,
-          })
-        ).exitCode !== 0
-      )
+    case "legacy_storage_migration": {
+      // implements REQ-agent-guided-migration-orchestration
+      const run = await migrateCommand({
+        yes: true,
+        workspaceRoot: context.workspaceRoot,
+        initializeMissingConfig: true,
+      });
+      if (run.exitCode !== 0)
         throw new Error("Schema migration did not complete successfully.");
-      return;
+      return run.summary !== undefined
+        ? describeMigrationRun(run.summary)
+        : undefined;
+    }
     case "symbol_refresh_coordinates":
     case "coverage_source_coordinates": {
       const result = await syncCommand({

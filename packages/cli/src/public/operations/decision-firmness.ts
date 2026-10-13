@@ -63,6 +63,16 @@ export const DECISION_FIRMNESS_RULES = [
 
 const DECISION_LANES = ["requirements", "adr"] as const;
 
+/** The schema version from which a supersede must explain itself. */
+const SUPERSEDES_REASON_SCHEMA_VERSION = 9;
+
+/**
+ * Told on a KB older than schema 9: the pending schema upgrade acknowledges
+ * supersedes recorded before the rule existed, so no edit is required now.
+ */
+const PRE_SCHEMA9_SUPERSEDES_NOTE =
+  " Supersedes recorded before schema 9 are acknowledged by the plan's schema-config-upgrade (kibi migrate --yes); add the reason only when you next touch the requirement.";
+
 /** Every authored requirement and ADR. */
 // implements REQ-kb-decision-firmness
 export function listDecisionEntities(workspaceRoot: string): AuthoredEntity[] {
@@ -164,7 +174,11 @@ export function evaluateDecisionFirmness(
   edges: ReadonlyMap<string, Set<string>>,
   rules: ReadonlySet<string> = new Set(DECISION_FIRMNESS_RULES),
   acknowledged: ReadonlySet<string> = new Set(),
+  options: Readonly<{ schemaVersion?: number | null }> = {},
 ): Violation[] {
+  const preSchema9 =
+    typeof options.schemaVersion === "number" &&
+    options.schemaVersion < SUPERSEDES_REASON_SCHEMA_VERSION;
   const findings: Violation[] = [];
   const superseded = supersededIds(edges);
   const byId = new Map(entities.map((entity) => [entity.id, entity]));
@@ -241,7 +255,7 @@ export function evaluateDecisionFirmness(
         rule: SUPERSEDES_REASON_MISSING_RULE,
         entityId: entity.id,
         description: `${entity.id} supersedes ${unacknowledged.join(", ")} without a '## ${WHY_THIS_CHANGED_HEADING}' section of at least ${MIN_WHY_CHANGED_WORDS} words`,
-        suggestion: `Add '## ${WHY_THIS_CHANGED_HEADING}' to the body: name the evidence (a failing test, a measured cost, a constraint the old decision missed, a new requirement) and answer the superseded decision's reasoning. A preference is not evidence; propose it instead of superseding.`,
+        suggestion: `Add '## ${WHY_THIS_CHANGED_HEADING}' to the body: name the evidence (a failing test, a measured cost, a constraint the old decision missed, a new requirement) and answer the superseded decision's reasoning. A preference is not evidence; propose it instead of superseding.${preSchema9 ? PRE_SCHEMA9_SUPERSEDES_NOTE : ""}`,
         source: entity.path,
         evidence: { type: entity.type, supersedes: unacknowledged },
       });
@@ -271,10 +285,12 @@ export function collectDecisionFirmnessViolations(
 ): Violation[] {
   if (!DECISION_FIRMNESS_RULES.some((rule) => rules.has(rule))) return [];
   const entities = listDecisionEntities(workspaceRoot);
+  const manifest = readKbManifest(workspaceRoot);
   return evaluateDecisionFirmness(
     entities,
     authoredSupersedes(workspaceRoot, entities),
     rules,
-    new Set(readKbManifest(workspaceRoot)?.supersedesReasonAcknowledged ?? []),
+    new Set(manifest?.supersedesReasonAcknowledged ?? []),
+    { schemaVersion: manifest?.schemaVersion ?? null },
   );
 }
