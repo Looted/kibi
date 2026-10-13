@@ -322,13 +322,13 @@ describe("kibi migrate lifecycle repairs", () => {
         "dry run: would close 1 superseded requirement(s): REQ-upload-old.",
       );
       expect(dry.stdout).toContain(
-        "dry run: would point 1 pre-canonical source path(s) at their .kb/ files.",
+        "dry run: would point 1 pre-canonical source or text_ref path(s) at their .kb/ files.",
       );
       expect(dry.stdout).toContain(
         "dry run: would remove 3 redundant or dead source field(s); the compiled source is always the entity's own file.",
       );
       expect(dry.stdout).toContain(
-        `Source field of ${MULTI} not repaired: ${REFUSED}`,
+        `Path field of ${MULTI} not repaired: ${REFUSED}`,
       );
       expect(read(root, OLD)).toContain("status: open\n");
       expect(read(root, SELF)).toContain(`source: ${SELF}\n`);
@@ -340,7 +340,7 @@ describe("kibi migrate lifecycle repairs", () => {
         "Closed 1 superseded requirement(s): REQ-upload-old.",
       );
       expect(output).toContain(
-        "Pointed 1 pre-canonical source path(s) at their .kb/ files.",
+        "Pointed 1 pre-canonical source or text_ref path(s) at their .kb/ files.",
       );
       expect(output).toContain(
         "Removed 3 redundant or dead source field(s); the compiled source is always the entity's own file.",
@@ -349,7 +349,7 @@ describe("kibi migrate lifecycle repairs", () => {
         "Requirements REQ-upload-loop-a, REQ-upload-loop-b supersede each other",
       );
       expect(output).toContain(
-        `Source field of ${MULTI} not repaired: ${REFUSED}`,
+        `Path field of ${MULTI} not repaired: ${REFUSED}`,
       );
       expect(output).toContain(
         "Run 'kibi sync' to recompile the rewritten sources.",

@@ -465,31 +465,44 @@ function isVerificationPerspective(
   return value === "internal" || value === "consumer";
 }
 
+/**
+ * Splits a document into its front matter block and body. Delimiters are
+ * whole lines of `---`; a `---` glued onto a value (`priority: must---`) or
+ * inside a value does not close the block.
+ */
+function splitFrontmatter(
+  content: string,
+): { frontmatter: string; body: string } | "unclosed" | null {
+  const trimmedStart = content.trimStart();
+  const opening = /^---[^\S\r\n]*(?:\r?\n|$)/.exec(trimmedStart);
+  if (!opening) {
+    return null;
+  }
+  const rest = trimmedStart.slice(opening[0].length);
+  const closing = /^---[^\S\r\n]*(?:\r?\n|$)/m.exec(rest);
+  if (!closing) {
+    return "unclosed";
+  }
+  return {
+    frontmatter: rest.slice(0, closing.index),
+    body: rest.slice(closing.index + closing[0].length),
+  };
+}
+
 function parseFrontmatter(content: string): {
   data: FrontmatterData;
   content: string;
 } {
-  const trimmedStart = content.trimStart();
-
-  if (!trimmedStart.startsWith("---")) {
+  const split = splitFrontmatter(content);
+  if (split === null || split === "unclosed") {
     return { data: {}, content };
   }
 
-  const parts = trimmedStart.split("---");
-  if (parts.length < 3) {
-    return { data: {}, content };
-  }
-
-  const frontmatter = parts[1];
-  if (frontmatter === undefined) {
-    return { data: {}, content };
-  }
-
-  const parsed = yamlLoad(frontmatter);
+  const parsed = yamlLoad(split.frontmatter);
 
   return {
     data: isObjectRecord(parsed) ? (parsed as FrontmatterData) : {},
-    content: parts.slice(2).join("---"),
+    content: split.body,
   };
 }
 
@@ -522,16 +535,13 @@ export function requirementSemanticText(body: string): string {
 }
 
 function hasLikelyUnquotedColonInTitle(content: string): boolean {
-  if (!content.trim().startsWith("---")) {
-    return false;
-  }
-
-  const parts = content.split("---");
-  if (parts.length < 2) {
-    return false;
-  }
-
-  const frontmatter = parts[1];
+  const split = splitFrontmatter(content);
+  const frontmatter =
+    split === null
+      ? undefined
+      : split === "unclosed"
+        ? content
+        : split.frontmatter;
   return frontmatter
     ? /^\s*title:\s*(?!["'])(?![>|])[^#\n]*:\s+\S.*$/m.test(frontmatter)
     : false;
@@ -599,17 +609,14 @@ function extractFromMarkdownContent(
   filePath: string,
 ): ExtractionResult {
   try {
-    const { data, content: body } = parseFrontmatter(content);
-
-    if (content.trim().startsWith("---")) {
-      const parts = content.split("---");
-      if (parts.length < 3) {
-        throw new FrontmatterError("Missing closing --- delimiter", filePath, {
-          classification: "Missing closing ---",
-          hint: "Ensure the frontmatter is enclosed between two '---' delimiters.",
-        });
-      }
+    if (splitFrontmatter(content) === "unclosed") {
+      throw new FrontmatterError("Missing closing --- delimiter", filePath, {
+        classification: "Missing closing ---",
+        hint: "Ensure the frontmatter is enclosed between two '---' delimiter lines; a '---' appended to the last value does not close it.",
+      });
     }
+
+    const { data, content: body } = parseFrontmatter(content);
 
     const type = data.type || inferTypeFromPath(filePath);
 
@@ -1111,18 +1118,8 @@ function extractFromMarkdownContent(
         classification = "Unquoted colon likely in title";
         hint =
           'Wrap values containing colons in quotes (e.g., title: "Foo: Bar").';
-      } else if (
-        !content.trim().startsWith("---") ||
-        content.split("---").length < 3
-      ) {
-        if (
-          content.trim().startsWith("---") &&
-          content.split("---").length < 3
-        ) {
-          classification = "Missing closing ---";
-          hint =
-            "Ensure the frontmatter is enclosed between two '---' delimiters.";
-        }
+      } else if (splitFrontmatter(content) === null) {
+        // No front matter block: keep the generic classification.
       } else if (
         message.includes("unexpected end of the stream") ||
         message.includes("flow collection") ||

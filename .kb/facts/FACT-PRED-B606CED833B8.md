@@ -1,7 +1,7 @@
 ---
 title: HTML report fails closed on partial metrics
 status: active
-text_ref: documentation/requirements/REQ-kibi-html-health-report.md
+text_ref: .kb/requirements/REQ-kibi-html-health-report.md
 tags:
   - lane:ontology
   - requirements

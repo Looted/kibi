@@ -1,7 +1,7 @@
 ---
 title: Git hook installation policy for kibi init
 status: active
-text_ref: documentation/requirements/REQ-git-hook-sync-v2.md
+text_ref: .kb/requirements/REQ-git-hook-sync-v2.md
 tags:
   - lane:ontology
   - predicate-suggestion

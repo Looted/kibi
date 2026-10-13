@@ -440,3 +440,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-61bb6bd07228
+  - type: implements
+    from: SYM-git-change-snapshot-renameResolutionBase
+    to: REQ-source-analysis-v2
+    created_at: 2026-10-13T17:18:32.368Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-667d0da8a4b1
+  - type: covered_by
+    from: SYM-git-change-snapshot-renameResolutionBase
+    to: TEST-source-analysis-v2-contract
+    created_at: 2026-10-13T17:18:32.395Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f273114e23ff

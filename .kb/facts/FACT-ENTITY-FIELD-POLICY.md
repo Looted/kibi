@@ -1,7 +1,7 @@
 ---
 title: Required and optional entity fields
 status: active
-text_ref: documentation/requirements/REQ-004.md
+text_ref: .kb/requirements/REQ-004.md
 tags:
   - lane:ontology
   - strict-semantics

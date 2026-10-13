@@ -16,7 +16,7 @@ value_string: full_decision_history
 polarity: require
 claim_key: CLAIM-EF04808142A12E98
 claim_text: The KB must support a supersedes(adr, adr) relationship type so the full chain of architectural decisions is machine-readable
-text_ref: documentation/requirements/REQ-016.md
+text_ref: .kb/requirements/REQ-016.md
 type: fact
 origin:
   kind: migration

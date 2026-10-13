@@ -208,6 +208,8 @@ export function supersessionCycleReviewActionInput(cycle: {
 export type SourcePathRewriteInput = Readonly<{
   entityId: string;
   file: string;
+  /** The field rewritten; absent means `source`. */
+  field?: "text_ref";
   from: string;
   to: string;
 }>;
@@ -260,7 +262,7 @@ export function sourcePathRewriteActionInput(
     ],
     evidence: {
       reason:
-        "The authored source field is dead data: the compiled source is always the entity's own file, and Kibi ignores the field when compiling and never writes it. Each rewrite points a knowledge file named by its pre-canonical path (under documentation/, or relative to the knowledge root) at the same file under .kb/. Each removal deletes a value that names the entity's own file (reason self) or nothing Kibi can map (reason dangling). Only the source line changes.",
+        "The authored source field is dead data: the compiled source is always the entity's own file, and Kibi ignores the field when compiling and never writes it. Each rewrite points a knowledge file named by its pre-canonical path (under documentation/, or relative to the knowledge root) at the same file under .kb/; a rewrite with field text_ref does the same for a text_ref evidence path. Each removal deletes a source value that names the entity's own file (reason self) or nothing Kibi can map (reason dangling). Only the rewritten or removed line changes.",
       count: all.length,
       rewrites: rewrites.map((rewrite) => ({ ...rewrite })),
       removals: removals.map((removal) => ({ ...removal })),
@@ -275,6 +277,8 @@ export function sourcePathRewriteActionInput(
 // implements REQ-kibi-schema6-migration, REQ-core-validation-rules, REQ-kibi-kb-lifecycle-integrity
 export function sourcePathReviewActionInput(source: {
   entityId: string;
+  /** The field to repair; absent means `source`. */
+  field?: "text_ref";
   value: unknown;
   file?: string;
   reason?: string;
@@ -285,6 +289,32 @@ export function sourcePathReviewActionInput(source: {
       ? source.value
       : JSON.stringify(source.value);
   const where = source.file !== undefined ? ` in ${source.file}` : "";
+  if (source.field === "text_ref") {
+    const edit =
+      source.rewrite !== undefined
+        ? `replace the whole field with the single line 'text_ref: ${source.rewrite}'`
+        : "point text_ref at the evidence file's current path, or delete the field when that evidence is gone";
+    return {
+      id: `review-text-ref-dangling-${stableIdPart(source.entityId)}`,
+      code: SOURCE_PATH_REVIEW_CODE,
+      category: "quality",
+      safety: "review",
+      invocation: {
+        kind: "review",
+        instruction: `${source.entityId} has text_ref '${shown}'${where}, a file path that does not exist (${source.reason ?? "the edit would not read back as exactly that change"}). A person edits the frontmatter by hand: ${edit}. Then rerun kibi migrate.`,
+      },
+      affectedEntityIds: [source.entityId],
+      affectedFiles: source.file !== undefined ? [source.file] : [],
+      dispositionRequired: true,
+      evidence: {
+        entityId: source.entityId,
+        field: "text_ref",
+        text_ref: source.value,
+        ...(source.reason !== undefined ? { refused: source.reason } : {}),
+        ...(source.rewrite !== undefined ? { rewrite: source.rewrite } : {}),
+      },
+    };
+  }
   const edit =
     source.rewrite !== undefined
       ? `replace the whole field with the single line 'source: ${source.rewrite}'`
@@ -367,10 +397,12 @@ export function lifecycleActionsFromViolations(
         typeof evidence.value === "string"
           ? evidence.value
           : (JSON.stringify(evidence.value) ?? "");
+      const textRef = evidence.field === "text_ref";
       if (refused !== "" || file === "") {
         actions.push(
           sourcePathReviewActionInput({
             entityId,
+            ...(textRef ? { field: "text_ref" as const } : {}),
             value: evidence.value,
             ...(file !== "" ? { file } : {}),
             ...(refused !== "" ? { reason: refused } : {}),
@@ -378,7 +410,16 @@ export function lifecycleActionsFromViolations(
           }),
         );
       } else if (rewrite !== "") {
-        rewrites.push({ entityId, file, from, to: rewrite });
+        rewrites.push({
+          entityId,
+          file,
+          ...(textRef ? { field: "text_ref" as const } : {}),
+          from,
+          to: rewrite,
+        });
+      } else if (textRef) {
+        // Kibi never removes evidence; an unmapped text_ref carries refused.
+        continue;
       } else {
         removals.push({
           entityId,

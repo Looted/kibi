@@ -1,7 +1,7 @@
 ---
 title: Legacy cross-identity branch migration exception
 status: superseded
-text_ref: documentation/requirements/REQ-branch-store-recovery-v2.md
+text_ref: .kb/requirements/REQ-branch-store-recovery-v2.md
 tags:
   - strict-modeling
   - branching
