@@ -95,6 +95,8 @@ export type QueryPayload = {
   readonly entities: readonly Record<string, unknown>[];
   readonly count: number;
   readonly factQuery?: FactQueryPayload;
+  /** Present when an empty answer came from a store never compiled for this branch. */
+  readonly branchStore?: SearchBranchStoreNotice;
 };
 
 export const FACT_KINDS = [
@@ -711,9 +713,13 @@ export async function executeQuery(
         ? entity
         : { ...entity, firmness };
     });
+    // An empty page from a never-compiled store says nothing about the
+    // authored entities, so the answer names the store state.
+    const storeNotice =
+      indexedPage.count === 0 ? uncompiledSearchNotice(context) : null;
     const text =
       indexedPage.count === 0
-        ? `No entities found${type ? ` of type '${type}'` : ""}.`
+        ? `No entities found${type ? ` of type '${type}'` : ""}.${storeNotice ? ` Note: ${storeNotice.detail} Run kibi sync before relying on query results.` : ""}`
         : `Found ${indexedPage.count} entities${type ? ` of type '${type}'` : ""}. Showing ${paginated.length} (offset ${offset}, limit ${limit}): ${paginated
             .map((entity) => {
               const entityId = String(entity.id ?? "").replace(
@@ -725,7 +731,11 @@ export async function executeQuery(
             .join(", ")}`;
     return {
       content: [{ type: "text", text }],
-      structuredContent: { entities: paginated, count: indexedPage.count },
+      structuredContent: {
+        entities: paginated,
+        count: indexedPage.count,
+        ...(storeNotice ? { branchStore: storeNotice } : {}),
+      },
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

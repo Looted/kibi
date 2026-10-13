@@ -6,6 +6,11 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 
 import { spawnSync } from "node:child_process";
+import {
+  commandFilePaths,
+  filesChangedSince,
+  isSearchCommand,
+} from "./bash-command.js";
 import { parseHookInput, parseStdinJson, readStdin } from "./hook-input.js";
 import type { HookInput } from "./hook-input.js";
 
@@ -56,7 +61,11 @@ import {
 } from "./usage-log.js";
 import { resolveKibiWorkspace } from "./workspace-optin.js";
 
-export type ContextEvent = "SessionStart" | "PreToolUse" | "Stop";
+export type ContextEvent =
+  | "SessionStart"
+  | "PreToolUse"
+  | "PostToolUse"
+  | "Stop";
 
 /** Claude Code hook stdout. An empty object means "no opinion". */
 export type HookOutput = {
@@ -96,6 +105,11 @@ function toolPath(toolInput: unknown): string | undefined {
   if (!isRecord(toolInput)) return undefined;
   const candidate = toolInput.file_path ?? toolInput.notebook_path;
   return typeof candidate === "string" ? candidate : undefined;
+}
+
+function bashCommand(toolInput: unknown): string {
+  if (!isRecord(toolInput)) return "";
+  return typeof toolInput.command === "string" ? toolInput.command : "";
 }
 
 function linkedFileCount(index: KnowledgeIndex): number {
@@ -167,6 +181,10 @@ function preToolUse(
     return context("PreToolUse", text);
   };
 
+  if (toolName === "Bash") {
+    return bashPreToolUse(input, workspace, state, trace);
+  }
+
   if (searchTools.has(toolName)) {
     trace.action = "search_silent";
     if (state.kbUsed || state.notices.has("search-tip")) return {};
@@ -203,24 +221,13 @@ function preToolUse(
 
   if (isRead) {
     trace.action = "read_silent";
-    if (
-      state.shownRead.has(relativePath) ||
-      state.shownEdit.has(relativePath) ||
-      isExplored(state, relativePath)
-    ) {
-      return {};
-    }
-    const owners = requirementIds(symbols);
-    if (owners.length > 0 && owners.every((id) => state.exploredIds.has(id))) {
-      return {};
-    }
-    const snippet = fileKnowledgeSnippet({
+    const snippet = readSnippet(
       relativePath,
       symbols,
-      surface: "read",
-      focus: readFocus(input.toolInput),
-      summarize: workspace.summarize,
-    });
+      state,
+      workspace,
+      readFocus(input.toolInput),
+    );
     if (!snippet) return {};
     events.push({ kind: "shown", surface: "read", path: relativePath });
     return emit(snippet, "read_snippet");
@@ -302,6 +309,157 @@ function preToolUse(
   }
   appendSessionEvents(workspace.stateDir, events);
   return {};
+}
+
+/** The read snippet for a file, unless this session already has it. */
+function readSnippet(
+  relativePath: string,
+  symbols: readonly IndexedSymbol[],
+  state: SessionState,
+  workspace: Workspace,
+  focus?: LineRange[],
+): string | undefined {
+  if (
+    state.shownRead.has(relativePath) ||
+    state.shownEdit.has(relativePath) ||
+    isExplored(state, relativePath)
+  ) {
+    return undefined;
+  }
+  const owners = requirementIds(symbols);
+  if (owners.length > 0 && owners.every((id) => state.exploredIds.has(id))) {
+    return undefined;
+  }
+  return (
+    fileKnowledgeSnippet({
+      relativePath,
+      symbols,
+      surface: "read",
+      focus,
+      summarize: workspace.summarize,
+    }) ?? undefined
+  );
+}
+
+/**
+ * A shell command reads and writes files without the Read and Edit tools.
+ * Before it runs, the first linked file it names gets the read snippet; a
+ * command that reads `.kb/` directly or searches the tree gets the notes the
+ * Read, Grep and Glob tools would. The start time is recorded so the
+ * PostToolUse hook can attribute the files the command changed.
+ */
+function bashPreToolUse(
+  input: HookInput,
+  workspace: Workspace,
+  state: SessionState,
+  trace: HookTrace,
+): HookOutput {
+  const events: SessionEvent[] = [{ kind: "command_started", at: Date.now() }];
+  const command = bashCommand(input.toolInput);
+  const emit = (text: string, action: string): HookOutput => {
+    trace.action = action;
+    appendSessionEvents(workspace.stateDir, events);
+    return context("PreToolUse", text);
+  };
+  let namesKb = false;
+  for (const absolute of commandFilePaths(
+    command,
+    input.cwd ?? workspace.root,
+  )) {
+    const target = toWorkspacePath(workspace.root, absolute, input.cwd);
+    if (!target) continue;
+    const kind = classifyPath(target.relative);
+    if (kind === "kb") namesKb = true;
+    if (kind === "kb" || kind === "other") continue;
+    const symbols = workspace.index().files[target.relative] ?? [];
+    const snippet = readSnippet(target.relative, symbols, state, workspace);
+    if (!snippet) continue;
+    trace.path = target.relative;
+    trace.pathKind = kind;
+    trace.requirementIds = requirementIds(symbols);
+    events.push({ kind: "shown", surface: "read", path: target.relative });
+    return emit(snippet, "read_snippet");
+  }
+  if (namesKb && !state.notices.has("kb-direct")) {
+    events.push({ kind: "notice", name: "kb-direct" });
+    return emit(DIRECT_KB_ACCESS_NOTE, "kb_direct_note");
+  }
+  if (
+    isSearchCommand(command) &&
+    !state.kbUsed &&
+    !state.notices.has("search-tip")
+  ) {
+    const linked = linkedFileCount(workspace.index());
+    if (linked > 0) {
+      events.push({ kind: "notice", name: "search-tip" });
+      return emit(searchTip(linked), "search_tip");
+    }
+  }
+  appendSessionEvents(workspace.stateDir, events);
+  return {};
+}
+
+/**
+ * Files the finished shell command changed are tracked like Edit-tool edits
+ * (pending impact check, telemetry), and the first one this session has not
+ * yet seen an edit note for gets it: the edit snippet for a linked file, the
+ * discovery note for a source file no requirement owns.
+ */
+function bashChanges(
+  workspace: Workspace,
+  events: SessionEvent[],
+  trace: HookTrace,
+): string | undefined {
+  const state = loadSessionState(workspace.stateDir);
+  if (state.commandStartedAt === undefined) return undefined;
+  let note: string | undefined;
+  for (const relative of filesChangedSince(
+    workspace.root,
+    state.commandStartedAt,
+  )) {
+    const pathKind = classifyPath(relative);
+    if (pathKind === "kb" || pathKind === "other") continue;
+    events.push({ kind: "edited", path: relative, pathKind });
+    const index = workspace.index();
+    const symbols = index.files[relative] ?? [];
+    const owners = requirementIds(symbols);
+    if (trace.action === undefined && owners.length > 0) {
+      trace.action = "edited";
+      trace.kbUsedBefore = state.kbUsed;
+      trace.path = relative;
+      trace.pathKind = pathKind;
+      trace.requirementIds = owners;
+    }
+    if (note !== undefined || state.shownEdit.has(relative)) continue;
+    const alreadyKnown =
+      state.shownRead.has(relative) || isExplored(state, relative);
+    const snippet = alreadyKnown
+      ? editKnowledgeUpdate({
+          relativePath: relative,
+          symbols,
+          surface: "edit",
+          summarize: workspace.summarize,
+        })
+      : fileKnowledgeSnippet({
+          relativePath: relative,
+          symbols,
+          surface: "edit",
+          summarize: workspace.summarize,
+        });
+    if (snippet) {
+      note = snippet;
+    } else if (
+      pathKind === "source" &&
+      owners.length === 0 &&
+      index.manifest !== "unreadable"
+    ) {
+      note = unownedSourceNote(relative);
+    }
+    if (note !== undefined) {
+      events.push({ kind: "shown", surface: "edit", path: relative });
+    }
+  }
+  return note;
 }
 
 function recordKbUsage(
@@ -387,14 +545,15 @@ function postToolUse(
       }
     }
   } else if (toolName === "Bash") {
-    const command = isRecord(input.toolInput)
-      ? input.toolInput.command
-      : undefined;
+    const command = bashCommand(input.toolInput);
     const usage = extractCliKbUsage(command);
     if (usage) recordUsage(usage);
+    const note = bashChanges(workspace, events, trace);
     if (isVerifiedGitCommit(command) && hasKibiPreCommitGate(workspace.root)) {
       events.push({ kind: "checked", paths: [], all: true });
     }
+    appendSessionEvents(workspace.stateDir, events);
+    return note ? context("PostToolUse", note) : {};
   } else {
     const usage = extractMcpKbUsage(toolName, input.toolInput);
     if (usage) recordUsage(usage);
