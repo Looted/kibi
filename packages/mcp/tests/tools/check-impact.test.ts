@@ -305,4 +305,25 @@ describe("MCP kb_check impact diagnostics", () => {
       }),
     );
   }, 30000);
+
+  test("asks to record changed behavior in a file no requirement owns", async () => {
+    writeUploadSource(workspaceRoot);
+
+    const result = await handleKbCheck(prolog, {
+      workspaceRoot,
+      sourceFiles: [UPLOAD_SOURCE_FILE],
+      includeImpactDiagnostics: true,
+    });
+
+    expect(result.structuredContent?.impactDiagnostics).toContainEqual(
+      expect.objectContaining({
+        id: "symbol_semantic_review_needed",
+        blocking: false,
+        message: expect.stringContaining(
+          "UploadPageComponent.processingProgressLabel is in a file no requirement owns",
+        ),
+        suggestion: expect.stringContaining("kb_upsert a requirement"),
+      }),
+    );
+  }, 30000);
 });

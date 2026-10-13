@@ -80,6 +80,72 @@ export function partitionCheckFindings(findings: readonly Violation[]): {
   return { violations, qualityDiagnostics };
 }
 
+export const SCOPED_CHECK_OMITTED_ID = "scoped_check_omitted_quality";
+const OMITTED_RULES_SHOWN = 5;
+
+/**
+ * Advisory findings of a check scoped to `sourceFiles` that concern those
+ * files: the impact analysis's own findings, findings on an entity a changed
+ * file's symbols link to (or on those symbols), and findings whose source is
+ * one of the files. The KB-wide rest (unapproved requirements elsewhere,
+ * unrelated scenarios) is reduced to one info diagnostic with per-rule counts,
+ * so a check after a small edit answers about that edit; kb_check without
+ * sourceFiles still lists every finding.
+ */
+// implements REQ-cli-check
+export function scopeQualityDiagnosticsToImpact(
+  diagnostics: readonly QualityDiagnostic[],
+  impactResult: ChangedFileImpactResult,
+): QualityDiagnostic[] {
+  const normalizePath = (value: string) =>
+    value.replace(/\\/g, "/").replace(/^\.\//, "");
+  const files = new Set(impactResult.sourceFiles.map(normalizePath));
+  const entityIds = new Set<string>();
+  for (const linked of impactResult.linkedEntities) {
+    entityIds.add(linked.id);
+    entityIds.add(linked.sourceSymbolId);
+  }
+  const inScope = (diagnostic: QualityDiagnostic) =>
+    (diagnostic.entityId !== undefined && entityIds.has(diagnostic.entityId)) ||
+    (diagnostic.source !== undefined &&
+      files.has(normalizePath(diagnostic.source))) ||
+    (diagnostic.files ?? []).some((file) => files.has(normalizePath(file)));
+
+  const kept: QualityDiagnostic[] = [];
+  const omittedByRule = new Map<string, number>();
+  for (const diagnostic of diagnostics) {
+    if (inScope(diagnostic)) {
+      kept.push(diagnostic);
+      continue;
+    }
+    const rule = diagnostic.id.replace(/^rule\./, "");
+    omittedByRule.set(rule, (omittedByRule.get(rule) ?? 0) + 1);
+  }
+  if (omittedByRule.size === 0) return kept;
+
+  const omitted = [...omittedByRule.values()].reduce((a, b) => a + b, 0);
+  const rules = [...omittedByRule.entries()].sort(
+    (a, b) => b[1] - a[1] || a[0].localeCompare(b[0]),
+  );
+  const shown = rules
+    .slice(0, OMITTED_RULES_SHOWN)
+    .map(([rule, count]) => `${rule} ×${count}`);
+  if (rules.length > OMITTED_RULES_SHOWN) {
+    shown.push(`${rules.length - OMITTED_RULES_SHOWN} more rules`);
+  }
+  kept.push({
+    id: SCOPED_CHECK_OMITTED_ID,
+    severity: "info",
+    blocking: false,
+    category: "integrity",
+    message: `This check is scoped to ${files.size} source ${files.size === 1 ? "file" : "files"}; ${omitted} advisory ${omitted === 1 ? "finding" : "findings"} elsewhere in the KB ${omitted === 1 ? "is" : "are"} not listed (${shown.join(", ")}). None of them concerns the checked files.`,
+    suggestion:
+      "Run kb_check without sourceFiles for the full KB audit when it matters to the task.",
+    evidence: { omitted, byRule: Object.fromEntries(rules) },
+  });
+  return kept;
+}
+
 function resolveChecksPlPath(): string {
   const override = getKbPlPathOverride();
   return path.join(path.dirname(override ?? resolveKbPlPath()), "checks.pl");

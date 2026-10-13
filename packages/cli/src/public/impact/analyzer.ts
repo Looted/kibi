@@ -11,6 +11,7 @@ import { captureStagedSnapshot } from "../../traceability/git-change-snapshot.js
 import { readSnapshotKnowledge } from "../../traceability/snapshot-knowledge.js";
 import type { ExtractedSymbol } from "../../traceability/symbol-extract.js";
 import { extractSymbolsFromStagedFileAsync } from "../../traceability/symbol-extract.js";
+import { isTraceabilityRelationshipType } from "../symbol-granularity.js";
 import {
   createSemanticReviewDiagnostics,
   createSymbolGranularityDiagnostics,
@@ -153,7 +154,18 @@ export async function analyzeChangedFileImpact(
             manifestResults: activeManifestResults,
             symbolsByFile,
           }),
-          ...createSemanticReviewDiagnostics({ symbolsByFile }),
+          ...createSemanticReviewDiagnostics({
+            symbolsByFile,
+            linkedSourceFiles: new Set(
+              activeManifestResults
+                .filter((result) =>
+                  result.relationships.some((relationship) =>
+                    isTraceabilityRelationshipType(relationship.type),
+                  ),
+                )
+                .map((result) => result.sourceFile as string),
+            ),
+          }),
         ];
   const maxDiagnostics = options.maxDiagnostics;
   const cappedDiagnostics =
