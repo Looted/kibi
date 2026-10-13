@@ -791,26 +791,42 @@ shards through Kibi internals.
 **Parameters:**
 - `ids`: Array of entity IDs to delete
 - `relationships`: Array of exact `{type, from, to}` triples to retract
+- `dryRun` (optional): Preview the delete and write nothing (see below).
+- `approvedPlanHash` (optional, `ids` only): Apply the authored-entity
+  deletion plan whose `planHash` this is, in the same call (see below). Not
+  allowed with `relationships` or `dryRun: true`.
 
 Provide exactly one non-empty array; `ids` and `relationships` cannot be mixed.
 
 **Returns:**
-The response includes `relationships_deleted`, per-selector results, and
-`sourceWrites` when a canonical shard was patched. Authored entity deletion
-returns a hash-bound `kibi.entity-deletion-plan.v1`; apply that plan through
-`kb_apply_plan` after approval. Requirements normally return a `supersedes`
-evolution plan instead of destructive deletion. Never edit `.kb/relationships`
-directly.
+A direct delete returns `deleted`, `skipped` and `errors` (per-id failures
+such as a missing entity or one with dependents); a relationship delete adds
+`relationships_deleted`, per-selector `relationship_results`, and
+`sourceWrites` when a canonical shard or authored source was patched. Never
+edit `.kb/relationships` directly. Any call that is not a direct delete
+carries an `outcome`:
 
-Authored entity deletion deletes nothing in the `kb_delete` call itself and
-still returns `status: "success"`, because the call worked: it returned a
-plan. Read the counts and `errors`, not the status: `deleted: 0` with
-`skipped` above zero means nothing was removed, and `errors` carries the
-reason. For other entities it says the plan must be applied through
-`kb_apply_plan`; for an authored requirement it is the refusal ("Authored
-requirements require an explicit supersession plan…"), and the returned
-`deletionPlan` carries `supersessionRequired: true`, which `kb_apply_plan`
-refuses with `REQUIREMENT_SUPERSESSION_REQUIRED`.
+| `outcome` | When | What to do next |
+| --- | --- | --- |
+| `plan_returned` | An id is authored in a Markdown or YAML source. Nothing is written: `deletionPlan` is a hash-bound `kibi.entity-deletion-plan.v1` and `skippedEffects` lists `kb-write` and `workspace-write`. | Review the plan, then run `nextActions[0]`: `{operation: "kb_apply_plan", input: {plan, approvedPlanHash}, required: true}`. Pass `input` unmodified. Or repeat the `kb_delete` call with `approvedPlanHash: deletionPlan.planHash`. |
+| `supersession_required` | An id is an authored requirement. Requirements evolve append-only and are never deleted; nothing is written. | `nextActions[0]` is a `kb_upsert` template: upsert a replacement requirement with a `supersedes` relationship to the old one, then upsert the old requirement with `status: closed`. |
+| `plan_applied` | `approvedPlanHash` matched the freshly computed plan. | The plan went through `kb_apply_plan`'s validation, journal and recovery path. `deleted`, `planHash`, `sourcePaths` and `recoveryJournalId` report what changed; `status: committed_with_repairs` with a `kb_apply_plan` recovery `nextActions` entry means the compiled retraction needs repair. |
+| `dry_run` | `dryRun: true` on a relationship or direct entity delete. | Nothing is written. `wouldDelete` counts what a commit would remove (`entities` and `ids`, or `relationships` and `compiledEdges`), `sourceWrites` lists the shard and authored-source writes with their before and after hashes, and `relationship_results` describe the planned effect per selector. |
+
+`errors` lists only real per-id failures. A returned plan is not an error, and
+the call reports `status: "success"`. An id that was resolved but not covered by
+the plan (a non-authored id in the same call as authored ones) is listed in
+`errors` and must be deleted in a separate call.
+
+`dryRun: true` on authored ids returns the same plan as without it, with
+`dryRun: true`, since that path never writes.
+
+`approvedPlanHash` recomputes the plan from the current sources and applies it
+only when its hash still equals the approved one. A different or stale hash
+fails with `DELETE_PLAN_HASH_MISMATCH` and writes nothing. A plan that requires
+supersession fails with `REQUIREMENT_SUPERSESSION_REQUIRED`. Approval also
+fails (`VALIDATION_FAILED`) when an id was not resolved into the plan, or when
+no id produced an authored plan.
 
 ### `kb_check`
 

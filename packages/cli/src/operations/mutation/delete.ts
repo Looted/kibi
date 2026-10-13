@@ -12,6 +12,7 @@ import type { OperationResult } from "../../public/operations/types.js";
 import {
   type RelationshipSelector,
   listShards,
+  planRelationshipShardRemovals,
   readAllShards,
   readShard,
   removeRelationshipsFromShards,
@@ -102,12 +103,93 @@ function fileHash(pathname: string): string | null {
   return createHash("sha256").update(readFileSync(pathname)).digest("hex");
 }
 
+type DeleteExecutionOptions = Readonly<{ dryRun?: boolean }>;
+
+/** Effects a dry run or plan-only result leaves to a later call. */
+const PLAN_ONLY_SKIPPED_EFFECTS = ["kb-write", "workspace-write"] as const;
+
+const DRY_RUN_FIELDS = {
+  dryRun: true as const,
+  outcome: "dry_run" as const,
+  skippedEffects: PLAN_ONLY_SKIPPED_EFFECTS,
+};
+
+function sha256(text: string): string {
+  return createHash("sha256").update(text).digest("hex");
+}
+
+// implements REQ-011
+/**
+ * The relationship delete a preflight-clean call would perform: the shard and
+ * authored-source writes with their hashes and the compiled edges it would
+ * retract. Nothing is written and the compiled store is not touched.
+ */
+function relationshipDeleteDryRun(
+  shardRoot: string,
+  preflight: readonly RelationshipSelector[],
+  liveByKey: ReadonlyMap<string, boolean>,
+  sourcePatches: ReadonlyMap<string, { before: string; after: string }>,
+  workspaceRoot: string,
+): DeletePayload {
+  const planned = planRelationshipShardRemovals(shardRoot, preflight);
+  const sourceWrites: NonNullable<DeletePayload["sourceWrites"]>[number][] = [];
+  for (const [shardPath, body] of planned.bodies) {
+    const before = readFileSync(shardPath, "utf8");
+    if (before === body) continue;
+    sourceWrites.push({
+      path: path.relative(workspaceRoot, shardPath).replaceAll("\\", "/"),
+      mode: "write",
+      beforeHash: sha256(before),
+      afterHash: sha256(body),
+      created: false,
+    });
+  }
+  for (const [relative, patch] of sourcePatches) {
+    sourceWrites.push({
+      path: relative,
+      mode: "write",
+      beforeHash: sha256(patch.before),
+      afterHash: sha256(patch.after),
+      created: false,
+    });
+  }
+  const compiledEdges = preflight.filter(
+    (selector) =>
+      liveByKey.get(`${selector.type}\0${selector.from}\0${selector.to}`) ===
+      true,
+  ).length;
+  return {
+    deleted: 0,
+    relationships_deleted: 0,
+    skipped: 0,
+    errors: [],
+    error_codes: [],
+    relationship_results: preflight.map((selector, index) => ({
+      ...selector,
+      deleted: false,
+      shard_records_removed: planned.removals[index]?.removed ?? false,
+      compiled_edge_retracted:
+        liveByKey.get(`${selector.type}\0${selector.from}\0${selector.to}`) ===
+        true,
+    })),
+    wouldDelete: {
+      entities: 0,
+      relationships: preflight.length,
+      compiledEdges,
+    },
+    sync_required: planned.bodies.size > 0 || sourcePatches.size > 0,
+    sourceWrites,
+    ...DRY_RUN_FIELDS,
+  };
+}
+
 // implements REQ-011
 // covered_by TEST-cli-source-relationship-parity-unit
 async function executeRelationshipDeleteUnlocked(
   selectors: readonly RelationshipSelector[],
   context: OperationContext,
   onCommitted: () => void = () => undefined,
+  options: DeleteExecutionOptions = {},
 ): Promise<DeletePayload> {
   const prolog = requireProlog(context);
   const allowed = new Set<string>(RELATIONSHIP_TYPES);
@@ -250,7 +332,18 @@ async function executeRelationshipDeleteUnlocked(
       errors,
       error_codes: errorCodes,
       relationship_results: [],
+      ...(options.dryRun === true ? DRY_RUN_FIELDS : {}),
     };
+
+  if (options.dryRun === true) {
+    return relationshipDeleteDryRun(
+      shardRoot,
+      preflight,
+      liveByKey,
+      sourcePatches,
+      context.workspaceRoot,
+    );
+  }
 
   // Keep byte-level before-images for rollback. Re-serializing parsed records
   // would silently discard comments, ordering, and CST trivia from unrelated
@@ -422,9 +515,15 @@ export async function executeRelationshipDelete(
   selectors: readonly RelationshipSelector[],
   context: OperationContext,
   onCommitted: () => void = () => undefined,
+  options: DeleteExecutionOptions = {},
 ): Promise<DeletePayload> {
   if (!context.fs || context.sourceMutationLockHeld === true)
-    return executeRelationshipDeleteUnlocked(selectors, context, onCommitted);
+    return executeRelationshipDeleteUnlocked(
+      selectors,
+      context,
+      onCommitted,
+      options,
+    );
   const lock = await acquireWorkspaceMutationLock(context.workspaceRoot);
   let operationFailure: { readonly error: unknown } | undefined;
   let committed = false;
@@ -436,8 +535,9 @@ export async function executeRelationshipDelete(
         committed = true;
         onCommitted();
       },
+      options,
     );
-    committed = true;
+    committed = options.dryRun !== true;
     return result;
   } catch (error) {
     const failure = classifySourceMutationFailure(
@@ -450,6 +550,120 @@ export async function executeRelationshipDelete(
   } finally {
     releaseWorkspaceMutationLock(lock, operationFailure, committed);
   }
+}
+
+type DeletionPlan = NonNullable<DeletePayload["deletionPlan"]>;
+type DeleteNextAction = NonNullable<DeletePayload["nextActions"]>[number];
+
+// implements REQ-kibi-operation-interface-parity
+/** The kb_apply_plan call that applies a returned deletion plan unmodified. */
+function applyDeletionPlanNextAction(plan: DeletionPlan): DeleteNextAction {
+  return {
+    operation: "kb_apply_plan",
+    input: { plan, approvedPlanHash: plan.planHash },
+    reason: `Review deletionPlan, then apply it unmodified to delete ${plan.entityIds.join(", ")} (or call kb_delete again with the same ids and approvedPlanHash).`,
+    required: true,
+  };
+}
+
+// implements REQ-kibi-operation-interface-parity
+/** Requirements evolve append-only: point at the supersession upsert. */
+function supersessionNextAction(
+  requirementIds: readonly string[],
+): DeleteNextAction {
+  return {
+    operation: "kb_upsert",
+    input: {
+      type: "req",
+      id: "<REQ-replacement-id>",
+      relationships: requirementIds.map((id) => ({
+        type: "supersedes",
+        from: "<REQ-replacement-id>",
+        to: id,
+      })),
+    },
+    reason: `Authored requirements are not deleted. Upsert a replacement requirement linked with supersedes to ${requirementIds.join(", ")}, then upsert each superseded requirement with status closed.`,
+    required: true,
+  };
+}
+
+// implements REQ-kibi-operation-interface-parity
+/**
+ * Apply a freshly computed authored-entity deletion plan in the same call
+ * when the caller approved its hash. The plan goes through kb_apply_plan's
+ * own validation, journal and recovery path; a stale or different approval
+ * fails before anything is written.
+ */
+async function applyApprovedDeletionPlan(
+  plan: DeletionPlan,
+  approvedPlanHash: string,
+  planErrors: readonly string[],
+  context: OperationContext,
+  onCommitted: () => void,
+  reported: (text: string) => string,
+): Promise<OperationResult<DeletePayload>> {
+  if (approvedPlanHash.toLowerCase() !== plan.planHash) {
+    throw new InputError(
+      "DELETE_PLAN_HASH_MISMATCH",
+      `kb_delete: approvedPlanHash ${approvedPlanHash.slice(0, 12)} does not match the current deletion plan ${plan.planHash.slice(0, 12)} for ${plan.entityIds.join(", ")}. The ids or their sources changed since that plan was returned. Call kb_delete without approvedPlanHash, review the new plan, and approve its planHash. Nothing was written.`,
+    );
+  }
+  if (plan.supersessionRequired) {
+    throw new InputError(
+      "REQUIREMENT_SUPERSESSION_REQUIRED",
+      "kb_delete: authored requirements evolve through a new requirement linked with supersedes; a deletion plan that requires supersession cannot be approved. Nothing was written.",
+    );
+  }
+  if (planErrors.length > 0) {
+    throw new InputError(
+      "VALIDATION_FAILED",
+      `kb_delete: approvedPlanHash applies a plan only when every requested id is in it. Remove or fix: ${planErrors.join("; ")} Nothing was written.`,
+    );
+  }
+  // apply-plan imports this module; load it lazily to keep the cycle out of
+  // module initialization.
+  const { executeApplyPlan } = await import("../planning/apply-plan.js");
+  const applied = await executeApplyPlan(
+    { plan, approvedPlanHash: plan.planHash },
+    // executeDelete already holds the workspace lock (or runs without fs).
+    { ...context, sourceMutationLockHeld: true },
+    onCommitted,
+  );
+  const result = applied.structuredContent as Readonly<Record<string, unknown>>;
+  const deleted = typeof result.deleted === "number" ? result.deleted : 0;
+  const repairs = result.status === "committed_with_repairs";
+  const payload: DeletePayload = {
+    deleted,
+    skipped: plan.entityIds.length - deleted,
+    errors: [],
+    outcome: "plan_applied",
+    planHash: plan.planHash,
+    sourcePaths: Array.isArray(result.sourcePaths)
+      ? (result.sourcePaths as string[])
+      : [],
+    ...(typeof result.recoveryJournalId === "string"
+      ? { recoveryJournalId: result.recoveryJournalId }
+      : {}),
+    ...(repairs
+      ? {
+          status: "committed_with_repairs" as const,
+          nextActions: Array.isArray(result.nextActions)
+            ? (result.nextActions as DeleteNextAction[])
+            : [],
+        }
+      : {}),
+  };
+  return {
+    content: [
+      {
+        type: "text",
+        text: reported(
+          `Applied deletion plan ${plan.planHash.slice(0, 12)}: deleted ${deleted} entities.${repairs ? " Compiled retraction needs repair; follow nextActions." : ""}`,
+        ),
+      },
+    ],
+    structuredContent: payload,
+  };
 }
 
 export async function executeDelete(
@@ -493,10 +707,24 @@ export async function executeDelete(
     }
     const ids = input.ids ?? [];
     const relationships = input.relationships ?? [];
+    const dryRun = input.dryRun === true;
+    const approvedPlanHash = input.approvedPlanHash;
     if ((ids.length === 0) === (relationships.length === 0))
       throw new Error(
         "Delete requires exactly one non-empty input: ids or relationships",
       );
+    if (approvedPlanHash !== undefined) {
+      if (dryRun)
+        throw new InputError(
+          "VALIDATION_FAILED",
+          "kb_delete: dryRun and approvedPlanHash cannot be combined. Omit approvedPlanHash to preview the deletion plan, or omit dryRun to apply it.",
+        );
+      if (relationships.length > 0)
+        throw new InputError(
+          "VALIDATION_FAILED",
+          "kb_delete: approvedPlanHash applies only to an authored-entity deletion plan (ids). Relationship deletes apply directly; use dryRun:true to preview them.",
+        );
+    }
     if (relationships.length > 0) {
       if (relationships.some((value) => !isSelector(value)))
         throw new Error(
@@ -508,13 +736,16 @@ export async function executeDelete(
         () => {
           committed = true;
         },
+        { dryRun },
       );
       return {
         content: [
           {
             type: "text",
             text: reported(
-              `Deleted ${payload.relationships_deleted ?? 0} relationships. Skipped ${payload.skipped}.${payload.sync_required ? " Run kibi sync to reconcile the relationship shard." : ""}`,
+              dryRun
+                ? `Dry run: would delete ${payload.wouldDelete?.relationships ?? 0} relationships. Skipped ${payload.skipped}. Nothing was written.`
+                : `Deleted ${payload.relationships_deleted ?? 0} relationships. Skipped ${payload.skipped}.${payload.sync_required ? " Run kibi sync to reconcile the relationship shard." : ""}`,
             ),
           },
         ],
@@ -524,6 +755,8 @@ export async function executeDelete(
     const errors: string[] = [];
     const goals: string[] = [];
     const authoredIds: string[] = [];
+    // Resolved ids that a direct delete would retract (non-authored source).
+    const directIds: string[] = [];
     const authoredRequirementIds: string[] = [];
     const sourceHashes: Record<string, string | null> = {};
     // Keep the original body for rollback, while applying each deletion to the
@@ -618,6 +851,7 @@ export async function executeDelete(
           }
         }
       }
+      if (!sourceIsAuthored(source)) directIds.push(id);
       goals.push(buildEntityDeleteAuditGoal(entity));
     }
     if (authoredIds.length > 0 && context.sourcePlanApplication !== true) {
@@ -664,24 +898,79 @@ export async function executeDelete(
       const planHash = createHash("sha256")
         .update(JSON.stringify(planBody))
         .digest("hex");
+      const deletionPlan = { ...planBody, planHash };
+      // A plan covers only authored ids; any other resolved id in the same
+      // call is left for a separate direct delete.
+      const planErrors = [
+        ...errors,
+        ...directIds.map(
+          (id) =>
+            `Entity ${id} was not deleted: this call returned an authored-entity deletion plan. Delete ${id} in a separate kb_delete call.`,
+        ),
+      ];
+      if (approvedPlanHash !== undefined) {
+        return await applyApprovedDeletionPlan(
+          deletionPlan,
+          approvedPlanHash,
+          planErrors,
+          { ...context, branchAttachment, prolog },
+          () => {
+            committed = true;
+          },
+          reported,
+        );
+      }
       const payload: DeletePayload = {
         deleted: 0,
-        skipped: authoredIds.length,
-        errors: [
-          supersessionRequired
-            ? "Authored requirements require an explicit supersession plan; no direct delete is performed."
-            : "Authored entity deletion returns a hash-bound plan for kb_apply_plan.",
-        ],
-        deletionPlan: { ...planBody, planHash },
+        skipped: authoredIds.length + planErrors.length,
+        errors: planErrors,
+        outcome: supersessionRequired
+          ? "supersession_required"
+          : "plan_returned",
+        deletionPlan,
+        nextActions: supersessionRequired
+          ? [supersessionNextAction(authoredRequirementIds)]
+          : [applyDeletionPlanNextAction(deletionPlan)],
         // Only kb_apply_plan writes; this call returns the plan.
-        skippedEffects: ["kb-write", "workspace-write"],
+        skippedEffects: PLAN_ONLY_SKIPPED_EFFECTS,
+        ...(dryRun ? { dryRun: true as const } : {}),
       };
       return {
         content: [
           {
             type: "text",
             text: reported(
-              `Deletion plan ${planHash.slice(0, 12)} must be applied through kb_apply_plan.`,
+              supersessionRequired
+                ? `Authored requirements ${authoredRequirementIds.join(", ")} cannot be deleted: supersede them with kb_upsert (supersedes) and close them instead. Nothing was written.`
+                : `Returned deletion plan ${planHash.slice(0, 12)} for ${authoredIds.join(", ")}. Nothing was written; apply it with kb_apply_plan (nextActions[0].input), or call kb_delete again with approvedPlanHash.`,
+            ),
+          },
+        ],
+        structuredContent: payload,
+      };
+    }
+    if (
+      approvedPlanHash !== undefined &&
+      context.sourcePlanApplication !== true
+    )
+      throw new InputError(
+        "VALIDATION_FAILED",
+        `kb_delete: approvedPlanHash was given but ${ids.join(", ")} produced no authored-entity deletion plan to approve. Omit approvedPlanHash to delete these ids directly.`,
+      );
+    if (dryRun) {
+      const payload: DeletePayload = {
+        deleted: 0,
+        skipped: errors.length,
+        errors,
+        wouldDelete: { entities: goals.length, ids: directIds },
+        ...DRY_RUN_FIELDS,
+      };
+      return {
+        content: [
+          {
+            type: "text",
+            text: reported(
+              `Dry run: would delete ${goals.length} entities. Skipped ${errors.length}. Nothing was written.${errors.length > 0 ? ` Errors: ${errors.join("; ")}` : ""}`,
             ),
           },
         ],

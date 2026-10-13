@@ -116,7 +116,7 @@ export const CLI_OPERATION_METADATA = [
     name: "kb_delete",
     cliName: "delete",
     description:
-      "Delete entities by ID. Use only for intentional removals after dependency checks. Do not use as a bulk cleanup shortcut. Side effects: mutates and saves KB; skips entities with dependents.",
+      "Delete entities by ID, or exact relationship triples. Use only for intentional removals after dependency checks. Do not use as a bulk cleanup shortcut. An entity authored in a Markdown or YAML source is not deleted directly: the call writes nothing and returns outcome plan_returned with a hash-bound deletionPlan and a nextActions entry holding the exact kb_apply_plan input ({plan, approvedPlanHash}); apply that unmodified, or repeat this call with approvedPlanHash = deletionPlan.planHash to apply the freshly computed plan in one step (a stale or different hash fails with DELETE_PLAN_HASH_MISMATCH and writes nothing). Authored requirements are never deleted: outcome supersession_required points to kb_upsert with a supersedes relationship. dryRun:true previews any delete and writes nothing. Side effects: mutates and saves KB and authored sources; skips entities with dependents; dryRun and plan_returned write nothing.",
   },
   {
     name: "kb_check",
