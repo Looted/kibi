@@ -136,10 +136,19 @@ export function isRetiredStatus(status: string | undefined): boolean {
   return status !== undefined && RETIRED_STATUS.test(status);
 }
 
-// implements REQ-agent-core-edit-snippets, REQ-claude-code-kibi-plugin-v1, REQ-opencode-kibi-plugin-v1
-/** `ID (status): title`, with the status shown only when it is retired. */
+// implements REQ-agent-core-edit-snippets, REQ-claude-code-kibi-plugin-v1, REQ-opencode-kibi-plugin-v1, REQ-kb-decision-firmness
+/**
+ * `ID (status) [firmness]: title`, with the status shown only when it is
+ * retired and the firmness only when it is firm or exploratory (unlabeled
+ * decisions are `default`).
+ */
 export function describeEntity(summary: EntitySummary): string {
-  const notable = isRetiredStatus(summary.status) ? ` (${summary.status})` : "";
+  const retired = isRetiredStatus(summary.status) ? ` (${summary.status})` : "";
+  const firmness =
+    summary.firmness === "firm" || summary.firmness === "exploratory"
+      ? ` [${summary.firmness}]`
+      : "";
+  const notable = `${retired}${firmness}`;
   return summary.title
     ? `${summary.id}${notable}: ${truncate(summary.title, MAX_TITLE)}`
     : `${summary.id}${notable}`;

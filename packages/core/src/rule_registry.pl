@@ -60,6 +60,10 @@ known_rule('adr-proposed').
 known_rule('predicate-schema-conformance').
 known_rule('entity-context-missing').
 known_rule('entity-context-acknowledged').
+known_rule('decision-firm-unreferenced').
+known_rule('decision-firm-superseded').
+known_rule('supersedes-reason-missing').
+known_rule('supersedes-reason-acknowledged').
 known_rule('policy-ownership').
 known_rule('policy-markers').
 
@@ -109,6 +113,10 @@ rule_enforcement_class('adr-proposed', advisory).
 rule_enforcement_class('predicate-schema-conformance', advisory).
 rule_enforcement_class('entity-context-missing', canonical).
 rule_enforcement_class('entity-context-acknowledged', advisory).
+rule_enforcement_class('decision-firm-unreferenced', canonical).
+rule_enforcement_class('decision-firm-superseded', canonical).
+rule_enforcement_class('supersedes-reason-missing', canonical).
+rule_enforcement_class('supersedes-reason-acknowledged', advisory).
 rule_enforcement_class('policy-ownership', canonical).
 rule_enforcement_class('policy-markers', canonical).
 
@@ -158,6 +166,10 @@ rule_implementation('adr-proposed', prolog).
 rule_implementation('predicate-schema-conformance', typescript).
 rule_implementation('entity-context-missing', typescript).
 rule_implementation('entity-context-acknowledged', typescript).
+rule_implementation('decision-firm-unreferenced', typescript).
+rule_implementation('decision-firm-superseded', typescript).
+rule_implementation('supersedes-reason-missing', typescript).
+rule_implementation('supersedes-reason-acknowledged', typescript).
 rule_implementation('policy-ownership', typescript).
 rule_implementation('policy-markers', typescript).
 
@@ -277,5 +289,9 @@ rule_description('adr-proposed', 'Informational: an ADR that is still proposed a
 rule_description('predicate-schema-conformance', 'Predicate facts match a predicate_schema (project-local, or the built-in catalog in the default namespace) and use its declared argument constants').
 rule_description('entity-context-missing', 'A current requirement, scenario, test, ADR or observation/meta fact must carry body context: at least 12 words of prose (requirements: under a Context, Rationale, Why, Background, Source, Notes or Evidence heading) that do not restate the title or semantic_text; entities tagged review:context-missing are acknowledged legacy and exempt').
 rule_description('entity-context-acknowledged', 'Informational: how many current entities carry the review:context-missing tag, so the legacy context backlog stays visible; one summary finding per check').
+rule_description('decision-firm-unreferenced', 'A requirement or ADR marked firmness: firm must name the human words it rests on: origin.ref (or approval_ref on a requirement); Kibi checks that the reference is present, not that it is genuine').
+rule_description('decision-firm-superseded', 'A requirement or ADR that supersedes a firm decision, retired or not, must itself be firm (and so carry a ref to the human who changed the rule); a default or exploratory replacement cannot overrule a firm decision').
+rule_description('supersedes-reason-missing', 'A current requirement or ADR that supersedes another must explain why under a \'Why this changed\' heading (at least 12 words of prose naming the evidence and answering the old decision\'s reasoning); supersede edges recorded before schema 9 are acknowledged in the manifest and exempt').
+rule_description('supersedes-reason-acknowledged', 'Informational: how many current superseding requirements and ADRs have only supersede edges the schema 9 migration acknowledged without a \'Why this changed\' section; one summary finding per check').
 rule_description('policy-ownership', 'When a plugin activated for kibi.check-policy.v1 declares ownership rules, every production symbol in a rule\'s file set must implement a current requirement grounded (requires_predicate) in one of the rule\'s predicates; projects without an activated check policy are unaffected').
 rule_description('policy-markers', 'When a plugin activated for kibi.check-policy.v1 declares marker rules, every file implementing a requirement grounded in the rule\'s pattern predicate (with its declared sibling files) must contain each marker the KB declares for that pattern').

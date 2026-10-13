@@ -2164,6 +2164,8 @@ links:
   - type: supersedes
     target: REQ-018
 ---
+## Why this changed
+Support tickets showed coordinators need a third role for regional cover, which the two-role limit never considered.
 `,
       );
 

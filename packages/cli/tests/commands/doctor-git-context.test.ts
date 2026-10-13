@@ -179,7 +179,11 @@ describe("doctor effective hooks context", () => {
 
   test("diagnoses lone hooks instead of reporting them absent", async () => {
     const cwd = track(createGitWorkspace());
-    writeHook(cwd, "pre-commit", "#!/bin/sh\nkibi check --staged\n");
+    writeHook(
+      cwd,
+      "pre-commit",
+      "#!/bin/sh\nkibi check-generated --staged --changed-only\nkibi check --staged\n",
+    );
     writeHook(cwd, "post-rewrite", "#!/bin/sh\nkibi sync\n");
     makeExecutable(path.join(cwd, ".git", "hooks", "pre-commit"));
     makeExecutable(path.join(cwd, ".git", "hooks", "post-rewrite"));
@@ -192,7 +196,8 @@ describe("doctor effective hooks context", () => {
     for (const name of ["pre-commit hook", "post-rewrite hook"] as const) {
       const check = checkByName(checks, name);
       expect(check.passed).toBe(true);
-      expect(check.message).toContain("Installed and executable");
+      // Hooks without kibi-managed markers are diagnosed as custom hooks.
+      expect(check.message).toContain("Custom hook delegates to");
       expect(check.message).not.toContain("Not installed (optional)");
     }
   });

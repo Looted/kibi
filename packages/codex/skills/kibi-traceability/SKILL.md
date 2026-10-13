@@ -43,10 +43,12 @@ sequential `kb_upsert`, then run final check and coverage. Kibi authors tracked
 files transactionally but never Git-stages or commits them. Do not read or edit
 `.kb` directly.
 
-Use `kb_delete` only for intentional cleanup. Authored entity deletion returns a
-hash-bound approval plan; requirements normally evolve through a new
-requirement linked with `supersedes`. Relationship deletes patch shards while
-preserving unrelated records.
+Use `kb_delete` only for intentional cleanup; `dryRun: true` previews any
+delete without writing. Authored entity deletion returns `outcome:
+plan_returned` with a hash-bound plan whose `nextActions[0].input` is the exact
+`kb_apply_plan` input; requirements return `supersession_required` and evolve
+through a new requirement linked with `supersedes`. Relationship deletes patch
+shards while preserving unrelated records.
 
 ## Typed recovery and proof
 

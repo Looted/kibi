@@ -297,3 +297,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1846a719038f
+  - type: verified_by
+    from: SCEN-kb-decision-firmness
+    to: TEST-kb-decision-firmness
+    created_at: 2026-10-12T22:24:38.701Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3f5f37b18e0d

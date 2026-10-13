@@ -51606,3 +51606,132 @@ symbols:
         target: TEST-claude-code-kibi-plugin-v1
       - type: implements
         target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-test-kb-decision-firmness
+    title: Decision firmness suite
+    status: active
+    sourceFile: packages/cli/tests/public/decision-firmness.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-12T22:25:48.137Z
+    relationships:
+      - type: executable_for
+        target: TEST-kb-decision-firmness
+  - id: SYM-kb-decision-firmness-effectivefirmness
+    title: effectiveFirmness
+    status: active
+    sourceFile: packages/cli/src/decision-firmness.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-12T22:25:56.027Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-decision-firmness
+      - type: implements
+        target: REQ-kb-decision-firmness
+  - id: SYM-kb-decision-firmness-firmnessref
+    title: firmnessRef
+    status: active
+    sourceFile: packages/cli/src/decision-firmness.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-12T22:26:03.316Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-decision-firmness
+      - type: implements
+        target: REQ-kb-decision-firmness
+  - id: SYM-kb-decision-firmness-whythischangedwords
+    title: whyThisChangedWords
+    status: active
+    sourceFile: packages/cli/src/decision-firmness.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-12T22:26:10.663Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-decision-firmness
+      - type: implements
+        target: REQ-kb-decision-firmness
+  - id: SYM-kb-decision-firmness-evaluatedecisionfirmness
+    title: evaluateDecisionFirmness
+    status: active
+    sourceFile: packages/cli/src/public/operations/decision-firmness.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-12T22:26:17.458Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-decision-firmness
+      - type: implements
+        target: REQ-kb-decision-firmness
+  - id: SYM-kb-decision-firmness-collectdecisionfirmnessviolations
+    title: collectDecisionFirmnessViolations
+    status: active
+    sourceFile: packages/cli/src/public/operations/decision-firmness.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-12T22:26:25.102Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-decision-firmness
+      - type: implements
+        target: REQ-kb-decision-firmness
+  - id: SYM-kb-decision-firmness-authoredsupersedes
+    title: authoredSupersedes
+    status: active
+    sourceFile: packages/cli/src/public/operations/decision-firmness.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-12T22:26:32.473Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-decision-firmness
+      - type: implements
+        target: REQ-kb-decision-firmness
+  - id: SYM-kb-decision-firmness-unexplainedsupersedes
+    title: unexplainedSupersedes
+    status: active
+    sourceFile: packages/cli/src/public/operations/decision-firmness.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-12T22:26:39.814Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-decision-firmness
+      - type: implements
+        target: REQ-kb-decision-firmness
+  - id: SYM-kb-decision-firmness-plansupersedesreasonacknowledgement
+    title: planSupersedesReasonAcknowledgement
+    status: active
+    sourceFile: packages/cli/src/operations/migration/supersedes-reason.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-12T22:26:45.228Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-decision-firmness
+      - type: implements
+        target: REQ-kb-decision-firmness
+  - id: SYM-kb-decision-firmness-applysupersedesreasonacknowledgement
+    title: applySupersedesReasonAcknowledgement
+    status: active
+    sourceFile: packages/cli/src/operations/migration/supersedes-reason.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-12T22:26:49.730Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-decision-firmness
+      - type: implements
+        target: REQ-kb-decision-firmness

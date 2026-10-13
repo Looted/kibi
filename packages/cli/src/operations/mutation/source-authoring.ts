@@ -5,7 +5,14 @@ import fs from "node:fs";
 import path from "node:path";
 import { isDeepStrictEqual } from "node:util";
 import { dump as dumpYaml, load as loadYaml } from "js-yaml";
-import { parseDocument, stringify } from "yaml";
+import {
+  isCollection,
+  isMap,
+  isNode,
+  isScalar,
+  parseDocument,
+  stringify,
+} from "yaml";
 import { OperationError } from "../../cli-errors.js";
 import { requirementSemanticText } from "../../extractors/markdown.js";
 import type { OperationContext } from "../../public/operations/runtime-types.js";
@@ -251,23 +258,35 @@ export function normalizeAuthoredSourcePath(
     .replaceAll(path.sep, "/");
 }
 
+/** The raw front matter block of a Markdown document, split at its fences. */
+function frontmatterBlock(
+  content: string,
+): { opening: string; raw: string; body: string } | undefined {
+  if (!content.startsWith("---")) return undefined;
+  const firstEnd = content.indexOf("\n", 3);
+  if (firstEnd < 0) return undefined;
+  const marker = content.indexOf("\n---", firstEnd);
+  if (marker < 0) return undefined;
+  return {
+    opening: content.slice(0, firstEnd + 1),
+    raw: content.slice(firstEnd + 1, marker),
+    body: content.slice(marker + "\n---".length),
+  };
+}
+
 function bodyAndFrontmatter(content: string): {
   frontmatter: Record<string, unknown>;
   body: string;
 } {
-  if (!content.startsWith("---")) return { frontmatter: {}, body: content };
-  const firstEnd = content.indexOf("\n", 3);
-  if (firstEnd < 0) return { frontmatter: {}, body: content };
-  const marker = content.indexOf("\n---", firstEnd);
-  if (marker < 0) return { frontmatter: {}, body: content };
-  const raw = content.slice(firstEnd + 1, marker);
-  const parsed = loadYaml(raw);
+  const block = frontmatterBlock(content);
+  if (block === undefined) return { frontmatter: {}, body: content };
+  const parsed = loadYaml(block.raw);
   return {
     frontmatter:
       parsed !== null && typeof parsed === "object" && !Array.isArray(parsed)
         ? (parsed as Record<string, unknown>)
         : {},
-    body: content.slice(marker + "\n---".length),
+    body: block.body,
   };
 }
 
@@ -344,6 +363,127 @@ function sourcePath(
   return resolveContainedSourcePath(context.workspaceRoot, relative);
 }
 
+/**
+ * Front matter keys an upsert never writes: runtime provenance/timestamps
+ * belong to the compiled entity, not to the authored source artifact, and
+ * relationships live in `links`/shards. Keeping them out also makes the
+ * source diff deterministic across CLI and MCP transports.
+ */
+const UNAUTHORED_FRONTMATTER_KEYS = new Set([
+  "id",
+  "type",
+  "source",
+  "links",
+  "relationships",
+  "created_at",
+  "updated_at",
+]);
+
+/** The front matter values an upsert of `entity` sets, in write order. */
+function entityFrontmatterUpdates(
+  entity: Readonly<Record<string, unknown>>,
+  existing: Readonly<Record<string, unknown>>,
+  body: string,
+): Record<string, unknown> {
+  const updates: Record<string, unknown> = Object.fromEntries(
+    Object.entries(entity).filter(
+      ([key, value]) =>
+        value !== undefined && !UNAUTHORED_FRONTMATTER_KEYS.has(key),
+    ),
+  );
+  updates.id = entity.id;
+  if (updates.title === undefined && existing.title === undefined) {
+    updates.title = entity.id;
+  }
+  updates.type = entity.type;
+  // The checked meaning is always stated, never derived from a body that now
+  // also carries context sections.
+  const semanticText = updates.semantic_text ?? existing.semantic_text;
+  if (
+    entity.type === "req" &&
+    (typeof semanticText !== "string" || semanticText.trim() === "")
+  ) {
+    const derived = requirementSemanticText(body);
+    if (derived !== "") updates.semantic_text = derived;
+  }
+  return updates;
+}
+
+/**
+ * Apply `updates` to an existing front matter block without re-serializing
+ * it: only keys whose value actually changes are rewritten (or appended), so
+ * every untouched key keeps its authored bytes (quoting, timestamps, flow
+ * lists, indentation, comments). Returns undefined when the block is not a
+ * plain block mapping that can be patched in place.
+ */
+// implements REQ-core-persistence
+function patchFrontmatter(
+  raw: string,
+  loaded: Readonly<Record<string, unknown>>,
+  updates: Readonly<Record<string, unknown>>,
+): string | undefined {
+  const doc = parseDocument(raw);
+  if (doc.errors.length > 0) return undefined;
+  const contents = doc.contents;
+  if (contents === null && raw.trim() !== "") return undefined;
+  if (contents !== null && (!isMap(contents) || contents.flow)) {
+    return undefined;
+  }
+  const pairs = contents === null ? [] : contents.items;
+  const current = (doc.toJS() ?? {}) as Record<string, unknown>;
+  const edits: Array<{ start: number; end: number; text: string }> = [];
+  const appended: string[] = [];
+  for (const [key, value] of Object.entries(updates)) {
+    const pair = pairs.find(
+      (candidate) =>
+        isScalar(candidate.key) && String(candidate.key.value) === key,
+    );
+    if (
+      pair !== undefined &&
+      (isDeepStrictEqual(current[key], value) ||
+        isDeepStrictEqual(loaded[key], value))
+    ) {
+      continue;
+    }
+    const valueNode = pair?.value;
+    const flow = isCollection(valueNode) && valueNode.flow === true;
+    const text = dumpYaml(
+      { [key]: value },
+      {
+        noRefs: true,
+        lineWidth: -1,
+        sortKeys: false,
+        ...(flow ? { flowLevel: 1 } : {}),
+      },
+    ).replace(/\n$/, "");
+    if (pair === undefined) {
+      appended.push(text);
+      continue;
+    }
+    const keyRange = isScalar(pair.key) ? pair.key.range : undefined;
+    if (!keyRange) return undefined;
+    const start = keyRange[0];
+    let end =
+      isNode(valueNode) && valueNode.range ? valueNode.range[1] : keyRange[2];
+    // `key:` with no value: replace through the end of the key's line.
+    if (end <= keyRange[1]) {
+      const lineEnd = raw.indexOf("\n", keyRange[1]);
+      end = lineEnd < 0 ? raw.length : lineEnd;
+    }
+    while (end > start && /[\r\n]/.test(raw[end - 1] ?? "")) end -= 1;
+    edits.push({ start, end, text });
+  }
+  let patched = raw;
+  for (const edit of edits.sort((left, right) => right.start - left.start)) {
+    patched = `${patched.slice(0, edit.start)}${edit.text}${patched.slice(edit.end)}`;
+  }
+  if (appended.length > 0) {
+    const separator = patched === "" || patched.endsWith("\n") ? "" : "\n";
+    patched = `${patched}${separator}${appended.join("\n")}`;
+  }
+  return patched;
+}
+
 function renderEntityDocument(
   input: UpsertInput,
   entity: Readonly<Record<string, unknown>>,
@@ -360,40 +500,22 @@ function renderEntityDocument(
         : input.type === "req"
           ? `${String(entity.semantic_text ?? "").trim()}\n`
           : "\n";
-  const frontmatter = {
-    ...existing.frontmatter,
-    ...Object.fromEntries(
-      Object.entries(entity).filter(
-        ([key]) =>
-          // Runtime provenance/timestamps belong to the compiled entity, not to
-          // the authored source artifact. Keeping them out also makes the source
-          // diff deterministic across CLI and MCP transports.
-          ![
-            "id",
-            "type",
-            "source",
-            "links",
-            "relationships",
-            "created_at",
-            "updated_at",
-          ].includes(key),
-      ),
-    ),
-  };
-  frontmatter.id = entity.id;
-  frontmatter.title ??= entity.id;
-  frontmatter.type = entity.type;
-  // The checked meaning is always stated, never derived from a body that now
-  // also carries context sections.
-  if (
-    entity.type === "req" &&
-    (typeof frontmatter.semantic_text !== "string" ||
-      frontmatter.semantic_text.trim() === "")
-  ) {
-    const derived = requirementSemanticText(body);
-    if (derived !== "") frontmatter.semantic_text = derived;
+  const updates = entityFrontmatterUpdates(entity, existing.frontmatter, body);
+  const bodySuffix = `${body.startsWith("\n") ? "" : "\n"}${body}`;
+  // An existing document keeps its authored front matter bytes; only the
+  // keys this upsert changes are rewritten.
+  const block =
+    existingContent !== undefined
+      ? frontmatterBlock(existingContent)
+      : undefined;
+  if (block !== undefined) {
+    const patched = patchFrontmatter(block.raw, existing.frontmatter, updates);
+    if (patched !== undefined) {
+      return `${block.opening}${patched}\n---${bodySuffix}`;
+    }
   }
-  return `---\n${dumpYaml(frontmatter, { noRefs: true, lineWidth: -1, sortKeys: false })}---${body.startsWith("\n") ? "" : "\n"}${body}`;
+  const frontmatter = { ...existing.frontmatter, ...updates };
+  return `---\n${dumpYaml(frontmatter, { noRefs: true, lineWidth: -1, sortKeys: false })}---${bodySuffix}`;
 }
 
 /** Generated coordinate fields belong exclusively to `.kb/symbol-coordinates.yaml`. */

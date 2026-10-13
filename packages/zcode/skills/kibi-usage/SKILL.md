@@ -4,7 +4,7 @@ description: Use Kibi's source-first, exact-Git, migration-aware, proof-aware op
 license: AGPL-3.0-or-later
 metadata:
   id: kibi-usage
-  version: 2.15.4
+  version: 2.16.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -190,8 +190,9 @@ returns `status: error`, `MIGRATION_PLAN_REFUSED` and `data.outcome:
 refused`: nothing changed, so read the action `detail` and get a new plan.
 `data.outcome: reconciliation_required` (status success) means an action
 failed mid-way: inspect its effect before retrying. `kb_delete` of an
-authored entity returns status success with `deleted: 0`; its `errors` say
-why nothing was deleted. If the status is
+authored entity returns status success with `deleted: 0` and `outcome:
+plan_returned` (or `supersession_required` for a requirement): nothing was
+deleted yet, and `nextActions` names the call that does it. If the status is
 `committed_with_repairs`, the mutation already committed: inspect failed effects,
 execute each required repair action in order, and never retry the original
 operation. Record effect failures, followed actions, and unsafe retries in
@@ -304,12 +305,18 @@ authored. Each one is the order the write path accepts.
    between the two writes `kb_check` reports the requirement until the
    second lands.
 3. **Deleting authored entities.** `kb_delete` on an authored entity that
-   is not a requirement (scenario, test, fact, ADR, …) returns a hash-bound
-   `kibi.entity-deletion-plan.v1` in `deletionPlan`; apply it unchanged with
-   `kb_apply_plan` (`plan` plus `approvedPlanHash: plan.planHash`). For an
-   authored requirement the plan carries `supersessionRequired: true` and
-   `kb_apply_plan` refuses it (`REQUIREMENT_SUPERSESSION_REQUIRED`): Kibi
-   never deletes an authored requirement. Evolve it instead with a new
+   is not a requirement (scenario, test, fact, ADR, …) writes nothing and
+   returns `outcome: plan_returned` with a hash-bound
+   `kibi.entity-deletion-plan.v1` in `deletionPlan`. After review, run
+   `nextActions[0]` unchanged: `kb_apply_plan` with its `input` (`plan` plus
+   `approvedPlanHash: plan.planHash`), or repeat the `kb_delete` call with
+   `approvedPlanHash` to apply the freshly computed plan in one step (a
+   changed source fails with `DELETE_PLAN_HASH_MISMATCH`). `dryRun: true`
+   previews relationship and direct deletes without writing. For an
+   authored requirement the result is `outcome: supersession_required`, the
+   plan carries `supersessionRequired: true` and both routes refuse it
+   (`REQUIREMENT_SUPERSESSION_REQUIRED`): Kibi never deletes an authored
+   requirement. Evolve it instead with a new
    requirement linked by `supersedes` and close the old one, or, for an
    agent-origin requirement nobody approved and nothing links to, upsert it
    with `status: closed` (keep its `title`); it stays on disk as history. A
@@ -343,6 +350,29 @@ An exception (a requirement that `exempts` another) exempts nothing until a
 human sets `approved_by`; `kb_check` flags approvals an agent recorded without
 corroboration. Never fill in an approval yourself. Record why a requirement
 exists in `rationale`, or link the ADR that explains it.
+
+## Decision firmness
+
+Requirements and ADRs carry `firmness`, which says what you may do with them.
+Search answers, `kb_query` rows and hook snippets show it (snippets label only
+`[firm]` and `[exploratory]`; an unlabeled decision is `default`).
+
+- `firm`: a human stated it as a rule. Follow it; to change it, ask first.
+  `kb_check` blocks a firm decision without `origin.ref` to their words, and
+  a replacement of a firm decision that is not itself firm.
+- `default` (when absent): a delegated or agent choice. Follow it unless the
+  task gives evidence against it; then supersede it in the same change and
+  list it under "Decisions I changed" for review, without asking first.
+- `exploratory`: a flagged guess; revisit it when you touch the area.
+
+Set `firmness` from what a human actually said: only their stated rule is
+`firm` (with `origin.ref`); "do whatever" or your own pick is `default`; a
+guess is `exploratory`. A supersede needs `## Why this changed` in the new
+entity's body (at least 12 words): name the evidence (a failing test, a
+measured cost, a constraint the old decision missed, a new requirement) and
+answer the old decision's reasoning; `kb_check` blocks it otherwise. A
+preference is not evidence: propose it instead of superseding. Kibi checks
+only that a firm decision has a reference; never cite words nobody said.
 
 Conditional clauses ("only when", "only if", "must not ... unless") compile
 into typed `forbid` rules linked by `requires_rule`, not property facts; one

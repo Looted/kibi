@@ -90,4 +90,34 @@ describe("kb_upsert context warning", () => {
     expect(upsertDocumentBody(input, entity, root).trim()).toBe(REASON);
     expect(entityContextWarnings(input, entity, root)).toEqual([]);
   });
+
+  test("a dry run's target path supplies the preserved body when the preview source is a runtime marker", () => {
+    const root = workspace();
+    mkdirSync(path.join(root, ".kb/requirements"), { recursive: true });
+    writeFileSync(
+      path.join(root, ".kb/requirements/REQ-a.md"),
+      `---\nid: REQ-a\ntitle: Exports kept\ntype: req\n---\n\nExports must be kept.\n\n## Context\n\n${REASON}\n`,
+    );
+    const input = { type: "req", id: "REQ-a", properties: {} };
+    const preview = {
+      title: "Exports kept",
+      semantic_text: "Exports must be kept.",
+      source: "mcp://kibi/upsert",
+    };
+    expect(entityContextWarnings(input, preview, root)).toHaveLength(1);
+    expect(
+      entityContextWarnings(input, preview, root, {
+        targetPath: ".kb/requirements/REQ-a.md",
+      }),
+    ).toEqual([]);
+    // A supplied body still wins over the existing document.
+    expect(
+      entityContextWarnings(
+        { ...input, document: { body: "Exports must be kept.\n" } },
+        preview,
+        root,
+        { targetPath: ".kb/requirements/REQ-a.md" },
+      ),
+    ).toHaveLength(1);
+  });
 });

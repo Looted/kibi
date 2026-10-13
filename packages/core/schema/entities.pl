@@ -51,6 +51,10 @@ entity_property(req, approval_ref, string).
 entity_property(req, rationale, string).
 % Claim keys of the exempted requirement an exception waives (all when absent).
 entity_property(req, exempts_claims, list).
+% How firmly a requirement or ADR was decided: firm, default or exploratory.
+% Absent reads as default.
+entity_property(req, firmness, atom).
+entity_property(adr, firmness, atom).
 % Intended outcome of a scenario: success, rejection or error.
 entity_property(scenario, expects, atom).
 
@@ -143,6 +147,8 @@ optional_property(req, approved_by).
 optional_property(req, approval_ref).
 optional_property(req, rationale).
 optional_property(req, exempts_claims).
+optional_property(req, firmness).
+optional_property(adr, firmness).
 optional_property(test, verification_scope).
 optional_property(test, verification_perspective).
 optional_property(test, proof_contract).

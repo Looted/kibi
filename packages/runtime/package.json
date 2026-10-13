@@ -1,6 +1,6 @@
 {
   "name": "kibi-runtime",
-  "version": "2.14.3",
+  "version": "2.14.4",
   "description": "Narrow first-party runtime contracts and adapters for Kibi operations.",
   "type": "module",
   "main": "./dist/index.js",
@@ -14,7 +14,8 @@
   "files": ["dist"],
   "scripts": {
     "build": "tsc -p tsconfig.json && bun build src/index.ts --outfile dist/index.js --target node --format esm --packages bundle --define \"$(node scripts/cli-version-define.mjs)\" --external kibi-core --external kibi-plugin-builtin --external kibi-swipl --external 'kibi-swipl-*' && bun build ../cli/src/engine-daemon.ts --outfile dist/engine-daemon.js --target node --format esm --packages bundle --define \"$(node scripts/cli-version-define.mjs)\" --external kibi-core --external kibi-swipl --external 'kibi-swipl-*' && rm -rf dist/skills && mkdir -p dist/skills && cp -r src/skills/. dist/skills/",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "prepack": "npm run build && node ../../scripts/verify-package-contract.mjs kibi-runtime"
   },
   "dependencies": {
     "gray-matter": "^4.0.3",

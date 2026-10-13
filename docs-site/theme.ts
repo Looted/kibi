@@ -1134,7 +1134,7 @@ export function landingContent(args: {
     </details>
     <details>
       <summary>Can my agent check a rule before writing it?</summary>
-      <p>Yes. <code>kb_upsert</code> with <code>dryRun: true</code> runs the validation a real write runs, including the contradiction check for a requirement, and with <code>plannedFacts</code> it stages the facts <code>kb_model</code> planned, so an allow rule that would contradict a stored deny on the same actor, action and resource is refused before either is written, with the conflict named. <code>kb_model</code> also returns such a grounding as a hash-bound plan: its contradiction analysis is computed over the current knowledge base, a conflict leaves the plan blocked, and a clean plan writes the fact and its link in one <code>kb_apply_plan</code> call, all or nothing.</p>
+      <p>Yes. <code>kb_upsert</code> with <code>dryRun: true</code> runs the validation a real write runs, including the contradiction check for a requirement, and with <code>plannedFacts</code> it stages the facts <code>kb_model</code> planned, so an allow rule that would contradict a stored deny on the same actor, action and resource is refused before either is written, with the conflict named. <code>kb_model</code> also returns such a grounding as a hash-bound plan: its contradiction analysis is computed over the current knowledge base, a conflict leaves the plan blocked, and a clean plan writes the fact and its link in one <code>kb_apply_plan</code> call, all or nothing. <code>kb_delete</code> also takes <code>dryRun: true</code>, and deleting an authored entity first returns a hash-bound plan with the exact <code>kb_apply_plan</code> call that applies it.</p>
     </details>
     <details>
       <summary>What happens when an agent edits code a requirement owns?</summary>
@@ -1147,6 +1147,7 @@ export function landingContent(args: {
     <details>
       <summary>How do I tell what the agent wrote from what I approved?</summary>
       <p>Each entity can record its origin: written by a human, an agent, a migration or an import, and who approved it. New entities from your agent are marked as agent-written. <code>kb_check</code> lists agent-written requirements nobody has approved, exceptions whose approval only the agent recorded, and requirements that do not say why they exist. Kibi cannot confirm that a person approved something. It shows you what still needs your review.</p>
+      <p>Requirements and ADRs also record how firmly they were decided. A rule you stated is <code>firm</code> and points at your words; only another firm decision can replace it, so the agent is told to ask you first. Kibi checks that the reference is there, not that you really wrote it. A choice you delegated, or one the agent made, is <code>default</code>: a later agent may replace it when it has evidence, and every replacement must say why it changed. A guess is <code>exploratory</code>. Search results and the edit hooks show which is which.</p>
     </details>
     <details>
       <summary>What counts as proven?</summary>
@@ -1154,7 +1155,7 @@ export function landingContent(args: {
     </details>
     <details>
       <summary>Will Kibi decide the product for me?</summary>
-      <p>No. <code>kibi init</code> creates the directory and the Git hooks. It does not infer behavior. Checks prove what was encoded. Missing knowledge stays visible.</p>
+      <p>No. <code>kibi init</code> creates the directory and the Git hooks; it leaves hooks it did not write alone, and <code>kibi init --print-hook pre-commit</code> prints a snippet you can add to them. It does not infer behavior. Checks prove what was encoded. Missing knowledge stays visible.</p>
     </details>
   </div>
 </section>
