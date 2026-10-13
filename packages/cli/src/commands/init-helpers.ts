@@ -188,7 +188,8 @@ export function createManifestFile(kbDir: string): void {
   console.log("✓ Created Kibi lifecycle manifest at .kb/manifest.json");
 }
 
-export function updateGitIgnore(cwd: string): void {
+/** Adds the canonical derived entries to .gitignore; true when it changed the file. */
+export function updateGitIgnore(cwd: string): boolean {
   // implements REQ-cli-init-canonical
   const gitignorePath = path.join(cwd, ".gitignore");
   const gitignoreContent = existsSync(gitignorePath)
@@ -216,7 +217,9 @@ export function updateGitIgnore(cwd: string): void {
   if (updatedContent !== gitignoreContent) {
     writeFileSync(gitignorePath, updatedContent);
     console.log("✓ Configured .gitignore for the canonical .kb/ layout");
+    return true;
   }
+  return false;
 }
 
 /** Exact derived-runtime entries owned by current Kibi init/migrate. */

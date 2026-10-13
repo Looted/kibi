@@ -85,12 +85,69 @@ function unknownEntityProperties(
   return Object.keys(entity).filter((key) => !Object.hasOwn(known, key));
 }
 
+/**
+ * The fields a type-conditional `else: { not: ... }` branch of the entity
+ * schema forbids, and the types that may carry them; null for any other
+ * schema path.
+ */
+function typeRestrictedFields(
+  schemaPath: string,
+): { fields: string[]; types: string[] } | null {
+  const match = /^#\/allOf\/(\d+)\/else\/not$/.exec(schemaPath);
+  if (match === null) return null;
+  const allOf = (upsertEntitySchema as { allOf?: unknown }).allOf;
+  const branch = Array.isArray(allOf) ? allOf[Number(match[1])] : undefined;
+  if (branch === null || typeof branch !== "object") return null;
+  const record = branch as {
+    if?: { properties?: { type?: { const?: unknown; enum?: unknown } } };
+    else?: { not?: { required?: unknown; anyOf?: unknown } };
+  };
+  const typeRule = record.if?.properties?.type;
+  const types = Array.isArray(typeRule?.enum)
+    ? typeRule.enum.map(String)
+    : typeof typeRule?.const === "string"
+      ? [typeRule.const]
+      : [];
+  const not = record.else?.not;
+  const requiredLists = [
+    not?.required,
+    ...(Array.isArray(not?.anyOf)
+      ? not.anyOf.map((entry: { required?: unknown }) => entry?.required)
+      : []),
+  ];
+  const fields = requiredLists.flatMap((list) =>
+    Array.isArray(list) ? list.map(String) : [],
+  );
+  return types.length > 0 && fields.length > 0 ? { fields, types } : null;
+}
+
 // implements REQ-upsert-unknown-field-guidance
 function formatEntityErrors(
   entity: Readonly<Record<string, unknown>>,
   errors: readonly ErrorObject[],
 ): string {
-  const messages = errors.map((error) => {
+  // A field only some entity types carry fails a type-conditional `not`
+  // branch; AJV then reports "must NOT be valid" plus the "else" it chose.
+  const restricted = new Set(
+    errors.flatMap((error) =>
+      error.keyword === "not" && typeRestrictedFields(error.schemaPath)
+        ? [error.schemaPath.replace(/\/else\/not$/, "/if")]
+        : [],
+    ),
+  );
+  const visible = errors.filter(
+    (error) => !(error.keyword === "if" && restricted.has(error.schemaPath)),
+  );
+  const messages = visible.map((error) => {
+    const restriction =
+      error.keyword === "not" ? typeRestrictedFields(error.schemaPath) : null;
+    if (restriction !== null) {
+      const present = restriction.fields.filter((field) =>
+        Object.hasOwn(entity, field),
+      );
+      const named = present.length > 0 ? present : restriction.fields;
+      return `${named.join(", ")} ${named.length === 1 ? "is" : "are"} only valid on ${restriction.types.join(" and ")} entities; remove ${named.length === 1 ? "it" : "them"} from this ${String(entity.type ?? "entity")}`;
+    }
     const params = error.params as {
       readonly additionalProperty?: string;
       readonly allowedValues?: readonly unknown[];

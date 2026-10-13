@@ -489,6 +489,24 @@ When migration is needed, JSON status also returns `schemaStatus` and a
 `planHash`, dependencies, safety class, preconditions, postconditions, and
 exact operation/CLI guidance. Status remains read-only.
 
+The plan's `schema-config-upgrade` action runs `kibi migrate --yes`, so it
+declares everything that run writes. Its `affectedFiles` list `.gitignore`
+(the run adds the canonical derived entries) beside the manifest, config and
+`.kb/migrations`. When the schema is behind on the canonical `.kb/` layout,
+the authored-source rewrites the run performs are planned as their own
+actions, the same ones `kibi migrate --format json` lists, each with its own
+files: for example `symbol-legacy-link-mark` (`.kb/symbols.yaml`),
+`entity-origin-backfill`, `close-superseded-requirements` and
+`source-path-rewrite`. The upgrade depends on them, so approving it without
+them is refused, and their passes inside the run are no-ops. While the
+upgrade still moves legacy knowledge into `.kb/` or waits on an operator, it
+lists `.kb/` instead and says so in `evidence.sourceRewrites`. Applied through
+`kb_apply_plan`, the upgrade's `actionResults[].detail` is read from the
+migration audit record, for example `Migrated schema 8 -> 9 (audit
+.kb/migrations/main.json): legacy-link marks 0, origin backfill 0, superseded
+requirements closed 0, source paths rewritten 0, source paths removed 0;
+.gitignore updated.`
+
 ## `kibi find-gaps [type]` (`gaps` alias)
 
 Runs curated missing/present relationship analysis.
@@ -903,8 +921,9 @@ kibi migrate --format json                    # remaining review actions, now in
 stamps origins, re-derives the inventories it can, prints a warning for each
 requirement that needs a manual fix, and records `entityOriginBackfill`,
 `supersededRequirementsClosed`, `sourcePathsRewritten` and `sourcePathsRemoved`
-in `.kb/migrations/<branch>.json`. `kibi migrate --dry-run` prints what it
-would change.
+in `.kb/migrations/<branch>.json`, with `status: applied` and, as
+`preMigrationWarning`, the schema warning the KB showed before the run.
+`kibi migrate --dry-run` prints what it would change.
 
 **Notes:**
 - Use `kibi status` to check if a migration is pending for your branch.
