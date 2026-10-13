@@ -25,6 +25,7 @@ import {
   isSourceImpactRelevantPath,
   toWorkspacePath,
 } from "../src/path-policy";
+import { describeEntity } from "../src/snippets";
 
 const temporaryRoots: string[] = [];
 
@@ -386,6 +387,40 @@ describe("agent-core knowledge index", () => {
       id: "REQ-../../secret",
     });
     expect(readEntitySummary(root, "UNKNOWN-id")).toEqual({ id: "UNKNOWN-id" });
+  });
+
+  // implements REQ-kb-decision-firmness
+  test("entity summaries carry authored firmness and snippets label firm and exploratory decisions", () => {
+    const root = tempDir("kibi-agent-core-firmness-");
+    write(
+      root,
+      ".kb/adr/ADR-money.md",
+      "---\nid: ADR-money\ntitle: Money is integer cents\nfirmness: firm\n---\n",
+    );
+    write(
+      root,
+      ".kb/requirements/REQ-guess.md",
+      "---\nid: REQ-guess\ntitle: Retry three times\nfirmness: exploratory\n---\n",
+    );
+    write(
+      root,
+      ".kb/requirements/REQ-plain.md",
+      "---\nid: REQ-plain\ntitle: Plain\n---\n",
+    );
+    expect(readEntitySummary(root, "ADR-money")).toEqual({
+      id: "ADR-money",
+      title: "Money is integer cents",
+      firmness: "firm",
+    });
+    expect(describeEntity(readEntitySummary(root, "ADR-money"))).toBe(
+      "ADR-money [firm]: Money is integer cents",
+    );
+    expect(describeEntity(readEntitySummary(root, "REQ-guess"))).toBe(
+      "REQ-guess [exploratory]: Retry three times",
+    );
+    expect(describeEntity(readEntitySummary(root, "REQ-plain"))).toBe(
+      "REQ-plain: Plain",
+    );
   });
 
   test("entity summaries carry typed and plain frontmatter links", () => {

@@ -29,6 +29,7 @@ type Brief = {
   title?: string;
   status?: string;
   supersededBy?: string;
+  firmness?: string;
 };
 
 describe("search answer layer through the kibi CLI", () => {
@@ -162,6 +163,7 @@ fact_kind: observation
         title: "Client calls were unlimited",
         status: "superseded",
         supersededBy: "REQ-QUOTA-CALL",
+        firmness: "default",
       },
     ]);
     expect(answer.truncated).toBe(false);
@@ -304,6 +306,7 @@ links:
         title: "Promo calls are exempt from the quota",
         status: "open",
         approvedBy: "Product owner",
+        firmness: "default",
       },
     ]);
     expect(
@@ -530,6 +533,7 @@ links:
         title: "Promo calls are exempt from the quota",
         status: "open",
         approvedBy: "Product owner",
+        firmness: "default",
       },
     ]);
     expect(call?.unknowns).toContainEqual(
@@ -560,6 +564,7 @@ links:
         source: ".kb/adr/ADR-QUOTA-GATEWAY.md",
         excerpt:
           "The gateway rejects a client call once its remaining quota is used up. Quota resets go through an operator review.",
+        firmness: "default",
       },
     ]);
 
