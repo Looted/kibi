@@ -198,3 +198,50 @@ export function confirmSourceNewerReasons(
   }
   return { kept, dropped };
 }
+
+/**
+ * The `meta` freshness block reporting operations return (kb_graph,
+ * kb_find_gaps, kb_coverage) comes straight from Prolog, which compares file
+ * times only. Apply the same content confirmation kb_status does, so a
+ * checkout or `touch` that changed no byte is not reported as stale.
+ */
+// implements REQ-cli-status-pre-first-sync
+export function confirmMetaFreshness<
+  T extends { readonly meta?: Readonly<Record<string, unknown>> },
+>(payload: T, workspaceRoot: string): T {
+  const meta = payload.meta;
+  if (
+    meta === undefined ||
+    typeof meta.kbPath !== "string" ||
+    !Array.isArray(meta.staleReasons)
+  )
+    return payload;
+  const reasons = (meta.staleReasons as unknown[]).filter(
+    (reason): reason is Reason => record(reason) !== null,
+  );
+  const { kept, dropped } = confirmSourceNewerReasons(
+    workspaceRoot,
+    meta.kbPath,
+    reasons,
+  );
+  if (dropped.length === 0) return payload;
+  const allConfirmed =
+    kept.length === 0 &&
+    meta.staleReasonsTruncated !== true &&
+    meta.syncState === "stale";
+  return {
+    ...payload,
+    meta: {
+      ...meta,
+      staleReasons: kept,
+      // A truncated list counts more reasons than it carries.
+      staleReasonCount: Math.max(
+        kept.length,
+        (typeof meta.staleReasonCount === "number"
+          ? meta.staleReasonCount
+          : reasons.length) - dropped.length,
+      ),
+      ...(allConfirmed ? { syncState: "fresh", dirty: false } : {}),
+    },
+  };
+}

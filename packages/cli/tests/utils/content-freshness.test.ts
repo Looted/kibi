@@ -4,7 +4,10 @@ import { createHash } from "node:crypto";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
-import { confirmSourceNewerReasons } from "../../src/utils/content-freshness.js";
+import {
+  confirmMetaFreshness,
+  confirmSourceNewerReasons,
+} from "../../src/utils/content-freshness.js";
 
 /**
  * A store compiled before an untracked, upsert-only `.kb/symbols.yaml` was
@@ -98,5 +101,44 @@ describe("confirmSourceNewerReasons", () => {
       kept: [reason],
       dropped: [],
     });
+  });
+});
+
+describe("confirmMetaFreshness", () => {
+  // The meta block kb_graph, kb_find_gaps and kb_coverage return.
+  const meta = (store: string) => ({
+    kbPath: store,
+    syncState: "stale",
+    dirty: true,
+    staleReasons: [reason],
+    staleReasonCount: 1,
+    staleReasonsTruncated: false,
+  });
+
+  test("a checkout that changed no byte leaves a reporting payload fresh", () => {
+    const { root, store } = workspace(sha256(SOURCE_BYTES));
+    const confirmed = confirmMetaFreshness(
+      { nodes: [], meta: meta(store) },
+      root,
+    );
+    expect(confirmed.meta).toEqual({
+      kbPath: store,
+      syncState: "fresh",
+      dirty: false,
+      staleReasons: [],
+      staleReasonCount: 0,
+      staleReasonsTruncated: false,
+    });
+    expect(confirmed.nodes).toEqual([]);
+  });
+
+  test("a changed file keeps the payload stale, and a payload without meta is returned as is", () => {
+    const { root, store } = workspace(sha256("an older version\n"));
+    const payload = { nodes: [], meta: meta(store) };
+    expect(confirmMetaFreshness(payload, root)).toBe(payload);
+    const bare: { nodes: string[]; meta?: Record<string, unknown> } = {
+      nodes: [],
+    };
+    expect(confirmMetaFreshness(bare, root)).toBe(bare);
   });
 });

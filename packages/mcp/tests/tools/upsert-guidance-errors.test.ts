@@ -108,7 +108,7 @@ describe("kb_upsert modeling guidance errors", () => {
         },
       }),
     ).rejects.toThrow(
-      /predicate[\s\S]*predicate_name[\s\S]*predicate_args[\s\S]*canonical_key[\s\S]*kb_suggest_predicates/,
+      /predicate[\s\S]*predicate_name[\s\S]*predicate_args[\s\S]*canonical_key[\s\S]*kb_model with mode predicates/,
     );
   });
 });

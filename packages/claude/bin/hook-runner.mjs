@@ -74,6 +74,41 @@ function filesChangedSince(root, sinceMs) {
   }
   return [...changed];
 }
+var SIMPLE_COMMAND_SEPARATOR = /&&|\|\||[;|\n]/;
+var REDIRECT_TARGET = /(?:^|[^0-9&<>])>>?\s*("[^"]+"|'[^']+'|[^\s;&|<>()]+)/g;
+var IN_PLACE_FLAG = /^(-[A-Za-z]*i\S*|--in-place(=\S*)?)$/;
+var IN_PLACE_EDITORS = new Set(["sed", "gsed", "perl"]);
+var COMMAND_PREFIXES = new Set(["sudo", "env", "command", "exec", "nice"]);
+function commandEditPaths(command, cwd) {
+  const scanned = command.slice(0, MAX_COMMAND_CHARS);
+  const targets = [];
+  for (const match of scanned.matchAll(REDIRECT_TARGET))
+    targets.push(unquote(match[1] ?? ""));
+  for (const segment of scanned.split(SIMPLE_COMMAND_SEPARATOR)) {
+    const words = segment.trim().split(/\s+/).filter((word) => word.length > 0);
+    let start = 0;
+    while (start < words.length && (COMMAND_PREFIXES.has(words[start] ?? "") || /^\w+=/.test(words[start] ?? "")))
+      start += 1;
+    const name = path.basename(words[start] ?? "");
+    const args = words.slice(start + 1);
+    if (IN_PLACE_EDITORS.has(name) && args.some((a) => IN_PLACE_FLAG.test(a)))
+      targets.push(...args.filter((arg) => !arg.startsWith("-")));
+    else if (name === "tee")
+      targets.push(...args.filter((arg) => !arg.startsWith("-")));
+  }
+  if (targets.length === 0)
+    return [];
+  const bases = [cwd, ...cdTargets(scanned, cwd)];
+  const wanted = new Set;
+  for (const target of targets) {
+    const name = unquote(target);
+    if (!name)
+      continue;
+    for (const base of path.isAbsolute(name) ? [""] : bases)
+      wanted.add(path.resolve(base, name));
+  }
+  return commandFilePaths(scanned, cwd).filter((absolute) => wanted.has(absolute));
+}
 
 // src/hook-input.ts
 function isRecord(value) {
@@ -1701,7 +1736,9 @@ function bashPreToolUse(input, workspace, state, trace) {
     return context("PreToolUse", text);
   };
   let namesKb = false;
-  for (const absolute of commandFilePaths(command, input.cwd ?? workspace.root)) {
+  const cwd = input.cwd ?? workspace.root;
+  const edited = new Set(commandEditPaths(command, cwd));
+  for (const absolute of commandFilePaths(command, cwd)) {
     const target = toWorkspacePath2(workspace.root, absolute, input.cwd);
     if (!target)
       continue;
@@ -1711,6 +1748,29 @@ function bashPreToolUse(input, workspace, state, trace) {
     if (kind === "kb" || kind === "other")
       continue;
     const symbols = workspace.index().files[target.relative] ?? [];
+    if (edited.has(absolute)) {
+      if (state.shownEdit.has(target.relative))
+        continue;
+      const alreadyKnown = state.shownRead.has(target.relative) || isExplored(state, target.relative);
+      const note = alreadyKnown ? editKnowledgeUpdate({
+        relativePath: target.relative,
+        symbols,
+        surface: "edit",
+        summarize: workspace.summarize
+      }) : fileKnowledgeSnippet({
+        relativePath: target.relative,
+        symbols,
+        surface: "edit",
+        summarize: workspace.summarize
+      });
+      if (!note)
+        continue;
+      trace.path = target.relative;
+      trace.pathKind = kind;
+      trace.requirementIds = requirementIds(symbols);
+      events.push({ kind: "shown", surface: "edit", path: target.relative });
+      return emit(note, alreadyKnown ? "edit_update_snippet" : "edit_snippet");
+    }
     const snippet = readSnippet(target.relative, symbols, state, workspace);
     if (!snippet)
       continue;

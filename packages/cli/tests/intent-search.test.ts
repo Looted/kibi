@@ -206,6 +206,51 @@ describe("intent-v1 search ranking", () => {
     ]);
   });
 
+  test("a question naming a new helper and its file reaches the requirement its identifier's words name", async () => {
+    // The file's own symbols are about something else; the helper is not in
+    // the KB yet. The path repeats the source location, and the identifier
+    // carries the topic ("canExport" reads "can export").
+    const viewMode = {
+      id: "SYM-VIEW-MODE",
+      type: "symbol",
+      title: "AuthService.toggleViewMode",
+      status: "active",
+      source: ".kb/symbols.yaml",
+      sourceFile: "src/app/services/auth.service.ts",
+      sourceLine: 40,
+      sourceEndLine: 60,
+    };
+    const exportRule = entity(
+      "REQ-EXPORT-REPORTS",
+      "An auditor must be able to export reports.",
+    );
+    // A KB of some size: the question's other words ("new", "helper",
+    // "user", "requirement") are common in it and say little.
+    const noise = Array.from({ length: 30 }, (_, index) =>
+      entity(
+        `REQ-NOISE-${index}`,
+        `A new ${index % 2 === 0 ? "helper" : "user"} requirement ${index} stays linked`,
+      ),
+    );
+    const result = await rankIntentEntities(
+      [viewMode, exportRule, ...noise],
+      {
+        query:
+          "Which requirement should I link a new `canExport(user)` helper in `src/app/services/auth.service.ts` to?",
+        sourceLocations: [{ path: "src/app/services/auth.service.ts" }],
+      },
+      workspaceRoot,
+      [],
+    );
+    const ids = result.matches.map((match) => String(match.entity.id));
+    expect(ids).toContain("REQ-EXPORT-REPORTS");
+    expect(ids).toContain("SYM-VIEW-MODE");
+    const firstNoise = ids.findIndex((id) => id.startsWith("REQ-NOISE-"));
+    expect(ids.indexOf("REQ-EXPORT-REPORTS")).toBeLessThan(
+      firstNoise === -1 ? Number.POSITIVE_INFINITY : firstNoise,
+    );
+  });
+
   test("recovers functionality through host-agent semantic facets", async () => {
     const result = await rankIntentEntities(
       [

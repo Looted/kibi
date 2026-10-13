@@ -218,8 +218,42 @@ const MAX_CANDIDATES = 10_000;
 const MAX_GRAPH_SEEDS = 5;
 const MAX_GRAPH_EDGES = 2_000;
 
+// A code identifier names its words without spaces ("canExport",
+// "toggleViewMode"). An entity keeps it whole and also reads it word by
+// word; a question reads it word by word only, so the identifier does not
+// weigh twice. A question about a helper then meets the requirement that
+// uses its words.
+const CAMEL_IDENTIFIER = /[A-Za-z0-9]*[a-z0-9][A-Z][A-Za-z0-9]*/g;
+function splitIdentifier(identifier: string): string {
+  return identifier.replace(/([a-z0-9])([A-Z])/g, "$1 $2");
+}
+function expandIdentifiers(value: string): string {
+  return value.replace(
+    CAMEL_IDENTIFIER,
+    (identifier) => `${identifier} ${splitIdentifier(identifier)}`,
+  );
+}
+
+/**
+ * The question's topic text: identifiers expanded, and the paths it also
+ * passes as `sourceLocations` removed. Those paths already reach the
+ * search as source evidence; their words ("src", "services", "ts") are not
+ * the topic and would only dilute the words that are.
+ */
+function topicText(
+  query: string,
+  locations: readonly SourceLocation[] = [],
+): string {
+  let topic = query;
+  for (const location of locations) {
+    const located = location.path.replace(/^\.\//, "");
+    if (located.length > 0) topic = topic.split(located).join(" ");
+  }
+  return topic.replace(CAMEL_IDENTIFIER, splitIdentifier);
+}
+
 function normalize(value: string): string {
-  return value
+  return expandIdentifiers(value)
     .trim()
     .toLowerCase()
     .replace(/[-_]+/g, " ")
@@ -599,13 +633,14 @@ export async function rankIntentEntities(
   graphEdges: readonly GraphEdge[] = [],
   bodyCache: MarkdownBodyCache = new Map(),
 ): Promise<IntentSearchResult> {
-  const queryTokens = tokens(options.query);
+  const query = topicText(options.query, options.sourceLocations);
+  const queryTokens = tokens(query);
   const facets = facetValues(options.semanticFacets);
   const facetTokens = facets.flatMap((facet) => tokens(facet.value));
   const allTokens = Array.from(new Set([...queryTokens, ...facetTokens]));
   // Each clause of a compound question is also scored on its own, so the
   // words of one clause do not dilute a match on another.
-  const clauseTokenSets = queryClauses(options.query).map((clause) =>
+  const clauseTokenSets = queryClauses(query).map((clause) =>
     Array.from(new Set([...clause, ...facetTokens])),
   );
   const bodies = await readBodies(entities, workspaceRoot, bodyCache);
@@ -812,7 +847,7 @@ async function loadIntentCandidates(
   options: IntentSearchOptions,
 ): Promise<Record<string, unknown>[]> {
   const terms = [
-    options.query,
+    topicText(options.query, options.sourceLocations),
     ...facetValues(options.semanticFacets).map((facet) => facet.value),
   ].filter((term, index, all) => term.trim() && all.indexOf(term) === index);
   const candidates = new Map<string, Record<string, unknown>>();
