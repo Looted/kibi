@@ -293,11 +293,16 @@ jobs:
         run: bun run build:cli-stack
 
       # Exercises the PATH route end to end: doctor must report the system
-      # install, and the repository's own KB must check on it.
+      # install, and the repository's own KB must compile and check on it.
+      # The checkout has no branch store yet (stores are per branch and never
+      # committed), so sync compiles it first; without that, check reports
+      # branch-store-not-compiled whenever the checkout is on a named branch,
+      # as it is on a push to develop or master.
       - name: Run Kibi on the system SWI-Prolog
         run: |
           bun packages/cli/bin/kibi doctor | tee "$RUNNER_TEMP/doctor.txt"
           grep -q "SWI-Prolog: .* from PATH" "$RUNNER_TEMP/doctor.txt"
+          bun packages/cli/bin/kibi sync
           bun packages/cli/bin/kibi check
 
   ci-package-contract:
