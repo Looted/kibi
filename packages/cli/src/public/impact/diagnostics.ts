@@ -12,22 +12,13 @@ import {
   getNonBehavioralSymbolNames,
   isAllowedGranularityReason,
   isTraceabilityRelationshipType,
+  narrowerSymbols,
 } from "../symbol-granularity.js";
 import type {
   QualityDiagnostic,
   SemanticReviewDiagnosticsOptions,
   SymbolGranularityDiagnosticsOptions,
 } from "./types.js";
-
-function isNarrowerSymbol(
-  manifestSymbolName: string,
-  candidate: ExtractedSymbol,
-  sourceSymbols: readonly ExtractedSymbol[],
-): boolean {
-  if (candidate.name === manifestSymbolName) return false;
-  if (candidate.name.startsWith(`${manifestSymbolName}.`)) return true;
-  return !sourceSymbols.some((symbol) => symbol.name === manifestSymbolName);
-}
 
 function hasTraceabilityRelationship(result: ExtractionResult): boolean {
   return result.relationships.some((relationship) =>
@@ -130,15 +121,17 @@ export function createSymbolGranularityDiagnostics(
       result.sourceFile,
       options,
     );
-    const narrowerSymbols = candidateSymbols.filter((symbol) =>
-      isNarrowerSymbol(result.entity.title, symbol, sourceSymbols),
+    const narrower = narrowerSymbols(
+      result.entity.title,
+      candidateSymbols,
+      sourceSymbols,
     );
-    if (narrowerSymbols.length === 0) continue;
+    if (narrower.length === 0) continue;
 
-    const behavioralNames = getBehavioralSymbolNames(narrowerSymbols);
+    const behavioralNames = getBehavioralSymbolNames(narrower);
     if (behavioralNames.length === 0) continue;
 
-    const nonBehavioralNames = getNonBehavioralSymbolNames(narrowerSymbols);
+    const nonBehavioralNames = getNonBehavioralSymbolNames(narrower);
     const ignoredSymbolsSuggestion =
       nonBehavioralNames.length > 0
         ? ` Non-behavioral symbols ignored for this decision: ${nonBehavioralNames.join(
