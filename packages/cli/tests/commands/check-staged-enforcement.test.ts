@@ -1067,4 +1067,103 @@ links:
     },
     TEST_TIMEOUT_MS,
   );
+
+  describe("a commit that moves a legacy symbols manifest into .kb/", () => {
+    const legacyRecord = (id: string, title: string, extra = "") =>
+      `  - id: ${id}
+    title: ${title}
+    sourceFile: src/${title}.ts
+    links:
+      - REQ-LEGACY-001
+    status: active
+${extra}`;
+
+    function commitLegacyLayout(): void {
+      writeFiles(tmpDir, {
+        ".kb/requirements/REQ-LEGACY-001.md": `---
+id: REQ-LEGACY-001
+title: Legacy behavior
+status: open
+---
+
+# Legacy behavior
+`,
+        "src/alpha.ts": 'export function alpha() {\n  return "a";\n}\n',
+        "src/beta.ts": 'export function beta() {\n  return "b";\n}\n',
+        "src/gamma.ts": 'export function gamma() {\n  return "c";\n}\n',
+        // Neither symbol has qualifying coverage: debt that predates the move.
+        "documentation/symbols.yaml": `symbols:\n${legacyRecord("SYM-LEGACY-ALPHA", "alpha")}${legacyRecord("SYM-LEGACY-BETA", "beta")}`,
+      });
+      rmSync(path.join(tmpDir, ".kb/symbols.yaml"), { force: true });
+      commitAll(tmpDir, "legacy layout");
+      execSync("git mv documentation/symbols.yaml .kb/symbols.yaml", {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+    }
+
+    test(
+      "reports coverage only for the record the commit edited",
+      async () => {
+        commitLegacyLayout();
+        writeFiles(tmpDir, {
+          ".kb/symbols.yaml": `symbols:\n${legacyRecord("SYM-LEGACY-ALPHA", "alpha")}${legacyRecord("SYM-LEGACY-BETA", "beta", "    owner: platform\n")}`,
+        });
+        execSync("git add .kb/symbols.yaml", { cwd: tmpDir, stdio: "pipe" });
+
+        const { status, stdout, stderr } = runKibi(
+          kibiBin,
+          ["check", "--staged"],
+          tmpDir,
+        );
+        const output = stdoutToString(stdout || stderr);
+        expect(output).toContain(
+          "Baseline: HEAD with 1 staged knowledge rename(s) into .kb/ resolved",
+        );
+        expect(output).toContain("[symbol-coverage] SYM-LEGACY-BETA");
+        expect(output).not.toContain("SYM-LEGACY-ALPHA");
+        expect(status).toBe(1);
+      },
+      TEST_TIMEOUT_MS,
+    );
+
+    test(
+      "still reports an uncovered symbol the commit adds",
+      async () => {
+        commitLegacyLayout();
+        writeFiles(tmpDir, {
+          ".kb/symbols.yaml": `symbols:\n${legacyRecord("SYM-LEGACY-ALPHA", "alpha")}${legacyRecord("SYM-LEGACY-BETA", "beta")}${legacyRecord("SYM-LEGACY-GAMMA", "gamma")}`,
+        });
+        execSync("git add .kb/symbols.yaml", { cwd: tmpDir, stdio: "pipe" });
+
+        const { status, stdout, stderr } = runKibi(
+          kibiBin,
+          ["check", "--staged"],
+          tmpDir,
+        );
+        const output = stdoutToString(stdout || stderr);
+        expect(output).toContain("[symbol-coverage] SYM-LEGACY-GAMMA");
+        expect(output).not.toContain("SYM-LEGACY-ALPHA");
+        expect(output).not.toContain("SYM-LEGACY-BETA");
+        expect(status).toBe(1);
+      },
+      TEST_TIMEOUT_MS,
+    );
+
+    test(
+      "passes a pure move and leaves the debt to the full check",
+      async () => {
+        commitLegacyLayout();
+
+        const staged = runKibi(kibiBin, ["check", "--staged"], tmpDir);
+        const stagedOutput = stdoutToString(staged.stdout || staged.stderr);
+        expect(stagedOutput).toContain(
+          "No staged changes beyond the resolved renames.",
+        );
+        expect(stagedOutput).not.toContain("symbol-coverage");
+        expect(staged.status).toBe(0);
+      },
+      TEST_TIMEOUT_MS,
+    );
+  });
 });

@@ -52903,3 +52903,16 @@ symbols:
         target: TEST-cli-doctor-workflows
       - type: implements
         target: REQ-cli-doctor
+  - id: SYM-git-change-snapshot-renameResolutionBase
+    title: renameResolutionBase
+    status: active
+    sourceFile: packages/cli/src/traceability/git-change-snapshot.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T17:18:31.331Z
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
