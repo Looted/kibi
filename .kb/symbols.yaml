@@ -51631,6 +51631,8 @@ symbols:
         target: TEST-kb-decision-firmness
       - type: implements
         target: REQ-kb-decision-firmness
+      - type: implements
+        target: REQ-kb-decision-firmness-from-origin
   - id: SYM-kb-decision-firmness-firmnessref
     title: firmnessRef
     status: active
@@ -51670,6 +51672,8 @@ symbols:
         target: TEST-kb-decision-firmness
       - type: implements
         target: REQ-kb-decision-firmness
+      - type: implements
+        target: REQ-kb-decision-firmness-from-origin
   - id: SYM-kb-decision-firmness-collectdecisionfirmnessviolations
     title: collectDecisionFirmnessViolations
     status: active
@@ -52929,3 +52933,94 @@ symbols:
         target: TEST-source-analysis-v2-contract
       - type: implements
         target: REQ-source-analysis-v2
+  - id: SYM-kb-decision-firmness-planfirmsupersedeacknowledgement
+    title: planFirmSupersedeAcknowledgement
+    status: active
+    sourceFile: packages/cli/src/operations/migration/firm-supersede.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T20:12:54.084Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-decision-firmness
+      - type: implements
+        target: REQ-kb-decision-firmness-from-origin
+  - id: SYM-kb-decision-firmness-applyfirmsupersedeacknowledgement
+    title: applyFirmSupersedeAcknowledgement
+    status: active
+    sourceFile: packages/cli/src/operations/migration/firm-supersede.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T20:12:57.077Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-decision-firmness
+      - type: implements
+        target: REQ-kb-decision-firmness-from-origin
+  - id: SYM-kb-decision-firmness-mergefirmsupersedeacknowledgements
+    title: mergeFirmSupersedeAcknowledgements
+    status: active
+    sourceFile: packages/cli/src/operations/migration/firm-supersede.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T20:13:00.286Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-decision-firmness
+      - type: implements
+        target: REQ-kb-decision-firmness-from-origin
+  - id: SYM-kb-decision-firmness-implicitfirmsupersedes
+    title: implicitFirmSupersedes
+    status: active
+    sourceFile: packages/cli/src/public/operations/decision-firmness.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T20:13:03.854Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-decision-firmness
+      - type: implements
+        target: REQ-kb-decision-firmness-from-origin
+  - id: SYM-kb-decision-firmness-firmnessisimplicit
+    title: firmnessIsImplicit
+    status: active
+    sourceFile: packages/cli/src/decision-firmness.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T20:13:08.214Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-decision-firmness
+      - type: implements
+        target: REQ-kb-decision-firmness-from-origin
+  - id: SYM-kb-decision-firmness-originkind
+    title: originKind
+    status: active
+    sourceFile: packages/cli/src/decision-firmness.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T20:13:12.311Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-decision-firmness
+      - type: implements
+        target: REQ-kb-decision-firmness-from-origin
+  - id: SYM-kb-decision-firmness-asimportedrule
+    title: asImportedRule
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/candidate-helpers.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-13T20:13:15.481Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-decision-firmness
+      - type: implements
+        target: REQ-kb-decision-firmness-from-origin

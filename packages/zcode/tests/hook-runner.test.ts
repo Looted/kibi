@@ -1475,13 +1475,13 @@ describe("ZCode pre-edit knowledge", () => {
       "PreToolUse",
     );
     expect(context).toContain(
-      "Kibi knowledge for src/checkout.ts (symbol manifest):\n- REQ-checkout-rounding: Checkout totals round to cents — computeTotal",
+      "Kibi knowledge for src/checkout.ts (symbol manifest):\n- REQ-checkout-rounding [firm: ask before changing]: Checkout totals round to cents — computeTotal",
     );
     expect(context).toContain(
       "REQ-checkout-rounding must keep true: FACT-total-rounding-cents: Totals round half up to two decimals.",
     );
     expect(context).toContain(
-      "Decision: ADR-money-as-decimal: Money is computed as decimal cents.",
+      "Decision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.",
     );
     expect(context).toContain(
       "The edit is inside computeTotal, which implements REQ-checkout-rounding.",

@@ -789,10 +789,23 @@ function readEntitySummary(workspaceRoot, entityId) {
   const summary = { id: entityId };
   const authored = [];
   let inLinks = false;
+  let inOrigin = false;
+  let originKind;
+  let closed = false;
   let pending;
   for (const line of lines.slice(1)) {
-    if (line.trim() === "---")
+    if (line.trim() === "---") {
+      closed = true;
       break;
+    }
+    const flowOrigin = /^origin:\s*\{.*\bkind:\s*["']?([a-z]+)/.exec(line);
+    if (flowOrigin)
+      originKind = flowOrigin[1];
+    const nestedKind = inOrigin ? /^\s+kind:\s*["']?([a-z]+)/.exec(line) : null;
+    if (nestedKind)
+      originKind = nestedKind[1];
+    if (/^\S/.test(line))
+      inOrigin = /^origin:\s*$/.test(line);
     const match = /^(title|status|firmness):\s*(.*)$/.exec(line);
     if (match?.[1] === "title" && match[2])
       summary.title = unquote2(match[2]);
@@ -825,6 +838,8 @@ function readEntitySummary(workspaceRoot, entityId) {
       pending.bare = unquote2(body);
   }
   flushLink(authored, pending);
+  if (summary.firmness === undefined && closed && (lane[1] === "requirements" || lane[1] === "adr"))
+    summary.firmness = originKind === "agent" ? "default" : "firm";
   const links = [];
   const seen = new Set;
   for (const link of [
@@ -920,7 +935,7 @@ function isRetiredStatus(status) {
 }
 function describeEntity(summary) {
   const retired = isRetiredStatus(summary.status) ? ` (${summary.status})` : "";
-  const firmness = summary.firmness === "firm" || summary.firmness === "exploratory" ? ` [${summary.firmness}]` : "";
+  const firmness = !retired && (summary.firmness === "firm" || summary.firmness === "exploratory") ? summary.firmness === "firm" ? " [firm: ask before changing]" : " [exploratory]" : "";
   const notable = `${retired}${firmness}`;
   return summary.title ? `${summary.id}${notable}: ${truncate(summary.title, MAX_TITLE)}` : `${summary.id}${notable}`;
 }
@@ -1417,6 +1432,7 @@ function sessionStartContext(linkedFileCount) {
   return [
     `Kibi knowledge base is active in this workspace (${linkedFileCount} source files have requirement-linked symbols).`,
     "Kibi hooks add short requirement/test snippets before reads and edits of linked files, derived from the symbol manifest; kb_query returns the authoritative detail.",
+    "A request that conflicts with a recorded requirement or ADR is a question, not a task: name the rule and ask before changing the code or the rule, and change it only when the person says so.",
     "Files with no linked symbols get no snippet, so recorded rules about the behavior they implement (permissions, roles, limits, data handling) surface only through kb_search.",
     "Operations: kb_search (ask it a question; the answer layer names governing requirements, must-stay-true facts, ADRs and tests), kb_query (exact id or sourceFile), kb_check (validation and edit impact), kb_upsert (writes). MCP tool names are host-prefixed (e.g. mcp__plugin_kibi-claude_kibi__kb_query); the project-local CLI (`npx --no-install kibi <route> --input -`) is the peer route.",
     "Workflow guidance lives in the kibi-claude:kibi-usage skill (also served by kb_skills with action load)."

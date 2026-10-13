@@ -216,6 +216,7 @@ const ROW_KEYS = [
   "fact_kind",
   "approved_by",
   "firmness",
+  "origin",
   "source",
   "sourceFile",
   "predicate_namespace",
@@ -272,7 +273,11 @@ function unique(ids: readonly string[]): string[] {
 
 function brief(entity: Row): SearchAnswerEntity {
   const status = text(entity.status);
-  const firmness = effectiveFirmness(entity.type, entity.firmness);
+  const firmness = effectiveFirmness(
+    entity.type,
+    entity.firmness,
+    entity.origin,
+  );
   return {
     id: text(entity.id),
     title: text(entity.title),

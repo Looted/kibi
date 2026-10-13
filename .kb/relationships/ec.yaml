@@ -104,3 +104,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-762faf1f29b4
+  - type: verified_by
+    from: SCEN-kb-decision-firmness-from-origin
+    to: TEST-kb-decision-firmness
+    created_at: 2026-10-13T20:09:26.352Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-483156ad074b

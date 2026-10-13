@@ -139,3 +139,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-079d1e311413
+  - type: implements
+    from: SYM-kb-decision-firmness-applyfirmsupersedeacknowledgement
+    to: REQ-kb-decision-firmness-from-origin
+    created_at: 2026-10-13T20:12:58.311Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e989037b0c3f
+  - type: covered_by
+    from: SYM-kb-decision-firmness-applyfirmsupersedeacknowledgement
+    to: TEST-kb-decision-firmness
+    created_at: 2026-10-13T20:12:58.323Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7bea15467ecb

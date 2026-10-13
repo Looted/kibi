@@ -21,6 +21,7 @@ import {
   type ExtractedRelationship,
   extractFromMarkdown,
 } from "../../extractors/markdown.js";
+import { FIRMNESS_FROM_ORIGIN_SCHEMA_VERSION } from "../../public/operations/decision-firmness.js";
 import {
   type MigrationAction,
   migrationAction,
@@ -49,6 +50,11 @@ import {
   planContextMissingTags,
   planSemanticTextPins,
 } from "./entity-body-context.js";
+import {
+  FIRM_SUPERSEDE_ACKNOWLEDGE_CODE,
+  applyFirmSupersedeAcknowledgement,
+  planFirmSupersedeAcknowledgement,
+} from "./firm-supersede.js";
 import {
   type InventoryRederivation,
   applyInventoryRederivation,
@@ -619,6 +625,45 @@ export function buildSchema6MigrationFragment(input: {
       );
     }
   }
+  // Schema 10: a decision without firmness that an agent did not write now
+  // reads as firm. Acknowledge supersedes of such decisions recorded before
+  // that, so history does not block; new ones must come from a person.
+  if (
+    input.currentSchemaVersion === null ||
+    input.currentSchemaVersion < FIRMNESS_FROM_ORIGIN_SCHEMA_VERSION
+  ) {
+    const edges = planFirmSupersedeAcknowledgement(input.workspaceRoot);
+    if (edges.length > 0) {
+      const id = "firm-supersede-acknowledge";
+      // Manifest only, but the bumped schema blocks without it.
+      sourceRewriteActionIds.push(id);
+      actions.push(
+        migrationAction({
+          id,
+          code: FIRM_SUPERSEDE_ACKNOWLEDGE_CODE,
+          category: "schema",
+          safety: "automatic",
+          autoApplicable: true,
+          invocation: {
+            kind: "cli",
+            command_argv: ["kibi", "migrate", "--yes"],
+          },
+          affectedEntityIds: [
+            ...new Set(edges.map((edge) => edge.split(" -> ")[0] ?? edge)),
+          ].sort(),
+          affectedFiles: [".kb/manifest.json"],
+          postconditions: [{ rule: "decision-firm-superseded", findings: 0 }],
+          evidence: {
+            reason:
+              "Schema 10 reads a requirement or ADR without firmness as firm unless an agent wrote it, and blocks a replacement of a firm decision that is not itself firm. Supersedes recorded before that are acknowledged in the manifest; no firmness is written.",
+            count: edges.length,
+            edges,
+            preserves: "every authored source file",
+          },
+        }),
+      );
+    }
+  }
   const drift = planInventoryRederivation(input.workspaceRoot);
   for (const plan of drift) {
     const action = plan.safe ? rederiveAction(plan) : reviewAction(plan);
@@ -864,6 +909,10 @@ export async function applySchema6MigrationAction(
       applySupersedesReasonAcknowledgement(context.workspaceRoot);
       return;
     }
+    case FIRM_SUPERSEDE_ACKNOWLEDGE_CODE: {
+      applyFirmSupersedeAcknowledgement(context.workspaceRoot);
+      return;
+    }
     case SEMANTIC_INVENTORY_REDERIVE_CODE: {
       const requirementId = action.affectedEntityIds[0];
       if (requirementId === undefined)
@@ -978,6 +1027,7 @@ export const SCHEMA6_AUTOMATIC_CODES: ReadonlySet<string> = new Set([
   SEMANTIC_TEXT_PIN_CODE,
   CONTEXT_MISSING_TAG_CODE,
   SUPERSEDES_REASON_ACKNOWLEDGE_CODE,
+  FIRM_SUPERSEDE_ACKNOWLEDGE_CODE,
   SEMANTIC_INVENTORY_REDERIVE_CODE,
   ENTITY_ORIGIN_BACKFILL_CODE,
   CLOSE_SUPERSEDED_REQUIREMENTS_CODE,

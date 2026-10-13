@@ -883,7 +883,7 @@ describe("search answer verdicts, exceptions and scope", () => {
         id: "REQ-STAFF",
         title: "Staff orders may skip the promotion check",
         status: "open",
-        firmness: "default",
+        firmness: "firm",
         approvedBy: "finance-lead",
       },
     ]);
@@ -936,7 +936,7 @@ describe("search answer rationale excerpts", () => {
         id: "ADR-PROMO",
         title: "Promotions may zero the payable total",
         status: "accepted",
-        firmness: "default",
+        firmness: "firm",
         source: ".kb/adr/ADR-PROMO.md",
         excerpt:
           "Allow a valid promotion to bring the payable total to zero. Keep min_total at 0 for Node.js clients.",
@@ -948,7 +948,7 @@ describe("search answer rationale excerpts", () => {
         id: "ADR-PROMO",
         title: "Promotions may zero the payable total",
         status: "accepted",
-        firmness: "default",
+        firmness: "firm",
       },
     ]);
   });
@@ -975,6 +975,30 @@ describe("search answer rationale excerpts", () => {
     expect(answer.rationale[0]?.firmness).toBe("firm");
     expect(current?.scenarios[0]?.firmness).toBeUndefined();
     expect(current?.tests[0]?.firmness).toBeUndefined();
+  });
+
+  // implements REQ-kb-decision-firmness-from-origin
+  test("a decision without firmness is default only when an agent wrote it", async () => {
+    const answer = await buildSearchAnswer(
+      fakeKb(
+        {
+          ...ENTITIES,
+          "REQ-NEW": {
+            ...(ENTITIES["REQ-NEW"] as Row),
+            origin: { kind: "agent" },
+          },
+          "ADR-PROMO": {
+            ...(ENTITIES["ADR-PROMO"] as Row),
+            origin: { kind: "import", ref: "docs/pricing.md#L4" },
+          },
+        },
+        EDGES,
+      ),
+      [match(ENTITIES["REQ-NEW"] as Row, 0.9)],
+    );
+    const [current] = answer.governing;
+    expect(current?.firmness).toBe("default");
+    expect(current?.adrs[0]?.firmness).toBe("firm");
   });
 
   test("an ADR whose source cannot be read keeps its source path without an excerpt", async () => {

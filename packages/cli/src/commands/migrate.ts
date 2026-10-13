@@ -196,6 +196,13 @@ const SCHEMA_MIGRATION_STEPS: readonly SchemaMigrationStep[] = [
     description:
       "Accept firmness on requirements and ADRs, and acknowledge in the manifest the current supersedes recorded without a 'Why this changed' section; no source file is rewritten and no reason is invented.",
   },
+  {
+    id: "firmness-from-origin-v10",
+    from: 9,
+    to: 10,
+    description:
+      "Read a requirement or ADR without firmness as firm unless an agent wrote it, and acknowledge in the manifest the supersedes of such decisions recorded before; no source file is rewritten and no firmness is written.",
+  },
 ];
 
 function migrationStepsFor(
@@ -668,10 +675,17 @@ export async function migrateCommand(
   const decisionFirmnessStep = migrationSteps.some(
     (step) => step.id === "decision-firmness-v9",
   );
+  const firmnessFromOriginStep = migrationSteps.some(
+    (step) => step.id === "firmness-from-origin-v10",
+  );
   const {
     mergeSupersedesAcknowledgements,
     planSupersedesReasonAcknowledgement,
   } = await import("../operations/migration/supersedes-reason.js");
+  const {
+    mergeFirmSupersedeAcknowledgements,
+    planFirmSupersedeAcknowledgement,
+  } = await import("../operations/migration/firm-supersede.js");
   const {
     acknowledgedContextIds,
     applyContextMissingTags,
@@ -709,6 +723,13 @@ export async function migrateCommand(
       if (unexplained.length > 0)
         console.log(
           `dry run: would acknowledge ${unexplained.length} supersede(s) recorded without a 'Why this changed' section (manifest only; no reason is written).`,
+        );
+    }
+    if (firmnessFromOriginStep) {
+      const firmEdges = planFirmSupersedeAcknowledgement(cwd);
+      if (firmEdges.length > 0)
+        console.log(
+          `dry run: would acknowledge ${firmEdges.length} supersede(s) of decisions that read as firm from schema 10 (manifest only; no firmness is written).`,
         );
     }
     if (storagePlan.moves.length > 0) {
@@ -829,6 +850,9 @@ export async function migrateCommand(
   const supersedesUnexplained = decisionFirmnessStep
     ? planSupersedesReasonAcknowledgement(cwd)
     : [];
+  const firmSupersedes = firmnessFromOriginStep
+    ? planFirmSupersedeAcknowledgement(cwd)
+    : [];
 
   const existingManifest = readKbManifest(cwd) ?? defaultKbManifest();
   writeKbManifest(cwd, {
@@ -853,10 +877,22 @@ export async function migrateCommand(
           ),
         }
       : {}),
+    ...(firmSupersedes.length > 0
+      ? {
+          firmSupersedeAcknowledged: mergeFirmSupersedeAcknowledgements(
+            existingManifest.firmSupersedeAcknowledged,
+            firmSupersedes,
+          ),
+        }
+      : {}),
   });
   if (supersedesUnexplained.length > 0)
     console.log(
       `Acknowledged ${supersedesUnexplained.length} supersede(s) recorded without a 'Why this changed' section; new supersedes must explain themselves.`,
+    );
+  if (firmSupersedes.length > 0)
+    console.log(
+      `Acknowledged ${firmSupersedes.length} supersede(s) of decisions without firmness that read as firm from schema 10; a new replacement of such a decision must be firm.`,
     );
 
   const auditRecord = buildMigrationAuditRecord({

@@ -22,6 +22,7 @@ import {
   WHY_THIS_CHANGED_HEADING,
   carriesFirmness,
   effectiveFirmness,
+  firmnessIsImplicit,
   firmnessRef,
   supersedeAcknowledgement,
   whyThisChangedWords,
@@ -65,6 +66,21 @@ const DECISION_LANES = ["requirements", "adr"] as const;
 
 /** The schema version from which a supersede must explain itself. */
 const SUPERSEDES_REASON_SCHEMA_VERSION = 9;
+
+/**
+ * The schema version from which a decision without `firmness` reads its
+ * firmness from its origin, so a person's or imported rule is firm.
+ */
+// implements REQ-kb-decision-firmness-from-origin
+export const FIRMNESS_FROM_ORIGIN_SCHEMA_VERSION = 10;
+
+/**
+ * Told on a KB older than schema 10: the pending schema upgrade acknowledges
+ * supersedes of decisions that only became firm when firmness started to
+ * follow origin.
+ */
+const PRE_SCHEMA10_FIRM_NOTE =
+  " This decision has no firmness and was not written by an agent, so it reads as firm from schema 10; supersedes recorded before schema 10 are acknowledged by the plan's schema-config-upgrade (kibi migrate --yes).";
 
 /**
  * Told on a KB older than schema 9: the pending schema upgrade acknowledges
@@ -167,6 +183,43 @@ export function supersedeAcknowledgements(
     .map((target) => supersedeAcknowledgement(id, target));
 }
 
+/**
+ * Supersede edges (`FROM -> TO`) whose target reads as firm only because
+ * firmness follows origin (it has no `firmness` and an agent did not write
+ * it) and whose superseder is not firm, retired entities included. These
+ * were allowed before schema 10; the migration acknowledges them once.
+ */
+// implements REQ-kb-decision-firmness-from-origin
+export function implicitFirmSupersedes(
+  entities: readonly AuthoredEntity[],
+  edges: ReadonlyMap<string, Set<string>>,
+): string[] {
+  const byId = new Map(entities.map((entity) => [entity.id, entity]));
+  const found: string[] = [];
+  for (const [from, targets] of edges) {
+    const source = byId.get(from);
+    if (
+      source === undefined ||
+      effectiveFirmness(
+        source.type,
+        source.data.firmness,
+        source.data.origin,
+      ) === "firm"
+    )
+      continue;
+    for (const to of targets) {
+      const target = byId.get(to);
+      if (
+        target !== undefined &&
+        firmnessIsImplicit(target.type, target.data.firmness) &&
+        effectiveFirmness(target.type, undefined, target.data.origin) === "firm"
+      )
+        found.push(supersedeAcknowledgement(from, to));
+    }
+  }
+  return found.sort();
+}
+
 /** Evaluate the firmness rules over authored requirements and ADRs. */
 // implements REQ-kb-decision-firmness
 export function evaluateDecisionFirmness(
@@ -174,11 +227,19 @@ export function evaluateDecisionFirmness(
   edges: ReadonlyMap<string, Set<string>>,
   rules: ReadonlySet<string> = new Set(DECISION_FIRMNESS_RULES),
   acknowledged: ReadonlySet<string> = new Set(),
-  options: Readonly<{ schemaVersion?: number | null }> = {},
+  options: Readonly<{
+    schemaVersion?: number | null;
+    /** Edges the schema 10 migration recorded (`FROM -> TO`). */
+    firmSupersedeAcknowledged?: ReadonlySet<string>;
+  }> = {},
 ): Violation[] {
   const preSchema9 =
     typeof options.schemaVersion === "number" &&
     options.schemaVersion < SUPERSEDES_REASON_SCHEMA_VERSION;
+  const preSchema10 =
+    typeof options.schemaVersion === "number" &&
+    options.schemaVersion < FIRMNESS_FROM_ORIGIN_SCHEMA_VERSION;
+  const firmAcknowledged = options.firmSupersedeAcknowledged ?? new Set();
   const findings: Violation[] = [];
   const superseded = supersededIds(edges);
   const byId = new Map(entities.map((entity) => [entity.id, entity]));
@@ -186,11 +247,13 @@ export function evaluateDecisionFirmness(
     .filter((entity) => isCurrentAuthoredEntity(entity, superseded))
     .sort((left, right) => left.id.localeCompare(right.id));
   const firmnessOf = (entity: AuthoredEntity) =>
-    effectiveFirmness(entity.type, entity.data.firmness);
+    effectiveFirmness(entity.type, entity.data.firmness, entity.data.origin);
 
+  // Only an authored `firmness: firm` must cite the person's words: a
+  // decision that reads as firm from its origin already names its author.
   if (rules.has(DECISION_FIRM_UNREFERENCED_RULE)) {
     for (const entity of current) {
-      if (firmnessOf(entity) !== "firm") continue;
+      if (entity.data.firmness !== "firm") continue;
       if (firmnessRef({ type: entity.type, ...entity.data }) !== undefined)
         continue;
       findings.push({
@@ -212,13 +275,19 @@ export function evaluateDecisionFirmness(
       left.id.localeCompare(right.id),
     )) {
       if (firmnessOf(entity) === "firm") continue;
+      const implicit = new Set<string>();
       const firmTargets = [...(edges.get(entity.id) ?? [])]
         .filter((id) => {
           const target = byId.get(id);
-          return (
-            target !== undefined &&
-            effectiveFirmness(target.type, target.data.firmness) === "firm"
-          );
+          if (target === undefined || firmnessOf(target) !== "firm")
+            return false;
+          if (!firmnessIsImplicit(target.type, target.data.firmness))
+            return true;
+          // Recorded before firmness followed origin: acknowledged once.
+          if (firmAcknowledged.has(supersedeAcknowledgement(entity.id, id)))
+            return false;
+          implicit.add(id);
+          return true;
         })
         .sort();
       if (firmTargets.length === 0) continue;
@@ -226,8 +295,7 @@ export function evaluateDecisionFirmness(
         rule: DECISION_FIRM_SUPERSEDED_RULE,
         entityId: entity.id,
         description: `${entity.id} (firmness: ${firmnessOf(entity)}) supersedes the firm decision${firmTargets.length === 1 ? "" : "s"} ${firmTargets.join(", ")}; only a human may change a firm decision`,
-        suggestion:
-          "Ask the person who stated the firm decision; if they agree, mark the replacement firmness: firm with origin.ref to their words, otherwise remove the supersedes link and propose the change instead",
+        suggestion: `Ask the person who stated the firm decision; if they agree, mark the replacement firmness: firm with origin.ref to their words, otherwise remove the supersedes link and propose the change instead${preSchema10 && implicit.size > 0 ? `.${PRE_SCHEMA10_FIRM_NOTE}` : ""}`,
         source: entity.path,
         evidence: { firmness: firmnessOf(entity), firmTargets },
       });
@@ -291,6 +359,11 @@ export function collectDecisionFirmnessViolations(
     authoredSupersedes(workspaceRoot, entities),
     rules,
     new Set(manifest?.supersedesReasonAcknowledged ?? []),
-    { schemaVersion: manifest?.schemaVersion ?? null },
+    {
+      schemaVersion: manifest?.schemaVersion ?? null,
+      firmSupersedeAcknowledged: new Set(
+        manifest?.firmSupersedeAcknowledged ?? [],
+      ),
+    },
   );
 }

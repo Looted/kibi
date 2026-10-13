@@ -141,7 +141,7 @@ describe("pre-read snippets", () => {
       file_path: path.join(fixture.root, "src/checkout.ts"),
     });
     expect(text).toContain(
-      "REQ-checkout-rounding: Checkout totals round to cents — computeTotal",
+      "REQ-checkout-rounding [firm: ask before changing]: Checkout totals round to cents — computeTotal",
     );
     expect(text).toContain(
       "REQ-currency-display (superseded): Totals display with a currency symbol — formatTotal",
@@ -233,7 +233,7 @@ describe("pre-edit snippets", () => {
       "REQ-checkout-rounding must keep true: FACT-checkout-total; FACT-total-rounding-cents: Totals round half up to two decimals.",
     );
     expect(text).toContain(
-      "Decision: ADR-money-as-decimal: Money is computed as decimal cents.",
+      "Decision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.",
     );
   });
 
@@ -268,7 +268,7 @@ describe("pre-edit snippets", () => {
       "REQ-checkout-rounding must keep true: FACT-total-rounding-cents: Totals round half up to two decimals.",
     );
     expect(text).toContain(
-      "Decision: ADR-money-as-decimal: Money is computed as decimal cents.",
+      "Decision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.",
     );
   });
 
@@ -304,7 +304,7 @@ describe("pre-edit snippets", () => {
     expect(first?.split("\n")).toEqual([
       "Kibi: this edit to src/checkout.ts is inside computeTotal, which implements REQ-checkout-rounding.",
       "REQ-checkout-rounding must keep true: FACT-checkout-total; FACT-total-rounding-cents: Totals round half up to two decimals.",
-      "Decision: ADR-money-as-decimal: Money is computed as decimal cents.",
+      "Decision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.",
       'Behavior changes here are traced to these requirements; kb_check({sourceFiles:["src/checkout.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) reports ownership drift after the edit.',
     ]);
     // Same symbol again: nothing new to say.
@@ -1099,13 +1099,13 @@ describe("hook command pre-edit snippet (end to end)", () => {
     const output = JSON.parse(run.stdout) as HookOutput;
     const text = contextOf(output, "PreToolUse") ?? "";
     expect(text).toStartWith(
-      "Kibi knowledge for src/checkout.ts (symbol manifest):\n- REQ-checkout-rounding: Checkout totals round to cents — computeTotal\n",
+      "Kibi knowledge for src/checkout.ts (symbol manifest):\n- REQ-checkout-rounding [firm: ask before changing]: Checkout totals round to cents — computeTotal\n",
     );
     expect(text).toContain(
       "\nREQ-checkout-rounding must keep true: FACT-checkout-total; FACT-total-rounding-cents: Totals round half up to two decimals.\n",
     );
     expect(text).toContain(
-      "\nDecision: ADR-money-as-decimal: Money is computed as decimal cents.\n",
+      "\nDecision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.\n",
     );
     expect(text).toContain(
       "\nThe edit is inside computeTotal, which implements REQ-checkout-rounding.\n",

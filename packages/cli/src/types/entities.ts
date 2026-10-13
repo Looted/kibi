@@ -96,7 +96,7 @@ export type Requirement = BaseEntity & {
   approval_ref?: string;
   /** Why the requirement exists; explanation, not checked meaning. */
   rationale?: string;
-  /** How firmly it was decided; absent reads as default. */
+  /** How firmly it was decided; absent reads as `default` when an agent wrote it, else `firm`. */
   firmness?: "firm" | "default" | "exploratory";
   /** Exception requirements only: claim keys of the exempted requirement it waives. */
   exempts_claims?: string[];
@@ -105,7 +105,7 @@ export type Scenario = BaseEntity & { type: "scenario" };
 export type TestEntity = BaseEntity & TestVerificationFields & { type: "test" };
 export type ADR = BaseEntity & {
   type: "adr";
-  /** How firmly it was decided; absent reads as default. */
+  /** How firmly it was decided; absent reads as `default` when an agent wrote it, else `firm`. */
   firmness?: "firm" | "default" | "exploratory";
 };
 export type Flag = BaseEntity & { type: "flag" };
