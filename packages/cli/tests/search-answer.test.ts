@@ -986,11 +986,11 @@ describe("search answer rationale excerpts", () => {
           "REQ-NEW": {
             ...(ENTITIES["REQ-NEW"] as Row),
             origin: { kind: "agent" },
-          },
+          } as unknown as Row,
           "ADR-PROMO": {
             ...(ENTITIES["ADR-PROMO"] as Row),
             origin: { kind: "import", ref: "docs/pricing.md#L4" },
-          },
+          } as unknown as Row,
         },
         EDGES,
       ),
