@@ -84,10 +84,9 @@ export const SCOPED_CHECK_OMITTED_ID = "scoped_check_omitted_quality";
 const OMITTED_RULES_SHOWN = 5;
 
 /**
- * Advisory findings of a check scoped to `sourceFiles` that concern those
- * files: the impact analysis's own findings, findings on an entity a changed
- * file's symbols link to (or on those symbols), and findings whose source is
- * one of the files. The KB-wide rest (unapproved requirements elsewhere,
+ * Advisory rule findings of a check scoped to `sourceFiles` that concern
+ * those files: findings on an entity a changed file's symbols link to (or on
+ * those symbols) and findings whose source is one of the files. The KB-wide rest (unapproved requirements elsewhere,
  * unrelated scenarios) is reduced to one info diagnostic with per-rule counts,
  * so a check after a small edit answers about that edit; kb_check without
  * sourceFiles still lists every finding.
