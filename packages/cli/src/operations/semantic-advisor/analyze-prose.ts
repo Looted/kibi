@@ -2,6 +2,7 @@ import {
   createBuiltinOntologyPack,
   detectSignals as detectBuiltinSignals,
 } from "kibi-plugin-builtin";
+import { InputError } from "../../cli-errors.js";
 import {
   logicSemanticKey,
   renderLogicProlog,
@@ -742,6 +743,16 @@ function propositionSpan(
   sourceText: string;
 } {
   const located = locateSourceText(text, clause.text, cursor);
+  // A clause the prose does not contain has no source span: it keeps its own
+  // text over an empty span (which strict ingestion rejects) instead of an
+  // unrelated slice of the prose.
+  if (located === null) {
+    return {
+      span: utf8Span(text, cursor, cursor),
+      next: cursor,
+      sourceText: clause.text,
+    };
+  }
   return {
     span: utf8Span(text, located.start, located.end),
     next: Math.max(cursor, located.end),
@@ -756,28 +767,46 @@ function escapeRegExp(value: string): string {
 /**
  * Locate canonical claim text while accepting source-only whitespace layout.
  * The caller receives the authored slice so strict ingestion can compare the
- * span with the claim text without rewriting the source document.
+ * span with the claim text without rewriting the source document. The search
+ * starts at `cursor` and then retries from the start of the prose; null means
+ * the prose does not contain the claim text at all.
  */
 function locateSourceText(
   source: string,
   claimText: string,
   cursor: number,
-): { start: number; end: number } {
-  const canonicalPattern = escapeRegExp(claimText).replace(/\s+/g, "\\s+");
-  const match = new RegExp(canonicalPattern).exec(source.slice(cursor));
-  if (match?.index !== undefined) {
-    const start = cursor + match.index;
-    return { start, end: start + match[0].length };
+): { start: number; end: number } | null {
+  const pattern = new RegExp(
+    escapeRegExp(claimText.trim()).replace(/\s+/g, "\\s+"),
+  );
+  for (const from of cursor > 0 ? [cursor, 0] : [0]) {
+    const match = pattern.exec(source.slice(from));
+    if (match !== null) {
+      const start = from + match.index;
+      return { start, end: start + match[0].length };
+    }
   }
-  const exact = source.indexOf(claimText, cursor);
-  const start = exact >= 0 ? exact : cursor;
-  return {
-    start,
-    end:
-      exact >= 0
-        ? exact + claimText.length
-        : Math.min(source.length, start + claimText.length),
-  };
+  return null;
+}
+
+/**
+ * Caller-supplied clauses split the requirement prose; they never restate
+ * it. A clause that does not occur in the prose (apart from whitespace
+ * layout, a list marker or closing punctuation) would get a span over
+ * unrelated text, so the request is refused naming each such clause.
+ */
+function assertVerbatimClauses(
+  statement: string,
+  clauses: readonly SemanticClause[],
+): void {
+  const missing = clauses
+    .filter((clause) => locateSourceText(statement, clause.text, 0) === null)
+    .map((clause) => JSON.stringify(clause.text));
+  if (missing.length === 0) return;
+  throw new InputError(
+    "VALIDATION_FAILED",
+    `Semantic advisor clauses must be verbatim fragments of the requirement prose (the intent or semantic_text); ${missing.length === 1 ? "this clause does" : "these clauses do"} not occur in it: ${missing.join(", ")}. Copy each clause from the prose unchanged (whitespace may differ), or omit clauses to let Kibi split the prose.`,
+  );
 }
 
 function interpretationResults(
@@ -822,12 +851,12 @@ function interpretationResults(
         candidate.claim_text,
         0,
       );
-      const expectedSpan = utf8Span(
-        statement,
-        candidateLocation.start,
-        candidateLocation.end,
-      );
+      const expectedSpan =
+        candidateLocation === null
+          ? null
+          : utf8Span(statement, candidateLocation.start, candidateLocation.end);
       if (
+        expectedSpan === null ||
         candidate.span.start !== expectedSpan.start ||
         candidate.span.end !== expectedSpan.end
       )
@@ -944,6 +973,7 @@ export function analyzeSemanticAdvisorInput(
         input.clauses ?? semanticClausesOf(payload),
       )
     : [];
+  if (input.clauses !== undefined) assertVerbatimClauses(statement, clauses);
   const rawDeclaredClaims = propertiesOf(payload).logic_claims;
   const declaredClaims = Array.isArray(rawDeclaredClaims)
     ? rawDeclaredClaims.filter(

@@ -1,8 +1,18 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { legacyRequirementSemanticText } from "../../../src/extractors/markdown.js";
+import { load as loadYaml } from "js-yaml";
+import {
+  extractFromMarkdownString,
+  legacyRequirementSemanticText,
+} from "../../../src/extractors/markdown.js";
 import {
   applyContextMissingTags,
   applySemanticTextPins,
@@ -11,6 +21,10 @@ import {
   planSemanticTextPins,
   withAddedTag,
 } from "../../../src/operations/migration/entity-body-context.js";
+import {
+  sliceFrontmatter,
+  withTopLevelField,
+} from "../../../src/operations/migration/kb-sources.js";
 import {
   applySchema6MigrationAction,
   buildSchema6MigrationFragment,
@@ -90,6 +104,74 @@ describe("schema 8 planning", () => {
     );
     expect(applySemanticTextPins(root)).toBe(1);
     expect(planSemanticTextPins(root).targets).toEqual([]);
+  });
+
+  test("pins a body with table separator rows and a rule as a readable file", () => {
+    const body = [
+      "",
+      "# Export retention",
+      "",
+      "Each export must stay downloadable for the window its plan grants.",
+      "",
+      "| Plan | Window | Notes |",
+      "|------|--------|-------|",
+      "| Free | 7 days | --- |",
+      "",
+      "---",
+      "",
+      "## Context",
+      "",
+      REASON,
+      "",
+    ].join("\n");
+    const before = `---\nid: REQ-table\ntitle: Export retention\nstatus: open\n---\n${body}`;
+    const root = workspace({ ".kb/requirements/REQ-table.md": before });
+    const expected = legacyRequirementSemanticText(body);
+    expect(expected).toContain("|------|--------|-------|");
+
+    const plan = planSemanticTextPins(root);
+    expect(plan.skipped).toEqual([]);
+    expect(plan.targets.map((target) => target.id)).toEqual(["REQ-table"]);
+    expect(applySemanticTextPins(root)).toBe(1);
+
+    const after = readFileSync(
+      path.join(root, ".kb/requirements/REQ-table.md"),
+      "utf8",
+    );
+    const slice = sliceFrontmatter(after);
+    expect(slice).not.toBeNull();
+    expect(slice?.suffix).toBe(`---\n${body}`);
+    expect(slice?.text).not.toContain("---");
+    expect(loadYaml(slice?.text ?? "")).toEqual({
+      id: "REQ-table",
+      title: "Export retention",
+      status: "open",
+      semantic_text: expected,
+    });
+    const { entity } = extractFromMarkdownString(
+      after,
+      path.join(root, ".kb/requirements/REQ-table.md"),
+    );
+    expect(entity.id).toBe("REQ-table");
+    expect(entity.semantic_text).toBe(expected);
+    expect(planSemanticTextPins(root).targets).toEqual([]);
+  });
+
+  test("reads only a whole --- line as a frontmatter delimiter", () => {
+    expect(sliceFrontmatter("---\nid: A\nnote: a---b\n---\nBody\n")).toEqual({
+      prefix: "---\n",
+      text: "id: A\nnote: a---b\n",
+      suffix: "---\nBody\n",
+      eol: "\n",
+    });
+    expect(sliceFrontmatter("---\r\nid: A\r\n---  \r\nBody\r\n")?.text).toBe(
+      "id: A\r\n",
+    );
+    expect(sliceFrontmatter("--- id: A\n---\n")).toBeNull();
+    expect(sliceFrontmatter("---\nid: A\n|---|---|\n")).toBeNull();
+    expect(withTopLevelField("---\nid: A\n---\n", "note", "x ---- y")).toBe(
+      '---\nid: A\nnote: "x -\\x2D-\\x2D y"\n---\n',
+    );
   });
 
   test("tags only current entities that lack context, and is idempotent", () => {

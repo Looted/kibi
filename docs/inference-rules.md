@@ -25,6 +25,10 @@ Kibi includes deterministic derived predicates for internal analysis and automat
 - `logic_derive(Goal, Proof)` (bounded, data-driven closure)
 - `logic_rule_conflict(RuleA, RuleB, Status)`
 
+## Must-priority coverage semantics
+
+`coverage_gap(Req, Reason)` (rule `must-priority-coverage`) applies only to a current must-priority requirement. A requirement owes no scenario or test coverage when another requirement `supersedes` it, when its status is `deprecated`, `superseded`, `archived`, `removed`, `deleted` or `rejected`, or when it is `closed` without the `implemented` tag (the same reading of `closed` the coverage-depth review uses). A closed requirement tagged `implemented`, and a requirement with any other status or no status, keeps the obligation.
+
 ## Symbol coverage semantics
 
 **Scenario-aware coverage**: When a requirement has `specified_by(Req,Scenario)`, direct `verified_by(Req,Test)` or `validates(Test,Req)` does NOT satisfy symbol-coverage. The canonical path requires `verified_by(Scenario,Test)` or `validates(Test,Scenario)`.

@@ -1,4 +1,10 @@
 import type { PrologPort } from "../../public/operations/runtime-types.js";
+import { analyzeSemanticAdvisorInput } from "../semantic-advisor/analyze-prose.js";
+import {
+  type SemanticInventoryBoundaryResult,
+  type SemanticRelationship,
+  validateSemanticInventoryBoundary,
+} from "../semantic-advisor/ingestion-boundary.js";
 import {
   type StoredEntityLookup,
   storedEntityLookup,
@@ -88,4 +94,66 @@ export async function withStoredRequirementSemantics(
   )
     return input;
   return { ...input, properties: { ...preserved, ...properties } };
+}
+
+/** Stored fields that decide how sync reads a requirement's propositions. */
+const BOUNDARY_FIELDS = [
+  "status",
+  "title",
+  "text_ref",
+  ...SEMANTIC_CONTRACT_FIELDS,
+] as const;
+
+function boundaryOf(
+  input: UpsertInput,
+  properties: Readonly<Record<string, unknown>>,
+  relationships: readonly SemanticRelationship[],
+): SemanticInventoryBoundaryResult {
+  const payload = { type: input.type, id: input.id, properties };
+  const { receipt } = analyzeSemanticAdvisorInput({
+    payload: { ...payload, relationships },
+  });
+  return validateSemanticInventoryBoundary(payload, relationships, receipt);
+}
+
+// implements REQ-kibi-upsert-preserves-requirement-semantics, REQ-kibi-proposition-complete-ingestion
+/**
+ * An update to a stored requirement is judged as its authored file will read
+ * afterwards: the stored status, prose and proposition ledger with the
+ * payload's fields on top (the source writer keeps every front matter key the
+ * payload leaves out and states the stored `semantic_text`). A payload such
+ * as `{status: "closed"}` passes the check on its own fields, yet the file it
+ * leaves is a current requirement whose prose has no inventory, which sync
+ * then refuses. Such a write is refused here with the error sync would give.
+ *
+ * A requirement that was already current with the same prose and no complete
+ * inventory is legacy content sync keeps accepting, so a write that changes
+ * neither keeps working. A write that makes the requirement current, or
+ * changes the prose sync checks, must carry the complete inventory.
+ */
+export async function assertStoredRequirementBoundary(
+  input: UpsertInput,
+  relationships: readonly SemanticRelationship[],
+  prolog: Pick<PrologPort, "query">,
+  staged?: StagedUpsertState,
+  lookup: StoredEntityLookup = storedEntityLookup(prolog, input.id, input.type),
+): Promise<void> {
+  if (input.type !== "req") return;
+  const stored = await storedRequirement(input.id, lookup, staged);
+  if (stored === undefined) return;
+  const before: Record<string, unknown> = {};
+  for (const field of BOUNDARY_FIELDS) {
+    if (stored[field] !== undefined) before[field] = stored[field];
+  }
+  const after = boundaryOf(
+    input,
+    { ...before, ...(input.properties ?? {}) },
+    relationships,
+  );
+  if (after.errors.length === 0) return;
+  const previous = boundaryOf(input, before, relationships);
+  if (previous.applicable && previous.sourceHash === after.sourceHash) return;
+  throw new Error(
+    `Proposition-complete ingestion failed: ${input.id} would be written as a current requirement without a complete proposition inventory (${after.errors.join("; ")}). Run kb_model mode analyze (CLI: semantic-advisor) with id '${input.id}' and its complete semantic_text, then send the returned inventory contract (semantic_inventory, semantic_inventory_version, semantic_source_field, semantic_source_hash, logic_claims) in this kb_upsert, or retire the requirement through a superseding one instead.`,
+  );
 }

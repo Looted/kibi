@@ -1065,6 +1065,9 @@ export async function syncCommand(
     // implements REQ-kibi-proposition-complete-ingestion, REQ-cli-schema-migration
     // Every drifted inventory is reported in one run, not one per sync attempt.
     const inventoryFailures: string[] = [];
+    // Requirements with no inventory at all: kibi migrate re-derives only an
+    // inventory a requirement already states, so they need the advisor.
+    const uninventoried: string[] = [];
     for (const result of extractedResults) {
       if (result.entity.type !== "req") continue;
       const key = toCacheKey(workspaceRoot, result.entity.source);
@@ -1099,6 +1102,7 @@ export async function syncCommand(
         inventoryFailures.push(
           `${key}: proposition-complete ingestion failed: ${boundary.errors.join("; ")}.`,
         );
+        if (!advertisedContract) uninventoried.push(result.entity.id);
         continue;
       }
       nextSemanticHashes[key] = boundary.sourceHash;
@@ -1109,7 +1113,16 @@ export async function syncCommand(
         [
           `${inventoryFailures.length} requirement(s) failed proposition-complete ingestion:`,
           ...inventoryFailures.map((failure) => `  ${failure}`),
-          "Run 'kibi migrate' to re-derive inventories that drifted with the semantic advisor (it lists any that need a manual fix), or run kb_model mode analyze (CLI: semantic-advisor) with the complete requirement prose and preserve its inventory contract.",
+          ...(uninventoried.length > 0
+            ? [
+                `${uninventoried.join(", ")} state(s) no inventory, which 'kibi migrate' does not derive: for each, run kb_model mode analyze (CLI: semantic-advisor) with the requirement's id and its complete semantic_text, then write the returned inventory contract into the requirement (kb_upsert with semantic_inventory, semantic_inventory_version, semantic_source_field, semantic_source_hash and logic_claims), or retire it through a superseding requirement.`,
+              ]
+            : []),
+          ...(uninventoried.length < inventoryFailures.length
+            ? [
+                "Run 'kibi migrate' to re-derive inventories that drifted with the semantic advisor (it lists any that need a manual fix), or run kb_model mode analyze with the requirement's id and complete prose and preserve its inventory contract.",
+              ]
+            : []),
         ].join("\n"),
       );
     }

@@ -13,7 +13,7 @@
     "inputSchema": {
       "properties": {
         "clauses": {
-          "description": "Optional complete atomic clause decomposition. Each assertive clause receives independent proposition accounting.",
+          "description": "Optional complete atomic clause decomposition. Each clause must be a verbatim fragment of intent (whitespace may differ); a clause that does not occur in intent fails the call with VALIDATION_FAILED naming it. Each assertive clause receives independent proposition accounting.",
           "items": {
             "minLength": 1,
             "type": "string"

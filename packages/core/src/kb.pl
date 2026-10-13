@@ -2466,12 +2466,36 @@ coverage_gap(Req, missing_test) :-
     has_scenario(Req),
     \+ has_test(Req).
 
+% implements REQ-core-validation-rules
+% Only a current must-priority requirement owes scenario and test coverage.
 must_requirement(Req) :-
     kb_entity(Req, req, Props),
     memberchk(priority=Priority, Props),
     normalize_term_atom(Priority, PriorityAtom),
     atom_string(PriorityAtom, PriorityStr),
-    sub_string(PriorityStr, _, 4, 0, "must").
+    sub_string(PriorityStr, _, 4, 0, "must"),
+    coverage_current_requirement(Req, Props).
+
+%% coverage_current_requirement(+Req, +Props)
+% A requirement is still owed coverage unless it is retired: superseded by
+% another requirement (the target of `supersedes`), carrying a retired status,
+% or `closed` without the `implemented` tag (a closed requirement is retired
+% work unless it records that it was implemented, the same rule the
+% coverage-depth review applies).  A requirement without a status keeps the
+% obligation.
+coverage_current_requirement(Req, Props) :-
+    \+ kb_relationship(supersedes, _, Req),
+    (   memberchk(status=RawStatus, Props)
+    ->  normalize_term_atom(RawStatus, Status)
+    ;   Status = missing
+    ),
+    \+ memberchk(Status, [deprecated, superseded, archived, removed, deleted, rejected]),
+    (   Status == closed
+    ->  memberchk(tags=RawTags, Props),
+        normalize_term_atom_list(RawTags, Tags),
+        memberchk(implemented, Tags)
+    ;   true
+    ).
 
 has_scenario(Req) :-
     once(kb_relationship(specified_by, Req, _)).
