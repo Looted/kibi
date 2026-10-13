@@ -99,6 +99,70 @@ describe("kibi.migration-plan.v2", () => {
     });
   });
 
+  test("a store compiled by another CLI contract is resynced automatically", () => {
+    const cache = ".kb/branches/develop/sync-cache.json";
+    const current = {
+      status: "current" as const,
+      currentVersion: 4,
+      latestVersion: 4,
+      needsMigration: false,
+      warning: null,
+      configHash: "a",
+    };
+    const freshnessActions = (
+      plan: ReturnType<typeof buildActionsFromStatus>,
+    ) => plan.actions.filter((action) => action.category === "freshness");
+
+    const compilerOnly = buildActionsFromStatus({
+      workspaceRoot: "/tmp/project",
+      branchStore: { state: "healthy", path: ".kb/branches/develop" },
+      staleReasons: [
+        {
+          code: "compiler_changed",
+          path: cache,
+          remediation: { command_argv: ["kibi", "sync"], applyRequired: false },
+        },
+      ],
+      configStatus: current,
+    });
+    expect(freshnessActions(compilerOnly)).toHaveLength(1);
+    expect(freshnessActions(compilerOnly)[0]).toMatchObject({
+      id: "freshness-resync",
+      code: "freshness_resync",
+      safety: "automatic",
+      autoApplicable: true,
+      dispositionRequired: false,
+      invocation: { kind: "cli", command_argv: ["kibi", "sync"] },
+      affectedFiles: [cache],
+    });
+
+    const withSource = buildActionsFromStatus({
+      workspaceRoot: "/tmp/project",
+      branchStore: { state: "healthy", path: ".kb/branches/develop" },
+      staleReasons: [
+        { code: "compiler_changed", path: cache },
+        {
+          code: "indexed_source_newer",
+          path: ".kb/requirements/REQ-a.md",
+        },
+      ],
+      configStatus: current,
+    });
+    const freshness = freshnessActions(withSource);
+    expect(freshness.map((action) => action.id)).toEqual(["freshness-resync"]);
+    expect(
+      (
+        freshness[0]?.evidence as {
+          reasons: Array<{ code: string }>;
+        }
+      ).reasons.map((reason) => reason.code),
+    ).toEqual(["compiler_changed", "indexed_source_newer"]);
+    expect(freshness[0]?.affectedFiles).toEqual([
+      ".kb/branches/develop/sync-cache.json",
+      ".kb/requirements/REQ-a.md",
+    ]);
+  });
+
   test("merges status and quality fragments without losing a ready action", () => {
     const status = buildMigrationPlan({
       evaluatedDomains: ["schema"],
