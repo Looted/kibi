@@ -107,6 +107,13 @@ describe("legacy storage migration", () => {
     writeReq(tmpDir, ".kb/requirements", "REQ-ONE", "canonical");
 
     const plan = planLegacyStorageMigration(tmpDir);
+    expect(plan.conflicts).toMatchObject([
+      {
+        from: "documentation/requirements/REQ-ONE.md",
+        to: ".kb/requirements/REQ-ONE.md",
+        kind: "conflict",
+      },
+    ]);
     expect(
       plan.blockers.some((blocker) => blocker.includes("already exists")),
     ).toBe(true);
@@ -304,5 +311,139 @@ describe("legacy storage migration", () => {
       ),
     ) as { path: string };
     expect(explicit.path).toBe(".kb/requirements/REQ-ONE.md");
+  });
+});
+
+describe("legacy copies beside a migrated .kb/", () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = mkdtempSync(path.join(os.tmpdir(), "kibi-storage-duplicates-"));
+  });
+
+  afterEach(() => {
+    if (tmpDir && existsSync(tmpDir)) {
+      rmSync(tmpDir, { recursive: true, force: true });
+    }
+  });
+
+  const manifest = (...ids: string[]) =>
+    `symbols:\n${ids.map((id) => `  - id: ${id}\n    title: ${id}\n`).join("")}`;
+  const write = (relative: string, content: string) => {
+    mkdirSync(path.dirname(path.join(tmpDir, relative)), { recursive: true });
+    writeFileSync(path.join(tmpDir, relative), content, "utf8");
+  };
+  const lanesUnderKibiDocs = () =>
+    write(
+      ".kb/config.json",
+      JSON.stringify({
+        schemaVersion: 4,
+        paths: { requirements: "kibi-docs/requirements" },
+      }),
+    );
+
+  test("removes a legacy copy identical to its destination instead of blocking", () => {
+    writeReq(tmpDir, "documentation/requirements", "REQ-ONE", "same");
+    writeReq(tmpDir, ".kb/requirements", "REQ-ONE", "same");
+
+    const plan = planLegacyStorageMigration(tmpDir);
+    expect(plan.blockers).toEqual([]);
+    expect(plan.moves).toEqual([]);
+    expect(plan.removals).toEqual([
+      {
+        path: "documentation/requirements/REQ-ONE.md",
+        duplicateOf: ".kb/requirements/REQ-ONE.md",
+      },
+    ]);
+    expect(needsLegacyStorageMigration(tmpDir)).toBe(true);
+
+    const result = applyLegacyStorageMigration(tmpDir, plan);
+    expect(result.removedFiles).toEqual([
+      "documentation/requirements/REQ-ONE.md",
+    ]);
+    expect(existsSync(path.join(tmpDir, "documentation"))).toBe(false);
+    expect(
+      readFileSync(path.join(tmpDir, ".kb/requirements/REQ-ONE.md"), "utf8"),
+    ).toContain("same");
+    expect(needsLegacyStorageMigration(tmpDir)).toBe(false);
+  });
+
+  test("names a stale symbols subset without deleting it", () => {
+    write(".kb/symbols.yaml", manifest("SYM-a", "SYM-b"));
+    write("documentation/symbols.yaml", manifest("SYM-a"));
+
+    const plan = planLegacyStorageMigration(tmpDir);
+    expect(plan.conflicts).toMatchObject([
+      {
+        from: "documentation/symbols.yaml",
+        to: ".kb/symbols.yaml",
+        kind: "stale_subset",
+      },
+    ]);
+    expect(plan.blockers[0]).toContain("stale subset of .kb/symbols.yaml");
+    expect(plan.blockers[0]).toContain("git rm documentation/symbols.yaml");
+    expect(needsLegacyStorageMigration(tmpDir)).toBe(true);
+    expect(() => applyLegacyStorageMigration(tmpDir, plan)).toThrow(/blocked/);
+    expect(existsSync(path.join(tmpDir, "documentation/symbols.yaml"))).toBe(
+      true,
+    );
+  });
+
+  test("keeps a real symbols conflict and a generated coordinates copy apart", () => {
+    write(".kb/symbols.yaml", manifest("SYM-a"));
+    write("documentation/symbols.yaml", manifest("SYM-a", "SYM-new"));
+    write(".kb/symbol-coordinates.yaml", "coordinates: {a: 1}\n");
+    write("documentation/symbol-coordinates.yaml", "coordinates: {a: 2}\n");
+
+    const plan = planLegacyStorageMigration(tmpDir);
+    expect(
+      plan.conflicts.map((conflict) => [conflict.from, conflict.kind]),
+    ).toEqual([
+      ["documentation/symbols.yaml", "conflict"],
+      ["documentation/symbol-coordinates.yaml", "generated"],
+    ]);
+    expect(plan.removals).toEqual([]);
+  });
+
+  test("moves the symbols manifest that sits beside the configured lanes", () => {
+    lanesUnderKibiDocs();
+    writeReq(tmpDir, "kibi-docs/requirements", "REQ-ONE");
+    write("kibi-docs/symbols.yaml", manifest("SYM-a"));
+
+    const plan = planLegacyStorageMigration(tmpDir);
+    expect(plan.blockers).toEqual([]);
+    expect(plan.moves.map((move) => `${move.from}->${move.to}`).sort()).toEqual(
+      [
+        "kibi-docs/requirements/REQ-ONE.md->.kb/requirements/REQ-ONE.md",
+        "kibi-docs/symbols.yaml->.kb/symbols.yaml",
+      ],
+    );
+  });
+
+  test("reports an ambiguous symbols manifest instead of using the documentation/ default", () => {
+    lanesUnderKibiDocs();
+    writeReq(tmpDir, "kibi-docs/requirements", "REQ-ONE");
+    write("documentation/symbols.yaml", manifest("SYM-old"));
+
+    const onlyDefault = planLegacyStorageMigration(tmpDir);
+    expect(
+      onlyDefault.moves.some((move) => move.to === ".kb/symbols.yaml"),
+    ).toBe(false);
+    expect(onlyDefault.conflicts).toMatchObject([
+      { from: "documentation/symbols.yaml", kind: "ambiguous" },
+    ]);
+
+    write("kibi-docs/symbols.yaml", manifest("SYM-a"));
+    const both = planLegacyStorageMigration(tmpDir);
+    expect(both.moves.some((move) => move.to === ".kb/symbols.yaml")).toBe(
+      false,
+    );
+    expect(both.conflicts).toMatchObject([
+      {
+        from: "kibi-docs/symbols.yaml, documentation/symbols.yaml",
+        kind: "ambiguous",
+      },
+    ]);
+    expect(both.blockers[0]).toContain("Set paths.symbols");
   });
 });

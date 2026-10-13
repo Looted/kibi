@@ -117,6 +117,43 @@ export function getBehavioralSymbolNames(
   ].sort();
 }
 
+/**
+ * The candidates that are narrower than a manifest symbol: members of it
+ * (`Title.member`), or, when the source declares no symbol named like it,
+ * every other declaration in the file.
+ */
+// implements REQ-symbol-behavioral-anchors, REQ-cli-schema-migration
+export function narrowerSymbols<T extends { name: string }>(
+  manifestSymbolName: string,
+  candidates: readonly T[],
+  sourceSymbols: readonly { name: string }[],
+): T[] {
+  const declared = sourceSymbols.some(
+    (symbol) => symbol.name === manifestSymbolName,
+  );
+  return candidates.filter(
+    (candidate) =>
+      candidate.name !== manifestSymbolName &&
+      (candidate.name.startsWith(`${manifestSymbolName}.`) || !declared),
+  );
+}
+
+/**
+ * The behavioral symbols that make a traceability link on
+ * `manifestSymbolName` coarse: the staged granularity gate blocks such a
+ * link unless it carries a granularity_reason, and `kibi migrate` marks
+ * exactly these links legacy-link. Empty when the link is narrow enough.
+ */
+// implements REQ-symbol-behavioral-anchors, REQ-cli-schema-migration
+export function coarseLinkBehavioralNames(
+  manifestSymbolName: string,
+  sourceSymbols: readonly GranularSymbolCandidate[],
+): string[] {
+  return getBehavioralSymbolNames(
+    narrowerSymbols(manifestSymbolName, sourceSymbols, sourceSymbols),
+  );
+}
+
 export function getNonBehavioralSymbolNames(
   candidates: GranularSymbolCandidate[],
 ): string[] {

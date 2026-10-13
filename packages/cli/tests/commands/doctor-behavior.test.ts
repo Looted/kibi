@@ -299,6 +299,48 @@ describe("doctorCommand legacy storage check", () => {
     expect(check.remediation).toContain("stale duplicate");
   });
 
+  test("tells an identical legacy copy from a stale symbols subset", async () => {
+    const cwd = preparedWorkspace();
+    writeOkManifest(cwd);
+    const req = "---\nid: REQ-1\ntitle: Auth\nstatus: open\n---\n";
+    mkdirSync(path.join(cwd, ".kb", "requirements"), { recursive: true });
+    mkdirSync(path.join(cwd, "documentation", "requirements"), {
+      recursive: true,
+    });
+    writeFileSync(path.join(cwd, ".kb", "requirements", "REQ-1.md"), req);
+    writeFileSync(
+      path.join(cwd, "documentation", "requirements", "REQ-1.md"),
+      req,
+    );
+    const identical = namedCheck(
+      (await runDoctorJson(cwd)).payload,
+      "Canonical storage",
+    );
+    expect(identical.passed).toBe(false);
+    expect(identical.message).toBe(
+      "1 legacy knowledge file(s) still outside .kb/ (1 identical to the .kb/ copy, which kibi migrate removes)",
+    );
+    expect(identical.remediation).toBe("Run: kibi migrate --yes");
+
+    writeFileSync(
+      path.join(cwd, ".kb", "symbols.yaml"),
+      "symbols:\n  - id: SYM-auth\n  - id: SYM-login\n",
+    );
+    writeFileSync(
+      path.join(cwd, "documentation", "symbols.yaml"),
+      "symbols:\n  - id: SYM-auth\n",
+    );
+    const stale = namedCheck(
+      (await runDoctorJson(cwd)).payload,
+      "Canonical storage",
+    );
+    expect(stale.passed).toBe(false);
+    expect(stale.remediation).toContain(
+      "documentation/symbols.yaml is a stale subset of .kb/symbols.yaml",
+    );
+    expect(stale.remediation).toContain("git rm documentation/symbols.yaml");
+  });
+
   test("sends a legacy layout without a manifest to migrate, not init", async () => {
     const cwd = preparedWorkspace();
     mkdirSync(path.join(cwd, ".kb"), { recursive: true });

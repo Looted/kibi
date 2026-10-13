@@ -274,6 +274,72 @@ describe("migration plan builders and config status", () => {
     ).toContain("schema-config-upgrade");
   });
 
+  test("legacy copies left after the config was retired still reach the plan", () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "kibi-mig-retired-"));
+    tempDirs.push(root);
+    mkdirSync(path.join(root, ".kb", "requirements"), { recursive: true });
+    mkdirSync(path.join(root, "documentation", "requirements"), {
+      recursive: true,
+    });
+    const req = "---\nid: REQ-1\ntype: req\ntitle: one\nstatus: open\n---\n";
+    writeFileSync(path.join(root, ".kb", "requirements", "REQ-1.md"), req);
+    writeFileSync(
+      path.join(root, "documentation", "requirements", "REQ-1.md"),
+      req,
+    );
+    const current = {
+      status: "current" as const,
+      currentVersion: 8,
+      latestVersion: 8,
+      needsMigration: false,
+      warning: null,
+      configHash: null,
+    };
+    const status = () =>
+      buildActionsFromStatus({
+        workspaceRoot: root,
+        branchStore: { state: "healthy", path: ".kb/branches/x" },
+        configStatus: current,
+      }).actions.find((action) => action.id === "schema-config-upgrade");
+
+    // An identical copy is removed by 'kibi migrate --yes'.
+    expect(status()).toMatchObject({
+      code: "legacy_storage_migration",
+      state: "ready",
+      safety: "automatic",
+      affectedFiles: expect.arrayContaining([
+        "documentation/requirements/REQ-1.md",
+      ]),
+      evidence: {
+        legacyStorage: {
+          removals: [
+            {
+              path: "documentation/requirements/REQ-1.md",
+              duplicateOf: ".kb/requirements/REQ-1.md",
+            },
+          ],
+        },
+      },
+    });
+
+    // A stale subset of the symbols manifest waits on an operator.
+    writeFileSync(
+      path.join(root, ".kb", "symbols.yaml"),
+      "symbols:\n  - id: SYM-a\n  - id: SYM-b\n",
+    );
+    writeFileSync(
+      path.join(root, "documentation", "symbols.yaml"),
+      "symbols:\n  - id: SYM-a\n",
+    );
+    const blocked = status();
+    expect(blocked).toMatchObject({ state: "blocked", safety: "operator" });
+    expect(
+      blocked?.invocation.kind === "review"
+        ? blocked.invocation.instruction
+        : "",
+    ).toContain("stale subset of .kb/symbols.yaml");
+  });
+
   test("readMigrationConfigStatus reads ok, missing, and malformed legacy config", () => {
     const root = mkdtempSync(path.join(os.tmpdir(), "kibi-mig-cfg-"));
     tempDirs.push(root);

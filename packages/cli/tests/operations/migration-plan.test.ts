@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { executeApplyPlan } from "../../src/operations/planning/apply-plan.js";
 import {
+  buildActionsFromCheck,
   buildActionsFromStatus,
   buildMigrationPlan,
   mergeMigrationPlans,
@@ -267,5 +268,43 @@ describe("kibi.migration-plan.v2", () => {
         context,
       ),
     ).rejects.toThrow("is not automatic");
+  });
+  test("collapses parity findings explained by untracked files into one action", () => {
+    const parity = (from: string, to: string, file?: string) => ({
+      rule: "source-relationship-parity",
+      entityId: from,
+      description: `Authored relationship is missing from the compiled KB: implements ${from}->${to}`,
+      evidence: {
+        direction: "authored_to_compiled",
+        relationship: { type: "implements", from, to },
+        ...(file === undefined
+          ? {}
+          : { untrackedSources: [{ entityId: from, file }] }),
+      },
+    });
+    const actions = buildActionsFromCheck({
+      violations: [
+        parity("SYM-a", "REQ-1", ".kb/symbols.yaml"),
+        parity("SYM-b", "REQ-1", ".kb/symbols.yaml"),
+        parity("REQ-2", "FACT-1", ".kb/requirements/REQ-2.md"),
+        parity("SYM-c", "REQ-3"),
+      ],
+    });
+    const grouped = actions.filter(
+      (action) => action.code === "untracked_knowledge_sources",
+    );
+    expect(grouped).toHaveLength(1);
+    expect(grouped[0]).toMatchObject({
+      id: "untracked-knowledge-sources",
+      safety: "review",
+      affectedFiles: [".kb/requirements/REQ-2.md", ".kb/symbols.yaml"],
+      evidence: { relationshipCount: 3 },
+    });
+    // A parity finding with another cause keeps its own action.
+    expect(
+      actions.filter(
+        (action) => action.code === "check_source-relationship-parity",
+      ),
+    ).toHaveLength(1);
   });
 });

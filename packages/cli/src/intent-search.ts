@@ -263,6 +263,24 @@ function tokens(value: string): readonly string[] {
   );
 }
 
+// Clause boundaries an agent writes when it packs several questions into one
+// query: "user roles: how many can a user have, support role".
+const CLAUSE_SEPARATOR = /[;:,!?\n]+|\.(?=\s|$)|\s[-\u2013\u2014]\s/;
+const MIN_CLAUSE_TOKENS = 2;
+
+/**
+ * The token sets of a compound query's clauses, or none for a single clause.
+ * A clause needs two signal tokens: one word alone matches too broadly to
+ * stand in for the question.
+ */
+function queryClauses(query: string): readonly (readonly string[])[] {
+  const clauses = query
+    .split(CLAUSE_SEPARATOR)
+    .map((clause) => tokens(clause))
+    .filter((clause) => clause.length >= MIN_CLAUSE_TOKENS);
+  return clauses.length > 1 ? clauses : [];
+}
+
 function stringValues(value: unknown): readonly string[] {
   if (typeof value === "string") return value.trim() ? [value] : [];
   if (!Array.isArray(value)) return [];
@@ -583,11 +601,12 @@ export async function rankIntentEntities(
 ): Promise<IntentSearchResult> {
   const queryTokens = tokens(options.query);
   const facets = facetValues(options.semanticFacets);
-  const allTokens = Array.from(
-    new Set([
-      ...queryTokens,
-      ...facets.flatMap((facet) => tokens(facet.value)),
-    ]),
+  const facetTokens = facets.flatMap((facet) => tokens(facet.value));
+  const allTokens = Array.from(new Set([...queryTokens, ...facetTokens]));
+  // Each clause of a compound question is also scored on its own, so the
+  // words of one clause do not dilute a match on another.
+  const clauseTokenSets = queryClauses(options.query).map((clause) =>
+    Array.from(new Set([...clause, ...facetTokens])),
   );
   const bodies = await readBodies(entities, workspaceRoot, bodyCache);
   const documentFrequency = buildDocumentFrequency(entities, bodies);
@@ -630,19 +649,24 @@ export async function rankIntentEntities(
     // already capped; unbounded parallel paths only add noise to receipts.
     const graphEvidence = (graphByEntity.get(entityId) ?? []).slice(0, 8);
     const body = bodies.get(entity) ?? null;
-    const scored = scoreEntity(
-      entity,
-      allTokens,
-      facets,
-      sourceEvidence,
-      graphEvidence,
-      documentFrequency,
-      entities.length,
-      body,
-      supersededIds.has(entityId),
-      isProvenanceStub(entity),
-    );
-    if (scored.score < minScore) continue;
+    let scored: ReturnType<typeof scoreEntity> | undefined;
+    for (const signalTokens of [allTokens, ...clauseTokenSets]) {
+      const candidate = scoreEntity(
+        entity,
+        signalTokens,
+        facets,
+        sourceEvidence,
+        graphEvidence,
+        documentFrequency,
+        entities.length,
+        body,
+        supersededIds.has(entityId),
+        isProvenanceStub(entity),
+      );
+      if (scored === undefined || candidate.score > scored.score)
+        scored = candidate;
+    }
+    if (scored === undefined || scored.score < minScore) continue;
     const snippet =
       body === null
         ? undefined
