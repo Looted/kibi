@@ -741,10 +741,14 @@ symbols:
         target: TEST-kibi-intent-aware-source-discovery
       - type: covered_by
         target: TEST-kibi-search-answer-layer
+      - type: covered_by
+        target: TEST-search-answer-hygiene
       - type: implements
         target: REQ-kibi-intent-aware-source-discovery
       - type: implements
         target: REQ-kibi-search-answer-layer-v2
+      - type: implements
+        target: REQ-search-answer-hygiene
   - id: SYM-kibi-cli-src-intent-search-ts-executeintentsearch
     title: executeIntentSearch
     sourceFile: packages/cli/src/intent-search.ts
@@ -7239,36 +7243,6 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: implements
         target: REQ-kibi-query-fact-filters
-  - id: SYM-discovery-execute-fact-query
-    title: executeFactQuery
-    status: active
-    sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-query-fact-filters
-      - type: implements
-        target: REQ-kibi-query-fact-filters
-  - id: SYM-discovery-fact-query-next
-    title: factQueryNext
-    status: active
-    sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-query-fact-filters
-      - type: implements
-        target: REQ-kibi-query-fact-filters
-  - id: SYM-discovery-predicate-arg-spec
-    title: predicateArgSpec
-    status: active
-    sourceFile: packages/cli/src/public/operations/discovery-executors.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-query-fact-filters
-      - type: implements
-        target: REQ-kibi-query-fact-filters
   - id: SYM-core-discovery-askPredicateJson
     title: ask_predicate_json
     status: active
@@ -7303,16 +7277,6 @@ symbols:
     title: ask_fact_kind_json
     status: active
     sourceFile: packages/core/src/discovery.pl
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-query-fact-filters
-      - type: implements
-        target: REQ-kibi-query-fact-filters
-  - id: SYM-cli-search-answer-fact-detail
-    title: factDetail
-    status: active
-    sourceFile: packages/cli/src/search-answer.ts
     symbol_role: behavioral
     relationships:
       - type: covered_by
@@ -7812,10 +7776,14 @@ symbols:
         target: TEST-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-proposition-complete-ingestion
+      - type: covered_by
+        target: TEST-model-what-if-planned-facts
       - type: implements
         target: REQ-kibi-operation-interface-parity
       - type: implements
         target: REQ-kibi-proposition-complete-ingestion
+      - type: implements
+        target: REQ-model-what-if-planned-facts
   - id: SYM-ExternalAdoptionVerdict
     title: ExternalAdoptionVerdict
     sourceFile: scripts/skillopt-eval/adoption-types.ts
@@ -12389,10 +12357,14 @@ symbols:
         target: TEST-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-telemetry-acceptance-gate
+      - type: covered_by
+        target: TEST-search-answer-hygiene
       - type: implements
         target: REQ-kibi-operation-interface-parity
       - type: implements
         target: REQ-kibi-telemetry-acceptance-gate-v2
+      - type: implements
+        target: REQ-search-answer-hygiene
   - id: SYM-operation-find-gaps-spec
     title: findGapsSpec
     status: active
@@ -13374,26 +13346,6 @@ symbols:
         target: TEST-mcp-suggest-predicates
       - type: implements
         target: REQ-mcp-suggest-predicates
-      - type: covered_by
-        target: TEST-model-predicates-permission-grants
-      - type: implements
-        target: REQ-model-predicates-permission-grants
-  - id: SYM-predicate-infer-permission-actor
-    title: permissionActor
-    sourceFile: packages/cli/src/operations/modeling/predicate-inference-1.ts
-    symbol_role: behavioral
-    status: active
-    relationships:
-      - type: covered_by
-        target: TEST-model-predicates-permission-grants
-      - type: implements
-        target: REQ-model-predicates-permission-grants
-  - id: SYM-predicate-infer-permission-resource
-    title: permissionResource
-    sourceFile: packages/cli/src/operations/modeling/predicate-inference-1.ts
-    symbol_role: behavioral
-    status: active
-    relationships:
       - type: covered_by
         target: TEST-model-predicates-permission-grants
       - type: implements
@@ -23452,6 +23404,8 @@ symbols:
         target: TEST-model-predicates-plan-roundtrip
       - type: covered_by
         target: TEST-model-predicates-requirement-subject
+      - type: covered_by
+        target: TEST-model-what-if-planned-facts
       - type: implements
         target: REQ-kibi-logical-requirement-coverage
       - type: implements
@@ -23468,6 +23422,8 @@ symbols:
         target: REQ-model-predicates-plan-roundtrip
       - type: implements
         target: REQ-model-predicates-requirement-subject-v2
+      - type: implements
+        target: REQ-model-what-if-planned-facts
   - id: SYM-SuggestPredicatesArgs
     title: SuggestPredicatesArgs
     status: active
@@ -37258,19 +37214,6 @@ symbols:
         target: TEST-cli-check-integrity
       - type: implements
         target: REQ-cli-check
-  - id: SYM-quality-inventory-078eccf02d7a
-    title: checkSymbolCoverage
-    sourceFile: packages/cli/src/commands/check.ts
-    status: active
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-004
-      - type: covered_by
-        target: TEST-cli-check-integrity
-      - type: implements
-        target: REQ-cli-check
   - id: SYM-quality-inventory-ac085e9db51d
     title: missingManifestActivation
     sourceFile: packages/cli/src/operations/bootstrap/activation.ts
@@ -37744,17 +37687,6 @@ symbols:
         target: REQ-cli-check
   - id: SYM-checkStrictReqFactPairing
     title: checkStrictReqFactPairing
-    status: active
-    sourceFile: packages/cli/src/commands/check.ts
-    granularity_reason: legacy-link
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-004
-      - type: implements
-        target: REQ-cli-check
-  - id: SYM-checkSymbolCoverage
-    title: checkSymbolCoverage
     status: active
     sourceFile: packages/cli/src/commands/check.ts
     granularity_reason: legacy-link
@@ -43300,8 +43232,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-claude-code-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-kibi-hooks-flow-manifest
       - type: implements
         target: REQ-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-kibi-hooks-flow-manifest
   - id: SYM-agent-core-scanSymbolCoordinates
     title: scanSymbolCoordinates
     status: active
@@ -47602,9 +47538,17 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-kibi-query-fact-filters
+      - type: covered_by
         target: TEST-kibi-search-answer-layer
+      - type: covered_by
+        target: TEST-search-answer-hygiene
+      - type: implements
+        target: REQ-kibi-query-fact-filters
       - type: implements
         target: REQ-kibi-search-answer-layer-v2
+      - type: implements
+        target: REQ-search-answer-hygiene
   - id: SYM-cli-dispatch-composite
     title: dispatchComposite
     status: active
@@ -47748,6 +47692,7 @@ symbols:
     origin:
       kind: agent
       recorded_at: 2026-10-04T03:12:28.896Z
+    granularity_reason: module-level-behavior
     relationships:
       - type: covered_by
         target: TEST-core-engine-read-limits
@@ -49021,19 +48966,6 @@ symbols:
         target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
-  - id: SYM-skillopt-campaign-artifacts-campaignartifacterror-782da37c
-    title: CampaignArtifactError
-    status: active
-    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-10-05T12:20:36.014Z
-    relationships:
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: implements
-        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-campaign-artifacts-campaignartifacterror-name-14622f09
     title: CampaignArtifactError.name
     status: active
@@ -49042,19 +48974,6 @@ symbols:
     origin:
       kind: agent
       recorded_at: 2026-10-05T12:20:39.460Z
-    relationships:
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: implements
-        target: REQ-skillopt-codex-optimization
-  - id: SYM-skillopt-campaign-artifacts-campaignartifactstore-42509001
-    title: CampaignArtifactStore
-    status: active
-    sourceFile: scripts/skillopt-eval/campaign-artifacts.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-10-05T12:20:42.099Z
     relationships:
       - type: covered_by
         target: TEST-skillopt-codex-optimization
@@ -49422,19 +49341,6 @@ symbols:
     origin:
       kind: agent
       recorded_at: 2026-10-05T12:24:08.554Z
-    relationships:
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: implements
-        target: REQ-skillopt-codex-optimization
-  - id: SYM-skillopt-campaign-campaignclierror-bf31157b
-    title: CampaignCliError
-    status: active
-    sourceFile: scripts/skillopt-eval/campaign.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-10-05T12:24:14.220Z
     relationships:
       - type: covered_by
         target: TEST-skillopt-codex-optimization
@@ -50988,7 +50894,7 @@ symbols:
       - type: implements
         target: REQ-bootstrap-claim-name-length
   - id: SYM-bootstrap-claim-name-length-subjectkeyregistry
-    title: SubjectKeyRegistry
+    title: SubjectKeyRegistry.assign
     status: active
     sourceFile: packages/cli/src/operations/bootstrap/requirement-claims.ts
     symbol_role: behavioral
@@ -51487,26 +51393,6 @@ symbols:
         target: TEST-bootstrap-ui-plugin-offer
       - type: implements
         target: REQ-bootstrap-ui-plugin-offer
-  - id: SYM-agent-core-parseFlow
-    title: parseFlow
-    status: active
-    sourceFile: packages/agent-core/src/knowledge-index.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-hooks-flow-manifest
-      - type: implements
-        target: REQ-kibi-hooks-flow-manifest
-  - id: SYM-agent-core-scanFlowSection
-    title: scanFlowSection
-    status: active
-    sourceFile: packages/agent-core/src/knowledge-index.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-hooks-flow-manifest
-      - type: implements
-        target: REQ-kibi-hooks-flow-manifest
   - id: SYM-agent-core-manifestStateOf
     title: manifestStateOf
     status: active
@@ -51565,36 +51451,6 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-mcp-structured-text-per-host
-  - id: SYM-intent-search-inheritedSourceMatches
-    title: inheritedSourceMatches
-    status: active
-    sourceFile: packages/cli/src/intent-search.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-search-answer-hygiene
-      - type: implements
-        target: REQ-search-answer-hygiene
-  - id: SYM-search-answer-answerNote
-    title: answerNote
-    status: active
-    sourceFile: packages/cli/src/search-answer.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-search-answer-hygiene
-      - type: implements
-        target: REQ-search-answer-hygiene
-  - id: SYM-operation-check-describeEvaluation
-    title: describeEvaluation
-    status: active
-    sourceFile: packages/cli/src/public/operations/check-executor.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-search-answer-hygiene
-      - type: implements
-        target: REQ-search-answer-hygiene
   - id: SYM-operation-check-formatEvaluatedText
     title: formatEvaluatedText
     status: active
@@ -51624,50 +51480,10 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-search-answer-hygiene
-  - id: SYM-mutation-validate-upsert-stagePlannedFacts
-    title: stagePlannedFacts
-    status: active
-    sourceFile: packages/cli/src/operations/mutation/validate-upsert.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-model-what-if-planned-facts
-      - type: implements
-        target: REQ-model-what-if-planned-facts
-  - id: SYM-mutation-validate-upsert-previewStagedContradictions
-    title: previewStagedContradictions
-    status: active
-    sourceFile: packages/cli/src/operations/mutation/validate-upsert.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-model-what-if-planned-facts
-      - type: implements
-        target: REQ-model-what-if-planned-facts
   - id: SYM-planning-compile-intent-compileGroundingPlan
     title: compileGroundingPlan
     status: active
     sourceFile: packages/cli/src/operations/planning/compile-intent.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-model-what-if-planned-facts
-      - type: implements
-        target: REQ-model-what-if-planned-facts
-  - id: SYM-modeling-suggest-predicates-groundingPlan
-    title: groundingPlan
-    status: active
-    sourceFile: packages/cli/src/operations/modeling/suggest-predicates.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-model-what-if-planned-facts
-      - type: implements
-        target: REQ-model-what-if-planned-facts
-  - id: SYM-modeling-suggest-predicates-storedRequirementContract
-    title: storedRequirementContract
-    status: active
-    sourceFile: packages/cli/src/operations/modeling/suggest-predicates.ts
     symbol_role: behavioral
     relationships:
       - type: covered_by

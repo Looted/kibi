@@ -171,6 +171,36 @@ describe("kibi-plugin-builtin", () => {
     expect(malformed.uncoveredRanges.length).toBeGreaterThan(0);
   });
 
+  test("v2 extractor reports only syntax, independent of imports and library types", async () => {
+    const extractor = createBuiltinTsMorphSymbolExtractorV2();
+    const typedJsInput = {
+      path: "src/typed.js",
+      content:
+        "export function run(value: number): string {\n  return '';\n}\n",
+    };
+    const typedJs = validateSourceAnalysisResultV2(
+      await extractor.analyze(typedJsInput),
+      typedJsInput,
+    );
+    expect(typedJs.status).toBe("partial");
+    expect(typedJs.diagnostics.map((diagnostic) => diagnostic.code)).toContain(
+      "TS8010",
+    );
+
+    const unresolvedInput = {
+      path: "src/unresolved.ts",
+      content:
+        "import { missing } from './missing.js';\nexport const load = (): Promise<Map<string, number>> => missing();\n",
+    };
+    const unresolved = validateSourceAnalysisResultV2(
+      await extractor.analyze(unresolvedInput),
+      unresolvedInput,
+    );
+    expect(unresolved.status).toBe("ok");
+    expect(unresolved.diagnostics).toEqual([]);
+    expect(unresolved.symbols.map((symbol) => symbol.name)).toEqual(["load"]);
+  });
+
   test("v2 exposes declaration extraction errors while v1 preserves legacy recovery", async () => {
     const spy = spyOn(
       FunctionDeclaration.prototype,

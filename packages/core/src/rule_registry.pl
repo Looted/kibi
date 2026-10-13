@@ -18,7 +18,6 @@ known_rule('must-priority-coverage').
 known_rule('symbol-coverage').
 known_rule('symbol-traceability').
 known_rule('symbol-granularity').
-known_rule('symbol-title-unextracted').
 known_rule('no-dangling-refs').
 known_rule('source-relationship-parity').
 known_rule('branch-store-not-compiled').
@@ -68,7 +67,6 @@ rule_enforcement_class('must-priority-coverage', canonical).
 rule_enforcement_class('symbol-coverage', canonical).
 rule_enforcement_class('symbol-traceability', canonical).
 rule_enforcement_class('symbol-granularity', canonical).
-rule_enforcement_class('symbol-title-unextracted', canonical).
 rule_enforcement_class('no-dangling-refs', canonical).
 rule_enforcement_class('source-relationship-parity', canonical).
 rule_enforcement_class('branch-store-not-compiled', canonical).
@@ -118,7 +116,6 @@ rule_implementation('must-priority-coverage', prolog).
 rule_implementation('symbol-coverage', prolog).
 rule_implementation('symbol-traceability', prolog).
 rule_implementation('symbol-granularity', typescript).
-rule_implementation('symbol-title-unextracted', typescript).
 rule_implementation('no-dangling-refs', prolog).
 rule_implementation('source-relationship-parity', typescript).
 rule_implementation('branch-store-not-compiled', typescript).
@@ -238,7 +235,6 @@ rule_description('must-priority-coverage', 'Every must-priority requirement must
 rule_description('symbol-coverage', 'Production symbols need qualifying coverage via covered_by plus a canonical requirement/scenario test path').
 rule_description('symbol-traceability', 'Production symbols must directly implement requirements for ownership; covered_by is coverage only and executable_for is test identity only').
 rule_description('symbol-granularity', 'A symbol with traceability relationships must not link its source file coarsely while narrower behavioral symbols are available, unless it carries an allowed granularity_reason; the staged gate\'s symbol_granularity_violation evaluated KB-wide').
-rule_description('symbol-title-unextracted', 'A symbol without a coarse granularity_reason must have a title the source extractor produces for its sourceFile; a private class member or a removed or renamed declaration can never be refreshed and blocks kibi check --staged whenever the file is touched').
 rule_description('no-dangling-refs', 'All relationship targets must exist in the KB').
 rule_description('source-relationship-parity', 'Authored Markdown and relationship-shard edges must exactly match the compiled KB').
 rule_description('branch-store-not-compiled', 'The current branch\'s KB store must be compiled from the authored .kb/ sources; a missing or empty store is reported once, naming kibi sync, instead of every store-backed rule reading an empty KB').

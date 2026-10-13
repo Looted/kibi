@@ -1509,7 +1509,7 @@ links:
   );
 
   test(
-    "symbol-granularity and symbol-title-unextracted judge every symbol against its source file",
+    "symbol-granularity judges every symbol against its source file",
     async () => {
       mkdirSync(path.join(tmpDir, "src"), { recursive: true });
       mkdirSync(path.join(tmpDir, ".kb/requirements"), { recursive: true });
@@ -1537,9 +1537,9 @@ links:
           symbol("SYM-greeter-greet", "Greeter.greet", "src/greeter.ts"),
           // The class links the file coarsely while Greeter.greet exists.
           symbol("SYM-greeter", "Greeter", "src/greeter.ts"),
-          // A private member is never extracted: both rules report it.
+          // A private member is never extracted, so it links the file coarsely.
           symbol("SYM-greeter-helper", "Greeter.helper", "src/greeter.ts"),
-          // A documented coarse record is exempt from both rules.
+          // A documented coarse record is exempt.
           symbol(
             "SYM-module",
             "Greeter",
@@ -1551,13 +1551,7 @@ links:
 
       const { status, stdout } = runKibi(
         kibiBin,
-        [
-          "check",
-          "--rules",
-          "symbol-granularity,symbol-title-unextracted",
-          "--format",
-          "json",
-        ],
+        ["check", "--rules", "symbol-granularity", "--format", "json"],
         tmpDir,
       );
       expect(status).toBe(1);
@@ -1581,7 +1575,6 @@ links:
       ).toEqual([
         "symbol-granularity SYM-greeter",
         "symbol-granularity SYM-greeter-helper",
-        "symbol-title-unextracted SYM-greeter-helper",
       ]);
       const coarse = violations.find(
         (violation) => violation.entityId === "SYM-greeter",
@@ -1594,14 +1587,15 @@ links:
         titleExtracted: true,
       });
       const unextracted = violations.find(
-        (violation) => violation.rule === "symbol-title-unextracted",
+        (violation) => violation.entityId === "SYM-greeter-helper",
       );
       expect(unextracted?.description).toContain(
         "names 'Greeter.helper', which the source extractor does not produce for src/greeter.ts",
       );
       expect(unextracted?.suggestion).toContain(
-        "Re-point the symbol to the public declaration that owns the behavior",
+        "Re-point this symbol's relationships to the public declaration that owns the behavior",
       );
+      expect(unextracted?.evidence).toMatchObject({ titleExtracted: false });
     },
     TEST_TIMEOUT_MS,
   );

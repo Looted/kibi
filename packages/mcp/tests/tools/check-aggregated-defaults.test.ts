@@ -91,7 +91,7 @@ describe("MCP check aggregated defaults", () => {
           entityId: "FACT-MALFORMED-DEFAULT-001",
         }),
       );
-      expect(query).toHaveBeenCalledTimes(26);
+      expect(query).toHaveBeenCalledTimes(28);
     } finally {
       rmSync(workspaceRoot, { recursive: true, force: true });
     }
@@ -150,7 +150,7 @@ describe("MCP check aggregated defaults", () => {
             diagnostic.blocking === false,
         ),
       ).toBe(true);
-      expect(query).toHaveBeenCalledTimes(26);
+      expect(query).toHaveBeenCalledTimes(28);
     } finally {
       rmSync(workspaceRoot, { recursive: true, force: true });
     }

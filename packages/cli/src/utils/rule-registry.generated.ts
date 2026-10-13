@@ -38,13 +38,6 @@ export const GENERATED_RULES = [
     category: "traceability",
   },
   {
-    name: "symbol-title-unextracted",
-    description:
-      "A symbol without a coarse granularity_reason must have a title the source extractor produces for its sourceFile; a private class member or a removed or renamed declaration can never be refreshed and blocks kibi check --staged whenever the file is touched",
-    enforcementClass: "canonical",
-    category: "traceability",
-  },
-  {
     name: "no-dangling-refs",
     description: "All relationship targets must exist in the KB",
     enforcementClass: "canonical",

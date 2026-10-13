@@ -33,7 +33,7 @@ Kibi includes deterministic derived predicates for internal analysis and automat
 
 ## Symbol granularity semantics
 
-`symbol-granularity` (full check) and `symbol_granularity_violation` (staged gate) share one TypeScript predicate: a symbol with an `implements`, `covered_by` or `executable_for` link and no allowed `granularity_reason` violates it when its source file has a narrower behavioral declaration (a member of the symbol's title, or any declaration when the title itself is not extracted). The staged gate judges only declarations a staged hunk touches; full check judges every declaration of the working-tree file, so a clean full check leaves no granularity violation for a later commit to expose. `symbol-title-unextracted` (full check) reports a symbol without a coarse `granularity_reason` whose title names no extracted declaration, the case the staged gate reports as `symbols_manifest_stale` evidence without a matching symbol.
+`symbol-granularity` (full check) and `symbol_granularity_violation` (staged gate) share one TypeScript predicate: a symbol with an `implements`, `covered_by` or `executable_for` link and no allowed `granularity_reason` violates it when its source file has a narrower behavioral declaration (a member of the symbol's title, or any declaration when the title itself is not extracted). The staged gate judges only declarations a staged hunk touches; full check judges every declaration of the working-tree file, so a clean full check leaves no granularity violation for a later commit to expose.
 
 ## Requirement contradiction semantics
 

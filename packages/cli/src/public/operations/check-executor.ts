@@ -56,7 +56,7 @@ import {
   collectSourcePathDanglingViolations,
 } from "./source-path-dangling.js";
 import { collectSourceRelationshipParityViolations } from "./source-relationship-parity.js";
-import { collectSymbolSourceViolations } from "./symbol-granularity-check.js";
+import { collectSymbolGranularityViolations } from "./symbol-granularity-check.js";
 import type { OperationResult } from "./types.js";
 import { readWorkspaceSnapshot } from "./workspace-snapshot.js";
 
@@ -367,7 +367,7 @@ export async function executeCheck(
     const sourcePathFindings = rulesAllowlist.has(SOURCE_PATH_DANGLING_RULE)
       ? collectSourcePathDanglingViolations(workspaceRoot)
       : [];
-    const symbolSourceFindings = await collectSymbolSourceViolations(
+    const symbolGranularityFindings = await collectSymbolGranularityViolations(
       prolog,
       workspaceRoot,
       rulesAllowlist,
@@ -391,7 +391,7 @@ export async function executeCheck(
       ...queryPlanViolations,
       ...sourceRelationshipParityViolations,
       ...sourcePathFindings,
-      ...symbolSourceFindings,
+      ...symbolGranularityFindings,
       ...predicateConformanceFindings,
       ...originReviewFindings,
       ...entityContextFindings,
