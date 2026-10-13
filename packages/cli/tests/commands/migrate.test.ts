@@ -162,7 +162,9 @@ describe("kibi migrate", () => {
       "documentation/requirements/REQ-ONE.md -> .kb/requirements/REQ-ONE.md",
     );
     expect(result.stdout).toContain("would retire legacy .kb/config.json");
-    expect(result.stdout).toContain("would mark 1 legacy coarse symbol");
+    expect(result.stdout).toContain(
+      "would mark 1 coarse symbol link(s) as legacy-link",
+    );
     expect(
       existsSync(path.join(tmpDir, "documentation/requirements/REQ-ONE.md")),
     ).toBe(true);

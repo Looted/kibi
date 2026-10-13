@@ -820,17 +820,22 @@ function checkLegacyStorage(): {
   if (plan.blockers.length > 0) {
     return {
       passed: false,
-      message: `${plan.moves.length} legacy knowledge file(s) outside .kb/ cannot be moved automatically`,
-      remediation: `${plan.blockers.join(" ")} Compare each legacy copy with its .kb/ copy and keep the current one: replace the .kb/ copy when the legacy one is newer, or remove (git rm) the legacy copy when it is a stale duplicate. Then run: kibi migrate --yes`,
+      message: `${plan.blockers.length} legacy knowledge file(s) outside .kb/ cannot be moved automatically`,
+      remediation: `${plan.blockers.join(" ")} Then run: kibi migrate --yes`,
     };
   }
 
-  if (plan.legacyConfig === "present" || plan.moves.length > 0) {
+  if (
+    plan.legacyConfig === "present" ||
+    plan.moves.length > 0 ||
+    plan.removals.length > 0
+  ) {
+    const outside = plan.moves.length + plan.removals.length;
     return {
       passed: false,
       message:
-        plan.moves.length > 0
-          ? `${plan.moves.length} legacy knowledge file(s) still outside .kb/`
+        outside > 0
+          ? `${outside} legacy knowledge file(s) still outside .kb/${plan.removals.length > 0 ? ` (${plan.removals.length} identical to the .kb/ copy, which kibi migrate removes)` : ""}`
           : "Legacy .kb/config.json still present",
       remediation: "Run: kibi migrate --yes",
     };

@@ -52,6 +52,7 @@ import {
 import {
   type InventoryRederivation,
   applyInventoryRederivation,
+  applyInventoryRederivationDroppingGrounding,
   planInventoryRederivation,
 } from "./inventory-rederive.js";
 import { listLaneMarkdownFiles } from "./kb-sources.js";
@@ -61,6 +62,10 @@ import {
   applyPolarityValueBackfill,
   planPolarityValueBackfill,
 } from "./polarity-values.js";
+import {
+  applyRequirementStatusMapping,
+  planRequirementStatusMappings,
+} from "./requirement-status.js";
 import {
   type PlannedSourcePathRepairs,
   type SourcePathRemoval,
@@ -78,6 +83,12 @@ import {
   applySupersedesReasonAcknowledgement,
   planSupersedesReasonAcknowledgement,
 } from "./supersedes-reason.js";
+import {
+  SYMBOL_LEGACY_LINK_MARK_ACTION_ID,
+  SYMBOL_LEGACY_LINK_MARK_CODE,
+  applySymbolLegacyLinks,
+  planSymbolLegacyLinks,
+} from "./symbol-legacy-links.js";
 
 /** The KB schema generation that introduced entity `origin`. */
 // implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
@@ -97,6 +108,16 @@ export const SEMANTIC_INVENTORY_REDERIVE_CODE = "semantic_inventory_rederive";
 /** Review: a drifted inventory Kibi cannot re-derive safely. */
 // implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export const SEMANTIC_INVENTORY_REVIEW_CODE = "semantic_inventory_review";
+/**
+ * Review, applied only when approved by id: re-derive a drifted inventory and
+ * drop the grounding links that no longer ground a modeled claim.
+ */
+// implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
+export const SEMANTIC_INVENTORY_REDERIVE_DROP_GROUNDING_CODE =
+  "semantic_inventory_rederive_drop_grounding";
+/** Review, applied only when approved by id: map a legacy requirement status. */
+// implements REQ-cli-schema-migration
+export const REQ_STATUS_VOCABULARY_MAP_CODE = "req_status_vocabulary_map";
 /** Automatic: stamp `origin: {kind: migration}` on authored entities. */
 // implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export const ENTITY_ORIGIN_BACKFILL_CODE = "entity_origin_backfill";
@@ -117,15 +138,43 @@ const CURRENT_REQUIREMENT_STATUSES = new Set([
   "approved",
 ]);
 
-function rederiveAction(plan: InventoryRederivation): MigrationAction {
+/**
+ * A re-derivation that only applies after a status mapping a person must
+ * approve: it is a review action that depends on that mapping, so approving
+ * both runs them in order and `--apply-safe` alone runs neither.
+ */
+type AfterStatusMapping = Readonly<{ actionId: string; status: string }>;
+
+function rederiveAction(
+  plan: InventoryRederivation,
+  after?: AfterStatusMapping,
+): MigrationAction {
   const changed = plan.changes.filter((change) => change.change !== "kept");
+  const id = `semantic-inventory-rederive-${plan.requirementId}`;
   return migrationAction({
-    id: `semantic-inventory-rederive-${plan.requirementId}`,
+    id,
     code: SEMANTIC_INVENTORY_REDERIVE_CODE,
     category: "semantic",
-    safety: "automatic",
-    autoApplicable: true,
-    invocation: { kind: "cli", command_argv: ["kibi", "migrate", "--yes"] },
+    ...(after === undefined
+      ? {
+          safety: "automatic" as const,
+          autoApplicable: true,
+          invocation: {
+            kind: "cli" as const,
+            command_argv: ["kibi", "migrate", "--yes"],
+          },
+        }
+      : {
+          safety: "review" as const,
+          autoApplicable: false,
+          invocation: {
+            kind: "cli" as const,
+            command_argv: approvalArgv([after.actionId, id]),
+          },
+          dependsOn: [after.actionId],
+          dispositionRequired: true,
+          allowedDispositions: ["fixed" as const, "deferred" as const],
+        }),
     affectedEntityIds: [plan.requirementId],
     affectedFiles: [plan.path],
     postconditions: [
@@ -143,8 +192,23 @@ function rederiveAction(plan: InventoryRederivation): MigrationAction {
       changes: changed,
       contractHash: plan.contractHash,
       rule: "Claims whose claim_key and claim_text still match keep their status and grounding; new or changed claims are unresolved, never modeled.",
+      ...(after === undefined
+        ? {}
+        : {
+            afterStatus: after.status,
+            note: `This drift shows once the requirement has status ${after.status}; approve it together with ${after.actionId}.`,
+          }),
     },
   });
+}
+
+function approvalArgv(ids: readonly string[]): string[] {
+  return [
+    "kibi",
+    "migrate",
+    "--apply-safe",
+    ...ids.flatMap((id) => ["--approved-action", id]),
+  ];
 }
 
 function reviewAction(plan: InventoryRederivation): MigrationAction {
@@ -155,7 +219,7 @@ function reviewAction(plan: InventoryRederivation): MigrationAction {
     safety: "review",
     invocation: {
       kind: "review",
-      instruction: `${plan.requirementId} (${plan.path}) no longer matches the current semantic advisor and cannot be re-derived automatically: ${plan.reasons.join("; ")}. Fix it in ${plan.path} itself: kibi sync rejects this requirement, so store-backed tools (kb_upsert, kb_delete) cannot see it until it compiles. In its front matter, write the re-derived contract from this action's evidence.contract (semantic_inventory, logic_claims, semantic_source_hash and their version fields), then make modeled claims and requires_* links match one to one: re-ground or remove each listed grounding link, and keep a claim modeled only while a grounding fact with the same claim_key remains. Run kibi sync to confirm. To see how the advisor reads the prose, run \`kibi model --input -\` with {"mode":"analyze","type":"req","id":"${plan.requirementId}","text":<the requirement's semantic_text, or its statement when it has none>}.`,
+      instruction: `${plan.requirementId} (${plan.path}) no longer matches the current semantic advisor and cannot be re-derived automatically: ${plan.reasons.join("; ")}. Fix it in ${plan.path} itself: kibi sync rejects this requirement, so store-backed tools (kb_upsert, kb_delete) cannot see it until it compiles. In its front matter, write the re-derived contract from this action's evidence.contract (semantic_inventory, logic_claims, semantic_source_hash and their version fields), then make modeled claims and requires_* links match one to one: re-ground or remove each listed grounding link, and keep a claim modeled only while a grounding fact with the same claim_key remains. Run kibi sync to confirm.${plan.rederivableByDroppingGrounding ? ` Or approve semantic-inventory-rederive-drop-grounding-${plan.requirementId}, which writes that contract and removes exactly the listed orphaned grounding links.` : ""} To see how the advisor reads the prose, run \`kibi model --input -\` with {"mode":"analyze","type":"req","id":"${plan.requirementId}","text":<the requirement's semantic_text, or its statement when it has none>}.`,
     },
     affectedEntityIds: [plan.requirementId],
     affectedFiles: [plan.path],
@@ -170,6 +234,171 @@ function reviewAction(plan: InventoryRederivation): MigrationAction {
       contractHash: plan.contractHash,
     },
   });
+}
+
+/**
+ * The explicit alternative to a manual inventory fix: write the re-derived
+ * contract and remove the orphaned grounding links from the requirement's
+ * front matter. It drops modeled logic, so it is a review action that
+ * `--apply-safe` never selects on its own; approving its id runs it.
+ */
+function dropGroundingAction(
+  plan: InventoryRederivation,
+  after?: AfterStatusMapping,
+): MigrationAction {
+  const id = `semantic-inventory-rederive-drop-grounding-${plan.requirementId}`;
+  const drops = plan.orphanedGrounding.map(({ type, target, claimKey }) => ({
+    type,
+    target,
+    claimKey,
+  }));
+  return migrationAction({
+    id,
+    code: SEMANTIC_INVENTORY_REDERIVE_DROP_GROUNDING_CODE,
+    category: "semantic",
+    safety: "review",
+    autoApplicable: false,
+    invocation: {
+      kind: "cli",
+      command_argv: approvalArgv(
+        after === undefined ? [id] : [after.actionId, id],
+      ),
+    },
+    dependsOn: after === undefined ? [] : [after.actionId],
+    affectedEntityIds: [plan.requirementId],
+    affectedFiles: [plan.path],
+    postconditions: [
+      {
+        check: "proposition-complete-ingestion",
+        entityId: plan.requirementId,
+        errors: 0,
+      },
+    ],
+    dispositionRequired: true,
+    allowedDispositions: ["fixed", "deferred"],
+    evidence: {
+      reason: `Re-derive the semantic inventory of ${plan.requirementId} and drop the ${drops.length} grounding link(s) that no longer ground a modeled claim, so kibi sync accepts it. The modeled logic those links carried is removed from the requirement (the facts themselves stay); re-ground the claims later with kibi model if they still matter.`,
+      approve: `kibi migrate --apply-safe --approved-plan-hash <this plan's planHash>${after === undefined ? "" : ` --approved-action ${after.actionId}`} --approved-action ${id}`,
+      ...(after === undefined ? {} : { afterStatus: after.status }),
+      droppedGrounding: drops,
+      summary: plan.summary,
+      changes: plan.changes.filter((change) => change.change !== "kept"),
+      contract: plan.contract,
+      contractHash: plan.contractHash,
+      ...(after === undefined
+        ? { alternativeTo: `semantic-inventory-review-${plan.requirementId}` }
+        : {}),
+    },
+  });
+}
+
+/** The grounding links an approved drop-grounding action lists. */
+function plannedDrops(
+  action: MigrationAction,
+): Array<{ type: string; target: string }> {
+  return plannedRecords(action.evidence.droppedGrounding).flatMap(
+    ({ type, target }) =>
+      typeof type === "string" && typeof target === "string"
+        ? [{ type, target }]
+        : [],
+  );
+}
+
+/**
+ * One action per requirement whose status is outside the vocabulary: a
+ * review (the target status is a semantic choice) carrying the suggested
+ * mapping and the inventory drift the requirement shows once mapped. With a
+ * suggestion it is executable when approved by id; the re-derivation of the
+ * latent drift depends on it.
+ */
+// implements REQ-cli-schema-migration, REQ-kibi-proposition-complete-ingestion
+export function requirementStatusActions(
+  workspaceRoot: string,
+): MigrationAction[] {
+  const actions: MigrationAction[] = [];
+  for (const finding of planRequirementStatusMappings(workspaceRoot)) {
+    const id = `req-status-vocabulary-map-${finding.requirementId}`;
+    const drift = finding.latentDrift;
+    const target = finding.suggestedStatus;
+    actions.push(
+      migrationAction({
+        id,
+        code: REQ_STATUS_VOCABULARY_MAP_CODE,
+        category: "schema",
+        safety: "review",
+        autoApplicable: false,
+        invocation:
+          target === null
+            ? {
+                kind: "review",
+                instruction: `${finding.requirementId} (${finding.path}) has status ${finding.status}, which is not a requirement status, so it is skipped by the proof ladder and its semantic inventory is never validated. Set status to open, in_progress or closed (legacy: active, approved) in the file, or use proof_exempt to park it, then rerun kibi migrate.`,
+              }
+            : { kind: "cli", command_argv: approvalArgv([id]) },
+        affectedEntityIds: [finding.requirementId],
+        affectedFiles: [finding.path],
+        postconditions: [{ rule: "req-status-vocabulary", findings: 0 }],
+        dispositionRequired: true,
+        allowedDispositions: ["fixed", "deferred"],
+        evidence: {
+          reason: `Status ${finding.status} is ADR or lifecycle vocabulary, not a requirement status: the requirement is skipped by the proof ladder and kibi sync never validates its semantic inventory.`,
+          status: finding.status,
+          suggestedStatus: target,
+          ...(target === null
+            ? {}
+            : {
+                mapping: `${finding.status} -> ${target}`,
+                approve: `kibi migrate --apply-safe --approved-plan-hash <this plan's planHash> --approved-action ${id}`,
+                choice:
+                  "The target status is a semantic choice; to pick another one, set it in the file by hand instead of approving this action.",
+              }),
+          latentDrift:
+            drift === null
+              ? null
+              : {
+                  ingestionErrors: drift.errors,
+                  safe: drift.safe,
+                  reasons: drift.reasons,
+                  summary: drift.summary,
+                  contractHash: drift.contractHash,
+                  orphanedGrounding: drift.orphanedGrounding,
+                  ...(drift.safe
+                    ? {
+                        rederiveAction: `semantic-inventory-rederive-${finding.requirementId}`,
+                      }
+                    : drift.rederivableByDroppingGrounding
+                      ? {
+                          rederiveAction: `semantic-inventory-rederive-drop-grounding-${finding.requirementId}`,
+                        }
+                      : {
+                          note: "After the mapping, kibi sync rejects this requirement until its inventory is fixed by hand; rerun kibi migrate for the semantic_inventory_review action.",
+                        }),
+                },
+        },
+      }),
+    );
+    if (target === null || drift === null) continue;
+    const after = { actionId: id, status: target };
+    if (drift.safe) actions.push(rederiveAction(drift, after));
+    else if (drift.rederivableByDroppingGrounding)
+      actions.push(dropGroundingAction(drift, after));
+  }
+  return actions;
+}
+
+/** The status mapping an approved req_status_vocabulary_map action lists. */
+function plannedStatusMapping(action: MigrationAction): {
+  path: string;
+  from: string;
+  to: string;
+} {
+  const path = action.affectedFiles[0];
+  const from = action.evidence.status;
+  const to = action.evidence.suggestedStatus;
+  if (path === undefined || typeof from !== "string" || typeof to !== "string")
+    throw new Error(
+      "Requirement status mapping names no file or target status; set the status by hand.",
+    );
+  return { path, from, to };
 }
 
 type SourceRequirement = {
@@ -395,7 +624,12 @@ export function buildSchema6MigrationFragment(input: {
     const action = plan.safe ? rederiveAction(plan) : reviewAction(plan);
     actions.push(action);
     if (plan.safe) sourceRewriteActionIds.push(action.id);
+    if (!plan.safe && plan.rederivableByDroppingGrounding)
+      actions.push(dropGroundingAction(plan));
   }
+  // Requirements with a status outside the vocabulary: mapping is a review,
+  // and their latent drift is re-derived only after an approved mapping.
+  actions.push(...requirementStatusActions(input.workspaceRoot));
   if (drift.some((plan) => !plan.safe)) {
     diagnostics.push(
       `${drift.filter((plan) => !plan.safe).length} requirement inventory(ies) need a manual fix before kibi sync succeeds; see the semantic_inventory_review actions.`,
@@ -456,6 +690,13 @@ export function buildSchema6MigrationFragment(input: {
   const lifecycle = buildLifecycleRepairActions(input.workspaceRoot);
   actions.push(...lifecycle.actions);
   sourceRewriteActionIds.push(...lifecycle.sourceRewriteActionIds);
+  // Coarse symbol links the staged gate would block are marked at any schema
+  // version, by the gate's own rule.
+  const legacyLinks = symbolLegacyLinkAction(input.workspaceRoot);
+  if (legacyLinks !== null) {
+    actions.push(legacyLinks);
+    sourceRewriteActionIds.push(legacyLinks.id);
+  }
   return { actions, sourceRewriteActionIds, diagnostics };
 }
 
@@ -506,6 +747,36 @@ export function buildLifecycleRepairActions(workspaceRoot: string): {
     sourceRewriteActionIds.push(SOURCE_PATH_REWRITE_ACTION_ID);
   }
   return { actions, sourceRewriteActionIds };
+}
+
+/**
+ * The automatic legacy-link pass over `.kb/symbols.yaml`, bound to the
+ * manifest bytes it was planned from; null when no link needs a mark.
+ */
+// implements REQ-cli-schema-migration, REQ-symbol-behavioral-anchors
+export function symbolLegacyLinkAction(
+  workspaceRoot: string,
+): MigrationAction | null {
+  const plan = planSymbolLegacyLinks(workspaceRoot);
+  if (plan.targets.length === 0) return null;
+  return migrationAction({
+    id: SYMBOL_LEGACY_LINK_MARK_ACTION_ID,
+    code: SYMBOL_LEGACY_LINK_MARK_CODE,
+    category: "symbol",
+    safety: "automatic",
+    autoApplicable: true,
+    invocation: { kind: "cli", command_argv: ["kibi", "migrate", "--yes"] },
+    affectedEntityIds: plan.targets.map((target) => target.id),
+    affectedFiles: [plan.manifestPath],
+    postconditions: [{ rule: "symbol_granularity_violation", findings: 0 }],
+    evidence: {
+      reason:
+        "These symbols link a source file coarsely while it declares narrower behavioral symbols, so the staged check (kibi check --staged) blocks the next commit that touches them. Each gets granularity_reason: legacy-link (accepted legacy granularity); no link moves and no other field changes.",
+      count: plan.targets.length,
+      manifestHash: plan.manifestHash,
+      symbols: plan.targets,
+    },
+  });
 }
 
 /** The sync that recompiles sources rewritten by earlier actions. */
@@ -599,9 +870,47 @@ export async function applySchema6MigrationAction(
       );
       return;
     }
+    case REQ_STATUS_VOCABULARY_MAP_CODE: {
+      const mapping = plannedStatusMapping(action);
+      applyRequirementStatusMapping(
+        context.workspaceRoot,
+        mapping.path,
+        mapping.from,
+        mapping.to,
+      );
+      return;
+    }
+    case SEMANTIC_INVENTORY_REDERIVE_DROP_GROUNDING_CODE: {
+      const requirementId = action.affectedEntityIds[0];
+      const contractHash = action.evidence.contractHash;
+      if (requirementId === undefined || typeof contractHash !== "string")
+        throw new Error(
+          "Inventory re-derivation names no requirement or contract hash.",
+        );
+      applyInventoryRederivationDroppingGrounding(
+        context.workspaceRoot,
+        requirementId,
+        contractHash,
+        plannedDrops(action),
+      );
+      return;
+    }
     case ENTITY_ORIGIN_BACKFILL_CODE:
       applyOriginBackfill(context.workspaceRoot, context.clock().toISOString());
       return;
+    case SYMBOL_LEGACY_LINK_MARK_CODE: {
+      const result = applySymbolLegacyLinks(context.workspaceRoot, {
+        ...(typeof action.evidence.manifestHash === "string"
+          ? { expectedHash: action.evidence.manifestHash }
+          : {}),
+        expectedIds: action.affectedEntityIds,
+      });
+      if (result.unmarked.length > 0)
+        throw new Error(
+          `Could not mark ${result.unmarked.join(", ")} as legacy-link in place; add granularity_reason: legacy-link to them by hand.`,
+        );
+      return;
+    }
     case CLOSE_SUPERSEDED_REQUIREMENTS_CODE: {
       const result = applySupersededClosures(
         context.workspaceRoot,
@@ -642,6 +951,18 @@ export async function applySchema6MigrationAction(
   }
 }
 
+/**
+ * Review actions Kibi can execute, but only when a person approves them by
+ * id (`--approved-action`): `--apply-safe` selects automatic actions alone.
+ */
+// implements REQ-kibi-schema6-migration, REQ-cli-schema-migration, REQ-agent-guided-migration-orchestration
+export const SCHEMA6_APPROVABLE_REVIEW_CODES: ReadonlySet<string> = new Set([
+  SEMANTIC_INVENTORY_REDERIVE_DROP_GROUNDING_CODE,
+  REQ_STATUS_VOCABULARY_MAP_CODE,
+  // A re-derivation that waits on an approved status mapping.
+  SEMANTIC_INVENTORY_REDERIVE_CODE,
+]);
+
 // implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export const SCHEMA6_AUTOMATIC_CODES: ReadonlySet<string> = new Set([
   POLARITY_VALUE_BACKFILL_CODE,
@@ -652,5 +973,6 @@ export const SCHEMA6_AUTOMATIC_CODES: ReadonlySet<string> = new Set([
   ENTITY_ORIGIN_BACKFILL_CODE,
   CLOSE_SUPERSEDED_REQUIREMENTS_CODE,
   SOURCE_PATH_REWRITE_CODE,
+  SYMBOL_LEGACY_LINK_MARK_CODE,
   MIGRATION_SYNC_CODE,
 ]);

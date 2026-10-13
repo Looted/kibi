@@ -396,6 +396,66 @@ function predicateSchemaAlignmentAction(
 /** Migration code for mechanical predicate namespace/alias repairs. */
 export const PREDICATE_SCHEMA_ALIGNMENT_CODE = "predicate_schema_alignment";
 
+/** Migration code of the grouped untracked-source parity findings. */
+export const UNTRACKED_KNOWLEDGE_SOURCES_CODE = "untracked_knowledge_sources";
+
+/**
+ * Every source-relationship-parity finding explained by untracked files
+ * (evidence `untrackedSources`) has one cause and one fix: the files Git
+ * does not track and no pending-source receipt covers. After a storage move
+ * that can be thousands of relationships, so they become one review action
+ * naming the files instead of one per relationship.
+ */
+// implements REQ-agent-guided-migration-orchestration, REQ-kibi-source-relationship-parity
+function untrackedSourceActionFromViolations(
+  violations: readonly Readonly<Record<string, unknown>>[],
+): { action: MigrationAction; consumed: ReadonlySet<number> } | null {
+  const consumed = new Set<number>();
+  const files = new Set<string>();
+  const entityIds = new Set<string>();
+  const relationships: unknown[] = [];
+  for (const [index, violation] of violations.entries()) {
+    if (violation.rule !== "source-relationship-parity") continue;
+    const evidence = isRecord(violation.evidence) ? violation.evidence : {};
+    const sources = Array.isArray(evidence.untrackedSources)
+      ? evidence.untrackedSources.filter(isRecord)
+      : [];
+    if (sources.length === 0) continue;
+    consumed.add(index);
+    for (const source of sources) {
+      if (typeof source.file === "string") files.add(source.file);
+      if (typeof source.entityId === "string") entityIds.add(source.entityId);
+    }
+    if (evidence.relationship !== undefined)
+      relationships.push(evidence.relationship);
+  }
+  if (consumed.size === 0) return null;
+  const listed = [...files].sort();
+  return {
+    consumed,
+    action: migrationAction({
+      id: "untracked-knowledge-sources",
+      code: UNTRACKED_KNOWLEDGE_SOURCES_CODE,
+      category: "relationship",
+      safety: "review",
+      invocation: {
+        kind: "review",
+        instruction: `${consumed.size} authored relationship(s) are missing from the compiled KB because ${listed.length} file(s) declaring their endpoints are not tracked by Git and no pending-source receipt covers them: ${listed.join(", ")}. Stage them (git add; staging is enough, Kibi never stages files itself) or rewrite the entities with kb_upsert, then run kibi sync and rerun kibi migrate.`,
+      },
+      affectedEntityIds: [...entityIds],
+      affectedFiles: listed,
+      postconditions: [{ rule: "source-relationship-parity", findings: 0 }],
+      evidence: {
+        relationshipCount: consumed.size,
+        files: listed,
+        // A sample; the count above is the full number.
+        relationships: relationships.slice(0, 20),
+      },
+      dispositionRequired: true,
+    }),
+  };
+}
+
 // implements REQ-agent-guided-migration-orchestration, REQ-kibi-predicate-vocabulary-migration, REQ-cli-schema-migration
 export function buildActionsFromCheck(input: {
   violations?: readonly Readonly<Record<string, unknown>>[];
@@ -404,8 +464,11 @@ export function buildActionsFromCheck(input: {
   const actions: MigrationAction[] = [];
   const lifecycle = lifecycleActionsFromViolations(input.violations ?? []);
   actions.push(...lifecycle.actions.map(migrationAction));
+  const untracked = untrackedSourceActionFromViolations(input.violations ?? []);
+  if (untracked !== null) actions.push(untracked.action);
   for (const [index, violation] of (input.violations ?? []).entries()) {
     if (lifecycle.consumed.has(index)) continue;
+    if (untracked?.consumed.has(index)) continue;
     const rule = typeof violation.rule === "string" ? violation.rule : "check";
     const entityId =
       typeof violation.entityId === "string" ? violation.entityId : "";
@@ -686,17 +749,20 @@ export function buildActionsFromStatus(input: {
   }
 
   const storeState = typeof store?.state === "string" ? store.state : null;
-  const legacyStorageMigrationRequired = legacyConfigExists(
-    input.workspaceRoot,
-  );
+  // Legacy storage is evaluated whether or not the legacy config survives:
+  // legacy copies left beside a migrated .kb/ (moved, identical or stale)
+  // are the same finding 'kibi doctor' and 'kibi migrate' report.
+  // implements REQ-cli-schema-migration
+  const legacyStorage = planLegacyStorageMigration(input.workspaceRoot);
+  const legacyStorageMigrationRequired =
+    legacyConfigExists(input.workspaceRoot) ||
+    legacyStorage.moves.length > 0 ||
+    legacyStorage.removals.length > 0 ||
+    legacyStorage.blockers.length > 0;
   // A legacy cutover that cannot move its files (a destination already
   // exists, a malformed config) is an operator decision, not an automatic
   // step that fails when applied and takes the compile with it.
-  const legacyStorage = legacyStorageMigrationRequired
-    ? planLegacyStorageMigration(input.workspaceRoot)
-    : null;
-  const legacyStorageBlocked =
-    legacyStorage !== null && legacyStorage.blockers.length > 0;
+  const legacyStorageBlocked = legacyStorage.blockers.length > 0;
   if (storeState === "missing") {
     actions.push(
       migrationAction({
@@ -750,26 +816,29 @@ export function buildActionsFromStatus(input: {
         invocation: legacyStorageBlocked
           ? {
               kind: "review",
-              instruction: `The legacy .kb/config.json still names knowledge files outside .kb/ and Kibi cannot move them: ${legacyStorage?.blockers.join(" ")} Compare each legacy copy with its .kb/ copy and keep the current one: replace the .kb/ copy when the legacy one is newer, or remove (git rm) the legacy copy when it is a stale duplicate. Then run 'kibi migrate --yes' to retire .kb/config.json.`,
+              instruction: `Legacy knowledge files outside .kb/ cannot be migrated automatically: ${legacyStorage.blockers.join(" ")} Then run 'kibi migrate --yes'.`,
             }
           : { kind: "cli", command_argv: ["kibi", "migrate", "--yes"] },
         affectedFiles: [
           ".kb/manifest.json",
           ".kb/migrations",
           ".kb/config.json",
-          ...(legacyStorage?.moves.map((move) => move.from) ?? []),
+          ...legacyStorage.moves.map((move) => move.from),
+          ...legacyStorage.removals.map((removal) => removal.path),
         ],
         evidence: {
           configStatus,
-          ...(legacyStorage === null
-            ? {}
-            : {
+          ...(legacyStorageMigrationRequired
+            ? {
                 legacyStorage: {
                   moves: legacyStorage.moves,
+                  removals: legacyStorage.removals,
+                  conflicts: legacyStorage.conflicts,
                   blockers: legacyStorage.blockers,
                   legacyConfig: legacyStorage.legacyConfig,
                 },
-              }),
+              }
+            : {}),
         },
         dependsOn: storeState === "missing" ? ["branch-store-ensure"] : [],
         autoApplicable: !operatorOnly,

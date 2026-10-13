@@ -7068,7 +7068,7 @@
         "additionalProperties": {},
         "properties": {
           "approvedActionIds": {
-            "description": "Required for migration-plan.v2. Exact automatic action IDs explicitly approved for this application.",
+            "description": "Required for migration-plan.v2. Exact action IDs explicitly approved for this application: automatic actions, or review actions with a cli invocation that Kibi executes only when approved by id (for example semantic_inventory_rederive_drop_grounding).",
             "items": {
               "minLength": 1,
               "type": "string"
@@ -7086,7 +7086,7 @@
           },
           "plan": {
             "additionalProperties": {},
-            "description": "The complete kibi.bootstrap-plan.v1, kibi.compile-plan.v1, kibi.migration-plan.v2, or hash-bound kibi.entity-deletion-plan.v1 object. Migration plans require approvedActionIds and reject blocked/non-automatic actions.",
+            "description": "The complete kibi.bootstrap-plan.v1, kibi.compile-plan.v1, kibi.migration-plan.v2, or hash-bound kibi.entity-deletion-plan.v1 object. Migration plans require approvedActionIds and reject blocked actions and review actions Kibi cannot execute.",
             "properties": {},
             "type": "object"
           },

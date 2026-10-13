@@ -15,6 +15,7 @@ import { discoverSourceFiles } from "../../../src/commands/sync/discovery.js";
 import { extractFromMarkdown } from "../../../src/extractors/markdown.js";
 import {
   applyInventoryRederivation,
+  applyInventoryRederivationDroppingGrounding,
   applySafeInventoryRederivations,
   planInventoryRederivation,
 } from "../../../src/operations/migration/inventory-rederive.js";
@@ -254,5 +255,67 @@ describe("semantic inventory re-derivation", () => {
     expect(() =>
       applyInventoryRederivation(root, "REQ-upload-resume", "0".repeat(64)),
     ).toThrow("changed since planning");
+  });
+
+  test("an approved unsafe re-derivation drops exactly the orphaned grounding links and passes ingestion", () => {
+    const { propositions, factId } = writeDriftedRequirement(
+      root,
+      "REQ-upload-unsafe",
+      1,
+    );
+    const file = path.join(root, ".kb/requirements/REQ-upload-unsafe.md");
+    const before = readFileSync(file, "utf8");
+    const [plan] = planInventoryRederivation(root);
+    expect(plan?.safe).toBe(false);
+    expect(plan?.rederivableByDroppingGrounding).toBe(true);
+    expect(plan?.orphanedGrounding).toEqual([
+      {
+        type: "requires_predicate",
+        target: factId,
+        claimKey: propositions[1]?.claim_key ?? "",
+        inFrontMatter: true,
+      },
+    ]);
+
+    // A drop list that differs from the plan is refused before any write.
+    expect(() =>
+      applyInventoryRederivationDroppingGrounding(
+        root,
+        "REQ-upload-unsafe",
+        plan?.contractHash ?? "",
+        [{ type: "requires_predicate", target: "FACT-other" }],
+      ),
+    ).toThrow("changed since planning");
+    expect(readFileSync(file, "utf8")).toBe(before);
+
+    const outcome = applyInventoryRederivationDroppingGrounding(
+      root,
+      "REQ-upload-unsafe",
+      plan?.contractHash ?? "",
+      [{ type: "requires_predicate", target: factId }],
+    );
+    expect(outcome.outcome).toBe("rederived");
+    expect(boundaryErrors(root, "REQ-upload-unsafe")).toEqual([]);
+    expect(planInventoryRederivation(root)).toEqual([]);
+    const strip = (data: Record<string, unknown>) => {
+      const {
+        semantic_inventory: _inventory,
+        logic_claims: _claims,
+        semantic_source_hash: _hash,
+        links: _links,
+        ...rest
+      } = data;
+      return rest;
+    };
+    const frontmatterOf = (content: string) =>
+      loadYaml(content.split("---")[1] ?? "") as Record<string, unknown>;
+    expect(frontmatterOf(readFileSync(file, "utf8")).links).toBeUndefined();
+    expect(strip(frontmatterOf(readFileSync(file, "utf8")))).toEqual(
+      strip(frontmatterOf(before)),
+    );
+    // The grounding fact itself stays.
+    expect(existsSync(path.join(root, ".kb", "facts", `${factId}.md`))).toBe(
+      true,
+    );
   });
 });
