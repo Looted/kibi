@@ -3,6 +3,7 @@ import { describe, expect, it } from "bun:test";
 import { execFileSync } from "node:child_process";
 import {
   chmodSync,
+  mkdirSync,
   mkdtempSync,
   rmSync,
   symlinkSync,
@@ -315,6 +316,78 @@ describe("git change snapshots", () => {
       expect(plain.mergeInherited).toBeUndefined();
       expect(plain.baseTree).toBe(gitText(root, ["rev-parse", "HEAD^{tree}"]));
       expect(plain.inventory.map((file) => file.path)).toEqual(["after.ts"]);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("judges knowledge files moved into .kb/ only on what the commit changed in them", () => {
+    const root = createRepo();
+    try {
+      const record = (id: string, title: string) =>
+        `  - id: ${id}\n    title: ${title}\n    sourceFile: src/${title}.ts\n    links:\n      - REQ-legacy-owner\n    status: active\n`;
+      mkdirSync(join(root, "documentation/requirements"), { recursive: true });
+      writeFileSync(
+        join(root, "documentation/symbols.yaml"),
+        `symbols:\n${record("SYM-alpha", "alpha")}${record("SYM-beta", "beta")}`,
+      );
+      writeFileSync(
+        join(root, "documentation/requirements/REQ-legacy-owner.md"),
+        "---\nid: REQ-legacy-owner\ntitle: Legacy owner\nstatus: open\n---\n\n# Legacy owner\n",
+      );
+      writeFileSync(join(root, "notes.md"), "plain notes\n");
+      commitAll(root, "legacy layout");
+
+      mkdirSync(join(root, ".kb/requirements"), { recursive: true });
+      mkdirSync(join(root, "docs"), { recursive: true });
+      git(root, ["mv", "documentation/symbols.yaml", ".kb/symbols.yaml"]);
+      git(root, [
+        "mv",
+        "documentation/requirements/REQ-legacy-owner.md",
+        ".kb/requirements/REQ-legacy-owner.md",
+      ]);
+      // A rename that is not a knowledge relocation keeps today's diff.
+      git(root, ["mv", "notes.md", "docs/notes.md"]);
+      writeFileSync(
+        join(root, ".kb/symbols.yaml"),
+        `symbols:\n${record("SYM-alpha", "alpha")}${record("SYM-beta", "beta")}    owner: platform\n`,
+      );
+      git(root, ["add", ".kb/symbols.yaml"]);
+
+      const snapshot = captureStagedSnapshot(root);
+      expect(snapshot.renameResolved).toEqual([
+        {
+          from: "documentation/requirements/REQ-legacy-owner.md",
+          to: ".kb/requirements/REQ-legacy-owner.md",
+        },
+        { from: "documentation/symbols.yaml", to: ".kb/symbols.yaml" },
+      ]);
+      expect(
+        snapshot.inventory.map((file) => [file.status, file.path]),
+      ).toEqual([
+        ["M", ".kb/symbols.yaml"],
+        ["R", "docs/notes.md"],
+      ]);
+      expect(snapshot.inventory[0]?.diffText).toContain("+    owner: platform");
+      expect(snapshot.inventory[0]?.diffText).not.toContain("SYM-alpha");
+      // Readers of the base see the committed manifest at its new path.
+      expect(
+        snapshot.readGit(["show", "HEAD:.kb/symbols.yaml"]).toString("utf8"),
+      ).toContain("SYM-beta");
+
+      // A plain edit of an already canonical manifest diffs against HEAD.
+      git(root, ["commit", "--no-verify", "-m", "migrate"]);
+      writeFileSync(
+        join(root, ".kb/symbols.yaml"),
+        `symbols:\n${record("SYM-alpha", "alpha")}`,
+      );
+      git(root, ["add", ".kb/symbols.yaml"]);
+      const plain = captureStagedSnapshot(root);
+      expect(plain.renameResolved).toBeUndefined();
+      expect(plain.baseTree).toBe(gitText(root, ["rev-parse", "HEAD^{tree}"]));
+      expect(plain.inventory.map((file) => file.path)).toEqual([
+        ".kb/symbols.yaml",
+      ]);
     } finally {
       rmSync(root, { recursive: true, force: true });
     }
