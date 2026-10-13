@@ -1,7 +1,7 @@
 ---
 title: Raw inference is internal-only
 status: active
-text_ref: documentation/requirements/REQ-013.md
+text_ref: .kb/requirements/REQ-013.md
 tags:
   - lane:ontology
   - strict-semantics

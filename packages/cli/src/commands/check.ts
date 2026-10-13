@@ -90,6 +90,7 @@ import {
   isBehaviorSourceEdit,
   parseKibiImpactOverride,
 } from "../traceability/staged-impact-contract.js";
+import { stagedInventoryDriftViolations } from "../traceability/staged-inventory-drift.js";
 import {
   assessStagedSymbolsManifest,
   collectStagedAuthoredSymbolsManifestEvidence,
@@ -724,11 +725,20 @@ export async function checkCommand(
             file.disposition = "checked";
           }
         }
+        const mergeInherited = snapshot.mergeInherited ?? [];
+        const mergeNote =
+          mergeInherited.length > 0
+            ? `Merge commit: ${mergeInherited.length} staged file(s) are taken unchanged from the merged branch and are not judged here; only what the merge itself changed is checked. Any debt in those files was inherited from that branch.`
+            : undefined;
         const printSnapshotResult = (
           input: Parameters<typeof printStagedResult>[0],
         ): void => {
           snapshot.assertUnchanged();
-          printStagedResult(input);
+          printStagedResult(
+            mergeNote === undefined
+              ? input
+              : { ...input, messages: [mergeNote, ...(input.messages ?? [])] },
+          );
         };
         stagedCoverage = analyzeStagedFileCoverage(
           stagedInventory,
@@ -854,6 +864,31 @@ export async function checkCommand(
             });
             return { exitCode: options.dryRun ? 0 : 1 };
           }
+        }
+        const inventoryDrift = stagedInventoryDriftViolations({
+          stagedPaths: new Set(markdownFiles.map((file) => file.path)),
+          snapshotEntities,
+          readBase: (filePath) => {
+            try {
+              return snapshot
+                .readGit(["show", `${snapshot.baseTree}:${filePath}`])
+                .toString("utf8");
+            } catch {
+              return null;
+            }
+          },
+        });
+        if (inventoryDrift.length > 0) {
+          printSnapshotResult({
+            format: options.format,
+            coverage: stagedCoverage,
+            violations: inventoryDrift,
+            messages: [
+              `${inventoryDrift.length} staged requirement(s) have a semantic inventory that no longer matches their prose:`,
+              ...inventoryDrift.map((violation) => `  ${violation.message}`),
+            ],
+          });
+          return { exitCode: options.dryRun ? 0 : 1 };
         }
         const snapshotRequirementIds = new Set(
           snapshotEntities

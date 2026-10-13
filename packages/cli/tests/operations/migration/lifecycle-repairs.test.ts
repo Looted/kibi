@@ -415,6 +415,85 @@ describe("lifecycle repairs on authored sources", () => {
     );
   });
 
+  test("rewrites moved text_ref paths, flags unmapped ones and ignores prose", () => {
+    write(
+      root,
+      ".kb/requirements/REQ-moved.md",
+      requirement("REQ-moved", "open"),
+    );
+    write(root, "docs/evidence.md", "evidence\n");
+    const moved = ".kb/facts/FACT-moved.md";
+    const kept = ".kb/facts/FACT-kept.md";
+    const gone = ".kb/facts/FACT-gone.md";
+    const prose = ".kb/facts/FACT-prose.md";
+    const semantic = ".kb/requirements/REQ-semantic.md";
+    write(
+      root,
+      moved,
+      "---\nid: FACT-moved\ntitle: Moved\ntext_ref: documentation/requirements/REQ-moved.md\n---\n\nBody\n",
+    );
+    write(
+      root,
+      kept,
+      "---\nid: FACT-kept\ntitle: Kept\ntext_ref: docs/evidence.md#top\n---\n\nBody\n",
+    );
+    write(
+      root,
+      gone,
+      "---\nid: FACT-gone\ntitle: Gone\ntext_ref: kibi-docs/retired/notes.md\n---\n\nBody\n",
+    );
+    write(
+      root,
+      prose,
+      "---\nid: FACT-prose\ntitle: Prose\ntext_ref: The checkout total stays positive; see REQ-moved\n---\n\nBody\n",
+    );
+    write(
+      root,
+      semantic,
+      "---\nid: REQ-semantic\ntitle: Semantic\ntype: req\nstatus: open\ntext_ref: documentation/requirements/REQ-moved.md\n---\n\nBody\n",
+    );
+
+    const dangling = findDanglingSources(root);
+    expect(
+      dangling.map((repair) => [repair.entityId, repair.field, repair.refused]),
+    ).toEqual([
+      ["FACT-gone", "text_ref", expect.stringContaining("no file under .kb/")],
+      ["FACT-moved", "text_ref", undefined],
+      ["REQ-semantic", "text_ref", expect.stringContaining("semantic source")],
+    ]);
+    const planned = plannedSourcePathRepairs(dangling);
+    expect(planned.rewrites).toEqual([
+      {
+        entityId: "FACT-moved",
+        file: moved,
+        field: "text_ref",
+        from: "documentation/requirements/REQ-moved.md",
+        to: ".kb/requirements/REQ-moved.md",
+      },
+    ]);
+    expect(planned.removals).toEqual([]);
+
+    const result = applySourcePathRepairs(root, planned);
+    expect(result.rewritten).toHaveLength(1);
+    expect(result.removed).toEqual([]);
+    expect(readFileSync(path.join(root, moved), "utf8")).toContain(
+      "text_ref: .kb/requirements/REQ-moved.md\n",
+    );
+    // Evidence Kibi cannot map, and a requirement's semantic source, stay.
+    expect(readFileSync(path.join(root, gone), "utf8")).toContain(
+      "text_ref: kibi-docs/retired/notes.md\n",
+    );
+    expect(readFileSync(path.join(root, semantic), "utf8")).toContain(
+      "text_ref: documentation/requirements/REQ-moved.md\n",
+    );
+    const unplanned = applySourcePathRepairs(root);
+    expect(unplanned.rewritten).toEqual([]);
+    expect(unplanned.skipped.map((skip) => skip.file).sort()).toEqual([
+      gone,
+      semantic,
+    ]);
+  });
+
   test("closes superseded requirements, skipping cycles, and touches only the status line", () => {
     const old = write(
       root,

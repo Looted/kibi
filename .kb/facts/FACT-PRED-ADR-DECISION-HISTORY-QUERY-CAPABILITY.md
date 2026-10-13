@@ -18,7 +18,7 @@ canonical_key: adr_decision_history_query_capability(complete_decision_history,a
 polarity: assert
 claim_key: CLAIM-A0303F95E79F2069
 claim_text: This enables agents to query the complete history of architectural decisions for any topic, understanding how decisions have evolved over time and which ADR is currently in effect
-text_ref: documentation/requirements/REQ-016.md
+text_ref: .kb/requirements/REQ-016.md
 id: FACT-PRED-ADR-DECISION-HISTORY-QUERY-CAPABILITY
 type: fact
 origin:

@@ -45,7 +45,10 @@ import {
   applySymbolLegacyLinks,
   planSymbolLegacyLinks,
 } from "../operations/migration/symbol-legacy-links.js";
-import type { MigrationPlan } from "../public/operations/migration-plan.js";
+import type {
+  MigrationAction,
+  MigrationPlan,
+} from "../public/operations/migration-plan.js";
 import { resolveBranchAttachment } from "../utils/branch-resolver.js";
 import {
   defaultKbManifest,
@@ -54,6 +57,10 @@ import {
   writeKbManifest,
 } from "../utils/kb-manifest.js";
 import { CANONICAL_ENTITY_PATHS } from "../utils/kb-paths.js";
+import {
+  MERGE_DRIVER_SETUP,
+  manifestMergeDriverGaps,
+} from "../utils/merge-driver-setup.js";
 import {
   LATEST_KB_SCHEMA_VERSION,
   getSchemaVersionStatus,
@@ -74,6 +81,8 @@ interface MigrateOptions {
   approvedActionIds?: string[];
   /** `--approved-action <id>` as the CLI parser spells it; same as approvedActionIds. */
   approvedAction?: string[];
+  /** List every quality and coverage backlog action, not only their counts. */
+  backlog?: boolean;
   workspaceRoot?: string;
   /** Internal migration-plan executor: create only the canonical baseline manifest. */
   initializeMissingConfig?: boolean;
@@ -437,7 +446,7 @@ function repairLifecycleFindings(
     }
     if (rewritten > 0) {
       console.log(
-        `dry run: would point ${rewritten} pre-canonical source path(s) at their .kb/ files.`,
+        `dry run: would point ${rewritten} pre-canonical source or text_ref path(s) at their .kb/ files.`,
       );
     }
     if (removed > 0) {
@@ -462,7 +471,7 @@ function repairLifecycleFindings(
     unrepaired = [...repairs.skipped];
     if (rewritten > 0) {
       console.log(
-        `Pointed ${rewritten} pre-canonical source path(s) at their .kb/ files.`,
+        `Pointed ${rewritten} pre-canonical source or text_ref path(s) at their .kb/ files.`,
       );
     }
     if (removed > 0) {
@@ -478,7 +487,7 @@ function repairLifecycleFindings(
   }
   for (const skip of unrepaired) {
     printWarning(
-      `Source field of ${skip.file} not repaired: ${skip.reason}; a person edits it by hand (kibi migrate --format json lists it as review_source_path_dangling).`,
+      `Path field of ${skip.file} not repaired: ${skip.reason}; a person edits it by hand (kibi migrate --format json lists it as review_source_path_dangling).`,
     );
   }
   return {
@@ -889,6 +898,12 @@ export async function migrateCommand(
   console.log(
     "Migration complete. Future 'kibi migrate' runs will be a no-op.",
   );
+  const mergeDriverGaps = manifestMergeDriverGaps(cwd);
+  if (mergeDriverGaps !== null && mergeDriverGaps.length > 0) {
+    console.log(
+      `Tip: kibi merge-driver resolves .kb/symbols.yaml merges by record id, but it is not wired up (${mergeDriverGaps.join("; ")}). ${MERGE_DRIVER_SETUP}`,
+    );
+  }
   const gitignoreUpdated = updateGitIgnore(cwd);
 
   return {
@@ -1272,18 +1287,77 @@ async function migratePlanCommand(
   if (options.format === "json") {
     console.log(JSON.stringify(plan, null, 2));
   } else {
-    console.log(`Migration plan ${plan.planHash}`);
-    console.log(
-      `Status: ${plan.status}; actions: ${plan.summary.actionCount}; automatic-ready: ${plan.actions.filter((action) => action.state === "ready" && action.autoApplicable).length}`,
-    );
-    for (const action of plan.actions) {
-      console.log(
-        `- ${action.state} ${action.safety} ${action.code}: ${action.id}`,
-      );
-    }
-    console.log(
-      "Use --format json for structured actions, or --apply-safe with the approved plan hash.",
-    );
+    printPlanText(plan, options.backlog === true);
   }
   return { exitCode: 0 };
+}
+
+/**
+ * Review findings `kibi check` and `kb_status` report at any schema version:
+ * quality and coverage work, not steps of the migration. A plan lists them
+ * so one approval flow covers both, but they never make a migration
+ * incomplete.
+ */
+// implements REQ-cli-schema-migration
+export function isBacklogAction(
+  action: Pick<MigrationAction, "code">,
+): boolean {
+  return (
+    action.code.startsWith("quality_") ||
+    action.code.startsWith("coverage_") ||
+    (action.code.startsWith("review_") &&
+      !MIGRATION_REVIEW_CODES.has(action.code))
+  );
+}
+
+/** Review actions that belong to the schema or storage migration itself. */
+const MIGRATION_REVIEW_CODES: ReadonlySet<string> = new Set([
+  "review_source_path_dangling",
+  "review_supersession_cycle",
+]);
+
+function printPlanText(plan: MigrationPlan, listBacklog: boolean): void {
+  const migration = plan.actions.filter((action) => !isBacklogAction(action));
+  const backlog = plan.actions.filter(isBacklogAction);
+  const automaticReady = migration.filter(
+    (action) => action.state === "ready" && action.autoApplicable,
+  ).length;
+  console.log(`Migration plan ${plan.planHash}`);
+  console.log(
+    migration.length === 0
+      ? "Migration: complete; no migration actions remain."
+      : `Migration: ${migration.length} action(s); automatic-ready: ${automaticReady}`,
+  );
+  for (const action of migration) {
+    console.log(
+      `- ${action.state} ${action.safety} ${action.code}: ${action.id}`,
+    );
+  }
+  if (backlog.length > 0) {
+    console.log(
+      `Quality backlog (not part of the migration): ${backlog.length} review item(s) that kibi check and kb_status also report.`,
+    );
+    if (listBacklog) {
+      for (const action of backlog) {
+        console.log(
+          `- ${action.state} ${action.safety} ${action.code}: ${action.id}`,
+        );
+      }
+    } else {
+      const counts = new Map<string, number>();
+      for (const action of backlog) {
+        counts.set(action.code, (counts.get(action.code) ?? 0) + 1);
+      }
+      for (const [code, count] of [...counts].sort(
+        ([leftCode, left], [rightCode, right]) =>
+          right - left || leftCode.localeCompare(rightCode),
+      )) {
+        console.log(`  ${count} ${code}`);
+      }
+      console.log("  List each item with --backlog.");
+    }
+  }
+  console.log(
+    `Plan status: ${plan.status} (covers both sections). Use --format json for structured actions, or --apply-safe with the approved plan hash.`,
+  );
 }

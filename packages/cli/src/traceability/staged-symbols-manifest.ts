@@ -470,8 +470,7 @@ function diffSymbolEvidence(
   if (missing.length === 0 && extra.length === 0) {
     return null;
   }
-  // Keep the complete lists: human-facing renderers truncate (with an
-  // accurate "… and N more"), while JSON evidence carries every name.
+  // Keep the complete lists: the gate output names every symbol.
   return {
     path: sourcePath,
     expectedCount: expectedSymbols.length,

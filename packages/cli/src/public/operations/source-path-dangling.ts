@@ -23,11 +23,17 @@ import {
 } from "../../operations/migration/source-paths.js";
 import type { Violation } from "../../utils/rule-registry.js";
 
-/** An authored source field that names no path, entity or URL. */
+/** An authored source field that names no path, entity or URL, or a path-shaped text_ref that names no file. */
 // implements REQ-core-validation-rules, REQ-kibi-kb-lifecycle-integrity
 export const SOURCE_PATH_DANGLING_RULE = "source-path-dangling";
 
 function suggestion(source: SourceRepair): string {
+  if (source.field === "text_ref") {
+    if (source.refused !== undefined) {
+      return `kibi migrate cannot repair this text_ref (${source.refused}), so it plans a review_source_path_dangling action. Point text_ref at the evidence file's current path, or remove it when the evidence is gone.`;
+    }
+    return `The file moved to ${source.fix.kind === "rewrite" ? source.fix.to : source.file}; kibi migrate rewrites the text_ref field there (source_path_rewrite).`;
+  }
   const compiled = `The compiled source is always the entity's own file (${source.file}), so the field carries nothing Kibi compiles.`;
   if (source.refused !== undefined) {
     return `kibi migrate cannot edit this source field safely (${source.refused}), so it plans a review_source_path_dangling action for a person. ${compiled}`;
@@ -54,10 +60,14 @@ export function sourcePathDanglingViolations(
   return dangling.map((source) => ({
     rule: SOURCE_PATH_DANGLING_RULE,
     entityId: source.entityId,
-    description: `${source.entityId} names source '${shownSourceValue(source.value)}', which is not an existing workspace path, an entity id or an http(s) URL`,
+    description:
+      source.field === "text_ref"
+        ? `${source.entityId} names text_ref '${shownSourceValue(source.value)}', a file path that does not exist in the workspace`
+        : `${source.entityId} names source '${shownSourceValue(source.value)}', which is not an existing workspace path, an entity id or an http(s) URL`,
     suggestion: suggestion(source),
     source: source.file,
     evidence: {
+      ...(source.field === "text_ref" ? { field: "text_ref" } : {}),
       value: source.value,
       file: source.file,
       ...(source.fix.kind === "rewrite"

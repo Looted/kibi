@@ -1,7 +1,7 @@
 ---
 title: Inventory Scope = all_index_paths
 status: active
-text_ref: .kb/requirements/REQ-cli-staged-complete-inventory-v1.md
+text_ref: .kb/requirements/REQ-AUTO-941B0CE68BAF3331.md
 tags:
   - strict-modeling
   - confidence:1.00

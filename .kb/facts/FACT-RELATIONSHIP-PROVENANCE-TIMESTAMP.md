@@ -1,7 +1,7 @@
 ---
 title: Every RDF relationship has timestamp provenance
 status: active
-text_ref: documentation/requirements/REQ-005.md
+text_ref: .kb/requirements/REQ-005.md
 tags:
   - lane:ontology
   - strict-semantics
