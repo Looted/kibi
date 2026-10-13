@@ -34581,10 +34581,10 @@ coordinates:
     sourceLine: 1
   SYM-test-prolog-doctor-runtime-report:
     identityHash: eb0aa5fc8b806373ea47b4189c8951d8fa2122433f082a5b66ad667cbd441843
-    sourceHash: 0ed800dc4e8e5d738742d69142954421beecc46cbaab5b350c45a73d2760dcef
+    sourceHash: ec0d3ed48b9bf05e6feb1ce22fdf63ad6168a58998159161ef51113221409070
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 160
+    sourceEndLine: 161
     sourceFile: packages/cli/tests/commands/doctor-swipl-runtime.test.ts
     sourceLine: 1
   SYM-test-prolog-spike-config-validation:
