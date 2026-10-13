@@ -6,6 +6,12 @@ import {
 } from "../../src/operations/semantic-advisor/analyze-prose.js";
 import { validateSemanticInventoryBoundary } from "../../src/operations/semantic-advisor/ingestion-boundary.js";
 import { semanticSourceOf } from "../../src/operations/semantic-advisor/shared.js";
+import { toPrologString } from "../../src/prolog/codec.js";
+import type {
+  OperationContext,
+  PrologPort,
+  PrologQueryResult,
+} from "../../src/public/operations/runtime-types.js";
 import { semanticAdvisorSpec } from "../../src/public/operations/specs/semantic.js";
 
 describe("semantic advisor operation", () => {
@@ -966,5 +972,163 @@ describe("semantic advisor operation", () => {
     expect(result.receipt.clauses[1]?.index).toBe(2);
     expect(result.receipt.interpretations[0]?.claim_key).toBe(distinctKey);
     expect(result.receipt.interpretations[0]?.valid).toBe(true);
+  });
+
+  describe("stored ledger drift", () => {
+    const id = "REQ-export-csv";
+    const storedText = "Users must be able to export reports as CSV.";
+    const storedKey = semanticClaimKey(storedText);
+    const storedClauseText = storedText.replace(/\.$/, "");
+
+    /** A branch engine holding the requirement with one grounded clause. */
+    function storeWith(
+      stored: Readonly<Record<string, unknown>>,
+      groundingRows = `[[requires_predicate,'FACT-export-csv','${storedKey}']]`,
+    ): { context: OperationContext; goals: string[] } {
+      const goals: string[] = [];
+      const props = Object.entries(stored)
+        .map(
+          ([key, value]) =>
+            `${key}=${typeof value === "string" ? toPrologString(value) : toPrologString(JSON.stringify(value))}`,
+        )
+        .join(",");
+      const prolog: PrologPort = {
+        query: async (goal: string): Promise<PrologQueryResult> => {
+          goals.push(goal);
+          if (goal.includes(`kb_entity('${id}', 'req', Props)`)) {
+            return {
+              success: true,
+              bindings: { Results: `[['${id}',req,[${props}]]]` },
+            };
+          }
+          if (goal.includes("kb_relationship(Type,")) {
+            return { success: true, bindings: { Rows: groundingRows } };
+          }
+          return { success: false, bindings: {} };
+        },
+        nextSolution: async () => null,
+        save: async () => ({ success: true, bindings: {} }),
+      };
+      return {
+        goals,
+        context: {
+          workspaceRoot: "/tmp/semantic-advisor",
+          signal: new AbortController().signal,
+          clock: () => new Date(0),
+          ensureProlog: async () => prolog,
+        },
+      };
+    }
+
+    const storedLedger = {
+      semantic_text: storedText,
+      semantic_inventory_version: "kibi.semantic-inventory.v1",
+      semantic_inventory: [
+        {
+          claim_key: storedKey,
+          claim_text: storedClauseText,
+          role: "normative",
+          status: "modeled",
+          span: { start: 0, end: storedClauseText.length },
+        },
+      ],
+    };
+
+    test("warns when the analyzed prose drops a grounded clause of the stored requirement", async () => {
+      // Given: the title wording differs from the stored semantic_text.
+      const title = "Users can export reports as CSV files.";
+      const { context } = storeWith(storedLedger);
+
+      // When: the agent analyzes the title with the requirement's id.
+      const result = await semanticAdvisorSpec.execute(
+        { text: title, id, title },
+        context,
+      );
+
+      // Then: the receipt names the stored clause, its fact and the remedy
+      // before any write is attempted.
+      const warning = result.structuredContent.warnings.find((entry) =>
+        entry.startsWith(`Claim-key drift against the stored ledger of ${id}`),
+      );
+      expect(warning).toBeDefined();
+      expect(warning).toContain(
+        `'${storedKey}' ("${storedClauseText}"), grounded by FACT-export-csv via requires_predicate`,
+      );
+      const [added] = result.structuredContent.receipt.propositions;
+      expect(warning).toContain(
+        `Clause(s) this analysis adds without a stored grounding: '${added?.claim_key}' ("${added?.claim_text}")`,
+      );
+      expect(warning).toContain(
+        `The analyzed prose differs from the stored semantic_text of ${id}.`,
+      );
+      expect(warning).toContain(
+        "re-written with the new claim_key and claim_text (same fact id)",
+      );
+    });
+
+    test("stays silent when the analyzed prose is the stored semantic_text", async () => {
+      const { context } = storeWith(storedLedger);
+
+      const result = await semanticAdvisorSpec.execute(
+        { text: storedText, id },
+        context,
+      );
+
+      expect(
+        result.structuredContent.warnings.filter((entry) =>
+          entry.startsWith("Claim-key drift"),
+        ),
+      ).toEqual([]);
+    });
+
+    test("does not consult the store without an id or a recorded ledger", async () => {
+      const unrecorded = storeWith({ semantic_text: storedText });
+      const anonymous = storeWith(storedLedger);
+
+      const [recordedless, withoutId] = await Promise.all([
+        semanticAdvisorSpec.execute(
+          { text: "Users can export reports.", id },
+          unrecorded.context,
+        ),
+        semanticAdvisorSpec.execute(
+          { text: "Users can export reports." },
+          anonymous.context,
+        ),
+      ]);
+
+      expect(
+        recordedless.structuredContent.warnings.some((entry) =>
+          entry.startsWith("Claim-key drift"),
+        ),
+      ).toBe(false);
+      expect(anonymous.goals).toEqual([]);
+      expect(
+        withoutId.structuredContent.warnings.some((entry) =>
+          entry.startsWith("Claim-key drift"),
+        ),
+      ).toBe(false);
+    });
+
+    test("treats a store that cannot be read as no warning", async () => {
+      const context: OperationContext = {
+        workspaceRoot: "/tmp/semantic-advisor",
+        signal: new AbortController().signal,
+        clock: () => new Date(0),
+        ensureProlog: async () => {
+          throw new Error("branch store not compiled");
+        },
+      };
+
+      const result = await semanticAdvisorSpec.execute(
+        { text: "Users can export reports.", id },
+        context,
+      );
+
+      expect(
+        result.structuredContent.warnings.some((entry) =>
+          entry.startsWith("Claim-key drift"),
+        ),
+      ).toBe(false);
+    });
   });
 });

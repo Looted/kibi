@@ -51735,3 +51735,19 @@ symbols:
         target: TEST-kb-decision-firmness
       - type: implements
         target: REQ-kb-decision-firmness
+  - id: SYM-cli-stored-ledger-drift-storedLedgerDriftWarning
+    title: storedLedgerDriftWarning
+    status: active
+    sourceFile: packages/cli/src/operations/semantic-advisor/stored-ledger-drift.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      ref: 'search lane round 3 follow-up: analyze-time claim-key drift warning'
+      recorded_at: 2026-10-13T12:39:26.310Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
+      - type: implements
+        target: REQ-kibi-proposition-complete-ingestion

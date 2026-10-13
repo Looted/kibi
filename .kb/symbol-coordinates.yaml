@@ -709,12 +709,12 @@ coordinates:
     sourceLine: 89
   SYM-assert-logical-grounding-claim-keys:
     identityHash: 138eeaff6d3070a6fbf848ef2fe06c2e54e8379c037c45372ba2418cf7803f65
-    sourceHash: 6a06126d039c423f36ba1163fc39c3bc32040b232ddd0a7d766f6b572f962cac
+    sourceHash: 98f33f9ba6cb0809d9590424786d0704a0b9500b16b9297ee62f54b622fa1aea
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 376
+    sourceEndLine: 408
     sourceFile: packages/cli/src/operations/semantic-advisor/ingestion-boundary.ts
-    sourceLine: 345
+    sourceLine: 377
   SYM-assert-predicate-argument-vocabulary:
     identityHash: 335d57e36d856c17f5c3042886b75f3f93ff9b2ed79183f4e35f09c7e8d7312d
     sourceHash: 207e2ccb11082a8769b66e600f85d312d23074d603a58cfc99042947eeb84dfd
@@ -725,7 +725,7 @@ coordinates:
     sourceLine: 42
   SYM-assert-semantic-inventory-boundary:
     identityHash: 43849c61ae2b3b85e969f763a1bb6e2312041da037b3a32653b855ea08a8cb3c
-    sourceHash: 6a06126d039c423f36ba1163fc39c3bc32040b232ddd0a7d766f6b572f962cac
+    sourceHash: 98f33f9ba6cb0809d9590424786d0704a0b9500b16b9297ee62f54b622fa1aea
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 270
@@ -8437,7 +8437,7 @@ coordinates:
     sourceLine: 1
   SYM-cli-skills-mirror-parity-tests:
     identityHash: 4dec812b98b2ef0f1d9dec6055548d3bdcfb6a4e2a12689d99e39c25465c6263
-    sourceHash: 7f3222b3c92ce9e4904db98a41011cd462efe82e3241ccb2dfa8623cc749bdaf
+    sourceHash: b9fe34e8aa5f7a8f91c9d3049e1822a1160672f0517499053a5b6611cd5797be
     sourceColumn: 0
     sourceEndColumn: 0
     sourceEndLine: 40
@@ -8499,6 +8499,14 @@ coordinates:
     sourceEndLine: 69
     sourceFile: packages/cli/src/operations/mutation/stored-entity.ts
     sourceLine: 43
+  SYM-cli-stored-ledger-drift-storedLedgerDriftWarning:
+    identityHash: 25ab67420c62e7188a27cebc770b7ae88fc52223e72694ddd8e322c5a737c6d2
+    sourceHash: cf1473bf53981c7beb05a9ec85a027ad1ee809b2ec53d29f8569dfb4510be304
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 120
+    sourceFile: packages/cli/src/operations/semantic-advisor/stored-ledger-drift.ts
+    sourceLine: 65
   SYM-cli-strip-sync-builtin-ontology-suggestions:
     identityHash: 62782519fa981c66c093aa197719ca4974f8a65631f7d21fe1ce3a5de01bf7c2
     sourceHash: cd4ac95db5e77ba39982fb9227577d9fc445b2994070c23ba17f1fd08bff316c
@@ -11957,10 +11965,10 @@ coordinates:
     sourceLine: 1
   SYM-e2e-test-mcp-semantic-advisor-preflight:
     identityHash: 5d7cc41a2590a87bc1cd719d12d11579d824dda8a67c5da883428a1c10079c7d
-    sourceHash: cb03666b01c2c985ef4c5738db3307e1f17e5b8120047fee2fed18f4be1794ac
+    sourceHash: 4a44d990e6b62f5d92f26f531f142647e9ac63f7172ca6a8805a6ed8e3aa202c
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 147
+    sourceEndLine: 308
     sourceFile: documentation/tests/e2e/packed/proposition-complete-ingestion.test.ts
     sourceLine: 1
   SYM-e2e-test-mcp-skills-resource-discoverability:
@@ -12621,12 +12629,12 @@ coordinates:
     sourceLine: 267
   SYM-executeSemanticAdvisor:
     identityHash: 199aae4c38f135fc5876d751e3595a53f8e4904037c413586fb3338f63b3e60b
-    sourceHash: 5b31aeb3bbd4890876cf327e3ce4e1765e9e30f8524800cfa6ce989ca2e2aa58
+    sourceHash: 73c8f02e3a022a643d5bdf803330f62d163b0e429ba4ccd60a6cca4f7d2b5dbd
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 121
+    sourceEndLine: 156
     sourceFile: packages/cli/src/public/operations/specs/semantic.ts
-    sourceLine: 27
+    sourceLine: 56
   SYM-executeSkillsList:
     identityHash: 906f4bd2fb870ae7670b50a0c1c51681da9932a964ec6e8e4a276cc76dec8546
     sourceHash: c1a97d59ded3468afbe3f3cfcd9c8b44ab5c778a75a4cd949e382949e3ed12ca
@@ -15973,7 +15981,7 @@ coordinates:
     sourceLine: 1
   SYM-kibi-usage-skill-guidance:
     identityHash: 4596b4770fa6eca3c0b31b8c58f21cc8c076ffe4dc4e76b6252e9984eb6c5857
-    sourceHash: cc1ad5253a21ba6ceb998714cb908925bae14cf29af0c4f7f230c6ed6556a2bc
+    sourceHash: 4726d657b799e52f71810985287e3ba42a79a80a8d69c733a3eaa63120de3d27
     sourceColumn: 6
     sourceEndColumn: 16
     sourceEndLine: 3
@@ -18861,12 +18869,12 @@ coordinates:
     sourceLine: 143
   SYM-operation-semantic-advisor-spec:
     identityHash: 2ab1c652ded7f58e4768607177f7827cff73be9812a7ef2c4147615d432d4d24
-    sourceHash: 5b31aeb3bbd4890876cf327e3ce4e1765e9e30f8524800cfa6ce989ca2e2aa58
+    sourceHash: 73c8f02e3a022a643d5bdf803330f62d163b0e429ba4ccd60a6cca4f7d2b5dbd
     sourceColumn: 13
     sourceEndColumn: 34
-    sourceEndLine: 236
+    sourceEndLine: 271
     sourceFile: packages/cli/src/public/operations/specs/semantic.ts
-    sourceLine: 161
+    sourceLine: 196
   SYM-operation-skills-list-spec:
     identityHash: ee98e1d7861e2a66ab4e426bccee71c6b0194690c13dcbb32136633465caa4e8
     sourceHash: 040718d9c4fc536e5fc58dbf211d6e0d4bdcdf572d4fae867a1662d76e3607ee
@@ -22837,7 +22845,7 @@ coordinates:
     sourceLine: 97
   SYM-reqcompiler-ingestion-boundary-result:
     identityHash: 4f43fd0b2c5c8094f17107957f1feb5c5ef97e687ab7c5b635943cf6ee243353
-    sourceHash: 6a06126d039c423f36ba1163fc39c3bc32040b232ddd0a7d766f6b572f962cac
+    sourceHash: 98f33f9ba6cb0809d9590424786d0704a0b9500b16b9297ee62f54b622fa1aea
     sourceColumn: 17
     sourceEndColumn: 1
     sourceEndLine: 34
@@ -24157,10 +24165,10 @@ coordinates:
     sourceLine: 17
   SYM-semantic-advisor-operation-tests:
     identityHash: 7c11bcbfaeca6b4a481a80c4b1b709b74a30e709e9d6e71d3ce5a080579282d8
-    sourceHash: 159736ebe8cb0e06f582d095add05e63e7cc45770ecf333029b7329338c4e6b8
+    sourceHash: fb3de70bc1b48a362b368cdf99b0df6ab202b32dbf42f0b7b4d8be8071c6c1f2
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 971
+    sourceEndLine: 1135
     sourceFile: packages/cli/tests/operations/semantic-advisor.test.ts
     sourceLine: 1
   SYM-semantic-advisor-Payload:
@@ -24333,12 +24341,12 @@ coordinates:
     sourceLine: 46
   SYM-semantic-staged-logical-grounding-error:
     identityHash: 0208da7606a6704af39d90f201a61fc4c60a11ca443ef121ac8642a802b99784
-    sourceHash: 6a06126d039c423f36ba1163fc39c3bc32040b232ddd0a7d766f6b572f962cac
+    sourceHash: 98f33f9ba6cb0809d9590424786d0704a0b9500b16b9297ee62f54b622fa1aea
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 342
+    sourceEndLine: 374
     sourceFile: packages/cli/src/operations/semantic-advisor/ingestion-boundary.ts
-    sourceLine: 328
+    sourceLine: 360
   SYM-SemanticAdvisorInput:
     identityHash: 68419839652ba14d32e1aecccf5a8d0e3c8bb89c77969caedbdb0cd2d0fae690
     sourceHash: be38ddb0e1dba4139a7111753fc7285ee9dc1626d8b5a1eeefb6c5150bf350b7
@@ -34461,10 +34469,10 @@ coordinates:
     sourceLine: 56
   SYM-test-packed-proposition-ingestion:
     identityHash: 359e199d4d640c3c0a6aae4e0cecc515cbb21ead72db8d84a80c9a3b871f1acd
-    sourceHash: cb03666b01c2c985ef4c5738db3307e1f17e5b8120047fee2fed18f4be1794ac
+    sourceHash: 4a44d990e6b62f5d92f26f531f142647e9ac63f7172ca6a8805a6ed8e3aa202c
     sourceColumn: 15
     sourceEndColumn: 1
-    sourceEndLine: 112
+    sourceEndLine: 273
     sourceFile: documentation/tests/e2e/packed/proposition-complete-ingestion.test.ts
     sourceLine: 19
   SYM-test-packed-semantic-source-separation:
@@ -35077,7 +35085,7 @@ coordinates:
     sourceLine: 289
   SYM-validate-semantic-inventory-boundary:
     identityHash: 932869929ed732c71f8a43b515fef411de2858f0608b504f9beed6af7c1bc62e
-    sourceHash: 6a06126d039c423f36ba1163fc39c3bc32040b232ddd0a7d766f6b572f962cac
+    sourceHash: 98f33f9ba6cb0809d9590424786d0704a0b9500b16b9297ee62f54b622fa1aea
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 253

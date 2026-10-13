@@ -315,8 +315,40 @@ function groundingClaimKeyError(
     groundedClaimKeys.length !== modeledClaimKeys.length ||
     modeledClaimKeys.some((claimKey) => !groundedClaimKeys.includes(claimKey))
   )
-    return "Proposition-complete ingestion failed: modeled proposition claim_keys must match logical grounding target claim_keys exactly.";
+    return `Proposition-complete ingestion failed: modeled proposition claim_keys must match logical grounding target claim_keys exactly. ${claimKeyMismatchDetail(modeledClaimKeys, grounded)}`;
   return null;
+}
+
+/**
+ * Why the mismatch names both sides: a claim_key is derived from the clause
+ * text, so a requirement whose prose was reworded (or analyzed from another
+ * field than the stored semantic_text) carries keys none of its grounding
+ * facts declare. Listing the unmatched modeled keys and the facts with the
+ * keys they still declare lets the agent see the drift and pick the remedy
+ * without diffing the KB by hand.
+ */
+// implements REQ-kibi-proposition-complete-ingestion
+function claimKeyMismatchDetail(
+  modeledClaimKeys: readonly string[],
+  grounded: readonly (readonly [target: string, claimKey: string])[],
+): string {
+  const groundedClaimKeys = grounded.map(([, claimKey]) => claimKey);
+  const ungrounded = modeledClaimKeys.filter(
+    (claimKey) => !groundedClaimKeys.includes(claimKey),
+  );
+  const stale = grounded.filter(
+    ([, claimKey]) => !modeledClaimKeys.includes(claimKey),
+  );
+  const parts = [
+    ungrounded.length > 0
+      ? `Modeled claims with no grounding fact declaring their claim_key: ${ungrounded.map((claimKey) => `'${claimKey}'`).join(", ")}.`
+      : "",
+    stale.length > 0
+      ? `Grounding facts whose claim_key the inventory no longer models: ${stale.map(([target, claimKey]) => `${target} ('${claimKey}')`).join(", ")}.`
+      : "",
+    "A claim_key is derived from the clause text, so reworded prose (or prose analyzed from a field other than the stored semantic_text) yields new keys. Keep the stored semantic_text wording, or kb_upsert each grounding fact with the new claim_key and claim_text (same fact id) before this write; for a change of meaning, supersede the requirement instead.",
+  ];
+  return parts.filter(Boolean).join(" ");
 }
 
 /**

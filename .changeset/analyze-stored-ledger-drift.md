@@ -1,0 +1,9 @@
+---
+"kibi-cli": patch
+"kibi-mcp": patch
+"kibi-runtime": patch
+---
+
+`kb_model` mode `analyze` with the `id` of a stored requirement now warns when the analyzed prose drops a clause the stored ledger has grounded. Before, analyzing a requirement's title while its stored `semantic_text` was worded differently returned a clean receipt, and only the `kb_upsert` that followed failed with `modeled proposition claim_keys must match logical grounding target claim_keys exactly`, with no hint which key or fact was involved. Now the receipt's `warnings` carry a `Claim-key drift against the stored ledger` entry naming the stored modeled clauses the analysis no longer states, the facts that ground them, the clauses the analysis adds, and the remedy (keep the stored `semantic_text` wording, re-ground the facts with the new keys first, or supersede). The proposition-complete error itself now lists the modeled keys no grounding fact declares and the grounding facts whose keys the ledger dropped, with the same remedy, so a write refused for this reason explains itself.
+
+Technical summary: `storedLedgerDriftWarning` (new `semantic-advisor/stored-ledger-drift.ts`) loads the stored requirement through `loadEntities`, compares its `semantic_inventory` entries with `status: modeled` against the receipt's propositions and reads the `requires_property`/`requires_predicate`/`requires_rule` targets with their `claim_key` in one Prolog query; `executeSemanticAdvisor` calls it only when `id` is given for a `req`, over `context.prolog` or the lazy `ensureProlog`, and treats an unreadable store as no warning. `groundingClaimKeyError` appends `claimKeyMismatchDetail` to the exact-match error. The `kibi-usage` skill (2.16.1) recipe for changing a grounded requirement's text says to analyze with the requirement's `id` first. kibi-runtime and kibi-mcp are bumped because they bundle and serve the CLI operations and the skill.

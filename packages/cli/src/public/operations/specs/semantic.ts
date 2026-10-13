@@ -1,11 +1,13 @@
 import { InputError } from "../../../cli-errors.js";
 import { analyzeSemanticAdvisorInputWithPlugins } from "../../../operations/semantic-advisor/plugin-orchestration.js";
+import { storedLedgerDriftWarning } from "../../../operations/semantic-advisor/stored-ledger-drift.js";
 import type {
   SemanticAdvisorArgs,
   SemanticAdvisorOperationResult,
+  SemanticAdvisorReceipt,
 } from "../../../operations/semantic-advisor/types.js";
 import { publicCapabilityStamp } from "../../../plugins/compose-semantic-classifier.js";
-import type { OperationContext } from "../runtime-types.js";
+import type { OperationContext, PrologPort } from "../runtime-types.js";
 import type { OperationSpec } from "../types.js";
 
 function requiredText(value: unknown): string {
@@ -22,6 +24,33 @@ function requiredText(value: unknown): string {
 function optionalString(value: unknown): string | undefined {
   const text = typeof value === "string" ? value.trim() : "";
   return text || undefined;
+}
+
+/**
+ * The stored-ledger comparison runs only for a requirement the caller named
+ * and only when the host can open the branch engine; analysis without a KB
+ * (a preview, a unit test, a workspace before `kibi sync`) stays as it was.
+ * A store that cannot be read is not an analysis failure, so the warning is
+ * simply absent then.
+ */
+// implements REQ-kibi-proposition-complete-ingestion
+async function storedLedgerWarnings(
+  args: SemanticAdvisorArgs,
+  text: string,
+  receipt: SemanticAdvisorReceipt,
+  context?: OperationContext,
+): Promise<readonly string[]> {
+  const id = optionalString(args.id);
+  if (!id || (optionalString(args.type) ?? "req") !== "req") return [];
+  try {
+    const prolog: PrologPort | undefined =
+      context?.prolog ?? (await context?.ensureProlog?.());
+    if (!prolog) return [];
+    const warning = await storedLedgerDriftWarning(prolog, id, text, receipt);
+    return warning ? [warning] : [];
+  } catch {
+    return [];
+  }
 }
 
 export async function executeSemanticAdvisor(
@@ -57,6 +86,12 @@ export async function executeSemanticAdvisor(
     },
   );
   const result = orchestrated.analysis;
+  const ledgerWarnings = await storedLedgerWarnings(
+    args,
+    text,
+    result.receipt,
+    context,
+  );
   const pluginWarnings =
     orchestrated.stamps.length > 0
       ? [
@@ -114,7 +149,7 @@ export async function executeSemanticAdvisor(
     ],
     structuredContent: {
       receipt: result.receipt,
-      warnings: [...result.warnings, ...pluginWarnings],
+      warnings: [...result.warnings, ...ledgerWarnings, ...pluginWarnings],
       ...(capabilityPlugins ? { capabilityPlugins } : {}),
     },
   };
