@@ -13,6 +13,7 @@ import {
 } from "../../src/commands/init-helpers.js";
 import { resetKibiEnvironmentBootstrapStateForTests } from "../../src/env/bootstrap.js";
 import { ensureBranchStoreManifest } from "../../src/utils/branch-store-locator.js";
+import { LATEST_KB_SCHEMA_VERSION } from "../../src/utils/schema-version.js";
 import { type FakeSwiplSpec, installFakeSwipl } from "../helpers/fake-swipl.js";
 import {
   captureIo,
@@ -76,7 +77,7 @@ function writeOkManifest(cwd: string): void {
     path.join(cwd, ".kb", "manifest.json"),
     JSON.stringify({
       manifestVersion: 1,
-      schemaVersion: 5,
+      schemaVersion: LATEST_KB_SCHEMA_VERSION,
       semanticAdvisorBackfill: "not_applicable",
     }),
   );
@@ -196,7 +197,9 @@ describe("doctorCommand rendered report", () => {
     expect(text).toContain("✓ SWI-Prolog: Version 9.2 from KIBI_SWIPL at ");
     expect(text).toContain("required libraries load");
     expect(text).toContain("✓ .kb/ directory: Found");
-    expect(text).toContain("✓ .kb/ manifest: schemaVersion 5");
+    expect(text).toContain(
+      `✓ .kb/ manifest: schemaVersion ${LATEST_KB_SCHEMA_VERSION}`,
+    );
     expect(text).toContain("✓ Canonical storage: Canonical .kb/ layout");
     expect(text).toContain("✓ Git repository: Found");
     expect(text).toContain(
@@ -224,6 +227,29 @@ describe("doctorCommand manifest check", () => {
     expect(check.passed).toBe(false);
     expect(check.message).toBe("Invalid manifest");
     expect(check.remediation).toMatch(/^Repair \.kb\/manifest\.json:/);
+  });
+
+  test("sends a knowledge base on an older schema to kibi migrate", async () => {
+    const cwd = preparedWorkspace();
+    mkdirSync(path.join(cwd, ".kb"), { recursive: true });
+    writeFileSync(
+      path.join(cwd, ".kb", "manifest.json"),
+      JSON.stringify({
+        manifestVersion: 1,
+        schemaVersion: LATEST_KB_SCHEMA_VERSION - 1,
+        semanticAdvisorBackfill: "not_applicable",
+      }),
+    );
+    const { exitCode, payload } = await runDoctorJson(cwd);
+    expect(exitCode).toBe(1);
+    const check = namedCheck(payload, ".kb/ manifest");
+    expect(check.passed).toBe(false);
+    expect(check.message).toBe(
+      `schemaVersion ${LATEST_KB_SCHEMA_VERSION - 1} (this Kibi expects ${LATEST_KB_SCHEMA_VERSION})`,
+    );
+    expect(check.remediation).toContain("Run: kibi migrate");
+    expect(check.remediation).toContain("kibi migrate --yes");
+    expect(check.remediation).not.toContain("kibi init");
   });
 
   test("reports a manifest from a future Kibi version", async () => {

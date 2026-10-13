@@ -157,10 +157,10 @@ coordinates:
     sourceLine: 162
   SYM-003:
     identityHash: 07e0becff1b2d35c40bf950d8042fc778ea252d881a6835a93c1c1c7c2d33e96
-    sourceHash: a8d7e48e8895d8ac9b51f54c34f25a36950fd8c5c42751eee8c034cff26e7de3
+    sourceHash: f1a222f7326ec584c5a958a298cb6ad4b720d91184eb193be4fab4c58614445d
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 17
+    sourceEndLine: 20
     sourceFile: packages/mcp/src/tools/query.ts
     sourceLine: 11
   SYM-004:
@@ -1877,7 +1877,7 @@ coordinates:
     sourceLine: 21
   SYM-Awaitable:
     identityHash: 6173a69146a9d782efcf8acb0ee4087cf07647e67d0635215ee611c2679f6f26
-    sourceHash: 2d6f56771558ec19910e539b62482ef3c0f7cbffef2bab5921b2ce71213df68f
+    sourceHash: 0b698f77a2d02c0452c1a607643ca8dd3767ec06529195adeea025cc96bc1f5f
     sourceColumn: 12
     sourceEndColumn: 42
     sourceEndLine: 43
@@ -10813,7 +10813,7 @@ coordinates:
     sourceLine: 17
   SYM-DefaultRuntimeProlog:
     identityHash: 557daf17310714c7e79e6ba66260fff4d19196129d269e6ddd511c606bb09099
-    sourceHash: 2d6f56771558ec19910e539b62482ef3c0f7cbffef2bab5921b2ce71213df68f
+    sourceHash: 0b698f77a2d02c0452c1a607643ca8dd3767ec06529195adeea025cc96bc1f5f
     sourceColumn: 12
     sourceEndColumn: 49
     sourceEndLine: 44
@@ -11437,36 +11437,36 @@ coordinates:
     sourceLine: 95
   SYM-doctor-detect-execute-apply-plan:
     identityHash: 797844b76baaf88f813fcec00435154edeee1de1d00e05d0c1f19239c3863904
-    sourceHash: c8ff78536ee8e38ddf0d550b09495906a3c8bd401c85929e04923408cb367b8d
+    sourceHash: f15ee01a60effe806d40d90216a6426c407dc74e931b3c68f7784251905f7e72
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 231
+    sourceEndLine: 232
     sourceFile: packages/cli/src/commands/doctor.ts
-    sourceLine: 221
+    sourceLine: 222
   SYM-doctor-nearest-named-package-manifest:
     identityHash: 7c8b0f05960ff4cd918263b770da8800644f49536c9a5084cc0feef5b18f2311
-    sourceHash: c8ff78536ee8e38ddf0d550b09495906a3c8bd401c85929e04923408cb367b8d
+    sourceHash: f15ee01a60effe806d40d90216a6426c407dc74e931b3c68f7784251905f7e72
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 421
+    sourceEndLine: 422
     sourceFile: packages/cli/src/commands/doctor.ts
-    sourceLine: 403
+    sourceLine: 404
   SYM-doctor-next-ancestor-directory:
     identityHash: 69e813e6f91e4a475047dea3db76163ac4e6618df105102a47c2b03c2bd1698e
-    sourceHash: c8ff78536ee8e38ddf0d550b09495906a3c8bd401c85929e04923408cb367b8d
+    sourceHash: f15ee01a60effe806d40d90216a6426c407dc74e931b3c68f7784251905f7e72
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 401
+    sourceEndLine: 402
     sourceFile: packages/cli/src/commands/doctor.ts
-    sourceLine: 398
+    sourceLine: 399
   SYM-doctor-package-migration-actions:
     identityHash: 77561e2144f7e3d3765cede320672c41f34fcc6ffd820cad1a9f6c3c9a07d8d8
-    sourceHash: c8ff78536ee8e38ddf0d550b09495906a3c8bd401c85929e04923408cb367b8d
+    sourceHash: f15ee01a60effe806d40d90216a6426c407dc74e931b3c68f7784251905f7e72
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 300
+    sourceEndLine: 301
     sourceFile: packages/cli/src/commands/doctor.ts
-    sourceLine: 233
+    sourceLine: 234
   SYM-e2e-capability-plugins:
     identityHash: cf75bc7202267169c9ebc409b60b47236096d55d03db39cafa0929e5f0893578
     sourceHash: d01f7abd25b461e32a2d6ae206b1f9237c1453969166b854bbe53022c2119acc
@@ -15549,20 +15549,20 @@ coordinates:
     sourceLine: 322
   SYM-kibi-doctor-command:
     identityHash: 16dd5b6a00db911294804920abed826ad139a52771b80e46ae634b40c0f22a06
-    sourceHash: c8ff78536ee8e38ddf0d550b09495906a3c8bd401c85929e04923408cb367b8d
+    sourceHash: f15ee01a60effe806d40d90216a6426c407dc74e931b3c68f7784251905f7e72
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 219
+    sourceEndLine: 220
     sourceFile: packages/cli/src/commands/doctor.ts
-    sourceLine: 102
+    sourceLine: 103
   SYM-kibi-doctor-options:
     identityHash: 9d8e77bf33262430c3960c27af951201552c0f1235c34ba2b3b37f4343364403
-    sourceHash: c8ff78536ee8e38ddf0d550b09495906a3c8bd401c85929e04923408cb367b8d
+    sourceHash: f15ee01a60effe806d40d90216a6426c407dc74e931b3c68f7784251905f7e72
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 99
+    sourceEndLine: 100
     sourceFile: packages/cli/src/commands/doctor.ts
-    sourceLine: 97
+    sourceLine: 98
   SYM-KIBI-ENTITY-SCHEMA-DOC:
     identityHash: ad814394d202bec4d6d266dd15e5a17dc7c7b5154cc845eda9b6522cbee4d2bd
     sourceHash: a0443d3b57bff086abead4cd25e96056d77e780b5a94eb02fd8e7ee57d90c569
@@ -22573,7 +22573,7 @@ coordinates:
     sourceLine: 704
   SYM-registerConfiguredTools:
     identityHash: cfbc9bdb73bcc2b79c877b1b3b3e746114aa101b1017f7fe8b6f9b01b4284cad
-    sourceHash: d428211b000893ae7fe1d6d2a9effe33226230caaf2c10e3c54f41aae6f2a4d7
+    sourceHash: eca3c97d26e4b7e3673b4c41b574465504d68d39a5562afdb3e9b4a1ab99e490
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 343
@@ -34917,7 +34917,7 @@ coordinates:
     sourceLine: 163
   SYM-ToolConfig:
     identityHash: fabbea9da301c28e0cf9849c6b49465f1fe775286f6f1c498e904880144767b0
-    sourceHash: 2d6f56771558ec19910e539b62482ef3c0f7cbffef2bab5921b2ce71213df68f
+    sourceHash: 0b698f77a2d02c0452c1a607643ca8dd3767ec06529195adeea025cc96bc1f5f
     sourceColumn: 17
     sourceEndColumn: 1
     sourceEndLine: 35
@@ -34925,7 +34925,7 @@ coordinates:
     sourceLine: 31
   SYM-ToolHandler:
     identityHash: c082e9e4ea8026ec897032ffa7d187c3a44f81a0a519958f0141de2751b247d1
-    sourceHash: 2d6f56771558ec19910e539b62482ef3c0f7cbffef2bab5921b2ce71213df68f
+    sourceHash: 0b698f77a2d02c0452c1a607643ca8dd3767ec06529195adeea025cc96bc1f5f
     sourceColumn: 12
     sourceEndColumn: 78
     sourceEndLine: 37
@@ -34933,7 +34933,7 @@ coordinates:
     sourceLine: 37
   SYM-ToolHandlerArgs:
     identityHash: b67cdc9ccb3bc697bae922940de55031a552ee63a7b4474fb8c82e132811498a
-    sourceHash: 2d6f56771558ec19910e539b62482ef3c0f7cbffef2bab5921b2ce71213df68f
+    sourceHash: 0b698f77a2d02c0452c1a607643ca8dd3767ec06529195adeea025cc96bc1f5f
     sourceColumn: 12
     sourceEndColumn: 2
     sourceEndLine: 41
@@ -34949,10 +34949,10 @@ coordinates:
     sourceLine: 294
   SYM-ToolsRuntime:
     identityHash: 1c5abeab1cc1aae3360e6fa58002232773b2f87d2a4d2bdb468795b26eff0d0d
-    sourceHash: 2d6f56771558ec19910e539b62482ef3c0f7cbffef2bab5921b2ce71213df68f
+    sourceHash: 0b698f77a2d02c0452c1a607643ca8dd3767ec06529195adeea025cc96bc1f5f
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 131
+    sourceEndLine: 135
     sourceFile: packages/mcp/src/server/tool-types.ts
     sourceLine: 46
   SYM-TRACEABILITY_RELATIONSHIP_TYPES:

@@ -206,6 +206,42 @@ describe("kibi-mcp on a new branch whose store was never compiled", () => {
       "Run kibi sync before relying on search results",
     );
 
+    // kb_query by id reads the same empty store through the same runtime
+    // context, so "no entities" carries the store state and the envelope
+    // raises it as a warning instead of answering a bare "not found".
+    type QueryData = {
+      count: number;
+      entities: unknown[];
+      branchStore?: { state: string; code: string };
+    };
+    const emptyQuery = await client.callTool({
+      name: "kb_query",
+      arguments: { id: "REQ-demo-login" },
+    });
+    expect(emptyQuery.isError ?? false).toBe(false);
+    const emptyQueryEnvelope = emptyQuery.structuredContent as Json & {
+      diagnostics?: Array<{ code?: string; severity: string }>;
+    };
+    const emptyById = (emptyQueryEnvelope.data ??
+      emptyQueryEnvelope) as QueryData;
+    expect(emptyById.count).toBe(0);
+    expect(emptyById.branchStore).toMatchObject({
+      state: "not_compiled",
+      code: "branch_store_not_compiled",
+    });
+    expect(
+      (emptyQueryEnvelope.diagnostics ?? []).map((row) => [
+        row.code,
+        row.severity,
+      ]),
+    ).toContainEqual(["branch_store_not_compiled", "warning"]);
+    const emptyQueryText = (emptyQuery.content as Array<{ text: string }>)
+      .map((item) => item.text)
+      .join("\n");
+    expect(emptyQueryText).toContain(
+      "Run kibi sync before relying on query results",
+    );
+
     const check = (await call(client, "kb_check", {})) as CheckData;
     expect(check.violations.map((violation) => violation.rule)).toEqual([
       "branch-store-not-compiled",
@@ -246,5 +282,12 @@ describe("kibi-mcp on a new branch whose store was never compiled", () => {
     expect(search.answer?.scope?.branch).toBe("feature/login");
     expect(search.branch).toBe("feature/login");
     expect(search.branchStore).toBeUndefined();
+
+    // Once compiled, kb_query by id answers from the store without a notice.
+    const byId = (await call(client, "kb_query", {
+      id: "REQ-demo-login",
+    })) as QueryData;
+    expect(byId.count).toBe(1);
+    expect(byId.branchStore).toBeUndefined();
   }, 240_000);
 });
