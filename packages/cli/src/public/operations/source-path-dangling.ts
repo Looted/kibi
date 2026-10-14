@@ -30,7 +30,7 @@ export const SOURCE_PATH_DANGLING_RULE = "source-path-dangling";
 function suggestion(source: SourceRepair): string {
   if (source.field === "text_ref") {
     if (source.refused !== undefined) {
-      return `kibi migrate cannot repair this text_ref (${source.refused}), so it plans a review_source_path_dangling action. Point text_ref at the evidence file's current path, or remove it when the evidence is gone.`;
+      return `kibi migrate cannot repair this text_ref (${source.refused}), so it plans a review_source_path_dangling action. Point text_ref at the evidence file's current path, or clear it when the evidence is gone: kb_upsert with the entity's title, status and text_ref "".`;
     }
     return `The file moved to ${source.fix.kind === "rewrite" ? source.fix.to : source.file}; kibi migrate rewrites the text_ref field there (source_path_rewrite).`;
   }

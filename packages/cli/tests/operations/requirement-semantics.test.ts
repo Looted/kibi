@@ -70,13 +70,46 @@ describe("relationship-only requirement updates", () => {
       { title: STORED.title, status: "open", logic_claims: [] },
       { title: STORED.title, status: "open", semantic_text: "Other prose." },
       { title: "Users must be able to export reports.", status: "open" },
-      { title: STORED.title, status: "open", text_ref: "spec:claim:2" },
     ]) {
       const input = link(properties);
       expect(
         await withStoredRequirementSemantics(input, emptyStore, staged()),
       ).toBe(input);
     }
+    // text_ref is the prose only when the ledger reads it.
+    const fromTextRef = {
+      ...STORED,
+      semantic_source_field: "text_ref",
+      semantic_text: undefined,
+    };
+    const input = link({
+      title: STORED.title,
+      status: "open",
+      text_ref: "spec:claim:2",
+    });
+    expect(
+      await withStoredRequirementSemantics(
+        input,
+        emptyStore,
+        staged(fromTextRef),
+      ),
+    ).toBe(input);
+  });
+
+  test("keep the ledger when only text_ref changes and the prose is semantic_text", async () => {
+    // Clearing a text_ref whose file is gone changes no proposition.
+    const merged = await withStoredRequirementSemantics(
+      { type: "req", id: STORED.id, properties: { text_ref: "" } },
+      emptyStore,
+      staged(),
+    );
+    expect(merged.properties).toMatchObject({
+      text_ref: "",
+      semantic_text: STORED.semantic_text,
+      semantic_source_field: "semantic_text",
+      semantic_inventory: STORED.semantic_inventory,
+      logic_claims: STORED.logic_claims,
+    });
   });
 
   test("leave new requirements, other types and ledger-free requirements alone", async () => {

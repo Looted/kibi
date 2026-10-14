@@ -292,7 +292,7 @@ describe("search answer layer", () => {
     expect(alone.governing).toEqual([]);
     expect(alone.ungoverned.map((row) => row.id)).toEqual(["FACT-ALICE"]);
     expect(alone.note).toMatch(
-      /^The top-ranked match FACT-ALICE \(fact\) is linked to no requirement\. No current requirement matched/,
+      /^The top-ranked match FACT-ALICE \(fact\) is linked to no requirement\. A fact in ungoverned is linked to no requirement, so it decides nothing: where it disagrees with a governing requirement's fact, the governing fact holds\. No current requirement matched/,
     );
     expect(alone.note).toContain("not evidence");
 
@@ -306,6 +306,16 @@ describe("search answer layer", () => {
       ),
     ]);
     expect(lower.note.startsWith("Governing requirements are")).toBe(true);
+    // A lower-ranked fact no requirement links is listed, and the note says
+    // it decides nothing next to a governing requirement's fact.
+    const withFact = await buildSearchAnswer(fakeKb(entities, EDGES), [
+      match(entities["REQ-NEW"] as Row, 0.7),
+      match(entities["FACT-ALICE"] as Row, 0.3),
+    ]);
+    expect(withFact.ungoverned.map((row) => row.id)).toEqual(["FACT-ALICE"]);
+    expect(withFact.note).toStartWith(
+      "A fact in ungoverned is linked to no requirement, so it decides nothing",
+    );
     expect(lower.ungoverned).toEqual([
       {
         id: "TEST-LOOSE",

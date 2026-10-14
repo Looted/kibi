@@ -234,17 +234,35 @@ function expandIdentifiers(value: string): string {
   );
 }
 
+// A workspace file path written in the question: at least one directory
+// and a file extension ("src/app/auth.service.ts"), not a URL.
+const QUESTION_PATH =
+  /(?<![\w:/.-])(?:\.{1,2}\/)?(?:[\w@~+-][\w@.~+-]*\/)+[\w@~+-][\w@.~+-]*\.[A-Za-z0-9]{1,8}(?![\w/])/g;
+
+// implements REQ-kibi-intent-aware-source-discovery
+/** Workspace file paths the question names in its text, in order, once each. */
+export function questionPaths(query: string): string[] {
+  return [
+    ...new Set(
+      [...query.matchAll(QUESTION_PATH)].map((match) =>
+        match[0].replace(/^\.\//, ""),
+      ),
+    ),
+  ];
+}
+
 /**
- * The question's topic text: identifiers expanded, and the paths it also
- * passes as `sourceLocations` removed. Those paths already reach the
- * search as source evidence; their words ("src", "services", "ts") are not
- * the topic and would only dilute the words that are.
+ * The question's topic text: identifiers expanded, and file paths removed,
+ * both the ones it passes as `sourceLocations` and the ones written in the
+ * question. A path's words ("src", "services", "ts") are not the topic and
+ * would only dilute the words that are; `sourceLocations` is how a path
+ * reaches the search as source evidence.
  */
 function topicText(
   query: string,
   locations: readonly SourceLocation[] = [],
 ): string {
-  let topic = query;
+  let topic = query.replace(QUESTION_PATH, " ");
   for (const location of locations) {
     const located = location.path.replace(/^\.\//, "");
     if (located.length > 0) topic = topic.split(located).join(" ");
