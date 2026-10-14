@@ -363,3 +363,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-88c25bb74e62
+  - type: constrains
+    from: REQ-legacy-kb-first-step-migrate
+    to: FACT-SUBJ-kibi-bootstrap-legacy-kb-next-action
+    created_at: 2026-10-14T21:06:50.879Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-28070b43ae09
+  - type: requires_property
+    from: REQ-legacy-kb-first-step-migrate
+    to: FACT-legacy-kb-first-step-migrate-names-migrate
+    created_at: 2026-10-14T21:06:50.941Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f07c8f3f18be
+  - type: specified_by
+    from: REQ-legacy-kb-first-step-migrate
+    to: SCEN-legacy-kb-first-step-migrate
+    created_at: 2026-10-14T21:06:50.975Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-24a9a5ae9091
+  - type: verified_by
+    from: REQ-legacy-kb-first-step-migrate
+    to: TEST-cli-legacy-kb-first-migrate
+    created_at: 2026-10-14T21:06:51.017Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eefb5d7179b9

@@ -230,3 +230,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d3336180b35c
+  - type: implements
+    from: SYM-kibi-doctor-command
+    to: REQ-legacy-kb-first-step-migrate
+    created_at: 2026-10-14T21:23:58.767Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e930a81e51f0
+  - type: covered_by
+    from: SYM-kibi-doctor-command
+    to: TEST-cli-legacy-kb-first-migrate
+    created_at: 2026-10-14T21:23:58.788Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-470efe92a911

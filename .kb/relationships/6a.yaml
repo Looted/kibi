@@ -188,3 +188,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2e9c56c7080c
+  - type: executable_for
+    from: SYM-test-cli-migrate-entity-type
+    to: TEST-cli-legacy-kb-first-migrate
+    created_at: 2026-10-14T21:20:35.436Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-388942a3b9ba
+  - type: executable_for
+    from: SYM-test-cli-migrate-entity-type
+    to: TEST-cli-migrated-kb-type-backfill-sync-totals
+    created_at: 2026-10-14T21:20:35.457Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d0eb3bca8a1f

@@ -48,6 +48,24 @@ describe("formatSyncSummary", () => {
   });
 });
 
+// implements REQ-cli-sync-summary-kb-totals
+test("an incremental sync shows the KB totals beside what it imported", () => {
+  const result = formatSyncSummary({
+    branch: "main",
+    timestamp: "2024-01-01T00:00:00Z",
+    entityCounts: { req: 1 },
+    storeTotals: { entities: { fact: 240, req: 43 }, relationships: 512 },
+    relationshipCount: 2,
+    success: true,
+    published: true,
+    failures: [],
+  });
+  expect(result).toContain(
+    "KB Totals: 283 entities\n  fact: 240\n  req: 43\nKB Relationships: 512\nImported This Sync (changed sources only): 1 entities, 2 relationship records\n  req: 1\n",
+  );
+  expect(result).not.toContain("Entity Counts:");
+});
+
 test("formats summary with commit", () => {
   const result = formatSyncSummary({
     branch: "main",

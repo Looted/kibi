@@ -232,6 +232,28 @@ describe("bootstrap discovery", () => {
     expect(summary.reason?.toLowerCase()).toContain("vendored");
   });
 
+  // implements REQ-legacy-kb-first-step-migrate
+  it("names kibi migrate --yes, not kibi init, for a legacy .kb/config.json without a manifest", async () => {
+    if (!fixture) throw new Error("missing fixture");
+    createColdStartRepo(fixture.root);
+    fs.mkdirSync(path.join(fixture.root, ".kb"), { recursive: true });
+    fs.writeFileSync(
+      path.join(fixture.root, ".kb", "config.json"),
+      '{"paths":{"requirements":"requirements"}}\n',
+    );
+
+    const activation = await resolveActivationPolicy(
+      fixture.root,
+      createEmptyPrologStub(),
+    );
+
+    expect(activation.activationState).toBe("root_partial");
+    expect(activation.applyBlocked).toBe(true);
+    expect(activation.nextOperation).toBe("kibi migrate --yes");
+    expect(activation.reason).toContain("do not run kibi init first");
+    expect(activation.handoffMessage).not.toContain("Run `kibi init`");
+  });
+
   it("maps root_uninitialized to cold_start_bootstrap and scans full evidence without noisy dirs", async () => {
     if (!fixture) throw new Error("missing fixture");
     createColdStartRepo(fixture.root);

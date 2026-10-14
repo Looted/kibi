@@ -1,6 +1,11 @@
 import path from "node:path";
 
 import type { OperationContext } from "../../public/operations/runtime-types.js";
+import {
+  LEGACY_KB_MIGRATION_COMMAND,
+  LEGACY_KB_MIGRATION_NOTE,
+  readLegacyKbConfig,
+} from "../../utils/config.js";
 import { readKbManifestStatus } from "../../utils/kb-manifest.js";
 import { KB_PATHS } from "../../utils/kb-paths.js";
 import type { ActivationPolicy, ActivationState, Candidate } from "./types.js";
@@ -14,6 +19,25 @@ export function missingManifestActivation(
   return activationFor(
     vendored && !projectSignal ? "vendored_only" : "root_uninitialized",
   );
+}
+
+/**
+ * A legacy `.kb/config.json` without a manifest holds knowledge written by an
+ * older Kibi: it is migrated, never initialized, so the first step is the one
+ * `kibi doctor` names.
+ */
+// implements REQ-legacy-kb-first-step-migrate
+export function legacyKbActivation(): ActivationPolicy {
+  return {
+    activationState: "root_partial",
+    activationMode: "repair_bootstrap",
+    applyBlocked: true,
+    allowCandidateGeneration: true,
+    allowDeclaredClaims: true,
+    reason: `Workspace has a legacy .kb/config.json and no .kb/manifest.json; run \`${LEGACY_KB_MIGRATION_COMMAND}\` (${LEGACY_KB_MIGRATION_NOTE}) before planning bootstrap knowledge.`,
+    handoffMessage: `This knowledge base was written by an older Kibi. Run \`${LEGACY_KB_MIGRATION_COMMAND}\` (${LEGACY_KB_MIGRATION_NOTE}), then check kb_status again.`,
+    nextOperation: LEGACY_KB_MIGRATION_COMMAND,
+  };
 }
 
 function activationFor(state: ActivationState): ActivationPolicy {
@@ -180,6 +204,11 @@ export async function classifyActivation(
     return relative.replaceAll("\\", "/");
   });
   const manifestStatus = readKbManifestStatus(context.workspaceRoot);
+  if (
+    manifestStatus.state === "missing" &&
+    readLegacyKbConfig(context.workspaceRoot).kind !== "none"
+  )
+    return legacyKbActivation();
   if (manifestStatus.state === "missing") {
     const vendored = normalizedFiles.some((file) => file.startsWith("kibi/"));
     const projectSignalFromFiles = normalizedFiles.some(

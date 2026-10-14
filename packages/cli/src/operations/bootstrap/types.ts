@@ -201,6 +201,11 @@ export type ActivationPolicy = {
   readonly allowDeclaredClaims?: boolean;
   readonly reason: string;
   readonly handoffMessage?: string;
+  /**
+   * The command to run first when it is not the activation state's usual
+   * next step (a legacy KB is migrated, not initialized or repaired).
+   */
+  readonly nextOperation?: string;
 };
 
 export type BootstrapEvidence = {

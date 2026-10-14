@@ -342,3 +342,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-60a4f3a485af
+  - type: implements
+    from: SYM-schema6-buildSchema6MigrationFragment
+    to: REQ-cli-migrate-entity-type-backfill
+    created_at: 2026-10-14T21:23:22.670Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-252d149b02af
+  - type: covered_by
+    from: SYM-schema6-buildSchema6MigrationFragment
+    to: TEST-cli-migrated-kb-type-backfill-sync-totals
+    created_at: 2026-10-14T21:23:22.725Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e5191cd6a053

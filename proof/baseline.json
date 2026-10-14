@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 219,
-  "proofProven": 219,
+  "currentRequirements": 222,
+  "proofProven": 222,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -1097,6 +1097,21 @@
       "uncoveredSymbols": []
     },
     "REQ-kibi-uncompiled-source-semantic-baseline": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-cli-migrate-entity-type-backfill": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-legacy-kb-first-step-migrate": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-cli-sync-summary-kb-totals": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []

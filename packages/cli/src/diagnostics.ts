@@ -27,7 +27,13 @@ export interface SyncSummary {
   branch: string;
   commit?: string;
   timestamp: string;
+  /** Entities this sync imported (changed sources only), by type. */
   entityCounts: Record<string, number>;
+  /** What the store holds after this sync, when counted. */
+  storeTotals?: Readonly<{
+    entities: Record<string, number>;
+    relationships: number;
+  }>;
   relationshipCount: number;
   success: boolean;
   published: boolean;
@@ -105,6 +111,17 @@ export function createInvalidAuthoringDiagnostic(
   };
 }
 
+function pushCounts(lines: string[], counts: Record<string, number>): void {
+  const sortedTypes = Object.keys(counts).sort();
+  if (sortedTypes.length === 0) {
+    lines.push("  (none)");
+    return;
+  }
+  for (const type of sortedTypes) {
+    lines.push(`  ${type}: ${counts[type]}`);
+  }
+}
+
 /**
  * Format sync summary for CLI output
  */
@@ -118,17 +135,31 @@ export function formatSyncSummary(summary: SyncSummary): string {
   lines.push(`Timestamp: ${summary.timestamp}`);
   lines.push("");
 
-  // Entity counts by type
-  lines.push("Entity Counts:");
-  const sortedTypes = Object.keys(summary.entityCounts).sort();
-  if (sortedTypes.length === 0) {
-    lines.push("  (none)");
+  // A sync recompiles only changed sources, so what it imported is a delta;
+  // the store totals are what the KB holds now.
+  // implements REQ-cli-sync-summary-kb-totals
+  const totals = summary.storeTotals;
+  if (totals === undefined) {
+    lines.push("Entity Counts:");
+    pushCounts(lines, summary.entityCounts);
+    lines.push(`Total Relationships: ${summary.relationshipCount}`);
   } else {
-    for (const type of sortedTypes) {
-      lines.push(`  ${type}: ${summary.entityCounts[type]}`);
-    }
+    const entityTotal = Object.values(totals.entities).reduce(
+      (sum, count) => sum + count,
+      0,
+    );
+    const imported = Object.values(summary.entityCounts).reduce(
+      (sum, count) => sum + count,
+      0,
+    );
+    lines.push(`KB Totals: ${entityTotal} entities`);
+    pushCounts(lines, totals.entities);
+    lines.push(`KB Relationships: ${totals.relationships}`);
+    lines.push(
+      `Imported This Sync (changed sources only): ${imported} entities, ${summary.relationshipCount} relationship records`,
+    );
+    pushCounts(lines, summary.entityCounts);
   }
-  lines.push(`Total Relationships: ${summary.relationshipCount}`);
   lines.push("");
 
   lines.push(`Status: ${summary.success ? "✓ Success" : "✗ Failed"}`);

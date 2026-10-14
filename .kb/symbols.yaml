@@ -237,6 +237,8 @@ symbols:
       - type: covered_by
         target: TEST-cli-doctor-workflows
       - type: covered_by
+        target: TEST-cli-legacy-kb-first-migrate
+      - type: covered_by
         target: TEST-e2e-capability-plugins
       - type: covered_by
         target: TEST-e2e-kibi-env-bootstrap
@@ -254,6 +256,8 @@ symbols:
         target: REQ-engine-daemon-package-versions
       - type: implements
         target: REQ-kibi-env-bootstrap
+      - type: implements
+        target: REQ-legacy-kb-first-step-migrate
   - id: SYM-kibi-check-diagnostic
     title: CheckDiagnostic
     sourceFile: packages/cli/src/public/operations/check-format-shared.ts
@@ -7342,6 +7346,8 @@ symbols:
       - type: covered_by
         target: TEST-cli-branch-store-recovery
       - type: covered_by
+        target: TEST-cli-legacy-kb-first-migrate
+      - type: covered_by
         target: TEST-cli-status-pre-first-sync
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
@@ -7359,6 +7365,8 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: implements
         target: REQ-kibi-uncompiled-source-visibility
+      - type: implements
+        target: REQ-legacy-kb-first-step-migrate
       - type: implements
         target: REQ-mcp-search-discovery
   - id: SYM-discovery-query-input
@@ -11014,7 +11022,13 @@ symbols:
       - type: covered_by
         target: TEST-cli-config-schema
       - type: covered_by
+        target: TEST-cli-legacy-kb-first-migrate
+      - type: covered_by
         target: TEST-cli-migrate-legacy-requirement-status
+      - type: covered_by
+        target: TEST-cli-migrated-kb-type-backfill-sync-totals
+      - type: covered_by
+        target: TEST-cli-migration-first-commit
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
@@ -11022,13 +11036,13 @@ symbols:
       - type: implements
         target: REQ-011
       - type: implements
+        target: REQ-cli-migrate-entity-type-backfill
+      - type: implements
         target: REQ-cli-migrate-legacy-requirement-status
       - type: implements
-        target: REQ-kibi-schema6-migration-v2
-      - type: covered_by
-        target: TEST-cli-migration-first-commit
-      - type: implements
         target: REQ-cli-migration-first-commit
+      - type: implements
+        target: REQ-kibi-schema6-migration-v2
   - id: SYM-mirrorSkillsDir
     title: mirrorSkillsDir
     sourceFile: scripts/sync-agent-skills.ts
@@ -23717,6 +23731,8 @@ symbols:
       - type: covered_by
         target: TEST-cli-branch-store-recovery
       - type: covered_by
+        target: TEST-cli-migrated-kb-type-backfill-sync-totals
+      - type: covered_by
         target: TEST-cli-sync-discovery-readme-ignore
       - type: covered_by
         target: TEST-core-journaled-engine-delta-sync
@@ -23732,6 +23748,8 @@ symbols:
         target: TEST-kibi-uncompiled-source-visibility
       - type: implements
         target: REQ-branch-store-recovery-v4
+      - type: implements
+        target: REQ-cli-sync-summary-kb-totals
       - type: implements
         target: REQ-core-extractors
       - type: implements
@@ -32074,11 +32092,15 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-cli-legacy-kb-first-migrate
+      - type: covered_by
         target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
         target: REQ-KIBI-BOOTSTRAP-PLAN
+      - type: implements
+        target: REQ-legacy-kb-first-step-migrate
   - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-candidate-helpers-confidenceband
     title: confidenceBand
     status: active
@@ -47887,9 +47909,13 @@ symbols:
       recorded_at: 2026-10-04T03:13:25.334Z
     relationships:
       - type: covered_by
+        target: TEST-cli-migrated-kb-type-backfill-sync-totals
+      - type: covered_by
         target: TEST-kibi-schema6-migration
       - type: covered_by
         target: TEST-kibi-schema6-migration-cli
+      - type: implements
+        target: REQ-cli-migrate-entity-type-backfill
       - type: implements
         target: REQ-kibi-schema6-migration
       - type: implements
@@ -48632,9 +48658,13 @@ symbols:
       recorded_at: 2026-10-04T17:25:50.906Z
     relationships:
       - type: covered_by
+        target: TEST-cli-migrated-kb-type-backfill-sync-totals
+      - type: covered_by
         target: TEST-cli-migration-first-commit
       - type: covered_by
         target: TEST-kibi-schema6-migration-cli
+      - type: implements
+        target: REQ-cli-migrate-entity-type-backfill
       - type: implements
         target: REQ-cli-migration-first-commit
       - type: implements
@@ -54715,3 +54745,365 @@ symbols:
         target: TEST-cursor-kibi-plugin-v1
       - type: implements
         target: REQ-agent-hosts-decision-guard
+  - id: SYM-test-cli-migrate-entity-type
+    title: Legacy KB migration entity type and sync summary CLI suite
+    status: active
+    sourceFile: packages/cli/tests/commands/migrate-entity-type.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T21:20:33.814Z
+    relationships:
+      - type: executable_for
+        target: TEST-cli-legacy-kb-first-migrate
+      - type: executable_for
+        target: TEST-cli-migrated-kb-type-backfill-sync-totals
+  - id: SYM-migration-entity-type-backfill-plan
+    title: planEntityTypeBackfill
+    status: active
+    sourceFile: packages/cli/src/operations/migration/entity-type.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T21:20:40.016Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-legacy-kb-first-migrate
+      - type: covered_by
+        target: TEST-cli-migrated-kb-type-backfill-sync-totals
+      - type: implements
+        target: REQ-cli-migrate-entity-type-backfill
+  - id: SYM-migration-entity-type-backfill-apply
+    title: applyEntityTypeBackfill
+    status: active
+    sourceFile: packages/cli/src/operations/migration/entity-type.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T21:20:45.265Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-legacy-kb-first-migrate
+      - type: covered_by
+        target: TEST-cli-migrated-kb-type-backfill-sync-totals
+      - type: implements
+        target: REQ-cli-migrate-entity-type-backfill
+  - id: SYM-migration-entity-type-backfill-code
+    title: ENTITY_TYPE_BACKFILL_CODE
+    status: active
+    sourceFile: packages/cli/src/operations/migration/entity-type.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T21:20:50.037Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migrated-kb-type-backfill-sync-totals
+      - type: implements
+        target: REQ-cli-migrate-entity-type-backfill
+  - id: SYM-migration-entity-type-backfill-action-id
+    title: ENTITY_TYPE_BACKFILL_ACTION_ID
+    status: active
+    sourceFile: packages/cli/src/operations/migration/entity-type.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T21:20:55.160Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migrated-kb-type-backfill-sync-totals
+      - type: implements
+        target: REQ-cli-migrate-entity-type-backfill
+  - id: SYM-migration-entity-type-backfill-target
+    title: EntityTypeBackfillTarget
+    status: active
+    sourceFile: packages/cli/src/operations/migration/entity-type.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T21:20:59.803Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-legacy-kb-first-migrate
+      - type: covered_by
+        target: TEST-cli-migrated-kb-type-backfill-sync-totals
+      - type: implements
+        target: REQ-cli-migrate-entity-type-backfill
+  - id: SYM-migration-entity-type-backfill-skip
+    title: EntityTypeBackfillSkip
+    status: active
+    sourceFile: packages/cli/src/operations/migration/entity-type.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T21:21:04.573Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-legacy-kb-first-migrate
+      - type: covered_by
+        target: TEST-cli-migrated-kb-type-backfill-sync-totals
+      - type: implements
+        target: REQ-cli-migrate-entity-type-backfill
+  - id: SYM-migration-entity-type-backfill-plan-shape
+    title: EntityTypeBackfillPlan
+    status: active
+    sourceFile: packages/cli/src/operations/migration/entity-type.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T21:21:09.089Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-legacy-kb-first-migrate
+      - type: covered_by
+        target: TEST-cli-migrated-kb-type-backfill-sync-totals
+      - type: implements
+        target: REQ-cli-migrate-entity-type-backfill
+  - id: SYM-cli-sync-query-store-totals
+    title: queryStoreTotals
+    status: active
+    sourceFile: packages/cli/src/commands/sync/persistence.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T21:21:15.121Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migrated-kb-type-backfill-sync-totals
+      - type: implements
+        target: REQ-cli-sync-summary-kb-totals
+  - id: SYM-cli-sync-store-totals
+    title: StoreTotals
+    status: active
+    sourceFile: packages/cli/src/commands/sync/persistence.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T21:21:22.740Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migrated-kb-type-backfill-sync-totals
+      - type: implements
+        target: REQ-cli-sync-summary-kb-totals
+  - id: SYM-bootstrap-legacy-kb-activation
+    title: legacyKbActivation
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/activation.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T21:21:30.054Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-legacy-kb-first-migrate
+      - type: implements
+        target: REQ-legacy-kb-first-step-migrate
+  - id: SYM-canonical-LEGACY_KB_MIGRATION_COMMAND
+    title: LEGACY_KB_MIGRATION_COMMAND
+    status: active
+    sourceFile: packages/cli/src/utils/config.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T21:21:37.020Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-legacy-kb-first-migrate
+      - type: implements
+        target: REQ-legacy-kb-first-step-migrate
+  - id: SYM-canonical-LEGACY_KB_MIGRATION_NOTE
+    title: LEGACY_KB_MIGRATION_NOTE
+    status: active
+    sourceFile: packages/cli/src/utils/config.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T21:21:43.796Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-legacy-kb-first-migrate
+      - type: implements
+        target: REQ-legacy-kb-first-step-migrate
+  - id: SYM-diagnostics-formatSyncSummary
+    title: formatSyncSummary
+    status: active
+    sourceFile: packages/cli/src/diagnostics.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T21:21:49.991Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migrated-kb-type-backfill-sync-totals
+      - type: implements
+        target: REQ-cli-sync-summary-kb-totals
+  - id: SYM-diagnostics-SyncSummary
+    title: SyncSummary
+    status: active
+    sourceFile: packages/cli/src/diagnostics.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T21:21:56.342Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migrated-kb-type-backfill-sync-totals
+      - type: implements
+        target: REQ-cli-sync-summary-kb-totals
+  - id: SYM-diagnostics-Diagnostic
+    title: Diagnostic
+    status: active
+    sourceFile: packages/cli/src/diagnostics.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T21:22:02.896Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migrated-kb-type-backfill-sync-totals
+      - type: implements
+        target: REQ-cli-sync-summary-kb-totals
+  - id: SYM-diagnostics-DiagnosticCategory
+    title: DiagnosticCategory
+    status: active
+    sourceFile: packages/cli/src/diagnostics.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T21:22:09.066Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migrated-kb-type-backfill-sync-totals
+      - type: implements
+        target: REQ-cli-sync-summary-kb-totals
+  - id: SYM-diagnostics-BranchErrorCode
+    title: BranchErrorCode
+    status: active
+    sourceFile: packages/cli/src/diagnostics.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T21:22:15.933Z
+    relationships:
+      - type: covered_by
+        target: TEST-branch-detached-head-read-only
+      - type: implements
+        target: REQ-branch-store-recovery-v4
+  - id: SYM-diagnostics-branchErrorToDiagnostic
+    title: branchErrorToDiagnostic
+    status: active
+    sourceFile: packages/cli/src/diagnostics.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T21:22:22.583Z
+    relationships:
+      - type: covered_by
+        target: TEST-branch-detached-head-read-only
+      - type: implements
+        target: REQ-branch-store-recovery-v4
+  - id: SYM-diagnostics-createKbMissingDiagnostic
+    title: createKbMissingDiagnostic
+    status: active
+    sourceFile: packages/cli/src/diagnostics.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T21:22:28.895Z
+    relationships:
+      - type: covered_by
+        target: TEST-branch-detached-head-read-only
+      - type: implements
+        target: REQ-branch-store-recovery-v4
+  - id: SYM-diagnostics-createDocsNotIndexedDiagnostic
+    title: createDocsNotIndexedDiagnostic
+    status: active
+    sourceFile: packages/cli/src/diagnostics.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T21:22:35.415Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-uncompiled-source-visibility
+      - type: implements
+        target: REQ-kibi-uncompiled-source-visibility
+  - id: SYM-diagnostics-createInvalidAuthoringDiagnostic
+    title: createInvalidAuthoringDiagnostic
+    status: active
+    sourceFile: packages/cli/src/diagnostics.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T21:22:42.229Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-uncompiled-source-visibility
+      - type: implements
+        target: REQ-kibi-uncompiled-source-visibility
+  - id: SYM-diagnostics-formatDiagnosticsForMcp
+    title: formatDiagnosticsForMcp
+    status: active
+    sourceFile: packages/cli/src/diagnostics.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T21:22:48.861Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-uncompiled-source-visibility
+      - type: implements
+        target: REQ-kibi-uncompiled-source-visibility
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-intent-claim-kinds
+    title: INTENT_CLAIM_KINDS
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T21:22:54.567Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-bootstrap-knowledge-sources
+      - type: implements
+        target: REQ-bootstrap-claim-kinds-and-conflicts
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapintentclaimkind
+    title: BootstrapIntentClaimKind
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T21:22:59.494Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-bootstrap-knowledge-sources
+      - type: implements
+        target: REQ-bootstrap-claim-kinds-and-conflicts
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapclaimreference
+    title: BootstrapClaimReference
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T21:23:04.167Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-bootstrap-knowledge-sources
+      - type: implements
+        target: REQ-bootstrap-claim-kinds-and-conflicts
+  - id: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapclaimconflict
+    title: BootstrapClaimConflict
+    status: active
+    sourceFile: packages/cli/src/operations/bootstrap/types.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T21:23:08.664Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-bootstrap-knowledge-sources
+      - type: implements
+        target: REQ-bootstrap-claim-kinds-and-conflicts

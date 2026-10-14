@@ -106,6 +106,7 @@ import {
 import {
   persistEntities,
   persistRelationships,
+  queryStoreTotals,
   retractEntitiesById,
   retractEntitiesForSources,
   retractEntityRelationshipsById,
@@ -1429,6 +1430,7 @@ export async function syncCommand(
             { workspaceRoot },
           );
 
+        const storeTotals = await queryStoreTotals(engineProlog);
         const kbModified =
           removedCount > 0 ||
           relationshipChanged ||
@@ -1491,6 +1493,7 @@ export async function syncCommand(
             branch: currentBranch,
             timestamp: new Date().toISOString(),
             entityCounts,
+            ...(storeTotals !== undefined ? { storeTotals } : {}),
             relationshipCount,
             success: true,
             published,
@@ -1645,6 +1648,7 @@ export async function syncCommand(
       }
 
       await runtime.beforeSave?.({ ...runtimeContext, kbModified });
+      const storeTotals = await queryStoreTotals(prolog);
 
       const saveResult = await prolog.query("kb_save");
       if (!saveResult.success) {
@@ -1752,6 +1756,7 @@ export async function syncCommand(
           branch: currentBranch,
           timestamp: new Date().toISOString(),
           entityCounts,
+          ...(storeTotals !== undefined ? { storeTotals } : {}),
           relationshipCount,
           success: true,
           published,

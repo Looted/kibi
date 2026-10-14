@@ -286,3 +286,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-dca28a1c7090
+  - type: verified_by
+    from: SCEN-legacy-kb-first-step-migrate
+    to: TEST-cli-legacy-kb-first-migrate
+    created_at: 2026-10-14T21:06:45.901Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0dababb2cf20
+  - type: assumes
+    from: SCEN-legacy-kb-first-step-migrate
+    to: FACT-legacy-kb-first-step-migrate-names-migrate
+    created_at: 2026-10-14T21:06:45.947Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6ccbca3bfbba
