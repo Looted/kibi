@@ -239,4 +239,16 @@ describe("search text for questions search cannot answer", () => {
       "domain-contradictions",
     );
   });
+
+  test("a file path written in the question is named, with the sourceLocations that use it", async () => {
+    const text = await searchText(
+      "Which requirement covers 7 in `src/app/report.service.ts`?",
+    );
+    expect(text).toContain(
+      "The question names src/app/report.service.ts; its words were left out of the topic. Pass it as sourceLocations",
+    );
+    expect(await searchText("Which requirement covers 7?")).not.toContain(
+      "The question names",
+    );
+  });
 });

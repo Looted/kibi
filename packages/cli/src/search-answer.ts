@@ -1218,8 +1218,15 @@ function answerNote(
     top === undefined
       ? ""
       : `The top-ranked match ${top.id} (${top.type}) is linked to no requirement${governingCount === 0 ? "" : "; the governing requirements below were reached through lower-ranked matches"}. `;
+  // A fact no requirement links records something seen, not a decision. An
+  // agent comparing it with a governing requirement's fact on the same
+  // tuple must not weigh the two as equals.
+  const ungovernedFact = ungoverned.some((entry) => entry.type === "fact")
+    ? "A fact in ungoverned is linked to no requirement, so it decides nothing: where it disagrees with a governing requirement's fact, the governing fact holds. "
+    : "";
   return (
     lead +
+    ungovernedFact +
     (governingCount === 0
       ? "No current requirement matched or owns a matched entity. Absence here is not evidence that nothing governs the change; refine the query or pass sourceLocations."
       : "Governing requirements are current requirements matched by the query or linked to a matched entity. Links are discovery, not proof. A verdict lists the contradiction and scenario-feasibility witnesses that name the requirement; none means no check named it, not that it is proven. Use kb_check and kb_coverage for consistency and proof status.")

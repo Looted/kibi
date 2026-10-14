@@ -5,6 +5,7 @@ import {
   type SemanticRelationship,
   validateSemanticInventoryBoundary,
 } from "../semantic-advisor/ingestion-boundary.js";
+import { stringValue } from "../semantic-advisor/shared.js";
 import {
   type StoredEntityLookup,
   storedEntityLookup,
@@ -55,7 +56,9 @@ async function storedRequirement(
  * relationship (for example `specified_by`) and carries no `semantic_*` or
  * `logic_claims` field, and no `title` or `text_ref` that differs from the
  * stored value, is merged over the stored semantic contract (and the stored
- * `text_ref` it omits) before validation. The
+ * `text_ref` it omits) before validation. When the stored ledger reads its
+ * prose from `semantic_text`, a changed `text_ref` is merged the same way,
+ * since it is not the prose. The
  * proposition-complete check then runs against the merged requirement, which
  * is also what the write records. A payload that supplies any ledger field or
  * changes the prose is validated exactly as given.
@@ -71,10 +74,19 @@ export async function withStoredRequirementSemantics(
   if (suppliesSemanticContract(properties)) return input;
   const stored = await storedRequirement(input.id, lookup, staged);
   if (stored === undefined) return input;
+  // text_ref is prose only while it is the semantic source. Once the stored
+  // ledger reads semantic_text, changing it (for example clearing a text_ref
+  // whose file is gone) changes no proposition. A changed title stays a
+  // prose change: it is what a reader takes the requirement to say.
+  const readsSemanticText =
+    stored.semantic_source_field === "semantic_text" &&
+    stringValue(stored.semantic_text).length > 0;
   if (
     PROSE_FIELDS.some(
       (field) =>
-        properties[field] !== undefined && properties[field] !== stored[field],
+        !(field === "text_ref" && readsSemanticText) &&
+        properties[field] !== undefined &&
+        properties[field] !== stored[field],
     )
   )
     return input;

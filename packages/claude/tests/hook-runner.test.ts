@@ -764,6 +764,45 @@ describe("shell commands", () => {
     ).toBeUndefined();
   });
 
+  test("a sed script with | or ; inside quotes is still an in-place write, after a read too", async () => {
+    const fixture = createKibiWorkspace();
+    commitAll(fixture);
+    const { pre } = session(fixture);
+    const read = await pre("Bash", { command: "sed -n 1,40p src/checkout.ts" });
+    expect(read).not.toContain("must keep true");
+    const edit = await pre("Bash", {
+      command:
+        "sed -i 's|total(): number {|total(): number { // x|' src/checkout.ts",
+    });
+    expect(edit).toContain("REQ-checkout-rounding");
+    expect(edit).toContain("must keep true");
+    const fresh = session(fixture, "s-semicolon");
+    expect(
+      await fresh.pre("Bash", {
+        command: 'sed -i "s;total;sum;" src/checkout.ts',
+      }),
+    ).toContain("must keep true");
+  });
+
+  test("tee -a and >> on a linked file each say what must stay true before they run", async () => {
+    const fixture = createKibiWorkspace();
+    commitAll(fixture);
+    for (const [id, command] of [
+      ["s-tee", "echo '// x' | tee -a src/checkout.ts"],
+      ["s-append", "echo '// x' >> src/checkout.ts"],
+    ] as const) {
+      const { pre } = session(fixture, id);
+      expect(await pre("Bash", { command })).toContain("must keep true");
+    }
+    // A quoted '>' is text, not a redirection: the command only reads.
+    const { pre } = session(fixture, "s-quoted");
+    const quoted = await pre("Bash", {
+      command: "echo 'total > src/checkout.ts' && cat src/checkout.ts",
+    });
+    expect(quoted).toContain("REQ-checkout-rounding");
+    expect(quoted).not.toContain("must keep true");
+  });
+
   test("files left dirty before the command are not attributed to it", async () => {
     const fixture = createKibiWorkspace();
     commitAll(fixture);
