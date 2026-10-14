@@ -1,5 +1,14 @@
 # kibi-opencode
 
+## 2.5.2
+
+### Patch Changes
+
+- Updated dependencies [445ced0]
+- Updated dependencies [d960810]
+  - kibi-runtime@2.16.2
+  - kibi-agent-core@0.6.0
+
 ## 2.5.1
 
 ### Patch Changes
