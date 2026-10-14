@@ -13,6 +13,8 @@ export type HookInput = {
   stopHookActive?: boolean;
   /** SessionStart: startup | resume | clear | compact. */
   source?: string;
+  /** UserPromptSubmit: the text the person submitted. */
+  prompt?: string;
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -42,7 +44,9 @@ export function parseHookInput(input: unknown): HookInput {
   if (sessionId !== undefined) parsed.sessionId = sessionId;
   if (cwd !== undefined) parsed.cwd = cwd;
   if (toolName !== undefined) parsed.toolName = toolName;
+  const prompt = readString(input, "prompt");
   if (source !== undefined) parsed.source = source;
+  if (prompt !== undefined) parsed.prompt = prompt;
   if (input.tool_input !== undefined) parsed.toolInput = input.tool_input;
   if (input.stop_hook_active === true) parsed.stopHookActive = true;
   return parsed;

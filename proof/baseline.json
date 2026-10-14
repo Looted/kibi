@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 214,
-  "proofProven": 214,
+  "currentRequirements": 217,
+  "proofProven": 217,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -1072,6 +1072,21 @@
       "uncoveredSymbols": []
     },
     "REQ-kb-upsert-statement-follows-semantic-text": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-claude-firm-edit-confirmation": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-claude-decision-capture-nudges": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-claude-request-topic-candidates": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []

@@ -255,3 +255,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4f1320a5df2e
+  - type: implements
+    from: SYM-agent-core-candidates-requesttopicwords
+    to: REQ-claude-request-topic-candidates
+    created_at: 2026-10-14T16:59:53.255Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-19f660941697
+  - type: covered_by
+    from: SYM-agent-core-candidates-requesttopicwords
+    to: TEST-claude-edit-snippet-hook
+    created_at: 2026-10-14T16:59:53.270Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-14331f6ea41e

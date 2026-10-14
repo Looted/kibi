@@ -1,4 +1,4 @@
-// implements REQ-kb-unowned-file-candidates
+// implements REQ-kb-unowned-file-candidates, REQ-claude-request-topic-candidates
 import { afterEach, describe, expect, test } from "bun:test";
 import fs from "node:fs";
 import os from "node:os";
@@ -7,6 +7,7 @@ import path from "node:path";
 import {
   pathTopicWords,
   rankRequirementCandidates,
+  requestTopicWords,
   requirementCandidatesForPath,
 } from "../src/requirement-candidates";
 import { MAX_SNIPPET_CHARS, unownedSourceNote } from "../src/snippets";
@@ -96,7 +97,7 @@ describe("candidate requirements for an unlinked file", () => {
     ]);
     expect(note).toContain("that does not mean no recorded rule covers");
     expect(note).toContain(
-      "Requirements whose titles share this path's words: REQ-AUTO-E1EE: The coach inbox",
+      "Requirements whose titles share words with this path or the request: REQ-AUTO-E1EE: The coach inbox",
     );
     expect(note).toContain('kb_query({id:"REQ-AUTO-E1EE"})');
     expect(unownedSourceNote(COACH_PAGE)).not.toContain("titles share");
@@ -113,5 +114,39 @@ describe("candidate requirements for an unlinked file", () => {
     expect(note.length).toBeLessThanOrEqual(MAX_SNIPPET_CHARS);
     expect(note).toContain("REQ-a");
     expect(note).not.toContain("REQ-c");
+  });
+
+  test("request words reach a requirement the path does not name", () => {
+    const words = requestTopicWords(
+      "Please make sure API keys never expire after 30 days.",
+    );
+    expect(words).toEqual(["api", "keys", "expire", "after", "days"]);
+    const heads = [
+      { id: "REQ-key-expiry", title: "API keys expire after a fixed period" },
+      { id: "REQ-docs-expiry", title: "Documents expire after deletion" },
+      { id: "REQ-intake", title: "Intake emails are signed" },
+    ];
+    // One shared request word is chance; two make a candidate.
+    expect(
+      rankRequirementCandidates("src/routes/tokens.ts", heads, 3, words).map(
+        (candidate) => candidate.id,
+      ),
+    ).toEqual(["REQ-key-expiry", "REQ-docs-expiry"]);
+    expect(
+      rankRequirementCandidates("src/routes/tokens.ts", heads, 3, ["api"]),
+    ).toEqual([]);
+    // Path words still lead.
+    expect(
+      rankRequirementCandidates("src/intake/handler.ts", heads, 3, words)[0]
+        ?.id,
+    ).toBe("REQ-intake");
+  });
+
+  test("with no candidate, the note says nothing recorded is known to cover the file and asks for the decision to be recorded", () => {
+    const note = unownedSourceNote("src/routes/tokens.ts");
+    expect(note).toContain("that does not mean no recorded rule covers");
+    expect(note).toContain("nothing recorded is known to cover it");
+    expect(note).toContain("is recorded with kb_upsert");
+    expect(note.length).toBeLessThanOrEqual(MAX_SNIPPET_CHARS);
   });
 });

@@ -42453,10 +42453,18 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-claude-code-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
       - type: implements
         target: REQ-claude-code-kibi-plugin-v1
       - type: implements
+        target: REQ-claude-decision-capture-nudges
+      - type: implements
+        target: REQ-claude-firm-edit-confirmation
+      - type: implements
         target: REQ-claude-hook-usage-telemetry-v2
+      - type: implements
+        target: REQ-claude-request-topic-candidates
   - id: SYM-claude-ContextEvent
     title: ContextEvent
     status: active
@@ -42695,8 +42703,14 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-claude-code-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
       - type: implements
         target: REQ-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-decision-capture-nudges
+      - type: implements
+        target: REQ-claude-firm-edit-confirmation
   - id: SYM-claude-loadSessionState
     title: loadSessionState
     status: active
@@ -42785,6 +42799,8 @@ symbols:
         target: TEST-claude-edit-snippet-hook
       - type: implements
         target: REQ-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-request-topic-candidates
       - type: implements
         target: REQ-kb-unowned-file-candidates
   - id: SYM-claude-searchTip
@@ -53952,6 +53968,8 @@ symbols:
       - type: covered_by
         target: TEST-claude-edit-snippet-hook
       - type: implements
+        target: REQ-claude-request-topic-candidates
+      - type: implements
         target: REQ-kb-unowned-file-candidates
   - id: SYM-agent-core-candidates-requirementcandidatesforpath
     title: requirementCandidatesForPath
@@ -53964,6 +53982,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-claude-edit-snippet-hook
+      - type: implements
+        target: REQ-claude-request-topic-candidates
       - type: implements
         target: REQ-kb-unowned-file-candidates
   - id: SYM-agent-core-candidates-max-requirement-candidates
@@ -54315,3 +54335,81 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-kb-entity-body-context
+  - id: SYM-claude-firmEditConfirmation
+    title: firmEditConfirmation
+    status: active
+    sourceFile: packages/claude/src/snippets.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T16:59:36.331Z
+    relationships:
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: implements
+        target: REQ-claude-firm-edit-confirmation
+  - id: SYM-claude-firmEditContext
+    title: firmEditContext
+    status: active
+    sourceFile: packages/claude/src/snippets.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T16:59:39.252Z
+    relationships:
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: implements
+        target: REQ-claude-firm-edit-confirmation
+  - id: SYM-claude-statedRule
+    title: statedRule
+    status: active
+    sourceFile: packages/claude/src/snippets.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T16:59:43.491Z
+    relationships:
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: implements
+        target: REQ-claude-decision-capture-nudges
+  - id: SYM-claude-rulePromptNote
+    title: rulePromptNote
+    status: active
+    sourceFile: packages/claude/src/snippets.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T16:59:46.571Z
+    relationships:
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: implements
+        target: REQ-claude-decision-capture-nudges
+  - id: SYM-claude-captureReminder
+    title: captureReminder
+    status: active
+    sourceFile: packages/claude/src/snippets.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T16:59:49.521Z
+    relationships:
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: implements
+        target: REQ-claude-decision-capture-nudges
+  - id: SYM-agent-core-candidates-requesttopicwords
+    title: requestTopicWords
+    status: active
+    sourceFile: packages/agent-core/src/requirement-candidates.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T16:59:52.499Z
+    relationships:
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: implements
+        target: REQ-claude-request-topic-candidates

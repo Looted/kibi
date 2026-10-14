@@ -360,3 +360,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1037be4e8489
+  - type: implements
+    from: SYM-claude-firmEditContext
+    to: REQ-claude-firm-edit-confirmation
+    created_at: 2026-10-14T16:59:39.939Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fa0268f4648f
+  - type: covered_by
+    from: SYM-claude-firmEditContext
+    to: TEST-claude-edit-snippet-hook
+    created_at: 2026-10-14T16:59:39.954Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2fabaa02ecde

@@ -326,7 +326,7 @@ describe("once-per-session edit context", () => {
     };
     const first = editKnowledgeContext(input) ?? "";
     expect(first).toStartWith(
-      "Kibi: no symbol in src/unlinked.ts is linked to a requirement yet; that does not mean no recorded rule covers the behavior it implements.\nkb_search(",
+      "Kibi: no symbol in src/unlinked.ts is linked to a requirement yet; that does not mean no recorded rule covers the behavior it implements.\nNo requirement title matches this file, so nothing recorded is known to cover it.\nkb_search(",
     );
     expect(first).toContain("\n\nKibi knowledge for src/a.ts");
     expect(editKnowledgeContext(input)).toBeUndefined();
