@@ -348,6 +348,13 @@ export const GENERATED_RULES = [
     category: "lifecycle",
   },
   {
+    name: "decision-firm-edited",
+    description:
+      "A current requirement or ADR that was firm at HEAD must not have its claim (title, stated meaning, the statement its body derives, an ADR's body, or its firmness) changed in place unless the edit cites new human words (a changed origin.ref, or approval_ref on a requirement); supersede it with a firm decision instead",
+    enforcementClass: "canonical",
+    category: "lifecycle",
+  },
+  {
     name: "supersedes-reason-missing",
     description:
       "A current requirement or ADR that supersedes another must explain why under a 'Why this changed' heading (at least 12 words of prose naming the evidence and answering the old decision's reasoning); supersede edges recorded before schema 9 are acknowledged in the manifest and exempt",

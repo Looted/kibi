@@ -202,3 +202,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a7764e9fe434
+  - type: implements
+    from: SYM-decision-firmness-firmness-from-origin-schema-version
+    to: REQ-kb-decision-firmness-from-origin
+    created_at: 2026-10-14T08:10:46.709Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7a462d0f26b7
+  - type: covered_by
+    from: SYM-decision-firmness-firmness-from-origin-schema-version
+    to: TEST-kb-decision-firmness
+    created_at: 2026-10-14T08:10:46.732Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-999e5acdb4b3

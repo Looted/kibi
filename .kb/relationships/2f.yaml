@@ -328,3 +328,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d57189011b17
+  - type: implements
+    from: SYM-upsert-assertrelationshipshardcontained
+    to: REQ-core-atomic-upsert-persistence
+    created_at: 2026-10-14T08:10:12.128Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a51b8b5ee7c3
+  - type: covered_by
+    from: SYM-upsert-assertrelationshipshardcontained
+    to: TEST-core-atomic-upsert-persistence
+    created_at: 2026-10-14T08:10:12.163Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-93f5789680de
+  - type: implements
+    from: SYM-upsert-validateupsertforcommit
+    to: REQ-kibi-truthful-consistency
+    created_at: 2026-10-14T08:10:35.341Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb4e4bbb1702
+  - type: covered_by
+    from: SYM-upsert-validateupsertforcommit
+    to: TEST-kibi-truthful-consistency
+    created_at: 2026-10-14T08:10:35.374Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-604be36eecb7
+  - type: implements
+    from: SYM-upsert-validateupsertforcommit
+    to: REQ-kb-firm-decision-edit
+    created_at: 2026-10-14T08:10:35.395Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3fd8b7e44c1e
+  - type: covered_by
+    from: SYM-upsert-validateupsertforcommit
+    to: TEST-kb-decision-firmness
+    created_at: 2026-10-14T08:30:26.011Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-775b9a66133f

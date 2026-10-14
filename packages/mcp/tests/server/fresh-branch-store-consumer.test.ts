@@ -35,6 +35,7 @@ const workspaces: string[] = [];
 const clients: Client[] = [];
 
 afterEach(async () => {
+  protocolErrors.splice(0);
   for (const client of clients.splice(0)) await client.close();
   for (const dir of workspaces.splice(0)) {
     try {
@@ -134,8 +135,12 @@ function freshBranchWorkspace(): string {
   return dir;
 }
 
+/** Protocol errors the client saw, such as a non-JSON line on the server's stdout. */
+const protocolErrors: Error[] = [];
+
 async function connect(cwd: string): Promise<Client> {
   const client = new Client({ name: "kibi-consumer", version: "1.0.0" });
+  client.onerror = (error) => protocolErrors.push(error);
   await client.connect(
     new StdioClientTransport({
       command: "node",
@@ -260,6 +265,9 @@ describe("kibi-mcp on a new branch whose store was never compiled", () => {
       approvedActionIds: actionIds,
     });
     expect(applied.outcome).toBe("applied");
+    // The compile prints its progress to the console: it must reach stderr,
+    // not the JSON-RPC stream on stdout.
+    expect(protocolErrors.map((error) => error.message)).toEqual([]);
 
     const after = (await call(client, "kb_check", {})) as CheckData;
     expect(after.violations.map((violation) => violation.rule)).not.toContain(
