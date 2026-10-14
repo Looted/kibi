@@ -62,6 +62,13 @@ export interface KbManifest {
    * supersedes-reason-missing only while every edge it has is listed here.
    */
   supersedesReasonAcknowledged?: string[];
+  /**
+   * Supersede edges (`FROM -> TO`) the schema 10 migration acknowledged:
+   * the target has no `firmness` and only reads as firm since firmness
+   * follows origin, and the superseder is not firm. Only these edges are
+   * exempt from decision-firm-superseded.
+   */
+  firmSupersedeAcknowledged?: string[];
 }
 
 export function defaultKbManifest(): KbManifest {
@@ -121,6 +128,7 @@ function validateManifest(parsed: unknown): KbManifest | null {
   }
   const acknowledged = parsed.contextAcknowledged;
   const supersedesAcknowledged = parsed.supersedesReasonAcknowledged;
+  const firmAcknowledged = parsed.firmSupersedeAcknowledged;
   return {
     manifestVersion,
     schemaVersion,
@@ -135,6 +143,13 @@ function validateManifest(parsed: unknown): KbManifest | null {
     ...(Array.isArray(supersedesAcknowledged)
       ? {
           supersedesReasonAcknowledged: supersedesAcknowledged.filter(
+            (id): id is string => typeof id === "string",
+          ),
+        }
+      : {}),
+    ...(Array.isArray(firmAcknowledged)
+      ? {
+          firmSupersedeAcknowledged: firmAcknowledged.filter(
             (id): id is string => typeof id === "string",
           ),
         }

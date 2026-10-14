@@ -136,17 +136,23 @@ export function isRetiredStatus(status: string | undefined): boolean {
   return status !== undefined && RETIRED_STATUS.test(status);
 }
 
-// implements REQ-agent-core-edit-snippets, REQ-claude-code-kibi-plugin-v1, REQ-opencode-kibi-plugin-v1, REQ-kb-decision-firmness
+// implements REQ-agent-core-edit-snippets, REQ-claude-code-kibi-plugin-v1, REQ-opencode-kibi-plugin-v1, REQ-kb-decision-firmness, REQ-kb-decision-firmness-from-origin
 /**
  * `ID (status) [firmness]: title`, with the status shown only when it is
- * retired and the firmness only when it is firm or exploratory (unlabeled
- * decisions are `default`).
+ * retired and the firmness only on a current decision: `[firm: ask before
+ * changing]` says what a firm rule asks of the agent where it reads it, and
+ * `[exploratory]` marks a guess. An unlabeled current decision is `default`,
+ * an agent's choice.
  */
 export function describeEntity(summary: EntitySummary): string {
   const retired = isRetiredStatus(summary.status) ? ` (${summary.status})` : "";
+  // A retired decision binds nothing, however firmly it was once made.
   const firmness =
-    summary.firmness === "firm" || summary.firmness === "exploratory"
-      ? ` [${summary.firmness}]`
+    !retired &&
+    (summary.firmness === "firm" || summary.firmness === "exploratory")
+      ? summary.firmness === "firm"
+        ? " [firm: ask before changing]"
+        : " [exploratory]"
       : "";
   const notable = `${retired}${firmness}`;
   return summary.title

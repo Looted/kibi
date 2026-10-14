@@ -362,7 +362,7 @@ const entitySchema: Record<string, unknown> = {
       type: "string",
       enum: ["firm", "default", "exploratory"],
       description:
-        "Requirement and ADR only. How firmly the decision was made. firm: a human stated it as a rule; it needs a ref (origin.ref, or approval_ref on a requirement) to their words, and only a human may change it. default (assumed when absent): a delegated or agent choice; a later agent may supersede it with evidence. exploratory: a flagged guess, expected to be revisited.",
+        "Requirement and ADR only. How firmly the decision was made. firm: a human stated it as a rule; it needs a ref (origin.ref, or approval_ref on a requirement) to their words, and only a human may change it. default: a delegated or agent choice; a later agent may supersede it with evidence. exploratory: a flagged guess, expected to be revisited. When absent, it reads as default if an agent wrote the entity (origin.kind agent) and as firm otherwise (a person's, imported or migrated decision); set it explicitly when recording a decision.",
     },
     expects: {
       type: "string",

@@ -4,7 +4,7 @@ description: Use Kibi's source-first, exact-Git, migration-aware, proof-aware op
 license: AGPL-3.0-or-later
 metadata:
   id: kibi-usage
-  version: 2.16.2
+  version: 2.17.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -98,7 +98,8 @@ it is a pointer to the knowledge, never proof. Each line answers one question:
   fix a stale sentence there with `kb_upsert` `document.body`.
 - `REQ-… must keep true: FACT-…` (edit only): the ground facts the lead
   requirement requires. An edit that breaks one of them is a requirement
-  change: supersede and remodel the requirement, do not code around the fact.
+  change: ask before changing the rule (see Decision firmness), and never
+  code around the fact.
 - `Decision: ADR-…` (edit only): the decision behind the lead requirement.
 - `Covered by: TEST-…` and `Test code for: …`: the tests that prove the
   file's symbols; run or update them with the edit.
@@ -361,24 +362,40 @@ exists in `rationale`, or link the ADR that explains it.
 
 Requirements and ADRs carry `firmness`, which says what you may do with them.
 Search answers, `kb_query` rows and hook snippets show it (snippets label only
-`[firm]` and `[exploratory]`; an unlabeled decision is `default`).
+`[firm: ask before changing]` and `[exploratory]`; an unlabeled decision is
+`default`).
 
 - `firm`: a human stated it as a rule. Follow it; to change it, ask first.
-  `kb_check` blocks a firm decision without `origin.ref` to their words, and
-  a replacement of a firm decision that is not itself firm.
-- `default` (when absent): a delegated or agent choice. Follow it unless the
-  task gives evidence against it; then supersede it in the same change and
-  list it under "Decisions I changed" for review, without asking first.
+  A requirement or ADR with no `firmness` reads as `firm` unless an agent
+  wrote it (`origin.kind: agent`): rules people wrote, imported or carried
+  over from before origins existed are theirs. `kb_check` blocks an explicit
+  `firmness: firm` without `origin.ref` to their words, and a replacement of
+  a firm decision that is not itself firm.
+- `default`: a delegated or agent choice (`firmness: default`, or an
+  agent-written decision without `firmness`). Follow it; supersede it only on
+  evidence that it is wrong (a failing test, a measured cost, a constraint it
+  missed), in the same change, listed under "Decisions I changed".
 - `exploratory`: a flagged guess; revisit it when you touch the area.
+
+**A request that conflicts with a recorded rule is a question, whatever the
+rule's firmness.** The request is not evidence against the rule: it is the
+conflict a person has to decide. Name the rule (id and what it requires) and
+ask whether to change it; do not implement the request and do not supersede
+the rule. Go ahead only when the person has said to change that rule, in this
+task or in reply: then supersede it with `firmness: firm` and `origin.ref` to
+their words, and say in the final answer which rule changed.
 
 Set `firmness` from what a human actually said: only their stated rule is
 `firm` (with `origin.ref`); "do whatever" or your own pick is `default`; a
-guess is `exploratory`. A supersede needs `## Why this changed` in the new
-entity's body (at least 12 words): name the evidence (a failing test, a
-measured cost, a constraint the old decision missed, a new requirement) and
-answer the old decision's reasoning; `kb_check` blocks it otherwise. A
-preference is not evidence: propose it instead of superseding. Kibi checks
-only that a firm decision has a reference; never cite words nobody said.
+guess is `exploratory`. Write it explicitly whenever you record a decision,
+including when importing rules from documents, tests or tickets (a rule a
+person wrote there is `firm`, with `origin.ref` to that document). A
+supersede needs `## Why this changed` in the new entity's body (at least 12
+words): name the evidence (a failing test, a measured cost, a constraint the
+old decision missed, a new requirement, the person's instruction) and answer
+the old decision's reasoning; `kb_check` blocks it otherwise. A preference is
+not evidence: propose it instead of superseding. Kibi checks only that a firm
+decision has a reference; never cite words nobody said.
 
 Conditional clauses ("only when", "only if", "must not ... unless") compile
 into typed `forbid` rules linked by `requires_rule`, not property facts; one

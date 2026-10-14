@@ -31,6 +31,7 @@ export function sessionStartContext(linkedFileCount: number): string {
   return [
     `Kibi knowledge base is active in this workspace (${linkedFileCount} source files have requirement-linked symbols).`,
     "Kibi hooks add short requirement/test snippets before reads and edits of linked files, derived from the symbol manifest; kb_query returns the authoritative detail.",
+    "A request that conflicts with a recorded requirement or ADR is a question, not a task: name the rule and ask before changing the code or the rule, and change it only when the person says so.",
     "Files with no linked symbols get no snippet, so recorded rules about the behavior they implement (permissions, roles, limits, data handling) surface only through kb_search.",
     "Operations: kb_search (ask it a question; the answer layer names governing requirements, must-stay-true facts, ADRs and tests), kb_query (exact id or sourceFile), kb_check (validation and edit impact), kb_upsert (writes). MCP tool names are host-prefixed (e.g. mcp__plugin_kibi-claude_kibi__kb_query); the project-local CLI (`npx --no-install kibi <route> --input -`) is the peer route.",
     "Workflow guidance lives in the kibi-claude:kibi-usage skill (also served by kb_skills with action load).",

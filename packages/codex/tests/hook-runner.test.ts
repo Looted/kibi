@@ -507,13 +507,13 @@ describe("Codex pre-edit knowledge", () => {
     expect(result.hookSpecificOutput?.hookEventName).toBe("PreToolUse");
     expect(result.systemMessage).toBeUndefined();
     expect(context).toContain(
-      "Kibi knowledge for src/checkout.ts (symbol manifest):\n- REQ-checkout-rounding: Checkout totals round to cents — computeTotal",
+      "Kibi knowledge for src/checkout.ts (symbol manifest):\n- REQ-checkout-rounding [firm: ask before changing]: Checkout totals round to cents — computeTotal",
     );
     expect(context).toContain(
       "REQ-checkout-rounding must keep true: FACT-checkout-total; FACT-total-rounding-cents: Totals round half up to two decimals.",
     );
     expect(context).toContain(
-      "Decision: ADR-money-as-decimal: Money is computed as decimal cents.",
+      "Decision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.",
     );
     expect(context).toContain("Covered by: TEST-checkout-rounding.");
   });
@@ -858,13 +858,13 @@ describe("Codex hook command pre-edit knowledge (end to end)", () => {
 
     const context = additionalContextOf(await preEdit("codex-e2e-1"));
     expect(context).toStartWith(
-      "Kibi knowledge for src/checkout.ts (symbol manifest):\n- REQ-checkout-rounding: Checkout totals round to cents — computeTotal\n",
+      "Kibi knowledge for src/checkout.ts (symbol manifest):\n- REQ-checkout-rounding [firm: ask before changing]: Checkout totals round to cents — computeTotal\n",
     );
     expect(context).toContain(
       "\nREQ-checkout-rounding must keep true: FACT-checkout-total; FACT-total-rounding-cents: Totals round half up to two decimals.\n",
     );
     expect(context).toContain(
-      "\nDecision: ADR-money-as-decimal: Money is computed as decimal cents.\n",
+      "\nDecision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.\n",
     );
     expect(context).toContain("\nCovered by: TEST-checkout-rounding.\n");
     expect(context.length).toBeLessThanOrEqual(MAX_SNIPPET_CHARS);
@@ -929,14 +929,14 @@ describe("Codex hook command pre-edit knowledge (end to end)", () => {
     expect(context.length).toBe(MAX_SNIPPET_CHARS);
     expect(context).toEndWith("…");
     expect(context).toContain(
-      "\n- REQ-checkout-rounding: Checkout totals round to cents — computeTotal\n",
+      "\n- REQ-checkout-rounding [firm: ask before changing]: Checkout totals round to cents — computeTotal\n",
     );
     expect(context).toContain("\n- +2 more requirements: kb_query(");
     expect(context).toContain(
       "\nREQ-checkout-rounding must keep true: FACT-checkout-total; FACT-total-rounding-cents: Totals round half up to two decimals.\n",
     );
     expect(context).toContain(
-      "\nDecision: ADR-money-as-decimal: Money is computed as decimal cents.\n",
+      "\nDecision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.\n",
     );
   }, 30_000);
 });

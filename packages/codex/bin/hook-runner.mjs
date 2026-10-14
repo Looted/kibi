@@ -1031,10 +1031,23 @@ function readEntitySummary(workspaceRoot, entityId) {
   const summary = { id: entityId };
   const authored = [];
   let inLinks = false;
+  let inOrigin = false;
+  let originKind;
+  let closed = false;
   let pending;
   for (const line of lines.slice(1)) {
-    if (line.trim() === "---")
+    if (line.trim() === "---") {
+      closed = true;
       break;
+    }
+    const flowOrigin = /^origin:\s*\{.*\bkind:\s*["']?([a-z]+)/.exec(line);
+    if (flowOrigin)
+      originKind = flowOrigin[1];
+    const nestedKind = inOrigin ? /^\s+kind:\s*["']?([a-z]+)/.exec(line) : null;
+    if (nestedKind)
+      originKind = nestedKind[1];
+    if (/^\S/.test(line))
+      inOrigin = /^origin:\s*$/.test(line);
     const match = /^(title|status|firmness):\s*(.*)$/.exec(line);
     if (match?.[1] === "title" && match[2])
       summary.title = unquote(match[2]);
@@ -1067,6 +1080,8 @@ function readEntitySummary(workspaceRoot, entityId) {
       pending.bare = unquote(body);
   }
   flushLink(authored, pending);
+  if (summary.firmness === undefined && closed && (lane[1] === "requirements" || lane[1] === "adr"))
+    summary.firmness = originKind === "agent" ? "default" : "firm";
   const links = [];
   const seen = new Set;
   for (const link of [
@@ -1165,7 +1180,7 @@ function isRetiredStatus(status) {
 }
 function describeEntity(summary) {
   const retired = isRetiredStatus(summary.status) ? ` (${summary.status})` : "";
-  const firmness = summary.firmness === "firm" || summary.firmness === "exploratory" ? ` [${summary.firmness}]` : "";
+  const firmness = !retired && (summary.firmness === "firm" || summary.firmness === "exploratory") ? summary.firmness === "firm" ? " [firm: ask before changing]" : " [exploratory]" : "";
   const notable = `${retired}${firmness}`;
   return summary.title ? `${summary.id}${notable}: ${truncate(summary.title, MAX_TITLE)}` : `${summary.id}${notable}`;
 }

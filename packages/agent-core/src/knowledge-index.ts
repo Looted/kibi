@@ -738,7 +738,11 @@ export type EntitySummary = {
   id: string;
   title?: string;
   status?: string;
-  /** Requirement or ADR firmness as authored (absent reads as default). */
+  /**
+   * Requirement or ADR firmness: as authored, else what the origin implies
+   * (`default` when an agent wrote it, `firm` otherwise). Absent when the
+   * front matter could not be read whole.
+   */
   firmness?: string;
   /**
    * Frontmatter `links` (plain string entries read as `relates_to`) merged
@@ -847,9 +851,21 @@ export function readEntitySummary(
   const summary: EntitySummary = { id: entityId };
   const authored: EntityLink[] = [];
   let inLinks = false;
+  let inOrigin = false;
+  let originKind: string | undefined;
+  let closed = false;
   let pending: PendingLink | undefined;
   for (const line of lines.slice(1)) {
-    if (line.trim() === "---") break;
+    if (line.trim() === "---") {
+      closed = true;
+      break;
+    }
+    // implements REQ-kb-decision-firmness-from-origin
+    const flowOrigin = /^origin:\s*\{.*\bkind:\s*["']?([a-z]+)/.exec(line);
+    if (flowOrigin) originKind = flowOrigin[1];
+    const nestedKind = inOrigin ? /^\s+kind:\s*["']?([a-z]+)/.exec(line) : null;
+    if (nestedKind) originKind = nestedKind[1];
+    if (/^\S/.test(line)) inOrigin = /^origin:\s*$/.test(line);
     const match = /^(title|status|firmness):\s*(.*)$/.exec(line);
     if (match?.[1] === "title" && match[2]) summary.title = unquote(match[2]);
     if (match?.[1] === "status" && match[2]) summary.status = unquote(match[2]);
@@ -880,6 +896,15 @@ export function readEntitySummary(
       pending.bare = unquote(body);
   }
   flushLink(authored, pending);
+  // A decision without authored firmness is a person's (firm) unless an
+  // agent wrote it; with the front matter cut off, the origin is unknown.
+  // implements REQ-kb-decision-firmness-from-origin
+  if (
+    summary.firmness === undefined &&
+    closed &&
+    (lane[1] === "requirements" || lane[1] === "adr")
+  )
+    summary.firmness = originKind === "agent" ? "default" : "firm";
 
   const links: EntityLink[] = [];
   const seen = new Set<string>();

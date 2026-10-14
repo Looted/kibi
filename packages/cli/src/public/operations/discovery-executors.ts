@@ -731,11 +731,16 @@ export async function executeQuery(
     const indexedPage = prolog.queryEntities
       ? await prolog.queryEntities(pageInput, signal)
       : await queryEntitiesViaQuery(prolog, pageInput, signal);
-    // A requirement or ADR without authored firmness reads as `default`;
-    // the row says so, so a reader never has to know the default.
-    // implements REQ-kb-decision-firmness
+    // A requirement or ADR without authored firmness reads as its origin
+    // implies (`default` when an agent wrote it, else `firm`); the row says
+    // so, so a reader never has to know the rule.
+    // implements REQ-kb-decision-firmness, REQ-kb-decision-firmness-from-origin
     const paginated = indexedPage.entities.map((entity) => {
-      const firmness = effectiveFirmness(entity.type, entity.firmness);
+      const firmness = effectiveFirmness(
+        entity.type,
+        entity.firmness,
+        entity.origin,
+      );
       return firmness === undefined || entity.firmness === firmness
         ? entity
         : { ...entity, firmness };
