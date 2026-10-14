@@ -12,6 +12,7 @@
     logic_rule_conflict/3,
     logic_rule_conflict/4,
     logic_rule_conflict_witness/3,
+    logic_rule_conflict_witness/4,
     logic_rule_missing_keys/4,
     functional_predicate_declarations/1,
     logic_atom_signature/2,
@@ -1215,7 +1216,15 @@ dependency_path(Current, Target, Edges, Seen) :-
 % Consumers can attach requirement IDs and source spans without ever treating
 % the rendered Prolog preview as executable source.
 logic_rule_conflict_witness(RuleA, RuleB, Witness) :-
-    logic_rule_conflict(RuleA, RuleB, Status),
+    functional_predicate_declarations(Functional),
+    logic_rule_conflict_witness(RuleA, RuleB, Functional, Witness).
+
+%% logic_rule_conflict_witness(+RuleA, +RuleB, +Functional, -Witness)
+% As logic_rule_conflict_witness/3 with the functional declarations already
+% read.  Reading them scans every predicate_schema fact, so a caller walking
+% every opposing rule pair reads them once instead of once per pair.
+logic_rule_conflict_witness(RuleA, RuleB, Functional, Witness) :-
+    logic_rule_conflict(RuleA, RuleB, Functional, Status),
     RuleA = rule(_KindA, ModalityA, HeadA, BodyA, ExceptionsA, ScopeA, FromA, ToA, SchemaA, _VariablesA),
     RuleB = rule(_KindB, ModalityB, HeadB, BodyB, ExceptionsB, ScopeB, FromB, ToB, SchemaB, _VariablesB),
     Witness = witness{
