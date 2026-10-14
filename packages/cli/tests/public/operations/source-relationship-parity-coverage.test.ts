@@ -200,8 +200,11 @@ describe("source relationship parity", () => {
       extractionFailures.some(
         (row) =>
           row.rule === "source-relationship-parity" &&
-          (row.description.includes("could not inspect source") ||
-            row.description.includes("Authored relationship parity")),
+          row.source === ".kb/requirements/BROKEN.md" &&
+          row.description.startsWith(
+            ".kb/requirements/BROKEN.md cannot be compiled, so the entities and relationships it declares are missing from the KB:",
+          ) &&
+          (row.suggestion ?? "").includes("kibi sync"),
       ),
     ).toBe(true);
   });

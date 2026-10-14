@@ -209,3 +209,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-919e8e5c60be
+  - type: constrains
+    from: REQ-cli-migrate-legacy-requirement-status
+    to: FACT-SUBJ-kibi-migration-requirement-status
+    created_at: 2026-10-14T08:54:46.514Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-81520d6d3d24
+  - type: requires_property
+    from: REQ-cli-migrate-legacy-requirement-status
+    to: FACT-cli-migrate-legacy-requirement-status-maps-delivered-statuses
+    created_at: 2026-10-14T08:54:46.566Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6d960e74c1c8
+  - type: requires_property
+    from: REQ-cli-migrate-legacy-requirement-status
+    to: FACT-cli-migrate-legacy-requirement-status-incomplete-while-uncompiled
+    created_at: 2026-10-14T08:54:46.587Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3e587e37c499
+  - type: relates_to
+    from: REQ-cli-migrate-legacy-requirement-status
+    to: REQ-cli-schema-migration
+    created_at: 2026-10-14T08:54:46.635Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a442e0aaf287
+  - type: specified_by
+    from: REQ-cli-migrate-legacy-requirement-status
+    to: SCEN-cli-migrate-legacy-requirement-status
+    created_at: 2026-10-14T08:57:04.829Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-35b4917eacf1
+  - type: verified_by
+    from: REQ-cli-migrate-legacy-requirement-status
+    to: TEST-cli-migrate-legacy-requirement-status
+    created_at: 2026-10-14T08:57:04.861Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0ac58902a6bb

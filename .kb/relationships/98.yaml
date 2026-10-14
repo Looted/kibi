@@ -237,3 +237,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cbb26aa9a408
+  - type: implements
+    from: SYM-upsert-assert-relationship-shard-contained
+    to: REQ-core-atomic-upsert-persistence
+    created_at: 2026-10-14T10:14:17.937Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e44fcf40276b
+  - type: covered_by
+    from: SYM-upsert-assert-relationship-shard-contained
+    to: TEST-core-atomic-upsert-persistence
+    created_at: 2026-10-14T10:14:17.955Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1a60e99b3b37

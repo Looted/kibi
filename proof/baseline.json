@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 211,
-  "proofProven": 211,
+  "currentRequirements": 213,
+  "proofProven": 213,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -1057,6 +1057,16 @@
       "uncoveredSymbols": []
     },
     "REQ-mcp-coded-error-envelope": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-cli-migrate-legacy-requirement-status": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-uncompiled-source-visibility": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []

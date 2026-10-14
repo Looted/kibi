@@ -391,3 +391,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f6128b5ac068
+  - type: implements
+    from: SYM-schema6-requirementStatusActions
+    to: REQ-cli-migrate-legacy-requirement-status
+    created_at: 2026-10-14T09:04:36.237Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c2b4ebd49adc
+  - type: covered_by
+    from: SYM-schema6-requirementStatusActions
+    to: TEST-cli-migrate-legacy-requirement-status
+    created_at: 2026-10-14T09:04:36.363Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9b0a10295826

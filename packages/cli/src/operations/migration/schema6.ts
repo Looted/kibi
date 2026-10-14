@@ -70,6 +70,9 @@ import {
   planPolarityValueBackfill,
 } from "./polarity-values.js";
 import {
+  DELIVERED_REQUIREMENT_TAG,
+  type RequirementStatusFinding,
+  applyDeliveredStatusMappings,
   applyRequirementStatusMapping,
   planRequirementStatusMappings,
 } from "./requirement-status.js";
@@ -130,6 +133,11 @@ export const SEMANTIC_INVENTORY_REDERIVE_DROP_GROUNDING_CODE =
 /** Review, applied only when approved by id: map a legacy requirement status. */
 // implements REQ-cli-schema-migration
 export const REQ_STATUS_VOCABULARY_MAP_CODE = "req_status_vocabulary_map";
+/** Automatic: map delivery statuses to `closed` plus the tag `implemented`. */
+// implements REQ-cli-schema-migration
+export const REQ_STATUS_DELIVERED_MAP_CODE = "req_status_delivered_map";
+// implements REQ-cli-schema-migration
+export const REQ_STATUS_DELIVERED_MAP_ACTION_ID = "req-status-delivered-map";
 /** Automatic: stamp `origin: {kind: migration}` on authored entities. */
 // implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export const ENTITY_ORIGIN_BACKFILL_CODE = "entity_origin_backfill";
@@ -317,18 +325,56 @@ function plannedDrops(
 }
 
 /**
- * One action per requirement whose status is outside the vocabulary: a
- * review (the target status is a semantic choice) carrying the suggested
- * mapping and the inventory drift the requirement shows once mapped. With a
- * suggestion it is executable when approved by id; the re-derivation of the
- * latent drift depends on it.
+ * The automatic action for requirements whose status is delivery vocabulary
+ * (`implemented`, `done`, `completed`): sync cannot compile them, and their
+ * one lossless reading is `closed` plus the tag `implemented`.
+ */
+function deliveredStatusAction(
+  findings: readonly RequirementStatusFinding[],
+): MigrationAction {
+  return migrationAction({
+    id: REQ_STATUS_DELIVERED_MAP_ACTION_ID,
+    code: REQ_STATUS_DELIVERED_MAP_CODE,
+    category: "schema",
+    safety: "automatic",
+    autoApplicable: true,
+    invocation: { kind: "cli", command_argv: ["kibi", "migrate", "--yes"] },
+    affectedEntityIds: findings.map((finding) => finding.requirementId),
+    affectedFiles: findings.map((finding) => finding.path),
+    postconditions: [{ rule: "req-status-vocabulary", findings: 0 }],
+    evidence: {
+      reason:
+        "Delivery statuses are outside the entity schema, so kibi sync cannot compile these requirements and every store-backed tool misses them. Each becomes status closed with the tag implemented, which Kibi reads as a delivered requirement that still owes coverage; only the status line and the tags change.",
+      count: findings.length,
+      mappings: findings.map((finding) => ({
+        requirementId: finding.requirementId,
+        path: finding.path,
+        from: finding.status,
+        to: finding.automatic?.status ?? "closed",
+        tag: finding.automatic?.tag ?? DELIVERED_REQUIREMENT_TAG,
+      })),
+    },
+  });
+}
+
+/**
+ * Requirements whose status is outside the vocabulary. Delivery vocabulary
+ * gets one automatic action (see deliveredStatusAction). Every other status
+ * gets one review action (the target status is a semantic choice) carrying
+ * the suggested mapping and the inventory drift the requirement shows once
+ * mapped. With a suggestion it is executable when approved by id; the
+ * re-derivation of the latent drift depends on it.
  */
 // implements REQ-cli-schema-migration, REQ-kibi-proposition-complete-ingestion
 export function requirementStatusActions(
   workspaceRoot: string,
 ): MigrationAction[] {
   const actions: MigrationAction[] = [];
-  for (const finding of planRequirementStatusMappings(workspaceRoot)) {
+  const findings = planRequirementStatusMappings(workspaceRoot);
+  const delivered = findings.filter((finding) => finding.automatic !== null);
+  if (delivered.length > 0) actions.push(deliveredStatusAction(delivered));
+  for (const finding of findings) {
+    if (finding.automatic !== null) continue;
     const id = `req-status-vocabulary-map-${finding.requirementId}`;
     const drift = finding.latentDrift;
     const target = finding.suggestedStatus;
@@ -343,7 +389,10 @@ export function requirementStatusActions(
           target === null
             ? {
                 kind: "review",
-                instruction: `${finding.requirementId} (${finding.path}) has status ${finding.status}, which is not a requirement status, so it is skipped by the proof ladder and its semantic inventory is never validated. Set status to open, in_progress or closed (legacy: active, approved) in the file, or use proof_exempt to park it, then rerun kibi migrate.`,
+                instruction:
+                  finding.extractionError === null
+                    ? `${finding.requirementId} (${finding.path}) has status ${finding.status}, which is not a requirement status, so it is skipped by the proof ladder and its semantic inventory is never validated. Set status to open, in_progress or closed (legacy: active, approved) in the file, or use proof_exempt to park it, then rerun kibi migrate.`
+                    : `${finding.requirementId} (${finding.path}) has status ${finding.status}, which is not a status Kibi knows, so kibi sync cannot compile it (${finding.extractionError}) and kb_query, kb_coverage and kb_upsert do not see it. Set status to open, in_progress or closed in the file (closed with the tag implemented for delivered work), then run kibi sync and rerun kibi migrate.`,
               }
             : { kind: "cli", command_argv: approvalArgv([id]) },
         affectedEntityIds: [finding.requirementId],
@@ -352,9 +401,15 @@ export function requirementStatusActions(
         dispositionRequired: true,
         allowedDispositions: ["fixed", "deferred"],
         evidence: {
-          reason: `Status ${finding.status} is ADR or lifecycle vocabulary, not a requirement status: the requirement is skipped by the proof ladder and kibi sync never validates its semantic inventory.`,
+          reason:
+            finding.extractionError === null
+              ? `Status ${finding.status} is ADR or lifecycle vocabulary, not a requirement status: the requirement is skipped by the proof ladder and kibi sync never validates its semantic inventory.`
+              : `Status ${finding.status} is outside the entity schema, so kibi sync cannot compile the requirement at all.`,
           status: finding.status,
           suggestedStatus: target,
+          ...(finding.extractionError === null
+            ? {}
+            : { extractionError: finding.extractionError }),
           ...(target === null
             ? {}
             : {
@@ -678,9 +733,17 @@ export function buildSchema6MigrationFragment(input: {
     if (!plan.safe && plan.rederivableByDroppingGrounding)
       actions.push(dropGroundingAction(plan));
   }
-  // Requirements with a status outside the vocabulary: mapping is a review,
-  // and their latent drift is re-derived only after an approved mapping.
-  actions.push(...requirementStatusActions(input.workspaceRoot));
+  // Requirements with a status outside the vocabulary: delivery statuses are
+  // mapped automatically; any other mapping is a review, and its latent drift
+  // is re-derived only after an approved mapping.
+  const statusActions = requirementStatusActions(input.workspaceRoot);
+  actions.push(...statusActions);
+  if (
+    statusActions.some(
+      (action) => action.id === REQ_STATUS_DELIVERED_MAP_ACTION_ID,
+    )
+  )
+    sourceRewriteActionIds.push(REQ_STATUS_DELIVERED_MAP_ACTION_ID);
   if (drift.some((plan) => !plan.safe)) {
     diagnostics.push(
       `${drift.filter((plan) => !plan.safe).length} requirement inventory(ies) need a manual fix before kibi sync succeeds; see the semantic_inventory_review actions.`,
@@ -946,6 +1009,17 @@ export async function applySchema6MigrationAction(
       );
       return;
     }
+    case REQ_STATUS_DELIVERED_MAP_CODE: {
+      const result = applyDeliveredStatusMappings(
+        context.workspaceRoot,
+        new Set(action.affectedEntityIds),
+      );
+      if (result.skipped.length > 0)
+        throw new Error(
+          `Could not map the status of ${result.skipped.map((skip) => `${skip.path} (${skip.reason})`).join(", ")}; set status: closed and add the tag implemented by hand.`,
+        );
+      return;
+    }
     case SEMANTIC_INVENTORY_REDERIVE_DROP_GROUNDING_CODE: {
       const requirementId = action.affectedEntityIds[0];
       const contractHash = action.evidence.contractHash;
@@ -1048,6 +1122,7 @@ export const SCHEMA6_AUTOMATIC_CODES: ReadonlySet<string> = new Set([
   SUPERSEDES_REASON_ACKNOWLEDGE_CODE,
   FIRM_SUPERSEDE_ACKNOWLEDGE_CODE,
   SEMANTIC_INVENTORY_REDERIVE_CODE,
+  REQ_STATUS_DELIVERED_MAP_CODE,
   ENTITY_ORIGIN_BACKFILL_CODE,
   CLOSE_SUPERSEDED_REQUIREMENTS_CODE,
   SOURCE_PATH_REWRITE_CODE,

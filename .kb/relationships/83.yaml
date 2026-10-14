@@ -248,3 +248,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bbc7d8f3117b
+  - type: implements
+    from: SYM-upsert-semantic-analysis-type
+    to: REQ-mcp-semantic-advisor-preflight
+    created_at: 2026-10-14T10:14:23.466Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f8c9f943686a
+  - type: covered_by
+    from: SYM-upsert-semantic-analysis-type
+    to: TEST-mcp-semantic-advisor-preflight
+    created_at: 2026-10-14T10:14:23.488Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d74deb9caf84

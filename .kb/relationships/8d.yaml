@@ -496,6 +496,27 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-59a86b360b6c
+  - type: implements
+    from: SYM-cli-processExtractions
+    to: REQ-kibi-uncompiled-source-visibility
+    created_at: 2026-10-14T09:05:48.756Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-284b953a8c30
+  - type: covered_by
+    from: SYM-cli-processExtractions
+    to: TEST-kibi-uncompiled-source-visibility
+    created_at: 2026-10-14T09:05:48.864Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-195ca0aeaeec
+  - type: verified_by
+    from: SCEN-kb-firm-decision-edit
+    to: TEST-kb-decision-firmness
+    created_at: 2026-10-14T08:00:09.916Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-632e71927763
   - type: constrains
     from: REQ-bootstrap-claim-restatement
     to: FACT-bootstrap-claim-restatement-subject
@@ -545,10 +566,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9a3e85c7211a
-  - type: verified_by
-    from: SCEN-kb-firm-decision-edit
-    to: TEST-kb-decision-firmness
-    created_at: 2026-10-14T08:00:09.916Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-632e71927763

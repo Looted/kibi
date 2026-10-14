@@ -1,6 +1,9 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { compilerFingerprintReason } from "../../commands/sync/cache.js";
+import {
+  compilerFingerprintReason,
+  sourceExtractionFailureReasons,
+} from "../../commands/sync/cache.js";
 import { effectiveFirmness } from "../../decision-firmness.js";
 import { EngineClient } from "../../engine.js";
 import {
@@ -1175,6 +1178,13 @@ export async function executeStatus(
     // A stale-lock takeover heals itself; report it without making the KB stale.
     const takeoverNotice = storeLockTakeoverReason(store.path);
     const compilerReason = compilerFingerprintReason(store.path);
+    // implements REQ-kibi-uncompiled-source-visibility
+    // A source the last sync could not extract is missing from the store
+    // even when every compiled file is current.
+    const extractionReasons =
+      store.state === "healthy"
+        ? sourceExtractionFailureReasons(context.workspaceRoot, store.path)
+        : [];
     const engineReason = engineStatus
       ? {
           code: engineStatus.errorCode ?? "engine_status_unavailable",
@@ -1199,6 +1209,7 @@ export async function executeStatus(
       ...(storeReason ? [storeReason] : []),
       ...(lockReason ? [lockReason] : []),
       ...(compilerReason ? [compilerReason] : []),
+      ...extractionReasons,
       ...(engineReason ? [engineReason] : []),
     ].sort((left, right) =>
       String(left.path ?? "").localeCompare(String(right.path ?? "")),
@@ -1208,6 +1219,11 @@ export async function executeStatus(
       // Source hashes can all match while the compilation itself is lossy, so
       // a compiler contract change alone makes the store stale.
       ...(compilerReason ? { syncState: "stale", dirty: true } : {}),
+      // An authored source sync cannot extract leaves its entities out of
+      // the store, so the KB is not current until the file is fixed.
+      ...(extractionReasons.length > 0
+        ? { syncState: "stale", dirty: true }
+        : {}),
       // A missing or empty store has no stale file to report, yet nothing in
       // it is current: the authored sources were never compiled. (A missing
       // store without authored sources, and an unreadable or incomplete one,

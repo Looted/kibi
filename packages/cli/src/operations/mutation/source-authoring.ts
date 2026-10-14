@@ -364,6 +364,30 @@ function sourcePath(
 }
 
 /**
+ * The absolute authored document an upsert of an entity the store does not
+ * hold would write: the same resolution writeSourceForUpsert uses, so a check
+ * on that file judges the file the writer merges into. Undefined when the
+ * writer has no target (it reports DOCUMENT_PATH_REQUIRED itself).
+ */
+// implements REQ-kibi-uncompiled-source-visibility
+export function newEntitySourceTarget(
+  context: OperationContext,
+  input: UpsertInput,
+): string | undefined {
+  try {
+    return sourcePath(context, input, { id: input.id }, undefined);
+  } catch {
+    return undefined;
+  }
+}
+
+/** The front matter of an authored document; throws on YAML it cannot parse. */
+// implements REQ-kibi-uncompiled-source-visibility
+export function authoredFrontmatter(content: string): Record<string, unknown> {
+  return bodyAndFrontmatter(content).frontmatter;
+}
+
+/**
  * Front matter keys an upsert never writes: runtime provenance/timestamps
  * belong to the compiled entity, not to the authored source artifact, and
  * relationships live in `links`/shards. Keeping them out also makes the

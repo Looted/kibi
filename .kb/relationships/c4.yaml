@@ -266,6 +266,20 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-92f0eaf01f58
   - type: implements
+    from: SYM-discovery-query-body-max-chars
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-10-14T10:14:52.579Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f003ac633bbf
+  - type: covered_by
+    from: SYM-discovery-query-body-max-chars
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-10-14T10:14:52.598Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-73283d1771d9
+  - type: implements
     from: SYM-agent-core-candidates-requirementcandidatesforpath
     to: REQ-kb-unowned-file-candidates
     created_at: 2026-10-14T09:46:27.658Z

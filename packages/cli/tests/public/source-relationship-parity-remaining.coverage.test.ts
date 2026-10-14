@@ -52,6 +52,7 @@ describe("source-relationship-parity remaining authored mapping", () => {
         ],
         failedCacheKeys: new Set(),
         errors: [],
+        failures: [],
       }),
     );
     const violations = await collectSourceRelationshipParityViolations(root, {

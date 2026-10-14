@@ -245,6 +245,20 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-e88b902472bb
   - type: implements
+    from: SYM-migration-apply-delivered-status-mappings
+    to: REQ-cli-migrate-legacy-requirement-status
+    created_at: 2026-10-14T09:02:20.239Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2cf6257511bb
+  - type: covered_by
+    from: SYM-migration-apply-delivered-status-mappings
+    to: TEST-cli-migrate-legacy-requirement-status
+    created_at: 2026-10-14T09:02:20.268Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7a7565020000
+  - type: implements
     from: SYM-cli-migration-refreshCoordinatesAfterMigration
     to: REQ-cli-migration-first-commit
     created_at: 2026-10-14T08:47:09.435Z

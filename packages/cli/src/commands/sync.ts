@@ -979,6 +979,27 @@ export async function syncCommand(
       workspaceRoot,
     );
     const { failedCacheKeys, errors } = extraction;
+    // implements REQ-kibi-uncompiled-source-visibility
+    // Sources sync could not extract stay out of the store; record them so
+    // kb_status can say so. A source that failed in the store's first
+    // compilation (and in every sync since) is legacy content that missed the
+    // semantic baseline, so it keeps the baseline treatment once it compiles.
+    const previousExtractionFailures = syncCache.extractionFailures ?? {};
+    const nextExtractionFailures: NonNullable<SyncCache["extractionFailures"]> =
+      {};
+    for (const failure of extraction.failures) {
+      const key = toCacheKey(workspaceRoot, failure.file);
+      const hash = nextHashes[key];
+      if (hash === undefined) continue;
+      nextExtractionFailures[key] = {
+        hash,
+        message: failure.message,
+        ...(initialSemanticBaseline ||
+        previousExtractionFailures[key]?.baseline === true
+          ? { baseline: true }
+          : {}),
+      };
+    }
     const extractedResults = normalizeExtractionSources(
       extraction.results,
       workspaceRoot,
@@ -1093,7 +1114,9 @@ export async function syncCommand(
         result.entity.semantic_source_hash !== undefined ||
         result.entity.semantic_inventory !== undefined;
       const enforceBoundary =
-        (!initialSemanticBaseline && syncCache.hashes[key] === undefined) ||
+        (!initialSemanticBaseline &&
+          syncCache.hashes[key] === undefined &&
+          previousExtractionFailures[key]?.baseline !== true) ||
         syncCache.semanticContracts[key] === true ||
         (previousSemanticHash !== undefined &&
           previousSemanticHash !== boundary.sourceHash) ||
@@ -1216,6 +1239,7 @@ export async function syncCommand(
         semanticHashes: evictedSemanticHashes,
         semanticContracts: evictedSemanticContracts,
         compilerFingerprint: SYNC_COMPILER_FINGERPRINT,
+        extractionFailures: nextExtractionFailures,
       });
 
       info("✓ Imported 0 entities, 0 relationships (no changes)");
@@ -1427,6 +1451,7 @@ export async function syncCommand(
           semanticHashes: evictedSemanticHashes,
           semanticContracts: evictedSemanticContracts,
           compilerFingerprint: SYNC_COMPILER_FINGERPRINT,
+          extractionFailures: nextExtractionFailures,
         });
 
         published = true;
@@ -1687,6 +1712,7 @@ export async function syncCommand(
         semanticHashes: evictedSemanticHashes,
         semanticContracts: evictedSemanticContracts,
         compilerFingerprint: SYNC_COMPILER_FINGERPRINT,
+        extractionFailures: nextExtractionFailures,
       });
 
       published = true;
