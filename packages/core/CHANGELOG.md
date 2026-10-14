@@ -1,5 +1,15 @@
 # kibi-core
 
+## 0.22.2
+
+### Patch Changes
+
+- `kibi check` and `kb_check` work again on a fresh install of kibi-cli 2.25.0 and kibi-mcp 3.13.0. Those releases enable the new `decision-firm-edited` rule, but the published kibi-core 0.22.1 did not know it, so every check failed with "Unknown check rules requested: decision-firm-edited".
+  - `kibi-core`: publishes the rule registry entries for `decision-firm-edited` (`known_rule/1`, enforcement class, implementation and description in `rule_registry.pl`, plus `schema/rule-registry.json`) that shipped in the repository with kibi-cli 2.25.0 but were never released.
+
+- fcae317: Coverage reports and contradiction checks on a knowledge base with many rule facts no longer take minutes. The contradiction-witness pass re-read every `predicate_schema` fact for each opposing rule pair, so on a KB with a few hundred rule facts and a few thousand facts one `coverage_report_json` call spent over 90% of its time there and ran past the 120 s query timeout (`kibi report` failed in CI). It now reads the functional declarations once per pass; on that KB the call drops from about 150 s to about 11 s with byte-identical output.
+  - `kibi-core`: new `logic_rule_conflict_witness/4` takes the functional declarations; `/3` keeps its behavior and reads them itself. `check_domain_contradiction_witnesses/1` reads them once and passes them to every pair, as `search_answer_verdicts_json/2` already did.
+
 ## 0.22.1
 
 ### Patch Changes
