@@ -265,3 +265,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-afb8b792a046
+  - type: implements
+    from: SYM-source-authoring-republish-pending-source-receipt
+    to: REQ-cli-schema-migration
+    created_at: 2026-10-14T10:13:51.401Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-445b12679700
+  - type: covered_by
+    from: SYM-source-authoring-republish-pending-source-receipt
+    to: TEST-cli-migrate
+    created_at: 2026-10-14T10:13:51.427Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-43690673ca4b
+  - type: implements
+    from: SYM-source-authoring-republish-pending-source-receipt
+    to: REQ-core-atomic-upsert-persistence
+    created_at: 2026-10-14T10:13:51.443Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-82c295482249
+  - type: covered_by
+    from: SYM-source-authoring-republish-pending-source-receipt
+    to: TEST-core-atomic-upsert-persistence
+    created_at: 2026-10-14T10:13:51.457Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7f3f6d23f9ea

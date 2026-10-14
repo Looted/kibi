@@ -1,5 +1,6 @@
 import { execFileSync } from "node:child_process";
 import path from "node:path";
+import { sourceExtractionRemediation } from "../../commands/sync/cache.js";
 import { discoverSourceFiles } from "../../commands/sync/discovery.js";
 import { processExtractions } from "../../commands/sync/extraction.js";
 import { findUntrackedDocumentMatches } from "../../commands/sync/untracked-targets.js";
@@ -210,14 +211,28 @@ export async function collectSourceRelationshipParityViolations(
     true,
     workspaceRoot,
   );
+  // implements REQ-kibi-uncompiled-source-visibility
+  // A source sync cannot extract is missing from the compiled KB with every
+  // entity and relationship it declares: one blocking finding per file names
+  // it, the extraction error and the fix.
   if (extraction.errors.length > 0) {
-    return extraction.errors.map(({ file, message }) => ({
-      rule: "source-relationship-parity",
-      entityId: path.relative(workspaceRoot, file).replaceAll(path.sep, "/"),
-      source: path.relative(workspaceRoot, file).replaceAll(path.sep, "/"),
-      description: `Authored relationship parity could not inspect source: ${message}`,
-      suggestion: "Repair the authored source, then rerun kb_check.",
-    }));
+    return extraction.errors.map(({ file, message }) => {
+      const relative = path
+        .relative(workspaceRoot, file)
+        .replaceAll(path.sep, "/");
+      return {
+        rule: "source-relationship-parity",
+        entityId: relative,
+        source: relative,
+        description: `${relative} cannot be compiled, so the entities and relationships it declares are missing from the KB: ${message}`,
+        suggestion: `${sourceExtractionRemediation(relative, message)} Then rerun kb_check.`,
+        evidence: {
+          direction: "source_extraction",
+          file: relative,
+          error: message,
+        },
+      };
+    });
   }
 
   const authored: RelationshipParityRecord[] = extraction.results.flatMap(

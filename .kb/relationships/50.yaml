@@ -244,3 +244,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a17e8daf670f
+  - type: verified_by
+    from: SCEN-kb-unowned-file-candidates
+    to: TEST-claude-edit-snippet-hook
+    created_at: 2026-10-14T09:45:41.404Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-308a6044d14b
+  - type: verified_by
+    from: SCEN-kb-unowned-file-candidates
+    to: TEST-search-answer-hygiene
+    created_at: 2026-10-14T09:45:41.433Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-99d53fd72a24

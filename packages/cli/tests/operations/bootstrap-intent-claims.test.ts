@@ -555,3 +555,148 @@ describe("claim kinds and declared conflicts", () => {
     ).toBe(true);
   });
 });
+
+describe("intent claims that restate current requirements", () => {
+  const source = {
+    id: "handover",
+    kind: "specification",
+    title: "Product handover",
+    locator: "https://example.com/handover",
+    authority: "authoritative",
+    component: "reports",
+  } as const;
+  const existing = [
+    {
+      id: "REQ-reports-export",
+      title: "Report export formats",
+      semanticText:
+        "Users must be able to export reports as CSV. Exports must include a header row.",
+    },
+  ];
+  const claim = (reference: string, statement: string, excerpt: string) => ({
+    statement,
+    sourceId: source.id,
+    reference,
+    excerpt,
+  });
+  const build = (
+    claims: readonly ReturnType<typeof claim>[],
+    requirements = existing,
+  ) =>
+    buildIntentClaimCandidates(
+      normalizeBootstrapContext({
+        knowledgeSources: [source],
+        intentClaims: [...claims],
+      }),
+      new Set(),
+      0.8,
+      undefined,
+      requirements,
+    );
+
+  test("a claim equal to a sentence of a requirement, case and punctuation aside, is counted as that requirement", () => {
+    const result = build([
+      claim(
+        "H-1",
+        "users must be able to export reports as CSV",
+        "The handover lists CSV export.",
+      ),
+      claim(
+        "H-2",
+        "Logs must be retained for 7 days.",
+        "The handover says logs are kept a week.",
+      ),
+    ]);
+    expect(result.suppressed).toEqual([
+      {
+        candidateId: "",
+        reason: "entity_exists",
+        sourcePath: "H-1",
+        entityType: "req",
+        statement: "users must be able to export reports as CSV",
+        sourceId: "handover",
+        matchedId: "REQ-reports-export",
+        matchedBy: "restatement",
+        matchedField: "semantic_text",
+      },
+    ]);
+    expect(result.candidates.map((candidate) => candidate.sourcePath)).toEqual([
+      "H-2",
+    ]);
+    expect(
+      result.diagnostics.some((line) => line.includes("REQ-reports-export")),
+    ).toBe(false);
+  });
+
+  test("an excerpt equal to a requirement title counts as a restatement", () => {
+    const result = build([
+      claim(
+        "H-3",
+        "Reports must be exportable in several formats.",
+        "Report export formats!",
+      ),
+    ]);
+    expect(result.candidates).toEqual([]);
+    expect(result.suppressed[0]).toMatchObject({
+      reason: "entity_exists",
+      matchedId: "REQ-reports-export",
+      matchedField: "title",
+    });
+  });
+
+  test("a near restatement is planned with a review signal naming the requirement", () => {
+    const result = build([
+      claim(
+        "H-4",
+        "Users must be able to export reports as PDF.",
+        "The handover lists PDF export.",
+      ),
+    ]);
+    expect(result.suppressed).toEqual([]);
+    expect(result.candidates).toHaveLength(1);
+    expect(result.candidates[0]?.evidence).toContain(
+      "possible_restatement:REQ-reports-export",
+    );
+    expect(result.diagnostics).toContain(
+      "Intent claim at handover:H-4 closely restates current requirement REQ-reports-export (token overlap 0.8 with its semantic text, not an exact match); it is still planned. Review it before apply: drop the claim if it states the same rule, or keep it and link the two with restates or supersedes.",
+    );
+  });
+
+  test("a claim below the overlap threshold is planned with no signal", () => {
+    const result = build([
+      claim(
+        "H-5",
+        "Users must be able to export invoices as PDF.",
+        "The handover lists invoice export.",
+      ),
+    ]);
+    expect(result.candidates).toHaveLength(1);
+    expect(
+      result.candidates[0]?.evidence.some((line) =>
+        line.startsWith("possible_restatement:"),
+      ),
+    ).toBe(false);
+    expect(
+      result.diagnostics.some((line) => line.includes("closely restates")),
+    ).toBe(false);
+  });
+
+  test("the match does not depend on the order requirements are read in", () => {
+    const twin = {
+      id: "REQ-reports-csv",
+      title: "CSV exports",
+      semanticText: "Users must be able to export reports as CSV.",
+    };
+    const claims = [
+      claim(
+        "H-1",
+        "Users must be able to export reports as CSV.",
+        "The handover lists CSV export.",
+      ),
+    ];
+    const forward = build(claims, [...existing, twin]);
+    const reverse = build(claims, [twin, ...existing]);
+    expect(forward).toEqual(reverse);
+    expect(forward.suppressed[0]?.matchedId).toBe("REQ-reports-csv");
+  });
+});

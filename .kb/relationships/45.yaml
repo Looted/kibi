@@ -244,3 +244,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5634b59a392d
+  - type: implements
+    from: SYM-source-authoring-render-source-document
+    to: REQ-kibi-change-to-proof-plan-compiler-v2
+    created_at: 2026-10-14T10:13:44.660Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8b39d2aeda55
+  - type: covered_by
+    from: SYM-source-authoring-render-source-document
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-10-14T10:13:44.678Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ca1b4edab114
+  - type: implements
+    from: SYM-source-authoring-render-source-document
+    to: REQ-kibi-uncompiled-source-visibility
+    created_at: 2026-10-14T10:13:44.689Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4ef1fac33b8e
+  - type: covered_by
+    from: SYM-source-authoring-render-source-document
+    to: TEST-kibi-uncompiled-source-visibility
+    created_at: 2026-10-14T10:13:44.699Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-97bf0e320e9e
+  - type: covered_by
+    from: SYM-source-authoring-render-source-document
+    to: TEST-e2e-plan-compiler-hash
+    created_at: 2026-10-14T10:32:10.383Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cd707907e1db

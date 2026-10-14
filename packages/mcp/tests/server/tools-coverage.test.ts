@@ -771,6 +771,93 @@ describe.serial("server tools coverage", () => {
     expect(error.cause).toBe(missing);
   });
 
+  test("addTool answers an error that carries a Kibi code with the error envelope", async () => {
+    const { runtime } = createRuntime();
+    const { server, registered } = createCapturingServer();
+    const coded = (
+      name: string,
+      code: string,
+      detail: string,
+      retryable: boolean,
+    ) => Object.assign(new Error(detail), { name, code, detail, retryable });
+    const failures = [
+      coded(
+        "InputError",
+        "VALIDATION_FAILED",
+        'clauses[0] "refunds are capped" does not occur in intent.',
+        false,
+      ),
+      coded("OperationError", "PLAN_STALE", "Plan snapshot moved.", true),
+    ];
+    for (const [index, failure] of failures.entries()) {
+      addTool(
+        server,
+        `coded_tool_${index}`,
+        "coded tool",
+        {},
+        mock(async (): Promise<unknown> => {
+          throw failure;
+        }),
+        runtime,
+      );
+    }
+
+    const [input, operation] = (await Promise.all(
+      failures.map((_, index) =>
+        invokeTool(getRegisteredTool(registered, `coded_tool_${index}`), {}),
+      ),
+    )) as {
+      content: { type: string; text: string }[];
+      structuredContent: {
+        status: string;
+        error: { code: string; message: string; retryable: boolean };
+      };
+      isError?: boolean;
+    }[];
+
+    expect(input?.isError).toBe(true);
+    expect(input?.structuredContent.status).toBe("error");
+    expect(input?.structuredContent.error).toEqual({
+      code: "VALIDATION_FAILED",
+      message: 'clauses[0] "refunds are capped" does not occur in intent.',
+      retryable: false,
+    });
+    expect(input?.content).toEqual([
+      {
+        type: "text",
+        text: 'Tool coded_tool_0 failed: [VALIDATION_FAILED] clauses[0] "refunds are capped" does not occur in intent.',
+      },
+    ]);
+    expect(operation?.structuredContent.error).toEqual({
+      code: "PLAN_STALE",
+      message: "Plan snapshot moved.",
+      retryable: true,
+    });
+  });
+
+  test("addTool still fails a tool whose error carries no Kibi code", async () => {
+    const { runtime } = createRuntime();
+    const { server, registered } = createCapturingServer();
+    // A Node error code is not a Kibi error code.
+    const plain = Object.assign(new Error("disk full"), { code: "ENOSPC" });
+    addTool(
+      server,
+      "plain_tool",
+      "plain tool",
+      {},
+      mock(async (): Promise<unknown> => {
+        throw plain;
+      }),
+      runtime,
+    );
+
+    const error = await getRejectedError(
+      invokeTool(getRegisteredTool(registered, "plain_tool"), {}),
+    );
+
+    expect(error.message).toBe("Tool plain_tool failed: disk full");
+  });
+
   test("addTool rejects requests while the server is shutting down", async () => {
     const { runtime, spies, trackedRequests } = createRuntime();
     const { server, registered } = createCapturingServer();

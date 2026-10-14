@@ -2309,11 +2309,15 @@ symbols:
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
+        target: TEST-kibi-mcp-tool-consolidation
+      - type: covered_by
         target: TEST-kibi-operation-interface-parity
       - type: implements
         target: REQ-002
       - type: implements
         target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-mcp-coded-error-envelope
   - id: SYM-ALLOWED_GRANULARITY_REASONS
     title: ALLOWED_GRANULARITY_REASONS
     sourceFile: packages/cli/src/public/symbol-granularity.generated.ts
@@ -3186,9 +3190,13 @@ symbols:
       - type: covered_by
         target: TEST-004
       - type: covered_by
+        target: TEST-cli-migration-first-commit
+      - type: covered_by
         target: TEST-cli-staged-consistency
       - type: implements
         target: REQ-cli-check
+      - type: implements
+        target: REQ-cli-migration-first-commit
       - type: implements
         target: REQ-cli-staged-consistency
   - id: SYM-CheckOptions
@@ -3586,8 +3594,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-search-answer-hygiene
       - type: implements
         target: REQ-cli-staged-impact-enforcement
+      - type: implements
+        target: REQ-kb-unowned-file-candidates
   - id: SYM-cli-impact-buildNextActions
     title: buildNextActions
     sourceFile: packages/cli/src/public/impact/summaries.ts
@@ -4180,8 +4192,12 @@ symbols:
         target: TEST-cli-sync-discovery-readme-ignore
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-uncompiled-source-visibility
       - type: implements
         target: REQ-core-extractors
+      - type: implements
+        target: REQ-kibi-uncompiled-source-visibility
   - id: SYM-cli-PrologProcess-getPid
     title: PrologProcess.getPid
     sourceFile: packages/cli/src/prolog.ts
@@ -5724,7 +5740,11 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-cli-migration-first-commit
+      - type: covered_by
         target: TEST-cli-staged-impact-enforcement
+      - type: implements
+        target: REQ-cli-migration-first-commit
       - type: implements
         target: REQ-cli-staged-impact-enforcement
   - id: SYM-collectStagedKibiDiagnostics
@@ -7324,6 +7344,8 @@ symbols:
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
       - type: covered_by
+        target: TEST-kibi-uncompiled-source-visibility
+      - type: covered_by
         target: TEST-mcp-search-discovery
       - type: implements
         target: REQ-branch-store-recovery-v4
@@ -7331,6 +7353,8 @@ symbols:
         target: REQ-cli-status-pre-first-sync
       - type: implements
         target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-uncompiled-source-visibility
       - type: implements
         target: REQ-mcp-search-discovery
   - id: SYM-discovery-query-input
@@ -10986,13 +11010,21 @@ symbols:
       - type: covered_by
         target: TEST-cli-config-schema
       - type: covered_by
+        target: TEST-cli-migrate-legacy-requirement-status
+      - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-schema6-migration-cli
       - type: implements
         target: REQ-011
       - type: implements
+        target: REQ-cli-migrate-legacy-requirement-status
+      - type: implements
         target: REQ-kibi-schema6-migration-v2
+      - type: covered_by
+        target: TEST-cli-migration-first-commit
+      - type: implements
+        target: REQ-cli-migration-first-commit
   - id: SYM-mirrorSkillsDir
     title: mirrorSkillsDir
     sourceFile: scripts/sync-agent-skills.ts
@@ -23276,7 +23308,11 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-cli-migration-first-commit
+      - type: covered_by
         target: TEST-cli-staged-impact-enforcement
+      - type: implements
+        target: REQ-cli-migration-first-commit
       - type: implements
         target: REQ-cli-staged-impact-enforcement
   - id: SYM-StagedSymbolsManifestAssessment
@@ -29434,8 +29470,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-source-relationship-parity
+      - type: covered_by
+        target: TEST-kibi-uncompiled-source-visibility
       - type: implements
         target: REQ-kibi-source-relationship-parity
+      - type: implements
+        target: REQ-kibi-uncompiled-source-visibility
   - id: SYM-firstGitAdditionCommit
     title: firstGitAdditionCommit
     status: active
@@ -42741,8 +42781,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-claude-code-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
       - type: implements
         target: REQ-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-kb-unowned-file-candidates
   - id: SYM-claude-searchTip
     title: searchTip
     status: active
@@ -46911,6 +46955,8 @@ symbols:
       - type: implements
         target: REQ-bootstrap-claim-kinds-and-conflicts
       - type: implements
+        target: REQ-bootstrap-claim-restatement
+      - type: implements
         target: REQ-kibi-bootstrap-knowledge-sources
   - id: SYM-test-kibi-bootstrap-knowledge-sources
     title: Bootstrap knowledge sources suite
@@ -48560,7 +48606,11 @@ symbols:
       recorded_at: 2026-10-04T17:25:50.906Z
     relationships:
       - type: covered_by
+        target: TEST-cli-migration-first-commit
+      - type: covered_by
         target: TEST-kibi-schema6-migration-cli
+      - type: implements
+        target: REQ-cli-migration-first-commit
       - type: implements
         target: REQ-cli-schema-migration
   - id: SYM-migration-schema6-migration-fragment
@@ -51860,9 +51910,13 @@ symbols:
       - type: covered_by
         target: TEST-agent-guided-migration-orchestration
       - type: covered_by
+        target: TEST-cli-migrate-legacy-requirement-status
+      - type: covered_by
         target: TEST-kibi-schema6-migration-cli
       - type: implements
         target: REQ-agent-guided-migration-orchestration
+      - type: implements
+        target: REQ-cli-migrate-legacy-requirement-status
       - type: implements
         target: REQ-cli-schema-migration
   - id: SYM-decision-firmness-firm-unreferenced-rule
@@ -52152,7 +52206,11 @@ symbols:
       recorded_at: 2026-10-13T16:20:00.000Z
     relationships:
       - type: covered_by
+        target: TEST-cli-migrate-legacy-requirement-status
+      - type: covered_by
         target: TEST-kibi-schema6-migration-cli
+      - type: implements
+        target: REQ-cli-migrate-legacy-requirement-status
       - type: implements
         target: REQ-cli-schema-migration
   - id: SYM-schema6-SCHEMA6_APPROVABLE_REVIEW_CODES
@@ -52932,7 +52990,11 @@ symbols:
       recorded_at: 2026-10-13T17:18:31.331Z
     relationships:
       - type: covered_by
+        target: TEST-cli-migration-first-commit
+      - type: covered_by
         target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-cli-migration-first-commit
       - type: implements
         target: REQ-source-analysis-v2
   - id: SYM-kb-decision-firmness-planfirmsupersedeacknowledgement
@@ -53026,6 +53088,591 @@ symbols:
         target: TEST-kb-decision-firmness
       - type: implements
         target: REQ-kb-decision-firmness-from-origin
+  - id: SYM-test-cli-migrate-legacy-requirement-status
+    title: Legacy requirement status and uncompiled source CLI suite
+    status: active
+    sourceFile: packages/cli/tests/commands/migrate-legacy-status.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T08:56:50.365Z
+    relationships:
+      - type: executable_for
+        target: TEST-cli-migrate-legacy-requirement-status
+      - type: executable_for
+        target: TEST-kibi-uncompiled-source-visibility
+  - id: SYM-migration-plan-requirement-status-mappings
+    title: planRequirementStatusMappings
+    status: active
+    sourceFile: packages/cli/src/operations/migration/requirement-status.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T09:02:09.242Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migrate-legacy-requirement-status
+      - type: implements
+        target: REQ-cli-migrate-legacy-requirement-status
+  - id: SYM-migration-apply-delivered-status-mappings
+    title: applyDeliveredStatusMappings
+    status: active
+    sourceFile: packages/cli/src/operations/migration/requirement-status.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T09:02:18.202Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migrate-legacy-requirement-status
+      - type: implements
+        target: REQ-cli-migrate-legacy-requirement-status
+  - id: SYM-migration-apply-requirement-status-mapping
+    title: applyRequirementStatusMapping
+    status: active
+    sourceFile: packages/cli/src/operations/migration/requirement-status.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T09:02:27.339Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migrate-legacy-requirement-status
+      - type: implements
+        target: REQ-cli-migrate-legacy-requirement-status
+  - id: SYM-sync-source-extraction-failure-reasons
+    title: sourceExtractionFailureReasons
+    status: active
+    sourceFile: packages/cli/src/commands/sync/cache.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T09:03:20.179Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-uncompiled-source-visibility
+      - type: implements
+        target: REQ-kibi-uncompiled-source-visibility
+  - id: SYM-sync-source-extraction-remediation
+    title: sourceExtractionRemediation
+    status: active
+    sourceFile: packages/cli/src/commands/sync/cache.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T09:03:28.556Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-uncompiled-source-visibility
+      - type: implements
+        target: REQ-kibi-uncompiled-source-visibility
+  - id: SYM-upsert-read-uncompiled-authored-source
+    title: readUncompiledAuthoredSource
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/uncompiled-source.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T09:03:39.294Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-uncompiled-source-visibility
+      - type: implements
+        target: REQ-kibi-uncompiled-source-visibility
+  - id: SYM-upsert-authored-entity-lookup
+    title: authoredEntityLookup
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/uncompiled-source.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T09:03:53.878Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-uncompiled-source-visibility
+      - type: implements
+        target: REQ-kibi-uncompiled-source-visibility
+  - id: SYM-upsert-assert-authored-write-compiles
+    title: assertAuthoredWriteCompiles
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/uncompiled-source.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T09:04:07.380Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-uncompiled-source-visibility
+      - type: implements
+        target: REQ-kibi-uncompiled-source-visibility
+  - id: SYM-source-authoring-new-entity-source-target
+    title: newEntitySourceTarget
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T09:04:20.739Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-uncompiled-source-visibility
+      - type: implements
+        target: REQ-kibi-uncompiled-source-visibility
+  - id: SYM-sync-source-extraction-failed-code
+    title: SOURCE_EXTRACTION_FAILED
+    status: active
+    sourceFile: packages/cli/src/commands/sync/cache.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T10:12:25.951Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-uncompiled-source-visibility
+      - type: implements
+        target: REQ-kibi-uncompiled-source-visibility
+  - id: SYM-sync-source-extraction-failure-type
+    title: SourceExtractionFailure
+    status: active
+    sourceFile: packages/cli/src/commands/sync/cache.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T10:12:32.022Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-uncompiled-source-visibility
+      - type: implements
+        target: REQ-kibi-uncompiled-source-visibility
+  - id: SYM-migration-delivered-requirement-status
+    title: DELIVERED_REQUIREMENT_STATUS
+    status: active
+    sourceFile: packages/cli/src/operations/migration/requirement-status.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T10:12:37.423Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migrate-legacy-requirement-status
+      - type: implements
+        target: REQ-cli-migrate-legacy-requirement-status
+  - id: SYM-migration-delivered-requirement-tag
+    title: DELIVERED_REQUIREMENT_TAG
+    status: active
+    sourceFile: packages/cli/src/operations/migration/requirement-status.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T10:12:43.266Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migrate-legacy-requirement-status
+      - type: implements
+        target: REQ-cli-migrate-legacy-requirement-status
+  - id: SYM-migration-delivered-status-mapping-result
+    title: DeliveredStatusMappingResult
+    status: active
+    sourceFile: packages/cli/src/operations/migration/requirement-status.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T10:12:49.121Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migrate-legacy-requirement-status
+      - type: implements
+        target: REQ-cli-migrate-legacy-requirement-status
+  - id: SYM-migration-requirement-status-finding
+    title: RequirementStatusFinding
+    status: active
+    sourceFile: packages/cli/src/operations/migration/requirement-status.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T10:12:54.481Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migrate
+      - type: covered_by
+        target: TEST-cli-migrate-legacy-requirement-status
+      - type: implements
+        target: REQ-cli-migrate-legacy-requirement-status
+      - type: implements
+        target: REQ-cli-schema-migration
+  - id: SYM-migration-suggested-requirement-status
+    title: SUGGESTED_REQUIREMENT_STATUS
+    status: active
+    sourceFile: packages/cli/src/operations/migration/requirement-status.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T10:13:00.037Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migrate
+      - type: implements
+        target: REQ-cli-schema-migration
+  - id: SYM-schema6-REQ_STATUS_DELIVERED_MAP_ACTION_ID
+    title: REQ_STATUS_DELIVERED_MAP_ACTION_ID
+    status: active
+    sourceFile: packages/cli/src/operations/migration/schema6.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T10:13:05.860Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migrate-legacy-requirement-status
+      - type: implements
+        target: REQ-cli-migrate-legacy-requirement-status
+  - id: SYM-schema6-REQ_STATUS_DELIVERED_MAP_CODE
+    title: REQ_STATUS_DELIVERED_MAP_CODE
+    status: active
+    sourceFile: packages/cli/src/operations/migration/schema6.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T10:13:11.780Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migrate-legacy-requirement-status
+      - type: implements
+        target: REQ-cli-migrate-legacy-requirement-status
+  - id: SYM-source-authoring-authored-frontmatter
+    title: authoredFrontmatter
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T10:13:18.774Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-uncompiled-source-visibility
+      - type: implements
+        target: REQ-kibi-uncompiled-source-visibility
+  - id: SYM-source-authoring-is-untracked-by-git
+    title: isUntrackedByGit
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T10:13:24.847Z
+    relationships:
+      - type: covered_by
+        target: TEST-007
+      - type: implements
+        target: REQ-core-persistence
+  - id: SYM-source-authoring-read-file-times
+    title: readFileTimes
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T10:13:30.928Z
+    relationships:
+      - type: covered_by
+        target: TEST-core-atomic-upsert-persistence
+      - type: implements
+        target: REQ-core-atomic-upsert-persistence
+  - id: SYM-source-authoring-restore-file-times
+    title: restoreFileTimes
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T10:13:37.116Z
+    relationships:
+      - type: covered_by
+        target: TEST-core-atomic-upsert-persistence
+      - type: implements
+        target: REQ-core-atomic-upsert-persistence
+  - id: SYM-source-authoring-render-source-document
+    title: renderSourceDocument
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T10:13:43.411Z
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-plan-compiler-hash
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-uncompiled-source-visibility
+      - type: implements
+        target: REQ-kibi-change-to-proof-plan-compiler-v2
+      - type: implements
+        target: REQ-kibi-uncompiled-source-visibility
+  - id: SYM-source-authoring-republish-pending-source-receipt
+    title: republishPendingSourceReceipt
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T10:13:49.994Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migrate
+      - type: covered_by
+        target: TEST-core-atomic-upsert-persistence
+      - type: implements
+        target: REQ-cli-schema-migration
+      - type: implements
+        target: REQ-core-atomic-upsert-persistence
+  - id: SYM-mutation-stored-entity-type
+    title: StoredEntity
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/stored-entity.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T10:13:55.152Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-upsert-review-lanes
+      - type: implements
+        target: REQ-kibi-upsert-preserves-requirement-semantics
+  - id: SYM-mutation-stored-entity-lookup-type
+    title: StoredEntityLookup
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/stored-entity.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T10:13:59.012Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-uncompiled-source-visibility
+      - type: covered_by
+        target: TEST-kibi-upsert-review-lanes
+      - type: implements
+        target: REQ-kibi-uncompiled-source-visibility
+      - type: implements
+        target: REQ-kibi-upsert-preserves-requirement-semantics
+  - id: SYM-upsert-uncompiled-authored-source-type
+    title: UncompiledAuthoredSource
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/uncompiled-source.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T10:14:04.383Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-uncompiled-source-visibility
+      - type: implements
+        target: REQ-kibi-uncompiled-source-visibility
+  - id: SYM-upsert-analyze-upsert-semantics
+    title: analyzeUpsertSemantics
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/upsert.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T10:14:10.184Z
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+  - id: SYM-upsert-assert-relationship-shard-contained
+    title: assertRelationshipShardContained
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/upsert.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T10:14:16.636Z
+    relationships:
+      - type: covered_by
+        target: TEST-core-atomic-upsert-persistence
+      - type: implements
+        target: REQ-core-atomic-upsert-persistence
+  - id: SYM-upsert-semantic-analysis-type
+    title: UpsertSemanticAnalysis
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/upsert.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T10:14:22.311Z
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+  - id: SYM-upsert-validation-type
+    title: UpsertValidation
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/upsert.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T10:14:27.987Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-truthful-consistency
+      - type: covered_by
+        target: TEST-kibi-uncompiled-source-visibility
+      - type: implements
+        target: REQ-kibi-truthful-consistency
+      - type: implements
+        target: REQ-kibi-uncompiled-source-visibility
+  - id: SYM-upsert-validation-options-type
+    title: UpsertValidationOptions
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/upsert.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T10:14:33.518Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-truthful-consistency
+      - type: implements
+        target: REQ-kibi-truthful-consistency
+  - id: SYM-upsert-validate-upsert-for-commit
+    title: validateUpsertForCommit
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/upsert.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T10:14:39.483Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-truthful-consistency
+      - type: covered_by
+        target: TEST-kibi-uncompiled-source-visibility
+      - type: implements
+        target: REQ-kibi-truthful-consistency
+      - type: implements
+        target: REQ-kibi-uncompiled-source-visibility
+  - id: SYM-discovery-query-body-type
+    title: QueryBody
+    status: active
+    sourceFile: packages/cli/src/public/operations/discovery-executors.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T10:14:45.262Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-discovery-query-body-max-chars
+    title: QUERY_BODY_MAX_CHARS
+    status: active
+    sourceFile: packages/cli/src/public/operations/discovery-executors.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T10:14:51.357Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-test-cli-migration-first-commit
+    title: Migration first-commit consumer suite
+    status: active
+    sourceFile: packages/cli/tests/commands/migrate-first-commit.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T08:46:39.220Z
+    relationships:
+      - type: executable_for
+        target: TEST-cli-migration-first-commit
+  - id: SYM-cli-migration-readGeneratedManifestBytes
+    title: readGeneratedManifestBytes
+    status: active
+    sourceFile: packages/cli/src/operations/migration/symbol-coordinates-refresh.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T08:47:02.042Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migration-first-commit
+      - type: implements
+        target: REQ-cli-migration-first-commit
+  - id: SYM-cli-migration-refreshCoordinatesAfterMigration
+    title: refreshCoordinatesAfterMigration
+    status: active
+    sourceFile: packages/cli/src/operations/migration/symbol-coordinates-refresh.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T08:47:08.216Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migration-first-commit
+      - type: implements
+        target: REQ-cli-migration-first-commit
+  - id: SYM-cli-migration-coordinateRefreshFailureMessage
+    title: coordinateRefreshFailureMessage
+    status: active
+    sourceFile: packages/cli/src/operations/migration/symbol-coordinates-refresh.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T08:47:13.957Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migration-first-commit
+      - type: implements
+        target: REQ-cli-migration-first-commit
+  - id: SYM-cli-migration-GeneratedManifestBytes
+    title: GeneratedManifestBytes
+    status: active
+    sourceFile: packages/cli/src/operations/migration/symbol-coordinates-refresh.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T08:47:20.936Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migration-first-commit
+      - type: implements
+        target: REQ-cli-migration-first-commit
+  - id: SYM-cli-migration-MigrationCoordinateRefresh
+    title: MigrationCoordinateRefresh
+    status: active
+    sourceFile: packages/cli/src/operations/migration/symbol-coordinates-refresh.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T08:47:26.207Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migration-first-commit
+      - type: implements
+        target: REQ-cli-migration-first-commit
+  - id: SYM-cli-migration-stagedCommitCarriesMigration
+    title: stagedCommitCarriesMigration
+    status: active
+    sourceFile: packages/cli/src/traceability/staged-migration.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T08:47:31.291Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migration-first-commit
+      - type: implements
+        target: REQ-cli-migration-first-commit
   - id: SYM-kb-firm-decision-edit-decisiondocument
     title: DecisionDocument
     status: active
@@ -53263,3 +53910,392 @@ symbols:
         target: TEST-kb-decision-firmness
       - type: implements
         target: REQ-kb-decision-firmness-from-origin
+  - id: SYM-agent-core-candidates-pathtopicwords
+    title: pathTopicWords
+    status: active
+    sourceFile: packages/agent-core/src/requirement-candidates.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T09:46:09.721Z
+    relationships:
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: implements
+        target: REQ-kb-unowned-file-candidates
+  - id: SYM-agent-core-candidates-requirementhead
+    title: RequirementHead
+    status: active
+    sourceFile: packages/agent-core/src/requirement-candidates.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T09:46:15.499Z
+    relationships:
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: implements
+        target: REQ-kb-unowned-file-candidates
+  - id: SYM-agent-core-candidates-rankrequirementcandidates
+    title: rankRequirementCandidates
+    status: active
+    sourceFile: packages/agent-core/src/requirement-candidates.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T09:46:20.900Z
+    relationships:
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: implements
+        target: REQ-kb-unowned-file-candidates
+  - id: SYM-agent-core-candidates-requirementcandidatesforpath
+    title: requirementCandidatesForPath
+    status: active
+    sourceFile: packages/agent-core/src/requirement-candidates.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T09:46:26.369Z
+    relationships:
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: implements
+        target: REQ-kb-unowned-file-candidates
+  - id: SYM-agent-core-candidates-max-requirement-candidates
+    title: MAX_REQUIREMENT_CANDIDATES
+    status: active
+    sourceFile: packages/agent-core/src/requirement-candidates.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T09:46:31.814Z
+    relationships:
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: implements
+        target: REQ-kb-unowned-file-candidates
+  - id: SYM-cli-unowned-files-pathtopicwords
+    title: pathTopicWords
+    status: active
+    sourceFile: packages/cli/src/public/impact/unowned-files.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T09:46:37.122Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-hygiene
+      - type: implements
+        target: REQ-kb-unowned-file-candidates
+  - id: SYM-cli-unowned-files-requirementcandidate
+    title: RequirementCandidate
+    status: active
+    sourceFile: packages/cli/src/public/impact/unowned-files.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T09:46:43.042Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-hygiene
+      - type: implements
+        target: REQ-kb-unowned-file-candidates
+  - id: SYM-cli-unowned-files-rankrequirementcandidates
+    title: rankRequirementCandidates
+    status: active
+    sourceFile: packages/cli/src/public/impact/unowned-files.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T09:46:48.540Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-hygiene
+      - type: implements
+        target: REQ-kb-unowned-file-candidates
+  - id: SYM-cli-unowned-files-unownedfilediagnosticsoptions
+    title: UnownedFileDiagnosticsOptions
+    status: active
+    sourceFile: packages/cli/src/public/impact/unowned-files.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T09:46:54.213Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-hygiene
+      - type: implements
+        target: REQ-kb-unowned-file-candidates
+  - id: SYM-cli-unowned-files-createunownedfilediagnostics
+    title: createUnownedFileDiagnostics
+    status: active
+    sourceFile: packages/cli/src/public/impact/unowned-files.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T09:46:59.723Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-hygiene
+      - type: implements
+        target: REQ-kb-unowned-file-candidates
+  - id: SYM-test-requirement-candidates
+    title: Requirement candidates suite
+    status: active
+    sourceFile: packages/agent-core/tests/requirement-candidates.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T09:47:04.175Z
+    relationships:
+      - type: executable_for
+        target: TEST-claude-edit-snippet-hook
+  - id: SYM-test-unowned-files
+    title: Unowned files suite
+    status: active
+    sourceFile: packages/cli/tests/traceability/unowned-files.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T09:47:08.436Z
+    relationships:
+      - type: executable_for
+        target: TEST-search-answer-hygiene
+  - id: SYM-agent-core-snippets-claimsnippetslot
+    title: claimSnippetSlot
+    status: active
+    sourceFile: packages/agent-core/src/snippets.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T10:07:40.517Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-core-edit-snippets
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: implements
+        target: REQ-agent-core-edit-snippets
+  - id: SYM-agent-core-snippets-createentitysummarizer
+    title: createEntitySummarizer
+    status: active
+    sourceFile: packages/agent-core/src/snippets.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T10:07:45.955Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-core-edit-snippets
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: implements
+        target: REQ-agent-core-edit-snippets
+  - id: SYM-agent-core-snippets-describeentity
+    title: describeEntity
+    status: active
+    sourceFile: packages/agent-core/src/snippets.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T10:07:50.623Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-core-edit-snippets
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: implements
+        target: REQ-agent-core-edit-snippets
+  - id: SYM-agent-core-snippets-editfocus
+    title: editFocus
+    status: active
+    sourceFile: packages/agent-core/src/snippets.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T10:07:55.280Z
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-agent-core-snippets-editknowledgeinput
+    title: EditKnowledgeInput
+    status: active
+    sourceFile: packages/agent-core/src/snippets.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T10:08:00.085Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-core-edit-snippets
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: implements
+        target: REQ-agent-core-edit-snippets
+  - id: SYM-agent-core-snippets-grounding-link-types
+    title: GROUNDING_LINK_TYPES
+    status: active
+    sourceFile: packages/agent-core/src/snippets.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T10:08:04.604Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-core-edit-snippets
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: implements
+        target: REQ-agent-core-edit-snippets
+  - id: SYM-agent-core-snippets-implementedrequirementids
+    title: implementedRequirementIds
+    status: active
+    sourceFile: packages/agent-core/src/snippets.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T10:08:09.166Z
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-agent-core-snippets-isretiredstatus
+    title: isRetiredStatus
+    status: active
+    sourceFile: packages/agent-core/src/snippets.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T10:08:14.153Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-core-edit-snippets
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: implements
+        target: REQ-agent-core-edit-snippets
+  - id: SYM-agent-core-snippets-summarize
+    title: Summarize
+    status: active
+    sourceFile: packages/agent-core/src/snippets.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T10:08:18.852Z
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-bootstrap-find-restatement
+    title: findRestatement
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T09:05:52.621Z
+    sourceFile: packages/cli/src/operations/bootstrap/claim-restatement.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-bootstrap-knowledge-sources
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-bootstrap-claim-restatement
+  - id: SYM-bootstrap-normalize-restatement-text
+    title: normalizeRestatementText
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T09:06:03.439Z
+    sourceFile: packages/cli/src/operations/bootstrap/claim-restatement.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-bootstrap-knowledge-sources
+      - type: implements
+        target: REQ-bootstrap-claim-restatement
+  - id: SYM-bootstrap-near-restatement-jaccard
+    title: NEAR_RESTATEMENT_JACCARD
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T09:06:10.452Z
+    sourceFile: packages/cli/src/operations/bootstrap/claim-restatement.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-bootstrap-knowledge-sources
+      - type: implements
+        target: REQ-bootstrap-claim-restatement
+  - id: SYM-bootstrap-existing-requirement-type
+    title: ExistingRequirement
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T09:06:16.401Z
+    sourceFile: packages/cli/src/operations/bootstrap/claim-restatement.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-bootstrap-knowledge-sources
+      - type: implements
+        target: REQ-bootstrap-claim-restatement
+  - id: SYM-bootstrap-restatement-match-type
+    title: RestatementMatch
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T09:06:22.689Z
+    sourceFile: packages/cli/src/operations/bootstrap/claim-restatement.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-bootstrap-knowledge-sources
+      - type: implements
+        target: REQ-bootstrap-claim-restatement
+  - id: SYM-cli-load-current-requirement-texts
+    title: loadCurrentRequirementTexts
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T09:06:28.706Z
+    sourceFile: packages/cli/src/public/operations/discovery-entities.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-bootstrap-claim-restatement
+  - id: SYM-cli-coded-error-of
+    title: codedErrorOf
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T09:06:34.897Z
+    sourceFile: packages/cli/src/cli-errors.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-mcp-tool-consolidation
+      - type: implements
+        target: REQ-mcp-coded-error-envelope
+  - id: SYM-cli-coded-error-fields-type
+    title: CodedErrorFields
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T09:06:40.935Z
+    sourceFile: packages/cli/src/cli-errors.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-mcp-tool-consolidation
+      - type: implements
+        target: REQ-mcp-coded-error-envelope

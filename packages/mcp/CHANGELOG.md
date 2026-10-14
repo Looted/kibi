@@ -1,5 +1,45 @@
 # kibi-mcp
 
+## 3.14.1
+
+### Patch Changes
+
+- b51910d: Requirements with a legacy `status: implemented`, `done` or `completed` no longer vanish from the KB after `kibi migrate --yes`: the migration maps them to `closed` with the tag `implemented` and says so. When a requirement still cannot be compiled, `kibi migrate` reports the migration as incomplete and names the file and the fix instead of claiming it is done, `kb_check` blocks on the file and `kb_status` stops reporting the KB as fresh. `kb_upsert` on such a requirement is judged against its file, so a write that would leave it without a proposition inventory, or still uncompilable, is refused before anything is written.
+  - `kibi migrate` plans an automatic `req_status_delivered_map` action (id `req-status-delivered-map`) that rewrites only the `status` line and adds the `implemented` tag; `--yes` applies it, prints `Mapped legacy status ... on N requirement(s)` and records `legacyStatusesMapped` in the audit. Unknown statuses stay `req_status_vocabulary_map` review actions whose evidence carries the extraction error.
+  - `kibi migrate --yes` prints `Migration incomplete: ...` with one line per uncompiled requirement instead of `Migration complete` while such work remains; the exit code stays 0.
+  - `kibi sync` records each authored file it could not extract (with its hash) in the sync cache. `kb_status` reports a blocking `source_extraction_failed` stale reason, `syncState: stale` and `dirty: true` while the file keeps those bytes. `source-relationship-parity` now says the file cannot be compiled and how to fix it. A legacy requirement that missed the first-sync baseline because its status did not compile keeps that baseline once its status is mapped.
+  - `kb_upsert` of an entity the store lacks but whose authored file exists reads that file's front matter as the stored state for the proposition-complete, origin and ledger checks, renders and extracts the result before writing, refuses a write that would leave the file uncompilable, and returns a warning naming the file it updated.
+
+## 3.14.0
+
+### Minor Changes
+
+- d960810: A file with no linked symbols is no longer read as a file no rule covers. Before such a file is edited, the Claude Code and Codex hooks name the current requirements whose titles share the file's path words, and a `kb_check` scoped to the file reports the same candidates, so an agent changing `coach-dashboard.html` is pointed at the coach inbox requirement instead of concluding there is no knowledge-base impact. Agents are also told that recording the behavior a change adds is part of finishing it and needs no permission.
+  - `kibi-agent-core`: new `requirement-candidates` module (`pathTopicWords`, `rankRequirementCandidates`, `requirementCandidatesForPath`); `unownedSourceNote` takes the candidates, says that no link does not mean no rule, and drops candidates rather than exceed the snippet budget.
+  - `kibi-cli`: an impact-enabled `kb_check` emits `source_file_unowned` (`info`, non-blocking) for each file in `sourceFiles` that no manifest symbol links to a requirement, including files Kibi does not extract symbols from (HTML templates), with `evidence.candidates`. The unlinked-symbol `symbol_semantic_review_needed` suggestion now says recording the behavior needs no permission.
+  - `kibi-claude`, `kibi-codex`: the unlinked-file edit note names candidate requirements. The Claude Code session-start context no longer says unlinked files get no context, and says recording new behavior needs no permission; ZCode's session-start context says the same.
+  - `kibi-usage` skill 2.19.0: record new behavior without asking; confirm the candidates an unlinked-file note names.
+
+### Patch Changes
+
+- 445ced0: Bootstrap no longer plans a declared intent claim as a new requirement when it only restates a requirement that is already in the knowledge base. A claim whose statement or excerpt matches an existing requirement's title, its semantic text or one of its sentences (ignoring case, whitespace and punctuation) is counted as already in the KB and names that requirement; a claim that comes close without matching is still planned, with a diagnostic naming the requirement to review. MCP tools that reject their input now return the same error code the CLI does (for example `VALIDATION_FAILED` for a clause that is not a verbatim fragment), in `structuredContent.error`, instead of a plain text failure.
+  - `kb_plan_bootstrap`: before planning an `intent` claim, the planner reads every current requirement (`kb:current_req/1`, projected to id, title and `semantic_text`) through the engine it already uses for existing ids, only when intent claims are declared. A normalized exact match of the claim's `statement` or `excerpt` against the title, the whole semantic text or one sentence of it adds an `entity_exists` row with `matchedId`, `matchedBy: "restatement"` and `matchedField`, and the per-source accounting counts it as already in the KB. A token-set Jaccard of 0.8 or more (the entity-context restatement threshold) without an exact match keeps the candidate, adds `possible_restatement:<id>` to its evidence and emits a diagnostic. Requirements are compared in id order, so the plan hash stays stable for the same KB and context.
+  - MCP `addTool`: an `InputError` or `OperationError` thrown by a handler (matched by class, or by name and an upper-case `code` when bundled separately) returns `isError: true` with a protocol 1 error envelope (`status: "error"`, `error: { code, message, retryable }`) and the text `Tool <name> failed: [<code>] <message>`, matching the CLI JSON route. Errors without a Kibi code still raise `Tool <name> failed: …`.
+  - `kibi-runtime` exports `codedErrorOf` and `CodedErrorFields`.
+  - Skills: `kibi-bootstrap` 3.14.0 (claims that restate a current requirement count as already in the KB; review "closely restates" diagnostics before approval).
+
+- 80b7fcc: The first commit after `kibi migrate` no longer fails the pre-commit hook on its own changes. Migrate now refreshes `.kb/symbol-coordinates.yaml` whenever it rewrites or moves `.kb/symbols.yaml`, so `kibi check-generated --staged` finds no drift, and `kibi check --staged` no longer charges that commit with symbols the migration only marked `legacy-link`. A symbol you add or relink in the same commit is still checked in full.
+  - `kibi migrate --yes` and the `symbol-legacy-link-mark` plan action refresh coordinates the way `kibi sync --refresh-symbol-coordinates` does when the run changed the symbols manifest or its coordinates, rebind the pending-source receipt of a moved, untracked manifest, and print the refresh. A failed refresh leaves the migration applied and prints the manual step.
+  - `kibi check --staged` treats a commit as carrying a migration when the staged `.kb/manifest.json` has a newer `schemaVersion` than the base or the commit removes the legacy `.kb/config.json`. In such a commit, a symbol record that differs from its base only by an added `granularity_reason: legacy-link` or `review:context-missing` tag is not counted as changed, and the output says so in a `Migration commit:` line beside the `Baseline:` line.
+  - The rename-aware staged baseline also pairs a deleted knowledge file with an added canonical file of the same name when the pairing is unambiguous, so a small file that the migration both moved and rewrote below Git's rename similarity is still compared with its old content.
+
+- Updated dependencies [445ced0]
+- Updated dependencies
+- Updated dependencies [fcae317]
+- Updated dependencies [d960810]
+  - kibi-runtime@2.16.2
+  - kibi-core@0.22.2
+
 ## 3.13.0
 
 ### Minor Changes

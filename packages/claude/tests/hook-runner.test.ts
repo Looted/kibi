@@ -340,6 +340,21 @@ describe("pre-edit snippets", () => {
     expect(text).not.toContain("Kibi knowledge for");
   });
 
+  test("an unowned source file's note names requirements sharing its path words", async () => {
+    const fixture = createKibiWorkspace();
+    const { pre } = session(fixture);
+    const text = await pre("Write", {
+      file_path: "src/checkout/checkout-summary.ts",
+      content: "export {}",
+    });
+    expect(text).toContain("that does not mean no recorded rule covers");
+    expect(text).toContain(
+      "Requirements whose titles share this path's words: REQ-checkout-rounding: Checkout totals round to cents",
+    );
+    // A superseded requirement is not a candidate.
+    expect(text).not.toContain("REQ-currency-display");
+  });
+
   test("an unowned source file gets one discovery note", async () => {
     const fixture = createKibiWorkspace();
     const { pre } = session(fixture);

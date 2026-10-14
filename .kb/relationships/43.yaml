@@ -251,3 +251,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-39ac492d6836
+  - type: implements
+    from: SYM-cli-migration-GeneratedManifestBytes
+    to: REQ-cli-migration-first-commit
+    created_at: 2026-10-14T08:47:22.059Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-80ffaf6a4240
+  - type: covered_by
+    from: SYM-cli-migration-GeneratedManifestBytes
+    to: TEST-cli-migration-first-commit
+    created_at: 2026-10-14T08:47:22.079Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ddd97bd21546

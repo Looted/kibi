@@ -223,3 +223,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-30045bcd10f7
+  - type: implements
+    from: SYM-cli-unowned-files-unownedfilediagnosticsoptions
+    to: REQ-kb-unowned-file-candidates
+    created_at: 2026-10-14T09:46:55.530Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d8147aac3b07
+  - type: covered_by
+    from: SYM-cli-unowned-files-unownedfilediagnosticsoptions
+    to: TEST-search-answer-hygiene
+    created_at: 2026-10-14T09:46:55.547Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8101ca0a3f48

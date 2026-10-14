@@ -45,6 +45,8 @@ symbols:
 
 Impact diagnostics intentionally separate graph shape from semantic truth. A changed behavioral member can have complete `implements` and `covered_by` links and still emit `symbol_semantic_review_needed`; that warning tells the agent to inspect whether the linked requirement, scenario, and test still describe the changed behavior or UI copy. Kibi can point at the linked entities, but an LLM or human must review the prose and tests before claiming the KB remains semantically current.
 
+A file with no linked symbol is not a file without rules. For each file named in `sourceFiles` that no manifest symbol links to a requirement (including markup Kibi does not extract symbols from), an impact-enabled `kb_check` emits `source_file_unowned` (`info`): it names the current requirements whose titles share the file's path words, ignoring layout words such as `src`, `app` and `pages` and file extensions, so the agent can confirm one with `kb_query` and link the symbol that implements it (for markup, the component that renders it). The Claude Code and Codex edit hooks name the same candidates before the edit. The match is lexical: candidates are prompts to check, never owners.
+
 Run impact-enabled `kb_check` while the edit context is fresh, either through MCP or the equivalent CLI JSON route. Treat `kibi check --staged` and git hooks as the later hard gate for missing impact evidence, stale symbol coordinates, and granularity violations.
 
 ## Audit quality diagnostics

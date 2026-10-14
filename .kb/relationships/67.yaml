@@ -384,3 +384,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5bd0d4a2d814
+  - type: implements
+    from: SYM-migration-delivered-requirement-tag
+    to: REQ-cli-migrate-legacy-requirement-status
+    created_at: 2026-10-14T10:12:44.601Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-107cfee00c63
+  - type: covered_by
+    from: SYM-migration-delivered-requirement-tag
+    to: TEST-cli-migrate-legacy-requirement-status
+    created_at: 2026-10-14T10:12:44.632Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3aacf48f5f97
+  - type: implements
+    from: SYM-bootstrap-normalize-restatement-text
+    to: REQ-bootstrap-claim-restatement
+    created_at: 2026-10-14T09:06:05.325Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-70856aa06c1f
+  - type: covered_by
+    from: SYM-bootstrap-normalize-restatement-text
+    to: TEST-kibi-bootstrap-knowledge-sources
+    created_at: 2026-10-14T09:06:05.339Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-29b13e2c8a46

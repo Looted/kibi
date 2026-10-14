@@ -103,7 +103,7 @@ describe("the status plan's schema upgrade declares every write", () => {
       code: "symbol_legacy_link_mark",
       state: "ready",
       safety: "automatic",
-      affectedFiles: [".kb/symbols.yaml"],
+      affectedFiles: [".kb/symbol-coordinates.yaml", ".kb/symbols.yaml"],
     });
     const upgrade = plan.actions.find(
       (action) => action.id === "schema-config-upgrade",
@@ -142,7 +142,7 @@ describe("the status plan's schema upgrade declares every write", () => {
     // The mark ran as its own action, so the upgrade's pass is a visible
     // no-op; the counts come from the audit record the run wrote.
     expect(details["schema-config-upgrade"]).toBe(
-      "Migrated schema 8 -> 10 (audit .kb/migrations/main.json): legacy-link marks 0, origin backfill 0, superseded requirements closed 0, source paths rewritten 0, source paths removed 0; .gitignore updated.",
+      "Migrated schema 8 -> 10 (audit .kb/migrations/main.json): legacy-link marks 0, origin backfill 0, superseded requirements closed 0, source paths rewritten 0, source paths removed 0, legacy statuses mapped 0; .gitignore updated.",
     );
     expect(ws.read(".kb/symbols.yaml")).toContain(
       "granularity_reason: legacy-link",

@@ -363,3 +363,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-537be7921908
+  - type: implements
+    from: SYM-upsert-validate-upsert-for-commit
+    to: REQ-kibi-truthful-consistency
+    created_at: 2026-10-14T10:14:40.688Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-900a1f6e6242
+  - type: covered_by
+    from: SYM-upsert-validate-upsert-for-commit
+    to: TEST-kibi-truthful-consistency
+    created_at: 2026-10-14T10:14:40.711Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-82917a3c6271
+  - type: implements
+    from: SYM-upsert-validate-upsert-for-commit
+    to: REQ-kibi-uncompiled-source-visibility
+    created_at: 2026-10-14T10:14:40.730Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3ec209661c82
+  - type: covered_by
+    from: SYM-upsert-validate-upsert-for-commit
+    to: TEST-kibi-uncompiled-source-visibility
+    created_at: 2026-10-14T10:14:40.744Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6fd590ec22c5

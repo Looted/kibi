@@ -88,6 +88,18 @@ test(comparison_exceptions_fold_into_the_body) :-
     permit_checkout_when(gt, 5, Large),
     logic_rule_conflict(Rule, Large, [functional(cart, total, 2, [1])], disjoint).
 
+% Callers walking every opposing pair read the declarations once and pass
+% them in; the witness judges the pair under exactly those declarations.
+test(conflict_witness_uses_the_given_functional_declarations) :-
+    forbid_unless_positive(Rule),
+    permit_checkout_when(gt, 5, Large),
+    logic_rule_conflict(Rule, Large, [], Undeclared),
+    logic_rule_conflict_witness(Rule, Large, [], UndeclaredWitness),
+    UndeclaredWitness.status == Undeclared,
+    Undeclared \== disjoint,
+    logic_rule_conflict_witness(Rule, Large, [functional(cart, total, 2, [1])], Witness),
+    Witness.status == disjoint.
+
 % implements REQ-kibi-scenario-feasibility-v2
 test(property_form_reads_rule_conditions_as_property_constraints) :-
     forbid_unless_positive(Rule),

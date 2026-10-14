@@ -174,3 +174,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c5c79c750658
+  - type: implements
+    from: SYM-source-authoring-is-untracked-by-git
+    to: REQ-core-persistence
+    created_at: 2026-10-14T10:13:26.305Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e0dd387fa9df
+  - type: covered_by
+    from: SYM-source-authoring-is-untracked-by-git
+    to: TEST-007
+    created_at: 2026-10-14T10:13:26.322Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2e9c56c7080c

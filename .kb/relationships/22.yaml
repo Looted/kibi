@@ -300,3 +300,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2f200395fd55
+  - type: implements
+    from: SYM-cli-coded-error-fields-type
+    to: REQ-mcp-coded-error-envelope
+    created_at: 2026-10-14T09:06:42.846Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6958c3d523ee
+  - type: covered_by
+    from: SYM-cli-coded-error-fields-type
+    to: TEST-kibi-mcp-tool-consolidation
+    created_at: 2026-10-14T09:06:42.869Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5c99a1fb1f6e
+  - type: implements
+    from: SYM-cli-migration-readGeneratedManifestBytes
+    to: REQ-cli-migration-first-commit
+    created_at: 2026-10-14T08:47:03.495Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-308719ae33c7
+  - type: covered_by
+    from: SYM-cli-migration-readGeneratedManifestBytes
+    to: TEST-cli-migration-first-commit
+    created_at: 2026-10-14T08:47:03.530Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-90f74120f611
+  - type: implements
+    from: SYM-checkCommand
+    to: REQ-cli-migration-first-commit
+    created_at: 2026-10-14T08:48:23.928Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9d3d11d5d594
+  - type: covered_by
+    from: SYM-checkCommand
+    to: TEST-cli-migration-first-commit
+    created_at: 2026-10-14T08:48:23.957Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a0eb8a831775

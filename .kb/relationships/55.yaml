@@ -195,3 +195,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-248b30282490
+  - type: implements
+    from: SYM-agent-core-snippets-implementedrequirementids
+    to: REQ-claude-code-kibi-plugin-v1
+    created_at: 2026-10-14T10:08:10.508Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cc0d3b0d2bc1
+  - type: covered_by
+    from: SYM-agent-core-snippets-implementedrequirementids
+    to: TEST-claude-code-kibi-plugin-v1
+    created_at: 2026-10-14T10:08:10.528Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-90e45d75e825
