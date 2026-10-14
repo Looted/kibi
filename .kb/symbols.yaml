@@ -53230,6 +53230,8 @@ symbols:
       recorded_at: 2026-10-14T08:10:34.177Z
     relationships:
       - type: covered_by
+        target: TEST-kb-decision-firmness
+      - type: covered_by
         target: TEST-kibi-truthful-consistency
       - type: implements
         target: REQ-kb-firm-decision-edit
