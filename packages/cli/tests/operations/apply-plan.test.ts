@@ -2395,7 +2395,20 @@ describe("apply plan source recovery and migration", () => {
         spyOn(branchModule, "branchEnsureCommand").mockResolvedValue(undefined),
       );
       const remaining = buildMigrationPlan({
-        actions: [automaticAction({ id: "mig-remain" })],
+        actions: [
+          automaticAction({ id: "mig-remain" }),
+          ...["REQ-a", "REQ-b", "REQ-c"].map((id) =>
+            automaticAction({
+              id: `mig-review-${id}`,
+              code: "coverage_scenario_tests",
+              safety: "review",
+              state: "blocked",
+              autoApplicable: false,
+              affectedEntityIds: [id],
+              evidence: { detail: "x".repeat(2_000) },
+            }),
+          ),
+        ],
       });
       track(
         spyOn(checkExecutor, "executeCheck").mockResolvedValue({
@@ -2451,13 +2464,34 @@ describe("apply plan source recovery and migration", () => {
         filesystemContext(root),
       );
       expect(result.structuredContent.outcome).toBe("applied");
+      // The response reports what is left without embedding every review
+      // action: automatic actions stay whole, the rest are counted by code.
+      const digest = (
+        result.structuredContent as unknown as {
+          remainingPlan: Record<string, unknown>;
+        }
+      ).remainingPlan;
+      expect(digest).toMatchObject({
+        version: "kibi.migration-plan-digest.v1",
+        planHash: remaining.planHash,
+        status: remaining.status,
+        summary: remaining.summary,
+        actionGroups: [
+          {
+            code: "coverage_scenario_tests",
+            safety: "review",
+            state: "blocked",
+            count: 3,
+          },
+        ],
+      });
       expect(
-        (
-          result.structuredContent as unknown as {
-            remainingPlan?: { planHash: string };
-          }
-        ).remainingPlan?.planHash,
-      ).toBe(remaining.planHash);
+        (digest.automaticActions as { id: string }[]).map(
+          (action) => action.id,
+        ),
+      ).toEqual(["mig-remain"]);
+      expect(digest).not.toHaveProperty("actions");
+      expect(JSON.stringify(digest)).not.toContain("x".repeat(2_000));
       expect(
         (
           result.structuredContent as unknown as {

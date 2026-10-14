@@ -59,6 +59,7 @@ import {
 import type {
   MigrationAction,
   MigrationPlan,
+  MigrationPlanDigest,
 } from "../public/operations/migration-plan.js";
 import { resolveBranchAttachment } from "../utils/branch-resolver.js";
 import {
@@ -1204,9 +1205,20 @@ async function buildWorkspaceMigrationPlan(
   const unsafeDrift = fragment.actions.some(
     (action) => action.code === "semantic_inventory_review",
   );
+  // With no source rewrites, a status compile or resync that already runs
+  // after the schema upgrade recompiles the migrated KB; a second sync would
+  // only make this plan differ from the kb_status plan.
+  const statusSyncAfterUpgrade = statusActions.some(
+    (action) =>
+      action.safety === "automatic" &&
+      action.dependsOn.includes("schema-config-upgrade") &&
+      action.invocation.kind === "cli" &&
+      action.invocation.command_argv.join(" ") === "kibi sync",
+  );
   if (
     !unsafeDrift &&
-    (fragment.sourceRewriteActionIds.length > 0 || schemaUpgrade !== undefined)
+    (fragment.sourceRewriteActionIds.length > 0 ||
+      (schemaUpgrade !== undefined && !statusSyncAfterUpgrade))
   ) {
     fragmentActions.push(
       migrationSyncAction([
@@ -1393,7 +1405,7 @@ function printApplySummary(content: unknown): void {
       outcome: string;
       detail: string;
     }[];
-    remainingPlan?: MigrationPlan;
+    remainingPlan?: MigrationPlanDigest;
   };
   if (result.outcome !== undefined) console.log(`Outcome: ${result.outcome}`);
   for (const action of result.actionResults ?? []) {
@@ -1401,7 +1413,7 @@ function printApplySummary(content: unknown): void {
   }
   const remaining = result.remainingPlan;
   if (remaining !== undefined) {
-    const ready = remaining.actions.filter(
+    const ready = remaining.automaticActions.filter(
       (action) => action.state === "ready" && action.autoApplicable,
     ).length;
     console.log(
