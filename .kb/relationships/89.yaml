@@ -314,3 +314,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1d3796eb8fa3
+  - type: verified_by
+    from: SCEN-prolog-utf8-text
+    to: TEST-prolog-bundled-runtime
+    created_at: 2026-10-14T20:16:33.209Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b23def0c1400

@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 217,
-  "proofProven": 217,
+  "currentRequirements": 220,
+  "proofProven": 220,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -1087,6 +1087,21 @@
       "uncoveredSymbols": []
     },
     "REQ-claude-request-topic-candidates": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-agent-hosts-decision-guard": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-uncompiled-source-semantic-baseline": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-prolog-utf8-text": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []

@@ -5,6 +5,21 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import {
+  type DecisionSession,
+  captureReminder,
+  claimCaptureReminder,
+  confirmFirmEdits,
+  firmEditNotice,
+  firmRequirementsTouched,
+  hasDecisionFlag,
+  holdRuleNote,
+  markDecisionFlag,
+  recordRequest,
+  settleFirmRequirements,
+  settledFirmRequirements,
+  takeRuleNote,
+} from "kibi-agent-core/decision-guard";
+import {
   appendHookUsageRows,
   editTraces,
   hookTelemetryEnabled,
@@ -43,6 +58,7 @@ import {
   isDirectKbPath,
   isKbFreshnessRelevantPath,
   isMeaningfulTrackedPath,
+  isSourceImpactRelevantPath,
   toRepoRelativePath,
 } from "./path-policy.js";
 import {
@@ -51,6 +67,8 @@ import {
 } from "./source-linked-requirements.js";
 
 export type CursorHookResult = {
+  /** beforeSubmitPrompt only: whether the prompt goes through. */
+  continue?: boolean;
   additional_context?: string;
   permission?: "allow" | "deny";
   user_message?: string;
@@ -92,6 +110,36 @@ function knowledgeFor(
     focus,
     summarize: createEntitySummarizer(workspaceRoot),
   });
+}
+
+// implements REQ-agent-hosts-decision-guard
+/**
+ * Cursor does not enforce a hook's "ask", so an edit of code that implements
+ * a firm requirement gets a notice telling the agent to ask the person first,
+ * once per requirement per conversation.
+ */
+function firmNotice(
+  workspaceRoot: string,
+  linked: SourceLinkedSymbols,
+  focus: LineRange[] | undefined,
+  session: DecisionSession,
+  env: NodeJS.ProcessEnv,
+): string | undefined {
+  if (!confirmFirmEdits(env)) return undefined;
+  const summarize = createEntitySummarizer(workspaceRoot);
+  const { ids, symbol } = firmRequirementsTouched({
+    symbols: linked.symbols,
+    focus,
+    wholeFile: focus === undefined,
+    summarize,
+    confirmed: settledFirmRequirements(session),
+  });
+  if (ids.length === 0) return undefined;
+  settleFirmRequirements(session, ids);
+  return firmEditNotice(
+    symbol ? `${symbol.title} in ${linked.relativePath}` : linked.relativePath,
+    ids.map(summarize),
+  );
 }
 
 let cachedPackageVersion: string | null | undefined;
@@ -247,6 +295,10 @@ export async function runHook(
   const kibiReady = hasKibiConfig(cwd);
   const workspaceTrusted = environment.workspaceTrusted === true;
   const initialState = loadHookState(stateDir);
+  const session: DecisionSession = {
+    stateDir,
+    sessionId: input.conversationId,
+  };
 
   switch (input.event) {
     case "sessionStart":
@@ -300,33 +352,48 @@ export async function runHook(
 
       const relativePath = toRepoRelativePath(primaryPath, cwd);
       const state = loadHookState(stateDir);
-      if (hasGuidedPath(state, "pre-edit", relativePath)) {
-        return emptyResult();
-      }
-
       const linked = getSourceLinkedSymbols(cwd, primaryPath, stateDir);
-      const guidance = preEditGuidance(primaryPath, {
+      const focus = editFocus(path.resolve(cwd, primaryPath), input.toolInput);
+      const ruleNote = takeRuleNote(session);
+      const notice = firmNotice(
         cwd,
-        hasKibi: kibiReady,
-        mcpState: state.mcpState,
-        workspaceTrusted,
-        linkedRequirementIds: implementedRequirementIds(linked.symbols).slice(
-          0,
-          MAX_LINKED_REQUIREMENTS,
-        ),
-        knowledge: knowledgeFor(
-          cwd,
-          linked,
-          "edit",
-          editFocus(path.resolve(cwd, primaryPath), input.toolInput),
-        ),
-      });
-      if (!guidance) {
-        return emptyResult();
+        linked,
+        focus,
+        session,
+        environment.env ?? process.env,
+      );
+      const guidance = hasGuidedPath(state, "pre-edit", relativePath)
+        ? undefined
+        : preEditGuidance(primaryPath, {
+            cwd,
+            hasKibi: kibiReady,
+            mcpState: state.mcpState,
+            workspaceTrusted,
+            linkedRequirementIds: implementedRequirementIds(
+              linked.symbols,
+            ).slice(0, MAX_LINKED_REQUIREMENTS),
+            knowledge: knowledgeFor(cwd, linked, "edit", focus),
+          });
+      if (guidance) {
+        rememberGuidedPath(stateDir, "pre-edit", relativePath);
       }
+      const parts = [ruleNote, notice, guidance].filter(
+        (part): part is string => part !== undefined,
+      );
+      return parts.length > 0
+        ? { permission: "allow", agent_message: parts.join("\n\n") }
+        : emptyResult();
+    }
 
-      rememberGuidedPath(stateDir, "pre-edit", relativePath);
-      return { permission: "allow", agent_message: guidance };
+    // implements REQ-agent-hosts-decision-guard
+    case "beforeSubmitPrompt": {
+      // Cursor's prompt hook cannot add context: the request's rule note
+      // waits for the next pre-edit message.
+      if (kibiReady && input.prompt) {
+        const rule = recordRequest(session, input.prompt);
+        if (rule !== undefined) holdRuleNote(session, rule);
+      }
+      return { continue: true };
     }
 
     case "beforeReadFile": {
@@ -396,6 +463,16 @@ export async function runHook(
         if (dirtyPaths.length > 0) {
           addDirtyPaths(stateDir, dirtyPaths);
         }
+        if (dirtyPaths.some(isSourceImpactRelevantPath)) {
+          markDecisionFlag(session, "source-edited");
+        }
+      }
+      if (
+        kbToolCall?.toolName === "kb_upsert" ||
+        kbUsageTrace(input.toolName, input.toolInput)?.kbOperation ===
+          "kb_upsert"
+      ) {
+        markDecisionFlag(session, "kb-recorded");
       }
 
       const primaryPath = resolvePrimaryPath(input);
@@ -471,7 +548,17 @@ export async function runHook(
         return emptyResult();
       }
 
-      const followupMessage = stopFollowupMessage(state);
+      // implements REQ-agent-hosts-decision-guard
+      // Source changed and nothing was recorded: the follow-up asks for the
+      // decision to be recorded, once per conversation.
+      const followupMessage = [
+        claimCaptureReminder(session)
+          ? captureReminder(hasDecisionFlag(session, "rule-prompt"))
+          : undefined,
+        stopFollowupMessage(state),
+      ]
+        .filter((part): part is string => part !== undefined)
+        .join("\n");
       if (followupMessage) {
         clearSessionHookState(stateDir);
         return { followup_message: followupMessage };

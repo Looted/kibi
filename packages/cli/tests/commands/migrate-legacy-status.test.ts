@@ -289,7 +289,7 @@ describe("legacy requirement statuses and uncompiled sources", () => {
   );
 
   test(
-    "kb_upsert on an uncompiled requirement file is judged against that file and refused before writing",
+    "kb_upsert on an uncompiled requirement file is judged as the next sync judges that file",
     () => {
       writeManifest(root, 10);
       writeOpenRequirement(root);
@@ -307,9 +307,9 @@ describe("legacy requirement statuses and uncompiled sources", () => {
       vcs(root, "add", "--all");
       vcs(root, "commit", "-m", "legacy");
       expect(runKibi(["sync"], root).status).toBe(0);
-      const before = readFileSync(file, "utf8");
 
-      // Closing it would leave a current requirement without an inventory.
+      // It failed the store's first compilation, so it is legacy content sync
+      // accepts without an inventory once it compiles: closing it is allowed.
       const closed = runKibi(
         ["upsert", "--input", "-"],
         root,
@@ -319,11 +319,33 @@ describe("legacy requirement statuses and uncompiled sources", () => {
           properties: { title: "Editor saves drafts", status: "closed" },
         }),
       );
-      expect(closed.status).not.toBe(0);
-      expect(`${closed.stdout}${closed.stderr}`).toContain(
-        "Proposition-complete ingestion failed: REQ-EDITOR-004 would be written as a current requirement without a complete proposition inventory",
+      expect(closed.status, `${closed.stdout}${closed.stderr}`).toBe(0);
+      expect(readFileSync(file, "utf8")).toContain("\nstatus: closed\n");
+      const synced = runKibi(["sync"], root);
+      expect(synced.status, `${synced.stdout}${synced.stderr}`).toBe(0);
+      expect(queryEntity(root, "REQ-EDITOR-004").status).toBe("closed");
+
+      // One written after the first compilation is new authoring: closing it
+      // would leave a current requirement without an inventory.
+      const later = writeLegacyRequirement(root, "REQ-EDITOR-008", "wip", [
+        `semantic_text: ${JSON.stringify(TABLE_BODY)}`,
+      ]);
+      expect(runKibi(["sync"], root).status).toBe(0);
+      const before = readFileSync(later, "utf8");
+      const refusedClose = runKibi(
+        ["upsert", "--input", "-"],
+        root,
+        JSON.stringify({
+          id: "REQ-EDITOR-008",
+          type: "req",
+          properties: { title: "Editor saves drafts", status: "closed" },
+        }),
       );
-      expect(readFileSync(file, "utf8")).toBe(before);
+      expect(refusedClose.status).not.toBe(0);
+      expect(`${refusedClose.stdout}${refusedClose.stderr}`).toContain(
+        "Proposition-complete ingestion failed: REQ-EDITOR-008 would be written as a current requirement without a complete proposition inventory",
+      );
+      expect(readFileSync(later, "utf8")).toBe(before);
 
       // A write that leaves the file uncompilable is refused, naming the file.
       const broken = path.join(root, ".kb/requirements/REQ-EDITOR-007.md");
@@ -395,6 +417,88 @@ describe("legacy requirement statuses and uncompiled sources", () => {
       );
       expect(runKibi(["sync"], root).status).toBe(0);
       expect(queryEntity(root, "ADR-editor-autosave").status).toBe("accepted");
+    },
+    TIMEOUT_MS,
+  );
+  test(
+    "a requirement that once failed to compile keeps its legacy treatment while its prose is unchanged",
+    () => {
+      writeManifest(root, 7);
+      writeOpenRequirement(root);
+      const file = writeLegacyRequirement(
+        root,
+        "REQ-EDITOR-004",
+        "implemented",
+      );
+      vcs(root, "add", "--all");
+      vcs(root, "commit", "-m", "legacy");
+      expect(runKibi(["migrate", "--yes"], root).status).toBe(0);
+      const first = runKibi(["sync"], root);
+      expect(first.status, `${first.stdout}${first.stderr}`).toBe(0);
+      vcs(root, "add", "--all");
+      vcs(root, "commit", "-m", "migrate");
+      const committed = readFileSync(file, "utf8");
+      const toWip = () =>
+        writeFileSync(file, committed.replace("status: closed", "status: wip"));
+      const syncOk = (label: string) => {
+        const synced = runKibi(["sync"], root);
+        expect(
+          synced.status,
+          `${label}\n${synced.stdout}${synced.stderr}`,
+        ).toBe(0);
+        expect(synced.stderr).not.toContain("proposition-complete ingestion");
+      };
+
+      // A status sync cannot compile is reported, then restoring the
+      // committed file syncs cleanly again.
+      toWip();
+      const failed = runKibi(["sync"], root);
+      expect(failed.status).toBe(0);
+      expect(failed.stderr).toContain("Failed to extract");
+      expect(statusJson(root).staleReasons).toContainEqual(
+        expect.objectContaining({ code: "source_extraction_failed" }),
+      );
+      vcs(root, "checkout", "--", ".kb/requirements/REQ-EDITOR-004.md");
+      syncOk("restored");
+      expect(statusJson(root).syncState).toBe("fresh");
+      // It keeps the treatment through more than one failed sync.
+      toWip();
+      expect(runKibi(["sync"], root).status).toBe(0);
+      expect(runKibi(["sync"], root).status).toBe(0);
+      vcs(root, "checkout", "--", ".kb/requirements/REQ-EDITOR-004.md");
+      syncOk("restored after two failures");
+
+      // A status-only kb_upsert the write guard accepts compiles at the next
+      // sync, whether the store still holds the entity or not.
+      for (const args of [["sync"], ["sync", "--rebuild"]]) {
+        toWip();
+        expect(runKibi(args, root).status).toBe(0);
+        const upserted = runKibi(
+          ["upsert", "--input", "-"],
+          root,
+          JSON.stringify({
+            id: "REQ-EDITOR-004",
+            type: "req",
+            properties: { title: "Editor saves drafts", status: "closed" },
+          }),
+        );
+        expect(upserted.status, `${upserted.stdout}${upserted.stderr}`).toBe(0);
+        syncOk(`upsert after ${args.join(" ")}`);
+        expect(queryEntity(root, "REQ-EDITOR-004").status).toBe("closed");
+      }
+
+      // Changed prose is new authoring and still needs the inventory.
+      toWip();
+      expect(runKibi(["sync"], root).status).toBe(0);
+      writeFileSync(
+        file,
+        committed.replaceAll("every 30 seconds", "every 10 seconds"),
+      );
+      const changed = runKibi(["sync"], root);
+      expect(changed.status).not.toBe(0);
+      expect(`${changed.stdout}${changed.stderr}`).toContain(
+        "REQ-EDITOR-004.md: proposition-complete ingestion failed",
+      );
     },
     TIMEOUT_MS,
   );

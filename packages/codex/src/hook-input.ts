@@ -1,5 +1,10 @@
 // implements REQ-codex-kibi-plugin-v1
-export type HookEvent = "SessionStart" | "PreToolUse" | "PostToolUse" | "Stop";
+export type HookEvent =
+  | "SessionStart"
+  | "UserPromptSubmit"
+  | "PreToolUse"
+  | "PostToolUse"
+  | "Stop";
 
 export type HookInput = {
   event: string;
@@ -8,6 +13,10 @@ export type HookInput = {
   toolInput?: unknown;
   /** Codex session identity (`session_id`); may be absent. */
   sessionId?: string;
+  /** UserPromptSubmit: the submitted prompt. */
+  prompt?: string;
+  /** Stop: true when the turn already continued because of a Stop hook. */
+  stopHookActive?: boolean;
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -70,6 +79,15 @@ export function parseHookInput(input: unknown): HookInput {
 
   if (sessionId !== undefined) {
     parsed.sessionId = sessionId;
+  }
+
+  const prompt = readString(input, ["prompt"]);
+  if (prompt !== undefined) {
+    parsed.prompt = prompt;
+  }
+
+  if (input.stop_hook_active === true) {
+    parsed.stopHookActive = true;
   }
 
   return parsed;

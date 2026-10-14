@@ -6,6 +6,11 @@
         "command": "node dist/hook-runner.js"
       }
     ],
+    "beforeSubmitPrompt": [
+      {
+        "command": "node dist/hook-runner.js"
+      }
+    ],
     "preToolUse": [
       {
         "command": "node dist/hook-runner.js"
