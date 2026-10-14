@@ -1,5 +1,18 @@
 # kibi-runtime
 
+## 2.16.4
+
+### Patch Changes
+
+- 2057e51: A requirement without a proposition inventory that once failed to compile no longer gets stuck. Before, after `kibi sync` reported a requirement file it could not extract (for example an unknown `status`), restoring the exact committed file with `git checkout`, or fixing only its status, made every later `kibi sync` demand a complete inventory for it, while a status-only `kb_upsert` on the same file was accepted and then failed the next sync. Now the restored file syncs cleanly, and `kb_upsert` and `kibi sync` judge such a file by the same rule.
+  - `kibi sync` keeps, with each source it cannot extract, the semantic source hash the source last compiled with. When the source compiles again with the same prose, it keeps the legacy treatment; changed prose still needs the inventory, as before.
+  - `kb_upsert` of a requirement the store does not hold judges the write by what the last sync recorded for its file: a legacy file that missed the store's first compilation, or one whose prose is unchanged since it last compiled, may be written without an inventory; a file written after the first compilation needs one. A status-only `kb_upsert` that closes a legacy requirement whose status failed the first sync is now accepted, matching what `kibi sync` accepts after `kibi migrate` maps that status.
+  - A branch store where an earlier version already recorded such a failure has no record of the prose that last compiled, so that requirement still needs its inventory there.
+
+- 69c9ea7: Non-ASCII text such as `§`, `¶`, `–` or accented letters now keeps its characters when Kibi runs under a POSIX or other non-UTF-8 locale. Before, the store held U+FFFD replacement characters for every non-ASCII byte, `kb_query` and `kb_search` returned them, and the next `kb_upsert` of an entity wrote them back into its authored file, even into fields the write did not touch. Run `kibi sync --rebuild` once after upgrading to replace corrupted text in the store; authored files that a write already rewrote need their text restored by hand.
+
+  The SWI-Prolog child now switches its standard streams and default file encoding to UTF-8 before loading the KB module, one-shot goals travel to it as base64 of their UTF-8 bytes instead of a raw environment value, and Prolog output is decoded with a streaming UTF-8 decoder so a character divided between two output chunks stays whole.
+
 ## 2.16.3
 
 ### Patch Changes
