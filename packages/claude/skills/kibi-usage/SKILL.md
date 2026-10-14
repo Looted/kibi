@@ -5,7 +5,7 @@ license: AGPL-3.0-or-later
 metadata:
   displayName: Kibi Usage
   id: kibi-usage
-  version: 2.18.0
+  version: 2.19.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -115,9 +115,11 @@ it is a pointer to the knowledge, never proof. Each line answers one question:
 A file already shown this session gets only the one-line `Kibi: this edit to
 <path> is inside <symbol>` update; the facts and tests from its first snippet
 still apply. `Kibi: no symbol in <path> is linked to a requirement yet` means
-the file is unowned: find the governing requirement with `kb_search` and
-`sourceLocations`, then link a symbol to it with `implements` through
-`kb_upsert`. Without a readable manifest (`Kibi: the hook could not read
+the file is unowned, not that no rule covers it. When the note names
+requirements whose titles share the path's words, `kb_query` each one and
+treat a match as the governing rule; otherwise find it with `kb_search` and
+`sourceLocations`. Link the symbol that implements it (for markup, the
+component that renders it) with `implements` through `kb_upsert`. Without a readable manifest (`Kibi: the hook could not read
 .kb/symbols.yaml`) snippets are off for this session; `kb_query({sourceFile})`
 still answers and `kibi sync` regenerates the manifest. The search tip and the
 `.kb/` note appear once per session and need no action.
@@ -139,7 +141,11 @@ still answers and `kibi sync` regenerates the manifest. The search tip and the
 2. Resolve genuine ambiguity with the human; use `kb_model` for deterministic
    interpretation and typed facts.
 3. Create endpoints before relationships and upsert small batches sequentially.
-   Keep the canonical `REQ-* -> SCEN-* -> TEST-*` chain.
+   Keep the canonical `REQ-* -> SCEN-* -> TEST-*` chain. Recording the
+   behavior a change adds (a requirement with a scenario, and an `implements`
+   link from the symbol) is part of finishing that change, not a separate
+   request: do it without asking. Ask only when the change conflicts with a
+   recorded rule.
 4. Author tracked Markdown/YAML/manifests and relationship shards through Kibi;
    Kibi never Git-stages or commits those files. Do not read or edit `.kb`
    directly.

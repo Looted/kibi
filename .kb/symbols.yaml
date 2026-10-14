@@ -3590,8 +3590,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-search-answer-hygiene
       - type: implements
         target: REQ-cli-staged-impact-enforcement
+      - type: implements
+        target: REQ-kb-unowned-file-candidates
   - id: SYM-cli-impact-buildNextActions
     title: buildNextActions
     sourceFile: packages/cli/src/public/impact/summaries.ts
@@ -42757,8 +42761,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-claude-code-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
       - type: implements
         target: REQ-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-kb-unowned-file-candidates
   - id: SYM-claude-searchTip
     title: searchTip
     status: active
@@ -53377,3 +53385,286 @@ symbols:
         target: TEST-kb-decision-firmness
       - type: implements
         target: REQ-kb-decision-firmness-from-origin
+  - id: SYM-agent-core-candidates-pathtopicwords
+    title: pathTopicWords
+    status: active
+    sourceFile: packages/agent-core/src/requirement-candidates.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T09:46:09.721Z
+    relationships:
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: implements
+        target: REQ-kb-unowned-file-candidates
+  - id: SYM-agent-core-candidates-requirementhead
+    title: RequirementHead
+    status: active
+    sourceFile: packages/agent-core/src/requirement-candidates.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T09:46:15.499Z
+    relationships:
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: implements
+        target: REQ-kb-unowned-file-candidates
+  - id: SYM-agent-core-candidates-rankrequirementcandidates
+    title: rankRequirementCandidates
+    status: active
+    sourceFile: packages/agent-core/src/requirement-candidates.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T09:46:20.900Z
+    relationships:
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: implements
+        target: REQ-kb-unowned-file-candidates
+  - id: SYM-agent-core-candidates-requirementcandidatesforpath
+    title: requirementCandidatesForPath
+    status: active
+    sourceFile: packages/agent-core/src/requirement-candidates.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T09:46:26.369Z
+    relationships:
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: implements
+        target: REQ-kb-unowned-file-candidates
+  - id: SYM-agent-core-candidates-max-requirement-candidates
+    title: MAX_REQUIREMENT_CANDIDATES
+    status: active
+    sourceFile: packages/agent-core/src/requirement-candidates.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T09:46:31.814Z
+    relationships:
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: implements
+        target: REQ-kb-unowned-file-candidates
+  - id: SYM-cli-unowned-files-pathtopicwords
+    title: pathTopicWords
+    status: active
+    sourceFile: packages/cli/src/public/impact/unowned-files.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T09:46:37.122Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-hygiene
+      - type: implements
+        target: REQ-kb-unowned-file-candidates
+  - id: SYM-cli-unowned-files-requirementcandidate
+    title: RequirementCandidate
+    status: active
+    sourceFile: packages/cli/src/public/impact/unowned-files.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T09:46:43.042Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-hygiene
+      - type: implements
+        target: REQ-kb-unowned-file-candidates
+  - id: SYM-cli-unowned-files-rankrequirementcandidates
+    title: rankRequirementCandidates
+    status: active
+    sourceFile: packages/cli/src/public/impact/unowned-files.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T09:46:48.540Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-hygiene
+      - type: implements
+        target: REQ-kb-unowned-file-candidates
+  - id: SYM-cli-unowned-files-unownedfilediagnosticsoptions
+    title: UnownedFileDiagnosticsOptions
+    status: active
+    sourceFile: packages/cli/src/public/impact/unowned-files.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T09:46:54.213Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-hygiene
+      - type: implements
+        target: REQ-kb-unowned-file-candidates
+  - id: SYM-cli-unowned-files-createunownedfilediagnostics
+    title: createUnownedFileDiagnostics
+    status: active
+    sourceFile: packages/cli/src/public/impact/unowned-files.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T09:46:59.723Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-hygiene
+      - type: implements
+        target: REQ-kb-unowned-file-candidates
+  - id: SYM-test-requirement-candidates
+    title: Requirement candidates suite
+    status: active
+    sourceFile: packages/agent-core/tests/requirement-candidates.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T09:47:04.175Z
+    relationships:
+      - type: executable_for
+        target: TEST-claude-edit-snippet-hook
+  - id: SYM-test-unowned-files
+    title: Unowned files suite
+    status: active
+    sourceFile: packages/cli/tests/traceability/unowned-files.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T09:47:08.436Z
+    relationships:
+      - type: executable_for
+        target: TEST-search-answer-hygiene
+  - id: SYM-agent-core-snippets-claimsnippetslot
+    title: claimSnippetSlot
+    status: active
+    sourceFile: packages/agent-core/src/snippets.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T10:07:40.517Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-core-edit-snippets
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: implements
+        target: REQ-agent-core-edit-snippets
+  - id: SYM-agent-core-snippets-createentitysummarizer
+    title: createEntitySummarizer
+    status: active
+    sourceFile: packages/agent-core/src/snippets.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T10:07:45.955Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-core-edit-snippets
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: implements
+        target: REQ-agent-core-edit-snippets
+  - id: SYM-agent-core-snippets-describeentity
+    title: describeEntity
+    status: active
+    sourceFile: packages/agent-core/src/snippets.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T10:07:50.623Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-core-edit-snippets
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: implements
+        target: REQ-agent-core-edit-snippets
+  - id: SYM-agent-core-snippets-editfocus
+    title: editFocus
+    status: active
+    sourceFile: packages/agent-core/src/snippets.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T10:07:55.280Z
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-agent-core-snippets-editknowledgeinput
+    title: EditKnowledgeInput
+    status: active
+    sourceFile: packages/agent-core/src/snippets.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T10:08:00.085Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-core-edit-snippets
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: implements
+        target: REQ-agent-core-edit-snippets
+  - id: SYM-agent-core-snippets-grounding-link-types
+    title: GROUNDING_LINK_TYPES
+    status: active
+    sourceFile: packages/agent-core/src/snippets.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T10:08:04.604Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-core-edit-snippets
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: implements
+        target: REQ-agent-core-edit-snippets
+  - id: SYM-agent-core-snippets-implementedrequirementids
+    title: implementedRequirementIds
+    status: active
+    sourceFile: packages/agent-core/src/snippets.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T10:08:09.166Z
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-agent-core-snippets-isretiredstatus
+    title: isRetiredStatus
+    status: active
+    sourceFile: packages/agent-core/src/snippets.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T10:08:14.153Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-core-edit-snippets
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: implements
+        target: REQ-agent-core-edit-snippets
+  - id: SYM-agent-core-snippets-summarize
+    title: Summarize
+    status: active
+    sourceFile: packages/agent-core/src/snippets.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T10:08:18.852Z
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1

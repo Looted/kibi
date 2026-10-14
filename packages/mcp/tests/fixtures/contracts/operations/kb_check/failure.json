@@ -18,7 +18,7 @@
           "type": "boolean"
         },
         "includeImpactDiagnostics": {
-          "description": "When true, include changed-file impact diagnostics such as symbol_granularity_violation and symbol_semantic_review_needed in structured output.",
+          "description": "When true, include changed-file impact diagnostics such as symbol_granularity_violation, symbol_semantic_review_needed and source_file_unowned in structured output.",
           "type": "boolean"
         },
         "includeWorkingTreeDiff": {

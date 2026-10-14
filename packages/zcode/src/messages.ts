@@ -6,7 +6,7 @@ export const DIRECT_KB_EDIT_WARNING =
   "Avoid direct edits to .kb/. Use Kibi MCP tools for KB discovery and mutations so project memory stays valid.";
 
 export const SESSION_START_CONTEXT =
-  "Kibi is active for this workspace. Discover project memory with kb_search/kb_query, keep .kb/ out of direct file edits, and load the kibi-usage skill (kb_skills action load) for workflow guidance. Check kb_status whenever freshness matters. A request that conflicts with a recorded requirement or ADR is a question, not a task: name the rule and ask before changing the code or the rule, and change it only when the person says so.";
+  "Kibi is active for this workspace. Discover project memory with kb_search/kb_query, keep .kb/ out of direct file edits, and load the kibi-usage skill (kb_skills action load) for workflow guidance. Check kb_status whenever freshness matters. A request that conflicts with a recorded requirement or ADR is a question, not a task: name the rule and ask before changing the code or the rule, and change it only when the person says so. Recording new behavior (a requirement with a scenario, and an implements link from the symbol) is part of finishing the change, not a separate request, so it needs no permission. A file with no linked symbols may still be governed by a recorded rule: kb_search the behavior before changing it.";
 
 export function freshnessReminder(dirtyPaths: readonly string[]): string {
   const preview = dirtyPaths.slice(0, 10).map((dirtyPath) => `- ${dirtyPath}`);

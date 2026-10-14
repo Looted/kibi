@@ -26,6 +26,10 @@
       "types": "./dist/path-policy.d.ts",
       "default": "./dist/path-policy.js"
     },
+    "./requirement-candidates": {
+      "types": "./dist/requirement-candidates.d.ts",
+      "default": "./dist/requirement-candidates.js"
+    },
     "./snippets": {
       "types": "./dist/snippets.d.ts",
       "default": "./dist/snippets.js"
