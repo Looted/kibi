@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 207,
-  "proofProven": 207,
+  "currentRequirements": 208,
+  "proofProven": 208,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -1037,6 +1037,11 @@
       "uncoveredSymbols": []
     },
     "REQ-kibi-review-observation-claim-text-v2": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-cli-migration-first-commit": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []

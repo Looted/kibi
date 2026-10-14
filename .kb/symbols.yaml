@@ -3186,9 +3186,13 @@ symbols:
       - type: covered_by
         target: TEST-004
       - type: covered_by
+        target: TEST-cli-migration-first-commit
+      - type: covered_by
         target: TEST-cli-staged-consistency
       - type: implements
         target: REQ-cli-check
+      - type: implements
+        target: REQ-cli-migration-first-commit
       - type: implements
         target: REQ-cli-staged-consistency
   - id: SYM-CheckOptions
@@ -5728,7 +5732,11 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-cli-migration-first-commit
+      - type: covered_by
         target: TEST-cli-staged-impact-enforcement
+      - type: implements
+        target: REQ-cli-migration-first-commit
       - type: implements
         target: REQ-cli-staged-impact-enforcement
   - id: SYM-collectStagedKibiDiagnostics
@@ -10990,11 +10998,15 @@ symbols:
       - type: covered_by
         target: TEST-cli-config-schema
       - type: covered_by
+        target: TEST-cli-migration-first-commit
+      - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-schema6-migration-cli
       - type: implements
         target: REQ-011
+      - type: implements
+        target: REQ-cli-migration-first-commit
       - type: implements
         target: REQ-kibi-schema6-migration-v2
   - id: SYM-mirrorSkillsDir
@@ -23280,7 +23292,11 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-cli-migration-first-commit
+      - type: covered_by
         target: TEST-cli-staged-impact-enforcement
+      - type: implements
+        target: REQ-cli-migration-first-commit
       - type: implements
         target: REQ-cli-staged-impact-enforcement
   - id: SYM-StagedSymbolsManifestAssessment
@@ -48568,7 +48584,11 @@ symbols:
       recorded_at: 2026-10-04T17:25:50.906Z
     relationships:
       - type: covered_by
+        target: TEST-cli-migration-first-commit
+      - type: covered_by
         target: TEST-kibi-schema6-migration-cli
+      - type: implements
+        target: REQ-cli-migration-first-commit
       - type: implements
         target: REQ-cli-schema-migration
   - id: SYM-migration-schema6-migration-fragment
@@ -52940,7 +52960,11 @@ symbols:
       recorded_at: 2026-10-13T17:18:31.331Z
     relationships:
       - type: covered_by
+        target: TEST-cli-migration-first-commit
+      - type: covered_by
         target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-cli-migration-first-commit
       - type: implements
         target: REQ-source-analysis-v2
   - id: SYM-kb-decision-firmness-planfirmsupersedeacknowledgement
@@ -53034,6 +53058,96 @@ symbols:
         target: TEST-kb-decision-firmness
       - type: implements
         target: REQ-kb-decision-firmness-from-origin
+  - id: SYM-test-cli-migration-first-commit
+    title: Migration first-commit consumer suite
+    status: active
+    sourceFile: packages/cli/tests/commands/migrate-first-commit.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T08:46:39.220Z
+    relationships:
+      - type: executable_for
+        target: TEST-cli-migration-first-commit
+  - id: SYM-cli-migration-readGeneratedManifestBytes
+    title: readGeneratedManifestBytes
+    status: active
+    sourceFile: packages/cli/src/operations/migration/symbol-coordinates-refresh.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T08:47:02.042Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migration-first-commit
+      - type: implements
+        target: REQ-cli-migration-first-commit
+  - id: SYM-cli-migration-refreshCoordinatesAfterMigration
+    title: refreshCoordinatesAfterMigration
+    status: active
+    sourceFile: packages/cli/src/operations/migration/symbol-coordinates-refresh.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T08:47:08.216Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migration-first-commit
+      - type: implements
+        target: REQ-cli-migration-first-commit
+  - id: SYM-cli-migration-coordinateRefreshFailureMessage
+    title: coordinateRefreshFailureMessage
+    status: active
+    sourceFile: packages/cli/src/operations/migration/symbol-coordinates-refresh.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T08:47:13.957Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migration-first-commit
+      - type: implements
+        target: REQ-cli-migration-first-commit
+  - id: SYM-cli-migration-GeneratedManifestBytes
+    title: GeneratedManifestBytes
+    status: active
+    sourceFile: packages/cli/src/operations/migration/symbol-coordinates-refresh.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T08:47:20.936Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migration-first-commit
+      - type: implements
+        target: REQ-cli-migration-first-commit
+  - id: SYM-cli-migration-MigrationCoordinateRefresh
+    title: MigrationCoordinateRefresh
+    status: active
+    sourceFile: packages/cli/src/operations/migration/symbol-coordinates-refresh.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T08:47:26.207Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migration-first-commit
+      - type: implements
+        target: REQ-cli-migration-first-commit
+  - id: SYM-cli-migration-stagedCommitCarriesMigration
+    title: stagedCommitCarriesMigration
+    status: active
+    sourceFile: packages/cli/src/traceability/staged-migration.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T08:47:31.291Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-migration-first-commit
+      - type: implements
+        target: REQ-cli-migration-first-commit
   - id: SYM-kb-firm-decision-edit-decisiondocument
     title: DecisionDocument
     status: active

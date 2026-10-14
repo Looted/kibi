@@ -1,5 +1,23 @@
 # kibi-mcp
 
+## 3.13.0
+
+### Minor Changes
+
+- a26ba8c: A firm requirement or ADR can no longer be reworded in place by an agent. `kb_upsert` refuses to change its title, statement or ADR body, or to lower its firmness, unless the write cites new words from the person who owns the rule, and `kb_check` reports the same change made directly to the file. Context sections, tags, status and links stay editable, and superseding with a new firm decision still works as before.
+  - `kb_upsert` (dryRun and `kb_apply_plan` steps included) rejects an in-place claim change of a current firm decision without a new `origin.ref` (or `approval_ref` on a requirement): `Entity validation failed: <ID> is a firm decision, so kb_upsert does not change its <fields> in place`.
+  - New canonical `kb_check` rule `decision-firm-edited` compares current firm decisions with `HEAD` and blocks a changed claim that cites no new human words; it reports nothing outside a Git checkout or before the first commit.
+  - A requirement's claim is its title, its `semantic_text` (or the statement its body derives); an ADR's claim is its title and body. Lowering firmness or replacing the origin with an agent's counts as a change.
+  - `kibi-usage` skill 2.18.0 tells agents not to edit firm decisions in place; the `firmness` input schema description now states the origin-derived default and the edit rule.
+
+### Patch Changes
+
+- f618517: kibi-mcp no longer writes progress text into its JSON-RPC stream. Applying a migration plan with `kb_apply_plan` (compiling a branch store, upgrading the KB schema, ensuring a branch) printed the same progress lines as `kibi sync` and `kibi migrate` to stdout, which an MCP client reads as protocol and reports as parse errors; strict clients could drop the connection. Those lines now go to stderr.
+  - `startServer` routes `console.log`, `console.info` and `console.debug` to stderr before the stdio transport connects; the transport keeps writing JSON-RPC to stdout.
+
+- Updated dependencies [a26ba8c]
+  - kibi-runtime@2.16.1
+
 ## 3.12.0
 
 ### Minor Changes

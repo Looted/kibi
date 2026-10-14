@@ -370,3 +370,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9b1daa68c2c9
+  - type: implements
+    from: SYM-StagedAuthoredSymbolsManifestEvidence
+    to: REQ-cli-migration-first-commit
+    created_at: 2026-10-14T08:48:18.969Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d7105c13a94c
+  - type: covered_by
+    from: SYM-StagedAuthoredSymbolsManifestEvidence
+    to: TEST-cli-migration-first-commit
+    created_at: 2026-10-14T08:48:18.995Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4df462881b10

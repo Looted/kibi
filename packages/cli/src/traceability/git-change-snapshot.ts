@@ -667,6 +667,58 @@ function isKnowledgeRelocation(from: string, to: string): boolean {
 }
 
 /**
+ * Relocations into `.kb/` that Git's similarity detection missed: a deleted
+ * knowledge file and an added canonical file with the same file name, paired
+ * only when the pairing is unambiguous. A small file that a migration both
+ * moves and rewrites (a symbols manifest that gains a header and
+ * legacy-link marks, a requirement that gains origin and tags) can fall
+ * under Git's similarity threshold although it is the same file.
+ */
+// implements REQ-cli-migration-first-commit
+function unpairedKnowledgeRelocations(
+  root: string,
+  baseTree: string,
+  headTree: string,
+  detected: ReadonlyArray<{ from: string; to: string }>,
+): Array<{ from: string; to: string }> {
+  const rows = parseNameStatus(
+    runGit(root, [
+      "diff",
+      "--name-status",
+      "-z",
+      "--no-renames",
+      "--diff-filter=AD",
+      baseTree,
+      headTree,
+    ]),
+  );
+  const paired = new Set(
+    detected.flatMap((rename) => [rename.from, rename.to]),
+  );
+  const deleted = rows
+    .filter((row) => row.status === "D" && !paired.has(row.path))
+    .map((row) => row.path);
+  const added = rows
+    .filter((row) => row.status === "A" && !paired.has(row.path))
+    .map((row) => row.path);
+  const candidates = (to: string) =>
+    deleted.filter(
+      (from) =>
+        path.posix.basename(from) === path.posix.basename(to) &&
+        isKnowledgeRelocation(from, to),
+    );
+  const relocations: Array<{ from: string; to: string }> = [];
+  for (const to of added) {
+    const [from, ...others] = candidates(to);
+    if (from === undefined || others.length > 0) continue;
+    if (added.filter((other) => candidates(other).includes(from)).length !== 1)
+      continue;
+    relocations.push({ from, to });
+  }
+  return relocations;
+}
+
+/**
  * For a staged snapshot, the tree a commit that relocates knowledge files
  * into `.kb/` is judged against: `baseTree` with each relocated file's
  * committed content placed at its new path and the old path removed.
@@ -685,8 +737,13 @@ export function renameResolutionBase(
   const zero = "0".repeat(baseTree.length);
   const renames: Array<{ from: string; to: string }> = [];
   const entries: string[] = [];
-  for (const rename of renamedPaths(root, baseTree, headTree)) {
-    if (!isKnowledgeRelocation(rename.from, rename.to)) continue;
+  const detected = renamedPaths(root, baseTree, headTree).filter((rename) =>
+    isKnowledgeRelocation(rename.from, rename.to),
+  );
+  for (const rename of [
+    ...detected,
+    ...unpairedKnowledgeRelocations(root, baseTree, headTree, detected),
+  ]) {
     const source = readTreeEntry(root, baseTree, rename.from);
     if (source?.type !== "blob") continue;
     renames.push(rename);

@@ -328,3 +328,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f7e635578805
+  - type: constrains
+    from: REQ-cli-migration-first-commit
+    to: FACT-SUBJ-cli-migration-first-commit
+    created_at: 2026-10-14T08:45:46.608Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-948fe576998d
+  - type: requires_property
+    from: REQ-cli-migration-first-commit
+    to: FACT-cli-migration-refreshes-coordinates
+    created_at: 2026-10-14T08:45:46.643Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-89b3620d87f8
+  - type: requires_property
+    from: REQ-cli-migration-first-commit
+    to: FACT-cli-migration-only-records-unchanged
+    created_at: 2026-10-14T08:45:46.668Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-33dae1295e75
+  - type: requires_property
+    from: REQ-cli-migration-first-commit
+    to: FACT-cli-migration-other-record-edits-judged
+    created_at: 2026-10-14T08:45:46.686Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-db206c62645b
+  - type: relates_to
+    from: REQ-cli-migration-first-commit
+    to: REQ-cli-schema-migration
+    created_at: 2026-10-14T08:45:46.700Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2c67e54e3e72
+  - type: relates_to
+    from: REQ-cli-migration-first-commit
+    to: REQ-cli-staged-impact-enforcement
+    created_at: 2026-10-14T08:45:46.713Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d14dfdf78368
+  - type: relates_to
+    from: REQ-cli-migration-first-commit
+    to: REQ-generated-coordinate-persistence
+    created_at: 2026-10-14T08:45:46.726Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-01f6b27af3bd
+  - type: specified_by
+    from: REQ-cli-migration-first-commit
+    to: SCEN-cli-migration-first-commit
+    created_at: 2026-10-14T08:46:53.479Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3ff565b5f2ef

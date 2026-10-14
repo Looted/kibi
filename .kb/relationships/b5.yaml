@@ -433,3 +433,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-28fcf892ae6e
+  - type: implements
+    from: SYM-cli-migration-stagedCommitCarriesMigration
+    to: REQ-cli-migration-first-commit
+    created_at: 2026-10-14T08:47:32.496Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a529a77f5d45
+  - type: covered_by
+    from: SYM-cli-migration-stagedCommitCarriesMigration
+    to: TEST-cli-migration-first-commit
+    created_at: 2026-10-14T08:47:32.528Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f131980bfe4e

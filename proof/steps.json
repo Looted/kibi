@@ -2570,5 +2570,17 @@
         "./packages/plugin-builtin/tests/vocabulary-alignment.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-cli-migration-first-commit",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/cli/tests/commands/migrate-first-commit.test.ts"
+      ]
+    ]
   }
 ]
