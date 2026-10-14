@@ -23728,6 +23728,8 @@ symbols:
         target: TEST-kibi-conservative-requirement-proof
       - type: covered_by
         target: TEST-kibi-proposition-complete-ingestion
+      - type: covered_by
+        target: TEST-kibi-uncompiled-source-visibility
       - type: implements
         target: REQ-branch-store-recovery-v4
       - type: implements
@@ -23738,6 +23740,8 @@ symbols:
         target: REQ-kibi-conservative-requirement-proof
       - type: implements
         target: REQ-kibi-proposition-complete-ingestion
+      - type: implements
+        target: REQ-kibi-uncompiled-source-semantic-baseline
   - id: SYM-branchMigrateCommand
     title: branchMigrateCommand
     status: active
@@ -53175,6 +53179,8 @@ symbols:
       - type: covered_by
         target: TEST-kibi-uncompiled-source-visibility
       - type: implements
+        target: REQ-kibi-uncompiled-source-semantic-baseline
+      - type: implements
         target: REQ-kibi-uncompiled-source-visibility
   - id: SYM-sync-source-extraction-remediation
     title: sourceExtractionRemediation
@@ -53201,6 +53207,8 @@ symbols:
       - type: covered_by
         target: TEST-kibi-uncompiled-source-visibility
       - type: implements
+        target: REQ-kibi-uncompiled-source-semantic-baseline
+      - type: implements
         target: REQ-kibi-uncompiled-source-visibility
   - id: SYM-upsert-authored-entity-lookup
     title: authoredEntityLookup
@@ -53213,6 +53221,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-uncompiled-source-visibility
+      - type: implements
+        target: REQ-kibi-uncompiled-source-semantic-baseline
       - type: implements
         target: REQ-kibi-uncompiled-source-visibility
   - id: SYM-upsert-assert-authored-write-compiles
@@ -53265,6 +53275,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-uncompiled-source-visibility
+      - type: implements
+        target: REQ-kibi-uncompiled-source-semantic-baseline
       - type: implements
         target: REQ-kibi-uncompiled-source-visibility
   - id: SYM-migration-delivered-requirement-status
@@ -53481,6 +53493,8 @@ symbols:
       - type: covered_by
         target: TEST-kibi-upsert-review-lanes
       - type: implements
+        target: REQ-kibi-uncompiled-source-semantic-baseline
+      - type: implements
         target: REQ-kibi-uncompiled-source-visibility
       - type: implements
         target: REQ-kibi-upsert-preserves-requirement-semantics
@@ -53495,6 +53509,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-uncompiled-source-visibility
+      - type: implements
+        target: REQ-kibi-uncompiled-source-semantic-baseline
       - type: implements
         target: REQ-kibi-uncompiled-source-visibility
   - id: SYM-upsert-analyze-upsert-semantics
@@ -54712,3 +54728,42 @@ symbols:
         target: TEST-prolog-bundled-runtime
       - type: implements
         target: REQ-prolog-utf8-text
+  - id: SYM-sync-failed-source-keeps-semantic-baseline
+    title: failedSourceKeepsSemanticBaseline
+    status: active
+    sourceFile: packages/cli/src/commands/sync/cache.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T17:49:15.492Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-uncompiled-source-visibility
+      - type: implements
+        target: REQ-kibi-uncompiled-source-semantic-baseline
+  - id: SYM-sync-source-extraction-failure-record
+    title: sourceExtractionFailure
+    status: active
+    sourceFile: packages/cli/src/commands/sync/cache.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T17:49:22.095Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-uncompiled-source-visibility
+      - type: implements
+        target: REQ-kibi-uncompiled-source-semantic-baseline
+  - id: SYM-requirement-semantics-assert-stored-requirement-boundary
+    title: assertStoredRequirementBoundary
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/requirement-semantics.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T17:49:27.977Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-uncompiled-source-visibility
+      - type: implements
+        target: REQ-kibi-uncompiled-source-semantic-baseline

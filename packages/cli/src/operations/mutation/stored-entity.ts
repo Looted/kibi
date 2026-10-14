@@ -37,6 +37,13 @@ export type StoredEntityLookup = {
    * rather than the store (an entity the store does not hold yet).
    */
   readonly relationships?: readonly Readonly<Record<string, unknown>>[];
+  /**
+   * For an entity the store does not hold: whether kibi sync will accept its
+   * requirement prose (hashing to the given semantic source hash) without a
+   * complete inventory. Absent for a stored entity, which is judged by its
+   * stored prose instead.
+   */
+  readonly keepsSemanticBaseline?: (sourceHash: string) => boolean;
 };
 
 // implements REQ-kibi-upsert-preserves-requirement-semantics, REQ-kibi-entity-origin

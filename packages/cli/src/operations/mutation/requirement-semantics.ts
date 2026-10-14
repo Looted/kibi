@@ -116,6 +116,17 @@ const BOUNDARY_FIELDS = [
   ...SEMANTIC_CONTRACT_FIELDS,
 ] as const;
 
+/** Whether a requirement states an inventory contract sync always checks. */
+function advertisesSemanticContract(
+  properties: Readonly<Record<string, unknown>>,
+): boolean {
+  return (
+    properties.semantic_inventory_version !== undefined ||
+    properties.semantic_source_hash !== undefined ||
+    properties.semantic_inventory !== undefined
+  );
+}
+
 function boundaryOf(
   input: UpsertInput,
   properties: Readonly<Record<string, unknown>>,
@@ -128,7 +139,7 @@ function boundaryOf(
   return validateSemanticInventoryBoundary(payload, relationships, receipt);
 }
 
-// implements REQ-kibi-upsert-preserves-requirement-semantics, REQ-kibi-proposition-complete-ingestion
+// implements REQ-kibi-upsert-preserves-requirement-semantics, REQ-kibi-proposition-complete-ingestion, REQ-kibi-uncompiled-source-semantic-baseline
 /**
  * An update to a stored requirement is judged as its authored file will read
  * afterwards: the stored status, prose and proposition ledger with the
@@ -142,6 +153,11 @@ function boundaryOf(
  * inventory is legacy content sync keeps accepting, so a write that changes
  * neither keeps working. A write that makes the requirement current, or
  * changes the prose sync checks, must carry the complete inventory.
+ *
+ * A requirement the store does not hold (its file failed the last sync, or
+ * was written since) is judged by the rule sync applies to that file: it
+ * keeps the legacy treatment only when the last sync recorded the file as
+ * legacy content or as having compiled with the same prose.
  */
 export async function assertStoredRequirementBoundary(
   input: UpsertInput,
@@ -157,14 +173,19 @@ export async function assertStoredRequirementBoundary(
   for (const field of BOUNDARY_FIELDS) {
     if (stored[field] !== undefined) before[field] = stored[field];
   }
-  const after = boundaryOf(
-    input,
-    { ...before, ...(input.properties ?? {}) },
-    relationships,
-  );
+  const written = { ...before, ...(input.properties ?? {}) };
+  const after = boundaryOf(input, written, relationships);
   if (after.errors.length === 0) return;
-  const previous = boundaryOf(input, before, relationships);
-  if (previous.applicable && previous.sourceHash === after.sourceHash) return;
+  if (lookup.keepsSemanticBaseline !== undefined) {
+    if (
+      !advertisesSemanticContract(written) &&
+      lookup.keepsSemanticBaseline(after.sourceHash)
+    )
+      return;
+  } else {
+    const previous = boundaryOf(input, before, relationships);
+    if (previous.applicable && previous.sourceHash === after.sourceHash) return;
+  }
   throw new Error(
     `Proposition-complete ingestion failed: ${input.id} would be written as a current requirement without a complete proposition inventory (${after.errors.join("; ")}). Run kb_model mode analyze (CLI: semantic-advisor) with id '${input.id}' and its complete semantic_text, then send the returned inventory contract (semantic_inventory, semantic_inventory_version, semantic_source_field, semantic_source_hash, logic_claims) in this kb_upsert, or retire the requirement through a superseding one instead.`,
   );

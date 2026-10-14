@@ -79,7 +79,70 @@ export type SourceExtractionFailure = {
    * new authoring.
    */
   baseline?: boolean;
+  /**
+   * The semantic source hash and contract flag of the source's last
+   * successful compilation, carried while it fails.
+   */
+  semanticHash?: string;
+  semanticContract?: boolean;
 };
+
+// implements REQ-kibi-uncompiled-source-semantic-baseline
+/**
+ * Whether a requirement source the last sync could not extract is still
+ * accepted without a complete proposition inventory once it compiles with
+ * prose hashing to `sourceHash`. Legacy content that missed the store's first
+ * compilation keeps the baseline; a source that compiled before keeps it only
+ * while its prose is the prose it last compiled with. kibi sync and kb_upsert
+ * on the uncompiled file both apply this rule, so a write one accepts the
+ * other never refuses.
+ */
+export function failedSourceKeepsSemanticBaseline(
+  failure: SourceExtractionFailure,
+  sourceHash: string,
+): boolean {
+  if (failure.semanticContract === true) return false;
+  return failure.semanticHash === undefined
+    ? failure.baseline === true
+    : failure.semanticHash === sourceHash;
+}
+
+function readExtractionFailures(
+  cachePath: string,
+  resolved: SyncCacheDeps,
+): Record<string, SourceExtractionFailure> {
+  if (!resolved.existsSync(cachePath)) return {};
+  try {
+    const parsed = JSON.parse(resolved.readFileSync(cachePath, "utf8")) as {
+      extractionFailures?: unknown;
+    };
+    if (
+      parsed.extractionFailures === null ||
+      typeof parsed.extractionFailures !== "object"
+    )
+      return {};
+    return parsed.extractionFailures as Record<string, SourceExtractionFailure>;
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * What the last sync recorded about an authored source it could not extract,
+ * the record the next sync judges the source by; undefined when it compiled.
+ */
+// implements REQ-kibi-uncompiled-source-semantic-baseline
+export function sourceExtractionFailure(
+  workspaceRoot: string,
+  storePath: string,
+  file: string,
+  deps?: Partial<SyncCacheDeps>,
+): SourceExtractionFailure | undefined {
+  return readExtractionFailures(
+    path.join(storePath, "sync-cache.json"),
+    resolveDeps(deps),
+  )[toCacheKey(workspaceRoot, path.resolve(workspaceRoot, file))];
+}
 
 /**
  * v2: cache identities are workspace-root relative instead of process-cwd
@@ -155,26 +218,10 @@ export function sourceExtractionFailureReasons(
   storePath: string,
   deps?: Partial<SyncCacheDeps>,
 ): Record<string, unknown>[] {
-  const resolved = resolveDeps(deps);
-  const cachePath = path.join(storePath, "sync-cache.json");
-  if (!resolved.existsSync(cachePath)) return [];
-  let failures: Record<string, SourceExtractionFailure>;
-  try {
-    const parsed = JSON.parse(resolved.readFileSync(cachePath, "utf8")) as {
-      extractionFailures?: unknown;
-    };
-    if (
-      parsed.extractionFailures === null ||
-      typeof parsed.extractionFailures !== "object"
-    )
-      return [];
-    failures = parsed.extractionFailures as Record<
-      string,
-      SourceExtractionFailure
-    >;
-  } catch {
-    return [];
-  }
+  const failures = readExtractionFailures(
+    path.join(storePath, "sync-cache.json"),
+    resolveDeps(deps),
+  );
   const reasons: Record<string, unknown>[] = [];
   for (const [key, failure] of Object.entries(failures).sort(([a], [b]) =>
     a.localeCompare(b),

@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 219,
-  "proofProven": 219,
+  "currentRequirements": 220,
+  "proofProven": 220,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -1092,6 +1092,11 @@
       "uncoveredSymbols": []
     },
     "REQ-agent-hosts-decision-guard": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-uncompiled-source-semantic-baseline": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []
