@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 214,
-  "proofProven": 214,
+  "currentRequirements": 215,
+  "proofProven": 215,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -1072,6 +1072,11 @@
       "uncoveredSymbols": []
     },
     "REQ-kb-upsert-statement-follows-semantic-text": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-uncompiled-source-semantic-baseline": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []

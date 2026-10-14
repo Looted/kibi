@@ -17,9 +17,16 @@
  */
 
 import path from "node:path";
-import { sourceExtractionRemediation } from "../../commands/sync/cache.js";
+import {
+  type SourceExtractionFailure,
+  failedSourceKeepsSemanticBaseline,
+  sourceExtractionFailure,
+  sourceExtractionRemediation,
+} from "../../commands/sync/cache.js";
 import { extractFromMarkdownString } from "../../extractors/markdown.js";
 import type { OperationContext } from "../../public/operations/runtime-types.js";
+import { resolveBranchAttachment } from "../../utils/branch-resolver.js";
+import { branchStorePath } from "../../utils/branch-store-locator.js";
 import {
   authoredFrontmatter,
   newEntitySourceTarget,
@@ -45,7 +52,27 @@ export type UncompiledAuthoredSource = Readonly<{
   stored: Readonly<Record<string, unknown>>;
   /** Why kibi sync cannot compile the file as authored; null when it can. */
   extractionError: string | null;
+  /**
+   * What the last sync recorded when it could not extract the file; undefined
+   * when no sync has failed on it (the file was written since).
+   */
+  syncFailure: SourceExtractionFailure | undefined;
 }>;
+
+// implements REQ-kibi-uncompiled-source-semantic-baseline
+function lastSyncFailure(
+  context: OperationContext,
+  relative: string,
+): SourceExtractionFailure | undefined {
+  const attachment =
+    context.branchAttachment ?? resolveBranchAttachment(context.workspaceRoot);
+  if ("error" in attachment) return undefined;
+  return sourceExtractionFailure(
+    context.workspaceRoot,
+    branchStorePath(context.workspaceRoot, attachment.kbBranch),
+    relative,
+  );
+}
 
 function errorText(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
@@ -86,6 +113,7 @@ export async function readUncompiledAuthoredSource(
       content,
       stored: entity as unknown as Record<string, unknown>,
       extractionError: null,
+      syncFailure: lastSyncFailure(context, relative),
     };
   } catch (error) {
     const extractionError = errorText(error);
@@ -107,6 +135,7 @@ export async function readUncompiledAuthoredSource(
       content,
       stored: { ...frontmatter, id: input.id, type: input.type },
       extractionError,
+      syncFailure: lastSyncFailure(context, relative),
     };
   }
 }
@@ -120,9 +149,15 @@ export async function readUncompiledAuthoredSource(
 export function authoredEntityLookup(
   source: UncompiledAuthoredSource,
 ): StoredEntityLookup {
+  const failure = source.syncFailure;
   return {
     exists: async () => true,
     entity: async () => source.stored,
+    // The next sync judges the file by its last failure record, not by the
+    // state the file states now, so the write guard does the same.
+    keepsSemanticBaseline: (sourceHash) =>
+      failure !== undefined &&
+      failedSourceKeepsSemanticBaseline(failure, sourceHash),
   };
 }
 
