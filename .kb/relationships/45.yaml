@@ -279,3 +279,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cd707907e1db
+  - type: implements
+    from: SYM-source-authoring-render-source-document
+    to: REQ-kb-upsert-statement-follows-semantic-text
+    created_at: 2026-10-14T14:44:07.269Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1d09b1c8941d
+  - type: covered_by
+    from: SYM-source-authoring-render-source-document
+    to: TEST-kb-entity-body-context
+    created_at: 2026-10-14T14:44:07.297Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2fcbe79746bd

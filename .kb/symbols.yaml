@@ -53404,9 +53404,13 @@ symbols:
       - type: covered_by
         target: TEST-e2e-plan-compiler-hash
       - type: covered_by
+        target: TEST-kb-entity-body-context
+      - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-uncompiled-source-visibility
+      - type: implements
+        target: REQ-kb-upsert-statement-follows-semantic-text
       - type: implements
         target: REQ-kibi-change-to-proof-plan-compiler-v2
       - type: implements
@@ -54299,3 +54303,15 @@ symbols:
         target: TEST-kibi-mcp-tool-consolidation
       - type: implements
         target: REQ-mcp-coded-error-envelope
+  - id: SYM-test-source-authoring
+    title: Source-first authoring suite
+    status: active
+    sourceFile: packages/cli/tests/operations/source-authoring.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T14:43:33.047Z
+    relationships:
+      - type: executable_for
+        target: TEST-kb-entity-body-context

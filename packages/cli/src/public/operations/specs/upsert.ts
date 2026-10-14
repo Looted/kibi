@@ -57,7 +57,7 @@ export const upsertSpec = {
         type: "object",
         additionalProperties: false,
         description:
-          "Optional source-first document write. Paths are workspace-relative; omit body when updating to preserve the existing body bytes. For a new requirement pass a sectioned body: statement, '## Context' (why, who asked, constraints), '## Source' (blockquoted excerpt and reference); context never changes the checked meaning, which stays in semantic_text.",
+          "Optional source-first document write. Paths are workspace-relative; omit body when updating to preserve the existing body bytes (a requirement whose semantic_text changes gets the new statement in place of the old one, with its context sections kept). For a new requirement pass a sectioned body: statement, '## Context' (why, who asked, constraints), '## Source' (blockquoted excerpt and reference); context never changes the checked meaning, which stays in semantic_text.",
         properties: {
           path: { type: "string", minLength: 1 },
           body: { type: "string" },
