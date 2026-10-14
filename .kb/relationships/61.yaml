@@ -195,3 +195,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6f0457631586
+  - type: implements
+    from: SYM-agent-core-decision-guard-claimcapturereminder
+    to: REQ-agent-hosts-decision-guard
+    created_at: 2026-10-14T17:47:58.039Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-305ed5d6f501
+  - type: covered_by
+    from: SYM-agent-core-decision-guard-claimcapturereminder
+    to: TEST-codex-kibi-plugin-v1
+    created_at: 2026-10-14T17:47:58.052Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e52d97025112
+  - type: covered_by
+    from: SYM-agent-core-decision-guard-claimcapturereminder
+    to: TEST-cursor-kibi-plugin-v1
+    created_at: 2026-10-14T17:47:58.061Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6bd7e98fe619
+  - type: covered_by
+    from: SYM-agent-core-decision-guard-claimcapturereminder
+    to: TEST-zcode-kibi-plugin-v1
+    created_at: 2026-10-14T17:47:58.068Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-34eb9a4d2eaf

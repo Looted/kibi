@@ -314,3 +314,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-31def68d7c7e
+  - type: implements
+    from: SYM-agent-core-decision-guard-claimdecisionflag
+    to: REQ-agent-hosts-decision-guard
+    created_at: 2026-10-14T17:47:48.685Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-662849229cff
+  - type: covered_by
+    from: SYM-agent-core-decision-guard-claimdecisionflag
+    to: TEST-codex-kibi-plugin-v1
+    created_at: 2026-10-14T17:47:48.701Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c73ea93d313e
+  - type: covered_by
+    from: SYM-agent-core-decision-guard-claimdecisionflag
+    to: TEST-cursor-kibi-plugin-v1
+    created_at: 2026-10-14T17:47:48.715Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a512c7a3b294
+  - type: covered_by
+    from: SYM-agent-core-decision-guard-claimdecisionflag
+    to: TEST-zcode-kibi-plugin-v1
+    created_at: 2026-10-14T17:47:48.726Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-64b63cd8489b

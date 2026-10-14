@@ -5659,15 +5659,17 @@ symbols:
     title: runHook
     sourceFile: packages/codex/src/hook-runner.ts
     text_ref: packages/codex/src/hook-runner.ts#runHook
-    links:
-      - REQ-codex-kibi-plugin-v1
     status: active
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
         target: TEST-codex-kibi-plugin-v1
       - type: implements
+        target: REQ-agent-hosts-decision-guard
+      - type: implements
         target: REQ-codex-kibi-plugin-v1
+    links:
+      - REQ-codex-kibi-plugin-v1
   - id: SYM-codex-runHookCli
     title: runHookCli
     sourceFile: packages/codex/src/hook-runner.ts
@@ -6741,6 +6743,8 @@ symbols:
         target: TEST-cursor-kibi-plugin-v1
       - type: covered_by
         target: TEST-cursor-stop-job-vs-plan
+      - type: implements
+        target: REQ-agent-hosts-decision-guard
       - type: implements
         target: REQ-cli-canonical-runtime
       - type: implements
@@ -31636,8 +31640,6 @@ symbols:
     title: runHook
     sourceFile: packages/zcode/src/hook-runner.ts
     text_ref: packages/zcode/src/hook-runner.ts#runHook
-    links:
-      - REQ-zcode-kibi-plugin-v1
     status: active
     granularity_reason: legacy-link
     symbol_role: behavioral
@@ -31645,9 +31647,13 @@ symbols:
       - type: covered_by
         target: TEST-zcode-kibi-plugin-v1
       - type: implements
+        target: REQ-agent-hosts-decision-guard
+      - type: implements
         target: REQ-zcode-advisory-enforcement-boundary-v1
       - type: implements
         target: REQ-zcode-kibi-plugin-v1
+    links:
+      - REQ-zcode-kibi-plugin-v1
   - id: SYM-zcode-runHookCli
     title: runHookCli
     sourceFile: packages/zcode/src/hook-runner.ts
@@ -54338,7 +54344,7 @@ symbols:
   - id: SYM-claude-firmEditConfirmation
     title: firmEditConfirmation
     status: active
-    sourceFile: packages/claude/src/snippets.ts
+    sourceFile: packages/agent-core/src/decision-guard.ts
     symbol_role: behavioral
     origin:
       kind: agent
@@ -54351,7 +54357,7 @@ symbols:
   - id: SYM-claude-firmEditContext
     title: firmEditContext
     status: active
-    sourceFile: packages/claude/src/snippets.ts
+    sourceFile: packages/agent-core/src/decision-guard.ts
     symbol_role: behavioral
     origin:
       kind: agent
@@ -54364,7 +54370,7 @@ symbols:
   - id: SYM-claude-statedRule
     title: statedRule
     status: active
-    sourceFile: packages/claude/src/snippets.ts
+    sourceFile: packages/agent-core/src/decision-guard.ts
     symbol_role: behavioral
     origin:
       kind: agent
@@ -54372,12 +54378,20 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-claude-edit-snippet-hook
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-agent-hosts-decision-guard
       - type: implements
         target: REQ-claude-decision-capture-nudges
   - id: SYM-claude-rulePromptNote
     title: rulePromptNote
     status: active
-    sourceFile: packages/claude/src/snippets.ts
+    sourceFile: packages/agent-core/src/decision-guard.ts
     symbol_role: behavioral
     origin:
       kind: agent
@@ -54385,12 +54399,20 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-claude-edit-snippet-hook
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-agent-hosts-decision-guard
       - type: implements
         target: REQ-claude-decision-capture-nudges
   - id: SYM-claude-captureReminder
     title: captureReminder
     status: active
-    sourceFile: packages/claude/src/snippets.ts
+    sourceFile: packages/agent-core/src/decision-guard.ts
     symbol_role: behavioral
     origin:
       kind: agent
@@ -54398,6 +54420,14 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-claude-edit-snippet-hook
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-agent-hosts-decision-guard
       - type: implements
         target: REQ-claude-decision-capture-nudges
   - id: SYM-agent-core-candidates-requesttopicwords
@@ -54413,3 +54443,220 @@ symbols:
         target: TEST-claude-edit-snippet-hook
       - type: implements
         target: REQ-claude-request-topic-candidates
+  - id: SYM-agent-core-decision-guard-confirmfirmedits
+    title: confirmFirmEdits
+    status: active
+    sourceFile: packages/agent-core/src/decision-guard.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T17:47:32.601Z
+    relationships:
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-agent-hosts-decision-guard
+      - type: implements
+        target: REQ-claude-firm-edit-confirmation
+  - id: SYM-agent-core-decision-guard-firmrequirementstouched
+    title: firmRequirementsTouched
+    status: active
+    sourceFile: packages/agent-core/src/decision-guard.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T17:47:35.661Z
+    relationships:
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-agent-hosts-decision-guard
+      - type: implements
+        target: REQ-claude-firm-edit-confirmation
+  - id: SYM-agent-core-decision-guard-firmeditnotice
+    title: firmEditNotice
+    status: active
+    sourceFile: packages/agent-core/src/decision-guard.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T17:47:38.692Z
+    relationships:
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-agent-hosts-decision-guard
+  - id: SYM-agent-core-decision-guard-markdecisionflag
+    title: markDecisionFlag
+    status: active
+    sourceFile: packages/agent-core/src/decision-guard.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T17:47:41.662Z
+    relationships:
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-agent-hosts-decision-guard
+  - id: SYM-agent-core-decision-guard-hasdecisionflag
+    title: hasDecisionFlag
+    status: active
+    sourceFile: packages/agent-core/src/decision-guard.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T17:47:44.626Z
+    relationships:
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-agent-hosts-decision-guard
+  - id: SYM-agent-core-decision-guard-claimdecisionflag
+    title: claimDecisionFlag
+    status: active
+    sourceFile: packages/agent-core/src/decision-guard.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T17:47:47.872Z
+    relationships:
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-agent-hosts-decision-guard
+  - id: SYM-agent-core-decision-guard-recordrequest
+    title: recordRequest
+    status: active
+    sourceFile: packages/agent-core/src/decision-guard.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T17:47:51.004Z
+    relationships:
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-agent-hosts-decision-guard
+  - id: SYM-agent-core-decision-guard-requestwords
+    title: requestWords
+    status: active
+    sourceFile: packages/agent-core/src/decision-guard.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T17:47:54.219Z
+    relationships:
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: implements
+        target: REQ-agent-hosts-decision-guard
+  - id: SYM-agent-core-decision-guard-claimcapturereminder
+    title: claimCaptureReminder
+    status: active
+    sourceFile: packages/agent-core/src/decision-guard.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T17:47:57.307Z
+    relationships:
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-agent-hosts-decision-guard
+  - id: SYM-agent-core-decision-guard-settledfirmrequirements
+    title: settledFirmRequirements
+    status: active
+    sourceFile: packages/agent-core/src/decision-guard.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T17:48:00.280Z
+    relationships:
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-agent-hosts-decision-guard
+  - id: SYM-agent-core-decision-guard-settlefirmrequirements
+    title: settleFirmRequirements
+    status: active
+    sourceFile: packages/agent-core/src/decision-guard.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T17:48:03.354Z
+    relationships:
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-agent-hosts-decision-guard
+  - id: SYM-agent-core-decision-guard-holdrulenote
+    title: holdRuleNote
+    status: active
+    sourceFile: packages/agent-core/src/decision-guard.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T17:48:06.414Z
+    relationships:
+      - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
+      - type: implements
+        target: REQ-agent-hosts-decision-guard
+  - id: SYM-agent-core-decision-guard-takerulenote
+    title: takeRuleNote
+    status: active
+    sourceFile: packages/agent-core/src/decision-guard.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T17:48:09.431Z
+    relationships:
+      - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
+      - type: implements
+        target: REQ-agent-hosts-decision-guard

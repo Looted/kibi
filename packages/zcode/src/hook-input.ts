@@ -1,5 +1,10 @@
 // implements REQ-zcode-kibi-plugin-v1
-export type HookEvent = "SessionStart" | "PreToolUse" | "PostToolUse" | "Stop";
+export type HookEvent =
+  | "SessionStart"
+  | "UserPromptSubmit"
+  | "PreToolUse"
+  | "PostToolUse"
+  | "Stop";
 
 export type HookInput = {
   event: string;
@@ -8,6 +13,8 @@ export type HookInput = {
   cwd?: string;
   toolName?: string;
   toolInput?: unknown;
+  /** UserPromptSubmit: the submitted prompt. */
+  prompt?: string;
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -51,7 +58,12 @@ export function parseHookInput(input: unknown): HookInput {
   const sessionId = readString(input, ["session_id", "sessionId"]);
   const toolName = readString(input, ["toolName", "tool_name", "tool"]);
   const toolInput = input.toolInput ?? input.tool_input ?? input.input;
+  const prompt = readString(input, ["prompt"]);
   const parsed: HookInput = { event };
+
+  if (prompt !== undefined) {
+    parsed.prompt = prompt;
+  }
 
   if (sessionId !== undefined) {
     parsed.sessionId = sessionId;

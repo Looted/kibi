@@ -198,48 +198,6 @@ function parseStdinJson(rawInput) {
   return trimmed.length === 0 ? {} : JSON.parse(trimmed);
 }
 
-// ../agent-core/dist/kb-mcp-tools.js
-function isRecord2(value) {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-var KIBI_WORKSPACE_ARGUMENT = "workspaceRoot";
-function isKibiMcpToolName(toolName) {
-  const name = toolName?.trim() ?? "";
-  if (/^MCP:kb_[a-z_]+$/i.test(name))
-    return true;
-  const segments = name.split("__");
-  if (segments.length < 3 || segments[0] !== "mcp")
-    return false;
-  const server = segments.slice(1, -1).join("__");
-  return /kibi/i.test(server) && /^kb_[a-z_]+$/.test(segments.at(-1) ?? "");
-}
-function stampKibiWorkspace(toolName, toolInput, workspaceRoot) {
-  if (!workspaceRoot || !isKibiMcpToolName(toolName))
-    return;
-  const base = isRecord2(toolInput) ? toolInput : {};
-  return { ...base, [KIBI_WORKSPACE_ARGUMENT]: workspaceRoot };
-}
-var KIBI_CLI_ROUTES = {
-  check: "kb_check",
-  query: "kb_query",
-  "kb-query": "kb_query",
-  search: "kb_search",
-  status: "kb_status",
-  graph: "kb_graph",
-  coverage: "kb_coverage",
-  "find-gaps": "kb_find_gaps",
-  gaps: "kb_find_gaps",
-  upsert: "kb_upsert",
-  sync: "kb_sync"
-};
-function kibiCliOperation(command) {
-  if (typeof command !== "string")
-    return;
-  const route = /(?:^|[\s;&|(/])kibi\s+([a-z-]+)/.exec(command)?.[1];
-  return route ? KIBI_CLI_ROUTES[route] : undefined;
-}
-var SHELL_TOOL_NAMES = new Set(["Bash", "bash", "Shell", "shell"]);
-
 // ../agent-core/dist/requirement-candidates.js
 import fs2 from "node:fs";
 import path2 from "node:path";
@@ -1179,11 +1137,11 @@ function focusedSymbols(symbols, focus) {
     return [];
   return symbols.filter((symbol) => focus.some((range) => overlaps(symbol, range))).sort((left, right) => (left.endLine ?? left.line ?? 0) - (left.line ?? 0) - ((right.endLine ?? right.line ?? 0) - (right.line ?? 0)));
 }
-function isRecord3(value) {
+function isRecord2(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function editFocus(absolutePath, toolInput) {
-  if (!isRecord3(toolInput))
+  if (!isRecord2(toolInput))
     return;
   const needles = [];
   const collect = (record) => {
@@ -1196,7 +1154,7 @@ function editFocus(absolutePath, toolInput) {
   collect(toolInput);
   if (Array.isArray(toolInput.edits)) {
     for (const edit of toolInput.edits) {
-      if (isRecord3(edit))
+      if (isRecord2(edit))
         collect(edit);
     }
   }
@@ -1414,6 +1372,98 @@ function focusUpdate(relativePath, symbols, focus) {
   const owners = symbol.implements.length > 0 ? `, which implements ${formatList(symbol.implements, 2)}` : "";
   return `Kibi: this edit to ${relativePath} is inside ${symbol.title}${owners}.`;
 }
+
+// ../agent-core/dist/decision-guard.js
+var CONFIRM_FIRM_EDITS_ENV = "KIBI_CONFIRM_FIRM_EDITS";
+function confirmFirmEdits(env) {
+  const value = env[CONFIRM_FIRM_EDITS_ENV]?.trim().toLowerCase();
+  return !(value === "0" || value === "false" || value === "off");
+}
+function firmRequirementsTouched(input) {
+  const touched = input.wholeFile ? input.symbols : focusedSymbols(input.symbols, input.focus);
+  const ids = implementedRequirementIds(touched).filter((id) => {
+    if (input.confirmed?.has(id))
+      return false;
+    const summary = input.summarize(id);
+    return summary.firmness === "firm" && !isRetiredStatus(summary.status);
+  });
+  return { ids, symbol: input.wholeFile ? undefined : touched[0] };
+}
+function firmEditConfirmation(where, requirements) {
+  const shown = requirements.slice(0, 2).map((summary) => summary.title ? `${summary.id}: ${summary.title}` : summary.id);
+  const more = requirements.length > shown.length ? ` (+${requirements.length - shown.length} more)` : "";
+  const noun = requirements.length === 1 ? "a firm requirement" : "firm requirements";
+  return `Kibi: this edit changes ${where}, which implements ${noun} recorded in the knowledge base: ${shown.join("; ")}${more}. Allow it if the change keeps ${requirements.length === 1 ? "that requirement" : "them"}, or if you mean to change ${requirements.length === 1 ? "the requirement" : "them"} too.`;
+}
+function firmEditContext(ids) {
+  const named = ids.slice(0, 2).join(", ");
+  return [
+    `Kibi asked the person to confirm this edit because it changes code that implements firm ${ids.length === 1 ? "requirement" : "requirements"} ${named}.`,
+    "If the edit was declined or could not be confirmed, the requirement stands: name it and ask the person how to proceed, rather than reaching the same change another way. If it was allowed and the change alters what the requirement says, the requirement is updated with kb_upsert in this change."
+  ].join(`
+`);
+}
+var RULE_PHRASES = /\b(?:from now on|going forward|must(?:n['’]t| not)?|should (?:always|never)|never|always|is not allowed|are not allowed|not be allowed|only (?:allow|admins?|owners?)|is required|are required|has to|have to)\b/i;
+function statedRule(prompt) {
+  const match = RULE_PHRASES.exec(prompt);
+  return match ? match[0].toLowerCase() : undefined;
+}
+function rulePromptNote(phrase) {
+  return [
+    `Kibi: this request reads as a rule or decision (it says "${phrase}").`,
+    "A rule the person states is project knowledge: kb_search shows whether a recorded requirement already says something about it (changing a firm one is a question for the person first), and a new or changed rule is recorded with kb_upsert (a requirement, firm because the person stated it, with the implements link from the code that enforces it) as part of this change, not after it."
+  ].join(`
+`);
+}
+function captureReminder(rulePrompt) {
+  return [
+    rulePrompt ? "Kibi: a request this session read as a rule or decision, the session changed source files, and nothing was recorded in the knowledge base." : "Kibi: this session changed source files and recorded nothing in the knowledge base.",
+    "A decision the person stated or this change made (a rule, a limit, a default, who may do what) is recorded with kb_upsert as a requirement linked to the code that implements it before the work is reported done; when there was none, the final report says so in one line."
+  ].join(`
+`);
+}
+
+// ../agent-core/dist/kb-mcp-tools.js
+function isRecord3(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+var KIBI_WORKSPACE_ARGUMENT = "workspaceRoot";
+function isKibiMcpToolName(toolName) {
+  const name = toolName?.trim() ?? "";
+  if (/^MCP:kb_[a-z_]+$/i.test(name))
+    return true;
+  const segments = name.split("__");
+  if (segments.length < 3 || segments[0] !== "mcp")
+    return false;
+  const server = segments.slice(1, -1).join("__");
+  return /kibi/i.test(server) && /^kb_[a-z_]+$/.test(segments.at(-1) ?? "");
+}
+function stampKibiWorkspace(toolName, toolInput, workspaceRoot) {
+  if (!workspaceRoot || !isKibiMcpToolName(toolName))
+    return;
+  const base = isRecord3(toolInput) ? toolInput : {};
+  return { ...base, [KIBI_WORKSPACE_ARGUMENT]: workspaceRoot };
+}
+var KIBI_CLI_ROUTES = {
+  check: "kb_check",
+  query: "kb_query",
+  "kb-query": "kb_query",
+  search: "kb_search",
+  status: "kb_status",
+  graph: "kb_graph",
+  coverage: "kb_coverage",
+  "find-gaps": "kb_find_gaps",
+  gaps: "kb_find_gaps",
+  upsert: "kb_upsert",
+  sync: "kb_sync"
+};
+function kibiCliOperation(command) {
+  if (typeof command !== "string")
+    return;
+  const route = /(?:^|[\s;&|(/])kibi\s+([a-z-]+)/.exec(command)?.[1];
+  return route ? KIBI_CLI_ROUTES[route] : undefined;
+}
+var SHELL_TOOL_NAMES = new Set(["Bash", "bash", "Shell", "shell"]);
 
 // src/kb-tools.ts
 function isRecord4(value) {
@@ -1788,39 +1838,6 @@ function stopReminder(paths) {
   ].join(`
 `);
 }
-function firmEditConfirmation(where, requirements) {
-  const shown = requirements.slice(0, 2).map((summary) => summary.title ? `${summary.id}: ${summary.title}` : summary.id);
-  const more = requirements.length > shown.length ? ` (+${requirements.length - shown.length} more)` : "";
-  const noun = requirements.length === 1 ? "a firm requirement" : "firm requirements";
-  return `Kibi: this edit changes ${where}, which implements ${noun} recorded in the knowledge base: ${shown.join("; ")}${more}. Allow it if the change keeps ${requirements.length === 1 ? "that requirement" : "them"}, or if you mean to change ${requirements.length === 1 ? "the requirement" : "them"} too.`;
-}
-function firmEditContext(ids) {
-  const named = ids.slice(0, 2).join(", ");
-  return [
-    `Kibi asked the person to confirm this edit because it changes code that implements firm ${ids.length === 1 ? "requirement" : "requirements"} ${named}.`,
-    "If the edit was declined or could not be confirmed, the requirement stands: name it and ask the person how to proceed, rather than reaching the same change another way. If it was allowed and the change alters what the requirement says, the requirement is updated with kb_upsert in this change."
-  ].join(`
-`);
-}
-var RULE_PHRASES = /\b(?:from now on|going forward|must(?:n['’]t| not)?|should (?:always|never)|never|always|is not allowed|are not allowed|not be allowed|only (?:allow|admins?|owners?)|is required|are required|has to|have to)\b/i;
-function statedRule(prompt) {
-  const match = RULE_PHRASES.exec(prompt);
-  return match ? match[0].toLowerCase() : undefined;
-}
-function rulePromptNote(phrase) {
-  return [
-    `Kibi: this request reads as a rule or decision (it says "${phrase}").`,
-    "A rule the person states is project knowledge: kb_search shows whether a recorded requirement already says something about it (changing a firm one is a question for the person first), and a new or changed rule is recorded with kb_upsert (a requirement, firm because the person stated it, with the implements link from the code that enforces it) as part of this change, not after it."
-  ].join(`
-`);
-}
-function captureReminder(rulePrompt) {
-  return [
-    rulePrompt ? "Kibi: a request this session read as a rule or decision, the session changed source files, and nothing was recorded in the knowledge base." : "Kibi: this session changed source files and recorded nothing in the knowledge base.",
-    "A decision the person stated or this change made (a rule, a limit, a default, who may do what) is recorded with kb_upsert as a requirement linked to the code that implements it before the work is reported done; when there was none, the final report says so in one line."
-  ].join(`
-`);
-}
 
 // src/usage-log.ts
 import path7 from "node:path";
@@ -1932,11 +1949,6 @@ function resolveKibiWorkspace(startDir, env = process.env) {
 }
 
 // src/hook-runner.ts
-var CONFIRM_FIRM_EDITS_ENV = "KIBI_CONFIRM_FIRM_EDITS";
-function confirmFirmEdits(env) {
-  const value = env[CONFIRM_FIRM_EDITS_ENV]?.trim().toLowerCase();
-  return !(value === "0" || value === "false" || value === "off");
-}
 var readTools = new Set(["Read"]);
 var editTools = new Set(["Edit", "MultiEdit", "Write", "NotebookEdit"]);
 var searchTools = new Set(["Grep", "Glob"]);
@@ -1984,16 +1996,15 @@ function requirementIds(symbols) {
 function firmEdit(relativePath, symbols, focus, wholeFile, state, workspace) {
   if (!workspace.confirmFirm)
     return;
-  const touched = wholeFile ? symbols : focusedSymbols(symbols, focus);
-  const ids = requirementIds(touched).filter((id) => {
-    if (state.firmConfirmed.has(id))
-      return false;
-    const summary = workspace.summarize(id);
-    return summary.firmness === "firm" && !isRetiredStatus(summary.status);
+  const { ids, symbol } = firmRequirementsTouched({
+    symbols,
+    focus,
+    wholeFile,
+    summarize: workspace.summarize,
+    confirmed: state.firmConfirmed
   });
   if (ids.length === 0)
     return;
-  const symbol = wholeFile ? undefined : touched[0];
   return {
     path: relativePath,
     where: symbol ? `${symbol.title} in ${relativePath}` : relativePath,
