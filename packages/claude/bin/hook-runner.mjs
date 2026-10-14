@@ -74,18 +74,58 @@ function filesChangedSince(root, sinceMs) {
   }
   return [...changed];
 }
-var SIMPLE_COMMAND_SEPARATOR = /&&|\|\||[;|\n]/;
+var SIMPLE_COMMAND_SEPARATOR = /&&|\|\||[;|\n]/g;
 var REDIRECT_TARGET = /(?:^|[^0-9&<>])>>?\s*("[^"]+"|'[^']+'|[^\s;&|<>()]+)/g;
 var IN_PLACE_FLAG = /^(-[A-Za-z]*i\S*|--in-place(=\S*)?)$/;
 var IN_PLACE_EDITORS = new Set(["sed", "gsed", "perl"]);
 var COMMAND_PREFIXES = new Set(["sudo", "env", "command", "exec", "nice"]);
+function maskQuoted(command) {
+  let masked = "";
+  let quote = null;
+  for (let index = 0;index < command.length; index += 1) {
+    const char = command[index] ?? "";
+    if (quote === null && (char === "'" || char === '"')) {
+      quote = char;
+      masked += "_";
+    } else if (char === "\\" && quote !== "'" && index + 1 < command.length) {
+      masked += "__";
+      index += 1;
+    } else if (quote !== null) {
+      if (char === quote)
+        quote = null;
+      masked += "_";
+    } else
+      masked += char;
+  }
+  return masked;
+}
+function simpleCommandWords(command, masked) {
+  const commands = [];
+  let start = 0;
+  const cut = (end) => {
+    const words = [];
+    for (const word of masked.slice(start, end).matchAll(/\S+/g)) {
+      const from = start + (word.index ?? 0);
+      words.push(command.slice(from, from + word[0].length));
+    }
+    commands.push(words);
+  };
+  for (const separator of masked.matchAll(SIMPLE_COMMAND_SEPARATOR)) {
+    cut(separator.index ?? 0);
+    start = (separator.index ?? 0) + separator[0].length;
+  }
+  cut(masked.length);
+  return commands;
+}
 function commandEditPaths(command, cwd) {
   const scanned = command.slice(0, MAX_COMMAND_CHARS);
+  const masked = maskQuoted(scanned);
   const targets = [];
-  for (const match of scanned.matchAll(REDIRECT_TARGET))
-    targets.push(unquote(match[1] ?? ""));
-  for (const segment of scanned.split(SIMPLE_COMMAND_SEPARATOR)) {
-    const words = segment.trim().split(/\s+/).filter((word) => word.length > 0);
+  for (const match of masked.matchAll(REDIRECT_TARGET)) {
+    const end = (match.index ?? 0) + match[0].length;
+    targets.push(unquote(scanned.slice(end - (match[1] ?? "").length, end)));
+  }
+  for (const words of simpleCommandWords(scanned, masked)) {
     let start = 0;
     while (start < words.length && (COMMAND_PREFIXES.has(words[start] ?? "") || /^\w+=/.test(words[start] ?? "")))
       start += 1;

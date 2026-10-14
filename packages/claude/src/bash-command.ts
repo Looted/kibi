@@ -105,7 +105,7 @@ export function filesChangedSince(root: string, sinceMs: number): string[] {
 }
 
 // Simple commands of a command line: `;`, `&&`, `||`, `|` and newlines end one.
-const SIMPLE_COMMAND_SEPARATOR = /&&|\|\||[;|\n]/;
+const SIMPLE_COMMAND_SEPARATOR = /&&|\|\||[;|\n]/g;
 // `> file`, `>> file` (not `2>&1`, `&>`, `>&2` or a here-document marker).
 const REDIRECT_TARGET = /(?:^|[^0-9&<>])>>?\s*("[^"]+"|'[^']+'|[^\s;&|<>()]+)/g;
 // sed and perl edit in place with -i (alone, bundled as -pi or -ni, or with a
@@ -116,23 +116,68 @@ const IN_PLACE_EDITORS = new Set(["sed", "gsed", "perl"]);
 const COMMAND_PREFIXES = new Set(["sudo", "env", "command", "exec", "nice"]);
 
 /**
+ * The command with every quoted or backslash-escaped character replaced by
+ * `_`, keeping its length. A `|` or `;` inside `sed -i 's|a|b|'` is part of
+ * the script, not a pipe, so separators are looked for in this copy and the
+ * words are then cut from the original at the same positions.
+ */
+function maskQuoted(command: string): string {
+  let masked = "";
+  let quote: string | null = null;
+  for (let index = 0; index < command.length; index += 1) {
+    const char = command[index] ?? "";
+    if (quote === null && (char === "'" || char === '"')) {
+      quote = char;
+      masked += "_";
+    } else if (char === "\\" && quote !== "'" && index + 1 < command.length) {
+      masked += "__";
+      index += 1;
+    } else if (quote !== null) {
+      if (char === quote) quote = null;
+      masked += "_";
+    } else masked += char;
+  }
+  return masked;
+}
+
+/** The words of each simple command, quotes kept, in order. */
+function simpleCommandWords(command: string, masked: string): string[][] {
+  const commands: string[][] = [];
+  let start = 0;
+  const cut = (end: number) => {
+    const words: string[] = [];
+    for (const word of masked.slice(start, end).matchAll(/\S+/g)) {
+      const from = start + (word.index ?? 0);
+      words.push(command.slice(from, from + word[0].length));
+    }
+    commands.push(words);
+  };
+  for (const separator of masked.matchAll(SIMPLE_COMMAND_SEPARATOR)) {
+    cut(separator.index ?? 0);
+    start = (separator.index ?? 0) + separator[0].length;
+  }
+  cut(masked.length);
+  return commands;
+}
+
+/**
  * Absolute paths of existing files a command will write in place before it
  * runs: the files of `sed -i` / `perl -i`, the targets of `>` and `>>`
  * redirections, and the files `tee` writes. A subset of
  * {@link commandFilePaths}, so the hook can treat them as edits up front
- * (what must stay true) instead of reads.
+ * (what must stay true) instead of reads. Quoted text (a sed script, an
+ * echoed string) is never read as a separator or a redirection.
  */
 // implements REQ-claude-code-kibi-plugin-v1
 export function commandEditPaths(command: string, cwd: string): string[] {
   const scanned = command.slice(0, MAX_COMMAND_CHARS);
+  const masked = maskQuoted(scanned);
   const targets: string[] = [];
-  for (const match of scanned.matchAll(REDIRECT_TARGET))
-    targets.push(unquote(match[1] ?? ""));
-  for (const segment of scanned.split(SIMPLE_COMMAND_SEPARATOR)) {
-    const words = segment
-      .trim()
-      .split(/\s+/)
-      .filter((word) => word.length > 0);
+  for (const match of masked.matchAll(REDIRECT_TARGET)) {
+    const end = (match.index ?? 0) + match[0].length;
+    targets.push(unquote(scanned.slice(end - (match[1] ?? "").length, end)));
+  }
+  for (const words of simpleCommandWords(scanned, masked)) {
     let start = 0;
     while (
       start < words.length &&
