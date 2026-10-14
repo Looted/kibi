@@ -17573,7 +17573,7 @@ coordinates:
     sourceLine: 27
   SYM-mcp-release-package-metadata:
     identityHash: 240336405ff91215ab2edd07d6f820210720d29abbb8cb1622c6097a330b8fa9
-    sourceHash: 7462722ec4e3da32c2ee769309e65149b6c42efad93a4f9e8f1192e2e5d84749
+    sourceHash: 705ed20fbb68a9f80e106d2d6dd93bb73c9739f7305043cffe55a744cfb31f45
     sourceColumn: 0
     sourceEndColumn: 0
     sourceEndLine: 57
@@ -17581,7 +17581,7 @@ coordinates:
     sourceLine: 1
   SYM-mcp-release-registry-metadata:
     identityHash: 243381a6fc622289060ae9fc50ab65b559c478b15c309c3e7e4cf730e442d06a
-    sourceHash: f32820a18b222eb915eac10ac0c044b5048c8bbdab6357361bc74995658ad2fa
+    sourceHash: 3d024f8d7ac9c82ef40af0a4a1db97650ef4e70d9d5c00e8cb1c34f0ce1a1938
     sourceColumn: 0
     sourceEndColumn: 0
     sourceEndLine: 21
