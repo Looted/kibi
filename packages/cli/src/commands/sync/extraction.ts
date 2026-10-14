@@ -31,7 +31,10 @@ import { toCacheKey } from "./cache.js";
 export interface ExtractionOutput {
   results: ExtractionResult[];
   failedCacheKeys: Set<string>;
+  /** Extraction failures, collected only in validate-only mode. */
   errors: { file: string; message: string }[];
+  /** Every source that could not be extracted, in any mode. */
+  failures: { file: string; message: string }[];
 }
 
 /**
@@ -86,6 +89,7 @@ export async function processExtractions(
   const results: ExtractionResult[] = [];
   const failedCacheKeys = new Set<string>();
   const errors: { file: string; message: string }[] = [];
+  const failures: { file: string; message: string }[] = [];
 
   for (const file of changedMarkdownFiles) {
     try {
@@ -106,6 +110,7 @@ export async function processExtractions(
       } else {
         console.warn(`Warning: Failed to extract from ${file}: ${message}`);
       }
+      failures.push({ file, message });
       failedCacheKeys.add(toCacheKey(workspaceRoot, file));
     }
   }
@@ -128,9 +133,10 @@ export async function processExtractions(
       } else {
         console.warn(`Warning: Failed to extract from ${file}: ${message}`);
       }
+      failures.push({ file, message });
       failedCacheKeys.add(toCacheKey(workspaceRoot, file));
     }
   }
 
-  return { results, failedCacheKeys, errors };
+  return { results, failedCacheKeys, errors, failures };
 }

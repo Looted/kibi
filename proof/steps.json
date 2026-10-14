@@ -2568,5 +2568,32 @@
         "./packages/plugin-builtin/tests/vocabulary-alignment.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-cli-migrate-legacy-requirement-status",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/cli/tests/commands/migrate-legacy-status.test.ts",
+        "./packages/cli/tests/operations/migration/requirement-status.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-uncompiled-source-visibility",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/cli/tests/commands/migrate-legacy-status.test.ts",
+        "./packages/cli/tests/operations/uncompiled-source.test.ts",
+        "./packages/cli/tests/public/operations/source-relationship-parity-coverage.test.ts"
+      ]
+    ]
   }
 ]

@@ -265,3 +265,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-aae6d1394c64
+  - type: constrains
+    from: REQ-kibi-uncompiled-source-visibility
+    to: FACT-SUBJ-kibi-sync-uncompiled-sources
+    created_at: 2026-10-14T08:54:48.976Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-59b35c367041
+  - type: requires_property
+    from: REQ-kibi-uncompiled-source-visibility
+    to: FACT-kibi-uncompiled-source-visibility-check-blocks
+    created_at: 2026-10-14T08:54:49.025Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d34dbc497da4
+  - type: requires_property
+    from: REQ-kibi-uncompiled-source-visibility
+    to: FACT-kibi-uncompiled-source-visibility-status-not-fresh
+    created_at: 2026-10-14T08:54:49.064Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-da0d67e43701
+  - type: requires_property
+    from: REQ-kibi-uncompiled-source-visibility
+    to: FACT-kibi-uncompiled-source-visibility-upsert-reads-authored-file
+    created_at: 2026-10-14T08:54:49.096Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-09e5312d96ec
+  - type: requires_property
+    from: REQ-kibi-uncompiled-source-visibility
+    to: FACT-kibi-uncompiled-source-visibility-upsert-refuses-uncompilable-write
+    created_at: 2026-10-14T08:54:49.122Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c759437ed0e7
+  - type: relates_to
+    from: REQ-kibi-uncompiled-source-visibility
+    to: REQ-kibi-upsert-preserves-requirement-semantics
+    created_at: 2026-10-14T08:54:49.168Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-99e21caf5a9c
+  - type: specified_by
+    from: REQ-kibi-uncompiled-source-visibility
+    to: SCEN-kibi-uncompiled-source-visibility
+    created_at: 2026-10-14T08:57:06.902Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0da46fffceb4
+  - type: verified_by
+    from: REQ-kibi-uncompiled-source-visibility
+    to: TEST-kibi-uncompiled-source-visibility
+    created_at: 2026-10-14T08:57:06.950Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-10cd6e1e1e50

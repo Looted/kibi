@@ -59,6 +59,26 @@ export type SyncCache = {
   semanticContracts: Record<string, boolean>;
   /** Compiler contract that produced the cached compilation; see below. */
   compilerFingerprint?: string;
+  /**
+   * Authored sources the last sync could not extract, keyed like `hashes`:
+   * their entities are missing from the store, so kb_status reports them.
+   */
+  extractionFailures?: Record<string, SourceExtractionFailure>;
+};
+
+/** One authored source the last sync could not extract. */
+// implements REQ-kibi-uncompiled-source-visibility
+export type SourceExtractionFailure = {
+  /** SHA-256 of the bytes that failed. */
+  hash: string;
+  /** The extraction error sync reported. */
+  message: string;
+  /**
+   * The source failed in the store's first compilation (or in every sync
+   * since), so it is legacy content that missed the semantic baseline, not
+   * new authoring.
+   */
+  baseline?: boolean;
 };
 
 /**
@@ -116,6 +136,79 @@ export function compilerFingerprintReason(
         : "The branch KB was compiled by a Kibi CLI that did not record its entity property contract, so unchanged sources may lack properties this CLI keeps. The next kibi sync re-imports every source.",
     remediation: { command_argv: ["kibi", "sync"], applyRequired: false },
   };
+}
+
+/** Stale-reason code for an authored source the last sync could not extract. */
+// implements REQ-kibi-uncompiled-source-visibility
+export const SOURCE_EXTRACTION_FAILED = "source_extraction_failed";
+
+/**
+ * One blocking reason per authored source the last sync could not extract
+ * and that still has the bytes that failed: its entities are missing from the
+ * store, so the KB is not current even when every compiled file is. A file
+ * edited since then is reported by the changed-source reasons instead, and a
+ * deleted one by nothing.
+ */
+// implements REQ-kibi-uncompiled-source-visibility
+export function sourceExtractionFailureReasons(
+  workspaceRoot: string,
+  storePath: string,
+  deps?: Partial<SyncCacheDeps>,
+): Record<string, unknown>[] {
+  const resolved = resolveDeps(deps);
+  const cachePath = path.join(storePath, "sync-cache.json");
+  if (!resolved.existsSync(cachePath)) return [];
+  let failures: Record<string, SourceExtractionFailure>;
+  try {
+    const parsed = JSON.parse(resolved.readFileSync(cachePath, "utf8")) as {
+      extractionFailures?: unknown;
+    };
+    if (
+      parsed.extractionFailures === null ||
+      typeof parsed.extractionFailures !== "object"
+    )
+      return [];
+    failures = parsed.extractionFailures as Record<
+      string,
+      SourceExtractionFailure
+    >;
+  } catch {
+    return [];
+  }
+  const reasons: Record<string, unknown>[] = [];
+  for (const [key, failure] of Object.entries(failures).sort(([a], [b]) =>
+    a.localeCompare(b),
+  )) {
+    const absolute = path.resolve(workspaceRoot, key);
+    let current: string;
+    try {
+      current = hashFile(workspaceRoot, absolute, deps);
+    } catch {
+      continue;
+    }
+    if (current !== failure?.hash) continue;
+    const message = String(failure.message);
+    reasons.push({
+      code: SOURCE_EXTRACTION_FAILED,
+      path: key,
+      entityIds: [],
+      detail: `${key} cannot be compiled, so the entities it declares are missing from the KB: ${message}`,
+      remediation: sourceExtractionRemediation(key, message),
+      blocking: true,
+    });
+  }
+  return reasons;
+}
+
+/** How to make an authored source that sync cannot extract compile. */
+// implements REQ-kibi-uncompiled-source-visibility
+export function sourceExtractionRemediation(
+  file: string,
+  message: string,
+): string {
+  if (/\/status\b/.test(message))
+    return `Run 'kibi migrate --yes' to map a legacy requirement status (implemented, done and completed become closed with the tag implemented), or set status in ${file} to a status Kibi knows (open, in_progress or closed for a requirement); then run kibi sync.`;
+  return `Fix the front matter of ${file} named in the error (edit the file, or rewrite the entity with kb_upsert so the write replaces the failing field), then run kibi sync.`;
 }
 
 export function toCacheKey(workspaceRoot: string, filePath: string): string {
@@ -320,6 +413,9 @@ export function readSyncCache(
     }
     if (parsed.compilerFingerprint !== undefined) {
       cache.compilerFingerprint = parsed.compilerFingerprint;
+    }
+    if (parsed.extractionFailures !== undefined) {
+      cache.extractionFailures = parsed.extractionFailures;
     }
     return cache;
   } catch {

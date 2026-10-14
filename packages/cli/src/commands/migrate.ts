@@ -34,6 +34,11 @@ import {
   planOriginBackfill,
 } from "../operations/migration/origin-backfill.js";
 import {
+  type RequirementStatusFinding,
+  applyDeliveredStatusMappings,
+  planRequirementStatusMappings,
+} from "../operations/migration/requirement-status.js";
+import {
   applySourcePathRepairs,
   findSourceRepairs,
 } from "../operations/migration/source-paths.js";
@@ -105,6 +110,8 @@ export interface MigrationAuditRecord {
   sourcePathsRewritten: number;
   /** Authored source values this run removed: they named the entity's own file or nothing. */
   sourcePathsRemoved: number;
+  /** Requirements whose delivery status (implemented, done, completed) this run mapped to closed plus tag implemented. */
+  legacyStatusesMapped: number;
   toVersion: number;
   /** The schema warning the KB showed before this run migrated it. */
   preMigrationWarning: string | null;
@@ -288,6 +295,7 @@ function buildMigrationAuditRecord(args: {
   supersededRequirementsClosed: number;
   sourcePathsRewritten: number;
   sourcePathsRemoved: number;
+  legacyStatusesMapped: number;
   preMigrationWarning: string | null;
   steps: readonly string[];
 }): MigrationAuditRecord {
@@ -304,6 +312,7 @@ function buildMigrationAuditRecord(args: {
     supersededRequirementsClosed: args.supersededRequirementsClosed,
     sourcePathsRewritten: args.sourcePathsRewritten,
     sourcePathsRemoved: args.sourcePathsRemoved,
+    legacyStatusesMapped: args.legacyStatusesMapped,
     toVersion: LATEST_KB_SCHEMA_VERSION,
     preMigrationWarning: args.preMigrationWarning,
     steps: args.steps,
@@ -505,6 +514,108 @@ function repairLifecycleFindings(
   };
 }
 
+function describeDeliveredMappings(
+  findings: readonly RequirementStatusFinding[],
+): string {
+  const byStatus = new Map<string, RequirementStatusFinding[]>();
+  for (const finding of findings) {
+    byStatus.set(finding.status, [
+      ...(byStatus.get(finding.status) ?? []),
+      finding,
+    ]);
+  }
+  return [...byStatus]
+    .map(
+      ([status, group]) =>
+        `legacy status ${status} -> ${group[0]?.automatic?.status ?? "closed"} (tag ${group[0]?.automatic?.tag ?? "implemented"}) on ${group.length} requirement(s): ${group.map((finding) => finding.requirementId).join(", ")}`,
+    )
+    .join("; ");
+}
+
+/**
+ * Map delivery statuses (implemented, done, completed) to closed plus the tag
+ * implemented: kibi sync cannot compile them, and that is their one lossless
+ * reading. Returns the requirement statuses a person still has to decide.
+ */
+// implements REQ-cli-schema-migration
+function mapLegacyRequirementStatuses(
+  cwd: string,
+  dryRun: boolean,
+): { mapped: number; review: RequirementStatusFinding[] } {
+  const findings = planRequirementStatusMappings(cwd);
+  const delivered = findings.filter((finding) => finding.automatic !== null);
+  if (dryRun) {
+    const review = findings.filter((finding) => finding.automatic === null);
+    if (delivered.length > 0)
+      console.log(
+        `dry run: would map ${describeDeliveredMappings(delivered)}.`,
+      );
+    if (review.length > 0)
+      console.log(
+        `dry run: ${review.length} requirement status(es) need a person to choose the current status: ${review.map((finding) => `${finding.requirementId} (${finding.status})`).join(", ")}; kibi migrate --format json lists them as req_status_vocabulary_map.`,
+      );
+    return { mapped: delivered.length, review };
+  }
+  if (delivered.length === 0) return { mapped: 0, review: findings };
+  const result = applyDeliveredStatusMappings(cwd);
+  if (result.mapped.length > 0)
+    console.log(`Mapped ${describeDeliveredMappings(result.mapped)}.`);
+  for (const skip of result.skipped)
+    printWarning(`Status not mapped for ${skip.path}: ${skip.reason}.`);
+  return {
+    mapped: result.mapped.length,
+    review: planRequirementStatusMappings(cwd),
+  };
+}
+
+/**
+ * Print what a `kibi migrate --yes` run left for a person, naming the
+ * requirements kibi sync cannot compile first. Returns false when nothing
+ * remains, so the caller may call the migration complete.
+ */
+// implements REQ-cli-schema-migration
+function printRemainingMigrationWork(remaining: {
+  statuses: readonly RequirementStatusFinding[];
+  manualInventories: number;
+  manualLifecycle: number;
+}): boolean {
+  const { statuses, manualInventories, manualLifecycle } = remaining;
+  if (statuses.length === 0 && manualInventories === 0 && manualLifecycle === 0)
+    return false;
+  const uncompiled = statuses.filter(
+    (finding) => finding.extractionError !== null,
+  );
+  const skipped = statuses.filter(
+    (finding) => finding.extractionError === null,
+  );
+  const notCompiled = uncompiled.length + manualInventories;
+  console.log(
+    `Migration incomplete: ${notCompiled} requirement(s) are not compiled, so kb_query, kb_coverage and kb_upsert do not see them, and ${skipped.length + manualLifecycle} other item(s) need a decision.`,
+  );
+  for (const finding of uncompiled) {
+    console.log(
+      `  ${finding.requirementId} (${finding.path}): status ${finding.status} is not a status Kibi knows, so kibi sync cannot compile it (${finding.extractionError}). Set status to open, in_progress or closed in the file (closed with the tag implemented for delivered work), then run kibi sync.`,
+    );
+  }
+  if (manualInventories > 0)
+    console.log(
+      `  ${manualInventories} requirement inventory(ies) need the manual fix in the warnings above; kibi sync rejects them until then.`,
+    );
+  for (const finding of skipped) {
+    console.log(
+      `  ${finding.requirementId} (${finding.path}): status ${finding.status} is not a requirement status, so the proof ladder skips it. ${finding.suggestedStatus === null ? "Set status to open, in_progress or closed in the file" : `Approve req-status-vocabulary-map-${finding.requirementId} (${finding.status} -> ${finding.suggestedStatus}) with kibi migrate --apply-safe, or set the status in the file`}.`,
+    );
+  }
+  if (manualLifecycle > 0)
+    console.log(
+      `  ${manualLifecycle} lifecycle item(s) need a person; see the warnings above.`,
+    );
+  console.log(
+    "Run 'kibi migrate' for the remaining actions; rerun 'kibi migrate --yes' after fixing them.",
+  );
+  return true;
+}
+
 export function warnMigrationRequiredWithoutYes(): { exitCode: number } {
   printWarning("Migration required for this repository.");
   console.log("No changes applied.");
@@ -619,6 +730,9 @@ export async function migrateCommand(
     const polarityCount = options.dryRun
       ? planPolarityValueBackfill(cwd).length
       : applyPolarityValueBackfill(cwd);
+    // Delivery statuses keep requirements out of the store at any version;
+    // map them before the drift check, which only sees compiled requirements.
+    const statuses = mapLegacyRequirementStatuses(cwd, options.dryRun === true);
     // An advisor change can make stored inventories drift at any version,
     // and lifecycle findings block kibi check at any version.
     const drift = rederiveDriftedInventories(cwd, options.dryRun === true);
@@ -626,15 +740,27 @@ export async function migrateCommand(
     const legacyLinks = markLegacySymbolLinks(cwd, options.dryRun === true);
     const rewroteSources =
       polarityCount > 0 ||
+      statuses.mapped > 0 ||
       legacyLinks > 0 ||
       drift.rederived.length > 0 ||
       lifecycle.closed > 0 ||
       lifecycle.rewritten > 0 ||
       lifecycle.removed > 0;
-    if (rewroteSources || drift.manual > 0 || lifecycle.manual > 0) {
+    if (
+      rewroteSources ||
+      statuses.review.length > 0 ||
+      drift.manual > 0 ||
+      lifecycle.manual > 0
+    ) {
       if (options.dryRun !== true && rewroteSources) {
         console.log("Run 'kibi sync' to recompile the rewritten sources.");
       }
+      if (options.dryRun !== true)
+        printRemainingMigrationWork({
+          statuses: statuses.review,
+          manualInventories: drift.manual,
+          manualLifecycle: lifecycle.manual,
+        });
       if (options.yes === true) updateGitIgnore(cwd);
       return { exitCode: 0 };
     }
@@ -771,6 +897,7 @@ export async function migrateCommand(
         );
       }
     }
+    mapLegacyRequirementStatuses(cwd, true);
     rederiveDriftedInventories(cwd, true);
     repairLifecycleFindings(cwd, true);
     console.log(
@@ -845,7 +972,8 @@ export async function migrateCommand(
   const originBackfill = originBackfillStep
     ? applyOriginBackfill(cwd, migratedAt)
     : { written: [], skipped: [], previouslyStamped: 0 };
-  rederiveDriftedInventories(cwd, false);
+  const statuses = mapLegacyRequirementStatuses(cwd, false);
+  const drift = rederiveDriftedInventories(cwd, false);
   const lifecycle = repairLifecycleFindings(cwd, false);
   const supersedesUnexplained = decisionFirmnessStep
     ? planSupersedesReasonAcknowledgement(cwd)
@@ -907,6 +1035,7 @@ export async function migrateCommand(
     supersededRequirementsClosed: lifecycle.closed,
     sourcePathsRewritten: lifecycle.rewritten,
     sourcePathsRemoved: lifecycle.removed,
+    legacyStatusesMapped: statuses.mapped,
     preMigrationWarning: migrationWarning,
     steps: migrationSteps.map((step) => step.id),
   });
@@ -931,9 +1060,15 @@ export async function migrateCommand(
   console.log(
     `Wrote migration audit metadata to ${toRelativePath(cwd, auditPath)}.`,
   );
-  console.log(
-    "Migration complete. Future 'kibi migrate' runs will be a no-op.",
-  );
+  const incomplete = printRemainingMigrationWork({
+    statuses: statuses.review,
+    manualInventories: drift.manual,
+    manualLifecycle: lifecycle.manual,
+  });
+  if (!incomplete)
+    console.log(
+      "Migration complete. Future 'kibi migrate' runs will be a no-op.",
+    );
   const mergeDriverGaps = manifestMergeDriverGaps(cwd);
   if (mergeDriverGaps !== null && mergeDriverGaps.length > 0) {
     console.log(
@@ -960,7 +1095,7 @@ export async function migrateCommand(
 // implements REQ-agent-guided-migration-orchestration, REQ-cli-schema-migration
 export function describeMigrationRun(summary: MigrationRunSummary): string {
   const { audit } = summary;
-  return `Migrated schema ${audit.fromVersion ?? "none"} -> ${audit.toVersion} (audit ${summary.auditPath}): legacy-link marks ${audit.symbolGranularityLegacyLinks}, origin backfill ${audit.entityOriginBackfill}, superseded requirements closed ${audit.supersededRequirementsClosed}, source paths rewritten ${audit.sourcePathsRewritten}, source paths removed ${audit.sourcePathsRemoved}; .gitignore ${summary.gitignoreUpdated ? "updated" : "unchanged"}.`;
+  return `Migrated schema ${audit.fromVersion ?? "none"} -> ${audit.toVersion} (audit ${summary.auditPath}): legacy-link marks ${audit.symbolGranularityLegacyLinks}, origin backfill ${audit.entityOriginBackfill}, superseded requirements closed ${audit.supersededRequirementsClosed}, source paths rewritten ${audit.sourcePathsRewritten}, source paths removed ${audit.sourcePathsRemoved}, legacy statuses mapped ${audit.legacyStatusesMapped}; .gitignore ${summary.gitignoreUpdated ? "updated" : "unchanged"}.`;
 }
 
 const KB_MANIFEST_RELATIVE = ".kb/manifest.json";

@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 206,
-  "proofProven": 206,
+  "currentRequirements": 208,
+  "proofProven": 208,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -177,6 +177,11 @@
       "uncoveredSymbols": []
     },
     "REQ-cli-schema-migration": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-cli-migrate-legacy-requirement-status": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []
@@ -842,6 +847,11 @@
       "uncoveredSymbols": []
     },
     "REQ-kibi-upsert-preserves-requirement-semantics": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-uncompiled-source-visibility": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []

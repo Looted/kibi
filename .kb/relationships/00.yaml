@@ -202,3 +202,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1f17e52b760f
+  - type: implements
+    from: SYM-migration-requirement-status-finding
+    to: REQ-cli-schema-migration
+    created_at: 2026-10-14T10:12:55.600Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6072e22e1dc8
+  - type: covered_by
+    from: SYM-migration-requirement-status-finding
+    to: TEST-cli-migrate
+    created_at: 2026-10-14T10:12:55.624Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-72f586f39538
+  - type: implements
+    from: SYM-migration-requirement-status-finding
+    to: REQ-cli-migrate-legacy-requirement-status
+    created_at: 2026-10-14T10:12:55.643Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eddb701a9124
+  - type: covered_by
+    from: SYM-migration-requirement-status-finding
+    to: TEST-cli-migrate-legacy-requirement-status
+    created_at: 2026-10-14T10:12:55.657Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-175e6e8279eb

@@ -75,6 +75,12 @@ import type {
   UpsertPayload,
   ValidatedUpsert,
 } from "./types.js";
+import {
+  type UncompiledAuthoredSource,
+  assertAuthoredWriteCompiles,
+  authoredEntityLookup,
+  readUncompiledAuthoredSource,
+} from "./uncompiled-source.js";
 import { validateUpsertInput } from "./validation.js";
 import {
   scenarioCoverageWarnings,
@@ -246,13 +252,15 @@ export async function effectiveRelationships(
   const plannedOwn = (staged?.relationships ?? []).filter(
     (relationship) => relationship.from === input.id,
   );
-  const exists = await (
-    lookup ?? storedEntityLookup(prolog, input.id, input.type)
-  ).exists();
+  const resolved = lookup ?? storedEntityLookup(prolog, input.id, input.type);
+  const exists = await resolved.exists();
   if (!exists && plannedOwn.length === 0) return relationships;
   try {
     const current = exists
-      ? (await existingRelationships(prolog, String(entity.id)))
+      ? (
+          resolved.relationships ??
+          (await existingRelationships(prolog, String(entity.id)))
+        )
           // An upsert owns only relationships whose source is the upserted
           // entity. Incoming relationships must not be copied into its
           // validation or canonical source projection.
@@ -347,6 +355,11 @@ export function analyzeUpsertSemantics(
 // implements REQ-kibi-truthful-consistency
 export type UpsertValidation = Readonly<{
   readonly validated: ValidatedUpsert;
+  /**
+   * The authored file the write merges into although the store does not
+   * hold the entity; absent for an ordinary create or update.
+   */
+  readonly uncompiledSource?: UncompiledAuthoredSource;
   /** The upsert's relationships merged with the entity's existing ones. */
   readonly relationships: readonly RelationshipInput[];
   readonly semantic: UpsertSemanticAnalysis;
@@ -374,7 +387,18 @@ export async function validateUpsertForCommit(
   validateRelationshipSources(payload.id, checked.relationships);
   // One read of the entity this upsert replaces, shared by the ledger merge
   // and the stored origin below.
-  const lookup = storedEntityLookup(prolog, payload.id, payload.type);
+  let lookup = storedEntityLookup(prolog, payload.id, payload.type);
+  // implements REQ-kibi-uncompiled-source-visibility
+  // An entity missing from the store whose authored file exists (one sync
+  // could not extract, or one written since the last sync) is an update of
+  // that file, not a create: the writer merges into it. Judge the write
+  // against the file's own state so every stored-state check applies.
+  const uncompiledSource =
+    staged?.entities.has(payload.id) === true || (await lookup.exists())
+      ? null
+      : await readUncompiledAuthoredSource(context, payload);
+  if (uncompiledSource !== null)
+    lookup = authoredEntityLookup(uncompiledSource);
   const input = await withStoredRequirementSemantics(
     payload,
     prolog,
@@ -383,6 +407,15 @@ export async function validateUpsertForCommit(
   );
   const validated =
     input === payload ? checked : validateUpsertInput(input, context.clock());
+  if (uncompiledSource !== null)
+    lookup = {
+      ...lookup,
+      relationships: assertAuthoredWriteCompiles(
+        uncompiledSource,
+        input,
+        validated.entity,
+      ),
+    };
   if (options.allowReceiptsPrune !== true) {
     await validateAppendOnlyProofReceipts(validated.entity, context, staged);
   }
@@ -446,6 +479,7 @@ export async function validateUpsertForCommit(
         : validateUpsertInput(decided, context.clock()),
     relationships,
     semantic,
+    ...(uncompiledSource !== null ? { uncompiledSource } : {}),
   };
 }
 
@@ -617,7 +651,7 @@ export async function executeUpsert(
       // upserts cannot lose updates.
       compilerLock = await acquireSymbolCompilerLock(context.workspaceRoot);
     }
-    const { validated, relationships, semantic } =
+    const { validated, relationships, semantic, uncompiledSource } =
       await validateUpsertForCommit(input, context, {
         allowReceiptsPrune: options.allowReceiptsPrune === true,
       });
@@ -924,6 +958,12 @@ export async function executeUpsert(
       relationships_created: validated.relationships.length,
       warnings: [
         ...planRecoveryWarnings,
+        // implements REQ-kibi-uncompiled-source-visibility
+        ...(uncompiledSource !== undefined
+          ? [
+              `${input.id} was not in the compiled KB; this write updated its authored file ${uncompiledSource.path}${uncompiledSource.extractionError === null ? "" : `, which kibi sync could not compile before (${uncompiledSource.extractionError})`}. Run kibi sync to recompile it.`,
+            ]
+          : []),
         ...semantic.warnings,
         ...coverage,
         ...idStyleWarnings,

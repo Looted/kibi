@@ -202,3 +202,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-213ca0094989
+  - type: implements
+    from: SYM-source-authoring-read-file-times
+    to: REQ-core-atomic-upsert-persistence
+    created_at: 2026-10-14T10:13:32.411Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ddfef34ed150
+  - type: covered_by
+    from: SYM-source-authoring-read-file-times
+    to: TEST-core-atomic-upsert-persistence
+    created_at: 2026-10-14T10:13:32.427Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7cd065b92a3b

@@ -283,3 +283,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-090f467e7411
+  - type: verified_by
+    from: SCEN-cli-migrate-legacy-requirement-status
+    to: TEST-cli-migrate-legacy-requirement-status
+    created_at: 2026-10-14T08:56:56.955Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3f4e21d70a79

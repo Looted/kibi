@@ -26,11 +26,17 @@ import type { PrologPort } from "../../public/operations/runtime-types.js";
  */
 export type StoredEntity = Readonly<Record<string, unknown>> | null | undefined;
 
+// implements REQ-kibi-upsert-preserves-requirement-semantics, REQ-kibi-uncompiled-source-visibility
 export type StoredEntityLookup = {
   /** Whether an entity with the id is stored. */
   readonly exists: () => Promise<boolean>;
   /** The stored entity, loaded only when one exists. */
   readonly entity: () => Promise<StoredEntity>;
+  /**
+   * The entity's own relationships when they come from its authored file
+   * rather than the store (an entity the store does not hold yet).
+   */
+  readonly relationships?: readonly Readonly<Record<string, unknown>>[];
 };
 
 // implements REQ-kibi-upsert-preserves-requirement-semantics, REQ-kibi-entity-origin

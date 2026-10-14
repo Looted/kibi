@@ -17,6 +17,8 @@
 */
 
 import path from "node:path";
+import { extractFromMarkdown } from "../../extractors/markdown.js";
+import { withAddedTag } from "./entity-body-context.js";
 import {
   type InventoryRederivation,
   planInventoryRederivation,
@@ -37,8 +39,12 @@ import {
  * it is not a current requirement: the proof ladder skips it and the
  * ingestion boundary does not validate its semantic inventory, so inventory
  * drift stays hidden until someone maps the status. Which current status a
- * legacy one means is a semantic choice, so the mapping is only suggested;
- * the latent drift is computed as if the suggestion were applied.
+ * legacy one means is usually a semantic choice, so the mapping is only
+ * suggested; the latent drift is computed as if the suggestion were applied.
+ * Delivery vocabulary (`implemented`, `done`, `completed`) has one lossless
+ * reading, `closed` plus the tag `implemented`, and is mapped automatically:
+ * those statuses are outside the entity schema, so `kibi sync` cannot
+ * compile such a requirement at all until it is mapped.
  */
 
 /** Statuses `kibi check` accepts on a requirement (canonical and legacy). */
@@ -65,6 +71,24 @@ export const SUGGESTED_REQUIREMENT_STATUS: Readonly<Record<string, string>> = {
   rejected: "closed",
 };
 
+/** The tag that keeps a delivered legacy requirement's meaning once closed. */
+// implements REQ-cli-schema-migration
+export const DELIVERED_REQUIREMENT_TAG = "implemented";
+
+/**
+ * Legacy delivery statuses and their one lossless current reading: `closed`
+ * with the tag `implemented`, which kb.pl reads as a delivered requirement
+ * that still owes coverage. `kibi migrate` applies these without review.
+ */
+// implements REQ-cli-schema-migration
+export const DELIVERED_REQUIREMENT_STATUS: Readonly<
+  Record<string, Readonly<{ status: string; tag: string }>>
+> = {
+  implemented: { status: "closed", tag: DELIVERED_REQUIREMENT_TAG },
+  done: { status: "closed", tag: DELIVERED_REQUIREMENT_TAG },
+  completed: { status: "closed", tag: DELIVERED_REQUIREMENT_TAG },
+};
+
 /** One requirement whose status is outside the vocabulary. */
 // implements REQ-cli-schema-migration
 export type RequirementStatusFinding = Readonly<{
@@ -73,9 +97,28 @@ export type RequirementStatusFinding = Readonly<{
   status: string;
   /** The suggested current status; null when Kibi has no suggestion. */
   suggestedStatus: string | null;
+  /**
+   * The lossless mapping `kibi migrate` applies without review (delivery
+   * vocabulary); null when the target status is a person's choice.
+   */
+  automatic: Readonly<{ status: string; tag: string }> | null;
+  /**
+   * Why `kibi sync` cannot compile the requirement as authored (for example
+   * a status outside the entity schema); null when it compiles.
+   */
+  extractionError: string | null;
   /** Inventory drift the requirement shows once it has the suggested status. */
   latentDrift: InventoryRederivation | null;
 }>;
+
+function extractionErrorOf(absolutePath: string): string | null {
+  try {
+    extractFromMarkdown(absolutePath);
+    return null;
+  } catch (error) {
+    return error instanceof Error ? error.message : String(error);
+  }
+}
 
 function statusOf(content: string): unknown {
   const slice = sliceFrontmatter(content);
@@ -104,12 +147,16 @@ export function planRequirementStatusMappings(
       typeof id === "string" && id.length > 0
         ? id
         : path.basename(file.relativePath, ".md");
-    const suggestedStatus = SUGGESTED_REQUIREMENT_STATUS[status] ?? null;
+    const automatic = DELIVERED_REQUIREMENT_STATUS[status] ?? null;
+    const suggestedStatus =
+      automatic?.status ?? SUGGESTED_REQUIREMENT_STATUS[status] ?? null;
     findings.push({
       requirementId,
       path: file.relativePath,
       status,
       suggestedStatus,
+      automatic,
+      extractionError: extractionErrorOf(file.absolutePath),
       latentDrift:
         suggestedStatus === null
           ? null
@@ -123,9 +170,17 @@ export function planRequirementStatusMappings(
   );
 }
 
+function hasTag(content: string, tag: string): boolean {
+  const slice = sliceFrontmatter(content);
+  const tags =
+    slice === null ? undefined : readTopLevelField(slice.text, "tags");
+  return Array.isArray(tags) && tags.includes(tag);
+}
+
 /**
  * Set the status of one requirement from `from` to `to`, replacing only its
- * `status` line. Refuses when the authored status is no longer `from`.
+ * `status` line, and add `tag` when given and missing. Refuses when the
+ * authored status is no longer `from`.
  */
 // implements REQ-cli-schema-migration
 export function applyRequirementStatusMapping(
@@ -133,6 +188,7 @@ export function applyRequirementStatusMapping(
   relativePath: string,
   from: string,
   to: string,
+  tag?: string,
 ): void {
   const absolute = path.join(workspaceRoot, relativePath);
   const content = readText(absolute);
@@ -140,10 +196,55 @@ export function applyRequirementStatusMapping(
     throw new Error(
       `${relativePath} no longer has status ${from}; rerun kibi migrate and approve the new plan.`,
     );
-  const next = withTopLevelField(content, "status", to);
+  const mapped = withTopLevelField(content, "status", to);
+  const next =
+    mapped === null || tag === undefined || hasTag(mapped, tag)
+      ? mapped
+      : withAddedTag(mapped, tag);
   if (next === null)
     throw new Error(
-      `${relativePath}: status could not be set to ${to} without changing other frontmatter fields; set it by hand.`,
+      `${relativePath}: status could not be set to ${to}${tag === undefined ? "" : ` with tag ${tag}`} without changing other frontmatter fields; set it by hand.`,
     );
   writeFileAtomically(absolute, next);
+}
+
+/** What mapping the delivery statuses changed, and what it could not edit. */
+// implements REQ-cli-schema-migration
+export type DeliveredStatusMappingResult = Readonly<{
+  mapped: readonly RequirementStatusFinding[];
+  skipped: readonly Readonly<{ path: string; reason: string }>[];
+}>;
+
+/**
+ * Map every requirement whose status is delivery vocabulary to `closed` with
+ * the tag `implemented`, front matter only. With `only`, maps just those
+ * requirement ids (a plan action applies what it planned). Idempotent.
+ */
+// implements REQ-cli-schema-migration
+export function applyDeliveredStatusMappings(
+  workspaceRoot: string,
+  only?: ReadonlySet<string>,
+): DeliveredStatusMappingResult {
+  const mapped: RequirementStatusFinding[] = [];
+  const skipped: Array<{ path: string; reason: string }> = [];
+  for (const finding of planRequirementStatusMappings(workspaceRoot)) {
+    if (finding.automatic === null) continue;
+    if (only !== undefined && !only.has(finding.requirementId)) continue;
+    try {
+      applyRequirementStatusMapping(
+        workspaceRoot,
+        finding.path,
+        finding.status,
+        finding.automatic.status,
+        finding.automatic.tag,
+      );
+      mapped.push(finding);
+    } catch (error) {
+      skipped.push({
+        path: finding.path,
+        reason: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+  return { mapped, skipped };
 }
