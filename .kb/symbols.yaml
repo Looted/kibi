@@ -51687,6 +51687,8 @@ symbols:
         target: TEST-kb-decision-firmness
       - type: implements
         target: REQ-kb-decision-firmness
+      - type: implements
+        target: REQ-kb-firm-decision-edit
   - id: SYM-kb-decision-firmness-authoredsupersedes
     title: authoredSupersedes
     status: active
@@ -53019,6 +53021,241 @@ symbols:
     origin:
       kind: agent
       recorded_at: 2026-10-13T20:13:15.481Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-decision-firmness
+      - type: implements
+        target: REQ-kb-decision-firmness-from-origin
+  - id: SYM-kb-firm-decision-edit-decisiondocument
+    title: DecisionDocument
+    status: active
+    sourceFile: packages/cli/src/firm-decision-edit.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T08:00:46.301Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-decision-firmness
+      - type: implements
+        target: REQ-kb-firm-decision-edit
+  - id: SYM-kb-firm-decision-edit-decisionclaimfield
+    title: DecisionClaimField
+    status: active
+    sourceFile: packages/cli/src/firm-decision-edit.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T08:00:51.184Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-decision-firmness
+      - type: implements
+        target: REQ-kb-firm-decision-edit
+  - id: SYM-kb-firm-decision-edit-decisionclaimchanges
+    title: decisionClaimChanges
+    status: active
+    sourceFile: packages/cli/src/firm-decision-edit.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T08:00:56.541Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-decision-firmness
+      - type: implements
+        target: REQ-kb-firm-decision-edit
+  - id: SYM-kb-firm-decision-edit-citesnewhumanwords
+    title: citesNewHumanWords
+    status: active
+    sourceFile: packages/cli/src/firm-decision-edit.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T08:01:02.549Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-decision-firmness
+      - type: implements
+        target: REQ-kb-firm-decision-edit
+  - id: SYM-kb-firm-decision-edit-unapprovedfirmedit
+    title: unapprovedFirmEdit
+    status: active
+    sourceFile: packages/cli/src/firm-decision-edit.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T08:01:07.857Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-decision-firmness
+      - type: implements
+        target: REQ-kb-firm-decision-edit
+  - id: SYM-kb-firm-decision-edit-firmeditguidance
+    title: firmEditGuidance
+    status: active
+    sourceFile: packages/cli/src/firm-decision-edit.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T08:01:12.970Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-decision-firmness
+      - type: implements
+        target: REQ-kb-firm-decision-edit
+  - id: SYM-kb-firm-decision-edit-assertfirmdecisionunchanged
+    title: assertFirmDecisionUnchanged
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/firm-decision-guard.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T08:01:17.689Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-decision-firmness
+      - type: implements
+        target: REQ-kb-firm-decision-edit
+  - id: SYM-kb-firm-decision-edit-committedfilereader
+    title: CommittedFileReader
+    status: active
+    sourceFile: packages/cli/src/public/operations/decision-firmness.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T08:01:25.050Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-decision-firmness
+      - type: implements
+        target: REQ-kb-firm-decision-edit
+  - id: SYM-kb-firm-decision-edit-evaluatefirmdecisionedits
+    title: evaluateFirmDecisionEdits
+    status: active
+    sourceFile: packages/cli/src/public/operations/decision-firmness.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T08:01:30.155Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-decision-firmness
+      - type: implements
+        target: REQ-kb-firm-decision-edit
+  - id: SYM-test-firm-decision-edit
+    title: Firm decision edit suite
+    status: active
+    sourceFile: packages/cli/tests/firm-decision-edit.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T08:01:34.061Z
+    relationships:
+      - type: executable_for
+        target: TEST-kb-decision-firmness
+  - id: SYM-upsert-analyzeupsertsemantics
+    title: analyzeUpsertSemantics
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/upsert.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T08:10:05.072Z
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+  - id: SYM-upsert-assertrelationshipshardcontained
+    title: assertRelationshipShardContained
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/upsert.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T08:10:10.693Z
+    relationships:
+      - type: covered_by
+        target: TEST-core-atomic-upsert-persistence
+      - type: implements
+        target: REQ-core-atomic-upsert-persistence
+  - id: SYM-upsert-upsertsemanticanalysis
+    title: UpsertSemanticAnalysis
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/upsert.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T08:10:17.004Z
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+  - id: SYM-upsert-upsertvalidation
+    title: UpsertValidation
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/upsert.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T08:10:22.871Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-truthful-consistency
+      - type: implements
+        target: REQ-kibi-truthful-consistency
+  - id: SYM-upsert-upsertvalidationoptions
+    title: UpsertValidationOptions
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/upsert.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T08:10:28.498Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-truthful-consistency
+      - type: implements
+        target: REQ-kibi-truthful-consistency
+  - id: SYM-upsert-validateupsertforcommit
+    title: validateUpsertForCommit
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/upsert.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T08:10:34.177Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-truthful-consistency
+      - type: implements
+        target: REQ-kb-firm-decision-edit
+      - type: implements
+        target: REQ-kibi-truthful-consistency
+  - id: SYM-decision-firmness-decision-firm-edited-rule
+    title: DECISION_FIRM_EDITED_RULE
+    status: active
+    sourceFile: packages/cli/src/public/operations/decision-firmness.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T08:10:39.937Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-decision-firmness
+      - type: implements
+        target: REQ-kb-firm-decision-edit
+  - id: SYM-decision-firmness-firmness-from-origin-schema-version
+    title: FIRMNESS_FROM_ORIGIN_SCHEMA_VERSION
+    status: active
+    sourceFile: packages/cli/src/public/operations/decision-firmness.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T08:10:45.462Z
     relationships:
       - type: covered_by
         target: TEST-kb-decision-firmness
