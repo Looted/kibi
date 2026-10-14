@@ -1,11 +1,15 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { load as loadYaml } from "js-yaml";
 import { migrateCommand } from "../../src/commands/migrate.js";
 import { extractFromManifest } from "../../src/extractors/manifest.js";
-import { buildSchema6MigrationFragment } from "../../src/operations/migration/schema6.js";
+import {
+  applySchema6MigrationAction,
+  buildSchema6MigrationFragment,
+} from "../../src/operations/migration/schema6.js";
 import { createSymbolGranularityDiagnostics } from "../../src/public/impact/diagnostics.js";
+import { LATEST_KB_SCHEMA_VERSION } from "../../src/utils/schema-version.js";
 import {
   captureIo,
   createGitWorkspace,
@@ -182,7 +186,7 @@ describe("kibi migrate marks coarse symbol links legacy-link", () => {
       safety: "automatic",
       autoApplicable: true,
       affectedEntityIds: ["SYM-greeter"],
-      affectedFiles: [".kb/symbols.yaml"],
+      affectedFiles: [".kb/symbol-coordinates.yaml", ".kb/symbols.yaml"],
       evidence: {
         count: 1,
         manifestHash: expect.stringMatching(/^[0-9a-f]{64}$/),
@@ -218,5 +222,73 @@ describe("kibi migrate marks coarse symbol links legacy-link", () => {
         (candidate) => candidate.id === "symbol-legacy-link-mark",
       ),
     ).toBe(false);
+  });
+
+  // implements REQ-cli-migration-first-commit
+  describe("refreshes generated coordinates after marking", () => {
+    function coordinateIds(cwd: string): string[] {
+      const file = path.join(cwd, ".kb", "symbol-coordinates.yaml");
+      if (!existsSync(file)) return [];
+      const parsed = loadYaml(readFileSync(file, "utf8")) as {
+        coordinates?: Record<string, unknown>;
+      } | null;
+      return Object.keys(parsed?.coordinates ?? {}).sort();
+    }
+
+    test("kibi migrate --yes on a KB already at the latest schema", async () => {
+      const cwd = workspace();
+      writeSource(cwd);
+      writeManifest(cwd, LATEST_KB_SCHEMA_VERSION);
+      writeRequirement(cwd, ".kb/requirements");
+      writeFileSync(path.join(cwd, ".kb", "symbols.yaml"), SYMBOLS);
+      const out = io();
+
+      const result = await migrateCommand({ yes: true, workspaceRoot: cwd });
+      expect(result.exitCode).toBe(0);
+      expect(reasons(cwd)["SYM-greeter"]).toBe("legacy-link");
+      expect(out.logText()).toContain(
+        "Refreshed generated symbol coordinates for the migrated .kb/symbols.yaml",
+      );
+      expect(coordinateIds(cwd)).toEqual(["SYM-farewell", "SYM-greeter"]);
+    });
+
+    test("the planned symbol-legacy-link-mark action", async () => {
+      const cwd = workspace();
+      writeSource(cwd);
+      writeManifest(cwd, 8);
+      writeRequirement(cwd, ".kb/requirements");
+      writeFileSync(path.join(cwd, ".kb", "symbols.yaml"), SYMBOLS);
+      const action = buildSchema6MigrationFragment({
+        workspaceRoot: cwd,
+        currentSchemaVersion: 8,
+      }).actions.find(
+        (candidate) => candidate.id === "symbol-legacy-link-mark",
+      );
+      if (action === undefined) throw new Error("no legacy-link action");
+      io();
+
+      await applySchema6MigrationAction(action, {
+        workspaceRoot: cwd,
+        clock: () => new Date("2026-01-01T00:00:00.000Z"),
+      });
+      expect(reasons(cwd)["SYM-greeter"]).toBe("legacy-link");
+      expect(coordinateIds(cwd)).toEqual(["SYM-farewell", "SYM-greeter"]);
+    });
+
+    test("a run that leaves the symbols manifest untouched writes no coordinates", async () => {
+      const cwd = workspace();
+      writeManifest(cwd, LATEST_KB_SCHEMA_VERSION);
+      writeRequirement(cwd, ".kb/requirements");
+      const out = io();
+
+      const result = await migrateCommand({ yes: true, workspaceRoot: cwd });
+      expect(result.exitCode).toBe(0);
+      expect(out.logText()).not.toContain(
+        "Refreshed generated symbol coordinates",
+      );
+      expect(existsSync(path.join(cwd, ".kb", "symbol-coordinates.yaml"))).toBe(
+        false,
+      );
+    });
   });
 });

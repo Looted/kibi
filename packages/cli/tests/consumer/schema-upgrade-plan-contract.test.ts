@@ -103,7 +103,7 @@ describe("the status plan's schema upgrade declares every write", () => {
       code: "symbol_legacy_link_mark",
       state: "ready",
       safety: "automatic",
-      affectedFiles: [".kb/symbols.yaml"],
+      affectedFiles: [".kb/symbol-coordinates.yaml", ".kb/symbols.yaml"],
     });
     const upgrade = plan.actions.find(
       (action) => action.id === "schema-config-upgrade",

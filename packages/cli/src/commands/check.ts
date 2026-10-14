@@ -91,6 +91,7 @@ import {
   parseKibiImpactOverride,
 } from "../traceability/staged-impact-contract.js";
 import { stagedInventoryDriftViolations } from "../traceability/staged-inventory-drift.js";
+import { stagedCommitCarriesMigration } from "../traceability/staged-migration.js";
 import {
   assessStagedSymbolsManifest,
   collectStagedAuthoredSymbolsManifestEvidence,
@@ -509,6 +510,14 @@ function uniqueSorted(values: Iterable<string>): string[] {
   return Array.from(new Set(values)).sort();
 }
 
+/** The Baseline-style line naming records changed only by a migration. */
+// implements REQ-cli-migration-first-commit
+function migrationOnlyNote(entityIds: readonly string[]): string {
+  const shown = entityIds.slice(0, 5).join(", ");
+  const more = entityIds.length > 5 ? ` and ${entityIds.length - 5} more` : "";
+  return `Migration commit: ${entityIds.length} symbol record(s) changed only by kibi migrate (legacy-link marks, review:context-missing tags) are not judged as changed by this commit: ${shown}${more}. Run kibi check for the full report.`;
+}
+
 function hasYamlFrontmatter(content: string): boolean {
   const trimmed = content.trimStart();
   return trimmed.startsWith("---") && trimmed.slice(3).includes("\n---");
@@ -526,6 +535,8 @@ function buildStagedKibiImpactEvidence(options: {
   symbolsManifestPath: string;
   readBaseFile?: (filePath: string) => string | null;
   analyzeSource?: (filePath: string, content: string) => SourceAnalysisResult;
+  ignoreMigrationOwnedEdits?: boolean;
+  onMigrationOnlySymbols?: (entityIds: readonly string[]) => void;
 }): KibiImpactEvidence {
   const {
     stagedFiles,
@@ -573,7 +584,12 @@ function buildStagedKibiImpactEvidence(options: {
       ...(options.readBaseFile ? { readBaseFile: options.readBaseFile } : {}),
       stagedFiles,
       sourceFiles: behaviorSourceFiles,
+      ignoreMigrationOwnedEdits: options.ignoreMigrationOwnedEdits === true,
     });
+  if (stagedAuthoredSymbolsEvidence.migrationOnlyEntityIds !== undefined)
+    options.onMigrationOnlySymbols?.(
+      stagedAuthoredSymbolsEvidence.migrationOnlyEntityIds,
+    );
 
   type KbArtifact = Extract<
     KibiImpactEvidence["mode"],
@@ -987,7 +1003,28 @@ export async function checkCommand(
           ...markdownResultsByPath.values(),
         ];
 
+        const readTreeFile =
+          (tree: string) =>
+          (filePath: string): string | null => {
+            try {
+              return snapshot
+                .readGit(["show", `${tree}:${filePath}`])
+                .toString("utf8");
+            } catch {
+              return null;
+            }
+          };
+        // A commit that carries a kibi migrate run is not charged with the
+        // fields the migration rewrote mechanically in existing records.
+        const carriesMigration = stagedCommitCarriesMigration(
+          readTreeFile(snapshot.baseTree),
+          readTreeFile(snapshot.headTree),
+        );
         const stagedKibiEvidence = buildStagedKibiImpactEvidence({
+          ignoreMigrationOwnedEdits: carriesMigration,
+          onMigrationOnlySymbols: (entityIds) => {
+            baselineNotes.push(migrationOnlyNote(entityIds));
+          },
           analyzeSource: (filePath) => {
             const result = sourceAnalysis.get(filePath)?.after;
             if (!result)
