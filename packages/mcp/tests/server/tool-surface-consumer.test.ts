@@ -190,6 +190,49 @@ describe("kibi-mcp consolidated tool surface", () => {
     expect(query.entities).toEqual([]);
   }, 180_000);
 
+  test("a rejected input keeps its Kibi error code on MCP, as on the CLI JSON route", async () => {
+    const workspace = initWorkspace();
+    const client = await connect(workspace);
+    const input = {
+      intent: "Refunds must not exceed the original charge.",
+      mode: "create",
+      context: "Reason not stated.",
+      clauses: ["Refunds are capped at the charge."],
+    };
+
+    const result = (await client.callTool({
+      name: "kb_compile_intent",
+      arguments: input,
+    })) as {
+      isError?: boolean;
+      content: { type: string; text: string }[];
+      structuredContent?: Json;
+    };
+    expect(result.isError).toBe(true);
+    const envelope = result.structuredContent as Json;
+    expect(envelope.status).toBe("error");
+    const error = envelope.error as Json;
+    expect(error.code).toBe("VALIDATION_FAILED");
+    expect(error.retryable).toBe(false);
+    expect(String(error.message)).toContain(
+      'this clause does not occur in it: "Refunds are capped at the charge"',
+    );
+    expect(result.content[0]?.text).toBe(
+      `Tool kb_compile_intent failed: [VALIDATION_FAILED] ${error.message}`,
+    );
+
+    // The CLI JSON route answers the same input with the same error.
+    let cliStdout = "";
+    try {
+      kibi(workspace, ["compile-intent"], input);
+    } catch (failure) {
+      cliStdout = String((failure as { stdout?: string }).stdout ?? "");
+    }
+    const cli = JSON.parse(cliStdout) as Json;
+    expect(cli.status).toBe("error");
+    expect(cli.error).toEqual(error);
+  }, 180_000);
+
   test("registers optional tools only when KIBI_MCP_OPTIONAL_TOOLS names them", async () => {
     const workspace = initWorkspace();
     const jobOnly = await connect(workspace, {

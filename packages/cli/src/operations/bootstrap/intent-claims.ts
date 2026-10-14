@@ -8,6 +8,11 @@ import {
   upsert,
 } from "./candidate-helpers.js";
 import {
+  type ExistingRequirement,
+  type RestatementMatch,
+  findRestatement,
+} from "./claim-restatement.js";
+import {
   type SubjectKeyRegistry,
   claimFor,
   planSubjectKey,
@@ -265,19 +270,36 @@ function conflictCandidates(
 }
 
 /**
+ * The review signal a planned claim carries when it closely restates a
+ * current requirement: kept, but named so the reviewer can drop it or link
+ * the two with restates or supersedes.
+ */
+// implements REQ-bootstrap-claim-restatement
+function nearRestatementDiagnostic(
+  source: BootstrapKnowledgeSource,
+  claim: BootstrapIntentClaim,
+  match: RestatementMatch,
+): string {
+  return `Intent claim at ${source.id}:${claim.reference} closely restates current requirement ${match.requirementId} (token overlap ${match.score} with its ${match.field === "title" ? "title" : "semantic text"}, not an exact match); it is still planned. Review it before apply: drop the claim if it states the same rule, or keep it and link the two with restates or supersedes.`;
+}
+
+/**
  * Turn intent the agent harvested from declared knowledge sources into cited
  * bootstrap candidates. Kibi never contacts those sources: it only records
  * what the agent read, binds it into the plan hash through the declared
  * context, and keeps the citation on every candidate it produces. A claim the
  * strict modeler cannot ground stays an explicit authoring follow-up instead
- * of becoming unverifiable knowledge.
+ * of becoming unverifiable knowledge. An intent claim whose statement or
+ * excerpt restates a current requirement is already in the KB and is counted
+ * as such instead of being planned again under a new id.
  */
-// implements REQ-kibi-bootstrap-knowledge-sources, REQ-bootstrap-claim-kinds-and-conflicts
+// implements REQ-kibi-bootstrap-knowledge-sources, REQ-bootstrap-claim-kinds-and-conflicts, REQ-bootstrap-claim-restatement
 export function buildIntentClaimCandidates(
   declared: BootstrapDeclaredContext,
   existingIds: ReadonlySet<string>,
   minConfidence: number,
   subjectKeys?: SubjectKeyRegistry,
+  existingRequirements: readonly ExistingRequirement[] = [],
 ): IntentClaimBuildResult {
   const sources = new Map(
     (declared.knowledgeSources ?? []).map((source) => [source.id, source]),
@@ -340,7 +362,34 @@ export function buildIntentClaimCandidates(
       else candidates.push(review);
       continue;
     }
-    const evidence = citation(source, claim);
+    // A claim that restates a current requirement word for word (case,
+    // whitespace and punctuation aside) is that requirement: count it as
+    // already in the KB under the requirement's id, and do not model it.
+    const restatement = findRestatement(
+      [claim.statement, claim.excerpt],
+      existingRequirements,
+    );
+    if (restatement?.kind === "exact") {
+      suppressed.push({
+        candidateId: "",
+        reason: "entity_exists",
+        sourcePath: claim.reference,
+        entityType: "req",
+        statement: claim.statement,
+        sourceId: source.id,
+        matchedId: restatement.requirementId,
+        matchedBy: "restatement",
+        matchedField: restatement.field,
+      });
+      continue;
+    }
+    const nearRestatement = restatement?.kind === "near" ? restatement : null;
+    const evidence = [
+      ...citation(source, claim),
+      ...(nearRestatement
+        ? [`possible_restatement:${nearRestatement.requirementId}`]
+        : []),
+    ];
     const provenance = `${source.id}:${claim.reference}`;
     let writeSet: ReturnType<typeof buildStrictWriteSet> | null = null;
     try {
@@ -412,6 +461,10 @@ export function buildIntentClaimCandidates(
             : step,
         ),
       });
+      if (nearRestatement)
+        diagnostics.push(
+          nearRestatementDiagnostic(source, claim, nearRestatement),
+        );
       continue;
     }
     if (writeSet?.isStrict && confidence < minConfidence)
@@ -437,6 +490,10 @@ export function buildIntentClaimCandidates(
       confidence,
       evidence,
     });
+    if (nearRestatement)
+      diagnostics.push(
+        nearRestatementDiagnostic(source, claim, nearRestatement),
+      );
   }
   const declaredConflicts = conflictCandidates(
     declared,

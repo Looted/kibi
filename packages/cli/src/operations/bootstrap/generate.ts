@@ -1,7 +1,10 @@
 import { createHash } from "node:crypto";
 import path from "node:path";
 
-import { loadEntityIds } from "../../public/operations/discovery-entities.js";
+import {
+  loadCurrentRequirementTexts,
+  loadEntityIds,
+} from "../../public/operations/discovery-entities.js";
 import { executeStatus } from "../../public/operations/discovery-executors.js";
 import type { OperationContext } from "../../public/operations/runtime-types.js";
 import { readWorkspaceSnapshot } from "../../public/operations/workspace-snapshot.js";
@@ -14,6 +17,7 @@ import {
   buildBootstrapCandidates,
   isProvenanceStubCandidate,
 } from "./candidates.js";
+import type { ExistingRequirement } from "./claim-restatement.js";
 import { discoverBootstrap } from "./discovery.js";
 import { buildIntentClaimCandidates } from "./intent-claims.js";
 import { normalizeBootstrapContext, presentBootstrap } from "./presentation.js";
@@ -301,24 +305,41 @@ function activationSuppressedClaims(
     }));
 }
 
+type ExistingKnowledge = {
+  readonly ids: ReadonlySet<string>;
+  readonly requirements: readonly ExistingRequirement[];
+};
+
+const NO_EXISTING_KNOWLEDGE: ExistingKnowledge = {
+  ids: new Set<string>(),
+  requirements: [],
+};
+
 /**
  * IDs already in the KB, so declared claims and discovered candidates that
- * exist are counted under entity_exists instead of being planned again. An
- * attached root starts the lazy engine when the host supplied none (the CLI
- * does so for status anyway); an unattached root never starts one.
+ * exist are counted under entity_exists instead of being planned again, and,
+ * when intent claims are declared, the current requirements those claims may
+ * restate. An attached root starts the lazy engine when the host supplied
+ * none (the CLI does so for status anyway); an unattached root never starts
+ * one.
  */
-// implements REQ-bootstrap-intent-claim-accounting
-async function existingEntityIds(
+// implements REQ-bootstrap-intent-claim-accounting, REQ-bootstrap-claim-restatement
+async function existingKnowledge(
   context: OperationContext,
   attached: boolean,
-): Promise<ReadonlySet<string>> {
+  withRequirements: boolean,
+): Promise<ExistingKnowledge> {
   try {
     const prolog =
       context.prolog ?? (attached ? await context.ensureProlog?.() : undefined);
-    if (!prolog) return new Set<string>();
+    if (!prolog) return NO_EXISTING_KNOWLEDGE;
     // Ids only: materializing every entity (receipt histories included)
     // just to build this set exceeds the bounded engine output.
-    return new Set((await loadEntityIds(prolog)).filter(Boolean));
+    const ids = new Set((await loadEntityIds(prolog)).filter(Boolean));
+    const requirements = withRequirements
+      ? await loadCurrentRequirementTexts(prolog)
+      : [];
+    return { ids, requirements };
   } catch (error) {
     throw new Error(
       `Bootstrap binding could not read existing entity IDs: ${error instanceof Error ? error.message : String(error)}`,
@@ -438,14 +459,16 @@ export async function executePlanBootstrap(
   const maxCandidates = clamp(Math.trunc(args.maxCandidates ?? 50), 1, 200);
   const entityBindingDiagnostics: string[] = [];
   const discovery = await discoverBootstrap(context);
-  const existingIds = await existingEntityIds(
+  const existing = await existingKnowledge(
     context,
     discovery.activation.activationState === "root_active_thin" ||
       discovery.activation.activationState === "root_active_seeded",
+    (declared.intentClaims?.length ?? 0) > 0,
   ).catch((error: Error) => {
     entityBindingDiagnostics.push(error.message);
-    return new Set<string>();
+    return NO_EXISTING_KNOWLEDGE;
   });
+  const existingIds = existing.ids;
   // Discovery runs before planning so its evidence paths can be bound into
   // the exact plan rather than leaving the reviewer to reconstruct them.
   const bound = await expectedSnapshots(
@@ -484,6 +507,7 @@ export async function executePlanBootstrap(
         existingIds,
         minConfidence,
         subjectKeys,
+        existing.requirements,
       )
     : {
         candidates: [],
