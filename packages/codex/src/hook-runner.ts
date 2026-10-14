@@ -16,6 +16,7 @@ import {
   canonicalizeWorkspacePath,
   extractEditedPaths,
 } from "kibi-agent-core/path-policy";
+import { requirementCandidatesForPath } from "kibi-agent-core/requirement-candidates";
 import {
   claimSnippetSlot,
   createEntitySummarizer,
@@ -150,7 +151,11 @@ function preEditContext(
         index.manifest === "unreadable" ||
         (index.coordinateFiles.includes(relativePath) &&
           !index.unlinkedFiles.includes(relativePath));
-      if (!unread) return unownedSourceNote(relativePath);
+      if (!unread)
+        return unownedSourceNote(
+          relativePath,
+          requirementCandidatesForPath(workspaceRoot, relativePath),
+        );
       const noticeKey = `${input.sessionId ?? ""}\u0000notice\u0000manifest-unreadable`;
       return claimSnippetSlot(stateDir, noticeKey)
         ? unreadableManifestNote(relativePath)

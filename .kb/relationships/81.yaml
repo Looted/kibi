@@ -265,3 +265,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-eb7cbed2a467
+  - type: implements
+    from: SYM-agent-core-snippets-grounding-link-types
+    to: REQ-agent-core-edit-snippets
+    created_at: 2026-10-14T10:08:05.799Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a2d2a21d18c5
+  - type: covered_by
+    from: SYM-agent-core-snippets-grounding-link-types
+    to: TEST-agent-core-edit-snippets
+    created_at: 2026-10-14T10:08:05.829Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6a82b855aa65

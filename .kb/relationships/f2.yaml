@@ -174,3 +174,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d5d103273aef
+  - type: implements
+    from: SYM-agent-core-snippets-editknowledgeinput
+    to: REQ-agent-core-edit-snippets
+    created_at: 2026-10-14T10:08:01.324Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-daddf9b1ad28
+  - type: covered_by
+    from: SYM-agent-core-snippets-editknowledgeinput
+    to: TEST-agent-core-edit-snippets
+    created_at: 2026-10-14T10:08:01.345Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2d199b66e70c

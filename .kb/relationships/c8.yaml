@@ -300,3 +300,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c49947362793
+  - type: implements
+    from: SYM-agent-core-snippets-claimsnippetslot
+    to: REQ-agent-core-edit-snippets
+    created_at: 2026-10-14T10:07:41.759Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6587d7a57ed2
+  - type: covered_by
+    from: SYM-agent-core-snippets-claimsnippetslot
+    to: TEST-agent-core-edit-snippets
+    created_at: 2026-10-14T10:07:41.790Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9eb1ceba378a

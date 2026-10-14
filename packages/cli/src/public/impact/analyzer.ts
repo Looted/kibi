@@ -32,6 +32,7 @@ import type {
   ChangedFileImpactOptions,
   ChangedFileImpactResult,
 } from "./types.js";
+import { createUnownedFileDiagnostics } from "./unowned-files.js";
 
 export async function analyzeChangedFileImpact(
   options: ChangedFileImpactOptions,
@@ -139,10 +140,27 @@ export async function analyzeChangedFileImpact(
       result.sourceFile !== undefined &&
       activeSourceFiles.has(result.sourceFile),
   );
+  const linkedSourceFiles = new Set(
+    manifestResults
+      .filter((result) =>
+        result.relationships.some((relationship) =>
+          isTraceabilityRelationshipType(relationship.type),
+        ),
+      )
+      .map((result) => result.sourceFile)
+      .filter((file): file is string => file !== undefined),
+  );
   const impactDiagnostics =
     options.includeImpactDiagnostics === false
       ? []
       : [
+          // Named files first: a file without links is the answer a scoped
+          // check most easily misreads as "no rule applies".
+          ...createUnownedFileDiagnostics({
+            workspaceRoot,
+            requestedFiles: [...filter],
+            linkedSourceFiles,
+          }),
           ...createSymbolGranularityDiagnostics({
             manifestResults: activeManifestResults,
             symbolsByFile,
@@ -157,13 +175,9 @@ export async function analyzeChangedFileImpact(
           ...createSemanticReviewDiagnostics({
             symbolsByFile,
             linkedSourceFiles: new Set(
-              activeManifestResults
-                .filter((result) =>
-                  result.relationships.some((relationship) =>
-                    isTraceabilityRelationshipType(relationship.type),
-                  ),
-                )
-                .map((result) => result.sourceFile as string),
+              [...linkedSourceFiles].filter((file) =>
+                activeSourceFiles.has(file),
+              ),
             ),
           }),
         ];
