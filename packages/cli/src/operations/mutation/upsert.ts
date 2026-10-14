@@ -32,6 +32,7 @@ import {
 import type { SemanticAdvisorReceipt } from "../semantic-advisor/types.js";
 import { entityContextWarnings } from "./context-warning.js";
 import { buildUpsertCommitGoal, formatUpsertError } from "./contradictions.js";
+import { assertFirmDecisionUnchanged } from "./firm-decision-guard.js";
 import { resolveUpsertOrigin } from "./origin.js";
 import {
   planRecoveryNotes,
@@ -429,6 +430,7 @@ export async function validateUpsertForCommit(
     staged,
   );
   await assertPredicateArgumentVocabulary(prolog, validated.entity, staged);
+  await assertFirmDecisionUnchanged(payload, context.workspaceRoot, lookup);
   // The origin the write records is added last: none of the checks above
   // reads it, and a rejected payload never pays for the stored-origin read.
   const recorded = await resolveUpsertOrigin(

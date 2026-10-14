@@ -265,3 +265,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-aae6d1394c64
+  - type: implements
+    from: SYM-kb-firm-decision-edit-citesnewhumanwords
+    to: REQ-kb-firm-decision-edit
+    created_at: 2026-10-14T08:01:04.349Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b0f4e5a14b7b
+  - type: covered_by
+    from: SYM-kb-firm-decision-edit-citesnewhumanwords
+    to: TEST-kb-decision-firmness
+    created_at: 2026-10-14T08:01:04.368Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-65e0fc942269

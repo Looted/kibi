@@ -114,7 +114,13 @@ describe("entity origin through kb_upsert", () => {
     await route(workspace, "upsert", {
       type: "req",
       id: "REQ-ORIGIN-LEGACY",
-      properties: { title: "Retitled by an agent", status: "open" },
+      // Without an origin the rule reads as firm, so the retitle cites the
+      // person's words; the origin is still not invented.
+      properties: {
+        title: "Retitled by an agent",
+        status: "open",
+        approval_ref: "ticket-41",
+      },
     });
 
     const entity = await queried(workspace, "REQ-ORIGIN-LEGACY");

@@ -129,7 +129,7 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       type: "string",
       enum: ["firm", "default", "exploratory"],
       description:
-        "req/adr only. firm = a human stated it as a rule (needs origin.ref to their words); default (when absent) = delegated or agent choice; exploratory = flagged guess.",
+        "req/adr only. firm = a human stated it as a rule (needs origin.ref to their words); its title, meaning or firmness changes only with new human words (a new origin.ref) or by supersede. default = delegated or agent choice; exploratory = flagged guess. Absent = default if an agent wrote it, else firm.",
     },
     rationale: {
       type: "string",
