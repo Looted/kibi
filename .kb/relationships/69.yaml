@@ -377,3 +377,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cb22bc79d8f3
+  - type: implements
+    from: SYM-upsert-upsertvalidationoptions
+    to: REQ-kibi-truthful-consistency
+    created_at: 2026-10-14T08:10:29.640Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c6569a88b039
+  - type: covered_by
+    from: SYM-upsert-upsertvalidationoptions
+    to: TEST-kibi-truthful-consistency
+    created_at: 2026-10-14T08:10:29.667Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e87152833bfb

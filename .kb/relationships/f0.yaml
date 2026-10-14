@@ -160,3 +160,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7d642b6db4cc
+  - type: implements
+    from: SYM-kb-decision-firmness-collectdecisionfirmnessviolations
+    to: REQ-kb-firm-decision-edit
+    created_at: 2026-10-14T08:01:41.420Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-05aad7dd5f5d

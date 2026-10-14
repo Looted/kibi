@@ -272,3 +272,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-455e7f500f47
+  - type: implements
+    from: SYM-upsert-upsertvalidation
+    to: REQ-kibi-truthful-consistency
+    created_at: 2026-10-14T08:10:24.234Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-19c7adacc48c
+  - type: covered_by
+    from: SYM-upsert-upsertvalidation
+    to: TEST-kibi-truthful-consistency
+    created_at: 2026-10-14T08:10:24.262Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-320e55864a17

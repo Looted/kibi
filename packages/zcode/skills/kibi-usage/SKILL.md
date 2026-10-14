@@ -4,7 +4,7 @@ description: Use Kibi's source-first, exact-Git, migration-aware, proof-aware op
 license: AGPL-3.0-or-later
 metadata:
   id: kibi-usage
-  version: 2.17.0
+  version: 2.18.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -370,7 +370,11 @@ Search answers, `kb_query` rows and hook snippets show it (snippets label only
   wrote it (`origin.kind: agent`): rules people wrote, imported or carried
   over from before origins existed are theirs. `kb_check` blocks an explicit
   `firmness: firm` without `origin.ref` to their words, and a replacement of
-  a firm decision that is not itself firm.
+  a firm decision that is not itself firm. Never edit a firm decision's
+  title, statement or (ADR) body in place, by `kb_upsert` or on disk:
+  `kb_upsert` refuses it and `kb_check` reports `decision-firm-edited`
+  unless the edit cites new human words in `origin.ref`. Context sections,
+  tags, status and links stay editable.
 - `default`: a delegated or agent choice (`firmness: default`, or an
   agent-written decision without `firmness`). Follow it; supersede it only on
   evidence that it is wrong (a failing test, a measured cost, a constraint it
@@ -383,7 +387,8 @@ conflict a person has to decide. Name the rule (id and what it requires) and
 ask whether to change it; do not implement the request and do not supersede
 the rule. Go ahead only when the person has said to change that rule, in this
 task or in reply: then supersede it with `firmness: firm` and `origin.ref` to
-their words, and say in the final answer which rule changed.
+their words (or, for a correction they asked for in place, update it with
+`origin.ref` to those words), and say in the final answer which rule changed.
 
 Set `firmness` from what a human actually said: only their stated rule is
 `firm` (with `origin.ref`); "do whatever" or your own pick is `default`; a

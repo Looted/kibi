@@ -300,3 +300,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-785efff5acaa
+  - type: implements
+    from: SYM-kb-firm-decision-edit-committedfilereader
+    to: REQ-kb-firm-decision-edit
+    created_at: 2026-10-14T08:01:26.369Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-73632e3e34fd
+  - type: covered_by
+    from: SYM-kb-firm-decision-edit-committedfilereader
+    to: TEST-kb-decision-firmness
+    created_at: 2026-10-14T08:01:26.395Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1d3796eb8fa3
