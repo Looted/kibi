@@ -566,3 +566,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9a3e85c7211a
+  - type: constrains
+    from: REQ-claude-decision-capture-nudges
+    to: FACT-SUBJECT-KIBI-CLAUDE-DECISION-CAPTURE
+    created_at: 2026-10-14T16:57:41.459Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c5636bb786d2
+  - type: requires_property
+    from: REQ-claude-decision-capture-nudges
+    to: FACT-claude-capture-rule-prompt-note
+    created_at: 2026-10-14T16:57:41.493Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-de28b694ae97
+  - type: requires_property
+    from: REQ-claude-decision-capture-nudges
+    to: FACT-claude-capture-stop-once
+    created_at: 2026-10-14T16:57:41.514Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3a5064efd061
+  - type: specified_by
+    from: REQ-claude-decision-capture-nudges
+    to: SCEN-claude-decision-capture-nudges
+    created_at: 2026-10-14T16:57:41.533Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b99aac0f26c7
+  - type: verified_by
+    from: REQ-claude-decision-capture-nudges
+    to: TEST-claude-edit-snippet-hook
+    created_at: 2026-10-14T16:57:41.545Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4ce827624a82
+  - type: relates_to
+    from: REQ-claude-decision-capture-nudges
+    to: REQ-claude-code-kibi-plugin-v1
+    created_at: 2026-10-14T16:57:41.556Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2981d42d5072
