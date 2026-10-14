@@ -54987,7 +54987,7 @@ symbols:
       recorded_at: 2026-10-14T21:22:15.933Z
     relationships:
       - type: covered_by
-        target: TEST-branch-detached-head-read-only
+        target: TEST-cli-branch-store-recovery
       - type: implements
         target: REQ-branch-store-recovery-v4
   - id: SYM-diagnostics-branchErrorToDiagnostic
@@ -55000,7 +55000,7 @@ symbols:
       recorded_at: 2026-10-14T21:22:22.583Z
     relationships:
       - type: covered_by
-        target: TEST-branch-detached-head-read-only
+        target: TEST-cli-branch-store-recovery
       - type: implements
         target: REQ-branch-store-recovery-v4
   - id: SYM-diagnostics-createKbMissingDiagnostic
@@ -55013,7 +55013,7 @@ symbols:
       recorded_at: 2026-10-14T21:22:28.895Z
     relationships:
       - type: covered_by
-        target: TEST-branch-detached-head-read-only
+        target: TEST-cli-branch-store-recovery
       - type: implements
         target: REQ-branch-store-recovery-v4
   - id: SYM-diagnostics-createDocsNotIndexedDiagnostic
