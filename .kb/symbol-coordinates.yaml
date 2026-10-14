@@ -9541,7 +9541,7 @@ coordinates:
     sourceLine: 25
   SYM-core-check-logic-coverage:
     identityHash: 7edaa0ca4741f3c87af436f228970ea7884ee9db9d085ff5519e3837d24d4fc6
-    sourceHash: 86b5ce9e1fea2962622d272a2567a897a640df5e073f5858b595d83a4f6dbee7
+    sourceHash: 330b302893265fc8a113150d0e7299c499d719812e5799da1ab527369f3d860c
     sourceColumn: 4
     sourceEndColumn: 24
     sourceEndLine: 41
@@ -9557,7 +9557,7 @@ coordinates:
     sourceLine: 32
   SYM-core-check-related-requirement-unmodeled:
     identityHash: 16653358e52f3d585319b5226e061cd643fd22a6ecff605804f4e74ed6d2dac1
-    sourceHash: 86b5ce9e1fea2962622d272a2567a897a640df5e073f5858b595d83a4f6dbee7
+    sourceHash: 330b302893265fc8a113150d0e7299c499d719812e5799da1ab527369f3d860c
     sourceColumn: 4
     sourceEndColumn: 39
     sourceEndLine: 45
@@ -9565,7 +9565,7 @@ coordinates:
     sourceLine: 45
   SYM-core-check-scenario-feasibility:
     identityHash: 1c956040cf963424dc47f7c9188dc861354db4962d57d686c3126007751887e0
-    sourceHash: 86b5ce9e1fea2962622d272a2567a897a640df5e073f5858b595d83a4f6dbee7
+    sourceHash: 330b302893265fc8a113150d0e7299c499d719812e5799da1ab527369f3d860c
     sourceColumn: 4
     sourceEndColumn: 30
     sourceEndLine: 23
@@ -9573,7 +9573,7 @@ coordinates:
     sourceLine: 23
   SYM-core-check-selected-json:
     identityHash: c807dd22aed58d2f33db66b50550f7642ac22a341ef2beb7a53228741a76d7a7
-    sourceHash: 86b5ce9e1fea2962622d272a2567a897a640df5e073f5858b595d83a4f6dbee7
+    sourceHash: 330b302893265fc8a113150d0e7299c499d719812e5799da1ab527369f3d860c
     sourceColumn: 4
     sourceEndColumn: 23
     sourceEndLine: 9
@@ -9701,7 +9701,7 @@ coordinates:
     sourceLine: 41
   SYM-core-domain-contradiction-witnesses:
     identityHash: f278d76085427cd73c6a226059d2e1c71fd57017ba36138a8a9bf65a226b3031
-    sourceHash: 86b5ce9e1fea2962622d272a2567a897a640df5e073f5858b595d83a4f6dbee7
+    sourceHash: 330b302893265fc8a113150d0e7299c499d719812e5799da1ab527369f3d860c
     sourceColumn: 4
     sourceEndColumn: 40
     sourceEndLine: 32
@@ -9741,20 +9741,20 @@ coordinates:
     sourceLine: 3
   SYM-core-expression-dependency:
     identityHash: e5976d13ca28c95816200b7afdccb3372a7cec6fd15f04fb0ba9856a53eee009
-    sourceHash: 904d7f62f7ac88f97552773ffc449a08e8985033286834433a7c9ae76bacc9b4
+    sourceHash: bc0aef6d484535a2e8da0c78dfc5e999ee354cfd4b6697efc1793bad89a3e768
     sourceColumn: 4
     sourceEndColumn: 25
-    sourceEndLine: 1191
+    sourceEndLine: 1192
     sourceFile: packages/core/src/logic_ir.pl
-    sourceLine: 1191
+    sourceLine: 1192
   SYM-core-grounded-requirement-claim-fact:
     identityHash: 92a025b07d51902993f2c5c35f76ebea849a7f5b70fa7bc420223b2028e4ef86
-    sourceHash: 86b5ce9e1fea2962622d272a2567a897a640df5e073f5858b595d83a4f6dbee7
+    sourceHash: 330b302893265fc8a113150d0e7299c499d719812e5799da1ab527369f3d860c
     sourceColumn: 4
     sourceEndColumn: 35
-    sourceEndLine: 3120
+    sourceEndLine: 3121
     sourceFile: packages/core/src/checks.pl
-    sourceLine: 3120
+    sourceLine: 3121
   SYM-core-intervals-numeric-satisfiable:
     identityHash: 35a38a233b82f0bc362189eb1b21e02cf4a6ae5e9c49a10894539fb1ed8f7fd1
     sourceHash: 2c146cd6af0d0b8ad9396b8a0909ec8e5e89e42ab4c5ea18923947dd86bed2ae
@@ -9949,12 +9949,12 @@ coordinates:
     sourceLine: 181
   SYM-core-rule-contradiction-witness:
     identityHash: 2f01dd6c5e47703ac9f7253ebe3bca6344375c6d2de7b839a94b44c949ec5bce
-    sourceHash: 86b5ce9e1fea2962622d272a2567a897a640df5e073f5858b595d83a4f6dbee7
+    sourceHash: 330b302893265fc8a113150d0e7299c499d719812e5799da1ab527369f3d860c
     sourceColumn: 21
     sourceEndColumn: 47
-    sourceEndLine: 2436
+    sourceEndLine: 2437
     sourceFile: packages/core/src/checks.pl
-    sourceLine: 2436
+    sourceLine: 2437
   SYM-core-scenario-accepted-scopes:
     identityHash: 249c155f5f46cfe46af60d2de85f8a4962363bee572587bf02945900964f3925
     sourceHash: 3796210c1c210da67bf31f81dbef2c36977a42df108e6c31a93a6fc0c5738ef8
@@ -9981,12 +9981,12 @@ coordinates:
     sourceLine: 21
   SYM-core-strict-req-predicate-grounds-subject:
     identityHash: 412c4d5229a8d965c8c0f9a64d8792c93ecdf6d4be18ff55279cb8b994ac551d
-    sourceHash: 86b5ce9e1fea2962622d272a2567a897a640df5e073f5858b595d83a4f6dbee7
+    sourceHash: 330b302893265fc8a113150d0e7299c499d719812e5799da1ab527369f3d860c
     sourceColumn: 7
     sourceEndColumn: 43
-    sourceEndLine: 2802
+    sourceEndLine: 2803
     sourceFile: packages/core/src/checks.pl
-    sourceLine: 2802
+    sourceLine: 2803
   SYM-core-valid-claim-provenance:
     identityHash: 7c00e8c202fe781bda526a595aede732c168d00914af07ff0e6c635f2d2ac94d
     sourceHash: 7b4fdc41a6df3ae4acedcb43212d8622974e56e2cd28f7f34df5a1ac1a751a76
