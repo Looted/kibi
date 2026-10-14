@@ -154,7 +154,19 @@ export type SearchAnswerScope = Readonly<{
  */
 // implements REQ-search-answer-hygiene
 export type SearchAnswerUngoverned = SearchAnswerFact &
-  Readonly<{ type: string; rank: number }>;
+  Readonly<{
+    type: string;
+    rank: number;
+    /**
+     * The governing requirement's fact on the same predicate and key
+     * arguments that this unlinked fact disagrees with; that fact holds.
+     */
+    overriddenBy?: Readonly<{
+      fact: string;
+      requirement: string;
+      claim?: string;
+    }>;
+  }>;
 
 // implements REQ-kibi-search-answer-layer-v2, REQ-search-answer-hygiene
 export type SearchAnswer = Readonly<{
@@ -326,6 +338,42 @@ export function predicateKeyFilter(
     if (value !== "") where[key] = value;
   }
   return Object.keys(where).length > 0 ? where : undefined;
+}
+
+/**
+ * Whether two predicate facts state the same predicate, namespace and key
+ * arguments with other values or polarity. Without declared key arguments
+ * two tuples may both hold (alice has two roles), so no pair is claimed.
+ */
+// implements REQ-search-answer-hygiene
+function disagreeingPredicateFacts(
+  left: Row,
+  right: Row,
+  schema: PredicateFactSchema | undefined,
+): boolean {
+  if (
+    schema === undefined ||
+    !schema.keyArguments.some((key) => schema.argumentNames.includes(key))
+  )
+    return false;
+  if (text(left.fact_kind) !== "predicate") return false;
+  if (text(right.fact_kind) !== "predicate") return false;
+  if (text(left.predicate_name) !== text(right.predicate_name)) return false;
+  const namespace = (row: Row) => text(row.predicate_namespace) || "default";
+  if (namespace(left) !== namespace(right)) return false;
+  const argsOf = (row: Row) =>
+    Array.isArray(row.predicate_args) ? row.predicate_args.map(text) : [];
+  const leftArgs = argsOf(left);
+  const rightArgs = argsOf(right);
+  const leftKey = predicateKeyFilter(leftArgs, schema);
+  const rightKey = predicateKeyFilter(rightArgs, schema);
+  if (leftKey === undefined || rightKey === undefined) return false;
+  if (JSON.stringify(leftKey) !== JSON.stringify(rightKey)) return false;
+  const deny = (row: Row) => text(row.polarity) === "deny";
+  return (
+    deny(left) !== deny(right) ||
+    leftArgs.some((value, index) => value !== rightArgs[index])
+  );
 }
 
 /** Typed statement and follow-up query of a linked fact, by fact kind. */
@@ -1188,17 +1236,42 @@ export async function buildSearchAnswer(
         ? verdicts.scope.syncedAt
         : null,
   };
-  detailedUngoverned.sort((left, right) => left.rank - right.rank);
+  // An unlinked predicate fact that disagrees with a governing requirement's
+  // fact on the same key arguments names that fact, so the answer says which
+  // one decides instead of leaving the agent to find the pair.
+  const governingFacts = plans.flatMap((plan) =>
+    rowsOf(plan.facts).map((fact) => ({ fact, requirement: plan.req.id })),
+  );
+  const ungovernedAnswer: SearchAnswerUngoverned[] = detailedUngoverned
+    .map((entry) => {
+      const row = entry.type === "fact" ? graph.row(entry.id) : null;
+      if (row === null) return entry;
+      const holder = governingFacts.find(({ fact }) =>
+        disagreeingPredicateFacts(row, fact, schemas.get(entry.id)),
+      );
+      if (holder === undefined) return entry;
+      const factId = text(holder.fact.id);
+      const { claim } = factDetail(holder.fact, schemas.get(factId));
+      return {
+        ...entry,
+        overriddenBy: {
+          fact: factId,
+          requirement: holder.requirement,
+          ...(claim ? { claim } : {}),
+        },
+      };
+    })
+    .sort((left, right) => left.rank - right.rank);
   const answer: SearchAnswer = {
     version: "kibi.search-answer.v1",
     governing,
     rationale,
     notGoverning,
     observations: observations.slice(0, limits.observations),
-    ungoverned: detailedUngoverned,
+    ungoverned: ungovernedAnswer,
     scope,
     truncated: truncated || graph.truncated,
-    note: answerNote(governing.length, detailedUngoverned),
+    note: answerNote(governing.length, ungovernedAnswer),
   };
   return fitSearchAnswer(answer, limits.maxBytes);
 }
@@ -1224,9 +1297,19 @@ function answerNote(
   const ungovernedFact = ungoverned.some((entry) => entry.type === "fact")
     ? "A fact in ungoverned is linked to no requirement, so it decides nothing: where it disagrees with a governing requirement's fact, the governing fact holds. "
     : "";
+  const overridden = ungoverned
+    .flatMap((entry) =>
+      entry.overriddenBy === undefined
+        ? []
+        : [
+            `${entry.overriddenBy.fact} of ${entry.overriddenBy.requirement}${entry.overriddenBy.claim ? ` (${entry.overriddenBy.claim})` : ""} holds over ${entry.id}${entry.claim ? ` (${entry.claim})` : ""}. `,
+          ],
+    )
+    .join("");
   return (
     lead +
     ungovernedFact +
+    overridden +
     (governingCount === 0
       ? "No current requirement matched or owns a matched entity. Absence here is not evidence that nothing governs the change; refine the query or pass sourceLocations."
       : "Governing requirements are current requirements matched by the query or linked to a matched entity. Links are discovery, not proof. A verdict lists the contradiction and scenario-feasibility witnesses that name the requirement; none means no check named it, not that it is proven. Use kb_check and kb_coverage for consistency and proof status.")

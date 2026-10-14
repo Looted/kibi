@@ -258,3 +258,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-37e71ba59bdf
+  - type: constrains
+    from: REQ-claude-firm-edit-confirmation
+    to: FACT-SUBJECT-KIBI-CLAUDE-FIRM-EDIT-CONFIRMATION
+    created_at: 2026-10-14T16:57:37.655Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f3b085539af9
+  - type: requires_property
+    from: REQ-claude-firm-edit-confirmation
+    to: FACT-claude-firm-edit-asks-person
+    created_at: 2026-10-14T16:57:37.675Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ac403d44451d
+  - type: requires_property
+    from: REQ-claude-firm-edit-confirmation
+    to: FACT-claude-firm-edit-once-after-allowed
+    created_at: 2026-10-14T16:57:37.687Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0dc6adc35983
+  - type: specified_by
+    from: REQ-claude-firm-edit-confirmation
+    to: SCEN-claude-firm-edit-confirmation
+    created_at: 2026-10-14T16:57:37.698Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-74b504312025
+  - type: verified_by
+    from: REQ-claude-firm-edit-confirmation
+    to: TEST-claude-edit-snippet-hook
+    created_at: 2026-10-14T16:57:37.707Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-51bf205cff03
+  - type: relates_to
+    from: REQ-claude-firm-edit-confirmation
+    to: REQ-claude-code-kibi-plugin-v1
+    created_at: 2026-10-14T16:57:37.716Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0cbed0535e8d

@@ -342,3 +342,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b118725b8b73
+  - type: implements
+    from: SYM-agent-core-decision-guard-firmrequirementstouched
+    to: REQ-claude-firm-edit-confirmation
+    created_at: 2026-10-14T17:47:36.402Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1e0337eb9d72
+  - type: implements
+    from: SYM-agent-core-decision-guard-firmrequirementstouched
+    to: REQ-agent-hosts-decision-guard
+    created_at: 2026-10-14T17:47:36.419Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-176d1ba1c161
+  - type: covered_by
+    from: SYM-agent-core-decision-guard-firmrequirementstouched
+    to: TEST-claude-edit-snippet-hook
+    created_at: 2026-10-14T17:47:36.431Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-027538f8c995
+  - type: covered_by
+    from: SYM-agent-core-decision-guard-firmrequirementstouched
+    to: TEST-codex-kibi-plugin-v1
+    created_at: 2026-10-14T17:47:36.440Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a4064022a8f0
+  - type: covered_by
+    from: SYM-agent-core-decision-guard-firmrequirementstouched
+    to: TEST-cursor-kibi-plugin-v1
+    created_at: 2026-10-14T17:47:36.449Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3c19a2c71e03
+  - type: covered_by
+    from: SYM-agent-core-decision-guard-firmrequirementstouched
+    to: TEST-zcode-kibi-plugin-v1
+    created_at: 2026-10-14T17:47:36.456Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-afc2bd10256b
+  - type: implements
+    from: SYM-agent-core-decision-guard-firmeditnotice
+    to: REQ-agent-hosts-decision-guard
+    created_at: 2026-10-14T17:47:39.412Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0de41141a4da
+  - type: covered_by
+    from: SYM-agent-core-decision-guard-firmeditnotice
+    to: TEST-codex-kibi-plugin-v1
+    created_at: 2026-10-14T17:47:39.428Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3d8237b8decb
+  - type: covered_by
+    from: SYM-agent-core-decision-guard-firmeditnotice
+    to: TEST-cursor-kibi-plugin-v1
+    created_at: 2026-10-14T17:47:39.441Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5f5bfd11452d
+  - type: covered_by
+    from: SYM-agent-core-decision-guard-firmeditnotice
+    to: TEST-zcode-kibi-plugin-v1
+    created_at: 2026-10-14T17:47:39.451Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ba87445fbf7f

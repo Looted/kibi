@@ -4,6 +4,21 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import {
+  type DecisionSession,
+  captureReminder,
+  claimCaptureReminder,
+  confirmFirmEdits,
+  firmEditNotice,
+  firmRequirementsTouched,
+  hasDecisionFlag,
+  markDecisionFlag,
+  recordRequest,
+  requestWords,
+  rulePromptNote,
+  settleFirmRequirements,
+  settledFirmRequirements,
+} from "kibi-agent-core/decision-guard";
+import {
   appendHookUsageRows,
   editTraces,
   hookTelemetryEnabled,
@@ -11,13 +26,17 @@ import {
   readPackageVersion,
 } from "kibi-agent-core/hook-usage-log";
 import { stampKibiWorkspace } from "kibi-agent-core/kb-mcp-tools";
-import { loadKnowledgeIndex } from "kibi-agent-core/knowledge-index";
+import {
+  type IndexedSymbol,
+  loadKnowledgeIndex,
+} from "kibi-agent-core/knowledge-index";
 import {
   canonicalizeWorkspacePath,
   extractEditedPaths,
 } from "kibi-agent-core/path-policy";
 import { requirementCandidatesForPath } from "kibi-agent-core/requirement-candidates";
 import {
+  type Summarize,
   claimSnippetSlot,
   createEntitySummarizer,
   editFocus,
@@ -53,6 +72,12 @@ export type HookResult = {
   systemMessage?: string;
   suppressOutput?: boolean;
   /**
+   * Stop only: Codex continues the turn with `reason` as the next prompt.
+   * Used once per session, never while `stop_hook_active` is set.
+   */
+  decision?: "block";
+  reason?: string;
+  /**
    * PreToolUse only: route a Kibi MCP call to the session's workspace.
    * Codex applies `updatedInput` only with `permissionDecision: "allow"`,
    * and that decision does not override the server's tool approval mode.
@@ -69,6 +94,11 @@ export type HookResult = {
          * rewrite the edit (Codex caps it at roughly 2,500 tokens).
          */
         hookEventName: "PreToolUse";
+        additionalContext: string;
+      }
+    | {
+        /** UserPromptSubmit only: developer context added to the prompt. */
+        hookEventName: "UserPromptSubmit";
         additionalContext: string;
       };
 };
@@ -126,14 +156,26 @@ function preEditContext(
   workspaceRoot: string,
   stateDir: string | undefined,
   input: ReturnType<typeof parseHookInput>,
+  env: NodeJS.ProcessEnv,
 ): string | undefined {
   const targets = editTargets(workspaceRoot, input);
   if (targets.length === 0) return undefined;
   const index = loadKnowledgeIndex(workspaceRoot, stateDir);
-  return editKnowledgeContext({
+  const summarize = createEntitySummarizer(workspaceRoot);
+  const session: DecisionSession = { stateDir, sessionId: input.sessionId };
+  const words = requestWords(session);
+  const notice = firmNotice(
+    targets,
+    index.files,
+    summarize,
+    session,
+    input,
+    env,
+  );
+  const knowledge = editKnowledgeContext({
     relativePaths: targets.map((target) => target.relative),
     symbolsFor: (relativePath) => index.files[relativePath] ?? [],
-    summarize: createEntitySummarizer(workspaceRoot),
+    summarize,
     stateDir,
     sessionId: input.sessionId,
     focusFor: (relativePath) => {
@@ -154,7 +196,12 @@ function preEditContext(
       if (!unread)
         return unownedSourceNote(
           relativePath,
-          requirementCandidatesForPath(workspaceRoot, relativePath),
+          requirementCandidatesForPath(
+            workspaceRoot,
+            relativePath,
+            undefined,
+            words,
+          ),
         );
       const noticeKey = `${input.sessionId ?? ""}\u0000notice\u0000manifest-unreadable`;
       return claimSnippetSlot(stateDir, noticeKey)
@@ -162,6 +209,46 @@ function preEditContext(
         : undefined;
     },
   });
+  const parts = [notice, knowledge].filter(
+    (part): part is string => part !== undefined,
+  );
+  return parts.length > 0 ? parts.join("\n\n") : undefined;
+}
+
+// implements REQ-agent-hosts-decision-guard
+/**
+ * Codex's pre-tool hook cannot put a call to the person, so an edit of code
+ * that implements a firm requirement gets a notice telling the agent to ask
+ * first, once per requirement per session. An edit whose location the hook
+ * cannot resolve counts as touching the whole file.
+ */
+function firmNotice(
+  targets: readonly EditTarget[],
+  files: Record<string, readonly IndexedSymbol[]>,
+  summarize: Summarize,
+  session: DecisionSession,
+  input: ReturnType<typeof parseHookInput>,
+  env: NodeJS.ProcessEnv,
+): string | undefined {
+  if (!confirmFirmEdits(env)) return undefined;
+  const settled = settledFirmRequirements(session);
+  for (const target of targets) {
+    const focus = editFocus(target.absolute, input.toolInput);
+    const { ids, symbol } = firmRequirementsTouched({
+      symbols: files[target.relative] ?? [],
+      focus,
+      wholeFile: focus === undefined,
+      summarize,
+      confirmed: settled,
+    });
+    if (ids.length === 0) continue;
+    settleFirmRequirements(session, ids);
+    return firmEditNotice(
+      symbol ? `${symbol.title} in ${target.relative}` : target.relative,
+      ids.map(summarize),
+    );
+  }
+  return undefined;
 }
 
 let cachedPackageVersion: string | null | undefined;
@@ -245,6 +332,22 @@ export async function runHook(
       // Stryker disable next-line StringLiteral
       return defaultResult();
 
+    // implements REQ-agent-hosts-decision-guard
+    case "UserPromptSubmit": {
+      const rule = recordRequest(
+        { stateDir, sessionId: input.sessionId },
+        input.prompt ?? "",
+      );
+      if (rule === undefined) return defaultResult();
+      return {
+        continue: true,
+        hookSpecificOutput: {
+          hookEventName: "UserPromptSubmit",
+          additionalContext: rulePromptNote(rule),
+        },
+      };
+    }
+
     case "PreToolUse": {
       // Name the session's workspace on every Kibi MCP call so the launcher
       // answers from it, even after the thread moves into a git worktree.
@@ -276,7 +379,12 @@ export async function runHook(
       let context: string | undefined;
       try {
         context = isKnownEditTool(input.toolName)
-          ? preEditContext(workspace.root, stateDir, input)
+          ? preEditContext(
+              workspace.root,
+              stateDir,
+              input,
+              environment.env ?? process.env,
+            )
           : undefined;
       } catch {
         // Requirement context is advisory; an unreadable manifest or file
@@ -326,6 +434,20 @@ export async function runHook(
       if (dirtyPaths.length > 0) {
         addDirtyPaths(stateDir, dirtyPaths);
       }
+      const session = { stateDir, sessionId: input.sessionId };
+      if (
+        isKnownEditTool(input.toolName) &&
+        dirtyPaths.some(isSourceImpactRelevantPath)
+      ) {
+        markDecisionFlag(session, "source-edited");
+      }
+      if (
+        kbToolCall?.toolName === "kb_upsert" ||
+        kbUsageTrace(input.toolName, input.toolInput)?.kbOperation ===
+          "kb_upsert"
+      ) {
+        markDecisionFlag(session, "kb-recorded");
+      }
 
       return defaultResult();
     }
@@ -335,6 +457,20 @@ export async function runHook(
       const uncheckedSourcePaths = state.dirtyPaths
         .filter(isSourceImpactRelevantPath)
         .filter((sourcePath) => !state.impactCheckedPaths.includes(sourcePath));
+      // implements REQ-agent-hosts-decision-guard
+      // Source changed and nothing was recorded: continue the turn once with
+      // the capture request, before the context that holds the decision ends.
+      const session = { stateDir, sessionId: input.sessionId };
+      if (!input.stopHookActive && claimCaptureReminder(session)) {
+        const reason = [
+          captureReminder(hasDecisionFlag(session, "rule-prompt")),
+          ...(uncheckedSourcePaths.length > 0
+            ? [impactCheckReminder(uncheckedSourcePaths)]
+            : []),
+        ].join("\n");
+        clearDirtyPaths(stateDir);
+        return { continue: true, decision: "block", reason };
+      }
       if (uncheckedSourcePaths.length > 0) {
         clearDirtyPaths(stateDir);
         return {

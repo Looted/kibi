@@ -15,12 +15,22 @@ import {
 import { parseHookInput, parseStdinJson, readStdin } from "./hook-input.js";
 import type { HookInput } from "./hook-input.js";
 
+import {
+  CONFIRM_FIRM_EDITS_ENV,
+  confirmFirmEdits,
+  firmRequirementsTouched,
+} from "kibi-agent-core/decision-guard";
 import { stampKibiWorkspace } from "kibi-agent-core/kb-mcp-tools";
-import { requirementCandidatesForPath } from "kibi-agent-core/requirement-candidates";
+import {
+  requestTopicWords,
+  requirementCandidatesForPath,
+} from "kibi-agent-core/requirement-candidates";
 import {
   createEntitySummarizer,
   implementedRequirementIds,
 } from "kibi-agent-core/snippets";
+
+export { CONFIRM_FIRM_EDITS_ENV };
 import {
   type KbUsage,
   extractCliKbUsage,
@@ -45,13 +55,18 @@ import {
 import {
   DIRECT_KB_ACCESS_NOTE,
   type LineRange,
+  captureReminder,
   editKnowledgeUpdate,
   fileKnowledgeSnippet,
+  firmEditConfirmation,
+  firmEditContext,
   focusUpdate,
   focusedSymbols,
+  rulePromptNote,
   searchTip,
   sessionStartContext,
   editFocus as sharedEditFocus,
+  statedRule,
   stopReminder,
   unownedSourceNote,
   unreadableManifestNote,
@@ -65,6 +80,7 @@ import { resolveKibiWorkspace } from "./workspace-optin.js";
 
 export type ContextEvent =
   | "SessionStart"
+  | "UserPromptSubmit"
   | "PreToolUse"
   | "PostToolUse"
   | "Stop";
@@ -79,13 +95,22 @@ export type HookOutput = {
      * decision, so Claude Code's normal permission flow still applies.
      */
     updatedInput?: Record<string, unknown>;
+    /**
+     * PreToolUse only: `ask` puts the call to the person with
+     * `permissionDecisionReason`; the hooks never deny or allow a call.
+     */
+    permissionDecision?: "ask";
+    permissionDecisionReason?: string;
   };
 };
 
 export type HookEnvironment = {
   pluginData?: string | undefined;
   projectDir?: string | undefined;
-  /** Process environment for the telemetry opt-in; defaults to process.env. */
+  /**
+   * Process environment for the telemetry opt-in and the firm-edit
+   * confirmation opt-out; defaults to process.env.
+   */
   env?: NodeJS.ProcessEnv | undefined;
 };
 
@@ -155,7 +180,78 @@ type Workspace = {
   summarize: (entityId: string) => EntitySummary;
   /** Usage telemetry opt-in; gates work done only to describe the call. */
   telemetry: boolean;
+  /** Ask the person before an edit changes a firm requirement's code. */
+  confirmFirm: boolean;
 };
+
+type FirmEdit = { path: string; where: string; ids: string[] };
+
+// implements REQ-claude-firm-edit-confirmation
+/**
+ * The current firm requirements an edit changes that the person has not yet
+ * let an edit change this session.
+ */
+function firmEdit(
+  relativePath: string,
+  symbols: readonly IndexedSymbol[],
+  focus: LineRange[] | undefined,
+  wholeFile: boolean,
+  state: SessionState,
+  workspace: Workspace,
+): FirmEdit | undefined {
+  if (!workspace.confirmFirm) return undefined;
+  const { ids, symbol } = firmRequirementsTouched({
+    symbols,
+    focus,
+    wholeFile,
+    summarize: workspace.summarize,
+    confirmed: state.firmConfirmed,
+  });
+  if (ids.length === 0) return undefined;
+  return {
+    path: relativePath,
+    where: symbol ? `${symbol.title} in ${relativePath}` : relativePath,
+    ids,
+  };
+}
+
+// implements REQ-claude-firm-edit-confirmation
+/**
+ * Put the edit to the person: Claude Code shows the reason in its permission
+ * prompt (or, in a run nobody can answer, refuses the call and gives the
+ * reason to the agent), and the agent gets the context either way. The
+ * PostToolUse of an allowed edit marks the requirements confirmed.
+ */
+function withFirmConfirmation(
+  output: HookOutput,
+  firm: FirmEdit,
+  workspace: Workspace,
+  trace: HookTrace,
+): HookOutput {
+  appendSessionEvents(workspace.stateDir, [
+    { kind: "firm_asked", path: firm.path, ids: firm.ids },
+  ]);
+  trace.action = "edit_firm_ask";
+  trace.requirementIds = firm.ids;
+  const describe = (id: string) => workspace.summarize(id);
+  const agentContext = [
+    output.hookSpecificOutput?.additionalContext,
+    firmEditContext(firm.ids),
+  ]
+    .filter((part): part is string => part !== undefined)
+    .join("\n\n");
+  return {
+    hookSpecificOutput: {
+      hookEventName: "PreToolUse",
+      permissionDecision: "ask",
+      permissionDecisionReason: firmEditConfirmation(
+        firm.where,
+        firm.ids.map(describe),
+      ),
+      additionalContext: agentContext,
+    },
+  };
+}
 
 function preToolUse(
   input: HookInput,
@@ -242,7 +338,38 @@ function preToolUse(
     toolName === "Edit" || toolName === "MultiEdit"
       ? editFocus(target.absolute, input.toolInput)
       : undefined;
+  const firm = firmEdit(
+    relativePath,
+    symbols,
+    focus,
+    toolName === "Write",
+    state,
+    workspace,
+  );
+  const output = editPreToolUse(
+    relativePath,
+    kind,
+    symbols,
+    focus,
+    state,
+    workspace,
+    events,
+    emit,
+  );
+  return firm ? withFirmConfirmation(output, firm, workspace, trace) : output;
+}
 
+/** Context before an Edit, MultiEdit, Write or NotebookEdit of a source or test file. */
+function editPreToolUse(
+  relativePath: string,
+  kind: string,
+  symbols: readonly IndexedSymbol[],
+  focus: LineRange[] | undefined,
+  state: SessionState,
+  workspace: Workspace,
+  events: SessionEvent[],
+  emit: (text: string, action: string) => HookOutput,
+): HookOutput {
   if (state.shownEdit.has(relativePath)) {
     // Only a symbol not yet announced for this file is new information.
     const symbol = focusedSymbols(symbols, focus)[0];
@@ -305,7 +432,12 @@ function preToolUse(
       return emit(
         unownedSourceNote(
           relativePath,
-          requirementCandidatesForPath(workspace.root, relativePath),
+          requirementCandidatesForPath(
+            workspace.root,
+            relativePath,
+            undefined,
+            state.requestWords,
+          ),
         ),
         "edit_unowned_note",
       );
@@ -371,9 +503,48 @@ function bashPreToolUse(
     appendSessionEvents(workspace.stateDir, events);
     return context("PreToolUse", text);
   };
-  let namesKb = false;
   const cwd = input.cwd ?? workspace.root;
   const edited = new Set(commandEditPaths(command, cwd));
+  const firm = [...edited]
+    .map((absolute) => {
+      const target = toWorkspacePath(workspace.root, absolute, input.cwd);
+      if (!target || classifyPath(target.relative) !== "source") return;
+      const symbols = workspace.index().files[target.relative] ?? [];
+      return firmEdit(
+        target.relative,
+        symbols,
+        undefined,
+        true,
+        state,
+        workspace,
+      );
+    })
+    .find((candidate) => candidate !== undefined);
+  const output = bashContext(
+    input,
+    workspace,
+    state,
+    trace,
+    command,
+    edited,
+    events,
+    emit,
+  );
+  return firm ? withFirmConfirmation(output, firm, workspace, trace) : output;
+}
+
+function bashContext(
+  input: HookInput,
+  workspace: Workspace,
+  state: SessionState,
+  trace: HookTrace,
+  command: string,
+  edited: ReadonlySet<string>,
+  events: SessionEvent[],
+  emit: (text: string, action: string) => HookOutput,
+): HookOutput {
+  let namesKb = false;
+  const cwd = input.cwd ?? workspace.root;
   for (const absolute of commandFilePaths(command, cwd)) {
     const target = toWorkspacePath(workspace.root, absolute, input.cwd);
     if (!target) continue;
@@ -492,7 +663,12 @@ function bashChanges(
     ) {
       note = unownedSourceNote(
         relative,
-        requirementCandidatesForPath(workspace.root, relative),
+        requirementCandidatesForPath(
+          workspace.root,
+          relative,
+          undefined,
+          state.requestWords,
+        ),
       );
     }
     if (note !== undefined) {
@@ -614,13 +790,56 @@ function stop(
   const unreminded = state.pendingSource.filter(
     (pending) => !state.reminded.has(pending),
   );
-  if (unreminded.length === 0) return {};
-  appendSessionEvents(workspace.stateDir, [
-    { kind: "reminded", paths: unreminded },
-  ]);
-  trace.action = "stop_reminder";
+  // implements REQ-claude-decision-capture-nudges
+  // Source changed and nothing was recorded: ask once whether the session
+  // held a decision worth keeping, before the context that holds it is gone.
+  const capture =
+    state.sourceEdited &&
+    !state.kbRecorded &&
+    !state.notices.has("capture-stop");
+  if (unreminded.length === 0 && !capture) return {};
+  const events: SessionEvent[] = [];
+  const parts: string[] = [];
+  if (capture) {
+    events.push({ kind: "notice", name: "capture-stop" });
+    parts.push(captureReminder(state.rulePrompt));
+  }
+  if (unreminded.length > 0) {
+    events.push({ kind: "reminded", paths: unreminded });
+    parts.push(stopReminder(unreminded));
+  }
+  appendSessionEvents(workspace.stateDir, events);
+  trace.action = capture ? "stop_capture_reminder" : "stop_reminder";
   trace.kbUsedBefore = state.kbUsed;
-  return context("Stop", stopReminder(unreminded));
+  return context("Stop", parts.join("\n"));
+}
+
+// implements REQ-claude-decision-capture-nudges, REQ-claude-request-topic-candidates
+/**
+ * Remember the request's topic words (for unlinked-file candidates) and,
+ * when it reads as a rule or decision, say while the work is still ahead that
+ * recording it is part of the change.
+ */
+function userPromptSubmit(
+  input: HookInput,
+  workspace: Workspace,
+  trace: HookTrace,
+): HookOutput {
+  const prompt = input.prompt ?? "";
+  const rule = statedRule(prompt);
+  appendSessionEvents(workspace.stateDir, [
+    {
+      kind: "prompt",
+      words: requestTopicWords(prompt),
+      rule: rule !== undefined,
+    },
+  ]);
+  if (rule === undefined) {
+    trace.action = "prompt_silent";
+    return {};
+  }
+  trace.action = "prompt_rule_note";
+  return context("UserPromptSubmit", rulePromptNote(rule));
 }
 
 export async function runHook(
@@ -653,6 +872,7 @@ export async function runHook(
       return index;
     },
     telemetry: hookTelemetryEnabled(environment.env),
+    confirmFirm: confirmFirmEdits(environment.env ?? process.env),
     summarize: createEntitySummarizer(resolved.root),
   };
 
@@ -690,6 +910,8 @@ function dispatchHook(
         "SessionStart",
         sessionStartContext(linkedFileCount(workspace.index())),
       );
+    case "UserPromptSubmit":
+      return userPromptSubmit(input, workspace, trace);
     case "PreToolUse":
       return preToolUse(input, workspace, trace);
     case "PostToolUse":

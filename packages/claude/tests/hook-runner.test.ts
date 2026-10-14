@@ -5,7 +5,11 @@ import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 
-import { type HookOutput, runHook } from "../src/hook-runner";
+import {
+  CONFIRM_FIRM_EDITS_ENV,
+  type HookOutput,
+  runHook,
+} from "../src/hook-runner";
 import { MAX_SNIPPET_CHARS } from "../src/snippets";
 import {
   CHECKOUT_SOURCE,
@@ -46,10 +50,16 @@ function contextOf(output: HookOutput, event: string): string | undefined {
   return text;
 }
 
+/**
+ * The fixture's requirements are firm (no agent origin), so edit snippets
+ * are tested with the firm-edit confirmation off; its own tests turn it on.
+ */
+const NO_FIRM_CONFIRM = { [CONFIRM_FIRM_EDITS_ENV]: "0" };
+
 function session(
   fixture: Fixture,
   sessionId = "s1",
-  env: NodeJS.ProcessEnv = {},
+  env: NodeJS.ProcessEnv = NO_FIRM_CONFIRM,
 ) {
   // An explicit env keeps a developer's own telemetry opt-in out of the run.
   const call = (payload: Record<string, unknown>) =>
@@ -349,7 +359,7 @@ describe("pre-edit snippets", () => {
     });
     expect(text).toContain("that does not mean no recorded rule covers");
     expect(text).toContain(
-      "Requirements whose titles share this path's words: REQ-checkout-rounding: Checkout totals round to cents",
+      "Requirements whose titles share words with this path or the request: REQ-checkout-rounding: Checkout totals round to cents",
     );
     // A superseded requirement is not a candidate.
     expect(text).not.toContain("REQ-currency-display");
@@ -555,6 +565,9 @@ describe("search tip", () => {
   });
 });
 
+/** The stop reminder's wording for edits without a later impact check. */
+const IMPACT_REMINDER = "without a Kibi impact check";
+
 describe("stop reminders", () => {
   test("unchecked source edits are reminded once, then the agent may stop", async () => {
     const fixture = createKibiWorkspace();
@@ -604,7 +617,7 @@ describe("stop reminders", () => {
       const { post, stop } = session(fixture);
       await post("Edit", { file_path: "src/checkout.ts" });
       await post(acknowledge[0], acknowledge[1]);
-      expect(await stop()).toBeUndefined();
+      expect((await stop()) ?? "").not.toContain(IMPACT_REMINDER);
     }
   });
 
@@ -618,7 +631,7 @@ describe("stop reminders", () => {
     const withGate = session(gated);
     await withGate.post("Edit", { file_path: "src/checkout.ts" });
     await withGate.post("Bash", { command: "git add -A && git commit -m fix" });
-    expect(await withGate.stop()).toBeUndefined();
+    expect((await withGate.stop()) ?? "").not.toContain(IMPACT_REMINDER);
 
     // Skipping the hook, or a repository without the gate, proves nothing.
     const bypass = session(gated, "bypass");
@@ -833,6 +846,7 @@ describe("shell commands", () => {
     const fixture = createKibiWorkspace();
     commitAll(fixture);
     const { pre, post } = session(fixture, "s-bash", {
+      ...NO_FIRM_CONFIRM,
       KIBI_DIAGNOSTIC_MODE: "1",
     });
     await pre("Bash", { command: "sed -i s/total/sum/ src/checkout.ts" });
@@ -886,6 +900,189 @@ describe("session memory fallback", () => {
   });
 });
 
+// implements REQ-claude-firm-edit-confirmation
+describe("firm requirement confirmation", () => {
+  /** Raw PreToolUse output with the confirmation on. */
+  function firmSession(
+    fixture: Fixture,
+    sessionId = "firm",
+    env: NodeJS.ProcessEnv = {},
+  ) {
+    const base = session(fixture, sessionId, env);
+    const raw = (toolName: string, toolInput: Record<string, unknown>) =>
+      base.call({
+        hook_event_name: "PreToolUse",
+        tool_name: toolName,
+        tool_input: toolInput,
+      });
+    return { ...base, raw };
+  }
+  const editTotal = {
+    file_path: "src/checkout.ts",
+    old_string: "let total = 0;",
+  };
+
+  test("an edit inside a firm requirement's symbol is put to the person, with the requirement named to both", async () => {
+    const fixture = createKibiWorkspace();
+    const { raw } = firmSession(fixture);
+    const output = await raw("Edit", editTotal);
+    const specific = output.hookSpecificOutput;
+    expect(specific?.permissionDecision).toBe("ask");
+    expect(specific?.permissionDecisionReason).toBe(
+      "Kibi: this edit changes computeTotal in src/checkout.ts, which implements a firm requirement recorded in the knowledge base: REQ-checkout-rounding: Checkout totals round to cents. Allow it if the change keeps that requirement, or if you mean to change the requirement too.",
+    );
+    // The agent still gets the edit snippet, and what the question means.
+    expect(specific?.additionalContext).toContain(
+      "Kibi knowledge for src/checkout.ts",
+    );
+    expect(specific?.additionalContext).toContain(
+      "Kibi asked the person to confirm this edit because it changes code that implements firm requirement REQ-checkout-rounding.",
+    );
+    expect(JSON.stringify(output)).not.toMatch(/"(?:deny|allow)"/);
+  });
+
+  test("once an edit was allowed the requirement is not asked about again; a declined edit is asked again", async () => {
+    const fixture = createKibiWorkspace();
+    const { raw, post } = firmSession(fixture);
+    expect(
+      (await raw("Edit", editTotal)).hookSpecificOutput?.permissionDecision,
+    ).toBe("ask");
+    // Declined: no PostToolUse, so the next attempt asks again.
+    expect(
+      (await raw("Edit", editTotal)).hookSpecificOutput?.permissionDecision,
+    ).toBe("ask");
+    await post("Edit", editTotal);
+    expect(
+      (await raw("Edit", { ...editTotal, old_string: "return Math.round" }))
+        .hookSpecificOutput?.permissionDecision,
+    ).toBeUndefined();
+  });
+
+  test("edits outside firm current requirements are not asked about", async () => {
+    const fixture = createKibiWorkspace();
+    // formatTotal implements only a superseded requirement.
+    expect(
+      JSON.stringify(
+        await firmSession(fixture).raw("Edit", {
+          file_path: "src/checkout.ts",
+          old_string: "return `$${total.toFixed(2)}`;",
+        }),
+      ),
+    ).not.toContain("permissionDecision");
+    // An agent-written requirement is a default decision, not a firm one.
+    const agentWritten = createKibiWorkspace();
+    const requirement = path.join(
+      agentWritten.root,
+      ".kb/requirements/REQ-checkout-rounding.md",
+    );
+    fs.writeFileSync(
+      requirement,
+      fs
+        .readFileSync(requirement, "utf8")
+        .replace("status: open\n", "status: open\norigin:\n  kind: agent\n"),
+    );
+    expect(
+      JSON.stringify(await firmSession(agentWritten).raw("Edit", editTotal)),
+    ).not.toContain("permissionDecision");
+    // The operator opted out.
+    expect(
+      JSON.stringify(
+        await firmSession(fixture, "opt-out", NO_FIRM_CONFIRM).raw(
+          "Edit",
+          editTotal,
+        ),
+      ),
+    ).not.toContain("permissionDecision");
+  });
+
+  test("a whole-file write and an in-place shell write are asked about too", async () => {
+    const fixture = createKibiWorkspace();
+    const write = await firmSession(fixture, "w").raw("Write", {
+      file_path: "src/checkout.ts",
+      content: "export {};\n",
+    });
+    expect(write.hookSpecificOutput?.permissionDecisionReason).toContain(
+      "this edit changes src/checkout.ts, which implements a firm requirement",
+    );
+    const shell = await firmSession(fixture, "sh").raw("Bash", {
+      command: "sed -i s/total/sum/ src/checkout.ts",
+    });
+    expect(shell.hookSpecificOutput?.permissionDecision).toBe("ask");
+  });
+});
+
+// implements REQ-claude-decision-capture-nudges, REQ-claude-request-topic-candidates
+describe("decision capture", () => {
+  const prompt = (fixture: Fixture, text: string, sessionId = "s1") =>
+    runHook(
+      {
+        session_id: sessionId,
+        cwd: fixture.root,
+        hook_event_name: "UserPromptSubmit",
+        prompt: text,
+      },
+      { pluginData: fixture.pluginData, env: NO_FIRM_CONFIRM },
+    );
+
+  test("a request that reads as a rule is told, before the work, that recording it is part of the change", async () => {
+    const fixture = createKibiWorkspace();
+    const text = contextOf(
+      await prompt(fixture, "From now on API keys must expire after 90 days."),
+      "UserPromptSubmit",
+    );
+    expect(text).toContain(
+      'Kibi: this request reads as a rule or decision (it says "from now on").',
+    );
+    expect(text).toContain("recorded with kb_upsert");
+    expect(text).toContain("as part of this change, not after it");
+    expect(await prompt(fixture, "Rename the helper to sum.")).toEqual({});
+  });
+
+  test("an unlinked file's note ranks requirements by the request's words too", async () => {
+    const fixture = createKibiWorkspace();
+    await prompt(
+      fixture,
+      "Change how checkout totals are rounded for refunds.",
+    );
+    const text = await session(fixture).pre("Write", {
+      file_path: "src/refunds.ts",
+      content: "export {}",
+    });
+    expect(text).toContain(
+      "Requirements whose titles share words with this path or the request: REQ-checkout-rounding",
+    );
+    const other = await session(fixture, "s2").pre("Write", {
+      file_path: "src/refunds.ts",
+      content: "export {}",
+    });
+    expect(other).toContain("nothing recorded is known to cover it");
+  });
+
+  test("a session that changed source and recorded nothing is asked once at stop to record the decision or say there was none", async () => {
+    const fixture = createKibiWorkspace();
+    await prompt(fixture, "Totals must never be negative.");
+    const { post, stop } = session(fixture);
+    await post("Edit", { file_path: "src/checkout.ts" });
+    const text = await stop();
+    expect(text).toStartWith(
+      "Kibi: a request this session read as a rule or decision, the session changed source files, and nothing was recorded in the knowledge base.",
+    );
+    expect(text).toContain("the final report says so in one line");
+    expect(text).toContain(IMPACT_REMINDER);
+    expect(await stop()).toBeUndefined();
+
+    const recorded = createKibiWorkspace();
+    const withRecord = session(recorded);
+    await withRecord.post("Edit", { file_path: "src/checkout.ts" });
+    await withRecord.post("mcp__kibi__kb_upsert", { type: "req", id: "REQ-x" });
+    await withRecord.post("mcp__kibi__kb_check", {
+      includeImpactDiagnostics: true,
+      includeWorkingTreeDiff: true,
+    });
+    expect(await withRecord.stop()).toBeUndefined();
+  });
+});
+
 describe("advisory boundary", () => {
   test("hooks never deny, rewrite input, or touch the workspace", async () => {
     const fixture = createKibiWorkspace();
@@ -914,7 +1111,7 @@ describe("advisory boundary", () => {
 });
 
 describe("usage telemetry", () => {
-  const optedIn = { KIBI_DIAGNOSTIC_MODE: "1" };
+  const optedIn = { ...NO_FIRM_CONFIRM, KIBI_DIAGNOSTIC_MODE: "1" };
 
   function usageRows(fixture: Fixture): Record<string, unknown>[] {
     const logPath = path.join(fixture.root, ".kb", "usage.log");
@@ -1151,7 +1348,17 @@ describe("hook command pre-edit snippet (end to end)", () => {
     expect(run.code).toBe(0);
     expect(run.stderr).toBe("");
     const output = JSON.parse(run.stdout) as HookOutput;
-    const text = contextOf(output, "PreToolUse") ?? "";
+    // The requirement is firm, so the edit is also put to the person.
+    expect(output.hookSpecificOutput?.permissionDecision).toBe("ask");
+    expect(output.hookSpecificOutput?.permissionDecisionReason).toContain(
+      "REQ-checkout-rounding: Checkout totals round to cents",
+    );
+    const [text = "", firmContext] = (
+      output.hookSpecificOutput?.additionalContext ?? ""
+    ).split("\n\n");
+    expect(firmContext).toStartWith(
+      "Kibi asked the person to confirm this edit",
+    );
     expect(text).toStartWith(
       "Kibi knowledge for src/checkout.ts (symbol manifest):\n- REQ-checkout-rounding [firm: ask before changing]: Checkout totals round to cents — computeTotal\n",
     );
@@ -1166,9 +1373,14 @@ describe("hook command pre-edit snippet (end to end)", () => {
     );
     expect(text.length).toBeLessThanOrEqual(MAX_SNIPPET_CHARS);
 
-    // The session already has the snippet; the same edit adds nothing new.
+    // The session already has the snippet; an edit not yet allowed is still
+    // put to the person, without repeating the snippet.
     const repeat = await edit();
     expect(repeat.code).toBe(0);
-    expect(JSON.parse(repeat.stdout)).toEqual({});
+    const again = JSON.parse(repeat.stdout) as HookOutput;
+    expect(again.hookSpecificOutput?.permissionDecision).toBe("ask");
+    expect(again.hookSpecificOutput?.additionalContext).toStartWith(
+      "Kibi asked the person to confirm this edit",
+    );
   }, 30_000);
 });

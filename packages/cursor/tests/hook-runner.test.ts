@@ -419,7 +419,7 @@ describe("Cursor hook runner", () => {
     );
   });
 
-  test("stop stays quiet after impact-enabled kb_check covers source edits", async () => {
+  test("stop asks only for the decision record after impact-enabled kb_check covers source edits", async () => {
     const pluginData = createTempRoot("kibi-cursor-data-");
     tempRoots.push(pluginData);
     await runHook(
@@ -446,6 +446,11 @@ describe("Cursor hook runner", () => {
       { pluginData },
     );
 
+    const stop = await runHook({ hook_event_name: "stop" }, { pluginData });
+    expect(stop.followup_message).toStartWith(
+      "Kibi: this session changed source files and recorded nothing in the knowledge base.",
+    );
+    expect(stop.followup_message).not.toContain("kb_check(");
     expect(await runHook({ hook_event_name: "stop" }, { pluginData })).toEqual(
       {},
     );
@@ -849,4 +854,109 @@ describe("Cursor hook command pre-edit knowledge (end to end)", () => {
     expect(repeat.code).toBe(0);
     expect(JSON.parse(repeat.stdout)).toEqual({});
   }, 30_000);
+});
+
+describe("Cursor decision guard", () => {
+  const FIRM_NOTICE =
+    "Kibi: this edit changes computeTotal in src/checkout.ts, which implements a firm requirement, a rule the person set: REQ-checkout-rounding: Checkout totals round to cents.";
+
+  function conversation(env: NodeJS.ProcessEnv = {}) {
+    const workspace = cursorLinkedWorkspace();
+    const pluginData = createTempRoot("kibi-cursor-data-");
+    tempRoots.push(pluginData);
+    const event = (payload: Record<string, unknown>, id = "guard-1") =>
+      runHook(
+        { conversation_id: id, workspace_roots: [workspace], ...payload },
+        { pluginData, env },
+      );
+    const edit = {
+      hook_event_name: "preToolUse",
+      tool_name: "StrReplace",
+      tool_input: {
+        file_path: path.join(workspace, "src/checkout.ts"),
+        old_string: "  return Math.round(total * 100) / 100;",
+        new_string: "  return total;",
+      },
+    };
+    return { event, edit, workspace };
+  }
+
+  test("an edit of code implementing a firm requirement tells the agent to ask first, once per requirement per conversation", async () => {
+    const { event, edit } = conversation();
+
+    const first = await event(edit);
+    expect(first.permission).toBe("allow");
+    expect(first.agent_message).toStartWith(
+      `${FIRM_NOTICE}\nUnless the edit keeps that rule, ask the person before making it and name the rule;`,
+    );
+    expect(await event(edit)).toEqual({});
+    expect((await event(edit, "guard-2")).agent_message).toStartWith(
+      FIRM_NOTICE,
+    );
+  });
+
+  test("KIBI_CONFIRM_FIRM_EDITS=0 turns the firm-edit notice off", async () => {
+    const { event, edit } = conversation({ KIBI_CONFIRM_FIRM_EDITS: "0" });
+    const message = (await event(edit)).agent_message ?? "";
+    expect(message).toContain("Kibi knowledge for src/checkout.ts");
+    expect(message).not.toContain("which implements a firm requirement");
+  });
+
+  test("a prompt that states a rule lets the prompt through and the next edit carries its note", async () => {
+    const { event, edit } = conversation({ KIBI_CONFIRM_FIRM_EDITS: "0" });
+    expect(
+      await event({
+        hook_event_name: "beforeSubmitPrompt",
+        prompt: "Totals must not be rounded from now on.",
+      }),
+    ).toEqual({ continue: true });
+
+    const message = (await event(edit)).agent_message ?? "";
+    expect(message).toStartWith(
+      'Kibi: this request reads as a rule or decision (it says "must not").',
+    );
+    expect(message).toContain("Kibi knowledge for src/checkout.ts");
+  });
+
+  test("stop asks once for the decision record when source changed and nothing was recorded", async () => {
+    const { event, workspace } = conversation();
+    await event({
+      hook_event_name: "beforeSubmitPrompt",
+      prompt: "Guests should never see totals.",
+    });
+    const write = {
+      hook_event_name: "postToolUse",
+      tool_name: "Write",
+      tool_input: { file_path: path.join(workspace, "src/checkout.ts") },
+    };
+    await event(write);
+
+    const stop = await event({ hook_event_name: "stop", status: "completed" });
+    expect(stop.followup_message).toContain("kb_upsert");
+    expect(stop.followup_message).toContain("kb_check(");
+
+    await event(write);
+    const again = await event({ hook_event_name: "stop", status: "completed" });
+    expect(again.followup_message).not.toContain(
+      "recorded nothing in the knowledge base",
+    );
+  });
+
+  test("a kb_upsert keeps stop from asking for the decision record", async () => {
+    const { event, workspace } = conversation();
+    await event({
+      hook_event_name: "postToolUse",
+      tool_name: "Write",
+      tool_input: { file_path: path.join(workspace, "src/checkout.ts") },
+    });
+    await event({
+      hook_event_name: "postToolUse",
+      tool_name: "CallMcpTool",
+      tool_input: { toolName: "kb_upsert", arguments: {} },
+    });
+    const stop = await event({ hook_event_name: "stop", status: "completed" });
+    expect(stop.followup_message ?? "").not.toContain(
+      "recorded nothing in the knowledge base",
+    );
+  });
 });

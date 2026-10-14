@@ -189,47 +189,146 @@ function readHead(file: string): RequirementHead | undefined {
 const RETIRED_STATUS =
   /supersed|deprecat|reject|obsolete|retired|archived|removed/i;
 
-// implements REQ-kb-unowned-file-candidates
+// implements REQ-claude-request-topic-candidates
+/**
+ * Topic words of the person's request (`Users must not delete the last
+ * owner` -> `user`, `delete`, `last`, `owner`), for ranking requirements an
+ * unlinked file's path alone does not reach.
+ */
+export function requestTopicWords(text: string, limit = 40): string[] {
+  const found = words(text).filter(
+    (word) => !FILLER_WORDS.has(word) && !REQUEST_FILLER_WORDS.has(word),
+  );
+  return [...new Set(found)].slice(0, limit);
+}
+
+/** Request words that carry no topic of their own. */
+const REQUEST_FILLER_WORDS = new Set([
+  "please",
+  "could",
+  "would",
+  "you",
+  "your",
+  "our",
+  "have",
+  "has",
+  "make",
+  "sure",
+  "change",
+  "update",
+  "add",
+  "fix",
+  "now",
+  "need",
+  "want",
+  "like",
+  "also",
+  "just",
+  "then",
+  "than",
+  "there",
+  "here",
+  "what",
+  "which",
+  "why",
+  "how",
+  "will",
+  "use",
+  "using",
+  "new",
+  "file",
+  "code",
+  "never",
+  "always",
+  "only",
+  "any",
+  "but",
+  "they",
+  "them",
+  "was",
+  "were",
+  "been",
+  "being",
+  "does",
+  "don",
+  "doesn",
+  "let",
+  "get",
+  "set",
+  "one",
+  "out",
+  "about",
+  "over",
+  "same",
+  "still",
+  "too",
+  "very",
+]);
+
+// implements REQ-kb-unowned-file-candidates, REQ-claude-request-topic-candidates
 /**
  * Current requirements ranked by how many of the path's topic words their
- * title shares, then by how often the title uses them, then by id. Only
- * requirements sharing at least one word are returned.
+ * title shares, then by how many of the request's topic words it shares, then
+ * by how often the title uses them, then by id. A requirement sharing a path
+ * word is returned; one sharing only request words needs two of them, since a
+ * request names many words and one in common is chance.
  */
 export function rankRequirementCandidates(
   relativePath: string,
   requirements: readonly RequirementHead[],
   limit: number = MAX_REQUIREMENT_CANDIDATES,
+  requestWords: readonly string[] = [],
 ): RequirementHead[] {
   const topic = new Set(pathTopicWords(relativePath));
-  if (topic.size === 0) return [];
-  const scored: { head: RequirementHead; shared: number; uses: number }[] = [];
+  const request = new Set(requestWords.filter((word) => !topic.has(word)));
+  if (topic.size === 0 && request.size === 0) return [];
+  const scored: {
+    head: RequirementHead;
+    shared: number;
+    asked: number;
+    uses: number;
+  }[] = [];
   for (const head of requirements) {
     if (head.status !== undefined && RETIRED_STATUS.test(head.status)) continue;
-    const titleWords = words(head.title).filter((word) => topic.has(word));
-    const shared = new Set(titleWords).size;
-    if (shared > 0) scored.push({ head, shared, uses: titleWords.length });
+    const titleWords = words(head.title);
+    const pathHits = titleWords.filter((word) => topic.has(word));
+    const requestHits = titleWords.filter((word) => request.has(word));
+    const shared = new Set(pathHits).size;
+    const asked = new Set(requestHits).size;
+    if (shared > 0 || asked >= 2) {
+      scored.push({
+        head,
+        shared,
+        asked,
+        uses: pathHits.length + requestHits.length,
+      });
+    }
   }
   scored.sort(
     (a, b) =>
       b.shared - a.shared ||
+      b.asked - a.asked ||
       b.uses - a.uses ||
       a.head.id.localeCompare(b.head.id),
   );
   return scored.slice(0, limit).map((entry) => entry.head);
 }
 
-// implements REQ-kb-unowned-file-candidates
+// implements REQ-kb-unowned-file-candidates, REQ-claude-request-topic-candidates
 /**
  * Candidate requirements for a file no symbol links, read from the canonical
- * requirement documents (`.kb/requirements/*.md`). Empty when the KB has none
- * or is too large to scan from a hook.
+ * requirement documents (`.kb/requirements/*.md`), ranked by the path's words
+ * and, when given, the request's. Empty when the KB has none or is too large
+ * to scan from a hook.
  */
 export function requirementCandidatesForPath(
   workspaceRoot: string,
   relativePath: string,
   limit: number = MAX_REQUIREMENT_CANDIDATES,
+  requestWords: readonly string[] = [],
 ): RequirementHead[] {
-  if (pathTopicWords(relativePath).length === 0) return [];
+  if (pathTopicWords(relativePath).length === 0 && requestWords.length < 2)
+    return [];
   const directory = path.join(workspaceRoot, REQUIREMENTS_DIR);
   let names: string[];
   try {
@@ -241,5 +340,5 @@ export function requirementCandidatesForPath(
   const heads = names
     .map((name) => readHead(path.join(directory, name)))
     .filter((head): head is RequirementHead => head !== undefined);
-  return rankRequirementCandidates(relativePath, heads, limit);
+  return rankRequirementCandidates(relativePath, heads, limit, requestWords);
 }

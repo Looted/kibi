@@ -209,3 +209,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b83295cb688e
+  - type: constrains
+    from: REQ-agent-hosts-decision-guard
+    to: FACT-SUBJECT-KIBI-AGENT-HOSTS-DECISION-GUARD
+    created_at: 2026-10-14T17:46:17.075Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7306363c7fa8
+  - type: requires_property
+    from: REQ-agent-hosts-decision-guard
+    to: FACT-agent-hosts-firm-edit-notice
+    created_at: 2026-10-14T17:46:17.095Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-615af440a874
+  - type: requires_property
+    from: REQ-agent-hosts-decision-guard
+    to: FACT-agent-hosts-rule-prompt-note
+    created_at: 2026-10-14T17:46:17.103Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-033159ec43ee
+  - type: requires_property
+    from: REQ-agent-hosts-decision-guard
+    to: FACT-agent-hosts-capture-stop-once
+    created_at: 2026-10-14T17:46:17.113Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-42888231e384
+  - type: specified_by
+    from: REQ-agent-hosts-decision-guard
+    to: SCEN-agent-hosts-decision-guard
+    created_at: 2026-10-14T17:46:17.120Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-de9c8df14a67
+  - type: verified_by
+    from: REQ-agent-hosts-decision-guard
+    to: TEST-codex-kibi-plugin-v1
+    created_at: 2026-10-14T17:46:17.127Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-94d8ca43c3b4
+  - type: verified_by
+    from: REQ-agent-hosts-decision-guard
+    to: TEST-cursor-kibi-plugin-v1
+    created_at: 2026-10-14T17:46:17.135Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cf8daf5cdb23
+  - type: verified_by
+    from: REQ-agent-hosts-decision-guard
+    to: TEST-zcode-kibi-plugin-v1
+    created_at: 2026-10-14T17:46:17.142Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ec91765e63e3
+  - type: relates_to
+    from: REQ-agent-hosts-decision-guard
+    to: REQ-claude-firm-edit-confirmation
+    created_at: 2026-10-14T17:46:17.149Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0e556f0625c5
+  - type: relates_to
+    from: REQ-agent-hosts-decision-guard
+    to: REQ-claude-decision-capture-nudges
+    created_at: 2026-10-14T17:46:17.155Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-78d5329d85a3

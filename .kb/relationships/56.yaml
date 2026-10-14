@@ -272,3 +272,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0886268bdf20
+  - type: verified_by
+    from: SCEN-agent-hosts-decision-guard
+    to: TEST-codex-kibi-plugin-v1
+    created_at: 2026-10-14T17:46:16.469Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-436740c05d77
+  - type: verified_by
+    from: SCEN-agent-hosts-decision-guard
+    to: TEST-cursor-kibi-plugin-v1
+    created_at: 2026-10-14T17:46:16.491Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-93d2655bbebc
+  - type: verified_by
+    from: SCEN-agent-hosts-decision-guard
+    to: TEST-zcode-kibi-plugin-v1
+    created_at: 2026-10-14T17:46:16.503Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-07637a22d006

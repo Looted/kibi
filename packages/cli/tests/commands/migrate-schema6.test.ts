@@ -539,4 +539,30 @@ describe("kibi migrate to schema 6", () => {
     },
     TIMEOUT_MS,
   );
+
+  test(
+    "plans one sync after a schema upgrade that rewrites no sources, as kb_status does",
+    () => {
+      writeCurrentRequirement(root, "REQ-upload-base", UPLOAD_TEXT);
+      writeManifest(root, 9);
+      git(root, "add", "--all");
+      const syncs = (plan: MigrationPlan) =>
+        plan.actions
+          .filter(
+            (candidate) =>
+              candidate.invocation.kind === "cli" &&
+              candidate.invocation.command_argv.join(" ") === "kibi sync",
+          )
+          .map((candidate) => candidate.id);
+
+      // Never compiled: the status plan already compiles after the upgrade.
+      expect(syncs(readPlan(root))).toEqual(["branch-store-compile"]);
+
+      // Compiled at schema 9: only the migration sync recompiles it.
+      expect(runKibi(["sync"], root).status).toBe(0);
+      writeManifest(root, 9);
+      expect(syncs(readPlan(root))).toEqual(["migration-sync"]);
+    },
+    TIMEOUT_MS,
+  );
 });

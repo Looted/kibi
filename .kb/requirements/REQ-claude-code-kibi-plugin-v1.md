@@ -34,6 +34,8 @@ semantic_text: |-
   When a kibi-claude hook runs, it must not deny a tool call.
 
   At session stop, kibi-claude hooks must remind the agent at most once about each edited source file that lacks a later impact check.
+
+  Before an edit changes code that implements a current firm requirement, a kibi-claude hook may ask the person to confirm the tool call.
 logic_claims:
   - CLAIM-94B3A133D10BFB98
   - CLAIM-33E4D5BB01AD55FF
@@ -48,6 +50,7 @@ logic_claims:
   - CLAIM-7B062DA2D111C910
   - CLAIM-EB2FC292489174F2
   - CLAIM-6BD137F24FF5D674
+  - CLAIM-4107EC64A4208A83
 semantic_inventory:
   - claim_key: CLAIM-94B3A133D10BFB98
     claim_text: The kibi-claude package must remain optional
@@ -153,9 +156,16 @@ semantic_inventory:
       start: 1042
       end: 1173
     payload_hash: c9749c28760af9183536dcb790fafe4b6ff6e3f8d299164a8ec6d405d7a4b65b
+  - claim_key: CLAIM-4107EC64A4208A83
+    claim_text: Before an edit changes code that implements a current firm requirement, a kibi-claude hook may ask the person to confirm the tool call
+    role: normative
+    status: modeled
+    span:
+      start: 1176
+      end: 1310
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
-semantic_source_hash: 11176943e907ebf7c2ca993735a962cbaedcd52231cf475e34982f21679f048f
+semantic_source_hash: ca21e770fd2fbcc573bcaa0616d38131644aadde4422ddcf60103b5b7ff550aa
 semantic_clauses:
   - The kibi-claude package must remain optional
   - When kibi-claude is installed or enabled, it must not modify core Kibi runtime components
@@ -170,12 +180,13 @@ semantic_clauses:
   - When a kibi-claude hook runs, it must not invoke the Kibi CLI or the Kibi engine
   - When a kibi-claude hook runs, it must not deny a tool call
   - At session stop, kibi-claude hooks must remind the agent at most once about each edited source file that lacks a later impact check
+  - Before an edit changes code that implements a current firm requirement, a kibi-claude hook may ask the person to confirm the tool call
 id: REQ-claude-code-kibi-plugin-v1
 type: req
 origin:
-  kind: migration
-  ref: kibi migrate v5->v6
-  recorded_at: '2026-10-04T01:17:15.284Z'
+  kind: human
+  ref: 'Maintainer decision, 2026-10-14: a kibi-claude hook may ask the person to confirm an edit of code that implements a firm requirement; hooks still never deny a call.'
+  recorded_at: '2026-10-14T17:07:25Z'
 ---
 The kibi-claude package must remain optional.
 
@@ -202,3 +213,9 @@ When a kibi-claude hook runs, it must not invoke the Kibi CLI or the Kibi engine
 When a kibi-claude hook runs, it must not deny a tool call.
 
 At session stop, kibi-claude hooks must remind the agent at most once about each edited source file that lacks a later impact check.
+
+Before an edit changes code that implements a current firm requirement, a kibi-claude hook may ask the person to confirm the tool call.
+
+## Why this changed
+
+The maintainer decided on 2026-10-14 that the hooks should stop an agent before it changes code a firm requirement governs, not only describe the requirement. Asking the person to confirm the edit keeps the hooks from denying any call while putting the decision to the person at the moment the code would change.

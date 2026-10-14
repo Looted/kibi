@@ -33,7 +33,17 @@ export type SessionEvent =
    * The host dropped the conversation context (SessionStart after a compact
    * or clear), so everything shown so far is gone from the model's view.
    */
-  | { kind: "context_reset" };
+  | { kind: "context_reset" }
+  /**
+   * The person submitted a prompt: its topic words, and whether it reads as
+   * a rule or decision ("must", "never", "from now on").
+   */
+  | { kind: "prompt"; words: string[]; rule: boolean }
+  /**
+   * An edit of `path` was put to the person because it changes code that
+   * implements these firm requirements.
+   */
+  | { kind: "firm_asked"; path: string; ids: string[] };
 
 export type SessionState = {
   shownRead: Set<string>;
@@ -47,6 +57,18 @@ export type SessionState = {
   reminded: Set<string>;
   /** Start of the latest shell command, when one was recorded. */
   commandStartedAt: number | undefined;
+  /** Topic words of the latest prompt. */
+  requestWords: string[];
+  /** True once any prompt this session read as a rule or decision. */
+  rulePrompt: boolean;
+  /** Firm requirements whose edit was put to the person, by edited path. */
+  firmAsked: Map<string, string[]>;
+  /** Firm requirements the person let an edit change this session. */
+  firmConfirmed: Set<string>;
+  /** True once any source file was changed this session. */
+  sourceEdited: boolean;
+  /** True once the agent wrote to the knowledge base this session. */
+  kbRecorded: boolean;
 };
 
 const JOURNAL = "session.jsonl";
@@ -87,6 +109,12 @@ export function emptySessionState(): SessionState {
     pendingSource: [],
     reminded: new Set(),
     commandStartedAt: undefined,
+    requestWords: [],
+    rulePrompt: false,
+    firmAsked: new Map(),
+    firmConfirmed: new Set(),
+    sourceEdited: false,
+    kbRecorded: false,
   };
 }
 
@@ -102,11 +130,19 @@ export function applyEvent(state: SessionState, event: SessionEvent): void {
       return;
     case "kb":
       state.kbUsed = true;
+      if (event.operation === "kb_upsert") state.kbRecorded = true;
       for (const explored of event.paths) state.exploredPaths.add(explored);
       for (const id of event.ids) state.exploredIds.add(id);
       return;
-    case "edited":
+    case "edited": {
+      // An edit that reached PostToolUse was allowed, so the person accepted
+      // the firm requirements its confirmation named.
+      for (const id of state.firmAsked.get(event.path) ?? []) {
+        state.firmConfirmed.add(id);
+      }
+      state.firmAsked.delete(event.path);
       if (event.pathKind !== "source") return;
+      state.sourceEdited = true;
       // A later edit invalidates an earlier check and reminder for the path.
       state.pendingSource = [
         ...state.pendingSource.filter((pending) => pending !== event.path),
@@ -114,6 +150,7 @@ export function applyEvent(state: SessionState, event: SessionEvent): void {
       ];
       state.reminded.delete(event.path);
       return;
+    }
     case "checked":
       state.pendingSource = event.all
         ? []
@@ -126,6 +163,15 @@ export function applyEvent(state: SessionState, event: SessionEvent): void {
       return;
     case "command_started":
       state.commandStartedAt = Math.max(state.commandStartedAt ?? 0, event.at);
+      return;
+    case "prompt":
+      state.requestWords = event.words;
+      if (event.rule) state.rulePrompt = true;
+      return;
+    case "firm_asked":
+      state.firmAsked.set(event.path, [
+        ...new Set([...(state.firmAsked.get(event.path) ?? []), ...event.ids]),
+      ]);
       return;
     case "context_reset":
       // Snippets, notices and Kibi lookups shown before the reset are no

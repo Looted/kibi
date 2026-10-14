@@ -7,6 +7,14 @@
  * kibi-agent-core so every host adapter shows the same projection; this module
  * keeps only the Claude Code session, search, and stop messages.
  */
+
+export {
+  captureReminder,
+  firmEditConfirmation,
+  firmEditContext,
+  rulePromptNote,
+  statedRule,
+} from "kibi-agent-core/decision-guard";
 export {
   type LineRange,
   MAX_SNIPPET_CHARS,

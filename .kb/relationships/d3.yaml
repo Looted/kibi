@@ -230,3 +230,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-af51f618ae5d
+  - type: verified_by
+    from: SCEN-claude-firm-edit-confirmation
+    to: TEST-claude-edit-snippet-hook
+    created_at: 2026-10-14T16:57:52.479Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1de04c951eec

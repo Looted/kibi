@@ -1,456 +1,283 @@
 #!/usr/bin/env node
 
 // src/hook-runner.ts
-import path8 from "node:path";
+import path9 from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-// ../agent-core/dist/hook-usage-log.js
-import { randomUUID } from "node:crypto";
+// ../agent-core/dist/decision-guard.js
+import { createHash as createHash3 } from "node:crypto";
+import fs4 from "node:fs";
+import path4 from "node:path";
+
+// ../agent-core/dist/requirement-candidates.js
 import fs from "node:fs";
-import path2 from "node:path";
-
-// ../agent-core/dist/kb-mcp-tools.js
-function isRecord(value) {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-function readString(record, keys) {
-  for (const key of keys) {
-    const value = record[key];
-    if (typeof value === "string") {
-      return value;
-    }
-  }
-  return;
-}
-function readBoolean(record, keys) {
-  for (const key of keys) {
-    const value = record[key];
-    if (typeof value === "boolean") {
-      return value;
-    }
-  }
-  return;
-}
-function readStringArray(record, keys) {
-  for (const key of keys) {
-    const value = record[key];
-    if (!Array.isArray(value)) {
-      continue;
-    }
-    return value.filter((item) => typeof item === "string" && item.length > 0);
-  }
-  return [];
-}
-function readRecord(record, keys) {
-  for (const key of keys) {
-    const value = record[key];
-    if (isRecord(value)) {
-      return value;
-    }
-  }
-  return;
-}
-function canonicalKbToolName(toolName) {
-  const trimmed = toolName?.trim() ?? "";
-  const lastSegment = trimmed.includes("__") ? trimmed.split("__").at(-1) ?? "" : trimmed.replace(/^MCP:/i, "");
-  const operation = lastSegment.replace(/^kibi_/, "");
-  return operation.startsWith("kb_") ? operation : undefined;
-}
-var KIBI_WORKSPACE_ARGUMENT = "workspaceRoot";
-function isKibiMcpToolName(toolName) {
-  const name = toolName?.trim() ?? "";
-  if (/^MCP:kb_[a-z_]+$/i.test(name))
-    return true;
-  const segments = name.split("__");
-  if (segments.length < 3 || segments[0] !== "mcp")
-    return false;
-  const server = segments.slice(1, -1).join("__");
-  return /kibi/i.test(server) && /^kb_[a-z_]+$/.test(segments.at(-1) ?? "");
-}
-function stampKibiWorkspace(toolName, toolInput, workspaceRoot) {
-  if (!workspaceRoot || !isKibiMcpToolName(toolName))
-    return;
-  const base = isRecord(toolInput) ? toolInput : {};
-  return { ...base, [KIBI_WORKSPACE_ARGUMENT]: workspaceRoot };
-}
-function extractKbMcpToolCall(toolName, toolInput) {
-  let normalizedToolName = canonicalKbToolName(toolName);
-  if (isRecord(toolInput)) {
-    normalizedToolName ??= readString(toolInput, [
-      "toolName",
-      "tool_name",
-      "name"
-    ]);
-    const args = readRecord(toolInput, ["arguments", "args"]);
-    const payload = args ?? toolInput;
-    const includeImpactDiagnostics = readBoolean(payload, [
-      "includeImpactDiagnostics",
-      "include_impact_diagnostics"
-    ]);
-    const includeWorkingTreeDiff = readBoolean(payload, [
-      "includeWorkingTreeDiff",
-      "include_working_tree_diff"
-    ]);
-    const sourceFiles = readStringArray(payload, [
-      "sourceFiles",
-      "source_files"
-    ]);
-    if (normalizedToolName === "kb_upsert" && readBoolean(payload, ["dryRun"]) === true) {
-      normalizedToolName = "kb_validate_upsert";
-    }
-    if (normalizedToolName?.startsWith("kb_")) {
-      return {
-        toolName: normalizedToolName,
-        impactCheckRun: normalizedToolName === "kb_check" && includeImpactDiagnostics === true && includeWorkingTreeDiff === true && sourceFiles.length > 0,
-        sourceFiles
-      };
-    }
-    const nestedArgs = toolInput.arguments ?? toolInput.args;
-    if (isRecord(nestedArgs)) {
-      const nestedTool = readString(nestedArgs, [
-        "toolName",
-        "tool_name",
-        "name"
-      ]);
-      if (nestedTool?.startsWith("kb_")) {
-        return { toolName: nestedTool, impactCheckRun: false, sourceFiles: [] };
-      }
-    }
-  }
-  if (normalizedToolName?.startsWith("kb_")) {
-    return {
-      toolName: normalizedToolName,
-      impactCheckRun: false,
-      sourceFiles: []
-    };
-  }
-  return;
-}
-var KIBI_CLI_ROUTES = {
-  check: "kb_check",
-  query: "kb_query",
-  "kb-query": "kb_query",
-  search: "kb_search",
-  status: "kb_status",
-  graph: "kb_graph",
-  coverage: "kb_coverage",
-  "find-gaps": "kb_find_gaps",
-  gaps: "kb_find_gaps",
-  upsert: "kb_upsert",
-  sync: "kb_sync"
-};
-function kibiCliOperation(command) {
-  if (typeof command !== "string")
-    return;
-  const route = /(?:^|[\s;&|(/])kibi\s+([a-z-]+)/.exec(command)?.[1];
-  return route ? KIBI_CLI_ROUTES[route] : undefined;
-}
-var SHELL_TOOL_NAMES = new Set(["Bash", "bash", "Shell", "shell"]);
-function hostKbOperation(toolName, toolInput) {
-  const mcp = canonicalKbToolName(toolName);
-  if (mcp !== undefined && /^kb_[a-z_]+$/.test(mcp))
-    return mcp;
-  if (!toolName || !SHELL_TOOL_NAMES.has(toolName) || !isRecord(toolInput)) {
-    return;
-  }
-  return kibiCliOperation(toolInput.command);
-}
-
-// ../agent-core/dist/path-policy.js
 import path from "node:path";
-var codeExtensions = new Set([
-  ".c",
-  ".cc",
-  ".cjs",
-  ".cpp",
-  ".cs",
-  ".css",
-  ".go",
-  ".h",
-  ".hpp",
-  ".html",
-  ".java",
-  ".js",
-  ".jsx",
-  ".kt",
-  ".lua",
-  ".mjs",
-  ".mts",
-  ".cts",
-  ".php",
-  ".pl",
-  ".py",
-  ".rb",
-  ".rs",
-  ".scala",
-  ".sh",
-  ".swift",
-  ".ts",
-  ".tsx",
-  ".vue",
-  ".svelte"
-]);
-var ignoredSegments = new Set([
-  "node_modules",
-  "dist",
-  "build",
-  "out",
-  "coverage",
-  "vendor",
-  "target",
-  ".git",
-  ".next",
-  ".turbo",
-  ".cache",
-  "__pycache__"
-]);
-var testSegments = new Set([
+var REQUIREMENTS_DIR = path.join(".kb", "requirements");
+var HEAD_BYTES = 4096;
+var MAX_SCANNED = 2000;
+var MAX_REQUIREMENT_CANDIDATES = 3;
+var LAYOUT_WORDS = new Set([
+  "src",
+  "app",
+  "apps",
+  "lib",
+  "libs",
+  "source",
+  "page",
+  "pages",
+  "component",
+  "components",
+  "view",
+  "views",
+  "screen",
+  "screens",
+  "package",
+  "packages",
+  "main",
+  "index",
+  "shared",
+  "common",
+  "core",
+  "util",
+  "utils",
+  "helper",
+  "helpers",
+  "public",
+  "static",
+  "asset",
+  "assets",
+  "web",
+  "client",
+  "server",
+  "frontend",
+  "backend",
+  "module",
+  "modules",
+  "feature",
+  "features",
+  "internal",
+  "service",
+  "services",
   "test",
   "tests",
-  "__tests__",
   "spec",
   "specs",
-  "e2e",
-  "__mocks__",
-  "fixtures"
+  "dist",
+  "build",
+  "html",
+  "htm",
+  "tsx",
+  "jsx",
+  "mjs",
+  "cjs",
+  "vue",
+  "svelte",
+  "css",
+  "scss",
+  "less",
+  "json",
+  "yaml",
+  "yml",
+  "java",
+  "swift",
+  "php"
 ]);
-var testBasename = /(\.|_)(test|spec|e2e)\.[^.]+$|^test_[^/]+\.py$/;
-var documentationExtensions = new Set([".md", ".mdx", ".rst", ".txt"]);
-var documentationSegments = new Set(["docs", "documentation"]);
-var canonicalKbKnowledgeLanes = new Set([
-  "requirements",
-  "scenarios",
-  "tests",
-  "facts",
-  "adr",
-  "flags",
-  "events"
+var FILLER_WORDS = new Set([
+  "the",
+  "and",
+  "for",
+  "with",
+  "must",
+  "should",
+  "shall",
+  "may",
+  "can",
+  "are",
+  "is",
+  "its",
+  "their",
+  "that",
+  "this",
+  "from",
+  "into",
+  "when",
+  "each",
+  "every",
+  "all",
+  "not",
+  "req",
+  "auto"
 ]);
-var canonicalKbKnowledgeFiles = new Set([
-  "symbols.yaml",
-  "symbol-coordinates.yaml"
-]);
-var explicitPathKeys = new Set([
-  "absolute_path",
+function words(text) {
+  return text.replace(/([a-z0-9])([A-Z])/g, "$1 $2").toLowerCase().split(/[^a-z0-9]+/).filter((word) => word.length >= 3 && !/\d/.test(word)).map((word) => word.length > 4 && word.endsWith("s") && !word.endsWith("ss") ? word.slice(0, -1) : word);
+}
+function pathTopicWords(relativePath) {
+  const segments = relativePath.split(/[\\/]/).filter(Boolean);
+  const last = segments.pop() ?? "";
+  const stem = last.includes(".") ? last.slice(0, last.indexOf(".")) : last;
+  const roles = last.includes(".") ? last.slice(last.indexOf(".") + 1) : "";
+  const found = [...segments, stem, roles].flatMap(words).filter((word) => !LAYOUT_WORDS.has(word) && !FILLER_WORDS.has(word));
+  return [...new Set(found)];
+}
+function unquote(value) {
+  const trimmed = value.trim();
+  return /^(["']).*\1$/.test(trimmed) ? trimmed.slice(1, -1) : trimmed;
+}
+function readHead(file) {
+  let head;
+  try {
+    const descriptor = fs.openSync(file, "r");
+    try {
+      const buffer = Buffer.alloc(HEAD_BYTES);
+      const bytes = fs.readSync(descriptor, buffer, 0, buffer.length, 0);
+      head = buffer.subarray(0, bytes).toString("utf8");
+    } finally {
+      fs.closeSync(descriptor);
+    }
+  } catch {
+    return;
+  }
+  const lines = head.split(/\r?\n/);
+  if (lines[0]?.trim() !== "---")
+    return;
+  const fields = {};
+  for (const line of lines.slice(1)) {
+    if (line.trim() === "---")
+      break;
+    const match = /^(id|title|status):\s*(.+)$/.exec(line);
+    if (match?.[1] && match[2])
+      fields[match[1]] = unquote(match[2]);
+  }
+  if (!fields.id || !fields.title)
+    return;
+  return {
+    id: fields.id,
+    title: fields.title,
+    ...fields.status ? { status: fields.status } : {}
+  };
+}
+var RETIRED_STATUS = /supersed|deprecat|reject|obsolete|retired|archived|removed/i;
+function requestTopicWords(text, limit = 40) {
+  const found = words(text).filter((word) => !FILLER_WORDS.has(word) && !REQUEST_FILLER_WORDS.has(word));
+  return [...new Set(found)].slice(0, limit);
+}
+var REQUEST_FILLER_WORDS = new Set([
+  "please",
+  "could",
+  "would",
+  "you",
+  "your",
+  "our",
+  "have",
+  "has",
+  "make",
+  "sure",
+  "change",
+  "update",
+  "add",
+  "fix",
+  "now",
+  "need",
+  "want",
+  "like",
+  "also",
+  "just",
+  "then",
+  "than",
+  "there",
+  "here",
+  "what",
+  "which",
+  "why",
+  "how",
+  "will",
+  "use",
+  "using",
+  "new",
   "file",
-  "file_path",
-  "filepath",
-  "new_path",
-  "old_path",
-  "path",
-  "paths",
-  "relative_path",
-  "target_path"
+  "code",
+  "never",
+  "always",
+  "only",
+  "any",
+  "but",
+  "they",
+  "them",
+  "was",
+  "were",
+  "been",
+  "being",
+  "does",
+  "don",
+  "doesn",
+  "let",
+  "get",
+  "set",
+  "one",
+  "out",
+  "about",
+  "over",
+  "same",
+  "still",
+  "too",
+  "very"
 ]);
-function isRecord2(value) {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-function normalizeWorkspacePath(candidate) {
-  return candidate.trim().replaceAll("\\", "/");
-}
-function pathSegments(candidate) {
-  return normalizeWorkspacePath(candidate).split("/").filter(Boolean);
-}
-function collectPathValues(value, output) {
-  if (typeof value === "string") {
-    const normalized = normalizeWorkspacePath(value);
-    if (normalized.length > 0)
-      output.push(normalized);
-    return;
-  }
-  if (!Array.isArray(value))
-    return;
-  for (const item of value)
-    collectPathValues(item, output);
-}
-function visitExplicitPathFields(value, output) {
-  if (Array.isArray(value)) {
-    for (const item of value)
-      visitExplicitPathFields(item, output);
-    return;
-  }
-  if (!isRecord2(value))
-    return;
-  for (const [key, child] of Object.entries(value)) {
-    if (explicitPathKeys.has(key.toLowerCase()))
-      collectPathValues(child, output);
-    visitExplicitPathFields(child, output);
-  }
-}
-function extractExplicitPathFields(input) {
-  const paths = [];
-  visitExplicitPathFields(input, paths);
-  return [...new Set(paths)];
-}
-var patchFileHeader = /^\*\*\* (?:Update|Add|Delete) File: (.+)$/;
-var patchTextKeys = ["command", "patch", "input", "patchText"];
-function extractPatchFilePaths(patch) {
-  const paths = [];
-  for (const line of patch.split(/\r?\n/)) {
-    const match = patchFileHeader.exec(line.trim());
-    const candidate = match?.[1] ? normalizeWorkspacePath(match[1]) : "";
-    if (candidate.length > 0)
-      paths.push(candidate);
-  }
-  return [...new Set(paths)];
-}
-function extractEditedPaths(toolInput) {
-  const paths = extractExplicitPathFields(toolInput);
-  if (isRecord2(toolInput)) {
-    for (const key of patchTextKeys) {
-      const value = toolInput[key];
-      if (typeof value === "string" && value.includes("*** ")) {
-        paths.push(...extractPatchFilePaths(value));
-      }
+function rankRequirementCandidates(relativePath, requirements, limit = MAX_REQUIREMENT_CANDIDATES, requestWords = []) {
+  const topic = new Set(pathTopicWords(relativePath));
+  const request = new Set(requestWords.filter((word) => !topic.has(word)));
+  if (topic.size === 0 && request.size === 0)
+    return [];
+  const scored = [];
+  for (const head of requirements) {
+    if (head.status !== undefined && RETIRED_STATUS.test(head.status))
+      continue;
+    const titleWords = words(head.title);
+    const pathHits = titleWords.filter((word) => topic.has(word));
+    const requestHits = titleWords.filter((word) => request.has(word));
+    const shared = new Set(pathHits).size;
+    const asked = new Set(requestHits).size;
+    if (shared > 0 || asked >= 2) {
+      scored.push({
+        head,
+        shared,
+        asked,
+        uses: pathHits.length + requestHits.length
+      });
     }
   }
-  return [...new Set(paths)];
+  scored.sort((a, b) => b.shared - a.shared || b.asked - a.asked || b.uses - a.uses || a.head.id.localeCompare(b.head.id));
+  return scored.slice(0, limit).map((entry) => entry.head);
 }
-function canonicalizeWorkspacePath(workspaceRoot, options) {
-  const trimmed = normalizeWorkspacePath(options.rawPath);
-  if (trimmed.length === 0)
-    return;
-  const base = options.base ?? options.eventCwd ?? workspaceRoot;
-  const absolute = path.isAbsolute(trimmed) ? path.resolve(trimmed) : path.resolve(base, trimmed);
-  const workspaceRelative = path.relative(workspaceRoot, absolute).replaceAll("\\", "/");
-  if (workspaceRelative.length === 0 || workspaceRelative === ".." || workspaceRelative.startsWith("../") || path.isAbsolute(workspaceRelative)) {
-    return;
+function requirementCandidatesForPath(workspaceRoot, relativePath, limit = MAX_REQUIREMENT_CANDIDATES, requestWords = []) {
+  if (pathTopicWords(relativePath).length === 0 && requestWords.length < 2)
+    return [];
+  const directory = path.join(workspaceRoot, REQUIREMENTS_DIR);
+  let names;
+  try {
+    names = fs.readdirSync(directory).filter((name) => name.endsWith(".md"));
+  } catch {
+    return [];
   }
-  return { workspaceRelative, absolute };
-}
-function classifyPath(relativePath) {
-  const segments = pathSegments(relativePath);
-  if (segments[0] === ".kb")
-    return "kb";
-  if (segments.some((segment) => ignoredSegments.has(segment)))
-    return "other";
-  if (segments.some((segment) => documentationSegments.has(segment))) {
-    return "other";
-  }
-  const basename = segments.at(-1) ?? "";
-  const extension = path.extname(basename).toLowerCase();
-  if (!codeExtensions.has(extension))
-    return "other";
-  if (testBasename.test(basename) || segments.slice(0, -1).some((segment) => testSegments.has(segment))) {
-    return "test";
-  }
-  return "source";
-}
-function isKbPath(candidate) {
-  return pathSegments(candidate).includes(".kb");
-}
-function isCanonicalKbKnowledgePath(segments) {
-  const kbIndex = segments.indexOf(".kb");
-  if (kbIndex < 0)
-    return false;
-  const lane = segments[kbIndex + 1];
-  return lane !== undefined && (canonicalKbKnowledgeFiles.has(lane) || canonicalKbKnowledgeLanes.has(lane));
-}
-function isMeaningfulTrackedPath(candidate) {
-  const segments = pathSegments(candidate);
-  if (segments.some((segment) => ignoredSegments.has(segment)))
-    return false;
-  if (segments.includes(".kb"))
-    return isCanonicalKbKnowledgePath(segments);
-  const basename = segments.at(-1) ?? "";
-  const extension = path.extname(basename).toLowerCase();
-  if (basename === "README.md")
-    return true;
-  if (segments.some((segment) => documentationSegments.has(segment))) {
-    return documentationExtensions.has(extension);
-  }
-  if (testBasename.test(basename) || segments.slice(0, -1).some((segment) => testSegments.has(segment))) {
-    return codeExtensions.has(extension) || documentationExtensions.has(extension);
-  }
-  return codeExtensions.has(extension);
-}
-function isSourceImpactRelevantPath(candidate) {
-  return classifyPath(normalizeWorkspacePath(candidate)) === "source";
+  if (names.length > MAX_SCANNED)
+    return [];
+  const heads = names.map((name) => readHead(path.join(directory, name))).filter((head) => head !== undefined);
+  return rankRequirementCandidates(relativePath, heads, limit, requestWords);
 }
 
-// ../agent-core/dist/hook-usage-log.js
-var HOOK_ACTION_EDITED = "edited";
-var HOOK_ACTION_KB_USAGE = "kb_usage";
-function hookTelemetryEnabled(env = process.env) {
-  const value = env.KIBI_DIAGNOSTIC_MODE?.trim().toLowerCase();
-  return value === "1" || value === "true";
-}
-function appendHookUsage(row, env = process.env) {
-  if (!hookTelemetryEnabled(env) || row.trace.action === undefined)
-    return;
-  const finishedAt = new Date;
-  const { trace } = row;
-  const record = {
-    timestamp: finishedAt.toISOString(),
-    request_id: `hook-${randomUUID()}`,
-    tool: `hook_${row.event}`,
-    interface: "hook",
-    host: row.host,
-    package_version: row.packageVersion ?? null,
-    workspace_root: row.workspaceRoot,
-    session_id: row.sessionId ?? null,
-    hook_event: row.event,
-    host_tool: row.hostTool ?? null,
-    hook_action: trace.action,
-    path: trace.path ?? null,
-    path_kind: trace.pathKind ?? null,
-    requirement_ids: trace.requirementIds ?? [],
-    kb_operation: trace.kbOperation ?? null,
-    kb_used_before: trace.kbUsedBefore ?? null,
-    status: "success",
-    duration_ms: finishedAt.getTime() - row.startedAt.getTime()
-  };
-  try {
-    const logPath = path2.join(row.workspaceRoot, ".kb", "usage.log");
-    fs.mkdirSync(path2.dirname(logPath), { recursive: true });
-    fs.appendFileSync(logPath, `${JSON.stringify(record)}
-`, "utf8");
-  } catch {}
-}
-function kbUsageTrace(toolName, toolInput) {
-  const kbOperation = hostKbOperation(toolName, toolInput);
-  return kbOperation ? { action: HOOK_ACTION_KB_USAGE, kbOperation } : undefined;
-}
-function editTraces(relativePaths, requirementIdsFor) {
-  const traces = [];
-  for (const relativePath of new Set(relativePaths)) {
-    const pathKind = classifyPath(relativePath);
-    if (pathKind === "other")
-      continue;
-    traces.push({
-      action: HOOK_ACTION_EDITED,
-      path: relativePath,
-      pathKind,
-      requirementIds: pathKind === "kb" ? [] : requirementIdsFor(relativePath)
-    });
-  }
-  return traces;
-}
-function appendHookUsageRows(row, traces, env = process.env) {
-  if (!hookTelemetryEnabled(env))
-    return;
-  for (const trace of traces)
-    appendHookUsage({ ...row, trace }, env);
-}
-function readPackageVersion(packageJsonPath) {
-  try {
-    const parsed = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
-    if (typeof parsed === "object" && parsed !== null && "version" in parsed && typeof parsed.version === "string") {
-      return parsed.version;
-    }
-  } catch {}
-  return null;
-}
+// ../agent-core/dist/snippets.js
+import { createHash as createHash2 } from "node:crypto";
+import fs3 from "node:fs";
+import path3 from "node:path";
 
 // ../agent-core/dist/knowledge-index.js
-import { createHash, randomUUID as randomUUID2 } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import fs2 from "node:fs";
-import path3 from "node:path";
+import path2 from "node:path";
 var SYMBOLS_MANIFEST = ".kb/symbols.yaml";
 var SYMBOL_COORDINATES = ".kb/symbol-coordinates.yaml";
 var INDEX_FORMAT = "kibi-agent-core.knowledge-index.v2";
 var CACHE_FILE = "knowledge-index.json";
-function unquote(raw) {
+function unquote2(raw) {
   const value = raw.trim();
   if (value.startsWith('"') && value.endsWith('"') && value.length >= 2) {
     try {
@@ -501,7 +328,7 @@ function parseFlow(text, start = 0) {
         return;
       const raw = text.slice(pos, cursor + 1);
       pos = cursor + 1;
-      return unquote(raw);
+      return unquote2(raw);
     }
     let cursor = pos;
     while (cursor < text.length) {
@@ -602,7 +429,7 @@ function completeFlowValue(raw) {
 function parseScalarOrFlow(raw) {
   if (raw === undefined || raw.trim().length === 0)
     return;
-  return completeFlowValue(raw)?.value ?? unquote(raw);
+  return completeFlowValue(raw)?.value ?? unquote2(raw);
 }
 function scanSymbolsManifest(text) {
   return scanRecordSequence(text, "symbols");
@@ -676,12 +503,12 @@ ${content}`;
         pendingFlow = undefined;
         continue;
       }
-      target[pendingFlow.key] = unquote(pendingFlow.first);
+      target[pendingFlow.key] = unquote2(pendingFlow.first);
       pendingFlow = undefined;
     }
     if (indent === 0 && !dash) {
       const pair = keyValue.exec(content);
-      section = pair?.[1] !== undefined && unquote(pair[1]) === sectionKey ? "records" : "other";
+      section = pair?.[1] !== undefined && unquote2(pair[1]) === sectionKey ? "records" : "other";
       current = undefined;
       itemIndent = undefined;
       continue;
@@ -697,7 +524,7 @@ ${content}`;
       listItem = undefined;
       const pair = keyValue.exec(dash[3] ?? "");
       if (pair?.[1] !== undefined) {
-        const key = unquote(pair[1]);
+        const key = unquote2(pair[1]);
         if (pair[2] !== undefined && unbalancedFlow(pair[2])) {
           pendingFlow = {
             key,
@@ -731,18 +558,18 @@ ${content}`;
         listItem = undefined;
         list.push(flowItem.value);
       } else if (pair?.[1] !== undefined && pair[2] !== undefined) {
-        listItem = { [unquote(pair[1])]: parseScalarOrFlow(pair[2]) };
+        listItem = { [unquote2(pair[1])]: parseScalarOrFlow(pair[2]) };
         list.push(listItem);
       } else {
         listItem = undefined;
-        list.push(unquote(item));
+        list.push(unquote2(item));
       }
       continue;
     }
     const pair = keyValue.exec(content);
     if (pair?.[1] === undefined)
       continue;
-    const key = unquote(pair[1]);
+    const key = unquote2(pair[1]);
     if (indent === keyIndent) {
       listItem = undefined;
       if (pair[2] !== undefined && unbalancedFlow(pair[2])) {
@@ -785,7 +612,7 @@ function scanSymbolCoordinates(text) {
     const pair = keyValue.exec(content);
     if (pair?.[1] === undefined)
       continue;
-    const key = unquote(pair[1]);
+    const key = unquote2(pair[1]);
     if (indent === 0) {
       inCoordinates = key === "coordinates";
       idIndent = undefined;
@@ -804,13 +631,13 @@ function scanSymbolCoordinates(text) {
       continue;
     const entry = coordinates[currentId] ?? {};
     if (key === "sourceFile") {
-      const sourceFile = normalizeSourceFile(unquote(pair[2] ?? ""));
+      const sourceFile = normalizeSourceFile(unquote2(pair[2] ?? ""));
       if (sourceFile.length > 0)
         entry.sourceFile = sourceFile;
       coordinates[currentId] = entry;
       continue;
     }
-    const numeric = Number.parseInt(unquote(pair[2] ?? ""), 10);
+    const numeric = Number.parseInt(unquote2(pair[2] ?? ""), 10);
     if (!Number.isFinite(numeric))
       continue;
     if (key === "sourceLine")
@@ -930,18 +757,18 @@ function readText(filePath) {
 }
 function writeCacheAtomically(cachePath, payload) {
   try {
-    fs2.mkdirSync(path3.dirname(cachePath), { recursive: true });
-    const temporary = `${cachePath}.${process.pid}.${randomUUID2()}.tmp`;
+    fs2.mkdirSync(path2.dirname(cachePath), { recursive: true });
+    const temporary = `${cachePath}.${process.pid}.${randomUUID()}.tmp`;
     fs2.writeFileSync(temporary, payload);
     fs2.renameSync(temporary, cachePath);
   } catch {}
 }
 function loadKnowledgeIndex(workspaceRoot, cacheDir, options = {}) {
-  const symbolsPath = path3.join(workspaceRoot, SYMBOLS_MANIFEST);
-  const coordinatesPath = path3.join(workspaceRoot, SYMBOL_COORDINATES);
+  const symbolsPath = path2.join(workspaceRoot, SYMBOLS_MANIFEST);
+  const coordinatesPath = path2.join(workspaceRoot, SYMBOL_COORDINATES);
   const legacyMode = options.legacyLinksAsImplements === false ? "typed" : "legacy";
   const signature = `${INDEX_FORMAT}|${legacyMode}|${fileSignature(symbolsPath)}|${fileSignature(coordinatesPath)}`;
-  const cachePath = cacheDir ? path3.join(cacheDir, options.cacheFileName ?? CACHE_FILE) : undefined;
+  const cachePath = cacheDir ? path2.join(cacheDir, options.cacheFileName ?? CACHE_FILE) : undefined;
   if (cachePath) {
     const cached = readText(cachePath);
     if (cached !== undefined) {
@@ -975,7 +802,7 @@ var RELATIONSHIPS_DIR = ".kb/relationships";
 var shardCache = new Map;
 function shardPathFor(workspaceRoot, entityId) {
   const shard = createHash("sha256").update(entityId).digest("hex");
-  return path3.join(workspaceRoot, RELATIONSHIPS_DIR, `${shard.slice(0, 2)}.yaml`);
+  return path2.join(workspaceRoot, RELATIONSHIPS_DIR, `${shard.slice(0, 2)}.yaml`);
 }
 function shardLinksFrom(workspaceRoot, entityId) {
   const shardPath = shardPathFor(workspaceRoot, entityId);
@@ -1014,7 +841,7 @@ function readEntitySummary(workspaceRoot, entityId) {
     return { id: entityId };
   let head;
   try {
-    const descriptor = fs2.openSync(path3.join(workspaceRoot, ".kb", lane[1], `${entityId}.md`), "r");
+    const descriptor = fs2.openSync(path2.join(workspaceRoot, ".kb", lane[1], `${entityId}.md`), "r");
     try {
       const buffer = Buffer.alloc(8192);
       const bytes = fs2.readSync(descriptor, buffer, 0, buffer.length, 0);
@@ -1050,11 +877,11 @@ function readEntitySummary(workspaceRoot, entityId) {
       inOrigin = /^origin:\s*$/.test(line);
     const match = /^(title|status|firmness):\s*(.*)$/.exec(line);
     if (match?.[1] === "title" && match[2])
-      summary.title = unquote(match[2]);
+      summary.title = unquote2(match[2]);
     if (match?.[1] === "status" && match[2])
-      summary.status = unquote(match[2]);
+      summary.status = unquote2(match[2]);
     if (match?.[1] === "firmness" && match[2])
-      summary.firmness = unquote(match[2]);
+      summary.firmness = unquote2(match[2]);
     if (/^\S/.test(line)) {
       flushLink(authored, pending);
       pending = undefined;
@@ -1073,11 +900,11 @@ function readEntitySummary(workspaceRoot, entityId) {
     const body = (entry ? entry[1] ?? "" : line).trim();
     const field = /^(type|target):\s*(.+)$/.exec(body);
     if (field?.[1] === "type")
-      pending.type = unquote(field[2] ?? "");
+      pending.type = unquote2(field[2] ?? "");
     else if (field?.[1] === "target")
-      pending.target = unquote(field[2] ?? "");
-    else if (entry && SAFE_ENTITY_ID.test(unquote(body)))
-      pending.bare = unquote(body);
+      pending.target = unquote2(field[2] ?? "");
+    else if (entry && SAFE_ENTITY_ID.test(unquote2(body)))
+      pending.bare = unquote2(body);
   }
   flushLink(authored, pending);
   if (summary.firmness === undefined && closed && (lane[1] === "requirements" || lane[1] === "adr"))
@@ -1101,190 +928,7 @@ function readEntitySummary(workspaceRoot, entityId) {
   return summary;
 }
 
-// ../agent-core/dist/requirement-candidates.js
-import fs3 from "node:fs";
-import path4 from "node:path";
-var REQUIREMENTS_DIR = path4.join(".kb", "requirements");
-var HEAD_BYTES = 4096;
-var MAX_SCANNED = 2000;
-var MAX_REQUIREMENT_CANDIDATES = 3;
-var LAYOUT_WORDS = new Set([
-  "src",
-  "app",
-  "apps",
-  "lib",
-  "libs",
-  "source",
-  "page",
-  "pages",
-  "component",
-  "components",
-  "view",
-  "views",
-  "screen",
-  "screens",
-  "package",
-  "packages",
-  "main",
-  "index",
-  "shared",
-  "common",
-  "core",
-  "util",
-  "utils",
-  "helper",
-  "helpers",
-  "public",
-  "static",
-  "asset",
-  "assets",
-  "web",
-  "client",
-  "server",
-  "frontend",
-  "backend",
-  "module",
-  "modules",
-  "feature",
-  "features",
-  "internal",
-  "service",
-  "services",
-  "test",
-  "tests",
-  "spec",
-  "specs",
-  "dist",
-  "build",
-  "html",
-  "htm",
-  "tsx",
-  "jsx",
-  "mjs",
-  "cjs",
-  "vue",
-  "svelte",
-  "css",
-  "scss",
-  "less",
-  "json",
-  "yaml",
-  "yml",
-  "java",
-  "swift",
-  "php"
-]);
-var FILLER_WORDS = new Set([
-  "the",
-  "and",
-  "for",
-  "with",
-  "must",
-  "should",
-  "shall",
-  "may",
-  "can",
-  "are",
-  "is",
-  "its",
-  "their",
-  "that",
-  "this",
-  "from",
-  "into",
-  "when",
-  "each",
-  "every",
-  "all",
-  "not",
-  "req",
-  "auto"
-]);
-function words(text) {
-  return text.replace(/([a-z0-9])([A-Z])/g, "$1 $2").toLowerCase().split(/[^a-z0-9]+/).filter((word) => word.length >= 3 && !/\d/.test(word)).map((word) => word.length > 4 && word.endsWith("s") && !word.endsWith("ss") ? word.slice(0, -1) : word);
-}
-function pathTopicWords(relativePath) {
-  const segments = relativePath.split(/[\\/]/).filter(Boolean);
-  const last = segments.pop() ?? "";
-  const stem = last.includes(".") ? last.slice(0, last.indexOf(".")) : last;
-  const roles = last.includes(".") ? last.slice(last.indexOf(".") + 1) : "";
-  const found = [...segments, stem, roles].flatMap(words).filter((word) => !LAYOUT_WORDS.has(word) && !FILLER_WORDS.has(word));
-  return [...new Set(found)];
-}
-function unquote2(value) {
-  const trimmed = value.trim();
-  return /^(["']).*\1$/.test(trimmed) ? trimmed.slice(1, -1) : trimmed;
-}
-function readHead(file) {
-  let head;
-  try {
-    const descriptor = fs3.openSync(file, "r");
-    try {
-      const buffer = Buffer.alloc(HEAD_BYTES);
-      const bytes = fs3.readSync(descriptor, buffer, 0, buffer.length, 0);
-      head = buffer.subarray(0, bytes).toString("utf8");
-    } finally {
-      fs3.closeSync(descriptor);
-    }
-  } catch {
-    return;
-  }
-  const lines = head.split(/\r?\n/);
-  if (lines[0]?.trim() !== "---")
-    return;
-  const fields = {};
-  for (const line of lines.slice(1)) {
-    if (line.trim() === "---")
-      break;
-    const match = /^(id|title|status):\s*(.+)$/.exec(line);
-    if (match?.[1] && match[2])
-      fields[match[1]] = unquote2(match[2]);
-  }
-  if (!fields.id || !fields.title)
-    return;
-  return {
-    id: fields.id,
-    title: fields.title,
-    ...fields.status ? { status: fields.status } : {}
-  };
-}
-var RETIRED_STATUS = /supersed|deprecat|reject|obsolete|retired|archived|removed/i;
-function rankRequirementCandidates(relativePath, requirements, limit = MAX_REQUIREMENT_CANDIDATES) {
-  const topic = new Set(pathTopicWords(relativePath));
-  if (topic.size === 0)
-    return [];
-  const scored = [];
-  for (const head of requirements) {
-    if (head.status !== undefined && RETIRED_STATUS.test(head.status))
-      continue;
-    const titleWords = words(head.title).filter((word) => topic.has(word));
-    const shared = new Set(titleWords).size;
-    if (shared > 0)
-      scored.push({ head, shared, uses: titleWords.length });
-  }
-  scored.sort((a, b) => b.shared - a.shared || b.uses - a.uses || a.head.id.localeCompare(b.head.id));
-  return scored.slice(0, limit).map((entry) => entry.head);
-}
-function requirementCandidatesForPath(workspaceRoot, relativePath, limit = MAX_REQUIREMENT_CANDIDATES) {
-  if (pathTopicWords(relativePath).length === 0)
-    return [];
-  const directory = path4.join(workspaceRoot, REQUIREMENTS_DIR);
-  let names;
-  try {
-    names = fs3.readdirSync(directory).filter((name) => name.endsWith(".md"));
-  } catch {
-    return [];
-  }
-  if (names.length > MAX_SCANNED)
-    return [];
-  const heads = names.map((name) => readHead(path4.join(directory, name))).filter((head) => head !== undefined);
-  return rankRequirementCandidates(relativePath, heads, limit);
-}
-
 // ../agent-core/dist/snippets.js
-import { createHash as createHash2 } from "node:crypto";
-import fs4 from "node:fs";
-import path5 from "node:path";
 var MAX_REQUIREMENTS = 4;
 var MAX_SYMBOLS_PER_REQUIREMENT = 3;
 var MAX_TESTS = 3;
@@ -1306,11 +950,11 @@ function focusedSymbols(symbols, focus) {
     return [];
   return symbols.filter((symbol) => focus.some((range) => overlaps(symbol, range))).sort((left, right) => (left.endLine ?? left.line ?? 0) - (left.line ?? 0) - ((right.endLine ?? right.line ?? 0) - (right.line ?? 0)));
 }
-function isRecord3(value) {
+function isRecord(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function editFocus(absolutePath, toolInput) {
-  if (!isRecord3(toolInput))
+  if (!isRecord(toolInput))
     return;
   const needles = [];
   const collect = (record) => {
@@ -1323,7 +967,7 @@ function editFocus(absolutePath, toolInput) {
   collect(toolInput);
   if (Array.isArray(toolInput.edits)) {
     for (const edit of toolInput.edits) {
-      if (isRecord3(edit))
+      if (isRecord(edit))
         collect(edit);
     }
   }
@@ -1332,9 +976,9 @@ function editFocus(absolutePath, toolInput) {
     return;
   let content;
   try {
-    if (fs4.statSync(absolutePath).size > MAX_FOCUS_SCAN_BYTES)
+    if (fs3.statSync(absolutePath).size > MAX_FOCUS_SCAN_BYTES)
       return;
-    content = fs4.readFileSync(absolutePath, "utf8");
+    content = fs3.readFileSync(absolutePath, "utf8");
   } catch {
     return;
   }
@@ -1374,14 +1018,21 @@ function unownedSourceNote(relativePath, candidates = []) {
     const named = candidates.slice(0, shown).map((candidate) => `${candidate.id}: ${truncate(candidate.title, MAX_TITLE)}`);
     const note = [
       head,
-      `Requirements whose titles share this path's words: ${named.join("; ")}. kb_query({id:${jsonString(candidates[0]?.id ?? "")}}) shows whether one describes the behavior being changed; one that does is traced by an implements link from the symbol that implements it (for markup, the component that renders it).`,
+      `Requirements whose titles share words with this path or the request: ${named.join("; ")}. kb_query({id:${jsonString(candidates[0]?.id ?? "")}}) shows whether one describes the behavior being changed; one that does is traced by an implements link from the symbol that implements it (for markup, the component that renders it).`,
       search
     ].join(`
 `);
     if (note.length <= MAX_SNIPPET_CHARS)
       return note;
   }
-  return [head, search].join(`
+  if (candidates.length > 0)
+    return [head, search].join(`
+`);
+  return [
+    head,
+    "No requirement title matches this file, so nothing recorded is known to cover it.",
+    `kb_search({query:"<behavior being changed>", sourceLocations:[{path:${jsonString(relativePath)}}]}) finds a rule recorded under other words. A decision this change makes for this code (a rule the person states, a limit, who may do what) is recorded with kb_upsert (requirement + scenario + symbol implements link) before the work is reported done.`
+  ].join(`
 `);
 }
 function unreadableManifestNote(relativePath) {
@@ -1537,14 +1188,578 @@ function editKnowledgeContext(input) {
 function claimSnippetSlot(stateDir, key) {
   if (!stateDir)
     return true;
-  const marker = path5.join(stateDir, "shown-snippets", createHash2("sha256").update(key).digest("hex").slice(0, 32));
+  const marker = path3.join(stateDir, "shown-snippets", createHash2("sha256").update(key).digest("hex").slice(0, 32));
   try {
-    fs4.mkdirSync(path5.dirname(marker), { recursive: true });
-    fs4.writeFileSync(marker, "", { flag: "wx" });
+    fs3.mkdirSync(path3.dirname(marker), { recursive: true });
+    fs3.writeFileSync(marker, "", { flag: "wx" });
     return true;
   } catch {
     return false;
   }
+}
+
+// ../agent-core/dist/decision-guard.js
+var CONFIRM_FIRM_EDITS_ENV = "KIBI_CONFIRM_FIRM_EDITS";
+function confirmFirmEdits(env) {
+  const value = env[CONFIRM_FIRM_EDITS_ENV]?.trim().toLowerCase();
+  return !(value === "0" || value === "false" || value === "off");
+}
+function firmRequirementsTouched(input) {
+  const touched = input.wholeFile ? input.symbols : focusedSymbols(input.symbols, input.focus);
+  const ids = implementedRequirementIds(touched).filter((id) => {
+    if (input.confirmed?.has(id))
+      return false;
+    const summary = input.summarize(id);
+    return summary.firmness === "firm" && !isRetiredStatus(summary.status);
+  });
+  return { ids, symbol: input.wholeFile ? undefined : touched[0] };
+}
+var RULE_PHRASES = /\b(?:from now on|going forward|must(?:n['’]t| not)?|should (?:always|never)|never|always|is not allowed|are not allowed|not be allowed|only (?:allow|admins?|owners?)|is required|are required|has to|have to)\b/i;
+function statedRule(prompt) {
+  const match = RULE_PHRASES.exec(prompt);
+  return match ? match[0].toLowerCase() : undefined;
+}
+function rulePromptNote(phrase) {
+  return [
+    `Kibi: this request reads as a rule or decision (it says "${phrase}").`,
+    "A rule the person states is project knowledge: kb_search shows whether a recorded requirement already says something about it (changing a firm one is a question for the person first), and a new or changed rule is recorded with kb_upsert (a requirement, firm because the person stated it, with the implements link from the code that enforces it) as part of this change, not after it."
+  ].join(`
+`);
+}
+function captureReminder(rulePrompt) {
+  return [
+    rulePrompt ? "Kibi: a request this session read as a rule or decision, the session changed source files, and nothing was recorded in the knowledge base." : "Kibi: this session changed source files and recorded nothing in the knowledge base.",
+    "A decision the person stated or this change made (a rule, a limit, a default, who may do what) is recorded with kb_upsert as a requirement linked to the code that implements it before the work is reported done; when there was none, the final report says so in one line."
+  ].join(`
+`);
+}
+function firmEditNotice(where, requirements) {
+  const shown = requirements.slice(0, 2).map((summary) => summary.title ? `${summary.id}: ${summary.title}` : summary.id);
+  const more = requirements.length > shown.length ? ` (+${requirements.length - shown.length} more)` : "";
+  const one = requirements.length === 1;
+  return [
+    `Kibi: this edit changes ${where}, which implements ${one ? "a firm requirement" : "firm requirements"}, a rule the person set: ${shown.join("; ")}${more}.`,
+    `Unless the edit keeps ${one ? "that rule" : "those rules"}, ask the person before making it and name the rule; change the requirement with kb_upsert in this change only when they say so.`
+  ].join(`
+`);
+}
+function sessionPath(session, name) {
+  if (!session.stateDir)
+    return;
+  const key = createHash3("sha256").update(session.sessionId?.trim() || "unattributed").digest("hex").slice(0, 32);
+  return path4.join(session.stateDir, "decision-guard", key, name);
+}
+function writeMarker(file, content, flag) {
+  fs4.mkdirSync(path4.dirname(file), { recursive: true });
+  fs4.writeFileSync(file, content, { flag });
+}
+function markDecisionFlag(session, flag) {
+  const file = sessionPath(session, flag);
+  if (!file)
+    return;
+  try {
+    writeMarker(file, "", "w");
+  } catch {}
+}
+function hasDecisionFlag(session, flag) {
+  const file = sessionPath(session, flag);
+  return file !== undefined && fs4.existsSync(file);
+}
+function claimDecisionFlag(session, flag) {
+  const file = sessionPath(session, flag);
+  if (!file)
+    return false;
+  try {
+    writeMarker(file, "", "wx");
+    return true;
+  } catch {
+    return false;
+  }
+}
+function recordRequest(session, prompt) {
+  const rule = statedRule(prompt);
+  const file = sessionPath(session, "request-words.json");
+  if (file) {
+    try {
+      writeMarker(file, JSON.stringify(requestTopicWords(prompt)), "w");
+    } catch {}
+  }
+  if (rule !== undefined)
+    markDecisionFlag(session, "rule-prompt");
+  return rule;
+}
+function requestWords(session) {
+  const file = sessionPath(session, "request-words.json");
+  if (!file)
+    return [];
+  try {
+    const parsed = JSON.parse(fs4.readFileSync(file, "utf8"));
+    return Array.isArray(parsed) ? parsed.filter((word) => typeof word === "string") : [];
+  } catch {
+    return [];
+  }
+}
+function claimCaptureReminder(session) {
+  return hasDecisionFlag(session, "source-edited") && !hasDecisionFlag(session, "kb-recorded") && claimDecisionFlag(session, "capture-asked");
+}
+function readSettled(file) {
+  if (!file)
+    return [];
+  try {
+    const parsed = JSON.parse(fs4.readFileSync(file, "utf8"));
+    return Array.isArray(parsed) ? parsed.filter((id) => typeof id === "string") : [];
+  } catch {
+    return [];
+  }
+}
+function settledFirmRequirements(session) {
+  return new Set(readSettled(sessionPath(session, "firm-settled.json")));
+}
+function settleFirmRequirements(session, ids) {
+  const file = sessionPath(session, "firm-settled.json");
+  if (!file)
+    return;
+  try {
+    writeMarker(file, JSON.stringify([...new Set([...readSettled(file), ...ids])]), "w");
+  } catch {}
+}
+
+// ../agent-core/dist/hook-usage-log.js
+import { randomUUID as randomUUID2 } from "node:crypto";
+import fs5 from "node:fs";
+import path6 from "node:path";
+
+// ../agent-core/dist/kb-mcp-tools.js
+function isRecord2(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function readString(record, keys) {
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === "string") {
+      return value;
+    }
+  }
+  return;
+}
+function readBoolean(record, keys) {
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === "boolean") {
+      return value;
+    }
+  }
+  return;
+}
+function readStringArray(record, keys) {
+  for (const key of keys) {
+    const value = record[key];
+    if (!Array.isArray(value)) {
+      continue;
+    }
+    return value.filter((item) => typeof item === "string" && item.length > 0);
+  }
+  return [];
+}
+function readRecord(record, keys) {
+  for (const key of keys) {
+    const value = record[key];
+    if (isRecord2(value)) {
+      return value;
+    }
+  }
+  return;
+}
+function canonicalKbToolName(toolName) {
+  const trimmed = toolName?.trim() ?? "";
+  const lastSegment = trimmed.includes("__") ? trimmed.split("__").at(-1) ?? "" : trimmed.replace(/^MCP:/i, "");
+  const operation = lastSegment.replace(/^kibi_/, "");
+  return operation.startsWith("kb_") ? operation : undefined;
+}
+var KIBI_WORKSPACE_ARGUMENT = "workspaceRoot";
+function isKibiMcpToolName(toolName) {
+  const name = toolName?.trim() ?? "";
+  if (/^MCP:kb_[a-z_]+$/i.test(name))
+    return true;
+  const segments = name.split("__");
+  if (segments.length < 3 || segments[0] !== "mcp")
+    return false;
+  const server = segments.slice(1, -1).join("__");
+  return /kibi/i.test(server) && /^kb_[a-z_]+$/.test(segments.at(-1) ?? "");
+}
+function stampKibiWorkspace(toolName, toolInput, workspaceRoot) {
+  if (!workspaceRoot || !isKibiMcpToolName(toolName))
+    return;
+  const base = isRecord2(toolInput) ? toolInput : {};
+  return { ...base, [KIBI_WORKSPACE_ARGUMENT]: workspaceRoot };
+}
+function extractKbMcpToolCall(toolName, toolInput) {
+  let normalizedToolName = canonicalKbToolName(toolName);
+  if (isRecord2(toolInput)) {
+    normalizedToolName ??= readString(toolInput, [
+      "toolName",
+      "tool_name",
+      "name"
+    ]);
+    const args = readRecord(toolInput, ["arguments", "args"]);
+    const payload = args ?? toolInput;
+    const includeImpactDiagnostics = readBoolean(payload, [
+      "includeImpactDiagnostics",
+      "include_impact_diagnostics"
+    ]);
+    const includeWorkingTreeDiff = readBoolean(payload, [
+      "includeWorkingTreeDiff",
+      "include_working_tree_diff"
+    ]);
+    const sourceFiles = readStringArray(payload, [
+      "sourceFiles",
+      "source_files"
+    ]);
+    if (normalizedToolName === "kb_upsert" && readBoolean(payload, ["dryRun"]) === true) {
+      normalizedToolName = "kb_validate_upsert";
+    }
+    if (normalizedToolName?.startsWith("kb_")) {
+      return {
+        toolName: normalizedToolName,
+        impactCheckRun: normalizedToolName === "kb_check" && includeImpactDiagnostics === true && includeWorkingTreeDiff === true && sourceFiles.length > 0,
+        sourceFiles
+      };
+    }
+    const nestedArgs = toolInput.arguments ?? toolInput.args;
+    if (isRecord2(nestedArgs)) {
+      const nestedTool = readString(nestedArgs, [
+        "toolName",
+        "tool_name",
+        "name"
+      ]);
+      if (nestedTool?.startsWith("kb_")) {
+        return { toolName: nestedTool, impactCheckRun: false, sourceFiles: [] };
+      }
+    }
+  }
+  if (normalizedToolName?.startsWith("kb_")) {
+    return {
+      toolName: normalizedToolName,
+      impactCheckRun: false,
+      sourceFiles: []
+    };
+  }
+  return;
+}
+var KIBI_CLI_ROUTES = {
+  check: "kb_check",
+  query: "kb_query",
+  "kb-query": "kb_query",
+  search: "kb_search",
+  status: "kb_status",
+  graph: "kb_graph",
+  coverage: "kb_coverage",
+  "find-gaps": "kb_find_gaps",
+  gaps: "kb_find_gaps",
+  upsert: "kb_upsert",
+  sync: "kb_sync"
+};
+function kibiCliOperation(command) {
+  if (typeof command !== "string")
+    return;
+  const route = /(?:^|[\s;&|(/])kibi\s+([a-z-]+)/.exec(command)?.[1];
+  return route ? KIBI_CLI_ROUTES[route] : undefined;
+}
+var SHELL_TOOL_NAMES = new Set(["Bash", "bash", "Shell", "shell"]);
+function hostKbOperation(toolName, toolInput) {
+  const mcp = canonicalKbToolName(toolName);
+  if (mcp !== undefined && /^kb_[a-z_]+$/.test(mcp))
+    return mcp;
+  if (!toolName || !SHELL_TOOL_NAMES.has(toolName) || !isRecord2(toolInput)) {
+    return;
+  }
+  return kibiCliOperation(toolInput.command);
+}
+
+// ../agent-core/dist/path-policy.js
+import path5 from "node:path";
+var codeExtensions = new Set([
+  ".c",
+  ".cc",
+  ".cjs",
+  ".cpp",
+  ".cs",
+  ".css",
+  ".go",
+  ".h",
+  ".hpp",
+  ".html",
+  ".java",
+  ".js",
+  ".jsx",
+  ".kt",
+  ".lua",
+  ".mjs",
+  ".mts",
+  ".cts",
+  ".php",
+  ".pl",
+  ".py",
+  ".rb",
+  ".rs",
+  ".scala",
+  ".sh",
+  ".swift",
+  ".ts",
+  ".tsx",
+  ".vue",
+  ".svelte"
+]);
+var ignoredSegments = new Set([
+  "node_modules",
+  "dist",
+  "build",
+  "out",
+  "coverage",
+  "vendor",
+  "target",
+  ".git",
+  ".next",
+  ".turbo",
+  ".cache",
+  "__pycache__"
+]);
+var testSegments = new Set([
+  "test",
+  "tests",
+  "__tests__",
+  "spec",
+  "specs",
+  "e2e",
+  "__mocks__",
+  "fixtures"
+]);
+var testBasename = /(\.|_)(test|spec|e2e)\.[^.]+$|^test_[^/]+\.py$/;
+var documentationExtensions = new Set([".md", ".mdx", ".rst", ".txt"]);
+var documentationSegments = new Set(["docs", "documentation"]);
+var canonicalKbKnowledgeLanes = new Set([
+  "requirements",
+  "scenarios",
+  "tests",
+  "facts",
+  "adr",
+  "flags",
+  "events"
+]);
+var canonicalKbKnowledgeFiles = new Set([
+  "symbols.yaml",
+  "symbol-coordinates.yaml"
+]);
+var explicitPathKeys = new Set([
+  "absolute_path",
+  "file",
+  "file_path",
+  "filepath",
+  "new_path",
+  "old_path",
+  "path",
+  "paths",
+  "relative_path",
+  "target_path"
+]);
+function isRecord3(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function normalizeWorkspacePath(candidate) {
+  return candidate.trim().replaceAll("\\", "/");
+}
+function pathSegments(candidate) {
+  return normalizeWorkspacePath(candidate).split("/").filter(Boolean);
+}
+function collectPathValues(value, output) {
+  if (typeof value === "string") {
+    const normalized = normalizeWorkspacePath(value);
+    if (normalized.length > 0)
+      output.push(normalized);
+    return;
+  }
+  if (!Array.isArray(value))
+    return;
+  for (const item of value)
+    collectPathValues(item, output);
+}
+function visitExplicitPathFields(value, output) {
+  if (Array.isArray(value)) {
+    for (const item of value)
+      visitExplicitPathFields(item, output);
+    return;
+  }
+  if (!isRecord3(value))
+    return;
+  for (const [key, child] of Object.entries(value)) {
+    if (explicitPathKeys.has(key.toLowerCase()))
+      collectPathValues(child, output);
+    visitExplicitPathFields(child, output);
+  }
+}
+function extractExplicitPathFields(input) {
+  const paths = [];
+  visitExplicitPathFields(input, paths);
+  return [...new Set(paths)];
+}
+var patchFileHeader = /^\*\*\* (?:Update|Add|Delete) File: (.+)$/;
+var patchTextKeys = ["command", "patch", "input", "patchText"];
+function extractPatchFilePaths(patch) {
+  const paths = [];
+  for (const line of patch.split(/\r?\n/)) {
+    const match = patchFileHeader.exec(line.trim());
+    const candidate = match?.[1] ? normalizeWorkspacePath(match[1]) : "";
+    if (candidate.length > 0)
+      paths.push(candidate);
+  }
+  return [...new Set(paths)];
+}
+function extractEditedPaths(toolInput) {
+  const paths = extractExplicitPathFields(toolInput);
+  if (isRecord3(toolInput)) {
+    for (const key of patchTextKeys) {
+      const value = toolInput[key];
+      if (typeof value === "string" && value.includes("*** ")) {
+        paths.push(...extractPatchFilePaths(value));
+      }
+    }
+  }
+  return [...new Set(paths)];
+}
+function canonicalizeWorkspacePath(workspaceRoot, options) {
+  const trimmed = normalizeWorkspacePath(options.rawPath);
+  if (trimmed.length === 0)
+    return;
+  const base = options.base ?? options.eventCwd ?? workspaceRoot;
+  const absolute = path5.isAbsolute(trimmed) ? path5.resolve(trimmed) : path5.resolve(base, trimmed);
+  const workspaceRelative = path5.relative(workspaceRoot, absolute).replaceAll("\\", "/");
+  if (workspaceRelative.length === 0 || workspaceRelative === ".." || workspaceRelative.startsWith("../") || path5.isAbsolute(workspaceRelative)) {
+    return;
+  }
+  return { workspaceRelative, absolute };
+}
+function classifyPath(relativePath) {
+  const segments = pathSegments(relativePath);
+  if (segments[0] === ".kb")
+    return "kb";
+  if (segments.some((segment) => ignoredSegments.has(segment)))
+    return "other";
+  if (segments.some((segment) => documentationSegments.has(segment))) {
+    return "other";
+  }
+  const basename = segments.at(-1) ?? "";
+  const extension = path5.extname(basename).toLowerCase();
+  if (!codeExtensions.has(extension))
+    return "other";
+  if (testBasename.test(basename) || segments.slice(0, -1).some((segment) => testSegments.has(segment))) {
+    return "test";
+  }
+  return "source";
+}
+function isKbPath(candidate) {
+  return pathSegments(candidate).includes(".kb");
+}
+function isCanonicalKbKnowledgePath(segments) {
+  const kbIndex = segments.indexOf(".kb");
+  if (kbIndex < 0)
+    return false;
+  const lane = segments[kbIndex + 1];
+  return lane !== undefined && (canonicalKbKnowledgeFiles.has(lane) || canonicalKbKnowledgeLanes.has(lane));
+}
+function isMeaningfulTrackedPath(candidate) {
+  const segments = pathSegments(candidate);
+  if (segments.some((segment) => ignoredSegments.has(segment)))
+    return false;
+  if (segments.includes(".kb"))
+    return isCanonicalKbKnowledgePath(segments);
+  const basename = segments.at(-1) ?? "";
+  const extension = path5.extname(basename).toLowerCase();
+  if (basename === "README.md")
+    return true;
+  if (segments.some((segment) => documentationSegments.has(segment))) {
+    return documentationExtensions.has(extension);
+  }
+  if (testBasename.test(basename) || segments.slice(0, -1).some((segment) => testSegments.has(segment))) {
+    return codeExtensions.has(extension) || documentationExtensions.has(extension);
+  }
+  return codeExtensions.has(extension);
+}
+function isSourceImpactRelevantPath(candidate) {
+  return classifyPath(normalizeWorkspacePath(candidate)) === "source";
+}
+
+// ../agent-core/dist/hook-usage-log.js
+var HOOK_ACTION_EDITED = "edited";
+var HOOK_ACTION_KB_USAGE = "kb_usage";
+function hookTelemetryEnabled(env = process.env) {
+  const value = env.KIBI_DIAGNOSTIC_MODE?.trim().toLowerCase();
+  return value === "1" || value === "true";
+}
+function appendHookUsage(row, env = process.env) {
+  if (!hookTelemetryEnabled(env) || row.trace.action === undefined)
+    return;
+  const finishedAt = new Date;
+  const { trace } = row;
+  const record = {
+    timestamp: finishedAt.toISOString(),
+    request_id: `hook-${randomUUID2()}`,
+    tool: `hook_${row.event}`,
+    interface: "hook",
+    host: row.host,
+    package_version: row.packageVersion ?? null,
+    workspace_root: row.workspaceRoot,
+    session_id: row.sessionId ?? null,
+    hook_event: row.event,
+    host_tool: row.hostTool ?? null,
+    hook_action: trace.action,
+    path: trace.path ?? null,
+    path_kind: trace.pathKind ?? null,
+    requirement_ids: trace.requirementIds ?? [],
+    kb_operation: trace.kbOperation ?? null,
+    kb_used_before: trace.kbUsedBefore ?? null,
+    status: "success",
+    duration_ms: finishedAt.getTime() - row.startedAt.getTime()
+  };
+  try {
+    const logPath = path6.join(row.workspaceRoot, ".kb", "usage.log");
+    fs5.mkdirSync(path6.dirname(logPath), { recursive: true });
+    fs5.appendFileSync(logPath, `${JSON.stringify(record)}
+`, "utf8");
+  } catch {}
+}
+function kbUsageTrace(toolName, toolInput) {
+  const kbOperation = hostKbOperation(toolName, toolInput);
+  return kbOperation ? { action: HOOK_ACTION_KB_USAGE, kbOperation } : undefined;
+}
+function editTraces(relativePaths, requirementIdsFor) {
+  const traces = [];
+  for (const relativePath of new Set(relativePaths)) {
+    const pathKind = classifyPath(relativePath);
+    if (pathKind === "other")
+      continue;
+    traces.push({
+      action: HOOK_ACTION_EDITED,
+      path: relativePath,
+      pathKind,
+      requirementIds: pathKind === "kb" ? [] : requirementIdsFor(relativePath)
+    });
+  }
+  return traces;
+}
+function appendHookUsageRows(row, traces, env = process.env) {
+  if (!hookTelemetryEnabled(env))
+    return;
+  for (const trace of traces)
+    appendHookUsage({ ...row, trace }, env);
+}
+function readPackageVersion(packageJsonPath) {
+  try {
+    const parsed = JSON.parse(fs5.readFileSync(packageJsonPath, "utf8"));
+    if (typeof parsed === "object" && parsed !== null && "version" in parsed && typeof parsed.version === "string") {
+      return parsed.version;
+    }
+  } catch {}
+  return null;
 }
 
 // src/hook-input.ts
@@ -1592,6 +1807,13 @@ function parseHookInput(input) {
   if (sessionId !== undefined) {
     parsed.sessionId = sessionId;
   }
+  const prompt = readString2(input, ["prompt"]);
+  if (prompt !== undefined) {
+    parsed.prompt = prompt;
+  }
+  if (input.stop_hook_active === true) {
+    parsed.stopHookActive = true;
+  }
   return parsed;
 }
 async function readStdin() {
@@ -1610,9 +1832,9 @@ function parseStdinJson(rawInput) {
 }
 
 // src/hook-state.ts
-import { createHash as createHash3, randomUUID as randomUUID3 } from "node:crypto";
-import fs5 from "node:fs";
-import path6 from "node:path";
+import { createHash as createHash4, randomUUID as randomUUID3 } from "node:crypto";
+import fs6 from "node:fs";
+import path7 from "node:path";
 var stateFileName = "hook-state.json";
 var journalFileName = "hook-state.events.jsonl";
 var maxDirtyPaths = 50;
@@ -1621,8 +1843,8 @@ function resolveWorkspaceStateDir(pluginData, workspaceRoot) {
   if (!pluginData) {
     return;
   }
-  const workspaceKey = createHash3("sha256").update(path6.resolve(workspaceRoot)).digest("hex");
-  return path6.join(pluginData, workspaceStateRoot, workspaceKey);
+  const workspaceKey = createHash4("sha256").update(path7.resolve(workspaceRoot)).digest("hex");
+  return path7.join(pluginData, workspaceStateRoot, workspaceKey);
 }
 function emptyHookState() {
   return {
@@ -1633,7 +1855,7 @@ function emptyHookState() {
   };
 }
 function statePath(pluginData) {
-  return path6.join(pluginData, stateFileName);
+  return path7.join(pluginData, stateFileName);
 }
 function isRecord5(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -1642,7 +1864,7 @@ function normalizeDirtyPath(dirtyPath) {
   return dirtyPath.trim().replaceAll("\\", "/");
 }
 function uniqueTempPath(pluginData) {
-  return path6.join(pluginData, `${stateFileName}.${process.pid}.${Date.now()}.${randomUUID3()}.tmp`);
+  return path7.join(pluginData, `${stateFileName}.${process.pid}.${Date.now()}.${randomUUID3()}.tmp`);
 }
 function mergeDirtyPaths(existingPaths, dirtyPaths) {
   const merged = [...existingPaths, ...dirtyPaths].map(normalizeDirtyPath).filter((dirtyPath) => dirtyPath.length > 0);
@@ -1665,7 +1887,7 @@ function coerceHookState(value) {
   };
 }
 function journalPath(pluginData) {
-  return path6.join(pluginData, journalFileName);
+  return path7.join(pluginData, journalFileName);
 }
 function applyJournalEvent(state, event) {
   switch (event.kind) {
@@ -1690,7 +1912,7 @@ function applyJournalEvent(state, event) {
 function readJournal(pluginData, initialState) {
   let contents;
   try {
-    contents = fs5.readFileSync(journalPath(pluginData), "utf8");
+    contents = fs6.readFileSync(journalPath(pluginData), "utf8");
   } catch {
     return initialState;
   }
@@ -1728,8 +1950,8 @@ function readJournal(pluginData, initialState) {
   }, initialState);
 }
 function appendJournalEvent(pluginData, event) {
-  fs5.mkdirSync(pluginData, { recursive: true });
-  fs5.appendFileSync(journalPath(pluginData), `${JSON.stringify(event)}
+  fs6.mkdirSync(pluginData, { recursive: true });
+  fs6.appendFileSync(journalPath(pluginData), `${JSON.stringify(event)}
 `, "utf8");
 }
 function loadHookState(pluginData) {
@@ -1737,7 +1959,7 @@ function loadHookState(pluginData) {
     return emptyHookState();
   }
   try {
-    return readJournal(pluginData, coerceHookState(JSON.parse(fs5.readFileSync(statePath(pluginData), "utf8"))));
+    return readJournal(pluginData, coerceHookState(JSON.parse(fs6.readFileSync(statePath(pluginData), "utf8"))));
   } catch {
     return readJournal(pluginData, emptyHookState());
   }
@@ -1748,11 +1970,11 @@ function saveHookState(pluginData, state) {
   }
   const boundedState = coerceHookState(state);
   appendJournalEvent(pluginData, { kind: "replace", state: boundedState });
-  fs5.mkdirSync(pluginData, { recursive: true });
+  fs6.mkdirSync(pluginData, { recursive: true });
   const tempPath = uniqueTempPath(pluginData);
-  fs5.writeFileSync(tempPath, `${JSON.stringify(boundedState)}
+  fs6.writeFileSync(tempPath, `${JSON.stringify(boundedState)}
 `);
-  fs5.renameSync(tempPath, statePath(pluginData));
+  fs6.renameSync(tempPath, statePath(pluginData));
 }
 function addDirtyPaths(pluginData, dirtyPaths) {
   const initialState = loadHookState(pluginData);
@@ -1859,22 +2081,22 @@ function isSourceImpactRelevantPath2(candidate) {
 }
 
 // src/workspace-optin.ts
-import fs6 from "node:fs";
-import path7 from "node:path";
+import fs7 from "node:fs";
+import path8 from "node:path";
 var KIBI_WORKSPACE_ENV_KEYS = [
   "KIBI_WORKSPACE",
   "KIBI_PROJECT_ROOT",
   "KIBI_ROOT"
 ];
 function nextAncestorDirectory(current) {
-  const parent = path7.dirname(current);
+  const parent = path8.dirname(current);
   return parent === current ? undefined : parent;
 }
 function hasKibiManifest(directory) {
-  return fs6.existsSync(path7.join(directory, ".kb", "manifest.json"));
+  return fs7.existsSync(path8.join(directory, ".kb", "manifest.json"));
 }
 function hasGitBoundary(directory) {
-  return fs6.existsSync(path7.join(directory, ".git"));
+  return fs7.existsSync(path8.join(directory, ".git"));
 }
 function resolutionFor(root) {
   return { root, optedIn: hasKibiManifest(root) };
@@ -1883,10 +2105,10 @@ function resolveKibiWorkspace(startDir, env = process.env) {
   for (const key of KIBI_WORKSPACE_ENV_KEYS) {
     const value = env[key]?.trim();
     if (value) {
-      return resolutionFor(path7.resolve(value));
+      return resolutionFor(path8.resolve(value));
     }
   }
-  let current = path7.resolve(startDir && startDir.trim().length > 0 ? startDir : process.cwd());
+  let current = path8.resolve(startDir && startDir.trim().length > 0 ? startDir : process.cwd());
   while (current !== undefined) {
     if (hasKibiManifest(current)) {
       return { root: current, optedIn: true };
@@ -1896,7 +2118,7 @@ function resolveKibiWorkspace(startDir, env = process.env) {
     }
     current = nextAncestorDirectory(current);
   }
-  return resolutionFor(path7.resolve(startDir ?? process.cwd()));
+  return resolutionFor(path8.resolve(startDir ?? process.cwd()));
 }
 
 // src/hook-runner.ts
@@ -1919,15 +2141,19 @@ function editTargets(workspaceRoot, input) {
     absolute: target.absolute
   }));
 }
-function preEditContext(workspaceRoot, stateDir, input) {
+function preEditContext(workspaceRoot, stateDir, input, env) {
   const targets = editTargets(workspaceRoot, input);
   if (targets.length === 0)
     return;
   const index = loadKnowledgeIndex(workspaceRoot, stateDir);
-  return editKnowledgeContext({
+  const summarize = createEntitySummarizer(workspaceRoot);
+  const session = { stateDir, sessionId: input.sessionId };
+  const words = requestWords(session);
+  const notice = firmNotice(targets, index.files, summarize, session, input, env);
+  const knowledge = editKnowledgeContext({
     relativePaths: targets.map((target) => target.relative),
     symbolsFor: (relativePath) => index.files[relativePath] ?? [],
-    summarize: createEntitySummarizer(workspaceRoot),
+    summarize,
     stateDir,
     sessionId: input.sessionId,
     focusFor: (relativePath) => {
@@ -1939,17 +2165,41 @@ function preEditContext(workspaceRoot, stateDir, input) {
         return;
       const unread = index.manifest === "unreadable" || index.coordinateFiles.includes(relativePath) && !index.unlinkedFiles.includes(relativePath);
       if (!unread)
-        return unownedSourceNote(relativePath, requirementCandidatesForPath(workspaceRoot, relativePath));
+        return unownedSourceNote(relativePath, requirementCandidatesForPath(workspaceRoot, relativePath, undefined, words));
       const noticeKey = `${input.sessionId ?? ""}\x00notice\x00manifest-unreadable`;
       return claimSnippetSlot(stateDir, noticeKey) ? unreadableManifestNote(relativePath) : undefined;
     }
   });
+  const parts = [notice, knowledge].filter((part) => part !== undefined);
+  return parts.length > 0 ? parts.join(`
+
+`) : undefined;
+}
+function firmNotice(targets, files, summarize, session, input, env) {
+  if (!confirmFirmEdits(env))
+    return;
+  const settled = settledFirmRequirements(session);
+  for (const target of targets) {
+    const focus = editFocus(target.absolute, input.toolInput);
+    const { ids, symbol } = firmRequirementsTouched({
+      symbols: files[target.relative] ?? [],
+      focus,
+      wholeFile: focus === undefined,
+      summarize,
+      confirmed: settled
+    });
+    if (ids.length === 0)
+      continue;
+    settleFirmRequirements(session, ids);
+    return firmEditNotice(symbol ? `${symbol.title} in ${target.relative}` : target.relative, ids.map(summarize));
+  }
+  return;
 }
 var cachedPackageVersion;
 function packageVersion() {
   if (cachedPackageVersion !== undefined)
     return cachedPackageVersion;
-  cachedPackageVersion = readPackageVersion(path8.join(path8.dirname(fileURLToPath(import.meta.url)), "..", "package.json"));
+  cachedPackageVersion = readPackageVersion(path9.join(path9.dirname(fileURLToPath(import.meta.url)), "..", "package.json"));
   return cachedPackageVersion;
 }
 function recordToolTelemetry(workspaceRoot, stateDir, input, startedAt, env) {
@@ -1983,6 +2233,18 @@ async function runHook(rawInput, environment = {}) {
   switch (input.event) {
     case "SessionStart":
       return defaultResult();
+    case "UserPromptSubmit": {
+      const rule = recordRequest({ stateDir, sessionId: input.sessionId }, input.prompt ?? "");
+      if (rule === undefined)
+        return defaultResult();
+      return {
+        continue: true,
+        hookSpecificOutput: {
+          hookEventName: "UserPromptSubmit",
+          additionalContext: rulePromptNote(rule)
+        }
+      };
+    }
     case "PreToolUse": {
       const stamped = stampKibiWorkspace(input.toolName, input.toolInput, workspace.root);
       if (stamped) {
@@ -2002,7 +2264,7 @@ async function runHook(rawInput, environment = {}) {
       }
       let context;
       try {
-        context = isKnownEditTool(input.toolName) ? preEditContext(workspace.root, stateDir, input) : undefined;
+        context = isKnownEditTool(input.toolName) ? preEditContext(workspace.root, stateDir, input, environment.env ?? process.env) : undefined;
       } catch {
         context = undefined;
       }
@@ -2032,11 +2294,28 @@ async function runHook(rawInput, environment = {}) {
       if (dirtyPaths.length > 0) {
         addDirtyPaths(stateDir, dirtyPaths);
       }
+      const session = { stateDir, sessionId: input.sessionId };
+      if (isKnownEditTool(input.toolName) && dirtyPaths.some(isSourceImpactRelevantPath2)) {
+        markDecisionFlag(session, "source-edited");
+      }
+      if (kbToolCall?.toolName === "kb_upsert" || kbUsageTrace(input.toolName, input.toolInput)?.kbOperation === "kb_upsert") {
+        markDecisionFlag(session, "kb-recorded");
+      }
       return defaultResult();
     }
     case "Stop": {
       const state = loadHookState(stateDir);
       const uncheckedSourcePaths = state.dirtyPaths.filter(isSourceImpactRelevantPath2).filter((sourcePath) => !state.impactCheckedPaths.includes(sourcePath));
+      const session = { stateDir, sessionId: input.sessionId };
+      if (!input.stopHookActive && claimCaptureReminder(session)) {
+        const reason = [
+          captureReminder(hasDecisionFlag(session, "rule-prompt")),
+          ...uncheckedSourcePaths.length > 0 ? [impactCheckReminder(uncheckedSourcePaths)] : []
+        ].join(`
+`);
+        clearDirtyPaths(stateDir);
+        return { continue: true, decision: "block", reason };
+      }
       if (uncheckedSourcePaths.length > 0) {
         clearDirtyPaths(stateDir);
         return {
@@ -2067,7 +2346,7 @@ async function main() {
 `);
 }
 function isInvokedAsCli(argv1, moduleUrl) {
-  const invokedPath = argv1 ? pathToFileURL(path8.resolve(argv1)).href : "";
+  const invokedPath = argv1 ? pathToFileURL(path9.resolve(argv1)).href : "";
   return moduleUrl === invokedPath;
 }
 async function runHookCli() {

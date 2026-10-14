@@ -328,3 +328,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-391446c741b6
+  - type: implements
+    from: SYM-claude-applyEvent
+    to: REQ-claude-firm-edit-confirmation
+    created_at: 2026-10-14T17:00:03.359Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-864725c45e00
+  - type: implements
+    from: SYM-claude-applyEvent
+    to: REQ-claude-decision-capture-nudges
+    created_at: 2026-10-14T17:00:03.375Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fd9517fa8145
+  - type: covered_by
+    from: SYM-claude-applyEvent
+    to: TEST-claude-edit-snippet-hook
+    created_at: 2026-10-14T17:00:03.386Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d135695b8547

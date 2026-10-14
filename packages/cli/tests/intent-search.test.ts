@@ -252,6 +252,49 @@ describe("intent-v1 search ranking", () => {
     );
   });
 
+  test("words the question writes as code outweigh the words around them", async () => {
+    // The admin rule grants export among other things; "can" and "export"
+    // are a small part of what its text matches, so only the weight of the
+    // code span keeps it above the threshold next to the auditor rule.
+    const auditor = entity(
+      "REQ-AUDITOR-EXPORT",
+      "An auditor must be able to export reports.",
+    );
+    const admin = entity(
+      "REQ-ADMIN-REQUESTS",
+      "An admin must be able to read, update and delete any analysis request, and export reports.",
+    );
+    const noise = Array.from({ length: 30 }, (_, index) =>
+      entity(
+        `REQ-NOISE-${index}`,
+        `A ${index % 3 === 0 ? "helper" : index % 3 === 1 ? "user" : "coach"} can link requirement ${index}`,
+      ),
+    );
+    const query =
+      "Which requirement should I link a new `canExport(user)` helper in `src/app/services/auth.service.ts` to?";
+    const ranked = async (text: string) =>
+      (
+        await rankIntentEntities(
+          [auditor, admin, ...noise],
+          {
+            query: text,
+            sourceLocations: [{ path: "src/app/services/auth.service.ts" }],
+          },
+          workspaceRoot,
+          [],
+        )
+      ).matches.map((match) => String(match.entity.id));
+    const ids = await ranked(query);
+    expect(ids.slice(0, 2).sort()).toEqual([
+      "REQ-ADMIN-REQUESTS",
+      "REQ-AUDITOR-EXPORT",
+    ]);
+    // The same words without backticks carry no extra weight.
+    expect(await ranked(query.replaceAll("`", ""))).not.toContain(
+      "REQ-ADMIN-REQUESTS",
+    );
+  });
+
   test("a file path written in the question does not dilute its topic", async () => {
     // Without sourceLocations the path's words ("app", "services", "auth",
     // "service", "ts") would match the file's tests and outrank the topic.

@@ -165,7 +165,7 @@ function jsonString(value: string): string {
   return JSON.stringify(value);
 }
 
-// implements REQ-claude-code-kibi-plugin-v1, REQ-codex-kibi-plugin-v1, REQ-kb-unowned-file-candidates
+// implements REQ-claude-code-kibi-plugin-v1, REQ-codex-kibi-plugin-v1, REQ-kb-unowned-file-candidates, REQ-claude-request-topic-candidates
 /**
  * Discovery note for a source file none of whose symbols implement a
  * requirement. No link is not no rule, so the note names the current
@@ -187,12 +187,20 @@ export function unownedSourceNote(
       );
     const note = [
       head,
-      `Requirements whose titles share this path's words: ${named.join("; ")}. kb_query({id:${jsonString(candidates[0]?.id ?? "")}}) shows whether one describes the behavior being changed; one that does is traced by an implements link from the symbol that implements it (for markup, the component that renders it).`,
+      `Requirements whose titles share words with this path or the request: ${named.join("; ")}. kb_query({id:${jsonString(candidates[0]?.id ?? "")}}) shows whether one describes the behavior being changed; one that does is traced by an implements link from the symbol that implements it (for markup, the component that renders it).`,
       search,
     ].join("\n");
     if (note.length <= MAX_SNIPPET_CHARS) return note;
   }
-  return [head, search].join("\n");
+  if (candidates.length > 0) return [head, search].join("\n");
+  // implements REQ-claude-request-topic-candidates
+  // Nothing found is not an all-clear: say that nothing recorded is known to
+  // cover the file, and that what this change decides for it is recorded now.
+  return [
+    head,
+    "No requirement title matches this file, so nothing recorded is known to cover it.",
+    `kb_search({query:"<behavior being changed>", sourceLocations:[{path:${jsonString(relativePath)}}]}) finds a rule recorded under other words. A decision this change makes for this code (a rule the person states, a limit, who may do what) is recorded with kb_upsert (requirement + scenario + symbol implements link) before the work is reported done.`,
+  ].join("\n");
 }
 
 // implements REQ-kibi-hooks-flow-manifest, REQ-claude-code-kibi-plugin-v1, REQ-codex-kibi-plugin-v1

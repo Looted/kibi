@@ -19,6 +19,18 @@ function optInWorkspace(root: string): void {
 
 const tempRoots: string[] = [];
 
+async function recordKbUpsert(cwd: string, pluginData: string): Promise<void> {
+  await runHook(
+    {
+      event: "PostToolUse",
+      cwd,
+      toolName: "CallMcpTool",
+      toolInput: { toolName: "kb_upsert", arguments: {} },
+    },
+    { pluginData },
+  );
+}
+
 afterEach(() => {
   for (const root of tempRoots.splice(0)) {
     fs.rmSync(root, { recursive: true, force: true });
@@ -286,6 +298,7 @@ describe("Codex hook runner workspace opt-in", () => {
       },
       { pluginData },
     );
+    await recordKbUpsert(cwd, pluginData);
 
     const result = await runHook({ event: "Stop", cwd }, { pluginData });
 
@@ -324,6 +337,7 @@ describe("Codex hook runner workspace opt-in", () => {
       },
       { pluginData },
     );
+    await recordKbUpsert(cwd, pluginData);
 
     expect(await runHook({ event: "Stop", cwd }, { pluginData })).toEqual({
       continue: true,
@@ -568,7 +582,8 @@ describe("Codex pre-edit knowledge", () => {
       hookEventName: "PreToolUse",
       additionalContext: [
         "Kibi: no symbol in src/other.ts is linked to a requirement yet; that does not mean no recorded rule covers the behavior it implements.",
-        'kb_search({query:"<behavior being changed>", sourceLocations:[{path:"src/other.ts"}]}) surfaces requirements that may already describe it; new behavior is recorded with kb_upsert (requirement + scenario + symbol implements link) as part of the change.',
+        "No requirement title matches this file, so nothing recorded is known to cover it.",
+        'kb_search({query:"<behavior being changed>", sourceLocations:[{path:"src/other.ts"}]}) finds a rule recorded under other words. A decision this change makes for this code (a rule the person states, a limit, who may do what) is recorded with kb_upsert (requirement + scenario + symbol implements link) before the work is reported done.',
       ].join("\n"),
     });
     expect(await write("s1")).toEqual({ continue: true });
@@ -642,7 +657,7 @@ describe("Codex evaluation trace replay", () => {
     expect(unlinkedEdit.hookSpecificOutput).toMatchObject({
       hookEventName: "PreToolUse",
       additionalContext: expect.stringContaining(
-        "Kibi: no symbol in src/guard.ts is linked to a requirement yet; that does not mean no recorded rule covers the behavior it implements.\nkb_search(",
+        "Kibi: no symbol in src/guard.ts is linked to a requirement yet; that does not mean no recorded rule covers the behavior it implements.\nNo requirement title matches this file, so nothing recorded is known to cover it.\nkb_search(",
       ),
     });
     expect(
@@ -658,7 +673,9 @@ describe("Codex evaluation trace replay", () => {
       stop_hook_active: false,
     });
     expect(stop.continue).toBe(true);
-    expect(stop.systemMessage).toContain(
+    expect(stop.decision).toBe("block");
+    expect(stop.reason).toContain("recorded nothing in the knowledge base");
+    expect(stop.reason).toContain(
       'kb_check({sourceFiles:["src/guard.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true})',
     );
     expect(
@@ -683,6 +700,166 @@ describe("Codex evaluation trace replay", () => {
       { pluginData },
     );
     expect(result.systemMessage).toContain("Avoid direct edits to .kb/");
+  });
+});
+
+describe("Codex decision guard", () => {
+  const FIRM_NOTICE =
+    "which implements a firm requirement, a rule the person set";
+  const GUARD_PATCH = [
+    "*** Begin Patch",
+    "*** Update File: src/guard.ts",
+    "@@",
+    "-export const guard = () => true;",
+    "+export const guard = () => false;",
+    "*** End Patch",
+  ].join("\n");
+
+  function contextOf(result: HookResult): string {
+    const specific = result.hookSpecificOutput;
+    return specific && "additionalContext" in specific
+      ? specific.additionalContext
+      : "";
+  }
+
+  function session(env: NodeJS.ProcessEnv = {}) {
+    const cwd = linkedWorkspace();
+    writeFile(cwd, "src/guard.ts", "export const guard = () => true;\n");
+    const pluginData = createTempRoot("kibi-codex-data-");
+    tempRoots.push(pluginData);
+    return (payload: Record<string, unknown>, sessionId = "guard-1") =>
+      runHook({ session_id: sessionId, cwd, ...payload }, { pluginData, env });
+  }
+
+  test("an edit of code implementing a firm requirement tells the agent to ask first, once per requirement per session", async () => {
+    const event = session();
+    const patch = {
+      hook_event_name: "PreToolUse",
+      tool_name: "apply_patch",
+      tool_input: { command: CHECKOUT_PATCH },
+    };
+
+    const first = contextOf(await event(patch));
+    expect(first).toStartWith(
+      "Kibi: this edit changes src/checkout.ts, which implements a firm requirement, a rule the person set: REQ-checkout-rounding: Checkout totals round to cents.\nUnless the edit keeps that rule, ask the person before making it and name the rule;",
+    );
+    expect(first).toContain("Kibi knowledge for src/checkout.ts");
+    expect(contextOf(await event(patch))).not.toContain(FIRM_NOTICE);
+    expect(contextOf(await event(patch, "guard-2"))).toContain(FIRM_NOTICE);
+  });
+
+  test("KIBI_CONFIRM_FIRM_EDITS=0 turns the firm-edit notice off", async () => {
+    const event = session({ KIBI_CONFIRM_FIRM_EDITS: "0" });
+    const context = contextOf(
+      await event({
+        hook_event_name: "PreToolUse",
+        tool_name: "apply_patch",
+        tool_input: { command: CHECKOUT_PATCH },
+      }),
+    );
+    expect(context).toContain("Kibi knowledge for src/checkout.ts");
+    expect(context).not.toContain(FIRM_NOTICE);
+  });
+
+  test("a prompt that states a rule gets the capture note; other prompts get nothing", async () => {
+    const event = session();
+    const rule = await event({
+      hook_event_name: "UserPromptSubmit",
+      prompt: "Guests must not see the export button from now on.",
+    });
+    expect(rule.hookSpecificOutput).toEqual({
+      hookEventName: "UserPromptSubmit",
+      additionalContext: expect.stringContaining(
+        'Kibi: this request reads as a rule or decision (it says "must not").',
+      ),
+    });
+    expect(
+      await event({
+        hook_event_name: "UserPromptSubmit",
+        prompt: "Rename the export button.",
+      }),
+    ).toEqual({ continue: true });
+  });
+
+  test("the request's words pick requirement candidates for an unlinked file", async () => {
+    const event = session();
+    await event({
+      hook_event_name: "UserPromptSubmit",
+      prompt: "Make the guard round checkout totals differently.",
+    });
+    const context = contextOf(
+      await event({
+        hook_event_name: "PreToolUse",
+        tool_name: "apply_patch",
+        tool_input: { command: GUARD_PATCH },
+      }),
+    );
+    expect(context).toContain(
+      "Requirements whose titles share words with this path or the request:",
+    );
+    expect(context).toContain("REQ-checkout-rounding");
+  });
+
+  test("Stop continues the turn once with the capture request when source changed and nothing was recorded", async () => {
+    const event = session();
+    await event({
+      hook_event_name: "UserPromptSubmit",
+      prompt: "Guards should never pass by default.",
+    });
+    await event({
+      hook_event_name: "PostToolUse",
+      tool_name: "apply_patch",
+      tool_input: { command: GUARD_PATCH },
+    });
+
+    // A Stop already continued by a hook is left to end.
+    const active = await event({
+      hook_event_name: "Stop",
+      stop_hook_active: true,
+    });
+    expect(active.decision).toBeUndefined();
+
+    await event({
+      hook_event_name: "PostToolUse",
+      tool_name: "apply_patch",
+      tool_input: { command: GUARD_PATCH },
+    });
+    const stop = await event({
+      hook_event_name: "Stop",
+      stop_hook_active: false,
+    });
+    expect(stop).toMatchObject({ continue: true, decision: "block" });
+    expect(stop.reason).toContain("kb_upsert");
+    await event({
+      hook_event_name: "PostToolUse",
+      tool_name: "apply_patch",
+      tool_input: { command: GUARD_PATCH },
+    });
+    const again = await event({
+      hook_event_name: "Stop",
+      stop_hook_active: false,
+    });
+    expect(again.decision).toBeUndefined();
+  });
+
+  test("a kb_upsert in the session keeps Stop from asking for capture", async () => {
+    const event = session();
+    await event({
+      hook_event_name: "PostToolUse",
+      tool_name: "apply_patch",
+      tool_input: { command: GUARD_PATCH },
+    });
+    await event({
+      hook_event_name: "PostToolUse",
+      tool_name: "mcp__kibi__kb_upsert",
+      tool_input: {},
+    });
+    const stop = await event({
+      hook_event_name: "Stop",
+      stop_hook_active: false,
+    });
+    expect(stop.decision).toBeUndefined();
+    expect(stop.systemMessage).toContain("kb_check(");
   });
 });
 
@@ -795,6 +972,8 @@ function runCodexHookCommand(
     ...process.env,
     PLUGIN_ROOT: codexPluginRoot,
     PLUGIN_DATA: options.pluginData,
+    // The firm-edit notice has its own tests; these pin the snippet alone.
+    KIBI_CONFIRM_FIRM_EDITS: "0",
   };
   // A developer's own telemetry opt-in must not reach the hook process.
   for (const key of ["KIBI_DIAGNOSTIC_MODE", "KIBI_CLI_DIAGNOSTIC_MODE"]) {
