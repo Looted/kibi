@@ -294,8 +294,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-agent-guided-migration-orchestration
+      - type: covered_by
+        target: TEST-search-answer-hygiene
       - type: implements
         target: REQ-agent-guided-migration-orchestration
+      - type: implements
+        target: REQ-kb-check-unverified-requirement-statements
   - id: SYM-kibi-check-build-structured-content
     title: buildStructuredContent
     sourceFile: packages/cli/src/public/operations/check-format-shared.ts
@@ -316,8 +320,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-agent-guided-migration-orchestration
+      - type: covered_by
+        target: TEST-search-answer-hygiene
       - type: implements
         target: REQ-agent-guided-migration-orchestration
+      - type: implements
+        target: REQ-kb-check-unverified-requirement-statements
   - id: SYM-kibi-migration-plan-hash
     title: migrationPlanHash
     sourceFile: packages/cli/src/public/operations/migration-plan.ts
@@ -3598,6 +3606,8 @@ symbols:
         target: TEST-search-answer-hygiene
       - type: implements
         target: REQ-cli-staged-impact-enforcement
+      - type: implements
+        target: REQ-kb-check-unverified-requirement-statements
       - type: implements
         target: REQ-kb-unowned-file-candidates
   - id: SYM-cli-impact-buildNextActions
@@ -54315,3 +54325,80 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-kb-entity-body-context
+  - id: SYM-cli-requirement-statements-create
+    title: createRequirementStatementDiagnostics
+    status: active
+    sourceFile: packages/cli/src/public/impact/requirement-statements.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T16:34:22.343Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-hygiene
+      - type: implements
+        target: REQ-kb-check-unverified-requirement-statements
+  - id: SYM-cli-requirement-statements-options
+    title: RequirementStatementDiagnosticsOptions
+    status: active
+    sourceFile: packages/cli/src/public/impact/requirement-statements.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T16:34:28.087Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-hygiene
+      - type: implements
+        target: REQ-kb-check-unverified-requirement-statements
+  - id: SYM-cli-requirement-statements-workspace-file-changed
+    title: workspaceFileChanged
+    status: active
+    sourceFile: packages/cli/src/public/impact/requirement-statements.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T16:34:33.101Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-hygiene
+      - type: implements
+        target: REQ-kb-check-unverified-requirement-statements
+  - id: SYM-cli-requirement-statements-read-workspace-requirement
+    title: readWorkspaceRequirement
+    status: active
+    sourceFile: packages/cli/src/public/impact/requirement-statements.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T16:34:38.408Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-hygiene
+      - type: implements
+        target: REQ-kb-check-unverified-requirement-statements
+  - id: SYM-test-requirement-statements
+    title: Requirement statements suite
+    status: active
+    sourceFile: packages/cli/tests/traceability/requirement-statements.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T16:34:58.342Z
+    relationships:
+      - type: executable_for
+        target: TEST-search-answer-hygiene
+  - id: SYM-kibi-check-evaluated
+    title: CheckEvaluated
+    status: active
+    sourceFile: packages/cli/src/public/operations/check-format-shared.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T16:47:09.257Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-hygiene
+      - type: implements
+        target: REQ-search-answer-hygiene

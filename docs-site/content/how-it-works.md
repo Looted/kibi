@@ -62,6 +62,8 @@ Requirements and ADRs can also say how firmly they were decided (`firmness`): `f
 
 Code that no symbol links to a requirement yet is not treated as ungoverned. Before such a file is edited, and in a `kb_check` scoped to it, Kibi names the current requirements whose titles share the file's path words, so an agent changing `coach-dashboard.html` is pointed at "The coach inbox must list the analysis requests assigned to the coach." even though nothing in the page is linked to it yet. Recording the behavior a change adds (a requirement, a scenario and an implements link) is part of finishing that change, and Kibi tells the agent so: it records it without asking and asks only when the change conflicts with a recorded rule.
 
+Linked code is not proven code either. Kibi's checks compare links, coverage and facts, never the code with what a requirement says, so after an edit `kb_check` quotes the statement and firmness of every requirement the changed code implements and reports "no structural violations" rather than "no violations". If the change no longer does what a quoted requirement says, the agent has a conflict with a recorded rule to put to you, not a passing check.
+
 Prolog verifies the knowledge that was encoded. It does not decide whether the original intent was correct — that stays with you. Ambiguity and ontology gaps stay explicitly visible rather than silently resolved.
 
 ## Knowledge that follows your branch

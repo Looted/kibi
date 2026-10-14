@@ -237,3 +237,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-56539abfae15
+  - type: implements
+    from: SYM-kibi-check-evaluated
+    to: REQ-search-answer-hygiene
+    created_at: 2026-10-14T16:47:10.684Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f0a745921731
+  - type: covered_by
+    from: SYM-kibi-check-evaluated
+    to: TEST-search-answer-hygiene
+    created_at: 2026-10-14T16:47:10.714Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f9cf4c235444

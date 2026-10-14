@@ -2531,7 +2531,8 @@
         "./packages/cli/tests/consumer/check-evaluated.test.ts",
         "./packages/cli/tests/search-answer.test.ts",
         "./packages/cli/tests/intent-search.test.ts",
-        "./packages/cli/tests/traceability/unowned-files.test.ts"
+        "./packages/cli/tests/traceability/unowned-files.test.ts",
+        "./packages/cli/tests/traceability/requirement-statements.test.ts"
       ]
     ]
   },
