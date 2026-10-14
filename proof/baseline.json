@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 208,
-  "proofProven": 208,
+  "currentRequirements": 209,
+  "proofProven": 209,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -1042,6 +1042,11 @@
       "uncoveredSymbols": []
     },
     "REQ-cli-migration-first-commit": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kb-unowned-file-candidates": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []
