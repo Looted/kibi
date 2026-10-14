@@ -45,7 +45,7 @@ const ERROR_CODE = /^[A-Z][A-Z0-9_]*$/;
  * fails `instanceof`, so an error with the same name and a code-shaped `code`
  * counts too. Any other error carries no Kibi code and returns null.
  */
-// implements REQ-mcp-coded-error-envelope, REQ-kibi-operation-interface-parity
+// implements REQ-mcp-coded-error-envelope
 export function codedErrorOf(error: unknown): CodedErrorFields | null {
   if (error instanceof InputError || error instanceof OperationError)
     return {

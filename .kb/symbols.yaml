@@ -53156,8 +53156,6 @@ symbols:
       - type: covered_by
         target: TEST-kibi-mcp-tool-consolidation
       - type: implements
-        target: REQ-kibi-operation-interface-parity
-      - type: implements
         target: REQ-mcp-coded-error-envelope
   - id: SYM-cli-coded-error-fields-type
     title: CodedErrorFields
