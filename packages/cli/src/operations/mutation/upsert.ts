@@ -386,6 +386,13 @@ export async function validateUpsertForCommit(
   // The payload must be valid on its own before the store is read.
   const checked = validateUpsertInput(payload, context.clock());
   validateRelationshipSources(payload.id, checked.relationships);
+  // Symbol granularity reads only the payload and its source file, and stored
+  // state never changes a symbol payload, so it runs before the store is read.
+  await validateSymbolGranularity(
+    checked.entity,
+    checked.relationships,
+    context,
+  );
   // One read of the entity this upsert replaces, shared by the ledger merge
   // and the stored origin below.
   let lookup = storedEntityLookup(prolog, payload.id, payload.type);
@@ -420,11 +427,6 @@ export async function validateUpsertForCommit(
   if (options.allowReceiptsPrune !== true) {
     await validateAppendOnlyProofReceipts(validated.entity, context, staged);
   }
-  await validateSymbolGranularity(
-    validated.entity,
-    validated.relationships,
-    context,
-  );
   const relationships = await effectiveRelationships(
     input,
     validated.entity,
