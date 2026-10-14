@@ -270,6 +270,17 @@ function topicText(
   return topic.replace(CAMEL_IDENTIFIER, splitIdentifier);
 }
 
+const CODE_SPAN = /`([^`\n]+)`/g;
+const CODE_SPAN_WEIGHT = 2;
+
+/** Tokens of the question's backticked code spans (`canExport(user)`). */
+// implements REQ-kibi-intent-aware-source-discovery
+function codeSpanTokens(topic: string): Set<string> {
+  return new Set(
+    [...topic.matchAll(CODE_SPAN)].flatMap((match) => tokens(match[1] ?? "")),
+  );
+}
+
 function normalize(value: string): string {
   return expandIdentifiers(value)
     .trim()
@@ -508,6 +519,7 @@ function scoreEntity(
   body: string | null,
   superseded = false,
   provenanceStub = false,
+  emphasis: ReadonlySet<string> = new Set(),
 ): { score: number; reasons: string[]; matchedFacets: string[] } {
   const {
     title: titleTokens,
@@ -529,9 +541,11 @@ function scoreEntity(
   let total = 0;
   for (const token of allSignalTokens) {
     const frequency = documentFrequency.get(token) ?? 0;
-    const idf = Math.log(
-      1 + (documentCount - frequency + 0.5) / (frequency + 0.5),
-    );
+    // A word the question writes as code (`canExport(user)`) names what it
+    // is about, so it weighs twice as much as the words around it.
+    const idf =
+      Math.log(1 + (documentCount - frequency + 0.5) / (frequency + 0.5)) *
+      (emphasis.has(token) ? CODE_SPAN_WEIGHT : 1);
     const fieldWeight = titleTokens.has(token)
       ? 1
       : metadataTokens.has(token)
@@ -661,6 +675,7 @@ export async function rankIntentEntities(
   const clauseTokenSets = queryClauses(query).map((clause) =>
     Array.from(new Set([...clause, ...facetTokens])),
   );
+  const emphasis = codeSpanTokens(query);
   const bodies = await readBodies(entities, workspaceRoot, bodyCache);
   const documentFrequency = buildDocumentFrequency(entities, bodies);
   const supersededIds = new Set(
@@ -715,6 +730,7 @@ export async function rankIntentEntities(
         body,
         supersededIds.has(entityId),
         isProvenanceStub(entity),
+        emphasis,
       );
       if (scored === undefined || candidate.score > scored.score)
         scored = candidate;

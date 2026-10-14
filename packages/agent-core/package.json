@@ -1,6 +1,6 @@
 {
   "name": "kibi-agent-core",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Shared low-latency hook helpers for Kibi agent adapters",
   "type": "module",
   "main": "./dist/index.js",
@@ -9,6 +9,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./decision-guard": {
+      "types": "./dist/decision-guard.d.ts",
+      "default": "./dist/decision-guard.js"
     },
     "./hook-usage-log": {
       "types": "./dist/hook-usage-log.d.ts",

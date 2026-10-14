@@ -4,6 +4,7 @@ export type HookEvent =
   | "preToolUse"
   | "postToolUse"
   | "beforeReadFile"
+  | "beforeSubmitPrompt"
   | "stop";
 
 export type HookStopStatus = "completed" | "aborted" | "error";
@@ -17,6 +18,8 @@ export type HookInput = {
   conversationId?: string;
   filePath?: string;
   status?: HookStopStatus;
+  /** beforeSubmitPrompt: the submitted prompt. */
+  prompt?: string;
 };
 
 // rationale: parseHookInput degrades every non-record to { event: "" };
@@ -110,6 +113,7 @@ export function parseHookInput(input: unknown): HookInput {
   ]);
   const filePath = readString(input, ["file_path", "filePath", "path"]);
   const status = parseStopStatus(readString(input, ["status"]));
+  const prompt = readString(input, ["prompt"]);
   const parsed: HookInput = { event };
 
   if (cwd !== undefined) {
@@ -134,6 +138,10 @@ export function parseHookInput(input: unknown): HookInput {
 
   if (filePath !== undefined) {
     parsed.filePath = filePath;
+  }
+
+  if (prompt !== undefined) {
+    parsed.prompt = prompt;
   }
 
   if (status !== undefined) {

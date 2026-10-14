@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 217,
-  "proofProven": 217,
+  "currentRequirements": 221,
+  "proofProven": 221,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -1087,6 +1087,26 @@
       "uncoveredSymbols": []
     },
     "REQ-claude-request-topic-candidates": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-agent-hosts-decision-guard": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kb-check-unverified-requirement-statements": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kb-upsert-keeps-omitted-proof-receipts": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kb-upsert-ledger-contract-in-error": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []

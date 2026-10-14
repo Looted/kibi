@@ -1,4 +1,7 @@
-import type { MigrationPlan } from "../../public/operations/migration-plan.js";
+import type {
+  MigrationPlan,
+  MigrationPlanDigest,
+} from "../../public/operations/migration-plan.js";
 import type { BootstrapPlanV1 } from "../bootstrap/types.js";
 import type { CompilePlanV1, SourceWritePlan } from "./compile-intent.js";
 
@@ -137,7 +140,7 @@ export type ApplyPlanResult =
         workspaceSnapshot: string;
       };
       notes: readonly string[];
-      remainingPlan?: MigrationPlan;
+      remainingPlan?: MigrationPlanDigest;
       closeout?: {
         taskOutcome: "complete" | "interim" | "blocked";
         kbState:

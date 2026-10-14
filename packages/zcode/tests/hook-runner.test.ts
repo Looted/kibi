@@ -131,6 +131,24 @@ function expectQuiet(result: HookResult): void {
   expect(result).toEqual({ continue: true });
 }
 
+/** A kb_upsert in the session, so Stop does not ask for a decision record. */
+async function recordKbUpsert(
+  cwd: string,
+  pluginData: string,
+  sessionId: string,
+): Promise<void> {
+  await runHook(
+    {
+      hook_event_name: "PostToolUse",
+      session_id: sessionId,
+      cwd,
+      tool_name: "mcp__kibi__kb_upsert",
+      tool_input: {},
+    },
+    { pluginData },
+  );
+}
+
 describe("ZCode hook runner workspace opt-in", () => {
   test("every hook event stays silent in an unconfigured workspace", async () => {
     const cwd = createTempRoot("kibi-zcode-cwd-");
@@ -600,6 +618,7 @@ describe("ZCode hook runner workspace opt-in", () => {
       { pluginData },
     );
 
+    await recordKbUpsert(workspace, pluginData, "s1");
     expectQuiet(
       await runHook(
         { hook_event_name: "Stop", session_id: "s1", cwd: workspace },
@@ -639,6 +658,7 @@ describe("ZCode hook runner workspace opt-in", () => {
       { pluginData },
     );
 
+    await recordKbUpsert(cwd, pluginData, "s1");
     expectQuiet(
       await runHook(
         { hook_event_name: "Stop", session_id: "s1", cwd },
@@ -675,6 +695,7 @@ describe("ZCode hook runner workspace opt-in", () => {
       { pluginData },
     );
 
+    await recordKbUpsert(cwd, pluginData, "s1");
     expectQuiet(
       await runHook(
         { hook_event_name: "Stop", session_id: "s1", cwd },
@@ -714,6 +735,7 @@ describe("ZCode hook runner workspace opt-in", () => {
       { pluginData },
     );
 
+    await recordKbUpsert(cwd, pluginData, "s1");
     expectQuiet(
       await runHook(
         { hook_event_name: "Stop", session_id: "s1", cwd },
@@ -753,6 +775,7 @@ describe("ZCode hook runner workspace opt-in", () => {
       { pluginData },
     );
 
+    await recordKbUpsert(cwd, pluginData, "s1");
     expectQuiet(
       await runHook(
         { hook_event_name: "Stop", session_id: "s1", cwd },
@@ -965,6 +988,7 @@ describe("ZCode hook runner impact-check lifecycle", () => {
       { pluginData },
     );
 
+    await recordKbUpsert(cwd, pluginData, "s1");
     expectQuiet(
       await runHook(
         { hook_event_name: "Stop", session_id: "s1", cwd },
@@ -1014,6 +1038,7 @@ describe("ZCode hook runner impact-check lifecycle", () => {
       { pluginData },
     );
     // Both quiet after the covering check.
+    await recordKbUpsert(cwd, pluginData, "s1");
     expectQuiet(
       await runHook(
         { hook_event_name: "Stop", session_id: "s1", cwd },
@@ -1570,5 +1595,101 @@ describe("ZCode opt-in hook telemetry", () => {
     const fixture = linkedWorkspace();
     await post(fixture, "Write", { file_path: "src/checkout.ts" }, {});
     expect(usageRows(fixture.cwd)).toEqual([]);
+  });
+});
+
+describe("ZCode decision guard", () => {
+  const FIRM_NOTICE =
+    "Kibi: this edit changes computeTotal in src/checkout.ts, which implements a firm requirement, a rule the person set: REQ-checkout-rounding: Checkout totals round to cents.";
+
+  function session(env: NodeJS.ProcessEnv = {}) {
+    const fixture = linkedWorkspace();
+    const event = (payload: Record<string, unknown>, sessionId = "s1") =>
+      runHook(
+        { session_id: sessionId, cwd: fixture.cwd, ...payload },
+        { pluginData: fixture.pluginData, env },
+      );
+    const edit = {
+      hook_event_name: "PreToolUse",
+      tool_name: "Edit",
+      tool_input: {
+        file_path: path.join(fixture.cwd, "src/checkout.ts"),
+        old_string: "  return 1;",
+        new_string: "  return 2;",
+      },
+    };
+    return { event, edit, fixture };
+  }
+
+  test("an edit of code implementing a firm requirement tells the agent to ask first, once per requirement per session", async () => {
+    const { event, edit } = session();
+
+    const first = expectAdditionalContext(await event(edit), "PreToolUse");
+    expect(first).toStartWith(
+      `${FIRM_NOTICE}\nUnless the edit keeps that rule, ask the person before making it and name the rule;`,
+    );
+    expect(first).toContain("Kibi knowledge for src/checkout.ts");
+    expect(await event(edit)).toEqual({ continue: true });
+    expect(
+      expectAdditionalContext(await event(edit, "s2"), "PreToolUse"),
+    ).toStartWith(FIRM_NOTICE);
+  });
+
+  test("KIBI_CONFIRM_FIRM_EDITS=0 turns the firm-edit notice off", async () => {
+    const { event, edit } = session({ KIBI_CONFIRM_FIRM_EDITS: "0" });
+    const context = expectAdditionalContext(await event(edit), "PreToolUse");
+    expect(context).toStartWith("Kibi knowledge for src/checkout.ts");
+  });
+
+  test("a prompt that states a rule gets the capture note; other prompts get nothing", async () => {
+    const { event } = session();
+    const note = expectAdditionalContext(
+      await event({
+        hook_event_name: "UserPromptSubmit",
+        prompt: "Totals must not be rounded from now on.",
+      }),
+      "UserPromptSubmit",
+    );
+    expect(note).toStartWith(
+      'Kibi: this request reads as a rule or decision (it says "must not").',
+    );
+    expect(
+      await event({
+        hook_event_name: "UserPromptSubmit",
+        prompt: "Rename computeTotal.",
+      }),
+    ).toEqual({ continue: true });
+  });
+
+  test("Stop asks once for the decision record when source changed and nothing was recorded", async () => {
+    const { event, fixture } = session();
+    const write = {
+      hook_event_name: "PostToolUse",
+      tool_name: "Write",
+      tool_input: { file_path: path.join(fixture.cwd, "src/checkout.ts") },
+    };
+    await event(write);
+
+    const reminder = expectReminder(await event({ hook_event_name: "Stop" }));
+    expect(reminder).toStartWith(
+      "Kibi: this session changed source files and recorded nothing in the knowledge base.",
+    );
+    expect(reminder).toContain("kb_check(");
+
+    await event(write);
+    const again = expectReminder(await event({ hook_event_name: "Stop" }));
+    expect(again).not.toContain("recorded nothing in the knowledge base");
+  });
+
+  test("a kb_upsert keeps Stop from asking for the decision record", async () => {
+    const { event, fixture } = session();
+    await event({
+      hook_event_name: "PostToolUse",
+      tool_name: "Write",
+      tool_input: { file_path: path.join(fixture.cwd, "src/checkout.ts") },
+    });
+    await recordKbUpsert(fixture.cwd, fixture.pluginData, "s1");
+    const reminder = expectReminder(await event({ hook_event_name: "Stop" }));
+    expect(reminder).not.toContain("recorded nothing in the knowledge base");
   });
 });

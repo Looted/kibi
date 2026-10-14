@@ -33,7 +33,8 @@ installed client:
   relative and inside the plugin root; the stdio `mcpServers` entry accepts
   only `command`, `args`, `cwd`, `env`, `enabled`, `timeoutMs` (unknown keys
   silently drop the server).
-- **Hook events** used: `SessionStart`, `PreToolUse`, `PostToolUse`, `Stop`.
+- **Hook events** used: `SessionStart`, `UserPromptSubmit`, `PreToolUse`,
+  `PostToolUse`, `Stop`.
   Matchers are case-sensitive regexes tested against the tool name; an omitted
   matcher matches everything (a bare `*` is an invalid regex and would never
   match).
@@ -61,6 +62,9 @@ All hooks are advisory; the hard enforcement gate remains the
 - **SessionStart** (opted in): injects a short context pointing at
   `kb_search`/`kb_query` discovery, the `kibi-usage` skill, and `kb_status`
   freshness checks.
+- **UserPromptSubmit**: a prompt that states a rule ("must not", "from now
+  on") gets a note to check recorded requirements with `kb_search` and record
+  the rule with `kb_upsert` as part of the change.
 - **PreToolUse** (`Edit|MultiEdit|Write|apply_patch`): direct `.kb/` edits get
   an advisory `additionalContext` warning to use Kibi MCP tools instead. An
   edit of a file whose symbols are linked to a requirement gets the shared
@@ -69,7 +73,10 @@ All hooks are advisory; the hard enforcement gate remains the
   requirement must keep true and the decision behind it, the covering tests,
   and the symbol the edit lands in when `old_string` is found. Up to three
   files per call, once per file per session; a superseded or retired lead
-  requirement gets no "must keep true" or "Decision" line.
+  requirement gets no "must keep true" or "Decision" line. When the edited
+  code implements a firm requirement (a rule the person set), the context
+  first tells the agent to ask the person before an edit that breaks it, once
+  per requirement per session (`KIBI_CONFIRM_FIRM_EDITS=0` turns this off).
 - **PostToolUse**: records `kb_*` MCP tool usage (including impact checks)
   and canonical workspace-relative paths from file-mutating tools only
   (`Edit`, `MultiEdit`, `Write`, `apply_patch`); read-only tool calls with
@@ -82,7 +89,9 @@ All hooks are advisory; the hard enforcement gate remains the
   reads them for the `lookup_before_first_edit` metric.
 - **Stop**: emits an impact-check or freshness reminder naming canonical
   workspace-relative paths that changed during this session without a
-  corresponding covering `kb_check`.
+  corresponding covering `kb_check`. When the session changed source files
+  and recorded nothing with `kb_upsert`, it first asks, once, for the
+  decision behind the change to be recorded.
 
 ## Development
 

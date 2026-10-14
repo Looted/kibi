@@ -327,6 +327,110 @@ describe("search answer layer", () => {
     ]);
   });
 
+  // implements REQ-search-answer-hygiene
+  test("an unlinked fact that disagrees with a governing fact names the fact that holds", async () => {
+    const rule = (actor: string, resource: string, decision: string) => ({
+      type: "fact",
+      title: `${actor} ${decision} read ${resource}`,
+      status: "active",
+      fact_kind: "predicate",
+      predicate_name: "permission_rule",
+      predicate_args: [actor, "read", resource, decision],
+      polarity: decision === "deny" ? "deny" : "assert",
+    });
+    const entities: Record<string, Row> = {
+      "REQ-COACH": {
+        id: "REQ-COACH",
+        type: "req",
+        title: "A coach must not read unassigned requests",
+        status: "open",
+      },
+      "FACT-DENY": { id: "FACT-DENY", ...rule("coach", "unassigned", "deny") },
+      "FACT-LOOSE": {
+        id: "FACT-LOOSE",
+        ...rule("coach", "unassigned", "allow"),
+      },
+      // Same predicate, other key arguments: no disagreement to name.
+      "FACT-OTHER": { id: "FACT-OTHER", ...rule("coach", "assigned", "allow") },
+    };
+    const schema = {
+      names: ["actor", "action", "resource", "decision"],
+      keys: ["actor", "action", "resource"],
+    };
+    const kb = fakeKb(
+      entities,
+      [["requires_predicate", "REQ-COACH", "FACT-DENY"]],
+      {
+        schemas: {
+          "FACT-DENY": schema,
+          "FACT-LOOSE": schema,
+          "FACT-OTHER": schema,
+        },
+      },
+    );
+    const answer = await buildSearchAnswer(kb, [
+      match(entities["REQ-COACH"] as Row, 0.8),
+      match(entities["FACT-LOOSE"] as Row, 0.5),
+      match(entities["FACT-OTHER"] as Row, 0.4),
+    ]);
+    const byId = Object.fromEntries(
+      answer.ungoverned.map((entry) => [entry.id, entry]),
+    );
+    expect(byId["FACT-LOOSE"]?.overriddenBy).toEqual({
+      fact: "FACT-DENY",
+      requirement: "REQ-COACH",
+      claim: "permission_rule(coach, read, unassigned, deny) [deny]",
+    });
+    expect(byId["FACT-OTHER"]).not.toHaveProperty("overriddenBy");
+    expect(answer.note).toContain(
+      "FACT-DENY of REQ-COACH (permission_rule(coach, read, unassigned, deny) [deny]) holds over FACT-LOOSE (permission_rule(coach, read, unassigned, allow)).",
+    );
+    expect(answer.note).not.toContain("over FACT-OTHER");
+
+    // Without declared key arguments both tuples may hold (a user with two
+    // roles), so no pair is named.
+    const roles: Record<string, Row> = {
+      "REQ-ROLES": {
+        id: "REQ-ROLES",
+        type: "req",
+        title: "alice is an admin",
+        status: "open",
+      },
+      "FACT-ADMIN": {
+        id: "FACT-ADMIN",
+        type: "fact",
+        title: "alice is an admin",
+        status: "active",
+        fact_kind: "predicate",
+        predicate_name: "has_role",
+        predicate_args: ["alice", "admin"],
+      },
+      "FACT-VIEWER": {
+        id: "FACT-VIEWER",
+        type: "fact",
+        title: "alice is a viewer",
+        status: "active",
+        fact_kind: "predicate",
+        predicate_name: "has_role",
+        predicate_args: ["alice", "viewer"],
+      },
+    };
+    const unkeyed = { names: ["subject", "role"], keys: [] };
+    const roleAnswer = await buildSearchAnswer(
+      fakeKb(roles, [["requires_predicate", "REQ-ROLES", "FACT-ADMIN"]], {
+        schemas: { "FACT-ADMIN": unkeyed, "FACT-VIEWER": unkeyed },
+      }),
+      [
+        match(roles["REQ-ROLES"] as Row, 0.8),
+        match(roles["FACT-VIEWER"] as Row, 0.5),
+      ],
+    );
+    expect(roleAnswer.ungoverned.map((entry) => entry.id)).toEqual([
+      "FACT-VIEWER",
+    ]);
+    expect(roleAnswer.ungoverned[0]).not.toHaveProperty("overriddenBy");
+  });
+
   test("says that finding nothing is not evidence that nothing governs", async () => {
     const answer = await buildSearchAnswer(fakeKb(ENTITIES, EDGES), [
       match(ENTITIES["FACT-NOTE"] as Row, 0.4),
