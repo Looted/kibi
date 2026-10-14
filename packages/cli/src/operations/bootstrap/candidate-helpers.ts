@@ -93,6 +93,30 @@ export function withDocumentBody(
 }
 
 /**
+ * Record a requirement bootstrap read from a person's document as theirs: an
+ * import with a reference to the passage, and `firmness: firm`, so an agent
+ * asks before changing it instead of treating it as its own default choice.
+ */
+// implements REQ-kb-decision-firmness
+export function asImportedRule(
+  step: Readonly<Record<string, unknown>>,
+  ref: string,
+): Readonly<Record<string, unknown>> {
+  const properties =
+    step.properties !== null && typeof step.properties === "object"
+      ? (step.properties as Record<string, unknown>)
+      : {};
+  return {
+    ...step,
+    properties: {
+      ...properties,
+      origin: { kind: "import", ref },
+      firmness: "firm",
+    },
+  };
+}
+
+/**
  * Where a deterministic bootstrap provider found an entry. No reason was
  * stated in the source, so the sentence records provenance instead of
  * inventing one; later schema versions and reviewers keep the origin.

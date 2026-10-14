@@ -141,7 +141,7 @@ describe("pre-read snippets", () => {
       file_path: path.join(fixture.root, "src/checkout.ts"),
     });
     expect(text).toContain(
-      "REQ-checkout-rounding: Checkout totals round to cents — computeTotal",
+      "REQ-checkout-rounding [firm: ask before changing]: Checkout totals round to cents — computeTotal",
     );
     expect(text).toContain(
       "REQ-currency-display (superseded): Totals display with a currency symbol — formatTotal",
@@ -233,7 +233,7 @@ describe("pre-edit snippets", () => {
       "REQ-checkout-rounding must keep true: FACT-checkout-total; FACT-total-rounding-cents: Totals round half up to two decimals.",
     );
     expect(text).toContain(
-      "Decision: ADR-money-as-decimal: Money is computed as decimal cents.",
+      "Decision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.",
     );
   });
 
@@ -268,7 +268,7 @@ describe("pre-edit snippets", () => {
       "REQ-checkout-rounding must keep true: FACT-total-rounding-cents: Totals round half up to two decimals.",
     );
     expect(text).toContain(
-      "Decision: ADR-money-as-decimal: Money is computed as decimal cents.",
+      "Decision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.",
     );
   });
 
@@ -304,7 +304,7 @@ describe("pre-edit snippets", () => {
     expect(first?.split("\n")).toEqual([
       "Kibi: this edit to src/checkout.ts is inside computeTotal, which implements REQ-checkout-rounding.",
       "REQ-checkout-rounding must keep true: FACT-checkout-total; FACT-total-rounding-cents: Totals round half up to two decimals.",
-      "Decision: ADR-money-as-decimal: Money is computed as decimal cents.",
+      "Decision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.",
       'Behavior changes here are traced to these requirements; kb_check({sourceFiles:["src/checkout.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) reports ownership drift after the edit.',
     ]);
     // Same symbol again: nothing new to say.
@@ -764,6 +764,45 @@ describe("shell commands", () => {
     ).toBeUndefined();
   });
 
+  test("a sed script with | or ; inside quotes is still an in-place write, after a read too", async () => {
+    const fixture = createKibiWorkspace();
+    commitAll(fixture);
+    const { pre } = session(fixture);
+    const read = await pre("Bash", { command: "sed -n 1,40p src/checkout.ts" });
+    expect(read).not.toContain("must keep true");
+    const edit = await pre("Bash", {
+      command:
+        "sed -i 's|total(): number {|total(): number { // x|' src/checkout.ts",
+    });
+    expect(edit).toContain("REQ-checkout-rounding");
+    expect(edit).toContain("must keep true");
+    const fresh = session(fixture, "s-semicolon");
+    expect(
+      await fresh.pre("Bash", {
+        command: 'sed -i "s;total;sum;" src/checkout.ts',
+      }),
+    ).toContain("must keep true");
+  });
+
+  test("tee -a and >> on a linked file each say what must stay true before they run", async () => {
+    const fixture = createKibiWorkspace();
+    commitAll(fixture);
+    for (const [id, command] of [
+      ["s-tee", "echo '// x' | tee -a src/checkout.ts"],
+      ["s-append", "echo '// x' >> src/checkout.ts"],
+    ] as const) {
+      const { pre } = session(fixture, id);
+      expect(await pre("Bash", { command })).toContain("must keep true");
+    }
+    // A quoted '>' is text, not a redirection: the command only reads.
+    const { pre } = session(fixture, "s-quoted");
+    const quoted = await pre("Bash", {
+      command: "echo 'total > src/checkout.ts' && cat src/checkout.ts",
+    });
+    expect(quoted).toContain("REQ-checkout-rounding");
+    expect(quoted).not.toContain("must keep true");
+  });
+
   test("files left dirty before the command are not attributed to it", async () => {
     const fixture = createKibiWorkspace();
     commitAll(fixture);
@@ -1099,13 +1138,13 @@ describe("hook command pre-edit snippet (end to end)", () => {
     const output = JSON.parse(run.stdout) as HookOutput;
     const text = contextOf(output, "PreToolUse") ?? "";
     expect(text).toStartWith(
-      "Kibi knowledge for src/checkout.ts (symbol manifest):\n- REQ-checkout-rounding: Checkout totals round to cents — computeTotal\n",
+      "Kibi knowledge for src/checkout.ts (symbol manifest):\n- REQ-checkout-rounding [firm: ask before changing]: Checkout totals round to cents — computeTotal\n",
     );
     expect(text).toContain(
       "\nREQ-checkout-rounding must keep true: FACT-checkout-total; FACT-total-rounding-cents: Totals round half up to two decimals.\n",
     );
     expect(text).toContain(
-      "\nDecision: ADR-money-as-decimal: Money is computed as decimal cents.\n",
+      "\nDecision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.\n",
     );
     expect(text).toContain(
       "\nThe edit is inside computeTotal, which implements REQ-checkout-rounding.\n",

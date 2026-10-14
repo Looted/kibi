@@ -9,6 +9,7 @@ import {
   type IntentSearchMatch,
   type SourceLocation,
   executeIntentSearch,
+  questionPaths,
   validateIntentSearchInput,
 } from "../../intent-search.js";
 import { classifyActivation } from "../../operations/bootstrap/activation.js";
@@ -731,11 +732,16 @@ export async function executeQuery(
     const indexedPage = prolog.queryEntities
       ? await prolog.queryEntities(pageInput, signal)
       : await queryEntitiesViaQuery(prolog, pageInput, signal);
-    // A requirement or ADR without authored firmness reads as `default`;
-    // the row says so, so a reader never has to know the default.
-    // implements REQ-kb-decision-firmness
+    // A requirement or ADR without authored firmness reads as its origin
+    // implies (`default` when an agent wrote it, else `firm`); the row says
+    // so, so a reader never has to know the rule.
+    // implements REQ-kb-decision-firmness, REQ-kb-decision-firmness-from-origin
     const paginated = indexedPage.entities.map((entity) => {
-      const firmness = effectiveFirmness(entity.type, entity.firmness);
+      const firmness = effectiveFirmness(
+        entity.type,
+        entity.firmness,
+        entity.origin,
+      );
       return firmness === undefined || entity.firmness === firmness
         ? entity
         : { ...entity, firmness };
@@ -886,6 +892,23 @@ const CONTRADICTION_QUESTION =
 const CONTRADICTION_HINT =
   ' Search only finds entities that mention a conflict. Whether current requirements contradict each other is decided by kb_check with rules ["domain-contradictions"]; what a proposed rule would conflict with, by kb_model mode predicates (decisionConflicts) on its text or a kb_upsert dryRun.';
 
+// A file path written in the question is left out of its topic. Passed as
+// sourceLocations it also brings the requirements linked to that file.
+function questionPathHint(
+  query: string,
+  locations: readonly SourceLocation[] | undefined,
+): string {
+  const located = new Set(
+    (locations ?? []).map((location) => location.path.replace(/^\.\//, "")),
+  );
+  const named = questionPaths(query).filter((file) => !located.has(file));
+  if (named.length === 0) return "";
+  const list = named.join(", ");
+  return named.length === 1
+    ? ` The question names ${list}; its words were left out of the topic. Pass it as sourceLocations to also see the requirements linked to that file.`
+    : ` The question names ${list}; their words were left out of the topic. Pass them as sourceLocations to also see the requirements linked to those files.`;
+}
+
 export async function executeSearch(
   input: SearchInput,
   context: OperationContext,
@@ -965,7 +988,7 @@ export async function executeSearch(
               .join(
                 ", ",
               )}${answerLayer ? `. Governing: ${answerLayer.governing.map((req) => req.id).join(", ") || "none found"}` : ""}${topUngoverned ? ` (the top match ${topUngoverned.id} is linked to no requirement)` : ""}.`
-      }${CONTRADICTION_QUESTION.test(trimmedQuery) ? CONTRADICTION_HINT : ""}${storeNote}`;
+      }${questionPathHint(trimmedQuery, sourceLocations)}${CONTRADICTION_QUESTION.test(trimmedQuery) ? CONTRADICTION_HINT : ""}${storeNote}`;
       return {
         content: [{ type: "text", text }],
         structuredContent: {

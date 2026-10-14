@@ -829,7 +829,8 @@ function extractFromMarkdownContent(
       entity.rationale = data.rationale;
     }
     // implements REQ-kb-decision-firmness
-    // How firmly a requirement or ADR was decided; absent reads as default.
+    // How firmly a requirement or ADR was decided; when absent, readers derive
+    // it from the origin (default for an agent's write, else firm).
     if (data.firmness !== undefined) {
       if (!carriesFirmness(type) || !isFirmness(data.firmness)) {
         throw new FrontmatterError(

@@ -1,6 +1,6 @@
 {
   "manifestVersion": 1,
-  "schemaVersion": 9,
+  "schemaVersion": 10,
   "semanticAdvisorBackfill": "pending",
   "contextAcknowledged": [
     "FACT-OBS-141D6CBE864E4D01",
@@ -327,5 +327,16 @@
     "REQ-vscode-kibi-briefing-v2 -> REQ-vscode-kibi-briefing-v1",
     "REQ-vscode-kibi-briefing-v3 -> REQ-vscode-kibi-briefing-v2",
     "REQ-vscode-sidebar-kb-tree -> REQ-010"
+  ],
+  "firmSupersedeAcknowledged": [
+    "ADR-annotation-strategy-v2 -> ADR-annotation-strategy",
+    "REQ-branch-store-recovery-v4 -> REQ-branch-store-recovery-v3",
+    "REQ-claude-hook-usage-telemetry-v2 -> REQ-claude-hook-usage-telemetry",
+    "REQ-kibi-change-to-proof-plan-compiler-v2 -> REQ-kibi-change-to-proof-plan-compiler",
+    "REQ-kibi-fresh-verification-receipts-v2 -> REQ-kibi-fresh-verification-receipts",
+    "REQ-kibi-scenario-feasibility-v2 -> REQ-kibi-scenario-feasibility",
+    "REQ-kibi-search-answer-layer-v2 -> REQ-kibi-search-answer-layer",
+    "REQ-kibi-telemetry-acceptance-gate-v2 -> REQ-kibi-telemetry-acceptance-gate",
+    "REQ-skillopt-operator-selected-harness -> REQ-skillopt-codex-optimization"
   ]
 }

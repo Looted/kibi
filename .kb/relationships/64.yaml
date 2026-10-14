@@ -146,3 +146,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5ebd8906deaa
+  - type: implements
+    from: SYM-kb-decision-firmness-originkind
+    to: REQ-kb-decision-firmness-from-origin
+    created_at: 2026-10-13T20:13:13.305Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-27437e2a5506
+  - type: covered_by
+    from: SYM-kb-decision-firmness-originkind
+    to: TEST-kb-decision-firmness
+    created_at: 2026-10-13T20:13:13.320Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-07afba401720

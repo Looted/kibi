@@ -292,7 +292,7 @@ describe("search answer layer", () => {
     expect(alone.governing).toEqual([]);
     expect(alone.ungoverned.map((row) => row.id)).toEqual(["FACT-ALICE"]);
     expect(alone.note).toMatch(
-      /^The top-ranked match FACT-ALICE \(fact\) is linked to no requirement\. No current requirement matched/,
+      /^The top-ranked match FACT-ALICE \(fact\) is linked to no requirement\. A fact in ungoverned is linked to no requirement, so it decides nothing: where it disagrees with a governing requirement's fact, the governing fact holds\. No current requirement matched/,
     );
     expect(alone.note).toContain("not evidence");
 
@@ -306,6 +306,16 @@ describe("search answer layer", () => {
       ),
     ]);
     expect(lower.note.startsWith("Governing requirements are")).toBe(true);
+    // A lower-ranked fact no requirement links is listed, and the note says
+    // it decides nothing next to a governing requirement's fact.
+    const withFact = await buildSearchAnswer(fakeKb(entities, EDGES), [
+      match(entities["REQ-NEW"] as Row, 0.7),
+      match(entities["FACT-ALICE"] as Row, 0.3),
+    ]);
+    expect(withFact.ungoverned.map((row) => row.id)).toEqual(["FACT-ALICE"]);
+    expect(withFact.note).toStartWith(
+      "A fact in ungoverned is linked to no requirement, so it decides nothing",
+    );
     expect(lower.ungoverned).toEqual([
       {
         id: "TEST-LOOSE",
@@ -883,7 +893,7 @@ describe("search answer verdicts, exceptions and scope", () => {
         id: "REQ-STAFF",
         title: "Staff orders may skip the promotion check",
         status: "open",
-        firmness: "default",
+        firmness: "firm",
         approvedBy: "finance-lead",
       },
     ]);
@@ -936,7 +946,7 @@ describe("search answer rationale excerpts", () => {
         id: "ADR-PROMO",
         title: "Promotions may zero the payable total",
         status: "accepted",
-        firmness: "default",
+        firmness: "firm",
         source: ".kb/adr/ADR-PROMO.md",
         excerpt:
           "Allow a valid promotion to bring the payable total to zero. Keep min_total at 0 for Node.js clients.",
@@ -948,7 +958,7 @@ describe("search answer rationale excerpts", () => {
         id: "ADR-PROMO",
         title: "Promotions may zero the payable total",
         status: "accepted",
-        firmness: "default",
+        firmness: "firm",
       },
     ]);
   });
@@ -975,6 +985,30 @@ describe("search answer rationale excerpts", () => {
     expect(answer.rationale[0]?.firmness).toBe("firm");
     expect(current?.scenarios[0]?.firmness).toBeUndefined();
     expect(current?.tests[0]?.firmness).toBeUndefined();
+  });
+
+  // implements REQ-kb-decision-firmness-from-origin
+  test("a decision without firmness is default only when an agent wrote it", async () => {
+    const answer = await buildSearchAnswer(
+      fakeKb(
+        {
+          ...ENTITIES,
+          "REQ-NEW": {
+            ...(ENTITIES["REQ-NEW"] as Row),
+            origin: { kind: "agent" },
+          } as unknown as Row,
+          "ADR-PROMO": {
+            ...(ENTITIES["ADR-PROMO"] as Row),
+            origin: { kind: "import", ref: "docs/pricing.md#L4" },
+          } as unknown as Row,
+        },
+        EDGES,
+      ),
+      [match(ENTITIES["REQ-NEW"] as Row, 0.9)],
+    );
+    const [current] = answer.governing;
+    expect(current?.firmness).toBe("default");
+    expect(current?.adrs[0]?.firmness).toBe("firm");
   });
 
   test("an ADR whose source cannot be read keeps its source path without an excerpt", async () => {

@@ -2,6 +2,7 @@ import path from "node:path";
 
 import { buildStrictWriteSet } from "../../utils/strict-modeling.js";
 import {
+  asImportedRule,
   bootstrapProvenance,
   confidenceBand,
   provenanceBody,
@@ -228,7 +229,7 @@ function requirementCandidate(
     applyPlan: strictPlan(writeSet).map((step) =>
       step.type === "req"
         ? withDocumentBody(
-            step,
+            asImportedRule(step, `${relativePath}#L${line}`),
             provenanceRequirementBody(
               statement,
               bootstrapProvenance(

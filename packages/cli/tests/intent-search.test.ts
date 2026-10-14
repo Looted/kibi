@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import {
   executeIntentSearch,
+  questionPaths,
   rankIntentEntities,
   validateIntentSearchInput,
 } from "../src/intent-search.js";
@@ -249,6 +250,44 @@ describe("intent-v1 search ranking", () => {
     expect(ids.indexOf("REQ-EXPORT-REPORTS")).toBeLessThan(
       firstNoise === -1 ? Number.POSITIVE_INFINITY : firstNoise,
     );
+  });
+
+  test("a file path written in the question does not dilute its topic", async () => {
+    // Without sourceLocations the path's words ("app", "services", "auth",
+    // "service", "ts") would match the file's tests and outrank the topic.
+    const fileTest = entity(
+      "TEST-AUTH-SERVICE",
+      "Auth service unit tests: app services toggle the view mode",
+      { type: "test" },
+    );
+    const exportRule = entity(
+      "REQ-EXPORT-REPORTS",
+      "An auditor must be able to export reports.",
+    );
+    const noise = Array.from({ length: 30 }, (_, index) =>
+      entity(
+        `REQ-NOISE-${index}`,
+        `A new ${index % 2 === 0 ? "helper" : "user"} requirement ${index} stays linked`,
+      ),
+    );
+    const result = await rankIntentEntities(
+      [fileTest, exportRule, ...noise],
+      {
+        query:
+          "Which requirement should I link a new `canExport(user)` helper in `src/app/services/auth.service.ts` to?",
+      },
+      workspaceRoot,
+      [],
+    );
+    expect(result.matches[0]?.entity.id).toBe("REQ-EXPORT-REPORTS");
+    expect(result.matches.map((match) => match.entity.id)).not.toContain(
+      "TEST-AUTH-SERVICE",
+    );
+    expect(
+      questionPaths(
+        "Is `./src/app/a.service.ts` or docs/guide.md covered? See https://example.com/spec.md and v1.2",
+      ),
+    ).toEqual(["src/app/a.service.ts", "docs/guide.md"]);
   });
 
   test("recovers functionality through host-agent semantic facets", async () => {

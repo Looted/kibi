@@ -142,7 +142,7 @@ describe("the status plan's schema upgrade declares every write", () => {
     // The mark ran as its own action, so the upgrade's pass is a visible
     // no-op; the counts come from the audit record the run wrote.
     expect(details["schema-config-upgrade"]).toBe(
-      "Migrated schema 8 -> 9 (audit .kb/migrations/main.json): legacy-link marks 0, origin backfill 0, superseded requirements closed 0, source paths rewritten 0, source paths removed 0; .gitignore updated.",
+      "Migrated schema 8 -> 10 (audit .kb/migrations/main.json): legacy-link marks 0, origin backfill 0, superseded requirements closed 0, source paths rewritten 0, source paths removed 0; .gitignore updated.",
     );
     expect(ws.read(".kb/symbols.yaml")).toContain(
       "granularity_reason: legacy-link",
@@ -152,10 +152,10 @@ describe("the status plan's schema upgrade declares every write", () => {
     expect(audit).toMatchObject({
       status: "applied",
       fromVersion: 8,
-      toVersion: 9,
+      toVersion: 10,
       symbolGranularityLegacyLinks: 0,
       preMigrationWarning: expect.stringContaining(
-        "KB schemaVersion 8 is older than the latest version 9",
+        "KB schemaVersion 8 is older than the latest version 10",
       ),
     });
     expect(audit).not.toHaveProperty("warning");

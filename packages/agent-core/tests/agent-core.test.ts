@@ -382,6 +382,7 @@ describe("agent-core knowledge index", () => {
       id: "REQ-checkout-rounding",
       title: "Totals round to cents",
       status: "superseded",
+      firmness: "firm",
     });
     expect(readEntitySummary(root, "REQ-../../secret")).toEqual({
       id: "REQ-../../secret",
@@ -389,8 +390,8 @@ describe("agent-core knowledge index", () => {
     expect(readEntitySummary(root, "UNKNOWN-id")).toEqual({ id: "UNKNOWN-id" });
   });
 
-  // implements REQ-kb-decision-firmness
-  test("entity summaries carry authored firmness and snippets label firm and exploratory decisions", () => {
+  // implements REQ-kb-decision-firmness, REQ-kb-decision-firmness-from-origin
+  test("entity summaries carry firmness, from the origin when unauthored, and snippets label firm and exploratory decisions", () => {
     const root = tempDir("kibi-agent-core-firmness-");
     write(
       root,
@@ -405,7 +406,22 @@ describe("agent-core knowledge index", () => {
     write(
       root,
       ".kb/requirements/REQ-plain.md",
-      "---\nid: REQ-plain\ntitle: Plain\n---\n",
+      "---\nid: REQ-plain\ntitle: Plain\norigin:\n  kind: agent\n  recorded_at: 2026-10-13T00:00:00Z\n---\n",
+    );
+    write(
+      root,
+      ".kb/requirements/REQ-flow.md",
+      "---\nid: REQ-flow\ntitle: Flow\norigin: { kind: agent }\n---\n",
+    );
+    write(
+      root,
+      ".kb/requirements/REQ-imported.md",
+      "---\nid: REQ-imported\ntitle: Imported\norigin:\n  kind: import\n  ref: docs/spec.md#L3\n---\n",
+    );
+    write(
+      root,
+      ".kb/adr/ADR-legacy.md",
+      "---\nid: ADR-legacy\ntitle: Legacy\n---\n",
     );
     expect(readEntitySummary(root, "ADR-money")).toEqual({
       id: "ADR-money",
@@ -413,13 +429,20 @@ describe("agent-core knowledge index", () => {
       firmness: "firm",
     });
     expect(describeEntity(readEntitySummary(root, "ADR-money"))).toBe(
-      "ADR-money [firm]: Money is integer cents",
+      "ADR-money [firm: ask before changing]: Money is integer cents",
     );
     expect(describeEntity(readEntitySummary(root, "REQ-guess"))).toBe(
       "REQ-guess [exploratory]: Retry three times",
     );
     expect(describeEntity(readEntitySummary(root, "REQ-plain"))).toBe(
       "REQ-plain: Plain",
+    );
+    expect(readEntitySummary(root, "REQ-flow").firmness).toBe("default");
+    expect(describeEntity(readEntitySummary(root, "REQ-imported"))).toBe(
+      "REQ-imported [firm: ask before changing]: Imported",
+    );
+    expect(describeEntity(readEntitySummary(root, "ADR-legacy"))).toBe(
+      "ADR-legacy [firm: ask before changing]: Legacy",
     );
   });
 
@@ -434,6 +457,7 @@ describe("agent-core knowledge index", () => {
       id: "REQ-checkout-rounding",
       title: "Totals round to cents",
       status: "open",
+      firmness: "firm",
       links: [
         { type: "constrains", target: "FACT-checkout-total" },
         { type: "relates_to", target: "ADR-money" },
@@ -550,6 +574,7 @@ describe("agent-core knowledge index", () => {
       id: "REQ-old-rounding",
       title: "Totals truncate",
       status: "superseded",
+      firmness: "firm",
       links: [{ type: "constrains", target: "FACT-old-total" }],
     });
   });

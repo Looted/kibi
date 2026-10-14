@@ -1,7 +1,12 @@
 import { createHash } from "node:crypto";
 import { renderRequirementBody } from "../../entity-body-context.js";
 import { buildStrictWriteSet } from "../../utils/strict-modeling.js";
-import { confidenceBand, strictPlan, upsert } from "./candidate-helpers.js";
+import {
+  asImportedRule,
+  confidenceBand,
+  strictPlan,
+  upsert,
+} from "./candidate-helpers.js";
 import {
   type SubjectKeyRegistry,
   claimFor,
@@ -398,7 +403,10 @@ export function buildIntentClaimCandidates(
         applyPlan: strictPlan(writeSet).map((step) =>
           step.type === "req"
             ? withClaimBody(
-                withRationale(step, claim.rationale),
+                asImportedRule(
+                  withRationale(step, claim.rationale),
+                  provenance,
+                ),
                 claimBody(source, claim),
               )
             : step,

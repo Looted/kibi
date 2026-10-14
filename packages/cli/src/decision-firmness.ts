@@ -33,7 +33,7 @@ export const FIRMNESS_VALUES = ["firm", "default", "exploratory"] as const;
 // implements REQ-kb-decision-firmness
 export type Firmness = (typeof FIRMNESS_VALUES)[number];
 
-/** The firmness of a decision that does not state one. */
+/** The firmness of an agent-written decision that does not state one. */
 // implements REQ-kb-decision-firmness
 export const DEFAULT_FIRMNESS: Firmness = "default";
 
@@ -78,16 +78,40 @@ export function carriesFirmness(type: unknown): boolean {
 }
 
 /**
- * The firmness a decision is read with: the authored value, else `default`.
- * Undefined for types that carry no firmness.
+ * The firmness a decision is read with: the authored value, else what its
+ * origin implies. A decision an agent wrote (`origin.kind: agent`) without a
+ * firmness is a delegated choice, `default`. Any other decision without one
+ * (written by a person, imported from their documents, or carried over from
+ * before origins were recorded) is theirs, so it reads as `firm`: an agent
+ * asks before changing it. Undefined for types that carry no firmness.
  */
-// implements REQ-kb-decision-firmness
+// implements REQ-kb-decision-firmness, REQ-kb-decision-firmness-from-origin
 export function effectiveFirmness(
   type: unknown,
   value: unknown,
+  origin?: unknown,
 ): Firmness | undefined {
   if (!carriesFirmness(type)) return undefined;
-  return isFirmness(value) ? value : DEFAULT_FIRMNESS;
+  if (isFirmness(value)) return value;
+  return originKind(origin) === "agent" ? DEFAULT_FIRMNESS : "firm";
+}
+
+/**
+ * Whether a decision's firmness comes from its origin rather than an authored
+ * `firmness` value. Rules that judge the author's own marking (a firm decision
+ * must cite the person's words) apply only to explicit values.
+ */
+// implements REQ-kb-decision-firmness-from-origin
+export function firmnessIsImplicit(type: unknown, value: unknown): boolean {
+  return carriesFirmness(type) && !isFirmness(value);
+}
+
+/** The `kind` of an origin record, or undefined when there is none. */
+// implements REQ-kb-decision-firmness-from-origin
+export function originKind(origin: unknown): string | undefined {
+  if (origin === null || typeof origin !== "object") return undefined;
+  const kind = (origin as { kind?: unknown }).kind;
+  return typeof kind === "string" ? kind : undefined;
 }
 
 /**

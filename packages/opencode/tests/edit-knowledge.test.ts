@@ -89,7 +89,7 @@ describe("edit guidance grounding", () => {
     assert.match(prompt, /- Existing Kibi links: REQ-checkout-rounding\n/);
     assert.ok(
       prompt.includes(
-        "- REQ-checkout-rounding must keep true: FACT-total-rounding-cents: Totals round half up to two decimals +1. Decision: ADR-money-as-decimal: Money is computed as decimal cents.",
+        "- REQ-checkout-rounding must keep true: FACT-total-rounding-cents: Totals round half up to two decimals +1. Decision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.",
       ),
       prompt,
     );
