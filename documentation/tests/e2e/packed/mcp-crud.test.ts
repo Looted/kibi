@@ -438,6 +438,9 @@ if (RUN_NODE_TEST_SUITE) {
                   status: "open",
                   source: "test://integration",
                   tags: ["updated"],
+                  // req1 is human-authored (no origin), so it is firm: a
+                  // retitle must cite the person's words for the change.
+                  approval_ref: "ticket-7",
                 },
               },
             },

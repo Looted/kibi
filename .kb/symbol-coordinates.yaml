@@ -12061,10 +12061,10 @@ coordinates:
     sourceLine: 1
   SYM-e2e-test-mcp-relationship-preflight:
     identityHash: 33fe90c8dbc4f796b72710e78f12e3376d50bffa68443bf6c10736cb8b7fb3e5
-    sourceHash: 81007d9a0fbd4980bc3249729f176b2d89d402a6d265244e92445a169eafecfe
+    sourceHash: bfe46a83957eb133e863462378e827eb5d5cb67cfdaee6f7f2657d6ff89aaa8b
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 827
+    sourceEndLine: 830
     sourceFile: documentation/tests/e2e/packed/mcp-crud.test.ts
     sourceLine: 1
   SYM-e2e-test-mcp-search-discovery:
@@ -12117,10 +12117,10 @@ coordinates:
     sourceLine: 1
   SYM-e2e-test-mcp-upsert-coverage:
     identityHash: 8d32ff3182358372822d7c7c5a5f22e94c1e26deb8f1bffa0633efd8a6f81f66
-    sourceHash: 81007d9a0fbd4980bc3249729f176b2d89d402a6d265244e92445a169eafecfe
+    sourceHash: bfe46a83957eb133e863462378e827eb5d5cb67cfdaee6f7f2657d6ff89aaa8b
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 827
+    sourceEndLine: 830
     sourceFile: documentation/tests/e2e/packed/mcp-crud.test.ts
     sourceLine: 1
   SYM-e2e-test-opencode-enforcement-surface:
