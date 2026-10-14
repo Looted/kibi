@@ -173,12 +173,12 @@ coordinates:
     sourceLine: 35
   SYM-010:
     identityHash: ddd6cb609cd763f2700f5cfbc9dc3bf95c95ba06aa6b33f0a0990af276f4b6d6
-    sourceHash: 55457f3639e124a6cd17d8ef53e1a2b75694b0293d6c0415300f92422588d737
+    sourceHash: 182c5eb90c689ea7384657167ee91f40ef508387214aae29ee35b4b5b5f29f9a
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 87
+    sourceEndLine: 90
     sourceFile: packages/mcp/src/server.ts
-    sourceLine: 51
+    sourceLine: 52
   SYM-acquireSymbolCompilerLock:
     identityHash: 85c148f564df18932b91447c46eff4b0fe03230311f2c2d195169024822df151
     sourceHash: 7acb33a1c5ed3fcc12def8c6606c3c1714651f7e750080593772ba6fb7771528
@@ -16965,12 +16965,12 @@ coordinates:
     sourceLine: 61
   SYM-mcp-connectTransport:
     identityHash: e054109e23750af855d05918953c62535b9c2bd01cdf1f5036f590e280a9f312
-    sourceHash: 10a65b0072271edd198841c429c89afb6e2309ce30580ddee1214f2ad3ca8150
+    sourceHash: 01c8620074272a9301d5e31f6803aa268dae6990c8b565033b80709edff61581
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 98
+    sourceEndLine: 111
     sourceFile: packages/mcp/src/server/transport.ts
-    sourceLine: 93
+    sourceLine: 106
   SYM-mcp-createIntegrationProlog:
     identityHash: 971f13f762fda36039fda7081ded171f1b8a9be6d0ec60c800ec30b9ccfc5601
     sourceHash: 69af8fed13f398223abc3b93b855b464d2b2b61519b547a7dd6e62bb5e4d4bd5
@@ -17445,12 +17445,12 @@ coordinates:
     sourceLine: 131
   SYM-mcp-setupTransportHandlers:
     identityHash: 90d6b32750cc9ebd1a0e20391750d2555a83afd6a23c6c650f9d3289b3a29dd6
-    sourceHash: 10a65b0072271edd198841c429c89afb6e2309ce30580ddee1214f2ad3ca8150
+    sourceHash: 01c8620074272a9301d5e31f6803aa268dae6990c8b565033b80709edff61581
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 89
+    sourceEndLine: 102
     sourceFile: packages/mcp/src/server/transport.ts
-    sourceLine: 31
+    sourceLine: 44
   SYM-mcp-setWorkspaceRouter:
     identityHash: ea25a4716f4e00ca4faee377ae201297ad4e98cd5628067ce9a2fb3d8c549f26
     sourceHash: 7c69bc36d0b54595227d988c0def424b1e701606e27c71fa649deb7913ce0077
