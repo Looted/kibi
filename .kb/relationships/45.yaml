@@ -272,3 +272,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-97bf0e320e9e
+  - type: covered_by
+    from: SYM-source-authoring-render-source-document
+    to: TEST-e2e-plan-compiler-hash
+    created_at: 2026-10-14T10:32:10.383Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cd707907e1db

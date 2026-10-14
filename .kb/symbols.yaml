@@ -53362,6 +53362,8 @@ symbols:
       recorded_at: 2026-10-14T10:13:43.411Z
     relationships:
       - type: covered_by
+        target: TEST-e2e-plan-compiler-hash
+      - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-uncompiled-source-visibility
