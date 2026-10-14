@@ -80,6 +80,7 @@ import {
   SYNC_CACHE_TTL_MS,
   SYNC_CACHE_VERSION,
   SYNC_COMPILER_FINGERPRINT,
+  failedSourceKeepsSemanticBaseline,
   hashFile,
   hashManifestWithCoordinates,
   hashNormalized,
@@ -984,6 +985,8 @@ export async function syncCommand(
     // kb_status can say so. A source that failed in the store's first
     // compilation (and in every sync since) is legacy content that missed the
     // semantic baseline, so it keeps the baseline treatment once it compiles.
+    // One that compiled before keeps the semantic hash it last compiled with,
+    // so restoring its prose (or fixing only what failed) is not new authoring.
     const previousExtractionFailures = syncCache.extractionFailures ?? {};
     const nextExtractionFailures: NonNullable<SyncCache["extractionFailures"]> =
       {};
@@ -991,13 +994,19 @@ export async function syncCommand(
       const key = toCacheKey(workspaceRoot, failure.file);
       const hash = nextHashes[key];
       if (hash === undefined) continue;
+      const previousFailure = previousExtractionFailures[key];
+      const semanticHash =
+        syncCache.semanticHashes[key] ?? previousFailure?.semanticHash;
+      const semanticContract =
+        syncCache.semanticContracts[key] ?? previousFailure?.semanticContract;
       nextExtractionFailures[key] = {
         hash,
         message: failure.message,
-        ...(initialSemanticBaseline ||
-        previousExtractionFailures[key]?.baseline === true
+        ...(initialSemanticBaseline || previousFailure?.baseline === true
           ? { baseline: true }
           : {}),
+        ...(semanticHash !== undefined ? { semanticHash } : {}),
+        ...(semanticContract !== undefined ? { semanticContract } : {}),
       };
     }
     const extractedResults = normalizeExtractionSources(
@@ -1113,14 +1122,23 @@ export async function syncCommand(
         result.entity.semantic_inventory_version !== undefined ||
         result.entity.semantic_source_hash !== undefined ||
         result.entity.semantic_inventory !== undefined;
+      // A source the last sync could not extract is judged by what it last
+      // compiled with, by the rule kb_upsert applies to that file.
+      const previousFailure =
+        syncCache.hashes[key] === undefined
+          ? previousExtractionFailures[key]
+          : undefined;
       const enforceBoundary =
-        (!initialSemanticBaseline &&
-          syncCache.hashes[key] === undefined &&
-          previousExtractionFailures[key]?.baseline !== true) ||
-        syncCache.semanticContracts[key] === true ||
-        (previousSemanticHash !== undefined &&
-          previousSemanticHash !== boundary.sourceHash) ||
-        advertisedContract;
+        advertisedContract ||
+        (previousFailure !== undefined
+          ? !failedSourceKeepsSemanticBaseline(
+              previousFailure,
+              boundary.sourceHash,
+            )
+          : (!initialSemanticBaseline && syncCache.hashes[key] === undefined) ||
+            syncCache.semanticContracts[key] === true ||
+            (previousSemanticHash !== undefined &&
+              previousSemanticHash !== boundary.sourceHash));
       if (enforceBoundary && boundary.errors.length > 0) {
         inventoryFailures.push(
           `${key}: proposition-complete ingestion failed: ${boundary.errors.join("; ")}.`,

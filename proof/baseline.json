@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 221,
-  "proofProven": 221,
+  "currentRequirements": 222,
+  "proofProven": 222,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -1107,6 +1107,11 @@
       "uncoveredSymbols": []
     },
     "REQ-kb-upsert-ledger-contract-in-error": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-uncompiled-source-semantic-baseline": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []

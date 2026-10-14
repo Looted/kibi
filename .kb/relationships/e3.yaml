@@ -251,3 +251,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-77aaf70801c6
+  - type: implements
+    from: SYM-sync-source-extraction-failure-reasons
+    to: REQ-kibi-uncompiled-source-semantic-baseline
+    created_at: 2026-10-14T17:49:46.193Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6b4ce2c80c4b
