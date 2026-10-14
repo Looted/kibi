@@ -565,9 +565,12 @@ describe("prolog remaining: process-tree teardown and translators", () => {
       proto.addDiagnosticStage("msg", "kb_commit_upsert(x)", "no stage"),
     ).toBe("msg");
     expect(proto.lastDiagnosticStage("")).toBeNull();
-    proto.appendErrorChunk(Buffer.alloc(8 * 1024 * 1024 + 8, 0x63));
-    proto.appendErrorChunk(Buffer.from("ignored"));
-    proto.appendOutputChunk(Buffer.from("x"));
+    proto.appendErrorChunk.call(
+      prolog,
+      Buffer.alloc(8 * 1024 * 1024 + 8, 0x63),
+    );
+    proto.appendErrorChunk.call(prolog, Buffer.from("ignored"));
+    proto.appendOutputChunk.call(prolog, Buffer.from("x"));
     await prolog.terminate();
     await prolog.terminate();
   });

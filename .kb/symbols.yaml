@@ -54660,3 +54660,55 @@ symbols:
         target: TEST-cursor-kibi-plugin-v1
       - type: implements
         target: REQ-agent-hosts-decision-guard
+  - id: SYM-prolog-utf8-streams-goal
+    title: PROLOG_UTF8_STREAMS_GOAL
+    status: active
+    sourceFile: packages/cli/src/prolog/utf8-transport.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T20:18:51.756Z
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-bundled-runtime
+      - type: implements
+        target: REQ-prolog-utf8-text
+  - id: SYM-prolog-utf8-encode-goal-for-env
+    title: encodeGoalForEnv
+    status: active
+    sourceFile: packages/cli/src/prolog/utf8-transport.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T20:18:55.167Z
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-bundled-runtime
+      - type: implements
+        target: REQ-prolog-utf8-text
+  - id: SYM-prolog-utf8-decode-goal-from-env
+    title: decodeGoalFromEnvGoal
+    status: active
+    sourceFile: packages/cli/src/prolog/utf8-transport.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T20:18:58.749Z
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-bundled-runtime
+      - type: implements
+        target: REQ-prolog-utf8-text
+  - id: SYM-prolog-utf8-chunk-decoder
+    title: utf8ChunkDecoder
+    status: active
+    sourceFile: packages/cli/src/prolog/utf8-transport.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-14T20:19:02.293Z
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-bundled-runtime
+      - type: implements
+        target: REQ-prolog-utf8-text

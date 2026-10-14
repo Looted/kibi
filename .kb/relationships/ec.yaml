@@ -111,3 +111,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-483156ad074b
+  - type: implements
+    from: SYM-prolog-utf8-chunk-decoder
+    to: REQ-prolog-utf8-text
+    created_at: 2026-10-14T20:19:03.508Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-da4a02cb7bda
+  - type: covered_by
+    from: SYM-prolog-utf8-chunk-decoder
+    to: TEST-prolog-bundled-runtime
+    created_at: 2026-10-14T20:19:03.520Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2b670fcbc174

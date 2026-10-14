@@ -34,6 +34,12 @@ import {
   resolveSwipl,
   swiplChildEnv,
 } from "./prolog/swipl-resolver.js";
+import {
+  PROLOG_UTF8_STREAMS_GOAL,
+  decodeGoalFromEnvGoal,
+  encodeGoalForEnv,
+  utf8ChunkDecoder,
+} from "./prolog/utf8-transport.js";
 
 const importMetaDir = path.dirname(fileURLToPath(import.meta.url));
 const DEFAULT_PROLOG_OUTPUT_MAX_BUFFER_BYTES = 8 * 1024 * 1024;
@@ -169,6 +175,8 @@ export class PrologProcess {
   private outputOverflowed = false;
   private errorBuffer = "";
   private errorBufferBytes = 0;
+  private decodeOutput = utf8ChunkDecoder();
+  private decodeError = utf8ChunkDecoder();
   private cache: Map<string, QueryResult> = new Map();
   private interactiveQueryTail: Promise<void> = Promise.resolve();
   private terminationPromise: Promise<void> | null = null;
@@ -265,7 +273,7 @@ export class PrologProcess {
       launch.bin,
       [
         "-g",
-        `use_module('${kbPath}'), use_module(library(semweb/rdf_db)), set_prolog_flag(answer_write_options, [max_depth(0), quoted(true)])`,
+        `${PROLOG_UTF8_STREAMS_GOAL}, use_module('${kbPath}'), use_module(library(semweb/rdf_db)), set_prolog_flag(answer_write_options, [max_depth(0), quoted(true)])`,
         "--quiet",
       ],
       {
@@ -282,6 +290,8 @@ export class PrologProcess {
       },
     );
     this.clearQueryBuffers();
+    this.decodeOutput = utf8ChunkDecoder();
+    this.decodeError = utf8ChunkDecoder();
 
     if (!this.process.stdout || !this.process.stderr || !this.process.stdin) {
       throw new Error("Failed to spawn Prolog process");
@@ -750,10 +760,11 @@ export class PrologProcess {
           : `(${goalList.join(", ")})`;
     const kbModulePath = resolveKbPlPath();
     const prologGoal = [
+      PROLOG_UTF8_STREAMS_GOAL,
       `use_module('${kbModulePath}')`,
       "use_module(library(semweb/rdf_db))",
       "set_prolog_flag(answer_write_options, [max_depth(0), quoted(true)])",
-      "getenv('KIBI_GOAL', GoalAtom)",
+      decodeGoalFromEnvGoal("KIBI_GOAL", "GoalAtom"),
       "read_term_from_atom(GoalAtom, Goal, [variable_names(Vars)])",
       kbPath ? "getenv('KIBI_KB_PATH', KBPath), kb_attach(KBPath)" : "true",
       isBatch ? "WrappedGoal = rdf_transaction(Goal)" : "WrappedGoal = Goal",
@@ -780,7 +791,7 @@ export class PrologProcess {
         env: {
           ...process.env,
           ...launch.env,
-          KIBI_GOAL: combinedGoal,
+          KIBI_GOAL: encodeGoalForEnv(combinedGoal ?? "true"),
           KIBI_RUNTIME_NAME: runtimeName,
           KIBI_RUNTIME_VERSION: runtimeVersion,
           KIBI_PACKAGE_VERSIONS: packageVersions,
@@ -807,12 +818,15 @@ export class PrologProcess {
     let closed = false;
     let termination: Promise<void> | null = null;
 
+    const decodeStdout = utf8ChunkDecoder();
+    const decodeStderr = utf8ChunkDecoder();
     const appendChunk = (chunk: Buffer, target: "stdout" | "stderr"): void => {
       if (outputOverflowed) return;
       const bytes = target === "stdout" ? outputBytes : errorBytes;
       const remaining = this.maxOutputBytes - bytes;
+      const decode = target === "stdout" ? decodeStdout : decodeStderr;
       if (chunk.byteLength > remaining) {
-        const clipped = chunk.subarray(0, Math.max(0, remaining)).toString();
+        const clipped = decode(chunk.subarray(0, Math.max(0, remaining)));
         if (target === "stdout") stdout += clipped;
         else stderr += clipped;
         outputOverflowed = true;
@@ -820,10 +834,10 @@ export class PrologProcess {
         return;
       }
       if (target === "stdout") {
-        stdout += chunk.toString();
+        stdout += decode(chunk);
         outputBytes += chunk.byteLength;
       } else {
-        stderr += chunk.toString();
+        stderr += decode(chunk);
         errorBytes += chunk.byteLength;
       }
     };
@@ -961,12 +975,12 @@ export class PrologProcess {
     if (this.outputOverflowed) return;
     const remaining = this.maxOutputBytes - this.outputBufferBytes;
     if (chunk.byteLength > remaining) {
-      this.outputBuffer += chunk.subarray(0, remaining).toString();
+      this.outputBuffer += this.decodeOutput(chunk.subarray(0, remaining));
       this.outputBufferBytes = this.maxOutputBytes;
       this.outputOverflowed = true;
       return;
     }
-    this.outputBuffer += chunk.toString();
+    this.outputBuffer += this.decodeOutput(chunk);
     this.outputBufferBytes += chunk.byteLength;
     this.wakeOutputWaiter();
   }
@@ -975,12 +989,12 @@ export class PrologProcess {
     if (this.outputOverflowed) return;
     const remaining = this.maxOutputBytes - this.errorBufferBytes;
     if (chunk.byteLength > remaining) {
-      this.errorBuffer += chunk.subarray(0, remaining).toString();
+      this.errorBuffer += this.decodeError(chunk.subarray(0, remaining));
       this.errorBufferBytes = this.maxOutputBytes;
       this.outputOverflowed = true;
       return;
     }
-    this.errorBuffer += chunk.toString();
+    this.errorBuffer += this.decodeError(chunk);
     this.errorBufferBytes += chunk.byteLength;
     this.wakeOutputWaiter();
   }

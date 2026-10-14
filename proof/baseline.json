@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 218,
-  "proofProven": 218,
+  "currentRequirements": 219,
+  "proofProven": 219,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -1092,6 +1092,11 @@
       "uncoveredSymbols": []
     },
     "REQ-agent-hosts-decision-guard": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-prolog-utf8-text": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []
