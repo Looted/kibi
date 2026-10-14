@@ -258,3 +258,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-99e1108652e0
+  - type: verified_by
+    from: SCEN-mcp-coded-error-envelope
+    to: TEST-kibi-mcp-tool-consolidation
+    created_at: 2026-10-14T08:56:56.505Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-66402bd943b3

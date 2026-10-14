@@ -24,6 +24,7 @@ import {
   type ProgressReporter,
   QUERY_LIMIT_EXCEEDED_CODE,
   type RuntimeOperationSpec,
+  codedErrorOf,
   detachedReadOnlyDiagnostic,
   executeOperation,
   queryLimitExceededOf,
@@ -369,7 +370,7 @@ function observeDetachedReads(base: OperationRuntime): {
   };
 }
 
-// implements REQ-002
+// implements REQ-002, REQ-mcp-coded-error-envelope
 export function addTool<TProlog>(
   server: McpServer,
   name: string,
@@ -650,6 +651,37 @@ export function addTool<TProlog>(
           );
           return {
             content: [{ type: "text", text: JSON.stringify(envelope) }],
+            structuredContent: envelope,
+            isError: true,
+          };
+        }
+        const coded = codedErrorOf(error);
+        if (coded !== null) {
+          // An error that carries a Kibi code (VALIDATION_FAILED and the
+          // like) answers with the same error envelope the CLI JSON route
+          // prints, so a client can branch on error.code instead of parsing
+          // the message.
+          const envelope = withWorkspaceNotice(
+            withWorkspaceNotice(
+              toKibiResult(operationSpec, null, {
+                status: "error",
+                error: {
+                  code: coded.code,
+                  message: coded.message,
+                  retryable: coded.retryable,
+                },
+              }),
+              workspaceNotice,
+            ),
+            observed.notice(),
+          );
+          return {
+            content: [
+              {
+                type: "text",
+                text: `Tool ${name} failed: [${coded.code}] ${coded.message}`,
+              },
+            ],
             structuredContent: envelope,
             isError: true,
           };

@@ -2,7 +2,7 @@
 id: kibi-bootstrap
 name: kibi-bootstrap
 description: "Use for any Kibi bootstrap or onboarding task: seeding a new or thin knowledge base; reviewing a bootstrap or onboarding plan, preview, or evidence; judging approval readiness or coverage; diagnosing a blocked, partial, or failed bootstrap or its repair; applying an approved bootstrap plan; or asking the human which knowledge sources hold intent. Covers kb_status first, source interview, cited intent claims, read-only kb_plan_bootstrap preview, explicit approval, exact-plan kb_apply_plan, and repair-safe close-out."
-version: 3.13.0
+version: 3.14.0
 kibiCompatibility: ">=1.0.0"
 tags:
   - kibi
@@ -24,7 +24,7 @@ Make `kb_status` your first tool call on every bootstrap task. This includes rev
 - **Review a supplied plan or preview, or judge approval readiness or coverage:** call `kb_status`, then run your own read-only `kb_plan_bootstrap` preview. Compare it with the supplied one: hash, candidates, citations, `suppressedCandidates`, `sourceOnlySignals`, and diagnostics. Report what is ready, what is missing or uncited, and any conflicts for the human. Do not apply. End with `kb_status`.
 - **Blocked, partial, failed, or repair:** never conclude from `kb_status` alone. Run a read-only `kb_plan_bootstrap` preview and report its eligibility and next-action fields (for example `planEligible`, `nextAction`). If it names operator-only repair such as `doctor`, report it and stop. Read `resources/branch-lifecycle.md` before migration or repair. End with `kb_status`.
 - **New or thin knowledge base, or apply an approved plan:** follow the procedure below.
-- **Knowledge base already seeded** (`activationMode: attached_seeded_handoff`): follow the same procedure. Kibi generates no discovered candidates here, but it still plans the intent claims you declare, deduplicated against the existing KB: claims already in the KB are counted as already in the KB, and a plan of the rest is `ready` and applies with `kb_apply_plan` after approval. Never fall back to one `kb_compile_intent` plus one write per claim while such a plan exists. Use `kb_compile_intent` only for claims the plan could not write (`sourceOnlySignals`, `suppressed_by_activation`, `invalid_write`), and `kb_search`/`kb_query` for existing knowledge.
+- **Knowledge base already seeded** (`activationMode: attached_seeded_handoff`): follow the same procedure. Kibi generates no discovered candidates here, but it still plans the intent claims you declare, deduplicated against the existing KB: a claim whose entity exists, or whose statement or excerpt restates a current requirement (same words once case and punctuation are ignored), is counted as already in the KB with the matched id, and a plan of the rest is `ready` and applies with `kb_apply_plan` after approval. A diagnostic saying a claim "closely restates" a requirement means that claim is still planned: show both to the human before approval, and drop the claim or link the two with `restates` or `supersedes`. Never fall back to one `kb_compile_intent` plus one write per claim while such a plan exists. Use `kb_compile_intent` only for claims the plan could not write (`sourceOnlySignals`, `suppressed_by_activation`, `invalid_write`), and `kb_search`/`kb_query` for existing knowledge.
 
 ## Goal
 

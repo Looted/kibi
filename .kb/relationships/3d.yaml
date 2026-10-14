@@ -265,3 +265,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8ce43500a4e0
+  - type: implements
+    from: SYM-addTool
+    to: REQ-mcp-coded-error-envelope
+    created_at: 2026-10-14T09:06:48.912Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-831337fa516f
+  - type: covered_by
+    from: SYM-addTool
+    to: TEST-kibi-mcp-tool-consolidation
+    created_at: 2026-10-14T09:06:48.920Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d337923be06f

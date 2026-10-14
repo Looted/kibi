@@ -3,7 +3,10 @@ import { afterEach, describe, expect, test } from "bun:test";
 import {
   type ConsumerWorkspace,
   type Json,
+  adviseProse,
   createConsumerWorkspace,
+  doc,
+  semanticFrontMatter,
 } from "./workspace.js";
 
 /**
@@ -174,5 +177,92 @@ describe("bootstrap on a seeded knowledge base", () => {
       rules: ["strict-fact-shape", "domain-contradictions", "no-dangling-refs"],
     });
     expect((check.data as Json).violations).toEqual([]);
+  }, 240_000);
+
+  test("a claim that restates a human-written requirement is counted as that requirement, not planned again", () => {
+    seedKnowledgeBase();
+    // A requirement a person wrote by hand, compiled by sync like any other.
+    const prose =
+      "The report list must keep the selected filter when the user navigates back. Reports must open in the same tab.";
+    const { contract, propositions } = adviseProse(workspace(), prose);
+    workspace().write(
+      ".kb/requirements/REQ-reports-navigation.md",
+      doc(
+        `
+id: REQ-reports-navigation
+type: req
+title: Report list navigation
+status: open
+origin:
+  kind: human
+  ref: docs/reports.md
+${semanticFrontMatter(prose, contract, propositions)}
+`,
+        `${prose}\n\n## Context\n\nSupport tickets showed users losing their report filter after opening a report and returning to the list, so the product owner asked for the filter to survive navigation.`,
+      ),
+    );
+    workspace().sync();
+    const human = (
+      workspace().json(["query"], { id: "REQ-reports-navigation" }).data as Json
+    ).entities as Json[];
+    expect(human).toHaveLength(1);
+
+    const exact = claim(
+      "tracker",
+      "T-1",
+      "The report list must keep the selected filter when the user navigates back",
+    );
+    const fresh = claim(
+      "tracker",
+      "T-2",
+      "Refunds must not exceed the original charge.",
+    );
+    const near = claim(
+      "tracker",
+      "T-3",
+      "Reports must open in the same browser tab.",
+    );
+    const bootstrapContext = {
+      projectSummary: "Report exports and billing for a test project.",
+      verificationAnchors: ["bun test"],
+      knowledgeSources: [tracker],
+      intentClaims: [exact, fresh, near],
+    };
+    const result = plan(bootstrapContext);
+    const planned = result.plan as Json;
+    const candidates = planned.candidates as Json[];
+
+    // The exact restatement is already in the KB, under the human's id.
+    expect(candidates.map((row) => row.sourcePath)).not.toContain("T-1");
+    expect(planned.suppressedCandidates).toContainEqual(
+      expect.objectContaining({
+        reason: "entity_exists",
+        sourcePath: "T-1",
+        matchedId: "REQ-reports-navigation",
+        matchedBy: "restatement",
+      }),
+    );
+    // The new claim is planned as before.
+    expect(candidates.map((row) => row.sourcePath)).toContain("T-2");
+    // The near restatement is kept, with a signal naming the requirement.
+    const diagnostics = planned.diagnostics as string[];
+    expect(
+      diagnostics.some(
+        (line) =>
+          line.startsWith(
+            "Intent claim at tracker:T-3 closely restates current requirement REQ-reports-navigation",
+          ) && line.includes("it is still planned"),
+      ),
+    ).toBe(true);
+    expect(
+      diagnostics.some((line) =>
+        line.startsWith(
+          "Knowledge source tracker (authoritative): 3 declared claim(s), 2 planned, 1 already in the KB,",
+        ),
+      ),
+    ).toBe(true);
+
+    // Same KB, same context: same plan.
+    expect(plan(bootstrapContext).planHash).toBe(result.planHash);
   }, 240_000);
 });
