@@ -314,3 +314,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ad7a6aaa93de
+  - type: implements
+    from: SYM-migration-apply-schema6-migration-action
+    to: REQ-cli-migration-first-commit
+    created_at: 2026-10-14T08:48:02.373Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a0e844158dd8
+  - type: covered_by
+    from: SYM-migration-apply-schema6-migration-action
+    to: TEST-cli-migration-first-commit
+    created_at: 2026-10-14T08:48:02.395Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-02cbb72216b9
