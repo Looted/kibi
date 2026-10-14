@@ -1,5 +1,12 @@
 # kibi-cursor
 
+## 2.7.6
+
+### Patch Changes
+
+- Updated dependencies [b9ec91d]
+  - kibi-agent-core@0.7.0
+
 ## 2.7.5
 
 ### Patch Changes

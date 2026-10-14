@@ -230,3 +230,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bb8f85a1dd25
+  - type: verified_by
+    from: SCEN-claude-decision-capture-nudges
+    to: TEST-claude-edit-snippet-hook
+    created_at: 2026-10-14T16:57:53.077Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dccbf43acf32

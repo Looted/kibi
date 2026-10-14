@@ -14,6 +14,7 @@ import {
   stringify,
 } from "yaml";
 import { OperationError } from "../../cli-errors.js";
+import { reviseRequirementBody } from "../../entity-body-context.js";
 import { requirementSemanticText } from "../../extractors/markdown.js";
 import type { OperationContext } from "../../public/operations/runtime-types.js";
 import { canonicalFilesystemPath } from "../../utils/canonical-path.js";
@@ -508,6 +509,39 @@ function patchFrontmatter(
   return patched;
 }
 
+// implements REQ-kb-upsert-statement-follows-semantic-text
+function sameStatement(left: string, right: string): boolean {
+  const normalized = (text: string) => text.replace(/\s+/g, " ").trim();
+  return normalized(left) === normalized(right);
+}
+
+/**
+ * The body an upsert without `document.body` keeps. A requirement whose
+ * `semantic_text` changes gets the new statement in place of the old one
+ * (context sections are kept), so search and readers of the document never
+ * quote a statement the requirement no longer makes.
+ */
+// implements REQ-kb-upsert-statement-follows-semantic-text
+function bodyForStatement(
+  type: string,
+  entity: Readonly<Record<string, unknown>>,
+  existing: { frontmatter: Record<string, unknown>; body: string },
+): string {
+  if (type !== "req" || typeof entity.semantic_text !== "string") {
+    return existing.body;
+  }
+  const previous =
+    typeof existing.frontmatter.semantic_text === "string"
+      ? existing.frontmatter.semantic_text
+      : requirementSemanticText(existing.body);
+  if (sameStatement(previous, entity.semantic_text)) return existing.body;
+  const leading = /^\n*/.exec(existing.body)?.[0] || "\n\n";
+  return `${leading}${reviseRequirementBody({
+    existingBody: existing.body,
+    statement: entity.semantic_text,
+  })}`;
+}
+
 function renderEntityDocument(
   input: UpsertInput,
   entity: Readonly<Record<string, unknown>>,
@@ -520,7 +554,7 @@ function renderEntityDocument(
     input.document?.body !== undefined
       ? input.document.body
       : existingContent !== undefined
-        ? existing.body
+        ? bodyForStatement(input.type, entity, existing)
         : input.type === "req"
           ? `${String(entity.semantic_text ?? "").trim()}\n`
           : "\n";
@@ -1102,7 +1136,7 @@ export function renderYamlRelationshipDeletion(
  * document's current content. Compile plans render their documents with it
  * so a plan writes exactly what `kb_upsert` would.
  */
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
+// implements REQ-kibi-change-to-proof-plan-compiler-v2, REQ-kb-upsert-statement-follows-semantic-text
 export function renderSourceDocument(
   input: UpsertInput,
   entity: Readonly<Record<string, unknown>>,

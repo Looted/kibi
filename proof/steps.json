@@ -2080,7 +2080,8 @@
         "./packages/cli/tests/commands/check-entity-context.test.ts",
         "./packages/cli/tests/operations/context-warning.test.ts",
         "./packages/cli/tests/operations/migration/entity-body-context.test.ts",
-        "./packages/cli/tests/operations/migration/body-preservation.test.ts"
+        "./packages/cli/tests/operations/migration/body-preservation.test.ts",
+        "./packages/cli/tests/operations/source-authoring.test.ts"
       ]
     ]
   },

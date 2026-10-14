@@ -293,6 +293,78 @@ export function mergeMigrationPlans(
   });
 }
 
+export const MIGRATION_PLAN_DIGEST_VERSION =
+  "kibi.migration-plan-digest.v1" as const;
+
+export type MigrationPlanDigest = Readonly<{
+  version: typeof MIGRATION_PLAN_DIGEST_VERSION;
+  planHash: string;
+  status: MigrationPlan["status"];
+  expected: MigrationPlan["expected"];
+  scope: MigrationPlan["scope"];
+  summary: MigrationPlan["summary"];
+  automaticActions: readonly MigrationAction[];
+  actionGroups: readonly Readonly<{
+    code: string;
+    safety: MigrationSafety;
+    state: MigrationActionState;
+    count: number;
+  }>[];
+  diagnostics: readonly string[];
+  next: string;
+}>;
+
+/**
+ * A bounded summary of a plan for responses that report what is left rather
+ * than hand over a plan to apply: automatic actions stay whole, every other
+ * action is counted by code. The full plan comes from status, check and
+ * coverage.
+ */
+// implements REQ-agent-guided-migration-orchestration
+export function digestMigrationPlan(plan: MigrationPlan): MigrationPlanDigest {
+  const groups = new Map<
+    string,
+    {
+      code: string;
+      safety: MigrationSafety;
+      state: MigrationActionState;
+      count: number;
+    }
+  >();
+  for (const action of plan.actions) {
+    if (action.safety === "automatic") continue;
+    const key = `${action.code}\u0000${action.safety}\u0000${action.state}`;
+    const group = groups.get(key);
+    if (group === undefined)
+      groups.set(key, {
+        code: action.code,
+        safety: action.safety,
+        state: action.state,
+        count: 1,
+      });
+    else group.count += 1;
+  }
+  return {
+    version: MIGRATION_PLAN_DIGEST_VERSION,
+    planHash: plan.planHash,
+    status: plan.status,
+    expected: plan.expected,
+    scope: plan.scope,
+    summary: plan.summary,
+    automaticActions: plan.actions.filter(
+      (action) => action.safety === "automatic",
+    ),
+    actionGroups: [...groups.values()].sort(
+      (left, right) =>
+        right.count - left.count ||
+        left.code.localeCompare(right.code) ||
+        left.state.localeCompare(right.state),
+    ),
+    diagnostics: plan.diagnostics,
+    next: "This digest cannot be applied. Run kb_status, kb_check and kb_coverage (or kibi migrate) for the full plan and its action details.",
+  };
+}
+
 /**
  * The same plan without the actions whose code another planner owns, e.g.
  * lifecycle repairs `kibi migrate` plans from authored sources.

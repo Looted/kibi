@@ -1249,24 +1249,95 @@ function readHead(file) {
   };
 }
 var RETIRED_STATUS = /supersed|deprecat|reject|obsolete|retired|archived|removed/i;
-function rankRequirementCandidates(relativePath, requirements, limit = MAX_REQUIREMENT_CANDIDATES) {
+var REQUEST_FILLER_WORDS = new Set([
+  "please",
+  "could",
+  "would",
+  "you",
+  "your",
+  "our",
+  "have",
+  "has",
+  "make",
+  "sure",
+  "change",
+  "update",
+  "add",
+  "fix",
+  "now",
+  "need",
+  "want",
+  "like",
+  "also",
+  "just",
+  "then",
+  "than",
+  "there",
+  "here",
+  "what",
+  "which",
+  "why",
+  "how",
+  "will",
+  "use",
+  "using",
+  "new",
+  "file",
+  "code",
+  "never",
+  "always",
+  "only",
+  "any",
+  "but",
+  "they",
+  "them",
+  "was",
+  "were",
+  "been",
+  "being",
+  "does",
+  "don",
+  "doesn",
+  "let",
+  "get",
+  "set",
+  "one",
+  "out",
+  "about",
+  "over",
+  "same",
+  "still",
+  "too",
+  "very"
+]);
+function rankRequirementCandidates(relativePath, requirements, limit = MAX_REQUIREMENT_CANDIDATES, requestWords = []) {
   const topic = new Set(pathTopicWords(relativePath));
-  if (topic.size === 0)
+  const request = new Set(requestWords.filter((word) => !topic.has(word)));
+  if (topic.size === 0 && request.size === 0)
     return [];
   const scored = [];
   for (const head of requirements) {
     if (head.status !== undefined && RETIRED_STATUS.test(head.status))
       continue;
-    const titleWords = words(head.title).filter((word) => topic.has(word));
-    const shared = new Set(titleWords).size;
-    if (shared > 0)
-      scored.push({ head, shared, uses: titleWords.length });
+    const titleWords = words(head.title);
+    const pathHits = titleWords.filter((word) => topic.has(word));
+    const requestHits = titleWords.filter((word) => request.has(word));
+    const shared = new Set(pathHits).size;
+    const asked = new Set(requestHits).size;
+    if (shared > 0 || asked >= 2) {
+      scored.push({
+        head,
+        shared,
+        asked,
+        uses: pathHits.length + requestHits.length
+      });
+    }
   }
-  scored.sort((a, b) => b.shared - a.shared || b.uses - a.uses || a.head.id.localeCompare(b.head.id));
+  scored.sort((a, b) => b.shared - a.shared || b.asked - a.asked || b.uses - a.uses || a.head.id.localeCompare(b.head.id));
   return scored.slice(0, limit).map((entry) => entry.head);
 }
-function requirementCandidatesForPath(workspaceRoot, relativePath, limit = MAX_REQUIREMENT_CANDIDATES) {
-  if (pathTopicWords(relativePath).length === 0)
+function requirementCandidatesForPath(workspaceRoot, relativePath, limit = MAX_REQUIREMENT_CANDIDATES, requestWords = []) {
+  if (pathTopicWords(relativePath).length === 0 && requestWords.length < 2)
     return [];
   const directory = path4.join(workspaceRoot, REQUIREMENTS_DIR);
   let names;
@@ -1278,7 +1349,7 @@ function requirementCandidatesForPath(workspaceRoot, relativePath, limit = MAX_R
   if (names.length > MAX_SCANNED)
     return [];
   const heads = names.map((name) => readHead(path4.join(directory, name))).filter((head) => head !== undefined);
-  return rankRequirementCandidates(relativePath, heads, limit);
+  return rankRequirementCandidates(relativePath, heads, limit, requestWords);
 }
 
 // ../agent-core/dist/snippets.js
@@ -1374,14 +1445,21 @@ function unownedSourceNote(relativePath, candidates = []) {
     const named = candidates.slice(0, shown).map((candidate) => `${candidate.id}: ${truncate(candidate.title, MAX_TITLE)}`);
     const note = [
       head,
-      `Requirements whose titles share this path's words: ${named.join("; ")}. kb_query({id:${jsonString(candidates[0]?.id ?? "")}}) shows whether one describes the behavior being changed; one that does is traced by an implements link from the symbol that implements it (for markup, the component that renders it).`,
+      `Requirements whose titles share words with this path or the request: ${named.join("; ")}. kb_query({id:${jsonString(candidates[0]?.id ?? "")}}) shows whether one describes the behavior being changed; one that does is traced by an implements link from the symbol that implements it (for markup, the component that renders it).`,
       search
     ].join(`
 `);
     if (note.length <= MAX_SNIPPET_CHARS)
       return note;
   }
-  return [head, search].join(`
+  if (candidates.length > 0)
+    return [head, search].join(`
+`);
+  return [
+    head,
+    "No requirement title matches this file, so nothing recorded is known to cover it.",
+    `kb_search({query:"<behavior being changed>", sourceLocations:[{path:${jsonString(relativePath)}}]}) finds a rule recorded under other words. A decision this change makes for this code (a rule the person states, a limit, who may do what) is recorded with kb_upsert (requirement + scenario + symbol implements link) before the work is reported done.`
+  ].join(`
 `);
 }
 function unreadableManifestNote(relativePath) {

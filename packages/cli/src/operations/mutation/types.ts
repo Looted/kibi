@@ -13,7 +13,7 @@ export type UpsertInput = {
   readonly document?: {
     /** Workspace-relative authored source target. */
     readonly path?: string;
-    /** Complete document bytes. Omit to preserve the existing body bytes. */
+    /** Complete document bytes. Omit to preserve the existing body (a changed requirement semantic_text replaces its statement). */
     readonly body?: string;
   };
   /** Validate and preview the write without mutating the KB. */

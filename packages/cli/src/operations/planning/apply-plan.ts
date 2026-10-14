@@ -22,6 +22,7 @@ import {
   FRESHNESS_RESYNC,
   type MigrationAction,
   type MigrationPlan,
+  type MigrationPlanDigest,
   PREDICATE_SCHEMA_ALIGNMENT_CODE,
   migrationPlanHash,
 } from "../../public/operations/migration-plan.js";
@@ -3086,7 +3087,7 @@ async function applyMigrationPlan(
   const finalWorkspace = await readWorkspaceSnapshot(context);
   if (!finalWorkspace.available)
     throw new Error(`Migration apply failed: ${finalWorkspace.error}`);
-  let remainingPlan: MigrationPlan | undefined;
+  let remainingPlan: MigrationPlanDigest | undefined;
   let coverageSummary: Readonly<Record<string, number>> | undefined;
   if (!failed && finalStatus.branchStore?.state === "healthy") {
     try {
@@ -3095,12 +3096,15 @@ async function applyMigrationPlan(
         const operationContext = context.prolog
           ? context
           : { ...context, prolog };
-        const [{ executeCheck }, { executeCoverage }, { mergeMigrationPlans }] =
-          await Promise.all([
-            import("../../public/operations/check-executor.js"),
-            import("../../public/operations/specs/reporting.js"),
-            import("../../public/operations/migration-plan.js"),
-          ]);
+        const [
+          { executeCheck },
+          { executeCoverage },
+          { digestMigrationPlan, mergeMigrationPlans },
+        ] = await Promise.all([
+          import("../../public/operations/check-executor.js"),
+          import("../../public/operations/specs/reporting.js"),
+          import("../../public/operations/migration-plan.js"),
+        ]);
         const check = await executeCheck({}, operationContext);
         const coverage = await executeCoverage(
           { by: "req", limit: 10_000, offset: 0 },
@@ -3115,8 +3119,10 @@ async function applyMigrationPlan(
           coverage.structuredContent?.migrationPlan,
           symbolCoverage.structuredContent?.migrationPlan,
         ].filter((value): value is MigrationPlan => value !== undefined);
+        // The response reports what is left; the full plan, with every
+        // review and execution action, stays with status, check and coverage.
         if (fragments.length > 0)
-          remainingPlan = mergeMigrationPlans(fragments);
+          remainingPlan = digestMigrationPlan(mergeMigrationPlans(fragments));
         coverageSummary = coverage.structuredContent?.summary;
       }
     } catch (error) {

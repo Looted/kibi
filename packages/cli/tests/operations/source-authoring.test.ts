@@ -241,6 +241,68 @@ describe("source-first authoring", () => {
     }
   });
 
+  // implements REQ-kb-upsert-statement-follows-semantic-text
+  test("a changed semantic_text replaces the body statement and keeps its context", async () => {
+    const workspace = await mkdtemp(path.join(tmpdir(), "kibi-source-"));
+    workspaces.push(workspace);
+    const target = path.join(workspace, ".kb", "requirements", "REQ-floor.md");
+    await mkdir(path.dirname(target), { recursive: true });
+    const contextSection =
+      "## Context\n\nThe owner raised the floor after a 9.x crash report.\n";
+    await writeFile(
+      target,
+      [
+        "---",
+        "id: REQ-floor",
+        "title: Kibi rejects an old swipl",
+        "status: open",
+        "semantic_text: Kibi must reject a swipl older than version 9.0.",
+        "---",
+        "",
+        "Kibi must reject a swipl older than version 9.0.",
+        "",
+        contextSection,
+      ].join("\n"),
+    );
+    const entity = {
+      id: "REQ-floor",
+      type: "req",
+      title: "Kibi rejects an old swipl",
+      status: "open",
+      source: "mcp://kibi/upsert",
+    };
+    const existing = { id: "REQ-floor", source: ".kb/requirements/REQ-floor.md" };
+
+    await writeSourceForUpsert(
+      { type: "req", id: "REQ-floor", properties: { status: "open" } },
+      {
+        ...entity,
+        semantic_text: "Kibi must reject a swipl older than version 9.0.",
+      },
+      existing,
+      context(workspace),
+    );
+    const unchanged = await readFile(target, "utf8");
+    expect(unchanged).toContain(
+      "---\n\nKibi must reject a swipl older than version 9.0.\n",
+    );
+
+    const statement = "Kibi must reject a swipl older than version 10.0.";
+    await writeSourceForUpsert(
+      {
+        type: "req",
+        id: "REQ-floor",
+        properties: { semantic_text: statement },
+      },
+      { ...entity, semantic_text: statement },
+      existing,
+      context(workspace),
+    );
+    const written = await readFile(target, "utf8");
+    expect(written).not.toContain("version 9.0");
+    expect(written.split("---\n")[2]).toBe(`\n${statement}\n\n${contextSection}`);
+  });
+
   test("changes a flow list in flow style and appends new keys after the authored ones", async () => {
     const workspace = await mkdtemp(path.join(tmpdir(), "kibi-source-"));
     workspaces.push(workspace);
