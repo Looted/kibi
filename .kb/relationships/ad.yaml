@@ -220,3 +220,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e2d0b143ba0f
+  - type: implements
+    from: SYM-cli-unowned-files-requirementcandidate
+    to: REQ-kb-unowned-file-candidates
+    created_at: 2026-10-14T09:46:44.271Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a576ed02c7fe
+  - type: covered_by
+    from: SYM-cli-unowned-files-requirementcandidate
+    to: TEST-search-answer-hygiene
+    created_at: 2026-10-14T09:46:44.288Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb0b6d71386b

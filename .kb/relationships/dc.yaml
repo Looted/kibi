@@ -111,3 +111,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4867b0d4c1c8
+  - type: executable_for
+    from: SYM-test-unowned-files
+    to: TEST-search-answer-hygiene
+    created_at: 2026-10-14T09:47:09.639Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-12a8ef8a879e

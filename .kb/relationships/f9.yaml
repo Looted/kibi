@@ -311,3 +311,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6b0fb3ce96df
+  - type: implements
+    from: SYM-agent-core-candidates-pathtopicwords
+    to: REQ-kb-unowned-file-candidates
+    created_at: 2026-10-14T09:46:11.344Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5e6879766958
+  - type: covered_by
+    from: SYM-agent-core-candidates-pathtopicwords
+    to: TEST-claude-edit-snippet-hook
+    created_at: 2026-10-14T09:46:11.371Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3b6f0f0537bf

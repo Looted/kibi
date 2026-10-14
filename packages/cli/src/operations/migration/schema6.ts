@@ -41,6 +41,7 @@ import {
   supersessionCycleReviewActionInput,
 } from "../../public/operations/schema6-check-actions.js";
 import { readAllShards } from "../../relationships/shards.js";
+import { KB_PATHS } from "../../utils/kb-paths.js";
 import {
   CONTEXT_MISSING_TAG_CODE,
   SEMANTIC_TEXT_PIN_CODE,
@@ -92,6 +93,11 @@ import {
   applySupersedesReasonAcknowledgement,
   planSupersedesReasonAcknowledgement,
 } from "./supersedes-reason.js";
+import {
+  coordinateRefreshFailureMessage,
+  readGeneratedManifestBytes,
+  refreshCoordinatesAfterMigration,
+} from "./symbol-coordinates-refresh.js";
 import {
   SYMBOL_LEGACY_LINK_MARK_ACTION_ID,
   SYMBOL_LEGACY_LINK_MARK_CODE,
@@ -878,7 +884,9 @@ export function symbolLegacyLinkAction(
     autoApplicable: true,
     invocation: { kind: "cli", command_argv: ["kibi", "migrate", "--yes"] },
     affectedEntityIds: plan.targets.map((target) => target.id),
-    affectedFiles: [plan.manifestPath],
+    // A mark changes the record's coordinate identity, so the action also
+    // regenerates the coordinate artifact.
+    affectedFiles: [plan.manifestPath, KB_PATHS.symbolCoordinates],
     postconditions: [{ rule: "symbol_granularity_violation", findings: 0 }],
     evidence: {
       reason:
@@ -1031,6 +1039,7 @@ export async function applySchema6MigrationAction(
       applyOriginBackfill(context.workspaceRoot, context.clock().toISOString());
       return;
     case SYMBOL_LEGACY_LINK_MARK_CODE: {
+      const before = readGeneratedManifestBytes(context.workspaceRoot);
       const result = applySymbolLegacyLinks(context.workspaceRoot, {
         ...(typeof action.evidence.manifestHash === "string"
           ? { expectedHash: action.evidence.manifestHash }
@@ -1040,6 +1049,16 @@ export async function applySchema6MigrationAction(
       if (result.unmarked.length > 0)
         throw new Error(
           `Could not mark ${result.unmarked.join(", ")} as legacy-link in place; add granularity_reason: legacy-link to them by hand.`,
+        );
+      // A legacy-link mark changes the record's coordinate identity; keep
+      // the generated artifact current so the next commit carries no drift.
+      const refresh = await refreshCoordinatesAfterMigration(
+        context.workspaceRoot,
+        before,
+      );
+      if (refresh.outcome === "failed")
+        console.warn(
+          `Warning: ${coordinateRefreshFailureMessage(refresh.reason)}`,
         );
       return;
     }

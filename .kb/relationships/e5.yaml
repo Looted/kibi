@@ -258,3 +258,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bd245053c0c8
+  - type: constrains
+    from: REQ-kb-firm-decision-edit
+    to: FACT-SUBJECT-KIBI-DECISION-FIRMNESS
+    created_at: 2026-10-14T08:00:10.946Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cd3683026580
+  - type: requires_property
+    from: REQ-kb-firm-decision-edit
+    to: FACT-kb-decision-firmness-firm-edit-refused
+    created_at: 2026-10-14T08:00:10.981Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-30d1655e1023
+  - type: requires_property
+    from: REQ-kb-firm-decision-edit
+    to: FACT-kb-decision-firmness-firm-edit-reported
+    created_at: 2026-10-14T08:00:11.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-138b071bc0cf
+  - type: relates_to
+    from: REQ-kb-firm-decision-edit
+    to: REQ-kb-decision-firmness
+    created_at: 2026-10-14T08:00:11.017Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ea5f3b698dcc
+  - type: specified_by
+    from: REQ-kb-firm-decision-edit
+    to: SCEN-kb-firm-decision-edit
+    created_at: 2026-10-14T08:00:11.030Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ed231f7409d3
+  - type: verified_by
+    from: REQ-kb-firm-decision-edit
+    to: TEST-kb-decision-firmness
+    created_at: 2026-10-14T08:00:11.051Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-40cde90f57c0

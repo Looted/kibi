@@ -160,3 +160,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ce2fc58fd688
+  - type: implements
+    from: SYM-cli-migration-MigrationCoordinateRefresh
+    to: REQ-cli-migration-first-commit
+    created_at: 2026-10-14T08:47:27.253Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2d58c748ab09
+  - type: covered_by
+    from: SYM-cli-migration-MigrationCoordinateRefresh
+    to: TEST-cli-migration-first-commit
+    created_at: 2026-10-14T08:47:27.270Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b38a820c3cf8

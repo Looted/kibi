@@ -300,3 +300,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-540fbc46aa4b
+  - type: executable_for
+    from: SYM-test-requirement-candidates
+    to: TEST-claude-edit-snippet-hook
+    created_at: 2026-10-14T09:47:05.531Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b61de4d5eb26

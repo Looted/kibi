@@ -2,7 +2,7 @@
 id: kibi-usage
 name: Kibi Usage
 description: Use Kibi's source-first, exact-Git, migration-aware, proof-aware operations safely across MCP or the trusted local CLI, including partial completion repair.
-version: 2.17.0
+version: 2.19.0
 kibiCompatibility: ">=1.0.0"
 tags:
   - kibi
@@ -112,9 +112,11 @@ it is a pointer to the knowledge, never proof. Each line answers one question:
 A file already shown this session gets only the one-line `Kibi: this edit to
 <path> is inside <symbol>` update; the facts and tests from its first snippet
 still apply. `Kibi: no symbol in <path> is linked to a requirement yet` means
-the file is unowned: find the governing requirement with `kb_search` and
-`sourceLocations`, then link a symbol to it with `implements` through
-`kb_upsert`. Without a readable manifest (`Kibi: the hook could not read
+the file is unowned, not that no rule covers it. When the note names
+requirements whose titles share the path's words, `kb_query` each one and
+treat a match as the governing rule; otherwise find it with `kb_search` and
+`sourceLocations`. Link the symbol that implements it (for markup, the
+component that renders it) with `implements` through `kb_upsert`. Without a readable manifest (`Kibi: the hook could not read
 .kb/symbols.yaml`) snippets are off for this session; `kb_query({sourceFile})`
 still answers and `kibi sync` regenerates the manifest. The search tip and the
 `.kb/` note appear once per session and need no action.
@@ -136,7 +138,11 @@ still answers and `kibi sync` regenerates the manifest. The search tip and the
 2. Resolve genuine ambiguity with the human; use `kb_model` for deterministic
    interpretation and typed facts.
 3. Create endpoints before relationships and upsert small batches sequentially.
-   Keep the canonical `REQ-* -> SCEN-* -> TEST-*` chain.
+   Keep the canonical `REQ-* -> SCEN-* -> TEST-*` chain. Recording the
+   behavior a change adds (a requirement with a scenario, and an `implements`
+   link from the symbol) is part of finishing that change, not a separate
+   request: do it without asking. Ask only when the change conflicts with a
+   recorded rule.
 4. Author tracked Markdown/YAML/manifests and relationship shards through Kibi;
    Kibi never Git-stages or commits those files. Do not read or edit `.kb`
    directly.
@@ -368,7 +374,11 @@ Search answers, `kb_query` rows and hook snippets show it (snippets label only
   wrote it (`origin.kind: agent`): rules people wrote, imported or carried
   over from before origins existed are theirs. `kb_check` blocks an explicit
   `firmness: firm` without `origin.ref` to their words, and a replacement of
-  a firm decision that is not itself firm.
+  a firm decision that is not itself firm. Never edit a firm decision's
+  title, statement or (ADR) body in place, by `kb_upsert` or on disk:
+  `kb_upsert` refuses it and `kb_check` reports `decision-firm-edited`
+  unless the edit cites new human words in `origin.ref`. Context sections,
+  tags, status and links stay editable.
 - `default`: a delegated or agent choice (`firmness: default`, or an
   agent-written decision without `firmness`). Follow it; supersede it only on
   evidence that it is wrong (a failing test, a measured cost, a constraint it
@@ -381,7 +391,8 @@ conflict a person has to decide. Name the rule (id and what it requires) and
 ask whether to change it; do not implement the request and do not supersede
 the rule. Go ahead only when the person has said to change that rule, in this
 task or in reply: then supersede it with `firmness: firm` and `origin.ref` to
-their words, and say in the final answer which rule changed.
+their words (or, for a correction they asked for in place, update it with
+`origin.ref` to those words), and say in the final answer which rule changed.
 
 Set `firmness` from what a human actually said: only their stated rule is
 `firm` (with `origin.ref`); "do whatever" or your own pick is `default`; a

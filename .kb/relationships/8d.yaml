@@ -510,3 +510,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-195ca0aeaeec
+  - type: verified_by
+    from: SCEN-kb-firm-decision-edit
+    to: TEST-kb-decision-firmness
+    created_at: 2026-10-14T08:00:09.916Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-632e71927763

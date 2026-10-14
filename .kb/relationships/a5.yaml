@@ -167,3 +167,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-038d68fcabe9
+  - type: implements
+    from: SYM-kb-firm-decision-edit-assertfirmdecisionunchanged
+    to: REQ-kb-firm-decision-edit
+    created_at: 2026-10-14T08:01:18.946Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b5c02162f49c
+  - type: covered_by
+    from: SYM-kb-firm-decision-edit-assertfirmdecisionunchanged
+    to: TEST-kb-decision-firmness
+    created_at: 2026-10-14T08:01:18.965Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2b3a5a68366f

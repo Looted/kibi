@@ -21,6 +21,7 @@ export type KibiImpactDiagnosticId =
   | "symbols_manifest_stale"
   | "symbol_granularity_violation"
   | "symbol_semantic_review_needed"
+  | "source_file_unowned"
   | "multi_requirement_symbol_review"
   | "duplicate_symbol_coordinate_review"
   | "component_mixed_purpose_review"

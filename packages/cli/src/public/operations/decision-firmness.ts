@@ -16,6 +16,7 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { execFileSync } from "node:child_process";
 import path from "node:path";
 import {
   MIN_WHY_CHANGED_WORDS,
@@ -27,6 +28,10 @@ import {
   supersedeAcknowledgement,
   whyThisChangedWords,
 } from "../../decision-firmness.js";
+import {
+  firmEditGuidance,
+  unapprovedFirmEdit,
+} from "../../firm-decision-edit.js";
 import {
   listLaneMarkdownFiles,
   readText,
@@ -46,6 +51,9 @@ export const DECISION_FIRM_UNREFERENCED_RULE = "decision-firm-unreferenced";
 /** Only a firm decision may supersede a firm decision (blocking). */
 // implements REQ-kb-decision-firmness
 export const DECISION_FIRM_SUPERSEDED_RULE = "decision-firm-superseded";
+/** A firm decision's claim must not change in place without new human words (blocking). */
+// implements REQ-kb-firm-decision-edit
+export const DECISION_FIRM_EDITED_RULE = "decision-firm-edited";
 /** A supersede must say why under "Why this changed" (blocking). */
 // implements REQ-kb-decision-firmness
 export const SUPERSEDES_REASON_MISSING_RULE = "supersedes-reason-missing";
@@ -58,6 +66,7 @@ export const SUPERSEDES_REASON_ACKNOWLEDGED_RULE =
 export const DECISION_FIRMNESS_RULES = [
   DECISION_FIRM_UNREFERENCED_RULE,
   DECISION_FIRM_SUPERSEDED_RULE,
+  DECISION_FIRM_EDITED_RULE,
   SUPERSEDES_REASON_MISSING_RULE,
   SUPERSEDES_REASON_ACKNOWLEDGED_RULE,
 ] as const;
@@ -345,8 +354,81 @@ export function evaluateDecisionFirmness(
   return findings;
 }
 
+/** Reads a workspace-relative file as committed at HEAD; null when absent. */
+// implements REQ-kb-firm-decision-edit
+export type CommittedFileReader = (relativePath: string) => string | null;
+
+/**
+ * The decision files whose working copy differs from HEAD, with a reader for
+ * their committed content; undefined outside a Git checkout or before the
+ * first commit, where there is nothing to compare against.
+ */
+function committedDecisionChanges(
+  workspaceRoot: string,
+): { changed: Set<string>; read: CommittedFileReader } | undefined {
+  try {
+    const listed = execFileSync(
+      "git",
+      ["-C", workspaceRoot, "diff", "--name-only", "--relative", "-z", "HEAD"],
+      { encoding: "utf8", maxBuffer: 64 * 1024 * 1024, stdio: "pipe" },
+    );
+    const changed = new Set(listed.split("\0").filter((name) => name !== ""));
+    const read: CommittedFileReader = (relativePath) => {
+      try {
+        return execFileSync(
+          "git",
+          ["-C", workspaceRoot, "show", `HEAD:./${relativePath}`],
+          { encoding: "utf8", maxBuffer: 64 * 1024 * 1024, stdio: "pipe" },
+        );
+      } catch {
+        return null;
+      }
+    };
+    return { changed, read };
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Current firm requirements and ADRs whose claim changed since HEAD without
+ * citing new human words: an in-place edit that bypassed kb_upsert's guard.
+ * A decision new since HEAD, or one that was not firm there, is not judged.
+ */
+// implements REQ-kb-firm-decision-edit
+export function evaluateFirmDecisionEdits(
+  entities: readonly AuthoredEntity[],
+  edges: ReadonlyMap<string, Set<string>>,
+  changed: ReadonlySet<string>,
+  readCommitted: CommittedFileReader,
+): Violation[] {
+  const superseded = supersededIds(edges);
+  const findings: Violation[] = [];
+  for (const entity of [...entities].sort((left, right) =>
+    left.id.localeCompare(right.id),
+  )) {
+    if (!changed.has(entity.path)) continue;
+    if (!isCurrentAuthoredEntity(entity, superseded)) continue;
+    const committed = readCommitted(entity.path);
+    if (committed === null) continue;
+    const before = readAuthoredEntity(committed, entity.path);
+    if (before === null || before.type !== entity.type) continue;
+    const fields = unapprovedFirmEdit(before, entity);
+    if (fields.length === 0) continue;
+    findings.push({
+      rule: DECISION_FIRM_EDITED_RULE,
+      entityId: entity.id,
+      description: `${entity.id} is a firm decision whose ${fields.join(", ")} changed since HEAD without citing new human words`,
+      suggestion: `${firmEditGuidance(entity.type)}. To undo the edit, restore ${entity.path} from HEAD`,
+      source: entity.path,
+      evidence: { type: entity.type, changed: fields },
+    });
+  }
+  return findings;
+}
+
 /** Read the authored decisions once and evaluate the selected rules. */
-// implements REQ-kb-decision-firmness
+// implements REQ-kb-decision-firmness, REQ-kb-firm-decision-edit
 export function collectDecisionFirmnessViolations(
   rules: ReadonlySet<string>,
   workspaceRoot: string,
@@ -354,16 +436,31 @@ export function collectDecisionFirmnessViolations(
   if (!DECISION_FIRMNESS_RULES.some((rule) => rules.has(rule))) return [];
   const entities = listDecisionEntities(workspaceRoot);
   const manifest = readKbManifest(workspaceRoot);
-  return evaluateDecisionFirmness(
-    entities,
-    authoredSupersedes(workspaceRoot, entities),
-    rules,
-    new Set(manifest?.supersedesReasonAcknowledged ?? []),
-    {
-      schemaVersion: manifest?.schemaVersion ?? null,
-      firmSupersedeAcknowledged: new Set(
-        manifest?.firmSupersedeAcknowledged ?? [],
-      ),
-    },
-  );
+  const edges = authoredSupersedes(workspaceRoot, entities);
+  const committed = rules.has(DECISION_FIRM_EDITED_RULE)
+    ? committedDecisionChanges(workspaceRoot)
+    : undefined;
+  const edited = committed
+    ? evaluateFirmDecisionEdits(
+        entities,
+        edges,
+        committed.changed,
+        committed.read,
+      )
+    : [];
+  return [
+    ...edited,
+    ...evaluateDecisionFirmness(
+      entities,
+      edges,
+      rules,
+      new Set(manifest?.supersedesReasonAcknowledged ?? []),
+      {
+        schemaVersion: manifest?.schemaVersion ?? null,
+        firmSupersedeAcknowledged: new Set(
+          manifest?.firmSupersedeAcknowledged ?? [],
+        ),
+      },
+    ),
+  ];
 }

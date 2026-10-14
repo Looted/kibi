@@ -1,5 +1,36 @@
 # kibi-cli
 
+## 2.25.0
+
+### Minor Changes
+
+- a26ba8c: A firm requirement or ADR can no longer be reworded in place by an agent. `kb_upsert` refuses to change its title, statement or ADR body, or to lower its firmness, unless the write cites new words from the person who owns the rule, and `kb_check` reports the same change made directly to the file. Context sections, tags, status and links stay editable, and superseding with a new firm decision still works as before.
+  - `kb_upsert` (dryRun and `kb_apply_plan` steps included) rejects an in-place claim change of a current firm decision without a new `origin.ref` (or `approval_ref` on a requirement): `Entity validation failed: <ID> is a firm decision, so kb_upsert does not change its <fields> in place`.
+  - New canonical `kb_check` rule `decision-firm-edited` compares current firm decisions with `HEAD` and blocks a changed claim that cites no new human words; it reports nothing outside a Git checkout or before the first commit.
+  - A requirement's claim is its title, its `semantic_text` (or the statement its body derives); an ADR's claim is its title and body. Lowering firmness or replacing the origin with an agent's counts as a change.
+  - `kibi-usage` skill 2.18.0 tells agents not to edit firm decisions in place; the `firmness` input schema description now states the origin-derived default and the edit rule.
+
+## 2.24.0
+
+### Minor Changes
+
+- cd4723e: Rules a person wrote or imported are no longer treated as an agent's own default choice when they carry no `firmness`. A requirement or ADR without `firmness` now reads as `firm` unless an agent wrote it, so an agent asks before replacing it, and bootstrap records the rules it imports from your documents as firm with a reference to the passage. The usage skill now treats any request that conflicts with a recorded rule as a question: the agent names the rule and asks, whatever the rule's firmness, and changes it only when the person says so. Run `kibi migrate --yes` to move a KB to schema 10; existing supersedes are acknowledged and no source file is rewritten.
+  - `effectiveFirmness` takes the entity's origin: an absent value is `default` for `origin.kind: agent` and `firm` otherwise (human, import, migration or no origin). `kb_query` rows and `kb_search` answers show the derived value.
+  - Hook snippets label a current firm decision `[firm: ask before changing]` (was `[firm]`) and no longer label retired decisions. The Claude Code and ZCode session-start context adds one sentence: a request that conflicts with a recorded requirement or ADR is a question, so the agent names the rule and asks before changing the code or the rule.
+  - `decision-firm-superseded` applies to origin-derived firm targets; `decision-firm-unreferenced` still applies only to an explicit `firmness: firm`.
+  - KB schema 10: the `firmness-from-origin-v10` step and the automatic `firm_supersede_acknowledge` plan action record pre-existing supersedes of such decisions in `.kb/manifest.json` `firmSupersedeAcknowledged` (`FROM -> TO`); only listed edges are exempt, and never an explicitly firm target.
+  - Bootstrap intent-claim and normative-markdown requirement steps write `origin: {kind: import, ref}` and `firmness: firm`.
+  - Skills: `kibi-usage` 2.17.0 (conflicting request means ask; firmness from origin; write firmness explicitly), `kibi-bootstrap` 3.13.0 (imported rules are firm imports, including hand-authored follow-ups).
+
+### Patch Changes
+
+- f14031f: Several fixes found by evaluating search on a test project. In Claude Code, a `sed -i` whose script contains `|` or `;` now gets its edit context before it runs, as `perl -pi`, `tee` and `>>` already did. A `kb_search` question that names a file path no longer drifts to whatever matches the path's words, and the reply suggests passing the path as `sourceLocations`. A requirement's dangling `text_ref` can be cleared with `kb_upsert` and only its title, status and `text_ref: ""`, without sending its proposition ledger again.
+  - `commandEditPaths` in the Claude hook looks for `;`, `|`, `&&` and redirections outside quotes only, so a quoted sed script or echoed `>` is no longer cut apart or read as a redirection.
+  - Intent search removes workspace file paths written in the question from its topic (`questionPaths`), as it already did for `sourceLocations` paths. The search text names such paths and points to `sourceLocations`.
+  - The answer note says that a fact in `ungoverned` decides nothing and that a governing requirement's fact holds where the two disagree.
+  - `withStoredRequirementSemantics` keeps the stored ledger when an update changes only `text_ref` and the ledger reads its prose from `semantic_text`. A changed title still has to come with the full contract.
+  - The `source-path-dangling` suggestion for `text_ref` says how to clear it, and the `kb_upsert` description says an update keeps the properties and relationships it leaves out.
+
 ## 2.23.0
 
 ### Minor Changes

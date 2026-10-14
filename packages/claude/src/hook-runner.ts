@@ -16,6 +16,7 @@ import { parseHookInput, parseStdinJson, readStdin } from "./hook-input.js";
 import type { HookInput } from "./hook-input.js";
 
 import { stampKibiWorkspace } from "kibi-agent-core/kb-mcp-tools";
+import { requirementCandidatesForPath } from "kibi-agent-core/requirement-candidates";
 import {
   createEntitySummarizer,
   implementedRequirementIds,
@@ -301,7 +302,13 @@ function preToolUse(
       (index.coordinateFiles.includes(relativePath) &&
         !index.unlinkedFiles.includes(relativePath));
     if (!unread) {
-      return emit(unownedSourceNote(relativePath), "edit_unowned_note");
+      return emit(
+        unownedSourceNote(
+          relativePath,
+          requirementCandidatesForPath(workspace.root, relativePath),
+        ),
+        "edit_unowned_note",
+      );
     }
     if (!state.notices.has("manifest-unreadable")) {
       events.push({ kind: "notice", name: "manifest-unreadable" });
@@ -483,7 +490,10 @@ function bashChanges(
       owners.length === 0 &&
       index.manifest !== "unreadable"
     ) {
-      note = unownedSourceNote(relative);
+      note = unownedSourceNote(
+        relative,
+        requirementCandidatesForPath(workspace.root, relative),
+      );
     }
     if (note !== undefined) {
       events.push({ kind: "shown", surface: "edit", path: relative });
