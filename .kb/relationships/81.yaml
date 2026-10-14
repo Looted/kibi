@@ -279,3 +279,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6a82b855aa65
+  - type: covered_by
+    from: SYM-agent-core-snippets-grounding-link-types
+    to: TEST-claude-edit-snippet-hook
+    created_at: 2026-10-14T10:16:47.377Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-602a58b5fa0d

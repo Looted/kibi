@@ -314,3 +314,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9eb1ceba378a
+  - type: covered_by
+    from: SYM-agent-core-snippets-claimsnippetslot
+    to: TEST-claude-edit-snippet-hook
+    created_at: 2026-10-14T10:16:28.032Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2ed1cb2d7f43

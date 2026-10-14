@@ -53436,6 +53436,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-agent-core-edit-snippets
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
       - type: implements
         target: REQ-agent-core-edit-snippets
   - id: SYM-agent-core-snippets-createentitysummarizer
@@ -53449,6 +53451,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-agent-core-edit-snippets
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
       - type: implements
         target: REQ-agent-core-edit-snippets
   - id: SYM-agent-core-snippets-describeentity
@@ -53462,6 +53466,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-agent-core-edit-snippets
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
       - type: implements
         target: REQ-agent-core-edit-snippets
   - id: SYM-agent-core-snippets-editfocus
@@ -53488,6 +53494,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-agent-core-edit-snippets
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
       - type: implements
         target: REQ-agent-core-edit-snippets
   - id: SYM-agent-core-snippets-grounding-link-types
@@ -53501,6 +53509,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-agent-core-edit-snippets
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
       - type: implements
         target: REQ-agent-core-edit-snippets
   - id: SYM-agent-core-snippets-implementedrequirementids
@@ -53527,6 +53537,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-agent-core-edit-snippets
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
       - type: implements
         target: REQ-agent-core-edit-snippets
   - id: SYM-agent-core-snippets-summarize
