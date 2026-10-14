@@ -8,6 +8,7 @@ import {
   type IndexedSymbol,
   readEntitySummary,
 } from "./knowledge-index.js";
+import type { RequirementHead } from "./requirement-candidates.js";
 
 /**
  * Progressive-disclosure snippets shared by every host adapter.
@@ -164,13 +165,34 @@ function jsonString(value: string): string {
   return JSON.stringify(value);
 }
 
-// implements REQ-claude-code-kibi-plugin-v1, REQ-codex-kibi-plugin-v1
-/** Discovery note for a source file none of whose symbols implement a requirement. */
-export function unownedSourceNote(relativePath: string): string {
-  return [
-    `Kibi: no symbol in ${relativePath} is linked to a requirement yet.`,
-    `kb_search({query:"<behavior being changed>", sourceLocations:[{path:${jsonString(relativePath)}}]}) surfaces requirements that may already describe it; new behavior is recorded with kb_upsert (requirement + symbol implements link).`,
-  ].join("\n");
+// implements REQ-claude-code-kibi-plugin-v1, REQ-codex-kibi-plugin-v1, REQ-kb-unowned-file-candidates
+/**
+ * Discovery note for a source file none of whose symbols implement a
+ * requirement. No link is not no rule, so the note names the current
+ * requirements whose titles share the path's words, when there are any.
+ */
+export function unownedSourceNote(
+  relativePath: string,
+  candidates: readonly RequirementHead[] = [],
+): string {
+  const head = `Kibi: no symbol in ${relativePath} is linked to a requirement yet; that does not mean no recorded rule covers the behavior it implements.`;
+  const search = `kb_search({query:"<behavior being changed>", sourceLocations:[{path:${jsonString(relativePath)}}]}) surfaces requirements that may already describe it; new behavior is recorded with kb_upsert (requirement + scenario + symbol implements link) as part of the change.`;
+  // Fewer candidates rather than a note over the snippet budget.
+  for (let shown = candidates.length; shown > 0; shown--) {
+    const named = candidates
+      .slice(0, shown)
+      .map(
+        (candidate) =>
+          `${candidate.id}: ${truncate(candidate.title, MAX_TITLE)}`,
+      );
+    const note = [
+      head,
+      `Requirements whose titles share this path's words: ${named.join("; ")}. kb_query({id:${jsonString(candidates[0]?.id ?? "")}}) shows whether one describes the behavior being changed; one that does is traced by an implements link from the symbol that implements it (for markup, the component that renders it).`,
+      search,
+    ].join("\n");
+    if (note.length <= MAX_SNIPPET_CHARS) return note;
+  }
+  return [head, search].join("\n");
 }
 
 // implements REQ-kibi-hooks-flow-manifest, REQ-claude-code-kibi-plugin-v1, REQ-codex-kibi-plugin-v1

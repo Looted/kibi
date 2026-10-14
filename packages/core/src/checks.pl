@@ -72,7 +72,7 @@
     check_subject_key_shape/1,
     check_ontology_quality/1
 ]).
-:- use_module('logic_ir.pl', [logic_rule_safety/2, logic_rule_from_props/2, logic_rule_render/2, logic_rule_conflict/3, logic_rule_conflict_witness/3, logic_rules_stratified/1, logic_rule_missing_keys/4, functional_predicate_declarations/1, logic_rule_property_form/2]).
+:- use_module('logic_ir.pl', [logic_rule_safety/2, logic_rule_from_props/2, logic_rule_render/2, logic_rule_conflict/3, logic_rule_conflict_witness/4, logic_rules_stratified/1, logic_rule_missing_keys/4, functional_predicate_declarations/1, logic_rule_property_form/2]).
 % GENERATED registry facts; single source is schema/rule-registry.json.
 :- use_module('rule_registry.pl', [known_rule/1]).
 
@@ -2433,7 +2433,8 @@ check_domain_contradictions_and_witnesses(Violations, Witnesses) :-
 % disproven remains status=unresolved rather than becoming consistency.
 check_domain_contradiction_witnesses(Witnesses) :-
     findall(Witness, req_conflict_witness(_ReqA, _ReqB, Witness), GroundWitnesses),
-    findall(Witness, rule_contradiction_witness(Witness), RuleWitnesses),
+    functional_predicate_declarations(Functional),
+    findall(Witness, rule_contradiction_witness(Functional, Witness), RuleWitnesses),
     append(GroundWitnesses, RuleWitnesses, Witnesses0),
     sort(Witnesses0, Witnesses).
 
@@ -2622,9 +2623,9 @@ opposing_rule_requirement_facts(ReqA, ReqB, FactA, FactB, RuleA, RuleB) :-
     logic_rule_from_props(PropsA, RuleA),
     logic_rule_from_props(PropsB, RuleB).
 
-rule_contradiction_witness(Witness) :-
+rule_contradiction_witness(Functional, Witness) :-
     opposing_rule_requirement_facts(ReqA, ReqB, FactA, FactB, RuleA, RuleB),
-    logic_rule_conflict_witness(RuleA, RuleB, InternalWitness),
+    logic_rule_conflict_witness(RuleA, RuleB, Functional, InternalWitness),
     InternalWitness.status \= disjoint,
     rule_conflict_side(ReqA, FactA, Left),
     rule_conflict_side(ReqB, FactB, Right),

@@ -357,6 +357,8 @@ describe("impact diagnostics", () => {
       `sourceLocations:[{path:"${symbol.location.file}"}]`,
     );
     expect(diagnostics[0]?.suggestion).toContain("refactor");
+    // Recording the behavior is part of the change, not a separate request.
+    expect(diagnostics[0]?.suggestion).toContain("needs no permission");
   });
 
   it("keeps the linked-coverage review when another symbol of the file is linked", () => {

@@ -3,6 +3,12 @@
   "enabledPlugins": {
     "kibi-claude@kibi": false
   },
+  "permissions": {
+    "allow": [
+      "Bash(node packages/cli/bin/kibi:*)",
+      "Edit(proof/baseline.json)"
+    ]
+  },
   "hooks": {
     "SessionStart": [
       {

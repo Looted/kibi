@@ -188,3 +188,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8dabae9bdaf4
+  - type: implements
+    from: SYM-cli-impact-analyzeChangedFileImpact
+    to: REQ-cli-staged-impact-enforcement
+    created_at: 2026-10-14T09:47:20.315Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c6c1efa1ef56
+  - type: implements
+    from: SYM-cli-impact-analyzeChangedFileImpact
+    to: REQ-kb-unowned-file-candidates
+    created_at: 2026-10-14T09:47:20.326Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-89d73de0b047
+  - type: covered_by
+    from: SYM-cli-impact-analyzeChangedFileImpact
+    to: TEST-search-answer-hygiene
+    created_at: 2026-10-14T09:47:20.336Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-556ca34ea988

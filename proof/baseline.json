@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 206,
-  "proofProven": 206,
+  "currentRequirements": 209,
+  "proofProven": 209,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -62,6 +62,11 @@
       "uncoveredSymbols": []
     },
     "REQ-kb-decision-firmness-from-origin": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kb-firm-decision-edit": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []
@@ -1032,6 +1037,16 @@
       "uncoveredSymbols": []
     },
     "REQ-kibi-review-observation-claim-text-v2": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-cli-migration-first-commit": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kb-unowned-file-candidates": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []

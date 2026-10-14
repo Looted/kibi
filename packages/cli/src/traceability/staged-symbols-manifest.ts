@@ -4,6 +4,7 @@ import type {
   SourceAnalysisResult,
   SourceSymbolAnalysisV2,
 } from "kibi-plugin-sdk";
+import { CONTEXT_MISSING_TAG } from "../entity-body-context.js";
 import {
   type ManifestSymbolRecord,
   extractManifestSymbolRecordsString,
@@ -75,6 +76,11 @@ export interface StagedAuthoredSymbolsManifestEvidence {
   path: string;
   entries: Array<{ sourcePath: string; entityIds: string[] }>;
   changedEntityIds: string[];
+  /**
+   * Records whose only differences from the base are fields `kibi migrate`
+   * writes mechanically; set only for a commit that carries a migration.
+   */
+  migrationOnlyEntityIds?: string[];
 }
 
 function toRepoRelativePath(absoluteOrRelativePath: string): string {
@@ -329,27 +335,66 @@ function getAuthoredSymbolComparisonKey(
   return symbol.id ?? `${symbol.sourceFile}:${symbol.title}`;
 }
 
+/**
+ * The staged record with the edits `kibi migrate` makes mechanically undone
+ * against its base record: a `granularity_reason: legacy-link` the base did
+ * not have, and a `review:context-missing` tag the base did not carry. The
+ * other migration-owned fields (`origin`, a removed dead `source`, a pinned
+ * `semantic_text`) are not part of the authored symbol signature.
+ */
+// implements REQ-cli-migration-first-commit
+function withoutMigrationOwnedEdits(
+  head: NormalizedAuthoredManifestSymbol,
+  staged: NormalizedAuthoredManifestSymbol,
+): NormalizedAuthoredManifestSymbol {
+  return {
+    ...staged,
+    granularityReason:
+      staged.granularityReason === "legacy-link" &&
+      head.granularityReason === null
+        ? null
+        : staged.granularityReason,
+    tags: staged.tags.filter(
+      (tag) => tag !== CONTEXT_MISSING_TAG || head.tags.includes(tag),
+    ),
+  };
+}
+
 function getChangedAuthoredEntityIds(
   headSymbols: NormalizedAuthoredManifestSymbol[],
   stagedSymbols: NormalizedAuthoredManifestSymbol[],
-): string[] {
-  const headSignatures = new Map(
+  ignoreMigrationOwnedEdits = false,
+): { changed: string[]; migrationOnly: string[] } {
+  const headByKey = new Map(
     headSymbols.map((symbol) => [
       getAuthoredSymbolComparisonKey(symbol),
-      JSON.stringify(symbol),
+      symbol,
     ]),
   );
 
-  const changedIds = stagedSymbols.flatMap((symbol) => {
-    if (symbol.id === null) return [];
-    const stagedSignature = JSON.stringify(symbol);
-    return headSignatures.get(getAuthoredSymbolComparisonKey(symbol)) ===
-      stagedSignature
-      ? []
-      : [symbol.id];
-  });
+  const changed: string[] = [];
+  const migrationOnly: string[] = [];
+  for (const symbol of stagedSymbols) {
+    if (symbol.id === null) continue;
+    const head = headByKey.get(getAuthoredSymbolComparisonKey(symbol));
+    if (head !== undefined && JSON.stringify(head) === JSON.stringify(symbol))
+      continue;
+    if (
+      ignoreMigrationOwnedEdits &&
+      head !== undefined &&
+      JSON.stringify(head) ===
+        JSON.stringify(withoutMigrationOwnedEdits(head, symbol))
+    ) {
+      migrationOnly.push(symbol.id);
+      continue;
+    }
+    changed.push(symbol.id);
+  }
 
-  return uniqueSorted(changedIds);
+  return {
+    changed: uniqueSorted(changed),
+    migrationOnly: uniqueSorted(migrationOnly),
+  };
 }
 
 function normalizeExpectedSymbolsForStagedFile(
@@ -672,6 +717,12 @@ export function collectStagedAuthoredSymbolsManifestEvidence(options: {
   sourceFiles: StagedFile[];
   stagedFiles: StagedFile[];
   readBaseFile?: (filePath: string) => string | null;
+  /**
+   * The commit carries a `kibi migrate` run: records it changed only in
+   * migration-owned fields are reported in `migrationOnlyEntityIds` instead
+   * of `changedEntityIds`.
+   */
+  ignoreMigrationOwnedEdits?: boolean;
 }): StagedAuthoredSymbolsManifestEvidence {
   const { sourceFiles, stagedFiles } = options;
   const paths = resolveRelativeManifestPaths();
@@ -710,6 +761,7 @@ export function collectStagedAuthoredSymbolsManifestEvidence(options: {
       return sourceFile === null ? [] : [sourceFile];
     }),
   );
+  const migrationOnlyEntityIds = new Set<string>();
   const changedEntityIdsBySourcePath = new Map(
     sourcePaths.map((sourcePath) => {
       const headSymbols = normalizeAuthoredManifestSymbolsForSourceFile(
@@ -720,10 +772,13 @@ export function collectStagedAuthoredSymbolsManifestEvidence(options: {
         stagedManifestRecords,
         sourcePath,
       );
-      return [
-        sourcePath,
-        getChangedAuthoredEntityIds(headSymbols, stagedSymbols),
-      ] as const;
+      const { changed, migrationOnly } = getChangedAuthoredEntityIds(
+        headSymbols,
+        stagedSymbols,
+        options.ignoreMigrationOwnedEdits === true,
+      );
+      for (const id of migrationOnly) migrationOnlyEntityIds.add(id);
+      return [sourcePath, changed] as const;
     }),
   );
   const entries: Array<{ sourcePath: string; entityIds: string[] }> = [];
@@ -740,5 +795,8 @@ export function collectStagedAuthoredSymbolsManifestEvidence(options: {
     changedEntityIds: uniqueSorted(
       Array.from(changedEntityIdsBySourcePath.values()).flat(),
     ),
+    ...(migrationOnlyEntityIds.size > 0
+      ? { migrationOnlyEntityIds: uniqueSorted(migrationOnlyEntityIds) }
+      : {}),
   };
 }

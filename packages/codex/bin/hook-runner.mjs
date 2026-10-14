@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 // src/hook-runner.ts
-import path7 from "node:path";
+import path8 from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 // ../agent-core/dist/hook-usage-log.js
@@ -1101,10 +1101,190 @@ function readEntitySummary(workspaceRoot, entityId) {
   return summary;
 }
 
-// ../agent-core/dist/snippets.js
-import { createHash as createHash2 } from "node:crypto";
+// ../agent-core/dist/requirement-candidates.js
 import fs3 from "node:fs";
 import path4 from "node:path";
+var REQUIREMENTS_DIR = path4.join(".kb", "requirements");
+var HEAD_BYTES = 4096;
+var MAX_SCANNED = 2000;
+var MAX_REQUIREMENT_CANDIDATES = 3;
+var LAYOUT_WORDS = new Set([
+  "src",
+  "app",
+  "apps",
+  "lib",
+  "libs",
+  "source",
+  "page",
+  "pages",
+  "component",
+  "components",
+  "view",
+  "views",
+  "screen",
+  "screens",
+  "package",
+  "packages",
+  "main",
+  "index",
+  "shared",
+  "common",
+  "core",
+  "util",
+  "utils",
+  "helper",
+  "helpers",
+  "public",
+  "static",
+  "asset",
+  "assets",
+  "web",
+  "client",
+  "server",
+  "frontend",
+  "backend",
+  "module",
+  "modules",
+  "feature",
+  "features",
+  "internal",
+  "service",
+  "services",
+  "test",
+  "tests",
+  "spec",
+  "specs",
+  "dist",
+  "build",
+  "html",
+  "htm",
+  "tsx",
+  "jsx",
+  "mjs",
+  "cjs",
+  "vue",
+  "svelte",
+  "css",
+  "scss",
+  "less",
+  "json",
+  "yaml",
+  "yml",
+  "java",
+  "swift",
+  "php"
+]);
+var FILLER_WORDS = new Set([
+  "the",
+  "and",
+  "for",
+  "with",
+  "must",
+  "should",
+  "shall",
+  "may",
+  "can",
+  "are",
+  "is",
+  "its",
+  "their",
+  "that",
+  "this",
+  "from",
+  "into",
+  "when",
+  "each",
+  "every",
+  "all",
+  "not",
+  "req",
+  "auto"
+]);
+function words(text) {
+  return text.replace(/([a-z0-9])([A-Z])/g, "$1 $2").toLowerCase().split(/[^a-z0-9]+/).filter((word) => word.length >= 3 && !/\d/.test(word)).map((word) => word.length > 4 && word.endsWith("s") && !word.endsWith("ss") ? word.slice(0, -1) : word);
+}
+function pathTopicWords(relativePath) {
+  const segments = relativePath.split(/[\\/]/).filter(Boolean);
+  const last = segments.pop() ?? "";
+  const stem = last.includes(".") ? last.slice(0, last.indexOf(".")) : last;
+  const roles = last.includes(".") ? last.slice(last.indexOf(".") + 1) : "";
+  const found = [...segments, stem, roles].flatMap(words).filter((word) => !LAYOUT_WORDS.has(word) && !FILLER_WORDS.has(word));
+  return [...new Set(found)];
+}
+function unquote2(value) {
+  const trimmed = value.trim();
+  return /^(["']).*\1$/.test(trimmed) ? trimmed.slice(1, -1) : trimmed;
+}
+function readHead(file) {
+  let head;
+  try {
+    const descriptor = fs3.openSync(file, "r");
+    try {
+      const buffer = Buffer.alloc(HEAD_BYTES);
+      const bytes = fs3.readSync(descriptor, buffer, 0, buffer.length, 0);
+      head = buffer.subarray(0, bytes).toString("utf8");
+    } finally {
+      fs3.closeSync(descriptor);
+    }
+  } catch {
+    return;
+  }
+  const lines = head.split(/\r?\n/);
+  if (lines[0]?.trim() !== "---")
+    return;
+  const fields = {};
+  for (const line of lines.slice(1)) {
+    if (line.trim() === "---")
+      break;
+    const match = /^(id|title|status):\s*(.+)$/.exec(line);
+    if (match?.[1] && match[2])
+      fields[match[1]] = unquote2(match[2]);
+  }
+  if (!fields.id || !fields.title)
+    return;
+  return {
+    id: fields.id,
+    title: fields.title,
+    ...fields.status ? { status: fields.status } : {}
+  };
+}
+var RETIRED_STATUS = /supersed|deprecat|reject|obsolete|retired|archived|removed/i;
+function rankRequirementCandidates(relativePath, requirements, limit = MAX_REQUIREMENT_CANDIDATES) {
+  const topic = new Set(pathTopicWords(relativePath));
+  if (topic.size === 0)
+    return [];
+  const scored = [];
+  for (const head of requirements) {
+    if (head.status !== undefined && RETIRED_STATUS.test(head.status))
+      continue;
+    const titleWords = words(head.title).filter((word) => topic.has(word));
+    const shared = new Set(titleWords).size;
+    if (shared > 0)
+      scored.push({ head, shared, uses: titleWords.length });
+  }
+  scored.sort((a, b) => b.shared - a.shared || b.uses - a.uses || a.head.id.localeCompare(b.head.id));
+  return scored.slice(0, limit).map((entry) => entry.head);
+}
+function requirementCandidatesForPath(workspaceRoot, relativePath, limit = MAX_REQUIREMENT_CANDIDATES) {
+  if (pathTopicWords(relativePath).length === 0)
+    return [];
+  const directory = path4.join(workspaceRoot, REQUIREMENTS_DIR);
+  let names;
+  try {
+    names = fs3.readdirSync(directory).filter((name) => name.endsWith(".md"));
+  } catch {
+    return [];
+  }
+  if (names.length > MAX_SCANNED)
+    return [];
+  const heads = names.map((name) => readHead(path4.join(directory, name))).filter((head) => head !== undefined);
+  return rankRequirementCandidates(relativePath, heads, limit);
+}
+
+// ../agent-core/dist/snippets.js
+import { createHash as createHash2 } from "node:crypto";
+import fs4 from "node:fs";
+import path5 from "node:path";
 var MAX_REQUIREMENTS = 4;
 var MAX_SYMBOLS_PER_REQUIREMENT = 3;
 var MAX_TESTS = 3;
@@ -1152,9 +1332,9 @@ function editFocus(absolutePath, toolInput) {
     return;
   let content;
   try {
-    if (fs3.statSync(absolutePath).size > MAX_FOCUS_SCAN_BYTES)
+    if (fs4.statSync(absolutePath).size > MAX_FOCUS_SCAN_BYTES)
       return;
-    content = fs3.readFileSync(absolutePath, "utf8");
+    content = fs4.readFileSync(absolutePath, "utf8");
   } catch {
     return;
   }
@@ -1174,9 +1354,9 @@ function formatList(items, limit) {
   const shown = items.slice(0, limit).join(", ");
   return items.length > limit ? `${shown} +${items.length - limit}` : shown;
 }
-var RETIRED_STATUS = /supersed|deprecat|reject|obsolete|retired/i;
+var RETIRED_STATUS2 = /supersed|deprecat|reject|obsolete|retired/i;
 function isRetiredStatus(status) {
-  return status !== undefined && RETIRED_STATUS.test(status);
+  return status !== undefined && RETIRED_STATUS2.test(status);
 }
 function describeEntity(summary) {
   const retired = isRetiredStatus(summary.status) ? ` (${summary.status})` : "";
@@ -1187,11 +1367,21 @@ function describeEntity(summary) {
 function jsonString(value) {
   return JSON.stringify(value);
 }
-function unownedSourceNote(relativePath) {
-  return [
-    `Kibi: no symbol in ${relativePath} is linked to a requirement yet.`,
-    `kb_search({query:"<behavior being changed>", sourceLocations:[{path:${jsonString(relativePath)}}]}) surfaces requirements that may already describe it; new behavior is recorded with kb_upsert (requirement + symbol implements link).`
-  ].join(`
+function unownedSourceNote(relativePath, candidates = []) {
+  const head = `Kibi: no symbol in ${relativePath} is linked to a requirement yet; that does not mean no recorded rule covers the behavior it implements.`;
+  const search = `kb_search({query:"<behavior being changed>", sourceLocations:[{path:${jsonString(relativePath)}}]}) surfaces requirements that may already describe it; new behavior is recorded with kb_upsert (requirement + scenario + symbol implements link) as part of the change.`;
+  for (let shown = candidates.length;shown > 0; shown--) {
+    const named = candidates.slice(0, shown).map((candidate) => `${candidate.id}: ${truncate(candidate.title, MAX_TITLE)}`);
+    const note = [
+      head,
+      `Requirements whose titles share this path's words: ${named.join("; ")}. kb_query({id:${jsonString(candidates[0]?.id ?? "")}}) shows whether one describes the behavior being changed; one that does is traced by an implements link from the symbol that implements it (for markup, the component that renders it).`,
+      search
+    ].join(`
+`);
+    if (note.length <= MAX_SNIPPET_CHARS)
+      return note;
+  }
+  return [head, search].join(`
 `);
 }
 function unreadableManifestNote(relativePath) {
@@ -1347,10 +1537,10 @@ function editKnowledgeContext(input) {
 function claimSnippetSlot(stateDir, key) {
   if (!stateDir)
     return true;
-  const marker = path4.join(stateDir, "shown-snippets", createHash2("sha256").update(key).digest("hex").slice(0, 32));
+  const marker = path5.join(stateDir, "shown-snippets", createHash2("sha256").update(key).digest("hex").slice(0, 32));
   try {
-    fs3.mkdirSync(path4.dirname(marker), { recursive: true });
-    fs3.writeFileSync(marker, "", { flag: "wx" });
+    fs4.mkdirSync(path5.dirname(marker), { recursive: true });
+    fs4.writeFileSync(marker, "", { flag: "wx" });
     return true;
   } catch {
     return false;
@@ -1421,8 +1611,8 @@ function parseStdinJson(rawInput) {
 
 // src/hook-state.ts
 import { createHash as createHash3, randomUUID as randomUUID3 } from "node:crypto";
-import fs4 from "node:fs";
-import path5 from "node:path";
+import fs5 from "node:fs";
+import path6 from "node:path";
 var stateFileName = "hook-state.json";
 var journalFileName = "hook-state.events.jsonl";
 var maxDirtyPaths = 50;
@@ -1431,8 +1621,8 @@ function resolveWorkspaceStateDir(pluginData, workspaceRoot) {
   if (!pluginData) {
     return;
   }
-  const workspaceKey = createHash3("sha256").update(path5.resolve(workspaceRoot)).digest("hex");
-  return path5.join(pluginData, workspaceStateRoot, workspaceKey);
+  const workspaceKey = createHash3("sha256").update(path6.resolve(workspaceRoot)).digest("hex");
+  return path6.join(pluginData, workspaceStateRoot, workspaceKey);
 }
 function emptyHookState() {
   return {
@@ -1443,7 +1633,7 @@ function emptyHookState() {
   };
 }
 function statePath(pluginData) {
-  return path5.join(pluginData, stateFileName);
+  return path6.join(pluginData, stateFileName);
 }
 function isRecord5(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -1452,7 +1642,7 @@ function normalizeDirtyPath(dirtyPath) {
   return dirtyPath.trim().replaceAll("\\", "/");
 }
 function uniqueTempPath(pluginData) {
-  return path5.join(pluginData, `${stateFileName}.${process.pid}.${Date.now()}.${randomUUID3()}.tmp`);
+  return path6.join(pluginData, `${stateFileName}.${process.pid}.${Date.now()}.${randomUUID3()}.tmp`);
 }
 function mergeDirtyPaths(existingPaths, dirtyPaths) {
   const merged = [...existingPaths, ...dirtyPaths].map(normalizeDirtyPath).filter((dirtyPath) => dirtyPath.length > 0);
@@ -1475,7 +1665,7 @@ function coerceHookState(value) {
   };
 }
 function journalPath(pluginData) {
-  return path5.join(pluginData, journalFileName);
+  return path6.join(pluginData, journalFileName);
 }
 function applyJournalEvent(state, event) {
   switch (event.kind) {
@@ -1500,7 +1690,7 @@ function applyJournalEvent(state, event) {
 function readJournal(pluginData, initialState) {
   let contents;
   try {
-    contents = fs4.readFileSync(journalPath(pluginData), "utf8");
+    contents = fs5.readFileSync(journalPath(pluginData), "utf8");
   } catch {
     return initialState;
   }
@@ -1538,8 +1728,8 @@ function readJournal(pluginData, initialState) {
   }, initialState);
 }
 function appendJournalEvent(pluginData, event) {
-  fs4.mkdirSync(pluginData, { recursive: true });
-  fs4.appendFileSync(journalPath(pluginData), `${JSON.stringify(event)}
+  fs5.mkdirSync(pluginData, { recursive: true });
+  fs5.appendFileSync(journalPath(pluginData), `${JSON.stringify(event)}
 `, "utf8");
 }
 function loadHookState(pluginData) {
@@ -1547,7 +1737,7 @@ function loadHookState(pluginData) {
     return emptyHookState();
   }
   try {
-    return readJournal(pluginData, coerceHookState(JSON.parse(fs4.readFileSync(statePath(pluginData), "utf8"))));
+    return readJournal(pluginData, coerceHookState(JSON.parse(fs5.readFileSync(statePath(pluginData), "utf8"))));
   } catch {
     return readJournal(pluginData, emptyHookState());
   }
@@ -1558,11 +1748,11 @@ function saveHookState(pluginData, state) {
   }
   const boundedState = coerceHookState(state);
   appendJournalEvent(pluginData, { kind: "replace", state: boundedState });
-  fs4.mkdirSync(pluginData, { recursive: true });
+  fs5.mkdirSync(pluginData, { recursive: true });
   const tempPath = uniqueTempPath(pluginData);
-  fs4.writeFileSync(tempPath, `${JSON.stringify(boundedState)}
+  fs5.writeFileSync(tempPath, `${JSON.stringify(boundedState)}
 `);
-  fs4.renameSync(tempPath, statePath(pluginData));
+  fs5.renameSync(tempPath, statePath(pluginData));
 }
 function addDirtyPaths(pluginData, dirtyPaths) {
   const initialState = loadHookState(pluginData);
@@ -1669,22 +1859,22 @@ function isSourceImpactRelevantPath2(candidate) {
 }
 
 // src/workspace-optin.ts
-import fs5 from "node:fs";
-import path6 from "node:path";
+import fs6 from "node:fs";
+import path7 from "node:path";
 var KIBI_WORKSPACE_ENV_KEYS = [
   "KIBI_WORKSPACE",
   "KIBI_PROJECT_ROOT",
   "KIBI_ROOT"
 ];
 function nextAncestorDirectory(current) {
-  const parent = path6.dirname(current);
+  const parent = path7.dirname(current);
   return parent === current ? undefined : parent;
 }
 function hasKibiManifest(directory) {
-  return fs5.existsSync(path6.join(directory, ".kb", "manifest.json"));
+  return fs6.existsSync(path7.join(directory, ".kb", "manifest.json"));
 }
 function hasGitBoundary(directory) {
-  return fs5.existsSync(path6.join(directory, ".git"));
+  return fs6.existsSync(path7.join(directory, ".git"));
 }
 function resolutionFor(root) {
   return { root, optedIn: hasKibiManifest(root) };
@@ -1693,10 +1883,10 @@ function resolveKibiWorkspace(startDir, env = process.env) {
   for (const key of KIBI_WORKSPACE_ENV_KEYS) {
     const value = env[key]?.trim();
     if (value) {
-      return resolutionFor(path6.resolve(value));
+      return resolutionFor(path7.resolve(value));
     }
   }
-  let current = path6.resolve(startDir && startDir.trim().length > 0 ? startDir : process.cwd());
+  let current = path7.resolve(startDir && startDir.trim().length > 0 ? startDir : process.cwd());
   while (current !== undefined) {
     if (hasKibiManifest(current)) {
       return { root: current, optedIn: true };
@@ -1706,7 +1896,7 @@ function resolveKibiWorkspace(startDir, env = process.env) {
     }
     current = nextAncestorDirectory(current);
   }
-  return resolutionFor(path6.resolve(startDir ?? process.cwd()));
+  return resolutionFor(path7.resolve(startDir ?? process.cwd()));
 }
 
 // src/hook-runner.ts
@@ -1749,7 +1939,7 @@ function preEditContext(workspaceRoot, stateDir, input) {
         return;
       const unread = index.manifest === "unreadable" || index.coordinateFiles.includes(relativePath) && !index.unlinkedFiles.includes(relativePath);
       if (!unread)
-        return unownedSourceNote(relativePath);
+        return unownedSourceNote(relativePath, requirementCandidatesForPath(workspaceRoot, relativePath));
       const noticeKey = `${input.sessionId ?? ""}\x00notice\x00manifest-unreadable`;
       return claimSnippetSlot(stateDir, noticeKey) ? unreadableManifestNote(relativePath) : undefined;
     }
@@ -1759,7 +1949,7 @@ var cachedPackageVersion;
 function packageVersion() {
   if (cachedPackageVersion !== undefined)
     return cachedPackageVersion;
-  cachedPackageVersion = readPackageVersion(path7.join(path7.dirname(fileURLToPath(import.meta.url)), "..", "package.json"));
+  cachedPackageVersion = readPackageVersion(path8.join(path8.dirname(fileURLToPath(import.meta.url)), "..", "package.json"));
   return cachedPackageVersion;
 }
 function recordToolTelemetry(workspaceRoot, stateDir, input, startedAt, env) {
@@ -1877,7 +2067,7 @@ async function main() {
 `);
 }
 function isInvokedAsCli(argv1, moduleUrl) {
-  const invokedPath = argv1 ? pathToFileURL(path7.resolve(argv1)).href : "";
+  const invokedPath = argv1 ? pathToFileURL(path8.resolve(argv1)).href : "";
   return moduleUrl === invokedPath;
 }
 async function runHookCli() {

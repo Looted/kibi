@@ -42,6 +42,12 @@ import {
   planSupersededClosures,
 } from "../operations/migration/superseded-closure.js";
 import {
+  type GeneratedManifestBytes,
+  coordinateRefreshFailureMessage,
+  readGeneratedManifestBytes,
+  refreshCoordinatesAfterMigration,
+} from "../operations/migration/symbol-coordinates-refresh.js";
+import {
   applySymbolLegacyLinks,
   planSymbolLegacyLinks,
 } from "../operations/migration/symbol-legacy-links.js";
@@ -351,6 +357,25 @@ function markLegacySymbolLinks(
   return marked.length;
 }
 
+/**
+ * Refresh generated symbol coordinates after the migration rewrote or moved
+ * .kb/symbols.yaml, so the first commit does not hit the generated-manifest
+ * gate. A failure leaves the migration applied and names the manual step.
+ */
+// implements REQ-cli-migration-first-commit
+async function refreshMigratedSymbolCoordinates(
+  cwd: string,
+  before: GeneratedManifestBytes,
+): Promise<void> {
+  const refresh = await refreshCoordinatesAfterMigration(cwd, before);
+  if (refresh.outcome === "refreshed")
+    console.log(
+      "Refreshed generated symbol coordinates for the migrated .kb/symbols.yaml; stage .kb/symbols.yaml and .kb/symbol-coordinates.yaml with the migration.",
+    );
+  else if (refresh.outcome === "failed")
+    printWarning(coordinateRefreshFailureMessage(refresh.reason));
+}
+
 function describeRederivation(plan: InventoryRederivation): string {
   const { keptModeled, roleChanges, newlyUnresolved, downgradedModeled } =
     plan.summary;
@@ -613,6 +638,10 @@ export async function migrateCommand(
     return { exitCode: 1 };
   }
 
+  // What the generated manifests held before this run, so the run refreshes
+  // coordinates only when it rewrote or moved the symbols manifest.
+  const generatedManifestsBefore = readGeneratedManifestBytes(cwd);
+
   if (!needsStorageMigration && !needsSchemaUpgrade) {
     const { planPolarityValueBackfill, applyPolarityValueBackfill } =
       await import("../operations/migration/polarity-values.js");
@@ -633,6 +662,7 @@ export async function migrateCommand(
       lifecycle.removed > 0;
     if (rewroteSources || drift.manual > 0 || lifecycle.manual > 0) {
       if (options.dryRun !== true && rewroteSources) {
+        await refreshMigratedSymbolCoordinates(cwd, generatedManifestsBefore);
         console.log("Run 'kibi sync' to recompile the rewritten sources.");
       }
       if (options.yes === true) updateGitIgnore(cwd);
@@ -894,6 +924,8 @@ export async function migrateCommand(
     console.log(
       `Acknowledged ${firmSupersedes.length} supersede(s) of decisions without firmness that read as firm from schema 10; a new replacement of such a decision must be firm.`,
     );
+
+  await refreshMigratedSymbolCoordinates(cwd, generatedManifestsBefore);
 
   const auditRecord = buildMigrationAuditRecord({
     branch,

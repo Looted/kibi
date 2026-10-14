@@ -40,7 +40,7 @@ export const checkSpec = {
       includeImpactDiagnostics: {
         type: "boolean",
         description:
-          "When true, include changed-file impact diagnostics such as symbol_granularity_violation and symbol_semantic_review_needed in structured output.",
+          "When true, include changed-file impact diagnostics such as symbol_granularity_violation, symbol_semantic_review_needed and source_file_unowned in structured output.",
       },
       maxDiagnostics: {
         type: "integer",

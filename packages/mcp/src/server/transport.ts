@@ -28,6 +28,19 @@ function debugLog(...args: Parameters<typeof console.error>): void {
   }
 }
 
+/**
+ * stdout carries the JSON-RPC stream. Operations shared with the CLI (kibi
+ * sync, kibi migrate, kibi branch ensure) report progress with console.log,
+ * so route the console methods that write to stdout to stderr before the
+ * transport connects; the transport itself writes to process.stdout directly.
+ */
+// implements REQ-002
+export function keepStdoutForProtocol(): void {
+  for (const method of ["log", "info", "debug"] as const) {
+    console[method] = (...args: unknown[]) => console.error(...args);
+  }
+}
+
 export function setupTransportHandlers(
   _server: McpServer,
   transport: StdioServerTransport,

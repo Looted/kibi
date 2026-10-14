@@ -1,4 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
+import { execFileSync } from "node:child_process";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { isolatedCliSandboxEnv } from "../helpers/isolated-env.js";
@@ -95,18 +98,18 @@ describe("decision firmness through the public routes", () => {
     expect((await queried(workspace, "REQ-FIRM-REF"))?.firmness).toBe("firm");
 
     // An update that omits firmness keeps it and is judged with it.
-    const retitled = await route(workspace, "upsert", {
+    const reprioritized = await route(workspace, "upsert", {
       type: "req",
       id: "REQ-FIRM-REF",
-      properties: { title: "Firm with ref, retitled", status: "open" },
+      properties: { title: "Firm with ref", status: "open", priority: "must" },
     });
-    expect(retitled.exitCode, retitled.stdout).toBe(0);
+    expect(reprioritized.exitCode, reprioritized.stdout).toBe(0);
     expect((await queried(workspace, "REQ-FIRM-REF"))?.firmness).toBe("firm");
     const dropsRef = await route(workspace, "upsert", {
       type: "req",
       id: "REQ-FIRM-REF",
       properties: {
-        title: "Firm with ref, retitled",
+        title: "Firm with ref",
         status: "open",
         origin: { kind: "agent" },
       },
@@ -162,5 +165,189 @@ describe("decision firmness through the public routes", () => {
         ?.violations ?? []
     ).filter((violation) => violation.entityId === "REQ-FIRM-NEXT");
     expect(remaining).toEqual([]);
+  }, 120_000);
+});
+
+function git(root: string, args: readonly string[]): void {
+  execFileSync(
+    "git",
+    [
+      "-c",
+      "user.name=Kibi Test",
+      "-c",
+      "user.email=test@kibi.invalid",
+      ...args,
+    ],
+    { cwd: root, stdio: "pipe" },
+  );
+}
+
+// An imported rule: no firmness and no agent origin, so it reads as firm.
+const IMPORTED_RULE = `---
+id: REQ-FIRM-IMPORTED
+type: req
+title: Carts hold at most 50 items
+status: open
+priority: must
+origin:
+  kind: import
+  ref: docs/policy.md#L4
+---
+Carts hold at most 50 items.
+
+## Context
+The warehouse picker handles one cart per trip.
+`;
+
+async function violationsOf(
+  workspace: ParityWorkspace,
+  rule: string,
+): Promise<Array<Record<string, unknown>>> {
+  const check = await route(workspace, "check", { rules: [rule] });
+  return (
+    (check.json.data as { violations?: Array<Record<string, unknown>> })
+      ?.violations ?? []
+  ).filter((violation) => violation.rule === rule);
+}
+
+describe("firm decisions are not edited in place", () => {
+  let workspace: ParityWorkspace;
+  let rulePath: string;
+
+  beforeAll(async () => {
+    workspace = await createParityWorkspace();
+    rulePath = path.join(
+      workspace.root,
+      ".kb/requirements/REQ-FIRM-IMPORTED.md",
+    );
+    await mkdir(path.dirname(rulePath), { recursive: true });
+    await writeFile(rulePath, IMPORTED_RULE, "utf8");
+    // Sync compiles the staged snapshot.
+    git(workspace.root, ["add", "-A"]);
+    const synced = Bun.spawnSync(["bun", "run", kibiBin, "sync"], {
+      cwd: workspace.root,
+      env: isolatedCliSandboxEnv({ KIBI_WORKSPACE: workspace.root }),
+    });
+    expect(synced.exitCode, synced.stdout.toString()).toBe(0);
+    git(workspace.root, ["add", "-A"]);
+    git(workspace.root, ["commit", "-q", "-m", "seed"]);
+  }, 120_000);
+
+  afterAll(async () => {
+    await workspace?.cleanup();
+  });
+
+  test("kb_upsert refuses to change a firm rule's statement or title and writes nothing", async () => {
+    const body = await route(workspace, "upsert", {
+      type: "req",
+      id: "REQ-FIRM-IMPORTED",
+      properties: { title: "Carts hold at most 50 items", status: "open" },
+      document: {
+        body: "Carts hold at most 80 items.\n\n## Context\nThe warehouse picker handles one cart per trip.\n",
+      },
+    });
+    expect(body.exitCode).not.toBe(0);
+    expect(body.stdout).toContain(
+      "REQ-FIRM-IMPORTED is a firm decision, so kb_upsert does not change its statement in place",
+    );
+
+    const dryRun = await route(workspace, "upsert", {
+      type: "req",
+      id: "REQ-FIRM-IMPORTED",
+      properties: { title: "Carts hold at most 80 items", status: "open" },
+      dryRun: true,
+    });
+    expect(dryRun.stdout).toContain("does not change its title in place");
+    expect((dryRun.json.data as { valid?: boolean } | undefined)?.valid).toBe(
+      false,
+    );
+
+    // Relabelling it as an agent's choice does not make it editable.
+    const downgraded = await route(workspace, "upsert", {
+      type: "req",
+      id: "REQ-FIRM-IMPORTED",
+      properties: {
+        title: "Carts hold at most 50 items",
+        status: "open",
+        firmness: "default",
+      },
+    });
+    expect(downgraded.exitCode).not.toBe(0);
+    expect(downgraded.stdout).toContain(
+      "does not change its firmness in place",
+    );
+
+    expect(await readFile(rulePath, "utf8")).toBe(IMPORTED_RULE);
+  }, 120_000);
+
+  test("kb_upsert keeps context and metadata edits open on a firm rule", async () => {
+    const result = await route(workspace, "upsert", {
+      type: "req",
+      id: "REQ-FIRM-IMPORTED",
+      properties: {
+        title: "Carts hold at most 50 items",
+        status: "open",
+        tags: ["carts"],
+      },
+      document: {
+        body: "Carts hold at most 50 items.\n\n## Context\nThe warehouse picker handles one cart per trip, and larger carts block the aisle.\n",
+      },
+    });
+    expect(result.exitCode, result.stdout).toBe(0);
+    expect(await violationsOf(workspace, "decision-firm-edited")).toEqual([]);
+  }, 120_000);
+
+  test("kb_check reports a firm rule edited on disk since HEAD until the edit cites new human words", async () => {
+    git(workspace.root, ["add", "-A"]);
+    git(workspace.root, ["commit", "-q", "-m", "context"]);
+    const committed = await readFile(rulePath, "utf8");
+    await writeFile(
+      rulePath,
+      committed.replace(
+        "Carts hold at most 50 items.\n",
+        "Carts hold at most 80 items.\n",
+      ),
+      "utf8",
+    );
+    const edited = await violationsOf(workspace, "decision-firm-edited");
+    expect(edited.map((violation) => violation.entityId)).toEqual([
+      "REQ-FIRM-IMPORTED",
+    ]);
+    expect(String(edited[0]?.description)).toContain(
+      "statement changed since HEAD",
+    );
+
+    await writeFile(
+      rulePath,
+      committed
+        .replace(
+          "Carts hold at most 50 items.\n",
+          "Carts hold at most 80 items.\n",
+        )
+        .replace("ref: docs/policy.md#L4", "ref: ticket-12"),
+      "utf8",
+    );
+    expect(await violationsOf(workspace, "decision-firm-edited")).toEqual([]);
+    await writeFile(rulePath, committed, "utf8");
+  }, 120_000);
+
+  test("kb_upsert applies a firm rule change that cites the person's words", async () => {
+    const result = await route(workspace, "upsert", {
+      type: "req",
+      id: "REQ-FIRM-IMPORTED",
+      properties: {
+        title: "Carts hold at most 80 items",
+        status: "open",
+        origin: { kind: "human", ref: "ticket-12" },
+      },
+      document: {
+        body: "Carts hold at most 80 items.\n\n## Context\nThe warehouse picker handles one cart per trip.\n",
+      },
+    });
+    expect(result.exitCode, result.stdout).toBe(0);
+    expect((await queried(workspace, "REQ-FIRM-IMPORTED"))?.title).toBe(
+      "Carts hold at most 80 items",
+    );
+    expect(await violationsOf(workspace, "decision-firm-edited")).toEqual([]);
   }, 120_000);
 });

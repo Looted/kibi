@@ -26,6 +26,7 @@ import { KIBI_ICONS } from "./server/icons.js";
 import { registerAllTools } from "./server/tools.js";
 import {
   connectTransport,
+  keepStdoutForProtocol,
   setupTransportHandlers,
 } from "./server/transport.js";
 import {
@@ -49,6 +50,8 @@ const SERVER_INSTRUCTIONS = [
 ].join(" ");
 
 export async function startServer(): Promise<void> {
+  keepStdoutForProtocol();
+
   // Load environment configuration
   loadDefaultEnvFile();
 

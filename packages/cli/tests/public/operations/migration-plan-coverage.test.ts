@@ -232,7 +232,7 @@ describe("migration plan builders and config status", () => {
       code: "symbol_legacy_link_mark",
       safety: "automatic",
       affectedEntityIds: ["SYM-greeter"],
-      affectedFiles: [".kb/symbols.yaml"],
+      affectedFiles: [".kb/symbol-coordinates.yaml", ".kb/symbols.yaml"],
     });
     // Bound to the same manifest bytes kibi migrate plans from.
     expect(mark?.evidence.manifestHash).toBe(
