@@ -363,3 +363,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-88c25bb74e62
+  - type: implements
+    from: SYM-prolog-utf8-streams-goal
+    to: REQ-prolog-utf8-text
+    created_at: 2026-10-14T20:18:52.995Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9cff0cfede46
+  - type: covered_by
+    from: SYM-prolog-utf8-streams-goal
+    to: TEST-prolog-bundled-runtime
+    created_at: 2026-10-14T20:18:53.022Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-109f7faac894

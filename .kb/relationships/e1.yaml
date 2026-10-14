@@ -244,3 +244,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f99439e14638
+  - type: implements
+    from: SYM-prolog-utf8-encode-goal-for-env
+    to: REQ-prolog-utf8-text
+    created_at: 2026-10-14T20:18:56.509Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c60560fc8ca0
+  - type: covered_by
+    from: SYM-prolog-utf8-encode-goal-for-env
+    to: TEST-prolog-bundled-runtime
+    created_at: 2026-10-14T20:18:56.528Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-82284df907ac
