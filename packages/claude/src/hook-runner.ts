@@ -15,6 +15,11 @@ import {
 import { parseHookInput, parseStdinJson, readStdin } from "./hook-input.js";
 import type { HookInput } from "./hook-input.js";
 
+import {
+  CONFIRM_FIRM_EDITS_ENV,
+  confirmFirmEdits,
+  firmRequirementsTouched,
+} from "kibi-agent-core/decision-guard";
 import { stampKibiWorkspace } from "kibi-agent-core/kb-mcp-tools";
 import {
   requestTopicWords,
@@ -23,8 +28,9 @@ import {
 import {
   createEntitySummarizer,
   implementedRequirementIds,
-  isRetiredStatus,
 } from "kibi-agent-core/snippets";
+
+export { CONFIRM_FIRM_EDITS_ENV };
 import {
   type KbUsage,
   extractCliKbUsage,
@@ -108,14 +114,6 @@ export type HookEnvironment = {
   env?: NodeJS.ProcessEnv | undefined;
 };
 
-/** Set to `0`, `false` or `off` to stop asking before edits of firm requirements. */
-export const CONFIRM_FIRM_EDITS_ENV = "KIBI_CONFIRM_FIRM_EDITS";
-
-function confirmFirmEdits(env: NodeJS.ProcessEnv): boolean {
-  const value = env[CONFIRM_FIRM_EDITS_ENV]?.trim().toLowerCase();
-  return !(value === "0" || value === "false" || value === "off");
-}
-
 const readTools = new Set(["Read"]);
 const editTools = new Set(["Edit", "MultiEdit", "Write", "NotebookEdit"]);
 const searchTools = new Set(["Grep", "Glob"]);
@@ -191,9 +189,7 @@ type FirmEdit = { path: string; where: string; ids: string[] };
 // implements REQ-claude-firm-edit-confirmation
 /**
  * The current firm requirements an edit changes that the person has not yet
- * let an edit change this session: those implemented by the symbols the edit
- * lands in, or by every symbol of the file for a whole-file write. An edit
- * whose location is unknown, or outside every symbol, changes none.
+ * let an edit change this session.
  */
 function firmEdit(
   relativePath: string,
@@ -204,14 +200,14 @@ function firmEdit(
   workspace: Workspace,
 ): FirmEdit | undefined {
   if (!workspace.confirmFirm) return undefined;
-  const touched = wholeFile ? symbols : focusedSymbols(symbols, focus);
-  const ids = requirementIds(touched).filter((id) => {
-    if (state.firmConfirmed.has(id)) return false;
-    const summary = workspace.summarize(id);
-    return summary.firmness === "firm" && !isRetiredStatus(summary.status);
+  const { ids, symbol } = firmRequirementsTouched({
+    symbols,
+    focus,
+    wholeFile,
+    summarize: workspace.summarize,
+    confirmed: state.firmConfirmed,
   });
   if (ids.length === 0) return undefined;
-  const symbol = wholeFile ? undefined : touched[0];
   return {
     path: relativePath,
     where: symbol ? `${symbol.title} in ${relativePath}` : relativePath,

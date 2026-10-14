@@ -4,6 +4,20 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import {
+  type DecisionSession,
+  captureReminder,
+  claimCaptureReminder,
+  confirmFirmEdits,
+  firmEditNotice,
+  firmRequirementsTouched,
+  hasDecisionFlag,
+  markDecisionFlag,
+  recordRequest,
+  rulePromptNote,
+  settleFirmRequirements,
+  settledFirmRequirements,
+} from "kibi-agent-core/decision-guard";
+import {
   appendHookUsageRows,
   editTraces,
   hookTelemetryEnabled,
@@ -11,7 +25,10 @@ import {
   readPackageVersion,
 } from "kibi-agent-core/hook-usage-log";
 import { stampKibiWorkspace } from "kibi-agent-core/kb-mcp-tools";
-import { loadKnowledgeIndex } from "kibi-agent-core/knowledge-index";
+import {
+  type IndexedSymbol,
+  loadKnowledgeIndex,
+} from "kibi-agent-core/knowledge-index";
 import { extractEditedPaths } from "kibi-agent-core/path-policy";
 import {
   createEntitySummarizer,
@@ -19,6 +36,8 @@ import {
   editKnowledgeContext,
   implementedRequirementIds,
 } from "kibi-agent-core/snippets";
+
+type Summarize = ReturnType<typeof createEntitySummarizer>;
 import { parseHookInput, parseStdinJson, readStdin } from "./hook-input.js";
 import {
   addDirtyPaths,
@@ -45,6 +64,7 @@ import { resolveKibiWorkspace } from "./workspace-optin.js";
 
 export type ZcodeHookEvent =
   | "SessionStart"
+  | "UserPromptSubmit"
   | "PreToolUse"
   | "PostToolUse"
   | "Stop";
@@ -127,21 +147,32 @@ function editTargets(
 
 /**
  * The shared kibi-agent-core edit snippet for each requirement-linked file
- * the edit targets, shown once per file per ZCode session.
+ * the edit targets, shown once per file per ZCode session, after the
+ * firm-requirement notice when the edit touches one.
  */
 // implements REQ-zcode-kibi-plugin-v1
 function preEditContext(
   workspaceRoot: string,
   stateDir: string | undefined,
   input: ReturnType<typeof parseHookInput>,
+  env: NodeJS.ProcessEnv,
 ): string | undefined {
   const targets = editTargets(workspaceRoot, input);
   if (targets.length === 0) return undefined;
   const files = loadKnowledgeIndex(workspaceRoot, stateDir).files;
-  return editKnowledgeContext({
+  const summarize = createEntitySummarizer(workspaceRoot);
+  const notice = firmNotice(
+    targets,
+    files,
+    summarize,
+    { stateDir, sessionId: input.sessionId },
+    input,
+    env,
+  );
+  const knowledge = editKnowledgeContext({
     relativePaths: targets.map((target) => target.relative),
     symbolsFor: (relativePath) => files[relativePath] ?? [],
-    summarize: createEntitySummarizer(workspaceRoot),
+    summarize,
     stateDir,
     sessionId: input.sessionId,
     focusFor: (relativePath) => {
@@ -151,6 +182,46 @@ function preEditContext(
       return target ? editFocus(target.absolute, input.toolInput) : undefined;
     },
   });
+  const parts = [notice, knowledge].filter(
+    (part): part is string => part !== undefined,
+  );
+  return parts.length > 0 ? parts.join("\n\n") : undefined;
+}
+
+// implements REQ-agent-hosts-decision-guard
+/**
+ * The ZCode plugin's hooks stay advisory, so an edit of code that implements
+ * a firm requirement gets a notice telling the agent to ask the person
+ * first, once per requirement per session. An edit whose location the hook
+ * cannot resolve counts as touching the whole file.
+ */
+function firmNotice(
+  targets: readonly EditTarget[],
+  files: Record<string, readonly IndexedSymbol[]>,
+  summarize: Summarize,
+  session: DecisionSession,
+  input: ReturnType<typeof parseHookInput>,
+  env: NodeJS.ProcessEnv,
+): string | undefined {
+  if (!confirmFirmEdits(env)) return undefined;
+  const settled = settledFirmRequirements(session);
+  for (const target of targets) {
+    const focus = editFocus(target.absolute, input.toolInput);
+    const { ids, symbol } = firmRequirementsTouched({
+      symbols: files[target.relative] ?? [],
+      focus,
+      wholeFile: focus === undefined,
+      summarize,
+      confirmed: settled,
+    });
+    if (ids.length === 0) continue;
+    settleFirmRequirements(session, ids);
+    return firmEditNotice(
+      symbol ? `${symbol.title} in ${target.relative}` : target.relative,
+      ids.map(summarize),
+    );
+  }
+  return undefined;
 }
 
 let cachedPackageVersion: string | null | undefined;
@@ -224,6 +295,7 @@ export function canonicalizeCheckSourceFiles(
 
 const zcodeHookEvents: readonly ZcodeHookEvent[] = [
   "SessionStart",
+  "UserPromptSubmit",
   "PreToolUse",
   "PostToolUse",
   "Stop",
@@ -280,9 +352,21 @@ export async function runHook(
     input.sessionId,
   );
 
+  const session: DecisionSession = { stateDir, sessionId: input.sessionId };
+
   switch (input.event) {
     case "SessionStart":
       return contextResult(input.event, SESSION_START_CONTEXT);
+
+    // implements REQ-agent-hosts-decision-guard
+    case "UserPromptSubmit": {
+      const rule = input.prompt
+        ? recordRequest(session, input.prompt)
+        : undefined;
+      return rule === undefined
+        ? defaultResult()
+        : contextResult(input.event, rulePromptNote(rule));
+    }
 
     case "PreToolUse": {
       // Name the session's workspace on every Kibi MCP call so the launcher
@@ -322,7 +406,12 @@ export async function runHook(
       let knowledge: string | undefined;
       try {
         knowledge = isMutatingTool(input.toolName)
-          ? preEditContext(workspace.root, stateDir, input)
+          ? preEditContext(
+              workspace.root,
+              stateDir,
+              input,
+              environment.env ?? process.env,
+            )
           : undefined;
       } catch {
         // Requirement context is advisory; an unreadable manifest or file
@@ -374,6 +463,16 @@ export async function runHook(
         if (dirtyPaths.length > 0) {
           addDirtyPaths(stateDir, dirtyPaths);
         }
+        if (dirtyPaths.some(isSourceImpactRelevantPath)) {
+          markDecisionFlag(session, "source-edited");
+        }
+      }
+      if (
+        kbToolCall?.toolName === "kb_upsert" ||
+        kbUsageTrace(input.toolName, input.toolInput)?.kbOperation ===
+          "kb_upsert"
+      ) {
+        markDecisionFlag(session, "kb-recorded");
       }
 
       return defaultResult();
@@ -384,11 +483,24 @@ export async function runHook(
       const uncheckedSourcePaths = state.dirtyPaths
         .filter(isSourceImpactRelevantPath)
         .filter((sourcePath) => !state.impactCheckedPaths.includes(sourcePath));
-      if (uncheckedSourcePaths.length > 0) {
+      // implements REQ-agent-hosts-decision-guard
+      // Source changed and nothing was recorded: ask once per session for
+      // the decision behind the change, with any impact-check reminder.
+      const capture = claimCaptureReminder(session)
+        ? captureReminder(hasDecisionFlag(session, "rule-prompt"))
+        : undefined;
+      if (capture !== undefined || uncheckedSourcePaths.length > 0) {
         clearDirtyPaths(stateDir);
         return contextResult(
           input.event,
-          impactCheckReminder(uncheckedSourcePaths),
+          [
+            capture,
+            uncheckedSourcePaths.length > 0
+              ? impactCheckReminder(uncheckedSourcePaths)
+              : undefined,
+          ]
+            .filter((part): part is string => part !== undefined)
+            .join("\n"),
         );
       }
 

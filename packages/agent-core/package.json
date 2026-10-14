@@ -10,6 +10,10 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
+    "./decision-guard": {
+      "types": "./dist/decision-guard.d.ts",
+      "default": "./dist/decision-guard.js"
+    },
     "./hook-usage-log": {
       "types": "./dist/hook-usage-log.d.ts",
       "default": "./dist/hook-usage-log.js"

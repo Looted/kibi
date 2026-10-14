@@ -293,3 +293,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e810a071210a
+  - type: implements
+    from: SYM-claude-rulePromptNote
+    to: REQ-agent-hosts-decision-guard
+    created_at: 2026-10-14T17:47:27.147Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a80965b6e494
+  - type: covered_by
+    from: SYM-claude-rulePromptNote
+    to: TEST-codex-kibi-plugin-v1
+    created_at: 2026-10-14T17:47:27.164Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-16d5458bf2b8
+  - type: covered_by
+    from: SYM-claude-rulePromptNote
+    to: TEST-cursor-kibi-plugin-v1
+    created_at: 2026-10-14T17:47:27.180Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b00480eef8bd
+  - type: covered_by
+    from: SYM-claude-rulePromptNote
+    to: TEST-zcode-kibi-plugin-v1
+    created_at: 2026-10-14T17:47:27.190Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d0d3484a3d43
