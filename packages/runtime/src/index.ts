@@ -206,12 +206,16 @@ export {
 export {
   KIBI_PROTOCOL_VERSION,
   appendPayloadCountField,
+  codedErrorOf,
   normalizeResultPayload,
   operationData,
   resultVersion,
   toKibiResult,
 } from "kibi-cli/operations/result-envelope";
-export type { NormalizedResultPayload } from "kibi-cli/operations/result-envelope";
+export type {
+  CodedErrorFields,
+  NormalizedResultPayload,
+} from "kibi-cli/operations/result-envelope";
 export * from "kibi-cli/public/branch-resolver";
 export {
   EngineClient,

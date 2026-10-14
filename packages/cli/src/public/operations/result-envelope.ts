@@ -1,6 +1,9 @@
 import { MIGRATION_PLAN_REFUSED } from "../../operations/planning/migration-refusal.js";
 import type { KibiResult, OperationEffect, OperationName } from "./types.js";
 
+export { codedErrorOf } from "../../cli-errors.js";
+export type { CodedErrorFields } from "../../cli-errors.js";
+
 export const KIBI_PROTOCOL_VERSION = 1 as const;
 
 function record(value: unknown): value is Record<string, unknown> {

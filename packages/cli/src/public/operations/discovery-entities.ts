@@ -414,6 +414,42 @@ export async function loadEntityIds(
 }
 
 /**
+ * Id, title and semantic text of every current requirement (open,
+ * in_progress, closed and the legacy active/approved statuses, not superseded),
+ * in id order. Projected rows only: semantic inventories and other large
+ * properties stay in the store.
+ */
+// implements REQ-bootstrap-claim-restatement
+export async function loadCurrentRequirementTexts(
+  prolog: Pick<PrologPort, "query">,
+): Promise<{ id: string; title: string; semanticText: string }[]> {
+  const result = await prolog.query("findall(R, kb:current_req(R), Ids)");
+  if (!result.success) {
+    throw new Error(
+      `Current requirement enumeration failed: ${result.error ?? "Unknown error"}`,
+    );
+  }
+  const ids = parseAtomList(result.bindings.Ids ?? "[]").map(normalizeEntityId);
+  const rows = await loadEntityRows(prolog, ids, [
+    "id",
+    "title",
+    "semantic_text",
+  ]);
+  return rows
+    .filter((row) => row.type === "req")
+    .map((row) => ({
+      id: String(row.id ?? ""),
+      title: typeof row.title === "string" ? row.title : "",
+      semanticText:
+        typeof row.semantic_text === "string" ? row.semantic_text : "",
+    }))
+    .filter((row) => row.id !== "")
+    .sort((left, right) =>
+      left.id < right.id ? -1 : left.id > right.id ? 1 : 0,
+    );
+}
+
+/**
  * Properties a projected entity row keeps: what intent ranking, result
  * summaries and the search answer layer read. Large structured properties
  * (receipt histories, proof contracts, semantic inventories, rule IR) are

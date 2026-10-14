@@ -398,3 +398,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3aacf48f5f97
+  - type: implements
+    from: SYM-bootstrap-normalize-restatement-text
+    to: REQ-bootstrap-claim-restatement
+    created_at: 2026-10-14T09:06:05.325Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-70856aa06c1f
+  - type: covered_by
+    from: SYM-bootstrap-normalize-restatement-text
+    to: TEST-kibi-bootstrap-knowledge-sources
+    created_at: 2026-10-14T09:06:05.339Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-29b13e2c8a46
