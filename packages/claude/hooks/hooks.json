@@ -1,9 +1,20 @@
 {
-  "description": "Kibi advisory hooks: knowledge snippets before reads/edits, KB usage tracking, and one-shot freshness reminders. Silent outside Kibi workspaces.",
+  "description": "Kibi hooks: knowledge snippets before reads and edits, a confirmation before edits of code a firm requirement governs, prompts to record decisions the person states, KB usage tracking, and one-shot freshness reminders. Silent outside Kibi workspaces.",
   "hooks": {
     "SessionStart": [
       {
         "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/bin/hook-runner.mjs\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
         "hooks": [
           {
             "type": "command",

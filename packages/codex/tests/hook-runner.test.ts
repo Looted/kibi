@@ -568,7 +568,8 @@ describe("Codex pre-edit knowledge", () => {
       hookEventName: "PreToolUse",
       additionalContext: [
         "Kibi: no symbol in src/other.ts is linked to a requirement yet; that does not mean no recorded rule covers the behavior it implements.",
-        'kb_search({query:"<behavior being changed>", sourceLocations:[{path:"src/other.ts"}]}) surfaces requirements that may already describe it; new behavior is recorded with kb_upsert (requirement + scenario + symbol implements link) as part of the change.',
+        "No requirement title matches this file, so nothing recorded is known to cover it.",
+        'kb_search({query:"<behavior being changed>", sourceLocations:[{path:"src/other.ts"}]}) finds a rule recorded under other words. A decision this change makes for this code (a rule the person states, a limit, who may do what) is recorded with kb_upsert (requirement + scenario + symbol implements link) before the work is reported done.',
       ].join("\n"),
     });
     expect(await write("s1")).toEqual({ continue: true });
@@ -642,7 +643,7 @@ describe("Codex evaluation trace replay", () => {
     expect(unlinkedEdit.hookSpecificOutput).toMatchObject({
       hookEventName: "PreToolUse",
       additionalContext: expect.stringContaining(
-        "Kibi: no symbol in src/guard.ts is linked to a requirement yet; that does not mean no recorded rule covers the behavior it implements.\nkb_search(",
+        "Kibi: no symbol in src/guard.ts is linked to a requirement yet; that does not mean no recorded rule covers the behavior it implements.\nNo requirement title matches this file, so nothing recorded is known to cover it.\nkb_search(",
       ),
     });
     expect(

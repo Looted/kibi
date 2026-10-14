@@ -33,8 +33,9 @@ The hook runner is committed as a single self-contained file
 
 ## What the agent sees
 
-All output is advisory `additionalContext`. Nothing is ever blocked, no tool
-input is rewritten, and no workspace file is written. Every snippet is the
+Output is `additionalContext`, with one exception: an edit of code that
+implements a firm requirement is put to you first (below). Nothing is ever
+denied, no tool input is rewritten, and no workspace file is written. Every snippet is the
 first layer of progressive disclosure: requirement IDs and titles, the linked
 symbols, and the exact call that opens the next layer. Snippets are capped at
 1,200 characters and phrased as project facts.
@@ -44,10 +45,12 @@ symbols, and the exact call that opens the next layer. Snippets are capped at
 | Session start | One paragraph: Kibi is active, how many files have requirement-linked symbols, which `kb_*` operations exist, and the `kibi-usage` skill. After a compact or clear, the snippets and notices already shown this session may appear again, because they are no longer in the model's context; a resume keeps them suppressed | Each start, resume, clear, and compact |
 | Before `Read` of a linked source or test file | Requirements with titles, the symbols that implement them, covering tests, and the next-layer calls (`kb_query` by id, intent-mode `kb_search` with `sourceLocations`). A read window (`offset`/`limit`) names the symbol it lands in | Once per file per session. Skipped if the agent already queried that file or all of its requirements through Kibi |
 | Before `Edit`/`MultiEdit`/`Write`/`NotebookEdit` | First edit of an unseen file: the same snippet, plus what the lead requirement must keep true (up to two facts linked by `constrains`, `requires_property`, `requires_predicate`, or `requires_rule`) and its decision (ADR), the symbol the edit lands in (found from `old_string` and the symbol coordinates), and the `kb_check` impact call. A superseded or retired lead requirement gets no "must keep true" or "Decision" line. File already shown by a read (or queried through Kibi): the symbol the edit lands in, the "must keep true" and "Decision" lines, and the `kb_check` call, without repeating the requirements, tests, and next-layer calls. Later edits of the file: one line, and only when the edit lands in a symbol not yet named | Once per file, then once per new symbol |
-| Before editing an unowned source file | One note: the intent-mode `kb_search` call that finds requirements which may already describe this behavior | Once per file |
+| Before an edit lands in a symbol that implements a firm requirement | A permission prompt (`permissionDecision: "ask"`) naming the symbol and the requirement, so you decide before the code changes. A `Write` over the file, or a shell command that writes it in place, counts as touching all of its symbols. Requirements are firm when marked `firmness: firm` or written by a person (not an agent); superseded and retired ones never ask. In a `claude -p` run nobody can answer, Claude Code refuses the edit and the agent reads why. The agent is also told that a declined edit means the requirement stands. Set `KIBI_CONFIRM_FIRM_EDITS=0` to turn this off | Until you allow an edit, then not again for that requirement in the session |
+| Before editing an unowned source file | One note: the requirements whose titles share words with the path or with your latest prompt, and the intent-mode `kb_search` call. With no such requirement, the note says nothing recorded is known to cover the file and that a decision made for it is recorded with `kb_upsert` before the work is reported done | Once per file |
+| Prompt that reads as a rule ("must", "never", "from now on", ...) | That a rule you state is recorded with `kb_upsert` as part of the change, after checking `kb_search` for a recorded rule it changes | Each such prompt |
 | Before the first `Grep`/`Glob` | One tip that intent questions are answered by `kb_search` | Once per session, and never after the agent has used Kibi |
 | Direct `.kb/` reads or edits | One note that `kb_query`/`kb_upsert` keep the store consistent | Once per session |
-| `Stop` | Source files edited without a later impact check, with the exact `kb_check` call, or a no-impact rationale | Once per file. Respects `stop_hook_active`; a later edit makes the file pending again |
+| `Stop` | Source files edited without a later impact check, with the exact `kb_check` call, or a no-impact rationale. When the session changed source files and wrote nothing with `kb_upsert`, also asks the agent to record the decision you stated or the change made, or to say there was none | Impact: once per file; a later edit makes the file pending again. Recording: once per session. Respects `stop_hook_active` |
 
 Unlinked source files, docs, config, and generated or vendored paths get no
 snippet on read.
@@ -108,8 +111,9 @@ file. Remove the variable to stop recording.
   Code desktop sessions do, is answered from that worktree's branch rather
   than the checkout the server started in. Set `KIBI_WORKSPACE` to pin one
   workspace instead.
-- `hooks/hooks.json`: `SessionStart`, `PreToolUse` (read, edit, and search
-  tools), `PostToolUse` (edit tools, Bash, and `kb_*` MCP tools), and `Stop`.
+- `hooks/hooks.json`: `SessionStart`, `UserPromptSubmit`, `PreToolUse` (read,
+  edit, and search tools), `PostToolUse` (edit tools, Bash, and `kb_*` MCP
+  tools), and `Stop`.
 - `bin/hook-runner.mjs`: generated bundle of `src/hook-runner.ts`
   (`bun run build:hook-bundle`). It is committed, and a test checks it for
   drift.
