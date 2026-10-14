@@ -252,6 +252,43 @@ export function validateSemanticInventoryBoundary(
   return { applicable, errors, sourceHash };
 }
 
+/**
+ * The inventory contract the advisor derives for this payload's prose, as
+ * the properties to resend: the version, source field and hash, one ledger
+ * entry per proposition and the assertive claim keys. An entry keeps the
+ * status the payload already gave the same claim key; otherwise it carries
+ * the advisor's status (an ambiguity or ontology gap stays explicit).
+ */
+// implements REQ-kb-upsert-ledger-contract-in-error
+export function semanticInventoryContract(
+  payload: Payload,
+  receipt: SemanticAdvisorReceipt,
+): Record<string, unknown> {
+  const semanticSource = semanticSourceOf(payload);
+  const sent = new Map(
+    inventoryOf(payload).map((entry) => [
+      stringValue(entry.claim_key),
+      stringValue(entry.status),
+    ]),
+  );
+  return {
+    semantic_inventory_version: SEMANTIC_INVENTORY_VERSION,
+    semantic_source_field: semanticSource.field,
+    semantic_source_hash: semanticSourceHash(semanticSource.text),
+    semantic_inventory: receipt.propositions.map((proposition) => ({
+      claim_key: proposition.claim_key,
+      claim_text: proposition.claim_text,
+      role: proposition.role,
+      status: sent.get(proposition.claim_key) || proposition.status,
+      span: { start: proposition.span.start, end: proposition.span.end },
+    })),
+    logic_claims: receipt.propositions
+      .filter(propositionIsAssertive)
+      .map(({ claim_key }) => claim_key),
+  };
+}
+
+// implements REQ-kibi-proposition-complete-ingestion, REQ-kb-upsert-ledger-contract-in-error
 export function assertSemanticInventoryBoundary(
   payload: Payload,
   relationships: readonly SemanticRelationship[],
@@ -264,7 +301,7 @@ export function assertSemanticInventoryBoundary(
   );
   if (result.errors.length > 0) {
     throw new Error(
-      `Proposition-complete ingestion failed: ${result.errors.join("; ")}. Run kb_model mode analyze (CLI: semantic-advisor) with the complete prose and preserve its inventory contract before retrying.`,
+      `Proposition-complete ingestion failed: ${result.errors.join("; ")}. The contract kb_model mode analyze returns for this prose, to merge into properties and resend (a claim marked modeled needs one requires_property, requires_predicate or requires_rule link to a fact with its claim_key; otherwise keep the advisor's status): ${JSON.stringify(semanticInventoryContract(payload, receipt))}`,
     );
   }
 }

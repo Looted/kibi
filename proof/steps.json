@@ -107,6 +107,13 @@
         "node",
         "scripts/run-proof-packed-e2e.mjs",
         "documentation/tests/e2e/packed/fresh-verification-receipts.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/cli/tests/operations/mutation.test.ts"
       ]
     ]
   },
@@ -157,6 +164,13 @@
         "node",
         "scripts/run-proof-packed-e2e.mjs",
         "documentation/tests/e2e/packed/proposition-complete-ingestion.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/cli/tests/operations/mutation.test.ts"
       ]
     ]
   },

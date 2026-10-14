@@ -153,3 +153,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-534431a4544c
+  - type: verified_by
+    from: SCEN-kb-upsert-keeps-omitted-proof-receipts
+    to: TEST-kibi-fresh-verification-receipts
+    created_at: 2026-10-14T17:11:11.855Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-634c4559ea4f
