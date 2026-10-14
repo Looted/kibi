@@ -11,6 +11,7 @@ import {
 import { discoverSourceFiles } from "../../src/commands/sync/discovery.js";
 import {
   buildMigrationPlan,
+  digestMigrationPlan,
   migrationAction,
 } from "../../src/public/operations/migration-plan.js";
 import * as runtimeTypes from "../../src/public/operations/runtime-types.js";
@@ -447,7 +448,7 @@ describe("migrateCommand remaining runtime branches", () => {
                 detail: "kibi sync failed",
               },
             ],
-            remainingPlan: plan,
+            remainingPlan: digestMigrationPlan(plan),
           },
         };
       }
