@@ -230,3 +230,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1c0313aab821
+  - type: implements
+    from: SYM-cli-requirement-statements-create
+    to: REQ-kb-check-unverified-requirement-statements
+    created_at: 2026-10-14T16:34:23.889Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-537f4f352ca0
+  - type: covered_by
+    from: SYM-cli-requirement-statements-create
+    to: TEST-search-answer-hygiene
+    created_at: 2026-10-14T16:34:23.911Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ea3b04efd825
