@@ -7,35 +7,35 @@ tags:
   - traceability
   - upsert
   - coverage
-semantic_text: kb_upsert must refuse a coarse symbol link when it is written, judging a links-only update against the stored symbol's source file, as the staged hook and kibi check do. When a production symbol already has covered_by, the symbol-coverage finding must name the test, the implemented requirement and the verified_by link that would connect them. A kb_upsert dry run that finds the payload invalid must return an error envelope.
+semantic_text: kb_upsert must refuse a coarse symbol link when it is written, judging a links-only update against the stored symbol's source file, as the staged hook and kibi check do. The symbol-coverage finding for a production symbol that already has covered_by must name the test, the implemented requirement and the verified_by link that would connect them. A kb_upsert dry run that finds the payload invalid must return an error envelope.
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
-semantic_source_hash: 2c44b7665cd8e8dfcba6e1e1b80eaf4b94400a42cbbf6a6ee1f33285a5ddd924
+semantic_source_hash: d4d785f59af4a64d38fadadd356d101dc6274390a5fd3d2320d25b3126b4239c
 semantic_inventory:
   - claim_key: CLAIM-D7C2AC800EF4659C
     claim_text: kb_upsert must refuse a coarse symbol link when it is written, judging a links-only update against the stored symbol's source file, as the staged hook and kibi check do
     role: normative
-    status: ontology_gap
+    status: modeled
     span:
       start: 0
       end: 168
-  - claim_key: CLAIM-80A7581718779308
-    claim_text: When a production symbol already has covered_by, the symbol-coverage finding must name the test, the implemented requirement and the verified_by link that would connect them
-    role: condition
-    status: missing
+  - claim_key: CLAIM-CB6DA9EE65C6CC03
+    claim_text: The symbol-coverage finding for a production symbol that already has covered_by must name the test, the implemented requirement and the verified_by link that would connect them
+    role: normative
+    status: modeled
     span:
       start: 170
-      end: 343
+      end: 346
   - claim_key: CLAIM-8D02B7037EC3F669
     claim_text: A kb_upsert dry run that finds the payload invalid must return an error envelope
     role: normative
-    status: ontology_gap
+    status: modeled
     span:
-      start: 345
-      end: 425
+      start: 348
+      end: 428
 logic_claims:
   - CLAIM-D7C2AC800EF4659C
-  - CLAIM-80A7581718779308
+  - CLAIM-CB6DA9EE65C6CC03
   - CLAIM-8D02B7037EC3F669
 origin:
   kind: agent
@@ -43,7 +43,7 @@ origin:
 id: REQ-kibi-symbol-link-guidance
 type: req
 ---
-kb_upsert must refuse a coarse symbol link when it is written, judging a links-only update against the stored symbol's source file, as the staged hook and kibi check do. When a production symbol already has covered_by, the symbol-coverage finding must name the test, the implemented requirement and the verified_by link that would connect them. A kb_upsert dry run that finds the payload invalid must return an error envelope.
+kb_upsert must refuse a coarse symbol link when it is written, judging a links-only update against the stored symbol's source file, as the staged hook and kibi check do. The symbol-coverage finding for a production symbol that already has covered_by must name the test, the implemented requirement and the verified_by link that would connect them. A kb_upsert dry run that finds the payload invalid must return an error envelope.
 
 ## Context
 
