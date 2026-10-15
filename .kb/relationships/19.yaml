@@ -204,8 +204,8 @@ relationships:
     id: rel-cb50f396e2f7
   - type: requires_property
     from: REQ-kibi-symbol-link-guidance
-    to: FACT-symbol-link-guidance-invalid-dry-run-error
-    created_at: 2026-10-15T16:05:08.768Z
+    to: FACT-symbol-link-guidance-invalid-payload-error
+    created_at: 2026-10-15T16:19:29.715Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-e6887f84ad7d
+    id: rel-6771f910fb8a

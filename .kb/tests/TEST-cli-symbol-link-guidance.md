@@ -1,5 +1,5 @@
 ---
-title: 'CLI: a links-only update on a class symbol is refused, an invalid dry run is an error, and symbol-coverage names the missing verified_by'
+title: 'CLI: a links-only update on a class symbol is refused with its granular members, and symbol-coverage names the missing verified_by'
 status: passing
 priority: must
 tags:
@@ -61,4 +61,4 @@ proof_receipts:
         attempts:
           status: unavailable
 ---
-Runs the CLI on a fresh KB with a class whose public methods are behavioral symbols. It asserts that a links-only `kibi upsert` on the stored class symbol is refused with the granular candidates, that the same payload as a dry run exits 1 with `UPSERT_DRY_RUN_INVALID`, that `kibi check` `symbol-coverage` on a method symbol whose test does not verify the scenario names `verified_by(SCEN-…, TEST-…)`, and that an invalid test status lists only the test values.
+Runs the CLI on a fresh KB with a class whose public methods are behavioral symbols. It asserts that adding links to the stored class symbol is refused with the granular candidates, also when the payload is only validated, that `kibi check` `symbol-coverage` on a method symbol whose test does not verify the scenario names `verified_by(SCEN-…, TEST-…)`, and that an invalid test status lists only the test values.
