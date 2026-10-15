@@ -215,6 +215,24 @@ describe("ingestion-boundary remaining inventory and grounding branches", () => 
           to: "FACT-MISSING",
         },
       ]),
+    ).rejects.toThrow(
+      "logical grounding target 'FACT-MISSING' does not exist yet. Write the fact first",
+    );
+
+    const keyless: Pick<PrologPort, "query"> = {
+      query: async (goal: string) => ({
+        success: !goal.includes("claim_key"),
+        bindings: {},
+      }),
+    };
+    await expect(
+      assertLogicalGroundingClaimKeys(keyless as PrologPort, payload, [
+        {
+          type: "requires_predicate",
+          from: "REQ-INGEST",
+          to: "FACT-KEYLESS",
+        },
+      ]),
     ).rejects.toThrow("must declare a claim_key");
 
     const duplicate: Pick<PrologPort, "query"> = {

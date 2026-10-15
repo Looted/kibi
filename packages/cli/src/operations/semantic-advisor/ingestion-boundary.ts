@@ -335,13 +335,17 @@ function plannedClaimKey(planned: Readonly<Record<string, unknown>>): string {
   return planned.type === "fact" ? stringValue(planned.claim_key) : "";
 }
 
+function missingGroundingFactError(target: string): string {
+  return `Proposition-complete ingestion failed: logical grounding target '${target}' does not exist yet. Write the fact first: the kb_compile_intent plan has an earlier fact step for '${target}' that carries its claim_key; run that step before this one, or apply the whole plan with kb_apply_plan.`;
+}
+
 function groundingClaimKeyError(
   modeledClaimKeys: readonly string[],
   grounded: readonly (readonly [target: string, claimKey: string])[],
 ): string | null {
   const missing = grounded.find(([, claimKey]) => !claimKey);
   if (missing)
-    return `Proposition-complete ingestion failed: logical grounding target '${missing[0]}' must declare a claim_key.`;
+    return `Proposition-complete ingestion failed: logical grounding target '${missing[0]}' must declare a claim_key: it is a fact without the claim_key of the claim it grounds. Set the claim_key the kb_compile_intent plan's fact step gives it.`;
   const groundedClaimKeys = grounded.map(([, claimKey]) => claimKey);
   const duplicate = groundedClaimKeys.find(
     (claimKey, index) => groundedClaimKeys.indexOf(claimKey) !== index,
@@ -435,6 +439,15 @@ export async function assertLogicalGroundingClaimKeys(
       claimKey = result.success
         ? stringValue(result.bindings.ClaimKey).replace(/^['"]|['"]$/g, "")
         : "";
+      // implements REQ-kibi-symbol-link-guidance
+      // A target that is not stored yet is a skipped plan step, not a fact
+      // missing its key: say which step to run first.
+      if (
+        !claimKey &&
+        !(await prolog.query(`once(kb_entity('${escapeAtom(target)}', _, _))`))
+          .success
+      )
+        throw new Error(missingGroundingFactError(target));
     }
     grounded.push([target, claimKey]);
     // The first target without a claim_key is reported; later reads are moot.

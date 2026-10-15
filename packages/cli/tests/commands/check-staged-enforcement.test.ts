@@ -785,7 +785,10 @@ links:
       expect(rejected.status).toBe(1);
       expect(rejectedOutput).toContain("[symbol-coverage] SYM-BEHAVIOR-001");
       expect(rejectedOutput).toContain(
-        "Production symbol lacks qualifying requirement coverage.",
+        "Production symbol lacks qualifying requirement coverage: SYM-BEHAVIOR-001 is covered_by TEST-BEHAVIOR-001, but TEST-BEHAVIOR-001 does not verify REQ-BEHAVIOR-001, which SYM-BEHAVIOR-001 implements.",
+      );
+      expect(rejectedOutput).toContain(
+        "Add verified_by(SCEN-BEHAVIOR-001, TEST-BEHAVIOR-001) (REQ-BEHAVIOR-001 is specified_by SCEN-BEHAVIOR-001)",
       );
 
       // The scenario-backed path satisfies the rule in both checks.

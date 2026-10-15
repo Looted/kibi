@@ -2188,6 +2188,70 @@ describe("MCP Check Tool Handler", () => {
     expect(violation?.suggestion).toMatch(
       /scenario|specified_by|scenario_path/i,
     );
+    // The symbol already has covered_by: the finding names the missing link.
+    expect(violation?.description).toContain(
+      "symbol-direct-blocked-001 is covered_by test-direct-blocked-001, but test-direct-blocked-001 does not verify req-direct-blocked-001, which symbol-direct-blocked-001 implements.",
+    );
+    expect(violation?.suggestion).toContain(
+      "Add verified_by(scenario-direct-blocked-001, test-direct-blocked-001) (req-direct-blocked-001 is specified_by scenario-direct-blocked-001)",
+    );
+    expect(violation?.suggestion).toContain(
+      "Direct verified_by(req,test) does not count while the requirement has a scenario.",
+    );
+    expect(violation?.suggestion).not.toContain("Add 'covered_by");
+  }, 15000);
+
+  test("names the missing verified_by link for a covered symbol without a scenario", async () => {
+    await handleKbUpsert(prolog, {
+      type: "test",
+      id: "test-unlinked-001",
+      properties: {
+        title: "Unlinked unit test",
+        status: "passing",
+        source: "test://coverage-unlinked",
+      },
+    });
+    await handleKbUpsert(prolog, {
+      type: "req",
+      id: "req-unlinked-001",
+      properties: {
+        title: "Requirement without scenario",
+        status: "open",
+        source: "test://coverage-unlinked",
+      },
+    });
+    await handleKbUpsert(prolog, {
+      type: "symbol",
+      id: "symbol-unlinked-001",
+      properties: {
+        title: "Unlinked symbol",
+        status: "active",
+        source: "test://coverage-unlinked",
+      },
+      relationships: [
+        {
+          type: "implements",
+          from: "symbol-unlinked-001",
+          to: "req-unlinked-001",
+        },
+        {
+          type: "covered_by",
+          from: "symbol-unlinked-001",
+          to: "test-unlinked-001",
+        },
+      ],
+    });
+
+    const result = await handleKbCheck(prolog, { rules: ["symbol-coverage"] });
+    const violation = result.structuredContent?.violations.find(
+      (v: Violation) => v.entityId === "symbol-unlinked-001",
+    );
+    expect(violation?.description).toContain(
+      "symbol-unlinked-001 is covered_by test-unlinked-001, but test-unlinked-001 does not verify req-unlinked-001",
+    );
+    expect(violation?.suggestion).toContain(
+      "Add verified_by(req-unlinked-001, test-unlinked-001) (req-unlinked-001 has no scenario, so the direct link counts)",
+    );
   }, 15000);
 
   test("passes symbol-coverage with verified_by from scenario to test (scenario path)", async () => {

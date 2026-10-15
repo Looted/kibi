@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 227,
-  "proofProven": 227,
+  "currentRequirements": 228,
+  "proofProven": 228,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -1137,6 +1137,11 @@
       "uncoveredSymbols": []
     },
     "REQ-kibi-contradiction-review-candidates": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-symbol-link-guidance": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []

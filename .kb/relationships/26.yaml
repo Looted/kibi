@@ -216,6 +216,20 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-77a4c829592a
+  - type: implements
+    from: SYM-assert-logical-grounding-claim-keys
+    to: REQ-kibi-symbol-link-guidance
+    created_at: 2026-10-15T16:01:09.014Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ff024d823117
+  - type: covered_by
+    from: SYM-assert-logical-grounding-claim-keys
+    to: TEST-cli-symbol-link-guidance
+    created_at: 2026-10-15T16:01:09.040Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-824e5362db9a
   - type: executable_for
     from: SYM-test-kibi-contradiction-review-cli
     to: TEST-kibi-contradiction-review-cli

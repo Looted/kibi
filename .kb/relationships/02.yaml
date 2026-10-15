@@ -209,3 +209,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f3a3a06a54b7
+  - type: implements
+    from: SYM-validateUpsertInput
+    to: REQ-kibi-symbol-link-guidance
+    created_at: 2026-10-15T16:01:13.685Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6853dda87418
+  - type: covered_by
+    from: SYM-validateUpsertInput
+    to: TEST-cli-symbol-link-guidance
+    created_at: 2026-10-15T16:01:13.703Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-95957ed78f7a

@@ -24481,6 +24481,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-cli-symbol-link-guidance
+      - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-logical-requirement-coverage
@@ -24494,6 +24496,8 @@ symbols:
         target: REQ-kibi-logical-requirement-coverage
       - type: implements
         target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-symbol-link-guidance
       - type: implements
         target: REQ-upsert-unknown-field-guidance
   - id: SYM-ValidateUpsertResult
@@ -26225,9 +26229,13 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-cli-symbol-link-guidance
+      - type: covered_by
         target: TEST-kibi-proposition-complete-ingestion
       - type: implements
         target: REQ-kibi-proposition-complete-ingestion
+      - type: implements
+        target: REQ-kibi-symbol-link-guidance
   - id: SYM-effective-requirement-relationships
     title: effectiveRelationships
     sourceFile: packages/cli/src/operations/mutation/upsert.ts
@@ -28099,11 +28107,15 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-cli-symbol-link-guidance
+      - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
       - type: implements
         target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-symbol-link-guidance
   - id: SYM-auto-C85F63A91619
     title: operationData
     status: active
@@ -29466,6 +29478,8 @@ symbols:
       - type: covered_by
         target: TEST-cli-symbol-behavioral-anchors
       - type: covered_by
+        target: TEST-cli-symbol-link-guidance
+      - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
@@ -29475,6 +29489,8 @@ symbols:
         target: TEST-mcp-upsert-symbol-behavioral-anchors
       - type: implements
         target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-symbol-link-guidance
       - type: implements
         target: REQ-symbol-behavioral-anchors
   - id: SYM-isSupportedLegacyBranchMigration
@@ -53642,9 +53658,13 @@ symbols:
       recorded_at: 2026-10-14T10:14:39.483Z
     relationships:
       - type: covered_by
+        target: TEST-cli-symbol-link-guidance
+      - type: covered_by
         target: TEST-kibi-truthful-consistency
       - type: covered_by
         target: TEST-kibi-uncompiled-source-visibility
+      - type: implements
+        target: REQ-kibi-symbol-link-guidance
       - type: implements
         target: REQ-kibi-truthful-consistency
       - type: implements
@@ -55324,3 +55344,28 @@ symbols:
         target: TEST-kibi-contradiction-review-cli
       - type: implements
         target: REQ-kibi-contradiction-review-candidates
+  - id: SYM-test-cli-symbol-link-guidance
+    title: Symbol link guidance CLI suite
+    status: active
+    sourceFile: packages/cli/tests/commands/symbol-link-guidance.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-10-15T15:56:35.389Z
+    relationships:
+      - type: executable_for
+        target: TEST-cli-symbol-link-guidance
+  - id: SYM-core-symbol-coverage-message
+    title: symbol_coverage_message
+    status: active
+    sourceFile: packages/core/src/checks.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-10-15T16:01:18.085Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-symbol-link-guidance
+      - type: implements
+        target: REQ-kibi-symbol-link-guidance

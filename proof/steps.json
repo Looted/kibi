@@ -2662,5 +2662,17 @@
         "./packages/cli/tests/consumer/contradiction-review.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-cli-symbol-link-guidance",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/cli/tests/commands/symbol-link-guidance.test.ts"
+      ]
+    ]
   }
 ]

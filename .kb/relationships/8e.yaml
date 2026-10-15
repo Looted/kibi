@@ -356,3 +356,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-37518245f814
+  - type: executable_for
+    from: SYM-test-cli-symbol-link-guidance
+    to: TEST-cli-symbol-link-guidance
+    created_at: 2026-10-15T15:56:36.510Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-144e3d70851d

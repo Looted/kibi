@@ -214,11 +214,96 @@ check_changed_symbol_coverage(ExtraSymbols, Violations) :-
 symbol_coverage_violation(SymbolId, violation(
     'symbol-coverage',
     SymbolId,
-    "Production symbol lacks qualifying requirement coverage.",
-    "Add 'covered_by: TEST-<area>-<behavior>' for production coverage. If the requirement has specified_by a scenario, use verified_by(scenario,test) or validates(test,scenario). Direct verified_by(req,test) does not count when a scenario exists.",
+    Description,
+    Suggestion,
     Source
 )) :-
+    symbol_coverage_message(SymbolId, Description, Suggestion),
     violation_source(SymbolId, symbol, Source).
+
+%% symbol_coverage_message(+SymbolId, -Description, -Suggestion)
+% A symbol with no covered_by gets the generic advice. A symbol that already
+% has covered_by is missing a different link: none of its tests verifies a
+% requirement, so the message names the tests, the requirement the symbol
+% implements and the relationship that would connect them.
+% implements REQ-kibi-symbol-link-guidance
+symbol_coverage_message(SymbolId, Description, Suggestion) :-
+    findall(Test, kb_relationship(covered_by, SymbolId, Test), Tests0),
+    sort(Tests0, Tests),
+    Tests = [Test|_],
+    !,
+    findall(Req,
+            ( kb_relationship(implements, SymbolId, Req),
+              kb_entity(Req, req, _)
+            ),
+            Reqs0),
+    sort(Reqs0, Reqs),
+    coverage_id_list(Tests, TestList),
+    coverage_id_text(SymbolId, Symbol),
+    (   Reqs = [Req|_]
+    ->  coverage_id_list(Reqs, ReqList),
+        (   Tests = [_]
+        ->  format(string(Description),
+                   "Production symbol lacks qualifying requirement coverage: ~w is covered_by ~w, but ~w does not verify ~w, which ~w implements.",
+                   [Symbol, TestList, TestList, ReqList, Symbol])
+        ;   format(string(Description),
+                   "Production symbol lacks qualifying requirement coverage: ~w is covered_by ~w, but none of them verifies ~w, which ~w implements.",
+                   [Symbol, TestList, ReqList, Symbol])
+        ),
+        covered_symbol_link_suggestion(Req, Test, Suggestion)
+    ;   format(string(Description),
+               "Production symbol lacks qualifying requirement coverage: ~w is covered_by ~w, but ~w implements no requirement and none of its tests verifies one.",
+               [Symbol, TestList, Symbol]),
+        coverage_id_text(Test, TestText),
+        format(string(Suggestion),
+               "Add implements(~w, REQ-...) for the requirement this symbol owns, then connect ~w to it: verified_by(SCEN-..., ~w) through the requirement's scenario, or verified_by(REQ-..., ~w) when the requirement has no scenario.",
+               [Symbol, TestText, TestText, TestText])
+    ).
+symbol_coverage_message(_SymbolId,
+    "Production symbol lacks qualifying requirement coverage.",
+    "Add 'covered_by: TEST-<area>-<behavior>' for production coverage. If the requirement has specified_by a scenario, use verified_by(scenario,test) or validates(test,scenario). Direct verified_by(req,test) does not count when a scenario exists.").
+
+%% covered_symbol_link_suggestion(+Req, +Test, -Suggestion)
+% The one relationship that would let Test cover Req, following the same
+% paths test_covers_requirement/2 accepts.
+covered_symbol_link_suggestion(Req, Test, Suggestion) :-
+    coverage_id_text(Req, ReqText),
+    coverage_id_text(Test, TestText),
+    findall(Scenario, kb_relationship(specified_by, Req, Scenario), Scenarios0),
+    sort(Scenarios0, Scenarios),
+    (   ( Scenarios == [],
+          ( kb_relationship(verified_by, Req, Test)
+          ; kb_relationship(validates, Test, Req)
+          )
+        ; member(Scenario, Scenarios),
+          scenario_verified_by_test(Scenario, Test)
+        )
+    ->  format(string(Suggestion),
+               "~w is linked to ~w, but its verification_scope or verification_perspective does not match what ~w requires; set those test fields to the required values.",
+               [TestText, ReqText, ReqText])
+    ;   Scenarios = [Scenario|_]
+    ->  coverage_id_text(Scenario, ScenarioText),
+        coverage_id_list(Scenarios, ScenarioList),
+        (   ( kb_relationship(verified_by, Req, Test)
+            ; kb_relationship(validates, Test, Req)
+            )
+        ->  Direct = " Direct verified_by(req,test) does not count while the requirement has a scenario."
+        ;   Direct = ""
+        ),
+        format(string(Suggestion),
+               "Add verified_by(~w, ~w) (~w is specified_by ~w), or validates(~w, ~w).~w",
+               [ScenarioText, TestText, ReqText, ScenarioList, TestText, ScenarioText, Direct])
+    ;   format(string(Suggestion),
+               "Add verified_by(~w, ~w) (~w has no scenario, so the direct link counts), or specify it with a scenario that ~w verifies.",
+               [ReqText, TestText, ReqText, TestText])
+    ).
+
+coverage_id_text(Id, Text) :-
+    normalize_term_atom(Id, Text).
+
+coverage_id_list(Ids, Text) :-
+    maplist(coverage_id_text, Ids, Texts),
+    atomic_list_concat(Texts, ', ', Text).
 
 %% check_symbol_traceability(+RequireAdr, -Violations)
 % Finds all symbols lacking direct requirement ownership:
